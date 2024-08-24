@@ -1,0 +1,15 @@
+{
+  "minVersion": "0.6",
+  "compatibilityLevel": "JAVA_8",
+  "package": "NoammAddons.mixins",
+  "refmap": "mixins.${modid}.refmap.json",
+  "client": [
+    "MixinEntityRenderer",
+    "MixinGuiContainer",
+    "MixinInventoryEffectRenderer",
+    "MixinMinecraft",
+    "MixinNetworkManager",
+    "MixinPatcherEntityCulling",
+    "MixinRendererLivingEntity"
+  ]
+}
