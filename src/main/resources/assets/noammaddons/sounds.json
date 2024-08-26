@@ -1,0 +1,27 @@
+{
+  "chipi_chapa": {
+    "sounds": [
+        "chipi_chapa"
+    ]
+  },
+  "ihavenothing": {
+    "sounds": [
+        "ihavenothing"
+    ]
+  },
+  "mariolikesound": {
+    "sounds": [
+        "mariolikesound"
+    ]
+  },
+  "notificationsound": {
+    "sounds": [
+        "notificationsound"
+    ]
+  },
+  "potispow": {
+    "sounds": [
+        "potispow"
+    ]
+  }
+}

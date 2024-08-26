@@ -185,3 +185,16 @@ gradle-app.setting
 *.hprof
 
 # End of https://www.toptal.com/developers/gitignore/api/forgegradle,gradle,java,kotlin,intellij
+/.github
+/.idea
+/.mixin.out
+/config
+/crash-reports
+/essential
+/logs
+/OneConfig
+options.txt
+/saves
+/screenshots
+usercache.json
+usernamecache.json
