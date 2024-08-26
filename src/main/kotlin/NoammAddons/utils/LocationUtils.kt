@@ -1,19 +1,16 @@
 package NoammAddons.utils
 
-import net.minecraft.network.play.server.S02PacketChat
-import net.minecraft.util.StringUtils
-import net.minecraftforge.event.world.WorldEvent
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent
-import net.minecraftforge.fml.common.network.FMLNetworkEvent
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
-import NoammAddons.events.ReceivePacketEvent
 import NoammAddons.utils.MathUtils.isCoordinateInsideBox
 import NoammAddons.utils.ScoreboardUtils.sidebarLines
 import NoammAddons.utils.TablistUtils.getTablistText
 import net.minecraft.util.StringUtils.stripControlCodes
 import net.minecraft.util.Vec3
+import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent
+import net.minecraftforge.fml.common.network.FMLNetworkEvent
 
 object LocationUtils {
     var onHypixel = false
@@ -37,7 +34,7 @@ object LocationUtils {
             inSkyblock = true
             inDungeons = true
             dungeonFloor = 7
-            F7Phase = 2
+            F7Phase = 5
             P3Section = 1
             inBoss = true
         }
@@ -87,16 +84,16 @@ object LocationUtils {
     fun onWorldTick(event: TickEvent.WorldTickEvent) {
         if (event.phase != TickEvent.Phase.START || !inSkyblock || !inDungeons) return
         if (!config.forceSkyblock) {
+            inBoss = this.isInBossRoom()
             F7Phase = this.getPhase() ?: 1
             P3Section = this.getP3Section() ?: 1
-            inBoss = this.isInBossRoom()
             WorldName = this.getCurrentWorld()
         }
     }
 
 
     private fun getPhase(): Int? {
-        if (dungeonFloor != 7) return null
+        if (dungeonFloor != 7 && !inBoss) return null
 
         val player = mc.thePlayer ?: return null
         val corner1 = Vec3(-8.0, 254.0, 147.0)
@@ -117,7 +114,6 @@ object LocationUtils {
 
         return inPhase
     }
-
 
     private val P3Sections = listOf(
         Pair(Vec3(90.0, 158.0, 123.0), Vec3(111.0, 105.0, 32.0)), // 1
@@ -140,7 +136,6 @@ object LocationUtils {
 
         return 1
     }
-
 
     private val bossRoomCorners = mapOf(
         "7" to Pair(Vec3(-8.0, 0.0, -8.0), Vec3(134.0, 254.0, 147.0)),

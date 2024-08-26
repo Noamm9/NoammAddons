@@ -1,36 +1,26 @@
 package NoammAddons.utils
 
-import gg.essential.universal.UChat
-import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.StringUtils
 import NoammAddons.NoammAddons.Companion.CHAT_PREFIX
 import NoammAddons.NoammAddons.Companion.mc
+import gg.essential.universal.UChat
 import kotlin.math.absoluteValue
-import kotlin.math.round
 import kotlin.math.sign
 
+object ChatUtils {
+    fun getChatBreak(separator: String = "-"): String? {
+        val len = mc.fontRendererObj.getStringWidth(separator)
+        val times = mc.ingameGUI?.chatGUI?.chatWidth?.div(len)
 
-object Utils {
+        return times?.let { "-".repeat(it) }
+    }
+
     fun Any?.equalsOneOf(vararg other: Any): Boolean = other.any { this == it }
 
-    fun String.removeFormatting(): String = StringUtils.stripControlCodes(this)
+    fun String.removeFormatting(): String = this.replace("[\u00a7&][0-9a-fk-or]".toRegex(), "")
 
-    val ItemStack.itemID: String
-        get() = this.getSubCompound("ExtraAttributes", false)?.getString("id") ?: ""
+    fun String.addColor(): String = this.replace("(?<!\\\\)&(?![^0-9a-fk-or]|$)".toRegex(), "\u00a7")
 
-    val ItemStack.lore: List<String>
-        get() = this.tagCompound?.getCompoundTag("display")?.getTagList("Lore", 8)?.let {
-            val list = mutableListOf<String>()
-            for (i in 0 until it.tagCount()) {
-                list.add(it.getStringTagAt(i))
-            }
-            list
-        } ?: emptyList()
-
-    fun ModMessage(message: String) = UChat.chat("$CHAT_PREFIX $message")
+    fun modMessage(message: Any) = UChat.chat("$CHAT_PREFIX $message")
 
     fun Double.toFixed(digits: Int) = "%.${digits}f".format(this)
 
@@ -63,4 +53,9 @@ object Utils {
 
         return result.toString()
     }
+
+    fun showTitle(title: String?, subtitle: String? = null, time: Int = 3000) {
+        mc.ingameGUI.displayTitle(title?.addColor(), subtitle, 50, time, 100)
+    }
+
 }

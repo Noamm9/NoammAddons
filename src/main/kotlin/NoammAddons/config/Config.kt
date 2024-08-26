@@ -1,7 +1,7 @@
 package NoammAddons.config
 
-import NoammAddons.NoammAddons.Companion.mc
-import NoammAddons.features.Cosmetics.CustomFov
+import NoammAddons.features.Alerts.EnergyCrystal
+import NoammAddons.features.Alerts.RNGSound
 import gg.essential.vigilance.Vigilant
 import gg.essential.vigilance.data.Category
 import gg.essential.vigilance.data.Property
@@ -10,20 +10,11 @@ import gg.essential.vigilance.data.SortingBehavior
 import java.awt.Color
 import java.io.File
 import java.util.function.Consumer
-import kotlin.math.absoluteValue
 
 
 object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons", sortingBehavior = Sorting) {
 
-    @Property(
-        type = PropertyType.SWITCH,
-        name = "Blood Ready Notify",
-        description = "Notification when the watcher has finished spawning mobs.",
-        category = "Dungeons",
-        subcategory = "General"
-    )
-    var bloodReadyNotify = false
-
+    // Dungeons
     @Property(
         type = PropertyType.SWITCH,
         name = "Auto Show Extra Stats",
@@ -58,15 +49,6 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons"
 
     @Property(
         type = PropertyType.SWITCH,
-        name = "M7 Ghost Block",
-        description = "Automatically creates ghost blocks to go to P5 from P4 on M7.",
-        category = "Dungeons",
-        subcategory = "F7"
-    )
-    var m7p5Ghost = false
-
-    @Property(
-        type = PropertyType.SWITCH,
         name = "Livid Finder",
         category = "Dungeons",
         subcategory = "Render"
@@ -98,13 +80,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons"
     var showStealthy = false
 
 
-
-
-
-
-
-
-
+    // ESP
     @Property(
         type = PropertyType.SELECTOR,
         name = "ESP Type",
@@ -321,13 +297,63 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons"
     var espColorStarMobs = Color(255, 255, 0)
 
 
+    // Alerts
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Blood Ready Notify",
+        description = "Notification when the watcher has finished spawning mobs.",
+        category = "Alerts",
+        subcategory = "Dungeons"
+    )
+    var bloodReadyNotify = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Place Energy Crystal Alert",
+        description = "Alerts when you have an unplaced energy crystal in your inventory.",
+        category = "Alerts",
+        subcategory = "Dungeons"
+    )
+    var energyCrystalAlert = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Full Thunder In A Bottle Alert",
+        description = "Alerts when your Thunder In A Bottle finish charging.",
+        category = "Alerts",
+        subcategory = "Dungeons"
+    )
+    var FullThunderBottleAlert = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "No Thunder In A Bottle Alert",
+        description = "Alerts when you enter F7 or M7 without an Empty Thunder Bottle.",
+        category = "Alerts",
+        subcategory = "Dungeons"
+    )
+    var NoThunderBottleAlert = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "M7 Ragnarock Axe Alert",
+        description = "Shows on screen when to use Ragnarock Axe before P5 starts",
+        category = "Alerts",
+        subcategory = "Dungeons"
+    )
+    var M7P5RagAxe = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "§aRNG §5Meter §aReset Alert",
+        description = "§fShows on screen when the §aRNG §5Meter§f Resets\n§b§lAlso Plays Really cool intro music",
+        category = "Alerts",
+        subcategory = "Dungeons"
+    )
+    var RNGSound = false
 
 
-
-
-
-
-
+    // GUI
     @Property(
         type = PropertyType.SWITCH,
         name = "Highlight Salvageable Items",
@@ -353,12 +379,6 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons"
         subcategory = "Inventory"
     )
     var overlayColorTopSalvageable = Color(106, 255, 106, 170)
-
-
-
-
-
-
 
 
     @Property(
@@ -406,12 +426,12 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons"
         category = "Cosmetic",
         subcategory = "Block Overlay"
     )
-    var BlockOverlayOverlayColor = Color(0, 114,255, 75)
+    var BlockOverlayOverlayColor = Color(0, 114, 255, 75)
 
     @Property(
         type = PropertyType.CHECKBOX,
         name = "Show Through Blocks?",
-        description =  "Whether to Enable or Disable Depth Checking.",
+        description = "Whether to Enable or Disable Depth Checking.",
         category = "Cosmetic",
         subcategory = "Block Overlay"
     )
@@ -422,7 +442,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons"
         type = PropertyType.SWITCH,
         name = "Player Scale",
         description = "Allows to dynamically adjust the size of the player character's scale from the default 100% down to 30%." +
-                    "\n\n §dNow you can match your IRL Height ❤.",
+                "\n\n §dNow you can match your IRL Height ❤.",
         category = "Cosmetic",
         subcategory = "Player"
     )
@@ -472,16 +492,6 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons"
         ]
     )
     var TimeChangerMode = 0
-
-
-    @Property(
-        type = PropertyType.SWITCH,
-        name = "No Clear Sight",
-        description = "Disables clear sight.",
-        category = "Cosmetic",
-        subcategory = "Clear Sight"
-    )
-    var antiClearSight = false
 
 
     @Property(
@@ -578,7 +588,6 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons"
     var hideFallingBlocks = false
 
 
-
     @Property(
         type = PropertyType.SWITCH,
         name = "Force Skyblock",
@@ -588,17 +597,44 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons"
     var forceSkyblock = false
 
 
-
     init {
         setCategoryDescription(
             "ESP",
             "Disable Optifine fast render and Patcher entity culling."
         )
 
+
+        /*
+
+                // Cosmetics
+                listOf(
+                    "Block Overlay Type",
+                    "Outline Thickness",
+                    "Outline Color",
+                    "Overlay Color",
+                    "Show Through Blocks?",
+                ).forEach { addDependency(it, "Block Overlay") }
+
+                listOf(
+                    "Player Scale On Everyone?",
+                    "Custom Scale",
+                ).forEach { addDependency(it, "Player Scale") }
+
+
+                addDependency("Time Changer Mode", "Time Changer")
+                addDependency("FOV Value", "CustomFov")
+
+
+
+        */
+
+
+
         addDependency("espColorLivid", "lividFinder")
         addDependency("espColorBats", "espBats")
         addDependency("espColorFels", "espFels")
         addDependency("espColorShadowAssassin", "espShadowAssassin")
+
         listOf(
             "espColorUnstable",
             "espColorYoung",
@@ -609,13 +645,16 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons"
         ).forEach(Consumer { s: String ->
             addDependency(s, "espSeperateMinibossColor")
         })
+
         listOf(
             "espColorStarMobs",
             "removeStarMobsNametag"
         ).forEach(Consumer { s: String ->
             addDependency(s, "espStarMobs")
         })
+
         addDependency("removeStarMobsNametag", "espStarMobs")
+
         listOf(
             "overlayColorSalvageable",
             "overlayColorTopSalvageable"
@@ -636,11 +675,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons"
     }
 
     private val configCategories = listOf(
-        "Dungeons", "Terminals", "GUI", "ESP", "Cosmetic", "Dev"
+        "Dungeons", "Terminals", "ESP", "Alerts", "GUI", "Cosmetic", "Dev"
     )
-
-    fun open() {
-        Config.gui()
-    }
 
 }

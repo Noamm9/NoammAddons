@@ -45,7 +45,7 @@ object IHATEDIORITE {
     fun onRightClick(event: ClickEvent.RightClickEvent) {
         if (mc.objectMouseOver == null) return
         if (mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            ModMessage(mc.objectMouseOver.blockPos.toString())
+            modMessage(mc.objectMouseOver.blockPos.toString())
         }
     }*/
 

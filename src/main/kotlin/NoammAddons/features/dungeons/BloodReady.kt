@@ -9,8 +9,8 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
 import NoammAddons.utils.LocationUtils.inDungeons
-import NoammAddons.utils.Utils.drawText
-import NoammAddons.utils.Utils.equalsOneOf
+import NoammAddons.utils.RenderUtils.drawText
+import NoammAddons.utils.ChatUtils.equalsOneOf
 
 object BloodReady {
 
@@ -37,9 +37,9 @@ object BloodReady {
         if (timer > System.currentTimeMillis()) {
             val sr = ScaledResolution(mc)
             drawText(
-                "§cBlood Spawned",
-                sr.scaledWidth / 2 - mc.fontRendererObj.getStringWidth("Blood Spawned") * 2,
-                sr.scaledHeight / 4,
+                "§1[§6§kO§r§1] §dB§bl§do§bo§dd §bD§dovbn§de §1[§6§kO§r§1]",
+                (sr.scaledWidth / 2 - mc.fontRendererObj.getStringWidth("Blood Spawned") * 2).toDouble(),
+                (sr.scaledHeight / 4).toDouble(),
                 4.0
             )
         }
@@ -47,6 +47,6 @@ object BloodReady {
 
     @SubscribeEvent
     fun onWorldLoad(event: WorldEvent.Load?) {
-        bloodReady = false
+        if (config.bloodReadyNotify) bloodReady = false
     }
 }

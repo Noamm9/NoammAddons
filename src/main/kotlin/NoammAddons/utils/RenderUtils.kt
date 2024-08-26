@@ -52,13 +52,13 @@ object RenderUtils {
         GlStateManager.color(c.red / 255f, c.green / 255f, c.blue / 255f, c.alpha / 255f * alphaMultiplier)
 
         // vertical
-        worldRenderer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION)
+        worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
         worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
         worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
         tessellator.draw()
-        worldRenderer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION)
+        worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
         worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
@@ -72,13 +72,13 @@ object RenderUtils {
         )
 
         // x
-        worldRenderer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION)
+        worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
         worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
         worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
         worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
         worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
         tessellator.draw()
-        worldRenderer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION)
+        worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
         worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
@@ -91,13 +91,13 @@ object RenderUtils {
             c.alpha / 255f * alphaMultiplier,
         )
         // z
-        worldRenderer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION)
+        worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
         worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
         worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
         tessellator.draw()
-        worldRenderer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION)
+        worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
         worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
@@ -156,7 +156,7 @@ object RenderUtils {
         preDraw()
 
         if (phase) {
-            GL11.glDisable(GL11.GL_DEPTH_TEST)
+            glDisable(GL_DEPTH_TEST)
             glDepthMask(false)
         }
 
@@ -177,12 +177,12 @@ object RenderUtils {
         if (fill) drawFilledAABB(axisAlignedBB, color)
 
         if (outline) {
-            GL11.glLineWidth(LineThickness)
+            glLineWidth(LineThickness)
             drawOutlinedAABB(axisAlignedBB, color)
         }
 
         if (phase) {
-            GL11.glEnable(GL11.GL_DEPTH_TEST)
+            glEnable(GL_DEPTH_TEST)
             glDepthMask(true)
         }
 
@@ -235,7 +235,7 @@ object RenderUtils {
         val width = mc.fontRendererObj.getStringWidth(text) / 2
         GlStateManager.pushMatrix()
         GlStateManager.translate(x, y, z)
-        GL11.glNormal3f(0f, 1f, 0f)
+        glNormal3f(0f, 1f, 0f)
 
         if (mc.gameSettings.thirdPersonView != 2) {
             GlStateManager.rotate(-renderManager.playerViewY, 0f, 1f, 0f)
@@ -252,7 +252,7 @@ object RenderUtils {
         GlStateManager.enableBlend()
         GlStateManager.disableLighting()
         if (phase) {
-            GL11.glDisable(GL11.GL_DEPTH_TEST)
+            glDisable(GL_DEPTH_TEST)
             glDepthMask(false)
         }
 
@@ -261,7 +261,7 @@ object RenderUtils {
         mc.fontRendererObj.drawString(text, (-width).toFloat(), 0f, Color.WHITE.rgb, shadow)
         GlStateManager.disableBlend()
         if (phase) {
-            GL11.glEnable(GL11.GL_DEPTH_TEST)
+            glEnable(GL_DEPTH_TEST)
             glDepthMask(true)
         }
         GlStateManager.popMatrix()
@@ -278,11 +278,11 @@ object RenderUtils {
         GlStateManager.disableTexture2D()
         GlStateManager.enableBlend()
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
-        GL11.glLineWidth(lineWidth.toFloat())
+        glLineWidth(lineWidth.toFloat())
 
         GlStateManager.translate(- renderManager.viewerPosX, - renderManager.viewerPosY, - renderManager.viewerPosZ)
 
-        worldRenderer.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION_COLOR)
+        worldRenderer.begin(GL_LINE_STRIP, DefaultVertexFormats.POSITION_COLOR)
         worldRenderer.pos(pos1.xCoord, pos1.yCoord, pos1.zCoord).color(red, green, blue, alpha).endVertex()
         worldRenderer.pos(pos2.xCoord, pos2.yCoord, pos2.zCoord).color(red, green, blue, alpha).endVertex()
         tessellator.draw()
@@ -301,7 +301,7 @@ object RenderUtils {
         this.draw3DLine(Vec3(x,y,z), pos, color, lineWidth)
     }
 
-    fun drawText(text: String, x: Int, y: Int, scale: Double = 1.0) {
+    fun drawText(text: String, x: Double, y: Double, scale: Double = 1.0) {
 
         GlStateManager.pushMatrix()
         GlStateManager.disableLighting()
@@ -310,7 +310,7 @@ object RenderUtils {
 
 
         GlStateManager.scale(scale, scale, scale)
-        var yOffset = y - mc.fontRendererObj.FONT_HEIGHT
+        var yOffset = y - (mc.fontRendererObj.FONT_HEIGHT) / 2
 
         if (text.contains("\n")) {
             text.split("\n").forEach {

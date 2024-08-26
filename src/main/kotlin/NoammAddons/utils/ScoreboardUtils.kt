@@ -2,7 +2,7 @@ package NoammAddons.utils
 
 import net.minecraft.scoreboard.ScorePlayerTeam
 import NoammAddons.NoammAddons.Companion.mc
-import NoammAddons.utils.Utils.removeFormatting
+import NoammAddons.utils.ChatUtils.removeFormatting
 
 object ScoreboardUtils {
     fun cleanSB(scoreboard: String): String = scoreboard.removeFormatting().filter { it.code in 32..126 }

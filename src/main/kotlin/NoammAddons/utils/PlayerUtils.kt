@@ -2,6 +2,8 @@ package NoammAddons.utils
 
 import NoammAddons.NoammAddons.Companion.mc
 import net.minecraft.client.Minecraft
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 
 object PlayerUtils {
     fun closeScreen() {

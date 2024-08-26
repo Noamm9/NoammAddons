@@ -18,7 +18,8 @@ import NoammAddons.events.RenderLivingEntityEvent
 import NoammAddons.utils.LocationUtils.dungeonFloor
 import NoammAddons.utils.OutlineUtils.outlineESP
 import NoammAddons.utils.RenderUtils.drawEntityBox
-import NoammAddons.utils.Utils.ModMessage
+import NoammAddons.utils.ChatUtils.modMessage
+import NoammAddons.utils.LocationUtils.inBoss
 
 object LividESP {
 
@@ -36,7 +37,6 @@ object LividESP {
     private var foundLivid = false
     private var livid: Entity? = null
     private var lividTag: Entity? = null
-    private var inBoss = false
     private var thread: Thread? = null
 
     @SubscribeEvent
@@ -59,14 +59,6 @@ object LividESP {
         }
     }
 
-    @SubscribeEvent
-    fun onChat(event: ClientChatReceivedEvent) {
-        if (!config.lividFinder || dungeonFloor != 5 || inBoss) return
-        val message = stripControlCodes(event.message.unformattedText)
-        if (message == "[BOSS] Livid: I respect you for making it to here, but I'll be your undoing.") {
-            inBoss = true
-        }
-    }
 
     @SubscribeEvent
     fun onTick(event: ClientTickEvent) {
@@ -96,7 +88,7 @@ object LividESP {
                                 EnumDyeColor.RED -> 'c'
                                 EnumDyeColor.WHITE -> 'f'
                                 else -> {
-                                    ModMessage("Error encountered during Livid Check with color:" + color.name)
+                                    modMessage("Error encountered during Livid Check with color:" + color.name)
                                     return@Thread
                                 }
                             }
@@ -112,7 +104,6 @@ object LividESP {
     fun onWorldChange(event: WorldEvent.Load?) {
         foundLivid = false
         livid = null
-        inBoss = false
     }
 
     private fun closestLivid(chatFormatting: Char): Entity? {

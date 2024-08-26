@@ -3,7 +3,7 @@ package NoammAddons.utils
 import NoammAddons.NoammAddons.Companion.mc
 import NoammAddons.utils.LocationUtils.inDungeons
 import NoammAddons.utils.TablistUtils.getTabList
-import NoammAddons.utils.Utils.removeFormatting
+import NoammAddons.utils.ChatUtils.removeFormatting
 import net.minecraft.client.network.NetworkPlayerInfo
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.ResourceLocation

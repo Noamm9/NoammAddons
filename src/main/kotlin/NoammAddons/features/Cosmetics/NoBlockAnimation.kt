@@ -4,11 +4,10 @@ import net.minecraft.item.ItemSword
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraftforge.event.entity.player.PlayerInteractEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
 import NoammAddons.utils.LocationUtils.inSkyblock
-import NoammAddons.utils.Utils.lore
+import NoammAddons.utils.ItemUtils.lore
 
 object NoBlockAnimation {
     @SubscribeEvent
