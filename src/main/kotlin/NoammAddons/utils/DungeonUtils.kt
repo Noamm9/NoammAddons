@@ -98,7 +98,7 @@ object DungeonUtils {
 
         dungeonTeammates = getDungeonTeammates(dungeonTeammates)
         dungeonTeammatesNoSelf = dungeonTeammates.filter { it.entity != mc.thePlayer }
-        leapTeammates = dungeonTeammatesNoSelf.sortedBy { it.name }.toMutableList()
+        leapTeammates = dungeonTeammatesNoSelf.sortedBy { it.clazz }.toMutableList()
 
         tickCount = 0
     }

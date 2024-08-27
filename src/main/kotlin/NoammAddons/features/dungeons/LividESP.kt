@@ -5,8 +5,6 @@ import net.minecraft.client.entity.EntityOtherPlayerMP
 import net.minecraft.entity.Entity
 import net.minecraft.item.EnumDyeColor
 import net.minecraft.util.BlockPos
-import net.minecraft.util.StringUtils.stripControlCodes
-import net.minecraftforge.client.event.ClientChatReceivedEvent
 import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent

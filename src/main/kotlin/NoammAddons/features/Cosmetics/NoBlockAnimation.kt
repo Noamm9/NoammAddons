@@ -19,7 +19,7 @@ object NoBlockAnimation {
 
             if (mc.thePlayer.heldItem.lore.any { it.contains("§6Ability: ") && it.endsWith("§e§lRIGHT CLICK") }) {
                 event.isCanceled = true
-                if (!mc.gameSettings.keyBindUseItem.isKeyDown) {
+                if (mc.gameSettings.keyBindUseItem.isKeyDown) {
                     mc.netHandler.addToSendQueue(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
                 }
             }

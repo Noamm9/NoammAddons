@@ -5,7 +5,7 @@ import net.minecraft.client.shader.Framebuffer
 import org.lwjgl.opengl.EXTFramebufferObject
 import org.lwjgl.opengl.EXTPackedDepthStencil
 import org.lwjgl.opengl.GL11.*
-import NoammAddons.NoammAddons.Companion.config
+//import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
 import NoammAddons.events.RenderLivingEntityEvent
 import java.awt.Color
@@ -52,7 +52,7 @@ object OutlineUtils {
         glDisable(GL_LIGHTING)
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glLineWidth(config.espOutlineWidth)
+        glLineWidth(/*config.espOutlineWidth*/ 5f)
         glEnable(GL_LINE_SMOOTH)
         glEnable(GL_STENCIL_TEST)
         glClear(GL_STENCIL_BUFFER_BIT)

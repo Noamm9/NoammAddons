@@ -1,5 +1,6 @@
 package NoammAddons.mixins;
 
+import NoammAddons.features.General.ScalableTooltips;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
@@ -29,5 +30,10 @@ public class MixinGuiContainer {
     private void onMouseClick(Slot slot, int slotId, int clickedButton, int clickType, CallbackInfo ci) {
         if (MinecraftForge.EVENT_BUS.post(new GuiContainerEvent.SlotClickEvent(inventorySlots, gui, slot, slotId)))
             ci.cancel();
+    }
+
+    @Inject(method = "onGuiClosed", at = @At("HEAD"))
+    private void onGuiClosed(CallbackInfo ci) {
+        ScalableTooltips.INSTANCE.resetPos();
     }
 }

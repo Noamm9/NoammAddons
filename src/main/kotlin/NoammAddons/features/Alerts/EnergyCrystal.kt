@@ -17,10 +17,9 @@ object EnergyCrystal {
 
     @SubscribeEvent
     fun checkINV(event: ServerTickEvent) {
-        if (LocationUtils.F7Phase == 1 && mc.thePlayer != null && config.energyCrystalAlert) {
-            showEnergyCrystal =
-                mc.thePlayer.inventory.mainInventory?.get(8)?.displayName?.removeFormatting() == "Energy Crystal"
-        } else showEnergyCrystal = false
+        showEnergyCrystal = if (LocationUtils.F7Phase == 1 && mc.thePlayer != null && config.energyCrystalAlert) {
+            mc.thePlayer?.inventory?.mainInventory?.get(8)?.displayName?.removeFormatting() == "Energy Crystal"
+        } else false
     }
 
     @SubscribeEvent

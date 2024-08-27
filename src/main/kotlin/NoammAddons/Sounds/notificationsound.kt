@@ -5,8 +5,9 @@ import NoammAddons.NoammAddons.Companion.mc
 import net.minecraft.client.audio.PositionedSoundRecord
 import net.minecraft.util.ResourceLocation
 
+
 object notificationsound {
-    private val notificationsound = ResourceLocation(MOD_ID, "notification")
+    private val notificationsound = ResourceLocation(MOD_ID, "notificationsound")
 
     fun play() {
         mc.soundHandler.playSound(PositionedSoundRecord.create(notificationsound))

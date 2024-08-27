@@ -198,3 +198,7 @@ options.txt
 /screenshots
 usercache.json
 usernamecache.json
+/.vscode
+servers.dat
+servers.essential.dat
+/.vscode

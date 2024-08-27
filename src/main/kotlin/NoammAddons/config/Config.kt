@@ -14,19 +14,45 @@ import java.util.function.Consumer
 
 object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons", sortingBehavior = Sorting) {
 
+    // General
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Scaleable Tooltips",
+        description = "Allows you to scale the size of the item tooltips and move them around your screen.\n\n" +
+                "Scroll Wheel: Scrolls vertically \n" +
+                "Left Shift + Scroll Wheel: Scrolls horizontally.\n" +
+                "Left Control + Scroll Wheel: Adjusts the scale.\n" +
+                "Space Bar: Resets the position and the scale to the default.",
+        category = "General",
+        subcategory = "Tooltips"
+    )
+    var ScalableTooltips = false
+
+    @Property(
+        type = PropertyType.PERCENT_SLIDER,
+        name = "Tooltips Scale",
+        description = "What should be the base scaling value of the tooltips",
+        category = "General",
+        subcategory = "Tooltips"
+    )
+    var ScalableTooltipsScale = 1f
+
+
     // Dungeons
     @Property(
         type = PropertyType.SWITCH,
         name = "Auto Show Extra Stats",
         category = "Dungeons",
         subcategory = "General"
+
     )
     var showExtraStats = false
 
     @Property(
         type = PropertyType.SWITCH,
         name = "Auto Close Secrets Chest",
-        category = "Dungeons"
+        category = "Dungeons" ,
+        subcategory = "Secrets"
     )
     var autoCloseSecretChests = false
 
@@ -49,7 +75,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons"
 
     @Property(
         type = PropertyType.SWITCH,
-        name = "Livid Finder",
+        name = "Livid Solver",
         category = "Dungeons",
         subcategory = "Render"
     )
@@ -88,14 +114,14 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons"
         options = ["Outline", "Box"]
     )
     var espType = 0
-
+/*
     @Property(
         type = PropertyType.DECIMAL_SLIDER,
         name = "OutlineESP Width",
         category = "ESP",
         maxF = 10f
     )
-    var espOutlineWidth = 1f
+    var espOutlineWidth = 1f*/
 
     @Property(
         type = PropertyType.PERCENT_SLIDER,
@@ -184,7 +210,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons"
         subcategory = "Dungeon ESP Colors",
         allowAlpha = false
     )
-    var espColorLivid = Color(85, 255, 255)
+    var espColorLivid = Color(255, 20, 20)
 
     @Property(
         type = PropertyType.COLOR,
@@ -345,12 +371,51 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons"
 
     @Property(
         type = PropertyType.SWITCH,
-        name = "§aRNG §5Meter §aReset Alert",
-        description = "§fShows on screen when the §aRNG §5Meter§f Resets\n§b§lAlso Plays Really cool intro music",
+        name = "RNG Meter Reset Alert",
+        description = "Shows on screen when the RNG Meter Resets\n§b§lAlso Plays Really cool intro music",
         category = "Alerts",
         subcategory = "Dungeons"
     )
     var RNGSound = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Sold AH Notification",
+        description = "Plays A sound when an item on your AH sold",
+        category = "Alerts",
+        subcategory = "General"
+    )
+    var SoldAHNotification = false
+
+    /*
+
+.addSwitch({
+    title: "§9Bonzo Mask§f Alert",
+    description: "\n§fShows on screen when the §9Bonzo Mask §6Ability§f has been used",
+    category: "Alerts",
+    subcategory: "",
+    configName: "BonzoMaskAlert",
+})
+.addSwitch({
+    title: "Spirit Mask Alert",
+    description: "\n§fShows on screen when the §fSpirit Mask §6Ability§f has been used",
+    category: "Alerts",
+    subcategory: "",
+    configName: "SpiritMaskAlert",
+})
+.addSwitch({
+    title: "§5Phoenix Pet Alert",
+    description: "\n§fShows on screen when the §5Phoenix Pet §6Ability§f has been used",
+    category: "Alerts",
+    subcategory: "",
+    configName: "PhoenixPetAlert",
+})
+     */
+
+
+
+
+
 
 
     // GUI
@@ -424,7 +489,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons"
         name = "Overlay Color",
         description = "The color of the Overlay",
         category = "Cosmetic",
-        subcategory = "Block Overlay"
+        subcategory = "Block Overlay",
     )
     var BlockOverlayOverlayColor = Color(0, 114, 255, 75)
 
@@ -441,7 +506,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons"
     @Property(
         type = PropertyType.SWITCH,
         name = "Player Scale",
-        description = "Allows to dynamically adjust the size of the player character's scale from the default 100% down to 30%." +
+        description = "Allows to dynamically adjust the size of the player character." +
                 "\n\n §dNow you can match your IRL Height ❤.",
         category = "Cosmetic",
         subcategory = "Player"
@@ -603,38 +668,32 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons"
             "Disable Optifine fast render and Patcher entity culling."
         )
 
-
-        /*
-
-                // Cosmetics
-                listOf(
-                    "Block Overlay Type",
-                    "Outline Thickness",
-                    "Outline Color",
-                    "Overlay Color",
-                    "Show Through Blocks?",
-                ).forEach { addDependency(it, "Block Overlay") }
-
-                listOf(
-                    "Player Scale On Everyone?",
-                    "Custom Scale",
-                ).forEach { addDependency(it, "Player Scale") }
+        // General
+        addDependency("ScalableTooltipsScale", "ScalableTooltips")
 
 
-                addDependency("Time Changer Mode", "Time Changer")
-                addDependency("FOV Value", "CustomFov")
+        // Cosmetics
+        listOf(
+            "BlockOverlayType",
+            "BlockOverlayOutlineThickness",
+            "BlockOverlayOutlineColor",
+            "BlockOverlayOverlayColor",
+            "BlockOverlayESP",
+        ).forEach { addDependency(it, "BlockOverlay") }
 
 
+        listOf(
+            "PlayerScaleOnEveryone",
+            "PlayerScaleValue",
+        ).forEach { addDependency(it, "PlayerScale") }
 
-        */
+
+        addDependency("TimeChangerMode", "TimeChanger")
+        addDependency("CustomFovValue", "CustomFov")
 
 
 
-        addDependency("espColorLivid", "lividFinder")
-        addDependency("espColorBats", "espBats")
-        addDependency("espColorFels", "espFels")
-        addDependency("espColorShadowAssassin", "espShadowAssassin")
-
+        // ESP
         listOf(
             "espColorUnstable",
             "espColorYoung",
@@ -642,25 +701,28 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons"
             "espColorHoly",
             "espColorFrozen",
             "espColorAngryArchaeologist"
-        ).forEach(Consumer { s: String ->
-            addDependency(s, "espSeperateMinibossColor")
-        })
+        ).forEach { addDependency(it, "espSeperateMinibossColor") }
+
 
         listOf(
             "espColorStarMobs",
             "removeStarMobsNametag"
-        ).forEach(Consumer { s: String ->
-            addDependency(s, "espStarMobs")
-        })
+        ).forEach{ addDependency(it, "espStarMobs") }
 
+
+        addDependency("espColorLivid", "lividFinder")
+        addDependency("espColorBats", "espBats")
+        addDependency("espColorFels", "espFels")
+        addDependency("espColorShadowAssassin", "espShadowAssassin")
         addDependency("removeStarMobsNametag", "espStarMobs")
 
+
+
+        // GUI
         listOf(
             "overlayColorSalvageable",
             "overlayColorTopSalvageable"
-        ).forEach(Consumer { s: String ->
-            addDependency(s, "overlaySalvageable")
-        })
+        ).forEach{ addDependency(it, "overlaySalvageable") }
 
     }
 
@@ -675,7 +737,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons"
     }
 
     private val configCategories = listOf(
-        "Dungeons", "Terminals", "ESP", "Alerts", "GUI", "Cosmetic", "Dev"
+        "General", "Dungeons", "Terminals", "ESP", "Alerts", "GUI", "Cosmetic", "Dev"
     )
 
 }

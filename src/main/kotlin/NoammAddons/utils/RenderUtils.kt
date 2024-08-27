@@ -9,9 +9,13 @@ import net.minecraft.util.BlockPos
 import org.lwjgl.opengl.GL11.*
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
+import NoammAddons.utils.ChatUtils.addColor
+import net.minecraft.client.gui.Gui
 import java.awt.Color
 import net.minecraft.client.renderer.*
 import net.minecraft.client.renderer.entity.RenderManager
+import net.minecraft.item.ItemStack
+import net.minecraft.util.ResourceLocation
 import net.minecraft.util.Vec3
 import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -317,7 +321,7 @@ object RenderUtils {
                 yOffset += (mc.fontRendererObj.FONT_HEIGHT * scale).toInt()
 
                 mc.fontRendererObj.drawStringWithShadow(
-                    it,
+                    it.addColor(),
                     round(x / scale).toFloat(),
                     round(yOffset / scale).toFloat(),
                     0xFFFFFF
@@ -326,13 +330,40 @@ object RenderUtils {
         }
         else {
             mc.fontRendererObj.drawStringWithShadow(
-                text,
+                text.addColor(),
                 round(x / scale).toFloat(),
                 round(yOffset / scale).toFloat(),
                 0xFFFFFF
             )
         }
 
+        GlStateManager.popMatrix()
+    }
+
+    fun renderItem(itemStack: ItemStack?, x: Int, y: Int) {
+        RenderHelper.enableGUIStandardItemLighting()
+        GlStateManager.enableDepth()
+        mc.renderItem.renderItemAndEffectIntoGUI(itemStack, x, y)
+    }
+
+    fun renderTexture(texture: ResourceLocation?, x: Int, y: Int, width: Int = 16, height: Int = 16, enableLighting: Boolean = true) {
+        if (enableLighting) RenderHelper.enableGUIStandardItemLighting()
+        GlStateManager.enableRescaleNormal()
+        GlStateManager.enableBlend()
+        GlStateManager.enableDepth()
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
+        GlStateManager.pushMatrix()
+        mc.textureManager.bindTexture(texture)
+        GlStateManager.enableRescaleNormal()
+        GlStateManager.enableAlpha()
+        GlStateManager.alphaFunc(516, 0.1f)
+        GlStateManager.enableBlend()
+        GlStateManager.blendFunc(770, 771)
+        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f)
+        Gui.drawModalRectWithCustomSizedTexture(x, y, 0f, 0f, width, height, width.toFloat(), height.toFloat())
+        GlStateManager.disableAlpha()
+        GlStateManager.disableRescaleNormal()
+        GlStateManager.disableLighting()
         GlStateManager.popMatrix()
     }
 }

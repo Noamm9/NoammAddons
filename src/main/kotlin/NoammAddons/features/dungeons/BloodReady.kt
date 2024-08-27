@@ -19,7 +19,7 @@ object BloodReady {
 
     @SubscribeEvent
     fun onChat(event: ClientChatReceivedEvent) {
-        if (!config.bloodReadyNotify || !inDungeons) return
+        if (!config.bloodReadyNotify || !inDungeons || event.type.toInt() == 3) return
         if (!bloodReady && stripControlCodes(event.message.unformattedText).equalsOneOf(
                 "[BOSS] The Watcher: That will be enough for now.",
                 "[BOSS] The Watcher: You have proven yourself. You may pass."

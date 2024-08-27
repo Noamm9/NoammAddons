@@ -6,6 +6,7 @@
   "client": [
     "MixinEntityRenderer",
     "MixinGuiContainer",
+    "MixinGuiUtils",
     "MixinInventoryEffectRenderer",
     "MixinMinecraft",
     "MixinNetworkManager",

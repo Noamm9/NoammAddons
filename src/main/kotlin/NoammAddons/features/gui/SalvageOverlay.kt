@@ -1,4 +1,4 @@
-package NoammAddons.features
+package NoammAddons.features.gui
 
 import net.minecraft.client.gui.Gui
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent

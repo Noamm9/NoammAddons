@@ -1,26 +1,23 @@
 package NoammAddons
 
-import NoammAddons.Sounds.chipi_chapa
 import net.minecraft.client.Minecraft
 import net.minecraft.client.settings.KeyBinding
-import net.minecraftforge.client.ClientCommandHandler
-import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.Mod
-import net.minecraftforge.fml.common.event.FMLInitializationEvent
-import org.lwjgl.input.Keyboard
-import gg.essential.api.EssentialAPI
-import net.minecraftforge.fml.client.registry.ClientRegistry
+import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.event.FMLInitializationEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent
+import net.minecraftforge.fml.client.registry.ClientRegistry
+import net.minecraftforge.client.ClientCommandHandler
 import NoammAddons.command.NoammAddonsCommands
+import gg.essential.api.EssentialAPI
+import org.lwjgl.input.Keyboard
 import NoammAddons.config.Config
 import NoammAddons.features.Cosmetics.*
 import NoammAddons.features.dungeons.*
 import NoammAddons.features.Alerts.*
-import NoammAddons.utils.GuiUtils
-import NoammAddons.utils.LocationUtils
-import NoammAddons.utils.DungeonUtils
-import NoammAddons.utils.RenderUtils
+import NoammAddons.features.gui.*
+import NoammAddons.utils.*
 
 
 @Mod(
@@ -52,6 +49,7 @@ class NoammAddons {
             F7PreGhostBlocks,
             GhostBlock,
             HiddenMobs,
+            ShowExtraStats,
 
             // ESP
             MobESP,
@@ -63,13 +61,18 @@ class NoammAddons {
             ThunderBottle,
             M7P5RagAxe,
             RNGSound,
+            AHSoldNotification,
+
+
+            // GUI
+            SalvageOverlay,
 
             // Cosmetics
             BlockOverlay,
-            CustomPlayerScale,
+            PlayerScale,
             TimeChanger,
             HideFallingBlocks,
-            CustomDamageSplash,
+            DamageSplash,
             RemoveSellfieCam,
             CustomFov,
             AntiBlind,
@@ -90,8 +93,7 @@ class NoammAddons {
     fun onTick(event: TickEvent.ClientTickEvent) {
         if (event.phase != TickEvent.Phase.START) return
         if (keybinds[1].isKeyDown) {
-            EssentialAPI.getGuiUtil().openScreen(Config.gui())
-            chipi_chapa.play()
+            EssentialAPI.getGuiUtil().openScreen(config.gui())
         }
     }
 
@@ -110,4 +112,10 @@ class NoammAddons {
             KeyBinding("Config", Keyboard.KEY_RSHIFT, MOD_NAME)
         )
     }
+
+    /*
+    @SubscribeEvent
+    fun test(event: RenderLivingEntityEvent) {
+        OutlineUtils.outlineESP(event, Color.CYAN)
+    }*/
 }
