@@ -1,4 +1,4 @@
-package NoammAddons.command
+package NoammAddons.commands
 
 import NoammAddons.config.Config
 import NoammAddons.utils.ChatUtils.getChatBreak

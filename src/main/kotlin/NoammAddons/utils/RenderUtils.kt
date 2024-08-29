@@ -1,25 +1,26 @@
 package NoammAddons.utils
 
+import NoammAddons.NoammAddons.Companion.config
+import NoammAddons.NoammAddons.Companion.mc
+import NoammAddons.mixins.AccessorMinecraft
+import NoammAddons.utils.ChatUtils.addColor
+import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.Gui
+import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.WorldRenderer
+import net.minecraft.client.renderer.entity.RenderManager
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.item.ItemStack
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.BlockPos
-import org.lwjgl.opengl.GL11.*
-import NoammAddons.NoammAddons.Companion.config
-import NoammAddons.NoammAddons.Companion.mc
-import NoammAddons.utils.ChatUtils.addColor
-import net.minecraft.client.gui.Gui
-import java.awt.Color
-import net.minecraft.client.renderer.*
-import net.minecraft.client.renderer.entity.RenderManager
-import net.minecraft.item.ItemStack
 import net.minecraft.util.ResourceLocation
 import net.minecraft.util.Vec3
-import net.minecraftforge.client.event.RenderWorldLastEvent
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL11.*
+import java.awt.Color
 import kotlin.math.round
 
 
@@ -27,12 +28,9 @@ object RenderUtils {
     private val renderManager: RenderManager = mc.renderManager
     private val tessellator: Tessellator = Tessellator.getInstance()
     private val worldRenderer: WorldRenderer = tessellator.worldRenderer
-    private var partialTicks = 1f
 
-    @SubscribeEvent
-    fun onRenderWorld(event: RenderWorldLastEvent) {
-        partialTicks = event.partialTicks
-    }
+    private fun getPartialTicks() = (mc as AccessorMinecraft).timer.renderPartialTicks
+
 
     private fun preDraw() {
         GlStateManager.enableAlpha()
@@ -47,10 +45,13 @@ object RenderUtils {
         GlStateManager.enableTexture2D()
     }
 
-    fun EntityPlayer.getRenderX(): Double = this.renderOffsetX + renderManager.viewerPosX
-    fun EntityPlayer.getRenderY(): Double = this.renderOffsetY + renderManager.viewerPosY
-    fun EntityPlayer.getRenderZ(): Double = this.renderOffsetY + renderManager.viewerPosZ
+    fun EntityPlayer.getRenderX(): Double = this.lastTickPosX + (this.posX - this.lastTickPosX) * getPartialTicks()
+    fun EntityPlayer.getRenderY(): Double = this.lastTickPosY + (this.posY - this.lastTickPosY) * getPartialTicks()
+    fun EntityPlayer.getRenderZ(): Double = this.lastTickPosZ + (this.posZ - this.lastTickPosZ) * getPartialTicks()
 
+    fun Entity.getRenderX(): Double = this.lastTickPosX + (this.posX - this.lastTickPosX) * getPartialTicks()
+    fun Entity.getRenderY(): Double = this.lastTickPosY + (this.posY - this.lastTickPosY) * getPartialTicks()
+    fun Entity.getRenderZ(): Double = this.lastTickPosZ + (this.posZ - this.lastTickPosZ) * getPartialTicks()
 
     private fun drawFilledAABB(aabb: AxisAlignedBB, c: Color, alphaMultiplier: Float = 1f) {
         GlStateManager.color(c.red / 255f, c.green / 255f, c.blue / 255f, c.alpha / 255f * alphaMultiplier)
@@ -234,11 +235,16 @@ object RenderUtils {
         glPopMatrix()
     }
 
-    fun drawString(x: Float, y: Float, z: Float, text: String, shadow: Boolean = false, scale: Float = 1f, phase: Boolean = true) {
+    fun drawString(text: String, pos: Vec3, color: Color, scale: Float = 1f, shadow: Boolean = true, phase: Boolean = true) {
         val f1 = 0.0266666688
         val width = mc.fontRendererObj.getStringWidth(text) / 2
         GlStateManager.pushMatrix()
-        GlStateManager.translate(x, y, z)
+        GlStateManager.translate(
+            pos.xCoord - renderManager.viewerPosX,
+            pos.yCoord - renderManager.viewerPosY,
+            pos.zCoord - renderManager.viewerPosZ
+        )
+
         glNormal3f(0f, 1f, 0f)
 
         if (mc.gameSettings.thirdPersonView != 2) {
@@ -262,7 +268,7 @@ object RenderUtils {
 
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
         GlStateManager.enableTexture2D()
-        mc.fontRendererObj.drawString(text, (-width).toFloat(), 0f, Color.WHITE.rgb, shadow)
+        mc.fontRendererObj.drawString(text, (-width).toFloat(), 0f, color.rgb, shadow)
         GlStateManager.disableBlend()
         if (phase) {
             glEnable(GL_DEPTH_TEST)
@@ -271,38 +277,67 @@ object RenderUtils {
         GlStateManager.popMatrix()
     }
 
-    fun draw3DLine(pos1: Vec3, pos2: Vec3, color: Color, lineWidth: Int) {
-        val red = color.red
-        val green = color.green
-        val blue = color.blue
-        val alpha = color.alpha
-
+    fun draw3DLine(from: Vec3, to: Vec3, color: Color, LineWidth: Int = 6) {
         GlStateManager.pushMatrix()
-        GlStateManager.disableLighting()
-        GlStateManager.disableTexture2D()
         GlStateManager.enableBlend()
+        GlStateManager.disableDepth()
+        GlStateManager.disableLighting()
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
-        glLineWidth(lineWidth.toFloat())
-
-        GlStateManager.translate(- renderManager.viewerPosX, - renderManager.viewerPosY, - renderManager.viewerPosZ)
-
-        worldRenderer.begin(GL_LINE_STRIP, DefaultVertexFormats.POSITION_COLOR)
-        worldRenderer.pos(pos1.xCoord, pos1.yCoord, pos1.zCoord).color(red, green, blue, alpha).endVertex()
-        worldRenderer.pos(pos2.xCoord, pos2.yCoord, pos2.zCoord).color(red, green, blue, alpha).endVertex()
-        tessellator.draw()
-
-        GlStateManager.disableBlend()
-        GlStateManager.enableLighting()
+        GlStateManager.disableTexture2D()
+        val renderManager = Minecraft.getMinecraft().renderManager
+        val renderPosX = to.xCoord - renderManager.viewerPosX
+        val renderPosY = to.yCoord - renderManager.viewerPosY
+        val renderPosZ = to.zCoord - renderManager.viewerPosZ
+        glLineWidth(LineWidth.toFloat())
+        glColor4f(color.red / 255f, color.green / 255f, color.blue / 255f, color.alpha / 255f)
+        glBegin(GL_LINES)
+        glVertex3d(from.xCoord, from.yCoord, from.zCoord)
+        glVertex3d(renderPosX, renderPosY, renderPosZ)
+        glEnd()
+        glLineWidth(1.0f)
         GlStateManager.enableTexture2D()
+        GlStateManager.enableDepth()
+        GlStateManager.disableBlend()
+        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f)
+        GlStateManager.resetColor()
         GlStateManager.popMatrix()
-
     }
 
-    fun drawTrace(pos: Vec3, color: Color, lineWidth: Int) {
-        val x = mc.thePlayer.getRenderX()
-        val y = mc.thePlayer.getRenderY() + mc.thePlayer.getEyeHeight()
-        val z = mc.thePlayer.getRenderZ()
-        this.draw3DLine(Vec3(x,y,z), pos, color, lineWidth)
+    fun drawTracer(pos: Vec3, color: Color, lineWidth: Int = 3) {
+        val player = mc.thePlayer
+        val playerVec3 = Vec3(
+            player.renderOffsetX + renderManager.viewerPosX,
+            player.renderOffsetY + player.getEyeHeight() + renderManager.viewerPosY,
+            player.renderOffsetZ + renderManager.viewerPosZ
+        )
+
+        val startX = (playerVec3.xCoord - renderManager.viewerPosX).toFloat()
+        val startY = (playerVec3.yCoord - renderManager.viewerPosY).toFloat()
+        val startZ = (playerVec3.zCoord - renderManager.viewerPosZ).toFloat()
+
+        val endX = (pos.xCoord - renderManager.viewerPosX).toFloat()
+        val endY = (pos.yCoord - renderManager.viewerPosY).toFloat()
+        val endZ = (pos.zCoord - renderManager.viewerPosZ).toFloat()
+
+        // Prepare to draw
+        glPushMatrix()
+        glDisable(GL_TEXTURE_2D)
+        glEnable(GL_LINE_SMOOTH)
+        glLineWidth(lineWidth.toFloat())
+
+        // Convert color to OpenGL format (0.0 to 1.0)
+        glColor3f(color.red / 255.0f, color.green / 255.0f, color.blue / 255.0f)
+
+        // Draw the line
+        glBegin(GL_LINES)
+        glVertex3f(startX, startY, startZ)
+        glVertex3f(endX, endY, endZ)
+        glEnd()
+
+        // Clean up
+        glEnable(GL_TEXTURE_2D)
+        glDisable(GL_LINE_SMOOTH)
+        glPopMatrix()
     }
 
     fun drawText(text: String, x: Double, y: Double, scale: Double = 1.0) {

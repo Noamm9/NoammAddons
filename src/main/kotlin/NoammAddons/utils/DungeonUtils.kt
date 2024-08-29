@@ -25,13 +25,12 @@ object DungeonUtils {
      * @property prio The priority of the class.
      */
     enum class Classes(val color: Color, var prio: Int, ) {
-        Archer(Color.RED, 0),
-        Tank(Color.GREEN, 0),
-        Mage(Color.BLUE, 1),
-        Berserk(Color.ORANGE,1),
-        Healer(Color.PINK, 1)
+        Archer(Color(255, 0, 0), 0),
+        Berserk(Color(255,106,0),1),
+        Healer(Color(255, 0, 255), 1),
+        Mage(Color(0, 255, 255), 1),
+        Tank(Color(0, 255, 0), 0),
     }
-
 
     /**
      * Data class representing a player in a dungeon, including their name, class, skin location, and associated player entity.

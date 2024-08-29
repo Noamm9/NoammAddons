@@ -1,5 +1,7 @@
 package NoammAddons
 
+import NoammAddons.Sounds.AYAYA
+import NoammAddons.Sounds.ihavenothing
 import net.minecraft.client.Minecraft
 import net.minecraft.client.settings.KeyBinding
 import net.minecraftforge.fml.common.Mod
@@ -9,15 +11,19 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent
 import net.minecraftforge.fml.client.registry.ClientRegistry
 import net.minecraftforge.client.ClientCommandHandler
-import NoammAddons.command.NoammAddonsCommands
 import gg.essential.api.EssentialAPI
 import org.lwjgl.input.Keyboard
 import NoammAddons.config.Config
+import NoammAddons.commands.NoammAddonsCommands
+import NoammAddons.commands.SkyBlockCommands.*
+import NoammAddons.events.ClickEvent
+import NoammAddons.features.General.*
 import NoammAddons.features.Cosmetics.*
 import NoammAddons.features.dungeons.*
 import NoammAddons.features.Alerts.*
 import NoammAddons.features.gui.*
 import NoammAddons.utils.*
+import NoammAddons.utils.ThreadUtils.setTimeout
 
 
 @Mod(
@@ -33,23 +39,44 @@ class NoammAddons {
         config.init()
 
         // Registering all Commands
-        ClientCommandHandler.instance.registerCommand(NoammAddonsCommands())
+        listOf(
+            NoammAddonsCommands(),
+            DungeonHub(),
+            CrimonIsle(),
+            End(),
+            hub(),
+            Skyblock()
+        ).forEach{ClientCommandHandler.instance.registerCommand(it)}
 
 
         // Registering all keybinds
         keybinds.forEach { ClientRegistry.registerKeyBinding(it) }
 
 
-
         listOf(
             this,
+            // General
+            EnderPearlFix,
+            LeftClickEtherwarp,
+            CustomItemEntity,
+            ChatCoordsWaypoint,
+
             // Dungeons
+            TeammatesNames,
+            TeammatesOutline,
+            AbilityKeybinds,
             IHATEDIORITE,
             AutoCloseChest,
             F7PreGhostBlocks,
+            HighlightMimicChest,
             GhostBlock,
             HiddenMobs,
             ShowExtraStats,
+            TraceKeys,
+            AutoUlt,
+            AutoRefillEnderPearls,
+            AutoI4,
+
 
             // ESP
             MobESP,
@@ -62,6 +89,7 @@ class NoammAddons {
             M7P5RagAxe,
             RNGSound,
             AHSoldNotification,
+            ShadowAssasianAlert,
 
 
             // GUI
@@ -82,20 +110,23 @@ class NoammAddons {
             // Utilities
             GuiUtils,
             LocationUtils,
-            RenderUtils,
             DungeonUtils
 
         ).forEach(MinecraftForge.EVENT_BUS::register)
+
+        print(event.modState)
     }
 
 
     @SubscribeEvent
     fun onTick(event: TickEvent.ClientTickEvent) {
         if (event.phase != TickEvent.Phase.START) return
-        if (keybinds[1].isKeyDown) {
+        if (keybinds[1].isPressed) {
             EssentialAPI.getGuiUtil().openScreen(config.gui())
+            setTimeout(1000) {PlayerUtils.swapToSlot(10)}
         }
     }
+
 
     companion object {
         const val MOD_NAME = "NoammAddons"
@@ -109,13 +140,9 @@ class NoammAddons {
 
         val keybinds = listOf(
             KeyBinding("Ghost Pick", Keyboard.KEY_Z, MOD_NAME),
-            KeyBinding("Config", Keyboard.KEY_RSHIFT, MOD_NAME)
+            KeyBinding("Config", Keyboard.KEY_RSHIFT, MOD_NAME),
+            KeyBinding("Dungeon class Ultimate", Keyboard.KEY_GRAVE, MOD_NAME),
+            KeyBinding("Dungeon class Ability", 56, MOD_NAME),
         )
     }
-
-    /*
-    @SubscribeEvent
-    fun test(event: RenderLivingEntityEvent) {
-        OutlineUtils.outlineESP(event, Color.CYAN)
-    }*/
 }

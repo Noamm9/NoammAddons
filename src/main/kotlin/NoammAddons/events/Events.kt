@@ -25,6 +25,9 @@ open class GuiContainerEvent(val container: Container, val gui: GuiContainer) : 
     @Cancelable
     class SlotClickEvent(container: Container, gui: GuiContainer, var slot: Slot?, var slotId: Int) :
         GuiContainerEvent(container, gui)
+
+
+    class CloseEvent(container: Container, gui: GuiContainer) : GuiContainerEvent(container, gui)
 }
 
 open class MovementUpdateEvent : Event() {

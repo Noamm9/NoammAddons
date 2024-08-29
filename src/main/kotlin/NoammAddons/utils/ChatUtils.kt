@@ -1,5 +1,6 @@
 package NoammAddons.utils
 
+
 import NoammAddons.NoammAddons.Companion.CHAT_PREFIX
 import NoammAddons.NoammAddons.Companion.mc
 import NoammAddons.Sounds.notificationsound
@@ -7,7 +8,9 @@ import gg.essential.universal.UChat
 import kotlin.math.absoluteValue
 import kotlin.math.sign
 import gg.essential.api.EssentialAPI
+import gg.essential.universal.UChat.addColor
 import gg.essential.universal.wrappers.message.UTextComponent
+
 
 object ChatUtils {
     fun getChatBreak(separator: String = "-"): String? {
@@ -21,9 +24,13 @@ object ChatUtils {
 
     fun String?.removeFormatting(): String = UTextComponent.stripFormatting(this ?: "")
 
-    fun String.addColor(): String = this.replace("(?<!\\\\)&(?![^0-9a-fk-or]|$)".toRegex(), "\u00a7")
+    fun String.addColor(): String = addColor(this)
 
-    fun modMessage(message: Any) = UChat.chat("$CHAT_PREFIX $message")
+    fun modMessage(message: Any) = UChat.chat("$CHAT_PREFIX ${message.toString().addColor()}")
+
+    fun sendChatMessage(message: Any) {
+        mc.thePlayer.sendChatMessage("$message")
+    }
 
     fun Double.toFixed(digits: Int) = "%.${digits}f".format(this)
 
@@ -57,9 +64,22 @@ object ChatUtils {
         return result.toString()
     }
 
-    fun showTitle(title: String?, subtitle: String? = null, time: Int = 3000) {
-        mc.ingameGUI.displayTitle(title?.addColor(), subtitle, 50, time, 100)
+    /**
+     * Display a title.
+     *
+     * @param title title text
+     * @param subtitle subtitle text
+     * @param time time to stay on screen in seconds
+     */
+    fun showTitle(title: String, subtitle: String = "", time: Int = 3) {
+        val gui = mc.ingameGUI
+        val timeInTicks = time * 20
+        gui.displayTitle(null, null, 0, timeInTicks, 0)
+        gui.displayTitle(title.addColor(), null, 0, timeInTicks, 0)
+        gui.displayTitle(null, subtitle.addColor(), 0, timeInTicks, 0)
+        gui.displayTitle(null, null, 0, timeInTicks, 0)
     }
+
 
     /**
      * Displays a notification with a custom message and duration.
@@ -72,7 +92,7 @@ object ChatUtils {
      */
     fun Alert(title: String, message: String, duration: Int = 3, clickFunction: () -> Unit = {}, closeFunction: () -> Unit = {}) {
         EssentialAPI.getNotifications().push(
-            "$title:",
+            title,
             message,
             duration.toFloat(),
             clickFunction,

@@ -1,7 +1,5 @@
 package NoammAddons.config
 
-import NoammAddons.features.Alerts.EnergyCrystal
-import NoammAddons.features.Alerts.RNGSound
 import gg.essential.vigilance.Vigilant
 import gg.essential.vigilance.data.Category
 import gg.essential.vigilance.data.Property
@@ -9,7 +7,6 @@ import gg.essential.vigilance.data.PropertyType
 import gg.essential.vigilance.data.SortingBehavior
 import java.awt.Color
 import java.io.File
-import java.util.function.Consumer
 
 
 object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons", sortingBehavior = Sorting) {
@@ -37,16 +34,125 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons"
     )
     var ScalableTooltipsScale = 1f
 
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Left Click Etherwarp",
+        description = "Allows you to use Etherwarp with left click.",
+        category = "General",
+        subcategory = "Etherwarp"
+    )
+    var LeftClickEtherwarp = false
+
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Custom Item Entity",
+        description = "Replaces the default item entity with a Colored Box that also shows the name of the grounded item.",
+        category = "General",
+        subcategory = "Custom"
+    )
+    var CustomItemEntity = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Chat Coords WayPoint",
+        description = "Creates a waypoint whenever a received chat message matches\n\n&bx: 1, y: 1, z: 1",
+        category = "General",
+        subcategory = "Chat"
+    )
+    var ChatCoordsWayPoint = false
+
+    @Property(
+        type = PropertyType.COLOR,
+        name = "WayPoint Color",
+        description = "The &2C&3o&4l&5o&6r&r of the waypoint",
+        category = "General",
+        subcategory = "Chat"
+    )
+    var ChatCoordsWayPointColor = Color(0, 114, 255, 85)
+
 
     // Dungeons
     @Property(
         type = PropertyType.SWITCH,
+        name = "Dungeon Teammates Names",
+        description = "Shows the names your teammates in dungeon\nColored By Class.",
+        category = "Dungeons",
+        subcategory = "Dungeon Teammates"
+    )
+    var dungeonTeammatesNames = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Dungeon Teammates Outline",
+        description = "outline of your teammates in dungeon.\nColored By Class.",
+        category = "Dungeons",
+        subcategory = "Dungeon Teammates"
+    )
+    var dungeonTeammatesOutline = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "EnderPearlFix",
+        description = "Disable's Hypixel's stupid Ender Pearls throw block when you are too close to a wall/floor/ceiling.",
+        category = "Dungeons",
+        subcategory = "Ender Pearls"
+    )
+    var enderPearlFix = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Auto Refill Ender Pearls",
+        description = "Automatically refills your Ender Pearls at the start of the run.",
+        category = "Dungeons",
+        subcategory = "Ender Pearls"
+    )
+    var refillEnderPearls = false
+
+    @Property(
+        type = PropertyType.SWITCH,
         name = "Auto Show Extra Stats",
+        description = "Automatically sends /showextrastats after the end of the run.",
         category = "Dungeons",
         subcategory = "General"
-
     )
     var showExtraStats = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Auto Ult",
+        description = "Automatically uses your ULTIMATE whenever you need.",
+        category = "Dungeons",
+        subcategory = "General"
+    )
+    var autoUlt = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Trace Keys",
+        description = "Draws a line from your mouse cursor to the Wither/Blood key.",
+        category = "Dungeons",
+        subcategory = "General"
+    )
+    var TraceKeys = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Hightlight Mimic Chest",
+        description = "Highlights the Mimic Chest",
+        category = "Dungeons",
+        subcategory = "Secrets"
+    )
+    var HightlightMimicChest = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Ability Keybinds",
+        description = "Allows to use the Your Classs ULTIMATE/ABILITY with a keybind witch can be configirate in Minecraft's Options/Controls",
+        category = "Dungeons",
+        subcategory = "General"
+    )
+    var DungeonAbilityKeybinds = false
 
     @Property(
         type = PropertyType.SWITCH,
@@ -72,6 +178,15 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons"
         subcategory = "F7"
     )
     var f7p3Ghost = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Auto I4",
+        description = "Auto aims and shoots the emerald block at the forth dev in P3 \n\n §f[ §b§nNeed a term&r §f§n§land§r §e§n100% atk speed§r §f] ",
+        category = "Dungeons",
+        subcategory = "F7"
+    )
+    var autoI4 = false
 
     @Property(
         type = PropertyType.SWITCH,
@@ -332,6 +447,17 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), "NoammAddons"
         subcategory = "Dungeons"
     )
     var bloodReadyNotify = false
+
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Shadow Assasian Alert",
+        description = "Shows a notification on screen when an invinsable Shadow Assasian is about to teleport",
+        category = "Alerts",
+        subcategory = "Dungeons"
+    )
+    var ShadowAssassinAlert = false
+
 
     @Property(
         type = PropertyType.SWITCH,

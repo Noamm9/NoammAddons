@@ -20,3 +20,4 @@ public class MixinMinecraft {
         if (MinecraftForge.EVENT_BUS.post(new ClickEvent.RightClickEvent())) ci.cancel();
     }
 }
+

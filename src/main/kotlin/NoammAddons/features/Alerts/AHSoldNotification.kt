@@ -44,10 +44,8 @@ object AHSoldNotification {
                 "§cSold AH Notification",
                 "§6$buyer §7bought §6$item §7for §6${formatNumber(price)} §7coins",
                 3,
-                { mc.thePlayer.sendChatMessage(command) }
+                {mc.thePlayer.sendChatMessage(command)}
             )
-        } else {
-            println("No RUN_COMMAND found")
         }
     }
 }

@@ -13,8 +13,10 @@ object RNGSound {
     fun onChat(event: ClientChatReceivedEvent) {
         if (event.message.formattedText.matches(regex) && config.RNGSound && event.type.toInt() != 3) {
             val rngDrop = regex.find(event.message.formattedText)?.groupValues?.get(1)
-            showTitle(rngDrop)
-            chipi_chapa.play()
+            if (rngDrop != null) {
+                showTitle(rngDrop)
+                chipi_chapa.play()
+            }
         }
     }
 }

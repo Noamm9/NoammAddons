@@ -10,5 +10,5 @@ object BlockUtils {
 
     fun World.getBlockAt(pos: BlockPos): Block = this.getBlockState(pos).block
 
-
+    fun Block.getBlockId(): Int = Block.getIdFromBlock(this)
 }

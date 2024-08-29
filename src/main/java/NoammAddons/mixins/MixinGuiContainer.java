@@ -35,5 +35,6 @@ public class MixinGuiContainer {
     @Inject(method = "onGuiClosed", at = @At("HEAD"))
     private void onGuiClosed(CallbackInfo ci) {
         ScalableTooltips.INSTANCE.resetPos();
+        MinecraftForge.EVENT_BUS.post(new GuiContainerEvent.CloseEvent(inventorySlots, gui));
     }
 }

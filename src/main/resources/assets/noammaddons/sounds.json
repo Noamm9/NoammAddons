@@ -1,27 +1,32 @@
 {
   "chipi_chapa": {
     "sounds": [
-        "chipi_chapa"
+      "chipi_chapa"
     ]
   },
   "ihavenothing": {
     "sounds": [
-        "ihavenothing"
+      "ihavenothing"
     ]
   },
   "mariolikesound": {
     "sounds": [
-        "mariolikesound"
+      "mariolikesound"
     ]
   },
   "notificationsound": {
     "sounds": [
-        "notificationsound"
+      "notificationsound"
     ]
   },
   "potispow": {
     "sounds": [
-        "potispow"
+      "potispow"
+    ]
+  },
+  "AYAYA": {
+    "sounds": [
+      "AYAYA"
     ]
   }
 }
