@@ -26,8 +26,10 @@ open class GuiContainerEvent(val container: Container, val gui: GuiContainer) : 
     class SlotClickEvent(container: Container, gui: GuiContainer, var slot: Slot?, var slotId: Int) :
         GuiContainerEvent(container, gui)
 
-
     class CloseEvent(container: Container, gui: GuiContainer) : GuiContainerEvent(container, gui)
+
+    @Cancelable
+    class GuiMouseClickEvent(val mouseX: Int, val mouseY: Int, val button: Int) : Event()
 }
 
 open class MovementUpdateEvent : Event() {
@@ -55,3 +57,10 @@ class RenderLivingEntityEvent(
     var scaleFactor: Float,
     var modelBase: ModelBase
 ) : Event()
+
+
+@Cancelable
+class RenderTitleEvent : Event()
+
+@Cancelable
+class MessageSentEvent(var message: String) : Event()

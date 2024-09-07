@@ -1,29 +1,37 @@
 package NoammAddons
 
-import NoammAddons.Sounds.AYAYA
-import NoammAddons.Sounds.ihavenothing
-import net.minecraft.client.Minecraft
-import net.minecraft.client.settings.KeyBinding
-import net.minecraftforge.fml.common.Mod
-import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.event.FMLInitializationEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent
-import net.minecraftforge.fml.client.registry.ClientRegistry
-import net.minecraftforge.client.ClientCommandHandler
-import gg.essential.api.EssentialAPI
-import org.lwjgl.input.Keyboard
-import NoammAddons.config.Config
+
 import NoammAddons.commands.NoammAddonsCommands
 import NoammAddons.commands.SkyBlockCommands.*
-import NoammAddons.events.ClickEvent
+import NoammAddons.config.Config
+import NoammAddons.config.HudElementConfig
+import NoammAddons.config.KeyBinds
+import NoammAddons.config.KeyBinds.allBindings
+import NoammAddons.config.PogObject
 import NoammAddons.features.General.*
-import NoammAddons.features.Cosmetics.*
+import NoammAddons.features.alerts.*
+import NoammAddons.features.cosmetics.*
 import NoammAddons.features.dungeons.*
-import NoammAddons.features.Alerts.*
-import NoammAddons.features.gui.*
-import NoammAddons.utils.*
-import NoammAddons.utils.ThreadUtils.setTimeout
+import NoammAddons.features.dungeons.terminals.*
+import NoammAddons.features.gui.SalvageOverlay
+import NoammAddons.features.hud.ClockDisplay
+import NoammAddons.features.hud.FpsDisplay
+import NoammAddons.features.hud.PhoenixPet
+import NoammAddons.features.hud.SpiritMask
+import NoammAddons.utils.DungeonUtils
+import NoammAddons.utils.GuiUtils
+import NoammAddons.utils.GuiUtils.openScreen
+import NoammAddons.utils.LocationUtils
+import NoammAddons.utils.RenderUtils.drawPlayerHead
+import net.minecraft.client.Minecraft
+import net.minecraftforge.client.ClientCommandHandler
+import net.minecraftforge.client.event.RenderGameOverlayEvent
+import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.fml.client.registry.ClientRegistry
+import net.minecraftforge.fml.common.Mod
+import net.minecraftforge.fml.common.event.FMLInitializationEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent
 
 
 @Mod(
@@ -36,7 +44,11 @@ import NoammAddons.utils.ThreadUtils.setTimeout
 class NoammAddons {
     @Mod.EventHandler
     fun onInit(event: FMLInitializationEvent) {
+
+        // Registering config
         config.init()
+        MinecraftForge.EVENT_BUS.register(PogObject.EventHandlers)
+
 
         // Registering all Commands
         listOf(
@@ -49,17 +61,20 @@ class NoammAddons {
         ).forEach{ClientCommandHandler.instance.registerCommand(it)}
 
 
-        // Registering all keybinds
-        keybinds.forEach { ClientRegistry.registerKeyBinding(it) }
+        // Registering all Keybinds
+        allBindings.forEach { ClientRegistry.registerKeyBinding(it) }
 
-
+        // Registering all features
         listOf(
             this,
+
             // General
-            EnderPearlFix,
+    //      EnderPearlFix,   WHY DID THEY HAVE TO PATCH THIS :(
             LeftClickEtherwarp,
             CustomItemEntity,
             ChatCoordsWaypoint,
+            GyroCircle,
+            ChatEmojis,
 
             // Dungeons
             TeammatesNames,
@@ -69,18 +84,34 @@ class NoammAddons {
             AutoCloseChest,
             F7PreGhostBlocks,
             HighlightMimicChest,
-            GhostBlock,
+            GhostPick,
             HiddenMobs,
             ShowExtraStats,
             TraceKeys,
             AutoUlt,
             AutoRefillEnderPearls,
             AutoI4,
+            F7PhaseStartTimers,
+            AnnounceSpiritLeaps,
+            AnnounceDraftResets,
+
+
+            // Terminals
+            Melody,
+            Numbers,
+            Rubix,
+            RedGreen,
+            Colors,
+            StartWith,
+            MelodyAlert,
+            TerminalNumbers,
+            BetterF7TerminalsTitles, // Todo: test it
 
 
             // ESP
             MobESP,
             LividESP,
+
 
             // Alerts
             BloodReady,
@@ -94,16 +125,32 @@ class NoammAddons {
 
             // GUI
             SalvageOverlay,
+            PartyFinderOverlay,
+//          ScaleableTooltips - @see MixinGuiUtils
+            CustomSpiritLeapMenu, // Todo: fix bug with head drawing
+
+
+            // HUD
+            FpsDisplay,
+            ClockDisplay,
+            BonzoMask,
+            SpiritMask,
+            PhoenixPet,
+            WitherShieldTimer, // Todo: add more sounds
+            SpringBootsDisplay, // Todo: Test it
+
 
             // Cosmetics
             BlockOverlay,
             PlayerScale,
+            PlayerSpin,
             TimeChanger,
             HideFallingBlocks,
             DamageSplash,
             RemoveSellfieCam,
             CustomFov,
             AntiBlind,
+            AntiPortal,
             NoBlockAnimation,
             NoWaterFOV,
 
@@ -113,17 +160,13 @@ class NoammAddons {
             DungeonUtils
 
         ).forEach(MinecraftForge.EVENT_BUS::register)
-
-        print(event.modState)
     }
 
 
     @SubscribeEvent
     fun onTick(event: TickEvent.ClientTickEvent) {
-        if (event.phase != TickEvent.Phase.START) return
-        if (keybinds[1].isPressed) {
-            EssentialAPI.getGuiUtil().openScreen(config.gui())
-            setTimeout(1000) {PlayerUtils.swapToSlot(10)}
+        if (KeyBinds.Config.isPressed) {
+            mc.openScreen(config.gui())
         }
     }
 
@@ -131,18 +174,17 @@ class NoammAddons {
     companion object {
         const val MOD_NAME = "NoammAddons"
         const val MOD_ID = "noammaddons"
-        const val MOD_VERSION = "1.0.0"
+        const val MOD_VERSION = "1.1.1"
         const val CHAT_PREFIX = "§6§l[§b§lN§d§lA§6§l]§r"
         const val FULL_PREFIX = "§d§l§nNoamm§b§l§nAddons"
 
         val mc: Minecraft = Minecraft.getMinecraft()
-        var config = Config
-
-        val keybinds = listOf(
-            KeyBinding("Ghost Pick", Keyboard.KEY_Z, MOD_NAME),
-            KeyBinding("Config", Keyboard.KEY_RSHIFT, MOD_NAME),
-            KeyBinding("Dungeon class Ultimate", Keyboard.KEY_GRAVE, MOD_NAME),
-            KeyBinding("Dungeon class Ability", 56, MOD_NAME),
-        )
+        val config = Config
+        val hudData = PogObject("hudData", HudElementConfig())
     }
+
+
+//    TODO
+//     - Add more features
+//     https://github.com/Noamm9/OdinClient/blob/main/odinmain/src/main/kotlin/me/odinmain/utils/skyblock/SkyblockPlayer.kt
 }

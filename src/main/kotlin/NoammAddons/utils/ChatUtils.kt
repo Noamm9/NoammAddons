@@ -3,7 +3,7 @@ package NoammAddons.utils
 
 import NoammAddons.NoammAddons.Companion.CHAT_PREFIX
 import NoammAddons.NoammAddons.Companion.mc
-import NoammAddons.Sounds.notificationsound
+import NoammAddons.sounds.notificationsound
 import gg.essential.universal.UChat
 import kotlin.math.absoluteValue
 import kotlin.math.sign
@@ -101,4 +101,5 @@ object ChatUtils {
         notificationsound.play()
     }
 
+    data class Text(var text: String, var x: Double, var y: Double, var scale: Double)
 }

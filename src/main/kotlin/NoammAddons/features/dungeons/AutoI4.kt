@@ -1,35 +1,29 @@
 package NoammAddons.features.dungeons
 
 
+import NoammAddons.NoammAddons.Companion.mc
+import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.CHAT_PREFIX
 import NoammAddons.NoammAddons.Companion.FULL_PREFIX
-import NoammAddons.NoammAddons.Companion.config
-import NoammAddons.NoammAddons.Companion.mc
-import NoammAddons.events.ReceivePacketEvent
-import NoammAddons.mixins.AccessorKeybinding
+import NoammAddons.utils.GuiUtils
+import NoammAddons.utils.PlayerUtils
+import NoammAddons.utils.ChatUtils
+import NoammAddons.utils.ChatUtils.removeFormatting
+import NoammAddons.utils.ChatUtils.equalsOneOf
 import NoammAddons.utils.BlockUtils.getBlockAt
 import NoammAddons.utils.BlockUtils.getBlockId
-import net.minecraft.entity.item.EntityArmorStand
-import NoammAddons.utils.ChatUtils
-import NoammAddons.utils.ChatUtils.Alert
-import NoammAddons.utils.ChatUtils.equalsOneOf
-import NoammAddons.utils.ChatUtils.removeFormatting
-import NoammAddons.utils.ChatUtils.sendChatMessage
-import NoammAddons.utils.GuiUtils
-import NoammAddons.utils.ItemUtils.getItemId
-import NoammAddons.utils.ItemUtils.lore
-import NoammAddons.utils.LocationUtils
-import NoammAddons.utils.MathUtils
-import NoammAddons.utils.RenderUtils
-import NoammAddons.utils.PlayerUtils
 import NoammAddons.utils.ThreadUtils.setTimeout
-import gg.essential.elementa.svg.data.minus
+import NoammAddons.utils.ItemUtils.getItemId
+import NoammAddons.events.ReceivePacketEvent
+import NoammAddons.mixins.AccessorKeybinding
+import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.network.play.server.S32PacketConfirmTransaction
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
 import net.minecraftforge.client.event.ClientChatReceivedEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent
+import kotlin.math.ceil
 
 
 object AutoI4 {
@@ -56,7 +50,7 @@ object AutoI4 {
     @SubscribeEvent
     fun onTick(event: TickEvent.ClientTickEvent) {
         if (!config.autoI4) return
-        val player = mc.thePlayer
+        val player = mc.thePlayer ?: return
         if (player.heldItem?.getItemId() != 261) return
         if (!isOnDev()) {
             if (doneCoords.size > 1) PlayerUtils.holdClick(false)
@@ -97,7 +91,7 @@ object AutoI4 {
         Thread {
             if (!shouldPredict) return@Thread
             Thread.sleep(350)
-            if (mc.theWorld.getBlockAt(BlockPos(emeraldLocation.first, emeraldLocation.second, emeraldLocation.third)).getBlockId() != 133 || wait) {
+            if (mc.theWorld.getBlockAt(BlockPos(emeraldLocation.first, emeraldLocation.second, emeraldLocation.third))?.getBlockId() != 133 || wait) {
                 (RightClickKey as AccessorKeybinding).invokeUnpressKey()
                 return@Thread
             }
@@ -128,7 +122,7 @@ object AutoI4 {
     @SubscribeEvent
     fun onChat(event: ClientChatReceivedEvent) {
         if (event.type.toInt() == 3) return
-        if (event.message.unformattedText.removeFormatting() != "[BOSS] Storm: I should have known that I stood no chance.") return
+        if (event.message.unformattedText.removeFormatting().contains("[BOSS] Storm: I should have known that I stood no chance.") ) return
         TickTimer = 0
     }
 
@@ -147,26 +141,24 @@ object AutoI4 {
 
         if (mc.theWorld.loadedEntityList.filter{ it is EntityArmorStand &&
             it.name.removeFormatting().toLowerCase().equalsOneOf("device", "active")}.filter{
-                "${Math.ceil(it.posX - 1)}, ${Math.ceil(it.posY + 1)}, ${Math.ceil(it.posZ)}" == "63.0, 127.0, 35.0"
+                "${ceil(it.posX - 1)}, ${ceil(it.posY + 1)}, ${ceil(it.posZ)}" == "63.0, 127.0, 35.0"
             }.size != 2
             ) return
 
         Alerted = true
         mc.thePlayer.sendChatMessage("/pc ${CHAT_PREFIX.removeFormatting()} I4 Done!")
-        Alert(FULL_PREFIX, "&a&lI4 Done!")
+        ChatUtils.Alert(FULL_PREFIX, "&a&lI4 Done!")
         if (RightClickKey.isKeyDown) PlayerUtils.holdClick(false)
     }
 
 
     private val LeapAction = Thread {
         if (TickTimer < 0) return@Thread
-        if (!isOnDev()) return@Thread
-        var runned = false
 
         mc.thePlayer.inventory.mainInventory.forEachIndexed { index, item ->
-            if (runned || index > 8 || item == null || !item.displayName.removeFormatting().toLowerCase().contains("leap")) return@forEachIndexed
+            if (index > 8 || item == null || !item.displayName.removeFormatting().toLowerCase().contains("leap")) return@forEachIndexed
+            if (!isOnDev()) return@forEachIndexed
             PlayerUtils.holdClick(false)
-            runned = true
 
             PlayerUtils.swapToSlot(index)
             Thread.sleep(50)
@@ -178,7 +170,6 @@ object AutoI4 {
             val container = mc.thePlayer.openContainer
             val mageSlot = container.inventory[14]
             val healerSlot = container.inventory[11]
-
 
 
             when { // dead teammates detection when?
@@ -220,8 +211,8 @@ object AutoI4 {
         if (Alerted || !isOnDev()) return
 
         Alerted = true
-        sendChatMessage("/pc ${CHAT_PREFIX.removeFormatting()} I4 Done!")
-        Alert(FULL_PREFIX, "&a&lI4 Done!")
+        ChatUtils.sendChatMessage("/pc ${CHAT_PREFIX.removeFormatting()} I4 Done!")
+        ChatUtils.Alert(FULL_PREFIX, "&a&lI4 Done!")
         if (RightClickKey.isKeyDown) PlayerUtils.holdClick(false)
     }
 }

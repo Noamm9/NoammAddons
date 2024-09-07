@@ -8,7 +8,6 @@ import net.minecraft.world.WorldSettings.GameType
 import net.minecraft.client.gui.GuiPlayerTabOverlay
 import net.minecraft.util.IChatComponent
 import java.lang.reflect.Field
-import net.minecraft.scoreboard.ScorePlayerTeam
 import net.minecraft.world.WorldSettings
 
 

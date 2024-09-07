@@ -5,7 +5,6 @@ import NoammAddons.utils.ChatUtils.modMessage
 import NoammAddons.utils.ChatUtils.removeFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.client.settings.KeyBinding
-import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
 import java.util.Timer
 import java.util.TimerTask
@@ -201,7 +200,3 @@ object PlayerUtils {
         modMessage("Swapped to ${mcInventory.getStackInSlot(slotIndex)?.displayName ?: "&4&lNOTHING!"}&r in slot &6$slotIndex")
     }
 }
-
-
-
-

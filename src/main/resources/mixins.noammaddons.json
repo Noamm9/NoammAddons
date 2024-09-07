@@ -4,16 +4,23 @@
   "package": "NoammAddons.mixins",
   "refmap": "mixins.${modid}.refmap.json",
   "client": [
+    "AccessorGuiContainer",
     "AccessorKeybinding",
     "AccessorMinecraft",
-    "MixinEntityRenderer",
     "MixinGuiContainer",
+    "MixinGuiDisplayTitle",
+    "MixinGuiScreen",
     "MixinGuiUtils",
     "MixinInventoryEffectRenderer",
     "MixinMinecraft",
     "MixinNetworkManager",
     "MixinPatcherEntityCulling",
     "MixinRenderEntityItem",
-    "MixinRendererLivingEntity"
+    "MixinRendererLivingEntity",
+    "MixinThePlayer"
+  ],
+  "mixins": [
+    "EntityAccessor",
+    "MixinEntity"
   ]
 }

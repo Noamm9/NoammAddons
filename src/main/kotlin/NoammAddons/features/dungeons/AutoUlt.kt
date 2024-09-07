@@ -3,7 +3,6 @@ package NoammAddons.features.dungeons
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
 import NoammAddons.utils.ChatUtils
-import NoammAddons.utils.ChatUtils.equalsOneOf
 import NoammAddons.utils.ChatUtils.removeFormatting
 import NoammAddons.utils.DungeonUtils
 import NoammAddons.utils.LocationUtils.dungeonFloor
@@ -14,17 +13,33 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 object AutoUlt {
     private val UltMessages = listOf(
-        UltMessage("⚠ Maxor is enraged! ⚠", arrayOf("healer", "tank"), 7),
-        UltMessage("[BOSS] Goldor: You have done it, you destroyed the factory…", arrayOf("healer", "tank"), 7),
-        UltMessage("[BOSS] Livid: I respect you for making it to here, but I'll be your undoing.", arrayOf("healer", "tank"), 5),
-        UltMessage("[BOSS] Sadan: My giants! Unleashed!", arrayOf("healer", "tank", "archer", "berserk", "mage"), 6), // Fixed the comma issue
+        UltMessage(
+            msg = "⚠ Maxor is enraged! ⚠",
+            classes = arrayOf("healer", "tank"),
+            floor = 7
+        ),
+        UltMessage(
+            msg = "[BOSS] Goldor: You have done it, you destroyed the factory…",
+            classes = arrayOf("healer", "tank"),
+            floor = 7
+        ),
+        UltMessage(
+            msg = "[BOSS] Sadan: My giants! Unleashed!",
+            classes = arrayOf("healer", "tank", "archer", "berserk", "mage"),
+            floor = 6
+        ),
+        UltMessage(
+            msg = "[BOSS] Livid: I respect you for making it to here, but I'll be your undoing.",
+            classes = arrayOf("healer", "tank"),
+            floor = 5
+        )
     )
 
     @SubscribeEvent
     fun useUlt(event: ClientChatReceivedEvent) {
         if (!config.autoUlt) return
         if (!inDungeons) return
-        if (event.type.toInt() == 3) return
+        if (event.type.toInt() != 0) return
 
         val matchingMessage = UltMessages.find {
             it.msg == event.message.unformattedText.removeFormatting() && it.floor == dungeonFloor
@@ -40,6 +55,6 @@ object AutoUlt {
         }
     }
 
-    data class UltMessage(val msg: String, val classes: Array<String>, val floor: Int)
+    private data class UltMessage(val msg: String, val classes: Array<String>, val floor: Int)
 }
 

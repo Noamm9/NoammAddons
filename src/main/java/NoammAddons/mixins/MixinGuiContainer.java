@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import NoammAddons.events.GuiContainerEvent;
 
+
 @Mixin(GuiContainer.class)
 public class MixinGuiContainer {
 
@@ -19,6 +20,12 @@ public class MixinGuiContainer {
 
     @Shadow
     public Container inventorySlots;
+
+    @Shadow private Slot theSlot;
+
+    @Shadow protected int guiLeft;
+
+    @Shadow protected int guiTop;
 
     @Inject(method = "drawSlot", at = @At("HEAD"), cancellable = true)
     private void onDrawSlot(Slot slot, CallbackInfo ci) {
@@ -38,3 +45,4 @@ public class MixinGuiContainer {
         MinecraftForge.EVENT_BUS.post(new GuiContainerEvent.CloseEvent(inventorySlots, gui));
     }
 }
+

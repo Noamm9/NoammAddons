@@ -203,3 +203,5 @@ servers.dat
 servers.essential.dat
 /.vscode
 ops.json
+whitelist.json
+whitelist.json

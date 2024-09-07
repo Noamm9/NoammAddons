@@ -7,6 +7,7 @@ import NoammAddons.utils.ChatUtils.removeFormatting
 import net.minecraft.client.network.NetworkPlayerInfo
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.ResourceLocation
+import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent
 import java.awt.Color
@@ -100,5 +101,12 @@ object DungeonUtils {
         leapTeammates = dungeonTeammatesNoSelf.sortedBy { it.clazz }.toMutableList()
 
         tickCount = 0
+    }
+
+    @SubscribeEvent
+    fun reset(event: WorldEvent.Unload) {
+        dungeonTeammates = emptyList()
+        dungeonTeammatesNoSelf = emptyList()
+        leapTeammates = mutableListOf()
     }
 }

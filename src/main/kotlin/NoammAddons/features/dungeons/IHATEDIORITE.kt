@@ -20,19 +20,19 @@ object IHATEDIORITE {
         if (dungeonFloor == 7 && F7Phase == 2 && config.IHATEDIORITE) {
             for (i in 0..37) {
                 GreenArray.forEach { block ->
-                    if (mc.theWorld.getBlockAt(block.add(0,i,0)).getName() == "minecraft:stone") {
+                    if (mc.theWorld.getBlockAt(block.add(0,i,0))?.getName() == "minecraft:stone") {
                         mc.theWorld.setBlockState(block.add(0,i,0), WhileGlass)
                     }
                 }
 
                 YellowArray.forEach { block ->
-                    if (mc.theWorld.getBlockAt(block.add(0,i,0)).getName() == "minecraft:stone") {
+                    if (mc.theWorld.getBlockAt(block.add(0,i,0))?.getName() == "minecraft:stone") {
                         mc.theWorld.setBlockState(block.add(0,i,0), WhileGlass)
                     }
                 }
 
                 BlueArray.forEach { block ->
-                    if (mc.theWorld.getBlockAt(block.add(0,i,0)).getName() == "minecraft:stone") {
+                    if (mc.theWorld.getBlockAt(block.add(0,i,0))?.getName() == "minecraft:stone") {
                         mc.theWorld.setBlockState(block.add(0,i,0), WhileGlass)
                     }
                 }

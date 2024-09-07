@@ -27,9 +27,9 @@ object ChatCoordsWaypoint {
         if (event.type.toInt() == 3) return
         val match = regex.find(event.message.unformattedText.removeFormatting()) ?: return
 
-        val (type, name, x, y, z) = match.groupValues
+        val (_, name, x, y, z) = match.groupValues
         val time = System.currentTimeMillis()
-        ChatUtils.modMessage("&b ${type ?: ""} $name&r &aSent a waypoint at &b$x, $y, $z")
+        ChatUtils.modMessage("&b ${name ?: ""} $name&r &aSent a waypoint at &b$x, $y, $z")
 
         waypointArray.add(waypoint(name, x.toInt(), y.toInt(), z.toInt(), time))
     }

@@ -20,9 +20,9 @@ object SalvageOverlay {
             Gui.drawRect(
                 x, y, x + 16, y + 16,
                 if (attributes.getInteger("baseStatBoostPercentage") == 50) {
-                    Color(255, 0,0).rgb
+                    config.overlayColorTopSalvageable.rgb
                 }
-                else Color(0, 255, 255).rgb
+                else config.overlayColorSalvageable.rgb
             )
         }
     }

@@ -3,9 +3,12 @@ package NoammAddons.utils
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
 import NoammAddons.mixins.AccessorMinecraft
+import NoammAddons.utils.BlockUtils.blockBounds
+import NoammAddons.utils.BlockUtils.getBlockAt
 import NoammAddons.utils.ChatUtils.addColor
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Gui
+import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.client.renderer.Tessellator
@@ -19,23 +22,27 @@ import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.BlockPos
 import net.minecraft.util.ResourceLocation
 import net.minecraft.util.Vec3
+import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
 import kotlin.math.round
+import org.lwjgl.util.glu.Cylinder
+import gg.essential.universal.UMatrixStack
+import gg.essential.elementa.components.UIRoundedRectangle.Companion.drawRoundedRectangle
+import kotlin.math.cos
+import kotlin.math.sin
 
 
 object RenderUtils {
     private val renderManager: RenderManager = mc.renderManager
     private val tessellator: Tessellator = Tessellator.getInstance()
     private val worldRenderer: WorldRenderer = tessellator.worldRenderer
-
-    private fun getPartialTicks() = (mc as AccessorMinecraft).timer.renderPartialTicks
-
+    private val regCylinder = Cylinder()
+    private val lineCylinder = Cylinder().apply{drawStyle = GL_LINE}
 
     private fun preDraw() {
         GlStateManager.enableAlpha()
         GlStateManager.enableBlend()
-        GlStateManager.disableLighting()
         GlStateManager.disableTexture2D()
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
     }
@@ -45,13 +52,19 @@ object RenderUtils {
         GlStateManager.enableTexture2D()
     }
 
-    fun EntityPlayer.getRenderX(): Double = this.lastTickPosX + (this.posX - this.lastTickPosX) * getPartialTicks()
-    fun EntityPlayer.getRenderY(): Double = this.lastTickPosY + (this.posY - this.lastTickPosY) * getPartialTicks()
-    fun EntityPlayer.getRenderZ(): Double = this.lastTickPosZ + (this.posZ - this.lastTickPosZ) * getPartialTicks()
+    fun Minecraft.getPartialTicks() = (this as AccessorMinecraft).timer.renderPartialTicks
 
-    fun Entity.getRenderX(): Double = this.lastTickPosX + (this.posX - this.lastTickPosX) * getPartialTicks()
-    fun Entity.getRenderY(): Double = this.lastTickPosY + (this.posY - this.lastTickPosY) * getPartialTicks()
-    fun Entity.getRenderZ(): Double = this.lastTickPosZ + (this.posZ - this.lastTickPosZ) * getPartialTicks()
+    fun EntityPlayer.getRenderX(): Double = lastTickPosX + (posX - lastTickPosX) * mc.getPartialTicks()
+    fun EntityPlayer.getRenderY(): Double = lastTickPosY + (posY - lastTickPosY) * mc.getPartialTicks()
+    fun EntityPlayer.getRenderZ(): Double = lastTickPosZ + (posZ - lastTickPosZ) * mc.getPartialTicks()
+
+    fun Entity.getRenderX(): Double = lastTickPosX + (posX - lastTickPosX) * mc.getPartialTicks()
+    fun Entity.getRenderY(): Double = lastTickPosY + (posY - lastTickPosY) * mc.getPartialTicks()
+    fun Entity.getRenderZ(): Double = lastTickPosZ + (posZ - lastTickPosZ) * mc.getPartialTicks()
+
+    fun Minecraft.getWidth(): Int = ScaledResolution(this).scaledWidth
+    fun Minecraft.getHeight(): Int = ScaledResolution(this).scaledHeight
+
 
     private fun drawFilledAABB(aabb: AxisAlignedBB, c: Color, alphaMultiplier: Float = 1f) {
         GlStateManager.color(c.red / 255f, c.green / 255f, c.blue / 255f, c.alpha / 255f * alphaMultiplier)
@@ -170,13 +183,13 @@ object RenderUtils {
         val z = blockPos.z.toDouble()
 
         var axisAlignedBB = AxisAlignedBB(x,y,z,x+1,y+1,z+1)
-        val block = mc.theWorld.getBlockState(blockPos).block
+        val block = mc.theWorld.getBlockAt(blockPos)
 
         if (block != null) {
             block.setBlockBoundsBasedOnState(mc.theWorld, blockPos)
-            axisAlignedBB = block.getSelectedBoundingBox(mc.theWorld, blockPos)
-                .expand(0.0020000000949949026, 0.0020000000949949026, 0.0020000000949949026)
-                .offset(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ)
+            axisAlignedBB = block.getSelectedBoundingBox(mc.theWorld, blockPos).
+            expand(0.0020000000949949026, 0.0020000000949949026, 0.0020000000949949026).
+            offset(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ)
         }
 
         if (fill) drawFilledAABB(axisAlignedBB, color)
@@ -340,7 +353,7 @@ object RenderUtils {
         glPopMatrix()
     }
 
-    fun drawText(text: String, x: Double, y: Double, scale: Double = 1.0) {
+    fun drawText(text: String, x: Double, y: Double, scale: Double = 1.0, color: Color = Color.WHITE) {
 
         GlStateManager.pushMatrix()
         GlStateManager.disableLighting()
@@ -357,21 +370,24 @@ object RenderUtils {
 
                 mc.fontRendererObj.drawStringWithShadow(
                     it.addColor(),
-                    round(x / scale).toFloat(),
-                    round(yOffset / scale).toFloat(),
-                    0xFFFFFF
+                    (x / scale).toFloat(),
+                    (yOffset / scale).toFloat(),
+                    color.rgb
                 )
             }
         }
         else {
             mc.fontRendererObj.drawStringWithShadow(
                 text.addColor(),
-                round(x / scale).toFloat(),
-                round(yOffset / scale).toFloat(),
-                0xFFFFFF
+                (x / scale).toFloat(),
+                (y / scale).toFloat(),
+                color.rgb
             )
         }
 
+        GlStateManager.enableLighting()
+        GlStateManager.enableDepth()
+        GlStateManager.enableBlend()
         GlStateManager.popMatrix()
     }
 
@@ -399,6 +415,121 @@ object RenderUtils {
         GlStateManager.disableAlpha()
         GlStateManager.disableRescaleNormal()
         GlStateManager.disableLighting()
+        GlStateManager.popMatrix()
+    }
+
+    /**
+     * Draws a 3D cylinder in Minecraft using OpenGL.
+     *
+     * @param x X Coordinates
+     * @param y Y Coordinates
+     * @param z Z Coordinates
+     * @param baseRadius Radius of the bottom of the cylinder.
+     * @param topRadius Radius of the top of the cylinder.
+     * @param height Height of the cylinder.
+     * @param slices Slices in the cylinder.
+     * @param stacks Stacks in the cylinder.
+     * @param rot1 Rotation on the X axis.
+     * @param rot2 Rotation on the Y axis.
+     * @param rot3 Rotation on the Z axis.
+     * @param r Color Red (0-1)
+     * @param g Color Green (0-1)
+     * @param b Color Blue (0-1)
+     * @param a Alpha (0-1)
+     * @param phase Depth test disabled (true = see through walls)
+     * @param linemode True: the frame of the cylinder is visible, False: the filled cylinder is visible.
+     */
+    fun drawCylinder(
+        BlockPos: BlockPos,
+        baseRadius: Float, topRadius: Float, height: Float,
+        slices: Int, stacks: Int,
+        rot1: Float, rot2: Float, rot3: Float,
+        color: Color,
+        phase: Boolean, linemode: Boolean
+    ) {
+        val player = mc.thePlayer
+
+        val renderX = BlockPos.x - player.getRenderX()
+        val renderY = BlockPos.y - player.getRenderY()
+        val renderZ = BlockPos.z - player.getRenderZ()
+
+        GlStateManager.pushMatrix()
+        glLineWidth(2.0f)
+        GlStateManager.disableCull()
+        GlStateManager.enableBlend()
+        GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        GlStateManager.depthMask(false)
+        GlStateManager.disableTexture2D()
+
+        GlStateManager.color(color.red / 255f, color.green /255f, color.blue /255f, color.alpha /255f)
+        GlStateManager.translate(renderX, renderY, renderZ)
+        GlStateManager.rotate(rot1, 1.0f, 0.0f, 0.0f)
+        GlStateManager.rotate(rot2, 0.0f, 0.0f, 1.0f)
+        GlStateManager.rotate(rot3, 0.0f, 1.0f, 0.0f)
+
+        if (phase) GlStateManager.disableDepth()
+
+        if (linemode) lineCylinder.draw(baseRadius, topRadius, height, slices, stacks)
+        else regCylinder.draw(baseRadius, topRadius, height, slices, stacks)
+
+        GlStateManager.enableCull()
+        GlStateManager.disableBlend()
+        GlStateManager.depthMask(true)
+        GlStateManager.enableTexture2D()
+        GlStateManager.enableDepth()
+
+        GlStateManager.popMatrix()
+    }
+
+    fun drawRoundedRect(color: Color, x: Double, y: Double, width: Double, height: Double, radius: Double = 5.0) {
+        drawRoundedRectangle(
+            UMatrixStack(),
+            x.toFloat(),
+            y.toFloat(),
+            (x + width).toFloat(),
+            (y + height).toFloat(),
+            radius.toFloat(),
+            color
+        )
+    }
+
+    fun drawPlayerHead(resourceLocation: ResourceLocation, x: Double, y: Double, width: Double, height: Double, radius: Double = 10.0) {
+        GlStateManager.pushMatrix()
+        GlStateManager.enableTexture2D()
+        GlStateManager.enableBlend()
+        GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        GlStateManager.translate(x + width / 2, y + height / 2, 0.0)
+
+        glEnable(GL_STENCIL_TEST)
+        glClear(GL_STENCIL_BUFFER_BIT)
+
+        glStencilFunc(GL_ALWAYS, 1, 0xFF)
+        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE)
+        glStencilMask(0xFF)
+
+        drawRoundedRect(Color.WHITE, -width / 2, -height / 2, width, height, radius)
+
+        glStencilFunc(GL_EQUAL, 1, 0xFF)
+        glStencilMask(0x00)
+
+        mc.textureManager.bindTexture(resourceLocation)
+
+        worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION_TEX)
+        worldRenderer.pos(-width / 2, height / 2, 0.0).tex(8.0 / 64.0, 16.0 / 64.0).endVertex()
+        worldRenderer.pos(width / 2, height / 2, 0.0).tex(16.0 / 64.0, 16.0 / 64.0).endVertex()
+        worldRenderer.pos(width / 2, -height / 2, 0.0).tex(16.0 / 64.0, 8.0 / 64.0).endVertex()
+        worldRenderer.pos(-width / 2, -height / 2, 0.0).tex(8.0 / 64.0, 8.0 / 64.0).endVertex()
+        tessellator.draw()
+
+        worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION_TEX)
+        worldRenderer.pos(-width / 2, height / 2, 0.0).tex(40.0 / 64.0, 16.0 / 64.0).endVertex()
+        worldRenderer.pos(width / 2, height / 2, 0.0).tex(48.0 / 64.0, 16.0 / 64.0).endVertex()
+        worldRenderer.pos(width / 2, -height / 2, 0.0).tex(48.0 / 64.0, 8.0 / 64.0).endVertex()
+        worldRenderer.pos(-width / 2, -height / 2, 0.0).tex(40.0 / 64.0, 8.0 / 64.0).endVertex()
+        tessellator.draw()
+
+        glDisable(GL_STENCIL_TEST)
+        GlStateManager.disableBlend()
         GlStateManager.popMatrix()
     }
 }

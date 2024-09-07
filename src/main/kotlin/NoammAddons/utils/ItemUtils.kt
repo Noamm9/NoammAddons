@@ -59,10 +59,10 @@ object ItemUtils {
         } ?: emptyList()
 
     fun isHoldingEtherwarpItem(): Boolean {
-        val held = mc.thePlayer.heldItem
+        val held = mc.thePlayer?.heldItem ?: return false
         val sbId = held.SkyblockID
 
-        if (sbId !== "ASPECT_OF_THE_END" && sbId !== "ASPECT_OF_THE_VOID") return false
+        if (sbId.contains("ASPECT_OF_THE_END") || sbId.contains("ASPECT_OF_THE_VOID")) return true
 
         return held.getSubCompound("ExtraAttributes", false)?.getString("ethermerge") == "1"
     }

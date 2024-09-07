@@ -2,25 +2,27 @@ package NoammAddons.utils
 
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
+import NoammAddons.utils.ChatUtils.removeFormatting
 import NoammAddons.utils.MathUtils.isCoordinateInsideBox
 import NoammAddons.utils.ScoreboardUtils.sidebarLines
-import NoammAddons.utils.TablistUtils.getTablistText
-import net.minecraft.util.StringUtils.stripControlCodes
+import NoammAddons.utils.TablistUtils.getTabList
 import net.minecraft.util.Vec3
+import net.minecraftforge.client.event.RenderGameOverlayEvent
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent
 
+
 object LocationUtils {
     var onHypixel = false
     var inSkyblock = false
     var inDungeons = false
-    var dungeonFloor = -1
+    var dungeonFloor: Int? = null
     var inBoss = false
-    var P3Section = 1
-    var F7Phase = 1
-    var WorldName = "hi"
+    var P3Section: Int? = null
+    var F7Phase: Int? = null
+    var WorldName: String? = null
 
     private var tickCount = 0
 
@@ -34,7 +36,7 @@ object LocationUtils {
             inSkyblock = true
             inDungeons = true
             dungeonFloor = 7
-            F7Phase = 5
+            F7Phase = 3
             P3Section = 1
             inBoss = true
         }
@@ -69,6 +71,8 @@ object LocationUtils {
         inDungeons = false
         dungeonFloor = -1
         inBoss = false
+        P3Section = null
+        F7Phase = null
     }
 
     @SubscribeEvent
@@ -78,15 +82,18 @@ object LocationUtils {
         inDungeons = false
         dungeonFloor = -1
         inBoss = false
+        P3Section = null
+        F7Phase = null
+        WorldName = null
     }
 
     @SubscribeEvent
-    fun onWorldTick(event: TickEvent.WorldTickEvent) {
-        if (event.phase != TickEvent.Phase.START || !inSkyblock || !inDungeons) return
+    fun onWorldTick(event: TickEvent.ClientTickEvent) {
+        if (event.phase != TickEvent.Phase.START || !inSkyblock) return
         if (!config.forceSkyblock) {
             inBoss = this.isInBossRoom()
-            F7Phase = this.getPhase() ?: 1
-            P3Section = this.getP3Section() ?: 1
+            F7Phase = this.getPhase()
+            P3Section = this.getP3Sectionn()
             WorldName = this.getCurrentWorld()
         }
     }
@@ -95,12 +102,11 @@ object LocationUtils {
     private fun getPhase(): Int? {
         if (dungeonFloor != 7 && !inBoss) return null
 
-        val player = mc.thePlayer ?: return null
+        val playerPosition = mc.thePlayer?.positionVector ?: return null
         val corner1 = Vec3(-8.0, 254.0, 147.0)
         val corner2 = Vec3(134.0, 0.0, -8.0)
         var inPhase: Int? = null
 
-        val playerPosition = Vec3(player.posX, player.posY, player.posZ)
 
         if (isCoordinateInsideBox(playerPosition, corner1, corner2)) {
             inPhase = when {
@@ -122,11 +128,10 @@ object LocationUtils {
         Pair(Vec3(91.0, 158.0, 50.0), Vec3(-3.0, 106.0, 30.0))  // 4
     )
 
-    private fun getP3Section(): Int? {
-        if (getPhase() != 3) return 1
+    private fun getP3Sectionn(): Int? {
+        if (F7Phase != 3) return null
 
-        val player = mc.thePlayer ?: return null
-        val playerCoords = Vec3(player.posX, player.posY, player.posZ)
+        val playerCoords = mc.thePlayer?.positionVector ?: return 1
 
         P3Sections.forEachIndexed { index, section ->
             if (isCoordinateInsideBox(playerCoords, section.first, section.second)) {
@@ -146,26 +151,30 @@ object LocationUtils {
     )
 
     private fun isInBossRoom(): Boolean {
-        if (dungeonFloor != 7) return false
 
-        val player = mc.thePlayer ?: return false
-        val playerCoords = Vec3(player.posX, player.posY, player.posZ)
-        val corners = bossRoomCorners[dungeonFloor.toString()]
+        val playerCoords = mc.thePlayer?.positionVector ?: return false
+        val corners = bossRoomCorners[dungeonFloor.toString()] ?: return false
 
-        return if (corners != null) isCoordinateInsideBox(playerCoords, corners.first, corners.second)
-        else false
+        return isCoordinateInsideBox(playerCoords, corners.first, corners.second)
     }
 
-    private fun getCurrentWorld(): String {
-        if (!inSkyblock) return ""
+    private fun getCurrentWorld(): String? {
 
-        for (text in getTablistText()) {
-            val worldName = "^(Area|Dungeon): ([\\w ]+)$".toRegex().find(stripControlCodes(text))?.groupValues?.get(2)
-            if (!worldName.toBoolean()) continue
+        for ((_, line) in getTabList) {
+            val (_1, _2, name) = Regex("(Area|Dungeon): ([\\w ]+)").find(line.removeFormatting())?.groupValues ?: continue
 
-            return worldName.toString()
+            return name
         }
 
-        return ""
+        return null
+    }
+
+
+   // @SubscribeEvent
+    fun testing(event: RenderGameOverlayEvent.Post) {
+        RenderUtils.drawText(
+            "indungeons: $inDungeons \n dungeonfloor: $dungeonFloor \n inboss: $inBoss \n inSkyblock: $inSkyblock \n onHypixel: $onHypixel \n F7Phase: $F7Phase \n P3Section: $P3Section \n WorldName: $WorldName",
+            10.0, 10.0
+        )
     }
 }
