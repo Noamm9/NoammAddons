@@ -52,9 +52,9 @@ object F7PhaseStartTimers {
     }
 
     @SubscribeEvent
-    fun onRender(event: RenderGameOverlayEvent.Post) {
+    fun onRender(event: RenderGameOverlayEvent.Pre) {
         if (!config.F7M7PhaseStartTimers) return
-        if (event.type != RenderGameOverlayEvent.ElementType.HOTBAR) return
+        if (event.type != RenderGameOverlayEvent.ElementType.TEXT) return
         val timeLeft = (msTime - (System.currentTimeMillis() - startTime)).toFloat().roundToInt()
         if (timeLeft < 0) return
 

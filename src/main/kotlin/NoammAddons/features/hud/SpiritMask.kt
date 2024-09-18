@@ -28,7 +28,7 @@ object SpiritMask {
     @SubscribeEvent
     fun onRender(event: RenderGameOverlayEvent.Pre) {
         if (!config.SpiritMaskDisplay) return
-        if (event.type != RenderGameOverlayEvent.ElementType.HOTBAR) return
+        if (event.type != RenderGameOverlayEvent.ElementType.TEXT) return
         if (!draw) return
 
         val cooldown = ((maskCooldown + (timer - System.currentTimeMillis())).toDouble() / 1000).toFixed(1).toDouble()

@@ -5,12 +5,12 @@ import net.minecraft.network.play.server.S2DPacketOpenWindow
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
-import NoammAddons.events.ReceivePacketEvent
+import NoammAddons.events.PacketEvent
 import NoammAddons.utils.LocationUtils.inDungeons
 
 object AutoCloseChest {
     @SubscribeEvent
-    fun onPacket(event: ReceivePacketEvent) {
+    fun onPacket(event: PacketEvent.Received) {
         if (event.packet !is S2DPacketOpenWindow || !inDungeons) return
         if (config.autoCloseSecretChests) {
             if (event.packet.windowTitle.unformattedText == "Chest") {

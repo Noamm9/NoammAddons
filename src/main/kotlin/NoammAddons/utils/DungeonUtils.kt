@@ -1,5 +1,6 @@
 package NoammAddons.utils
 
+import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
 import NoammAddons.utils.LocationUtils.inDungeons
 import NoammAddons.utils.TablistUtils.getTabList
@@ -25,12 +26,12 @@ object DungeonUtils {
      * @property color The color associated with the class.
      * @property prio The priority of the class.
      */
-    enum class Classes(val color: Color, var prio: Int, ) {
-        Archer(Color(255, 0, 0), 0),
-        Berserk(Color(255,106,0),1),
-        Healer(Color(255, 0, 255), 1),
-        Mage(Color(0, 255, 255), 1),
-        Tank(Color(0, 255, 0), 0),
+    enum class Classes(val color: Color, var colorCode: String, var prio: Int, ) {
+        Archer(Color(255, 0, 0), "&4", 0),
+        Berserk(Color(255,106,0),"&6", 1),
+        Healer(Color(255, 0, 255), "&d", 1),
+        Mage(Color(0, 255, 255), "&b", 1),
+        Tank(Color(0, 255, 0), "&a", 0),
     }
 
     /**
@@ -68,6 +69,13 @@ object DungeonUtils {
     private val tablistRegex = Regex("^\\[(\\d+)] (?:\\[\\w+] )*(\\w+) .*?\\((\\w+)(?: (\\w+))*\\)$")
 
     private fun getDungeonTeammates(previousTeammates: List<DungeonPlayer>): List<DungeonPlayer> {
+        if (config.DevMode) return listOf(
+            DungeonPlayer("Ocookie", Classes.Archer),
+            DungeonPlayer("Noamm9", Classes.Mage),
+            DungeonPlayer("hellop2", Classes.Healer),
+            DungeonPlayer("Ori", Classes.Tank),
+        )
+
         val teammates = mutableListOf<DungeonPlayer>()
         val tabList = getDungeonTabList() ?: return emptyList()
 

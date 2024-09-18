@@ -1,26 +1,26 @@
 package NoammAddons.features.General
 
-
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
+import NoammAddons.utils.ItemUtils.getRarity
 import net.minecraft.client.gui.FontRenderer
 import net.minecraft.client.gui.GuiChat
+import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.RenderHelper
-import net.minecraft.item.ItemStack
 import net.minecraftforge.fml.client.config.GuiUtils
 import org.lwjgl.input.Keyboard
 import org.lwjgl.input.Mouse
+import java.awt.Color
 
-// Stolen code from DulkirMod
+
+// Slightly modified code from DulkirMod
 // https://github.com/Noamm9/DulkirMod/blob/master/src/main/kotlin/dulkirmod/features/ScalableTooltips.kt
-
 object ScalableTooltips {
-    var scrollY: Int = 0
-    var scrollX: Int = 0
-    var snapFlag: Boolean = true
-    var scaleScale: Float = 0f
-    var previousStack: ItemStack? = null
+    private var scrollY: Int = 0
+    private var scrollX: Int = 0
+    private var snapFlag: Boolean = true
+    private var scaleScale: Float = 0f
 
     fun drawScaledHoveringText(
         textLines: List<String>,
@@ -32,6 +32,7 @@ object ScalableTooltips {
     ): Boolean {
         if(!config.ScalableTooltips) return false
         if(textLines.isEmpty()) return true
+
 
         val eventDWheel = Mouse.getDWheel()
         if (mc.currentScreen !is GuiChat) {
@@ -95,7 +96,7 @@ object ScalableTooltips {
         y = ((mouseY - 12 + scrollY) / scale).toInt()
 
 
-        val backgroundColor = -0xfeffff0
+        val backgroundColor = Color(33,33,33, 210).rgb
         val zLevel = 300
 
         GuiUtils.drawGradientRect(zLevel, x - 3, y - 4, x + width + 3, y - 3, backgroundColor, backgroundColor)
@@ -103,13 +104,16 @@ object ScalableTooltips {
         GuiUtils.drawGradientRect(zLevel, x - 3, y - 3, x + width + 3, y + height + 3, backgroundColor, backgroundColor)
         GuiUtils.drawGradientRect(zLevel, x - 4, y - 3, x - 3, y + height + 3, backgroundColor, backgroundColor)
         GuiUtils.drawGradientRect(zLevel, x + width + 3, y - 3, x + width + 4, y + height + 3, backgroundColor, backgroundColor)
-        val borderColorStart = 0x505000FF
+        val currentOpenedGui = mc.currentScreen
+        val borderColorStart =
+            if (currentOpenedGui is GuiContainer) currentOpenedGui.let { getRarity(it.slotUnderMouse?.stack).color.rgb }
+            else Color(255, 255, 255).rgb
         val borderColorEnd = borderColorStart and 0xFEFEFE shr 1 or (borderColorStart and -0x1000000)
         GuiUtils.drawGradientRect(zLevel, x - 3, y - 3 + 1, x - 3 + 1, y + height + 3 - 1, borderColorStart, borderColorEnd)
         GuiUtils.drawGradientRect(zLevel, x + width + 2, y - 3 + 1, x + width + 3, y + height + 3 - 1, borderColorStart, borderColorEnd)
         GuiUtils.drawGradientRect(zLevel, x - 3, y - 3, x + width + 3, y - 3 + 1, borderColorStart, borderColorStart)
         GuiUtils.drawGradientRect(zLevel, x - 3, y + height + 2, x + width + 3, y + height + 3, borderColorEnd, borderColorEnd)
-
+0
 
         var yStart = y
         for (textLine in textLines) {

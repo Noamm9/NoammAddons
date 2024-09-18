@@ -14,18 +14,11 @@ import NoammAddons.features.cosmetics.*
 import NoammAddons.features.dungeons.*
 import NoammAddons.features.dungeons.terminals.*
 import NoammAddons.features.gui.SalvageOverlay
-import NoammAddons.features.hud.ClockDisplay
-import NoammAddons.features.hud.FpsDisplay
-import NoammAddons.features.hud.PhoenixPet
-import NoammAddons.features.hud.SpiritMask
-import NoammAddons.utils.DungeonUtils
-import NoammAddons.utils.GuiUtils
+import NoammAddons.features.hud.*
+import NoammAddons.utils.*
 import NoammAddons.utils.GuiUtils.openScreen
-import NoammAddons.utils.LocationUtils
-import NoammAddons.utils.RenderUtils.drawPlayerHead
 import net.minecraft.client.Minecraft
 import net.minecraftforge.client.ClientCommandHandler
-import net.minecraftforge.client.event.RenderGameOverlayEvent
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.client.registry.ClientRegistry
 import net.minecraftforge.fml.common.Mod
@@ -38,19 +31,17 @@ import net.minecraftforge.fml.common.gameevent.TickEvent
     modid = NoammAddons.MOD_ID,
     name = NoammAddons.MOD_NAME,
     version = NoammAddons.MOD_VERSION,
-    clientSideOnly = true
+    clientSideOnly = true,
 )
 
 class NoammAddons {
     @Mod.EventHandler
+    @Suppress("UNUSED_PARAMETER", "unused")
     fun onInit(event: FMLInitializationEvent) {
-
-        // Registering config
         config.init()
         MinecraftForge.EVENT_BUS.register(PogObject.EventHandlers)
 
 
-        // Registering all Commands
         listOf(
             NoammAddonsCommands(),
             DungeonHub(),
@@ -61,20 +52,20 @@ class NoammAddons {
         ).forEach{ClientCommandHandler.instance.registerCommand(it)}
 
 
-        // Registering all Keybinds
         allBindings.forEach { ClientRegistry.registerKeyBinding(it) }
 
-        // Registering all features
+
         listOf(
             this,
 
             // General
-    //      EnderPearlFix,   WHY DID THEY HAVE TO PATCH THIS :(
+    //      EnderPearlFix,                                    WHY DID THEY HAVE TO PATCH THIS :(
             LeftClickEtherwarp,
             CustomItemEntity,
             ChatCoordsWaypoint,
             GyroCircle,
             ChatEmojis,
+            SlotBinding,
 
             // Dungeons
             TeammatesNames,
@@ -82,7 +73,6 @@ class NoammAddons {
             AbilityKeybinds,
             IHATEDIORITE,
             AutoCloseChest,
-            F7PreGhostBlocks,
             HighlightMimicChest,
             GhostPick,
             HiddenMobs,
@@ -94,6 +84,10 @@ class NoammAddons {
             F7PhaseStartTimers,
             AnnounceSpiritLeaps,
             AnnounceDraftResets,
+            BetterFloors,
+            BloodDialogueSkip,
+            AutoPotion,
+            AutoReaperArmorSwap,
 
 
             // Terminals
@@ -105,7 +99,7 @@ class NoammAddons {
             StartWith,
             MelodyAlert,
             TerminalNumbers,
-            BetterF7TerminalsTitles, // Todo: test it
+            BetterF7TerminalsTitles,
 
 
             // ESP
@@ -120,14 +114,14 @@ class NoammAddons {
             M7P5RagAxe,
             RNGSound,
             AHSoldNotification,
-            ShadowAssasianAlert,
+            ShadowAssassinAlert,
 
 
             // GUI
             SalvageOverlay,
             PartyFinderOverlay,
 //          ScaleableTooltips - @see MixinGuiUtils
-            CustomSpiritLeapMenu, // Todo: fix bug with head drawing
+            CustomSpiritLeapMenu,
 
 
             // HUD
@@ -136,8 +130,10 @@ class NoammAddons {
             BonzoMask,
             SpiritMask,
             PhoenixPet,
-            WitherShieldTimer, // Todo: add more sounds
-            SpringBootsDisplay, // Todo: Test it
+            WitherShieldTimer, // Todo: add more sounds + test
+            SpringBootsDisplay,
+            CustomScoreboard,
+            PlayerHud,
 
 
             // Cosmetics
@@ -153,12 +149,13 @@ class NoammAddons {
             AntiPortal,
             NoBlockAnimation,
             NoWaterFOV,
+            CustomBowHitSound,
 
             // Utilities
             GuiUtils,
             LocationUtils,
-            DungeonUtils
-
+            DungeonUtils,
+            ActionBarParser,
         ).forEach(MinecraftForge.EVENT_BUS::register)
     }
 
@@ -166,7 +163,7 @@ class NoammAddons {
     @SubscribeEvent
     fun onTick(event: TickEvent.ClientTickEvent) {
         if (KeyBinds.Config.isPressed) {
-            mc.openScreen(config.gui())
+            openScreen(config.gui())
         }
     }
 
@@ -174,7 +171,7 @@ class NoammAddons {
     companion object {
         const val MOD_NAME = "NoammAddons"
         const val MOD_ID = "noammaddons"
-        const val MOD_VERSION = "1.1.1"
+        const val MOD_VERSION = "1.5.3"
         const val CHAT_PREFIX = "§6§l[§b§lN§d§lA§6§l]§r"
         const val FULL_PREFIX = "§d§l§nNoamm§b§l§nAddons"
 
@@ -184,7 +181,8 @@ class NoammAddons {
     }
 
 
+
 //    TODO
-//     - Add more features
-//     https://github.com/Noamm9/OdinClient/blob/main/odinmain/src/main/kotlin/me/odinmain/utils/skyblock/SkyblockPlayer.kt
+//     - Add more features from old CT mod
+//     - Vanquisher esp + tracer
 }

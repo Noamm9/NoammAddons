@@ -12,7 +12,8 @@ import java.awt.Color
 import kotlin.math.sign
 
 
-class HudEditorScreen(private val elements: MutableList<HudElement>) : GuiScreen() {
+class HudEditorScreen: GuiScreen() {
+    private var elements = ElementsManager.elements
     private var selectedElement: HudElement? = null
     private var offsetX = 0.0
     private var offsetY = 0.0

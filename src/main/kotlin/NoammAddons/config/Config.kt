@@ -1,7 +1,9 @@
 package NoammAddons.config
 
 import NoammAddons.NoammAddons.Companion.FULL_PREFIX
-import NoammAddons.utils.ChatUtils.addColor
+import NoammAddons.config.EditGui.HudEditorScreen
+import NoammAddons.utils.GuiUtils.openScreen
+import gg.essential.universal.UDesktop
 import gg.essential.vigilance.Vigilant
 import gg.essential.vigilance.data.Category
 import gg.essential.vigilance.data.Property
@@ -9,11 +11,60 @@ import gg.essential.vigilance.data.PropertyType
 import gg.essential.vigilance.data.SortingBehavior
 import java.awt.Color
 import java.io.File
+import java.net.URI
 
 
 object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, sortingBehavior = Sorting) {
+    @Property(
+        type = PropertyType.BUTTON,
+        name = "Join my Discord Server",
+        description = "Feel free to join my Discord Server.",
+        category = "General",
+        placeholder = "CLICK"
+    )
+    @Suppress("unused")
+    fun openDiscordLink() {
+        UDesktop.browse(URI.create("https://discord.gg/pj9mQGxMxB"))
+    }
+
+    @Property(
+        type = PropertyType.BUTTON,
+        name = "Edit Hud Config",
+        description = """
+Opens the Hud Edit GUI
+    
+Left Click + Drag: Move Element around the screen
+Left Click + Scroll Wheel: Control the scale""",
+        category = "General",
+        placeholder = "CLICK"
+    )
+    @Suppress("unused")
+    fun openHudEditGUI() {
+        openScreen(HudEditorScreen())
+    }
 
     // General
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Slot Binding",
+        description = "Allows binding of slots to hotbar slots for quick item swaps, configurable via the SlotBinding Keybind in Options/Controls.\n" +
+                "Usage: Hold the Bind key, click the source slot, then the target hotbar slot. To remove bindings, hold the Keybind and click the first slot to clear.",
+        category = "General",
+        subcategory = "SlotBinding"
+
+    )
+    var SlotBinding = false
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Show Bound Slots",
+        description = "Shows the currently bound slots in the Inventory",
+        category = "General",
+        subcategory = "SlotBinding"
+    )
+    var SlotBindingShowBinding = true
+
     @Property(
         type = PropertyType.SWITCH,
         name = "Left Click Etherwarp",
@@ -73,6 +124,42 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
 
     @Property(
         type = PropertyType.SWITCH,
+        name = "Better Floors",
+        description = "Global Switch\nBasically My FunnyMapExtras's Config port\nPlaces and remove a some of Blocks in the boss fight",
+        category = "Dungeons",
+        subcategory = "Better Floors"
+    )
+    var BetterFloors = false
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Better 7",
+        description = "Enables the 7th Floor config",
+        category = "Dungeons",
+        subcategory = "Better Floors"
+    )
+    var BetterFloor7 = true
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Better 6",
+        description = "Enables the 6th Floor config",
+        category = "Dungeons",
+        subcategory = "Better Floors"
+    )
+    var BetterFloor6 = true
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Better 5",
+        description = "Enables the 5th Floor config",
+        category = "Dungeons",
+        subcategory = "Better Floors"
+    )
+    var BetterFloor5 = true
+
+    @Property(
+        type = PropertyType.SWITCH,
         name = "Ghost Pick",
         description = "Main toggle of this Category\nChoose the options you want to use below",
         category = "Dungeons",
@@ -107,9 +194,6 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
     )
     var MimicEffi10 = false
 
-
-
-
     @Property(
         type = PropertyType.SWITCH,
         name = "Dungeon Teammates Names",
@@ -127,7 +211,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         subcategory = "Dungeon Teammates"
     )
     var dungeonTeammatesOutline = false
-
+/*
     @Property(
         type = PropertyType.SWITCH,
         name = "EnderPearlFix",
@@ -135,7 +219,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         category = "Dungeons",
         subcategory = "Ender Pearls"
     )
-    var enderPearlFix = false
+    var enderPearlFix = false*/
 
     @Property(
         type = PropertyType.SWITCH,
@@ -177,12 +261,60 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
 
     @Property(
         type = PropertyType.SWITCH,
+        name = "Auto Potion",
+        description = "Automatically takes a potion before you join a dungeon",
+        category = "Dungeons",
+        subcategory = "General"
+    )
+    var AutoPotion = false
+
+    @Property(
+        type = PropertyType.TEXT,
+        name = "Auto Potion Command",
+        description = "The Command to use to take a potion",
+        category = "Dungeons",
+        subcategory = "General",
+        placeholder = "/pb"
+    )
+    var AutoPotionCommand = "/pb"
+
+    @Property(
+        type = PropertyType.SWITCH,
         name = "Trace Keys",
         description = "Draws a line from your mouse cursor to the Wither/Blood key.",
         category = "Dungeons",
         subcategory = "General"
     )
     var TraceKeys = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Blood Dialogue Skip",
+        description = "displays a timer for §n24 seconds§r after you open the blood room \n\n§b§lTip: §c&lYou need to be in blood when timer ends",
+        category = "Dungeons",
+        subcategory = "General"
+    )
+    var BloodDialogueSkip = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "§aAuto §0Reaper §cArmor §6Swap",
+        description = "§aAutomatically§f does the §0Reaper §cArmor §6Swap§f before the dragons on §4M7 §cP5§f Spawns\n\n §b§nNeed to have the Reaper Armor on the first page in your wardrobe&r \n\n §6Can also be Triggered with /na ras command ",
+        category = "Dungeons",
+        subcategory = "General"
+    )
+    var AutoReaperArmorSwap = false
+
+    @Property(
+        type = PropertyType.SLIDER,
+        name = "§0Reaper §cArmor Slot",
+        description = "§aThe slot where the §0Reaper §cArmor§f is located\n\n §c§lfrom 1 to 9",
+        category = "Dungeons",
+        subcategory = "General",
+        min = 1,
+        max = 9
+    )
+    var AutoReaperArmorSlot = 1
 
 
     @Property(
@@ -237,15 +369,6 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         subcategory = "F7"
     )
     var IHATEDIORITE = false
-
-    @Property(
-        type = PropertyType.SWITCH,
-        name = "F7 Ghost Block",
-        description = "Automatically creates ghost blocks to go to P3 from P2 on F7.",
-        category = "Dungeons",
-        subcategory = "F7"
-    )
-    var f7p3Ghost = false
 
     @Property(
         type = PropertyType.SWITCH,
@@ -352,6 +475,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         subcategory = "Render"
     )
     var showStealthy = false
+
 
     // Terminals
     @Property(
@@ -547,7 +671,6 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         subcategory = "Dungeon ESP"
     )
     var espMiniboss = false
-
 
     @Property(
         type = PropertyType.SWITCH,
@@ -804,11 +927,13 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
     @Property(
         type = PropertyType.SWITCH,
         name = "Scaleable Tooltips",
-        description = "Allows you to scale the size of the item tooltips and move them around your screen.\n\n" +
-                "Scroll Wheel: Scrolls vertically \n" +
-                "Left Shift + Scroll Wheel: Scrolls horizontally.\n" +
-                "Left Control + Scroll Wheel: Adjusts the scale.\n" +
-                "Space Bar: Resets the position and the scale to the default.",
+        description = """
+Allows you to scale the size of the item tooltips and move them around your screen.
+
+Scroll Wheel: Scrolls vertically
+Left Shift + Scroll Wheel: Scrolls horizontally
+Left Control + Scroll Wheel: Adjusts the scale
+Space Bar: Resets the position and the scale to the default""",
         category = "GUI",
         subcategory = "Tooltips"
     )
@@ -822,7 +947,6 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         subcategory = "Tooltips"
     )
     var ScalableTooltipsScale = 1f
-
 
     @Property(
         type = PropertyType.SWITCH,
@@ -889,6 +1013,70 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
 
 
     // HUD
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Player HUD",
+        description = "Global Switch for Player HUD\nDraws the hp, currentDefense, currentMana, and effective hp of the player on screen",
+        category = "HUD",
+        subcategory = "PlayerHUD"
+    )
+    var PlayerHUD = false
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Health Display",
+        description = "Draws your players health in currentHealth/maxHealth format on screen",
+        category = "HUD",
+        subcategory = "PlayerHUD",
+    )
+    var PlayerHUDHealth = true
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Defense Display",
+        description = "Draws your players currentDefense on screen",
+        category = "HUD",
+        subcategory = "PlayerHUD",
+    )
+    var PlayerHUDDefense = true
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Mana Display",
+        description = "Draws your players currentMana in currentMana/maxMana format on screen",
+        category = "HUD",
+        subcategory = "PlayerHUD",
+    )
+    var PlayerHUDMana = true
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Overflow Mana Display",
+        description = "Draws your players Overflow Mana on screen",
+        category = "HUD",
+        subcategory = "PlayerHUD",
+    )
+    var PlayerHUDOverflowMana = true
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Effective HP Display",
+        description = "Draws your players effective health on screen",
+        category = "HUD",
+        subcategory = "PlayerHUD",
+    )
+    var PlayerHUDEffectiveHP = true
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Speed Display",
+        description = "Draws your players speed on screen",
+        category = "HUD",
+        subcategory = "PlayerHUD",
+    )
+    var PlayerHUDSpeed = true
+
     @Property(
         type = PropertyType.SWITCH,
         name = "FPS Display",
@@ -897,6 +1085,15 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         subcategory = "FPS"
     )
     var FpsDisplay = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Custom Scoreboard",
+        description = "Renders Sexy Custom Dark Scoreboard",
+        category = "HUD",
+        subcategory = "ScoreBoard"
+    )
+    var CustomScoreboard = false
 
     @Property(
         type = PropertyType.COLOR,
@@ -1160,15 +1357,6 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
 
     @Property(
         type = PropertyType.SWITCH,
-        name = "Right Click Ghost Block",
-        description = "Right click with any pickaxe to create ghost block.",
-        category = "Cosmetic",
-        subcategory = "QOL"
-    )
-    var stonkGhostBlock = false
-
-    @Property(
-        type = PropertyType.SWITCH,
         name = "Remove Selfie camera",
         description = "Removes selfie camera In F5.",
         category = "Cosmetic",
@@ -1199,7 +1387,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
 
     @Property(
         type = PropertyType.SWITCH,
-        name = "custom Damage Splash",
+        name = "Custom Damage Splash",
         description = "Reformats Hypixel SkyBlock's Shitty Damage Splash.",
         category = "Cosmetic",
         subcategory = "QOL"
@@ -1217,12 +1405,21 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
 
 
     @Property(
-        type = PropertyType.SWITCH,
+        type = PropertyType.CHECKBOX,
         name = "Dev Mode",
-        description = "Forces all features to enable, even if you are not on skyblock. \nAnd enables console logging\n\n§4§n§lDev Note: DONT USE IT IF U ARE NOT ME, CAN GET YOU BANNED!\n\n§d[R.I.P] §bFININ1",
+        description = """
+§fForces all features to enable, even if you are not on skyblock.
+
+§eenables console logging and disables a few safety checks
+§bQ: Why is this a thing? 
+§aA: So I can properly test features in the mod without needing to be in skyblock
+
+§4§n§lDONT USE IT IF U ARE NOT ME, CAN GET YOU BANNED!
+
+§d[R.I.P] §bFININ1""",
         category = "Dev"
     )
-    var forceSkyblock = false
+    var DevMode = false
 
 
     init {
@@ -1230,6 +1427,28 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
             "ESP",
             "Disable Optifine's fast render and Patcher's entity culling."
         )
+
+        // General
+        addDependency("ChatCoordsWayPointColor", "ChatCoordsWayPoint")
+
+
+        // Dungeons
+        listOf(
+            "BetterFloor7",
+            "BetterFloor6",
+            "BetterFloor5"
+        ).forEach { addDependency(it, "BetterFloors") }
+        listOf(
+            "MimicEffi10",
+            "GhostBlocks",
+            "LegitGhostPick"
+        ).forEach { addDependency(it, "GhostPick") }
+        listOf(
+            "P1StartTimer",
+            "P2StartTimer",
+            "P3StartTimer",
+            "P4StartTimer"
+        ).forEach { addDependency(it, "F7M7PhaseStartTimers") }
 
 
         // Terminals
@@ -1255,17 +1474,16 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
             "BlockOverlayOverlayColor",
             "BlockOverlayESP",
         ).forEach { addDependency(it, "BlockOverlay") }
-
-
         listOf(
             "PlayerScaleOnEveryone",
             "PlayerScaleValue",
         ).forEach { addDependency(it, "PlayerScale") }
-
-
         addDependency("TimeChangerMode", "TimeChanger")
         addDependency("CustomFovValue", "CustomFov")
-
+        listOf(
+            "SpinDiraction",
+            "SpinSpeed"
+        ).forEach { addDependency(it, "PlayerSpin") }
 
 
         // ESP
@@ -1277,20 +1495,16 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
             "espColorFrozen",
             "espColorAngryArchaeologist"
         ).forEach { addDependency(it, "espSeperateMinibossColor") }
-
-
+        addDependency("espColorMiniboss", "espMiniboss")
         listOf(
             "espColorStarMobs",
             "removeStarMobsNametag"
         ).forEach{ addDependency(it, "espStarMobs") }
-
-
         addDependency("espColorLivid", "lividFinder")
         addDependency("espColorBats", "espBats")
         addDependency("espColorFels", "espFels")
         addDependency("espColorShadowAssassin", "espShadowAssassin")
         addDependency("removeStarMobsNametag", "espStarMobs")
-
 
 
         // GUI
@@ -1303,11 +1517,20 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
             "CustomLeapMenuLightMode"
         ).forEach { addDependency(it, "CustomLeapMenu") }
         addDependency("ScalableTooltipsScale", "ScalableTooltips")
+        addDependency("SlotBindingShowBinding", "SlotBinding")
 
 
         // Hud
         addDependency("FpsDisplayColor", "FpsDisplay")
         addDependency("ClockDisplayColor", "ClockDisplay")
+        listOf(
+            "PlayerHUDSpeed",
+            "PlayerHUDEffectiveHP",
+            "PlayerHUDOverflowMana",
+            "PlayerHUDMana",
+            "PlayerHUDDefense",
+            "PlayerHUDHealth"
+        ).forEach { addDependency(it, "PlayerHUD") }
     }
 
     fun init() {

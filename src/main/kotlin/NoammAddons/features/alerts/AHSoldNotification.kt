@@ -10,6 +10,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import NoammAddons.utils.ChatUtils.Alert
 import NoammAddons.utils.ChatUtils.formatNumber
 import NoammAddons.utils.ChatUtils.removeFormatting
+import NoammAddons.utils.ChatUtils.sendChatMessage
 
 object AHSoldNotification {
     private val regex = Regex("^\\[Auction] (.+) bought (.+) for (.+) coins CLICK$")
@@ -17,11 +18,9 @@ object AHSoldNotification {
 
     @SubscribeEvent
     fun onChat(event: ClientChatReceivedEvent) {
-        if (!config.SoldAHNotification || !inSkyblock || event.type.toInt() == 3) return
+        if (!config.SoldAHNotification || event.type.toInt() !in 0..1) return
 
-        val matchResult = regex.find(event.message.unformattedText.removeFormatting()) ?: run {
-            return
-        }
+        val matchResult = regex.find(event.message.unformattedText.removeFormatting()) ?: return
 
         val chatComponent = event.message
         val components = listOf(chatComponent) + chatComponent.siblings
@@ -43,9 +42,10 @@ object AHSoldNotification {
             Alert(
                 "§cSold AH Notification",
                 "§6$buyer §7bought §6$item §7for §6${formatNumber(price)} §7coins",
-                3,
-                {mc.thePlayer.sendChatMessage(command)}
+                5,
+                { sendChatMessage(command) }
             )
+            event.isCanceled = true
         }
     }
 }

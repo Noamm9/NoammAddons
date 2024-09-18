@@ -1,19 +1,18 @@
 package NoammAddons.utils
 
-import net.minecraft.client.Minecraft
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import NoammAddons.NoammAddons.Companion.mc
-import NoammAddons.events.GuiContainerEvent
-import NoammAddons.events.ReceivePacketEvent
+import NoammAddons.events.PacketEvent
+import NoammAddons.mixins.AccessorContainer
 import NoammAddons.utils.ChatUtils.removeFormatting
-import net.minecraft.network.play.server.S2DPacketOpenWindow
 import NoammAddons.utils.RenderUtils.getHeight
 import NoammAddons.utils.RenderUtils.getWidth
 import gg.essential.api.EssentialAPI
+import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.gui.inventory.GuiChest
 import net.minecraft.inventory.ContainerChest
-import net.minecraft.network.play.server.S2EPacketCloseWindow
+import net.minecraft.network.play.client.C0EPacketClickWindow
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import org.lwjgl.input.Mouse
 
 
@@ -22,7 +21,7 @@ object GuiUtils {
     var currentChestName: String = ""
 
     @SubscribeEvent
-    fun onPacketReceived(event: ReceivePacketEvent) {
+    fun onPacketReceived(event: PacketEvent.Received) {
         currentChestName = getCurrentOpenContainerName()
     }
 
@@ -30,9 +29,9 @@ object GuiUtils {
     fun clickSlot(slot: Int, shift: Boolean = false, click: Any = "LEFT") {
          val clickString = click.toString().removeFormatting().toLowerCase()
          var clickType = 1
-         if (clickString == "LEFT" || click == 1) clickType = 1
-         if (clickString == "RIGHT" || click == 2) clickType = 2
-         if (clickString == "MIDDLE" || click == 0) clickType = 0
+         if (clickString == "left" || click == "1") clickType = 1
+         if (clickString == "right" || click == "2") clickType = 2
+         if (clickString == "middle" || click == "0") clickType = 0
 
 
         mc.playerController.windowClick(
@@ -45,15 +44,46 @@ object GuiUtils {
         return
     }
 
+
+    /**
+     * Sends a packet to the server simulating a click in a container's window.
+     * @param slotId The ID of the slot being clicked in the container.
+     * @param mouseButton The mouse button used to perform the click. 0 for left-click, 1 for right-click, 2 for middle-click.
+     * @param clickType 0 - Normal click,  1 - Shift-click,  2 - Pick block,  3 - Middle-click
+
+     */
+    fun sendClickWindowPacket(slotId: Int, mouseButton: Int, clickType: Int) {
+        mc.netHandler.addToSendQueue(
+            C0EPacketClickWindow(
+                mc.thePlayer.openContainer.windowId,
+                slotId,
+                mouseButton,
+                clickType,
+                mc.thePlayer.openContainer.inventory[slotId],
+                (mc.thePlayer.openContainer as AccessorContainer).transactionID
+            )
+        )
+    }
+
+
+
     fun isInGui(): Boolean = mc.currentScreen != null
 
-    fun getPatcherScale(): Int {
-        return try {
-            Class.forName("club.sk1er.patcher.config.PatcherConfig")
-            .getDeclaredField("inventoryScale")
-            .get(null) as Int
+    fun getPatcherScale(configValue: Boolean = false): Double {
+        try {
+            val scale = Class.forName("club.sk1er.patcher.config.PatcherConfig").getDeclaredField("inventoryScale").get(null) as Int
+            return if (configValue) scale.toDouble()
+            else when (scale) {
+                0 -> 1.0
+                1 -> 0.5
+                2 -> 1.0
+                3 -> 1.5
+                4 -> 2.0
+                5 -> 2.0
+                else -> 1.0
+            }
         }
-        catch (_: Exception) { 1 }
+        catch (_: Exception) { return 1.0 }
     }
 
     fun disablePatcherScale() {
@@ -105,7 +135,7 @@ object GuiUtils {
         return ""
     }
 
-    fun Minecraft.openScreen(screen: GuiScreen?) {
+    fun openScreen(screen: GuiScreen?) {
         EssentialAPI.getGuiUtil().openScreen(screen)
     }
 }

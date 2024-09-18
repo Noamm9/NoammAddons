@@ -5,9 +5,12 @@ import NoammAddons.utils.ChatUtils.modMessage
 import NoammAddons.utils.ChatUtils.removeFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.client.settings.KeyBinding
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
+import net.minecraft.util.BlockPos
+import net.minecraft.util.EnumFacing
 import net.minecraft.util.Vec3
-import java.util.Timer
-import java.util.TimerTask
+import java.lang.Math.sin
+import java.util.*
 import kotlin.math.*
 
 object PlayerUtils {
@@ -15,6 +18,18 @@ object PlayerUtils {
         if (mc.currentScreen != null && mc.thePlayer != null) {
             mc.thePlayer.closeScreen()
         }
+    }
+
+    /**
+     * Toggles the sneak state of the player.
+     *
+     * @param isSneaking A boolean indicating whether to enable or disable sneaking.
+     * If true, sneaking will be enabled. If false, sneaking will be disabled.
+     */
+    fun toggleSneak(isSneaking: Boolean) {
+        val sneakKey: KeyBinding = mc.gameSettings.keyBindSneak
+
+        KeyBinding.setKeyBindState(sneakKey.keyCode, isSneaking)
     }
 
     fun rightClick() {
@@ -37,6 +52,10 @@ object PlayerUtils {
         method.invoke(mc)
     }
 
+    fun sendRightClickAirPacket() {
+        mc.netHandler.addToSendQueue(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
+    }
+
 
     /**
      * Holds a mouse button
@@ -48,7 +67,6 @@ object PlayerUtils {
      * Defaults to "RIGHT".
      */
     fun holdClick(hold: Boolean, type: String = "RIGHT") {
-        val mc = Minecraft.getMinecraft()
         val cleanedType = type.removeFormatting().lowercase()
         when (cleanedType) {
             "right" -> {
@@ -74,6 +92,22 @@ object PlayerUtils {
      */
     fun useDungeonClassAbility(Ultimate: Boolean = false) {
         mc.thePlayer.dropOneItem(!Ultimate)
+    }
+
+
+    private fun getEyePos(): Vec3 {
+        val Player = mc.thePlayer
+        return Vec3(Player.posX, Player.posY + Player.getEyeHeight(), Player.posZ)
+    }
+    private fun normalizeYaw(yaw: Float): Float {
+        var result = yaw
+        while (result >= 180) result -= 360
+        while (result < -180) result += 360
+        return result
+    }
+    private fun rotate(yaw: Float, pitch: Float) {
+        mc.thePlayer.rotationYaw = yaw
+        mc.thePlayer.rotationPitch = pitch
     }
 
 
@@ -112,17 +146,6 @@ object PlayerUtils {
 
 
     /**
-     * Returns the player's eye position.
-     *
-     * @return Vec3 containing the x, y, and z coordinates of the player's eye position.
-     */
-    private fun getEyePos(): Vec3 {
-        val Player = mc.thePlayer
-        return Vec3(Player.posX, Player.posY + Player.getEyeHeight(), Player.posZ)
-    }
-
-
-    /**
      * Rotates the player's view smoothly over a specified time period.
      *
      * @param yaw The new yaw (horizontal rotation) value for the player's view.
@@ -130,18 +153,30 @@ object PlayerUtils {
      * @param time The duration in milliseconds over which the rotation should occur.
      * @param cancelCheck Optional parameter to determine if rotation should be canceled.
      */
-    fun rotateSmoothly(yaw: Float, pitch: Float, time: Long, cancelCheck: Boolean = false) {
+    fun rotateSmoothly(yaw: Float, pitch: Float, baseTime: Long, cancelCheck: Boolean = false) {
         var targetYaw = yaw
         var targetPitch = pitch
 
-        // Normalize yaw to be within -180 to 180 degrees
         while (targetYaw >= 180) targetYaw -= 360
         while (targetYaw < -180) targetYaw += 360
+
+        if (targetYaw !in -180.0..180.0) {
+            return modMessage("&cInvalid yaw value")
+        }
+
+        targetPitch = targetPitch.coerceIn(-90f, 90f)
+
+        if (targetPitch !in -90.0..90.0) {
+            return modMessage("&cInvalid pitch value")
+        }
 
         val initialYaw = mc.thePlayer.rotationYaw
         val initialPitch = mc.thePlayer.rotationPitch
         val initialTime = System.currentTimeMillis()
 
+        val deltaYaw = normalizeYaw(targetYaw - initialYaw)
+
+        val randomEased = fun(t: Double): Double = sin((t * Math.PI) / 2)
 
         val timer = Timer()
         timer.scheduleAtFixedRate(object : TimerTask() {
@@ -152,16 +187,12 @@ object PlayerUtils {
                 }
 
                 val currentTime = System.currentTimeMillis()
-                val progress = if (time <= 0) 1.0 else max(min((currentTime - initialTime).toDouble() / time, 1.0), 0.0)
+                val progress = if (baseTime <= 0) 1.0 else max(min((currentTime - initialTime).toDouble() / baseTime, 1.0), 0.0)
 
-                // Cubic Bezier curve interpolation
-                val amount = (1 - progress).pow(3) * 0 +
-                        3 * (1 - progress).pow(2) * progress * 1 +
-                        3 * (1 - progress) * progress.pow(2) * 1 +
-                        progress.pow(3) * 1
+                val easedProgress = randomEased.invoke(progress)
 
-                val newYaw = initialYaw + (targetYaw - initialYaw) * amount.toFloat()
-                val newPitch = initialPitch + (targetPitch - initialPitch) * amount.toFloat()
+                val newYaw = initialYaw + deltaYaw * easedProgress.toFloat()
+                val newPitch = initialPitch + (targetPitch - initialPitch) * easedProgress.toFloat()
 
                 rotate(newYaw, newPitch)
 
@@ -169,18 +200,7 @@ object PlayerUtils {
                     timer.cancel()
                 }
             }
-        }, 0, 1000L / 60L)  // Runs every 1/60th of a second
-    }
-
-    /**
-     * Rotates the player to the given yaw and pitch instantly.
-     *
-     * @param yaw The yaw value to rotate to.
-     * @param pitch The pitch value to rotate to.
-     */
-    fun rotate(yaw: Float, pitch: Float) {
-        mc.thePlayer.rotationYaw = yaw
-        mc.thePlayer.rotationPitch = pitch
+        }, 0, 1L)
     }
 
 

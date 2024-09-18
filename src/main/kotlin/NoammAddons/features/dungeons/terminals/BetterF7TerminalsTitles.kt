@@ -70,8 +70,8 @@ object BetterF7TerminalsTitles {
         infoText.y = ((mc.getHeight()/2) - (mc.getHeight()/13)).toDouble()
 
         typeText.text = "&d$type".addColor()
-        typeText.x = ((mc.getWidth() / 2) - mc.fontRendererObj.getStringWidth(typeText.text.removeFormatting())/2).toDouble()
-        typeText.y = ((mc.getHeight() / 2) - (mc.getHeight() / 13)).toDouble()
+        typeText.x = ((mc.getWidth() / 2) - mc.fontRendererObj.getStringWidth(typeText.text.removeFormatting())).toDouble()
+        typeText.y = ((mc.getHeight() / 2) + (mc.getHeight() / 13)).toDouble()
 
         RenderOverlay = true
         cancelTitles = true
@@ -79,8 +79,8 @@ object BetterF7TerminalsTitles {
 
 
     @SubscribeEvent
-    fun renderOverlay(event: RenderGameOverlayEvent.Post) {
-        if (event.type != RenderGameOverlayEvent.ElementType.HOTBAR) return
+    fun renderOverlay(event: RenderGameOverlayEvent.Pre) {
+        if (event.type != RenderGameOverlayEvent.ElementType.TEXT) return
         if (!RenderOverlay) return
         val timeLeft = msTime - (System.currentTimeMillis() - startTime)
 

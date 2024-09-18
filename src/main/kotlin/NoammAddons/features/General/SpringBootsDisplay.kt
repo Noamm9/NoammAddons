@@ -6,11 +6,8 @@ import NoammAddons.NoammAddons.Companion.mc
 import NoammAddons.config.EditGui.HudElement
 import NoammAddons.utils.ChatUtils.removeFormatting
 import NoammAddons.utils.ItemUtils.lore
-import NoammAddons.utils.RenderUtils
-import NoammAddons.utils.RenderUtils.getHeight
-import NoammAddons.utils.RenderUtils.getWidth
 import net.minecraftforge.client.event.RenderGameOverlayEvent
-import net.minecraftforge.client.event.sound.SoundEvent
+import net.minecraftforge.client.event.sound.PlaySoundEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import java.awt.Color
 
@@ -28,7 +25,7 @@ object SpringBootsDisplay {
     )
 
     @SubscribeEvent
-    fun onSound(event: SoundEvent.SoundSourceEvent) {
+    fun onSound(event: PlaySoundEvent) {
         if (!config.SpringBootsDisplay) return
         if (mc.thePlayer == null) return
         if (!mc.thePlayer.isSneaking/* && IsWearingSpringBoots() != true*/) return
@@ -43,7 +40,7 @@ object SpringBootsDisplay {
         if (!config.SpringBootsDisplay) return
         if (mc.thePlayer == null) return
         if (IsWearingSpringBoots() != true || progress <= 0) return
-        if (event.type != RenderGameOverlayEvent.ElementType.HOTBAR) return
+        if (event.type != RenderGameOverlayEvent.ElementType.TEXT) return
         if (!mc.thePlayer.isSneaking || IsWearingSpringBoots() != true) progress = 0
 
 

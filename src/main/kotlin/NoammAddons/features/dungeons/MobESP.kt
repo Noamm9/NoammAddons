@@ -1,5 +1,6 @@
 package NoammAddons.features.dungeons
 
+import NoammAddons.NoammAddons.Companion.config
 import net.minecraft.entity.Entity
 import net.minecraft.entity.boss.EntityWither
 import net.minecraft.entity.item.EntityArmorStand
@@ -9,7 +10,6 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
 import NoammAddons.events.RenderLivingEntityEvent
 import NoammAddons.utils.LocationUtils.inDungeons

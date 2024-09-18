@@ -9,6 +9,7 @@
     "AccessorMinecraft",
     "MixinGuiContainer",
     "MixinGuiDisplayTitle",
+    "MixinGuiIngame",
     "MixinGuiScreen",
     "MixinGuiUtils",
     "MixinInventoryEffectRenderer",
@@ -20,7 +21,10 @@
     "MixinThePlayer"
   ],
   "mixins": [
+    "AccessorContainer",
     "EntityAccessor",
-    "MixinEntity"
+    "MixinChunk",
+    "MixinEntity",
+    "MixinModList"
   ]
 }

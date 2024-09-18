@@ -4,13 +4,9 @@ import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.hudData
 import NoammAddons.NoammAddons.Companion.mc
 import NoammAddons.config.EditGui.HudElement
+import NoammAddons.events.PacketEvent
 import NoammAddons.sounds.potispow
-import NoammAddons.events.ReceivePacketEvent
-import NoammAddons.events.SentPacketEvent
 import NoammAddons.utils.ItemUtils.SkyblockID
-import NoammAddons.utils.RenderUtils
-import NoammAddons.utils.RenderUtils.getHeight
-import NoammAddons.utils.RenderUtils.getWidth
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.network.play.server.S32PacketConfirmTransaction
 import net.minecraftforge.client.event.RenderGameOverlayEvent
@@ -29,7 +25,7 @@ object WitherShieldTimer {
     )
 
     @SubscribeEvent
-    fun onServerTick(event: ReceivePacketEvent) {
+    fun onServerTick(event: PacketEvent.Received) {
         if (!config.WitherShieldTimer) return
         if (event.packet !is S32PacketConfirmTransaction) return
         if (tickTimer > 100) return
@@ -41,7 +37,7 @@ object WitherShieldTimer {
     }
 
     @SubscribeEvent
-    fun onSentRightClick(event: SentPacketEvent) {
+    fun onSentRightClick(event: PacketEvent.Sent) {
         if (!config.WitherShieldTimer) return
         if (event.packet !is C08PacketPlayerBlockPlacement) return
         if (tickTimer < 100) return
@@ -52,9 +48,9 @@ object WitherShieldTimer {
     }
 
     @SubscribeEvent
-    fun drawTimer(event: RenderGameOverlayEvent.Post) {
+    fun drawTimer(event: RenderGameOverlayEvent.Pre) {
         if (!config.WitherShieldTimer) return
-        if (event.type != RenderGameOverlayEvent.ElementType.HOTBAR) return
+        if (event.type != RenderGameOverlayEvent.ElementType.TEXT) return
         if (tickTimer >= 100) return // Only display when the timer is running
 
         WitherShieldElement

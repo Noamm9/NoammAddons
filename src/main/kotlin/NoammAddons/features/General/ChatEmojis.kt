@@ -1,7 +1,5 @@
 package NoammAddons.features.General
 
-import NoammAddons.NoammAddons.Companion.config
-import NoammAddons.NoammAddons.Companion.mc
 import NoammAddons.events.MessageSentEvent
 import NoammAddons.utils.ChatUtils
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent

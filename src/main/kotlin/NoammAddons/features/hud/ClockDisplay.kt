@@ -16,7 +16,7 @@ object ClockDisplay {
 
     @SubscribeEvent
     fun draw(event: RenderGameOverlayEvent.Pre) {
-        if (event.type != RenderGameOverlayEvent.ElementType.HOTBAR) return
+        if (event.type != RenderGameOverlayEvent.ElementType.TEXT) return
         if (!config.ClockDisplay) return
 
         ClockDisplay

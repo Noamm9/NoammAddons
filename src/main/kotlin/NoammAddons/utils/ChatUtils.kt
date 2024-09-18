@@ -2,6 +2,7 @@ package NoammAddons.utils
 
 
 import NoammAddons.NoammAddons.Companion.CHAT_PREFIX
+import NoammAddons.NoammAddons.Companion.MOD_ID
 import NoammAddons.NoammAddons.Companion.mc
 import NoammAddons.sounds.notificationsound
 import gg.essential.universal.UChat
@@ -10,6 +11,8 @@ import kotlin.math.sign
 import gg.essential.api.EssentialAPI
 import gg.essential.universal.UChat.addColor
 import gg.essential.universal.wrappers.message.UTextComponent
+import kotlin.math.log10
+import kotlin.math.pow
 
 
 object ChatUtils {
@@ -45,9 +48,9 @@ object ChatUtils {
         if (absNum < 1) return "${if (sign == -1.0) "-" else ""}${"%.2f".format(absNum)}"
 
         val abbrev = listOf("", "k", "m", "b", "t", "q", "Q")
-        val index = (Math.log10(absNum) / 3).toInt().coerceIn(abbrev.indices)
+        val index = (log10(absNum) / 3).toInt().coerceIn(abbrev.indices)
 
-        val formattedNumber = "${(sign * absNum / Math.pow(10.0, (index * 3).toDouble())).toFixed(1)}${abbrev[index]}"
+        val formattedNumber = "${(sign * absNum / 10.0.pow((index * 3).toDouble())).toFixed(1)}${abbrev[index]}"
 
         return formattedNumber
     }
@@ -98,7 +101,7 @@ object ChatUtils {
             clickFunction,
             closeFunction
         )
-        notificationsound.play()
+        mc.thePlayer.playSound("$MOD_ID:notificationsound", 1f, 1f)
     }
 
     data class Text(var text: String, var x: Double, var y: Double, var scale: Double)

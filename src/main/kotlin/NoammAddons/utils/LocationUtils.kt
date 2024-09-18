@@ -32,7 +32,7 @@ object LocationUtils {
         tickCount++
         if (tickCount % 20 != 0) return
 
-        if (config.forceSkyblock) {
+        if (config.DevMode) {
             inSkyblock = true
             inDungeons = true
             dungeonFloor = 7
@@ -90,7 +90,7 @@ object LocationUtils {
     @SubscribeEvent
     fun onWorldTick(event: TickEvent.ClientTickEvent) {
         if (event.phase != TickEvent.Phase.START || !inSkyblock) return
-        if (!config.forceSkyblock) {
+        if (!config.DevMode) {
             inBoss = this.isInBossRoom()
             F7Phase = this.getPhase()
             P3Section = this.getP3Sectionn()
@@ -170,8 +170,10 @@ object LocationUtils {
     }
 
 
-   // @SubscribeEvent
-    fun testing(event: RenderGameOverlayEvent.Post) {
+    @SubscribeEvent
+    fun testing(event: RenderGameOverlayEvent.Pre) {
+        if (event.type != RenderGameOverlayEvent.ElementType.TEXT) return
+        if (!config.DevMode) return
         RenderUtils.drawText(
             "indungeons: $inDungeons \n dungeonfloor: $dungeonFloor \n inboss: $inBoss \n inSkyblock: $inSkyblock \n onHypixel: $onHypixel \n F7Phase: $F7Phase \n P3Section: $P3Section \n WorldName: $WorldName",
             10.0, 10.0

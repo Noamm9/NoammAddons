@@ -1,4 +1,4 @@
-package NoammAddons
+package NoammAddons.features.hud
 
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.hudData
@@ -29,7 +29,7 @@ object BonzoMask {
     @SubscribeEvent
     fun onRender(event: RenderGameOverlayEvent.Pre) {
         if (!config.BonzoMaskDisplay) return
-        if (event.type != RenderGameOverlayEvent.ElementType.HOTBAR) return
+        if (event.type != RenderGameOverlayEvent.ElementType.TEXT) return
         if (!draw) return
 
         val cooldown = ((maskCooldown + (timer - System.currentTimeMillis())).toDouble()/1000).toFixed(1).toDouble()

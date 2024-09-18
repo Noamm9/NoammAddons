@@ -9,29 +9,36 @@ import NoammAddons.utils.GuiUtils
 import NoammAddons.utils.ItemUtils.getItemId
 import NoammAddons.utils.ItemUtils.lore
 import NoammAddons.utils.RenderUtils
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
-
-
+// Insparied by Doc's Party Finder Overlay
+// https://github.com/DocilElm/Doc/blob/main/Doc/features/misc/PartyFinderOverlay.js
 object PartyFinderOverlay {
     private val partyMembersRegex = Regex(" \\w{1,16}: (\\w+) \\(\\d+\\)")
     private val levelRequiredRegex = Regex("Dungeon Level Required: (\\d+)")
     private val classNames = listOf("&4&lArcher", "&a&lTank", "&6&lBerserk", "&5&lHealer", "&b&lMage")
+    private val blackListItemsIds = listOf(160, 7, 262)
 
     @SubscribeEvent
-    fun guiRender(event: GuiScreenEvent.DrawScreenEvent.Post) {
+    fun guiRender(event: GuiScreenEvent.DrawScreenEvent.Pre) {
         if (!config.PartyFinderOverlay) return
         if (!GuiUtils.currentChestName.contains("Party Finder")) return
 
-
+        GlStateManager.pushMatrix()
+        GlStateManager.translate(
+            (event.gui as AccessorGuiContainer).guiLeft.toDouble(),
+            (event.gui as AccessorGuiContainer).guiTop.toDouble(),
+            300.0
+        )
         mc.thePlayer.openContainer.inventorySlots.forEach { slot ->
             val item = slot.stack
             val i = slot.slotNumber
 
 
             if (item == null || i >= 36) return@forEach
-            if (item.getItemId() == 160 || item.getItemId() == 7) return@forEach
+            if (blackListItemsIds.contains(item.getItemId())) return@forEach
 
             val classes = mutableListOf<String>()
             var levelRequired = 0
@@ -58,8 +65,8 @@ object PartyFinderOverlay {
             val p2 = missingClasses.drop(2).take(2).joinToString("")
             val missing = "$missingStr\n$p2"
             val (x, y) = Pair(
-                slot.xDisplayPosition.toDouble() + (event.gui as AccessorGuiContainer).guiLeft,
-                slot.yDisplayPosition.toDouble() + (event.gui as AccessorGuiContainer).guiTop
+                slot.xDisplayPosition.toDouble(),
+                slot.yDisplayPosition.toDouble()
             )
 
             RenderUtils.drawText(
@@ -70,34 +77,19 @@ object PartyFinderOverlay {
             )
 
             val levelX = x + 16 - mc.fontRendererObj.getStringWidth("$levelRequired") * scale
-            val levelY = y + (mc.fontRendererObj.FONT_HEIGHT/2 * scale)
 
             RenderUtils.drawText(
                 "&c$levelRequired",
                 levelX,
-                levelY,
+                y,
                 scale
             )
         }
+        GlStateManager.translate(
+            (event.gui as AccessorGuiContainer).guiLeft.toDouble(),
+            (event.gui as AccessorGuiContainer).guiTop.toDouble(),
+            0.0
+        )
+        GlStateManager.popMatrix()
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

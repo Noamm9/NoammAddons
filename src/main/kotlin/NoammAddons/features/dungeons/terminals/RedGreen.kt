@@ -1,40 +1,34 @@
 package NoammAddons.features.dungeons.terminals
 
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.network.play.client.C0DPacketCloseWindow
-import net.minecraft.network.play.client.C0EPacketClickWindow
-import net.minecraft.network.play.server.S2DPacketOpenWindow
-import net.minecraft.network.play.server.S2FPacketSetSlot
-import net.minecraft.network.play.server.S2EPacketCloseWindow
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.client.event.GuiScreenEvent
-import NoammAddons.sounds.AYAYA
-import NoammAddons.events.GuiContainerEvent
-import NoammAddons.events.ReceivePacketEvent
-import NoammAddons.events.SentPacketEvent
-import NoammAddons.features.dungeons.terminals.ConstantsVeriables.getColorMode
-import NoammAddons.features.dungeons.terminals.ConstantsVeriables.getTermScale
-import NoammAddons.features.dungeons.terminals.ConstantsVeriables.RedGreenTitle
-import NoammAddons.features.dungeons.terminals.ConstantsVeriables.Slot
-import NoammAddons.features.dungeons.terminals.ConstantsVeriables.getSolutionColor
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
+import NoammAddons.events.GuiContainerEvent
+import NoammAddons.events.PacketEvent
+import NoammAddons.features.dungeons.terminals.ConstantsVeriables.RedGreenTitle
+import NoammAddons.features.dungeons.terminals.ConstantsVeriables.Slot
+import NoammAddons.features.dungeons.terminals.ConstantsVeriables.getColorMode
+import NoammAddons.features.dungeons.terminals.ConstantsVeriables.getSolutionColor
+import NoammAddons.features.dungeons.terminals.ConstantsVeriables.getTermScale
+import NoammAddons.sounds.AYAYA
 import NoammAddons.utils.ChatUtils.removeFormatting
-import NoammAddons.utils.GuiUtils.disablePatcherScale
-import NoammAddons.utils.GuiUtils.enablePatcherScale
 import NoammAddons.utils.GuiUtils.getMouseX
 import NoammAddons.utils.GuiUtils.getMouseY
 import NoammAddons.utils.ItemUtils.getItemId
 import NoammAddons.utils.LocationUtils
 import NoammAddons.utils.LocationUtils.F7Phase
-import NoammAddons.utils.LocationUtils.P3Section
-import NoammAddons.utils.LocationUtils.inBoss
 import NoammAddons.utils.RenderUtils
 import NoammAddons.utils.RenderUtils.getHeight
 import NoammAddons.utils.RenderUtils.getWidth
 import NoammAddons.utils.ThreadUtils.setTimeout
-import net.minecraft.client.renderer.entity.Render
-import net.minecraftforge.client.event.RenderGameOverlayEvent
+import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.network.play.client.C0DPacketCloseWindow
+import net.minecraft.network.play.client.C0EPacketClickWindow
+import net.minecraft.network.play.server.S2DPacketOpenWindow
+import net.minecraft.network.play.server.S2EPacketCloseWindow
+import net.minecraft.network.play.server.S2FPacketSetSlot
+import net.minecraftforge.client.event.GuiScreenEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import java.awt.Color
 import kotlin.math.floor
 
 
@@ -56,10 +50,10 @@ object RedGreen {
         if (!inTerminal) return
         event.isCanceled = true
 
-        val x = mc.getMouseX() / getTermScale()
-        val y = mc.getMouseY() / getTermScale()
-
         val termScale = getTermScale()
+        val x = mc.getMouseX() / termScale
+        val y = mc.getMouseY() / termScale
+
         val screenWidth = mc.getWidth().toDouble() / termScale
         val screenHeight = mc.getHeight().toDouble() / termScale
 
@@ -88,9 +82,9 @@ object RedGreen {
     }
 
     @SubscribeEvent
-    fun render(event: RenderGameOverlayEvent.Pre) {
-        if (event.type != RenderGameOverlayEvent.ElementType.HOTBAR) return
+    fun cancelGui(event: GuiScreenEvent.DrawScreenEvent.Pre) {
         if (!inTerminal) return
+        if (!config.DevMode) event.isCanceled = true
 
         val termScale = getTermScale()
         val screenWidth = mc.getWidth().toDouble() / termScale
@@ -127,7 +121,7 @@ object RedGreen {
             height + 6
         )
 
-        RenderUtils.drawText(RedGreenTitle, offsetX, offsetY)
+        mc.fontRendererObj.drawStringWithShadow(RedGreenTitle, offsetX.toFloat(), offsetY.toFloat(), Color.WHITE.rgb)
 
         for (i in 0 until windowSize) {
             if (!solution.contains(i)) continue
@@ -141,11 +135,6 @@ object RedGreen {
         GlStateManager.popMatrix()
     }
 
-    @SubscribeEvent
-    fun cancelGui(event: GuiScreenEvent.DrawScreenEvent.Pre) {
-        if (!inTerminal) return
-        if (!config.forceSkyblock) event.isCanceled = true
-    }
 
     private fun solve() {
         solution.clear()
@@ -171,7 +160,7 @@ object RedGreen {
     }
 
     @SubscribeEvent
-    fun onWindowOpen(event: ReceivePacketEvent) {
+    fun onWindowOpen(event: PacketEvent.Received) {
         if (!config.CustomTerminalsGui || !config.CustomRedGreenTerminal || LocationUtils.dungeonFloor != 7 || F7Phase != 3) return
         if (event.packet !is S2DPacketOpenWindow) return
 
@@ -181,7 +170,6 @@ object RedGreen {
 
         if (Regex("^Correct all the panes!$").matches(windowTitle)) {
             inTerminal = true
-            disablePatcherScale()
             clicked = false
             slots.clear()
             windowSize = slotCount
@@ -191,7 +179,7 @@ object RedGreen {
 
     // Handles the setting of slots in the GUI
     @SubscribeEvent
-    fun onS2FPacketSetSlot(event: ReceivePacketEvent) {
+    fun onS2FPacketSetSlot(event: PacketEvent.Received) {
         if (!inTerminal) return
         if (event.packet !is S2FPacketSetSlot) return
 
@@ -228,7 +216,7 @@ object RedGreen {
     }
 
     @SubscribeEvent
-    fun onWindowClose(event: ReceivePacketEvent) {
+    fun onWindowClose(event: PacketEvent.Received) {
         if (event.packet !is S2EPacketCloseWindow) return
         if (!inTerminal) return
         reset()
@@ -236,7 +224,7 @@ object RedGreen {
     }
 
     @SubscribeEvent
-    fun onSentPacket(event: SentPacketEvent) {
+    fun onSentPacket(event: PacketEvent.Sent) {
         if (event.packet !is C0DPacketCloseWindow) return
         if (!inTerminal) return
         reset()
@@ -245,6 +233,5 @@ object RedGreen {
     private fun reset() {
         inTerminal = false
         queue.clear()
-        enablePatcherScale()
     }
 }

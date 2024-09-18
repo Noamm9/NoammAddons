@@ -2,31 +2,31 @@ package NoammAddons.config.EditGui
 
 
 import NoammAddons.NoammAddons.Companion.mc
-import NoammAddons.config.EditGui.ElementsManager.addElement
 import NoammAddons.config.EditGui.ElementsManager.HudElementData
+import NoammAddons.config.EditGui.ElementsManager.elements
 import NoammAddons.utils.ChatUtils.addColor
 import NoammAddons.utils.ChatUtils.removeFormatting
 import NoammAddons.utils.RenderUtils
 import java.awt.Color
-
+import kotlin.math.roundToInt
 
 
 object ElementsManager {
     data class HudElementData(var x: Double, var y: Double, var scale: Double)
-
     val elements = mutableListOf<HudElement>()
-
-    fun addElement(element: HudElement) {
-        elements.add(element)
-    }
 }
 
 
 
-class HudElement(private var textString: String = "", private var color: Color = Color.WHITE, private val dataObj: HudElementData) {
+class HudElement(
+    private var textString: String = "",
+    private var color: Color = Color.WHITE,
+    private val dataObj: HudElementData
+) {
 
     init {
-        addElement(this)
+        textString = textString.addColor()
+        elements.add(this)
     }
 
     var width = 20.0
@@ -39,7 +39,7 @@ class HudElement(private var textString: String = "", private var color: Color =
     fun getScale() = dataObj.scale
 
     fun setText(text: String): HudElement {
-        textString = text
+        textString = text.addColor()
         return this
     }
 
@@ -63,46 +63,57 @@ class HudElement(private var textString: String = "", private var color: Color =
         return this
     }
 
-
-
     fun draw(example: Boolean = false): HudElement {
-        Update()
+        update()
 
         if (!example) {
-            RenderUtils.drawText(textString.addColor(), dataObj.x, dataObj.y, dataObj.scale, color)
+            RenderUtils.drawText(
+                getText(),
+                getX() - (width / 2),
+                getY(),
+                getScale(),
+                getColor()
+            )
         }
-
-        if (example) {
+        else {
             RenderUtils.drawRoundedRect(
                 Color(15, 15, 15, 150),
-                dataObj.x, dataObj.y,
-                width, height
+                getX() - (width / getScale() / 2),
+                getY(),
+                width * getScale(),
+                height * getScale()
             )
 
-            RenderUtils.drawText(textString.addColor(), dataObj.x, dataObj.y, dataObj.scale, color)
+            RenderUtils.drawText(
+                getText(),
+                getX() - (width / 2),
+                getY(),
+                getScale(),
+                getColor()
+            )
         }
         return this
     }
 
     fun isHovered(mouseX: Float, mouseY: Float): Boolean {
-        return mouseX >= getX() && mouseX <= getX() + width &&
-                mouseY >= getY() && mouseY <= getY() + height
+        return mouseX >= getX() - (width * getScale() / 2) && mouseX <= getX() + (width * getScale() / 2) &&
+                mouseY >= getY() && mouseY <= getY() + (height * getScale())
     }
 
-    private fun Update() {
-        width = (mc.fontRendererObj.getStringWidth(textString.removeFormatting()) * getScale())
-        height = if (textString.contains("\n"))
-            ((mc.fontRendererObj.FONT_HEIGHT * (textString.removeFormatting().split("\n").size +1)) * getScale())
-        else (mc.fontRendererObj.FONT_HEIGHT * getScale())
+    private fun update() {
+        val lines = getText().removeFormatting().split("\n")
+        width = ((lines.maxOfOrNull { mc.fontRendererObj.getStringWidth(it) } ?: 0).toDouble())
+
+        height = ((mc.fontRendererObj.FONT_HEIGHT * lines.size).toDouble())
 
         if (getScale() < 0.5) setScale(0.5)
-
     }
 
     fun reset() {
-        dataObj.x = 10.0
-        dataObj.y = 10.0 * (Math.random()*10)
-        dataObj.scale = 2.0
+        setX(10.0)
+        setY(10.0 * (Math.random() * 20).roundToInt())
+        setScale(1.0)
     }
 }
+
 

@@ -13,7 +13,7 @@ object FpsDisplay {
 
     @SubscribeEvent
     fun draw(event: RenderGameOverlayEvent.Pre) {
-        if (event.type != RenderGameOverlayEvent.ElementType.HOTBAR) return
+        if (event.type != RenderGameOverlayEvent.ElementType.TEXT) return
         if (!config.FpsDisplay) return
 
         FpsDisplayElement

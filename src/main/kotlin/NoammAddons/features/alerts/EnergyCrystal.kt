@@ -23,8 +23,8 @@ object EnergyCrystal {
     }
 
     @SubscribeEvent
-    fun title(event: RenderGameOverlayEvent.Post) {
-        if (!showEnergyCrystal || mc.ingameGUI == null || event.type != RenderGameOverlayEvent.ElementType.HOTBAR) return
+    fun title(event: RenderGameOverlayEvent.Pre) {
+        if (!showEnergyCrystal || mc.ingameGUI == null || event.type != RenderGameOverlayEvent.ElementType.TEXT) return
         drawText(
             text,
             (ScaledResolution(mc).scaledWidth) / 2 - (mc.fontRendererObj.getStringWidth(text.removeFormatting()) * 4.5) / 2,

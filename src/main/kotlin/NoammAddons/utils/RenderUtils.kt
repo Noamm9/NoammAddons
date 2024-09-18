@@ -3,16 +3,13 @@ package NoammAddons.utils
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
 import NoammAddons.mixins.AccessorMinecraft
-import NoammAddons.utils.BlockUtils.blockBounds
-import NoammAddons.utils.BlockUtils.getBlockAt
 import NoammAddons.utils.ChatUtils.addColor
+import gg.essential.elementa.components.UIRoundedRectangle.Companion.drawRoundedRectangle
+import gg.essential.universal.UMatrixStack
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Gui
 import net.minecraft.client.gui.ScaledResolution
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.RenderHelper
-import net.minecraft.client.renderer.Tessellator
-import net.minecraft.client.renderer.WorldRenderer
+import net.minecraft.client.renderer.*
 import net.minecraft.client.renderer.entity.RenderManager
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.Entity
@@ -22,23 +19,23 @@ import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.BlockPos
 import net.minecraft.util.ResourceLocation
 import net.minecraft.util.Vec3
-import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.*
-import java.awt.Color
-import kotlin.math.round
 import org.lwjgl.util.glu.Cylinder
-import gg.essential.universal.UMatrixStack
-import gg.essential.elementa.components.UIRoundedRectangle.Companion.drawRoundedRectangle
+import java.awt.Color
+import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 
 
 object RenderUtils {
-    private val renderManager: RenderManager = mc.renderManager
-    private val tessellator: Tessellator = Tessellator.getInstance()
+    private val renderManager: RenderManager
+        get() = mc.renderManager ?: throw IllegalStateException("RenderManager is not initialized!")
+
+    private val tessellator = Tessellator.getInstance()
     private val worldRenderer: WorldRenderer = tessellator.worldRenderer
     private val regCylinder = Cylinder()
     private val lineCylinder = Cylinder().apply{drawStyle = GL_LINE}
+
 
     private fun preDraw() {
         GlStateManager.enableAlpha()
@@ -168,7 +165,7 @@ object RenderUtils {
     }
 
     fun drawBlockBox(blockPos: BlockPos, color: Color, outline: Boolean, fill: Boolean, phase: Boolean = true, LineThickness: Float = 3f) {
-        if (!outline && !fill) return
+        if (!outline && !fill) throw IllegalArgumentException("outline and fill cannot both be false")
 
         GlStateManager.pushMatrix()
         preDraw()
@@ -183,13 +180,13 @@ object RenderUtils {
         val z = blockPos.z.toDouble()
 
         var axisAlignedBB = AxisAlignedBB(x,y,z,x+1,y+1,z+1)
-        val block = mc.theWorld.getBlockAt(blockPos)
+        val block = mc.theWorld.getBlockState(blockPos).block
 
         if (block != null) {
             block.setBlockBoundsBasedOnState(mc.theWorld, blockPos)
-            axisAlignedBB = block.getSelectedBoundingBox(mc.theWorld, blockPos).
-            expand(0.0020000000949949026, 0.0020000000949949026, 0.0020000000949949026).
-            offset(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ)
+            axisAlignedBB = block.getSelectedBoundingBox(mc.theWorld, blockPos)
+                .expand(0.0020000000949949026, 0.0020000000949949026, 0.0020000000949949026)
+                .offset(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ)
         }
 
         if (fill) drawFilledAABB(axisAlignedBB, color)
@@ -297,10 +294,11 @@ object RenderUtils {
         GlStateManager.disableLighting()
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
         GlStateManager.disableTexture2D()
-        val renderManager = Minecraft.getMinecraft().renderManager
+
         val renderPosX = to.xCoord - renderManager.viewerPosX
         val renderPosY = to.yCoord - renderManager.viewerPosY
         val renderPosZ = to.zCoord - renderManager.viewerPosZ
+
         glLineWidth(LineWidth.toFloat())
         glColor4f(color.red / 255f, color.green / 255f, color.blue / 255f, color.alpha / 255f)
         glBegin(GL_LINES)
@@ -308,6 +306,7 @@ object RenderUtils {
         glVertex3d(renderPosX, renderPosY, renderPosZ)
         glEnd()
         glLineWidth(1.0f)
+
         GlStateManager.enableTexture2D()
         GlStateManager.enableDepth()
         GlStateManager.disableBlend()
@@ -354,40 +353,30 @@ object RenderUtils {
     }
 
     fun drawText(text: String, x: Double, y: Double, scale: Double = 1.0, color: Color = Color.WHITE) {
-
         GlStateManager.pushMatrix()
-        GlStateManager.disableLighting()
-        GlStateManager.disableDepth()
-        GlStateManager.disableBlend()
+        GlStateManager.scale(scale, scale, 1.0)
 
-
-        GlStateManager.scale(scale, scale, scale)
         var yOffset = y - (mc.fontRendererObj.FONT_HEIGHT) / 2
-
-        if (text.contains("\n")) {
-            text.split("\n").forEach {
+        val formattedText = text.addColor()
+        if (formattedText.contains("\n")) {
+            formattedText.split("\n").forEach {
                 yOffset += (mc.fontRendererObj.FONT_HEIGHT * scale).toInt()
-
                 mc.fontRendererObj.drawStringWithShadow(
-                    it.addColor(),
+                    it,
                     (x / scale).toFloat(),
                     (yOffset / scale).toFloat(),
                     color.rgb
                 )
             }
-        }
-        else {
+        } else {
             mc.fontRendererObj.drawStringWithShadow(
-                text.addColor(),
+                formattedText,
                 (x / scale).toFloat(),
                 (y / scale).toFloat(),
                 color.rgb
             )
         }
 
-        GlStateManager.enableLighting()
-        GlStateManager.enableDepth()
-        GlStateManager.enableBlend()
         GlStateManager.popMatrix()
     }
 
@@ -495,6 +484,7 @@ object RenderUtils {
 
     fun drawPlayerHead(resourceLocation: ResourceLocation, x: Double, y: Double, width: Double, height: Double, radius: Double = 10.0) {
         GlStateManager.pushMatrix()
+        GlStateManager.disableLighting()
         GlStateManager.enableTexture2D()
         GlStateManager.enableBlend()
         GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -528,8 +518,81 @@ object RenderUtils {
         worldRenderer.pos(-width / 2, -height / 2, 0.0).tex(40.0 / 64.0, 8.0 / 64.0).endVertex()
         tessellator.draw()
 
+
+        glStencilMask(0xFF)
         glDisable(GL_STENCIL_TEST)
         GlStateManager.disableBlend()
+        GlStateManager.enableLighting()
+        GlStateManager.popMatrix()
+    }
+
+
+    fun drawLine(color: Color, x1: Float, y1: Float, x2: Float, y2: Float, thickness: Float) {
+        val theta = -atan2(y2 - y1, x2 - x1)
+        val i = sin(theta) * (thickness / 2)
+        val j = cos(theta) * (thickness / 2)
+
+        GlStateManager.pushMatrix()
+        GlStateManager.enableBlend()
+        GlStateManager.disableTexture2D()
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
+        GlStateManager.color(color.red / 255f, color.green / 255f, color.blue / 255f, color.alpha / 255f)
+
+        worldRenderer.begin(7, DefaultVertexFormats.POSITION)
+
+        worldRenderer.pos((x1 + i).toDouble(), (y1 + j).toDouble(), 0.0).endVertex()
+        worldRenderer.pos((x2 + i).toDouble(), (y2 + j).toDouble(), 0.0).endVertex()
+        worldRenderer.pos((x2 - i).toDouble(), (y2 - j).toDouble(), 0.0).endVertex()
+        worldRenderer.pos((x1 - i).toDouble(), (y1 - j).toDouble(), 0.0).endVertex()
+
+        tessellator.draw()
+
+        GlStateManager.color(1f, 1f, 1f, 1f)
+        GlStateManager.enableTexture2D()
+        GlStateManager.disableBlend()
+
+        GlStateManager.popMatrix()
+    }
+
+    fun drawRoundedBorder(color: Color, x: Double, y: Double, width: Double, height: Double, radius: Double = 5.0, thickness: Double = 2.0) {
+        GlStateManager.pushMatrix()
+        GlStateManager.disableLighting()
+        GlStateManager.disableTexture2D()
+
+        fun drawRoundedCorner(cx: Double, cy: Double, radius: Double, startAngle: Double, endAngle: Double) {
+            val segments = 16 // Number of line segments to approximate the curve
+            val angleStep = Math.toRadians(endAngle - startAngle) / segments
+
+            for (i in 0..segments) {
+                val angle = Math.toRadians(startAngle) + i * angleStep
+                val x2 = cx + Math.cos(angle) * radius
+                val y2 = cy + Math.sin(angle) * radius
+                glVertex2d(x2, y2)
+            }
+        }
+
+        glColor4f(color.red / 255f, color.green / 255f, color.blue / 255f, color.alpha / 255f)
+
+        glLineWidth(thickness.toFloat())
+        glBegin(GL_LINE_LOOP)
+
+        // Top-left corner
+        drawRoundedCorner(x + radius, y + radius, radius, 180.0, 270.0)
+
+        // Top-right corner
+        drawRoundedCorner(x + width - radius, y + radius, radius, 270.0, 360.0)
+
+        // Bottom-right corner
+        drawRoundedCorner(x + width - radius, y + height - radius, radius, 0.0, 90.0)
+
+        // Bottom-left corner
+        drawRoundedCorner(x + radius, y + height - radius, radius, 90.0, 180.0)
+
+        glEnd()
+
+        glColor4f(1f, 1f, 1f, 1f)
+        GlStateManager.enableLighting()
+        GlStateManager.enableTexture2D()
         GlStateManager.popMatrix()
     }
 }

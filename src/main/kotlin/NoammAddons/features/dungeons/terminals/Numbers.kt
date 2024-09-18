@@ -1,39 +1,34 @@
 package NoammAddons.features.dungeons.terminals
 
+import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
-import NoammAddons.sounds.AYAYA
 import NoammAddons.events.GuiContainerEvent
-import NoammAddons.events.ReceivePacketEvent
-import NoammAddons.events.SentPacketEvent
-import NoammAddons.features.dungeons.terminals.ConstantsVeriables.getTermScale
+import NoammAddons.events.PacketEvent
 import NoammAddons.features.dungeons.terminals.ConstantsVeriables.NumbersTitle
-import net.minecraft.network.play.server.S2DPacketOpenWindow
-import net.minecraft.network.play.server.S2FPacketSetSlot
-import net.minecraft.network.play.server.S2EPacketCloseWindow
-import net.minecraft.network.play.client.C0DPacketCloseWindow
 import NoammAddons.features.dungeons.terminals.ConstantsVeriables.Slot
+import NoammAddons.features.dungeons.terminals.ConstantsVeriables.getColorMode
+import NoammAddons.features.dungeons.terminals.ConstantsVeriables.getSolutionColor
+import NoammAddons.features.dungeons.terminals.ConstantsVeriables.getTermScale
+import NoammAddons.sounds.AYAYA
 import NoammAddons.utils.ChatUtils.removeFormatting
+import NoammAddons.utils.GuiUtils.getMouseX
+import NoammAddons.utils.GuiUtils.getMouseY
 import NoammAddons.utils.ItemUtils.getItemId
 import NoammAddons.utils.LocationUtils
-import NoammAddons.utils.LocationUtils.inBoss
+import NoammAddons.utils.LocationUtils.F7Phase
 import NoammAddons.utils.RenderUtils
 import NoammAddons.utils.RenderUtils.getHeight
 import NoammAddons.utils.RenderUtils.getWidth
 import NoammAddons.utils.ThreadUtils.setTimeout
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.network.play.client.C0DPacketCloseWindow
 import net.minecraft.network.play.client.C0EPacketClickWindow
+import net.minecraft.network.play.server.S2DPacketOpenWindow
+import net.minecraft.network.play.server.S2EPacketCloseWindow
+import net.minecraft.network.play.server.S2FPacketSetSlot
 import net.minecraftforge.client.event.GuiScreenEvent
-import NoammAddons.features.dungeons.terminals.ConstantsVeriables.getColorMode
-import NoammAddons.features.dungeons.terminals.ConstantsVeriables.getSolutionColor
-import NoammAddons.NoammAddons.Companion.config
-import NoammAddons.utils.GuiUtils.disablePatcherScale
-import NoammAddons.utils.GuiUtils.enablePatcherScale
-import NoammAddons.utils.GuiUtils.getMouseX
-import NoammAddons.utils.GuiUtils.getMouseY
-import NoammAddons.utils.LocationUtils.F7Phase
-import NoammAddons.utils.LocationUtils.P3Section
-import net.minecraftforge.client.event.RenderGameOverlayEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import java.awt.Color
 import kotlin.math.floor
 
 
@@ -53,10 +48,10 @@ object Numbers {
         if (!inTerminal) return
         event.isCanceled = true
 
-        val x = mc.getMouseX() / getTermScale()
-        val y = mc.getMouseY() / getTermScale()
-
         val termScale = getTermScale()
+        val x = mc.getMouseX() / termScale
+        val y = mc.getMouseY() / termScale
+
         val screenWidth = mc.getWidth().toDouble() / termScale
         val screenHeight = mc.getHeight().toDouble() / termScale
 
@@ -86,9 +81,9 @@ object Numbers {
     }
 
     @SubscribeEvent
-    fun render(event: RenderGameOverlayEvent.Pre) {
+    fun cancelGui(event: GuiScreenEvent.DrawScreenEvent.Pre) {
         if (!inTerminal) return
-        if (event.type != RenderGameOverlayEvent.ElementType.HOTBAR) return
+        if (!config.DevMode) event.isCanceled = true
 
         val termScale = getTermScale()
         val screenWidth = mc.getWidth().toDouble() / termScale
@@ -125,7 +120,7 @@ object Numbers {
             height + 6
         )
 
-        RenderUtils.drawText(NumbersTitle, offsetX, offsetY)
+        mc.fontRendererObj.drawStringWithShadow(NumbersTitle, offsetX.toFloat(), offsetY.toFloat(), Color(255, 255, 255).rgb)
 
         for (i in 0 until windowSize) {
             val index = solution.indexOf(i)
@@ -141,20 +136,15 @@ object Numbers {
             repeat(index) { solverColor = solverColor.brighter().brighter() }
 
             val stackSize = mc.thePlayer?.openContainer?.getSlot(i)?.stack?.stackSize ?: continue
-            RenderUtils.drawText(
+            mc.fontRendererObj.drawStringWithShadow(
                 stackSize.toString(),
-                (currentOffsetX + 8) - mc.fontRendererObj.getStringWidth(stackSize.toString())/2,
-                currentOffsetY + 4
+                ((currentOffsetX + 8) - mc.fontRendererObj.getStringWidth(stackSize.toString())/2).toFloat(),
+                (currentOffsetY + 4).toFloat(),
+                Color(255, 255, 255).rgb
             )
         }
 
         GlStateManager.popMatrix()
-    }
-
-    @SubscribeEvent
-    fun cancelGui(event: GuiScreenEvent.DrawScreenEvent.Pre) {
-        if (!inTerminal) return
-        if (!config.forceSkyblock) event.isCanceled = true
     }
 
 
@@ -184,7 +174,7 @@ object Numbers {
     }
 
     @SubscribeEvent
-    fun onWindowOpen(event: ReceivePacketEvent) {
+    fun onWindowOpen(event: PacketEvent.Received) {
         if (!config.CustomTerminalsGui || !config.CustomNumbersTerminal || LocationUtils.dungeonFloor != 7 || F7Phase != 3) return
         if (event.packet !is S2DPacketOpenWindow) return
 
@@ -193,7 +183,6 @@ object Numbers {
         cwid = event.packet.windowId
 
         if (windowTitle.matches(Regex("^Click in order!$"))) {
-            disablePatcherScale()
             inTerminal = true
             clicked = false
             slots.clear()
@@ -204,7 +193,7 @@ object Numbers {
 
 
     @SubscribeEvent
-    fun onS2FPacketSetSlot(event: ReceivePacketEvent) {
+    fun onS2FPacketSetSlot(event: PacketEvent.Received) {
         if (!inTerminal) return
         if (event.packet !is S2FPacketSetSlot) return
 
@@ -240,7 +229,7 @@ object Numbers {
     }
 
     @SubscribeEvent
-    fun onWindowClose(event: ReceivePacketEvent) {
+    fun onWindowClose(event: PacketEvent.Received) {
         if (event.packet !is S2EPacketCloseWindow) return
         if (!inTerminal) return
         reset()
@@ -248,7 +237,7 @@ object Numbers {
     }
 
     @SubscribeEvent
-    fun onSentPacket(event: SentPacketEvent) {
+    fun onSentPacket(event: PacketEvent.Sent) {
         if (event.packet !is C0DPacketCloseWindow) return
         if (!inTerminal) return
         reset()
@@ -257,6 +246,5 @@ object Numbers {
     private fun reset() {
         inTerminal = false
         queue.clear()
-        enablePatcherScale()
     }
 }

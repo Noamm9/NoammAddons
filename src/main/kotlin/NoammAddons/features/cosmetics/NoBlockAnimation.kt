@@ -1,13 +1,13 @@
 package NoammAddons.features.cosmetics
 
-import net.minecraft.item.ItemSword
-import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
-import net.minecraftforge.event.entity.player.PlayerInteractEvent
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
-import NoammAddons.utils.LocationUtils.inSkyblock
 import NoammAddons.utils.ItemUtils.lore
+import NoammAddons.utils.LocationUtils.inSkyblock
+import NoammAddons.utils.PlayerUtils.sendRightClickAirPacket
+import net.minecraft.item.ItemSword
+import net.minecraftforge.event.entity.player.PlayerInteractEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 object NoBlockAnimation {
     @SubscribeEvent
@@ -20,7 +20,7 @@ object NoBlockAnimation {
             if (mc.thePlayer.heldItem.lore.any { it.contains("§6Ability: ") && it.endsWith("§e§lRIGHT CLICK") }) {
                 event.isCanceled = true
                 if (mc.gameSettings.keyBindUseItem.isKeyDown) {
-                    mc.netHandler.addToSendQueue(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
+                    sendRightClickAirPacket()
                 }
             }
         }

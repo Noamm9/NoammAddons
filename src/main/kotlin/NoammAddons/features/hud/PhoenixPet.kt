@@ -28,15 +28,15 @@ object PhoenixPet {
     @SubscribeEvent
     fun onRender(event: RenderGameOverlayEvent.Pre) {
         if (!config.PhoenixPetDisplay) return
-        if (event.type != RenderGameOverlayEvent.ElementType.HOTBAR) return
+        if (event.type != RenderGameOverlayEvent.ElementType.TEXT) return
         if (!draw) return
 
         val cooldown = ((petCooldown + (timer - System.currentTimeMillis())).toDouble() / 1000).toFixed(1).toDouble()
 
         PhoenixPetElement.setText(
             when {
-                cooldown > 0.0 -> "&9Bonzo Mask: &a$cooldown"
-                (cooldown == 0.0 || cooldown > -30.0) -> "&9Bonzo Mask: &aREADY"
+                cooldown > 0.0 -> "&5Phoenix Pet: &a$cooldown"
+                (cooldown == 0.0 || cooldown > -30.0) -> "&5Phoenix Pet: &aREADY"
                 else -> return
             }
         ).draw()

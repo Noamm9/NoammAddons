@@ -1,6 +1,25 @@
 package NoammAddons.features.dungeons.terminals
 
 import NoammAddons.NoammAddons.Companion.config
+import NoammAddons.NoammAddons.Companion.mc
+import NoammAddons.events.GuiContainerEvent
+import NoammAddons.events.PacketEvent
+import NoammAddons.features.dungeons.terminals.ConstantsVeriables.ColorsTitle
+import NoammAddons.features.dungeons.terminals.ConstantsVeriables.Slot
+import NoammAddons.features.dungeons.terminals.ConstantsVeriables.getColorMode
+import NoammAddons.features.dungeons.terminals.ConstantsVeriables.getSolutionColor
+import NoammAddons.features.dungeons.terminals.ConstantsVeriables.getTermScale
+import NoammAddons.sounds.AYAYA
+import NoammAddons.utils.ChatUtils.removeFormatting
+import NoammAddons.utils.GuiUtils.getMouseX
+import NoammAddons.utils.GuiUtils.getMouseY
+import NoammAddons.utils.ItemUtils.getItemId
+import NoammAddons.utils.LocationUtils
+import NoammAddons.utils.LocationUtils.F7Phase
+import NoammAddons.utils.RenderUtils
+import NoammAddons.utils.RenderUtils.getHeight
+import NoammAddons.utils.RenderUtils.getWidth
+import NoammAddons.utils.ThreadUtils.setTimeout
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.network.play.client.C0DPacketCloseWindow
 import net.minecraft.network.play.client.C0EPacketClickWindow
@@ -9,28 +28,7 @@ import net.minecraft.network.play.server.S2EPacketCloseWindow
 import net.minecraft.network.play.server.S2FPacketSetSlot
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import NoammAddons.sounds.AYAYA
-import NoammAddons.events.ReceivePacketEvent
-import NoammAddons.events.SentPacketEvent
-import NoammAddons.features.dungeons.terminals.ConstantsVeriables.Slot
-import NoammAddons.NoammAddons.Companion.mc
-import NoammAddons.utils.ChatUtils.removeFormatting
-import NoammAddons.utils.ItemUtils.getItemId
-import NoammAddons.utils.LocationUtils
-import NoammAddons.utils.LocationUtils.inBoss
-import NoammAddons.utils.ThreadUtils.setTimeout
-import NoammAddons.events.GuiContainerEvent
-import NoammAddons.features.dungeons.terminals.ConstantsVeriables.getColorMode
-import NoammAddons.features.dungeons.terminals.ConstantsVeriables.ColorsTitle
-import NoammAddons.features.dungeons.terminals.ConstantsVeriables.getTermScale
-import NoammAddons.features.dungeons.terminals.ConstantsVeriables.getSolutionColor
-import NoammAddons.utils.GuiUtils.getMouseX
-import NoammAddons.utils.GuiUtils.getMouseY
-import NoammAddons.utils.LocationUtils.F7Phase
-import NoammAddons.utils.RenderUtils
-import NoammAddons.utils.RenderUtils.getHeight
-import NoammAddons.utils.RenderUtils.getWidth
-import net.minecraftforge.client.event.RenderGameOverlayEvent
+import java.awt.Color
 import kotlin.math.floor
 
 object Colors {
@@ -56,10 +54,10 @@ object Colors {
         if (!inTerminal) return
         event.isCanceled = true
 
-        val x = mc.getMouseX() / getTermScale()
-        val y = mc.getMouseY() / getTermScale()
-
         val termScale = getTermScale()
+        val x = mc.getMouseX() / termScale
+        val y = mc.getMouseY() / termScale
+
         val screenWidth = mc.getWidth().toDouble() / termScale
         val screenHeight = mc.getHeight().toDouble() / termScale
 
@@ -88,9 +86,9 @@ object Colors {
     }
 
     @SubscribeEvent
-    fun Render(event: RenderGameOverlayEvent.Pre) {
+    fun cancelGui(event: GuiScreenEvent.DrawScreenEvent.Pre) {
         if (!inTerminal) return
-        if (event.type != RenderGameOverlayEvent.ElementType.HOTBAR) return
+        if (!config.DevMode) event.isCanceled = true
 
         val termScale = getTermScale()
         val screenWidth = mc.getWidth().toDouble() / termScale
@@ -127,7 +125,7 @@ object Colors {
             height + 6
         )
 
-        RenderUtils.drawText(ColorsTitle, offsetX, offsetY)
+        mc.fontRendererObj.drawStringWithShadow(ColorsTitle, offsetX.toFloat(), offsetY.toFloat(), Color.WHITE.rgb)
 
         for (i in 0 until windowSize) {
             if (!solution.contains(i)) continue
@@ -139,12 +137,6 @@ object Colors {
         }
 
         GlStateManager.popMatrix()
-    }
-
-    @SubscribeEvent
-    fun cancelGui(event: GuiScreenEvent.DrawScreenEvent.Pre) {
-        if (!inTerminal) return
-        if (!config.forceSkyblock) event.isCanceled = true
     }
 
 
@@ -183,7 +175,7 @@ object Colors {
     }
 
     @SubscribeEvent
-    fun onWindowOpen(event: ReceivePacketEvent) {
+    fun onWindowOpen(event: PacketEvent.Received) {
         if (!config.CustomTerminalsGui || !config.CustomColorsTerminal || LocationUtils.dungeonFloor != 7 || F7Phase != 3) return
         if (event.packet !is S2DPacketOpenWindow) return
 
@@ -203,7 +195,7 @@ object Colors {
     }
 
     @SubscribeEvent
-    fun onS2FPacketSetSlot(event: ReceivePacketEvent) {
+    fun onS2FPacketSetSlot(event: PacketEvent.Received) {
         if (!inTerminal) return
         if (event.packet !is S2FPacketSetSlot) return
 
@@ -239,7 +231,7 @@ object Colors {
     }
 
     @SubscribeEvent
-    fun onWindowClose(event: ReceivePacketEvent) {
+    fun onWindowClose(event: PacketEvent.Received) {
         if (event.packet !is S2EPacketCloseWindow) return
         if (!inTerminal) return
         reset()
@@ -247,7 +239,7 @@ object Colors {
     }
 
     @SubscribeEvent
-    fun onSentPacket(event: SentPacketEvent) {
+    fun onSentPacket(event: PacketEvent.Sent) {
         if (event.packet !is C0DPacketCloseWindow) return
         if (!inTerminal) return
         reset()

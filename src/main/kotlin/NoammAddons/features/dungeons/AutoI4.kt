@@ -1,21 +1,29 @@
 package NoammAddons.features.dungeons
 
-
 import NoammAddons.NoammAddons.Companion.mc
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.CHAT_PREFIX
 import NoammAddons.NoammAddons.Companion.FULL_PREFIX
+import NoammAddons.NoammAddons.Companion.MOD_ID
+import NoammAddons.events.PacketEvent
 import NoammAddons.utils.GuiUtils
 import NoammAddons.utils.PlayerUtils
 import NoammAddons.utils.ChatUtils
 import NoammAddons.utils.ChatUtils.removeFormatting
-import NoammAddons.utils.ChatUtils.equalsOneOf
 import NoammAddons.utils.BlockUtils.getBlockAt
 import NoammAddons.utils.BlockUtils.getBlockId
 import NoammAddons.utils.ThreadUtils.setTimeout
 import NoammAddons.utils.ItemUtils.getItemId
-import NoammAddons.events.ReceivePacketEvent
 import NoammAddons.mixins.AccessorKeybinding
+import NoammAddons.sounds.notificationsound
+import NoammAddons.utils.ChatUtils.equalsOneOf
+import NoammAddons.utils.ChatUtils.modMessage
+import NoammAddons.utils.DungeonUtils
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import net.minecraft.client.gui.Gui
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.network.play.server.S32PacketConfirmTransaction
 import net.minecraft.util.BlockPos
@@ -23,52 +31,60 @@ import net.minecraft.util.Vec3
 import net.minecraftforge.client.event.ClientChatReceivedEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 import kotlin.math.ceil
 
-
 object AutoI4 {
-    private val DevBlocks = listOf(
+    private val devBlocks = listOf(
         Triple(64, 126, 50), Triple(66, 126, 50), Triple(68, 126, 50),
         Triple(64, 128, 50), Triple(66, 128, 50), Triple(68, 128, 50),
         Triple(64, 130, 50), Triple(66, 130, 50), Triple(68, 130, 50)
     )
 
-    private val RightClickKey = mc.gameSettings.keyBindUseItem
+    private val rightClickKey = mc.gameSettings.keyBindUseItem
     private val doneCoords = mutableSetOf<Triple<Int, Int, Int>>()
     private var wait = false
-    private var Alerted = true
-    private var TickTimer = -1
+    private var alerted = true
+    private var tickTimer = -1
     private var shouldPredict = true
-
 
     private fun isOnDev(): Boolean {
         val player = mc.thePlayer ?: return false
         return player.posY == 127.0 && player.posX in 62.0..65.0 && player.posZ in 34.0..37.0
     }
 
-
     @SubscribeEvent
-    fun onTick(event: TickEvent.ClientTickEvent) {
+    fun onTick(event: ClientTickEvent) {
+        if (event.phase != TickEvent.Phase.START) return
         if (!config.autoI4) return
         val player = mc.thePlayer ?: return
         if (player.heldItem?.getItemId() != 261) return
         if (!isOnDev()) {
-            if (doneCoords.size > 1) PlayerUtils.holdClick(false)
-            doneCoords.clear()
-            Alerted = false
+            synchronized(doneCoords) {
+                if (doneCoords.size > 1) PlayerUtils.holdClick(false)
+                doneCoords.clear()
+            }
+            alerted = false
+            shouldPredict = true
             return
         }
 
-
-        val possible = DevBlocks.filterNot { doneCoords.contains(it) }
+        val possible = synchronized(doneCoords) {
+            devBlocks.filterNot { doneCoords.contains(it) }
+        }
         if (possible.isEmpty()) return
 
-        val emeraldLocation = possible.find { mc.theWorld.getBlockState(BlockPos(it.first, it.second, it.third)).block.getBlockId() == 133 } ?: return
-        doneCoords.add(emeraldLocation)
+        val emeraldLocation = possible.find {
+            mc.theWorld.getBlockState(BlockPos(it.first, it.second, it.third)).block.getBlockId() == 133
+        } ?: return
+
+        synchronized(doneCoords) {
+            doneCoords.add(emeraldLocation)
+        }
 
         val xdiff = when (emeraldLocation.first) {
             68 -> -0.4
-            66 -> if (Math.random()*2.0 < 1.0) 1.4 else -0.4
+            66 -> if (Math.random() * 2.0 < 1.0) 1.4 else -0.4
             64 -> 1.4
             else -> 0.5
         }
@@ -81,28 +97,30 @@ object AutoI4 {
             )
         ) ?: return
 
-
         PlayerUtils.rotateSmoothly(yaw, pitch, 200)
         wait = true
-        setTimeout(250) {wait = false}
+        setTimeout(250) { wait = false }
 
-        setTimeout(310) {if (!RightClickKey.isKeyDown) PlayerUtils.holdClick(true)}
+        setTimeout(310) { if (!rightClickKey.isKeyDown) PlayerUtils.holdClick(true) }
 
-        Thread {
-            if (!shouldPredict) return@Thread
-            Thread.sleep(350)
-            if (mc.theWorld.getBlockAt(BlockPos(emeraldLocation.first, emeraldLocation.second, emeraldLocation.third))?.getBlockId() != 133 || wait) {
-                (RightClickKey as AccessorKeybinding).invokeUnpressKey()
-                return@Thread
+        setTimeout(350) {
+            if (!shouldPredict) return@setTimeout
+
+            val blockId = mc.theWorld.getBlockAt(BlockPos(emeraldLocation.first, emeraldLocation.second, emeraldLocation.third))?.getBlockId()
+            if (blockId != 133 || wait) {
+                (rightClickKey as AccessorKeybinding).invokeUnpressKey()
+                return@setTimeout
             }
 
-            val remaining = DevBlocks.filterNot { doneCoords.contains(it) }
-            if (remaining.isEmpty()) return@Thread
+            val remaining = synchronized(doneCoords) {
+                devBlocks.filterNot { doneCoords.contains(it) }
+            }
+            if (remaining.isEmpty()) return@setTimeout
 
             val nextTarget = remaining.random()
             val xdiffNext = when (nextTarget.first) {
                 68 -> -0.4
-                66 -> if (Math.random()*2.0 < 1.0) 1.4 else -0.4
+                66 -> if (Math.random() * 2.0 < 1.0) 1.4 else -0.4
                 64 -> 1.4
                 else -> 0.5
             }
@@ -113,106 +131,140 @@ object AutoI4 {
                     nextTarget.second + 1.1,
                     nextTarget.third.toDouble()
                 )
-            ) ?: return@Thread
+            ) ?: return@setTimeout
 
             PlayerUtils.rotateSmoothly(nextYaw, nextPitch, 200)
-        }.start()
+        }
     }
 
     @SubscribeEvent
     fun onChat(event: ClientChatReceivedEvent) {
-        if (event.type.toInt() == 3) return
-        if (event.message.unformattedText.removeFormatting().contains("[BOSS] Storm: I should have known that I stood no chance.") ) return
-        TickTimer = 0
+        if (event.type == 3.toByte()) return
+        if (event.message.unformattedText.removeFormatting() == "[BOSS] Storm: I should have known that I stood no chance.") {
+            tickTimer = 0
+        }
+
+        if (tickTimer < 0) return
+        if (!event.message.unformattedText.removeFormatting().matches(Regex("(.+) completed a device! \\(...\\)"))) return
+        if (alerted || !isOnDev()) return
+
+        alerted = true
+        ChatUtils.sendChatMessage("/pc ${CHAT_PREFIX.removeFormatting()} I4 Done!")
+        ChatUtils.Alert(FULL_PREFIX, "&a&lI4 Done!")
+        if (rightClickKey.isKeyDown) PlayerUtils.holdClick(false)
     }
+
 
     @SubscribeEvent
-    fun onServerTick(event: ReceivePacketEvent) {
+    @OptIn(DelicateCoroutinesApi::class)
+    fun onServerTickReceived(event: PacketEvent.Received) {
         if (event.packet !is S32PacketConfirmTransaction) return
-        if (TickTimer < 0) return
-        TickTimer++
+        if (tickTimer == -1) return
+        tickTimer++
 
-        if (TickTimer == 56+144) RodSwapAction.start()
+        // Launch a coroutine to handle suspending logic
+        GlobalScope.launch {
 
-        if (TickTimer == 112+144) LeapAction.start()
+            if (tickTimer == 50 + 154) rodSwapAction()
 
-        TickTimer = -1
-        if (Alerted || !isOnDev()) return
+            if (tickTimer == 112 + 154) leapAction()
 
-        if (mc.theWorld.loadedEntityList.filter{ it is EntityArmorStand &&
-            it.name.removeFormatting().toLowerCase().equalsOneOf("device", "active")}.filter{
-                "${ceil(it.posX - 1)}, ${ceil(it.posY + 1)}, ${ceil(it.posZ)}" == "63.0, 127.0, 35.0"
-            }.size != 2
-            ) return
+            // time off message - 104
+            // 2 - at start - 40 ticks
+            // Pheonix - 80 ticks
+            // bonzo - 60 ticks
 
-        Alerted = true
-        mc.thePlayer.sendChatMessage("/pc ${CHAT_PREFIX.removeFormatting()} I4 Done!")
-        ChatUtils.Alert(FULL_PREFIX, "&a&lI4 Done!")
-        if (RightClickKey.isKeyDown) PlayerUtils.holdClick(false)
-    }
+            if (alerted) return@launch
 
+            val loadedEntities = mc.theWorld.loadedEntityList
+                .filter { it is EntityArmorStand && it.name.removeFormatting().equalsOneOf("device", "active") }
+                .filter { "${ceil(it.posX - 1)}, ${ceil(it.posY + 1)}, ${ceil(it.posZ)}" == "63.0, 127.0, 35.0" }
 
-    private val LeapAction = Thread {
-        if (TickTimer < 0) return@Thread
+            if (loadedEntities.size != 2) return@launch
 
-        mc.thePlayer.inventory.mainInventory.forEachIndexed { index, item ->
-            if (index > 8 || item == null || !item.displayName.removeFormatting().toLowerCase().contains("leap")) return@forEachIndexed
-            if (!isOnDev()) return@forEachIndexed
-            PlayerUtils.holdClick(false)
+            alerted = true
+            tickTimer = -1
 
-            PlayerUtils.swapToSlot(index)
-            Thread.sleep(50)
-            PlayerUtils.rightClick()
+            mc.thePlayer.sendChatMessage("/pc ${CHAT_PREFIX.removeFormatting()} I4 Done!")
+            mc.thePlayer.playSound("$MOD_ID:notificationsound", 1f, 1f)
 
-            while (!GuiUtils.isInGui()) {} // Dynamic cooldown for the thread
-            Thread.sleep(150) // Time for items to load
-
-            val container = mc.thePlayer.openContainer
-            val mageSlot = container.inventory[14]
-            val healerSlot = container.inventory[11]
-
-
-            when { // dead teammates detection when?
-                mageSlot != null -> GuiUtils.clickSlot(14, false, "middle")
-                healerSlot != null -> GuiUtils.clickSlot(11, false, "middle")
-                container.inventory[12] != null -> GuiUtils.clickSlot(11, false, "middle")
-                container.inventory[15] != null -> GuiUtils.clickSlot(15, false, "middle")
-            }
+            if (rightClickKey.isKeyDown) PlayerUtils.holdClick(false)
         }
     }
 
 
-    private val RodSwapAction = Thread {
-        if (TickTimer < 0) return@Thread
-        if (!isOnDev()) return@Thread
 
-        val termSlot = mc.thePlayer.inventory.currentItem
-        mc.thePlayer.getInventory().forEachIndexed{ index, item ->
-            if (index > 8 || item == null || !item.displayName.removeFormatting().toLowerCase().contains("rod")) return@forEachIndexed
+    private suspend fun leapAction() {
+        if (!isOnDev()) return
+        if (config.DevMode) modMessage("Debug: Starting leap action.")
+
+        mc.thePlayer.inventory.mainInventory.forEachIndexed { index, item ->
+            if (index > 8) return@forEachIndexed
+            if (item == null || !item.displayName.removeFormatting().contains("leap", true)) return@forEachIndexed
+            PlayerUtils.holdClick(false)
+
+            PlayerUtils.swapToSlot(index)
+
+            if (config.DevMode) modMessage("Debug: Found leap item in slot $index.")
+            PlayerUtils.rightClick()
+
+            // Wait until the leap gui opens aka dynamic delay for ping difference
+            while (GuiUtils.currentChestName.toLowerCase() != "spirit leap") {
+                delay(25)
+            }
+
+            // wait for items to load inside the menu
+            delay(150)
+
+            val container = mc.thePlayer.openContainer.inventory
+            var clicked = false
+
+            val classPriority = listOf("Mage", "Tank", "Healer", "Archer") // correct me if wrong
+
+            for (priorityClass in classPriority) {
+                if (clicked) break
+
+                for (i in 0 until container.size - 1) {
+                    val item = container[i] ?: continue
+                    if (item.getItemId() == 160) continue
+
+                    DungeonUtils.leapTeammates.forEach { teammate ->
+                        if (teammate.clazz.name == priorityClass && teammate.name == item.displayName.removeFormatting() && !teammate.isDead) {
+                            GuiUtils.clickSlot(i)
+                            clicked = true
+                            mc.thePlayer.closeScreen()
+
+                            if (config.DevMode) modMessage("Debug: Clicked on slot: $i for class: ${teammate.clazz.name}")
+                            return
+                        }
+                    }
+                }
+            }
+            if (!clicked) modMessage("No one alive to leap GG!")
+        }
+    }
+
+
+    private suspend fun rodSwapAction() {
+        if (!isOnDev()) return
+
+        val slotBeforeSwap = mc.thePlayer.inventory.currentItem
+        mc.thePlayer.inventory.mainInventory.forEachIndexed { index, item ->
+            if (index > 8 || item == null || !item.displayName.removeFormatting().contains("rod", true)) return@forEachIndexed
+
             shouldPredict = false
             PlayerUtils.holdClick(false)
             PlayerUtils.swapToSlot(index)
+            delay(100)
 
-            Thread.sleep(100)
             PlayerUtils.rightClick()
-            Thread.sleep(100)
-            PlayerUtils.swapToSlot(termSlot)
+            delay(100)
+
+            PlayerUtils.swapToSlot(slotBeforeSwap)
             PlayerUtils.holdClick(true)
             shouldPredict = true
+
+            return
         }
-    }
-
-
-    @SubscribeEvent
-    fun onDev(event: ClientChatReceivedEvent) {
-        if (TickTimer < 0) return
-        if (event.type.toInt() == 3) return
-        if (!event.message.unformattedText.removeFormatting().matches(Regex("(.+) completed a device! \\(...\\)"))) return
-        if (Alerted || !isOnDev()) return
-
-        Alerted = true
-        ChatUtils.sendChatMessage("/pc ${CHAT_PREFIX.removeFormatting()} I4 Done!")
-        ChatUtils.Alert(FULL_PREFIX, "&a&lI4 Done!")
-        if (RightClickKey.isKeyDown) PlayerUtils.holdClick(false)
     }
 }

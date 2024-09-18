@@ -3,6 +3,7 @@ package NoammAddons.utils
 
 import NoammAddons.NoammAddons.Companion.mc
 import net.minecraft.block.Block
+import net.minecraft.block.state.IBlockState
 import net.minecraft.init.Blocks
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.BlockPos
@@ -31,6 +32,7 @@ object BlockUtils {
         Blocks.furnace,
 //        Blocks.hopper,
         Blocks.jungle_door,
+        Blocks.redstone_block,
         Blocks.lever,
         Blocks.noteblock,
         Blocks.oak_door,
@@ -62,5 +64,9 @@ object BlockUtils {
         val block = mc.theWorld.getBlockAt(blockPos)
         if (blacklist.contains(block)) return
         mc.theWorld.setBlockToAir(blockPos)
+    }
+
+    fun ghostBlock(blockPos: BlockPos, blockState: IBlockState) {
+        mc.theWorld.setBlockState(blockPos, blockState)
     }
 }

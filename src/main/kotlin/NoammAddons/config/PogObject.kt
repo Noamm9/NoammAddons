@@ -2,20 +2,27 @@
 package NoammAddons.config
 
 import NoammAddons.NoammAddons.Companion.MOD_NAME
+import NoammAddons.NoammAddons.Companion.mc
 import com.google.gson.Gson
+import com.google.gson.JsonObject
+import net.minecraft.util.ResourceLocation
 import net.minecraftforge.event.world.WorldEvent.Unload
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
+import java.io.InputStreamReader
 
 
 class PogObject<T : Any>(fileName: String, private val defaultObject: T) {
     private val dataFile = File("config/$MOD_NAME/${fileName}.json")
     private var data: T = loadData() ?: defaultObject
 
-    init { dataFile.parentFile.mkdirs() }
+    init {
+        dataFile.parentFile.mkdirs()
+        autosave(5)
+    }
 
     private fun loadData(): T? {
         return if (dataFile.exists()) {
@@ -59,8 +66,24 @@ class PogObject<T : Any>(fileName: String, private val defaultObject: T) {
         fun toJson(file: File, data: Any) {
             try {
                 FileWriter(file).use { writer -> gson.toJson(data, writer) }
+
             } catch (e: Exception) {
                 println("[PogObject] Failed to save JSON: ${e.message}")
+            }
+        }
+
+        fun readJsonFile(resourcePath: String): JsonObject? {
+            // Specify the path to the JSON file, e.g., "yourmodid:folder/file.json"
+            val resourceLocation = ResourceLocation(resourcePath)
+
+            return try {
+                mc.resourceManager.getResource(resourceLocation).inputStream.use { inputStream ->
+                    val reader = InputStreamReader(inputStream)
+                    Gson().fromJson(reader, JsonObject::class.java)
+                }
+            } catch (e: Exception) {
+                println("[PogObject] Failed to read JSON: ${e.message}")
+                null
             }
         }
     }

@@ -1,39 +1,34 @@
 package NoammAddons.features.dungeons.terminals
 
+import NoammAddons.NoammAddons.Companion.config
+import NoammAddons.NoammAddons.Companion.mc
+import NoammAddons.events.GuiContainerEvent
+import NoammAddons.events.PacketEvent
+import NoammAddons.features.dungeons.terminals.ConstantsVeriables.Slot
+import NoammAddons.features.dungeons.terminals.ConstantsVeriables.StartWithTitle
+import NoammAddons.features.dungeons.terminals.ConstantsVeriables.getColorMode
+import NoammAddons.features.dungeons.terminals.ConstantsVeriables.getSolutionColor
+import NoammAddons.features.dungeons.terminals.ConstantsVeriables.getTermScale
+import NoammAddons.sounds.AYAYA
+import NoammAddons.utils.ChatUtils.removeFormatting
+import NoammAddons.utils.GuiUtils.getMouseX
+import NoammAddons.utils.GuiUtils.getMouseY
+import NoammAddons.utils.ItemUtils.getItemId
+import NoammAddons.utils.LocationUtils
+import NoammAddons.utils.LocationUtils.F7Phase
+import NoammAddons.utils.RenderUtils
+import NoammAddons.utils.RenderUtils.getHeight
+import NoammAddons.utils.RenderUtils.getWidth
+import NoammAddons.utils.ThreadUtils.setTimeout
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.network.play.client.C0DPacketCloseWindow
 import net.minecraft.network.play.client.C0EPacketClickWindow
 import net.minecraft.network.play.server.S2DPacketOpenWindow
 import net.minecraft.network.play.server.S2EPacketCloseWindow
 import net.minecraft.network.play.server.S2FPacketSetSlot
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import NoammAddons.sounds.AYAYA
-import NoammAddons.events.ReceivePacketEvent
-import NoammAddons.events.SentPacketEvent
-import NoammAddons.features.dungeons.terminals.ConstantsVeriables.Slot
-import NoammAddons.NoammAddons.Companion.mc
-import NoammAddons.utils.ChatUtils.removeFormatting
-import NoammAddons.utils.ItemUtils.getItemId
-import NoammAddons.utils.LocationUtils
-import NoammAddons.utils.LocationUtils.inBoss
-import NoammAddons.utils.ThreadUtils.setTimeout
 import net.minecraftforge.client.event.GuiScreenEvent
-import NoammAddons.events.GuiContainerEvent
-import NoammAddons.features.dungeons.terminals.ConstantsVeriables.getColorMode
-import NoammAddons.features.dungeons.terminals.ConstantsVeriables.getTermScale
-import NoammAddons.features.dungeons.terminals.ConstantsVeriables.StartWithTitle
-import NoammAddons.features.dungeons.terminals.ConstantsVeriables.getSolutionColor
-import NoammAddons.NoammAddons.Companion.config
-import NoammAddons.utils.GuiUtils.disablePatcherScale
-import NoammAddons.utils.GuiUtils.enablePatcherScale
-import NoammAddons.utils.GuiUtils.getMouseX
-import NoammAddons.utils.GuiUtils.getMouseY
-import NoammAddons.utils.LocationUtils.F7Phase
-import NoammAddons.utils.LocationUtils.P3Section
-import NoammAddons.utils.RenderUtils
-import NoammAddons.utils.RenderUtils.getHeight
-import NoammAddons.utils.RenderUtils.getWidth
-import net.minecraftforge.client.event.RenderGameOverlayEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import java.awt.Color
 import kotlin.math.floor
 
 object StartWith {
@@ -56,10 +51,10 @@ object StartWith {
         if (!inTerminal) return
         event.isCanceled = true
 
-        val x = mc.getMouseX() / getTermScale()
-        val y = mc.getMouseY() / getTermScale()
-
         val termScale = getTermScale()
+        val x = mc.getMouseX() / termScale
+        val y = mc.getMouseY() / termScale
+
         val screenWidth = mc.getWidth().toDouble() / termScale
         val screenHeight = mc.getHeight().toDouble() / termScale
 
@@ -88,9 +83,9 @@ object StartWith {
     }
 
     @SubscribeEvent
-    fun render(event: RenderGameOverlayEvent.Pre) {
-        if (RenderGameOverlayEvent.ElementType.HOTBAR != event.type) return
+    fun cancelGui(event: GuiScreenEvent.DrawScreenEvent.Pre) {
         if (!inTerminal) return
+        if (!config.DevMode) event.isCanceled = true
 
         val termScale = getTermScale()
         val screenWidth = mc.getWidth().toDouble() / termScale
@@ -127,7 +122,7 @@ object StartWith {
             height + 6
         )
 
-        RenderUtils.drawText(StartWithTitle, offsetX, offsetY)
+        mc.fontRendererObj.drawStringWithShadow(StartWithTitle, offsetX.toFloat(), offsetY.toFloat(), Color.WHITE.rgb)
 
         for (i in 0 until windowSize + mc.fontRendererObj.FONT_HEIGHT/2) {
             if (!solution.contains(i)) continue
@@ -139,13 +134,6 @@ object StartWith {
         }
 
         GlStateManager.popMatrix()
-    }
-
-
-    @SubscribeEvent
-    fun cancelGui(event: GuiScreenEvent.DrawScreenEvent.Pre) {
-        if (!inTerminal) return
-        if (!config.forceSkyblock) event.isCanceled = true
     }
 
 
@@ -174,7 +162,7 @@ object StartWith {
 
 
     @SubscribeEvent
-    fun onWindowOpen(event: ReceivePacketEvent) {
+    fun onWindowOpen(event: PacketEvent.Received) {
         if (!config.CustomTerminalsGui || !config.CustomStartWithTerminal || LocationUtils.dungeonFloor != 7 || F7Phase != 3) return
         if (event.packet !is S2DPacketOpenWindow) return
 
@@ -187,7 +175,6 @@ object StartWith {
         if (startsWithMatch != null) {
             extra = startsWithMatch.groupValues[1].toLowerCase()
             inTerminal = true
-            disablePatcherScale()
             clicked = false
             slots.clear()
             windowSize = slotCount
@@ -196,7 +183,7 @@ object StartWith {
     }
 
     @SubscribeEvent
-    fun onS2FPacketSetSlot(event: ReceivePacketEvent) {
+    fun onS2FPacketSetSlot(event: PacketEvent.Received) {
         if (!inTerminal) return
         if (event.packet !is S2FPacketSetSlot) return
 
@@ -233,7 +220,7 @@ object StartWith {
     }
 
     @SubscribeEvent
-    fun onWindowClose(event: ReceivePacketEvent) {
+    fun onWindowClose(event: PacketEvent.Received) {
         if (event.packet !is S2EPacketCloseWindow) return
         if (!inTerminal) return
         reset()
@@ -241,7 +228,7 @@ object StartWith {
     }
 
     @SubscribeEvent
-    fun onSentPacket(event: SentPacketEvent) {
+    fun onSentPacket(event: PacketEvent.Sent) {
         if (event.packet !is C0DPacketCloseWindow) return
         if (!inTerminal) return
         reset()
@@ -250,6 +237,5 @@ object StartWith {
     private fun reset() {
         inTerminal = false
         queue.clear()
-        enablePatcherScale()
     }
 }
