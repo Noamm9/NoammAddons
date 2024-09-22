@@ -1,7 +1,6 @@
 package NoammAddons.mixins;
 
 import NoammAddons.events.RenderScoreBoardEvent;
-import NoammAddons.events.test;
 import NoammAddons.features.hud.PlayerHud;
 import net.minecraft.client.gui.GuiIngame;
 import net.minecraft.client.gui.ScaledResolution;

@@ -2,16 +2,15 @@ package NoammAddons.features.dungeons
 
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
+import NoammAddons.events.Chat
+import NoammAddons.events.RenderOverlay
 import NoammAddons.utils.ChatUtils
 import NoammAddons.utils.ChatUtils.addColor
 import NoammAddons.utils.ChatUtils.removeFormatting
-import NoammAddons.utils.RenderUtils.drawText
+import NoammAddons.utils.MathUtils.toFixed
+import NoammAddons.utils.RenderUtils.drawCenteredText
 import NoammAddons.utils.RenderUtils.getHeight
 import NoammAddons.utils.RenderUtils.getWidth
-import NoammAddons.utils.Utils.toFixed
-import net.minecraftforge.client.event.ClientChatReceivedEvent
-import net.minecraftforge.client.event.RenderGameOverlayEvent
-import net.minecraftforge.client.event.RenderGameOverlayEvent.Pre
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 
@@ -28,10 +27,9 @@ object BloodDialogueSkip {
     )
 
     @SubscribeEvent
-    fun startTimer(event: ClientChatReceivedEvent) {
+    fun startTimer(event: Chat) {
         if (!config.BloodDialogueSkip) return
-        if (event.type.toInt() != 0) return
-        if (event.message.unformattedText.removeFormatting() != "The BLOOD DOOR has been opened!") return
+        if (event.component.unformattedText.removeFormatting() != "The BLOOD DOOR has been opened!") return
 
         startTime = System.currentTimeMillis()
         isRunning = true
@@ -39,8 +37,7 @@ object BloodDialogueSkip {
 
 
     @SubscribeEvent
-    fun onRenderOverlay(event: Pre) {
-        if (event.type != RenderGameOverlayEvent.ElementType.TEXT) return
+    fun onRenderOverlay(event: RenderOverlay) {
         if (isRunning) {
             val currentTime = System.currentTimeMillis()
             val timeLeft = ((bloodTimer - (currentTime - startTime)) / 1000.0).toFloat()
@@ -52,14 +49,9 @@ object BloodDialogueSkip {
             }
 
             bloodTitle.text = timeString.addColor()
-            bloodTitle.x = mc.getWidth()/2 - (mc.fontRendererObj.getStringWidth(bloodTitle.text.removeFormatting())) * 2.5
+            bloodTitle.x = mc.getWidth()/2.0
 
-            drawText(
-                bloodTitle.text.addColor(),
-                bloodTitle.x,
-                bloodTitle.y,
-                bloodTitle.scale
-            )
+            drawCenteredText(bloodTitle.text, bloodTitle.x, bloodTitle.y, bloodTitle.scale)
 
             if (timeLeft <= 0) isRunning = false
         }

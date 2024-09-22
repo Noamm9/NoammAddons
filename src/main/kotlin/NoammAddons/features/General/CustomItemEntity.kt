@@ -13,11 +13,15 @@ import java.awt.Color
 
 
 object CustomItemEntity {
-    fun customItemEntity(entity: EntityItem, partialTicks: Float): Boolean {
+    fun customItemEntity(entity: EntityItem): Boolean {
         if (!config.CustomItemEntity) return false
         val color = ItemUtils.getRarity(entity.entityItem).color
 
-        drawEntityBox(entity, Color(color.red, color.green, color.blue, 85), true, true, partialTicks)
+        drawEntityBox(
+            entity,
+            Color(color.red, color.green, color.blue, 85),
+            true, true
+        )
 
         drawString(
             entity.entityItem.displayName,

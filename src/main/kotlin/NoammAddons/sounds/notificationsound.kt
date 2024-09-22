@@ -7,9 +7,10 @@ import net.minecraft.util.ResourceLocation
 
 
 object notificationsound {
-    private val notificationsound = ResourceLocation(MOD_ID, "notificationsound")
+   private val notificationsound = ResourceLocation(MOD_ID, "notificationsound")
 
     fun play() {
-        mc.soundHandler.playSound(PositionedSoundRecord.create(notificationsound))
+        //mc.soundHandler.playSound(PositionedSoundRecord.create(notificationsound))
+        mc.thePlayer.playSound("$MOD_ID:notificationsound", 1f, 1f)
     }
 }

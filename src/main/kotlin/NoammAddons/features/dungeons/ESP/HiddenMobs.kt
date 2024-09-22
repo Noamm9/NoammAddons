@@ -1,4 +1,4 @@
-package NoammAddons.features.dungeons
+package NoammAddons.features.dungeons.ESP
 
 import net.minecraft.entity.monster.EntityEnderman
 import net.minecraft.entity.player.EntityPlayer

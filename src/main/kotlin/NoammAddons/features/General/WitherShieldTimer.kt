@@ -5,11 +5,11 @@ import NoammAddons.NoammAddons.Companion.hudData
 import NoammAddons.NoammAddons.Companion.mc
 import NoammAddons.config.EditGui.HudElement
 import NoammAddons.events.PacketEvent
+import NoammAddons.events.RenderOverlay
 import NoammAddons.sounds.potispow
 import NoammAddons.utils.ItemUtils.SkyblockID
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.network.play.server.S32PacketConfirmTransaction
-import net.minecraftforge.client.event.RenderGameOverlayEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import java.awt.Color
 
@@ -48,9 +48,8 @@ object WitherShieldTimer {
     }
 
     @SubscribeEvent
-    fun drawTimer(event: RenderGameOverlayEvent.Pre) {
+    fun drawTimer(event: RenderOverlay) {
         if (!config.WitherShieldTimer) return
-        if (event.type != RenderGameOverlayEvent.ElementType.TEXT) return
         if (tickTimer >= 100) return // Only display when the timer is running
 
         WitherShieldElement

@@ -1,4 +1,4 @@
-package NoammAddons.features.dungeons
+package NoammAddons.features.dungeons.ESP
 
 import net.minecraft.block.BlockStainedGlass
 import net.minecraft.client.entity.EntityOtherPlayerMP
@@ -18,8 +18,13 @@ import NoammAddons.utils.OutlineUtils.outlineESP
 import NoammAddons.utils.RenderUtils.drawEntityBox
 import NoammAddons.utils.ChatUtils.modMessage
 import NoammAddons.utils.LocationUtils.inBoss
+import NoammAddons.utils.RenderUtils.drawTracer
 
 object LividESP {
+    private var foundLivid = false
+    private var livid: Entity? = null
+    private var lividTag: Entity? = null
+    private var thread: Thread? = null
 
     private val lividNames = mapOf(
         '2' to "Frog Livid",
@@ -32,15 +37,13 @@ object LividESP {
         'e' to "Arcade Livid",
         'f' to "Vendetta Livid"
     )
-    private var foundLivid = false
-    private var livid: Entity? = null
-    private var lividTag: Entity? = null
-    private var thread: Thread? = null
 
     @SubscribeEvent
     fun onRenderEntity(event: RenderLivingEntityEvent) {
         if (!config.lividFinder || dungeonFloor != 5 || !foundLivid || config.espType != 0) return
-        if (event.entity == livid) outlineESP(event, config.espColorLivid)
+        if (event.entity != livid) return
+        outlineESP(event, config.espColorLivid)
+        drawTracer(event.entity.positionVector, config.espColorLivid)
     }
 
     @SubscribeEvent
@@ -51,9 +54,9 @@ object LividESP {
                 it,
                 config.espColorLivid,
                 config.espBoxOutlineOpacity != 0F,
-                config.espBoxOpacity != 0f,
-                event.partialTicks
+                config.espBoxOpacity != 0f
             )
+            drawTracer(it.positionVector, config.espColorLivid)
         }
     }
 

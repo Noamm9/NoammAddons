@@ -4,6 +4,7 @@ import net.fabricmc.loom.task.RemapJarTask
 
 plugins {
     kotlin("jvm") version "1.9.0"
+    kotlin("plugin.serialization") version "1.5.10"
     id("com.github.johnrengelman.shadow") version "7.1.2"
     id("dev.architectury.architectury-pack200") version "0.1.3"
     id("gg.essential.loom") version "0.10.0.+"
@@ -38,6 +39,9 @@ dependencies {
 
     packageLib("gg.essential:loader-launchwrapper:1.2.1")
     implementation("gg.essential:essential-1.8.9-forge:12132+g6e2bf4dc5")
+
+    implementation("com.squareup.okhttp3:okhttp:4.9.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
 }
 
 sourceSets.main {

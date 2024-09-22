@@ -20,9 +20,10 @@ object AntiBlind {
 
     @SubscribeEvent
     fun onOverlay(event: RenderGameOverlayEvent.Pre) {
-        if (!config.antiPortal || !inSkyblock) return
-        if (event.type == RenderGameOverlayEvent.ElementType.PORTAL) {
-            event.isCanceled = true
-        }
+        if (!config.antiPortal) return
+        if (!inSkyblock) return
+	    if (event.type != RenderGameOverlayEvent.ElementType.PORTAL) return
+	    
+	    event.isCanceled = true
     }
 }

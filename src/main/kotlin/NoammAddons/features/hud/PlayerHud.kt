@@ -4,10 +4,10 @@ import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.hudData
 import NoammAddons.config.EditGui.ElementsManager.HudElementData
 import NoammAddons.config.EditGui.HudElement
+import NoammAddons.events.RenderOverlay
 import NoammAddons.utils.LocationUtils.inSkyblock
 import NoammAddons.utils.ActionBarParser
 import NoammAddons.utils.ChatUtils.formatNumber
-import net.minecraftforge.client.event.RenderGameOverlayEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 object PlayerHud {
@@ -61,8 +61,7 @@ object PlayerHud {
     )
 
     @SubscribeEvent
-    fun drawAll(event: RenderGameOverlayEvent.Pre) {
-        if (event.type != RenderGameOverlayEvent.ElementType.TEXT) return
+    fun drawAll(event: RenderOverlay) {
         if (!config.PlayerHUD) return
         if (!inSkyblock) return
 

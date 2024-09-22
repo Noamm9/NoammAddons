@@ -11,7 +11,7 @@ import NoammAddons.events.RenderLivingEntityEvent
 import java.awt.Color
 
 object OutlineUtils {
-    fun outlineESP(event: RenderLivingEntityEvent, color: Color) {
+    fun outlineESP(event: RenderLivingEntityEvent, color: Color, lineWidth: Float = 5f) {
         val fancyGraphics = mc.gameSettings.fancyGraphics
         val gamma = mc.gameSettings.gammaSetting
         mc.gameSettings.fancyGraphics = false
@@ -20,7 +20,7 @@ object OutlineUtils {
         glPushAttrib(GL_ALL_ATTRIB_BITS)
         checkSetupFBO()
         glColor4f(color.red / 255f, color.green / 255f, color.blue / 255f, color.alpha / 255f)
-        renderOne()
+        renderOne(lineWidth)
         render(event)
         renderTwo()
         render(event)
@@ -46,13 +46,13 @@ object OutlineUtils {
         )
     }
 
-    private fun renderOne() {
+    private fun renderOne(LineWidth: Float) {
         glDisable(GL_ALPHA_TEST)
         glDisable(GL_TEXTURE_2D)
         glDisable(GL_LIGHTING)
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glLineWidth(/*config.espOutlineWidth*/ 5f)
+        glLineWidth(LineWidth)
         glEnable(GL_LINE_SMOOTH)
         glEnable(GL_STENCIL_TEST)
         glClear(GL_STENCIL_BUFFER_BIT)

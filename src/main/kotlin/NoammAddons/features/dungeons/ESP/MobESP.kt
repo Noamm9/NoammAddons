@@ -1,4 +1,4 @@
-package NoammAddons.features.dungeons
+package NoammAddons.features.dungeons.ESP
 
 import NoammAddons.NoammAddons.Companion.config
 import net.minecraft.entity.Entity
@@ -66,16 +66,15 @@ object MobESP {
                     it,
                     config.espColorStarMobs,
                     config.espBoxOutlineOpacity != 0f,
-                    config.espBoxOpacity != 0f,
-                    event.partialTicks
+                    config.espBoxOpacity != 0f
                 )
-            } else getColor(it)?.let { color ->
+            }
+            else getColor(it)?.let { color ->
                 drawEntityBox(
                     it,
                     color,
                     config.espBoxOutlineOpacity != 0F,
-                    config.espBoxOpacity != 0f,
-                    event.partialTicks
+                    config.espBoxOpacity != 0f
                 )
             }
         }

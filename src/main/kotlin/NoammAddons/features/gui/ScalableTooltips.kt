@@ -1,4 +1,4 @@
-package NoammAddons.features.General
+package NoammAddons.features.gui
 
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc

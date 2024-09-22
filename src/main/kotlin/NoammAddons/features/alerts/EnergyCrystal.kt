@@ -2,34 +2,25 @@ package NoammAddons.features.alerts
 
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
-import NoammAddons.utils.LocationUtils
-import NoammAddons.utils.RenderUtils.drawText
+import NoammAddons.events.RenderOverlay
 import NoammAddons.utils.ChatUtils.addColor
 import NoammAddons.utils.ChatUtils.removeFormatting
-import net.minecraft.client.gui.ScaledResolution
-import net.minecraftforge.client.event.RenderGameOverlayEvent
+import NoammAddons.utils.RenderUtils.drawCenteredText
+import NoammAddons.utils.RenderUtils.drawText
+import NoammAddons.utils.RenderUtils.getHeight
+import NoammAddons.utils.RenderUtils.getWidth
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent
 
 object EnergyCrystal {
-    private var showEnergyCrystal = false
+	private val showEnergyCrystal get() = mc.thePlayer?.inventory?.mainInventory?.get(8)?.displayName?.removeFormatting() == "Energy Crystal"
     private val text = "&e&l⚠ &l&bCrystal &e&l⚠ ".addColor()
 
+	
     @SubscribeEvent
-    fun checkINV(event: ServerTickEvent) {
-        showEnergyCrystal = if (LocationUtils.F7Phase == 1 && mc.thePlayer != null && config.energyCrystalAlert) {
-            mc.thePlayer?.inventory?.mainInventory?.get(8)?.displayName?.removeFormatting() == "Energy Crystal"
-        } else false
-    }
+    fun title(event: RenderOverlay) {
+		if (!showEnergyCrystal) return
+	    if (!config.energyCrystalAlert) return
 
-    @SubscribeEvent
-    fun title(event: RenderGameOverlayEvent.Pre) {
-        if (!showEnergyCrystal || mc.ingameGUI == null || event.type != RenderGameOverlayEvent.ElementType.TEXT) return
-        drawText(
-            text,
-            (ScaledResolution(mc).scaledWidth) / 2 - (mc.fontRendererObj.getStringWidth(text.removeFormatting()) * 4.5) / 2,
-            ScaledResolution(mc).scaledHeight / 2 - 20 * 4.5,
-            4.5
-        )
+	    drawCenteredText(text, mc.getWidth()/ 2.0, mc.getHeight() / 2 - 20.0, 4.5)
     }
 }

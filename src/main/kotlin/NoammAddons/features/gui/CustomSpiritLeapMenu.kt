@@ -1,4 +1,4 @@
-package NoammAddons.features.dungeons
+package NoammAddons.features.gui
 
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.utils.ChatUtils.removeFormatting
@@ -20,7 +20,6 @@ import NoammAddons.utils.RenderUtils.getHeight
 import NoammAddons.utils.RenderUtils.getWidth
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraftforge.client.event.GuiScreenEvent
-import net.minecraftforge.client.event.RenderGameOverlayEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA
 import org.lwjgl.opengl.GL11.GL_SRC_ALPHA
@@ -187,7 +186,7 @@ object CustomSpiritLeapMenu {
     }
 */
 
-    fun drawText(text: String, x: Double, y: Double, scale: Double = 1.0, color: Color = Color.WHITE) {
+    private fun drawText(text: String, x: Double, y: Double, scale: Double = 1.0, color: Color = Color.WHITE) {
         GlStateManager.pushMatrix()
         GlStateManager.disableLighting()
         GlStateManager.enableBlend()

@@ -2,7 +2,9 @@ package NoammAddons.utils
 
 
 import NoammAddons.NoammAddons.Companion.CHAT_PREFIX
+import NoammAddons.NoammAddons.Companion.DEBUG_PREFIX
 import NoammAddons.NoammAddons.Companion.MOD_ID
+import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
 import NoammAddons.sounds.notificationsound
 import gg.essential.universal.UChat
@@ -11,6 +13,10 @@ import kotlin.math.sign
 import gg.essential.api.EssentialAPI
 import gg.essential.universal.UChat.addColor
 import gg.essential.universal.wrappers.message.UTextComponent
+import net.minecraft.event.ClickEvent
+import net.minecraft.event.HoverEvent
+import net.minecraft.util.ChatComponentText
+import net.minecraft.util.ChatStyle
 import kotlin.math.log10
 import kotlin.math.pow
 
@@ -25,15 +31,47 @@ object ChatUtils {
 
     fun Any?.equalsOneOf(vararg other: Any): Boolean = other.any { this == it }
 
-    fun String?.removeFormatting(): String = UTextComponent.stripFormatting(this ?: "")
+    fun String?.removeFormatting(): String = UTextComponent.stripFormatting(this ?: "null")
 
     fun String.addColor(): String = addColor(this)
 
     fun modMessage(message: Any) = UChat.chat("$CHAT_PREFIX ${message.toString().addColor()}")
 
+    fun debugMessage(message: Any) {
+        if (!config.DevMode) return
+        UChat.chat("$DEBUG_PREFIX ${message.toString().addColor()}")
+    }
+
     fun sendChatMessage(message: Any) {
         mc.thePlayer.sendChatMessage("$message")
     }
+
+
+    /**
+     * Sends a message to the user that they can click and run an action.
+     *
+     * @param message The message to be sent.
+     * @param onClickCommand The command to be executed when the message is clicked.
+     * @param hover The string to be shown when the message is hovered, default "Click here!".
+     * @param prefix Whether to prefix the message with the chat prefix, default true.
+     */
+    fun clickableChat(
+        message: String,
+        onClickCommand: String,
+        hover: String = "§eClick me!",
+        prefix: Boolean = true,
+    ) {
+        val msgPrefix = if (prefix) CHAT_PREFIX else ""
+        val textComponent = ChatComponentText(msgPrefix + message)
+        val chatStyle = ChatStyle()
+        chatStyle.chatHoverEvent = HoverEvent(HoverEvent.Action.SHOW_TEXT, ChatComponentText(hover))
+        chatStyle.chatClickEvent = ClickEvent(ClickEvent.Action.RUN_COMMAND, "/$onClickCommand")
+        textComponent.chatStyle = chatStyle
+
+        mc.thePlayer.addChatMessage(textComponent)
+    }
+
+
 
     fun Double.toFixed(digits: Int) = "%.${digits}f".format(this)
 
@@ -75,7 +113,7 @@ object ChatUtils {
      * @param time time to stay on screen in seconds
      */
     fun showTitle(title: String, subtitle: String = "", time: Int = 3) {
-        val gui = mc.ingameGUI
+        val gui = mc.ingameGUI ?: return
         val timeInTicks = time * 20
         gui.displayTitle(null, null, 0, timeInTicks, 0)
         gui.displayTitle(title.addColor(), null, 0, timeInTicks, 0)

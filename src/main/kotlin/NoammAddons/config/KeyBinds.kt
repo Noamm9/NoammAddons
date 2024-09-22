@@ -11,6 +11,7 @@ object KeyBinds {
     val DungeonClassAbility = KeyBinding("Dungeon class Ability", Keyboard.KEY_NONE, MOD_NAME)
     val SlotBinding = KeyBinding("Slot Binding", Keyboard.KEY_NONE, MOD_NAME)
 
+
     val allBindings: List<KeyBinding> by lazy {
         listOf(GhostPick, Config, DungeonClassUltimate, DungeonClassAbility, SlotBinding)
     }

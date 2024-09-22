@@ -8,6 +8,7 @@ import NoammAddons.config.EditGui.HudElement
 import NoammAddons.config.KeyBinds
 import NoammAddons.events.ClickEvent
 import NoammAddons.events.PacketEvent
+import NoammAddons.events.RenderOverlay
 import NoammAddons.utils.BlockUtils.blacklist
 import NoammAddons.utils.BlockUtils.getBlockAt
 import NoammAddons.utils.BlockUtils.toAir
@@ -16,7 +17,6 @@ import net.minecraft.item.ItemStack
 import net.minecraft.item.ItemTool
 import net.minecraft.network.play.client.C07PacketPlayerDigging
 import net.minecraft.network.play.client.C0APacketAnimation
-import net.minecraftforge.client.event.RenderGameOverlayEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 
@@ -44,6 +44,7 @@ object GhostPick {
         }
     }
 
+	
     @SubscribeEvent
     fun enable(event: ClientTickEvent) {
         if (!config.GhostPick) featureState = false
@@ -51,6 +52,7 @@ object GhostPick {
         if (KeyBinds.GhostPick.isPressed) featureState = !featureState
     }
 
+	
     @SubscribeEvent
     fun ghostBlocks(event: ClickEvent.RightClickEvent) {
         if (mc.gameSettings.keyBindUseItem.isKeyDown && config.GhostBlocks && featureState) {
@@ -61,10 +63,13 @@ object GhostPick {
         }
     }
 
+	
     @SubscribeEvent
-    fun draw(event: RenderGameOverlayEvent.Pre) {
-        if (!featureState || !config.GhostPick) return
-        if (event.type != RenderGameOverlayEvent.ElementType.TEXT) return
+    @Suppress("UNUSED_PARAMETER")
+    fun draw(event: RenderOverlay) {
+        if (!featureState) return
+	    if (!config.GhostPick) return
+	    
         GhostPickElement.draw()
     }
 }

@@ -1,14 +1,15 @@
 package NoammAddons.features.dungeons
 
-import NoammAddons.utils.ChatUtils
-import net.minecraftforge.client.event.ClientChatReceivedEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import NoammAddons.NoammAddons.Companion.CHAT_PREFIX
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
+import NoammAddons.events.Chat
 import NoammAddons.utils.ChatUtils.removeFormatting
+import NoammAddons.utils.ChatUtils.sendChatMessage
 import NoammAddons.utils.ThreadUtils.setTimeout
 import java.util.regex.Pattern
+
 
 object AnnounceDraftResets {
     private val resetPattern = Pattern.compile("You used the Architect's First Draft to reset (Higher Or Lower|Boulder|Three Weirdos|Ice Path|Bomb Defuse|Tic Tac Toe)!")
@@ -17,13 +18,13 @@ object AnnounceDraftResets {
 
 
     @SubscribeEvent
-    fun onChat(event: ClientChatReceivedEvent) {
-        val message = event.message.unformattedText.removeFormatting()
+    fun onChat(event: Chat) {
+        val message = event.component.unformattedText.removeFormatting()
 
         val resetMatcher = resetPattern.matcher(message)
         if (resetMatcher.matches() && config.AnnounceDraftResets) {
             val type = resetMatcher.group(1)
-            ChatUtils.sendChatMessage("/pc ${CHAT_PREFIX.removeFormatting()} Used Draft to Reset $type")
+            sendChatMessage("/pc ${CHAT_PREFIX.removeFormatting()} Used Draft to Reset $type")
         }
 
         val failMatcher1 = failPattern1.matcher(message)
@@ -34,8 +35,8 @@ object AnnounceDraftResets {
 
             if (player == mc.session.username) {
                 setTimeout(30*50) {
-                    ChatUtils.sendChatMessage("/gfs ARCHITECT_FIRST_DRAFT 1")
-                }
+					sendChatMessage("/gfs ARCHITECT_FIRST_DRAFT 1")
+				}
             }
         }
     }

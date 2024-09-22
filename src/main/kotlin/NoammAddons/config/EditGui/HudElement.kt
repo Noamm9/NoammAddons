@@ -67,18 +67,18 @@ class HudElement(
         update()
 
         if (!example) {
-            RenderUtils.drawText(
-                getText(),
-                getX() - (width / 2),
-                getY(),
-                getScale(),
-                getColor()
-            )
+	        RenderUtils.drawText(
+		        getText(),
+		        getX(),
+		        getY(),
+		        getScale(),
+		        getColor()
+	        )
         }
         else {
             RenderUtils.drawRoundedRect(
                 Color(15, 15, 15, 150),
-                getX() - (width / getScale() / 2),
+                getX(),
                 getY(),
                 width * getScale(),
                 height * getScale()
@@ -86,7 +86,7 @@ class HudElement(
 
             RenderUtils.drawText(
                 getText(),
-                getX() - (width / 2),
+                getX(),
                 getY(),
                 getScale(),
                 getColor()
@@ -97,7 +97,7 @@ class HudElement(
 
     fun isHovered(mouseX: Float, mouseY: Float): Boolean {
         return mouseX >= getX() - (width * getScale() / 2) && mouseX <= getX() + (width * getScale() / 2) &&
-                mouseY >= getY() && mouseY <= getY() + (height * getScale())
+            mouseY >= getY() && mouseY <= getY() + (height * getScale())
     }
 
     private fun update() {
@@ -110,8 +110,8 @@ class HudElement(
     }
 
     fun reset() {
-        setX(10.0)
-        setY(10.0 * (Math.random() * 20).roundToInt())
+        setX(100.0)
+        setY(10.0 * (Math.random() * elements.size+10).roundToInt())
         setScale(1.0)
     }
 }

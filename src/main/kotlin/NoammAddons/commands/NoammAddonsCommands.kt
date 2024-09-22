@@ -2,12 +2,15 @@ package NoammAddons.commands
 
 import NoammAddons.config.Config
 import NoammAddons.config.EditGui.HudEditorScreen
+import NoammAddons.events.Chat
 import NoammAddons.features.General.AutoReaperArmorSwap.reaperSwap
+import NoammAddons.utils.ChatUtils.addColor
 import NoammAddons.utils.ChatUtils.getChatBreak
 import NoammAddons.utils.ChatUtils.modMessage
 import NoammAddons.utils.GuiUtils.openScreen
 import NoammAddons.utils.PlayerUtils.rotateSmoothly
 import gg.essential.universal.UChat
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import net.minecraft.command.CommandBase
@@ -36,6 +39,7 @@ class NoammAddonsCommands : CommandBase() {
         return getUsage()
     }
 
+     @OptIn(DelicateCoroutinesApi::class)
      override fun processCommand(sender: ICommandSender, args: Array<String>) {
          if (args.isEmpty()) openScreen(Config.gui())
 
@@ -74,10 +78,10 @@ class NoammAddonsCommands : CommandBase() {
     """.trimIndent()
 
     private fun sendFakeChatMessage(message: String) {
-        val chatComponent = ChatComponentText(message)
-        modMessage(message)
-        val event = ClientChatReceivedEvent(0.toByte(), chatComponent)
-        MinecraftForge.EVENT_BUS.post(event)
+		val formattedMessage = message.addColor()
+        modMessage(formattedMessage)
+        MinecraftForge.EVENT_BUS.post(ClientChatReceivedEvent(0.toByte(), ChatComponentText(formattedMessage)))
+	    MinecraftForge.EVENT_BUS.post(Chat(ChatComponentText(formattedMessage)))
     }
 
 

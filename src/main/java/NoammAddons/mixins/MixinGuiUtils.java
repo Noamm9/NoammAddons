@@ -1,6 +1,6 @@
 package NoammAddons.mixins;
 
-import NoammAddons.features.General.ScalableTooltips;
+import NoammAddons.features.gui.ScalableTooltips;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraftforge.fml.client.config.GuiUtils;
 import org.spongepowered.asm.mixin.Mixin;

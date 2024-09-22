@@ -65,8 +65,6 @@ object GuiUtils {
         )
     }
 
-
-
     fun isInGui(): Boolean = mc.currentScreen != null
 
     fun getPatcherScale(configValue: Boolean = false): Double {

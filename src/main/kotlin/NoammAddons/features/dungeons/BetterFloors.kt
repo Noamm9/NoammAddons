@@ -1,14 +1,11 @@
 package NoammAddons.features.dungeons
 
-import NoammAddons.NoammAddons.Companion.MOD_ID
 import NoammAddons.NoammAddons.Companion.config
-import NoammAddons.config.PogObject
 import NoammAddons.utils.BlockUtils.ghostBlock
 import NoammAddons.utils.BlockUtils.toAir
+import NoammAddons.utils.JsonUtils.fetchJsonWithRetry
 import NoammAddons.utils.LocationUtils.dungeonFloor
 import NoammAddons.utils.LocationUtils.inBoss
-import com.google.gson.JsonArray
-import com.google.gson.JsonObject
 import net.minecraft.init.Blocks
 import net.minecraft.util.BlockPos
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -16,11 +13,24 @@ import net.minecraftforge.fml.common.gameevent.TickEvent
 
 
 object BetterFloors {
-    private val f7Config get() = PogObject.JsonHelper.readJsonFile("$MOD_ID:betterFloors/F7BossCoords.json")
-    private val f6Config get() = PogObject.JsonHelper.readJsonFile("$MOD_ID:betterFloors/F6BossCoords.json")
-    private val f5Config get() = PogObject.JsonHelper.readJsonFile("$MOD_ID:betterFloors/F5BossCoords.json")
-    private var tickTimer = 0
+	private val betterFloors get() = config.BetterFloors
+    private var f7Config: Map<String, List<Map<String, Int>>>? = null
+    private var f6Config: Map<String, List<Map<String, Int>>>? = null
+    private var f5Config: Map<String, List<Map<String, Int>>>? = null
 
+    init {
+        fetchJsonWithRetry<Map<String, List<Map<String, Int>>>>(
+            "https://raw.githubusercontent.com/Noamm9/NoammAddons/data/betterFloors/F7BossCoords.json"
+        ) { f7Config = it }
+
+        fetchJsonWithRetry<Map<String, List<Map<String, Int>>>>(
+            "https://raw.githubusercontent.com/Noamm9/NoammAddons/data/betterFloors/F6BossCoords.json"
+        ) { f6Config = it }
+
+        fetchJsonWithRetry<Map<String, List<Map<String, Int>>>>(
+            "https://raw.githubusercontent.com/Noamm9/NoammAddons/data/betterFloors/F5BossCoords.json"
+        ) { f5Config = it }
+    }
 
     private val blockStates = mapOf(
         // Glass types
@@ -58,36 +68,29 @@ object BetterFloors {
         "GrayClay" to Blocks.stained_hardened_clay.getStateFromMeta(9) // Gray Clay
     )
 
-    private fun placeBlocks(json: JsonObject) {
+    private fun placeBlocks(json: Map<String, List<Map<String, Int>>>) {
         try {
-            json.entrySet().forEach { (type, value) ->
+            json.forEach { (type, positions) ->
                 val blockType = blockStates[type]
-               // if (config.DevMode) println("type: $type, value: $value")
 
-                if (value !is JsonArray) return@forEach
-
-                value.filterIsInstance<JsonObject>().forEach { element ->
-                    val x = element["x"]?.asInt ?: 0
-                    val y = element["y"]?.asInt ?: 0
-                    val z = element["z"]?.asInt ?: 0
+                positions.forEach { coords ->
+                    val x = coords["x"] ?: 0
+                    val y = coords["y"] ?: 0
+                    val z = coords["z"] ?: 0
                     val position = BlockPos(x, y, z)
-
 
                     if (type == "Air") toAir(position)
                     else blockType?.let { ghostBlock(position, it) }
                 }
             }
-        }
-        catch (e: Exception) {
-            println("Error: $e")
-        }
+        } catch (_: Exception) { }
     }
+
 
     @SubscribeEvent
     fun runEverySec(event: TickEvent.ClientTickEvent) {
         if (event.phase != TickEvent.Phase.START) return
-        tickTimer++
-        if (tickTimer % 20 != 0) return
+	    if (!betterFloors) return
         if (!inBoss) return
 
         when (dungeonFloor) {

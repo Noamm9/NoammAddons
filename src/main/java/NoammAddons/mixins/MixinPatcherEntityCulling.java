@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import NoammAddons.features.dungeons.MobESP;
+import NoammAddons.features.dungeons.ESP.MobESP;
 
 @Pseudo
 @Mixin(targets = "club.sk1er.patcher.util.world.render.culling.EntityCulling", remap = false)

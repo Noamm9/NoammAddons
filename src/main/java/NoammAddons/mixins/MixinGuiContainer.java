@@ -1,6 +1,6 @@
 package NoammAddons.mixins;
 
-import NoammAddons.features.General.ScalableTooltips;
+import NoammAddons.features.gui.ScalableTooltips;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;

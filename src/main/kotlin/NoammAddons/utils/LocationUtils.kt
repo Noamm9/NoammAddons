@@ -2,12 +2,12 @@ package NoammAddons.utils
 
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
+import NoammAddons.events.RenderOverlay
 import NoammAddons.utils.ChatUtils.removeFormatting
 import NoammAddons.utils.MathUtils.isCoordinateInsideBox
 import NoammAddons.utils.ScoreboardUtils.sidebarLines
 import NoammAddons.utils.TablistUtils.getTabList
 import net.minecraft.util.Vec3
-import net.minecraftforge.client.event.RenderGameOverlayEvent
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent
@@ -36,10 +36,11 @@ object LocationUtils {
             inSkyblock = true
             inDungeons = true
             dungeonFloor = 7
-            F7Phase = 3
+            F7Phase = 5
             P3Section = 1
             inBoss = true
         }
+        
         else {
             inSkyblock = onHypixel && mc.theWorld.scoreboard.getObjectiveInDisplaySlot(1)?.name == "SBScoreboard"
 
@@ -171,12 +172,11 @@ object LocationUtils {
 
 
     @SubscribeEvent
-    fun testing(event: RenderGameOverlayEvent.Pre) {
-        if (event.type != RenderGameOverlayEvent.ElementType.TEXT) return
+    fun testing(event: RenderOverlay) {
         if (!config.DevMode) return
         RenderUtils.drawText(
             "indungeons: $inDungeons \n dungeonfloor: $dungeonFloor \n inboss: $inBoss \n inSkyblock: $inSkyblock \n onHypixel: $onHypixel \n F7Phase: $F7Phase \n P3Section: $P3Section \n WorldName: $WorldName",
-            10.0, 10.0
+            200.0, 10.0
         )
     }
 }

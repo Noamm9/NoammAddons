@@ -5,48 +5,46 @@ import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.CHAT_PREFIX
 import NoammAddons.NoammAddons.Companion.FULL_PREFIX
 import NoammAddons.NoammAddons.Companion.MOD_ID
+import NoammAddons.events.Chat
 import NoammAddons.events.PacketEvent
 import NoammAddons.utils.GuiUtils
 import NoammAddons.utils.PlayerUtils
-import NoammAddons.utils.ChatUtils
 import NoammAddons.utils.ChatUtils.removeFormatting
 import NoammAddons.utils.BlockUtils.getBlockAt
 import NoammAddons.utils.BlockUtils.getBlockId
 import NoammAddons.utils.ThreadUtils.setTimeout
 import NoammAddons.utils.ItemUtils.getItemId
 import NoammAddons.mixins.AccessorKeybinding
-import NoammAddons.sounds.notificationsound
+import NoammAddons.utils.ChatUtils.Alert
 import NoammAddons.utils.ChatUtils.equalsOneOf
 import NoammAddons.utils.ChatUtils.modMessage
+import NoammAddons.utils.ChatUtils.sendChatMessage
 import NoammAddons.utils.DungeonUtils
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import net.minecraft.client.gui.Gui
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.network.play.server.S32PacketConfirmTransaction
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
-import net.minecraftforge.client.event.ClientChatReceivedEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 import kotlin.math.ceil
 
 object AutoI4 {
-    private val devBlocks = listOf(
-        Triple(64, 126, 50), Triple(66, 126, 50), Triple(68, 126, 50),
-        Triple(64, 128, 50), Triple(66, 128, 50), Triple(68, 128, 50),
-        Triple(64, 130, 50), Triple(66, 130, 50), Triple(68, 130, 50)
-    )
-
     private val rightClickKey = mc.gameSettings.keyBindUseItem
     private val doneCoords = mutableSetOf<Triple<Int, Int, Int>>()
     private var wait = false
     private var alerted = true
     private var tickTimer = -1
     private var shouldPredict = true
+	private val devBlocks = listOf(
+		Triple(64, 126, 50), Triple(66, 126, 50), Triple(68, 126, 50),
+		Triple(64, 128, 50), Triple(66, 128, 50), Triple(68, 128, 50),
+		Triple(64, 130, 50), Triple(66, 130, 50), Triple(68, 130, 50)
+	)
 
     private fun isOnDev(): Boolean {
         val player = mc.thePlayer ?: return false
@@ -138,20 +136,21 @@ object AutoI4 {
     }
 
     @SubscribeEvent
-    fun onChat(event: ClientChatReceivedEvent) {
-        if (event.type == 3.toByte()) return
-        if (event.message.unformattedText.removeFormatting() == "[BOSS] Storm: I should have known that I stood no chance.") {
+    fun onChat(event: Chat) {
+		val msg = event.component.unformattedText.removeFormatting()
+        if (msg == "[BOSS] Storm: I should have known that I stood no chance.") {
             tickTimer = 0
+	        return
         }
 
         if (tickTimer < 0) return
-        if (!event.message.unformattedText.removeFormatting().matches(Regex("(.+) completed a device! \\(...\\)"))) return
+        if (!msg.matches(Regex("(.+) completed a device! \\(...\\)"))) return
         if (alerted || !isOnDev()) return
 
         alerted = true
-        ChatUtils.sendChatMessage("/pc ${CHAT_PREFIX.removeFormatting()} I4 Done!")
-        ChatUtils.Alert(FULL_PREFIX, "&a&lI4 Done!")
-        if (rightClickKey.isKeyDown) PlayerUtils.holdClick(false)
+        sendChatMessage("/pc ${CHAT_PREFIX.removeFormatting()} I4 Done!")
+        Alert(FULL_PREFIX, "&a&lI4 Done!")
+        if (rightClickKey.isKeyDown || rightClickKey.isPressed) PlayerUtils.holdClick(false)
     }
 
 
@@ -165,14 +164,16 @@ object AutoI4 {
         // Launch a coroutine to handle suspending logic
         GlobalScope.launch {
 
-            if (tickTimer == 50 + 154) rodSwapAction()
+            if (tickTimer == 20 + 154) rodSwapAction()
 
-            if (tickTimer == 112 + 154) leapAction()
+            if (tickTimer == 107 + 154) leapAction()
 
             // time off message - 104
             // 2 - at start - 40 ticks
-            // Pheonix - 80 ticks
+	        
+            // Phoenix - 80 ticks
             // bonzo - 60 ticks
+	        // Spirit - 50 ticks
 
             if (alerted) return@launch
 
@@ -185,7 +186,7 @@ object AutoI4 {
             alerted = true
             tickTimer = -1
 
-            mc.thePlayer.sendChatMessage("/pc ${CHAT_PREFIX.removeFormatting()} I4 Done!")
+            sendChatMessage("/pc ${CHAT_PREFIX.removeFormatting()} I4 Done!")
             mc.thePlayer.playSound("$MOD_ID:notificationsound", 1f, 1f)
 
             if (rightClickKey.isKeyDown) PlayerUtils.holdClick(false)
@@ -197,10 +198,11 @@ object AutoI4 {
     private suspend fun leapAction() {
         if (!isOnDev()) return
         if (config.DevMode) modMessage("Debug: Starting leap action.")
+	    if (GuiUtils.currentChestName.removeFormatting().toLowerCase() == "spirit leap") return
 
-        mc.thePlayer.inventory.mainInventory.forEachIndexed { index, item ->
+        mc.thePlayer.inventory.mainInventory.forEachIndexed { index, _item ->
             if (index > 8) return@forEachIndexed
-            if (item == null || !item.displayName.removeFormatting().contains("leap", true)) return@forEachIndexed
+            if (_item == null || !_item.displayName.removeFormatting().contains("leap", true)) return@forEachIndexed
             PlayerUtils.holdClick(false)
 
             PlayerUtils.swapToSlot(index)

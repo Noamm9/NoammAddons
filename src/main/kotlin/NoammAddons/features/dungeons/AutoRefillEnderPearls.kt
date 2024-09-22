@@ -2,16 +2,15 @@ package NoammAddons.features.dungeons
 
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
+import NoammAddons.events.Chat
 import NoammAddons.utils.ChatUtils.removeFormatting
-import net.minecraftforge.client.event.ClientChatReceivedEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 object AutoRefillEnderPearls {
     @SubscribeEvent
-    fun refillEnderPearls(event: ClientChatReceivedEvent) {
+    fun refillEnderPearls(event: Chat) {
         if (!config.refillEnderPearls) return
-        if (event.type.toInt() == 3) return
-        if (event.message.unformattedText.removeFormatting() != "Starting in 1 second.") return
+        if (event.component.unformattedText.removeFormatting() != "Starting in 1 second.") return
 
         val player = mc.thePlayer
         val inventory = player.inventory.mainInventory

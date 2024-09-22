@@ -2,13 +2,13 @@ package NoammAddons.features.General
 
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
+import NoammAddons.events.Chat
 import NoammAddons.utils.ChatUtils
 import NoammAddons.utils.ChatUtils.removeFormatting
 import NoammAddons.utils.MathUtils
 import NoammAddons.utils.RenderUtils
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
-import net.minecraftforge.client.event.ClientChatReceivedEvent
 import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import java.awt.Color
@@ -20,10 +20,9 @@ object ChatCoordsWaypoint {
     private val waypointArray = mutableListOf<waypoint>()
 
     @SubscribeEvent
-    fun coordsToWaypoint(event: ClientChatReceivedEvent) {
+    fun coordsToWaypoint(event: Chat) {
         if (!config.ChatCoordsWayPoint) return
-        if (event.type.toInt() !in 0..1) return
-        val match = regex.find(event.message.unformattedText.removeFormatting()) ?: return
+        val match = regex.find(event.component.unformattedText.removeFormatting()) ?: return
 
         val (type, name, x, y, z) = match.destructured
         val time = System.currentTimeMillis()

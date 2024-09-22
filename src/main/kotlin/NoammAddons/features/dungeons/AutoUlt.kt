@@ -2,16 +2,18 @@ package NoammAddons.features.dungeons
 
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
-import NoammAddons.utils.ChatUtils
+import NoammAddons.events.Chat
+import NoammAddons.utils.ChatUtils.modMessage
 import NoammAddons.utils.ChatUtils.removeFormatting
 import NoammAddons.utils.DungeonUtils
 import NoammAddons.utils.LocationUtils.dungeonFloor
 import NoammAddons.utils.LocationUtils.inDungeons
-import NoammAddons.utils.PlayerUtils
-import net.minecraftforge.client.event.ClientChatReceivedEvent
+import NoammAddons.utils.PlayerUtils.useDungeonClassAbility
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 object AutoUlt {
+	private data class UltMessage(val msg: String, val classes: Array<String>, val floor: Int)
+	
     private val UltMessages = listOf(
         UltMessage(
             msg = "⚠ Maxor is enraged! ⚠",
@@ -36,13 +38,12 @@ object AutoUlt {
     )
 
     @SubscribeEvent
-    fun useUlt(event: ClientChatReceivedEvent) {
+    fun useUlt(event: Chat) {
         if (!config.autoUlt) return
         if (!inDungeons) return
-        if (event.type.toInt() != 0) return
 
         val matchingMessage = UltMessages.find {
-            it.msg == event.message.unformattedText.removeFormatting() && it.floor == dungeonFloor
+            it.msg == event.component.unformattedText.removeFormatting() && it.floor == dungeonFloor
         } ?: return
 
         val playerClass = DungeonUtils.dungeonTeammates.find {
@@ -50,11 +51,9 @@ object AutoUlt {
         }?.clazz?.name ?: return
 
         if (matchingMessage.classes.contains(playerClass.toLowerCase())) {
-            ChatUtils.modMessage("Used Ultimate!")
-            PlayerUtils.useDungeonClassAbility(true)
+            modMessage("Used Ultimate!")
+            useDungeonClassAbility(true)
         }
     }
-
-    private data class UltMessage(val msg: String, val classes: Array<String>, val floor: Int)
 }
 

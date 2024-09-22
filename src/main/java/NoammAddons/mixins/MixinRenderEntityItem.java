@@ -13,7 +13,7 @@ public class MixinRenderEntityItem  {
 
     @Inject(method = "doRender", at = @At("HEAD"), cancellable = true)
     private void onDoRender(EntityItem entity, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo ci) {
-        if (CustomItemEntity.INSTANCE.customItemEntity(entity, partialTicks))
+        if (CustomItemEntity.INSTANCE.customItemEntity(entity))
             ci.cancel();
     }
 }

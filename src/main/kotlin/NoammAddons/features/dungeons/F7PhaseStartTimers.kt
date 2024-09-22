@@ -2,12 +2,12 @@ package NoammAddons.features.dungeons
 
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
+import NoammAddons.events.Chat
+import NoammAddons.events.RenderOverlay
 import NoammAddons.utils.ChatUtils.removeFormatting
 import NoammAddons.utils.RenderUtils
 import NoammAddons.utils.RenderUtils.getHeight
 import NoammAddons.utils.RenderUtils.getWidth
-import net.minecraftforge.client.event.ClientChatReceivedEvent
-import net.minecraftforge.client.event.RenderGameOverlayEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import kotlin.math.roundToInt
 
@@ -23,10 +23,9 @@ object F7PhaseStartTimers {
 
 
     @SubscribeEvent
-    fun onPhaseStart(event: ClientChatReceivedEvent) {
+    fun onPhaseStart(event: Chat) {
         if (!config.F7M7PhaseStartTimers) return
-        if (event.type.toInt() == 3) return
-        val msg = event.message.unformattedText.removeFormatting()
+        val msg = event.component.unformattedText.removeFormatting()
 
         when {
             msg == startMessages[0] && config.P1StartTimer -> {
@@ -52,9 +51,8 @@ object F7PhaseStartTimers {
     }
 
     @SubscribeEvent
-    fun onRender(event: RenderGameOverlayEvent.Pre) {
+    fun onRender(event: RenderOverlay) {
         if (!config.F7M7PhaseStartTimers) return
-        if (event.type != RenderGameOverlayEvent.ElementType.TEXT) return
         val timeLeft = (msTime - (System.currentTimeMillis() - startTime)).toFloat().roundToInt()
         if (timeLeft < 0) return
 

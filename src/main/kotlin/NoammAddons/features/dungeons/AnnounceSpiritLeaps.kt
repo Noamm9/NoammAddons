@@ -1,21 +1,21 @@
 package NoammAddons.features.dungeons
 
 import NoammAddons.NoammAddons.Companion.config
-import NoammAddons.NoammAddons.Companion.mc
+import NoammAddons.events.Chat
 import NoammAddons.utils.ChatUtils.removeFormatting
-import net.minecraftforge.client.event.ClientChatReceivedEvent
+import NoammAddons.utils.ChatUtils.sendChatMessage
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 
 object AnnounceSpiritLeaps {
     @SubscribeEvent
-    fun onChat(event: ClientChatReceivedEvent) {
-        if (config.AnnounceSpiritLeaps.removeFormatting().isNotEmpty()) return
-        val message = event.message.unformattedText
+    fun onChat(event: Chat) {
+        if (config.AnnounceSpiritLeaps.removeFormatting().isEmpty()) return
+        val message = event.component.unformattedText.removeFormatting()
         if (message.startsWith("You have teleported to ")) {
             val name = message.replace("You have teleported to ", "").replace("!", "")
             val msg = config.AnnounceSpiritLeaps.removeFormatting().replace("{name}", name)
-            mc.thePlayer.sendChatMessage("/pc $msg")
+            sendChatMessage("/pc $msg")
         }
     }
 }

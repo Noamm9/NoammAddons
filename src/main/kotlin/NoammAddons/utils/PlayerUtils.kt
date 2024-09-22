@@ -3,22 +3,33 @@ package NoammAddons.utils
 import NoammAddons.NoammAddons.Companion.mc
 import NoammAddons.utils.ChatUtils.modMessage
 import NoammAddons.utils.ChatUtils.removeFormatting
+import NoammAddons.utils.MathUtils.Rotation
+import NoammAddons.utils.ThreadUtils.setTimeout
 import net.minecraft.client.Minecraft
 import net.minecraft.client.settings.KeyBinding
+import net.minecraft.item.ItemStack
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
-import net.minecraft.util.BlockPos
-import net.minecraft.util.EnumFacing
 import net.minecraft.util.Vec3
 import java.lang.Math.sin
 import java.util.*
 import kotlin.math.*
 
 object PlayerUtils {
+	private val Player get() = mc.thePlayer
+	
     fun closeScreen() {
-        if (mc.currentScreen != null && mc.thePlayer != null) {
-            mc.thePlayer.closeScreen()
+        if (mc.currentScreen != null && Player != null) {
+	        Player.closeScreen()
         }
     }
+
+    fun getArmor(): Array<out ItemStack>? = Player?.inventory?.armorInventory
+
+    fun getHelmet(): ItemStack? = getArmor()?.get(3)
+    fun getChestplate(): ItemStack? = getArmor()?.get(2)
+    fun getLeggings(): ItemStack? = getArmor()?.get(1)
+    fun getBoots(): ItemStack? = getArmor()?.get(0)
+
 
     /**
      * Toggles the sneak state of the player.
@@ -33,23 +44,13 @@ object PlayerUtils {
     }
 
     fun rightClick() {
-        val method = try {
-            Minecraft::class.java.getDeclaredMethod("func_147121_ag")
-        } catch (e: NoSuchMethodException) {
-            Minecraft::class.java.getDeclaredMethod("rightClickMouse")
-        }
-        method.isAccessible = true
-        method.invoke(mc)
+	    holdClick(true, "RIGHT")
+	    setTimeout(50) { holdClick(false, "RIGHT") }
     }
 
     fun leftClick() {
-        val method = try {
-            Minecraft::class.java.getDeclaredMethod("func_147116_af")
-        } catch (e: NoSuchMethodException) {
-            Minecraft::class.java.getDeclaredMethod("clickMouse")
-        }
-        method.isAccessible = true
-        method.invoke(mc)
+		holdClick(true, "LEFT")
+	    setTimeout(50) { holdClick(false, "LEFT") }
     }
 
     fun sendRightClickAirPacket() {
@@ -91,14 +92,12 @@ object PlayerUtils {
      * The default value is false, meaning the regular ability will be used.
      */
     fun useDungeonClassAbility(Ultimate: Boolean = false) {
-        mc.thePlayer.dropOneItem(!Ultimate)
+	    Player?.dropOneItem(!Ultimate) ?: return
     }
 
 
-    private fun getEyePos(): Vec3 {
-        val Player = mc.thePlayer
-        return Vec3(Player.posX, Player.posY + Player.getEyeHeight(), Player.posZ)
-    }
+    private fun getEyePos(): Vec3 = Vec3(Player.posX, Player.posY + Player.getEyeHeight(), Player.posZ)
+    
     private fun normalizeYaw(yaw: Float): Float {
         var result = yaw
         while (result >= 180) result -= 360
@@ -106,10 +105,10 @@ object PlayerUtils {
         return result
     }
     private fun rotate(yaw: Float, pitch: Float) {
-        mc.thePlayer.rotationYaw = yaw
-        mc.thePlayer.rotationPitch = pitch
+        Player.rotationYaw = yaw
+        Player.rotationPitch = pitch
     }
-
+	private fun Ease(t: Double): Double = kotlin.math.sin((t * Math.PI) / 2)
 
     /**
      * Calculates the yaw and pitch angles required to look at a specific block position.
@@ -119,7 +118,7 @@ object PlayerUtils {
      *
      * @return A Pair containing the yaw and pitch angles in degrees. If the calculation fails, returns null.
      */
-    fun calcYawPitch(blockPos: Vec3, playerPos: Vec3? = getEyePos()): Pair<Float, Float>? {
+    fun calcYawPitch(blockPos: Vec3, playerPos: Vec3? = getEyePos()): Rotation? {
         val playerPosition = playerPos ?: getEyePos()
 
         val dx = blockPos.xCoord - playerPosition.xCoord
@@ -141,7 +140,7 @@ object PlayerUtils {
 
         if (pitch < -90 || pitch > 90 || yaw.isNaN() || pitch.isNaN()) return null
 
-        return yaw to pitch
+        return Rotation(yaw, pitch)
     }
 
 
@@ -153,7 +152,7 @@ object PlayerUtils {
      * @param time The duration in milliseconds over which the rotation should occur.
      * @param cancelCheck Optional parameter to determine if rotation should be canceled.
      */
-    fun rotateSmoothly(yaw: Float, pitch: Float, baseTime: Long, cancelCheck: Boolean = false) {
+    fun rotateSmoothly(yaw: Float, pitch: Float, time: Long, cancelCheck: Boolean = false) {
         var targetYaw = yaw
         var targetPitch = pitch
 
@@ -170,14 +169,11 @@ object PlayerUtils {
             return modMessage("&cInvalid pitch value")
         }
 
-        val initialYaw = mc.thePlayer.rotationYaw
-        val initialPitch = mc.thePlayer.rotationPitch
+        val initialYaw = Player.rotationYaw
+        val initialPitch = Player.rotationPitch
         val initialTime = System.currentTimeMillis()
-
         val deltaYaw = normalizeYaw(targetYaw - initialYaw)
-
-        val randomEased = fun(t: Double): Double = sin((t * Math.PI) / 2)
-
+	    
         val timer = Timer()
         timer.scheduleAtFixedRate(object : TimerTask() {
             override fun run() {
@@ -187,10 +183,8 @@ object PlayerUtils {
                 }
 
                 val currentTime = System.currentTimeMillis()
-                val progress = if (baseTime <= 0) 1.0 else max(min((currentTime - initialTime).toDouble() / baseTime, 1.0), 0.0)
-
-                val easedProgress = randomEased.invoke(progress)
-
+                val progress = if (time <= 0) 1.0 else max(min((currentTime - initialTime).toDouble() / time, 1.0), 0.0)
+                val easedProgress = Ease(progress)
                 val newYaw = initialYaw + deltaYaw * easedProgress.toFloat()
                 val newPitch = initialPitch + (targetPitch - initialPitch) * easedProgress.toFloat()
 
@@ -211,11 +205,10 @@ object PlayerUtils {
      * @param slotIndex The index of the slot to swap to.
      */
     fun swapToSlot(slotIndex: Int) {
-        val mcPlayer = mc.thePlayer
-        if (mcPlayer == null || slotIndex !in 0..8) return modMessage("&cCannot swap to Slot $slotIndex. Not in hotbar.")
+	        if (Player == null || slotIndex !in 0 .. 8) return modMessage("&cCannot swap to Slot $slotIndex. Not in hotbar.")
 
-        val mcInventory = mcPlayer.inventory
-        mcPlayer.inventory.currentItem = slotIndex
+        val mcInventory = Player.inventory
+	    mcInventory.currentItem = slotIndex
 
         modMessage("Swapped to ${mcInventory.getStackInSlot(slotIndex)?.displayName ?: "&4&lNOTHING!"}&r in slot &6$slotIndex")
     }

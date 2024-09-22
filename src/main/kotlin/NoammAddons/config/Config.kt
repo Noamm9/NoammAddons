@@ -65,6 +65,15 @@ Left Click + Scroll Wheel: Control the scale""",
     )
     var SlotBindingShowBinding = true
 
+	@Property(
+		type = PropertyType.SWITCH,
+		name = "Remove Useless Messages",
+        description = "Removes messages from chat.",
+        category = "General",
+        subcategory = "Chat"
+	)
+	var RemoveUselessMessages = false
+	
     @Property(
         type = PropertyType.SWITCH,
         name = "Left Click Etherwarp",
@@ -78,17 +87,26 @@ Left Click + Scroll Wheel: Control the scale""",
         type = PropertyType.SWITCH,
         name = "Wither Shield Display",
         description = "Shows the cooldown of the Wither shield ability on a wither blade with wither impact ability",
-        category = "General",
-        subcategory = "HUD"
+        category = "HUD",
+        subcategory = "Items"
     )
     var WitherShieldTimer = false
+	
+	@Property(
+        type = PropertyType.SWITCH,
+        name = "Party Outlline",
+        description = "Draws a rainbow Outline around the people in the party.",
+        category = "General",
+		subcategory = "Party"
+	)
+	var partyOutline = false
 
     @Property(
         type = PropertyType.SWITCH,
         name = "Spring Boots Display",
         description = "Renders Sexy Spring Boots Charge Display",
-        category = "General",
-        subcategory = "HUD",
+        category = "HUD",
+        subcategory = "Items",
     )
     var SpringBootsDisplay = false
 
@@ -140,6 +158,15 @@ Left Click + Scroll Wheel: Control the scale""",
     )
     var BetterFloor7 = true
 
+	@Property(
+		type = PropertyType.SWITCH,
+		name = "SB Kick Duration",
+        description = "Shows a timer on screen for when you can rejoin SkyBlock after being kicked",
+        category = "General",
+        subcategory = "Misc"
+	)
+	var SBKickDuration = false
+	
     @Property(
         type = PropertyType.CHECKBOX,
         name = "Better 6",
@@ -891,31 +918,33 @@ Left Click + Scroll Wheel: Control the scale""",
         subcategory = "General"
     )
     var SoldAHNotification = false
-
-    /*
-
-.addSwitch({
-    title = "§9Bonzo Mask§f Alert",
-    description = "\n§fShows on screen when the §9Bonzo Mask §6Ability§f has been used",
-    category = "Alerts",
-    subcategory = "",
-    configName = "BonzoMaskAlert",
-})
-.addSwitch({
-    title = "Spirit Mask Alert",
-    description = "\n§fShows on screen when the §fSpirit Mask §6Ability§f has been used",
-    category = "Alerts",
-    subcategory = "",
-    configName = "SpiritMaskAlert",
-})
-.addSwitch({
-    title = "§5Phoenix Pet Alert",
-    description = "\n§fShows on screen when the §5Phoenix Pet §6Ability§f has been used",
-    category = "Alerts",
-    subcategory = "",
-    configName = "PhoenixPetAlert",
-})
-     */
+	
+	@Property(
+		type = PropertyType.SWITCH,
+		name = "Bonzo Mask Alert",
+		description = "Shows on screen when the Bonzo Mask Ability has been used",
+		category = "Alerts",
+		subcategory = "Masks"
+	)
+	var BonzoMaskAlert = false
+	
+	@Property(
+		type = PropertyType.SWITCH,
+		name = "Spirit Mask Alert",
+		description = "Shows on screen when the Spirit Mask Ability has been used",
+		category = "Alerts",
+		subcategory = "Masks"
+	)
+	var SpiritMaskAlert = false
+	
+	@Property(
+		type = PropertyType.SWITCH,
+		name = "Phoenix Pet Alert",
+		description = "Shows on screen when the Phoenix Pet Ability has been used",
+		category = "Alerts",
+		subcategory = "Masks"
+	)
+	var PhoenixPetAlert = false
 
 
 
@@ -1086,6 +1115,15 @@ Space Bar: Resets the position and the scale to the default""",
     )
     var FpsDisplay = false
 
+	@Property(
+		type = PropertyType.SWITCH,
+		name = "Pet Display",
+        description = "Displays your current active pet's name on screen",
+        category = "HUD",
+        subcategory = "PlayerHUD"
+	)
+	var PetDisplay = false
+	
     @Property(
         type = PropertyType.SWITCH,
         name = "Custom Scoreboard",

@@ -2,6 +2,7 @@ package NoammAddons.features.General
 
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.mc
+import NoammAddons.events.Chat
 import NoammAddons.utils.ChatUtils.modMessage
 import NoammAddons.utils.ChatUtils.removeFormatting
 import NoammAddons.utils.ChatUtils.sendChatMessage
@@ -11,10 +12,10 @@ import NoammAddons.utils.ItemUtils.getItemId
 import NoammAddons.utils.PlayerUtils.closeScreen
 import NoammAddons.utils.PlayerUtils.toggleSneak
 import NoammAddons.utils.RenderUtils.drawText
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import net.minecraftforge.client.event.ClientChatReceivedEvent
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
@@ -23,13 +24,13 @@ object AutoReaperArmorSwap {
     private var lastTrigger: Long = 0L
 
     @SubscribeEvent
-    fun autoReaperArmorSwap(event: ClientChatReceivedEvent) {
+    @OptIn(DelicateCoroutinesApi::class)
+    fun autoReaperArmorSwap(event: Chat) {
         if (!config.AutoReaperArmorSwap) return
-        if (event.type.toInt() !in 0..1) return
-        if (event.message.unformattedText.removeFormatting() != "[BOSS] Wither King: You... again?") return
+        if (event.component.unformattedText.removeFormatting() != "[BOSS] Wither King: You... again?") return
 
         GlobalScope.launch {
-            delay(7200)
+            delay(6700)
             reaperSwap()
         }
     }

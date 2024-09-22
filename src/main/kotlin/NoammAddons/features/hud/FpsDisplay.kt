@@ -2,22 +2,21 @@ package NoammAddons.features.hud
 
 import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.hudData
-import NoammAddons.NoammAddons.Companion.mc
 import NoammAddons.config.EditGui.HudElement
-import NoammAddons.utils.Utils.getFPS
-import net.minecraftforge.client.event.RenderGameOverlayEvent
+import NoammAddons.events.RenderOverlay
+import net.minecraft.client.Minecraft
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 object FpsDisplay {
-    private val FpsDisplayElement = HudElement("${mc.getFPS()} fps", config.FpsDisplayColor, hudData.getData().FPSdisplay)
+    private val FpsDisplayElement = HudElement("${Minecraft.getDebugFPS()} fps", config.FpsDisplayColor, hudData.getData().FPSdisplay)
 
     @SubscribeEvent
-    fun draw(event: RenderGameOverlayEvent.Pre) {
-        if (event.type != RenderGameOverlayEvent.ElementType.TEXT) return
+    @Suppress("UNUSED_PARAMETER")
+    fun draw(event: RenderOverlay) {
         if (!config.FpsDisplay) return
 
         FpsDisplayElement
-        .setText("${mc.getFPS()} fps")
+        .setText("${Minecraft.getDebugFPS()} fps")
         .setColor(config.FpsDisplayColor)
         .draw()
     }

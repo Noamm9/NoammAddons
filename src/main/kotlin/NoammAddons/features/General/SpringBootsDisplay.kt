@@ -4,17 +4,17 @@ import NoammAddons.NoammAddons.Companion.config
 import NoammAddons.NoammAddons.Companion.hudData
 import NoammAddons.NoammAddons.Companion.mc
 import NoammAddons.config.EditGui.HudElement
-import NoammAddons.utils.ChatUtils.removeFormatting
-import NoammAddons.utils.ItemUtils.lore
-import net.minecraftforge.client.event.RenderGameOverlayEvent
+import NoammAddons.events.RenderOverlay
+import NoammAddons.utils.ItemUtils.SkyblockID
+import NoammAddons.utils.PlayerUtils
 import net.minecraftforge.client.event.sound.PlaySoundEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import java.awt.Color
 
 object SpringBootsDisplay {
-    var progress = 0
-    val SpringBootsElement = HudElement("&a&l33%", dataObj = hudData.getData().SpringBootsDisplay)
-    val PitchArray = listOf(
+    private var progress = 0
+    private val SpringBootsElement = HudElement("&a&l33%", dataObj = hudData.getData().SpringBootsDisplay)
+    private val PitchArray = listOf(
         0.6984127163887024,
         0.8253968358039856,
         0.8888888955116272,
@@ -28,7 +28,7 @@ object SpringBootsDisplay {
     fun onSound(event: PlaySoundEvent) {
         if (!config.SpringBootsDisplay) return
         if (mc.thePlayer == null) return
-        if (!mc.thePlayer.isSneaking/* && IsWearingSpringBoots() != true*/) return
+        if (!mc.thePlayer.isSneaking && IsWearingSpringBoots() != true) return
         if (event.name != "note.pling") return
         if (!PitchArray.contains(event.sound.pitch.toDouble()) || progress >= 42) return  // 42 - fill to 100%
 
@@ -36,17 +36,15 @@ object SpringBootsDisplay {
     }
 
     @SubscribeEvent
-    fun onRenderOverlay(event: RenderGameOverlayEvent.Pre) {
+    fun onRenderOverlay(event: RenderOverlay) {
         if (!config.SpringBootsDisplay) return
         if (mc.thePlayer == null) return
         if (IsWearingSpringBoots() != true || progress <= 0) return
-        if (event.type != RenderGameOverlayEvent.ElementType.TEXT) return
         if (!mc.thePlayer.isSneaking || IsWearingSpringBoots() != true) progress = 0
-
-
+	    
         SpringBootsElement
-            .setText(((progress/42.0)*100.0).toInt().toString())
-            .setColor(when (SpringBootsElement.getText().toInt()) {
+            .setText("${((progress/42.0)*100.0).toInt()}%")
+            .setColor(when (((progress/42.0)*100.0).toInt()) {
                 in 0 until 25 -> Color.GREEN
                 in 25 until 50 -> Color.YELLOW
                 in 50..74 -> Color(255, 116 , 0)
@@ -56,6 +54,5 @@ object SpringBootsDisplay {
     }
 
 
-    private fun IsWearingSpringBoots(): Boolean? = mc.thePlayer?.inventory?.getStackInSlot(36)?.lore?.joinToString()?.removeFormatting()?.toLowerCase()?.contains("ability: to the moon!")
-
+    private fun IsWearingSpringBoots(): Boolean = (PlayerUtils.getBoots()?.SkyblockID ?: "") == "SPRING_BOOTS"
 }
