@@ -28,5 +28,10 @@
     "sounds": [
       "AYAYA"
     ]
+  },
+  "click": {
+    "sounds":[
+      "click"
+    ]
   }
 }

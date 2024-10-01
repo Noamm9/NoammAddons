@@ -1,7 +1,7 @@
 {
   "minVersion": "0.6",
   "compatibilityLevel": "JAVA_8",
-  "package": "NoammAddons.mixins",
+  "package": "noammaddons.mixins",
   "refmap": "mixins.${modid}.refmap.json",
   "client": [
     "AccessorGuiContainer",
@@ -11,6 +11,9 @@
     "MixinGuiContainer",
     "MixinGuiDisplayTitle",
     "MixinGuiIngame",
+    "MixinGuiIngameMenu",
+    "MixinGuiMainMenu",
+    "MixinGuiNewChat",
     "MixinGuiScreen",
     "MixinGuiUtils",
     "MixinInventoryEffectRenderer",
@@ -19,13 +22,13 @@
     "MixinPatcherEntityCulling",
     "MixinRenderEntityItem",
     "MixinRendererLivingEntity",
+    "MixinRenderPlayer",
     "MixinThePlayer",
     "MixinWorldClient"
   ],
   "mixins": [
     "AccessorContainer",
     "EntityAccessor",
-    "MixinChunk",
     "MixinEntity",
     "MixinModList"
   ]
