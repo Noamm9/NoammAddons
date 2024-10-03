@@ -25,7 +25,6 @@ import noammaddons.features.gui.PartyFinderOverlay
 import noammaddons.features.gui.SalvageOverlay
 import noammaddons.features.hud.*
 import noammaddons.utils.*
-import net.minecraft.client.renderer.entity.RenderManager
 
 
 @Mod(
@@ -50,10 +49,10 @@ class noammaddons {
 	        End(),
 	        hub(),
 	        Skyblock()
-        ).forEach{ClientCommandHandler.instance.registerCommand(it)}
-
+        ).forEach(ClientCommandHandler.instance::registerCommand)
 	    
-        KeyBinds.allBindings.forEach { ClientRegistry.registerKeyBinding(it) }
+	    
+        KeyBinds.allBindings.forEach(ClientRegistry::registerKeyBinding)
 
 
         listOf(
@@ -64,7 +63,7 @@ class noammaddons {
 	        Motionblur,
 	        LeftClickEtherwarp,
 	        CustomItemEntity,
-	        EnderPearlFix,
+//	        EnderPearlFix,
 	        ChatCoordsWaypoint,
 	        GyroCircle,
 	        ChatEmojis,
@@ -72,7 +71,7 @@ class noammaddons {
 	        PartyOutline,
 //          VisualWords, @see MixinFontRenderer
 	        SBKickDuration,
-	        RemoveUselessMessages,
+//	        RemoveUselessMessages, @see MixinGuiNewChat
 // 	        CustomMainMenu @see MixinGuiMainMenu & MixinGuiIngameMenu
 
             // Dungeons

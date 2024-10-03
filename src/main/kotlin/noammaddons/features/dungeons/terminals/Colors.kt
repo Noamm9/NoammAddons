@@ -28,7 +28,7 @@ import net.minecraft.network.play.server.S2EPacketCloseWindow
 import net.minecraft.network.play.server.S2FPacketSetSlot
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import java.awt.Color
+import noammaddons.utils.RenderUtils.drawText
 import kotlin.math.floor
 
 object Colors {
@@ -42,10 +42,22 @@ object Colors {
     private val solution = mutableListOf<Int>()
     private var extra: String? = null
 
-    private val allowedSlots = listOf(10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43)
+    private val allowedSlots = listOf(
+	    10, 11, 12, 13, 14, 15, 16,
+	    19, 20, 21, 22, 23, 24, 25,
+	    28, 29, 30, 31, 32, 33, 34,
+	    37, 38, 39, 40, 41, 42, 43
+	)
     private val replacements = mapOf(
-        "light gray" to "silver", "wool" to "white", "bone" to "white", "ink" to "black",
-        "lapis" to "blue", "cocoa" to "brown", "dandelion" to "yellow", "rose" to "red", "cactus" to "green"
+        "light gray" to "silver",
+        "wool" to "white",
+        "bone" to "white",
+        "ink" to "black",
+        "lapis" to "blue",
+        "cocoa" to "brown",
+        "dandelion" to "yellow",
+        "rose" to "red",
+        "cactus" to "green"
     )
 
 
@@ -80,7 +92,7 @@ object Colors {
         if (slot >= windowSize) return
 
         if (solution.contains(slot)) {
-            predict(slot, 0)
+            predict(slot)
             if (clicked) queue.add(slot to 0) else click(slot, 0)
         }
     }
@@ -91,14 +103,14 @@ object Colors {
         if (!config.DevMode) event.isCanceled = true
 
         val termScale = getTermScale()
-        val screenWidth = mc.getWidth().toDouble() / termScale
-        val screenHeight = mc.getHeight().toDouble() / termScale
+        val screenWidth = mc.getWidth() / termScale
+        val screenHeight = mc.getHeight() / termScale
 
-        val width = 9 * 18.0
-        val height = (windowSize / 9 * 18).toDouble()
+        val width = 9f * 18f
+        val height = windowSize / 9f * 18
 
-        val globalOffsetX = 0.0
-        val globalOffsetY = 0.0
+        val globalOffsetX = 0f
+        val globalOffsetY = 0f
 
         val offsetX = (screenWidth / 2 - width / 2 + globalOffsetX)
         val offsetY = (screenHeight / 2 - height / 2 + globalOffsetY)
@@ -107,11 +119,11 @@ object Colors {
         val solverColor = getSolutionColor()
 
         GlStateManager.pushMatrix()
-        GlStateManager.scale(termScale, termScale, 0.0)
+        GlStateManager.scale(termScale, termScale, 0f)
 
         RenderUtils.drawRoundedRect(
             colorMode.darker(),
-            offsetX - 2 - (width / 15) / 2,
+            offsetX - 2f - (width / 15f) / 2f,
             offsetY - 2 - (width / 15) / 2,
             width + 4 + width / 15,
             height + 4 + width / 15
@@ -125,7 +137,7 @@ object Colors {
             height + 6
         )
 
-        mc.fontRendererObj.drawStringWithShadow(ColorsTitle, offsetX.toFloat(), offsetY.toFloat(), Color.WHITE.rgb)
+        drawText(ColorsTitle, offsetX, offsetY)
 
         for (i in 0 until windowSize) {
             if (!solution.contains(i)) continue
@@ -133,7 +145,7 @@ object Colors {
             val currentOffsetX = i % 9 * 18 + offsetX
             val currentOffsetY = floor(i / 9.0).toInt() * 18 + offsetY
 
-            RenderUtils.drawRoundedRect(solverColor, currentOffsetX, currentOffsetY, 16.0, 16.0, .0)
+            RenderUtils.drawRoundedRect(solverColor, currentOffsetX, currentOffsetY, 16f, 16f, 0f)
         }
 
         GlStateManager.popMatrix()
@@ -157,7 +169,7 @@ object Colors {
         }.map { it!!.num }.forEach { solution.add(it) }
     }
 
-    private fun predict(slot: Int, button: Int) {
+    private fun predict(slot: Int) {
         solution.remove(slot)
     }
 
@@ -222,7 +234,7 @@ object Colors {
         if (slots.size == windowSize) {
             solve()
             if (queue.isNotEmpty() && queue.all { solution.contains(it.first) }) {
-                queue.forEach { predict(it.first, it.second) }
+                queue.forEach { predict(it.first) }
                 click(queue[0].first, queue[0].second)
                 queue.removeAt(0)
             }

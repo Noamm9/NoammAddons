@@ -216,23 +216,5 @@ object RemoveUselessMessages {
 		Regex("(.*) §r§ehas obtained §r§a§r§9Beating Heart§r§e!"),
 		Regex("§fYou found a §r§dWither Essence§r§f! Everyone gains an extra essence!")
 	)
-	
-	@SubscribeEvent
-	fun reformat(event: Chat) {
-		if (!config.RemoveUselessMessages) return
-		val msg = event.component.formattedText
-		
-		val match = Regex(
-			"^Your Explosive Shot hit (.+) enemies for (.+) damage.$"
-		).find(msg.removeFormatting()) ?: return
-		
-		val (enemies, totalDamage) = match.destructured
-		
-		modMessage(
-			"&aExplosive shot did &e${formatNumber("${totalDamage.replace(",", "").toInt() / enemies.toInt()}")} " +
-			"&adamage per enemy. &6($enemies)"
-		)
-	}
-
 }
 

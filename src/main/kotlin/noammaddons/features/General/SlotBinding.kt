@@ -9,6 +9,8 @@ import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.RenderUtils
 import net.minecraft.client.gui.inventory.GuiInventory
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.utils.RenderUtils.drawLine
+import noammaddons.utils.RenderUtils.drawRoundedBorder
 import org.lwjgl.input.Keyboard
 import java.awt.Color
 
@@ -45,24 +47,20 @@ object SlotBinding {
 
         val slot = gui.slotUnderMouse?.slotNumber ?: return
 
-        if (slot < 5) return // Skip crafting slots
+        if (slot < 5) return
 
-        // Prevent Setting illegal slots
         if (previousSlot != null && (slot < 36 || slot > 44)) {
             modMessage("$prefix &cPlease click a valid hotbar slot!")
             previousSlot = null
             return
         }
 
-        // Usage
         if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) && slot.toString() in data.keys) {
             event.isCanceled = true
             handleShiftClick(slot)
             return
         }
-
-
-        // Configuration Bindings
+	    
         if (!Keyboard.isKeyDown(SlotBinding.keyCode)) return
         if (previousSlot == null) previousSlot = slot
 
@@ -102,7 +100,7 @@ object SlotBinding {
             val slot = e.container.getSlot(slotIndex)
             val hotbarSlot = e.container.getSlot(hotbarSlotIndex)
 
-            RenderUtils.drawLine(
+            drawLine(
                 Color(0, 255, 255),
                 slot.xDisplayPosition + 8f,
                 slot.yDisplayPosition + 8f,
@@ -112,11 +110,11 @@ object SlotBinding {
             )
 
 
-            RenderUtils.drawRoundedBorder(
+            drawRoundedBorder(
                 Color(0, 255, 255),
-                slot.xDisplayPosition * 1.0,
-                slot.yDisplayPosition * 1.0,
-                16.0, 16.0, .0
+                slot.xDisplayPosition * 1f,
+                slot.yDisplayPosition * 1f,
+                16f, 16f, 0f
             )
         }
     }

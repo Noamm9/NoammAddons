@@ -67,21 +67,21 @@ object GuiUtils {
 
     fun isInGui(): Boolean = mc.currentScreen != null
 
-    fun getPatcherScale(configValue: Boolean = false): Double {
+    fun getPatcherScale(configValue: Boolean = false): Float {
         try {
-            val scale = Class.forName("club.sk1er.patcher.config.PatcherConfig").getDeclaredField("inventoryScale").get(null) as Int
-            return if (configValue) scale.toDouble()
+            val scale = Class.forName("club.sk1er.patcher.config.PatcherConfig").getDeclaredField("inventoryScale").get(null) as Float
+            return if (configValue) scale
             else when (scale) {
-                0 -> 1.0
-                1 -> 0.5
-                2 -> 1.0
-                3 -> 1.5
-                4 -> 2.0
-                5 -> 2.0
-                else -> 1.0
+                0f -> 1f
+                1f -> 0.5f
+                2f -> 1f
+                3f -> 1.5f
+                4f -> 2f
+                5f -> 2f
+                else -> 1f
             }
         }
-        catch (_: Exception) { return 1.0 }
+        catch (_: Exception) { return 1f }
     }
 
     fun disablePatcherScale() {

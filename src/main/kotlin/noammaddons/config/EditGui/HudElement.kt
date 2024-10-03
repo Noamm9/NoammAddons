@@ -1,18 +1,20 @@
 package noammaddons.config.EditGui
 
 
-import noammaddons.noammaddons.Companion.mc
 import noammaddons.config.EditGui.ElementsManager.HudElementData
 import noammaddons.config.EditGui.ElementsManager.elements
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.CustomFont.getTextHeight
+import noammaddons.utils.CustomFont.getTextWidth
 import noammaddons.utils.RenderUtils
+import noammaddons.utils.RenderUtils.drawText
 import java.awt.Color
 import kotlin.math.roundToInt
 
 
 object ElementsManager {
-    data class HudElementData(var x: Double, var y: Double, var scale: Double)
+    data class HudElementData(var x: Float, var y: Float, var scale: Float)
     val elements = mutableListOf<HudElement>()
 }
 
@@ -29,8 +31,8 @@ class HudElement(
         elements.add(this)
     }
 
-    var width = 20.0
-    var height = 8.0
+    var width = 20f
+    var height = 8f
 
     fun getText() = textString
     fun getColor() = color
@@ -48,17 +50,17 @@ class HudElement(
         return this
     }
 
-    fun setX(x: Double): HudElement {
+    fun setX(x: Float): HudElement {
         dataObj.x = x
         return this
     }
 
-    fun setY(y: Double): HudElement {
+    fun setY(y: Float): HudElement {
         dataObj.y = y
         return this
     }
 
-    fun setScale(scale: Double): HudElement {
+    fun setScale(scale: Float): HudElement {
         dataObj.scale = scale
         return this
     }
@@ -67,30 +69,29 @@ class HudElement(
         update()
 
         if (!example) {
-	        RenderUtils.drawText(
+	        drawText(
 		        getText(),
 		        getX(),
 		        getY(),
 		        getScale(),
-		        getColor()
+		        getColor(),
 	        )
         }
         else {
             RenderUtils.drawRoundedRect(
                 Color(15, 15, 15, 150),
-                getX(),
-                getY(),
+                getX(), getY(),
                 width * getScale(),
                 height * getScale()
             )
-
-            RenderUtils.drawText(
-                getText(),
-                getX(),
-                getY(),
-                getScale(),
-                getColor()
-            )
+	        
+	        drawText(
+		        getText(),
+		        getX(),
+		        getY(),
+		        getScale(),
+		        getColor(),
+	        )
         }
         return this
     }
@@ -102,17 +103,17 @@ class HudElement(
 
     private fun update() {
         val lines = getText().removeFormatting().split("\n")
-        width = ((lines.maxOfOrNull { mc.fontRendererObj.getStringWidth(it) } ?: 0).toDouble())
+        width = ((lines.maxOfOrNull { getTextWidth(it, 1f) } ?: 0f).toFloat())
 
-        height = ((mc.fontRendererObj.FONT_HEIGHT * lines.size).toDouble())
+        height = ((getTextHeight("A", 1f) * lines.size))
 
-        if (getScale() < 0.5) setScale(0.5)
+        if (getScale() < 0.5f) setScale(0.5f)
     }
 
     fun reset() {
-        setX(100.0)
-        setY(10.0 * (Math.random() * (elements.size+10)).roundToInt())
-        setScale(1.0)
+        setX(100f)
+        setY(10f * (Math.random() * (elements.size+10)).roundToInt())
+        setScale(1f)
     }
 }
 

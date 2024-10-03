@@ -3,6 +3,7 @@ package noammaddons.features.General
 import noammaddons.events.MessageSentEvent
 import noammaddons.utils.ChatUtils
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.noammaddons.Companion.config
 
 object ChatEmojis {
     private val emojiMap = mapOf(
@@ -39,8 +40,8 @@ object ChatEmojis {
     private fun includesAnyKey(message: String): Boolean = emojiMap.keys.any { message.contains(it) }
 
     @SubscribeEvent
-    fun registerMessageSentEvent(event: MessageSentEvent) {
-        if (!includesAnyKey(event.message)/* || !config.ChatEmojis*/) return
+    fun onMessageSent(event: MessageSentEvent) {
+        if (!includesAnyKey(event.message) || !config.ChatEmojis) return
 
         var newMessage = event.message
         emojiMap.forEach { (key, value) ->

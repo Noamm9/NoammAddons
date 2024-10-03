@@ -14,10 +14,11 @@ import noammaddons.utils.RenderUtils.getWidth
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.utils.LocationUtils.F7Phase
+import noammaddons.utils.RenderUtils.drawCenteredText
 
 object BetterF7TerminalsTitles {
-	private val infoText = Text("", .0, .0, 2.0)
-	private val typeText = Text("",.0,.0,2.0)
+	private val infoText = Text("", 0f, 0f, 2f)
+	private val typeText = Text("", 0f, 0f ,2f)
 	private const val msTime = 4_000L
 	private val termCrystalRegex = Regex("activated a terminal! \\((\\d+/\\d+)\\)|completed a device! \\((\\d+/\\d+)\\)|activated a lever! \\((\\d+/\\d+)\\)|(\\d+/\\d+) Energy Crystals are now active!")
 	private val progressRegex = Regex("\\d+/\\d+")
@@ -73,15 +74,15 @@ object BetterF7TerminalsTitles {
 		if (!ToggleRenderOverlay) return
 		val timeLeft = msTime - (System.currentTimeMillis() - startTime)
 		
-		infoText.text = "&r(${colorTerminalInfo(progress!!)}&r)".addColor()
-		infoText.x = ((mc.getWidth()/2) - mc.fontRendererObj.getStringWidth(infoText.text.removeFormatting())).toDouble()
-		infoText.y = ((mc.getHeight()/2) - (mc.getHeight()/13)).toDouble()
-		RenderUtils.drawText(infoText.text, infoText.x, infoText.y, infoText.scale)
+		infoText.text = "&r(${colorTerminalInfo(progress ?: "1/7")}&r)".replace(" ", "")
+		infoText.x = mc.getWidth()/2f
+		infoText.y = mc.getHeight()/2f - mc.getHeight()/13f
+		drawCenteredText(infoText.text, infoText.x, infoText.y, infoText.scale)
 		
-		typeText.text = "&d$type".addColor()
-		typeText.x = ((mc.getWidth() / 2) - mc.fontRendererObj.getStringWidth(typeText.text.removeFormatting())).toDouble()
-		typeText.y = ((mc.getHeight() / 2) + (mc.getHeight() / 13)).toDouble()
-		RenderUtils.drawText(typeText.text, typeText.x, typeText.y, typeText.scale)
+		typeText.text = "&d$type".replace(" ", "")
+		typeText.x = mc.getWidth() / 2f
+		typeText.y = mc.getHeight() / 2f + mc.getHeight() / 13f
+		drawCenteredText(typeText.text, typeText.x, typeText.y, typeText.scale)
 		
 		if (timeLeft <= 0) ToggleRenderOverlay = false
 	}

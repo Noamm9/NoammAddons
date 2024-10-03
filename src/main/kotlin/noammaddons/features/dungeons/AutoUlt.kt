@@ -51,9 +51,12 @@ object AutoUlt {
 	    
         if (matchingMessage.classes.contains(thePlayer?.clazz?.name?.toLowerCase())) {
             modMessage("Used Ultimate!")
-	        featureState = false
-            useDungeonClassAbility(true)
-	        setTimeout(50) { featureState = true}
+	        if (featureState) {
+		        featureState = false
+                useDungeonClassAbility(true)
+	            setTimeout(50) { featureState = true}
+	        }
+	        else useDungeonClassAbility(true)
         }
     }
 }

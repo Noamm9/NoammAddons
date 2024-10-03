@@ -10,7 +10,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 object EnderPearlFix {
     @SubscribeEvent
     fun FixEnderPearl(event: PlayerInteractEvent) {
-        if (!config.enderPearlFix) return
+       // if (!config.enderPearlFix) return
         if (event.action != PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK) return
         if (mc.thePlayer?.heldItem?.displayName.removeFormatting() != "Ender Pearl") return
         event.isCanceled = true

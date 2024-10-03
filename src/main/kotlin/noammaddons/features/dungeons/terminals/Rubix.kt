@@ -28,6 +28,7 @@ import net.minecraft.network.play.server.S2EPacketCloseWindow
 import net.minecraft.network.play.server.S2FPacketSetSlot
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.utils.RenderUtils.drawText
 import java.awt.Color
 import kotlin.math.floor
 
@@ -54,14 +55,14 @@ object Rubix {
         val x = mc.getMouseX() / termScale
         val y = mc.getMouseY() / termScale
 
-        val screenWidth = mc.getWidth().toDouble() / termScale
-        val screenHeight = mc.getHeight().toDouble() / termScale
+        val screenWidth = mc.getWidth() / termScale
+        val screenHeight = mc.getHeight() / termScale
 
-        val width = 9 * 18
-        val height = windowSize / 9 * 18
+        val width = 9f * 18f
+        val height = windowSize / 9f * 18f
 
-        val globalOffsetX = 0.0
-        val globalOffsetY = 0.0
+        val globalOffsetX = 0f
+        val globalOffsetY = 0f
 
         val offsetX = (screenWidth / 2 - width / 2 + globalOffsetX)
         val offsetY = (screenHeight / 2 - height / 2 + globalOffsetY)
@@ -93,14 +94,14 @@ object Rubix {
         if (!config.DevMode) event.isCanceled = true
 
         val termScale = getTermScale()
-        val screenWidth = mc.getWidth().toDouble() / termScale
-        val screenHeight = mc.getHeight().toDouble() / termScale
+        val screenWidth = mc.getWidth() / termScale
+        val screenHeight = mc.getHeight() / termScale
 
-        val width = 9 * 18.0
-        val height = (windowSize / 9 * 18).toDouble()
+        val width = 9f * 18f
+        val height = windowSize / 9f * 18f
 
-        val globalOffsetX = 0.0
-        val globalOffsetY = 0.0
+        val globalOffsetX = 0f
+        val globalOffsetY = 0f
 
         val offsetX = (screenWidth / 2 - width / 2 + globalOffsetX)
         val offsetY = (screenHeight / 2 - height / 2 + globalOffsetY)
@@ -109,7 +110,7 @@ object Rubix {
         val solverColor = getSolutionColor()
 
         GlStateManager.pushMatrix()
-        GlStateManager.scale(termScale, termScale, 0.0)
+        GlStateManager.scale(termScale, termScale, 0f)
 
         RenderUtils.drawRoundedRect(
             colorMode.darker(),
@@ -127,7 +128,7 @@ object Rubix {
             height + 6
         )
 
-        mc.fontRendererObj.drawStringWithShadow(RubixTitle, offsetX.toFloat(), offsetY.toFloat(), Color.WHITE.rgb)
+        drawText(RubixTitle, offsetX, offsetY)
 
 
         for (i in 0 until windowSize) {
@@ -136,7 +137,7 @@ object Rubix {
             val currentOffsetX = i % 9 * 18 + offsetX
             val currentOffsetY = floor(i / 9.0).toInt() * 18 + offsetY
 
-            RenderUtils.drawRoundedRect(solverColor, currentOffsetX, currentOffsetY, 16.0, 16.0, .0)
+            RenderUtils.drawRoundedRect(solverColor, currentOffsetX, currentOffsetY, 16f, 16f, 0f)
 
             mc.fontRendererObj.drawStringWithShadow(
                 solutionValue.toString(),

@@ -37,17 +37,17 @@ object CustomSpiritLeapMenu {
 
         if (players.filterNotNull().isEmpty()) return
 
-        val Scale = (config.CustomLeapMenuScale * 2 / getPatcherScale())
+        val Scale = config.CustomLeapMenuScale * 2f /getPatcherScale()
         val screenWidth = mc.getWidth() / Scale
         val screenHeight = mc.getHeight() / Scale
-        val width = 288.0
-        val height = 192.0
-        val X = screenWidth / 2 - width / 2
-        val Y = screenHeight / 2 - height / 2
-        val BoxWidth = 128.0
-        val BoxHeight = 80.0
-        val BoxSpacing = 40.0
-        val HeadsHeightWidth = 50.0
+        val width = 288f
+        val height = 192f
+        val X = screenWidth / 2f - width / 2f
+        val Y = screenHeight / 2f - height / 2f
+        val BoxWidth = 128f
+        val BoxHeight = 80f
+        val BoxSpacing = 40f
+        val HeadsHeightWidth = 50f
 
         val offsets = listOf(
             listOf(X, Y),
@@ -61,7 +61,7 @@ object CustomSpiritLeapMenu {
         val ColorMode = if (config.CustomLeapMenuLightMode) Lightmode else Darkmode
 
         GlStateManager.pushMatrix()
-        GlStateManager.scale(Scale, Scale, .0)
+        GlStateManager.scale(Scale, Scale, 0f)
 
         for (i in 0..<players.size) {
             if (players[i] == null) continue
@@ -102,15 +102,15 @@ object CustomSpiritLeapMenu {
             drawRoundedRect(
                 players[i]!!.clazz.color,
                 (offsets[i][0] + BoxWidth / 2 - HeadsHeightWidth / 2) - 2,
-                ((offsets[i][1] + BoxHeight - HeadsHeightWidth * 1.2) - BoxHeight / 20) - 2,
-                HeadsHeightWidth + 4, HeadsHeightWidth + 4, 5.0
+                ((offsets[i][1] + BoxHeight - HeadsHeightWidth * 1.2f) - BoxHeight / 20) - 2,
+                HeadsHeightWidth + 4, HeadsHeightWidth + 4, 5f
             )
 
             drawPlayerHead(
                 players[i]!!.skin,
                 (offsets[i][0] + BoxWidth / 2 - HeadsHeightWidth / 2),
-                ((offsets[i][1] + BoxHeight - HeadsHeightWidth * 1.2) - BoxHeight / 20),
-                HeadsHeightWidth, HeadsHeightWidth, 5.0
+                ((offsets[i][1] + BoxHeight - HeadsHeightWidth * 1.2f) - BoxHeight / 20),
+                HeadsHeightWidth, HeadsHeightWidth, 5f
             )
         }
 
@@ -183,15 +183,14 @@ object CustomSpiritLeapMenu {
                 )
             }
         }
-    }
-*/
+    }*/
 
-    private fun drawText(text: String, x: Double, y: Double, scale: Double = 1.0, color: Color = Color.WHITE) {
+    private fun drawText(text: String, x: Float, y: Float, scale: Float = 1f, color: Color = Color.WHITE) {
         GlStateManager.pushMatrix()
         GlStateManager.disableLighting()
         GlStateManager.enableBlend()
         GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        GlStateManager.scale(scale, scale, 1.0)
+        GlStateManager.scale(scale, scale, 1f)
 
         GlStateManager.color(
             color.red / 255f,
@@ -207,17 +206,17 @@ object CustomSpiritLeapMenu {
                 yOffset += (mc.fontRendererObj.FONT_HEIGHT * scale).toInt()
                 mc.fontRendererObj.drawStringWithShadow(
                     it,
-                    (x / scale).toFloat(),
-                    (yOffset / scale).toFloat(),
+                    x / scale,
+                    yOffset / scale,
                     color.rgb
                 )
             }
         } else {
             mc.fontRendererObj.drawStringWithShadow(
-                formattedText,
-                (x / scale).toFloat(),
-                (y / scale).toFloat(),
-                color.rgb
+	            formattedText,
+	            x / scale,
+	            y / scale,
+	            color.rgb
             )
         }
 
@@ -227,6 +226,7 @@ object CustomSpiritLeapMenu {
         GlStateManager.disableBlend()
         GlStateManager.popMatrix()
     }
+
 
     data class LeapMenuPlayer(var name: String, var clazz: DungeonUtils.Classes, var slot: Int, var skin: ResourceLocation)
 }

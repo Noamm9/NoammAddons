@@ -19,6 +19,7 @@ import net.minecraft.network.play.client.C07PacketPlayerDigging
 import net.minecraft.network.play.client.C0APacketAnimation
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
+import noammaddons.utils.ChatUtils.equalsOneOf
 
 
 object GhostPick {
@@ -34,12 +35,12 @@ object GhostPick {
 
         if (event.packet is C07PacketPlayerDigging) {
 			if (config.LegitGhostPick) {
-                if (heldItem.getItemId() in listOf(261, 46)) return
+                if (heldItem.getItemId().equalsOneOf(261, 46)) return
                 event.isCanceled = true
 			}
 	        if (config.MimicEffi10) {
-		        val blockPos = mc.objectMouseOver?.blockPos
 		        if (!isAllowedTool(heldItem)) return
+		        val blockPos = mc.objectMouseOver?.blockPos
 		        toAir(blockPos)
 	        }
         }

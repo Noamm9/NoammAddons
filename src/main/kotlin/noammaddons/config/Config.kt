@@ -64,7 +64,16 @@ Left Click + Scroll Wheel: Control the scale""",
         subcategory = "SlotBinding"
     )
     var SlotBindingShowBinding = true
-
+	
+	@Property(
+		type = PropertyType.SWITCH,
+		name = "Chat Emojis",
+        description = "Replaces chat emojis with their unicode representations.\n\nSame as &6[MVP&d++&6]",
+        category = "General",
+        subcategory = "Chat"
+	)
+	var ChatEmojis = false
+	
 	@Property(
 		type = PropertyType.SWITCH,
 		name = "Remove Useless Messages",
@@ -86,11 +95,20 @@ Left Click + Scroll Wheel: Control the scale""",
 	@Property(
 		type = PropertyType.SWITCH,
 		name = "M7 Dragons",
-        description = "Displays a timer on screen for when your Split dragon spawns. \nBased on server ticks so will work perfectly even if the server is lagging",
+        description = "Displays a timer on screen, Dragon Kill box and Prio when a dragon spawns. \n\nBased on server ticks so will work perfectly even if the server is lagging",
         category = "Dungeons",
         subcategory = "M7"
 	)
 	var M7dragons = false
+	
+	@Property(
+		type = PropertyType.SWITCH,
+		name = "Custom Bow Hit Sound",
+		description = "Plays a custom sound effect when you hit a mob",
+        category = "General",
+        subcategory = "Chat"
+	)
+	var CustomBowHitSound = false
 	
 	@Property(
         type = PropertyType.SWITCH,
@@ -257,6 +275,7 @@ Left Click + Scroll Wheel: Control the scale""",
     )
     var dungeonTeammatesOutline = false
 
+	/*
     @Property(
         type = PropertyType.SWITCH,
         name = "EnderPearlFix",
@@ -264,7 +283,7 @@ Left Click + Scroll Wheel: Control the scale""",
         category = "Dungeons",
         subcategory = "Ender Pearls"
     )
-    var enderPearlFix = false
+    var enderPearlFix = false*/
 
     @Property(
         type = PropertyType.SWITCH,

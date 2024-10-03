@@ -71,23 +71,27 @@ object ChatUtils {
 
 
     fun Double.toFixed(digits: Int) = "%.${digits}f".format(this)
+	
+	fun formatNumber(num1: String): String {
+		val num = num1.replace(Regex("[^0-9.]"), "").toDoubleOrNull() ?: return "0"
+		if (num == 0.0) return "0"
+		
+		val sign = num.sign
+		val absNum = num.absoluteValue
+		
+		if (absNum < 1) return "${if (sign == -1.0) "-" else ""}${"%.2f".format(absNum)}"
 
-    fun formatNumber(num1: String): String {
-        val num = num1.replace(Regex("[^0-9]"), "").toDoubleOrNull() ?: return "0"
-        if (num == 0.0) return "0"
+		val abbrev = listOf("", "k", "m", "b", "t", "q", "Q")
 
-        val sign = num.sign
-        val absNum = num.absoluteValue
-	    
-        if (absNum < 1) return "${if (sign == -1.0) "-" else ""}${"%.2f".format(absNum)}"
+		val index = (log10(absNum) / 3).toInt().coerceIn(abbrev.indices)
+		
+		val abbreviatedValue = absNum / 10.0.pow((index * 3).toDouble())
+		
+		val formattedNumber = "${"%.1f".format(abbreviatedValue)}${abbrev[index]}"
+		
+		return if (sign == -1.0) "-$formattedNumber" else formattedNumber
+	}
 
-        val abbrev = listOf("", "k", "m", "b", "t", "q", "Q")
-        val index = (log10(absNum) / 3).toInt().coerceIn(abbrev.indices)
-
-        val formattedNumber = "${(sign * absNum / 10.0.pow((index * 3).toDouble())).toFixed(1)}${abbrev[index]}"
-
-        return formattedNumber
-    }
 
     fun addRandomColorCodes(inputString: String): String {
         val colorCodes = listOf("§6", "§c", "§e", "§f")
@@ -140,5 +144,5 @@ object ChatUtils {
         mc.thePlayer?.playSound("$MOD_ID:notificationsound", 1f, 1f) ?: return
     }
 
-    data class Text(var text: String, var x: Double, var y: Double, var scale: Double)
+    data class Text(var text: String, var x: Float, var y: Float, var scale: Float)
 }

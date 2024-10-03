@@ -33,7 +33,7 @@ object RegisterEvents {
 		GlStateManager.popMatrix()
 	}
 	
-	@SubscribeEvent(priority = EventPriority.HIGHEST)
+	@SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
 	fun onChatMessage(event: PacketEvent.Received) {
 		val packet = event.packet
 		
