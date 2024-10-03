@@ -30,9 +30,9 @@ object TeammatesNames {
                 RenderUtils.drawString(
                     entity.name,
                     Vec3(
-                        entity.getRenderX(),
+                        entity.getRenderX().toDouble(),
                         entity.getRenderY() + 3 + distance*0.01f,
-                        entity.getRenderZ(),
+                        entity.getRenderZ().toDouble(),
                     ),
                     it.clazz.color, scale
                 )

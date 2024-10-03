@@ -176,7 +176,7 @@ object LocationUtils {
         if (!config.DevMode) return
         RenderUtils.drawText(
             "indungeons: $inDungeons \n dungeonfloor: $dungeonFloor \n inboss: $inBoss \n inSkyblock: $inSkyblock \n onHypixel: $onHypixel \n F7Phase: $F7Phase \n P3Section: $P3Section \n WorldName: $WorldName",
-            200.0, 10.0
+            200f, 10f
         )
     }
 }

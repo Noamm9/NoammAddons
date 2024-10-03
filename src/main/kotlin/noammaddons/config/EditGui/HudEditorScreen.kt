@@ -7,6 +7,7 @@ import noammaddons.utils.RenderUtils
 import noammaddons.utils.RenderUtils.getHeight
 import noammaddons.utils.RenderUtils.getWidth
 import net.minecraft.client.gui.GuiScreen
+import noammaddons.sounds.click
 import org.lwjgl.input.Mouse
 import java.awt.Color
 import kotlin.math.sign
@@ -15,10 +16,10 @@ import kotlin.math.sign
 class HudEditorScreen: GuiScreen() {
     private var elements = ElementsManager.elements
     private var selectedElement: HudElement? = null
-    private var offsetX = 0.0
-    private var offsetY = 0.0
-    private val resetButton = ChatUtils.Text("Reset All Elements", .0, .0, 1.0)
-    private var resetButtonWidth = .0
+    private var offsetX = 0f
+    private var offsetY = 0f
+    private val resetButton = ChatUtils.Text("Reset All Elements", 0f, 0f, 1f)
+    private var resetButtonWidth = 0f
 
 
     override fun drawScreen(mouseX: Int, mouseY: Int, partialTicks: Float) {
@@ -26,23 +27,23 @@ class HudEditorScreen: GuiScreen() {
         resetButtonWidth = mc.fontRendererObj.getStringWidth(resetButton.text) * resetButton.scale
 
         resetButton.x = mc.getWidth()/2 - resetButtonWidth/2
-        resetButton.y = mc.getHeight()*.75
+        resetButton.y = mc.getHeight()*0.75f
 
 
         RenderUtils.drawRoundedRect(
             Color(33,33,33).darker(),
-            resetButton.x - resetButtonWidth/7.5,
-            resetButton.y - resetButtonWidth/7.5,
-            resetButtonWidth + resetButtonWidth/3.75,
-            8.0 * resetButton.scale + resetButtonWidth/3.75
+            resetButton.x - resetButtonWidth/7.5f,
+            resetButton.y - resetButtonWidth/7.5f,
+            resetButtonWidth + resetButtonWidth/3.75f,
+            8f * resetButton.scale + resetButtonWidth/3.75f
         )
 
         RenderUtils.drawRoundedRect(
             Color(33,33,33),
-            resetButton.x - resetButtonWidth/15,
-            resetButton.y - resetButtonWidth/15,
-            resetButtonWidth + resetButtonWidth/7.5,
-            8.0 * resetButton.scale + resetButtonWidth/7.5
+            resetButton.x - resetButtonWidth/15f,
+            resetButton.y - resetButtonWidth/15f,
+            resetButtonWidth + resetButtonWidth/7.5f,
+            8f * resetButton.scale + resetButtonWidth/7.5f
         )
 
         RenderUtils.drawText(
@@ -74,6 +75,7 @@ class HudEditorScreen: GuiScreen() {
                     (8.0 * resetButton.scale + resetButtonWidth/3.75).toInt()
                 )) {
                 selectedElement = null
+	            click.play()
                 elements.forEach { it.reset() }
             }
         }
@@ -94,7 +96,9 @@ class HudEditorScreen: GuiScreen() {
         val scrollEvent = Mouse.getEventDWheel()
         if (scrollEvent != 0) {
             selectedElement?.let {
-                it.setScale(it.getScale() + scrollEvent.sign * 0.05)
+                it.setScale(
+	                it.getScale() + scrollEvent.sign * 0.05f
+				)
             }
         }
         super.handleMouseInput()

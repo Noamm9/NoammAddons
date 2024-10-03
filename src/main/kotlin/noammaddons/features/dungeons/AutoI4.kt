@@ -73,6 +73,7 @@ object AutoI4 {
             }
             alerted = false
             shouldPredict = true
+	        Leaped = false
             return
         }
 

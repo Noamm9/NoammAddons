@@ -11,16 +11,16 @@ import net.minecraftforge.event.entity.living.LivingDeathEvent
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
-import noammaddons.events.MessageSentEvent
 import noammaddons.events.PacketEvent
 import noammaddons.events.RenderOverlay
 import noammaddons.noammaddons.Companion.CHAT_PREFIX
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
+import noammaddons.utils.ChatUtils.equalsOneOf
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.ChatUtils.sendChatMessage
 import noammaddons.utils.ChatUtils.showTitle
+import noammaddons.utils.CustomFont
 import noammaddons.utils.DungeonUtils.Classes
 import noammaddons.utils.DungeonUtils.thePlayer
 import noammaddons.utils.LocationUtils.F7Phase
@@ -30,6 +30,7 @@ import noammaddons.utils.MathUtils.distanceIn3DWorld
 import noammaddons.utils.MathUtils.toFixed
 import noammaddons.utils.RenderUtils.drawBox
 import noammaddons.utils.RenderUtils.drawCenteredText
+import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.RenderUtils.drawTracer
 import noammaddons.utils.RenderUtils.getHeight
 import noammaddons.utils.RenderUtils.getWidth
@@ -141,9 +142,9 @@ object M7Dragons {
 		
 		drawCenteredText(
 			timeLeft,
-            mc.getWidth()/2.0,
-            mc.getHeight()*0.40,
-            3.0, textColor
+			mc.getWidth()/2f,
+			mc.getHeight()*0.4f,
+			3f, textColor,
 		)
 	}
 	
@@ -316,8 +317,8 @@ object M7Dragons {
 			listening = false
 			
 			modMessage("""
-				/pc ${CHAT_PREFIX.removeFormatting()} Arrows Hit: $arrowsHit. ${
-					if (listOf("Tank", "Mage", "Healer").contains(thePlayer?.clazz?.name))
+				${CHAT_PREFIX.removeFormatting()} Arrows Hit: $arrowsHit. ${
+					if (thePlayer?.clazz?.name.equalsOneOf("Tank", "Mage", "Healer"))
 						"Ice Spray: ${if (iceSprayHit) "Yes" else "No"}"
 					else ""
 				}""".trimIndent()

@@ -1,11 +1,12 @@
 package noammaddons.features.General
 
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.events.ClickEvent
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
-import noammaddons.events.ClickEvent
 import noammaddons.utils.ItemUtils.isHoldingEtherwarpItem
-import noammaddons.utils.PlayerUtils.sendRightClickAirPacket
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.utils.PlayerUtils.RightClickMouse
+
 
 object LeftClickEtherwarp {
     @SubscribeEvent
@@ -20,7 +21,9 @@ object LeftClickEtherwarp {
             }, 100)
         }
         else */
-        if (mc.thePlayer.isSneaking) sendRightClickAirPacket()
+        if (mc.thePlayer.isSneaking) {
+			RightClickMouse()
+        }
     }
 
 }

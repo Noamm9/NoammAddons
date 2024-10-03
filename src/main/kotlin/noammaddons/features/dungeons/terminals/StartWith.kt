@@ -88,23 +88,23 @@ object StartWith {
         if (!config.DevMode) event.isCanceled = true
 
         val termScale = getTermScale()
-        val screenWidth = mc.getWidth().toDouble() / termScale
-        val screenHeight = mc.getHeight().toDouble() / termScale
+        val screenWidth = mc.getWidth() / termScale
+        val screenHeight = mc.getHeight() / termScale
 
-        val width = 9 * 18.0
-        val height = (windowSize / 9 * 18).toDouble()
+        val width = 9f * 18f
+        val height = windowSize / 9f * 18f
 
-        val globalOffsetX = 0.0
-        val globalOffsetY = 0.0
+        val globalOffsetX = 0f
+        val globalOffsetY = 0f
 
-        val offsetX = (screenWidth / 2 - width / 2 + globalOffsetX)
-        val offsetY = (screenHeight / 2 - height / 2 + globalOffsetY)
+        val offsetX = screenWidth / 2 - width / 2 + globalOffsetX
+        val offsetY = screenHeight / 2 - height / 2 + globalOffsetY
 
         val colorMode = getColorMode()
         val solverColor = getSolutionColor()
 
         GlStateManager.pushMatrix()
-        GlStateManager.scale(termScale, termScale, 0.0)
+        GlStateManager.scale(termScale, termScale, 0f)
 
         RenderUtils.drawRoundedRect(
             colorMode.darker(),
@@ -128,9 +128,9 @@ object StartWith {
             if (!solution.contains(i)) continue
 
             val currentOffsetX = i % 9 * 18 + offsetX
-            val currentOffsetY = floor(i / 9.0).toInt() * 18 + offsetY
+            val currentOffsetY = floor(i / 9f) * 18f + offsetY
 
-            RenderUtils.drawRoundedRect(solverColor, currentOffsetX, currentOffsetY, 16.0, 16.0, .0)
+            RenderUtils.drawRoundedRect(solverColor, currentOffsetX, currentOffsetY, 16f, 16f, 0f)
         }
 
         GlStateManager.popMatrix()

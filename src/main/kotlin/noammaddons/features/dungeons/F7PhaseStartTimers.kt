@@ -5,10 +5,12 @@ import noammaddons.noammaddons.Companion.mc
 import noammaddons.events.Chat
 import noammaddons.events.RenderOverlay
 import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.RenderUtils
 import noammaddons.utils.RenderUtils.getHeight
 import noammaddons.utils.RenderUtils.getWidth
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.utils.CustomFont
+import noammaddons.utils.RenderUtils.drawCenteredText
+import noammaddons.utils.RenderUtils.drawText
 import kotlin.math.roundToInt
 
 object F7PhaseStartTimers {
@@ -56,11 +58,11 @@ object F7PhaseStartTimers {
         val timeLeft = (msTime - (System.currentTimeMillis() - startTime)).toFloat().roundToInt()
         if (timeLeft < 0) return
 
-        RenderUtils.drawText(
-            "&a$timeLeft",
-            (mc.getWidth()/2 - mc.fontRendererObj.getStringWidth(timeLeft.toString()) *1.5 / 2),
-            (mc.getHeight()/2 + 20).toDouble(),
-            1.5
+        drawCenteredText(
+	        "&a$timeLeft",
+	        mc.getWidth()/2f,
+	        mc.getHeight()/2f + 20f,
+	        1.5f,
         )
     }
 }

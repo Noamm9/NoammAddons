@@ -8,9 +8,11 @@ import noammaddons.events.RenderOverlay
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.CustomFont
 import noammaddons.utils.DungeonUtils.thePlayer
 import noammaddons.utils.MathUtils.toFixed
 import noammaddons.utils.RenderUtils.drawCenteredText
+import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.RenderUtils.getHeight
 import noammaddons.utils.RenderUtils.getWidth
 import java.awt.Color
@@ -54,9 +56,9 @@ object M7RelicSpawnTimer {
 		
 		drawCenteredText(
 			(ticks / 20.0).toFixed(2),
-			mc.getWidth() / 2.0,
-			mc.getHeight() * 0.40,
-			3.0, thePlayer?.clazz?.color ?: Color.WHITE
+			mc.getWidth() / 2f,
+			mc.getHeight() * 0.4f,
+			3f, thePlayer?.clazz?.color ?: Color.WHITE,
 		)
 	}
 }

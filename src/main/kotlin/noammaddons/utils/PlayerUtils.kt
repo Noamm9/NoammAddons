@@ -1,5 +1,6 @@
 package noammaddons.utils
 
+import net.minecraft.client.Minecraft
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
@@ -9,6 +10,7 @@ import net.minecraft.client.settings.KeyBinding
 import net.minecraft.item.ItemStack
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.util.Vec3
+import java.lang.reflect.Method
 import java.util.*
 import kotlin.math.*
 
@@ -40,11 +42,27 @@ object PlayerUtils {
 
         KeyBinding.setKeyBindState(sneakKey.keyCode, isSneaking)
     }
-
-    fun rightClick() {
-	    holdClick(true, "RIGHT")
-	    setTimeout(50) { holdClick(false, "RIGHT") }
-    }
+	
+	fun RightClickMouse() {
+		
+		try {
+			val rightClickMouseMethod: Method = Minecraft::class.java.getDeclaredMethod("rightClickMouse")
+			rightClickMouseMethod.isAccessible = true
+			rightClickMouseMethod.invoke(mc)
+		}
+		catch (e1: NoSuchMethodException) {
+			try {
+				val rightClickMouseObfMethod: Method = Minecraft::class.java.getDeclaredMethod("func_147121_ag")
+				rightClickMouseObfMethod.isAccessible = true
+				rightClickMouseObfMethod.invoke(mc)
+			}
+			catch (e2: Exception) {
+				e2.printStackTrace()
+			}
+		} catch (e: Exception) {
+			e.printStackTrace()
+		}
+	}
 
     fun leftClick() {
 		holdClick(true, "LEFT")

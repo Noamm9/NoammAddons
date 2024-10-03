@@ -51,13 +51,13 @@ object RenderUtils {
 	
 	fun Minecraft.getPartialTicks() = (this as AccessorMinecraft).timer.renderPartialTicks
 	
-	fun EntityPlayer.getRenderX(): Double = lastTickPosX + (posX - lastTickPosX) * mc.getPartialTicks()
-	fun EntityPlayer.getRenderY(): Double = lastTickPosY + (posY - lastTickPosY) * mc.getPartialTicks()
-	fun EntityPlayer.getRenderZ(): Double = lastTickPosZ + (posZ - lastTickPosZ) * mc.getPartialTicks()
+	fun EntityPlayer.getRenderX(): Float = (lastTickPosX + (posX - lastTickPosX) * mc.getPartialTicks()).toFloat()
+	fun EntityPlayer.getRenderY(): Float = (lastTickPosY + (posY - lastTickPosY) * mc.getPartialTicks()).toFloat()
+	fun EntityPlayer.getRenderZ(): Float = (lastTickPosZ + (posZ - lastTickPosZ) * mc.getPartialTicks()).toFloat()
 	
-	fun Entity.getRenderX(): Double = lastTickPosX + (posX - lastTickPosX) * mc.getPartialTicks()
-	fun Entity.getRenderY(): Double = lastTickPosY + (posY - lastTickPosY) * mc.getPartialTicks()
-	fun Entity.getRenderZ(): Double = lastTickPosZ + (posZ - lastTickPosZ) * mc.getPartialTicks()
+	fun Entity.getRenderX(): Float = (lastTickPosX + (posX - lastTickPosX) * mc.getPartialTicks()).toFloat()
+	fun Entity.getRenderY(): Float = (lastTickPosY + (posY - lastTickPosY) * mc.getPartialTicks()).toFloat()
+	fun Entity.getRenderZ(): Float = (lastTickPosZ + (posZ - lastTickPosZ) * mc.getPartialTicks()).toFloat()
 	
 	fun Minecraft.getWidth(): Int = ScaledResolution(this).scaledWidth
 	fun Minecraft.getHeight(): Int = ScaledResolution(this).scaledHeight
@@ -291,10 +291,10 @@ object RenderUtils {
 	}
 	
 	fun drawBox(
-		x: Double, y: Double, z: Double,
+		x: Float, y: Float, z: Float,
 		color: Color,
 		outline: Boolean, fill: Boolean,
-		width: Double = 1.0, height: Double = 1.0,
+		width: Float = 1f, height: Float = 1f,
 		phase: Boolean = true, LineThickness: Float = 3f
 	) {
 		if (!outline && !fill) throw IllegalArgumentException("outline and fill cannot both be false")
@@ -308,11 +308,15 @@ object RenderUtils {
 		}
 		
 		val axisAlignedBB = AxisAlignedBB(
-			x, y, z,
-			x + width, y + height, z + width
+			x.toDouble(),
+			y.toDouble(),
+			z.toDouble(),
+			(x + width).toDouble(),
+			(y + height).toDouble(),
+			(z + width).toDouble()
 		)
-		.expand(0.0020000000949949026, 0.0020000000949949026, 0.0020000000949949026)
-		.offset(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ)
+			.expand(0.0020000000949949026, 0.0020000000949949026, 0.0020000000949949026)
+			.offset(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ)
 		
 		if (fill) drawFilledAABB(axisAlignedBB, color)
 		
@@ -337,10 +341,9 @@ object RenderUtils {
 		phase: Boolean = true, LineThickness: Float = 3f
 	) {
 		drawBox(
-			from.xCoord, from.yCoord, from.zCoord,
-			color,
-			outline, fill,
-			width = to.xCoord - from.xCoord, height = to.yCoord - from.yCoord,
+			from.xCoord.toFloat(), from.yCoord.toFloat(), from.zCoord.toFloat(),
+			color, outline, fill,
+			width = to.xCoord.toFloat() - from.xCoord.toFloat(), height = to.yCoord.toFloat() - from.yCoord.toFloat(),
 			phase = phase, LineThickness = LineThickness
 		)
 	}
@@ -394,7 +397,7 @@ object RenderUtils {
 		GlStateManager.popMatrix()
 	}
 	
-	fun draw3DLine(from: Vec3, to: Vec3, color: Color, LineWidth: Int = 6) {
+	fun draw3DLine(from: Vec3, to: Vec3, color: Color, LineWidth: Float = 6f) {
 		GlStateManager.pushMatrix()
 		GlStateManager.enableBlend()
 		GlStateManager.disableDepth()
@@ -427,7 +430,7 @@ object RenderUtils {
 		GlStateManager.popMatrix()
 	}
 	
-	fun drawTracer(pos: Vec3, color: Color, lineWidth: Int = 3) {
+	fun drawTracer(pos: Vec3, color: Color, lineWidth: Float = 3f) {
 		val player = mc.thePlayer
 		val playerVec3 = Vec3(
 			player.renderOffsetX + renderManager.viewerPosX,
@@ -464,9 +467,9 @@ object RenderUtils {
 		glPopMatrix()
 	}
 	
-	fun drawText(text: String, x: Double, y: Double, scale: Double = 1.0, color: Color = Color.WHITE) {
+	fun drawText(text: String, x: Float, y: Float, scale: Float = 1f, color: Color = Color.WHITE) {
 		GlStateManager.pushMatrix()
-		GlStateManager.scale(scale, scale, 1.0)
+		GlStateManager.scale(scale, scale, 1f)
 		
 		var yOffset = y
 		val formattedText = text.addColor()
@@ -475,8 +478,8 @@ object RenderUtils {
 				yOffset += (mc.fontRendererObj.FONT_HEIGHT * scale).toInt()
 				mc.fontRendererObj.drawStringWithShadow(
 					it,
-					(x / scale).toFloat(),
-					(yOffset / scale).toFloat(),
+					x / scale,
+					yOffset / scale,
 					color.rgb
 				)
 			}
@@ -484,15 +487,15 @@ object RenderUtils {
 		else {
 			mc.fontRendererObj.drawStringWithShadow(
 				formattedText,
-				(x / scale).toFloat(),
-				(y / scale).toFloat(),
+				x / scale,
+				y / scale,
 				color.rgb
 			)
 		}
 		GlStateManager.popMatrix()
 	}
 	
-	fun drawCenteredText(text: String, x: Double, y: Double, scale: Double = 1.0, color: Color = Color.WHITE) {
+	fun drawCenteredText(text: String, x: Float, y: Float, scale: Float = 1f, color: Color = Color.WHITE) {
 		drawText(text, x - (mc.fontRendererObj.getStringWidth(text.addColor().removeFormatting())*scale/2), y, scale, color)
 	}
 	
@@ -500,8 +503,8 @@ object RenderUtils {
 		text: String,
 		x: Float, y: Float,
 		scale: Float = 1f,
-		waveSpeed: Double = 4000.0,
-		chromaWidth: Double = 30.0
+		waveSpeed: Float = 4000f,
+		chromaWidth: Float = 30f
 	) {
 		val time = System.currentTimeMillis() / waveSpeed
 		
@@ -533,10 +536,10 @@ object RenderUtils {
 	
 	fun drawCenteredChromaWaveText(
 		text: String,
-	    x: Float, y: Float,
-	    scale: Float = 1f,
-	    waveSpeed: Double = 4000.0,
-	    chromaWidth: Double = 30.0
+		x: Float, y: Float,
+		scale: Float = 1f,
+		waveSpeed: Float = 4000f,
+		chromaWidth: Float = 30f
 	) {
 		drawChromaWaveText(
 			text,
@@ -567,9 +570,7 @@ object RenderUtils {
 	/**
 	 * Draws a 3D cylinder in Minecraft using OpenGL.
 	 *
-	 * @param x X Coordinates
-	 * @param y Y Coordinates
-	 * @param z Z Coordinates
+	 * @param BlockPos BlockPos
 	 * @param baseRadius Radius of the bottom of the cylinder.
 	 * @param topRadius Radius of the top of the cylinder.
 	 * @param height Height of the cylinder.
@@ -578,10 +579,7 @@ object RenderUtils {
 	 * @param rot1 Rotation on the X axis.
 	 * @param rot2 Rotation on the Y axis.
 	 * @param rot3 Rotation on the Z axis.
-	 * @param r Color Red (0-1)
-	 * @param g Color Green (0-1)
-	 * @param b Color Blue (0-1)
-	 * @param a Alpha (0-1)
+	 * @param color Color
 	 * @param phase Depth test disabled (true = see through walls)
 	 * @param linemode True: the frame of the cylinder is visible, False: the filled cylinder is visible.
 	 */
@@ -630,27 +628,26 @@ object RenderUtils {
 		GlStateManager.popMatrix()
 	}
 	
-	fun drawRoundedRect(color: Color, x: Double, y: Double, width: Double, height: Double, radius: Double = 5.0) {
+	fun drawRoundedRect(color: Color, x: Float, y: Float, width: Float, height: Float, radius: Float = 5f) {
 		drawRoundedRectangle(
 			UMatrixStack(),
-			x.toFloat(),
-			y.toFloat(),
-			(x + width).toFloat(),
-			(y + height).toFloat(),
-			radius.toFloat(),
+			x, y,
+			(x + width),
+			(y + height),
+			radius,
 			color
 		)
 	}
 	
 	fun drawPlayerHead(
-		resourceLocation: ResourceLocation, x: Double, y: Double, width: Double, height: Double, radius: Double = 10.0
+		resourceLocation: ResourceLocation, x: Float, y: Float, width: Float, height: Float, radius: Float = 10f
 	) {
 		GlStateManager.pushMatrix()
 		GlStateManager.disableLighting()
 		GlStateManager.enableTexture2D()
 		GlStateManager.enableBlend()
 		GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-		GlStateManager.translate(x + width / 2, y + height / 2, 0.0)
+		GlStateManager.translate(x + width / 2, y + height / 2, 0f)
 		
 		glEnable(GL_STENCIL_TEST)
 		glClear(GL_STENCIL_BUFFER_BIT)
@@ -667,17 +664,17 @@ object RenderUtils {
 		mc.textureManager.bindTexture(resourceLocation)
 		
 		worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION_TEX)
-		worldRenderer.pos(- width / 2, height / 2, 0.0).tex(8.0 / 64.0, 16.0 / 64.0).endVertex()
-		worldRenderer.pos(width / 2, height / 2, 0.0).tex(16.0 / 64.0, 16.0 / 64.0).endVertex()
-		worldRenderer.pos(width / 2, - height / 2, 0.0).tex(16.0 / 64.0, 8.0 / 64.0).endVertex()
-		worldRenderer.pos(- width / 2, - height / 2, 0.0).tex(8.0 / 64.0, 8.0 / 64.0).endVertex()
+		worldRenderer.pos((- width / 2).toDouble(), (height / 2).toDouble(), 0.0).tex(8.0 / 64.0, 16.0 / 64.0).endVertex()
+		worldRenderer.pos((width / 2).toDouble(), (height / 2).toDouble(), 0.0).tex(16.0 / 64.0, 16.0 / 64.0).endVertex()
+		worldRenderer.pos((width / 2).toDouble(), (- height / 2).toDouble(), 0.0).tex(16.0 / 64.0, 8.0 / 64.0).endVertex()
+		worldRenderer.pos((- width / 2).toDouble(), (- height / 2).toDouble(), 0.0).tex(8.0 / 64.0, 8.0 / 64.0).endVertex()
 		tessellator.draw()
 		
 		worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION_TEX)
-		worldRenderer.pos(- width / 2, height / 2, 0.0).tex(40.0 / 64.0, 16.0 / 64.0).endVertex()
-		worldRenderer.pos(width / 2, height / 2, 0.0).tex(48.0 / 64.0, 16.0 / 64.0).endVertex()
-		worldRenderer.pos(width / 2, - height / 2, 0.0).tex(48.0 / 64.0, 8.0 / 64.0).endVertex()
-		worldRenderer.pos(- width / 2, - height / 2, 0.0).tex(40.0 / 64.0, 8.0 / 64.0).endVertex()
+		worldRenderer.pos((- width / 2).toDouble(), (height / 2).toDouble(), 0.0).tex(40.0 / 64.0, 16.0 / 64.0).endVertex()
+		worldRenderer.pos((width / 2).toDouble(), (height / 2).toDouble(), 0.0).tex(48.0 / 64.0, 16.0 / 64.0).endVertex()
+		worldRenderer.pos((width / 2).toDouble(), (- height / 2).toDouble(), 0.0).tex(48.0 / 64.0, 8.0 / 64.0).endVertex()
+		worldRenderer.pos((- width / 2).toDouble(), (- height / 2).toDouble(), 0.0).tex(40.0 / 64.0, 8.0 / 64.0).endVertex()
 		tessellator.draw()
 		
 		glStencilMask(0xFF)
@@ -719,12 +716,12 @@ object RenderUtils {
 	
 	fun drawRoundedBorder(
 		color: Color,
-		x: Double, y: Double,
-		width: Double, height: Double,
-		radius: Double = 5.0, thickness: Double = 2.0,
-		drawMode: Int = 1
+		x: Float, y: Float,
+		width: Float, height: Float,
+		radius: Float = 5f, thickness: Float = 2f,
+		drawMode: Float = 1f
 	) {
-		if (drawMode == 2) {
+		if (drawMode == 2f) {
 			return drawRoundedRect(color, x - thickness, y - thickness, width+thickness*2, height+thickness*2)
 		}
 		
@@ -738,20 +735,20 @@ object RenderUtils {
 			color.alpha / 255f
 		)
 		
-		glLineWidth(thickness.toFloat())
+		glLineWidth(thickness)
 		glBegin(GL_LINE_LOOP)
 		
 		// Top-left corner
-		drawRoundedCorner(x + radius, y + radius, radius, 180.0, 270.0)
+		drawRoundedCorner(x + radius, y + radius, radius, 180f, 270f)
 		
 		// Top-right corner
-		drawRoundedCorner(x + width - radius, y + radius, radius, 270.0, 360.0)
+		drawRoundedCorner(x + width - radius, y + radius, radius, 270f, 360f)
 		
 		// Bottom-right corner
-		drawRoundedCorner(x + width - radius, y + height - radius, radius, 0.0, 90.0)
+		drawRoundedCorner(x + width - radius, y + height - radius, radius, 0f, 90f)
 		
 		// Bottom-left corner
-		drawRoundedCorner(x + radius, y + height - radius, radius, 90.0, 180.0)
+		drawRoundedCorner(x + radius, y + height - radius, radius, 90f, 180f)
 		
 		glEnd()
 		glColor4f(1f, 1f, 1f, 1f)
@@ -760,17 +757,17 @@ object RenderUtils {
 	}
 	
 	private fun drawRoundedCorner(
-		cx: Double, cy: Double,
-		radius: Double,
-		startAngle: Double, endAngle: Double,
+		cx: Float, cy: Float,
+		radius: Float,
+		startAngle: Float, endAngle: Float,
 		segments: Int = 16
 	) {
-		val angleStep = Math.toRadians(endAngle - startAngle) / segments
+		val angleStep = Math.toRadians((endAngle - startAngle).toDouble()) / segments
 		
 		for (i in 0 .. segments) {
-			val angle = Math.toRadians(startAngle) + i * angleStep
-			val x2 = cx + Math.cos(angle) * radius
-			val y2 = cy + Math.sin(angle) * radius
+			val angle = Math.toRadians(startAngle.toDouble()) + i * angleStep
+			val x2 = cx + cos(angle) * radius
+			val y2 = cy + sin(angle) * radius
 			glVertex2d(x2, y2)
 		}
 	}

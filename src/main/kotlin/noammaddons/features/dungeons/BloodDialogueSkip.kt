@@ -8,10 +8,12 @@ import noammaddons.utils.ChatUtils
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.MathUtils.toFixed
-import noammaddons.utils.RenderUtils.drawCenteredText
 import noammaddons.utils.RenderUtils.getHeight
 import noammaddons.utils.RenderUtils.getWidth
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.utils.CustomFont
+import noammaddons.utils.RenderUtils.drawCenteredText
+import noammaddons.utils.RenderUtils.drawText
 
 
 object BloodDialogueSkip {
@@ -20,10 +22,10 @@ object BloodDialogueSkip {
     private var isRunning = false
 
     private val bloodTitle = ChatUtils.Text(
-        "&a$bloodTimer",
-        (mc.getWidth() / 2 - (mc.fontRendererObj.getStringWidth("$bloodTimer") * 5) / 2).toDouble(),
-        (mc.getHeight() / 2 - mc.getHeight() / 4).toDouble(),
-        5.0
+	    "&a$bloodTimer",
+	    mc.getWidth()/2f,
+        mc.getHeight()/2f - mc.getHeight() / 4f,
+	    5f
     )
 
     @SubscribeEvent
@@ -49,7 +51,7 @@ object BloodDialogueSkip {
             }
 
             bloodTitle.text = timeString.addColor()
-            bloodTitle.x = mc.getWidth()/2.0
+            bloodTitle.x = mc.getWidth()/2f
 
             drawCenteredText(bloodTitle.text, bloodTitle.x, bloodTitle.y, bloodTitle.scale)
 

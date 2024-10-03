@@ -35,7 +35,7 @@ object AutoPotion {
 	private fun hasPotion(): Boolean {
 		return mc.thePlayer?.inventory?.mainInventory?.any {
 			it?.displayName?.removeFormatting()
-				?.toLowerCase()?.contains("Dungeon VII Potion") ?: false
+				?.contains("Dungeon VII Potion") ?: false
 		} == true
 	}
 	

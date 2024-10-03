@@ -85,28 +85,28 @@ object Melody {
         if (!config.DevMode) event.isCanceled = true
 
         val termScale = getTermScale()
-        val screenWidth = mc.getWidth().toDouble() / termScale
-        val screenHeight = mc.getHeight().toDouble() / termScale
+        val screenWidth = mc.getWidth() / termScale
+        val screenHeight = mc.getHeight() / termScale
 
-        val width = 9 * 18.0
-        val height = (windowSize / 9 * 18).toDouble()
+        val width = 9f * 18f
+        val height = windowSize / 9f * 18f
 
-        val globalOffsetX = 0.0
-        val globalOffsetY = 0.0
+        val globalOffsetX = 0f
+        val globalOffsetY = 0f
 
-        val offsetX = screenWidth / 2 - width / 2 + globalOffsetX
-        val offsetY = screenHeight / 2 - height / 2 + globalOffsetY
+        val offsetX = screenWidth / 2f - width / 2f + globalOffsetX
+        val offsetY = screenHeight / 2f - height / 2f + globalOffsetY
 
         val colorMode = getColorMode()
         val solverColor = getSolutionColor()
 
         GlStateManager.pushMatrix()
-        GlStateManager.scale(termScale, termScale, 0.0)
+        GlStateManager.scale(termScale, termScale, 0f)
 
 
         RenderUtils.drawRoundedRect(
             colorMode.darker(),
-            offsetX - 2 - (width / 15) / 2,
+            offsetX - 2f - (width / 15f) / 2f,
             offsetY - 2 - (width / 15) / 2,
             width + 4 + width / 15,
             height + 4 + width / 15
@@ -120,20 +120,20 @@ object Melody {
             height + 6
         )
 
-        RenderUtils.drawRoundedRect(Color(255, 0, 255), offsetX + (correct + 1) * 18, offsetY + 18, 16.0, 70.0, .0)
+        RenderUtils.drawRoundedRect(Color(255, 0, 255), offsetX + (correct + 1) * 18, offsetY + 18, 16f, 70f, 0f)
         mc.fontRendererObj.drawStringWithShadow(MelodyTitle, offsetX.toFloat(), offsetY.toFloat(), Color(255, 255, 255).rgb)
 
         for (i in 0 until windowSize) {
             val currentOffsetX = i % 9 * 18 + offsetX
-            val currentOffsetY = floor((i / 9).toDouble()) * 18 + offsetY
+            val currentOffsetY = floor((i / 9f)) * 18f + offsetY
 
             val buttonSlot = button * 9 + 16
             val currentSlot = button * 9 + 10 + current
 
             when {
-                i == buttonSlot -> RenderUtils.drawRoundedRect(solverColor, currentOffsetX, currentOffsetY, 16.0, 16.0, .0)
-                intArrayOf(16, 25, 34, 43).contains(i) -> RenderUtils.drawRoundedRect(Color.RED, currentOffsetX, currentOffsetY, 16.0, 16.0, .0)
-                i == currentSlot -> RenderUtils.drawRoundedRect(Color(255, 116, 0), currentOffsetX, currentOffsetY, 16.0, 16.0, .0)
+                i == buttonSlot -> RenderUtils.drawRoundedRect(solverColor, currentOffsetX, currentOffsetY, 16f, 16f, 0f)
+                intArrayOf(16, 25, 34, 43).contains(i) -> RenderUtils.drawRoundedRect(Color.RED, currentOffsetX, currentOffsetY, 16f, 16f, 0f)
+                i == currentSlot -> RenderUtils.drawRoundedRect(Color(255, 116, 0), currentOffsetX, currentOffsetY, 16f, 16f, 0f)
             }
         }
 

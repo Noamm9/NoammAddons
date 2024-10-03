@@ -51,17 +51,18 @@ object CustomItemEntity {
         val color = ItemUtils.getRarity(entity.entityItem).color
 	    
         drawBox(
-            entity.getRenderX() -0.275, entity.getRenderY(), entity.getRenderZ() -0.275,
+            entity.getRenderX() -0.275f, entity.getRenderY(), entity.getRenderZ() -0.275f,
             Color(color.red, color.green, color.blue, 85),
             outline = true, fill = true,
-            width = 0.55, height = 0.55,
+            width = 0.55f, height = 0.55f,
         )
 
         drawString(
-            entity.entityItem.displayName,
-            Vec3(entity.getRenderX(), entity.getRenderY() + 1.3, entity.getRenderZ()),
-            Color(255, 255, 255, 255),
-            1f
+	        entity.entityItem.displayName,
+	        Vec3(entity.getRenderX().toDouble(), entity.getRenderY() + 1.3, entity.getRenderZ().toDouble()
+	        ),
+	        Color(255, 255, 255, 255),
+	        1f
         )
         return true
     }
