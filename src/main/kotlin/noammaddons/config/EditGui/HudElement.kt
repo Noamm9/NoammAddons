@@ -3,10 +3,9 @@ package noammaddons.config.EditGui
 
 import noammaddons.config.EditGui.ElementsManager.HudElementData
 import noammaddons.config.EditGui.ElementsManager.elements
+import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.CustomFont.getTextHeight
-import noammaddons.utils.CustomFont.getTextWidth
 import noammaddons.utils.RenderUtils
 import noammaddons.utils.RenderUtils.drawText
 import java.awt.Color
@@ -103,9 +102,9 @@ class HudElement(
 
     private fun update() {
         val lines = getText().removeFormatting().split("\n")
-        width = ((lines.maxOfOrNull { getTextWidth(it, 1f) } ?: 0f).toFloat())
+        width = ((lines.maxOfOrNull { mc.fontRendererObj.getStringWidth(it) } ?: 0f).toFloat())
 
-        height = ((getTextHeight("A", 1f) * lines.size))
+        height = (mc.fontRendererObj.FONT_HEIGHT * lines.size).toFloat()
 
         if (getScale() < 0.5f) setScale(0.5f)
     }

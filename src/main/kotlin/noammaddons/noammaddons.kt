@@ -183,7 +183,7 @@ class noammaddons {
     companion object {
         const val MOD_NAME = "NoammAddons"
         const val MOD_ID = "noammaddons"
-        const val MOD_VERSION = "1.9.6"
+        const val MOD_VERSION = "2.5.1"
         const val CHAT_PREFIX = "§6§l[§b§lN§d§lA§6§l]§r"
         const val FULL_PREFIX = "§d§l§nNo§lamm§b§l§nAddons"
         const val DEBUG_PREFIX = "§8[§b§lN§d§lA §7DEBUG§8]"

@@ -20,7 +20,6 @@ import noammaddons.utils.ChatUtils.equalsOneOf
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.showTitle
-import noammaddons.utils.CustomFont
 import noammaddons.utils.DungeonUtils.Classes
 import noammaddons.utils.DungeonUtils.thePlayer
 import noammaddons.utils.LocationUtils.F7Phase
@@ -30,7 +29,6 @@ import noammaddons.utils.MathUtils.distanceIn3DWorld
 import noammaddons.utils.MathUtils.toFixed
 import noammaddons.utils.RenderUtils.drawBox
 import noammaddons.utils.RenderUtils.drawCenteredText
-import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.RenderUtils.drawTracer
 import noammaddons.utils.RenderUtils.getHeight
 import noammaddons.utils.RenderUtils.getWidth
