@@ -13,7 +13,7 @@ import java.awt.Color
 object HighlightMimicChest {
     @SubscribeEvent
     fun renderMimicChest(event: RenderWorldLastEvent) {
-        if (!inDungeons || !config.HightlightMimicChest) return
+        if (!inDungeons || !config.HighlightMimicChest) return
         val PossibleMimicChests = mc.theWorld.loadedTileEntityList.filter{it is TileEntityChest && it.chestType == 1}.map {it.pos}
         if (PossibleMimicChests.isEmpty()) return
         PossibleMimicChests.forEach {

@@ -15,7 +15,7 @@ import noammaddons.utils.RenderUtils.getHeight
 import noammaddons.utils.RenderUtils.getWidth
 import noammaddons.utils.ThreadUtils.setTimeout
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.utils.CustomFont.getTextWidth
+import noammaddons.utils.RenderUtils.drawCenteredText
 
 object SBKickDuration {
 	private var showTime = false
@@ -54,11 +54,12 @@ object SBKickDuration {
 			return
 		}
 		else {
-			val format = "§cLast kicked from SkyBlock §b${String.format("%.2f", timeSinceKick / 1000.0)}s ago"
-			val scaledWidth = mc.getWidth() / 2 - (getTextWidth(format) * 1.5f / 2f)
-			val scaledHeight = (mc.getHeight() / 2f - 20)
-			
-			drawText(format, scaledWidth, scaledHeight, 1f)
+			drawCenteredText(
+				"§cLast kicked from SkyBlock §b${String.format("%.2f", timeSinceKick / 1000.0)}s ago",
+				mc.getWidth()/2f,
+				mc.getHeight()/2f - 20,
+				1.5f
+			)
 		}
 	}
 	

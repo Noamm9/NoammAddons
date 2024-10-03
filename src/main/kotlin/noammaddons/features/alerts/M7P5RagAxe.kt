@@ -8,10 +8,8 @@ import noammaddons.noammaddons.Companion.mc
 import noammaddons.sounds.ihavenothing
 import noammaddons.utils.ChatUtils.debugMessage
 import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.CustomFont
 import noammaddons.utils.LocationUtils.F7Phase
 import noammaddons.utils.RenderUtils.drawCenteredChromaWaveText
-import noammaddons.utils.RenderUtils.drawChromaWaveText
 import noammaddons.utils.RenderUtils.getHeight
 import noammaddons.utils.RenderUtils.getWidth
 import noammaddons.utils.ThreadUtils.setTimeout

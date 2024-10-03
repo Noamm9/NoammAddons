@@ -23,7 +23,7 @@ object PlayerSpin {
 
         i++
         val speedFactor = config.SpinSpeed / 25f
-        rot = if (config.SpinDiraction == 0) (((i * speedFactor) % 360) - 180)
+        rot = if (config.SpinDirection == 0) (((i * speedFactor) % 360) - 180)
         else (180 - ((i * speedFactor) % 360))
 
         GlStateManager.rotate(rot, 0f, 1f, 0f)
