@@ -1,17 +1,15 @@
 package noammaddons.features.alerts
 
-import net.minecraft.util.StringUtils.stripControlCodes
-import noammaddons.noammaddons.Companion.config
-import noammaddons.events.Chat
-import noammaddons.utils.ChatUtils.addColor
-import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.ChatUtils.showTitle
-import noammaddons.utils.LocationUtils.F7Phase
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.events.Chat
 import noammaddons.events.RenderOverlay
+import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.sounds.ihavenothing
 import noammaddons.utils.ChatUtils.debugMessage
+import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.CustomFont
+import noammaddons.utils.LocationUtils.F7Phase
 import noammaddons.utils.RenderUtils.drawCenteredChromaWaveText
 import noammaddons.utils.RenderUtils.drawChromaWaveText
 import noammaddons.utils.RenderUtils.getHeight
@@ -40,6 +38,11 @@ object M7P5RagAxe {
 	fun drawText(event: RenderOverlay) {
 		if (!showTitle) return
 		
-		drawCenteredChromaWaveText("rag", mc.getWidth()/2f, mc.getHeight()/2f - 70f, 4f)
+		drawCenteredChromaWaveText(
+			"rag",
+			mc.getWidth()/2f,
+			mc.getHeight()/2f - 70f,
+			scale = 4f
+		)
 	}
 }

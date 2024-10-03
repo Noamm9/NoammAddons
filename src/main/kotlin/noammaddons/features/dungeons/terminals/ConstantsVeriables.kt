@@ -28,7 +28,7 @@ object ConstantsVeriables {
      */
     fun getClickMode(): Int = config.CustomTerminalMenuClickMode
 
-    fun getTermScale(): Double = (config.CustomTerminalMenuScale * 4.0) / getPatcherScale()
+    fun getTermScale(): Float = (config.CustomTerminalMenuScale * 2f) / getPatcherScale()
 
     data class Slot(val num: Int, val id: Int, val meta: Int, val size: Int, val name: String, val enchanted: Boolean)
 }

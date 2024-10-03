@@ -22,8 +22,8 @@ class TitleScreen: GuiScreen() {
 		textButtons.add(TextButton("Singleplayer", width / 2 - 75, height / 2))
 		textButtons.add(TextButton("Multiplayer", width / 2 - 75, height / 2 + 25))
 		textButtons.add(TextButton("Settings", width / 2 - 75, height / 2 + 50))
-		iconButtons.add(IconButton("X", 4.0, width - 35, 8))
-		iconButtons.add(IconButton("logo", 16.0, width / 2 - 50, height / 2 - 198, 100, 100))
+		iconButtons.add(IconButton("X", 4f, width - 35, 8))
+		iconButtons.add(IconButton("logo", 2f, width / 2 - 50, height / 2 - 198, 100, 100))
 	}
 	
 
@@ -55,11 +55,11 @@ class TitleScreen: GuiScreen() {
                     y = height / 2 - 198
                 }
 			}
-			iconButton.renderButton(x, y, mouseX.toDouble(), mouseY.toDouble())
+			iconButton.renderButton(x, y, mouseX.toFloat(), mouseY.toFloat())
 		}
 		
 		
-		drawCenteredText(FULL_PREFIX, width/2.0, height/2.0 - 80, 3.0)
+		drawCenteredText(FULL_PREFIX, width/2f, height/2f - 80, 3f)
 	}
 	
 	

@@ -42,7 +42,12 @@ object RedGreen {
     private val queue = mutableListOf<Pair<Int, Int>>()
     private val solution = mutableListOf<Int>()
 
-    private val allowedSlots = listOf(11, 12, 13, 14, 15, 20, 21, 22, 23, 24, 29, 30, 31, 32, 33)
+    private val allowedSlots = listOf(
+	    11, 12, 13, 14,
+	    15, 20, 21, 22,
+	    23, 24, 29, 30,
+	    31, 32, 33
+	)
 
 
     @SubscribeEvent
@@ -76,7 +81,7 @@ object RedGreen {
         if (slot >= windowSize) return
 
         if (solution.contains(slot)) {
-            predict(slot, 0)
+            predict(slot)
             if (clicked) queue.add(slot to 0) else click(slot, 0)
         }
     }
@@ -87,14 +92,14 @@ object RedGreen {
         if (!config.DevMode) event.isCanceled = true
 
         val termScale = getTermScale()
-        val screenWidth = mc.getWidth().toDouble() / termScale
-        val screenHeight = mc.getHeight().toDouble() / termScale
+        val screenWidth = mc.getWidth() / termScale
+        val screenHeight = mc.getHeight()/ termScale
 
-        val width = 9 * 18.0
-        val height = (windowSize / 9 * 18).toDouble()
+        val width = 9f * 18f
+        val height = windowSize / 9f * 18f
 
-        val globalOffsetX = 0.0
-        val globalOffsetY = 0.0
+        val globalOffsetX = 0f
+        val globalOffsetY = 0f
 
         val offsetX = (screenWidth / 2 - width / 2 + globalOffsetX)
         val offsetY = (screenHeight / 2 - height / 2 + globalOffsetY)
@@ -103,7 +108,7 @@ object RedGreen {
         val solverColor = getSolutionColor()
 
         GlStateManager.pushMatrix()
-        GlStateManager.scale(termScale, termScale, 0.0)
+        GlStateManager.scale(termScale, termScale, 0f)
 
         RenderUtils.drawRoundedRect(
             colorMode.darker(),
@@ -129,7 +134,7 @@ object RedGreen {
             val currentOffsetX = i % 9 * 18 + offsetX
             val currentOffsetY = floor(i / 9.0).toInt() * 18 + offsetY
 
-            RenderUtils.drawRoundedRect(solverColor, currentOffsetX, currentOffsetY, 16.0, 16.0, .0)
+            RenderUtils.drawRoundedRect(solverColor, currentOffsetX, currentOffsetY, 16f, 16f, 0f)
         }
 
         GlStateManager.popMatrix()
@@ -143,7 +148,7 @@ object RedGreen {
             .forEach { solution.add(it) }
     }
 
-    private fun predict(slot: Int, button: Int) {
+    private fun predict(slot: Int) {
         solution.remove(slot)
     }
 
@@ -176,8 +181,7 @@ object RedGreen {
         }
         else inTerminal = false
     }
-
-    // Handles the setting of slots in the GUI
+	
     @SubscribeEvent
     fun onS2FPacketSetSlot(event: PacketEvent.Received) {
         if (!inTerminal) return
@@ -207,7 +211,7 @@ object RedGreen {
         if (slots.size == windowSize) {
             solve()
             if (queue.isNotEmpty() && queue.all { solution.contains(it.first) }) {
-                queue.forEach { predict(it.first, it.second) }
+                queue.forEach { predict(it.first) }
                 click(queue[0].first, queue[0].second)
                 queue.removeAt(0)
             }

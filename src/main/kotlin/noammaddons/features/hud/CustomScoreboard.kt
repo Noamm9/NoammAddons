@@ -22,7 +22,7 @@ import kotlin.math.max
 object CustomScoreboard {
     private val darkMode = Color(33, 33, 33, 180)
     private var customScoreboard = mutableListOf<String>()
-    private var width = 0
+    private var width = 0f
     private var text = ""
     private var loading = true
 	
@@ -40,12 +40,12 @@ object CustomScoreboard {
 
         if (loading || !config.CustomScoreboard) return
 
-        width = 0
+        width = 0f
         customScoreboard.clear()
 	    
         customScoreboard.addAll(ScoreboardUtils.sidebarLines.reversed().filterNot { cleanSB(it).contains("www.hypixel.net") })
 
-        width = max(width, customScoreboard.maxOfOrNull { mc.fontRendererObj.getStringWidth(it) + 10 } ?: 0)
+        width = max(width, customScoreboard.maxOfOrNull { mc.fontRendererObj.getStringWidth(it) + 10f } ?: 0f)
 	    
         text = (customScoreboard.joinToString("\n"))
     }
@@ -63,24 +63,24 @@ object CustomScoreboard {
 
         RenderUtils.drawRoundedRect(
             darkMode.darker(),
-            screenWidth - width * 1.05,
-            (screenHeight / 2) - (textHeight / 2) * 1.05,
-            width * 1.05,
-            textHeight * 1.05 + 5
+            screenWidth - width * 1.05f,
+            (screenHeight / 2) - (textHeight / 2) * 1.05f,
+            width * 1.05f,
+            textHeight * 1.05f + 5
         )
 
         RenderUtils.drawRoundedRect(
             darkMode,
-            screenWidth - width * 1.025,
-            ((screenHeight / 2) - (textHeight / 2)).toDouble(),
-            width.toDouble(),
-            textHeight.toDouble() + 5
+            screenWidth - width * 1.025f,
+            (screenHeight / 2f) - (textHeight / 2),
+            width,
+            textHeight + 5f
         )
 	    
 	    drawText(
 		    text,
-		    screenWidth - width*1.0,
-		    screenHeight/2 - textHeight/2.0
+		    screenWidth - width*1f,
+		    screenHeight/2f - textHeight/2f
 		)
 	    
         GlStateManager.popMatrix()
