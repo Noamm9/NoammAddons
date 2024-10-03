@@ -15,6 +15,7 @@ import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.BlockPos
 import net.minecraft.util.ResourceLocation
 import net.minecraft.util.Vec3
+import noammaddons.config.Config.espBoxOutlineWidth
 import noammaddons.mixins.AccessorMinecraft
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
@@ -251,7 +252,7 @@ object RenderUtils {
 		GlStateManager.popMatrix()
 	}
 	
-	fun drawEntityBox(entity: Entity, color: Color, outline: Boolean, fill: Boolean, lineThickness: Float = 3f) {
+	fun drawEntityBox(entity: Entity, color: Color, outline: Boolean, fill: Boolean, lineThickness: Float = espBoxOutlineWidth) {
 		if (! outline && ! fill) return
 		val x = entity.getRenderX() - renderManager.viewerPosX
 		val y = entity.getRenderY() - renderManager.viewerPosY
@@ -518,7 +519,7 @@ object RenderUtils {
 		for (i in String.indices) {
 			val charWidth = mc.fontRendererObj.getCharWidth(text[i])
 			
-			val hue = ((time + i / chromaWidth) % 1.0).toFloat()
+			val hue = ((time + i / chromaWidth) % 1f)
 			val color = Color.getHSBColor(hue, 1.0f, 1.0f)
 			
 			mc.fontRendererObj.drawStringWithShadow(
@@ -528,7 +529,7 @@ object RenderUtils {
 				color.rgb
 			)
 			
-			xPos += charWidth * scale.toInt()
+			xPos += charWidth * scale
 		}
 		
 		GlStateManager.popMatrix()

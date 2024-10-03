@@ -26,18 +26,20 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
     fun openDiscordLink() {
         UDesktop.browse(URI.create("https://discord.gg/pj9mQGxMxB"))
     }
+	
+	private const val EDIT_HUD_CONFIG_DESCRIPTION =
+		"Opens the Hud Edit GUI\n\n" +
+		"Left Click + Drag: Move Element around the screen\n" +
+		"Left Click + Scroll Wheel: Control the scale"
+	
+	@Property(
+		type = PropertyType.BUTTON,
+		name = "Edit Hud Config",
+		description = EDIT_HUD_CONFIG_DESCRIPTION,
+		category = "General",
+		placeholder = "CLICK"
+	)
 
-    @Property(
-        type = PropertyType.BUTTON,
-        name = "Edit Hud Config",
-        description = """
-Opens the Hud Edit GUI
-    
-Left Click + Drag: Move Element around the screen
-Left Click + Scroll Wheel: Control the scale""",
-        category = "General",
-        placeholder = "CLICK"
-    )
     @Suppress("unused")
     fun openHudEditGUI() {
         openScreen(HudEditorScreen())
@@ -130,7 +132,7 @@ Left Click + Scroll Wheel: Control the scale""",
 	
 	@Property(
         type = PropertyType.SWITCH,
-        name = "Party Outlline",
+        name = "Party Outline",
         description = "Draws a rainbow Outline around the people in the party.",
         category = "General",
 		subcategory = "Party"
@@ -356,7 +358,7 @@ Left Click + Scroll Wheel: Control the scale""",
 		name = "Relic Outline",
 		description = "Highlights the Relic Cauldron. of the Relic you picked",
         category = "Dungeons",
-        subcategory = "General"
+        subcategory = "M7"
 	)
 	var M7RelicOutline = false
 	
@@ -411,17 +413,17 @@ Left Click + Scroll Wheel: Control the scale""",
 
     @Property(
         type = PropertyType.SWITCH,
-        name = "Hightlight Mimic Chest",
+        name = "Highlight Mimic Chest",
         description = "Highlights the Mimic Chest",
         category = "Dungeons",
         subcategory = "Secrets"
     )
-    var HightlightMimicChest = false
+    var HighlightMimicChest = false
 
     @Property(
         type = PropertyType.SWITCH,
         name = "Ability Keybinds",
-        description = "Allows to use the Your Classs ULTIMATE/ABILITY with a keybind witch can be configirate in Minecraft's Options/Controls",
+        description = "Allows to use the Your Class ULTIMATE/ABILITY with a keybind witch can be configirate in Minecraft's Options/Controls",
         category = "Dungeons",
         subcategory = "General"
     )
@@ -446,7 +448,7 @@ Left Click + Scroll Wheel: Control the scale""",
     @Property(
         type = PropertyType.SWITCH,
         name = "Auto I4",
-        description = "Auto aims and shoots the emerald block at the forth dev in P3 \n\n §f[ §b§nNeed a term&r §f§n§land§r §e§n100% atk speed§r §f] ",
+        description = "Auto aims and shoots the emerald block at the forth dev in P3. also does rod swap and leap \n\n §f[ §b§nNeed a term&r §f§n§land§r §e§n100% atk speed§r §f] ",
         category = "Dungeons",
         subcategory = "F7"
     )
@@ -1008,20 +1010,23 @@ Left Click + Scroll Wheel: Control the scale""",
 
 
     // GUI
-    @Property(
-        type = PropertyType.SWITCH,
-        name = "Scaleable Tooltips",
-        description = """
-Allows you to scale the size of the item tooltips and move them around your screen.
+    private const val TOOLTIP_DESCRIPTION =
+	    "Allows you to scale the size of the item tooltips and move them around your screen.\n" +
+	    "Scroll Wheel: Scrolls vertically\n" +
+	    "Left Shift + Scroll Wheel: Scrolls horizontally\n" +
+	    "Left Control + Scroll Wheel: Adjusts the scale\n" +
+	    "Space Bar: Resets the position and the scale to the default"
+	
+	@Property(
+		type = PropertyType.SWITCH,
+		name = "Scalable Tooltips",
+		description = TOOLTIP_DESCRIPTION,
+		category = "GUI",
+		subcategory = "Tooltips"
+	)
+	var ScalableTooltips = false
 
-Scroll Wheel: Scrolls vertically
-Left Shift + Scroll Wheel: Scrolls horizontally
-Left Control + Scroll Wheel: Adjusts the scale
-Space Bar: Resets the position and the scale to the default""",
-        category = "GUI",
-        subcategory = "Tooltips"
-    )
-    var ScalableTooltips = false
+
 
     @Property(
         type = PropertyType.PERCENT_SLIDER,
@@ -1222,7 +1227,7 @@ Space Bar: Resets the position and the scale to the default""",
         name = "Bonzo Mask Display",
         description = "Displays the Bonzo Mask Cooldown on screen",
         category = "HUD",
-        subcategory = "Bonzo Mask"
+        subcategory = "Masks"
     )
     var BonzoMaskDisplay = false
 /*
@@ -1240,7 +1245,7 @@ Space Bar: Resets the position and the scale to the default""",
         name = "Spirit Mask Display",
         description = "Displays the Spirit Mask Cooldown on screen",
         category = "HUD",
-        subcategory = "Spirit Mask"
+        subcategory = "Masks"
     )
     var SpiritMaskDisplay = false
 
@@ -1249,7 +1254,7 @@ Space Bar: Resets the position and the scale to the default""",
         name = "Phoenix Pet Display",
         description = "Displays the Phoenix Pet Cooldown on screen",
         category = "HUD",
-        subcategory = "Phoenix Pet"
+        subcategory = "Masks"
     )
     var PhoenixPetDisplay = false
 
@@ -1319,8 +1324,8 @@ Space Bar: Resets the position and the scale to the default""",
     @Property(
         type = PropertyType.SWITCH,
         name = "Player Scale",
-        description = "Allows to dynamically adjust the size of the player character." +
-                "\n\n §dNow you can match your IRL Height ❤.",
+        description = "Allows to dynamically adjust the size of the player character.\n\n" +
+                      "§dNow you can match your IRL Height ❤.",
         category = "Cosmetic",
         subcategory = "Player"
     )
@@ -1362,7 +1367,7 @@ Space Bar: Resets the position and the scale to the default""",
         subcategory = "Player",
         options = ["Right", "Left"]
     )
-    var SpinDiraction = 0;
+    var SpinDirection = 0;
 
     @Property(
         type = PropertyType.SLIDER,
@@ -1495,24 +1500,24 @@ Space Bar: Resets the position and the scale to the default""",
         subcategory = "QOL"
     )
     var hideFallingBlocks = false
+	
+	
+	private const val DEV_MODE_DESCRIPTION =
+		"§fForces all features to enable, even if you are not on skyblock.\n\n" +
+		"§eenables console logging and disables a few safety checks\n" +
+		"§bQ: Why is this a thing?\n" +
+		"§aA: So I can properly test features in the mod without needing to be in skyblock\n\n" +
+		"§4§n§lDONT USE IT IF U ARE NOT ME, CAN GET YOU BANNED!\n\n" +
+		"§d[R.I.P] §bFININ1"
+	
+	@Property(
+		type = PropertyType.CHECKBOX,
+		name = "Dev Mode",
+		description = DEV_MODE_DESCRIPTION,
+		category = "Dev"
+	)
+	var DevMode = false
 
-
-    @Property(
-        type = PropertyType.CHECKBOX,
-        name = "Dev Mode",
-        description = """
-§fForces all features to enable, even if you are not on skyblock.
-
-§eenables console logging and disables a few safety checks
-§bQ: Why is this a thing? 
-§aA: So I can properly test features in the mod without needing to be in skyblock
-
-§4§n§lDONT USE IT IF U ARE NOT ME, CAN GET YOU BANNED!
-
-§d[R.I.P] §bFININ1""",
-        category = "Dev"
-    )
-    var DevMode = false
 	
 	@Property(
 		type = PropertyType.SWITCH,
@@ -1602,7 +1607,7 @@ Space Bar: Resets the position and the scale to the default""",
         addDependency("TimeChangerMode", "TimeChanger")
         addDependency("CustomFovValue", "CustomFov")
         listOf(
-            "SpinDiraction",
+            "SpinDirection",
             "SpinSpeed"
         ).forEach { addDependency(it, "PlayerSpin") }
 
@@ -1660,12 +1665,17 @@ Space Bar: Resets the position and the scale to the default""",
 
     private object Sorting : SortingBehavior() {
         override fun getCategoryComparator(): Comparator<in Category> = Comparator.comparingInt { o: Category ->
-            configCategories.indexOf(o.name)
+	        listOf(
+		        "General",
+		        "Dungeons",
+		        "Terminals",
+		        "ESP",
+		        "Alerts",
+		        "GUI",
+		        "HUD",
+		        "Cosmetic",
+		        "Dev"
+	        ).indexOf(o.name)
         }
     }
-
-    private val configCategories = listOf(
-        "General", "Dungeons", "Terminals", "ESP", "Alerts", "GUI", "HUD", "Cosmetic", "Dev"
-    )
-
 }

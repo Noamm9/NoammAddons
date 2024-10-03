@@ -11,9 +11,7 @@ import noammaddons.utils.MathUtils.toFixed
 import noammaddons.utils.RenderUtils.getHeight
 import noammaddons.utils.RenderUtils.getWidth
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.utils.CustomFont
 import noammaddons.utils.RenderUtils.drawCenteredText
-import noammaddons.utils.RenderUtils.drawText
 
 
 object BloodDialogueSkip {

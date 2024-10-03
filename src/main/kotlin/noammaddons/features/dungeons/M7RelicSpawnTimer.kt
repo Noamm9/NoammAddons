@@ -8,11 +8,9 @@ import noammaddons.events.RenderOverlay
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.CustomFont
 import noammaddons.utils.DungeonUtils.thePlayer
 import noammaddons.utils.MathUtils.toFixed
 import noammaddons.utils.RenderUtils.drawCenteredText
-import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.RenderUtils.getHeight
 import noammaddons.utils.RenderUtils.getWidth
 import java.awt.Color
