@@ -1559,7 +1559,7 @@
         "doors": "L",
         "secrets": 1,
         "crypts": 0,
-        "revive_stones": "100k per",
+        "revive_stones": "-1",
         "journals": 1,
         "spiders": false,
         "secret_details": {
