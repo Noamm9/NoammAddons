@@ -24,8 +24,8 @@ import noammaddons.utils.ChatUtils.equalsOneOf
 
 object GhostPick {
     private val GhostPickElement = HudElement("&b&lGhostPick: &a&lEnabled", dataObj = hudData.getData().GhostPick)
-	var featureState = false
     private fun isAllowedTool(itemStack: ItemStack) = itemStack.item is ItemTool
+    var featureState = false
 
 
     @SubscribeEvent
@@ -34,15 +34,15 @@ object GhostPick {
         val heldItem = mc.thePlayer?.heldItem ?: return
 
         if (event.packet is C07PacketPlayerDigging) {
-			if (config.LegitGhostPick) {
+	    if (config.LegitGhostPick) {
                 if (heldItem.getItemId().equalsOneOf(261, 46)) return
                 event.isCanceled = true
-			}
-	        if (config.MimicEffi10) {
-		        if (!isAllowedTool(heldItem)) return
-		        val blockPos = mc.objectMouseOver?.blockPos
-		        toAir(blockPos)
-	        }
+	    }
+	    if (config.MimicEffi10) {
+		if (!isAllowedTool(heldItem)) return
+		    val blockPos = mc.objectMouseOver?.blockPos
+		    toAir(blockPos)
+	    }
         }
     }
 
@@ -70,7 +70,7 @@ object GhostPick {
     @Suppress("UNUSED_PARAMETER")
     fun draw(event: RenderOverlay) {
         if (!featureState) return
-	    if (!config.GhostPick) return
+	if (!config.GhostPick) return
 	    
         GhostPickElement.draw()
     }
