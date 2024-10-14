@@ -8,21 +8,24 @@ import noammaddons.utils.PlayerUtils.sendRightClickAirPacket
 import net.minecraft.item.ItemSword
 import net.minecraftforge.event.entity.player.PlayerInteractEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.utils.PlayerUtils.Player
 
-object NoBlockAnimation {
+
+// Bugs with the left click etherwarp - temporarily disabling
+object NoBlockAnimation {/*
     @SubscribeEvent
     fun onInteract(event: PlayerInteractEvent) {
         if (!config.noBlockAnimation || !inSkyblock) return
         if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR) {
-            val item = mc.thePlayer.heldItem ?: return
+            val item = Player?.heldItem ?: return
             if (item.item !is ItemSword) return
 
-            if (mc.thePlayer.heldItem.lore.any { it.contains("§6Ability: ") && it.endsWith("§e§lRIGHT CLICK") }) {
+            if (item.lore.any { it.contains("§6Ability: ") && it.endsWith("§e§lRIGHT CLICK") }) {
                 event.isCanceled = true
                 if (mc.gameSettings.keyBindUseItem.isKeyDown) {
                     sendRightClickAirPacket()
                 }
             }
         }
-    }
+    }*/
 }

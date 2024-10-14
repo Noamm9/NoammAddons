@@ -3,9 +3,10 @@ package noammaddons.utils
 import net.minecraft.scoreboard.ScorePlayerTeam
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.ChatUtils.removeUnicode
 
 object ScoreboardUtils {
-	fun cleanSB(scoreboard: String): String = scoreboard.removeFormatting().filter { it.code in 32..126 }
+	fun cleanSB(scoreboard: String): String = removeUnicode(scoreboard.removeFormatting())
 
 	/**
 	 * @return A list of player names displayed in the sidebar of the Minecraft scoreboard.

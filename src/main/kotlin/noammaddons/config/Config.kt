@@ -5,10 +5,7 @@ import noammaddons.config.EditGui.HudEditorScreen
 import noammaddons.utils.GuiUtils.openScreen
 import gg.essential.universal.UDesktop
 import gg.essential.vigilance.Vigilant
-import gg.essential.vigilance.data.Category
-import gg.essential.vigilance.data.Property
-import gg.essential.vigilance.data.PropertyType
-import gg.essential.vigilance.data.SortingBehavior
+import gg.essential.vigilance.data.*
 import java.awt.Color
 import java.io.File
 import java.net.URI
@@ -22,9 +19,8 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         category = "General",
         placeholder = "CLICK"
     )
-    @Suppress("unused")
     fun openDiscordLink() {
-        UDesktop.browse(URI.create("https://discord.gg/pj9mQGxMxB"))
+        UDesktop.browse(URI("https://discord.gg/pj9mQGxMxB"))
     }
 	
 	private const val EDIT_HUD_CONFIG_DESCRIPTION =
@@ -78,12 +74,66 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
 	
 	@Property(
 		type = PropertyType.SWITCH,
+		name = "Show Cake's Year",
+		description = "Shows the new year cake's year on the item in the inventory",
+		category = "General",
+        subcategory = "Cake"
+	)
+	var cakeNumbers = false
+	
+	@Property(
+		type = PropertyType.SWITCH,
 		name = "Remove Useless Messages",
         description = "Removes messages from chat.",
         category = "General",
         subcategory = "Chat"
 	)
 	var RemoveUselessMessages = false
+		
+	@Property(
+		type = PropertyType.SWITCH,
+		name = "§e§lBlaze §6§lSolver",
+		category = "Dungeons",
+		subcategory = "Solvers",
+	)
+	var BlazeSolver = false
+	
+	@Property(
+		type = PropertyType.COLOR,
+		name = "§eBlaze §6Solver §fFirst §aC§bo§cl§do§er§f",
+        description = "Color of the first blaze used by the Blaze Solver",
+        category = "Dungeons",
+        subcategory = "Solvers"
+	)
+	var BlazeSolverFirstBlazeColor = Color(0, 114, 255, 85)
+	
+	@Property(
+		type = PropertyType.COLOR,
+        name = "§eBlaze §6Solver §fSecond §aC§bo§cl§do§er§f",
+        description = "Color of the second blaze used by the Blaze Solver",
+        category = "Dungeons",
+        subcategory = "Solvers"
+	)
+	var BlazeSolverSecondBlazeColor = Color(255 ,255, 0, 85)
+	
+	@Property(
+		type = PropertyType.COLOR,
+		name = "§eBlaze §6Solver §fThird §aC§bo§cl§do§er§f",
+        description = "Color of the third blaze used by the Blaze Solver",
+        category = "Dungeons",
+        subcategory = "Solvers"
+	)
+	var BlazeSolverThirdBlazeColor = Color(255, 0, 0, 85)
+	
+	@Property(
+		type = PropertyType.COLOR,
+		name = "§eBlaze §6Solver §fLine §aC§bo§cl§do§er§f",
+		description = "Color of the line used by the Blaze Solver",
+		category = "Dungeons",
+		subcategory = "Solvers"
+	)
+	var BlazeSolverLineColor = Color(255, 255, 255, 255)
+	
 	
     @Property(
         type = PropertyType.SWITCH,
@@ -97,7 +147,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
 	@Property(
 		type = PropertyType.SWITCH,
 		name = "M7 Dragons",
-        description = "Displays a timer on screen, Dragon Kill box and Prio when a dragon spawns. \n\nBased on server ticks so will work perfectly even if the server is lagging",
+        description = "Displays a timer, Dragon Kill box and Prio when a dragon spawns. \n\nBased on server ticks so will work perfectly even if the server is lagging",
         category = "Dungeons",
         subcategory = "M7"
 	)
@@ -137,7 +187,16 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         category = "General",
 		subcategory = "Party"
 	)
-	var partyOutline = false
+	var partyOutline = true
+	
+	@Property(
+		type = PropertyType.SWITCH,
+		name = "Party Names",
+        description = "Displays the names of the people in the party.",
+        category = "General",
+        subcategory = "Party"
+	)
+	var partyNames = true
 
     @Property(
         type = PropertyType.SWITCH,
@@ -164,7 +223,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         category = "General",
         subcategory = "Chat"
     )
-    var ChatCoordsWayPoint = false
+    var ChatCoordsWayPoint = true
 
     @Property(
         type = PropertyType.COLOR,
@@ -418,7 +477,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         category = "Dungeons",
         subcategory = "Secrets"
     )
-    var HighlightMimicChest = false
+    var HighlightMimicChest = true
 
     @Property(
         type = PropertyType.SWITCH,
@@ -470,7 +529,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         category = "Dungeons",
         subcategory = "Spirit leap"
 	)
-	var hidePlayersAfterLeap = false
+	var hidePlayersAfterLeap = true
 	
     @Property(
         type = PropertyType.SWITCH,
@@ -534,8 +593,17 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         category = "Dungeons",
         subcategory = "Render"
     )
-    var lividFinder = false
-
+    var lividFinder = true
+	
+	@Property(
+		type = PropertyType.CHECKBOX,
+		name = "Hide Wrong Livids",
+        description = "Hide The Livids that you shouldn't be killing",
+        category = "Dungeons",
+        subcategory = "Render"
+	)
+	var hideWrongLivids = false
+	
     @Property(
         type = PropertyType.SWITCH,
         name = "Show Fels",
@@ -730,7 +798,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         category = "ESP",
         subcategory = "Dungeon ESP"
     )
-    var espBats = false
+    var espBats = true
 
     @Property(
         type = PropertyType.SWITCH,
@@ -738,7 +806,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         category = "ESP",
         subcategory = "Dungeon ESP"
     )
-    var espFels = false
+    var espFels = true
 
     @Property(
         type = PropertyType.SWITCH,
@@ -746,7 +814,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         category = "ESP",
         subcategory = "Dungeon ESP"
     )
-    var espShadowAssassin = false
+    var espShadowAssassin = true
 
     @Property(
         type = PropertyType.SWITCH,
@@ -754,7 +822,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         category = "ESP",
         subcategory = "Dungeon ESP"
     )
-    var espMiniboss = false
+    var espMiniboss = true
 
     @Property(
         type = PropertyType.SWITCH,
@@ -762,7 +830,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         category = "ESP",
         subcategory = "Dungeon ESP"
     )
-    var espSeperateMinibossColor = true
+    var espSeperateMinibossColor = false
 
     @Property(
         type = PropertyType.SWITCH,
@@ -770,7 +838,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         category = "ESP",
         subcategory = "Dungeon ESP"
     )
-    var espStarMobs = false
+    var espStarMobs = true
 
     @Property(
         type = PropertyType.SWITCH,
@@ -779,17 +847,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         subcategory = "Dungeon ESP"
     )
     var removeStarMobsNametag = false
-
-    @Property(
-        type = PropertyType.COLOR,
-        name = "Livid Color",
-        description = "Default #55FFFF.",
-        category = "ESP",
-        subcategory = "Dungeon ESP Colors",
-        allowAlpha = false
-    )
-    var espColorLivid = Color(255, 20, 20)
-
+	
     @Property(
         type = PropertyType.COLOR,
         name = "Bat Color",
@@ -938,7 +996,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         category = "Alerts",
         subcategory = "Dungeons"
     )
-    var FullThunderBottleAlert = false
+    var FullThunderBottleAlert = true
 
     @Property(
         type = PropertyType.SWITCH,
@@ -965,7 +1023,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         category = "Alerts",
         subcategory = "Dungeons"
     )
-    var RNGSound = false
+    var RNGSound = true
 
     @Property(
         type = PropertyType.SWITCH,
@@ -1257,7 +1315,15 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         subcategory = "Masks"
     )
     var PhoenixPetDisplay = false
-
+	
+	@Property(
+		type = PropertyType.SWITCH,
+		name = "Custom Tab List",
+        description = "Custom Tab List design",
+        category = "HUD",
+        subcategory = "TabList"
+	)
+	var CustomTabList = false
 
 
 
@@ -1425,7 +1491,16 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         subcategory = "Clear Sight"
     )
     var antiBlind = false
-
+	
+	@Property(
+		type = PropertyType.SWITCH,
+		name = "Clear Blocks",
+		description = "When clipping into blocks it allows you to see around you instead of just blocking your view",
+        category = "Cosmetic",
+        subcategory = "Clear Sight"
+	)
+	var clearBlocks = false
+	
     @Property(
         type = PropertyType.SWITCH,
         name = "No Portal Effect",
@@ -1444,6 +1519,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
     )
     var antiWaterFOV = false
 
+	/*
     @Property(
         type = PropertyType.SWITCH,
         name = "No Block Animation",
@@ -1451,7 +1527,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         category = "Cosmetic",
         subcategory = "Clear Sight"
     )
-    var noBlockAnimation = false
+    var noBlockAnimation = false*/
 
     @Property(
         type = PropertyType.SWITCH,
@@ -1461,7 +1537,16 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         subcategory = "QOL"
     )
     var removeSelfieCamera = false
-
+	
+	@Property(
+		type = PropertyType.CHECKBOX,
+		name = "Remove Selfie camera only with Hype",
+        description = "Removes selfie camera In F5 only when you have a Wither Blade with Wither Impact.",
+        category = "Cosmetic",
+        subcategory = "QOL"
+	)
+	var removeSelfieCameraOnlyWithHype = false
+	
     @Property(
         type = PropertyType.SWITCH,
         name = "CustomFOV",
@@ -1486,7 +1571,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
     @Property(
         type = PropertyType.SWITCH,
         name = "Custom Damage Splash",
-        description = "Reformats Hypixel SkyBlock's Shitty Damage Splash.",
+        description = "Reformats Hypixel SkyBlock's Shitty Damage Splash for a more readable one.",
         category = "Cosmetic",
         subcategory = "QOL"
     )
@@ -1575,9 +1660,21 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
             "P3StartTimer",
             "P4StartTimer"
         ).forEach { addDependency(it, "F7M7PhaseStartTimers") }
-
-
+	    
+	    listOf(
+	        "BlazeSolverFirstBlazeColor",
+	        "BlazeSolverSecondBlazeColor",
+	        "BlazeSolverThirdBlazeColor",
+	        "BlazeSolverLineColor"
+		).forEach { addDependency(it, "BlazeSolver") }
+	    
+	    addDependency("AutoPotionCommand", "AutoPotion")
+	    addDependency("AutoReaperArmorSlot", "AutoReaperArmorSwap")
+	    
+	    
         // Terminals
+	    
+	    
         listOf(
             "CustomTerminalMenuClickMode",
             "CustomTerminalMenuScale",
@@ -1606,6 +1703,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         ).forEach { addDependency(it, "PlayerScale") }
         addDependency("TimeChangerMode", "TimeChanger")
         addDependency("CustomFovValue", "CustomFov")
+	    addDependency("removeSelfieCameraOnlyWithHype", "removeSelfieCamera")
         listOf(
             "SpinDirection",
             "SpinSpeed"
@@ -1626,7 +1724,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
             "espColorStarMobs",
             "removeStarMobsNametag"
         ).forEach{ addDependency(it, "espStarMobs") }
-        addDependency("espColorLivid", "lividFinder")
+        addDependency("hideWrongLivids", "lividFinder")
         addDependency("espColorBats", "espBats")
         addDependency("espColorFels", "espFels")
         addDependency("espColorShadowAssassin", "espShadowAssassin")
@@ -1664,7 +1762,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
     }
 
     private object Sorting : SortingBehavior() {
-        override fun getCategoryComparator(): Comparator<in Category> = Comparator.comparingInt { o: Category ->
+        override fun getCategoryComparator(): Comparator<in Category> = Comparator.comparingInt { c: Category ->
 	        listOf(
 		        "General",
 		        "Dungeons",
@@ -1675,7 +1773,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
 		        "HUD",
 		        "Cosmetic",
 		        "Dev"
-	        ).indexOf(o.name)
+	        ).indexOf(c.name)
         }
     }
 }

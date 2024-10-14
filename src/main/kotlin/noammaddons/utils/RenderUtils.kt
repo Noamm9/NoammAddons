@@ -5,23 +5,25 @@ import gg.essential.universal.UMatrixStack
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Gui
 import net.minecraft.client.gui.ScaledResolution
-import net.minecraft.client.renderer.*
+import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.renderer.RenderHelper
+import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.WorldRenderer
 import net.minecraft.client.renderer.entity.RenderManager
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.BlockPos
-import net.minecraft.util.ResourceLocation
-import net.minecraft.util.Vec3
+import net.minecraft.util.*
+import net.minecraftforge.client.event.RenderWorldLastEvent
+import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.config.Config.espBoxOutlineWidth
 import noammaddons.mixins.AccessorMinecraft
-import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.removeFormatting
-import org.lwjgl.opengl.GL11
+import noammaddons.utils.PlayerUtils.Player
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.util.glu.Cylinder
 import java.awt.Color
@@ -37,40 +39,28 @@ object RenderUtils {
 	private val regCylinder = Cylinder()
 	private val lineCylinder = Cylinder().apply { drawStyle = GL_LINE }
 	
-	
-	private fun preDraw() {
-		GlStateManager.enableAlpha()
-		GlStateManager.enableBlend()
-		GlStateManager.disableTexture2D()
-		GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
-	}
-	
-	private fun postDraw() {
-		GlStateManager.disableBlend()
-		GlStateManager.enableTexture2D()
+	fun bindColor(color: Color, alpha: Number = color.alpha) {
+		GlStateManager.color(
+			color.red/255f,
+			color.green/255f,
+			color.blue/255f,
+			alpha.toFloat()/255f
+		)
 	}
 	
 	fun Minecraft.getPartialTicks() = (this as AccessorMinecraft).timer.renderPartialTicks
 	
-	fun EntityPlayer.getRenderX(): Float = (lastTickPosX + (posX - lastTickPosX) * mc.getPartialTicks()).toFloat()
-	fun EntityPlayer.getRenderY(): Float = (lastTickPosY + (posY - lastTickPosY) * mc.getPartialTicks()).toFloat()
-	fun EntityPlayer.getRenderZ(): Float = (lastTickPosZ + (posZ - lastTickPosZ) * mc.getPartialTicks()).toFloat()
-	
 	fun Entity.getRenderX(): Float = (lastTickPosX + (posX - lastTickPosX) * mc.getPartialTicks()).toFloat()
 	fun Entity.getRenderY(): Float = (lastTickPosY + (posY - lastTickPosY) * mc.getPartialTicks()).toFloat()
 	fun Entity.getRenderZ(): Float = (lastTickPosZ + (posZ - lastTickPosZ) * mc.getPartialTicks()).toFloat()
+	fun Entity.getRenderVec(): Vec3 = Vec3(getRenderX().toDouble(), getRenderY().toDouble(), getRenderZ().toDouble())
 	
 	fun Minecraft.getWidth(): Int = ScaledResolution(this).scaledWidth
 	fun Minecraft.getHeight(): Int = ScaledResolution(this).scaledHeight
 	
 	
-	private fun drawFilledAABB(aabb: AxisAlignedBB, c: Color, alphaMultiplier: Float = 1f) {
-		GlStateManager.color(
-			c.red / 255f,
-			c.green / 255f,
-			c.blue / 255f,
-			c.alpha / 255f * alphaMultiplier
-		)
+	private fun drawFilledAABB(aabb: AxisAlignedBB, c: Color) {
+		bindColor(c)
 		
 		// vertical
 		worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
@@ -86,12 +76,7 @@ object RenderUtils {
 		worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
 		worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
 		tessellator.draw()
-		GlStateManager.color(
-			c.red / 255f * 0.8f,
-			c.green / 255f * 0.8f,
-			c.blue / 255f * 0.8f,
-			c.alpha / 255f * alphaMultiplier,
-		)
+		bindColor(c)
 		
 		// x
 		worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
@@ -108,12 +93,7 @@ object RenderUtils {
 		worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
 		tessellator.draw()
 		
-		GlStateManager.color(
-			c.red / 255f * 0.9f,
-			c.green / 255f * 0.9f,
-			c.blue / 255f * 0.9f,
-			c.alpha / 255f * alphaMultiplier,
-		)
+		bindColor(c)
 		
 		// z
 		worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
@@ -132,12 +112,7 @@ object RenderUtils {
 	}
 	
 	private fun drawOutlinedAABB(aabb: AxisAlignedBB, color: Color) {
-		GlStateManager.color(
-			color.red / 255f,
-			color.green / 255f,
-			color.blue / 255f,
-			1f
-		)
+		bindColor(color, 255)
 		
 		worldRenderer.begin(GL_LINE_STRIP, DefaultVertexFormats.POSITION)
 		worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
@@ -147,12 +122,7 @@ object RenderUtils {
 		worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
 		tessellator.draw()
 		
-		GlStateManager.color(
-			color.red / 255f,
-			color.green / 255f,
-			color.blue / 255f,
-			1f
-		)
+		bindColor(color, 255)
 		
 		worldRenderer.begin(GL_LINE_STRIP, DefaultVertexFormats.POSITION)
 		worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
@@ -162,34 +132,18 @@ object RenderUtils {
 		worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
 		tessellator.draw()
 		
-		GlStateManager.color(
-			color.red / 255f,
-			color.green / 255f,
-			color.blue / 255f,
-			1f
-		)
+		bindColor(color, 255)
 		
 		worldRenderer.begin(GL_LINE_STRIP, DefaultVertexFormats.POSITION)
 		worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
 		worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
 		worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
 		worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
-		worldRenderer
-			.pos(
-				aabb.maxX,
-				aabb.maxY,
-				aabb.minZ
-			)
-			.endVertex()
+		worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
 		worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
 		tessellator.draw()
 		
-		GlStateManager.color(
-			color.red / 255f,
-			color.green / 255f,
-			color.blue / 255f,
-			1f
-		)
+		bindColor(color, 255)
 		
 		worldRenderer.begin(GL_LINE_STRIP, DefaultVertexFormats.POSITION)
 		worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
@@ -201,7 +155,6 @@ object RenderUtils {
 		worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
 		worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
 		tessellator.draw()
-		
 	}
 	
 	fun drawBlockBox(
@@ -212,10 +165,13 @@ object RenderUtils {
 		phase: Boolean = true,
 		LineThickness: Float = 3f
 	) {
-		if (! outline && ! fill) throw IllegalArgumentException("outline and fill cannot both be false")
+		if (!outline && !fill) throw IllegalArgumentException("outline and fill cannot both be false")
 		
 		GlStateManager.pushMatrix()
-		preDraw()
+		GlStateManager.enableAlpha()
+		GlStateManager.enableBlend()
+		GlStateManager.disableTexture2D()
+		GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
 		
 		if (phase) {
 			glDisable(GL_DEPTH_TEST)
@@ -248,7 +204,8 @@ object RenderUtils {
 			glDepthMask(true)
 		}
 		
-		postDraw()
+		GlStateManager.disableBlend()
+		GlStateManager.enableTexture2D()
 		GlStateManager.popMatrix()
 	}
 	
@@ -287,21 +244,25 @@ object RenderUtils {
 		if (fill) drawFilledAABB(axisAlignedBB, color)
 		
 		glDepthMask(true)
+		glEnable(GL_TEXTURE_2D)
 		glPopAttrib()
 		glPopMatrix()
 	}
 	
 	fun drawBox(
-		x: Float, y: Float, z: Float,
+		x: Number, y: Number, z: Number,
 		color: Color,
 		outline: Boolean, fill: Boolean,
-		width: Float = 1f, height: Float = 1f,
-		phase: Boolean = true, LineThickness: Float = 3f
+		width: Number = 1f, height: Number = 1f,
+		phase: Boolean = true, LineThickness: Number = 3f
 	) {
 		if (!outline && !fill) throw IllegalArgumentException("outline and fill cannot both be false")
 		
 		GlStateManager.pushMatrix()
-		preDraw()
+		GlStateManager.enableAlpha()
+		GlStateManager.enableBlend()
+		GlStateManager.disableTexture2D()
+		GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
 		
 		if (phase) {
 			glDisable(GL_DEPTH_TEST)
@@ -309,12 +270,10 @@ object RenderUtils {
 		}
 		
 		val axisAlignedBB = AxisAlignedBB(
-			x.toDouble(),
-			y.toDouble(),
-			z.toDouble(),
-			(x + width).toDouble(),
-			(y + height).toDouble(),
-			(z + width).toDouble()
+			x.toDouble(), y.toDouble(), z.toDouble(),
+			x.toDouble() + width.toDouble(),
+			y.toDouble() + height.toDouble(),
+			z.toDouble() + width.toDouble()
 		)
 			.expand(0.0020000000949949026, 0.0020000000949949026, 0.0020000000949949026)
 			.offset(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ)
@@ -322,7 +281,7 @@ object RenderUtils {
 		if (fill) drawFilledAABB(axisAlignedBB, color)
 		
 		if (outline) {
-			glLineWidth(LineThickness)
+			glLineWidth(LineThickness.toFloat())
 			drawOutlinedAABB(axisAlignedBB, color)
 		}
 		
@@ -331,7 +290,8 @@ object RenderUtils {
 			glDepthMask(true)
 		}
 		
-		postDraw()
+		GlStateManager.disableBlend()
+		GlStateManager.enableTexture2D()
 		GlStateManager.popMatrix()
 	}
 	
@@ -339,7 +299,7 @@ object RenderUtils {
 		from: Vec3, to: Vec3,
 		color: Color,
 		outline: Boolean, fill: Boolean,
-		phase: Boolean = true, LineThickness: Float = 3f
+		phase: Boolean = true, LineThickness: Number = 3f
 	) {
 		drawBox(
 			from.xCoord.toFloat(), from.yCoord.toFloat(), from.zCoord.toFloat(),
@@ -355,46 +315,79 @@ object RenderUtils {
 		pos: Vec3,
 		color: Color,
 		scale: Float = 1f,
+		renderBlackBox: Boolean = true,
 		shadow: Boolean = true,
 		phase: Boolean = true
 	) {
-		val f1 = 0.0266666688
-		val width = mc.fontRendererObj.getStringWidth(text) / 2
-		GlStateManager.pushMatrix()
-		GlStateManager.translate(
-			pos.xCoord - renderManager.viewerPosX,
-			pos.yCoord - renderManager.viewerPosY,
-			pos.zCoord - renderManager.viewerPosZ
+		drawString(
+			text = text,
+			x = pos.xCoord,
+            y = pos.yCoord,
+            z = pos.zCoord,
+            color = color,
+			renderBlackBox = renderBlackBox,
+            scale = scale,
+			shadow = shadow,
+			phase = phase
 		)
+	}
+	
+	fun drawString(
+		 text: String,
+		 x: Number, y: Number, z: Number,
+		 color: Color,
+		 scale: Number = 1f,
+		 renderBlackBox: Boolean = false,
+		 shadow: Boolean = true,
+		 phase: Boolean = false
+	) {
+		 val formatedText = text.addColor()
+		 val isThirdPerson = mc.gameSettings.thirdPersonView == 2
 		
-		glNormal3f(0f, 1f, 0f)
+		 GlStateManager.color(1f, 1f, 1f, 0.5f)
+		 GlStateManager.pushMatrix()
+		 GlStateManager.translate(
+			 -renderManager.viewerPosX + x.toDouble(),
+			 -renderManager.viewerPosY + y.toDouble(),
+			 -renderManager.viewerPosZ + z.toDouble()
+		 )
+		 GlStateManager.rotate(-mc.renderManager.playerViewY, 0f, 1f, 0f)
+		 GlStateManager.rotate(mc.renderManager.playerViewX * if (isThirdPerson) -1 else 1, 1f, 0f, 0f)
+		 GlStateManager.scale(-scale.toDouble()/25, -scale.toDouble()/25, scale.toDouble()/25)
+		 GlStateManager.disableLighting()
+		 GlStateManager.depthMask(false)
 		
-		if (mc.gameSettings.thirdPersonView != 2) {
-			GlStateManager.rotate(- renderManager.playerViewY, 0f, 1f, 0f)
-			GlStateManager.rotate(renderManager.playerViewX, 1f, 0f, 0f)
-		}
-		else {
-			GlStateManager.rotate(- renderManager.playerViewY, 0f, 1f, 0f)
-			GlStateManager.rotate(renderManager.playerViewX, - 1f, 0f, 0f)
+		 if (phase) GlStateManager.disableDepth()
+		
+		 GlStateManager.enableBlend()
+		 GlStateManager.tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO)
+		
+		 val lines = formatedText.split("\n")
+		 val maxWidth = lines.maxOf { mc.fontRendererObj.getStringWidth(it) } / 2
+		
+		 if (renderBlackBox) {
+			 GlStateManager.disableTexture2D()
+			 worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION_COLOR)
+			 worldRenderer.pos(-maxWidth - 1.0, -1.0, 0.0).color(0, 0, 0, 64).endVertex()
+			 worldRenderer.pos(-maxWidth - 1.0, 9.0 * lines.size, 0.0).color(0, 0, 0, 64).endVertex()
+			 worldRenderer.pos(maxWidth + 1.0, 9.0 * lines.size, 0.0).color(0, 0, 0, 64).endVertex()
+			 worldRenderer.pos(maxWidth + 1.0, -1.0, 0.0).color(0, 0, 0, 64).endVertex()
+			 tessellator.draw()
+			 GlStateManager.enableTexture2D()
+		 }
+		
+		lines.forEachIndexed { i, line ->
+			mc.fontRendererObj.drawString(
+				line,
+				-mc.fontRendererObj.getStringWidth(line)/2f,
+				i * 9f,
+				color.rgb, shadow
+			)
 		}
 		
-		GlStateManager.scale(- f1, - f1, - f1)
-		GlStateManager.scale(scale, scale, scale)
-		GlStateManager.enableBlend()
-		GlStateManager.disableLighting()
-		if (phase) {
-			glDisable(GL_DEPTH_TEST)
-			glDepthMask(false)
-		}
-		
-		GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
-		GlStateManager.enableTexture2D()
-		mc.fontRendererObj.drawString(text, (- width).toFloat(), 0f, color.rgb, shadow)
-		GlStateManager.disableBlend()
-		if (phase) {
-			glEnable(GL_DEPTH_TEST)
-			glDepthMask(true)
-		}
+		GlStateManager.color(1f, 1f, 1f, 1f)
+		GlStateManager.depthMask(true)
+		GlStateManager.enableDepth()
 		GlStateManager.popMatrix()
 	}
 	
@@ -406,20 +399,12 @@ object RenderUtils {
 		GlStateManager.disableTexture2D()
 		GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
 		
-		val renderPosX = to.xCoord - renderManager.viewerPosX
-		val renderPosY = to.yCoord - renderManager.viewerPosY
-		val renderPosZ = to.zCoord - renderManager.viewerPosZ
-		
-		glLineWidth(LineWidth.toFloat())
-		glColor4f(
-			color.red / 255f,
-			color.green / 255f,
-			color.blue / 255f,
-			color.alpha / 255f
-		)
+		glTranslated(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ)
+		glLineWidth(LineWidth)
+		bindColor(color)
 		glBegin(GL_LINES)
 		glVertex3d(from.xCoord, from.yCoord, from.zCoord)
-		glVertex3d(renderPosX, renderPosY, renderPosZ)
+		glVertex3d(to.xCoord, to.yCoord, to.zCoord)
 		glEnd()
 		glLineWidth(1.0f)
 		
@@ -432,7 +417,7 @@ object RenderUtils {
 	}
 	
 	fun drawTracer(pos: Vec3, color: Color, lineWidth: Float = 3f) {
-		val player = mc.thePlayer
+		val player = Player!!
 		val playerVec3 = Vec3(
 			player.renderOffsetX + renderManager.viewerPosX,
 			player.renderOffsetY + player.getEyeHeight() + renderManager.viewerPosY,
@@ -450,13 +435,9 @@ object RenderUtils {
 		glPushMatrix()
 		glDisable(GL_TEXTURE_2D)
 		glEnable(GL_LINE_SMOOTH)
-		glLineWidth(lineWidth.toFloat())
+		glLineWidth(lineWidth)
 		
-		glColor3f(
-			color.red / 255.0f,
-			color.green / 255.0f,
-			color.blue / 255.0f
-		)
+		bindColor(color, 255)
 		
 		glBegin(GL_LINES)
 		glVertex3f(startX, startY, startZ)
@@ -470,13 +451,15 @@ object RenderUtils {
 	
 	fun drawText(text: String, x: Float, y: Float, scale: Float = 1f, color: Color = Color.WHITE) {
 		GlStateManager.pushMatrix()
+		GlStateManager.enableBlend()
+		GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
 		GlStateManager.scale(scale, scale, 1f)
 		
 		var yOffset = y
 		val formattedText = text.addColor()
 		if (formattedText.contains("\n")) {
 			formattedText.split("\n").forEach {
-				yOffset += (mc.fontRendererObj.FONT_HEIGHT * scale).toInt()
+				yOffset += mc.fontRendererObj.FONT_HEIGHT * scale
 				mc.fontRendererObj.drawStringWithShadow(
 					it,
 					x / scale,
@@ -489,71 +472,85 @@ object RenderUtils {
 			mc.fontRendererObj.drawStringWithShadow(
 				formattedText,
 				x / scale,
-				y / scale,
+				yOffset / scale,
 				color.rgb
 			)
 		}
+		
+		GlStateManager.disableBlend()
 		GlStateManager.popMatrix()
 	}
 	
-	fun drawCenteredText(text: String, x: Float, y: Float, scale: Float = 1f, color: Color = Color.WHITE) {
-		drawText(text, x - (mc.fontRendererObj.getStringWidth(text.addColor().removeFormatting())*scale/2), y, scale, color)
+	fun drawCenteredText(text: String, x: Number, y: Number, scale: Number = 1f, color: Color = Color.WHITE) {
+		drawText(
+			text,
+			x.toFloat() - (mc.fontRendererObj.getStringWidth(text.removeFormatting()) * scale.toFloat() / 2),
+			y.toFloat(),
+			scale.toFloat(),
+			color
+		)
 	}
+	
 	
 	fun drawChromaWaveText(
 		text: String,
 		x: Float, y: Float,
 		scale: Float = 1f,
-		waveSpeed: Float = 4000f,
-		chromaWidth: Float = 30f
+		waveSpeed: Float = 4f,
 	) {
-		val time = System.currentTimeMillis() / waveSpeed
-		
-		GlStateManager.pushMatrix()
-		GlStateManager.scale(scale, scale, scale)
-		
-		val String = text.addColor()
+		val string = text.removeFormatting()
+		val time = System.currentTimeMillis()
+		val chromaWidth = mc.fontRendererObj.getStringWidth(string)
+		val speed = waveSpeed*1000.0
 		var xPos = x
 		
 		
-		for (i in String.indices) {
+		for (i in string.indices) {
 			val charWidth = mc.fontRendererObj.getCharWidth(text[i])
 			
-			val hue = ((time + i / chromaWidth) % 1f)
-			val color = Color.getHSBColor(hue, 1.0f, 1.0f)
+			val waveOffset = i.toFloat() / chromaWidth
+			val hue = ((time % speed) / speed + waveOffset) % 1f
 			
-			mc.fontRendererObj.drawStringWithShadow(
+			val waveHue = (hue + (sin(waveOffset * Math.PI) * 0.1f)).toFloat() % 1f
+			
+			val startColor = Color.getHSBColor(waveHue, 1.0f, 1.0f)
+			//val endColor = Color.getHSBColor((waveHue + 0.1f) % 1f, 1.0f, 1.0f)
+			
+			drawText(
 				text[i].toString(),
-				xPos / scale,
-				y / scale,
-				color.rgb
+				xPos, y,
+				scale,
+				startColor
 			)
 			
-			xPos += charWidth * scale
+			xPos += charWidth * scale.toInt()
 		}
-		
-		GlStateManager.popMatrix()
 	}
 	
 	fun drawCenteredChromaWaveText(
 		text: String,
 		x: Float, y: Float,
 		scale: Float = 1f,
-		waveSpeed: Float = 4000f,
-		chromaWidth: Float = 30f
+		waveSpeed: Float = 4f
 	) {
 		drawChromaWaveText(
 			text,
-			x - (mc.fontRendererObj.getStringWidth(text.addColor().removeFormatting())*scale/2),
-			y, scale, waveSpeed, chromaWidth
+			x - (mc.fontRendererObj.getStringWidth(text.removeFormatting())*scale/2),
+			y, scale, waveSpeed
 		)
 	}
 	
 	fun renderItem(itemStack: ItemStack?, x: Int, y: Int) {
-		RenderHelper.enableGUIStandardItemLighting()
-		GlStateManager.enableDepth()
-		mc.renderItem.renderItemAndEffectIntoGUI(itemStack, x, y)
+		RenderHelper.enableGUIStandardItemLighting();
+		GlStateManager.enableRescaleNormal();
+		GlStateManager.enableBlend();
+		GlStateManager.enableDepth();
+		GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+		mc.renderItem.renderItemAndEffectIntoGUI(itemStack, x, y);
 	}
+	
+	
+	
 	
 	fun renderTexture(texture: ResourceLocation?, x: Int, y: Int, w: Int, h: Int) {
 		GlStateManager.pushMatrix()
@@ -592,25 +589,20 @@ object RenderUtils {
 		color: Color,
 		phase: Boolean, linemode: Boolean
 	) {
-		val player = mc.thePlayer
+		val player = Player!!
 		
 		val renderX = BlockPos.x - player.getRenderX()
 		val renderY = BlockPos.y - player.getRenderY()
 		val renderZ = BlockPos.z - player.getRenderZ()
 		
 		GlStateManager.pushMatrix()
-		glLineWidth(2.0f)
+		glLineWidth(2f)
 		GlStateManager.disableCull()
 		GlStateManager.enableBlend()
 		GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 		GlStateManager.depthMask(false)
 		GlStateManager.disableTexture2D()
-		GlStateManager.color(
-			color.red / 255f,
-			color.green / 255f,
-			color.blue / 255f,
-			color.alpha / 255f
-		)
+		bindColor(color)
 		GlStateManager.translate(renderX, renderY, renderZ)
 		GlStateManager.rotate(rot1, 1.0f, 0.0f, 0.0f)
 		GlStateManager.rotate(rot2, 0.0f, 0.0f, 1.0f)
@@ -629,13 +621,13 @@ object RenderUtils {
 		GlStateManager.popMatrix()
 	}
 	
-	fun drawRoundedRect(color: Color, x: Float, y: Float, width: Float, height: Float, radius: Float = 5f) {
+	fun drawRoundedRect(color: Color, x: Number, y: Number, width: Number, height: Number, radius: Number = 5f) {
 		drawRoundedRectangle(
 			UMatrixStack(),
-			x, y,
-			(x + width),
-			(y + height),
-			radius,
+			x.toFloat(), y.toFloat(),
+			x.toFloat() + width.toFloat(),
+			y.toFloat() + height.toFloat(),
+			radius.toFloat(),
 			color
 		)
 	}
@@ -645,7 +637,6 @@ object RenderUtils {
 	) {
 		GlStateManager.pushMatrix()
 		GlStateManager.disableLighting()
-		GlStateManager.enableTexture2D()
 		GlStateManager.enableBlend()
 		GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 		GlStateManager.translate(x + width / 2, y + height / 2, 0f)
@@ -684,7 +675,6 @@ object RenderUtils {
 		GlStateManager.enableLighting()
 		GlStateManager.popMatrix()
 	}
-	
 	
 	fun drawLine(color: Color, x1: Float, y1: Float, x2: Float, y2: Float, thickness: Float) {
 		val theta = - atan2(y2 - y1, x2 - x1)
@@ -729,12 +719,7 @@ object RenderUtils {
 		GlStateManager.pushMatrix()
 		GlStateManager.disableLighting()
 		GlStateManager.disableTexture2D()
-		glColor4f(
-			color.red / 255f,
-			color.green / 255f,
-			color.blue / 255f,
-			color.alpha / 255f
-		)
+		bindColor(color)
 		
 		glLineWidth(thickness)
 		glBegin(GL_LINE_LOOP)
@@ -780,12 +765,12 @@ object RenderUtils {
 		glDisable(GL_TEXTURE_2D)
 		glBegin(GL_TRIANGLE_FAN)
 		
-		glColor4f(color.red /255f, color.green /255f, color.blue /255f, color.alpha/255f)
+		bindColor(color)
 		glVertex2f(x, y)
 		
 		var h1 = h.toFloat()
 		while (h1 <= j) {
-			glColor4f(color.red /255f, color.green /255f, color.blue /255f, color.alpha/255f)
+			bindColor(color)
 			glVertex2f(
 				(r * cos(Math.PI * h1 / 180) + x).toFloat(),
 				(r * sin(Math.PI * h1 / 180) + y).toFloat()

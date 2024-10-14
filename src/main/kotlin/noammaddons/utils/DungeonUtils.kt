@@ -1,17 +1,19 @@
 package noammaddons.utils
 
-import noammaddons.noammaddons.Companion.config
-import noammaddons.noammaddons.Companion.mc
-import noammaddons.utils.LocationUtils.inDungeons
-import noammaddons.utils.TablistUtils.getTabList
-import noammaddons.utils.ChatUtils.removeFormatting
 import net.minecraft.client.network.NetworkPlayerInfo
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent
+import noammaddons.events.Tick
+import noammaddons.noammaddons.Companion.config
+import noammaddons.noammaddons.Companion.mc
+import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.LocationUtils.inDungeons
+import noammaddons.utils.PlayerUtils.Player
+import noammaddons.utils.TablistUtils.getTabList
 import java.awt.Color
+
 
 // Big Thanks to Odin for Having their code available.
 // https://github.com/Noamm9/OdinClient/blob/main/odinmain/src/main/kotlin/me/odinmain/utils/skyblock/dungeon/DungeonUtils.kt
@@ -66,13 +68,13 @@ object DungeonUtils {
 
 
     private val tablistRegex = Regex("^\\[(\\d+)] (?:\\[\\w+] )*(\\w+) .*?\\((\\w+)(?: (\\w+))*\\)$")
-
-    private fun getDungeonTeammates(previousTeammates: List<DungeonPlayer>): List<DungeonPlayer> {
+	
+	private fun getDungeonTeammates(previousTeammates: List<DungeonPlayer>): List<DungeonPlayer> {
         if (config.DevMode) return listOf(
-            DungeonPlayer("Deitee__", Classes.Mage, entity = mc.thePlayer),
-            DungeonPlayer("Noamm9", Classes.Archer),
-            DungeonPlayer("hellop2", Classes.Healer),
-            DungeonPlayer("Ori", Classes.Tank),
+	        DungeonPlayer("Deitee__", Classes.Mage, entity = Player),
+	        DungeonPlayer("Noamm9", Classes.Archer),
+	        DungeonPlayer("hellop2", Classes.Healer),
+	        DungeonPlayer("Ori", Classes.Tank),
         )
 
         val teammates = mutableListOf<DungeonPlayer>()
@@ -80,7 +82,7 @@ object DungeonUtils {
 
         for ((networkPlayerInfo, line) in tabList) {
 
-            val (_, sbLevel, name, clazz, clazzLevel) = tablistRegex.find(line.removeFormatting())?.groupValues ?: continue
+            val (_, _, name, clazz, _) = tablistRegex.find(line.removeFormatting())?.groupValues ?: continue
 
             addTeammate(name, clazz, teammates, networkPlayerInfo)
             if (clazz == "DEAD" || clazz == "EMPTY") {
@@ -99,20 +101,22 @@ object DungeonUtils {
 
     private var tickCount = 0
     @SubscribeEvent
-    fun UpdateValues(event: TickEvent.ClientTickEvent) {
-        if (event.phase != TickEvent.Phase.START || mc.theWorld == null || !inDungeons) return
+    @Suppress("UNUSED_PARAMETER")
+    fun UpdateValues(event: Tick) {
+        if (mc.theWorld == null || !inDungeons) return
         tickCount++
         if (tickCount % 20 != 0) return
 
         dungeonTeammates = getDungeonTeammates(dungeonTeammates)
-        dungeonTeammatesNoSelf = dungeonTeammates.filter { it.entity != mc.thePlayer }
-	    thePlayer = dungeonTeammates.find { it.entity == mc.thePlayer }
+        dungeonTeammatesNoSelf = dungeonTeammates.filter { it.entity != Player }
+	    thePlayer = dungeonTeammates.find { it.entity == Player }
         leapTeammates = dungeonTeammatesNoSelf.sortedBy { it.clazz }.toMutableList()
 
         tickCount = 0
     }
 
     @SubscribeEvent
+    @Suppress("UNUSED_PARAMETER")
     fun reset(event: WorldEvent.Unload) {
         dungeonTeammates = emptyList()
         dungeonTeammatesNoSelf = emptyList()

@@ -1,32 +1,38 @@
 package noammaddons.events
 
 import noammaddons.noammaddons.Companion.mc
-import noammaddons.utils.ThreadUtils.setTimeout
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.item.ItemStack
 import net.minecraft.network.play.server.S02PacketChat
 import net.minecraft.network.play.server.S2DPacketOpenWindow
 import net.minecraft.network.play.server.S2FPacketSetSlot
+import net.minecraft.network.play.server.S32PacketConfirmTransaction
 import net.minecraftforge.client.event.RenderGameOverlayEvent
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.eventhandler.Event
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
+import noammaddons.utils.Utils.isNull
 
 
 object RegisterEvents {
 	private fun PostEvent(event: Event) = MinecraftForge.EVENT_BUS.post(event)
 	
-	
+	@SubscribeEvent
+	fun onTick(event: ClientTickEvent) {
+		if (event.phase != TickEvent.Phase.START) return
+		if (mc.theWorld.isNull() || mc.thePlayer.isNull()) return
+ 		PostEvent(Tick())
+	}
 	
 	@SubscribeEvent
+	@Suppress("UNUSED_PARAMETER")
 	fun onRenderOverlay(event: RenderGameOverlayEvent.Text) {
-	//	if (event.type != RenderGameOverlayEvent.ElementType.HOTBAR) return
 		if (mc.renderManager?.fontRenderer == null) return
 		
 		GlStateManager.pushMatrix()
-		GlStateManager.disableLighting()
-		GlStateManager.resetColor()
 		GlStateManager.translate(0f, 0f, -3f)
 		PostEvent(RenderOverlay())
 		GlStateManager.translate(0f, 0f, 3f)
@@ -89,6 +95,10 @@ object RegisterEvents {
 				}
 			}
 		}
+		
+		if (packet is S32PacketConfirmTransaction) {
+			PostEvent(ServerTick())
+        }
 	}
 	
 	

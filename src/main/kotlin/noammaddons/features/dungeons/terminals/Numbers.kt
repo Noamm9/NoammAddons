@@ -9,7 +9,6 @@ import noammaddons.features.dungeons.terminals.ConstantsVeriables.Slot
 import noammaddons.features.dungeons.terminals.ConstantsVeriables.getColorMode
 import noammaddons.features.dungeons.terminals.ConstantsVeriables.getSolutionColor
 import noammaddons.features.dungeons.terminals.ConstantsVeriables.getTermScale
-import noammaddons.sounds.AYAYA
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.getMouseX
 import noammaddons.utils.GuiUtils.getMouseY
@@ -28,7 +27,9 @@ import net.minecraft.network.play.server.S2EPacketCloseWindow
 import net.minecraft.network.play.server.S2FPacketSetSlot
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.utils.PlayerUtils.Player
 import noammaddons.utils.RenderUtils.drawText
+import noammaddons.utils.SoundUtils.ayaya
 import java.awt.Color
 import kotlin.math.floor
 
@@ -136,7 +137,7 @@ object Numbers {
 
             repeat(index) { solverColor = solverColor.brighter().brighter() }
 
-            val stackSize = mc.thePlayer?.openContainer?.getSlot(i)?.stack?.stackSize ?: continue
+            val stackSize = Player?.openContainer?.getSlot(i)?.stack?.stackSize ?: continue
             mc.fontRendererObj.drawStringWithShadow(
                 stackSize.toString(),
                 ((currentOffsetX + 8) - mc.fontRendererObj.getStringWidth(stackSize.toString())/2).toFloat(),
@@ -234,7 +235,7 @@ object Numbers {
         if (event.packet !is S2EPacketCloseWindow) return
         if (!inTerminal) return
         reset()
-        AYAYA.play()
+	    ayaya.start()
     }
 
     @SubscribeEvent

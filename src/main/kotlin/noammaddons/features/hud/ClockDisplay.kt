@@ -1,5 +1,6 @@
 package noammaddons.features.hud
 
+import net.minecraft.client.renderer.GlStateManager
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.hudData
 import noammaddons.config.EditGui.HudElement
@@ -19,9 +20,13 @@ object ClockDisplay {
     fun draw(event: RenderOverlay) {
         if (!config.ClockDisplay) return
 
+	    GlStateManager.pushMatrix()
+	    
         ClockDisplay
         .setText(LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")))
         .setColor(config.ClockDisplayColor)
         .draw()
+	    
+	    GlStateManager.popMatrix()
     }
 }

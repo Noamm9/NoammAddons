@@ -10,9 +10,13 @@ import gg.essential.api.EssentialAPI
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.gui.inventory.GuiChest
+import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.inventory.ContainerChest
+import net.minecraft.inventory.Slot
 import net.minecraft.network.play.client.C0EPacketClickWindow
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.mixins.AccessorGuiContainer
+import noammaddons.utils.PlayerUtils.Player
 import org.lwjgl.input.Mouse
 
 
@@ -21,11 +25,11 @@ object GuiUtils {
     var currentChestName: String = ""
 
     @SubscribeEvent
+    @Suppress("UNUSED_PARAMETER")
     fun onPacketReceived(event: PacketEvent.Received) {
         currentChestName = getCurrentOpenContainerName()
     }
-
-
+	
     fun clickSlot(slot: Int, shift: Boolean = false, click: Any = "LEFT") {
          val clickString = click.toString().removeFormatting().toLowerCase()
          var clickType = 1
@@ -35,11 +39,11 @@ object GuiUtils {
 
 
         mc.playerController.windowClick(
-            mc.thePlayer.openContainer.windowId,
-            slot,
-            clickType,
-            if (shift) 1 else 0,
-            mc.thePlayer
+	        Player!!.openContainer.windowId,
+	        slot,
+	        clickType,
+	        if (shift) 1 else 0,
+	        Player!!
         )
         return
     }
@@ -52,15 +56,15 @@ object GuiUtils {
      * @param clickType 0 - Normal click,  1 - Shift-click,  2 - Pick block,  3 - Middle-click
 
      */
-    fun sendClickWindowPacket(slotId: Int, mouseButton: Int, clickType: Int) {
+    fun sendWindowClickPacket(slotId: Int, mouseButton: Int, clickType: Int) {
         mc.netHandler.addToSendQueue(
             C0EPacketClickWindow(
-                mc.thePlayer.openContainer.windowId,
+	            Player!!.openContainer.windowId,
                 slotId,
                 mouseButton,
                 clickType,
-                mc.thePlayer.openContainer.inventory[slotId],
-                (mc.thePlayer.openContainer as AccessorContainer).transactionID
+	            Player!!.openContainer.inventory[slotId],
+                (Player!!.openContainer as AccessorContainer).transactionID
             )
         )
     }
@@ -127,7 +131,7 @@ object GuiUtils {
             if (chestContainer is ContainerChest) {
                 val chestInventory = chestContainer.lowerChestInventory
 
-                return chestInventory.displayName.unformattedText
+                return chestInventory.displayName.formattedText
             }
         }
         return ""
@@ -136,4 +140,21 @@ object GuiUtils {
     fun openScreen(screen: GuiScreen?) {
         EssentialAPI.getGuiUtil().openScreen(screen)
     }
+	
+	fun getSlotFromIndex(slotIndex: Int): Slot {
+		return (mc.currentScreen as GuiContainer).inventorySlots.inventorySlots[slotIndex]
+	}
+	
+	fun getSlotRenderPos(slotIndex: Int): Pair<Float, Float> {
+		val gui = (mc.currentScreen as AccessorGuiContainer)
+		val slot = getSlotFromIndex(slotIndex)
+		val x = gui.guiLeft + slot.xDisplayPosition
+		val y = gui.guiTop + slot.yDisplayPosition
+		return Pair(x.toFloat(), y.toFloat())
+	}
+	
+	fun getSlotCenter(slotIndex: Int): Pair<Float, Float> {
+		val (x, y) = getSlotRenderPos(slotIndex)
+		return Pair(x + 8, y + 8)
+	}
 }

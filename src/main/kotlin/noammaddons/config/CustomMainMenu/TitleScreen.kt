@@ -8,10 +8,10 @@ import net.minecraft.util.ResourceLocation
 import noammaddons.config.Config
 import noammaddons.noammaddons.Companion.FULL_PREFIX
 import noammaddons.noammaddons.Companion.MOD_ID
-import noammaddons.sounds.click
 import noammaddons.utils.GuiUtils.openScreen
 import noammaddons.utils.RenderUtils.drawCenteredText
 import noammaddons.utils.RenderUtils.renderTexture
+import noammaddons.utils.SoundUtils.click
 
 
 class TitleScreen: GuiScreen() {
@@ -66,7 +66,7 @@ class TitleScreen: GuiScreen() {
 	override fun mouseClicked(mouseX: Int, mouseY: Int, mouseButton: Int) {
 		for (textButton in textButtons) {
 			if (textButton.isHovered(mouseX, mouseY)) {
-				click.play()
+				click.start()
 				when (textButton.text) {
 					"Singleplayer" -> mc.displayGuiScreen(GuiSelectWorld(this))
 					"Multiplayer" -> mc.displayGuiScreen(GuiMultiplayer(this))
@@ -77,7 +77,7 @@ class TitleScreen: GuiScreen() {
 		
 		for (iconButton in iconButtons) {
 			if (iconButton.isHovered(mouseX, mouseY)) {
-				click.play()
+				click.start()
 				when (iconButton.icon) {
 					"X" -> mc.shutdown()
 					"logo" -> openScreen(Config.gui())

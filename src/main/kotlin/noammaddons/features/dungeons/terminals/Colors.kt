@@ -9,7 +9,6 @@ import noammaddons.features.dungeons.terminals.ConstantsVeriables.Slot
 import noammaddons.features.dungeons.terminals.ConstantsVeriables.getColorMode
 import noammaddons.features.dungeons.terminals.ConstantsVeriables.getSolutionColor
 import noammaddons.features.dungeons.terminals.ConstantsVeriables.getTermScale
-import noammaddons.sounds.AYAYA
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.getMouseX
 import noammaddons.utils.GuiUtils.getMouseY
@@ -29,6 +28,7 @@ import net.minecraft.network.play.server.S2FPacketSetSlot
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.utils.RenderUtils.drawText
+import noammaddons.utils.SoundUtils.ayaya
 import kotlin.math.floor
 
 object Colors {
@@ -247,7 +247,7 @@ object Colors {
         if (event.packet !is S2EPacketCloseWindow) return
         if (!inTerminal) return
         reset()
-        AYAYA.play()
+	    ayaya.start()
     }
 
     @SubscribeEvent

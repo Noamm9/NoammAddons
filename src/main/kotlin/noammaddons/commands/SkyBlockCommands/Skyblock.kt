@@ -3,6 +3,7 @@ package noammaddons.commands.SkyBlockCommands
 import noammaddons.noammaddons.Companion.mc
 import net.minecraft.command.CommandBase
 import net.minecraft.command.ICommandSender
+import noammaddons.utils.ChatUtils.sendChatMessage
 
 
 class Skyblock: CommandBase() {
@@ -19,6 +20,6 @@ class Skyblock: CommandBase() {
     }
 
     override fun processCommand(sender: ICommandSender?, args: Array<out String>) {
-        mc.thePlayer.sendChatMessage("/play sb")
+	    sendChatMessage("/play sb")
     }
 }

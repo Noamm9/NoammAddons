@@ -8,8 +8,12 @@ import noammaddons.utils.ThreadUtils.runEvery
 import net.minecraft.network.play.server.S02PacketChat
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.events.Actionbar
+import noammaddons.utils.PlayerUtils.Player
 import java.util.regex.Matcher
 import java.util.regex.Pattern
+import kotlin.math.floor
+import kotlin.math.roundToInt
 
 
 /**
@@ -38,8 +42,9 @@ import java.util.regex.Pattern
  */
 
 object ActionBarParser {
-    private const val REGEX: String = "((?<health>[0-9,.]+)\\/(?<maxHealth>[0-9,.]+)❤(?<wand>\\+(?<wandHeal>[0-9,.]+)[▆▅▄▃▂▁])?)|((?<currentDefense>[0-9,.]+)❈ Defense(?<other>( (?<align>\\|\\|\\|))?( {2}(?<Term>T[0-9,.]+!?))?.*)?)"
-    private const val ManaRegex: String = """((?<num>[0-9,.]+)\/(?<den>[0-9,.]+)✎ (Mana|(?<overflowMana>-?[0-9,.]+)ʬ))"""
+    private const val REGEX: String = "((?<health>[0-9,.]+)/(?<maxHealth>[0-9,.]+)❤(?<wand>\\+(?<wandHeal>[0-9,.]+)[▆▅▄▃▂▁])?)|((?<currentDefense>[0-9,.]+)❈ Defense(?<other>( (?<align>\\|\\|\\|))?( {2}(?<Term>T[0-9,.]+!?))?.*)?)"
+    private const val ManaRegex: String = """((?<num>[0-9,.]+)/(?<den>[0-9,.]+)✎ (Mana|(?<overflowMana>-?[0-9,.]+)ʬ))"""
+	val currentSpeed get() = (Player!!.capabilities.walkSpeed * 1000).roundToInt()
     var currentHealth = 0
     var maxHealth = 0
     var wand: String? = null
@@ -48,30 +53,20 @@ object ActionBarParser {
     var maxMana: Int = 0
     var overflowMana: Int = 0
     var effectiveHP: Int = 0
-    var currentSpeed: Int = 0
+	
+	
+	
+	@SubscribeEvent(priority = EventPriority.HIGHEST)
+    fun onActionBarPacket(event: Actionbar) {
+		val msg = event.component.unformattedText.removeFormatting()
 
+	    extractPlayerStats(msg)
+	    extractPlayerManaStats(msg)
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    fun onActionBarPacket(event: PacketEvent.Received) {
-        if (event.packet is S02PacketChat && event.packet.type == 2.toByte()) {
-            val msg = event.packet.chatComponent.unformattedText.removeFormatting()
-
-            extractPlayerStats(msg)
-            extractPlayerManaStats(msg)
-
-            effectiveHP = (currentHealth * (1 + currentDefense / 100))
-        }
+	    effectiveHP = (currentHealth * (1 + currentDefense / 100))
+     
     }
-
-    @Suppress("unused")
-    val ScoreBoardChecker = runEvery(1000) {
-        if (inSkyblock) {
-            for ((_, line) in getTabList) {
-                currentSpeed = Regex(" Speed: ✦(\\d+)").find(line.removeFormatting())?.destructured?.component1()?.toIntOrNull() ?: continue
-            }
-        }
-    }
-
+	
     private fun extractPlayerStats(input: CharSequence) {
         val pattern = Pattern.compile(REGEX)
         val matcher: Matcher = pattern.matcher(input)

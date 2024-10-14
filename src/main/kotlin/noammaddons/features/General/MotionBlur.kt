@@ -11,7 +11,9 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.noammaddons.Companion.config
 import org.lwjgl.opengl.GL11
 
-
+/*
+ * Copyright (c) 2022 Moulberry
+ */
 object Motionblur {
 	private var blurBufferMain: Framebuffer? = null
 	private var blurBufferInto: Framebuffer? = null

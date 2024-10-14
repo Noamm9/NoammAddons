@@ -11,6 +11,9 @@ import noammaddons.utils.ItemUtils.lore
 import noammaddons.utils.RenderUtils
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.utils.ChatUtils.equalsOneOf
+import noammaddons.utils.LocationUtils
+import noammaddons.utils.LocationUtils.WorldName
 
 
 // inspired by Doc's Party Finder Overlay
@@ -25,7 +28,8 @@ object PartyFinderOverlay {
 	@SubscribeEvent
 	fun guiRender(event: GuiContainerEvent.DrawSlotEvent) {
 		if (!config.PartyFinderOverlay) return
-		if (GuiUtils.currentChestName != "Party Finder") return
+		if (GuiUtils.currentChestName.removeFormatting() != "Party Finder") return
+		if (!WorldName.equalsOneOf("Hub", "Dungeon Hub")) return
 		
 		val item = event.slot.stack
 		val (x, y) = event.slot.xDisplayPosition.toDouble() to event.slot.yDisplayPosition.toDouble()
@@ -48,13 +52,16 @@ object PartyFinderOverlay {
 		
 		
 		val missingClasses = classNames
-			.filter { name -> classes.indexOf(name.addColor().removeFormatting()) == -1 }
+			.filter { name -> classes.indexOf(name.removeFormatting()) == -1 }
 			.map { it.take(5) }
 		
 		val missingOffsetY = if (missingClasses.size >= 3) mc.fontRendererObj.FONT_HEIGHT * 2 else mc.fontRendererObj.FONT_HEIGHT
 		val missingStr = missingClasses.take(2).joinToString("")
 		val p2 = missingClasses.drop(2).take(2).joinToString("")
-		val missing = "$missingStr\n$p2"
+		val missing = """
+			$missingStr
+			$p2
+			""".trimIndent()
 		
 		GlStateManager.pushMatrix()
 		GlStateManager.translate(x, y, 300.0)

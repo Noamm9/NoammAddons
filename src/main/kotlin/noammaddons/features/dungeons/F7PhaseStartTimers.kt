@@ -8,8 +8,10 @@ import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.RenderUtils.getHeight
 import noammaddons.utils.RenderUtils.getWidth
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.utils.LocationUtils.dungeonFloor
+import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.RenderUtils.drawCenteredText
-import kotlin.math.roundToInt
+
 
 object F7PhaseStartTimers {
     private val startMessages = listOf(
@@ -19,10 +21,10 @@ object F7PhaseStartTimers {
         "[BOSS] Necron: I'm afraid, your journey ends now."
     )
     private var startTime = System.currentTimeMillis()
-    private var msTime = 0
-
-
-    @SubscribeEvent
+	private var msTime = 1L
+	
+	
+	@SubscribeEvent
     fun onPhaseStart(event: Chat) {
         if (!config.F7M7PhaseStartTimers) return
         val msg = event.component.unformattedText.removeFormatting()
@@ -51,9 +53,12 @@ object F7PhaseStartTimers {
     }
 
     @SubscribeEvent
+    @Suppress("UNUSED_PARAMETER")
     fun onRender(event: RenderOverlay) {
         if (!config.F7M7PhaseStartTimers) return
-        val timeLeft = (msTime - (System.currentTimeMillis() - startTime)).toFloat().roundToInt()
+	    if (!inBoss) return
+	    if (dungeonFloor != 7) return
+        val timeLeft = (msTime - (System.currentTimeMillis() - startTime)).toInt()
         if (timeLeft < 0) return
 	    
         drawCenteredText(

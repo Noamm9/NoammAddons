@@ -3,13 +3,14 @@ package noammaddons.features.General
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.ClickEvent
 import noammaddons.noammaddons.Companion.config
-import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ItemUtils.isHoldingEtherwarpItem
-import noammaddons.utils.PlayerUtils.RightClickMouse
+import noammaddons.utils.PlayerUtils.Player
+import noammaddons.utils.PlayerUtils.rightClick
 
 
 object LeftClickEtherwarp {
     @SubscribeEvent
+    @Suppress("UNUSED_PARAMETER")
     fun onLeftClick(event: ClickEvent.LeftClickEvent) {
         if (!config.LeftClickEtherwarp || !isHoldingEtherwarpItem()) return
 
@@ -21,8 +22,8 @@ object LeftClickEtherwarp {
             }, 100)
         }
         else */
-        if (mc.thePlayer.isSneaking) {
-			RightClickMouse()
+        if (Player!!.isSneaking) {
+	        rightClick()
         }
     }
 

@@ -1,36 +1,35 @@
 package noammaddons.features.dungeons
 
-import noammaddons.noammaddons.Companion.mc
-import noammaddons.noammaddons.Companion.config
-import noammaddons.noammaddons.Companion.CHAT_PREFIX
-import noammaddons.noammaddons.Companion.FULL_PREFIX
-import noammaddons.mixins.AccessorKeybinding
-import noammaddons.sounds.notificationsound
-import noammaddons.events.PacketEvent
-import noammaddons.events.Chat
-import noammaddons.utils.GuiUtils
-import noammaddons.utils.PlayerUtils
-import noammaddons.utils.ThreadUtils.setTimeout
-import noammaddons.utils.ItemUtils.getItemId
-import noammaddons.utils.ItemUtils.getItemIndexInHotbar
-import noammaddons.utils.ChatUtils
-import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.ChatUtils.equalsOneOf
-import noammaddons.utils.BlockUtils.getBlockAt
-import noammaddons.utils.BlockUtils.getBlockId
-import noammaddons.utils.BlockUtils.toVec3
-import noammaddons.utils.DungeonUtils.leapTeammates
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.util.BlockPos
-import net.minecraft.network.play.server.S32PacketConfirmTransaction
 import net.minecraft.util.Vec3
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent
+import noammaddons.events.Chat
+import noammaddons.events.ServerTick
+import noammaddons.events.Tick
+import noammaddons.noammaddons.Companion.CHAT_PREFIX
+import noammaddons.noammaddons.Companion.FULL_PREFIX
+import noammaddons.noammaddons.Companion.config
+import noammaddons.noammaddons.Companion.mc
+import noammaddons.utils.BlockUtils.getBlockAt
+import noammaddons.utils.BlockUtils.getBlockId
+import noammaddons.utils.BlockUtils.toVec3
+import noammaddons.utils.ChatUtils
+import noammaddons.utils.ChatUtils.equalsOneOf
+import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.DungeonUtils.leapTeammates
+import noammaddons.utils.GuiUtils
+import noammaddons.utils.ItemUtils.getItemId
+import noammaddons.utils.ItemUtils.getItemIndexInHotbar
 import noammaddons.utils.ItemUtils.isNothing
+import noammaddons.utils.PlayerUtils
+import noammaddons.utils.PlayerUtils.Player
+import noammaddons.utils.SoundUtils.notificationSound
+import noammaddons.utils.ThreadUtils.setTimeout
 import java.util.*
 import kotlin.math.ceil
 
@@ -50,7 +49,7 @@ object AutoI4 {
 	)
 
     private fun isOnDev(): Boolean {
-        val player = mc.thePlayer ?: return false
+        val player = Player ?: return false
         return player.posY == 127.0 && player.posX in 62.0..65.0 && player.posZ in 34.0..37.0
     }
 	
@@ -61,11 +60,10 @@ object AutoI4 {
 	
 	
     @SubscribeEvent
-    fun onTick(event: TickEvent.ClientTickEvent) {
+    @Suppress("UNUSED_PARAMETER")
+    fun onTick(event: Tick) {
         if (!config.autoI4) return
-        if (event.phase != TickEvent.Phase.START) return
-        val player = mc.thePlayer ?: return
-        if (player.heldItem?.getItemId() != 261) return
+        if (Player?.heldItem?.getItemId() != 261) return
         if (!isOnDev()) {
             synchronized(doneCoords) {
                 if (doneCoords.size > 1) PlayerUtils.holdClick(false)
@@ -83,7 +81,7 @@ object AutoI4 {
         if (possible.isEmpty()) return
 
         val emeraldLocation = possible.find {
-            mc.theWorld.getBlockAt(it)?.getBlockId() == 133
+            mc.theWorld.getBlockAt(it).getBlockId() == 133
         } ?: return
 
         synchronized(doneCoords) {
@@ -108,7 +106,7 @@ object AutoI4 {
         setTimeout(350) {
             if (!shouldPredict) return@setTimeout
 
-            val blockId = mc.theWorld.getBlockAt(emeraldLocation)?.getBlockId()
+            val blockId = mc.theWorld.getBlockAt(emeraldLocation).getBlockId()
             if (blockId != 133 || wait) return@setTimeout
             
 
@@ -159,10 +157,10 @@ object AutoI4 {
 
 
     @SubscribeEvent
+    @Suppress("UNUSED_PARAMETER")
     @OptIn(DelicateCoroutinesApi::class)
-    fun onServerTickReceived(event: PacketEvent.Received) {
+    fun onServerTickReceived(event: ServerTick) {
 	    if (!config.autoI4) return
-        if (event.packet !is S32PacketConfirmTransaction) return
         if (tickTimer == -1) return
         tickTimer++
 	    
@@ -192,7 +190,7 @@ object AutoI4 {
             tickTimer = -1
 
             ChatUtils.sendChatMessage("/pc ${CHAT_PREFIX.removeFormatting()} I4 Done!")
-	        notificationsound.play()
+	        notificationSound.start()
 
             if (rightClickKey.isKeyDown) PlayerUtils.holdClick(false)
         }
@@ -219,10 +217,10 @@ object AutoI4 {
 		    delay(1)
 	    }
 	    
-	    var container = mc.thePlayer.openContainer.inventory
+	    var container = Player!!.openContainer.inventory
 	    while (container?.get(16).isNothing()) {
 		    delay(1)
-		    container = mc.thePlayer.openContainer.inventory
+		    container = Player!!.openContainer.inventory
 	    }
 	    
 	    var clicked = false
@@ -253,7 +251,7 @@ object AutoI4 {
     private suspend fun rodSwapAction() {
 	    if (!config.autoI4) return
 		if (!isOnDev()) return
-        val slotBeforeSwap = mc.thePlayer.inventory.currentItem
+        val slotBeforeSwap = Player!!.inventory.currentItem
 		val rodIndex = getItemIndexInHotbar("rod") ?: return
 
 	    shouldPredict = false

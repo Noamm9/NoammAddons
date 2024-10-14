@@ -1,7 +1,6 @@
 package noammaddons.features.dungeons.terminals
 
 import noammaddons.noammaddons.Companion.config
-import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.LocationUtils.P3Section
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.MathUtils
@@ -10,6 +9,8 @@ import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
 import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.utils.PlayerUtils.Player
+import noammaddons.utils.RenderUtils.getRenderVec
 import java.awt.Color
 
 
@@ -52,8 +53,8 @@ object TerminalNumbers {
         val (tX, tY, tZ) = value[1].map { it + 0.5 }
 
         val distance = MathUtils.distanceIn3DWorld(
-            Vec3(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ),
-            Vec3(tX, tY, tZ)
+	        Player!!.getRenderVec(),
+	        Vec3(tX, tY, tZ)
         )
 
         RenderUtils.drawBlockBox(
@@ -74,6 +75,7 @@ object TerminalNumbers {
     }
 
     @SubscribeEvent
+    @Suppress("UNUSED_PARAMETER")
     fun onRenderWorld(event: RenderWorldLastEvent) {
         if (!inBoss || P3Section == null || !config.TerminalNumbers) return
 
