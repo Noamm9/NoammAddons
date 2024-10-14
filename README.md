@@ -1,7 +1,7 @@
 # NoammAddons
 
 NoammAddons is a Forge mod designed to enhance gameplay with various quality-of-life improvements and small utilities.
-This mod is primarily focused on Hypixel Skyblock, with features aimed at enhancing the user experience for players.
+This mod is primarily focused on Hypixel Skyblock, with features aimed at enhancing the user experience.
 
 ## Key Features
 #### General
