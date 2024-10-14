@@ -7,7 +7,7 @@ import noammaddons.events.Chat
 import noammaddons.events.RenderOverlay
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.showTitle
-import noammaddons.utils.ChatUtils.toFixed
+import noammaddons.utils.MathUtils.toFixed
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 

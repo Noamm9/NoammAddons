@@ -5,8 +5,7 @@ import noammaddons.events.Chat
 import noammaddons.events.RenderOverlay
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
-import noammaddons.sounds.ihavenothing
-import noammaddons.utils.ChatUtils.debugMessage
+import noammaddons.utils.SoundUtils.iHaveNothing
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.LocationUtils.F7Phase
 import noammaddons.utils.RenderUtils.drawCenteredChromaWaveText
@@ -23,24 +22,29 @@ object M7P5RagAxe {
         if (F7Phase != 5) return
 	    if (event.component.unformattedText.removeFormatting() != "[BOSS] Wither King: You... again?") return
 	    
-	    setTimeout(2000) {
-			showTitle = true
-		    ihavenothing.play()
+	    
+	    setTimeout(1600) {
+		    iHaveNothing.start()
+		    setTimeout(400) {
+			    showTitle = true
+			    setTimeout(3500) {
+					showTitle = false
+			    }
+		    }
 		}
-	    setTimeout(2000 + 3500) { showTitle = false }
-	    debugMessage("Rag!")
     }
 	
 	@SubscribeEvent
 	@Suppress("UNUSED_PARAMETER")
-	fun drawText(event: RenderOverlay) {
+	fun draw(e: RenderOverlay) {
 		if (!showTitle) return
 		
 		drawCenteredChromaWaveText(
 			"rag",
 			mc.getWidth()/2f,
 			mc.getHeight()/2f - 70f,
-			scale = 4f
+			scale = 4f,
+			waveSpeed = 2f
 		)
 	}
 }

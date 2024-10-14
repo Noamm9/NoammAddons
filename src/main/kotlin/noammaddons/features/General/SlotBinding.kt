@@ -6,9 +6,9 @@ import noammaddons.config.KeyBinds.SlotBinding
 import noammaddons.config.PogObject
 import noammaddons.events.GuiContainerEvent
 import noammaddons.utils.ChatUtils.modMessage
-import noammaddons.utils.RenderUtils
 import net.minecraft.client.gui.inventory.GuiInventory
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.utils.PlayerUtils.Player
 import noammaddons.utils.RenderUtils.drawLine
 import noammaddons.utils.RenderUtils.drawRoundedBorder
 import org.lwjgl.input.Keyboard
@@ -24,7 +24,7 @@ object SlotBinding {
     private var previousSlot: Int? = null
 
     private fun handleShiftClick(slotClicked: Int) {
-        val container = mc.thePlayer.openContainer
+        val container = Player!!.openContainer
         val hotbarSlot = data[slotClicked.toString()]?.rem(36) ?: return
         if (hotbarSlot >= 9) return
 
@@ -33,7 +33,7 @@ object SlotBinding {
             slotClicked,
             hotbarSlot.toInt(),
             2,
-            mc.thePlayer
+            Player
         )
     }
 
@@ -108,8 +108,7 @@ object SlotBinding {
                 hotbarSlot.yDisplayPosition + 8f,
                 1f
             )
-
-
+	        
             drawRoundedBorder(
                 Color(0, 255, 255),
                 slot.xDisplayPosition * 1f,

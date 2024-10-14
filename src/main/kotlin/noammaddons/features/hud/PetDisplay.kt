@@ -4,10 +4,7 @@ import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.hudData
 import noammaddons.config.EditGui.HudElement
 import noammaddons.events.Chat
-import noammaddons.events.InventoryFullyOpenedEvent
 import noammaddons.events.RenderOverlay
-import noammaddons.utils.GuiUtils
-import noammaddons.utils.ItemUtils.lore
 import noammaddons.utils.LocationUtils.inSkyblock
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 

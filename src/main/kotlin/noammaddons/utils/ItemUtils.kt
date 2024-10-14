@@ -9,6 +9,7 @@ import gg.essential.universal.ChatColor
 import java.awt.Color
 import net.minecraftforge.common.util.Constants
 import net.minecraft.item.Item
+import noammaddons.utils.PlayerUtils.Player
 
 
 object ItemUtils {
@@ -58,7 +59,7 @@ object ItemUtils {
 	} ?: emptyList()
 
     fun isHoldingEtherwarpItem(): Boolean {
-        val held = mc.thePlayer?.heldItem ?: return false
+        val held = Player?.heldItem ?: return false
         val sbId = held.SkyblockID
 
         if (sbId.contains("ASPECT_OF_THE_END") || sbId.contains("ASPECT_OF_THE_VOID")) return true
@@ -67,7 +68,7 @@ object ItemUtils {
     }
 	
 	fun getHotbar(): Array<ItemStack?> {
-		return mc.thePlayer?.inventory?.mainInventory
+		return Player?.inventory?.mainInventory
 			?.filterIndexed { index, _ -> index in 0..8 }
 			?.toTypedArray() ?: arrayOfNulls(9)
 	}

@@ -3,6 +3,7 @@ package noammaddons.commands.SkyBlockCommands
 import noammaddons.noammaddons.Companion.mc
 import net.minecraft.command.CommandBase
 import net.minecraft.command.ICommandSender
+import noammaddons.utils.ChatUtils.sendChatMessage
 
 
 class CrimonIsle: CommandBase() {
@@ -19,6 +20,6 @@ class CrimonIsle: CommandBase() {
     }
 
     override fun processCommand(sender: ICommandSender?, args: Array<out String>) {
-        mc.thePlayer.sendChatMessage("/warp nether")
+        sendChatMessage("/warp nether")
     }
 }

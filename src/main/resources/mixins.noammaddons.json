@@ -5,15 +5,18 @@
   "refmap": "mixins.${modid}.refmap.json",
   "client": [
     "AccessorGuiContainer",
+    "AccessorGuiPlayerTabOverlay",
     "AccessorKeybinding",
     "AccessorMinecraft",
+    "MixinEntityPlayerSP",
     "MixinFontRenderer",
+    "MixinGuiButton",
     "MixinGuiContainer",
     "MixinGuiDisplayTitle",
     "MixinGuiIngame",
-    "MixinGuiIngameMenu",
     "MixinGuiMainMenu",
     "MixinGuiNewChat",
+    "MixinGuiPlayerTabOverlay",
     "MixinGuiScreen",
     "MixinGuiUtils",
     "MixinInventoryEffectRenderer",
@@ -22,9 +25,7 @@
     "MixinPatcherEntityCulling",
     "MixinRenderEntityItem",
     "MixinRendererLivingEntity",
-    "MixinRenderPlayer",
-    "MixinThePlayer",
-    "MixinWorldClient"
+    "MixinThePlayer"
   ],
   "mixins": [
     "AccessorContainer",

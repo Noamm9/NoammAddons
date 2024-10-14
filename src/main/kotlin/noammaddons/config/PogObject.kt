@@ -1,10 +1,10 @@
 package noammaddons.config
 
+import gg.essential.api.EssentialAPI
 import noammaddons.noammaddons.Companion.MOD_NAME
 import noammaddons.utils.JsonUtils
-import net.minecraftforge.event.world.WorldEvent.Unload
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent
+import noammaddons.config.EventHandlers.scheduleSave
+import noammaddons.utils.ThreadUtils.runEvery
 import java.io.*
 
 
@@ -32,7 +32,7 @@ class PogObject<T : Any>(fileName: String, private val defaultObject: T) {
     }
 
     fun autosave(intervalMinutes: Long = 5) {
-        EventHandlers.scheduleSave(this, intervalMinutes)
+        scheduleSave(this, intervalMinutes)
     }
 
     fun updateData(newData: T) {
@@ -49,20 +49,17 @@ object EventHandlers {
     fun scheduleSave(pogObject: PogObject<*>, intervalMinutes: Long) {
         autosaveIntervals[pogObject] = intervalMinutes * 60 * 20
     }
-
-    @SubscribeEvent
-    fun onGameUnload(event: Unload) {
-        autosaveIntervals.keys.forEach { it.save() }
-    }
-
-    @SubscribeEvent
-    fun onTick(event: TickEvent.ClientTickEvent) {
-        if (event.phase != TickEvent.Phase.END) return
-        autosaveIntervals.forEach { (pogObject, interval) ->
-            if (System.currentTimeMillis() % interval != 0L) return
-            pogObject.save()
-        }
-    }
+	
+	init {
+		EssentialAPI.getShutdownHookUtil().register { autosaveIntervals.keys.forEach { it.save() } }
+		
+		runEvery(1) {
+			autosaveIntervals.forEach { (pogObject, interval) ->
+				if (System.currentTimeMillis() % interval != 0L) return@forEach
+				pogObject.save()
+			}
+		}
+	}
 }
 
 

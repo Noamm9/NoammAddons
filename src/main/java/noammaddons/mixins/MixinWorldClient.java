@@ -1,5 +1,5 @@
 package noammaddons.mixins;
-
+/*
 import noammaddons.events.EntityWorldEvent;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.entity.Entity;
@@ -27,4 +27,4 @@ public class MixinWorldClient {
             cir.cancel();
         }
     }
-}
+}*/

@@ -1,22 +1,19 @@
 package noammaddons.features.dungeons.terminals
 
-import noammaddons.noammaddons.Companion.config
-import noammaddons.noammaddons.Companion.mc
-import noammaddons.utils.ChatUtils
-import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.GuiUtils
-import noammaddons.utils.LocationUtils.F7Phase
-import noammaddons.utils.ThreadUtils.setTimeout
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.client.event.GuiOpenEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent
-import net.minecraftforge.fml.common.eventhandler.EventPriority
-import noammaddons.utils.ChatUtils.addColor
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.events.Tick
+import noammaddons.noammaddons.Companion.config
+import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendChatMessage
 import noammaddons.utils.GuiUtils.currentChestName
+import noammaddons.utils.LocationUtils.F7Phase
+import noammaddons.utils.PlayerUtils.Player
+import noammaddons.utils.ThreadUtils.setTimeout
 
 object MelodyAlert {
-	private val msg get() = config.MelodyAlert.addColor().removeFormatting()
+	private val msg get() = config.MelodyAlert.removeFormatting()
+	private val inMelody get() = currentChestName.removeFormatting() == "Click the button on time!"
 	
     private var claySlots = mutableMapOf(
 	    25 to "/pc $msg 1/4",
@@ -25,8 +22,9 @@ object MelodyAlert {
     )
 
     @SubscribeEvent
+    @Suppress("UNUSED_PARAMETER")
     fun onGuiOpened(event: GuiOpenEvent) {
-        if (currentChestName != "Click the button on time!") return
+        if (!inMelody) return
         if (msg.isEmpty()) return
         if (F7Phase != 3) return
 
@@ -37,20 +35,21 @@ object MelodyAlert {
         )
 
         setTimeout(100) {
-            if (currentChestName != "Click the button on time!") return@setTimeout
-            sendChatMessage("/pc $msg")
+            if (inMelody) {
+				sendChatMessage("/pc $msg")
+            }
         }
     }
 
     @SubscribeEvent
-    fun onStep(event: TickEvent.ClientTickEvent) {
-        if (event.phase != TickEvent.Phase.START) return
-        if (currentChestName != "Click the button on time!") return
-        if (config.MelodyAlert.removeFormatting().isEmpty()) return
+    @Suppress("UNUSED_PARAMETER")
+    fun onTick(e: Tick) {
+        if (!inMelody) return
+        if (msg.isEmpty()) return
         if (F7Phase != 3) return
 
         val greenClays = claySlots.keys.filter {
-            mc.thePlayer.openContainer?.getSlot(it)?.stack?.metadata == 5
+	        Player!!.openContainer?.getSlot(it)?.stack?.metadata == 5
         }
 
         if (greenClays.isEmpty()) return

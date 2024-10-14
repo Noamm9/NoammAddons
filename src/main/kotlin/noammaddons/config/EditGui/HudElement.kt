@@ -1,6 +1,7 @@
 package noammaddons.config.EditGui
 
 
+import net.minecraft.client.renderer.GlStateManager
 import noammaddons.config.EditGui.ElementsManager.HudElementData
 import noammaddons.config.EditGui.ElementsManager.elements
 import noammaddons.noammaddons.Companion.mc
@@ -66,7 +67,8 @@ class HudElement(
 
     fun draw(example: Boolean = false): HudElement {
         update()
-
+		GlStateManager.pushMatrix()
+	    
         if (!example) {
 	        drawText(
 		        getText(),
@@ -92,6 +94,7 @@ class HudElement(
 		        getColor(),
 	        )
         }
+	    GlStateManager.popMatrix()
         return this
     }
 

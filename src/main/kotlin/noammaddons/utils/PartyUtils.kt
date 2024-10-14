@@ -39,20 +39,6 @@ object PartyUtils {
 		return if (split.size > 1) split[1].removeFormatting() else split[0].removeFormatting()
 	}
 	
-	fun listMembers() {
-		val size = partyMembers.size
-		if (size == 0) {
-			ChatUtils.debugMessage("No tracked party members!")
-			return
-		}
-		ChatUtils.debugMessage("Tracked party members §7($size) §f:")
-		partyMembers.forEach { member ->
-			ChatUtils.debugMessage(" §a- §7$member" + if (partyLeader == member) " §a(Leader)" else "")
-		}
-		if (partyLeader == mc.session.username) {
-			ChatUtils.debugMessage("§aYou are leader")
-		}
-	}
 	
 	@SubscribeEvent
 	fun onChat(event: Chat) {

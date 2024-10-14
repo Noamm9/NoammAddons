@@ -9,7 +9,6 @@ import noammaddons.features.dungeons.terminals.ConstantsVeriables.StartWithTitle
 import noammaddons.features.dungeons.terminals.ConstantsVeriables.getColorMode
 import noammaddons.features.dungeons.terminals.ConstantsVeriables.getSolutionColor
 import noammaddons.features.dungeons.terminals.ConstantsVeriables.getTermScale
-import noammaddons.sounds.AYAYA
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.getMouseX
 import noammaddons.utils.GuiUtils.getMouseY
@@ -28,6 +27,7 @@ import net.minecraft.network.play.server.S2EPacketCloseWindow
 import net.minecraft.network.play.server.S2FPacketSetSlot
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.utils.SoundUtils.ayaya
 import java.awt.Color
 import kotlin.math.floor
 
@@ -77,7 +77,7 @@ object StartWith {
         if (slot >= windowSize) return
 
         if (solution.contains(slot)) {
-            predict(slot, 0)
+            predict(slot)
             if (clicked) queue.add(slot to 0) else click(slot, 0)
         }
     }
@@ -144,7 +144,7 @@ object StartWith {
         }.map {it!!.num}.forEach{solution.add(it)}
     }
 
-    private fun predict (slot: Int, button: Int) {
+    private fun predict (slot: Int) {
         solution.remove(slot)
     }
 
@@ -211,7 +211,7 @@ object StartWith {
         if (slots.size == windowSize) {
             solve()
             if (queue.isNotEmpty() && queue.all { solution.contains(it.first) }) {
-                queue.forEach { predict(it.first, it.second) }
+                queue.forEach { predict(it.first) }
                 click(queue[0].first, queue[0].second)
                 queue.removeAt(0)
             }
@@ -224,7 +224,7 @@ object StartWith {
         if (event.packet !is S2EPacketCloseWindow) return
         if (!inTerminal) return
         reset()
-        AYAYA.play()
+	    ayaya.start()
     }
 
     @SubscribeEvent

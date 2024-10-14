@@ -8,6 +8,7 @@ import net.minecraftforge.client.event.EntityViewRenderEvent
 
 object CustomFov {
     @SubscribeEvent
+    @Suppress("UNUSED_PARAMETER")
     fun onFOVModifier(event: EntityViewRenderEvent.FOVModifier) {
         if (!config.CustomFov) return
         mc.gameSettings.fovSetting = config.CustomFovValue

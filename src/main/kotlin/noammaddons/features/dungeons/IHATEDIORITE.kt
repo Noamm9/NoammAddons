@@ -9,47 +9,37 @@ import noammaddons.utils.LocationUtils.dungeonFloor
 import net.minecraft.block.Block
 import net.minecraft.util.BlockPos
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
+import noammaddons.events.Tick
+import noammaddons.utils.BlockUtils.getBlockId
 
 object IHATEDIORITE {
 
     @SubscribeEvent
-    fun onTick(event: ClientTickEvent) {
-        if (event.phase != TickEvent.Phase.START) return
+    @Suppress("UNUSED_PARAMETER")
+    fun onTick(event: Tick) {
         if (dungeonFloor == 7 && F7Phase == 2 && config.IHATEDIORITE) {
             for (i in 0..37) {
                 GreenArray.forEach { block ->
-                    if (mc.theWorld.getBlockAt(block.add(0,i,0))?.getName() == "minecraft:stone") {
+                    if (mc.theWorld.getBlockAt(block.add(0,i,0)).getBlockId() == 1) {
                         mc.theWorld.setBlockState(block.add(0,i,0), WhileGlass)
                     }
                 }
 
                 YellowArray.forEach { block ->
-                    if (mc.theWorld.getBlockAt(block.add(0,i,0))?.getName() == "minecraft:stone") {
+                    if (mc.theWorld.getBlockAt(block.add(0,i,0)).getBlockId() == 1) {
                         mc.theWorld.setBlockState(block.add(0,i,0), WhileGlass)
                     }
                 }
 
                 BlueArray.forEach { block ->
-                    if (mc.theWorld.getBlockAt(block.add(0,i,0))?.getName() == "minecraft:stone") {
+                    if (mc.theWorld.getBlockAt(block.add(0,i,0)).getBlockId() == 1) {
                         mc.theWorld.setBlockState(block.add(0,i,0), WhileGlass)
                     }
                 }
             }
         }
     }
-
-
-    /*@SubscribeEvent
-    fun onRightClick(event: ClickEvent.RightClickEvent) {
-        if (mc.objectMouseOver == null) return
-        if (mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            modMessage(mc.objectMouseOver.blockPos.toString())
-        }
-    }*/
-
-
+	
     private val WhileGlass = Block.getBlockFromName("stained_glass").blockState.baseState
 
     private val GreenArray = arrayOf(

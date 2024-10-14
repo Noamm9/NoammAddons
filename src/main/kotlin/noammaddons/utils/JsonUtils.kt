@@ -1,14 +1,22 @@
 package noammaddons.utils
 
-import noammaddons.noammaddons.Companion.mc
 import com.google.gson.Gson
 import com.google.gson.JsonObject
-import java.net.HttpURLConnection
-import java.net.URL
-import java.io.BufferedReader
-import java.io.InputStreamReader
+import com.google.gson.reflect.TypeToken
+import net.minecraft.client.Minecraft
 import net.minecraft.util.ResourceLocation
+import noammaddons.noammaddons.Companion.config
+import noammaddons.noammaddons.Companion.mc
 import java.io.*
+import java.lang.reflect.Type
+import java.net.URL
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
+import javax.net.ssl.HttpsURLConnection
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
+
 
 object JsonUtils {
     private val gson = Gson()
@@ -60,18 +68,31 @@ object JsonUtils {
 	 */
 	inline fun <reified T> fetchJsonWithRetry(
 		url: String,
-		retryDelayMs: Long = 5 * 60 * 1000,
+		retryDelayMs: Long = 30_000,
 		maxRetries: Int = -1,
 		crossinline callback: (T?) -> Unit
 	) {
 		Thread {
-			var attempts = 0
+			// Disable SSL certificate validation for shitty java versions
+			val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
+				override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
+				override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
+				override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+			})
 			
+			val sslContext = SSLContext.getInstance("SSL")
+			sslContext.init(null, trustAllCerts, SecureRandom())
+			HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.socketFactory)
+			
+			// Ignore host name verification
+			HttpsURLConnection.setDefaultHostnameVerifier { _, _ -> true }
+			
+			var attempts = 0
 			while (maxRetries == -1 || attempts < maxRetries) {
 				try {
-					println("Attempting to fetch JSON from $url (Attempt $attempts)")
+					if (config.DevMode) println("Attempting to fetch JSON from $url (Attempt $attempts)")
 					
-					val urlConnection = URL(url).openConnection() as HttpURLConnection
+					val urlConnection = URL(url).openConnection() as HttpsURLConnection
 					urlConnection.requestMethod = "GET"
 					urlConnection.setRequestProperty("Accept-Charset", "UTF-8")
 					
@@ -79,16 +100,18 @@ object JsonUtils {
 					val response = reader.readText()
 					reader.close()
 					
+					if (config.DevMode) println("Response JSON: $response")
 					
 					try {
-						val gson = Gson()
-						val data: T = gson.fromJson(response, T::class.java)
+						val type: Type = object : TypeToken<T>() {}.type
+						val data: T = Gson().fromJson(response, type)
 						callback(data)
 						return@Thread
 					} catch (e: Exception) {
 						println("Error decoding JSON: ${e.message}")
 						e.printStackTrace()
 					}
+					
 				} catch (e: Exception) {
 					println("Exception during request: ${e.message}")
 					e.printStackTrace()
@@ -101,5 +124,6 @@ object JsonUtils {
 			callback(null)
 		}.start()
 	}
+
 }
 
