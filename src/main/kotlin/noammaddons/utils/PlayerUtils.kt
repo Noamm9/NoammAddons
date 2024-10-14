@@ -1,6 +1,7 @@
 package noammaddons.utils
 
 import net.minecraft.client.Minecraft
+import net.minecraft.client.entity.EntityPlayerSP
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
@@ -10,16 +11,26 @@ import net.minecraft.client.settings.KeyBinding
 import net.minecraft.item.ItemStack
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.util.Vec3
+import noammaddons.noammaddons.Companion.config
+import noammaddons.utils.ItemUtils.SkyblockID
+import noammaddons.utils.ReflectionUtils.invoke
+import noammaddons.utils.Utils.isNull
 import java.lang.reflect.Method
 import java.util.*
 import kotlin.math.*
 
 object PlayerUtils {
-	private val Player get() = mc.thePlayer
+	val Player: EntityPlayerSP? get() = mc.thePlayer
+	
+	fun getPlayerHeight(add: Number = 0): Double {
+		return if (config.PlayerScale && config.PlayerScaleOnEveryone) (1.8 + add.toDouble()) * config.PlayerScaleValue
+		else 1.8 + add.toDouble()
+	}
+	
 	
     fun closeScreen() {
-        if (mc.currentScreen != null && Player != null) {
-	        Player.closeScreen()
+        if (mc.currentScreen != null && !Player.isNull()) {
+	        Player!!.closeScreen()
         }
     }
 
@@ -43,34 +54,27 @@ object PlayerUtils {
         KeyBinding.setKeyBindState(sneakKey.keyCode, isSneaking)
     }
 	
-	fun RightClickMouse() {
-		
-		try {
-			val rightClickMouseMethod: Method = Minecraft::class.java.getDeclaredMethod("rightClickMouse")
-			rightClickMouseMethod.isAccessible = true
-			rightClickMouseMethod.invoke(mc)
+	
+	fun rightClick() {
+		if (! invoke(mc, "func_147121_ag")) {
+			invoke(mc, "rightClickMouse")
 		}
-		catch (e1: NoSuchMethodException) {
-			try {
-				val rightClickMouseObfMethod: Method = Minecraft::class.java.getDeclaredMethod("func_147121_ag")
-				rightClickMouseObfMethod.isAccessible = true
-				rightClickMouseObfMethod.invoke(mc)
-			}
-			catch (e2: Exception) {
-				e2.printStackTrace()
-			}
-		} catch (e: Exception) {
-			e.printStackTrace()
+	}
+	
+	fun leftClick() {
+		if (! invoke(mc, "func_147116_af")) {
+			invoke(mc, "clickMouse")
+		}
+	}
+	
+	fun middleClick() {
+		if (! invoke(mc, "func_147112_ai")) {
+			invoke(mc, "middleClickMouse")
 		}
 	}
 
-    fun leftClick() {
-		holdClick(true, "LEFT")
-	    setTimeout(50) { holdClick(false, "LEFT") }
-    }
-
     fun sendRightClickAirPacket() {
-        mc.netHandler.addToSendQueue(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
+        mc.netHandler.addToSendQueue(C08PacketPlayerBlockPlacement(Player!!.heldItem))
     }
 
 
@@ -112,7 +116,7 @@ object PlayerUtils {
     }
 
 
-    private fun getEyePos(): Vec3 = Vec3(Player.posX, Player.posY + Player.getEyeHeight(), Player.posZ)
+    private fun getEyePos(): Vec3? = Player?.let { Vec3(it.posX, it.posY + it.getEyeHeight(), it.posZ) }
     
     private fun normalizeYaw(yaw: Float): Float {
         var result = yaw
@@ -121,10 +125,12 @@ object PlayerUtils {
         return result
     }
     private fun rotate(yaw: Float, pitch: Float) {
-        Player.rotationYaw = yaw
-        Player.rotationPitch = pitch
+		Player?.let {
+            it.rotationYaw = yaw
+            it.rotationPitch = pitch
+		}
     }
-	private fun Ease(t: Double): Double = kotlin.math.sin((t * Math.PI) / 2)
+	private fun Ease(t: Double): Double = sin((t * Math.PI) / 2)
 
     /**
      * Calculates the yaw and pitch angles required to look at a specific block position.
@@ -135,7 +141,7 @@ object PlayerUtils {
      * @return A Pair containing the yaw and pitch angles in degrees. If the calculation fails, returns null.
      */
     fun calcYawPitch(blockPos: Vec3, playerPos: Vec3? = getEyePos()): Rotation? {
-        val playerPosition = playerPos ?: getEyePos()
+        val playerPosition = playerPos ?: getEyePos() ?: return null
 
         val dx = blockPos.xCoord - playerPosition.xCoord
         val dy = blockPos.yCoord - playerPosition.yCoord
@@ -185,8 +191,8 @@ object PlayerUtils {
             return modMessage("&cInvalid pitch value")
         }
 
-        val initialYaw = Player.rotationYaw
-        val initialPitch = Player.rotationPitch
+        val initialYaw = Player?.rotationYaw ?: return
+        val initialPitch = Player?.rotationPitch ?: return
         val initialTime = System.currentTimeMillis()
         val deltaYaw = normalizeYaw(targetYaw - initialYaw)
 	    
@@ -221,11 +227,26 @@ object PlayerUtils {
      * @param slotIndex The index of the slot to swap to.
      */
     fun swapToSlot(slotIndex: Int) {
-	        if (Player == null || slotIndex !in 0 .. 8) return modMessage("&cCannot swap to Slot $slotIndex. Not in hotbar.")
+		if (Player.isNull() || slotIndex !in 0 .. 8) return modMessage(
+			"&cCannot swap to Slot $slotIndex. Not in hotbar."
+		)
 
-        val mcInventory = Player.inventory
+        val mcInventory = Player!!.inventory
 	    mcInventory.currentItem = slotIndex
 
         modMessage("Swapped to ${mcInventory.getStackInSlot(slotIndex)?.displayName ?: "&4&lNOTHING!"}&r in slot &6$slotIndex")
     }
+	
+	fun isHoldingWitherImpact(): Boolean {
+		val heldItem = Player?.heldItem ?: return false
+		
+		val nbt = heldItem.tagCompound ?: return false
+		val extraAttributes = nbt.getCompoundTag("ExtraAttributes") ?: return false
+		val abilityScroll = extraAttributes.getTagList("ability_scroll", 8).toString()
+		
+		return abilityScroll.contains("SHADOW_WARP_SCROLL") &&
+		       abilityScroll.contains("IMPLOSION_SCROLL") &&
+		       abilityScroll.contains("WITHER_SHIELD_SCROLL")
+	}
+
 }

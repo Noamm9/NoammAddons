@@ -1,19 +1,15 @@
 package noammaddons.events
 
-import net.minecraft.block.state.IBlockState
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.model.ModelBase
-import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.inventory.Container
 import net.minecraft.inventory.Slot
 import net.minecraft.network.Packet
 import net.minecraft.scoreboard.ScoreObjective
-import net.minecraft.util.BlockPos
 import net.minecraft.util.IChatComponent
-import net.minecraft.world.World
 import net.minecraftforge.fml.common.eventhandler.Cancelable
 import net.minecraftforge.fml.common.eventhandler.Event
 
@@ -32,16 +28,6 @@ open class GuiContainerEvent(val container: Container, val gui: GuiContainer) : 
     @Cancelable
     class GuiMouseClickEvent(val mouseX: Int, val mouseY: Int, val button: Int, val guiScreen: GuiScreen) : Event()
 }
-
-
-open class MovementUpdateEvent : Event() {
-    @Cancelable
-    class Pre : MovementUpdateEvent()
-
-    @Cancelable
-    class Post : MovementUpdateEvent()
-}
-
 
 open class ClickEvent : Event() {
 	@Cancelable
@@ -97,11 +83,11 @@ class MessageSentEvent(var message: String) : Event()
 @Cancelable
 class RenderScoreBoardEvent(val objective: ScoreObjective, val scaledRes: ScaledResolution) : Event()
 
-
+/*
 @Cancelable
 class BlockChangeEvent(val pos: BlockPos, val BlockState: IBlockState, val state: IBlockState, val worldObj: World) : Event()
-
-
+*/
+/*
 open class EntityWorldEvent : Event() {
 	@Cancelable
 	class Join(val entityID: Int, val entityToSpawn: Entity) : EntityWorldEvent()
@@ -110,7 +96,7 @@ open class EntityWorldEvent : Event() {
 	@Cancelable
     class Leave(val entityID: Int) : EntityWorldEvent()
 }
-
+*/
 
 class RenderOverlay: Event()
 
@@ -124,3 +110,22 @@ class Actionbar(val component: IChatComponent): Event()
 
 
 class InventoryFullyOpenedEvent(val inventory: RegisterEvents.Inventory): Event()
+
+class ServerTick: Event()
+
+class Tick: Event()
+
+/**
+ * This event is mixed in to fire before the vanilla key binds are evaluated.
+ * The forge event fires after those.
+ */
+class PreMouseInputEvent(val button: Int): Event()
+
+/**
+ * This event is mixed in to fire before the vanilla key binds are evaluated.
+ * The forge event fires after those.
+ */
+class PreKeyInputEvent(val key: Int, val character: Char) : Event()
+
+@Cancelable
+class renderPlayerlist(val width: Int, val scoreObjectiveIn: ScoreObjective?) : Event()

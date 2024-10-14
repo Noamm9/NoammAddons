@@ -1,21 +1,21 @@
 package noammaddons.features.General
 
-import noammaddons.noammaddons.Companion.config
-import noammaddons.noammaddons.Companion.mc
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Chat
 import noammaddons.events.RenderOverlay
-import noammaddons.sounds.notificationsound
+import noammaddons.noammaddons.Companion.config
+import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.equalsOneOf
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.showTitle
 import noammaddons.utils.LocationUtils.inSkyblock
 import noammaddons.utils.LocationUtils.onHypixel
-import noammaddons.utils.RenderUtils.drawText
+import noammaddons.utils.RenderUtils.drawCenteredText
 import noammaddons.utils.RenderUtils.getHeight
 import noammaddons.utils.RenderUtils.getWidth
+import noammaddons.utils.SoundUtils.notificationSound
 import noammaddons.utils.ThreadUtils.setTimeout
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.utils.RenderUtils.drawCenteredText
+
 
 object SBKickDuration {
 	private var showTime = false
@@ -38,6 +38,7 @@ object SBKickDuration {
 	
 	
 	@SubscribeEvent
+	@Suppress("UNUSED_PARAMETER")
 	fun onRenderOverlay(event: RenderOverlay) {
 		 if (!config.SBKickDuration) return
 		if (!onHypixel || !showTime || inSkyblock) return
@@ -64,8 +65,8 @@ object SBKickDuration {
 	}
 	
 	private fun playNotificationSound() {
-		notificationsound.play()
-		setTimeout(500) { notificationsound.play() }
-		setTimeout(1000) { notificationsound.play() }
+		notificationSound.start()
+		setTimeout(500) { notificationSound.start() }
+		setTimeout(1000) { notificationSound.start() }
 	}
 }

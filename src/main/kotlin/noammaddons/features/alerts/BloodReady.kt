@@ -8,6 +8,7 @@ import noammaddons.events.Chat
 import noammaddons.utils.LocationUtils.inDungeons
 import noammaddons.utils.ChatUtils.equalsOneOf
 import noammaddons.utils.ChatUtils.showTitle
+import noammaddons.utils.PlayerUtils.Player
 
 
 object BloodReady {
@@ -18,7 +19,7 @@ object BloodReady {
                 "[BOSS] The Watcher: That will be enough for now.",
                 "[BOSS] The Watcher: You have proven yourself. You may pass."
             )) {
-            mc.thePlayer.playSound("random.orb", 1f, 0.5.toFloat())
+	        Player!!.playSound("random.orb", 1f, 0.5f)
             showTitle("§1[§6§kO§r§1] §dB§bl§do§bo§dd §bD§do§bn§de §1[§6§kO§r§1]")
         }
     }

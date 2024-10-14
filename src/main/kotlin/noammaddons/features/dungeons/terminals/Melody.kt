@@ -4,7 +4,6 @@ package noammaddons.features.dungeons.terminals
 
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
-import noammaddons.sounds.AYAYA
 import noammaddons.events.GuiContainerEvent
 import noammaddons.events.PacketEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -30,6 +29,7 @@ import noammaddons.features.dungeons.terminals.ConstantsVeriables.getSolutionCol
 import noammaddons.utils.GuiUtils.getMouseX
 import noammaddons.utils.GuiUtils.getMouseY
 import noammaddons.utils.LocationUtils.F7Phase
+import noammaddons.utils.SoundUtils.ayaya
 import java.awt.Color
 import kotlin.math.floor
 
@@ -185,7 +185,7 @@ object Melody {
         val slotCount = event.packet.slotCount
         cwid = event.packet.windowId
 
-        if (!(windowTitle.matches(Regex("^Click the button on time!$")))) return
+        if (!windowTitle.matches(Regex("Click the button on time!"))) return
 
         slots.clear()
         repeat(slotCount) { slots.add(null) }
@@ -198,7 +198,7 @@ object Melody {
         if (event.packet !is S2EPacketCloseWindow) return
         if (!isInTerminal) return
         isInTerminal = false
-        AYAYA.play()
+	    ayaya.start()
     }
 
     @SubscribeEvent

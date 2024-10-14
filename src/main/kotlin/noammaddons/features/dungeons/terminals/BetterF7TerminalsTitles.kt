@@ -1,20 +1,19 @@
 package noammaddons.features.dungeons.terminals
 
-import noammaddons.noammaddons.Companion.config
-import noammaddons.noammaddons.Companion.mc
+import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Chat
 import noammaddons.events.RenderOverlay
 import noammaddons.events.RenderTitleEvent
+import noammaddons.noammaddons.Companion.config
+import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.Text
-import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.RenderUtils
-import noammaddons.utils.RenderUtils.getHeight
-import noammaddons.utils.RenderUtils.getWidth
-import net.minecraftforge.event.world.WorldEvent
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.utils.LocationUtils.F7Phase
 import noammaddons.utils.RenderUtils.drawCenteredText
+import noammaddons.utils.RenderUtils.getHeight
+import noammaddons.utils.RenderUtils.getWidth
+
 
 object BetterF7TerminalsTitles {
 	private val infoText = Text("", 0f, 0f, 2f)

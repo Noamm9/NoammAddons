@@ -59,10 +59,13 @@ object CustomItemEntity {
 
         drawString(
 	        entity.entityItem.displayName,
-	        Vec3(entity.getRenderX().toDouble(), entity.getRenderY() + 1.3, entity.getRenderZ().toDouble()
+	        Vec3(
+		        entity.getRenderX().toDouble(),
+		        entity.getRenderY() + 1.3,
+		        entity.getRenderZ().toDouble()
 	        ),
 	        Color(255, 255, 255, 255),
-	        1f
+	        0.8f
         )
         return true
     }

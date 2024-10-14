@@ -13,7 +13,8 @@ import java.util.List;
 public class MixinGuiUtils {
     @Inject(method = "drawHoveringText", at = @At("HEAD"), cancellable = true)
     private static void drawScaledHoveringText(List<String> textLines, int mouseX, int mouseY, int screenWidth, int screenHeight, int maxTextWidth, FontRenderer font, CallbackInfo ci) {
-        if (ScalableTooltips.INSTANCE.drawScaledHoveringText(textLines, mouseX, mouseY, screenWidth, screenHeight, font))
+        if (ScalableTooltips.INSTANCE.drawScaledHoveringText(textLines, mouseX, mouseY, screenWidth, screenHeight, font)) {
             ci.cancel();
+        }
     }
 }

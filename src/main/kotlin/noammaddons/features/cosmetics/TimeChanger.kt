@@ -12,12 +12,12 @@ object TimeChanger {
         if (event.packet is S03PacketTimeUpdate && config.TimeChanger && mc.theWorld != null) {
             event.isCanceled = true
             mc.theWorld.worldTime = when (config.TimeChangerMode) {
-                0 -> 1000 // Day
-                1 -> 6000 // Noon
-                2 -> 12000 // Sunset
-                3 -> 13000 // Night
-                4 -> 18000 // Midnight
-                5 -> 23000 // Sunrise
+                0 -> 1000           // Day
+                1 -> 6000           // Noon
+                2 -> 12000          // Sunset
+                3 -> 13000          // Night
+                4 -> 18000          // Midnight
+                5 -> 23000          // Sunrise
                 else -> 0
             }
         }

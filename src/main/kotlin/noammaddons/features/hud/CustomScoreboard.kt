@@ -12,7 +12,7 @@ import noammaddons.utils.ThreadUtils.setTimeout
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent
+import noammaddons.events.Tick
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.ScoreboardUtils.cleanSB
 import java.awt.Color
@@ -35,9 +35,7 @@ object CustomScoreboard {
 
 	
     @SubscribeEvent
-    fun onStepEvent(event: TickEvent.ClientTickEvent) {
-        if (event.phase != TickEvent.Phase.START) return
-
+    fun onStepEvent(event: Tick) {
         if (loading || !config.CustomScoreboard) return
 
         width = 0f
@@ -47,7 +45,7 @@ object CustomScoreboard {
 
         width = max(width, customScoreboard.maxOfOrNull { mc.fontRendererObj.getStringWidth(it) + 10f } ?: 0f)
 	    
-        text = (customScoreboard.joinToString("\n"))
+        text = customScoreboard.joinToString("\n")
     }
 
     @SubscribeEvent

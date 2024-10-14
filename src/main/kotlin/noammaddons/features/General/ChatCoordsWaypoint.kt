@@ -11,8 +11,13 @@ import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
 import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.utils.PlayerUtils.Player
+import noammaddons.utils.RenderUtils.getRenderVec
 import java.awt.Color
 
+
+// regex from Doc's Chat Waypoints
+// https://github.com/DocilElm/Doc/blob/main/features/misc/ChatWaypoint.js
 object ChatCoordsWaypoint {
     private data class waypoint(val name: String, val x: Int?, val y: Int?, val z: Int?, val time: Long)
     private val regex = Regex("^(Co-op|Party)?(?: > )?(?:\\[\\d+] .? ?)?(?:\\[[\\w+]+] )?(\\w{1,16}): x: (.{1,4}), y: (.{1,4}), z: (.{1,4})")
@@ -34,13 +39,14 @@ object ChatCoordsWaypoint {
     }
 
     @SubscribeEvent
+    @Suppress("UNUSED_PARAMETER")
     fun renderWaypoints(event: RenderWorldLastEvent) {
         if (waypointArray.isEmpty()) return
         waypointArray.removeIf { it.time + selfDistractionTimeMs <= System.currentTimeMillis() }
 
         waypointArray.forEach {
             val distance = MathUtils.distanceIn3DWorld(
-	            mc.thePlayer.positionVector,
+	            Player!!.getRenderVec(),
 	            Vec3(
 		            it.x?.toDouble() ?: return@forEach,
 		            it.y?.toDouble() ?: return@forEach,
@@ -66,11 +72,9 @@ object ChatCoordsWaypoint {
 
             RenderUtils.drawString(
 	            it.name,
-	            Vec3(
-                    it.x.toDouble(),
-                    it.y + 1 + distance * 0.01f,
-                    it.z.toDouble(),
-                ),
+	            it.x,
+	            it.y + 1 + distance * 0.01f,
+	            it.z,
 	            Color(255, 0, 255),
 	            scale, shadow = true,
 	            phase = true

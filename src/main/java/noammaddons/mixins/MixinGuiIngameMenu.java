@@ -1,5 +1,6 @@
 package noammaddons.mixins;
 
+    /*
 import net.minecraft.client.gui.*;
 import net.minecraft.client.gui.achievement.GuiAchievements;
 import net.minecraft.client.gui.achievement.GuiStats;
@@ -16,7 +17,6 @@ import noammaddons.utils.GuiUtils;
 @Mixin(GuiIngameMenu.class)
 public class MixinGuiIngameMenu extends GuiScreen {
 
-    /*
     @Shadow
     private int field_146445_a;
 
@@ -93,5 +93,6 @@ public class MixinGuiIngameMenu extends GuiScreen {
                 GuiUtils.INSTANCE.openScreen(Config.INSTANCE.gui());
                 break;
         }
-    }*/
+    }
 }
+*/

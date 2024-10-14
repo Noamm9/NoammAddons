@@ -53,7 +53,7 @@ object BlockUtils {
 
     fun Block.getName(): String = this.registryName.toString()
 
-    fun World.getBlockAt(pos: BlockPos): Block? = this.getBlockState(pos)?.block
+    fun World.getBlockAt(pos: BlockPos): Block = this.getBlockState(pos).block
 
     fun Block.getBlockId(): Int = Block.getIdFromBlock(this)
 
@@ -74,4 +74,8 @@ object BlockUtils {
 	fun BlockPos.toVec3(): Vec3 = Vec3(this.x.toDouble(), this.y.toDouble(), this.z.toDouble())
 	
 	fun Vec3.toBlockPos(): BlockPos = BlockPos(this.xCoord, this.yCoord, this.zCoord)
+	
+	fun IBlockState.getMetadata(): Int = this.block.getMetaFromState(this)
+	
+	fun IBlockState.getBlockId(): Int = this.block.getBlockId()
 }

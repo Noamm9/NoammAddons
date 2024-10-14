@@ -5,6 +5,7 @@ import noammaddons.noammaddons.Companion.CHAT_PREFIX
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.events.Chat
+import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendChatMessage
 import noammaddons.utils.ThreadUtils.setTimeout
@@ -20,24 +21,30 @@ object AnnounceDraftResets {
     @SubscribeEvent
     fun onChat(event: Chat) {
         val message = event.component.unformattedText.removeFormatting()
-
-        val resetMatcher = resetPattern.matcher(message)
-        if (resetMatcher.matches() && config.AnnounceDraftResets) {
-            val type = resetMatcher.group(1)
-            sendChatMessage("/pc ${CHAT_PREFIX.removeFormatting()} Used Draft to Reset $type")
-        }
-
-        val failMatcher1 = failPattern1.matcher(message)
-        val failMatcher2 = failPattern2.matcher(message)
-
-        if ((failMatcher1.matches() || failMatcher2.matches()) && config.AutoArchitectDraft) {
-            val player = failMatcher1.group(1) ?: failMatcher2.group(1)
-
-            if (player == mc.session.username) {
-                setTimeout(30*50) {
-					sendChatMessage("/gfs ARCHITECT_FIRST_DRAFT 1")
+		try {
+			val resetMatcher = resetPattern.matcher(message)
+			if (resetMatcher.matches() && config.AnnounceDraftResets) {
+				val type = resetMatcher.group(1)
+				sendChatMessage("/pc ${CHAT_PREFIX.removeFormatting()} Used Draft to Reset $type")
+			}
+			
+			val failMatcher1 = failPattern1.matcher(message)
+			val failMatcher2 = failPattern2.matcher(message)
+			
+			if ((failMatcher1.matches() || failMatcher2.matches()) && config.AutoArchitectDraft) {
+				val player = failMatcher1.group(1) ?: failMatcher2.group(1)
+				
+				if (player == mc.session.username) {
+					setTimeout(30*50) {
+						sendChatMessage("/gfs ARCHITECT_FIRST_DRAFT 1")
+					}
 				}
-            }
-        }
+			}
+		} catch (e: Error) {
+			modMessage(
+				"Error occurred while processing chat event: $e\n" +
+                "Message: $message"
+			)
+		}
     }
 }

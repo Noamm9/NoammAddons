@@ -9,7 +9,7 @@ import noammaddons.utils.LocationUtils.inBoss
 import net.minecraft.init.Blocks
 import net.minecraft.util.BlockPos
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent
+import noammaddons.events.Tick
 
 
 object BetterFloors {
@@ -92,8 +92,8 @@ object BetterFloors {
 
 
     @SubscribeEvent
-    fun onTick(event: TickEvent.ClientTickEvent) {
-        if (event.phase != TickEvent.Phase.START) return
+    @Suppress("UNUSED_PARAMETER")
+    fun onTick(event: Tick) {
 	    if (!config.BetterFloors) return
         if (!inBoss) return
 	    

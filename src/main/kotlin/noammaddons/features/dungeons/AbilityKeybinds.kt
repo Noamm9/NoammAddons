@@ -1,28 +1,35 @@
 package noammaddons.features.dungeons
 
-import noammaddons.noammaddons.Companion.config
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.config.KeyBinds
+import noammaddons.events.Tick
+import noammaddons.features.dungeons.GhostPick.featureState
+import noammaddons.noammaddons.Companion.config
 import noammaddons.utils.LocationUtils.inDungeons
 import noammaddons.utils.PlayerUtils.useDungeonClassAbility
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent
-import noammaddons.features.dungeons.GhostPick.featureState
+import noammaddons.utils.ThreadUtils.setTimeout
 
 object AbilityKeybinds {
 
     @SubscribeEvent
-    fun onTick(event: TickEvent.ClientTickEvent) {
+    @Suppress("UNUSED_PARAMETER")
+    fun onTick(event: Tick) {
         if (!inDungeons || !config.DungeonAbilityKeybinds) return
-	    val oldValue = featureState
         if (KeyBinds.DungeonClassUltimate.isPressed) {
-	        featureState = false
-	        useDungeonClassAbility(Ultimate = true)
-	        featureState = oldValue
+	        if (featureState) {
+		        featureState = false
+		        useDungeonClassAbility(true)
+		        setTimeout(50) { featureState = true}
+	        }
+	        else useDungeonClassAbility(true)
 		}
 	    if (KeyBinds.DungeonClassAbility.isPressed) {
-		    featureState = false
-		    useDungeonClassAbility(Ultimate = false)
-		    featureState = oldValue
+		    if (featureState) {
+			    featureState = false
+			    useDungeonClassAbility(false)
+			    setTimeout(50) { featureState = true}
+		    }
+		    else useDungeonClassAbility(false)
 	    }
     }
 }

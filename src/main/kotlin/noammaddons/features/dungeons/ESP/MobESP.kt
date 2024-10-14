@@ -14,6 +14,7 @@ import noammaddons.noammaddons.Companion.mc
 import noammaddons.events.RenderLivingEntityEvent
 import noammaddons.utils.LocationUtils.inDungeons
 import noammaddons.utils.OutlineUtils.outlineESP
+import noammaddons.utils.PlayerUtils.Player
 import noammaddons.utils.RenderUtils.drawEntityBox
 import java.awt.Color
 
@@ -35,7 +36,7 @@ object MobESP {
                 possibleEntities.find {
                     !starMobs.contains(it) && when (it) {
                         is EntityPlayer -> !it.isInvisible() && it.getUniqueID()
-                            .version() == 2 && it != mc.thePlayer
+                            .version() == 2 && it != Player
                         is EntityWither -> false
                         else -> true
                     }
@@ -58,6 +59,7 @@ object MobESP {
     }
 
     @SubscribeEvent
+    @Suppress("UNUSED_PARAMETER")
     fun onRenderWorld(event: RenderWorldLastEvent) {
         if (!inDungeons || config.espType != 1) return
         mc.theWorld.loadedEntityList.forEach {
@@ -81,6 +83,7 @@ object MobESP {
     }
 
     @SubscribeEvent
+    @Suppress("UNUSED_PARAMETER")
     fun onWorldLoad(event: WorldEvent.Load) {
         starMobs.clear()
         checked.clear()

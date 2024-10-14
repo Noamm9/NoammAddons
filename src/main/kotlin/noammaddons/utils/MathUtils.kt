@@ -1,6 +1,9 @@
 package noammaddons.utils
 
 import net.minecraft.util.Vec3
+import noammaddons.noammaddons.Companion.mc
+import noammaddons.utils.RenderUtils.getHeight
+import noammaddons.utils.RenderUtils.getWidth
 
 object MathUtils {
      /**
@@ -67,6 +70,18 @@ object MathUtils {
         val number = this.toDoubleOrNull() ?: throw IllegalArgumentException("Invalid string format")
         return "%.${decimals}f".format(number)
     }
-
+	
+	fun calculateScaleFactor(
+		userWidth: Int = mc.getWidth(),
+		userHeight: Int = mc.getHeight(),
+		baseWidth: Int = 1920,
+		baseHeight: Int = 1080
+	): Float {
+		val widthScale = userWidth.toFloat() / baseWidth
+		val heightScale = userHeight.toFloat() / baseHeight
+		val scaleFactor = (widthScale + heightScale) / 2
+		return scaleFactor + 0.5f
+	}
+	
     data class Rotation(val yaw: Float, val pitch: Float)
 }

@@ -10,9 +10,9 @@ import net.minecraftforge.client.event.sound.PlaySoundEvent
 import net.minecraftforge.event.entity.living.LivingDeathEvent
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 import noammaddons.events.PacketEvent
 import noammaddons.events.RenderOverlay
+import noammaddons.events.Tick
 import noammaddons.noammaddons.Companion.CHAT_PREFIX
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
@@ -27,10 +27,12 @@ import noammaddons.utils.MathUtils
 import noammaddons.utils.MathUtils.distanceIn2DWorld
 import noammaddons.utils.MathUtils.distanceIn3DWorld
 import noammaddons.utils.MathUtils.toFixed
+import noammaddons.utils.PlayerUtils.Player
 import noammaddons.utils.RenderUtils.drawBox
 import noammaddons.utils.RenderUtils.drawCenteredText
 import noammaddons.utils.RenderUtils.drawTracer
 import noammaddons.utils.RenderUtils.getHeight
+import noammaddons.utils.RenderUtils.getRenderVec
 import noammaddons.utils.RenderUtils.getWidth
 import noammaddons.utils.ThreadUtils.setTimeout
 import java.awt.Color
@@ -133,6 +135,7 @@ object M7Dragons {
 	
 	
 	@SubscribeEvent
+	@Suppress("UNUSED_PARAMETER")
 	fun drawTimer(event: RenderOverlay) {
 		if (F7Phase != 5) return
 		if (!config.M7dragons || ticks <= 0) return
@@ -147,6 +150,7 @@ object M7Dragons {
 	}
 	
 	@SubscribeEvent
+	@Suppress("UNUSED_PARAMETER")
 	fun drawTrace(event: RenderWorldLastEvent) {
 		if (!config.M7dragons || currentPrio == null) return
 		if (F7Phase != 5) return
@@ -333,17 +337,18 @@ object M7Dragons {
 	}
 	
 	@SubscribeEvent
-	fun onIceSpray(event: ClientTickEvent) {
+	@Suppress("UNUSED_PARAMETER")
+	fun onIceSpray(event: Tick) {
 		if (!iceSprayListener) return
 		
 		mc.theWorld.loadedEntityList
-			.filter { entity -> entity::class.java == EntityItem::class.java }
-			.filter { type -> type?.name == "item.tile.ice" }
+			.filterIsInstance<EntityItem>()
+			.filter { type -> type.name == "item.tile.ice" }
 			.forEach { item ->
 				if (item.posX <= 30 && item.posY >= 10 &&
 				    distanceIn3DWorld(
-					    mc.thePlayer.positionVector,
-					    item.positionVector
+					    Player!!.getRenderVec(),
+					    item.getRenderVec()
 					) <= 25
 				)
 				{ iceSprayHit = true }

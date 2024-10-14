@@ -1,6 +1,5 @@
 package noammaddons.features.General
 
-import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.JsonUtils.fetchJsonWithRetry
 
 
@@ -19,12 +18,12 @@ object VisualWords {
     fun replaceText(text: String?): String? {
         if (text == null) return text
         if (wordsMap == null) return text
-		if (mc.currentScreen?.javaClass?.name == "gg.essential.vigilance.gui.Settingsgui") return text
+		//if (mc.currentScreen?.javaClass?.name == "gg.essential.vigilance.gui.settingsgui") return text
 	    
-        var replacedText = text
+        var newText = text
         for (actualText in wordsMap!!.keys) {
-            replacedText = replacedText?.replace(actualText, wordsMap!![actualText]!!)
+            newText = newText?.replace(actualText, wordsMap!![actualText]!!)
         }
-        return replacedText
+        return newText
     }
 }

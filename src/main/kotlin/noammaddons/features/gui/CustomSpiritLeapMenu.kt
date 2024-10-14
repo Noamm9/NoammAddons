@@ -21,6 +21,8 @@ import noammaddons.utils.RenderUtils.getWidth
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.utils.PlayerUtils.Player
+import noammaddons.utils.PlayerUtils.closeScreen
 import org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA
 import org.lwjgl.opengl.GL11.GL_SRC_ALPHA
 import java.awt.Color
@@ -138,7 +140,7 @@ object CustomSpiritLeapMenu {
 
         players[index]?.let {
             clickSlot(it.slot, false, 0)
-            mc.thePlayer.closeScreen()
+            closeScreen()
             modMessage(it.name)
         }
     }
@@ -146,10 +148,11 @@ object CustomSpiritLeapMenu {
 
     private fun updatePlayersArray() {
         if (!GuiUtils.isInGui()) return
-        val Chest = mc.thePlayer?.openContainer ?: return
+        val Chest = Player?.openContainer ?: return
+	    players.fill(null)
 
         for (i in 0..<Chest.inventorySlots.size) {
-            val itemName = (Chest.inventorySlots.get(i))?.stack?.displayName?.removeFormatting() ?: continue
+            val itemName = (Chest.inventorySlots[i])?.stack?.displayName?.removeFormatting() ?: continue
             DungeonUtils.leapTeammates.forEachIndexed { index, it ->
                 if (itemName != it.name) return@forEachIndexed
                 if (it.isDead) return@forEachIndexed
@@ -165,7 +168,8 @@ object CustomSpiritLeapMenu {
     }
 
 
-    private fun isSpiritLeapGuiAndSettingsEnabled(): Boolean = GuiUtils.currentChestName.toLowerCase() == "spirit leap" && config.CustomLeapMenu && inDungeons
+    private fun isSpiritLeapGuiAndSettingsEnabled(): Boolean =
+		GuiUtils.currentChestName.removeFormatting().toLowerCase() == "spirit leap" && config.CustomLeapMenu && inDungeons
 
 /*
     @SubscribeEvent
@@ -191,34 +195,20 @@ object CustomSpiritLeapMenu {
         GlStateManager.enableBlend()
         GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         GlStateManager.scale(scale, scale, 1f)
-
         GlStateManager.color(
             color.red / 255f,
             color.green / 255f,
             color.blue / 255f,
             color.alpha / 255f
         )
-
-        var yOffset = y - (mc.fontRendererObj.FONT_HEIGHT) / 2
-        val formattedText = text.addColor()
-        if (formattedText.contains("\n")) {
-            formattedText.split("\n").forEach {
-                yOffset += (mc.fontRendererObj.FONT_HEIGHT * scale).toInt()
-                mc.fontRendererObj.drawStringWithShadow(
-                    it,
-                    x / scale,
-                    yOffset / scale,
-                    color.rgb
-                )
-            }
-        } else {
-            mc.fontRendererObj.drawStringWithShadow(
-	            formattedText,
-	            x / scale,
-	            y / scale,
-	            color.rgb
-            )
-        }
+	    
+	    mc.fontRendererObj.drawStringWithShadow(
+		    text.addColor(),
+		    x / scale,
+		    y / scale,
+		    color.rgb
+		)
+        
 
         GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f)
 

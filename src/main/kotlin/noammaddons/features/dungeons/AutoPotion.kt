@@ -1,21 +1,21 @@
 package noammaddons.features.dungeons
 
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.events.Chat
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
-import noammaddons.events.Chat
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendChatMessage
 import noammaddons.utils.GuiUtils.clickSlot
 import noammaddons.utils.GuiUtils.isInGui
 import noammaddons.utils.ItemUtils.getItemId
+import noammaddons.utils.PlayerUtils.Player
 import noammaddons.utils.PlayerUtils.closeScreen
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.utils.ItemUtils.SkyblockID
 
 object AutoPotion {
     @SubscribeEvent
@@ -33,7 +33,7 @@ object AutoPotion {
 
 
 	private fun hasPotion(): Boolean {
-		return mc.thePlayer?.inventory?.mainInventory?.any {
+		return Player?.inventory?.mainInventory?.any {
 			it?.displayName?.removeFormatting()
 				?.contains("Dungeon VII Potion") ?: false
 		} == true
@@ -47,7 +47,7 @@ object AutoPotion {
         while (!isInGui()) { delay(50) }
         delay(250)
 
-        val container = mc.thePlayer.openContainer ?: return
+        val container = Player?.openContainer ?: return
 
         val slotCount = container.inventory.size - 36
         for (i in 0 until slotCount) {

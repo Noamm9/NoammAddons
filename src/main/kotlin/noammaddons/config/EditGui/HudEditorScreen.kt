@@ -7,7 +7,7 @@ import noammaddons.utils.RenderUtils
 import noammaddons.utils.RenderUtils.getHeight
 import noammaddons.utils.RenderUtils.getWidth
 import net.minecraft.client.gui.GuiScreen
-import noammaddons.sounds.click
+import noammaddons.utils.SoundUtils.click
 import org.lwjgl.input.Mouse
 import java.awt.Color
 import kotlin.math.sign
@@ -24,7 +24,7 @@ class HudEditorScreen: GuiScreen() {
 
     override fun drawScreen(mouseX: Int, mouseY: Int, partialTicks: Float) {
         elements.forEach { it.draw(true) }
-        resetButtonWidth = mc.fontRendererObj.getStringWidth(resetButton.text) * resetButton.scale
+        resetButtonWidth = mc.fontRendererObj.getStringWidth(resetButton.text) * resetButton.scale.toFloat()
 
         resetButton.x = mc.getWidth()/2 - resetButtonWidth/2
         resetButton.y = mc.getHeight()*0.75f
@@ -32,25 +32,25 @@ class HudEditorScreen: GuiScreen() {
 
         RenderUtils.drawRoundedRect(
             Color(33,33,33).darker(),
-            resetButton.x - resetButtonWidth/7.5f,
-            resetButton.y - resetButtonWidth/7.5f,
+            resetButton.x.toFloat() - resetButtonWidth/7.5f,
+            resetButton.y.toFloat() - resetButtonWidth/7.5f,
             resetButtonWidth + resetButtonWidth/3.75f,
-            8f * resetButton.scale + resetButtonWidth/3.75f
+            8f * resetButton.scale.toFloat() + resetButtonWidth/3.75f
         )
 
         RenderUtils.drawRoundedRect(
             Color(33,33,33),
-            resetButton.x - resetButtonWidth/15f,
-            resetButton.y - resetButtonWidth/15f,
+            resetButton.x.toFloat() - resetButtonWidth/15f,
+            resetButton.y.toFloat() - resetButtonWidth/15f,
             resetButtonWidth + resetButtonWidth/7.5f,
-            8f * resetButton.scale + resetButtonWidth/7.5f
+            8f * resetButton.scale.toFloat() + resetButtonWidth/7.5f
         )
 
         RenderUtils.drawText(
             resetButton.text,
-            resetButton.x,
-            resetButton.y,
-            resetButton.scale,
+            resetButton.x.toFloat(),
+            resetButton.y.toFloat(),
+            resetButton.scale.toFloat(),
             Color.CYAN
         )
     }
@@ -69,13 +69,13 @@ class HudEditorScreen: GuiScreen() {
 
             if (MouseUtils.isElementHovered(
                     mouseX.toFloat(), mouseY.toFloat(),
-                    resetButton.x - resetButtonWidth/7.5,
-                    resetButton.y - resetButtonWidth/7.5,
+                    resetButton.x.toDouble() - resetButtonWidth/7.5,
+                    resetButton.y.toDouble() - resetButtonWidth/7.5,
                     (resetButtonWidth + resetButtonWidth/3.75).toInt(),
-                    (8.0 * resetButton.scale + resetButtonWidth/3.75).toInt()
+                    (8 * resetButton.scale.toDouble() + resetButtonWidth/3.75).toInt()
                 )) {
                 selectedElement = null
-	            click.play()
+	            click.start()
                 elements.forEach { it.reset() }
             }
         }

@@ -1,26 +1,25 @@
 package noammaddons.features.General
 
-import noammaddons.noammaddons.Companion.config
-import noammaddons.noammaddons.Companion.mc
-import noammaddons.events.Chat
-import noammaddons.utils.ChatUtils.modMessage
-import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.ChatUtils.sendChatMessage
-import noammaddons.utils.GuiUtils.isInGui
-import noammaddons.utils.GuiUtils.sendClickWindowPacket
-import noammaddons.utils.ItemUtils.getItemId
-import noammaddons.utils.PlayerUtils.closeScreen
-import noammaddons.utils.PlayerUtils.toggleSneak
-import noammaddons.utils.RenderUtils.drawText
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.MessageSentEvent
-import noammaddons.utils.ChatUtils.debugMessage
-import noammaddons.utils.DungeonUtils
+import noammaddons.events.Chat
+import noammaddons.noammaddons.Companion.config
+import noammaddons.noammaddons.Companion.mc
+import noammaddons.utils.ChatUtils.equalsOneOf
+import noammaddons.utils.ChatUtils.modMessage
+import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.ChatUtils.sendChatMessage
+import noammaddons.utils.DungeonUtils.Classes.*
+import noammaddons.utils.DungeonUtils.thePlayer
+import noammaddons.utils.GuiUtils.isInGui
+import noammaddons.utils.GuiUtils.sendWindowClickPacket
+import noammaddons.utils.ItemUtils.getItemId
+import noammaddons.utils.PlayerUtils.Player
+import noammaddons.utils.PlayerUtils.closeScreen
+import noammaddons.utils.PlayerUtils.toggleSneak
 
 object AutoReaperArmorSwap {
     private var PreviousArmorSlot = 0
@@ -31,7 +30,7 @@ object AutoReaperArmorSwap {
     fun autoReaperArmorSwap(event: Chat) {
         if (!config.AutoReaperArmorSwap) return
         if (event.component.unformattedText.removeFormatting() != "[BOSS] Wither King: You... again?") return
-	    if (listOf("Archer", "Berserk").contains(DungeonUtils.thePlayer?.clazz?.name)) {
+	    if (thePlayer?.clazz?.equalsOneOf(Archer, Berserk) == true) {
 		    GlobalScope.launch {
 			    delay(6700)
 			    reaperSwap()
@@ -51,7 +50,7 @@ object AutoReaperArmorSwap {
         while (!isInGui()) { delay(1) }
         delay(250)
 
-        val container = mc.thePlayer.openContainer.inventory
+        val container = Player!!.openContainer.inventory
         val reaperArmorSlot: Int = config.AutoReaperArmorSlot + 35
 
         for (i in 35 until 45) {
@@ -67,7 +66,7 @@ object AutoReaperArmorSwap {
             return
         }
 	    
-        sendClickWindowPacket(reaperArmorSlot, 0, 0)
+        sendWindowClickPacket(reaperArmorSlot, 0, 0)
 
         delay(100)
         closeScreen()
@@ -81,7 +80,7 @@ object AutoReaperArmorSwap {
         while (!isInGui()) { delay(1) }
         delay(250)
 
-        sendClickWindowPacket(PreviousArmorSlot, 0, 0)
+        sendWindowClickPacket(PreviousArmorSlot, 0, 0)
         delay(100)
 
         closeScreen()
