@@ -1,7 +1,9 @@
+# [My Discord Server](https://discord.gg/pj9mQGxMxB)
 # NoammAddons
 
 NoammAddons is a Forge mod designed to enhance gameplay with various quality-of-life improvements and small utilities.
 This mod is primarily focused on Hypixel Skyblock, with features aimed at enhancing the user experience.
+</br>
 
 ## Key Features
 #### General
@@ -44,10 +46,11 @@ This mod is primarily focused on Hypixel Skyblock, with features aimed at enhanc
 - **Custom Damage Splash** - Reformats Hypixel SkyBlock's Shitty Damage Splash for a more readable one.
 - **Block Overlay** - A highly Customizable block highlight display.
 
-
+</br>
 
 ## Contributions
 Contributions are welcome! If you'd like to contribute, feel free to open a pull request or issue on our [GitHub repository](https://github.com/Noamm9/NoammAddons).
+</br>
 
 ## License
 This project is licensed under the [GPL-3.0 license](LICENSE).
