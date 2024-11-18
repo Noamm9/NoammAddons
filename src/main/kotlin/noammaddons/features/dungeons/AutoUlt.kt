@@ -1,33 +1,41 @@
 package noammaddons.features.dungeons
 
-import noammaddons.noammaddons.Companion.config
-import noammaddons.events.Chat
+import net.minecraftforge.fml.common.eventhandler.*
+import noammaddons.events.*
+import noammaddons.features.*
+import noammaddons.features.dungeons.GhostPick.featureState
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.DungeonUtils.Classes.*
+import noammaddons.utils.DungeonUtils.Classes
+import noammaddons.utils.DungeonUtils.Classes.Archer
+import noammaddons.utils.DungeonUtils.Classes.Berserk
+import noammaddons.utils.DungeonUtils.Classes.Healer
+import noammaddons.utils.DungeonUtils.Classes.Mage
+import noammaddons.utils.DungeonUtils.Classes.Tank
+import noammaddons.utils.DungeonUtils.thePlayer
 import noammaddons.utils.LocationUtils.dungeonFloor
 import noammaddons.utils.LocationUtils.inDungeons
 import noammaddons.utils.PlayerUtils.useDungeonClassAbility
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.features.dungeons.GhostPick.featureState
-import noammaddons.utils.DungeonUtils.Classes
-import noammaddons.utils.DungeonUtils.thePlayer
-import noammaddons.utils.ThreadUtils.setTimeout
 
-object AutoUlt {
-	private data class UltMessage(val msg: String, val classes: List<Classes>, val floor: Int)
-	
+object AutoUlt: Feature() {
+    private data class UltMessage(val msg: String, val classes: List<Classes>, val floor: Int)
+
     private val UltMessages = listOf(
         UltMessage(
-	        msg = "⚠ Maxor is enraged! ⚠",
-	        classes = listOf(Healer, Tank),
-	        floor = 7
+            msg = "⚠ Maxor is enraged! ⚠",
+            classes = listOf(Healer, Tank),
+            floor = 7
         ),
         UltMessage(
             msg = "[BOSS] Goldor: You have done it, you destroyed the factory…",
             classes = listOf(Healer, Tank),
             floor = 7
-        ),
+        ),/*
+        UltMessage(
+            msg = "[BOSS] Storm: I should have known that I stood no chance.",
+            classes = listOf(Berserk),
+            floor = 7
+        ),*/
         UltMessage(
             msg = "[BOSS] Sadan: My giants! Unleashed!",
             classes = listOf(Healer, Tank, Archer, Berserk, Mage),
@@ -42,21 +50,21 @@ object AutoUlt {
 
     @SubscribeEvent
     fun useUlt(event: Chat) {
-        if (!config.autoUlt) return
-        if (!inDungeons) return
+        if (! config.autoUlt) return
+        if (! inDungeons) return
 
         val matchingMessage = UltMessages.find {
             it.msg == event.component.unformattedText.removeFormatting() && it.floor == dungeonFloor
         } ?: return
-	    
+
         if (matchingMessage.classes.contains(thePlayer?.clazz)) {
             modMessage("Used Ultimate!")
-	        if (featureState) {
-		        featureState = false
+            if (featureState) {
+                featureState = false
                 useDungeonClassAbility(true)
-	            setTimeout(50) { featureState = true}
-	        }
-	        else useDungeonClassAbility(true)
+                featureState = true
+            }
+            else useDungeonClassAbility(true)
         }
     }
 }

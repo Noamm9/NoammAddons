@@ -5,24 +5,31 @@ import net.minecraft.client.gui.GuiChat
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.RenderHelper
-import net.minecraftforge.fml.client.config.GuiUtils
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
-import noammaddons.utils.ChatUtils.equalsOneOf
-import noammaddons.utils.ItemUtils.getRarity
+import noammaddons.utils.RenderHelper.getScaleFactor
+import noammaddons.utils.RenderUtils.drawGradientRoundedRect
+import noammaddons.utils.RenderUtils.drawRainbowRoundedBorder
+import noammaddons.utils.Utils.isNull
 import org.lwjgl.input.Keyboard
 import org.lwjgl.input.Mouse
 import java.awt.Color
 
 
-// Slightly modified code from DulkirMod
-// https://github.com/Noamm9/DulkirMod/blob/master/src/main/kotlin/dulkirmod/features/ScalableTooltips.kt
+/**
+ * Slightly modified code from DulkirMod
+ * https://github.com/Noamm9/DulkirMod/blob/master/src/main/kotlin/dulkirmod/features/ScalableTooltips.kt
+ *
+ *  @see noammaddons.mixins.MixinGuiUtils
+ */
 object ScalableTooltips {
     private var scrollY: Int = 0
     private var scrollX: Int = 0
     private var snapFlag: Boolean = true
     private var scaleScale: Float = 0f
+    private var lastItem: Int? = null
 
+    @JvmStatic
     fun drawScaledHoveringText(
         textLines: List<String>,
         mouseX: Int,
@@ -31,8 +38,14 @@ object ScalableTooltips {
         screenHeight: Int,
         font: FontRenderer,
     ): Boolean {
-        if(!config.ScalableTooltips) return false
-        if(textLines.isEmpty()) return true
+        if (! config.ScalableTooltips) return false
+        if (textLines.isEmpty()) return true
+        val slot = (mc.currentScreen as? GuiContainer)?.slotUnderMouse
+        if (lastItem.isNull()) lastItem = slot?.slotNumber
+        else if (lastItem != slot?.slotNumber) {
+            lastItem = slot?.slotNumber
+            resetPos()
+        }
 
 
         val eventDWheel = Mouse.getDWheel()
@@ -52,84 +65,84 @@ object ScalableTooltips {
             }
 
         }
-	    
-	    if (textLines.isNotEmpty() && !textLines[0].contains("§f§o §r")) {
-		    val scale = (config.ScalableTooltipsScale + scaleScale).coerceAtLeast(0f)
-		    
-		    var width = 0
-		    for (textLine in textLines) {
-			    val textWidth = font.getStringWidth(textLine)
-			    if (textWidth > width) width = textWidth
-		    }
-		    val height = (textLines.size) * font.FONT_HEIGHT
-		    
-		    
-		    GlStateManager.pushMatrix()
-		    GlStateManager.scale(scale, scale, 1f)
-		    GlStateManager.disableRescaleNormal()
-		    RenderHelper.disableStandardItemLighting()
-		    GlStateManager.disableLighting()
-		    GlStateManager.disableDepth()
-		    
-		    
-		    var x = ((mouseX + 12 + scrollX) / scale).toInt()
-		    var y = ((mouseY - 12 + scrollY) / scale).toInt()
-		    
-		    
-		    if ((x + width + 4 > screenWidth / scale) && (width + 4 <= screenWidth / scale)) {
-			    scrollX = (screenWidth - mouseX - 12 - (width + 4)* scale).toInt()
-		    }
-		    
-		    if ((y + height + 4 > screenHeight / scale) && (height + 4 <= screenHeight / scale)) {
-			    scrollY = (screenHeight - mouseY + 12 - (height + 4)* scale).toInt()
-		    }
-		    
-		    if (x < 0 && (width + 4 <= screenWidth / scale)) scrollX = -mouseX - 12 + 4
-		    if (y < 0 && (height + 4 <= screenHeight / scale)) scrollY = -mouseY + 12 + 4
-		    
-		    
-		    if (snapFlag) {
-			    if (width + 4 > screenWidth / scale) scrollX = -mouseX - 12 + 4
-			    if (height + 4 > screenHeight / scale) scrollY = -mouseY + 12 + 4
-			    snapFlag = false
-		    }
-		    
-		    x = ((mouseX + 12 + scrollX) / scale).toInt()
-		    y = ((mouseY - 12 + scrollY) / scale).toInt()
-		    
-		    
-		    val backgroundColor = Color(33,33,33, 210).rgb
-		    val zLevel = 300
-		    
-		    GuiUtils.drawGradientRect(zLevel, x - 3, y - 4, x + width + 3, y - 3, backgroundColor, backgroundColor)
-		    GuiUtils.drawGradientRect(zLevel, x - 3, y + height + 3, x + width + 3, y + height + 4, backgroundColor, backgroundColor)
-		    GuiUtils.drawGradientRect(zLevel, x - 3, y - 3, x + width + 3, y + height + 3, backgroundColor, backgroundColor)
-		    GuiUtils.drawGradientRect(zLevel, x - 4, y - 3, x - 3, y + height + 3, backgroundColor, backgroundColor)
-		    GuiUtils.drawGradientRect(zLevel, x + width + 3, y - 3, x + width + 4, y + height + 3, backgroundColor, backgroundColor)
-		    val currentOpenedGui = mc.currentScreen
-		    val borderColorStart =
-			    if (currentOpenedGui is GuiContainer) currentOpenedGui.let { getRarity(it.slotUnderMouse?.stack).color.rgb }
-			    else Color(255, 255, 255).rgb
-		    val borderColorEnd = borderColorStart and 0xFEFEFE shr 1 or (borderColorStart and -0x1000000)
-		    GuiUtils.drawGradientRect(zLevel, x - 3, y - 3 + 1, x - 3 + 1, y + height + 3 - 1, borderColorStart, borderColorEnd)
-		    GuiUtils.drawGradientRect(zLevel, x + width + 2, y - 3 + 1, x + width + 3, y + height + 3 - 1, borderColorStart, borderColorEnd)
-		    GuiUtils.drawGradientRect(zLevel, x - 3, y - 3, x + width + 3, y - 3 + 1, borderColorStart, borderColorStart)
-		    GuiUtils.drawGradientRect(zLevel, x - 3, y + height + 2, x + width + 3, y + height + 3, borderColorEnd, borderColorEnd)
-		    
-		    
-		    var yStart = y
-		    for (textLine in textLines) {
-			    font.drawStringWithShadow(textLine, x.toFloat(), yStart.toFloat(), -1)
-			    yStart += font.FONT_HEIGHT
-		    }
-		    
-		    GlStateManager.enableLighting()
-		    GlStateManager.enableDepth()
-		    RenderHelper.enableStandardItemLighting()
-		    GlStateManager.enableRescaleNormal()
-		    GlStateManager.popMatrix()
-	    }
-	    return true
+
+        if (textLines.isNotEmpty() && ! textLines[0].contains("§f§o §r")) {
+            val scale = (((3f * config.ScalableTooltipsScale) + scaleScale) / mc.getScaleFactor()).coerceAtLeast(1.5f / mc.getScaleFactor())
+
+            var width = 0
+            for (textLine in textLines) {
+                val textWidth = font.getStringWidth(textLine)
+                if (textWidth > width) width = textWidth
+            }
+            val height = (textLines.size) * font.FONT_HEIGHT
+
+
+            GlStateManager.pushMatrix()
+            GlStateManager.scale(scale, scale, scale)
+            GlStateManager.disableRescaleNormal()
+            RenderHelper.disableStandardItemLighting()
+            GlStateManager.disableLighting()
+            GlStateManager.disableDepth()
+
+
+            var x = ((mouseX + 12 + scrollX) / scale).toInt()
+            var y = ((mouseY - 12 + scrollY) / scale).toInt()
+
+
+            if ((x + width + 4 > screenWidth / scale) && (width + 4 <= screenWidth / scale)) {
+                scrollX = (screenWidth - mouseX - 12 - (width + 4) * scale).toInt()
+            }
+
+            if ((y + height + 4 > screenHeight / scale) && (height + 4 <= screenHeight / scale)) {
+                scrollY = (screenHeight - mouseY + 12 - (height + 4) * scale).toInt()
+            }
+
+            if (x < 0 && (width + 4 <= screenWidth / scale)) scrollX = - mouseX - 12 + 4
+            if (y < 0 && (height + 4 <= screenHeight / scale)) scrollY = - mouseY + 12 + 4
+
+
+            if (snapFlag) {
+                if (width + 4 > screenWidth / scale) scrollX = - mouseX - 12 + 4
+                if (height + 4 > screenHeight / scale) scrollY = - mouseY + 12 + 4
+                snapFlag = false
+            }
+
+            x = ((mouseX + 12 + scrollX) / scale).toInt()
+            y = ((mouseY - 12 + scrollY) / scale).toInt()
+
+            val backgroundColor = Color(33, 33, 33, 210)
+
+            drawRainbowRoundedBorder(
+                x - 3,
+                y - 3,
+                width + 6,
+                height + 6,
+                5f, 4f
+            )
+
+            drawGradientRoundedRect(
+                x - 3f,
+                y - 3f,
+                width + 6f,
+                height + 6f,
+                5f,
+                backgroundColor, backgroundColor,
+                backgroundColor.darker(), backgroundColor.darker(),
+            )
+
+            var yStart = y
+            for (textLine in textLines) {
+                font.drawStringWithShadow(textLine, x.toFloat(), yStart.toFloat(), - 1)
+                yStart += font.FONT_HEIGHT
+            }
+
+            GlStateManager.enableDepth()
+            RenderHelper.enableStandardItemLighting()
+            GlStateManager.enableRescaleNormal()
+            GlStateManager.enableLighting()
+            GlStateManager.popMatrix()
+        }
+        return true
     }
 
     fun resetPos() {

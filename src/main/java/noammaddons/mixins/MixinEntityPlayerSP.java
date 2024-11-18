@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class MixinEntityPlayerSP {
     @Inject(method = "pushOutOfBlocks(DDD)Z", at = @At("HEAD"), cancellable = true)
     private void injectPushOutOfBlocks(double x, double y, double z, CallbackInfoReturnable<Boolean> cir) {
-        if (Config.INSTANCE.getClearBlocks()) {
+        if (Config.INSTANCE.getNoPushOutOfBlocks()) {
             cir.setReturnValue(false);
         }
     }

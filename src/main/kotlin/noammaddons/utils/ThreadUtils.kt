@@ -5,20 +5,25 @@ import kotlin.concurrent.schedule
 
 
 object ThreadUtils {
-	fun setTimeout(delay: Long, callback: () -> Unit) {
-	    Timer().schedule(delay) {
-	        callback()
-	    }
-	}
-	
+    fun setTimeout(delay: Long, callback: () -> Unit) {
+        Timer().schedule(delay) {
+            callback()
+        }
+    }
 
-	fun runEvery(delay: Long, stopWhen: () -> Boolean = { false }, task: () -> Unit) {
-		val timer = Timer()
-		timer.schedule(object : TimerTask() {
-			override fun run() {
-				task()
-				if (stopWhen()) return timer.cancel()
-			}
-		}, 0, delay)
-	}
+    fun loop(delay: Long, stop: () -> Boolean = { false }, func: () -> Unit) {
+        Timer().run {
+            schedule(object: TimerTask() {
+                override fun run() {
+                    try {
+                        func()
+                        if (stop()) cancel()
+                    }
+                    catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }, 0, delay)
+        }
+    }
 }

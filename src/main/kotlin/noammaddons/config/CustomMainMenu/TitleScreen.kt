@@ -14,77 +14,81 @@ import noammaddons.utils.RenderUtils.renderTexture
 import noammaddons.utils.SoundUtils.click
 
 
+/**
+ * @see noammaddons.mixins.MixinGuiMainMenu
+ */
 class TitleScreen: GuiScreen() {
-	private val textButtons = ArrayList<TextButton>()
-	private val iconButtons = ArrayList<IconButton>()
-	
-	init {
-		textButtons.add(TextButton("Singleplayer", width / 2 - 75, height / 2))
-		textButtons.add(TextButton("Multiplayer", width / 2 - 75, height / 2 + 25))
-		textButtons.add(TextButton("Settings", width / 2 - 75, height / 2 + 50))
-		iconButtons.add(IconButton("X", 4f, width - 35, 8))
-		iconButtons.add(IconButton("logo", 2f, width / 2 - 50, height / 2 - 198, 100, 100))
-	}
-	
+    private val textButtons = ArrayList<TextButton>()
+    private val iconButtons = ArrayList<IconButton>()
 
-	override fun drawScreen(mouseX: Int, mouseY: Int, partialTicks: Float) {
-		super.drawScreen(mouseX, mouseY, partialTicks)
-		renderTexture(
-			ResourceLocation(MOD_ID, "menu/background.png"),
-			0, 0, width, height,
-		)
-		
-		for ((y, textButton) in textButtons.withIndex()) {
-			textButton.renderButton(
-				width / 2 - 75,
-				height / 2 + y * 30,
-				mouseX, mouseY
-			)
-		}
-		
-		for (iconButton in iconButtons) {
-			var x = 0
-			var y = 0
-			when (iconButton.icon) {
-				"X" -> {
-					x = width - 38
-					y = 5
-				}
-				"logo" -> {
+    init {
+        textButtons.add(TextButton("Singleplayer", width / 2 - 75, height / 2))
+        textButtons.add(TextButton("Multiplayer", width / 2 - 75, height / 2 + 25))
+        textButtons.add(TextButton("Settings", width / 2 - 75, height / 2 + 50))
+        iconButtons.add(IconButton("X", 4f, width - 35, 8))
+        iconButtons.add(IconButton("logo", 2f, width / 2 - 50, height / 2 - 198, 100, 100))
+    }
+
+
+    override fun drawScreen(mouseX: Int, mouseY: Int, partialTicks: Float) {
+        super.drawScreen(mouseX, mouseY, partialTicks)
+        renderTexture(
+            ResourceLocation(MOD_ID, "menu/background.png"),
+            0, 0, width, height,
+        )
+
+        for ((y, textButton) in textButtons.withIndex()) {
+            textButton.renderButton(
+                width / 2 - 75,
+                height / 2 + y * 30,
+                mouseX, mouseY
+            )
+        }
+
+        for (iconButton in iconButtons) {
+            var x = 0
+            var y = 0
+            when (iconButton.icon) {
+                "X" -> {
+                    x = width - 38
+                    y = 5
+                }
+
+                "logo" -> {
                     x = width / 2 - 50
                     y = height / 2 - 198
                 }
-			}
-			iconButton.renderButton(x, y, mouseX.toFloat(), mouseY.toFloat())
-		}
-		
-		
-		drawCenteredText(FULL_PREFIX, width/2f, height/2f - 80, 3f)
-	}
-	
-	
-	override fun mouseClicked(mouseX: Int, mouseY: Int, mouseButton: Int) {
-		for (textButton in textButtons) {
-			if (textButton.isHovered(mouseX, mouseY)) {
-				click.start()
-				when (textButton.text) {
-					"Singleplayer" -> mc.displayGuiScreen(GuiSelectWorld(this))
-					"Multiplayer" -> mc.displayGuiScreen(GuiMultiplayer(this))
-					"Settings" -> mc.displayGuiScreen(GuiOptions(this, mc.gameSettings))
-				}
-			}
-		}
-		
-		for (iconButton in iconButtons) {
-			if (iconButton.isHovered(mouseX, mouseY)) {
-				click.start()
-				when (iconButton.icon) {
-					"X" -> mc.shutdown()
-					"logo" -> openScreen(Config.gui())
-				}
-			}
-		}
-		
-		super.mouseClicked(mouseX, mouseY, mouseButton)
-	}
+            }
+            iconButton.renderButton(x, y, mouseX.toFloat(), mouseY.toFloat())
+        }
+
+
+        drawCenteredText(FULL_PREFIX, width / 2f, height / 2f - 80, 3f)
+    }
+
+
+    override fun mouseClicked(mouseX: Int, mouseY: Int, mouseButton: Int) {
+        for (textButton in textButtons) {
+            if (textButton.isHovered(mouseX, mouseY)) {
+                click.start()
+                when (textButton.text) {
+                    "Singleplayer" -> mc.displayGuiScreen(GuiSelectWorld(this))
+                    "Multiplayer" -> mc.displayGuiScreen(GuiMultiplayer(this))
+                    "Settings" -> mc.displayGuiScreen(GuiOptions(this, mc.gameSettings))
+                }
+            }
+        }
+
+        for (iconButton in iconButtons) {
+            if (iconButton.isHovered(mouseX, mouseY)) {
+                click.start()
+                when (iconButton.icon) {
+                    "X" -> mc.shutdown()
+                    "logo" -> openScreen(Config.gui())
+                }
+            }
+        }
+
+        super.mouseClicked(mouseX, mouseY, mouseButton)
+    }
 }

@@ -1,19 +1,26 @@
 package noammaddons.utils
 
+import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type
+import gg.essential.universal.ChatColor
+import net.minecraft.init.Items
+import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTUtil
+import net.minecraft.util.ResourceLocation
+import net.minecraftforge.common.util.Constants
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ItemUtils.ItemRarity.Companion.PET_PATTERN
 import noammaddons.utils.ItemUtils.ItemRarity.Companion.RARITY_PATTERN
-import gg.essential.universal.ChatColor
-import java.awt.Color
-import net.minecraftforge.common.util.Constants
-import net.minecraft.item.Item
 import noammaddons.utils.PlayerUtils.Player
+import noammaddons.utils.Utils.isNull
+import java.awt.Color
 
 
 object ItemUtils {
-    enum class ItemRarity(val baseColor: ChatColor, val color: Color = baseColor.color!!) {
+    private val textureCache = mutableMapOf<String, ResourceLocation?>()
+
+    enum class ItemRarity(val baseColor: ChatColor, val color: Color = baseColor.color !!) {
         NONE(ChatColor.GRAY),
         COMMON(ChatColor.WHITE, Color(255, 255, 255)),
         UNCOMMON(ChatColor.GREEN, Color(77, 231, 77)),
@@ -44,19 +51,17 @@ object ItemUtils {
         }
     }
 
-
-
-
     val ItemStack.SkyblockID: String
         get() = this.getSubCompound("ExtraAttributes", false)?.getString("id") ?: ""
 
-    val ItemStack.lore: List<String> get() = this.tagCompound?.getCompoundTag("display")?.getTagList("Lore", 8)?.let {
-        val list = mutableListOf<String>()
-	    for (i in 0 until it.tagCount()) {
-			list.add(it.getStringTagAt(i))
-		}
-	    list
-	} ?: emptyList()
+    val ItemStack.lore: List<String>
+        get() = this.tagCompound?.getCompoundTag("display")?.getTagList("Lore", 8)?.let {
+            val list = mutableListOf<String>()
+            for (i in 0 until it.tagCount()) {
+                list.add(it.getStringTagAt(i))
+            }
+            list
+        } ?: emptyList()
 
     fun isHoldingEtherwarpItem(): Boolean {
         val held = Player?.heldItem ?: return false
@@ -66,45 +71,42 @@ object ItemUtils {
 
         return held.getSubCompound("ExtraAttributes", false)?.getString("ethermerge") == "1"
     }
-	
-	fun getHotbar(): Array<ItemStack?> {
-		return Player?.inventory?.mainInventory
-			?.filterIndexed { index, _ -> index in 0..8 }
-			?.toTypedArray() ?: arrayOfNulls(9)
-	}
+
+    fun getHotbar(): Array<ItemStack?> {
+        return Player?.inventory?.mainInventory
+            ?.filterIndexed { index, _ -> index in 0 .. 8 }
+            ?.toTypedArray() ?: arrayOfNulls(9)
+    }
 
 
-	
-	
-	fun getItemIndexInHotbar(name: String): Int? {
-		getHotbar().forEachIndexed { index, stack ->
-			if (stack.isNothing()) return@forEachIndexed
-			
-			if (stack!!.displayName.removeFormatting().toLowerCase().contains(name)) {
-				return index
-			}
-		}
-		return null
-	}
+    fun getItemIndexInHotbar(name: String): Int? {
+        getHotbar().forEachIndexed { index, stack ->
+            if (stack.isNothing()) return@forEachIndexed
+
+            if (stack !!.displayName.removeFormatting().contains(name, true)) {
+                return index
+            }
+        }
+        return null
+    }
 
     /**
      * Returns the rarity of a given Skyblock item
      * @author SkytilsMod
      * @param ItemStack the Skyblock item to check
-     * @return the rarity of the item if a valid rarity is found, `null` if no rarity is found, `null` if item is `null`
+     * @return the rarity of the item if a valid rarity is found, `ItemRarity.NONE` if no rarity is found
      */
     fun getRarity(item: ItemStack?): ItemRarity {
-        if (item == null || !item.hasTagCompound()) {
+        if (item == null || ! item.hasTagCompound()) {
             return ItemRarity.NONE
         }
         val display = item.getSubCompound("display", false)
-        if (display == null || !display.hasKey("Lore")) {
+        if (display == null || ! display.hasKey("Lore")) {
             return ItemRarity.NONE
         }
         val lore = display.getTagList("Lore", Constants.NBT.TAG_STRING)
         val name = display.getString("Name")
 
-        // Determine the item's rarity
         for (i in (lore.tagCount() - 1) downTo 0) {
             val currentLine = lore.getStringTagAt(i)
             val rarityMatcher = RARITY_PATTERN.find(currentLine)
@@ -123,11 +125,36 @@ object ItemUtils {
             return ItemRarity.byBaseColor(color) ?: ItemRarity.NONE
         }
 
-        // If the item doesn't have a valid rarity, return null
         return ItemRarity.NONE
     }
 
     fun ItemStack.getItemId(): Int = Item.getIdFromItem(this.item)
-	
-	fun ItemStack?.isNothing(): Boolean = this == null
+
+    fun ItemStack?.isNothing(): Boolean = this == null
+
+    fun getHeadSkinTexture(itemStack: ItemStack): ResourceLocation? {
+        if (itemStack.item == Items.skull && itemStack.metadata == 3) {
+            val nbt = itemStack.tagCompound ?: return null
+            if (! nbt.hasKey("SkullOwner", 10)) return null
+
+            val skullOwner = nbt.getCompoundTag("SkullOwner")
+            val profile = NBTUtil.readGameProfileFromNBT(skullOwner)
+            if (profile.isNull()) return null
+            val name = itemStack.displayName ?: return null
+
+            if (textureCache.containsKey(name)) {
+                return textureCache[name]
+            }
+
+            val textureManager = mc.skinManager
+            val textures = textureManager.loadSkinFromCache(profile)
+            val skin = textures[Type.SKIN] ?: return null
+
+            val texture = textureManager.loadSkin(skin, Type.SKIN)
+            textureCache[name] = texture
+
+            return texture
+        }
+        return null
+    }
 }

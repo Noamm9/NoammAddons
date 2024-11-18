@@ -1,20 +1,21 @@
 package noammaddons.features.dungeons.terminals
 
-import noammaddons.noammaddons.Companion.config
+import net.minecraft.util.BlockPos
+import net.minecraft.util.Vec3
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.events.RenderWorld
+import noammaddons.features.Feature
 import noammaddons.utils.LocationUtils.P3Section
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.MathUtils
-import noammaddons.utils.RenderUtils
-import net.minecraft.util.BlockPos
-import net.minecraft.util.Vec3
-import net.minecraftforge.client.event.RenderWorldLastEvent
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.utils.PlayerUtils.Player
-import noammaddons.utils.RenderUtils.getRenderVec
+import noammaddons.utils.RenderHelper.getRenderVec
+import noammaddons.utils.RenderUtils.drawBlockBox
+import noammaddons.utils.RenderUtils.drawString
 import java.awt.Color
 
 
-object TerminalNumbers {
+object TerminalNumbers: Feature() {
     private val Terminals = listOf(
         // Section 1
         listOf(
@@ -28,15 +29,15 @@ object TerminalNumbers {
             listOf(listOf(68, 109, 121), listOf(68, 109, 122)),
             listOf(listOf(59, 120, 122), listOf(59, 119, 123)),
             listOf(listOf(47, 109, 121), listOf(47, 109, 122)),
-            listOf(listOf(40, 124, 122), listOf(40, 124, 123)),
-            listOf(listOf(39, 108, 143), listOf(39, 108, 142))
+            listOf(listOf(39, 108, 143), listOf(39, 108, 142)),
+            listOf(listOf(40, 124, 122), listOf(40, 124, 123))
         ),
         // Section 3
         listOf(
-            listOf(listOf(-3, 109, 112), listOf(-2, 109, 112)),
-            listOf(listOf(-3, 119, 93), listOf(-2, 119, 93)),
+            listOf(listOf(- 3, 109, 112), listOf(- 2, 109, 112)),
+            listOf(listOf(- 3, 119, 93), listOf(- 2, 119, 93)),
             listOf(listOf(19, 123, 93), listOf(18, 123, 93)),
-            listOf(listOf(-3, 109, 77), listOf(-2, 109, 77))
+            listOf(listOf(- 3, 109, 77), listOf(- 2, 109, 77))
         ),
         // Section 4
         listOf(
@@ -53,11 +54,12 @@ object TerminalNumbers {
         val (tX, tY, tZ) = value[1].map { it + 0.5 }
 
         val distance = MathUtils.distanceIn3DWorld(
-	        Player!!.getRenderVec(),
-	        Vec3(tX, tY, tZ)
-        )
+            Player !!.getRenderVec(), Vec3(tX, tY, tZ)
+        ).toFloat()
+        val scale = distance * 0.18f
 
-        RenderUtils.drawBlockBox(
+
+        drawBlockBox(
             BlockPos(x, y, z),
             Color(0, 114, 255, 85),
             outline = true,
@@ -65,25 +67,23 @@ object TerminalNumbers {
             phase = true
         )
 
-        RenderUtils.drawString(
-            "${index + 1}",
-            Vec3(tX, tY, tZ),
+        drawString(
+            "${index + 1}", Vec3(tX, tY, tZ),
             Color(255, 0, 255),
-            if (distance < 10) 3f else (distance * 0.3).toFloat(),
-            shadow = true, phase = true
+            if (scale < 1f) 1f else scale,
+            shadow = true, phase = true,
+            renderBlackBox = false
         )
     }
 
     @SubscribeEvent
-    @Suppress("UNUSED_PARAMETER")
-    fun onRenderWorld(event: RenderWorldLastEvent) {
-        if (!inBoss || P3Section == null || !config.TerminalNumbers) return
+    fun onRenderWorld(event: RenderWorld) {
+        if (! inBoss || P3Section == null || ! config.TerminalNumbers) return
 
         try {
-            Terminals[P3Section!! - 1].forEachIndexed { index, value -> render(value, index) }
+            Terminals[P3Section !! - 1].forEachIndexed { index, value -> render(value, index) }
         }
-        catch (_: Exception) {}
+        catch (_: Exception) {
+        }
     }
 }
-
-

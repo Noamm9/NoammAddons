@@ -2,6 +2,9 @@ package noammaddons.config
 
 import noammaddons.config.EditGui.ElementsManager.HudElementData
 import noammaddons.features.hud.PlayerHud.PlayerHudData
+import noammaddons.noammaddons.Companion.mc
+import noammaddons.utils.RenderHelper.getHeight
+import noammaddons.utils.RenderHelper.getWidth
 
 
 class HudElementConfig {
@@ -21,5 +24,7 @@ class HudElementConfig {
         effectiveHP = HudElementData(100f, 130f, 1f),
         speed = HudElementData(100f, 140f, 1f)
     )
-	val PetDisplay = HudElementData(100f, 150f, 1f)
+    val PetDisplay = HudElementData(100f, 150f, 1f)
+    val TpsDisplay = HudElementData(100f, 160f, 1f)
+    val CustomScoreBoard = HudElementData(mc.getWidth() * 1f, mc.getHeight() / 2f, 3f)
 }

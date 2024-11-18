@@ -1,71 +1,60 @@
 package noammaddons.features.dungeons
 
-import noammaddons.noammaddons.Companion.config
-import noammaddons.noammaddons.Companion.mc
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Chat
 import noammaddons.events.RenderOverlay
+import noammaddons.events.ServerTick
+import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.RenderUtils.getHeight
-import noammaddons.utils.RenderUtils.getWidth
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.utils.LocationUtils.dungeonFloor
 import noammaddons.utils.LocationUtils.inBoss
+import noammaddons.utils.MathUtils.toFixed
+import noammaddons.utils.RenderHelper.getHeight
+import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawCenteredText
+import java.awt.Color
 
 
-object F7PhaseStartTimers {
+object F7PhaseStartTimers: Feature() {
+    private var tickTime = 1L
     private val startMessages = listOf(
         "[BOSS] Maxor: WELL! WELL! WELL! LOOK WHO'S HERE!",
         "[BOSS] Maxor: I'M TOO YOUNG TO DIE AGAIN!",
         "[BOSS] Storm: I should have known that I stood no chance.",
         "[BOSS] Necron: I'm afraid, your journey ends now."
     )
-    private var startTime = System.currentTimeMillis()
-	private var msTime = 1L
-	
-	
-	@SubscribeEvent
+
+    @SubscribeEvent
     fun onPhaseStart(event: Chat) {
-        if (!config.F7M7PhaseStartTimers) return
+        if (! config.F7M7PhaseStartTimers) return
         val msg = event.component.unformattedText.removeFormatting()
 
         when {
-            msg == startMessages[0] && config.P1StartTimer -> {
-                startTime = System.currentTimeMillis()
-                msTime = 7500
-            }
-
-            msg == startMessages[1] && config.P2StartTimer -> {
-                startTime = System.currentTimeMillis()
-                msTime = 6000
-            }
-
-            msg == startMessages[2] && config.P3StartTimer -> {
-                startTime = System.currentTimeMillis()
-                msTime = 5200
-            }
-
-            msg == startMessages[3] && config.P4StartTimer -> {
-                startTime = System.currentTimeMillis()
-                msTime = 3000
-            }
+            msg == startMessages[0] && config.P1StartTimer -> tickTime = 7500 / 50
+            msg == startMessages[1] && config.P2StartTimer -> tickTime = 6000 / 50
+            msg == startMessages[2] && config.P3StartTimer -> tickTime = 5200 / 50
+            msg == startMessages[3] && config.P4StartTimer -> tickTime = 3000 / 50
         }
     }
 
     @SubscribeEvent
-    @Suppress("UNUSED_PARAMETER")
+    fun timer(event: ServerTick) {
+        tickTime --
+    }
+
+    @SubscribeEvent
     fun onRender(event: RenderOverlay) {
-        if (!config.F7M7PhaseStartTimers) return
-	    if (!inBoss) return
-	    if (dungeonFloor != 7) return
-        val timeLeft = (msTime - (System.currentTimeMillis() - startTime)).toInt()
-        if (timeLeft < 0) return
-	    
+        if (! config.F7M7PhaseStartTimers) return
+        if (! inBoss) return
+        if (dungeonFloor != 7) return
+        val timeLeft = (tickTime * 50.0) / 1000
+        if (tickTime <= 0) return
+
         drawCenteredText(
-	        "&a$timeLeft",
-	        mc.getWidth()/2f,
-	        mc.getHeight()/2f + 20f,
-	        1.5f,
+            timeLeft.toFixed(1),
+            mc.getWidth() / 2f,
+            mc.getHeight() / 2f + 20f,
+            1.5f, Color.GREEN
         )
     }
 }
