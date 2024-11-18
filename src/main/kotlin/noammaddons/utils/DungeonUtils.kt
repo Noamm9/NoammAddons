@@ -29,7 +29,7 @@ object DungeonUtils {
      * */
     enum class Classes(val color: Color) {
         Archer(Color(255, 0, 0)),
-        Berserk(Color(255,106,0)),
+        Berserk(Color(255, 106, 0)),
         Healer(Color(255, 0, 255)),
         Mage(Color(0, 255, 255)),
         Tank(Color(0, 255, 0)),
@@ -54,7 +54,7 @@ object DungeonUtils {
 
     private fun getDungeonTabList(): List<Pair<NetworkPlayerInfo, String>>? {
         val tabEntries = getTabList
-        if (tabEntries.size < 18 || !tabEntries[0].second.contains("§r§b§lParty §r§f(")) return null
+        if (tabEntries.size < 18 || ! tabEntries[0].second.contains("§r§b§lParty §r§f(")) return null
         return tabEntries
     }
 
@@ -68,13 +68,13 @@ object DungeonUtils {
 
 
     private val tablistRegex = Regex("^\\[(\\d+)] (?:\\[\\w+] )*(\\w+) .*?\\((\\w+)(?: (\\w+))*\\)$")
-	
-	private fun getDungeonTeammates(previousTeammates: List<DungeonPlayer>): List<DungeonPlayer> {
+
+    private fun getDungeonTeammates(previousTeammates: List<DungeonPlayer>): List<DungeonPlayer> {
         if (config.DevMode) return listOf(
-	        DungeonPlayer("Deitee__", Classes.Mage, entity = Player),
-	        DungeonPlayer("Noamm9", Classes.Archer),
-	        DungeonPlayer("hellop2", Classes.Healer),
-	        DungeonPlayer("Ori", Classes.Tank),
+            DungeonPlayer("Deitee__", Classes.Mage, entity = Player),
+            DungeonPlayer("Noamm9", Classes.Archer),
+            DungeonPlayer("hellop2", Classes.Healer),
+            DungeonPlayer("Ori", Classes.Tank),
         )
 
         val teammates = mutableListOf<DungeonPlayer>()
@@ -97,26 +97,25 @@ object DungeonUtils {
     var dungeonTeammates: List<DungeonPlayer> = emptyList()
     var dungeonTeammatesNoSelf: List<DungeonPlayer> = emptyList()
     var leapTeammates = mutableListOf<DungeonPlayer>()
-	var thePlayer: DungeonPlayer? = null
+    var thePlayer: DungeonPlayer? = null
 
     private var tickCount = 0
+
     @SubscribeEvent
-    @Suppress("UNUSED_PARAMETER")
-    fun UpdateValues(event: Tick) {
-        if (mc.theWorld == null || !inDungeons) return
-        tickCount++
+    fun updateValues(event: Tick) {
+        if (mc.theWorld == null || ! inDungeons) return
+        tickCount ++
         if (tickCount % 20 != 0) return
 
         dungeonTeammates = getDungeonTeammates(dungeonTeammates)
         dungeonTeammatesNoSelf = dungeonTeammates.filter { it.entity != Player }
-	    thePlayer = dungeonTeammates.find { it.entity == Player }
+        thePlayer = dungeonTeammates.find { it.entity == Player }
         leapTeammates = dungeonTeammatesNoSelf.sortedBy { it.clazz }.toMutableList()
 
         tickCount = 0
     }
 
     @SubscribeEvent
-    @Suppress("UNUSED_PARAMETER")
     fun reset(event: WorldEvent.Unload) {
         dungeonTeammates = emptyList()
         dungeonTeammatesNoSelf = emptyList()

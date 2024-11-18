@@ -1,24 +1,5 @@
 package noammaddons.features.dungeons.terminals
 
-import noammaddons.noammaddons.Companion.config
-import noammaddons.noammaddons.Companion.mc
-import noammaddons.events.GuiContainerEvent
-import noammaddons.events.PacketEvent
-import noammaddons.features.dungeons.terminals.ConstantsVeriables.RedGreenTitle
-import noammaddons.features.dungeons.terminals.ConstantsVeriables.Slot
-import noammaddons.features.dungeons.terminals.ConstantsVeriables.getColorMode
-import noammaddons.features.dungeons.terminals.ConstantsVeriables.getSolutionColor
-import noammaddons.features.dungeons.terminals.ConstantsVeriables.getTermScale
-import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.GuiUtils.getMouseX
-import noammaddons.utils.GuiUtils.getMouseY
-import noammaddons.utils.ItemUtils.getItemId
-import noammaddons.utils.LocationUtils
-import noammaddons.utils.LocationUtils.F7Phase
-import noammaddons.utils.RenderUtils
-import noammaddons.utils.RenderUtils.getHeight
-import noammaddons.utils.RenderUtils.getWidth
-import noammaddons.utils.ThreadUtils.setTimeout
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.network.play.client.C0DPacketCloseWindow
 import net.minecraft.network.play.client.C0EPacketClickWindow
@@ -27,14 +8,33 @@ import net.minecraft.network.play.server.S2EPacketCloseWindow
 import net.minecraft.network.play.server.S2FPacketSetSlot
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.events.GuiContainerEvent
+import noammaddons.events.PacketEvent
+import noammaddons.features.Feature
+import noammaddons.features.dungeons.terminals.ConstantsVariables.RedGreenTitle
+import noammaddons.features.dungeons.terminals.ConstantsVariables.Slot
+import noammaddons.features.dungeons.terminals.ConstantsVariables.getColorMode
+import noammaddons.features.dungeons.terminals.ConstantsVariables.getSolutionColor
+import noammaddons.features.dungeons.terminals.ConstantsVariables.getTermScale
+import noammaddons.features.gui.Menus.renderBackground
+import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.GuiUtils.getMouseX
+import noammaddons.utils.GuiUtils.getMouseY
+import noammaddons.utils.ItemUtils.getItemId
+import noammaddons.utils.LocationUtils
+import noammaddons.utils.LocationUtils.F7Phase
+import noammaddons.utils.RenderHelper.getHeight
+import noammaddons.utils.RenderHelper.getWidth
+import noammaddons.utils.RenderUtils.drawRoundedRect
+import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.SoundUtils.ayaya
-import java.awt.Color
+import noammaddons.utils.ThreadUtils.setTimeout
 import kotlin.math.floor
 
 
-object RedGreen {
+object RedGreen: Feature() {
     private var inTerminal = false
-    private var cwid = -1
+    private var cwid = - 1
     private var windowSize = 0
     private val slots = mutableListOf<Slot?>()
 
@@ -43,16 +43,16 @@ object RedGreen {
     private val solution = mutableListOf<Int>()
 
     private val allowedSlots = listOf(
-	    11, 12, 13, 14,
-	    15, 20, 21, 22,
-	    23, 24, 29, 30,
-	    31, 32, 33
-	)
+        11, 12, 13, 14,
+        15, 20, 21, 22,
+        23, 24, 29, 30,
+        31, 32, 33
+    )
 
 
     @SubscribeEvent
     fun onClick(event: GuiContainerEvent.GuiMouseClickEvent) {
-        if (!inTerminal) return
+        if (! inTerminal) return
         event.isCanceled = true
 
         val termScale = getTermScale()
@@ -65,11 +65,8 @@ object RedGreen {
         val width = 9 * 18
         val height = windowSize / 9 * 18
 
-        val globalOffsetX = 0.0
-        val globalOffsetY = 0.0
-
-        val offsetX = (screenWidth / 2 - width / 2 + globalOffsetX)
-        val offsetY = (screenHeight / 2 - height / 2 + globalOffsetY)
+        val offsetX = screenWidth / 2 - width / 2
+        val offsetY = screenHeight / 2 - height / 2
 
         val slotX = floor((x - offsetX) / 18).toInt()
         val slotY = floor((y - offsetY) / 18).toInt()
@@ -88,53 +85,35 @@ object RedGreen {
 
     @SubscribeEvent
     fun cancelGui(event: GuiScreenEvent.DrawScreenEvent.Pre) {
-        if (!inTerminal) return
-        if (!config.DevMode) event.isCanceled = true
+        if (! inTerminal) return
+        if (! config.DevMode) event.isCanceled = true
 
         val termScale = getTermScale()
         val screenWidth = mc.getWidth() / termScale
-        val screenHeight = mc.getHeight()/ termScale
+        val screenHeight = mc.getHeight() / termScale
 
-        val width = 9f * 18f
-        val height = windowSize / 9f * 18f
+        val width = 9 * 18
+        val height = windowSize / 9 * 18
 
-        val globalOffsetX = 0f
-        val globalOffsetY = 0f
-
-        val offsetX = (screenWidth / 2 - width / 2 + globalOffsetX)
-        val offsetY = (screenHeight / 2 - height / 2 + globalOffsetY)
+        val offsetX = screenWidth / 2 - width / 2
+        val offsetY = screenHeight / 2 - height / 2
 
         val colorMode = getColorMode()
         val solverColor = getSolutionColor()
 
         GlStateManager.pushMatrix()
-        GlStateManager.scale(termScale, termScale, 0f)
+        GlStateManager.scale(termScale, termScale, termScale)
 
-        RenderUtils.drawRoundedRect(
-            colorMode.darker(),
-            offsetX - 2 - (width / 15) / 2,
-            offsetY - 2 - (width / 15) / 2,
-            width + 4 + width / 15,
-            height + 4 + width / 15
-        )
-
-        RenderUtils.drawRoundedRect(
-            colorMode,
-            offsetX - 3,
-            offsetY - 3,
-            width + 6,
-            height + 6
-        )
-
-        mc.fontRendererObj.drawStringWithShadow(RedGreenTitle, offsetX.toFloat(), offsetY.toFloat(), Color.WHITE.rgb)
+        renderBackground(offsetX, offsetY, width, height, colorMode)
+        drawText(RedGreenTitle, offsetX, offsetY)
 
         for (i in 0 until windowSize) {
-            if (!solution.contains(i)) continue
+            if (i !in solution) continue
 
             val currentOffsetX = i % 9 * 18 + offsetX
             val currentOffsetY = floor(i / 9.0).toInt() * 18 + offsetY
 
-            RenderUtils.drawRoundedRect(solverColor, currentOffsetX, currentOffsetY, 16f, 16f, 0f)
+            drawRoundedRect(solverColor, currentOffsetX, currentOffsetY, 16f, 16f, 1.5f)
         }
 
         GlStateManager.popMatrix()
@@ -144,7 +123,7 @@ object RedGreen {
     private fun solve() {
         solution.clear()
         slots.filter { it != null && allowedSlots.contains(it.num) && it.id == 160 && it.meta == 14 }
-            .map { it!!.num }
+            .map { it !!.num }
             .forEach { solution.add(it) }
     }
 
@@ -156,8 +135,8 @@ object RedGreen {
         clicked = true
         mc.netHandler.addToSendQueue(C0EPacketClickWindow(cwid, slot, button, 0, null, 0))
         val initialWindowId = cwid
-        setTimeout(1000){
-            if (!inTerminal || initialWindowId != cwid) return@setTimeout
+        setTimeout(600) {
+            if (! inTerminal || initialWindowId != cwid) return@setTimeout
             queue.clear()
             solve()
             clicked = false
@@ -166,7 +145,7 @@ object RedGreen {
 
     @SubscribeEvent
     fun onWindowOpen(event: PacketEvent.Received) {
-        if (!config.CustomTerminalsGui || !config.CustomRedGreenTerminal || LocationUtils.dungeonFloor != 7 || F7Phase != 3) return
+        if (! config.CustomTerminalsGui || ! config.CustomRedGreenTerminal || LocationUtils.dungeonFloor != 7 || F7Phase != 3) return
         if (event.packet !is S2DPacketOpenWindow) return
 
         val windowTitle = event.packet.windowTitle.unformattedText.removeFormatting()
@@ -181,10 +160,10 @@ object RedGreen {
         }
         else inTerminal = false
     }
-	
+
     @SubscribeEvent
     fun onS2FPacketSetSlot(event: PacketEvent.Received) {
-        if (!inTerminal) return
+        if (! inTerminal) return
         if (event.packet !is S2FPacketSetSlot) return
 
         val itemStack = event.packet.func_149174_e()
@@ -222,15 +201,15 @@ object RedGreen {
     @SubscribeEvent
     fun onWindowClose(event: PacketEvent.Received) {
         if (event.packet !is S2EPacketCloseWindow) return
-        if (!inTerminal) return
+        if (! inTerminal) return
         reset()
-	    ayaya.start()
+        ayaya.start()
     }
 
     @SubscribeEvent
     fun onSentPacket(event: PacketEvent.Sent) {
         if (event.packet !is C0DPacketCloseWindow) return
-        if (!inTerminal) return
+        if (! inTerminal) return
         reset()
     }
 

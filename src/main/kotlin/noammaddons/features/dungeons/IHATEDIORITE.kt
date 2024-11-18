@@ -1,165 +1,56 @@
 package noammaddons.features.dungeons
 
-import noammaddons.noammaddons.Companion.config
-import noammaddons.noammaddons.Companion.mc
-import noammaddons.utils.BlockUtils.getBlockAt
-import noammaddons.utils.BlockUtils.getName
-import noammaddons.utils.LocationUtils.F7Phase
-import noammaddons.utils.LocationUtils.dungeonFloor
-import net.minecraft.block.Block
+import net.minecraft.init.Blocks
 import net.minecraft.util.BlockPos
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Tick
+import noammaddons.features.Feature
+import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.getBlockId
+import noammaddons.utils.BlockUtils.ghostBlock
+import noammaddons.utils.JsonUtils.fetchJsonWithRetry
+import noammaddons.utils.LocationUtils.F7Phase
+import noammaddons.utils.Utils.isNull
 
-object IHATEDIORITE {
+object IHATEDIORITE: Feature() {
+    private var iHateDioriteBlocks: Map<String, List<Map<String, Double>>>? = null
+    private val blockTypes = mapOf(
+        "GreenArray" to Blocks.stained_glass.getStateFromMeta(5),
+        "YellowArray" to Blocks.stained_glass.getStateFromMeta(4),
+        "PurpleArray" to Blocks.stained_glass.getStateFromMeta(10),
+        "RedArray" to Blocks.stained_glass.getStateFromMeta(14)
+    )
+
+    init {
+        fetchJsonWithRetry<Map<String, List<Map<String, Double>>>>(
+            "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/iHateDioriteBlocks.json"
+        ) { iHateDioriteBlocks = it }
+    }
 
     @SubscribeEvent
-    @Suppress("UNUSED_PARAMETER")
     fun onTick(event: Tick) {
-        if (dungeonFloor == 7 && F7Phase == 2 && config.IHATEDIORITE) {
-            for (i in 0..37) {
-                GreenArray.forEach { block ->
-                    if (mc.theWorld.getBlockAt(block.add(0,i,0)).getBlockId() == 1) {
-                        mc.theWorld.setBlockState(block.add(0,i,0), WhileGlass)
-                    }
-                }
+        if (! config.IHATEDIORITE) return
+        if (iHateDioriteBlocks.isNull()) return
+        if (F7Phase != 5) return
 
-                YellowArray.forEach { block ->
-                    if (mc.theWorld.getBlockAt(block.add(0,i,0)).getBlockId() == 1) {
-                        mc.theWorld.setBlockState(block.add(0,i,0), WhileGlass)
-                    }
-                }
+        iHateDioriteBlocks !!.forEach { (key, coordsList) ->
+            val blockType = blockTypes[key] ?: return@forEach
 
-                BlueArray.forEach { block ->
-                    if (mc.theWorld.getBlockAt(block.add(0,i,0)).getBlockId() == 1) {
-                        mc.theWorld.setBlockState(block.add(0,i,0), WhileGlass)
-                    }
-                }
+            coordsList.forEach { coord ->
+                val pos = BlockPos(
+                    (coord["x"] as Double),
+                    (coord["y"] as Double),
+                    (coord["z"] as Double)
+                )
+
+                (0 .. 37).asSequence()
+                    .map { pos.add(0, it, 0) }
+                    .filter { getBlockAt(it)?.getBlockId() == 1 }
+                    .forEach { ghostBlock(it, blockType) }
             }
         }
     }
-	
-    private val WhileGlass = Block.getBlockFromName("stained_glass").blockState.baseState
-
-    private val GreenArray = arrayOf(
-        BlockPos(45, 169, 44),
-        BlockPos(46, 169, 44),
-        BlockPos(47, 169, 44),
-        BlockPos(44, 169, 43),
-        BlockPos(45, 169, 43),
-        BlockPos(46, 169, 43),
-        BlockPos(47, 169, 43),
-        BlockPos(48, 169, 43),
-        BlockPos(43, 169, 42),
-        BlockPos(44, 169, 42),
-        BlockPos(45, 169, 42),
-        BlockPos(46, 169, 42),
-        BlockPos(47, 169, 42),
-        BlockPos(48, 169, 42),
-        BlockPos(49, 169, 42),
-        BlockPos(43, 169, 41),
-        BlockPos(44, 169, 41),
-        BlockPos(45, 169, 41),
-        BlockPos(46, 169, 41),
-        BlockPos(47, 169, 41),
-        BlockPos(48, 169, 41),
-        BlockPos(49, 169, 41),
-        BlockPos(43, 169, 40),
-        BlockPos(44, 169, 40),
-        BlockPos(45, 169, 40),
-        BlockPos(46, 169, 40),
-        BlockPos(47, 169, 40),
-        BlockPos(48, 169, 40),
-        BlockPos(49, 169, 40),
-        BlockPos(44, 169, 39),
-        BlockPos(45, 169, 39),
-        BlockPos(46, 169, 39),
-        BlockPos(47, 169, 39),
-        BlockPos(48, 169, 39),
-        BlockPos(45, 169, 38),
-        BlockPos(46, 169, 38),
-        BlockPos(47, 169, 38)
-    )
-
-    private val YellowArray = arrayOf(
-        BlockPos(45, 169, 68),
-        BlockPos(46, 169, 68),
-        BlockPos(47, 169, 68),
-        BlockPos(44, 169, 67),
-        BlockPos(45, 169, 67),
-        BlockPos(46, 169, 67),
-        BlockPos(47, 169, 67),
-        BlockPos(48, 169, 67),
-        BlockPos(43, 169, 66),
-        BlockPos(44, 169, 66),
-        BlockPos(45, 169, 66),
-        BlockPos(46, 169, 66),
-        BlockPos(47, 169, 66),
-        BlockPos(48, 169, 66),
-        BlockPos(49, 169, 66),
-        BlockPos(43, 169, 65),
-        BlockPos(44, 169, 65),
-        BlockPos(45, 169, 65),
-        BlockPos(46, 169, 65),
-        BlockPos(47, 169, 65),
-        BlockPos(48, 169, 65),
-        BlockPos(49, 169, 65),
-        BlockPos(43, 169, 64),
-        BlockPos(44, 169, 64),
-        BlockPos(45, 169, 64),
-        BlockPos(46, 169, 64),
-        BlockPos(47, 169, 64),
-        BlockPos(48, 169, 64),
-        BlockPos(49, 169, 64),
-        BlockPos(44, 169, 63),
-        BlockPos(45, 169, 63),
-        BlockPos(46, 169, 63),
-        BlockPos(47, 169, 63),
-        BlockPos(48, 169, 63),
-        BlockPos(45, 169, 62),
-        BlockPos(46, 169, 62),
-        BlockPos(47, 169, 62)
-    )
-
-    private val BlueArray = arrayOf(
-        BlockPos(97, 169, 64),
-        BlockPos(97, 169, 65),
-        BlockPos(97, 169, 66),
-        BlockPos(98, 169, 67),
-        BlockPos(98, 169, 66),
-        BlockPos(98, 169, 65),
-        BlockPos(98, 169, 64),
-        BlockPos(98, 169, 63),
-        BlockPos(99, 169, 62),
-        BlockPos(99, 169, 63),
-        BlockPos(99, 169, 64),
-        BlockPos(99, 169, 65),
-        BlockPos(99, 169, 66),
-        BlockPos(99, 169, 67),
-        BlockPos(99, 169, 68),
-        BlockPos(100, 169, 68),
-        BlockPos(100, 169, 67),
-        BlockPos(100, 169, 66),
-        BlockPos(100, 169, 65),
-        BlockPos(100, 169, 64),
-        BlockPos(100, 169, 63),
-        BlockPos(100, 169, 62),
-        BlockPos(101, 169, 62),
-        BlockPos(101, 169, 63),
-        BlockPos(101, 169, 64),
-        BlockPos(101, 169, 65),
-        BlockPos(101, 169, 66),
-        BlockPos(101, 169, 67),
-        BlockPos(101, 169, 68),
-        BlockPos(102, 169, 67),
-        BlockPos(102, 169, 66),
-        BlockPos(103, 169, 66),
-        BlockPos(103, 169, 65),
-        BlockPos(102, 169, 65),
-        BlockPos(102, 169, 64),
-        BlockPos(103, 169, 64),
-        BlockPos(102, 169, 63)
-    )
-
 }
+
+
+

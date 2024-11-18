@@ -1,17 +1,19 @@
 package noammaddons.config
 
-import noammaddons.noammaddons.Companion.FULL_PREFIX
-import noammaddons.config.EditGui.HudEditorScreen
-import noammaddons.utils.GuiUtils.openScreen
 import gg.essential.universal.UDesktop
 import gg.essential.vigilance.Vigilant
 import gg.essential.vigilance.data.*
+import noammaddons.config.EditGui.HudEditorScreen
+import noammaddons.noammaddons.Companion.FULL_PREFIX
+import noammaddons.utils.ChatUtils.addColor
+import noammaddons.utils.GuiUtils.openScreen
+import noammaddons.utils.RenderHelper.applyAlpha
 import java.awt.Color
 import java.io.File
 import java.net.URI
 
 
-object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, sortingBehavior = Sorting) {
+object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, sortingBehavior = Sorting) {
     @Property(
         type = PropertyType.BUTTON,
         name = "Join my Discord Server",
@@ -22,26 +24,22 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
     fun openDiscordLink() {
         UDesktop.browse(URI("https://discord.gg/pj9mQGxMxB"))
     }
-	
-	private const val EDIT_HUD_CONFIG_DESCRIPTION =
-		"Opens the Hud Edit GUI\n\n" +
-		"Left Click + Drag: Move Element around the screen\n" +
-		"Left Click + Scroll Wheel: Control the scale"
-	
-	@Property(
-		type = PropertyType.BUTTON,
-		name = "Edit Hud Config",
-		description = EDIT_HUD_CONFIG_DESCRIPTION,
-		category = "General",
-		placeholder = "CLICK"
-	)
 
-    @Suppress("unused")
+    private const val EDIT_HUD_CONFIG_DESCRIPTION =
+        "Opens the Hud Edit GUI\n\n" +
+                "Left Click + Drag: Move Element around the screen\n" +
+                "Left Click + Scroll Wheel: Control the scale"
+
+    @Property(
+        type = PropertyType.BUTTON,
+        name = "Edit Hud Config",
+        description = EDIT_HUD_CONFIG_DESCRIPTION,
+        category = "General",
+        placeholder = "CLICK"
+    )
     fun openHudEditGUI() {
         openScreen(HudEditorScreen())
     }
-
-    // General
 
     @Property(
         type = PropertyType.SWITCH,
@@ -62,79 +60,98 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         subcategory = "SlotBinding"
     )
     var SlotBindingShowBinding = true
-	
-	@Property(
-		type = PropertyType.SWITCH,
-		name = "Chat Emojis",
+
+    @Property(
+        type = PropertyType.COLOR,
+        name = "Line Color",
+        description = "The color of the line that is connecting between the slots",
+        category = "General",
+        subcategory = "SlotBinding",
+        allowAlpha = false
+    )
+    var SlotBindingLineColor = Color.CYAN !!
+
+    @Property(
+        type = PropertyType.COLOR,
+        name = "Border Color",
+        description = "The color of the border that is being draw on the items",
+        category = "General",
+        subcategory = "SlotBinding",
+        allowAlpha = false
+    )
+    var SlotBindingBorderColor = Color.CYAN !!
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Chat Emojis",
         description = "Replaces chat emojis with their unicode representations.\n\nSame as &6[MVP&d++&6]",
         category = "General",
         subcategory = "Chat"
-	)
-	var ChatEmojis = false
-	
-	@Property(
-		type = PropertyType.SWITCH,
-		name = "Show Cake's Year",
-		description = "Shows the new year cake's year on the item in the inventory",
-		category = "General",
+    )
+    var ChatEmojis = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Show Cake's Year",
+        description = "Shows the new year cake's year on the item in the inventory",
+        category = "General",
         subcategory = "Cake"
-	)
-	var cakeNumbers = false
-	
-	@Property(
-		type = PropertyType.SWITCH,
-		name = "Remove Useless Messages",
+    )
+    var cakeNumbers = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Remove Useless Messages",
         description = "Removes messages from chat.",
         category = "General",
         subcategory = "Chat"
-	)
-	var RemoveUselessMessages = false
-		
-	@Property(
-		type = PropertyType.SWITCH,
-		name = "§e§lBlaze §6§lSolver",
-		category = "Dungeons",
-		subcategory = "Solvers",
-	)
-	var BlazeSolver = false
-	
-	@Property(
-		type = PropertyType.COLOR,
-		name = "§eBlaze §6Solver §fFirst §aC§bo§cl§do§er§f",
+    )
+    var RemoveUselessMessages = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "§e§lBlaze §6§lSolver",
+        category = "Dungeons",
+        subcategory = "Solvers",
+    )
+    var BlazeSolver = false
+
+    @Property(
+        type = PropertyType.COLOR,
+        name = "§eBlaze §6Solver §fFirst §aC§bo§cl§do§er§f",
         description = "Color of the first blaze used by the Blaze Solver",
         category = "Dungeons",
         subcategory = "Solvers"
-	)
-	var BlazeSolverFirstBlazeColor = Color(0, 114, 255, 85)
-	
-	@Property(
-		type = PropertyType.COLOR,
+    )
+    var BlazeSolverFirstBlazeColor = Color(0, 114, 255, 85)
+
+    @Property(
+        type = PropertyType.COLOR,
         name = "§eBlaze §6Solver §fSecond §aC§bo§cl§do§er§f",
         description = "Color of the second blaze used by the Blaze Solver",
         category = "Dungeons",
         subcategory = "Solvers"
-	)
-	var BlazeSolverSecondBlazeColor = Color(255 ,255, 0, 85)
-	
-	@Property(
-		type = PropertyType.COLOR,
-		name = "§eBlaze §6Solver §fThird §aC§bo§cl§do§er§f",
+    )
+    var BlazeSolverSecondBlazeColor = Color(255, 255, 0, 85)
+
+    @Property(
+        type = PropertyType.COLOR,
+        name = "§eBlaze §6Solver §fThird §aC§bo§cl§do§er§f",
         description = "Color of the third blaze used by the Blaze Solver",
         category = "Dungeons",
         subcategory = "Solvers"
-	)
-	var BlazeSolverThirdBlazeColor = Color(255, 0, 0, 85)
-	
-	@Property(
-		type = PropertyType.COLOR,
-		name = "§eBlaze §6Solver §fLine §aC§bo§cl§do§er§f",
-		description = "Color of the line used by the Blaze Solver",
-		category = "Dungeons",
-		subcategory = "Solvers"
-	)
-	var BlazeSolverLineColor = Color(255, 255, 255, 255)
-	
-	
+    )
+    var BlazeSolverThirdBlazeColor = Color(255, 0, 0, 85)
+
+    @Property(
+        type = PropertyType.COLOR,
+        name = "§eBlaze §6Solver §fLine §aC§bo§cl§do§er§f",
+        description = "Color of the line used by the Blaze Solver",
+        category = "Dungeons",
+        subcategory = "Solvers"
+    )
+    var BlazeSolverLineColor = Color(255, 255, 255, 255)
+
     @Property(
         type = PropertyType.SWITCH,
         name = "Left Click Etherwarp",
@@ -144,33 +161,51 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
     )
     var LeftClickEtherwarp = false
 
-	@Property(
-		type = PropertyType.SWITCH,
-		name = "M7 Dragons",
-        description = "Displays a timer, Dragon Kill box and Prio when a dragon spawns. \n\nBased on server ticks so will work perfectly even if the server is lagging",
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Dragon Spawn Timer / Prio",
+        description = "Displays a timer that is based on server ticks so will work perfectly even if the server is lagging. and draws a tracer to the dragon statue\n\n Also acts as a Prio, Automaticly detects your class",
         category = "Dungeons",
-        subcategory = "M7"
-	)
-	var M7dragons = false
-	
-	@Property(
-		type = PropertyType.SWITCH,
-		name = "Custom Bow Hit Sound",
-		description = "Plays a custom sound effect when you hit a mob",
+        subcategory = "M7 Dragons"
+    )
+    var M7dragonsSpawnTimer = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Dragon Kill Box",
+        description = "Renders a box that shows the area that the dragon needs to be killed it for it to count as dead",
+        category = "Dungeons",
+        subcategory = "M7 Dragons"
+    )
+    var M7dragonsKillBox = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Show Dragon Arrows Hit/Debuff in chat",
+        description = "If you are playing a debuff class, it will show how many arrows you have hit the dragon and if u hit your ice spray. and if you are playing arch/bers it will show the ammount of arrows you hit on the dragon",
+        category = "Dungeons",
+        subcategory = "M7 Dragons"
+    )
+    var M7dragonsShowDebuff = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Custom Bow Hit Sound",
+        description = "Plays a custom sound effect when you hit a mob",
         category = "General",
         subcategory = "Chat"
-	)
-	var CustomBowHitSound = false
-	
-	@Property(
+    )
+    var CustomBowHitSound = false
+
+    @Property(
         type = PropertyType.SWITCH,
-		name = "M7 Relic Spawn Timer",
+        name = "M7 Relic Spawn Timer",
         description = "Displays a timer for the M7 Relic in the chat. \nBased on server ticks so will work perfectly even if the server is lagging",
         category = "Dungeons",
         subcategory = "M7"
-	)
-	var M7RelicSpawnTimer = false
-	
+    )
+    var M7RelicSpawnTimer = false
+
     @Property(
         type = PropertyType.SWITCH,
         name = "Wither Shield Display",
@@ -179,24 +214,129 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         subcategory = "Items"
     )
     var WitherShieldTimer = false
-	
-	@Property(
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Party Names",
+        description = "Displays the names of the people in the party.",
+        category = "General",
+        subcategory = "Party"
+    )
+    var partyNames = true
+
+    @Property(
         type = PropertyType.SWITCH,
         name = "Party Outline",
         description = "Draws a rainbow Outline around the people in the party.",
         category = "General",
-		subcategory = "Party"
-	)
-	var partyOutline = true
-	
-	@Property(
-		type = PropertyType.SWITCH,
-		name = "Party Names",
-        description = "Displays the names of the people in the party.",
+        subcategory = "Party"
+    )
+    var partyOutline = true
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Party Commands",
+        description = "§fIf this switch is disabled all features below§f will be off regardless of their §fconfiguration.\n\n§dCredits to §d§loCookie§r§d for the original code. §bAll i did was modify it to fit my needs.\n\n§fAllows §9Party members§f to §cexecute §6leader commands§f in chat \n\n§b§nExsample: \n§6!w §f=> §bwill make you warp the party\n§d!ai §f=> §bwill Toggle the allinvite setting of the party",
         category = "General",
         subcategory = "Party"
-	)
-	var partyNames = true
+    )
+    var PartyCommands = true
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "§e!ptme {name} (Transfers the party)",
+        description = "§bAlias: §e!pt",
+        category = "General",
+        subcategory = "Party"
+    )
+    var pcPtme = true
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "§6!warp (warps)",
+        description = "§bAlias: §6!w",
+        category = "General",
+        subcategory = "Party"
+    )
+    var pcWarp = true
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "§d!ai (Toggles allinvite)",
+        description = "§bAlias: §d!allinv, §d!ai",
+        category = "General",
+        subcategory = "Party"
+    )
+    var pcAllinv = true
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "§b!invite {name} (invites a player)",
+        description = "§bAlias: §b!inv",
+        category = "General",
+        subcategory = "Party"
+    )
+    var pcInv = true
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "§a!floor { 0 - 7 } (joins Normal Dungeon)",
+        description = "§bAlias: §a!f",
+        category = "General",
+        subcategory = "Party"
+    )
+    var pcFloor = true
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "§4!master { 1 - 7 } (joins Master Dungeon)",
+        description = "§bAlias: §4!m",
+        category = "General",
+        subcategory = "Party"
+    )
+    var pcMasterFloor = true
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "§c!downtime {Reason}",
+        description = "§bAlias: §c!dt",
+        category = "General",
+        subcategory = "Party"
+    )
+    var pcDt = true
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "§b!coords (sends coords)",
+        description = "§bAlias: §b!cords",
+        category = "General",
+        subcategory = "Party"
+    )
+    var pcCoords = true
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "§e!tps (sends server tps)",
+        category = "General",
+        subcategory = "Party"
+    )
+    var pcTPS = true
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "§d!ping (sends ping)",
+        category = "General",
+        subcategory = "Party"
+    )
+    var pcPing = true
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "§b!gay {name} (gay check)",
+        category = "General",
+        subcategory = "Party"
+    )
+    var pcGay = true
 
     @Property(
         type = PropertyType.SWITCH,
@@ -209,12 +349,12 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
 
     @Property(
         type = PropertyType.SWITCH,
-        name = "Custom Item Entity",
-        description = "Replaces the default item entity with a Colored Box that also shows the name of the grounded item.",
+        name = "Show Grounded Items Names",
+        description = "Shows the name of the grounded item.",
         category = "General",
-        subcategory = "Custom"
+        subcategory = "Misc"
     )
-    var CustomItemEntity = false
+    var ShowItemEntityName = false
 
     @Property(
         type = PropertyType.SWITCH,
@@ -234,9 +374,6 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
     )
     var ChatCoordsWayPointColor = Color(0, 114, 255, 85)
 
-
-    // Dungeons
-
     @Property(
         type = PropertyType.SWITCH,
         name = "Better Floors",
@@ -255,15 +392,15 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
     )
     var BetterFloor7 = true
 
-	@Property(
-		type = PropertyType.SWITCH,
-		name = "SB Kick Duration",
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "SB Kick Duration",
         description = "Shows a timer on screen for when you can rejoin SkyBlock after being kicked",
         category = "General",
         subcategory = "Misc"
-	)
-	var SBKickDuration = false
-	
+    )
+    var SBKickDuration = false
+
     @Property(
         type = PropertyType.CHECKBOX,
         name = "Better 6",
@@ -311,7 +448,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
 
     @Property(
         type = PropertyType.CHECKBOX,
-        name = "Mimic Efficiency 10",
+        name = "Efficiency 10",
         description = "Make you instantly mine blocks",
         category = "Dungeons",
         subcategory = "GhostPick"
@@ -329,22 +466,21 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
 
     @Property(
         type = PropertyType.SWITCH,
-        name = "Dungeon Teammates Outline",
-        description = "outline of your teammates in dungeon.\nColored By Class.",
+        name = "Dungeon Teammates ESP",
+        description = "ESP your teammates in dungeon.\nColored By Class.",
         category = "Dungeons",
         subcategory = "Dungeon Teammates"
     )
-    var dungeonTeammatesOutline = false
+    var dungeonTeammatesEsp = false
 
-	/*
     @Property(
         type = PropertyType.SWITCH,
-        name = "EnderPearlFix",
+        name = "Ender Pearl Fix",
         description = "Disables Hypixel's stupid Ender Pearls throw block when you are too close to a wall/floor/ceiling.",
         category = "Dungeons",
         subcategory = "Ender Pearls"
     )
-    var enderPearlFix = false*/
+    var enderPearlFix = false
 
     @Property(
         type = PropertyType.SWITCH,
@@ -355,11 +491,10 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
     )
     var refillEnderPearls = false
 
-
     @Property(
         type = PropertyType.TEXT,
         name = "Announce Spirit Leaps",
-        description = "Says in party chat who did you leaped to\n You can use {name} to get the leaped player's name\n leave empty to disable.",
+        description = "Says in party chat who did you leaped to\n You can use {name} to get the leaped player's name\n &l&4leave empty to disable.",
         category = "Dungeons",
         subcategory = "General",
         placeholder = "ILY ❤ {name}"
@@ -396,7 +531,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
     @Property(
         type = PropertyType.TEXT,
         name = "Auto Potion Command",
-        description = "The Command to use to take a potion",
+        description = "The Command to use to take a potion, e.g '/pb', '/bp {num}', '/ec {num}'.",
         category = "Dungeons",
         subcategory = "General",
         placeholder = "/pb"
@@ -411,16 +546,16 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         subcategory = "General"
     )
     var TraceKeys = false
-	
-	@Property(
-		type = PropertyType.SWITCH,
-		name = "Relic Outline",
-		description = "Highlights the Relic Cauldron. of the Relic you picked",
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Relic Outline",
+        description = "Highlights the Relic Cauldron. of the Relic you picked",
         category = "Dungeons",
         subcategory = "M7"
-	)
-	var M7RelicOutline = false
-	
+    )
+    var M7RelicOutline = false
+
     @Property(
         type = PropertyType.SWITCH,
         name = "Blood Dialogue Skip",
@@ -435,21 +570,22 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         name = "§aAuto §0Reaper §cArmor §6Swap",
         description = "§aAutomatically§f does the §0Reaper §cArmor §6Swap§f before the dragons on §4M7 §cP5§f Spawns\n\n §b§nNeed to have the Reaper Armor on the first page in your wardrobe&r \n\n §6Can also be Triggered with /na ras command ",
         category = "Dungeons",
-        subcategory = "General"
+        subcategory = "General",
+        searchTags = ["reaper", "armor", "slot", "reaperarmor", "auto"]
     )
     var AutoReaperArmorSwap = false
 
     @Property(
         type = PropertyType.SLIDER,
-        name = "§0Reaper §cArmor Slot",
+        name = "§aAuto §0Reaper §cArmor Slot",
         description = "§aThe slot where the §0Reaper §cArmor§f is located\n\n §c§lfrom 1 to 9",
         category = "Dungeons",
         subcategory = "General",
         min = 1,
-        max = 9
+        max = 9,
+        searchTags = ["reaper", "armor", "slot", "reaperarmor", "auto"]
     )
     var AutoReaperArmorSlot = 1
-
 
     @Property(
         type = PropertyType.SWITCH,
@@ -468,7 +604,6 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         subcategory = "Puzzles",
     )
     var AutoArchitectDraft = false
-
 
     @Property(
         type = PropertyType.SWITCH,
@@ -491,7 +626,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
     @Property(
         type = PropertyType.SWITCH,
         name = "Auto Close Secrets Chest",
-        category = "Dungeons" ,
+        category = "Dungeons",
         subcategory = "Secrets"
     )
     var autoCloseSecretChests = false
@@ -499,6 +634,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
     @Property(
         type = PropertyType.SWITCH,
         name = "I HATE DIORITE",
+        description = "Replaces the diorite blocks in storm pillars with colored stained glass.",
         category = "Dungeons",
         subcategory = "F7"
     )
@@ -515,22 +651,22 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
 
     @Property(
         type = PropertyType.SWITCH,
-        name = "Better Terminals Titles",
+        name = "Better F7 Titles",
         description = "Replaces the big and annoying f7 titles with smaller and cleaner ones and display them on screen\n\n&b&nExsamples:\n\n&r &a1/2 Energy Crystals are now active!&f ==> &f(&c1&f/&b2&f) \n &aNoamm9&a activated a Terminal! (&c6&f/&a7&f)&f ==> &f(&c6&a/7&f)",
         category = "Dungeons",
         subcategory = "F7"
     )
-    var BetterF7TerminalsTitles = false
-	
-	@Property(
-		type = PropertyType.SWITCH,
-		name = "Hide Players After Leap",
+    var BetterF7Titles = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Hide Players After Leap",
         description = "Hides players after you leap to them for 2 seconds allowing you to see clearly",
         category = "Dungeons",
         subcategory = "Spirit leap"
-	)
-	var hidePlayersAfterLeap = true
-	
+    )
+    var hidePlayersAfterLeap = true
+
     @Property(
         type = PropertyType.SWITCH,
         name = "Show Gyro Radius",
@@ -540,11 +676,28 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
     )
     var ShowGyroCircle = false
 
+    @Property(
+        type = PropertyType.COLOR,
+        name = "Gyro Radius Ring Color",
+        description = "the Color of the Gyrokinetic wand sucking radius",
+        category = "Dungeons",
+        subcategory = "Gyrokinetic Wand"
+    )
+    var ShowGyroCircleRingColor = Color.GREEN !!
+
+    @Property(
+        type = PropertyType.COLOR,
+        name = "Gyro Radius Block Color",
+        description = "the Color of the Gyrokinetic wand sucking radius",
+        category = "Dungeons",
+        subcategory = "Gyrokinetic Wand"
+    )
+    var ShowGyroCircleBlockColor = Color.GREEN.applyAlpha(85)
 
     @Property(
         type = PropertyType.CHECKBOX,
         name = "F7/M7 Phase Start Timers",
-        description = "Global Toggle",
+        description = "Global Toggle, Based on Server Ticks",
         category = "Dungeons",
         subcategory = "Timers"
     )
@@ -586,7 +739,6 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
     )
     var P4StartTimer = true
 
-
     @Property(
         type = PropertyType.SWITCH,
         name = "Livid Solver",
@@ -594,16 +746,16 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         subcategory = "Render"
     )
     var lividFinder = true
-	
-	@Property(
-		type = PropertyType.CHECKBOX,
-		name = "Hide Wrong Livids",
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Hide Wrong Livids",
         description = "Hide The Livids that you shouldn't be killing",
         category = "Dungeons",
         subcategory = "Render"
-	)
-	var hideWrongLivids = false
-	
+    )
+    var hideWrongLivids = false
+
     @Property(
         type = PropertyType.SWITCH,
         name = "Show Fels",
@@ -628,8 +780,6 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
     )
     var showStealthy = false
 
-
-    // Terminals
     @Property(
         type = PropertyType.SWITCH,
         name = "Custom Terminal Guis",
@@ -642,10 +792,11 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
     @Property(
         type = PropertyType.SELECTOR,
         name = "Custom Terminals Gui Click Mode",
-        description = "The method used to click on the Custom Terminals Menu\n\n NORMAL: as usual just click on the menu\n HOVER: hover over the solutions and it will click them"/* + "\n AUTO: Automaticly Clicks on the Solutions"*/,
+        description = "The method used to click on the Custom Terminals Menu\n\n NORMAL: as usual just click on the menu\n HOVER: hover over the solutions and it will click them\n AUTO: Automatically Clicks on the Solutions\n\n&4&lNote: Auto and Hover are UAYOR!",
         category = "Terminals",
         subcategory = "Custom Terminal Guis",
-        options = ["NORMAL"/*, "HOVER", "AUTO"*/]
+        options = ["NORMAL", "HOVER", "AUTO"],
+        hidden = true
     )
     var CustomTerminalMenuClickMode = 0
 
@@ -681,7 +832,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         name = "Terminal Numbers",
         description = "Places a number on each terminal so you know what number it is.",
         category = "Terminals",
-        subcategory = "General"
+        subcategory = "Extras"
     )
     var TerminalNumbers = false
 
@@ -690,16 +841,16 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         name = "Melody Terminal",
         description = "",
         category = "Terminals",
-        subcategory = "Custom Terminal Guis"
+        subcategory = "Terminals"
     )
     var CustomMelodyTerminal = true
 
     @Property(
         type = PropertyType.TEXT,
         name = "Melody Alert",
-        description = "Sends a Message in chat when you open Melody Terminal\nDelete all text to disable",
+        description = "Sends a Message in chat when you open Melody Terminal\nDelete all text to disable \n\n&l&4leave empty to disable",
         category = "Terminals",
-        subcategory = "General",
+        subcategory = "Extras",
         placeholder = "I ❤ Melody"
     )
     var MelodyAlert = "I ❤ Melody"
@@ -709,16 +860,16 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         name = "Numbers Terminal",
         description = "",
         category = "Terminals",
-        subcategory = "Custom Terminal Guis"
+        subcategory = "Terminals"
     )
     var CustomNumbersTerminal = true
 
     @Property(
         type = PropertyType.CHECKBOX,
         name = "Rubix Terminal",
-        description = "&6&l[&d&lTIP&6&l]&r &b&lNo need to swap between &n&lRightclick&r&b&l and &nLeftclick&r&b&l anymore",
+        description = "&6&l[&d&lTIP&6&l]&r &b&lNo need to swap between &n&lRightclick&r&b&l and &nLeftclick&r&b&l",
         category = "Terminals",
-        subcategory = "Custom Terminal Guis"
+        subcategory = "Terminals"
     )
     var CustomRubixTerminal = true
 
@@ -727,7 +878,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         name = "Red Green Terminal",
         description = "",
         category = "Terminals",
-        subcategory = "Custom Terminal Guis"
+        subcategory = "Terminals"
     )
     var CustomRedGreenTerminal = true
 
@@ -736,7 +887,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         name = "Start With Terminal",
         description = "",
         category = "Terminals",
-        subcategory = "Custom Terminal Guis"
+        subcategory = "Terminals"
     )
     var CustomStartWithTerminal = true
 
@@ -745,52 +896,40 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         name = "Color Terminal",
         description = "",
         category = "Terminals",
-        subcategory = "Custom Terminal Guis"
+        subcategory = "Terminals"
     )
     var CustomColorsTerminal = true
 
-
-
-
-
-    // ESP
     @Property(
         type = PropertyType.SELECTOR,
         name = "ESP Type",
         category = "ESP",
-        options = ["Outline", "Box"]
+        options = ["Outline", "Box", "Filled Outline"]
     )
     var espType = 0
-/*
+
+    @Property(
+        type = PropertyType.PERCENT_SLIDER,
+        name = "Outline Opacity",
+        category = "ESP",
+    )
+    var espOutlineOpacity = 1f
+
+    @Property(
+        type = PropertyType.PERCENT_SLIDER,
+        name = "Filled Opacity",
+        category = "ESP",
+    )
+    var espFilledOpacity = 0.3f
+
     @Property(
         type = PropertyType.DECIMAL_SLIDER,
         name = "OutlineESP Width",
         category = "ESP",
-        maxF = 10f
+        minF = 1f,
+        maxF = 10f,
     )
-    var espOutlineWidth = 1f*/
-
-    @Property(
-        type = PropertyType.PERCENT_SLIDER,
-        name = "Box Outline Opacity",
-        category = "ESP",
-    )
-    var espBoxOutlineOpacity = 0.95f
-
-    @Property(
-        type = PropertyType.DECIMAL_SLIDER,
-        name = "Box Outline Width",
-        category = "ESP",
-        maxF = 10f
-    )
-    var espBoxOutlineWidth = 1f
-
-    @Property(
-        type = PropertyType.PERCENT_SLIDER,
-        name = "Box Opacity",
-        category = "ESP",
-    )
-    var espBoxOpacity = 0.3f
+    var espOutlineWidth = 2f
 
     @Property(
         type = PropertyType.SWITCH,
@@ -799,6 +938,14 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         subcategory = "Dungeon ESP"
     )
     var espBats = true
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "ESP Withers",
+        category = "ESP",
+        subcategory = "Dungeon ESP"
+    )
+    var espWithers = true
 
     @Property(
         type = PropertyType.SWITCH,
@@ -847,7 +994,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         subcategory = "Dungeon ESP"
     )
     var removeStarMobsNametag = false
-	
+
     @Property(
         type = PropertyType.COLOR,
         name = "Bat Color",
@@ -958,8 +1105,6 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
     )
     var espColorStarMobs = Color(255, 255, 0)
 
-
-    // Alerts
     @Property(
         type = PropertyType.SWITCH,
         name = "Blood Ready Notify",
@@ -969,7 +1114,6 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
     )
     var bloodReadyNotify = false
 
-
     @Property(
         type = PropertyType.SWITCH,
         name = "Shadow Assasian Alert",
@@ -978,7 +1122,6 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         subcategory = "Dungeons"
     )
     var ShadowAssassinAlert = false
-
 
     @Property(
         type = PropertyType.SWITCH,
@@ -1033,58 +1176,49 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         subcategory = "General"
     )
     var SoldAHNotification = false
-	
-	@Property(
-		type = PropertyType.SWITCH,
-		name = "Bonzo Mask Alert",
-		description = "Shows on screen when the Bonzo Mask Ability has been used",
-		category = "Alerts",
-		subcategory = "Masks"
-	)
-	var BonzoMaskAlert = false
-	
-	@Property(
-		type = PropertyType.SWITCH,
-		name = "Spirit Mask Alert",
-		description = "Shows on screen when the Spirit Mask Ability has been used",
-		category = "Alerts",
-		subcategory = "Masks"
-	)
-	var SpiritMaskAlert = false
-	
-	@Property(
-		type = PropertyType.SWITCH,
-		name = "Phoenix Pet Alert",
-		description = "Shows on screen when the Phoenix Pet Ability has been used",
-		category = "Alerts",
-		subcategory = "Masks"
-	)
-	var PhoenixPetAlert = false
 
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Bonzo Mask Alert",
+        description = "Shows on screen when the Bonzo Mask Ability has been used",
+        category = "Alerts",
+        subcategory = "Masks"
+    )
+    var BonzoMaskAlert = false
 
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Spirit Mask Alert",
+        description = "Shows on screen when the Spirit Mask Ability has been used",
+        category = "Alerts",
+        subcategory = "Masks"
+    )
+    var SpiritMaskAlert = false
 
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Phoenix Pet Alert",
+        description = "Shows on screen when the Phoenix Pet Ability has been used",
+        category = "Alerts",
+        subcategory = "Masks"
+    )
+    var PhoenixPetAlert = false
 
-
-
-
-    // GUI
     private const val TOOLTIP_DESCRIPTION =
-	    "Allows you to scale the size of the item tooltips and move them around your screen.\n" +
-	    "Scroll Wheel: Scrolls vertically\n" +
-	    "Left Shift + Scroll Wheel: Scrolls horizontally\n" +
-	    "Left Control + Scroll Wheel: Adjusts the scale\n" +
-	    "Space Bar: Resets the position and the scale to the default"
-	
-	@Property(
-		type = PropertyType.SWITCH,
-		name = "Scalable Tooltips",
-		description = TOOLTIP_DESCRIPTION,
-		category = "GUI",
-		subcategory = "Tooltips"
-	)
-	var ScalableTooltips = false
+        "Allows you to scale the size of the item tooltips and move them around your screen.\n" +
+                "Scroll Wheel: Scrolls vertically\n" +
+                "Left Shift + Scroll Wheel: Scrolls horizontally\n" +
+                "Left Control + Scroll Wheel: Adjusts the scale\n" +
+                "Space Bar: Resets the position and the scale to the default"
 
-
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Scalable Tooltips",
+        description = TOOLTIP_DESCRIPTION,
+        category = "GUI",
+        subcategory = "Tooltips"
+    )
+    var ScalableTooltips = false
 
     @Property(
         type = PropertyType.PERCENT_SLIDER,
@@ -1110,7 +1244,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         category = "GUI",
         subcategory = "Inventory"
     )
-    var overlayColorSalvageable = Color(85, 255, 255, 170)
+    var overlayColorSalvageable = Color(92, 157, 255, 255)
 
     @Property(
         type = PropertyType.COLOR,
@@ -1119,32 +1253,24 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         category = "GUI",
         subcategory = "Inventory"
     )
-    var overlayColorTopSalvageable = Color(106, 255, 106, 170)
-
-    @Property(
-        type = PropertyType.SWITCH,
-        name = "Party Finder Overlay",
-        description = "Displays the lvl of each party along with its missing classes and whether you can join it",
-        category = "GUI",
-        subcategory = "Party Finder"
-    )
-    var PartyFinderOverlay = false
+    var overlayColorTopSalvageable = Color(255, 0, 0, 255)
 
     @Property(
         type = PropertyType.SWITCH,
         name = "Custom Leap Menu",
         description = "Renders a Custom Menu for leaps",
         category = "GUI",
-        subcategory = "Spirit Leaps"
+        subcategory = "Menus"
     )
     var CustomLeapMenu = false
 
     @Property(
-        type = PropertyType.SWITCH,
+        type = PropertyType.CHECKBOX,
         name = "Custom Leap Menu Light Mode",
         description = "Changes the Color Mode of the Custom Leap Menu",
         category = "GUI",
-        subcategory = "Spirit Leaps"
+        subcategory = "Menus",
+        hidden = true
     )
     var CustomLeapMenuLightMode = false
 
@@ -1153,13 +1279,27 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         name = "Custom Leap Menu Scale",
         description = "Scale of the Custom Leap Menu",
         category = "GUI",
-        subcategory = "Spirit Leaps"
+        subcategory = "Menus",
     )
     var CustomLeapMenuScale = 1f;
 
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Custom SB Menus",
+        description = "Renders a Custom Menu for a lot of Menus in Skyblock",
+        category = "GUI",
+        subcategory = "Menus"
+    )
+    var CustomSBMenus = true
 
-
-    // HUD
+    @Property(
+        type = PropertyType.PERCENT_SLIDER,
+        name = "Custom SB Menu Scale",
+        description = "Scale of the Custom SB Menu",
+        category = "GUI",
+        subcategory = "Menus"
+    )
+    var CustomSBMenusScale = 1f
 
     @Property(
         type = PropertyType.SWITCH,
@@ -1233,15 +1373,33 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
     )
     var FpsDisplay = false
 
-	@Property(
-		type = PropertyType.SWITCH,
-		name = "Pet Display",
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Pet Display",
         description = "Displays your current active pet's name on screen",
         category = "HUD",
         subcategory = "PlayerHUD"
-	)
-	var PetDisplay = false
-	
+    )
+    var PetDisplay = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "TPS Display",
+        description = "Displays the TPS on screen",
+        category = "HUD",
+        subcategory = "Tps"
+    )
+    var TpsDisplay = false
+
+    @Property(
+        type = PropertyType.COLOR,
+        name = "Tps Display Color",
+        description = "The Color of the TPS Display",
+        category = "HUD",
+        subcategory = "Tps",
+    )
+    var TpsDisplayColor = Color(0, 114, 255)
+
     @Property(
         type = PropertyType.SWITCH,
         name = "Custom Scoreboard",
@@ -1288,15 +1446,18 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         subcategory = "Masks"
     )
     var BonzoMaskDisplay = false
-/*
-    @Property(
-        type = PropertyType.SWITCH,
-        name = "Bonzo Mask Invulnerability Display",
-        description = "Displays the Bonzo Mask Invulnerability time on screen",
-        category = "HUD",
-        subcategory = "Bonzo Mask"
-    )
-    var BonzoMaskInvulnerabilityDisplay = false*/
+
+    /* todo: Invornability Timers for Bonzo, Spirit and Phoenix
+
+
+        @Property(
+            type = PropertyType.SWITCH,
+            name = "Bonzo Mask Invulnerability Display",
+            description = "Displays the Bonzo Mask Invulnerability time on screen",
+            category = "HUD",
+            subcategory = "Bonzo Mask"
+        )
+        var BonzoMaskInvulnerabilityDisplay = false*/
 
     @Property(
         type = PropertyType.SWITCH,
@@ -1315,25 +1476,29 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         subcategory = "Masks"
     )
     var PhoenixPetDisplay = false
-	
-	@Property(
-		type = PropertyType.SWITCH,
-		name = "Custom Tab List",
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Custom Tab List",
         description = "Custom Tab List design",
         category = "HUD",
         subcategory = "TabList"
-	)
-	var CustomTabList = false
+    )
+    var CustomTabList = false
 
-
-
-
-
+    @Property(
+        type = PropertyType.PERCENT_SLIDER,
+        name = "Custom Tab List Scale",
+        description = "The scale of the Custom Tab List",
+        category = "HUD",
+        subcategory = "TabList"
+    )
+    var CustomTabListScale = 1f
 
     @Property(
         type = PropertyType.SWITCH,
         name = "Block Overlay",
-        category = "Cosmetic",
+        category = "Misc",
         subcategory = "Block Overlay"
     )
     var BlockOverlay = false
@@ -1342,7 +1507,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         type = PropertyType.SELECTOR,
         name = "Block Overlay Type",
         description = "How to highlight the block",
-        category = "Cosmetic",
+        category = "Misc",
         subcategory = "Block Overlay",
         options = ["Outline", "Overlay", "Outlined Overlay"],
     )
@@ -1352,7 +1517,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         type = PropertyType.DECIMAL_SLIDER,
         name = "Outline Thickness",
         description = "",
-        category = "Cosmetic",
+        category = "Misc",
         subcategory = "Block Overlay",
         minF = 1f,
         maxF = 10f
@@ -1363,7 +1528,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         type = PropertyType.COLOR,
         name = "Outline Color",
         description = "The color of the Outline",
-        category = "Cosmetic",
+        category = "Misc",
         subcategory = "Block Overlay"
     )
     var BlockOverlayOutlineColor = Color(0, 114, 255, 255)
@@ -1372,7 +1537,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         type = PropertyType.COLOR,
         name = "Overlay Color",
         description = "The color of the Overlay",
-        category = "Cosmetic",
+        category = "Misc",
         subcategory = "Block Overlay",
     )
     var BlockOverlayOverlayColor = Color(0, 114, 255, 75)
@@ -1381,18 +1546,17 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         type = PropertyType.CHECKBOX,
         name = "Show Through Blocks?",
         description = "Whether to Enable or Disable Depth Checking.",
-        category = "Cosmetic",
+        category = "Misc",
         subcategory = "Block Overlay"
     )
     var BlockOverlayESP = true
-
 
     @Property(
         type = PropertyType.SWITCH,
         name = "Player Scale",
         description = "Allows to dynamically adjust the size of the player character.\n\n" +
-                      "§dNow you can match your IRL Height ❤.",
-        category = "Cosmetic",
+                "§dNow you can match your IRL Height ❤.",
+        category = "Misc",
         subcategory = "Player"
     )
     var PlayerScale = false
@@ -1401,7 +1565,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         type = PropertyType.CHECKBOX,
         name = "Player Scale On Everyone?",
         description = "Whether to make this feature work on everyone. or just yourself.",
-        category = "Cosmetic",
+        category = "Misc",
         subcategory = "Player"
     )
     var PlayerScaleOnEveryone = false
@@ -1410,17 +1574,16 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         type = PropertyType.PERCENT_SLIDER,
         name = "Custom Scale",
         description = "How much to scale the player character's scale from the default 100% down to 10%.",
-        category = "Cosmetic",
+        category = "Misc",
         subcategory = "Player"
     )
     var PlayerScaleValue = 1f
-
 
     @Property(
         type = PropertyType.SWITCH,
         name = "Player Spin",
         description = "A client-side feature that makes the player's avatar spin in place, visible only to the user and without affecting gameplay or other players.",
-        category = "Cosmetic",
+        category = "Misc",
         subcategory = "Player"
     )
     var PlayerSpin = false
@@ -1429,7 +1592,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         type = PropertyType.SELECTOR,
         name = "Spin direction",
         description = "",
-        category = "Cosmetic",
+        category = "Misc",
         subcategory = "Player",
         options = ["Right", "Left"]
     )
@@ -1439,7 +1602,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         type = PropertyType.SLIDER,
         name = "Spin speed",
         description = "",
-        category = "Cosmetic",
+        category = "Misc",
         subcategory = "Player",
         min = 30,
         max = 200
@@ -1451,7 +1614,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         type = PropertyType.CHECKBOX,
         name = "Should I spin everyone?",
         description = "",
-        category = "Cosmetic",
+        category = "Misc",
         subcategory = "Player"
     )
     var SpinOnEveryone = false;*/
@@ -1460,7 +1623,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         type = PropertyType.SWITCH,
         name = "Time Changer",
         description = "Allows to adjust the World's time.",
-        category = "Cosmetic",
+        category = "Misc",
         subcategory = "Time Changer"
     )
     var TimeChanger = false
@@ -1469,7 +1632,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         type = PropertyType.SELECTOR,
         name = "Time Changer Mode",
         description = "How to adjust the World's time.",
-        category = "Cosmetic",
+        category = "Misc",
         subcategory = "Time Changer",
         options = [
             "Day",
@@ -1482,76 +1645,101 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
     )
     var TimeChangerMode = 0
 
-
     @Property(
         type = PropertyType.SWITCH,
         name = "No Blindness",
         description = "Disables blindness.",
-        category = "Cosmetic",
+        category = "Misc",
         subcategory = "Clear Sight"
     )
     var antiBlind = false
-	
-	@Property(
-		type = PropertyType.SWITCH,
-		name = "Clear Blocks",
-		description = "When clipping into blocks it allows you to see around you instead of just blocking your view",
-        category = "Cosmetic",
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Clear Blocks",
+        description = "When clipping into blocks it allows you to see around you instead of just blocking your view",
+        category = "Misc",
         subcategory = "Clear Sight"
-	)
-	var clearBlocks = false
-	
+    )
+    var clearBlocks = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Dont push out of blocks",
+        description = "Disables blocks pushing you out of them when clipping into them.",
+        category = "Misc",
+        subcategory = "Clear Sight"
+    )
+    var noPushOutOfBlocks = false
+
     @Property(
         type = PropertyType.SWITCH,
         name = "No Portal Effect",
         description = "Disables nether portal overlay.",
-        category = "Cosmetic",
+        category = "Misc",
         subcategory = "Clear Sight"
     )
     var antiPortal = false
 
     @Property(
         type = PropertyType.SWITCH,
+        name = "No Rotate",
+        description = "Disables rotations from server.",
+        category = "Misc",
+        subcategory = "Clear Sight"
+    )
+    var NoRotate = false
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "No Rotate Keep Motion",
+        description = "Keeps your momentum when you are teleporting.",
+        category = "Misc",
+        subcategory = "Clear Sight"
+    )
+    var NoRotateKeepMotion = false
+
+    @Property(
+        type = PropertyType.SWITCH,
         name = "No Water FOV",
         description = "Disables FOV change in water.",
-        category = "Cosmetic",
+        category = "Misc",
         subcategory = "Clear Sight"
     )
     var antiWaterFOV = false
 
-	/*
     @Property(
         type = PropertyType.SWITCH,
         name = "No Block Animation",
         description = "Disable block animation on all swords with right click ability.",
-        category = "Cosmetic",
+        category = "Misc",
         subcategory = "Clear Sight"
     )
-    var noBlockAnimation = false*/
+    var noBlockAnimation = false
 
     @Property(
         type = PropertyType.SWITCH,
         name = "Remove Selfie camera",
         description = "Removes selfie camera In F5.",
-        category = "Cosmetic",
+        category = "Misc",
         subcategory = "QOL"
     )
     var removeSelfieCamera = false
-	
-	@Property(
-		type = PropertyType.CHECKBOX,
-		name = "Remove Selfie camera only with Hype",
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Remove Selfie camera only with Hype",
         description = "Removes selfie camera In F5 only when you have a Wither Blade with Wither Impact.",
-        category = "Cosmetic",
+        category = "Misc",
         subcategory = "QOL"
-	)
-	var removeSelfieCameraOnlyWithHype = false
-	
+    )
+    var removeSelfieCameraOnlyWithHype = false
+
     @Property(
         type = PropertyType.SWITCH,
         name = "CustomFOV",
         description = "Allows to set a higher or lower FOV than Minecraft default.",
-        category = "Cosmetic",
+        category = "Misc",
         subcategory = "QOL"
     )
     var CustomFov = false
@@ -1560,7 +1748,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         type = PropertyType.DECIMAL_SLIDER,
         name = "FOV Value",
         description = "What to set your FOV to.",
-        category = "Cosmetic",
+        category = "Misc",
         subcategory = "QOL",
         minF = 1f,
         maxF = 179f,
@@ -1572,7 +1760,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         type = PropertyType.SWITCH,
         name = "Custom Damage Splash",
         description = "Reformats Hypixel SkyBlock's Shitty Damage Splash for a more readable one.",
-        category = "Cosmetic",
+        category = "Misc",
         subcategory = "QOL"
     )
     var customDamageSplash = false
@@ -1581,62 +1769,65 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         type = PropertyType.SWITCH,
         name = "Hide Falling Blocks",
         description = "Hides falling blocks, Good for fps.",
-        category = "Cosmetic",
+        category = "Misc",
         subcategory = "QOL"
     )
     var hideFallingBlocks = false
-	
-	
-	private const val DEV_MODE_DESCRIPTION =
-		"§fForces all features to enable, even if you are not on skyblock.\n\n" +
-		"§eenables console logging and disables a few safety checks\n" +
-		"§bQ: Why is this a thing?\n" +
-		"§aA: So I can properly test features in the mod without needing to be in skyblock\n\n" +
-		"§4§n§lDONT USE IT IF U ARE NOT ME, CAN GET YOU BANNED!\n\n" +
-		"§d[R.I.P] §bFININ1"
-	
-	@Property(
-		type = PropertyType.CHECKBOX,
-		name = "Dev Mode",
-		description = DEV_MODE_DESCRIPTION,
-		category = "Dev"
-	)
-	var DevMode = false
 
-	
-	@Property(
-		type = PropertyType.SWITCH,
-		name = "Custom Main Menu",
+    private const val DEV_MODE_DESCRIPTION =
+        "§fForces all features to enable, even if you are not on skyblock.\n\n" +
+                "§eenables console logging and disables a few safety checks\n" +
+                "§bQ: Why is this a thing?\n" +
+                "§aA: So I can properly test features in the mod without needing to be in skyblock\n\n" +
+                "§4§n§lDONT USE IT IF U ARE NOT ME, CAN GET YOU BANNED!\n\n" +
+                "§d[R.I.P] §bFININ1"
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Dev Mode",
+        description = DEV_MODE_DESCRIPTION,
+        category = "Dev"
+    )
+    var DevMode = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Custom Main Menu",
         description = "Enables the Custom Main Menu",
         category = "Dev",
         subcategory = "Experimental"
-	)
-	var CustomMainMenu = true
-	
-	@Property(
-		type = PropertyType.SWITCH,
-		name = "Motion Blur",
-		description = "Enables motion blur",
+    )
+    var CustomMainMenu = true
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Motion Blur",
+        description = "Enables motion blur",
         category = "Dev",
         subcategory = "Experimental"
-	)
-	var MotionBlur = false
-	
-	@Property(
-		type = PropertyType.SLIDER,
-		name = "Motion Blur Amount",
+    )
+    var MotionBlur = false
+
+    @Property(
+        type = PropertyType.SLIDER,
+        name = "Motion Blur Amount",
         description = "Amount of motion blur",
         category = "Dev",
         subcategory = "Experimental",
         min = 1,
-		max = 10
-	)
-	var MotionBlurAmount = 5
+        max = 10
+    )
+    var MotionBlurAmount = 5
 
     init {
         setCategoryDescription(
             "ESP",
             "Disable Optifine's fast render and Patcher's entity culling."
+        )
+
+        setCategoryDescription(
+            "Dev",
+            "&4A list of Broken/Unfinished features and UAYOR.".addColor()
         )
 
         // General
@@ -1660,21 +1851,21 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
             "P3StartTimer",
             "P4StartTimer"
         ).forEach { addDependency(it, "F7M7PhaseStartTimers") }
-	    
-	    listOf(
-	        "BlazeSolverFirstBlazeColor",
-	        "BlazeSolverSecondBlazeColor",
-	        "BlazeSolverThirdBlazeColor",
-	        "BlazeSolverLineColor"
-		).forEach { addDependency(it, "BlazeSolver") }
-	    
-	    addDependency("AutoPotionCommand", "AutoPotion")
-	    addDependency("AutoReaperArmorSlot", "AutoReaperArmorSwap")
-	    
-	    
+
+        listOf(
+            "BlazeSolverFirstBlazeColor",
+            "BlazeSolverSecondBlazeColor",
+            "BlazeSolverThirdBlazeColor",
+            "BlazeSolverLineColor"
+        ).forEach { addDependency(it, "BlazeSolver") }
+
+        addDependency("AutoPotionCommand", "AutoPotion")
+        //  addDependency("AutoReaperArmorSlot", "AutoReaperArmorSwap")
+
+
         // Terminals
-	    
-	    
+
+
         listOf(
             "CustomTerminalMenuClickMode",
             "CustomTerminalMenuScale",
@@ -1689,7 +1880,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         ).forEach { addDependency(it, "CustomTerminalsGui") }
 
 
-        // Cosmetics
+        // Miscs
         listOf(
             "BlockOverlayType",
             "BlockOverlayOutlineThickness",
@@ -1703,11 +1894,12 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         ).forEach { addDependency(it, "PlayerScale") }
         addDependency("TimeChangerMode", "TimeChanger")
         addDependency("CustomFovValue", "CustomFov")
-	    addDependency("removeSelfieCameraOnlyWithHype", "removeSelfieCamera")
+        addDependency("removeSelfieCameraOnlyWithHype", "removeSelfieCamera")
         listOf(
             "SpinDirection",
             "SpinSpeed"
         ).forEach { addDependency(it, "PlayerSpin") }
+        addDependency("NoRotateKeepMotion", "NoRotate")
 
 
         // ESP
@@ -1723,7 +1915,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         listOf(
             "espColorStarMobs",
             "removeStarMobsNametag"
-        ).forEach{ addDependency(it, "espStarMobs") }
+        ).forEach { addDependency(it, "espStarMobs") }
         addDependency("hideWrongLivids", "lividFinder")
         addDependency("espColorBats", "espBats")
         addDependency("espColorFels", "espFels")
@@ -1735,7 +1927,7 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         listOf(
             "overlayColorSalvageable",
             "overlayColorTopSalvageable"
-        ).forEach{ addDependency(it, "overlaySalvageable") }
+        ).forEach { addDependency(it, "overlaySalvageable") }
         listOf(
             "CustomLeapMenuScale",
             "CustomLeapMenuLightMode"
@@ -1761,19 +1953,19 @@ object Config : Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, 
         initialize()
     }
 
-    private object Sorting : SortingBehavior() {
+    private object Sorting: SortingBehavior() {
         override fun getCategoryComparator(): Comparator<in Category> = Comparator.comparingInt { c: Category ->
-	        listOf(
-		        "General",
-		        "Dungeons",
-		        "Terminals",
-		        "ESP",
-		        "Alerts",
-		        "GUI",
-		        "HUD",
-		        "Cosmetic",
-		        "Dev"
-	        ).indexOf(c.name)
+            listOf(
+                "General",
+                "Dungeons",
+                "Terminals",
+                "ESP",
+                "Alerts",
+                "GUI",
+                "HUD",
+                "Misc",
+                "Dev"
+            ).indexOf(c.name)
         }
     }
 }

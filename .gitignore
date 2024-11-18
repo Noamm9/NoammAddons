@@ -205,3 +205,6 @@ servers.essential.dat
 ops.json
 whitelist.json
 whitelist.json
+/resourcepacks
+*.kt~
+*.json~

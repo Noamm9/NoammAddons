@@ -2,15 +2,18 @@ package noammaddons.config
 
 import gg.essential.api.EssentialAPI
 import noammaddons.noammaddons.Companion.MOD_NAME
-import noammaddons.utils.JsonUtils
-import noammaddons.config.EventHandlers.scheduleSave
-import noammaddons.utils.ThreadUtils.runEvery
-import java.io.*
+import noammaddons.utils.JsonUtils.fromJson
+import noammaddons.utils.JsonUtils.toJson
+import noammaddons.utils.ThreadUtils.loop
+import java.io.File
+import java.io.IOException
 
 
-class PogObject<T : Any>(fileName: String, private val defaultObject: T) {
+class PogObject<T: Any>(fileName: String, private val defaultObject: T) {
     private val dataFile = File("config/$MOD_NAME/${fileName}.json")
     private var data: T = loadData() ?: defaultObject
+    private val autosaveIntervals = mutableMapOf<PogObject<*>, Long>()
+    private var lastSavedTime = System.currentTimeMillis()
 
     init {
         dataFile.parentFile.mkdirs()
@@ -18,48 +21,68 @@ class PogObject<T : Any>(fileName: String, private val defaultObject: T) {
     }
 
     private fun loadData(): T? {
-        return if (dataFile.exists()) {
-            JsonUtils.fromJson(dataFile, defaultObject::class.java)
-        } else {
-            println("[PogObject] No existing data found, loading defaults.")
+        return try {
+            if (dataFile.exists()) {
+                val loadedData = fromJson(dataFile, defaultObject::class.java)
+                if (loadedData != null && loadedData::class.java == defaultObject::class.java) {
+                    loadedData
+                }
+                else {
+                    println("[PogObject] Data type mismatch, loading defaults.")
+                    null
+                }
+            }
+            else {
+                println("[PogObject] No existing data found, loading defaults.")
+                null
+            }
+        }
+        catch (e: Exception) {
+            println("[PogObject]: ${this.javaClass.simpleName} Error loading data: ${e.message}")
             null
         }
     }
 
+    @Synchronized
     fun save() {
-        JsonUtils.toJson(dataFile, data)
-        println("[PogObject] Data saved successfully.")
+        try {
+            toJson(dataFile, data)
+            println("[PogObject]: ${this.javaClass.simpleName} Data saved successfully.")
+        }
+        catch (e: IOException) {
+            println("[PogObject]: ${this.javaClass.simpleName}: Failed to save data: ${e.message}")
+            e.printStackTrace()
+        }
     }
 
     fun autosave(intervalMinutes: Long = 5) {
         scheduleSave(this, intervalMinutes)
     }
 
-    fun updateData(newData: T) {
+    fun setData(newData: T) {
         data = newData
     }
 
     fun getData(): T = data
-}
 
-
-object EventHandlers {
-    private val autosaveIntervals = mutableMapOf<PogObject<*>, Long>()
-
-    fun scheduleSave(pogObject: PogObject<*>, intervalMinutes: Long) {
-        autosaveIntervals[pogObject] = intervalMinutes * 60 * 20
+    private fun scheduleSave(pogObject: PogObject<*>, intervalMinutes: Long) {
+        autosaveIntervals[pogObject] = intervalMinutes * 1000 * 60
     }
-	
-	init {
-		EssentialAPI.getShutdownHookUtil().register { autosaveIntervals.keys.forEach { it.save() } }
-		
-		runEvery(1) {
-			autosaveIntervals.forEach { (pogObject, interval) ->
-				if (System.currentTimeMillis() % interval != 0L) return@forEach
-				pogObject.save()
-			}
-		}
-	}
+
+    init {
+        EssentialAPI.getShutdownHookUtil().register {
+            autosaveIntervals.keys.forEach { it.save() }
+        }
+
+        loop(10_000) {
+            val currentTime = System.currentTimeMillis()
+            autosaveIntervals.forEach { (pogObject, interval) ->
+                if (currentTime - pogObject.lastSavedTime < interval) return@forEach
+                if (fromJson(pogObject.dataFile, defaultObject::class.java) == pogObject.data) return@forEach
+
+                pogObject.save()
+                pogObject.lastSavedTime = currentTime
+            }
+        }
+    }
 }
-
-

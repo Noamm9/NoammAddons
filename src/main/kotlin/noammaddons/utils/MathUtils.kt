@@ -2,11 +2,13 @@ package noammaddons.utils
 
 import net.minecraft.util.Vec3
 import noammaddons.noammaddons.Companion.mc
-import noammaddons.utils.RenderUtils.getHeight
-import noammaddons.utils.RenderUtils.getWidth
+import noammaddons.utils.RenderHelper.getHeight
+import noammaddons.utils.RenderHelper.getWidth
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 object MathUtils {
-     /**
+    /**
      * Checks if a given coordinate is inside a specified 3D box.
      * @param coord The coordinate to check.
      * @param corner1 The coordinates of one corner of the box.
@@ -52,7 +54,7 @@ object MathUtils {
     fun distanceIn2DWorld(vec1: Vec3, vec2: Vec3): Double {
         val deltaX = vec1.xCoord - vec2.xCoord
         val deltaZ = vec1.zCoord - vec2.zCoord
-        return Math.sqrt(deltaX * deltaX + deltaZ * deltaZ)
+        return sqrt(deltaX * deltaX + deltaZ * deltaZ)
     }
 
     fun Double.toFixed(decimals: Int): String {
@@ -70,18 +72,34 @@ object MathUtils {
         val number = this.toDoubleOrNull() ?: throw IllegalArgumentException("Invalid string format")
         return "%.${decimals}f".format(number)
     }
-	
-	fun calculateScaleFactor(
-		userWidth: Int = mc.getWidth(),
-		userHeight: Int = mc.getHeight(),
-		baseWidth: Int = 1920,
-		baseHeight: Int = 1080
-	): Float {
-		val widthScale = userWidth.toFloat() / baseWidth
-		val heightScale = userHeight.toFloat() / baseHeight
-		val scaleFactor = (widthScale + heightScale) / 2
-		return scaleFactor + 0.5f
-	}
-	
+
+    fun calculateScaleFactor(
+        userWidth: Int = mc.getWidth(),
+        userHeight: Int = mc.getHeight(),
+        baseWidth: Int = 1920,
+        baseHeight: Int = 1080
+    ): Float {
+        val widthScale = userWidth.toFloat() / baseWidth
+        val heightScale = userHeight.toFloat() / baseHeight
+        val scaleFactor = (widthScale + heightScale) / 2
+        return scaleFactor + 0.5f
+    }
+
+    fun normalizeYaw(yaw: Float): Float {
+        var result = yaw
+        while (result >= 180) result -= 360
+        while (result < - 180) result += 360
+        return result
+    }
+
+    fun normalizePitch(pitch: Float): Float {
+        var result = pitch
+        while (result >= 90) result -= 180
+        while (result < - 90) result += 180
+        return result
+    }
+
+    fun Ease(t: Double): Double = sin((t * Math.PI) / 2)
+
     data class Rotation(val yaw: Float, val pitch: Float)
 }

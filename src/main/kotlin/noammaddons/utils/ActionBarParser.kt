@@ -1,18 +1,12 @@
 package noammaddons.utils
 
-import noammaddons.events.PacketEvent
-import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.LocationUtils.inSkyblock
-import noammaddons.utils.TablistUtils.getTabList
-import noammaddons.utils.ThreadUtils.runEvery
-import net.minecraft.network.play.server.S02PacketChat
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Actionbar
+import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.PlayerUtils.Player
 import java.util.regex.Matcher
 import java.util.regex.Pattern
-import kotlin.math.floor
 import kotlin.math.roundToInt
 
 
@@ -42,9 +36,10 @@ import kotlin.math.roundToInt
  */
 
 object ActionBarParser {
-    private const val REGEX: String = "((?<health>[0-9,.]+)/(?<maxHealth>[0-9,.]+)❤(?<wand>\\+(?<wandHeal>[0-9,.]+)[▆▅▄▃▂▁])?)|((?<currentDefense>[0-9,.]+)❈ Defense(?<other>( (?<align>\\|\\|\\|))?( {2}(?<Term>T[0-9,.]+!?))?.*)?)"
+    private const val REGEX: String =
+        "((?<health>[0-9,.]+)/(?<maxHealth>[0-9,.]+)❤(?<wand>\\+(?<wandHeal>[0-9,.]+)[▆▅▄▃▂▁])?)|((?<currentDefense>[0-9,.]+)❈ Defense(?<other>( (?<align>\\|\\|\\|))?( {2}(?<Term>T[0-9,.]+!?))?.*)?)"
     private const val ManaRegex: String = """((?<num>[0-9,.]+)/(?<den>[0-9,.]+)✎ (Mana|(?<overflowMana>-?[0-9,.]+)ʬ))"""
-	val currentSpeed get() = (Player!!.capabilities.walkSpeed * 1000).roundToInt()
+    val currentSpeed get() = (Player !!.capabilities.walkSpeed * 1000).roundToInt()
     var currentHealth = 0
     var maxHealth = 0
     var wand: String? = null
@@ -53,20 +48,18 @@ object ActionBarParser {
     var maxMana: Int = 0
     var overflowMana: Int = 0
     var effectiveHP: Int = 0
-	
-	
-	
-	@SubscribeEvent(priority = EventPriority.HIGHEST)
+
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     fun onActionBarPacket(event: Actionbar) {
-		val msg = event.component.unformattedText.removeFormatting()
+        val msg = event.component.unformattedText.removeFormatting()
 
-	    extractPlayerStats(msg)
-	    extractPlayerManaStats(msg)
+        extractPlayerStats(msg)
+        extractPlayerManaStats(msg)
 
-	    effectiveHP = (currentHealth * (1 + currentDefense / 100))
-     
+        effectiveHP = (currentHealth * (1 + currentDefense / 100))
     }
-	
+
     private fun extractPlayerStats(input: CharSequence) {
         val pattern = Pattern.compile(REGEX)
         val matcher: Matcher = pattern.matcher(input)
