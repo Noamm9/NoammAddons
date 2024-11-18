@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static net.minecraft.util.StringUtils.stripControlCodes;
-import static noammaddons.features.General.RemoveUselessMessages.*;
+import static noammaddons.features.general.RemoveUselessMessages.INSTANCE;
 
 @Mixin(GuiNewChat.class)
 public abstract class MixinGuiNewChat {

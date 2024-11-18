@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.MixinEnvironment
 import org.spongepowered.asm.mixin.Mixins
 
 @MCVersion(ForgeVersion.mcVersion)
-class FMLLoadingPlugin : IFMLLoadingPlugin {
+class FMLLoadingPlugin: IFMLLoadingPlugin {
 
     override fun getASMTransformerClass(): Array<String> = emptyArray()
 

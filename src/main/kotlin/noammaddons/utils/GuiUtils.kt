@@ -1,12 +1,7 @@
 package noammaddons.utils
 
-import noammaddons.noammaddons.Companion.mc
-import noammaddons.events.PacketEvent
-import noammaddons.mixins.AccessorContainer
-import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.RenderUtils.getHeight
-import noammaddons.utils.RenderUtils.getWidth
 import gg.essential.api.EssentialAPI
+import kotlinx.coroutines.*
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.gui.inventory.GuiChest
@@ -14,40 +9,29 @@ import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.inventory.ContainerChest
 import net.minecraft.inventory.Slot
 import net.minecraft.network.play.client.C0EPacketClickWindow
+import net.minecraftforge.client.event.GuiOpenEvent
+import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.events.RenderOverlay
 import noammaddons.mixins.AccessorGuiContainer
+import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.PlayerUtils.Player
+import noammaddons.utils.RenderHelper.getHeight
+import noammaddons.utils.RenderHelper.getWidth
 import org.lwjgl.input.Mouse
 
 
 object GuiUtils {
-    private var PatcherScale = 5
+    private var isGuiHidden = false
+    private var onHideAction: () -> Unit = {}
+    private const val FAILSAFE_TIMEOUT = 10_000L
+    private var failsafeJob: Job? = null
     var currentChestName: String = ""
 
     @SubscribeEvent
-    @Suppress("UNUSED_PARAMETER")
-    fun onPacketReceived(event: PacketEvent.Received) {
-        currentChestName = getCurrentOpenContainerName()
+    fun onGuiOpen(event: GuiOpenEvent) {
+        currentChestName = getContainerName(event.gui)
     }
-	
-    fun clickSlot(slot: Int, shift: Boolean = false, click: Any = "LEFT") {
-         val clickString = click.toString().removeFormatting().toLowerCase()
-         var clickType = 1
-         if (clickString == "left" || click == "1") clickType = 1
-         if (clickString == "right" || click == "2") clickType = 2
-         if (clickString == "middle" || click == "0") clickType = 0
-
-
-        mc.playerController.windowClick(
-	        Player!!.openContainer.windowId,
-	        slot,
-	        clickType,
-	        if (shift) 1 else 0,
-	        Player!!
-        )
-        return
-    }
-
 
     /**
      * Sends a packet to the server simulating a click in a container's window.
@@ -56,56 +40,21 @@ object GuiUtils {
      * @param clickType 0 - Normal click,  1 - Shift-click,  2 - Pick block,  3 - Middle-click
 
      */
-    fun sendWindowClickPacket(slotId: Int, mouseButton: Int, clickType: Int) {
+    fun sendWindowClickPacket(slotId: Int, mouseButton: Int, clickType: Int) = Player?.openContainer?.run {
         mc.netHandler.addToSendQueue(
             C0EPacketClickWindow(
-	            Player!!.openContainer.windowId,
+                windowId,
                 slotId,
                 mouseButton,
                 clickType,
-	            Player!!.openContainer.inventory[slotId],
-                (Player!!.openContainer as AccessorContainer).transactionID
+                inventory[slotId],
+                getNextTransactionID(mc.thePlayer.inventory)
             )
         )
     }
 
+
     fun isInGui(): Boolean = mc.currentScreen != null
-
-    fun getPatcherScale(configValue: Boolean = false): Float {
-        try {
-            val scale = Class.forName("club.sk1er.patcher.config.PatcherConfig").getDeclaredField("inventoryScale").get(null) as Float
-            return if (configValue) scale
-            else when (scale) {
-                0f -> 1f
-                1f -> 0.5f
-                2f -> 1f
-                3f -> 1.5f
-                4f -> 2f
-                5f -> 2f
-                else -> 1f
-            }
-        }
-        catch (_: Exception) { return 1f }
-    }
-
-    fun disablePatcherScale() {
-        try {
-            val patcherConfigClass = Class.forName("club.sk1er.patcher.config.PatcherConfig")
-            val inventoryScaleField = patcherConfigClass.getDeclaredField("inventoryScale")
-            inventoryScaleField.isAccessible = true
-            PatcherScale = inventoryScaleField.get(null) as Int
-            inventoryScaleField.set(null, 0)
-        } catch (_: Exception) {}
-    }
-
-    fun enablePatcherScale() {
-        try {
-            val patcherConfigClass = Class.forName("club.sk1er.patcher.config.PatcherConfig")
-            val inventoryScaleField = patcherConfigClass.getDeclaredField("inventoryScale")
-            inventoryScaleField.isAccessible = true
-            inventoryScaleField.set(null, PatcherScale)
-        } catch (_: Exception) {}
-    }
 
     fun Minecraft.getMouseX(): Float {
         val mx = Mouse.getX().toFloat()
@@ -121,40 +70,75 @@ object GuiUtils {
         return rh - my * rh / dh - 1f
     }
 
-
-    private fun getCurrentOpenContainerName(): String {
-        val currentScreen = mc.currentScreen
-
-        if (currentScreen is GuiChest) {
-            val chestContainer = currentScreen.inventorySlots
-
-            if (chestContainer is ContainerChest) {
-                val chestInventory = chestContainer.lowerChestInventory
-
-                return chestInventory.displayName.formattedText
-            }
-        }
-        return ""
+    fun getContainerName(gui: GuiScreen? = mc.currentScreen): String {
+        val chestGui = gui as? GuiChest ?: return ""
+        val container = chestGui.inventorySlots as? ContainerChest ?: return ""
+        return container.lowerChestInventory.displayName.formattedText
     }
+
 
     fun openScreen(screen: GuiScreen?) {
         EssentialAPI.getGuiUtil().openScreen(screen)
     }
-	
-	fun getSlotFromIndex(slotIndex: Int): Slot {
-		return (mc.currentScreen as GuiContainer).inventorySlots.inventorySlots[slotIndex]
-	}
-	
-	fun getSlotRenderPos(slotIndex: Int): Pair<Float, Float> {
-		val gui = (mc.currentScreen as AccessorGuiContainer)
-		val slot = getSlotFromIndex(slotIndex)
-		val x = gui.guiLeft + slot.xDisplayPosition
-		val y = gui.guiTop + slot.yDisplayPosition
-		return Pair(x.toFloat(), y.toFloat())
-	}
-	
-	fun getSlotCenter(slotIndex: Int): Pair<Float, Float> {
-		val (x, y) = getSlotRenderPos(slotIndex)
-		return Pair(x + 8, y + 8)
-	}
+
+    fun getSlotFromIndex(slotIndex: Int): Slot? {
+        return (mc.currentScreen as? GuiContainer)?.inventorySlots?.inventorySlots?.get(slotIndex)
+    }
+
+    fun getSlotRenderPos(slotIndex: Int): Pair<Float, Float>? {
+        val gui = (mc.currentScreen as? AccessorGuiContainer) ?: return null
+        val slot = getSlotFromIndex(slotIndex) ?: return null
+        val x = gui.guiLeft + slot.xDisplayPosition
+        val y = gui.guiTop + slot.yDisplayPosition
+        return Pair(x.toFloat(), y.toFloat())
+    }
+
+    fun hideGui(bool: Boolean, callback: () -> Unit = {}) {
+        isGuiHidden = bool
+        onHideAction = callback
+
+        if (bool) startFailsafe()
+        else cancelFailsafe()
+    }
+
+    private fun startFailsafe() {
+        failsafeJob?.cancel()
+        failsafeJob = CoroutineScope(Dispatchers.Default).launch {
+            delay(FAILSAFE_TIMEOUT)
+            isGuiHidden = false
+            onHideAction = {}
+        }
+    }
+
+    private fun cancelFailsafe() {
+        failsafeJob?.cancel()
+        failsafeJob = null
+    }
+
+    @SubscribeEvent
+    fun INTERNAL_RenderShit(event: RenderOverlay) {
+        if (isGuiHidden) onHideAction()
+        else onHideAction = {}
+    }
+
+    @SubscribeEvent
+    fun INTERNAL_HideGui(event: GuiScreenEvent.DrawScreenEvent.Pre) {
+        event.isCanceled = isGuiHidden
+    }
+
+    @SubscribeEvent
+    fun INTERNAL_CancelKeyboardInputs(event: GuiScreenEvent.KeyboardInputEvent.Pre) {
+        event.isCanceled = isGuiHidden
+    }
+
+    @SubscribeEvent
+    fun INTERNAL_CancelMouseInputs(event: GuiScreenEvent.MouseInputEvent.Pre) {
+        event.isCanceled = isGuiHidden
+    }
+
+    @SubscribeEvent
+    fun INTERNAL_CancelButtonInputs(event: GuiScreenEvent.ActionPerformedEvent.Pre) {
+        event.isCanceled = isGuiHidden
+    }
+
 }

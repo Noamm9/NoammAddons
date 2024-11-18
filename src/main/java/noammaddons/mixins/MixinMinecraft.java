@@ -3,43 +3,46 @@ package noammaddons.mixins;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.MinecraftForge;
+import noammaddons.events.ClickEvent;
 import noammaddons.events.PreKeyInputEvent;
-import noammaddons.events.PreMouseInputEvent;
+import org.apache.commons.io.IOUtils;
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.Display;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import noammaddons.events.ClickEvent;
-import org.lwjgl.opengl.Display;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import org.apache.commons.io.IOUtils;
-import java.awt.image.BufferedImage;
-import javax.imageio.ImageIO;
 
+import static noammaddons.events.RegisterEvents.postAndCatch;
 import static noammaddons.noammaddons.MOD_ID;
 import static noammaddons.noammaddons.MOD_VERSION;
 
 
 @Mixin(Minecraft.class)
 public class MixinMinecraft {
-
-    @Mutable @Shadow @Final
+    @Mutable
+    @Shadow
+    @Final
     private static ResourceLocation locationMojangPng;
 
     @Inject(method = "clickMouse", at = @At("HEAD"), cancellable = true)
     private void onLeftClick(CallbackInfo ci) {
-        if (MinecraftForge.EVENT_BUS.post(new ClickEvent.LeftClickEvent())) ci.cancel();
+        if (postAndCatch(new ClickEvent.LeftClickEvent())) {
+            ci.cancel();
+        }
     }
 
     @Inject(method = "rightClickMouse", at = @At("HEAD"), cancellable = true)
     private void onRightClick(CallbackInfo ci) {
-        if (MinecraftForge.EVENT_BUS.post(new ClickEvent.RightClickEvent())) ci.cancel();
+        if (postAndCatch(new ClickEvent.RightClickEvent())) {
+            ci.cancel();
+        }
     }
 
     @Inject(method = "createDisplay", at = @At("RETURN"))
@@ -53,8 +56,8 @@ public class MixinMinecraft {
         InputStream icon32 = null;
 
         try {
-            icon16 = this.getClass().getResourceAsStream("/assets/"+MOD_ID+"/menu/icons/logo-64x.png");
-            icon32 = this.getClass().getResourceAsStream("/assets/"+MOD_ID+"/menu/icons/logo-32x.png");
+            icon16 = this.getClass().getResourceAsStream("/assets/" + MOD_ID + "/menu/icons/logo-64x.png");
+            icon32 = this.getClass().getResourceAsStream("/assets/" + MOD_ID + "/menu/icons/logo-32x.png");
 
             if (icon16 != null && icon32 != null) {
                 ByteBuffer[] icons = new ByteBuffer[]{
@@ -84,15 +87,7 @@ public class MixinMinecraft {
         int k = (Keyboard.getEventKey() == 0) ? (Keyboard.getEventCharacter() + 256) : Keyboard.getEventKey();
         char character = Keyboard.getEventCharacter();
         if (Keyboard.getEventKeyState()) {
-            MinecraftForge.EVENT_BUS.post(new PreKeyInputEvent(k, character));
-        }
-    }
-
-    @Inject(method = {"runTick"}, at = {@At(value = "INVOKE", target = "Lorg/lwjgl/input/Mouse;getEventButton()I")})
-    public void mouseKeyPresses(CallbackInfo ci) {
-        int k = Mouse.getEventButton();
-        if (Mouse.getEventButtonState()) {
-            MinecraftForge.EVENT_BUS.post(new PreMouseInputEvent(k));
+            postAndCatch(new PreKeyInputEvent(k, character));
         }
     }
 

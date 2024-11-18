@@ -2,23 +2,19 @@ package noammaddons.features.alerts
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.RenderOverlay
-import noammaddons.noammaddons.Companion.config
-import noammaddons.noammaddons.Companion.mc
-import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.PlayerUtils.Player
+import noammaddons.features.Feature
+import noammaddons.utils.ItemUtils.getItemIndexInHotbar
+import noammaddons.utils.RenderHelper.getHeight
+import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawCenteredText
-import noammaddons.utils.RenderUtils.getHeight
-import noammaddons.utils.RenderUtils.getWidth
+import noammaddons.utils.Utils.isNull
 
-object EnergyCrystal {
+object EnergyCrystal: Feature() {
     @SubscribeEvent
-    @Suppress("UNUSED_PARAMETER")
     fun title(event: RenderOverlay) {
-	    if (!config.energyCrystalAlert) return
-		if (Player?.inventory?.mainInventory
-		  ?.get(8)?.displayName?.removeFormatting() != "Energy Crystal"
-		) return
+        if (! config.energyCrystalAlert) return
+        if (getItemIndexInHotbar("Energy Crystal").isNull()) return
 
-	    drawCenteredText("&e&l⚠ &l&bCrystal &e&l⚠", mc.getWidth()/ 2f, mc.getHeight()*0.4f, 4.5f)
+        drawCenteredText("&e&l⚠ &l&bCrystal &e&l⚠", mc.getWidth() / 2f, mc.getHeight() * 0.4f, 3.5f)
     }
 }

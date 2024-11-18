@@ -1,24 +1,6 @@
 package noammaddons.features.dungeons.terminals
 
-import noammaddons.noammaddons.Companion.config
-import noammaddons.noammaddons.Companion.mc
-import noammaddons.events.GuiContainerEvent
-import noammaddons.events.PacketEvent
-import noammaddons.features.dungeons.terminals.ConstantsVeriables.RubixTitle
-import noammaddons.features.dungeons.terminals.ConstantsVeriables.Slot
-import noammaddons.features.dungeons.terminals.ConstantsVeriables.getColorMode
-import noammaddons.features.dungeons.terminals.ConstantsVeriables.getSolutionColor
-import noammaddons.features.dungeons.terminals.ConstantsVeriables.getTermScale
-import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.GuiUtils.getMouseX
-import noammaddons.utils.GuiUtils.getMouseY
-import noammaddons.utils.ItemUtils.getItemId
-import noammaddons.utils.LocationUtils
-import noammaddons.utils.LocationUtils.F7Phase
-import noammaddons.utils.RenderUtils
-import noammaddons.utils.RenderUtils.getHeight
-import noammaddons.utils.RenderUtils.getWidth
-import noammaddons.utils.ThreadUtils.setTimeout
+import gg.essential.universal.UGraphics.getStringWidth
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.network.play.client.C0DPacketCloseWindow
 import net.minecraft.network.play.client.C0EPacketClickWindow
@@ -27,15 +9,33 @@ import net.minecraft.network.play.server.S2EPacketCloseWindow
 import net.minecraft.network.play.server.S2FPacketSetSlot
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.events.GuiContainerEvent
+import noammaddons.events.PacketEvent
+import noammaddons.features.Feature
+import noammaddons.features.dungeons.terminals.ConstantsVariables.RubixTitle
+import noammaddons.features.dungeons.terminals.ConstantsVariables.Slot
+import noammaddons.features.dungeons.terminals.ConstantsVariables.getColorMode
+import noammaddons.features.dungeons.terminals.ConstantsVariables.getSolutionColor
+import noammaddons.features.dungeons.terminals.ConstantsVariables.getTermScale
+import noammaddons.features.gui.Menus.renderBackground
+import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.GuiUtils.getMouseX
+import noammaddons.utils.GuiUtils.getMouseY
+import noammaddons.utils.ItemUtils.getItemId
+import noammaddons.utils.LocationUtils
+import noammaddons.utils.LocationUtils.F7Phase
+import noammaddons.utils.RenderHelper.getHeight
+import noammaddons.utils.RenderHelper.getWidth
+import noammaddons.utils.RenderUtils.drawRoundedRect
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.SoundUtils.ayaya
-import java.awt.Color
+import noammaddons.utils.ThreadUtils.setTimeout
 import kotlin.math.floor
 
 
-object Rubix {
+object Rubix: Feature() {
     private var inTerminal = false
-    private var cwid = -1
+    private var cwid = - 1
     private var windowSize = 0
     private var slots = mutableListOf<Slot?>()
 
@@ -45,10 +45,10 @@ object Rubix {
     private val allowedSlots = listOf(12, 13, 14, 21, 22, 23, 30, 31, 32)
     private val order = listOf(14, 1, 4, 13, 11)
 
-    
+
     @SubscribeEvent
     fun onClick(event: GuiContainerEvent.GuiMouseClickEvent) {
-        if (!inTerminal) return
+        if (! inTerminal) return
         event.isCanceled = true
 
         val termScale = getTermScale()
@@ -58,14 +58,11 @@ object Rubix {
         val screenWidth = mc.getWidth() / termScale
         val screenHeight = mc.getHeight() / termScale
 
-        val width = 9f * 18f
-        val height = windowSize / 9f * 18f
+        val width = 9 * 18
+        val height = windowSize / 9 * 18
 
-        val globalOffsetX = 0f
-        val globalOffsetY = 0f
-
-        val offsetX = (screenWidth / 2 - width / 2 + globalOffsetX)
-        val offsetY = (screenHeight / 2 - height / 2 + globalOffsetY)
+        val offsetX = screenWidth / 2 - width / 2
+        val offsetY = screenHeight / 2 - height / 2
 
         val slotX = floor((x - offsetX) / 18).toInt()
         val slotY = floor((y - offsetY) / 18).toInt()
@@ -81,6 +78,7 @@ object Rubix {
                 predict(slot, 0)
                 if (clicked) queue.add(slot to 0) else click(slot, 0)
             }
+
             (solution[slot] ?: 0) < 0 -> {
                 predict(slot, 1)
                 if (clicked) queue.add(slot to 1) else click(slot, 1)
@@ -90,21 +88,18 @@ object Rubix {
 
     @SubscribeEvent
     fun cancelGui(event: GuiScreenEvent.DrawScreenEvent.Pre) {
-        if (!inTerminal) return
-        if (!config.DevMode) event.isCanceled = true
+        if (! inTerminal) return
+        if (! config.DevMode) event.isCanceled = true
 
         val termScale = getTermScale()
         val screenWidth = mc.getWidth() / termScale
         val screenHeight = mc.getHeight() / termScale
 
-        val width = 9f * 18f
-        val height = windowSize / 9f * 18f
+        val width = 9 * 18
+        val height = windowSize / 9 * 18
 
-        val globalOffsetX = 0f
-        val globalOffsetY = 0f
-
-        val offsetX = (screenWidth / 2 - width / 2 + globalOffsetX)
-        val offsetY = (screenHeight / 2 - height / 2 + globalOffsetY)
+        val offsetX = screenWidth / 2 - width / 2
+        val offsetY = screenHeight / 2 - height / 2
 
         val colorMode = getColorMode()
         val solverColor = getSolutionColor()
@@ -112,24 +107,8 @@ object Rubix {
         GlStateManager.pushMatrix()
         GlStateManager.scale(termScale, termScale, 0f)
 
-        RenderUtils.drawRoundedRect(
-            colorMode.darker(),
-            offsetX - 2 - (width / 15) / 2,
-            offsetY - 2 - (width / 15) / 2,
-            width + 4 + width / 15,
-            height + 4 + width / 15
-        )
-
-        RenderUtils.drawRoundedRect(
-            colorMode,
-            offsetX - 3,
-            offsetY - 3,
-            width + 6,
-            height + 6
-        )
-
+        renderBackground(offsetX, offsetY, width, height, colorMode)
         drawText(RubixTitle, offsetX, offsetY)
-
 
         for (i in 0 until windowSize) {
             val solutionValue = solution[i] ?: continue
@@ -137,13 +116,12 @@ object Rubix {
             val currentOffsetX = i % 9 * 18 + offsetX
             val currentOffsetY = floor(i / 9.0).toInt() * 18 + offsetY
 
-            RenderUtils.drawRoundedRect(solverColor, currentOffsetX, currentOffsetY, 16f, 16f, 0f)
+            drawRoundedRect(solverColor, currentOffsetX, currentOffsetY, 16f, 16f, 1.5f)
 
-            mc.fontRendererObj.drawStringWithShadow(
+            drawText(
                 solutionValue.toString(),
-                ((currentOffsetX + 8)  - mc.fontRendererObj.getStringWidth(solutionValue.toString())/2).toFloat(),
-                (currentOffsetY + 4).toFloat(),
-                Color(255, 255, 255).rgb
+                currentOffsetX + 8 - getStringWidth(solutionValue.toString()) / 2,
+                currentOffsetY + 4,
             )
         }
 
@@ -157,9 +135,9 @@ object Rubix {
         val clicks = MutableList(5) { 0 }
 
         for (i in 0 until 5) {
-            slots.filter {it != null && allowedSlots.contains(it.num) && it.meta != order[calcIndex(i)] }
+            slots.filter { it != null && allowedSlots.contains(it.num) && it.meta != order[calcIndex(i)] }
                 .forEach {
-                    when (it!!.meta) {
+                    when (it !!.meta) {
                         order[calcIndex(i - 2)] -> clicks[i] += 2
                         order[calcIndex(i - 1)] -> clicks[i] += 1
                         order[calcIndex(i + 1)] -> clicks[i] += 1
@@ -169,12 +147,12 @@ object Rubix {
         }
 
         val origin = clicks.indexOf(clicks.minOrNull() ?: 0)
-        slots.filter{it != null && allowedSlots.contains(it.num) && it.meta != order[calcIndex(origin)]}.forEach{
-            solution[it!!.num] = when (it.meta) {
+        slots.filter { it != null && allowedSlots.contains(it.num) && it.meta != order[calcIndex(origin)] }.forEach {
+            solution[it !!.num] = when (it.meta) {
                 order[calcIndex(origin - 2)] -> 2
                 order[calcIndex(origin - 1)] -> 1
-                order[calcIndex(origin + 1)] -> -1
-                order[calcIndex(origin + 2)] -> -2
+                order[calcIndex(origin + 1)] -> - 1
+                order[calcIndex(origin + 2)] -> - 2
                 else -> 0
             }
         }
@@ -190,8 +168,8 @@ object Rubix {
         clicked = true
         mc.netHandler.addToSendQueue(C0EPacketClickWindow(cwid, slot, button, if (button == 2) 3 else 0, null, 0))
         val initialWindowId = cwid
-        setTimeout(1000) {
-            if (!inTerminal || initialWindowId != cwid) return@setTimeout
+        setTimeout(600) {
+            if (! inTerminal || initialWindowId != cwid) return@setTimeout
             queue.clear()
             solve()
             clicked = false
@@ -201,7 +179,7 @@ object Rubix {
 
     @SubscribeEvent
     fun onWindowOpen(event: PacketEvent.Received) {
-        if (!config.CustomTerminalsGui || !config.CustomRubixTerminal || LocationUtils.dungeonFloor != 7 || F7Phase != 3) return
+        if (! config.CustomTerminalsGui || ! config.CustomRubixTerminal || LocationUtils.dungeonFloor != 7 || F7Phase != 3) return
         if (event.packet !is S2DPacketOpenWindow) return
 
         val windowTitle = event.packet.windowTitle.unformattedText.removeFormatting()
@@ -219,7 +197,7 @@ object Rubix {
 
     @SubscribeEvent
     fun onS2FPacketSetSlot(event: PacketEvent.Received) {
-        if (!inTerminal) return
+        if (! inTerminal) return
         if (event.packet !is S2FPacketSetSlot) return
 
         val itemStack = event.packet.func_149174_e()
@@ -258,15 +236,15 @@ object Rubix {
     @SubscribeEvent
     fun onWindowClose(event: PacketEvent.Received) {
         if (event.packet !is S2EPacketCloseWindow) return
-        if (!inTerminal) return
+        if (! inTerminal) return
         reset()
-	    ayaya.start()
+        ayaya.start()
     }
 
     @SubscribeEvent
     fun onSentPacket(event: PacketEvent.Sent) {
         if (event.packet !is C0DPacketCloseWindow) return
-        if (!inTerminal) return
+        if (! inTerminal) return
         reset()
     }
 
