@@ -8,9 +8,7 @@ import noammaddons.events.Tick
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.getBlockId
-import noammaddons.utils.ChatUtils.debugMessage
 import noammaddons.utils.LocationUtils.inDungeons
-import noammaddons.utils.PlayerUtils
 import noammaddons.utils.PlayerUtils.Player
 import noammaddons.utils.ScanUtils.ScanRoom.currentRoom
 import noammaddons.utils.Utils.equalsOneOf
@@ -20,17 +18,15 @@ import kotlin.math.floor
 object AutoIceFill {
     private var walking = true
     private var path = mutableListOf<Pair<Int, Int>>()
-    private var pattern = mutableListOf<List<Int>>()
+    private var pattern: List<List<Int>>? = null
     private var TickOn = true
     private var KeyInputOn = true
 
     @SubscribeEvent
     @Suppress("UNUSED_PARAMETER")
     fun onTick(event: Tick) {
-        if (! TickOn) {
-            debugMessage("TickOn is false, skipping onTick")
-            return
-        }
+        if (! TickOn) return
+
 
         val blockId = getBlockAt(
             BlockPos(
@@ -40,57 +36,32 @@ object AutoIceFill {
             )
         )?.getBlockId() ?: return
 
-        debugMessage("Block below player: $blockId")
-
-        if (blockId == 79) { // Ice block
-            debugMessage("Player is on ice block, setting walking to true")
-            walking = true
-        }
+        if (blockId == 79) walking = true // Ice block
 
         if (walking) {
-            debugMessage("Walking is true, calling walker.walk()")
-            if (walker.walk(path)) {
-                debugMessage("walker.walk() returned true, stopping walking")
-                walking = false
-            }
+            if (! walker.walk(path)) return
+            walking = false
         }
     }
 
     @SubscribeEvent
     @Suppress("UNUSED_PARAMETER")
     fun onKeyInput(event: InputEvent.KeyInputEvent) {
-        if (! KeyInputOn) {
-            debugMessage("KeyInputOn is false, skipping onKeyInput")
-            return
-        }
-
-        if (walking) {
-            debugMessage("Walking is true, updating keys")
-            walker.updateKeys()
-        }
+        if (! KeyInputOn) return
+        if (walking) walker.updateKeys()
     }
 
     @SubscribeEvent
     @Suppress("UNUSED_PARAMETER")
     fun onStep(event: Tick) {
         if (inDungeons && currentRoom?.name == "Ice Fill") {
-            pattern = (Solver.solve() ?: run {
-                debugMessage("Solver returned null, exiting onStep")
-                return
-            }) as MutableList<List<Int>>
-
-            debugMessage("Pattern solved: $pattern")
-            path = pattern.map { Pair(it[0], it[2]) }.toMutableList()
-
-            debugMessage("Path calculated: $path")
-
+            pattern = Solver.solve() ?: return
+            path = pattern !!.map { Pair(it[0], it[2]) }.toMutableList()
             TickOn = true
             KeyInputOn = true
-            debugMessage("TickOn and KeyInputOn set to true")
         }
         else {
-            debugMessage("Not in dungeons or not in Ice Fill room, clearing pattern and path")
-            pattern.clear()
+            pattern = null
             path.clear()
             TickOn = false
             KeyInputOn = false
@@ -100,7 +71,6 @@ object AutoIceFill {
 
 
 object Solver {
-
     val start = listOf(listOf(15, 7), listOf(23, 15), listOf(15, 23), listOf(7, 15))
     private val representativeFloors = listOf(
         listOf(listOf(0, - 1, 2, - 1), listOf(0, 1, 2, 1), listOf(2, 1, 0, 1), listOf(2, - 1, 0, - 1)),
@@ -172,7 +142,7 @@ object Solver {
     }
 
     fun solve(): List<List<Int>>? {
-        val player = PlayerUtils.Player ?: return null
+        val player = Player ?: return null
         val offsetX = (floor((player.posX + 200) / 32) * 32).toInt() - 200
         val offsetZ = (floor((player.posZ + 200) / 32) * 32).toInt() - 200
 

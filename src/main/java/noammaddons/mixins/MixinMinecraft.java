@@ -1,10 +1,14 @@
 package noammaddons.mixins;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.ResourceLocation;
 import noammaddons.events.ClickEvent;
+import noammaddons.events.GuiCloseEvent;
 import noammaddons.events.PreKeyInputEvent;
+import noammaddons.events.WorldLoadPostEvent;
 import org.apache.commons.io.IOUtils;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
@@ -31,6 +35,9 @@ public class MixinMinecraft {
     @Final
     private static ResourceLocation locationMojangPng;
 
+    @Unique
+    private GuiScreen noammAddons$previousGuiScreen = null;
+
     @Inject(method = "clickMouse", at = @At("HEAD"), cancellable = true)
     private void onLeftClick(CallbackInfo ci) {
         if (postAndCatch(new ClickEvent.LeftClickEvent())) {
@@ -44,6 +51,29 @@ public class MixinMinecraft {
             ci.cancel();
         }
     }
+
+    @Inject(method = "displayGuiScreen", at = @At("HEAD"), cancellable = true)
+    private void onDisplayGuiScreen(GuiScreen newGuiScreen, CallbackInfo ci) {
+        if (noammAddons$previousGuiScreen != null) {
+            if (postAndCatch(new GuiCloseEvent(noammAddons$previousGuiScreen, newGuiScreen))) {
+                ci.cancel();
+                return;
+            }
+        }
+
+        noammAddons$previousGuiScreen = newGuiScreen;
+    }
+
+    @Inject(method = "loadWorld(Lnet/minecraft/client/multiplayer/WorldClient;)V", at = @At("TAIL"))
+    private void onWorldLoadPost1(WorldClient worldClientIn, CallbackInfo ci) {
+        postAndCatch(new WorldLoadPostEvent());
+    }
+
+    @Inject(method = "loadWorld(Lnet/minecraft/client/multiplayer/WorldClient;Ljava/lang/String;)V", at = @At("TAIL"))
+    private void onWorldLoadPost2(WorldClient worldClientIn, String loadingMessage, CallbackInfo ci) {
+        postAndCatch(new WorldLoadPostEvent());
+    }
+
 
     @Inject(method = "createDisplay", at = @At("RETURN"))
     private void setWindowName(CallbackInfo ci) {

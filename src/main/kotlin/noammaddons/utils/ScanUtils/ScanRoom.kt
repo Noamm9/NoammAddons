@@ -15,7 +15,12 @@ import kotlin.math.floor
 
 object ScanRoom {
     private var roomData: List<Room>? = null
+
+    @JvmField
     var currentRoom: Room? = null
+
+    @JvmField
+    var lastKnownRoom: Room? = null
 
     init {
         fetchJsonWithRetry<List<Room>?>("https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/roomdata.json") {
@@ -23,12 +28,18 @@ object ScanRoom {
         }
 
         loop(1000) {
-            if (Player.isNull() || mc.theWorld.isNull() ||
-                ! config.DevMode && (! inDungeons || inBoss)
-            ) return@loop
+            currentRoom = when {
+                Player.isNull() || mc.theWorld.isNull() -> null
+                config.DevMode -> getRoom()
+                inDungeons && ! inBoss -> getRoom()
+                else -> null
+            }
 
-            currentRoom = getRoom() ?: return@loop
+            if (currentRoom != null) {
+                lastKnownRoom = currentRoom
+            }
         }
+
     }
 
 
@@ -72,9 +83,6 @@ object ScanRoom {
             return roomData !!.find { it.cores.contains(getCore(roomComponent.x, roomComponent.z)) }
         }
     }
-
-    fun getDungeonsPosIndex(): Int {
-        val roomComponent = getRoomComponent()
-        return roomComponent.x * 6 + roomComponent.z
-    }
 }
+
+// TODO: Rotation scanning

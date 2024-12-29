@@ -2,32 +2,52 @@ package noammaddons.utils
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.google.gson.JsonObject
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.Json.Default.parseToJsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
 import net.minecraft.util.ResourceLocation
-import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
+import noammaddons.noammaddons.Companion.scope
+import noammaddons.utils.ChatUtils.errorMessage
 import java.io.*
 import java.lang.reflect.Type
+import java.net.HttpURLConnection
+import java.net.URI
 import java.net.URL
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
-import javax.net.ssl.HttpsURLConnection
-import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManager
-import javax.net.ssl.X509TrustManager
+import javax.net.ssl.*
+import kotlin.reflect.jvm.jvmName
 
 
 object JsonUtils {
     private val gson = Gson()
     private val gsonBuilder = GsonBuilder().setPrettyPrinting().create()
+    val json = Json { ignoreUnknownKeys = true }
+
+    fun stringToJson(s: String): JsonObject {
+        return try {
+            parseToJsonElement(s).jsonObject
+        }
+        catch (e: Exception) {
+            e.printStackTrace()
+            mc.shutdown()
+            throw UnsupportedEncodingException("Failed to parse JSON: ${e.message}")
+        }
+    }
+
 
     fun <T> fromJson(file: File, clazz: Class<T>): T? {
         return try {
             FileReader(file).use { reader -> gson.fromJson(reader, clazz) }
         }
         catch (e: Exception) {
-            println("[PogObject] Failed to parse JSON: ${e.message}")
+            println("[PogObject] Failed to parse JSON: Type: ${clazz.javaClass.simpleName} ${e.message}")
             null
         }
     }
@@ -69,14 +89,14 @@ object JsonUtils {
      * @param maxRetries The maximum number of retries. If set to -1, it will retry indefinitely. Default is -1.
      * @param callback A callback function that will be invoked with the parsed JSON data or null if retries failed.
      */
+    @OptIn(DelicateCoroutinesApi::class)
     inline fun <reified T> fetchJsonWithRetry(
         url: String,
         retryDelayMs: Long = 30_000,
         maxRetries: Int = - 1,
         crossinline callback: (T?) -> Unit
     ) {
-        Thread {
-            // Disable SSL certificate validation for shitty java versions
+        scope.launch {
             val trustAllCerts = arrayOf<TrustManager>(object: X509TrustManager {
                 override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
                 override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
@@ -86,49 +106,72 @@ object JsonUtils {
             val sslContext = SSLContext.getInstance("SSL")
             sslContext.init(null, trustAllCerts, SecureRandom())
             HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.socketFactory)
-
-            // Ignore host name verification
             HttpsURLConnection.setDefaultHostnameVerifier { _, _ -> true }
 
             var attempts = 0
             while (maxRetries == - 1 || attempts < maxRetries) {
                 try {
-                    if (config.DevMode) println("Attempting to fetch JSON from $url (Attempt $attempts)")
+                    val urlConnection = (URL(url).openConnection() as HttpURLConnection).apply {
+                        requestMethod = "GET"
+                        setRequestProperty("Accept", "application/json")
+                        setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36")
+                    }
 
-                    val urlConnection = URL(url).openConnection() as HttpsURLConnection
-                    urlConnection.requestMethod = "GET"
-                    urlConnection.setRequestProperty("Accept-Charset", "UTF-8")
+                    if (urlConnection.responseCode == 403) println(urlConnection.responseMessage + "|| $url")
 
-                    val reader = BufferedReader(InputStreamReader(urlConnection.inputStream, "UTF-8"))
-                    val response = reader.readText()
-                    reader.close()
+                    urlConnection.inputStream.bufferedReader(Charsets.UTF_8).use { reader ->
+                        val response = reader.readText()
+                        // println("Response JSON: $response")
 
-                    if (config.DevMode) println("Response JSON: $response")
-
-                    try {
                         val type: Type = object: TypeToken<T>() {}.type
                         val data: T = Gson().fromJson(response, type)
                         callback(data)
-                        return@Thread
-                    }
-                    catch (e: Exception) {
-                        println("Error decoding JSON: ${e.message}")
-                        e.printStackTrace()
+                        return@launch
                     }
 
                 }
                 catch (e: Exception) {
-                    println("Exception during request: ${e.message}")
                     e.printStackTrace()
+
+                    errorMessage(
+                        listOf(
+                            "&cFailed to fetch data!",
+                            "&cURL: &b$url",
+                            "&e${e::class.qualifiedName ?: e::class.jvmName}: ${e.message ?: "Unknown"}",
+                        )
+                    )
                 }
 
-                Thread.sleep(retryDelayMs)
+                delay(retryDelayMs)
                 attempts ++
             }
 
             callback(null)
-        }.start()
+        }
     }
 
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun get(url: String, block: (JsonObject) -> Unit) {
+        scope.launch {
+            runCatching {
+                val jsonString = URI(url).toURL().readText()
+                val jsonObject = stringToJson(jsonString)
+
+                jsonObject.apply(block)
+            }.onFailure { catch ->
+                catch.printStackTrace()
+
+                errorMessage(
+                    listOf(
+                        "&cFailed to fetch data!",
+                        "&cURL: &b$url",
+                        "&e${catch::class.qualifiedName ?: catch::class.jvmName}: ${catch.message ?: "Unknown"}",
+                    )
+                )
+            }
+        }
+    }
 }
+
 

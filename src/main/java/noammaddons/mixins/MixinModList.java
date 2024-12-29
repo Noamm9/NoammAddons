@@ -22,7 +22,7 @@ public class MixinModList {
 
     @Inject(method = "<init>(Ljava/util/List;)V", at = @At("RETURN"))
     private void removeMod(List<ModContainer> modList, CallbackInfo ci) {
-        if (!noammaddons.Companion.getMc().isIntegratedServerRunning()) {
+        if (!noammaddons.mc.isIntegratedServerRunning()) {
             modTags.remove(noammaddons.MOD_ID);
         }
     }

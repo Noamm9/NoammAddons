@@ -6,8 +6,8 @@ import noammaddons.config.EditGui.components.TextElement
 import noammaddons.events.RenderOverlay
 import noammaddons.features.Feature
 import noammaddons.utils.ActionBarParser
-import noammaddons.utils.ChatUtils.formatNumber
 import noammaddons.utils.LocationUtils.inSkyblock
+import noammaddons.utils.NumbersUtils.format
 
 object PlayerHud: Feature() {
     private val data = hudData.getData().PlayerHud
@@ -15,7 +15,7 @@ object PlayerHud: Feature() {
     private data class ElementConfig(
         val element: TextElement,
         val isEnabled: () -> Boolean,
-        val setText: (TextElement) -> Unit
+        val updateText: (TextElement) -> Unit
     )
 
     data class PlayerHudData(
@@ -27,51 +27,65 @@ object PlayerHud: Feature() {
         var speed: HudElementData
     )
 
+    private val elements = mutableListOf<ElementConfig>()
 
-    private val elements = listOf(
-        ElementConfig(
-            element = TextElement("&c2222/4000", dataObj = data.health),
-            isEnabled = { config.PlayerHUDHealth },
-            setText = { it.setText("${if (ActionBarParser.currentHealth > ActionBarParser.maxHealth) "&e" else "&c"}${ActionBarParser.currentHealth}&f/&c${ActionBarParser.maxHealth} ${if (ActionBarParser.wand != null) "(${ActionBarParser.wand})" else ""}") }
-        ),
-        ElementConfig(
-            element = TextElement("&a5040", dataObj = data.defense),
-            isEnabled = { config.PlayerHUDDefense },
-            setText = { it.setText("&a${ActionBarParser.currentDefense}") }
-        ),
-        ElementConfig(
-            element = TextElement("&b2222/4000", dataObj = data.mana),
-            isEnabled = { config.PlayerHUDMana },
-            setText = { it.setText("&b${ActionBarParser.currentMana}/${ActionBarParser.maxMana}") }
-        ),
-        ElementConfig(
-            element = TextElement("&3600", dataObj = data.overflowMana),
-            isEnabled = { config.PlayerHUDOverflowMana },
-            setText = { it.setText("&3${ActionBarParser.overflowMana}") }
-        ),
-        ElementConfig(
-            element = TextElement("&222675", dataObj = data.effectiveHP),
-            isEnabled = { config.PlayerHUDEffectiveHP },
-            setText = { it.setText("&2${formatNumber("${ActionBarParser.effectiveHP}")}") }
-        ),
-        ElementConfig(
-            element = TextElement("&f500✦", dataObj = data.speed),
-            isEnabled = { config.PlayerHUDSpeed },
-            setText = { it.setText("&f${ActionBarParser.currentSpeed}✦") }
-        )
-    )
+    init {
+        listOf(
+            ElementConfig(
+                TextElement("&c2222/4000", dataObj = data.health),
+                { config.PlayerHUDHealth },
+                { it.setText(getHpFormatted()) }
+            ),
+            ElementConfig(
+                TextElement("&a5040", dataObj = data.defense),
+                { config.PlayerHUDDefense },
+                { it.setText("&a${ActionBarParser.currentDefense}") }
+            ),
+            ElementConfig(
+                TextElement("&b2222/4000", dataObj = data.mana),
+                { config.PlayerHUDMana },
+                { it.setText("&b${ActionBarParser.currentMana}/${ActionBarParser.maxMana}") }
+            ),
+            ElementConfig(
+                TextElement("&3600", dataObj = data.overflowMana),
+                {
+                    val cfg = config.PlayerHUDOverflowMana
+                    val alternate = config.PlayerHUDAlternateOverflowMana
+                    cfg && (alternate && ActionBarParser.overflowMana > 0 || ! alternate)
+                },
+                { it.setText("&3${ActionBarParser.overflowMana}") }
+            ),
+            ElementConfig(
+                TextElement("&222675", dataObj = data.effectiveHP),
+                { config.PlayerHUDEffectiveHP },
+                { it.setText("&2${format("${ActionBarParser.effectiveHP}")}") }
+            ),
+            ElementConfig(
+                TextElement("&f500✦", dataObj = data.speed),
+                { config.PlayerHUDSpeed },
+                { it.setText("&f${ActionBarParser.currentSpeed}✦") }
+            )
+        ).run { elements.addAll(this) }
+    }
 
     @SubscribeEvent
     fun drawAll(event: RenderOverlay) {
-        if (! config.PlayerHUD) return
-        if (! inSkyblock) return
+        if (! config.PlayerHUD || ! inSkyblock) return
 
         elements.forEach { config ->
             if (config.isEnabled()) {
-                config.setText(config.element)
+                config.updateText(config.element)
                 config.element.draw()
             }
         }
+    }
+
+    private fun getHpFormatted(): String {
+        var str = if (ActionBarParser.currentHealth > ActionBarParser.maxHealth) "&e" else "&c"
+        str += "${ActionBarParser.currentHealth}&f/&c${ActionBarParser.maxHealth} "
+        str += ActionBarParser.wand?.let { "(${it})" } ?: ""
+
+        return str
     }
 
     private val patterns = listOf(

@@ -7,4 +7,8 @@ abstract class Feature {
     protected val config = noammaddons.config
     protected val scope = noammaddons.scope
     protected val hudData = noammaddons.hudData
+    protected val ahData = noammaddons.ahData
+    protected val bzData = noammaddons.bzData
+    protected val npcData = noammaddons.npcData
+    protected val itemIdToNameLookup = noammaddons.itemIdToNameLookup
 }

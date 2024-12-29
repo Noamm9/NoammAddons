@@ -2,7 +2,6 @@ package noammaddons.commands
 
 import gg.essential.universal.UChat
 import gg.essential.universal.UDesktop.browse
-import kotlinx.coroutines.DelicateCoroutinesApi
 import net.minecraft.command.ICommandSender
 import noammaddons.config.Config
 import noammaddons.config.Config.openDiscordLink
@@ -14,6 +13,7 @@ import noammaddons.utils.ActionUtils.getPotion
 import noammaddons.utils.ActionUtils.leap
 import noammaddons.utils.ActionUtils.reaperSwap
 import noammaddons.utils.ActionUtils.rodSwap
+import noammaddons.utils.ActionUtils.rotateSmoothly
 import noammaddons.utils.ChatUtils.clickableChat
 import noammaddons.utils.ChatUtils.copyToClipboard
 import noammaddons.utils.ChatUtils.getCenteredText
@@ -21,8 +21,8 @@ import noammaddons.utils.ChatUtils.getChatBreak
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.sendFakeChatMessage
 import noammaddons.utils.GuiUtils.openScreen
-import noammaddons.utils.MathUtils.toFixed
-import noammaddons.utils.PlayerUtils.rotateSmoothly
+import noammaddons.utils.MathUtils.Rotation
+import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.ScanUtils.ScanRoom.currentRoom
 import noammaddons.utils.ScanUtils.ScanRoom.getRoomCenter
 import noammaddons.utils.ScanUtils.Utils.getCore
@@ -36,7 +36,6 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons, noamm, noam, noam
         return Usage()
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override fun processCommand(sender: ICommandSender, args: Array<out String>) {
         if (args.isEmpty()) openScreen(Config.gui())
         else when (args[0].lowercase()) {
@@ -69,7 +68,7 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons, noamm, noam, noam
                     else -> return modMessage("&cInvalid usage of command. &bUsage: /na rotate [yaw] [pitch] [ms?]")
                 }
 
-                rotateSmoothly(yaw, pitch, ms ?: 1500)
+                rotateSmoothly(Rotation(yaw, pitch), ms ?: 1500L)
                 modMessage(
                     """
 						 &dRotating to &b$yaw, $pitch &din &b ${

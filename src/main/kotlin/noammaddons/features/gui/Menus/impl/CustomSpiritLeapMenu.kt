@@ -1,11 +1,15 @@
-package noammaddons.features.gui
+package noammaddons.features.gui.Menus.impl
 
 import gg.essential.universal.UGraphics.getStringWidth
+import io.github.moulberry.notenoughupdates.NEUApi
+import io.github.moulberry.notenoughupdates.NotEnoughUpdates
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.event.GuiScreenEvent
+import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.GuiContainerEvent
+import noammaddons.events.InventoryFullyOpenedEvent
 import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.showTitle
@@ -36,6 +40,15 @@ object CustomSpiritLeapMenu: Feature() {
 
     private fun inSpiritLeap(): Boolean {
         return currentChestName.removeFormatting().lowercase() == "spirit leap" && config.CustomLeapMenu && inDungeons
+    }
+
+    @SubscribeEvent
+    fun fuckNEU(event: InventoryFullyOpenedEvent) {
+        // Fuck NEU horrible code, but thanks for api 😘
+        if (Loader.instance().activeModList.none { it.modId == NotEnoughUpdates.MODID }) return
+        if (! inSpiritLeap()) return
+
+        NEUApi.setInventoryButtonsToDisabled()
     }
 
     @SubscribeEvent

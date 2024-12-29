@@ -19,11 +19,11 @@ import noammaddons.utils.ChatUtils.sendChatMessage
 import noammaddons.utils.EspUtils.EspMob
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.inDungeons
-import noammaddons.utils.MathUtils.toFixed
+import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderUtils.draw3DLine
 import noammaddons.utils.RenderUtils.drawEntityBox
-import noammaddons.utils.ScanUtils.ScanRoom.currentRoom
 import noammaddons.utils.ScanUtils.ScanRoom.getRoomCenter
+import noammaddons.utils.ScanUtils.ScanRoom.lastKnownRoom
 import noammaddons.utils.ThreadUtils.setTimeout
 
 
@@ -41,7 +41,7 @@ object BlazeSolver: Feature() {
         if (! inDungeons) return
         if (inBoss) return
 
-        if (currentRoom?.name != "Blaze") {
+        if (lastKnownRoom?.name != "Blaze") {
             blazes.clear()
             hpMap.clear()
             blazeStarted = null

@@ -35,7 +35,7 @@ import noammaddons.utils.SoundUtils.notificationSound
 import noammaddons.utils.ThreadUtils.loop
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
-import kotlin.math.*
+import kotlin.math.roundToInt
 
 
 object ChatUtils {
@@ -63,7 +63,6 @@ object ChatUtils {
         val formattedMessage = message.addColor()
         modMessage(formattedMessage)
         MinecraftForge.EVENT_BUS.post(ClientChatReceivedEvent(0.toByte(), ChatComponentText(formattedMessage)))
-        MinecraftForge.EVENT_BUS.post(Chat(ChatComponentText(formattedMessage)))
         MinecraftForge.EVENT_BUS.post(PacketEvent.Received(S02PacketChat(ChatComponentText(formattedMessage), 0.toByte())))
     }
 
@@ -103,12 +102,29 @@ object ChatUtils {
         if (config.DevMode) UChat.chat("$DEBUG_PREFIX ${message.toString().addColor()}")
     }
 
+    fun errorMessage(message: List<Any?>) {
+        val msg = message.toMutableList()
+
+        listOf(
+            "&b&m${getChatBreak()?.substring(1)}",
+            getCenteredText("$FULL_PREFIX&r"),
+            ""
+        ).reversed().forEach { msg.add(0, it) }
+
+        listOf(
+            "",
+            "&b&m${getChatBreak()?.substring(1)}",
+        ).reversed().forEach { msg.add(it) }
+
+        UChat.chat(msg.joinToString("\n") { "$it".addColor() })
+    }
+
     fun sendChatMessage(message: Any) {
         Player?.sendChatMessage(filterAllowedCharacters("$message"))
     }
 
     fun sendPartyMessage(message: Any) {
-        if (isInParty()) sendChatMessage("/pc $message")
+        if (isInParty()) sendChatMessage("/pc ${message.toString().removeFormatting()}")
     }
 
     /**
@@ -131,22 +147,6 @@ object ChatUtils {
         }
 
         Player?.addChatMessage(textComponent)
-    }
-
-    fun formatNumber(num1: String): String {
-        val num = num1.replace(numbersOnlyRegex, "").toDoubleOrNull() ?: return "0"
-        if (num == 0.0) return "0"
-
-        val absNum = num.absoluteValue
-        val sign = num.sign
-
-        if (absNum < 1) return "${if (sign == - 1.0) "-" else ""}${"%.2f".format(absNum)}"
-
-        val index = (log10(absNum) / 3).toInt().coerceIn(abbrev.indices)
-        val abbreviatedValue = absNum / 10.0.pow((index * 3).toDouble())
-        val formattedNumber = "${"%.1f".format(abbreviatedValue)}${abbrev[index]}"
-
-        return if (sign == - 1.0) "-$formattedNumber" else formattedNumber
     }
 
     fun addRandomColorCodes(inputString: String): String {
@@ -172,8 +172,11 @@ object ChatUtils {
      * @param time time to stay on screen in seconds
      */
     @Synchronized
-    fun showTitle(title: String = "", subtitle: String = "", time: Number = 3f, rainbow: Boolean = false) {
-        if (title.isBlank() && subtitle.isBlank()) throw IllegalArgumentException("Both Title and subtitle cannot be empty")
+    @Suppress("NAME_SHADOWING")
+    fun showTitle(title: Any? = "", subtitle: Any? = "", time: Number = 3f, rainbow: Boolean = false) {
+        val title = title.toString()
+        val subtitle = subtitle.toString()
+        if (title.isBlank() && subtitle.isBlank()) return
 
         this.titleText = title
         this.subtitleText = subtitle

@@ -18,6 +18,7 @@ import noammaddons.features.dungeons.terminals.ConstantsVariables.getSolutionCol
 import noammaddons.features.dungeons.terminals.ConstantsVariables.getTermScale
 import noammaddons.features.gui.Menus.renderBackground
 import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.GuiUtils.disableNEUInventoryButtons
 import noammaddons.utils.GuiUtils.getMouseX
 import noammaddons.utils.GuiUtils.getMouseY
 import noammaddons.utils.ItemUtils.getItemId
@@ -29,6 +30,7 @@ import noammaddons.utils.RenderUtils.drawRoundedRect
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.SoundUtils.ayaya
 import noammaddons.utils.ThreadUtils.setTimeout
+import noammaddons.utils.Utils.send
 import kotlin.math.floor
 
 object Colors: Feature() {
@@ -154,7 +156,7 @@ object Colors: Feature() {
 
     private fun click(slot: Int, button: Int) {
         clicked = true
-        mc.netHandler.addToSendQueue(C0EPacketClickWindow(cwid, slot, button, 0, null, 0))
+        C0EPacketClickWindow(cwid, slot, button, 0, null, 0).send()
         val initialWindowId = cwid
         setTimeout(600) {
             if (! inTerminal || initialWindowId != cwid) return@setTimeout
@@ -180,6 +182,7 @@ object Colors: Feature() {
             clicked = false
             slots.clear()
             windowSize = slotCount
+            disableNEUInventoryButtons()
         }
         else inTerminal = false
     }

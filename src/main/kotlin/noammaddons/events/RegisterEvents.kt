@@ -12,10 +12,14 @@ import net.minecraftforge.fml.common.gameevent.TickEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.modMessage
+import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.isNull
 
 
 object RegisterEvents {
+    private var currentInventory: Inventory? = null
+    private var acceptItems = false
+
 
     /**
      * Posts an event to the event bus and catches any errors.
@@ -60,7 +64,7 @@ object RegisterEvents {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
-    fun onChatMessage(event: PacketEvent.Received) {
+    fun onPacket(event: PacketEvent.Received) {
         when (val packet = event.packet) {
             is S02PacketChat -> when (packet.type.toInt()) {
                 in 0 .. 1 -> event.isCanceled = postAndCatch(Chat(packet.chatComponent))
@@ -77,6 +81,75 @@ object RegisterEvents {
             is S23PacketBlockChange -> postAndCatch(BlockChangeEvent(packet.blockPosition, packet.blockState))
             is S22PacketMultiBlockChange -> packet.changedBlocks.forEach {
                 postAndCatch(BlockChangeEvent(it.pos, it.blockState))
+            }
+
+            is S2EPacketCloseWindow -> currentInventory = null
+
+            is S2DPacketOpenWindow -> {
+                currentInventory = Inventory(
+                    packet.windowTitle.formattedText,
+                    packet.windowId,
+                    packet.slotCount
+                )
+                acceptItems = true
+            }
+
+            is S2FPacketSetSlot -> {
+                if (! acceptItems) return
+
+                currentInventory?.run {
+                    if (windowId != packet.func_149175_c()) return
+                    val slot = packet.func_149173_d()
+
+                    if (slot < slotCount) {
+                        val itemStack = packet.func_149174_e()
+                        if (itemStack != null) {
+                            items[slot] = itemStack
+                        }
+                    }
+                    else {
+                        acceptItems = false
+                        setTimeout(20) { postAndCatch(InventoryFullyOpenedEvent(title, windowId, slotCount, items)) }
+                        return
+                    }
+
+                    if (items.size != slotCount) return@run
+
+                    acceptItems = false
+                    setTimeout(20) { postAndCatch(InventoryFullyOpenedEvent(title, windowId, slotCount, items)) }
+                }
+            }
+
+            is S1CPacketEntityMetadata -> {
+                val parsedData = mutableMapOf<Int, Any?>()
+                val packetData = packet.func_149376_c() ?: return
+
+                try {
+                    for (metadata in packetData.filterNotNull()) {
+                        parsedData[metadata.dataValueId] = metadata.getObject()
+                    }
+                }
+                catch (_: Exception) {
+                }
+                finally {
+                    event.isCanceled = postAndCatch(
+                        EntityMetadataEvent(
+                            entity = packet.entityId,
+                            flag = (parsedData[0] as Byte?)?.toInt(),
+                            airSupply = (parsedData[1] as Short?)?.toInt(),
+                            name = parsedData[2] as String?,
+                            customNameVisible = parsedData[3],
+                            isSilent = parsedData[4],
+                            noGravity = parsedData[5],
+                            health = parsedData[6] as Float?,
+                            potionEffectColor = parsedData[7],
+                            isInvisible = parsedData[8],
+                            arrowsStuck = parsedData[9],
+                            unknown = parsedData.filterKeys { it !in 0 .. 10 },
+                            Data = parsedData
+                        )
+                    )
+                }
             }
         }
     }

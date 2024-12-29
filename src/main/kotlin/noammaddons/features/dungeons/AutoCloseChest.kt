@@ -8,6 +8,7 @@ import noammaddons.features.Feature
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.inDungeons
 import noammaddons.utils.Utils.equalsOneOf
+import noammaddons.utils.Utils.send
 
 object AutoCloseChest: Feature() {
     @SubscribeEvent
@@ -18,7 +19,7 @@ object AutoCloseChest: Feature() {
             && event.packet.slotCount.equalsOneOf(27, 54)
         ) {
             event.isCanceled = true
-            mc.netHandler.addToSendQueue(C0DPacketCloseWindow(event.packet.windowId))
+            C0DPacketCloseWindow(event.packet.windowId).send()
         }
     }
 }

@@ -19,14 +19,6 @@ import java.awt.Color
 // https://github.com/Noamm9/OdinClient/blob/main/odinmain/src/main/kotlin/me/odinmain/utils/skyblock/dungeon/DungeonUtils.kt
 // @Modified
 object DungeonUtils {
-    /**
-     * Enumeration representing player classes in a dungeon setting.
-     *
-     * Each class is associated with a specific code and color used for formatting in the game. The classes include
-     * Archer, Mage, Berserk, Healer, and Tank.
-     *
-     * @property color The color associated with the class.
-     * */
     enum class Classes(val color: Color) {
         Archer(Color(255, 0, 0)),
         Berserk(Color(255, 106, 0)),

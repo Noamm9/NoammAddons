@@ -163,6 +163,15 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
 
     @Property(
         type = PropertyType.SWITCH,
+        name = "Etherwarp Sound",
+        description = "Plays a sound when using Etherwarp.",
+        category = "General",
+        subcategory = "Etherwarp"
+    )
+    var EtherwarpSound = false
+
+    @Property(
+        type = PropertyType.SWITCH,
         name = "Dragon Spawn Timer / Prio",
         description = "Displays a timer that is based on server ticks so will work perfectly even if the server is lagging. and draws a tracer to the dragon statue\n\n Also acts as a Prio, Automaticly detects your class",
         category = "Dungeons",
@@ -643,11 +652,23 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
     @Property(
         type = PropertyType.SWITCH,
         name = "Auto I4",
-        description = "Auto aims and shoots the emerald block at the forth dev in P3. also does rod swap and leap \n\n §f[ §b§nNeed a term&r §f§n§land§r §e§n100% atk speed§r §f] ",
+        description = "Fully Automated I4. \naims and shoots the emerald block at the forth dev in P3, Predict the next one for faster time. \nMacro: Rod swap, Mask swap, safe leap \n\n §f[ §b§nNeed a term&r §f§n§land§r §e§n100 atk speed§r §f] ",
         category = "Dungeons",
         subcategory = "F7"
     )
     var autoI4 = false
+
+    @Property(
+        type = PropertyType.NUMBER,
+        name = "Auto I4 Rotation time",
+        description = "How fast should the head movements be for the shoting action\n\n&fNote: Will effect the consistency of the Auto I4 for better or worse",
+        category = "Dungeons",
+        subcategory = "F7",
+        increment = 10,
+        min = 100,
+        max = 350
+    )
+    var AutoI4RotatinTime = 200
 
     @Property(
         type = PropertyType.SWITCH,
@@ -693,6 +714,15 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
         subcategory = "Gyrokinetic Wand"
     )
     var ShowGyroCircleBlockColor = Color.GREEN.applyAlpha(85)
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Stop Close My Chat",
+        description = "Prevents your chat from being closed by the server or world swapping",
+        category = "GUI",
+        subcategory = "chat"
+    )
+    var StopCloseMyChat = true
 
     @Property(
         type = PropertyType.CHECKBOX,
@@ -1116,6 +1146,15 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
 
     @Property(
         type = PropertyType.SWITCH,
+        name = "SB Kick Alert",
+        description = "Sends a party message when you are kicked from SkyBlock",
+        category = "Alerts",
+        subcategory = "Dungeons"
+    )
+    var SBKick = true
+
+    @Property(
+        type = PropertyType.SWITCH,
         name = "Shadow Assasian Alert",
         description = "Shows a notification on screen when an invinsable Shadow Assasian is about to teleport",
         category = "Alerts",
@@ -1149,6 +1188,15 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
         subcategory = "Dungeons"
     )
     var NoThunderBottleAlert = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Party Finder Alert",
+        description = "Plays a sound when someone joins your party",
+        category = "Alerts",
+        subcategory = "Dungeons"
+    )
+    var PartyFinderSound = true
 
     @Property(
         type = PropertyType.SWITCH,
@@ -1290,7 +1338,7 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
         category = "GUI",
         subcategory = "Menus"
     )
-    var CustomSBMenus = true
+    var CustomMenus = true
 
     @Property(
         type = PropertyType.PERCENT_SLIDER,
@@ -1300,6 +1348,56 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
         subcategory = "Menus"
     )
     var CustomSBMenusScale = 1f
+
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Game Menu",
+        category = "GUI",
+        subcategory = "Menus",
+    )
+    var CustomMenusGameMenu = false
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "SkyBlock Menu",
+        category = "GUI",
+        subcategory = "Menus",
+    )
+    var CustomMenusSkyBlockMenu = false
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Storage Menu",
+        category = "GUI",
+        subcategory = "Menus",
+    )
+    var CustomMenusStorageMenu = false
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Party Finder Menus",
+        category = "GUI",
+        subcategory = "Menus",
+    )
+    var CustomPartyFinderMenu = false
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Pet Menu",
+        category = "GUI",
+        subcategory = "Menus",
+    )
+    var CustomPetMenu = false
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Custom Wardrobe Menu",
+        category = "GUI",
+        subcategory = "Menus",
+    )
+    var CustomWardrobeMenu = false
+
 
     @Property(
         type = PropertyType.SWITCH,
@@ -1345,6 +1443,15 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
         subcategory = "PlayerHUD",
     )
     var PlayerHUDOverflowMana = true
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Alternate Overflow Mana",
+        description = "Draws your player Overflow Mana only if it is greater than 0",
+        category = "HUD",
+        subcategory = "PlayerHUD",
+    )
+    var PlayerHUDAlternateOverflowMana = false
 
     @Property(
         type = PropertyType.CHECKBOX,
@@ -1656,6 +1763,15 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
 
     @Property(
         type = PropertyType.SWITCH,
+        name = "Bonzo Boss Revived Alert",
+        description = "Plays A sound when the Bonzo Boss is revived",
+        category = "Alerts",
+        subcategory = "Dungeons"
+    )
+    var bonzoBossRespawnAlert = false
+
+    @Property(
+        type = PropertyType.SWITCH,
         name = "Clear Blocks",
         description = "When clipping into blocks it allows you to see around you instead of just blocking your view",
         category = "Misc",
@@ -1684,7 +1800,7 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
     @Property(
         type = PropertyType.SWITCH,
         name = "No Rotate",
-        description = "Disables rotations from server.",
+        description = "Disables rotations from server.\n\n&c&lUSE AT YOUR OWN RISK, COULD GET YOU TIMER BANNED",
         category = "Misc",
         subcategory = "Clear Sight"
     )
@@ -1774,6 +1890,61 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
     )
     var hideFallingBlocks = false
 
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Dungeon Chect Profit",
+        description = "Shows the profit you get from Dungeon Chests.",
+        category = "Dungeons",
+        subcategory = "DungeonChectProfit"
+    )
+    var DungeonChectProfit = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Croesus Chests Profit",
+        description = "Shows the profit you get for each chest type in Croesus's menu.",
+        category = "Dungeons",
+        subcategory = "DungeonChectProfit"
+    )
+    var CroesusChestsProfit = false
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Sort the chests by profit",
+        description = "Sorts the chests in the profit overlay by profit.",
+        category = "Dungeons",
+        subcategory = "DungeonChectProfit"
+    )
+    var CroesusChestsProfitSortByProfit = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Croesus Chest Highlight",
+        description = "Highlights the runs you did in Croesus's menu according to the chests state\n\n&aGreen:&r None of the chests has been opened.\n&eYellow:&r Has 1 opened chests and you can open another one.\n&cRed:&r All possible chests have been opened.",
+        category = "Dungeons",
+        subcategory = "DungeonChectProfit"
+    )
+    var CroesusChestHighlight = false
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Hide Red Highlighted Chests",
+        description = "Instand of highlighting the runs that All possible chests have been opened, just hide them.",
+        category = "Dungeons",
+        subcategory = "DungeonChectProfit"
+    )
+    var CroesusChestHighlightHideRedChests = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "RNG Drop Announcer",
+        description = "Sends in party chat the RNG drop you got with the profit you made",
+        category = "Dungeons",
+        subcategory = "DungeonChectProfit"
+    )
+    var RNGDropAnnouncer = false
+
+
     private const val DEV_MODE_DESCRIPTION =
         "§fForces all features to enable, even if you are not on skyblock.\n\n" +
                 "§eenables console logging and disables a few safety checks\n" +
@@ -1861,11 +2032,10 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
 
         addDependency("AutoPotionCommand", "AutoPotion")
         //  addDependency("AutoReaperArmorSlot", "AutoReaperArmorSwap")
-
+        addDependency("CroesusChestsProfitSortByProfit", "CroesusChestsProfit")
+        addDependency("CroesusChestHighlightHideRedChests", "CroesusChestHighlight")
 
         // Terminals
-
-
         listOf(
             "CustomTerminalMenuClickMode",
             "CustomTerminalMenuScale",
@@ -1934,6 +2104,14 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
         ).forEach { addDependency(it, "CustomLeapMenu") }
         addDependency("ScalableTooltipsScale", "ScalableTooltips")
         addDependency("SlotBindingShowBinding", "SlotBinding")
+        listOf(
+            "CustomMenusGameMenu",
+            "CustomMenusSkyBlockMenu",
+            "CustomMenusStorageMenu",
+            "CustomPartyFinderMenu",
+            "CustomPetMenu",
+            "CustomWardrobeMenu"
+        ).forEach { addDependency(it, "CustomMenus") }
 
 
         // Hud
@@ -1943,10 +2121,12 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
             "PlayerHUDSpeed",
             "PlayerHUDEffectiveHP",
             "PlayerHUDOverflowMana",
+            "PlayerHUDAlternateOverflowMana",
             "PlayerHUDMana",
             "PlayerHUDDefense",
-            "PlayerHUDHealth"
+            "PlayerHUDHealth",
         ).forEach { addDependency(it, "PlayerHUD") }
+
     }
 
     fun init() {

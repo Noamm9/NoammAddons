@@ -7,27 +7,24 @@ import noammaddons.events.RenderOverlay
 import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.showTitle
-import noammaddons.utils.MathUtils.toFixed
+import noammaddons.utils.NumbersUtils.toFixed
 
 object SpiritMask: Feature() {
+    private val regex = Regex("^Second Wind Activated! Your Spirit Mask saved your life!$")
     private val SpiritMaskElement = TextElement("&fSpirit Mask: &aREADY", dataObj = hudData.getData().SpiritMask)
     private const val maskCooldown = 30_000L
     private var timer = 0L
     private var draw = false
 
+    val spiritCD get() = ((maskCooldown + (timer - System.currentTimeMillis())).toDouble() / 1000).toFixed(1).toDouble()
+
     @SubscribeEvent
     fun onChat(event: Chat) {
-        if (! config.SpiritMaskDisplay) return
-        if (! event.component.unformattedText.removeFormatting().matches(
-                Regex("^Second Wind Activated! Your Spirit Mask saved your life!$")
-            )
-        ) return
-
+        if (! event.component.unformattedText.removeFormatting().matches(regex)) return
         timer = System.currentTimeMillis()
-        draw = true
 
-        if (! config.SpiritMaskAlert) return
-        showTitle("&fSpirit Mask")
+        if (config.SpiritMaskDisplay) draw = true
+        if (config.SpiritMaskAlert) showTitle("&fSpirit Mask")
     }
 
     @SubscribeEvent
@@ -35,13 +32,11 @@ object SpiritMask: Feature() {
         if (! config.SpiritMaskDisplay) return
         if (! draw) return
 
-        val cooldown = ((maskCooldown + (timer - System.currentTimeMillis())) / 1000.0).toFixed(1)
-
         SpiritMaskElement.run {
             setText(
                 when {
-                    cooldown.replace(",", ".").toDouble() > 0.0 -> "&fSpirit Mask: &a$cooldown"
-                    cooldown.replace(",", ".").toDouble() > - 30.0 -> "&fSpirit Mask: &aREADY"
+                    spiritCD > 0.0 -> "&fSpirit Mask: &a$spiritCD"
+                    spiritCD > - 30.0 -> "&fSpirit Mask: &aREADY"
                     else -> return
                 }
             )

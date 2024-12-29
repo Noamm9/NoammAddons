@@ -20,6 +20,7 @@ import noammaddons.features.dungeons.terminals.ConstantsVariables.getTermScale
 import noammaddons.features.gui.Menus.renderBackground
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.GuiUtils.disableNEUInventoryButtons
 import noammaddons.utils.GuiUtils.getMouseX
 import noammaddons.utils.GuiUtils.getMouseY
 import noammaddons.utils.GuiUtils.sendWindowClickPacket
@@ -170,6 +171,7 @@ object Melody: Feature() {
 
         slots.clear()
         repeat(slotCount) { slots.add(null) }
+        disableNEUInventoryButtons()
         windowSize = slotCount
         isInTerminal = true
     }
