@@ -11,5 +11,11 @@ public interface AccessorGuiContainer {
 
     @Accessor("guiLeft")
     int getGuiLeft();
+
+    @Accessor("xSize")
+    int getWidth();
+
+    @Accessor("ySize")
+    int getHeight();
 }
 

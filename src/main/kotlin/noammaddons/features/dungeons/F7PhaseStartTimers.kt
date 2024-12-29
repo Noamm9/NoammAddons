@@ -8,7 +8,7 @@ import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.LocationUtils.dungeonFloor
 import noammaddons.utils.LocationUtils.inBoss
-import noammaddons.utils.MathUtils.toFixed
+import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawCenteredText
@@ -51,7 +51,7 @@ object F7PhaseStartTimers: Feature() {
         if (tickTime <= 0) return
 
         drawCenteredText(
-            timeLeft.toFixed(1),
+            "$timeLeft".toFixed(1),
             mc.getWidth() / 2f,
             mc.getHeight() / 2f + 20f,
             1.5f, Color.GREEN

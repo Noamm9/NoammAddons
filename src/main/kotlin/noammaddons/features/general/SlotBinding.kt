@@ -20,7 +20,7 @@ import org.lwjgl.input.Keyboard.isKeyDown
 
 
 object SlotBinding: Feature() {
-    private const val PREFIX = "&7&bSlotBinding&7 &7>"
+    private const val PREFIX = "&7&bSlotBinding&7 &f>"
     private val data get() = SlotBindingData.getData()
     private var previousSlot: Int? = null
 
@@ -41,7 +41,7 @@ object SlotBinding: Feature() {
     @SubscribeEvent
     fun onGuiMouseClick(event: GuiContainerEvent.GuiMouseClickEvent) {
         if (! config.SlotBinding) return
-        val gui = event.guiScreen as? GuiInventory ?: return
+        val gui = event.gui as? GuiInventory ?: return
         val slot = gui.slotUnderMouse?.slotNumber ?: return
         if (slot < 5 || slot > 44) return
         if (previousSlot != null && isInvalidSlotCombination(slot)) return cancel(event)
@@ -148,5 +148,5 @@ object SlotBinding: Feature() {
         drawRoundedBorder(config.SlotBindingBorderColor, hotbarSlotPos.first, hotbarSlotPos.second, 16f, 16f, 0f)
     }
 
-    private fun isHotbarSlot(slot: Int): Boolean = slot in 35 .. 44
+    private fun isHotbarSlot(slot: Int): Boolean = slot in 36 .. 44
 }

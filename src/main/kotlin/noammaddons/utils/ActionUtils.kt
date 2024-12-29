@@ -1,7 +1,10 @@
 package noammaddons.utils
 
 import kotlinx.coroutines.*
+import net.minecraft.util.Vec3
 import noammaddons.features.gui.Menus.impl.CustomWardrobeMenu.inWardrobeMenu
+import noammaddons.features.hud.BonzoMask.bonzoCD
+import noammaddons.features.hud.SpiritMask.spiritCD
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.noammaddons.Companion.scope
@@ -16,63 +19,135 @@ import noammaddons.utils.GuiUtils.sendWindowClickPacket
 import noammaddons.utils.ItemUtils.SkyblockID
 import noammaddons.utils.ItemUtils.getItemId
 import noammaddons.utils.ItemUtils.getItemIndexInHotbar
+import noammaddons.utils.MathUtils.Ease
+import noammaddons.utils.MathUtils.Rotation
+import noammaddons.utils.MathUtils.calcYawPitch
+import noammaddons.utils.MathUtils.interpolate
+import noammaddons.utils.MathUtils.normalizePitch
+import noammaddons.utils.MathUtils.normalizeYaw
 import noammaddons.utils.PlayerUtils.Player
 import noammaddons.utils.PlayerUtils.closeScreen
+import noammaddons.utils.PlayerUtils.getHelmet
 import noammaddons.utils.PlayerUtils.holdClick
+import noammaddons.utils.PlayerUtils.rotate
 import noammaddons.utils.PlayerUtils.sendRightClickAirPacket
 import noammaddons.utils.PlayerUtils.swapToSlot
 import noammaddons.utils.PlayerUtils.toggleSneak
 import noammaddons.utils.RenderUtils.drawTitle
 import noammaddons.utils.SoundUtils.Pling
 import noammaddons.utils.Utils.containsOneOf
+import noammaddons.utils.Utils.isNull
+import kotlin.math.abs
+import kotlin.math.min
 
 
 @OptIn(DelicateCoroutinesApi::class)
 object ActionUtils {
     private var activeJob: Job? = null
     private val actionQueue = ArrayDeque<suspend () -> Unit>()
+    private var currentActionName: String? = null
     val isActive get() = activeJob?.isActive == true
 
-    fun rodSwap() = queueAction { rodSwapAction() }
+    private val RotationQueue = ArrayDeque<suspend () -> Unit>()
+    private var rotationJob: Job? = null
+    val isRotating get() = rotationJob?.isActive == true
 
-    fun leap(leapTarget: DungeonUtils.DungeonPlayer) = queueAction { leapAction(leapTarget) }
+    fun rodSwap() = queueAction("Rod Swap") { rodSwapAction() }
 
-    fun changeMask() = queueAction { changeMaskAction() }
+    fun leap(leapTarget: DungeonUtils.DungeonPlayer) = queueAction("Leap") { leapAction(leapTarget) }
 
-    fun getPotion(name: String) = queueAction { getPotionAction(name) }
+    fun changeMask() = queueAction("Change Mask") { changeMaskAction() }
 
-    fun reaperSwap() = queueAction { reaperSwapAction() }
+    fun getPotion(name: String) = queueAction("Potion") { getPotionAction(name) }
 
-    fun leap(leapTarget: String) = queueAction {
+    fun reaperSwap() = queueAction("Reaper Swap") { reaperSwapAction() }
+
+    fun leap(leapTarget: String) = queueAction("Leap") {
         leapAction(leapTeammates.find {
             it.name.lowercase() == leapTarget.lowercase()
         } ?: return@queueAction modMessage("&c$leapTarget not found!"))
     }
 
-
-    /**
-     * Adds the action to the queue and ensures it's executed in order.
-     */
-    private fun queueAction(action: suspend () -> Unit) {
-        actionQueue.add(action)
-        if (activeJob == null || ! activeJob !!.isActive) processQueue()
+    private fun queueAction(actionName: String, action: suspend () -> Unit) {
+        actionQueue.add {
+            currentActionName = actionName
+            try {
+                action.invoke()
+            }
+            finally {
+                currentActionName = null
+            }
+        }
+        if (! isActive) return processQueue()
     }
 
-    /**
-     * Processes the action queue, executing one action at a time.
-     */
     private fun processQueue() {
         activeJob = scope.launch {
             while (actionQueue.isNotEmpty()) {
-                val nextAction = actionQueue.removeFirst()
                 try {
-                    nextAction.invoke()
+                    actionQueue.removeFirst().invoke()
                 }
                 catch (e: Exception) {
                     modMessage("Error during action: ${e.message}")
                 }
             }
         }
+    }
+
+    fun currentAction(): String? = currentActionName
+
+
+    private fun processRotationQueue() {
+        rotationJob = scope.launch {
+            while (RotationQueue.isNotEmpty()) {
+                try {
+                    RotationQueue.removeFirst().invoke()
+                }
+                catch (e: Exception) {
+                    modMessage("Error during Rotation: ${e.message}")
+                }
+            }
+        }
+    }
+
+    private fun queueRotation(action: suspend () -> Unit) {
+        RotationQueue.add(action)
+        if (! isRotating) processRotationQueue()
+    }
+
+    fun rotateSmoothly(rot: Rotation, time: Long, block: () -> Unit = {}) {
+        queueRotation {
+            val currentYaw = normalizeYaw(Player?.rotationYaw ?: return@queueRotation)
+            val currentPitch = normalizePitch(Player?.rotationPitch ?: return@queueRotation)
+            val targetYaw = normalizeYaw(rot.yaw)
+            val targetPitch = normalizePitch(rot.pitch)
+            val tolerance = 1.0f
+            if (abs(currentYaw - targetYaw) <= tolerance && abs(currentPitch - targetPitch) <= tolerance) return@queueRotation
+
+            val startTime = System.currentTimeMillis()
+
+            scope.launch {
+                while (isActive) {
+                    val elapsed = System.currentTimeMillis() - startTime
+                    val progress = if (time <= 0) 1.0 else min(elapsed.toDouble() / time, 1.0)
+                    if (progress >= 1.0) {
+                        block()
+                        cancel()
+                    }
+
+                    val easedProgress = Ease(progress)
+                    val newYaw = interpolate(currentYaw, targetYaw, easedProgress).toFloat()
+                    val newPitch = interpolate(currentPitch, targetPitch, easedProgress).toFloat()
+
+                    rotate(newYaw, newPitch)
+                }
+            }
+            Thread.sleep(time)
+        }
+    }
+
+    fun rotateSmoothlyTo(vec: Vec3, time: Long, block: () -> Unit = {}) {
+        rotateSmoothly(calcYawPitch(vec), time, block)
     }
 
     private suspend fun rodSwapAction() {
@@ -91,21 +166,34 @@ object ActionUtils {
     }
 
     private suspend fun leapAction(leapTarget: DungeonUtils.DungeonPlayer) {
-        if (leapTeammates.isEmpty()) return modMessage("No one alive to leap GG!")
         if (leapTarget.isDead) return modMessage(leapTarget.name + " is dead R.I.P!")
         val leapIndex = getItemIndexInHotbar("leap") ?: return modMessage("&cNo leap found in hotbar!")
+
+        scope.launch {
+            while (isActive) {
+                if (currentActionName != "Leap") cancel()
+                holdClick(false)
+            }
+        }
 
         if (! inLeapMenu) {
             holdClick(false)
             swapToSlot(leapIndex)
             delay(80)
             sendRightClickAirPacket()
-            while (! inLeapMenu) delay(20)
+            while (! inLeapMenu) delay(1)
         }
 
-        val container = Player?.openContainer?.inventory ?: return
-        for (i in 0 until container.size - 36) {
-            val item = container[i] ?: continue
+        var con = Player.openContainer.inventory
+        while (con[con.size - 37].isNull()) {
+            delay(1)
+            con = Player.openContainer.inventory
+        }
+
+        delay(100)
+
+        for (i in 0 until con.size - 37) {
+            val item = con[i] ?: continue
             if (item.getItemId() == 160) continue
 
             leapTeammates.forEach {
@@ -113,7 +201,7 @@ object ActionUtils {
                 if (leapTarget.name != item.displayName.removeFormatting()) return@forEach
 
                 sendWindowClickPacket(i, 0, 0)
-                closeScreen()
+                modMessage("Leaping ${item.displayName})")
                 return
             }
         }
@@ -122,6 +210,12 @@ object ActionUtils {
     }
 
     private suspend fun changeMaskAction() {
+        val currentHelmet = getHelmet()?.SkyblockID
+        when (currentHelmet) {
+            "BONZO_MASK" -> if (spiritCD > 0) return
+            "SPIRIT_MASK" -> if (bonzoCD > 0) return
+        }
+
         sendChatMessage("/eq")
         hideGui(true) { drawTitle("&5[Swapping mask...]", "&bPlease wait") }
 

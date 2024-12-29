@@ -6,13 +6,13 @@ import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemSkull
 import net.minecraft.item.ItemStack
 import net.minecraftforge.fml.client.config.GuiUtils.drawHoveringText
-import noammaddons.features.gui.Menus.CustomMenuManager.WhiteListMenus
+import noammaddons.features.gui.Menus.CustomMenuManager.menuList
 import noammaddons.features.gui.ScalableTooltips
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.addColor
-import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.currentChestName
+import noammaddons.utils.GuiUtils.disableNEUInventoryButtons
 import noammaddons.utils.GuiUtils.getMouseX
 import noammaddons.utils.GuiUtils.getMouseY
 import noammaddons.utils.GuiUtils.sendWindowClickPacket
@@ -34,12 +34,16 @@ import kotlin.math.floor
 
 
 /*
+    This file contains variables and functions
+
+
+    Notes for myself:
+
     Gui's items must be rendered before the skulls
     because the function messes up with the
-    matrix stack and I don't know what to do
+    matrix stack and I have no clue why
 
     Tooltip must be rendered outside the scaling
-    e.g. after the popMatrix()
 */
 
 var lastSlot: Int? = null
@@ -67,16 +71,18 @@ fun handleSlotClick(button: Int, slotIndex: Int) {
 }
 
 fun inMenu(): Boolean {
-    if (! config.CustomSBMenus) return false
+    if (! config.CustomMenus) return false
     if (mc.currentScreen !is GuiChest) return false
-    val chestName = currentChestName.removeFormatting().lowercase()
 
-    val isWhitelisted = WhiteListMenus.any { (name, regex) ->
-        val guiName = name?.removeFormatting()?.lowercase() ?: "dthdfghdfgh34563456dfgn"
+    val isWhitelisted = menuList.any { (name, regex, cfg) ->
+        val nameCheck = name?.let { currentChestName.contains(it) } ?: false
+        val regexCheck = regex?.matches(currentChestName) == true
+        val configCheck = cfg.invoke()
 
-        chestName.contains(guiName) || regex?.matches(chestName) == true
+        (nameCheck || regexCheck) && configCheck
     }
 
+    if (isWhitelisted) disableNEUInventoryButtons()
     return isWhitelisted
 }
 

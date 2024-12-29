@@ -7,7 +7,7 @@ import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.showTitle
 import noammaddons.utils.LocationUtils.dungeonFloor
 import noammaddons.utils.LocationUtils.inBoss
-import noammaddons.utils.MathUtils.toFixed
+import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawCenteredText
@@ -56,22 +56,32 @@ object BetterF7Titles: Feature() {
             }
 
             showTitle(subtitle = "$type(${colorTerminalInfo(progress)})", time = 4)
+            return
         }
 
         when (msg) {
             "[BOSS] Maxor: YOU TRICKED ME!", "[BOSS] Maxor: THAT BEAM! IT HURTS! IT HURTS!!" -> {
                 showTitle(subtitle = "&dMaxor Stunned!", time = 2)
                 Pling.start()
+                return
             }
 
             "[BOSS] Storm: Oof", "[BOSS] Storm: Ouch, that hurt!" -> {
                 showTitle(subtitle = "&bStorm Crushed!", time = 2)
                 Pling.start()
+                return
             }
 
             "[BOSS] Storm: I should have known that I stood no chance." -> {
                 showTitle(subtitle = "&bStorm Dead!", time = 2)
                 Pling.start()
+                return
+            }
+
+            "The gate has been destroyed!" -> {
+                showTitle(subtitle = "&cGate Destroyed!", time = 2)
+                Pling.start()
+                return
             }
         }
     }

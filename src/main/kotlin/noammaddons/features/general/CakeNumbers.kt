@@ -1,32 +1,40 @@
 package noammaddons.features.general
 
 import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.init.Items
+import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.GuiContainerEvent
 import noammaddons.features.Feature
+import noammaddons.mixins.AccessorGuiContainer
 import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.GuiUtils.currentChestName
+import noammaddons.utils.PlayerUtils.Player
 import noammaddons.utils.RenderUtils.drawCenteredText
-import noammaddons.utils.RenderUtils.renderItem
 
 
-// known bug: cake's num in slotnum 0 renders behind the item
 object CakeNumbers: Feature() {
     private val cakeRegex = Regex("New Year Cake \\(Year (\\d+)\\)")
 
     @SubscribeEvent
-    fun onGuiRender(event: GuiContainerEvent.DrawSlotEvent) {
+    fun onGuiRender(event: GuiScreenEvent.BackgroundDrawnEvent) {
         if (! config.cakeNumbers) return
-        val name = event.slot.stack?.displayName?.removeFormatting() ?: return
+        if (currentChestName != "New Year Cake Bag§r") return
+        val gui = event.gui as AccessorGuiContainer
 
-        val (x, y) = Pair(event.slot.xDisplayPosition + 8f, event.slot.yDisplayPosition + 8f)
-        val match = cakeRegex.find(name) ?: return
-        val cakeStr = "§b${match.destructured.component1()}"
-
-        event.isCanceled = true
         GlStateManager.pushMatrix()
-        renderItem(event.slot.stack, x - 8, y - 8)
-        GlStateManager.translate(.0, .0, 300.0)
-        drawCenteredText(cakeStr, x, y, 0.8)
+        GlStateManager.translate(0f, 0f, 300f)
+
+        Player.openContainer.inventorySlots.forEach {
+            if (it.stack?.item != Items.cake) return@forEach
+            val year = cakeRegex.find(it.stack.displayName.removeFormatting())?.destructured?.component1() ?: return
+            val (x, y) = Pair(
+                it.xDisplayPosition + 8f + gui.guiLeft,
+                it.yDisplayPosition + 8f + gui.guiTop
+            )
+
+            drawCenteredText("§b$year", x, y, 0.8)
+        }
+
         GlStateManager.popMatrix()
     }
 }

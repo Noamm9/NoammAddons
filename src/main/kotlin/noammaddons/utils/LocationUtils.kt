@@ -6,7 +6,6 @@ import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent
 import noammaddons.events.Tick
-import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.MathUtils.isCoordinateInsideBox
@@ -26,8 +25,28 @@ object LocationUtils {
     var inBoss = false
     var P3Section: Int? = null
     var F7Phase: Int? = null
-    var WorldName: String? = null
+    var WorldName: WorldType? = null
 
+    enum class WorldType(val string: String) {
+        DungeonHub("Dungeon Hub"),
+        Catacombs("Catacombs"),
+        Home("Private Island"),
+        Hub("Hub"),
+        Park("The Park"),
+        SpiderDen("Spider"),
+        End("The End"),
+        CrimonIsle("Crimson Isle"),
+        GoldMine("Gold Mine"),
+        DeepCaverns("Deep Caverns"),
+        DwarvenMines("Dwarven Mines"),
+        CrystalHollows("Crystal Hollows"),
+        TheBarn("The Farming Islands"),
+        Garden("Garden");
+
+        companion object {
+            fun get(string: String?) = entries.find { it.string == string }
+        }
+    }
 
     @SubscribeEvent
     fun get(event: Tick) {
@@ -35,7 +54,7 @@ object LocationUtils {
         if (TickTimer != 20) return
 
 
-        if (config.DevMode) {
+        if (false/*config.DevMode*/) {
             inSkyblock = true
             inDungeons = true
             dungeonFloor = 7
@@ -50,9 +69,9 @@ object LocationUtils {
                 inBoss = isInBossRoom()
                 F7Phase = getPhase()
                 P3Section = getP3Section_()
-                WorldName = WorldNameRegex.find(
+                WorldName = WorldType.get(WorldNameRegex.find(
                     getTabList.joinToString { it.second.removeFormatting() }
-                )?.destructured?.component2()
+                )?.destructured?.component2())
             }
 
             if (! inDungeons) {
@@ -128,13 +147,13 @@ object LocationUtils {
                     index + 1
                 }
                 else null
-
             }
         }
 
         return null
     }
 
+    // todo: add floor 1 & 2
     private val bossRoomCorners = mapOf(
         7 to Pair(Vec3(- 8.0, 0.0, - 8.0), Vec3(134.0, 254.0, 147.0)),
         6 to Pair(Vec3(- 40.0, 51.0, - 8.0), Vec3(22.0, 110.0, 134.0)),
@@ -148,5 +167,11 @@ object LocationUtils {
         val corners = bossRoomCorners[dungeonFloor] ?: return false
 
         return isCoordinateInsideBox(playerCoords, corners.first, corners.second)
+    }
+
+    fun isCoordinateInsideBoss(vec: Vec3): Boolean {
+        val corners = bossRoomCorners[dungeonFloor] ?: return false
+
+        return isCoordinateInsideBox(vec, corners.first, corners.second)
     }
 }

@@ -1,23 +1,30 @@
 package noammaddons.utils
 
 import gg.essential.api.EssentialAPI
+import io.github.moulberry.notenoughupdates.NEUApi
+import io.github.moulberry.notenoughupdates.NotEnoughUpdates
 import kotlinx.coroutines.*
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.gui.inventory.GuiChest
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.inventory.ContainerChest
+import net.minecraft.inventory.InventoryBasic
 import net.minecraft.inventory.Slot
 import net.minecraft.network.play.client.C0EPacketClickWindow
 import net.minecraftforge.client.event.GuiOpenEvent
 import net.minecraftforge.client.event.GuiScreenEvent
+import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.RenderOverlay
 import noammaddons.mixins.AccessorGuiContainer
 import noammaddons.noammaddons.Companion.mc
+import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.PlayerUtils.Player
+import noammaddons.utils.ReflectionUtils.getField
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
+import noammaddons.utils.Utils.send
 import org.lwjgl.input.Mouse
 
 
@@ -41,16 +48,14 @@ object GuiUtils {
 
      */
     fun sendWindowClickPacket(slotId: Int, mouseButton: Int, clickType: Int) = Player?.openContainer?.run {
-        mc.netHandler.addToSendQueue(
-            C0EPacketClickWindow(
-                windowId,
-                slotId,
-                mouseButton,
-                clickType,
-                inventory[slotId],
-                getNextTransactionID(mc.thePlayer.inventory)
-            )
-        )
+        C0EPacketClickWindow(
+            windowId,
+            slotId,
+            mouseButton,
+            clickType,
+            inventory[slotId],
+            getNextTransactionID(mc.thePlayer.inventory)
+        ).send()
     }
 
 
@@ -76,16 +81,37 @@ object GuiUtils {
         return container.lowerChestInventory.displayName.formattedText
     }
 
+    fun changeTitle(newTitle: String, gui: GuiScreen? = mc.currentScreen) {
+        val title = newTitle.addColor()
+        val guiChest = gui as? GuiChest ?: return
+
+        val field =
+            getField(guiChest, "lowerChestInventory") as? InventoryBasic
+                ?: getField(guiChest, "field_147015_w") as? InventoryBasic
+                ?: return
+        if (field.displayName?.formattedText == "$title§r") return
+
+        field.setCustomName(title)
+    }
+
+    fun disableNEUInventoryButtons() {
+        if (Loader.instance().activeModList.any { it.modId == NotEnoughUpdates.MODID }) {
+            NEUApi.setInventoryButtonsToDisabled()
+        }
+    }
 
     fun openScreen(screen: GuiScreen?) {
         EssentialAPI.getGuiUtil().openScreen(screen)
     }
 
-    fun getSlotFromIndex(slotIndex: Int): Slot? {
-        return (mc.currentScreen as? GuiContainer)?.inventorySlots?.inventorySlots?.get(slotIndex)
+    fun getSlotFromIndex(slotIndex: Int?): Slot? {
+        return slotIndex?.let {
+            val con = (mc.currentScreen as? GuiContainer) ?: return null
+            con.inventorySlots?.inventorySlots?.get(it)
+        }
     }
 
-    fun getSlotRenderPos(slotIndex: Int): Pair<Float, Float>? {
+    fun getSlotRenderPos(slotIndex: Int?): Pair<Float, Float>? {
         val gui = (mc.currentScreen as? AccessorGuiContainer) ?: return null
         val slot = getSlotFromIndex(slotIndex) ?: return null
         val x = gui.guiLeft + slot.xDisplayPosition

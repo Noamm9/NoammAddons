@@ -13,84 +13,96 @@ import org.lwjgl.opengl.GL11
 /*
  * Copyright (c) 2022 Moulberry
  */
-object Motionblur : Feature() {
+object Motionblur: Feature() {
     private var blurBufferMain: Framebuffer? = null
     private var blurBufferInto: Framebuffer? = null
 
-
     @SubscribeEvent
     fun renderOverlay(event: RenderGameOverlayEvent.Post) {
+        if (! config.MotionBlur) return
+        if (getAmount() == 0f) return
         if (mc.currentScreen != null) return
         if (event.type != RenderGameOverlayEvent.ElementType.ALL) return
         if (! OpenGlHelper.isFramebufferEnabled()) return
-        if (! config.MotionBlur) return
 
-        val width: Int = mc.framebuffer.framebufferWidth
-        val height: Int = mc.framebuffer.framebufferHeight
+        val width = mc.framebuffer.framebufferWidth
+        val height = mc.framebuffer.framebufferHeight
 
-        GlStateManager.pushMatrix()
-        GlStateManager.matrixMode(5889)
-        GlStateManager.loadIdentity()
-        GlStateManager.ortho(0.0, width.toDouble(), height.toDouble(), 0.0, 2000.0, 4000.0)
-        GlStateManager.matrixMode(5888)
-        GlStateManager.loadIdentity()
-        GlStateManager.translate(0f, 0f, - 2000f)
+        setupProjectionMatrix(width, height)
+
         blurBufferMain = checkFramebufferSizes(blurBufferMain, width, height)
         blurBufferInto = checkFramebufferSizes(blurBufferInto, width, height)
-        blurBufferInto !!.framebufferClear()
-        blurBufferInto !!.bindFramebuffer(true)
-        OpenGlHelper.glBlendFunc(770, 771, 0, 1)
+
+        blurBufferInto?.apply {
+            framebufferClear()
+            bindFramebuffer(true)
+        }
+
+        OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 0, 1)
         GlStateManager.disableLighting()
         GlStateManager.disableFog()
         GlStateManager.disableBlend()
+
         mc.framebuffer.bindFramebufferTexture()
         GlStateManager.color(1f, 1f, 1f, 1f)
-        drawBlurEffect(width.toFloat(), height.toFloat(), 0.0f, 1.0f)
+        drawTexturedRectNoBlend(width, height)
+
         GlStateManager.enableBlend()
-        blurBufferMain !!.bindFramebufferTexture()
-        GlStateManager.color(1f, 1f, 1f, config.MotionBlurAmount.toFloat() / 10 - 0.1f)
-        drawBlurEffect(width.toFloat(), height.toFloat(), 1f, 0f)
+        blurBufferMain?.bindFramebufferTexture()
+        GlStateManager.color(1f, 1f, 1f, getAmount() / 10f - 0.1f)
+        drawTexturedRectNoBlend(width, height)
+
         mc.framebuffer.bindFramebuffer(true)
-        blurBufferInto !!.bindFramebufferTexture()
+        blurBufferInto?.bindFramebufferTexture()
         GlStateManager.color(1f, 1f, 1f, 1f)
-        GlStateManager.enableBlend()
-        OpenGlHelper.glBlendFunc(770, 771, 1, 771)
-        drawBlurEffect(width.toFloat(), height.toFloat(), 0.0f, 1.0f)
+        OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 771)
+        drawTexturedRectNoBlend(width, height)
+
         val tempBuff = blurBufferMain
         blurBufferMain = blurBufferInto
         blurBufferInto = tempBuff
-        GlStateManager.popMatrix()
     }
 
-
-    private fun checkFramebufferSizes(_framebuffer: Framebuffer?, width: Int, height: Int): Framebuffer {
-        var framebuffer = _framebuffer
-        if (framebuffer == null || framebuffer.framebufferWidth != width || framebuffer.framebufferHeight != height) {
-            if (framebuffer == null) {
-                framebuffer = Framebuffer(width, height, true)
-            } else framebuffer.createBindFramebuffer(width, height)
-
-            framebuffer.setFramebufferFilter(9728)
-        }
-
-        return framebuffer
+    private fun setupProjectionMatrix(width: Int, height: Int) {
+        GlStateManager.matrixMode(GL11.GL_PROJECTION)
+        GlStateManager.loadIdentity()
+        GlStateManager.ortho(0.0, width.toDouble(), height.toDouble(), 0.0, 2000.0, 4000.0)
+        GlStateManager.matrixMode(GL11.GL_MODELVIEW)
+        GlStateManager.loadIdentity()
+        GlStateManager.translate(0f, 0f, - 2000f)
     }
 
-    private fun drawBlurEffect(width: Float, height: Float, vMin: Float, vMax: Float) {
+    private fun checkFramebufferSizes(framebuffer: Framebuffer?, width: Int, height: Int): Framebuffer {
+        return framebuffer?.takeIf { it.framebufferWidth == width && it.framebufferHeight == height }
+            ?: Framebuffer(width, height, true).apply {
+                createBindFramebuffer(width, height)
+                setFramebufferFilter(GL11.GL_NEAREST)
+            }
+    }
+
+    private fun drawTexturedRectNoBlend(
+        width: Int, height: Int
+    ) {
         GlStateManager.enableTexture2D()
-        GL11.glTexParameteri(3553, 10241, 9728)
-        GL11.glTexParameteri(3553, 10240, 9728)
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST)
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST)
+
         val tessellator = Tessellator.getInstance()
         val worldrenderer = tessellator.worldRenderer
 
-        worldrenderer.begin(7, DefaultVertexFormats.POSITION_TEX)
-        worldrenderer.pos(.0, .0 + height, 0.0).tex(.0, vMax.toDouble()).endVertex()
-        worldrenderer.pos(.0 + width, .0 + height, 0.0).tex(.0, .0).endVertex()
-        worldrenderer.pos(.0 + width, .0, 0.0).tex(.0, vMin.toDouble()).endVertex()
-        worldrenderer.pos(.0, .0, 0.0).tex(.0, vMin.toDouble()).endVertex()
+        worldrenderer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
+        worldrenderer.pos(width.toDouble(), .0, 0.0).tex(1.0, 1.0).endVertex()
+        worldrenderer.pos(.0, .0, 0.0).tex(.0, 1.0).endVertex()
+        worldrenderer.pos(.0, height.toDouble(), 0.0).tex(.0, .0).endVertex()
+        worldrenderer.pos(width.toDouble(), height.toDouble(), 0.0).tex(1.0, .0).endVertex()
         tessellator.draw()
 
-        GL11.glTexParameteri(3553, 10241, 9728)
-        GL11.glTexParameteri(3553, 10240, 9728)
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST)
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST)
+    }
+
+
+    private fun getAmount(): Float {
+        return config.MotionBlurAmount.toFloat()
     }
 }

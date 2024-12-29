@@ -383,10 +383,7 @@ object RenderUtils {
     }
 
     fun drawTracer(pos: Vec3, color: Color, lineWidth: Float = 3f) {
-        draw3DLine(
-            getEyePos() ?: return,
-            pos, color, lineWidth
-        )
+        draw3DLine(getEyePos(), pos, color, lineWidth)
     }
 
     fun drawText(text: String, x: Float, y: Float, scale: Float = 1f, color: Color = Color.WHITE) {
@@ -429,7 +426,7 @@ object RenderUtils {
     fun drawCenteredText(text: String, x: Number, y: Number, scale: Number = 1f, color: Color = Color.WHITE) {
         drawText(
             text,
-            x.toFloat() - (getStringWidth(text.removeFormatting()) * scale.toFloat() / 2),
+            x.toFloat() - (getStringWidth(text.addColor()) * scale.toFloat() / 2),
             y.toFloat(),
             scale.toFloat(),
             color

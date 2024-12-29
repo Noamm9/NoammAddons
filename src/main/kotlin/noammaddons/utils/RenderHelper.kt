@@ -7,6 +7,7 @@ import net.minecraft.entity.Entity
 import net.minecraft.util.Vec3
 import noammaddons.mixins.AccessorMinecraft
 import noammaddons.noammaddons.Companion.mc
+import noammaddons.utils.MathUtils.interpolate
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.glColor4f
 import java.awt.Color
@@ -41,18 +42,6 @@ object RenderHelper {
         color.blue / 255f,
         alpha.toFloat() / 255f
     )
-
-    fun interpolate(prev: Number, newPos: Number, partialTicks: Number): Double {
-        return prev.toDouble() + (newPos.toDouble() - prev.toDouble()) * partialTicks.toDouble()
-    }
-
-    fun interpolateColor(color1: Color, color2: Color, value: Float): Color {
-        return Color(
-            interpolate(color1.red, color2.red, value).toInt(),
-            interpolate(color1.green, color2.green, value).toInt(),
-            interpolate(color1.blue, color2.blue, value).toInt()
-        )
-    }
 
     fun enableChums(color: Color) {
         GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL)
