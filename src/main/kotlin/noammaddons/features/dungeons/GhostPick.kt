@@ -16,6 +16,7 @@ import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.toAir
 import noammaddons.utils.ItemUtils.getItemId
 import noammaddons.utils.PlayerUtils.Player
+import noammaddons.utils.PlayerUtils.isHoldingEtherwarpItem
 import noammaddons.utils.Utils.equalsOneOf
 
 
@@ -29,20 +30,21 @@ object GhostPick: Feature() {
     fun onPacket(event: PacketEvent.Sent) {
         if (! featureState) return
         val heldItem = Player?.heldItem ?: return
+        if (event.packet !is C07PacketPlayerDigging) return
 
-        if (event.packet is C07PacketPlayerDigging) {
-            if (config.LegitGhostPick) {
-                if (heldItem.getItemId().equalsOneOf(261, 46)) return
-                event.isCanceled = true
-            }
-            if (config.MimicEffi10) {
-                if (! isAllowedTool(heldItem)) return
-                val blockPos = mc.objectMouseOver?.blockPos
-                toAir(blockPos)
-            }
+        if (config.LegitGhostPick) {
+            if (heldItem.getItemId().equalsOneOf(261, 46)) return
+            event.isCanceled = true
         }
-    }
 
+        if (config.MimicEffi10) {
+            if (! isAllowedTool(heldItem)) return
+            if (isHoldingEtherwarpItem()) return
+            val blockPos = mc.objectMouseOver?.blockPos
+            toAir(blockPos)
+        }
+
+    }
 
     @SubscribeEvent
     fun enable(event: Tick) {
@@ -57,11 +59,13 @@ object GhostPick: Feature() {
 
     @SubscribeEvent
     fun ghostBlocks(event: RightClickEvent) {
-        if (mc.gameSettings.keyBindUseItem.isKeyDown && config.GhostBlocks && featureState) {
-            if (! isAllowedTool(Player?.heldItem ?: return)) return
-            val blockpos = Player !!.rayTrace(100.0, .0f)?.blockPos ?: return
-            toAir(blockpos)
-            if (getBlockAt(blockpos) !in blackList) event.isCanceled = true
+        if (! featureState) return
+        if (! config.GhostBlocks) return
+        if (! mc.gameSettings.keyBindUseItem.isKeyDown) return
+        if (! isAllowedTool(Player?.heldItem ?: return)) return
+        Player !!.rayTrace(100.0, .0f)?.blockPos?.run {
+            toAir(this)
+            if (getBlockAt(this) !in blackList) event.isCanceled = true
         }
     }
 

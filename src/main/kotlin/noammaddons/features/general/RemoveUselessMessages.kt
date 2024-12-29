@@ -3,9 +3,9 @@ package noammaddons.features.general
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Chat
 import noammaddons.features.Feature
-import noammaddons.utils.ChatUtils.formatNumber
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.NumbersUtils.format
 import java.text.DecimalFormat
 
 /**
@@ -229,7 +229,7 @@ object RemoveUselessMessages: Feature() {
         val decimalFormat = DecimalFormat("#,###.##")
         val unitdmg = decimalFormat.format(dmg / enemies.toInt())
 
-        modMessage("&4Explosive shot did &e${formatNumber(unitdmg)} &4damage per enemy. &7(&6$enemies&7)")
+        modMessage("&4Explosive shot did &e${format(unitdmg)} &4damage per enemy. &7(&6$enemies&7)")
     }
 }
 

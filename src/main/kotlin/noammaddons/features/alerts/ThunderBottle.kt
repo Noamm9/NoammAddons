@@ -13,7 +13,7 @@ import noammaddons.utils.SoundUtils.notificationSound
 object ThunderBottle: Feature() {
     private const val noThunderBottle = "&e&l⚠ &4No Thunder Bottle &e&l⚠ "
     private const val fullThunderBottle = "&e&l⚠ &9&lTHUNDER BOTTLE FULL &e&l⚠ "
-    private val regex = Regex("-+\\n.+entered (MM |)The Catacombs, Floor VII!\\n-+")
+    private val floorEntryRegex = Regex("-+\\n.+entered (MM |)The Catacombs, Floor VII!\\n-+")
     // https://regex101.com/r/8dYYOL/1
 
 
@@ -21,12 +21,12 @@ object ThunderBottle: Feature() {
     fun onChat(event: Chat) {
         val msg = event.component.unformattedText.removeFormatting()
         when {
-            msg.matches(regex) && config.NoThunderBottleAlert -> {
-                if (! (Player !!.inventory.mainInventory.any { it?.displayName?.removeFormatting() == "Empty Thunder Bottle" })) {
-                    showTitle(noThunderBottle)
-                    marioSound.start()
-                    return
-                }
+            msg.matches(floorEntryRegex) && config.NoThunderBottleAlert -> {
+                if (Player.inventory.mainInventory.any { it?.displayName?.removeFormatting() == "Empty Thunder Bottle" }) return
+
+                showTitle(noThunderBottle)
+                marioSound.start()
+                return
             }
 
             msg == "> Your bottle of thunder has fully charged!" && config.FullThunderBottleAlert -> {

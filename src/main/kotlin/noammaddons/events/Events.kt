@@ -9,6 +9,7 @@ import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.inventory.Container
 import net.minecraft.inventory.Slot
+import net.minecraft.item.ItemStack
 import net.minecraft.network.Packet
 import net.minecraft.scoreboard.ScoreObjective
 import net.minecraft.tileentity.TileEntityChest
@@ -30,7 +31,7 @@ abstract class GuiContainerEvent(val container: Container, val gui: GuiContainer
     class CloseEvent(container: Container, gui: GuiContainer): GuiContainerEvent(container, gui)
 
     @Cancelable
-    class GuiMouseClickEvent(val mouseX: Int, val mouseY: Int, val button: Int, val guiScreen: GuiScreen): Event()
+    class GuiMouseClickEvent(val mouseX: Int, val mouseY: Int, val button: Int, val gui: GuiScreen): Event()
 }
 
 abstract class ClickEvent: Event() {
@@ -133,3 +134,40 @@ abstract class RenderChestEvent(var chest: TileEntityChest, var x: Double, var y
 
     class Post(tileEntity: TileEntityChest, x: Double, y: Double, z: Double, partialTicks: Float): RenderChestEvent(tileEntity, x, y, z, partialTicks)
 }
+
+class Inventory(
+    val title: String,
+    val windowId: Int,
+    val slotCount: Int,
+    val items: MutableMap<Int, ItemStack> = mutableMapOf(),
+)
+
+class InventoryFullyOpenedEvent(
+    val title: String,
+    val windowId: Int,
+    val slotCount: Int,
+    val items: Map<Int, ItemStack>
+): Event()
+
+
+@Cancelable
+class GuiCloseEvent(val closedGui: GuiScreen?, val newGui: GuiScreen?): Event()
+
+class WorldLoadPostEvent: Event()
+
+@Cancelable
+class EntityMetadataEvent(
+    val entity: Int,
+    val flag: Int? = null,
+    val airSupply: Int? = null,
+    val name: String? = null,
+    val customNameVisible: Any? = null,
+    val isSilent: Any? = null,
+    val noGravity: Any? = null,
+    val health: Float? = null,
+    val potionEffectColor: Any? = null,
+    val isInvisible: Any? = null,
+    val arrowsStuck: Any? = null,
+    val unknown: Map<Int, Any?> = emptyMap(), // Holds unmapped metadata
+    val Data: Map<Int, Any?> = emptyMap()
+): Event()

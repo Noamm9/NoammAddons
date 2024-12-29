@@ -16,7 +16,7 @@ import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendChatMessage
 import noammaddons.utils.JsonUtils.fetchJsonWithRetry
 import noammaddons.utils.LocationUtils.inDungeons
-import noammaddons.utils.MathUtils.toFixed
+import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderUtils.drawBlockBox
 import noammaddons.utils.ScanUtils.Utils.getPuzzleRotation
 import noammaddons.utils.ScanUtils.Utils.getRealCoord

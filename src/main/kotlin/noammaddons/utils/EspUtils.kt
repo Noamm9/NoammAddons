@@ -24,25 +24,13 @@ object EspUtils {
         event: RenderEntityModelEvent,
         color: Color,
         lineWidth: Float = config.espOutlineWidth,
-        outline: Boolean = config.espType.equalsOneOf(2, 0)/* && config.espOutlineOpacity != 0f*/,
-        fill: Boolean = config.espType == 2/* && config.espFilledOpacity != 0f*/
+        outline: Boolean = config.espType.equalsOneOf(2, 0) && config.espOutlineOpacity != 0f,
+        fill: Boolean = config.espType == 2 && config.espFilledOpacity != 0f
     ) {
         val distance = distanceIn3DWorld(event.entity.getRenderVec(), Player?.getRenderVec() ?: return)
         val adjustedLineWidth = (lineWidth / (distance / 8f)).coerceIn(0.5, lineWidth.toDouble()).toFloat()
 
-        if (fill) {
-            val index = chamEntities.map { it.first }.indexOf(event.entity)
-
-            if (index == - 1) addChamESP(event.entity, color)
-            else {
-                val newList = chamEntities.toMutableList()
-                newList[index] = event.entity to color
-
-                chamEntities.clear()
-                chamEntities.addAll(newList)
-            }
-        }
-        else removeChamESP(event.entity)
+        if (fill) addChamESP(event.entity, color)
 
         if (! outline) return
         val fancyGraphics = mc.gameSettings.fancyGraphics

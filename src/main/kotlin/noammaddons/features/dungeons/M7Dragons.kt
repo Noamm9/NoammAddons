@@ -15,7 +15,7 @@ import noammaddons.utils.DungeonUtils.Classes.*
 import noammaddons.utils.DungeonUtils.thePlayer
 import noammaddons.utils.LocationUtils.F7Phase
 import noammaddons.utils.MathUtils.distanceIn3DWorld
-import noammaddons.utils.MathUtils.toFixed
+import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.PlayerUtils.Player
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getRenderVec
@@ -133,7 +133,7 @@ object M7Dragons: Feature() {
         if (! config.M7dragonsSpawnTimer || ticks <= 0) return
 
         drawCenteredText(
-            (ticks / 20.0).toFixed(2),
+            "${ticks / 20.0}".toFixed(2),
             mc.getWidth() / 2f,
             mc.getHeight() * 0.4f,
             3f, textColor,

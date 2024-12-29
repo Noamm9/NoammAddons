@@ -1,22 +1,18 @@
 package noammaddons.features
 
-import kotlinx.coroutines.DelicateCoroutinesApi
 import noammaddons.features.alerts.*
 import noammaddons.features.dungeons.*
 import noammaddons.features.dungeons.ESP.*
 import noammaddons.features.dungeons.terminals.*
 import noammaddons.features.general.*
-import noammaddons.features.gui.CustomSpiritLeapMenu
 import noammaddons.features.gui.Menus.CustomMenuRenderer
-import noammaddons.features.gui.Menus.impl.CustomPartyFinderMenu
-import noammaddons.features.gui.Menus.impl.CustomPetMenu
-import noammaddons.features.gui.Menus.impl.CustomWardrobeMenu
+import noammaddons.features.gui.Menus.impl.*
 import noammaddons.features.gui.SalvageOverlay
+import noammaddons.features.gui.StopCloseMyChat
 import noammaddons.features.hud.*
 import noammaddons.features.misc.*
 
 object FeatureManager {
-    @OptIn(DelicateCoroutinesApi::class)
     val features = setOf(
 
         // General
@@ -38,7 +34,7 @@ object FeatureManager {
         AnnounceSpiritLeaps, AnnounceDraftResets, BetterFloors,
         BloodDialogueSkip, AutoPotion, AutoReaperArmorSwap,
         HidePlayersAfterLeap, M7RelicOutline, M7RelicSpawnTimer,
-        M7Dragons, BlazeSolver,
+        M7Dragons, BlazeSolver, EtherwarpSound, DungeonChestProfit,
         // BoulderSolver, AutoIceFill,
 
 
@@ -58,12 +54,14 @@ object FeatureManager {
         BloodReady, EnergyCrystal,
         ThunderBottle, M7P5RagAxe, RNGSound,
         AHSoldNotification, ShadowAssassinAlert,
+        SkyblockKick, PartyFinderSound,
 
 
         // GUI
         SalvageOverlay, CustomPartyFinderMenu,
         CustomSpiritLeapMenu, CustomMenuRenderer,
         CustomWardrobeMenu, CustomPetMenu,
+        StopCloseMyChat,
         /*ScalableTooltips - @see MixinGuiUtils*/
 
 

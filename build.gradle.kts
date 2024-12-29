@@ -39,6 +39,8 @@ dependencies {
 
     packageLib("gg.essential:loader-launchwrapper:1.2.1")
     implementation("gg.essential:essential-1.8.9-forge:12132+g6e2bf4dc5")
+
+    compileOnly("com.github.NotEnoughUpdates:NotEnoughUpdates:2.4.0:all")
 }
 
 sourceSets.main {

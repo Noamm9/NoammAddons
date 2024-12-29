@@ -4,6 +4,7 @@
   "package": "noammaddons.mixins",
   "refmap": "mixins.${modid}.refmap.json",
   "client": [
+    "AccessorGuiChat",
     "AccessorGuiContainer",
     "AccessorGuiIngame",
     "AccessorGuiPlayerTabOverlay",

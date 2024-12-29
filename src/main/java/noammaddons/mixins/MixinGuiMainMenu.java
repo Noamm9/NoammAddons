@@ -15,7 +15,7 @@ public abstract class MixinGuiMainMenu {
     @Inject(method = "initGui", at = @At("HEAD"))
     public void initGui(CallbackInfo ci) {
         if (Config.INSTANCE.getCustomMainMenu()) {
-            noammaddons.Companion.getMc().displayGuiScreen(new TitleScreen());
+            noammaddons.mc.displayGuiScreen(new TitleScreen());
         }
     }
 }

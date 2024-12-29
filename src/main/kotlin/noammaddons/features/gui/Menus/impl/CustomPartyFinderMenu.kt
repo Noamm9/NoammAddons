@@ -1,12 +1,16 @@
 package noammaddons.features.gui.Menus.impl
 
 import gg.essential.universal.UGraphics.getStringWidth
+import io.github.moulberry.notenoughupdates.NEUApi
+import io.github.moulberry.notenoughupdates.NotEnoughUpdates
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.item.ItemSkull
 import net.minecraft.item.ItemStack
 import net.minecraftforge.client.event.GuiScreenEvent
+import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.GuiContainerEvent
+import noammaddons.events.InventoryFullyOpenedEvent
 import noammaddons.features.Feature
 import noammaddons.features.gui.Menus.*
 import noammaddons.utils.ChatUtils.addColor
@@ -15,6 +19,8 @@ import noammaddons.utils.GuiUtils.currentChestName
 import noammaddons.utils.ItemUtils.getItemId
 import noammaddons.utils.ItemUtils.lore
 import noammaddons.utils.LocationUtils.WorldName
+import noammaddons.utils.LocationUtils.WorldType.DungeonHub
+import noammaddons.utils.LocationUtils.WorldType.Hub
 import noammaddons.utils.PlayerUtils.Player
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.RenderUtils.drawTextWithoutColorLeak
@@ -30,13 +36,22 @@ object CustomPartyFinderMenu: Feature() {
     private val selectedClassRegex = Regex("Currently Selected: (.+)")
     private val selectDungeonClassRegex = Regex("§7View and select a dungeon class\\.")
     private val classNames = listOf("&4&lArcher", "&a&lTank", "&6&lBerserk", "&5&lHealer", "&b&lMage")
-    val inPartyFinder get() = currentChestName.removeFormatting() == "Party Finder" && config.CustomSBMenus
+    val inPartyFinder get() = currentChestName.removeFormatting() == "Party Finder" && config.CustomPartyFinderMenu
     var selectedClass: String? = null
+
+    @SubscribeEvent
+    fun fuckNEU(event: InventoryFullyOpenedEvent) {
+        // Fuck NEU horrible code, but thanks for api 😘
+        if (Loader.instance().activeModList.none { it.modId == NotEnoughUpdates.MODID }) return
+        if (! inPartyFinder) return
+
+        NEUApi.setInventoryButtonsToDisabled()
+    }
 
     @SubscribeEvent
     fun guiRender(event: GuiScreenEvent.DrawScreenEvent.Pre) {
         if (! inPartyFinder) return
-        if (! WorldName.equalsOneOf("Hub", "Dungeon Hub")) return
+        if (! WorldName.equalsOneOf(DungeonHub, Hub)) return
         event.isCanceled = true
         val container = Player?.openContainer?.inventorySlots ?: return
 
@@ -158,7 +173,7 @@ object CustomPartyFinderMenu: Feature() {
 
     init {
         loop(100) {
-            if (! config.CustomSBMenus) return@loop
+            if (! config.CustomPartyFinderMenu) return@loop
             if (currentChestName.removeFormatting() != "Catacombs Gate") return@loop
             val lore = Player?.openContainer?.inventorySlots?.get(45)?.stack?.lore ?: return@loop
             if (lore.size <= 3) return@loop

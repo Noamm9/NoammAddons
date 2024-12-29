@@ -2,9 +2,12 @@ package noammaddons.utils
 
 import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type
 import gg.essential.universal.ChatColor
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import net.minecraft.init.Items
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.nbt.NBTUtil
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.common.util.Constants
@@ -18,7 +21,7 @@ import java.awt.Color
 
 
 object ItemUtils {
-    private val textureCache = mutableMapOf<String, ResourceLocation?>()
+    private val textureCache = mutableMapOf<NBTTagCompound, ResourceLocation?>()
 
     enum class ItemRarity(val baseColor: ChatColor, val color: Color = baseColor.color !!) {
         NONE(ChatColor.GRAY),
@@ -51,8 +54,33 @@ object ItemUtils {
         }
     }
 
-    val ItemStack.SkyblockID: String
-        get() = this.getSubCompound("ExtraAttributes", false)?.getString("id") ?: ""
+    @Serializable
+    data class APISBItem(
+        @SerialName("id")
+        val id: String,
+        @SerialName("material")
+        val material: String,
+        @SerialName("motes_sell_price")
+        val motesSellPrice: Double? = null,
+        @SerialName("name")
+        val name: String,
+        @SerialName("npc_sell_price")
+        val npcSellPrice: Double? = null,
+    )
+
+    data class bzitem(
+        val buyPrice: Double,
+        val buyVolume: Double,
+        val id: String,
+        val name: String,
+        val price: Double,
+        val sellPrice: Double,
+        val sellVolume: Double,
+        val tag: String?
+    )
+
+    val ItemStack?.SkyblockID: String
+        get() = this?.getSubCompound("ExtraAttributes", false)?.getString("id") ?: ""
 
     val ItemStack.lore: List<String>
         get() = this.tagCompound?.getCompoundTag("display")?.getTagList("Lore", 8)?.let {
@@ -63,14 +91,6 @@ object ItemUtils {
             list
         } ?: emptyList()
 
-    fun isHoldingEtherwarpItem(): Boolean {
-        val held = Player?.heldItem ?: return false
-        val sbId = held.SkyblockID
-
-        if (sbId.contains("ASPECT_OF_THE_END") || sbId.contains("ASPECT_OF_THE_VOID")) return true
-
-        return held.getSubCompound("ExtraAttributes", false)?.getString("ethermerge") == "1"
-    }
 
     fun getHotbar(): Array<ItemStack?> {
         return Player?.inventory?.mainInventory
@@ -81,10 +101,9 @@ object ItemUtils {
 
     fun getItemIndexInHotbar(name: String): Int? {
         getHotbar().forEachIndexed { index, stack ->
-            if (stack.isNothing()) return@forEachIndexed
-
-            if (stack !!.displayName.removeFormatting().contains(name, true)) {
-                return index
+            when {
+                stack == null -> return@forEachIndexed
+                stack.displayName.removeFormatting().lowercase().contains(name) -> return index
             }
         }
         return null
@@ -97,40 +116,31 @@ object ItemUtils {
      * @return the rarity of the item if a valid rarity is found, `ItemRarity.NONE` if no rarity is found
      */
     fun getRarity(item: ItemStack?): ItemRarity {
-        if (item == null || ! item.hasTagCompound()) {
-            return ItemRarity.NONE
-        }
+        if (item == null || ! item.hasTagCompound()) return ItemRarity.NONE
         val display = item.getSubCompound("display", false)
-        if (display == null || ! display.hasKey("Lore")) {
-            return ItemRarity.NONE
-        }
+        if (display == null || ! display.hasKey("Lore")) return ItemRarity.NONE
+
         val lore = display.getTagList("Lore", Constants.NBT.TAG_STRING)
         val name = display.getString("Name")
 
         for (i in (lore.tagCount() - 1) downTo 0) {
             val currentLine = lore.getStringTagAt(i)
-            val rarityMatcher = RARITY_PATTERN.find(currentLine)
-            if (rarityMatcher != null) {
-                val rarity = rarityMatcher.groups["rarity"]?.value ?: continue
-                ItemRarity.entries.find {
-                    it.rarityName == rarity.removeFormatting().substringAfter("SHINY ")
-                }?.let {
-                    return it
-                }
+            val rarityMatcher = RARITY_PATTERN.find(currentLine) ?: continue
+            val rarity = rarityMatcher.groups["rarity"]?.value ?: continue
+
+            ItemRarity.entries.find {
+                it.rarityName == rarity.removeFormatting().substringAfter("SHINY ")
+            }?.let {
+                return it
             }
         }
-        val petRarityMatcher = PET_PATTERN.find(name)
-        if (petRarityMatcher != null) {
-            val color = petRarityMatcher.groupValues.getOrNull(1) ?: return ItemRarity.NONE
-            return ItemRarity.byBaseColor(color) ?: ItemRarity.NONE
-        }
 
-        return ItemRarity.NONE
+        val petRarityMatcher = PET_PATTERN.find(name) ?: return ItemRarity.NONE
+        val color = petRarityMatcher.groupValues.getOrNull(1) ?: return ItemRarity.NONE
+        return ItemRarity.byBaseColor(color) ?: ItemRarity.NONE
     }
 
-    fun ItemStack.getItemId(): Int = Item.getIdFromItem(this.item)
-
-    fun ItemStack?.isNothing(): Boolean = this == null
+    fun ItemStack.getItemId(): Int = Item.getIdFromItem(item)
 
     fun getHeadSkinTexture(itemStack: ItemStack): ResourceLocation? {
         if (itemStack.item == Items.skull && itemStack.metadata == 3) {
@@ -140,18 +150,15 @@ object ItemUtils {
             val skullOwner = nbt.getCompoundTag("SkullOwner")
             val profile = NBTUtil.readGameProfileFromNBT(skullOwner)
             if (profile.isNull()) return null
-            val name = itemStack.displayName ?: return null
 
-            if (textureCache.containsKey(name)) {
-                return textureCache[name]
-            }
+            if (textureCache.containsKey(nbt)) return textureCache[nbt]
 
             val textureManager = mc.skinManager
             val textures = textureManager.loadSkinFromCache(profile)
             val skin = textures[Type.SKIN] ?: return null
 
             val texture = textureManager.loadSkin(skin, Type.SKIN)
-            textureCache[name] = texture
+            textureCache[nbt] = texture
 
             return texture
         }

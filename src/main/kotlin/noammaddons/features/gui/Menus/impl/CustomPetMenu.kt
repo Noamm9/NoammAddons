@@ -1,10 +1,14 @@
 package noammaddons.features.gui.Menus.impl
 
+import io.github.moulberry.notenoughupdates.NEUApi
+import io.github.moulberry.notenoughupdates.NotEnoughUpdates
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.item.ItemSkull
 import net.minecraftforge.client.event.GuiScreenEvent
+import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.GuiContainerEvent
+import noammaddons.events.InventoryFullyOpenedEvent
 import noammaddons.features.Feature
 import noammaddons.features.gui.Menus.*
 import noammaddons.utils.ChatUtils.addColor
@@ -27,13 +31,23 @@ import kotlin.math.floor
 
 object CustomPetMenu: Feature() {
     val petMenuRegex = Regex("Pets( \\(\\d/\\d\\) )?") // https://regex101.com/r/wQn9e4/2
-    private val inPetMenu: Boolean get() = currentChestName.removeFormatting().matches(petMenuRegex) && config.CustomSBMenus
+    private val inPetMenu: Boolean get() = currentChestName.removeFormatting().matches(petMenuRegex) && config.CustomPetMenu
     private val PetSlots = listOf(
         10, 11, 12, 13, 14, 15, 16,
         19, 20, 21, 22, 23, 24, 25,
         28, 29, 30, 31, 32, 33, 34,
         37, 38, 39, 40, 41, 42, 43
     )
+
+    @SubscribeEvent
+    fun fuckNEU(event: InventoryFullyOpenedEvent) {
+        // Fuck NEU horrible code, but thanks for api 😘
+        if (Loader.instance().activeModList.none { it.modId == NotEnoughUpdates.MODID }) return
+        if (! inPetMenu) return
+
+        NEUApi.setInventoryButtonsToDisabled()
+    }
+
 
     @SubscribeEvent
     fun onClick(event: GuiContainerEvent.GuiMouseClickEvent) {

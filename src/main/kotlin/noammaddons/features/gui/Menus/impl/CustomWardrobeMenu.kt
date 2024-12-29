@@ -1,5 +1,7 @@
 package noammaddons.features.gui.Menus.impl
 
+import io.github.moulberry.notenoughupdates.NEUApi
+import io.github.moulberry.notenoughupdates.NotEnoughUpdates
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.init.Blocks
 import net.minecraft.inventory.Slot
@@ -9,6 +11,7 @@ import net.minecraft.network.play.client.C0DPacketCloseWindow
 import net.minecraft.network.play.server.S2DPacketOpenWindow
 import net.minecraft.network.play.server.S2EPacketCloseWindow
 import net.minecraftforge.client.event.GuiScreenEvent
+import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.GuiContainerEvent
 import noammaddons.events.PacketEvent
@@ -49,8 +52,14 @@ object CustomWardrobeMenu: Feature() {
 
     @SubscribeEvent
     fun onOpen(event: PacketEvent.Received) {
-        if (config.CustomSBMenus && event.packet is S2DPacketOpenWindow) {
+        if (config.CustomWardrobeMenu && event.packet is S2DPacketOpenWindow) {
             inWardrobeMenu = event.packet.windowTitle.unformattedText.matches(wardrobeMenuRegex)
+
+            // Fuck NEU horrible code, but thanks for api 😘
+            if (Loader.instance().activeModList.none { it.modId == NotEnoughUpdates.MODID }) return
+            if (! inWardrobeMenu) return
+
+            NEUApi.setInventoryButtonsToDisabled()
         }
 
         if (inWardrobeMenu && event.packet is S2EPacketCloseWindow) {

@@ -1,26 +1,25 @@
 package noammaddons.features.gui.Menus
 
-object CustomMenuManager {
-    val WhiteListMenus = mutableSetOf<Pair<String?, Regex?>>()
+import noammaddons.noammaddons.Companion.config
 
-    fun addMenu(guiName: String? = null, regex: Regex? = null) {
-        WhiteListMenus.add(guiName to regex)
-    }
+object CustomMenuManager {
+    val menuList = mutableSetOf<Triple<String?, Regex?, () -> Boolean>>()
 
     init {
         listOf(
-            "SkyBlock Menu",
-            "Game Menu",
-            "Storage",
+            Triple("Game Menu", null) { config.CustomMenusGameMenu },
+            Triple("SkyBlock Menu", null) { config.CustomMenusSkyBlockMenu },
+            Triple(null, Regex("^Storage§r$")) { config.CustomMenusStorageMenu },
 
-            "Catacombs Gate",
-            "Group Builder",
-            "Dungeon Classes",
-            "Search Settings",
-            "Dungeon Rules and Tips",
-            "Catacombs Profile",
-            "Ready Up",
-            "Select Type",
-        ).forEach(this::addMenu)
+            Triple("Catacombs Gate", null) { config.CustomPartyFinderMenu },
+            Triple("Group Builder", null) { config.CustomPartyFinderMenu },
+            Triple("Dungeon Classes", null) { config.CustomPartyFinderMenu },
+            Triple("Search Settings", null) { config.CustomPartyFinderMenu },
+            Triple("Dungeon Rules and Tips", null) { config.CustomPartyFinderMenu },
+            Triple("Catacombs Profile", null) { config.CustomPartyFinderMenu },
+            Triple("Ready Up", null) { config.CustomPartyFinderMenu },
+            Triple("Select Type", null) { config.CustomPartyFinderMenu },
+            Triple("Select Floor", null) { config.CustomPartyFinderMenu },
+        ).forEach(menuList::add)
     }
 }

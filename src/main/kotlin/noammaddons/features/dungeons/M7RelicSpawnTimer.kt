@@ -7,7 +7,7 @@ import noammaddons.events.ServerTick
 import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.DungeonUtils.thePlayer
-import noammaddons.utils.MathUtils.toFixed
+import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawCenteredText

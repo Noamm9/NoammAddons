@@ -27,8 +27,8 @@ object MelodyAlert: Feature() {
 
     @SubscribeEvent
     fun onGuiOpened(event: GuiOpenEvent) {
+        if (msg.isBlank()) return
         if (! inMelody(event.gui)) return
-        if (msg.isEmpty()) return
         if (F7Phase != 3) return
 
         claySlots = mutableMapOf(
@@ -46,8 +46,8 @@ object MelodyAlert: Feature() {
 
     @SubscribeEvent
     fun onTick(e: Tick) {
+        if (msg.isBlank()) return
         if (! inMelody()) return
-        if (msg.isEmpty()) return
         if (F7Phase != 3) return
 
         val greenClays = claySlots.keys.filter {
