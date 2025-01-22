@@ -32,7 +32,7 @@ object M7RelicOutline: Feature() {
         if (! config.M7RelicOutline) return
         if (F7Phase != 5) return
 
-        RelicCauldrons[Player?.inventory?.mainInventory?.get(8)?.displayName.removeFormatting()]?.run {
+        RelicCauldrons[Player?.inventory?.mainInventory?.get(8)?.displayName?.removeFormatting()]?.run {
             RenderUtils.drawBlockBox(cauldronPos.toBlockPos(), color, outline = true, fill = true, phase = true)
             RenderUtils.drawTracer(cauldronPos.add(Vec3(0.5, 0.5, 0.5)), color)
         }

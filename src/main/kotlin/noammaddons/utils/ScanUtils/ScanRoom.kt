@@ -3,6 +3,8 @@ package noammaddons.utils.ScanUtils
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.debugMessage
+import noammaddons.utils.DataClasses.Coords2D
+import noammaddons.utils.DataClasses.Room
 import noammaddons.utils.JsonUtils.fetchJsonWithRetry
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.inDungeons

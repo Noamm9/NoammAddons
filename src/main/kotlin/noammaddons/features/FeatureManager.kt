@@ -1,5 +1,6 @@
 package noammaddons.features
 
+import net.minecraftforge.common.MinecraftForge
 import noammaddons.features.alerts.*
 import noammaddons.features.dungeons.*
 import noammaddons.features.dungeons.ESP.*
@@ -7,10 +8,13 @@ import noammaddons.features.dungeons.terminals.*
 import noammaddons.features.general.*
 import noammaddons.features.gui.Menus.CustomMenuRenderer
 import noammaddons.features.gui.Menus.impl.*
+import noammaddons.features.gui.ProfleViewer
 import noammaddons.features.gui.SalvageOverlay
 import noammaddons.features.gui.StopCloseMyChat
 import noammaddons.features.hud.*
 import noammaddons.features.misc.*
+import noammaddons.features.slayers.ExtraSlayerInfo
+import noammaddons.noammaddons.Companion.Logger
 
 object FeatureManager {
     val features = setOf(
@@ -23,8 +27,9 @@ object FeatureManager {
         /*VisualWords, @see MixinFontRenderer*/
         /*CustomItemEntity, @see MixinRenderEntityItem */
         RemoveUselessMessages, // @see MixinGuiNewChat
-        PartyCommands, ShowItemEntityName,
-
+        PartyCommands, ShowItemEntityName, BlockGloomlockOverUse,
+        /*CustomSlotHighlight, @see MixinGuiContainer*/
+        /*ShowItemRarity, @see MixinRenderItem*/
 
         // Dungeons
         TeammatesNames, TeammatesESP, AbilityKeybinds,
@@ -35,7 +40,7 @@ object FeatureManager {
         BloodDialogueSkip, AutoPotion, AutoReaperArmorSwap,
         HidePlayersAfterLeap, M7RelicOutline, M7RelicSpawnTimer,
         M7Dragons, BlazeSolver, EtherwarpSound, DungeonChestProfit,
-        // BoulderSolver, AutoIceFill,
+        Floor4BossFight, // BoulderSolver, AutoIceFill || not soon
 
 
         // Terminals
@@ -57,11 +62,14 @@ object FeatureManager {
         SkyblockKick, PartyFinderSound,
 
 
+        // Slayers
+        ExtraSlayerInfo, // Todo: make a settings toggle lmao
+
         // GUI
         SalvageOverlay, CustomPartyFinderMenu,
         CustomSpiritLeapMenu, CustomMenuRenderer,
         CustomWardrobeMenu, CustomPetMenu,
-        StopCloseMyChat,
+        StopCloseMyChat, ProfleViewer,
         /*ScalableTooltips - @see MixinGuiUtils*/
 
 
@@ -77,6 +85,7 @@ object FeatureManager {
         BlockOverlay, PlayerScale, PlayerSpin,
         /*TimeChanger - @see MixinWorldProvider*/
         /*NoPushOutOfBlocks - @see MixinEntityPlayerSP*/
+        /*SmoothSneaking - @see MixinEntityPlayer*/
         HideFallingBlocks, DamageSplash,
         RemoveSelfieCam, CustomFov, AntiBlind,
         AntiPortal, NoBlockAnimation, NoWaterFOV,
@@ -89,10 +98,15 @@ object FeatureManager {
 
     fun getFeatureName(feature: Feature): String = feature::class.simpleName ?: "Unknown"
 
-    fun registerFeatures() {
+    fun registerFeatures(log: Boolean = true) {
         features.forEach {
-            println("Registering feature ${getFeatureName(it)}")
-            net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(it)
+            try {
+                if (log) Logger.info("Registering feature: ${getFeatureName(it)}")
+                MinecraftForge.EVENT_BUS.register(it)
+            }
+            catch (e: Exception) {
+                if (log) Logger.error("Failed to register feature: ${getFeatureName(it)}", e)
+            }
         }
     }
 }

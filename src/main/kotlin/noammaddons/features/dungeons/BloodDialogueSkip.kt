@@ -4,7 +4,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Chat
 import noammaddons.events.RenderOverlay
 import noammaddons.features.Feature
-import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.showTitle
 import noammaddons.utils.DungeonUtils.thePlayer
 import noammaddons.utils.NumbersUtils.toFixed
@@ -23,7 +23,7 @@ object BloodDialogueSkip: Feature() {
     fun startTimer(event: Chat) {
         if (! config.BloodDialogueSkip) return
         if (thePlayer?.clazz?.name != "Mage") return
-        if (event.component.unformattedText.removeFormatting() != "The BLOOD DOOR has been opened!") return
+        if (event.component.noFormatText != "The BLOOD DOOR has been opened!") return
 
         startTime = System.currentTimeMillis()
         isRunning = true

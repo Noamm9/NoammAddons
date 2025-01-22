@@ -3,7 +3,7 @@ package noammaddons.features.dungeons
 import net.minecraft.init.Blocks
 import net.minecraft.util.BlockPos
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.Tick
+import net.minecraftforge.fml.common.gameevent.TickEvent
 import noammaddons.features.Feature
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.getBlockId
@@ -13,7 +13,8 @@ import noammaddons.utils.LocationUtils.F7Phase
 import noammaddons.utils.Utils.isNull
 
 object IHATEDIORITE: Feature() {
-    private var iHateDioriteBlocks: Map<String, List<Map<String, Double>>>? = null
+    private var iHateDioriteBlocks: Map<String, List<BlockPos>>? = null
+    private val posList = mutableListOf<BlockPos>()
     private val blockTypes = mapOf(
         "GreenArray" to Blocks.stained_glass.getStateFromMeta(5),
         "YellowArray" to Blocks.stained_glass.getStateFromMeta(4),
@@ -24,29 +25,39 @@ object IHATEDIORITE: Feature() {
     init {
         fetchJsonWithRetry<Map<String, List<Map<String, Double>>>>(
             "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/iHateDioriteBlocks.json"
-        ) { iHateDioriteBlocks = it }
+        ) { data ->
+            data ?: return@fetchJsonWithRetry
+
+            val newMap = mutableMapOf<String, List<BlockPos>>()
+            data.forEach { (key, value) ->
+                newMap[key] = value.map {
+                    BlockPos(
+                        it["x"] as Double,
+                        it["y"] as Double,
+                        it["z"] as Double
+                    )
+                }
+            }
+            iHateDioriteBlocks = newMap
+        }
     }
 
     @SubscribeEvent
-    fun onTick(event: Tick) {
+    fun onTick(event: TickEvent.ClientTickEvent) {
+        if (event.phase != TickEvent.Phase.END) return
         if (! config.IHATEDIORITE) return
         if (iHateDioriteBlocks.isNull()) return
-        if (F7Phase != 5) return
+        if (F7Phase != 2) return
 
         iHateDioriteBlocks !!.forEach { (key, coordsList) ->
             val blockType = blockTypes[key] ?: return@forEach
-
-            coordsList.forEach { coord ->
-                val pos = BlockPos(
-                    (coord["x"] as Double),
-                    (coord["y"] as Double),
-                    (coord["z"] as Double)
-                )
-
-                (0 .. 37).asSequence()
-                    .map { pos.add(0, it, 0) }
-                    .filter { getBlockAt(it)?.getBlockId() == 1 }
-                    .forEach { ghostBlock(it, blockType) }
+            coordsList.forEach { pos ->
+                for (i in 0 .. 37) {
+                    val ghostPos = pos.add(0, i, 0)
+                    if (getBlockAt(ghostPos)?.getBlockId() == 1) {
+                        ghostBlock(ghostPos, blockType)
+                    }
+                }
             }
         }
     }

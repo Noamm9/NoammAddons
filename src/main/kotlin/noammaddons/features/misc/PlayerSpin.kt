@@ -1,7 +1,7 @@
 package noammaddons.features.misc
 
 import net.minecraft.client.renderer.GlStateManager
-import net.minecraftforge.client.event.RenderLivingEvent
+import net.minecraftforge.client.event.RenderPlayerEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.features.Feature
 import noammaddons.utils.PlayerUtils.Player
@@ -24,7 +24,7 @@ object PlayerSpin: Feature() {
 
 
     @SubscribeEvent
-    fun onRenderEntityPre(event: RenderLivingEvent.Pre<*>) {
+    fun onRenderEntityPre(event: RenderPlayerEvent.Pre) {
         if (! config.PlayerSpin) return
         if (event.entity != Player) return
         //if (!config.SpinOnEveryone && event.entity != mc.thePlayer) return
@@ -35,7 +35,7 @@ object PlayerSpin: Feature() {
     }
 
     @SubscribeEvent
-    fun onRenderEntityPost(event: RenderLivingEvent.Post<*>) {
+    fun onRenderEntityPost(event: RenderPlayerEvent.Post) {
         if (! config.PlayerSpin) return
         if (event.entity != Player) return
         //if (!config.SpinOnEveryone && event.entity != mc.thePlayer) return

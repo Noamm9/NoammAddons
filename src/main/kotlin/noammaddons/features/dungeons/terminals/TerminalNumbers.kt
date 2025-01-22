@@ -16,51 +16,54 @@ import java.awt.Color
 
 
 object TerminalNumbers: Feature() {
-    private val Terminals = listOf(
+    private fun BlockPos.center(): Vec3 = Vec3(x + 0.5, y + 0.5, z + 0.5)
+
+    // god its soo ugly todo: maybe add devs and lavers
+    private val terminals = listOf(
         // Section 1
         listOf(
-            listOf(listOf(111, 113, 73), listOf(110, 113, 73)),
-            listOf(listOf(111, 119, 79), listOf(110, 119, 79)),
-            listOf(listOf(89, 112, 92), listOf(90, 112, 92)),
-            listOf(listOf(89, 122, 101), listOf(90, 122, 101))
+            listOf(BlockPos(111, 113, 73), BlockPos(110, 113, 73)),
+            listOf(BlockPos(111, 119, 79), BlockPos(110, 119, 79)),
+            listOf(BlockPos(89, 112, 92), BlockPos(90, 112, 92)),
+            listOf(BlockPos(89, 122, 101), BlockPos(90, 122, 101))
         ),
         // Section 2
         listOf(
-            listOf(listOf(68, 109, 121), listOf(68, 109, 122)),
-            listOf(listOf(59, 120, 122), listOf(59, 119, 123)),
-            listOf(listOf(47, 109, 121), listOf(47, 109, 122)),
-            listOf(listOf(39, 108, 143), listOf(39, 108, 142)),
-            listOf(listOf(40, 124, 122), listOf(40, 124, 123))
+            listOf(BlockPos(68, 109, 121), BlockPos(68, 109, 122)),
+            listOf(BlockPos(59, 120, 122), BlockPos(59, 119, 123)),
+            listOf(BlockPos(47, 109, 121), BlockPos(47, 109, 122)),
+            listOf(BlockPos(39, 108, 143), BlockPos(39, 108, 142)),
+            listOf(BlockPos(40, 124, 122), BlockPos(40, 124, 123))
         ),
         // Section 3
         listOf(
-            listOf(listOf(- 3, 109, 112), listOf(- 2, 109, 112)),
-            listOf(listOf(- 3, 119, 93), listOf(- 2, 119, 93)),
-            listOf(listOf(19, 123, 93), listOf(18, 123, 93)),
-            listOf(listOf(- 3, 109, 77), listOf(- 2, 109, 77))
+            listOf(BlockPos(- 3, 109, 112), BlockPos(- 2, 109, 112)),
+            listOf(BlockPos(- 3, 119, 93), BlockPos(- 2, 119, 93)),
+            listOf(BlockPos(19, 123, 93), BlockPos(18, 123, 93)),
+            listOf(BlockPos(- 3, 109, 77), BlockPos(- 2, 109, 77))
         ),
         // Section 4
         listOf(
-            listOf(listOf(41, 109, 29), listOf(41, 109, 30)),
-            listOf(listOf(44, 121, 29), listOf(44, 121, 30)),
-            listOf(listOf(67, 109, 29), listOf(67, 109, 30)),
-            listOf(listOf(72, 115, 48), listOf(72, 114, 47))
+            listOf(BlockPos(41, 109, 29), BlockPos(41, 109, 30)),
+            listOf(BlockPos(44, 121, 29), BlockPos(44, 121, 30)),
+            listOf(BlockPos(67, 109, 29), BlockPos(67, 109, 30)),
+            listOf(BlockPos(72, 115, 48), BlockPos(72, 114, 47))
         )
     )
 
-    private fun render(value: List<List<Int>>, index: Int) {
-        var (x, y, z) = value[0].map { it + 0.5 }
-        y -= 0.5
-        val (tX, tY, tZ) = value[1].map { it + 0.5 }
+    private fun renderTerminal(positions: List<BlockPos>, index: Int) {
+        val boxPosition = positions[0]
+        val textPosition = positions[1]
 
         val distance = MathUtils.distanceIn3DWorld(
-            Player !!.getRenderVec(), Vec3(tX, tY, tZ)
+            Player.getRenderVec(),
+            textPosition.center()
         ).toFloat()
-        val scale = distance * 0.18f
 
+        val scale = maxOf(distance * 0.18f, 1f)
 
         drawBlockBox(
-            BlockPos(x, y, z),
+            boxPosition,
             Color(0, 114, 255, 85),
             outline = true,
             fill = true,
@@ -68,22 +71,25 @@ object TerminalNumbers: Feature() {
         )
 
         drawString(
-            "${index + 1}", Vec3(tX, tY, tZ),
+            "${index + 1}",
+            textPosition.center(),
             Color(255, 0, 255),
-            if (scale < 1f) 1f else scale,
-            shadow = true, phase = true,
+            scale,
+            shadow = true,
+            phase = true,
             renderBlackBox = false
         )
     }
 
     @SubscribeEvent
     fun onRenderWorld(event: RenderWorld) {
-        if (! inBoss || P3Section == null || ! config.TerminalNumbers) return
+        if (! config.TerminalNumbers) return
+        if (! inBoss) return
+        if (P3Section == null) return
 
-        try {
-            Terminals[P3Section !! - 1].forEachIndexed { index, value -> render(value, index) }
-        }
-        catch (_: Exception) {
+        val section = terminals.getOrNull(P3Section !! - 1) ?: return
+        section.forEachIndexed { index, positions ->
+            renderTerminal(positions, index)
         }
     }
 }

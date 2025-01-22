@@ -3,22 +3,22 @@
 package noammaddons.features.dungeons.terminals
 
 import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.network.play.client.C0DPacketCloseWindow
 import net.minecraft.network.play.server.S2DPacketOpenWindow
-import net.minecraft.network.play.server.S2EPacketCloseWindow
 import net.minecraft.network.play.server.S2FPacketSetSlot
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.GuiContainerEvent
+import noammaddons.events.GuiCloseEvent
+import noammaddons.events.GuiMouseClickEvent
 import noammaddons.events.PacketEvent
 import noammaddons.features.Feature
 import noammaddons.features.dungeons.terminals.ConstantsVariables.MelodyTitle
-import noammaddons.features.dungeons.terminals.ConstantsVariables.Slot
+import noammaddons.features.dungeons.terminals.ConstantsVariables.TerminalSlot
 import noammaddons.features.dungeons.terminals.ConstantsVariables.getColorMode
 import noammaddons.features.dungeons.terminals.ConstantsVariables.getSolutionColor
 import noammaddons.features.dungeons.terminals.ConstantsVariables.getTermScale
 import noammaddons.features.gui.Menus.renderBackground
 import noammaddons.utils.ChatUtils.modMessage
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.disableNEUInventoryButtons
 import noammaddons.utils.GuiUtils.getMouseX
@@ -31,14 +31,13 @@ import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawRoundedRect
 import noammaddons.utils.RenderUtils.drawText
-import noammaddons.utils.SoundUtils.ayaya
 import noammaddons.utils.Utils.equalsOneOf
 import java.awt.Color
 import kotlin.math.floor
 
 object Melody: Feature() {
     private var cwid = - 1
-    private val slots = mutableListOf<Slot?>()
+    private val terminalSlots = mutableListOf<TerminalSlot?>()
     private var windowSize = 0
     private var isInTerminal = false
     private var correct: Int = - 1
@@ -47,7 +46,7 @@ object Melody: Feature() {
 
 
     @SubscribeEvent
-    fun onGuiClick(event: GuiContainerEvent.GuiMouseClickEvent) {
+    fun onGuiClick(event: GuiMouseClickEvent) {
         if (! isInTerminal) return
         event.isCanceled = true
 
@@ -134,7 +133,7 @@ object Melody: Feature() {
         if (slot >= windowSize) return
 
         if (itemStack !== null) {
-            slots[slot] = Slot(
+            terminalSlots[slot] = TerminalSlot(
                 slot,
                 itemStack.getItemId(),
                 itemStack.metadata,
@@ -144,9 +143,9 @@ object Melody: Feature() {
             )
 
 
-            if (slots[slot] != null) {
-                if (slots[slot] !!.id === 160 && slots[slot] !!.meta === 5) {
-                    val correct1 = slots.find { (it?.id ?: 0) == 160 && (it?.meta ?: 0) === 2 }?.num?.minus(1)
+            if (terminalSlots[slot] != null) {
+                if (terminalSlots[slot] !!.id === 160 && terminalSlots[slot] !!.meta === 5) {
+                    val correct1 = terminalSlots.find { (it?.id ?: 0) == 160 && (it?.meta ?: 0) === 2 }?.num?.minus(1)
                     val button1 = floor((slot / 9).toDouble()) - 1
                     val current1 = slot % 9 - 1
                     if (correct1 != null) correct = correct1
@@ -155,7 +154,7 @@ object Melody: Feature() {
                 }
             }
         }
-        else slots[slot] = null
+        else terminalSlots[slot] = null
     }
 
     @SubscribeEvent
@@ -163,31 +162,23 @@ object Melody: Feature() {
         if (! config.CustomTerminalsGui || ! config.CustomMelodyTerminal || dungeonFloor != 7 || F7Phase != 3) return
         if (event.packet !is S2DPacketOpenWindow) return
 
-        val windowTitle = event.packet.windowTitle.unformattedText.removeFormatting()
+        val windowTitle = event.packet.windowTitle.noFormatText
         val slotCount = event.packet.slotCount
         cwid = event.packet.windowId
 
         if (! windowTitle.matches(Regex("Click the button on time!"))) return
 
-        slots.clear()
-        repeat(slotCount) { slots.add(null) }
+        terminalSlots.clear()
+        repeat(slotCount) { terminalSlots.add(null) }
         disableNEUInventoryButtons()
         windowSize = slotCount
         isInTerminal = true
     }
 
     @SubscribeEvent
-    fun onWindowClose(event: PacketEvent.Received) {
-        if (event.packet !is S2EPacketCloseWindow) return
+    fun onWindowClose(event: GuiCloseEvent) {
         if (! isInTerminal) return
-        isInTerminal = false
-        ayaya.start()
-    }
-
-    @SubscribeEvent
-    fun onSentPacket(event: PacketEvent.Sent) {
-        if (event.packet !is C0DPacketCloseWindow) return
-        if (! isInTerminal) return
+        if (event.newGui != null) return
         isInTerminal = false
     }
 }

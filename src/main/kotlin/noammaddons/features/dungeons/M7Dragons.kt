@@ -5,7 +5,6 @@ import net.minecraft.network.play.server.S2APacketParticles
 import net.minecraft.network.play.server.S32PacketConfirmTransaction
 import net.minecraft.util.EnumParticleTypes.ENCHANTMENT_TABLE
 import net.minecraft.util.Vec3
-import net.minecraftforge.client.event.sound.PlaySoundEvent
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
@@ -23,6 +22,7 @@ import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawBox
 import noammaddons.utils.RenderUtils.drawCenteredText
 import noammaddons.utils.RenderUtils.drawTracer
+import noammaddons.utils.SoundUtils
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.equalsOneOf
 import java.awt.Color
@@ -188,6 +188,7 @@ object M7Dragons: Feature() {
         greenSpawning = false
         toggleTickCounter = false
         drags = arrayOfNulls(2)
+        currentPrio = null
     }
 
 
@@ -242,6 +243,7 @@ object M7Dragons: Feature() {
                             ticks = 100
                             toggleTickCounter = true
                             redSpawning = true
+                            SoundUtils.Pling.start()
                             setTimeout(8000) { redSpawning = false }
                         }
 
@@ -252,6 +254,7 @@ object M7Dragons: Feature() {
                             ticks = 100
                             toggleTickCounter = true
                             greenSpawning = true
+                            SoundUtils.Pling.start()
                             setTimeout(8000) { greenSpawning = false }
                         }
                     }
@@ -266,6 +269,7 @@ object M7Dragons: Feature() {
                             ticks = 100
                             toggleTickCounter = true
                             blueSpawning = true
+                            SoundUtils.Pling.start()
                             setTimeout(8000) { blueSpawning = false }
                         }
 
@@ -276,6 +280,7 @@ object M7Dragons: Feature() {
                             ticks = 100
                             toggleTickCounter = true
                             orangeSpawning = true
+                            SoundUtils.Pling.start()
                             setTimeout(8000) { orangeSpawning = false }
                         }
                     }
@@ -289,6 +294,7 @@ object M7Dragons: Feature() {
                         ticks = 100
                         toggleTickCounter = true
                         purpleSpawning = true
+                        SoundUtils.Pling.start()
                         setTimeout(8000) { purpleSpawning = false }
                     }
                 }
@@ -322,10 +328,9 @@ object M7Dragons: Feature() {
     }
 
     @SubscribeEvent
-    fun onSoundPlay(event: PlaySoundEvent) {
+    fun onSoundPlay(event: SoundPlayEvent) {
         if (! arrowListener) return
         if (event.name != "random.successful_hit") return
-
         arrowsHit ++
     }
 

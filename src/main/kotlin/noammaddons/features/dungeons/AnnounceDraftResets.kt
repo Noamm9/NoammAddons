@@ -5,6 +5,7 @@ import noammaddons.events.Chat
 import noammaddons.features.Feature
 import noammaddons.noammaddons.Companion.CHAT_PREFIX
 import noammaddons.utils.ChatUtils.modMessage
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendChatMessage
 import noammaddons.utils.ChatUtils.sendPartyMessage
@@ -20,7 +21,7 @@ object AnnounceDraftResets: Feature() {
 
     @SubscribeEvent
     fun onChat(event: Chat) {
-        val message = event.component.unformattedText.removeFormatting()
+        val message = event.component.noFormatText
         try {
             val resetMatcher = resetPattern.matcher(message)
             if (resetMatcher.matches() && config.AnnounceDraftResets) {

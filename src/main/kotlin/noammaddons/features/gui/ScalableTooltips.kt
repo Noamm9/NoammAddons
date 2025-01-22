@@ -3,13 +3,13 @@ package noammaddons.features.gui
 import net.minecraft.client.gui.FontRenderer
 import net.minecraft.client.gui.GuiChat
 import net.minecraft.client.gui.inventory.GuiContainer
+import net.minecraft.client.gui.inventory.GuiContainerCreative
 import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.RenderHelper
+import net.minecraft.inventory.Slot
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.RenderHelper.getScaleFactor
-import noammaddons.utils.RenderUtils.drawGradientRoundedRect
-import noammaddons.utils.RenderUtils.drawRainbowRoundedBorder
+import noammaddons.utils.RenderUtils.drawFloatingRectWithAlpha
 import noammaddons.utils.Utils.isNull
 import org.lwjgl.input.Keyboard
 import org.lwjgl.input.Mouse
@@ -27,7 +27,7 @@ object ScalableTooltips {
     private var scrollX: Int = 0
     private var snapFlag: Boolean = true
     private var scaleScale: Float = 0f
-    private var lastItem: Int? = null
+    private var lastShit: Pair<List<String>, Slot?>? = null
 
     @JvmStatic
     fun drawScaledHoveringText(
@@ -40,16 +40,17 @@ object ScalableTooltips {
     ): Boolean {
         if (! config.ScalableTooltips) return false
         if (textLines.isEmpty()) return true
-        val slot = (mc.currentScreen as? GuiContainer)?.slotUnderMouse
-        if (lastItem.isNull()) lastItem = slot?.slotNumber
-        else if (lastItem != slot?.slotNumber) {
-            lastItem = slot?.slotNumber
+        val gui = mc.currentScreen
+        val slot = (gui as? GuiContainer)?.slotUnderMouse
+        if (lastShit.isNull()) lastShit = Pair(textLines, slot)
+        else if (lastShit?.second != slot || lastShit?.first != textLines) {
+            lastShit = Pair(textLines, slot)
             resetPos()
         }
 
 
         val eventDWheel = Mouse.getDWheel()
-        if (mc.currentScreen !is GuiChat) {
+        if (gui !is GuiChat && gui !is GuiContainerCreative) {
             if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)) {
                 if (eventDWheel < 0) scrollX += mc.displayWidth / 192
                 else if (eventDWheel > 0) scrollX -= mc.displayWidth / 192
@@ -78,12 +79,9 @@ object ScalableTooltips {
 
 
             GlStateManager.pushMatrix()
-            GlStateManager.scale(scale, scale, scale)
-            GlStateManager.disableRescaleNormal()
-            RenderHelper.disableStandardItemLighting()
-            GlStateManager.disableLighting()
             GlStateManager.disableDepth()
-
+            GlStateManager.disableLighting()
+            GlStateManager.scale(scale, scale, scale)
 
             var x = ((mouseX + 12 + scrollX) / scale).toInt()
             var y = ((mouseY - 12 + scrollY) / scale).toInt()
@@ -100,7 +98,6 @@ object ScalableTooltips {
             if (x < 0 && (width + 4 <= screenWidth / scale)) scrollX = - mouseX - 12 + 4
             if (y < 0 && (height + 4 <= screenHeight / scale)) scrollY = - mouseY + 12 + 4
 
-
             if (snapFlag) {
                 if (width + 4 > screenWidth / scale) scrollX = - mouseX - 12 + 4
                 if (height + 4 > screenHeight / scale) scrollY = - mouseY + 12 + 4
@@ -110,24 +107,13 @@ object ScalableTooltips {
             x = ((mouseX + 12 + scrollX) / scale).toInt()
             y = ((mouseY - 12 + scrollY) / scale).toInt()
 
-            val backgroundColor = Color(33, 33, 33, 210)
-
-            drawRainbowRoundedBorder(
-                x - 3,
-                y - 3,
-                width + 6,
-                height + 6,
-                5f, 4f
-            )
-
-            drawGradientRoundedRect(
-                x - 3f,
-                y - 3f,
-                width + 6f,
-                height + 6f,
-                5f,
-                backgroundColor, backgroundColor,
-                backgroundColor.darker(), backgroundColor.darker(),
+            drawFloatingRectWithAlpha(
+                x - 4,
+                y - 4,
+                width + 8,
+                height + 8,
+                false,
+                Color(25, 25, 25, 230)
             )
 
             var yStart = y
@@ -137,14 +123,12 @@ object ScalableTooltips {
             }
 
             GlStateManager.enableDepth()
-            RenderHelper.enableStandardItemLighting()
-            GlStateManager.enableRescaleNormal()
-            GlStateManager.enableLighting()
             GlStateManager.popMatrix()
         }
         return true
     }
 
+    @JvmStatic
     fun resetPos() {
         scrollX = 0
         scrollY = 0

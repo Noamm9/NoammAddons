@@ -9,6 +9,7 @@
     "AccessorGuiIngame",
     "AccessorGuiPlayerTabOverlay",
     "AccessorMinecraft",
+    "MixinBossStatus",
     "MixinEntityPlayerSP",
     "MixinFontRenderer",
     "MixinGuiButton",
@@ -24,14 +25,17 @@
     "MixinMinecraft",
     "MixinNetworkManager",
     "MixinPatcherEntityCulling",
-    "MixinRenderEntityItem",
     "MixinRendererLivingEntity",
+    "MixinRenderItem",
+    "MixinRenderManager",
     "MixinThePlayer",
     "MixinTileEntityChestRenderer"
   ],
   "mixins": [
+    "AccessorCommandHandler",
     "EntityAccessor",
     "MixinEntity",
+    "MixinEntityPlayer",
     "MixinModList",
     "MixinSkytilsFunny",
     "MixinWorldProvider"

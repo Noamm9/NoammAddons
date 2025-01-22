@@ -5,7 +5,7 @@ import noammaddons.events.Chat
 import noammaddons.events.RenderOverlay
 import noammaddons.events.ServerTick
 import noammaddons.features.Feature
-import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.LocationUtils.dungeonFloor
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.NumbersUtils.toFixed
@@ -27,7 +27,7 @@ object F7PhaseStartTimers: Feature() {
     @SubscribeEvent
     fun onPhaseStart(event: Chat) {
         if (! config.F7M7PhaseStartTimers) return
-        val msg = event.component.unformattedText.removeFormatting()
+        val msg = event.component.noFormatText
 
         when {
             msg == startMessages[0] && config.P1StartTimer -> tickTime = 7500 / 50

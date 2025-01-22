@@ -5,7 +5,7 @@ import noammaddons.events.Chat
 import noammaddons.events.RenderOverlay
 import noammaddons.events.ServerTick
 import noammaddons.features.Feature
-import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.DungeonUtils.thePlayer
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderHelper.getHeight
@@ -28,7 +28,7 @@ object M7RelicSpawnTimer: Feature() {
 
     @SubscribeEvent
     fun onChat(event: Chat) {
-        if (event.component.unformattedText.removeFormatting() != "[BOSS] Necron: All this, for nothing...") return
+        if (event.component.noFormatText != "[BOSS] Necron: All this, for nothing...") return
 
         ticks = 50
         StartTimer = true

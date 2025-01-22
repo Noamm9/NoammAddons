@@ -4,6 +4,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ResourceLocation;
+import noammaddons.utils.MouseUtils;
+import noammaddons.utils.RenderHelper;
 import noammaddons.utils.RenderUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -13,8 +15,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.awt.*;
-
-import static gg.essential.universal.UGraphics.getStringWidth;
 
 
 @Mixin(GuiButton.class)
@@ -51,24 +51,16 @@ public abstract class MixinGuiButton {
         if (visible) {
             GlStateManager.pushMatrix();
             GlStateManager.disableTexture2D();
-            hovered = mouseX >= xPosition && mouseY >= yPosition && mouseX < xPosition + width && mouseY < yPosition + height;
-            Color buttonColor = hovered ? new Color(255, 255, 255, 120) : new Color(216, 222, 233, 100);
+            hovered = MouseUtils.isElementHovered(mouseX, mouseY, xPosition, yPosition, width, height);
+            Color buttonColor = hovered ? new Color(19, 19, 19) : new Color(33, 33, 33);
 
-
-            RenderUtils.INSTANCE.drawRoundedRect(
-                    buttonColor,
-                    xPosition + 2.5,
-                    yPosition + .5,
-                    width - 5,
-                    height - 1,
-                    5f
-            );
-
-            RenderUtils.INSTANCE.drawRoundedBorder(
-                    Color.WHITE,
-                    xPosition + 2.5, yPosition + .5,
-                    width - 5, height - 1,
-                    5f, 2f
+            RenderUtils.INSTANCE.drawFloatingRectWithAlpha(
+                    xPosition,
+                    yPosition,
+                    width,
+                    height,
+                    false,
+                    buttonColor
             );
 
             GlStateManager.enableTexture2D();
@@ -81,7 +73,7 @@ public abstract class MixinGuiButton {
 
             mc.fontRendererObj.drawStringWithShadow(
                     displayString,
-                    (xPosition + (float) width / 2) - ((float) getStringWidth(displayString) / 2),
+                    (xPosition + (float) width / 2) - (RenderHelper.getStringWidth(displayString, 1) / 2),
                     yPosition + 6,
                     textColor.getRGB()
             );

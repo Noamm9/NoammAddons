@@ -1,6 +1,5 @@
 package noammaddons.utils
 
-import net.minecraft.client.settings.KeyBinding
 import net.minecraft.client.settings.KeyBinding.setKeyBindState
 import net.minecraft.entity.Entity
 import net.minecraft.item.ItemStack
@@ -9,7 +8,6 @@ import net.minecraft.util.Vec3
 import noammaddons.features.misc.PlayerScale.getPlayerScaleFactor
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.modMessage
-import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ItemUtils.SkyblockID
 import noammaddons.utils.ReflectionUtils.invoke
 import noammaddons.utils.RenderHelper.getRenderVec
@@ -78,23 +76,25 @@ object PlayerUtils {
      * Defaults to "RIGHT".
      */
     fun holdClick(hold: Boolean, type: String = "RIGHT") {
-        val cleanedType = type.removeFormatting().lowercase()
-        when (cleanedType) {
-            "right" -> {
+        when (type.uppercase()) {
+            "RIGHT" -> {
                 val rightClickKey = mc.gameSettings.keyBindUseItem
                 setKeyBindState(rightClickKey.keyCode, hold)
             }
 
-            "left" -> {
+            "LEFT" -> {
                 val leftClickKey = mc.gameSettings.keyBindAttack
                 setKeyBindState(leftClickKey.keyCode, hold)
             }
 
-            "middle" -> {
-                val middleClickKey: KeyBinding = mc.gameSettings.keyBindPickBlock
+            "MIDDLE" -> {
+                val middleClickKey = mc.gameSettings.keyBindPickBlock
                 setKeyBindState(middleClickKey.keyCode, hold)
             }
+
+            else -> println("Invalid click type: $type")
         }
+
     }
 
     /**

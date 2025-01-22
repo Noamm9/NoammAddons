@@ -1,12 +1,6 @@
 package noammaddons.features.general
 
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.Chat
 import noammaddons.features.Feature
-import noammaddons.utils.ChatUtils.modMessage
-import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.NumbersUtils.format
-import java.text.DecimalFormat
 
 /**
  * Disables chat messages from being sent in chat without fucking other mods
@@ -18,8 +12,6 @@ object RemoveUselessMessages: Feature() {
         Regex("Creeper Veil Activated!"),
         Regex("Creeper Veil De-activated!"),
         Regex("A Wither Key was picked up!"),
-        Regex(".*Mimic Killed!"),
-        Regex("SKYTILS-DUNGEON-SCORE-MIMIC"),
         Regex("Warping you to your SkyBlock island..."),
         Regex("You earned .+ Event EXP from playing SkyBlock!"),
         Regex("Warping..."),
@@ -218,18 +210,5 @@ object RemoveUselessMessages: Feature() {
         Regex("(.*) §r§ehas obtained §r§a§r§9Beating Heart§r§e!"),
         Regex("§fYou found a §r§dWither Essence§r§f! Everyone gains an extra essence!")
     )
-
-    @SubscribeEvent
-    fun onChat(event: Chat) {
-        val match = Regex("Your Explosive Shot hit (.+) (enemies|enemy) for (.+) damage.")
-            .find(event.component.unformattedText.removeFormatting()) ?: return
-
-        val (enemies, _, totalDamage) = match.destructured
-        val dmg = totalDamage.replace(Regex("[^0-9.]"), "").toDouble()
-        val decimalFormat = DecimalFormat("#,###.##")
-        val unitdmg = decimalFormat.format(dmg / enemies.toInt())
-
-        modMessage("&4Explosive shot did &e${format(unitdmg)} &4damage per enemy. &7(&6$enemies&7)")
-    }
 }
 

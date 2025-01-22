@@ -2,13 +2,11 @@ package noammaddons.utils
 
 import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type
 import gg.essential.universal.ChatColor
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import net.minecraft.init.Items
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.nbt.NBTUtil
+import net.minecraft.nbt.NBTUtil.readGameProfileFromNBT
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.common.util.Constants
 import noammaddons.noammaddons.Companion.mc
@@ -16,11 +14,11 @@ import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ItemUtils.ItemRarity.Companion.PET_PATTERN
 import noammaddons.utils.ItemUtils.ItemRarity.Companion.RARITY_PATTERN
 import noammaddons.utils.PlayerUtils.Player
-import noammaddons.utils.Utils.isNull
 import java.awt.Color
 
 
 object ItemUtils {
+    private val rarityCache = mutableMapOf<NBTTagCompound, ItemRarity>()
     private val textureCache = mutableMapOf<NBTTagCompound, ResourceLocation?>()
 
     enum class ItemRarity(val baseColor: ChatColor, val color: Color = baseColor.color !!) {
@@ -54,36 +52,11 @@ object ItemUtils {
         }
     }
 
-    @Serializable
-    data class APISBItem(
-        @SerialName("id")
-        val id: String,
-        @SerialName("material")
-        val material: String,
-        @SerialName("motes_sell_price")
-        val motesSellPrice: Double? = null,
-        @SerialName("name")
-        val name: String,
-        @SerialName("npc_sell_price")
-        val npcSellPrice: Double? = null,
-    )
-
-    data class bzitem(
-        val buyPrice: Double,
-        val buyVolume: Double,
-        val id: String,
-        val name: String,
-        val price: Double,
-        val sellPrice: Double,
-        val sellVolume: Double,
-        val tag: String?
-    )
-
     val ItemStack?.SkyblockID: String
         get() = this?.getSubCompound("ExtraAttributes", false)?.getString("id") ?: ""
 
     val ItemStack.lore: List<String>
-        get() = this.tagCompound?.getCompoundTag("display")?.getTagList("Lore", 8)?.let {
+        get() = tagCompound?.getCompoundTag("display")?.getTagList("Lore", 8)?.let {
             val list = mutableListOf<String>()
             for (i in 0 until it.tagCount()) {
                 list.add(it.getStringTagAt(i))
@@ -112,13 +85,21 @@ object ItemUtils {
     /**
      * Returns the rarity of a given Skyblock item
      * @author SkytilsMod
-     * @param ItemStack the Skyblock item to check
+     * @param item the Skyblock item to check
      * @return the rarity of the item if a valid rarity is found, `ItemRarity.NONE` if no rarity is found
+     *
+     * @author @Noamm9 - Modified
      */
     fun getRarity(item: ItemStack?): ItemRarity {
         if (item == null || ! item.hasTagCompound()) return ItemRarity.NONE
+        val nbt = item.tagCompound ?: return ItemRarity.NONE
+        rarityCache[nbt]?.let { return it }
+
         val display = item.getSubCompound("display", false)
-        if (display == null || ! display.hasKey("Lore")) return ItemRarity.NONE
+        if (display == null || ! display.hasKey("Lore")) {
+            rarityCache[nbt] = ItemRarity.NONE
+            return ItemRarity.NONE
+        }
 
         val lore = display.getTagList("Lore", Constants.NBT.TAG_STRING)
         val name = display.getString("Name")
@@ -127,37 +108,44 @@ object ItemUtils {
             val currentLine = lore.getStringTagAt(i)
             val rarityMatcher = RARITY_PATTERN.find(currentLine) ?: continue
             val rarity = rarityMatcher.groups["rarity"]?.value ?: continue
-
-            ItemRarity.entries.find {
+            val result = ItemRarity.entries.find {
                 it.rarityName == rarity.removeFormatting().substringAfter("SHINY ")
-            }?.let {
-                return it
-            }
+            } ?: continue
+
+            rarityCache[nbt] = result
+            return result
         }
 
-        val petRarityMatcher = PET_PATTERN.find(name) ?: return ItemRarity.NONE
-        val color = petRarityMatcher.groupValues.getOrNull(1) ?: return ItemRarity.NONE
-        return ItemRarity.byBaseColor(color) ?: ItemRarity.NONE
+        val petRarityMatcher = PET_PATTERN.find(name) ?: return ItemRarity.NONE.also {
+            rarityCache[nbt] = it
+        }
+
+        val color = petRarityMatcher.groupValues.getOrNull(1) ?: return ItemRarity.NONE.also {
+            rarityCache[nbt] = it
+        }
+
+        val rarity = ItemRarity.byBaseColor(color) ?: ItemRarity.NONE
+        rarityCache[nbt] = rarity
+        return rarity
     }
+
 
     fun ItemStack.getItemId(): Int = Item.getIdFromItem(item)
 
     fun getHeadSkinTexture(itemStack: ItemStack): ResourceLocation? {
         if (itemStack.item == Items.skull && itemStack.metadata == 3) {
             val nbt = itemStack.tagCompound ?: return null
-            if (! nbt.hasKey("SkullOwner", 10)) return null
-
-            val skullOwner = nbt.getCompoundTag("SkullOwner")
-            val profile = NBTUtil.readGameProfileFromNBT(skullOwner)
-            if (profile.isNull()) return null
-
             if (textureCache.containsKey(nbt)) return textureCache[nbt]
 
-            val textureManager = mc.skinManager
-            val textures = textureManager.loadSkinFromCache(profile)
+            if (! nbt.hasKey("SkullOwner", 10)) return null
+            val skullOwner = nbt.getCompoundTag("SkullOwner")
+            val profile = readGameProfileFromNBT(skullOwner) ?: return null
+
+            val skinManager = mc.skinManager
+            val textures = skinManager.loadSkinFromCache(profile)
             val skin = textures[Type.SKIN] ?: return null
 
-            val texture = textureManager.loadSkin(skin, Type.SKIN)
+            val texture = skinManager.loadSkin(skin, Type.SKIN)
             textureCache[nbt] = texture
 
             return texture

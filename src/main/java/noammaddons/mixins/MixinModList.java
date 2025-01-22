@@ -1,5 +1,6 @@
 package noammaddons.mixins;
 
+import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.network.handshake.FMLHandshakeMessage;
 import noammaddons.noammaddons;
@@ -22,7 +23,7 @@ public class MixinModList {
 
     @Inject(method = "<init>(Ljava/util/List;)V", at = @At("RETURN"))
     private void removeMod(List<ModContainer> modList, CallbackInfo ci) {
-        if (!noammaddons.mc.isIntegratedServerRunning()) {
+        if (!Minecraft.getMinecraft().isIntegratedServerRunning()) {
             modTags.remove(noammaddons.MOD_ID);
         }
     }

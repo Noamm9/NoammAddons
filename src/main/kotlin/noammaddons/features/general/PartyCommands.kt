@@ -6,6 +6,7 @@ import noammaddons.features.Feature
 import noammaddons.features.hud.TpsDisplay.getTps
 import noammaddons.noammaddons.Companion.CHAT_PREFIX
 import noammaddons.utils.ChatUtils.getPing
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendChatMessage
 import noammaddons.utils.ChatUtils.sendPartyMessage
@@ -86,7 +87,7 @@ object PartyCommands: Feature() {
     @SubscribeEvent
     fun trigger(event: Chat) {
         if (! config.PartyCommands) return
-        val msg = event.component.unformattedText.removeFormatting()
+        val msg = event.component.noFormatText
 
         partyCommandRegex.find(msg)?.let {
             val (name, sign, command) = it.destructured

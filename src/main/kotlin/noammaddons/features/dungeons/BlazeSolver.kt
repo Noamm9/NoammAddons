@@ -6,7 +6,7 @@ import net.minecraft.entity.monster.EntityBlaze
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.RenderEntityModelEvent
+import noammaddons.events.PostRenderEntityModelEvent
 import noammaddons.events.RenderWorld
 import noammaddons.events.Tick
 import noammaddons.features.Feature
@@ -14,6 +14,7 @@ import noammaddons.noammaddons.Companion.CHAT_PREFIX
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.getBlockId
 import noammaddons.utils.ChatUtils.clickableChat
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendChatMessage
 import noammaddons.utils.EspUtils.EspMob
@@ -54,7 +55,7 @@ object BlazeSolver: Feature() {
         hpMap.clear()
 
         mc.theWorld.loadedEntityList.filterIsInstance<EntityArmorStand>().forEach { e ->
-            val match = BlazeHpRegex.find(e.displayName.unformattedText.removeFormatting()) ?: return@forEach
+            val match = BlazeHpRegex.find(e.displayName.noFormatText) ?: return@forEach
             val health = match.groupValues[1].replace(",", "").toIntOrNull() ?: return@forEach
 
             val possibleEntity = e.entityWorld.getEntitiesInAABBexcluding(
@@ -123,7 +124,7 @@ object BlazeSolver: Feature() {
     }
 
     @SubscribeEvent
-    fun outlineBlazes(event: RenderEntityModelEvent) {
+    fun outlineBlazes(event: PostRenderEntityModelEvent) {
         if (! config.BlazeSolver) return
         if (config.espType == 1) return
         if (! inDungeons || inBoss) return

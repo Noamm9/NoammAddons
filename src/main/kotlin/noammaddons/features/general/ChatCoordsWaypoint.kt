@@ -7,7 +7,7 @@ import noammaddons.events.Chat
 import noammaddons.events.RenderWorld
 import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils
-import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.MathUtils
 import noammaddons.utils.PlayerUtils.Player
 import noammaddons.utils.RenderHelper.getRenderVec
@@ -27,7 +27,7 @@ object ChatCoordsWaypoint: Feature() {
     @SubscribeEvent
     fun coordsToWaypoint(event: Chat) {
         if (! config.ChatCoordsWayPoint) return
-        val match = regex.find(event.component.unformattedText.removeFormatting()) ?: return
+        val match = regex.find(event.component.noFormatText) ?: return
 
         val (type, name, x, y, z) = match.destructured
 

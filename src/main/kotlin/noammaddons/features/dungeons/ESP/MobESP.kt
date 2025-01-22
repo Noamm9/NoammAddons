@@ -8,7 +8,7 @@ import net.minecraft.entity.passive.EntityBat
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.RenderEntityModelEvent
+import noammaddons.events.PostRenderEntityModelEvent
 import noammaddons.events.RenderWorld
 import noammaddons.features.Feature
 import noammaddons.utils.EspUtils.EspMob
@@ -22,10 +22,12 @@ import java.awt.Color
 
 object MobESP: Feature() {
     private val checked = HashSet<Entity>()
+
+    @JvmField
     val starMobs = HashSet<Entity>()
 
     @SubscribeEvent
-    fun onRenderEntity(event: RenderEntityModelEvent) {
+    fun onRenderEntity(event: PostRenderEntityModelEvent) {
         if (! inDungeons) return
         if (event.entity is EntityArmorStand) {
             if (config.espStarMobs && event.entity.hasCustomName() &&
@@ -56,7 +58,11 @@ object MobESP: Feature() {
         if (! config.espType.equalsOneOf(0, 2)) return
         if (inBoss) return
 
-        EspMob(event, if (event.entity in starMobs) config.espColorStarMobs else getColor(event.entity) ?: return)
+        EspMob(
+            event,
+            if (event.entity in starMobs) config.espColorStarMobs
+            else getColor(event.entity) ?: return
+        )
     }
 
     @SubscribeEvent
@@ -76,6 +82,7 @@ object MobESP: Feature() {
         checked.clear()
     }
 
+    @JvmStatic
     fun getColor(entity: Entity): Color? {
         return when (entity) {
             is EntityBat -> if (config.espBats && ! entity.isInvisible) config.espColorBats else null

@@ -1,6 +1,5 @@
 package noammaddons.features.hud
 
-import gg.essential.universal.UGraphics.getStringWidth
 import net.minecraft.client.renderer.GlStateManager.*
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.renderPlayerlist
@@ -8,6 +7,7 @@ import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getScaleFactor
+import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawRainbowRoundedBorder
 import noammaddons.utils.RenderUtils.drawRoundedRect
@@ -39,8 +39,8 @@ object CustomTabList: Feature() {
         var maxNameWidth = 0
         var maxFooterWidth = 0
 
-        names.forEach { maxNameWidth = maxNameWidth.coerceAtLeast(getStringWidth(it.removeFormatting())) }
-        footerLines.forEach { maxFooterWidth = maxOf(maxFooterWidth, getStringWidth(it.removeFormatting())) }
+        names.forEach { maxNameWidth = maxNameWidth.coerceAtLeast(getStringWidth(it.removeFormatting()).toInt()) }
+        footerLines.forEach { maxFooterWidth = maxOf(maxFooterWidth, getStringWidth(it.removeFormatting()).toInt()) }
 
         val rowsCount = splitArray(names, 20).size.coerceIn(1, 4)
 

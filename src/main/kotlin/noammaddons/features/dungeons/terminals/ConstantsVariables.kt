@@ -17,8 +17,8 @@ object ConstantsVariables {
     val ColorsTitle = "$prefix &2C&3o&4l&5o&6r".addColor()
 
 
-    val lightmode = Color(203, 202, 205, 135)
-    val darkmode = Color(33, 33, 33, 153)
+    val lightmode = Color(203, 202, 205, 195)
+    val darkmode = Color(33, 33, 33, 195)
 
     fun getColorMode(): Color = if (config.CustomTerminalMenuLightMode) lightmode else darkmode
 
@@ -34,6 +34,6 @@ object ConstantsVariables {
 
     fun getTermScale(): Float = (config.CustomTerminalMenuScale * 9f) / mc.getScaleFactor()
 
-    data class Slot(val num: Int, val id: Int, val meta: Int, val size: Int, val name: String, val enchanted: Boolean)
+    data class TerminalSlot(val num: Int, val id: Int, val meta: Int, val size: Int, val name: String, val enchanted: Boolean)
 }
 

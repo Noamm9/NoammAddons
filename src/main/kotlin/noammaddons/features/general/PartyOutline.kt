@@ -1,7 +1,7 @@
 package noammaddons.features.general
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.RenderEntityModelEvent
+import noammaddons.events.PostRenderEntityModelEvent
 import noammaddons.events.RenderWorld
 import noammaddons.features.Feature
 import noammaddons.utils.EspUtils.EspMob
@@ -13,7 +13,7 @@ import noammaddons.utils.RenderUtils.drawEntityBox
 
 object PartyOutline: Feature() {
     @SubscribeEvent
-    fun EspPartyMembers(event: RenderEntityModelEvent) {
+    fun EspPartyMembers(event: PostRenderEntityModelEvent) {
         if (! config.partyOutline) return
         if (config.espType == 1) return
         if (inDungeons) return

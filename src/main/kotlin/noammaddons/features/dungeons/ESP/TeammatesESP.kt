@@ -1,7 +1,7 @@
 package noammaddons.features.dungeons.ESP
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.RenderEntityModelEvent
+import noammaddons.events.PostRenderEntityModelEvent
 import noammaddons.events.RenderWorld
 import noammaddons.features.Feature
 import noammaddons.utils.DungeonUtils.dungeonTeammatesNoSelf
@@ -13,7 +13,7 @@ import noammaddons.utils.Utils.equalsOneOf
 
 object TeammatesESP: Feature() {
     @SubscribeEvent
-    fun RenderOutline(event: RenderEntityModelEvent) {
+    fun RenderOutline(event: PostRenderEntityModelEvent) {
         if (! config.dungeonTeammatesEsp) return
         if (! config.espType.equalsOneOf(0, 2)) return
         if (! inDungeons) return

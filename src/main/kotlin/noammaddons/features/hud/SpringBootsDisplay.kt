@@ -1,9 +1,9 @@
 package noammaddons.features.hud
 
-import net.minecraftforge.client.event.sound.PlaySoundEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.config.EditGui.components.TextElement
 import noammaddons.events.RenderOverlay
+import noammaddons.events.SoundPlayEvent
 import noammaddons.features.Feature
 import noammaddons.utils.ItemUtils.SkyblockID
 import noammaddons.utils.PlayerUtils
@@ -25,12 +25,12 @@ object SpringBootsDisplay: Feature() {
     )
 
     @SubscribeEvent
-    fun onSound(event: PlaySoundEvent) {
+    fun onSound(event: SoundPlayEvent) {
         if (! config.SpringBootsDisplay) return
         if (Player.isNull()) return
         if (! Player !!.isSneaking && ! IsWearingSpringBoots()) return
         if (event.name != "note.pling") return
-        if (! PitchArray.contains(event.sound.pitch.toDouble()) || progress >= 42) return  // 42 - fill to 100%
+        if (! PitchArray.contains(event.pitch.toDouble()) || progress >= 42) return  // 42 - fill to 100%
 
         progress += 1
     }

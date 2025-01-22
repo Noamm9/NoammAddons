@@ -1,8 +1,10 @@
 package noammaddons.features.dungeons
 
+import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.showTitle
 import noammaddons.utils.LocationUtils.dungeonFloor
@@ -20,6 +22,11 @@ object BetterF7Titles: Feature() {
     private var startTickTimer = false
     private var tickTimer = 0
     private var timerTime = 0
+    private var maxorDead = false
+    private var goldorDead = false
+    private var necronDead = false
+    private var goldorStart = false
+    private var necronStart = false
     private val progressRegex = Regex("\\d+/\\d+")
     private val replacements = mapOf(
         "1/7" to "&c1&r/&a7", "1/8" to "&c1&r/&a8", "2/8" to "&c2&r/&a8", "2/7" to "&c2&r/&a7",
@@ -41,7 +48,7 @@ object BetterF7Titles: Feature() {
     @SubscribeEvent
     fun onChat(event: Chat) {
         if (! config.BetterF7Titles || dungeonFloor != 7 || ! inBoss) return
-        val msg = event.component.unformattedText.removeFormatting()
+        val msg = event.component.noFormatText
 
         termCrystalRegex.find(msg)?.let { matchResult ->
             if (matchResult.isNull()) return@let
@@ -82,6 +89,17 @@ object BetterF7Titles: Feature() {
                 showTitle(subtitle = "&cGate Destroyed!", time = 2)
                 Pling.start()
                 return
+            }
+
+            "[BOSS] Necron: ARGH!" -> necronStart = true
+            "The Core entrance is opening!" -> goldorStart = true
+
+            "reset" -> {
+                goldorDead = false
+                necronDead = false
+                necronStart = false
+                goldorStart = false
+                maxorDead = false
             }
         }
     }
@@ -127,6 +145,45 @@ object BetterF7Titles: Feature() {
 
     @SubscribeEvent
     fun onTick(event: ServerTick) {
-        if (startTickTimer) tickTimer ++
+        if (! startTickTimer) return
+        tickTimer ++
+    }
+
+    @SubscribeEvent
+    fun onBossbar(event: BossbarUpdateEvent) {
+        if (! config.BetterF7Titles) return
+        if (event.healthPresent != 0.33333334f) return
+
+        val bossDeaths = listOf(
+            Triple("Maxor", ::maxorDead, "&dMaxor Dead!"),
+            Triple("Goldor", ::goldorDead, "&7Goldor Dead!"),
+            Triple("Necron", ::necronDead, "&cNecron Dead!!")
+        )
+
+        bossDeaths.forEach { (boss, deadFlag, message) ->
+            if (event.bossName.contains(boss) && ! deadFlag.get()) {
+                if (boss == "Goldor" && ! goldorStart) return
+                if (boss == "Necron" && ! necronStart) return
+
+                showTitle(subtitle = message, time = 2)
+                Pling.start()
+                deadFlag.set(true)
+                return
+            }
+        }
+    }
+
+    @SubscribeEvent
+    fun reset(event: WorldEvent.Unload) {
+        if (! config.BetterF7Titles) return
+
+        maxorDead = false
+        goldorDead = false
+        necronDead = false
+        startTickTimer = false
+        tickTimer = 0
+        timerTime = 0
+        goldorStart = false
+        necronStart = false
     }
 }
