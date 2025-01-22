@@ -4,7 +4,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Chat
 import noammaddons.events.RenderOverlay
 import noammaddons.features.Feature
-import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.showTitle
 import noammaddons.utils.LocationUtils.inSkyblock
 import noammaddons.utils.LocationUtils.onHypixel
@@ -25,7 +25,7 @@ object SBKickDuration: Feature() {
     fun onChat(event: Chat) {
         if (! config.SBKickDuration) return
 
-        if (event.component.unformattedText.removeFormatting().equalsOneOf(
+        if (event.component.noFormatText.equalsOneOf(
                 "You were kicked while joining that server!",
                 "There was a problem joining SkyBlock, try again in a moment!"
             )

@@ -4,32 +4,31 @@ package noammaddons.utils
 import gg.essential.api.EssentialAPI
 import gg.essential.universal.UChat
 import gg.essential.universal.UChat.addColor
-import gg.essential.universal.UGraphics.getStringWidth
 import gg.essential.universal.wrappers.message.UTextComponent
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.minecraft.event.ClickEvent
 import net.minecraft.event.HoverEvent
-import net.minecraft.network.play.server.S02PacketChat
 import net.minecraft.util.ChatAllowedCharacters.filterAllowedCharacters
 import net.minecraft.util.ChatComponentText
 import net.minecraft.util.ChatStyle
-import net.minecraftforge.client.event.ClientChatReceivedEvent
-import net.minecraftforge.common.MinecraftForge
+import net.minecraft.util.IChatComponent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Chat
-import noammaddons.events.PacketEvent
+import noammaddons.events.RegisterEvents.postAndCatch
 import noammaddons.events.RenderOverlay
 import noammaddons.noammaddons.Companion.CHAT_PREFIX
 import noammaddons.noammaddons.Companion.DEBUG_PREFIX
 import noammaddons.noammaddons.Companion.FULL_PREFIX
+import noammaddons.noammaddons.Companion.Logger
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.noammaddons.Companion.scope
 import noammaddons.utils.LocationUtils.inSkyblock
 import noammaddons.utils.PartyUtils.isInParty
 import noammaddons.utils.PlayerUtils.Player
+import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderUtils.drawTitle
 import noammaddons.utils.SoundUtils.notificationSound
 import noammaddons.utils.ThreadUtils.loop
@@ -56,14 +55,13 @@ object ChatUtils {
         val len = getStringWidth(separator)
         val times = mc.ingameGUI?.chatGUI?.chatWidth?.div(len)
 
-        return times?.let { "-".repeat(it) }
+        return times?.let { "-".repeat(it.toInt()) }
     }
 
     fun sendFakeChatMessage(message: String) {
         val formattedMessage = message.addColor()
-        modMessage(formattedMessage)
-        MinecraftForge.EVENT_BUS.post(ClientChatReceivedEvent(0.toByte(), ChatComponentText(formattedMessage)))
-        MinecraftForge.EVENT_BUS.post(PacketEvent.Received(S02PacketChat(ChatComponentText(formattedMessage), 0.toByte())))
+        modMessage("Simulating Chat Message: $formattedMessage")
+        postAndCatch(Chat(ChatComponentText(formattedMessage)))
     }
 
     fun copyToClipboard(text: String) {
@@ -92,7 +90,7 @@ object ChatUtils {
         return input.replace(Regex("[^\\u0000-\\u007F]"), "")
     }
 
-    fun String?.removeFormatting(): String = UTextComponent.stripFormatting(this?.addColor() ?: "null")
+    fun String.removeFormatting(): String = UTextComponent.stripFormatting(this.addColor())
 
     fun String.addColor(): String = addColor(this)
 
@@ -116,7 +114,9 @@ object ChatUtils {
             "&b&m${getChatBreak()?.substring(1)}",
         ).reversed().forEach { msg.add(it) }
 
-        UChat.chat(msg.joinToString("\n") { "$it".addColor() })
+        val msgF = msg.joinToString("\n") { "$it".addColor() }
+        UChat.chat(msgF)
+        Logger.error(msgF.removeFormatting())
     }
 
     fun sendChatMessage(message: Any) {
@@ -126,6 +126,9 @@ object ChatUtils {
     fun sendPartyMessage(message: Any) {
         if (isInParty()) sendChatMessage("/pc ${message.toString().removeFormatting()}")
     }
+
+    // sometimes the text is still formatted, Thanks Minecraft
+    val IChatComponent.noFormatText get() = unformattedText.removeFormatting()
 
     /**
      * Sends a message to the user that they can click and run an action.
@@ -235,7 +238,8 @@ object ChatUtils {
         EssentialAPI.getNotifications().push(
             title.addColor(),
             message.addColor(),
-            (if (duration == - 1) 999999999999999999 else duration).toFloat(),
+            if (duration == - 1) Float.MAX_VALUE
+            else duration.toFloat(),
             clickFunction,
             closeFunction
         )

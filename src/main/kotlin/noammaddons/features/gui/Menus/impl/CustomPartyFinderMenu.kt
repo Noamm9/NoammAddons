@@ -1,6 +1,5 @@
 package noammaddons.features.gui.Menus.impl
 
-import gg.essential.universal.UGraphics.getStringWidth
 import io.github.moulberry.notenoughupdates.NEUApi
 import io.github.moulberry.notenoughupdates.NotEnoughUpdates
 import net.minecraft.client.renderer.GlStateManager
@@ -9,7 +8,7 @@ import net.minecraft.item.ItemStack
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.GuiContainerEvent
+import noammaddons.events.GuiMouseClickEvent
 import noammaddons.events.InventoryFullyOpenedEvent
 import noammaddons.features.Feature
 import noammaddons.features.gui.Menus.*
@@ -22,6 +21,7 @@ import noammaddons.utils.LocationUtils.WorldName
 import noammaddons.utils.LocationUtils.WorldType.DungeonHub
 import noammaddons.utils.LocationUtils.WorldType.Hub
 import noammaddons.utils.PlayerUtils.Player
+import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.RenderUtils.drawTextWithoutColorLeak
 import noammaddons.utils.RenderUtils.drawWithNoLeak
@@ -145,7 +145,7 @@ object CustomPartyFinderMenu: Feature() {
     }
 
     @SubscribeEvent
-    fun onClick(event: GuiContainerEvent.GuiMouseClickEvent) {
+    fun onClick(event: GuiMouseClickEvent) {
         if (! inPartyFinder) return
         if (! event.button.equalsOneOf(0, 1, 2)) return
         val container = Player?.openContainer?.inventorySlots ?: return
@@ -205,7 +205,7 @@ object CustomPartyFinderMenu: Feature() {
 
         if (item.item !is ItemSkull) return null
 
-        if (selectedClass.removeFormatting() in classNames) classNames[classNames.indexOf(selectedClass.removeFormatting())] = "$selectedClass§7"
+        if (selectedClass?.removeFormatting() in classNames) classNames[classNames.indexOf(selectedClass?.removeFormatting())] = "$selectedClass§7"
         toolTip.add("")
         toolTip.add("§cMissing: §7" + classNames.joinToString(", ") { it.addColor() })
 

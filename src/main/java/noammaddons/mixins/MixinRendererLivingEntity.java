@@ -7,7 +7,7 @@ import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.entity.EntityLivingBase;
 import noammaddons.config.Config;
-import noammaddons.events.RenderEntityModelEvent;
+import noammaddons.events.PostRenderEntityModelEvent;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -47,7 +47,7 @@ public class MixinRendererLivingEntity {
             removeChamESP(entitylivingbaseIn);
         }
 
-        postAndCatch(new RenderEntityModelEvent(
+        postAndCatch(new PostRenderEntityModelEvent(
                 entitylivingbaseIn,
                 p_177093_2_, p_177093_3_,
                 p_177093_5_, p_177093_6_,

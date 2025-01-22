@@ -10,5 +10,6 @@ abstract class Feature {
     protected val ahData = noammaddons.ahData
     protected val bzData = noammaddons.bzData
     protected val npcData = noammaddons.npcData
+    protected val mayorData get() = noammaddons.mayorData
     protected val itemIdToNameLookup = noammaddons.itemIdToNameLookup
 }

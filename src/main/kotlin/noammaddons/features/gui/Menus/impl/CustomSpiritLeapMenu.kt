@@ -1,6 +1,5 @@
 package noammaddons.features.gui.Menus.impl
 
-import gg.essential.universal.UGraphics.getStringWidth
 import io.github.moulberry.notenoughupdates.NEUApi
 import io.github.moulberry.notenoughupdates.NotEnoughUpdates
 import net.minecraft.client.renderer.GlStateManager
@@ -8,7 +7,7 @@ import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.GuiContainerEvent
+import noammaddons.events.GuiMouseClickEvent
 import noammaddons.events.InventoryFullyOpenedEvent
 import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.removeFormatting
@@ -24,9 +23,10 @@ import noammaddons.utils.PlayerUtils.Player
 import noammaddons.utils.PlayerUtils.closeScreen
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getScaleFactor
+import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderHelper.getWidth
+import noammaddons.utils.RenderUtils.drawFloatingRectWithAlpha
 import noammaddons.utils.RenderUtils.drawPlayerHead
-import noammaddons.utils.RenderUtils.drawRainbowRoundedBorder
 import noammaddons.utils.RenderUtils.drawRoundedRect
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.SoundUtils
@@ -85,8 +85,8 @@ object CustomSpiritLeapMenu: Feature() {
             listOf(X + BoxWidth + BoxSpacing, Y + BoxHeight + BoxSpacing)
         )
 
-        val Lightmode = Color(203, 202, 205, 200)
-        val Darkmode = Color(33, 33, 33, 200)
+        val Lightmode = Color(203, 202, 205)
+        val Darkmode = Color(33, 33, 33)
         val ColorMode = if (config.CustomLeapMenuLightMode) Lightmode else Darkmode
 
         GlStateManager.pushMatrix()
@@ -96,20 +96,12 @@ object CustomSpiritLeapMenu: Feature() {
             if (player.isNull()) return@forEachIndexed
             val color = player !!.clazz.color
 
-            drawRoundedRect(
-                ColorMode,
-                offsets[i][0],
-                offsets[i][1],
-                BoxWidth,
-                BoxHeight, 3f
-            )
-
-            drawRainbowRoundedBorder(
-                offsets[i][0],
-                offsets[i][1],
-                BoxWidth,
-                BoxHeight,
-                3f, 3f
+            drawFloatingRectWithAlpha(
+                offsets[i][0].toInt(),
+                offsets[i][1].toInt(),
+                BoxWidth.toInt(),
+                BoxHeight.toInt(),
+                false, ColorMode
             )
 
             drawRoundedRect(
@@ -145,7 +137,7 @@ object CustomSpiritLeapMenu: Feature() {
     }
 
     @SubscribeEvent
-    fun onClick(event: GuiContainerEvent.GuiMouseClickEvent) {
+    fun onClick(event: GuiMouseClickEvent) {
         if (! inSpiritLeap()) return
         event.isCanceled = true
 

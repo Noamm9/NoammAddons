@@ -1,22 +1,22 @@
 package noammaddons.features.dungeons.terminals
 
 import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.network.play.client.C0DPacketCloseWindow
 import net.minecraft.network.play.client.C0EPacketClickWindow
 import net.minecraft.network.play.server.S2DPacketOpenWindow
-import net.minecraft.network.play.server.S2EPacketCloseWindow
 import net.minecraft.network.play.server.S2FPacketSetSlot
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.GuiContainerEvent
+import noammaddons.events.GuiCloseEvent
+import noammaddons.events.GuiMouseClickEvent
 import noammaddons.events.PacketEvent
 import noammaddons.features.Feature
 import noammaddons.features.dungeons.terminals.ConstantsVariables.RedGreenTitle
-import noammaddons.features.dungeons.terminals.ConstantsVariables.Slot
+import noammaddons.features.dungeons.terminals.ConstantsVariables.TerminalSlot
 import noammaddons.features.dungeons.terminals.ConstantsVariables.getColorMode
 import noammaddons.features.dungeons.terminals.ConstantsVariables.getSolutionColor
 import noammaddons.features.dungeons.terminals.ConstantsVariables.getTermScale
 import noammaddons.features.gui.Menus.renderBackground
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.disableNEUInventoryButtons
 import noammaddons.utils.GuiUtils.getMouseX
@@ -28,7 +28,6 @@ import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawRoundedRect
 import noammaddons.utils.RenderUtils.drawText
-import noammaddons.utils.SoundUtils.ayaya
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.send
 import kotlin.math.floor
@@ -38,12 +37,10 @@ object RedGreen: Feature() {
     private var inTerminal = false
     private var cwid = - 1
     private var windowSize = 0
-    private val slots = mutableListOf<Slot?>()
-
+    private val terminalSlots = mutableListOf<TerminalSlot?>()
     private var clicked = false
     private val queue = mutableListOf<Pair<Int, Int>>()
     private val solution = mutableListOf<Int>()
-
     private val allowedSlots = listOf(
         11, 12, 13, 14,
         15, 20, 21, 22,
@@ -51,9 +48,8 @@ object RedGreen: Feature() {
         31, 32, 33
     )
 
-
     @SubscribeEvent
-    fun onClick(event: GuiContainerEvent.GuiMouseClickEvent) {
+    fun onClick(event: GuiMouseClickEvent) {
         if (! inTerminal) return
         event.isCanceled = true
 
@@ -121,17 +117,14 @@ object RedGreen: Feature() {
         GlStateManager.popMatrix()
     }
 
-
     private fun solve() {
         solution.clear()
-        slots.filter { it != null && allowedSlots.contains(it.num) && it.id == 160 && it.meta == 14 }
+        terminalSlots.filter { it != null && allowedSlots.contains(it.num) && it.id == 160 && it.meta == 14 }
             .map { it !!.num }
             .forEach { solution.add(it) }
     }
 
-    private fun predict(slot: Int) {
-        solution.remove(slot)
-    }
+    private fun predict(slot: Int) = solution.remove(slot)
 
     private fun click(slot: Int, button: Int) {
         clicked = true
@@ -150,14 +143,14 @@ object RedGreen: Feature() {
         if (! config.CustomTerminalsGui || ! config.CustomRedGreenTerminal || LocationUtils.dungeonFloor != 7 || F7Phase != 3) return
         if (event.packet !is S2DPacketOpenWindow) return
 
-        val windowTitle = event.packet.windowTitle.unformattedText.removeFormatting()
+        val windowTitle = event.packet.windowTitle.noFormatText
         val slotCount = event.packet.slotCount
         cwid = event.packet.windowId
 
         if (Regex("^Correct all the panes!$").matches(windowTitle)) {
             inTerminal = true
             clicked = false
-            slots.clear()
+            terminalSlots.clear()
             windowSize = slotCount
             disableNEUInventoryButtons()
         }
@@ -176,8 +169,8 @@ object RedGreen: Feature() {
         if (slot >= windowSize) return
 
         if (itemStack !== null) {
-            slots.add(
-                Slot(
+            terminalSlots.add(
+                TerminalSlot(
                     slot,
                     itemStack.getItemId(),
                     itemStack.metadata,
@@ -187,10 +180,10 @@ object RedGreen: Feature() {
                 )
             )
         }
-        else slots.add(null)
+        else terminalSlots.add(null)
 
 
-        if (slots.size == windowSize) {
+        if (terminalSlots.size == windowSize) {
             solve()
             if (queue.isNotEmpty() && queue.all { solution.contains(it.first) }) {
                 queue.forEach { predict(it.first) }
@@ -202,21 +195,9 @@ object RedGreen: Feature() {
     }
 
     @SubscribeEvent
-    fun onWindowClose(event: PacketEvent.Received) {
-        if (event.packet !is S2EPacketCloseWindow) return
+    fun onWindowClose(event: GuiCloseEvent) {
         if (! inTerminal) return
-        reset()
-        ayaya.start()
-    }
-
-    @SubscribeEvent
-    fun onSentPacket(event: PacketEvent.Sent) {
-        if (event.packet !is C0DPacketCloseWindow) return
-        if (! inTerminal) return
-        reset()
-    }
-
-    private fun reset() {
+        if (event.newGui != null) return
         inTerminal = false
         queue.clear()
     }

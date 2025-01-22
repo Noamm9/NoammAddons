@@ -33,7 +33,8 @@ object GhostPick: Feature() {
         if (event.packet !is C07PacketPlayerDigging) return
 
         if (config.LegitGhostPick) {
-            if (heldItem.getItemId().equalsOneOf(261, 46)) return
+            // disable on bow, tnt, blaze rod
+            if (heldItem.getItemId().equalsOneOf(261, 46, 369)) return
             event.isCanceled = true
         }
 

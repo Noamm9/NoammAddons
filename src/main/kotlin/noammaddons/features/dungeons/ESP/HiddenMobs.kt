@@ -3,7 +3,7 @@ package noammaddons.features.dungeons.ESP
 import net.minecraft.entity.monster.EntityEnderman
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.RenderEntityModelEvent
+import noammaddons.events.PostRenderEntityModelEvent
 import noammaddons.features.Feature
 import noammaddons.utils.JsonUtils.fetchJsonWithRetry
 import noammaddons.utils.LocationUtils.inDungeons
@@ -19,13 +19,13 @@ object HiddenMobs: Feature() {
     }
 
     @SubscribeEvent
-    fun onRenderEntity(event: RenderEntityModelEvent) {
+    fun onRenderEntity(event: PostRenderEntityModelEvent) {
         if (watcherMobs.isNull()) return
         if (! inDungeons) return
-        if (event.entity.isInvisible && when (event.entity) {
-                is EntityEnderman -> config.showFels && event.entity.name == "Dinnerbone"
-                is EntityPlayer -> config.showShadowAssassin && event.entity.name.contains("Shadow Assassin") ||
-                        config.showStealthy && watcherMobs !!.any { event.entity.name.trim() == it }
+        if (event.entity.isInvisible && when (val entity = event.entity) {
+                is EntityEnderman -> config.showFels && entity.name == "Dinnerbone"
+                is EntityPlayer -> config.showShadowAssassin && entity.name.contains("Shadow Assassin") ||
+                        config.showStealthy && watcherMobs !!.any { entity.name.trim() == it }
 
                 else -> false
             }

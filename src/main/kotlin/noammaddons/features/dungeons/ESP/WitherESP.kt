@@ -5,7 +5,7 @@ import net.minecraft.entity.boss.EntityWither
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.RenderEntityModelEvent
+import noammaddons.events.PostRenderEntityModelEvent
 import noammaddons.events.RenderWorld
 import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.removeFormatting
@@ -28,7 +28,7 @@ object WitherESP: Feature() {
     private lateinit var type: Wither
 
     @SubscribeEvent
-    fun esp(event: RenderEntityModelEvent) {
+    fun esp(event: PostRenderEntityModelEvent) {
         if (! config.espWithers) return
         if (event.entity is EntityArmorStand) {
             val entity = event.entity

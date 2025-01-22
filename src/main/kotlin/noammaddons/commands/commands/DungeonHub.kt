@@ -1,12 +1,12 @@
-package noammaddons.commands.SkyBlockCommands
+package noammaddons.commands.commands
 
 import net.minecraft.command.ICommandSender
 import noammaddons.commands.Command
 import noammaddons.utils.ChatUtils.sendChatMessage
 
 
-object CrimonIsle : Command("nether") {
+object DungeonHub: Command("d", listOf("dung")) {
     override fun processCommand(sender: ICommandSender, args: Array<out String>) {
-        sendChatMessage("/warp nether")
+        sendChatMessage("/warp dungeon_hub")
     }
 }

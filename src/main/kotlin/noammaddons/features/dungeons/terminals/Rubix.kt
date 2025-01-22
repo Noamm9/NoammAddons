@@ -1,23 +1,22 @@
 package noammaddons.features.dungeons.terminals
 
-import gg.essential.universal.UGraphics.getStringWidth
 import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.network.play.client.C0DPacketCloseWindow
 import net.minecraft.network.play.client.C0EPacketClickWindow
 import net.minecraft.network.play.server.S2DPacketOpenWindow
-import net.minecraft.network.play.server.S2EPacketCloseWindow
 import net.minecraft.network.play.server.S2FPacketSetSlot
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.GuiContainerEvent
+import noammaddons.events.GuiCloseEvent
+import noammaddons.events.GuiMouseClickEvent
 import noammaddons.events.PacketEvent
 import noammaddons.features.Feature
 import noammaddons.features.dungeons.terminals.ConstantsVariables.RubixTitle
-import noammaddons.features.dungeons.terminals.ConstantsVariables.Slot
+import noammaddons.features.dungeons.terminals.ConstantsVariables.TerminalSlot
 import noammaddons.features.dungeons.terminals.ConstantsVariables.getColorMode
 import noammaddons.features.dungeons.terminals.ConstantsVariables.getSolutionColor
 import noammaddons.features.dungeons.terminals.ConstantsVariables.getTermScale
 import noammaddons.features.gui.Menus.renderBackground
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.disableNEUInventoryButtons
 import noammaddons.utils.GuiUtils.getMouseX
@@ -26,10 +25,10 @@ import noammaddons.utils.ItemUtils.getItemId
 import noammaddons.utils.LocationUtils
 import noammaddons.utils.LocationUtils.F7Phase
 import noammaddons.utils.RenderHelper.getHeight
+import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawRoundedRect
 import noammaddons.utils.RenderUtils.drawText
-import noammaddons.utils.SoundUtils.ayaya
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.send
 import kotlin.math.floor
@@ -39,8 +38,7 @@ object Rubix: Feature() {
     private var inTerminal = false
     private var cwid = - 1
     private var windowSize = 0
-    private var slots = mutableListOf<Slot?>()
-
+    private var terminalSlots = mutableListOf<TerminalSlot?>()
     private var clicked = false
     private var queue = mutableListOf<Pair<Int, Int>>()
     private var solution = mutableMapOf<Int, Int>()
@@ -49,7 +47,7 @@ object Rubix: Feature() {
 
 
     @SubscribeEvent
-    fun onClick(event: GuiContainerEvent.GuiMouseClickEvent) {
+    fun onClick(event: GuiMouseClickEvent) {
         if (! inTerminal) return
         event.isCanceled = true
 
@@ -130,14 +128,13 @@ object Rubix: Feature() {
         GlStateManager.popMatrix()
     }
 
-
     private fun solve() {
         solution.clear()
         val calcIndex = { index: Int -> (index + order.size) % order.size }
         val clicks = MutableList(5) { 0 }
 
         for (i in 0 until 5) {
-            slots.filter { it != null && allowedSlots.contains(it.num) && it.meta != order[calcIndex(i)] }
+            terminalSlots.filter { it != null && allowedSlots.contains(it.num) && it.meta != order[calcIndex(i)] }
                 .forEach {
                     when (it !!.meta) {
                         order[calcIndex(i - 2)] -> clicks[i] += 2
@@ -149,7 +146,7 @@ object Rubix: Feature() {
         }
 
         val origin = clicks.indexOf(clicks.minOrNull() ?: 0)
-        slots.filter { it != null && allowedSlots.contains(it.num) && it.meta != order[calcIndex(origin)] }.forEach {
+        terminalSlots.filter { it != null && allowedSlots.contains(it.num) && it.meta != order[calcIndex(origin)] }.forEach {
             solution[it !!.num] = when (it.meta) {
                 order[calcIndex(origin - 2)] -> 2
                 order[calcIndex(origin - 1)] -> 1
@@ -178,20 +175,19 @@ object Rubix: Feature() {
         }
     }
 
-
     @SubscribeEvent
     fun onWindowOpen(event: PacketEvent.Received) {
         if (! config.CustomTerminalsGui || ! config.CustomRubixTerminal || LocationUtils.dungeonFloor != 7 || F7Phase != 3) return
         if (event.packet !is S2DPacketOpenWindow) return
 
-        val windowTitle = event.packet.windowTitle.unformattedText.removeFormatting()
+        val windowTitle = event.packet.windowTitle.noFormatText
         val slotCount = event.packet.slotCount
         cwid = event.packet.windowId
 
         if (Regex("^Change all to same color!$").matches(windowTitle)) {
             inTerminal = true
             clicked = false
-            slots.clear()
+            terminalSlots.clear()
             windowSize = slotCount
             disableNEUInventoryButtons()
         }
@@ -210,8 +206,8 @@ object Rubix: Feature() {
         if (slot >= windowSize) return
 
         if (itemStack !== null) {
-            slots.add(
-                Slot(
+            terminalSlots.add(
+                TerminalSlot(
                     slot,
                     itemStack.getItemId(),
                     itemStack.metadata,
@@ -221,9 +217,9 @@ object Rubix: Feature() {
                 )
             )
         }
-        else slots.add(null)
+        else terminalSlots.add(null)
 
-        if (slots.size == windowSize && slot == windowSize - 1) {
+        if (terminalSlots.size == windowSize && slot == windowSize - 1) {
             solve()
             if (queue.isNotEmpty() && queue.all { (slot, button) ->
                     ((solution[slot] ?: 0) > 0 && button == 0) || ((solution[slot] ?: 0) < 0 && button == 1)
@@ -237,21 +233,9 @@ object Rubix: Feature() {
     }
 
     @SubscribeEvent
-    fun onWindowClose(event: PacketEvent.Received) {
-        if (event.packet !is S2EPacketCloseWindow) return
+    fun onWindowClose(event: GuiCloseEvent) {
         if (! inTerminal) return
-        reset()
-        ayaya.start()
-    }
-
-    @SubscribeEvent
-    fun onSentPacket(event: PacketEvent.Sent) {
-        if (event.packet !is C0DPacketCloseWindow) return
-        if (! inTerminal) return
-        reset()
-    }
-
-    private fun reset() {
+        if (event.newGui != null) return
         inTerminal = false
         queue.clear()
     }

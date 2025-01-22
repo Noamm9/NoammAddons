@@ -1,6 +1,5 @@
 package noammaddons.config.EditGui.components
 
-import gg.essential.universal.UGraphics.getStringWidth
 import net.minecraft.client.renderer.GlStateManager
 import noammaddons.config.EditGui.ElementsManager.DrawableElement
 import noammaddons.config.EditGui.ElementsManager.HudElementData
@@ -9,6 +8,8 @@ import noammaddons.config.EditGui.ElementsManager.textElements
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.RenderHelper.getScaleFactor
+import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderUtils
 import noammaddons.utils.RenderUtils.drawText
 import java.awt.Color
@@ -56,16 +57,13 @@ class TextElement(
 
     override fun draw(example: Boolean) {
         update()
-        GlStateManager.pushMatrix()
 
         if (! example) {
-            drawText(
-                getText(),
-                getX(),
-                getY(),
-                getScale(),
-                getColor(),
-            )
+            GlStateManager.pushMatrix()
+            val scale = 2f / mc.getScaleFactor()
+            GlStateManager.scale(scale, scale, scale)
+            drawText(getText(), getX(), getY(), getScale(), getColor())
+            GlStateManager.popMatrix()
         }
         else {
             RenderUtils.drawRoundedRect(
@@ -75,15 +73,9 @@ class TextElement(
                 height * getScale()
             )
 
-            drawText(
-                getText(),
-                getX(),
-                getY(),
-                getScale(),
-                getColor(),
-            )
+            drawText(getText(), getX(), getY(), getScale(), getColor())
         }
-        GlStateManager.popMatrix()
+
     }
 
     override fun isHovered(mouseX: Float, mouseY: Float): Boolean {

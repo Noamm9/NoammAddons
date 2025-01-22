@@ -6,14 +6,14 @@ import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.config.KeyBinds.SlotBindingAddBinding
 import noammaddons.config.KeyBinds.SlotBindingRemoveBinding
-import noammaddons.events.GuiContainerEvent
+import noammaddons.events.GuiMouseClickEvent
 import noammaddons.features.Feature
 import noammaddons.noammaddons.Companion.SlotBindingData
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.GuiUtils.getSlotRenderPos
 import noammaddons.utils.PlayerUtils.Player
+import noammaddons.utils.RenderUtils.drawBorder
 import noammaddons.utils.RenderUtils.drawLine
-import noammaddons.utils.RenderUtils.drawRoundedBorder
 import noammaddons.utils.SoundUtils
 import org.lwjgl.input.Keyboard.KEY_LSHIFT
 import org.lwjgl.input.Keyboard.isKeyDown
@@ -39,7 +39,7 @@ object SlotBinding: Feature() {
 
 
     @SubscribeEvent
-    fun onGuiMouseClick(event: GuiContainerEvent.GuiMouseClickEvent) {
+    fun onGuiMouseClick(event: GuiMouseClickEvent) {
         if (! config.SlotBinding) return
         val gui = event.gui as? GuiInventory ?: return
         val slot = gui.slotUnderMouse?.slotNumber ?: return
@@ -55,13 +55,13 @@ object SlotBinding: Feature() {
 
     private fun isInvalidSlotCombination(slot: Int) = isHotbarSlot(previousSlot !!) == isHotbarSlot(slot)
 
-    private fun cancel(event: GuiContainerEvent.GuiMouseClickEvent) {
+    private fun cancel(event: GuiMouseClickEvent) {
         event.isCanceled = true
         modMessage("$PREFIX &cPlease click a valid hotbar slot!")
         previousSlot = null
     }
 
-    private fun handleShiftKey(slot: Int, event: GuiContainerEvent.GuiMouseClickEvent, windowId: Int) {
+    private fun handleShiftKey(slot: Int, event: GuiMouseClickEvent, windowId: Int) {
         event.isCanceled = true
         data[slot.toString()]?.let {
             handleShiftClick(slot, windowId)
@@ -72,7 +72,7 @@ object SlotBinding: Feature() {
         }
     }
 
-    private fun handleAddBinding(slot: Int, event: GuiContainerEvent.GuiMouseClickEvent) {
+    private fun handleAddBinding(slot: Int, event: GuiMouseClickEvent) {
         previousSlot = previousSlot ?: slot
         SoundUtils.click.start()
 
@@ -86,7 +86,7 @@ object SlotBinding: Feature() {
         event.isCanceled = true
     }
 
-    private fun handleRemoveBinding(slot: Int, event: GuiContainerEvent.GuiMouseClickEvent) {
+    private fun handleRemoveBinding(slot: Int, event: GuiMouseClickEvent) {
         previousSlot = previousSlot ?: slot
         SoundUtils.click.start()
 
@@ -142,10 +142,24 @@ object SlotBinding: Feature() {
             config.SlotBindingLineColor,
             slotPos.first + 8f, slotPos.second + 8f,
             hotbarSlotPos.first + 8f, hotbarSlotPos.second + 8f,
-            1f
+            3
         )
-        drawRoundedBorder(config.SlotBindingBorderColor, slotPos.first, slotPos.second, 16f, 16f, 0f)
-        drawRoundedBorder(config.SlotBindingBorderColor, hotbarSlotPos.first, hotbarSlotPos.second, 16f, 16f, 0f)
+        drawBorder(
+            config.SlotBindingBorderColor,
+            slotPos.first,
+            slotPos.second,
+            slotPos.first + 16,
+            slotPos.second + 16,
+            2
+        )
+        drawBorder(
+            config.SlotBindingBorderColor,
+            hotbarSlotPos.first,
+            hotbarSlotPos.second,
+            hotbarSlotPos.first + 16,
+            hotbarSlotPos.second + 16,
+            2
+        )
     }
 
     private fun isHotbarSlot(slot: Int): Boolean = slot in 36 .. 44

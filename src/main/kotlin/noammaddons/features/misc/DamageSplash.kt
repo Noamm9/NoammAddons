@@ -8,11 +8,14 @@ import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.addRandomColorCodes
 import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.LocationUtils.dungeonFloor
+import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.inSkyblock
 import noammaddons.utils.NumbersUtils.format
 
 
 object DamageSplash: Feature() {
+    // Thanks Skytils 😘
     private val damageRegex = Regex("[✧✯]?(\\d{1,3}(?:,\\d{3})*[⚔+✧❤♞☄✷ﬗ✯]*)")
 
     @SubscribeEvent
@@ -27,12 +30,14 @@ object DamageSplash: Feature() {
         val name = "${nameData.getObject()}".removeFormatting()
         val damage = damageRegex.matchEntire(name)?.destructured?.component1() ?: return
 
-        val newName = if ("✧" in name) {
-            "&f✧${addRandomColorCodes(format(damage))}&f✧"
+        // todo: make a config check
+        if (inBoss && dungeonFloor == 6) {
+            event.isCanceled = true
+            return
         }
-        else {
-            "&3${format(damage)}"
-        }
+
+        val newName = if ("✧" in name) "&f✧${addRandomColorCodes(format(damage))}&f✧"
+        else "&3${format(damage)}"
 
         nameData.setObject(newName.addColor())
     }

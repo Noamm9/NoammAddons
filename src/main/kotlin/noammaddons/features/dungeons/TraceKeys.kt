@@ -4,7 +4,7 @@ import net.minecraft.util.Vec3
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.RenderWorld
 import noammaddons.features.Feature
-import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.RenderHelper.getRenderVec
 import noammaddons.utils.RenderHelper.getRenderX
@@ -19,7 +19,7 @@ object TraceKeys: Feature() {
     fun TraceKeys(event: RenderWorld) {
         if (! config.TraceKeys || inBoss) return
         for (entity in mc.theWorld.loadedEntityList) {
-            when (entity.displayName.unformattedText.removeFormatting()) {
+            when (entity.displayName.noFormatText) {
                 "Wither Key" -> {
                     drawTracer(
                         entity.getRenderVec().add(Vec3(.0, 1.7, .0)),

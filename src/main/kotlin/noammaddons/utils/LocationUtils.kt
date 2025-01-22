@@ -6,6 +6,7 @@ import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent
 import noammaddons.events.Tick
+import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.MathUtils.isCoordinateInsideBox
@@ -18,13 +19,28 @@ object LocationUtils {
     private val WorldNameRegex = Regex("(Area|Dungeon): ([\\w ]+)")
     private var TickTimer = 0
 
+    @JvmStatic
     val onHypixel get() = EssentialAPI.getMinecraftUtil().isHypixel()
+
+    @JvmField
     var inSkyblock = false
+
+    @JvmField
     var inDungeons = false
+
+    @JvmField
     var dungeonFloor: Int? = null
+
+    @JvmField
     var inBoss = false
+
+    @JvmField
     var P3Section: Int? = null
+
+    @JvmField
     var F7Phase: Int? = null
+
+    @JvmField
     var WorldName: WorldType? = null
 
     enum class WorldType(val string: String) {
@@ -54,12 +70,12 @@ object LocationUtils {
         if (TickTimer != 20) return
 
 
-        if (false/*config.DevMode*/) {
+        if (config.DevMode) {
             inSkyblock = true
             inDungeons = true
             dungeonFloor = 7
-            F7Phase = 5
-            P3Section = 4
+            F7Phase = getPhase()
+            P3Section = getP3Section_()
             inBoss = true
         }
         else {
@@ -140,13 +156,11 @@ object LocationUtils {
 
     private fun getP3Section_(): Int? {
         if (F7Phase != 3) return null
+        val pos = Player?.positionVector ?: return null
 
-        Player?.positionVector?.run {
-            P3Sections.forEachIndexed { index, section ->
-                return if (isCoordinateInsideBox(this, section.first, section.second)) {
-                    index + 1
-                }
-                else null
+        P3Sections.forEachIndexed { i, (one, two) ->
+            if (isCoordinateInsideBox(pos, one, two)) {
+                return i + 1
             }
         }
 

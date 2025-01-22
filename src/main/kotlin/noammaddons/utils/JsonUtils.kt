@@ -6,10 +6,8 @@ import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.*
 import kotlinx.serialization.json.Json.Default.parseToJsonElement
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonObject
 import net.minecraft.util.ResourceLocation
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.noammaddons.Companion.scope
@@ -29,6 +27,12 @@ object JsonUtils {
     private val gson = Gson()
     private val gsonBuilder = GsonBuilder().setPrettyPrinting().create()
     val json = Json { ignoreUnknownKeys = true }
+
+    fun JsonObject.getObj(key: String) = this[key]?.jsonObject
+    fun JsonObject.getString(key: String) = this[key]?.jsonPrimitive?.content
+    fun JsonObject.getInt(key: String) = this[key]?.jsonPrimitive?.int
+    fun JsonObject.getDouble(key: String) = this[key]?.jsonPrimitive?.double
+
 
     fun stringToJson(s: String): JsonObject {
         return try {
@@ -92,7 +96,7 @@ object JsonUtils {
     @OptIn(DelicateCoroutinesApi::class)
     inline fun <reified T> fetchJsonWithRetry(
         url: String,
-        retryDelayMs: Long = 30_000,
+        retryDelayMs: Long = 300_000,
         maxRetries: Int = - 1,
         crossinline callback: (T?) -> Unit
     ) {
@@ -103,7 +107,7 @@ object JsonUtils {
                 override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
             })
 
-            val sslContext = SSLContext.getInstance("SSL")
+            val sslContext = SSLContext.getInstance("TLSv1.2")
             sslContext.init(null, trustAllCerts, SecureRandom())
             HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.socketFactory)
             HttpsURLConnection.setDefaultHostnameVerifier { _, _ -> true }
@@ -150,13 +154,18 @@ object JsonUtils {
         }
     }
 
-
     @OptIn(DelicateCoroutinesApi::class)
     fun get(url: String, block: (JsonObject) -> Unit) {
         scope.launch {
             runCatching {
-                val jsonString = URI(url).toURL().readText()
-                val jsonObject = stringToJson(jsonString)
+                val connection = URI(url).toURL().openConnection() as HttpURLConnection
+                connection.requestMethod = "GET"
+
+                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36")
+                connection.setRequestProperty("Accept", "application/json")
+
+                val response = connection.inputStream.bufferedReader().use(BufferedReader::readText)
+                val jsonObject = stringToJson(response)
 
                 jsonObject.apply(block)
             }.onFailure { catch ->
@@ -166,12 +175,13 @@ object JsonUtils {
                     listOf(
                         "&cFailed to fetch data!",
                         "&cURL: &b$url",
-                        "&e${catch::class.qualifiedName ?: catch::class.jvmName}: ${catch.message ?: "Unknown"}",
+                        "&e${catch::class.qualifiedName ?: catch::class.jvmName}: ${catch.message ?: "Unknown"}"
                     )
                 )
             }
         }
     }
+
 }
 
 

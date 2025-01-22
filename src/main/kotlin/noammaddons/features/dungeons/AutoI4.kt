@@ -20,6 +20,7 @@ import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.ghostBlock
 import noammaddons.utils.ChatUtils.Alert
 import noammaddons.utils.ChatUtils.modMessage
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendPartyMessage
 import noammaddons.utils.DungeonUtils.Classes.*
@@ -143,7 +144,7 @@ object AutoI4: Feature() {
     @SubscribeEvent
     fun onChat(event: Chat) {
         if (! config.autoI4) return
-        val msg = event.component.unformattedText.removeFormatting()
+        val msg = event.component.noFormatText
 
         when {
             msg == "[BOSS] Storm: I should have known that I stood no chance." -> {

@@ -7,11 +7,15 @@ import gg.essential.api.EssentialAPI
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.launch
 import net.minecraft.client.gui.GuiDownloadTerrain
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.item.EntityArmorStand
+import net.minecraft.network.play.client.C01PacketChatMessage
+import net.minecraftforge.fml.common.eventhandler.Event
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.MessageSentEvent
 import noammaddons.events.RenderOverlay
 import noammaddons.events.WorldLoadPostEvent
+import noammaddons.features.FeatureManager.registerFeatures
 import noammaddons.features.dungeons.AutoI4.testi4
 import noammaddons.noammaddons.Companion.ahData
 import noammaddons.noammaddons.Companion.config
@@ -31,6 +35,8 @@ import noammaddons.utils.LocationUtils.inSkyblock
 import noammaddons.utils.LocationUtils.onHypixel
 import noammaddons.utils.PartyUtils.partyLeader
 import noammaddons.utils.PartyUtils.partyMembers
+import noammaddons.utils.RenderHelper.getScaleFactor
+import noammaddons.utils.RenderUtils.drawLine
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.ScanUtils.ScanRoom.getRoom
 import noammaddons.utils.ScanUtils.ScanRoom.getRoomCenter
@@ -38,7 +44,10 @@ import noammaddons.utils.ScanUtils.ScanRoom.getRoomComponent
 import noammaddons.utils.ScanUtils.ScanRoom.getRoomCorner
 import noammaddons.utils.ScanUtils.Utils.getCore
 import noammaddons.utils.ThreadUtils.setTimeout
+import noammaddons.utils.Utils.equalsOneOf
+import noammaddons.utils.Utils.send
 import java.awt.Color
+
 
 object TestGround {
     private var a = false
@@ -46,9 +55,12 @@ object TestGround {
 
     @SubscribeEvent
     fun t(e: RenderOverlay) {
-        e.listenerList
-
         if (! (config.DevMode || EssentialAPI.getMinecraftUtil().isDevelopment())) return
+        GlStateManager.pushMatrix()
+        val scale = 2f / mc.getScaleFactor()
+        GlStateManager.scale(scale, scale, scale)
+
+
         drawText(
             "indungeons: $inDungeons \n dungeonfloor: $dungeonFloor \n inboss: $inBoss \n inSkyblock: $inSkyblock \n onHypixel: $onHypixel \n F7Phase: $F7Phase \n P3Section: $P3Section \n WorldName: $WorldName",
             200f, 10f
@@ -67,6 +79,8 @@ object TestGround {
         )
 
 
+        drawLine(Color.CYAN, 0f, 0f, 100f, 100f, 3f)
+
         drawText(
             """Party Leader: $partyLeader
 				| Party Size: ${partyMembers.size}
@@ -79,6 +93,7 @@ object TestGround {
             20f, 200f, 1.5f,
             Color.PINK
         )
+        GlStateManager.popMatrix()
     }
 
     @SubscribeEvent
@@ -119,7 +134,13 @@ object TestGround {
                 modMessage(ahData["TERMINATOR"]?.toInt())
             }
 
-            "st" -> {
+            "test" -> {
+                event.isCanceled = true
+                scope.launch { registerFeatures() }
+            }
+
+            "slayer" -> {
+                event.isCanceled = true
             }
         }
     }
@@ -129,6 +150,7 @@ object TestGround {
     fun handlePartyCommands(event: MessageSentEvent) {
         if (! onHypixel) return
         val msg = event.message.removeFormatting().lowercase()
+
         if (msg == "/p invite accept") {
             event.isCanceled = true
             a = true
@@ -138,26 +160,37 @@ object TestGround {
             return
         }
 
-        if (! a) return
-        if (sent) return
-        if (msg.startsWith("/p invite ") || msg.startsWith("/party accept ")) {
+        if (a && ! sent) {
+            if (msg.startsWith("/p invite ") || msg.startsWith("/party accept ")) {
+                event.isCanceled = true
+
+                val modifiedMessage = msg
+                    .replace("/party accept ", "/p join ")
+                    .replace("/p invite ", "/p join ")
+
+                sendChatMessage(modifiedMessage)
+                sent = true
+            }
+        }
+
+        if (msg.equalsOneOf("/pll", "/pl")) {
             event.isCanceled = true
-
-            val modifiedMessage = msg
-                .replace("/party accept ", "/p join ")
-                .replace("/p invite ", "/p join ")
-
-            sendChatMessage(modifiedMessage)
-            sent = true
+            C01PacketChatMessage("/pl").send()
         }
     }
 
     @SubscribeEvent
     fun wtf(event: WorldLoadPostEvent) {
+        registerFeatures(false)
         setTimeout(500) {
             if (mc.currentScreen is GuiDownloadTerrain) {
                 mc.currentScreen = null
             }
         }
+    }
+
+
+    @SubscribeEvent
+    fun afad(event: Event) {
     }
 }

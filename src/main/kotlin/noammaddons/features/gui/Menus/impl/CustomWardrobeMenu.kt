@@ -13,9 +13,10 @@ import net.minecraft.network.play.server.S2EPacketCloseWindow
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.GuiContainerEvent
+import noammaddons.events.GuiMouseClickEvent
 import noammaddons.events.PacketEvent
 import noammaddons.features.Feature
+import noammaddons.features.general.DrawItemRarity.onSlotDraw
 import noammaddons.features.gui.Menus.*
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.GuiUtils.sendWindowClickPacket
@@ -75,7 +76,7 @@ object CustomWardrobeMenu: Feature() {
     }
 
     @SubscribeEvent
-    fun onClick(event: GuiContainerEvent.GuiMouseClickEvent) {
+    fun onClick(event: GuiMouseClickEvent) {
         if (! inWardrobeMenu) return
         if (! event.button.equalsOneOf(0, 1, 2)) return
         val container = Player?.openContainer?.inventorySlots ?: return
@@ -147,12 +148,16 @@ object CustomWardrobeMenu: Feature() {
                 )
             }
 
-            if (slot.stack.item is ItemSkull) drawPlayerHead(
-                getHeadSkinTexture(slot.stack) ?: continue,
-                currentOffsetX + 2.2f,
-                currentOffsetY + 2.2f,
-                11.6f, 11.6f, 1f
-            )
+            if (slot.stack.item is ItemSkull) {
+                onSlotDraw(slot.stack, currentOffsetX.toInt(), currentOffsetY.toInt())
+                drawPlayerHead(
+                    getHeadSkinTexture(slot.stack) ?: continue,
+                    currentOffsetX + 2.2f,
+                    currentOffsetY + 2.2f,
+                    11.6f, 11.6f, 1f
+                )
+
+            }
         }
 
         container.forEach { slot ->

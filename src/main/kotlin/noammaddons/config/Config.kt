@@ -3,6 +3,9 @@ package noammaddons.config
 import gg.essential.universal.UDesktop
 import gg.essential.vigilance.Vigilant
 import gg.essential.vigilance.data.*
+import noammaddons.commands.CommandManager.registerCommand
+import noammaddons.commands.CommandManager.unregisterCommand
+import noammaddons.commands.commands.ProfileViewerCommand
 import noammaddons.config.EditGui.HudEditorScreen
 import noammaddons.noammaddons.Companion.FULL_PREFIX
 import noammaddons.utils.ChatUtils.addColor
@@ -40,6 +43,43 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
     fun openHudEditGUI() {
         openScreen(HudEditorScreen())
     }
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Item Rarity",
+        description = "Draws the rarity of the item in the Inventory",
+        category = "General",
+        subcategory = "ItemRarity"
+    )
+    var DrawItemRarity = false
+
+    @Property(
+        type = PropertyType.PERCENT_SLIDER,
+        name = "Item Rarity Opacity",
+        description = "The opacity of the item rarity",
+        category = "General",
+        subcategory = "ItemRarity",
+    )
+    var ItemRarityOpacity = 0.6f
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Custom Slot Highlight",
+        description = "Highlights the currently hovered slot in the Inventory",
+        category = "General",
+        subcategory = "SlotHighlight"
+    )
+    var CustomSlotHighlight = false
+
+    @Property(
+        type = PropertyType.COLOR,
+        name = "Slot Highlight Color",
+        description = "The color of the slot highlight",
+        category = "General",
+        subcategory = "SlotHighlight",
+        allowAlpha = true
+    )
+    var CustomSlotHighlightColor = Color.CYAN.applyAlpha(100)
 
     @Property(
         type = PropertyType.SWITCH,
@@ -625,6 +665,15 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
 
     @Property(
         type = PropertyType.SWITCH,
+        name = "Block Gloomlock OverUse",
+        description = "Blocks right click when you already have above 90% hp and blocks left click if you have less than 30% hp or already at 600 overflow mana",
+        category = "General",
+        subcategory = "Misc"
+    )
+    var blockGloomlockOverUse = true
+
+    @Property(
+        type = PropertyType.SWITCH,
         name = "Ability Keybinds",
         description = "Allows to use the Your Class ULTIMATE/ABILITY with a keybind witch can be configirate in Minecraft's Options/Controls",
         category = "Dungeons",
@@ -963,6 +1012,22 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
 
     @Property(
         type = PropertyType.SWITCH,
+        name = "ESP Thorn",
+        category = "ESP",
+        subcategory = "Dungeon ESP"
+    )
+    var espThorn = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "ESP Spirit Bear",
+        category = "ESP",
+        subcategory = "Dungeon ESP"
+    )
+    var espSpiritBear = false
+
+    @Property(
+        type = PropertyType.SWITCH,
         name = "ESP Bats",
         category = "ESP",
         subcategory = "Dungeon ESP"
@@ -1024,6 +1089,22 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
         subcategory = "Dungeon ESP"
     )
     var removeStarMobsNametag = false
+
+    @Property(
+        type = PropertyType.COLOR,
+        name = "ESP Thorn Color",
+        category = "ESP",
+        subcategory = "Dungeons"
+    )
+    var espThornColor = Color(255, 0, 0)
+
+    @Property(
+        type = PropertyType.COLOR,
+        name = "ESP Spirit Bear Color",
+        category = "ESP",
+        subcategory = "Dungeons"
+    )
+    var espSpiritBearColor = Color(255, 0, 255)
 
     @Property(
         type = PropertyType.COLOR,
@@ -1318,7 +1399,6 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
         description = "Changes the Color Mode of the Custom Leap Menu",
         category = "GUI",
         subcategory = "Menus",
-        hidden = true
     )
     var CustomLeapMenuLightMode = false
 
@@ -1763,6 +1843,27 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
 
     @Property(
         type = PropertyType.SWITCH,
+        name = "Smooth Sneak",
+        description = "Backport for newer minecraft version's sneak animation.",
+        category = "Misc",
+        subcategory = "Clear Sight"
+    )
+    var smoothSneak = true
+
+    @Property(
+        type = PropertyType.DECIMAL_SLIDER,
+        name = "Smooth Sneak Offset",
+        description = "Controls how much your camera will move down while sneaking",
+        category = "Misc",
+        subcategory = "Clear Sight",
+        minF = 0f,
+        maxF = 1f,
+        hidden = true
+    )
+    var smoothSneakOffset = 0.08f
+
+    @Property(
+        type = PropertyType.SWITCH,
         name = "Bonzo Boss Revived Alert",
         description = "Plays A sound when the Bonzo Boss is revived",
         category = "Alerts",
@@ -1892,7 +1993,7 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
 
     @Property(
         type = PropertyType.SWITCH,
-        name = "Dungeon Chect Profit",
+        name = "Dungeon Chest Profit",
         description = "Shows the profit you get from Dungeon Chests.",
         category = "Dungeons",
         subcategory = "DungeonChectProfit"
@@ -1944,6 +2045,42 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
     )
     var RNGDropAnnouncer = false
 
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Spirit Bear Spawn Timer",
+        description = "Displays a timer on screen for when the spirit bear is about to spawn\n\nBased on Server Ticks",
+        category = "Dungeons",
+        subcategory = "Floor 4"
+    )
+    var spiritBearSpawnTimer = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Trace Spirit Bow",
+        description = "Shows a tracer for the Spirit Bow",
+        category = "Dungeons",
+        subcategory = "Floor 4"
+    )
+    var traceSpiritBow = false
+
+    @Property(
+        type = PropertyType.COLOR,
+        name = "Trace Spirit Bow Color",
+        description = "Sets the color for the tracer of the Spirit Bow",
+        category = "Dungeons",
+        subcategory = "Floor 4"
+    )
+    var traceSpiritBowColor = Color(255, 0, 255)
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Spirit Bow Hit/Miss Alert",
+        description = "Plays a sound when you miss or hit the spirit bow shot in floor 4 on Thorn and displays a title on screen",
+        category = "Alerts",
+        subcategory = "Dungeons"
+    )
+    var spiritBowHitMissAlert = false
+
 
     private const val DEV_MODE_DESCRIPTION =
         "§fForces all features to enable, even if you are not on skyblock.\n\n" +
@@ -1972,6 +2109,14 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
 
     @Property(
         type = PropertyType.SWITCH,
+        name = "Disable Visual Words",
+        category = "Dev",
+        subcategory = "Experimental"
+    )
+    var disableVisualWords = false
+
+    @Property(
+        type = PropertyType.SWITCH,
         name = "Motion Blur",
         description = "Enables motion blur",
         category = "Dev",
@@ -1990,7 +2135,21 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
     )
     var MotionBlurAmount = 5
 
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Profile Viewer Command",
+        description = "disables the pv command from the mod so it wont conflict with neu's pv command",
+        category = "Dev",
+        subcategory = "Experimental"
+    )
+    var pvCommand = false
+
     init {
+        registerListener("pvCommand") { newValue: Boolean ->
+            if (newValue) registerCommand(ProfileViewerCommand)
+            else unregisterCommand(ProfileViewerCommand)
+        }
+
         setCategoryDescription(
             "ESP",
             "Disable Optifine's fast render and Patcher's entity culling."
@@ -2003,6 +2162,7 @@ object Config: Vigilant(File("./config/NoammAddons/config.toml"), FULL_PREFIX, s
 
         // General
         addDependency("ChatCoordsWayPointColor", "ChatCoordsWayPoint")
+        addDependency("CustomSlotHighlightColor", "CustomSlotHighlight")
 
 
         // Dungeons
