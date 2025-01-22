@@ -5,7 +5,7 @@ import noammaddons.config.EditGui.components.TextElement
 import noammaddons.events.Chat
 import noammaddons.events.RenderOverlay
 import noammaddons.features.Feature
-import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.showTitle
 import noammaddons.utils.NumbersUtils.toFixed
 
@@ -21,7 +21,7 @@ object PhoenixPet: Feature() {
 
     @SubscribeEvent
     fun onChat(event: Chat) {
-        if (! event.component.unformattedText.removeFormatting().matches(regex)) return
+        if (! event.component.noFormatText.matches(regex)) return
         timer = System.currentTimeMillis()
 
         if (config.PhoenixPetDisplay) draw = true

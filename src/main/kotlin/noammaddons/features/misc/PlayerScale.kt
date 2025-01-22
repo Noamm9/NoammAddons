@@ -2,15 +2,14 @@ package noammaddons.features.misc
 
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.Entity
-import net.minecraft.entity.player.EntityPlayer
-import net.minecraftforge.client.event.RenderLivingEvent
+import net.minecraftforge.client.event.RenderPlayerEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.features.Feature
 import noammaddons.utils.DungeonUtils.dungeonTeammates
 import noammaddons.utils.LocationUtils.inDungeons
 import noammaddons.utils.PlayerUtils.Player
 
-object PlayerScale : Feature() {
+object PlayerScale: Feature() {
 
     // IDK why but this shit legit gave me a headache
     fun getPlayerScaleFactor(ent: Entity): Float {
@@ -22,8 +21,8 @@ object PlayerScale : Feature() {
 
 
     @SubscribeEvent
-    fun onRenderEntityPre(event: RenderLivingEvent.Pre<*>) {
-        if (! config.PlayerScale || event.entity !is EntityPlayer) return
+    fun onRenderEntityPre(event: RenderPlayerEvent.Pre) {
+        if (! config.PlayerScale) return
         if (! config.PlayerScaleOnEveryone && event.entity != Player) return
         if (inDungeons && dungeonTeammates.none { it.entity == event.entity }) return
 
@@ -47,8 +46,8 @@ object PlayerScale : Feature() {
     }
 
     @SubscribeEvent
-    fun onRenderEntityPost(event: RenderLivingEvent.Post<*>) {
-        if (! config.PlayerScale || event.entity !is EntityPlayer) return
+    fun onRenderEntityPost(event: RenderPlayerEvent.Post) {
+        if (! config.PlayerScale) return
         if (! config.PlayerScaleOnEveryone && event.entity != Player) return
         if (inDungeons && dungeonTeammates.none { it.entity == event.entity }) return
 

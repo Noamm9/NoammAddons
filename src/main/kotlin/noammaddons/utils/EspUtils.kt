@@ -5,7 +5,7 @@ import net.minecraft.client.shader.Framebuffer
 import net.minecraft.entity.EntityLivingBase
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.RenderEntityModelEvent
+import noammaddons.events.PostRenderEntityModelEvent
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.MathUtils.distanceIn3DWorld
@@ -21,7 +21,7 @@ import java.awt.Color
 object EspUtils {
 
     fun EspMob(
-        event: RenderEntityModelEvent,
+        event: PostRenderEntityModelEvent,
         color: Color,
         lineWidth: Float = config.espOutlineWidth,
         outline: Boolean = config.espType.equalsOneOf(2, 0) && config.espOutlineOpacity != 0f,
@@ -88,7 +88,7 @@ object EspUtils {
     }
 
 
-    private fun render(event: RenderEntityModelEvent) {
+    private fun render(event: PostRenderEntityModelEvent) {
         event.modelBase.render(
             event.entity,
             event.p_77036_2_,

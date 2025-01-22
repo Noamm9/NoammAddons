@@ -10,7 +10,6 @@ import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.client.registry.ClientRegistry
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.common.event.FMLInitializationEvent
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.commands.CommandManager.registerCommands
 import noammaddons.config.*
@@ -19,6 +18,8 @@ import noammaddons.events.RegisterEvents
 import noammaddons.features.FeatureManager.registerFeatures
 import noammaddons.features.misc.Cosmetics.CosmeticRendering
 import noammaddons.utils.*
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 
 
 @Mod(
@@ -29,6 +30,8 @@ import noammaddons.utils.*
 )
 
 class noammaddons {
+    private var loadTime = 0L
+
     companion object {
         const val MOD_NAME = "NoammAddons"
         const val MOD_ID = "noammaddons"
@@ -38,24 +41,31 @@ class noammaddons {
         const val DEBUG_PREFIX = "§8[§b§lN§d§lA §7DEBUG§8]"
 
         @JvmField
-        val mc: Minecraft = Minecraft.getMinecraft()
+        val Logger: Logger = LogManager.getLogger(MOD_NAME)
+
+        @JvmStatic
+        val mc get() = Minecraft.getMinecraft()
 
         @OptIn(DelicateCoroutinesApi::class)
         val scope = GlobalScope
 
+        @JvmField
         val config = Config
         val hudData = PogObject("hudData", HudElementConfig())
         val firstLoad = PogObject("firstLoad", true)
         val SlotBindingData = PogObject("SlotBinding", mutableMapOf<String, Double?>())
 
         val ahData = mutableMapOf<String, Double>()
-        val bzData = mutableMapOf<String, ItemUtils.bzitem>()
+        val bzData = mutableMapOf<String, DataClasses.bzitem>()
         val npcData = mutableMapOf<String, Double>()
         val itemIdToNameLookup = mutableMapOf<String, String>()
+        var mayorData: DataClasses.Mayor? = null
     }
 
     @Mod.EventHandler
     fun onInit(event: FMLInitializationEvent) {
+        Logger.info("Initializing NoammAddons")
+        loadTime = System.currentTimeMillis()
         config.init()
 
         KeyBinds.allBindings.forEach(ClientRegistry::registerKeyBinding)
@@ -67,10 +77,7 @@ class noammaddons {
             ActionBarParser, PartyUtils,
             ChatUtils, EspUtils
         ).forEach(MinecraftForge.EVENT_BUS::register)
-    }
 
-    @Mod.EventHandler
-    fun postInit(event: FMLPostInitializationEvent) {
         mc.renderManager.skinMap.let {
             it["slim"]?.run { addLayer(CosmeticRendering(this)) }
             it["default"]?.run { addLayer(CosmeticRendering(this)) }
@@ -78,13 +85,15 @@ class noammaddons {
 
         registerFeatures()
         registerCommands()
+        this.init()
+
+        Logger.info("Finished Initializing NoammAddons")
+        Logger.info("Load Time: ${(System.currentTimeMillis() - loadTime) / 1000.0} seconds")
     }
 
     @SubscribeEvent
     fun onKey(event: PreKeyInputEvent) {
-        if (KeyBinds.Config.isKeyDown) {
-            GuiUtils.openScreen(config.gui())
-        }
+        if (KeyBinds.Config.isKeyDown) return GuiUtils.openScreen(config.gui())
 
         if (firstLoad.getData()) {
             firstLoad.setData(false)
@@ -96,7 +105,7 @@ class noammaddons {
         }
     }
 
-    init {
+    fun init() {
         ThreadUtils.loop(600_000) {
             UpdateUtils.update()
 
@@ -107,7 +116,7 @@ class noammaddons {
                 ahData.putAll(it)
             }
 
-            JsonUtils.fetchJsonWithRetry<Map<String, ItemUtils.bzitem>>("https://sky.shiiyu.moe/api/v2/bazaar") {
+            JsonUtils.fetchJsonWithRetry<Map<String, DataClasses.bzitem>>("https://sky.shiiyu.moe/api/v2/bazaar") {
                 it ?: return@fetchJsonWithRetry
                 bzData.clear()
                 bzData.putAll(it)
@@ -117,7 +126,7 @@ class noammaddons {
                 if (obj["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
 
                 val items = JsonUtils.json.decodeFromJsonElement(
-                    ListSerializer(ItemUtils.APISBItem.serializer()),
+                    ListSerializer(DataClasses.APISBItem.serializer()),
                     obj["items"] !!
                 )
 
@@ -131,6 +140,16 @@ class noammaddons {
                 npcData.putAll(sellPrices)
                 itemIdToNameLookup.clear()
                 itemIdToNameLookup.putAll(idToName)
+            }
+
+            JsonUtils.get("https://soopy.dev/api/v2/mayor") { jsonObject ->
+                if (jsonObject["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
+                val dataElement = jsonObject["data"] ?: return@get
+
+                mayorData = JsonUtils.json.decodeFromJsonElement(
+                    DataClasses.Mayor.serializer(),
+                    dataElement
+                )
             }
         }
     }

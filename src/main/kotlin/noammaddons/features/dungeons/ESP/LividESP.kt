@@ -8,15 +8,14 @@ import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.item.EnumDyeColor.*
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
-import net.minecraftforge.client.event.RenderLivingEvent
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.Event
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.RenderEntityModelEvent
-import noammaddons.events.RenderWorld
-import noammaddons.events.Tick
+import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.modMessage
+import noammaddons.utils.ChatUtils.noFormatText
+import noammaddons.utils.ChatUtils.showTitle
 import noammaddons.utils.DungeonUtils.dungeonTeammates
 import noammaddons.utils.EspUtils.EspMob
 import noammaddons.utils.LocationUtils.dungeonFloor
@@ -28,6 +27,7 @@ import noammaddons.utils.RenderHelper.getRenderVec
 import noammaddons.utils.RenderUtils.drawEntityBox
 import noammaddons.utils.RenderUtils.drawString
 import noammaddons.utils.RenderUtils.drawTracer
+import noammaddons.utils.SoundUtils
 import noammaddons.utils.Utils.equalsOneOf
 
 
@@ -36,6 +36,9 @@ object LividESP: Feature() {
     private var livid: EntityOtherPlayerMP? = null
     private var lividTag: Entity? = null
     private var LividJob: Job? = null
+    private var lividStart = false
+    private var bossTicks = 390
+    private var playOnce = false
     private val lividNames = mapOf(
         '2' to "Frog Livid",
         '5' to "Purple Livid",
@@ -47,7 +50,6 @@ object LividESP: Feature() {
         'e' to "Arcade Livid",
         'f' to "Vendetta Livid"
     )
-
     private val color get() = getRainbowColor(1f)
 
     @SubscribeEvent
@@ -61,14 +63,14 @@ object LividESP: Feature() {
         if (livid?.isPlayerSleeping.equalsOneOf(null, true)) return
 
         when (event) {
-            is RenderEntityModelEvent -> {
+            is PostRenderEntityModelEvent -> {
                 if (config.espType == 1) return
                 if (event.entity != livid) return
 
                 EspMob(event, color)
             }
 
-            is RenderLivingEvent.Pre<*> -> {
+            is RenderEntityEvent -> {
                 if (! config.hideWrongLivids) return
                 if (event.entity == livid) return
                 if (dungeonTeammates.map { it.entity?.entityId }.contains(event.entity.entityId)) return
@@ -89,7 +91,6 @@ object LividESP: Feature() {
             }
         }
     }
-
 
     @SubscribeEvent
     @OptIn(DelicateCoroutinesApi::class)
@@ -138,6 +139,33 @@ object LividESP: Feature() {
     fun onWorldChange(event: WorldEvent.Unload) {
         foundLivid = false
         livid = null
+        lividStart = false
+        bossTicks = 390
+        playOnce = false
+    }
+
+    @SubscribeEvent
+    fun onSvrTick(event: ServerTick) {
+        if (! lividStart) return
+        bossTicks --
+
+        if (bossTicks == 0) {
+            lividStart = false
+            bossTicks = 390
+            showTitle("Ice Spray Livid!", rainbow = true)
+            SoundUtils.Pling.start()
+        }
+    }
+
+    @SubscribeEvent
+    fun onChat(event: Chat) {
+        if (! config.lividFinder) return
+        if (dungeonFloor != 5) return
+        if (event.component.noFormatText
+            != "[BOSS] Livid: Welcome, you've arrived right on time. I am Livid, the Master of Shadows."
+        ) return
+
+        lividStart = true
     }
 
     private fun closestLivid(chatFormatting: Char): EntityOtherPlayerMP? {

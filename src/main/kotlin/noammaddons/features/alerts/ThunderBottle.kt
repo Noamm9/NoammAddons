@@ -3,6 +3,7 @@ package noammaddons.features.alerts
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Chat
 import noammaddons.features.Feature
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.showTitle
 import noammaddons.utils.PlayerUtils.Player
@@ -19,7 +20,7 @@ object ThunderBottle: Feature() {
 
     @SubscribeEvent
     fun onChat(event: Chat) {
-        val msg = event.component.unformattedText.removeFormatting()
+        val msg = event.component.noFormatText
         when {
             msg.matches(floorEntryRegex) && config.NoThunderBottleAlert -> {
                 if (Player.inventory.mainInventory.any { it?.displayName?.removeFormatting() == "Empty Thunder Bottle" }) return

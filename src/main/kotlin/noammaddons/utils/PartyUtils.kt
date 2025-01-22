@@ -4,6 +4,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Chat
 import noammaddons.noammaddons.Companion.mc
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.LocationUtils.onHypixel
 import noammaddons.utils.ThreadUtils.loop
@@ -15,10 +16,11 @@ object PartyUtils {
     private val othersJoinedPartyPattern = Regex("(?<name>.*) joined the party\\.")
     private val othersInThePartyPattern = Regex("You'll be partying with: (?<names>.*)")
     private val disbandedPattern = Regex(".* has disbanded the party!")
-    private val kickedPattern = Regex("You have been kicked from the party = .*")
+    private val kickedPattern = Regex("You have been kicked from the party .*")
     private val partyMembersStartPattern = Regex("Party Members \\(\\d+\\)")
     private val partyMemberListPattern = Regex("Party (?<kind>Leader|Moderators|Members): (?<names>.*)")
     private val partyChatMessagePattern = Regex("Party > (?<author>[^:]*): (?<message>.*)")
+    private val promotePattern = Regex("(?<name>.*) has promoted (?<newowner>.*) to Party Leader")
     private val memberLeftPatterns = listOf(
         Regex("(?<name>.*) has left the party\\."),
         Regex("(?<name>.*) has been removed from the party\\."),
@@ -27,7 +29,7 @@ object PartyUtils {
     )
     private val transferPatterns = listOf(
         Regex("The party was transferred to (?<newowner>.*) because (?<name>.*) left"),
-        Regex("The party was transferred to (?<newowner>.*) = (?<name>.*)")
+        Regex("The party was transferred to (?<newowner>.*) by (?<name>.*)")
     )
     private val finderJoinPatterns = listOf(
         Regex("Party Finder > (?<name>.*?) joined the group! \\(Combat Level \\d+\\)"),
@@ -77,7 +79,7 @@ object PartyUtils {
     @SubscribeEvent
     @Synchronized
     fun onChat(event: Chat) {
-        val message = event.component.unformattedText.removeFormatting()
+        val message = event.component.noFormatText
 
         if (partyChatMessagePattern.matches(message)) {
             val name = partyChatMessagePattern.find(message) !!.destructured.component1().cleanPlayerName()
@@ -157,12 +159,19 @@ object PartyUtils {
                 removeWithLeader(name)
             }
         }
+
         transferPatterns.forEach { pattern ->
             if (pattern.matches(message)) {
                 val (newLeader, prevLeader) = pattern.find(message) !!.destructured
                 INTERNAL_partyLeader = newLeader.cleanPlayerName()
                 prevPartyLeader = prevLeader.cleanPlayerName()
             }
+        }
+
+        if (promotePattern.matches(message)) {
+            val (prevLeader, newLeader) = promotePattern.find(message) !!.destructured
+            INTERNAL_partyLeader = newLeader.cleanPlayerName()
+            prevPartyLeader = prevLeader.cleanPlayerName()
         }
     }
 

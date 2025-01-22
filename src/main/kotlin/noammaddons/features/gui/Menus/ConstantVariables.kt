@@ -6,6 +6,7 @@ import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemSkull
 import net.minecraft.item.ItemStack
 import net.minecraftforge.fml.client.config.GuiUtils.drawHoveringText
+import noammaddons.features.general.DrawItemRarity.onSlotDraw
 import noammaddons.features.gui.Menus.CustomMenuManager.menuList
 import noammaddons.features.gui.ScalableTooltips
 import noammaddons.noammaddons.Companion.config
@@ -47,7 +48,7 @@ import kotlin.math.floor
 */
 
 var lastSlot: Int? = null
-val backgroundColor = Color(33, 33, 33, 150)
+val backgroundColor = Color(33, 33, 33, 195)
 
 
 fun isValidSlot(slotX: Int, slotY: Int): Boolean = slotX in 0 .. 8 && slotY >= 0
@@ -85,7 +86,6 @@ fun inMenu(): Boolean {
     if (isWhitelisted) disableNEUInventoryButtons()
     return isWhitelisted
 }
-
 
 fun calculateScale(): Float {
     return (7f * config.CustomSBMenusScale) / mc.getScaleFactor()
@@ -147,7 +147,7 @@ fun renderBackground(offsetX: Number, offsetY: Number, width: Number, height: Nu
     val h = height.toFloat() + 6
 
     drawRoundedRect(darkMode, x, y, w, h)
-    drawRainbowRoundedBorder(x, y, w, h, thickness = 3f)
+    drawRainbowRoundedBorder(x, y, w, h, thickness = 4f)
 }
 
 fun renderMenuTitle(name: String?, offsetX: Float, offsetY: Float) {
@@ -177,12 +177,15 @@ fun renderHeads(container: List<Slot>, windowSize: Int, offsetX: Float, offsetY:
             15f, 15f, 1.5f
         )
 
-        if (stack.item is ItemSkull) drawPlayerHead(
-            getHeadSkinTexture(stack) ?: return@forEach,
-            currentOffsetX + 1.6f,
-            currentOffsetY + 1.6f,
-            12.8f, 12.8f, 1.5f
-        )
+        if (stack.item is ItemSkull) {
+            onSlotDraw(stack, currentOffsetX.toInt(), currentOffsetY.toInt())
+            drawPlayerHead(
+                getHeadSkinTexture(stack) ?: return@forEach,
+                currentOffsetX + 1.6f,
+                currentOffsetY + 1.6f,
+                12.8f, 12.8f, 1.5f
+            )
+        }
     }
 }
 
@@ -203,9 +206,9 @@ fun renderItems(container: List<Slot>, windowSize: Int, offsetX: Float, offsetY:
     }
 }
 
-fun drawLore(name: String, lore: List<String>, mx: Float, my: Float, scale: Float, screenSize: Pair<Float, Float>) {
+fun drawLore(name: String, lore: Collection<String>, mx: Float, my: Float, scale: Float, screenSize: Pair<Float, Float>) {
     drawHoveringText(
-        lore.toMutableList().apply { add(0, name) },
+        if (name.isBlank()) lore.toMutableList() else lore.toMutableList().apply { add(0, name) },
         (mx * scale).toInt(),
         (my * scale).toInt(),
         (screenSize.first * scale).toInt(),

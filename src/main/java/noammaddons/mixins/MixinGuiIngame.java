@@ -27,4 +27,10 @@ public class MixinGuiIngame {
     private String modifyActionBar(String text) {
         return PlayerHud.INSTANCE.modifyText(text);
     }
+
+/*
+    @Inject(method = "renderHotbarItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/RenderItem;renderItemAndEffectIntoGUI(Lnet/minecraft/item/ItemStack;II)V"))
+    private void renderRarityOnHotbar(int index, int xPos, int yPos, float partialTicks, EntityPlayer player, CallbackInfo ci) {
+        onSlotDraw(index, xPos, yPos);
+    }*/
 }

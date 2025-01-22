@@ -7,7 +7,7 @@ import net.minecraft.item.ItemSkull
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.GuiContainerEvent
+import noammaddons.events.GuiMouseClickEvent
 import noammaddons.events.InventoryFullyOpenedEvent
 import noammaddons.features.Feature
 import noammaddons.features.gui.Menus.*
@@ -50,7 +50,7 @@ object CustomPetMenu: Feature() {
 
 
     @SubscribeEvent
-    fun onClick(event: GuiContainerEvent.GuiMouseClickEvent) {
+    fun onClick(event: GuiMouseClickEvent) {
         if (! inPetMenu) return
         if (! event.button.equalsOneOf(0, 1, 2)) return
         val container = Player?.openContainer?.inventorySlots ?: return

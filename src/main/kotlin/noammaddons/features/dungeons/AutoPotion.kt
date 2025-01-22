@@ -4,6 +4,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Chat
 import noammaddons.features.Feature
 import noammaddons.utils.ActionUtils.getPotion
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.PlayerUtils.Player
 
@@ -15,7 +16,7 @@ object AutoPotion: Feature() {
     @SubscribeEvent
     fun onDungeonStart(event: Chat) {
         if (! config.AutoPotion) return
-        if (! event.component.unformattedText.removeFormatting().matches(floorEnterRegex)) return
+        if (! event.component.noFormatText.matches(floorEnterRegex)) return
         if (hasPotion(potionName)) return
 
         getPotion(potionName)

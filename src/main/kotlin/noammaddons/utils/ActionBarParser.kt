@@ -3,7 +3,7 @@ package noammaddons.utils
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Actionbar
-import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.PlayerUtils.Player
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -52,7 +52,7 @@ object ActionBarParser {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     fun onActionBarPacket(event: Actionbar) {
-        val msg = event.component.unformattedText.removeFormatting()
+        val msg = event.component.noFormatText
 
         extractPlayerStats(msg)
         extractPlayerManaStats(msg)

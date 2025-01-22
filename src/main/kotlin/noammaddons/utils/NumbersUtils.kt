@@ -8,6 +8,7 @@ import kotlin.math.roundToInt
  * Skytils - Hypixel Skyblock Quality of Life Mod
  * Copyright (C) 2020-2023 Skytils
  *
+ * Taken under the MIT lincense
  * Motified by @Noamm9
  */
 object NumbersUtils {

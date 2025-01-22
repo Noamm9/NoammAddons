@@ -1,19 +1,20 @@
 package noammaddons.config.EditGui
 
-import gg.essential.universal.UGraphics.getStringWidth
+import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.gui.GuiScreen
+import net.minecraft.client.renderer.GlStateManager
 import noammaddons.config.EditGui.ElementsManager.DrawableElement
 import noammaddons.config.EditGui.ElementsManager.posElements
 import noammaddons.config.EditGui.ElementsManager.textElements
+import noammaddons.config.EditGui.components.PosElement
 import noammaddons.noammaddons.Companion.hudData
-import noammaddons.utils.MouseUtils.isElementHovered
+import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.RenderHelper.getHeight
+import noammaddons.utils.RenderHelper.getScaleFactor
+import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderHelper.getWidth
-import noammaddons.utils.RenderUtils
-import noammaddons.utils.RenderUtils.drawRoundedRect
 import noammaddons.utils.SoundUtils.click
 import org.lwjgl.input.Mouse
-import java.awt.Color
 import kotlin.math.sign
 
 
@@ -22,73 +23,60 @@ class HudEditorScreen: GuiScreen() {
     private var selectedElement: DrawableElement? = null
     private var offsetX = 0f
     private var offsetY = 0f
-    private var resetButtonX = 0f
-    private var resetButtonY = 0f
-    private var resetButtonS = 1f
-    private var resetButtonWidth = 0f
+    private val resetButtonStr = "&b  Reset All Elements  ".addColor()
 
+    private val scale: Float get() = 2f / mc.getScaleFactor()
+
+    override fun initGui() {
+        val width = getStringWidth(resetButtonStr).toInt()
+
+        buttonList.add(
+            GuiButton(
+                69,
+                ((mc.getWidth() / (2 * scale)) - width / 2).toInt(),
+                (mc.getHeight() / (scale * 1.33f)).toInt(),
+                width, 20,
+                resetButtonStr
+            )
+        )
+
+        super.initGui()
+    }
 
     override fun drawScreen(mouseX: Int, mouseY: Int, partialTicks: Float) {
-        elements.forEach { it.draw(true) }
-        resetButtonWidth = getStringWidth("Reset All Elements") * resetButtonS
+        GlStateManager.pushMatrix()
+        GlStateManager.scale(scale, scale, scale)
+        textElements.forEach { it.draw(true) }
+        GlStateManager.popMatrix()
+        posElements.forEach { it.draw(true) }
 
-        resetButtonX = mc.getWidth() / 2 - resetButtonWidth / 2
-        resetButtonY = mc.getHeight() * 0.75f
-
-
-        drawRoundedRect(
-            if (
-                isElementHovered(
-                    mouseX.toFloat(), mouseY.toFloat(),
-                    resetButtonX - resetButtonWidth / 7.5,
-                    resetButtonY - resetButtonWidth / 7.5,
-                    (resetButtonWidth + resetButtonWidth / 3.75).toInt(),
-                    (8 * resetButtonS + resetButtonWidth / 3.75).toInt()
-                )
-            ) Color.WHITE.darker()
-            else Color(33, 33, 33).darker(),
-            resetButtonX - resetButtonWidth / 7.5f,
-            resetButtonY - resetButtonWidth / 7.5f,
-            resetButtonWidth + resetButtonWidth / 3.75f,
-            8f * resetButtonS + resetButtonWidth / 3.75f
-        )
-
-        drawRoundedRect(
-            Color(33, 33, 33),
-            resetButtonX - resetButtonWidth / 15f,
-            resetButtonY - resetButtonWidth / 15f,
-            resetButtonWidth + resetButtonWidth / 7.5f,
-            9 + resetButtonWidth / 7.5f
-        )
-
-        RenderUtils.drawText(
-            "Reset All Elements",
-            resetButtonX,
-            resetButtonY,
-            resetButtonS,
-            Color.CYAN
-        )
+        buttonList[0].drawButton(mc, mouseX, mouseY)
     }
 
     override fun mouseClicked(mouseX: Int, mouseY: Int, mouseButton: Int) {
+        val scaledMouseX = mouseX / scale
+        val scaledMouseY = mouseY / scale
+
         if (mouseButton == 0) { // Left-click
-            elements.forEach {
-                if (it.isHovered(mouseX.toFloat(), mouseY.toFloat())) {
-                    selectedElement = it
-                    offsetX = mouseX - it.getX()
-                    offsetY = mouseY - it.getY()
+            textElements.forEach { element ->
+                if (element.isHovered(scaledMouseX, scaledMouseY)) {
+                    selectedElement = element
+                    offsetX = scaledMouseX - element.getX()
+                    offsetY = scaledMouseY - element.getY()
                     click.start()
                 }
             }
 
-            if (isElementHovered(
-                    mouseX.toFloat(), mouseY.toFloat(),
-                    resetButtonX - resetButtonWidth / 7.5,
-                    resetButtonY - resetButtonWidth / 7.5,
-                    (resetButtonWidth + resetButtonWidth / 3.75).toInt(),
-                    (8 * resetButtonS + resetButtonWidth / 3.75).toInt()
-                )
-            ) {
+            posElements.forEach { element ->
+                if (element.isHovered(mouseX.toFloat(), mouseY.toFloat())) {
+                    selectedElement = element
+                    offsetX = mouseX - element.getX()
+                    offsetY = mouseY - element.getY()
+                    click.start()
+                }
+            }
+
+            if (buttonList[0].mousePressed(mc, mouseX, mouseY)) {
                 selectedElement = null
                 click.start()
                 elements.forEach { it.reset() }
@@ -96,14 +84,19 @@ class HudEditorScreen: GuiScreen() {
         }
     }
 
-    override fun mouseReleased(mouseX: Int, mouseY: Int, state: Int) {
-        selectedElement = null
-    }
-
     override fun mouseClickMove(mouseX: Int, mouseY: Int, clickedMouseButton: Int, timeSinceLastClick: Long) {
+        val scaledMouseX = mouseX / scale
+        val scaledMouseY = mouseY / scale
+
         selectedElement?.let {
-            it.setX(mouseX - offsetX)
-            it.setY(mouseY - offsetY)
+            if (it is PosElement) {
+                it.setX(mouseX - offsetX)
+                it.setY(mouseY - offsetY)
+            }
+            else {
+                it.setX(scaledMouseX - offsetX)
+                it.setY(scaledMouseY - offsetY)
+            }
         }
     }
 
@@ -124,7 +117,12 @@ class HudEditorScreen: GuiScreen() {
         super.onGuiClosed()
     }
 
+    override fun mouseReleased(mouseX: Int, mouseY: Int, state: Int) {
+        selectedElement = null
+    }
+
     override fun doesGuiPauseGame(): Boolean {
         return true
     }
 }
+

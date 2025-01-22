@@ -5,13 +5,9 @@ import noammaddons.events.*
 import noammaddons.features.*
 import noammaddons.features.dungeons.GhostPick.featureState
 import noammaddons.utils.ChatUtils.modMessage
-import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.DungeonUtils.Classes
-import noammaddons.utils.DungeonUtils.Classes.Archer
-import noammaddons.utils.DungeonUtils.Classes.Berserk
-import noammaddons.utils.DungeonUtils.Classes.Healer
-import noammaddons.utils.DungeonUtils.Classes.Mage
-import noammaddons.utils.DungeonUtils.Classes.Tank
+import noammaddons.utils.DungeonUtils.Classes.*
 import noammaddons.utils.DungeonUtils.thePlayer
 import noammaddons.utils.LocationUtils.dungeonFloor
 import noammaddons.utils.LocationUtils.inDungeons
@@ -54,7 +50,7 @@ object AutoUlt: Feature() {
         if (! inDungeons) return
 
         val matchingMessage = UltMessages.find {
-            it.msg == event.component.unformattedText.removeFormatting() && it.floor == dungeonFloor
+            it.msg == event.component.noFormatText && it.floor == dungeonFloor
         } ?: return
 
         if (matchingMessage.classes.contains(thePlayer?.clazz)) {

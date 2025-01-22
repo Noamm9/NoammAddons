@@ -2,14 +2,17 @@ package noammaddons.events
 
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.network.play.server.*
+import net.minecraft.util.Vec3
 import net.minecraftforge.client.event.RenderGameOverlayEvent
 import net.minecraftforge.client.event.RenderWorldLastEvent
+import net.minecraftforge.client.event.sound.PlaySoundEvent
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.eventhandler.Event
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
+import noammaddons.noammaddons.Companion.Logger
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ThreadUtils.setTimeout
@@ -30,8 +33,8 @@ object RegisterEvents {
             MinecraftForge.EVENT_BUS.post(this)
         }.onFailure {
             it.printStackTrace()
-            println("An error occurred $it")
-            modMessage("Caught and logged an ${it::class.simpleName ?: "error"} at ${this::class.simpleName}. Please report this!")
+            Logger.error("An error occurred ${it.message}")
+            modMessage("Caught and logged an ${it::class.simpleName ?: "error"} at ${this::class.simpleName}. Please report this!, Error: ${it.message}")
         }.getOrDefault(isCanceled)
     }
 
@@ -39,28 +42,45 @@ object RegisterEvents {
     fun postAndCatch(event: Event): Boolean = event.postCatch()
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    fun onTick(event: ClientTickEvent) {
-        if (event.phase != TickEvent.Phase.START) return
-        if (mc.theWorld.isNull() || mc.thePlayer.isNull()) return
-        postAndCatch(Tick())
-    }
+    fun onTick(event: Event) {
+        when (event) {
+            is ClientTickEvent -> {
+                if (event.phase != TickEvent.Phase.END) return
+                if (mc.theWorld.isNull() || mc.thePlayer.isNull()) return
+                postAndCatch(Tick())
+            }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    fun onRenderOverlay(event: RenderGameOverlayEvent.Text) {
-        if (mc.renderManager?.fontRenderer == null) return
+            is RenderGameOverlayEvent.Text -> {
+                if (mc.renderManager?.fontRenderer == null) return
+                GlStateManager.pushMatrix()
+                GlStateManager.translate(0f, 0f, - 3f)
+                postAndCatch(RenderOverlay())
+                GlStateManager.translate(0f, 0f, 3f)
+                GlStateManager.popMatrix()
+            }
 
-        GlStateManager.pushMatrix()
-        GlStateManager.translate(0f, 0f, - 3f)
-        postAndCatch(RenderOverlay())
-        GlStateManager.translate(0f, 0f, 3f)
-        GlStateManager.popMatrix()
-    }
+            is RenderWorldLastEvent -> {
+                GlStateManager.pushMatrix()
+                postAndCatch(RenderWorld(event.partialTicks))
+                GlStateManager.popMatrix()
+            }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    fun onRenderWorld(event: RenderWorldLastEvent) {
-        GlStateManager.pushMatrix()
-        postAndCatch(RenderWorld(event.partialTicks))
-        GlStateManager.popMatrix()
+            is PlaySoundEvent -> {
+                val soundEvent = SoundPlayEvent(
+                    event.name,
+                    event.sound.volume,
+                    event.sound.pitch,
+                    Vec3(
+                        event.sound.xPosF.toDouble(),
+                        event.sound.yPosF.toDouble(),
+                        event.sound.zPosF.toDouble()
+                    )
+                )
+                postAndCatch(soundEvent)
+
+                event.result = if (soundEvent.isCanceled) null else event.result
+            }
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
@@ -120,6 +140,7 @@ object RegisterEvents {
                 }
             }
 
+            /*
             is S1CPacketEntityMetadata -> {
                 val parsedData = mutableMapOf<Int, Any?>()
                 val packetData = packet.func_149376_c() ?: return
@@ -150,7 +171,8 @@ object RegisterEvents {
                         )
                     )
                 }
-            }
+            }*/
         }
     }
+
 }

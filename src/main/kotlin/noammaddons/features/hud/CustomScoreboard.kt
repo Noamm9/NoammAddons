@@ -1,6 +1,5 @@
 package noammaddons.features.hud
 
-import gg.essential.universal.UGraphics.getStringWidth
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.config.EditGui.HudEditorScreen
@@ -9,8 +8,8 @@ import noammaddons.events.RenderScoreBoardEvent
 import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.RenderHelper.getScaleFactor
-import noammaddons.utils.RenderUtils.drawRainbowRoundedBorder
-import noammaddons.utils.RenderUtils.drawRoundedRect
+import noammaddons.utils.RenderHelper.getStringWidth
+import noammaddons.utils.RenderUtils.drawFloatingRectWithAlpha
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.ScoreboardUtils
 import noammaddons.utils.ScoreboardUtils.cleanSB
@@ -53,25 +52,18 @@ object CustomScoreboard: Feature() {
         val textHeight = lines.size * 9f
 
         val maxWidth = lines.maxOf { line ->
-            getStringWidth(line.removeFormatting()).toFloat()
+            getStringWidth(line.removeFormatting())
         }
 
         GlStateManager.pushMatrix()
         GlStateManager.scale(fixedScale, fixedScale, fixedScale)
 
-        drawRoundedRect(
-            darkMode,
-            scaledX - maxWidth + 6,
-            scaledY - textHeight / 2 - 5,
-            maxWidth + 6,
-            textHeight + 5f
-        )
-
-        drawRainbowRoundedBorder(
-            scaledX - maxWidth + 6,
-            scaledY - textHeight / 2 - 5,
-            maxWidth + 6,
-            textHeight + 5f
+        drawFloatingRectWithAlpha(
+            (scaledX - maxWidth + 6) - 1.5,
+            (scaledY - textHeight / 2 - 5) - 1.5,
+            (maxWidth + 6) + 3,
+            (textHeight + 5f) + 3,
+            false, darkMode,
         )
 
         lines.forEachIndexed { index, line ->
