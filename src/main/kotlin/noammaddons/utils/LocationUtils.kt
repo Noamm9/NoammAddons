@@ -2,15 +2,16 @@ package noammaddons.utils
 
 import gg.essential.api.EssentialAPI
 import net.minecraft.util.Vec3
-import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.common.eventhandler.Event
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.network.FMLNetworkEvent
+import net.minecraftforge.fml.common.network.FMLNetworkEvent.*
 import noammaddons.events.Tick
+import noammaddons.events.WorldUnloadEvent
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.MathUtils.isCoordinateInsideBox
-import noammaddons.utils.PlayerUtils.Player
+import noammaddons.utils.ScoreboardUtils.cleanSB
 import noammaddons.utils.ScoreboardUtils.sidebarLines
 import noammaddons.utils.TablistUtils.getTabList
 
@@ -26,10 +27,16 @@ object LocationUtils {
     var inSkyblock = false
 
     @JvmField
-    var inDungeons = false
+    var inDungeon = false
 
     @JvmField
-    var dungeonFloor: Int? = null
+    var dungeonFloor: String? = null
+
+    @JvmField
+    var dungeonFloorNumber: Int? = null
+
+    @JvmStatic
+    val isMasterMode get() = dungeonFloor?.startsWith("M") == true
 
     @JvmField
     var inBoss = false
@@ -41,7 +48,7 @@ object LocationUtils {
     var F7Phase: Int? = null
 
     @JvmField
-    var WorldName: WorldType? = null
+    var world: WorldType? = null
 
     enum class WorldType(val string: String) {
         DungeonHub("Dungeon Hub"),
@@ -65,72 +72,77 @@ object LocationUtils {
     }
 
     @SubscribeEvent
-    fun get(event: Tick) {
+    fun check(event: Tick) {
         TickTimer ++
         if (TickTimer != 20) return
 
+        if (config.DevMode) setDevModeValues()
+        else updateSkyblockAndDungeonStatus()
 
-        if (config.DevMode) {
-            inSkyblock = true
-            inDungeons = true
-            dungeonFloor = 7
-            F7Phase = getPhase()
-            P3Section = getP3Section_()
-            inBoss = true
-        }
-        else {
-            inSkyblock = onHypixel && mc.theWorld.scoreboard.getObjectiveInDisplaySlot(1)?.name == "SBScoreboard"
-
-            if (inSkyblock) {
-                inBoss = isInBossRoom()
-                F7Phase = getPhase()
-                P3Section = getP3Section_()
-                WorldName = WorldType.get(WorldNameRegex.find(
-                    getTabList.joinToString { it.second.removeFormatting() }
-                )?.destructured?.component2())
-            }
-
-            if (! inDungeons) {
-                sidebarLines.find {
-                    ScoreboardUtils.cleanSB(it).run {
-                        contains("The Catacombs (") && ! contains("Queue")
-                    }
-                }?.let {
-                    inDungeons = true
-                    dungeonFloor = it.substringBefore(")").lastOrNull()?.digitToIntOrNull() ?: 0
-                }
-            }
-        }
         TickTimer = 0
     }
 
     @SubscribeEvent
-    fun onWorldUnload(event: WorldEvent.Unload) {
-        inSkyblock = false
-        inDungeons = false
-        dungeonFloor = null
-        inBoss = false
-        P3Section = null
-        F7Phase = null
-        WorldName = null
+    fun onEvent(event: Event) {
+        if (event is WorldUnloadEvent) reset()
+        if (event is ClientDisconnectionFromServerEvent) reset()
     }
 
-    @SubscribeEvent
-    fun onDisconnect(event: FMLNetworkEvent.ClientDisconnectionFromServerEvent) {
+    private fun reset() {
         inSkyblock = false
-        inDungeons = false
+        inDungeon = false
         dungeonFloor = null
+        dungeonFloorNumber = null
         inBoss = false
         P3Section = null
         F7Phase = null
-        WorldName = null
+        world = null
+    }
+
+    private fun setDevModeValues() {
+        inSkyblock = true
+        inDungeon = true
+        dungeonFloor = "F7"
+        dungeonFloorNumber = 7
+        F7Phase = getPhase()
+        P3Section = getP3Section_()
+        inBoss = isInBossRoom()
+    }
+
+    private fun updateSkyblockAndDungeonStatus() {
+        inSkyblock = onHypixel && mc.theWorld.scoreboard.getObjectiveInDisplaySlot(1)?.name == "SBScoreboard"
+
+        if (inSkyblock) {
+            inBoss = isInBossRoom()
+            F7Phase = getPhase()
+            P3Section = getP3Section_()
+            world = updateWorldName()
+        }
+
+        if (! inDungeon) updateDungeonStatus()
+    }
+
+    private fun updateWorldName() = WorldType.get(
+        WorldNameRegex.find(
+            getTabList.joinToString { it.second.removeFormatting() }
+        )?.destructured?.component2()
+    )
+
+    private fun updateDungeonStatus() = sidebarLines.find {
+        cleanSB(it).run {
+            contains("The Catacombs (") && ! contains("Queue")
+        }
+    }?.run {
+        inDungeon = true
+        dungeonFloor = cleanSB(this).substringAfter("(").substringBefore(")")
+        dungeonFloorNumber = dungeonFloor?.lastOrNull()?.digitToIntOrNull() ?: 0
     }
 
 
     private fun getPhase(): Int? {
-        if (dungeonFloor != 7 && ! inBoss) return null
+        if (dungeonFloorNumber != 7 && ! inBoss) return null
 
-        val playerPosition = Player?.positionVector ?: return null
+        val playerPosition = mc.thePlayer?.positionVector ?: return null
         val corner1 = Vec3(- 8.0, 254.0, 147.0)
         val corner2 = Vec3(134.0, 0.0, - 8.0)
 
@@ -156,7 +168,7 @@ object LocationUtils {
 
     private fun getP3Section_(): Int? {
         if (F7Phase != 3) return null
-        val pos = Player?.positionVector ?: return null
+        val pos = mc.thePlayer?.positionVector ?: return null
 
         P3Sections.forEachIndexed { i, (one, two) ->
             if (isCoordinateInsideBox(pos, one, two)) {
@@ -167,25 +179,19 @@ object LocationUtils {
         return null
     }
 
-    // todo: add floor 1 & 2
     private val bossRoomCorners = mapOf(
         7 to Pair(Vec3(- 8.0, 0.0, - 8.0), Vec3(134.0, 254.0, 147.0)),
         6 to Pair(Vec3(- 40.0, 51.0, - 8.0), Vec3(22.0, 110.0, 134.0)),
         5 to Pair(Vec3(- 40.0, 53.0, - 8.0), Vec3(50.0, 112.0, 118.0)),
         4 to Pair(Vec3(- 40.0, 53.0, - 40.0), Vec3(134.0, 254.0, 147.0)),
-        3 to Pair(Vec3(- 40.0, 0.0, - 40.0), Vec3(42.0, 118.0, 73.0))
+        3 to Pair(Vec3(- 40.0, 0.0, - 40.0), Vec3(42.0, 118.0, 73.0)),
+        2 to Pair(Vec3(- 40.0, 99.0, - 40.0), Vec3(42.0, 118.0, 73.0)),
+        1 to Pair(Vec3(- 14.0, 146.0, 49.0), Vec3(24.0, 54.0, 54.0))
     )
 
     private fun isInBossRoom(): Boolean {
-        val playerCoords = Player?.positionVector ?: return false
-        val corners = bossRoomCorners[dungeonFloor] ?: return false
-
+        val playerCoords = mc.thePlayer?.positionVector ?: return false
+        val corners = bossRoomCorners[dungeonFloorNumber] ?: return false
         return isCoordinateInsideBox(playerCoords, corners.first, corners.second)
-    }
-
-    fun isCoordinateInsideBoss(vec: Vec3): Boolean {
-        val corners = bossRoomCorners[dungeonFloor] ?: return false
-
-        return isCoordinateInsideBox(vec, corners.first, corners.second)
     }
 }

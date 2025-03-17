@@ -1,81 +1,70 @@
 package noammaddons.features.hud
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.config.EditGui.ElementsManager.HudElementData
-import noammaddons.config.EditGui.components.TextElement
+import noammaddons.config.EditGui.GuiElement
 import noammaddons.events.RenderOverlay
 import noammaddons.features.Feature
 import noammaddons.utils.ActionBarParser
+import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.DataClasses
 import noammaddons.utils.LocationUtils.inSkyblock
 import noammaddons.utils.NumbersUtils.format
+import noammaddons.utils.RenderHelper.getStringWidth
+import noammaddons.utils.RenderUtils.drawText
 
 object PlayerHud: Feature() {
-    private val data = hudData.getData().PlayerHud
-
-    private data class ElementConfig(
-        val element: TextElement,
-        val isEnabled: () -> Boolean,
-        val updateText: (TextElement) -> Unit
-    )
-
-    data class PlayerHudData(
-        var health: HudElementData,
-        var defense: HudElementData,
-        var effectiveHP: HudElementData,
-        var mana: HudElementData,
-        var overflowMana: HudElementData,
-        var speed: HudElementData
-    )
-
-    private val elements = mutableListOf<ElementConfig>()
-
-    init {
-        listOf(
-            ElementConfig(
-                TextElement("&c2222/4000", dataObj = data.health),
-                { config.PlayerHUDHealth },
-                { it.setText(getHpFormatted()) }
-            ),
-            ElementConfig(
-                TextElement("&a5040", dataObj = data.defense),
-                { config.PlayerHUDDefense },
-                { it.setText("&a${ActionBarParser.currentDefense}") }
-            ),
-            ElementConfig(
-                TextElement("&b2222/4000", dataObj = data.mana),
-                { config.PlayerHUDMana },
-                { it.setText("&b${ActionBarParser.currentMana}/${ActionBarParser.maxMana}") }
-            ),
-            ElementConfig(
-                TextElement("&3600", dataObj = data.overflowMana),
-                {
-                    val cfg = config.PlayerHUDOverflowMana
-                    val alternate = config.PlayerHUDAlternateOverflowMana
-                    cfg && (alternate && ActionBarParser.overflowMana > 0 || ! alternate)
-                },
-                { it.setText("&3${ActionBarParser.overflowMana}") }
-            ),
-            ElementConfig(
-                TextElement("&222675", dataObj = data.effectiveHP),
-                { config.PlayerHUDEffectiveHP },
-                { it.setText("&2${format("${ActionBarParser.effectiveHP}")}") }
-            ),
-            ElementConfig(
-                TextElement("&f500✦", dataObj = data.speed),
-                { config.PlayerHUDSpeed },
-                { it.setText("&f${ActionBarParser.currentSpeed}✦") }
-            )
-        ).run { elements.addAll(this) }
+    private class PlayerHudElement(
+        data: DataClasses.HudElementData,
+        private val isEnabled: () -> Boolean,
+        private val textSupplier: () -> String,
+    ): GuiElement(data) {
+        override val enabled get() = isEnabled()
+        private val text get() = textSupplier()
+        override val width: Float get() = getStringWidth(text)
+        override val height: Float get() = 9f
+        override fun draw() = drawText(text, getX(), getY(), getScale())
     }
+
+    private val elements = listOf(
+        PlayerHudElement(
+            hudData.getData().PlayerHud.health,
+            { config.PlayerHUDHealth },
+            { getHpFormatted() },
+        ),
+        PlayerHudElement(
+            hudData.getData().PlayerHud.defense,
+            { config.PlayerHUDDefense },
+            { "&a${ActionBarParser.currentDefense}" },
+        ),
+        PlayerHudElement(
+            hudData.getData().PlayerHud.mana,
+            { config.PlayerHUDMana },
+            { "&b${ActionBarParser.currentMana}/${ActionBarParser.maxMana}" },
+        ),
+        PlayerHudElement(
+            hudData.getData().PlayerHud.overflowMana,
+            { config.PlayerHUDOverflowMana && (! config.PlayerHUDAlternateOverflowMana || ActionBarParser.overflowMana > 0) },
+            { "&3${ActionBarParser.overflowMana}" },
+        ),
+        PlayerHudElement(
+            hudData.getData().PlayerHud.effectiveHP,
+            { config.PlayerHUDEffectiveHP },
+            { "&2${format("${ActionBarParser.effectiveHP}")}" },
+        ),
+        PlayerHudElement(
+            hudData.getData().PlayerHud.speed,
+            { config.PlayerHUDSpeed },
+            { "&f${ActionBarParser.currentSpeed}✦" },
+        )
+    )
 
     @SubscribeEvent
     fun drawAll(event: RenderOverlay) {
         if (! config.PlayerHUD || ! inSkyblock) return
 
-        elements.forEach { config ->
-            if (config.isEnabled()) {
-                config.updateText(config.element)
-                config.element.draw()
+        elements.forEach { element ->
+            if (element.enabled) {
+                element.draw()
             }
         }
     }
@@ -83,30 +72,34 @@ object PlayerHud: Feature() {
     private fun getHpFormatted(): String {
         var str = if (ActionBarParser.currentHealth > ActionBarParser.maxHealth) "&e" else "&c"
         str += "${ActionBarParser.currentHealth}&f/&c${ActionBarParser.maxHealth} "
-        str += ActionBarParser.wand?.let { "(${it})" } ?: ""
-
         return str
     }
 
-    private val patterns = listOf(
-        "(§.\\d{1,3}(,\\d{3})*\\/\\d{1,3}(,\\d{3})*[?❤]?)\\s+(§a\\d{1,3}(,\\d{3})*§a[?❈❤]? Defense)\\s+(§b\\d{1,3}(,\\d{3})*\\/\\d{1,3}(,\\d{3})*([?❤✎])?\\s+§3\\d+([?ʬ])?)".toRegex(),
-        "§b[\\d,]+\\/[\\d,]+(\\?|✎ Mana)?( §3\\d+(\\?|ʬ))?".toRegex(),
-        "[\\d|,]+§a❈ Defense".toRegex(),
-        "[\\d|,]+/[\\d|,]+❤".toRegex(),
-        "[\\d|,]+/[\\d|,]+✎ Mana".toRegex(),
-        "[\\d|,]+/[\\d|,]+ Mana".toRegex(),
-        "(§3\\d+(\\?|ʬ))?".toRegex(),
-        "✎".toRegex()
+    private val patterns = mapOf(
+        ActionBarParser.HP_REGEX to { elements[0].enabled },
+        ActionBarParser.DEF_REGEX to { elements[1].enabled },
+        ActionBarParser.MANA_REGEX to { elements[2].enabled },
+        ActionBarParser.OVERFLOW_REGEX to { elements[3].enabled },
     )
 
+
     /**
-     * @see noammaddons.mixins.MixinGuiIngame
+     * @see noammaddons.mixins.MixinGuiIngame.modifyActionBar
      */
+    @JvmStatic
     fun modifyText(text: String): String {
-        if (! config.PlayerHUD || ! inSkyblock) return text
+        if (! config.PlayerHUD) return text
+        if (! inSkyblock) return text
         var result = text
-        patterns.forEach { result = result.replace(it, "") }
+
+        patterns.forEach { (pattern, condition) ->
+            if (condition.invoke()) {
+                result = result.replace(pattern, "")
+            }
+        }
         return result
     }
-}
 
+    @JvmStatic
+    fun cancelActionBar(msg: String) = msg.removeFormatting().trim().isBlank()
+}

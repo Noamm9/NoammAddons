@@ -1,11 +1,14 @@
 package noammaddons.utils
 
-import net.minecraft.util.Vec3
+import net.minecraft.util.*
+import noammaddons.utils.BlockUtils.toVec
 import noammaddons.utils.PlayerUtils.getEyePos
 import java.awt.Color
 import kotlin.math.*
 
 object MathUtils {
+    data class Rotation(val yaw: Float, val pitch: Float)
+
     /**
      * Checks if a given coordinate is inside a specified 3D box.
      * @param coord The coordinate to check.
@@ -38,8 +41,10 @@ object MathUtils {
      * @param vec2 The second point as a Vec3.
      * @return The distance between the two points.
      */
-    fun distanceIn3DWorld(vec1: Vec3, vec2: Vec3): Double {
-        return vec1.distanceTo(vec2)
+    fun distance3D(vec1: Vec3, vec2: Vec3) = vec1.distanceTo(vec2)
+    fun distance3D(pos1: BlockPos, pos2: BlockPos): Double {
+        val delta = pos1.subtract(pos2).toVec()
+        return sqrt(delta.xCoord.pow(2) + delta.yCoord.pow(2) + delta.zCoord.pow(2))
     }
 
 
@@ -49,10 +54,16 @@ object MathUtils {
      * @param vec2 The second point as a Vec3.
      * @return The distance between the two points in 2D space.
      */
-    fun distanceIn2DWorld(vec1: Vec3, vec2: Vec3): Double {
+    fun distance2D(vec1: Vec3, vec2: Vec3): Double {
         val deltaX = vec1.xCoord - vec2.xCoord
         val deltaZ = vec1.zCoord - vec2.zCoord
-        return sqrt(deltaX.pow(2) + deltaZ.pow(2))
+        return sqrt(deltaX * deltaX + deltaZ * deltaZ)
+    }
+
+    fun distance2D(pos1: BlockPos, pos2: BlockPos): Double {
+        val deltaX = pos1.x - pos2.x
+        val deltaZ = pos1.z - pos2.z
+        return sqrt((deltaX * deltaX + deltaZ * deltaZ).toDouble())
     }
 
     fun normalizeYaw(yaw: Float): Float {
@@ -69,29 +80,15 @@ object MathUtils {
         return result
     }
 
-    /**
-     * Calculates the yaw and pitch angles required to look at a specific block position.
-     *
-     * @param blockPos The block position object containing the x, y, and z coordinates.
-     * @param playerPos The player position object containing the x, y, and z coordinates. If not provided, the player's eye position will be used.
-     *
-     * @return A Pair containing the yaw and pitch angles in degrees. If the calculation fails, returns null.
-     */
     fun calcYawPitch(blockPos: Vec3, playerPos: Vec3 = getEyePos()): Rotation {
-        val dx = blockPos.xCoord - playerPos.xCoord
-        val dy = blockPos.yCoord - playerPos.yCoord
-        val dz = blockPos.zCoord - playerPos.zCoord
-
-        val yaw = if (dx != 0.0) (- (if (dx < 0) 1.5 * PI else 0.5 * PI - atan(dz / dx)) * 180 / PI).toFloat()
-        else if (dz < 0) 180f
-        else 0f
-
-        val xzDistance = sqrt(dx.pow(2) + dz.pow(2))
-        val pitch = (- (atan(dy / xzDistance) * 180 / PI)).toFloat()
-        
-        return Rotation(yaw, pitch)
+        val delta = blockPos.subtract(playerPos)
+        val yaw = - atan2(delta.xCoord, delta.zCoord) * (180 / PI)
+        val pitch = - atan2(delta.yCoord, sqrt(delta.xCoord * delta.xCoord + delta.zCoord * delta.zCoord)) * (180 / PI)
+        return Rotation(yaw.toFloat(), pitch.toFloat())
     }
 
+
+    @JvmStatic
     fun interpolate(prev: Number, newPos: Number, partialTicks: Number): Double {
         return prev.toDouble() + (newPos.toDouble() - prev.toDouble()) * partialTicks.toDouble()
     }
@@ -104,7 +101,29 @@ object MathUtils {
         )
     }
 
-    fun Ease(t: Double): Double = sin((t * Math.PI) / 2)
+    fun interpolateYaw(startYaw: Float, targetYaw: Float, progress: Float): Float {
+        var delta = (targetYaw - startYaw) % 360
 
-    data class Rotation(val yaw: Float, val pitch: Float)
+        if (delta > 180) delta -= 360
+        if (delta < - 180) delta += 360
+
+        return (startYaw + delta * progress)
+    }
+
+    fun interpolatePitch(startPitch: Float, targetPitch: Float, progress: Float): Float {
+        var delta = (targetPitch - startPitch)
+
+        // Clamp the delta within the valid pitch range (-90 to 90)
+        if (delta > 90) delta = 90f
+        if (delta < - 90) delta = - 90f
+
+        return (startPitch + delta * progress)
+    }
+
+
+    fun Vec3.floor() = Vec3(floor(xCoord), floor(yCoord), floor(zCoord))
+    fun Vec3.add(x: Number = 0.0, y: Number = 0.0, z: Number = 0.0) = add(Vec3(x.toDouble(), y.toDouble(), z.toDouble()))
+    fun Vec3i.destructured() = listOf(x, y, z)
+    fun Vec3.destructured() = listOf(xCoord, yCoord, zCoord)
+
 }

@@ -3,9 +3,8 @@ package noammaddons.features.dungeons
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.network.play.server.S2APacketParticles
 import net.minecraft.network.play.server.S32PacketConfirmTransaction
-import net.minecraft.util.EnumParticleTypes.ENCHANTMENT_TABLE
+import net.minecraft.util.EnumParticleTypes.*
 import net.minecraft.util.Vec3
-import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
@@ -13,12 +12,11 @@ import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.DungeonUtils.Classes.*
 import noammaddons.utils.DungeonUtils.thePlayer
 import noammaddons.utils.LocationUtils.F7Phase
-import noammaddons.utils.MathUtils.distanceIn3DWorld
+import noammaddons.utils.MathUtils.distance3D
 import noammaddons.utils.NumbersUtils.toFixed
-import noammaddons.utils.PlayerUtils.Player
 import noammaddons.utils.RenderHelper.getHeight
-import noammaddons.utils.RenderHelper.getRenderVec
 import noammaddons.utils.RenderHelper.getWidth
+import noammaddons.utils.RenderHelper.renderVec
 import noammaddons.utils.RenderUtils.drawBox
 import noammaddons.utils.RenderUtils.drawCenteredText
 import noammaddons.utils.RenderUtils.drawTracer
@@ -28,6 +26,8 @@ import noammaddons.utils.Utils.equalsOneOf
 import java.awt.Color
 
 object M7Dragons: Feature() {
+    data class DragInfo(val color: Color, val prio: IntArray, val stateCoords: Vec3, val stateBox: Pair<Vec3, Vec3>)
+
     private var ticks = 0
     private var toggleTickCounter = false
     private var spawning = false
@@ -45,12 +45,6 @@ object M7Dragons: Feature() {
     private var arrowListener = false
     private var iceSprayListener = false
 
-    private data class DragInfo(
-        val color: Color,
-        val prio: IntArray,
-        val stateCoords: Vec3,
-        val stateBox: Pair<Vec3, Vec3>
-    )
 
     private val dragInfo = mapOf(
         "purple" to DragInfo(
@@ -179,7 +173,7 @@ object M7Dragons: Feature() {
     */
 
     @SubscribeEvent
-    fun reset(event: WorldEvent.Unload) {
+    fun reset(event: WorldUnloadEvent) {
         ticks = 0
         redSpawning = false
         orangeSpawning = false
@@ -228,6 +222,7 @@ object M7Dragons: Feature() {
 					}
 				}
 			}*/
+            else -> return
         }
     }
 
@@ -342,11 +337,8 @@ object M7Dragons: Feature() {
             .filterIsInstance<EntityItem>()
             .filter { it.name == "item.tile.ice" }
             .forEach {
-                if (distanceIn3DWorld(
-                        Player !!.getRenderVec(),
-                        it.getRenderVec()
-                    ) <= 25
-                ) iceSprayHit = true
+                if (distance3D(mc.thePlayer.renderVec, it.renderVec) > 25) return@forEach
+                iceSprayHit = true
             }
     }
 

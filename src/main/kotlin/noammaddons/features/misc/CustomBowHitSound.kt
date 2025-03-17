@@ -3,7 +3,6 @@ package noammaddons.features.misc
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.SoundPlayEvent
 import noammaddons.features.Feature
-import noammaddons.utils.PlayerUtils.Player
 
 object CustomBowHitSound: Feature() {
     @SubscribeEvent
@@ -12,6 +11,6 @@ object CustomBowHitSound: Feature() {
         if (event.name != "random.successful_hit") return
         event.isCanceled = true
 
-        Player?.playSound("note.harp", 1f, 1f)
+        mc.thePlayer?.playSound("note.harp", 1f, 1f)
     }
 }

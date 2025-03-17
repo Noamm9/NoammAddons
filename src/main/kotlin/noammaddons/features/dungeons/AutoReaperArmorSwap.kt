@@ -12,7 +12,6 @@ import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.equalsOneOf
 
 object AutoReaperArmorSwap: Feature() {
-
     @SubscribeEvent
     fun autoReaperArmorSwap(event: Chat) {
         if (! config.AutoReaperArmorSwap) return

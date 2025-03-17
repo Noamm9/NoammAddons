@@ -1,20 +1,20 @@
 package noammaddons.features.dungeons
 
-import net.minecraftforge.fml.common.eventhandler.*
-import noammaddons.events.*
-import noammaddons.features.*
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.events.Chat
+import noammaddons.features.Feature
 import noammaddons.features.dungeons.GhostPick.featureState
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.noFormatText
-import noammaddons.utils.DungeonUtils.Classes
+import noammaddons.utils.DungeonUtils
 import noammaddons.utils.DungeonUtils.Classes.*
 import noammaddons.utils.DungeonUtils.thePlayer
-import noammaddons.utils.LocationUtils.dungeonFloor
-import noammaddons.utils.LocationUtils.inDungeons
+import noammaddons.utils.LocationUtils.dungeonFloorNumber
+import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.PlayerUtils.useDungeonClassAbility
 
 object AutoUlt: Feature() {
-    private data class UltMessage(val msg: String, val classes: List<Classes>, val floor: Int)
+    data class UltMessage(val msg: String, val classes: List<DungeonUtils.Classes>, val floor: Int)
 
     private val UltMessages = listOf(
         UltMessage(
@@ -47,10 +47,10 @@ object AutoUlt: Feature() {
     @SubscribeEvent
     fun useUlt(event: Chat) {
         if (! config.autoUlt) return
-        if (! inDungeons) return
+        if (! inDungeon) return
 
         val matchingMessage = UltMessages.find {
-            it.msg == event.component.noFormatText && it.floor == dungeonFloor
+            it.msg == event.component.noFormatText && it.floor == dungeonFloorNumber
         } ?: return
 
         if (matchingMessage.classes.contains(thePlayer?.clazz)) {

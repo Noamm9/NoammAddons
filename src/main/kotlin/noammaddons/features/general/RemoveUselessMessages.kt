@@ -8,8 +8,10 @@ import noammaddons.features.Feature
  * @see noammaddons.mixins.MixinGuiNewChat
  */
 object RemoveUselessMessages: Feature() {
+    @JvmField
     val RegexsWithoutFormatting = listOf(
         Regex("Creeper Veil Activated!"),
+        Regex("The Redstone Pigmen are unhappy with you stealing their ores! Look out!"),
         Regex("Creeper Veil De-activated!"),
         Regex("A Wither Key was picked up!"),
         Regex("Warping you to your SkyBlock island..."),
@@ -75,7 +77,6 @@ object RemoveUselessMessages: Feature() {
         Regex("There are blocks in the way!"),
         Regex("Error initializing players: undefined Hidden"),
         Regex("Your .+ stats are doubled because you are the only player using this class!"),
-        Regex("Skytils.+Something isn't right! .+"),
         Regex("You have .+ unclaimed .+"),
         Regex(".+ joined the lobby! .+"),
         Regex("Welcome to Hypixel SkyBlock!"),
@@ -117,6 +118,7 @@ object RemoveUselessMessages: Feature() {
         Regex("You earned .+ GEXP from playing .+!"),
     )
 
+    @JvmField
     val RegexsWithFormatting = listOf(
         Regex("(.*) §r§eunlocked §r§d(.*) Essence §r§8x(.*)§r§e!"),
         Regex(" {4}§r§d(.*) Essence §r§8x(.*)"),
@@ -210,5 +212,7 @@ object RemoveUselessMessages: Feature() {
         Regex("(.*) §r§ehas obtained §r§a§r§9Beating Heart§r§e!"),
         Regex("§fYou found a §r§dWither Essence§r§f! Everyone gains an extra essence!")
     )
-}
 
+    @JvmField
+    val regexsToRemove = mutableListOf<Regex>()
+}

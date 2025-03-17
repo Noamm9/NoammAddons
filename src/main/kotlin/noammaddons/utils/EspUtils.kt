@@ -3,15 +3,14 @@ package noammaddons.utils
 import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.shader.Framebuffer
 import net.minecraft.entity.EntityLivingBase
-import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.PostRenderEntityModelEvent
+import noammaddons.events.WorldUnloadEvent
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
-import noammaddons.utils.MathUtils.distanceIn3DWorld
-import noammaddons.utils.PlayerUtils.Player
-import noammaddons.utils.RenderHelper.getRenderVec
+import noammaddons.utils.MathUtils.distance3D
 import noammaddons.utils.RenderHelper.glBindColor
+import noammaddons.utils.RenderHelper.renderVec
 import noammaddons.utils.Utils.equalsOneOf
 import org.lwjgl.opengl.EXTFramebufferObject
 import org.lwjgl.opengl.EXTPackedDepthStencil
@@ -27,7 +26,7 @@ object EspUtils {
         outline: Boolean = config.espType.equalsOneOf(2, 0) && config.espOutlineOpacity != 0f,
         fill: Boolean = config.espType == 2 && config.espFilledOpacity != 0f
     ) {
-        val distance = distanceIn3DWorld(event.entity.getRenderVec(), Player?.getRenderVec() ?: return)
+        val distance = distance3D(event.entity.renderVec, mc.thePlayer.renderVec)
         val adjustedLineWidth = (lineWidth / (distance / 8f)).coerceIn(0.5, lineWidth.toDouble()).toFloat()
 
         if (fill) addChamESP(event.entity, color)
@@ -83,7 +82,7 @@ object EspUtils {
 
     @Synchronized
     @SubscribeEvent
-    fun reset(event: WorldEvent.Unload) {
+    fun reset(event: WorldUnloadEvent) {
         chamEntities.clear()
     }
 

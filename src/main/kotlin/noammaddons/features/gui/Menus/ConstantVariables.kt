@@ -1,34 +1,25 @@
 package noammaddons.features.gui.Menus
 
-import net.minecraft.client.gui.inventory.GuiChest
-import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemSkull
 import net.minecraft.item.ItemStack
-import net.minecraftforge.fml.client.config.GuiUtils.drawHoveringText
-import noammaddons.features.general.DrawItemRarity.onSlotDraw
-import noammaddons.features.gui.Menus.CustomMenuManager.menuList
+import net.minecraftforge.fml.client.config.GuiUtils.*
 import noammaddons.features.gui.ScalableTooltips
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
-import noammaddons.utils.ChatUtils.addColor
-import noammaddons.utils.GuiUtils.currentChestName
-import noammaddons.utils.GuiUtils.disableNEUInventoryButtons
-import noammaddons.utils.GuiUtils.getMouseX
-import noammaddons.utils.GuiUtils.getMouseY
 import noammaddons.utils.GuiUtils.sendWindowClickPacket
 import noammaddons.utils.ItemUtils.getHeadSkinTexture
 import noammaddons.utils.ItemUtils.getItemId
+import noammaddons.utils.MouseUtils.getMouseX
+import noammaddons.utils.MouseUtils.getMouseY
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getScaleFactor
 import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawPlayerHead
 import noammaddons.utils.RenderUtils.drawRainbowRoundedBorder
 import noammaddons.utils.RenderUtils.drawRoundedRect
-import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.RenderUtils.renderItem
 import noammaddons.utils.SoundUtils
-import noammaddons.utils.Utils.isNull
 import org.lwjgl.input.Keyboard
 import java.awt.Color
 import kotlin.math.floor
@@ -71,48 +62,14 @@ fun handleSlotClick(button: Int, slotIndex: Int) {
     SoundUtils.click.start()
 }
 
-fun inMenu(): Boolean {
-    if (! config.CustomMenus) return false
-    if (mc.currentScreen !is GuiChest) return false
-
-    val isWhitelisted = menuList.any { (name, regex, cfg) ->
-        val nameCheck = name?.let { currentChestName.contains(it) } ?: false
-        val regexCheck = regex?.matches(currentChestName) == true
-        val configCheck = cfg.invoke()
-
-        (nameCheck || regexCheck) && configCheck
-    }
-
-    if (isWhitelisted) disableNEUInventoryButtons()
-    return isWhitelisted
-}
-
 fun calculateScale(): Float {
-    return (7f * config.CustomSBMenusScale) / mc.getScaleFactor()
-}
-
-fun shouldExpand(container: List<Slot>): Int {
-    if (mc.currentScreen !is GuiContainer) return 0
-
-    for (slot in container) {
-        val stack = slot.stack
-        val i = slot.slotNumber
-
-        if (i < 7) {
-            if (! stack.isNull()) {
-                if (! isBackgroundGlass(stack)) {
-                    return 1
-                }
-            }
-        }
-    }
-    return 0
+    return (7f * config.customMenusScale) / mc.getScaleFactor()
 }
 
 fun getMouseScaledCoordinates(scale: Float): Pair<Float, Float> {
     return Pair(
-        mc.getMouseX() / scale,
-        mc.getMouseY() / scale
+        getMouseX() / scale,
+        getMouseY() / scale
     )
 }
 
@@ -150,20 +107,11 @@ fun renderBackground(offsetX: Number, offsetY: Number, width: Number, height: Nu
     drawRainbowRoundedBorder(x, y, w, h, thickness = 4f)
 }
 
-fun renderMenuTitle(name: String?, offsetX: Float, offsetY: Float) {
-    if (! name.isNullOrEmpty()) {
-        drawText(
-            "&6&l&n[&b&l&nN&d&l&nA&6&l&n]&r &b&l$name".addColor(),
-            offsetX, offsetY, 1f, Color.WHITE
-        )
-    }
-}
-
 fun renderHeads(container: List<Slot>, windowSize: Int, offsetX: Float, offsetY: Float, slotPosition: Pair<Int, Int>, expand: Int) {
     container.forEach { slot ->
         val i = slot.slotNumber
         val stack = slot.stack
-        if (i >= windowSize || stack.isNull()) return@forEach
+        if (i >= windowSize || stack == null) return@forEach
 
         val currentOffsetX = i % 9 * 18 + offsetX
         val currentOffsetY = (floor(i / 9.0).toInt() + expand) * 18 + offsetY
@@ -178,7 +126,6 @@ fun renderHeads(container: List<Slot>, windowSize: Int, offsetX: Float, offsetY:
         )
 
         if (stack.item is ItemSkull) {
-            onSlotDraw(stack, currentOffsetX.toInt(), currentOffsetY.toInt())
             drawPlayerHead(
                 getHeadSkinTexture(stack) ?: return@forEach,
                 currentOffsetX + 1.6f,
@@ -194,7 +141,7 @@ fun renderItems(container: List<Slot>, windowSize: Int, offsetX: Float, offsetY:
         val i = slot.slotNumber
         val stack = slot.stack
         if (i >= windowSize) return@forEach
-        if (stack.isNull()) return@forEach
+        if (stack == null) return@forEach
         if (stack.item is ItemSkull) return@forEach
         if (isBackgroundGlass(stack)) return@forEach
 

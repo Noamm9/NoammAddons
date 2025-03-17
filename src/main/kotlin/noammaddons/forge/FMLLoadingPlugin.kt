@@ -2,7 +2,7 @@ package noammaddons.forge
 
 import net.minecraftforge.common.ForgeVersion
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin
-import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.MCVersion
+import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.*
 import noammaddons.noammaddons.Companion.MOD_ID
 import org.spongepowered.asm.launch.MixinBootstrap
 import org.spongepowered.asm.mixin.MixinEnvironment

@@ -8,10 +8,8 @@ import noammaddons.utils.BlockUtils.blackList
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.ItemUtils.lore
 import noammaddons.utils.LocationUtils.inSkyblock
-import noammaddons.utils.PlayerUtils.Player
 import noammaddons.utils.PlayerUtils.sendRightClickAirPacket
 import noammaddons.utils.Utils.equalsOneOf
-import noammaddons.utils.Utils.isNull
 
 
 object NoBlockAnimation: Feature() {
@@ -24,11 +22,11 @@ object NoBlockAnimation: Feature() {
                 PlayerInteractEvent.Action.RIGHT_CLICK_AIR
             )
         ) return
-        val item = Player?.heldItem ?: return
+        val item = mc.thePlayer?.heldItem ?: return
         if (item.item !is ItemSword) return
         if (item.lore.none { it.contains("§6Ability: ") && it.endsWith("§e§lRIGHT CLICK") }) return
         if (! mc.gameSettings.keyBindUseItem.isKeyDown) return
-        if (! event.pos.isNull()) {
+        if (event.pos != null) {
             if (getBlockAt(event.pos) in blackList) return
         }
 

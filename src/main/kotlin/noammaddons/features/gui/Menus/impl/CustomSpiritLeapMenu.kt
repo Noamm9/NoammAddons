@@ -1,54 +1,40 @@
 package noammaddons.features.gui.Menus.impl
 
-import io.github.moulberry.notenoughupdates.NEUApi
-import io.github.moulberry.notenoughupdates.NotEnoughUpdates
+import gg.essential.elementa.utils.withAlpha
 import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.util.ResourceLocation
+import net.minecraft.item.ItemSkull
 import net.minecraftforge.client.event.GuiScreenEvent
-import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.GuiMouseClickEvent
-import noammaddons.events.InventoryFullyOpenedEvent
+import noammaddons.events.WorldUnloadEvent
 import noammaddons.features.Feature
+import noammaddons.utils.*
+import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.ChatUtils.showTitle
-import noammaddons.utils.DungeonUtils.Classes
 import noammaddons.utils.DungeonUtils.leapTeammates
 import noammaddons.utils.GuiUtils.currentChestName
-import noammaddons.utils.GuiUtils.getMouseX
-import noammaddons.utils.GuiUtils.getMouseY
 import noammaddons.utils.GuiUtils.sendWindowClickPacket
-import noammaddons.utils.LocationUtils.inDungeons
-import noammaddons.utils.PlayerUtils.Player
+import noammaddons.utils.LocationUtils.inDungeon
+import noammaddons.utils.MouseUtils.getMouseX
+import noammaddons.utils.MouseUtils.getMouseY
 import noammaddons.utils.PlayerUtils.closeScreen
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getScaleFactor
-import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderHelper.getWidth
-import noammaddons.utils.RenderUtils.drawFloatingRectWithAlpha
+import noammaddons.utils.RenderUtils.drawFloatingRect
 import noammaddons.utils.RenderUtils.drawPlayerHead
 import noammaddons.utils.RenderUtils.drawRoundedRect
 import noammaddons.utils.RenderUtils.drawText
-import noammaddons.utils.SoundUtils
-import noammaddons.utils.Utils.isNull
+import noammaddons.utils.RenderUtils.drawTitle
 import java.awt.Color
 
 object CustomSpiritLeapMenu: Feature() {
-    private data class LeapMenuPlayer(var name: String, var clazz: Classes, var slot: Int, var skin: ResourceLocation)
+    data class LeapMenuPlayer(val slot: Int, val player: DungeonUtils.DungeonPlayer)
 
-    private var players = mutableListOf<LeapMenuPlayer?>(null, null, null, null)
+    val players = mutableListOf<LeapMenuPlayer?>(null, null, null, null)
 
     private fun inSpiritLeap(): Boolean {
-        return currentChestName.removeFormatting().lowercase() == "spirit leap" && config.CustomLeapMenu && inDungeons
-    }
-
-    @SubscribeEvent
-    fun fuckNEU(event: InventoryFullyOpenedEvent) {
-        // Fuck NEU horrible code, but thanks for api 😘
-        if (Loader.instance().activeModList.none { it.modId == NotEnoughUpdates.MODID }) return
-        if (! inSpiritLeap()) return
-
-        NEUApi.setInventoryButtonsToDisabled()
+        return currentChestName.removeFormatting().lowercase() == "spirit leap" && inDungeon && config.CustomLeapMenu
     }
 
     @SubscribeEvent
@@ -57,84 +43,112 @@ object CustomSpiritLeapMenu: Feature() {
         updatePlayersArray()
         event.isCanceled = true
 
-        if (players.filterNotNull().isEmpty()) return showTitle(
-            "Spirit Leap Menu",
-            "&4&lNo players found",
-            0.01f
-        )
+        if (players.filterNotNull().isEmpty()) {
+            drawTitle("Spirit Leap Menu", "&4&lNo players found")
+            return
+        }
 
-        val scale = (config.CustomLeapMenuScale * 4.5f) / mc.getScaleFactor()
+        val scale = (config.CustomLeapMenuScale * 4.6f) / mc.getScaleFactor()
         val screenWidth = mc.getWidth() / scale
         val screenHeight = mc.getHeight() / scale
 
-        val width = 288f
-        val height = 192f
+        val boxWidth = 128f * 1.3f
+        val boxHeight = 80f * 0.8f
+        val boxSpacing = 40f
+        val headSize = 50f
 
-        val X = screenWidth / 2f - width / 2f
-        val Y = screenHeight / 2f - height / 2f
+        val gridWidth = 2 * boxWidth + boxSpacing
+        val gridHeight = 2 * boxHeight + boxSpacing
 
-        val BoxWidth = 128f
-        val BoxHeight = 80f
-        val BoxSpacing = 40f
-        val HeadsHeightWidth = 50f
+        val gridX = screenWidth / 2f - gridWidth / 2f
+        val gridY = screenHeight / 2f - gridHeight / 2f
+
 
         val offsets = listOf(
-            listOf(X, Y),
-            listOf(X + BoxWidth + BoxSpacing, Y),
-            listOf(X, Y + BoxHeight + BoxSpacing),
-            listOf(X + BoxWidth + BoxSpacing, Y + BoxHeight + BoxSpacing)
+            listOf(gridX, gridY),
+            listOf(gridX + boxWidth + boxSpacing, gridY),
+            listOf(gridX, gridY + boxHeight + boxSpacing),
+            listOf(gridX + boxWidth + boxSpacing, gridY + boxHeight + boxSpacing)
         )
 
-        val Lightmode = Color(203, 202, 205)
-        val Darkmode = Color(33, 33, 33)
-        val ColorMode = if (config.CustomLeapMenuLightMode) Lightmode else Darkmode
+        val darkMode = Color(33, 33, 33)
+
+        val scaledMouseX = getMouseX() / scale
+        val scaledMouseY = getMouseY() / scale
+
+        val hoveredIndex = when {
+            scaledMouseX < screenWidth / 2 && scaledMouseY < screenHeight / 2 -> 0
+            scaledMouseX > screenWidth / 2 && scaledMouseY < screenHeight / 2 -> 1
+            scaledMouseX < screenWidth / 2 && scaledMouseY > screenHeight / 2 -> 2
+            scaledMouseX > screenWidth / 2 && scaledMouseY > screenHeight / 2 -> 3
+            else -> null
+        }
 
         GlStateManager.pushMatrix()
         GlStateManager.scale(scale, scale, scale)
 
-        players.forEachIndexed { i, player ->
-            if (player.isNull()) return@forEachIndexed
-            val color = player !!.clazz.color
+        players.withIndex().forEach { (i, entry) ->
+            if (entry == null) return@forEach
+            val rectColor = when {
+                config.showLastDoorOpenner && DungeonUtils.lastDoorOpenner == entry.player -> {
+                    if (i == hoveredIndex) darkMode.brighter().brighter().brighter().brighter().brighter().brighter()
+                    else darkMode.brighter().brighter().brighter().brighter()
+                }
 
-            drawFloatingRectWithAlpha(
-                offsets[i][0].toInt(),
-                offsets[i][1].toInt(),
-                BoxWidth.toInt(),
-                BoxHeight.toInt(),
-                false, ColorMode
+                config.tintDeadPlayers && entry.player.isDead -> {
+                    val color = MathUtils.interpolateColor(darkMode, Color.RED, 0.2f)
+                    if (i == hoveredIndex) color.brighter()
+                    else color
+                }
+
+                else -> {
+                    if (i == hoveredIndex) darkMode.brighter().brighter()
+                    else darkMode
+                }
+            }
+
+            val color = entry.player.clazz.color
+            val (boxX, boxY) = offsets[i]
+            val textX = boxX + boxWidth / 2.5
+            val textY = boxY + boxHeight / 2 - 10
+
+            drawFloatingRect(
+                boxX, boxY,
+                boxWidth, boxHeight,
+                rectColor.withAlpha(190)
             )
 
             drawRoundedRect(
                 color,
-                (offsets[i][0] + BoxWidth / 2 - HeadsHeightWidth / 2) - 1,
-                ((offsets[i][1] + BoxHeight - HeadsHeightWidth * 1.2f) - BoxHeight / 20) - 1,
-                HeadsHeightWidth + 2, HeadsHeightWidth + 2, 5f
+                boxX + boxWidth / 5 - headSize / 2 - 1,
+                boxY + boxHeight / 2 - headSize / 2 - 1,
+                headSize + 2, headSize + 2, 2f
             )
 
             drawPlayerHead(
-                player.skin,
-                (offsets[i][0] + BoxWidth / 2 - HeadsHeightWidth / 2),
-                ((offsets[i][1] + BoxHeight - HeadsHeightWidth * 1.2f) - BoxHeight / 20),
-                HeadsHeightWidth, HeadsHeightWidth, 5f
+                entry.player.locationSkin,
+                boxX + boxWidth / 5 - headSize / 2,
+                boxY + boxHeight / 2 - headSize / 2,
+                headSize, headSize, 2f
             )
 
             drawText(
-                "§n${player.name}",
-                offsets[i][0] + 4,
-                offsets[i][1] + 4,
+                entry.player.name,
+                textX, textY + 2,
                 color = color
             )
 
             drawText(
-                player.clazz.name,
-                offsets[i][0] + BoxWidth - getStringWidth(player.clazz.name) - BoxWidth / 25,
-                offsets[i][1] + BoxHeight - BoxHeight / 8,
+                if (entry.player.isDead) "&4&lDead"
+                else entry.player.clazz.name,
+                textX, textY + 12f,
                 color = color
             )
-
         }
+
         GlStateManager.popMatrix()
     }
+
 
     @SubscribeEvent
     fun onClick(event: GuiMouseClickEvent) {
@@ -144,8 +158,8 @@ object CustomSpiritLeapMenu: Feature() {
         val centerX = mc.getWidth() / 2
         val centerY = mc.getHeight() / 2
 
-        val mx = mc.getMouseX()
-        val my = mc.getMouseY()
+        val mx = getMouseX()
+        val my = getMouseY()
 
         val index = when {
             mx < centerX && my < centerY -> 0
@@ -157,27 +171,29 @@ object CustomSpiritLeapMenu: Feature() {
 
         players[index]?.run {
             SoundUtils.click.start()
+            if (player.isDead) return@run modMessage("&3LeapMenu >> &c${player.name} is dead!")
             sendWindowClickPacket(slot, 0, 0)
             closeScreen()
         }
     }
 
 
-    private fun updatePlayersArray() {
-        Player?.openContainer?.inventorySlots?.run {
-            players.fill(null)
+    @SubscribeEvent
+    fun onWorldUnload(event: WorldUnloadEvent) {
+        players.fill(null)
+    }
 
+    fun updatePlayersArray() {
+        mc.thePlayer?.openContainer?.inventorySlots?.run {
             for (i in 0 ..< size - 36) {
-                val itemName = get(i)?.stack?.displayName?.removeFormatting() ?: continue
-                leapTeammates.forEachIndexed { index, it ->
-                    if (it.isDead) return@forEachIndexed
-                    if (itemName != it.name) return@forEachIndexed
+                val stack = get(i)?.stack ?: continue
+                if (stack.item !is ItemSkull) continue
+                val itemName = stack.displayName.removeFormatting()
 
-                    players[index] = LeapMenuPlayer(
-                        it.name, it.clazz,
-                        get(i).slotIndex,
-                        it.locationSkin
-                    )
+                leapTeammates.forEachIndexed { index, teammate ->
+                    if (index > players.lastIndex) return@forEachIndexed
+                    if (itemName != teammate.name) return@forEachIndexed
+                    players[index] = LeapMenuPlayer(get(i).slotIndex, teammate)
                 }
             }
         }

@@ -16,7 +16,6 @@ import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.currentChestName
 import noammaddons.utils.ItemUtils.getItemId
 import noammaddons.utils.ItemUtils.lore
-import noammaddons.utils.PlayerUtils.Player
 import noammaddons.utils.PlayerUtils.closeScreen
 import noammaddons.utils.RenderHelper.getRainbowColor
 import noammaddons.utils.RenderUtils.drawGradientRoundedRect
@@ -24,14 +23,13 @@ import noammaddons.utils.RenderUtils.drawTextWithoutColorLeak
 import noammaddons.utils.RenderUtils.drawWithNoLeak
 import noammaddons.utils.RenderUtils.renderItem
 import noammaddons.utils.Utils.equalsOneOf
-import noammaddons.utils.Utils.isNull
 import org.lwjgl.input.Keyboard
 import java.awt.Color
 import kotlin.math.floor
 
 object CustomPetMenu: Feature() {
     val petMenuRegex = Regex("Pets( \\(\\d/\\d\\) )?") // https://regex101.com/r/wQn9e4/2
-    private val inPetMenu: Boolean get() = currentChestName.removeFormatting().matches(petMenuRegex) && config.CustomPetMenu
+    private val inPetMenu: Boolean get() = currentChestName.removeFormatting().matches(petMenuRegex) && config.CustomPetMenu && config.customMenus
     private val PetSlots = listOf(
         10, 11, 12, 13, 14, 15, 16,
         19, 20, 21, 22, 23, 24, 25,
@@ -53,7 +51,7 @@ object CustomPetMenu: Feature() {
     fun onClick(event: GuiMouseClickEvent) {
         if (! inPetMenu) return
         if (! event.button.equalsOneOf(0, 1, 2)) return
-        val container = Player?.openContainer?.inventorySlots ?: return
+        val container = mc.thePlayer?.openContainer?.inventorySlots ?: return
         event.isCanceled = true
 
         val scale = calculateScale()
@@ -69,7 +67,7 @@ object CustomPetMenu: Feature() {
 
         if (slot >= windowSize) return
         container[slot].run {
-            if (stack.isNull()) return
+            if (stack == null) return
             if (stack.getItemId() == 160 && stack.metadata == 15) return
         }
 
@@ -85,7 +83,7 @@ object CustomPetMenu: Feature() {
     fun cancelGui(event: GuiScreenEvent.DrawScreenEvent.Pre) {
         if (! inPetMenu) return
         event.isCanceled = true
-        val container = Player?.openContainer?.inventorySlots ?: return
+        val container = mc.thePlayer?.openContainer?.inventorySlots ?: return
 
         val scale = calculateScale()
         val (mx, my) = getMouseScaledCoordinates(scale)
@@ -109,7 +107,7 @@ object CustomPetMenu: Feature() {
             val i = slot !!.slotNumber
             if (i >= windowSize) continue
             if (i < 7) continue
-            if (slot.stack.isNull()) continue
+            if (slot.stack == null) continue
             if (slot.stack.getItemId() == 160) continue
 
             val currentOffsetX = i % 9 * 18 + offsetX
@@ -134,7 +132,7 @@ object CustomPetMenu: Feature() {
             val stack = slot.stack
             if (i < 7) return@forEach
             if (i >= windowSize) return@forEach
-            if (stack.isNull()) return@forEach
+            if (stack == null) return@forEach
             if (stack.item is ItemSkull) return@forEach
             if (stack.getItemId() == 160 && stack.metadata == 15) return@forEach
 

@@ -3,44 +3,45 @@ package noammaddons.features
 import net.minecraftforge.common.MinecraftForge
 import noammaddons.features.alerts.*
 import noammaddons.features.dungeons.*
-import noammaddons.features.dungeons.ESP.*
+import noammaddons.features.dungeons.dmap.DungeonMap
+import noammaddons.features.dungeons.esp.*
+import noammaddons.features.dungeons.solvers.*
 import noammaddons.features.dungeons.terminals.*
 import noammaddons.features.general.*
-import noammaddons.features.gui.Menus.CustomMenuRenderer
+import noammaddons.features.general.PestESP.PestESP
+import noammaddons.features.gui.*
 import noammaddons.features.gui.Menus.impl.*
-import noammaddons.features.gui.ProfleViewer
-import noammaddons.features.gui.SalvageOverlay
-import noammaddons.features.gui.StopCloseMyChat
 import noammaddons.features.hud.*
 import noammaddons.features.misc.*
 import noammaddons.features.slayers.ExtraSlayerInfo
 import noammaddons.noammaddons.Companion.Logger
 
 object FeatureManager {
-    val features = setOf(
+    val features = mutableSetOf(
 
         // General
         Motionblur, LeftClickEtherwarp, ChatCoordsWaypoint,
         GyroCircle, ChatEmojis, SlotBinding, PartyOutline,
         PartyNames, SBKickDuration, CakeNumbers, EnderPearlFix,
-        /*CustomMainMenu @see MixinGuiMainMenu & MixinGuiIngameMenu*/
-        /*VisualWords, @see MixinFontRenderer*/
-        /*CustomItemEntity, @see MixinRenderEntityItem */
-        RemoveUselessMessages, // @see MixinGuiNewChat
         PartyCommands, ShowItemEntityName, BlockGloomlockOverUse,
-        /*CustomSlotHighlight, @see MixinGuiContainer*/
-        /*ShowItemRarity, @see MixinRenderItem*/
+        VisualWords, RemoveUselessMessages, ShowItemRarity,
+        SkyBlockExpInChat, ShowItemsPrice,
 
         // Dungeons
         TeammatesNames, TeammatesESP, AbilityKeybinds,
-        IHATEDIORITE, AutoCloseChest, HighlightMimicChest,
-        GhostPick, ShowExtraStats, TraceKeys, AutoUlt,
-        AutoRefillEnderPearls, AutoI4, F7PhaseStartTimers,
-        AnnounceSpiritLeaps, AnnounceDraftResets, BetterFloors,
-        BloodDialogueSkip, AutoPotion, AutoReaperArmorSwap,
-        HidePlayersAfterLeap, M7RelicOutline, M7RelicSpawnTimer,
-        M7Dragons, BlazeSolver, EtherwarpSound, DungeonChestProfit,
-        Floor4BossFight, // BoulderSolver, AutoIceFill || not soon
+        IHATEDIORITE, AutoCloseChest, MimicDetector,
+        GhostPick, ShowExtraStats, HighlightDoorKeys,
+        AutoUlt, AutoRefillEnderPearls, BetterPartyFinderMessages,
+        F7PhaseStartTimers, AnnounceSpiritLeaps, AutoI4,
+        AnnounceDraftResets, BetterFloors, BloodDialogueSkip,
+        AutoPotion, AutoReaperArmorSwap, M7Relics,
+        HidePlayersAfterLeap, M7Dragons, CreeperBeamSolver,
+        BlazeSolver, CrystalPlaceTimer, EtherwarpSound,
+        DungeonChestProfit, BatDeadTitle, DungeonAbilityCooldowns,
+        Floor4BossFight, CrystalSpawnTimer, ArrowAlignSolver,
+        DungeonFpsBoost, ThreeWeirdosSolver, DungeonMap,
+        SimonSaysSolver, DungeonWarpCooldown, AutoRequeue,
+        BoulderSolver, DungeonSecrets,
 
 
         // Terminals
@@ -51,8 +52,9 @@ object FeatureManager {
 
 
         // ESP
-        HiddenMobs, MobESP,
-        LividESP, WitherESP,
+        HiddenMobs, StarMobESP,
+        LividSolver, WitherESP,
+        PestESP,
 
 
         // Alerts
@@ -60,37 +62,37 @@ object FeatureManager {
         ThunderBottle, M7P5RagAxe, RNGSound,
         AHSoldNotification, ShadowAssassinAlert,
         SkyblockKick, PartyFinderSound,
+        RoomAlerts,
 
 
         // Slayers
-        ExtraSlayerInfo, // Todo: make a settings toggle lmao
+        ExtraSlayerInfo,
+
 
         // GUI
         SalvageOverlay, CustomPartyFinderMenu,
-        CustomSpiritLeapMenu, CustomMenuRenderer,
-        CustomWardrobeMenu, CustomPetMenu,
-        StopCloseMyChat, ProfleViewer,
-        /*ScalableTooltips - @see MixinGuiUtils*/
+        CustomSpiritLeapMenu, CustomWardrobeMenu,
+        CustomPetMenu, StopCloseMyChat,
+        ProfleViewer, ScalableTooltips,
 
 
         // HUD
         FpsDisplay, ClockDisplay, BonzoMask,
         SpiritMask, PhoenixPet, TpsDisplay,
         WitherShieldTimer, SpringBootsDisplay,
-        CustomScoreboard, PlayerHud,
+        CustomScoreboard, PlayerHud, SecretDisplay,
         PetDisplay, CustomTabList,
 
 
         // Misc
         BlockOverlay, PlayerScale, PlayerSpin,
-        /*TimeChanger - @see MixinWorldProvider*/
-        /*NoPushOutOfBlocks - @see MixinEntityPlayerSP*/
-        /*SmoothSneaking - @see MixinEntityPlayer*/
         HideFallingBlocks, DamageSplash,
         RemoveSelfieCam, CustomFov, AntiBlind,
         AntiPortal, NoBlockAnimation, NoWaterFOV,
-        CustomBowHitSound, ClearBlocks, NoRotate
+        CustomBowHitSound, ClearBlocks, NoRotate,
+        RatProtection, SmoothSneaking, SmoothBossBar,
     )
+
 
     fun createFeatureList(): String {
         return features.joinToString("\n") { getFeatureName(it) }

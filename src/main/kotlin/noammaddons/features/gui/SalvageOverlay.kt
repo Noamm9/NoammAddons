@@ -13,12 +13,13 @@ object SalvageOverlay: Feature() {
     fun onDrawSlot(event: DrawSlotEvent) {
         if (! config.overlaySalvageable || ! inSkyblock) return
         if (getArmor()?.contains(event.slot.stack) == true) return
+        if (event.slot.stack?.displayName?.contains("✪") == true) return
         val attributes = event.slot.stack?.getSubCompound("ExtraAttributes", false) ?: return
-        if (attributes.hasKey("baseStatBoostPercentage") && ! attributes.hasKey("dungeon_item_level")) {
-            event.slot.highlight(
-                if (attributes.getInteger("baseStatBoostPercentage") == 50) config.overlayColorTopSalvageable
-                else config.overlayColorSalvageable
-            )
-        }
+        if (! attributes.hasKey("baseStatBoostPercentage")) return
+        if (attributes.hasKey("dungeon_item_level")) return
+        event.slot.highlight(
+            if (attributes.getInteger("baseStatBoostPercentage") == 50) config.overlayColorTopSalvageable
+            else config.overlayColorSalvageable
+        )
     }
 }

@@ -3,6 +3,7 @@ package noammaddons.utils
 import gg.essential.universal.UDesktop.browse
 import noammaddons.noammaddons.Companion.FULL_PREFIX
 import noammaddons.noammaddons.Companion.MOD_VERSION
+import noammaddons.noammaddons.Companion.config
 import noammaddons.utils.ChatUtils.Alert
 import noammaddons.utils.ChatUtils.clickableChat
 import noammaddons.utils.ChatUtils.modMessage
@@ -11,47 +12,21 @@ import java.net.URI
 
 object UpdateUtils {
     private const val GITHUB_API_URL = "https://api.github.com/repos/Noamm9/NoammAddons/releases"
-    private lateinit var updateVersion: Release
+    private lateinit var updateVersion: DataClasses.Release
     private var isMessageOnScreen = false
     private var lastTrigger: Long = 0L
     private var removeCharsRegex = Regex("[^0-9.]")
     private var startup = false
 
 
-    data class Release(
-        val html_url: String,
-        val id: Int,
-        val tag_name: String,
-        val name: String?,
-        val body: String?,
-        val draft: Boolean,
-        val prerelease: Boolean,
-        val created_at: String,
-        val published_at: String,
-        val author: Author,
-        val assets: List<Asset>
-    )
-
-    data class Author(val login: String, val id: Int, val avatar_url: String)
-
-    data class Asset(
-        val id: Int,
-        val name: String,
-        val label: String?,
-        val content_type: String,
-        val size: Int,
-        val download_count: Int,
-        val browser_download_url: String
-    )
-
-
     fun update() {
+        if (! config.UpdateCheck) return
         if ((System.currentTimeMillis() - lastTrigger) < 25_000) return
         lastTrigger = System.currentTimeMillis()
 
         if (isMessageOnScreen) return
 
-        fetchJsonWithRetry<List<Release>>(GITHUB_API_URL) { releases ->
+        fetchJsonWithRetry<List<DataClasses.Release>>(GITHUB_API_URL) { releases ->
             if (releases.isNullOrEmpty()) {
                 modMessage("&4Failed to get release version from GitHub")
                 return@fetchJsonWithRetry

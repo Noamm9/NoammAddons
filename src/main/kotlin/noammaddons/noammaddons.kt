@@ -1,7 +1,7 @@
 package noammaddons
 
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonPrimitive
@@ -16,10 +16,10 @@ import noammaddons.config.*
 import noammaddons.events.PreKeyInputEvent
 import noammaddons.events.RegisterEvents
 import noammaddons.features.FeatureManager.registerFeatures
+import noammaddons.features.misc.ClientBranding
 import noammaddons.features.misc.Cosmetics.CosmeticRendering
 import noammaddons.utils.*
 import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
 
 
 @Mod(
@@ -28,36 +28,41 @@ import org.apache.logging.log4j.Logger
     version = noammaddons.MOD_VERSION,
     clientSideOnly = true
 )
-
 class noammaddons {
     private var loadTime = 0L
 
     companion object {
-        const val MOD_NAME = "NoammAddons"
-        const val MOD_ID = "noammaddons"
-        const val MOD_VERSION = "3.5.4"
+        const val MOD_NAME = "@NAME@"
+        const val MOD_ID = "@MODID@"
+        const val MOD_VERSION = "@VER@"
         const val CHAT_PREFIX = "§6§l[§b§lN§d§lA§6§l]§r"
         const val FULL_PREFIX = "§d§l§nNo§lamm§b§l§nAddons"
         const val DEBUG_PREFIX = "§8[§b§lN§d§lA §7DEBUG§8]"
 
         @JvmField
-        val Logger: Logger = LogManager.getLogger(MOD_NAME)
+        val Logger = LogManager.getLogger(MOD_NAME)
 
         @JvmStatic
-        val mc get() = Minecraft.getMinecraft()
-
-        @OptIn(DelicateCoroutinesApi::class)
-        val scope = GlobalScope
+        val mc = Minecraft.getMinecraft()
+        
+        val scope = CoroutineScope(Dispatchers.Default)
 
         @JvmField
         val config = Config
-        val hudData = PogObject("hudData", HudElementConfig())
-        val firstLoad = PogObject("firstLoad", true)
-        val SlotBindingData = PogObject("SlotBinding", mutableMapOf<String, Double?>())
+        val hudData = PogObject("hudData", DataClasses.HudElementConfig())
+        private val firstLoad = PogObject("firstLoad", true)
+        val personalBests = PogObject("PersonalBests", DataClasses.PersonalBestData())
 
+        @JvmField
         val ahData = mutableMapOf<String, Double>()
+
+        @JvmField
         val bzData = mutableMapOf<String, DataClasses.bzitem>()
+
+        @JvmField
         val npcData = mutableMapOf<String, Double>()
+
+        @JvmField
         val itemIdToNameLookup = mutableMapOf<String, String>()
         var mayorData: DataClasses.Mayor? = null
     }
@@ -66,16 +71,20 @@ class noammaddons {
     fun onInit(event: FMLInitializationEvent) {
         Logger.info("Initializing NoammAddons")
         loadTime = System.currentTimeMillis()
-        config.init()
+        config.initialize()
+
+        ClientBranding.setCustomIcon()
+        ClientBranding.setCustomTitle()
 
         KeyBinds.allBindings.forEach(ClientRegistry::registerKeyBinding)
 
         listOf(
-            this, RegisterEvents,
-            TestGround, GuiUtils,
+            this, RegisterEvents, ThreadUtils,
+            TestGround, GuiUtils, ScanUtils,
             LocationUtils, DungeonUtils,
             ActionBarParser, PartyUtils,
-            ChatUtils, EspUtils
+            ChatUtils, EspUtils, ActionUtils,
+            TablistListener
         ).forEach(MinecraftForge.EVENT_BUS::register)
 
         mc.renderManager.skinMap.let {
@@ -93,15 +102,12 @@ class noammaddons {
 
     @SubscribeEvent
     fun onKey(event: PreKeyInputEvent) {
-        if (KeyBinds.Config.isKeyDown) return GuiUtils.openScreen(config.gui())
-
-        if (firstLoad.getData()) {
-            firstLoad.setData(false)
-            Utils.playFirstLoadMessage()
-            ThreadUtils.setTimeout(11_000) {
-                config.openDiscordLink()
-                GuiUtils.openScreen(config.gui())
-            }
+        if (! firstLoad.getData()) return
+        firstLoad.setData(false)
+        Utils.playFirstLoadMessage()
+        ThreadUtils.setTimeout(11_000) {
+            GuiUtils.openScreen(config.gui())
+            config.openDiscordLink()
         }
     }
 
@@ -109,7 +115,6 @@ class noammaddons {
         ThreadUtils.loop(600_000) {
             UpdateUtils.update()
 
-            // todo: use https://api.hypixel.net/skyblock/auctions instead
             JsonUtils.fetchJsonWithRetry<Map<String, Double>>("https://moulberry.codes/lowestbin.json") {
                 it ?: return@fetchJsonWithRetry
                 ahData.clear()
@@ -145,11 +150,9 @@ class noammaddons {
             JsonUtils.get("https://soopy.dev/api/v2/mayor") { jsonObject ->
                 if (jsonObject["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
                 val dataElement = jsonObject["data"] ?: return@get
-
-                mayorData = JsonUtils.json.decodeFromJsonElement(
-                    DataClasses.Mayor.serializer(),
-                    dataElement
-                )
+                val data = JsonUtils.json.decodeFromJsonElement(DataClasses.APIMayor.serializer(), dataElement)
+                val perks = data.perks?.map { it["name"] !! } ?: emptyList()
+                mayorData = DataClasses.Mayor(data.name, perks)
             }
         }
     }

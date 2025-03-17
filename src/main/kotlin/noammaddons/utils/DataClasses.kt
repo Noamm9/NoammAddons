@@ -2,14 +2,24 @@ package noammaddons.utils
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonObject
+import net.minecraft.client.entity.EntityOtherPlayerMP
+import noammaddons.noammaddons.Companion.mc
+import noammaddons.utils.RenderHelper.getHeight
+import noammaddons.utils.RenderHelper.getWidth
 
-object DataClasses {
+class DataClasses {
     @Serializable
-    data class Mayor(
+    data class APIMayor(
         @SerialName("name")
         val name: String? = null,
         @SerialName("perks")
         val perks: List<Map<String, String>>? = null
+    )
+
+    data class Mayor(
+        val name: String? = null,
+        val perks: List<String>? = null
     )
 
     @Serializable
@@ -37,39 +47,97 @@ object DataClasses {
         val tag: String?
     )
 
-    data class Room(
-        val id: List<String>?,
+    class HudElementConfig {
+        val BonzoMask = HudElementData(100f, 10f, 1f)
+        val SpiritMask = HudElementData(100f, 20f, 1f)
+        val PhoenixPet = HudElementData(100f, 30f, 1f)
+        val GhostPick = HudElementData(100f, 40f, 1f)
+        val ClockDisplay = HudElementData(100f, 50f, 1f)
+        val FPSdisplay = HudElementData(100f, 60f, 1f)
+        val WitherShieldTimer = HudElementData(100f, 70f, 2f)
+        val SpringBootsDisplay = HudElementData(100f, 80f, 4f)
+        val PlayerHud = PlayerHudData(
+            health = HudElementData(100f, 90f, 1f),
+            mana = HudElementData(100f, 100f, 1f),
+            overflowMana = HudElementData(100f, 110f, 1f),
+            defense = HudElementData(100f, 120f, 1f),
+            effectiveHP = HudElementData(100f, 130f, 1f),
+            speed = HudElementData(100f, 140f, 1f)
+        )
+        val PetDisplay = HudElementData(100f, 150f, 1f)
+        val TpsDisplay = HudElementData(100f, 160f, 1f)
+        val CustomScoreBoard = HudElementData(mc.getWidth() * 1f, mc.getHeight() / 2f, 3f)
+        val SecretDisplay = HudElementData(130f, 130f, 1f)
+        val dungeonMap = HudElementData(100f, 100f, 1f)
+        val scoreCalculator = HudElementData(100f, 100f, 1f) // todo
+        val dungeonWarpCooldown = HudElementData(100f, 100f, 1f)
+    }
+
+    data class HudElementData(var x: Float, var y: Float, var scale: Float)
+
+    data class PlayerHudData(
+        var health: HudElementData,
+        var defense: HudElementData,
+        var effectiveHP: HudElementData,
+        var mana: HudElementData,
+        var overflowMana: HudElementData,
+        var speed: HudElementData
+    )
+
+    class PersonalBestData {
+        val relics = mutableMapOf<String, Double?>(
+            "Red" to null,
+            "Orange" to null,
+            "Green" to null,
+            "Blue" to null,
+            "Purple" to null
+        )
+
+        val pazzles = mutableMapOf<String, Double?>(
+            "Creeper Beams" to null,
+            "Blaze" to null,
+            "Three Weirdos" to null,
+            "Boulder" to null,
+            "Purple" to null
+        )
+
+        val crystals: Double? = null
+    }
+
+    // todo use JsonUtils's get function
+    data class Release(
+        val html_url: String,
+        val id: Int,
+        val tag_name: String,
+        val name: String?,
+        val body: String?,
+        val draft: Boolean,
+        val prerelease: Boolean,
+        val created_at: String,
+        val published_at: String,
+        val author: Author,
+        val assets: List<Asset>
+    )
+
+    data class Author(val login: String, val id: Int, val avatar_url: String)
+
+    data class Asset(
+        val id: Int,
         val name: String,
-        val type: String,
-        val shape: String,
-        val doors: String?,
-        val secrets: Int,
-        val crypts: Int,
-        val revive_stones: Int,
-        val journals: Int,
-        val spiders: Boolean,
-        val secret_details: SecretDetails,
-        val soul: Boolean,
-        val cores: List<Int>,
-        val secret_coords: SecretCoords?
+        val label: String?,
+        val content_type: String,
+        val size: Int,
+        val download_count: Int,
+        val browser_download_url: String
     )
 
-    data class SecretDetails(
-        val wither: Int,
-        val redstone_key: Int,
-        val bat: Int,
-        val item: Int,
-        val chest: Int
+    data class PlayerData(
+        var name: String = "",
+        var rank: String = "",
+        var entityOtherPlayerMP: EntityOtherPlayerMP? = null,
+        var skyCryptData: JsonObject? = null,
+        var lilyWeight: JsonObject? = null
     )
 
-    data class SecretCoords(
-        val chest: List<List<Int>>?,
-        val item: List<List<Int>>?,
-        val bat: List<List<Int>>?
-    )
 
-    data class Coords2D(
-        val x: Int,
-        val z: Int
-    )
 }

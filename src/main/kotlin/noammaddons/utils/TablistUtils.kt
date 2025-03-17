@@ -2,10 +2,9 @@ package noammaddons.utils
 
 import com.google.common.collect.ComparisonChain
 import net.minecraft.client.network.NetworkPlayerInfo
-import net.minecraft.world.WorldSettings.GameType
+import net.minecraft.world.WorldSettings.*
 import noammaddons.mixins.AccessorGuiPlayerTabOverlay
 import noammaddons.noammaddons.Companion.mc
-import noammaddons.utils.PlayerUtils.Player
 
 
 object TablistUtils {
@@ -21,7 +20,7 @@ object TablistUtils {
      * @return A list of pairs, where each pair contains a [NetworkPlayerInfo] object and a player name as a string.
      */
     val getTabList: List<Pair<NetworkPlayerInfo, String>>
-        get() = (Player?.sendQueue?.playerInfoMap?.sortedWith(Comparator<NetworkPlayerInfo> { o1, o2 ->
+        get() = (mc.thePlayer?.sendQueue?.playerInfoMap?.sortedWith(Comparator<NetworkPlayerInfo> { o1, o2 ->
             if (o1 == null) return@Comparator - 1
             if (o2 == null) return@Comparator 0
             return@Comparator ComparisonChain.start().compareTrueFirst(

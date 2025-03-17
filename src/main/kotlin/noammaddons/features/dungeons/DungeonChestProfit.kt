@@ -1,16 +1,16 @@
 package noammaddons.features.dungeons
 
+import gg.essential.elementa.utils.withAlpha
 import net.minecraft.client.gui.inventory.GuiChest
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.item.ItemSkull
 import net.minecraft.util.EnumParticleTypes
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.DrawSlotEvent
-import noammaddons.events.InventoryFullyOpenedEvent
-import noammaddons.events.SlotClickEvent
+import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.mixins.AccessorGuiContainer
+import noammaddons.noammaddons.Companion.CHAT_PREFIX
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendPartyMessage
@@ -18,17 +18,17 @@ import noammaddons.utils.GuiUtils.changeTitle
 import noammaddons.utils.GuiUtils.currentChestName
 import noammaddons.utils.GuiUtils.getSlotFromIndex
 import noammaddons.utils.ItemUtils.SkyblockID
+import noammaddons.utils.ItemUtils.enchantNameToID
+import noammaddons.utils.ItemUtils.getEssenceValue
+import noammaddons.utils.ItemUtils.getIdFromName
 import noammaddons.utils.ItemUtils.getItemId
+import noammaddons.utils.ItemUtils.idToEnchantName
 import noammaddons.utils.ItemUtils.lore
 import noammaddons.utils.JsonUtils.fetchJsonWithRetry
-import noammaddons.utils.LocationUtils.WorldName
-import noammaddons.utils.LocationUtils.WorldType.Catacombs
-import noammaddons.utils.LocationUtils.WorldType.DungeonHub
+import noammaddons.utils.LocationUtils.WorldType.*
+import noammaddons.utils.LocationUtils.world
 import noammaddons.utils.NumbersUtils.format
 import noammaddons.utils.NumbersUtils.romanToDecimal
-import noammaddons.utils.NumbersUtils.toRoman
-import noammaddons.utils.PlayerUtils.Player
-import noammaddons.utils.RenderHelper.applyAlpha
 import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderHelper.highlight
 import noammaddons.utils.RenderUtils.drawCenteredText
@@ -36,10 +36,9 @@ import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.equalsOneOf
 import java.awt.Color
-import java.lang.Math.random
+import java.lang.Math.*
 
 object DungeonChestProfit: Feature() {
-    private val essenceRegex = Regex("§d(?<type>\\w+) Essence §8x(?<count>\\d+)")
     private val croesusChestRegex = Regex("^(Master Mode )?The Catacombs - Flo(or (IV|V?I{0,3}))?$")
     private val chestsToHighlight = mutableListOf<DungeonChest>()
     private val rngList = mutableListOf<String>()
@@ -64,7 +63,7 @@ object DungeonChestProfit: Feature() {
 
     @SubscribeEvent
     fun onInventory(event: InventoryFullyOpenedEvent) {
-        if (! WorldName.equalsOneOf(DungeonHub, Catacombs)) return
+        if (! world.equalsOneOf(DungeonHub, Catacombs)) return
         DungeonChest.entries.forEach { it.reset() }
         if (chestsToHighlight.isNotEmpty()) chestsToHighlight.clear()
         newName?.let {
@@ -86,8 +85,8 @@ object DungeonChestProfit: Feature() {
                 for (obj in event.items) {
                     if (obj.value.getItemId() == 160) continue
 
+                    val itemId = obj.value.SkyblockID ?: continue
                     val itemName = obj.value.displayName
-                    val itemId = obj.value.SkyblockID
                     val isbook = itemId == "ENCHANTED_BOOK"
 
                     val bookName = if (isbook) obj.value.lore[0] else null
@@ -112,7 +111,7 @@ object DungeonChestProfit: Feature() {
                     if (contentIndex == - 1) continue
 
                     chestType.slot = i
-                    chestType.profit -= getChestPrice(lore).toInt()
+                    chestType.profit -= getChestPrice(lore)
 
                     lore.drop(contentIndex + 1).takeWhile { it != "" }.forEach { drop ->
                         val value = when (drop.contains("Essence")) {
@@ -132,7 +131,7 @@ object DungeonChestProfit: Feature() {
     @SubscribeEvent
     fun drawProfit(event: GuiScreenEvent.BackgroundDrawnEvent) {
         if (event.gui !is GuiChest) return
-        if (! WorldName.equalsOneOf(DungeonHub, Catacombs)) return
+        if (! world.equalsOneOf(DungeonHub, Catacombs)) return
 
         val gui = (event.gui as AccessorGuiContainer)
         val (x, y) = gui.guiLeft.toFloat() to gui.guiTop.toFloat()
@@ -155,8 +154,8 @@ object DungeonChestProfit: Feature() {
                         } ?: false
                 }
 
-                sortedNumbers.removeAll(toRemove)
-                toHighlight.removeAll(toRemove)
+                sortedNumbers.removeAll(toRemove.toSet())
+                toHighlight.removeAll(toRemove.toSet())
 
                 (if (config.CroesusChestsProfitSortByProfit) sortedNumbers else chestsToHighlight.filterNot { it in toRemove })
                     .forEachIndexed { index, it ->
@@ -204,7 +203,7 @@ object DungeonChestProfit: Feature() {
     @SubscribeEvent
     fun onDrawSlot(event: DrawSlotEvent) {
         if (! config.CroesusChestHighlight) return
-        if (! WorldName.equalsOneOf(DungeonHub, Catacombs)) return
+        if (! world.equalsOneOf(DungeonHub, Catacombs)) return
         if (event.gui !is GuiChest) return
         if (event.slot.inventory == mc.thePlayer.inventory) return
         val stack = event.slot.stack ?: return
@@ -216,17 +215,19 @@ object DungeonChestProfit: Feature() {
         event.slot.highlight(
             when {
                 lore.any { line -> line == "§aNo more Chests to open!" } -> {
-                    if (config.CroesusChestHighlightHideRedChests) {
+                    if (! config.CroesusChestHighlightHideRedChests) Color.RED
+                    else {
                         event.isCanceled = true
                         return
                     }
-                    else Color.RED
+
+
                 }
 
                 lore.any { line -> line == "§8No Chests Opened!" } -> Color.GREEN
                 lore.any { line -> line.startsWith("§8Opened Chest: ") } -> Color.YELLOW
                 else -> return
-            }.applyAlpha(150)
+            }.withAlpha(100)
         )
     }
 
@@ -246,28 +247,7 @@ object DungeonChestProfit: Feature() {
         newName = "$title §e§l$floor"
     }
 
-    fun getEssenceValue(text: String): Double? {
-        //    if (!Skytils.config.dungeonChestProfitIncludesEssence) return null
-        val groups = essenceRegex.matchEntire(text)?.groups ?: return null
-        val type = groups["type"]?.value?.uppercase() ?: return null
-        val count = groups["count"]?.value?.toInt() ?: return null
-        return (bzData["ESSENCE_$type"]?.price ?: .0) * count
-    }
-
-    fun getIdFromName(name: String): String? {
-        return if (name.startsWith("§aEnchanted Book (")) {
-            val enchant = name.substring(name.indexOf("(") + 1, name.indexOf(")"))
-            return enchantNameToID(enchant)
-        }
-        else {
-            val unformatted = name.removeFormatting().replace("Shiny ", "")
-            itemIdToNameLookup.entries.find {
-                it.value == unformatted && ! it.key.contains("STARRED")
-            }?.key
-        }
-    }
-
-    fun getChestPrice(lore: List<String>): Int {
+    private fun getChestPrice(lore: List<String>): Int {
         lore.forEach {
             val line = it.removeFormatting()
             if (line.contains("FREE")) {
@@ -280,40 +260,7 @@ object DungeonChestProfit: Feature() {
         return 0
     }
 
-    fun enchantNameToID(enchant: String): String {
-        val enchantName = enchant.substringBeforeLast(" ")
-        val name = enchantName.removeFormatting().uppercase().replace(" ", "_")
-        val enchantId = if (enchantName.startsWith("§9§d§l") || enchantName.startsWith("§d§l")) {
-            if (! name.contains("ULTIMATE_")) "ULTIMATE_$name"
-            else name
-        }
-        else name
-
-        val level = enchant.substringAfterLast(" ").removeFormatting().run {
-            toIntOrNull() ?: romanToDecimal()
-        }
-        return "ENCHANTMENT_${enchantId}_$level"
-    }
-
-    fun idToEnchantName(enchantId: String): String {
-        val parts = enchantId.split("_")
-        if (parts.size < 3 || parts[0] != "ENCHANTMENT") throw IllegalArgumentException("Invalid enchantment ID format")
-
-        val isUltimate = parts[1] == "ULTIMATE"
-        val enchantNameParts = if (isUltimate) parts.drop(2).dropLast(1) else parts.drop(1).dropLast(1)
-        val enchantLevel = parts.last().toIntOrNull() ?: throw IllegalArgumentException("Invalid level in enchantment ID")
-
-        val enchantName = enchantNameParts.joinToString(" ") { part ->
-            part.lowercase().replaceFirstChar { it.uppercase() }.replace("_", " ")
-        }
-
-        val romanLevel = enchantLevel.toRoman()
-        val formattedName = if (isUltimate) "§d§l$enchantName $romanLevel§a" else "$enchantName $romanLevel§a"
-
-        return formattedName
-    }
-
-    fun getPrice(id: String): Int {
+    private fun getPrice(id: String): Int {
         if (id in blackList) return 0
 
         val price = when {
@@ -327,20 +274,20 @@ object DungeonChestProfit: Feature() {
         return price
     }
 
-    fun rng(id: String) {
+    private fun rng(id: String) {
         if (! currentChestName.endsWith(" Chest§r")) return
         if (id !in rngList) return
 
         val profit = "${if (currentChestProfit < 0) "§4" else "§a"}${format(currentChestProfit)}"
         val str = "&6${itemIdToNameLookup[id] ?: idToEnchantName(id)}&f: $profit"
 
-        if (config.RNGDropAnnouncer) sendPartyMessage(str)
+        if (config.RNGDropAnnouncer) sendPartyMessage("$CHAT_PREFIX $str")
         modMessage(str)
 
-        Player.playSound("note.pling", 50f, 1.22f)
-        setTimeout(120) { Player.playSound("note.pling", 50f, 1.13f) }
-        setTimeout(240) { Player.playSound("note.pling", 50f, 1.29f) }
-        setTimeout(400) { Player.playSound("note.pling", 50f, 1.60f) }
+        mc.thePlayer.playSound("note.pling", 50f, 1.22f)
+        setTimeout(120) { mc.thePlayer.playSound("note.pling", 50f, 1.13f) }
+        setTimeout(240) { mc.thePlayer.playSound("note.pling", 50f, 1.29f) }
+        setTimeout(400) { mc.thePlayer.playSound("note.pling", 50f, 1.60f) }
 
 
         repeat(70) {
@@ -348,9 +295,9 @@ object DungeonChestProfit: Feature() {
             val multiZ = if (random() <= 0.5) - 2 else 2
             mc.theWorld.spawnParticle(
                 EnumParticleTypes.HEART,
-                Player.posX + random() * multiX,
-                Player.posY + 0.5 + random(),
-                Player.posZ + random() * multiZ,
+                mc.thePlayer.posX + random() * multiX,
+                mc.thePlayer.posY + 0.5 + random(),
+                mc.thePlayer.posZ + random() * multiZ,
                 0.0, 1.0, 0.0
             )
         }

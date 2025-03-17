@@ -25,9 +25,7 @@ object CommandManager {
     fun unregisterCommand(command: Command) {
         val handler = ClientCommandHandler.instance as? AccessorCommandHandler ?: return
         val commandMap = handler.commandMap
-        val commandName = command.commandName.lowercase()
-        if (! commandMap.containsKey(commandName)) return
-        if (commandMap[commandName] != command) return
-        commandMap.remove(commandName)
+        val key = commandMap.entries.find { it.value == command }?.key ?: return
+        commandMap.remove(key)
     }
 }

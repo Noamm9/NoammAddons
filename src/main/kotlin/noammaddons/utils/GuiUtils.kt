@@ -4,13 +4,10 @@ import gg.essential.api.EssentialAPI
 import io.github.moulberry.notenoughupdates.NEUApi
 import io.github.moulberry.notenoughupdates.NotEnoughUpdates
 import kotlinx.coroutines.*
-import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.gui.inventory.GuiChest
 import net.minecraft.client.gui.inventory.GuiContainer
-import net.minecraft.inventory.ContainerChest
-import net.minecraft.inventory.InventoryBasic
-import net.minecraft.inventory.Slot
+import net.minecraft.inventory.*
 import net.minecraft.network.play.client.C0EPacketClickWindow
 import net.minecraftforge.client.event.GuiOpenEvent
 import net.minecraftforge.client.event.GuiScreenEvent
@@ -20,12 +17,8 @@ import noammaddons.events.RenderOverlay
 import noammaddons.mixins.AccessorGuiContainer
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.addColor
-import noammaddons.utils.PlayerUtils.Player
 import noammaddons.utils.ReflectionUtils.getField
-import noammaddons.utils.RenderHelper.getHeight
-import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.Utils.send
-import org.lwjgl.input.Mouse
 
 
 object GuiUtils {
@@ -36,7 +29,7 @@ object GuiUtils {
     var currentChestName: String = ""
 
     @SubscribeEvent
-    fun onGuiOpen(event: GuiOpenEvent) {
+    fun onGuiClose(event: GuiOpenEvent) {
         currentChestName = getContainerName(event.gui)
     }
 
@@ -47,7 +40,7 @@ object GuiUtils {
      * @param clickType 0 - Normal click,  1 - Shift-click,  2 - Pick block,  3 - Middle-click
 
      */
-    fun sendWindowClickPacket(slotId: Int, mouseButton: Int, clickType: Int) = Player?.openContainer?.run {
+    fun sendWindowClickPacket(slotId: Int, mouseButton: Int, clickType: Int) = mc.thePlayer?.openContainer?.run {
         C0EPacketClickWindow(
             windowId,
             slotId,
@@ -60,20 +53,6 @@ object GuiUtils {
 
 
     fun isInGui(): Boolean = mc.currentScreen != null
-
-    fun Minecraft.getMouseX(): Float {
-        val mx = Mouse.getX().toFloat()
-        val rw = this.getWidth().toFloat()
-        val dw = this.displayWidth.toFloat()
-        return mx * rw / dw
-    }
-
-    fun Minecraft.getMouseY(): Float {
-        val my = Mouse.getY().toFloat()
-        val rh = this.getHeight().toFloat()
-        val dh = this.displayHeight.toFloat()
-        return rh - my * rh / dh - 1f
-    }
 
     fun getContainerName(gui: GuiScreen? = mc.currentScreen): String {
         val chestGui = gui as? GuiChest ?: return ""
