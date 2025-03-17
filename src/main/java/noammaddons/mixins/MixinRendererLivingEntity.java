@@ -6,8 +6,8 @@ import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.entity.EntityLivingBase;
-import noammaddons.config.Config;
 import noammaddons.events.PostRenderEntityModelEvent;
+import noammaddons.utils.RenderHelper;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -21,6 +21,7 @@ import java.awt.*;
 import java.nio.FloatBuffer;
 
 import static noammaddons.events.RegisterEvents.postAndCatch;
+import static noammaddons.noammaddons.config;
 import static noammaddons.utils.EspUtils.*;
 import static org.lwjgl.opengl.GL11.*;
 
@@ -30,7 +31,7 @@ import static org.lwjgl.opengl.GL11.*;
  * Slightly modified
  */
 @Mixin(RendererLivingEntity.class)
-public class MixinRendererLivingEntity {
+public abstract class MixinRendererLivingEntity {
     @Final
     @Shadow
     private static DynamicTexture textureBrightness;
@@ -41,11 +42,10 @@ public class MixinRendererLivingEntity {
     @Shadow
     protected FloatBuffer brightnessBuffer;
 
+
     @Inject(method = "renderLayers", at = @At("RETURN"))
     private <T extends EntityLivingBase> void onRenderLayersPost(T entitylivingbaseIn, float p_177093_2_, float p_177093_3_, float partialTicks, float p_177093_5_, float p_177093_6_, float p_177093_7_, float p_177093_8_, CallbackInfo ci) {
-        if (hasCham(entitylivingbaseIn)) {
-            removeChamESP(entitylivingbaseIn);
-        }
+        if (hasCham(entitylivingbaseIn)) removeChamESP(entitylivingbaseIn);
 
         postAndCatch(new PostRenderEntityModelEvent(
                 entitylivingbaseIn,
@@ -54,8 +54,6 @@ public class MixinRendererLivingEntity {
                 p_177093_7_, p_177093_8_,
                 mainModel
         ));
-
-
     }
 
     @Inject(method = "setBrightness", at = @At(value = "HEAD"), cancellable = true)
@@ -91,7 +89,7 @@ public class MixinRendererLivingEntity {
             brightnessBuffer.put(chamColor.getRed() / 255f);
             brightnessBuffer.put(chamColor.getGreen() / 255f);
             brightnessBuffer.put(chamColor.getBlue() / 255f);
-            brightnessBuffer.put(Config.INSTANCE.getEspFilledOpacity());
+            brightnessBuffer.put(config.getEspFilledOpacity());
             this.brightnessBuffer.flip();
             GL11.glTexEnv(8960, 8705, this.brightnessBuffer);
             GlStateManager.setActiveTexture(OpenGlHelper.GL_TEXTURE2);
@@ -122,11 +120,22 @@ public class MixinRendererLivingEntity {
 
     @Inject(method = "doRender(Lnet/minecraft/entity/EntityLivingBase;DDDFF)V", at = @At("RETURN"))
     private <T extends EntityLivingBase> void injectChamsPost(T entity, double x, double y, double z, float a, float b, CallbackInfo callbackInfo) {
-        if (hasCham(entity)) {
-            glPolygonOffset(1f, 1000000F);
-            glDisable(GL_POLYGON_OFFSET_FILL);
+        if (!hasCham(entity)) return;
+        glPolygonOffset(1f, 1000000F);
+        glDisable(GL_POLYGON_OFFSET_FILL);
+    }
 
-        }
+
+    @Inject(method = "renderName(Lnet/minecraft/entity/EntityLivingBase;DDD)V", at = @At("HEAD"))
+    private <T extends EntityLivingBase> void injectChamsPre(T entity, double x, double y, double z, CallbackInfo ci) {
+        if (!config.getChumNameTags()) return;
+        RenderHelper.enableChums(Color.WHITE);
+    }
+
+    @Inject(method = "renderName(Lnet/minecraft/entity/EntityLivingBase;DDD)V", at = @At("RETURN"))
+    private <T extends EntityLivingBase> void injectChamsPost(T entity, double x, double y, double z, CallbackInfo ci) {
+        if (!config.getChumNameTags()) return;
+        RenderHelper.disableChums();
     }
 }
 

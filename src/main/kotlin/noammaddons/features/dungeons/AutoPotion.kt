@@ -6,7 +6,6 @@ import noammaddons.features.Feature
 import noammaddons.utils.ActionUtils.getPotion
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.PlayerUtils.Player
 
 
 object AutoPotion: Feature() {
@@ -24,7 +23,7 @@ object AutoPotion: Feature() {
 
 
     fun hasPotion(name: String): Boolean {
-        return Player?.inventory?.mainInventory?.any {
+        return mc.thePlayer?.inventory?.mainInventory?.any {
             it?.displayName?.removeFormatting()?.lowercase()
                 ?.contains(name.lowercase().removeFormatting()) ?: false
         } == true

@@ -1,24 +1,25 @@
 package noammaddons.features.dungeons
 
-import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
+import noammaddons.utils.ChatUtils
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.ChatUtils.showTitle
-import noammaddons.utils.LocationUtils.dungeonFloor
+import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawCenteredText
+import noammaddons.utils.RenderUtils.drawTitle
 import noammaddons.utils.SoundUtils.Pling
+import noammaddons.utils.ThreadUtils.loop
 import noammaddons.utils.Utils.equalsOneOf
-import noammaddons.utils.Utils.isNull
 import kotlin.math.roundToInt
 
 object BetterF7Titles: Feature() {
+    private var currentTitle = ChatUtils.title("", "", 0L, false)
     private var startTickTimer = false
     private var tickTimer = 0
     private var timerTime = 0
@@ -45,14 +46,17 @@ object BetterF7Titles: Feature() {
         } + "&r"
     }
 
+    private fun showTitle(subtitle: String, time: Int = 3) {
+        currentTitle = ChatUtils.title("", subtitle, time.toLong() * 1000, false)
+        Pling.start()
+    }
+
     @SubscribeEvent
     fun onChat(event: Chat) {
-        if (! config.BetterF7Titles || dungeonFloor != 7 || ! inBoss) return
+        if (! config.BetterF7Titles || dungeonFloorNumber != 7 || ! inBoss) return
         val msg = event.component.noFormatText
 
         termCrystalRegex.find(msg)?.let { matchResult ->
-            if (matchResult.isNull()) return@let
-
             val progress = progressRegex.find(matchResult.value)?.value ?: return@let
             val type = when {
                 "device" in matchResult.value -> "&bDev&r "
@@ -67,67 +71,48 @@ object BetterF7Titles: Feature() {
         }
 
         when (msg) {
-            "[BOSS] Maxor: YOU TRICKED ME!", "[BOSS] Maxor: THAT BEAM! IT HURTS! IT HURTS!!" -> {
-                showTitle(subtitle = "&dMaxor Stunned!", time = 2)
-                Pling.start()
-                return
-            }
-
-            "[BOSS] Storm: Oof", "[BOSS] Storm: Ouch, that hurt!" -> {
-                showTitle(subtitle = "&bStorm Crushed!", time = 2)
-                Pling.start()
-                return
-            }
-
-            "[BOSS] Storm: I should have known that I stood no chance." -> {
-                showTitle(subtitle = "&bStorm Dead!", time = 2)
-                Pling.start()
-                return
-            }
-
-            "The gate has been destroyed!" -> {
-                showTitle(subtitle = "&cGate Destroyed!", time = 2)
-                Pling.start()
-                return
-            }
-
+            "[BOSS] Maxor: YOU TRICKED ME!", "[BOSS] Maxor: THAT BEAM! IT HURTS! IT HURTS!!" -> showTitle(subtitle = "&dMaxor Stunned!", time = 2)
+            "[BOSS] Storm: Oof", "[BOSS] Storm: Ouch, that hurt!" -> showTitle(subtitle = "&bStorm Crushed!", time = 2)
+            "[BOSS] Storm: I should have known that I stood no chance." -> showTitle(subtitle = "&bStorm Dead!", time = 2)
+            "The gate has been destroyed!" -> showTitle(subtitle = "&cGate Destroyed!", time = 2)
             "[BOSS] Necron: ARGH!" -> necronStart = true
             "The Core entrance is opening!" -> goldorStart = true
-
-            "reset" -> {
-                goldorDead = false
-                necronDead = false
-                necronStart = false
-                goldorStart = false
-                maxorDead = false
-            }
         }
     }
 
     @SubscribeEvent
     fun renderOverlay(event: RenderOverlay) {
-        if (! startTickTimer) return
-        val timeLeft = ((timerTime - tickTimer) / 20.0)
-        if (timeLeft <= 0) {
-            startTickTimer = false
-            tickTimer = 0
-            showTitle("Boom!", "Time's up!", 2f, true)
-            Pling.start()
-            return
+        if (startTickTimer) {
+            val timeLeft = ((timerTime - tickTimer) / 20.0)
+            if (timeLeft <= 0) {
+                startTickTimer = false
+                tickTimer = 0
+                showTitle("&aStorm's Lightning Ended!")
+                return
+            }
+
+            drawCenteredText(
+                "&l&c${timeLeft.toFixed(1)}",
+                mc.getWidth() / 2f,
+                mc.getHeight() / 2f - mc.getHeight() / 13f,
+                3f
+            )
         }
 
-        drawCenteredText(
-            "&l&4${timeLeft.toFixed(1)}",
-            mc.getWidth() / 2f,
-            mc.getHeight() / 2f - mc.getHeight() / 13f,
-            3f
-        )
+        if (currentTitle.time <= 0) return
+        currentTitle.run { drawTitle("$title", "$subtitle") }
+    }
+
+    init {
+        loop(100) {
+            currentTitle.time -= 100
+        }
     }
 
     @SubscribeEvent
     fun onTitle(event: RenderTitleEvent) {
         if (! config.BetterF7Titles) return
-        if (dungeonFloor != 7) return
+        if (dungeonFloorNumber != 7) return
         if (! inBoss) return
         event.isCanceled = true
 
@@ -150,7 +135,7 @@ object BetterF7Titles: Feature() {
     }
 
     @SubscribeEvent
-    fun onBossbar(event: BossbarUpdateEvent) {
+    fun onBossbar(event: BossbarUpdateEvent.Pre) {
         if (! config.BetterF7Titles) return
         if (event.healthPresent != 0.33333334f) return
 
@@ -166,7 +151,6 @@ object BetterF7Titles: Feature() {
                 if (boss == "Necron" && ! necronStart) return
 
                 showTitle(subtitle = message, time = 2)
-                Pling.start()
                 deadFlag.set(true)
                 return
             }
@@ -174,7 +158,7 @@ object BetterF7Titles: Feature() {
     }
 
     @SubscribeEvent
-    fun reset(event: WorldEvent.Unload) {
+    fun reset(event: WorldUnloadEvent) {
         if (! config.BetterF7Titles) return
 
         maxorDead = false

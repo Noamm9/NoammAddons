@@ -9,19 +9,18 @@ import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.LocationUtils.onHypixel
 import noammaddons.utils.ThreadUtils.loop
 import noammaddons.utils.Utils.equalsOneOf
-import noammaddons.utils.Utils.isNull
 
 object PartyUtils {
     private val youJoinedPartyPattern = Regex("You have joined (?<name>.*)'s? party!")
     private val othersJoinedPartyPattern = Regex("(?<name>.*) joined the party\\.")
     private val othersInThePartyPattern = Regex("You'll be partying with: (?<names>.*)")
-    private val disbandedPattern = Regex(".* has disbanded the party!")
+    val disbandedPattern = Regex(".* has disbanded the party!")
     private val kickedPattern = Regex("You have been kicked from the party .*")
     private val partyMembersStartPattern = Regex("Party Members \\(\\d+\\)")
     private val partyMemberListPattern = Regex("Party (?<kind>Leader|Moderators|Members): (?<names>.*)")
     private val partyChatMessagePattern = Regex("Party > (?<author>[^:]*): (?<message>.*)")
     private val promotePattern = Regex("(?<name>.*) has promoted (?<newowner>.*) to Party Leader")
-    private val memberLeftPatterns = listOf(
+    val memberLeftPatterns = listOf(
         Regex("(?<name>.*) has left the party\\."),
         Regex("(?<name>.*) has been removed from the party\\."),
         Regex("Kicked (?<name>.*) because they were offline\\."),
@@ -36,6 +35,7 @@ object PartyUtils {
         Regex("Party Finder > (?<name>.*?) joined the dungeon group! \\(.* Level \\d+\\)")
     )
 
+    val partyMessageRegex = Regex("Party > .*?: (.+)\$")
 
     @set:Synchronized
     private var INTERNAL_partyLeader: String? = null
@@ -63,7 +63,7 @@ object PartyUtils {
 
     init {
         loop(1000) {
-            if (! (onHypixel && INTERNAL_partyMembers.isNotEmpty())) {
+            if (onHypixel && INTERNAL_partyMembers.isEmpty()) {
                 partyLeft()
             }
         }
@@ -195,5 +195,5 @@ object PartyUtils {
         prevPartyLeader = null
     }
 
-    fun isInParty() = INTERNAL_partyMembers.isNotEmpty() && ! INTERNAL_partyLeader.isNull()
+    fun isInParty() = INTERNAL_partyMembers.isNotEmpty() && INTERNAL_partyLeader != null
 }

@@ -6,11 +6,9 @@ import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.gui.inventory.GuiContainerCreative
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.inventory.Slot
-import noammaddons.noammaddons.Companion.config
-import noammaddons.noammaddons.Companion.mc
+import noammaddons.features.Feature
 import noammaddons.utils.RenderHelper.getScaleFactor
-import noammaddons.utils.RenderUtils.drawFloatingRectWithAlpha
-import noammaddons.utils.Utils.isNull
+import noammaddons.utils.RenderUtils.drawFloatingRect
 import org.lwjgl.input.Keyboard
 import org.lwjgl.input.Mouse
 import java.awt.Color
@@ -22,7 +20,7 @@ import java.awt.Color
  *
  *  @see noammaddons.mixins.MixinGuiUtils
  */
-object ScalableTooltips {
+object ScalableTooltips: Feature() {
     private var scrollY: Int = 0
     private var scrollX: Int = 0
     private var snapFlag: Boolean = true
@@ -42,7 +40,7 @@ object ScalableTooltips {
         if (textLines.isEmpty()) return true
         val gui = mc.currentScreen
         val slot = (gui as? GuiContainer)?.slotUnderMouse
-        if (lastShit.isNull()) lastShit = Pair(textLines, slot)
+        if (lastShit == null) lastShit = Pair(textLines, slot)
         else if (lastShit?.second != slot || lastShit?.first != textLines) {
             lastShit = Pair(textLines, slot)
             resetPos()
@@ -107,12 +105,11 @@ object ScalableTooltips {
             x = ((mouseX + 12 + scrollX) / scale).toInt()
             y = ((mouseY - 12 + scrollY) / scale).toInt()
 
-            drawFloatingRectWithAlpha(
+            drawFloatingRect(
                 x - 4,
                 y - 4,
                 width + 8,
                 height + 8,
-                false,
                 Color(25, 25, 25, 230)
             )
 

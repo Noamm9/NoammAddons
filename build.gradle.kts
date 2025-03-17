@@ -3,31 +3,41 @@ import dev.architectury.pack200.java.Pack200Adapter
 import net.fabricmc.loom.task.RemapJarTask
 
 plugins {
-    kotlin("jvm") version "1.9.0"
-    kotlin("plugin.serialization") version "1.5.10"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
-    id("dev.architectury.architectury-pack200") version "0.1.3"
-    id("gg.essential.loom") version "0.10.0.+"
     idea
     java
+    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("dev.architectury.architectury-pack200") version "0.1.3"
+    id("gg.essential.loom") version "0.10.0.+"
+    id("net.kyori.blossom") version "1.3.1"
+    kotlin("jvm") version "2.0.0-Beta1"
+    kotlin("plugin.serialization") version "1.5.10"
 }
 
 val modName: String by project
 val modID: String by project
 val modVersion: String by project
-
 version = modVersion
 group = modID
+
+blossom {
+    replaceToken("@NAME@", modName)
+    replaceToken("@MODID@", modID)
+    replaceToken("@VER@", version)
+}
+
 
 repositories {
     mavenCentral()
     maven("https://repo.spongepowered.org/repository/maven-public/")
-    maven("https://repo.sk1er.club/repository/maven-public")
+    maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
+    maven("https://repo.essential.gg/repository/maven-public/")
+    maven("https://repo.polyfrost.cc/releases")
 }
 
 val packageLib by configurations.creating {
     configurations.implementation.get().extendsFrom(this)
 }
+
 
 dependencies {
     minecraft("com.mojang:minecraft:1.8.9")
@@ -39,6 +49,12 @@ dependencies {
 
     packageLib("gg.essential:loader-launchwrapper:1.2.1")
     implementation("gg.essential:essential-1.8.9-forge:12132+g6e2bf4dc5")
+
+    runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.1.0")
+
+    packageLib("cc.polyfrost:oneconfig-wrapper-launchwrapper:1.0.0-beta+")
+    compileOnly("cc.polyfrost:oneconfig-1.8.9-forge:0.2.0-alpha+")
+
 
     compileOnly("com.github.NotEnoughUpdates:NotEnoughUpdates:2.4.0:all")
 }
@@ -53,6 +69,7 @@ loom {
         property("mixin.debug", "true")
         property("asmhelper.verbose", "true")
         arg("--tweakClass", "gg.essential.loader.stage0.EssentialSetupTweaker")
+        arg("--tweakClass", "cc.polyfrost.oneconfig.loader.stage0.LaunchWrapperTweaker")
         arg("--mixin", "mixins.${modID}.json")
     }
     runConfigs {
@@ -94,9 +111,19 @@ tasks {
             "ForceLoadAsMod" to true,
             "MixinConfigs" to "mixins.${modID}.json",
             "ModSide" to "CLIENT",
+            "TweakClass" to "cc.polyfrost.oneconfig.loader.stage0.LaunchWrapperTweaker",
+            "TweakOrder" to "0"
+        )
+
+        manifest.attributes += mapOf(
+            "ForceLoadAsMod" to true,
+            "ModSide" to "CLIENT",
             "TweakClass" to "gg.essential.loader.stage0.EssentialSetupTweaker",
             "TweakOrder" to "0"
         )
+
+
+
         dependsOn(shadowJar)
         enabled = false
     }

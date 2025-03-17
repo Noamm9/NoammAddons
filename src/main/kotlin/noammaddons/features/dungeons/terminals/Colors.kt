@@ -19,11 +19,11 @@ import noammaddons.features.gui.Menus.renderBackground
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.disableNEUInventoryButtons
-import noammaddons.utils.GuiUtils.getMouseX
-import noammaddons.utils.GuiUtils.getMouseY
 import noammaddons.utils.ItemUtils.getItemId
 import noammaddons.utils.LocationUtils.F7Phase
-import noammaddons.utils.LocationUtils.dungeonFloor
+import noammaddons.utils.LocationUtils.dungeonFloorNumber
+import noammaddons.utils.MouseUtils.getMouseX
+import noammaddons.utils.MouseUtils.getMouseY
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawRoundedRect
@@ -67,8 +67,8 @@ object Colors: Feature() {
         event.isCanceled = true
 
         val termScale = getTermScale()
-        val x = mc.getMouseX() / termScale
-        val y = mc.getMouseY() / termScale
+        val x = getMouseX() / termScale
+        val y = getMouseY() / termScale
 
         val screenWidth = mc.getWidth().toDouble() / termScale
         val screenHeight = mc.getHeight().toDouble() / termScale
@@ -163,7 +163,7 @@ object Colors: Feature() {
 
     @SubscribeEvent
     fun onWindowOpen(event: PacketEvent.Received) {
-        if (! config.CustomTerminalsGui || ! config.CustomColorsTerminal || dungeonFloor != 7 || F7Phase != 3) return
+        if (! config.CustomTerminalsGui || ! config.CustomColorsTerminal || dungeonFloorNumber != 7 || F7Phase != 3) return
         if (event.packet !is S2DPacketOpenWindow) return
 
         val windowTitle = event.packet.windowTitle.noFormatText

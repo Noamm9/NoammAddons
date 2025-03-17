@@ -5,19 +5,16 @@ import gg.essential.api.EssentialAPI
 import gg.essential.universal.UChat
 import gg.essential.universal.UChat.addColor
 import gg.essential.universal.wrappers.message.UTextComponent
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import net.minecraft.event.ClickEvent
 import net.minecraft.event.HoverEvent
-import net.minecraft.util.ChatAllowedCharacters.filterAllowedCharacters
-import net.minecraft.util.ChatComponentText
-import net.minecraft.util.ChatStyle
-import net.minecraft.util.IChatComponent
+import net.minecraft.network.play.client.C01PacketChatMessage
+import net.minecraft.util.*
+import net.minecraft.util.ChatAllowedCharacters.*
+import net.minecraft.util.StringUtils.*
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.Chat
+import noammaddons.events.*
 import noammaddons.events.RegisterEvents.postAndCatch
-import noammaddons.events.RenderOverlay
 import noammaddons.noammaddons.Companion.CHAT_PREFIX
 import noammaddons.noammaddons.Companion.DEBUG_PREFIX
 import noammaddons.noammaddons.Companion.FULL_PREFIX
@@ -27,25 +24,22 @@ import noammaddons.noammaddons.Companion.mc
 import noammaddons.noammaddons.Companion.scope
 import noammaddons.utils.LocationUtils.inSkyblock
 import noammaddons.utils.PartyUtils.isInParty
-import noammaddons.utils.PlayerUtils.Player
 import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderUtils.drawTitle
 import noammaddons.utils.SoundUtils.notificationSound
 import noammaddons.utils.ThreadUtils.loop
+import noammaddons.utils.ThreadUtils.scheduledTask
+import noammaddons.utils.Utils.send
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
+import java.util.*
 import kotlin.math.roundToInt
 
 
 object ChatUtils {
-    private val abbrev = listOf("", "k", "m", "b", "t", "q", "Q")
-    private val numbersOnlyRegex = Regex("[^0-9.]")
+    data class title(val title: Any?, val subtitle: Any?, var time: Long, val rainbow: Boolean)
 
-    private var titleText = ""
-    private var subtitleText = ""
-    private var time = 0L
-    private var rainbow = false
-
+    private val titles = mutableListOf<title>()
     private var startTime = 0L
     private var ping = 0
     private var isCalculatingPing = false
@@ -87,7 +81,7 @@ object ChatUtils {
     }
 
     fun removeUnicode(input: String): String {
-        return input.replace(Regex("[^\\u0000-\\u007F]"), "")
+        return input.replace(Regex("[^\\u0000-\\u007F§]"), "")
     }
 
     fun String.removeFormatting(): String = UTextComponent.stripFormatting(this.addColor())
@@ -97,7 +91,12 @@ object ChatUtils {
     fun modMessage(message: Any?) = UChat.chat("$CHAT_PREFIX ${message.toString().addColor()}")
 
     fun debugMessage(message: Any) {
-        if (config.DevMode) UChat.chat("$DEBUG_PREFIX ${message.toString().addColor()}")
+        if (! config.DevMode) return
+
+        stripControlCodes(message.toString())
+
+        UChat.chat("$DEBUG_PREFIX&r ${message.toString().addColor()}")
+        Logger.debug(message.toString().removeFormatting())
     }
 
     fun errorMessage(message: List<Any?>) {
@@ -119,9 +118,41 @@ object ChatUtils {
         Logger.error(msgF.removeFormatting())
     }
 
+
+    private const val MESSAGE_DELAY_MS = 1000L
+    private val messageQueue: Queue<String> = LinkedList()
+    private var lastMessageTime = 0L
+
     fun sendChatMessage(message: Any) {
-        Player?.sendChatMessage(filterAllowedCharacters("$message"))
+        val formattedMessage = filterAllowedCharacters("$message".removeFormatting())
+        messageQueue.offer(formattedMessage)
+        processQueue()
     }
+
+    private fun processQueue() {
+        if (messageQueue.isEmpty()) return
+        val timeSinceLastMessage = System.currentTimeMillis() - lastMessageTime
+        if (timeSinceLastMessage >= MESSAGE_DELAY_MS) sendNextMessage()
+        else scheduleNextCheck(MESSAGE_DELAY_MS - timeSinceLastMessage)
+    }
+
+    private fun sendNextMessage() {
+        val nextMessage = messageQueue.poll() ?: return
+        mc.thePlayer?.sendChatMessage(nextMessage)
+    }
+
+    private fun scheduleNextCheck(delay: Long) {
+        scheduledTask((delay / 50).toInt()) { processQueue() }
+    }
+
+
+    @SubscribeEvent
+    fun onPacketSent(event: PacketEvent.Sent) {
+        if (event.packet !is C01PacketChatMessage) return
+        lastMessageTime = System.currentTimeMillis()
+        processQueue()
+    }
+
 
     fun sendPartyMessage(message: Any) {
         if (isInParty()) sendChatMessage("/pc ${message.toString().removeFormatting()}")
@@ -149,7 +180,7 @@ object ChatUtils {
             chatHoverEvent = HoverEvent(HoverEvent.Action.SHOW_TEXT, ChatComponentText(hover.addColor()))
         }
 
-        Player?.addChatMessage(textComponent)
+        mc.thePlayer?.addChatMessage(textComponent)
     }
 
     fun addRandomColorCodes(inputString: String): String {
@@ -181,37 +212,40 @@ object ChatUtils {
         val subtitle = subtitle.toString()
         if (title.isBlank() && subtitle.isBlank()) return
 
-        this.titleText = title
-        this.subtitleText = subtitle
-        this.time = time.toLong() * 1000L
-        this.rainbow = rainbow
+        titles.add(title(title, subtitle, time.toLong() * 1000, rainbow))
     }
 
     init {
-        loop(100) { time -= 100 }
+        loop(100) {
+            titles.forEach { title ->
+                title.time -= 100L
+            }
+            titles.removeIf {
+                it.time <= 0
+            }
+        }
     }
 
     @SubscribeEvent
     fun renderTitles(event: RenderOverlay) {
-        if (time <= 0) return
+        titles.forEach { title ->
+            if (title.time <= 0) return
 
-        drawTitle(titleText, subtitleText, rainbow)
+            drawTitle(title.title.toString(), title.subtitle.toString(), title.rainbow)
+        }
     }
 
     @OptIn(DelicateCoroutinesApi::class)
     fun getPing(callback: (ping: Int) -> Unit) {
-        if (isCalculatingPing) return // Prevent multiple ping checks simultaneously
         if (! inSkyblock) return
+        if (isCalculatingPing) return // Prevent multiple ping checks simultaneously
 
+        C01PacketChatMessage("/Noamm9 is the best!").send()
         isCalculatingPing = true
         startTime = System.currentTimeMillis()
-        sendChatMessage("/Noamm9 is the best!")
 
         scope.launch {
-            while (isCalculatingPing) {
-                delay(1)
-            }
-            isCalculatingPing = false
+            while (isCalculatingPing) delay(1)
             callback(ping)
         }
     }

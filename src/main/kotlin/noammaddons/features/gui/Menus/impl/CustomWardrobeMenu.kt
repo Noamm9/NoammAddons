@@ -16,21 +16,18 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.GuiMouseClickEvent
 import noammaddons.events.PacketEvent
 import noammaddons.features.Feature
-import noammaddons.features.general.DrawItemRarity.onSlotDraw
 import noammaddons.features.gui.Menus.*
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.GuiUtils.sendWindowClickPacket
 import noammaddons.utils.ItemUtils.getHeadSkinTexture
 import noammaddons.utils.ItemUtils.getItemId
 import noammaddons.utils.ItemUtils.lore
-import noammaddons.utils.PlayerUtils.Player
 import noammaddons.utils.RenderUtils.drawPlayerHead
 import noammaddons.utils.RenderUtils.drawRainbowRoundedBorder
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.RenderUtils.renderItem
 import noammaddons.utils.SoundUtils
 import noammaddons.utils.Utils.equalsOneOf
-import noammaddons.utils.Utils.isNull
 import org.lwjgl.input.Keyboard
 import kotlin.math.floor
 
@@ -54,7 +51,7 @@ object CustomWardrobeMenu: Feature() {
     @SubscribeEvent
     fun onOpen(event: PacketEvent.Received) {
         if (config.CustomWardrobeMenu && event.packet is S2DPacketOpenWindow) {
-            inWardrobeMenu = event.packet.windowTitle.unformattedText.matches(wardrobeMenuRegex)
+            inWardrobeMenu = event.packet.windowTitle.unformattedText.matches(wardrobeMenuRegex) && config.customMenus
 
             // Fuck NEU horrible code, but thanks for api 😘
             if (Loader.instance().activeModList.none { it.modId == NotEnoughUpdates.MODID }) return
@@ -79,7 +76,7 @@ object CustomWardrobeMenu: Feature() {
     fun onClick(event: GuiMouseClickEvent) {
         if (! inWardrobeMenu) return
         if (! event.button.equalsOneOf(0, 1, 2)) return
-        val container = Player?.openContainer?.inventorySlots ?: return
+        val container = mc.thePlayer?.openContainer?.inventorySlots ?: return
         event.isCanceled = true
 
         val scale = calculateScale()
@@ -97,7 +94,7 @@ object CustomWardrobeMenu: Feature() {
 
         if (slot >= windowSize) return
         container[slot].run {
-            if (stack.isNull()) return
+            if (stack == null) return
             if (stack.getItemId() == 160 && stack.metadata == 15) return
         }
 
@@ -113,7 +110,7 @@ object CustomWardrobeMenu: Feature() {
     fun cancelGui(event: GuiScreenEvent.DrawScreenEvent.Pre) {
         if (! inWardrobeMenu) return
         event.isCanceled = true
-        val container = Player?.openContainer?.inventorySlots ?: return
+        val container = mc.thePlayer?.openContainer?.inventorySlots ?: return
         injectEditButton(container[EDIT_SLOT])
 
         val scale = calculateScale()
@@ -136,7 +133,7 @@ object CustomWardrobeMenu: Feature() {
         for (slot in container) {
             val i = slot !!.slotNumber
             if (i >= windowSize) continue
-            if (slot.stack.isNull()) continue
+            if (slot.stack == null) continue
 
             val currentOffsetX = i % 9 * 18 + offsetX
             val currentOffsetY = (floor(i / 9.0).toInt() + 1) * 18 + offsetY
@@ -149,7 +146,6 @@ object CustomWardrobeMenu: Feature() {
             }
 
             if (slot.stack.item is ItemSkull) {
-                onSlotDraw(slot.stack, currentOffsetX.toInt(), currentOffsetY.toInt())
                 drawPlayerHead(
                     getHeadSkinTexture(slot.stack) ?: continue,
                     currentOffsetX + 2.2f,
@@ -165,7 +161,7 @@ object CustomWardrobeMenu: Feature() {
             val stack = slot.stack
 
             if (i >= windowSize) return@forEach
-            if (stack.isNull()) return@forEach
+            if (stack == null) return@forEach
             if (slot.stack?.item is ItemSkull) return@forEach
             if (stack?.getItemId() == 160 && stack.metadata == 15) return@forEach
             stack.tagCompound.removeTag("ench")

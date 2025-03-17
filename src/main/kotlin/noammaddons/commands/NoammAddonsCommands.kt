@@ -2,8 +2,8 @@ package noammaddons.commands
 
 import gg.essential.universal.UChat
 import gg.essential.universal.UDesktop.browse
+import net.minecraft.client.gui.GuiScreen
 import net.minecraft.command.ICommandSender
-import noammaddons.config.Config
 import noammaddons.config.Config.openDiscordLink
 import noammaddons.features.dungeons.AutoPotion.potionName
 import noammaddons.features.hud.TpsDisplay.getTps
@@ -24,11 +24,10 @@ import noammaddons.utils.GuiUtils.openScreen
 import noammaddons.utils.MathUtils.Rotation
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.PlayerUtils.holdClick
-import noammaddons.utils.ScanUtils.ScanRoom.currentRoom
-import noammaddons.utils.ScanUtils.ScanRoom.getRoomCenter
-import noammaddons.utils.ScanUtils.Utils.getCore
-import noammaddons.utils.UpdateUtils.update
-import noammaddons.utils.Utils.isNull
+import noammaddons.utils.ScanUtils.currentRoom
+import noammaddons.utils.ScanUtils.getCore
+import noammaddons.utils.ScanUtils.getRoomCenterAt
+import noammaddons.utils.UpdateUtils
 import java.net.URI
 
 
@@ -38,7 +37,7 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons, noamm, noam, noam
     }
 
     override fun processCommand(sender: ICommandSender, args: Array<out String>) {
-        if (args.isEmpty()) openScreen(Config.gui())
+        if (args.isEmpty()) openScreen(config.gui() ?: return modMessage("&cError on opening gui"))
         else when (args[0].lowercase()) {
 
             "help" -> UChat.chat(Usage())
@@ -72,9 +71,9 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons, noamm, noam, noam
                 rotateSmoothly(Rotation(yaw, pitch), ms ?: 1500L)
                 modMessage(
                     """
-						 &dRotating to &b$yaw, $pitch &din &b ${
-                        if (ms.isNull()) "1.5"
-                        else (ms !! / 1000.0).toFixed(1)
+						&dRotating to &b$yaw, $pitch &din &b${
+                        if (ms == null) "1.5"
+                        else (ms / 1000.0).toFixed(1)
                     } &dseconds
 					 """.trimIndent()
                 )
@@ -82,28 +81,24 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons, noamm, noam, noam
 
             "ras" -> reaperSwap()
 
-            "copy" -> if (args.size > 1) copyToClipboard(args.copyOfRange(1, args.size).joinToString(" "))
+            "copy" -> if (args.size > 1) GuiScreen.setClipboardString(args.copyOfRange(1, args.size).joinToString(" "))
             else modMessage("&cInvalid usage of command. &bUsage: /na copy [message]")
 
             "roominfo" -> {
-                val roomCenter = getRoomCenter()
+                val rc = getRoomCenterAt(mc.thePlayer.position)
                 val text = """
-				    roomName: ${currentRoom?.name}
-				    roomCore: ${currentRoom?.cores.toString()} || ${getCore(roomCenter.x, roomCenter.z)}
-				    roomType: ${currentRoom?.type}
-				    roomShape: ${currentRoom?.shape}
-				    roomDoors: ${currentRoom?.doors}
-				    roomTotalSecrets: ${currentRoom?.secrets}
-				    roomSecretsTypes: ${currentRoom?.secret_details}
-				    roomSecretsCoords: ${currentRoom?.secret_coords.toString()}
-				    roomCrypts: ${currentRoom?.crypts}
+				    roomName: ${currentRoom?.name ?: "&cUnknown&r"}
+				    roomCore: ${currentRoom?.cores} || ${getCore(rc.first, rc.second)}
+				    roomType: ${currentRoom?.type?.name ?: "&cUnknown&r"}
+				    roomTotalSecrets: ${currentRoom?.secrets ?: 0}
+				    roomCrypts: ${currentRoom?.crypts ?: 0}
 			    """.trimIndent()
 
                 copyToClipboard(text)
                 clickableChat("&aRoom info copied to clipboard. &6(&fHover&6)&r", "", "&b&l$text")
             }
 
-            "update" -> update()
+            "update" -> UpdateUtils.update()
 
             "openlink" -> browse(
                 URI(
@@ -138,34 +133,38 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons, noamm, noam, noam
                 holdClick(true, type)
             }
 
-            else -> openScreen(Config.gui())
+            else -> modMessage("&cInvalid usage of command. &bUsage: /na <command>")
         }
     }
 
-    private fun Usage() =
-        """
-        &b&m${getChatBreak()?.substring(1)}
-        ${getCenteredText("$FULL_PREFIX&r")}
+    fun Usage(): String {
+        val separator = "&b&m${getChatBreak()?.substring(1)}\n"
 
-        &b/na &7- &oOpens the Settings GUI.
-        &b/na help &7- &oShows this Message.
-        &b/na sim [message] &7- &oSimulates a received chat message.
-        &b/na edit &7- &oOpens the Edit Hud GUI.
-        &b/na rotate [yaw] [pitch] [ms?] &7- &oRotates the player to the specified yaw and pitch.
-        &b/na ras &7- &oAutomatically preform Reaper Armor Swap.
-        &b/na leap [name] &7- &oLeaps to the specified player.
-        &b/na swapmask &7- &oAutomatically preform Mask Swap.
-        &b/na rodswap &7- &oAutomatically preform Rod Swap.
-        &b/na holdclick [LEFT, RIGHT, MIDDLE] &7- &oHolds the Mouse buttom for you.
-        &b/na potion &7- &oAutomatically get a Potion from the Potion Bag.
-        &b/na tps &7- &oShows the current server's TPS.
-        &b/na copy [message] &7- &oCopies the message to the clipboard.
-        &b/na roominfo &7- &oShows current room info.
-        &b/na update &7- &oChecks for an Update.
-        &b/na openlink [URL] &7- &oOpens the provided URL in a web browser.
-        &b/na discord &7- &oOpens link to my Discord Server.
-        
-        &b&m${getChatBreak()?.substring(1)}
-       """.trimIndent().trim()
+        return buildString {
+            append(separator)
+            append(getCenteredText("$FULL_PREFIX&r")).append("\n\n")
+            commandsList.forEach { append(it).append("\n") }
+            append("\n").append(separator)
+        }
+    }
 
+    val commandsList = listOf(
+        "&b/na &7- &oOpens the Settings GUI.",
+        "&b/na help &7- &oShows this Message.",
+        "&b/na sim [message] &7- &oSimulates a received chat message.",
+        "&b/na edit &7- &oOpens the Edit Hud GUI.",
+        "&b/na rotate [yaw] [pitch] [ms?] &7- &oRotates the player to the specified yaw and pitch.",
+        "&b/na ras &7- &oAutomatically preform Reaper Armor Swap.",
+        "&b/na leap [name] &7- &oLeaps to the specified player.",
+        "&b/na swapmask &7- &oAutomatically preform Mask Swap.",
+        "&b/na rodswap &7- &oAutomatically preform Rod Swap.",
+        "&b/na holdclick [LEFT, RIGHT, MIDDLE] &7- &oHolds the Mouse buttom for you.",
+        "&b/na potion &7- &oAutomatically get a Potion from the Potion Bag.",
+        "&b/na tps &7- &oShows the current server's TPS.",
+        "&b/na copy [message] &7- &oCopies the message to the clipboard.",
+        "&b/na roominfo &7- &oShows current room info.",
+        "&b/na update &7- &oChecks for an Update.",
+        "&b/na openlink [URL] &7- &oOpens the provided URL in a web browser.",
+        "&b/na discord &7- &oOpens link to my Discord Server."
+    )
 }

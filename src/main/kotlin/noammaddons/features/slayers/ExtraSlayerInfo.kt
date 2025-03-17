@@ -1,6 +1,7 @@
 package noammaddons.features.slayers
 
-import gg.essential.universal.UChat
+
+import gg.essential.universal.UChat.chat
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Chat
 import noammaddons.features.Feature
@@ -16,13 +17,15 @@ import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 object ExtraSlayerInfo: Feature() {
-    private val regex = Regex("(.+) Slayer LVL (.+) - Next LVL in (.+) XP!")
+    // https://regex101.com/r/Rm0FR3/1
+    private val regex = Regex("\\s* (.*) Slayer LVL (.+) - Next LVL in (.+) XP!")
     private val slayerXpMap = mapOf(1 to 5, 2 to 25, 3 to 100, 4 to 500, 5 to 1500)
-    private const val AATROX_BUFF_MULTIPLIER = 1.25
-    private const val MEG_DELAY = 1000L
+    const val AATROX_BUFF_MULTIPLIER = 1.25
+    const val MEG_DELAY = 1000L
 
     @SubscribeEvent
     fun onChat(event: Chat) {
+        if (! config.extraSlayerInfo) return
         val msg = event.component.noFormatText
         val match = regex.find(msg)?.destructured ?: return
 
@@ -33,7 +36,7 @@ object ExtraSlayerInfo: Feature() {
         val message = createMessage(slayerName, level, bossesLeft, match.component3())
 
         setTimeout(MEG_DELAY) {
-            UChat.chat(message)
+            chat(message)
         }
     }
 
@@ -44,7 +47,7 @@ object ExtraSlayerInfo: Feature() {
         if (slayerQuestIndex == - 1) throw IllegalStateException("Slayer Quest not found in sidebar lines")
         val level = lines[slayerQuestIndex - 1].substringAfterLast(" ").romanToDecimal()
         val baseXp = slayerXpMap[level] ?: throw IllegalArgumentException("Invalid Slayer level: $level")
-        val hasAatroxBuff = mayorData?.perks?.any { it["name"] == "Slayer XP Buff" } == true
+        val hasAatroxBuff = mayorData?.perks?.any { it == "Slayer XP Buff" } == true
         val bossEXP = if (hasAatroxBuff) (baseXp * AATROX_BUFF_MULTIPLIER).roundToInt() else baseXp
         debugMessage("bossEXP: $bossEXP")
         return bossEXP

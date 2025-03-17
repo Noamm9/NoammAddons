@@ -4,7 +4,9 @@ import kotlinx.serialization.json.*
 import net.minecraft.command.ICommandSender
 import noammaddons.commands.Command
 import noammaddons.features.gui.ProfleViewer
-import noammaddons.features.gui.ProfleViewer.getPlayerSkin
+import noammaddons.features.gui.ProfleViewer.createFakePlayer
+import noammaddons.features.gui.ProfleViewer.data
+import noammaddons.features.gui.ProfleViewer.profileCache
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.GuiUtils.openScreen
 import noammaddons.utils.JsonUtils
@@ -22,34 +24,42 @@ object ProfileViewerCommand: Command("pv", listOf("profileviewer"), "&cInvalid U
 
     fun getData(name: String) {
         modMessage("Fetching data for $name")
+        openScreen(ProfleViewer.ProfleViewerGUI())
+
+        profileCache[name.lowercase()]?.run {
+            if (System.currentTimeMillis() - second < 120_000) {
+                data.name = first.name
+                data.rank = first.rank
+                data.entityOtherPlayerMP = first.entityOtherPlayerMP
+                data.skyCryptData = first.skyCryptData
+                data.lilyWeight = first.lilyWeight
+                return
+            }
+        }
+
+
         JsonUtils.get("https://sky.shiiyu.moe/api/v2/profile/$name") { obj ->
             val profiles = if (obj.containsKey("profiles")) obj["profiles"] !!.jsonObject else return@get
 
-            val userProfile = profiles.values.first {
+            data.skyCryptData = profiles.values.first {
                 it.jsonObject["current"] !!.jsonPrimitive.booleanOrNull == true
             }.jsonObject
-
-            JsonUtils.get("https://api.icarusphantom.dev/v1/sbecommands/weight/$name") { wealth ->
-                if (wealth["status"]?.jsonPrimitive?.int == 200) {
-                    val data = wealth.getObj("data")
-                    val userName = data?.getString("username") ?: mc.session.username
-                    val rank = data?.getString("rank") ?: ""
-                    val lilyWeight = data?.getObj("weight")?.getObj("lilyWeight")
-
-                    mc.addScheduledTask {
-                        if (lilyWeight != null) {
-                            ProfleViewer.ProfleViewerGUI(
-                                userName,
-                                rank,
-                                getPlayerSkin(userName),
-                                userProfile, lilyWeight
-                            ).let {
-                                openScreen(it)
-                            }
-                        }
-                    }
-                }
-            }
         }
+
+        JsonUtils.get("https://api.icarusphantom.dev/v1/sbecommands/weight/$name") { wealth ->
+            if (wealth["status"]?.jsonPrimitive?.int != 200) return@get
+            val data_ = wealth.getObj("data")
+            val userName = data_?.getString("username") ?: ""
+            val rank = data_?.getString("rank") ?: ""
+            val lilyWeight = data_?.getObj("weight")?.getObj("lilyWeight")
+
+            data.name = userName
+            data.rank = rank
+            data.lilyWeight = lilyWeight
+        }
+
+        data.entityOtherPlayerMP = createFakePlayer(name)
+
+        profileCache[name.lowercase()] = data to System.currentTimeMillis()
     }
 }

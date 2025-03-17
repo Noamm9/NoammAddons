@@ -17,17 +17,13 @@ import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.currentChestName
 import noammaddons.utils.ItemUtils.getItemId
 import noammaddons.utils.ItemUtils.lore
-import noammaddons.utils.LocationUtils.WorldName
-import noammaddons.utils.LocationUtils.WorldType.DungeonHub
-import noammaddons.utils.LocationUtils.WorldType.Hub
-import noammaddons.utils.PlayerUtils.Player
+import noammaddons.utils.LocationUtils.WorldType.*
+import noammaddons.utils.LocationUtils.world
 import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.RenderUtils.drawTextWithoutColorLeak
-import noammaddons.utils.RenderUtils.drawWithNoLeak
 import noammaddons.utils.ThreadUtils.loop
 import noammaddons.utils.Utils.equalsOneOf
-import noammaddons.utils.Utils.isNull
 
 
 object CustomPartyFinderMenu: Feature() {
@@ -36,7 +32,7 @@ object CustomPartyFinderMenu: Feature() {
     private val selectedClassRegex = Regex("Currently Selected: (.+)")
     private val selectDungeonClassRegex = Regex("§7View and select a dungeon class\\.")
     private val classNames = listOf("&4&lArcher", "&a&lTank", "&6&lBerserk", "&5&lHealer", "&b&lMage")
-    val inPartyFinder get() = currentChestName.removeFormatting() == "Party Finder" && config.CustomPartyFinderMenu
+    val inPartyFinder get() = currentChestName.removeFormatting() == "Party Finder" && config.CustomPartyFinderMenu && config.customMenus
     var selectedClass: String? = null
 
     @SubscribeEvent
@@ -51,9 +47,9 @@ object CustomPartyFinderMenu: Feature() {
     @SubscribeEvent
     fun guiRender(event: GuiScreenEvent.DrawScreenEvent.Pre) {
         if (! inPartyFinder) return
-        if (! WorldName.equalsOneOf(DungeonHub, Hub)) return
+        if (! world.equalsOneOf(DungeonHub, Hub)) return
         event.isCanceled = true
-        val container = Player?.openContainer?.inventorySlots ?: return
+        val container = mc.thePlayer?.openContainer?.inventorySlots ?: return
 
         val scale = calculateScale()
         val (mx, my) = getMouseScaledCoordinates(scale)
@@ -73,7 +69,7 @@ object CustomPartyFinderMenu: Feature() {
             val stack = slot.stack
             val i = slot.slotNumber
             if (i >= windowSize) return@forEach
-            if (stack.isNull()) return@forEach
+            if (stack == null) return@forEach
             if (stack.getItemId().equalsOneOf(160, 262)) return@forEach
             if (i !in 10 until 36 && i != 53) return@forEach
 
@@ -94,36 +90,31 @@ object CustomPartyFinderMenu: Feature() {
                 }
             }
 
-            val missingClasses = classNames
-                .filter { name -> classes.indexOf(name.removeFormatting()) == - 1 }
-                .map { it.take(5) }
+            val missingClasses = classNames.filter { classes.indexOf(it.removeFormatting()) == - 1 }.map { it.take(5) }
 
-            val missingOffsetY = if (missingClasses.size >= 3) mc.fontRendererObj.FONT_HEIGHT * 2 else mc.fontRendererObj.FONT_HEIGHT
-            val missingStr = missingClasses.take(2).joinToString("")
-            val p2 = missingClasses.drop(2).take(2).joinToString("")
-            val missing = """
-			$missingStr
-			$p2
-			""".trimIndent()
+            val missing = listOf(
+                missingClasses.take(2).joinToString(""),
+                missingClasses.drop(2).take(2).joinToString("")
+            ).filter { it.isNotBlank() }
+
             val TextScale = 0.60f
 
             GlStateManager.pushMatrix()
             GlStateManager.translate(x, y, 1f)
 
-            drawWithNoLeak {
-                drawText(
-                    if (levelRequired == 0) "" else "&c$levelRequired",
-                    15f - getStringWidth("$levelRequired") * TextScale,
-                    1f, TextScale
-                )
 
-                drawText(
-                    missing,
-                    1f,
-                    13 - (missingOffsetY * TextScale) - mc.fontRendererObj.FONT_HEIGHT * TextScale / 2f,
-                    TextScale
-                )
-            }
+            drawText(
+                if (levelRequired == 0) "" else "&c$levelRequired",
+                15f - getStringWidth("$levelRequired") * TextScale,
+                1f, TextScale
+            )
+
+            drawText(
+                missing.joinToString("\n"),
+                1.5f, 10f - if (missing.size == 2) 4.5f else 0f,
+                TextScale - 0.09f
+            )
+
             GlStateManager.popMatrix()
         }
 
@@ -147,8 +138,10 @@ object CustomPartyFinderMenu: Feature() {
     @SubscribeEvent
     fun onClick(event: GuiMouseClickEvent) {
         if (! inPartyFinder) return
+        if (! world.equalsOneOf(DungeonHub, Hub)) return
         if (! event.button.equalsOneOf(0, 1, 2)) return
-        val container = Player?.openContainer?.inventorySlots ?: return
+        val container = mc.thePlayer?.openContainer?.inventorySlots ?: return
+
         event.isCanceled = true
 
         val scale = calculateScale()
@@ -164,7 +157,7 @@ object CustomPartyFinderMenu: Feature() {
 
         if (slot >= windowSize) return
         container[slot].run {
-            if (stack.isNull()) return
+            if (stack == null) return
             if (stack.getItemId() == 160 && stack.metadata == 15) return
         }
 
@@ -175,7 +168,7 @@ object CustomPartyFinderMenu: Feature() {
         loop(100) {
             if (! config.CustomPartyFinderMenu) return@loop
             if (currentChestName.removeFormatting() != "Catacombs Gate") return@loop
-            val lore = Player?.openContainer?.inventorySlots?.get(45)?.stack?.lore ?: return@loop
+            val lore = mc.thePlayer?.openContainer?.inventorySlots?.get(45)?.stack?.lore ?: return@loop
             if (lore.size <= 3) return@loop
             if (! lore[0].matches(selectDungeonClassRegex)) return@loop
 

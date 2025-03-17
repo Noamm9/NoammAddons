@@ -1,25 +1,43 @@
 package noammaddons.events
 
 import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.entity.item.EntityItem
+import net.minecraft.init.Blocks
+import net.minecraft.item.ItemStack
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.network.play.server.*
+import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
 import net.minecraftforge.client.event.RenderGameOverlayEvent
 import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.client.event.sound.PlaySoundEvent
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.fml.common.eventhandler.Event
-import net.minecraftforge.fml.common.eventhandler.EventPriority
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
+import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.common.eventhandler.*
+import net.minecraftforge.fml.common.gameevent.TickEvent.*
+import noammaddons.features.dungeons.dmap.core.map.RoomData
 import noammaddons.noammaddons.Companion.Logger
 import noammaddons.noammaddons.Companion.mc
+import noammaddons.utils.BlockUtils.getBlockAt
+import noammaddons.utils.ChatUtils.debugMessage
 import noammaddons.utils.ChatUtils.modMessage
+import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.DungeonUtils.dungeonItemDrops
+import noammaddons.utils.DungeonUtils.isSecret
+import noammaddons.utils.LocationUtils.inBoss
+import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.ThreadUtils.setTimeout
-import noammaddons.utils.Utils.isNull
+import noammaddons.utils.Utils.equalsOneOf
 
 
 object RegisterEvents {
+    data class Inventory(
+        val title: String,
+        val windowId: Int,
+        val slotCount: Int,
+        val items: MutableMap<Int, ItemStack> = mutableMapOf(),
+    )
+
     private var currentInventory: Inventory? = null
     private var acceptItems = false
 
@@ -41,27 +59,50 @@ object RegisterEvents {
     @JvmStatic
     fun postAndCatch(event: Event): Boolean = event.postCatch()
 
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
+    fun onPacket(event: PacketEvent.Sent) {
+        when (val packet = event.packet) {
+            is C08PacketPlayerBlockPlacement -> {
+                if (packet.position == null) return
+                if (! inDungeon) return
+                if (inBoss) return
+                if (! isSecret(packet.position)) return
+
+                val type = when (getBlockAt(packet.position)) {
+                    Blocks.chest, Blocks.trapped_chest -> DungeonEvent.SecretEvent.SecretType.CHEST
+                    Blocks.lever -> DungeonEvent.SecretEvent.SecretType.LAVER
+                    Blocks.skull -> DungeonEvent.SecretEvent.SecretType.SKULL
+                    else -> return
+                }
+
+                DungeonEvent.SecretEvent(type, packet.position).postCatch()
+            }
+        }
+    }
+
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    fun onTick(event: Event) {
+    fun onEvent(event: Event) {
         when (event) {
             is ClientTickEvent -> {
-                if (event.phase != TickEvent.Phase.END) return
-                if (mc.theWorld.isNull() || mc.thePlayer.isNull()) return
-                postAndCatch(Tick())
+                if (event.phase != Phase.START) return
+                if (mc.theWorld == null || mc.thePlayer == null) return
+                if (mc.isSingleplayer) ServerTick().postCatch()
+                Tick().postCatch()
             }
 
             is RenderGameOverlayEvent.Text -> {
                 if (mc.renderManager?.fontRenderer == null) return
                 GlStateManager.pushMatrix()
                 GlStateManager.translate(0f, 0f, - 3f)
-                postAndCatch(RenderOverlay())
+                RenderOverlay().postCatch()
                 GlStateManager.translate(0f, 0f, 3f)
                 GlStateManager.popMatrix()
             }
 
             is RenderWorldLastEvent -> {
                 GlStateManager.pushMatrix()
-                postAndCatch(RenderWorld(event.partialTicks))
+                RenderWorld(event.partialTicks).postCatch()
                 GlStateManager.popMatrix()
             }
 
@@ -76,9 +117,24 @@ object RegisterEvents {
                         event.sound.zPosF.toDouble()
                     )
                 )
-                postAndCatch(soundEvent)
+
+                soundEvent.postCatch()
 
                 event.result = if (soundEvent.isCanceled) null else event.result
+            }
+
+            is WorldEvent.Unload -> WorldUnloadEvent().postCatch()
+
+            is EntityLeaveWorldEvent -> {
+                if (! inDungeon) return
+                if (inBoss) return
+                if (event.entity !is EntityItem) return
+                if (event.entity.entityItem?.displayName?.removeFormatting() !in dungeonItemDrops) return
+                if (mc.thePlayer.getDistanceToEntity(event.entity) > 6) return
+
+                val type = DungeonEvent.SecretEvent.SecretType.ITEM
+                val pos = event.entity.position
+                DungeonEvent.SecretEvent(type, pos).postCatch()
             }
         }
     }
@@ -87,31 +143,30 @@ object RegisterEvents {
     fun onPacket(event: PacketEvent.Received) {
         when (val packet = event.packet) {
             is S02PacketChat -> when (packet.type.toInt()) {
-                in 0 .. 1 -> event.isCanceled = postAndCatch(Chat(packet.chatComponent))
-                2 -> event.isCanceled = postAndCatch(Actionbar(packet.chatComponent))
+                in 0 .. 1 -> event.isCanceled = Chat(packet.chatComponent).postCatch()
+                2 -> event.isCanceled = Actionbar(packet.chatComponent).postCatch()
             }
 
             is S32PacketConfirmTransaction -> {
                 if (packet.func_148888_e()) return
                 if (packet.actionNumber > 0) return
-
-                postAndCatch(ServerTick())
+                ServerTick().postCatch()
             }
 
-            is S23PacketBlockChange -> postAndCatch(BlockChangeEvent(packet.blockPosition, packet.blockState))
+            is S23PacketBlockChange -> BlockChangeEvent(packet.blockPosition, packet.blockState.block, getBlockAt(packet.blockPosition)).postCatch()
             is S22PacketMultiBlockChange -> packet.changedBlocks.forEach {
-                postAndCatch(BlockChangeEvent(it.pos, it.blockState))
+                BlockChangeEvent(it.pos, it.blockState.block, getBlockAt(it.pos)).postCatch()
             }
 
             is S2EPacketCloseWindow -> currentInventory = null
 
             is S2DPacketOpenWindow -> {
+                acceptItems = true
                 currentInventory = Inventory(
                     packet.windowTitle.formattedText,
                     packet.windowId,
                     packet.slotCount
                 )
-                acceptItems = true
             }
 
             is S2FPacketSetSlot -> {
@@ -120,59 +175,47 @@ object RegisterEvents {
                 currentInventory?.run {
                     if (windowId != packet.func_149175_c()) return
                     val slot = packet.func_149173_d()
+                    val itemStack = packet.func_149174_e()
 
                     if (slot < slotCount) {
-                        val itemStack = packet.func_149174_e()
                         if (itemStack != null) {
                             items[slot] = itemStack
                         }
                     }
                     else {
                         acceptItems = false
-                        setTimeout(20) { postAndCatch(InventoryFullyOpenedEvent(title, windowId, slotCount, items)) }
+                        setTimeout(20) { InventoryFullyOpenedEvent(title, windowId, slotCount, items).postCatch() }
                         return
                     }
 
                     if (items.size != slotCount) return@run
 
                     acceptItems = false
-                    setTimeout(20) { postAndCatch(InventoryFullyOpenedEvent(title, windowId, slotCount, items)) }
+                    setTimeout(20) { InventoryFullyOpenedEvent(title, windowId, slotCount, items).postCatch() }
                 }
             }
 
-            /*
-            is S1CPacketEntityMetadata -> {
-                val parsedData = mutableMapOf<Int, Any?>()
-                val packetData = packet.func_149376_c() ?: return
+            is S29PacketSoundEffect -> {
+                if (! inDungeon) return
+                if (inBoss) return
+                if (! packet.soundName.equalsOneOf("mob.bat.hurt", "mob.bat.death")) return
+                if (packet.volume != 0.1f) return
 
-                try {
-                    for (metadata in packetData.filterNotNull()) {
-                        parsedData[metadata.dataValueId] = metadata.getObject()
-                    }
-                }
-                catch (_: Exception) {
-                }
-                finally {
-                    event.isCanceled = postAndCatch(
-                        EntityMetadataEvent(
-                            entity = packet.entityId,
-                            flag = (parsedData[0] as Byte?)?.toInt(),
-                            airSupply = (parsedData[1] as Short?)?.toInt(),
-                            name = parsedData[2] as String?,
-                            customNameVisible = parsedData[3],
-                            isSilent = parsedData[4],
-                            noGravity = parsedData[5],
-                            health = parsedData[6] as Float?,
-                            potionEffectColor = parsedData[7],
-                            isInvisible = parsedData[8],
-                            arrowsStuck = parsedData[9],
-                            unknown = parsedData.filterKeys { it !in 0 .. 10 },
-                            Data = parsedData
-                        )
-                    )
-                }
-            }*/
+                val type = DungeonEvent.SecretEvent.SecretType.BAT
+                val pos = BlockPos(packet.x, packet.y, packet.z)
+                DungeonEvent.SecretEvent(type, pos).postCatch()
+            }
         }
     }
 
+    fun checkForRoomChange(currentRoom: RoomData?, lastKnownRoom: RoomData?) {
+        lastKnownRoom?.let {
+            DungeonEvent.RoomEvent.onExit(it).postCatch()
+            debugMessage("onExit ${it.name} to ${currentRoom?.name ?: "Unknown"}")
+        }
+        currentRoom?.let {
+            DungeonEvent.RoomEvent.onEnter(it).postCatch()
+            debugMessage("onEnter ${lastKnownRoom?.name ?: "Unknown"} to ${it.name}")
+        }
+    }
 }

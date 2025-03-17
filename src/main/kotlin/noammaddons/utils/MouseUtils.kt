@@ -1,16 +1,26 @@
 package noammaddons.utils
 
 import noammaddons.noammaddons.Companion.mc
-import noammaddons.utils.GuiUtils.getMouseX
-import noammaddons.utils.GuiUtils.getMouseY
+import noammaddons.utils.RenderHelper.getHeight
+import noammaddons.utils.RenderHelper.getWidth
+import org.lwjgl.input.Mouse
 
 
 object MouseUtils {
-    @JvmStatic
-    val mouseX: Float get() = mc.getMouseX()
+    fun getMouseX(): Float {
+        val mx = Mouse.getX().toFloat()
+        val rw = mc.getWidth().toFloat()
+        val dw = mc.displayWidth.toFloat()
+        return mx * rw / dw
+    }
 
-    @JvmStatic
-    val mouseY: Float get() = mc.getMouseY()
+    fun getMouseY(): Float {
+        val my = Mouse.getY().toFloat()
+        val rh = mc.getHeight().toFloat()
+        val dh = mc.displayHeight.toFloat()
+        return rh - my * rh / dh - 1f
+    }
+
 
     @JvmStatic
     @Suppress("NAME_SHADOWING")

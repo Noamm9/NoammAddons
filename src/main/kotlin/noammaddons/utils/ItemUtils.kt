@@ -1,25 +1,31 @@
 package noammaddons.utils
 
-import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type
+import com.mojang.authlib.minecraft.MinecraftProfileTexture.*
 import gg.essential.universal.ChatColor
 import net.minecraft.init.Items
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.nbt.NBTUtil.readGameProfileFromNBT
+import net.minecraft.nbt.*
+import net.minecraft.nbt.NBTUtil.*
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.common.util.Constants
+import noammaddons.noammaddons.Companion.bzData
+import noammaddons.noammaddons.Companion.itemIdToNameLookup
 import noammaddons.noammaddons.Companion.mc
+import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ItemUtils.ItemRarity.Companion.PET_PATTERN
 import noammaddons.utils.ItemUtils.ItemRarity.Companion.RARITY_PATTERN
-import noammaddons.utils.PlayerUtils.Player
+import noammaddons.utils.NumbersUtils.romanToDecimal
+import noammaddons.utils.NumbersUtils.toRoman
+import noammaddons.utils.Utils.startsWithOneOf
 import java.awt.Color
 
 
 object ItemUtils {
-    private val rarityCache = mutableMapOf<NBTTagCompound, ItemRarity>()
-    private val textureCache = mutableMapOf<NBTTagCompound, ResourceLocation?>()
+    private val essenceRegex = Regex("§d(?<type>\\w+) Essence §8x(?<count>\\d+)")
+    val rarityCache = mutableMapOf<NBTTagCompound, ItemRarity>()
+    val textureCache = mutableMapOf<NBTTagCompound, ResourceLocation?>()
 
     enum class ItemRarity(val baseColor: ChatColor, val color: Color = baseColor.color !!) {
         NONE(ChatColor.GRAY),
@@ -52,8 +58,8 @@ object ItemUtils {
         }
     }
 
-    val ItemStack?.SkyblockID: String
-        get() = this?.getSubCompound("ExtraAttributes", false)?.getString("id") ?: ""
+    val ItemStack?.SkyblockID: String?
+        get() = this?.getSubCompound("ExtraAttributes", false)?.getString("id")
 
     val ItemStack.lore: List<String>
         get() = tagCompound?.getCompoundTag("display")?.getTagList("Lore", 8)?.let {
@@ -64,9 +70,20 @@ object ItemUtils {
             list
         } ?: emptyList()
 
+    fun setItemLore(item: ItemStack, newLore: List<String>) {
+        val compound = item.tagCompound ?: return
+        val loreList = NBTTagList()
+
+        for (line in newLore) {
+            loreList.appendTag(NBTTagString(line.addColor()))
+        }
+
+        compound.getCompoundTag("display").setTag("Lore", loreList)
+    }
+
 
     fun getHotbar(): Array<ItemStack?> {
-        return Player?.inventory?.mainInventory
+        return mc.thePlayer?.inventory?.mainInventory
             ?.filterIndexed { index, _ -> index in 0 .. 8 }
             ?.toTypedArray() ?: arrayOfNulls(9)
     }
@@ -76,80 +93,116 @@ object ItemUtils {
         getHotbar().forEachIndexed { index, stack ->
             when {
                 stack == null -> return@forEachIndexed
-                stack.displayName.removeFormatting().lowercase().contains(name) -> return index
+                stack.displayName.removeFormatting().lowercase().contains(name.lowercase()) -> return index
             }
         }
         return null
     }
 
     /**
-     * Returns the rarity of a given Skyblock item
-     * @author SkytilsMod
-     * @param item the Skyblock item to check
-     * @return the rarity of the item if a valid rarity is found, `ItemRarity.NONE` if no rarity is found
-     *
-     * @author @Noamm9 - Modified
+     * Returns the rarity of a given Skyblock item.
+     * @param item The Skyblock item to check.
+     * @return The rarity of the item if found, otherwise `ItemRarity.NONE`.
      */
     fun getRarity(item: ItemStack?): ItemRarity {
-        if (item == null || ! item.hasTagCompound()) return ItemRarity.NONE
-        val nbt = item.tagCompound ?: return ItemRarity.NONE
-        rarityCache[nbt]?.let { return it }
+        val nbt = item?.tagCompound ?: return ItemRarity.NONE
+        return rarityCache.getOrPut(nbt) {
+            val display = item.getSubCompound("display", false) ?: return@getOrPut ItemRarity.NONE
+            if (! display.hasKey("Lore")) return@getOrPut ItemRarity.NONE
 
-        val display = item.getSubCompound("display", false)
-        if (display == null || ! display.hasKey("Lore")) {
-            rarityCache[nbt] = ItemRarity.NONE
-            return ItemRarity.NONE
+            display.getTagList("Lore", Constants.NBT.TAG_STRING).run {
+                (tagCount() - 1 downTo 0).map { getStringTagAt(it) }.firstNotNullOfOrNull { line ->
+                    val rarityName = RARITY_PATTERN.find(line)?.groups?.get("rarity")?.value?.removeFormatting()?.substringAfter("SHINY ")
+                    ItemRarity.entries.find { it.rarityName == rarityName }
+                } ?: PET_PATTERN.find(display.getString("Name"))?.groupValues?.getOrNull(1)?.let { color ->
+                    ItemRarity.byBaseColor(color)
+                } ?: ItemRarity.NONE
+            }
         }
-
-        val lore = display.getTagList("Lore", Constants.NBT.TAG_STRING)
-        val name = display.getString("Name")
-
-        for (i in (lore.tagCount() - 1) downTo 0) {
-            val currentLine = lore.getStringTagAt(i)
-            val rarityMatcher = RARITY_PATTERN.find(currentLine) ?: continue
-            val rarity = rarityMatcher.groups["rarity"]?.value ?: continue
-            val result = ItemRarity.entries.find {
-                it.rarityName == rarity.removeFormatting().substringAfter("SHINY ")
-            } ?: continue
-
-            rarityCache[nbt] = result
-            return result
-        }
-
-        val petRarityMatcher = PET_PATTERN.find(name) ?: return ItemRarity.NONE.also {
-            rarityCache[nbt] = it
-        }
-
-        val color = petRarityMatcher.groupValues.getOrNull(1) ?: return ItemRarity.NONE.also {
-            rarityCache[nbt] = it
-        }
-
-        val rarity = ItemRarity.byBaseColor(color) ?: ItemRarity.NONE
-        rarityCache[nbt] = rarity
-        return rarity
     }
 
 
     fun ItemStack.getItemId(): Int = Item.getIdFromItem(item)
+    fun ItemStack.getSkullId(): String? = getSubCompound("SkullOwner", false)?.getString("Id")
 
     fun getHeadSkinTexture(itemStack: ItemStack): ResourceLocation? {
-        if (itemStack.item == Items.skull && itemStack.metadata == 3) {
-            val nbt = itemStack.tagCompound ?: return null
-            if (textureCache.containsKey(nbt)) return textureCache[nbt]
+        if (itemStack.item != Items.skull || itemStack.metadata != 3) return null
+        val nbt = itemStack.tagCompound ?: return null
 
-            if (! nbt.hasKey("SkullOwner", 10)) return null
+        return textureCache.getOrPut(nbt) {
+            if (! nbt.hasKey("SkullOwner", 10)) return@getOrPut null
             val skullOwner = nbt.getCompoundTag("SkullOwner")
-            val profile = readGameProfileFromNBT(skullOwner) ?: return null
+            val profile = readGameProfileFromNBT(skullOwner) ?: return@getOrPut null
+            val textures = mc.skinManager.loadSkinFromCache(profile)
+            val skinUrl = textures[Type.SKIN] ?: return@getOrPut null
 
-            val skinManager = mc.skinManager
-            val textures = skinManager.loadSkinFromCache(profile)
-            val skin = textures[Type.SKIN] ?: return null
-
-            val texture = skinManager.loadSkin(skin, Type.SKIN)
-            textureCache[nbt] = texture
-
-            return texture
+            mc.skinManager.loadSkin(skinUrl, Type.SKIN)
         }
-        return null
+    }
+
+    fun getSkullTexture(stack: ItemStack): String? {
+        val nbt = stack.tagCompound ?: return null
+
+        val textures = nbt.getCompoundTag("SkullOwner")
+            ?.getCompoundTag("Properties")
+            ?.getTagList("textures", 10) // 10 = NBTTagCompound type
+
+        if (textures == null || textures.tagCount() == 0) return null
+
+        return textures.getCompoundTagAt(0)?.getString("Value")
+    }
+
+    fun getEssenceValue(text: String): Double? {
+        //    if (!Skytils.config.dungeonChestProfitIncludesEssence) return null
+        val groups = essenceRegex.matchEntire(text)?.groups ?: return null
+        val type = groups["type"]?.value?.uppercase() ?: return null
+        val count = groups["count"]?.value?.toInt() ?: return null
+        return (bzData["ESSENCE_$type"]?.price ?: .0) * count
+    }
+
+    fun getIdFromName(name: String): String? {
+        return if (name.startsWith("§aEnchanted Book (")) {
+            val enchant = name.substring(name.indexOf("(") + 1, name.indexOf(")"))
+            return enchantNameToID(enchant)
+        }
+        else {
+            val unformatted = name.removeFormatting().replace("Shiny ", "")
+            itemIdToNameLookup.entries.find {
+                it.value == unformatted && ! it.key.contains("STARRED")
+            }?.key
+        }
+    }
+
+    fun enchantNameToID(enchant: String): String {
+        val enchantName = enchant.substringBeforeLast(" ")
+        val name = enchantName.removeFormatting().uppercase().replace(" ", "_")
+        val enchantId = if (enchantName.startsWithOneOf("§9§d§l", "§d§l", "§7§l")) {
+            if (! name.contains("ULTIMATE_")) "ULTIMATE_$name"
+            else name
+        }
+        else name
+
+        val level = enchant.substringAfterLast(" ").removeFormatting().run {
+            toIntOrNull() ?: romanToDecimal()
+        }
+        return "ENCHANTMENT_${enchantId}_$level"
+    }
+
+    fun idToEnchantName(enchantId: String): String {
+        val parts = enchantId.split("_")
+        if (parts.size < 3 || parts[0] != "ENCHANTMENT") throw IllegalArgumentException("Invalid enchantment ID format")
+
+        val isUltimate = parts[1] == "ULTIMATE"
+        val enchantNameParts = if (isUltimate) parts.drop(2).dropLast(1) else parts.drop(1).dropLast(1)
+        val enchantLevel = parts.last().toIntOrNull() ?: throw IllegalArgumentException("Invalid level in enchantment ID")
+
+        val enchantName = enchantNameParts.joinToString(" ") { part ->
+            part.lowercase().replaceFirstChar { it.uppercase() }.replace("_", " ")
+        }
+
+        val romanLevel = enchantLevel.toRoman()
+        val formattedName = if (isUltimate) "§d§l$enchantName $romanLevel§a" else "$enchantName $romanLevel§a"
+
+        return formattedName
     }
 }

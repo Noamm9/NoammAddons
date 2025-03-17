@@ -6,8 +6,8 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.PacketEvent
 import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.showTitle
-import noammaddons.utils.LocationUtils.dungeonFloor
-import noammaddons.utils.LocationUtils.inDungeons
+import noammaddons.utils.LocationUtils.dungeonFloorNumber
+import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.SoundUtils.ayaya
 import noammaddons.utils.ThreadUtils.setTimeout
 
@@ -15,9 +15,9 @@ object ShadowAssassinAlert: Feature() {
     @SubscribeEvent
     fun saAlert(event: PacketEvent.Received) {
         if (event.packet !is S44PacketWorldBorder) return
-        if (! inDungeons || ! config.ShadowAssassinAlert) return
+        if (! inDungeon || ! config.ShadowAssassinAlert) return
 
-        val bonzo = config.bonzoBossRespawnAlert && dungeonFloor == 1
+        val bonzo = config.bonzoBossRespawnAlert && dungeonFloorNumber == 1
         val border = WorldBorder()
         event.packet.func_179788_a(border) // why is that func not mapped ):
         if (border.diameter != 1.0) return

@@ -7,9 +7,8 @@ import noammaddons.events.RenderWorld
 import noammaddons.features.Feature
 import noammaddons.utils.LocationUtils.P3Section
 import noammaddons.utils.LocationUtils.inBoss
-import noammaddons.utils.MathUtils
-import noammaddons.utils.PlayerUtils.Player
-import noammaddons.utils.RenderHelper.getRenderVec
+import noammaddons.utils.MathUtils.distance3D
+import noammaddons.utils.RenderHelper.renderVec
 import noammaddons.utils.RenderUtils.drawBlockBox
 import noammaddons.utils.RenderUtils.drawString
 import java.awt.Color
@@ -18,7 +17,7 @@ import java.awt.Color
 object TerminalNumbers: Feature() {
     private fun BlockPos.center(): Vec3 = Vec3(x + 0.5, y + 0.5, z + 0.5)
 
-    // god its soo ugly todo: maybe add devs and lavers
+    // omg its soo ugly todo: maybe add devs and lavers
     private val terminals = listOf(
         // Section 1
         listOf(
@@ -55,16 +54,16 @@ object TerminalNumbers: Feature() {
         val boxPosition = positions[0]
         val textPosition = positions[1]
 
-        val distance = MathUtils.distanceIn3DWorld(
-            Player.getRenderVec(),
+        val distance = distance3D(
+            mc.thePlayer.renderVec,
             textPosition.center()
         ).toFloat()
 
-        val scale = maxOf(distance * 0.18f, 1f)
+        val scale = maxOf(distance * 0.18f, 2f)
 
         drawBlockBox(
             boxPosition,
-            Color(0, 114, 255, 85),
+            Color(0, 114, 255, 65),
             outline = true,
             fill = true,
             phase = true
@@ -75,9 +74,7 @@ object TerminalNumbers: Feature() {
             textPosition.center(),
             Color(255, 0, 255),
             scale,
-            shadow = true,
-            phase = true,
-            renderBlackBox = false
+            phase = true
         )
     }
 

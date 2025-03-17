@@ -16,7 +16,6 @@ import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.GuiUtils.isInGui
 import noammaddons.utils.JsonUtils.fetchJsonWithRetry
 import noammaddons.utils.RenderHelper.getPartialTicks
-import noammaddons.utils.Utils.isNull
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -35,7 +34,7 @@ object Cosmetics {
             _2: Float, _3: Float, _4: Float,
             _5: Float, _6: Float, _7: Float
         ) {
-            if (devPlayers.isNull()) return
+            if (devPlayers == null) return
             val player = entityLivingBaseIn as EntityPlayer
             val dev = devPlayers !!.find { it == player.uniqueID.toString() }
 

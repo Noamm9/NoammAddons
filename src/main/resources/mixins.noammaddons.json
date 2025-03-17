@@ -16,28 +16,33 @@
     "MixinGuiContainer",
     "MixinGuiIngame",
     "MixinGuiIngameForge",
-    "MixinGuiMainMenu",
     "MixinGuiNewChat",
     "MixinGuiPlayerTabOverlay",
     "MixinGuiScreen",
     "MixinGuiUtils",
     "MixinInventoryEffectRenderer",
     "MixinMinecraft",
+    "MixinNetHandlerPlayClient",
     "MixinNetworkManager",
     "MixinPatcherEntityCulling",
     "MixinRendererLivingEntity",
-    "MixinRenderItem",
     "MixinRenderManager",
     "MixinThePlayer",
-    "MixinTileEntityChestRenderer"
+    "MixinTileEntityChestRenderer",
+    "TestMixin"
   ],
   "mixins": [
     "AccessorCommandHandler",
     "EntityAccessor",
+    "MixinBlockButton",
+    "MixinBlockLever",
+    "MixinBlockMushroom",
+    "MixinBlockSkull",
     "MixinEntity",
     "MixinEntityPlayer",
     "MixinModList",
     "MixinSkytilsFunny",
+    "MixinWorld",
     "MixinWorldProvider"
   ]
 }

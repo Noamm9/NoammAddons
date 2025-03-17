@@ -6,9 +6,7 @@ import net.minecraft.network.play.server.S2DPacketOpenWindow
 import net.minecraft.network.play.server.S2FPacketSetSlot
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.GuiCloseEvent
-import noammaddons.events.GuiMouseClickEvent
-import noammaddons.events.PacketEvent
+import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.features.dungeons.terminals.ConstantsVariables.NumbersTitle
 import noammaddons.features.dungeons.terminals.ConstantsVariables.TerminalSlot
@@ -19,12 +17,11 @@ import noammaddons.features.gui.Menus.renderBackground
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.disableNEUInventoryButtons
-import noammaddons.utils.GuiUtils.getMouseX
-import noammaddons.utils.GuiUtils.getMouseY
 import noammaddons.utils.ItemUtils.getItemId
 import noammaddons.utils.LocationUtils
 import noammaddons.utils.LocationUtils.F7Phase
-import noammaddons.utils.PlayerUtils.Player
+import noammaddons.utils.MouseUtils.getMouseX
+import noammaddons.utils.MouseUtils.getMouseY
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawCenteredText
@@ -52,8 +49,8 @@ object Numbers: Feature() {
         event.isCanceled = true
 
         val termScale = getTermScale()
-        val x = mc.getMouseX() / termScale
-        val y = mc.getMouseY() / termScale
+        val x = getMouseX() / termScale
+        val y = getMouseY() / termScale
 
         val screenWidth = mc.getWidth().toDouble() / termScale
         val screenHeight = mc.getHeight().toDouble() / termScale
@@ -117,7 +114,7 @@ object Numbers: Feature() {
 
             repeat(index) { solverColor = solverColor.brighter().brighter() }
 
-            val stackSize = Player?.openContainer?.getSlot(i)?.stack?.stackSize ?: continue
+            val stackSize = mc.thePlayer?.openContainer?.getSlot(i)?.stack?.stackSize ?: continue
             drawCenteredText("$stackSize", currentOffsetX + 8, currentOffsetY + 4)
         }
         GlStateManager.popMatrix()
@@ -150,7 +147,7 @@ object Numbers: Feature() {
 
     @SubscribeEvent
     fun onWindowOpen(event: PacketEvent.Received) {
-        if (! config.CustomTerminalsGui || ! config.CustomNumbersTerminal || LocationUtils.dungeonFloor != 7 || F7Phase != 3) return
+        if (! config.CustomTerminalsGui || ! config.CustomNumbersTerminal || LocationUtils.dungeonFloorNumber != 7 || F7Phase != 3) return
         if (event.packet !is S2DPacketOpenWindow) return
 
         val windowTitle = event.packet.windowTitle.noFormatText

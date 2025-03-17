@@ -1,19 +1,30 @@
 package noammaddons.features.hud
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.config.EditGui.components.TextElement
+import noammaddons.config.EditGui.GuiElement
 import noammaddons.events.RenderOverlay
 import noammaddons.events.SoundPlayEvent
 import noammaddons.features.Feature
 import noammaddons.utils.ItemUtils.SkyblockID
 import noammaddons.utils.PlayerUtils
-import noammaddons.utils.PlayerUtils.Player
-import noammaddons.utils.Utils.isNull
-import java.awt.Color
+import noammaddons.utils.RenderHelper
+import noammaddons.utils.RenderHelper.getStringWidth
+import noammaddons.utils.RenderUtils.drawText
 
 object SpringBootsDisplay: Feature() {
+    private object SpringBootsElement: GuiElement(hudData.getData().SpringBootsDisplay) {
+        override val enabled get() = config.SpringBootsDisplay
+        var text = ""
+        override val width: Float get() = getStringWidth(text)
+        override val height: Float get() = 9f
+
+        override fun draw() = drawText(text, getX(), getY(), getScale(), color)
+        override fun exampleDraw() = drawText("&a&l33%", getX(), getY(), getScale(), color)
+
+        val color get() = RenderHelper.colorByPresent(progress, 42, false)
+    }
+
     private var progress = 0
-    private val SpringBootsElement = TextElement("&a&l33%", dataObj = hudData.getData().SpringBootsDisplay)
     private val PitchArray = listOf(
         0.6984127163887024,
         0.8253968358039856,
@@ -27,8 +38,8 @@ object SpringBootsDisplay: Feature() {
     @SubscribeEvent
     fun onSound(event: SoundPlayEvent) {
         if (! config.SpringBootsDisplay) return
-        if (Player.isNull()) return
-        if (! Player !!.isSneaking && ! IsWearingSpringBoots()) return
+        if (mc.thePlayer == null) return
+        if (! mc.thePlayer.isSneaking && ! IsWearingSpringBoots()) return
         if (event.name != "note.pling") return
         if (! PitchArray.contains(event.pitch.toDouble()) || progress >= 42) return  // 42 - fill to 100%
 
@@ -37,26 +48,14 @@ object SpringBootsDisplay: Feature() {
 
     @SubscribeEvent
     fun onRenderOverlay(event: RenderOverlay) {
-        if (! config.SpringBootsDisplay) return
-        if (Player.isNull()) return
+        if (! SpringBootsElement.enabled) return
+        if (mc.thePlayer == null) return
         if (! IsWearingSpringBoots() || progress <= 0) return
-        if (! Player !!.isSneaking || ! IsWearingSpringBoots()) progress = 0
+        if (! mc.thePlayer.isSneaking || ! IsWearingSpringBoots()) progress = 0
 
-        SpringBootsElement.run {
-            setText("${((progress / 42.0) * 100.0).toInt()}%")
-            setColor(
-                when (((progress / 42.0) * 100.0).toInt()) {
-                    in 0 until 25 -> Color.GREEN
-                    in 25 until 50 -> Color.YELLOW
-                    in 50 .. 74 -> Color(255, 116, 0)
-                    in 75 .. 100 -> Color.RED
-                    else -> return
-                }
-            )
-            draw()
-        }
+        SpringBootsElement.text = "${((progress / 42.0) * 100.0).toInt()}%"
+        SpringBootsElement.draw()
     }
-
 
     private fun IsWearingSpringBoots(): Boolean = (PlayerUtils.getBoots()?.SkyblockID ?: "") == "SPRING_BOOTS"
 }

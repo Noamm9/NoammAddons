@@ -6,22 +6,19 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Chat
 import noammaddons.events.RenderWorld
 import noammaddons.features.Feature
-import noammaddons.utils.ChatUtils
+import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.noFormatText
-import noammaddons.utils.MathUtils
-import noammaddons.utils.PlayerUtils.Player
-import noammaddons.utils.RenderHelper.getRenderVec
-import noammaddons.utils.RenderUtils
+import noammaddons.utils.RenderHelper.renderVec
 import java.awt.Color
 
 
 // regex from Doc's Chat Waypoints
 // https://github.com/DocilElm/Doc/blob/main/features/misc/ChatWaypoint.js
 object ChatCoordsWaypoint: Feature() {
-    private data class waypoint(val name: String, val x: Int?, val y: Int?, val z: Int?, val time: Long)
+    data class waypoint(val name: String, val x: Int?, val y: Int?, val z: Int?, val time: Long)
 
     private val regex = Regex("^(Co-op|Party)?(?: > )?(?:\\[\\d+] .? ?)?(?:\\[[\\w+]+] )?(\\w{1,16}): x: (.{1,4}), y: (.{1,4}), z: (.{1,4})")
-    private val selfDistractionTimeMs = 60_000
+    private const val selfDistractionTimeMs = 60_000
     private val waypointArray = mutableListOf<waypoint>()
 
     @SubscribeEvent
@@ -44,8 +41,8 @@ object ChatCoordsWaypoint: Feature() {
         waypointArray.removeIf { it.time + selfDistractionTimeMs <= System.currentTimeMillis() }
 
         waypointArray.forEach {
-            val distance = MathUtils.distanceIn3DWorld(
-                Player !!.getRenderVec(),
+            val distance = MathUtils.distance3D(
+                mc.thePlayer.renderVec,
                 Vec3(
                     it.x?.toDouble() ?: return@forEach,
                     it.y?.toDouble() ?: return@forEach,
@@ -75,8 +72,7 @@ object ChatCoordsWaypoint: Feature() {
                 it.y + 1 + distance * 0.01f,
                 it.z,
                 Color(255, 0, 255),
-                scale, shadow = true,
-                phase = true
+                scale, phase = true
             )
 
             RenderUtils.drawTracer(
