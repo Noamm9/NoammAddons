@@ -10,11 +10,10 @@ import noammaddons.utils.BlockUtils.getBlockId
 import noammaddons.utils.BlockUtils.ghostBlock
 import noammaddons.utils.JsonUtils.fetchJsonWithRetry
 import noammaddons.utils.LocationUtils.F7Phase
-import noammaddons.utils.Utils.isNull
+import noammaddons.utils.ThreadUtils
 
 object IHATEDIORITE: Feature() {
     private var iHateDioriteBlocks: Map<String, List<BlockPos>>? = null
-    private val posList = mutableListOf<BlockPos>()
     private val blockTypes = mapOf(
         "GreenArray" to Blocks.stained_glass.getStateFromMeta(5),
         "YellowArray" to Blocks.stained_glass.getStateFromMeta(4),
@@ -44,18 +43,20 @@ object IHATEDIORITE: Feature() {
 
     @SubscribeEvent
     fun onTick(event: TickEvent.ClientTickEvent) {
-        if (event.phase != TickEvent.Phase.END) return
         if (! config.IHATEDIORITE) return
-        if (iHateDioriteBlocks.isNull()) return
+        if (event.phase != TickEvent.Phase.END) return
+        if (iHateDioriteBlocks == null) return
         if (F7Phase != 2) return
 
-        iHateDioriteBlocks !!.forEach { (key, coordsList) ->
-            val blockType = blockTypes[key] ?: return@forEach
-            coordsList.forEach { pos ->
-                for (i in 0 .. 37) {
-                    val ghostPos = pos.add(0, i, 0)
-                    if (getBlockAt(ghostPos)?.getBlockId() == 1) {
-                        ghostBlock(ghostPos, blockType)
+        ThreadUtils.runOnNewThread {
+            iHateDioriteBlocks !!.forEach { (key, coordsList) ->
+                val blockType = blockTypes[key] ?: return@forEach
+                coordsList.forEach { pos ->
+                    for (i in 0 .. 37) {
+                        val ghostPos = pos.add(0, i, 0)
+                        if (getBlockAt(ghostPos).getBlockId() == 1) {
+                            ghostBlock(ghostPos, blockType)
+                        }
                     }
                 }
             }
