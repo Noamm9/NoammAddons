@@ -13,7 +13,6 @@ object PartyFinderSound: Feature() {
     fun onChat(e: Chat) {
         if (! config.PartyFinderSound) return
         if (! e.component.noFormatText.matches(regex)) return
-
         Pling.start()
     }
 }

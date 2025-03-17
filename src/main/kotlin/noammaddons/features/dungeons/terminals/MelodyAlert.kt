@@ -10,7 +10,6 @@ import noammaddons.utils.ChatUtils.sendPartyMessage
 import noammaddons.utils.GuiUtils.currentChestName
 import noammaddons.utils.GuiUtils.getContainerName
 import noammaddons.utils.LocationUtils.F7Phase
-import noammaddons.utils.PlayerUtils.Player
 import noammaddons.utils.ThreadUtils.setTimeout
 
 object MelodyAlert: Feature() {
@@ -51,7 +50,7 @@ object MelodyAlert: Feature() {
         if (F7Phase != 3) return
 
         val greenClays = claySlots.keys.filter {
-            Player !!.openContainer?.getSlot(it)?.stack?.metadata == 5
+            mc.thePlayer.openContainer?.getSlot(it)?.stack?.metadata == 5
         }
 
         if (greenClays.isEmpty()) return

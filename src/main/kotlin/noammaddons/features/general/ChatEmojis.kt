@@ -1,13 +1,13 @@
 package noammaddons.features.general
 
+import net.minecraft.network.play.client.C01PacketChatMessage
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.MessageSentEvent
+import noammaddons.events.PacketEvent
 import noammaddons.features.Feature
-import noammaddons.utils.ChatUtils
 import noammaddons.utils.JsonUtils.fetchJsonWithRetry
-import noammaddons.utils.Utils.isNull
+import noammaddons.utils.Utils.send
 
-object ChatEmojis : Feature() {
+object ChatEmojis: Feature() {
     private var emojiMap: Map<String, String>? = null
 
     init {
@@ -16,20 +16,21 @@ object ChatEmojis : Feature() {
         ) { emojiMap = it }
     }
 
-
-    private fun includesAnyKey(message: String): Boolean = emojiMap !!.keys.any { message.contains(it) }
-
     @SubscribeEvent
-    fun onMessageSent(event: MessageSentEvent) {
-        if (emojiMap.isNull()) return
-        if (! includesAnyKey(event.message) || ! config.ChatEmojis) return
+    fun onPacketSent(event: PacketEvent.Sent) {
+        if (! config.ChatEmojis) return
+        if (emojiMap == null) return
+        val packet = event.packet as? C01PacketChatMessage ?: return
+        val msg = packet.message
+        if (emojiMap !!.keys.none { it in msg }) return
 
-        var newMessage = event.message
+
+        var newMessage = msg
         emojiMap !!.forEach { (key, value) ->
             newMessage = newMessage.replace(Regex(Regex.escape(key)), value)
         }
 
         event.isCanceled = true
-        ChatUtils.sendChatMessage(newMessage)
+        C01PacketChatMessage(newMessage).send()
     }
 }

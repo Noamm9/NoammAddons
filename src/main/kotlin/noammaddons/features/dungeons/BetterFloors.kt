@@ -5,19 +5,22 @@ import net.minecraft.util.BlockPos
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Tick
 import noammaddons.features.Feature
+import noammaddons.noammaddons
 import noammaddons.utils.BlockUtils.ghostBlock
-import noammaddons.utils.BlockUtils.toAir
 import noammaddons.utils.JsonUtils.fetchJsonWithRetry
-import noammaddons.utils.LocationUtils.dungeonFloor
+import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.LocationUtils.inBoss
+import noammaddons.utils.ThreadUtils
 
 
-object BetterFloors : Feature() {
+object BetterFloors: Feature() {
     private var f7Config: Map<String, List<Map<String, Double>>>? = null
     private var f6Config: Map<String, List<Map<String, Double>>>? = null
     private var f5Config: Map<String, List<Map<String, Double>>>? = null
 
     private val blockStates = mapOf(
+        "Air" to Blocks.air.defaultState,
+
         // Glass types
         "Glass" to Blocks.glass.defaultState,
         "WhiteGlass" to Blocks.stained_glass.defaultState,
@@ -46,18 +49,19 @@ object BetterFloors : Feature() {
         "DarkOakWoodPlank" to Blocks.planks.getStateFromMeta(5), // Dark Oak Wood Plank
 
         // Miscellaneous blocks
-        "Chest" to Blocks.chest.defaultState,
+        "Chest" to Blocks.ender_chest.defaultState,
         "Bedrock" to Blocks.bedrock.defaultState,
+        "CobbleWall" to Blocks.cobblestone_wall.defaultState,
 
         // Clay types
-        "GrayClay" to Blocks.stained_hardened_clay.getStateFromMeta(9) // Gray Clay
+        "GrayClay" to Blocks.stained_hardened_clay.getStateFromMeta(9), // Gray Clay
     )
 
 
     init {
         fetchJsonWithRetry<Map<String, List<Map<String, Double>>>>(
             "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/betterFloors/F7BossCoords.json"
-        ) { f7Config = it }
+        ) { f7Config = it; noammaddons.Logger.info(it) }
 
         fetchJsonWithRetry<Map<String, List<Map<String, Double>>>>(
             "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/betterFloors/F6BossCoords.json"
@@ -70,33 +74,23 @@ object BetterFloors : Feature() {
 
 
     private fun placeBlocks(json: Map<String, List<Map<String, Double>>>) {
-        try {
-            json.forEach { (type, positions) ->
-                val blockType = blockStates[type]
-
+        ThreadUtils.runOnNewThread {
+            for ((type, positions) in json) {
+                val blockType = blockStates[type] ?: continue
                 positions.forEach { coords ->
-                    val position = BlockPos(
-                        coords["x"] ?: return,
-                        coords["y"] ?: return,
-                        coords["z"] ?: return
-                    )
-
-                    if (type == "Air") toAir(position)
-                    else blockType?.let { ghostBlock(position, it) }
+                    val position = BlockPos(coords["x"] !!, coords["y"] !!, coords["z"] !!)
+                    ghostBlock(position, blockType)
                 }
             }
-        } catch (a: Exception) {
-            println(a)
         }
     }
-
 
     @SubscribeEvent
     fun onTick(event: Tick) {
         if (! config.BetterFloors) return
         if (! inBoss) return
 
-        when (dungeonFloor) {
+        when (dungeonFloorNumber) {
             7 -> if (config.BetterFloor7) f7Config?.let { placeBlocks(it) }
             6 -> if (config.BetterFloor6) f6Config?.let { placeBlocks(it) }
             5 -> if (config.BetterFloor5) f5Config?.let { placeBlocks(it) }

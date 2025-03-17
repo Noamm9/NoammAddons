@@ -1,12 +1,13 @@
 package noammaddons.mixins;
 
 import net.minecraft.world.WorldProvider;
-import noammaddons.config.Config;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import static noammaddons.noammaddons.config;
 
 @Mixin(WorldProvider.class)
 public class MixinWorldProvider {
@@ -15,8 +16,8 @@ public class MixinWorldProvider {
 
     @Inject(method = "calculateCelestialAngle", at = @At("HEAD"), cancellable = true)
     public void calculateCelestialAngle(long worldTime, float partialTicks, CallbackInfoReturnable<Float> cir) {
-        if (!Config.INSTANCE.getTimeChanger()) return;
-        long overrideTime = TIME_VALUES[Config.INSTANCE.getTimeChangerMode()];
+        if (!config.getTimeChanger()) return;
+        long overrideTime = TIME_VALUES[config.getTimeChangerMode()];
 
         int i = (int) (overrideTime % 24000L);
         float f = ((float) i + partialTicks) / 24000.0F - 0.25F;

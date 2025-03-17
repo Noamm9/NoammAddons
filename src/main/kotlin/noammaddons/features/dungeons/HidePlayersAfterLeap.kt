@@ -5,7 +5,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Chat
 import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.noFormatText
-import noammaddons.utils.PlayerUtils.Player
 import noammaddons.utils.ThreadUtils.setTimeout
 
 
@@ -26,7 +25,7 @@ object HidePlayersAfterLeap: Feature() {
     @SubscribeEvent
     fun onRenderPlayer(event: RenderPlayerEvent.Pre) {
         if (! HidePlayers) return
-        if (event.entity == Player) return
+        if (event.entity == mc.thePlayer) return
 
         event.isCanceled = true
     }

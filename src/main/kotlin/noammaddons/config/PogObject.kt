@@ -1,6 +1,7 @@
 package noammaddons.config
 
 import gg.essential.api.EssentialAPI
+import noammaddons.noammaddons.Companion.Logger
 import noammaddons.noammaddons.Companion.MOD_NAME
 import noammaddons.utils.JsonUtils.fromJson
 import noammaddons.utils.JsonUtils.toJson
@@ -28,17 +29,17 @@ class PogObject<T: Any>(fileName: String, private val defaultObject: T) {
                     loadedData
                 }
                 else {
-                    println("[PogObject] Data type mismatch, loading defaults.")
+                    Logger.info("[PogObject] Data type mismatch, loading defaults.")
                     null
                 }
             }
             else {
-                println("[PogObject] No existing data found, loading defaults.")
+                Logger.info("[PogObject] No existing data found, loading defaults.")
                 null
             }
         }
         catch (e: Exception) {
-            println("[PogObject]: ${this.javaClass.simpleName} Error loading data: ${e.message}")
+            Logger.info("[PogObject]: ${this.javaClass.simpleName} Error loading data: ${e.message}")
             null
         }
     }
@@ -47,10 +48,10 @@ class PogObject<T: Any>(fileName: String, private val defaultObject: T) {
     fun save() {
         try {
             toJson(dataFile, data)
-            println("[PogObject]: ${this.javaClass.simpleName} Data saved successfully.")
+            Logger.info("[PogObject]: ${this.javaClass.simpleName} Data saved successfully.")
         }
         catch (e: IOException) {
-            println("[PogObject]: ${this.javaClass.simpleName}: Failed to save data: ${e.message}")
+            Logger.info("[PogObject]: ${this.javaClass.simpleName}: Failed to save data: ${e.message}")
             e.printStackTrace()
         }
     }

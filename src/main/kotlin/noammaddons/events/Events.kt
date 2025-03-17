@@ -1,6 +1,6 @@
 package noammaddons.events
 
-import net.minecraft.block.state.IBlockState
+import net.minecraft.block.Block
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.gui.inventory.GuiContainer
@@ -13,11 +13,12 @@ import net.minecraft.item.ItemStack
 import net.minecraft.network.Packet
 import net.minecraft.scoreboard.ScoreObjective
 import net.minecraft.tileentity.TileEntityChest
-import net.minecraft.util.BlockPos
-import net.minecraft.util.IChatComponent
-import net.minecraft.util.Vec3
+import net.minecraft.util.*
+import net.minecraft.world.World
 import net.minecraftforge.fml.common.eventhandler.Cancelable
 import net.minecraftforge.fml.common.eventhandler.Event
+import noammaddons.features.dungeons.dmap.core.map.RoomData
+import noammaddons.features.dungeons.dmap.core.map.RoomState
 
 
 @Cancelable
@@ -45,6 +46,12 @@ abstract class PacketEvent: Event() {
     class Sent(val packet: Packet<*>): PacketEvent()
 }
 
+abstract class PostPacketEvent: Event() {
+    class Received(val packet: Packet<*>): PacketEvent()
+
+    class Sent(val packet: Packet<*>): PacketEvent()
+}
+
 class PostRenderEntityModelEvent(
     var entity: EntityLivingBase,
     var p_77036_2_: Float,
@@ -66,7 +73,7 @@ class MessageSentEvent(var message: String): Event()
 class RenderScoreBoardEvent(val objective: ScoreObjective, val scaledRes: ScaledResolution): Event()
 
 @Cancelable
-class BlockChangeEvent(val pos: BlockPos, val state: IBlockState): Event()
+class BlockChangeEvent(val pos: BlockPos, val block: Block, val oldBlock: Block): Event()
 
 class RenderOverlay: Event()
 
@@ -94,13 +101,6 @@ abstract class RenderChestEvent(var chest: TileEntityChest, var x: Double, var y
     class Post(tileEntity: TileEntityChest, x: Double, y: Double, z: Double, partialTicks: Float): RenderChestEvent(tileEntity, x, y, z, partialTicks)
 }
 
-class Inventory(
-    val title: String,
-    val windowId: Int,
-    val slotCount: Int,
-    val items: MutableMap<Int, ItemStack> = mutableMapOf(),
-)
-
 class InventoryFullyOpenedEvent(
     val title: String,
     val windowId: Int,
@@ -121,24 +121,37 @@ class PostRenderEntityEvent(val entity: Entity, val x: Double, val y: Double, va
 @Cancelable
 class SoundPlayEvent(val name: String, val vol: Float, val pitch: Float, val pos: Vec3): Event()
 
-@Cancelable
-class BossbarUpdateEvent(val bossName: String, val maxHealth: Float, val health: Float, val healthScale: Float, val healthPresent: Float): Event()
+abstract class BossbarUpdateEvent(val bossName: String, val maxHealth: Float, val health: Float, val healthScale: Float, val healthPresent: Float): Event() {
+    @Cancelable
+    class Pre(bossName: String, maxHealth: Float, health: Float, healthScale: Float, healthPresent: Float): BossbarUpdateEvent(bossName, maxHealth, health, healthScale, healthPresent)
+
+    class Post(bossName: String, maxHealth: Float, health: Float, healthScale: Float, healthPresent: Float): BossbarUpdateEvent(bossName, maxHealth, health, healthScale, healthPresent)
+}
+
+class PostEntityMetadataEvent(val entity: Entity): Event()
 
 
-/*
-@Cancelable
-class EntityMetadataEvent(
-    val entity: Int,
-    val flag: Int? = null,
-    val airSupply: Int? = null,
-    val name: String? = null,
-    val customNameVisible: Any? = null,
-    val isSilent: Any? = null,
-    val noGravity: Any? = null,
-    val health: Float? = null,
-    val potionEffectColor: Any? = null,
-    val isInvisible: Any? = null,
-    val arrowsStuck: Any? = null,
-    val unknown: Map<Int, Any?> = emptyMap(), // Holds unmapped metadata
-    val Data: Map<Int, Any?> = emptyMap()
-): Event()*/
+abstract class DungeonEvent: Event() {
+    abstract class PuzzleEvent(val pazzle: String): DungeonEvent() {
+        class Reset(pazzle: String): PuzzleEvent(pazzle)
+        class Discovered(pazzle: String): PuzzleEvent(pazzle)
+        class Completed(pazzle: String): PuzzleEvent(pazzle)
+    }
+
+    abstract class RoomEvent(val room: RoomData): DungeonEvent() {
+        class onEnter(room: RoomData): RoomEvent(room)
+        class onExit(room: RoomData): RoomEvent(room)
+
+        class onStateChange(room: RoomData, val oldState: RoomState, val newState: RoomState): RoomEvent(room)
+    }
+
+    class SecretEvent(val type: SecretType, val pos: BlockPos): DungeonEvent() {
+        enum class SecretType { CHEST, SKULL, ITEM, BAT, LAVER }
+    }
+
+    class PlayerDeathEvent(val name: String?, val reason: String?): DungeonEvent()
+}
+
+class WorldUnloadEvent: Event()
+
+class EntityLeaveWorldEvent(val entity: Entity, val world: World): Event()

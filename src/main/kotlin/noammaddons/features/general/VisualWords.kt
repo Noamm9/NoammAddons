@@ -1,15 +1,13 @@
 package noammaddons.features.general
 
 import gg.essential.vigilance.gui.SettingsGui
-import noammaddons.noammaddons.Companion.config
-import noammaddons.noammaddons.Companion.mc
+import noammaddons.features.Feature
 import noammaddons.utils.JsonUtils.fetchJsonWithRetry
-import noammaddons.utils.Utils.isNull
 
 /**
  * @see noammaddons.mixins.MixinFontRenderer
  */
-object VisualWords {
+object VisualWords: Feature() {
     private var wordsMap: Map<String, String>? = null
 
     init {
@@ -20,14 +18,14 @@ object VisualWords {
 
     @JvmStatic
     fun replaceText(text: String?): String? {
-        if (text.isNull()) return text
-        if (wordsMap.isNull()) return text
+        if (text == null) return text
+        if (wordsMap == null) return text
         if (mc.currentScreen is SettingsGui) return text
         if (config.disableVisualWords) return text
 
         var newText = text
-        for (actualText in wordsMap !!.keys) {
-            newText = newText?.replace(actualText, wordsMap !![actualText] !!)
+        wordsMap !!.entries.forEach { (key, value) ->
+            newText = newText?.replace(key, value)
         }
 
         return newText

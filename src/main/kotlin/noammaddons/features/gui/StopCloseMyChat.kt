@@ -4,12 +4,9 @@ import net.minecraft.client.gui.GuiChat
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.network.play.server.S2DPacketOpenWindow
 import net.minecraft.network.play.server.S2EPacketCloseWindow
-import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.Event
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.GuiCloseEvent
-import noammaddons.events.PacketEvent
-import noammaddons.events.WorldLoadPostEvent
+import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.mixins.AccessorGuiChat
 import noammaddons.utils.ChatUtils.debugMessage
@@ -24,11 +21,10 @@ object StopCloseMyChat: Feature() {
         if (! config.StopCloseMyChat) return
 
         try {
-            when (event::class) {
-                WorldEvent.Unload::class -> gui = getChatInput(mc.currentScreen)
+            when (event) {
+                is WorldUnloadEvent -> gui = getChatInput(mc.currentScreen)
 
-                PacketEvent.Received::class -> {
-                    val event = event as PacketEvent.Received
+                is PacketEvent.Received -> {
                     val chat = mc.currentScreen
                     if (chat !is GuiChat) return
 
@@ -38,9 +34,7 @@ object StopCloseMyChat: Feature() {
                     }
                 }
 
-                GuiCloseEvent::class -> {
-                    val event = event as GuiCloseEvent
-
+                is GuiCloseEvent -> {
                     if (gui == null) return
                     if (event.newGui != null) return
                     if (event.closedGui == null) return
@@ -49,7 +43,7 @@ object StopCloseMyChat: Feature() {
                     gui = null
                 }
 
-                WorldLoadPostEvent::class -> {
+                is WorldLoadPostEvent -> {
                     if (gui == null) return
 
                     openScreen(GuiChat(gui))

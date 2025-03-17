@@ -8,7 +8,6 @@ import noammaddons.features.Feature
 import noammaddons.mixins.AccessorGuiContainer
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.currentChestName
-import noammaddons.utils.PlayerUtils.Player
 import noammaddons.utils.RenderUtils.drawCenteredText
 
 
@@ -24,7 +23,7 @@ object CakeNumbers: Feature() {
         GlStateManager.pushMatrix()
         GlStateManager.translate(0f, 0f, 300f)
 
-        Player.openContainer.inventorySlots.forEach {
+        mc.thePlayer.openContainer.inventorySlots.forEach {
             if (it.stack?.item != Items.cake) return@forEach
             val year = cakeRegex.find(it.stack.displayName.removeFormatting())?.destructured?.component1() ?: return
             val (x, y) = Pair(

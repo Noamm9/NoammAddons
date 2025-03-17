@@ -6,7 +6,7 @@ import noammaddons.events.RenderOverlay
 import noammaddons.events.ServerTick
 import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.noFormatText
-import noammaddons.utils.LocationUtils.dungeonFloor
+import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderHelper.getHeight
@@ -46,7 +46,7 @@ object F7PhaseStartTimers: Feature() {
     fun onRender(event: RenderOverlay) {
         if (! config.F7M7PhaseStartTimers) return
         if (! inBoss) return
-        if (dungeonFloor != 7) return
+        if (dungeonFloorNumber != 7) return
         val timeLeft = (tickTime * 50.0) / 1000
         if (tickTime <= 0) return
 

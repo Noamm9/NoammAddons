@@ -3,22 +3,20 @@ package noammaddons.utils
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlinx.serialization.json.*
 import kotlinx.serialization.json.Json.Default.parseToJsonElement
+import net.minecraft.crash.CrashReport
 import net.minecraft.util.ResourceLocation
+import noammaddons.noammaddons.Companion.Logger
+import noammaddons.noammaddons.Companion.MOD_ID
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.noammaddons.Companion.scope
 import noammaddons.utils.ChatUtils.errorMessage
 import java.io.*
 import java.lang.reflect.Type
-import java.net.HttpURLConnection
-import java.net.URI
-import java.net.URL
-import java.security.SecureRandom
-import java.security.cert.X509Certificate
+import java.net.*
+import java.security.KeyStore
 import javax.net.ssl.*
 import kotlin.reflect.jvm.jvmName
 
@@ -45,7 +43,6 @@ object JsonUtils {
         }
     }
 
-
     fun <T> fromJson(file: File, clazz: Class<T>): T? {
         return try {
             FileReader(file).use { reader -> gson.fromJson(reader, clazz) }
@@ -55,7 +52,6 @@ object JsonUtils {
             null
         }
     }
-
 
     fun toJson(file: File, data: Any) {
         try {
@@ -67,7 +63,6 @@ object JsonUtils {
             println("[PogObject] Failed to save JSON: ${e.message}")
         }
     }
-
 
     fun readJsonFile(resourcePath: String): JsonObject? {
         val resourceLocation = ResourceLocation(resourcePath)
@@ -84,16 +79,37 @@ object JsonUtils {
         }
     }
 
+    @JvmStatic
+    val sslContext by lazy {
+        try {
+            val myKeyStore = KeyStore.getInstance("JKS")
+            myKeyStore.load(this::class.java.getResourceAsStream("/ctjskeystore.jks"), "changeit".toCharArray())
+            val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
+            val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+            kmf.init(myKeyStore, null)
+            tmf.init(myKeyStore)
+            val ctx = SSLContext.getInstance("TLS")
+            ctx?.init(kmf.keyManagers, tmf.trustManagers, null)
+            ctx
+        }
+        catch (e: Exception) {
+            Logger.error("Failed to load keystore. Web requests may fail on older Java versions", e)
+            null
+        }
+    }
 
-    /**
-     * Fetches JSON data from the specified URL with retry logic.
-     *
-     * @param url The URL to fetch JSON data from.
-     * @param retryDelayMs The delay in milliseconds between retries. Default is 5 minutes (300,000 ms).
-     * @param maxRetries The maximum number of retries. If set to -1, it will retry indefinitely. Default is -1.
-     * @param callback A callback function that will be invoked with the parsed JSON data or null if retries failed.
-     */
-    @OptIn(DelicateCoroutinesApi::class)
+    fun makeWebRequest(url: String): URLConnection {
+        val connection = URL(url).openConnection()
+        connection.setRequestProperty("User-Agent", "Mozilla/5.0 ($MOD_ID)")
+        if (connection is HttpsURLConnection) {
+            connection.sslSocketFactory = sslContext?.socketFactory ?: connection.sslSocketFactory
+        }
+        connection.connectTimeout = 10_000
+        connection.readTimeout = 30_000
+        return connection
+    }
+
+
     inline fun <reified T> fetchJsonWithRetry(
         url: String,
         retryDelayMs: Long = 300_000,
@@ -101,55 +117,39 @@ object JsonUtils {
         crossinline callback: (T?) -> Unit
     ) {
         scope.launch {
-            val trustAllCerts = arrayOf<TrustManager>(object: X509TrustManager {
-                override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
-                override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
-                override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
-            })
-
-            val sslContext = SSLContext.getInstance("TLSv1.2")
-            sslContext.init(null, trustAllCerts, SecureRandom())
-            HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.socketFactory)
-            HttpsURLConnection.setDefaultHostnameVerifier { _, _ -> true }
-
             var attempts = 0
             while (maxRetries == - 1 || attempts < maxRetries) {
+                val connection = makeWebRequest(url) as HttpURLConnection
                 try {
-                    val urlConnection = (URL(url).openConnection() as HttpURLConnection).apply {
-                        requestMethod = "GET"
-                        setRequestProperty("Accept", "application/json")
-                        setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36")
+                    connection.requestMethod = "GET"
+                    //    connection.setRequestProperty("Accept", "application/json")
+
+                    when (connection.responseCode) {
+                        403 -> Logger.warn("403 Forbidden: $url")
+                        502 -> Logger.warn("502 Bad Gateway: $url")
+                        503 -> Logger.warn("503 Service Unavailable: $url")
                     }
 
-                    if (urlConnection.responseCode == 403) println(urlConnection.responseMessage + "|| $url")
-
-                    urlConnection.inputStream.bufferedReader(Charsets.UTF_8).use { reader ->
+                    connection.inputStream.bufferedReader(Charsets.UTF_8).use { reader ->
                         val response = reader.readText()
-                        // println("Response JSON: $response")
-
                         val type: Type = object: TypeToken<T>() {}.type
                         val data: T = Gson().fromJson(response, type)
                         callback(data)
                         return@launch
                     }
-
                 }
                 catch (e: Exception) {
-                    e.printStackTrace()
-
-                    errorMessage(
-                        listOf(
-                            "&cFailed to fetch data!",
-                            "&cURL: &b$url",
-                            "&e${e::class.qualifiedName ?: e::class.jvmName}: ${e.message ?: "Unknown"}",
-                        )
-                    )
+                    Logger.error("Failed to fetch data from $url", e)
+                    if (e is SocketTimeoutException) return@launch
+                    mc.crashed(CrashReport("Failed to fetch data from $url", e))
+                }
+                finally {
+                    connection.disconnect()
                 }
 
-                delay(retryDelayMs)
+                delay(retryDelayMs * (attempts + 1))
                 attempts ++
             }
-
             callback(null)
         }
     }
@@ -158,10 +158,8 @@ object JsonUtils {
     fun get(url: String, block: (JsonObject) -> Unit) {
         scope.launch {
             runCatching {
-                val connection = URI(url).toURL().openConnection() as HttpURLConnection
+                val connection = makeWebRequest(url) as HttpURLConnection
                 connection.requestMethod = "GET"
-
-                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36")
                 connection.setRequestProperty("Accept", "application/json")
 
                 val response = connection.inputStream.bufferedReader().use(BufferedReader::readText)
@@ -182,6 +180,17 @@ object JsonUtils {
         }
     }
 
+    fun sendPostRequest(url: String, body: String) {
+        ThreadUtils.runOnNewThread {
+            val connection = makeWebRequest(url) as HttpsURLConnection
+            connection.requestMethod = "POST"
+            connection.doOutput = true
+            connection.outputStream.use { os ->
+                os.write(body.toByteArray(Charsets.UTF_8))
+            }
+            connection.disconnect()
+        }
+    }
 }
 
 

@@ -14,21 +14,20 @@ object ScoreboardUtils {
 
     init {
         loop(250) {
-            try {
-                sidebarLines = mc.theWorld?.scoreboard?.run {
-                    val objective = getObjectiveInDisplaySlot(1)
-                    if (objective == null) emptyList<String>()
+            sidebarLines = mc.theWorld?.scoreboard?.run {
+                val objective = getObjectiveInDisplaySlot(1) ?: return@run emptyList()
+                val title = objective.displayName
 
-                    getSortedScores(objective)
-                        .filter { it?.playerName?.startsWith("#") == false }
-                        .let { if (it.size > 15) it.drop(15) else it }
-                        .map { ScorePlayerTeam.formatPlayerName(getPlayersTeam(it.playerName), it.playerName) }
-                } ?: emptyList()
-            }
-            catch (_: Exception) {
-            }
+                val lines = getSortedScores(objective)
+                    .filter { it?.playerName?.startsWith("#") == false }
+                    .let { if (it.size > 15) it.drop(15) else it }
+                    .map { ScorePlayerTeam.formatPlayerName(getPlayersTeam(it.playerName), it.playerName) }
+
+                lines + title
+            } ?: emptyList()
         }
     }
+
 
     fun cleanSB(scoreboard: String): String = removeUnicode(scoreboard.removeFormatting())
 }

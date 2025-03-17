@@ -8,7 +8,7 @@ import net.minecraft.client.shader.Framebuffer
 import net.minecraftforge.client.event.RenderGameOverlayEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.features.Feature
-import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL11.*
 
 /*
  * Copyright (c) 2022 Moulberry
@@ -38,7 +38,7 @@ object Motionblur: Feature() {
             bindFramebuffer(true)
         }
 
-        OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 0, 1)
+        OpenGlHelper.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, 0, 1)
         GlStateManager.disableLighting()
         GlStateManager.disableFog()
         GlStateManager.disableBlend()
@@ -55,7 +55,7 @@ object Motionblur: Feature() {
         mc.framebuffer.bindFramebuffer(true)
         blurBufferInto?.bindFramebufferTexture()
         GlStateManager.color(1f, 1f, 1f, 1f)
-        OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 771)
+        OpenGlHelper.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, 1, 771)
         drawTexturedRectNoBlend(width, height)
 
         val tempBuff = blurBufferMain
@@ -64,10 +64,10 @@ object Motionblur: Feature() {
     }
 
     private fun setupProjectionMatrix(width: Int, height: Int) {
-        GlStateManager.matrixMode(GL11.GL_PROJECTION)
+        GlStateManager.matrixMode(GL_PROJECTION)
         GlStateManager.loadIdentity()
         GlStateManager.ortho(0.0, width.toDouble(), height.toDouble(), 0.0, 2000.0, 4000.0)
-        GlStateManager.matrixMode(GL11.GL_MODELVIEW)
+        GlStateManager.matrixMode(GL_MODELVIEW)
         GlStateManager.loadIdentity()
         GlStateManager.translate(0f, 0f, - 2000f)
     }
@@ -76,7 +76,7 @@ object Motionblur: Feature() {
         return framebuffer?.takeIf { it.framebufferWidth == width && it.framebufferHeight == height }
             ?: Framebuffer(width, height, true).apply {
                 createBindFramebuffer(width, height)
-                setFramebufferFilter(GL11.GL_NEAREST)
+                setFramebufferFilter(GL_NEAREST)
             }
     }
 
@@ -84,21 +84,21 @@ object Motionblur: Feature() {
         width: Int, height: Int
     ) {
         GlStateManager.enableTexture2D()
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST)
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
 
         val tessellator = Tessellator.getInstance()
         val worldrenderer = tessellator.worldRenderer
 
-        worldrenderer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
+        worldrenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION_TEX)
         worldrenderer.pos(width.toDouble(), .0, 0.0).tex(1.0, 1.0).endVertex()
         worldrenderer.pos(.0, .0, 0.0).tex(.0, 1.0).endVertex()
         worldrenderer.pos(.0, height.toDouble(), 0.0).tex(.0, .0).endVertex()
         worldrenderer.pos(width.toDouble(), height.toDouble(), 0.0).tex(1.0, .0).endVertex()
         tessellator.draw()
 
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST)
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
     }
 
 

@@ -16,6 +16,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.awt.*;
 
+import static noammaddons.noammaddons.config;
+
 
 @Mixin(GuiButton.class)
 public abstract class MixinGuiButton {
@@ -47,37 +49,39 @@ public abstract class MixinGuiButton {
 
     @Inject(method = "drawButton", at = @At("HEAD"), cancellable = true)
     public void drawCleanButton(Minecraft mc, int mouseX, int mouseY, CallbackInfo callbackInfo) {
+        if (!config.getToggleClientBranding()) return;
+
         callbackInfo.cancel();
-        if (visible) {
-            GlStateManager.pushMatrix();
-            GlStateManager.disableTexture2D();
-            hovered = MouseUtils.isElementHovered(mouseX, mouseY, xPosition, yPosition, width, height);
-            Color buttonColor = hovered ? new Color(19, 19, 19) : new Color(33, 33, 33);
+        if (!visible) return;
 
-            RenderUtils.INSTANCE.drawFloatingRectWithAlpha(
-                    xPosition,
-                    yPosition,
-                    width,
-                    height,
-                    false,
-                    buttonColor
-            );
+        GlStateManager.pushMatrix();
+        GlStateManager.disableTexture2D();
+        hovered = MouseUtils.isElementHovered(mouseX, mouseY, xPosition, yPosition, width, height);
+        Color buttonColor = hovered ? new Color(19, 19, 19) : new Color(33, 33, 33);
 
-            GlStateManager.enableTexture2D();
-            mc.getTextureManager().bindTexture(noammAddons$buttonTexture);
+        RenderUtils.INSTANCE.drawFloatingRect(
+                xPosition,
+                yPosition,
+                width,
+                height,
+                buttonColor
+        );
 
-            mouseDragged(mc, mouseX, mouseY);
-            Color textColor = new Color(224, 224, 224);
-            if (!enabled) textColor = new Color(160, 160, 160);
-            else if (hovered) textColor = new Color(255, 255, 128);
+        GlStateManager.enableTexture2D();
+        mc.getTextureManager().bindTexture(noammAddons$buttonTexture);
 
-            mc.fontRendererObj.drawStringWithShadow(
-                    displayString,
-                    (xPosition + (float) width / 2) - (RenderHelper.getStringWidth(displayString, 1) / 2),
-                    yPosition + 6,
-                    textColor.getRGB()
-            );
-        }
+        mouseDragged(mc, mouseX, mouseY);
+        Color textColor = new Color(224, 224, 224);
+        if (!enabled) textColor = new Color(160, 160, 160);
+        else if (hovered) textColor = new Color(255, 255, 128);
+
+        mc.fontRendererObj.drawStringWithShadow(
+                displayString,
+                (xPosition + (float) width / 2) - (RenderHelper.getStringWidth(displayString, 1) / 2),
+                yPosition + 6,
+                textColor.getRGB()
+        );
+
         GlStateManager.popMatrix();
     }
 }
