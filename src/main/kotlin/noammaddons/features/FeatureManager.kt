@@ -20,7 +20,7 @@ object FeatureManager {
     val features = mutableSetOf(
 
         // General
-        Motionblur, LeftClickEtherwarp, ChatCoordsWaypoint,
+        MotionBlur, LeftClickEtherwarp, ChatCoordsWaypoint,
         GyroCircle, ChatEmojis, SlotBinding, PartyOutline,
         PartyNames, SBKickDuration, CakeNumbers, EnderPearlFix,
         PartyCommands, ShowItemEntityName, BlockGloomlockOverUse,
@@ -90,7 +90,7 @@ object FeatureManager {
         RemoveSelfieCam, CustomFov, AntiBlind,
         AntiPortal, NoBlockAnimation, NoWaterFOV,
         CustomBowHitSound, ClearBlocks, NoRotate,
-        RatProtection, SmoothSneaking, SmoothBossBar,
+        RatProtection, SmoothSneaking, SmoothBossBar
     )
 
 

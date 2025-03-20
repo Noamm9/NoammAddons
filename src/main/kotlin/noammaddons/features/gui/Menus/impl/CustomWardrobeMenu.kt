@@ -99,7 +99,7 @@ object CustomWardrobeMenu: Feature() {
         }
 
         if (slot == EDIT_SLOT) {
-            SoundUtils.click.start()
+            SoundUtils.click()
             inWardrobeMenu = false
         }
         else this.handleSlotClick(event.button, slot)
@@ -202,6 +202,6 @@ object CustomWardrobeMenu: Feature() {
             mainSlot, button,
             if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)) 1 else 0
         )
-        SoundUtils.click.start()
+        SoundUtils.click()
     }
 }

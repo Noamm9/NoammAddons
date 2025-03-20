@@ -82,18 +82,16 @@ object ItemUtils {
     }
 
 
-    fun getHotbar(): Array<ItemStack?> {
-        return mc.thePlayer?.inventory?.mainInventory
-            ?.filterIndexed { index, _ -> index in 0 .. 8 }
-            ?.toTypedArray() ?: arrayOfNulls(9)
-    }
+    fun getHotbar() = mc.thePlayer?.inventory?.let { inv ->
+        Array(9) { inv.getStackInSlot(it) }
+    } ?: arrayOfNulls(9)
 
 
     fun getItemIndexInHotbar(name: String): Int? {
         getHotbar().forEachIndexed { index, stack ->
             when {
                 stack == null -> return@forEachIndexed
-                stack.displayName.removeFormatting().lowercase().contains(name.lowercase()) -> return index
+                stack.displayName.removeFormatting().lowercase().contains(name.lowercase().removeFormatting()) -> return index
             }
         }
         return null

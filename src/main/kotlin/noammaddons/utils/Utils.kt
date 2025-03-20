@@ -11,7 +11,6 @@ import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.getCenteredText
 import noammaddons.utils.ChatUtils.getChatBreak
 import noammaddons.utils.NumbersUtils.toFixed
-import noammaddons.utils.SoundUtils.chipiChapa
 import noammaddons.utils.ThreadUtils.setTimeout
 
 
@@ -21,7 +20,7 @@ object Utils {
     }
 
     fun playFirstLoadMessage() {
-        chipiChapa.start()
+        SoundUtils.chipiChapa()
         listOf(
             "&b&m${getChatBreak()?.substring(1)}",
             "§b§lThanks for installing $MOD_NAME§r §6§lForge!",

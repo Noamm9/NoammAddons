@@ -115,7 +115,7 @@ object LividSolver: Feature() {
             lividStart = false
             bossTicks = 390
             showTitle("&bIce Spray Livid!")
-            SoundUtils.Pling.start()
+            SoundUtils.Pling()
         }
     }
 

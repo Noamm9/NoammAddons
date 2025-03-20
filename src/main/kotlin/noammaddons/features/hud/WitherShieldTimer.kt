@@ -9,7 +9,7 @@ import noammaddons.features.Feature
 import noammaddons.utils.PlayerUtils.isHoldingWitherImpact
 import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderUtils.drawText
-import noammaddons.utils.SoundUtils.potisPow
+import noammaddons.utils.SoundUtils
 import java.awt.Color
 
 
@@ -41,7 +41,7 @@ object WitherShieldTimer: Feature() {
         tickTimer += 1
 
         if (tickTimer != 100/* && !config.witherShieldSound*/) return
-        potisPow.start()
+        SoundUtils.potisPow()
     }
 
     @SubscribeEvent

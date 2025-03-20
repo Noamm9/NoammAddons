@@ -5,7 +5,8 @@ import gg.essential.api.EssentialAPI
 import gg.essential.universal.UChat
 import gg.essential.universal.UChat.addColor
 import gg.essential.universal.wrappers.message.UTextComponent
-import kotlinx.coroutines.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import net.minecraft.event.ClickEvent
 import net.minecraft.event.HoverEvent
 import net.minecraft.network.play.client.C01PacketChatMessage
@@ -26,7 +27,6 @@ import noammaddons.utils.LocationUtils.inSkyblock
 import noammaddons.utils.PartyUtils.isInParty
 import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderUtils.drawTitle
-import noammaddons.utils.SoundUtils.notificationSound
 import noammaddons.utils.ThreadUtils.loop
 import noammaddons.utils.ThreadUtils.scheduledTask
 import noammaddons.utils.Utils.send
@@ -228,14 +228,13 @@ object ChatUtils {
 
     @SubscribeEvent
     fun renderTitles(event: RenderOverlay) {
-        titles.forEach { title ->
+        titles.toList().forEach { title ->
             if (title.time <= 0) return
 
             drawTitle(title.title.toString(), title.subtitle.toString(), title.rainbow)
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     fun getPing(callback: (ping: Int) -> Unit) {
         if (! inSkyblock) return
         if (isCalculatingPing) return // Prevent multiple ping checks simultaneously
@@ -277,6 +276,6 @@ object ChatUtils {
             clickFunction,
             closeFunction
         )
-        notificationSound.start()
+        SoundUtils.notificationSound()
     }
 }

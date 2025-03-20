@@ -16,7 +16,7 @@ import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils
 import noammaddons.utils.RenderUtils.drawText
-import noammaddons.utils.SoundUtils.click
+import noammaddons.utils.SoundUtils
 import org.lwjgl.input.Mouse
 import java.awt.Color
 import kotlin.math.sign
@@ -97,13 +97,13 @@ object HudEditorScreen: GuiScreen() {
                 selectedElement = element
                 offsetX = scaledMouseX - element.getX()
                 offsetY = scaledMouseY - element.getY()
-                click.start()
+                SoundUtils.click()
 
             }
 
             if (buttonList[0].mousePressed(mc, mouseX, mouseY)) {
                 selectedElement = null
-                click.start()
+                SoundUtils.click()
                 elements.forEach { it.reset() }
             }
         }

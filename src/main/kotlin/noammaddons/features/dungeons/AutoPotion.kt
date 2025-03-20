@@ -6,6 +6,7 @@ import noammaddons.features.Feature
 import noammaddons.utils.ActionUtils.getPotion
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.GuiUtils
 
 
 object AutoPotion: Feature() {
@@ -14,11 +15,17 @@ object AutoPotion: Feature() {
 
     @SubscribeEvent
     fun onDungeonStart(event: Chat) {
-        if (! config.AutoPotion) return
-        if (! event.component.noFormatText.matches(floorEnterRegex)) return
-        if (hasPotion(potionName)) return
+        val msg = event.component.noFormatText
 
-        getPotion(potionName)
+        if (msg.matches(floorEnterRegex)) {
+            if (! config.AutoPotion) return
+            if (hasPotion(potionName)) return
+            getPotion(potionName)
+        }
+
+        if (msg == "You need the Cookie Buff active to use this feature!") {
+            GuiUtils.hideGui(false)
+        }
     }
 
 

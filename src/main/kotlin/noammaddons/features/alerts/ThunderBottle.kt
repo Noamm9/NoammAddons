@@ -6,7 +6,7 @@ import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.showTitle
-import noammaddons.utils.SoundUtils.notificationSound
+import noammaddons.utils.SoundUtils
 
 
 object ThunderBottle: Feature() {
@@ -19,6 +19,6 @@ object ThunderBottle: Feature() {
 
         showTitle(FULL_THUNDER_BOTTLE)
         modMessage(FULL_THUNDER_BOTTLE)
-        notificationSound.start()
+        SoundUtils.notificationSound()
     }
 }

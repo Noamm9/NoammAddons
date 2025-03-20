@@ -80,14 +80,11 @@ object MimicDetector: Feature() {
         if (! inDungeon) return
         if (inBoss) return
         if (! event.component.noFormatText.lowercase().containsOneOf(
-                "skytils-dungeon-score-mimic",
-                "mimic killed",
-                "mimic slain",
-                "mimic killed!",
-                "mimic dead",
-                "mimic dead!"
-            )
-        ) return
+            "skytils-dungeon-score-mimic",
+            "mimic killed", "mimic slain",
+            "mimic killed!", "mimic dead",
+            "mimic dead!"
+        )) return // @formatter:off
 
         mimicKilled.set(true)
     }

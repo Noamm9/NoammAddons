@@ -44,7 +44,7 @@ class noammaddons {
 
         @JvmStatic
         val mc = Minecraft.getMinecraft()
-        
+
         val scope = CoroutineScope(Dispatchers.Default)
 
         @JvmField
@@ -73,6 +73,7 @@ class noammaddons {
         loadTime = System.currentTimeMillis()
         config.initialize()
 
+        SoundUtils.initSounds()
         ClientBranding.setCustomIcon()
         ClientBranding.setCustomTitle()
 
