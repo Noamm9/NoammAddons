@@ -24,8 +24,7 @@ import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderHelper.renderVec
 import noammaddons.utils.RenderUtils.drawCenteredText
 import noammaddons.utils.RenderUtils.drawTracer
-import noammaddons.utils.SoundUtils.HarpNote
-import noammaddons.utils.SoundUtils.Pling
+import noammaddons.utils.SoundUtils
 import java.awt.Color
 import kotlin.math.abs
 
@@ -115,13 +114,13 @@ object Floor4BossFight: Feature() {
         hitShot.forEach { regex ->
             if (! msg.matches(regex)) return@forEach
             showTitle("&l&dHIT")
-            Pling.start()
+            SoundUtils.Pling()
         }
 
         missedShot.forEach { regex ->
             if (! msg.matches(regex)) return@forEach
             showTitle("&l&cMISS")
-            HarpNote.start()
+            SoundUtils.harpNote()
         }
     }
 

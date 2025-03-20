@@ -6,7 +6,6 @@ package noammaddons
 
 import gg.essential.api.EssentialAPI
 import gg.essential.universal.UChat
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.launch
 import net.minecraft.client.gui.GuiDownloadTerrain
 import net.minecraft.client.renderer.GlStateManager
@@ -24,7 +23,7 @@ import noammaddons.noammaddons.Companion.ahData
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.noammaddons.Companion.scope
-import noammaddons.utils.ActionUtils
+import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.debugMessage
 import noammaddons.utils.ChatUtils.modMessage
@@ -48,8 +47,6 @@ import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.ScanUtils.currentRoom
 import noammaddons.utils.ScanUtils.getCore
 import noammaddons.utils.ScanUtils.getRoomCenterAt
-import noammaddons.utils.ScoreboardUtils
-import noammaddons.utils.SoundUtils.Pling
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.send
@@ -117,7 +114,6 @@ object TestGround {
     }
 
     @SubscribeEvent
-    @OptIn(DelicateCoroutinesApi::class)
     fun onMessage(event: MessageSentEvent) {
         if (! (config.DevMode || EssentialAPI.getMinecraftUtil().isDevelopment())) return
         modMessage(event.message)
@@ -158,6 +154,7 @@ object TestGround {
                 scope.launch {
                     registerFeatures()
                 }
+                SoundUtils.chipiChapa()
             }
 
             "esp" -> {
@@ -169,7 +166,7 @@ object TestGround {
             "scan" -> {
                 event.isCanceled = true
                 DungeonScanner.scan()
-                Pling.start()
+                SoundUtils.Pling()
             }
 
             "nbt" -> {
@@ -177,6 +174,10 @@ object TestGround {
                 val held = mc.thePlayer?.heldItem ?: return
                 val nbt = held.getSubCompound("ExtraAttributes", false) ?: return
                 modMessage(nbt)
+            }
+
+            "fullbright" -> {
+                mc.gameSettings.gammaSetting = 100000f
             }
         }
     }
@@ -252,7 +253,7 @@ object TestGround {
             val a = "&r&cPlease be mindful of Discord links in chat as they may pose a security risk&r".addColor()
             if (a !in msg) return
             event.isCanceled = true
-            UChat.chat(msg.replace(a, ""))
+            UChat.chat(msg.replace(Regex(".$a"), ""))
         }
 
         /*

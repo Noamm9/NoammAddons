@@ -32,10 +32,8 @@ public abstract class MixinGuiNewChat {
             });
         }
 
-        if (regexsToRemove.isEmpty()) return;
-
         regexsToRemove.forEach(regex -> {
-            if (stripControlCodes(message).matches(regex.toString()) || message.matches(regex.toString())) {
+            if (stripControlCodes(message).matches(regex.toString().replace("&", "§")) || message.matches(regex.toString().replace("&", "§"))) {
                 ci.cancel();
             }
         });

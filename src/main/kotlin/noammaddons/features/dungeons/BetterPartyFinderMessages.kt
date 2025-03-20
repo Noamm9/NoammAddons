@@ -26,6 +26,7 @@ object BetterPartyFinderMessages: Feature() {
     private val regexs = listOf(joinedRegex, playerClassChangeRegex) + messageReplacements.keys.map { Regex(it) }
 
     init {
+        if (config.betterPFMessage) RemoveUselessMessages.regexsToRemove.addAll(regexs)
         config.registerListener<Boolean>(config::betterPFMessage.javaField !!) {
             if (it) RemoveUselessMessages.regexsToRemove.addAll(regexs)
             else RemoveUselessMessages.regexsToRemove.removeAll(regexs)

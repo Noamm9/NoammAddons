@@ -59,7 +59,7 @@ fun handleSlotClick(button: Int, slotIndex: Int) {
         if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)) 1 else 0
     )
 
-    SoundUtils.click.start()
+    SoundUtils.click()
 }
 
 fun calculateScale(): Float {

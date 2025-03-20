@@ -8,7 +8,7 @@ import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.showTitle
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.LocationUtils.inDungeon
-import noammaddons.utils.SoundUtils.ayaya
+import noammaddons.utils.SoundUtils
 import noammaddons.utils.ThreadUtils.setTimeout
 
 object ShadowAssassinAlert: Feature() {
@@ -23,9 +23,9 @@ object ShadowAssassinAlert: Feature() {
         if (border.diameter != 1.0) return
 
 
-        ayaya.start()
-        setTimeout(300) { ayaya.start() }
-        setTimeout(600) { ayaya.start() }
+        SoundUtils.ayaya()
+        setTimeout(300) { SoundUtils.ayaya() }
+        setTimeout(600) { SoundUtils.ayaya() }
         showTitle(
             "",
             if (bonzo) "&cBonzo Respawn"

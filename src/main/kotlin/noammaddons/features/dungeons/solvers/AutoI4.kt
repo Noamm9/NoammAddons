@@ -11,7 +11,6 @@ import noammaddons.events.*
 import noammaddons.events.RegisterEvents.postAndCatch
 import noammaddons.features.Feature
 import noammaddons.noammaddons.Companion.CHAT_PREFIX
-import noammaddons.noammaddons.Companion.FULL_PREFIX
 import noammaddons.utils.ActionUtils.changeMask
 import noammaddons.utils.ActionUtils.currentAction
 import noammaddons.utils.ActionUtils.leap
@@ -20,7 +19,6 @@ import noammaddons.utils.ActionUtils.rotateSmoothlyTo
 import noammaddons.utils.ActionUtils.rotationJob
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.ghostBlock
-import noammaddons.utils.ChatUtils.Alert
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.sendPartyMessage
@@ -244,16 +242,18 @@ object AutoI4: Feature() {
 
     private fun alert(s: String) {
         if (alerted) return
-        alerted = true
-        i4Job?.cancel()
-        tickTimer = - 1
-        if (currentAction() != "Leap") saveLeap()
+        scope.launch {
+            alerted = true
+            i4Job?.cancel()
+            tickTimer = - 1
+            if (currentAction() != "Leap") saveLeap()
 
 
-        val str = listOf("&a&lI4 Done!", "Predicted ${9 - doneCoords.size}/9", s)
-        sendPartyMessage("$CHAT_PREFIX ${str[0]}")
-        Alert(FULL_PREFIX, str.joinToString("\n"), 5)
-        str.forEach(::modMessage)
+            val str = listOf("&a&lI4 Done!", "Predicted ${9 - doneCoords.size}/9", s)
+            sendPartyMessage("$CHAT_PREFIX ${str[0]}")
+            str.forEach(::modMessage)
+            //   Alert(FULL_PREFIX, str.joinToString("\n"), 5)
+        }
     }
 }
 

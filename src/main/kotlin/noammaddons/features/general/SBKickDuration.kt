@@ -11,7 +11,7 @@ import noammaddons.utils.LocationUtils.onHypixel
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawCenteredText
-import noammaddons.utils.SoundUtils.notificationSound
+import noammaddons.utils.SoundUtils
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.equalsOneOf
 
@@ -62,8 +62,8 @@ object SBKickDuration: Feature() {
     }
 
     private fun playNotificationSound() {
-        notificationSound.start()
-        setTimeout(500) { notificationSound.start() }
-        setTimeout(1000) { notificationSound.start() }
+        SoundUtils.notificationSound()
+        setTimeout(500) { SoundUtils.notificationSound() }
+        setTimeout(1000) { SoundUtils.notificationSound() }
     }
 }

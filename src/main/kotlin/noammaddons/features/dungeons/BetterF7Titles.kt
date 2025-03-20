@@ -13,7 +13,7 @@ import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawCenteredText
 import noammaddons.utils.RenderUtils.drawTitle
-import noammaddons.utils.SoundUtils.Pling
+import noammaddons.utils.SoundUtils
 import noammaddons.utils.ThreadUtils.loop
 import noammaddons.utils.Utils.equalsOneOf
 import kotlin.math.roundToInt
@@ -48,7 +48,11 @@ object BetterF7Titles: Feature() {
 
     private fun showTitle(subtitle: String, time: Int = 3) {
         currentTitle = ChatUtils.title("", subtitle, time.toLong() * 1000, false)
-        Pling.start()
+    }
+
+    private fun showTitleWithSound(subtitle: String, time: Int = 3) {
+        this.showTitle(subtitle, time)
+        SoundUtils.Pling()
     }
 
     @SubscribeEvent
@@ -71,10 +75,10 @@ object BetterF7Titles: Feature() {
         }
 
         when (msg) {
-            "[BOSS] Maxor: YOU TRICKED ME!", "[BOSS] Maxor: THAT BEAM! IT HURTS! IT HURTS!!" -> showTitle(subtitle = "&dMaxor Stunned!", time = 2)
-            "[BOSS] Storm: Oof", "[BOSS] Storm: Ouch, that hurt!" -> showTitle(subtitle = "&bStorm Crushed!", time = 2)
-            "[BOSS] Storm: I should have known that I stood no chance." -> showTitle(subtitle = "&bStorm Dead!", time = 2)
-            "The gate has been destroyed!" -> showTitle(subtitle = "&cGate Destroyed!", time = 2)
+            "[BOSS] Maxor: YOU TRICKED ME!", "[BOSS] Maxor: THAT BEAM! IT HURTS! IT HURTS!!" -> showTitleWithSound(subtitle = "&dMaxor Stunned!", time = 2)
+            "[BOSS] Storm: Oof", "[BOSS] Storm: Ouch, that hurt!" -> showTitleWithSound(subtitle = "&bStorm Crushed!", time = 2)
+            "[BOSS] Storm: I should have known that I stood no chance." -> showTitleWithSound(subtitle = "&bStorm Dead!", time = 2)
+            "The gate has been destroyed!" -> showTitleWithSound(subtitle = "&cGate Destroyed!", time = 2)
             "[BOSS] Necron: ARGH!" -> necronStart = true
             "The Core entrance is opening!" -> goldorStart = true
         }
@@ -87,7 +91,7 @@ object BetterF7Titles: Feature() {
             if (timeLeft <= 0) {
                 startTickTimer = false
                 tickTimer = 0
-                showTitle("&aStorm's Lightning Ended!")
+                showTitleWithSound("&aStorm's Lightning Ended!")
                 return
             }
 
@@ -150,7 +154,7 @@ object BetterF7Titles: Feature() {
                 if (boss == "Goldor" && ! goldorStart) return
                 if (boss == "Necron" && ! necronStart) return
 
-                showTitle(subtitle = message, time = 2)
+                showTitleWithSound(subtitle = message, time = 2)
                 deadFlag.set(true)
                 return
             }

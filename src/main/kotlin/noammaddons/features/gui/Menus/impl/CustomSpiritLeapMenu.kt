@@ -170,7 +170,7 @@ object CustomSpiritLeapMenu: Feature() {
         }
 
         players[index]?.run {
-            SoundUtils.click.start()
+            SoundUtils.click()
             if (player.isDead) return@run modMessage("&3LeapMenu >> &c${player.name} is dead!")
             sendWindowClickPacket(slot, 0, 0)
             closeScreen()

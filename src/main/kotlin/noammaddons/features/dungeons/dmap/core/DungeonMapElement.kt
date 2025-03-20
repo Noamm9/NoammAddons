@@ -224,7 +224,7 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
     private fun renderPlayerHeads() {
         if (LocationUtils.inBoss) return
         if (DungeonMapConfig.dungeonMapCheater && ! dungeonStarted) {
-            DungeonUtils.runPlayersNames.entries.forEach { (name, skin) ->
+            DungeonUtils.runPlayersNames.toMap().entries.forEach { (name, skin) ->
                 if (name == mc.session.username) return@forEach
                 val entity = mc.theWorld.getPlayerEntityByName(name) ?: return@forEach
 
@@ -240,7 +240,8 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
             }
         }
 
-        DungeonInfo.playerIcons.values.filterNot { it.teammate.isDead }.forEach { entry ->
+        DungeonInfo.playerIcons.toMap().values.forEach { entry ->
+            if (entry.teammate.isDead) return@forEach
             MapRenderUtils.drawPlayerHead(entry)
         }
 

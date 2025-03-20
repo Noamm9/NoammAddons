@@ -238,7 +238,7 @@ object M7Dragons: Feature() {
                             ticks = 100
                             toggleTickCounter = true
                             redSpawning = true
-                            SoundUtils.Pling.start()
+                            SoundUtils.Pling()
                             setTimeout(8000) { redSpawning = false }
                         }
 
@@ -249,7 +249,7 @@ object M7Dragons: Feature() {
                             ticks = 100
                             toggleTickCounter = true
                             greenSpawning = true
-                            SoundUtils.Pling.start()
+                            SoundUtils.Pling()
                             setTimeout(8000) { greenSpawning = false }
                         }
                     }
@@ -264,7 +264,7 @@ object M7Dragons: Feature() {
                             ticks = 100
                             toggleTickCounter = true
                             blueSpawning = true
-                            SoundUtils.Pling.start()
+                            SoundUtils.Pling()
                             setTimeout(8000) { blueSpawning = false }
                         }
 
@@ -275,7 +275,7 @@ object M7Dragons: Feature() {
                             ticks = 100
                             toggleTickCounter = true
                             orangeSpawning = true
-                            SoundUtils.Pling.start()
+                            SoundUtils.Pling()
                             setTimeout(8000) { orangeSpawning = false }
                         }
                     }
@@ -289,7 +289,7 @@ object M7Dragons: Feature() {
                         ticks = 100
                         toggleTickCounter = true
                         purpleSpawning = true
-                        SoundUtils.Pling.start()
+                        SoundUtils.Pling()
                         setTimeout(8000) { purpleSpawning = false }
                     }
                 }

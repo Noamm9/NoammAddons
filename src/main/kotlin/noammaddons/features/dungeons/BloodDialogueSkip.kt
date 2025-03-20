@@ -13,7 +13,7 @@ import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawCenteredText
-import noammaddons.utils.SoundUtils.Pling
+import noammaddons.utils.SoundUtils
 
 
 object BloodDialogueSkip: Feature() {
@@ -42,7 +42,7 @@ object BloodDialogueSkip: Feature() {
         if (timeLeft <= 0) {
             isRunning = false
             showTitle("&bTime's up!", "&cKill the blood Mobs", 4f, false)
-            Pling.start()
+            SoundUtils.Pling()
             return
         }
 

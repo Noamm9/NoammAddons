@@ -6,7 +6,7 @@ import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.showTitle
 import noammaddons.utils.LocationUtils.F7Phase
-import noammaddons.utils.SoundUtils.iHaveNothing
+import noammaddons.utils.SoundUtils
 import noammaddons.utils.ThreadUtils.setTimeout
 
 object M7P5RagAxe: Feature() {
@@ -16,7 +16,7 @@ object M7P5RagAxe: Feature() {
         if (F7Phase != 5) return
         if (event.component.noFormatText != "[BOSS] Wither King: You... again?") return
 
-        setTimeout(1600) { iHaveNothing.start() }
+        setTimeout(1600) { SoundUtils.iHaveNothing() }
         setTimeout(2000) { showTitle("rag", rainbow = true) }
     }
 }

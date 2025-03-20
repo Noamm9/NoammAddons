@@ -1,8 +1,6 @@
 package noammaddons.features.general
 
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.OpenGlHelper
-import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.*
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.client.shader.Framebuffer
 import net.minecraftforge.client.event.RenderGameOverlayEvent
@@ -13,7 +11,7 @@ import org.lwjgl.opengl.GL11.*
 /*
  * Copyright (c) 2022 Moulberry
  */
-object Motionblur: Feature() {
+object MotionBlur: Feature() {
     private var blurBufferMain: Framebuffer? = null
     private var blurBufferInto: Framebuffer? = null
 
