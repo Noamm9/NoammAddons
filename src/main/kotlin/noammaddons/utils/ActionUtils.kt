@@ -18,7 +18,6 @@ import noammaddons.utils.DungeonUtils.leapTeammates
 import noammaddons.utils.DungeonUtils.thePlayer
 import noammaddons.utils.GuiUtils.currentChestName
 import noammaddons.utils.GuiUtils.hideGui
-import noammaddons.utils.GuiUtils.isInGui
 import noammaddons.utils.GuiUtils.sendWindowClickPacket
 import noammaddons.utils.ItemUtils.SkyblockID
 import noammaddons.utils.ItemUtils.getItemId
@@ -37,7 +36,6 @@ import noammaddons.utils.PlayerUtils.sendRightClickAirPacket
 import noammaddons.utils.PlayerUtils.swapToSlot
 import noammaddons.utils.PlayerUtils.toggleSneak
 import noammaddons.utils.RenderUtils.drawTitle
-import noammaddons.utils.SoundUtils.Pling
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.containsOneOf
 import kotlin.math.abs
@@ -212,7 +210,7 @@ object ActionUtils {
         sendChatMessage(config.AutoPotionCommand.removeFormatting().lowercase())
         hideGui(true) { drawTitle("&d[Getting potion...] ", "&bPlease wait") }
 
-        while (! isInGui()) delay(50)
+        while (! inPotionBag) delay(50)
         delay(250)
 
         val con = mc.thePlayer?.openContainer?.inventory ?: return
@@ -259,7 +257,7 @@ object ActionUtils {
             modMessage("&a[Ras] &cPrevious Armor Slot not found")
             closeScreen()
             hideGui(false)
-            Pling.start()
+            SoundUtils.Pling()
             return
         }
 
@@ -282,12 +280,13 @@ object ActionUtils {
 
         closeScreen()
         hideGui(false)
-        Pling.start()
+        SoundUtils.Pling()
     }
 
     private val inLeapMenu get() = currentChestName.removeFormatting().lowercase() == "spirit leap"
     private val inEQMenu get() = currentChestName.removeFormatting().lowercase() == "your equipment and stats"
     private val inWardrobeMenu get() = currentChestName.removeFormatting().matches(Regex("^Wardrobe \\(\\d/\\d\\)$"))
+    private val inPotionBag get() = currentChestName.removeFormatting().lowercase() == "potion bag"
 
 
     @SubscribeEvent
@@ -334,7 +333,7 @@ object ActionUtils {
             }
         }
         hideGui(false)
-        Pling.start()
+        SoundUtils.Pling()
         awaiting4EQ = false
         message?.let { modMessage(it) }
     }

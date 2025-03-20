@@ -85,16 +85,16 @@ object SlotBinding: Feature() {
         event.isCanceled = true
         data[slot.toString()]?.let {
             handleShiftClick(slot, windowId)
-            SoundUtils.click.start()
+            SoundUtils.click()
         } ?: data.entries.firstOrNull { it.value?.toInt() == slot }?.key?.toInt()?.let {
             handleShiftClick(it, windowId)
-            SoundUtils.click.start()
+            SoundUtils.click()
         }
     }
 
     private fun handleAddBinding(slot: Int, event: GuiMouseClickEvent) {
         previousSlot = previousSlot ?: slot
-        SoundUtils.click.start()
+        SoundUtils.click()
 
         if (previousSlot != null && previousSlot != slot) {
             data[previousSlot.toString()] = slot.toDouble()
@@ -108,7 +108,7 @@ object SlotBinding: Feature() {
 
     private fun handleRemoveBinding(slot: Int, event: GuiMouseClickEvent) {
         previousSlot = previousSlot ?: slot
-        SoundUtils.click.start()
+        SoundUtils.click()
 
         if (data.removeBinding(slot)) {
             event.isCanceled = true

@@ -7,7 +7,6 @@ import noammaddons.features.Feature
 import noammaddons.features.dungeons.dmap.core.map.RoomState.*
 import noammaddons.features.dungeons.dmap.core.map.RoomType.*
 import noammaddons.utils.*
-import noammaddons.utils.SoundUtils.Pling
 import noammaddons.utils.Utils.equalsOneOf
 
 object RoomAlerts: Feature() {
@@ -16,7 +15,7 @@ object RoomAlerts: Feature() {
     private fun alert(msg: String) {
         text = msg
         ThreadUtils.setTimeout(2000) { text = "" }
-        Pling.start()
+        SoundUtils.Pling()
     }
 
     @SubscribeEvent

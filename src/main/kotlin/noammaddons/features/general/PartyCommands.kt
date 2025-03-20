@@ -42,7 +42,7 @@ object PartyCommands: Feature() {
             if (downtimeList.isEmpty()) return@onSetValue
             val dtMessage = downtimeList.joinToString(", ") { (username, reason) -> username/*: $reason"*/ } // !dt ip abuse ban
             val grammer = if (downtimeList.size == 1) "Player" else "Players"
-            SoundUtils.notificationSound.start()
+            SoundUtils.notificationSound()
 
             showTitle("&4&lDOWNTIME!!!", "${downtimeList.size} $grammer Need DT!", 5)
             sendPartyMessage("$grammer Need DT: $dtMessage")
@@ -78,7 +78,7 @@ object PartyCommands: Feature() {
 
                 config.pcPtme && command.equalsOneOf("pt", "ptme") -> {
                     if (name == mc.session.username) return@let
-                    runCommand("p transfer $name ${args.firstOrNull() ?: name}", true)
+                    runCommand("p transfer ${args.firstOrNull() ?: name}", true)
                 }
 
                 config.pcWarp && command.equalsOneOf("w", "warp") -> {

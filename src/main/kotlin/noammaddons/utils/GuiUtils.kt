@@ -1,9 +1,9 @@
 package noammaddons.utils
 
 import gg.essential.api.EssentialAPI
+import gg.essential.elementa.state.BasicState
 import io.github.moulberry.notenoughupdates.NEUApi
 import io.github.moulberry.notenoughupdates.NotEnoughUpdates
-import kotlinx.coroutines.*
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.gui.inventory.GuiChest
 import net.minecraft.client.gui.inventory.GuiContainer
@@ -18,15 +18,24 @@ import noammaddons.mixins.AccessorGuiContainer
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ReflectionUtils.getField
+import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.send
 
 
 object GuiUtils {
-    private var isGuiHidden = false
+    val isGuiHidden = BasicState(false)
     private var onHideAction: () -> Unit = {}
-    private const val FAILSAFE_TIMEOUT = 10_000L
-    private var failsafeJob: Job? = null
+    private const val FAILSAFE_TIMEOUT = 5_000L
     var currentChestName: String = ""
+
+    init {
+        isGuiHidden.onSetValue {
+            if (! it) return@onSetValue
+            setTimeout(FAILSAFE_TIMEOUT) {
+                hideGui(false)
+            }
+        }
+    }
 
     @SubscribeEvent
     fun onGuiClose(event: GuiOpenEvent) {
@@ -79,9 +88,7 @@ object GuiUtils {
         }
     }
 
-    fun openScreen(screen: GuiScreen?) {
-        EssentialAPI.getGuiUtil().openScreen(screen)
-    }
+    fun openScreen(screen: GuiScreen?) = EssentialAPI.getGuiUtil().openScreen(screen)
 
     fun getSlotFromIndex(slotIndex: Int?): Slot? {
         return slotIndex?.let {
@@ -99,51 +106,39 @@ object GuiUtils {
     }
 
     fun hideGui(bool: Boolean, callback: () -> Unit = {}) {
-        isGuiHidden = bool
-        onHideAction = callback
-
-        if (bool) startFailsafe()
-        else cancelFailsafe()
-    }
-
-    private fun startFailsafe() {
-        failsafeJob?.cancel()
-        failsafeJob = CoroutineScope(Dispatchers.Default).launch {
-            delay(FAILSAFE_TIMEOUT)
-            isGuiHidden = false
+        if (bool) {
+            isGuiHidden.set(true)
+            onHideAction = callback
+        }
+        else {
+            isGuiHidden.set(false)
             onHideAction = {}
         }
     }
 
-    private fun cancelFailsafe() {
-        failsafeJob?.cancel()
-        failsafeJob = null
-    }
-
     @SubscribeEvent
     fun INTERNAL_RenderShit(event: RenderOverlay) {
-        if (isGuiHidden) onHideAction()
+        if (isGuiHidden.get()) onHideAction()
         else onHideAction = {}
     }
 
     @SubscribeEvent
     fun INTERNAL_HideGui(event: GuiScreenEvent.DrawScreenEvent.Pre) {
-        event.isCanceled = isGuiHidden
+        event.isCanceled = isGuiHidden.get()
     }
 
     @SubscribeEvent
     fun INTERNAL_CancelKeyboardInputs(event: GuiScreenEvent.KeyboardInputEvent.Pre) {
-        event.isCanceled = isGuiHidden
+        event.isCanceled = isGuiHidden.get()
     }
 
     @SubscribeEvent
     fun INTERNAL_CancelMouseInputs(event: GuiScreenEvent.MouseInputEvent.Pre) {
-        event.isCanceled = isGuiHidden
+        event.isCanceled = isGuiHidden.get()
     }
 
     @SubscribeEvent
     fun INTERNAL_CancelButtonInputs(event: GuiScreenEvent.ActionPerformedEvent.Pre) {
-        event.isCanceled = isGuiHidden
+        event.isCanceled = isGuiHidden.get()
     }
-
 }

@@ -71,7 +71,7 @@ object ProfleViewer: Feature() {
             }
 
             drawCenteredText("${data.rank} ${data.name}", x + (boxWidth / 7), y + boxHeight / 8, .85f)
-            
+
             data.entityOtherPlayerMP?.let {
                 val skinX = (x + boxWidth / 7).roundToInt()
                 val skinY = (y + boxHeight - boxHeight / 3.5).roundToInt()
@@ -283,7 +283,7 @@ object ProfleViewer: Feature() {
                     val sectionWidth = boxWidth / categories.size
                     if (isElementHovered(rawMouseX, rawMouseY, x + (i * sectionWidth), y, sectionWidth, 10)) {
                         currentCategory = str
-                        SoundUtils.click.start()
+                        SoundUtils.click()
                         debugMessage("Selected category: $str")
                     }
                 }
