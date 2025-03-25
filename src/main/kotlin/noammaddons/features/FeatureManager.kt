@@ -77,11 +77,10 @@ object FeatureManager {
 
 
         // HUD
-        FpsDisplay, ClockDisplay, BonzoMask,
-        SpiritMask, PhoenixPet, TpsDisplay,
-        WitherShieldTimer, SpringBootsDisplay,
-        CustomScoreboard, PlayerHud, SecretDisplay,
-        PetDisplay, CustomTabList,
+        FpsDisplay, ClockDisplay, MaskTimers,
+        TpsDisplay, WitherShieldTimer, PlayerHud,
+        SpringBootsDisplay, CustomScoreboard,
+        SecretDisplay, PetDisplay, CustomTabList,
 
 
         // Misc

@@ -5,8 +5,7 @@ import net.minecraft.util.Vec3
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.InventoryFullyOpenedEvent
 import noammaddons.features.gui.Menus.impl.CustomSpiritLeapMenu
-import noammaddons.features.hud.BonzoMask.bonzoCD
-import noammaddons.features.hud.SpiritMask.spiritCD
+import noammaddons.features.hud.MaskTimers
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.noammaddons.Companion.scope
@@ -42,7 +41,6 @@ import kotlin.math.abs
 import kotlin.math.min
 
 
-@OptIn(DelicateCoroutinesApi::class)
 object ActionUtils {
     private var activeJob: Job? = null
     private val actionQueue = ArrayDeque<suspend () -> Unit>()
@@ -191,8 +189,8 @@ object ActionUtils {
         if (thePlayer?.isDead == true) return
         val currentHelmet = getHelmet()?.SkyblockID
         when (currentHelmet) {
-            "BONZO_MASK" -> if (spiritCD > 0) return
-            "SPIRIT_MASK" -> if (bonzoCD > 0) return
+            "BONZO_MASK" -> if (MaskTimers.Masks.SPIRIT_MASK.cooldownTime > 0) return
+            "SPIRIT_MASK" -> if (MaskTimers.Masks.BONZO_MASK.cooldownTime > 0) return
         }
 
         sendChatMessage("/eq")

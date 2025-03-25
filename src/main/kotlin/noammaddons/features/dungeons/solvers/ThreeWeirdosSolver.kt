@@ -11,7 +11,6 @@ import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.noammaddons.Companion.personalBests
 import noammaddons.utils.ChatUtils.clickableChat
-import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendPartyMessage
@@ -55,8 +54,6 @@ object ThreeWeirdosSolver: Feature() {
         inWeirdos = true
         rotation = detectedRotation * 90
         trueTimeStart = System.currentTimeMillis()
-
-        modMessage("Three Weirdos detected: Rotation: $rotation")
     }
 
     @SubscribeEvent

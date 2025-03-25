@@ -1,15 +1,14 @@
 package noammaddons.features.dungeons
 
-import gg.essential.universal.UChat
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
-import noammaddons.noammaddons.Companion.CHAT_PREFIX
 import noammaddons.noammaddons.Companion.personalBests
 import noammaddons.utils.BlockUtils.toPos
+import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.DungeonUtils.thePlayer
@@ -170,14 +169,11 @@ object M7Relics: Feature() {
         }
 
         if (relicTimes.any { it.placeTime == "" }) return
-        var str = ""
-        relicTimes.withIndex().forEach { (index, relic) ->
-            val pbStr = if (relic.isPB) " &d&l(PB)" else ""
-            str += if (index == relicTimes.lastIndex) "$CHAT_PREFIX ${relic.type} &aRelic placed in &e${relic.placeTime}s&a.$pbStr"
-            else "$CHAT_PREFIX ${relic.type} &aRelic placed in &e${relic.placeTime}s&a.$pbStr\n"
-        }
 
-        UChat.chat(str)
+        relicTimes.toList().sortedBy { it.placeTime }.forEach { relic ->
+            val pbStr = if (relic.isPB) " &d&l(PB)" else ""
+            modMessage("${relic.type} &aRelic placed in &e${relic.placeTime}s&a.$pbStr")
+        }
         relicTimes.clear()
     }
 }
