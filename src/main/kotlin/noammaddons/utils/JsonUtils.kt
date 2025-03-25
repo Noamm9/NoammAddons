@@ -13,6 +13,7 @@ import noammaddons.noammaddons.Companion.MOD_ID
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.noammaddons.Companion.scope
 import noammaddons.utils.ChatUtils.errorMessage
+import noammaddons.utils.Utils.equalsOneOf
 import java.io.*
 import java.lang.reflect.Type
 import java.net.*
@@ -128,6 +129,7 @@ object JsonUtils {
                         403 -> Logger.warn("403 Forbidden: $url")
                         502 -> Logger.warn("502 Bad Gateway: $url")
                         503 -> Logger.warn("503 Service Unavailable: $url")
+                        504 -> Logger.warn("504 Gateway Timeout: $url")
                     }
 
                     connection.inputStream.bufferedReader(Charsets.UTF_8).use { reader ->
@@ -140,6 +142,7 @@ object JsonUtils {
                 }
                 catch (e: Exception) {
                     Logger.error("Failed to fetch data from $url", e)
+                    if (connection.responseCode.equalsOneOf(403, 502, 503, 504)) return@launch
                     if (e is SocketTimeoutException) return@launch
                     mc.crashed(CrashReport("Failed to fetch data from $url", e))
                 }

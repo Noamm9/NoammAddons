@@ -11,7 +11,6 @@ import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.MathUtils.interpolate
 import noammaddons.utils.RenderUtils.drawRect
-import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
 
@@ -62,7 +61,7 @@ object RenderHelper {
 
     @JvmStatic
     fun enableChums(color: Color) {
-        GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL)
+        glEnable(GL_POLYGON_OFFSET_FILL)
         bindColor(color)
         GlStateManager.enablePolygonOffset()
         GlStateManager.doPolygonOffset(1f, - 1000000f)
@@ -70,14 +69,20 @@ object RenderHelper {
 
     @JvmStatic
     fun disableChums() {
-        GL11.glDisable(GL11.GL_POLYGON_OFFSET_FILL)
+        glDisable(GL_POLYGON_OFFSET_FILL)
         GlStateManager.doPolygonOffset(1f, 1000000f)
         GlStateManager.disablePolygonOffset()
     }
 
     @JvmStatic
-    fun getStringWidth(text: String, scale: Number = 1) = mc.fontRendererObj.getStringWidth(text.addColor()) * scale.toFloat()
+    fun getStringWidth(text: String, scale: Number = 1): Float {
+        return if (text.contains("\n")) text.split("\n").maxOf { mc.fontRendererObj.getStringWidth(it.addColor()) } * scale.toFloat()
+        else mc.fontRendererObj.getStringWidth(text.addColor()) * scale.toFloat()
+    }
+
     fun getStringHeight(lines: List<String>, scale: Number = 1) = lines.size * 9 * scale.toFloat()
+
+    fun getStringHeight(text: String, scale: Number = 1) = text.split("\n").size * 9 * scale.toFloat()
 
     @JvmStatic
     fun Slot.highlight(color: Color) = drawRect(color, xDisplayPosition, yDisplayPosition, 16, 16)

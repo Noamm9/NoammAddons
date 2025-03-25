@@ -118,7 +118,9 @@ object ThreadUtils {
                 block()
             }
             catch (e: Exception) {
-                Logger.error(e.stackTrace.take(10).joinToString("\n"))
+                e.stackTrace.forEach {
+                    Logger.error(it)
+                }
             }
         }
     }
