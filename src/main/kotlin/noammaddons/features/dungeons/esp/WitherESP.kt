@@ -7,6 +7,7 @@ import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.EspUtils.EspMob
 import noammaddons.utils.LocationUtils
+import noammaddons.utils.LocationUtils.F7Phase
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.world
@@ -21,7 +22,7 @@ object WitherESP: Feature() {
         STORM(Color(0, 208, 255)),
         GOLDOR(Color(255, 255, 255)),
         NECRON(Color(255, 0, 0)),
-        VANQUISHER(Color(88, 4, 164));
+        VANQUISHER(MAXOR.color);
 
         companion object {
             var currentWither: EntityWither? = null
@@ -41,16 +42,25 @@ object WitherESP: Feature() {
     }
 
     private fun isValidLoc(): Boolean {
-        return (dungeonFloorNumber == 7 && inBoss) || world == LocationUtils.WorldType.CrimonIsle
+        return (dungeonFloorNumber == 7 && inBoss && F7Phase != 5) || world == LocationUtils.WorldType.CrimonIsle
     }
 
+    /*
+     The wither from the armor set: isArmored: false, invulTime: 800
+     Maxor: isArmored: true, invulTime: 200
+     Storm: isArmored: true, invulTime: 1
+     Goldor: isArmored: true, invulTime: 0
+     Necron: isArmored: true, invulTime: 1
+     Vanquisher: isArmored: false/true, invulTime: 250
+     */
     @SubscribeEvent
     fun onArmorStandRender(event: PostEntityMetadataEvent) {
         if (! config.espWithers) return
         if (! isValidLoc()) return
         val entity = event.entity as? EntityWither ?: return
         if (entity.isInvisible) return
-        if (entity.renderSizeModifier != 1f) return
+        if (entity.invulTime == 800) return
+        if (entity.nbtTagCompound != null) return
         Wither.currentWither = entity
     }
 

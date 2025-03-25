@@ -76,19 +76,20 @@ object SlotBinding: Feature() {
     }
 
     private fun cancel(event: GuiMouseClickEvent) {
-        event.isCanceled = true
         modMessage("$PREFIX &cPlease click a valid hotbar slot!")
+        event.isCanceled = true
         previousSlot = null
     }
 
     private fun handleShiftKey(slot: Int, event: GuiMouseClickEvent, windowId: Int) {
-        event.isCanceled = true
         data[slot.toString()]?.let {
             handleShiftClick(slot, windowId)
             SoundUtils.click()
+            event.isCanceled = true
         } ?: data.entries.firstOrNull { it.value?.toInt() == slot }?.key?.toInt()?.let {
             handleShiftClick(it, windowId)
             SoundUtils.click()
+            event.isCanceled = true
         }
     }
 
@@ -109,13 +110,10 @@ object SlotBinding: Feature() {
     private fun handleRemoveBinding(slot: Int, event: GuiMouseClickEvent) {
         previousSlot = previousSlot ?: slot
         SoundUtils.click()
-
-        if (data.removeBinding(slot)) {
-            event.isCanceled = true
-            modMessage("$PREFIX &aBinding with slot &b$slot &adeleted")
-            previousSlot = null
-            return
-        }
+        if (! data.removeBinding(slot)) return
+        event.isCanceled = true
+        modMessage("$PREFIX &aBinding with slot &b$slot &adeleted")
+        previousSlot = null
     }
 
     private fun MutableMap<String, Double?>.removeBinding(slot: Int): Boolean {
