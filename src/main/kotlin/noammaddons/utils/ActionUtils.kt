@@ -47,11 +47,12 @@ object ActionUtils {
     private var currentActionName: String? = null
     fun currentAction(): String? = currentActionName
 
-    private val RotationQueue = ArrayDeque<suspend () -> Unit>()
+    private val rotationQueue = ArrayDeque<suspend () -> Unit>()
     var rotationJob: Job? = null
 
     private var INTERNAL_LEAP_TARGET: DungeonPlayer? = null
     private var awaiting4EQ = false
+    private var awaitingPotionBag = ""
 
     fun rodSwap() = queueAction("Rod Swap") { rodSwapAction() }
 
@@ -98,9 +99,9 @@ object ActionUtils {
 
     private fun processRotationQueue() {
         rotationJob = scope.launch {
-            while (RotationQueue.isNotEmpty()) {
+            while (rotationQueue.isNotEmpty()) {
                 try {
-                    RotationQueue.removeFirst().invoke()
+                    rotationQueue.removeFirst().invoke()
                 }
                 catch (e: Exception) {
                     modMessage("Error during Rotation: ${e.message}")
@@ -110,7 +111,7 @@ object ActionUtils {
     }
 
     private fun queueRotation(action: suspend () -> Unit) {
-        RotationQueue.add(action)
+        rotationQueue.add(action)
         if (rotationJob?.isActive != true) processRotationQueue()
     }
 
@@ -181,7 +182,9 @@ object ActionUtils {
         }
 
         INTERNAL_LEAP_TARGET = leapTarget
-        while (! inLeapMenu) delay(50)
+        setTimeout(5000) { INTERNAL_LEAP_TARGET = null }
+
+        while (! inLeapMenu && INTERNAL_LEAP_TARGET != null) delay(50)
         delay(400)
     }
 
@@ -196,8 +199,9 @@ object ActionUtils {
         sendChatMessage("/eq")
         hideGui(true) { drawTitle("&5[Swapping mask...]", "&bPlease wait") }
         awaiting4EQ = true
+        setTimeout(5000) { awaiting4EQ = false }
 
-        while (! inEQMenu) delay(50)
+        while (! inEQMenu && awaiting4EQ) delay(50)
         delay(400)
     }
 
@@ -208,27 +212,11 @@ object ActionUtils {
         sendChatMessage(config.AutoPotionCommand.removeFormatting().lowercase())
         hideGui(true) { drawTitle("&d[Getting potion...] ", "&bPlease wait") }
 
-        while (! inPotionBag) delay(50)
+        awaitingPotionBag = name
+        setTimeout(5000) { awaitingPotionBag = "" }
+
+        while (! inPotionBag && awaitingPotionBag.isNotBlank()) delay(50)
         delay(250)
-
-        val con = mc.thePlayer?.openContainer?.inventory ?: return
-
-        for (i in 0 until con.size - 36) {
-            val item = con[i] ?: continue
-            if (item.getItemId() != 373) continue
-            if (! item.displayName.removeFormatting().lowercase().contains(name.removeFormatting().lowercase())) continue
-
-            sendWindowClickPacket(i, 0, 1)
-            delay(250)
-            closeScreen()
-            hideGui(false)
-            return
-        }
-
-        modMessage("&cNo potion found in the Potion Bag!")
-        closeScreen()
-        hideGui(false)
-        return
     }
 
     suspend fun reaperSwapAction() {
@@ -290,6 +278,25 @@ object ActionUtils {
     @SubscribeEvent
     fun handleAutoLeap(event: InventoryFullyOpenedEvent) {
         when {
+            inPotionBag -> {
+                event.items.forEach { (i, item) ->
+                    item ?: return@forEach
+                    if (item.getItemId() != 373) return@forEach
+                    if (! item.displayName.removeFormatting().lowercase().contains(awaitingPotionBag.removeFormatting().lowercase())) return@forEach
+
+                    sendWindowClickPacket(i, 0, 1)
+                    setTimeout(250) {
+                        closeScreen()
+                        hideGui(false)
+                    }
+                    return
+                }
+
+                modMessage("&cNo potion found in the Potion Bag!")
+                closeScreen()
+                hideGui(false)
+            }
+
             inLeapMenu -> {
                 CustomSpiritLeapMenu.updatePlayersArray()
                 CustomSpiritLeapMenu.players.find { it?.player?.name == INTERNAL_LEAP_TARGET?.name }?.let { target ->
@@ -317,10 +324,10 @@ object ActionUtils {
         ThreadUtils.loop(250) {
             if (! LocationUtils.inDungeon) return@loop
             if (thePlayer == null) return@loop
-            if (thePlayer?.isDead == false) return@loop
+            if (thePlayer?.isDead == true) return@loop
 
-            INTERNAL_LEAP_TARGET = null
-            resetEQ()
+            actionQueue.clear()
+            rotationQueue.clear()
         }
     }
 

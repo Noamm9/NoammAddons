@@ -35,7 +35,7 @@ object RegisterEvents {
         val title: String,
         val windowId: Int,
         val slotCount: Int,
-        val items: MutableMap<Int, ItemStack> = mutableMapOf(),
+        val items: MutableMap<Int, ItemStack?> = mutableMapOf(),
     )
 
     private var currentInventory: Inventory? = null
