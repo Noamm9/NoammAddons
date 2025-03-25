@@ -105,7 +105,7 @@ class InventoryFullyOpenedEvent(
     val title: String,
     val windowId: Int,
     val slotCount: Int,
-    val items: Map<Int, ItemStack>
+    val items: Map<Int, ItemStack?>
 ): Event()
 
 @Cancelable
