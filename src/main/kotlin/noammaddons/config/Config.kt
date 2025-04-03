@@ -1424,7 +1424,7 @@ object Config: Vigilant(
         type = PropertyType.SELECTOR,
         name = "ESP Type",
         category = ESP_CATEGORY,
-        options = ["Outline", "Box", "Filled Outline"]
+        options = ["Outline", "3D Box", "Filled Outline", "2D BOX", "Chum"]
     )
     var espType = 0
 
@@ -2034,7 +2034,7 @@ object Config: Vigilant(
     @Property(
         type = PropertyType.SWITCH,
         name = "FPS Display",
-        description = "Displays the System Time on screen",
+        description = "Displays the FPS on screen",
         category = HUD_CATEGORY,
         subcategory = "FPS"
     )

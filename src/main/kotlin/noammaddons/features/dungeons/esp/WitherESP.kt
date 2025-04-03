@@ -5,13 +5,12 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.EspUtils.EspMob
+import noammaddons.utils.EspUtils.espMob
 import noammaddons.utils.LocationUtils
 import noammaddons.utils.LocationUtils.F7Phase
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.world
-import noammaddons.utils.RenderUtils.drawEntityBox
 import noammaddons.utils.Utils.equalsOneOf
 import java.awt.Color
 
@@ -64,7 +63,6 @@ object WitherESP: Feature() {
         Wither.currentWither = entity
     }
 
-
     @SubscribeEvent
     fun onBossbarUpdate(event: BossbarUpdateEvent.Pre) {
         if (! config.espWithers) return
@@ -78,16 +76,7 @@ object WitherESP: Feature() {
         if (! config.espType.equalsOneOf(0, 2)) return
         if (! isValidLoc()) return
         if (event.entity != Wither.currentWither) return
-        EspMob(event, Wither.currentColor)
-    }
-
-    @SubscribeEvent
-    fun onWorldRender(event: RenderWorld) {
-        if (! config.espWithers) return
-        if (config.espType != 1) return
-        if (! isValidLoc()) return
-        if (Wither.currentWither == null) return
-        drawEntityBox(Wither.currentWither !!, Wither.currentColor)
+        espMob(event.entity, Wither.currentColor)
     }
 
     @SubscribeEvent

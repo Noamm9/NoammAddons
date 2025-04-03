@@ -14,14 +14,12 @@ import noammaddons.utils.ChatUtils.clickableChat
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendPartyMessage
-import noammaddons.utils.EspUtils.EspMob
+import noammaddons.utils.EspUtils.espMob
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderUtils.draw3DLine
-import noammaddons.utils.RenderUtils.drawEntityBox
 import noammaddons.utils.ScanUtils.getRoomCenterAt
-import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.formatPbPuzzleMessage
 
 
@@ -35,7 +33,6 @@ object BlazeSolver: Feature() {
     private var trueTimeStarted: Long? = null
     private var timeStarted: Long? = null
 
-    // [15:57:15] [Timer-9/INFO]: [CHAT] [NA DEBUG] onExit Higher Blaze to Unknown
 
     @SubscribeEvent
     fun onEnter(event: DungeonEvent.RoomEvent.onEnter) {
@@ -117,31 +114,14 @@ object BlazeSolver: Feature() {
         if (inBoss) return
         if (blazes.isEmpty()) return
 
-        blazes.forEachIndexed { i, blaze ->
-            val color = getBlazeColor(i)
-
-            if (config.espType == 1) drawEntityBox(blaze, color)
+        blazes.withIndex().forEach { (i, entity) ->
+            espMob(entity, getBlazeColor(i))
 
             if (i in 1 .. 2) {
                 val b1 = blazes[i - 1].positionVector.add(Vec3(.0, blazes[i - 1].height / 2.0, .0))
                 val b2 = blazes[i].positionVector.add(Vec3(.0, blazes[i].height / 2.0, .0))
                 draw3DLine(b1, b2, config.BlazeSolverLineColor, 3f)
             }
-        }
-    }
-
-    @SubscribeEvent
-    fun outlineBlazes(event: PostRenderEntityModelEvent) {
-        if (! config.BlazeSolver) return
-        if (! config.espType.equalsOneOf(0, 2)) return
-        if (! inDungeon || inBoss) return
-        if (blazes.isEmpty()) return
-
-        blazes.forEachIndexed { index, entity ->
-            if (entity.entityId != event.entity.entityId) return@forEachIndexed
-            val color = getBlazeColor(index)
-
-            EspMob(event, color, 5f)
         }
     }
 

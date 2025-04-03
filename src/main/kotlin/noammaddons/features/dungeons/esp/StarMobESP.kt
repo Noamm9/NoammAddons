@@ -6,20 +6,18 @@ import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.entity.monster.EntityEnderman
 import net.minecraft.entity.passive.EntityBat
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraftforge.client.event.RenderLivingEvent
-import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.event.entity.EntityJoinWorldEvent
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.PostRenderEntityModelEvent
-import noammaddons.events.RenderWorld
+import noammaddons.events.WorldUnloadEvent
 import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.EspUtils.EspMob
+import noammaddons.utils.EspUtils.espMob
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.inDungeon
-import noammaddons.utils.RenderUtils.drawEntityBox
-import noammaddons.utils.Utils.equalsOneOf
+import noammaddons.utils.ThreadUtils
 import java.awt.Color
 
 
@@ -30,13 +28,17 @@ object StarMobESP: Feature() {
     val starMobs = HashSet<Entity>()
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    fun onRenderNameTag(event: RenderLivingEvent.Specials.Pre<EntityArmorStand>) {
+    fun onRenderNameTag(event: EntityJoinWorldEvent) {
         if (! config.espStarMobs) return
         if (! inDungeon) return
-        val armorStand = event.entity as? EntityArmorStand ?: return
-        if (! armorStand.hasCustomName()) return
-        if (! armorStand.customNameTag.contains("§6✯")) return
-        checkStarMob(armorStand)
+        if (inBoss) return
+
+        ThreadUtils.scheduledTask(0) { // execute on next tick
+            val armorStand = event.entity as? EntityArmorStand ?: return@scheduledTask
+            if (! armorStand.hasCustomName()) return@scheduledTask
+            if (! armorStand.customNameTag.contains("§6✯")) return@scheduledTask
+            checkStarMob(armorStand)
+        }
     }
 
 
@@ -44,30 +46,17 @@ object StarMobESP: Feature() {
     fun onRenderEntity(event: PostRenderEntityModelEvent) {
         if (! config.espStarMobs) return
         if (! inDungeon) return
-        if (! config.espType.equalsOneOf(0, 2)) return
         if (inBoss) return
 
-        EspMob(
-            event,
+        espMob(
+            event.entity,
             if (event.entity in starMobs) config.espColorStarMobs
             else getColor(event.entity) ?: return
         )
     }
 
     @SubscribeEvent
-    fun onRenderWorld(event: RenderWorld) {
-        if (! config.espStarMobs) return
-        if (! inDungeon) return
-        if (config.espType != 1) return
-        if (inBoss) return
-        mc.theWorld.loadedEntityList.forEach {
-            if (starMobs.contains(it)) drawEntityBox(it, config.espColorStarMobs)
-            else drawEntityBox(it, getColor(it) ?: return@forEach)
-        }
-    }
-
-    @SubscribeEvent
-    fun onWorldLoad(event: WorldEvent.Load) {
+    fun onWorldUnLoad(event: WorldUnloadEvent) {
         starMobs.clear()
         checked.clear()
     }

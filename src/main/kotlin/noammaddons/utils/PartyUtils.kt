@@ -38,7 +38,8 @@ object PartyUtils {
     val members = mutableMapOf<String, PartyMember>()
     var size = 0
 
-    val entites get() = members.map { mc.theWorld.getPlayerEntityByName(it.key) }.filterNotNull()
+    val entities get() = members.toMap().mapNotNull { mc.theWorld.getPlayerEntityByName(it.key) }
+
 
     private val cachedranks = mutableMapOf<String, String>()
 

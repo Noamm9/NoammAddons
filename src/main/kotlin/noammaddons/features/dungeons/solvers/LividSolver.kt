@@ -1,6 +1,5 @@
 package noammaddons.features.dungeons.solvers
 
-import gg.essential.elementa.utils.withAlpha
 import net.minecraft.client.entity.EntityOtherPlayerMP
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.util.BlockPos
@@ -13,14 +12,13 @@ import noammaddons.utils.BlockUtils.getStateAt
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.showTitle
 import noammaddons.utils.DungeonUtils.dungeonTeammates
-import noammaddons.utils.EspUtils.EspMob
+import noammaddons.utils.EspUtils.espMob
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.MathUtils.add
 import noammaddons.utils.NumbersUtils.format
 import noammaddons.utils.RenderHelper.getRainbowColor
 import noammaddons.utils.RenderHelper.renderVec
-import noammaddons.utils.RenderUtils.drawEntityBox
 import noammaddons.utils.RenderUtils.drawString
 import noammaddons.utils.RenderUtils.drawTracer
 import noammaddons.utils.SoundUtils
@@ -55,26 +53,16 @@ object LividSolver: Feature() {
         if (currentLivid?.isPlayerSleeping.equalsOneOf(null, true)) return
 
         when (event) {
-            is PostRenderEntityModelEvent -> {
-                if (! config.espType.equalsOneOf(0, 2)) return
-                if (event.entity != currentLivid) return
-
-                EspMob(event, color)
-            }
-
             is RenderEntityEvent -> {
                 if (! config.hideWrongLivids) return
-                if (event.entity == currentLivid) return
+                if (event.entity == currentLivid) return espMob(event.entity, color)
                 if (dungeonTeammates.map { it.entity?.entityId }.contains(event.entity.entityId)) return
                 if (event.entity is EntityArmorStand && ! event.entity.name.contains("Livid")) return
-
                 event.isCanceled = true
             }
 
             is RenderWorld -> {
-                if (config.espType == 1) drawEntityBox(currentLivid !!, color.withAlpha(77))
                 drawTracer(currentLivid !!.renderVec.add(y = 0.9), color)
-
                 drawString(
                     format(currentLivid !!.health),
                     currentLivid !!.renderVec.add(y = 3.0),

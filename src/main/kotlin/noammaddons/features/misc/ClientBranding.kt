@@ -4,9 +4,8 @@ import noammaddons.noammaddons.Companion.MOD_ID
 import noammaddons.noammaddons.Companion.MOD_NAME
 import noammaddons.noammaddons.Companion.MOD_VERSION
 import noammaddons.noammaddons.Companion.config
-import org.apache.commons.io.IOUtils.closeQuietly
-import org.lwjgl.opengl.Display.setIcon
-import org.lwjgl.opengl.Display.setTitle
+import org.apache.commons.io.IOUtils.*
+import org.lwjgl.opengl.Display.*
 import java.io.IOException
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -51,10 +50,10 @@ object ClientBranding {
 
         val buffer = ByteBuffer.allocate(4 * pixels.size)
         for (pixel in pixels) {
-            buffer.put(((pixel shr 16) and 0xFF).toByte()) // Red
-            buffer.put(((pixel shr 8) and 0xFF).toByte()) // Green
-            buffer.put((pixel and 0xFF).toByte()) // Blue
-            buffer.put(((pixel shr 24) and 0xFF).toByte()) // Alpha
+            buffer.put(((pixel shr 16) and 0xFF).toByte())  // Red
+            buffer.put(((pixel shr 8) and 0xFF).toByte())   // Green
+            buffer.put((pixel and 0xFF).toByte())           // Blue
+            buffer.put(((pixel shr 24) and 0xFF).toByte())  // Alpha
         }
 
         buffer.flip()

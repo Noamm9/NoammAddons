@@ -280,8 +280,8 @@ object RenderUtils {
         GlStateManager.translate(- renderManager.viewerPosX, - renderManager.viewerPosY, - renderManager.viewerPosZ)
         GlStateManager.translate(pos.xCoord, pos.yCoord, pos.zCoord)
         glNormal3f(0.0f, 1.0f, 0.0f)
-        GlStateManager.rotate(- renderManager.playerViewY, 0.0f, 1.0f, 0.0f)
-        GlStateManager.rotate(renderManager.playerViewX, 1.0f, 0.0f, 0.0f)
+        GlStateManager.rotate(- renderManager.playerViewY, 0f, 1f, 0f)
+        GlStateManager.rotate(renderManager.playerViewX, if (mc.gameSettings.thirdPersonView != 2) 1f else - 1f, 0f, 0f)
         val f1 = 0.0266666688
         GlStateManager.scale(- f1, - f1, - f1)
         GlStateManager.scale(scale, scale, scale)
@@ -305,6 +305,43 @@ object RenderUtils {
             phase = phase
         )
     }
+
+    fun drawBackgroundedString(
+        text: String,
+        pos: Vec3,
+        scale: Number = 1,
+        phase: Boolean = true,
+        backgroundColor: Color = Color.GRAY.withAlpha(0.5f),
+        accentColor: Color = Color(0, 114, 255),
+        textColor: Color = Color.WHITE
+    ) {
+        val width = getStringWidth(text) + 2f
+        val height = getStringHeight(text) + 2f
+        val scaleF = scale.toFloat()
+        val f1 = 0.0266666688
+
+        GlStateManager.pushMatrix()
+        if (phase) disableDepth()
+        GlStateManager.translate(- renderManager.viewerPosX, - renderManager.viewerPosY, - renderManager.viewerPosZ)
+        GlStateManager.translate(pos.xCoord, pos.yCoord, pos.zCoord)
+        glNormal3f(0.0f, 1.0f, 0.0f)
+        GlStateManager.rotate(- renderManager.playerViewY, 0f, 1f, 0f)
+        GlStateManager.rotate(renderManager.playerViewX, if (mc.gameSettings.thirdPersonView != 2) 1f else - 1f, 0f, 0f)
+        GlStateManager.scale(- f1, - f1, - f1)
+        GlStateManager.scale(scaleF, scaleF, scaleF)
+        GlStateManager.disableLighting()
+        GlStateManager.enableBlend()
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
+        drawRoundedRect(backgroundColor, - width / 2, - height / 2, width, height * 0.9, 2)
+        drawRoundedRect(accentColor, - width / 2, - height / 2 + height * 0.9, width, height * 0.1, 2)
+        drawCenteredText(text, 0, - (height - 2) / 2, 1f, textColor)
+        GlStateManager.disableBlend()
+        GlStateManager.enableLighting()
+        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f)
+        if (phase) enableDepth()
+        GlStateManager.popMatrix()
+    }
+
 
     fun draw3DLine(from: Vec3, to: Vec3, color: Color, lineWidth: Float = 4f, phase: Boolean = true) {
         GlStateManager.pushMatrix()
@@ -387,7 +424,6 @@ object RenderUtils {
             )
         }
     }
-
 
     fun drawChromaWaveText(text: String, x: Float, y: Float, scale: Float = 1f, waveSpeed: Float = 4f) {
         val string = text.removeFormatting()

@@ -10,10 +10,11 @@ import kotlinx.coroutines.launch
 import net.minecraft.client.gui.GuiDownloadTerrain
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.item.EntityArmorStand
+import net.minecraft.entity.passive.EntitySheep
 import net.minecraft.network.play.client.C01PacketChatMessage
+import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.event.entity.player.AttackEntityEvent
-import net.minecraftforge.fml.common.eventhandler.Event
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.eventhandler.*
 import net.minecraftforge.fml.common.network.FMLNetworkEvent
 import noammaddons.events.*
 import noammaddons.features.FeatureManager.registerFeatures
@@ -41,14 +42,21 @@ import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.LocationUtils.inSkyblock
 import noammaddons.utils.LocationUtils.onHypixel
 import noammaddons.utils.LocationUtils.world
+import noammaddons.utils.MathUtils.destructured
 import noammaddons.utils.RenderHelper.getScaleFactor
+import noammaddons.utils.RenderHelper.renderVec
+import noammaddons.utils.RenderUtils.drawBackgroundedString
 import noammaddons.utils.RenderUtils.drawText
+import noammaddons.utils.RenderUtils2D.modelViewMatrix
+import noammaddons.utils.RenderUtils2D.projectionMatrix
+import noammaddons.utils.RenderUtils2D.viewportDims
 import noammaddons.utils.ScanUtils.currentRoom
 import noammaddons.utils.ScanUtils.getCore
 import noammaddons.utils.ScanUtils.getRoomCenterAt
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.send
+import org.lwjgl.opengl.GL11
 import java.awt.Color
 
 
@@ -267,6 +275,26 @@ object TestGround {
                 }*/
     }
 
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    fun onRenderWorld(event: RenderWorldLastEvent) {
+        val (x, y, z) = mc.thePlayer?.renderVec?.destructured() ?: return
+        GlStateManager.pushMatrix()
+        GlStateManager.translate(- x, - y, - z)
+
+        GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, modelViewMatrix)
+        GL11.glGetFloat(GL11.GL_PROJECTION_MATRIX, projectionMatrix)
+
+        GlStateManager.popMatrix()
+        GL11.glGetInteger(GL11.GL_VIEWPORT, viewportDims)
+    }
+
+    @SubscribeEvent
+    fun a(e: RenderWorld) {
+        mc.theWorld.loadedEntityList.filterIsInstance<EntitySheep>().forEach {
+            drawBackgroundedString(it.customNameTag, it.renderVec)
+        }
+    }
 }
 
 /*

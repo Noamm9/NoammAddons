@@ -4,7 +4,8 @@ import net.minecraft.init.Blocks.*
 import net.minecraft.network.play.client.C03PacketPlayer
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.network.play.server.S08PacketPlayerPosLook
-import net.minecraft.util.*
+import net.minecraft.util.BlockPos
+import net.minecraft.util.Vec3
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
@@ -176,9 +177,7 @@ object ZeroPingTeleportation: Feature() {
         if (LocationUtils.dungeonFloorNumber == 7 && LocationUtils.inBoss) return null
         if (ActionBarParser.currentMana < ActionBarParser.maxMana * 0.1) return null
         if (ScanUtils.currentRoom?.name.equalsOneOf("New Trap", "Old Trap", "Teleport Maze", "Boulder")) return null
-        val isBlock = mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK
-        val ignore = getBlockAt(mc.objectMouseOver.blockPos).equalsOneOf(trapped_chest, chest, ender_chest)
-        if (isBlock && ignore) return null
+        if (getBlockAt(mc.objectMouseOver.blockPos ?: BlockPos(- 1, - 1, - 1)).equalsOneOf(trapped_chest, chest, ender_chest, hopper)) return null
 
         if (sbId.equalsOneOf("ASPECT_OF_THE_VOID", "ASPECT_OF_THE_END")) {
             val nbt = heldItem.getSubCompound("ExtraAttributes", false)

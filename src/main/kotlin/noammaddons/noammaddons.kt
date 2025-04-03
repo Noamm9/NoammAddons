@@ -93,7 +93,6 @@ class noammaddons {
             it["default"]?.run { addLayer(CosmeticRendering(this)) }
         }
 
-        //  MinecraftForge.EVENT_BUS.register(FeatureManager)
         registerFeatures()
         registerCommands()
         this.init()

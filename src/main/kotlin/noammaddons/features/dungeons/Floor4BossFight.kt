@@ -13,7 +13,7 @@ import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.showTitle
-import noammaddons.utils.EspUtils.EspMob
+import noammaddons.utils.EspUtils.espMob
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.isMasterMode
@@ -53,11 +53,11 @@ object Floor4BossFight: Feature() {
     fun onPostRenderEntityModel(event: PostRenderEntityModelEvent) {
         if (! inM4boss) return
         when (val entity = event.entity) {
-            is EntityGhast -> if (config.espThorn) EspMob(event, config.espThornColor, config.espOutlineWidth * 2)
+            is EntityGhast -> if (config.espThorn) espMob(event.entity, config.espThornColor)
             is EntityOtherPlayerMP -> {
                 if (! config.espSpiritBear) return
                 if (! entity.displayName.noFormatText.lowercase().startsWith("spirit bear")) return
-                EspMob(event, config.espSpiritBearColor)
+                espMob(event.entity, config.espSpiritBearColor)
             }
         }
     }

@@ -23,7 +23,7 @@ object FeatureManager {
         SlotBinding, PartyESP, SBKickDuration, CakeNumbers, EnderPearlFix, WardrobeKeybinds,
         PartyCommands, ShowItemEntityName, BlockGloomlockOverUse, VisualWords,
         RemoveUselessMessages, ShowItemRarity, SkyBlockExpInChat, ShowItemsPrice,
-        TeammatesNames, TeammatesESP, AbilityKeybinds, IHATEDIORITE, AutoCloseChest,
+        TeammatesESP, AbilityKeybinds, IHATEDIORITE, AutoCloseChest,
         MimicDetector, GhostPick, ShowExtraStats, HighlightDoorKeys, AutoUlt, AutoRefillEnderPearls,
         BetterPartyFinderMessages, F7PhaseStartTimers, AnnounceSpiritLeaps, AutoReaperArmorSwap,
         AutoI4, AnnounceDraftResets, BetterFloors, BloodDialogueSkip, AutoPotion, CryptsDoneAlert,

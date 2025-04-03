@@ -2,88 +2,115 @@ package noammaddons.utils
 
 import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.shader.Framebuffer
+import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
+import net.minecraftforge.fml.common.eventhandler.Event
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.PostRenderEntityModelEvent
-import noammaddons.events.WorldUnloadEvent
+import noammaddons.events.*
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.MathUtils.distance3D
 import noammaddons.utils.RenderHelper.glBindColor
 import noammaddons.utils.RenderHelper.renderVec
-import noammaddons.utils.Utils.equalsOneOf
+import noammaddons.utils.RenderUtils.drawEntityBox
+import noammaddons.utils.RenderUtils2D.draw2dEsp
 import org.lwjgl.opengl.EXTFramebufferObject
 import org.lwjgl.opengl.EXTPackedDepthStencil
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
+import java.util.concurrent.CopyOnWriteArrayList
 
 object EspUtils {
 
-    fun EspMob(
-        event: PostRenderEntityModelEvent,
+    @Suppress("NAME_SHADOWING")
+    fun espMob(
+        entity: Entity,
         color: Color,
-        lineWidth: Float = config.espOutlineWidth,
-        outline: Boolean = config.espType.equalsOneOf(2, 0) && config.espOutlineOpacity != 0f,
-        fill: Boolean = config.espType == 2 && config.espFilledOpacity != 0f
+        type: Int = config.espType
     ) {
-        val distance = distance3D(event.entity.renderVec, mc.thePlayer.renderVec)
-        val adjustedLineWidth = (lineWidth / (distance / 8f)).coerceIn(0.5, lineWidth.toDouble()).toFloat()
+        val entity = entity as? EntityLivingBase ?: return
 
-        if (fill) addChamESP(event.entity, color)
+        when (type) {
+            0 -> outlineEntities.add(entity to color)
+            1 -> boxEntities.add(entity to color)
+            2 -> {
+                chamEntities.add(entity to color)
+                outlineEntities.add(entity to color)
+            }
 
-        if (! outline) return
-        val fancyGraphics = mc.gameSettings.fancyGraphics
-        val gamma = mc.gameSettings.gammaSetting
-        mc.gameSettings.fancyGraphics = false
-        mc.gameSettings.gammaSetting = 100000f
-        glPushMatrix()
-        glPushAttrib(GL_ALL_ATTRIB_BITS)
-        checkSetupFBO()
-        glBindColor(color)
-        renderOne(adjustedLineWidth)
-        render(event)
-        renderTwo()
-        render(event)
-        renderThree()
-        render(event)
-        renderFour()
-        render(event)
-        glPopAttrib()
-        glPopMatrix()
-        mc.gameSettings.fancyGraphics = fancyGraphics
-        mc.gameSettings.gammaSetting = gamma
+            3 -> d2Entities.add(entity to color)
+            4 -> chamEntities.add(entity to color)
+        }
     }
 
-    private val chamEntities = mutableSetOf<Pair<EntityLivingBase, Color>>()
+
+    @JvmField
+    val outlineEntities = CopyOnWriteArrayList<Pair<EntityLivingBase, Color>>()
+
+    @JvmField
+    val chamEntities = CopyOnWriteArrayList<Pair<EntityLivingBase, Color>>()
+
+    @JvmField
+    val boxEntities = CopyOnWriteArrayList<Pair<EntityLivingBase, Color>>()
+
+    @JvmField
+    val d2Entities = CopyOnWriteArrayList<Pair<EntityLivingBase, Color>>()
 
     @JvmStatic
-    @Synchronized
-    fun addChamESP(entity: EntityLivingBase, color: Color) {
-        chamEntities.add(entity to color)
+    val allEntities get() = outlineEntities + chamEntities + boxEntities + d2Entities
+
+    private fun CopyOnWriteArrayList<Pair<EntityLivingBase, Color>>.remove(entity: EntityLivingBase) {
+        removeIf { it.first == entity }
     }
 
-    @JvmStatic
-    @Synchronized
-    fun removeChamESP(entity: EntityLivingBase) {
-        chamEntities.removeIf { it.first == entity }
-    }
-
-    @JvmStatic
-    @Synchronized
-    fun getChamColor(entity: EntityLivingBase): Color? {
-        return chamEntities.firstOrNull { it.first == entity }?.second
-    }
-
-    @JvmStatic
-    @Synchronized
-    fun hasCham(entity: EntityLivingBase): Boolean {
-        return chamEntities.any { it.first == entity }
-    }
-
-    @Synchronized
     @SubscribeEvent
-    fun reset(event: WorldUnloadEvent) {
-        chamEntities.clear()
+    fun onEvent(event: Event) = when (event) {
+        is WorldUnloadEvent -> {
+            outlineEntities.clear()
+            chamEntities.clear()
+            boxEntities.clear()
+            d2Entities.clear()
+        }
+
+        is PostRenderEntityModelEvent -> outlineEntities.forEach {
+            if (event.entity != it.first) return@forEach
+            val distance = distance3D(event.entity.renderVec, mc.thePlayer.renderVec)
+            val adjustedLineWidth = (config.espOutlineWidth / (distance / 8f)).coerceIn(0.5, config.espOutlineWidth.toDouble()).toFloat()
+            val fancyGraphics = mc.gameSettings.fancyGraphics
+            val gamma = mc.gameSettings.gammaSetting
+
+            mc.gameSettings.fancyGraphics = false
+            mc.gameSettings.gammaSetting = 100000f
+            glPushMatrix()
+            glPushAttrib(GL_ALL_ATTRIB_BITS)
+            checkSetupFBO()
+            glBindColor(it.second)
+            renderOne(adjustedLineWidth)
+            render(event)
+            renderTwo()
+            render(event)
+            renderThree()
+            render(event)
+            renderFour()
+            render(event)
+            glPopAttrib()
+            glPopMatrix()
+            mc.gameSettings.fancyGraphics = fancyGraphics
+            mc.gameSettings.gammaSetting = gamma
+            outlineEntities.remove(event.entity)
+        }
+
+        is RenderOverlay -> d2Entities.forEach {
+            draw2dEsp(it.first, it.second)
+            d2Entities.remove(it.first)
+        }
+
+        is RenderWorld -> boxEntities.forEach {
+            drawEntityBox(it.first, it.second)
+            boxEntities.remove(it.first)
+        }
+
+        else -> Unit
     }
 
 
