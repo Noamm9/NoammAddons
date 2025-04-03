@@ -6,10 +6,12 @@ import noammaddons.events.RenderWorld
 import noammaddons.features.Feature
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.getBlockId
-import noammaddons.utils.BlockUtils.toVec
 import noammaddons.utils.ItemUtils.SkyblockID
+import noammaddons.utils.MathUtils
+import noammaddons.utils.MathUtils.add
 import noammaddons.utils.RenderUtils.drawBlockBox
 import noammaddons.utils.RenderUtils.drawCylinder
+import noammaddons.utils.ServerPlayer
 
 
 object GyroCircle: Feature() {
@@ -17,21 +19,22 @@ object GyroCircle: Feature() {
     fun onRenderWorld(event: RenderWorld) {
         if (! config.ShowGyroCircle) return
         if (mc.thePlayer?.heldItem?.SkyblockID != "GYROKINETIC_WAND") return
-        val Blockpos = mc.thePlayer.rayTrace(25.0, event.partialTicks)?.blockPos ?: return
-        val BlockIdAtPos = getBlockAt(Blockpos).getBlockId()
-        val BlockIdAbovePos = getBlockAt(Blockpos.add(.0, 1.0, .0)).getBlockId()
+        val serverRot = ServerPlayer.player.getRotation()
+        val serverPos = ServerPlayer.player.getVec().add(y = mc.thePlayer.getEyeHeight())
+        val pos = MathUtils.getBlockFromLook(serverRot, 25, serverPos.xCoord, serverPos.yCoord, serverPos.zCoord) ?: return
+        val posID = getBlockAt(pos).getBlockId()
+        val idAbovePos = getBlockAt(pos.add(y = 1)).getBlockId()
 
-        if (BlockIdAtPos == 0 || (BlockIdAbovePos != 0 && BlockIdAbovePos != 171)) return
+        if (posID == 0 || (idAbovePos != 0 && idAbovePos != 171)) return
 
         drawBlockBox(
-            Blockpos,
+            pos,
             config.ShowGyroCircleBlockColor,
             outline = true, fill = true,
-            phase = true
         )
 
         drawCylinder(
-            Blockpos.toVec().add(Vec3(0.5, 1.5, 0.5)),
+            Vec3(pos).add(0.5, 1.5, 0.5),
             10.0, config.ShowGyroCircleRingColor
         )
     }

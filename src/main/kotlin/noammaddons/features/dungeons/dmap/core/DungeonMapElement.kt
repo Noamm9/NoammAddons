@@ -281,7 +281,7 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
 
         val foundSecrets = TablistListener.secretsFound
         val totalSecrets = maxOf(DungeonInfo.secretCount, TablistListener.secretTotal)
-        val crypts = TablistListener.cryptsCount
+        val crypts = TablistListener.cryptsCount.get()
         val deaths = TablistListener.deathCount
         val deathPenalty = - TablistListener.deathPenalty
         val mimicStatus = if (MimicDetector.mimicKilled.get()) "&a&l✔&r" else "&c&l✖&r"

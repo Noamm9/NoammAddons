@@ -2,7 +2,7 @@ package noammaddons
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.*
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import net.minecraft.client.Minecraft
@@ -57,14 +57,14 @@ class noammaddons {
         val ahData = mutableMapOf<String, Double>()
 
         @JvmField
-        val bzData = mutableMapOf<String, DataClasses.bzitem>()
+        val bzData = mutableMapOf<String, DataClasses.ApiBzItem>()
 
         @JvmField
         val npcData = mutableMapOf<String, Double>()
 
         @JvmField
         val itemIdToNameLookup = mutableMapOf<String, String>()
-        var mayorData: DataClasses.Mayor? = null
+        var mayorData: DataClasses.ApiMayor? = null
     }
 
     @Mod.EventHandler
@@ -85,7 +85,7 @@ class noammaddons {
             LocationUtils, DungeonUtils,
             ActionBarParser, PartyUtils,
             ChatUtils, EspUtils, ActionUtils,
-            TablistListener
+            TablistListener, ServerPlayer, ScoreboardUtils
         ).forEach(MinecraftForge.EVENT_BUS::register)
 
         mc.renderManager.skinMap.let {
@@ -93,6 +93,7 @@ class noammaddons {
             it["default"]?.run { addLayer(CosmeticRendering(this)) }
         }
 
+        //  MinecraftForge.EVENT_BUS.register(FeatureManager)
         registerFeatures()
         registerCommands()
         this.init()
@@ -122,10 +123,18 @@ class noammaddons {
                 ahData.putAll(it)
             }
 
-            JsonUtils.fetchJsonWithRetry<Map<String, DataClasses.bzitem>>("https://sky.shiiyu.moe/api/v2/bazaar") {
-                it ?: return@fetchJsonWithRetry
+            JsonUtils.get("https://api.hypixel.net/v2/skyblock/bazaar") { obj ->
+                if (obj["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
+
+                val rawBzData = JsonUtils.json.decodeFromJsonElement(
+                    MapSerializer(String.serializer(), DataClasses.bzitem.serializer()),
+                    obj["products"] !!
+                )
+
+                val data = rawBzData.entries.associate { it.value.quick_status.productId to it.value.quick_status }
+
                 bzData.clear()
-                bzData.putAll(it)
+                bzData.putAll(data)
             }
 
             JsonUtils.get("https://api.hypixel.net/resources/skyblock/items") { obj ->
@@ -148,12 +157,10 @@ class noammaddons {
                 itemIdToNameLookup.putAll(idToName)
             }
 
-            JsonUtils.get("https://soopy.dev/api/v2/mayor") { jsonObject ->
+            JsonUtils.get("https://api.hypixel.net/v2/resources/skyblock/election") { jsonObject ->
                 if (jsonObject["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
                 val dataElement = jsonObject["data"] ?: return@get
-                val data = JsonUtils.json.decodeFromJsonElement(DataClasses.APIMayor.serializer(), dataElement)
-                val perks = data.perks?.map { it["name"] !! } ?: emptyList()
-                mayorData = DataClasses.Mayor(data.name, perks)
+                mayorData = JsonUtils.json.decodeFromJsonElement(DataClasses.ApiMayor.serializer(), dataElement)
             }
         }
     }

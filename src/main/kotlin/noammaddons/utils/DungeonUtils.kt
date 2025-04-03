@@ -102,7 +102,7 @@ object DungeonUtils {
             listOf(
                 DungeonPlayer("Noamm", Classes.Mage, 50, isDead = false),
                 DungeonPlayer("Noamm9", Classes.Archer, 50, isDead = false),
-                DungeonPlayer("NoammALT", Classes.Healer, 50, isDead = true),
+                DungeonPlayer("NoammALT", Classes.Healer, 50, isDead = true, entity = mc.theWorld.getPlayerEntityByName("NoammALT")),
                 DungeonPlayer("NoamIsSad", Classes.Tank, 50, isDead = false),
             ).let { list ->
                 dungeonTeammates.clear()

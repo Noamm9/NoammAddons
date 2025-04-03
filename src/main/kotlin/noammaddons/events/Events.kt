@@ -30,6 +30,9 @@ class SlotClickEvent(val container: Container, val gui: GuiContainer, val slot: 
 @Cancelable
 class GuiMouseClickEvent(val mouseX: Int, val mouseY: Int, val button: Int, val gui: GuiScreen): Event()
 
+@Cancelable
+class GuiKeybourdInputEvent(val keyChar: Char, val keyCode: Int, val gui: GuiScreen): Event()
+
 abstract class ClickEvent: Event() {
     @Cancelable
     class LeftClickEvent: ClickEvent()

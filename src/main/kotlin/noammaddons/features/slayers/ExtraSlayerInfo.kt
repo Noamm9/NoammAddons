@@ -6,7 +6,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Chat
 import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.addColor
-import noammaddons.utils.ChatUtils.debugMessage
 import noammaddons.utils.ChatUtils.getChatBreak
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.NumbersUtils.romanToDecimal
@@ -20,8 +19,6 @@ object ExtraSlayerInfo: Feature() {
     // https://regex101.com/r/Rm0FR3/1
     private val regex = Regex("\\s* (.*) Slayer LVL (.+) - Next LVL in (.+) XP!")
     private val slayerXpMap = mapOf(1 to 5, 2 to 25, 3 to 100, 4 to 500, 5 to 1500)
-    const val AATROX_BUFF_MULTIPLIER = 1.25
-    const val MEG_DELAY = 1000L
 
     @SubscribeEvent
     fun onChat(event: Chat) {
@@ -35,7 +32,7 @@ object ExtraSlayerInfo: Feature() {
         val bossesLeft = ceil(exp / bossEXP()).toInt()
         val message = createMessage(slayerName, level, bossesLeft, match.component3())
 
-        setTimeout(MEG_DELAY) {
+        setTimeout(1000L) {
             chat(message)
         }
     }
@@ -47,9 +44,10 @@ object ExtraSlayerInfo: Feature() {
         if (slayerQuestIndex == - 1) throw IllegalStateException("Slayer Quest not found in sidebar lines")
         val level = lines[slayerQuestIndex - 1].substringAfterLast(" ").romanToDecimal()
         val baseXp = slayerXpMap[level] ?: throw IllegalArgumentException("Invalid Slayer level: $level")
-        val hasAatroxBuff = mayorData?.perks?.any { it == "Slayer XP Buff" } == true
-        val bossEXP = if (hasAatroxBuff) (baseXp * AATROX_BUFF_MULTIPLIER).roundToInt() else baseXp
-        debugMessage("bossEXP: $bossEXP")
+        val hasAatroxBuff = mayorData?.mayor?.perks?.any { it.name == "Slayer XP Buff" } == true
+                || mayorData?.mayor?.minister?.perks?.any { it.name == "Slayer XP Buff" } == true
+        val bossEXP = if (hasAatroxBuff) (baseXp * 1.25).roundToInt() else baseXp
+
         return bossEXP
     }
 

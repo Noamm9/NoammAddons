@@ -34,9 +34,8 @@ object Cosmetics {
             _2: Float, _3: Float, _4: Float,
             _5: Float, _6: Float, _7: Float
         ) {
-            if (devPlayers == null) return
             val player = entityLivingBaseIn as EntityPlayer
-            val dev = devPlayers !!.find { it == player.uniqueID.toString() }
+            val dev = devPlayers?.find { it == player.uniqueID.toString() } ?: return
 
             GlStateManager.pushMatrix()
             GlStateManager.disableLighting()

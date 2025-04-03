@@ -9,18 +9,25 @@ import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
 
 class DataClasses {
-    @Serializable
-    data class APIMayor(
-        @SerialName("name")
-        val name: String? = null,
-        @SerialName("perks")
-        val perks: List<Map<String, String>>? = null
-    )
 
-    data class Mayor(
-        val name: String? = null,
-        val perks: List<String>? = null
-    )
+    @Serializable
+    data class ApiMayor(
+        @SerialName("mayor")
+        val mayor: Candidate,
+    ) {
+        @Serializable
+        data class Candidate(
+            @SerialName("name")
+            val name: String,
+            @SerialName("perks")
+            val perks: List<Perk> = emptyList(),
+            @SerialName("minister")
+            val minister: Candidate? = null
+        )
+
+        @Serializable
+        data class Perk(val name: String, val description: String)
+    }
 
     @Serializable
     data class APISBItem(
@@ -36,16 +43,34 @@ class DataClasses {
         val npcSellPrice: Double? = null,
     )
 
+    @Serializable
     data class bzitem(
-        val buyPrice: Double,
-        val buyVolume: Double,
-        val id: String,
-        val name: String,
-        val price: Double,
-        val sellPrice: Double,
-        val sellVolume: Double,
-        val tag: String?
+        @SerialName("quick_status")
+        val quick_status: ApiBzItem
     )
+
+    @Serializable
+    data class ApiBzItem(
+        @SerialName("productId")
+        val productId: String,
+        @SerialName("sellPrice")
+        val sellPrice: Double,
+        @SerialName("sellVolume")
+        val sellVolume: Double,
+        @SerialName("sellMovingWeek")
+        val sellMovingWeek: Double,
+        @SerialName("sellOrders")
+        val sellOrders: Double,
+        @SerialName("buyPrice")
+        val buyPrice: Double,
+        @SerialName("buyVolume")
+        val buyVolume: Double,
+        @SerialName("buyMovingWeek")
+        val buyMovingWeek: Double,
+        @SerialName("buyOrders")
+        val buyOrders: Double
+    )
+
 
     class HudElementConfig {
         val MaskTimers = HudElementData(100f, 10f, 1f)
@@ -136,6 +161,4 @@ class DataClasses {
         var skyCryptData: JsonObject? = null,
         var lilyWeight: JsonObject? = null
     )
-
-
 }

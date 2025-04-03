@@ -18,7 +18,7 @@ object PlayerHud: Feature() {
         private val isEnabled: () -> Boolean,
         private val textSupplier: () -> String,
     ): GuiElement(data) {
-        override val enabled get() = isEnabled()
+        override val enabled get() = isEnabled() && config.PlayerHUD
         private val text get() = textSupplier()
         override val width: Float get() = getStringWidth(text)
         override val height: Float get() = 9f

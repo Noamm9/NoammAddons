@@ -83,20 +83,20 @@ object DungeonChestProfit: Feature() {
                 currentChestProfit = currentChestPrice * - 1
 
                 for (obj in event.items) {
-                    if (obj.value.getItemId() == 160) continue
+                    if (obj.value?.getItemId() == 160) continue
 
                     val itemId = obj.value.SkyblockID ?: continue
-                    val itemName = obj.value.displayName
+                    val itemName = obj.value?.displayName ?: continue
                     val isbook = itemId == "ENCHANTED_BOOK"
 
-                    val bookName = if (isbook) obj.value.lore[0] else null
+                    val bookName = if (isbook) obj.value !!.lore[0] else null
                     val bookID = if (isbook) enchantNameToID(bookName !!) else null
 
                     val essance = getEssenceValue(itemName)
 
                     if (isbook) currentChestProfit += getPrice(bookID !!)
-                    if (essance != null) currentChestProfit += essance.toInt()
-                    if (! isbook && essance == null) currentChestProfit += getPrice(itemId)
+                    if (essance != .0) currentChestProfit += essance.toInt()
+                    if (! isbook && essance == .0) currentChestProfit += getPrice(itemId)
                 }
             }
 
@@ -115,7 +115,7 @@ object DungeonChestProfit: Feature() {
 
                     lore.drop(contentIndex + 1).takeWhile { it != "" }.forEach { drop ->
                         val value = when (drop.contains("Essence")) {
-                            true -> getEssenceValue(drop)?.toInt() ?: return@forEach
+                            true -> getEssenceValue(drop).toInt()
                             else -> getPrice(getIdFromName(drop) ?: return@forEach)
                         }
 
@@ -264,7 +264,7 @@ object DungeonChestProfit: Feature() {
         if (id in blackList) return 0
 
         val price = when {
-            bzData.containsKey(id) -> bzData[id] !!.price.toInt()
+            bzData.containsKey(id) -> bzData[id] !!.sellPrice.toInt()
             ahData.containsKey(id) -> ahData[id] !!.toInt()
             else -> 0
         }

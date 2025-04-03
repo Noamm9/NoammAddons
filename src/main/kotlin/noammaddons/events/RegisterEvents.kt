@@ -19,8 +19,8 @@ import noammaddons.features.dungeons.dmap.core.map.RoomData
 import noammaddons.noammaddons.Companion.Logger
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.BlockUtils.getBlockAt
+import noammaddons.utils.ChatUtils
 import noammaddons.utils.ChatUtils.debugMessage
-import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.DungeonUtils.dungeonItemDrops
 import noammaddons.utils.DungeonUtils.isSecret
@@ -52,7 +52,10 @@ object RegisterEvents {
         }.onFailure {
             it.printStackTrace()
             Logger.error("An error occurred ${it.message}")
-            modMessage("Caught and logged an ${it::class.simpleName ?: "error"} at ${this::class.simpleName}. Please report this!, Error: ${it.message}")
+            ChatUtils.clickableChat(
+                "Caught and logged an ${it::class.simpleName ?: "error"} at ${this::class.simpleName}. Please report this!, Error: ${it.message}",
+                "", it.stackTrace.take(15).joinToString("\n")
+            )
         }.getOrDefault(isCanceled)
     }
 

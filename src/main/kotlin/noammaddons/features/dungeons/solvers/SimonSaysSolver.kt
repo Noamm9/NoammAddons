@@ -29,7 +29,7 @@ object SimonSaysSolver: Feature() {
     const val BUTTONHEIGHT = 0.26
     const val BUTTONWIDTH = 0.4
 
-    val atSS get() = config.simonSaysSolver && distance2D(startObsidianBlock, mc.thePlayer?.position ?: BlockPos(0, 0, 0)) < 5 && P3Section == 1
+    val atSS get() = config.simonSaysSolver && distance2D(startObsidianBlock, mc.thePlayer?.position ?: BlockPos(0, 0, 0)) < 15 && P3Section == 1
 
     private fun getColor(index: Int) = when (index) {
         0 -> Color.GREEN

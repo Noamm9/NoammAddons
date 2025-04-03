@@ -163,6 +163,7 @@ object ActionUtils {
         swapToSlot(rodIndex)
         delay(80)
         sendRightClickAirPacket()
+        mc.thePlayer.swingItem()
         delay(80)
         swapToSlot(slotBeforeSwap)
         holdClick(keyState)
@@ -269,22 +270,24 @@ object ActionUtils {
         SoundUtils.Pling()
     }
 
-    private val inLeapMenu get() = currentChestName.removeFormatting().lowercase() == "spirit leap"
-    private val inEQMenu get() = currentChestName.removeFormatting().lowercase() == "your equipment and stats"
-    private val inWardrobeMenu get() = currentChestName.removeFormatting().matches(Regex("^Wardrobe \\(\\d/\\d\\)$"))
-    private val inPotionBag get() = currentChestName.removeFormatting().lowercase() == "potion bag"
+    val inLeapMenu get() = currentChestName.removeFormatting().lowercase() == "spirit leap"
+    val inEQMenu get() = currentChestName.removeFormatting().lowercase() == "your equipment and stats"
+    val inWardrobeMenu get() = currentChestName.removeFormatting().matches(Regex("^Wardrobe \\(\\d/\\d\\)$"))
+    val inPotionBag get() = currentChestName.removeFormatting().lowercase() == "potion bag"
 
 
     @SubscribeEvent
     fun handleAutoLeap(event: InventoryFullyOpenedEvent) {
         when {
             inPotionBag -> {
+                if (awaitingPotionBag.isBlank()) return
                 event.items.forEach { (i, item) ->
                     item ?: return@forEach
                     if (item.getItemId() != 373) return@forEach
                     if (! item.displayName.removeFormatting().lowercase().contains(awaitingPotionBag.removeFormatting().lowercase())) return@forEach
 
                     sendWindowClickPacket(i, 0, 1)
+                    awaitingPotionBag = ""
                     setTimeout(250) {
                         closeScreen()
                         hideGui(false)
@@ -298,12 +301,13 @@ object ActionUtils {
             }
 
             inLeapMenu -> {
+                if (INTERNAL_LEAP_TARGET == null) return
                 CustomSpiritLeapMenu.updatePlayersArray()
                 CustomSpiritLeapMenu.players.find { it?.player?.name == INTERNAL_LEAP_TARGET?.name }?.let { target ->
                     modMessage("Leaping To: ${target.player.name}&r (${target.player.clazz})")
                     sendWindowClickPacket(target.slot, 0, 0)
+                    INTERNAL_LEAP_TARGET = null
                 }
-                INTERNAL_LEAP_TARGET = null
             }
 
             inEQMenu -> {
@@ -332,14 +336,10 @@ object ActionUtils {
     }
 
     private fun resetEQ(message: String? = null) {
-        setTimeout(150) {
-            mc.addScheduledTask {
-                closeScreen()
-            }
-        }
-        hideGui(false)
+        setTimeout(1000) { hideGui(false) }
+        message?.let { modMessage(it) }
+        closeScreen()
         SoundUtils.Pling()
         awaiting4EQ = false
-        message?.let { modMessage(it) }
     }
 }

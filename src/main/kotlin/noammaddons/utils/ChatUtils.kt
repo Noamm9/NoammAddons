@@ -24,11 +24,10 @@ import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.noammaddons.Companion.scope
 import noammaddons.utils.LocationUtils.inSkyblock
-import noammaddons.utils.PartyUtils.isInParty
 import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderUtils.drawTitle
 import noammaddons.utils.ThreadUtils.loop
-import noammaddons.utils.ThreadUtils.scheduledTask
+import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.send
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
@@ -131,20 +130,10 @@ object ChatUtils {
 
     private fun processQueue() {
         if (messageQueue.isEmpty()) return
-        val timeSinceLastMessage = System.currentTimeMillis() - lastMessageTime
-        if (timeSinceLastMessage >= MESSAGE_DELAY_MS) sendNextMessage()
-        else scheduleNextCheck(MESSAGE_DELAY_MS - timeSinceLastMessage)
-    }
 
-    private fun sendNextMessage() {
-        val nextMessage = messageQueue.poll() ?: return
-        mc.thePlayer?.sendChatMessage(nextMessage)
+        if (System.currentTimeMillis() - lastMessageTime < MESSAGE_DELAY_MS) setTimeout(MESSAGE_DELAY_MS, ::processQueue)
+        else messageQueue.poll()?.run(mc.thePlayer::sendChatMessage)
     }
-
-    private fun scheduleNextCheck(delay: Long) {
-        scheduledTask((delay / 50).toInt()) { processQueue() }
-    }
-
 
     @SubscribeEvent
     fun onPacketSent(event: PacketEvent.Sent) {
@@ -155,7 +144,8 @@ object ChatUtils {
 
 
     fun sendPartyMessage(message: Any) {
-        if (isInParty()) sendChatMessage("/pc ${message.toString().removeFormatting()}")
+        if (! PartyUtils.inParty) return
+        sendChatMessage("/pc $message")
     }
 
     // sometimes the text is still formatted, Thanks Minecraft

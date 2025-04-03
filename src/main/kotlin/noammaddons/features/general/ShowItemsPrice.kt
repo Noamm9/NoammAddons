@@ -19,7 +19,7 @@ object ShowItemsPrice: Feature() {
         val npcPrice = npcData[sbId]
 
         val id = if (sbId == "ENCHANTED_BOOK") enchantNameToID(stack.lore[0]) else sbId
-        val Price = ahData[id] ?: bzData[id]?.price
+        val Price = ahData[id] ?: bzData[id]?.sellPrice
 
         Price?.let {
             event.toolTip.add(

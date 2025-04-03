@@ -1,5 +1,6 @@
 package noammaddons.features
 
+
 import net.minecraftforge.common.MinecraftForge
 import noammaddons.features.alerts.*
 import noammaddons.features.dungeons.*
@@ -8,7 +9,7 @@ import noammaddons.features.dungeons.esp.*
 import noammaddons.features.dungeons.solvers.*
 import noammaddons.features.dungeons.terminals.*
 import noammaddons.features.general.*
-import noammaddons.features.general.PestESP.PestESP
+import noammaddons.features.general.teleport.*
 import noammaddons.features.gui.*
 import noammaddons.features.gui.Menus.impl.*
 import noammaddons.features.hud.*
@@ -18,80 +19,29 @@ import noammaddons.noammaddons.Companion.Logger
 
 object FeatureManager {
     val features = mutableSetOf(
-
-        // General
-        MotionBlur, LeftClickEtherwarp, ChatCoordsWaypoint,
-        GyroCircle, ChatEmojis, SlotBinding, PartyOutline,
-        PartyNames, SBKickDuration, CakeNumbers, EnderPearlFix,
-        PartyCommands, ShowItemEntityName, BlockGloomlockOverUse,
-        VisualWords, RemoveUselessMessages, ShowItemRarity,
-        SkyBlockExpInChat, ShowItemsPrice,
-
-        // Dungeons
-        TeammatesNames, TeammatesESP, AbilityKeybinds,
-        IHATEDIORITE, AutoCloseChest, MimicDetector,
-        GhostPick, ShowExtraStats, HighlightDoorKeys,
-        AutoUlt, AutoRefillEnderPearls, BetterPartyFinderMessages,
-        F7PhaseStartTimers, AnnounceSpiritLeaps, AutoI4,
-        AnnounceDraftResets, BetterFloors, BloodDialogueSkip,
-        AutoPotion, AutoReaperArmorSwap, M7Relics,
-        HidePlayersAfterLeap, M7Dragons, CreeperBeamSolver,
-        BlazeSolver, CrystalPlaceTimer, EtherwarpSound,
-        DungeonChestProfit, BatDeadTitle, DungeonAbilityCooldowns,
-        Floor4BossFight, CrystalSpawnTimer, ArrowAlignSolver,
-        DungeonFpsBoost, ThreeWeirdosSolver, DungeonMap,
-        SimonSaysSolver, DungeonWarpCooldown, AutoRequeue,
-        BoulderSolver, DungeonSecrets,
-
-
-        // Terminals
-        Melody, Numbers, Rubix,
-        RedGreen, Colors, StartWith,
-        MelodyAlert, TerminalNumbers,
-        BetterF7Titles,
-
-
-        // ESP
-        HiddenMobs, StarMobESP,
-        LividSolver, WitherESP,
-        PestESP,
-
-
-        // Alerts
-        BloodReady, EnergyCrystal,
-        ThunderBottle, M7P5RagAxe, RNGSound,
-        AHSoldNotification, ShadowAssassinAlert,
-        SkyblockKick, PartyFinderSound,
-        RoomAlerts,
-
-
-        // Slayers
-        ExtraSlayerInfo,
-
-
-        // GUI
-        SalvageOverlay, CustomPartyFinderMenu,
-        CustomSpiritLeapMenu, CustomWardrobeMenu,
-        CustomPetMenu, StopCloseMyChat,
-        ProfleViewer, ScalableTooltips,
-
-
-        // HUD
-        FpsDisplay, ClockDisplay, MaskTimers,
-        TpsDisplay, WitherShieldTimer, PlayerHud,
-        SpringBootsDisplay, CustomScoreboard,
-        SecretDisplay, PetDisplay, CustomTabList,
-
-
-        // Misc
-        BlockOverlay, PlayerScale, PlayerSpin,
-        HideFallingBlocks, DamageSplash,
-        RemoveSelfieCam, CustomFov, AntiBlind,
-        AntiPortal, NoBlockAnimation, NoWaterFOV,
-        CustomBowHitSound, ClearBlocks, NoRotate,
-        RatProtection, SmoothSneaking, SmoothBossBar
+        MotionBlur, LeftClickEtherwarp, ChatCoordsWaypoint, GyroCircle, ChatEmojis,
+        SlotBinding, PartyESP, SBKickDuration, CakeNumbers, EnderPearlFix, WardrobeKeybinds,
+        PartyCommands, ShowItemEntityName, BlockGloomlockOverUse, VisualWords,
+        RemoveUselessMessages, ShowItemRarity, SkyBlockExpInChat, ShowItemsPrice,
+        TeammatesNames, TeammatesESP, AbilityKeybinds, IHATEDIORITE, AutoCloseChest,
+        MimicDetector, GhostPick, ShowExtraStats, HighlightDoorKeys, AutoUlt, AutoRefillEnderPearls,
+        BetterPartyFinderMessages, F7PhaseStartTimers, AnnounceSpiritLeaps, AutoReaperArmorSwap,
+        AutoI4, AnnounceDraftResets, BetterFloors, BloodDialogueSkip, AutoPotion, CryptsDoneAlert,
+        M7Relics, HidePlayersAfterLeap, M7Dragons, CreeperBeamSolver, BlazeSolver, CrystalPlaceTimer,
+        EtherwarpSound, DungeonChestProfit, BatDeadTitle, DungeonAbilityCooldowns, Floor4BossFight,
+        CrystalSpawnTimer, ArrowAlignSolver, DungeonFpsBoost, ThreeWeirdosSolver, DungeonMap,
+        SimonSaysSolver, DungeonWarpCooldown, AutoRequeue, BoulderSolver, DungeonSecrets, Melody,
+        Numbers, Rubix, RedGreen, Colors, StartWith, MelodyAlert, TerminalNumbers, BetterF7Titles,
+        HiddenMobs, StarMobESP, LividSolver, WitherESP, PestESP, BloodReady, EnergyCrystal, ThunderBottle,
+        M7P5RagAxe, RNGSound, AHSoldNotification, ShadowAssassinAlert, SkyblockKick, PartyFinderSound,
+        RoomAlerts, ExtraSlayerInfo, SalvageOverlay, CustomPartyFinderMenu, CustomSpiritLeapMenu,
+        CustomWardrobeMenu, CustomPetMenu, StopCloseMyChat, ProfileViewer, ScalableTooltips, FpsDisplay,
+        ClockDisplay, MaskTimers, TpsDisplay, WitherShieldTimer, PlayerHud, SpringBootsDisplay,
+        CustomScoreboard, SecretDisplay, PetDisplay, CustomTabList, BlockOverlay, PlayerScale,
+        PlayerSpin, HideFallingBlocks, DamageSplash, RemoveSelfieCam, CustomFov, AntiBlind,
+        AntiPortal, NoBlockAnimation, NoWaterFOV, CustomBowHitSound, ClearBlocks, NoRotate,
+        RatProtection, SmoothSneaking, SmoothBossBar, ZeroPingTeleportation, TeleportOverlay
     )
-
 
     fun createFeatureList(): String {
         return features.joinToString("\n") { getFeatureName(it) }

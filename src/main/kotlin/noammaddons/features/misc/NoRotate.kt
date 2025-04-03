@@ -4,6 +4,7 @@ import net.minecraft.client.entity.EntityPlayerSP
 import net.minecraft.network.play.client.C03PacketPlayer
 import net.minecraft.network.play.server.S08PacketPlayerPosLook
 import net.minecraft.util.Vec3
+import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
@@ -27,7 +28,7 @@ object NoRotate: Feature() {
         setTimeout(1000) { doneLoadingTerrain = true }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOW)
     fun onPacket(event: PacketEvent.Received) {
         if (! config.NoRotate) return
         val packet = event.packet as? S08PacketPlayerPosLook ?: return

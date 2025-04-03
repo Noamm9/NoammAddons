@@ -64,6 +64,7 @@ object LocationUtils {
         DwarvenMines("Dwarven Mines"),
         CrystalHollows("Crystal Hollows"),
         TheBarn("The Farming Islands"),
+        BackwaterBayou("Backwater Bayou"),
         Garden("Garden");
 
         companion object {

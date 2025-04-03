@@ -3,10 +3,10 @@ package noammaddons.commands.commands
 import kotlinx.serialization.json.*
 import net.minecraft.command.ICommandSender
 import noammaddons.commands.Command
-import noammaddons.features.gui.ProfleViewer
-import noammaddons.features.gui.ProfleViewer.createFakePlayer
-import noammaddons.features.gui.ProfleViewer.data
-import noammaddons.features.gui.ProfleViewer.profileCache
+import noammaddons.features.gui.ProfileViewer
+import noammaddons.features.gui.ProfileViewer.createFakePlayer
+import noammaddons.features.gui.ProfileViewer.data
+import noammaddons.features.gui.ProfileViewer.profileCache
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.GuiUtils.openScreen
 import noammaddons.utils.JsonUtils
@@ -24,7 +24,7 @@ object ProfileViewerCommand: Command("pv", listOf("profileviewer"), "&cInvalid U
 
     fun getData(name: String) {
         modMessage("Fetching data for $name")
-        openScreen(ProfleViewer.ProfleViewerGUI())
+        openScreen(ProfileViewer.ProfleViewerGUI())
 
         profileCache[name.lowercase()]?.run {
             if (System.currentTimeMillis() - second < 120_000) {

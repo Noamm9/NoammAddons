@@ -1,13 +1,15 @@
 package noammaddons.utils
 
+import net.minecraft.init.Blocks
 import net.minecraft.util.*
+import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.toVec
 import noammaddons.utils.PlayerUtils.getEyePos
 import java.awt.Color
 import kotlin.math.*
 
 object MathUtils {
-    data class Rotation(val yaw: Float, val pitch: Float)
+    data class Rotation(var yaw: Float, var pitch: Float)
 
     /**
      * Checks if a given coordinate is inside a specified 3D box.
@@ -87,6 +89,32 @@ object MathUtils {
         return Rotation(yaw.toFloat(), pitch.toFloat())
     }
 
+    fun getBlockFromLook(rot: Rotation, maxDistance: Int, eyeX: Double, eyeY: Double, eyeZ: Double): BlockPos? {
+        val radYaw = Math.toRadians(rot.yaw.toDouble())
+        val radPitch = Math.toRadians(rot.pitch.toDouble())
+
+        val dirX = - sin(radYaw) * cos(radPitch)
+        val dirY = - sin(radPitch)
+        val dirZ = cos(radYaw) * cos(radPitch)
+
+        var x = eyeX
+        var y = eyeY
+        var z = eyeZ
+
+        val stepSize = 0.05 // Small increments for precision
+        for (i in 0 until ((maxDistance.toDouble() / stepSize).toInt())) {
+            x += dirX * stepSize
+            y += dirY * stepSize
+            z += dirZ * stepSize
+
+            val block = getBlockAt(x, y, z)
+            if (block == Blocks.air) continue
+
+            return BlockPos(x, y, z)
+        }
+
+        return null
+    }
 
     @JvmStatic
     fun interpolate(prev: Number, newPos: Number, partialTicks: Number): Double {
@@ -121,9 +149,10 @@ object MathUtils {
     }
 
 
+    fun BlockPos.add(x: Number = 0.0, y: Number = 0.0, z: Number = 0.0) = add(x.toDouble(), y.toDouble(), z.toDouble())
+
     fun Vec3.floor() = Vec3(floor(xCoord), floor(yCoord), floor(zCoord))
     fun Vec3.add(x: Number = 0.0, y: Number = 0.0, z: Number = 0.0) = add(Vec3(x.toDouble(), y.toDouble(), z.toDouble()))
     fun Vec3i.destructured() = listOf(x, y, z)
     fun Vec3.destructured() = listOf(xCoord, yCoord, zCoord)
-
 }

@@ -2,9 +2,8 @@ package noammaddons.features.dungeons
 
 import gg.essential.elementa.state.BasicState
 import gg.essential.elementa.utils.withAlpha
-import net.minecraft.entity.Entity
-import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.entity.monster.EntityZombie
+import net.minecraftforge.event.entity.living.LivingDeathEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
@@ -13,6 +12,7 @@ import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.sendPartyMessage
 import noammaddons.utils.ChatUtils.showTitle
+import noammaddons.utils.ItemUtils.getSkullValue
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.inDungeon
@@ -27,6 +27,10 @@ object MimicDetector: Feature() {
     val mimicKilled = BasicState(false)
     fun check() = ! mimicKilled.get() && inDungeon && (dungeonFloorNumber ?: 0) >= 6 && ! inBoss
 
+    private const val MIMIC_TEXTURE =
+        "ewogICJ0aW1lc3RhbXAiIDogMTY3Mjc2NTM1NTU0MCwKICAicHJvZmlsZUlkIiA6ICJhNWVmNzE3YWI0MjA0MTQ4ODlhOTI5ZDA5OTA0MzcwMyIsCiAgInByb2ZpbGVOYW1lIiA6ICJXaW5zdHJlYWtlcnoiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTE5YzEyNTQzYmM3NzkyNjA1ZWY2OGUxZjg3NDlhZThmMmEzODFkOTA4NWQ0ZDRiNzgwYmExMjgyZDM1OTdhMCIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9"
+
+
     private fun sendMimicMessage() {
         if (! config.sendMimicKillMessage) return
         sendPartyMessage("$CHAT_PREFIX Mimic killed!")
@@ -34,44 +38,27 @@ object MimicDetector: Feature() {
         showTitle("&cMimic Dead!")
     }
 
-
-    fun isMimic(entity: Entity): Boolean {
-        if (entity is EntityZombie && entity.isChild) {
-            for (i in 0 .. 3) {
-                if (entity.getCurrentArmor(i) != null) return false
-            }
-            return true
-        }
-        else if (entity is EntityArmorStand && entity.hasCustomName()) {
-            return entity.customNameTag.contains("§c§lMimic§r §e0§c❤")
-        }
-        return false
-    }
-
+    
     @SubscribeEvent
-    fun onWorldUnload(event: WorldUnloadEvent) {
-        mimicKilled.set(false)
-    }
-
-    @SubscribeEvent
-    fun onTick(event: Tick) {
-        if (! check()) return
-        if (mc.theWorld.loadedEntityList.filter { // @formatter:off
-            it is EntityArmorStand || it is EntityZombie
-        }.none { isMimic(it) }) return
-
-        mimicKilled.set(true)
-        sendMimicMessage()
-    }
+    fun onWorldUnload(event: WorldUnloadEvent) = mimicKilled.set(false)
 
 
     @SubscribeEvent
     fun onEntityLeaveWorld(event: EntityLeaveWorldEvent) {
-        if (! inDungeon) return
-        if ((dungeonFloorNumber ?: 0) < 6) return
-        if (mimicKilled.get()) return
-        if (! isMimic(event.entity)) return
-        mimicKilled.set(true)
+        if (! check()) return
+        if (event.entity !is EntityZombie) return
+        if (! event.entity.isChild) return
+        if (event.entity.isEntityAlive) return
+        if (getSkullValue(event.entity) != MIMIC_TEXTURE) return
+        sendMimicMessage()
+    }
+
+    @SubscribeEvent
+    fun onEntityDeath(event: LivingDeathEvent) = with(event.entity) {
+        if (! check()) return@with
+        if (this !is EntityZombie) return@with
+        if (! this.isChild) return@with
+        if (! (0 .. 3).all { this.getCurrentArmor(it) == null }) return
         sendMimicMessage()
     }
 
@@ -79,12 +66,12 @@ object MimicDetector: Feature() {
     fun onChat(event: Chat) {
         if (! inDungeon) return
         if (inBoss) return
-        if (! event.component.noFormatText.lowercase().containsOneOf(
+        if (! event.component.noFormatText.lowercase().containsOneOf( // @formatter:off
             "skytils-dungeon-score-mimic",
             "mimic killed", "mimic slain",
             "mimic killed!", "mimic dead",
             "mimic dead!"
-        )) return // @formatter:off
+        )) return
 
         mimicKilled.set(true)
     }

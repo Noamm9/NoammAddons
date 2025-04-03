@@ -208,3 +208,4 @@ whitelist.json
 /resourcepacks
 *.kt~
 *.json~
+*.java~

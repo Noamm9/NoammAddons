@@ -11,6 +11,7 @@ import net.minecraft.client.gui.GuiDownloadTerrain
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.network.play.client.C01PacketChatMessage
+import net.minecraftforge.event.entity.player.AttackEntityEvent
 import net.minecraftforge.fml.common.eventhandler.Event
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent
@@ -40,8 +41,6 @@ import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.LocationUtils.inSkyblock
 import noammaddons.utils.LocationUtils.onHypixel
 import noammaddons.utils.LocationUtils.world
-import noammaddons.utils.PartyUtils.partyLeader
-import noammaddons.utils.PartyUtils.partyMembers
 import noammaddons.utils.RenderHelper.getScaleFactor
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.ScanUtils.currentRoom
@@ -97,14 +96,9 @@ object TestGround {
 
 
         drawText(
-            """Party Leader: $partyLeader
-				| Party Size: ${partyMembers.size}
-				| Party Members: ${
-                "\n" +
-                        partyMembers.joinToString("\n") {
-                            "(name: ${it.first} || hasEntity: ${it.second != null})"
-                        }
-            }
+            """Party Leader: ${PartyUtils.leader}
+				| Party Size: ${PartyUtils.size}
+				| Party Members: ${"\n" + PartyUtils.members.entries.joinToString("\n")}
 			""".trimMargin(),
             20f, 200f, 1f,
             Color.PINK
@@ -242,6 +236,13 @@ object TestGround {
         event.isCanceled = true
     }
 
+
+    @SubscribeEvent
+    fun onPlaterInteract(e: AttackEntityEvent) {
+        if (e.entityPlayer != mc.thePlayer) return
+        if (DungeonUtils.dungeonTeammates.none { it.entity == e.target }) return
+        e.isCanceled = true
+    }
 
     @SubscribeEvent
     fun afad(event: Event) {

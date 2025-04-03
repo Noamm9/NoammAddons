@@ -1,10 +1,13 @@
 package noammaddons.utils
 
+import net.minecraft.network.play.server.*
 import net.minecraft.scoreboard.ScorePlayerTeam
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.events.PostPacketEvent
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.removeUnicode
-import noammaddons.utils.ThreadUtils.loop
+import noammaddons.utils.LocationUtils.inSkyblock
 
 object ScoreboardUtils {
     /**
@@ -12,20 +15,34 @@ object ScoreboardUtils {
      */
     var sidebarLines: List<String> = emptyList()
 
-    init {
-        loop(250) {
-            sidebarLines = mc.theWorld?.scoreboard?.run {
-                val objective = getObjectiveInDisplaySlot(1) ?: return@run emptyList()
-                val title = objective.displayName
 
-                val lines = getSortedScores(objective)
-                    .filter { it?.playerName?.startsWith("#") == false }
-                    .let { if (it.size > 15) it.drop(15) else it }
-                    .map { ScorePlayerTeam.formatPlayerName(getPlayersTeam(it.playerName), it.playerName) }
+    @SubscribeEvent
+    fun onScoreboardChange(event: PostPacketEvent.Received) {
+        if (! inSkyblock) return
+        if (event.packet !is S3EPacketTeams
+            && event.packet !is S3CPacketUpdateScore
+            && event.packet !is S3DPacketDisplayScoreboard
+        ) return
 
-                lines + title
-            } ?: emptyList()
+        getSidebarLines()
+    }
+
+
+    private fun getSidebarLines() {
+        val objective = mc.theWorld?.scoreboard?.getObjectiveInDisplaySlot(1)
+        if (objective == null) {
+            sidebarLines = emptyList()
+            return
         }
+        val title = objective.displayName
+
+        sidebarLines = mc.theWorld.scoreboard.getSortedScores(objective)
+            .asSequence()
+            .filterNot { it?.playerName?.startsWith("#") == true }
+            .take(15)
+            .map { ScorePlayerTeam.formatPlayerName(mc.theWorld.scoreboard.getPlayersTeam(it.playerName), it.playerName) }
+            .plus(title)
+            .toList()
     }
 
 

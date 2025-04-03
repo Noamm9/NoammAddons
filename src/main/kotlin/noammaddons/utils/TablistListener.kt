@@ -1,5 +1,6 @@
 package noammaddons.utils
 
+import gg.essential.elementa.state.BasicState
 import net.minecraft.network.play.server.S38PacketPlayerListItem
 import net.minecraft.network.play.server.S3EPacketTeams
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -20,7 +21,7 @@ object TablistListener {
     var secretPercentage = 0f
     var secretsFound = - 1
     var timeElapsed = - 1
-    var cryptsCount = - 1
+    var cryptsCount = BasicState(- 1)
     var deathCount = - 1
 
     val secretTotal get() = (secretsFound / (secretPercentage + 0.0001f) + 0.5).toInt()
@@ -30,7 +31,7 @@ object TablistListener {
     @SubscribeEvent
     fun reset(e: WorldUnloadEvent) {
         deathCount = - 1
-        cryptsCount = - 1
+        cryptsCount.set(- 1)
         secretsFound = - 1
         timeElapsed = - 1
     }
@@ -75,7 +76,7 @@ object TablistListener {
     private fun updateFromTabList(text: String) {
         when {
             text.contains("Team Deaths:") -> deathCount = deathsRegex.firstResult(text)?.toIntOrNull() ?: deathCount
-            text.contains("Crypts:") -> cryptsCount = cryptsPattern.firstResult(text)?.toIntOrNull() ?: cryptsCount
+            text.contains("Crypts:") -> cryptsCount.set(cryptsPattern.firstResult(text)?.toIntOrNull() ?: cryptsCount.get())
             text.contains("Secrets Found:") -> if (text.contains("%")) secretPercentage = secretsFoundPercentagePattern.firstResult(text)?.toFloatOrNull()?.div(100f) ?: secretPercentage
             else secretsFound = secretsFoundPattern.firstResult(text)?.toIntOrNull() ?: secretsFound
         }

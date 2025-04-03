@@ -4,8 +4,6 @@ import gg.essential.elementa.utils.withAlpha
 import gg.essential.universal.UDesktop
 import gg.essential.vigilance.Vigilant
 import gg.essential.vigilance.data.*
-import noammaddons.commands.CommandManager
-import noammaddons.commands.commands.ProfileViewerCommand
 import noammaddons.config.EditGui.HudEditorScreen
 import noammaddons.features.dungeons.dmap.core.DungeonMapConfig
 import noammaddons.noammaddons.Companion.FULL_PREFIX
@@ -27,6 +25,7 @@ object Config: Vigilant(
 ) {
     private const val EMPTY_CATEGORY = ""
     private const val GENERAL_CATEGORY = "General"
+    private const val ZPT_CATEGORY = "ZPT"
     private const val SLAYER_CATEGORY = "Slayers"
     private const val DMAP_CATEGORY = "Dungeon Map"
     private const val DUNGEONS_CATEGORY = "Dungeons"
@@ -300,7 +299,6 @@ object Config: Vigilant(
     )
     var ThreeWeirdosSolverColor = Color(0, 114, 255)
 
-
     @Property(
         type = PropertyType.SWITCH,
         name = "Livid Solver",
@@ -338,10 +336,166 @@ object Config: Vigilant(
 
     @Property(
         type = PropertyType.SWITCH,
+        name = "Teleport Overlay",
+        category = GENERAL_CATEGORY,
+        subcategory = "Teleport Overlay"
+    )
+    var teleportOverlay = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Etherwarp",
+        category = GENERAL_CATEGORY,
+        subcategory = "Teleport Overlay"
+    )
+    var teleportOverlayEtherwarp = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Instant Transmission",
+        category = GENERAL_CATEGORY,
+        subcategory = "Teleport Overlay"
+    )
+    var teleportOverlayInstantTransmission = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Wither Impact",
+        category = GENERAL_CATEGORY,
+        subcategory = "Teleport Overlay"
+    )
+    var teleportOverlayWitherImpact = false
+
+
+    @Property(
+        type = PropertyType.SELECTOR,
+        name = "Teleport Overlay Type",
+        description = "How to highlight the block",
+        category = GENERAL_CATEGORY,
+        subcategory = "Teleport Overlay",
+        options = ["Outline", "Overlay", "Outlined Overlay"],
+    )
+    var teleportOverlayType = 0
+
+    @Property(
+        type = PropertyType.DECIMAL_SLIDER,
+        name = "Teleport Overlay Outline Thickness",
+        description = "",
+        category = GENERAL_CATEGORY,
+        subcategory = "Teleport Overlay",
+        minF = 1f,
+        maxF = 10f
+    )
+    var teleportOverlayOutlineThickness = 5f
+
+    @Property(
+        type = PropertyType.COLOR,
+        name = "Valid Teleport Overlay Outline Color",
+        description = "The color of the Outline",
+        category = GENERAL_CATEGORY,
+        subcategory = "Teleport Overlay"
+    )
+    var teleportOverlayOutlineColor = Color(0, 114, 255, 255)
+
+    @Property(
+        type = PropertyType.COLOR,
+        name = "Valid Teleport Overlay Color",
+        description = "The color of the Overlay",
+        category = GENERAL_CATEGORY,
+        subcategory = "Teleport Overlay"
+    )
+    var teleportOverlayOverlayColor = Color(0, 114, 255, 75)
+
+    @Property(
+        type = PropertyType.COLOR,
+        name = "Invalid Teleport Overlay Outline Color",
+        description = "The color of the Outline",
+        category = GENERAL_CATEGORY,
+        subcategory = "Teleport Overlay"
+    )
+    var etherwarpOverlayOutlineColorInvalid = Color(255, 0, 0, 255)
+
+    @Property(
+        type = PropertyType.COLOR,
+        name = "Invalid Teleport Overlay Color",
+        description = "The color of the Overlay",
+        category = GENERAL_CATEGORY,
+        subcategory = "Teleport Overlay"
+    )
+    var etherwarpOverlayOverlayColorInvalid = Color(255, 0, 0, 75)
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Phase Teleport Overlay",
+        description = "Whether to Enable or Disable Depth Checking.",
+        category = GENERAL_CATEGORY,
+        subcategory = "Teleport Overlay"
+    )
+    var TeleportOverlayESP = true
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "ZPT Toggle",
+        category = ZPT_CATEGORY,
+        subcategory = "!Toggles"
+    )
+    var zeroPingTeleportation = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Etherwarp",
+        category = ZPT_CATEGORY,
+        subcategory = "!Toggles"
+    )
+    var zeroPingEtherwarp = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Instant Transmission",
+        category = ZPT_CATEGORY,
+        subcategory = "!Toggles"
+    )
+    var zeroPingInstantTransmission = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Wither Impact",
+        category = ZPT_CATEGORY,
+        subcategory = "!Toggles"
+    )
+    var zeroPingWitherImpact = false
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Etherwarp Keep Motion",
+        category = ZPT_CATEGORY,
+        subcategory = "KeepMotion"
+    )
+    var zeroPingEtherwarpKeepMotion = false
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Instant Transmission Keep Motion",
+        category = ZPT_CATEGORY,
+        subcategory = "KeepMotion"
+    )
+    var zeroPingInstantTransmissionKeepMotion = false
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Wither Impact Keep Motion",
+        category = ZPT_CATEGORY,
+        subcategory = "KeepMotion"
+    )
+    var zeroPingWitherImpactKeepMotion = false
+
+
+    @Property(
+        type = PropertyType.SWITCH,
         name = "Extra Slayer Info",
         description = "Sends in chat how many bosses you have to kill for the next level",
         category = SLAYER_CATEGORY,
-        subcategory = "Etherwarp"
+        subcategory = "Chat"
     )
     var extraSlayerInfo = false
 
@@ -1685,6 +1839,24 @@ object Config: Vigilant(
 
     @Property(
         type = PropertyType.SWITCH,
+        name = "Wardrobe Keybinds",
+        description = "Allows you to use your hotbar binds to swap armors in your wardrobe",
+        category = GUI_CATEGORY,
+        subcategory = "Wardrobe Keybinds"
+    )
+    var wardrobeKeybinds = false
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Wardrobe Keybinds Close After Use",
+        description = "Closes the wardrobe equiping an armor with keybind",
+        category = GUI_CATEGORY,
+        subcategory = "Wardrobe Keybinds"
+    )
+    var wardrobeKeybindsCloseAfterUse = false
+
+    @Property(
+        type = PropertyType.SWITCH,
         name = "Highlight Salvageable Items",
         category = GUI_CATEGORY,
         subcategory = "Inventory"
@@ -2139,14 +2311,7 @@ object Config: Vigilant(
         description = "How to adjust the World's time.",
         category = MISC_CATEGORY,
         subcategory = "Time Changer",
-        options = [
-            "Day",
-            "Noon",
-            "Sunset",
-            "Night",
-            "Midnight",
-            "Sunrise",
-        ]
+        options = ["Day", "Noon", "Sunset", "Night", "Midnight", "Sunrise"]
     )
     var TimeChangerMode = 0
 
@@ -2162,7 +2327,7 @@ object Config: Vigilant(
     @Property(
         type = PropertyType.SWITCH,
         name = "Smooth Sneak",
-        description = "Backport for newer minecraft version's sneak animation.",
+        description = "Backport for newer minecraft version's sneak animation.\nMay messup some mods.",
         category = MISC_CATEGORY,
         subcategory = "Clear Sight"
     )
@@ -2188,6 +2353,15 @@ object Config: Vigilant(
         subcategory = DUNGEONS_CATEGORY
     )
     var bonzoBossRespawnAlert = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Crypts Done Alert",
+        description = "Shows on Screen when you have 5 Crypts",
+        category = ALERTS_CATEGORY,
+        subcategory = DUNGEONS_CATEGORY
+    )
+    var cryptsDoneAlert = false
 
     @Property(
         type = PropertyType.SWITCH,
@@ -2323,7 +2497,7 @@ object Config: Vigilant(
         name = "Dungeon Chest Profit",
         description = "Shows the profit you get from Dungeon Chests.",
         category = DUNGEONS_CATEGORY,
-        subcategory = "DungeonChectProfit"
+        subcategory = "Dungeon Chect Profit"
     )
     var DungeonChectProfit = false
 
@@ -2332,16 +2506,25 @@ object Config: Vigilant(
         name = "Croesus Chests Profit",
         description = "Shows the profit you get for each chest type in Croesus's menu.",
         category = DUNGEONS_CATEGORY,
-        subcategory = "DungeonChectProfit"
+        subcategory = "Dungeon Chect Profit"
     )
     var CroesusChestsProfit = false
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Includes Essence Profit",
+        description = "Includes the profit from Essence in the profit overlay.",
+        category = DUNGEONS_CATEGORY,
+        subcategory = "Dungeon Chect Profit"
+    )
+    var dungeonChestProfitIncludesEssence = true
 
     @Property(
         type = PropertyType.CHECKBOX,
         name = "Sort the chests by profit",
         description = "Sorts the chests in the profit overlay by profit.",
         category = DUNGEONS_CATEGORY,
-        subcategory = "DungeonChectProfit"
+        subcategory = "Dungeon Chect Profit"
     )
     var CroesusChestsProfitSortByProfit = false
 
@@ -2350,7 +2533,7 @@ object Config: Vigilant(
         name = "Croesus Chest Highlight",
         description = "Highlights the runs you did in Croesus's menu according to the chests state\n\nGreen: None of the chests has been opened.\nYellow: Has 1 opened chests and you can open another one.\nRed: All possible chests have been opened.",
         category = DUNGEONS_CATEGORY,
-        subcategory = "DungeonChectProfit"
+        subcategory = "Dungeon Chect Profit"
     )
     var CroesusChestHighlight = false
 
@@ -2359,7 +2542,7 @@ object Config: Vigilant(
         name = "Hide Red Highlighted Chests",
         description = "Instand of highlighting the runs that All possible chests have been opened, just hide them.",
         category = DUNGEONS_CATEGORY,
-        subcategory = "DungeonChectProfit"
+        subcategory = "Dungeon Chect Profit"
     )
     var CroesusChestHighlightHideRedChests = false
 
@@ -2368,7 +2551,7 @@ object Config: Vigilant(
         name = "RNG Drop Announcer",
         description = "Sends in party chat the RNG drop you got with the profit you made",
         category = DUNGEONS_CATEGORY,
-        subcategory = "DungeonChectProfit"
+        subcategory = "Dungeon Chect Profit"
     )
     var RNGDropAnnouncer = false
 
@@ -2522,6 +2705,26 @@ object Config: Vigilant(
 
     @Property(
         type = PropertyType.SWITCH,
+        name = "Relic Look",
+        description = "Rotates your head to look at the relic's cauldron",
+        category = DUNGEONS_CATEGORY,
+        subcategory = "M7"
+    )
+    var M7RelicLook = false
+
+    @Property(
+        type = PropertyType.NUMBER,
+        name = "Relic Look Rotation Time",
+        category = DUNGEONS_CATEGORY,
+        subcategory = "M7",
+        min = 0,
+        max = 500,
+        increment = 10
+    )
+    var M7RelicLookTime = 200
+
+    @Property(
+        type = PropertyType.SWITCH,
         name = "Crystal Spawn Timer",
         description = "Displays a timer for when Maxor's crystal are about to spawn. \n\nBased on server ticks so will work perfectly even if the server is lagging",
         category = DUNGEONS_CATEGORY,
@@ -2645,14 +2848,15 @@ object Config: Vigilant(
 
     init {
 
+        /*
         registerListener("pvCommand") { newValue: Boolean ->
             if (newValue) CommandManager.registerCommand(ProfileViewerCommand)
             else CommandManager.unregisterCommand(ProfileViewerCommand)
-        }
+        }*/
 
 
         setCategoryDescription(
-            "",
+            EMPTY_CATEGORY,
             """
                 $FULL_PREFIX&r &6($MOD_VERSION)
                 
@@ -2665,6 +2869,21 @@ object Config: Vigilant(
             """.trimIndent()
         )
 
+        setCategoryDescription(
+            ZPT_CATEGORY, listOf(
+                "Instantly Teleport without waiting for the server's teleport packet.",
+                "Instead, it performs all necessary calculations client-side and teleports you immediately.",
+                "While the prediction is good, it still far from being perfect.",
+                "There are some failsafes to prevent you from teleporting to places ",
+                "you cant like in some dungeon puzzles or Skyblock zones.",
+                "And on top of that if the two last teleport attempts fail",
+                "the feature will temporarily revert to normal etherwarp behavior.",
+                "Regardless of that dont be stupid with this feature on."
+            ).joinToString("\n")
+        )
+        setSubcategoryDescription(ZPT_CATEGORY, "KeepMotion", "Keeps your momentum between teleports.")
+
+
         setCategoryDescription(ESP_CATEGORY, "Disable Optifine's fast render and Patcher's entity culling.")
         setCategoryDescription(DEV_CATEGORY, "A list of Broken/Unfinished features and UAYOR.")
 
@@ -2672,6 +2891,21 @@ object Config: Vigilant(
         // General
         addDependency(::ChatCoordsWayPointColor.javaField !!, ::ChatCoordsWayPoint.javaField !!)
         addDependency(::CustomSlotHighlightColor.javaField !!, ::CustomSlotHighlight.javaField !!)
+        addDependency(::wardrobeKeybindsCloseAfterUse.javaField !!, ::wardrobeKeybinds.javaField !!)
+
+        listOf(
+            ::teleportOverlayEtherwarp,
+            ::teleportOverlayInstantTransmission,
+            ::teleportOverlayWitherImpact,
+            ::teleportOverlayType,
+            ::teleportOverlayOutlineThickness,
+            ::teleportOverlayOutlineColor,
+            ::teleportOverlayOverlayColor,
+            ::etherwarpOverlayOutlineColorInvalid,
+            ::etherwarpOverlayOverlayColorInvalid,
+            ::TeleportOverlayESP,
+        ).forEach { addDependency(it.javaField !!, ::teleportOverlay.javaField !!) }
+
 
         listOf(
             ::pcPtme, ::pcWarp, ::pcAllinv,
@@ -2680,6 +2914,15 @@ object Config: Vigilant(
             ::pcPing, ::pcGay,
         ).forEach { addDependency(it.javaField !!, ::PartyCommands.javaField !!) }
 
+        // Zero Ping Teleportation
+        listOf(
+            ::zeroPingEtherwarp,
+            ::zeroPingInstantTransmission,
+            ::zeroPingWitherImpact,
+            ::zeroPingEtherwarpKeepMotion,
+            ::zeroPingInstantTransmissionKeepMotion,
+            ::zeroPingWitherImpactKeepMotion
+        ).forEach { addDependency(it.javaField !!, ::zeroPingTeleportation.javaField !!) }
 
         // Dungeons
 
@@ -2844,11 +3087,11 @@ object Config: Vigilant(
 
     }
 
-
     private object Sorting: SortingBehavior() {
         override fun getCategoryComparator(): Comparator<in Category> = Comparator.comparingInt { c: Category ->
             listOf(
                 GENERAL_CATEGORY,
+                ZPT_CATEGORY,
                 DMAP_CATEGORY,
                 DUNGEONS_CATEGORY,
                 TERMINALS_CATEGORY,

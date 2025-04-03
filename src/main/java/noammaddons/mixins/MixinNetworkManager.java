@@ -25,12 +25,13 @@ public class MixinNetworkManager {
         if (postAndCatch(new PacketEvent.Sent(packet))) ci.cancel();
     }
 
+
     @Inject(method = "channelRead0*", at = @At("TAIL"))
     private void onPostReceivePacket(ChannelHandlerContext context, Packet<?> packet, CallbackInfo ci) {
         postAndCatch(new PostPacketEvent.Received(packet));
     }
 
-    @Inject(method = "sendPacket(Lnet/minecraft/network/Packet;)V", at = @At("HEAD"))
+    @Inject(method = "sendPacket(Lnet/minecraft/network/Packet;)V", at = @At("TAIL"))
     private void onPostSentPacket(Packet<?> packet, CallbackInfo ci) {
         postAndCatch(new PostPacketEvent.Sent(packet));
     }

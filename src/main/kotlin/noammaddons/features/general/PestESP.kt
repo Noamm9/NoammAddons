@@ -1,4 +1,4 @@
-package noammaddons.features.general.PestESP
+package noammaddons.features.general
 
 import gg.essential.elementa.utils.withAlpha
 import net.minecraft.entity.item.EntityArmorStand

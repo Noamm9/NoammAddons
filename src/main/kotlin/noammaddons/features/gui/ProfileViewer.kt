@@ -35,7 +35,7 @@ import kotlin.math.roundToInt
 
 
 // yes it's a mess
-object ProfleViewer: Feature() {
+object ProfileViewer: Feature() {
     val profileCache = mutableMapOf<String, Pair<DataClasses.PlayerData, Long>>()
     val categories = listOf("&bSkills", "&bDungeons", "&bInventory", "&bPets", "&bMisc")
     var currentCategory = categories[0]
@@ -268,7 +268,7 @@ object ProfleViewer: Feature() {
         }
 
         override fun mouseClicked(mouseX: Int, mouseY: Int, mouseButton: Int) {
-            val scale = 4 / ProfleViewer.mc.getScaleFactor().toFloat()
+            val scale = 4 / ProfileViewer.mc.getScaleFactor().toFloat()
             val (screenWidth, screenHeight) = getScreenSize(scale)
             val (rawMouseX, rawMouseY) = mouseX / scale to mouseY / scale
 
@@ -314,9 +314,14 @@ object ProfleViewer: Feature() {
 
 
     fun getExpValues(): List<Int> {
-        val isAatrox = mayorData?.perks?.any { it == "Slayer XP Buff" } == true
-        return if (isAatrox) listOf(1850, 625, 125, 37, 7)
-        else listOf(1500, 500, 100, 25, 5)
+        mayorData?.mayor?.let {
+            if (it.perks.any { perk -> perk.name == "Slayer XP Buff" } ||
+                it.minister?.perks?.any { perk -> perk.name == "Slayer XP Buff" } == true) {
+                return listOf(1850, 625, 125, 37, 7)
+            }
+        }
+
+        return listOf(1500, 500, 100, 25, 5)
     }
 
     fun formatCommas(number: Number): String = number.toString().replace(Regex("(\\d)(?=(\\d{3})+$)"), "$1,")

@@ -2,6 +2,7 @@ package noammaddons.utils
 
 import com.mojang.authlib.minecraft.MinecraftProfileTexture.*
 import gg.essential.universal.ChatColor
+import net.minecraft.entity.Entity
 import net.minecraft.init.Items
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
@@ -10,6 +11,7 @@ import net.minecraft.nbt.NBTUtil.*
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.common.util.Constants
 import noammaddons.noammaddons.Companion.bzData
+import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.itemIdToNameLookup
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.addColor
@@ -122,6 +124,7 @@ object ItemUtils {
 
     fun ItemStack.getItemId(): Int = Item.getIdFromItem(item)
     fun ItemStack.getSkullId(): String? = getSubCompound("SkullOwner", false)?.getString("Id")
+    fun getSkullValue(entity: Entity?): String? = entity?.inventory?.get(4)?.let { getSkullTexture(it) }
 
     fun getHeadSkinTexture(itemStack: ItemStack): ResourceLocation? {
         if (itemStack.item != Items.skull || itemStack.metadata != 3) return null
@@ -143,19 +146,19 @@ object ItemUtils {
 
         val textures = nbt.getCompoundTag("SkullOwner")
             ?.getCompoundTag("Properties")
-            ?.getTagList("textures", 10) // 10 = NBTTagCompound type
+            ?.getTagList("textures", 10)
 
         if (textures == null || textures.tagCount() == 0) return null
 
         return textures.getCompoundTagAt(0)?.getString("Value")
     }
 
-    fun getEssenceValue(text: String): Double? {
-        //    if (!Skytils.config.dungeonChestProfitIncludesEssence) return null
-        val groups = essenceRegex.matchEntire(text)?.groups ?: return null
-        val type = groups["type"]?.value?.uppercase() ?: return null
-        val count = groups["count"]?.value?.toInt() ?: return null
-        return (bzData["ESSENCE_$type"]?.price ?: .0) * count
+    fun getEssenceValue(text: String): Double {
+        if (! config.dungeonChestProfitIncludesEssence) return .0
+        val groups = essenceRegex.matchEntire(text)?.groups ?: return .0
+        val type = groups["type"]?.value?.uppercase() ?: return .0
+        val count = groups["count"]?.value?.toInt() ?: return .0
+        return (bzData["ESSENCE_$type"]?.sellPrice ?: .0) * count
     }
 
     fun getIdFromName(name: String): String? {

@@ -26,7 +26,7 @@ public class MixinMinecraft {
     private static ResourceLocation locationMojangPng;
 
     @Shadow
-    private static Minecraft theMinecraft;
+    private int leftClickCounter;
     @Unique
     private GuiScreen noammAddons$previousGuiScreen = null;
 
@@ -35,6 +35,11 @@ public class MixinMinecraft {
         if (postAndCatch(new ClickEvent.LeftClickEvent())) {
             ci.cancel();
         }
+    }
+
+    @Inject(method = "clickMouse", at = @At("RETURN"))
+    private void postLeftClick(CallbackInfo ci) {
+        leftClickCounter = 0;
     }
 
     @Inject(method = "rightClickMouse", at = @At("HEAD"), cancellable = true)

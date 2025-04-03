@@ -5,7 +5,6 @@ import net.minecraft.util.BlockPos
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Tick
 import noammaddons.features.Feature
-import noammaddons.noammaddons
 import noammaddons.utils.BlockUtils.ghostBlock
 import noammaddons.utils.JsonUtils.fetchJsonWithRetry
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
@@ -61,7 +60,7 @@ object BetterFloors: Feature() {
     init {
         fetchJsonWithRetry<Map<String, List<Map<String, Double>>>>(
             "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/betterFloors/F7BossCoords.json"
-        ) { f7Config = it; noammaddons.Logger.info(it) }
+        ) { f7Config = it }
 
         fetchJsonWithRetry<Map<String, List<Map<String, Double>>>>(
             "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/betterFloors/F6BossCoords.json"

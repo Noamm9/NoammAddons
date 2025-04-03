@@ -1,18 +1,21 @@
 package noammaddons.features.dungeons
 
 import net.minecraft.entity.item.EntityArmorStand
+import net.minecraft.network.play.server.S2FPacketSetSlot
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.noammaddons.Companion.personalBests
+import noammaddons.utils.ActionUtils
 import noammaddons.utils.BlockUtils.toPos
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.DungeonUtils.thePlayer
 import noammaddons.utils.LocationUtils.F7Phase
+import noammaddons.utils.MathUtils.add
 import noammaddons.utils.MathUtils.distance2D
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderHelper.getHeight
@@ -21,6 +24,7 @@ import noammaddons.utils.RenderUtils.drawBlockBox
 import noammaddons.utils.RenderUtils.drawBox
 import noammaddons.utils.RenderUtils.drawCenteredText
 import noammaddons.utils.RenderUtils.drawTracer
+import noammaddons.utils.Utils.equalsOneOf
 import java.awt.Color
 
 
@@ -133,6 +137,19 @@ object M7Relics: Feature() {
                 outline = true, fill = true,
                 width = 0.5, height = 0.5
             )
+        }
+    }
+
+    @SubscribeEvent
+    fun onPacket(event: PostPacketEvent.Received) {
+        if (! config.M7RelicLook) return
+        if (F7Phase != 5) return
+        if (event.packet !is S2FPacketSetSlot) return
+
+        RelicCauldrons[event.packet.func_149174_e()?.displayName?.removeFormatting()]?.let { c ->
+            if (! c.relicPos.equalsOneOf(BlockPos(92, 7, 56), BlockPos(20, 7, 59))) return@let
+
+            ActionUtils.rotateSmoothlyTo(c.cauldronPos.add(0.5, 0.5, 0.5), config.M7RelicLookTime.toLong())
         }
     }
 

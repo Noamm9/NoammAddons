@@ -1,4 +1,4 @@
-package noammaddons.features.general
+package noammaddons.features.general.teleport
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.SoundPlayEvent

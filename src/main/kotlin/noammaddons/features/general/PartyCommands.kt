@@ -31,7 +31,7 @@ object PartyCommands: Feature() {
     )
 
     fun runCommand(command: String, needLeader: Boolean = false) {
-        if (needLeader && ! PartyUtils.isPartyLeader()) return
+        if (needLeader && PartyUtils.leader != mc.session.username) return
         sendChatMessage("/$command")
     }
 
@@ -52,70 +52,66 @@ object PartyCommands: Feature() {
     }
 
     @SubscribeEvent
-    fun trigger(event: Chat) {
+    fun onChat(event: Chat) {
         if (! config.PartyCommands) return
-        val msg = event.component.noFormatText
+        val (name, sign, commandString) = partyCommandRegex.find(event.component.noFormatText)?.destructured ?: return
 
-        partyCommandRegex.find(msg)?.let {
-            val (name, sign, commandString) = it.destructured
+        var args = commandString.split(" ")
+        val command = args.firstOrNull()?.lowercase() ?: return
+        args = args.drop(1)
 
-            var args = commandString.split(" ")
-            val command = args.firstOrNull()?.lowercase() ?: return@let
-            args = args.drop(1)
+        when {
+            config.pcFloor && command.startsWith("f") -> {
+                val floorNumber = command.replace("f", "").toIntOrNull() ?: args[0].toIntOrNull() ?: return
+                if (floorNumber !in 0 .. 7) return
+                runCommand("joininstance CATACOMBS_FLOOR_${NUMBERS_TO_TEXT[floorNumber]}", true)
+            }
 
-            when {
-                config.pcFloor && command.startsWith("f") -> {
-                    val floorNumber = command.replace("f", "").toIntOrNull() ?: args[0].toIntOrNull() ?: return@let
-                    if (floorNumber !in 0 .. 7) return@let
-                    runCommand("joininstance CATACOMBS_FLOOR_${NUMBERS_TO_TEXT[floorNumber]}", true)
-                }
+            config.pcMasterFloor && command.startsWith("m") -> {
+                val floorNumber = command.replace("m", "").toIntOrNull() ?: args[0].toIntOrNull() ?: return
+                if (floorNumber !in 1 .. 7) return
+                runCommand("joininstance MASTER_CATACOMBS_FLOOR_${NUMBERS_TO_TEXT[floorNumber]}", true)
+            }
 
-                config.pcMasterFloor && command.startsWith("m") -> {
-                    val floorNumber = command.replace("m", "").toIntOrNull() ?: args[0].toIntOrNull() ?: return@let
-                    if (floorNumber !in 1 .. 7) return@let
-                    runCommand("joininstance MASTER_CATACOMBS_FLOOR_${NUMBERS_TO_TEXT[floorNumber]}", true)
-                }
+            config.pcPtme && command.equalsOneOf("pt", "ptme") -> {
+                if (name == mc.session.username) return
+                runCommand("p transfer ${args.firstOrNull() ?: name}", true)
+            }
 
-                config.pcPtme && command.equalsOneOf("pt", "ptme") -> {
-                    if (name == mc.session.username) return@let
-                    runCommand("p transfer ${args.firstOrNull() ?: name}", true)
-                }
+            config.pcWarp && command.equalsOneOf("w", "warp") -> {
+                runCommand("p warp", true)
+            }
 
-                config.pcWarp && command.equalsOneOf("w", "warp") -> {
-                    runCommand("p warp", true)
-                }
+            config.pcAllinv && command.equalsOneOf("ai", "allinv", "allinvite") -> {
+                runCommand("p settings allinvite", true)
+            }
 
-                config.pcAllinv && command.equalsOneOf("ai", "allinv", "allinvite") -> {
-                    runCommand("p settings allinvite", true)
-                }
+            config.pcCoords && command.equalsOneOf("cords", "coords") -> {
+                val (x, y, z) = mc.thePlayer.position.destructured()
+                runCommand("pc x: $x, y: $y, z: $z")
+            }
 
-                config.pcCoords && command.equalsOneOf("cords", "coords") -> {
-                    val (x, y, z) = mc.thePlayer.position.destructured()
-                    runCommand("pc x: $x, y: $y, z: $z")
-                }
+            config.pcTPS && command == "tps" -> {
+                runCommand("pc ${CHAT_PREFIX.removeFormatting()} ${TpsDisplay.getTps()}")
+            }
 
-                config.pcTPS && command == "tps" -> {
-                    runCommand("pc ${CHAT_PREFIX.removeFormatting()} ${TpsDisplay.getTps()}")
-                }
+            config.pcDt && command.equalsOneOf("dt", "downtime") -> {
+                downtimeList.add(name to if (args.isEmpty()) "No Reason Provided" else args.joinToString(" "))
+            }
 
-                config.pcDt && command.equalsOneOf("dt", "downtime") -> {
-                    downtimeList.add(name to if (args.isEmpty()) "No Reason Provided" else args.joinToString(" "))
-                }
+            config.pcGay && command == "gay" -> {
+                val target = args.firstOrNull() ?: name
+                val gayPercentage = (Math.random() * 100).roundToInt().coerceIn(0, 100)
+                runCommand("pc $target is $gayPercentage% gay.")
+            }
 
-                config.pcGay && command == "gay" -> {
-                    val target = args.firstOrNull() ?: name
-                    val gayPercentage = (Math.random() * 100).roundToInt().coerceIn(0, 100)
-                    runCommand("pc $target is $gayPercentage% gay.")
-                }
+            config.pcPing && command == "ping" -> getPing { ping ->
+                runCommand("pc ${CHAT_PREFIX.removeFormatting()} Ping: ${ping}ms")
+            }
 
-                config.pcPing && command == "ping" -> getPing { ping ->
-                    runCommand("pc ${CHAT_PREFIX.removeFormatting()} Ping: ${ping}ms")
-                }
-
-                config.pcInv && command.equalsOneOf("invite", "inv", "kidnap") -> {
-                    if (args.isEmpty()) return@let
-                    runCommand("p invite ${args.joinToString(" ")}", true)
-                }
+            config.pcInv && command.equalsOneOf("invite", "inv", "kidnap") -> {
+                if (args.isEmpty()) return
+                runCommand("p invite ${args.joinToString(" ")}", true)
             }
         }
     }

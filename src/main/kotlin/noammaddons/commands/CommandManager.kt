@@ -3,7 +3,6 @@ package noammaddons.commands
 import net.minecraftforge.client.ClientCommandHandler
 import noammaddons.commands.commands.*
 import noammaddons.mixins.AccessorCommandHandler
-import noammaddons.noammaddons.Companion.config
 
 object CommandManager {
     val commands = setOf(
@@ -17,7 +16,7 @@ object CommandManager {
 
     fun registerCommands() {
         commands.forEach(::registerCommand)
-        if (config.pvCommand) registerCommand(ProfileViewerCommand)
+        //  if (config.pvCommand) registerCommand(ProfileViewerCommand)
     }
 
     fun registerCommand(command: Command) = ClientCommandHandler.instance.registerCommand(command)

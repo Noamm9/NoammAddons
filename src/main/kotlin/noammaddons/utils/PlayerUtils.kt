@@ -2,6 +2,7 @@ package noammaddons.utils
 
 import net.minecraft.client.settings.KeyBinding.*
 import net.minecraft.entity.Entity
+import net.minecraft.init.Items
 import net.minecraft.item.ItemStack
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.util.Vec3
@@ -112,9 +113,10 @@ object PlayerUtils {
         modMessage("Swapped to ${mcInventory.getStackInSlot(slotIndex)?.displayName ?: "&4&lNOTHING!"}&r in slot &6$slotIndex")
     }
 
-    fun isHoldingWitherImpact(): Boolean {
-        val heldItem = mc.thePlayer?.heldItem ?: return false
-        val nbt = heldItem.tagCompound ?: return false
+    fun isHoldingWitherImpact(itemstack: ItemStack? = mc.thePlayer?.heldItem): Boolean {
+        itemstack ?: return false
+        if (mc.isSingleplayer && itemstack.item == Items.iron_sword) return true
+        val nbt = itemstack.tagCompound ?: return false
 
         val extraAttributes = nbt.getCompoundTag("ExtraAttributes") ?: return false
         val abilityScroll = extraAttributes.getTagList("ability_scroll", 8).toString()
@@ -124,10 +126,10 @@ object PlayerUtils {
         }
     }
 
-    fun isHoldingTpItem(): Boolean {
-        val held = mc.thePlayer?.heldItem ?: return false
-        val nbt = held.getSubCompound("ExtraAttributes", false) ?: return false
-        val sbId = held.SkyblockID ?: return false
+    fun isHoldingTpItem(itemstack: ItemStack? = mc.thePlayer?.heldItem): Boolean {
+        if (mc.isSingleplayer && itemstack?.item == Items.diamond_shovel) return true
+        val nbt = itemstack?.getSubCompound("ExtraAttributes", false) ?: return false
+        val sbId = itemstack.SkyblockID ?: return false
 
         if (sbId.equalsOneOf("ASPECT_OF_THE_END", "ASPECT_OF_THE_VOID")) return true
         if (nbt.getByte("ethermerge") == 1.toByte()) return true
@@ -136,10 +138,10 @@ object PlayerUtils {
         }
     }
 
-    fun isHoldingEtherwarpItem(): Boolean {
-        val held = mc.thePlayer?.heldItem ?: return false
-        val sbId = held.SkyblockID ?: return false
-        if (! sbId.equalsOneOf("ASPECT_OF_THE_END", "ASPECT_OF_THE_VOID")) return false
-        return held.getSubCompound("ExtraAttributes", false)?.getByte("ethermerge") == 1.toByte()
+    fun isHoldingEtherwarpItem(itemstack: ItemStack? = ServerPlayer.player.getHeldItem()): Boolean {
+        itemstack ?: return false
+        if (mc.isSingleplayer && itemstack.item == Items.diamond_shovel) return true
+        val sbId = itemstack.SkyblockID ?: return false
+        return sbId == "ETHERWARP_CONDUIT" || itemstack.getSubCompound("ExtraAttributes", false).getBoolean("ethermerge")
     }
 }

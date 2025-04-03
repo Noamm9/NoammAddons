@@ -53,8 +53,8 @@ object ActionBarParser {
             maxMana = match.groupValues[2].replace(",", "").toIntOrNull() ?: maxMana
         }
 
-        OVERFLOW_REGEX.find(input)?.let { match ->
-            overflowMana = match.groupValues[1].replace(",", "").toIntOrNull() ?: overflowMana
+        OVERFLOW_REGEX.find(input).let { match ->
+            overflowMana = match?.groupValues?.get(1)?.replace(",", "")?.toIntOrNull() ?: 0
         }
 
         MANA_USAGE_REGEX.find(input)?.let { match ->
