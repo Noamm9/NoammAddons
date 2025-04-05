@@ -89,7 +89,7 @@ class RenderScoreBoardEvent(val objective: ScoreObjective, val scaledRes: Scaled
 @Cancelable
 class BlockChangeEvent(val pos: BlockPos, val block: Block, val oldBlock: Block): Event()
 
-class RenderOverlay: Event()
+class RenderOverlay(val partialTicks: Float): Event()
 
 class RenderWorld(val partialTicks: Float): Event()
 

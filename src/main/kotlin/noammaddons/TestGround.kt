@@ -10,7 +10,6 @@ import kotlinx.coroutines.launch
 import net.minecraft.client.gui.GuiDownloadTerrain
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.item.EntityArmorStand
-import net.minecraft.entity.passive.EntitySheep
 import net.minecraft.network.play.client.C01PacketChatMessage
 import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.event.entity.player.AttackEntityEvent
@@ -45,7 +44,6 @@ import noammaddons.utils.LocationUtils.world
 import noammaddons.utils.MathUtils.destructured
 import noammaddons.utils.RenderHelper.getScaleFactor
 import noammaddons.utils.RenderHelper.renderVec
-import noammaddons.utils.RenderUtils.drawBackgroundedString
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.RenderUtils2D.modelViewMatrix
 import noammaddons.utils.RenderUtils2D.projectionMatrix
@@ -63,6 +61,8 @@ import java.awt.Color
 object TestGround {
     private var a = false
     private var sent = false
+
+    private var b = false
 
     @SubscribeEvent
     @Suppress("Unused_parameter")
@@ -181,6 +181,11 @@ object TestGround {
             "fullbright" -> {
                 mc.gameSettings.gammaSetting = 100000f
             }
+
+            "jump" -> {
+                b = ! b
+                modMessage(b)
+            }
         }
     }
 
@@ -289,12 +294,6 @@ object TestGround {
         GL11.glGetInteger(GL11.GL_VIEWPORT, viewportDims)
     }
 
-    @SubscribeEvent
-    fun a(e: RenderWorld) {
-        mc.theWorld.loadedEntityList.filterIsInstance<EntitySheep>().forEach {
-            drawBackgroundedString(it.customNameTag, it.renderVec)
-        }
-    }
 }
 
 /*

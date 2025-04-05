@@ -11,8 +11,8 @@ import noammaddons.events.GuiMouseClickEvent
 import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.GuiUtils.getSlotRenderPos
-import noammaddons.utils.RenderUtils.drawBorder
 import noammaddons.utils.RenderUtils.drawLine
+import noammaddons.utils.RenderUtils.drawRectBorder
 import noammaddons.utils.SoundUtils
 import org.lwjgl.input.Keyboard.*
 
@@ -132,28 +132,9 @@ object SlotBinding: Feature() {
     }
 
     private fun drawBinding(slotPos: Pair<Float, Float>, hotbarSlotPos: Pair<Float, Float>) {
-        drawLine(
-            config.SlotBindingLineColor,
-            slotPos.first + 8f, slotPos.second + 8f,
-            hotbarSlotPos.first + 8f, hotbarSlotPos.second + 8f,
-            3
-        )
-        drawBorder(
-            config.SlotBindingBorderColor,
-            slotPos.first,
-            slotPos.second,
-            slotPos.first + 16,
-            slotPos.second + 16,
-            2
-        )
-        drawBorder(
-            config.SlotBindingBorderColor,
-            hotbarSlotPos.first,
-            hotbarSlotPos.second,
-            hotbarSlotPos.first + 16,
-            hotbarSlotPos.second + 16,
-            2
-        )
+        drawLine(config.SlotBindingLineColor, slotPos.first + 8f, slotPos.second + 8f, hotbarSlotPos.first + 8f, hotbarSlotPos.second + 8f, 3)
+        drawRectBorder(config.SlotBindingBorderColor, slotPos.first, slotPos.second, 16, 16, 2)
+        drawRectBorder(config.SlotBindingBorderColor, hotbarSlotPos.first, hotbarSlotPos.second, 16, 16, 2)
     }
 
     private fun isHotbarSlot(slot: Int): Boolean = slot in 36 .. 44

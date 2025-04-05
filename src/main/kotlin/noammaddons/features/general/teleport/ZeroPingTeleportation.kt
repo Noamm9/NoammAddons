@@ -177,7 +177,8 @@ object ZeroPingTeleportation: Feature() {
         if (LocationUtils.dungeonFloorNumber == 7 && LocationUtils.inBoss) return null
         if (ActionBarParser.currentMana < ActionBarParser.maxMana * 0.1) return null
         if (ScanUtils.currentRoom?.name.equalsOneOf("New Trap", "Old Trap", "Teleport Maze", "Boulder")) return null
-        if (getBlockAt(mc.objectMouseOver.blockPos ?: BlockPos(- 1, - 1, - 1)).equalsOneOf(trapped_chest, chest, ender_chest, hopper)) return null
+        if (mc.thePlayer?.rayTrace(5.0, 1f)?.blockPos?.run { getBlockAt(this).equalsOneOf(trapped_chest, chest, ender_chest, hopper) } == true) return null
+        if (LocationUtils.isInHubCarnival()) return null
 
         if (sbId.equalsOneOf("ASPECT_OF_THE_VOID", "ASPECT_OF_THE_END")) {
             val nbt = heldItem.getSubCompound("ExtraAttributes", false)

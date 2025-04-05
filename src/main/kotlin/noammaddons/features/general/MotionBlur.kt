@@ -3,24 +3,22 @@ package noammaddons.features.general
 import net.minecraft.client.renderer.*
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.client.shader.Framebuffer
-import net.minecraftforge.client.event.RenderGameOverlayEvent
+import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.events.RenderOverlay
 import noammaddons.features.Feature
 import org.lwjgl.opengl.GL11.*
 
-/*
- * Copyright (c) 2022 Moulberry
- */
+
 object MotionBlur: Feature() {
     private var blurBufferMain: Framebuffer? = null
     private var blurBufferInto: Framebuffer? = null
 
-    @SubscribeEvent
-    fun renderOverlay(event: RenderGameOverlayEvent.Post) {
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    fun renderOverlay(event: RenderOverlay) {
         if (! config.MotionBlur) return
         if (getAmount() == 0f) return
         if (mc.currentScreen != null) return
-        if (event.type != RenderGameOverlayEvent.ElementType.ALL) return
         if (! OpenGlHelper.isFramebufferEnabled()) return
 
         val width = mc.framebuffer.framebufferWidth

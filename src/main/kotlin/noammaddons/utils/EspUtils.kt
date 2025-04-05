@@ -4,8 +4,7 @@ import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.shader.Framebuffer
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
-import net.minecraftforge.fml.common.eventhandler.Event
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.eventhandler.*
 import noammaddons.events.*
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
@@ -29,6 +28,7 @@ object EspUtils {
         type: Int = config.espType
     ) {
         val entity = entity as? EntityLivingBase ?: return
+        if (allEntities.any { it.first == entity }) return
 
         when (type) {
             0 -> outlineEntities.add(entity to color)
@@ -63,7 +63,7 @@ object EspUtils {
         removeIf { it.first == entity }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     fun onEvent(event: Event) = when (event) {
         is WorldUnloadEvent -> {
             outlineEntities.clear()

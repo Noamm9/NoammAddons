@@ -55,13 +55,14 @@ object LividSolver: Feature() {
         when (event) {
             is RenderEntityEvent -> {
                 if (! config.hideWrongLivids) return
-                if (event.entity == currentLivid) return espMob(event.entity, color)
+                if (event.entity == currentLivid) return
                 if (dungeonTeammates.map { it.entity?.entityId }.contains(event.entity.entityId)) return
                 if (event.entity is EntityArmorStand && ! event.entity.name.contains("Livid")) return
                 event.isCanceled = true
             }
 
             is RenderWorld -> {
+                espMob(currentLivid !!, color)
                 drawTracer(currentLivid !!.renderVec.add(y = 0.9), color)
                 drawString(
                     format(currentLivid !!.health),

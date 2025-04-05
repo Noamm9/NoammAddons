@@ -11,7 +11,6 @@ import noammaddons.utils.LocationUtils.F7Phase
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.world
-import noammaddons.utils.Utils.equalsOneOf
 import java.awt.Color
 
 
@@ -73,7 +72,6 @@ object WitherESP: Feature() {
     @SubscribeEvent
     fun onEntityRender(event: PostRenderEntityModelEvent) {
         if (! config.espWithers) return
-        if (! config.espType.equalsOneOf(0, 2)) return
         if (! isValidLoc()) return
         if (event.entity != Wither.currentWither) return
         espMob(event.entity, Wither.currentColor)

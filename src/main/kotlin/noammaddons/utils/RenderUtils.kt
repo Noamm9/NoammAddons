@@ -614,6 +614,28 @@ object RenderUtils {
         GlStateManager.popMatrix()
     }
 
+    fun drawRectBorder(color: Color, x: Number, y: Number, width: Number, height: Number, lineWidth: Number = 1f) {
+        val pos = mutableListOf(x.toFloat(), y.toFloat(), x.toFloat() + width.toFloat(), y.toFloat() + height.toFloat())
+        if (pos[0] > pos[2]) Collections.swap(pos, 0, 2)
+        if (pos[1] > pos[3]) Collections.swap(pos, 1, 3)
+
+        GlStateManager.pushMatrix()
+        preDraw()
+        bindColor(color)
+        glLineWidth(lineWidth.toFloat())
+
+        worldRenderer.begin(GL_LINE_LOOP, DefaultVertexFormats.POSITION)
+        worldRenderer.pos(pos[0].toDouble(), pos[3].toDouble(), 0.0).endVertex()
+        worldRenderer.pos(pos[2].toDouble(), pos[3].toDouble(), 0.0).endVertex()
+        worldRenderer.pos(pos[2].toDouble(), pos[1].toDouble(), 0.0).endVertex()
+        worldRenderer.pos(pos[0].toDouble(), pos[1].toDouble(), 0.0).endVertex()
+        tessellator.draw()
+
+        postDraw()
+        glLineWidth(1f)
+        GlStateManager.popMatrix()
+    }
+
     fun drawPlayerHead(resourceLocation: ResourceLocation, x: Float, y: Float, width: Float, height: Float, radius: Float = 10f) {
         GlStateManager.pushMatrix()
         preDraw()
@@ -668,39 +690,6 @@ object RenderUtils {
         tessellator.draw()
 
         postDraw()
-        GlStateManager.popMatrix()
-    }
-
-    fun drawBorder(color: Color, x1: Number, y1: Number, x2: Number, y2: Number, thickness: Number = 1f) {
-        GlStateManager.pushMatrix()
-        preDraw()
-
-        glLineWidth(thickness.toFloat())
-        bindColor(color)
-
-        // Use GL_LINES and define each segment explicitly
-        worldRenderer.begin(GL_LINES, DefaultVertexFormats.POSITION)
-
-        // Top border
-        worldRenderer.pos(x1.toDouble(), y1.toDouble(), 0.0).endVertex()
-        worldRenderer.pos(x2.toDouble(), y1.toDouble(), 0.0).endVertex()
-
-        // Bottom border
-        worldRenderer.pos(x1.toDouble(), y2.toDouble(), 0.0).endVertex()
-        worldRenderer.pos(x2.toDouble(), y2.toDouble(), 0.0).endVertex()
-
-        // Left border
-        worldRenderer.pos(x1.toDouble(), y1.toDouble(), 0.0).endVertex()
-        worldRenderer.pos(x1.toDouble(), y2.toDouble(), 0.0).endVertex()
-
-        // Right border
-        worldRenderer.pos(x2.toDouble(), y1.toDouble(), 0.0).endVertex()
-        worldRenderer.pos(x2.toDouble(), y2.toDouble(), 0.0).endVertex()
-
-        tessellator.draw()
-
-        postDraw()
-        glLineWidth(1f)
         GlStateManager.popMatrix()
     }
 

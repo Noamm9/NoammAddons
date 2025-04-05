@@ -139,6 +139,12 @@ object LocationUtils {
         dungeonFloorNumber = dungeonFloor?.lastOrNull()?.digitToIntOrNull() ?: 0
     }
 
+    fun isInHubCarnival(): Boolean {
+        return isCoordinateInsideBox(
+            mc.thePlayer?.positionVector ?: return false,
+            Vec3(- 123.0, 100.0, 36.0), Vec3(- 64.0, 70.0, - 31.0)
+        )
+    }
 
     private fun getPhase(): Int? {
         if (dungeonFloorNumber != 7 && ! inBoss) return null

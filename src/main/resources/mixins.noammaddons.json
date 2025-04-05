@@ -11,6 +11,7 @@
     "AccessorMinecraft",
     "MixinBossStatus",
     "MixinEntityPlayerSP",
+    "MixinEntityRenderer",
     "MixinFontRenderer",
     "MixinGuiButton",
     "MixinGuiContainer",

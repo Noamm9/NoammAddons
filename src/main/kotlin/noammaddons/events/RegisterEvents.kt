@@ -1,5 +1,6 @@
 package noammaddons.events
 
+import gg.essential.api.EssentialAPI
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.init.Blocks
@@ -54,7 +55,7 @@ object RegisterEvents {
             Logger.error("An error occurred ${it.message}")
             ChatUtils.clickableChat(
                 "Caught and logged an ${it::class.simpleName ?: "error"} at ${this::class.simpleName}. Please report this!, Error: ${it.message}",
-                "", it.stackTrace.take(15).joinToString("\n")
+                "", it.stackTrace.joinToString("\n")
             )
         }.getOrDefault(isCanceled)
     }
@@ -95,12 +96,8 @@ object RegisterEvents {
             }
 
             is RenderGameOverlayEvent.Text -> {
-                if (mc.renderManager?.fontRenderer == null) return
-                GlStateManager.pushMatrix()
-                GlStateManager.translate(0f, 0f, - 3f)
-                RenderOverlay().postCatch()
-                GlStateManager.translate(0f, 0f, 3f)
-                GlStateManager.popMatrix()
+                if (! EssentialAPI.getMinecraftUtil().isDevelopment()) return
+                RenderOverlay(1f).postCatch()
             }
 
             is RenderWorldLastEvent -> {

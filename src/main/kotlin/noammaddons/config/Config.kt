@@ -899,7 +899,8 @@ object Config: Vigilant(
         description = "The Command to use to take a potion, e.g '/pb', '/bp {num}', '/ec {num}'.",
         category = DUNGEONS_CATEGORY,
         subcategory = GENERAL_CATEGORY,
-        placeholder = "/pb"
+        placeholder = "/pb",
+        hidden = true
     )
     var AutoPotionCommand = "/pb"
 
@@ -1020,7 +1021,6 @@ object Config: Vigilant(
         description = "The sound that plays when clicking a Secret",
         category = DUNGEONS_CATEGORY,
         subcategory = "Secrets",
-        placeholder = "random.orb"
     )
     var secretSound = false
 
@@ -1203,6 +1203,59 @@ object Config: Vigilant(
         subcategory = "chat"
     )
     var StopCloseMyChat = true
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Stonk Swap Sound",
+        description = "The sound that plays when you successfully stonk swap",
+        category = DUNGEONS_CATEGORY,
+        subcategory = "Stonk Swap",
+    )
+    var stonkSwapSound = false
+
+    @Property(
+        type = PropertyType.TEXT,
+        name = "Stonk Swap Sound Name",
+        description = "The name of the sound that plays when Stonk Swaping.\nExamples: random.orb, mob.cat.meow",
+        category = DUNGEONS_CATEGORY,
+        subcategory = "Stonk Swap",
+        placeholder = "random.orb"
+    )
+    var stonkSwapSoundName = "random.orb"
+
+    @Property(
+        type = PropertyType.DECIMAL_SLIDER,
+        name = "Stonk Swap Sound Volume",
+        description = "The volume of the sound that plays when Stonk Swaping",
+        category = DUNGEONS_CATEGORY,
+        subcategory = "Stonk Swap",
+        minF = 0f,
+        maxF = 1f
+    )
+    var stonkSwapVolume = 0.5f
+
+    @Property(
+        type = PropertyType.DECIMAL_SLIDER,
+        name = "Stonk Swap Sound Pitch",
+        description = "The pitch of the sound that plays when Stonk Swaping",
+        category = DUNGEONS_CATEGORY,
+        subcategory = "Stonk Swap",
+        minF = 0f,
+        maxF = 2f
+    )
+    var stonkSwapPitch = 1f
+
+    @Property(
+        type = PropertyType.BUTTON,
+        name = "Play Stonk Swap Sound",
+        description = "Plays the sound that plays when clicking a Secret",
+        category = DUNGEONS_CATEGORY,
+        subcategory = "Stonk Swap",
+        placeholder = "CLICK"
+    )
+    fun playStonkSwapSound() = repeat(5) {
+        mc.thePlayer?.playSound(stonkSwapSoundName, stonkSwapVolume, stonkSwapPitch)
+    }
 
     @Property(
         type = PropertyType.CHECKBOX,
@@ -2925,6 +2978,14 @@ object Config: Vigilant(
         ).forEach { addDependency(it.javaField !!, ::zeroPingTeleportation.javaField !!) }
 
         // Dungeons
+        listOf(
+            ::CroesusChestsProfit,
+            ::dungeonChestProfitIncludesEssence,
+            ::CroesusChestsProfitSortByProfit,
+            ::CroesusChestHighlight,
+            ::CroesusChestHighlightHideRedChests,
+            ::RNGDropAnnouncer
+        ).forEach { addDependency(it.javaField !!, ::DungeonChectProfit.javaField !!) }
 
         listOf(
             ::secretSoundName,

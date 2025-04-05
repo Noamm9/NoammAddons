@@ -1,6 +1,7 @@
 package noammaddons.utils
 
 import kotlinx.coroutines.*
+import net.minecraft.network.play.client.C01PacketChatMessage
 import net.minecraft.util.Vec3
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.InventoryFullyOpenedEvent
@@ -37,6 +38,7 @@ import noammaddons.utils.PlayerUtils.toggleSneak
 import noammaddons.utils.RenderUtils.drawTitle
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.containsOneOf
+import noammaddons.utils.Utils.send
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -180,13 +182,17 @@ object ActionUtils {
             swapToSlot(leapIndex)
             delay(80)
             sendRightClickAirPacket()
+            INTERNAL_LEAP_TARGET = leapTarget
+            setTimeout(5000) { INTERNAL_LEAP_TARGET = null }
+
+            while (! inLeapMenu && INTERNAL_LEAP_TARGET != null) delay(50)
+            delay(400)
         }
 
-        INTERNAL_LEAP_TARGET = leapTarget
-        setTimeout(5000) { INTERNAL_LEAP_TARGET = null }
-
-        while (! inLeapMenu && INTERNAL_LEAP_TARGET != null) delay(50)
-        delay(400)
+        CustomSpiritLeapMenu.updatePlayersArray()
+        CustomSpiritLeapMenu.players.find { it?.player?.name == leapTarget.name }?.let { target ->
+            sendWindowClickPacket(target.slot, 0, 0)
+        }
     }
 
     private suspend fun changeMaskAction() {
@@ -197,7 +203,7 @@ object ActionUtils {
             "SPIRIT_MASK" -> if (MaskTimers.Masks.BONZO_MASK.cooldownTime > 0) return
         }
 
-        sendChatMessage("/eq")
+        C01PacketChatMessage("/eq").send()
         hideGui(true) { drawTitle("&5[Swapping mask...]", "&bPlease wait") }
         awaiting4EQ = true
         setTimeout(5000) { awaiting4EQ = false }
@@ -223,7 +229,7 @@ object ActionUtils {
     suspend fun reaperSwapAction() {
         if (thePlayer?.isDead == true) return
 
-        sendChatMessage("/wd")
+        C01PacketChatMessage("/wd").send()
         hideGui(true) { drawTitle("&8[Swapping armor...] ", "&bPlease wait") }
 
         while (! inWardrobeMenu) delay(50)
@@ -258,7 +264,7 @@ object ActionUtils {
         delay(100)
         toggleSneak(false)
 
-        sendChatMessage("/wd")
+        C01PacketChatMessage("/wd").send()
         while (! inWardrobeMenu) delay(50)
         delay(250)
 

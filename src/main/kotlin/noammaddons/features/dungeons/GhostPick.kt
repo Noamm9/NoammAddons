@@ -36,6 +36,11 @@ object GhostPick: Feature() {
         if (! featureState) return
         val heldItem = mc.thePlayer?.heldItem ?: return
         if (event.packet !is C07PacketPlayerDigging) return
+        if (event.packet.status.equalsOneOf( // @formatter:off
+            C07PacketPlayerDigging.Action.DROP_ALL_ITEMS,
+            C07PacketPlayerDigging.Action.DROP_ITEM,
+            C07PacketPlayerDigging.Action.RELEASE_USE_ITEM,
+        )) return
 
         if (config.LegitGhostPick) {
             // disable on bow, tnt, blaze rod

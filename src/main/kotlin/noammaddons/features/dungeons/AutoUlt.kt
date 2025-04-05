@@ -3,7 +3,6 @@ package noammaddons.features.dungeons
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Chat
 import noammaddons.features.Feature
-import noammaddons.features.dungeons.GhostPick.featureState
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.DungeonUtils
@@ -55,12 +54,7 @@ object AutoUlt: Feature() {
 
         if (matchingMessage.classes.contains(thePlayer?.clazz)) {
             modMessage("Used Ultimate!")
-            if (featureState) {
-                featureState = false
-                useDungeonClassAbility(true)
-                featureState = true
-            }
-            else useDungeonClassAbility(true)
+            useDungeonClassAbility(true)
         }
     }
 }

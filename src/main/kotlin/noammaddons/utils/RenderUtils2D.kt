@@ -3,7 +3,6 @@ package noammaddons.utils
 import gg.essential.elementa.utils.withAlpha
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.Entity
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.Vec3
@@ -15,11 +14,11 @@ import noammaddons.utils.RenderHelper.renderX
 import noammaddons.utils.RenderHelper.renderY
 import noammaddons.utils.RenderHelper.renderZ
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL11
 import org.lwjgl.util.glu.Project
 import java.awt.Color
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
+import kotlin.math.roundToInt
 
 
 object RenderUtils2D {
@@ -110,41 +109,13 @@ object RenderUtils2D {
             .offset(entity.renderX, entity.renderY, entity.renderZ)
 
         calculateBoundingBox(entityAABB)?.let { box ->
-            drawBox(box, color, thickness)
+            val outline = config.espOutlineOpacity != 0f
+            val fill = config.espFilledOpacity != 0f
+            val outlineAlpha = (config.espOutlineOpacity * 255).roundToInt().coerceAtMost(255)
+            val fillAlpha = (config.espFilledOpacity * 255).roundToInt().coerceAtMost(255)
+
+            if (fill) RenderUtils.drawRect(color.withAlpha(fillAlpha), box.x, box.y, box.w - box.x, box.h - box.y)
+            if (outline) RenderUtils.drawRectBorder(color.withAlpha(outlineAlpha), box.x, box.y, box.w - box.x, box.h - box.y, thickness)
         }
-    }
-
-    fun drawBox(box: Box2D, color: Color, lineWidth: Float) {
-        GlStateManager.pushMatrix()
-        GlStateManager.enableBlend()
-        GlStateManager.disableTexture2D()
-        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
-        GL11.glEnable(GL11.GL_LINE_SMOOTH)
-        GL11.glLineWidth(lineWidth)
-        RenderHelper.bindColor(color)
-
-        RenderUtils.worldRenderer.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION)
-
-        // Draw the four lines of the box
-        RenderUtils.worldRenderer.pos(box.x, box.y, 0.0).endVertex()  // Top-left to top-right
-        RenderUtils.worldRenderer.pos(box.w, box.y, 0.0).endVertex()
-
-        RenderUtils.worldRenderer.pos(box.w, box.y, 0.0).endVertex()  // Top-right to bottom-right
-        RenderUtils.worldRenderer.pos(box.w, box.h, 0.0).endVertex()
-
-        RenderUtils.worldRenderer.pos(box.w, box.h, 0.0).endVertex()  // Bottom-right to bottom-left
-        RenderUtils.worldRenderer.pos(box.x, box.h, 0.0).endVertex()
-
-        RenderUtils.worldRenderer.pos(box.x, box.h, 0.0).endVertex()  // Bottom-left to top-left
-        RenderUtils.worldRenderer.pos(box.x, box.y, 0.0).endVertex()
-
-        RenderUtils.tessellator.draw()
-
-        RenderHelper.bindColor(Color.WHITE)
-        GL11.glLineWidth(1f)
-        GlStateManager.enableTexture2D()
-        GlStateManager.disableBlend()
-        GL11.glDisable(GL11.GL_LINE_SMOOTH)
-        GlStateManager.popMatrix()
     }
 }
