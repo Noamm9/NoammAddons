@@ -127,8 +127,8 @@ object ZeroPingTeleportation: Feature() {
         val etherPos = EtherwarpHelper.getEtherPos(playerPos, playerRot, tpInfo.distance)
 
         if (! etherPos.succeeded) return
-
         val pos = etherPos.pos ?: return
+
         if (getBlockAt(pos).equalsOneOf(chest, ender_chest, trapped_chest)) return
         if (ScanUtils.getRoomFromPos(pos)?.name.equalsOneOf("Teleport Maze", "Boulder")) return
 
@@ -177,7 +177,7 @@ object ZeroPingTeleportation: Feature() {
         if (LocationUtils.dungeonFloorNumber == 7 && LocationUtils.inBoss) return null
         if (ActionBarParser.currentMana < ActionBarParser.maxMana * 0.1) return null
         if (ScanUtils.currentRoom?.name.equalsOneOf("New Trap", "Old Trap", "Teleport Maze", "Boulder")) return null
-        if (mc.thePlayer?.rayTrace(5.0, 1f)?.blockPos?.run { getBlockAt(this).equalsOneOf(trapped_chest, chest, ender_chest, hopper) } == true) return null
+        if (getBlockAt(packet.position).equalsOneOf(trapped_chest, chest, ender_chest, hopper)) return null
         if (LocationUtils.isInHubCarnival()) return null
 
         if (sbId.equalsOneOf("ASPECT_OF_THE_VOID", "ASPECT_OF_THE_END")) {
@@ -188,7 +188,7 @@ object ZeroPingTeleportation: Feature() {
                 if (! hasSoulFlow) return null
 
                 return TeleportInfo(
-                    distance = 57.0 + tuners - 1,
+                    distance = 57.0 + tuners,
                     type = TeleportInfo.Companion.Types.Etherwarp,
                     keepMotion = config.zeroPingEtherwarpKeepMotion
                 )
