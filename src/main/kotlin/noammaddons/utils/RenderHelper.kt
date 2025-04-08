@@ -80,6 +80,11 @@ object RenderHelper {
         else mc.fontRendererObj.getStringWidth(text.addColor()) * scale.toFloat()
     }
 
+    @JvmStatic
+    fun getStringWidth(text: List<String>, scale: Number = 1): Float {
+        return text.maxOf { mc.fontRendererObj.getStringWidth(it.addColor()) } * scale.toFloat()
+    }
+
     fun getStringHeight(lines: List<String>, scale: Number = 1) = lines.size * 9 * scale.toFloat()
 
     fun getStringHeight(text: String, scale: Number = 1) = text.split("\n").size * 9 * scale.toFloat()

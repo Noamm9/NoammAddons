@@ -163,7 +163,7 @@ abstract class DungeonEvent: Event() {
         enum class SecretType { CHEST, SKULL, ITEM, BAT, LAVER }
     }
 
-    class PlayerDeathEvent(val name: String?, val reason: String?): DungeonEvent()
+    class PlayerDeathEvent(val name: String, val reason: String): DungeonEvent()
 }
 
 class WorldUnloadEvent: Event()

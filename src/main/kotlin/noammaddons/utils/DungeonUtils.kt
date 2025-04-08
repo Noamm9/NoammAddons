@@ -37,6 +37,8 @@ object DungeonUtils {
     private val keyPickupRegex = Regex("§r§e§lRIGHT CLICK §r§7on §r§7.+?§r§7 to open it\\. This key can only be used to open §r§a(?<num>\\d+)§r§7 door!§r")
     private val witherDoorOpenedRegex = Regex("^(?:\\[.+?] )?(?<name>\\w+) opened a WITHER door!$")
     private const val bloodOpenedString = "§r§cThe §r§c§lBLOOD DOOR§r§c has been opened!§r"
+    private val watcherMessageRegex = Regex("^\\[BOSS\\] The Watcher: .+$")
+
 
     const val WITHER_ESSENCE_ID = "e0f3e929-869e-3dca-9504-54c666ee6f23"
     const val REDSTONE_KEY_ID = "fed95410-aba1-39df-9b95-1d4f361eb66e"
@@ -51,7 +53,14 @@ object DungeonUtils {
     val completedPuzzles = hashSetOf<String>()
 
     val dungeonStarted get() = dungeonTeammates.isNotEmpty()
+    var dungeonStartTime: Long? = null
     var dungeonEnded = BasicState(false)
+
+    var bloodOpenTime: Long? = null
+    var watcherClearTime: Long? = null
+    var watcherSpawnTime: Long? = null
+    var bossEntryTime: Long? = null
+    var dungeonEndTime: Long? = null
 
     var lastDoorOpenner: DungeonPlayer? = null
 
@@ -158,17 +167,30 @@ object DungeonUtils {
         val unformatted = text.removeFormatting()
 
         when {
-            unformatted == "                             > EXTRA STATS <" -> dungeonEnded.set(true)
+            unformatted == "                             > EXTRA STATS <" -> {
+                dungeonEnded.set(true)
+                dungeonEndTime = System.currentTimeMillis()
+            }
+
             text == bloodOpenedString -> DungeonInfo.keys --
             text.endsWith(" and became a ghost§r§7.§r") -> {
                 val match = deathRegex.find(text) ?: return
-                val username = match.groups["username"]?.value ?: mc.thePlayer.name
-                val reason = match.groups["reason"]?.value
+                val username = match.groups["username"]?.value ?: mc.session.username
+                val reason = match.groups["reason"]?.value ?: ""
                 postAndCatch(DungeonEvent.PlayerDeathEvent(username, reason))
             }
 
-            unformatted == "[BOSS] The Watcher: You have proven yourself. You may pass." -> DungeonInfo.dungeonList.find { it is Room && it.data.type == RoomType.BLOOD }?.state = RoomState.GREEN
-            unformatted == "[BOSS] The Watcher: That will be enough for now." -> DungeonInfo.dungeonList.find { it is Room && it.data.type == RoomType.BLOOD }?.state = RoomState.CLEARED
+            unformatted == "[BOSS] The Watcher: You have proven yourself. You may pass." -> {
+                DungeonInfo.dungeonList.find { it is Room && it.data.type == RoomType.BLOOD }?.state = RoomState.GREEN
+                watcherClearTime = System.currentTimeMillis()
+            }
+
+            unformatted == "[BOSS] The Watcher: That will be enough for now." -> {
+                DungeonInfo.dungeonList.find { it is Room && it.data.type == RoomType.BLOOD }?.state = RoomState.CLEARED
+                watcherSpawnTime = System.currentTimeMillis()
+            }
+
+            unformatted == "[NPC] Mort: Here, I found this map when I first entered the dungeon." -> dungeonStartTime = System.currentTimeMillis()
 
             else -> {
                 witherDoorOpenedRegex.find(unformatted)?.destructured?.let { (name) ->
@@ -180,6 +202,11 @@ object DungeonUtils {
                 keyPickupRegex.find(text)?.destructured?.let { (num) ->
                     DungeonInfo.keys += num.toInt()
                     return
+                }
+
+                if (watcherMessageRegex.matches(unformatted)) {
+                    if (bloodOpenTime != null) return
+                    bloodOpenTime = System.currentTimeMillis()
                 }
             }
         }
@@ -198,8 +225,13 @@ object DungeonUtils {
         completedPuzzles.clear()
         dungeonEnded.set(false)
         runPlayersNames.clear()
+        dungeonStartTime = null
+        bloodOpenTime = null
+        watcherClearTime = null
+        watcherSpawnTime = null
+        bossEntryTime = null
+        dungeonEndTime = null
     }
-
 
     init {
         loop(250) {

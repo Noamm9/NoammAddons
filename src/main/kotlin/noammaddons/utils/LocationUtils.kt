@@ -85,6 +85,18 @@ object LocationUtils {
 
     @SubscribeEvent
     fun onEvent(event: Event) {
+        when (event) {
+            is Tick -> {
+                TickTimer ++
+                if (TickTimer != 20) return
+                if (config.DevMode) setDevModeValues()
+                else updateSkyblockAndDungeonStatus()
+                TickTimer = 0
+            }
+
+            is WorldUnloadEvent -> reset()
+            is ClientDisconnectionFromServerEvent -> reset()
+        }
         if (event is WorldUnloadEvent) reset()
         if (event is ClientDisconnectionFromServerEvent) reset()
     }
@@ -115,6 +127,9 @@ object LocationUtils {
 
         if (inSkyblock) {
             inBoss = isInBossRoom()
+            if (inBoss && DungeonUtils.bossEntryTime == null) {
+                DungeonUtils.bossEntryTime = System.currentTimeMillis()
+            }
             F7Phase = getPhase()
             P3Section = getP3Section_()
             world = updateWorldName()
@@ -141,7 +156,7 @@ object LocationUtils {
 
     fun isInHubCarnival(): Boolean {
         return isCoordinateInsideBox(
-            mc.thePlayer?.positionVector ?: return false,
+            ServerPlayer.player.takeIf { it.initialized }?.getVec() ?: return false,
             Vec3(- 123.0, 100.0, 36.0), Vec3(- 64.0, 70.0, - 31.0)
         )
     }
@@ -149,7 +164,7 @@ object LocationUtils {
     private fun getPhase(): Int? {
         if (dungeonFloorNumber != 7 && ! inBoss) return null
 
-        val playerPosition = mc.thePlayer?.positionVector ?: return null
+        val playerPosition = ServerPlayer.player.takeIf { it.initialized }?.getVec() ?: return null
         val corner1 = Vec3(- 8.0, 254.0, 147.0)
         val corner2 = Vec3(134.0, 0.0, - 8.0)
 
@@ -175,7 +190,7 @@ object LocationUtils {
 
     private fun getP3Section_(): Int? {
         if (F7Phase != 3) return null
-        val pos = mc.thePlayer?.positionVector ?: return null
+        val pos = ServerPlayer.player.takeIf { it.initialized }?.getVec() ?: return null
 
         P3Sections.forEachIndexed { i, (one, two) ->
             if (isCoordinateInsideBox(pos, one, two)) {
@@ -197,7 +212,7 @@ object LocationUtils {
     )
 
     private fun isInBossRoom(): Boolean {
-        val playerCoords = mc.thePlayer?.positionVector ?: return false
+        val playerCoords = ServerPlayer.player.takeIf { it.initialized }?.getVec() ?: return false
         val corners = bossRoomCorners[dungeonFloorNumber] ?: return false
         return isCoordinateInsideBox(playerCoords, corners.first, corners.second)
     }

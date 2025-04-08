@@ -40,7 +40,8 @@ object FeatureManager {
         CustomScoreboard, SecretDisplay, PetDisplay, CustomTabList, BlockOverlay, PlayerScale,
         PlayerSpin, HideFallingBlocks, DamageSplash, RemoveSelfieCam, CustomFov, AntiBlind,
         AntiPortal, NoBlockAnimation, NoWaterFOV, CustomBowHitSound, ClearBlocks, NoRotate,
-        RatProtection, SmoothSneaking, SmoothBossBar, ZeroPingTeleportation, TeleportOverlay
+        RatProtection, SmoothSneaking, SmoothBossBar, ZeroPingTeleportation, TeleportOverlay,
+        DungeonPlayerDeathAlert, DungeonRunSplits
     )
 
     fun createFeatureList(): String {

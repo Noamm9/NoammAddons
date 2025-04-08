@@ -19,7 +19,6 @@ import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.RenderHelper.disableChums
 import noammaddons.utils.RenderHelper.enableChums
 import noammaddons.utils.RenderUtils
-import noammaddons.utils.Utils.containsOneOf
 import java.awt.Color
 
 
@@ -30,6 +29,20 @@ object MimicDetector: Feature() {
     private const val MIMIC_TEXTURE =
         "ewogICJ0aW1lc3RhbXAiIDogMTY3Mjc2NTM1NTU0MCwKICAicHJvZmlsZUlkIiA6ICJhNWVmNzE3YWI0MjA0MTQ4ODlhOTI5ZDA5OTA0MzcwMyIsCiAgInByb2ZpbGVOYW1lIiA6ICJXaW5zdHJlYWtlcnoiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTE5YzEyNTQzYmM3NzkyNjA1ZWY2OGUxZjg3NDlhZThmMmEzODFkOTA4NWQ0ZDRiNzgwYmExMjgyZDM1OTdhMCIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9"
 
+    private val mimicMessages = listOf(
+        "mimic dead!",
+        "mimic dead",
+        "mimic killed!",
+        "mimic killed",
+        "\$skytils-dungeon-score-mimic$",
+        "child destroyed!",
+        "mimic obliterated!",
+        "mimic exorcised!",
+        "mimic destroyed!",
+        "mimic annhilated!",
+        "breefing killed",
+        "breefing dead"
+    )
 
     private fun sendMimicMessage() {
         if (! config.sendMimicKillMessage) return
@@ -38,7 +51,7 @@ object MimicDetector: Feature() {
         showTitle("&cMimic Dead!")
     }
 
-    
+
     @SubscribeEvent
     fun onWorldUnload(event: WorldUnloadEvent) = mimicKilled.set(false)
 
@@ -66,13 +79,7 @@ object MimicDetector: Feature() {
     fun onChat(event: Chat) {
         if (! inDungeon) return
         if (inBoss) return
-        if (! event.component.noFormatText.lowercase().containsOneOf( // @formatter:off
-            "skytils-dungeon-score-mimic",
-            "mimic killed", "mimic slain",
-            "mimic killed!", "mimic dead",
-            "mimic dead!"
-        )) return
-
+        if (event.component.noFormatText.lowercase() !in mimicMessages) return
         mimicKilled.set(true)
     }
 

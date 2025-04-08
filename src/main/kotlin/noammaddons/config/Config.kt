@@ -276,7 +276,7 @@ object Config: Vigilant(
 
     @Property(
         type = PropertyType.COLOR,
-        name = "boulder Click Color",
+        name = "Boulder Click Color",
         description = "Color of The clicks in Boulder solver",
         category = DUNGEONS_CATEGORY,
         subcategory = "Solvers"
@@ -912,6 +912,15 @@ object Config: Vigilant(
         subcategory = GENERAL_CATEGORY
     )
     var HighlightDoorKeys = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Dungeon Run Splits",
+        description = "Shows on screen the splits for the current dungeon run.",
+        category = HUD_CATEGORY,
+        subcategory = DUNGEONS_CATEGORY
+    )
+    var dungeonRunSplits = false
 
     @Property(
         type = PropertyType.SWITCH,
@@ -1837,6 +1846,33 @@ object Config: Vigilant(
         subcategory = GENERAL_CATEGORY
     )
     var SoldAHNotification = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Dungeon Player Death Alert",
+        description = "Plays a sound when a player dies in a dungeon",
+        category = ALERTS_CATEGORY,
+        subcategory = "Player Death"
+    )
+    var DungeonPlayerDeathAlert = false
+
+    @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Dungeon Player Death Message",
+        description = "Sends a message when a player dies in a dungeon",
+        category = ALERTS_CATEGORY,
+        subcategory = "Player Death"
+    )
+    var DungeonPlayerDeathAlertSendMessage = false
+
+    @Property(
+        type = PropertyType.TEXT,
+        name = "Death Message",
+        description = "use {name} to get the player's name into the message and {reason} for the death reason.",
+        category = ALERTS_CATEGORY,
+        subcategory = "Player Death"
+    )
+    var DungeonPlayerDeathMessage = "{name}'s a Goner"
 
     @Property(
         type = PropertyType.SWITCH,

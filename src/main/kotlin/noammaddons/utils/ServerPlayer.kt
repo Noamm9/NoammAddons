@@ -20,6 +20,8 @@ object ServerPlayer {
         var sneaking: Boolean = false,
         var heldHotbarSlot: Int = 0
     ) {
+        val initialized get() = x != - 1.0 && y != - 1.0 && z != - 1.0
+
         fun getPos() = BlockPos(x, y, z)
         fun getVec() = Vec3(x, y, z)
         fun getRotation() = MathUtils.Rotation(yaw, pitch)

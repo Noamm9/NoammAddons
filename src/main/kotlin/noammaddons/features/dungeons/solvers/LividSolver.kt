@@ -28,6 +28,7 @@ import noammaddons.utils.Utils.equalsOneOf
 object LividSolver: Feature() {
     private const val LIVID_BOSS_START_MSG = "[BOSS] Livid: Welcome, you've arrived right on time. I am Livid, the Master of Shadows."
     private var currentLivid: EntityOtherPlayerMP? = null
+    private val ceilingWoolBlock = BlockPos(5, 109, 42)
     private var lividStart = false
     private var bossTicks = 390
     private val color get() = getRainbowColor(1f)
@@ -81,10 +82,9 @@ object LividSolver: Feature() {
             return
         }
 
-        val metadata = getStateAt(BlockPos(5, 109, 42)).getMetadata()
+        val metadata = getStateAt(ceilingWoolBlock).getMetadata()
         val lividData = lividNames.entries.find { it.key == metadata } ?: return
         val lividEntity = mc.theWorld?.loadedEntityList?.find { it.name == lividData.value } ?: return
-
         currentLivid = lividEntity as? EntityOtherPlayerMP ?: return
     }
 

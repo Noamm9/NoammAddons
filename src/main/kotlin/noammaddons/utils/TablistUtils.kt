@@ -30,27 +30,5 @@ object TablistUtils {
                 o1.playerTeam?.registeredName ?: "",
                 o2.playerTeam?.registeredName ?: ""
             ).compare(o1.gameProfile.name, o2.gameProfile.name).result()
-        }) ?: emptyList())
-            .map { Pair(it, mc.ingameGUI.tabList.getPlayerName(it)) }
-
-
-    internal class PlayerComparator internal constructor(): Comparator<NetworkPlayerInfo> {
-        override fun compare(playerOne: NetworkPlayerInfo, playerTwo: NetworkPlayerInfo): Int {
-            val teamOne = playerOne.playerTeam
-            val teamTwo = playerTwo.playerTeam
-
-            return ComparisonChain
-                .start()
-                .compareTrueFirst(
-                    playerOne.gameType != GameType.SPECTATOR,
-                    playerTwo.gameType != GameType.SPECTATOR
-                ).compare(
-                    teamOne?.registeredName ?: "",
-                    teamTwo?.registeredName ?: ""
-                ).compare(
-                    playerOne.gameProfile.name,
-                    playerTwo.gameProfile.name
-                ).result()
-        }
-    }
+        }) ?: emptyList()).map { Pair(it, mc.ingameGUI.tabList.getPlayerName(it)) }
 }
