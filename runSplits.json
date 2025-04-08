@@ -86,7 +86,7 @@
     {
       "name": "&cLivid Kill",
       "start": null,
-      "end": "[BOSS] \\w+ Livid: Impossible! How did you figure out which one I was\\?!"
+      "end": "\\[BOSS] \\w+ Livid: Impossible! How did you figure out which one I was\\?!"
     },
     {
       "name": "&eEnd Dialogue",
