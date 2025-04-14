@@ -9,7 +9,7 @@ import java.util.concurrent.*
 object ThreadUtils {
     private data class Task(var ticks: Int, val task: Runnable)
 
-    private val executor = Executors.newSingleThreadExecutor()
+    val executor = Executors.newSingleThreadExecutor()
     private val timerExecutor = Executors.newScheduledThreadPool(1)
     private val tickTasks = ConcurrentLinkedQueue<Task>()
 

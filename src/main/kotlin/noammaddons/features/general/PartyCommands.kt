@@ -2,32 +2,30 @@ package noammaddons.features.general
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Chat
+import noammaddons.events.DungeonEvent
 import noammaddons.features.Feature
 import noammaddons.features.hud.TpsDisplay
 import noammaddons.noammaddons.Companion.CHAT_PREFIX
-import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.getPing
+import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendChatMessage
 import noammaddons.utils.ChatUtils.sendPartyMessage
 import noammaddons.utils.ChatUtils.showTitle
 import noammaddons.utils.MathUtils.destructured
+import noammaddons.utils.PartyUtils
+import noammaddons.utils.SoundUtils
 import noammaddons.utils.Utils.equalsOneOf
+import noammaddons.utils.Utils.removeIf
 import kotlin.math.roundToInt
 
 object PartyCommands: Feature() {
     private val partyCommandRegex = Regex("^Party > (?:\\[[^]]+] )?([^:]+): ([!?.\\-@#`/])(.+)$")
-    val downtimeList = mutableListOf<Pair<String, String>>()
+    val downtimeList = mutableMapOf<String, String>()
     val NUMBERS_TO_TEXT = mapOf(
-        0 to "ENTRANCE",
-        1 to "ONE",
-        2 to "TWO",
-        3 to "THREE",
-        4 to "FOUR",
-        5 to "FIVE",
-        6 to "SIX",
-        7 to "SEVEN"
+        0 to "ENTRANCE", 1 to "ONE", 2 to "TWO", 3 to "THREE",
+        4 to "FOUR", 5 to "FIVE", 6 to "SIX", 7 to "SEVEN"
     )
 
     fun runCommand(command: String, needLeader: Boolean = false) {
@@ -35,21 +33,22 @@ object PartyCommands: Feature() {
         sendChatMessage("/$command")
     }
 
+    @SubscribeEvent
+    fun onRunEnd(event: DungeonEvent.RunEndedEvent) {
+        downtimeList.removeIf { it.key !in PartyUtils.members.keys }
+        if (downtimeList.isEmpty()) return
 
-    init {
-        DungeonUtils.dungeonEnded.onSetValue {
-            if (! it) return@onSetValue
-            if (downtimeList.isEmpty()) return@onSetValue
-            val dtMessage = downtimeList.joinToString(", ") { (username, reason) -> username/*: $reason"*/ } // !dt ip abuse ban
-            val grammer = if (downtimeList.size == 1) "Player" else "Players"
-            SoundUtils.notificationSound()
+        val partyDtMsg = downtimeList.keys.joinToString(", ")
+        val dtMessage = downtimeList.entries.joinToString(", ") { (username, reason) -> "$username: $reason" }
+        val grammer = if (downtimeList.size == 1) "Player" else "Players"
+        SoundUtils.notificationSound()
 
-            showTitle("&4&lDOWNTIME!!!", "${downtimeList.size} $grammer Need DT!", 5)
-            sendPartyMessage("$grammer Need DT: $dtMessage")
-
-            downtimeList.clear()
-        }
+        showTitle("&4&lDOWNTIME!!!", "${downtimeList.size} $grammer Need DT!", 10)
+        sendPartyMessage("$grammer Need DT: $partyDtMsg")
+        modMessage("$grammer Need DT: $dtMessage")
+        downtimeList.clear()
     }
+
 
     @SubscribeEvent
     fun onChat(event: Chat) {
@@ -96,7 +95,7 @@ object PartyCommands: Feature() {
             }
 
             config.pcDt && command.equalsOneOf("dt", "downtime") -> {
-                downtimeList.add(name to if (args.isEmpty()) "No Reason Provided" else args.joinToString(" "))
+                downtimeList[name] = if (args.isEmpty()) "No Reason Provided" else args.joinToString(" ")
             }
 
             config.pcGay && command == "gay" -> {

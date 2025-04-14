@@ -10,7 +10,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.events.RegisterEvents.postAndCatch
 import noammaddons.features.Feature
-import noammaddons.noammaddons.Companion.CHAT_PREFIX
 import noammaddons.utils.ActionUtils.changeMask
 import noammaddons.utils.ActionUtils.currentAction
 import noammaddons.utils.ActionUtils.leap
@@ -21,7 +20,6 @@ import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.ghostBlock
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.noFormatText
-import noammaddons.utils.ChatUtils.sendPartyMessage
 import noammaddons.utils.DungeonUtils.Classes.*
 import noammaddons.utils.DungeonUtils.leapTeammates
 import noammaddons.utils.PlayerUtils.holdClick
@@ -65,6 +63,7 @@ object AutoI4: Feature() {
     }
 
     private fun rotateAndShot(vec: Vec3) {
+        if (rotationTime == 0L) return
         rotateSmoothlyTo(vec, rotationTime) {
             Thread.sleep(20)
             sendRightClickAirPacket()
@@ -107,6 +106,7 @@ object AutoI4: Feature() {
         rotationJob?.cancel()
 
         i4Job = scope.launch {
+            while (currentAction() == "Rod Swap") delay(1)
             val shotVec = getTargetVec(event.pos)
             doneCoords.add(event.pos)
             shootingAt = event.pos
@@ -114,14 +114,14 @@ object AutoI4: Feature() {
             rotateAndShot(shotVec)
 
             if (! config.autoI4Prediction) return@launch
-            delay(rotationTime)
+            if (rotationTime != 0L) delay(rotationTime)
 
             val nextTarget = devBlocks.shuffled().find {
                 val notDone = it !in doneCoords
                 val isStained = getBlockAt(it) == stained_hardened_clay
-                val NextToLast = it.y == event.pos.y && it.distanceSq(event.pos) <= 4
+                val nextToLast = it.x == event.pos.x && it.distanceSq(event.pos) <= 4
 
-                notDone && isStained && ! NextToLast
+                notDone && isStained && ! nextToLast
             } ?: return@launch
             val predictionVec = getTargetVec(nextTarget)
 
@@ -247,12 +247,8 @@ object AutoI4: Feature() {
             i4Job?.cancel()
             tickTimer = - 1
             if (currentAction() != "Leap") saveLeap()
-
-
             val str = listOf("&a&lI4 Done!", "Predicted ${9 - doneCoords.size}/9", s)
-            sendPartyMessage("$CHAT_PREFIX ${str[0]}")
             str.forEach(::modMessage)
-            //   Alert(FULL_PREFIX, str.joinToString("\n"), 5)
         }
     }
 }

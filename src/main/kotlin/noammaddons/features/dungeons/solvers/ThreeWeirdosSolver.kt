@@ -10,6 +10,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.noammaddons.Companion.personalBests
+import noammaddons.utils.BlockUtils.ghostBlock
 import noammaddons.utils.ChatUtils.clickableChat
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
@@ -35,8 +36,9 @@ object ThreeWeirdosSolver: Feature() {
 
     private var correctPos: Pair<BlockPos, Entity?>? = null
     private var wrongPositions = CopyOnWriteArraySet<Pair<BlockPos, Entity>>()
+    private val removedEntities = CopyOnWriteArraySet<Entity>()
 
-    private val chestsPos = mapOf(
+    private val relativesCoords = mapOf(
         Blocks.redstone_wire to listOf(7, 69, 2),
         Blocks.chest as Block to listOf(9, 69, 1),
         Blocks.chest as Block to listOf(10, 69, - 1),
@@ -49,7 +51,7 @@ object ThreeWeirdosSolver: Feature() {
         if (event.room.name != "Three Weirdos") return
 
         val center = getRoomCenterAt(mc.thePlayer.position)
-        val detectedRotation = getRotation(center, chestsPos) ?: return
+        val detectedRotation = getRotation(center, relativesCoords) ?: return
 
         inWeirdos = true
         rotation = detectedRotation * 90
@@ -58,7 +60,6 @@ object ThreeWeirdosSolver: Feature() {
 
     @SubscribeEvent
     fun onRoomExit(event: DungeonEvent.RoomEvent.onExit) = reset()
-
 
     @SubscribeEvent
     fun onChat(event: Chat) {
@@ -70,51 +71,52 @@ object ThreeWeirdosSolver: Feature() {
 
         if (solutions.any { it.matches(msg) }) {
             mc.thePlayer.playSound("note.pling", 2f, 1f)
+            timeStart = System.currentTimeMillis()
             correctPos = pos to correctNPC
-        }
-        else wrongPositions.add(pos to correctNPC)
 
-        if (correctPos == null) return
-        timeStart = System.currentTimeMillis()
+            val entitiesToRemove = mc.theWorld.getEntitiesInAABBexcluding(
+                mc.thePlayer, correctNPC.entityBoundingBox.offset(0.0, - 1.0, 0.0)
+            ) { it !in DungeonUtils.dungeonTeammates.map { teammate -> teammate.entity } }
+
+            entitiesToRemove.forEach { it.setDead() }
+            removedEntities.addAll(entitiesToRemove)
+        }
+        else {
+            val entitiesToRemove = mc.theWorld.getEntitiesInAABBexcluding(
+                mc.thePlayer, correctNPC.entityBoundingBox.offset(0.0, - 1.0, 0.0)
+            ) { it !in DungeonUtils.dungeonTeammates.map { teammate -> teammate.entity } }
+
+            mc.theWorld.setBlockToAir(pos)
+            entitiesToRemove.forEach { it.setDead() }
+            removedEntities.addAll(entitiesToRemove)
+            wrongPositions.add(pos to correctNPC)
+        }
+    }
+
+    @SubscribeEvent
+    fun onPazzleEvent(event: DungeonEvent.PuzzleEvent.Reset) {
+        if (! inWeirdos) return
+        removedEntities.forEach { mc.theWorld.addEntityToWorld(it.entityId, it) }
+        wrongPositions.forEach { ghostBlock(it.first, Blocks.chest.defaultState) }
+        reset()
     }
 
     @SubscribeEvent
     fun onRenderWorld(event: RenderWorld) {
         if (! inWeirdos) return
-
-        correctPos?.let { (chest, entity) ->
+        correctPos?.first?.let { chest ->
             RenderUtils.drawBlockBox(
                 chest, config.ThreeWeirdosSolverColor,
-                fill = true, outline = true, phase = true
+                fill = true, outline = true, phase = false
             )
-
-            if (entity == null) return@let
-            val entitiesToRemove = mc.theWorld.getEntitiesInAABBexcluding(
-                mc.thePlayer, entity.entityBoundingBox.offset(0.0, - 1.0, 0.0)
-            ) { it !in DungeonUtils.dungeonTeammates.map { teammate -> teammate.entity } }
-
-            entitiesToRemove.forEach { it.setDead() }
-            correctPos = chest to null
-        }
-
-        wrongPositions.forEach { (chest, entity) ->
-            val entitiesToRemove = mc.theWorld.getEntitiesInAABBexcluding(
-                mc.thePlayer, entity.entityBoundingBox.offset(0.0, - 1.0, 0.0)
-            ) { it !in DungeonUtils.dungeonTeammates.map { teammate -> teammate.entity } }
-
-            mc.theWorld.setBlockToAir(chest)
-            entitiesToRemove.forEach { it.setDead() }
-            wrongPositions.remove(chest to entity)
         }
     }
 
     @SubscribeEvent
     fun onPacketSent(event: PacketEvent.Sent) {
         if (! inWeirdos) return
-        if (trueTimeStart == null) return
-        if (timeStart == null) return
-        val packet = event.packet as? C08PacketPlayerBlockPlacement ?: return
-        if (packet.position != correctPos) return
+        if (event.packet !is C08PacketPlayerBlockPlacement) return
+        if (wrongPositions.size != 2 || correctPos == null) return
 
         val personalBestsData = personalBests.getData().pazzles
         val previousBest = personalBestsData["Three Weirdos"]

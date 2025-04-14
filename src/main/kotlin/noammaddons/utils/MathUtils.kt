@@ -13,28 +13,28 @@ object MathUtils {
 
     /**
      * Checks if a given coordinate is inside a specified 3D box.
+     * The box is defined by any two opposite corners, regardless of their order.
+     *
      * @param coord The coordinate to check.
-     * @param corner1 The coordinates of one corner of the box.
-     * @param corner2 The coordinates of the opposite corner of the box.
+     * @param corner1 One corner of the box.
+     * @param corner2 The opposite corner of the box.
      * @return True if the coordinate is inside the box, false otherwise.
      */
     fun isCoordinateInsideBox(coord: Vec3, corner1: Vec3, corner2: Vec3): Boolean {
-        val min = Vec3(
-            corner1.xCoord.coerceAtMost(corner2.xCoord),
-            corner1.yCoord.coerceAtMost(corner2.yCoord),
-            corner1.zCoord.coerceAtMost(corner2.zCoord)
-        )
+        val minX = minOf(corner1.xCoord, corner2.xCoord)
+        val maxX = maxOf(corner1.xCoord, corner2.xCoord)
+        val minY = minOf(corner1.yCoord, corner2.yCoord)
+        val maxY = maxOf(corner1.yCoord, corner2.yCoord)
+        val minZ = minOf(corner1.zCoord, corner2.zCoord)
+        val maxZ = maxOf(corner1.zCoord, corner2.zCoord)
 
-        val max = Vec3(
-            corner1.xCoord.coerceAtLeast(corner2.xCoord),
-            corner1.yCoord.coerceAtLeast(corner2.yCoord),
-            corner1.zCoord.coerceAtLeast(corner2.zCoord)
-        )
-
-        return coord.xCoord >= min.xCoord && coord.xCoord <= max.xCoord &&
-                coord.yCoord >= min.yCoord && coord.yCoord <= max.yCoord &&
-                coord.zCoord >= min.zCoord && coord.zCoord <= max.zCoord
+        val x = coord.xCoord in minX .. maxX
+        val y = coord.yCoord in minY .. maxY
+        val z = coord.zCoord in minZ .. maxZ
+        return x && y && z
     }
+
+    fun isCoordinateInsideBox(pos: BlockPos, corner1: BlockPos, corner2: BlockPos) = isCoordinateInsideBox(pos.toVec(), corner1.toVec(), corner2.toVec())
 
 
     /**

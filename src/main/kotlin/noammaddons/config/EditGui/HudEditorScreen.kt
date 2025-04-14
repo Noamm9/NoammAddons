@@ -11,7 +11,6 @@ import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.debugMessage
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.RenderHelper.getHeight
-import noammaddons.utils.RenderHelper.getScaleFactor
 import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils
@@ -29,7 +28,7 @@ object HudEditorScreen: GuiScreen() {
     private var offsetY = 0f
     private val resetButtonStr = "&b  Reset All Elements  ".addColor()
 
-    private val scale: Float get() = 2f / mc.getScaleFactor()
+    private val scale: Float get() = 1f
 
     override fun initGui() {
         super.initGui()

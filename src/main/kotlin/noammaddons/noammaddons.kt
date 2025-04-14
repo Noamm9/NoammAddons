@@ -114,7 +114,7 @@ class noammaddons {
 
     fun init() {
         ThreadUtils.loop(600_000) {
-            UpdateUtils.update()
+            if (config.UpdateCheck) UpdateUtils.update()
 
             JsonUtils.fetchJsonWithRetry<Map<String, Double>>("https://moulberry.codes/lowestbin.json") {
                 it ?: return@fetchJsonWithRetry
@@ -123,6 +123,7 @@ class noammaddons {
             }
 
             JsonUtils.get("https://api.hypixel.net/v2/skyblock/bazaar") { obj ->
+                obj ?: return@get
                 if (obj["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
 
                 val rawBzData = JsonUtils.json.decodeFromJsonElement(
@@ -137,6 +138,7 @@ class noammaddons {
             }
 
             JsonUtils.get("https://api.hypixel.net/resources/skyblock/items") { obj ->
+                obj ?: return@get
                 if (obj["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
 
                 val items = JsonUtils.json.decodeFromJsonElement(
@@ -157,6 +159,7 @@ class noammaddons {
             }
 
             JsonUtils.get("https://api.hypixel.net/v2/resources/skyblock/election") { jsonObject ->
+                jsonObject ?: return@get
                 if (jsonObject["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
                 val dataElement = jsonObject["data"] ?: return@get
                 mayorData = JsonUtils.json.decodeFromJsonElement(DataClasses.ApiMayor.serializer(), dataElement)

@@ -1,8 +1,8 @@
 package noammaddons.utils
 
 import net.minecraft.block.Block
-import net.minecraft.util.BlockPos
-import net.minecraft.util.Vec3i
+import net.minecraft.init.Blocks.*
+import net.minecraft.util.*
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.RegisterEvents
 import noammaddons.events.WorldUnloadEvent
@@ -58,7 +58,7 @@ object ScanUtils {
         JsonUtils.fetchJsonWithRetry<List<RoomData>?>(
             "https://raw.githubusercontent.com/Skytils/SkytilsMod/refs/heads/1.x/src/main/resources/assets/catlas/rooms.json"
         ) {
-            if (it == null) return@fetchJsonWithRetry
+            it ?: return@fetchJsonWithRetry
             roomList.addAll(it)
         }
     }
@@ -106,14 +106,15 @@ object ScanUtils {
         return room
     }
 
+    fun getRoomFromPos(pos: Vec3) = getRoomFromPos(BlockPos(pos))
+
     fun getCore(x: Int, z: Int): Int {
         val sb = StringBuilder(150)
         val chunk = mc.theWorld.getChunkFromBlockCoords(BlockPos(x, 0, z))
         for (y in 140 downTo 12) {
             val id = chunk.getBlock(BlockPos(x, y, z)).getBlockId()
-            if (! id.equalsOneOf(5, 54, 146)) {
-                sb.append(id)
-            }
+            if (id.equalsOneOf(5, 54, 146)) continue
+            sb.append(id)
         }
         return sb.toString().hashCode()
     }
@@ -156,5 +157,15 @@ object ScanUtils {
         if (rotation == 0) return BlockPos(array[0] + cx, array[1], array[2] + cz)
 
         return BlockPos(cx + x, y, cz + z)
+    }
+
+    fun gethighestBlockAt(pos: BlockPos): BlockPos? {
+        for (y in 255 downTo 0) {
+            val checkPos = BlockPos(pos.x, y, pos.z)
+            val block = getBlockAt(checkPos)
+            if (block == air) continue
+            return checkPos
+        }
+        return null
     }
 }

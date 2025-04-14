@@ -20,6 +20,7 @@ import net.minecraftforge.fml.common.eventhandler.Event
 import noammaddons.features.dungeons.dmap.core.map.RoomData
 import noammaddons.features.dungeons.dmap.core.map.RoomState
 import noammaddons.features.misc.Cosmetics
+import noammaddons.utils.DungeonUtils
 
 
 @Cancelable
@@ -150,13 +151,14 @@ abstract class DungeonEvent: Event() {
         class Reset(pazzle: String): PuzzleEvent(pazzle)
         class Discovered(pazzle: String): PuzzleEvent(pazzle)
         class Completed(pazzle: String): PuzzleEvent(pazzle)
+        class Failed(pazzle: String): PuzzleEvent(pazzle)
     }
 
     abstract class RoomEvent(val room: RoomData): DungeonEvent() {
         class onEnter(room: RoomData): RoomEvent(room)
         class onExit(room: RoomData): RoomEvent(room)
 
-        class onStateChange(room: RoomData, val oldState: RoomState, val newState: RoomState): RoomEvent(room)
+        class onStateChange(room: RoomData, val oldState: RoomState, val newState: RoomState, val roomPlayers: List<DungeonUtils.DungeonPlayer>): RoomEvent(room)
     }
 
     class SecretEvent(val type: SecretType, val pos: BlockPos): DungeonEvent() {
@@ -164,6 +166,9 @@ abstract class DungeonEvent: Event() {
     }
 
     class PlayerDeathEvent(val name: String, val reason: String): DungeonEvent()
+
+    class RunStatedEvent: DungeonEvent()
+    class RunEndedEvent: DungeonEvent()
 }
 
 class WorldUnloadEvent: Event()

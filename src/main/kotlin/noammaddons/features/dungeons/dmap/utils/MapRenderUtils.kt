@@ -3,6 +3,8 @@ package noammaddons.features.dungeons.dmap.utils
 import net.minecraft.client.gui.Gui
 import net.minecraft.client.renderer.*
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.util.ResourceLocation
 import noammaddons.features.dungeons.dmap.core.DungeonMapConfig
 import noammaddons.features.dungeons.dmap.core.DungeonMapElement.playerMarker
 import noammaddons.features.dungeons.dmap.core.DungeonMapPlayer
@@ -178,17 +180,17 @@ object MapRenderUtils {
 
 
 
-    fun drawOwnPlayerHead(player: DungeonUtils.DungeonPlayer) {
+    fun drawOwnPlayerHead(name: String, skin:ResourceLocation, entity: EntityPlayer? = null) {
         GlStateManager.pushMatrix()
         try {
-            val playerEntity = player.entity ?: return
+            val playerEntity = entity ?: return
             val (x, z) = MapUtils.coordsToMap(playerEntity.renderVec)
 
             GlStateManager.translate(x, z, 0f)
             GlStateManager.rotate(playerEntity.rotationYaw + 180f, 0f, 0f, 1f)
             GlStateManager.scale(DungeonMapConfig.playerHeadScale, DungeonMapConfig.playerHeadScale, 1f)
 
-            if (DungeonMapConfig.mapVanillaMarker && (player.name == mc.thePlayer.name)) {
+            if (DungeonMapConfig.mapVanillaMarker && name == mc.thePlayer.name) {
                 GlStateManager.rotate(180f, 0f, 0f, 1f)
                 bindColor(DungeonMapConfig.mapVanillaMarkerColor)
                 mc.textureManager.bindTexture(playerMarker)
@@ -203,7 +205,7 @@ object MapRenderUtils {
             else {
                 // @formatter:off Render border around the player head
                 renderRectBorder(- 6.0, - 6.0, 12.0, 12.0, 1.0, when {
-                    DungeonMapConfig.mapPlayerHeadColorClassBased -> player.clazz.color
+                    DungeonMapConfig.mapPlayerHeadColorClassBased -> DungeonUtils.Classes.Empty.color
                     else -> DungeonMapConfig.mapPlayerHeadColor
                 })
 
@@ -211,7 +213,7 @@ object MapRenderUtils {
                 GlStateManager.enableTexture2D()
                 GlStateManager.color(1f, 1f, 1f, 1f)
 
-                mc.textureManager.bindTexture(player.locationSkin)
+                mc.textureManager.bindTexture(skin)
 
                 Gui.drawScaledCustomSizeModalRect(- 6, - 6, 8f, 8f, 8, 8, 12, 12, 64f, 64f)
                 Gui.drawScaledCustomSizeModalRect(- 6, - 6, 40f, 8f, 8, 8, 12, 12, 64f, 64f)
@@ -227,12 +229,7 @@ object MapRenderUtils {
                 GlStateManager.rotate(playerEntity.rotationYaw + 180f, 0f, 0f, - 1f)
                 GlStateManager.translate(0f, 8f, 0f)
                 GlStateManager.scale(DungeonMapConfig.playerNameScale, DungeonMapConfig.playerNameScale, 1f)
-                RenderUtils.drawCenteredText(
-                    player.name,
-                    0, 0, 1f,
-                    if (DungeonMapConfig.mapPlayerNameClassColorBased && player.clazz != DungeonUtils.Classes.Empty) player.clazz.color
-                    else Color.WHITE
-                )
+                RenderUtils.drawCenteredText(name, 0, 0, 1f, Color.WHITE)
             }
         }
         catch (e: Exception) {

@@ -4,7 +4,6 @@ import net.minecraft.init.Blocks.*
 import net.minecraft.network.play.client.C03PacketPlayer
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.network.play.server.S08PacketPlayerPosLook
-import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -32,7 +31,7 @@ object ZeroPingTeleportation: Feature() {
 
     private const val MAX_PENDING_TELEPORTS = 3
     private const val MAX_FAILED_TELEPORTS = 3
-    private const val FAIL_TIMEOUT = 25_000L
+    private const val FAIL_TIMEOUT = 30_000L
 
     private val withinTolerance = fun(n1: Float, n2: Float) = abs(n1 - n2) < 1e-4
     private val pendingTeleports = mutableListOf<TeleportPrediction>()
@@ -57,7 +56,11 @@ object ZeroPingTeleportation: Feature() {
         ThreadUtils.setTimeout(FAIL_TIMEOUT) { failedTeleports.remove(id) }
         pendingTeleports.clear()
         if (failedTeleports.size >= MAX_FAILED_TELEPORTS) {
-            modMessage("&bZPT >> &cDetected &6${failedTeleports.size}&c failed teleports. Stopping the feature for &e${FAIL_TIMEOUT / 1000} &fseconds.")
+            modMessage(
+                "&bZPT >> &cDetected &6${failedTeleports.size}&c failed teleports. Stopping the feature for &e${
+                    (FAIL_TIMEOUT - (System.currentTimeMillis() - failedTeleports[0]) / 1000)
+                } &fseconds."
+            )
         }
     }
 
@@ -69,6 +72,12 @@ object ZeroPingTeleportation: Feature() {
         if (packet.placedBlockDirection != 255) return
         if (pendingTeleports.size == MAX_PENDING_TELEPORTS) return
         if (failedTeleports.size == MAX_FAILED_TELEPORTS) return
+        if (LocationUtils.world == LocationUtils.WorldType.Home) return
+        if (LocationUtils.dungeonFloorNumber == 7 && LocationUtils.inBoss) return
+        if (ActionBarParser.currentMana < ActionBarParser.maxMana * 0.1) return
+        if (ScanUtils.currentRoom?.name.equalsOneOf("New Trap", "Old Trap", "Teleport Maze", "Boulder")) return
+        if (getBlockAt(packet.position).equalsOneOf(trapped_chest, chest, ender_chest, hopper)) return
+        if (LocationUtils.isInHubCarnival()) return
         val tpInfo = getTeleportInfo(packet) ?: return
 
         when (tpInfo.type) {
@@ -136,7 +145,7 @@ object ZeroPingTeleportation: Feature() {
         if (playerRot.yaw < 0) playerRot.yaw += 360
 
         val prediction = TeleportPrediction(playerRot, etherPos.vec !!.add(0.5, 1.05, 0.5))
-        pendingTeleports.add(prediction)
+        if (! mc.isSingleplayer) pendingTeleports.add(prediction)
         teleport(prediction, tpInfo.keepMotion)
     }
 
@@ -153,12 +162,12 @@ object ZeroPingTeleportation: Feature() {
             playerRot.pitch.toDouble()
         ) ?: return
 
-        if (ScanUtils.getRoomFromPos(BlockPos(pos))?.name.equalsOneOf("Teleport Maze", "Boulder")) return
+        if (ScanUtils.getRoomFromPos(pos)?.name.equalsOneOf("Teleport Maze", "Boulder")) return
 
         playerRot.yaw %= 360
 
         val prediction = TeleportPrediction(playerRot, pos)
-        pendingTeleports.add(prediction)
+        if (! mc.isSingleplayer) pendingTeleports.add(prediction)
         teleport(prediction, tpInfo.keepMotion)
     }
 
@@ -173,12 +182,6 @@ object ZeroPingTeleportation: Feature() {
     private fun getTeleportInfo(packet: C08PacketPlayerBlockPlacement): TeleportInfo? {
         val heldItem = packet.stack ?: return null
         val sbId = heldItem.SkyblockID ?: return null
-        if (LocationUtils.world == LocationUtils.WorldType.Home) return null
-        if (LocationUtils.dungeonFloorNumber == 7 && LocationUtils.inBoss) return null
-        if (ActionBarParser.currentMana < ActionBarParser.maxMana * 0.1) return null
-        if (ScanUtils.currentRoom?.name.equalsOneOf("New Trap", "Old Trap", "Teleport Maze", "Boulder")) return null
-        if (getBlockAt(packet.position).equalsOneOf(trapped_chest, chest, ender_chest, hopper)) return null
-        if (LocationUtils.isInHubCarnival()) return null
 
         if (sbId.equalsOneOf("ASPECT_OF_THE_VOID", "ASPECT_OF_THE_END")) {
             val nbt = heldItem.getSubCompound("ExtraAttributes", false)

@@ -6,13 +6,14 @@ package noammaddons
 
 import gg.essential.api.EssentialAPI
 import gg.essential.universal.UChat
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import net.minecraft.client.gui.GuiDownloadTerrain
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.network.play.client.C01PacketChatMessage
 import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.event.entity.player.AttackEntityEvent
+import net.minecraftforge.event.entity.player.ItemTooltipEvent
 import net.minecraftforge.fml.common.eventhandler.*
 import net.minecraftforge.fml.common.network.FMLNetworkEvent
 import noammaddons.events.*
@@ -32,6 +33,7 @@ import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendChatMessage
 import noammaddons.utils.DungeonUtils.dungeonEnded
 import noammaddons.utils.DungeonUtils.dungeonStarted
+import noammaddons.utils.ItemUtils.SkyblockID
 import noammaddons.utils.LocationUtils.F7Phase
 import noammaddons.utils.LocationUtils.P3Section
 import noammaddons.utils.LocationUtils.dungeonFloor
@@ -62,7 +64,12 @@ object TestGround {
     private var a = false
     private var sent = false
 
-    private var b = false
+    @SubscribeEvent
+    fun adfd(event: ItemTooltipEvent) {
+        if (! (config.DevMode || EssentialAPI.getMinecraftUtil().isDevelopment())) return
+        val sbid = event.itemStack.SkyblockID ?: return
+        event.toolTip?.add("SkyblockID: &6$sbid".addColor())
+    }
 
     @SubscribeEvent
     @Suppress("Unused_parameter")
@@ -72,11 +79,10 @@ object TestGround {
         val scale = 2f / mc.getScaleFactor()
         GlStateManager.scale(scale, scale, scale)
 
-
         drawText(
             listOf(
                 "dungeonStarted: $dungeonStarted",
-                "dungeonEnded: ${dungeonEnded.get()}",
+                "dungeonEnded: $dungeonEnded",
                 "indungeons: $inDungeon",
                 "dungeonfloor: $dungeonFloor",
                 "dungeonfloorNumber: $dungeonFloorNumber",
@@ -134,6 +140,7 @@ object TestGround {
             }
 
             "e" -> {
+                event.isCanceled = true
                 modMessage(
                     mc.theWorld.loadedEntityList
                         .filterIsInstance<EntityArmorStand>()
@@ -179,16 +186,36 @@ object TestGround {
             }
 
             "fullbright" -> {
+                event.isCanceled = true
                 mc.gameSettings.gammaSetting = 100000f
             }
 
-            "jump" -> {
-                b = ! b
-                modMessage(b)
+            "swap" -> {
+                event.isCanceled = true
+                ActionUtils.quickSwapTo(ServerPlayer.player.getHeldItem()?.SkyblockID ?: return)
+            }
+
+            "secrets" -> {
+                event.isCanceled = true
+                CoroutineScope(Dispatchers.IO).launch {
+                    DungeonUtils.dungeonTeammates.toList().forEach { player ->
+                        val s = ProfileUtils.getSecrets(player.name)
+                        modMessage("${player.name} has $s secrets")
+                    }
+                }
+            }
+
+            "cri" -> {
+                listOf(
+                    "&6&l[&b&lN&d&lA&6&l]&r &e[B&e]&r &6Noamm&f:&r &r&64-5 Rooms&r&r &f| &r&r&b15 Secrets&r&r &f|&r&r &c0 Deaths&r",
+                    "&6&l[&b&lN&d&lA&6&l]&r &e[A&e]&r &4DontAskHoax&f:&r &r&61-4 Rooms&r&r &f|&r &r&b1 Secrets&r&r &f| &r&r &c0 Deaths&r",
+                    "&6&l[&b&lN&d&lA&6&l]&r &e[T&e]&r &2ddavid9&f:&r &r&63-5 Rooms&r&r &f|&r &r&b7 Secrets&r&r &f|&r &r&c0 Deaths&r",
+                    "&6&l[&b&lN&d&lA&6&l]&r &e[H&e]&r &5saintszdxdss&f:&r &r&65 Rooms&r&r &f|&r&r &b3 Secrets&r&r &f|&r&r &c0 Deaths&r",
+                    "&6&l[&b&lN&d&lA&6&l]&r &e[M&e]&r &3Chastille&f:&r &r&61-4 Rooms&r&r &f|&r&r &b4 Secrets&r&r &f|&r&r &c0 Deaths&r",
+                ).forEach(UChat::chat)
             }
         }
     }
-
 
     @SubscribeEvent
     fun handlePartyCommands(event: MessageSentEvent) {
@@ -249,7 +276,6 @@ object TestGround {
         event.isCanceled = true
     }
 
-
     @SubscribeEvent
     fun onPlaterInteract(e: AttackEntityEvent) {
         if (e.entityPlayer != mc.thePlayer) return
@@ -293,7 +319,6 @@ object TestGround {
         GlStateManager.popMatrix()
         GL11.glGetInteger(GL11.GL_VIEWPORT, viewportDims)
     }
-
 }
 
 /*

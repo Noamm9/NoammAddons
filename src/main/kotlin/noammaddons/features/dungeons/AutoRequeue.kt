@@ -2,6 +2,8 @@ package noammaddons.features.dungeons
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.events.DungeonEvent
 import noammaddons.features.Feature
 import noammaddons.features.general.PartyCommands
 import noammaddons.utils.*
@@ -17,24 +19,22 @@ object AutoRequeue: Feature() {
         ChatUtils.modMessage("$prefix $msg")
     }
 
-    init {
-        DungeonUtils.dungeonEnded.onSetValue { value ->
-            if (! config.autoRequeue) return@onSetValue
-            if (! value) return@onSetValue
-            if (! PartyUtils.inParty) return@onSetValue feedBackMessage("Not in a party!")
-            if (PartyUtils.size != 5) return@onSetValue feedBackMessage("Not enough players in party!")
-            if (PartyCommands.downtimeList.isNotEmpty()) return@onSetValue feedBackMessage("There are players in downtime!")
+    @SubscribeEvent
+    fun onRunEnd(event: DungeonEvent.RunEndedEvent) {
+        if (! config.autoRequeue) return
+        if (! PartyUtils.inParty) return feedBackMessage("Not in a party!")
+        if (PartyUtils.size != 5) return feedBackMessage("Not enough players in party!")
+        if (PartyCommands.downtimeList.isNotEmpty()) return feedBackMessage("There are players in downtime!")
 
-            scope.launch {
-                delay(config.autoRequeueDelay.toLong())
-                if (PartyUtils.leader != mc.session.username) return@launch feedBackMessage("You are not the party leader!")
-                if (shouldIgnore) {
-                    shouldIgnore = false
-                    return@launch feedBackMessage("Ignoring player leaving")
-                }
-
-                ChatUtils.sendChatMessage("/joininstance ${masterMode}CATACOMBS_FLOOR_${floor}")
+        scope.launch {
+            delay(config.autoRequeueDelay.toLong())
+            if (PartyUtils.leader != mc.session.username) return@launch feedBackMessage("You are not the party leader!")
+            if (shouldIgnore) {
+                shouldIgnore = false
+                return@launch feedBackMessage("Ignoring player leaving")
             }
+
+            ChatUtils.sendChatMessage("/joininstance ${masterMode}CATACOMBS_FLOOR_${floor}")
         }
     }
 }

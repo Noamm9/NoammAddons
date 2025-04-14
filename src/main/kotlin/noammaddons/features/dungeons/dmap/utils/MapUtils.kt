@@ -12,9 +12,9 @@ import noammaddons.utils.Utils.equalsOneOf
 
 object MapUtils {
 
-    val Vec4b.mapX get() = (func_176112_b() + 128) shr 1
+    val Vec4b.mapX get() = ((func_176112_b() + 128) shr 1).toFloat()
 
-    val Vec4b.mapZ get() = (func_176113_c() + 128) shr 1
+    val Vec4b.mapZ get() = ((func_176113_c() + 128) shr 1).toFloat()
 
     val Vec4b.yaw get() = func_176111_d() * 22.5f
 
@@ -22,6 +22,12 @@ object MapUtils {
         val x = ((vec.xCoord - DungeonScanner.startX + 15) * coordMultiplier + startCorner.first).toFloat()
         val z = ((vec.zCoord - DungeonScanner.startZ + 15) * coordMultiplier + startCorner.second).toFloat()
         return Pair(x, z)
+    }
+
+    fun mapToCoords(mapCoords: Pair<Float, Float>): Vec3 {
+        val x = (mapCoords.first - startCorner.first) / coordMultiplier + DungeonScanner.startX - 15
+        val z = (mapCoords.second - startCorner.second) / coordMultiplier + DungeonScanner.startZ - 15
+        return Vec3(x, 0.0, z)
     }
 
 

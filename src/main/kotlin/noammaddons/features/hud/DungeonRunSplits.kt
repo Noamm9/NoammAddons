@@ -1,19 +1,19 @@
-package noammaddons.features.dungeons
+package noammaddons.features.hud
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.config.EditGui.GuiElement
 import noammaddons.config.EditGui.HudEditorScreen
 import noammaddons.events.*
 import noammaddons.features.Feature
-import noammaddons.features.dungeons.DungeonRunSplits.DungeonRunSplitsElement.overviewStr
 import noammaddons.features.dungeons.dmap.handlers.DungeonInfo
+import noammaddons.features.hud.DungeonRunSplits.DungeonRunSplitsElement.overviewStr
 import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.ThreadUtils.loop
 import kotlin.math.roundToInt
 
-
+//
 object DungeonRunSplits: Feature() {
     private object DungeonRunSplitsElement: GuiElement(hudData.getData().dungeonRunSplits) {
         private val exampleText = listOf(
@@ -35,11 +35,11 @@ object DungeonRunSplits: Feature() {
     private data class DialogueEntry(val name: String, val start: String? = null, val end: String? = null)
     private data class Split(var start: Long? = null, var end: Long? = null)
 
+    private val floorSplits = mutableMapOf<String, List<DialogueEntry>>()
+
     private val currentFloorSplits = mutableMapOf<String, Split>()
     private val runEndRegex = Regex("^\\s*☠ Defeated (.+) in 0?([\\dhms ]+?)\\s*(\\(NEW RECORD!\\))?$")
 
-    // todo load from JSON in future
-    private val floorSplits = mutableMapOf<String, List<DialogueEntry>>()
 
     init {
         JsonUtils.fetchJsonWithRetry<Map<String, List<Map<String, String?>>>>(

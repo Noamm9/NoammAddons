@@ -11,6 +11,7 @@ import noammaddons.noammaddons.Companion.FULL_PREFIX
 import noammaddons.utils.ActionUtils.changeMask
 import noammaddons.utils.ActionUtils.getPotion
 import noammaddons.utils.ActionUtils.leap
+import noammaddons.utils.ActionUtils.quickSwapTo
 import noammaddons.utils.ActionUtils.reaperSwap
 import noammaddons.utils.ActionUtils.rodSwap
 import noammaddons.utils.ActionUtils.rotateSmoothly
@@ -120,6 +121,8 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons, noamm, noam, noam
 
             "rodswap" -> rodSwap()
 
+            "quickswap" -> quickSwapTo(args.getOrNull(1)?.uppercase() ?: return)
+
             "leap" -> {
                 if (args.size <= 1) return modMessage("&cInvalid usage of command. &bUsage: /na leap [name]")
 
@@ -158,6 +161,7 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons, noamm, noam, noam
         "&b/na leap [name] &7- &oLeaps to the specified player.",
         "&b/na swapmask &7- &oAutomatically preform Mask Swap.",
         "&b/na rodswap &7- &oAutomatically preform Rod Swap.",
+        "&b/na quickswap [ItemID] &7- &oAutomatically equip the item in the EQ menu",
         "&b/na holdclick [LEFT, RIGHT, MIDDLE] &7- &oHolds the Mouse buttom for you.",
         "&b/na potion &7- &oAutomatically get a Potion from the Potion Bag.",
         "&b/na tps &7- &oShows the current server's TPS.",

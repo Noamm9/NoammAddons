@@ -1,22 +1,15 @@
 package noammaddons.features.dungeons
 
-import net.minecraft.event.ClickEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.Chat
+import noammaddons.events.DungeonEvent
 import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.sendChatMessage
-import noammaddons.utils.LocationUtils.inDungeon
 
 
 object ShowExtraStats: Feature() {
     @SubscribeEvent
-    fun onChatPacket(event: Chat) {
-        if (! inDungeon || ! config.showExtraStats) return
-        if (event.component.siblings.any {
-                it.chatStyle?.chatClickEvent?.run { action == ClickEvent.Action.RUN_COMMAND && value == "/showextrastats" } == true
-            }) {
-            event.isCanceled = true
-            sendChatMessage("/showextrastats")
-        }
+    fun onRunEndEvent(event: DungeonEvent.RunEndedEvent) {
+        if (! config.showExtraStats) return
+        sendChatMessage("/showextrastats")
     }
 }

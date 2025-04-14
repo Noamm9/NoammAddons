@@ -12,12 +12,13 @@ import noammaddons.features.dungeons.dmap.utils.MapUtils
 import noammaddons.noammaddons.Companion.MOD_ID
 import noammaddons.noammaddons.Companion.hudData
 import noammaddons.noammaddons.Companion.mc
-import noammaddons.utils.*
+import noammaddons.utils.DungeonUtils
 import noammaddons.utils.DungeonUtils.dungeonStarted
 import noammaddons.utils.DungeonUtils.thePlayer
 import noammaddons.utils.RenderHelper.colorCodeByPresent
 import noammaddons.utils.RenderHelper.getStringHeight
 import noammaddons.utils.RenderHelper.getStringWidth
+import noammaddons.utils.TablistListener
 import noammaddons.utils.Utils.equalsOneOf
 import org.lwjgl.opengl.GL11
 import java.awt.Color
@@ -151,6 +152,7 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
                 (DungeonMapConfig.mapRoomNames == 3 && roomType.equalsOneOf(RoomType.NORMAL, RoomType.RARE) || DungeonMapConfig.dungeonMapCheckmarkStyle == 3)
             ) {
                 val lines = room.data.name.split(" ")
+                if ("Unknown" in lines) return
                 var textScale = DungeonMapConfig.textScale
 
                 if (DungeonMapConfig.limitRoomNameSize) {
@@ -222,37 +224,22 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
     }
 
     private fun renderPlayerHeads() {
-        if (LocationUtils.inBoss) return
         if (DungeonMapConfig.dungeonMapCheater && ! dungeonStarted) {
             DungeonUtils.runPlayersNames.toMap().entries.forEach { (name, skin) ->
                 if (name == mc.session.username) return@forEach
                 val entity = mc.theWorld.getPlayerEntityByName(name) ?: return@forEach
-
-                MapRenderUtils.drawOwnPlayerHead(
-                    DungeonUtils.DungeonPlayer(
-                        name = name,
-                        clazz = DungeonUtils.Classes.Empty,
-                        clazzLvl = 50,
-                        entity = entity,
-                        locationSkin = skin
-                    )
-                )
+                MapRenderUtils.drawOwnPlayerHead(name, skin, entity)
             }
         }
 
-        DungeonInfo.playerIcons.toMap().values.forEach { entry ->
-            if (entry.teammate.isDead) return@forEach
-            MapRenderUtils.drawPlayerHead(entry)
-        }
+        DungeonUtils.dungeonTeammatesNoSelf.filterNot { it.isDead }.map { it.mapIcon }.forEach(MapRenderUtils::drawPlayerHead)
 
-        if (DungeonMapConfig.dungeonMapCheater) {
-            val me = thePlayer ?: DungeonMapPlayer.dummy
-            MapRenderUtils.drawPlayerHead(DungeonMapPlayer(me, me.locationSkin))
-        }
-        else thePlayer?.run {
-            if (isDead) return@run
-            MapRenderUtils.drawOwnPlayerHead(this)
-        }
+        if (DungeonMapConfig.dungeonMapCheater) MapRenderUtils.drawOwnPlayerHead(
+            mc.session.username,
+            mc.thePlayer.locationSkin,
+            mc.thePlayer
+        )
+        else thePlayer?.mapIcon?.run(MapRenderUtils::drawPlayerHead)
     }
 
     private fun drawRoomConnector(x: Int, y: Int, doorWidth: Int, doorway: Boolean, vertical: Boolean, color: Color) {
@@ -272,6 +259,7 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
         )
     }
 
+    // TODO ScoreCalculator when?
     private fun drawExtraInfo() {
         if (! DungeonMapConfig.mapExtraInfo) return
         if (! DungeonMapConfig.dungeonMapCheater && ! dungeonStarted) return

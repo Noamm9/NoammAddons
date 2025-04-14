@@ -3,7 +3,6 @@ package noammaddons.utils
 import gg.essential.universal.UDesktop.browse
 import noammaddons.noammaddons.Companion.FULL_PREFIX
 import noammaddons.noammaddons.Companion.MOD_VERSION
-import noammaddons.noammaddons.Companion.config
 import noammaddons.utils.ChatUtils.Alert
 import noammaddons.utils.ChatUtils.clickableChat
 import noammaddons.utils.ChatUtils.modMessage
@@ -14,15 +13,14 @@ object UpdateUtils {
     private const val GITHUB_API_URL = "https://api.github.com/repos/Noamm9/NoammAddons/releases"
     private lateinit var updateVersion: DataClasses.Release
     private var isMessageOnScreen = false
-    private var lastTrigger: Long = 0L
+    private var lastCheck: Long = 0L
     private var removeCharsRegex = Regex("[^0-9.]")
     private var startup = false
 
 
     fun update() {
-        if (! config.UpdateCheck) return
-        if ((System.currentTimeMillis() - lastTrigger) < 25_000) return
-        lastTrigger = System.currentTimeMillis()
+        if ((System.currentTimeMillis() - lastCheck) < 25_000) return
+        lastCheck = System.currentTimeMillis()
 
         if (isMessageOnScreen) return
 

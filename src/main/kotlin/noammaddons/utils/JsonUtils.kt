@@ -3,7 +3,8 @@ package noammaddons.utils
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.*
 import kotlinx.serialization.json.Json.Default.parseToJsonElement
 import net.minecraft.crash.CrashReport
@@ -12,14 +13,12 @@ import noammaddons.noammaddons.Companion.Logger
 import noammaddons.noammaddons.Companion.MOD_ID
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.noammaddons.Companion.scope
-import noammaddons.utils.ChatUtils.errorMessage
 import noammaddons.utils.Utils.equalsOneOf
 import java.io.*
 import java.lang.reflect.Type
 import java.net.*
 import java.security.KeyStore
 import javax.net.ssl.*
-import kotlin.reflect.jvm.jvmName
 
 
 object JsonUtils {
@@ -157,8 +156,7 @@ object JsonUtils {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun get(url: String, block: (JsonObject) -> Unit) {
+    fun get(url: String, block: (JsonObject?) -> Unit) {
         scope.launch {
             runCatching {
                 val connection = makeWebRequest(url) as HttpURLConnection
@@ -169,16 +167,9 @@ object JsonUtils {
                 val jsonObject = stringToJson(response)
 
                 jsonObject.apply(block)
-            }.onFailure { catch ->
-                catch.printStackTrace()
-
-                errorMessage(
-                    listOf(
-                        "&cFailed to fetch data!",
-                        "&cURL: &b$url",
-                        "&e${catch::class.qualifiedName ?: catch::class.jvmName}: ${catch.message ?: "Unknown"}"
-                    )
-                )
+            }.onFailure {
+                block(null)
+                it.printStackTrace()
             }
         }
     }

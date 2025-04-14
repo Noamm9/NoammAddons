@@ -1,4 +1,4 @@
-package noammaddons.features.dungeons
+package noammaddons.features.alerts
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.DungeonEvent

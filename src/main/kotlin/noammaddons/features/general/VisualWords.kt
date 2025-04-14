@@ -13,10 +13,13 @@ object VisualWords: Feature() {
     init {
         fetchJsonWithRetry<Map<String, String>>(
             "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/VisualWords.json"
-        ) { wordsMap = it }
+        ) {
+            wordsMap = it ?: return@fetchJsonWithRetry
+        }
     }
 
     @JvmStatic
+    @Suppress("KotlinConstantConditions")
     fun replaceText(text: String?): String? {
         if (text == null) return text
         if (wordsMap == null) return text

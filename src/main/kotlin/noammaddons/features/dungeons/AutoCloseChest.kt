@@ -19,7 +19,7 @@ object AutoCloseChest: Feature() {
         if (! inDungeon || inBoss) return
         if (! event.packet.windowTitle.noFormatText.equalsOneOf("Chest", "Large Chest")) return
         if (! event.packet.slotCount.equalsOneOf(27, 54)) return
-        C0DPacketCloseWindow(event.packet.windowId).send(50)
+        C0DPacketCloseWindow(event.packet.windowId).send()
         event.isCanceled = true
     }
 }

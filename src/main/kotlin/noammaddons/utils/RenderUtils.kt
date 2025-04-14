@@ -231,10 +231,10 @@ object RenderUtils {
         GlStateManager.popMatrix()
     }
 
-    fun drawBox(x: Number, y: Number, z: Number, color: Color, outline: Boolean, fill: Boolean, width: Number = 1f, height: Number = 1f, phase: Boolean = true, LineThickness: Number = 3f) {
+    fun drawBox(x: Number, y: Number, z: Number, color: Color, outline: Boolean, fill: Boolean, width: Number = 1f, height: Number = 1f, phase: Boolean = true, lineWidth: Number = 3f) {
         if (! outline && ! fill) throw IllegalArgumentException("outline and fill cannot both be false")
         val distance = distance3D(Vec3(x.toDouble(), y.toDouble(), z.toDouble()), mc.thePlayer?.renderVec ?: return)
-        val adjustedLineWidth = (LineThickness.toDouble() / (distance / 8f)).coerceIn(0.5, LineThickness.toDouble()).toFloat()
+        val adjustedLineWidth = (lineWidth.toDouble() / (distance / 8f)).coerceIn(0.5, lineWidth.toDouble()).toFloat()
 
         GlStateManager.pushMatrix()
         preDraw()
@@ -270,7 +270,7 @@ object RenderUtils {
             from.xCoord.toFloat(), from.yCoord.toFloat(), from.zCoord.toFloat(),
             color, outline, fill,
             width = to.xCoord.toFloat() - from.xCoord.toFloat(), height = to.yCoord.toFloat() - from.yCoord.toFloat(),
-            phase = phase, LineThickness = LineThickness
+            phase = phase, lineWidth = LineThickness
         )
     }
 

@@ -6,7 +6,6 @@ import net.minecraft.util.Vec3
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.InventoryFullyOpenedEvent
 import noammaddons.features.gui.Menus.impl.CustomSpiritLeapMenu
-import noammaddons.features.hud.MaskTimers
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.noammaddons.Companion.scope
@@ -29,7 +28,6 @@ import noammaddons.utils.MathUtils.interpolateYaw
 import noammaddons.utils.MathUtils.normalizePitch
 import noammaddons.utils.MathUtils.normalizeYaw
 import noammaddons.utils.PlayerUtils.closeScreen
-import noammaddons.utils.PlayerUtils.getHelmet
 import noammaddons.utils.PlayerUtils.holdClick
 import noammaddons.utils.PlayerUtils.rotate
 import noammaddons.utils.PlayerUtils.sendRightClickAirPacket
@@ -52,15 +50,17 @@ object ActionUtils {
     private val rotationQueue = ArrayDeque<suspend () -> Unit>()
     var rotationJob: Job? = null
 
-    private var INTERNAL_LEAP_TARGET: DungeonPlayer? = null
-    private var awaiting4EQ = false
+    private var LEAP_TARGET: DungeonPlayer? = null
     private var awaitingPotionBag = ""
+    private var awaiting4EQ = ""
 
     fun rodSwap() = queueAction("Rod Swap") { rodSwapAction() }
 
     fun leap(leapTarget: DungeonPlayer) = queueAction("Leap") { leapAction(leapTarget) }
 
     fun changeMask() = queueAction("Change Mask") { changeMaskAction() }
+
+    fun quickSwapTo(itemID: String) = queueAction("Quick Swap") { quickSwapAction(itemID) }
 
     fun getPotion(name: String) = queueAction("Potion") { getPotionAction(name) }
 
@@ -178,38 +178,44 @@ object ActionUtils {
         if (leapTarget.isDead) return modMessage(leapTarget.name + " is dead R.I.P!")
         val leapIndex = getItemIndexInHotbar("leap") ?: return modMessage("&cNo leap found in hotbar!")
 
-        if (! inLeapMenu) {
-            swapToSlot(leapIndex)
-            delay(80)
-            sendRightClickAirPacket()
-            INTERNAL_LEAP_TARGET = leapTarget
-            setTimeout(5000) { INTERNAL_LEAP_TARGET = null }
+        hideGui(true) { drawTitle("&5[Leaping to &b${leapTarget.name}]", "&bPlease wait") }
 
-            while (! inLeapMenu && INTERNAL_LEAP_TARGET != null) delay(50)
-            delay(400)
+        if (! inLeapMenu) {
+            if (ServerPlayer.player.heldHotbarSlot != leapIndex) {
+                swapToSlot(leapIndex)
+                delay(80)
+            }
+            sendRightClickAirPacket()
+            LEAP_TARGET = leapTarget
+            setTimeout(5000) { LEAP_TARGET = null }
+
+            while (LEAP_TARGET != null) delay(50)
         }
 
         CustomSpiritLeapMenu.updatePlayersArray()
         CustomSpiritLeapMenu.players.find { it?.player?.name == leapTarget.name }?.let { target ->
+            modMessage("Leaping To: &e[${leapTarget.clazz.name[0]}] &a${leapTarget.name}")
             sendWindowClickPacket(target.slot, 0, 0)
+            delay(500)
+            hideGui(false)
         }
     }
 
-    private suspend fun changeMaskAction() {
+    private suspend fun quickSwapAction(itemID: String) {
         if (thePlayer?.isDead == true) return
-        val currentHelmet = getHelmet()?.SkyblockID
-        when (currentHelmet) {
-            "BONZO_MASK" -> if (MaskTimers.Masks.SPIRIT_MASK.cooldownTime > 0) return
-            "SPIRIT_MASK" -> if (MaskTimers.Masks.BONZO_MASK.cooldownTime > 0) return
-        }
 
         C01PacketChatMessage("/eq").send()
-        hideGui(true) { drawTitle("&5[Swapping mask...]", "&bPlease wait") }
-        awaiting4EQ = true
-        setTimeout(5000) { awaiting4EQ = false }
+        hideGui(true) { drawTitle("&5[Swapping...]", "&bPlease wait") }
+        awaiting4EQ = itemID
+        setTimeout(5000) { awaiting4EQ = "" }
 
-        while (! inEQMenu && awaiting4EQ) delay(50)
-        delay(400)
+        while (awaiting4EQ.isNotBlank()) delay(50)
+    }
+
+    private suspend fun changeMaskAction() {
+        val sbIds = mc.thePlayer.inventory.mainInventory.mapNotNull { it?.SkyblockID }
+        val mask = sbIds.find { it.containsOneOf("SPIRIT_MASK", "BONZO_MASK") } ?: return
+        quickSwapAction(mask)
     }
 
     private suspend fun getPotionAction(name: String) {
@@ -222,8 +228,7 @@ object ActionUtils {
         awaitingPotionBag = name
         setTimeout(5000) { awaitingPotionBag = "" }
 
-        while (! inPotionBag && awaitingPotionBag.isNotBlank()) delay(50)
-        delay(250)
+        while (awaitingPotionBag.isNotBlank()) delay(50)
     }
 
     suspend fun reaperSwapAction() {
@@ -283,7 +288,7 @@ object ActionUtils {
 
 
     @SubscribeEvent
-    fun handleAutoLeap(event: InventoryFullyOpenedEvent) {
+    fun onInventoryOpen(event: InventoryFullyOpenedEvent) {
         when {
             inPotionBag -> {
                 if (awaitingPotionBag.isBlank()) return
@@ -307,25 +312,28 @@ object ActionUtils {
             }
 
             inLeapMenu -> {
-                if (INTERNAL_LEAP_TARGET == null) return
+                if (LEAP_TARGET == null) return
                 CustomSpiritLeapMenu.updatePlayersArray()
-                CustomSpiritLeapMenu.players.find { it?.player?.name == INTERNAL_LEAP_TARGET?.name }?.let { target ->
-                    modMessage("Leaping To: ${target.player.name}&r (${target.player.clazz})")
+                CustomSpiritLeapMenu.players.find { it?.player?.name == LEAP_TARGET?.name }?.let { target ->
+                    modMessage("Leaping To: &e[${LEAP_TARGET !!.clazz.name[0]}] &a${LEAP_TARGET !!.name}")
                     sendWindowClickPacket(target.slot, 0, 0)
-                    INTERNAL_LEAP_TARGET = null
+                    LEAP_TARGET = null
+                    setTimeout(500) { hideGui(false) }
                 }
             }
 
             inEQMenu -> {
-                if (! awaiting4EQ) return
-                val con = mc.thePlayer?.openContainer?.inventorySlots ?: return resetEQ("&cNo mask found!")
+                if (awaiting4EQ.isBlank()) return
+                val con = mc.thePlayer?.openContainer?.inventorySlots ?: return resetEQ("&cInventory didnt fully open???")
 
-                val mask = con.filter { it.slotNumber in con.size - 36 until con.size }
-                    .find { it.stack?.SkyblockID?.containsOneOf("SPIRIT_MASK", "BONZO_MASK") == true }
-                    ?: return resetEQ("&cMask found but not the slot?????")
+                val item = con.filter {
+                    it.slotNumber in con.size - 36 until con.size
+                }.find {
+                    it.stack?.SkyblockID?.contains(awaiting4EQ) == true
+                } ?: return resetEQ("&cItem Not Found $awaiting4EQ")
 
-                sendWindowClickPacket(mask.slotNumber, 0, 0)
-                resetEQ("Quick swap to ${mask.stack?.displayName}")
+                sendWindowClickPacket(item.slotNumber, 0, 0)
+                resetEQ("Quick swap to ${item.stack?.displayName}")
             }
         }
     }
@@ -346,6 +354,6 @@ object ActionUtils {
         message?.let { modMessage(it) }
         closeScreen()
         SoundUtils.Pling()
-        awaiting4EQ = false
+        awaiting4EQ = ""
     }
 }

@@ -3,7 +3,7 @@ package noammaddons.features.dungeons.dmap.core.map
 import noammaddons.utils.Utils.equalsOneOf
 
 enum class Puzzle(val roomDataName: String, val tabName: String = roomDataName) {
-    BOMB_DEFUSE("Bomb Defuse"),
+    BOMB_DEFUSE("Bomb Defuse"), // Rest in peace
     BOULDER("Boulder"),
     CREEPER_BEAMS("Creeper Beams"),
     HIGHER_BLAZE("Higher Blaze", "Higher Or Lower"),
@@ -17,8 +17,8 @@ enum class Puzzle(val roomDataName: String, val tabName: String = roomDataName) 
     WATER_BOARD("Water Board");
 
     companion object {
-        fun fromName(name: String): Puzzle? {
-            return entries.find { name.equalsOneOf(it.roomDataName, it.tabName) }
+        fun fromName(name: String) = entries.find {
+            name.equalsOneOf(it.roomDataName, it.tabName)
         }
     }
 }

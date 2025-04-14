@@ -21,6 +21,7 @@ import noammaddons.utils.ScanUtils.getRoomCenterAt
 import noammaddons.utils.ScanUtils.getRotation
 import noammaddons.utils.Utils.formatPbPuzzleMessage
 import java.awt.Color
+import java.util.concurrent.CopyOnWriteArrayList
 
 
 object CreeperBeamSolver: Feature() {
@@ -31,7 +32,7 @@ object CreeperBeamSolver: Feature() {
     private var rotation = 0
     private var enterTimestamp: Long? = null
     private var solveTimestamp: Long? = null
-    private val solutions = mutableSetOf<BeamPair>()
+    private val solutions = CopyOnWriteArrayList<BeamPair>()
 
     private val beamSolutions = listOf(
         Pair(listOf(0, 74, 0), listOf(- 2, 84, 0)),
@@ -51,7 +52,7 @@ object CreeperBeamSolver: Feature() {
 
     private val colorPool = listOf(
         Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW,
-        Color.CYAN, Color.BLACK, Color.WHITE, Color.MAGENTA
+        Color.CYAN, Color.ORANGE, Color.WHITE, Color.MAGENTA
     )
 
     private val blockMapping = mapOf(
@@ -77,9 +78,8 @@ object CreeperBeamSolver: Feature() {
     }
 
     @SubscribeEvent
-    fun onRoomExit(event: DungeonEvent.RoomEvent.onExit) {
-        reset()
-    }
+    fun onRoomExit(event: DungeonEvent.RoomEvent.onExit) = reset()
+
 
     @SubscribeEvent
     fun renderSolutions(event: RenderWorld) {

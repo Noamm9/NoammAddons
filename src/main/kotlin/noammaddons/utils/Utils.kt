@@ -54,6 +54,19 @@ object Utils {
         else setTimeout(delay.toLong()) { mc.netHandler.networkManager.sendPacket(this) }
     }
 
+    fun <K, V> MutableMap<K, V>.removeIf(predicate: (Map.Entry<K, V>) -> Boolean): Boolean {
+        var removed = false
+        val iterator = this.entries.iterator()
+        while (iterator.hasNext()) {
+            if (predicate(iterator.next())) {
+                iterator.remove()
+                removed = true
+            }
+        }
+        return removed
+    }
+
+
     fun printCaller() {
         Exception().stackTrace.take(10).forEach { Logger.info(it) }
     }

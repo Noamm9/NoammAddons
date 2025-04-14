@@ -5,7 +5,7 @@ import noammaddons.events.RegisterEvents
 import noammaddons.features.dungeons.dmap.core.DungeonMapConfig
 import noammaddons.features.dungeons.dmap.handlers.DungeonInfo
 import noammaddons.features.dungeons.dmap.handlers.DungeonScanner
-import noammaddons.utils.ChatUtils
+import noammaddons.utils.*
 import java.awt.Color
 import kotlin.properties.Delegates
 
@@ -13,14 +13,18 @@ class Room(override val x: Int, override val z: Int, var data: RoomData): Tile {
     var core = 0
     var isSeparator = false
 
-
     override var state: RoomState by Delegates.observable(RoomState.UNDISCOVERED) { _, oldValue, newValue ->
         if (oldValue == newValue) return@observable
         if (data.name == "Unknown") return@observable
         if (DungeonMapConfig.dungeonMapCheater && oldValue == RoomState.UNOPENED && newValue == RoomState.UNDISCOVERED) return@observable
         if (DungeonMapConfig.dungeonMapCheater && newValue == RoomState.UNOPENED && oldValue == RoomState.UNDISCOVERED) return@observable
         ChatUtils.debugMessage("${data.name}: $oldValue -> $newValue")
-        RegisterEvents.postAndCatch(DungeonEvent.RoomEvent.onStateChange(data, oldValue, newValue))
+
+        val roomPlayers = DungeonUtils.dungeonTeammates.filter {
+            ScanUtils.getRoomFromPos(it.mapIcon.getRealPos())?.name == data.name
+        }
+
+        RegisterEvents.postAndCatch(DungeonEvent.RoomEvent.onStateChange(data, oldValue, newValue, roomPlayers))
     }
 
 

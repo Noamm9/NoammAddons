@@ -1,13 +1,12 @@
 package noammaddons.utils
 
 import gg.essential.api.EssentialAPI
-import net.minecraft.util.Vec3
+import net.minecraft.util.BlockPos
 import net.minecraftforge.fml.common.eventhandler.Event
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent.*
 import noammaddons.events.Tick
 import noammaddons.events.WorldUnloadEvent
-import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.MathUtils.isCoordinateInsideBox
@@ -73,33 +72,20 @@ object LocationUtils {
     }
 
     @SubscribeEvent
-    fun check(event: Tick) {
-        TickTimer ++
-        if (TickTimer != 20) return
-
-        if (config.DevMode) setDevModeValues()
-        else updateSkyblockAndDungeonStatus()
-
-        TickTimer = 0
-    }
-
-    @SubscribeEvent
     fun onEvent(event: Event) {
         when (event) {
             is Tick -> {
                 TickTimer ++
-                if (TickTimer != 20) return
-                if (config.DevMode) setDevModeValues()
-                else updateSkyblockAndDungeonStatus()
+                if (TickTimer == 20) return
+                updateLocation()
                 TickTimer = 0
             }
 
             is WorldUnloadEvent -> reset()
             is ClientDisconnectionFromServerEvent -> reset()
         }
-        if (event is WorldUnloadEvent) reset()
-        if (event is ClientDisconnectionFromServerEvent) reset()
     }
+
 
     private fun reset() {
         inSkyblock = false
@@ -122,7 +108,7 @@ object LocationUtils {
         inBoss = isInBossRoom()
     }
 
-    private fun updateSkyblockAndDungeonStatus() {
+    private fun updateLocation() {
         inSkyblock = onHypixel && mc.theWorld.scoreboard.getObjectiveInDisplaySlot(1)?.name == "SBScoreboard"
 
         if (inSkyblock) {
@@ -156,44 +142,37 @@ object LocationUtils {
 
     fun isInHubCarnival(): Boolean {
         return isCoordinateInsideBox(
-            ServerPlayer.player.takeIf { it.initialized }?.getVec() ?: return false,
-            Vec3(- 123.0, 100.0, 36.0), Vec3(- 64.0, 70.0, - 31.0)
+            ServerPlayer.player.takeIf { it.initialized }?.getPos() ?: return false,
+            BlockPos(- 123, 100, 36), BlockPos(- 64, 70, - 31)
         )
     }
 
     private fun getPhase(): Int? {
-        if (dungeonFloorNumber != 7 && ! inBoss) return null
+        if (dungeonFloorNumber != 7 || ! inBoss) return null
+        val playerPosition = ServerPlayer.player.takeIf { it.initialized }?.getPos() ?: return null
 
-        val playerPosition = ServerPlayer.player.takeIf { it.initialized }?.getVec() ?: return null
-        val corner1 = Vec3(- 8.0, 254.0, 147.0)
-        val corner2 = Vec3(134.0, 0.0, - 8.0)
-
-        if (isCoordinateInsideBox(playerPosition, corner1, corner2)) {
-            return when {
-                playerPosition.yCoord > 210 -> 1
-                playerPosition.yCoord > 155 -> 2
-                playerPosition.yCoord > 100 -> 3
-                playerPosition.yCoord > 45 -> 4
-                else -> 5
-            }
+        return when {
+            playerPosition.y > 210 -> 1
+            playerPosition.y > 155 -> 2
+            playerPosition.y > 100 -> 3
+            playerPosition.y > 45 -> 4
+            else -> 5
         }
-
-        return null
     }
 
     private val P3Sections = listOf(
-        Pair(Vec3(90.0, 158.0, 123.0), Vec3(111.0, 105.0, 32.0)),  //  1
-        Pair(Vec3(16.0, 158.0, 122.0), Vec3(111.0, 105.0, 143.0)), //  2
-        Pair(Vec3(19.0, 158.0, 48.0), Vec3(- 3.0, 106.0, 142.0)),  //  3
-        Pair(Vec3(91.0, 158.0, 50.0), Vec3(- 3.0, 106.0, 30.0))    //  4
+        Pair(BlockPos(90, 158, 123), BlockPos(111, 105, 32)),  //  1
+        Pair(BlockPos(16, 158, 122), BlockPos(111, 105, 143)), //  2
+        Pair(BlockPos(19, 158, 48), BlockPos(- 3, 106, 142)),  //  3
+        Pair(BlockPos(91, 158, 50), BlockPos(- 3, 106, 30))    //  4
     )
 
     private fun getP3Section_(): Int? {
         if (F7Phase != 3) return null
-        val pos = ServerPlayer.player.takeIf { it.initialized }?.getVec() ?: return null
+        val player = ServerPlayer.player.takeIf { it.initialized } ?: return null
 
         P3Sections.forEachIndexed { i, (one, two) ->
-            if (isCoordinateInsideBox(pos, one, two)) {
+            if (isCoordinateInsideBox(player.getPos(), one, two)) {
                 return i + 1
             }
         }
@@ -202,18 +181,19 @@ object LocationUtils {
     }
 
     private val bossRoomCorners = mapOf(
-        7 to Pair(Vec3(- 8.0, 0.0, - 8.0), Vec3(134.0, 254.0, 147.0)),
-        6 to Pair(Vec3(- 40.0, 51.0, - 8.0), Vec3(22.0, 110.0, 134.0)),
-        5 to Pair(Vec3(- 40.0, 53.0, - 8.0), Vec3(50.0, 112.0, 118.0)),
-        4 to Pair(Vec3(- 40.0, 53.0, - 40.0), Vec3(134.0, 254.0, 147.0)),
-        3 to Pair(Vec3(- 40.0, 0.0, - 40.0), Vec3(42.0, 118.0, 73.0)),
-        2 to Pair(Vec3(- 40.0, 99.0, - 40.0), Vec3(42.0, 118.0, 73.0)),
-        1 to Pair(Vec3(- 14.0, 146.0, 49.0), Vec3(24.0, 54.0, 54.0))
+        7 to Pair(BlockPos(- 8, 0, - 8), BlockPos(134, 254, 147)),
+        6 to Pair(BlockPos(- 40, 51, - 8), BlockPos(22, 110, 134)),
+        5 to Pair(BlockPos(- 40, 112, - 8), BlockPos(50, 53, 118)),
+        4 to Pair(BlockPos(- 40, 112, - 40), BlockPos(50, 53, 47)),
+        3 to Pair(BlockPos(- 40, 118, - 40), BlockPos(42, 64, 31)),
+        2 to Pair(BlockPos(- 40, 99, - 40), BlockPos(24, 54, 59)),
+        1 to Pair(BlockPos(- 14, 55, 49), BlockPos(- 72, 146, - 40))
     )
 
     private fun isInBossRoom(): Boolean {
-        val playerCoords = ServerPlayer.player.takeIf { it.initialized }?.getVec() ?: return false
-        val corners = bossRoomCorners[dungeonFloorNumber] ?: return false
-        return isCoordinateInsideBox(playerCoords, corners.first, corners.second)
+        val player = ServerPlayer.player.takeIf { it.initialized } ?: return false
+        val floor = dungeonFloorNumber ?: return false
+        val corners = bossRoomCorners[floor] ?: return false
+        return isCoordinateInsideBox(player.getPos(), corners.first, corners.second)
     }
 }

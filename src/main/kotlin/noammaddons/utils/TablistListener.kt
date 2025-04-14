@@ -8,39 +8,43 @@ import noammaddons.events.PacketEvent
 import noammaddons.events.WorldUnloadEvent
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.LocationUtils.inDungeon
-import noammaddons.utils.LocationUtils.inSkyblock
 import noammaddons.utils.Utils.equalsOneOf
 
 object TablistListener {
     private val deathsRegex = Regex("§r§a§lTeam Deaths: §r§f(?<deaths>\\d+)§r")
     private val cryptsPattern = Regex("§r Crypts: §r§6(?<crypts>\\d+)§r")
     private val secretsFoundPattern = Regex("§r Secrets Found: §r§b(?<secrets>\\d+)§r")
-    private val secretsFoundPercentagePattern = Regex("§r Secrets Found: §r§[ae](?<percentage>[\\d.]+)%§r")
     private val timeElapsedPattern = Regex("Time Elapsed: (?:(?<hrs>\\d+)h )?(?:(?<min>\\d+)m )?(?:(?<sec>\\d+)s)?")
+    private val complatedRoomsRegex = Regex("^§r Completed Rooms: §r§d(\\d+)§r\$")
+    private val presentClearRegex = Regex("^Cleared: §[c6a](\\d+)% §8(?:§8)?\\(\\d+\\)\$")
 
-    var secretPercentage = 0f
-    var secretsFound = - 1
     var timeElapsed = - 1
-    var cryptsCount = BasicState(- 1)
-    var deathCount = - 1
-
-    val secretTotal get() = (secretsFound / (secretPercentage + 0.0001f) + 0.5).toInt()
+    var secretsFound = 0
+    val cryptsCount = BasicState(0)
+    var deathCount = 0
+    var secretTotal = 0
     val deathPenalty get() = (deathCount * 2 - 1).coerceAtLeast(0)
+
+    var percentCleared = 0.0
+    var completedRooms = 0
 
 
     @SubscribeEvent
-    fun reset(e: WorldUnloadEvent) {
-        deathCount = - 1
-        cryptsCount.set(- 1)
-        secretsFound = - 1
-        timeElapsed = - 1
-    }
+    fun onWorldUnload(e: WorldUnloadEvent) = reset()
 
+    fun reset() {
+        secretsFound = 0
+        timeElapsed = - 1
+        cryptsCount.set(0)
+        deathCount = 0
+        secretTotal = 0
+        percentCleared = 0.0
+        completedRooms = 0
+    }
 
     @SubscribeEvent
     fun onScoreboardChange(event: PacketEvent.Received) {
-        if (! inSkyblock || event.packet !is S3EPacketTeams) return
-        if (! inDungeon) return
+        if (! inDungeon || event.packet !is S3EPacketTeams) return
         if (event.packet.action != 2) return
         val line = event.packet.players.joinToString(
             " ",
@@ -55,8 +59,10 @@ object TablistListener {
             val seconds = match["sec"]?.value?.toIntOrNull() ?: 0
             timeElapsed = hours * 3600 + minutes * 60 + seconds
         }
+        else if (line.startsWith("Cleared:")) {
+            percentCleared = presentClearRegex.firstResult(line)?.toDoubleOrNull() ?: percentCleared
+        }
     }
-
 
     @SubscribeEvent
     fun onTabList(event: PacketEvent.Received) {
@@ -75,12 +81,14 @@ object TablistListener {
 
     private fun updateFromTabList(text: String) {
         when {
-            text.contains("Team Deaths:") -> deathCount = deathsRegex.firstResult(text)?.toIntOrNull() ?: deathCount
+            text.contains("Secrets Found:") -> if (!text.contains("%")) secretsFound = secretsFoundPattern.firstResult(text)?.toIntOrNull() ?: secretsFound
             text.contains("Crypts:") -> cryptsCount.set(cryptsPattern.firstResult(text)?.toIntOrNull() ?: cryptsCount.get())
-            text.contains("Secrets Found:") -> if (text.contains("%")) secretPercentage = secretsFoundPercentagePattern.firstResult(text)?.toFloatOrNull()?.div(100f) ?: secretPercentage
-            else secretsFound = secretsFoundPattern.firstResult(text)?.toIntOrNull() ?: secretsFound
+            text.contains("Completed Rooms:") -> completedRooms = complatedRoomsRegex.firstResult(text)?.toIntOrNull() ?: completedRooms
+            text.contains("Team Deaths:") -> deathCount = deathsRegex.firstResult(text)?.toIntOrNull() ?: deathCount
+            else -> {}
         }
     }
+
 
     private fun Regex.firstResult(input: CharSequence): String? {
         return this.matchEntire(input)?.groups?.get(1)?.value

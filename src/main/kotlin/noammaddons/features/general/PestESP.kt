@@ -49,7 +49,7 @@ object PestESP: Feature() {
                 z - XZoffset,
                 color, outline = true, fill = true,
                 width = 1, height = 1, phase = true,
-                LineThickness = 1.5
+                lineWidth = 1.5
             )
 
             RenderUtils.drawTracer(

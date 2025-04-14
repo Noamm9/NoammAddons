@@ -53,7 +53,7 @@ object ChatUtils {
 
     fun sendFakeChatMessage(message: String) {
         val formattedMessage = message.addColor()
-        modMessage("Simulating Chat Message: $formattedMessage")
+        modMessage(formattedMessage)
         postAndCatch(Chat(ChatComponentText(formattedMessage)))
     }
 
@@ -96,25 +96,6 @@ object ChatUtils {
 
         UChat.chat("$DEBUG_PREFIX&r ${message.toString().addColor()}")
         Logger.debug(message.toString().removeFormatting())
-    }
-
-    fun errorMessage(message: List<Any?>) {
-        val msg = message.toMutableList()
-
-        listOf(
-            "&b&m${getChatBreak()?.substring(1)}",
-            getCenteredText("$FULL_PREFIX&r"),
-            ""
-        ).reversed().forEach { msg.add(0, it) }
-
-        listOf(
-            "",
-            "&b&m${getChatBreak()?.substring(1)}",
-        ).reversed().forEach { msg.add(it) }
-
-        val msgF = msg.joinToString("\n") { "$it".addColor() }
-        UChat.chat(msgF)
-        Logger.error(msgF.removeFormatting())
     }
 
 

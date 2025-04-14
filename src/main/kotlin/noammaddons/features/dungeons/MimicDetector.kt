@@ -45,6 +45,7 @@ object MimicDetector: Feature() {
     )
 
     private fun sendMimicMessage() {
+        mimicKilled.set(true)
         if (! config.sendMimicKillMessage) return
         sendPartyMessage("$CHAT_PREFIX Mimic killed!")
         modMessage("&l&cMimic killed!")

@@ -24,7 +24,7 @@ object ShowItemsPrice: Feature() {
         Price?.let {
             event.toolTip.add(
                 when (stack.stackSize) {
-                    1 -> "&b&lAH Price: &6${format(it)}"
+                    1 -> "&b&lPrice: &6${format(it)}"
                     else -> "&b&lPrice: &6${format(it * stack.stackSize)} &7(${stack.stackSize}x)"
                 }.addColor()
             )
