@@ -278,6 +278,7 @@ object TestGround {
 
     @SubscribeEvent
     fun onPlaterInteract(e: AttackEntityEvent) {
+        if (! inDungeon) return
         if (e.entityPlayer != mc.thePlayer) return
         if (DungeonUtils.dungeonTeammates.none { it.entity == e.target }) return
         e.isCanceled = true
@@ -287,13 +288,6 @@ object TestGround {
     fun afad(event: Event) {
         if (event is WorldUnloadEvent) {
             ScoreboardUtils.sidebarLines = emptyList()
-        }
-        if (event is Chat) {
-            val msg = event.component.formattedText
-            val a = "&r&cPlease be mindful of Discord links in chat as they may pose a security risk&r".addColor()
-            if (a !in msg) return
-            event.isCanceled = true
-            UChat.chat(msg.replace(Regex(".$a"), ""))
         }
 
         /*

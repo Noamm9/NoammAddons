@@ -33,10 +33,9 @@ import java.awt.Color
 
 
 object DungeonUtils {
-    // https://regex101.com/r/gv7bOe/1
-    private val tablistRegex = Regex("^\\[(\\d+)] (?:\\[\\w+] )*(\\w+) .*?\\((\\w+)(?: (\\w+))*\\)$")
+    private val tablistRegex = Regex("^\\[(\\d+)] (?:\\[\\w+] )*(\\w+) .*?\\((\\w+)(?: (\\w+))*\\)$") // https://regex101.com/r/gv7bOe/1
     private val puzzleRegex = Regex(" (.+): \\[[✦✔✖].+")
-    private val deathRegex = Regex("§r§c ☠ §r§7(?:You were |(?:§.)+(?<username>\\w+)§r)(?<reason>.*) and became a ghost§r§7\\.§r")
+    private val deathRegex = Regex("☠ (?:You were|(?<username>\\w+) was) (?<reason>.+?)(?: and became a ghost)?\\.") // https://regex101.com/r/Yc3HhV/2
     private val keyPickupRegex = Regex("§r§e§lRIGHT CLICK §r§7on §r§7.+?§r§7 to open it\\. This key can only be used to open §r§a(?<num>\\d+)§r§7 door!§r")
     private val witherDoorOpenedRegex = Regex("^(?:\\[.+?] )?(?<name>\\w+) opened a WITHER door!$")
     private const val bloodOpenedString = "§r§cThe §r§c§lBLOOD DOOR§r§c has been opened!§r"
@@ -50,6 +49,7 @@ object DungeonUtils {
     var dungeonTeammates = mutableListOf<DungeonPlayer>()
     var dungeonTeammatesNoSelf = listOf<DungeonPlayer>()
     var leapTeammates = listOf<DungeonPlayer>()
+    var aliveTeammates = listOf<DungeonPlayer>()
     var thePlayer: DungeonPlayer? = null
 
     data class Puzzle(val name: String, val state: RoomState)
@@ -103,11 +103,11 @@ object DungeonUtils {
         var name: String,
         var clazz: Classes,
         var clazzLvl: Int,
-        var locationSkin: ResourceLocation = mc.thePlayer.locationSkin,
+        var skin: ResourceLocation = mc.thePlayer.locationSkin,
         var entity: EntityPlayer? = null,
         var isDead: Boolean = false,
     ) {
-        val mapIcon = DungeonMapPlayer(this, locationSkin)
+        val mapIcon = DungeonMapPlayer(this, skin)
         val clearInfo = ClearInfo()
     }
 
@@ -142,8 +142,9 @@ object DungeonUtils {
 
                 thePlayer = dungeonTeammates.find { it.entity == mc.thePlayer }
                 thePlayer?.isDead = mc.thePlayer.inventory.getStackInSlot(0)?.SkyblockID == "HAUNT_ABILITY"
-                dungeonTeammatesNoSelf = dungeonTeammates.filterNot { it == thePlayer }.toMutableList()
-                leapTeammates = dungeonTeammatesNoSelf.sortedBy { it.clazz }.toMutableList()
+                dungeonTeammatesNoSelf = dungeonTeammates.filterNot { it == thePlayer }
+                leapTeammates = dungeonTeammatesNoSelf.sortedBy { it.clazz }
+                aliveTeammates = dungeonTeammates.filterNot { it.isDead }
                 return
             }
         }
@@ -159,7 +160,7 @@ object DungeonUtils {
             if (currentTeammate != null) {
                 currentTeammate.clazz = if (clazz != "DEAD") Classes.getByName(clazz) else currentTeammate.clazz
                 currentTeammate.clazzLvl = clazzLevel.romanToDecimal()
-                currentTeammate.locationSkin = networkPlayerInfo.locationSkin
+                currentTeammate.skin = networkPlayerInfo.locationSkin
                 currentTeammate.entity = mc.theWorld.getPlayerEntityByName(name)
                 currentTeammate.isDead = clazz == "DEAD"
             }
@@ -176,11 +177,16 @@ object DungeonUtils {
         }
 
         thePlayer = dungeonTeammates.find { it.entity == mc.thePlayer }
-        dungeonTeammatesNoSelf = dungeonTeammates.filter { it != thePlayer }.toMutableList()
-        leapTeammates = dungeonTeammatesNoSelf.sortedBy { it.clazz }.toMutableList()
-        dungeonTeammatesNoSelf.filterNot { it.isDead }.forEachIndexed { i, teammate ->
+        thePlayer?.isDead = mc.thePlayer.inventory.getStackInSlot(0)?.SkyblockID == "HAUNT_ABILITY"
+        dungeonTeammatesNoSelf = dungeonTeammates.filter { it != thePlayer }
+        leapTeammates = dungeonTeammatesNoSelf.sortedBy { it.clazz }
+        aliveTeammates = dungeonTeammates.filterNot { it.isDead }
+
+        aliveTeammates.forEachIndexed { i, teammate ->
+            if (teammate == thePlayer) return@forEachIndexed
             teammate.mapIcon.icon = "icon-$i"
         }
+
         thePlayer?.takeIf { ! it.isDead }?.mapIcon?.apply {
             val last = dungeonTeammates.filterNot { it.isDead }.lastIndex
             icon = "icon-$last"
@@ -206,11 +212,15 @@ object DungeonUtils {
             }
 
             text == bloodOpenedString -> DungeonInfo.keys --
-            text.endsWith(" and became a ghost§r§7.§r") -> {
-                val match = deathRegex.find(text) ?: return
+
+            "§r§c ☠" in text -> {
+                val match = deathRegex.find(unformatted) ?: return
                 val username = match.groups["username"]?.value ?: mc.session.username
                 val reason = match.groups["reason"]?.value ?: ""
-                scope.launch { postAndCatch(DungeonEvent.PlayerDeathEvent(username, reason)) }
+                scope.launch {
+                    while (thePlayer == null) delay(1)
+                    postAndCatch(DungeonEvent.PlayerDeathEvent(username, reason))
+                }
             }
 
             unformatted == "[BOSS] The Watcher: You have proven yourself. You may pass." -> {

@@ -5,20 +5,11 @@ import net.minecraft.util.ResourceLocation
 import noammaddons.features.dungeons.dmap.handlers.DungeonScanner
 import noammaddons.features.dungeons.dmap.utils.MapUtils.coordMultiplier
 import noammaddons.features.dungeons.dmap.utils.MapUtils.startCorner
-import noammaddons.noammaddons.Companion.mc
-import noammaddons.utils.DungeonUtils.Classes.*
 import noammaddons.utils.DungeonUtils.DungeonPlayer
 
 
 data class DungeonMapPlayer(val teammate: DungeonPlayer, val skin: ResourceLocation) {
-    companion object {
-        val dummy
-            get() = DungeonPlayer(
-                mc.session.username,
-                Empty, 55, mc.thePlayer.locationSkin,
-                mc.thePlayer, false
-            )
-    }
+    val hasEntity = teammate.entity != null
 
     var mapX = 0f
     var mapZ = 0f

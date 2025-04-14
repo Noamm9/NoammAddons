@@ -178,9 +178,7 @@ object MapRenderUtils {
         GlStateManager.popMatrix()
     }
 
-
-
-    fun drawOwnPlayerHead(name: String, skin:ResourceLocation, entity: EntityPlayer? = null) {
+    fun drawPlayerHead(name: String, skin:ResourceLocation, entity: EntityPlayer? = null) {
         GlStateManager.pushMatrix()
         try {
             val playerEntity = entity ?: return

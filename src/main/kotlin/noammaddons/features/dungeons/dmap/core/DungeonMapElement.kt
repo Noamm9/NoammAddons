@@ -228,13 +228,13 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
             DungeonUtils.runPlayersNames.toMap().entries.forEach { (name, skin) ->
                 if (name == mc.session.username) return@forEach
                 val entity = mc.theWorld.getPlayerEntityByName(name) ?: return@forEach
-                MapRenderUtils.drawOwnPlayerHead(name, skin, entity)
+                MapRenderUtils.drawPlayerHead(name, skin, entity)
             }
         }
 
         DungeonUtils.dungeonTeammatesNoSelf.filterNot { it.isDead }.map { it.mapIcon }.forEach(MapRenderUtils::drawPlayerHead)
 
-        if (DungeonMapConfig.dungeonMapCheater) MapRenderUtils.drawOwnPlayerHead(
+        if (DungeonMapConfig.dungeonMapCheater) MapRenderUtils.drawPlayerHead(
             mc.session.username,
             mc.thePlayer.locationSkin,
             mc.thePlayer

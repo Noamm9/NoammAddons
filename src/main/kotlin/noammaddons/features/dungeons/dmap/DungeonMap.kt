@@ -160,10 +160,13 @@ object DungeonMap: Feature() {
 
     @SubscribeEvent
     fun onPlayerDeathEvent(event: DungeonEvent.PlayerDeathEvent) {
-        ClearInfo.get(event.name).deaths += event.reason
-        if (debug) modMessage("${event.name} died: ${event.reason}")
-        if (TablistListener.deathCount == 0) {
-            DungeonInfo.firstDeathHadSpirit = ProfileUtils.getSpiritPet(event.name)
+        scope.launch {
+            while (! DungeonUtils.dungeonStarted) delay(1)
+            ClearInfo.get(event.name).deaths += event.reason
+            if (debug) modMessage("${event.name} died: ${event.reason}")
+            if (TablistListener.deathCount == 0) {
+                DungeonInfo.firstDeathHadSpirit = ProfileUtils.getSpiritPet(event.name)
+            }
         }
     }
 

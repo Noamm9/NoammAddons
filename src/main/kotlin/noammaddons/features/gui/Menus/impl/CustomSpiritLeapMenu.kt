@@ -26,6 +26,7 @@ import noammaddons.utils.RenderUtils.drawPlayerHead
 import noammaddons.utils.RenderUtils.drawRoundedRect
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.RenderUtils.drawTitle
+import noammaddons.utils.Utils.equalsOneOf
 import java.awt.Color
 
 object CustomSpiritLeapMenu: Feature() {
@@ -34,7 +35,9 @@ object CustomSpiritLeapMenu: Feature() {
     val players = mutableListOf<LeapMenuPlayer?>(null, null, null, null)
 
     private fun inSpiritLeap(): Boolean {
-        return currentChestName.removeFormatting().lowercase() == "spirit leap" && inDungeon && config.CustomLeapMenu
+        return currentChestName.removeFormatting().lowercase()
+            .equalsOneOf("teleport to player", "spirit leap")
+                && inDungeon && config.CustomLeapMenu
     }
 
     @SubscribeEvent
@@ -126,7 +129,7 @@ object CustomSpiritLeapMenu: Feature() {
             )
 
             drawPlayerHead(
-                entry.player.locationSkin,
+                entry.player.skin,
                 boxX + boxWidth / 5 - headSize / 2,
                 boxY + boxHeight / 2 - headSize / 2,
                 headSize, headSize, 2f
