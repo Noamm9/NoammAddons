@@ -60,18 +60,6 @@ object SoundUtils {
         return clip
     }
 
-    fun initSounds() {
-        val originalVolume = mc.gameSettings.getSoundLevel(SoundCategory.MASTER)
-        mc.gameSettings.setSoundLevel(SoundCategory.MASTER, 0F)
-
-        chipiChapa();ayaya();click();iHaveNothing()
-        notificationSound();potisPow();Pling()
-        buff();bigFart();smallFart();harpNote()
-        marioSound()
-
-        mc.gameSettings.setSoundLevel(SoundCategory.MASTER, originalVolume)
-    }
-
     fun chipiChapa() = playSound("chipi_chapa")
     fun ayaya() = playSound("AYAYA")
     fun click() = playSound("click")

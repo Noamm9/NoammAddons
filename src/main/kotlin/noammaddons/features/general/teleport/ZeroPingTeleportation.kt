@@ -58,7 +58,7 @@ object ZeroPingTeleportation: Feature() {
         if (failedTeleports.size >= MAX_FAILED_TELEPORTS) {
             modMessage(
                 "&bZPT >> &cDetected &6${failedTeleports.size}&c failed teleports. Stopping the feature for &e${
-                    (FAIL_TIMEOUT - (System.currentTimeMillis() - failedTeleports[0]) / 1000)
+                    (FAIL_TIMEOUT - (System.currentTimeMillis() - failedTeleports[0]) / 1000) / 1000
                 } &fseconds."
             )
         }

@@ -28,6 +28,7 @@ import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderUtils.drawTitle
 import noammaddons.utils.ThreadUtils.loop
 import noammaddons.utils.ThreadUtils.setTimeout
+import noammaddons.utils.Utils.remove
 import noammaddons.utils.Utils.send
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
@@ -37,6 +38,8 @@ import kotlin.math.roundToInt
 
 object ChatUtils {
     data class title(val title: Any?, val subtitle: Any?, var time: Long, val rainbow: Boolean)
+
+    val unicodeRegex = Regex("[^\\u0000-\\u007F§]")
 
     private val titles = mutableListOf<title>()
     private var startTime = 0L
@@ -79,9 +82,7 @@ object ChatUtils {
         return spaceBuilder.append(text).toString()
     }
 
-    fun removeUnicode(input: String): String {
-        return input.replace(Regex("[^\\u0000-\\u007F§]"), "")
-    }
+    fun removeUnicode(input: String) = input.remove(unicodeRegex)
 
     fun String.removeFormatting(): String = UTextComponent.stripFormatting(this.addColor())
 

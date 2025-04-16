@@ -14,11 +14,13 @@ import noammaddons.utils.RenderUtils.drawRoundedRect
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.TablistUtils.getTabList
 import noammaddons.utils.TablistUtils.getTabListFooterText
+import noammaddons.utils.Utils.remove
 import noammaddons.utils.Utils.splitArray
 import java.awt.Color
 
 object CustomTabList: Feature() {
     private val backgroundColor = Color(33, 33, 33, 153)
+    private val regex = Regex("\\s")
 
     @SubscribeEvent
     fun drawCustomTabList(event: renderPlayerlist) {
@@ -77,9 +79,11 @@ object CustomTabList: Feature() {
             }
         }
 
-        if (footerLines.isNotEmpty() && footerLines.joinToString {
-                it.removeFormatting().lowercase().replace(Regex("\\s"), "")
-            } != "") {
+        if (footerLines.isNotEmpty() &&
+            footerLines.joinToString {
+                it.removeFormatting().lowercase().remove(regex)
+            } != ""
+        ) {
             val footerWidth = maxFooterWidth + 20
             val footerHeight = fontHeight * footerLines.size + 10
 

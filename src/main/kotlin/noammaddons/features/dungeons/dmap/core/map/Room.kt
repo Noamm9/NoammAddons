@@ -1,17 +1,23 @@
 package noammaddons.features.dungeons.dmap.core.map
 
+import net.minecraft.util.BlockPos
 import noammaddons.events.DungeonEvent
 import noammaddons.events.RegisterEvents
 import noammaddons.features.dungeons.dmap.core.DungeonMapConfig
 import noammaddons.features.dungeons.dmap.handlers.DungeonInfo
 import noammaddons.features.dungeons.dmap.handlers.DungeonScanner
 import noammaddons.utils.*
+import noammaddons.utils.BlockUtils.getBlockId
+import noammaddons.utils.BlockUtils.getMetadata
+import noammaddons.utils.BlockUtils.getStateAt
 import java.awt.Color
 import kotlin.properties.Delegates
 
 class Room(override val x: Int, override val z: Int, var data: RoomData): Tile {
     var core = 0
     var isSeparator = false
+    var rotation: Int? = null
+    var highestBlock: Int? = null
 
     override var state: RoomState by Delegates.observable(RoomState.UNDISCOVERED) { _, oldValue, newValue ->
         if (oldValue == newValue) return@observable
@@ -26,7 +32,6 @@ class Room(override val x: Int, override val z: Int, var data: RoomData): Tile {
 
         RegisterEvents.postAndCatch(DungeonEvent.RoomEvent.onStateChange(data, oldValue, newValue, roomPlayers))
     }
-
 
     override val color: Color
         get() {
@@ -60,6 +65,32 @@ class Room(override val x: Int, override val z: Int, var data: RoomData): Tile {
         else {
             unique.addTile(column, row, this)
             uniqueRoom = unique
+        }
+    }
+
+    fun findRotation() {
+        if (rotation != null) return
+        if (highestBlock == null) {
+            highestBlock = ScanUtils.gethighestBlockAt(x, z)
+            return
+        }
+        if (data.type == RoomType.FAIRY) {
+            rotation = 0
+            return
+        }
+
+        val realComponents = uniqueRoom?.tiles?.map { Pair(it.x, it.z) } ?: return
+        for (c in realComponents) {
+            val (x, z) = c
+            DungeonScanner.clayBlocksCorners.withIndex().forEach { (i, offset) ->
+                val (rx, rz) = offset
+                val pos = BlockPos(x + rx, highestBlock !!.toDouble(), z + rz)
+                val state = getStateAt(pos)
+
+                if (state.getBlockId() != 159 || state.getMetadata() != 11) return@forEach
+                this.rotation = i * 90
+                return
+            }
         }
     }
 }

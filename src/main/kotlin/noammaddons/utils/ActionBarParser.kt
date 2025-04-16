@@ -4,6 +4,7 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Actionbar
 import noammaddons.noammaddons.Companion.mc
+import noammaddons.utils.Utils.remove
 import kotlin.math.roundToInt
 
 
@@ -40,38 +41,38 @@ object ActionBarParser {
 
     private fun extractPlayerStats(input: CharSequence) {
         HP_REGEX.find(input)?.let { match ->
-            currentHealth = match.groupValues[1].replace(",", "").toIntOrNull() ?: currentHealth
-            maxHealth = match.groupValues[2].replace(",", "").toIntOrNull() ?: maxHealth
+            currentHealth = match.groupValues[1].remove(",").toIntOrNull() ?: currentHealth
+            maxHealth = match.groupValues[2].remove(",").toIntOrNull() ?: maxHealth
         }
 
         DEF_REGEX.find(input)?.let { match ->
-            currentDefense = match.groupValues[1].replace(",", "").toIntOrNull() ?: currentDefense
+            currentDefense = match.groupValues[1].remove(",").toIntOrNull() ?: currentDefense
         }
 
         MANA_REGEX.find(input)?.let { match ->
-            currentMana = match.groupValues[1].replace(",", "").toIntOrNull() ?: currentMana
-            maxMana = match.groupValues[2].replace(",", "").toIntOrNull() ?: maxMana
+            currentMana = match.groupValues[1].remove(",").toIntOrNull() ?: currentMana
+            maxMana = match.groupValues[2].remove(",").toIntOrNull() ?: maxMana
         }
 
         OVERFLOW_REGEX.find(input).let { match ->
-            overflowMana = match?.groupValues?.get(1)?.replace(",", "")?.toIntOrNull() ?: 0
+            overflowMana = match?.groupValues?.get(1)?.remove(",")?.toIntOrNull() ?: 0
         }
 
         MANA_USAGE_REGEX.find(input)?.let { match ->
-            currentMana -= match.groupValues.first().replace(",", "").toIntOrNull() ?: 0
+            currentMana -= match.groupValues.first().remove(",").toIntOrNull() ?: 0
         }
 
         STACKS_REGEX.find(input)?.let { match ->
-            netherArmorStacks = match.groupValues[1].replace(",", "").toIntOrNull() ?: netherArmorStacks
+            netherArmorStacks = match.groupValues[1].remove(",").toIntOrNull() ?: netherArmorStacks
         }
 
         SALVATION_REGEX.find(input)?.let { match ->
-            salvation = match.groupValues[1].replace(",", "").toIntOrNull() ?: salvation
+            salvation = match.groupValues[1].remove(",").toIntOrNull() ?: salvation
         }
 
         SECRETS_REGEX.find(input)?.let { match ->
-            secrets = match.groupValues[1].replace(",", "").toIntOrNull() ?: secrets
-            maxSecrets = match.groupValues[2].replace(",", "").toIntOrNull() ?: maxSecrets
+            secrets = match.groupValues[1].remove(",").toIntOrNull() ?: secrets
+            maxSecrets = match.groupValues[2].remove(",").toIntOrNull() ?: maxSecrets
             return
         }
         maxSecrets = null

@@ -159,12 +159,12 @@ object ScanUtils {
         return BlockPos(cx + x, y, cz + z)
     }
 
-    fun gethighestBlockAt(pos: BlockPos): BlockPos? {
+    fun gethighestBlockAt(x: Int, z: Int): Int? {
         for (y in 255 downTo 0) {
-            val checkPos = BlockPos(pos.x, y, pos.z)
+            val checkPos = BlockPos(x, y, z)
             val block = getBlockAt(checkPos)
-            if (block == air) continue
-            return checkPos
+            if (block.equalsOneOf(air, wool)) continue
+            return checkPos.y
         }
         return null
     }

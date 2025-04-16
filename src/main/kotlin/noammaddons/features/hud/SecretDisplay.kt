@@ -17,6 +17,7 @@ import noammaddons.utils.RenderHelper.getStringHeight
 import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderUtils.drawCenteredText
 import noammaddons.utils.RenderUtils.renderItem
+import noammaddons.utils.Utils.remove
 
 object SecretDisplay: Feature() {
     private object SecretDisplayElement: GuiElement(hudData.getData().SecretDisplay) {
@@ -66,6 +67,6 @@ object SecretDisplay: Feature() {
     @JvmStatic
     fun removeSecrets(s: String): String {
         if (! SecretDisplayElement.enabled) return s
-        return s.replace(SECRETS_REGEX, "")
+        return s.remove(SECRETS_REGEX)
     }
 }

@@ -383,7 +383,7 @@ object RenderUtils {
                 mc.fontRendererObj.drawString(line, 0f, i * 9f, color.rgb, true)
             }
         }
-        else mc.fontRendererObj.drawString("${text}§r", 0f, 0f, color.rgb, true)
+        else mc.fontRendererObj.drawString("$text§r", 0f, 0f, color.rgb, true)
         GlStateManager.resetColor()
         GlStateManager.disableBlend()
         GlStateManager.popMatrix()

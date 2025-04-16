@@ -7,6 +7,7 @@ import noammaddons.utils.ChatUtils.Alert
 import noammaddons.utils.ChatUtils.clickableChat
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.JsonUtils.fetchJsonWithRetry
+import noammaddons.utils.Utils.remove
 import java.net.URI
 
 object UpdateUtils {
@@ -32,7 +33,7 @@ object UpdateUtils {
 
             updateVersion = releases.firstOrNull { ! it.prerelease } ?: return@fetchJsonWithRetry
 
-            val latestVersion = updateVersion.tag_name.replace(removeCharsRegex, "")
+            val latestVersion = updateVersion.tag_name.remove(removeCharsRegex)
 
             if (MOD_VERSION == latestVersion) {
                 if (! startup) {

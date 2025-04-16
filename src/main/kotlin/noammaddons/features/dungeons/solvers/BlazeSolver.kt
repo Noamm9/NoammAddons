@@ -21,6 +21,7 @@ import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderUtils.draw3DLine
 import noammaddons.utils.ScanUtils.getRoomCenterAt
 import noammaddons.utils.Utils.formatPbPuzzleMessage
+import noammaddons.utils.Utils.remove
 
 
 object BlazeSolver: Feature() {
@@ -55,7 +56,7 @@ object BlazeSolver: Feature() {
 
         mc.theWorld.loadedEntityList.filterIsInstance<EntityArmorStand>().forEach { entity ->
             val match = BlazeHpRegex.find(entity.displayName.noFormatText) ?: return@forEach
-            val health = match.groupValues[1].replace(",", "").toIntOrNull() ?: return@forEach
+            val health = match.groupValues[1].remove(",").toIntOrNull() ?: return@forEach
             val possibleEntity = entity.entityWorld.getEntitiesInAABBexcluding(
                 entity, entity.entityBoundingBox.offset(0.0, - 1.0, 0.0)
             ) { it is EntityBlaze }.firstOrNull() ?: return@forEach

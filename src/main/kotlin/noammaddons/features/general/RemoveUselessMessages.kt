@@ -1,15 +1,25 @@
 package noammaddons.features.general
 
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.events.AddMessageToChatEvent
 import noammaddons.features.Feature
+import noammaddons.utils.ChatUtils.noFormatText
 
 /**
  * Disables chat messages from being sent in chat without fucking other mods
- *
- * @see noammaddons.mixins.MixinGuiNewChat
  */
 object RemoveUselessMessages: Feature() {
-    @JvmField
-    val RegexsWithoutFormatting = listOf(
+    @SubscribeEvent
+    fun onNewChatMessage(event: AddMessageToChatEvent) {
+        event.isCanceled = RegexsWithoutFormatting.any {
+            it.containsMatchIn(event.component.noFormatText)
+        } || RegexsWithFormatting.any {
+            it.containsMatchIn(event.component.noFormatText)
+        }
+    }
+
+
+    private val RegexsWithoutFormatting = listOf(
         Regex("Creeper Veil Activated!"),
         Regex("The Redstone Pigmen are unhappy with you stealing their ores! Look out!"),
         Regex("Creeper Veil De-activated!"),
@@ -118,8 +128,7 @@ object RemoveUselessMessages: Feature() {
         Regex("You earned .+ GEXP from playing .+!"),
     )
 
-    @JvmField
-    val RegexsWithFormatting = listOf(
+    private val RegexsWithFormatting = listOf(
         Regex("(.*) §r§eunlocked §r§d(.*) Essence §r§8x(.*)§r§e!"),
         Regex(" {4}§r§d(.*) Essence §r§8x(.*)"),
         Regex(" Experience §r§b(Team Bonus)"),
@@ -212,7 +221,4 @@ object RemoveUselessMessages: Feature() {
         Regex("(.*) §r§ehas obtained §r§a§r§9Beating Heart§r§e!"),
         Regex("§fYou found a §r§dWither Essence§r§f! Everyone gains an extra essence!")
     )
-
-    @JvmField
-    val regexsToRemove = mutableListOf<Regex>()
 }

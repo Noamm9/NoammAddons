@@ -100,6 +100,9 @@ class Chat(var component: IChatComponent): Event()
 @Cancelable
 class Actionbar(val component: IChatComponent): Event()
 
+@Cancelable
+class AddMessageToChatEvent(val component: IChatComponent, val chatLineId: Int): Event()
+
 class ServerTick: Event()
 
 class Tick: Event()

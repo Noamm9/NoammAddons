@@ -23,6 +23,11 @@ import kotlin.math.sign
 
 object HudEditorScreen: GuiScreen() {
     val elements = mutableListOf<GuiElement>()
+    fun isOpen(): Boolean {
+        val gui = noammaddons.mc.currentScreen ?: return false
+        return gui is HudEditorScreen
+    }
+
     private var selectedElement: GuiElement? = null
     private var offsetX = 0f
     private var offsetY = 0f

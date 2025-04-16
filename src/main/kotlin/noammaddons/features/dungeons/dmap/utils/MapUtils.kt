@@ -11,11 +11,8 @@ import noammaddons.utils.Utils.equalsOneOf
 
 
 object MapUtils {
-
     val Vec4b.mapX get() = ((func_176112_b() + 128) shr 1).toFloat()
-
     val Vec4b.mapZ get() = ((func_176113_c() + 128) shr 1).toFloat()
-
     val Vec4b.yaw get() = func_176111_d() * 22.5f
 
     fun coordsToMap(vec: Vec3): Pair<Float, Float> {
@@ -30,6 +27,7 @@ object MapUtils {
         return Vec3(x, 0.0, z)
     }
 
+    fun idxFromComp(comp: Pair<Int, Int>) = comp.second * 6 + comp.first
 
     var startCorner = Pair(5, 5)
     var mapRoomSize = 16

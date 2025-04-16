@@ -7,6 +7,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent.*
 import noammaddons.events.Tick
 import noammaddons.events.WorldUnloadEvent
+import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.MathUtils.isCoordinateInsideBox
@@ -77,7 +78,8 @@ object LocationUtils {
             is Tick -> {
                 TickTimer ++
                 if (TickTimer == 20) return
-                updateLocation()
+                if (config.DevMode) setDevModeValues()
+                else updateLocation()
                 TickTimer = 0
             }
 

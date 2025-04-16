@@ -4,34 +4,45 @@ package noammaddons.features.dungeons.dmap
 
 import gg.essential.api.EssentialAPI
 import gg.essential.elementa.utils.withAlpha
-import kotlinx.coroutines.*
-import net.minecraft.event.HoverEvent
 import net.minecraft.item.ItemMap
 import net.minecraft.network.play.server.S34PacketMaps
-import net.minecraft.util.ChatComponentText
-import net.minecraft.util.ChatStyle
 import net.minecraft.world.storage.MapData
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
-import noammaddons.features.dungeons.dmap.core.*
+import noammaddons.features.dungeons.dmap.core.DungeonMapConfig
+import noammaddons.features.dungeons.dmap.core.DungeonMapElement
 import noammaddons.features.dungeons.dmap.core.map.*
 import noammaddons.features.dungeons.dmap.handlers.*
 import noammaddons.features.dungeons.dmap.utils.MapUtils
-import noammaddons.noammaddons.Companion.CHAT_PREFIX
 import noammaddons.utils.*
-import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.Utils.equalsOneOf
+import noammaddons.utils.Utils.remove
 
 object DungeonMap: Feature() {
-    private val debug get() = EssentialAPI.getMinecraftUtil().isDevelopment()
+    val debug get() = EssentialAPI.getMinecraftUtil().isDevelopment()
 
     @SubscribeEvent
     fun onRenderOverlay(event: RenderOverlay) {
+        if (debug || mc.session.username == "Noamm") {
+            val currentRoom = DungeonInfo.uniqueRooms.find {
+                it.name == ScanUtils.currentRoom?.name
+            }
+            val rot = currentRoom?.tiles?.find { it.rotation != null }?.rotation
+            val h = currentRoom?.tiles?.find { it.rotation != null }?.highestBlock
+            RenderUtils.drawText(
+                listOf(
+                    "roofHight: $h",
+                    "rotation: $rot",
+                ).joinToString("\n"),
+                300, 300,
+            )
+        }
+
         if (! DungeonMapConfig.mapEnabled || ! inDungeon) return
         if (! DungeonMapConfig.dungeonMapCheater && ! DungeonUtils.dungeonStarted) return
         if (DungeonMapConfig.mapHideInBoss && inBoss) return
@@ -101,8 +112,8 @@ object DungeonMap: Feature() {
 
     @SubscribeEvent
     fun onPuzzleReset(event: DungeonEvent.PuzzleEvent.Reset) {
-        DungeonInfo.uniqueRooms.find {
-            it.mainRoom.data.type == RoomType.PUZZLE && Puzzle.fromName(it.name)?.tabName == event.pazzle
+        DungeonInfo.uniqueRooms.filter { it.mainRoom.data.type == RoomType.PUZZLE }.find {
+            event.pazzle == Puzzle.fromName(it.name)?.tabName
         }?.run { mainRoom.state = RoomState.DISCOVERED }
     }
 
@@ -133,7 +144,7 @@ object DungeonMap: Feature() {
         var text = event.message.removeFormatting().lowercase()
         val commandName = "/dmap"
         if (! text.startsWith(commandName)) return
-        text = text.replace(commandName, "")
+        text = text.remove(commandName)
         event.isCanceled = true
         when (text) {
             "", " " -> config.openDungeonMapConfig()
@@ -143,96 +154,24 @@ object DungeonMap: Feature() {
 
     @SubscribeEvent
     fun onRoomStateChangeEvent(event: DungeonEvent.RoomEvent.onStateChange) {
-        if (event.roomPlayers.isEmpty()) return
-        if (event.room.type.equalsOneOf(RoomType.FAIRY, RoomType.ENTRANCE)) return
-        if (! event.oldState.equalsOneOf(RoomState.UNDISCOVERED, RoomState.DISCOVERED, RoomState.UNOPENED)) return
-        if (! event.newState.equalsOneOf(RoomState.CLEARED, RoomState.GREEN)) return
-
-        if (event.roomPlayers.size == 1) {
-            ClearInfo.get(event.roomPlayers[0].name).clearedRooms.first.add(event.room.name)
-            if (debug) modMessage("${event.roomPlayers[0].name} cleared ${event.room.name}")
-        }
-        else event.roomPlayers.forEach {
-            ClearInfo.get(it.name).clearedRooms.second.add(event.room.name)
-            if (debug) modMessage("${it.name} stacked cleard ${event.room.name}")
-        }
+        ClearInfoUpdater.checkSplits(event.room, event.oldState, event.newState, event.roomPlayers)
     }
 
     @SubscribeEvent
     fun onPlayerDeathEvent(event: DungeonEvent.PlayerDeathEvent) {
-        scope.launch {
-            while (! DungeonUtils.dungeonStarted) delay(1)
-            ClearInfo.get(event.name).deaths += event.reason
-            if (debug) modMessage("${event.name} died: ${event.reason}")
-            if (TablistListener.deathCount == 0) {
-                DungeonInfo.firstDeathHadSpirit = ProfileUtils.getSpiritPet(event.name)
-            }
+        ClearInfoUpdater.updateDeaths(event.name, event.reason)
+        if (TablistListener.deathCount == 0) {
+            DungeonInfo.firstDeathHadSpirit = ProfileUtils.getSpiritPet(event.name)
         }
     }
 
     @SubscribeEvent
     fun onRunStartEvent(event: DungeonEvent.RunStatedEvent) {
-        CoroutineScope(Dispatchers.IO).launch {
-            DungeonUtils.runPlayersNames.keys.toList().forEach { name ->
-                val secrets = ProfileUtils.getSecrets(name)
-                ClearInfo.get(name).secretsBeforeRun = secrets
-                if (debug) modMessage("$name has $secrets secrets")
-            }
-        }
+        ClearInfoUpdater.initStartSecrets()
     }
 
     @SubscribeEvent
     fun onRunEndEvent(event: DungeonEvent.RunEndedEvent) {
-        val msgList = mutableListOf<ChatComponentText>()
-
-        CoroutineScope(Dispatchers.IO).launch {
-            DungeonUtils.dungeonTeammates.toList().forEach { teammate ->
-                val secretsAfterRun = ProfileUtils.getSecrets(teammate.name).also {
-                    if (debug) modMessage("${teammate.name} has $it secrets after the run")
-                }
-                val playerFormatted = "${DungeonUtils.Classes.getColorCode(teammate.clazz)}${teammate.name}"
-                val foundSecrets = secretsAfterRun - teammate.clearInfo.secretsBeforeRun
-                val base = createComponent("$CHAT_PREFIX $playerFormatted&f:&r ")
-                val separator = createComponent(" &f|&r ")
-                val solo = teammate.clearInfo.clearedRooms.first
-                val stacked = teammate.clearInfo.clearedRooms.second
-
-                val roomComponent = if (solo.size + stacked.size == 0) createComponent("&e0 Rooms&r")
-                else {
-                    val roomRange = if (stacked.isEmpty()) "${solo.size}" else "${solo.size}-${solo.size + stacked.size}"
-                    val tooltip = buildString {
-                        append(solo.joinToString("\n") { "$it &b(Solo)&r" })
-                        if (solo.isNotEmpty() && stacked.isNotEmpty()) append("\n")
-                        append(stacked.joinToString("\n") { "$it &d(stack)&r" })
-                    }
-
-                    createComponent("&e$roomRange Rooms&r", tooltip)
-                }
-
-                val secretsComponent = createComponent("&b$foundSecrets Secrets&r")
-
-                val deathsComponent = if (teammate.clearInfo.deaths.isEmpty()) null
-                else createComponent("&c${teammate.clearInfo.deaths.size} Deaths", teammate.clearInfo.deaths.joinToString("\n"))
-
-                listOfNotNull(
-                    roomComponent, separator,
-                    secretsComponent,
-                    if (deathsComponent != null) separator
-                    else null, deathsComponent
-                ).forEach(base::appendSibling)
-
-                msgList.add(base)
-            }
-
-            msgList.forEach(mc.thePlayer::addChatMessage)
-        }
-    }
-
-    private fun createComponent(text: String, hoverText: String? = null) = ChatComponentText(text.addColor()).apply {
-        if (hoverText != null) {
-            chatStyle = ChatStyle().apply {
-                chatHoverEvent = HoverEvent(HoverEvent.Action.SHOW_TEXT, ChatComponentText(hoverText.addColor()))
-            }
-        }
+        ClearInfoUpdater.sendClearInfoMessage()
     }
 }

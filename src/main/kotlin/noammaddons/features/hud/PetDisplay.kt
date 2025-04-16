@@ -9,10 +9,12 @@ import noammaddons.utils.LocationUtils.inSkyblock
 import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderUtils.drawText
 
+
 object PetDisplay: Feature() {
-    private object PetDisplayElement: GuiElement(hudData.getData().PetDisplay) {
+
+    private object PetDisplayElement: GuiElement(hudData.getData().petDisplay.hudData) {
         override val enabled get() = config.PetDisplay
-        var text = "                     "
+        var text = hudData.getData().petDisplay.pet
         override val width: Float get() = getStringWidth(text)
         override val height: Float get() = 9f
 
@@ -32,6 +34,7 @@ object PetDisplay: Feature() {
             val match2 = chatDespawnRegex.find(formattedText)?.destructured?.component1()
             val match3 = chatPetRuleRegex.find(formattedText)?.destructured?.component1()
             PetDisplayElement.text = match1 ?: match2 ?: match3 ?: return
+            hudData.getData().petDisplay.pet = PetDisplayElement.text
         }
 
         if (config.DevMode) PetDisplayElement.text = "hi hi hi"

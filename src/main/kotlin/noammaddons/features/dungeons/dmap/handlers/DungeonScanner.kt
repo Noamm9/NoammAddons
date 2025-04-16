@@ -2,16 +2,13 @@ package noammaddons.features.dungeons.dmap.handlers
 
 import net.minecraft.init.Blocks
 import net.minecraft.util.BlockPos
-import noammaddons.features.dungeons.dmap.core.map.Door
-import noammaddons.features.dungeons.dmap.core.map.DoorType
-import noammaddons.features.dungeons.dmap.core.map.Room
-import noammaddons.features.dungeons.dmap.core.map.RoomType
-import noammaddons.features.dungeons.dmap.core.map.Tile
-import noammaddons.features.dungeons.dmap.core.map.Unknown
+import noammaddons.features.dungeons.dmap.core.map.*
 import noammaddons.features.dungeons.dmap.handlers.DungeonScanner.scan
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
+import noammaddons.utils.ScanUtils
+import kotlin.math.floor
 
 /**
  * Handles everything related to scanning the dungeon. Running [scan] will update the instance of [DungeonInfo].
@@ -28,6 +25,18 @@ object DungeonScanner {
      */
     const val startX = - 185
     const val startZ = - 185
+
+    /**
+     * The size of half a room without the wither door
+     */
+    val halfRoomSize = floor((roomSize - 1.0) / 2.0)
+
+    val clayBlocksCorners = listOf(
+        Pair(- halfRoomSize, - halfRoomSize),
+        Pair(halfRoomSize, - halfRoomSize),
+        Pair(halfRoomSize, halfRoomSize),
+        Pair(- halfRoomSize, halfRoomSize)
+    )
 
     private var lastScanTime = 0L
     var isScanning = false
@@ -54,9 +63,11 @@ object DungeonScanner {
                 }
 
                 // This room has already been added in a previous scan.
-                if (DungeonInfo.dungeonList[x + z * 11]
-                        .run { this !is Unknown && (this as? Room)?.data?.name != "Unknown" }
-                ) continue
+                val roomInGrid = DungeonInfo.dungeonList[x + z * 11]
+                if (roomInGrid !is Unknown && (roomInGrid as? Room)?.data?.name != "Unknown") {
+                    (roomInGrid as? Room)?.findRotation()
+                    continue
+                }
 
                 scanRoom(xPos, zPos, z, x)?.let {
                     DungeonInfo.dungeonList[z * 11 + x] = it
@@ -83,10 +94,12 @@ object DungeonScanner {
         return when {
             // Scanning a room
             rowEven && columnEven -> {
-                val roomCore = noammaddons.utils.ScanUtils.getCore(x, z)
-                Room(x, z, noammaddons.utils.ScanUtils.getRoomData(roomCore) ?: return null).apply {
+                val roomCore = ScanUtils.getCore(x, z)
+                Room(x, z, ScanUtils.getRoomData(roomCore) ?: return null).apply {
                     core = roomCore
+                    highestBlock = ScanUtils.gethighestBlockAt(x, z)
                     addToUnique(row, column)
+                    findRotation()
                 }
             }
 

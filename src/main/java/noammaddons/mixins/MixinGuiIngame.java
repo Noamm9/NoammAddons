@@ -18,12 +18,16 @@ import static noammaddons.features.general.ShowItemRarity.onSlotDraw;
 import static noammaddons.features.hud.PlayerHud.cancelActionBar;
 import static noammaddons.features.hud.PlayerHud.modifyText;
 import static noammaddons.features.hud.SecretDisplay.removeSecrets;
+import static noammaddons.noammaddons.config;
 
 @Mixin(value = GuiIngame.class)
 public class MixinGuiIngame {
     @Inject(method = "renderScoreboard", at = @At("HEAD"), cancellable = true)
     private void renderScoreboard(ScoreObjective objective, ScaledResolution scaledRes, CallbackInfo ci) {
         if (postAndCatch(new RenderScoreBoardEvent(objective, scaledRes))) {
+            ci.cancel();
+        }
+        if (config.getCustomScoreboard() && !ci.isCancelled()) {
             ci.cancel();
         }
     }

@@ -20,6 +20,7 @@ import noammaddons.utils.ItemUtils.ItemRarity.Companion.PET_PATTERN
 import noammaddons.utils.ItemUtils.ItemRarity.Companion.RARITY_PATTERN
 import noammaddons.utils.NumbersUtils.romanToDecimal
 import noammaddons.utils.NumbersUtils.toRoman
+import noammaddons.utils.Utils.remove
 import noammaddons.utils.Utils.startsWithOneOf
 import java.awt.Color
 
@@ -167,7 +168,7 @@ object ItemUtils {
             return enchantNameToID(enchant)
         }
         else {
-            val unformatted = name.removeFormatting().replace("Shiny ", "")
+            val unformatted = name.removeFormatting().remove("Shiny ")
             itemIdToNameLookup.entries.find {
                 it.value == unformatted && ! it.key.contains("STARRED")
             }?.key

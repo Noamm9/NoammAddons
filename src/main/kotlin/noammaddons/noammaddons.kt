@@ -1,7 +1,6 @@
 package noammaddons
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonPrimitive
@@ -45,7 +44,7 @@ class noammaddons {
         @JvmStatic
         val mc = Minecraft.getMinecraft()
 
-        val scope = CoroutineScope(Dispatchers.Default)
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
         @JvmField
         val config = Config
@@ -73,7 +72,6 @@ class noammaddons {
         loadTime = System.currentTimeMillis()
         config.initialize()
 
-        SoundUtils.initSounds()
         ClientBranding.setCustomIcon()
         ClientBranding.setCustomTitle()
 

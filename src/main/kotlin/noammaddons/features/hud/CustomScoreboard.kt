@@ -23,30 +23,25 @@ object CustomScoreboard: Feature() {
 
     object ScoreBoardElement: GuiElement(hudData.getData().CustomScoreBoard) {
         override val enabled get() = config.CustomScoreboard
-        private val lines
-            get() = sidebarLines.reversed().filterNot {
+
+        const val exampleText =
+            "  \uD83D\uDD2B\n" + " Late Winter 31s\uD83C\uDF6Bt\n" + " §75:30am §b☽\uD83D\uDCA3\n" + " §7⏣ §cDungeon H\uD83D\uDC7D§cub\n" + "      \uD83D\uDD2E\n" + "Purse: §62,135,3\uD83D\uDC0D§631,362\n" + "Bits: §b32,278\uD83D\uDC7E\n" + "         \uD83C\uDF20\n" + "Slayer Quest\uD83C\uDF6D\n" + "§4Tarantula Broo⚽§4dfather IV\n" + " §7(§e1,687§7/§c\uD83C\uDFC0§c2k§7) Combat X\n" + "             \uD83D\uDC79\n" + "§dNew Year Event\uD83C\uDF81§d!§f 15:17\n" + "               \uD83C\uDF89\n"
+
+
+        override val width: Float get() = getText().maxOf { getStringWidth(it) } + 9
+        override val height: Float get() = getStringHeight(getText()) + 8
+
+        private fun getText(): List<String> {
+            return if (HudEditorScreen.isOpen()) exampleText.split("\n")
+            else sidebarLines.reversed().filterNot {
                 cleanSB(it).contains("www.hypixel.net")
             }
-        override val width: Float get() = lines.maxOf { getStringWidth(it) } + 9
-        override val height: Float get() = getStringHeight(lines) + 8
-
-        override fun draw() {
-            if (! enabled) return
-            drawCustomScoreboard(
-                sidebarLines.reversed().filterNot {
-                    cleanSB(it).contains("www.hypixel.net")
-                },
-                getX(), getY(),
-                getScale()
-            )
         }
 
+        override fun draw() = drawCustomScoreboard(getText(), getX(), getY(), getScale())
+
         override fun exampleDraw() {
-            val text =
-                "  \uD83D\uDD2B\n" + " Late Winter 31s\uD83C\uDF6Bt\n" + " §75:30am §b☽\uD83D\uDCA3\n" + " §7⏣ §cDungeon H\uD83D\uDC7D§cub\n" + "      \uD83D\uDD2E\n" + "Purse: §62,135,3\uD83D\uDC0D§631,362\n" + "Bits: §b32,278\uD83D\uDC7E\n" + "         \uD83C\uDF20\n" + "Slayer Quest\uD83C\uDF6D\n" + "§4Tarantula Broo⚽§4dfather IV\n" + " §7(§e1,687§7/§c\uD83C\uDFC0§c2k§7) Combat X\n" + "             \uD83D\uDC79\n" + "§dNew Year Event\uD83C\uDF81§d!§f 15:17\n" + "               \uD83C\uDF89\n"
-
-            drawCustomScoreboard(text.split("\n"), getX(), getY(), getScale())
-
+            draw()
             drawRect(Color.black, getX() - width * getScale(), getY(), width * getScale(), height * getScale())
         }
 
@@ -59,10 +54,8 @@ object CustomScoreboard: Feature() {
 
     @SubscribeEvent
     fun onRenderScoreboard(event: RenderScoreBoardEvent) {
-        if (! config.CustomScoreboard) return
-        event.isCanceled = true
-        if (mc.currentScreen is HudEditorScreen) return
-
+        if (! ScoreBoardElement.enabled) return
+        if (HudEditorScreen.isOpen()) return
         ScoreBoardElement.draw()
     }
 

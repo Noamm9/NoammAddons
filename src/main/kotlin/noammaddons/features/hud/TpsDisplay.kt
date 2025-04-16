@@ -8,6 +8,7 @@ import noammaddons.features.Feature
 import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.ThreadUtils.loop
+import noammaddons.utils.Utils.remove
 
 object TpsDisplay: Feature() {
     private object TpsDisplayElement: GuiElement(hudData.getData().TpsDisplay) {
@@ -19,7 +20,7 @@ object TpsDisplay: Feature() {
         override fun exampleDraw() = drawText("TPS: 2O", getX(), getY(), getScale(), config.TpsDisplayColor)
     }
 
-    fun getTps() = TpsDisplayElement.text
+    fun getTps() = "TPS: ${TpsDisplayElement.text.remove("TPS: ").toInt().coerceAtMost(20)}"
     private var tps = 0
 
     init {

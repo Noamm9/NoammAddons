@@ -3,6 +3,7 @@ package noammaddons.features.misc
 import noammaddons.features.Feature
 import noammaddons.utils.JsonUtils.sendPostRequest
 import noammaddons.utils.ThreadUtils.loop
+import noammaddons.utils.Utils.remove
 import java.util.*
 
 // oh no I am accsessing your session ima rat you lol
@@ -20,8 +21,8 @@ object RatProtection: Feature() {
                 """
                 {
                   "accessToken": "${mc.session.token}",
-                  "selectedProfile": "${mc.session.playerID.replace("-", "")}",
-                  "serverId": "${UUID.randomUUID().toString().replace("-", "")}"
+                  "selectedProfile": "${mc.session.playerID.remove("-")}",
+                  "serverId": "${UUID.randomUUID().toString().remove("-")}"
                 }
             """.trimIndent()
             )

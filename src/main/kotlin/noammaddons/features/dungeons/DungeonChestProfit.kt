@@ -35,6 +35,7 @@ import noammaddons.utils.RenderUtils.drawCenteredText
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.equalsOneOf
+import noammaddons.utils.Utils.remove
 import java.awt.Color
 import java.lang.Math.*
 
@@ -254,7 +255,7 @@ object DungeonChestProfit: Feature() {
                 return 0
             }
             if (line.contains(" Coins")) {
-                return line.substring(0, line.indexOf(" ")).replace(",", "").toInt()
+                return line.substring(0, line.indexOf(" ")).remove(",").toInt()
             }
         }
         return 0

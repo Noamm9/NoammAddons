@@ -71,6 +71,10 @@ class DataClasses {
         val buyOrders: Double
     )
 
+    data class PetDisplayData(
+        val hudData: HudElementData,
+        var pet: String = "                     "
+    )
 
     class HudElementConfig {
         val MaskTimers = HudElementData(100f, 10f, 1f)
@@ -87,7 +91,7 @@ class DataClasses {
             effectiveHP = HudElementData(100f, 130f, 1f),
             speed = HudElementData(100f, 140f, 1f)
         )
-        val PetDisplay = HudElementData(100f, 150f, 1f)
+        val petDisplay = PetDisplayData(HudElementData(100f, 150f, 1f))
         val TpsDisplay = HudElementData(100f, 160f, 1f)
         val CustomScoreBoard = HudElementData(mc.getWidth() * 1f, mc.getHeight() / 2f, 3f)
         val SecretDisplay = HudElementData(130f, 130f, 1f)
@@ -126,6 +130,8 @@ class DataClasses {
         )
 
         val crystals: Double? = null
+
+        val dungeonSplits = mutableMapOf<String, MutableMap<String, Long>>()
     }
 
     // todo use JsonUtils's get function

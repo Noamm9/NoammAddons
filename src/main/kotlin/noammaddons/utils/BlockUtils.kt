@@ -20,6 +20,7 @@ object BlockUtils {
     )
 
     fun getStateAt(pos: BlockPos) = mc.theWorld?.getBlockState(pos) ?: air.defaultState
+    fun getStateAt(x: Int, y: Int, z: Int) = mc.theWorld?.getBlockState(BlockPos(x, y, z)) ?: air.defaultState
     fun getBlockAt(pos: BlockPos) = getStateAt(pos).block
     fun getBlockAt(vec3: Vec3) = getBlockAt(vec3.toPos())
     fun getBlockAt(x: Number, y: Number, z: Number) = getBlockAt(BlockPos(x.toDouble(), y.toDouble(), z.toDouble()))

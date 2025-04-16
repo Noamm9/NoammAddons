@@ -11,6 +11,7 @@ import noammaddons.utils.LocationUtils.inSkyblock
 import noammaddons.utils.NumbersUtils.format
 import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderUtils.drawText
+import noammaddons.utils.Utils.remove
 
 object PlayerHud: Feature() {
     private class PlayerHudElement(
@@ -94,7 +95,7 @@ object PlayerHud: Feature() {
 
         patterns.forEach { (pattern, condition) ->
             if (condition.invoke()) {
-                result = result.replace(pattern, "")
+                result = result.remove(pattern)
             }
         }
         return result

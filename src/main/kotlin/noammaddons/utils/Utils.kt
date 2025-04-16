@@ -66,9 +66,20 @@ object Utils {
         return removed
     }
 
+    fun String.remove(vararg patterns: String): String = patterns.fold(this) { acc, s -> acc.replace(s, "") }
+    fun String.remove(vararg patterns: Regex): String = patterns.fold(this) { acc, r -> acc.replace(r, "") }
+    fun String.remove(vararg patterns: Any): String =
+        patterns.fold(this) { acc, p ->
+            when (p) {
+                is String -> acc.replace(p, "")
+                is Regex -> acc.replace(p, "")
+                else -> acc
+            }
+        }
+
 
     fun printCaller() {
-        Exception().stackTrace.take(10).forEach { Logger.info(it) }
+        Exception().stackTrace.forEach { Logger.info(it) }
     }
 
     fun formatPbPuzzleMessage(puzzle: String, completionTime: Double, previousBest: Double?): String {

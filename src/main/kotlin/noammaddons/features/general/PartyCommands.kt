@@ -17,6 +17,7 @@ import noammaddons.utils.MathUtils.destructured
 import noammaddons.utils.PartyUtils
 import noammaddons.utils.SoundUtils
 import noammaddons.utils.Utils.equalsOneOf
+import noammaddons.utils.Utils.remove
 import noammaddons.utils.Utils.removeIf
 import kotlin.math.roundToInt
 
@@ -61,13 +62,13 @@ object PartyCommands: Feature() {
 
         when {
             config.pcFloor && command.startsWith("f") -> {
-                val floorNumber = command.replace("f", "").toIntOrNull() ?: args[0].toIntOrNull() ?: return
+                val floorNumber = command.remove("f").toIntOrNull() ?: args.getOrNull(0)?.toIntOrNull() ?: return
                 if (floorNumber !in 0 .. 7) return
                 runCommand("joininstance CATACOMBS_FLOOR_${NUMBERS_TO_TEXT[floorNumber]}", true)
             }
 
             config.pcMasterFloor && command.startsWith("m") -> {
-                val floorNumber = command.replace("m", "").toIntOrNull() ?: args[0].toIntOrNull() ?: return
+                val floorNumber = command.remove("m").toIntOrNull() ?: args.getOrNull(0)?.toIntOrNull() ?: return
                 if (floorNumber !in 1 .. 7) return
                 runCommand("joininstance MASTER_CATACOMBS_FLOOR_${NUMBERS_TO_TEXT[floorNumber]}", true)
             }

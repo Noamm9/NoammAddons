@@ -12,6 +12,7 @@ import noammaddons.utils.NumbersUtils.romanToDecimal
 import noammaddons.utils.ScoreboardUtils.cleanSB
 import noammaddons.utils.ScoreboardUtils.sidebarLines
 import noammaddons.utils.ThreadUtils.setTimeout
+import noammaddons.utils.Utils.remove
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
@@ -28,7 +29,7 @@ object ExtraSlayerInfo: Feature() {
 
         val slayerName = match.component1().trim()
         val level = match.component2().toInt()
-        val exp = match.component3().replace(",", "").toDouble()
+        val exp = match.component3().remove(",").toDouble()
         val bossesLeft = ceil(exp / bossEXP()).toInt()
         val message = createMessage(slayerName, level, bossesLeft, match.component3())
 

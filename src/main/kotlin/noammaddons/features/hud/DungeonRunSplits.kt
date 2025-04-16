@@ -1,5 +1,6 @@
 package noammaddons.features.hud
 
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.config.EditGui.GuiElement
 import noammaddons.config.EditGui.HudEditorScreen
@@ -7,13 +8,16 @@ import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.features.dungeons.dmap.handlers.DungeonInfo
 import noammaddons.features.hud.DungeonRunSplits.DungeonRunSplitsElement.overviewStr
+import noammaddons.noammaddons.Companion.personalBests
 import noammaddons.utils.*
+import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.ThreadUtils.loop
+import java.awt.Color
 import kotlin.math.roundToInt
 
-//
+
 object DungeonRunSplits: Feature() {
     private object DungeonRunSplitsElement: GuiElement(hudData.getData().dungeonRunSplits) {
         private val exampleText = listOf(
@@ -23,17 +27,38 @@ object DungeonRunSplits: Feature() {
             "&dPortal: ?",
             "&aBoss Entry: ?"
         )
-        var overviewStr: String = exampleText.joinToString("\n")
+
+        var overviewStr = emptyList<String>()
 
         override val enabled get() = config.dungeonRunSplits
-        override val width get() = RenderHelper.getStringWidth(overviewStr)
-        override val height get() = RenderHelper.getStringHeight(overviewStr)
-        override fun draw() = RenderUtils.drawText(overviewStr, getX(), getY(), getScale())
-        override fun exampleDraw() = RenderUtils.drawText(exampleText, getX(), getY(), getScale())
+        override val width get() = RenderHelper.getStringWidth(currentText())
+        override val height get() = RenderHelper.getStringHeight(currentText())
+
+        private fun currentText(): List<String> {
+            return if (HudEditorScreen.isOpen()) exampleText else overviewStr
+        }
+
+        override fun draw() {
+            GlStateManager.pushMatrix()
+            GlStateManager.scale(getScale(), getScale(), getScale())
+            GlStateManager.translate(getX() / getScale(), getY() / getScale(), 0f)
+            currentText().withIndex().forEach { (i, line) ->
+                val y = i * 9f
+                mc.fontRendererObj.drawStringWithShadow(line.addColor(), 0f, y, Color.WHITE.rgb)
+            }
+            GlStateManager.popMatrix()
+        }
     }
 
+
     private data class DialogueEntry(val name: String, val start: String? = null, val end: String? = null)
-    private data class Split(var start: Long? = null, var end: Long? = null)
+    private class Split {
+        var start: Long? = null
+        var end: Long? = null
+        var isPB = false
+        var pbTime: Long? = null
+        var pbTimeOld: Long? = null
+    }
 
     private val floorSplits = mutableMapOf<String, List<DialogueEntry>>()
 
@@ -109,17 +134,25 @@ object DungeonRunSplits: Feature() {
                 formatTime((DungeonUtils.bossEntryTime ?: System.currentTimeMillis()) - (DungeonUtils.dungeonStartTime ?: return@loop))
             else "?"
 
-            if (currentFloorSplits.isNotEmpty()) {
-                for ((name, split) in currentFloorSplits) {
+            val threadSafeCopy = currentFloorSplits.toMap()
+            if (threadSafeCopy.isNotEmpty()) {
+                for ((name, split) in threadSafeCopy) {
                     val text = when {
                         split.start != null && split.end != null -> {
-                            val duration = ((split.end !! - split.start !!) / 1000.0).toFixed(2)
-                            "$name: ${duration}s&r"
+                            val duration = ((split.end !! - split.start !!) / 1000.0).toFixed(2).toDouble()
+                            val pbTime = (split.pbTime !! / 1000.0).toFixed(2).toDouble()
+                            val splitSuffix = if (split.isPB) {
+                                val old = split.pbTimeOld?.let { (it / 1000.0).toFixed(2).toDouble() }
+                                if (old != null) "&7(${old}s)" else ""
+                            }
+                            else "&e(${pbTime}s)"
+
+                            "$name: ${duration}s&r $splitSuffix"
                         }
 
                         split.start != null && split.end == null -> {
                             val live = ((System.currentTimeMillis() - split.start !!) / 1000.0).toFixed(2)
-                            "$name: ${live}s"
+                            "$name: ${live}s&r"
                         }
 
                         else -> continue
@@ -135,10 +168,10 @@ object DungeonRunSplits: Feature() {
                 "§dPortal: $portalTime",
                 "§aBoss Entry: $bossEntry",
                 if (splitLines.isEmpty()) ""
-                else "--------------------"
+                else "-----------------------"
             )
 
-            overviewStr = (clearInfo + splitLines).joinToString("\n")
+            overviewStr = clearInfo + splitLines
         }
     }
 
@@ -148,6 +181,9 @@ object DungeonRunSplits: Feature() {
         val msg = event.component.noFormatText
         val floor = LocationUtils.dungeonFloor ?: return
         val currentSplits = floorSplits[floor] ?: floorSplits[floor.replace("M", "F")] ?: return
+        val pbData = personalBests.getData().dungeonSplits.getOrPut(floor) {
+            mutableMapOf()
+        }
 
         currentSplits.forEachIndexed { i, entry ->
             val split = currentFloorSplits.getOrPut(entry.name) { Split() }
@@ -155,8 +191,19 @@ object DungeonRunSplits: Feature() {
             if (entry.startMatches(msg) || currentSplits.getOrNull(i - 1)?.endMatches(msg) == true) {
                 split.start = System.currentTimeMillis()
             }
+
             if (entry.endMatches(msg) || entry.end == null && runEndRegex.matches(msg)) {
                 split.end = System.currentTimeMillis()
+                val deltaTime = split.end !! - split.start !!
+                val pbTime = pbData[entry.name]
+                split.pbTime = pbTime
+                if (pbTime == null || pbTime > deltaTime) {
+                    split.pbTimeOld = pbTime
+                    split.pbTime = deltaTime
+                    pbData[entry.name] = deltaTime
+                    personalBests.save()
+                    split.isPB = true
+                }
             }
 
             if (split.start != null || split.end != null) {
