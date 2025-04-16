@@ -6,6 +6,7 @@ import net.minecraft.util.ChatComponentText
 import net.minecraft.util.ChatStyle
 import noammaddons.features.dungeons.dmap.DungeonMap.debug
 import noammaddons.features.dungeons.dmap.core.ClearInfo
+import noammaddons.features.dungeons.dmap.core.DungeonMapConfig
 import noammaddons.features.dungeons.dmap.core.map.*
 import noammaddons.noammaddons.Companion.CHAT_PREFIX
 import noammaddons.noammaddons.Companion.mc
@@ -19,6 +20,7 @@ object ClearInfoUpdater {
     private val componentSepetator = createComponent(" &f|&r ")
 
     fun checkSplits(room: RoomData, oldState: RoomState, newState: RoomState, players: List<DungeonUtils.DungeonPlayer>) {
+        if (! DungeonMapConfig.printPlayersClearInfo) return
         if (players.isEmpty()) return
         if (room.type.equalsOneOf(RoomType.FAIRY, RoomType.ENTRANCE)) return
         if (! oldState.equalsOneOf(RoomState.UNDISCOVERED, RoomState.DISCOVERED, RoomState.UNOPENED)) return
@@ -35,11 +37,13 @@ object ClearInfoUpdater {
     }
 
     fun updateDeaths(player: String, reason: String) {
+        if (! DungeonMapConfig.printPlayersClearInfo) return
         ClearInfo.get(player).deaths += reason
         if (debug) modMessage("$player died: $reason")
     }
 
     fun initStartSecrets() = CoroutineScope(Dispatchers.IO).launch {
+        if (! DungeonMapConfig.printPlayersClearInfo) return@launch
         DungeonUtils.runPlayersNames.keys.toList().forEach { name ->
             val secrets = ProfileUtils.getSecrets(name)
             ClearInfo.get(name).secretsBeforeRun = secrets
@@ -47,8 +51,8 @@ object ClearInfoUpdater {
         }
     }
 
-
     fun sendClearInfoMessage() = CoroutineScope(Dispatchers.IO).launch {
+        if (! DungeonMapConfig.printPlayersClearInfo) return@launch
         val msgList = DungeonUtils.dungeonTeammates.toList().map { teammate ->
             val secretsAfterRun = ProfileUtils.getSecrets(teammate.name)
             if (debug) modMessage("${teammate.name} has $secretsAfterRun secrets after the run")

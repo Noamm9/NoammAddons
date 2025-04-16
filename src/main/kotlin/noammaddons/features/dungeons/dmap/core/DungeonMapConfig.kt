@@ -11,7 +11,6 @@ object DungeonMapConfig: Vigilant(
     "Dungeon Map",
     sortingBehavior = CategorySorting
 ) {
-
     @Property(
         name = "Map Enabled",
         type = PropertyType.SWITCH,
@@ -47,6 +46,15 @@ object DungeonMapConfig: Vigilant(
         subcategory = "Toggle",
     )
     var mapHideInBoss = false
+
+    @Property(
+        type = PropertyType.SWITCH,
+        name = "Player Clear Info",
+        description = "Sends at the end of the for each player his run secrets/room cleared and deaths.",
+        category = "Map",
+        subcategory = "Toggle",
+    )
+    var printPlayersClearInfo = true
 
     @Property(
         name = "Show Player Names",
