@@ -1,4 +1,4 @@
-package noammaddons.features.dungeons.terminals
+package noammaddons.features.dungeons.solvers.terminals
 
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.network.play.client.C0EPacketClickWindow
@@ -8,11 +8,11 @@ import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
-import noammaddons.features.dungeons.terminals.ConstantsVariables.NumbersTitle
-import noammaddons.features.dungeons.terminals.ConstantsVariables.TerminalSlot
-import noammaddons.features.dungeons.terminals.ConstantsVariables.getColorMode
-import noammaddons.features.dungeons.terminals.ConstantsVariables.getSolutionColor
-import noammaddons.features.dungeons.terminals.ConstantsVariables.getTermScale
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.RedGreenTitle
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.TerminalSlot
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.getColorMode
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.getSolutionColor
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.getTermScale
 import noammaddons.features.gui.Menus.renderBackground
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
@@ -24,7 +24,6 @@ import noammaddons.utils.MouseUtils.getMouseX
 import noammaddons.utils.MouseUtils.getMouseY
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
-import noammaddons.utils.RenderUtils.drawCenteredText
 import noammaddons.utils.RenderUtils.drawRoundedRect
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.ThreadUtils.setTimeout
@@ -32,16 +31,20 @@ import noammaddons.utils.Utils.send
 import kotlin.math.floor
 
 
-object Numbers: Feature() {
+object RedGreen: Feature() {
     private var inTerminal = false
     private var cwid = - 1
     private var windowSize = 0
-    private val terminalSlots = mutableListOf<TerminalSlot>()
+    private val terminalSlots = mutableListOf<TerminalSlot?>()
     private var clicked = false
     private val queue = mutableListOf<Pair<Int, Int>>()
     private val solution = mutableListOf<Int>()
-    private val allowedSlots = listOf(10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25)
-
+    private val allowedSlots = listOf(
+        11, 12, 13, 14,
+        15, 20, 21, 22,
+        23, 24, 29, 30,
+        31, 32, 33
+    )
 
     @SubscribeEvent
     fun onClick(event: GuiMouseClickEvent) {
@@ -58,8 +61,8 @@ object Numbers: Feature() {
         val width = 9 * 18
         val height = windowSize / 9 * 18
 
-        val offsetX = screenWidth / 2f - width / 2f
-        val offsetY = screenHeight / 2f - height / 2f
+        val offsetX = screenWidth / 2 - width / 2
+        val offsetY = screenHeight / 2 - height / 2
 
         val slotX = floor((x - offsetX) / 18).toInt()
         val slotY = floor((y - offsetY) / 18).toInt()
@@ -70,10 +73,9 @@ object Numbers: Feature() {
 
         if (slot >= windowSize) return
 
-        if (solution.indexOf(slot) == 0) {
+        if (solution.contains(slot)) {
             predict(slot)
-            if (clicked) queue.add(slot to 0)
-            else click(slot, 0)
+            if (clicked) queue.add(slot to 0) else click(slot, 0)
         }
     }
 
@@ -93,45 +95,34 @@ object Numbers: Feature() {
         val offsetY = screenHeight / 2 - height / 2
 
         val colorMode = getColorMode()
-        var solverColor = getSolutionColor()
+        val solverColor = getSolutionColor()
 
         GlStateManager.pushMatrix()
         GlStateManager.scale(termScale, termScale, termScale)
 
         renderBackground(offsetX, offsetY, width, height, colorMode)
-        drawText(NumbersTitle, offsetX, offsetY)
+        drawText(RedGreenTitle, offsetX, offsetY)
 
         for (i in 0 until windowSize) {
-            val index = solution.indexOf(i)
-            if (index == - 1 || index >= 3) continue
+            if (i !in solution) continue
 
             val currentOffsetX = i % 9 * 18 + offsetX
             val currentOffsetY = floor(i / 9.0).toInt() * 18 + offsetY
 
-            repeat(index) { solverColor = solverColor.darker().darker() }
-
             drawRoundedRect(solverColor, currentOffsetX, currentOffsetY, 16f, 16f, 1.5f)
-
-            repeat(index) { solverColor = solverColor.brighter().brighter() }
-
-            val stackSize = mc.thePlayer?.openContainer?.getSlot(i)?.stack?.stackSize ?: continue
-            drawCenteredText("$stackSize", currentOffsetX + 8, currentOffsetY + 4)
         }
+
         GlStateManager.popMatrix()
     }
 
     private fun solve() {
         solution.clear()
-        terminalSlots.filter { allowedSlots.contains(it.num) && it.id == 160 && it.meta == 14 }
-            .sortedBy { it.size }
-            .map { it.num }
+        terminalSlots.filter { it != null && allowedSlots.contains(it.num) && it.id == 160 && it.meta == 14 }
+            .map { it !!.num }
             .forEach { solution.add(it) }
     }
 
-    private fun predict(slot: Int) {
-        if (solution.indexOf(slot) != 0) return
-        solution.removeAt(0)
-    }
+    private fun predict(slot: Int) = solution.remove(slot)
 
     private fun click(slot: Int, button: Int) {
         clicked = true
@@ -147,14 +138,14 @@ object Numbers: Feature() {
 
     @SubscribeEvent
     fun onWindowOpen(event: PacketEvent.Received) {
-        if (! config.CustomTerminalsGui || ! config.CustomNumbersTerminal || LocationUtils.dungeonFloorNumber != 7 || F7Phase != 3) return
+        if (! config.CustomTerminalsGui || ! config.CustomRedGreenTerminal || LocationUtils.dungeonFloorNumber != 7 || F7Phase != 3) return
         if (event.packet !is S2DPacketOpenWindow) return
 
         val windowTitle = event.packet.windowTitle.noFormatText
         val slotCount = event.packet.slotCount
         cwid = event.packet.windowId
 
-        if (windowTitle.matches(Regex("^Click in order!$"))) {
+        if (Regex("^Correct all the panes!$").matches(windowTitle)) {
             inTerminal = true
             clicked = false
             terminalSlots.clear()
@@ -187,16 +178,17 @@ object Numbers: Feature() {
                 )
             )
         }
+        else terminalSlots.add(null)
+
 
         if (terminalSlots.size == windowSize) {
             solve()
-            if (queue.isNotEmpty() && queue.all { (queuedSlot, _) -> solution.indexOf(queuedSlot) == queue.indexOfFirst { it.first == queuedSlot } }) {
-                queue.forEach { (queuedSlot, _) -> predict(queuedSlot) }
+            if (queue.isNotEmpty() && queue.all { solution.contains(it.first) }) {
+                queue.forEach { predict(it.first) }
                 click(queue[0].first, queue[0].second)
                 queue.removeAt(0)
             }
             else queue.clear()
-
         }
     }
 

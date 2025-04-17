@@ -6,14 +6,16 @@ import net.minecraft.util.*
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.RegisterEvents
 import noammaddons.events.WorldUnloadEvent
+import noammaddons.features.dungeons.dmap.core.map.Room
 import noammaddons.features.dungeons.dmap.core.map.RoomData
+import noammaddons.features.dungeons.dmap.handlers.DungeonInfo
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.getBlockId
-import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.inDungeon
+import noammaddons.utils.MathUtils.destructured
 import noammaddons.utils.ThreadUtils.loop
 import noammaddons.utils.Utils.equalsOneOf
 import kotlin.math.floor
@@ -49,10 +51,10 @@ object ScanUtils {
     }
 
     @JvmField
-    var currentRoom: RoomData? = null
+    var currentRoom: Room? = null
 
     @JvmField
-    var lastKnownRoom: RoomData? = null
+    var lastKnownRoom: Room? = null
 
     init {
         JsonUtils.fetchJsonWithRetry<List<RoomData>?>(
@@ -63,10 +65,6 @@ object ScanUtils {
         }
     }
 
-
-    fun getRoomData(x: Int, z: Int): RoomData? {
-        return getRoomData(getCore(x, z))
-    }
 
     fun getRoomData(hash: Int): RoomData? {
         return roomList.find { hash in it.cores }
@@ -90,21 +88,16 @@ object ScanUtils {
         return Pair(pair.first + 15, pair.second + 15)
     }
 
-    fun getRoomCenterAt(pos: Vec3i): Pair<Int, Int> {
-        return getRoomCenter(getRoomCorner(getRoomComponnent(pos)))
-    }
-
-    fun getRoomFromPos(pos: BlockPos): RoomData? {
-        val comp = getRoomComponnent(pos)
-        roomCache[comp]?.let {
-            return it
+    fun getRoomCenterAt(pos: Vec3i): BlockPos {
+        return getRoomCenter(getRoomCorner(getRoomComponnent(pos))).let {
+            BlockPos(it.first, 0, it.second)
         }
-
-        val (cx, cz) = getRoomCenter(getRoomCorner(comp))
-        val room = getRoomData(cx, cz) ?: return null
-        roomCache[comp] = room
-        return room
     }
+
+    fun getRoomFromPos(pos: BlockPos) = DungeonInfo.dungeonList.filterIsInstance<Room>().find { room ->
+        room.getRoomComponent() == getRoomComponnent(pos)
+    }?.uniqueRoom?.mainRoom
+
 
     fun getRoomFromPos(pos: Vec3) = getRoomFromPos(BlockPos(pos))
 
@@ -119,44 +112,32 @@ object ScanUtils {
         return sb.toString().hashCode()
     }
 
-    fun getRotation(center: Pair<Int, Int>, relativeCoords: Map<Block, List<Int>>): Int? {
-        var detectedRotation: Int? = null
-
+    fun getRotation(center: BlockPos, relativeCoords: Map<Block, BlockPos>): Int? {
         relativeCoords.forEach { (block, coords) ->
             for (i in 0 .. 3) {
-                val pos = getRealCoord(coords, listOf(center.first, 0, center.second), i * 90)
-                if (getBlockAt(pos) != block) continue
-                if (detectedRotation == null) detectedRotation = i
-                else if (detectedRotation != i) {
-                    Utils.printCaller()
-                    modMessage("&cConflicting rotations detected")
-                    return null
+                val pos = getRealCoord(coords, center, i * 90)
+                if (getBlockAt(pos) == block) {
+                    return i * 90
                 }
             }
         }
-
-        return detectedRotation
+        return null
     }
 
-    fun rotateCoords(coords: List<Int>, degree: Int): List<Int> {
-        var adjustedDegree = degree
-        if (adjustedDegree < 0) adjustedDegree += 360
-
-        return when (adjustedDegree) {
-            0 -> listOf(coords[0], coords[1], coords[2])
-            90 -> listOf(coords[2], coords[1], - coords[0])
-            180 -> listOf(- coords[0], coords[1], - coords[2])
-            270 -> listOf(- coords[2], coords[1], coords[0])
-            else -> listOf(coords[0], coords[1], coords[2])
+    fun BlockPos.rotate(degree: Int): BlockPos {
+        return when ((degree % 360 + 360) % 360) {
+            0 -> BlockPos(x, y, z)
+            90 -> BlockPos(z, y, - x)
+            180 -> BlockPos(- x, y, - z)
+            270 -> BlockPos(- z, y, x)
+            else -> BlockPos(x, y, z)
         }
     }
 
-    fun getRealCoord(array: List<Int>, roomCenter: List<Int>, rotation: Int): BlockPos {
-        val (cx, _, cz) = roomCenter
-        val (x, y, z) = rotateCoords(array, rotation)
-        if (rotation == 0) return BlockPos(array[0] + cx, array[1], array[2] + cz)
 
-        return BlockPos(cx + x, y, cz + z)
+    fun getRealCoord(pos: BlockPos, roomCenter: BlockPos, rotation: Int): BlockPos {
+        val (cx, _, cz) = roomCenter.destructured()
+        return pos.rotate(rotation).add(cx, 0, cz)
     }
 
     fun gethighestBlockAt(x: Int, z: Int): Int? {

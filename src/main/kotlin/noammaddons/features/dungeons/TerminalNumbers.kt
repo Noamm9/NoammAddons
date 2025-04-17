@@ -1,4 +1,4 @@
-package noammaddons.features.dungeons.terminals
+package noammaddons.features.dungeons
 
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3

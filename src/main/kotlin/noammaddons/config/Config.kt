@@ -266,6 +266,15 @@ object Config: Vigilant(
     var boulderSolverShowAll = false
 
     @Property(
+        type = PropertyType.CHECKBOX,
+        name = "Zero Ping Boulder",
+        description = "When clicking the box in the boulder it wont wait for the server to push the box and will just make its blocks into ghost blocks so you can walk through it early\n\nRisk Level: Spec Safe",
+        category = DUNGEONS_CATEGORY,
+        subcategory = "Solvers"
+    )
+    var zeroPingBoulder = false
+
+    @Property(
         type = PropertyType.COLOR,
         name = "Boulder Box Color",
         description = "Color of the Boxes used by the Boulder Solver",
@@ -297,7 +306,7 @@ object Config: Vigilant(
         category = DUNGEONS_CATEGORY,
         subcategory = "Solvers"
     )
-    var ThreeWeirdosSolverColor = Color(0, 114, 255)
+    var ThreeWeirdosSolverColor = Color(0, 114, 255, 85)
 
     @Property(
         type = PropertyType.SWITCH,
@@ -570,24 +579,15 @@ object Config: Vigilant(
         subcategory = "Items"
     )
     var WitherShieldTimer = false
-
+    
     @Property(
         type = PropertyType.SWITCH,
-        name = "Party Names",
-        description = "Displays the names of the people in the party.",
-        category = GENERAL_CATEGORY,
-        subcategory = "Party"
-    )
-    var partyNames = true
-
-    @Property(
-        type = PropertyType.SWITCH,
-        name = "Party Outline",
+        name = "Party Members",
         description = "Draws a rainbow Outline around the people in the party.",
-        category = GENERAL_CATEGORY,
-        subcategory = "Party"
+        category = ESP_CATEGORY,
+        subcategory = "Party ESP"
     )
-    var partyOutline = true
+    var partyEsp = true
 
     @Property(
         type = PropertyType.SWITCH,
@@ -1518,7 +1518,7 @@ object Config: Vigilant(
         name = "Pest Esp",
         description = "ESP for the Pest in the garden",
         category = ESP_CATEGORY,
-        subcategory = "Garden"
+        subcategory = "Garden ESP"
     )
     var pestEsp = false
 

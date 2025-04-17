@@ -1,6 +1,5 @@
-package noammaddons.features.dungeons.solvers
+package noammaddons.features.dungeons.solvers.puzzles
 
-import net.minecraft.block.Block
 import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.init.Blocks
@@ -12,15 +11,14 @@ import noammaddons.features.Feature
 import noammaddons.noammaddons.Companion.personalBests
 import noammaddons.utils.BlockUtils.ghostBlock
 import noammaddons.utils.ChatUtils.clickableChat
+import noammaddons.utils.ChatUtils.debugMessage
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendPartyMessage
 import noammaddons.utils.DungeonUtils
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderUtils
-import noammaddons.utils.ScanUtils.getRoomCenterAt
-import noammaddons.utils.ScanUtils.getRotation
-import noammaddons.utils.ScanUtils.rotateCoords
+import noammaddons.utils.ScanUtils.rotate
 import noammaddons.utils.Utils.formatPbPuzzleMessage
 import java.util.concurrent.CopyOnWriteArraySet
 
@@ -38,24 +36,17 @@ object ThreeWeirdosSolver: Feature() {
     private var wrongPositions = CopyOnWriteArraySet<Pair<BlockPos, Entity>>()
     private val removedEntities = CopyOnWriteArraySet<Entity>()
 
-    private val relativesCoords = mapOf(
-        Blocks.redstone_wire to listOf(7, 69, 2),
-        Blocks.chest as Block to listOf(9, 69, 1),
-        Blocks.chest as Block to listOf(10, 69, - 1),
-        Blocks.chest as Block to listOf(9, 69, - 3)
-    )
 
     @SubscribeEvent
     fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (! config.ThreeWeirdosSolver) return
-        if (event.room.name != "Three Weirdos") return
-
-        val center = getRoomCenterAt(mc.thePlayer.position)
-        val detectedRotation = getRotation(center, relativesCoords) ?: return
-
+        if (event.room.data.name != "Three Weirdos") return
         inWeirdos = true
-        rotation = detectedRotation * 90
+
+        rotation = 360 - event.room.rotation !!
         trueTimeStart = System.currentTimeMillis()
+
+        debugMessage("Three Weirdos detected - Rotation: $rotation")
     }
 
     @SubscribeEvent
@@ -66,7 +57,7 @@ object ThreeWeirdosSolver: Feature() {
         val (npc, msg) = npcRegex.find(event.component.noFormatText)?.destructured ?: return
         if (solutions.none { it.matches(msg) } && wrong.none { it.matches(msg) }) return
         val correctNPC = mc.theWorld?.loadedEntityList?.find { it is EntityArmorStand && it.name.removeFormatting() == npc } ?: return
-        val offset = rotateCoords(listOf(0, 0, - 1), rotation).let { BlockPos(it[0], it[1], it[2]) }
+        val offset = BlockPos(1, 0, 0).rotate(rotation)
         val pos = BlockPos(correctNPC.posX - 0.5, 69.0, correctNPC.posZ - 0.5).add(offset)
 
         if (solutions.any { it.matches(msg) }) {
@@ -116,7 +107,8 @@ object ThreeWeirdosSolver: Feature() {
     fun onPacketSent(event: PacketEvent.Sent) {
         if (! inWeirdos) return
         if (event.packet !is C08PacketPlayerBlockPlacement) return
-        if (wrongPositions.size != 2 || correctPos == null) return
+        if (wrongPositions.size != 2) return
+        if (event.packet.position != correctPos?.first) return
 
         val personalBestsData = personalBests.getData().pazzles
         val previousBest = personalBestsData["Three Weirdos"]

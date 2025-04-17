@@ -20,6 +20,7 @@ class Room(override val x: Int, override val z: Int, var data: RoomData): Tile {
     var highestBlock: Int? = null
 
     override var state: RoomState by Delegates.observable(RoomState.UNDISCOVERED) { _, oldValue, newValue ->
+        if (uniqueRoom?.mainRoom != this) return@observable
         if (oldValue == newValue) return@observable
         if (data.name == "Unknown") return@observable
         if (DungeonMapConfig.dungeonMapCheater && oldValue == RoomState.UNOPENED && newValue == RoomState.UNDISCOVERED) return@observable
@@ -27,10 +28,10 @@ class Room(override val x: Int, override val z: Int, var data: RoomData): Tile {
         ChatUtils.debugMessage("${data.name}: $oldValue -> $newValue")
 
         val roomPlayers = DungeonUtils.dungeonTeammates.filter {
-            ScanUtils.getRoomFromPos(it.mapIcon.getRealPos())?.name == data.name
+            ScanUtils.getRoomFromPos(it.mapIcon.getRealPos())?.data?.name == data.name
         }
 
-        RegisterEvents.postAndCatch(DungeonEvent.RoomEvent.onStateChange(data, oldValue, newValue, roomPlayers))
+        RegisterEvents.postAndCatch(DungeonEvent.RoomEvent.onStateChange(this, oldValue, newValue, roomPlayers))
     }
 
     override val color: Color
@@ -52,6 +53,8 @@ class Room(override val x: Int, override val z: Int, var data: RoomData): Tile {
     fun getArrayPosition(): Pair<Int, Int> {
         return Pair((x - DungeonScanner.startX) / 16, (z - DungeonScanner.startZ) / 16)
     }
+
+    fun getRoomComponent(): Pair<Int, Int> = ScanUtils.getRoomComponnent(BlockPos(x, 0, z))
 
     fun addToUnique(row: Int, column: Int, roomName: String = data.name) {
         val unique = DungeonInfo.uniqueRooms.find { it.name == roomName }

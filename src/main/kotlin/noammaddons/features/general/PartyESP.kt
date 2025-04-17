@@ -18,7 +18,7 @@ object PartyESP: Feature() {
 
     @SubscribeEvent
     fun onRenderEntity(event: RenderLivingEvent.Specials.Pre<*>) {
-        if (! config.partyNames || inDungeon) return
+        if (! config.partyEsp || inDungeon) return
 
         val member = getPartyNoSelf().find { it.entityId == event.entity.entityId } ?: return
         val distance = distance3D(mc.thePlayer.renderVec, member.renderVec)

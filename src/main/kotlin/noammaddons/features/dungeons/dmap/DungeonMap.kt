@@ -28,12 +28,10 @@ object DungeonMap: Feature() {
 
     @SubscribeEvent
     fun onRenderOverlay(event: RenderOverlay) {
-        if (debug || mc.session.username == "Noamm") {
-            val currentRoom = DungeonInfo.uniqueRooms.find {
-                it.name == ScanUtils.currentRoom?.name
-            }
-            val rot = currentRoom?.tiles?.find { it.rotation != null }?.rotation
-            val h = currentRoom?.tiles?.find { it.rotation != null }?.highestBlock
+        if (debug) {
+            val currentRoom = ScanUtils.currentRoom
+            val rot = currentRoom?.rotation
+            val h = currentRoom?.highestBlock
             RenderUtils.drawText(
                 listOf(
                     "roofHight: $h",
@@ -154,7 +152,7 @@ object DungeonMap: Feature() {
 
     @SubscribeEvent
     fun onRoomStateChangeEvent(event: DungeonEvent.RoomEvent.onStateChange) {
-        ClearInfoUpdater.checkSplits(event.room, event.oldState, event.newState, event.roomPlayers)
+        ClearInfoUpdater.checkSplits(event.room.data, event.oldState, event.newState, event.roomPlayers)
     }
 
     @SubscribeEvent

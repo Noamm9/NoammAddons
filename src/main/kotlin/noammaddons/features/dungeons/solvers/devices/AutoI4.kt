@@ -1,4 +1,4 @@
-package noammaddons.features.dungeons.solvers
+package noammaddons.features.dungeons.solvers.devices
 
 import kotlinx.coroutines.*
 import net.minecraft.init.Blocks.*

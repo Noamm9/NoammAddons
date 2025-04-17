@@ -20,7 +20,7 @@ import noammaddons.events.*
 import noammaddons.features.FeatureManager.registerFeatures
 import noammaddons.features.dungeons.dmap.handlers.DungeonScanner
 import noammaddons.features.dungeons.esp.StarMobESP
-import noammaddons.features.dungeons.solvers.AutoI4.testi4
+import noammaddons.features.dungeons.solvers.devices.AutoI4.testi4
 import noammaddons.noammaddons.Companion.ahData
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
@@ -100,8 +100,8 @@ object TestGround {
 
         drawText(
             """
-			getCore: ${getCore(rc.first, rc.second)}
-			currentRoom: ${currentRoom?.name ?: "&cUnknown&r"}
+			getCore: ${getCore(rc.x, rc.z)}
+			currentRoom: ${currentRoom?.data?.name ?: "&cUnknown&r"}
 			getRoomCenter: $rc
 		""".trimIndent(),
             150f, 100f, 1f,

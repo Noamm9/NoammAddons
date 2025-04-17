@@ -1,21 +1,19 @@
 @file:Suppress("DEPRECATED_IDENTITY_EQUALS")
 
-package noammaddons.features.dungeons.terminals
+package noammaddons.features.dungeons.solvers.terminals
 
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.network.play.server.S2DPacketOpenWindow
 import net.minecraft.network.play.server.S2FPacketSetSlot
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.GuiCloseEvent
-import noammaddons.events.GuiMouseClickEvent
-import noammaddons.events.PacketEvent
+import noammaddons.events.*
 import noammaddons.features.Feature
-import noammaddons.features.dungeons.terminals.ConstantsVariables.MelodyTitle
-import noammaddons.features.dungeons.terminals.ConstantsVariables.TerminalSlot
-import noammaddons.features.dungeons.terminals.ConstantsVariables.getColorMode
-import noammaddons.features.dungeons.terminals.ConstantsVariables.getSolutionColor
-import noammaddons.features.dungeons.terminals.ConstantsVariables.getTermScale
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.MelodyTitle
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.TerminalSlot
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.getColorMode
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.getSolutionColor
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.getTermScale
 import noammaddons.features.gui.Menus.renderBackground
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.noFormatText

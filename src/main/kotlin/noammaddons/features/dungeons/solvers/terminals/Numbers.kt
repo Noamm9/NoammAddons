@@ -1,4 +1,4 @@
-package noammaddons.features.dungeons.terminals
+package noammaddons.features.dungeons.solvers.terminals
 
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.network.play.client.C0EPacketClickWindow
@@ -6,63 +6,45 @@ import net.minecraft.network.play.server.S2DPacketOpenWindow
 import net.minecraft.network.play.server.S2FPacketSetSlot
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.GuiCloseEvent
-import noammaddons.events.GuiMouseClickEvent
-import noammaddons.events.PacketEvent
+import noammaddons.events.*
 import noammaddons.features.Feature
-import noammaddons.features.dungeons.terminals.ConstantsVariables.ColorsTitle
-import noammaddons.features.dungeons.terminals.ConstantsVariables.TerminalSlot
-import noammaddons.features.dungeons.terminals.ConstantsVariables.getColorMode
-import noammaddons.features.dungeons.terminals.ConstantsVariables.getSolutionColor
-import noammaddons.features.dungeons.terminals.ConstantsVariables.getTermScale
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.NumbersTitle
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.TerminalSlot
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.getColorMode
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.getSolutionColor
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.getTermScale
 import noammaddons.features.gui.Menus.renderBackground
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.disableNEUInventoryButtons
 import noammaddons.utils.ItemUtils.getItemId
+import noammaddons.utils.LocationUtils
 import noammaddons.utils.LocationUtils.F7Phase
-import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.MouseUtils.getMouseX
 import noammaddons.utils.MouseUtils.getMouseY
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
+import noammaddons.utils.RenderUtils.drawCenteredText
 import noammaddons.utils.RenderUtils.drawRoundedRect
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.send
 import kotlin.math.floor
 
-object Colors: Feature() {
+
+object Numbers: Feature() {
     private var inTerminal = false
     private var cwid = - 1
     private var windowSize = 0
-    private val terminalSlots = mutableListOf<TerminalSlot?>()
+    private val terminalSlots = mutableListOf<TerminalSlot>()
     private var clicked = false
     private val queue = mutableListOf<Pair<Int, Int>>()
     private val solution = mutableListOf<Int>()
-    private var extra: String? = null
-
-    private val allowedSlots = listOf(
-        10, 11, 12, 13, 14, 15, 16,
-        19, 20, 21, 22, 23, 24, 25,
-        28, 29, 30, 31, 32, 33, 34,
-        37, 38, 39, 40, 41, 42, 43
-    )
-    private val replacements = mapOf(
-        "light gray" to "silver",
-        "wool" to "white",
-        "bone" to "white",
-        "ink" to "black",
-        "lapis" to "blue",
-        "cocoa" to "brown",
-        "dandelion" to "yellow",
-        "rose" to "red",
-        "cactus" to "green"
-    )
+    private val allowedSlots = listOf(10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25)
 
 
     @SubscribeEvent
-    fun onGuiClick(event: GuiMouseClickEvent) {
+    fun onClick(event: GuiMouseClickEvent) {
         if (! inTerminal) return
         event.isCanceled = true
 
@@ -76,8 +58,8 @@ object Colors: Feature() {
         val width = 9 * 18
         val height = windowSize / 9 * 18
 
-        val offsetX = screenWidth / 2 - width / 2
-        val offsetY = screenHeight / 2 - height / 2
+        val offsetX = screenWidth / 2f - width / 2f
+        val offsetY = screenHeight / 2f - height / 2f
 
         val slotX = floor((x - offsetX) / 18).toInt()
         val slotY = floor((y - offsetY) / 18).toInt()
@@ -88,9 +70,10 @@ object Colors: Feature() {
 
         if (slot >= windowSize) return
 
-        if (solution.contains(slot)) {
+        if (solution.indexOf(slot) == 0) {
             predict(slot)
-            if (clicked) queue.add(slot to 0) else click(slot, 0)
+            if (clicked) queue.add(slot to 0)
+            else click(slot, 0)
         }
     }
 
@@ -110,43 +93,44 @@ object Colors: Feature() {
         val offsetY = screenHeight / 2 - height / 2
 
         val colorMode = getColorMode()
-        val solverColor = getSolutionColor()
+        var solverColor = getSolutionColor()
 
         GlStateManager.pushMatrix()
         GlStateManager.scale(termScale, termScale, termScale)
 
         renderBackground(offsetX, offsetY, width, height, colorMode)
-        drawText(ColorsTitle, offsetX, offsetY)
+        drawText(NumbersTitle, offsetX, offsetY)
 
         for (i in 0 until windowSize) {
-            if (! solution.contains(i)) continue
+            val index = solution.indexOf(i)
+            if (index == - 1 || index >= 3) continue
 
             val currentOffsetX = i % 9 * 18 + offsetX
             val currentOffsetY = floor(i / 9.0).toInt() * 18 + offsetY
 
-            drawRoundedRect(solverColor, currentOffsetX, currentOffsetY, 16f, 16f, 1.5f)
-        }
+            repeat(index) { solverColor = solverColor.darker().darker() }
 
+            drawRoundedRect(solverColor, currentOffsetX, currentOffsetY, 16f, 16f, 1.5f)
+
+            repeat(index) { solverColor = solverColor.brighter().brighter() }
+
+            val stackSize = mc.thePlayer?.openContainer?.getSlot(i)?.stack?.stackSize ?: continue
+            drawCenteredText("$stackSize", currentOffsetX + 8, currentOffsetY + 4)
+        }
         GlStateManager.popMatrix()
     }
 
     private fun solve() {
         solution.clear()
-
-        terminalSlots.filter {
-            it != null && allowedSlots.contains(it.num) && ! it.enchanted &&
-                    fixName(it.name.lowercase()).startsWith(extra ?: "")
-        }.map { it !!.num }.forEach { solution.add(it) }
+        terminalSlots.filter { allowedSlots.contains(it.num) && it.id == 160 && it.meta == 14 }
+            .sortedBy { it.size }
+            .map { it.num }
+            .forEach { solution.add(it) }
     }
 
-    private fun predict(slot: Int) = solution.remove(slot)
-
-    fun fixName(name: String): String {
-        var fixedName = name
-        replacements.forEach { (k, v) ->
-            fixedName = fixedName.replace(Regex("^$k"), v)
-        }
-        return fixedName
+    private fun predict(slot: Int) {
+        if (solution.indexOf(slot) != 0) return
+        solution.removeAt(0)
     }
 
     private fun click(slot: Int, button: Int) {
@@ -163,16 +147,14 @@ object Colors: Feature() {
 
     @SubscribeEvent
     fun onWindowOpen(event: PacketEvent.Received) {
-        if (! config.CustomTerminalsGui || ! config.CustomColorsTerminal || dungeonFloorNumber != 7 || F7Phase != 3) return
+        if (! config.CustomTerminalsGui || ! config.CustomNumbersTerminal || LocationUtils.dungeonFloorNumber != 7 || F7Phase != 3) return
         if (event.packet !is S2DPacketOpenWindow) return
 
         val windowTitle = event.packet.windowTitle.noFormatText
         val slotCount = event.packet.slotCount
-        val colorsMatch = Regex("^Select all the ([\\w ]+) items!$").matchEntire(windowTitle)
         cwid = event.packet.windowId
 
-        if (colorsMatch != null) {
-            extra = colorsMatch.groupValues[1].lowercase()
+        if (windowTitle.matches(Regex("^Click in order!$"))) {
             inTerminal = true
             clicked = false
             terminalSlots.clear()
@@ -205,16 +187,16 @@ object Colors: Feature() {
                 )
             )
         }
-        else terminalSlots[slot] = null
 
         if (terminalSlots.size == windowSize) {
             solve()
-            if (queue.isNotEmpty() && queue.all { solution.contains(it.first) }) {
-                queue.forEach { predict(it.first) }
+            if (queue.isNotEmpty() && queue.all { (queuedSlot, _) -> solution.indexOf(queuedSlot) == queue.indexOfFirst { it.first == queuedSlot } }) {
+                queue.forEach { (queuedSlot, _) -> predict(queuedSlot) }
                 click(queue[0].first, queue[0].second)
                 queue.removeAt(0)
             }
             else queue.clear()
+
         }
     }
 

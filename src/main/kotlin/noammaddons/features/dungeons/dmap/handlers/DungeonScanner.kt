@@ -3,33 +3,18 @@ package noammaddons.features.dungeons.dmap.handlers
 import net.minecraft.init.Blocks
 import net.minecraft.util.BlockPos
 import noammaddons.features.dungeons.dmap.core.map.*
-import noammaddons.features.dungeons.dmap.handlers.DungeonScanner.scan
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.ScanUtils
 import kotlin.math.floor
 
-/**
- * Handles everything related to scanning the dungeon. Running [scan] will update the instance of [DungeonInfo].
- */
 object DungeonScanner {
-
-    /**
-     * The size of each dungeon room in blocks.
-     */
     const val roomSize = 32
-
-    /**
-     * The starting coordinates to start scanning (the north-west corner).
-     */
     const val startX = - 185
     const val startZ = - 185
 
-    /**
-     * The size of half a room without the wither door
-     */
-    val halfRoomSize = floor((roomSize - 1.0) / 2.0)
+    private val halfRoomSize = floor((roomSize - 1.0) / 2.0)
 
     val clayBlocksCorners = listOf(
         Pair(- halfRoomSize, - halfRoomSize),
@@ -39,11 +24,10 @@ object DungeonScanner {
     )
 
     private var lastScanTime = 0L
-    var isScanning = false
+    private var isScanning = false
     var hasScanned = false
 
-    val shouldScan: Boolean
-        get() = ! isScanning && ! hasScanned && System.currentTimeMillis() - lastScanTime >= 250 && dungeonFloorNumber != null
+    val shouldScan get() = ! isScanning && ! hasScanned && System.currentTimeMillis() - lastScanTime >= 250 && dungeonFloorNumber != null
 
     fun scan() {
         isScanning = true

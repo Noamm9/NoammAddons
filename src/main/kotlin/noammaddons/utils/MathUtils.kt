@@ -36,6 +36,24 @@ object MathUtils {
 
     fun isCoordinateInsideBox(pos: BlockPos, corner1: BlockPos, corner2: BlockPos) = isCoordinateInsideBox(pos.toVec(), corner1.toVec(), corner2.toVec())
 
+    fun getAllBlocksBetween(start: BlockPos, end: BlockPos): List<BlockPos> {
+        val minX = minOf(start.x, end.x)
+        val maxX = maxOf(start.x, end.x)
+        val minY = minOf(start.y, end.y)
+        val maxY = maxOf(start.y, end.y)
+        val minZ = minOf(start.z, end.z)
+        val maxZ = maxOf(start.z, end.z)
+
+        val positions = mutableListOf<BlockPos>()
+        for (x in minX .. maxX) {
+            for (y in minY .. maxY) {
+                for (z in minZ .. maxZ) {
+                    positions.add(BlockPos(x, y, z))
+                }
+            }
+        }
+        return positions
+    }
 
     /**
      * Calculates the distance between two points in a 3D space using Vec3.

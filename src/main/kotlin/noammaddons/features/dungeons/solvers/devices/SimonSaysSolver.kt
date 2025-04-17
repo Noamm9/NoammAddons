@@ -1,4 +1,4 @@
-package noammaddons.features.dungeons.solvers
+package noammaddons.features.dungeons.solvers.devices
 
 import gg.essential.elementa.utils.withAlpha
 import net.minecraft.init.Blocks

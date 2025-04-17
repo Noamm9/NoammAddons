@@ -1,4 +1,4 @@
-package noammaddons.features.dungeons.solvers
+package noammaddons.features.dungeons.solvers.devices
 
 import net.minecraft.entity.item.EntityItemFrame
 import net.minecraft.init.Items

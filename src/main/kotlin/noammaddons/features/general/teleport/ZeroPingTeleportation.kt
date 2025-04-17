@@ -75,7 +75,7 @@ object ZeroPingTeleportation: Feature() {
         if (LocationUtils.world == LocationUtils.WorldType.Home) return
         if (LocationUtils.dungeonFloorNumber == 7 && LocationUtils.inBoss) return
         if (ActionBarParser.currentMana < ActionBarParser.maxMana * 0.1) return
-        if (ScanUtils.currentRoom?.name.equalsOneOf("New Trap", "Old Trap", "Teleport Maze", "Boulder")) return
+        if (ScanUtils.currentRoom?.data?.name.equalsOneOf("New Trap", "Old Trap", "Teleport Maze", "Boulder")) return
         if (getBlockAt(packet.position).equalsOneOf(trapped_chest, chest, ender_chest, hopper)) return
         if (LocationUtils.isInHubCarnival()) return
         val tpInfo = getTeleportInfo(packet) ?: return
@@ -139,7 +139,7 @@ object ZeroPingTeleportation: Feature() {
         val pos = etherPos.pos ?: return
 
         if (getBlockAt(pos).equalsOneOf(chest, ender_chest, trapped_chest)) return
-        if (ScanUtils.getRoomFromPos(pos)?.name.equalsOneOf("Teleport Maze", "Boulder")) return
+        if (ScanUtils.getRoomFromPos(pos)?.data?.name.equalsOneOf("Teleport Maze", "Boulder")) return
 
         playerRot.yaw %= 360
         if (playerRot.yaw < 0) playerRot.yaw += 360
@@ -162,7 +162,7 @@ object ZeroPingTeleportation: Feature() {
             playerRot.pitch.toDouble()
         ) ?: return
 
-        if (ScanUtils.getRoomFromPos(pos)?.name.equalsOneOf("Teleport Maze", "Boulder")) return
+        if (ScanUtils.getRoomFromPos(pos)?.data?.name.equalsOneOf("Teleport Maze", "Boulder")) return
 
         playerRot.yaw %= 360
 

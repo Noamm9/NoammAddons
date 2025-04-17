@@ -88,11 +88,11 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons, noamm, noam, noam
             "roominfo" -> {
                 val rc = getRoomCenterAt(mc.thePlayer.position)
                 val text = """
-				    roomName: ${currentRoom?.name ?: "&cUnknown&r"}
-				    roomCore: ${currentRoom?.cores} || ${getCore(rc.first, rc.second)}
-				    roomType: ${currentRoom?.type?.name ?: "&cUnknown&r"}
-				    roomTotalSecrets: ${currentRoom?.secrets ?: 0}
-				    roomCrypts: ${currentRoom?.crypts ?: 0}
+				    roomName: ${currentRoom?.data?.name ?: "&cUnknown&r"}
+				    roomCore: ${currentRoom?.data?.cores} || ${getCore(rc.x, rc.z)}
+				    roomType: ${currentRoom?.data?.type?.name ?: "&cUnknown&r"}
+				    roomTotalSecrets: ${currentRoom?.data?.secrets ?: 0}
+				    roomCrypts: ${currentRoom?.data?.crypts ?: 0}
 			    """.trimIndent()
 
                 copyToClipboard(text)

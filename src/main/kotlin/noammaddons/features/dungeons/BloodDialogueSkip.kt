@@ -26,7 +26,7 @@ object BloodDialogueSkip: Feature() {
         if (! config.BloodDialogueSkip) return
         if (isRunning) return
         if (thePlayer?.clazz != DungeonUtils.Classes.Mage) return
-        if (event.room.type != RoomType.BLOOD) return
+        if (event.room.data.type != RoomType.BLOOD) return
         if (event.newState != RoomState.DISCOVERED) return
 
         startTime = System.currentTimeMillis()

@@ -7,7 +7,9 @@ import noammaddons.features.dungeons.*
 import noammaddons.features.dungeons.dmap.DungeonMap
 import noammaddons.features.dungeons.esp.*
 import noammaddons.features.dungeons.solvers.*
-import noammaddons.features.dungeons.terminals.*
+import noammaddons.features.dungeons.solvers.devices.*
+import noammaddons.features.dungeons.solvers.puzzles.*
+import noammaddons.features.dungeons.solvers.terminals.*
 import noammaddons.features.general.*
 import noammaddons.features.general.teleport.*
 import noammaddons.features.gui.*

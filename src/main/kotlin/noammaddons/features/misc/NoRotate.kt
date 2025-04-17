@@ -35,7 +35,7 @@ object NoRotate: Feature() {
         if (mc.isIntegratedServerRunning) return
         if (! doneLoadingTerrain) return
         val player = mc.thePlayer ?: return
-        if (currentRoom?.name == "Teleport Maze") return // can break some mods
+        if (currentRoom?.data?.name == "Teleport Maze") return // can break some mods
         val updatedPosition = calculateNewPosition(player, packet)
         val updatedRotation = calculateNewRotation(player, packet)
         if (player.heldItem?.SkyblockID.equalsOneOf("SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP")) return

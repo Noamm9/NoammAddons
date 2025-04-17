@@ -1,4 +1,4 @@
-package noammaddons.features.dungeons.terminals
+package noammaddons.features.dungeons.solvers.terminals
 
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.network.play.client.C0EPacketClickWindow
@@ -6,26 +6,23 @@ import net.minecraft.network.play.server.S2DPacketOpenWindow
 import net.minecraft.network.play.server.S2FPacketSetSlot
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.GuiCloseEvent
-import noammaddons.events.GuiMouseClickEvent
-import noammaddons.events.PacketEvent
+import noammaddons.events.*
 import noammaddons.features.Feature
-import noammaddons.features.dungeons.terminals.ConstantsVariables.RubixTitle
-import noammaddons.features.dungeons.terminals.ConstantsVariables.TerminalSlot
-import noammaddons.features.dungeons.terminals.ConstantsVariables.getColorMode
-import noammaddons.features.dungeons.terminals.ConstantsVariables.getSolutionColor
-import noammaddons.features.dungeons.terminals.ConstantsVariables.getTermScale
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.ColorsTitle
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.TerminalSlot
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.getColorMode
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.getSolutionColor
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.getTermScale
 import noammaddons.features.gui.Menus.renderBackground
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.disableNEUInventoryButtons
 import noammaddons.utils.ItemUtils.getItemId
-import noammaddons.utils.LocationUtils
 import noammaddons.utils.LocationUtils.F7Phase
+import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.MouseUtils.getMouseX
 import noammaddons.utils.MouseUtils.getMouseY
 import noammaddons.utils.RenderHelper.getHeight
-import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawRoundedRect
 import noammaddons.utils.RenderUtils.drawText
@@ -33,21 +30,37 @@ import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.send
 import kotlin.math.floor
 
-
-object Rubix: Feature() {
+object Colors: Feature() {
     private var inTerminal = false
     private var cwid = - 1
     private var windowSize = 0
-    private var terminalSlots = mutableListOf<TerminalSlot?>()
+    private val terminalSlots = mutableListOf<TerminalSlot?>()
     private var clicked = false
-    private var queue = mutableListOf<Pair<Int, Int>>()
-    private var solution = mutableMapOf<Int, Int>()
-    private val allowedSlots = listOf(12, 13, 14, 21, 22, 23, 30, 31, 32)
-    private val order = listOf(14, 1, 4, 13, 11)
+    private val queue = mutableListOf<Pair<Int, Int>>()
+    private val solution = mutableListOf<Int>()
+    private var extra: String? = null
+
+    private val allowedSlots = listOf(
+        10, 11, 12, 13, 14, 15, 16,
+        19, 20, 21, 22, 23, 24, 25,
+        28, 29, 30, 31, 32, 33, 34,
+        37, 38, 39, 40, 41, 42, 43
+    )
+    private val replacements = mapOf(
+        "light gray" to "silver",
+        "wool" to "white",
+        "bone" to "white",
+        "ink" to "black",
+        "lapis" to "blue",
+        "cocoa" to "brown",
+        "dandelion" to "yellow",
+        "rose" to "red",
+        "cactus" to "green"
+    )
 
 
     @SubscribeEvent
-    fun onClick(event: GuiMouseClickEvent) {
+    fun onGuiClick(event: GuiMouseClickEvent) {
         if (! inTerminal) return
         event.isCanceled = true
 
@@ -55,8 +68,8 @@ object Rubix: Feature() {
         val x = getMouseX() / termScale
         val y = getMouseY() / termScale
 
-        val screenWidth = mc.getWidth() / termScale
-        val screenHeight = mc.getHeight() / termScale
+        val screenWidth = mc.getWidth().toDouble() / termScale
+        val screenHeight = mc.getHeight().toDouble() / termScale
 
         val width = 9 * 18
         val height = windowSize / 9 * 18
@@ -73,16 +86,9 @@ object Rubix: Feature() {
 
         if (slot >= windowSize) return
 
-        when {
-            (solution[slot] ?: 0) > 0 -> {
-                predict(slot, 0)
-                if (clicked) queue.add(slot to 0) else click(slot, 0)
-            }
-
-            (solution[slot] ?: 0) < 0 -> {
-                predict(slot, 1)
-                if (clicked) queue.add(slot to 1) else click(slot, 1)
-            }
+        if (solution.contains(slot)) {
+            predict(slot)
+            if (clicked) queue.add(slot to 0) else click(slot, 0)
         }
     }
 
@@ -105,24 +111,18 @@ object Rubix: Feature() {
         val solverColor = getSolutionColor()
 
         GlStateManager.pushMatrix()
-        GlStateManager.scale(termScale, termScale, 0f)
+        GlStateManager.scale(termScale, termScale, termScale)
 
         renderBackground(offsetX, offsetY, width, height, colorMode)
-        drawText(RubixTitle, offsetX, offsetY)
+        drawText(ColorsTitle, offsetX, offsetY)
 
         for (i in 0 until windowSize) {
-            val solutionValue = solution[i] ?: continue
+            if (! solution.contains(i)) continue
 
             val currentOffsetX = i % 9 * 18 + offsetX
             val currentOffsetY = floor(i / 9.0).toInt() * 18 + offsetY
 
             drawRoundedRect(solverColor, currentOffsetX, currentOffsetY, 16f, 16f, 1.5f)
-
-            drawText(
-                solutionValue.toString(),
-                currentOffsetX + 8 - getStringWidth(solutionValue.toString()) / 2,
-                currentOffsetY + 4,
-            )
         }
 
         GlStateManager.popMatrix()
@@ -130,42 +130,26 @@ object Rubix: Feature() {
 
     private fun solve() {
         solution.clear()
-        val calcIndex = { index: Int -> (index + order.size) % order.size }
-        val clicks = MutableList(5) { 0 }
 
-        for (i in 0 until 5) {
-            terminalSlots.filter { it != null && allowedSlots.contains(it.num) && it.meta != order[calcIndex(i)] }
-                .forEach {
-                    when (it !!.meta) {
-                        order[calcIndex(i - 2)] -> clicks[i] += 2
-                        order[calcIndex(i - 1)] -> clicks[i] += 1
-                        order[calcIndex(i + 1)] -> clicks[i] += 1
-                        order[calcIndex(i + 2)] -> clicks[i] += 2
-                    }
-                }
-        }
-
-        val origin = clicks.indexOf(clicks.minOrNull() ?: 0)
-        terminalSlots.filter { it != null && allowedSlots.contains(it.num) && it.meta != order[calcIndex(origin)] }.forEach {
-            solution[it !!.num] = when (it.meta) {
-                order[calcIndex(origin - 2)] -> 2
-                order[calcIndex(origin - 1)] -> 1
-                order[calcIndex(origin + 1)] -> - 1
-                order[calcIndex(origin + 2)] -> - 2
-                else -> 0
-            }
-        }
+        terminalSlots.filter {
+            it != null && allowedSlots.contains(it.num) && ! it.enchanted &&
+                    fixName(it.name.lowercase()).startsWith(extra ?: "")
+        }.map { it !!.num }.forEach { solution.add(it) }
     }
 
-    private fun predict(slot: Int, button: Int) {
-        val currentSolution = solution[slot] ?: return
-        solution[slot] = if (button == 0) currentSolution - 1 else currentSolution + 1
-        if (solution[slot] == 0) solution.remove(slot)
+    private fun predict(slot: Int) = solution.remove(slot)
+
+    fun fixName(name: String): String {
+        var fixedName = name
+        replacements.forEach { (k, v) ->
+            fixedName = fixedName.replace(Regex("^$k"), v)
+        }
+        return fixedName
     }
 
     private fun click(slot: Int, button: Int) {
         clicked = true
-        C0EPacketClickWindow(cwid, slot, button, if (button == 2) 3 else 0, null, 0).send()
+        C0EPacketClickWindow(cwid, slot, button, 0, null, 0).send()
         val initialWindowId = cwid
         setTimeout(600) {
             if (! inTerminal || initialWindowId != cwid) return@setTimeout
@@ -177,14 +161,16 @@ object Rubix: Feature() {
 
     @SubscribeEvent
     fun onWindowOpen(event: PacketEvent.Received) {
-        if (! config.CustomTerminalsGui || ! config.CustomRubixTerminal || LocationUtils.dungeonFloorNumber != 7 || F7Phase != 3) return
+        if (! config.CustomTerminalsGui || ! config.CustomColorsTerminal || dungeonFloorNumber != 7 || F7Phase != 3) return
         if (event.packet !is S2DPacketOpenWindow) return
 
         val windowTitle = event.packet.windowTitle.noFormatText
         val slotCount = event.packet.slotCount
+        val colorsMatch = Regex("^Select all the ([\\w ]+) items!$").matchEntire(windowTitle)
         cwid = event.packet.windowId
 
-        if (Regex("^Change all to same color!$").matches(windowTitle)) {
+        if (colorsMatch != null) {
+            extra = colorsMatch.groupValues[1].lowercase()
             inTerminal = true
             clicked = false
             terminalSlots.clear()
@@ -217,14 +203,12 @@ object Rubix: Feature() {
                 )
             )
         }
-        else terminalSlots.add(null)
+        else terminalSlots[slot] = null
 
-        if (terminalSlots.size == windowSize && slot == windowSize - 1) {
+        if (terminalSlots.size == windowSize) {
             solve()
-            if (queue.isNotEmpty() && queue.all { (slot, button) ->
-                    ((solution[slot] ?: 0) > 0 && button == 0) || ((solution[slot] ?: 0) < 0 && button == 1)
-                }) {
-                queue.forEach { (slot, button) -> predict(slot, button) }
+            if (queue.isNotEmpty() && queue.all { solution.contains(it.first) }) {
+                queue.forEach { predict(it.first) }
                 click(queue[0].first, queue[0].second)
                 queue.removeAt(0)
             }

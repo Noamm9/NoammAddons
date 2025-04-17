@@ -1,4 +1,4 @@
-package noammaddons.features.dungeons.terminals
+package noammaddons.features.dungeons.solvers.terminals
 
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.network.play.client.C0EPacketClickWindow
@@ -6,15 +6,13 @@ import net.minecraft.network.play.server.S2DPacketOpenWindow
 import net.minecraft.network.play.server.S2FPacketSetSlot
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.GuiCloseEvent
-import noammaddons.events.GuiMouseClickEvent
-import noammaddons.events.PacketEvent
+import noammaddons.events.*
 import noammaddons.features.Feature
-import noammaddons.features.dungeons.terminals.ConstantsVariables.RedGreenTitle
-import noammaddons.features.dungeons.terminals.ConstantsVariables.TerminalSlot
-import noammaddons.features.dungeons.terminals.ConstantsVariables.getColorMode
-import noammaddons.features.dungeons.terminals.ConstantsVariables.getSolutionColor
-import noammaddons.features.dungeons.terminals.ConstantsVariables.getTermScale
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.StartWithTitle
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.TerminalSlot
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.getColorMode
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.getSolutionColor
+import noammaddons.features.dungeons.solvers.terminals.ConstantsVariables.getTermScale
 import noammaddons.features.gui.Menus.renderBackground
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
@@ -32,8 +30,7 @@ import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.send
 import kotlin.math.floor
 
-
-object RedGreen: Feature() {
+object StartWith: Feature() {
     private var inTerminal = false
     private var cwid = - 1
     private var windowSize = 0
@@ -41,11 +38,12 @@ object RedGreen: Feature() {
     private var clicked = false
     private val queue = mutableListOf<Pair<Int, Int>>()
     private val solution = mutableListOf<Int>()
+    private var extra: String? = null
     private val allowedSlots = listOf(
-        11, 12, 13, 14,
-        15, 20, 21, 22,
-        23, 24, 29, 30,
-        31, 32, 33
+        10, 11, 12, 13, 14, 15, 16,
+        19, 20, 21, 22, 23, 24, 25,
+        28, 29, 30, 31, 32, 33, 34,
+        37, 38, 39, 40, 41, 42, 43
     )
 
     @SubscribeEvent
@@ -103,13 +101,13 @@ object RedGreen: Feature() {
         GlStateManager.scale(termScale, termScale, termScale)
 
         renderBackground(offsetX, offsetY, width, height, colorMode)
-        drawText(RedGreenTitle, offsetX, offsetY)
+        drawText(StartWithTitle, offsetX, offsetY)
 
-        for (i in 0 until windowSize) {
+        for (i in 0 until windowSize + mc.fontRendererObj.FONT_HEIGHT / 2) {
             if (i !in solution) continue
 
             val currentOffsetX = i % 9 * 18 + offsetX
-            val currentOffsetY = floor(i / 9.0).toInt() * 18 + offsetY
+            val currentOffsetY = floor(i / 9f) * 18f + offsetY
 
             drawRoundedRect(solverColor, currentOffsetX, currentOffsetY, 16f, 16f, 1.5f)
         }
@@ -119,9 +117,9 @@ object RedGreen: Feature() {
 
     private fun solve() {
         solution.clear()
-        terminalSlots.filter { it != null && allowedSlots.contains(it.num) && it.id == 160 && it.meta == 14 }
-            .map { it !!.num }
-            .forEach { solution.add(it) }
+        terminalSlots.filter {
+            it != null && allowedSlots.contains(it.num) && ! it.enchanted && it.name.lowercase().startsWith(extra ?: "")
+        }.map { it !!.num }.forEach { solution.add(it) }
     }
 
     private fun predict(slot: Int) = solution.remove(slot)
@@ -140,14 +138,17 @@ object RedGreen: Feature() {
 
     @SubscribeEvent
     fun onWindowOpen(event: PacketEvent.Received) {
-        if (! config.CustomTerminalsGui || ! config.CustomRedGreenTerminal || LocationUtils.dungeonFloorNumber != 7 || F7Phase != 3) return
+        if (! config.CustomTerminalsGui || ! config.CustomStartWithTerminal || LocationUtils.dungeonFloorNumber != 7 || F7Phase != 3) return
         if (event.packet !is S2DPacketOpenWindow) return
 
         val windowTitle = event.packet.windowTitle.noFormatText
         val slotCount = event.packet.slotCount
         cwid = event.packet.windowId
+        val startsWithMatch = Regex("^What starts with: '(\\w)'\\?$").matchEntire(windowTitle)
 
-        if (Regex("^Correct all the panes!$").matches(windowTitle)) {
+
+        if (startsWithMatch != null) {
+            extra = startsWithMatch.groupValues[1].lowercase()
             inTerminal = true
             clicked = false
             terminalSlots.clear()

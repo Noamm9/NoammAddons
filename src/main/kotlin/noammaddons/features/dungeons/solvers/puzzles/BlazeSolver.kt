@@ -1,4 +1,4 @@
-package noammaddons.features.dungeons.solvers
+package noammaddons.features.dungeons.solvers.puzzles
 
 import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityArmorStand
@@ -15,8 +15,6 @@ import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendPartyMessage
 import noammaddons.utils.EspUtils.espMob
-import noammaddons.utils.LocationUtils.inBoss
-import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderUtils.draw3DLine
 import noammaddons.utils.ScanUtils.getRoomCenterAt
@@ -38,11 +36,11 @@ object BlazeSolver: Feature() {
     @SubscribeEvent
     fun onEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (! config.BlazeSolver) return
-        if (! event.room.name.contains("Blaze")) return
-
+        if (! event.room.data.name.contains("Blaze")) return
         inBlaze = true
-        val (X, Z) = getRoomCenterAt(mc.thePlayer.position)
-        reversed = getBlockAt(X + 1, 118, Z) != Blocks.cobblestone
+
+        val center = getRoomCenterAt(mc.thePlayer.position)
+        reversed = getBlockAt(center.add(1, 118, 0)) != Blocks.cobblestone
         trueTimeStarted = System.currentTimeMillis()
         lastBlazeCount = 10
     }
@@ -111,8 +109,6 @@ object BlazeSolver: Feature() {
     @SubscribeEvent
     fun renderBlazeSolve(e: RenderWorld) {
         if (! config.BlazeSolver) return
-        if (! inDungeon) return
-        if (inBoss) return
         if (blazes.isEmpty()) return
 
         blazes.withIndex().forEach { (i, entity) ->

@@ -1,4 +1,4 @@
-package noammaddons.features.dungeons.terminals
+package noammaddons.features.dungeons.solvers.terminals
 
 import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc

@@ -1,4 +1,4 @@
-package noammaddons.features.dungeons.terminals
+package noammaddons.features.dungeons
 
 import net.minecraft.client.gui.GuiScreen
 import net.minecraftforge.client.event.GuiOpenEvent
