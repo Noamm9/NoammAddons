@@ -2,14 +2,16 @@ package noammaddons.utils
 
 import net.minecraft.client.settings.KeyBinding.*
 import net.minecraft.entity.Entity
+import net.minecraft.entity.EntityLivingBase
 import net.minecraft.init.Items
 import net.minecraft.item.ItemStack
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.util.Vec3
-import noammaddons.features.misc.PlayerScale.getPlayerScaleFactor
+import noammaddons.features.impl.misc.PlayerModel.getPlayerScaleFactor
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ItemUtils.SkyblockID
+import noammaddons.utils.MathUtils.Rotation
 import noammaddons.utils.MathUtils.add
 import noammaddons.utils.ReflectionUtils.invoke
 import noammaddons.utils.RenderHelper.renderVec
@@ -21,13 +23,19 @@ object PlayerUtils {
         return (1.8f + add.toFloat()) * getPlayerScaleFactor(ent)
     }
 
-    fun closeScreen() {
-        if (mc.currentScreen != null && mc.thePlayer != null) {
-            mc.addScheduledTask {
-                mc.thePlayer !!.closeScreen()
-            }
+    fun closeScreen() = mc.addScheduledTask {
+        mc.thePlayer?.closeScreen()
+    }
+
+
+    fun swinghand() {
+        (mc.thePlayer as EntityLivingBase).apply {
+            swingProgressInt = - 1
+            isSwingInProgress = true
         }
     }
+
+    fun getRotation() = Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch)
 
     fun getArmor(): Array<out ItemStack>? = mc.thePlayer?.inventory?.armorInventory
 

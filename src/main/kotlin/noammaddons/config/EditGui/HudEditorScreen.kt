@@ -4,8 +4,8 @@ import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraftforge.fml.client.config.GuiUtils
+import noammaddons.features.impl.DevOptions
 import noammaddons.noammaddons
-import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.hudData
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.debugMessage
@@ -56,7 +56,7 @@ object HudEditorScreen: GuiScreen() {
         GlStateManager.scale(scale, scale, scale)
         elements.forEach {
             if (! it.enabled) return@forEach
-            if (config.DevMode) RenderUtils.drawRect(
+            if (DevOptions.devMode) RenderUtils.drawRect(
                 Color.WHITE, it.getX(), it.getY(), it.width * it.getScale(), (it.height * it.getScale()).toInt()
             )
             it.exampleDraw()
@@ -81,7 +81,7 @@ object HudEditorScreen: GuiScreen() {
         GlStateManager.popMatrix()
 
 
-        if (config.DevMode) drawText(
+        if (DevOptions.devMode) drawText(
             "X: $mouseX, Y: $mouseY",
             20f, 20f, 3,
         )
@@ -112,7 +112,7 @@ object HudEditorScreen: GuiScreen() {
             }
         }
 
-        if (! noammaddons.config.DevMode) return
+        if (! DevOptions.devMode) return
         if (mouseButton != 1) return // Right-click
 
 

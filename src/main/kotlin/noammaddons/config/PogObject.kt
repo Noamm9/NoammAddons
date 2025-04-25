@@ -7,7 +7,6 @@ import noammaddons.utils.JsonUtils.fromJson
 import noammaddons.utils.JsonUtils.toJson
 import noammaddons.utils.ThreadUtils.loop
 import java.io.File
-import java.io.IOException
 
 
 class PogObject<T: Any>(fileName: String, private val defaultObject: T) {
@@ -50,7 +49,7 @@ class PogObject<T: Any>(fileName: String, private val defaultObject: T) {
             toJson(dataFile, data)
             Logger.info("[PogObject]: ${this.javaClass.simpleName} Data saved successfully.")
         }
-        catch (e: IOException) {
+        catch (e: Exception) {
             Logger.info("[PogObject]: ${this.javaClass.simpleName}: Failed to save data: ${e.message}")
             e.printStackTrace()
         }

@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ResourceLocation;
+import noammaddons.features.impl.DevOptions;
 import noammaddons.utils.MouseUtils;
 import noammaddons.utils.RenderHelper;
 import noammaddons.utils.RenderUtils;
@@ -15,8 +16,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.awt.*;
-
-import static noammaddons.noammaddons.config;
 
 
 @Mixin(GuiButton.class)
@@ -49,7 +48,7 @@ public abstract class MixinGuiButton {
 
     @Inject(method = "drawButton", at = @At("HEAD"), cancellable = true)
     public void drawCleanButton(Minecraft mc, int mouseX, int mouseY, CallbackInfo callbackInfo) {
-        if (!config.getToggleClientBranding()) return;
+        if (!DevOptions.getClientBranding()) return;
 
         callbackInfo.cancel();
         if (!visible) return;

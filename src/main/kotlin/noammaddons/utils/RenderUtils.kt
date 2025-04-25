@@ -11,7 +11,9 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.Entity
 import net.minecraft.item.ItemStack
 import net.minecraft.util.*
-import noammaddons.noammaddons.Companion.config
+import noammaddons.features.impl.esp.GlobalEspSettings.fillOpacity
+import noammaddons.features.impl.esp.GlobalEspSettings.lineWidth
+import noammaddons.features.impl.esp.GlobalEspSettings.outlineOpacity
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.BlockUtils.toVec
 import noammaddons.utils.ChatUtils.addColor
@@ -194,13 +196,13 @@ object RenderUtils {
         GlStateManager.popMatrix()
     }
 
-    fun drawEntityBox(entity: Entity, color: Color, outline: Boolean = config.espOutlineOpacity != 0f, fill: Boolean = config.espFilledOpacity != 0f) {
+    fun drawEntityBox(entity: Entity, color: Color, outline: Boolean = outlineOpacity != .0, fill: Boolean = fillOpacity != .0) {
         if (! outline && ! fill) return
         val x = entity.renderX - renderManager.viewerPosX
         val y = entity.renderY - renderManager.viewerPosY
         val z = entity.renderZ - renderManager.viewerPosZ
         val distance = distance3D(entity.renderVec, mc.thePlayer?.renderVec ?: return)
-        val adjustedLineWidth = (config.espOutlineWidth / (distance / 8f)).coerceIn(0.5, config.espOutlineWidth.toDouble()).toFloat()
+        val adjustedLineWidth = (lineWidth.toDouble() / (distance / 8f)).coerceIn(0.5, lineWidth.toDouble()).toFloat()
 
         var axisAlignedBB: AxisAlignedBB
         entity.entityBoundingBox.run {
@@ -224,7 +226,7 @@ object RenderUtils {
             glLineWidth(1f)
         }
 
-        if (fill) drawFilledAABB(axisAlignedBB, color.withAlpha(((config.espFilledOpacity * 255).toInt()).coerceIn(0, 255)))
+        if (fill) drawFilledAABB(axisAlignedBB, color.withAlpha(fillOpacity.toFloat() / 100f))
 
         enableDepth()
         postDraw()
@@ -374,6 +376,7 @@ object RenderUtils {
         val scale = scale.toFloat()
 
         GlStateManager.pushMatrix()
+        GlStateManager.enableRescaleNormal()
         GlStateManager.enableBlend()
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
         GlStateManager.translate(x, y, 0f)
@@ -488,7 +491,7 @@ object RenderUtils {
         GlStateManager.popMatrix()
     }
 
-    fun renderTexture(texture: ResourceLocation?, x: Number, y: Number, w: Number, h: Number) {
+    fun drawTexture(texture: ResourceLocation?, x: Number, y: Number, w: Number, h: Number) {
         if (texture == null) return
 
         glPushMatrix()

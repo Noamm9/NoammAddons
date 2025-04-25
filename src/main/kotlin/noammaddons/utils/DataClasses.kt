@@ -129,7 +129,7 @@ class DataClasses {
             "Purple" to null
         )
 
-        val crystals: Double? = null
+        val crystals = mutableListOf<Double?>()
 
         val dungeonSplits = mutableMapOf<String, MutableMap<String, Long>>()
     }

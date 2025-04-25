@@ -16,7 +16,7 @@ import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.*
 import net.minecraftforge.fml.common.gameevent.TickEvent.*
-import noammaddons.features.dungeons.dmap.core.map.Room
+import noammaddons.features.impl.dungeons.dmap.core.map.Room
 import noammaddons.noammaddons.Companion.Logger
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.BlockUtils.getBlockAt

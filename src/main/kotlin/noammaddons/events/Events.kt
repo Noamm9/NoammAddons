@@ -17,9 +17,9 @@ import net.minecraft.util.*
 import net.minecraft.world.World
 import net.minecraftforge.fml.common.eventhandler.Cancelable
 import net.minecraftforge.fml.common.eventhandler.Event
-import noammaddons.features.dungeons.dmap.core.map.Room
-import noammaddons.features.dungeons.dmap.core.map.RoomState
-import noammaddons.features.misc.Cosmetics
+import noammaddons.features.impl.dungeons.dmap.core.map.Room
+import noammaddons.features.impl.dungeons.dmap.core.map.RoomState
+import noammaddons.features.impl.misc.Cosmetics
 import noammaddons.utils.DungeonUtils
 
 

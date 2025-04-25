@@ -135,15 +135,15 @@ object MathUtils {
     }
 
     @JvmStatic
-    fun interpolate(prev: Number, newPos: Number, partialTicks: Number): Double {
+    fun lerp(prev: Number, newPos: Number, partialTicks: Number): Double {
         return prev.toDouble() + (newPos.toDouble() - prev.toDouble()) * partialTicks.toDouble()
     }
 
     fun interpolateColor(color1: Color, color2: Color, value: Float): Color {
         return Color(
-            interpolate(color1.red, color2.red, value).toInt(),
-            interpolate(color1.green, color2.green, value).toInt(),
-            interpolate(color1.blue, color2.blue, value).toInt()
+            lerp(color1.red, color2.red, value).toInt(),
+            lerp(color1.green, color2.green, value).toInt(),
+            lerp(color1.blue, color2.blue, value).toInt()
         )
     }
 

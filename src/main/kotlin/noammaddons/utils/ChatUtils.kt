@@ -16,11 +16,11 @@ import net.minecraft.util.StringUtils.*
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.events.RegisterEvents.postAndCatch
+import noammaddons.features.impl.DevOptions
 import noammaddons.noammaddons.Companion.CHAT_PREFIX
 import noammaddons.noammaddons.Companion.DEBUG_PREFIX
 import noammaddons.noammaddons.Companion.FULL_PREFIX
 import noammaddons.noammaddons.Companion.Logger
-import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.noammaddons.Companion.scope
 import noammaddons.utils.LocationUtils.inSkyblock
@@ -30,8 +30,6 @@ import noammaddons.utils.ThreadUtils.loop
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.remove
 import noammaddons.utils.Utils.send
-import java.awt.Toolkit
-import java.awt.datatransfer.StringSelection
 import java.util.*
 import kotlin.math.roundToInt
 
@@ -60,12 +58,6 @@ object ChatUtils {
         postAndCatch(Chat(ChatComponentText(formattedMessage)))
     }
 
-    fun copyToClipboard(text: String) {
-        val stringSelection = StringSelection(text)
-        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
-        clipboard.setContents(stringSelection, null)
-    }
-
     fun getCenteredText(text: String): String {
         val textWidth = getStringWidth(text.addColor())
         val chatWidth = mc.ingameGUI?.chatGUI?.chatWidth ?: 0
@@ -91,7 +83,7 @@ object ChatUtils {
     fun modMessage(message: Any?) = UChat.chat("$CHAT_PREFIX ${message.toString().addColor()}")
 
     fun debugMessage(message: Any) {
-        if (! config.DevMode) return
+        if (! DevOptions.devMode) return
 
         stripControlCodes(message.toString())
 

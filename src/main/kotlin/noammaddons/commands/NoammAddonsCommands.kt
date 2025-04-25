@@ -5,9 +5,11 @@ import gg.essential.universal.UDesktop.browse
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.command.ICommandSender
 import noammaddons.config.Config.openDiscordLink
-import noammaddons.features.dungeons.AutoPotion.potionName
-import noammaddons.features.hud.TpsDisplay.getTps
+import noammaddons.config.EditGui.HudEditorScreen
+import noammaddons.features.impl.dungeons.AutoPotion.potionName
+import noammaddons.features.impl.hud.TpsDisplay.getTps
 import noammaddons.noammaddons.Companion.FULL_PREFIX
+import noammaddons.ui.config.ConfigGUI
 import noammaddons.utils.ActionUtils.changeMask
 import noammaddons.utils.ActionUtils.getPotion
 import noammaddons.utils.ActionUtils.leap
@@ -16,7 +18,6 @@ import noammaddons.utils.ActionUtils.reaperSwap
 import noammaddons.utils.ActionUtils.rodSwap
 import noammaddons.utils.ActionUtils.rotateSmoothly
 import noammaddons.utils.ChatUtils.clickableChat
-import noammaddons.utils.ChatUtils.copyToClipboard
 import noammaddons.utils.ChatUtils.getCenteredText
 import noammaddons.utils.ChatUtils.getChatBreak
 import noammaddons.utils.ChatUtils.modMessage
@@ -38,7 +39,7 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons, noamm, noam, noam
     }
 
     override fun processCommand(sender: ICommandSender, args: Array<out String>) {
-        if (args.isEmpty()) openScreen(config.gui() ?: return modMessage("&cError on opening gui"))
+        if (args.isEmpty()) openScreen(ConfigGUI)
         else when (args[0].lowercase()) {
 
             "help" -> UChat.chat(Usage())
@@ -46,7 +47,7 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons, noamm, noam, noam
             "sim" -> if (args.size > 1) sendFakeChatMessage(args.copyOfRange(1, args.size).joinToString(" "))
             else modMessage("&cInvalid Usage. &bUsage: /na sim [message]")
 
-            "edit" -> config.openHudEditGUI()
+            "edit" -> openScreen(HudEditorScreen)
 
             "rotate" -> {
                 val yaw: Float
@@ -95,7 +96,7 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons, noamm, noam, noam
 				    roomCrypts: ${currentRoom?.data?.crypts ?: 0}
 			    """.trimIndent()
 
-                copyToClipboard(text)
+                GuiScreen.setClipboardString(text)
                 clickableChat("&aRoom info copied to clipboard. &6(&fHover&6)&r", "", "&b&l$text")
             }
 

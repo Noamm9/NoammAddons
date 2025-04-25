@@ -6,7 +6,8 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraftforge.fml.common.eventhandler.*
 import noammaddons.events.*
-import noammaddons.noammaddons.Companion.config
+import noammaddons.features.impl.esp.GlobalEspSettings
+import noammaddons.features.impl.esp.GlobalEspSettings.lineWidth
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.MathUtils.distance3D
 import noammaddons.utils.RenderHelper.glBindColor
@@ -22,24 +23,35 @@ import java.util.concurrent.CopyOnWriteArrayList
 object EspUtils {
 
     @Suppress("NAME_SHADOWING")
-    fun espMob(
-        entity: Entity,
-        color: Color,
-        type: Int = config.espType
-    ) {
+    fun espMob(entity: Entity, color: Color, type: Int = GlobalEspSettings.highlightType) {
+        if (type == 0) return
         val entity = entity as? EntityLivingBase ?: return
         if (allEntities.any { it.first == entity }) return
 
         when (type) {
-            0 -> outlineEntities.add(entity to color)
             1 -> boxEntities.add(entity to color)
-            2 -> {
+            2 -> d2Entities.add(entity to color)
+            3 -> outlineEntities.add(entity to color)
+            4 -> {
                 chamEntities.add(entity to color)
                 outlineEntities.add(entity to color)
             }
 
-            3 -> d2Entities.add(entity to color)
-            4 -> chamEntities.add(entity to color)
+            5 -> chamEntities.add(entity to color)
+        }
+    }
+
+    enum class ESPType(val id: Int) {
+        Disable(0),
+        BOX(1),
+        BOX2D(2),
+        OUTLINE(3),
+        FILLED_OUTLINE(4),
+        CHAM(5);
+
+        companion object {
+            val highlightTypes = listOf("Disable", "3D Box", "2D Box", "Outline", "Filled Outline", "Cham")
+            fun fromId(id: Int) = entries.first { it.id == id }
         }
     }
 
@@ -75,7 +87,7 @@ object EspUtils {
         is PostRenderEntityModelEvent -> outlineEntities.forEach {
             if (event.entity != it.first) return@forEach
             val distance = distance3D(event.entity.renderVec, mc.thePlayer.renderVec)
-            val adjustedLineWidth = (config.espOutlineWidth / (distance / 8f)).coerceIn(0.5, config.espOutlineWidth.toDouble()).toFloat()
+            val adjustedLineWidth = (lineWidth.toDouble() / (distance / 8f)).coerceIn(0.5, lineWidth.toDouble()).toFloat()
             val fancyGraphics = mc.gameSettings.fancyGraphics
             val gamma = mc.gameSettings.gammaSetting
 

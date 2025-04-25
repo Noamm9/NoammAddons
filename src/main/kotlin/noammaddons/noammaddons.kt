@@ -6,18 +6,21 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import net.minecraft.client.Minecraft
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.fml.client.registry.ClientRegistry
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.common.event.FMLInitializationEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.commands.CommandManager.registerCommands
-import noammaddons.config.*
+import noammaddons.config.Config
+import noammaddons.config.PogObject
 import noammaddons.events.PreKeyInputEvent
 import noammaddons.events.RegisterEvents
+import noammaddons.features.FeatureManager
 import noammaddons.features.FeatureManager.registerFeatures
-import noammaddons.features.misc.ClientBranding
-import noammaddons.features.misc.Cosmetics.CosmeticRendering
+import noammaddons.features.impl.DevOptions
+import noammaddons.features.impl.misc.ClientBranding
+import noammaddons.features.impl.misc.Cosmetics.CosmeticRendering
 import noammaddons.utils.*
+import noammaddons.utils.WebUtils.fetchJsonWithRetry
 import org.apache.logging.log4j.LogManager
 
 
@@ -75,15 +78,14 @@ class noammaddons {
         ClientBranding.setCustomIcon()
         ClientBranding.setCustomTitle()
 
-        KeyBinds.allBindings.forEach(ClientRegistry::registerKeyBinding)
-
         listOf(
             this, RegisterEvents, ThreadUtils,
             TestGround, GuiUtils, ScanUtils,
             LocationUtils, DungeonUtils,
             ActionBarParser, PartyUtils,
             ChatUtils, EspUtils, ActionUtils,
-            TablistListener, ServerPlayer, ScoreboardUtils
+            TablistListener, ServerPlayer,
+            ScoreboardUtils, FeatureManager
         ).forEach(MinecraftForge.EVENT_BUS::register)
 
         mc.renderManager.skinMap.let {
@@ -112,15 +114,15 @@ class noammaddons {
 
     fun init() {
         ThreadUtils.loop(600_000) {
-            if (config.UpdateCheck) UpdateUtils.update()
+            if (DevOptions.updateChecker) UpdateUtils.update()
 
-            JsonUtils.fetchJsonWithRetry<Map<String, Double>>("https://moulberry.codes/lowestbin.json") {
+            fetchJsonWithRetry<Map<String, Double>>("https://moulberry.codes/lowestbin.json") {
                 it ?: return@fetchJsonWithRetry
                 ahData.clear()
                 ahData.putAll(it)
             }
 
-            JsonUtils.get("https://api.hypixel.net/v2/skyblock/bazaar") { obj ->
+            WebUtils.get("https://api.hypixel.net/v2/skyblock/bazaar") { obj ->
                 obj ?: return@get
                 if (obj["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
 
@@ -135,7 +137,7 @@ class noammaddons {
                 bzData.putAll(data)
             }
 
-            JsonUtils.get("https://api.hypixel.net/resources/skyblock/items") { obj ->
+            WebUtils.get("https://api.hypixel.net/resources/skyblock/items") { obj ->
                 obj ?: return@get
                 if (obj["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
 
@@ -156,7 +158,7 @@ class noammaddons {
                 itemIdToNameLookup.putAll(idToName)
             }
 
-            JsonUtils.get("https://api.hypixel.net/v2/resources/skyblock/election") { jsonObject ->
+            WebUtils.get("https://api.hypixel.net/v2/resources/skyblock/election") { jsonObject ->
                 jsonObject ?: return@get
                 if (jsonObject["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
                 val dataElement = jsonObject["data"] ?: return@get

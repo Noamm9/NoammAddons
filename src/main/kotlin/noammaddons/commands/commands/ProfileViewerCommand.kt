@@ -3,15 +3,15 @@ package noammaddons.commands.commands
 import kotlinx.serialization.json.*
 import net.minecraft.command.ICommandSender
 import noammaddons.commands.Command
-import noammaddons.features.gui.ProfileViewer
-import noammaddons.features.gui.ProfileViewer.createFakePlayer
-import noammaddons.features.gui.ProfileViewer.data
-import noammaddons.features.gui.ProfileViewer.profileCache
+import noammaddons.features.impl.gui.ProfileViewer
+import noammaddons.features.impl.gui.ProfileViewer.createFakePlayer
+import noammaddons.features.impl.gui.ProfileViewer.data
+import noammaddons.features.impl.gui.ProfileViewer.profileCache
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.GuiUtils.openScreen
-import noammaddons.utils.JsonUtils
 import noammaddons.utils.JsonUtils.getObj
 import noammaddons.utils.JsonUtils.getString
+import noammaddons.utils.WebUtils
 
 object ProfileViewerCommand: Command("pv", listOf("profileviewer"), "&cInvalid Usage. &bUsage: /pv <username>") {
     override fun processCommand(sender: ICommandSender, args: Array<out String>) {
@@ -38,7 +38,7 @@ object ProfileViewerCommand: Command("pv", listOf("profileviewer"), "&cInvalid U
         }
 
 
-        JsonUtils.get("https://sky.shiiyu.moe/api/v2/profile/$name") { obj ->
+        WebUtils.get("https://sky.shiiyu.moe/api/v2/profile/$name") { obj ->
             obj ?: return@get
             val profiles = if (obj.containsKey("profiles")) obj["profiles"] !!.jsonObject else return@get
 
@@ -47,7 +47,7 @@ object ProfileViewerCommand: Command("pv", listOf("profileviewer"), "&cInvalid U
             }.jsonObject
         }
 
-        JsonUtils.get("https://api.icarusphantom.dev/v1/sbecommands/weight/$name") { wealth ->
+        WebUtils.get("https://api.icarusphantom.dev/v1/sbecommands/weight/$name") { wealth ->
             wealth ?: return@get
             if (wealth["status"]?.jsonPrimitive?.int != 200) return@get
             val data_ = wealth.getObj("data")

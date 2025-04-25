@@ -6,10 +6,10 @@ import net.minecraft.util.*
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.RegisterEvents
 import noammaddons.events.WorldUnloadEvent
-import noammaddons.features.dungeons.dmap.core.map.Room
-import noammaddons.features.dungeons.dmap.core.map.RoomData
-import noammaddons.features.dungeons.dmap.handlers.DungeonInfo
-import noammaddons.noammaddons.Companion.config
+import noammaddons.features.impl.DevOptions
+import noammaddons.features.impl.dungeons.dmap.core.map.Room
+import noammaddons.features.impl.dungeons.dmap.core.map.RoomData
+import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.getBlockId
@@ -23,18 +23,16 @@ import kotlin.math.floor
 
 object ScanUtils {
     val roomList = mutableListOf<RoomData>()
-    val roomCache = mutableMapOf<Pair<Int, Int>, RoomData>()
 
     @SubscribeEvent
     fun onWorldUnload(event: WorldUnloadEvent) {
-        roomCache.clear()
         currentRoom = null
         lastKnownRoom = null
     }
 
     init {
         loop(250) {
-            if (! config.DevMode) {
+            if (! DevOptions.devMode) {
                 if (mc.thePlayer == null) return@loop
                 if (! inDungeon) return@loop
                 if (inBoss) return@loop
@@ -57,7 +55,7 @@ object ScanUtils {
     var lastKnownRoom: Room? = null
 
     init {
-        JsonUtils.fetchJsonWithRetry<List<RoomData>?>(
+        WebUtils.fetchJsonWithRetry<List<RoomData>?>(
             "https://raw.githubusercontent.com/Skytils/SkytilsMod/refs/heads/1.x/src/main/resources/assets/catlas/rooms.json"
         ) {
             it ?: return@fetchJsonWithRetry

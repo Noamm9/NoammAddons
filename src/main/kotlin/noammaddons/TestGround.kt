@@ -4,13 +4,12 @@
 
 package noammaddons
 
-import gg.essential.api.EssentialAPI
-import gg.essential.universal.UChat
 import kotlinx.coroutines.*
 import net.minecraft.client.gui.GuiDownloadTerrain
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.network.play.client.C01PacketChatMessage
+import net.minecraft.network.play.server.S45PacketTitle
 import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.event.entity.player.AttackEntityEvent
 import net.minecraftforge.event.entity.player.ItemTooltipEvent
@@ -18,13 +17,14 @@ import net.minecraftforge.fml.common.eventhandler.*
 import net.minecraftforge.fml.common.network.FMLNetworkEvent
 import noammaddons.events.*
 import noammaddons.features.FeatureManager.registerFeatures
-import noammaddons.features.dungeons.dmap.handlers.DungeonScanner
-import noammaddons.features.dungeons.esp.StarMobESP
-import noammaddons.features.dungeons.solvers.devices.AutoI4.testi4
+import noammaddons.features.impl.DevOptions
+import noammaddons.features.impl.dungeons.dmap.handlers.DungeonScanner
+import noammaddons.features.impl.dungeons.solvers.devices.AutoI4.testi4
+import noammaddons.features.impl.esp.StarMobESP
 import noammaddons.noammaddons.Companion.ahData
-import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.noammaddons.Companion.scope
+import noammaddons.ui.config.ConfigGUI
 import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.debugMessage
@@ -56,17 +56,22 @@ import noammaddons.utils.ScanUtils.getRoomCenterAt
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.send
-import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL11.*
 import java.awt.Color
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.component3
 
 
 object TestGround {
-    private var a = false
+    private val titles = mutableListOf<String>()
+    private var fuckingBitch = false
     private var sent = false
+    private var a = false
 
     @SubscribeEvent
     fun adfd(event: ItemTooltipEvent) {
-        if (! (config.DevMode || EssentialAPI.getMinecraftUtil().isDevelopment())) return
+        if (! DevOptions.devMode) return
         val sbid = event.itemStack.SkyblockID ?: return
         event.toolTip?.add("SkyblockID: &6$sbid".addColor())
     }
@@ -74,7 +79,7 @@ object TestGround {
     @SubscribeEvent
     @Suppress("Unused_parameter")
     fun t(event: RenderOverlay) {
-        if (! (config.DevMode || EssentialAPI.getMinecraftUtil().isDevelopment())) return
+        if (! DevOptions.isDev) return
         GlStateManager.pushMatrix()
         val scale = 2f / mc.getScaleFactor()
         GlStateManager.scale(scale, scale, scale)
@@ -123,7 +128,7 @@ object TestGround {
 
     @SubscribeEvent
     fun onMessage(event: MessageSentEvent) {
-        if (! (config.DevMode || EssentialAPI.getMinecraftUtil().isDevelopment())) return
+        if (! DevOptions.isDev) return
         modMessage(event.message)
 
         when (event.message) {
@@ -206,14 +211,12 @@ object TestGround {
             }
 
             "cri" -> {
-                listOf(
-                    "&6&l[&b&lN&d&lA&6&l]&r &e[B&e]&r &6Noamm&f:&r &r&64-5 Rooms&r&r &f| &r&r&b15 Secrets&r&r &f|&r&r &c0 Deaths&r",
-                    "&6&l[&b&lN&d&lA&6&l]&r &e[A&e]&r &4DontAskHoax&f:&r &r&61-4 Rooms&r&r &f|&r &r&b1 Secrets&r&r &f| &r&r &c0 Deaths&r",
-                    "&6&l[&b&lN&d&lA&6&l]&r &e[T&e]&r &2ddavid9&f:&r &r&63-5 Rooms&r&r &f|&r &r&b7 Secrets&r&r &f|&r &r&c0 Deaths&r",
-                    "&6&l[&b&lN&d&lA&6&l]&r &e[H&e]&r &5saintszdxdss&f:&r &r&65 Rooms&r&r &f|&r&r &b3 Secrets&r&r &f|&r&r &c0 Deaths&r",
-                    "&6&l[&b&lN&d&lA&6&l]&r &e[M&e]&r &3Chastille&f:&r &r&61-4 Rooms&r&r &f|&r&r &b4 Secrets&r&r &f|&r&r &c0 Deaths&r",
-                ).forEach(UChat::chat)
+                event.isCanceled = true
+                GuiUtils.openScreen(ConfigGUI)
             }
+
+            "t" -> titles.forEach(::modMessage)
+
         }
     }
 
@@ -251,14 +254,11 @@ object TestGround {
 
     @SubscribeEvent
     fun wtf(event: WorldLoadPostEvent) {
-        registerFeatures(false)
         setTimeout(500) {
             if (mc.currentScreen !is GuiDownloadTerrain) return@setTimeout
             mc.currentScreen = null
         }
     }
-
-    var fuckingBitch = false
 
     @SubscribeEvent
     fun fucklocraw(event: FMLNetworkEvent.ClientConnectedToServerEvent) {
@@ -284,20 +284,27 @@ object TestGround {
         e.isCanceled = true
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     fun afad(event: Event) {
-        if (event is WorldUnloadEvent) {
-            ScoreboardUtils.sidebarLines = emptyList()
+        when (event) {
+            is WorldUnloadEvent -> ScoreboardUtils.sidebarLines = emptyList()
+            is PacketEvent.Received -> with(event.packet) {
+                if (! DevOptions.trackTitles) return
+                if (this !is S45PacketTitle) return@with
+                titles.add("type: $type, msg: ${message?.formattedText}")
+            }
+
+            is ClickEvent.RightClickEvent -> {
+                if (! DevOptions.printBlockCoords) return
+                if (! mc.thePlayer.isSneaking) return
+                val pos = mc.objectMouseOver?.blockPos ?: return
+
+                modMessage("{\"x\": ${pos.x}, \"y\": ${pos.y}, \"z\": ${pos.z}}")
+                BlockUtils.toAir(pos)
+            }
+
+            else -> {}
         }
-
-        /*
-                if (event is ClickEvent.RightClickEvent) {
-                    if (! mc.thePlayer.isSneaking) return
-                    val pos = mc.objectMouseOver?.blockPos ?: return
-
-                    modMessage("{\"x\": ${pos.x}, \"y\": ${pos.y}, \"z\": ${pos.z}}")
-                    BlockUtils.toAir(pos)
-                }*/
     }
 
 
@@ -307,11 +314,11 @@ object TestGround {
         GlStateManager.pushMatrix()
         GlStateManager.translate(- x, - y, - z)
 
-        GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, modelViewMatrix)
-        GL11.glGetFloat(GL11.GL_PROJECTION_MATRIX, projectionMatrix)
+        glGetFloat(GL_MODELVIEW_MATRIX, modelViewMatrix)
+        glGetFloat(GL_PROJECTION_MATRIX, projectionMatrix)
 
         GlStateManager.popMatrix()
-        GL11.glGetInteger(GL11.GL_VIEWPORT, viewportDims)
+        glGetInteger(GL_VIEWPORT, viewportDims)
     }
 }
 

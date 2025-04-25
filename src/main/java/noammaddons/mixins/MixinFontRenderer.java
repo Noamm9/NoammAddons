@@ -5,7 +5,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
-import static noammaddons.features.general.VisualWords.replaceText;
+import static noammaddons.features.impl.general.VisualWords.replaceText;
 
 @Mixin(value = FontRenderer.class)
 public class MixinFontRenderer {

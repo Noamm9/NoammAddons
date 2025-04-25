@@ -5,16 +5,13 @@ import net.minecraft.block.BlockButton;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.EnumFacing;
+import noammaddons.features.impl.dungeons.FullBlock;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static noammaddons.noammaddons.config;
 
-
-// Taken from Odin mod
-// Under BSD 3-Clause License
 @Mixin(BlockButton.class)
 public class MixinBlockButton extends Block {
     public MixinBlockButton(Material materialIn) {
@@ -23,7 +20,7 @@ public class MixinBlockButton extends Block {
 
     @Inject(method = "updateBlockBounds", at = @At("HEAD"), cancellable = true)
     private void onUpdateBlockBounds(IBlockState state, CallbackInfo ci) {
-        if (!config.getFullblockButton()) return;
+        if (!FullBlock.button.getValue()) return;
         ci.cancel();
         EnumFacing enumfacing = state.getValue(BlockButton.FACING);
         boolean flag = state.getValue(BlockButton.POWERED);
@@ -31,27 +28,27 @@ public class MixinBlockButton extends Block {
 
         switch (enumfacing) {
             case EAST:
-                this.setBlockBounds(0.0f, 0.0f, 0.0f, f2, 1.0f, 1.0f);
+                setBlockBounds(0.0f, 0.0f, 0.0f, f2, 1.0f, 1.0f);
                 break;
 
             case WEST:
-                this.setBlockBounds(1.0f - f2, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+                setBlockBounds(1.0f - f2, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
                 break;
 
             case SOUTH:
-                this.setBlockBounds(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, f2);
+                setBlockBounds(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, f2);
                 break;
 
             case NORTH:
-                this.setBlockBounds(0.0f, 0.0f, 1.0f - f2, 1.0f, 1.0f, 1.0f);
+                setBlockBounds(0.0f, 0.0f, 1.0f - f2, 1.0f, 1.0f, 1.0f);
                 break;
 
             case UP:
-                this.setBlockBounds(0.0f, 0.0f, 0.0f, 1.0f, 0.0f + f2, 1.0f);
+                setBlockBounds(0.0f, 0.0f, 0.0f, 1.0f, 0.0f + f2, 1.0f);
                 break;
 
             case DOWN:
-                this.setBlockBounds(0.0f, 1.0f - f2, 0.0f, 1.0f, 1.0f, 1.0f);
+                setBlockBounds(0.0f, 1.0f - f2, 0.0f, 1.0f, 1.0f, 1.0f);
                 break;
         }
     }

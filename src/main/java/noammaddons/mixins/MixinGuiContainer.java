@@ -5,7 +5,8 @@ import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import noammaddons.events.DrawSlotEvent;
 import noammaddons.events.SlotClickEvent;
-import noammaddons.features.gui.ScalableTooltips;
+import noammaddons.features.impl.general.CustomSlotHighlight;
+import noammaddons.features.impl.gui.ScalableTooltips;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -16,7 +17,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static net.minecraftforge.fml.client.config.GuiUtils.drawGradientRect;
 import static noammaddons.events.RegisterEvents.postAndCatch;
-import static noammaddons.noammaddons.config;
 
 
 @Mixin(GuiContainer.class)
@@ -46,8 +46,8 @@ public class MixinGuiContainer {
 
     @Redirect(method = "drawScreen", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/inventory/GuiContainer;drawGradientRect(IIIIII)V"))
     private void redirectDrawGradientRect(GuiContainer instance, int left, int top, int right, int bottom, int startColor, int endColor, int mouseX, int mouseY, float partialTicks) {
-        if (config.getCustomSlotHighlight()) {
-            int color = config.getCustomSlotHighlightColor().getRGB();
+        if (CustomSlotHighlight.INSTANCE.enabled) {
+            int color = CustomSlotHighlight.getColor().getRGB();
             drawGradientRect(300, left, top, right, bottom, color, color);
         } else drawGradientRect(300, left, top, right, bottom, startColor, endColor);
     }

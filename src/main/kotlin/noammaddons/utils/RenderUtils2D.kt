@@ -6,8 +6,9 @@ import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.Entity
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.Vec3
+import noammaddons.features.impl.esp.GlobalEspSettings
+import noammaddons.features.impl.esp.GlobalEspSettings.lineWidth
 import noammaddons.noammaddons
-import noammaddons.noammaddons.Companion.config
 import noammaddons.utils.MathUtils.add
 import noammaddons.utils.RenderHelper.renderVec
 import noammaddons.utils.RenderHelper.renderX
@@ -18,7 +19,6 @@ import org.lwjgl.util.glu.Project
 import java.awt.Color
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
-import kotlin.math.roundToInt
 
 
 object RenderUtils2D {
@@ -28,13 +28,6 @@ object RenderUtils2D {
     val projectionMatrix: FloatBuffer = BufferUtils.createFloatBuffer(16)
     val viewportDims: IntBuffer = BufferUtils.createIntBuffer(16)
 
-
-    /**
-     * Projects a 3D point to 2D screen coordinates.
-     *
-     * @param vec3 The 3D point to be projected.
-     * @return The 2D screen coordinates as a Vec3, or null if projection fails.
-     */
     private fun worldToScreenPosition(vec3: Vec3): Vec3? {
         val coords = BufferUtils.createFloatBuffer(3)
         val success = Project.gluProject(
@@ -103,16 +96,16 @@ object RenderUtils2D {
         }
     }
 
-    fun draw2dEsp(entity: Entity, color: Color, thickness: Float = config.espOutlineWidth) {
+    fun draw2dEsp(entity: Entity, color: Color, thickness: Number = lineWidth) {
         val entityAABB = entity.entityBoundingBox
             .offset(- entity.posX, - entity.posY, - entity.posZ)
             .offset(entity.renderX, entity.renderY, entity.renderZ)
 
         calculateBoundingBox(entityAABB)?.let { box ->
-            val outline = config.espOutlineOpacity != 0f
-            val fill = config.espFilledOpacity != 0f
-            val outlineAlpha = (config.espOutlineOpacity * 255).roundToInt().coerceAtMost(255)
-            val fillAlpha = (config.espFilledOpacity * 255).roundToInt().coerceAtMost(255)
+            val outline = GlobalEspSettings.outlineOpacity != .0
+            val fill = GlobalEspSettings.fillOpacity != .0
+            val outlineAlpha = GlobalEspSettings.outlineOpacity.toFloat() / 100f
+            val fillAlpha = GlobalEspSettings.fillOpacity.toFloat() / 100f
 
             if (fill) RenderUtils.drawRect(color.withAlpha(fillAlpha), box.x, box.y, box.w - box.x, box.h - box.y)
             if (outline) RenderUtils.drawRectBorder(color.withAlpha(outlineAlpha), box.x, box.y, box.w - box.x, box.h - box.y, thickness)

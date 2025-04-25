@@ -19,9 +19,9 @@ class MixinNetHandlerPlayClient {
     @Shadow
     private Minecraft gameController;
 
-    @Inject(method = "handleEntityMetadata", at = @At("TAIL"))
+    @Inject(method = "handleEntityMetadata", at = @At("RETURN"))
     private void onSetCustomNameTag(S1CPacketEntityMetadata packetIn, CallbackInfo ci) {
-        Entity entity = this.gameController.theWorld.getEntityByID(packetIn.getEntityId());
+        Entity entity = gameController.theWorld.getEntityByID(packetIn.getEntityId());
         if (entity == null) return;
         postAndCatch(new PostEntityMetadataEvent(entity));
     }

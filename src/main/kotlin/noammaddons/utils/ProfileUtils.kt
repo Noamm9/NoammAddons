@@ -3,7 +3,6 @@ package noammaddons.utils
 import com.google.gson.JsonParser
 import gg.essential.api.EssentialAPI
 import noammaddons.noammaddons.Companion.mc
-import noammaddons.utils.JsonUtils.makeWebRequest
 import java.io.BufferedReader
 import javax.net.ssl.HttpsURLConnection
 
@@ -46,7 +45,7 @@ object ProfileUtils {
     fun getSpiritPet(name: String) = readUrl("https://api.tenios.dev/spiritPet/${getUUID(name)}").toBoolean()
 
     private fun readUrl(url: String): String {
-        val connection = makeWebRequest(url)
+        val connection = WebUtils.makeWebRequest(url)
         (connection as HttpsURLConnection).requestMethod = "GET"
         connection.setRequestProperty("Accept", "application/json")
         return connection.inputStream.bufferedReader().use(BufferedReader::readText)

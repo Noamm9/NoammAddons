@@ -6,7 +6,6 @@ import noammaddons.noammaddons.Companion.MOD_VERSION
 import noammaddons.utils.ChatUtils.Alert
 import noammaddons.utils.ChatUtils.clickableChat
 import noammaddons.utils.ChatUtils.modMessage
-import noammaddons.utils.JsonUtils.fetchJsonWithRetry
 import noammaddons.utils.Utils.remove
 import java.net.URI
 
@@ -25,7 +24,7 @@ object UpdateUtils {
 
         if (isMessageOnScreen) return
 
-        fetchJsonWithRetry<List<DataClasses.Release>>(GITHUB_API_URL) { releases ->
+        WebUtils.fetchJsonWithRetry<List<DataClasses.Release>>(GITHUB_API_URL) { releases ->
             if (releases.isNullOrEmpty()) {
                 modMessage("&4Failed to get release version from GitHub")
                 return@fetchJsonWithRetry

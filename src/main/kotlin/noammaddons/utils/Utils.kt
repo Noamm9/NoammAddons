@@ -12,9 +12,12 @@ import noammaddons.utils.ChatUtils.getCenteredText
 import noammaddons.utils.ChatUtils.getChatBreak
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.ThreadUtils.setTimeout
+import java.awt.Color
 
 
 object Utils {
+    val favoriteColor = Color(0, 134, 255)
+
     fun <T> splitArray(array: List<T>, size: Int): List<List<T>> {
         return array.chunked(size)
     }
@@ -48,6 +51,12 @@ object Utils {
     }
 
     fun String.startsWithOneOf(vararg prefixes: String): Boolean = prefixes.any { startsWith(it) }
+    fun String.spaceCaps(): String {
+        return this
+            .replace(Regex("(?<=[a-z])(?=[A-Z])"), " ")
+            .replace(Regex("(?<=[A-Z])(?=[A-Z][a-z])"), " ")
+            .trim()
+    }
 
     fun Packet<*>.send(delay: Number? = null) {
         if (delay == null) mc.netHandler.networkManager.sendPacket(this)

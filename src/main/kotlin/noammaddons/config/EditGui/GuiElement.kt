@@ -1,7 +1,5 @@
 package noammaddons.config.EditGui
 
-import noammaddons.noammaddons.Companion.config
-import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.DataClasses
 import noammaddons.utils.MouseUtils
 
@@ -31,10 +29,7 @@ abstract class GuiElement(val dataObj: DataClasses.HudElementData) {
         dataObj.scale = scale
     }
 
-    open fun draw() {
-        if (mc.currentScreen is HudEditorScreen) return
-        if (! enabled && ! config.DevMode) return
-    }
+    open fun draw() {}
 
     open fun exampleDraw() = this.draw()
 

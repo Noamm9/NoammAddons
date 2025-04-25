@@ -5,8 +5,8 @@ import net.minecraft.network.play.client.C01PacketChatMessage
 import net.minecraft.util.Vec3
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.InventoryFullyOpenedEvent
-import noammaddons.features.gui.Menus.impl.CustomSpiritLeapMenu
-import noammaddons.noammaddons.Companion.config
+import noammaddons.features.impl.dungeons.LeapMenu
+import noammaddons.features.impl.dungeons.ReaperArmor.autoReaperArmorSlot
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.noammaddons.Companion.scope
 import noammaddons.utils.ChatUtils.modMessage
@@ -23,8 +23,8 @@ import noammaddons.utils.ItemUtils.getItemId
 import noammaddons.utils.ItemUtils.getItemIndexInHotbar
 import noammaddons.utils.MathUtils.Rotation
 import noammaddons.utils.MathUtils.calcYawPitch
-import noammaddons.utils.MathUtils.interpolate
 import noammaddons.utils.MathUtils.interpolateYaw
+import noammaddons.utils.MathUtils.lerp
 import noammaddons.utils.MathUtils.normalizePitch
 import noammaddons.utils.MathUtils.normalizeYaw
 import noammaddons.utils.PlayerUtils.closeScreen
@@ -144,7 +144,7 @@ object ActionUtils {
 
                 val easedProgress = easeInOutCubic(progress).toFloat()
                 val newYaw = interpolateYaw(currentYaw, targetYaw, easedProgress)
-                val newPitch = interpolate(currentPitch, targetPitch, easedProgress).toFloat()
+                val newPitch = lerp(currentPitch, targetPitch, easedProgress).toFloat()
 
                 rotate(newYaw, newPitch)
             }
@@ -192,8 +192,8 @@ object ActionUtils {
             while (LEAP_TARGET != null) delay(50)
         }
 
-        CustomSpiritLeapMenu.updatePlayersArray()
-        CustomSpiritLeapMenu.players.find { it?.player?.name == leapTarget.name }?.let { target ->
+        LeapMenu.updateLeapMenu()
+        LeapMenu.players.find { it?.player?.name == leapTarget.name }?.let { target ->
             modMessage("Leaping To: &e[${leapTarget.clazz.name[0]}] &a${leapTarget.name}")
             sendWindowClickPacket(target.slot, 0, 0)
             delay(500)
@@ -222,7 +222,7 @@ object ActionUtils {
         if (mc.thePlayer?.inventory?.mainInventory?.contains(null) != true) return modMessage("&cYour inventory is full!")
 
         closeScreen()
-        sendChatMessage(config.AutoPotionCommand.removeFormatting().lowercase())
+        sendChatMessage("/pb")
         hideGui(true) { drawTitle("&d[Getting potion...] ", "&bPlease wait") }
 
         awaitingPotionBag = name
@@ -241,7 +241,7 @@ object ActionUtils {
         delay(250)
 
         val container = mc.thePlayer.openContainer.inventory
-        val reaperArmorSlot: Int = config.AutoReaperArmorSlot + 35
+        val reaperArmorSlot: Int = autoReaperArmorSlot.value.toInt() + 35
         var reaperSwapPreviousArmorSlot = 0
 
         for (i in 35 until 45) {
@@ -313,8 +313,8 @@ object ActionUtils {
 
             inLeapMenu -> {
                 if (LEAP_TARGET == null) return
-                CustomSpiritLeapMenu.updatePlayersArray()
-                CustomSpiritLeapMenu.players.find { it?.player?.name == LEAP_TARGET?.name }?.let { target ->
+                LeapMenu.updateLeapMenu()
+                LeapMenu.players.find { it?.player?.name == LEAP_TARGET?.name }?.let { target ->
                     modMessage("Leaping To: &e[${LEAP_TARGET !!.clazz.name[0]}] &a${LEAP_TARGET !!.name}")
                     sendWindowClickPacket(target.slot, 0, 0)
                     LEAP_TARGET = null

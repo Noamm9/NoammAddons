@@ -3,10 +3,11 @@ package noammaddons.mixins;
 import net.minecraft.client.gui.GuiIngame;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
 import net.minecraft.scoreboard.ScoreObjective;
 import noammaddons.events.RenderScoreBoardEvent;
-import noammaddons.features.misc.SmoothBossBar;
+import noammaddons.features.impl.general.ShowItemRarity;
+import noammaddons.features.impl.hud.CustomScoreboard;
+import noammaddons.features.impl.misc.SmoothBossBar;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -14,11 +15,9 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static noammaddons.events.RegisterEvents.postAndCatch;
-import static noammaddons.features.general.ShowItemRarity.onSlotDraw;
-import static noammaddons.features.hud.PlayerHud.cancelActionBar;
-import static noammaddons.features.hud.PlayerHud.modifyText;
-import static noammaddons.features.hud.SecretDisplay.removeSecrets;
-import static noammaddons.noammaddons.config;
+import static noammaddons.features.impl.dungeons.DungeonSecrets.removeSecrets;
+import static noammaddons.features.impl.hud.PlayerHud.cancelActionBar;
+import static noammaddons.features.impl.hud.PlayerHud.modifyText;
 
 @Mixin(value = GuiIngame.class)
 public class MixinGuiIngame {
@@ -27,7 +26,7 @@ public class MixinGuiIngame {
         if (postAndCatch(new RenderScoreBoardEvent(objective, scaledRes))) {
             ci.cancel();
         }
-        if (config.getCustomScoreboard() && !ci.isCancelled()) {
+        if (CustomScoreboard.INSTANCE.enabled && !ci.isCancelled()) {
             ci.cancel();
         }
     }
@@ -54,8 +53,8 @@ public class MixinGuiIngame {
 
     @Inject(method = "renderHotbarItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/RenderItem;renderItemAndEffectIntoGUI(Lnet/minecraft/item/ItemStack;II)V"))
     private void renderRarityOnHotbar(int index, int xPos, int yPos, float partialTicks, EntityPlayer player, CallbackInfo ci) {
-        ItemStack itemStack = player.inventory.mainInventory[index];
-        onSlotDraw(itemStack, xPos, yPos);
+        if (!ShowItemRarity.drawOnHotbar.getValue()) return;
+        ShowItemRarity.onSlotDraw(player.inventory.mainInventory[index], xPos, yPos);
     }
 }
 

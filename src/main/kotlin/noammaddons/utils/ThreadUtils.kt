@@ -1,15 +1,17 @@
 package noammaddons.utils
 
+import kotlinx.coroutines.launch
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Tick
+import noammaddons.features.impl.DevOptions
 import noammaddons.noammaddons.Companion.Logger
-import noammaddons.noammaddons.Companion.config
+import noammaddons.noammaddons.Companion.scope
 import java.util.concurrent.*
 
 object ThreadUtils {
     private data class Task(var ticks: Int, val task: Runnable)
 
-    val executor = Executors.newSingleThreadExecutor()
+    private val executor = Executors.newSingleThreadExecutor()
     private val timerExecutor = Executors.newScheduledThreadPool(1)
     private val tickTasks = ConcurrentLinkedQueue<Task>()
 
@@ -29,7 +31,7 @@ object ThreadUtils {
                     func()
                 }
                 catch (e: Exception) {
-                    if (! config.DevMode) {
+                    if (! DevOptions.devMode) {
                         e.stackTrace.take(10).forEach { Logger.error(it) }
                     }
                 }
@@ -43,18 +45,42 @@ object ThreadUtils {
         timerExecutor.execute(task)
     }
 
-    @SubscribeEvent
-    fun onTick(event: Tick) {
-        tickTasks.removeIf { task ->
-            if (task.ticks > 0) {
-                task.ticks --
-                false
+    fun loop(delay: () -> Number, stop: () -> Boolean = { false }, func: () -> Unit) {
+        val task = object: Runnable {
+            override fun run() {
+                try {
+                    func()
+                }
+                catch (e: Exception) {
+                    if (! DevOptions.devMode) {
+                        e.stackTrace.take(10).forEach { Logger.error(it) }
+                    }
+                }
+                finally {
+                    if (! stop()) {
+                        timerExecutor.schedule(this, delay().toLong(), TimeUnit.MILLISECONDS)
+                    }
+                }
             }
-            else runCatching { task.task.run() }.onFailure {
-                it.stackTrace.take(10).forEach(Logger::error)
-            }.let { true }
         }
+        timerExecutor.execute(task)
     }
 
-
+    @SubscribeEvent
+    fun onTick(@Suppress("UNUSED_PARAMETER") event: Tick) {
+        scope.launch {
+            tickTasks.removeIf { task ->
+                if (task.ticks > 0) {
+                    task.ticks --
+                    false
+                }
+                else {
+                    runCatching { task.task.run() }.onFailure {
+                        it.stackTrace.take(10).forEach(Logger::error)
+                    }
+                    true
+                }
+            }
+        }
+    }
 }

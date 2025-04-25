@@ -9,7 +9,7 @@ import net.minecraft.util.Vec3
 import noammaddons.mixins.AccessorMinecraft
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.addColor
-import noammaddons.utils.MathUtils.interpolate
+import noammaddons.utils.MathUtils.lerp
 import noammaddons.utils.RenderUtils.drawRect
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
@@ -22,13 +22,13 @@ object RenderHelper {
     fun getPartialTicks() = (mc as AccessorMinecraft).timer.renderPartialTicks
 
     @JvmStatic
-    val Entity.renderX: Double get() = interpolate(lastTickPosX, posX, getPartialTicks())
+    val Entity.renderX: Double get() = lerp(lastTickPosX, posX, getPartialTicks())
 
     @JvmStatic
-    val Entity.renderY: Double get() = interpolate(lastTickPosY, posY, getPartialTicks())
+    val Entity.renderY: Double get() = lerp(lastTickPosY, posY, getPartialTicks())
 
     @JvmStatic
-    val Entity.renderZ: Double get() = interpolate(lastTickPosZ, posZ, getPartialTicks())
+    val Entity.renderZ: Double get() = lerp(lastTickPosZ, posZ, getPartialTicks())
 
     @JvmStatic
     val Entity.renderVec: Vec3 get() = Vec3(renderX, renderY, renderZ)
@@ -58,6 +58,12 @@ object RenderHelper {
         color.blue / 255f,
         alpha.toFloat() / 255f
     )
+
+    @JvmStatic
+    fun Color.destructured(withAlpha: Boolean = false): MutableList<Int> {
+        return if (! withAlpha) mutableListOf(red, green, blue)
+        else mutableListOf(red, green, blue, alpha)
+    }
 
     @JvmStatic
     fun enableChums(color: Color) {

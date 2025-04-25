@@ -16,7 +16,7 @@ public class MixinRenderManager {
     @Inject(method = "doRenderEntity", at = @At("HEAD"), cancellable = true)
     public void onPreEntityRender(Entity entity, double x, double y, double z, float entityYaw, float partialTicks, boolean p_147939_10_, CallbackInfoReturnable<Boolean> cir) {
         if (postAndCatch(new RenderEntityEvent(entity, x, y, z, partialTicks))) {
-            cir.cancel();
+            cir.setReturnValue(false);
         }
     }
 

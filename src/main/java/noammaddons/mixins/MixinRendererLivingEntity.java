@@ -8,6 +8,8 @@ import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.entity.EntityLivingBase;
 import noammaddons.events.PostRenderEntityModelEvent;
+import noammaddons.features.impl.esp.ChamNametags;
+import noammaddons.features.impl.esp.GlobalEspSettings;
 import noammaddons.utils.RenderHelper;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Final;
@@ -23,7 +25,6 @@ import java.awt.*;
 import java.nio.FloatBuffer;
 
 import static noammaddons.events.RegisterEvents.postAndCatch;
-import static noammaddons.noammaddons.config;
 import static noammaddons.utils.EspUtils.chamEntities;
 import static org.lwjgl.opengl.GL11.*;
 
@@ -100,7 +101,7 @@ public abstract class MixinRendererLivingEntity {
         brightnessBuffer.put(chamColor.getRed() / 255f);
         brightnessBuffer.put(chamColor.getGreen() / 255f);
         brightnessBuffer.put(chamColor.getBlue() / 255f);
-        brightnessBuffer.put(config.getEspFilledOpacity());
+        brightnessBuffer.put(GlobalEspSettings.INSTANCE.getFillOpacity().floatValue() / 100f);
         brightnessBuffer.flip();
         GL11.glTexEnv(8960, 8705, brightnessBuffer);
         GlStateManager.setActiveTexture(OpenGlHelper.GL_TEXTURE2);
@@ -138,13 +139,13 @@ public abstract class MixinRendererLivingEntity {
 
     @Inject(method = "renderName(Lnet/minecraft/entity/EntityLivingBase;DDD)V", at = @At("HEAD"))
     private <T extends EntityLivingBase> void injectChamsPre(T entity, double x, double y, double z, CallbackInfo ci) {
-        if (!config.getChumNameTags()) return;
+        if (!ChamNametags.INSTANCE.enabled) return;
         RenderHelper.enableChums(Color.WHITE);
     }
 
     @Inject(method = "renderName(Lnet/minecraft/entity/EntityLivingBase;DDD)V", at = @At("RETURN"))
     private <T extends EntityLivingBase> void injectChamsPost(T entity, double x, double y, double z, CallbackInfo ci) {
-        if (!config.getChumNameTags()) return;
+        if (!ChamNametags.INSTANCE.enabled) return;
         RenderHelper.disableChums();
     }
 }
