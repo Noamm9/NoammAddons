@@ -9,9 +9,9 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.StartWithTitle
 import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.TerminalSlot
+import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.checkLastClick
 import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getClickMode
 import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getColorMode
-import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getFirstClickDelay
 import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getResyncTime
 import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getSolutionColor
 import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getTermScale
@@ -85,6 +85,7 @@ object StartWith {
     @SubscribeEvent
     fun cancelGui(event: GuiScreenEvent.DrawScreenEvent.Pre) {
         if (! inTerminal) return
+        event.isCanceled = true
 
         val termScale = getTermScale()
         val screenWidth = mc.getWidth() / termScale
@@ -101,11 +102,10 @@ object StartWith {
 
         val slotX = floor((mouseX - offsetX) / 18).toInt()
         val slotY = floor((mouseY - offsetY) / 18).toInt()
+        val slot = slotX + slotY * 9
 
         if (slotX in 0 .. 8 && slotY >= 0 && getClickMode() == 2) {
-            val slot = slotX + slotY * 9
-
-            if (slot < windowSize && slot in solution) {
+            if (slot < windowSize && slot in solution && checkLastClick()) {
                 predict(slot)
                 if (clicked) queue.add(slot to 0)
                 else click(slot, 0)
@@ -143,8 +143,9 @@ object StartWith {
     private fun predict(slot: Int) = solution.remove(slot)
 
     private fun click(slot: Int, button: Int) {
-        C0EPacketClickWindow(cwid, slot, button, 0, null, 0).send(getFirstClickDelay().takeIf { ! clicked })
         clicked = true
+        TerminalSolver.lastClick = System.currentTimeMillis()
+        C0EPacketClickWindow(cwid, slot, button, 0, null, 0).send()
         val initialWindowId = cwid
         setTimeout(getResyncTime()) {
             if (! inTerminal || initialWindowId != cwid) return@setTimeout

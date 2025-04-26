@@ -35,7 +35,7 @@ import java.awt.Color
 
 
 object LeapMenu: Feature("Custom Leap Menu and leap message") {
-    val customLeapMenu = ToggleSetting("Custom Leap Menu", false)
+    val customLeapMenu = ToggleSetting("Leap Menu", false)
     val scale = SliderSetting("Menu Scale", 1, 100, 50.0).addDependency(customLeapMenu)
     val showLastDoorOpenner = ToggleSetting("Show Last Door Openner", false)
     val tintDeadPlayers = ToggleSetting("Tint Dead Players", true)

@@ -19,7 +19,6 @@ class SliderSetting(
 ): Component<Number>(label), Savable {
     override var value: Number = defaultValue
 
-    private var dragging = false
     private val sliderHeight = 6.0
     private val thumbRadius = 5.0
     private val padding = 6.0
@@ -42,23 +41,22 @@ class SliderSetting(
         val percent = ((value.toDouble() - min.toDouble()) / (max.toDouble() - min.toDouble())).coerceIn(.0, 1.0)
         val fillWidth = (width - padding * 2) * percent
         drawRoundedRect(accentColor, x + padding, sliderY, fillWidth, sliderHeight, 3f)
-
-        if (! dragging) return
-        updateValue(mouseX, x + padding)
     }
 
     override fun mouseClicked(x: Double, y: Double, mouseX: Double, mouseY: Double, button: Int) {
         if (button != 0) return
         val sliderY = y + height - sliderHeight - padding
         if (mouseX in x + padding .. x + width - padding && mouseY in sliderY .. sliderY + sliderHeight + thumbRadius * 2) {
-            dragging = true
             updateValue(mouseX, x + padding)
             SoundUtils.click()
         }
     }
 
-    override fun mouseRelease(x: Double, y: Double, mouseX: Double, mouseY: Double, button: Int) {
-        dragging = false
+    override fun mouseDragged(x: Double, y: Double, mouseX: Double, mouseY: Double, button: Int) {
+        val sliderY = y + height - sliderHeight - padding
+        if (mouseX in x + padding .. x + width - padding && mouseY in sliderY .. sliderY + sliderHeight + thumbRadius * 2) {
+            updateValue(mouseX, x + padding)
+        }
     }
 
     override fun getValue(thisRef: Feature, property: KProperty<*>) = value

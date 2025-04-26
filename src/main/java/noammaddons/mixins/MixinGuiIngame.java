@@ -53,6 +53,7 @@ public class MixinGuiIngame {
 
     @Inject(method = "renderHotbarItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/RenderItem;renderItemAndEffectIntoGUI(Lnet/minecraft/item/ItemStack;II)V"))
     private void renderRarityOnHotbar(int index, int xPos, int yPos, float partialTicks, EntityPlayer player, CallbackInfo ci) {
+        if (!ShowItemRarity.INSTANCE.enabled) return;
         if (!ShowItemRarity.drawOnHotbar.getValue()) return;
         ShowItemRarity.onSlotDraw(player.inventory.mainInventory[index], xPos, yPos);
     }

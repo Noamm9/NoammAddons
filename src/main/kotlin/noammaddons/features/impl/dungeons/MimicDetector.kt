@@ -19,7 +19,6 @@ import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.RenderHelper.disableChums
 import noammaddons.utils.RenderHelper.enableChums
 import noammaddons.utils.RenderUtils
-import noammaddons.utils.Utils.favoriteColor
 import java.awt.Color
 
 @AlwaysActive
@@ -29,7 +28,7 @@ object MimicDetector: Feature("Detects when a mimic is killed") {
     private val showTitle = ToggleSetting("Show Title", false)
     private val titleMsg = TextInputSetting("Title Message", "Mimic killed!").addDependency(showTitle)
     private val highlightChest = ToggleSetting("Highlight Chest", false)
-    private val highlightColor = ColorSetting("Highlight Color", favoriteColor.withAlpha(0.3f), false).addDependency(highlightChest)
+    private val highlightColor = ColorSetting("Highlight Color", Color.RED.withAlpha(0.3f)).addDependency(highlightChest)
 
     val mimicKilled = BasicState(false)
     fun check() = ! mimicKilled.get() && inDungeon && (dungeonFloorNumber ?: 0) >= 6 && ! inBoss

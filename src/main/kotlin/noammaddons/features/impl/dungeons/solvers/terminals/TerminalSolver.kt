@@ -18,7 +18,6 @@ object TerminalSolver: Feature() {
     val scale = SliderSetting("Scale", 1, 100, 75)
     val clickMode = DropdownSetting("Mode", listOf("Default", "Q-Terms", "Hover"))
 
-    val firstClickDelay = SliderSetting("First Click Delay", 250, 400, 300)
     val reSyncTimeout = SliderSetting("Resync Timeout", 400, 1000, 600)
 
     val solutionColor = ColorSetting("Solution Color", favoriteColor.withAlpha(170))
@@ -32,8 +31,8 @@ object TerminalSolver: Feature() {
     val colors = ToggleSetting("Colors")
 
     override fun init() = addSettings(
-        scale, clickMode, firstClickDelay, reSyncTimeout,
-        SeperatorSetting("Colors"),
+        scale, clickMode, reSyncTimeout,
+        SeperatorSetting("Terminal Colors"),
         solutionColor, backgroundColor,
         SeperatorSetting("Terminals"),
         melody, startWith, rubix,
@@ -49,4 +48,6 @@ object TerminalSolver: Feature() {
         super.onDisable()
         terms.forEach(MinecraftForge.EVENT_BUS::unregister)
     }
+
+    var lastClick = System.currentTimeMillis()
 }

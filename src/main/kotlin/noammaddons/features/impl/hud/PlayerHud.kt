@@ -27,11 +27,11 @@ object PlayerHud: Feature() {
         override fun draw() = drawText(text, getX(), getY(), getScale())
     }
 
-    private val health = ToggleSetting("Health").register1().value
-    private val defense = ToggleSetting("Defense").register1().value
-    private val mana = ToggleSetting("Mana").register1().value
+    private val health = ToggleSetting("Health").register1()
+    private val defense = ToggleSetting("Defense").register1()
+    private val mana = ToggleSetting("Mana").register1()
     private val overflowMana = ToggleSetting("OverFlow Mana").register1()
-    private val hideIf0 = ToggleSetting("Hide if 0").addDependency(overflowMana).register1().value
+    private val hideIf0 = ToggleSetting("Hide if 0").addDependency(overflowMana).register1()
     private val ehp by ToggleSetting("Effective Hp")
     private val speed by ToggleSetting("Speed")
 
@@ -39,22 +39,22 @@ object PlayerHud: Feature() {
     private val elements = listOf(
         PlayerHudElement(
             hudData.getData().PlayerHud.health,
-            { health },
+            { health.value },
             { getHpFormatted() },
         ),
         PlayerHudElement(
             hudData.getData().PlayerHud.defense,
-            { defense },
+            { defense.value },
             { "&a${ActionBarParser.currentDefense}" },
         ),
         PlayerHudElement(
             hudData.getData().PlayerHud.mana,
-            { mana },
+            { mana.value },
             { "&b${ActionBarParser.currentMana}/${ActionBarParser.maxMana}" },
         ),
         PlayerHudElement(
             hudData.getData().PlayerHud.overflowMana,
-            { overflowMana.value && (! hideIf0 || ActionBarParser.overflowMana > 0) },
+            { overflowMana.value && (! hideIf0.value || ActionBarParser.overflowMana > 0) },
             { "&3${ActionBarParser.overflowMana}" },
         ),
         PlayerHudElement(

@@ -15,14 +15,13 @@ class KeybindSetting(name: String, override var defaultValue: Int = Keyboard.KEY
     override var value = defaultValue
 
     private var listening = false
-    override val height = 20.0
 
     fun isDown() = Keyboard.isKeyDown(value)
 
     private var previousState = false
 
     fun isPressed(): Boolean {
-        val currentState = Keyboard.isKeyDown(value)
+        val currentState = isDown()
         val wasPressed = ! previousState && currentState
         previousState = currentState
         return wasPressed

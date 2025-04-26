@@ -2,10 +2,10 @@ package noammaddons.ui.config
 
 import kotlinx.coroutines.*
 import net.minecraft.client.gui.GuiScreen
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.util.ChatAllowedCharacters
 import noammaddons.config.EditGui.HudEditorScreen
 import noammaddons.noammaddons.Companion.FULL_PREFIX
-import noammaddons.noammaddons.Companion.MOD_VERSION
 import noammaddons.noammaddons.Companion.scope
 import noammaddons.ui.config.core.CategoryType
 import noammaddons.ui.config.core.SubCategory
@@ -13,7 +13,6 @@ import noammaddons.ui.config.core.impl.Component.Companion.accentColor
 import noammaddons.ui.config.core.impl.Component.Companion.compBackgroundColor
 import noammaddons.ui.config.core.impl.Component.Companion.drawSmoothRect
 import noammaddons.ui.config.core.impl.Component.Companion.hoverColor
-import noammaddons.ui.config.core.impl.button1
 import noammaddons.ui.config.core.save.Config
 import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.addColor
@@ -31,30 +30,43 @@ import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.Utils.remove
 import org.lwjgl.input.Keyboard
 import org.lwjgl.input.Mouse
-import org.lwjgl.opengl.GL11.*
 import java.awt.Color
 import kotlin.reflect.KMutableProperty0
+
 
 object ConfigGUI: GuiScreen() {
     val config = mutableMapOf<CategoryType, MutableSet<SubCategory>>()
 
     var selectedCategory = CategoryType.entries.first()
-    var selectedSubCategory: SubCategory? = null
-    var filteredComponents: List<SubCategory>? = null
+    var openedFeatureSettings: SubCategory? = null
+    var filteredFeatures: List<SubCategory>? = null
 
-    var subCategoryScroll = 0f
-    var componentsScroll = 0f
+    var categoryScroll = 0f
+    var featuresScroll = 0f
+    var settingsScroll = 0f
 
-    private var scale = .0
-    private var guiWidth = .0
-    private var guiHeight = .0
-    private var guiX = .0
-    private var guiY = .0
+    // --- Layout Variables ---
+    private var scale = 1.0 // Default
+    private var guiX = 0.0
+    private var guiY = 0.0
+    private var guiWidth = 0.0
+    private var guiHeight = 0.0
 
-    private var leftPanelWidth = .0
+    // Panel Dimensions & Positions (Calculated in initGui)
+    private var topBarHeight = 0.0
+    private var categoryPanelX = 0.0
+    private var categoryPanelWidth = 0.0
+    private var featurePanelX = 0.0 // Middle panel
+    private var featurePanelWidth = 0.0
+    private var settingsPanelX = 0.0 // Right panel
+    private var settingsPanelWidth = 0.0
 
+    // --- Panel Padding ---
+    private const val panelPadding = 6.0 // Base padding inside panels
+    private const val panelGap = 1.0 // Gap between panels (for separator line)
+
+    // --- Other State ---
     private var scrollJob: Job? = null
-
     private var dragging: Int? = null
 
     object SearchBar {
@@ -66,14 +78,6 @@ object ConfigGUI: GuiScreen() {
         var y = .0
         var w = .0
         var h = .0
-
-        fun init(guiWidth: Double, guiHeight: Double) {
-            w = guiWidth / 5.0
-            h = (guiHeight / 12.0) * 0.5
-
-            x = guiWidth / 2 - w / 2 - padding
-            y = - (h * 1.5)
-        }
 
         fun reset() {
             text = ""
@@ -101,15 +105,8 @@ object ConfigGUI: GuiScreen() {
 
             drawRoundedBorder(borderColor, x, y, w, h, 4f, 1.2)
 
-            val visibleText = if (text.isEmpty()) {
-                drawText("Search...", x + padding, y + 2, 1f)
-                ""
-            }
-            else {
-                val trimmed = trimTextToWidth(text, w - padding * 2)
-                drawText(trimmed, x + padding, y + 2)
-                trimmed
-            }
+            val str = if (text.isEmpty()) "Search..." else trimTextToWidth(text, w - padding * 2)
+            drawText(str, x + padding, y + 4)
         }
 
         fun onKeyTyped(typedChar: Char, keyCode: Int) {
@@ -180,15 +177,8 @@ object ConfigGUI: GuiScreen() {
         var w = .0
         var h = .0
 
-        fun init(guiWidth: Double, guiHeight: Double) {
-            y = guiHeight * 0.9
-            w = 80.0
-            h = 20.0
-        }
-
         fun onClick(mx: Number, my: Number) {
             if (! isElementHovered(mx, my, x, y, w, h)) return
-
             SoundUtils.click()
             ThreadUtils.setTimeout(100) {
                 GuiUtils.openScreen(HudEditorScreen)
@@ -216,41 +206,86 @@ object ConfigGUI: GuiScreen() {
         config.clear()
         config.putAll(sorted)
 
-        leftPanelWidth = 100.0
-
         scale = 2.0 / mc.getScaleFactor()
         val screenWidth = mc.getWidth() / scale
         val screenHeight = mc.getHeight() / scale
-        guiWidth = (screenWidth * 0.6)
-        guiHeight = (screenHeight * 0.6)
+        guiWidth = (screenWidth * 0.6) //.coerceAtLeast(576.0)
+        guiHeight = (screenHeight * 0.6) //.coerceAtLeast(324.0)
         guiX = (screenWidth - guiWidth) / 2.0
         guiY = (screenHeight - guiHeight) / 2.0
 
-        SearchBar.init(guiWidth, guiHeight)
-        HudEditButton.init(guiWidth, guiHeight)
+        topBarHeight = (guiHeight / 12.0) //.coerceAtLeast(25.0)
+
+        val totalUsableWidth = guiWidth - panelGap * 2
+        categoryPanelWidth = totalUsableWidth * 0.20
+        featurePanelWidth = totalUsableWidth * 0.40
+        settingsPanelWidth = totalUsableWidth - categoryPanelWidth - featurePanelWidth // Remaining space
+
+        categoryPanelX = 0.0
+        featurePanelX = categoryPanelX + categoryPanelWidth + panelGap
+        settingsPanelX = featurePanelX + featurePanelWidth + panelGap
+
+        // --- Initialize Sub-Components ---
+        SearchBar.w = featurePanelWidth * 0.8
+        SearchBar.h = topBarHeight * 0.6
+        SearchBar.x = featurePanelX + (featurePanelWidth - SearchBar.w) / 2.0
+        SearchBar.y = - (topBarHeight + SearchBar.h) / 2.0
+
+        HudEditButton.w = categoryPanelWidth - panelPadding * 2
+        HudEditButton.h = 20.0
+        HudEditButton.x = panelPadding
+        HudEditButton.y = guiHeight - HudEditButton.h - panelPadding
     }
 
     override fun drawScreen(mouseX: Int, mouseY: Int, partialTicks: Float) {
-        val scaledMouseX = mouseX / scale
-        val scaledMouseY = mouseY / scale
+        val scaledMouseX = (mouseX / scale) - guiX
+        val scaledMouseY = (mouseY / scale) - guiY
 
-        glPushMatrix()
-        glScaled(scale, scale, scale)
-        glTranslated(guiX, guiY, 0.0)
+        GlStateManager.pushMatrix()
+        GlStateManager.translate(guiX, guiY, 0.0)
+        GlStateManager.scale(scale, scale, scale)
 
-        val topPanelY = guiHeight / 12
-        drawSmoothRect(Color(26, 26, 26), 0, - topPanelY, guiWidth, topPanelY)
-        drawText("${FULL_PREFIX.remove("&n".addColor())} &6&lv$MOD_VERSION", 10, - (topPanelY / 2 + 6), 1.6)
-        drawSmoothRect(Color(13, 13, 13), 0, 0, guiWidth, guiHeight)
-        drawSmoothRect(Color(26, 26, 26), 0, 0, leftPanelWidth, guiHeight)
+        drawSmoothRect(Color(26, 26, 26), 0.0, - topBarHeight, guiWidth, topBarHeight)
+        drawSmoothRect(Color(13, 13, 13), 0.0, 0.0, guiWidth, guiHeight)
 
-        SearchBar.draw(scaledMouseX - guiX, scaledMouseY - guiY)
-        HudEditButton.draw(scaledMouseX - guiX, scaledMouseY - guiY)
+        drawSmoothRect(Color(26, 26, 26), categoryPanelX, 0.0, categoryPanelWidth, guiHeight) // Category Panel BG
+        drawSmoothRect(Color(20, 20, 20), featurePanelX, 0.0, featurePanelWidth, guiHeight)   // Feature Panel BG
+        drawSmoothRect(Color(23, 23, 23), settingsPanelX, 0.0, settingsPanelWidth, guiHeight)  // Settings Panel BG
 
-        var y = 10
+        val separatorColor = Color(45, 45, 45)
+        drawSmoothRect(separatorColor, featurePanelX - panelGap, 0.0, panelGap, guiHeight)
+        drawSmoothRect(separatorColor, settingsPanelX - panelGap, 0.0, panelGap, guiHeight)
+
+        drawText(FULL_PREFIX.remove("&n".addColor()), panelPadding, - (topBarHeight / 2.0 + 6), 1.6)
+        SearchBar.draw(scaledMouseX, scaledMouseY)
+        HudEditButton.draw(scaledMouseX, scaledMouseY)
+
+        drawCategories(scaledMouseX, scaledMouseY)
+        drawFeatures(scaledMouseX, scaledMouseY)
+        drawSettings(scaledMouseX, scaledMouseY)
+
+        GlStateManager.popMatrix()
+
+        dragging?.let { btn ->
+            openedFeatureSettings?.let { feature ->
+                val settingX = settingsPanelX + panelPadding * 2
+                var settingY = 20.0 - settingsScroll
+
+                for (comp in feature.components) {
+                    if (comp.hidden) continue
+                    if (settingY > 0 && settingY < guiHeight - comp.height) {
+                        comp.mouseDragged(settingX, settingY, scaledMouseX, scaledMouseY, btn)
+                    }
+                    settingY += 10 + comp.height
+                }
+            }
+        }
+    }
+
+    fun drawCategories(mx: Double, my: Double) {
+        var y = 10.0
         for (cat in config.keys) {
-            val isHovered = scaledMouseX in guiX .. (guiX + leftPanelWidth) &&
-                    scaledMouseY in (guiY + y) .. (guiY + y + 20)
+            val isHovered = mx in .0 .. categoryPanelWidth && my in y .. y + 20
 
             val color = when {
                 cat == selectedCategory -> accentColor
@@ -258,61 +293,46 @@ object ConfigGUI: GuiScreen() {
                 else -> compBackgroundColor
             }
 
-            drawSmoothRect(color, 10, y, leftPanelWidth - 20, 20)
-            drawCenteredText(cat.catName, leftPanelWidth / 2, y + 6)
+            drawSmoothRect(color, 10, y, categoryPanelWidth - 20, 20)
+            drawCenteredText(cat.catName, categoryPanelWidth / 2, y + 6)
             y += 30
         }
+    }
 
-
-        val subCategoryPanelX = leftPanelWidth + 20.0
-        var subCategoryPanelY = 20.0 - subCategoryScroll
-        for (cat in filteredComponents ?: config[selectedCategory] ?: emptyList()) {
-            if (subCategoryPanelY > 0 && subCategoryPanelY < guiHeight - cat.button1.height) cat.button1.draw(
-                subCategoryPanelX, subCategoryPanelY,
-                scaledMouseX - guiX, scaledMouseY - guiY
-            )
-            subCategoryPanelY += 10 + cat.button1.height
-        }
-
-        selectedSubCategory?.let {
-            val panelX = guiWidth - leftPanelWidth * 2 - 20
-            var panelY = 20.0 - componentsScroll
-
-            drawSmoothRect(Color.WHITE, (panelX - (panelX - (subCategoryPanelX + button1.width)) / 2), 20, 1.5, guiHeight - 40)
-            drawCenteredText(it.feature.name, panelX + 100, - 18.0, 1.3)
-
-            for (comp in it.components) {
-                if (comp.hidden) continue
-                if (panelY > 0 && panelY + comp.height < guiHeight) {
-                    comp.draw(panelX, panelY, scaledMouseX - guiX, scaledMouseY - guiY)
-                }
-                panelY += 10 + comp.height
+    fun drawFeatures(mx: Double, my: Double) {
+        val x = featurePanelX + panelPadding * 2
+        var y = 10.0 - featuresScroll
+        for (cat in filteredFeatures ?: config[selectedCategory] ?: emptyList()) {
+            if (y > 0 && y < guiHeight - cat.button1.height) {
+                cat.button1.draw(x, y, mx, my)
             }
+            y += 10 + cat.button1.height
         }
+    }
 
-        glPopMatrix()
+    fun drawSettings(mx: Double, my: Double) {
+        val settings = openedFeatureSettings ?: return
+        val settingX = settingsPanelX + panelPadding * 2
+        var settingY = 20.0 - settingsScroll
 
-        dragging?.let { btn ->
-            selectedSubCategory?.let { subCategory ->
-                val panelX = guiX + guiWidth - leftPanelWidth - 100
-                var panelY = guiY + 20.0 - subCategoryScroll
-                for (comp in subCategory.components) {
-                    if (comp.hidden) continue
-                    if (panelY > 0) {
-                        comp.mouseDragged(
-                            panelX, panelY,
-                            scaledMouseX, scaledMouseY,
-                            btn
-                        )
-                    }
-                    panelY += 10 + comp.height
-                }
+
+        drawCenteredText(settings.feature.name, settingX + 100, - topBarHeight + 8, 1.6)
+
+        for (comp in settings.components) {
+            if (comp.hidden) continue
+            if (settingY > 0 && settingY < guiHeight - comp.height) {
+                comp.draw(settingX, settingY, mx, my)
             }
+            settingY += 10 + comp.height
         }
     }
 
     override fun handleMouseInput() {
         super.handleMouseInput()
+        onScroll()
+    }
+
+    fun onScroll() {
         val dWheel = Mouse.getEventDWheel()
         val scaledMouseX = MouseUtils.getMouseX() / scale - guiX
         val scaledMouseY = MouseUtils.getMouseY() / scale - guiY
@@ -345,21 +365,19 @@ object ConfigGUI: GuiScreen() {
             }
         }
 
-        when (scaledMouseX) {
-            in 0.0 .. leftPanelWidth -> {
-                // reserved
+        when {
+            scaledMouseX >= categoryPanelX && scaledMouseX < featurePanelX -> {
+                // reserved category scrolling?
             }
 
-            in leftPanelWidth + 20.0 .. leftPanelWidth + 220.0 -> {
-                val maxHeight = (filteredComponents ?: config[selectedCategory] !!).size * 30f
-                animateScroll(::subCategoryScroll, scroll(subCategoryScroll, maxHeight))
+            scaledMouseX >= featurePanelX && scaledMouseX < settingsPanelX -> {
+                val maxHeight = (filteredFeatures ?: config[selectedCategory] !!).size * 30f
+                animateScroll(::featuresScroll, scroll(featuresScroll, maxHeight))
             }
 
-            in guiWidth - leftPanelWidth - 70 .. guiWidth -> {
-                selectedSubCategory?.let { subCategory ->
-                    val maxHeight = subCategory.components.filterNot { it.hidden }.sumOf { it.height + 10f }.toFloat() + 20f
-                    animateScroll(::componentsScroll, scroll(componentsScroll, maxHeight))
-                }
+            scaledMouseX >= settingsPanelX && scaledMouseX < guiWidth -> openedFeatureSettings?.let { subCategory ->
+                val maxHeight = subCategory.components.filterNot { it.hidden }.sumOf { it.height + 10f }.toFloat() + 20f
+                animateScroll(::settingsScroll, scroll(settingsScroll, maxHeight))
             }
         }
     }
@@ -372,43 +390,9 @@ object ConfigGUI: GuiScreen() {
         SearchBar.onClick(scaledMouseX, scaledMouseY)
         HudEditButton.onClick(scaledMouseX, scaledMouseY)
 
-        var y = 10.0
-        for (cat in config.keys) {
-            if (scaledMouseX in .0 .. leftPanelWidth && scaledMouseY in y .. y + 20) {
-                selectedCategory = cat
-                SoundUtils.click()
-                subCategoryScroll = 0f
-                componentsScroll = 0f
-                SearchBar.reset()
-            }
-            y += 30
-        }
-
-        val subCategoryPanelX = leftPanelWidth + 20.0
-        var subCategoryPanelY = 20.0 - subCategoryScroll
-        for (cat in filteredComponents ?: config[selectedCategory] ?: emptyList()) {
-            if (subCategoryPanelY > 0 && subCategoryPanelY < guiHeight - cat.button1.height) cat.button1.mouseClicked(
-                subCategoryPanelX, subCategoryPanelY,
-                scaledMouseX, scaledMouseY, mouseButton
-            )
-            subCategoryPanelY += 10 + cat.button1.height
-        }
-
-        selectedSubCategory?.let {
-            val panelX = guiWidth - leftPanelWidth - 100
-            var panelY = 20.0 - componentsScroll
-            for (comp in it.components) {
-                if (comp.hidden) continue
-                if (panelY > 0) {
-                    comp.mouseClicked(
-                        panelX, panelY,
-                        scaledMouseX, scaledMouseY,
-                        mouseButton
-                    )
-                }
-                panelY += 10 + comp.height
-            }
-        }
+        onCategoryClick(scaledMouseX, scaledMouseY, mouseButton)
+        onFeatureClick(scaledMouseX, scaledMouseY, mouseButton)
+        onSettingsClick(scaledMouseX, scaledMouseY, mouseButton)
 
         scope.launch {
             for (c in config.values) {
@@ -421,32 +405,65 @@ object ConfigGUI: GuiScreen() {
         }
     }
 
-    override fun mouseReleased(mouseX: Int, mouseY: Int, state: Int) {
-        val scaledMouseX = mouseX / scale
-        val scaledMouseY = mouseY / scale
+    fun onCategoryClick(mx: Double, my: Double, btn: Int) {
+        var y = 10.0
+        for (cat in config.keys) {
+            val clicked = mx in .0 .. categoryPanelWidth && my in y .. y + 20
+            if (clicked) when (btn) {
+                0 -> {
+                    selectedCategory = cat
+                    SoundUtils.click()
+                    featuresScroll = 0f
+                    SearchBar.reset()
+                }
+            }
+            y += 30
+        }
+    }
+
+    fun onFeatureClick(mx: Double, my: Double, btn: Int) {
+        val x = featurePanelX + panelPadding * 2
+        var y = 10.0 - featuresScroll
+        for (cat in filteredFeatures ?: config[selectedCategory] ?: emptyList()) {
+            if (y > 0 && y < guiHeight - cat.button1.height) {
+                cat.button1.mouseClicked(x, y, mx, my, btn)
+            }
+            y += 10 + cat.button1.height
+        }
+    }
+
+    fun onSettingsClick(mx: Double, my: Double, btn: Int) {
+        val settingX = settingsPanelX + panelPadding * 2
+        var settingY = 20.0 - settingsScroll
+        for (comp in openedFeatureSettings?.components ?: emptyList()) {
+            if (comp.hidden) continue
+            if (settingY > 0 && settingY < guiHeight - comp.height) {
+                comp.mouseClicked(settingX, settingY, mx, my, btn)
+            }
+            settingY += 10 + comp.height
+        }
+    }
+
+    override fun mouseReleased(mouseX: Int, mouseY: Int, mouseButton: Int) {
+        val mx = mouseX / scale
+        val my = mouseY / scale
         dragging = null
 
-        selectedSubCategory?.let {
-            val panelX = guiX + guiWidth - leftPanelWidth - 70
-            var panelY = guiY + 20.0 - subCategoryScroll
-            for (comp in it.components) {
-                if (comp.hidden) continue
-                if (panelY > 0) {
-                    comp.mouseRelease(
-                        panelX, panelY,
-                        scaledMouseX, scaledMouseY,
-                        state
-                    )
-                }
-                panelY += 10 + comp.height
+        val settingX = settingsPanelX + panelPadding * 2
+        var settingY = 20.0 - settingsScroll
+        for (comp in openedFeatureSettings?.components ?: emptyList()) {
+            if (comp.hidden) continue
+            if (settingY > 0 && settingY < guiHeight - comp.height) {
+                comp.mouseRelease(settingX, settingY, mx, my, mouseButton)
             }
+            settingY += 10 + comp.height
         }
     }
 
     override fun keyTyped(typedChar: Char, keyCode: Int) {
         if (SearchBar.isFocused) {
             SearchBar.onKeyTyped(typedChar, keyCode)
-            filteredComponents = if (SearchBar.text.trim().isNotBlank()) {
+            filteredFeatures = if (SearchBar.text.trim().isNotBlank()) {
                 config.values.flatten().filter {
                     it.feature.name.contains(SearchBar.text, ignoreCase = true)
                 }
@@ -458,7 +475,7 @@ object ConfigGUI: GuiScreen() {
 
         var cancel = false
 
-        (selectedSubCategory?.components?.filterNot { it.hidden })?.forEach {
+        (openedFeatureSettings?.components?.filterNot { it.hidden })?.forEach {
             if (! cancel) cancel = it.keyTyped(typedChar, keyCode)
         }
 
@@ -468,6 +485,10 @@ object ConfigGUI: GuiScreen() {
 
     override fun onGuiClosed() {
         Config.save()
+        SearchBar.reset()
+        filteredFeatures = null
+        openedFeatureSettings = null
+        scrollJob?.cancel() // Cancel animations
+        scrollJob = null
     }
-
 }

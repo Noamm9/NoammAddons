@@ -55,7 +55,6 @@ dependencies {
     packageLib("cc.polyfrost:oneconfig-wrapper-launchwrapper:1.0.0-beta+")
     compileOnly("cc.polyfrost:oneconfig-1.8.9-forge:0.2.0-alpha+")
 
-
     compileOnly("com.github.NotEnoughUpdates:NotEnoughUpdates:2.4.0:all")
 }
 

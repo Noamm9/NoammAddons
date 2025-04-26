@@ -9,9 +9,9 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.NumbersTitle
 import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.TerminalSlot
+import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.checkLastClick
 import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getClickMode
 import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getColorMode
-import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getFirstClickDelay
 import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getResyncTime
 import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getSolutionColor
 import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getTermScale
@@ -43,7 +43,10 @@ object Numbers {
     private var clicked = false
     private val queue = mutableListOf<Pair<Int, Int>>()
     private val solution = mutableListOf<Int>()
-    private val allowedSlots = listOf(10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25)
+    private val allowedSlots = listOf(
+        10, 11, 12, 13, 14, 15, 16,
+        19, 20, 21, 22, 23, 24, 25
+    )
 
 
     @SubscribeEvent
@@ -83,6 +86,7 @@ object Numbers {
     @SubscribeEvent
     fun cancelGui(event: GuiScreenEvent.DrawScreenEvent.Pre) {
         if (! inTerminal) return
+        event.isCanceled = true
 
         val termScale = getTermScale()
         val screenWidth = mc.getWidth() / termScale
@@ -99,13 +103,13 @@ object Numbers {
 
         val slotX = floor((mouseX - offsetX) / 18).toInt()
         val slotY = floor((mouseY - offsetY) / 18).toInt()
+        val slot = slotX + slotY * 9
 
         if (slotX in 0 .. 8 && slotY >= 0 && getClickMode() == 2) {
-            val slot = slotX + slotY * 9
-            if (slot >= windowSize) return
-            if (slot !in solution) return
-            predict(slot)
-            if (clicked) queue.add(slot to 0) else click(slot, 0)
+            if (slot < windowSize && slot in solution && checkLastClick()) {
+                predict(slot)
+                if (clicked) queue.add(slot to 0) else click(slot, 0)
+            }
         }
 
         val colorMode = getColorMode()
@@ -119,16 +123,19 @@ object Numbers {
 
         for (i in 0 until windowSize) {
             val index = solution.indexOf(i)
+            if (index == - 1 || index >= 3) continue
+
             val currentOffsetX = i % 9 * 18 + offsetX
             val currentOffsetY = floor(i / 9.0).toInt() * 18 + offsetY
 
-            val stackSize = terminalSlots.find { it.num == i }?.size ?: continue
-            drawCenteredText("$stackSize", currentOffsetX + 8, currentOffsetY + 4)
-            if (index == - 1 || index >= 3) continue
-
             repeat(index) { solverColor = solverColor.darker().darker() }
+
             drawRoundedRect(solverColor, currentOffsetX, currentOffsetY, 16f, 16f, 1.5f)
+
             repeat(index) { solverColor = solverColor.brighter().brighter() }
+
+            val stackSize = mc.thePlayer?.openContainer?.getSlot(i)?.stack?.stackSize ?: continue
+            drawCenteredText("$stackSize", currentOffsetX + 8, currentOffsetY + 4)
         }
         GlStateManager.popMatrix()
     }
@@ -147,8 +154,10 @@ object Numbers {
     }
 
     private fun click(slot: Int, button: Int) {
-        C0EPacketClickWindow(cwid, slot, button, 0, null, 0).send(getFirstClickDelay().takeIf { ! clicked })
+        if (solution.indexOf(slot) != 0) return
         clicked = true
+        TerminalSolver.lastClick = System.currentTimeMillis()
+        C0EPacketClickWindow(cwid, slot, button, 0, null, 0).send()
         val initialWindowId = cwid
         setTimeout(getResyncTime()) {
             if (! inTerminal || initialWindowId != cwid) return@setTimeout

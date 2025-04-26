@@ -3,7 +3,7 @@ package noammaddons.ui.config.core.impl
 import noammaddons.features.Feature
 import noammaddons.noammaddons
 import noammaddons.ui.config.ConfigGUI
-import noammaddons.ui.config.ConfigGUI.componentsScroll
+import noammaddons.ui.config.ConfigGUI.settingsScroll
 import noammaddons.ui.config.core.SubCategory
 import noammaddons.utils.MathUtils.interpolateColor
 import noammaddons.utils.RenderHelper.getWidth
@@ -12,7 +12,6 @@ import noammaddons.utils.SoundUtils
 import kotlin.reflect.KProperty
 
 open class button1(name: String, val cat: SubCategory): Component<() -> Unit>(name) {
-    override val width get() = Companion.width
     override val defaultValue = {}
 
     private var borderAnimation = 0f
@@ -38,10 +37,10 @@ open class button1(name: String, val cat: SubCategory): Component<() -> Unit>(na
             0 -> cat.feature.toggle()
 
             1 -> {
-                ConfigGUI.selectedSubCategory = cat.takeIf {
-                    ConfigGUI.selectedSubCategory != cat && cat.components.isNotEmpty()
+                ConfigGUI.openedFeatureSettings = cat.takeIf {
+                    ConfigGUI.openedFeatureSettings != cat && cat.components.isNotEmpty()
                 }
-                componentsScroll = 0f
+                settingsScroll = 0f
             }
         }
     }
