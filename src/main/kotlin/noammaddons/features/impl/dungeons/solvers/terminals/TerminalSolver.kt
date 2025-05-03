@@ -16,7 +16,7 @@ object TerminalSolver: Feature() {
     )
 
     val scale = SliderSetting("Scale", 1, 100, 75)
-    val clickMode = DropdownSetting("Mode", listOf("Default", "Q-Terms", "Hover"))
+    val clickMode = DropdownSetting("Mode", listOf("Default", "Q-Terms", "Hover Terms"))
 
     val reSyncTimeout = SliderSetting("Resync Timeout", 400, 1000, 600)
 

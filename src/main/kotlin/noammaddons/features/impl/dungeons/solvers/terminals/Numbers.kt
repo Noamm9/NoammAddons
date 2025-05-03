@@ -48,7 +48,6 @@ object Numbers {
         19, 20, 21, 22, 23, 24, 25
     )
 
-
     @SubscribeEvent
     fun onClick(event: GuiMouseClickEvent) {
         if (! inTerminal || getClickMode() == 2) return
@@ -106,9 +105,10 @@ object Numbers {
         val slot = slotX + slotY * 9
 
         if (slotX in 0 .. 8 && slotY >= 0 && getClickMode() == 2) {
-            if (slot < windowSize && slot in solution && checkLastClick()) {
+            if (solution.indexOf(slot) == 0 && checkLastClick()) {
                 predict(slot)
-                if (clicked) queue.add(slot to 0) else click(slot, 0)
+                if (clicked) queue.add(slot to 0)
+                else click(slot, 0)
             }
         }
 
@@ -154,7 +154,6 @@ object Numbers {
     }
 
     private fun click(slot: Int, button: Int) {
-        if (solution.indexOf(slot) != 0) return
         clicked = true
         TerminalSolver.lastClick = System.currentTimeMillis()
         C0EPacketClickWindow(cwid, slot, button, 0, null, 0).send()
@@ -212,7 +211,9 @@ object Numbers {
 
         if (terminalSlots.size == windowSize) {
             solve()
-            if (queue.isNotEmpty() && queue.all { (queuedSlot, _) -> solution.indexOf(queuedSlot) == queue.indexOfFirst { it.first == queuedSlot } }) {
+            if (queue.isNotEmpty() && queue.all { (queuedSlot, _) ->
+                    solution.indexOf(queuedSlot) == queue.indexOfFirst { it.first == queuedSlot }
+                }) {
                 queue.forEach { (queuedSlot, _) -> predict(queuedSlot) }
                 click(queue[0].first, queue[0].second)
                 queue.removeAt(0)

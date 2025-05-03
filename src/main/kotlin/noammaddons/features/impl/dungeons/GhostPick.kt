@@ -70,8 +70,10 @@ object GhostPick: Feature("Allows you to break blocks client-side.") {
 
     @SubscribeEvent
     fun onTick(event: Tick) {
-        if (onlyInDungeon.value && ! inDungeon) return
-        if (!keybind.isPressed()) return
+        if (onlyInDungeon.value) return
+        if (mc.currentScreen != null) return
+        if (!inDungeon) featureState = false
+        if (! keybind.isPressed()) return
         featureState = ! featureState
     }
 
