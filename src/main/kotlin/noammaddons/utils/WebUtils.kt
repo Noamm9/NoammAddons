@@ -63,6 +63,7 @@ object WebUtils {
 
                     when (connection.responseCode) {
                         403 -> Logger.warn("403 Forbidden: $url")
+                        429 -> Logger.warn("429 Too Many Requests (surely axle?): $url")
                         502 -> Logger.warn("502 Bad Gateway: $url")
                         503 -> Logger.warn("503 Service Unavailable: $url")
                         504 -> Logger.warn("504 Gateway Timeout: $url")
@@ -78,7 +79,7 @@ object WebUtils {
                 }
                 catch (e: Exception) {
                     Logger.error("Failed to fetch data from $url", e)
-                    if (connection.responseCode.equalsOneOf(403, 502, 503, 504)) return@launch
+                    if (connection.responseCode.equalsOneOf(403, 502, 503, 504, 429)) return@launch
                     if (e is SocketTimeoutException) return@launch
                     mc.crashed(CrashReport("Failed to fetch data from $url", e))
                 }
