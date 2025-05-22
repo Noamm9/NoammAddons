@@ -10,9 +10,9 @@ import noammaddons.utils.DungeonUtils.dungeonTeammates
 import noammaddons.utils.LocationUtils.inDungeon
 
 object PlayerModel: Feature() {
-    private val playerScale = ToggleSetting("Custom Scale Scale")
+    private val playerScale = ToggleSetting("Custom Scale")
     private val scaleEveryone = ToggleSetting("Scale Everyone").addDependency(playerScale)
-    private val pScale = SliderSetting("Scale", 0.1, 2, 1.0).addDependency(playerScale)
+    private val pScale = SliderSetting("Scale Factor", 0.1, 2, 1.0).addDependency(playerScale)
 
     private val playerSpin = ToggleSetting("Player Spin")
     private val spinSpeed = SliderSetting("Spin Speed", 1, 25, 10.0).addDependency(playerSpin)

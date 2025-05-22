@@ -1,6 +1,6 @@
 @file:Suppress("DEPRECATED_IDENTITY_EQUALS")
 
-package noammaddons.features.impl.dungeons.solvers.terminals
+package noammaddons.features.impl.dungeons.solvers.terminals.impl
 
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.network.play.server.S2DPacketOpenWindow
@@ -8,11 +8,11 @@ import net.minecraft.network.play.server.S2FPacketSetSlot
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
-import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.MelodyTitle
-import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.TerminalSlot
-import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getColorMode
-import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getSolutionColor
-import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getTermScale
+import noammaddons.features.impl.dungeons.solvers.terminals.TerminalSolver
+import noammaddons.features.impl.dungeons.solvers.terminals.TerminalSolver.getColorMode
+import noammaddons.features.impl.dungeons.solvers.terminals.TerminalSolver.getSolutionColor
+import noammaddons.features.impl.dungeons.solvers.terminals.TerminalSolver.getTermScale
+import noammaddons.features.impl.dungeons.solvers.terminals.core.TerminalSlot
 import noammaddons.features.impl.gui.Menus.renderBackground
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.noFormatText
@@ -93,7 +93,7 @@ object Melody {
         GlStateManager.scale(termScale, termScale, termScale)
 
         renderBackground(offsetX, offsetY, width, height, colorMode)
-        drawText(MelodyTitle, offsetX, offsetY)
+        drawText(TerminalSolver.melodyTitle, offsetX, offsetY)
 
         drawRoundedRect(Color(255, 0, 255), offsetX + (correct + 1) * 18, offsetY + 18, 16f, 70f, 1.5f)
 

@@ -413,8 +413,8 @@ object ConfigGUI: GuiScreen() {
                 0 -> {
                     selectedCategory = cat
                     SoundUtils.click()
-                    featuresScroll = 0f
                     SearchBar.reset()
+                    filteredFeatures = null
                 }
             }
             y += 30

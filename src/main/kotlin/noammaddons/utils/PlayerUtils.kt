@@ -27,7 +27,6 @@ object PlayerUtils {
         mc.thePlayer?.closeScreen()
     }
 
-
     fun swinghand() {
         (mc.thePlayer as EntityLivingBase).apply {
             swingProgressInt = - 1

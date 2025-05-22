@@ -115,8 +115,8 @@ object BlazeSolver: Feature() {
     fun renderBlazeSolve(e: RenderWorld) {
         if (blazes.isEmpty()) return
 
-        blazes.withIndex().filter { it.index < blazeCount.toInt() }.forEach { (i, entity) ->
-            if (i in 1 ..< blazes.size) {
+        blazes.withIndex().forEach { (i, entity) ->
+            if (i > 0 && i < blazeCount.toInt()) {
                 val b1 = blazes[i - 1].positionVector.add(y = blazes[i - 1].height / 2.0)
                 val b2 = entity.positionVector.add(y = entity.height / 2.0)
                 draw3DLine(b1, b2, lineColor, 3f)

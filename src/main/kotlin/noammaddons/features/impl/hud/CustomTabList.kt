@@ -40,7 +40,7 @@ object CustomTabList: Feature() {
         } ?: emptyList()
 
         val maxNameWidth = names.maxOf { getStringWidth(it) }
-        val maxFooterWidth = footerLines.maxOf { getStringWidth(it) }
+        val maxFooterWidth = footerLines.takeIf { it.isNotEmpty() }?.maxOf { getStringWidth(it) } ?: 0f
 
         val rowsCount = splitArray(names, 20).size.coerceIn(1, 4)
 

@@ -1,4 +1,4 @@
-package noammaddons.features.impl.dungeons.solvers.terminals
+package noammaddons.features.impl.dungeons.solvers.terminals.impl
 
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.network.play.client.C0EPacketClickWindow
@@ -7,22 +7,21 @@ import net.minecraft.network.play.server.S2FPacketSetSlot
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
-import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.RedGreenTitle
-import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.TerminalSlot
-import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.checkLastClick
-import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getClickMode
-import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getColorMode
-import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getResyncTime
-import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getSolutionColor
-import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getTermScale
+import noammaddons.features.impl.dungeons.solvers.terminals.TerminalSolver
+import noammaddons.features.impl.dungeons.solvers.terminals.TerminalSolver.getClickMode
+import noammaddons.features.impl.dungeons.solvers.terminals.TerminalSolver.getColorMode
+import noammaddons.features.impl.dungeons.solvers.terminals.TerminalSolver.getSolutionColor
+import noammaddons.features.impl.dungeons.solvers.terminals.TerminalSolver.getTermScale
+import noammaddons.features.impl.dungeons.solvers.terminals.core.ClickMode
+import noammaddons.features.impl.dungeons.solvers.terminals.core.TerminalSlot
 import noammaddons.features.impl.gui.Menus.renderBackground
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.disableNEUInventoryButtons
 import noammaddons.utils.ItemUtils.getItemId
-import noammaddons.utils.LocationUtils
 import noammaddons.utils.LocationUtils.F7Phase
+import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.MouseUtils.getMouseX
 import noammaddons.utils.MouseUtils.getMouseY
 import noammaddons.utils.RenderHelper.getHeight
@@ -33,8 +32,7 @@ import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.send
 import kotlin.math.floor
 
-
-object RedGreen {
+object Colors {
     private var inTerminal = false
     private var cwid = - 1
     private var windowSize = 0
@@ -42,15 +40,30 @@ object RedGreen {
     private var clicked = false
     private val queue = mutableListOf<Pair<Int, Int>>()
     private val solution = mutableListOf<Int>()
+    private var extra: String? = null
+
     private val allowedSlots = listOf(
-        11, 12, 13, 14, 15,
-        20, 21, 22, 23, 24,
-        29, 30, 31, 32, 33
+        10, 11, 12, 13, 14, 15, 16,
+        19, 20, 21, 22, 23, 24, 25,
+        28, 29, 30, 31, 32, 33, 34,
+        37, 38, 39, 40, 41, 42, 43
+    )
+    private val replacements = mapOf(
+        "light gray" to "silver",
+        "wool" to "white",
+        "bone" to "white",
+        "ink" to "black",
+        "lapis" to "blue",
+        "cocoa" to "brown",
+        "dandelion" to "yellow",
+        "rose" to "red",
+        "cactus" to "green"
     )
 
+
     @SubscribeEvent
-    fun onClick(event: GuiMouseClickEvent) {
-        if (! inTerminal || getClickMode() == 2) return
+    fun onGuiClick(event: GuiMouseClickEvent) {
+        if (! inTerminal) return
         event.isCanceled = true
 
         val termScale = getTermScale()
@@ -74,11 +87,13 @@ object RedGreen {
         val slot = slotX + slotY * 9
 
         if (slot >= windowSize) return
+        if (slot !in solution) return
+        predict(slot)
 
-        if (solution.contains(slot)) {
-            predict(slot)
-            if (clicked && getClickMode() == 1) queue.add(slot to 0) else click(slot, 0)
+        if (clicked && getClickMode() == ClickMode.QUEUE) {
+            queue.add(slot to 0)
         }
+        else click(slot, 0)
     }
 
     @SubscribeEvent
@@ -90,25 +105,11 @@ object RedGreen {
         val screenWidth = mc.getWidth() / termScale
         val screenHeight = mc.getHeight() / termScale
 
-        val mouseX = getMouseX() / termScale
-        val mouseY = getMouseY() / termScale
-
         val width = 9 * 18
         val height = windowSize / 9 * 18
 
         val offsetX = screenWidth / 2 - width / 2
         val offsetY = screenHeight / 2 - height / 2
-
-        val slotX = floor((mouseX - offsetX) / 18).toInt()
-        val slotY = floor((mouseY - offsetY) / 18).toInt()
-        val slot = slotX + slotY * 9
-
-        if (slotX in 0 .. 8 && slotY >= 0 && getClickMode() == 2) {
-            if (slot < windowSize && slot in solution && checkLastClick()) {
-                predict(slot)
-                if (clicked) queue.add(slot to 0) else click(slot, 0)
-            }
-        }
 
         val colorMode = getColorMode()
         val solverColor = getSolutionColor()
@@ -117,10 +118,10 @@ object RedGreen {
         GlStateManager.scale(termScale, termScale, termScale)
 
         renderBackground(offsetX, offsetY, width, height, colorMode)
-        drawText(RedGreenTitle, offsetX, offsetY)
+        drawText(TerminalSolver.colorsTitle, offsetX, offsetY)
 
         for (i in 0 until windowSize) {
-            if (i !in solution) continue
+            if (! solution.contains(i)) continue
 
             val currentOffsetX = i % 9 * 18 + offsetX
             val currentOffsetY = floor(i / 9.0).toInt() * 18 + offsetY
@@ -133,19 +134,28 @@ object RedGreen {
 
     private fun solve() {
         solution.clear()
-        terminalSlots.filter { it != null && allowedSlots.contains(it.num) && it.id == 160 && it.meta == 14 }
-            .map { it !!.num }
-            .forEach { solution.add(it) }
+
+        terminalSlots.filter {
+            it != null && allowedSlots.contains(it.num) && ! it.enchanted &&
+                    fixName(it.name.lowercase()).startsWith(extra ?: "")
+        }.map { it !!.num }.forEach { solution.add(it) }
     }
 
     private fun predict(slot: Int) = solution.remove(slot)
 
+    fun fixName(name: String): String {
+        var fixedName = name
+        replacements.forEach { (k, v) ->
+            fixedName = fixedName.replace(Regex("^$k"), v)
+        }
+        return fixedName
+    }
+
     private fun click(slot: Int, button: Int) {
         clicked = true
-        TerminalSolver.lastClick = System.currentTimeMillis()
         C0EPacketClickWindow(cwid, slot, button, 0, null, 0).send()
         val initialWindowId = cwid
-        setTimeout(getResyncTime()) {
+        setTimeout(TerminalSolver.reSyncTime) {
             if (! inTerminal || initialWindowId != cwid) return@setTimeout
             queue.clear()
             solve()
@@ -155,14 +165,16 @@ object RedGreen {
 
     @SubscribeEvent
     fun onWindowOpen(event: PacketEvent.Received) {
-        if (! TerminalSolver.redGreen.value || LocationUtils.dungeonFloorNumber != 7 || F7Phase != 3) return
+        if (! TerminalSolver.colors.value || dungeonFloorNumber != 7 || F7Phase != 3) return
         if (event.packet !is S2DPacketOpenWindow) return
 
         val windowTitle = event.packet.windowTitle.noFormatText
         val slotCount = event.packet.slotCount
+        val colorsMatch = Regex("^Select all the ([\\w ]+) items!$").matchEntire(windowTitle)
         cwid = event.packet.windowId
 
-        if (Regex("^Correct all the panes!$").matches(windowTitle)) {
+        if (colorsMatch != null) {
+            extra = colorsMatch.groupValues[1].lowercase()
             inTerminal = true
             clicked = false
             terminalSlots.clear()
@@ -195,8 +207,7 @@ object RedGreen {
                 )
             )
         }
-        else terminalSlots.add(null)
-
+        else terminalSlots[slot] = null
 
         if (terminalSlots.size == windowSize) {
             solve()

@@ -31,12 +31,12 @@ object StarMobESP: Feature("Highlights Star Mobs in the dungoen") {
     @JvmField
     val starMobs = HashSet<Entity>()
 
-    private val espBats = ToggleSetting("Bats")
-    private val espFels = ToggleSetting("Fels")
+    private val espBats = ToggleSetting("Hightlight Bats")
+    private val espFels = ToggleSetting("Hightlight Fels")
     private val customMinibossesColors = ToggleSetting("Custom Minibosses Colors")
 
     private val starMobColor = ColorSetting("Star Mob Color", favoriteColor, false)
-    private val felColor = ColorSetting("Enderman Color", Color.pink, false)
+    private val felColor = ColorSetting("Fel Color", Color.pink, false)
     private val batColor = ColorSetting("Bat Color", Color.GREEN, false)
 
     private val shadowAssasianColor = ColorSetting("Shadow Assasian", Color.BLACK, false).addDependency(customMinibossesColors)

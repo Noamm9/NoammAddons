@@ -89,6 +89,15 @@ object LividSolver: Feature() {
     }
 
     @SubscribeEvent
+    fun onRenderWorld(event: RenderEntityEvent) {
+        if (dungeonFloorNumber != 5 || ! inBoss) return
+        if (currentLivid?.isDead.equalsOneOf(null, true)) return
+        if (currentLivid?.isPlayerSleeping.equalsOneOf(null, true)) return
+        if (! highlight.value) return
+        espMob(currentLivid !!, highlightColor.value)
+    }
+
+    @SubscribeEvent
     fun onTick(event: Tick) {
         if (! inBoss || dungeonFloorNumber != 5) {
             currentLivid = null

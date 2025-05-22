@@ -48,7 +48,7 @@ object ChatCoordsWaypoint: Feature("Shows A waypoint when someone sends coords i
         onChat(Regex("^(Co-op|Party)?(?: > )?(?:\\[\\d+] .? ?)?(?:\\[[\\w+]+] )?(\\w{1,16}): x: (.{1,4}), y: (.{1,4}), z: (.{1,4})")) {
             val (_, name, x, y, z) = it.destructured
             val waypoint = Waypoint(name, Vec3(x.toDouble(), y.toDouble(), z.toDouble()))
-            setTimeout(removeTimeout.value.toLong()) { waypoints.remove(waypoint) } // lazy ass way ik XD
+            setTimeout(removeTimeout.value.toLong() * 1000) { waypoints.remove(waypoint) } // lazy ass way ik XD
             waypoints.add(waypoint)
         }
     }
@@ -72,7 +72,7 @@ object ChatCoordsWaypoint: Feature("Shows A waypoint when someone sends coords i
 
             if (drawName.value) RenderUtils.drawString(
                 waypoint.name,
-                waypoint.loc.add(y = 1 + distance * 0.01f),
+                waypoint.loc.add(x = 0.5, y = 1 + distance * 0.01f, z = 0.5),
                 nameColor.value,
                 scale, phase = true
             )

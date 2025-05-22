@@ -53,7 +53,6 @@ object WardrobeKeybinds: Feature("Allows you to use your hotbar binds to swap ar
 
         if (closeAfterUse.value) {
             GuiUtils.sendWindowClickPacket(slot, 0, 0)
-
             PlayerUtils.closeScreen()
         }
         else mc.playerController.windowClick(windowId, slot, 0, 0, mc.thePlayer)

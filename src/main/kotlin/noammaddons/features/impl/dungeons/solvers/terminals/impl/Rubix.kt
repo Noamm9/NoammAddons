@@ -1,4 +1,4 @@
-package noammaddons.features.impl.dungeons.solvers.terminals
+package noammaddons.features.impl.dungeons.solvers.terminals.impl
 
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.network.play.client.C0EPacketClickWindow
@@ -7,14 +7,13 @@ import net.minecraft.network.play.server.S2FPacketSetSlot
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
-import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.RubixTitle
-import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.TerminalSlot
-import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.checkLastClick
-import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getClickMode
-import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getColorMode
-import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getResyncTime
-import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getSolutionColor
-import noammaddons.features.impl.dungeons.solvers.terminals.ConstantsVariables.getTermScale
+import noammaddons.features.impl.dungeons.solvers.terminals.TerminalSolver
+import noammaddons.features.impl.dungeons.solvers.terminals.TerminalSolver.getClickMode
+import noammaddons.features.impl.dungeons.solvers.terminals.TerminalSolver.getColorMode
+import noammaddons.features.impl.dungeons.solvers.terminals.TerminalSolver.getSolutionColor
+import noammaddons.features.impl.dungeons.solvers.terminals.TerminalSolver.getTermScale
+import noammaddons.features.impl.dungeons.solvers.terminals.core.ClickMode
+import noammaddons.features.impl.dungeons.solvers.terminals.core.TerminalSlot
 import noammaddons.features.impl.gui.Menus.renderBackground
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.noFormatText
@@ -49,7 +48,7 @@ object Rubix {
 
     @SubscribeEvent
     fun onClick(event: GuiMouseClickEvent) {
-        if (! inTerminal || getClickMode() == 2) return
+        if (! inTerminal) return
         event.isCanceled = true
 
         val termScale = getTermScale()
@@ -73,18 +72,15 @@ object Rubix {
         val slot = slotX + slotY * 9
 
         if (slot >= windowSize) return
+        val color = solution[slot] ?: return
+        val clickType = if (color > 0) 0 else 1
+        predict(slot, clickType)
 
-        when {
-            (solution[slot] ?: 0) > 0 -> {
-                predict(slot, 0)
-                if (clicked && getClickMode() == 1) queue.add(slot to 0) else click(slot, 0)
-            }
-
-            (solution[slot] ?: 0) < 0 -> {
-                predict(slot, 1)
-                if (clicked && getClickMode() == 1) queue.add(slot to 1) else click(slot, 1)
-            }
+        if (clicked && getClickMode() == ClickMode.QUEUE) {
+            queue.add(slot to clickType)
         }
+        else click(slot, clickType)
+
     }
 
     @SubscribeEvent
@@ -96,32 +92,11 @@ object Rubix {
         val screenWidth = mc.getWidth() / termScale
         val screenHeight = mc.getHeight() / termScale
 
-        val mouseX = getMouseX() / termScale
-        val mouseY = getMouseY() / termScale
-
         val width = 9 * 18
         val height = windowSize / 9 * 18
 
         val offsetX = screenWidth / 2 - width / 2
         val offsetY = screenHeight / 2 - height / 2
-
-        val slotX = floor((mouseX - offsetX) / 18).toInt()
-        val slotY = floor((mouseY - offsetY) / 18).toInt()
-        val slot = slotX + slotY * 9
-
-        if (slotX in 0 .. 8 && slotY >= 0 && getClickMode() == 2) {
-            if (slot < windowSize && checkLastClick()) when {
-                (solution[slot] ?: 0) > 0 -> {
-                    predict(slot, 0)
-                    if (clicked) queue.add(slot to 0) else click(slot, 0)
-                }
-
-                (solution[slot] ?: 0) < 0 -> {
-                    predict(slot, 1)
-                    if (clicked) queue.add(slot to 1) else click(slot, 1)
-                }
-            }
-        }
 
         val colorMode = getColorMode()
         val solverColor = getSolutionColor()
@@ -130,7 +105,7 @@ object Rubix {
         GlStateManager.scale(termScale, termScale, 0f)
 
         renderBackground(offsetX, offsetY, width, height, colorMode)
-        drawText(RubixTitle, offsetX, offsetY)
+        drawText(TerminalSolver.rubixTitle, offsetX, offsetY)
 
         for (i in 0 until windowSize) {
             val solutionValue = solution[i] ?: continue
@@ -187,10 +162,9 @@ object Rubix {
 
     private fun click(slot: Int, button: Int) {
         clicked = true
-        TerminalSolver.lastClick = System.currentTimeMillis()
         C0EPacketClickWindow(cwid, slot, button, if (button == 2) 3 else 0, null, 0).send()
         val initialWindowId = cwid
-        setTimeout(getResyncTime()) {
+        setTimeout(TerminalSolver.reSyncTime) {
             if (! inTerminal || initialWindowId != cwid) return@setTimeout
             queue.clear()
             solve()
