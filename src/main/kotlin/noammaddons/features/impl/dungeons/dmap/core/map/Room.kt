@@ -2,7 +2,7 @@ package noammaddons.features.impl.dungeons.dmap.core.map
 
 import net.minecraft.util.BlockPos
 import noammaddons.events.DungeonEvent
-import noammaddons.events.RegisterEvents
+import noammaddons.events.EventDispatcher
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapConfig
 import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
 import noammaddons.features.impl.dungeons.dmap.handlers.DungeonScanner
@@ -31,7 +31,7 @@ class Room(override val x: Int, override val z: Int, var data: RoomData): Tile {
             ScanUtils.getRoomFromPos(it.mapIcon.getRealPos())?.data?.name == data.name
         }
 
-        RegisterEvents.postAndCatch(DungeonEvent.RoomEvent.onStateChange(this, oldValue, newValue, roomPlayers))
+        EventDispatcher.postAndCatch(DungeonEvent.RoomEvent.onStateChange(this, oldValue, newValue, roomPlayers))
     }
 
     override val color: Color

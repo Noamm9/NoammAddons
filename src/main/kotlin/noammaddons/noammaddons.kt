@@ -10,15 +10,15 @@ import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.common.event.FMLInitializationEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.commands.CommandManager.registerCommands
-import noammaddons.config.Config
 import noammaddons.config.PogObject
 import noammaddons.events.PreKeyInputEvent
-import noammaddons.events.RegisterEvents
+import noammaddons.events.EventDispatcher
 import noammaddons.features.FeatureManager
 import noammaddons.features.FeatureManager.registerFeatures
 import noammaddons.features.impl.DevOptions
 import noammaddons.features.impl.misc.ClientBranding
 import noammaddons.features.impl.misc.Cosmetics.CosmeticRendering
+import noammaddons.ui.config.ConfigGUI
 import noammaddons.utils.*
 import noammaddons.utils.WebUtils.fetchJsonWithRetry
 import org.apache.logging.log4j.LogManager
@@ -49,8 +49,6 @@ class noammaddons {
 
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
-        @JvmField
-        val config = Config
         val hudData = PogObject("hudData", DataClasses.HudElementConfig())
         private val firstLoad = PogObject("firstLoad", true)
         val personalBests = PogObject("PersonalBests", DataClasses.PersonalBestData())
@@ -73,13 +71,12 @@ class noammaddons {
     fun onInit(event: FMLInitializationEvent) {
         Logger.info("Initializing NoammAddons")
         loadTime = System.currentTimeMillis()
-        config.initialize()
 
         ClientBranding.setCustomIcon()
         ClientBranding.setCustomTitle()
 
         listOf(
-            this, RegisterEvents, ThreadUtils,
+            this, EventDispatcher, ThreadUtils,
             TestGround, GuiUtils, ScanUtils,
             LocationUtils, DungeonUtils,
             ActionBarParser, PartyUtils,
@@ -107,8 +104,8 @@ class noammaddons {
         firstLoad.setData(false)
         Utils.playFirstLoadMessage()
         ThreadUtils.setTimeout(11_000) {
-            GuiUtils.openScreen(config.gui())
-            config.openDiscordLink()
+            GuiUtils.openScreen(ConfigGUI)
+            Utils.openDiscordLink()
         }
     }
 

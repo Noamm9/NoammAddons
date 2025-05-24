@@ -4,6 +4,7 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.save.Savable
+import noammaddons.utils.RenderHelper
 import noammaddons.utils.RenderUtils.drawCenteredText
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.SoundUtils
@@ -31,12 +32,12 @@ class KeybindSetting(name: String, override var defaultValue: Int = Keyboard.KEY
         drawSmoothRect(compBackgroundColor, x, y, width, height)
         drawText(name, x + 5, y + 6)
 
-        val buttonWidth = 28.0
+        val displayText = if (listening) "..." else if (value == Keyboard.KEY_NONE) " " else Keyboard.getKeyName(value)
+        val buttonWidth = RenderHelper.getStringWidth(displayText).coerceAtLeast(22f) + 6
         val buttonHeight = 12.0
         val buttonX = x + width - buttonWidth - 8
         val buttonY = y + (height - buttonHeight) / 2
 
-        val displayText = if (listening) "..." else if (value == Keyboard.KEY_NONE) " " else Keyboard.getKeyName(value)
         val color = if (value == Keyboard.KEY_NONE) hoverColor else accentColor
 
         drawSmoothRect(color, buttonX, buttonY, buttonWidth, buttonHeight)

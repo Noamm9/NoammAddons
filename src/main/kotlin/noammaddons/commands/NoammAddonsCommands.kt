@@ -4,7 +4,6 @@ import gg.essential.universal.UChat
 import gg.essential.universal.UDesktop.browse
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.command.ICommandSender
-import noammaddons.config.Config.openDiscordLink
 import noammaddons.config.EditGui.HudEditorScreen
 import noammaddons.features.impl.dungeons.AutoPotion.potionName
 import noammaddons.features.impl.hud.TpsDisplay.getTps
@@ -30,6 +29,7 @@ import noammaddons.utils.ScanUtils.currentRoom
 import noammaddons.utils.ScanUtils.getCore
 import noammaddons.utils.ScanUtils.getRoomCenterAt
 import noammaddons.utils.UpdateUtils
+import noammaddons.utils.Utils.openDiscordLink
 import java.net.URI
 
 

@@ -15,7 +15,7 @@ import net.minecraft.util.ChatAllowedCharacters.*
 import net.minecraft.util.StringUtils.*
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
-import noammaddons.events.RegisterEvents.postAndCatch
+import noammaddons.events.EventDispatcher.postAndCatch
 import noammaddons.features.impl.DevOptions
 import noammaddons.noammaddons.Companion.CHAT_PREFIX
 import noammaddons.noammaddons.Companion.DEBUG_PREFIX

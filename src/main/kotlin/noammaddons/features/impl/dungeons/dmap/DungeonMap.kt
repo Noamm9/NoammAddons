@@ -16,15 +16,22 @@ import noammaddons.features.impl.dungeons.dmap.core.DungeonMapElement
 import noammaddons.features.impl.dungeons.dmap.core.map.*
 import noammaddons.features.impl.dungeons.dmap.handlers.*
 import noammaddons.features.impl.dungeons.dmap.utils.MapUtils
+import noammaddons.ui.config.core.impl.ButtonSetting
 import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.GuiUtils.openScreen
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.remove
 
 object DungeonMap: Feature() {
+    @Suppress("unused")
+    private val openConfigBtn by ButtonSetting("Open Config") {
+        openScreen(DungeonMapConfig.gui())
+    }
+
     val debug get() = EssentialAPI.getMinecraftUtil().isDevelopment()
 
     @SubscribeEvent

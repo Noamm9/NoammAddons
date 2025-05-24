@@ -135,7 +135,7 @@ object HudEditorScreen: GuiScreen() {
         if (scrollEvent != 0) {
             selectedElement?.let {
                 it.setScale(
-                    it.getScale() + scrollEvent.sign * 0.05f
+                    (it.getScale() + scrollEvent.sign * 0.05f).coerceAtLeast(0.1f)
                 )
             }
         }

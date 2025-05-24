@@ -24,7 +24,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.awt.*;
 import java.nio.FloatBuffer;
 
-import static noammaddons.events.RegisterEvents.postAndCatch;
+import static noammaddons.events.EventDispatcher.postAndCatch;
 import static noammaddons.utils.EspUtils.chamEntities;
 import static org.lwjgl.opengl.GL11.*;
 

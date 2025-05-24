@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static net.minecraftforge.fml.client.config.GuiUtils.drawGradientRect;
-import static noammaddons.events.RegisterEvents.postAndCatch;
+import static noammaddons.events.EventDispatcher.postAndCatch;
 
 
 @Mixin(GuiContainer.class)

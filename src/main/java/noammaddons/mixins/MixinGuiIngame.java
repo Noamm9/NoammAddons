@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static noammaddons.events.RegisterEvents.postAndCatch;
+import static noammaddons.events.EventDispatcher.postAndCatch;
 import static noammaddons.features.impl.dungeons.DungeonSecrets.removeSecrets;
 import static noammaddons.features.impl.hud.PlayerHud.cancelActionBar;
 import static noammaddons.features.impl.hud.PlayerHud.modifyText;

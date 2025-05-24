@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static noammaddons.events.RegisterEvents.postAndCatch;
+import static noammaddons.events.EventDispatcher.postAndCatch;
 
 @Mixin(GuiPlayerTabOverlay.class)
 public abstract class MixinGuiPlayerTabOverlay {

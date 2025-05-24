@@ -41,7 +41,6 @@ open class Feature(
     open val configSettings: MutableSet<Component<out Any>> = mutableSetOf()
 
     protected inline val mc get() = noammaddons.mc
-    protected inline val config get() = noammaddons.config
     protected inline val scope get() = noammaddons.scope
     protected inline val hudData get() = noammaddons.hudData
     protected inline val ahData get() = noammaddons.ahData

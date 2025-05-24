@@ -58,7 +58,7 @@ object FeatureManager {
         NoBlockAnimation, WitherShieldTimer, CustomBowHitSound, `ZeroPingTeleportation (ZPT)`,
         TeleportOverlay, CustomScoreboard, BlockOverlay, CustomWardrobeMenu,
         CustomPetMenu, TimeChanger, CustomTabList, TerminalSolver, ChamNametags,
-        DevOptions, CustomSlotHighlight,
+        DevOptions, CustomSlotHighlight, InventoryDisplay,
 
         DungeonMap,
         //ProfileViewer,

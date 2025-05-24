@@ -8,7 +8,7 @@ import net.minecraft.util.Vec3
 import net.minecraftforge.fml.common.eventhandler.Event
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
-import noammaddons.events.RegisterEvents.postAndCatch
+import noammaddons.events.EventDispatcher.postAndCatch
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.SliderSetting
 import noammaddons.ui.config.core.impl.ToggleSetting

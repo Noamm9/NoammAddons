@@ -1,6 +1,7 @@
 package noammaddons.utils
 
 import gg.essential.universal.UChat
+import gg.essential.universal.UDesktop
 import net.minecraft.network.Packet
 import noammaddons.noammaddons.Companion.CHAT_PREFIX
 import noammaddons.noammaddons.Companion.Logger
@@ -13,6 +14,7 @@ import noammaddons.utils.ChatUtils.getChatBreak
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.ThreadUtils.setTimeout
 import java.awt.Color
+import java.net.URI
 
 
 object Utils {
@@ -38,6 +40,10 @@ object Utils {
         ).run {
             UChat.chat(joinToString("\n") { getCenteredText(it) })
         }
+    }
+
+    fun openDiscordLink() {
+        UDesktop.browse(URI("https://discord.gg/pj9mQGxMxB"))
     }
 
 

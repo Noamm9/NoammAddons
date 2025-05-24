@@ -4,7 +4,7 @@ import net.minecraft.block.Block
 import net.minecraft.init.Blocks.*
 import net.minecraft.util.*
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.RegisterEvents
+import noammaddons.events.EventDispatcher
 import noammaddons.events.WorldUnloadEvent
 import noammaddons.features.impl.DevOptions
 import noammaddons.features.impl.dungeons.dmap.core.map.Room
@@ -44,7 +44,7 @@ object ScanUtils {
             lastKnownRoom = currentRoom
             currentRoom = room
 
-            RegisterEvents.checkForRoomChange(currentRoom, lastKnownRoom)
+            EventDispatcher.checkForRoomChange(currentRoom, lastKnownRoom)
         }
     }
 

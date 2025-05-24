@@ -7,7 +7,6 @@ import noammaddons.utils.ChatUtils.modMessage
 
 abstract class Command(val name: String, val aliases: List<String> = listOf(), val usage: String = ""): CommandBase() {
     protected val mc = noammaddons.mc
-    protected val config = noammaddons.config
     protected val hudData = noammaddons.hudData
     protected val scope = noammaddons.scope
 

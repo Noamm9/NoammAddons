@@ -10,13 +10,12 @@ import net.minecraft.util.BlockPos
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
-import noammaddons.events.RegisterEvents.postAndCatch
+import noammaddons.events.EventDispatcher.postAndCatch
 import noammaddons.features.impl.DevOptions
 import noammaddons.features.impl.dungeons.dmap.core.ClearInfo
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapPlayer
 import noammaddons.features.impl.dungeons.dmap.core.map.*
 import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
-import noammaddons.noammaddons.Companion.config
 import noammaddons.noammaddons.Companion.mayorData
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.noammaddons.Companion.scope

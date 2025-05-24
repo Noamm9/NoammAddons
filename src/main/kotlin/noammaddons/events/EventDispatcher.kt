@@ -31,7 +31,7 @@ import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.equalsOneOf
 
 
-object RegisterEvents {
+object EventDispatcher {
     data class Inventory(
         val title: String,
         val windowId: Int,

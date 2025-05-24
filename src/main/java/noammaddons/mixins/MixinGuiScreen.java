@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import javax.annotation.Nullable;
 
-import static noammaddons.events.RegisterEvents.postAndCatch;
+import static noammaddons.events.EventDispatcher.postAndCatch;
 
 @Mixin(GuiScreen.class)
 public abstract class MixinGuiScreen {
