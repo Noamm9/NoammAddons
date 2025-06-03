@@ -9,6 +9,7 @@ import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.RenderUtils.drawRect
 import noammaddons.utils.RenderUtils.drawRectBorder
+import org.lwjgl.opengl.GL11
 import java.awt.Color
 
 object InventoryDisplay: Feature() {
@@ -29,24 +30,29 @@ object InventoryDisplay: Feature() {
 
         override fun draw() {
             val rawInventory = mc.thePlayer.inventory.mainInventory
-            val inventory = MutableList(36) { index -> rawInventory.getOrNull(index) }
-
-            val moved = inventory.take(9)
-            val reordered = inventory.drop(9) + if (showHotbar.value) moved else emptyList()
 
             GlStateManager.pushMatrix()
+            val depthWasEnabled = GL11.glIsEnabled(GL11.GL_DEPTH_TEST)
             GlStateManager.enableDepth()
             GlStateManager.scale(getScale(), getScale(), getScale())
             GlStateManager.translate(getX() / getScale(), getY() / getScale(), 1f)
 
-            // Draw a background border box aligned to grid
             drawRectBorder(borderColor.value, - 1, - 1, width, height, 2f)
 
-            reordered.forEachIndexed { index, itemStack ->
-                val col = index % 9
-                val row = index / 9
+            val numDisplaySlots = if (showHotbar.value) 36 else 27
+
+            for (displayIndex in 0 until numDisplaySlots) {
+                val sourceInventoryIndex: Int = if (showHotbar.value)
+                    if (displayIndex < 27) 9 + displayIndex
+                    else displayIndex - 27
+                else 9 + displayIndex
+
+                val itemStack = rawInventory.getOrNull(sourceInventoryIndex)
+                val col = displayIndex % 9
+                val row = displayIndex / 9
+
                 val itemX = col * 18
-                val itemY = if (row < 3) row * 18 else 3 * 18 + 2 // hotbar gets offset
+                val itemY = if (row < 3) row * 18 else (3 * 18) + 2
 
                 drawRect(slotBackgroundColor.value, itemX.toFloat(), itemY.toFloat(), 16f, 16f)
 
@@ -58,6 +64,7 @@ object InventoryDisplay: Feature() {
                 }
             }
 
+            if (! depthWasEnabled) GlStateManager.disableDepth()
             GlStateManager.popMatrix()
         }
     }

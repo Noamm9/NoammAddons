@@ -11,9 +11,9 @@ import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.*
 
 object AutoRequeue: Feature() {
-    private val checkParty = ToggleSetting("Check Party", true).register1()
-    private val delay = SliderSetting("Delay", 0, 10_000, 5000.0).register1()
-    private val feedback = ToggleSetting("Feedback", true).register1()
+    private val checkParty by ToggleSetting("Check Party", true)
+    private val delay by SliderSetting("Delay", 0, 10, 0.5, 5)
+    private val feedback by ToggleSetting("Feedback", true)
 
 
     private const val prefix = "&bAutoRequeue &f>"
@@ -21,21 +21,21 @@ object AutoRequeue: Feature() {
     private val floor get() = PartyCommands.NUMBERS_TO_TEXT[LocationUtils.dungeonFloorNumber ?: 0]
 
     private fun feedBackMessage(msg: String) {
-        if (! feedback.value) return
+        if (! feedback) return
         ChatUtils.modMessage("$prefix $msg")
     }
 
     @SubscribeEvent
     fun onRunEnd(event: DungeonEvent.RunEndedEvent) {
-        if (checkParty.value) {
+        if (checkParty) {
             if (! PartyUtils.inParty) return feedBackMessage("Not in a party!")
             if (PartyUtils.size != 5) return feedBackMessage("Not enough players in party!")
             if (PartyCommands.downtimeList.isNotEmpty()) return feedBackMessage("There are players in downtime!")
         }
 
         scope.launch {
-            delay(delay.value.toLong())
-            if (checkParty.value && PartyUtils.leader != mc.session.username) return@launch feedBackMessage("You are not the party leader!")
+            delay(delay.toLong() * 1000)
+            if (checkParty && PartyUtils.leader != mc.session.username) return@launch feedBackMessage("You are not the party leader!")
             ChatUtils.sendChatMessage("/joininstance ${masterMode}CATACOMBS_FLOOR_${floor}")
         }
     }

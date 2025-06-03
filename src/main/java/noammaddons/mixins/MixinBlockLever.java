@@ -5,7 +5,7 @@ import net.minecraft.block.BlockLever;
 import net.minecraft.block.material.Material;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.IBlockAccess;
-import noammaddons.features.impl.dungeons.FullBlock;
+import noammaddons.features.impl.misc.FullBlock;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

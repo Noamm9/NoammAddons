@@ -1,15 +1,16 @@
 package noammaddons.features.impl.dungeons.solvers.puzzles
 
-import gg.essential.elementa.utils.withAlpha
 import net.minecraft.init.Blocks.*
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.util.BlockPos
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
+import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.BboxColor
+import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.BclickColor
+import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.BshowAll
+import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.BzeroPing
 import noammaddons.noammaddons.Companion.personalBests
-import noammaddons.ui.config.core.impl.ColorSetting
-import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.*
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.toVec
@@ -23,9 +24,7 @@ import noammaddons.utils.RenderUtils.drawBlockBox
 import noammaddons.utils.RenderUtils.drawBox
 import noammaddons.utils.ScanUtils.getRealCoord
 import noammaddons.utils.ScanUtils.getRoomCenterAt
-import noammaddons.utils.Utils.favoriteColor
 import noammaddons.utils.Utils.formatPbPuzzleMessage
-import java.awt.Color
 
 
 object BoulderSolver: Feature() {
@@ -41,12 +40,6 @@ object BoulderSolver: Feature() {
 
     var trueStartTime: Long? = null
     var startTime: Long? = null
-
-    private val showAll by ToggleSetting("Show All", false)
-    private val zeroPing by ToggleSetting("Zero Ping", false)
-    private val boxColor by ColorSetting("Box Color", favoriteColor.withAlpha(40))
-    private val clickColor by ColorSetting("Click Color", Color.RED.withAlpha(0.3f))
-
 
     init {
         WebUtils.fetchJsonWithRetry<Map<String, List<List<Double>>>?>(
@@ -80,7 +73,7 @@ object BoulderSolver: Feature() {
         if (! inBoulder) return
         if (currentSolution.isEmpty()) return
 
-        if (showAll) currentSolution.forEach { renderBox(it) }
+        if (BshowAll.value) currentSolution.forEach { renderBox(it) }
         else renderBox(currentSolution.first())
     }
 
@@ -94,7 +87,7 @@ object BoulderSolver: Feature() {
             wall_sign, stone_button -> {
                 val entry = currentSolution.find { it.click == packet.position } ?: return
                 if (currentSolution.remove(entry) && startTime == null) startTime = System.currentTimeMillis()
-                if (! zeroPing) return
+                if (! BzeroPing.value) return
 
                 MathUtils.getAllBlocksBetween(entry.box.add(- 1, - 1, - 1), entry.box.add(1, 1, 1)).forEach {
                     BlockUtils.toAir(it)
@@ -130,7 +123,7 @@ object BoulderSolver: Feature() {
         drawBox(
             box.box.add(- 1, - 1, - 1).toVec(),
             box.box.add(2, 2, 2).toVec(),
-            boxColor,
+            BboxColor.value,
             fill = true,
             outline = true,
             phase = true
@@ -138,7 +131,7 @@ object BoulderSolver: Feature() {
 
         drawBlockBox(
             box.click,
-            clickColor,
+            BclickColor.value,
             LineThickness = 2f,
             fill = true,
             outline = true,

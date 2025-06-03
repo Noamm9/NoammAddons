@@ -10,6 +10,7 @@ import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.BlockUtils.getMetadata
 import noammaddons.utils.BlockUtils.getStateAt
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.showTitle
 import noammaddons.utils.DungeonUtils.dungeonTeammates
 import noammaddons.utils.EspUtils.espMob
@@ -110,28 +111,30 @@ object LividSolver: Feature() {
         currentLivid = lividEntity as? EntityOtherPlayerMP ?: return
     }
 
-    init {
-        onWorldLoad {
-            currentLivid = null
+    @SubscribeEvent
+    fun onWorldUnload(event: WorldUnloadEvent) {
+        currentLivid = null
+        lividStart = false
+        bossTicks = 390
+    }
+
+    @SubscribeEvent
+    fun onServerTick(event: ServerTick) {
+        if (! lividStart) return
+        bossTicks --
+        if (bossTicks == 0) {
             lividStart = false
             bossTicks = 390
+            showTitle("&bIce Spray Livid!")
+            SoundUtils.Pling()
         }
+    }
 
-        onServerTick({ lividStart }) {
-            bossTicks --
-
-            if (bossTicks == 0) {
-                lividStart = false
-                bossTicks = 390
-                showTitle("&bIce Spray Livid!")
-                SoundUtils.Pling()
-            }
-        }
-
-        onChat({ iceSprayTimer.value }) {
-            if (dungeonFloorNumber != 5) return@onChat
-            if (it.value != LIVID_BOSS_START_MSG) return@onChat
-            lividStart = true
-        }
+    @SubscribeEvent
+    fun onChat(event: Chat) {
+        if (! iceSprayTimer.value) return
+        if (dungeonFloorNumber != 5) return
+        if (event.component.noFormatText != LIVID_BOSS_START_MSG) return
+        lividStart = true
     }
 }

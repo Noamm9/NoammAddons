@@ -20,7 +20,7 @@ import noammaddons.utils.Utils.equalsOneOf
 import kotlin.math.roundToInt
 
 
-object F7Titles: Feature(_name = "F7 Titles", desc = "Custom Titles for f7 boss fight") {
+object F7Titles: Feature(name = "F7 Titles", desc = "Custom Titles for f7 boss fight") {
     private val termRegex = Regex("^(\\w+) (?:activated|completed) a (\\w+)! \\((\\d)\\/(\\d)\\)\$") // https://regex101.com/r/lnW03M/1
     private val crystalRegex = Regex("^(\\d)\\/(\\d) Energy Crystals are now active!\$") // https://regex101.com/r/HrYH7P/1
     private var currentTitle = ChatUtils.title("", "", 0L, false)
@@ -76,37 +76,41 @@ object F7Titles: Feature(_name = "F7 Titles", desc = "Custom Titles for f7 boss 
     private val lightningTimer by ToggleSetting("Lightning Timer")
 
     override fun init() {
-
-        onWorldLoad {
-            maxorDead = false
-            goldorDead = false
-            necronDead = false
-            startTickTimer = false
-            tickTimer = 0
-            timerTime = 0
-            goldorStart = false
-            necronStart = false
-        }
-
-        onServerTick({ startTickTimer }) {
-            tickTimer ++
-        }
         loop(100) { if (currentTitle.time > 0) currentTitle.time -= 100 }
+    }
 
-        onChat({ dungeonFloorNumber == 7 && inBoss && witherTitles }) {
-            when (it.value) {
-                "[BOSS] Maxor: YOU TRICKED ME!", "[BOSS] Maxor: THAT BEAM! IT HURTS! IT HURTS!!" -> showTitleWithSound(subtitle = "&dMaxor Stunned!", time = 2)
-                "[BOSS] Storm: Oof", "[BOSS] Storm: Ouch, that hurt!" -> showTitleWithSound(subtitle = "&bStorm Crushed!", time = 2)
-                "[BOSS] Storm: I should have known that I stood no chance." -> showTitleWithSound(subtitle = "&bStorm Dead!", time = 2)
-                "[BOSS] Necron: ARGH!" -> necronStart = true
-                "The Core entrance is opening!" -> goldorStart = true
-            }
+    @SubscribeEvent
+    fun onWorldUnload(event: WorldUnloadEvent) {
+        maxorDead = false
+        goldorDead = false
+        necronDead = false
+        startTickTimer = false
+        tickTimer = 0
+        timerTime = 0
+        goldorStart = false
+        necronStart = false
+    }
+
+    @SubscribeEvent
+    fun onServerTick(event: ServerTick) {
+        if (! startTickTimer) return
+        timerTime ++
+    }
+
+    @SubscribeEvent
+    fun onChat(event: Chat) {
+        if (dungeonFloorNumber != 7 || ! inBoss || ! witherTitles) return
+        when (event.component.noFormatText) {
+            "[BOSS] Maxor: YOU TRICKED ME!", "[BOSS] Maxor: THAT BEAM! IT HURTS! IT HURTS!!" -> showTitleWithSound(subtitle = "&dMaxor Stunned!", time = 2)
+            "[BOSS] Storm: Oof", "[BOSS] Storm: Ouch, that hurt!" -> showTitleWithSound(subtitle = "&bStorm Crushed!", time = 2)
+            "[BOSS] Storm: I should have known that I stood no chance." -> showTitleWithSound(subtitle = "&bStorm Dead!", time = 2)
+            "[BOSS] Necron: ARGH!" -> necronStart = true
+            "The Core entrance is opening!" -> goldorStart = true
         }
     }
 
-
     @SubscribeEvent
-    fun renderOverlay(event: RenderOverlay) {
+    fun onRenderOverlay(event: RenderOverlay) {
         if (startTickTimer) {
             val timeLeft = ((timerTime - tickTimer) / 20.0)
             if (timeLeft <= 0) {
@@ -129,7 +133,7 @@ object F7Titles: Feature(_name = "F7 Titles", desc = "Custom Titles for f7 boss 
     }
 
     @SubscribeEvent
-    fun onTitle(event: PacketEvent.Received) {
+    fun onPacket(event: PacketEvent.Received) {
         if (dungeonFloorNumber != 7) return
         if (! inBoss) return
         if (event.packet !is S45PacketTitle) return

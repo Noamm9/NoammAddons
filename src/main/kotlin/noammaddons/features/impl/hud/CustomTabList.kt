@@ -23,7 +23,7 @@ object CustomTabList: Feature() {
     private val backgroundColor = Color(33, 33, 33, 153)
     private val regex = Regex("\\s")
 
-    private val scale by SliderSetting("Scale", 1, 100, 75)
+    private val scale by SliderSetting("Scale", 1, 100, 1, 75)
 
     @SubscribeEvent
     fun drawCustomTabList(event: renderPlayerlist) {

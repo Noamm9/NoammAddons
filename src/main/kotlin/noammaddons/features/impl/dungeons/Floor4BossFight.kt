@@ -29,7 +29,7 @@ import noammaddons.utils.RenderUtils.drawTracer
 import java.awt.Color
 import kotlin.math.abs
 
-object Floor4BossFight: Feature(_name = "Floor 4 Boss", desc = "Spirit bear spawn timer, hightlights and more") {
+object Floor4BossFight: Feature(name = "Floor 4 Boss", desc = "Spirit bear spawn timer, hightlights and more") {
     private val inM4boss get() = dungeonFloorNumber == 4 && inBoss
     private const val bearSpawnTime = 68
     private var bearSpawning = false
@@ -108,28 +108,31 @@ object Floor4BossFight: Feature(_name = "Floor 4 Boss", desc = "Spirit bear spaw
         )
     }
 
-    init {
-        onChat({ hitMissAlert && inM4boss }) {
-            val msg = it.value
+    @SubscribeEvent
+    fun onChat(event: Chat) {
+        if (! hitMissAlert || ! inM4boss) return
+        val msg = event.component.noFormatText
 
-            hitShot.forEach { regex ->
-                if (! msg.matches(regex)) return@forEach
-                showTitle("&l&dHIT")
-                SoundUtils.Pling()
-            }
-
-            missedShot.forEach { regex ->
-                if (! msg.matches(regex)) return@forEach
-                showTitle("&l&cMISS")
-                SoundUtils.harpNote()
-            }
+        hitShot.forEach { regex ->
+            if (! msg.matches(regex)) return@forEach
+            showTitle("&l&dHIT")
+            SoundUtils.Pling()
         }
 
-        onServerTick({ inM4boss && bearSpawning }) {
-            timer -= 1
-            bearSpawning = timer >= 0
+        missedShot.forEach { regex ->
+            if (! msg.matches(regex)) return@forEach
+            showTitle("&l&cMISS")
+            SoundUtils.harpNote()
         }
     }
+
+    @SubscribeEvent
+    fun onServerTick(event: ServerTick) {
+        if (! inM4boss || ! bearSpawning) return
+        timer -= 1
+        bearSpawning = timer >= 0
+    }
+
 
     @SubscribeEvent
     fun onBossbarUpdateEvent(event: BossbarUpdateEvent.Post) {

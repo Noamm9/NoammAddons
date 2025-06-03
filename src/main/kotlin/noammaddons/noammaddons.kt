@@ -11,14 +11,16 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.commands.CommandManager.registerCommands
 import noammaddons.config.PogObject
-import noammaddons.events.PreKeyInputEvent
 import noammaddons.events.EventDispatcher
+import noammaddons.events.PreKeyInputEvent
 import noammaddons.features.FeatureManager
 import noammaddons.features.FeatureManager.registerFeatures
 import noammaddons.features.impl.DevOptions
 import noammaddons.features.impl.misc.ClientBranding
 import noammaddons.features.impl.misc.Cosmetics.CosmeticRendering
 import noammaddons.ui.config.ConfigGUI
+import noammaddons.ui.font.GlyphPageFontRenderer
+import noammaddons.ui.font.TextRenderer
 import noammaddons.utils.*
 import noammaddons.utils.WebUtils.fetchJsonWithRetry
 import org.apache.logging.log4j.LogManager
@@ -65,6 +67,14 @@ class noammaddons {
         @JvmField
         val itemIdToNameLookup = mutableMapOf<String, String>()
         var mayorData: DataClasses.ApiMayor? = null
+
+        @JvmStatic
+        lateinit var textRenderer: TextRenderer
+            private set
+
+        @JvmStatic
+        var initialized = false
+            private set
     }
 
     @Mod.EventHandler
@@ -74,6 +84,8 @@ class noammaddons {
 
         ClientBranding.setCustomIcon()
         ClientBranding.setCustomTitle()
+
+        textRenderer = TextRenderer(GlyphPageFontRenderer.create("Inter", 20, true, true, true))
 
         listOf(
             this, EventDispatcher, ThreadUtils,
@@ -96,6 +108,7 @@ class noammaddons {
 
         Logger.info("Finished Initializing NoammAddons")
         Logger.info("Load Time: ${(System.currentTimeMillis() - loadTime) / 1000.0} seconds")
+        initialized = true
     }
 
     @SubscribeEvent
@@ -104,7 +117,7 @@ class noammaddons {
         firstLoad.setData(false)
         Utils.playFirstLoadMessage()
         ThreadUtils.setTimeout(11_000) {
-            GuiUtils.openScreen(ConfigGUI)
+            ConfigGUI.openGui()
             Utils.openDiscordLink()
         }
     }

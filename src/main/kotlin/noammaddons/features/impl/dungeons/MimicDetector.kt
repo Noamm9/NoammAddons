@@ -4,12 +4,12 @@ import gg.essential.elementa.state.BasicState
 import gg.essential.elementa.utils.withAlpha
 import net.minecraft.entity.monster.EntityZombie
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.EntityLeaveWorldEvent
-import noammaddons.events.RenderChestEvent
+import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.noammaddons.Companion.CHAT_PREFIX
 import noammaddons.ui.config.core.annotations.AlwaysActive
 import noammaddons.ui.config.core.impl.*
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.sendPartyMessage
 import noammaddons.utils.ChatUtils.showTitle
 import noammaddons.utils.ItemUtils.getSkullValue
@@ -58,21 +58,22 @@ object MimicDetector: Feature("Detects when a mimic is killed") {
         if (showTitle.value) showTitle(titleMsg.value)
     }
 
-    override fun init() {
-        onWorldLoad { mimicKilled.set(false) }
+    override fun init() = addSettings(
+        sendMessage, message,
+        showTitle, titleMsg,
+        SeperatorSetting("Highlight"),
+        highlightChest, highlightColor
+    )
 
-        onChat {
-            if (! inDungeon) return@onChat
-            if (it.value.lowercase() !in mimicMessages) return@onChat
-            mimicKilled.set(true)
-        }
 
-        addSettings(
-            sendMessage, message,
-            showTitle, titleMsg,
-            SeperatorSetting("Highlight"),
-            highlightChest, highlightColor
-        )
+    @SubscribeEvent
+    fun onWorldUnload(event: WorldUnloadEvent) = mimicKilled.set(false)
+
+    @SubscribeEvent
+    fun onChat(event: Chat) {
+        if (! inDungeon) return
+        if (event.component.noFormatText.lowercase() !in mimicMessages) return
+        mimicKilled.set(true)
     }
 
     @SubscribeEvent

@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class MixinEntityPlayer {
     @Inject(method = "getEyeHeight", at = @At("HEAD"), cancellable = true)
     public void getEyeHeight(CallbackInfoReturnable<Float> cir) {
+        if (!Camera.INSTANCE.enabled) return;
         if (!Camera.smoothSneak.getValue()) return;
         EntityPlayer player = (EntityPlayer) (Object) this;
         float sneakingOffset = Camera.SmoothSneak.getEyeHeightHook(player);

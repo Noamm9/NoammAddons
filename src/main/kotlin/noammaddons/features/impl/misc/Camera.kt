@@ -20,13 +20,14 @@ object Camera: Feature() {
     val smoothSneak = ToggleSetting("Smooth Sneak")
 
     private val customFov = ToggleSetting("Custom FOV")
-    private val fov = SliderSetting("FOV", 60, 150, mc.gameSettings.fovSetting.toDouble())
+    private val fov = SliderSetting("FOV", 60, 150, 1, mc.gameSettings.fovSetting).addDependency(customFov)
     private val removeSelfieCam = ToggleSetting("Remove Selfie Cam")
     private val onlyWithHype = ToggleSetting("Only With Hype?").addDependency(removeSelfieCam)
 
     private val noBlind = ToggleSetting("Disable Blindness")
     private val noPortal = ToggleSetting("Disable Portal Effect")
     private val noFaceBlock = ToggleSetting("Disable Face Block")
+
     @JvmField
     val noPushOutOfBlocks = ToggleSetting("Disable Block Push")
 

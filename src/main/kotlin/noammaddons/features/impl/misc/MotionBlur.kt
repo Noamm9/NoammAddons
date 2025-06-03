@@ -12,8 +12,8 @@ import noammaddons.ui.config.core.impl.SliderSetting
 import org.lwjgl.opengl.GL11.*
 
 @Dev
-object MotionBlur: Feature("Blurs your screen a little to simulate smoother and cleaner gameplay",) {
-    private val blurStrength by SliderSetting("Blur Strength", 1, 10, 4)
+object MotionBlur: Feature("Blurs your screen a little to simulate smoother and cleaner gameplay") {
+    private val blurStrength by SliderSetting("Blur Strength", 1, 10, 1, 4)
 
     private var blurBufferMain: Framebuffer? = null
     private var blurBufferInto: Framebuffer? = null

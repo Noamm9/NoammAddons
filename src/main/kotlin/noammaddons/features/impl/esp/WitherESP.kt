@@ -43,9 +43,9 @@ object WitherESP: Feature("Highlights Withers in the world") {
         return (dungeonFloorNumber == 7 && inBoss && F7Phase != 5) || world == LocationUtils.WorldType.CrimonIsle
     }
 
-    init {
-        onWorldLoad { Wither.reset() }
-    }
+    @SubscribeEvent
+    fun onWorldUnload(event: WorldUnloadEvent) = Wither.reset()
+
 
     /*
      The wither from the armor set: isArmored: false, invulTime: 800

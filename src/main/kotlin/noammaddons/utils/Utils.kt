@@ -92,6 +92,7 @@ object Utils {
             }
         }
 
+    fun String.removeSpace() = replace("\\s".toRegex(), "")
 
     fun printCaller() {
         Exception().stackTrace.forEach { Logger.info(it) }

@@ -93,11 +93,11 @@ class DataClasses {
         )
         val petDisplay = PetDisplayData(HudElementData(100f, 150f, 1f))
         val TpsDisplay = HudElementData(100f, 160f, 1f)
-        val CustomScoreBoard = HudElementData(mc.getWidth() * 1f, mc.getHeight() / 2f, 3f)
+        val CustomScoreBoard = HudElementData(mc.getWidth() * 1f, mc.getHeight() / 2f, 1f)
         val SecretDisplay = HudElementData(130f, 130f, 1f)
         val dungeonMap = HudElementData(100f, 100f, 1f)
         val scoreCalculator = HudElementData(100f, 100f, 1f) // todo
-        val inventoryDisplay = HudElementData(100f, 100f, 1f) // todo
+        val inventoryDisplay = HudElementData(100f, 100f, 1f)
         val dungeonWarpCooldown = HudElementData(100f, 100f, 1f)
         val dungeonRunSplits = HudElementData(100f, 100f, 1f)
     }

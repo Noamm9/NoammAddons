@@ -18,4 +18,18 @@ public class MixinFontRenderer {
     private String modifyGetStringWidth(String text) {
         return replaceText(text);
     }
+
+   /* @Inject(method = "drawString(Ljava/lang/String;FFIZ)I", at = @At("HEAD"), cancellable = true)
+    private void drawStringHook(String text, float x, float y, int color, boolean dropShadow, CallbackInfoReturnable<Integer> cir) {
+        if (!noammaddons.getInitialized()) return;
+        TextRenderer fr = noammaddons.getTextRenderer();
+        int i = fr.getFr().drawString(text, x - 1, y - 3, color, dropShadow);
+        cir.setReturnValue(i);
+    }
+
+    @Inject(method = "getStringWidth", at = @At(value = "HEAD"), cancellable = true)
+    private void getStringWidthHook(String text, CallbackInfoReturnable<Integer> cir) {
+        if (!noammaddons.getInitialized()) return;
+        cir.setReturnValue((int) noammaddons.getTextRenderer().getStringWidth(text, 1));
+    }*/
 }

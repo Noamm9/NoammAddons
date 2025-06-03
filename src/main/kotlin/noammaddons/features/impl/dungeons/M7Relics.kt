@@ -13,6 +13,7 @@ import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.ActionUtils
 import noammaddons.utils.BlockUtils.toPos
 import noammaddons.utils.ChatUtils.modMessage
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.DungeonUtils.thePlayer
 import noammaddons.utils.LocationUtils.F7Phase
@@ -29,7 +30,7 @@ import noammaddons.utils.Utils.equalsOneOf
 import java.awt.Color
 
 
-object M7Relics: Feature(_name = "M7 Relics", desc = "A bunch of M7 Relics features") {
+object M7Relics: Feature(name = "M7 Relics", desc = "A bunch of M7 Relics features") {
     private data class RelicCauldron(val cauldronPos: Vec3, val color: Color, val relicPos: BlockPos)
     private data class RelicTime(val player: String, val type: String, val pickuptime: Long, var placeTime: String = "", var isPB: Boolean = false)
 
@@ -37,7 +38,7 @@ object M7Relics: Feature(_name = "M7 Relics", desc = "A bunch of M7 Relics featu
     private val relicSpawnTimer = ToggleSetting("Spawn Timer")
     private val relicTimer = ToggleSetting("Place Timer")
     private val relicLook = ToggleSetting("Relic Look")
-    private val relicLookTime = SliderSetting("Relic Look Time", 0, 250, 150.0).addDependency(relicLook)
+    private val relicLookTime = SliderSetting("Relic Look Time", 0, 250, 10, 150.0).addDependency(relicLook)
     override fun init() = addSettings(relicBox, relicSpawnTimer, relicTimer, relicLook, relicLookTime)
 
 
@@ -77,50 +78,55 @@ object M7Relics: Feature(_name = "M7 Relics", desc = "A bunch of M7 Relics featu
         it.getCurrentArmor(3)?.tagCompound.toString().contains("Relic")
     }
 
-    init {
-        onWorldLoad {
-            startTickTimer = false
-            spawnTimerTicks = 0
-            drawOutline = true
-            relicTimes.clear()
-        }
 
-        onChat {
-            val msg = it.value
+    @SubscribeEvent
+    fun onWorldUnload(event: WorldUnloadEvent) {
+        startTickTimer = false
+        spawnTimerTicks = 0
+        drawOutline = true
+        relicTimes.clear()
+    }
 
-            when (msg) {
-                "[BOSS] Wither King: You... again?" -> if (relicBox.value) drawOutline = false
-                "[BOSS] Necron: All this, for nothing..." -> {
-                    p5StartTime = System.currentTimeMillis()
-                    if (relicSpawnTimer.value) {
-                        startTickTimer = true
-                        spawnTimerTicks = 50
-                    }
+    @SubscribeEvent
+    fun onChat(event: Chat) {
+        val msg = event.component.noFormatText
+
+        when (msg) {
+            "[BOSS] Wither King: You... again?" -> if (relicBox.value) drawOutline = false
+            "[BOSS] Necron: All this, for nothing..." -> {
+                p5StartTime = System.currentTimeMillis()
+                if (relicSpawnTimer.value) {
+                    startTickTimer = true
+                    spawnTimerTicks = 50
                 }
             }
-
-            if (! relicTimer.value) return@onChat
-            val (player, relicType) = relicPickUpRegex.find(msg)?.destructured ?: return@onChat
-            relicTimes.add(RelicTime(player, relicColors[relicType] + relicType, System.currentTimeMillis()))
         }
 
-        onServerTick {
-            if (! relicSpawnTimer.value) return@onServerTick
-            if (! startTickTimer) return@onServerTick
-            if (spawnTimerTicks <= 0) return@onServerTick
-            spawnTimerTicks --
-        }
+        if (! relicTimer.value) return
+        val (player, relicType) = relicPickUpRegex.find(msg)?.destructured ?: return
+        relicTimes.add(RelicTime(player, relicColors[relicType] + relicType, System.currentTimeMillis()))
+    }
 
-        onPacket<S2FPacketSetSlot> {
-            if (! relicLook.value) return@onPacket
-            if (F7Phase != 5) return@onPacket
+    @SubscribeEvent
+    fun onServerTick(event: ServerTick) {
+        if (! relicSpawnTimer.value) return
+        if (! startTickTimer) return
+        if (spawnTimerTicks <= 0) return
+        spawnTimerTicks --
+    }
 
-            RelicCauldrons[it.func_149174_e()?.displayName?.removeFormatting()]?.let { c ->
-                if (! c.relicPos.equalsOneOf(BlockPos(92, 7, 56), BlockPos(20, 7, 59))) return@let
-                ActionUtils.rotateSmoothlyTo(c.cauldronPos.add(0.5, 0.5, 0.5), relicLookTime.value.toLong())
-            }
+    @SubscribeEvent
+    fun onPacket(event: PacketEvent.Received) {
+        if (! relicLook.value) return
+        if (F7Phase != 5) return
+        val packet = event.packet as? S2FPacketSetSlot ?: return
+
+        RelicCauldrons[packet.func_149174_e()?.displayName?.removeFormatting()]?.let { c ->
+            if (! c.relicPos.equalsOneOf(BlockPos(92, 7, 56), BlockPos(20, 7, 59))) return@let
+            ActionUtils.rotateSmoothlyTo(c.cauldronPos.add(0.5, 0.5, 0.5), relicLookTime.value.toLong())
         }
     }
+
 
     @SubscribeEvent
     fun drawTimer(event: RenderOverlay) {

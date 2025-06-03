@@ -6,20 +6,15 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import noammaddons.features.Feature
 import noammaddons.noammaddons.Companion.scope
+import noammaddons.noammaddons.Companion.textRenderer
 import noammaddons.ui.config.core.save.Savable
 import noammaddons.utils.MathUtils.lerp
-import noammaddons.utils.RenderUtils.drawCenteredText
-import noammaddons.utils.RenderUtils.drawText
-import noammaddons.utils.SoundUtils
+import noammaddons.utils.RenderUtils.drawRect
 import java.awt.Color
 import kotlin.reflect.KProperty
 
 
-class ColorSetting(
-    label: String,
-    override var defaultValue: Color,
-    val withAlpha: Boolean = true
-): Component<Color>(label), Savable {
+class ColorSetting(label: String, override var defaultValue: Color, val withAlpha: Boolean = true): Component<Color>(label), Savable {
     override var value = defaultValue
 
     private var expanded = false
@@ -33,12 +28,12 @@ class ColorSetting(
 
     override fun draw(x: Double, y: Double, mouseX: Double, mouseY: Double) {
         drawSmoothRect(compBackgroundColor, x, y, width, height)
-        drawText(name, x + 6, y + 7)
-
+        textRenderer.drawText(name, x + 6, y + 7)
 
         val previewX = x + width - 20
         val previewY = y + 4
-        drawSmoothRect(value, previewX, previewY, 14.0, 14.0)
+        drawCheckerboard(previewX, previewY, 14.0, 14.0, 2.0)
+        drawRect(value, previewX, previewY, 14.0, 14.0)
 
         if (animProgress <= 0.0) return
 
@@ -54,10 +49,10 @@ class ColorSetting(
             val (label, value, fillColor) = triple
             val sliderY = offsetY + index * 18
             if (sliderY + 8 > y + height) break
-            drawText("$label:", x + 6, sliderY + 1)
+            textRenderer.drawText("$label:", x + 6, sliderY + 1)
             drawSmoothRect(hoverColor, x + 20, sliderY, sliderWidth, 8.0)
             drawSmoothRect(fillColor, x + 20, sliderY, sliderWidth * (value / 255.0), 8.0)
-            drawCenteredText("$value", x + 20 + sliderWidth / 2, sliderY - 1)
+            textRenderer.drawText("$value", x + 20 + sliderWidth + 6, sliderY - 1)
         }
     }
 
@@ -65,7 +60,6 @@ class ColorSetting(
         if (mouseX in x .. (x + width) && mouseY in y .. (y + collapsedHeight)) {
             expanded = ! expanded
             animateExpand()
-            SoundUtils.click()
             return
         }
 
@@ -102,7 +96,23 @@ class ColorSetting(
         draggingChannel = null
     }
 
-    override fun getValue(thisRef: Feature, property: KProperty<*>) = value
+    private fun drawCheckerboard(x: Double, y: Double, width: Double, height: Double, squareSize: Double) {
+        val c1 = Color(180, 180, 180)
+        val c2 = Color(140, 140, 140)
+        var currentX = x
+        while (currentX < x + width) {
+            var currentY = y
+            var colSwitch = (((currentX - x) / squareSize).toInt() % 2 != 0)
+            while (currentY < y + height) {
+                val actualSquareWidth = (currentX + squareSize).coerceAtMost(x + width) - currentX
+                val actualSquareHeight = (currentY + squareSize).coerceAtMost(y + height) - currentY
+                drawRect(if (colSwitch) c1 else c2, currentX, currentY, actualSquareWidth, actualSquareHeight)
+                currentY += squareSize
+                colSwitch = ! colSwitch
+            }
+            currentX += squareSize
+        }
+    }
 
     private fun animateExpand() {
         scope.launch {
@@ -123,6 +133,8 @@ class ColorSetting(
         }
     }
 
+    override fun getValue(thisRef: Feature, property: KProperty<*>) = value
+
     override fun write(): JsonElement {
         return JsonPrimitive(value.rgb)
     }
@@ -133,3 +145,4 @@ class ColorSetting(
         }
     }
 }
+

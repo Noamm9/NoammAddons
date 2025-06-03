@@ -28,14 +28,13 @@ object ScalableTooltips: Feature("Allows you to scroll and scale tooltips") {
     private var scaleScale: Float = 0f
     private var lastShit: Slot? = null
 
-    private val tooltipScale by SliderSetting("Scale", 1, 100, 80)
+    private val tooltipScale by SliderSetting("Scale", 1, 100, 1, 80)
     private val rarityBorder by ToggleSetting("Rarity Border Color")
-
+    private val s by SeperatorSetting("Colors")
     private val backgroundColor by ColorSetting("Background Color", Color(16, 0, 16, 240))
-    private val borderColor by ColorSetting("Border Color", Color(80, 0, 255, 80))
-        .addDependency(getSettingByName("Rarity Border Color") as ToggleSetting) {
-            it.value
-        }
+    private val borderColor by ColorSetting("Border Color", Color(80, 0, 255, 80)).addDependency {
+        (getSettingByName("Rarity Border Color") as ToggleSetting).value
+    }
 
     @JvmStatic
     fun drawScaledHoveringText(

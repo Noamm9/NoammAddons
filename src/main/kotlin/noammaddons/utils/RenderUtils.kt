@@ -11,9 +11,9 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.Entity
 import net.minecraft.item.ItemStack
 import net.minecraft.util.*
-import noammaddons.features.impl.esp.GlobalEspSettings.fillOpacity
-import noammaddons.features.impl.esp.GlobalEspSettings.lineWidth
-import noammaddons.features.impl.esp.GlobalEspSettings.outlineOpacity
+import noammaddons.features.impl.esp.EspSettings.fillOpacity
+import noammaddons.features.impl.esp.EspSettings.lineWidth
+import noammaddons.features.impl.esp.EspSettings.outlineOpacity
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.BlockUtils.toVec
 import noammaddons.utils.ChatUtils.addColor
@@ -646,17 +646,9 @@ object RenderUtils {
         GlStateManager.translate(x + width / 2, y + height / 2, 0f)
         bindColor(Color.WHITE)
 
-        glEnable(GL_STENCIL_TEST)
-        glClear(GL_STENCIL_BUFFER_BIT)
-
-        glStencilFunc(GL_ALWAYS, 1, 0xFF)
-        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE)
-        glStencilMask(0xFF)
-
-        drawRoundedRect(Color.WHITE, - width / 2, - height / 2, width, height, radius)
-
-        glStencilFunc(GL_EQUAL, 1, 0xFF)
-        glStencilMask(0x00)
+        StencilUtils.beginStencilClip {
+            drawRoundedRect(Color.BLACK, - width / 2, - height / 2, width, height, radius)
+        }
 
         mc.textureManager.bindTexture(resourceLocation)
 
@@ -674,8 +666,7 @@ object RenderUtils {
         worldRenderer.pos((- width / 2).toDouble(), (- height / 2).toDouble(), 0.0).tex(40.0 / 64.0, 8.0 / 64.0).endVertex()
         tessellator.draw()
 
-        glStencilMask(0xFF)
-        glDisable(GL_STENCIL_TEST)
+        StencilUtils.endStencilClip()
 
         postDraw()
         GlStateManager.popMatrix()
@@ -997,5 +988,29 @@ object RenderUtils {
         worldRenderer.pos((x + width).toDouble(), y.toDouble(), 1.0).tex((textureX + width) * texFactor, textureY * texFactor).endVertex()
         worldRenderer.pos(x.toDouble(), y.toDouble(), 1.0).tex(textureX * texFactor, textureY * texFactor).endVertex()
         tessellator.draw()
+    }
+
+    fun drawCircle(color: Color, x: Number, y: Number, r: Number) {
+        glEnable(GL_BLEND)
+        glDisable(GL_CULL_FACE)
+        glDisable(GL_TEXTURE_2D)
+        glBegin(GL_TRIANGLE_FAN)
+
+        glBindColor(color)
+        glVertex2d(x.toDouble(), y.toDouble())
+        var start = 0f
+        while (start <= 360f) {
+            glBindColor(color)
+            glVertex2d(
+                (r.toDouble() * cos(Math.PI * start / 180) + x.toDouble()),
+                (r.toDouble() * sin(Math.PI * start / 180) + y.toDouble())
+            )
+            start ++
+        }
+
+        glEnd()
+        glEnable(GL_TEXTURE_2D)
+        glEnable(GL_CULL_FACE)
+        glDisable(GL_BLEND)
     }
 }

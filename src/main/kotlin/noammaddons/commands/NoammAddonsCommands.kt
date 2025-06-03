@@ -39,7 +39,7 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons, noamm, noam, noam
     }
 
     override fun processCommand(sender: ICommandSender, args: Array<out String>) {
-        if (args.isEmpty()) openScreen(ConfigGUI)
+        if (args.isEmpty()) ConfigGUI.openGui()
         else when (args[0].lowercase()) {
 
             "help" -> UChat.chat(Usage())

@@ -3,10 +3,11 @@ package noammaddons.features.impl.hud
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.config.EditGui.GuiElement
 import noammaddons.config.EditGui.HudEditorScreen
-import noammaddons.events.RenderOverlay
+import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.SeperatorSetting
 import noammaddons.ui.config.core.impl.ToggleSetting
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.showTitle
 import noammaddons.utils.LocationUtils
 import noammaddons.utils.NumbersUtils.toFixed
@@ -40,7 +41,6 @@ object MaskTimers: Feature() {
     private val invulnerabilityTimers = ToggleSetting("Invulnerability Timers")
 
 
-    // Auto-registering the element
     init {
         addSettings(
             bonzo, phoenix, spirit,
@@ -116,22 +116,23 @@ object MaskTimers: Feature() {
         }
     }
 
-    init {
-        onServerTick { Masks.updateTimers() }
-        onWorldLoad { Masks.reset() }
+    @SubscribeEvent
+    fun onServerTick(event: ServerTick) = Masks.updateTimers()
 
-        onChat {
-            if (! LocationUtils.inSkyblock) return@onChat
-            for (mask in Masks.entries) {
-                if (! mask.regex.matches(it.value)) continue
-                mask.timer = mask.cooldown
-                mask.draw = mask.displayConfig()
-                if (mask.draw) Masks.activeMasks.add(mask)
-                if (popAlert.value) showTitle("${mask.color}${mask.maskName}")
-                if (invulnerabilityTimers.value) mask.invTicks = mask.invulnerabilityTime
-            }
+    @SubscribeEvent
+    fun onWorldUnload(event: WorldUnloadEvent) = Masks.reset()
+
+    @SubscribeEvent
+    fun onChat(event: Chat) = with(event.component.noFormatText) {
+        if (! LocationUtils.inSkyblock) return@onChat
+        for (mask in Masks.entries) {
+            if (! mask.regex.matches(this)) continue
+            mask.timer = mask.cooldown
+            mask.draw = mask.displayConfig()
+            if (mask.draw) Masks.activeMasks.add(mask)
+            if (popAlert.value) showTitle("${mask.color}${mask.maskName}")
+            if (invulnerabilityTimers.value) mask.invTicks = mask.invulnerabilityTime
         }
-
     }
 
     @SubscribeEvent

@@ -5,57 +5,94 @@ import com.google.gson.JsonPrimitive
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import noammaddons.features.Feature
+import noammaddons.features.impl.gui.ConfigGui.accentColor
 import noammaddons.noammaddons.Companion.scope
+import noammaddons.noammaddons.Companion.textRenderer
 import noammaddons.ui.config.core.save.Savable
 import noammaddons.utils.MathUtils.interpolateColor
 import noammaddons.utils.MathUtils.lerp
-import noammaddons.utils.RenderUtils.drawText
-import noammaddons.utils.SoundUtils
+import java.awt.Color
 import kotlin.reflect.KProperty
 
 
-class ToggleSetting(label: String, override val defaultValue: Boolean = false): Component<Boolean>(label), Savable {
+class ToggleSetting(
+    label: String,
+    override val defaultValue: Boolean = false
+): Component<Boolean>(label), Savable {
+    override var height = 20.0
+
     override var value = defaultValue
-    private var animProgress = if (value) 1.0 else 0.0  // 0.0 = off, 1.0 = on
+        set(newValue) {
+            if (field != newValue) {
+                field = newValue
+                animate()
+            }
+        }
+
+    private var animProgress = if (value) 1.0 else 0.0
+
+    private val switchTrackWidth = 25.8
+    private val switchTrackHeight = 12.0
+    private val switchKnobRadius = (switchTrackHeight / 2.0) - 1.5
+    private val switchPaddingRight = 10.0
+
+    private val trackColorOff = Color(23, 23, 23)
+    private val knobColor = Color.WHITE
 
     override fun draw(x: Double, y: Double, mouseX: Double, mouseY: Double) {
-        val trackHeight = 10.0
-        val trackWidth = width / 8.0
-        val trackX = x + width - trackWidth - 10
-        val trackY = y + (height - trackHeight) / 2
-        val trackColor = interpolateColor(hoverColor, accentColor, animProgress.toFloat())
+        drawSmoothRect(compBackgroundColor, x, y, width, this.height)
+        textRenderer.drawText(name, x + 6, y + 6)
 
-        drawSmoothRect(compBackgroundColor, x, y, width, height)
-        drawSmoothRect(trackColor, trackX, trackY, trackWidth, trackHeight)
-        drawText(name, x + 6, y + 6)
+        val trackX = x + width - switchPaddingRight - switchTrackWidth
+        val trackY = y + (this.height - switchTrackHeight) / 2.0
+
+        val currentTrackColor = interpolateColor(trackColorOff, accentColor, animProgress.toFloat())
+
+        drawSmoothRect(currentTrackColor, trackX, trackY, switchTrackWidth, switchTrackHeight)
+
+        val knobDiameter = switchKnobRadius * 2.0
+        val travelDistance = switchTrackWidth - knobDiameter - (switchKnobRadius * 0.5)
+
+        val knobCenterX = trackX + switchKnobRadius + (switchKnobRadius * 0.25) + (travelDistance * animProgress)
+        val knobCenterY = trackY + switchTrackHeight / 2.0
+
+        val knobDrawX = knobCenterX - switchKnobRadius
+        val knobDrawY = knobCenterY - switchKnobRadius
+
+        drawSmoothRect(knobColor, knobDrawX, knobDrawY, knobDiameter, knobDiameter)
     }
 
     override fun mouseClicked(x: Double, y: Double, mouseX: Double, mouseY: Double, button: Int) {
-        if (mouseX in x .. (x + width) && mouseY in y .. (y + height) && button == 0) {
-            SoundUtils.click()
-            value = ! value
-            animate()
+        val trackX = x + width - switchPaddingRight - switchTrackWidth
+        val trackY = y + (this.height - switchTrackHeight) / 2.0
+
+        if (mouseX >= trackX && mouseX <= (trackX + switchTrackWidth) && mouseY >= trackY && mouseY <= (trackY + switchTrackHeight) && button == 0) {
+            this.value = ! this.value
         }
     }
 
-    override fun getValue(thisRef: Feature, property: KProperty<*>): Boolean = value
+    private fun animate() = scope.launch {
+        val startProgress = animProgress
+        val endProgress = if (value) 1.0 else 0.0
+        if (startProgress == endProgress) return@launch
 
-    private fun animate() {
-        scope.launch {
-            val start = animProgress
-            val end = if (value) 1.0 else 0.0
-            val duration = 0.15  // seconds
-            val startTime = System.nanoTime()
-            while (true) {
-                val elapsed = (System.nanoTime() - startTime) / 1e9
-                val t = (elapsed / duration).coerceIn(0.0, 1.0)
-                animProgress = lerp(start, end, easeOutQuad(t))
-                if (t == 1.0) break
-                delay(7)
-            }
-            animProgress = end
+        val durationSeconds = 0.20
+        val startTimeNanos = System.nanoTime()
+
+        while (true) {
+            val elapsedNanos = System.nanoTime() - startTimeNanos
+            val elapsedSeconds = elapsedNanos / 1_000_000_000.0
+            val t = (elapsedSeconds / durationSeconds).coerceIn(0.0, 1.0)
+
+            animProgress = lerp(startProgress, endProgress, easeOutQuad(t))
+
+            if (t == 1.0) break
+            delay(7)
         }
+        animProgress = endProgress
     }
+
+    override fun getValue(thisRef: Feature, property: KProperty<*>): Boolean = this.value
 
     override fun write(): JsonElement {
         return JsonPrimitive(value)
@@ -63,8 +100,8 @@ class ToggleSetting(label: String, override val defaultValue: Boolean = false): 
 
     override fun read(element: JsonElement?) {
         element?.asBoolean?.let {
-            value = it
             animProgress = if (value) 1.0 else 0.0
+            value = it
         }
     }
 }

@@ -7,7 +7,6 @@ import noammaddons.utils.MathUtils.lerp
 import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawCenteredText
 import noammaddons.utils.RenderUtils.drawTexturedModalRect
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 import java.awt.Color
 import kotlin.math.pow
 
@@ -18,7 +17,7 @@ object SmoothBossBar: Feature("Animate the boss health change") {
     }
 
     @JvmStatic
-    fun renderCustomBossBar(ci: CallbackInfo) {
+    fun renderCustomBossBar() {
         if (! enabled) return resetBossBar()
         val name = BossStatus.bossName ?: return resetBossBar()
         if (BossStatus.statusBarTime -- <= 0) return resetBossBar()
@@ -35,9 +34,6 @@ object SmoothBossBar: Feature("Animate the boss health change") {
         mc.textureManager.bindTexture(Gui.icons)
         drawTexturedModalRect(barX, 12, 0, 74, 182, 5)
         if (barWidth > 0) drawTexturedModalRect(barX, 12, 0, 79, barWidth, 5)
-
         drawCenteredText(name, screenWidth / 2f, 2f, 1, Color.WHITE)
-
-        ci.cancel()
     }
 }

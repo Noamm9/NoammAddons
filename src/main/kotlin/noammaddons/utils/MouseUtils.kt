@@ -23,15 +23,15 @@ object MouseUtils {
 
 
     @JvmStatic
-    @Suppress("NAME_SHADOWING")
     fun isElementHovered(mx: Number, my: Number, x: Number, y: Number, w: Number, h: Number): Boolean {
-        val mx = mx.toLong()
-        val my = my.toLong()
-        val x = x.toLong()
-        val y = y.toLong()
-        val w = w.toLong()
-        val h = h.toLong()
+        val (mxD, myD) = mx.toDouble() to my.toDouble()
+        val (xD, yD) = x.toDouble() to y.toDouble()
+        val (wD, hD) = w.toDouble() to h.toDouble()
+        return mxD >= xD && mxD <= xD + wD && myD >= yD && myD <= yD + hD
+    }
 
-        return mx >= x && mx <= x + w && my >= y && my <= y + h
+    fun onMouseEnter(mx: Number, my: Number, x: Number, y: Number, w: Number, h: Number, block: () -> Unit) {
+        if (! isElementHovered(mx, my, x, y, w, h)) return
+        block()
     }
 }

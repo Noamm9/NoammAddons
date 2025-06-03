@@ -4,7 +4,7 @@ import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemSkull
 import net.minecraft.item.ItemStack
 import net.minecraftforge.fml.client.config.GuiUtils.*
-import noammaddons.features.impl.gui.GlobalCustomMenuSettings
+import noammaddons.features.impl.gui.CustomMenuSettings
 import noammaddons.features.impl.gui.ScalableTooltips
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.GuiUtils.sendWindowClickPacket
@@ -63,7 +63,7 @@ fun handleSlotClick(button: Int, slotIndex: Int) {
 }
 
 fun calculateScale(): Float {
-    return (7f * (GlobalCustomMenuSettings.scale.toFloat() / 100f)) / mc.getScaleFactor()
+    return (7f * (CustomMenuSettings.scale.toFloat() / 100f)) / mc.getScaleFactor()
 }
 
 fun getMouseScaledCoordinates(scale: Float): Pair<Float, Float> {

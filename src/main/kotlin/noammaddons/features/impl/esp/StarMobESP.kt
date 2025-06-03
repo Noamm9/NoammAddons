@@ -10,8 +10,7 @@ import net.minecraft.network.play.server.S0FPacketSpawnMob
 import net.minecraft.network.play.server.S1CPacketEntityMetadata
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.PostPacketEvent
-import noammaddons.events.RenderEntityEvent
+import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.features.impl.dungeons.FpsBoost.dungeonMobRegex
 import noammaddons.ui.config.core.impl.*
@@ -25,7 +24,7 @@ import noammaddons.utils.Utils.favoriteColor
 import java.awt.Color
 
 
-object StarMobESP: Feature("Highlights Star Mobs in the dungoen") {
+object StarMobESP: Feature("Highlights Star Mobs in the dungeon") {
     val checked = HashSet<Entity>()
 
     @JvmField
@@ -57,11 +56,10 @@ object StarMobESP: Feature("Highlights Star Mobs in the dungoen") {
         frozenAdventurerColor
     )
 
-    init {
-        onWorldLoad {
-            starMobs.clear()
-            checked.clear()
-        }
+    @SubscribeEvent
+    fun onWorldUnload(event: WorldUnloadEvent) {
+        starMobs.clear()
+        checked.clear()
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)

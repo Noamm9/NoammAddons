@@ -33,15 +33,13 @@ import java.awt.Color
 
 
 object AutoI4: Feature("Fully Automated I4.") {
-    private val rotationTime = SliderSetting("Rotation time", 0, 250, 170.0)
+    private val rotationTime = SliderSetting("Rotation time", 0, 250, 10, 170)
     private val predit = ToggleSetting("Predictions", true)
-
     private val rod = ToggleSetting("Auto Rod")
     private val mask = ToggleSetting("Auto Mask")
     private val leap = ToggleSetting("Auto Leap")
 
     override fun init() = addSettings(rotationTime, predit, rod, mask, leap)
-
 
     private val doneCoords = mutableSetOf<BlockPos>()
     private val classLeapPriority = listOf(Mage, Tank, Healer, Archer) // correct me if wrong
@@ -96,6 +94,7 @@ object AutoI4: Feature("Fully Automated I4.") {
 
     @SubscribeEvent
     fun onEvent(event: Event) {
+        if (! enabled) return
         when (event) {
             is BlockChangeEvent -> onBlock(event)
             is RenderWorld -> renderDevBlocks()

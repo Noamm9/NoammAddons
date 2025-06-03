@@ -1,9 +1,10 @@
 package noammaddons.features.impl.dungeons
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.RenderOverlay
+import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.*
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.NumbersUtils.toFixed
@@ -25,62 +26,13 @@ object TickTimers: Feature("Shows various types of server tick timers for f7 bos
     val goldorDeathTickTimer = ToggleSetting("Goldor Death Ticks")
     val padTimer = ToggleSetting("Storm Pad Timer")
 
-
-    override fun init() {
-        addSettings(
-            showPrefix, showSuffix, format,
-            SeperatorSetting("Phase Timers"),
-            p1, p2, p3, p4,
-            goldorDeathTickTimer,
-            padTimer
-        )
-
-        onServerTick {
-            if (startTickTime != - 1) startTickTime --
-
-            if (padTickTime != - 1 && storm) padTickTime --
-            if (padTickTime == 0 && storm) padTickTime = 20
-
-
-            if (goldorTickTime != - 1) goldorTickTime --
-            if (goldorTickTime == 0) goldorTickTime = 60
-        }
-
-        onChat { match ->
-            val msg = match.value
-
-            when {
-                msg == "[BOSS] Maxor: WELL! WELL! WELL! LOOK WHO'S HERE!" && p1.value -> startTickTime = 150
-                msg == "[BOSS] Maxor: I'M TOO YOUNG TO DIE AGAIN!" && p2.value -> startTickTime = 120
-                msg == "[BOSS] Storm: I should have known that I stood no chance." -> {
-                    if (p3.value) startTickTime = 104
-                    if (goldorDeathTickTimer.value) goldorTickTime = 104 + 60
-                    if (storm) {
-                        storm = false
-                        padTickTime = - 1
-                    }
-                }
-
-                msg == "[BOSS] Necron: I'm afraid, your journey ends now." && p4.value -> startTickTime = 60
-            }
-        }
-
-        onChat(Regex("^The Core entrance is opening!$")) {
-            goldorTickTime = - 1
-        }
-
-        onChat(Regex("^\\[BOSS] Storm: Pathetic Maxor, just like expected\\.$"), { enabled && padTimer.value }) {
-            padTickTime = 20
-            storm = true
-        }
-
-        onWorldLoad {
-            padTickTime = - 1
-            goldorTickTime = - 1
-            startTickTime - 1
-            storm = false
-        }
-    }
+    override fun init() = addSettings(
+        showPrefix, showSuffix, format,
+        SeperatorSetting("Phase Timers"),
+        p1, p2, p3, p4,
+        goldorDeathTickTimer,
+        padTimer
+    )
 
     private var startTickTime = - 1
     private var goldorTickTime = - 1
@@ -100,6 +52,50 @@ object TickTimers: Feature("Shows various types of server tick timers for f7 bos
         return prefix + color + timeDisplay + suffix
     }
 
+    @SubscribeEvent
+    fun onChat(event: Chat) {
+        val msg = event.component.noFormatText
+
+        when {
+            msg == "[BOSS] Maxor: WELL! WELL! WELL! LOOK WHO'S HERE!" && p1.value -> startTickTime = 150
+            msg == "[BOSS] Maxor: I'M TOO YOUNG TO DIE AGAIN!" && p2.value -> startTickTime = 120
+            msg == "[BOSS] Storm: I should have known that I stood no chance." -> {
+                if (p3.value) startTickTime = 104
+                if (goldorDeathTickTimer.value) goldorTickTime = 104 + 60
+                if (storm) {
+                    storm = false
+                    padTickTime = - 1
+                }
+            }
+
+            msg == "[BOSS] Necron: I'm afraid, your journey ends now." && p4.value -> startTickTime = 60
+            msg == "The Core entrance is opening!" -> goldorTickTime = - 1
+            msg == "[BOSS] Storm: Pathetic Maxor, just like expected." && padTimer.value -> {
+                padTickTime = 20
+                storm = true
+            }
+        }
+    }
+
+    @SubscribeEvent
+    fun onWorldUnload(event: WorldUnloadEvent) {
+        padTickTime = - 1
+        goldorTickTime = - 1
+        startTickTime - 1
+        storm = false
+    }
+
+    @SubscribeEvent
+    fun onServerTick(event: ServerTick) {
+        if (startTickTime != - 1) startTickTime --
+
+        if (padTickTime != - 1 && storm) padTickTime --
+        if (padTickTime == 0 && storm) padTickTime = 20
+
+
+        if (goldorTickTime != - 1) goldorTickTime --
+        if (goldorTickTime == 0) goldorTickTime = 60
+    }
 
     @SubscribeEvent
     fun onRender(event: RenderOverlay) {

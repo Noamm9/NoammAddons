@@ -18,9 +18,6 @@ import noammaddons.utils.ThreadUtils.loop
 import java.awt.Color
 
 
-// Big Thanks to Odin for Having their code available.
-// https://github.com/odtheking/Odin/blob/1ad9222159bee1dcc08ed12fc6c7ab2d9a8a627f/src/main/kotlin/me/odinmain/features/impl/floor7/p3/ArrowAlign.kt
-// @Modified
 object ArrowAlignSolver: Feature() {
     private val frameGridCorner = Vec3(- 2.0, 120.0, 75.0)
     private val recentClickTimestamps = mutableMapOf<Int, Long>()

@@ -12,10 +12,10 @@ import noammaddons.utils.LocationUtils.inDungeon
 object PlayerModel: Feature() {
     private val playerScale = ToggleSetting("Custom Scale")
     private val scaleEveryone = ToggleSetting("Scale Everyone").addDependency(playerScale)
-    private val pScale = SliderSetting("Scale Factor", 0.1, 2, 1.0).addDependency(playerScale)
+    private val pScale = SliderSetting("Scale Factor", 0.1f, 2f, 0.1f, 1f).addDependency(playerScale)
 
     private val playerSpin = ToggleSetting("Player Spin")
-    private val spinSpeed = SliderSetting("Spin Speed", 1, 25, 10.0).addDependency(playerSpin)
+    private val spinSpeed = SliderSetting("Spin Speed", 1, 25, 1, 10.0).addDependency(playerSpin)
     private val spinDirection = DropdownSetting("Spin Direction", listOf("Left", "Right")).addDependency(playerSpin)
     private val spinOnEveryone = ToggleSetting("Spin On Everyone").addDependency(playerSpin)
     private val speedFactor get() = spinSpeed.value
@@ -38,27 +38,17 @@ object PlayerModel: Feature() {
 
     @SubscribeEvent
     fun onRenderEntityPre(event: RenderPlayerEvent.Pre) {
-        val entity = event.entity
+        val applyScale = playerScale.value && (scaleEveryone.value || event.entity == mc.thePlayer)
+                && (! inDungeon || dungeonTeammates.toList().any { it.entity == event.entity })
 
-        val applyScale = playerScale.value &&
-                (scaleEveryone.value || entity == mc.thePlayer) &&
-                (! inDungeon || dungeonTeammates.toList().any { it.entity == entity })
-
-        val applySpin = playerSpin.value &&
-                (spinOnEveryone.value || entity == mc.thePlayer)
+        val applySpin = playerSpin.value && (spinOnEveryone.value || event.entity == mc.thePlayer)
 
         if (applyScale || applySpin) {
             GlStateManager.pushMatrix()
             GlStateManager.translate(event.x, event.y, event.z)
 
-            if (applyScale) {
-                val scale = pScale.value.toFloat()
-                GlStateManager.scale(scale, scale, scale)
-            }
-
-            if (applySpin) {
-                GlStateManager.rotate(getRotation(), 0f, 1f, 0f)
-            }
+            if (applyScale) GlStateManager.scale(pScale.value, pScale.value, pScale.value)
+            if (applySpin) GlStateManager.rotate(getRotation(), 0f, 1f, 0f)
 
             GlStateManager.translate(- event.x, - event.y, - event.z)
         }
@@ -79,8 +69,8 @@ object PlayerModel: Feature() {
     // IDK why but this shit legit gave me a headache
     fun getPlayerScaleFactor(ent: Entity): Float {
         if (! playerScale.value) return 1f
-        return if (scaleEveryone.value) pScale.value.toFloat()
-        else if (ent == mc.thePlayer) pScale.value.toFloat()
+        return if (scaleEveryone.value) pScale.value
+        else if (ent == mc.thePlayer) pScale.value
         else 1f
     }
 }

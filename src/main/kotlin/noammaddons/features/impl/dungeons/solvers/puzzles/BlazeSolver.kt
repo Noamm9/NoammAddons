@@ -7,9 +7,12 @@ import net.minecraft.init.Blocks
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
+import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.BlineColor
+import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.blazeCount
+import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.firstBlazeColor
+import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.secondBlazeColor
+import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.thirdBlazeColor
 import noammaddons.noammaddons.Companion.personalBests
-import noammaddons.ui.config.core.impl.ColorSetting
-import noammaddons.ui.config.core.impl.SliderSetting
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.ChatUtils.clickableChat
 import noammaddons.utils.ChatUtils.noFormatText
@@ -20,9 +23,9 @@ import noammaddons.utils.MathUtils.add
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderUtils.draw3DLine
 import noammaddons.utils.ScanUtils.getRoomCenterAt
+import noammaddons.utils.ServerPlayer
 import noammaddons.utils.Utils.formatPbPuzzleMessage
 import noammaddons.utils.Utils.remove
-import java.awt.Color
 
 
 object BlazeSolver: Feature() {
@@ -35,18 +38,12 @@ object BlazeSolver: Feature() {
     private var trueTimeStarted: Long? = null
     private var timeStarted: Long? = null
 
-    private val blazeCount by SliderSetting("Blaze count", 1, 3, 2)
-    private val lineColor by ColorSetting("Line Color", Color.WHITE, false)
-    private val firstBlazeColor by ColorSetting("First Blaze Color", Color.GREEN, false)
-    private val secondBlazeColor by ColorSetting("Second Blaze Color", Color.YELLOW, false)
-    private val thirdBlazeColor by ColorSetting("Last Blaze Color", Color.RED, false)
-
     @SubscribeEvent
     fun onEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (! event.room.data.name.contains("Blaze")) return
         inBlaze = true
 
-        val center = getRoomCenterAt(mc.thePlayer.position)
+        val center = getRoomCenterAt(ServerPlayer.player.getPos())
         reversed = getBlockAt(center.add(1, 118, 0)) != Blocks.cobblestone
         trueTimeStarted = System.currentTimeMillis()
         lastBlazeCount = 10
@@ -116,10 +113,10 @@ object BlazeSolver: Feature() {
         if (blazes.isEmpty()) return
 
         blazes.withIndex().forEach { (i, entity) ->
-            if (i > 0 && i < blazeCount.toInt()) {
+            if (i > 0 && i < blazeCount.value.toInt()) {
                 val b1 = blazes[i - 1].positionVector.add(y = blazes[i - 1].height / 2.0)
                 val b2 = entity.positionVector.add(y = entity.height / 2.0)
-                draw3DLine(b1, b2, lineColor, 3f)
+                draw3DLine(b1, b2, BlineColor.value, 3f)
             }
         }
     }
@@ -129,14 +126,14 @@ object BlazeSolver: Feature() {
         if (blazes.isEmpty()) return
 
         // RenderWorld cant keep up with the number of blazes
-        blazes.indexOf(event.entity).takeIf { it != - 1 && it < blazeCount.toInt() }?.let { i ->
+        blazes.indexOf(event.entity).takeIf { it != - 1 && it < blazeCount.value.toInt() }?.let { i ->
             espMob(event.entity, getBlazeColor(i))
         }
     }
 
     fun getBlazeColor(index: Int) = when (index) {
-        0 -> firstBlazeColor
-        1 -> secondBlazeColor
-        else -> thirdBlazeColor
+        0 -> firstBlazeColor.value
+        1 -> secondBlazeColor.value
+        else -> thirdBlazeColor.value
     }
 }

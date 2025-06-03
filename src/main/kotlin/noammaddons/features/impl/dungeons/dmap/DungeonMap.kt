@@ -16,23 +16,33 @@ import noammaddons.features.impl.dungeons.dmap.core.DungeonMapElement
 import noammaddons.features.impl.dungeons.dmap.core.map.*
 import noammaddons.features.impl.dungeons.dmap.handlers.*
 import noammaddons.features.impl.dungeons.dmap.utils.MapUtils
+import noammaddons.ui.config.core.annotations.AlwaysActive
 import noammaddons.ui.config.core.impl.ButtonSetting
 import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.GuiUtils.openScreen
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.remove
 
+@AlwaysActive
 object DungeonMap: Feature() {
-    @Suppress("unused")
     private val openConfigBtn by ButtonSetting("Open Config") {
-        openScreen(DungeonMapConfig.gui())
+        GuiUtils.openScreen(DungeonMapConfig.gui())
     }
 
-    val debug get() = EssentialAPI.getMinecraftUtil().isDevelopment()
+    override fun onEnable() {
+        super.onEnable()
+        DungeonMapConfig.mapEnabled = true
+    }
+
+    override fun onDisable() {
+        super.onDisable()
+        DungeonMapConfig.mapEnabled = false
+    }
+
+    val debug get() = EssentialAPI.getMinecraftUtil().isDevelopment() || DevOptions.devMode
 
     @SubscribeEvent
     fun onRenderOverlay(event: RenderOverlay) {
@@ -98,7 +108,7 @@ object DungeonMap: Feature() {
 
     @SubscribeEvent
     fun onWorldRender(event: RenderWorld) {
-        if (! inDungeon || ! DungeonMapConfig.boxWitherDoors) return
+        if (! inDungeon || ! DungeonMapConfig.boxWitherDoors || inBoss) return
         DungeonInfo.dungeonList.filterIsInstance<Door>()
             .filter { ! it.type.equalsOneOf(DoorType.ENTRANCE, DoorType.NORMAL) && ! it.opened }
             .filterNot { (DungeonUtils.dungeonStarted || ! DungeonMapConfig.dungeonMapCheater) && it.state == RoomState.UNDISCOVERED }
@@ -153,7 +163,7 @@ object DungeonMap: Feature() {
         text = text.remove(commandName)
         event.isCanceled = true
         when (text) {
-            "", " " -> GuiUtils.openScreen(DungeonMapConfig.gui())
+            "", " " -> openConfigBtn.run()
             " setexplored" -> DungeonInfo.dungeonList.forEach { it.state = RoomState.DISCOVERED }
         }
     }

@@ -1,26 +1,28 @@
 package noammaddons.features.impl.dungeons.solvers.puzzles
 
-import gg.essential.elementa.utils.withAlpha
 import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.init.Blocks
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.util.BlockPos
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.DungeonEvent
-import noammaddons.events.RenderWorld
+import noammaddons.events.*
 import noammaddons.features.Feature
+import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.Wcolor
+import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.WcolorWrong
+import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.WremoveChests
+import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.WremoveNPCS
 import noammaddons.noammaddons.Companion.personalBests
-import noammaddons.ui.config.core.impl.ColorSetting
 import noammaddons.utils.BlockUtils.ghostBlock
 import noammaddons.utils.ChatUtils.clickableChat
+import noammaddons.utils.ChatUtils.debugMessage
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendPartyMessage
 import noammaddons.utils.DungeonUtils
 import noammaddons.utils.NumbersUtils.toFixed
-import noammaddons.utils.RenderUtils
+import noammaddons.utils.RenderUtils.drawBlockBox
 import noammaddons.utils.ScanUtils.rotate
-import noammaddons.utils.Utils.favoriteColor
 import noammaddons.utils.Utils.formatPbPuzzleMessage
 import java.util.concurrent.CopyOnWriteArraySet
 
@@ -36,9 +38,6 @@ object ThreeWeirdosSolver: Feature() {
 
     private var correctPos: Pair<BlockPos, Entity?>? = null
     private var wrongPositions = CopyOnWriteArraySet<Pair<BlockPos, Entity>>()
-    private val removedEntities = CopyOnWriteArraySet<Entity>()
-
-    private val color by ColorSetting("Color", favoriteColor.withAlpha(40))
 
     @SubscribeEvent
     fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
@@ -47,6 +46,8 @@ object ThreeWeirdosSolver: Feature() {
 
         rotation = 360 - event.room.rotation !!
         trueTimeStart = System.currentTimeMillis()
+
+        debugMessage("Three Weirdos: Rotation: $rotation")
     }
 
     @SubscribeEvent
@@ -56,8 +57,8 @@ object ThreeWeirdosSolver: Feature() {
     fun onPazzleEvent(event: DungeonEvent.PuzzleEvent.Reset) {
         if (! inWeirdos) return
         wrongPositions.forEach {
-            mc.theWorld.addEntityToWorld(it.second.entityId, it.second)
-            ghostBlock(it.first, Blocks.chest.defaultState)
+            if (WremoveNPCS.value) mc.theWorld.addEntityToWorld(it.second.entityId, it.second)
+            if (WremoveChests.value) ghostBlock(it.first, Blocks.chest.defaultState)
         }
         reset()
     }
@@ -66,18 +67,26 @@ object ThreeWeirdosSolver: Feature() {
     fun onRenderWorld(event: RenderWorld) {
         if (! inWeirdos) return
         correctPos?.first?.let { chest ->
-            RenderUtils.drawBlockBox(
-                chest, color, phase = false,
+            drawBlockBox(
+                chest, Wcolor.value, phase = false,
+                fill = true, outline = true
+            )
+        }
+        if (! WremoveChests.value) wrongPositions.forEach { (pos, _) ->
+            drawBlockBox(
+                pos, WcolorWrong.value, phase = false,
                 fill = true, outline = true
             )
         }
     }
 
-    init {
-        onChat(npcRegex, { inWeirdos }) { match ->
+    @SubscribeEvent
+    fun onChat(event: Chat) {
+        if (! inWeirdos) return
+        npcRegex.find(event.component.noFormatText)?.let { match ->
             val (npc, msg) = match.destructured
-            if (solutions.none { it.matches(msg) } && wrong.none { it.matches(msg) }) return@onChat
-            val correctNPC = mc.theWorld?.loadedEntityList?.find { it is EntityArmorStand && it.name.removeFormatting() == npc } ?: return@onChat
+            if (solutions.none { it.matches(msg) } && wrong.none { it.matches(msg) }) return
+            val correctNPC = mc.theWorld?.loadedEntityList?.find { it is EntityArmorStand && it.name.removeFormatting() == npc } ?: return
             val offset = BlockPos(1, 0, 0).rotate(rotation)
             val pos = BlockPos(correctNPC.posX - 0.5, 69.0, correctNPC.posZ - 0.5).add(offset)
 
@@ -85,48 +94,51 @@ object ThreeWeirdosSolver: Feature() {
                 mc.thePlayer.playSound("note.pling", 2f, 1f)
                 timeStart = System.currentTimeMillis()
                 correctPos = pos to correctNPC
+                if (! WremoveNPCS.value) return
 
                 val entitiesToRemove = mc.theWorld.getEntitiesInAABBexcluding(
                     mc.thePlayer, correctNPC.entityBoundingBox.offset(0.0, - 1.0, 0.0)
                 ) { it !in DungeonUtils.dungeonTeammates.map { teammate -> teammate.entity } }
 
                 entitiesToRemove.forEach { it.setDead() }
-                removedEntities.addAll(entitiesToRemove)
             }
             else {
                 val entitiesToRemove = mc.theWorld.getEntitiesInAABBexcluding(
                     mc.thePlayer, correctNPC.entityBoundingBox.offset(0.0, - 1.0, 0.0)
                 ) { it !in DungeonUtils.dungeonTeammates.map { teammate -> teammate.entity } }
 
-                mc.theWorld.setBlockToAir(pos)
-                entitiesToRemove.forEach { it.setDead() }
-                removedEntities.addAll(entitiesToRemove)
+                if (WremoveNPCS.value) entitiesToRemove.forEach { it.setDead() }
+                if (WremoveChests.value) mc.theWorld.setBlockToAir(pos)
                 wrongPositions.add(pos to correctNPC)
             }
         }
-
-        onPacket<C08PacketPlayerBlockPlacement>({ inWeirdos && wrongPositions.size == 2 }) { packet ->
-            if (packet.position != correctPos?.first) return@onPacket
-
-            val personalBestsData = personalBests.getData().pazzles
-            val previousBest = personalBestsData["Three Weirdos"]
-            val completionTime = (System.currentTimeMillis() - timeStart !!).toDouble()
-            val totalTime = (System.currentTimeMillis() - trueTimeStart !!).toDouble()
-
-            val message = formatPbPuzzleMessage("Three Weirdos", completionTime, previousBest)
-
-            sendPartyMessage(message)
-
-            clickableChat(
-                msg = message,
-                cmd = "/na copy ${message.removeFormatting()}",
-                hover = "Total Time: &b${(totalTime / 1000.0).toFixed(2)}s",
-                prefix = false
-            )
-
-            reset()
-        }
     }
+
+    @SubscribeEvent
+    fun onPacket(event: PacketEvent.Sent) {
+        if (! inWeirdos || wrongPositions.size != 2) return
+        val packet = event.packet as? C08PacketPlayerBlockPlacement ?: return
+        if (packet.position != correctPos?.first) return
+
+        val personalBestsData = personalBests.getData().pazzles
+        val previousBest = personalBestsData["Three Weirdos"]
+        val completionTime = (System.currentTimeMillis() - timeStart !!).toDouble()
+        val totalTime = (System.currentTimeMillis() - trueTimeStart !!).toDouble()
+
+        val message = formatPbPuzzleMessage("Three Weirdos", completionTime, previousBest)
+
+        sendPartyMessage(message)
+
+        clickableChat(
+            msg = message,
+            cmd = "/na copy ${message.removeFormatting()}",
+            hover = "Total Time: &b${(totalTime / 1000.0).toFixed(2)}s",
+            prefix = false
+        )
+
+        reset()
+    }
+
 
     fun reset() {
         inWeirdos = false

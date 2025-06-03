@@ -6,11 +6,12 @@ import net.minecraft.item.ItemSkull
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.client.event.RenderPlayerEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.GuiMouseClickEvent
+import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.modMessage
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendPartyMessage
 import noammaddons.utils.DungeonUtils.dungeonTeammatesNoSelf
@@ -36,22 +37,43 @@ import java.awt.Color
 
 object LeapMenu: Feature("Custom Leap Menu and leap message") {
     val customLeapMenu = ToggleSetting("Leap Menu", false)
-    val scale = SliderSetting("Menu Scale", 1, 100, 50.0).addDependency(customLeapMenu)
-    val showLastDoorOpenner = ToggleSetting("Show Last Door Openner", false)
-    val tintDeadPlayers = ToggleSetting("Tint Dead Players", true)
+    val scale = SliderSetting("Menu Scale", 1, 100, 1, 50.0).addDependency(customLeapMenu)
+    val showLastDoorOpenner = ToggleSetting("Show Last Door Openner", false).addDependency(customLeapMenu)
+    val tintDeadPlayers = ToggleSetting("Tint Dead Players", true).addDependency(customLeapMenu)
 
     private val announceSpiritLeaps = ToggleSetting("Announce Leap", true)
     private val leapMsg = TextInputSetting("Leap Message", "ILY ❤ {name}").addDependency(announceSpiritLeaps)
 
     private val hideAfterLeap = ToggleSetting("Hide Players After Leap")
-    private val hideTime = SliderSetting("Hide Time", 500, 5_000, 3500.0).addDependency(hideAfterLeap)
+    private val hideTime = SliderSetting("Hide Time", 0.5, 5, 0.1, 3.5).addDependency(hideAfterLeap)
     private var hidePlayers = false
 
+    override fun init() = addSettings(
+        SeperatorSetting("Custom Leap Menu"),
+        customLeapMenu, scale,
+        showLastDoorOpenner, tintDeadPlayers,
+        SeperatorSetting("Leap Announcement"),
+        announceSpiritLeaps, leapMsg,
+        SeperatorSetting("Hide Players After Leap"),
+        hideAfterLeap, hideTime
+    )
 
-    override fun init() {
-        onWorldLoad { players.fill(null) }
+    data class LeapMenuPlayer(val slot: Int, val player: DungeonUtils.DungeonPlayer)
 
-        onChat(Regex("^You have teleported to (.+)!\$")) {
+    val players = mutableListOf<LeapMenuPlayer?>(null, null, null, null)
+
+    private fun inSpiritLeap(): Boolean {
+        return currentChestName.removeFormatting().lowercase()
+            .equalsOneOf("teleport to player", "spirit leap")
+                && inDungeon && customLeapMenu.value
+    }
+
+    @SubscribeEvent
+    fun onWorldUnload(event: WorldUnloadEvent) = players.fill(null)
+
+    @SubscribeEvent
+    fun onChat(event: Chat) {
+        Regex("^You have teleported to (.+)!\$").find(event.component.noFormatText)?.let {
             if (announceSpiritLeaps.value) {
                 val name = it.destructured.component1()
                 val msg = leapMsg.value.replace("{name}", name)
@@ -63,26 +85,6 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
                 setTimeout(hideTime.value.toLong()) { hidePlayers = false }
             }
         }
-
-        addSettings(
-            SeperatorSetting("Custom Leap Menu"),
-            customLeapMenu, scale,
-            showLastDoorOpenner, tintDeadPlayers,
-            SeperatorSetting("Leap Announcement"),
-            announceSpiritLeaps, leapMsg,
-            SeperatorSetting("Hide Players After Leap"),
-            hideAfterLeap, hideTime
-        )
-    }
-
-    data class LeapMenuPlayer(val slot: Int, val player: DungeonUtils.DungeonPlayer)
-
-    val players = mutableListOf<LeapMenuPlayer?>(null, null, null, null)
-
-    private fun inSpiritLeap(): Boolean {
-        return currentChestName.removeFormatting().lowercase()
-            .equalsOneOf("teleport to player", "spirit leap")
-                && inDungeon && customLeapMenu.value
     }
 
     @SubscribeEvent

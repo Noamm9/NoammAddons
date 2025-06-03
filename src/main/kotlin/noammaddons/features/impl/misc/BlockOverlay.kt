@@ -13,10 +13,11 @@ import noammaddons.utils.Utils.favoriteColor
 
 object BlockOverlay: Feature() {
     private val mode by DropdownSetting("Mode", listOf("Outline", "Fill", "Filled Outline"))
+    private val modeSetting get() = getSettingByName("Mode") as DropdownSetting
     private val phase by ToggleSetting("Phase")
-    private val lineWidth by SliderSetting("Line Width", 1, 10, 1).addDependency(getSettingByName("Mode") as DropdownSetting) { it.value == 1 }
-    private val fillColor by ColorSetting("Fill Color", favoriteColor.withAlpha(50)).addDependency(getSettingByName("Mode") as DropdownSetting) { it.value == 0 }
-    private val outlineColor by ColorSetting("Outline Color", favoriteColor, false).addDependency(getSettingByName("Mode") as DropdownSetting) { it.value == 1 }
+    private val lineWidth by SliderSetting("Line Width", 1, 10, 1, 1).addDependency { modeSetting.value == 1 }
+    private val fillColor by ColorSetting("Fill Color", favoriteColor.withAlpha(50)).addDependency { modeSetting.value == 0 }
+    private val outlineColor by ColorSetting("Outline Color", favoriteColor, false).addDependency { modeSetting.value == 1 }
 
     @SubscribeEvent
     fun drawBlockHighlight(event: DrawBlockHighlightEvent) = event.setCanceled(true)

@@ -4,6 +4,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.config.EditGui.GuiElement
 import noammaddons.events.ClickEvent.*
 import noammaddons.events.RenderOverlay
+import noammaddons.events.ServerTick
 import noammaddons.features.Feature
 import noammaddons.utils.PlayerUtils.isHoldingWitherImpact
 import noammaddons.utils.RenderHelper.getStringWidth
@@ -31,8 +32,10 @@ object WitherShieldTimer: Feature() {
 
     private var tickTimer = 101
 
-    init {
-        onServerTick({ tickTimer <= 100 }) { tickTimer += 1 }
+    @SubscribeEvent
+    fun onServerTick(event: ServerTick) {
+        if (tickTimer > 100) return
+        tickTimer += 1
     }
 
     @SubscribeEvent
@@ -44,7 +47,7 @@ object WitherShieldTimer: Feature() {
 
     @SubscribeEvent
     fun drawTimer(event: RenderOverlay) {
-        if (tickTimer >= 100) return // Only display when the timer is running
+        if (tickTimer >= 100) return
         WitherShieldElement.text = (((5000 - tickTimer * 50) / 100) / 10.0).toString()
         WitherShieldElement.draw()
     }

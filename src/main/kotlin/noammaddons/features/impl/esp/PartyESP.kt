@@ -3,7 +3,7 @@ package noammaddons.features.impl.esp
 import net.minecraftforge.client.event.RenderLivingEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.features.Feature
-import noammaddons.features.impl.esp.GlobalEspSettings.phase
+import noammaddons.features.impl.esp.EspSettings.phase
 import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.EspUtils.espMob
 import noammaddons.utils.LocationUtils

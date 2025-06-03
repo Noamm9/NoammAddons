@@ -1,6 +1,7 @@
 package noammaddons.ui.config.core.save
 
 import com.google.gson.*
+import gg.essential.elementa.state.BasicState
 import noammaddons.features.FeatureManager
 import noammaddons.noammaddons.Companion.Logger
 import noammaddons.noammaddons.Companion.MOD_NAME
@@ -12,7 +13,7 @@ import java.io.File
 object Config {
     private val gson = GsonBuilder().setPrettyPrinting().create()
     private val parser = JsonParser()
-    var initialised = false
+    val initialised = BasicState(false)
 
     private val configFile = File(mc.mcDataDir, "config/$MOD_NAME/config.json").apply {
         runCatching(::createNewFile).apply {
@@ -46,7 +47,7 @@ object Config {
             onFailure { Logger.error("Error loading config", it) }
             onSuccess {
                 Logger.info("Successfully loaded config")
-                initialised = true
+                initialised.set(true)
             }
         }
     }

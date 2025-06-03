@@ -5,33 +5,56 @@ import com.google.gson.JsonPrimitive
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.util.ChatAllowedCharacters
 import noammaddons.features.Feature
+import noammaddons.features.impl.gui.ConfigGui.accentColor
+import noammaddons.noammaddons.Companion.textRenderer
 import noammaddons.ui.config.core.save.Savable
-import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderUtils.drawRect
-import noammaddons.utils.RenderUtils.drawText
-import noammaddons.utils.SoundUtils
+import noammaddons.utils.StencilUtils
 import org.lwjgl.input.Keyboard
 import java.awt.Color
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.reflect.KProperty
 
-
-class TextInputSetting(label: String, override val defaultValue: String): Component<String>(label), Savable {
+class TextInputSetting(label: String, override val defaultValue: String = ""): Component<String>(label), Savable {
     override var value = defaultValue
+        set(newVal) {
+            if (field != newVal) {
+                field = newVal
+                cursorIndex = cursorIndex.coerceIn(0, field.length)
+                selectionAnchor = selectionAnchor.coerceIn(0, field.length)
+            }
+        }
 
-    private var focused = false
-    private var caretVisible = true
-    private var lastBlink = System.currentTimeMillis()
-    private var cursorIndex = 0
-    private val caretBlinkRate = 500L // ms
     private val padding = 6.0
     private val inputHeight = 14.0
-    private val fieldWidth = width - (padding * 2)
+    override var height = 25.0 + padding + inputHeight
 
-    override val height = 25.0 + padding + inputHeight
+    private val textRenderAreaWidth get() = fieldWidth - (textPadding * 2)
+    private val fieldWidth get() = width - (padding * 2)
+    private val textPadding = 4.0
+
+    private var focused = false
+    private var isDragging = false
+    private var caretVisible = true
+
+    private var lastBlink = System.currentTimeMillis()
+    private val caretBlinkRate = 500L
+
+    private var cursorIndex = defaultValue.length
+    private var selectionAnchor = defaultValue.length
+
+    private val selectionStart: Int get() = min(cursorIndex, selectionAnchor)
+    private val selectionEnd: Int get() = max(cursorIndex, selectionAnchor)
+    private val hasSelection: Boolean get() = selectionStart != selectionEnd
+
+    private var scrollOffset = 0.0
+    private var lastClickTime = 0L
+    private var clickCount = 0
 
     override fun draw(x: Double, y: Double, mouseX: Double, mouseY: Double) {
         drawSmoothRect(compBackgroundColor, x, y, width, height)
-        drawText(name, x + padding, y + 1 + padding)
+        textRenderer.drawText(name, x + padding, y + 1 + padding)
 
         val fieldX = x + padding
         val fieldY = y + 22.5
@@ -40,13 +63,33 @@ class TextInputSetting(label: String, override val defaultValue: String): Compon
         drawSmoothRect(borderColor, fieldX - 1, fieldY - 1, fieldWidth + 2, inputHeight + 2)
         drawSmoothRect(Color(20, 20, 20), fieldX, fieldY, fieldWidth, inputHeight)
 
-        drawText(value, fieldX + padding, fieldY + 2)
+        StencilUtils.beginStencilClip {
+            drawRect(Color.WHITE, fieldX, fieldY, fieldWidth, inputHeight)
+        }
+
+        val textToRender = value
+        val textY = fieldY + (inputHeight - textRenderer.fr.fontHeight) / 2 + 2
+
+        if (hasSelection) {
+            val selStartStr = value.substring(0, selectionStart)
+            val selEndStr = value.substring(0, selectionEnd)
+            val x1 = fieldX + textPadding - scrollOffset + textRenderer.getStringWidth(selStartStr)
+            val x2 = fieldX + textPadding - scrollOffset + textRenderer.getStringWidth(selEndStr)
+
+            drawRect(accentColor, x1, fieldY + 1, x2 - x1, inputHeight - 2)
+        }
+
+        textRenderer.drawText(textToRender, fieldX + textPadding - scrollOffset, textY)
 
         if (focused && caretVisible) {
             val textBeforeCaret = value.take(cursorIndex)
-            val caretX = fieldX + padding + getStringWidth(textBeforeCaret)
-            drawRect(Color.WHITE, caretX, fieldY + 2, 1.0, inputHeight - 4)
+            val caretXPos = fieldX + textPadding - scrollOffset + textRenderer.getStringWidth(textBeforeCaret)
+            if (caretXPos >= fieldX + textPadding - 1 && caretXPos <= fieldX + textPadding + textRenderAreaWidth) {
+                drawRect(Color.WHITE, caretXPos, fieldY + 2, 1.0, inputHeight - 4)
+            }
         }
+
+        StencilUtils.endStencilClip()
 
         if (System.currentTimeMillis() - lastBlink > caretBlinkRate) {
             caretVisible = ! caretVisible
@@ -55,65 +98,375 @@ class TextInputSetting(label: String, override val defaultValue: String): Compon
     }
 
     override fun mouseClicked(x: Double, y: Double, mouseX: Double, mouseY: Double, button: Int) {
-        focused = mouseX in x .. (x + width) && mouseY in y .. (y + height)
-        if (focused) SoundUtils.click()
+        if (button != 0) return
+
+        val fieldRectX = x + padding
+        val fieldRectY = y + 22.5
+        val clickedOnField = mouseX in fieldRectX .. (fieldRectX + fieldWidth) &&
+                mouseY in fieldRectY .. (fieldRectY + inputHeight)
+
+        if (clickedOnField) {
+            focused = true
+            isDragging = true
+
+            val clickRelX = mouseX - (fieldRectX + textPadding - scrollOffset)
+            val newCursorIndex = getCharIndexAtAbsX(clickRelX)
+
+            val currentTime = System.currentTimeMillis()
+            if (currentTime - lastClickTime < 250) clickCount ++
+            else clickCount = 1
+
+            lastClickTime = currentTime
+
+            when (clickCount) {
+                1 -> {
+                    cursorIndex = newCursorIndex
+                    if (! GuiScreen.isShiftKeyDown()) {
+                        selectionAnchor = cursorIndex
+                    }
+                }
+
+                2 -> selectWordAt(newCursorIndex)
+
+                else -> {
+                    selectAll()
+                    clickCount = 0
+                }
+            }
+            resetCaretBlink()
+        }
+        else {
+            focused = false
+            isDragging = false
+        }
+
+    }
+
+    override fun mouseRelease(x: Double, y: Double, mouseX: Double, mouseY: Double, button: Int) {
+        if (button == 0) isDragging = false
+    }
+
+    override fun mouseDragged(x: Double, y: Double, mouseX: Double, mouseY: Double, button: Int) {
+        if (focused && isDragging && button == 0) {
+            val fieldRectX = x + padding
+            val clickRelX = mouseX - (fieldRectX + textPadding - scrollOffset)
+            cursorIndex = getCharIndexAtAbsX(clickRelX)
+            ensureCaretVisible()
+            resetCaretBlink()
+        }
     }
 
     override fun keyTyped(typedChar: Char, keyCode: Int): Boolean {
         if (! focused) return false
 
-        val ctrl = Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL)
-        when {
-            ctrl && keyCode == Keyboard.KEY_C -> {
-                GuiScreen.setClipboardString(value)
+        val ctrlDown = GuiScreen.isCtrlKeyDown()
+        val shiftDown = GuiScreen.isShiftKeyDown()
+
+        when (keyCode) {
+            Keyboard.KEY_ESCAPE -> {
+                focused = false
+                return true
             }
 
-            ctrl && keyCode == Keyboard.KEY_V -> {
-                val paste = GuiScreen.getClipboardString()?.filter { ChatAllowedCharacters.isAllowedCharacter(it) } ?: ""
-                value = value.substring(0, cursorIndex) + paste + value.substring(cursorIndex)
-                cursorIndex += paste.length
+            Keyboard.KEY_RETURN -> {
+                focused = false
+                return true
             }
 
-            ctrl && keyCode == Keyboard.KEY_BACK -> {
-                val prevWord = prevWordIndex(value, cursorIndex)
-                value = value.removeRange(prevWord, cursorIndex)
-                cursorIndex = prevWord
+            Keyboard.KEY_BACK -> {
+                if (ctrlDown) deletePrevWord()
+                else deleteChar(- 1)
+                return true
             }
 
-            keyCode == Keyboard.KEY_BACK -> {
-                if (cursorIndex > 0) {
-                    value = value.removeRange(cursorIndex - 1, cursorIndex)
-                    cursorIndex --
+            Keyboard.KEY_DELETE -> {
+                if (ctrlDown) deleteNextWord()
+                else deleteChar(1)
+                return true
+            }
+
+            Keyboard.KEY_LEFT -> {
+                if (ctrlDown) moveWord(- 1, shiftDown)
+                else moveCaret(- 1, shiftDown)
+                return true
+            }
+
+            Keyboard.KEY_RIGHT -> {
+                if (ctrlDown) moveWord(1, shiftDown)
+                else moveCaret(1, shiftDown)
+                return true
+            }
+
+            Keyboard.KEY_HOME -> {
+                moveCaretTo(0, shiftDown)
+                return true
+            }
+
+            Keyboard.KEY_END -> {
+                moveCaretTo(value.length, shiftDown)
+                return true
+            }
+
+            Keyboard.KEY_A -> {
+                if (ctrlDown) {
+                    selectAll()
+                    return true
                 }
             }
 
-            keyCode == Keyboard.KEY_LEFT -> cursorIndex = (cursorIndex - 1).coerceAtLeast(0)
-            keyCode == Keyboard.KEY_RIGHT -> cursorIndex = (cursorIndex + 1).coerceAtMost(value.length)
+            Keyboard.KEY_C -> {
+                if (ctrlDown) {
+                    copySelection()
+                    return true
+                }
+            }
 
-            keyCode == Keyboard.KEY_RETURN || keyCode == Keyboard.KEY_ESCAPE -> focused = false
+            Keyboard.KEY_V -> {
+                if (ctrlDown) {
+                    paste()
+                    return true
+                }
+            }
 
-            ChatAllowedCharacters.isAllowedCharacter(typedChar) -> {
-                val newText = value.substring(0, cursorIndex) + typedChar + value.substring(cursorIndex)
-                if (getStringWidth(newText) <= fieldWidth - padding * 2) {
-                    value = newText
-                    cursorIndex ++
+            Keyboard.KEY_X -> {
+                if (ctrlDown) {
+                    cutSelection()
+                    return true
                 }
             }
         }
 
-        cursorIndex = cursorIndex.coerceIn(0, value.length)
+        if (ChatAllowedCharacters.isAllowedCharacter(typedChar)) {
+            insertText(typedChar.toString())
+            return true
+        }
+        return false
+    }
+
+
+    private fun resetCaretBlink() {
         lastBlink = System.currentTimeMillis()
         caretVisible = true
-        return true
+    }
+
+    private fun getCharIndexAtAbsX(absClickX: Double): Int {
+        if (absClickX <= 0) return 0
+        var currentWidth = 0.0
+        for (i in value.indices) {
+            val charWidth = textRenderer.getStringWidth(value[i].toString())
+            if (absClickX < currentWidth + charWidth / 2.0) {
+                return i
+            }
+            currentWidth += charWidth
+        }
+        return value.length
+    }
+
+    private fun selectWordAt(pos: Int) {
+        if (value.isEmpty()) return
+        val currentPos = pos.coerceIn(0, value.length)
+
+        if (currentPos < value.length && ! Character.isWhitespace(value[currentPos])) {
+            var start = currentPos
+            while (start > 0 && ! Character.isWhitespace(value[start - 1])) {
+                start --
+            }
+            var end = currentPos
+            while (end < value.length && ! Character.isWhitespace(value[end])) {
+                end ++
+            }
+            cursorIndex = end
+            selectionAnchor = start
+        }
+        else {
+            cursorIndex = currentPos
+            selectionAnchor = currentPos
+        }
+        ensureCaretVisible()
+    }
+
+    private fun insertText(text: String) {
+        val builder = StringBuilder(value)
+        val textToInsert = ChatAllowedCharacters.filterAllowedCharacters(text)
+
+        val newCursorPos = if (! hasSelection) cursorIndex
+        else {
+            val currentSelectionStart = selectionStart
+            builder.delete(currentSelectionStart, selectionEnd)
+            currentSelectionStart
+        }
+
+        builder.insert(newCursorPos, textToInsert)
+        this.value = builder.toString()
+        cursorIndex = (newCursorPos + textToInsert.length).coerceIn(0, this.value.length)
+        selectionAnchor = cursorIndex
+
+        ensureCaretVisible()
+        resetCaretBlink()
+    }
+
+    private fun deleteChar(direction: Int) {
+        var textChanged = false
+        var newText = value
+        var newCursor = cursorIndex
+
+        if (hasSelection) {
+            val builder = StringBuilder(value)
+            val selStart = selectionStart
+            builder.delete(selStart, selectionEnd)
+            newText = builder.toString()
+            newCursor = selStart
+            textChanged = true
+        }
+        else {
+            if (direction == - 1 && cursorIndex > 0) {
+                val originalCursor = cursorIndex
+                val builder = StringBuilder(value)
+                builder.deleteCharAt(originalCursor - 1)
+                newText = builder.toString()
+                newCursor = originalCursor - 1
+                textChanged = true
+            }
+            else if (direction == 1 && cursorIndex < value.length) {
+
+                val builder = StringBuilder(value)
+                builder.deleteCharAt(cursorIndex)
+                newText = builder.toString()
+
+                textChanged = true
+            }
+        }
+
+        if (! textChanged) resetCaretBlink()
+        else {
+            this.value = newText
+            cursorIndex = newCursor.coerceIn(0, this.value.length)
+            selectionAnchor = cursorIndex
+
+            val maxScroll = max(0.0, textRenderer.getStringWidth(this.value) - textRenderAreaWidth)
+            if (scrollOffset > maxScroll) {
+                scrollOffset = maxScroll
+            }
+
+            ensureCaretVisible()
+            resetCaretBlink()
+        }
+    }
+
+    private fun moveCaret(amount: Int, shiftHeld: Boolean) {
+        cursorIndex = (cursorIndex + amount).coerceIn(0, value.length)
+        if (! shiftHeld) {
+            selectionAnchor = cursorIndex
+        }
+        ensureCaretVisible()
+        resetCaretBlink()
+    }
+
+    private fun moveCaretTo(position: Int, shiftHeld: Boolean) {
+        cursorIndex = position.coerceIn(0, value.length)
+        if (! shiftHeld) {
+            selectionAnchor = cursorIndex
+        }
+        ensureCaretVisible()
+        resetCaretBlink()
+    }
+
+    private fun moveWord(direction: Int, shiftHeld: Boolean) {
+        cursorIndex = findWordBoundary(cursorIndex, direction)
+        if (! shiftHeld) {
+            selectionAnchor = cursorIndex
+        }
+        ensureCaretVisible()
+        resetCaretBlink()
+    }
+
+    private fun findWordBoundary(startIndex: Int, direction: Int): Int {
+        var i = startIndex
+        val len = value.length
+        if (direction < 0) {
+            if (i > 0) i --
+            while (i > 0 && Character.isWhitespace(value[i])) i --
+            while (i > 0 && ! Character.isWhitespace(value[i - 1])) i --
+        }
+        else {
+            while (i < len && ! Character.isWhitespace(value[i])) i ++
+            while (i < len && Character.isWhitespace(value[i])) i ++
+        }
+        return i.coerceIn(0, len)
+    }
+
+    private fun deletePrevWord() {
+        if (hasSelection) {
+            deleteChar(0)
+            return
+        }
+        if (cursorIndex == 0) return
+        val oldCursor = cursorIndex
+        cursorIndex = findWordBoundary(cursorIndex, - 1)
+        selectionAnchor = oldCursor
+        deleteChar(0)
+    }
+
+    private fun deleteNextWord() {
+        if (hasSelection) {
+            deleteChar(0)
+            return
+        }
+        if (cursorIndex == value.length) return
+        val oldCursor = cursorIndex
+        cursorIndex = findWordBoundary(cursorIndex, 1)
+        selectionAnchor = oldCursor
+        deleteChar(0)
+    }
+
+    private fun selectAll() {
+        selectionAnchor = 0
+        cursorIndex = value.length
+        resetCaretBlink()
+    }
+
+    private fun getSelectedText(): String {
+        return if (hasSelection) value.substring(selectionStart, selectionEnd) else ""
+    }
+
+    private fun copySelection() {
+        if (hasSelection) {
+            GuiScreen.setClipboardString(getSelectedText())
+        }
+    }
+
+    private fun cutSelection() {
+        if (hasSelection) {
+            copySelection()
+            deleteChar(0)
+        }
+    }
+
+    private fun paste() {
+        val clipboard = GuiScreen.getClipboardString()
+        if (clipboard != null) insertText(clipboard)
+    }
+
+    private fun ensureCaretVisible() {
+        val caretXAbsolute = textRenderer.getStringWidth(value.substring(0, cursorIndex.coerceIn(0, value.length))).toDouble()
+        val visibleTextStart = scrollOffset
+        val visibleTextEnd = scrollOffset + textRenderAreaWidth
+
+        if (caretXAbsolute < visibleTextStart) {
+            scrollOffset = caretXAbsolute
+        }
+        else if (caretXAbsolute > visibleTextEnd - 1) {
+            scrollOffset = caretXAbsolute - textRenderAreaWidth + 1
+        }
+
+        val maxScrollPossible = max(0.0, textRenderer.getStringWidth(value) - textRenderAreaWidth)
+        scrollOffset = scrollOffset.coerceIn(0.0, maxScrollPossible)
+        if (textRenderer.getStringWidth(value) <= textRenderAreaWidth) {
+            scrollOffset = 0.0
+        }
     }
 
     override fun getValue(thisRef: Feature, property: KProperty<*>) = value
-
-    private fun prevWordIndex(str: String, from: Int): Int {
-        val before = str.substring(0, from)
-        val lastSpace = before.lastIndexOf(' ')
-        return if (lastSpace == - 1) 0 else lastSpace
-    }
 
     override fun write(): JsonElement {
         return JsonPrimitive(value)
@@ -121,8 +474,11 @@ class TextInputSetting(label: String, override val defaultValue: String): Compon
 
     override fun read(element: JsonElement?) {
         element?.asString?.let {
-            value = it
-            cursorIndex = value.length
+            this.value = it
+            cursorIndex = this.value.length
+            selectionAnchor = this.value.length
+            scrollOffset = 0.0
+            ensureCaretVisible()
         }
     }
 }

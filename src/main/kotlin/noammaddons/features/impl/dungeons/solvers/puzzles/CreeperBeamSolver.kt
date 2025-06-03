@@ -6,9 +6,9 @@ import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
-import noammaddons.features.Feature
+import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.CBlines
+import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.CBphase
 import noammaddons.noammaddons.Companion.personalBests
-import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.ChatUtils.clickableChat
 import noammaddons.utils.ChatUtils.debugMessage
@@ -20,6 +20,7 @@ import noammaddons.utils.RenderUtils.draw3DLine
 import noammaddons.utils.RenderUtils.drawBlockBox
 import noammaddons.utils.ScanUtils.getRealCoord
 import noammaddons.utils.ScanUtils.getRoomCenterAt
+import noammaddons.utils.ServerPlayer
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.formatPbPuzzleMessage
 import noammaddons.utils.WebUtils
@@ -27,11 +28,8 @@ import java.awt.Color
 import java.util.concurrent.CopyOnWriteArrayList
 
 
-object CreeperBeamSolver: Feature() {
+object CreeperBeamSolver {
     private data class BeamPair(val start: BlockPos, val end: BlockPos, val color: Color = Color.WHITE)
-
-    private val lines by ToggleSetting("Draw Lines")
-    private val phase by ToggleSetting("Phase", true)
 
     private val beamSolutions = mutableListOf<BeamPair>()
     private val currentSolve = CopyOnWriteArrayList<BeamPair>()
@@ -46,12 +44,6 @@ object CreeperBeamSolver: Feature() {
     private val colorPool = listOf(
         Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW,
         Color.CYAN, Color.ORANGE, Color.WHITE, Color.MAGENTA
-    )
-
-    private val blockMapping = mapOf(
-        leaves to BlockPos(3, 80, 2),
-        dirt to BlockPos(4, 68, 3),
-        cobblestone to BlockPos(- 4, 68, - 3)
     )
 
     init {
@@ -79,7 +71,7 @@ object CreeperBeamSolver: Feature() {
 
         // I accidentally took all solutions coords with a 180 rotation room
         rotation = 360 - event.room.rotation !! + 180
-        roomCenter = getRoomCenterAt(mc.thePlayer.position)
+        roomCenter = getRoomCenterAt(ServerPlayer.player.getPos())
 
         solve()
     }
@@ -97,10 +89,10 @@ object CreeperBeamSolver: Feature() {
                 return@forEach
             }
 
-            drawBlockBox(start, color, fill = true, outline = true, phase = phase)
-            drawBlockBox(end, color, fill = true, outline = true, phase = phase)
-            if (! lines) return@forEach
-            draw3DLine(Vec3(start).add(0.5, 0.5, 0.5), Vec3(end).add(0.5, 0.5, 0.5), color, phase = phase)
+            drawBlockBox(start, color, fill = true, outline = true, phase = CBphase.value)
+            drawBlockBox(end, color, fill = true, outline = true, phase = CBphase.value)
+            if (! CBlines.value) return@forEach
+            draw3DLine(Vec3(start).add(0.5, 0.5, 0.5), Vec3(end).add(0.5, 0.5, 0.5), color, phase = CBphase.value)
         }
     }
 

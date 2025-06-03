@@ -11,12 +11,12 @@ import noammaddons.utils.PlayerUtils.useDungeonClassAbility
 object AbilityKeybinds: Feature("Allows you do use your dungeon class ult/ability with a keybind") {
     val classUltimate = ToggleSetting("Class Ultimate", true)
     val classAbility = ToggleSetting("Class Ability", true)
-    val ultKeybind = KeybindSetting("Ultimate Keybind")
-    val abilityKeybind = KeybindSetting("Ability Keybind")
+    val ultKeybind = KeybindSetting("Ultimate Keybind").addDependency(classUltimate)
+    val abilityKeybind = KeybindSetting("Ability Keybind").addDependency(classAbility)
 
     override fun init() = addSettings(
         classUltimate, classAbility,
-        SeperatorSetting("Keybinds"),
+        SeperatorSetting("Keybinds").addDependency { ! classUltimate.value || ! classAbility.value },
         ultKeybind, abilityKeybind
     )
 

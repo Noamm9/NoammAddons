@@ -5,7 +5,7 @@ import net.minecraft.item.ItemStack
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.RenderWorld
 import noammaddons.features.Feature
-import noammaddons.features.impl.general.teleport.`ZeroPingTeleportation (ZPT)`.TeleportInfo
+import noammaddons.features.impl.general.teleport.ZeroPingTeleportation.TeleportInfo
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.ItemUtils.SkyblockID
 import noammaddons.utils.PlayerUtils
@@ -24,13 +24,13 @@ object TeleportOverlay: Feature() {
 
     private val mode = DropdownSetting("Mode", listOf("Outline", "Fill", "Filled Outline"))
     private val phase = ToggleSetting("Phase")
-    private val lineWidth = SliderSetting("Line Width", 1, 10, 1).addDependency(mode) { it.value == 1 }
+    private val lineWidth = SliderSetting("Line Width", 1, 10, 1, 2).addDependency { mode.value == 1 }
 
-    private val fillColor = ColorSetting("Fill Color", favoriteColor.withAlpha(50)).addDependency(mode) { it.value == 0 }
-    private val outlineColor = ColorSetting("Outline Color", favoriteColor, false).addDependency(mode) { it.value == 1 }
+    private val fillColor = ColorSetting("Fill Color", favoriteColor.withAlpha(50)).addDependency { mode.value == 0 }
+    private val outlineColor = ColorSetting("Outline Color", favoriteColor, false).addDependency { mode.value == 1 }
 
-    private val invalidFillColor = ColorSetting("Fill Color ", Color.RED.withAlpha(50)).addDependency(mode) { it.value == 0 }.addDependency(etherwarp)
-    private val invalidOutlineColor = ColorSetting("Outline Color ", Color.RED, false).addDependency(mode) { it.value == 1 }.addDependency(etherwarp)
+    private val invalidFillColor = ColorSetting("Fill Color ", Color.RED.withAlpha(50)).addDependency { mode.value == 0 }.addDependency(etherwarp)
+    private val invalidOutlineColor = ColorSetting("Outline Color ", Color.RED, false).addDependency { mode.value == 1 }.addDependency(etherwarp)
 
     override fun init() = addSettings(
         aote, etherwarp, witherImpact,
@@ -38,7 +38,7 @@ object TeleportOverlay: Feature() {
         mode, phase, lineWidth,
         SeperatorSetting("Colors"),
         fillColor, outlineColor,
-        SeperatorSetting("Invalid Colors"),
+        SeperatorSetting("Invalid Colors").addDependency(etherwarp),
         invalidFillColor, invalidOutlineColor
     )
 

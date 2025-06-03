@@ -24,7 +24,7 @@ import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.equalsOneOf
 import java.awt.Color
 
-object M7Dragons: Feature(_name = "M7 Dragons", desc = "Prio, kill-box, spawn timer and more.") {
+object M7Dragons: Feature(name = "M7 Dragons", desc = "Prio, kill-box, spawn timer and more.") {
     val dragonSpawnTimer by ToggleSetting("Dragon Spawn Timer")
     val showDebuff by ToggleSetting("Debuff Info")
     val dragonsKillBox by ToggleSetting("Kill Box", true)
@@ -97,43 +97,44 @@ object M7Dragons: Feature(_name = "M7 Dragons", desc = "Prio, kill-box, spawn ti
         )
     )
 
-    init {
-        onServerTick({ toggleTickCounter }) {
-            if (F7Phase != 5) return@onServerTick
+    @SubscribeEvent
+    fun onServerTick(event: ServerTick) {
+        if (! toggleTickCounter) return
+        if (F7Phase != 5) return
 
-            ticks --
-            if (ticks <= 0) {
-                toggleTickCounter = false
-                spawning = false
-            }
-        }
-
-        onPacket<S2APacketParticles>({ dragonSpawnTimer && F7Phase == 5 }) { packet ->
-            handleParticles(
-                packet.xCoordinate.toInt(),
-                packet.yCoordinate.toInt(),
-                packet.zCoordinate.toInt()
-            )
-        }
-
-        onWorldLoad {
-            ticks = 0
+        ticks --
+        if (ticks <= 0) {
             toggleTickCounter = false
             spawning = false
-            redSpawning = false
-            orangeSpawning = false
-            blueSpawning = false
-            purpleSpawning = false
-            greenSpawning = false
-            drags = arrayOfNulls<DragInfo?>(2)
-            textColor = Color.WHITE
-            currentPrio = null
-            arrowsHit = 0
-            iceSprayHit = false
-            listening = false
-            arrowListener = false
-            iceSprayListener = false
         }
+    }
+
+    @SubscribeEvent
+    fun onWorldUnload(event: WorldUnloadEvent) {
+        ticks = 0
+        toggleTickCounter = false
+        spawning = false
+        redSpawning = false
+        orangeSpawning = false
+        blueSpawning = false
+        purpleSpawning = false
+        greenSpawning = false
+        drags = arrayOfNulls<DragInfo?>(2)
+        textColor = Color.WHITE
+        currentPrio = null
+        arrowsHit = 0
+        iceSprayHit = false
+        listening = false
+        arrowListener = false
+        iceSprayListener = false
+    }
+
+    @SubscribeEvent
+    fun onPacket(event: PacketEvent.Received) {
+        if (! dragonSpawnTimer) return
+        if (F7Phase != 5) return
+        val packet = event.packet as? S2APacketParticles ?: return
+        handleParticles(packet.xCoordinate.toInt(), packet.yCoordinate.toInt(), packet.zCoordinate.toInt())
     }
 
 

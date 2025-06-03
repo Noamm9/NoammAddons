@@ -1,10 +1,12 @@
 package noammaddons.features.impl.general
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.events.Chat
 import noammaddons.events.RenderOverlay
 import noammaddons.features.Feature
 import noammaddons.noammaddons.Companion.CHAT_PREFIX
 import noammaddons.ui.config.core.impl.ToggleSetting
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.sendPartyMessage
 import noammaddons.utils.ChatUtils.showTitle
 import noammaddons.utils.LocationUtils.inSkyblock
@@ -24,17 +26,21 @@ object SBKick: Feature("Shows how long it has been since the last time you were 
     private var lastKickTime = System.currentTimeMillis()
     private var hasWarned = false
 
-    init {
-        onChat(Regex("You were kicked while joining that server!|There was a problem joining SkyBlock, try again in a moment!"), { timer }) {
-            lastKickTime = System.currentTimeMillis()
-            showTime = true
-        }
+    @SubscribeEvent
+    fun onChat(event: Chat) {
+        when (event.component.noFormatText) {
+            "There was a problem joining SkyBlock, try again in a moment!" -> {
+                lastKickTime = System.currentTimeMillis()
+                showTime = true
+            }
 
-        onChat(Regex("You were kicked while joining that server!"), { sendMsg }) {
-            sendPartyMessage("$CHAT_PREFIX You were kicked while joining that server!")
+            "You were kicked while joining that server!" -> {
+                if (sendMsg) sendPartyMessage("$CHAT_PREFIX You were kicked while joining that server!")
+                lastKickTime = System.currentTimeMillis()
+                showTime = true
+            }
         }
     }
-
 
     @SubscribeEvent
     fun onRenderOverlay(event: RenderOverlay) {

@@ -3,11 +3,9 @@ package noammaddons.ui.config.core.impl
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
 import noammaddons.features.Feature
+import noammaddons.features.impl.gui.ConfigGui.accentColor
+import noammaddons.noammaddons.Companion.textRenderer
 import noammaddons.ui.config.core.save.Savable
-import noammaddons.utils.RenderHelper
-import noammaddons.utils.RenderUtils.drawCenteredText
-import noammaddons.utils.RenderUtils.drawText
-import noammaddons.utils.SoundUtils
 import org.lwjgl.input.Keyboard
 import kotlin.reflect.KProperty
 
@@ -30,10 +28,10 @@ class KeybindSetting(name: String, override var defaultValue: Int = Keyboard.KEY
 
     override fun draw(x: Double, y: Double, mouseX: Double, mouseY: Double) {
         drawSmoothRect(compBackgroundColor, x, y, width, height)
-        drawText(name, x + 5, y + 6)
+        textRenderer.drawText(name, x + 5, y + 6)
 
-        val displayText = if (listening) "..." else if (value == Keyboard.KEY_NONE) " " else Keyboard.getKeyName(value)
-        val buttonWidth = RenderHelper.getStringWidth(displayText).coerceAtLeast(22f) + 6
+        val displayText = if (listening) "..." else if (value == Keyboard.KEY_NONE) "NONE" else Keyboard.getKeyName(value)
+        val buttonWidth = textRenderer.getStringWidth(displayText).coerceAtLeast(22f) + 6
         val buttonHeight = 12.0
         val buttonX = x + width - buttonWidth - 8
         val buttonY = y + (height - buttonHeight) / 2
@@ -41,14 +39,11 @@ class KeybindSetting(name: String, override var defaultValue: Int = Keyboard.KEY
         val color = if (value == Keyboard.KEY_NONE) hoverColor else accentColor
 
         drawSmoothRect(color, buttonX, buttonY, buttonWidth, buttonHeight)
-        drawCenteredText(displayText, buttonX + buttonWidth / 2, buttonY + 2)
+        textRenderer.drawCenteredText(displayText, buttonX + buttonWidth / 2, buttonY + 2)
     }
 
     override fun mouseClicked(x: Double, y: Double, mouseX: Double, mouseY: Double, button: Int) {
-        listening = mouseX in x .. x + width
-                && mouseY in y .. y + height
-                && button == 0
-        if (listening) SoundUtils.click()
+        listening = mouseX in x .. x + width && mouseY in y .. y + height && button == 0
     }
 
     override fun keyTyped(typedChar: Char, keyCode: Int): Boolean {

@@ -1,7 +1,10 @@
 package noammaddons.features.impl.dungeons
 
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.events.Chat
 import noammaddons.features.Feature
 import noammaddons.utils.ChatUtils.modMessage
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.DungeonUtils
 import noammaddons.utils.DungeonUtils.Classes.*
 import noammaddons.utils.DungeonUtils.thePlayer
@@ -41,13 +44,16 @@ object AutoUlt: Feature("Automatically uses your dungeon class ultimate when nee
         )
     )
 
-    override fun init() {
-        onChat { match ->
-            if (! inBoss) return@onChat
-            val matchingMessage = UltMessages.find { it.msg == match.value && it.floor == dungeonFloorNumber } ?: return@onChat
-            if (thePlayer?.clazz !in matchingMessage.classes) return@onChat
-            useDungeonClassAbility(true)
-            modMessage("Used Ultimate!")
-        }
+    @SubscribeEvent
+    fun onChat(event: Chat) {
+        if (! inBoss) return
+        val msg = event.component.noFormatText
+        val matchingMessage = UltMessages.find {
+            it.msg == msg && it.floor == dungeonFloorNumber
+        } ?: return
+
+        if (thePlayer?.clazz !in matchingMessage.classes) return
+        useDungeonClassAbility(true)
+        modMessage("Used Ultimate!")
     }
 }

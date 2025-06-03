@@ -6,8 +6,8 @@ import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.Entity
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.Vec3
-import noammaddons.features.impl.esp.GlobalEspSettings
-import noammaddons.features.impl.esp.GlobalEspSettings.lineWidth
+import noammaddons.features.impl.esp.EspSettings
+import noammaddons.features.impl.esp.EspSettings.lineWidth
 import noammaddons.noammaddons
 import noammaddons.utils.MathUtils.add
 import noammaddons.utils.RenderHelper.renderVec
@@ -102,10 +102,10 @@ object RenderUtils2D {
             .offset(entity.renderX, entity.renderY, entity.renderZ)
 
         calculateBoundingBox(entityAABB)?.let { box ->
-            val outline = GlobalEspSettings.outlineOpacity != .0
-            val fill = GlobalEspSettings.fillOpacity != .0
-            val outlineAlpha = GlobalEspSettings.outlineOpacity.toFloat() / 100f
-            val fillAlpha = GlobalEspSettings.fillOpacity.toFloat() / 100f
+            val outline = EspSettings.outlineOpacity != .0
+            val fill = EspSettings.fillOpacity != .0
+            val outlineAlpha = EspSettings.outlineOpacity.toFloat() / 100f
+            val fillAlpha = EspSettings.fillOpacity.toFloat() / 100f
 
             if (fill) RenderUtils.drawRect(color.withAlpha(fillAlpha), box.x, box.y, box.w - box.x, box.h - box.y)
             if (outline) RenderUtils.drawRectBorder(color.withAlpha(outlineAlpha), box.x, box.y, box.w - box.x, box.h - box.y, thickness)

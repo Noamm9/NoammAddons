@@ -6,18 +6,14 @@ import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.*
 
 object CustomBowHitSound: Feature() {
-    private val soundName by TextInputSetting("Sound Name", "note.harp")
-    private val volume by SliderSetting("Volume", 0, 1, 0.5)
-    private val pitch by SliderSetting("Pitch", 0, 2, 1.0)
+    private val soundName = TextInputSetting("Sound Name", "note.harp")
+    private val volume = SliderSetting("Volume", 0f, 1f, 0.1f, 0.5f)
+    private val pitch = SliderSetting("Pitch", 0f, 2f, 0.1f, 1f)
     private val playSound = ButtonSetting("Play Sound") {
-        repeat(5) {
-            mc.thePlayer?.playSound(
-                soundName,
-                volume.toFloat(),
-                pitch.toFloat()
-            )
-        }
+        repeat(5) { mc.thePlayer?.playSound(soundName.value, volume.value, pitch.value) }
     }
+
+    override fun init() = addSettings(soundName, volume, pitch, playSound)
 
     @SubscribeEvent
     fun onBowSound(event: SoundPlayEvent) {

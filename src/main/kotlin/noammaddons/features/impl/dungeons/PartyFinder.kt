@@ -7,12 +7,14 @@ import net.minecraft.util.ChatStyle
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.AddMessageToChatEvent
+import noammaddons.events.Chat
 import noammaddons.features.Feature
 import noammaddons.features.impl.gui.Menus.impl.CustomPartyFinderMenu
 import noammaddons.noammaddons.Companion.CHAT_PREFIX
 import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.modMessage
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.SoundUtils
 
@@ -30,12 +32,6 @@ object PartyFinder: Feature("A group of many features regarding the dungeon ape 
         "Party Finder > Your group has been de-listed!" to "&d&lPF > &aParty Delisted."
     )
 
-    init {
-        onChat(Regex("Party Finder > .+ joined the dungeon group! \\(.+ Level \\d+\\)"), { joinedSound.value }) {
-            SoundUtils.Pling()
-        }
-    }
-
     override fun onEnable() {
         super.onEnable()
         MinecraftForge.EVENT_BUS.register(CustomPartyFinderMenu)
@@ -46,6 +42,15 @@ object PartyFinder: Feature("A group of many features regarding the dungeon ape 
         MinecraftForge.EVENT_BUS.unregister(CustomPartyFinderMenu)
     }
 
+
+    @SubscribeEvent
+    fun onChat(event: Chat) {
+        if (! joinedSound.value) return
+        val msg = event.component.noFormatText
+        if (Regex("Party Finder > .+ joined the dungeon group! \\(.+ Level \\d+\\)").matches(msg)) {
+            SoundUtils.Pling()
+        }
+    }
 
     @SubscribeEvent
     fun onNewChatMessage(event: AddMessageToChatEvent) {

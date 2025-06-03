@@ -10,7 +10,7 @@ import net.minecraft.nbt.*
 import net.minecraft.nbt.NBTUtil.*
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.common.util.Constants
-import noammaddons.features.impl.dungeons.DungeonChestProfit
+import noammaddons.features.impl.dungeons.ChestProfit
 import noammaddons.noammaddons.Companion.bzData
 import noammaddons.noammaddons.Companion.itemIdToNameLookup
 import noammaddons.noammaddons.Companion.mc
@@ -155,7 +155,7 @@ object ItemUtils {
     }
 
     fun getEssenceValue(text: String): Double {
-        if (! DungeonChestProfit.includeEssence.value) return .0
+        if (! ChestProfit.includeEssence.value) return .0
         val groups = essenceRegex.matchEntire(text)?.groups ?: return .0
         val type = groups["type"]?.value?.uppercase() ?: return .0
         val count = groups["count"]?.value?.toInt() ?: return .0

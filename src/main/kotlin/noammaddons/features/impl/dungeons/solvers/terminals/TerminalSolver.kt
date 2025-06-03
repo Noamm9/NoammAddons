@@ -18,10 +18,10 @@ object TerminalSolver: Feature() {
         RedGreen, Rubix, StartWith
     )
 
-    val scale = SliderSetting("Scale", 1, 100, 75)
+    val scale = SliderSetting("Scale", 1, 100, 1, 75)
     val clickMode = DropdownSetting("Mode", listOf("Normal", "Q-Terms"/*, "Hover Terms"*/))
 
-    val reSyncTimeout = SliderSetting("Resync Timeout", 400, 1000, 600)
+    val reSyncTimeout = SliderSetting("Resync Timeout", 400, 1000, 50, 600)
 
     val solutionColor = ColorSetting("Solution Color", favoriteColor.withAlpha(170))
     val backgroundColor = ColorSetting("Background Color", Color(33, 33, 33, 195))

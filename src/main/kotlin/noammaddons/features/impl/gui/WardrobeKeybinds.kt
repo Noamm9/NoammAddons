@@ -26,17 +26,18 @@ object WardrobeKeybinds: Feature("Allows you to use your hotbar binds to swap ar
         KeybindSetting("Wardrobe Slot 7", Keyboard.KEY_7),
         KeybindSetting("Wardrobe Slot 8", Keyboard.KEY_8),
         KeybindSetting("Wardrobe Slot 9", Keyboard.KEY_9)
-    ).onEach { it.addDependency(useHotbarBinds) { it.value } }
+    ).onEach { it.addDependency { useHotbarBinds.value } }
 
 
     private lateinit var hotbarKeyMap: Map<Int, Int>
+    private var lastClick = System.currentTimeMillis()
 
     override fun init() {
         hotbarKeyMap = mc.gameSettings.keyBindsHotbar.mapIndexed { i, key -> key.keyCode to i }.toMap()
 
         addSettings(
             closeAfterUse, useHotbarBinds,
-            SeperatorSetting("Keybinds"),
+            SeperatorSetting("Keybinds").addDependency { useHotbarBinds.value },
             *keybinds.toTypedArray()
         )
     }
@@ -44,11 +45,12 @@ object WardrobeKeybinds: Feature("Allows you to use your hotbar binds to swap ar
     @SubscribeEvent
     fun onKeyInput(event: GuiKeybourdInputEvent) {
         if (! ActionUtils.inWardrobeMenu) return
+        if (System.currentTimeMillis() - lastClick < 300) return
         if (event.keyCode.equalsOneOf(Keyboard.KEY_ESCAPE, Keyboard.KEY_E)) return
         val windowId = mc.thePlayer?.openContainer?.windowId ?: return
         val index = if (useHotbarBinds.value) hotbarKeyMap[event.keyCode] ?: return
         else keybinds.withIndex().find { (_, key) -> key.value == event.keyCode }?.index ?: return
-        val slot = keyMap[index] ?: return
+        val slot = keyMap[index]?.takeIf { mc.thePlayer.openContainer.getSlot(it).stack != null } ?: return
         event.isCanceled = true
 
         if (closeAfterUse.value) {
@@ -56,5 +58,7 @@ object WardrobeKeybinds: Feature("Allows you to use your hotbar binds to swap ar
             PlayerUtils.closeScreen()
         }
         else mc.playerController.windowClick(windowId, slot, 0, 0, mc.thePlayer)
+
+        lastClick = System.currentTimeMillis()
     }
 }

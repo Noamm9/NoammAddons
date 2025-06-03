@@ -25,7 +25,7 @@ object FpsBoost: Feature() {
     private val hideFallingBlocks = ToggleSetting("Hide Falling Blocks")
 
     override fun init() = addSettings(
-        SeperatorSetting("Dungoens"),
+        SeperatorSetting("Dungeons"),
         hideNonStar, hideStar,
         SeperatorSetting("Other"),
         hideDamageNumbers, hideFallingBlocks

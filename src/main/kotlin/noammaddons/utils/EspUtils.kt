@@ -6,8 +6,8 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraftforge.fml.common.eventhandler.*
 import noammaddons.events.*
-import noammaddons.features.impl.esp.GlobalEspSettings
-import noammaddons.features.impl.esp.GlobalEspSettings.lineWidth
+import noammaddons.features.impl.esp.EspSettings
+import noammaddons.features.impl.esp.EspSettings.lineWidth
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.MathUtils.distance3D
 import noammaddons.utils.RenderHelper.glBindColor
@@ -23,7 +23,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 object EspUtils {
 
     @Suppress("NAME_SHADOWING")
-    fun espMob(entity: Entity, color: Color, type: Int = GlobalEspSettings.highlightType) {
+    fun espMob(entity: Entity, color: Color, type: Int = EspSettings.highlightType) {
         if (type == 0) return
         val entity = entity as? EntityLivingBase ?: return
         if (allEntities.any { it.first == entity }) return
