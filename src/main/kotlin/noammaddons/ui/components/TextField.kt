@@ -29,7 +29,7 @@ class TextField(var x: Number, var y: Number, var width: Number, var height: Num
     private val fieldWidth get() = width.toDouble() - (padding * 2)
     private val textPadding = 4.0
 
-    private var focused = false
+    var focused = false
     private var isDragging = false
     private var caretVisible = true
 
@@ -228,6 +228,13 @@ class TextField(var x: Number, var y: Number, var width: Number, var height: Num
                     return true
                 }
             }
+
+            Keyboard.KEY_F -> {
+                if (ctrlDown) {
+                    focused = true
+                    return true
+                }
+            }
         }
 
         if (ChatAllowedCharacters.isAllowedCharacter(typedChar)) {
@@ -236,7 +243,6 @@ class TextField(var x: Number, var y: Number, var width: Number, var height: Num
         }
         return false
     }
-
 
     private fun resetCaretBlink() {
         lastBlink = System.currentTimeMillis()

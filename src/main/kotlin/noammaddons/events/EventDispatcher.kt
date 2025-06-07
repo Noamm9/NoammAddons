@@ -1,6 +1,8 @@
 package noammaddons.events
 
 import gg.essential.api.EssentialAPI
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.init.Blocks
@@ -19,6 +21,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent.*
 import noammaddons.features.impl.dungeons.dmap.core.map.Room
 import noammaddons.noammaddons.Companion.Logger
 import noammaddons.noammaddons.Companion.mc
+import noammaddons.noammaddons.Companion.scope
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.ChatUtils
 import noammaddons.utils.ChatUtils.debugMessage
@@ -41,6 +44,8 @@ object EventDispatcher {
 
     private var currentInventory: Inventory? = null
     private var acceptItems = false
+
+    private var awaitS32 = false
 
 
     /**
@@ -125,6 +130,8 @@ object EventDispatcher {
 
             is WorldEvent.Unload -> WorldUnloadEvent().postCatch()
 
+            is WorldEvent.Load -> awaitS32 = true
+
             is EntityLeaveWorldEvent -> {
                 if (! inDungeon) return
                 if (inBoss) return
@@ -150,7 +157,18 @@ object EventDispatcher {
             is S32PacketConfirmTransaction -> {
                 if (packet.func_148888_e()) return
                 if (packet.actionNumber > 0) return
+                if (awaitS32) awaitS32 = false
                 ServerTick().postCatch()
+            }
+
+            is S03PacketTimeUpdate -> {
+                if (! awaitS32) return
+                scope.launch {
+                    repeat(20) {
+                        ServerTick().postCatch()
+                        delay(50)
+                    }
+                }
             }
 
             is S23PacketBlockChange -> BlockChangeEvent(packet.blockPosition, packet.blockState.block, getBlockAt(packet.blockPosition)).postCatch()

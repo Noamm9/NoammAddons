@@ -43,7 +43,7 @@ object FeatureManager {
         NoBlockAnimation, WitherShieldTimer, CustomBowHitSound, ZeroPingTeleportation,
         TeleportOverlay, CustomScoreboard, BlockOverlay, CustomWardrobeMenu,
         CustomPetMenu, TimeChanger, CustomTabList, TerminalSolver, ChamNametags,
-        CustomSlotHighlight, InventoryDisplay, StopCloseMyChat,
+        CustomSlotHighlight, InventoryDisplay, StopCloseMyChat, InventorySearchbar,
 
         DungeonMap,
         DevOptions,

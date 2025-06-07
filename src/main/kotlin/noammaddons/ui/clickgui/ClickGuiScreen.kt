@@ -10,6 +10,7 @@ import noammaddons.noammaddons.Companion.textRenderer
 import noammaddons.ui.components.TextField
 import noammaddons.ui.config.ConfigGUI
 import noammaddons.ui.config.core.CategoryType
+import noammaddons.ui.config.core.save.Config
 import noammaddons.ui.font.GlyphPageFontRenderer
 import noammaddons.ui.font.TextRenderer
 import noammaddons.utils.ChatUtils.addColor
@@ -27,23 +28,19 @@ import kotlin.reflect.KMutableProperty0
 
 
 object ClickGuiScreen: GuiScreen() {
-    val panels = mutableSetOf<Panel>()
+    val titleRenderer25 = TextRenderer(GlyphPageFontRenderer.create("Inter", 25, bold = true))
+    val searchBar = TextField(0, 0, 0, 0, 5, titleRenderer25)
     var currentSettingMenu: FeatureSettingMenu? = null
+    val panels = mutableSetOf<Panel>()
 
+    var scrollJob: Job? = null
+
+    private var dragging: Int? = null
     var draggingPanel: Panel? = null
     var dragOffsetX: Float = 0f
     var dragOffsetY: Float = 0f
 
-    var scrollJob: Job? = null
-
-    val titleRenderer25 = TextRenderer(GlyphPageFontRenderer.create("Inter", 25, bold = true))
-
     var scale = 2f
-    private var dragging: Int? = null
-
-
-    val searchBar = TextField(0, 0, 0, 0, 5, titleRenderer25)
-
 
     override fun initGui() {
         scale = 2f / mc.getScaleFactor()
@@ -154,6 +151,11 @@ object ClickGuiScreen: GuiScreen() {
             return
         }
 
+        if (keyCode == Keyboard.KEY_F && isCtrlKeyDown()) {
+            searchBar.focused = ! searchBar.focused
+            return
+        }
+
         if (searchBar.keyTyped(typedChar, keyCode)) return
         super.keyTyped(typedChar, keyCode)
     }
@@ -166,37 +168,6 @@ object ClickGuiScreen: GuiScreen() {
 
         currentSettingMenu?.mouseReleased(mouseX / scale, mouseY / scale, state)
         searchBar.mouseRelease(state)
-    }
-
-
-    private fun animateScroll(targetRef: KMutableProperty0<Float>, targetValue: Float) {
-        scrollJob?.cancel()
-
-        scrollJob = scope.launch {
-            val currentVal = targetRef.get()
-            if (abs(currentVal - targetValue) < 0.01f) {
-                if (isActive) targetRef.set(targetValue)
-                return@launch
-            }
-
-            val smoothingFactor = 0.25f
-            val epsilon = 0.1f
-            var iterations = 0
-            val maxIterations = 300
-
-            while (isActive && abs(targetRef.get() - targetValue) > epsilon && iterations < maxIterations) {
-                val currentValue = targetRef.get()
-                val interpolatedValue = lerp(currentValue, targetValue, smoothingFactor)
-                targetRef.set(interpolatedValue.toFloat())
-
-                delay(7L)
-                iterations ++
-            }
-
-            if (isActive) {
-                targetRef.set(targetValue)
-            }
-        }
     }
 
     override fun handleMouseInput() {
@@ -231,6 +202,43 @@ object ClickGuiScreen: GuiScreen() {
                 if (abs(currentScrollY - newTargetScrollY) > 0.01f || abs(scrollDelta) > 0.01f) {
                     animateScroll(menu::scrollY, newTargetScrollY)
                 }
+            }
+        }
+    }
+
+    override fun onGuiClosed() {
+        Config.save()
+        searchBar.value = ""
+        searchBar.focused = false
+        currentSettingMenu = null
+    }
+
+    private fun animateScroll(targetRef: KMutableProperty0<Float>, targetValue: Float) {
+        scrollJob?.cancel()
+
+        scrollJob = scope.launch {
+            val currentVal = targetRef.get()
+            if (abs(currentVal - targetValue) < 0.01f) {
+                if (isActive) targetRef.set(targetValue)
+                return@launch
+            }
+
+            val smoothingFactor = 0.25f
+            val epsilon = 0.1f
+            var iterations = 0
+            val maxIterations = 300
+
+            while (isActive && abs(targetRef.get() - targetValue) > epsilon && iterations < maxIterations) {
+                val currentValue = targetRef.get()
+                val interpolatedValue = lerp(currentValue, targetValue, smoothingFactor)
+                targetRef.set(interpolatedValue.toFloat())
+
+                delay(7L)
+                iterations ++
+            }
+
+            if (isActive) {
+                targetRef.set(targetValue)
             }
         }
     }

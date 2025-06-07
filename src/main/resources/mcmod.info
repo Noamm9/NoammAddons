@@ -5,8 +5,8 @@
     "description": "A cool mod that adds the features i would like the game to have.",
     "version": "${version}",
     "mcversion": "${mcversion}",
-    "url": "",
-    "updateUrl": "",
+    "url": "https://github.com/Noamm9/NoammAddons/",
+    "updateUrl": "https://github.com/Noamm9/NoammAddons/releases",
     "authorList": [
       "Noamm"
     ]
