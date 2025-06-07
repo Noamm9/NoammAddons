@@ -135,6 +135,7 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
         hasSoulFlow = false
     }
 
+    @SubscribeEvent
     fun onWorldUnload(event: WorldUnloadEvent) {
         hasSoulFlow = true
     }
