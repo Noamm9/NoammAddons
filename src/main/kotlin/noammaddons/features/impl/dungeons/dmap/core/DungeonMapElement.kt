@@ -41,6 +41,7 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
         GlStateManager.translate(getX(), getY(), 1f)
         GlStateManager.scale(getScale(), getScale(), getScale())
 
+
         MapRenderUtils.renderRect(
             0.0, 0.0,
             width.toDouble(), height.toDouble(),
@@ -152,7 +153,7 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
                 (DungeonMapConfig.mapRoomNames == 3 && roomType.equalsOneOf(RoomType.NORMAL, RoomType.RARE) || DungeonMapConfig.dungeonMapCheckmarkStyle == 3)
             ) {
                 val lines = room.data.name.split(" ")
-                if ("Unknown" in lines) return
+                if ("Unknown" in lines) return@forEach
                 var textScale = DungeonMapConfig.textScale
 
                 if (DungeonMapConfig.limitRoomNameSize) {

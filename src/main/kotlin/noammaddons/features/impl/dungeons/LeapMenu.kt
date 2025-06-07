@@ -81,10 +81,19 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
             }
 
             if (hideAfterLeap.value) {
+                setTimeout(hideTime.value.toInt() * 1000L) { hidePlayers = false }
                 hidePlayers = true
-                setTimeout(hideTime.value.toLong()) { hidePlayers = false }
             }
         }
+    }
+
+    @SubscribeEvent
+    fun onRenderPlayer(event: RenderPlayerEvent.Pre) {
+        if (! hidePlayers) return
+        if (event.entity == mc.thePlayer) return
+        if (dungeonTeammatesNoSelf.none { it.entity == event.entity }) return
+        if (event.entityPlayer.getDistanceToEntity(mc.thePlayer) > 2) return
+        event.isCanceled = true
     }
 
     @SubscribeEvent
@@ -223,15 +232,6 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
             sendWindowClickPacket(slot, 0, 0)
             closeScreen()
         }
-    }
-
-    @SubscribeEvent
-    fun onRenderPlayer(event: RenderPlayerEvent.Pre) {
-        if (! hidePlayers) return
-        if (event.entity == mc.thePlayer) return
-        if (dungeonTeammatesNoSelf.none { it.entity == event.entity }) return
-        if (event.entityPlayer.getDistanceToEntity(mc.thePlayer) > 2) return
-        event.isCanceled = true
     }
 
     fun updateLeapMenu() {

@@ -40,6 +40,7 @@ object BlazeSolver: Feature() {
 
     @SubscribeEvent
     fun onEnter(event: DungeonEvent.RoomEvent.onEnter) {
+        if (! PuzzleSolvers.blaze.value) return
         if (! event.room.data.name.contains("Blaze")) return
         inBlaze = true
 

@@ -19,7 +19,6 @@ import noammaddons.features.impl.dungeons.dmap.utils.MapUtils
 import noammaddons.ui.config.core.annotations.AlwaysActive
 import noammaddons.ui.config.core.impl.ButtonSetting
 import noammaddons.utils.*
-import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.inDungeon
@@ -63,13 +62,7 @@ object DungeonMap: Feature() {
         if (! DungeonMapConfig.dungeonMapCheater && ! DungeonUtils.dungeonStarted) return
         if (DungeonMapConfig.mapHideInBoss && inBoss) return
 
-        try {
-            DungeonMapElement.draw()
-        }
-        catch (e: Exception) {
-            e.printStackTrace()
-            modMessage("Error while drawing map: ${e.message}")
-        }
+        DungeonMapElement.draw()
     }
 
     @SubscribeEvent

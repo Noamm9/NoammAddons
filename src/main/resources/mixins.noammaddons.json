@@ -43,7 +43,6 @@
     "MixinEntityPlayer",
     "MixinModList",
     "MixinSkytilsFunny",
-    "MixinWorld",
-    "MixinWorldProvider"
+    "MixinWorld"
   ]
 }

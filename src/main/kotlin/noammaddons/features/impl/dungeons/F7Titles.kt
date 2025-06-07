@@ -94,7 +94,7 @@ object F7Titles: Feature(name = "F7 Titles", desc = "Custom Titles for f7 boss f
     @SubscribeEvent
     fun onServerTick(event: ServerTick) {
         if (! startTickTimer) return
-        timerTime ++
+        timerTime --
     }
 
     @SubscribeEvent

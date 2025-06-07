@@ -10,7 +10,6 @@ import noammaddons.features.impl.dungeons.dmap.core.DungeonMapElement.playerMark
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapPlayer
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.addColor
-import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.DungeonUtils
 import noammaddons.utils.ItemUtils.SkyblockID
 import noammaddons.utils.RenderHelper.bindColor
@@ -107,36 +106,36 @@ object MapRenderUtils {
 
     fun drawPlayerHead(player: DungeonMapPlayer) {
         GlStateManager.pushMatrix()
-        try {
-            if (player.teammate.entity == null) {
-                GlStateManager.translate(player.mapX, player.mapZ, 0f)
-                GlStateManager.rotate(player.yaw + 180f, 0f, 0f, 1f)
+
+        if (player.teammate.entity == null) {
+            GlStateManager.translate(player.mapX, player.mapZ, 0f)
+            GlStateManager.rotate(player.yaw + 180f, 0f, 0f, 1f)
+        }
+        else {
+            player.teammate.entity?.let { entityPlayer ->
+                val (x, z) = MapUtils.coordsToMap(entityPlayer.renderVec)
+                GlStateManager.translate(x, z, 0f)
+                GlStateManager.rotate(entityPlayer.rotationYaw + 180f, 0f, 0f, 1f)
             }
-            else {
-                player.teammate.entity?.let { entityPlayer ->
-                    val (x, z) = MapUtils.coordsToMap(entityPlayer.renderVec)
-                    GlStateManager.translate(x, z, 0f)
-                    GlStateManager.rotate(entityPlayer.rotationYaw + 180f, 0f, 0f, 1f)
-                }
-            }
+        }
 
 
-            GlStateManager.scale(DungeonMapConfig.playerHeadScale, DungeonMapConfig.playerHeadScale, 1f)
+        GlStateManager.scale(DungeonMapConfig.playerHeadScale, DungeonMapConfig.playerHeadScale, 1f)
 
-            if (DungeonMapConfig.mapVanillaMarker && player.teammate.name == mc.thePlayer.name) {
-                GlStateManager.rotate(180f, 0f, 0f, 1f)
-                bindColor(DungeonMapConfig.mapVanillaMarkerColor)
-                mc.textureManager.bindTexture(playerMarker)
-                worldRenderer.begin(7, DefaultVertexFormats.POSITION_TEX)
-                worldRenderer.pos(- 6.0, 6.0, 0.0).tex(0.0, 0.0).endVertex()
-                worldRenderer.pos(6.0, 6.0, 0.0).tex(1.0, 0.0).endVertex()
-                worldRenderer.pos(6.0, - 6.0, 0.0).tex(1.0, 1.0).endVertex()
-                worldRenderer.pos(- 6.0, - 6.0, 0.0).tex(0.0, 1.0).endVertex()
-                tessellator.draw()
-                GlStateManager.rotate(- 180f, 0f, 0f, 1f)
-            }
-            else {
-                // @formatter:off Render border around the player head
+        if (DungeonMapConfig.mapVanillaMarker && player.teammate.name == mc.thePlayer.name) {
+            GlStateManager.rotate(180f, 0f, 0f, 1f)
+            bindColor(DungeonMapConfig.mapVanillaMarkerColor)
+            mc.textureManager.bindTexture(playerMarker)
+            worldRenderer.begin(7, DefaultVertexFormats.POSITION_TEX)
+            worldRenderer.pos(- 6.0, 6.0, 0.0).tex(0.0, 0.0).endVertex()
+            worldRenderer.pos(6.0, 6.0, 0.0).tex(1.0, 0.0).endVertex()
+            worldRenderer.pos(6.0, - 6.0, 0.0).tex(1.0, 1.0).endVertex()
+            worldRenderer.pos(- 6.0, - 6.0, 0.0).tex(0.0, 1.0).endVertex()
+            tessellator.draw()
+            GlStateManager.rotate(- 180f, 0f, 0f, 1f)
+        }
+        else {
+            // @formatter:off Render border around the player head
                 renderRectBorder(- 6.0, - 6.0, 12.0, 12.0, 1.0, when {
                     DungeonMapConfig.mapPlayerHeadColorClassBased -> player.teammate.clazz.color
                     else -> DungeonMapConfig.mapPlayerHeadColor
@@ -170,69 +169,57 @@ object MapRenderUtils {
                     else Color.WHITE
                 )
             }
-        }
-        catch (e: Exception) {
-            e.printStackTrace()
-            modMessage("Error while drawing player Heads: ${e.message}")
-        }
         GlStateManager.popMatrix()
     }
 
     fun drawPlayerHead(name: String, skin:ResourceLocation, entity: EntityPlayer? = null) {
         GlStateManager.pushMatrix()
-        try {
-            val playerEntity = entity ?: return
-            val (x, z) = MapUtils.coordsToMap(playerEntity.renderVec)
 
-            GlStateManager.translate(x, z, 0f)
-            GlStateManager.rotate(playerEntity.rotationYaw + 180f, 0f, 0f, 1f)
-            GlStateManager.scale(DungeonMapConfig.playerHeadScale, DungeonMapConfig.playerHeadScale, 1f)
+        val playerEntity = entity ?: return
+        val (x, z) = MapUtils.coordsToMap(playerEntity.renderVec)
 
-            if (DungeonMapConfig.mapVanillaMarker && name == mc.thePlayer.name) {
-                GlStateManager.rotate(180f, 0f, 0f, 1f)
-                bindColor(DungeonMapConfig.mapVanillaMarkerColor)
-                mc.textureManager.bindTexture(playerMarker)
-                worldRenderer.begin(7, DefaultVertexFormats.POSITION_TEX)
-                worldRenderer.pos(- 6.0, 6.0, 0.0).tex(0.0, 0.0).endVertex()
-                worldRenderer.pos(6.0, 6.0, 0.0).tex(1.0, 0.0).endVertex()
-                worldRenderer.pos(6.0, - 6.0, 0.0).tex(1.0, 1.0).endVertex()
-                worldRenderer.pos(- 6.0, - 6.0, 0.0).tex(0.0, 1.0).endVertex()
-                tessellator.draw()
-                GlStateManager.rotate(- 180f, 0f, 0f, 1f)
-            }
-            else {
-                // @formatter:off Render border around the player head
-                renderRectBorder(- 6.0, - 6.0, 12.0, 12.0, 1.0, when {
-                    DungeonMapConfig.mapPlayerHeadColorClassBased -> DungeonUtils.Classes.Empty.color
-                    else -> DungeonMapConfig.mapPlayerHeadColor
-                })
+        GlStateManager.translate(x, z, 0f)
+        GlStateManager.rotate(playerEntity.rotationYaw + 180f, 0f, 0f, 1f)
+        GlStateManager.scale(DungeonMapConfig.playerHeadScale, DungeonMapConfig.playerHeadScale, 1f)
 
-                preDraw()
-                GlStateManager.enableTexture2D()
-                GlStateManager.color(1f, 1f, 1f, 1f)
-
-                mc.textureManager.bindTexture(skin)
-
-                Gui.drawScaledCustomSizeModalRect(- 6, - 6, 8f, 8f, 8, 8, 12, 12, 64f, 64f)
-                Gui.drawScaledCustomSizeModalRect(- 6, - 6, 40f, 8f, 8, 8, 12, 12, 64f, 64f)
-
-                postDraw()
-            }
-
-            // Handle player names
-            if (DungeonMapConfig.playerHeads == 2 || DungeonMapConfig.playerHeads == 1 && mc.thePlayer.heldItem.SkyblockID.equalsOneOf(
-                    "SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP", "HAUNT_ABILITY"
-                )
-            ) {
-                GlStateManager.rotate(playerEntity.rotationYaw + 180f, 0f, 0f, - 1f)
-                GlStateManager.translate(0f, 8f, 0f)
-                GlStateManager.scale(DungeonMapConfig.playerNameScale, DungeonMapConfig.playerNameScale, 1f)
-                RenderUtils.drawCenteredText(name, 0, 0, 1f, Color.WHITE)
-            }
+        if (DungeonMapConfig.mapVanillaMarker && name == mc.thePlayer.name) {
+            GlStateManager.rotate(180f, 0f, 0f, 1f)
+            bindColor(DungeonMapConfig.mapVanillaMarkerColor)
+            mc.textureManager.bindTexture(playerMarker)
+            worldRenderer.begin(7, DefaultVertexFormats.POSITION_TEX)
+            worldRenderer.pos(- 6.0, 6.0, 0.0).tex(0.0, 0.0).endVertex()
+            worldRenderer.pos(6.0, 6.0, 0.0).tex(1.0, 0.0).endVertex()
+            worldRenderer.pos(6.0, - 6.0, 0.0).tex(1.0, 1.0).endVertex()
+            worldRenderer.pos(- 6.0, - 6.0, 0.0).tex(0.0, 1.0).endVertex()
+            tessellator.draw()
+            GlStateManager.rotate(- 180f, 0f, 0f, 1f)
         }
-        catch (e: Exception) {
-            e.printStackTrace()
-            modMessage("Error while drawing player Heads: ${e.message}")
+        else {
+            // @formatter:off Render border around the player head
+            renderRectBorder(- 6.0, - 6.0, 12.0, 12.0, 1.0, when {
+                DungeonMapConfig.mapPlayerHeadColorClassBased -> DungeonUtils.Classes.Empty.color
+                else -> DungeonMapConfig.mapPlayerHeadColor
+            })
+
+            preDraw()
+            GlStateManager.enableTexture2D()
+            GlStateManager.color(1f, 1f, 1f, 1f)
+
+            mc.textureManager.bindTexture(skin)
+
+            Gui.drawScaledCustomSizeModalRect(- 6, - 6, 8f, 8f, 8, 8, 12, 12, 64f, 64f)
+            Gui.drawScaledCustomSizeModalRect(- 6, - 6, 40f, 8f, 8, 8, 12, 12, 64f, 64f)
+
+            postDraw()
+        }
+
+        if (DungeonMapConfig.playerHeads == 2 || DungeonMapConfig.playerHeads == 1 && mc.thePlayer.heldItem.SkyblockID.equalsOneOf(
+                "SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP", "HAUNT_ABILITY"
+        )) {
+            GlStateManager.rotate(playerEntity.rotationYaw + 180f, 0f, 0f, - 1f)
+            GlStateManager.translate(0f, 8f, 0f)
+            GlStateManager.scale(DungeonMapConfig.playerNameScale, DungeonMapConfig.playerNameScale, 1f)
+            RenderUtils.drawCenteredText(name, 0, 0, 1f, Color.WHITE)
         }
         GlStateManager.popMatrix()
     }

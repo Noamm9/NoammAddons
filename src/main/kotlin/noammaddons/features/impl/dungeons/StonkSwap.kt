@@ -28,7 +28,7 @@ object StonkSwap: Feature("A bunch of qol features for stonk swapping") {
     override fun init() = addSettings(stonkSwapSoundName, stonkSwapVolume, stonkSwapPitch, playSound)
 
     @SubscribeEvent
-    fun onPacket(event: PacketEvent.Received) {
+    fun onPacket(event: PacketEvent.Sent) {
         val packet = event.packet as? C07PacketPlayerDigging ?: return
         if (packet.status != C07PacketPlayerDigging.Action.START_DESTROY_BLOCK) return
         if (ServerPlayer.player.heldHotbarSlot == mc.thePlayer.inventory.currentItem) return

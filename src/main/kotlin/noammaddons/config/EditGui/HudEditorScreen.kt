@@ -53,7 +53,7 @@ object HudEditorScreen: GuiScreen() {
 
     override fun drawScreen(mouseX: Int, mouseY: Int, partialTicks: Float) {
         GlStateManager.pushMatrix()
-        GlStateManager.scale(scale, scale, scale)
+
         elements.forEach {
             if (! it.enabled) return@forEach
             if (DevOptions.devMode) RenderUtils.drawRect(
