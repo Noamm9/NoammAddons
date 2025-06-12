@@ -1,6 +1,5 @@
 package noammaddons.ui.font
 
-import cc.polyfrost.oneconfig.renderer.font.Fonts
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
@@ -373,7 +372,7 @@ class GlyphPageFontRenderer(
 
     private fun getFont(fontName: String, size: Int, style: Int): Font {
         try {
-            val inputStream = Fonts::class.java.getResourceAsStream("/assets/$MOD_ID/font/$fontName.ttf")
+            val inputStream = this::class.java.getResourceAsStream("/assets/$MOD_ID/font/$fontName.ttf")
             var awtClientFont = Font.createFont(Font.TRUETYPE_FONT, inputStream)
             awtClientFont = awtClientFont.deriveFont(style, size.toFloat())
             inputStream !!.close()

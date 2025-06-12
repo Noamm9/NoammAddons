@@ -26,7 +26,7 @@ import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.remove
 
 @AlwaysActive
-object DungeonMap: Feature() {
+object DungeonMap: Feature(toggled = false) {
     private val openConfigBtn by ButtonSetting("Open Config") {
         GuiUtils.openScreen(DungeonMapConfig.gui())
     }
@@ -34,11 +34,13 @@ object DungeonMap: Feature() {
     override fun onEnable() {
         super.onEnable()
         DungeonMapConfig.mapEnabled = true
+        DungeonMapConfig.save()
     }
 
     override fun onDisable() {
         super.onDisable()
         DungeonMapConfig.mapEnabled = false
+        DungeonMapConfig.save()
     }
 
     val debug get() = EssentialAPI.getMinecraftUtil().isDevelopment() || DevOptions.devMode

@@ -1,13 +1,15 @@
 package noammaddons.features.impl.gui
 
 import noammaddons.features.Feature
+import noammaddons.ui.config.core.annotations.AlwaysActive
 import noammaddons.ui.config.core.annotations.Dev
 import noammaddons.ui.config.core.impl.ColorSetting
 import noammaddons.ui.config.core.impl.DropdownSetting
 import java.awt.Color
 
 @Dev
-object ConfigGui: Feature("Customize the config menu to your liking") {
+@AlwaysActive
+object ConfigGui: Feature("Customize the config menu to your liking", toggled = true) {
     init {
         enabled = true
     }

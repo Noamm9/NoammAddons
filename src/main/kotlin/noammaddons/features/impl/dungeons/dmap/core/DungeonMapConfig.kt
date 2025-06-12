@@ -431,6 +431,11 @@ object DungeonMapConfig: Vigilant(
         }
     }
 
+    fun save() {
+        markDirty()
+        writeData()
+    }
+
     private object CategorySorting: SortingBehavior() {
         private val configCategories = listOf(
             "Map", "Rooms", "Colors", "Wither Door ESP"

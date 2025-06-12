@@ -42,7 +42,7 @@ object EspUtils {
 
         fun addEntity(entity: EntityLivingBase, color: Color) = entitiesList.takeIf { ! containsEntity(entity) }?.add(entity to color)
         fun removeEntity(entity: EntityLivingBase) = entitiesList.removeIf { it.first == entity }
-        fun containsEntity(entity: EntityLivingBase) = entitiesList.any { it.first == entity }
+        fun containsEntity(entity: Any) = entitiesList.any { it.first == entity as? EntityLivingBase }
         fun clearEntities() = entitiesList.clear()
 
         companion object {

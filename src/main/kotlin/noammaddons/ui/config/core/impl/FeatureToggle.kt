@@ -90,8 +90,8 @@ open class FeatureToggle(name: String, val cat: FeatureElement): Component<() ->
         val trackY = y + (this.height - switchTrackHeight) / 2.0
 
         if (mouseX >= trackX && mouseX <= (trackX + switchTrackWidth) && mouseY >= trackY && mouseY <= (trackY + switchTrackHeight)) {
+            if (! cat.feature.alwaysActive) animate()
             cat.feature.toggle()
-            animate()
         }
         else if (cat.feature.configSettings.isNotEmpty()) {
             val iconCenterX = (x + width - switchPaddingRight * 2f - switchTrackWidth).toFloat()

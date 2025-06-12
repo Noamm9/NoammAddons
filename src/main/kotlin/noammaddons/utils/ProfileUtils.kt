@@ -18,8 +18,8 @@ object ProfileUtils {
     const val TWO_MINUTES = 60 * 2 * 1000
 
     private val mojangApiList = listOf(
-        "https://api.mojang.com/users/profiles/minecraft/",
         "https://api.minecraftservices.com/minecraft/profile/lookup/name/",
+        "https://api.mojang.com/users/profiles/minecraft/",
         "https://api.ashcon.app/mojang/v2/user/"
     )
 

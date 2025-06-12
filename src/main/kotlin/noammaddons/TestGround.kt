@@ -171,8 +171,8 @@ object TestGround {
 
             "esp" -> {
                 event.isCanceled = true
-                StarMobESP.starMobs.clear()
                 StarMobESP.checked.clear()
+                StarMobESP.starMobs.clear()
             }
 
             "scan" -> {
