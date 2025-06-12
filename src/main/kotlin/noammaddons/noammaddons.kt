@@ -94,7 +94,8 @@ class noammaddons {
             ActionBarParser, PartyUtils,
             ChatUtils, EspUtils, ActionUtils,
             TablistListener, ServerPlayer,
-            ScoreboardUtils, FeatureManager
+            ScoreboardUtils,
+            FeatureManager
         ).forEach(MinecraftForge.EVENT_BUS::register)
 
         mc.renderManager.skinMap.let {
@@ -127,13 +128,11 @@ class noammaddons {
             if (DevOptions.updateChecker) UpdateUtils.update()
 
             fetchJsonWithRetry<Map<String, Double>>("https://moulberry.codes/lowestbin.json") {
-                it ?: return@fetchJsonWithRetry
                 ahData.clear()
                 ahData.putAll(it)
             }
 
             WebUtils.get("https://api.hypixel.net/v2/skyblock/bazaar") { obj ->
-                obj ?: return@get
                 if (obj["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
 
                 val rawBzData = JsonUtils.json.decodeFromJsonElement(
@@ -148,7 +147,6 @@ class noammaddons {
             }
 
             WebUtils.get("https://api.hypixel.net/resources/skyblock/items") { obj ->
-                obj ?: return@get
                 if (obj["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
 
                 val items = JsonUtils.json.decodeFromJsonElement(
@@ -169,7 +167,6 @@ class noammaddons {
             }
 
             WebUtils.get("https://api.hypixel.net/v2/resources/skyblock/election") { jsonObject ->
-                jsonObject ?: return@get
                 if (jsonObject["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
                 val dataElement = jsonObject["data"] ?: return@get
                 mayorData = JsonUtils.json.decodeFromJsonElement(DataClasses.ApiMayor.serializer(), dataElement)

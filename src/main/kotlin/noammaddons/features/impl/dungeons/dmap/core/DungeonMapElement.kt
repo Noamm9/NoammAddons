@@ -12,19 +12,19 @@ import noammaddons.features.impl.dungeons.dmap.utils.MapUtils
 import noammaddons.noammaddons.Companion.MOD_ID
 import noammaddons.noammaddons.Companion.hudData
 import noammaddons.noammaddons.Companion.mc
-import noammaddons.utils.DungeonUtils
+import noammaddons.utils.*
 import noammaddons.utils.DungeonUtils.dungeonStarted
 import noammaddons.utils.DungeonUtils.thePlayer
 import noammaddons.utils.RenderHelper.colorCodeByPresent
 import noammaddons.utils.RenderHelper.getStringHeight
 import noammaddons.utils.RenderHelper.getStringWidth
-import noammaddons.utils.TablistListener
 import noammaddons.utils.Utils.equalsOneOf
 import org.lwjgl.opengl.GL11
 import java.awt.Color
 
 
 object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
+    private val RES_MAP_BACKGROUND = ResourceLocation("textures/map/map_background.png")
     private val CheckMarkGreen = ResourceLocation(MOD_ID, "dungeonmap/checkmarks/green_check.png")
     private val CheckMarkWhite = ResourceLocation(MOD_ID, "dungeonmap/checkmarks/white_check.png")
     private val CheckMarkCross = ResourceLocation(MOD_ID, "dungeonmap/checkmarks/cross.png")
@@ -41,20 +41,7 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
         GlStateManager.translate(getX(), getY(), 1f)
         GlStateManager.scale(getScale(), getScale(), getScale())
 
-
-        MapRenderUtils.renderRect(
-            0.0, 0.0,
-            width.toDouble(), height.toDouble(),
-            DungeonMapConfig.mapBackground
-        )
-
-        MapRenderUtils.renderRectBorder(
-            0.0, 0.0,
-            width.toDouble(), height.toDouble(),
-            DungeonMapConfig.mapBorderWidth.toDouble(),
-            DungeonMapConfig.mapBorderColor
-        )
-
+        drawMapBackground()
         renderRooms()
         renderText()
         renderPlayerHeads()
@@ -62,6 +49,29 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
 
         GlStateManager.popMatrix()
     }
+
+
+    private fun drawMapBackground() = when (DungeonMapConfig.mapBackgroundStyle) {
+        0 -> {
+            MapRenderUtils.renderRect(
+                0.0, 0.0,
+                width.toDouble(), height.toDouble(),
+                DungeonMapConfig.mapBackground
+            )
+
+            MapRenderUtils.renderRectBorder(
+                0.0, 0.0,
+                width.toDouble(), height.toDouble(),
+                DungeonMapConfig.mapBorderWidth.toDouble(),
+                DungeonMapConfig.mapBorderColor
+            )
+        }
+
+        1 -> RenderUtils.drawTexture(RES_MAP_BACKGROUND, - 2.5, - 2.5, width + 5, height + 5)
+        2 -> {}
+        else -> {}
+    }
+
 
     private fun renderRooms() {
         if (DungeonMapConfig.dungeonMapCheater) {
@@ -174,7 +184,7 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
                 MapRenderUtils.renderCenteredText(
                     listOf("$secretCount"),
                     (xOffsetName + DungeonMapColorParser.halfRoom).toInt(),
-                    (yOffsetName + 2 + DungeonMapColorParser.halfRoom).toInt(),
+                    (yOffsetName + 1 + DungeonMapColorParser.halfRoom).toInt(),
                     color, DungeonMapConfig.textScale * 2f
                 )
 

@@ -70,13 +70,11 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
 
     init {
         WebUtils.fetchJsonWithRetry<List<String>>("https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/DungeonChestProfit/RNG_BLACKLIST.json") {
-            it ?: return@fetchJsonWithRetry
             blackList.clear()
             blackList.addAll(it)
         }
 
         WebUtils.fetchJsonWithRetry<List<String>>("https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/DungeonChestProfit/RNG_List.json") {
-            it ?: return@fetchJsonWithRetry
             rngList.clear()
             rngList.addAll(it)
         }

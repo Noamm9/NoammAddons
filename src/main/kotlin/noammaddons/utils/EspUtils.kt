@@ -1,13 +1,11 @@
 package noammaddons.utils
 
 import net.minecraft.client.renderer.OpenGlHelper
-import net.minecraft.client.shader.Framebuffer
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraftforge.fml.common.eventhandler.*
 import noammaddons.events.*
 import noammaddons.features.impl.esp.EspSettings
-import noammaddons.features.impl.esp.EspSettings.lineWidth
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.MathUtils.distance3D
 import noammaddons.utils.RenderHelper.glBindColor
@@ -21,130 +19,79 @@ import java.awt.Color
 import java.util.concurrent.CopyOnWriteArrayList
 
 object EspUtils {
-
-    @Suppress("NAME_SHADOWING")
-    fun espMob(entity: Entity, color: Color, type: Int = EspSettings.highlightType) {
-        if (type == 0) return
-        val entity = entity as? EntityLivingBase ?: return
-        if (allEntities.any { it.first == entity }) return
-
-        when (type) {
-            1 -> boxEntities.add(entity to color)
-            2 -> d2Entities.add(entity to color)
-            3 -> outlineEntities.add(entity to color)
-            4 -> {
-                chamEntities.add(entity to color)
-                outlineEntities.add(entity to color)
-            }
-
-            5 -> chamEntities.add(entity to color)
+    fun espMob(sourceEntity: Entity, color: Color, typeId: Int = EspSettings.highlightType) {
+        val espType = ESPType.fromId(typeId).takeIf { it != ESPType.Disable } ?: return
+        val entity = sourceEntity as? EntityLivingBase ?: return
+        if (espType == ESPType.FILLED_OUTLINE) {
+            ESPType.OUTLINE.addEntity(entity, color)
+            ESPType.CHAM.addEntity(entity, color)
         }
+        else espType.addEntity(entity, color)
     }
 
-    enum class ESPType(val id: Int) {
-        Disable(0),
-        BOX(1),
-        BOX2D(2),
-        OUTLINE(3),
-        FILLED_OUTLINE(4),
-        CHAM(5);
+    enum class ESPType(val displayName: String) {
+        Disable("Disable"),
+        BOX("3D Box"),
+        BOX2D("2D Box"),
+        OUTLINE("Outline"),
+        FILLED_OUTLINE("Filled Outline"),
+        CHAM("Cham");
+
+        private val entitiesList = CopyOnWriteArrayList<Pair<EntityLivingBase, Color>>()
+        fun getEntities(): List<Pair<EntityLivingBase, Color>> = entitiesList
+
+        fun addEntity(entity: EntityLivingBase, color: Color) = entitiesList.takeIf { ! containsEntity(entity) }?.add(entity to color)
+        fun removeEntity(entity: EntityLivingBase) = entitiesList.removeIf { it.first == entity }
+        fun containsEntity(entity: EntityLivingBase) = entitiesList.any { it.first == entity }
+        fun clearEntities() = entitiesList.clear()
 
         companion object {
-            val highlightTypes = listOf("Disable", "3D Box", "2D Box", "Outline", "Filled Outline", "Cham")
-            fun fromId(id: Int) = entries.first { it.id == id }
+            fun fromId(id: Int): ESPType? = entries.find { it.ordinal == id }
+            fun getAllEntities(): List<Pair<EntityLivingBase, Color>> = entries.flatMap { it.getEntities() }
+            fun resetAll() = entries.forEach(ESPType::clearEntities)
         }
-    }
-
-
-    @JvmField
-    val outlineEntities = CopyOnWriteArrayList<Pair<EntityLivingBase, Color>>()
-
-    @JvmField
-    val chamEntities = CopyOnWriteArrayList<Pair<EntityLivingBase, Color>>()
-
-    @JvmField
-    val boxEntities = CopyOnWriteArrayList<Pair<EntityLivingBase, Color>>()
-
-    @JvmField
-    val d2Entities = CopyOnWriteArrayList<Pair<EntityLivingBase, Color>>()
-
-    @JvmStatic
-    val allEntities get() = outlineEntities + chamEntities + boxEntities + d2Entities
-
-    private fun CopyOnWriteArrayList<Pair<EntityLivingBase, Color>>.remove(entity: EntityLivingBase) {
-        removeIf { it.first == entity }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    fun onEvent(event: Event) = when (event) {
-        is WorldUnloadEvent -> {
-            outlineEntities.clear()
-            chamEntities.clear()
-            boxEntities.clear()
-            d2Entities.clear()
+    fun onEvent(event: Event) {
+        when (event) {
+            is WorldUnloadEvent -> ESPType.resetAll()
+
+            is PostRenderEntityModelEvent -> {
+                ESPType.OUTLINE.getEntities().find { it.first == event.entity }?.second?.let { renderOutline(event, it) }
+            }
+
+            is RenderOverlay -> processAndRemoveEntities(ESPType.BOX2D) { entity, color ->
+                draw2dEsp(entity, color)
+            }
+
+            is RenderWorld -> processAndRemoveEntities(ESPType.BOX) { entity, color ->
+                drawEntityBox(entity, color)
+            }
         }
-
-        is PostRenderEntityModelEvent -> outlineEntities.forEach {
-            if (event.entity != it.first) return@forEach
-            val distance = distance3D(event.entity.renderVec, mc.thePlayer.renderVec)
-            val adjustedLineWidth = (lineWidth.toDouble() / (distance / 8f)).coerceIn(0.5, lineWidth.toDouble()).toFloat()
-            val fancyGraphics = mc.gameSettings.fancyGraphics
-            val gamma = mc.gameSettings.gammaSetting
-
-            mc.gameSettings.fancyGraphics = false
-            mc.gameSettings.gammaSetting = 100000f
-            glPushMatrix()
-            glPushAttrib(GL_ALL_ATTRIB_BITS)
-            checkSetupFBO()
-            glBindColor(it.second)
-            renderOne(adjustedLineWidth)
-            render(event)
-            renderTwo()
-            render(event)
-            renderThree()
-            render(event)
-            renderFour()
-            render(event)
-            glPopAttrib()
-            glPopMatrix()
-            mc.gameSettings.fancyGraphics = fancyGraphics
-            mc.gameSettings.gammaSetting = gamma
-            outlineEntities.remove(event.entity)
-        }
-
-        is RenderOverlay -> d2Entities.forEach {
-            draw2dEsp(it.first, it.second)
-            d2Entities.remove(it.first)
-        }
-
-        is RenderWorld -> boxEntities.forEach {
-            drawEntityBox(it.first, it.second)
-            boxEntities.remove(it.first)
-        }
-
-        else -> Unit
     }
 
+    private fun renderOutline(event: PostRenderEntityModelEvent, color: Color) {
+        val distance = distance3D(event.entity.renderVec, mc.thePlayer.renderVec)
+        val adjustedLineWidth = (EspSettings.lineWidth.toDouble() / (distance / 8f))
+            .coerceIn(0.5, EspSettings.lineWidth.toDouble()).toFloat()
 
-    private fun render(event: PostRenderEntityModelEvent) {
-        event.modelBase.render(
-            event.entity,
-            event.p_77036_2_,
-            event.p_77036_3_,
-            event.p_77036_4_,
-            event.p_77036_5_,
-            event.p_77036_6_,
-            event.scaleFactor
-        )
-    }
+        val originalFancyGraphics = mc.gameSettings.fancyGraphics
+        val originalGamma = mc.gameSettings.gammaSetting
+        mc.gameSettings.fancyGraphics = false
+        mc.gameSettings.gammaSetting = 100000f
 
-    private fun renderOne(LineWidth: Float) {
+        glPushMatrix()
+        glPushAttrib(GL_ALL_ATTRIB_BITS)
+
+        checkSetupFBO()
+        glBindColor(color)
         glDisable(GL_ALPHA_TEST)
         glDisable(GL_TEXTURE_2D)
         glDisable(GL_LIGHTING)
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glLineWidth(LineWidth)
+        glLineWidth(adjustedLineWidth)
         glEnable(GL_LINE_SMOOTH)
         glEnable(GL_STENCIL_TEST)
         glClear(GL_STENCIL_BUFFER_BIT)
@@ -152,39 +99,53 @@ object EspUtils {
         glStencilFunc(GL_NEVER, 1, 0xF)
         glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-    }
-
-    private fun renderTwo() {
+        render(event)
         glStencilFunc(GL_NEVER, 0, 0xF)
         glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-    }
-
-    private fun renderThree() {
+        render(event)
         glStencilFunc(GL_EQUAL, 1, 0xF)
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-    }
-
-    private fun renderFour() {
+        render(event)
         glDepthMask(false)
         glDisable(GL_DEPTH_TEST)
         glEnable(GL_POLYGON_OFFSET_LINE)
         glPolygonOffset(1.0f, - 2000000f)
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0f, 240.0f)
+        render(event)
+
+        glPopAttrib()
+        glPopMatrix()
+
+        mc.gameSettings.fancyGraphics = originalFancyGraphics
+        mc.gameSettings.gammaSetting = originalGamma
+
+        ESPType.OUTLINE.removeEntity(event.entity)
     }
 
-    private fun checkSetupFBO() {
-        val fbo = mc.framebuffer
-        if (fbo != null) {
-            if (fbo.depthBuffer > - 1) {
-                setupFBO(fbo)
-                fbo.depthBuffer = - 1
-            }
+    private fun processAndRemoveEntities(espType: ESPType, renderAction: (entity: EntityLivingBase, color: Color) -> Unit) {
+        val entitiesToProcess = espType.getEntities()
+        if (entitiesToProcess.isEmpty()) return
+
+        ArrayList(entitiesToProcess).forEach { (entity, color) ->
+            renderAction(entity, color)
+            espType.removeEntity(entity)
         }
     }
 
-    private fun setupFBO(fbo: Framebuffer) {
+    private fun render(event: PostRenderEntityModelEvent) = event.modelBase.render(
+        event.entity,
+        event.p_77036_2_,
+        event.p_77036_3_,
+        event.p_77036_4_,
+        event.p_77036_5_,
+        event.p_77036_6_,
+        event.scaleFactor
+    )
+
+    private fun checkSetupFBO() {
+        val fbo = mc.framebuffer?.takeIf { it.depthBuffer > - 1 } ?: return
         EXTFramebufferObject.glDeleteRenderbuffersEXT(fbo.depthBuffer)
         val stencilDepthBufferID = EXTFramebufferObject.glGenRenderbuffersEXT()
         EXTFramebufferObject.glBindRenderbufferEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, stencilDepthBufferID)
@@ -206,5 +167,6 @@ object EspUtils {
             EXTFramebufferObject.GL_RENDERBUFFER_EXT,
             stencilDepthBufferID
         )
+        fbo.depthBuffer = - 1
     }
 }

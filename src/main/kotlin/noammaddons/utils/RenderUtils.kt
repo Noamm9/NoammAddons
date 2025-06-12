@@ -277,6 +277,8 @@ object RenderUtils {
     }
 
     fun drawString(text: String, pos: Vec3, color: Color = Color.WHITE, scale: Float = 1f, phase: Boolean = true) {
+        val fText = text.addColor()
+
         GlStateManager.pushMatrix()
         if (phase) disableDepth()
         GlStateManager.translate(- renderManager.viewerPosX, - renderManager.viewerPosY, - renderManager.viewerPosZ)
@@ -290,7 +292,7 @@ object RenderUtils {
         GlStateManager.disableLighting()
         GlStateManager.enableBlend()
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
-        mc.fontRendererObj.drawString(text, - getStringWidth(text) / 2f, 0f, color.rgb, true)
+        mc.fontRendererObj.drawString(fText, - getStringWidth(fText) / 2f, 0f, color.rgb, true)
         GlStateManager.disableBlend()
         GlStateManager.enableLighting()
         GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f)
@@ -473,20 +475,19 @@ object RenderUtils {
 
     fun renderItem(itemStack: ItemStack?, x: Float, y: Float, scale: Float = 1f) {
         if (itemStack == null) return
+        val itemRender = mc.renderItem
 
         GlStateManager.pushMatrix()
         GlStateManager.scale(scale, scale, scale)
         GlStateManager.translate(x / scale, y / scale, 0f)
+
         net.minecraft.client.renderer.RenderHelper.enableGUIStandardItemLighting()
-        // GlStateManager.enableDepth()
-        //  GlStateManager.depthMask(true)
+        itemRender.zLevel = - 145f
 
-        mc.renderItem.renderItemAndEffectIntoGUI(itemStack, 0, 0)
-        mc.renderItem.renderItemOverlayIntoGUI(
-            itemStack.item.getFontRenderer(itemStack) ?: mc.fontRendererObj,
-            itemStack, 0, 0, null
-        )
+        itemRender.renderItemAndEffectIntoGUI(itemStack, 0, 0)
+        itemRender.renderItemOverlayIntoGUI(mc.fontRendererObj, itemStack, x.toInt(), y.toInt(), null)
 
+        itemRender.zLevel = 0f
         net.minecraft.client.renderer.RenderHelper.disableStandardItemLighting()
         GlStateManager.popMatrix()
     }
@@ -494,27 +495,22 @@ object RenderUtils {
     fun drawTexture(texture: ResourceLocation?, x: Number, y: Number, w: Number, h: Number) {
         if (texture == null) return
 
-        glPushMatrix()
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glBindColor(Color.WHITE)
+        GlStateManager.pushMatrix()
+        GlStateManager.enableBlend()
+        GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        bindColor(Color.WHITE)
 
         mc.textureManager.bindTexture(texture)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
-        glBegin(GL_QUADS)
-        glTexCoord2f(0f, 1f)
-        glVertex2f(x.toFloat(), y.toFloat() + h.toFloat())
-        glTexCoord2f(1f, 1f)
-        glVertex2f(x.toFloat() + w.toFloat(), y.toFloat() + h.toFloat())
-        glTexCoord2f(1f, 0f)
-        glVertex2f(x.toFloat() + w.toFloat(), y.toFloat())
-        glTexCoord2f(0f, 0f)
-        glVertex2f(x.toFloat(), y.toFloat())
-        glEnd()
+        worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION_TEX)
+        worldRenderer.pos(x.toDouble(), y.toDouble() + h.toDouble(), 0.0).tex(.0, 1.0).endVertex()
+        worldRenderer.pos(x.toDouble() + w.toDouble(), y.toDouble() + h.toDouble(), 0.0).tex(1.0, 1.0).endVertex()
+        worldRenderer.pos(x.toDouble() + w.toDouble(), y.toDouble(), 0.0).tex(1.0, .0).endVertex()
+        worldRenderer.pos(x.toDouble(), y.toDouble(), 0.0).tex(.0, .0).endVertex()
+        tessellator.draw()
 
-        glDisable(GL_BLEND)
-        glPopMatrix()
+        GlStateManager.disableBlend()
+        GlStateManager.popMatrix()
     }
 
     fun drawCylinder(baseCenter: Vec3, radius: Double, color: Color, phase: Boolean = true) {
@@ -585,11 +581,11 @@ object RenderUtils {
 
         drawRoundedRectangle(
             UMatrixStack(),
-            x.toFloat() * 4,
-            y.toFloat() * 4,
-            (x.toFloat() + width.toFloat()) * 4,
-            (y.toFloat() + height.toFloat()) * 4,
-            radius.toFloat() * 4,
+            x.toFloat() * 4f,
+            y.toFloat() * 4f,
+            (x.toFloat() + width.toFloat()) * 4f,
+            (y.toFloat() + height.toFloat()) * 4f,
+            radius.toFloat() * 4f,
             color
         )
 

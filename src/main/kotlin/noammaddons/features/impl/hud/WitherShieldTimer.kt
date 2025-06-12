@@ -13,7 +13,7 @@ import java.awt.Color
 
 
 object WitherShieldTimer: Feature() {
-    private object WitherShieldElement: GuiElement(hudData.getData().WitherShieldTimer) {
+    private object WitherShieldElement: GuiElement(hudData.getData().witherShieldTimer) {
         override val enabled get() = WitherShieldTimer.enabled
         var text = "&e&l5"
         override val width: Float get() = getStringWidth(text)

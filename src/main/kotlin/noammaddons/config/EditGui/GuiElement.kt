@@ -9,9 +9,9 @@ abstract class GuiElement(val dataObj: DataClasses.HudElementData) {
         HudEditorScreen.elements.add(this)
     }
 
-    open val enabled: Boolean get() = throw Error("Not implemented")
-    open val width: Float get() = throw Error("Not implemented")
-    open val height: Float get() = throw Error("Not implemented")
+    abstract val enabled: Boolean
+    abstract val width: Float
+    abstract val height: Float
 
     open fun getX() = dataObj.x
     open fun getY() = dataObj.y
@@ -29,7 +29,7 @@ abstract class GuiElement(val dataObj: DataClasses.HudElementData) {
         dataObj.scale = scale
     }
 
-    open fun draw() {}
+    abstract fun draw()
 
     open fun exampleDraw() = this.draw()
 

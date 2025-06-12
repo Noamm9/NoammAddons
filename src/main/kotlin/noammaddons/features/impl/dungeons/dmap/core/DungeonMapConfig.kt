@@ -3,8 +3,10 @@ package noammaddons.features.impl.dungeons.dmap.core
 import gg.essential.vigilance.Vigilant
 import gg.essential.vigilance.data.*
 import noammaddons.noammaddons.Companion.MOD_NAME
+import noammaddons.utils.Utils.equalsOneOf
 import java.awt.Color
 import java.io.File
+import kotlin.reflect.jvm.javaField
 
 object DungeonMapConfig: Vigilant(
     File("./config/$MOD_NAME/dungeonMapConfig.toml"),
@@ -118,6 +120,15 @@ object DungeonMapConfig: Vigilant(
         decimalPlaces = 2,
     )
     var playerNameScale = .8f
+
+    @Property(
+        name = "Map Background Style",
+        type = PropertyType.SELECTOR,
+        category = "Map",
+        subcategory = "Render",
+        options = ["Default", "Vanilla", "Disabled"]
+    )
+    var mapBackgroundStyle = 0
 
     @Property(
         name = "Map Background Color",
@@ -412,6 +423,12 @@ object DungeonMapConfig: Vigilant(
         setCategoryDescription(
             "Map", "&5Skytils On Top!\n&b/dmap to open settings menu."
         )
+
+        registerListener<Int>(::mapBackgroundStyle.javaField !!) {
+            hidePropertyIf(::mapBorderColor.javaField !!, mapBackgroundStyle.equalsOneOf(1, 2))
+            hidePropertyIf(::mapBorderWidth.javaField !!, mapBackgroundStyle.equalsOneOf(1, 2))
+            hidePropertyIf(::mapBackground.javaField !!, mapBackgroundStyle.equalsOneOf(1, 2))
+        }
     }
 
     private object CategorySorting: SortingBehavior() {

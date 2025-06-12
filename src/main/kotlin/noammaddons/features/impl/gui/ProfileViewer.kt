@@ -402,8 +402,7 @@ object ProfileViewer: Feature() {
         }
 
         mc.skinManager.loadProfileTextures(
-            fakeEntity.gameProfile,
-            { type, location, profileTexture ->
+            fakeEntity.gameProfile, { type, location, profileTexture ->
                 if (type != MinecraftProfileTexture.Type.SKIN) return@loadProfileTextures
                 skinLocation = location
                 skinType = profileTexture.getMetadata("model")
@@ -414,4 +413,3 @@ object ProfileViewer: Feature() {
         return fakeEntity
     }
 }
-

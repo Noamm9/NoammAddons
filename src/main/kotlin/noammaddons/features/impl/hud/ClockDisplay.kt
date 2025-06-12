@@ -16,7 +16,7 @@ object ClockDisplay: Feature() {
     private val seconds by ToggleSetting("Show Seconds", true)
     private val color by ColorSetting("Color", Color(255, 134, 0), false)
 
-    private object ClockDisplayElement: GuiElement(hudData.getData().ClockDisplay) {
+    private object ClockDisplayElement: GuiElement(hudData.getData().clockDisplay) {
         override val enabled get() = ClockDisplay.enabled
         private val text get() = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm${if (seconds) ":ss" else ""}"))
         override val width: Float get() = getStringWidth(text)

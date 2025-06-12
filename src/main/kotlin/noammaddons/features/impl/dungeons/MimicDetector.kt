@@ -91,7 +91,7 @@ object MimicDetector: Feature("Detects when a mimic is killed") {
         if (! highlightChest.value) return
         if (event.chest.chestType != 1) return
         if (! check()) return
-        enableChums(Color.WHITE)
+        enableChums()
     }
 
     @SubscribeEvent

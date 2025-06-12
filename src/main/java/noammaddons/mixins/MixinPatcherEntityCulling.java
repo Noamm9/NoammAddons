@@ -15,7 +15,7 @@ public class MixinPatcherEntityCulling {
     @Dynamic
     @Inject(method = "checkEntity", at = @At("HEAD"), cancellable = true)
     private static void overrideEntityCulling(Entity entity, CallbackInfoReturnable<Boolean> cir) {
-        if (EspUtils.getAllEntities().stream().noneMatch(it -> it.getFirst() == entity)) return;
+        if (EspUtils.ESPType.Companion.getAllEntities().stream().noneMatch(it -> it.getFirst() == entity)) return;
         cir.setReturnValue(false);
     }
 }

@@ -1,8 +1,8 @@
 package noammaddons.utils
 
 import com.google.gson.JsonParser
-import gg.essential.api.EssentialAPI
 import noammaddons.noammaddons.Companion.mc
+import noammaddons.utils.JsonUtils.getString
 import java.io.BufferedReader
 import javax.net.ssl.HttpsURLConnection
 
@@ -17,13 +17,26 @@ object ProfileUtils {
     val secretCache = mutableMapOf<String, Pair<Int, Long>>()
     const val TWO_MINUTES = 60 * 2 * 1000
 
+    private val mojangApiList = listOf(
+        "https://api.mojang.com/users/profiles/minecraft/",
+        "https://api.minecraftservices.com/minecraft/profile/lookup/name/",
+        "https://api.ashcon.app/mojang/v2/user/"
+    )
+
     fun getUUID(name: String): String {
         uuidCache[name]?.let { return it }
-        return EssentialAPI.getMojangAPI().getUUID(name)?.get().toString().also {
-            if (it != "null") {
-                uuidCache[name] = it
-            }
+
+        for (api in mojangApiList) {
+            val response = runCatching { readUrl(api + name) }.getOrNull() ?: continue
+            val json = JsonUtils.stringToJson(response)
+            val uuid = json.getString("id") ?: json.getString("uuid")
+            if (uuid.isNullOrBlank()) return "null"
+
+            uuidCache[name] = uuid
+            return uuid
         }
+
+        return "null"
     }
 
     fun getSecrets(name: String): Int {
@@ -32,13 +45,13 @@ object ProfileUtils {
             return cachedSecrets
         }
 
+        // Thx axle <3
         val response = readUrl("https://api.skyblockextras.com/hypixel/player?uuid=${getUUID(name)}")
-        val jsonObject = JsonParser().parse(response)?.asJsonObject ?: return 0
-        if (jsonObject.getAsJsonPrimitive("success")?.asBoolean != true) return 0
-        val secrets = jsonObject.getAsJsonObject("player")?.getAsJsonObject("achievements")
-            ?.getAsJsonPrimitive("skyblock_treasure_hunter")?.asInt ?: return 0
+        val jsonObject = JsonParser().parse(response)?.asJsonObject
+        val secrets = jsonObject?.getAsJsonObject("player")?.getAsJsonObject("achievements")
+            ?.getAsJsonPrimitive("skyblock_treasure_hunter")?.asInt ?: 0
 
-        secretCache[name] = secrets to System.currentTimeMillis()
+        if (secrets > 0) secretCache[name] = secrets to System.currentTimeMillis()
         return secrets
     }
 

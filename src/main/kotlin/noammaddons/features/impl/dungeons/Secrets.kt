@@ -34,7 +34,7 @@ import noammaddons.utils.Utils.send
 
 object Secrets: Feature() {
     private data class ClickedSecret(val pos: BlockPos, val time: Long)
-    private object SecretDisplayElement: GuiElement(hudData.getData().SecretDisplay) {
+    private object SecretDisplayElement: GuiElement(hudData.getData().secretDisplay) {
         override val enabled get() = hudDisplay.value
         var lines = listOf("&7Secrets", "&c3&7/&a7")
         val exampleLines = listOf("&7Secrets", "&c3&7/&a7")

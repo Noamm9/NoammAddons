@@ -8,8 +8,6 @@ class ClearInfo {
     var secretsBeforeRun: Int = 0
 
     companion object {
-        fun get(name: String) = DungeonUtils.dungeonTeammates.first {
-            it.name == name
-        }.clearInfo
+        fun get(name: String) = (DungeonUtils.dungeonTeammates.find { it.name == name } ?: DungeonUtils.thePlayer)?.clearInfo
     }
 }

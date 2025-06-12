@@ -24,8 +24,6 @@ object IHateDiorite: Feature("Relplace the eye burning diorite with glass on f7"
     override fun init() = WebUtils.fetchJsonWithRetry<Map<String, List<Map<String, Double>>>>(
         "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/iHateDioriteBlocks.json"
     ) { data ->
-        data ?: return@fetchJsonWithRetry
-
         val newMap = mutableMapOf<String, List<BlockPos>>()
         data.forEach { (key, value) ->
             newMap[key] = value.map {

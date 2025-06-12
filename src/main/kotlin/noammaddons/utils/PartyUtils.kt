@@ -1,10 +1,14 @@
 package noammaddons.utils
 
+import net.minecraft.network.play.client.C0EPacketClickWindow
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Chat
+import noammaddons.events.PacketEvent
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.GuiUtils.currentChestName
+import noammaddons.utils.ItemUtils.lore
 
 object PartyUtils {
     data class PartyMember(var name: String, var rank: String, var rankFormated: String, var formattedName: String, var online: Boolean)
@@ -33,6 +37,7 @@ object PartyUtils {
     private val leaveTransfer = Regex("^§eThe party was transferred to §r((?:§.(?:\\[[^\\]]+\\])?)) *(\\w+) §r§ebecause §r((?:§.(?:\\[[^\\]]+\\])?)) *(\\w+) §r§eleft§r\$")
     private val partyfinder = "^§dParty Finder §r§f> §r(§.)(\\w{1,16}) §r§ejoined the dungeon group! \\(§r§b(\\w+) Level (\\d+)§r§e\\)§r\$".toRegex()
 
+
     var inParty = false
     var leader: String? = null
     val members = mutableMapOf<String, PartyMember>()
@@ -51,7 +56,11 @@ object PartyUtils {
         playerRemove.matchAndRun(message) { (_, name) -> removeMember(name) }
         inviteRegex.matchAndRun(message) { (rank, name) -> addMember(name, rank) }
         partyMsg.matchAndRun(message) { (rank, name) -> addMember(name, rank, true) }
-        partyfinder.matchAndRun(message) { (color, name) -> addMember(name) }
+        partyfinder.matchAndRun(message) { (color, name) ->
+            addMember(name)
+            storedNames.forEach { (n, t) -> addMember(n); if (t == "L") leader = n }
+            storedNames.clear()
+        }
 
         for (regex in disbandsRegexs) {
             if (regex.matches(message)) {
@@ -115,9 +124,9 @@ object PartyUtils {
     }
 
 
-    private fun addMember(player: String, rank: String = "", online: Boolean = true) {
+    private fun addMember(player: String, _rank: String = "", online: Boolean = true) {
         inParty = true
-        var rank = rank
+        var rank = _rank
 
         if (rank == "" && player in cachedranks.keys) {
             rank = cachedranks[player] !!
@@ -160,5 +169,27 @@ object PartyUtils {
         size = 0
         leader = null
         inParty = false
+    }
+
+    val storedNames = mutableListOf<Pair<String, String>>()
+
+    @SubscribeEvent
+    fun onPacketSent(event: PacketEvent.Sent) {
+        val packet = event.packet as? C0EPacketClickWindow? ?: return
+        if (currentChestName.removeFormatting() != "Party Finder") return
+        val itemstack = packet.clickedItem ?: return
+        val lName = Regex("^(?:§.)+(\\w+)'s Party\$").find(itemstack.displayName)?.destructured?.component1() ?: return
+        storedNames.add(lName to "L")
+
+        val lore = itemstack.lore
+        val memberStartInd = lore.indexOf("§5§o§f§7Members: ").takeIf { it != - 1 } ?: return
+
+        val nameLines = lore.slice(memberStartInd + 1 .. memberStartInd + 6)
+
+        for (line in nameLines) {
+            val member = Regex("^§5§o §.(\\w{1,16})§f: §e\\w+§b \\(§e(\\d+)§b\\)\$").find(line)?.destructured?.component1() ?: continue
+            if (storedNames.any { it.first == member }) continue
+            storedNames.add(member to "M")
+        }
     }
 }

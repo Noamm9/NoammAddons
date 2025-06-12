@@ -8,6 +8,7 @@ import net.minecraftforge.client.event.RenderPlayerEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
+import noammaddons.ui.config.core.annotations.AlwaysActive
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.modMessage
@@ -34,7 +35,7 @@ import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.equalsOneOf
 import java.awt.Color
 
-
+@AlwaysActive
 object LeapMenu: Feature("Custom Leap Menu and leap message") {
     val customLeapMenu = ToggleSetting("Leap Menu", false)
     val scale = SliderSetting("Menu Scale", 1, 100, 1, 50.0).addDependency(customLeapMenu)
@@ -44,7 +45,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
     private val announceSpiritLeaps = ToggleSetting("Announce Leap", true)
     private val leapMsg = TextInputSetting("Leap Message", "ILY ❤ {name}").addDependency(announceSpiritLeaps)
 
-    private val hideAfterLeap = ToggleSetting("Hide Players After Leap")
+    private val hideAfterLeap = ToggleSetting("Hide Players After Leap ")
     private val hideTime = SliderSetting("Hide Time", 0.5, 5, 0.1, 3.5).addDependency(hideAfterLeap)
     private var hidePlayers = false
 
@@ -92,7 +93,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
         if (! hidePlayers) return
         if (event.entity == mc.thePlayer) return
         if (dungeonTeammatesNoSelf.none { it.entity == event.entity }) return
-        if (event.entityPlayer.getDistanceToEntity(mc.thePlayer) > 2) return
+        if (event.entityPlayer.getDistanceToEntity(mc.thePlayer) > 4) return
         event.isCanceled = true
     }
 

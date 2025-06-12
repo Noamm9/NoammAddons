@@ -52,6 +52,7 @@ import noammaddons.utils.ScanUtils.getCore
 import noammaddons.utils.ScanUtils.getRoomCenterAt
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.equalsOneOf
+import noammaddons.utils.Utils.remove
 import noammaddons.utils.Utils.send
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
@@ -212,6 +213,11 @@ object TestGround {
             "cri" -> {
                 openScreen(ClickGuiScreen)
                 event.isCanceled = true
+            }
+
+            "uuid" -> {
+                modMessage("getUUID: ${ProfileUtils.getUUID(mc.session.username)}")
+                modMessage("session: ${mc.session.playerID.remove("-")}")
             }
         }
     }

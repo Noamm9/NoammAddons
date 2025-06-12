@@ -130,7 +130,7 @@ object EventDispatcher {
 
             is WorldEvent.Unload -> WorldUnloadEvent().postCatch()
 
-            is WorldEvent.Load -> awaitS32 = true
+            is WorldEvent.Load -> awaitS32 = ! mc.isSingleplayer
 
             is EntityLeaveWorldEvent -> {
                 if (! inDungeon) return

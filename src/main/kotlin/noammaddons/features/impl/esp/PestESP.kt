@@ -17,10 +17,9 @@ object PestESP: Feature("Highlight Pests in the Garden") {
     private val pestList = mutableMapOf<String, String>()
 
     init {
-        WebUtils.fetchJsonWithRetry<Map<String, String>?>(
+        WebUtils.fetchJsonWithRetry<Map<String, String>>(
             "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/PestTextures.json"
         ) {
-            it ?: return@fetchJsonWithRetry
             for ((k, v) in it) {
                 pestList[v] = k
             }

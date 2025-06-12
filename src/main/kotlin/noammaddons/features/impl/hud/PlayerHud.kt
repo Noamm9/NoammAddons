@@ -38,32 +38,32 @@ object PlayerHud: Feature() {
 
     private val elements = listOf(
         PlayerHudElement(
-            hudData.getData().PlayerHud.health,
+            hudData.getData().playerHud.health,
             { health.value },
             { getHpFormatted() },
         ),
         PlayerHudElement(
-            hudData.getData().PlayerHud.defense,
+            hudData.getData().playerHud.defense,
             { defense.value },
             { "&a${ActionBarParser.currentDefense}" },
         ),
         PlayerHudElement(
-            hudData.getData().PlayerHud.mana,
+            hudData.getData().playerHud.mana,
             { mana.value },
             { "&b${ActionBarParser.currentMana}/${ActionBarParser.maxMana}" },
         ),
         PlayerHudElement(
-            hudData.getData().PlayerHud.overflowMana,
+            hudData.getData().playerHud.overflowMana,
             { overflowMana.value && (! hideIf0.value || ActionBarParser.overflowMana > 0) },
             { "&3${ActionBarParser.overflowMana}" },
         ),
         PlayerHudElement(
-            hudData.getData().PlayerHud.effectiveHP,
+            hudData.getData().playerHud.effectiveHP,
             { ehp },
             { "&2${format("${ActionBarParser.effectiveHP}")}" },
         ),
         PlayerHudElement(
-            hudData.getData().PlayerHud.speed,
+            hudData.getData().playerHud.speed,
             { speed },
             { "&f${ActionBarParser.currentSpeed}✦" },
         )

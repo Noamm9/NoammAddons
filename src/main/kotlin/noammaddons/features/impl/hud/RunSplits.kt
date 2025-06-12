@@ -68,8 +68,6 @@ object RunSplits: Feature() {
         WebUtils.fetchJsonWithRetry<Map<String, List<Map<String, String?>>>>(
             "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/runSplits.json"
         ) {
-            it ?: return@fetchJsonWithRetry
-
             val data = it.mapValues { (_, entryList) ->
                 entryList.map { entryMap ->
                     DialogueEntry(

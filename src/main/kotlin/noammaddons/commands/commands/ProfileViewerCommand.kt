@@ -39,7 +39,6 @@ object ProfileViewerCommand: Command("pv", listOf("profileviewer"), "&cInvalid U
 
 
         WebUtils.get("https://sky.shiiyu.moe/api/v2/profile/$name") { obj ->
-            obj ?: return@get
             val profiles = if (obj.containsKey("profiles")) obj["profiles"] !!.jsonObject else return@get
 
             data.skyCryptData = profiles.values.first {
@@ -48,7 +47,6 @@ object ProfileViewerCommand: Command("pv", listOf("profileviewer"), "&cInvalid U
         }
 
         WebUtils.get("https://api.icarusphantom.dev/v1/sbecommands/weight/$name") { wealth ->
-            wealth ?: return@get
             if (wealth["status"]?.jsonPrimitive?.int != 200) return@get
             val data_ = wealth.getObj("data")
             val userName = data_?.getString("username") ?: ""

@@ -21,7 +21,7 @@ import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.Utils.remove
 
 object MaskTimers: Feature() {
-    object MaskTimersElement: GuiElement(hudData.getData().MaskTimers) {
+    object MaskTimersElement: GuiElement(hudData.getData().maskTimers) {
         var text = ""
         private val exampleText = Masks.entries.joinToString("\n") { "${it.color}${it.maskName}: &aREADY" }
 

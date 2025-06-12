@@ -19,7 +19,7 @@ import java.awt.Color
 object CustomScoreboard: Feature("Draws the scoreboard with a diffrent design.") {
     private val darkMode = Color(33, 33, 33, 180)
 
-    object ScoreBoardElement: GuiElement(hudData.getData().CustomScoreBoard) {
+    object ScoreBoardElement: GuiElement(hudData.getData().customScoreBoard) {
         override val enabled get() = CustomScoreboard.enabled
 
         const val exampleText =

@@ -19,7 +19,6 @@ import net.minecraftforge.fml.common.eventhandler.Cancelable
 import net.minecraftforge.fml.common.eventhandler.Event
 import noammaddons.features.impl.dungeons.dmap.core.map.Room
 import noammaddons.features.impl.dungeons.dmap.core.map.RoomState
-import noammaddons.features.impl.misc.Cosmetics
 import noammaddons.utils.DungeonUtils
 
 
@@ -66,17 +65,7 @@ class PostRenderEntityModelEvent(
     var p_77036_6_: Float,
     var scaleFactor: Float,
     var modelBase: ModelBase
-): Event() {
-    companion object {
-        fun getDummy(entity: EntityLivingBase): PostRenderEntityModelEvent {
-            return PostRenderEntityModelEvent(
-                entity, 0f, 0f,
-                0f, 0f, 0f, 0f,
-                Cosmetics.DragonWings
-            )
-        }
-    }
-}
+): Event()
 
 @Cancelable
 class RenderTitleEvent(val title: String, val subTitle: String): Event()

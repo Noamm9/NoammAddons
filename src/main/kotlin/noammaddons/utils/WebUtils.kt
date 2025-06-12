@@ -49,17 +49,14 @@ object WebUtils {
 
     inline fun <reified T> fetchJsonWithRetry(
         url: String,
-        retryDelayMs: Long = 300_000,
-        maxRetries: Int = - 1,
-        crossinline callback: (T?) -> Unit
+        crossinline callback: (T) -> Unit
     ) {
         CoroutineScope(Dispatchers.IO).launch {
-            var attempts = 0
-            while (maxRetries == - 1 || attempts < maxRetries) {
+            while (isActive) {
                 val connection = makeWebRequest(url) as HttpURLConnection
                 try {
                     connection.requestMethod = "GET"
-                    //    connection.setRequestProperty("Accept", "application/json")
+                    connection.setRequestProperty("Accept", "application/json")
 
                     when (connection.responseCode) {
                         403 -> Logger.warn("403 Forbidden: $url")
@@ -74,6 +71,7 @@ object WebUtils {
                         val type: Type = object: TypeToken<T>() {}.type
                         val data: T = Gson().fromJson(response, type)
                         callback(data)
+                        cancel("Successful Fetch")
                         return@launch
                     }
                 }
@@ -87,14 +85,12 @@ object WebUtils {
                     connection.disconnect()
                 }
 
-                delay(retryDelayMs * (attempts + 1))
-                attempts ++
+                delay(300_000)
             }
-            callback(null)
         }
     }
 
-    fun get(url: String, block: (JsonObject?) -> Unit) {
+    fun get(url: String, block: (JsonObject) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             runCatching {
                 val connection = makeWebRequest(url) as HttpURLConnection
@@ -105,10 +101,7 @@ object WebUtils {
                 val jsonObject = JsonUtils.stringToJson(response)
 
                 jsonObject.apply(block)
-            }.onFailure {
-                block(null)
-                it.printStackTrace()
-            }
+            }.onFailure(Throwable::printStackTrace)
         }
     }
 

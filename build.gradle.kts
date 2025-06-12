@@ -120,9 +120,7 @@ tasks {
             "TweakClass" to "gg.essential.loader.stage0.EssentialSetupTweaker",
             "TweakOrder" to "0"
         )
-
-
-
+        
         dependsOn(shadowJar)
         enabled = false
     }

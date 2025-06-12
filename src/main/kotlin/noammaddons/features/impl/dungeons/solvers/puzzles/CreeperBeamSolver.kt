@@ -50,7 +50,6 @@ object CreeperBeamSolver {
         WebUtils.fetchJsonWithRetry<List<List<List<Int>>>>(
             "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/CreeperBeamSolutions.json"
         ) { beamsList ->
-            beamsList ?: return@fetchJsonWithRetry
             beamSolutions.clear()
 
             beamsList.forEach { beamPair ->

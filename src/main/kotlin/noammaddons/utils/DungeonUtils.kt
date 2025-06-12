@@ -5,6 +5,8 @@ import kotlinx.coroutines.launch
 import net.minecraft.block.BlockSkull
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.init.Blocks
+import net.minecraft.network.play.server.S38PacketPlayerListItem
+import net.minecraft.network.play.server.S47PacketPlayerListHeaderFooter
 import net.minecraft.tileentity.TileEntitySkull
 import net.minecraft.util.BlockPos
 import net.minecraft.util.ResourceLocation
@@ -27,7 +29,6 @@ import noammaddons.utils.ItemUtils.SkyblockID
 import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.NumbersUtils.romanToDecimal
 import noammaddons.utils.TablistUtils.getTabList
-import noammaddons.utils.ThreadUtils.loop
 import noammaddons.utils.Utils.equalsOneOf
 import java.awt.Color
 
@@ -110,6 +111,22 @@ object DungeonUtils {
         val clearInfo = ClearInfo()
     }
 
+    enum class Blessing(
+        var regex: Regex,
+        val displayString: String,
+        var current: Int = 0
+    ) {
+        POWER(Regex("Blessing of Power (X{0,3}(IX|IV|V?I{0,3}))"), "Power"),
+        LIFE(Regex("Blessing of Life (X{0,3}(IX|IV|V?I{0,3}))"), "Life"),
+        WISDOM(Regex("Blessing of Wisdom (X{0,3}(IX|IV|V?I{0,3}))"), "Wisdom"),
+        STONE(Regex("Blessing of Stone (X{0,3}(IX|IV|V?I{0,3}))"), "Stone"),
+        TIME(Regex("Blessing of Time (V)"), "Time");
+
+        fun reset() {
+            current = 0
+        }
+    }
+
     @JvmStatic
     fun isSecret(pos: BlockPos): Boolean {
         val block = getBlockAt(pos)
@@ -188,6 +205,71 @@ object DungeonUtils {
             val last = dungeonTeammates.filterNot { it.isDead }.lastIndex
             icon = "icon-$last"
         }
+    }
+
+    fun updatePuzzles() {
+        val tabList = getTabList.map { it.second.removeFormatting() }
+        if (tabList.size < 60) return
+
+        val oldInfoByName = puzzles.associateBy { it.name }
+        val newPuzzleInfo = tabList.slice(48 .. 52).mapNotNull { line ->
+            val name = puzzleRegex.find(line)?.destructured?.component1() ?: return@mapNotNull null
+            val state = when {
+                "✔" in line -> RoomState.GREEN
+                "✖" in line -> RoomState.FAILED
+                "✦" in line -> RoomState.DISCOVERED
+                else -> RoomState.UNOPENED
+            }
+            Puzzle(name, state)
+        }
+
+        newPuzzleInfo.forEach { new ->
+            val old = oldInfoByName[new.name] ?: run {
+                postAndCatch(DungeonEvent.PuzzleEvent.Discovered(new.name))
+                return@forEach
+            }
+
+            if (old.state == new.state) return@forEach
+
+            postAndCatch(
+                when {
+                    old.state == RoomState.DISCOVERED && new.state == RoomState.GREEN -> DungeonEvent.PuzzleEvent.Completed(new.name)
+                    old.state != RoomState.DISCOVERED && new.state == RoomState.DISCOVERED -> DungeonEvent.PuzzleEvent.Reset(new.name)
+                    old.state == RoomState.DISCOVERED && new.state == RoomState.FAILED -> DungeonEvent.PuzzleEvent.Failed(new.name)
+                    else -> return@forEach
+                }
+            )
+        }
+
+        puzzles.clear()
+        puzzles.addAll(newPuzzleInfo)
+    }
+
+    @SubscribeEvent
+    fun onPacket(event: PostPacketEvent.Received) {
+        if (! inDungeon) return
+
+        when (val packet = event.packet) {
+            is S38PacketPlayerListItem -> {
+                if (! packet.action.equalsOneOf(S38PacketPlayerListItem.Action.UPDATE_DISPLAY_NAME, S38PacketPlayerListItem.Action.ADD_PLAYER)) return
+                ThreadUtils.scheduledTask(1, ::updateDungeonTeammates)
+                ThreadUtils.scheduledTask(1, ::updatePuzzles)
+            }
+
+            is S47PacketPlayerListHeaderFooter -> Blessing.entries.forEach { blessing ->
+                blessing.regex.find(packet.footer?.unformattedText?.removeFormatting() ?: return@forEach)?.let {
+                    blessing.current = it.groupValues[1].romanToDecimal()
+                }
+            }
+        }
+    }
+
+    @SubscribeEvent
+    fun onRoomStateChange(event: DungeonEvent.RoomEvent.onStateChange) {
+        if (lastDoorOpenner == null) return
+        if (event.room.data.type != RoomType.BLOOD) return
+        if (! event.newState.equalsOneOf(RoomState.DISCOVERED, RoomState.CLEARED, RoomState.GREEN)) return
+        lastDoorOpenner = null
     }
 
     @SubscribeEvent
@@ -269,60 +351,5 @@ object DungeonUtils {
         watcherSpawnTime = null
         bossEntryTime = null
         dungeonEndTime = null
-    }
-
-    init {
-        loop(250) {
-            if (! inDungeon) return@loop
-            if (mc.theWorld == null) return@loop
-            if (mc.thePlayer == null) return@loop
-
-            updateDungeonTeammates()
-
-            if (lastDoorOpenner == null) return@loop
-            val bloodRoom = DungeonInfo.dungeonList.find { it is Room && it.data.type == RoomType.BLOOD }
-            if (bloodRoom?.state.equalsOneOf(RoomState.DISCOVERED, RoomState.CLEARED, RoomState.GREEN)) {
-                lastDoorOpenner = null
-            }
-        }
-
-        loop(250) {
-            if (! inDungeon) return@loop
-            val tabList = getTabList.map { it.second.removeFormatting() }
-            if (tabList.size < 60) return@loop
-            val oldInfoByName = puzzles.associateBy { it.name }
-
-            val newPuzzleInfo = tabList.slice(48 .. 52).mapNotNull { line ->
-                val name = puzzleRegex.find(line)?.destructured?.component1() ?: return@mapNotNull null
-                val state = when {
-                    "✔" in line -> RoomState.GREEN
-                    "✖" in line -> RoomState.FAILED
-                    "✦" in line -> RoomState.DISCOVERED
-                    else -> RoomState.UNOPENED
-                }
-                Puzzle(name, state)
-            }
-
-            newPuzzleInfo.forEach { new ->
-                val old = oldInfoByName[new.name] ?: run {
-                    postAndCatch(DungeonEvent.PuzzleEvent.Discovered(new.name))
-                    return@forEach
-                }
-
-                if (old.state == new.state) return@forEach
-
-                postAndCatch(
-                    when {
-                        old.state == RoomState.DISCOVERED && new.state == RoomState.GREEN -> DungeonEvent.PuzzleEvent.Completed(new.name)
-                        old.state != RoomState.DISCOVERED && new.state == RoomState.DISCOVERED -> DungeonEvent.PuzzleEvent.Reset(new.name)
-                        old.state == RoomState.DISCOVERED && new.state == RoomState.FAILED -> DungeonEvent.PuzzleEvent.Failed(new.name)
-                        else -> return@forEach
-                    }
-                )
-            }
-
-            puzzles.clear()
-            puzzles.addAll(newPuzzleInfo)
-        }
     }
 }

@@ -61,17 +61,20 @@ object ItemUtils {
         }
     }
 
+    val ItemStack?.extraAttributes: NBTTagCompound?
+        get() = this?.getSubCompound("ExtraAttributes", false)
+
     val ItemStack?.SkyblockID: String?
-        get() = this?.getSubCompound("ExtraAttributes", false)?.getString("id")
+        get() = this?.extraAttributes?.getString("id")
+
+    val ItemStack?.skyblockUUID: String
+        get() = this?.extraAttributes?.getString("uuid") ?: ""
+    
 
     val ItemStack.lore: List<String>
         get() = tagCompound?.getCompoundTag("display")?.getTagList("Lore", 8)?.let {
-            val list = mutableListOf<String>()
-            for (i in 0 until it.tagCount()) {
-                list.add(it.getStringTagAt(i))
-            }
-            list
-        } ?: emptyList()
+            List(it.tagCount()) { i -> it.getStringTagAt(i) }
+        }.orEmpty()
 
     fun setItemLore(item: ItemStack, newLore: List<String>) {
         val compound = item.tagCompound ?: return

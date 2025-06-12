@@ -25,8 +25,7 @@ import java.awt.*;
 import java.nio.FloatBuffer;
 
 import static noammaddons.events.EventDispatcher.postAndCatch;
-import static noammaddons.utils.EspUtils.chamEntities;
-import static org.lwjgl.opengl.GL11.*;
+import static noammaddons.utils.EspUtils.ESPType.CHAM;
 
 
 @Mixin(RendererLivingEntity.class)
@@ -40,24 +39,19 @@ public abstract class MixinRendererLivingEntity {
     protected FloatBuffer brightnessBuffer;
 
     @Unique
-    private boolean noammAddons$hasCham(EntityLivingBase entity) {
-        return chamEntities.stream().anyMatch(it -> it.getFirst() == entity);
-    }
-
-    @Unique
-    private void noammAddons$removeChamESP(EntityLivingBase entity) {
-        chamEntities.removeIf(it -> it.getFirst() == entity);
-    }
-
-    @Unique
     private Color noammAddons$getChamColor(EntityLivingBase entity) {
-        return chamEntities.stream().filter(it -> it.getFirst() == entity).map(Pair::getSecond).findAny().orElse(null);
+        return CHAM.getEntities().stream().filter(it -> it.getFirst() == entity)
+                .map(Pair::getSecond).findAny().orElse(null);
     }
 
+    @Unique
+    private Boolean noammAddons$hasCham(EntityLivingBase entity) {
+        return CHAM.containsEntity(entity);
+    }
 
     @Inject(method = "renderLayers", at = @At("RETURN"))
     private <T extends EntityLivingBase> void onRenderLayersPost(T entitylivingbaseIn, float p_177093_2_, float p_177093_3_, float partialTicks, float p_177093_5_, float p_177093_6_, float p_177093_7_, float p_177093_8_, CallbackInfo ci) {
-        if (noammAddons$hasCham(entitylivingbaseIn)) noammAddons$removeChamESP(entitylivingbaseIn);
+        if (noammAddons$hasCham(entitylivingbaseIn)) CHAM.removeEntity(entitylivingbaseIn);
 
         postAndCatch(new PostRenderEntityModelEvent(
                 entitylivingbaseIn,
@@ -66,6 +60,7 @@ public abstract class MixinRendererLivingEntity {
                 p_177093_7_, p_177093_8_,
                 mainModel
         ));
+
     }
 
     @Inject(method = "setBrightness", at = @At(value = "HEAD"), cancellable = true)
@@ -121,26 +116,24 @@ public abstract class MixinRendererLivingEntity {
         cir.setReturnValue(true);
     }
 
+
     @Inject(method = "doRender(Lnet/minecraft/entity/EntityLivingBase;DDDFF)V", at = @At("HEAD"))
     private <T extends EntityLivingBase> void injectChamsPre(T entity, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo callbackInfo) {
-        if (noammAddons$hasCham(entity)) {
-            glEnable(GL_POLYGON_OFFSET_FILL);
-            glPolygonOffset(1f, -1000000F);
-        }
+        if (!noammAddons$hasCham(entity)) return;
+        RenderHelper.enableChums();
     }
 
     @Inject(method = "doRender(Lnet/minecraft/entity/EntityLivingBase;DDDFF)V", at = @At("RETURN"))
     private <T extends EntityLivingBase> void injectChamsPost(T entity, double x, double y, double z, float a, float b, CallbackInfo callbackInfo) {
         if (!noammAddons$hasCham(entity)) return;
-        glPolygonOffset(1f, 1000000F);
-        glDisable(GL_POLYGON_OFFSET_FILL);
+        RenderHelper.disableChums();
     }
 
 
     @Inject(method = "renderName(Lnet/minecraft/entity/EntityLivingBase;DDD)V", at = @At("HEAD"))
     private <T extends EntityLivingBase> void injectChamsPre(T entity, double x, double y, double z, CallbackInfo ci) {
         if (!ChamNametags.INSTANCE.enabled) return;
-        RenderHelper.enableChums(Color.WHITE);
+        RenderHelper.enableChums();
     }
 
     @Inject(method = "renderName(Lnet/minecraft/entity/EntityLivingBase;DDD)V", at = @At("RETURN"))

@@ -114,7 +114,7 @@ object BlazeSolver: Feature() {
         if (blazes.isEmpty()) return
 
         blazes.withIndex().forEach { (i, entity) ->
-            if (i > 0 && i < blazeCount.value.toInt()) {
+            if (i > 0 && i < blazeCount.value) {
                 val b1 = blazes[i - 1].positionVector.add(y = blazes[i - 1].height / 2.0)
                 val b2 = entity.positionVector.add(y = entity.height / 2.0)
                 draw3DLine(b1, b2, BlineColor.value, 3f)
@@ -123,11 +123,11 @@ object BlazeSolver: Feature() {
     }
 
     @SubscribeEvent
-    fun a(event: RenderEntityEvent) {
+    fun a(event: PostRenderEntityModelEvent) {
         if (blazes.isEmpty()) return
 
         // RenderWorld cant keep up with the number of blazes
-        blazes.indexOf(event.entity).takeIf { it != - 1 && it < blazeCount.value.toInt() }?.let { i ->
+        blazes.indexOf(event.entity).takeIf { it != - 1 && it < blazeCount.value }?.let { i ->
             espMob(event.entity, getBlazeColor(i))
         }
     }

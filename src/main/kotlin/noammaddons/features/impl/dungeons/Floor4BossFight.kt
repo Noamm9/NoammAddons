@@ -13,19 +13,21 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.*
-import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.showTitle
+import noammaddons.utils.EspUtils.ESPType.*
 import noammaddons.utils.EspUtils.espMob
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.isMasterMode
 import noammaddons.utils.NumbersUtils.toFixed
+import noammaddons.utils.RenderHelper
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderHelper.renderVec
 import noammaddons.utils.RenderUtils.drawCenteredText
 import noammaddons.utils.RenderUtils.drawTracer
+import noammaddons.utils.SoundUtils
 import java.awt.Color
 import kotlin.math.abs
 
@@ -64,7 +66,7 @@ object Floor4BossFight: Feature(name = "Floor 4 Boss", desc = "Spirit bear spawn
 
 
     @SubscribeEvent
-    fun onPostRenderEntityModel(event: RenderEntityEvent) {
+    fun onPostRenderEntityModel(event: PostRenderEntityModelEvent) {
         if (! inM4boss) return
         when (val entity = event.entity) {
             is EntityGhast -> if (espThorn) espMob(event.entity, espThornColor)
@@ -78,7 +80,7 @@ object Floor4BossFight: Feature(name = "Floor 4 Boss", desc = "Spirit bear spawn
                 if (! entity.isInvisible) return
                 if (entity.heldItem?.item !is ItemBow) return
                 if (traceSpiritBow) drawTracer(entity.renderVec.add(Vec3(.0, 1.0, .0)), traceSpiritBowColor)
-                if (boxSpiritBow) espMob(entity, boxSpiritBowColor, EspUtils.ESPType.BOX.id)
+                if (boxSpiritBow) espMob(entity, boxSpiritBowColor, BOX.ordinal)
             }
         }
     }

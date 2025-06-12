@@ -6,6 +6,7 @@ import noammaddons.features.impl.DevOptions
 import noammaddons.features.impl.alerts.*
 import noammaddons.features.impl.dungeons.*
 import noammaddons.features.impl.dungeons.dmap.DungeonMap
+import noammaddons.features.impl.dungeons.dragons.WitherDragons
 import noammaddons.features.impl.dungeons.solvers.LividSolver
 import noammaddons.features.impl.dungeons.solvers.devices.*
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers
@@ -32,7 +33,7 @@ object FeatureManager {
         GhostPick, DoorKeys, AutoUlt, PartyFinder, TickTimers, LeapMenu,
         ReaperArmor, AutoI4, ArchitectDraft, BetterFloors, AutoGFS,
         AutoPotion, CryptsDone, M7Relics, MaxorsCrystals, ChestProfit,
-        FpsBoost, Camera, PlayerModel, DamageSplash, AutoRequeue, M7Dragons,
+        FpsBoost, Camera, PlayerModel, DamageSplash, AutoRequeue, WitherDragons,
         DungeonPlayerDeath, WarpCooldown, RoomAlerts, RunSplits, RatProtection,
         PuzzleSolvers, LividSolver, SimonSaysSolver, ArrowAlignSolver,
         Floor4BossFight, WitherESP, StarMobESP, HiddenMobs, PestESP, Secrets,
@@ -40,10 +41,11 @@ object FeatureManager {
         SalvageOverlay, RagAxe, ShadowAssassin, MelodyAlert, PlayerHud,
         FullBlock, TerminalNumbers, F7Titles, ScalableTooltips, FpsDisplay,
         ClockDisplay, TpsDisplay, PetDisplay, MaskTimers, SpringBootsDisplay,
-        NoBlockAnimation, WitherShieldTimer, CustomBowHitSound, ZeroPingTeleportation,
+        NoBlockAnimation, WitherShieldTimer, BowHitSound, ZeroPingTeleportation,
         TeleportOverlay, CustomScoreboard, BlockOverlay, CustomWardrobeMenu,
         CustomPetMenu, TimeChanger, CustomTabList, TerminalSolver, ChamNametags,
         CustomSlotHighlight, InventoryDisplay, StopCloseMyChat, InventorySearchbar,
+        BlessingDisplay,
 
         DungeonMap,
         DevOptions,

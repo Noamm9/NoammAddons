@@ -23,7 +23,7 @@ object Cosmetics {
     private var devPlayers: List<String>? = null
 
     init {
-        WebUtils.fetchJsonWithRetry<List<String>?>(
+        WebUtils.fetchJsonWithRetry<List<String>>(
             "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/devPlayers.json"
         ) { devPlayers = it }
     }

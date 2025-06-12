@@ -25,11 +25,7 @@ object UpdateUtils {
         if (isMessageOnScreen) return
 
         WebUtils.fetchJsonWithRetry<List<DataClasses.Release>>(GITHUB_API_URL) { releases ->
-            if (releases.isNullOrEmpty()) {
-                modMessage("&4Failed to get release version from GitHub")
-                return@fetchJsonWithRetry
-            }
-
+            if (releases.isEmpty()) return@fetchJsonWithRetry modMessage("&4Failed to get release version from GitHub")
             updateVersion = releases.firstOrNull { ! it.prerelease } ?: return@fetchJsonWithRetry
 
             val latestVersion = updateVersion.tag_name.remove(removeCharsRegex)

@@ -12,7 +12,7 @@ import noammaddons.utils.RenderUtils.drawText
 import kotlin.math.roundToInt
 
 object SpringBootsDisplay: Feature() {
-    private object SpringBootsElement: GuiElement(hudData.getData().SpringBootsDisplay) {
+    private object SpringBootsElement: GuiElement(hudData.getData().springBootsDisplay) {
         override val enabled get() = SpringBootsDisplay.enabled
         var text = ""
         override val width: Float get() = getStringWidth(text)

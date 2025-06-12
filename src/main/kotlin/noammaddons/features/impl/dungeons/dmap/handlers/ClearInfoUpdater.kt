@@ -27,26 +27,27 @@ object ClearInfoUpdater {
         if (! newState.equalsOneOf(RoomState.CLEARED, RoomState.GREEN)) return
 
         if (players.size == 1) {
-            ClearInfo.get(players[0].name).clearedRooms.first.add(room.name)
+            ClearInfo.get(players[0].name)?.clearedRooms?.first?.add(room.name)
             if (debug) modMessage("${players[0].name} cleared ${room.name}")
         }
         else players.forEach {
-            ClearInfo.get(it.name).clearedRooms.second.add(room.name)
+            ClearInfo.get(it.name)?.clearedRooms?.second?.add(room.name)
             if (debug) modMessage("${it.name} stacked cleard ${room.name}")
         }
     }
 
     fun updateDeaths(player: String, reason: String) {
         if (! DungeonMapConfig.printPlayersClearInfo) return
-        ClearInfo.get(player).deaths += reason
+        ClearInfo.get(player)?.deaths?.add(reason)
         if (debug) modMessage("$player died: $reason")
     }
 
     fun initStartSecrets() = CoroutineScope(Dispatchers.IO).launch {
         if (! DungeonMapConfig.printPlayersClearInfo) return@launch
         DungeonUtils.runPlayersNames.keys.toList().forEach { name ->
+            val ci = ClearInfo.get(name) ?: return@forEach
             val secrets = ProfileUtils.getSecrets(name)
-            ClearInfo.get(name).secretsBeforeRun = secrets
+            ci.secretsBeforeRun = secrets
             if (debug) modMessage("$name has $secrets secrets")
         }
     }

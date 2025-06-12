@@ -4,9 +4,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import net.minecraft.client.entity.EntityOtherPlayerMP
-import noammaddons.noammaddons.Companion.mc
-import noammaddons.utils.RenderHelper.getHeight
-import noammaddons.utils.RenderHelper.getWidth
 
 class DataClasses {
 
@@ -77,13 +74,13 @@ class DataClasses {
     )
 
     class HudElementConfig {
-        val MaskTimers = HudElementData(100f, 10f, 1f)
-        val GhostPick = HudElementData(100f, 40f, 1f)
-        val ClockDisplay = HudElementData(100f, 50f, 1f)
+        val maskTimers = HudElementData(100f, 10f, 1f)
+        val ghostPick = HudElementData(100f, 40f, 1f)
+        val clockDisplay = HudElementData(100f, 50f, 1f)
         val FPSdisplay = HudElementData(100f, 60f, 1f)
-        val WitherShieldTimer = HudElementData(100f, 70f, 2f)
-        val SpringBootsDisplay = HudElementData(100f, 80f, 4f)
-        val PlayerHud = PlayerHudData(
+        val witherShieldTimer = HudElementData(100f, 70f, 2f)
+        val springBootsDisplay = HudElementData(100f, 80f, 4f)
+        val playerHud = PlayerHudData(
             health = HudElementData(100f, 90f, 1f),
             mana = HudElementData(100f, 100f, 1f),
             overflowMana = HudElementData(100f, 110f, 1f),
@@ -92,14 +89,15 @@ class DataClasses {
             speed = HudElementData(100f, 140f, 1f)
         )
         val petDisplay = PetDisplayData(HudElementData(100f, 150f, 1f))
-        val TpsDisplay = HudElementData(100f, 160f, 1f)
-        val CustomScoreBoard = HudElementData(mc.getWidth() * 1f, mc.getHeight() / 2f, 1f)
-        val SecretDisplay = HudElementData(130f, 130f, 1f)
+        val tpsDisplay = HudElementData(100f, 160f, 1f)
+        val customScoreBoard = HudElementData(100f, 100f, 0.7f)
+        val secretDisplay = HudElementData(100f, 100f, 1f)
         val dungeonMap = HudElementData(100f, 100f, 1f)
         val scoreCalculator = HudElementData(100f, 100f, 1f) // todo
         val inventoryDisplay = HudElementData(100f, 100f, 1f)
         val dungeonWarpCooldown = HudElementData(100f, 100f, 1f)
         val dungeonRunSplits = HudElementData(100f, 100f, 1f)
+        val blessingDisplay = HudElementData(100f, 100f, 1f)
     }
 
     data class HudElementData(var x: Float, var y: Float, var scale: Float)

@@ -55,12 +55,10 @@ object ScanUtils {
     var lastKnownRoom: Room? = null
 
     init {
-        WebUtils.fetchJsonWithRetry<List<RoomData>?>(
-            "https://raw.githubusercontent.com/Skytils/SkytilsMod/refs/heads/1.x/src/main/resources/assets/catlas/rooms.json"
-        ) {
-            it ?: return@fetchJsonWithRetry
-            roomList.addAll(it)
-        }
+        WebUtils.fetchJsonWithRetry<List<RoomData>>(
+            "https://raw.githubusercontent.com/Skytils/SkytilsMod/refs/heads/1.x/src/main/resources/assets/catlas/rooms.json",
+            roomList::addAll
+        )
     }
 
 

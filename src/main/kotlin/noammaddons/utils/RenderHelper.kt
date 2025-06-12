@@ -66,18 +66,15 @@ object RenderHelper {
     }
 
     @JvmStatic
-    fun enableChums(color: Color) {
+    fun enableChums() {
         glEnable(GL_POLYGON_OFFSET_FILL)
-        bindColor(color)
-        GlStateManager.enablePolygonOffset()
-        GlStateManager.doPolygonOffset(1f, - 1000000f)
+        glPolygonOffset(1f, - 1000000f)
     }
 
     @JvmStatic
     fun disableChums() {
+        glPolygonOffset(1f, 1000000f)
         glDisable(GL_POLYGON_OFFSET_FILL)
-        GlStateManager.doPolygonOffset(1f, 1000000f)
-        GlStateManager.disablePolygonOffset()
     }
 
     @JvmStatic

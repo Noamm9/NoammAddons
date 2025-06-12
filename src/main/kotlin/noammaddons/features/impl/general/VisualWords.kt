@@ -16,9 +16,7 @@ object VisualWords: Feature("Replace some text with other text", toggled = true)
     init {
         WebUtils.fetchJsonWithRetry<Map<String, String>>(
             "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/VisualWords.json"
-        ) {
-            wordsMap = it ?: return@fetchJsonWithRetry
-        }
+        ) { wordsMap = it }
     }
 
     @JvmStatic

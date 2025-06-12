@@ -80,7 +80,6 @@ object LividSolver: Feature() {
         if (currentLivid == null) return
         if (currentLivid?.isDead.equalsOneOf(null, true)) return
         if (currentLivid?.isPlayerSleeping.equalsOneOf(null, true)) return
-        if (highlight.value) espMob(currentLivid !!, highlightColor.value)
         if (tracer.value) drawTracer(currentLivid !!.renderVec.add(y = 0.9), tracerColor.value)
         if (showHp.value) drawString(
             format(currentLivid !!.health),
@@ -90,7 +89,7 @@ object LividSolver: Feature() {
     }
 
     @SubscribeEvent
-    fun onRenderWorld(event: RenderEntityEvent) {
+    fun onRenderWorld(event: PostRenderEntityModelEvent) {
         if (dungeonFloorNumber != 5 || ! inBoss) return
         if (currentLivid?.isDead.equalsOneOf(null, true)) return
         if (currentLivid?.isPlayerSleeping.equalsOneOf(null, true)) return

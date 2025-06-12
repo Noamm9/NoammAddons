@@ -14,15 +14,13 @@ object AutoPotion: Feature() {
     const val potionName = "Dungeon VII Potion"
     private val floorEnterRegex = Regex("-+\\s.+ entered.+The Catacombs, Floor [IVX]+!\\s-+")
 
-    private val onDungonStart = ToggleSetting("On Dungeon Start", true)
-    override fun init() = addSettings(onDungonStart)
-
+    private val onDungonStart by ToggleSetting("On Dungeon Start", true)
 
     @SubscribeEvent
     fun onChat(event: Chat) {
         val msg = event.component.noFormatText
         if (msg == "You need the Cookie Buff active to use this feature!") return GuiUtils.hideGui(false)
-        if (msg.matches(floorEnterRegex) && onDungonStart.value) {
+        if (msg.matches(floorEnterRegex) && onDungonStart) {
             if (hasPotion()) return
             getPotion(potionName)
         }

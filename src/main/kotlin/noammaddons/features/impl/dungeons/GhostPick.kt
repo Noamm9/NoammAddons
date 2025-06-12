@@ -27,7 +27,7 @@ object GhostPick: Feature("Allows you to break blocks client-side.") {
     override fun init() = addSettings(onlyInDungeon, mode, keybind)
 
 
-    private object GhostPickElement: GuiElement(hudData.getData().GhostPick) {
+    private object GhostPickElement: GuiElement(hudData.getData().ghostPick) {
         private const val text = "&b&lGhostPick: &a&lEnabled"
         override val enabled get() = featureState
         override val width = getStringWidth(text)

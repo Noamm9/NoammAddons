@@ -11,7 +11,7 @@ object ChatEmojis: Feature("Lets you use [MVP++] emojis in chat") {
     private var emojiMap: Map<String, String>? = null
 
     init {
-        fetchJsonWithRetry<Map<String, String>?>(
+        fetchJsonWithRetry<Map<String, String>>(
             "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/emojiMap.json"
         ) { emojiMap = it }
     }

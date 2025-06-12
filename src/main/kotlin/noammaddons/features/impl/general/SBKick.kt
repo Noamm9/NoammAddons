@@ -39,6 +39,12 @@ object SBKick: Feature("Shows how long it has been since the last time you were 
                 lastKickTime = System.currentTimeMillis()
                 showTime = true
             }
+
+            "A kick occurred in your connection, so you were put in the SkyBlock lobby!" -> {
+                if (sendMsg) sendPartyMessage("$CHAT_PREFIX You were kicked while joining that server!")
+                lastKickTime = System.currentTimeMillis()
+                showTime = true
+            }
         }
     }
 
