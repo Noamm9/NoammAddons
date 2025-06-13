@@ -5,7 +5,6 @@ import net.minecraft.init.Blocks.*
 import net.minecraft.item.ItemBow
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
-import net.minecraftforge.fml.common.eventhandler.Event
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.events.EventDispatcher.postAndCatch
@@ -58,7 +57,7 @@ object AutoI4: Feature("Fully Automated I4.") {
     private var changedMask = false
     private var i4Job: Job? = null
 
-    private fun isOnDev() = mc.thePlayer.posY == 127.0 && mc.thePlayer.posX in 62.0 .. 65.0 && mc.thePlayer.posZ in 34.0 .. 37.0
+    private fun isOnDev() = mc.thePlayer.posY == 127.0 && mc.thePlayer.posX in 62.0 .. 65.0 && mc.thePlayer.posZ in 34.0 .. 37.0 && enabled
 
     private fun getTargetVec(pos: BlockPos): Vec3 {
         val i = devBlocks.indexOf(pos)
@@ -91,19 +90,7 @@ object AutoI4: Feature("Fully Automated I4.") {
         i4Job?.cancel()
     }
 
-
     @SubscribeEvent
-    fun onEvent(event: Event) {
-        if (! enabled) return
-        when (event) {
-            is BlockChangeEvent -> onBlock(event)
-            is RenderWorld -> renderDevBlocks()
-            is Chat -> onChat(event)
-            is ServerTick -> onServerTick()
-            else -> return
-        }
-    }
-
     fun onBlock(event: BlockChangeEvent) {
         if (! isOnDev()) return
         if (mc.thePlayer?.heldItem?.item !is ItemBow) return
@@ -140,8 +127,8 @@ object AutoI4: Feature("Fully Automated I4.") {
         }
     }
 
-
-    fun renderDevBlocks() {
+    @SubscribeEvent
+    fun renderDevBlocks(event: RenderWorld) {
         if (! isOnDev()) return reset()
 
         devBlocks.forEach {
@@ -165,7 +152,7 @@ object AutoI4: Feature("Fully Automated I4.") {
         }
     }
 
-
+    @SubscribeEvent
     fun onChat(event: Chat) {
         val msg = event.component.noFormatText
 
@@ -179,7 +166,8 @@ object AutoI4: Feature("Fully Automated I4.") {
         }
     }
 
-    fun onServerTick() {
+    @SubscribeEvent
+    fun onServerTick(event: ServerTick) {
         if (tickTimer == - 1) return
         tickTimer ++
         if (! isOnDev()) return

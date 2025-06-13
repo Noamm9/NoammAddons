@@ -122,8 +122,8 @@ object DungeonUtils {
         STONE(Regex("Blessing of Stone (X{0,3}(IX|IV|V?I{0,3}))"), "Stone"),
         TIME(Regex("Blessing of Time (V)"), "Time");
 
-        fun reset() {
-            current = 0
+        companion object {
+            fun reset() = entries.forEach { it.current = 0 }
         }
     }
 
@@ -351,5 +351,6 @@ object DungeonUtils {
         watcherSpawnTime = null
         bossEntryTime = null
         dungeonEndTime = null
+        Blessing.reset()
     }
 }

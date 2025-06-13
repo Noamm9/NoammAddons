@@ -55,7 +55,8 @@ object ProfileUtils {
         return secrets
     }
 
-    fun getSpiritPet(name: String) = readUrl("https://api.tenios.dev/spiritPet/${getUUID(name)}").toBoolean()
+    // todo: Remove when mojang api is functional
+    fun getSpiritPet(name: String) = /*readUrl("https://api.tenios.dev/spiritPet/${getUUID(name)}").toBoolean()*/true
 
     private fun readUrl(url: String): String {
         val connection = WebUtils.makeWebRequest(url)

@@ -47,7 +47,6 @@ object EspUtils {
 
         companion object {
             fun fromId(id: Int): ESPType? = entries.find { it.ordinal == id }
-            fun getAllEntities(): List<Pair<EntityLivingBase, Color>> = entries.flatMap { it.getEntities() }
             fun resetAll() = entries.forEach(ESPType::clearEntities)
         }
     }

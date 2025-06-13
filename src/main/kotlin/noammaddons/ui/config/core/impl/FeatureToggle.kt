@@ -3,6 +3,7 @@ package noammaddons.ui.config.core.impl
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import noammaddons.features.Feature
+import noammaddons.features.impl.dungeons.dmap.DungeonMap
 import noammaddons.features.impl.gui.ConfigGui.accentColor
 import noammaddons.noammaddons.Companion.scope
 import noammaddons.noammaddons.Companion.textRenderer
@@ -48,6 +49,8 @@ open class FeatureToggle(name: String, val cat: FeatureElement): Component<() ->
     }
 
     private fun drawSwitch(x: Double, y: Double) {
+        if (cat.feature == DungeonMap) return // Hotfix
+
         val trackX = x + width - switchPaddingRight - switchTrackWidth
         val trackY = y + (this.height - switchTrackHeight) / 2.0
 
@@ -89,7 +92,8 @@ open class FeatureToggle(name: String, val cat: FeatureElement): Component<() ->
         val trackX = x + width - switchPaddingRight - switchTrackWidth
         val trackY = y + (this.height - switchTrackHeight) / 2.0
 
-        if (mouseX >= trackX && mouseX <= (trackX + switchTrackWidth) && mouseY >= trackY && mouseY <= (trackY + switchTrackHeight)) {
+        // HotFix for DungeonMap 
+        if (mouseX >= trackX && mouseX <= (trackX + switchTrackWidth) && mouseY >= trackY && mouseY <= (trackY + switchTrackHeight) && cat.feature != DungeonMap) {
             if (! cat.feature.alwaysActive) animate()
             cat.feature.toggle()
         }
