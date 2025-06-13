@@ -41,10 +41,10 @@ object TimerCommand: Command("timer") {
      */
     private fun logoutFromServer() {
         Minecraft.getMinecraft().addScheduledTask {
-            Minecraft.getMinecraft().theWorld = null;
-            Minecraft.getMinecraft().thePlayer = null;
-            Minecraft.getMinecraft().displayGuiScreen(GuiMainMenu());
-        };
+            Minecraft.getMinecraft().theWorld = null
+            Minecraft.getMinecraft().thePlayer = null
+            Minecraft.getMinecraft().displayGuiScreen(GuiMainMenu())
+        }
     }
 
     /**
@@ -107,7 +107,6 @@ object TimerCommand: Command("timer") {
         timerThread = thread(start = true, isDaemon = true, name = "TimerCommandThread") {
             try {
                 Thread.sleep(seconds * 1000L)
-                val modes = arrayOf("logout", "quit game", "run command")
                 val actions = arrayOf(
                     { logoutFromServer() },
                     { quitGame() },
@@ -119,6 +118,7 @@ object TimerCommand: Command("timer") {
                 actions.getOrNull(clientTimerMode)?.invoke()
             } catch(e: InterruptedException) {
                 modMessage("&cTimer interrupted due to an error or user action.")
+                println(e)
             }
         }
     }
