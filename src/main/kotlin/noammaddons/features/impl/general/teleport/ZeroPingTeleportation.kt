@@ -10,6 +10,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.features.impl.DevOptions
+import noammaddons.features.impl.general.teleport.ZeroPingTeleportation.TeleportInfo.Companion.Types
 import noammaddons.ui.config.core.impl.SeperatorSetting
 import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.*
@@ -17,6 +18,8 @@ import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ItemUtils.SkyblockID
+import noammaddons.utils.ItemUtils.extraAttributes
+import noammaddons.utils.LocationUtils.WorldType.*
 import noammaddons.utils.MathUtils.add
 import noammaddons.utils.MathUtils.destructured
 import noammaddons.utils.Utils.equalsOneOf
@@ -68,6 +71,7 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
         failedTeleports.add(id)
         ThreadUtils.setTimeout(FAIL_TIMEOUT) { failedTeleports.remove(id) }
         pendingTeleports.clear()
+        modMessage("&bZPT >> &cFailed &e${failedTeleports.size}/$MAX_FAILED_TELEPORTS")
         if (failedTeleports.size >= MAX_FAILED_TELEPORTS) {
             modMessage(
                 "&bZPT >> &cDetected &6${failedTeleports.size}&c failed teleports. Stopping the feature for &e${
@@ -84,18 +88,19 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
         if (packet.placedBlockDirection != 255) return
         if (pendingTeleports.size == MAX_PENDING_TELEPORTS) return
         if (failedTeleports.size == MAX_FAILED_TELEPORTS) return
-        if (LocationUtils.world == LocationUtils.WorldType.Home) return
+        if (LocationUtils.world == Home) return
         if (LocationUtils.dungeonFloorNumber == 7 && LocationUtils.inBoss) return
         if (ActionBarParser.currentMana < ActionBarParser.maxMana * 0.1) return
         if (ScanUtils.currentRoom?.data?.name.equalsOneOf("New Trap", "Old Trap", "Teleport Maze", "Boulder")) return
-        if (getBlockAt(packet.position).equalsOneOf(trapped_chest, chest, ender_chest, hopper)) return
+        val block = mc.objectMouseOver.blockPos?.let { getBlockAt(it) } ?: air
+        if (block.equalsOneOf(trapped_chest, chest, ender_chest, hopper, cauldron)) return
         if (LocationUtils.isInHubCarnival()) return
         val tpInfo = getTeleportInfo(packet) ?: return
 
         when (tpInfo.type) {
-            TeleportInfo.Companion.Types.Etherwarp -> doZeroPingEtherwarp(tpInfo)
-            TeleportInfo.Companion.Types.InstantTransmission -> doZeroPingInstantTransmission(tpInfo)
-            TeleportInfo.Companion.Types.WitherImpact -> doZeroPingWitherImpact(tpInfo)
+            Types.Etherwarp -> doZeroPingEtherwarp(tpInfo)
+            Types.InstantTransmission -> doZeroPingInstantTransmission(tpInfo)
+            Types.WitherImpact -> doZeroPingWitherImpact(tpInfo)
         }
     }
 
@@ -143,13 +148,9 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
     private fun doZeroPingEtherwarp(tpInfo: TeleportInfo) {
         val playerPos = ServerPlayer.player.getVec()
         val playerRot = ServerPlayer.player.getRotation()
-        val etherPos = EtherwarpHelper.getEtherPos(playerPos, playerRot, tpInfo.distance)
+        val etherPos = EtherwarpHelper.getEtherPos(playerPos, playerRot, tpInfo.distance).takeIf { it.succeeded && it.pos != null } ?: return
 
-        if (! etherPos.succeeded) return
-        val pos = etherPos.pos ?: return
-
-        if (getBlockAt(pos).equalsOneOf(chest, ender_chest, trapped_chest)) return
-        if (ScanUtils.getRoomFromPos(pos)?.data?.name.equalsOneOf("Teleport Maze", "Boulder")) return
+        if (ScanUtils.getRoomFromPos(etherPos.pos !!)?.data?.name.equalsOneOf("Teleport Maze", "Boulder")) return
 
         playerRot.yaw %= 360
         if (playerRot.yaw < 0) playerRot.yaw += 360
@@ -163,15 +164,7 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
         val playerPos = ServerPlayer.player.getVec()
         val playerRot = ServerPlayer.player.getRotation()
 
-        val pos = InstantTransmissionPredictor.predictTeleport(
-            tpInfo.distance,
-            playerPos.xCoord,
-            playerPos.yCoord,
-            playerPos.zCoord,
-            playerRot.yaw.toDouble(),
-            playerRot.pitch.toDouble()
-        ) ?: return
-
+        val pos = InstantTransmissionPredictor.predictTeleport(tpInfo.distance, playerPos, playerRot) ?: return
         if (ScanUtils.getRoomFromPos(pos)?.data?.name.equalsOneOf("Teleport Maze", "Boulder")) return
 
         playerRot.yaw %= 360
@@ -194,7 +187,7 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
         val sbId = heldItem.SkyblockID ?: return null
 
         if (sbId.equalsOneOf("ASPECT_OF_THE_VOID", "ASPECT_OF_THE_END")) {
-            val nbt = heldItem.getSubCompound("ExtraAttributes", false)
+            val nbt = heldItem.extraAttributes
             val tuners = nbt?.getByte("tuned_transmission")?.toInt() ?: 0
             if (ServerPlayer.player.sneaking && nbt?.getByte("ethermerge") == 1.toByte()) {
                 if (! etherwarp.value) return null
@@ -202,7 +195,7 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
 
                 return TeleportInfo(
                     distance = 57.0 + tuners,
-                    type = TeleportInfo.Companion.Types.Etherwarp,
+                    type = Types.Etherwarp,
                     keepMotion = etherwarpKm.value
                 )
             }
@@ -210,7 +203,7 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
                 if (! aote.value) return null
                 return TeleportInfo(
                     distance = 8.0 + tuners,
-                    type = TeleportInfo.Companion.Types.InstantTransmission,
+                    type = Types.InstantTransmission,
                     keepMotion = aoteKm.value
                 )
             }
@@ -219,7 +212,7 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
             if (! witherImpact.value) return null
             return TeleportInfo(
                 distance = 10.0,
-                type = TeleportInfo.Companion.Types.WitherImpact,
+                type = Types.WitherImpact,
                 keepMotion = witherImpactKm.value
             )
         }

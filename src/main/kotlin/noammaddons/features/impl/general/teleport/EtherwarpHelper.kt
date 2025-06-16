@@ -1,15 +1,12 @@
 package noammaddons.features.impl.general.teleport
 
-import net.minecraft.block.Block
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
 import noammaddons.noammaddons.Companion.mc
+import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.getBlockId
 import noammaddons.utils.MathUtils
 import noammaddons.utils.MathUtils.add
-import noammaddons.utils.MathUtils.destructured
-import noammaddons.utils.MathUtils.floor
-import noammaddons.utils.ServerPlayer
 import noammaddons.utils.Utils.equalsOneOf
 import java.util.*
 import kotlin.math.*
@@ -24,7 +21,7 @@ object EtherwarpHelper {
         }
     }
 
-    fun getPlayerEyeHeight() = 1.62 + if (ServerPlayer.player.sneaking) - .08 else .0
+    const val EYE_HEIGHT = 1.62
 
     fun getLook(yaw: Float = mc.thePlayer?.rotationYaw ?: 0f, pitch: Float = mc.thePlayer?.rotationPitch ?: 0f): Vec3 {
         val f2 = - cos(- pitch * 0.017453292f).toDouble()
@@ -42,7 +39,7 @@ object EtherwarpHelper {
     )
 
     fun getEtherPos(pos: Vec3, rotation: MathUtils.Rotation, distance: Double = 60.0, returnEnd: Boolean = false): EtherPos {
-        val startPos: Vec3 = pos.add(y = getPlayerEyeHeight())
+        val startPos: Vec3 = pos.add(y = EYE_HEIGHT)
         val endPos = getLook(rotation.yaw, rotation.pitch).normalize().multiply(factor = distance).add(startPos)
         return traverseVoxels(startPos, endPos).takeUnless { it == EtherPos.NONE && returnEnd } ?: EtherPos(true, BlockPos(endPos))
     }
@@ -52,11 +49,17 @@ object EtherwarpHelper {
      * @author Bloom
      */
     private fun traverseVoxels(start: Vec3, end: Vec3): EtherPos {
-        val (x0, y0, z0) = start.destructured()
-        val (x1, y1, z1) = end.destructured()
+        return traverseVoxels(start.xCoord, start.yCoord, start.zCoord, end.xCoord, end.yCoord, end.zCoord)
+    }
 
-        var (x, y, z) = start.floor().destructured()
-        val (endX, endY, endZ) = end.floor().destructured()
+    private fun traverseVoxels(x0: Double, y0: Double, z0: Double, x1: Double, y1: Double, z1: Double): EtherPos {
+        var x = floor(x0).toInt()
+        var y = floor(y0).toInt()
+        var z = floor(z0).toInt()
+
+        val endX = floor(x1).toInt()
+        val endY = floor(y1).toInt()
+        val endZ = floor(z1).toInt()
 
         val dirX = x1 - x0
         val dirY = y1 - y0
@@ -66,57 +69,65 @@ object EtherwarpHelper {
         val stepY = sign(dirY).toInt()
         val stepZ = sign(dirZ).toInt()
 
-        val invDirX = if (dirX != 0.0) 1.0 / dirX else Double.MAX_VALUE
-        val invDirY = if (dirY != 0.0) 1.0 / dirY else Double.MAX_VALUE
-        val invDirZ = if (dirZ != 0.0) 1.0 / dirZ else Double.MAX_VALUE
+        val tDeltaX = if (dirX == 0.0) Double.POSITIVE_INFINITY else min(abs(1.0 / dirX), 1.0)
+        val tDeltaY = if (dirY == 0.0) Double.POSITIVE_INFINITY else min(abs(1.0 / dirY), 1.0)
+        val tDeltaZ = if (dirZ == 0.0) Double.POSITIVE_INFINITY else min(abs(1.0 / dirZ), 1.0)
 
-        val tDeltaX = abs(invDirX * stepX)
-        val tDeltaY = abs(invDirY * stepY)
-        val tDeltaZ = abs(invDirZ * stepZ)
-
-        var tMaxX = abs((x + max(stepX, 0) - x0) * invDirX)
-        var tMaxY = abs((y + max(stepY, 0) - y0) * invDirY)
-        var tMaxZ = abs((z + max(stepZ, 0) - z0) * invDirZ)
+        var tMaxX = if (dirX == 0.0) Double.POSITIVE_INFINITY else abs((floor(x0) + max(0.0, stepX.toDouble()) - x0) / dirX)
+        var tMaxY = if (dirY == 0.0) Double.POSITIVE_INFINITY else abs((floor(y0) + max(0.0, stepY.toDouble()) - y0) / dirY)
+        var tMaxZ = if (dirZ == 0.0) Double.POSITIVE_INFINITY else abs((floor(z0) + max(0.0, stepZ.toDouble()) - z0) / dirZ)
 
         repeat(1000) {
-            val chunk = mc.theWorld?.chunkProvider?.provideChunk(x.toInt() shr 4, z.toInt() shr 4) ?: return EtherPos.NONE
-            val currentBlock = chunk.getBlock(BlockPos(x, y, z)).getBlockId()
+            val currentPos = BlockPos(x, y, z)
+            val currentBlock = getBlockAt(currentPos).getBlockId()
 
             if (currentBlock != 0) {
-                if (validEtherwarpFeetIds.get(currentBlock)) return EtherPos(false, BlockPos(x, y, z))
-                if (currentBlock.equalsOneOf(8, 9, 10, 11)) return EtherPos(false, BlockPos(x, y, z))
+                if (validEtherwarpFeetIds.get(currentBlock)) return EtherPos(false, currentPos)
+                if (currentBlock.equalsOneOf(8, 9, 10, 11)) return EtherPos(false, currentPos)
 
-                val footBlockId = Block.getIdFromBlock(chunk.getBlock(BlockPos(x, y + 1, z)))
-                if (! validEtherwarpFeetIds.get(footBlockId)) return EtherPos(false, BlockPos(x, y, z))
+                if (! validEtherwarpFeetIds.get(currentBlock)) {
 
-                val headBlockId = Block.getIdFromBlock(chunk.getBlock(BlockPos(x, y + 2, z)))
-                if (! validEtherwarpFeetIds.get(headBlockId)) return EtherPos(false, BlockPos(x, y, z))
+                    val footBlock = getBlockAt(x, y + 1, z).getBlockId()
+                    if (! validEtherwarpFeetIds.get(footBlock)) return EtherPos(false, currentPos)
 
-                return EtherPos(true, BlockPos(x, y, z))
+                    val headBlock = getBlockAt(x, y + 2, z).getBlockId()
+                    if (! validEtherwarpFeetIds.get(headBlock)) return EtherPos(false, currentPos)
+
+                    return EtherPos(true, currentPos)
+                }
+                return EtherPos(false, currentPos)
+
             }
 
+            // End Reached without finding a block
             if (x == endX && y == endY && z == endZ) return EtherPos.NONE
 
-            when {
-                tMaxX <= tMaxY && tMaxX <= tMaxZ -> {
+            // Find the next direction to step in
+            if (tMaxX < tMaxY) {
+                if (tMaxX < tMaxZ) {
                     tMaxX += tDeltaX
                     x += stepX
                 }
-
-                tMaxY <= tMaxZ -> {
+                else {
+                    tMaxZ += tDeltaZ
+                    z += stepZ
+                }
+            }
+            else {
+                if (tMaxY < tMaxZ) {
                     tMaxY += tDeltaY
                     y += stepY
                 }
-
-                else -> {
+                else {
                     tMaxZ += tDeltaZ
                     z += stepZ
                 }
             }
         }
 
-        return EtherPos.NONE
+        return EtherPos.NONE // Iteration limit reached
     }
+
 
     private val validEtherwarpFeetIds = BitSet(176).apply {
         arrayOf(

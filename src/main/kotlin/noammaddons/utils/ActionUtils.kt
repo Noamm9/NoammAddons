@@ -28,6 +28,7 @@ import noammaddons.utils.MathUtils.lerp
 import noammaddons.utils.MathUtils.normalizePitch
 import noammaddons.utils.MathUtils.normalizeYaw
 import noammaddons.utils.PlayerUtils.closeScreen
+import noammaddons.utils.PlayerUtils.getArmor
 import noammaddons.utils.PlayerUtils.holdClick
 import noammaddons.utils.PlayerUtils.rotate
 import noammaddons.utils.PlayerUtils.sendRightClickAirPacket
@@ -201,8 +202,15 @@ object ActionUtils {
         }
     }
 
+    private suspend fun changeMaskAction() {
+        val sbIds = mc.thePlayer.inventory.mainInventory.mapNotNull { it?.SkyblockID }
+        val mask = sbIds.find { it.containsOneOf("SPIRIT_MASK", "BONZO_MASK") } ?: return
+        quickSwapAction(mask)
+    }
+
     private suspend fun quickSwapAction(itemID: String) {
         if (thePlayer?.isDead == true) return
+        if (getArmor().any { it.SkyblockID == itemID }) return
 
         C01PacketChatMessage("/eq").send()
         hideGui(true) { drawTitle("&5[Swapping...]", "&bPlease wait") }
@@ -210,12 +218,6 @@ object ActionUtils {
         setTimeout(5000) { awaiting4EQ = "" }
 
         while (awaiting4EQ.isNotBlank()) delay(50)
-    }
-
-    private suspend fun changeMaskAction() {
-        val sbIds = mc.thePlayer.inventory.mainInventory.mapNotNull { it?.SkyblockID }
-        val mask = sbIds.find { it.containsOneOf("SPIRIT_MASK", "BONZO_MASK") } ?: return
-        quickSwapAction(mask)
     }
 
     private suspend fun getPotionAction(name: String) {

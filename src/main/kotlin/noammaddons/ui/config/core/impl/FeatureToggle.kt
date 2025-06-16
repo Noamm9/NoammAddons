@@ -14,6 +14,7 @@ import noammaddons.ui.config.core.save.Config
 import noammaddons.utils.MathUtils.interpolateColor
 import noammaddons.utils.MathUtils.lerp
 import noammaddons.utils.RenderUtils.drawCircle
+import noammaddons.utils.Utils.equalsOneOf
 import java.awt.Color
 import kotlin.reflect.KProperty
 
@@ -49,7 +50,7 @@ open class FeatureToggle(name: String, val cat: FeatureElement): Component<() ->
     }
 
     private fun drawSwitch(x: Double, y: Double) {
-        if (cat.feature == DungeonMap) return // Hotfix
+        if (cat.feature.equalsOneOf(DungeonMap)) return // Hotfix
 
         val trackX = x + width - switchPaddingRight - switchTrackWidth
         val trackY = y + (this.height - switchTrackHeight) / 2.0
@@ -93,7 +94,7 @@ open class FeatureToggle(name: String, val cat: FeatureElement): Component<() ->
         val trackY = y + (this.height - switchTrackHeight) / 2.0
 
         // HotFix for DungeonMap 
-        if (mouseX >= trackX && mouseX <= (trackX + switchTrackWidth) && mouseY >= trackY && mouseY <= (trackY + switchTrackHeight) && cat.feature != DungeonMap) {
+        if (mouseX >= trackX && mouseX <= (trackX + switchTrackWidth) && mouseY >= trackY && mouseY <= (trackY + switchTrackHeight) && ! cat.feature.equalsOneOf(DungeonMap)) {
             if (! cat.feature.alwaysActive) animate()
             cat.feature.toggle()
         }

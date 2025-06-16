@@ -11,6 +11,7 @@ import noammaddons.features.impl.misc.PlayerModel.getPlayerScaleFactor
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ItemUtils.SkyblockID
+import noammaddons.utils.ItemUtils.extraAttributes
 import noammaddons.utils.MathUtils.Rotation
 import noammaddons.utils.MathUtils.add
 import noammaddons.utils.ReflectionUtils.invoke
@@ -36,12 +37,12 @@ object PlayerUtils {
 
     fun getRotation() = Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch)
 
-    fun getArmor(): Array<out ItemStack>? = mc.thePlayer?.inventory?.armorInventory
+    fun getArmor(): Array<ItemStack?> = mc.thePlayer?.inventory?.armorInventory ?: arrayOf(null, null, null, null)
 
-    fun getHelmet(): ItemStack? = getArmor()?.get(3)
-    fun getChestplate(): ItemStack? = getArmor()?.get(2)
-    fun getLeggings(): ItemStack? = getArmor()?.get(1)
-    fun getBoots(): ItemStack? = getArmor()?.get(0)
+    fun getHelmet(): ItemStack? = getArmor()[3]
+    fun getChestplate(): ItemStack? = getArmor()[2]
+    fun getLeggings(): ItemStack? = getArmor()[1]
+    fun getBoots(): ItemStack? = getArmor()[0]
 
 
     fun toggleSneak(isSneaking: Boolean = mc.gameSettings.keyBindSneak.isKeyDown) {
@@ -121,14 +122,7 @@ object PlayerUtils {
     }
 
     fun isHoldingWitherImpact(itemstack: ItemStack? = mc.thePlayer?.heldItem): Boolean {
-        itemstack ?: return false
-        if (mc.isSingleplayer && itemstack.item == Items.iron_sword) return true
-        val nbt = itemstack.tagCompound ?: return false
-
-        val extraAttributes = nbt.getCompoundTag("ExtraAttributes") ?: return false
-        val abilityScroll = extraAttributes.getTagList("ability_scroll", 8).toString()
-
-        return abilityScroll.run {
+        return itemstack.extraAttributes?.getTagList("ability_scroll", 8).toString().run {
             contains("SHADOW_WARP_SCROLL") && contains("IMPLOSION_SCROLL") && contains("WITHER_SHIELD_SCROLL")
         }
     }

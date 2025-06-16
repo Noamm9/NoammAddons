@@ -1,125 +1,114 @@
-/**
- * Noamm Addons - Timer Command
- * This file has been automagically been JSdoc'ed by https://axle.coffee using OpenAI's GPT-4.1
- * This file is part of the Noamm Addons project, which is licensed under the undefined license.
- * This code may be subject to personal license(s) used by axle.coffee or other third parties, please contact a Contributor for more information.
- *
- */
 package noammaddons.commands.commands
 
-import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.GuiMainMenu
+import kotlinx.coroutines.*
 import net.minecraft.command.ICommandSender
+import net.minecraft.util.ChatComponentText
 import noammaddons.commands.Command
 import noammaddons.features.impl.misc.ClientTimer.clientTimerCommand
 import noammaddons.features.impl.misc.ClientTimer.clientTimerCommandOnAllModes
 import noammaddons.features.impl.misc.ClientTimer.clientTimerMode
+import noammaddons.noammaddons.Companion.FULL_PREFIX
 import noammaddons.utils.ChatUtils.modMessage
+import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendChatMessage
-import kotlin.concurrent.thread
 
-/**
- * Handles the /timer command for scheduling actions after a delay.
- *
- * Usage:
- * /timer <time><unit>
- * Examples: /timer 1d, /timer 2h, /timer 30m, /timer 45s, /timer 1hour
- *
- * Modes:
- * - logout: Disconnects from the server and returns to the main menu.
- * - quit game: Shuts down the Minecraft client.
- * - run command: Executes a custom command after the timer.
- *
- * If called with no arguments and a timer is running, cancels the timer.
- */
+
 object TimerCommand: Command("timer") {
-    private var timerThread: Thread? = null
+    private var timerJob: Job? = null
+    private var startTime = System.currentTimeMillis()
+    private var time = 0L
 
-    /**
-     * Disconnects the player from the current server and returns to the main menu.
-     * We shedule this task to ensure it runs on the main thread which owns openGL or smth (idk ask google)
-     */
-    private fun logoutFromServer() {
-        Minecraft.getMinecraft().addScheduledTask {
-            Minecraft.getMinecraft().theWorld = null
-            Minecraft.getMinecraft().thePlayer = null
-            Minecraft.getMinecraft().displayGuiScreen(GuiMainMenu())
-        }
-    }
+    private val actions = arrayOf(
+        { mc.netHandler?.networkManager?.closeChannel(ChatComponentText("$FULL_PREFIX&r: Timer Ended")) },
+        { mc.shutdown() },
+        {
+            val slash = if (clientTimerCommand.contains("/")) "" else "/"
+            val cmd = clientTimerCommand.removeFormatting()
+            if (cmd.isNotBlank()) sendChatMessage(slash + cmd)
+        },
+    )
 
-    /**
-     * Shuts down the Minecraft client.
-     */
-    private fun quitGame() {
-        Minecraft.getMinecraft().shutdown()
-    }
-
-    /**
-     * Parses a time argument string into seconds.
-     * Supports days, hours, minutes, seconds, and their full-word variants.
-     *
-     * @param input The time argument string.
-     * @return The total time in seconds.
-     */
-    private fun parseTimeArg(input: String): Int {
-        val units = arrayOf(
-            Pair(Regex("""(\d+)\s*d(ays?)?""", RegexOption.IGNORE_CASE), 86400),
-            Pair(Regex("""(\d+)\s*h(ours?)?""", RegexOption.IGNORE_CASE), 3600),
-            Pair(Regex("""(\d+)\s*m(in(utes?)?)?""", RegexOption.IGNORE_CASE), 60),
-            Pair(Regex("""(\d+)\s*s(ec(onds?)?)?""", RegexOption.IGNORE_CASE), 1),
-        )
-        for((regex, multiplier) in units) {
-            val match = regex.find(input)
-            if(match != null) {
-                val value = match.groupValues[1].toIntOrNull() ?: 0
-                return value * multiplier
-            }
-        }
-        return input.filter { it.isDigit() }.toIntOrNull() ?: 0
-    }
-
-    /**
-     * Processes the /timer command.
-     * Cancels any running timer if called with no arguments.
-     * Otherwise, starts a new timer for the specified duration and executes the selected action.
-     *
-     * @param sender The command sender.
-     * @param args The command arguments.
-     */
     override fun processCommand(sender: ICommandSender, args: Array<out String>) {
-        if(args.isEmpty()) {
-            if(timerThread?.isAlive == true) {
-                timerThread?.interrupt()
-                timerThread = null
-                modMessage("&aTimer cancelled.")
-            } else {
-                modMessage("&cInvalid Usage. &bUsage: /timer <time><unit>")
+        if (args.isEmpty()) {
+            if (timerJob?.isActive == true) {
+                timerJob?.cancel()
+                timerJob = null
+                modMessage("&aTimer &ccancelled &awith &e${formatTime((time - (System.currentTimeMillis() - startTime)) / 1000)}&a left.")
+                startTime = 0
+                time = 0
             }
+            else modMessage("&cInvalid Usage. &bUsage: /timer <time>\n  Example: /na timer 1h 2m 10s")
             return
         }
-        val seconds = parseTimeArg(args.joinToString(" "))
-        if(seconds <= 0) {
-            modMessage("&cInvalid time. Please provide a positive duration.")
-            return
+
+        val seconds = parseTimeArg(args.joinToString(" ")).takeIf { it > 0 } ?: return modMessage("&cInvalid time. Please provide a positive duration.")
+        val action = when (clientTimerMode) {
+            0 -> "Disconnect"
+            1 -> "Close Game"
+            2 -> "Run Command ($clientTimerCommand)"
+            else -> ""
         }
-        modMessage("&aTimer set for $seconds seconds.")
-        timerThread?.interrupt()
-        timerThread = thread(start = true, isDaemon = true, name = "TimerCommandThread") {
-            try {
-                Thread.sleep(seconds * 1000L)
-                val actions = arrayOf(
-                    { logoutFromServer() },
-                    { quitGame() },
-                    { if(clientTimerCommand.isNotEmpty()) sendChatMessage(clientTimerCommand) },
-                )
-                if(clientTimerCommandOnAllModes && clientTimerCommand.isNotEmpty()) {
-                    sendChatMessage(clientTimerCommand)
-                }
-                actions.getOrNull(clientTimerMode)?.invoke()
-            } catch(e: InterruptedException) {
-                modMessage("&cTimer interrupted due to an error or user action.")
-                println(e)
+
+        modMessage("&aTimer set for &e${formatTime(seconds.toLong())}&a. &bAction: $action")
+        startTime = System.currentTimeMillis()
+        time = seconds * 1000L
+
+        timerJob?.cancel()
+        timerJob = scope.launch {
+            delay(seconds * 1000L)
+            if (clientTimerCommandOnAllModes && clientTimerMode != 2 && clientTimerCommand.removeFormatting().isNotBlank()) {
+                sendChatMessage(clientTimerCommand)
             }
+
+            actions.getOrNull(clientTimerMode)?.invoke()
         }
     }
+
+    private fun parseTimeArg(input: String): Int {
+        val units = listOf(
+            Regex("""(\d+)\s*d(ays?)?""", RegexOption.IGNORE_CASE) to 86400,
+            Regex("""(\d+)\s*h(ours?)?""", RegexOption.IGNORE_CASE) to 3600,
+            Regex("""(\d+)\s*m(in(utes?)?)?""", RegexOption.IGNORE_CASE) to 60,
+            Regex("""(\d+)\s*s(ec(onds?)?)?""", RegexOption.IGNORE_CASE) to 1,
+        )
+
+        var totalSeconds = 0
+        var matched = false
+
+        for ((regex, multiplier) in units) {
+            regex.findAll(input).forEach { match ->
+                val value = match.groupValues[1].toIntOrNull() ?: 0
+                totalSeconds += value * multiplier
+                matched = true
+            }
+        }
+
+        if (! matched) totalSeconds = input.trim().toIntOrNull() ?: 0
+        return totalSeconds
+    }
+
+    private fun formatTime(seconds: Long): String {
+        if (seconds <= 0) return "0s"
+
+        val parts = mutableListOf<String>()
+        var remaining = seconds
+
+        val units = listOf(
+            86400L to "d",
+            3600L to "h",
+            60L to "m",
+            1L to "s"
+        )
+
+        for ((unitSeconds, suffix) in units) {
+            val value = remaining / unitSeconds
+            if (value > 0) {
+                parts += "${value}${suffix}"
+                remaining %= unitSeconds
+            }
+        }
+
+        return parts.joinToString(" ")
+    }
+
 }

@@ -20,7 +20,7 @@ object Camera: Feature() {
     val smoothSneak = ToggleSetting("Smooth Sneak")
 
     private val customFov = ToggleSetting("Custom FOV")
-    private val fov = SliderSetting("FOV", 60, 150, 1, mc.gameSettings.fovSetting).addDependency(customFov)
+    private val fov = SliderSetting("FOV", 60f, 150f, 1f, mc.gameSettings.fovSetting).addDependency(customFov)
     private val removeSelfieCam = ToggleSetting("Remove Selfie Cam")
     private val onlyWithHype = ToggleSetting("Only With Hype?").addDependency(removeSelfieCam)
 
@@ -42,12 +42,12 @@ object Camera: Feature() {
 
     @SubscribeEvent
     fun onFOVModifier(event: FOVModifier) {
-        if (event.block.material == Material.water) {
-            event.fov = if (customFov.value) fov.value.toFloat() else event.fov * 70F / 60F
-        }
-        else if (customFov.value) {
-            mc.gameSettings.fovSetting = fov.value.toFloat()
-        }
+        if (! customFov.value) return
+        if (event.block.material == Material.water) return
+        mc.gameSettings.fovSetting = fov.value
+
+        event.fov = if (customFov.value) fov.value else event.fov * 70F / 60F
+
     }
 
     @SubscribeEvent
@@ -88,7 +88,7 @@ object Camera: Feature() {
     /**
      *  @see noammaddons.mixins.MixinEntityPlayer
      */
-    object SmoothSneak: Feature() {
+    object SmoothSneak {
         private const val SNEAK_OFFSET = 0.08f
         private const val animationSpeed = 2.5f // Increase to slow down animation
         private var lastState = false

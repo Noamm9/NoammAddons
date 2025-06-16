@@ -13,6 +13,7 @@ import net.minecraft.network.play.client.C01PacketChatMessage
 import net.minecraft.util.*
 import net.minecraft.util.ChatAllowedCharacters.*
 import net.minecraft.util.StringUtils.*
+import net.minecraftforge.client.ClientCommandHandler
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.events.EventDispatcher.postAndCatch
@@ -106,7 +107,11 @@ object ChatUtils {
         if (messageQueue.isEmpty()) return
 
         if (System.currentTimeMillis() - lastMessageTime < MESSAGE_DELAY_MS) setTimeout(MESSAGE_DELAY_MS, ::processQueue)
-        else messageQueue.poll()?.run(mc.thePlayer::sendChatMessage)
+        else messageQueue.poll()?.run {
+            if (ClientCommandHandler.instance.executeCommand(mc.thePlayer, this) == 0) {
+                mc.thePlayer.sendChatMessage(this)
+            }
+        }
     }
 
     @SubscribeEvent

@@ -90,7 +90,7 @@ object ProfileViewer: Feature() {
             val profileName = skycryptData.getString("cute_name") ?: "Unknown"
             val profileMode = skycryptData.getString("game_mode") ?: "Unknown"
             val joinDate = skycryptData.getObj("data")?.getObj("user_data")?.getObj("first_join")?.getString("text") ?: "Unknown"
-
+            
             drawText("&6Joined: &b$joinDate&r", x + boxWidth / 25, y + boxHeight / 12 + 12 * 11.4f, 0.75f)
             drawText("&6Profile: &b$profileName&r", x + boxWidth / 25, y + boxHeight / 12 + 12 * 10f, 0.75f)
             drawText("&6Mode: &b${upperCaseFirst(profileMode)}&r", x + boxWidth / 25, y + boxHeight / 12 + 12 * 10.7f, 0.75f)

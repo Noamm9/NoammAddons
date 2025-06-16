@@ -18,7 +18,7 @@ object SalvageOverlay: Feature() {
     @SubscribeEvent
     fun onDrawSlot(event: DrawSlotEvent) {
         if (! inSkyblock) return
-        if (getArmor()?.contains(event.slot.stack) == true) return
+        if (event.slot.stack in getArmor()) return
         if (event.slot.stack?.displayName?.contains("✪") == true) return
         val attributes = event.slot.stack?.getSubCompound("ExtraAttributes", false) ?: return
         if (! attributes.hasKey("baseStatBoostPercentage")) return

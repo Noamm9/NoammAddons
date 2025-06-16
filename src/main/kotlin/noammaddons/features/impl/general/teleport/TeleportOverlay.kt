@@ -6,6 +6,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.RenderWorld
 import noammaddons.features.Feature
 import noammaddons.features.impl.general.teleport.ZeroPingTeleportation.TeleportInfo
+import noammaddons.features.impl.general.teleport.ZeroPingTeleportation.TeleportInfo.Companion.Types
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.ItemUtils.SkyblockID
 import noammaddons.utils.PlayerUtils
@@ -49,7 +50,7 @@ object TeleportOverlay: Feature() {
         val playerPos = ServerPlayer.player.getVec()
         val playerRot = ServerPlayer.player.getRotation()
 
-        if (teleportInfo.type == TeleportInfo.Companion.Types.Etherwarp) {
+        if (teleportInfo.type == Types.Etherwarp) {
             if (! etherwarp.value || ! ServerPlayer.player.sneaking) return
             val (valid, pos) = EtherwarpHelper.getEtherPos(playerPos, playerRot, teleportInfo.distance)
             drawBlockBox(
@@ -64,19 +65,12 @@ object TeleportOverlay: Feature() {
             return
         }
 
-        if ((teleportInfo.type == TeleportInfo.Companion.Types.InstantTransmission && ! aote.value) ||
-            (teleportInfo.type == TeleportInfo.Companion.Types.WitherImpact && ! witherImpact.value) ||
+        if ((teleportInfo.type == Types.InstantTransmission && ! aote.value) ||
+            (teleportInfo.type == Types.WitherImpact && ! witherImpact.value) ||
             (PlayerUtils.isHoldingEtherwarpItem(heldItem) && ServerPlayer.player.sneaking)
         ) return
 
-        val prediction = InstantTransmissionPredictor.predictTeleport(
-            teleportInfo.distance,
-            playerPos.xCoord,
-            playerPos.yCoord,
-            playerPos.zCoord,
-            playerRot.yaw.toDouble(),
-            playerRot.pitch.toDouble()
-        ) ?: return
+        val prediction = InstantTransmissionPredictor.predictTeleport(teleportInfo.distance, playerPos, playerRot) ?: return
 
 
         drawBox(
@@ -97,14 +91,14 @@ object TeleportOverlay: Feature() {
             val nbt = stack.getSubCompound("ExtraAttributes", false)
             val tuners = nbt?.getByte("tuned_transmission")?.toInt() ?: 0
             return if (ServerPlayer.player.sneaking && nbt?.getByte("ethermerge") == 1.toByte()) {
-                TeleportInfo(57.0 + tuners - 1, TeleportInfo.Companion.Types.Etherwarp)
+                TeleportInfo(57.0 + tuners - 1, Types.Etherwarp)
             }
             else {
-                TeleportInfo(8.0 + tuners, TeleportInfo.Companion.Types.InstantTransmission)
+                TeleportInfo(8.0 + tuners, Types.InstantTransmission)
             }
         }
         if (PlayerUtils.isHoldingWitherImpact(stack)) {
-            return TeleportInfo(10.0, TeleportInfo.Companion.Types.WitherImpact)
+            return TeleportInfo(10.0, Types.WitherImpact)
         }
         return null
     }

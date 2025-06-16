@@ -1,6 +1,7 @@
 package noammaddons.mixins;
 
 import net.minecraft.entity.Entity;
+import noammaddons.features.impl.esp.StarMobESP;
 import noammaddons.utils.EspUtils;
 import org.spongepowered.asm.mixin.Dynamic;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,7 +16,7 @@ public class MixinPatcherEntityCulling {
     @Dynamic
     @Inject(method = "checkEntity", at = @At("HEAD"), cancellable = true)
     private static void overrideEntityCulling(Entity entity, CallbackInfoReturnable<Boolean> cir) {
-        if (EspUtils.ESPType.getEntries().stream().anyMatch(it -> it.containsEntity(entity))) {
+        if (EspUtils.ESPType.getEntries().stream().anyMatch(it -> it.containsEntity(entity)) || StarMobESP.starMobs.contains(entity)) {
             cir.setReturnValue(false);
         }
     }

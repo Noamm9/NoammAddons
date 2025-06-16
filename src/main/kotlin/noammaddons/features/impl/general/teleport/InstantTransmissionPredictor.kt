@@ -5,57 +5,48 @@ import net.minecraft.util.Vec3
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.getBlockId
+import noammaddons.utils.MathUtils
 import noammaddons.utils.MathUtils.floor
 import kotlin.math.*
 
+// zph port
 object InstantTransmissionPredictor {
     private val IGNORED = setOf(0, 51, 8, 9, 10, 11, 171, 331, 39, 40, 115, 132, 77, 143, 66, 27, 28, 157)
     private val IGNORED2 = setOf(44, 182, 126)
     private val SPECIAL = setOf(65, 106, 111)
 
-    private const val STEPS = 100.0
+    private const val STEPS = 1000.0
 
-    fun predictTeleport(distance: Double, x: Double, y: Double, z: Double, yaw: Double, pitch: Double): Vec3? {
-        val forward = Vector3.fromPitchYaw(pitch, yaw).multiply(1.0 / STEPS)
-        val cur = Vector3(x, y + EtherwarpHelper.getPlayerEyeHeight(), z)
+    fun predictTeleport(distance: Double, pos: Vec3, rot: MathUtils.Rotation): Vec3? {
+        val forward = Vector3.fromPitchYaw(rot.pitch.toDouble(), rot.yaw.toDouble()).multiply(1.0 / STEPS)
+        val cur = Vector3(pos.xCoord, pos.yCoord + EtherwarpHelper.EYE_HEIGHT, pos.zCoord)
         var i = 0.0
 
         while (i <= distance * STEPS) {
             if (i % STEPS == 0.0 && ! isSpecial(cur) && ! isSpecial(cur.addY(1.0))) {
                 if (! isIgnored(cur) || ! isIgnored(cur.addY(1.0))) {
                     cur.add(forward.multiply(- STEPS))
-                    return if (i == 0.0 || ! isIgnored(cur) || ! isIgnored(cur.addY(1.0))) {
-                        null
-                    }
-                    else {
-                        Vec3(floor(cur.x) + 0.5, floor(cur.y), floor(cur.z) + 0.5)
-                    }
+                    return if (i == 0.0 || ! isIgnored(cur) || ! isIgnored(cur.addY(1.0))) null
+                    else Vec3(floor(cur.x) + 0.5, floor(cur.y), floor(cur.z) + 0.5)
                 }
             }
 
             if ((! isIgnored2(cur) && inBB(cur)) || (! isIgnored2(cur.addY(1.0)) && inBB(cur.addY(1.0)))) {
                 cur.add(forward.multiply(- STEPS))
-                return if (i == 0.0 || (! isIgnored(cur) && inBB(cur)) || (! isIgnored(cur.addY(1.0)) && inBB(cur.addY(1.0)))) {
-                    null
-                }
-                else {
-                    break
-                }
+                return if (i == 0.0 || (! isIgnored(cur) && inBB(cur)) || (! isIgnored(cur.addY(1.0)) && inBB(cur.addY(1.0)))) null
+                else break
             }
 
             cur.add(forward)
             i ++
         }
 
-        val pos = Vector3(x, y + EtherwarpHelper.getPlayerEyeHeight(), z)
-            .add(Vector3.fromPitchYaw(pitch, yaw).multiply(i / STEPS))
+        val finalPos = Vector3(pos.xCoord, pos.yCoord + EtherwarpHelper.EYE_HEIGHT, pos.zCoord)
+            .add(Vector3.fromPitchYaw(rot.pitch.toDouble(), rot.yaw.toDouble()).multiply(i / STEPS))
 
-        return if ((! isIgnored(cur) && inBB(cur)) || (! isIgnored(cur.addY(1.0)) && inBB(cur.addY(1.0)))) {
-            null
-        }
-        else {
-            Vec3(floor(pos.x) + 0.5, floor(pos.y), floor(pos.z) + 0.5)
-        }
+        return if ((! isIgnored(cur) && inBB(cur)) || (! isIgnored(cur.addY(1.0)) && inBB(cur.addY(1.0)))) null
+        else Vec3(floor(finalPos.x) + 0.5, floor(finalPos.y), floor(finalPos.z) + 0.5)
+
     }
 
     private fun isIgnored(vec: Vector3): Boolean {
