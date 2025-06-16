@@ -25,22 +25,20 @@ import noammaddons.utils.RenderHelper.getStringWidth
 
 object FeatureManager {
     val features = mutableSetOf(
-        EspSettings, CustomMenuSettings, MotionBlur, GyroHelper,
-        ChatEmojis, Etherwarp, SlotBinding, PartyESP, SBKick,
-        CakeNumbers, EnderPearlFix, WardrobeKeybinds, PartyCommands,
-        ItemEntity, Gloomlock, VisualWords, Chat, ItemRarity, ItemsPrice,
-        TeammatesESP, AbilityKeybinds, IHateDiorite, StonkSwap, MimicDetector,
-        GhostPick, DoorKeys, AutoUlt, PartyFinder, TickTimers, LeapMenu,
-        ReaperArmor, AutoI4, ArchitectDraft, BetterFloors, AutoGFS,
-        AutoPotion, CryptsDone, M7Relics, MaxorsCrystals, ChestProfit,
+        EspSettings, CustomMenuSettings, MotionBlur, GyroHelper, ChatEmojis,
+        Etherwarp, SlotBinding, PartyESP, SBKick, CakeNumbers, EnderPearlFix,
+        WardrobeKeybinds, PartyCommands, ItemEntity, Gloomlock, VisualWords,
+        Chat, ItemRarity, ItemsPrice, TeammatesESP, AbilityKeybinds, IHateDiorite,
+        StonkSwap, MimicDetector, GhostPick, DoorKeys, AutoUlt, PartyFinder,
+        TickTimers, LeapMenu, ReaperArmor, AutoI4, ArchitectDraft, BetterFloors,
+        AutoGFS, AutoPotion, CryptsDone, M7Relics, MaxorsCrystals, ChestProfit,
         FpsBoost, Camera, PlayerModel, DamageSplash, AutoRequeue, WitherDragons,
         DungeonPlayerDeath, WarpCooldown, RoomAlerts, RunSplits, RatProtection,
-        PuzzleSolvers, LividSolver, SimonSaysSolver, ArrowAlignSolver,
-        Floor4BossFight, WitherESP, StarMobESP, HiddenMobs, PestESP, Secrets,
-        SmoothBossBar, NoRotate, RNGSound, BloodRoom, ExtraSlayerInfo,
-        SalvageOverlay, RagAxe, ShadowAssassin, MelodyAlert, PlayerHud,
-        FullBlock, TerminalNumbers, F7Titles, ScalableTooltips, FpsDisplay,
-        ClockDisplay, TpsDisplay, PetDisplay, MaskTimers, SpringBootsDisplay,
+        PuzzleSolvers, LividSolver, SimonSaysSolver, ArrowAlignSolver, Floor4BossFight,
+        WitherESP, StarMobESP, HiddenMobs, PestESP, Secrets, SmoothBossBar, NoRotate,
+        RNGSound, BloodRoom, ExtraSlayerInfo, SalvageOverlay, RagAxe, ShadowAssassin,
+        MelodyAlert, PlayerHud, FullBlock, TerminalNumbers, F7Titles, ScalableTooltips,
+        FpsDisplay, ClockDisplay, TpsDisplay, PetDisplay, MaskTimers, SpringBootsDisplay,
         NoBlockAnimation, WitherShieldTimer, BowHitSound, ZeroPingTeleportation,
         TeleportOverlay, CustomScoreboard, BlockOverlay, CustomWardrobeMenu,
         CustomPetMenu, TimeChanger, CustomTabList, TerminalSolver, ChamNametags,
@@ -48,9 +46,8 @@ object FeatureManager {
         BlessingDisplay, ClientTimer, DarkMode,
 
         DungeonMap,
-        DevOptions,
-        CompTest,
-        ConfigGui,
+
+        DevOptions, CompTest, ConfigGui,
         //ProfileViewer,
     ).sortedBy { it.name }
 

@@ -4,9 +4,9 @@ import kotlinx.coroutines.*
 import net.minecraft.command.ICommandSender
 import net.minecraft.util.ChatComponentText
 import noammaddons.commands.Command
-import noammaddons.features.impl.misc.ClientTimer.clientTimerCommand
-import noammaddons.features.impl.misc.ClientTimer.clientTimerCommandOnAllModes
-import noammaddons.features.impl.misc.ClientTimer.clientTimerMode
+import noammaddons.features.impl.misc.ClientTimer.cmd
+import noammaddons.features.impl.misc.ClientTimer.cmdAlways
+import noammaddons.features.impl.misc.ClientTimer.mode
 import noammaddons.noammaddons.Companion.FULL_PREFIX
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
@@ -22,8 +22,8 @@ object TimerCommand: Command("timer") {
         { mc.netHandler?.networkManager?.closeChannel(ChatComponentText("$FULL_PREFIX&r: Timer Ended")) },
         { mc.shutdown() },
         {
-            val slash = if (clientTimerCommand.contains("/")) "" else "/"
-            val cmd = clientTimerCommand.removeFormatting()
+            val slash = if (cmd.contains("/")) "" else "/"
+            val cmd = cmd.removeFormatting()
             if (cmd.isNotBlank()) sendChatMessage(slash + cmd)
         },
     )
@@ -42,10 +42,10 @@ object TimerCommand: Command("timer") {
         }
 
         val seconds = parseTimeArg(args.joinToString(" ")).takeIf { it > 0 } ?: return modMessage("&cInvalid time. Please provide a positive duration.")
-        val action = when (clientTimerMode) {
+        val action = when (mode) {
             0 -> "Disconnect"
             1 -> "Close Game"
-            2 -> "Run Command ($clientTimerCommand)"
+            2 -> "Run Command ($cmd)"
             else -> ""
         }
 
@@ -56,11 +56,11 @@ object TimerCommand: Command("timer") {
         timerJob?.cancel()
         timerJob = scope.launch {
             delay(seconds * 1000L)
-            if (clientTimerCommandOnAllModes && clientTimerMode != 2 && clientTimerCommand.removeFormatting().isNotBlank()) {
-                sendChatMessage(clientTimerCommand)
+            if (cmdAlways && mode != 2 && cmd.removeFormatting().isNotBlank()) {
+                sendChatMessage(cmd)
             }
 
-            actions.getOrNull(clientTimerMode)?.invoke()
+            actions.getOrNull(mode)?.invoke()
         }
     }
 

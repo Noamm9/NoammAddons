@@ -92,8 +92,4 @@ open class Feature(
     fun getSettingByName(name: String?): Component<out Any>? {
         return configSettings.find { it.name == name }
     }
-
-    enum class TagType {
-        NONE, RISKY, FPSTAX
-    }
 }

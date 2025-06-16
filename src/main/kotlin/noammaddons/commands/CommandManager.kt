@@ -11,8 +11,7 @@ object CommandManager {
         DungeonHub,
         End,
         Skyblock,
-        hub,
-        TimerCommand
+        hub
     )
 
     fun registerCommands() {
