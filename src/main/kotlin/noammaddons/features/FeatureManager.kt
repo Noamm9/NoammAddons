@@ -45,7 +45,7 @@ object FeatureManager {
         TeleportOverlay, CustomScoreboard, BlockOverlay, CustomWardrobeMenu,
         CustomPetMenu, TimeChanger, CustomTabList, TerminalSolver, ChamNametags,
         CustomSlotHighlight, InventoryDisplay, StopCloseMyChat, InventorySearchbar,
-        BlessingDisplay, ClientTimer,
+        BlessingDisplay, ClientTimer, DarkMode,
 
         DungeonMap,
         DevOptions,
