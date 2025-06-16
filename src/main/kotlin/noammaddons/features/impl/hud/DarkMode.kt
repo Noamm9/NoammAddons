@@ -8,8 +8,10 @@
  */
 package noammaddons.features.impl.hud
 
-import net.minecraftforge.client.event.RenderGameOverlayEvent
+import gg.essential.elementa.utils.withAlpha
+import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.events.RenderOverlay
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.SliderSetting
 import noammaddons.utils.RenderUtils
@@ -34,15 +36,15 @@ object DarkMode : Feature(
      *
      * @param event RenderGameOverlayEvent.Text
      */
-    @SubscribeEvent
-    fun onRenderOverlay(event: RenderGameOverlayEvent.Text) {
-        // TODO: Overlay this AFTER the HUD is rendered, so it doesn't cover the HUD (e.g. noamm gui texts etc like clock etc)
+    // we want this on highest so stuff like maps/timers are still normal color/opacity/blackness rah
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    fun onRenderOverlay(event: RenderOverlay) {
         val opacity = levelOfYourBlackness / 100f
         val width = mc.displayWidth
         val height = mc.displayHeight
 
         RenderUtils.drawRect(
-            Color(0, 0, 0, (opacity * 255).toInt()),
+            Color.black.withAlpha((opacity * 255).toInt()),
             0, 0, width, height,
         )
     }
