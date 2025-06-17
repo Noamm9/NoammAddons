@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.common.event.FMLInitializationEvent
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.commands.CommandManager.registerCommands
 import noammaddons.config.PogObject
@@ -18,7 +19,7 @@ import noammaddons.features.FeatureManager.registerFeatures
 import noammaddons.features.impl.DevOptions
 import noammaddons.features.impl.misc.ClientBranding
 import noammaddons.features.impl.misc.Cosmetics.CosmeticRendering
-import noammaddons.ui.config.ConfigGUI
+import noammaddons.features.impl.misc.RatHttpInterceptor
 import noammaddons.ui.font.GlyphPageFontRenderer
 import noammaddons.ui.font.TextRenderer
 import noammaddons.utils.*
@@ -78,6 +79,11 @@ class noammaddons {
     }
 
     @Mod.EventHandler
+    fun preInit(event: FMLPreInitializationEvent) {
+        RatHttpInterceptor.install()
+    }
+
+    @Mod.EventHandler
     fun onInit(event: FMLInitializationEvent) {
         Logger.info("Initializing NoammAddons")
         loadTime = System.currentTimeMillis()
@@ -116,11 +122,8 @@ class noammaddons {
     fun onKey(event: PreKeyInputEvent) {
         if (! firstLoad.getData()) return
         firstLoad.setData(false)
+        firstLoad.save()
         Utils.playFirstLoadMessage()
-        ThreadUtils.setTimeout(11_000) {
-            ConfigGUI.openGui()
-            Utils.openDiscordLink()
-        }
     }
 
     fun init() {

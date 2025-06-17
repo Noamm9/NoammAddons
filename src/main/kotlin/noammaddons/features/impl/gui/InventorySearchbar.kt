@@ -1,5 +1,6 @@
 package noammaddons.features.impl.gui
 
+import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraftforge.client.event.GuiScreenEvent
@@ -13,8 +14,7 @@ import noammaddons.ui.config.core.impl.ColorSetting
 import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ItemUtils.lore
-import noammaddons.utils.RenderHelper.getHeight
-import noammaddons.utils.RenderHelper.getWidth
+import noammaddons.utils.RenderHelper.getScaleFactor
 import noammaddons.utils.RenderHelper.highlight
 import noammaddons.utils.Utils.favoriteColor
 import org.lwjgl.input.Keyboard
@@ -28,13 +28,17 @@ object InventorySearchbar: Feature("Allows to search for items in any container"
     @SubscribeEvent
     fun onGuiRender(event: GuiScreenEvent.BackgroundDrawnEvent) {
         if (event.gui is GuiContainer) searchbar.run {
+            val sr = ScaledResolution(mc)
+            val sf = 2.0 / sr.scaleFactor
+            val screenWidth = sr.scaledWidth / sf
+            val screenHeight = sr.scaledHeight / sf
+            x = ((screenWidth / 2 - (width.toInt()) / 2) + 5)
+            y = (screenHeight * 0.95 - height.toInt() / 2)
+
             GlStateManager.pushMatrix()
+            GlStateManager.scale(sf, sf, sf)
             GlStateManager.translate(0f, 0f, 300f)
-
-            x = (mc.getWidth() / 2 - (width.toInt()) / 2) + 5
-            y = mc.getHeight() * 0.9 - height.toInt() / 2
             draw(0, 0)
-
             GlStateManager.popMatrix()
         }
     }
@@ -54,7 +58,8 @@ object InventorySearchbar: Feature("Allows to search for items in any container"
     @SubscribeEvent
     fun onGuiMouseClick(event: GuiMouseClickEvent) {
         if (event.gui !is GuiContainer) return
-        searchbar.mouseClicked(event.mouseX.toDouble(), event.mouseY.toDouble(), event.button)
+        val sf = 2.0 / mc.getScaleFactor()
+        searchbar.mouseClicked(event.mouseX.toDouble() / sf, event.mouseY.toDouble() / sf, event.button)
     }
 
     @SubscribeEvent(priority = EventPriority.LOW)

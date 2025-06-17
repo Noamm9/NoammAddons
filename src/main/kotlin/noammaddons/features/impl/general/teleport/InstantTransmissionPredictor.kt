@@ -2,11 +2,13 @@ package noammaddons.features.impl.general.teleport
 
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
+import noammaddons.features.impl.general.teleport.EtherwarpHelper.EYE_HEIGHT
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.getBlockId
 import noammaddons.utils.MathUtils
 import noammaddons.utils.MathUtils.floor
+import noammaddons.utils.ServerPlayer.player
 import kotlin.math.*
 
 // zph port
@@ -17,9 +19,11 @@ object InstantTransmissionPredictor {
 
     private const val STEPS = 1000.0
 
+    fun getEye() = EYE_HEIGHT - if (player.sneaking) 0.08 else .0
+
     fun predictTeleport(distance: Double, pos: Vec3, rot: MathUtils.Rotation): Vec3? {
         val forward = Vector3.fromPitchYaw(rot.pitch.toDouble(), rot.yaw.toDouble()).multiply(1.0 / STEPS)
-        val cur = Vector3(pos.xCoord, pos.yCoord + EtherwarpHelper.EYE_HEIGHT, pos.zCoord)
+        val cur = Vector3(pos.xCoord, pos.yCoord + getEye(), pos.zCoord)
         var i = 0.0
 
         while (i <= distance * STEPS) {
@@ -41,7 +45,7 @@ object InstantTransmissionPredictor {
             i ++
         }
 
-        val finalPos = Vector3(pos.xCoord, pos.yCoord + EtherwarpHelper.EYE_HEIGHT, pos.zCoord)
+        val finalPos = Vector3(pos.xCoord, pos.yCoord + getEye(), pos.zCoord)
             .add(Vector3.fromPitchYaw(rot.pitch.toDouble(), rot.yaw.toDouble()).multiply(i / STEPS))
 
         return if ((! isIgnored(cur) && inBB(cur)) || (! isIgnored(cur.addY(1.0)) && inBB(cur.addY(1.0)))) null
@@ -112,4 +116,3 @@ object InstantTransmissionPredictor {
         }
     }
 }
-

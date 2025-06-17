@@ -83,7 +83,7 @@ object ChatUtils {
 
     fun modMessage(message: Any?) = UChat.chat("$CHAT_PREFIX ${message.toString().addColor()}")
 
-    fun debugMessage(message: Any) {
+    fun debugMessage(message: Any?) {
         if (! DevOptions.devMode) return
 
         stripControlCodes(message.toString())

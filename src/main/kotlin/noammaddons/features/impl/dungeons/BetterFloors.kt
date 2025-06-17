@@ -13,7 +13,7 @@ import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.WebUtils
 
 
-object BetterFloors: Feature("Basically my FunnyMapExtras's config port. Places and remove a some of Blocks in the boss fight") {
+object BetterFloors: Feature("Basically my FunnyMapExtras's config port. Place and remove some blocks in the boss fight") {
     private val f7 = ToggleSetting("F7")
     private val f6 = ToggleSetting("F6")
     private val f5 = ToggleSetting("F5")

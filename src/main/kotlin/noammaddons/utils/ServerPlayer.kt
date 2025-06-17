@@ -1,9 +1,9 @@
 package noammaddons.utils
 
 import net.minecraft.network.play.client.*
-import net.minecraft.network.play.server.S09PacketHeldItemChange
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
+import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.PacketEvent
 import noammaddons.noammaddons.Companion.mc
@@ -26,6 +26,17 @@ object ServerPlayer {
         fun getVec() = Vec3(x, y, z)
         fun getRotation() = MathUtils.Rotation(yaw, pitch)
         fun getHeldItem() = mc.thePlayer.inventory.getStackInSlot(heldHotbarSlot)
+
+        fun reset() {
+            x = - 1.0
+            y = - 1.0
+            z = - 1.0
+            yaw = 0f
+            pitch = 0f
+            onGround = false
+            sneaking = false
+            heldHotbarSlot = 0
+        }
     }
 
     val player = PlayerState()
@@ -36,9 +47,14 @@ object ServerPlayer {
             is C03PacketPlayer -> onC03PacketPlayer(packet)
             is C0BPacketEntityAction -> onC0BPacketEntityAction(packet)
             is C09PacketHeldItemChange -> player.heldHotbarSlot = packet.slotId
-            is S09PacketHeldItemChange -> player.heldHotbarSlot = packet.heldItemHotbarIndex
         }
     }
+
+    @SubscribeEvent
+    fun onWorldUnload(event: WorldEvent.Unload) = player.reset()
+
+    @SubscribeEvent
+    fun onWorldLoad(event: WorldEvent.Load) = player.reset()
 
     private fun onC03PacketPlayer(packet: C03PacketPlayer) {
         player.onGround = packet.isOnGround

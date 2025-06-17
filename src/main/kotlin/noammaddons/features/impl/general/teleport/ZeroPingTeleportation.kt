@@ -37,7 +37,7 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
 
     private const val MAX_PENDING_TELEPORTS = 3
     private const val MAX_FAILED_TELEPORTS = 3
-    private const val FAIL_TIMEOUT = 30_000L
+    private const val FAIL_TIMEOUT = 20_000L
 
     private val withinTolerance = fun(n1: Float, n2: Float) = abs(n1 - n2) < 1e-4
     private val pendingTeleports = mutableListOf<TeleportPrediction>()
@@ -141,6 +141,7 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
     }
 
     @SubscribeEvent
+    @Suppress("UNUSED_PARAMETER")
     fun onWorldUnload(event: WorldUnloadEvent) {
         hasSoulFlow = true
     }

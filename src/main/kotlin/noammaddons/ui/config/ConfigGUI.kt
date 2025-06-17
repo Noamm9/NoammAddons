@@ -18,11 +18,11 @@ import noammaddons.ui.config.core.impl.Component.Companion.compBackgroundColor
 import noammaddons.ui.config.core.impl.Component.Companion.drawSmoothRect
 import noammaddons.ui.config.core.impl.Component.Companion.hoverColor
 import noammaddons.ui.config.core.save.Config
+import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.GuiUtils.openScreen
 import noammaddons.utils.MathUtils.interpolateColor
 import noammaddons.utils.MathUtils.lerp
-import noammaddons.utils.MouseUtils
 import noammaddons.utils.MouseUtils.isElementHovered
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getScaleFactor
@@ -31,7 +31,6 @@ import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawRect
 import noammaddons.utils.RenderUtils.drawRoundedBorder
 import noammaddons.utils.RenderUtils.drawRoundedRect
-import noammaddons.utils.StencilUtils
 import noammaddons.utils.Utils.remove
 import org.lwjgl.input.Keyboard
 import org.lwjgl.input.Mouse
@@ -597,17 +596,20 @@ object ConfigGUI: GuiScreen() {
         SearchBar.reset()
         filteredFeatures = null
         openedFeatureSettings = null
-        scrollJob?.cancel() // Cancel animations
+        scrollJob?.cancel()
         scrollJob = null
     }
 
     override fun doesGuiPauseGame() = false
 
-    fun openGui() = openScreen(
-        when (guiType) {
-            0 -> this
-            1 -> ClickGuiScreen
-            else -> null
-        }
-    )
+    fun openGui() {
+        RenderHelper.optifineFastRender(false)
+        openScreen(
+            when (guiType) {
+                0 -> this
+                1 -> ClickGuiScreen
+                else -> null
+            }
+        )
+    }
 }

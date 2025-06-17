@@ -95,7 +95,7 @@ open class FeatureToggle(name: String, val cat: FeatureElement): Component<() ->
 
         // HotFix for DungeonMap 
         if (mouseX >= trackX && mouseX <= (trackX + switchTrackWidth) && mouseY >= trackY && mouseY <= (trackY + switchTrackHeight) && ! cat.feature.equalsOneOf(DungeonMap)) {
-            if (! cat.feature.alwaysActive) animate()
+            animate()
             cat.feature.toggle()
         }
         else if (cat.feature.configSettings.isNotEmpty()) {

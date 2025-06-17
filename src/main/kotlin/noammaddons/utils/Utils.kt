@@ -25,7 +25,6 @@ object Utils {
     }
 
     fun playFirstLoadMessage() {
-        SoundUtils.chipiChapa()
         listOf(
             "&b&m${getChatBreak()?.substring(1)}",
             "§b§lThanks for installing $MOD_NAME§r §6§lForge!",

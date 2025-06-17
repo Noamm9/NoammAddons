@@ -1,5 +1,6 @@
 package noammaddons.utils
 
+import net.minecraft.client.LoadingScreenRenderer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager
@@ -9,6 +10,7 @@ import net.minecraft.util.Vec3
 import noammaddons.mixins.AccessorMinecraft
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.addColor
+import noammaddons.utils.ChatUtils.debugMessage
 import noammaddons.utils.MathUtils.lerp
 import noammaddons.utils.RenderUtils.drawRect
 import org.lwjgl.opengl.GL11.*
@@ -122,4 +124,29 @@ object RenderHelper {
         }
     }
 
+    fun optifineFastRender(bl: Boolean) {
+        if (getOFfastRender() == bl) return debugMessage("already off")
+
+        try {
+            val gameSettings = mc.gameSettings
+            val fastRender = gameSettings::class.java.getField("ofFastRender")
+            fastRender.set(gameSettings, bl)
+
+            mc.framebuffer.createBindFramebuffer(mc.displayWidth, mc.displayHeight)
+            mc.entityRenderer?.updateShaderGroupSize(mc.displayWidth, mc.displayHeight)
+            mc.loadingScreen = LoadingScreenRenderer(mc)
+        }
+        catch (e: NoSuchFieldException) {
+            debugMessage(e.message)
+        }
+    }
+
+    fun getOFfastRender() = try {
+        val gameSettings = mc.gameSettings
+        val fastRender = gameSettings::class.java.getField("ofFastRender")
+        fastRender.getBoolean(gameSettings)
+    }
+    catch (_: NoSuchFieldException) {
+        false
+    }
 }

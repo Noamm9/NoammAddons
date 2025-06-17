@@ -7,6 +7,7 @@ import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.getBlockId
 import noammaddons.utils.MathUtils
 import noammaddons.utils.MathUtils.add
+import noammaddons.utils.ServerPlayer
 import noammaddons.utils.Utils.equalsOneOf
 import java.util.*
 import kotlin.math.*
@@ -39,7 +40,7 @@ object EtherwarpHelper {
     )
 
     fun getEtherPos(pos: Vec3, rotation: MathUtils.Rotation, distance: Double = 60.0, returnEnd: Boolean = false): EtherPos {
-        val startPos: Vec3 = pos.add(y = EYE_HEIGHT)
+        val startPos: Vec3 = pos.add(y = EYE_HEIGHT - if (ServerPlayer.player.sneaking) .08 else .0)
         val endPos = getLook(rotation.yaw, rotation.pitch).normalize().multiply(factor = distance).add(startPos)
         return traverseVoxels(startPos, endPos).takeUnless { it == EtherPos.NONE && returnEnd } ?: EtherPos(true, BlockPos(endPos))
     }
