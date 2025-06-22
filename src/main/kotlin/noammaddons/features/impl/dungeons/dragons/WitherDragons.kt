@@ -109,7 +109,7 @@ object WitherDragons: Feature(
                 dragon.spawnPos, Color.WHITE, 6f, false
             )
 
-            if (dragonBoxes && dragon.state != DEAD) drawBox(
+            if (dragonBoxes && dragon.state != DEAD) drawDragonBox(
                 dragon.boxesDimensions, dragon.color.withAlpha(0.5f), lineThickness
             )
         }
@@ -161,7 +161,7 @@ object WitherDragons: Feature(
         return color + str
     }
 
-    private fun drawBox(aabb: AxisAlignedBB, color: Color, outlineWidth: Number = 3) {
+    private fun drawDragonBox(aabb: AxisAlignedBB, color: Color, outlineWidth: Number = 3) {
         GlStateManager.pushMatrix()
         RenderUtils.preDraw()
         GL11.glLineWidth(outlineWidth.toFloat())

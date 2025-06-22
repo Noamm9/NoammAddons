@@ -26,6 +26,7 @@ object Camera: Feature() {
 
     private val noBlind = ToggleSetting("Disable Blindness")
     private val noPortal = ToggleSetting("Disable Portal Effect")
+    val noNausea = ToggleSetting("Disable Nausea")
     private val noFaceBlock = ToggleSetting("Disable Face Block")
 
     @JvmField
@@ -35,9 +36,8 @@ object Camera: Feature() {
         SeperatorSetting("Animations"),
         smoothSneak,
         SeperatorSetting("Clean View"),
-        customFov, fov, noBlind,
-        noPortal, noFaceBlock,
-        noPushOutOfBlocks
+        customFov, fov, noBlind, noNausea,
+        noPortal, noFaceBlock, noPushOutOfBlocks
     )
 
     @SubscribeEvent
@@ -47,7 +47,6 @@ object Camera: Feature() {
         mc.gameSettings.fovSetting = fov.value
 
         event.fov = if (customFov.value) fov.value else event.fov * 70F / 60F
-
     }
 
     @SubscribeEvent

@@ -2,6 +2,7 @@ package noammaddons.utils
 
 import gg.essential.api.EssentialAPI
 import net.minecraft.util.BlockPos
+import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.Event
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent.*
@@ -84,7 +85,9 @@ object LocationUtils {
             }
 
             is WorldUnloadEvent -> reset()
+            is WorldEvent.Load -> reset()
             is ClientDisconnectionFromServerEvent -> reset()
+            else -> return
         }
     }
 

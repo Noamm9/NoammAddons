@@ -66,7 +66,7 @@ object DevOptions: Feature() {
     val clientBranding by ToggleSetting("Client Branding")
 
     @JvmStatic
-    val isDev get() = EssentialAPI.getMinecraftUtil().isDevelopment() || devMode
+    val isDev get() = EssentialAPI.getMinecraftUtil().isDevelopment() || enabled
 
     val trackTitles by ToggleSetting("Track Titles")
 

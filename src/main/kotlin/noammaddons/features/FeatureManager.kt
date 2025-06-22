@@ -43,13 +43,14 @@ object FeatureManager {
         TeleportOverlay, CustomScoreboard, BlockOverlay, CustomWardrobeMenu,
         CustomPetMenu, TimeChanger, CustomTabList, TerminalSolver, ChamNametags,
         CustomSlotHighlight, InventoryDisplay, StopCloseMyChat, InventorySearchbar,
-        BlessingDisplay, ClientTimer, DarkMode,
+        BlessingDisplay, ClientTimer, DarkMode, Animations,
 
         DungeonMap,
 
         DevOptions, CompTest, ConfigGui,
         //ProfileViewer,
     ).sortedBy { it.name }
+
 
     fun createFeatureList(): String {
         val featureList = StringBuilder()

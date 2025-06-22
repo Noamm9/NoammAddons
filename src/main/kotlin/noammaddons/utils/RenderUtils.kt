@@ -674,10 +674,13 @@ object RenderUtils {
         glLineWidth(thickness.toFloat())
         bindColor(color)
 
+        val hadSmooth = glIsEnabled(GL_LINE_SMOOTH)
+        if (! hadSmooth) glEnable(GL_LINE_SMOOTH)
         worldRenderer.begin(GL_LINES, DefaultVertexFormats.POSITION)
         worldRenderer.pos(x1.toDouble(), y1.toDouble(), 0.0).endVertex()
         worldRenderer.pos(x2.toDouble(), y2.toDouble(), 0.0).endVertex()
         tessellator.draw()
+        if (! hadSmooth) glDisable(GL_LINE_SMOOTH)
 
         postDraw()
         GlStateManager.popMatrix()

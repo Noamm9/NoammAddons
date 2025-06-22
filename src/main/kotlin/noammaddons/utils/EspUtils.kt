@@ -1,17 +1,23 @@
 package noammaddons.utils
 
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
+import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.fml.common.eventhandler.*
 import noammaddons.events.*
 import noammaddons.features.impl.esp.EspSettings
 import noammaddons.noammaddons.Companion.mc
+import noammaddons.utils.MathUtils.destructured
 import noammaddons.utils.MathUtils.distance3D
 import noammaddons.utils.RenderHelper.glBindColor
 import noammaddons.utils.RenderHelper.renderVec
 import noammaddons.utils.RenderUtils.drawEntityBox
 import noammaddons.utils.RenderUtils2D.draw2dEsp
+import noammaddons.utils.RenderUtils2D.modelViewMatrix
+import noammaddons.utils.RenderUtils2D.projectionMatrix
+import noammaddons.utils.RenderUtils2D.viewportDims
 import org.lwjgl.opengl.EXTFramebufferObject
 import org.lwjgl.opengl.EXTPackedDepthStencil
 import org.lwjgl.opengl.GL11.*
@@ -66,6 +72,18 @@ object EspUtils {
 
             is RenderWorld -> processAndRemoveEntities(ESPType.BOX) { entity, color ->
                 drawEntityBox(entity, color)
+            }
+
+            is RenderWorldLastEvent -> {
+                val (x, y, z) = mc.thePlayer?.renderVec?.destructured() ?: return
+                GlStateManager.pushMatrix()
+                GlStateManager.translate(- x, - y, - z)
+
+                glGetFloat(GL_MODELVIEW_MATRIX, modelViewMatrix)
+                glGetFloat(GL_PROJECTION_MATRIX, projectionMatrix)
+
+                GlStateManager.popMatrix()
+                glGetInteger(GL_VIEWPORT, viewportDims)
             }
         }
     }

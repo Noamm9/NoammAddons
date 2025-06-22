@@ -4,6 +4,7 @@ import net.minecraft.network.play.server.*
 import net.minecraft.scoreboard.ScorePlayerTeam
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.PostPacketEvent
+import noammaddons.events.WorldUnloadEvent
 import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.removeUnicode
@@ -27,6 +28,11 @@ object ScoreboardUtils {
         getSidebarLines()
     }
 
+    @SubscribeEvent
+    fun onWorldUnload(event: WorldUnloadEvent) {
+        sidebarLines = emptyList()
+    }
+
 
     private fun getSidebarLines() {
         val objective = mc.theWorld?.scoreboard?.getObjectiveInDisplaySlot(1)
@@ -36,15 +42,11 @@ object ScoreboardUtils {
         }
         val title = objective.displayName
 
-        sidebarLines = mc.theWorld.scoreboard.getSortedScores(objective)
-            .asSequence()
-            .filterNot { it?.playerName?.startsWith("#") == true }
-            .take(15)
+        sidebarLines = mc.theWorld.scoreboard.getSortedScores(objective).asSequence()
+            .filterNot { it?.playerName?.startsWith("#") == true }.take(15)
             .map { ScorePlayerTeam.formatPlayerName(mc.theWorld.scoreboard.getPlayersTeam(it.playerName), it.playerName) }
-            .plus(title)
-            .toList()
+            .plus(title).toList()
     }
-
 
     fun cleanSB(scoreboard: String): String = removeUnicode(scoreboard.removeFormatting())
 }

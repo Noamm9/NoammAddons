@@ -5,18 +5,21 @@ import noammaddons.noammaddons.Companion.Logger
 import noammaddons.noammaddons.Companion.MOD_NAME
 import noammaddons.utils.JsonUtils.fromJson
 import noammaddons.utils.JsonUtils.toJson
-import noammaddons.utils.ThreadUtils.loop
 import java.io.File
 
 
-class PogObject<T: Any>(fileName: String, private val defaultObject: T) {
+class PogObject<T: Any>(fileName: String, val defaultObject: T) {
     private val dataFile = File("config/$MOD_NAME/${fileName}.json")
-    private var data: T = loadData() ?: defaultObject
-    private val autosaveIntervals = mutableMapOf<PogObject<*>, Long>()
+    private var data: T
     private var lastSavedTime = System.currentTimeMillis()
+    private var currentAutosaveIntervalMillis: Long? = null
 
     init {
         dataFile.parentFile.mkdirs()
+        this.data = loadData() ?: defaultObject.also {
+            if (! dataFile.exists() || loadData() == null) save()
+        }
+        registerPogObject(this)
         autosave(5)
     }
 
@@ -38,7 +41,6 @@ class PogObject<T: Any>(fileName: String, private val defaultObject: T) {
             }
         }
         catch (e: Exception) {
-            Logger.info("[PogObject]: ${this.javaClass.simpleName} Error loading data: ${e.message}")
             null
         }
     }
@@ -47,41 +49,91 @@ class PogObject<T: Any>(fileName: String, private val defaultObject: T) {
     fun save() {
         try {
             toJson(dataFile, data)
-            Logger.info("[PogObject]: ${this.javaClass.simpleName} Data saved successfully.")
+            lastSavedTime = System.currentTimeMillis()
         }
         catch (e: Exception) {
-            Logger.info("[PogObject]: ${this.javaClass.simpleName}: Failed to save data: ${e.message}")
-            e.printStackTrace()
         }
     }
 
-    fun autosave(intervalMinutes: Long = 5) {
-        scheduleSave(this, intervalMinutes)
+    fun autosave(intervalMinutes: Long) {
+        if (intervalMinutes > 0) this.currentAutosaveIntervalMillis = intervalMinutes * 60 * 1000L
+        else this.currentAutosaveIntervalMillis = null
     }
 
+    @Synchronized
     fun setData(newData: T) {
-        data = newData
+        if (this.data == newData) return
+        this.data = newData
+        save()
     }
 
+    @Synchronized
     fun getData(): T = data
 
-    private fun scheduleSave(pogObject: PogObject<*>, intervalMinutes: Long) {
-        autosaveIntervals[pogObject] = intervalMinutes * 1000 * 60
-    }
+    companion object {
+        private val activePogObjects = mutableListOf<PogObject<*>>()
+        private var autosaveThread: Thread? = null
 
-    init {
-        EssentialAPI.getShutdownHookUtil().register {
-            autosaveIntervals.keys.forEach { it.save() }
+        init {
+            EssentialAPI.getShutdownHookUtil().register { shutdown() }
+            startAutosaveLoop()
         }
 
-        loop(10_000) {
-            val currentTime = System.currentTimeMillis()
-            autosaveIntervals.forEach { (pogObject, interval) ->
-                if (currentTime - pogObject.lastSavedTime < interval) return@forEach
-                if (fromJson(pogObject.dataFile, defaultObject::class.java) == pogObject.data) return@forEach
+        @Synchronized
+        private fun registerPogObject(pogObject: PogObject<*>) {
+            if (! activePogObjects.contains(pogObject)) {
+                activePogObjects.add(pogObject)
+            }
+        }
 
-                pogObject.save()
-                pogObject.lastSavedTime = currentTime
+        @Synchronized
+        private fun shutdown() {
+            autosaveThread?.interrupt()
+            val objectsToSave = ArrayList(activePogObjects)
+            objectsToSave.forEach {
+                try {
+                    it.save()
+                }
+                catch (e: Exception) {
+                }
+            }
+            activePogObjects.clear()
+        }
+
+        private fun startAutosaveLoop() {
+            if (autosaveThread?.isAlive == true) return
+
+            autosaveThread = Thread {
+                try {
+                    while (! Thread.currentThread().isInterrupted) {
+                        Thread.sleep(10_000)
+                        val currentTime = System.currentTimeMillis()
+
+                        val objectsToProcess = ArrayList(activePogObjects)
+                        objectsToProcess.forEach { pogObject ->
+                            pogObject.currentAutosaveIntervalMillis?.let { interval ->
+                                if (currentTime - pogObject.lastSavedTime >= interval) {
+                                    val onDiskData = fromJson(pogObject.dataFile, Any::class.java)
+                                    if (onDiskData != pogObject.getData()) pogObject.save()
+                                    else pogObject.lastSavedTime = currentTime
+
+                                    synchronized(pogObject) {
+                                        pogObject.save()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (e: InterruptedException) {
+                    Thread.currentThread().interrupt()
+                }
+                catch (e: Exception) {
+                }
+            }.apply {
+                isDaemon = true
+                name = "PogObject-Autosave-Thread"
+                start()
             }
         }
     }

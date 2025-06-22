@@ -36,14 +36,15 @@ object RatProtection: Feature() {
 
 object RatHttpInterceptor {
     private val suspiciousEndpoints = setOf(
-        "discord",
-        "webhooks",
+        "api.github.com/gists",
+        "api.sadcolors.gay",
+        "postman-echo.com",
         "pastebin.com/api",
+        "requestbin.com",
+        "discord.com/api/webhooks",
         "hastebin.com",
         "paste.ee/api",
-        "api.github.com/gists",
-        "requestbin.com",
-        "postman-echo.com"
+        "gooning.shop",
     )
 
     private lateinit var proxySelector: ProxySelector

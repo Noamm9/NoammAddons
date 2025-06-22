@@ -22,6 +22,7 @@
     "MixinGuiScreen",
     "MixinGuiUtils",
     "MixinInventoryEffectRenderer",
+    "MixinItemRenderer",
     "MixinMinecraft",
     "MixinNetHandlerPlayClient",
     "MixinNetworkManager",
@@ -40,7 +41,9 @@
     "MixinBlockMushroom",
     "MixinBlockSkull",
     "MixinEntity",
+    "MixinEntityLivingBase",
     "MixinEntityPlayer",
+    "MixinItem",
     "MixinModList",
     "MixinSkytilsFunny",
     "MixinWorld"

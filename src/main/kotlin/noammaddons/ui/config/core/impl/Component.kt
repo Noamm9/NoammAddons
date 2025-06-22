@@ -11,6 +11,10 @@ abstract class Component<T>(val name: String) {
     abstract val defaultValue: T
     open var value: T = defaultValue
 
+    fun reset() {
+        value = defaultValue
+    }
+
     open var width: Double = 200.0
     open var height: Double = 20.0
 
