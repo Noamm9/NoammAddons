@@ -5,8 +5,8 @@ import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraftforge.fml.client.config.GuiUtils
 import noammaddons.features.impl.DevOptions
-import noammaddons.noammaddons
-import noammaddons.noammaddons.Companion.hudData
+import noammaddons.NoammAddons
+import noammaddons.NoammAddons.Companion.hudData
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.debugMessage
 import noammaddons.utils.ChatUtils.modMessage
@@ -24,7 +24,7 @@ import kotlin.math.sign
 object HudEditorScreen: GuiScreen() {
     val elements = mutableListOf<GuiElement>()
     fun isOpen(): Boolean {
-        val gui = noammaddons.mc.currentScreen ?: return false
+        val gui = NoammAddons.mc.currentScreen ?: return false
         return gui is HudEditorScreen
     }
 

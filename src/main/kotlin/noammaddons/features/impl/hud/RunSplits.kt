@@ -8,7 +8,7 @@ import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
 import noammaddons.features.impl.hud.RunSplits.DungeonRunSplitsElement.overviewStr
-import noammaddons.noammaddons.Companion.personalBests
+import noammaddons.NoammAddons.Companion.personalBests
 import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.noFormatText

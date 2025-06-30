@@ -9,7 +9,7 @@ import net.minecraftforge.fml.common.network.FMLNetworkEvent.*
 import noammaddons.events.Tick
 import noammaddons.events.WorldUnloadEvent
 import noammaddons.features.impl.DevOptions
-import noammaddons.noammaddons.Companion.mc
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.MathUtils.isCoordinateInsideBox
 import noammaddons.utils.ScoreboardUtils.cleanSB

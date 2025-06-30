@@ -1,6 +1,6 @@
 package noammaddons.utils
 
-import noammaddons.noammaddons.Companion.mc
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
 import org.lwjgl.input.Mouse

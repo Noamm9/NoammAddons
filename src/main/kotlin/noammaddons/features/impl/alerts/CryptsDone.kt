@@ -1,7 +1,7 @@
 package noammaddons.features.impl.alerts
 
+import noammaddons.NoammAddons.Companion.CHAT_PREFIX
 import noammaddons.features.Feature
-import noammaddons.noammaddons.Companion.CHAT_PREFIX
 import noammaddons.ui.config.core.impl.TextInputSetting
 import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.ChatUtils

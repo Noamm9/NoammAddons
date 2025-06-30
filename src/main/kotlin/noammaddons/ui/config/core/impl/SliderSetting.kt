@@ -4,7 +4,7 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
 import noammaddons.features.Feature
 import noammaddons.features.impl.gui.ConfigGui.accentColor
-import noammaddons.noammaddons.Companion.textRenderer
+import noammaddons.NoammAddons.Companion.textRenderer
 import noammaddons.ui.config.core.save.Savable
 import java.awt.Color
 import kotlin.math.round

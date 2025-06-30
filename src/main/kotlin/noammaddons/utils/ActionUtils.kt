@@ -4,11 +4,11 @@ import kotlinx.coroutines.*
 import net.minecraft.network.play.client.C01PacketChatMessage
 import net.minecraft.util.Vec3
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.NoammAddons.Companion.mc
+import noammaddons.NoammAddons.Companion.scope
 import noammaddons.events.InventoryFullyOpenedEvent
 import noammaddons.features.impl.dungeons.LeapMenu
 import noammaddons.features.impl.dungeons.ReaperArmor.autoReaperArmorSlot
-import noammaddons.noammaddons.Companion.mc
-import noammaddons.noammaddons.Companion.scope
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendChatMessage

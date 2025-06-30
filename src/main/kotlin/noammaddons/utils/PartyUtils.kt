@@ -2,9 +2,9 @@ package noammaddons.utils
 
 import net.minecraft.network.play.client.C0EPacketClickWindow
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.events.Chat
 import noammaddons.events.PacketEvent
-import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.currentChestName

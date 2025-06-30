@@ -9,9 +9,9 @@ import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
 import noammaddons.features.impl.dungeons.dmap.handlers.DungeonMapColorParser
 import noammaddons.features.impl.dungeons.dmap.utils.MapRenderUtils
 import noammaddons.features.impl.dungeons.dmap.utils.MapUtils
-import noammaddons.noammaddons.Companion.MOD_ID
-import noammaddons.noammaddons.Companion.hudData
-import noammaddons.noammaddons.Companion.mc
+import noammaddons.NoammAddons.Companion.MOD_ID
+import noammaddons.NoammAddons.Companion.hudData
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.*
 import noammaddons.utils.DungeonUtils.dungeonStarted
 import noammaddons.utils.DungeonUtils.thePlayer

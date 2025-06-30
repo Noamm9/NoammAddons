@@ -3,9 +3,9 @@ package noammaddons.features.impl.dungeons
 import net.minecraft.network.play.server.S0FPacketSpawnMob
 import net.minecraft.util.BlockPos
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.NoammAddons.Companion.personalBests
 import noammaddons.events.*
 import noammaddons.features.Feature
-import noammaddons.noammaddons.Companion.personalBests
 import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.BlockUtils.toVec
 import noammaddons.utils.ChatUtils.clickableChat

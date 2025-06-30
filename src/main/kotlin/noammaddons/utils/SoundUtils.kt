@@ -1,8 +1,8 @@
 package noammaddons.utils
 
 import net.minecraft.client.audio.SoundCategory
-import noammaddons.noammaddons.Companion.MOD_ID
-import noammaddons.noammaddons.Companion.mc
+import noammaddons.NoammAddons.Companion.MOD_ID
+import noammaddons.NoammAddons.Companion.mc
 import java.io.ByteArrayInputStream
 import java.util.concurrent.ConcurrentHashMap
 import javax.sound.sampled.*

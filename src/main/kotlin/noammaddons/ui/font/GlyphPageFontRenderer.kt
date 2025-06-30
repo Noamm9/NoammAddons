@@ -3,7 +3,7 @@ package noammaddons.ui.font
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
-import noammaddons.noammaddons.Companion.MOD_ID
+import noammaddons.NoammAddons.Companion.MOD_ID
 import org.lwjgl.opengl.GL11
 import java.awt.Font
 

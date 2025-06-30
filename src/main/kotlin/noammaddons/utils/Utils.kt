@@ -3,11 +3,11 @@ package noammaddons.utils
 import gg.essential.universal.UChat
 import gg.essential.universal.UDesktop
 import net.minecraft.network.Packet
-import noammaddons.noammaddons.Companion.CHAT_PREFIX
-import noammaddons.noammaddons.Companion.Logger
-import noammaddons.noammaddons.Companion.MOD_NAME
-import noammaddons.noammaddons.Companion.mc
-import noammaddons.noammaddons.Companion.personalBests
+import noammaddons.NoammAddons.Companion.CHAT_PREFIX
+import noammaddons.NoammAddons.Companion.Logger
+import noammaddons.NoammAddons.Companion.MOD_NAME
+import noammaddons.NoammAddons.Companion.mc
+import noammaddons.NoammAddons.Companion.personalBests
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.getCenteredText
 import noammaddons.utils.ChatUtils.getChatBreak
@@ -15,6 +15,7 @@ import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.ThreadUtils.setTimeout
 import java.awt.Color
 import java.net.URI
+import kotlin.reflect.KClass
 
 
 object Utils {
@@ -54,6 +55,11 @@ object Utils {
         is Array<*> -> elements.any { contains(it) }
         else -> false
     }
+
+    fun Any?.isOneOf(vararg types: KClass<*>): Boolean {
+        return types.any { it.isInstance(this) }
+    }
+
 
     fun String.startsWithOneOf(vararg prefixes: String): Boolean = prefixes.any { startsWith(it) }
     fun String.spaceCaps(): String {

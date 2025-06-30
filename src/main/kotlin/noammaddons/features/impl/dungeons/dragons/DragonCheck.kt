@@ -10,7 +10,7 @@ import net.minecraft.util.Vec3
 import noammaddons.features.impl.dungeons.dragons.WitherDragonEnum.Companion.WitherDragonState.*
 import noammaddons.features.impl.dungeons.dragons.WitherDragons.currentTick
 import noammaddons.features.impl.dungeons.dragons.WitherDragons.sendSpray
-import noammaddons.noammaddons.Companion.mc
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.ChatUtils.modMessage
 import java.util.concurrent.CopyOnWriteArrayList
 

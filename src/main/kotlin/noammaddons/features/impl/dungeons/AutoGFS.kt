@@ -19,6 +19,7 @@ object AutoGFS: Feature("Automatically refills certain items from your sacks.") 
     override fun init() = loop({ timerIncrements.toLong() * 1000 }) { refill() }
 
     fun refill() {
+        if (! enabled) return
         if (! inDungeon) return
         if (mc.currentScreen != null) return
         if (thePlayer?.isDead == true) return

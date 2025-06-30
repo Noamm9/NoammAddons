@@ -11,8 +11,8 @@ import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.ResourceLocation
 import noammaddons.features.impl.misc.PlayerModel.getPlayerScaleFactor
-import noammaddons.noammaddons.Companion.MOD_ID
-import noammaddons.noammaddons.Companion.mc
+import noammaddons.NoammAddons.Companion.MOD_ID
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.GuiUtils.isInGui
 import noammaddons.utils.RenderHelper.getPartialTicks
 import noammaddons.utils.WebUtils

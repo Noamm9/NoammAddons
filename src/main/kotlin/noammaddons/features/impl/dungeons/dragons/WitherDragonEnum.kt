@@ -11,7 +11,7 @@ import noammaddons.features.impl.dungeons.dragons.WitherDragons.currentTick
 import noammaddons.features.impl.dungeons.dragons.WitherDragons.priorityDragon
 import noammaddons.features.impl.dungeons.dragons.WitherDragons.sendArrowHit
 import noammaddons.features.impl.dungeons.dragons.WitherDragons.sendTime
-import noammaddons.noammaddons.Companion.mc
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.ChatUtils.modMessage
 import java.awt.Color
 

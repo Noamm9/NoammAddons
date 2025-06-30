@@ -8,7 +8,7 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
-import noammaddons.noammaddons.Companion.textRenderer
+import noammaddons.NoammAddons.Companion.textRenderer
 import noammaddons.ui.components.TextField
 import noammaddons.ui.config.core.impl.ColorSetting
 import noammaddons.ui.config.core.impl.ToggleSetting

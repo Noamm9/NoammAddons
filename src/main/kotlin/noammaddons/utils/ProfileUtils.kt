@@ -1,7 +1,7 @@
 package noammaddons.utils
 
 import com.google.gson.JsonParser
-import noammaddons.noammaddons.Companion.mc
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.JsonUtils.getString
 import java.io.BufferedReader
 import javax.net.ssl.HttpsURLConnection

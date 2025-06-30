@@ -1,7 +1,7 @@
 package noammaddons.features
 
 import net.minecraftforge.common.MinecraftForge
-import noammaddons.noammaddons
+import noammaddons.NoammAddons
 import noammaddons.ui.config.ConfigGUI
 import noammaddons.ui.config.core.CategoryType
 import noammaddons.ui.config.core.FeatureElement
@@ -39,14 +39,14 @@ open class Feature(
 
     open val configSettings: MutableSet<Component<out Any>> = mutableSetOf()
 
-    protected inline val mc get() = noammaddons.mc
-    protected inline val scope get() = noammaddons.scope
-    protected inline val hudData get() = noammaddons.hudData
-    protected inline val ahData get() = noammaddons.ahData
-    protected inline val bzData get() = noammaddons.bzData
-    protected inline val npcData get() = noammaddons.npcData
-    protected inline val mayorData get() = noammaddons.mayorData
-    protected inline val itemIdToNameLookup get() = noammaddons.itemIdToNameLookup
+    protected inline val mc get() = NoammAddons.mc
+    protected inline val scope get() = NoammAddons.scope
+    protected inline val hudData get() = NoammAddons.hudData
+    protected inline val ahData get() = NoammAddons.ahData
+    protected inline val bzData get() = NoammAddons.bzData
+    protected inline val npcData get() = NoammAddons.npcData
+    protected inline val mayorData get() = NoammAddons.mayorData
+    protected inline val itemIdToNameLookup get() = NoammAddons.itemIdToNameLookup
 
 
     fun _init() {

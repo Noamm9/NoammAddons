@@ -1,8 +1,8 @@
 package noammaddons.config
 
 import gg.essential.api.EssentialAPI
-import noammaddons.noammaddons.Companion.Logger
-import noammaddons.noammaddons.Companion.MOD_NAME
+import noammaddons.NoammAddons.Companion.Logger
+import noammaddons.NoammAddons.Companion.MOD_NAME
 import noammaddons.utils.JsonUtils.fromJson
 import noammaddons.utils.JsonUtils.toJson
 import java.io.File

@@ -4,10 +4,10 @@ import gg.essential.universal.UChat
 import gg.essential.universal.UDesktop.browse
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.command.ICommandSender
+import noammaddons.NoammAddons.Companion.FULL_PREFIX
 import noammaddons.config.EditGui.HudEditorScreen
 import noammaddons.features.impl.dungeons.AutoPotion.potionName
 import noammaddons.features.impl.hud.TpsDisplay.getTps
-import noammaddons.noammaddons.Companion.FULL_PREFIX
 import noammaddons.ui.config.ConfigGUI
 import noammaddons.utils.ActionUtils.changeMask
 import noammaddons.utils.ActionUtils.getPotion

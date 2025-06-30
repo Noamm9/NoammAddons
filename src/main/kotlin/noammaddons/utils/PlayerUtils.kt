@@ -8,7 +8,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.util.Vec3
 import noammaddons.features.impl.misc.PlayerModel.getPlayerScaleFactor
-import noammaddons.noammaddons.Companion.mc
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ItemUtils.SkyblockID
 import noammaddons.utils.ItemUtils.extraAttributes

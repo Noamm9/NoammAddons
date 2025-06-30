@@ -3,7 +3,7 @@ package noammaddons.features.impl.general.teleport
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
 import noammaddons.features.impl.general.teleport.EtherwarpHelper.EYE_HEIGHT
-import noammaddons.noammaddons.Companion.mc
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.getBlockId
 import noammaddons.utils.MathUtils

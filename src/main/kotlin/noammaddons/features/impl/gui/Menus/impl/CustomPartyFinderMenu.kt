@@ -12,7 +12,7 @@ import noammaddons.events.GuiMouseClickEvent
 import noammaddons.events.InventoryFullyOpenedEvent
 import noammaddons.features.impl.dungeons.PartyFinder
 import noammaddons.features.impl.gui.Menus.*
-import noammaddons.noammaddons.Companion.mc
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.currentChestName

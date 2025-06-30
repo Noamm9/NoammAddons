@@ -5,6 +5,7 @@ import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.entity.monster.EntityBlaze
 import net.minecraft.init.Blocks
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.NoammAddons.Companion.personalBests
 import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.BlineColor
@@ -12,7 +13,6 @@ import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.blazeCou
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.firstBlazeColor
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.secondBlazeColor
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.thirdBlazeColor
-import noammaddons.noammaddons.Companion.personalBests
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.ChatUtils.clickableChat
 import noammaddons.utils.ChatUtils.noFormatText

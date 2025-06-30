@@ -9,8 +9,8 @@ import noammaddons.features.impl.dungeons.dmap.core.map.*
 import noammaddons.features.impl.dungeons.dmap.utils.MapUtils.mapX
 import noammaddons.features.impl.dungeons.dmap.utils.MapUtils.mapZ
 import noammaddons.features.impl.dungeons.dmap.utils.MapUtils.yaw
-import noammaddons.noammaddons.Companion.mc
-import noammaddons.noammaddons.Companion.scope
+import noammaddons.NoammAddons.Companion.mc
+import noammaddons.NoammAddons.Companion.scope
 import noammaddons.utils.*
 import noammaddons.utils.Utils.equalsOneOf
 

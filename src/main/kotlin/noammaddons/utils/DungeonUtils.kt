@@ -18,9 +18,9 @@ import noammaddons.features.impl.dungeons.dmap.core.ClearInfo
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapPlayer
 import noammaddons.features.impl.dungeons.dmap.core.map.*
 import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
-import noammaddons.noammaddons.Companion.mayorData
-import noammaddons.noammaddons.Companion.mc
-import noammaddons.noammaddons.Companion.scope
+import noammaddons.NoammAddons.Companion.mayorData
+import noammaddons.NoammAddons.Companion.mc
+import noammaddons.NoammAddons.Companion.scope
 import noammaddons.utils.ActionBarParser.maxSecrets
 import noammaddons.utils.ActionBarParser.secrets
 import noammaddons.utils.BlockUtils.getBlockAt

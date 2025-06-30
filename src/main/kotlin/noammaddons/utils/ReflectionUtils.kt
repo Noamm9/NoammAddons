@@ -54,5 +54,16 @@ object ReflectionUtils {
             false
         }
     }
+
+    fun hasPackageInstalled(name: String): Boolean {
+        val packages = Package.getPackages()
+
+        for (pack in packages) {
+            if (pack.name.contains(name, true)) {
+                return true
+            }
+        }
+        return false
+    }
 }
 

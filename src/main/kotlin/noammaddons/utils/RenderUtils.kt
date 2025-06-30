@@ -11,10 +11,11 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.Entity
 import net.minecraft.item.ItemStack
 import net.minecraft.util.*
+import noammaddons.features.impl.esp.EspSettings
 import noammaddons.features.impl.esp.EspSettings.fillOpacity
 import noammaddons.features.impl.esp.EspSettings.lineWidth
 import noammaddons.features.impl.esp.EspSettings.outlineOpacity
-import noammaddons.noammaddons.Companion.mc
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.BlockUtils.toVec
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.removeFormatting
@@ -218,7 +219,7 @@ object RenderUtils {
 
         GlStateManager.pushMatrix()
         preDraw()
-        disableDepth()
+        if (EspSettings.phase) disableDepth()
 
         if (outline) {
             glLineWidth(adjustedLineWidth)
@@ -228,7 +229,7 @@ object RenderUtils {
 
         if (fill) drawFilledAABB(axisAlignedBB, color.withAlpha(fillOpacity.toFloat() / 100f))
 
-        enableDepth()
+        if (EspSettings.phase) enableDepth()
         postDraw()
         GlStateManager.popMatrix()
     }

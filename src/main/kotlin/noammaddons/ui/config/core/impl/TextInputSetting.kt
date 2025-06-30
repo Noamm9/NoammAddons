@@ -4,9 +4,9 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.util.ChatAllowedCharacters
+import noammaddons.NoammAddons.Companion.textRenderer
 import noammaddons.features.Feature
 import noammaddons.features.impl.gui.ConfigGui.accentColor
-import noammaddons.noammaddons.Companion.textRenderer
 import noammaddons.ui.config.core.save.Savable
 import noammaddons.utils.RenderUtils.drawRect
 import noammaddons.utils.StencilUtils

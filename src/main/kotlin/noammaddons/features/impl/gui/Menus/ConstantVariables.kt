@@ -4,9 +4,9 @@ import net.minecraft.inventory.Slot
 import net.minecraft.item.ItemSkull
 import net.minecraft.item.ItemStack
 import net.minecraftforge.fml.client.config.GuiUtils.*
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.features.impl.gui.CustomMenuSettings
 import noammaddons.features.impl.gui.ScalableTooltips
-import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.GuiUtils.sendWindowClickPacket
 import noammaddons.utils.ItemUtils.getHeadSkinTexture
 import noammaddons.utils.ItemUtils.getItemId

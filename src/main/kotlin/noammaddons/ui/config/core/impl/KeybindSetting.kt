@@ -2,9 +2,9 @@ package noammaddons.ui.config.core.impl
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
+import noammaddons.NoammAddons.Companion.textRenderer
 import noammaddons.features.Feature
 import noammaddons.features.impl.gui.ConfigGui.accentColor
-import noammaddons.noammaddons.Companion.textRenderer
 import noammaddons.ui.config.core.save.Savable
 import org.lwjgl.input.Keyboard
 import kotlin.reflect.KProperty

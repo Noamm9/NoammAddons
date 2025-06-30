@@ -7,7 +7,7 @@ import noammaddons.commands.Command
 import noammaddons.features.impl.misc.ClientTimer.cmd
 import noammaddons.features.impl.misc.ClientTimer.cmdAlways
 import noammaddons.features.impl.misc.ClientTimer.mode
-import noammaddons.noammaddons.Companion.FULL_PREFIX
+import noammaddons.NoammAddons.Companion.FULL_PREFIX
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendChatMessage

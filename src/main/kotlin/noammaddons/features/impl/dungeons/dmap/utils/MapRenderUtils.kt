@@ -8,7 +8,7 @@ import net.minecraft.util.ResourceLocation
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapConfig
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapElement.playerMarker
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapPlayer
-import noammaddons.noammaddons.Companion.mc
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.DungeonUtils
 import noammaddons.utils.ItemUtils.SkyblockID

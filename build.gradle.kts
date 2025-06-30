@@ -62,6 +62,8 @@ sourceSets.main {
     output.setResourcesDir(file("${buildDir}/classes/kotlin/main"))
 }
 
+sourceSets["main"].java.srcDirs("src/main/kotlin")
+
 loom {
     silentMojangMappingsLicense()
     launchConfigs.getByName("client") {
@@ -120,7 +122,7 @@ tasks {
             "TweakClass" to "gg.essential.loader.stage0.EssentialSetupTweaker",
             "TweakOrder" to "0"
         )
-        
+
         dependsOn(shadowJar)
         enabled = false
     }

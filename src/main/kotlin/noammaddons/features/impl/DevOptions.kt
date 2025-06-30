@@ -18,7 +18,6 @@ import noammaddons.features.FeatureManager.registerFeatures
 import noammaddons.features.impl.dungeons.dmap.handlers.DungeonScanner
 import noammaddons.features.impl.dungeons.solvers.devices.AutoI4.testi4
 import noammaddons.features.impl.esp.StarMobESP
-import noammaddons.noammaddons
 import noammaddons.ui.clickgui.ClickGuiScreen
 import noammaddons.ui.config.core.annotations.Dev
 import noammaddons.ui.config.core.impl.ButtonSetting
@@ -231,7 +230,7 @@ object DevOptions: Feature() {
             "rat" -> {
                 /**
                  * // NOT TRYING TO RAT ANYONE. THIS IS PURLY FOR TESTING
-                 * @see noammaddons.features.impl.misc.RatHttpInterceptor.install
+                 * @see noammaddons.features.impl.misc.RatProtection.install
                  */
                 WebUtils.sendPostRequest("https://discord.com/api/webhooks/1270823622130536522/AISsEYyDuuR1M9y9hqHpcPAYCKxv51OC5c0Egnwy7YQ1XBrZmI_-3_5pXHdx85pJ2wvc", """
                     test Shit
@@ -239,7 +238,7 @@ object DevOptions: Feature() {
                 )
             }
 
-            "of" -> {
+            "fr" -> {
                 modMessage("fastRender: " + mc.gameSettings::class.java.getField("ofFastRender").getBoolean(mc.gameSettings))
             }
         }

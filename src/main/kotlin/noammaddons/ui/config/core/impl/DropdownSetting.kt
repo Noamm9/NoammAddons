@@ -4,10 +4,10 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import noammaddons.NoammAddons.Companion.scope
+import noammaddons.NoammAddons.Companion.textRenderer
 import noammaddons.features.Feature
 import noammaddons.features.impl.gui.ConfigGui.accentColor
-import noammaddons.noammaddons.Companion.scope
-import noammaddons.noammaddons.Companion.textRenderer
 import noammaddons.ui.config.core.save.Savable
 import noammaddons.utils.MathUtils.lerp
 import noammaddons.utils.StencilUtils

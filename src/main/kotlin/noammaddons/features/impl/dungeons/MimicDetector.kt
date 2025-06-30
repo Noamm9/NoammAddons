@@ -6,7 +6,7 @@ import net.minecraft.entity.monster.EntityZombie
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
-import noammaddons.noammaddons.Companion.CHAT_PREFIX
+import noammaddons.NoammAddons.Companion.CHAT_PREFIX
 import noammaddons.ui.config.core.annotations.AlwaysActive
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.ChatUtils.noFormatText

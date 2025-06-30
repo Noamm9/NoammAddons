@@ -2,10 +2,10 @@ package noammaddons.ui.config.core.save
 
 import com.google.gson.*
 import gg.essential.elementa.state.BasicState
+import noammaddons.NoammAddons.Companion.Logger
+import noammaddons.NoammAddons.Companion.MOD_NAME
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.features.FeatureManager
-import noammaddons.noammaddons.Companion.Logger
-import noammaddons.noammaddons.Companion.MOD_NAME
-import noammaddons.noammaddons.Companion.mc
 import noammaddons.ui.config.ConfigGUI
 import java.io.File
 

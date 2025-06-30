@@ -8,7 +8,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.CBlines
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.CBphase
-import noammaddons.noammaddons.Companion.personalBests
+import noammaddons.NoammAddons.Companion.personalBests
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.ChatUtils.clickableChat
 import noammaddons.utils.ChatUtils.debugMessage

@@ -1,6 +1,6 @@
 package noammaddons.ui.font
 
-import noammaddons.noammaddons.Companion.textRenderer
+import noammaddons.NoammAddons.Companion.textRenderer
 import noammaddons.utils.ChatUtils.addColor
 import java.awt.Color
 

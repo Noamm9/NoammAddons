@@ -19,7 +19,7 @@ import noammaddons.features.FeatureManager.registerFeatures
 import noammaddons.features.impl.DevOptions
 import noammaddons.features.impl.misc.ClientBranding
 import noammaddons.features.impl.misc.Cosmetics.CosmeticRendering
-import noammaddons.features.impl.misc.RatHttpInterceptor
+import noammaddons.features.impl.misc.RatProtection
 import noammaddons.ui.font.GlyphPageFontRenderer
 import noammaddons.ui.font.TextRenderer
 import noammaddons.utils.*
@@ -28,12 +28,12 @@ import org.apache.logging.log4j.LogManager
 
 
 @Mod(
-    modid = noammaddons.MOD_ID,
-    name = noammaddons.MOD_NAME,
-    version = noammaddons.MOD_VERSION,
+    modid = NoammAddons.MOD_ID,
+    name = NoammAddons.MOD_NAME,
+    version = NoammAddons.MOD_VERSION,
     clientSideOnly = true
 )
-class noammaddons {
+class NoammAddons {
     private var loadTime = 0L
 
     companion object {
@@ -50,7 +50,7 @@ class noammaddons {
         @JvmStatic
         val mc = Minecraft.getMinecraft()
 
-        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
         val hudData = PogObject("hudData", DataClasses.HudElementConfig())
         private val firstLoad = PogObject("firstLoad", true)
@@ -80,7 +80,7 @@ class noammaddons {
 
     @Mod.EventHandler
     fun preInit(event: FMLPreInitializationEvent) {
-        RatHttpInterceptor.install()
+        RatProtection.install()
     }
 
     @Mod.EventHandler
@@ -126,54 +126,52 @@ class noammaddons {
         Utils.playFirstLoadMessage()
     }
 
-    fun init() {
-        ThreadUtils.loop(600_000) {
-            if (DevOptions.updateChecker) UpdateUtils.update()
+    fun init() = ThreadUtils.loop(600_000) {
+        if (DevOptions.updateChecker) UpdateUtils.update()
 
-            fetchJsonWithRetry<Map<String, Double>>("https://moulberry.codes/lowestbin.json") {
-                ahData.clear()
-                ahData.putAll(it)
-            }
+        fetchJsonWithRetry<Map<String, Double>>("https://moulberry.codes/lowestbin.json") {
+            ahData.clear()
+            ahData.putAll(it)
+        }
 
-            WebUtils.get("https://api.hypixel.net/v2/skyblock/bazaar") { obj ->
-                if (obj["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
+        WebUtils.get("https://api.hypixel.net/v2/skyblock/bazaar") { obj ->
+            if (obj["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
 
-                val rawBzData = JsonUtils.json.decodeFromJsonElement(
-                    MapSerializer(String.serializer(), DataClasses.bzitem.serializer()),
-                    obj["products"] !!
-                )
+            val rawBzData = JsonUtils.json.decodeFromJsonElement(
+                MapSerializer(String.serializer(), DataClasses.bzitem.serializer()),
+                obj["products"] !!
+            )
 
-                val data = rawBzData.entries.associate { it.value.quick_status.productId to it.value.quick_status }
+            val data = rawBzData.entries.associate { it.value.quick_status.productId to it.value.quick_status }
 
-                bzData.clear()
-                bzData.putAll(data)
-            }
+            bzData.clear()
+            bzData.putAll(data)
+        }
 
-            WebUtils.get("https://api.hypixel.net/resources/skyblock/items") { obj ->
-                if (obj["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
+        WebUtils.get("https://api.hypixel.net/resources/skyblock/items") { obj ->
+            if (obj["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
 
-                val items = JsonUtils.json.decodeFromJsonElement(
-                    ListSerializer(DataClasses.APISBItem.serializer()),
-                    obj["items"] !!
-                )
+            val items = JsonUtils.json.decodeFromJsonElement(
+                ListSerializer(DataClasses.APISBItem.serializer()),
+                obj["items"] !!
+            )
 
-                val sellPrices = items.filter {
-                    it.npcSellPrice != null
-                }.associate { it.id to it.npcSellPrice !! }.toMutableMap()
+            val sellPrices = items.filter {
+                it.npcSellPrice != null
+            }.associate { it.id to it.npcSellPrice !! }.toMutableMap()
 
-                val idToName = items.associate { it.id to it.name }.toMutableMap()
+            val idToName = items.associate { it.id to it.name }.toMutableMap()
 
-                npcData.clear()
-                npcData.putAll(sellPrices)
-                itemIdToNameLookup.clear()
-                itemIdToNameLookup.putAll(idToName)
-            }
+            npcData.clear()
+            npcData.putAll(sellPrices)
+            itemIdToNameLookup.clear()
+            itemIdToNameLookup.putAll(idToName)
+        }
 
-            WebUtils.get("https://api.hypixel.net/v2/resources/skyblock/election") { jsonObject ->
-                if (jsonObject["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
-                val dataElement = jsonObject["data"] ?: return@get
-                mayorData = JsonUtils.json.decodeFromJsonElement(DataClasses.ApiMayor.serializer(), dataElement)
-            }
+        WebUtils.get("https://api.hypixel.net/v2/resources/skyblock/election") { jsonObject ->
+            if (jsonObject["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
+            val dataElement = jsonObject["data"] ?: return@get
+            mayorData = JsonUtils.json.decodeFromJsonElement(DataClasses.ApiMayor.serializer(), dataElement)
         }
     }
 }

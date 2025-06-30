@@ -3,10 +3,10 @@ package noammaddons.ui.clickgui
 import kotlinx.coroutines.*
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.renderer.GlStateManager
-import noammaddons.noammaddons.Companion.FULL_PREFIX
-import noammaddons.noammaddons.Companion.MOD_VERSION
-import noammaddons.noammaddons.Companion.scope
-import noammaddons.noammaddons.Companion.textRenderer
+import noammaddons.NoammAddons.Companion.FULL_PREFIX
+import noammaddons.NoammAddons.Companion.MOD_VERSION
+import noammaddons.NoammAddons.Companion.scope
+import noammaddons.NoammAddons.Companion.textRenderer
 import noammaddons.ui.components.TextField
 import noammaddons.ui.config.ConfigGUI
 import noammaddons.ui.config.core.CategoryType

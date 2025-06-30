@@ -2,7 +2,7 @@ package noammaddons.ui.clickgui
 
 import noammaddons.features.Feature
 import noammaddons.features.impl.gui.ConfigGui.accentColor
-import noammaddons.noammaddons.Companion.textRenderer
+import noammaddons.NoammAddons.Companion.textRenderer
 import noammaddons.ui.clickgui.ClickGuiScreen.currentSettingMenu
 import noammaddons.ui.clickgui.ClickGuiScreen.mc
 import noammaddons.ui.clickgui.ClickGuiScreen.scale

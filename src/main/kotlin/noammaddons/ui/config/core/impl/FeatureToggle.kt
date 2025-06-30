@@ -2,11 +2,11 @@ package noammaddons.ui.config.core.impl
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import noammaddons.NoammAddons.Companion.scope
+import noammaddons.NoammAddons.Companion.textRenderer
 import noammaddons.features.Feature
 import noammaddons.features.impl.dungeons.dmap.DungeonMap
 import noammaddons.features.impl.gui.ConfigGui.accentColor
-import noammaddons.noammaddons.Companion.scope
-import noammaddons.noammaddons.Companion.textRenderer
 import noammaddons.ui.config.ConfigGUI
 import noammaddons.ui.config.ConfigGUI.settingsScroll
 import noammaddons.ui.config.core.FeatureElement

@@ -5,8 +5,8 @@ import net.minecraft.network.play.client.C01PacketChatMessage
 import net.minecraftforge.event.entity.player.AttackEntityEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.events.*
-import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.debugMessage
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendChatMessage

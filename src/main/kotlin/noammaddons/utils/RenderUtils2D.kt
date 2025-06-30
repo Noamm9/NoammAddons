@@ -1,19 +1,23 @@
 package noammaddons.utils
 
 import gg.essential.elementa.utils.withAlpha
+import net.minecraft.block.*
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.Entity
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.Vec3
+import net.minecraft.init.Blocks
+import net.minecraft.util.*
 import noammaddons.features.impl.esp.EspSettings
 import noammaddons.features.impl.esp.EspSettings.lineWidth
-import noammaddons.noammaddons
+import noammaddons.NoammAddons
+import noammaddons.NoammAddons.Companion.mc
+import noammaddons.utils.BlockUtils.getStateAt
 import noammaddons.utils.MathUtils.add
 import noammaddons.utils.RenderHelper.renderVec
 import noammaddons.utils.RenderHelper.renderX
 import noammaddons.utils.RenderHelper.renderY
 import noammaddons.utils.RenderHelper.renderZ
+import noammaddons.utils.Utils.isOneOf
 import org.lwjgl.BufferUtils
 import org.lwjgl.util.glu.Project
 import java.awt.Color
@@ -36,7 +40,7 @@ object RenderUtils2D {
         )
 
         return success.takeIf { it && coords[2] in 0.0 .. 1.0 }?.run {
-            val sr = ScaledResolution(noammaddons.mc)
+            val sr = ScaledResolution(NoammAddons.mc)
             Vec3(coords[0] / sr.scaleFactor.toDouble(), (sr.scaledHeight - (coords[1] / sr.scaleFactor)).toDouble(), coords[2].toDouble())
         }
     }
@@ -90,13 +94,36 @@ object RenderUtils2D {
 
     fun drawNameTag(vec3: Vec3, name: String) {
         worldToScreenPosition(vec3)?.let { pos ->
-            noammaddons.mc.fontRendererObj.drawString(
+            mc.fontRendererObj.drawString(
                 name, pos.xCoord.toFloat(), pos.yCoord.toFloat(), - 1, true
             )
         }
     }
 
+    fun canSeeThroughSoftBlocks(entity: Entity): Boolean {
+        val from = mc.thePlayer.getPositionEyes(RenderHelper.getPartialTicks())
+        val to = entity.getPositionEyes(RenderHelper.getPartialTicks())
+        val step = 0.2
+        val distance = from.distanceTo(to)
+        val steps = (distance / step).toInt()
+        val dir = to.subtract(from).normalize()
+
+        repeat(steps) { i ->
+            val point = from.addVector(dir.xCoord * i * step, dir.yCoord * i * step, dir.zCoord * i * step)
+            val state = getStateAt(BlockPos(point))
+            val block = state.block
+
+            if (block != Blocks.air && block.canCollideCheck(state, false)) {
+                return block.isOneOf(BlockGlass::class, BlockStainedGlass::class, BlockFence::class, BlockPane::class, BlockLeaves::class)
+            }
+        }
+
+        return true
+    }
+
     fun draw2dEsp(entity: Entity, color: Color, thickness: Number = lineWidth) {
+        if (! EspSettings.phase && ! canSeeThroughSoftBlocks(entity)) return
+
         val entityAABB = entity.entityBoundingBox
             .offset(- entity.posX, - entity.posY, - entity.posZ)
             .offset(entity.renderX, entity.renderY, entity.renderZ)

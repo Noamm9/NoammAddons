@@ -4,7 +4,7 @@ import com.google.common.collect.ComparisonChain
 import net.minecraft.client.network.NetworkPlayerInfo
 import net.minecraft.world.WorldSettings.*
 import noammaddons.mixins.AccessorGuiPlayerTabOverlay
-import noammaddons.noammaddons.Companion.mc
+import noammaddons.NoammAddons.Companion.mc
 
 
 object TablistUtils {

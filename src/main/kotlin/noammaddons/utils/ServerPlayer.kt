@@ -5,8 +5,8 @@ import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.events.PacketEvent
-import noammaddons.noammaddons.Companion.mc
 
 
 object ServerPlayer {

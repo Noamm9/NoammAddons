@@ -5,9 +5,9 @@ import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.JsonObject
 import net.minecraft.crash.CrashReport
-import noammaddons.noammaddons
-import noammaddons.noammaddons.Companion.Logger
-import noammaddons.noammaddons.Companion.mc
+import noammaddons.NoammAddons.Companion.Logger
+import noammaddons.NoammAddons.Companion.MOD_NAME
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.Utils.equalsOneOf
 import java.io.BufferedReader
 import java.lang.reflect.Type
@@ -38,7 +38,7 @@ object WebUtils {
 
     fun makeWebRequest(url: String): URLConnection {
         val connection = URL(url).openConnection()
-        connection.setRequestProperty("User-Agent", "Mozilla/5.0 (${noammaddons.MOD_ID})")
+        connection.setRequestProperty("User-Agent", "Mozilla/5.0 ($MOD_NAME)")
         if (connection is HttpsURLConnection) {
             connection.sslSocketFactory = sslContext?.socketFactory ?: connection.sslSocketFactory
         }
@@ -47,10 +47,7 @@ object WebUtils {
         return connection
     }
 
-    inline fun <reified T> fetchJsonWithRetry(
-        url: String,
-        crossinline callback: (T) -> Unit
-    ) {
+    inline fun <reified T> fetchJsonWithRetry(url: String, crossinline callback: (T) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             while (isActive) {
                 val connection = makeWebRequest(url) as HttpURLConnection
@@ -105,13 +102,13 @@ object WebUtils {
         }
     }
 
-    fun sendPostRequest(url: String, body: String) {
+    fun sendPostRequest(url: String, body: Any) {
         CoroutineScope(Dispatchers.IO).launch {
             val connection = makeWebRequest(url) as HttpsURLConnection
             connection.requestMethod = "POST"
             connection.doOutput = true
             connection.outputStream.use { os ->
-                os.write(body.toByteArray(Charsets.UTF_8))
+                os.write(body.toString().toByteArray(Charsets.UTF_8))
             }
             connection.disconnect()
         }

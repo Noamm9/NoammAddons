@@ -119,13 +119,13 @@ public abstract class MixinRendererLivingEntity {
 
     @Inject(method = "doRender(Lnet/minecraft/entity/EntityLivingBase;DDDFF)V", at = @At("HEAD"))
     private <T extends EntityLivingBase> void injectChamsPre(T entity, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo callbackInfo) {
-        if (!noammAddons$hasCham(entity)) return;
+        if (!noammAddons$hasCham(entity) || !EspSettings.INSTANCE.getPhase()) return;
         RenderHelper.enableChums();
     }
 
     @Inject(method = "doRender(Lnet/minecraft/entity/EntityLivingBase;DDDFF)V", at = @At("RETURN"))
     private <T extends EntityLivingBase> void injectChamsPost(T entity, double x, double y, double z, float a, float b, CallbackInfo callbackInfo) {
-        if (!noammAddons$hasCham(entity)) return;
+        if (!noammAddons$hasCham(entity) || !EspSettings.INSTANCE.getPhase()) return;
         RenderHelper.disableChums();
     }
 

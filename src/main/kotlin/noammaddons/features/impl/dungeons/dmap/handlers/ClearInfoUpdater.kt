@@ -8,8 +8,8 @@ import noammaddons.features.impl.dungeons.dmap.DungeonMap.debug
 import noammaddons.features.impl.dungeons.dmap.core.ClearInfo
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapConfig
 import noammaddons.features.impl.dungeons.dmap.core.map.*
-import noammaddons.noammaddons.Companion.CHAT_PREFIX
-import noammaddons.noammaddons.Companion.mc
+import noammaddons.NoammAddons.Companion.CHAT_PREFIX
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.DungeonUtils

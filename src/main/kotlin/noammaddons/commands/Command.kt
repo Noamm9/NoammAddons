@@ -2,13 +2,13 @@ package noammaddons.commands
 
 import net.minecraft.command.CommandBase
 import net.minecraft.command.ICommandSender
-import noammaddons.noammaddons
+import noammaddons.NoammAddons
 import noammaddons.utils.ChatUtils.modMessage
 
 abstract class Command(val name: String, val aliases: List<String> = listOf(), val usage: String = ""): CommandBase() {
-    protected val mc = noammaddons.mc
-    protected val hudData = noammaddons.hudData
-    protected val scope = noammaddons.scope
+    protected val mc = NoammAddons.mc
+    protected val hudData = NoammAddons.hudData
+    protected val scope = NoammAddons.scope
 
     override fun getCommandName(): String {
         return name

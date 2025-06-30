@@ -1,11 +1,11 @@
 package noammaddons.ui.clickgui
 
 import kotlinx.coroutines.launch
+import noammaddons.NoammAddons.Companion.mc
+import noammaddons.NoammAddons.Companion.scope
+import noammaddons.NoammAddons.Companion.textRenderer
 import noammaddons.features.Feature
 import noammaddons.features.impl.gui.ConfigGui.accentColor
-import noammaddons.noammaddons.Companion.mc
-import noammaddons.noammaddons.Companion.scope
-import noammaddons.noammaddons.Companion.textRenderer
 import noammaddons.ui.clickgui.ClickGuiScreen.titleRenderer25
 import noammaddons.ui.clickgui.core.*
 import noammaddons.utils.RenderHelper.getHeight

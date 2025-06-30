@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder
 import kotlinx.serialization.json.*
 import kotlinx.serialization.json.Json.Default.parseToJsonElement
 import net.minecraft.util.ResourceLocation
-import noammaddons.noammaddons.Companion.mc
+import noammaddons.NoammAddons.Companion.mc
 import java.io.*
 
 

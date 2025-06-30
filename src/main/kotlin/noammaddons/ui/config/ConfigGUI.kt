@@ -4,13 +4,13 @@ import kotlinx.coroutines.*
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.util.ChatAllowedCharacters
+import noammaddons.NoammAddons.Companion.FULL_PREFIX
+import noammaddons.NoammAddons.Companion.MOD_VERSION
+import noammaddons.NoammAddons.Companion.scope
+import noammaddons.NoammAddons.Companion.textRenderer
 import noammaddons.config.EditGui.HudEditorScreen
 import noammaddons.features.impl.gui.ConfigGui.accentColor
 import noammaddons.features.impl.gui.ConfigGui.guiType
-import noammaddons.noammaddons.Companion.FULL_PREFIX
-import noammaddons.noammaddons.Companion.MOD_VERSION
-import noammaddons.noammaddons.Companion.scope
-import noammaddons.noammaddons.Companion.textRenderer
 import noammaddons.ui.clickgui.ClickGuiScreen
 import noammaddons.ui.config.core.CategoryType
 import noammaddons.ui.config.core.FeatureElement

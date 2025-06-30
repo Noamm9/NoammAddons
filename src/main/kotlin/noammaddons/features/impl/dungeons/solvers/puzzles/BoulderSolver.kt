@@ -4,13 +4,13 @@ import net.minecraft.init.Blocks.*
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.util.BlockPos
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.NoammAddons.Companion.personalBests
 import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.BboxColor
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.BclickColor
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.BshowAll
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.BzeroPing
-import noammaddons.noammaddons.Companion.personalBests
 import noammaddons.utils.*
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.toVec

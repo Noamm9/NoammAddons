@@ -14,7 +14,7 @@ import noammaddons.features.impl.dungeons.solvers.terminals.TerminalSolver.getSo
 import noammaddons.features.impl.dungeons.solvers.terminals.TerminalSolver.getTermScale
 import noammaddons.features.impl.dungeons.solvers.terminals.core.TerminalSlot
 import noammaddons.features.impl.gui.Menus.renderBackground
-import noammaddons.noammaddons.Companion.mc
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.disableNEUInventoryButtons

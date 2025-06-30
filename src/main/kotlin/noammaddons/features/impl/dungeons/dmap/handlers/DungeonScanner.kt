@@ -2,8 +2,8 @@ package noammaddons.features.impl.dungeons.dmap.handlers
 
 import net.minecraft.init.Blocks
 import net.minecraft.util.BlockPos
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.features.impl.dungeons.dmap.core.map.*
-import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.ScanUtils

@@ -3,7 +3,7 @@ package noammaddons.utils
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Actionbar
-import noammaddons.noammaddons.Companion.mc
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.Utils.remove
 import kotlin.math.roundToInt
 

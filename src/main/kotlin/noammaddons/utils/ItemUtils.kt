@@ -10,10 +10,10 @@ import net.minecraft.nbt.*
 import net.minecraft.nbt.NBTUtil.*
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.common.util.Constants
+import noammaddons.NoammAddons.Companion.bzData
+import noammaddons.NoammAddons.Companion.itemIdToNameLookup
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.features.impl.dungeons.ChestProfit
-import noammaddons.noammaddons.Companion.bzData
-import noammaddons.noammaddons.Companion.itemIdToNameLookup
-import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ItemUtils.ItemRarity.Companion.PET_PATTERN
@@ -69,7 +69,7 @@ object ItemUtils {
 
     val ItemStack?.skyblockUUID: String
         get() = this?.extraAttributes?.getString("uuid") ?: ""
-    
+
 
     val ItemStack.lore: List<String>
         get() = tagCompound?.getCompoundTag("display")?.getTagList("Lore", 8)?.let {

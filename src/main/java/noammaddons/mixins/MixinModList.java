@@ -2,7 +2,7 @@ package noammaddons.mixins;
 
 import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.network.handshake.FMLHandshakeMessage;
-import noammaddons.noammaddons;
+import noammaddons.NoammAddons;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.List;
 import java.util.Map;
 
-import static noammaddons.noammaddons.getMc;
+import static noammaddons.NoammAddons.getMc;
 
 
 // full Credit to soshimee
@@ -25,7 +25,7 @@ public class MixinModList {
     @Inject(method = "<init>(Ljava/util/List;)V", at = @At("RETURN"))
     private void removeMod(List<ModContainer> modList, CallbackInfo ci) {
         if (!getMc().isIntegratedServerRunning()) {
-            modTags.remove(noammaddons.MOD_ID);
+            modTags.remove(NoammAddons.MOD_ID);
         }
     }
 }

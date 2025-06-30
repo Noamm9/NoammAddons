@@ -4,8 +4,8 @@ import kotlinx.coroutines.launch
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Tick
 import noammaddons.features.impl.DevOptions
-import noammaddons.noammaddons.Companion.Logger
-import noammaddons.noammaddons.Companion.scope
+import noammaddons.NoammAddons.Companion.Logger
+import noammaddons.NoammAddons.Companion.scope
 import java.util.concurrent.*
 
 object ThreadUtils {

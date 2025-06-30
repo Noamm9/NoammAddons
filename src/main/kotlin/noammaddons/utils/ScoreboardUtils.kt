@@ -3,9 +3,9 @@ package noammaddons.utils
 import net.minecraft.network.play.server.*
 import net.minecraft.scoreboard.ScorePlayerTeam
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.events.PostPacketEvent
 import noammaddons.events.WorldUnloadEvent
-import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.removeUnicode
 import noammaddons.utils.LocationUtils.inSkyblock

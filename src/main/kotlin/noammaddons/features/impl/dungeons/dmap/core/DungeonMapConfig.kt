@@ -2,7 +2,7 @@ package noammaddons.features.impl.dungeons.dmap.core
 
 import gg.essential.vigilance.Vigilant
 import gg.essential.vigilance.data.*
-import noammaddons.noammaddons.Companion.MOD_NAME
+import noammaddons.NoammAddons.Companion.MOD_NAME
 import noammaddons.utils.Utils.equalsOneOf
 import java.awt.Color
 import java.io.File

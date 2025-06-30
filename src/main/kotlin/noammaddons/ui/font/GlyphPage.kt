@@ -2,7 +2,7 @@ package noammaddons.ui.font
 
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.texture.DynamicTexture
-import noammaddons.noammaddons
+import noammaddons.NoammAddons
 import org.lwjgl.opengl.GL11
 import java.awt.*
 import java.awt.image.BufferedImage
@@ -254,7 +254,7 @@ class GlyphPage(
             }
 
             if (posY + glyph.height >= imgSize) {
-                noammaddons.Logger.error("GlyphPage: Character '$charStr' (cp: $codepoint) will not fit on texture. Texture too small or glyph too large.")
+                NoammAddons.Logger.error("GlyphPage: Character '$charStr' (cp: $codepoint) will not fit on texture. Texture too small or glyph too large.")
                 continue
             }
 
@@ -274,7 +274,7 @@ class GlyphPage(
     }
 
     fun setupTexture() {
-        if (bufferedImage == null) return noammaddons.Logger.error("GlyphPage: setupTexture called with null bufferedImage!")
+        if (bufferedImage == null) return NoammAddons.Logger.error("GlyphPage: setupTexture called with null bufferedImage!")
         loadedTexture = DynamicTexture(bufferedImage)
         bufferedImage = null // Keep it if you might need to re-upload or debug
     }

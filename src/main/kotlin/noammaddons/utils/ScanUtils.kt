@@ -10,7 +10,7 @@ import noammaddons.features.impl.DevOptions
 import noammaddons.features.impl.dungeons.dmap.core.map.Room
 import noammaddons.features.impl.dungeons.dmap.core.map.RoomData
 import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
-import noammaddons.noammaddons.Companion.mc
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.getBlockId
 import noammaddons.utils.LocationUtils.inBoss

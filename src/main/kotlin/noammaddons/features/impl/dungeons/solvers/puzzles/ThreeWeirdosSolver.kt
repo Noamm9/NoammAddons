@@ -12,7 +12,7 @@ import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.Wcolor
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.WcolorWrong
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.WremoveChests
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.WremoveNPCS
-import noammaddons.noammaddons.Companion.personalBests
+import noammaddons.NoammAddons.Companion.personalBests
 import noammaddons.utils.BlockUtils.ghostBlock
 import noammaddons.utils.ChatUtils.clickableChat
 import noammaddons.utils.ChatUtils.debugMessage

@@ -98,6 +98,7 @@ class DataClasses {
         val dungeonWarpCooldown = HudElementData(100f, 100f, 1f)
         val dungeonRunSplits = HudElementData(100f, 100f, 1f)
         val blessingDisplay = HudElementData(100f, 100f, 1f)
+        val chestProfitHud = HudElementData(10f, 10f, 1f)
     }
 
     data class HudElementData(var x: Float, var y: Float, var scale: Float)

@@ -5,7 +5,7 @@ import net.minecraft.util.Vec3
 import net.minecraft.util.Vec4b
 import net.minecraft.world.storage.MapData
 import noammaddons.features.impl.dungeons.dmap.handlers.*
-import noammaddons.noammaddons.Companion.mc
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.Utils.equalsOneOf
 

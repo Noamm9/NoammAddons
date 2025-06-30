@@ -18,10 +18,10 @@ import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.*
 import net.minecraftforge.fml.common.gameevent.TickEvent.*
+import noammaddons.NoammAddons.Companion.Logger
+import noammaddons.NoammAddons.Companion.mc
+import noammaddons.NoammAddons.Companion.scope
 import noammaddons.features.impl.dungeons.dmap.core.map.Room
-import noammaddons.noammaddons.Companion.Logger
-import noammaddons.noammaddons.Companion.mc
-import noammaddons.noammaddons.Companion.scope
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.ChatUtils
 import noammaddons.utils.ChatUtils.debugMessage

@@ -6,12 +6,11 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.fml.common.eventhandler.*
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.events.*
 import noammaddons.features.impl.esp.EspSettings
-import noammaddons.noammaddons.Companion.mc
 import noammaddons.utils.MathUtils.destructured
 import noammaddons.utils.MathUtils.distance3D
-import noammaddons.utils.RenderHelper.glBindColor
 import noammaddons.utils.RenderHelper.renderVec
 import noammaddons.utils.RenderUtils.drawEntityBox
 import noammaddons.utils.RenderUtils2D.draw2dEsp
@@ -89,54 +88,60 @@ object EspUtils {
     }
 
     private fun renderOutline(event: PostRenderEntityModelEvent, color: Color) {
-        val distance = distance3D(event.entity.renderVec, mc.thePlayer.renderVec)
-        val adjustedLineWidth = (EspSettings.lineWidth.toDouble() / (distance / 8f))
-            .coerceIn(0.5, EspSettings.lineWidth.toDouble()).toFloat()
+        val distance = distance3D(event.entity.renderVec, mc.thePlayer.renderVec).toFloat()
+        val adjustedLineWidth = (EspSettings.lineWidth / (distance / 8f)).coerceIn(0.5f, EspSettings.lineWidth)
+        val fancyGraphics = mc.gameSettings.fancyGraphics
+        val gamma = mc.gameSettings.gammaSetting
 
-        val originalFancyGraphics = mc.gameSettings.fancyGraphics
-        val originalGamma = mc.gameSettings.gammaSetting
         mc.gameSettings.fancyGraphics = false
         mc.gameSettings.gammaSetting = 100000f
+        event.entity.hurtTime = 0
 
         glPushMatrix()
         glPushAttrib(GL_ALL_ATTRIB_BITS)
-
         checkSetupFBO()
-        glBindColor(color)
+
+        if (EspSettings.phase) {
+            glDisable(GL_DEPTH_TEST)
+            glDepthMask(false)
+        }
         glDisable(GL_ALPHA_TEST)
         glDisable(GL_TEXTURE_2D)
         glDisable(GL_LIGHTING)
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glLineWidth(adjustedLineWidth)
-        glEnable(GL_LINE_SMOOTH)
         glEnable(GL_STENCIL_TEST)
         glClear(GL_STENCIL_BUFFER_BIT)
         glClearStencil(0xF)
-        glStencilFunc(GL_NEVER, 1, 0xF)
-        glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-        render(event)
-        glStencilFunc(GL_NEVER, 0, 0xF)
-        glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-        render(event)
-        glStencilFunc(GL_EQUAL, 1, 0xF)
-        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-        render(event)
-        glDepthMask(false)
-        glDisable(GL_DEPTH_TEST)
-        glEnable(GL_POLYGON_OFFSET_LINE)
-        glPolygonOffset(1.0f, - 2000000f)
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0f, 240.0f)
+        glStencilFunc(GL_ALWAYS, 1, 0xFF)
+        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE)
+        glColorMask(false, false, false, false)
+
         render(event)
 
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF)
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
+        glColorMask(true, true, true, true)
+        if (EspSettings.phase) {
+            glEnable(GL_POLYGON_OFFSET_LINE)
+            glPolygonOffset(1.0f, - 2000000f)
+        }
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0f, 240.0f)
+        glLineWidth(adjustedLineWidth)
+        glEnable(GL_LINE_SMOOTH)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        RenderHelper.glBindColor(color)
+
+        render(event)
+
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        glDisable(GL_STENCIL_TEST)
+        glLineWidth(1f)
         glPopAttrib()
         glPopMatrix()
 
-        mc.gameSettings.fancyGraphics = originalFancyGraphics
-        mc.gameSettings.gammaSetting = originalGamma
+        mc.gameSettings.fancyGraphics = fancyGraphics
+        mc.gameSettings.gammaSetting = gamma
 
         ESPType.OUTLINE.removeEntity(event.entity)
     }

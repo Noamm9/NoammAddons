@@ -7,10 +7,12 @@ import net.minecraft.item.ItemSkull
 import net.minecraft.util.EnumParticleTypes
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.NoammAddons.Companion.CHAT_PREFIX
+import noammaddons.config.EditGui.GuiElement
+import noammaddons.config.EditGui.HudEditorScreen
 import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.mixins.AccessorGuiContainer
-import noammaddons.noammaddons.Companion.CHAT_PREFIX
 import noammaddons.ui.config.core.impl.SeperatorSetting
 import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.ChatUtils.modMessage
@@ -30,6 +32,7 @@ import noammaddons.utils.LocationUtils.WorldType.*
 import noammaddons.utils.LocationUtils.world
 import noammaddons.utils.NumbersUtils.format
 import noammaddons.utils.NumbersUtils.romanToDecimal
+import noammaddons.utils.RenderHelper
 import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderHelper.highlight
 import noammaddons.utils.RenderUtils.drawCenteredText
@@ -37,18 +40,19 @@ import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.remove
-import noammaddons.utils.WebUtils
+import noammaddons.utils.WebUtils.fetchJsonWithRetry
 import java.awt.Color
 import java.lang.Math.*
 
 object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay") {
+    private const val url = "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/DungeonChestProfit"
     private val croesusChestRegex = Regex("^(Master Mode )?The Catacombs - Flo(or (IV|V?I{0,3}))?$")
     private val chestsToHighlight = mutableListOf<DungeonChest>()
     private val rngList = mutableListOf<String>()
     private val blackList = mutableListOf<String>()
-    private var currentChestProfit = 0
-    private var currentChestPrice = 0
     private var newName: String? = null
+
+    private val hud = ToggleSetting("HUD Display")
 
     private val sortByProfit = ToggleSetting("Sort by Profit")
     val includeEssence = ToggleSetting("Includes Essence")
@@ -57,91 +61,115 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
     private val croesusChestsProfit = ToggleSetting("Croesus Chests Profit")
     private val croesusChestHighlight = ToggleSetting("Highlight Croesus Chests")
     private val hideRedChests = ToggleSetting("Hide Opened Chests").addDependency(croesusChestHighlight)
+
     override fun init() {
         addSettings(
+            hud,
             sortByProfit, includeEssence, rng,
             SeperatorSetting("Croesus"),
             croesusChestsProfit,
             croesusChestHighlight,
             hideRedChests
         )
-    }
 
-
-    init {
-        WebUtils.fetchJsonWithRetry<List<String>>("https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/DungeonChestProfit/RNG_BLACKLIST.json") {
+        fetchJsonWithRetry<List<String>>("$url/RNG_BLACKLIST.json") {
             blackList.clear()
             blackList.addAll(it)
         }
 
-        WebUtils.fetchJsonWithRetry<List<String>>("https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/DungeonChestProfit/RNG_List.json") {
+        fetchJsonWithRetry<List<String>>("$url/RNG_List.json") {
             rngList.clear()
             rngList.addAll(it)
         }
     }
 
     @SubscribeEvent
+    fun onWorldUnload(event: WorldUnloadEvent) {
+        DungeonChest.entries.forEach { it.reset() }
+    }
+
+    @SubscribeEvent
     fun onInventory(event: InventoryFullyOpenedEvent) {
         if (! world.equalsOneOf(DungeonHub, Catacombs)) return
-        DungeonChest.entries.forEach { it.reset() }
-        if (chestsToHighlight.isNotEmpty()) chestsToHighlight.clear()
+        val chestName = event.title.removeFormatting()
+
+        if (chestName.matches(croesusChestRegex)) {
+            if (chestsToHighlight.isEmpty()) {
+                DungeonChest.entries.forEach { it.reset() }
+            }
+        }
+        else if (chestName.endsWith(" Chest")) {
+            DungeonChest.getFromName(chestName)?.reset()
+        }
+
+        if (chestsToHighlight.isNotEmpty() && ! chestName.matches(croesusChestRegex)) {
+            chestsToHighlight.clear()
+        }
+
         newName?.let {
             changeTitle(it)
             newName = null
         }
 
         when {
-            event.title.endsWith(" Chest§r") -> {
+            chestName.endsWith(" Chest") -> {
+                val currentDungeonChest = DungeonChest.getFromName(chestName) ?: return
                 if (event.items[31] == null) return
 
                 val l = event.items[31] !!.lore.map { it.removeFormatting() }
                 val i = l.indexOf("Cost")
                 if (i == - 1) return
 
-                currentChestPrice = getChestPrice(l)
-                currentChestProfit = currentChestPrice * - 1
+                var calculatedProfit = getChestPrice(l) * - 1
 
                 for (obj in event.items) {
                     if (obj.value?.getItemId() == 160) continue
 
-                    val itemId = obj.value.SkyblockID ?: continue
-                    val itemName = obj.value?.displayName ?: continue
-                    val isbook = itemId == "ENCHANTED_BOOK"
+                    val itemId = obj.value.SkyblockID
+                    val itemName = obj.value?.displayName
 
-                    val bookName = if (isbook) obj.value !!.lore[0] else null
-                    val bookID = if (isbook) enchantNameToID(bookName !!) else null
+                    if (itemId == "ENCHANTED_BOOK") {
+                        val bookName = obj.value !!.lore[0]
+                        val bookID = enchantNameToID(bookName)
+                        calculatedProfit += getPrice(bookID, currentDungeonChest)
+                    }
 
-                    val essance = getEssenceValue(itemName)
+                    itemName?.let { name -> getEssenceValue(name).takeIf { it != .0 } }?.let { essance ->
+                        calculatedProfit += essance.toInt()
+                    }
 
-                    if (isbook) currentChestProfit += getPrice(bookID !!)
-                    if (essance != .0) currentChestProfit += essance.toInt()
-                    if (! isbook && essance == .0) currentChestProfit += getPrice(itemId)
+                    calculatedProfit += (itemId?.let { getPrice(it, currentDungeonChest) } ?: 0)
                 }
+                currentDungeonChest.profit = calculatedProfit
+                currentDungeonChest.openedInSequence = true
             }
 
-            event.title.removeFormatting().matches(croesusChestRegex) -> {
+            chestName.matches(croesusChestRegex) -> {
+
                 for (i in 10 .. 16) {
                     val item = event.items[i] ?: continue
                     if (item.getItemId() == 160) continue
-                    val chestType = DungeonChest.getFromName(item.displayName.removeFormatting()) ?: continue
+                    val chestTypeEnum = DungeonChest.getFromName(item.displayName.removeFormatting()) ?: continue
 
                     val lore = item.lore
                     val contentIndex = lore.indexOf("§7Contents")
                     if (contentIndex == - 1) continue
 
-                    chestType.slot = i
-                    chestType.profit -= getChestPrice(lore)
+                    chestTypeEnum.slot = i
+                    var calculatedProfit = getChestPrice(lore) * - 1
 
                     lore.drop(contentIndex + 1).takeWhile { it != "" }.forEach { drop ->
                         val value = when (drop.contains("Essence")) {
                             true -> getEssenceValue(drop).toInt()
-                            else -> getPrice(getIdFromName(drop) ?: return@forEach)
+                            else -> getPrice(getIdFromName(drop) ?: return@forEach, chestTypeEnum)
                         }
-
-                        chestType.profit += value
+                        calculatedProfit += value
                     }
+                    chestTypeEnum.profit = calculatedProfit
+                    chestTypeEnum.openedInSequence = true
 
-                    chestsToHighlight.add(chestType)
+                    if (! chestsToHighlight.any { it.displayText == chestTypeEnum.displayText }) chestsToHighlight.add(chestTypeEnum)
+                    else chestsToHighlight.find { it.displayText == chestTypeEnum.displayText }?.profit = calculatedProfit
                 }
             }
         }
@@ -208,11 +236,13 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
                 }
             }
 
-            currentChestName.endsWith(" Chest§r") && currentChestProfit != 0 -> {
-                val profit = "${if (currentChestProfit < 0) "§4" else "§a"}${format(currentChestProfit)}"
-                val str = "Profit: $profit  " // added space for padding, yes I am lazy @Noamm9
-
-                drawText(str, width - getStringWidth(str), + 6f)
+            currentChestName.endsWith(" Chest§r") -> {
+                val lastProfit = DungeonChest.getFromName(currentChestName.removeFormatting())
+                if (lastProfit != null) {
+                    val profitText = "${if (lastProfit.profit < 0) "§4" else "§a"}${format(lastProfit.profit)}"
+                    val str = "Profit: $profitText  "
+                    drawText(str, width - getStringWidth(str), + 6f)
+                }
             }
         }
 
@@ -279,7 +309,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
         return 0
     }
 
-    private fun getPrice(id: String): Int {
+    private fun getPrice(id: String, chestContextName: DungeonChest): Int {
         if (id in blackList) return 0
 
         val price = when {
@@ -288,17 +318,17 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
             else -> 0
         }
 
-        setTimeout(200) { rng(id) }
+        setTimeout(200) { rng(id, chestContextName) }
 
         return price
     }
 
-    private fun rng(id: String) {
-        if (! currentChestName.endsWith(" Chest§r")) return
+    private fun rng(id: String, chestContextName: DungeonChest) {
+        if (! chestContextName.openedInSequence) return
         if (id !in rngList) return
 
-        val profit = "${if (currentChestProfit < 0) "§4" else "§a"}${format(currentChestProfit)}"
-        val str = "&6${itemIdToNameLookup[id] ?: idToEnchantName(id)}&f: $profit"
+        val profitString = "${if (chestContextName.profit < 0) "§4" else "§a"}${format(chestContextName.profit)}"
+        val str = "&6${itemIdToNameLookup[id] ?: idToEnchantName(id)}&f (from ${chestContextName.displayText}): $profitString"
 
         if (rng.value) sendPartyMessage("$CHAT_PREFIX $str")
         modMessage(str)
@@ -307,7 +337,6 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
         setTimeout(120) { mc.thePlayer.playSound("note.pling", 50f, 1.13f) }
         setTimeout(240) { mc.thePlayer.playSound("note.pling", 50f, 1.29f) }
         setTimeout(400) { mc.thePlayer.playSound("note.pling", 50f, 1.60f) }
-
 
         repeat(70) {
             val multiX = if (random() <= 0.5) - 2 else 2
@@ -322,7 +351,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
         }
     }
 
-    private enum class DungeonChest(var displayText: String, var color: Color) {
+    enum class DungeonChest(var displayText: String, var color: Color) {
         WOOD("Wood Chest", Color(100, 64, 1)),
         GOLD("Gold Chest", Color.YELLOW),
         DIAMOND("Diamond Chest", Color.CYAN),
@@ -332,10 +361,12 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
 
         var slot = 0
         var profit = 0
+        var openedInSequence: Boolean = false
 
         fun reset() {
             slot = 0
             profit = 0
+            openedInSequence = false
         }
 
         companion object {
@@ -346,5 +377,56 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
                 }
             }
         }
+    }
+
+    private object ChestProfitHudElement: GuiElement(hudData.getData().chestProfitHud) {
+        override val enabled get() = ChestProfit.enabled && hud.value
+        override val width: Float get() = RenderHelper.getStringWidth(text)
+        override val height: Float get() = RenderHelper.getStringHeight(text)
+
+        private val text: List<String>
+            get() {
+                if (HudEditorScreen.isOpen()) return listOf(
+                    "Wood Chest: §a75k", "Gold Chest: §4-62k",
+                    "Diamond Chest: §a24k", "Emerald Chest: §4-442k",
+                    "Obsidian Chest: §4-624k", "Bedrock Chest: §a5m"
+                )
+                val openedChests = DungeonChest.entries.filter { it.openedInSequence }
+                if (openedChests.isEmpty()) return emptyList()
+
+                return openedChests.map { chest ->
+                    val profitColor = if (chest.profit < 0) "§4" else "§a"
+                    val profit = format(chest.profit)
+                    "${chest.displayText}: $profitColor$profit"
+                }
+            }
+
+        override fun draw() {
+            if (text.isEmpty()) return
+
+            var currentY = getY()
+            DungeonChest.entries.filter { it.openedInSequence }.forEachIndexed { i, c ->
+                drawText(text[i], getX(), currentY, getScale(), c.color)
+                currentY += 9f * getScale()
+            }
+        }
+
+        override fun exampleDraw() {
+            if (text.isEmpty()) return
+
+            var currentY = getY()
+            DungeonChest.entries.forEachIndexed { i, c ->
+                drawText(text[i], getX(), currentY, getScale(), c.color)
+                currentY += 9f * getScale()
+            }
+        }
+    }
+
+    @SubscribeEvent
+    fun onRenderOverlay(event: RenderOverlay) {
+        if (! ChestProfitHudElement.enabled) return
+        if (! world.equalsOneOf(DungeonHub, Catacombs)) return
+        if (DungeonChest.entries.none { it.openedInSequence }) return
+        ChestProfitHudElement.draw()
     }
 }

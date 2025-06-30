@@ -1,7 +1,7 @@
 package noammaddons.ui.config.core.impl
 
 import noammaddons.features.Feature
-import noammaddons.noammaddons.Companion.textRenderer
+import noammaddons.NoammAddons.Companion.textRenderer
 import java.awt.Color
 import kotlin.reflect.KProperty
 
