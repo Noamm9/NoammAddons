@@ -32,7 +32,7 @@ import noammaddons.utils.LocationUtils.WorldType.*
 import noammaddons.utils.LocationUtils.world
 import noammaddons.utils.NumbersUtils.format
 import noammaddons.utils.NumbersUtils.romanToDecimal
-import noammaddons.utils.RenderHelper
+import noammaddons.utils.RenderHelper.getStringHeight
 import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderHelper.highlight
 import noammaddons.utils.RenderUtils.drawCenteredText
@@ -381,8 +381,8 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
 
     private object ChestProfitHudElement: GuiElement(hudData.getData().chestProfitHud) {
         override val enabled get() = ChestProfit.enabled && hud.value
-        override val width: Float get() = RenderHelper.getStringWidth(text)
-        override val height: Float get() = RenderHelper.getStringHeight(text)
+        override val width: Float get() = getStringWidth(text)
+        override val height: Float get() = getStringHeight(text)
 
         private val text: List<String>
             get() {
@@ -391,7 +391,8 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
                     "Diamond Chest: §a24k", "Emerald Chest: §4-442k",
                     "Obsidian Chest: §4-624k", "Bedrock Chest: §a5m"
                 )
-                val openedChests = DungeonChest.entries.filter { it.openedInSequence }
+                var openedChests = DungeonChest.entries.filter { it.openedInSequence }
+                if (sortByProfit.value) openedChests = openedChests.sortedByDescending { it.profit }
                 if (openedChests.isEmpty()) return emptyList()
 
                 return openedChests.map { chest ->
@@ -404,8 +405,11 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
         override fun draw() {
             if (text.isEmpty()) return
 
+            var chests = DungeonChest.entries.filter { it.openedInSequence }
+            if (sortByProfit.value) chests = chests.sortedByDescending { it.profit }
+
             var currentY = getY()
-            DungeonChest.entries.filter { it.openedInSequence }.forEachIndexed { i, c ->
+            chests.forEachIndexed { i, c ->
                 drawText(text[i], getX(), currentY, getScale(), c.color)
                 currentY += 9f * getScale()
             }
