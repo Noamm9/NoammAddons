@@ -43,7 +43,9 @@ class DataClasses {
     @Serializable
     data class bzitem(
         @SerialName("quick_status")
-        val quick_status: ApiBzItem
+        val quick_status: ApiBzItem,
+        @SerialName("buy_summary")
+        val buy_summary: List<Map<String, Double>>
     )
 
     @Serializable

@@ -162,7 +162,7 @@ object ItemUtils {
         val groups = essenceRegex.matchEntire(text)?.groups ?: return .0
         val type = groups["type"]?.value?.uppercase() ?: return .0
         val count = groups["count"]?.value?.toInt() ?: return .0
-        return (bzData["ESSENCE_$type"]?.sellPrice ?: .0) * count
+        return (bzData["ESSENCE_$type"]?.toDouble() ?: .0) * count
     }
 
     fun getIdFromName(name: String): String? {

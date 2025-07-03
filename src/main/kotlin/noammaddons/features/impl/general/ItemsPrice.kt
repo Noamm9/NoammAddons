@@ -26,7 +26,7 @@ object ItemsPrice: Feature("Displays the price of items in the tooltip") {
 
         val marketPrice = when {
             showAhPrice.value && id in ahData -> ahData[id]
-            showBzPrice.value && id in bzData -> bzData[id]?.sellPrice
+            showBzPrice.value && id in bzData -> bzData[id]?.toDouble()
             else -> null
         }
 

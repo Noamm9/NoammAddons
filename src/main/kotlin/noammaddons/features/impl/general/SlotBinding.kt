@@ -140,32 +140,27 @@ object SlotBinding: Feature(desc = "Allows you to bind slots to hotbar slots for
         GlStateManager.pushMatrix()
         GlStateManager.translate(0f, 0f, 300f)
 
+        if (showBoundSlots.value) data.takeUnless { it.isEmpty() }?.forEach { (invSlotNum, hbSlotNum) ->
+            if (neuStyle.value && ! hoveredSlotNumber.equalsOneOf(invSlotNum.toInt(), hbSlotNum.toInt())) return@forEach
+            val invSlotPos = getSlotRenderPos(invSlotNum.toInt())
+            val hbSlotPos = getSlotRenderPos(hbSlotNum.toInt())
 
-        if (showBoundSlots.value && data.isNotEmpty()) {
-            data.forEach { (invSlotNum, hbSlotNum) ->
-                if (neuStyle.value && ! hoveredSlotNumber.equalsOneOf(invSlotNum.toInt(), hbSlotNum.toInt())) return@forEach
-                val invSlotPos = getSlotRenderPos(invSlotNum.toInt())
-                val hbSlotPos = getSlotRenderPos(hbSlotNum.toInt())
+            if (invSlotPos != null && hbSlotPos != null) {
+                if (drawLines.value) drawLine(
+                    lineColor.value,
+                    invSlotPos.first + 8f, invSlotPos.second + 8f,
+                    hbSlotPos.first + 8f, hbSlotPos.second + 8f,
+                    2f
+                )
 
-                if (invSlotPos != null && hbSlotPos != null) {
-                    if (drawLines.value) {
-                        drawLine(
-                            lineColor.value,
-                            invSlotPos.first + 8f, invSlotPos.second + 8f,
-                            hbSlotPos.first + 8f, hbSlotPos.second + 8f,
-                            2f
-                        )
-                    }
-                    if (drawBorders.value) {
-                        drawRectBorder(borderColor.value, invSlotPos.first, invSlotPos.second, 16, 16, 1)
-                        drawRectBorder(borderColor.value, hbSlotPos.first, hbSlotPos.second, 16, 16, 1)
-                    }
+                if (drawBorders.value) {
+                    drawRectBorder(borderColor.value, invSlotPos.first, invSlotPos.second, 16, 16, 1)
+                    drawRectBorder(borderColor.value, hbSlotPos.first, hbSlotPos.second, 16, 16, 1)
                 }
             }
         }
 
         val currentPrevSlot = previousSlot
-
         if (currentPrevSlot != null && hoveredSlotNumber != null) {
             val startPos = getSlotRenderPos(currentPrevSlot)
             if (startPos != null) {
@@ -177,7 +172,7 @@ object SlotBinding: Feature(desc = "Allows you to bind slots to hotbar slots for
                 )
             }
         }
-        else if (isKeyDown(KEY_LSHIFT) && hoveredSlotNumber != null) {
+        else if (showBoundSlots.value && drawLines.value && isKeyDown(KEY_LSHIFT) && hoveredSlotNumber != null) {
             val boundToSlotNumber = data["$hoveredSlotNumber"]?.toInt()
                 ?: data.entries.find { it.value == hoveredSlotNumber }?.key?.toInt()
 

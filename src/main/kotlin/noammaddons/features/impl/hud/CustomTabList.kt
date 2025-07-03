@@ -1,6 +1,6 @@
 package noammaddons.features.impl.hud
 
-import net.minecraft.client.renderer.GlStateManager.*
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.renderPlayerlist
 import noammaddons.features.Feature
@@ -34,13 +34,13 @@ object CustomTabList: Feature() {
         val screenHeight = mc.getHeight() / scale
         val fontHeight = 9
 
-        val names = getTabList.map { it.second }
+        val names = getTabList.map { it.second }.takeUnless { it.isEmpty() } ?: return
         val footerLines = getTabListFooterText()?.split("\n")?.toMutableList()?.apply {
             removeIf { it.removeFormatting().contains("hypixel.net", true) }
-        } ?: emptyList()
+        }?.takeIf { it.isNotEmpty() } ?: return
 
-        val maxNameWidth = names.maxOf { getStringWidth(it) }
-        val maxFooterWidth = footerLines.takeIf { it.isNotEmpty() }?.maxOf { getStringWidth(it) } ?: 0f
+        val maxNameWidth = names.maxOfOrNull { getStringWidth(it) } ?: return
+        val maxFooterWidth = footerLines.takeUnless { it.isEmpty() }?.maxOfOrNull { getStringWidth(it) } ?: return
 
         val rowsCount = splitArray(names, 20).size.coerceIn(1, 4)
 
@@ -50,19 +50,11 @@ object CustomTabList: Feature() {
         val xOffset = (screenWidth - tableWidth) / 2
         val yOffset = screenHeight / 20
 
-        pushMatrix()
-        scale(scale, scale, scale)
+        GlStateManager.pushMatrix()
+        GlStateManager.scale(scale, scale, scale)
 
-        drawRoundedRect(
-            backgroundColor,
-            xOffset, yOffset,
-            tableWidth, tableHeight
-        )
-
-        drawRainbowRoundedBorder(
-            xOffset, yOffset,
-            tableWidth, tableHeight
-        )
+        drawRoundedRect(backgroundColor, xOffset, yOffset, tableWidth, tableHeight)
+        drawRainbowRoundedBorder(xOffset, yOffset, tableWidth, tableHeight)
 
         // Draw the player names
         splitArray(names, 20).forEachIndexed { index, row ->
@@ -80,20 +72,11 @@ object CustomTabList: Feature() {
         if (footerLines.isNotEmpty() && footerLines.joinToString { it.removeFormatting().lowercase().remove(regex) } != "") {
             val footerWidth = maxFooterWidth + 20
             val footerHeight = fontHeight * footerLines.size + 10
-
             val footerXOffset = screenWidth / 2 - footerWidth / 2
             val footerYOffset = yOffset + tableHeight + 30
 
-            drawRoundedRect(
-                backgroundColor,
-                footerXOffset, footerYOffset,
-                footerWidth, footerHeight
-            )
-
-            drawRainbowRoundedBorder(
-                footerXOffset, footerYOffset,
-                footerWidth, footerHeight
-            )
+            drawRoundedRect(backgroundColor, footerXOffset, footerYOffset, footerWidth, footerHeight)
+            drawRainbowRoundedBorder(footerXOffset, footerYOffset, footerWidth, footerHeight)
 
             footerLines.forEachIndexed { i, line ->
                 drawText(
@@ -103,6 +86,7 @@ object CustomTabList: Feature() {
                 )
             }
         }
-        popMatrix()
+
+        GlStateManager.popMatrix()
     }
 }

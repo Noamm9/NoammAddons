@@ -60,7 +60,7 @@ class NoammAddons {
         val ahData = mutableMapOf<String, Double>()
 
         @JvmField
-        val bzData = mutableMapOf<String, DataClasses.ApiBzItem>()
+        val bzData = mutableMapOf<String, Int>()
 
         @JvmField
         val npcData = mutableMapOf<String, Double>()
@@ -129,9 +129,9 @@ class NoammAddons {
     fun init() = ThreadUtils.loop(600_000) {
         if (DevOptions.updateChecker) UpdateUtils.update()
 
-        fetchJsonWithRetry<Map<String, Double>>("https://moulberry.codes/lowestbin.json") {
+        fetchJsonWithRetry<Map<String, Double>>("https://moulberry.codes/lowestbin.json") { data ->
             ahData.clear()
-            ahData.putAll(it)
+            ahData.putAll(data)
         }
 
         WebUtils.get("https://api.hypixel.net/v2/skyblock/bazaar") { obj ->
@@ -142,7 +142,7 @@ class NoammAddons {
                 obj["products"] !!
             )
 
-            val data = rawBzData.entries.associate { it.value.quick_status.productId to it.value.quick_status }
+            val data = rawBzData.entries.associate { it.value.quick_status.productId to (it.value.buy_summary.firstOrNull()?.get("pricePerUnit")?.toInt() ?: 0) }
 
             bzData.clear()
             bzData.putAll(data)

@@ -313,14 +313,14 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
         if (id in blackList) return 0
 
         val price = when {
-            bzData.containsKey(id) -> bzData[id] !!.sellPrice.toInt()
+            bzData.containsKey(id) -> bzData[id] !!
             ahData.containsKey(id) -> ahData[id] !!.toInt()
             else -> 0
         }
 
         setTimeout(200) { rng(id, chestContextName) }
 
-        return price
+        return price.toInt()
     }
 
     private fun rng(id: String, chestContextName: DungeonChest) {

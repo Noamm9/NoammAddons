@@ -67,7 +67,7 @@ object F7Titles: Feature(name = "F7 Titles", desc = "Custom Titles for f7 boss f
             else -> "&a"
         }
 
-        return "$minColor$current&r$boldSeperator/&r$maxColor$max"
+        return "$minColor$current&r$boldSeperator/&r$maxColor$max&r"
     }
 
     private val termTitles by ToggleSetting("Terminal Titles")
