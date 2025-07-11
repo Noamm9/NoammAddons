@@ -5,13 +5,13 @@ import net.minecraft.client.renderer.*
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.ResourceLocation
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapConfig
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapElement.playerMarker
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapPlayer
-import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.DungeonUtils
-import noammaddons.utils.ItemUtils.SkyblockID
+import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.RenderHelper.bindColor
 import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderHelper.renderVec
@@ -154,7 +154,7 @@ object MapRenderUtils {
             }
 
             // Handle player names
-            if (DungeonMapConfig.playerHeads == 2 || DungeonMapConfig.playerHeads == 1 && mc.thePlayer.heldItem.SkyblockID.equalsOneOf(
+            if (DungeonMapConfig.playerHeads == 2 || DungeonMapConfig.playerHeads == 1 && mc.thePlayer.heldItem.skyblockID.equalsOneOf(
                     "SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP", "HAUNT_ABILITY"
                 )
             ) {
@@ -213,7 +213,7 @@ object MapRenderUtils {
             postDraw()
         }
 
-        if (DungeonMapConfig.playerHeads == 2 || DungeonMapConfig.playerHeads == 1 && mc.thePlayer.heldItem.SkyblockID.equalsOneOf(
+        if (DungeonMapConfig.playerHeads == 2 || DungeonMapConfig.playerHeads == 1 && mc.thePlayer.heldItem.skyblockID.equalsOneOf(
                 "SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP", "HAUNT_ABILITY"
         )) {
             GlStateManager.rotate(playerEntity.rotationYaw + 180f, 0f, 0f, - 1f)

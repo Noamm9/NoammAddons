@@ -7,11 +7,11 @@ import net.minecraft.init.Items
 import net.minecraft.item.ItemStack
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.util.Vec3
-import noammaddons.features.impl.misc.PlayerModel.getPlayerScaleFactor
 import noammaddons.NoammAddons.Companion.mc
+import noammaddons.features.impl.misc.PlayerModel.getPlayerScaleFactor
 import noammaddons.utils.ChatUtils.modMessage
-import noammaddons.utils.ItemUtils.SkyblockID
 import noammaddons.utils.ItemUtils.extraAttributes
+import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.MathUtils.Rotation
 import noammaddons.utils.MathUtils.add
 import noammaddons.utils.ReflectionUtils.invoke
@@ -130,7 +130,7 @@ object PlayerUtils {
     fun isHoldingTpItem(itemstack: ItemStack? = mc.thePlayer?.heldItem): Boolean {
         if (mc.isSingleplayer && itemstack?.item == Items.diamond_shovel) return true
         val nbt = itemstack?.getSubCompound("ExtraAttributes", false) ?: return false
-        val sbId = itemstack.SkyblockID ?: return false
+        val sbId = itemstack.skyblockID ?: return false
 
         if (sbId.equalsOneOf("ASPECT_OF_THE_END", "ASPECT_OF_THE_VOID")) return true
         if (nbt.getByte("ethermerge") == 1.toByte()) return true
@@ -142,7 +142,7 @@ object PlayerUtils {
     fun isHoldingEtherwarpItem(itemstack: ItemStack? = ServerPlayer.player.getHeldItem()): Boolean {
         itemstack ?: return false
         if (mc.isSingleplayer && itemstack.item == Items.diamond_shovel) return true
-        val sbId = itemstack.SkyblockID ?: return false
+        val sbId = itemstack.skyblockID ?: return false
         return sbId == "ETHERWARP_CONDUIT" || itemstack.getSubCompound("ExtraAttributes", false).getBoolean("ethermerge")
     }
 }

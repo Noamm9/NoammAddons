@@ -2,6 +2,7 @@ package noammaddons.features.impl.hud
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.config.EditGui.GuiElement
+import noammaddons.config.EditGui.HudEditorScreen
 import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.ColorSetting
@@ -19,7 +20,11 @@ object TpsDisplay: Feature() {
         var text = "TPS: &f2O"
         override val width: Float get() = getStringWidth(text)
         override val height: Float get() = 9f
-        override fun draw() = drawText(text, getX(), getY(), getScale(), color)
+        override fun draw() {
+            if (HudEditorScreen.isOpen()) return
+            drawText(text, getX(), getY(), getScale(), color)
+        }
+
         override fun exampleDraw() = drawText("TPS: &f2O", getX(), getY(), getScale(), color)
     }
 

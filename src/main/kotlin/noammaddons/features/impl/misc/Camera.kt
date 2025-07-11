@@ -19,14 +19,17 @@ object Camera: Feature() {
     @JvmField
     val smoothSneak = ToggleSetting("Smooth Sneak")
 
+    @JvmField
+    val noNausea = ToggleSetting("Disable Nausea") // @see noammaddons.mixins.MixinEntityLivingBase
+
     private val customFov = ToggleSetting("Custom FOV")
     private val fov = SliderSetting("FOV", 60f, 150f, 1f, mc.gameSettings.fovSetting).addDependency(customFov)
+    private val removeWaterFov = ToggleSetting("Remove Water FOV")
     private val removeSelfieCam = ToggleSetting("Remove Selfie Cam")
     private val onlyWithHype = ToggleSetting("Only With Hype?").addDependency(removeSelfieCam)
 
     private val noBlind = ToggleSetting("Disable Blindness")
     private val noPortal = ToggleSetting("Disable Portal Effect")
-    val noNausea = ToggleSetting("Disable Nausea")
     private val noFaceBlock = ToggleSetting("Disable Face Block")
 
     @JvmField
@@ -36,8 +39,8 @@ object Camera: Feature() {
         SeperatorSetting("Animations"),
         smoothSneak,
         SeperatorSetting("Clean View"),
-        customFov, fov, noBlind, noNausea,
-        noPortal, noFaceBlock, noPushOutOfBlocks
+        customFov, fov, removeWaterFov, noBlind,
+        noNausea, noPortal, noFaceBlock, noPushOutOfBlocks
     )
 
     @SubscribeEvent
@@ -45,8 +48,13 @@ object Camera: Feature() {
         if (! customFov.value) return
         if (event.block.material == Material.water) return
         mc.gameSettings.fovSetting = fov.value
+    }
 
-        event.fov = if (customFov.value) fov.value else event.fov * 70F / 60F
+    @SubscribeEvent
+    fun onFOVModifier2(event: FOVModifier) {
+        if (! removeWaterFov.value) return
+        if (event.block.material != Material.water) return
+        event.fov = event.fov * 70F / 60F
     }
 
     @SubscribeEvent

@@ -29,7 +29,7 @@ object CustomScoreboard: Feature("Draws the scoreboard with a diffrent design.")
 
         private fun getText() = sidebarLines.reversed().filterNot {
             cleanSB(it).contains("www.hypixel.net")
-        }.takeUnless { it.isEmpty() } ?: exampleText.split("\n")
+        }.takeUnless { it.isEmpty() } ?: if (HudEditorScreen.isOpen()) exampleText.split("\n") else emptyList()
 
         override fun draw() = drawCustomScoreboard(getText(), getX(), getY(), getScale())
 

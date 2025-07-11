@@ -8,18 +8,13 @@ import noammaddons.events.PostPacketEvent
 import noammaddons.events.WorldUnloadEvent
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.removeUnicode
-import noammaddons.utils.LocationUtils.inSkyblock
 
 object ScoreboardUtils {
-    /**
-     * @return A list of player names displayed in the sidebar of the Minecraft scoreboard.
-     */
     var sidebarLines: List<String> = emptyList()
-
+        private set
 
     @SubscribeEvent
     fun onScoreboardChange(event: PostPacketEvent.Received) {
-        if (! inSkyblock) return
         if (event.packet !is S3EPacketTeams
             && event.packet !is S3CPacketUpdateScore
             && event.packet !is S3DPacketDisplayScoreboard
@@ -40,12 +35,11 @@ object ScoreboardUtils {
             sidebarLines = emptyList()
             return
         }
-        val title = objective.displayName
 
         sidebarLines = mc.theWorld.scoreboard.getSortedScores(objective).asSequence()
             .filterNot { it?.playerName?.startsWith("#") == true }.take(15)
             .map { ScorePlayerTeam.formatPlayerName(mc.theWorld.scoreboard.getPlayersTeam(it.playerName), it.playerName) }
-            .plus(title).toList()
+            .plus(objective.displayName).toList()
     }
 
     fun cleanSB(scoreboard: String): String = removeUnicode(scoreboard.removeFormatting())

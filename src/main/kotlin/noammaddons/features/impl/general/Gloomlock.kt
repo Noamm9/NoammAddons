@@ -7,14 +7,14 @@ import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.ActionBarParser.currentHealth
 import noammaddons.utils.ActionBarParser.maxHealth
 import noammaddons.utils.ActionBarParser.overflowMana
-import noammaddons.utils.ItemUtils.SkyblockID
+import noammaddons.utils.ItemUtils.skyblockID
 
 
 object Gloomlock: Feature("Stops you from right/left clicking Gloomlock more than you should") {
     private val blockRightClick by ToggleSetting("Block Right Click", true)
     private val blockLeftClick by ToggleSetting("Block Left Click", true)
 
-    val holding get() = mc.thePlayer?.heldItem?.SkyblockID == "GLOOMLOCK_GRIMOIRE"
+    val holding get() = mc.thePlayer?.heldItem?.skyblockID == "GLOOMLOCK_GRIMOIRE"
 
     @SubscribeEvent
     fun onRightClick(event: ClickEvent.RightClickEvent) {

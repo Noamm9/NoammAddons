@@ -11,6 +11,9 @@ import net.minecraft.tileentity.TileEntitySkull
 import net.minecraft.util.BlockPos
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.NoammAddons.Companion.mayorData
+import noammaddons.NoammAddons.Companion.mc
+import noammaddons.NoammAddons.Companion.scope
 import noammaddons.events.*
 import noammaddons.events.EventDispatcher.postAndCatch
 import noammaddons.features.impl.DevOptions
@@ -18,14 +21,11 @@ import noammaddons.features.impl.dungeons.dmap.core.ClearInfo
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapPlayer
 import noammaddons.features.impl.dungeons.dmap.core.map.*
 import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
-import noammaddons.NoammAddons.Companion.mayorData
-import noammaddons.NoammAddons.Companion.mc
-import noammaddons.NoammAddons.Companion.scope
 import noammaddons.utils.ActionBarParser.maxSecrets
 import noammaddons.utils.ActionBarParser.secrets
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.ItemUtils.SkyblockID
+import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.NumbersUtils.romanToDecimal
 import noammaddons.utils.TablistUtils.getTabList
@@ -157,7 +157,7 @@ object DungeonUtils {
                 dungeonTeammates.addAll(list)
 
                 thePlayer = dungeonTeammates.find { it.entity == mc.thePlayer }
-                thePlayer?.isDead = mc.thePlayer.inventory.getStackInSlot(0)?.SkyblockID == "HAUNT_ABILITY"
+                thePlayer?.isDead = mc.thePlayer.inventory.getStackInSlot(0)?.skyblockID == "HAUNT_ABILITY"
                 dungeonTeammatesNoSelf = dungeonTeammates.filterNot { it == thePlayer }
                 leapTeammates = dungeonTeammatesNoSelf.sortedBy { it.clazz }
                 return
@@ -192,7 +192,7 @@ object DungeonUtils {
         }
 
         thePlayer = dungeonTeammates.find { it.entity == mc.thePlayer }
-        thePlayer?.isDead = mc.thePlayer.inventory.getStackInSlot(0)?.SkyblockID == "HAUNT_ABILITY"
+        thePlayer?.isDead = mc.thePlayer.inventory.getStackInSlot(0)?.skyblockID == "HAUNT_ABILITY"
         dungeonTeammatesNoSelf = dungeonTeammates.filter { it != thePlayer }
         leapTeammates = dungeonTeammatesNoSelf.sortedBy { it.clazz }
         val aliveTeammates = dungeonTeammatesNoSelf.filterNot { it.isDead }

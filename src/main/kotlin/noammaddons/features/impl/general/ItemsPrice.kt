@@ -6,9 +6,9 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.ChatUtils.addColor
-import noammaddons.utils.ItemUtils.SkyblockID
 import noammaddons.utils.ItemUtils.enchantNameToID
 import noammaddons.utils.ItemUtils.lore
+import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.NumbersUtils.format
 
 object ItemsPrice: Feature("Displays the price of items in the tooltip") {
@@ -20,7 +20,7 @@ object ItemsPrice: Feature("Displays the price of items in the tooltip") {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     fun onRender(event: ItemTooltipEvent) {
         val stack = event.itemStack ?: return
-        val sbId = stack.SkyblockID ?: return
+        val sbId = stack.skyblockID ?: return
         val displayStackSize = stack.stackSize.takeIf { it > 1 }
         val id = if (sbId == "ENCHANTED_BOOK") enchantNameToID(stack.lore[0]) else sbId
 

@@ -1,5 +1,6 @@
 package noammaddons.utils
 
+import com.google.gson.*
 import com.mojang.authlib.minecraft.MinecraftProfileTexture.*
 import gg.essential.universal.ChatColor
 import net.minecraft.entity.Entity
@@ -61,15 +62,9 @@ object ItemUtils {
         }
     }
 
-    val ItemStack?.extraAttributes: NBTTagCompound?
-        get() = this?.getSubCompound("ExtraAttributes", false)
-
-    val ItemStack?.SkyblockID: String?
-        get() = this?.extraAttributes?.getString("id")
-
-    val ItemStack?.skyblockUUID: String
-        get() = this?.extraAttributes?.getString("uuid") ?: ""
-
+    val ItemStack?.extraAttributes: NBTTagCompound? get() = this?.getSubCompound("ExtraAttributes", false)
+    val ItemStack?.skyblockID: String? get() = this?.extraAttributes?.getString("id")
+    val ItemStack?.skyblockUUID: String get() = this?.extraAttributes?.getString("uuid") ?: ""
 
     val ItemStack.lore: List<String>
         get() = tagCompound?.getCompoundTag("display")?.getTagList("Lore", 8)?.let {
@@ -209,5 +204,47 @@ object ItemUtils {
         val formattedName = if (isUltimate) "§d§l$enchantName $romanLevel§a" else "$enchantName $romanLevel§a"
 
         return formattedName
+    }
+
+    fun NBTBase.toJsonElement(): JsonElement {
+        return when (this) {
+            is NBTTagCompound -> {
+                val jsonObject = JsonObject()
+                for (key in this.keySet) {
+                    jsonObject.add(key, this.getTag(key).toJsonElement())
+                }
+                jsonObject
+            }
+
+            is NBTTagList -> {
+                val jsonArray = JsonArray()
+                for (i in 0 until this.tagCount()) {
+                    jsonArray.add(this.get(i).toJsonElement())
+                }
+                jsonArray
+            }
+
+            is NBTTagString -> JsonPrimitive(this.string)
+            is NBTTagDouble -> JsonPrimitive(this.double)
+            is NBTTagFloat -> JsonPrimitive(this.float)
+            is NBTTagLong -> JsonPrimitive(this.long)
+            is NBTTagInt -> JsonPrimitive(this.int)
+            is NBTTagShort -> JsonPrimitive(this.short)
+            is NBTTagByte -> JsonPrimitive(this.byte)
+
+            is NBTTagByteArray -> {
+                val jsonArray = JsonArray()
+                this.byteArray.forEach { jsonArray.add(JsonPrimitive(it)) }
+                jsonArray
+            }
+
+            is NBTTagIntArray -> {
+                val jsonArray = JsonArray()
+                this.intArray.forEach { jsonArray.add(JsonPrimitive(it)) }
+                jsonArray
+            }
+
+            else -> throw IllegalArgumentException("Unsupported NBT type: ${this.javaClass.simpleName}")
+        }
     }
 }

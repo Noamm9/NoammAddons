@@ -21,13 +21,13 @@ import noammaddons.utils.ChatUtils.sendPartyMessage
 import noammaddons.utils.GuiUtils.changeTitle
 import noammaddons.utils.GuiUtils.currentChestName
 import noammaddons.utils.GuiUtils.getSlotFromIndex
-import noammaddons.utils.ItemUtils.SkyblockID
 import noammaddons.utils.ItemUtils.enchantNameToID
 import noammaddons.utils.ItemUtils.getEssenceValue
 import noammaddons.utils.ItemUtils.getIdFromName
 import noammaddons.utils.ItemUtils.getItemId
 import noammaddons.utils.ItemUtils.idToEnchantName
 import noammaddons.utils.ItemUtils.lore
+import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.LocationUtils.WorldType.*
 import noammaddons.utils.LocationUtils.world
 import noammaddons.utils.NumbersUtils.format
@@ -50,6 +50,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
     private val chestsToHighlight = mutableListOf<DungeonChest>()
     private val rngList = mutableListOf<String>()
     private val blackList = mutableListOf<String>()
+    private var resentSent = mutableListOf<String>()
     private var newName: String? = null
 
     private val hud = ToggleSetting("HUD Display")
@@ -86,6 +87,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
     @SubscribeEvent
     fun onWorldUnload(event: WorldUnloadEvent) {
         DungeonChest.entries.forEach { it.reset() }
+        resentSent.clear()
     }
 
     @SubscribeEvent
@@ -125,7 +127,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
                 for (obj in event.items) {
                     if (obj.value?.getItemId() == 160) continue
 
-                    val itemId = obj.value.SkyblockID
+                    val itemId = obj.value.skyblockID
                     val itemName = obj.value?.displayName
 
                     if (itemId == "ENCHANTED_BOOK") {
@@ -309,26 +311,28 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
         return 0
     }
 
-    private fun getPrice(id: String, chestContextName: DungeonChest): Int {
+    private fun getPrice(id: String, chest: DungeonChest): Int {
         if (id in blackList) return 0
 
         val price = when {
             bzData.containsKey(id) -> bzData[id] !!
-            ahData.containsKey(id) -> ahData[id] !!.toInt()
+            ahData.containsKey(id) -> ahData[id] !!
             else -> 0
-        }
+        }.toInt()
 
-        setTimeout(200) { rng(id, chestContextName) }
+        setTimeout(200) { rng(id, chest) }
 
-        return price.toInt()
+        return price
     }
 
-    private fun rng(id: String, chestContextName: DungeonChest) {
-        if (! chestContextName.openedInSequence) return
+    private fun rng(id: String, chest: DungeonChest) {
+        if (! chest.openedInSequence) return
         if (id !in rngList) return
 
-        val profitString = "${if (chestContextName.profit < 0) "§4" else "§a"}${format(chestContextName.profit)}"
-        val str = "&6${itemIdToNameLookup[id] ?: idToEnchantName(id)}&f (from ${chestContextName.displayText}): $profitString"
+        val profitString = "${if (chest.profit < 0) "§4" else "§a"}${format(chest.profit)}"
+        val str = "&6${itemIdToNameLookup[id] ?: idToEnchantName(id)}&f (from ${chest.displayText}): $profitString"
+        if (str in resentSent) return
+        resentSent.add(str)
 
         if (rng.value) sendPartyMessage("$CHAT_PREFIX $str")
         modMessage(str)
@@ -384,33 +388,31 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
         override val width: Float get() = getStringWidth(text)
         override val height: Float get() = getStringHeight(text)
 
-        private val text: List<String>
-            get() {
-                if (HudEditorScreen.isOpen()) return listOf(
-                    "Wood Chest: §a75k", "Gold Chest: §4-62k",
-                    "Diamond Chest: §a24k", "Emerald Chest: §4-442k",
-                    "Obsidian Chest: §4-624k", "Bedrock Chest: §a5m"
-                )
-                var openedChests = DungeonChest.entries.filter { it.openedInSequence }
-                if (sortByProfit.value) openedChests = openedChests.sortedByDescending { it.profit }
-                if (openedChests.isEmpty()) return emptyList()
+        private val text: List<String> get() { // @formatter:off
+            if (HudEditorScreen.isOpen()) return listOf(
+                "Wood Chest: §a75k", "Gold Chest: §4-62k",
+                "Diamond Chest: §a24k", "Emerald Chest: §4-442k",
+                "Obsidian Chest: §4-624k", "Bedrock Chest: §a5m"
+            )
+            var openedChests = DungeonChest.entries.filter { it.openedInSequence }
+            if (sortByProfit.value) openedChests = openedChests.sortedByDescending { it.profit }
+            if (openedChests.isEmpty()) return emptyList()
 
-                return openedChests.map { chest ->
-                    val profitColor = if (chest.profit < 0) "§4" else "§a"
-                    val profit = format(chest.profit)
-                    "${chest.displayText}: $profitColor$profit"
-                }
+            return openedChests.map { chest ->
+                val profitColor = if (chest.profit < 0) "§4" else "§a"
+                val profit = format(chest.profit)
+                "${chest.displayText}: $profitColor$profit"
             }
+        }
 
         override fun draw() {
-            if (text.isEmpty()) return
-
+            val text = text.takeUnless { it.isEmpty() } ?: return
             var chests = DungeonChest.entries.filter { it.openedInSequence }
             if (sortByProfit.value) chests = chests.sortedByDescending { it.profit }
 
             var currentY = getY()
             chests.forEachIndexed { i, c ->
-                drawText(text[i], getX(), currentY, getScale(), c.color)
+                drawText(text.getOrNull(i) ?: "", getX(), currentY, getScale(), c.color)
                 currentY += 9f * getScale()
             }
         }

@@ -9,7 +9,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.ToggleSetting
-import noammaddons.utils.ItemUtils.SkyblockID
+import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.MathUtils.Rotation
 import noammaddons.utils.ScanUtils.currentRoom
 import noammaddons.utils.ThreadUtils.setTimeout
@@ -40,7 +40,7 @@ object NoRotate: Feature("Stop server packets from rotating you") {
         if (currentRoom?.data?.name == "Teleport Maze") return // can break some mods
         val updatedPosition = calculateNewPosition(player, packet)
         val updatedRotation = calculateNewRotation(player, packet)
-        if (player.heldItem?.SkyblockID.equalsOneOf("SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP")) return
+        if (player.heldItem?.skyblockID.equalsOneOf("SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP")) return
         event.setCanceled(true)
 
         player.setPositionAndRotation(

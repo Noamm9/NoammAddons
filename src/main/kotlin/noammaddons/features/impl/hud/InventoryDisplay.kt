@@ -2,13 +2,17 @@ package noammaddons.features.impl.hud
 
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.RenderHelper
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.config.EditGui.GuiElement
 import noammaddons.events.RenderOverlay
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.*
-import noammaddons.utils.RenderUtils.drawRect
+import noammaddons.utils.RenderHelper.bindColor
+import noammaddons.utils.RenderUtils
 import noammaddons.utils.RenderUtils.drawRectBorder
+import noammaddons.utils.RenderUtils.tessellator
+import noammaddons.utils.RenderUtils.worldRenderer
 import org.lwjgl.opengl.GL11
 import java.awt.Color
 
@@ -33,7 +37,7 @@ object InventoryDisplay: Feature() {
 
             GlStateManager.pushMatrix()
             val depthWasEnabled = GL11.glIsEnabled(GL11.GL_DEPTH_TEST)
-            GlStateManager.enableDepth()
+            if (! depthWasEnabled) GlStateManager.enableDepth()
             GlStateManager.scale(getScale(), getScale(), getScale())
             GlStateManager.translate(getX() / getScale(), getY() / getScale(), 1f)
 
@@ -41,28 +45,41 @@ object InventoryDisplay: Feature() {
 
             val numDisplaySlots = if (showHotbar.value) 36 else 27
 
-            for (displayIndex in 0 until numDisplaySlots) {
-                val sourceInventoryIndex: Int = if (showHotbar.value)
-                    if (displayIndex < 27) 9 + displayIndex
-                    else displayIndex - 27
-                else 9 + displayIndex
+            RenderUtils.preDraw()
+            bindColor(slotBackgroundColor.value)
+            worldRenderer.begin(7, DefaultVertexFormats.POSITION)
 
-                val itemStack = rawInventory.getOrNull(sourceInventoryIndex)
+            for (displayIndex in 0 until numDisplaySlots) {
                 val col = displayIndex % 9
                 val row = displayIndex / 9
+                val itemX = col * 18f
+                val itemY = if (row < 3) row * 18f else (3 * 18f) + 2f
 
+                worldRenderer.pos(itemX.toDouble(), (itemY + 16f).toDouble(), 0.0).endVertex()
+                worldRenderer.pos((itemX + 16f).toDouble(), (itemY + 16f).toDouble(), 0.0).endVertex()
+                worldRenderer.pos((itemX + 16f).toDouble(), itemY.toDouble(), 0.0).endVertex()
+                worldRenderer.pos(itemX.toDouble(), itemY.toDouble(), 0.0).endVertex()
+            }
+            tessellator.draw()
+            RenderUtils.postDraw()
+
+            RenderHelper.enableGUIStandardItemLighting()
+            for (displayIndex in 0 until numDisplaySlots) {
+                val sourceInventoryIndex: Int = if (showHotbar.value) {
+                    if (displayIndex < 27) 9 + displayIndex else displayIndex - 27
+                }
+                else 9 + displayIndex
+
+                val itemStack = rawInventory.getOrNull(sourceInventoryIndex) ?: continue
+                val col = displayIndex % 9
+                val row = displayIndex / 9
                 val itemX = col * 18
                 val itemY = if (row < 3) row * 18 else (3 * 18) + 2
 
-                drawRect(slotBackgroundColor.value, itemX.toFloat(), itemY.toFloat(), 16f, 16f)
-
-                if (itemStack != null) {
-                    RenderHelper.enableGUIStandardItemLighting()
-                    mc.renderItem.renderItemAndEffectIntoGUI(itemStack, itemX, itemY)
-                    mc.renderItem.renderItemOverlays(mc.fontRendererObj, itemStack, itemX, itemY)
-                    RenderHelper.disableStandardItemLighting()
-                }
+                mc.renderItem.renderItemAndEffectIntoGUI(itemStack, itemX, itemY)
+                if (itemStack.stackSize > 1) mc.renderItem.renderItemOverlays(mc.fontRendererObj, itemStack, itemX, itemY)
             }
+            RenderHelper.disableStandardItemLighting()
 
             if (! depthWasEnabled) GlStateManager.disableDepth()
             GlStateManager.popMatrix()

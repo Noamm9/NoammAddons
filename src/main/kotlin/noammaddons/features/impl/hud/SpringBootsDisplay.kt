@@ -6,7 +6,7 @@ import noammaddons.events.RenderOverlay
 import noammaddons.events.SoundPlayEvent
 import noammaddons.features.Feature
 import noammaddons.utils.*
-import noammaddons.utils.ItemUtils.SkyblockID
+import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderUtils.drawText
 import kotlin.math.roundToInt
@@ -58,5 +58,5 @@ object SpringBootsDisplay: Feature() {
         SpringBootsElement.draw()
     }
 
-    private fun IsWearingSpringBoots() = (PlayerUtils.getBoots()?.SkyblockID ?: "") == "SPRING_BOOTS"
+    private fun IsWearingSpringBoots() = (PlayerUtils.getBoots()?.skyblockID ?: "") == "SPRING_BOOTS"
 }

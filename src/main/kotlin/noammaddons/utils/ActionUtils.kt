@@ -18,9 +18,9 @@ import noammaddons.utils.DungeonUtils.thePlayer
 import noammaddons.utils.GuiUtils.currentChestName
 import noammaddons.utils.GuiUtils.hideGui
 import noammaddons.utils.GuiUtils.sendWindowClickPacket
-import noammaddons.utils.ItemUtils.SkyblockID
 import noammaddons.utils.ItemUtils.getItemId
 import noammaddons.utils.ItemUtils.getItemIndexInHotbar
+import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.MathUtils.Rotation
 import noammaddons.utils.MathUtils.calcYawPitch
 import noammaddons.utils.MathUtils.interpolateYaw
@@ -203,14 +203,14 @@ object ActionUtils {
     }
 
     private suspend fun changeMaskAction() {
-        val sbIds = mc.thePlayer.inventory.mainInventory.mapNotNull { it?.SkyblockID }
+        val sbIds = mc.thePlayer.inventory.mainInventory.mapNotNull { it?.skyblockID }
         val mask = sbIds.find { it.containsOneOf("SPIRIT_MASK", "BONZO_MASK") } ?: return
         quickSwapAction(mask)
     }
 
     private suspend fun quickSwapAction(itemID: String) {
         if (thePlayer?.isDead == true) return
-        if (getArmor().any { it.SkyblockID == itemID }) return
+        if (getArmor().any { it.skyblockID == itemID }) return
 
         C01PacketChatMessage("/eq").send()
         hideGui(true) { drawTitle("&5[Swapping...]", "&bPlease wait") }
@@ -331,7 +331,7 @@ object ActionUtils {
                 val item = con.filter {
                     it.slotNumber in con.size - 36 until con.size
                 }.find {
-                    it.stack?.SkyblockID?.contains(awaiting4EQ) == true
+                    it.stack?.skyblockID?.contains(awaiting4EQ) == true
                 } ?: return resetEQ("&cItem Not Found $awaiting4EQ")
 
                 sendWindowClickPacket(item.slotNumber, 0, 0)

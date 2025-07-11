@@ -30,7 +30,8 @@ import noammaddons.utils.ChatUtils.sendChatMessage
 import noammaddons.utils.DungeonUtils.dungeonEnded
 import noammaddons.utils.DungeonUtils.dungeonStarted
 import noammaddons.utils.GuiUtils.openScreen
-import noammaddons.utils.ItemUtils.SkyblockID
+import noammaddons.utils.ItemUtils.skyblockID
+import noammaddons.utils.ItemUtils.toJsonElement
 import noammaddons.utils.LocationUtils.F7Phase
 import noammaddons.utils.LocationUtils.P3Section
 import noammaddons.utils.LocationUtils.dungeonFloor
@@ -80,7 +81,7 @@ object DevOptions: Feature() {
     @SubscribeEvent
     fun adfd(event: ItemTooltipEvent) {
         if (! isDev) return
-        val sbid = event.itemStack.SkyblockID ?: return
+        val sbid = event.itemStack.skyblockID ?: return
         event.toolTip?.add("SkyblockID: &6$sbid".addColor())
     }
 
@@ -191,7 +192,7 @@ object DevOptions: Feature() {
             "nbt" -> {
                 event.isCanceled = true
                 val held = mc.thePlayer?.heldItem ?: return
-                val nbt = held.getSubCompound("ExtraAttributes", false) ?: return
+                val nbt = held.tagCompound?.toJsonElement() ?: return modMessage("No NBT")
                 modMessage(nbt)
             }
 
@@ -202,7 +203,7 @@ object DevOptions: Feature() {
 
             "swap" -> {
                 event.isCanceled = true
-                ActionUtils.quickSwapTo(ServerPlayer.player.getHeldItem()?.SkyblockID ?: return)
+                ActionUtils.quickSwapTo(ServerPlayer.player.getHeldItem()?.skyblockID ?: return)
             }
 
             "secrets" -> {
@@ -247,7 +248,6 @@ object DevOptions: Feature() {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     fun afad(event: Event) {
         when (event) {
-            is WorldUnloadEvent -> ScoreboardUtils.sidebarLines = emptyList()
             is PacketEvent.Received -> when (val packet = event.packet) {
                 is S45PacketTitle -> {
                     if (! trackTitles) return

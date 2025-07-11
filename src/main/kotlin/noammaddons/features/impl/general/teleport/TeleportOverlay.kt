@@ -8,7 +8,7 @@ import noammaddons.features.Feature
 import noammaddons.features.impl.general.teleport.ZeroPingTeleportation.TeleportInfo
 import noammaddons.features.impl.general.teleport.ZeroPingTeleportation.TeleportInfo.Companion.Types
 import noammaddons.ui.config.core.impl.*
-import noammaddons.utils.ItemUtils.SkyblockID
+import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.PlayerUtils
 import noammaddons.utils.RenderUtils.drawBlockBox
 import noammaddons.utils.RenderUtils.drawBox
@@ -87,7 +87,7 @@ object TeleportOverlay: Feature() {
     }
 
     fun getType(stack: ItemStack): TeleportInfo? {
-        if (stack.SkyblockID.equalsOneOf("ASPECT_OF_THE_VOID", "ASPECT_OF_THE_END")) {
+        if (stack.skyblockID.equalsOneOf("ASPECT_OF_THE_VOID", "ASPECT_OF_THE_END")) {
             val nbt = stack.getSubCompound("ExtraAttributes", false)
             val tuners = nbt?.getByte("tuned_transmission")?.toInt() ?: 0
             return if (ServerPlayer.player.sneaking && nbt?.getByte("ethermerge") == 1.toByte()) {

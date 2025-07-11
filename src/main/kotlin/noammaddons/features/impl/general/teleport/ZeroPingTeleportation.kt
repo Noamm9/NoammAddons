@@ -17,8 +17,8 @@ import noammaddons.utils.*
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.noFormatText
-import noammaddons.utils.ItemUtils.SkyblockID
 import noammaddons.utils.ItemUtils.extraAttributes
+import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.LocationUtils.WorldType.*
 import noammaddons.utils.MathUtils.add
 import noammaddons.utils.MathUtils.destructured
@@ -187,7 +187,7 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
 
     private fun getTeleportInfo(packet: C08PacketPlayerBlockPlacement): TeleportInfo? {
         val heldItem = packet.stack ?: return null
-        val sbId = heldItem.SkyblockID ?: return null
+        val sbId = heldItem.skyblockID ?: return null
 
         if (sbId.equalsOneOf("ASPECT_OF_THE_VOID", "ASPECT_OF_THE_END")) {
             val nbt = heldItem.extraAttributes

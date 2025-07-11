@@ -32,6 +32,6 @@ public abstract class MixinEntityLivingBase {
 
     @Inject(method = "isPotionActive(Lnet/minecraft/potion/Potion;)Z", at = @At("HEAD"), cancellable = true)
     private void isPotionActive(Potion potion, CallbackInfoReturnable<Boolean> cir) {
-        if (Camera.INSTANCE.getNoNausea().getValue() && potion == Potion.confusion) cir.setReturnValue(false);
+        if (Camera.noNausea.getValue() && potion == Potion.confusion) cir.setReturnValue(false);
     }
 }

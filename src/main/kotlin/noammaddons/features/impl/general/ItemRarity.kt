@@ -10,10 +10,10 @@ import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.SliderSetting
 import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.ItemUtils.ItemRarity.*
-import noammaddons.utils.ItemUtils.SkyblockID
 import noammaddons.utils.ItemUtils.getRarity
 import noammaddons.utils.ItemUtils.lore
 import noammaddons.utils.ItemUtils.rarityCache
+import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.LocationUtils.inSkyblock
 import noammaddons.utils.RenderUtils.drawSlotOverlay
 
@@ -29,7 +29,7 @@ object ItemRarity: Feature("Draws the rarity of item behind the slot") {
         if (! inSkyblock) return
         if (stack == null) return
         if (stack.tagCompound !in rarityCache.keys) {
-            if (stack.SkyblockID == "") return
+            if (stack.skyblockID == null) return
             if (stack.lore.any { line -> line == "§f§lClass Passives" }) return
         }
 

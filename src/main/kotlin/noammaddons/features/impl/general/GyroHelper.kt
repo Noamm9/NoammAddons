@@ -8,7 +8,7 @@ import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.getBlockId
-import noammaddons.utils.ItemUtils.SkyblockID
+import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.MathUtils.add
 import noammaddons.utils.MathUtils.getBlockFromLook
 import noammaddons.utils.PlayerUtils
@@ -36,7 +36,7 @@ object GyroHelper: Feature("Shows the sucking range of the Gyrokinetic wand") {
     fun onRenderWorld(event: RenderWorld) {
         if (! drawRing.value && ! drawBox.value) return
         if (boxColor.value.alpha + ringColor.value.alpha == 0) return
-        if (mc.thePlayer?.heldItem?.SkyblockID != "GYROKINETIC_WAND") return
+        if (mc.thePlayer?.heldItem?.skyblockID != "GYROKINETIC_WAND") return
         val rot = player.getRotation().takeIf { useServerPos.value } ?: PlayerUtils.getRotation()
         val pos = player.getVec().add(y = mc.thePlayer.getEyeHeight()).takeIf { useServerPos.value } ?: PlayerUtils.getEyePos()
         val gyroPos = getBlockFromLook(rot, 25, pos.xCoord, pos.yCoord, pos.zCoord) ?: return
