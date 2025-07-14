@@ -1,6 +1,8 @@
 package noammaddons.utils
 
 import com.google.gson.JsonParser
+import kotlinx.serialization.json.*
+import noammaddons.NoammAddons.Companion.Logger
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.JsonUtils.getString
 import java.io.BufferedReader
@@ -47,16 +49,23 @@ object ProfileUtils {
 
         // Thx axle <3
         val response = readUrl("https://api.skyblockextras.com/hypixel/player?uuid=${getUUID(name)}")
-        val jsonObject = JsonParser().parse(response)?.asJsonObject
-        val secrets = jsonObject?.getAsJsonObject("player")?.getAsJsonObject("achievements")
-            ?.getAsJsonPrimitive("skyblock_treasure_hunter")?.asInt ?: 0
+        val secrets = JsonParser().parse(response)?.asJsonObject?.getAsJsonObject("player")
+            ?.getAsJsonObject("achievements")?.getAsJsonPrimitive("skyblock_treasure_hunter")?.asInt ?: 0
 
         if (secrets > 0) secretCache[name] = secrets to System.currentTimeMillis()
+        Logger.info("$name has $secrets")
         return secrets
     }
 
-    // todo: Remove when mojang api is functional
-    fun getSpiritPet(name: String) = /*readUrl("https://api.tenios.dev/spiritPet/${getUUID(name)}").toBoolean()*/true
+    fun getSpiritPet(name: String) = readUrl("https://api.tenios.dev/spiritPet/${getUUID(name)}").toBoolean()
+
+    fun getStatus(name: String): Boolean {
+        val raw = readUrl("https://api.skyblockextras.com/hypixel/status?uuid=${getUUID(name)}")
+        val json = JsonUtils.stringToJson(raw).takeIf { it.getValue("success").jsonPrimitive.boolean }
+        val isOnline = json?.get("session")?.jsonObject?.get("online")?.jsonPrimitive?.boolean ?: false
+        Logger.info("$name is online: $isOnline")
+        return isOnline
+    }
 
     private fun readUrl(url: String): String {
         val connection = WebUtils.makeWebRequest(url)

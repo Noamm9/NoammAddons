@@ -78,9 +78,9 @@ object StarMobESP: Feature("Highlights Star Mobs in the dungeon") {
 
                 is S0FPacketSpawnMob -> {
                     if (packet.entityType != 30) return@scheduledTask
-                    val nameData = packet.func_149027_c()?.find { it.getObject().toString().contains("§") } ?: return@scheduledTask
-                    val name = "${nameData.getObject()}"
-                    if (! name.matches(dungeonMobRegex) || ! name.contains("§6✯")) return@scheduledTask
+                    val nameData = packet.func_149027_c()?.find { "§6✯" in "${it.getObject()}" } ?: return@scheduledTask
+                    val name = nameData.getObject().toString()
+                    if (! name.matches(dungeonMobRegex)) return@scheduledTask
                     val armorStand = mc.theWorld?.getEntityByID(packet.entityID) as? EntityArmorStand? ?: return@scheduledTask
                     checkStarMob(armorStand)
                 }

@@ -2,6 +2,7 @@ package noammaddons.commands
 
 import gg.essential.universal.UChat
 import gg.essential.universal.UDesktop.browse
+import kotlinx.coroutines.launch
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.command.ICommandSender
 import noammaddons.NoammAddons.Companion.FULL_PREFIX
@@ -25,10 +26,12 @@ import noammaddons.utils.GuiUtils.openScreen
 import noammaddons.utils.MathUtils.Rotation
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.PlayerUtils.holdClick
+import noammaddons.utils.ProfileUtils.getStatus
 import noammaddons.utils.ScanUtils.currentRoom
 import noammaddons.utils.ScanUtils.getCore
 import noammaddons.utils.ScanUtils.getRoomCenterAt
 import noammaddons.utils.UpdateUtils
+import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.openDiscordLink
 import java.net.URI
 
@@ -133,8 +136,13 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons, noamm, noam, noam
             "holdclick" -> {
                 val type = args.getOrNull(1)?.uppercase() ?: "RIGHT"
 
-                if (type !in listOf("RIGHT", "LEFT", "MIDDLE")) return modMessage("&cInvalid usage of command. &bUsage: /na holdclick [LEFT, RIGHT, MIDDLE]")
+                if (! type.equalsOneOf("RIGHT", "LEFT", "MIDDLE")) return modMessage("&cInvalid usage of command. &bUsage: /na holdclick [LEFT, RIGHT, MIDDLE]")
                 holdClick(true, type)
+            }
+
+            "status" -> scope.launch {
+                val name = args.getOrNull(1) ?: return@launch modMessage("&cInvalid usage of command. &bUsage: /na status [name]")
+                modMessage("&b$name is " + if (getStatus(name)) "&aOnline" else "&cOffline")
             }
 
             else -> modMessage("&cInvalid usage of command. &bUsage: /na <command>")
@@ -155,6 +163,7 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons, noamm, noam, noam
     val commandsList = listOf(
         "&b/na &7- &oOpens the Settings GUI.",
         "&b/na help &7- &oShows this Message.",
+        "&b/na discord &7- &oOpens link to my Discord Server.",
         "&b/na sim [message] &7- &oSimulates a received chat message.",
         "&b/na edit &7- &oOpens the Edit Hud GUI.",
         "&b/na rotate [yaw] [pitch] [ms?] &7- &oRotates the player to the specified yaw and pitch.",
@@ -170,6 +179,6 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons, noamm, noam, noam
         "&b/na roominfo &7- &oShows current room info.",
         "&b/na update &7- &oChecks for an Update.",
         "&b/na openlink [URL] &7- &oOpens the provided URL in a web browser.",
-        "&b/na discord &7- &oOpens link to my Discord Server."
+        "&b/na status [name] &7- &oChecks if the player is online."
     )
 }

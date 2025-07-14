@@ -2,6 +2,7 @@ package noammaddons.features.impl.dungeons
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.DungeonEvent
 import noammaddons.features.Feature
@@ -9,6 +10,7 @@ import noammaddons.features.impl.general.PartyCommands
 import noammaddons.ui.config.core.impl.SliderSetting
 import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.*
+import noammaddons.utils.ThreadUtils.setTimeout
 
 object AutoRequeue: Feature() {
     private val checkParty by ToggleSetting("Check Party", true)
@@ -22,10 +24,10 @@ object AutoRequeue: Feature() {
 
     private fun feedBackMessage(msg: String) {
         if (! feedback) return
-        ChatUtils.modMessage("$prefix $msg")
+        setTimeout(1000) { ChatUtils.modMessage("$prefix $msg") }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGH)
     fun onRunEnd(event: DungeonEvent.RunEndedEvent) {
         if (checkParty) {
             if (! PartyUtils.inParty) return feedBackMessage("Not in a party!")

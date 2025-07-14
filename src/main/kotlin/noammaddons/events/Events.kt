@@ -68,9 +68,6 @@ class PostRenderEntityModelEvent(
 ): Event()
 
 @Cancelable
-class RenderTitleEvent(val title: String, val subTitle: String): Event()
-
-@Cancelable
 class MessageSentEvent(var message: String): Event()
 
 @Cancelable

@@ -35,7 +35,7 @@ object ItemRarity: Feature("Draws the rarity of item behind the slot") {
 
         val rarity = getRarity(stack)
         if (rarity == NONE) return
-        val color = rarity.color.withAlpha((rarityOpacity.value))
+        val color = rarity.color.withAlpha(rarityOpacity.value)
 
         GlStateManager.disableDepth()
         drawSlotOverlay(color, x, y, x + 16, y + 16)

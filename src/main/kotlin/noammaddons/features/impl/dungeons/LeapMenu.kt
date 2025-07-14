@@ -32,7 +32,6 @@ import noammaddons.utils.RenderUtils.drawRoundedRect
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.RenderUtils.drawTitle
 import noammaddons.utils.ThreadUtils.setTimeout
-import noammaddons.utils.Utils.equalsOneOf
 import java.awt.Color
 
 @AlwaysActive
@@ -64,9 +63,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
     val players = mutableListOf<LeapMenuPlayer?>(null, null, null, null)
 
     private fun inSpiritLeap(): Boolean {
-        return currentChestName.removeFormatting().lowercase()
-            .equalsOneOf("teleport to player", "spirit leap")
-                && inDungeon && customLeapMenu.value
+        return currentChestName.removeFormatting().lowercase() == "spirit leap" && inDungeon && customLeapMenu.value
     }
 
     @SubscribeEvent
