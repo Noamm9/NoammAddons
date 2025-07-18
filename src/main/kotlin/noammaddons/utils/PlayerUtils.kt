@@ -24,8 +24,10 @@ object PlayerUtils {
         return (1.8f + add.toFloat()) * getPlayerScaleFactor(ent)
     }
 
-    fun closeScreen() = mc.addScheduledTask {
-        mc.thePlayer?.closeScreen()
+    fun closeScreen() {
+        mc.addScheduledTask {
+            mc.thePlayer?.closeScreen()
+        }
     }
 
     fun swinghand() {
