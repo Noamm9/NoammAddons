@@ -5,10 +5,10 @@ import net.minecraft.init.Blocks.*
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.NoammAddons.Companion.personalBests
 import noammaddons.events.*
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.CBlines
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.CBphase
-import noammaddons.NoammAddons.Companion.personalBests
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.ChatUtils.clickableChat
 import noammaddons.utils.ChatUtils.debugMessage
@@ -47,7 +47,7 @@ object CreeperBeamSolver {
     )
 
     init {
-        WebUtils.fetchJsonWithRetry<List<List<List<Int>>>>(
+        WebUtils.fetchJson<List<List<List<Int>>>>(
             "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/CreeperBeamSolutions.json"
         ) { beamsList ->
             beamSolutions.clear()

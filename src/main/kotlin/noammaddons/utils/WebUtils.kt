@@ -47,7 +47,7 @@ object WebUtils {
         return connection
     }
 
-    inline fun <reified T> fetchJsonWithRetry(url: String, crossinline callback: (T) -> Unit) {
+    inline fun <reified T> fetchJson(url: String, crossinline callback: (T) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             while (isActive) {
                 val connection = makeWebRequest(url) as HttpURLConnection

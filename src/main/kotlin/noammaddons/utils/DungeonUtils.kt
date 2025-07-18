@@ -285,7 +285,6 @@ object DungeonUtils {
                 scope.launch { postAndCatch(DungeonEvent.RunEndedEvent()) }
             }
 
-
             text == bloodOpenedString -> DungeonInfo.keys --
 
             "§r§c ☠" in text && "reconnected" !in unformatted -> {

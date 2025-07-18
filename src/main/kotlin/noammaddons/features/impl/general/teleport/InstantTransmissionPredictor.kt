@@ -2,8 +2,8 @@ package noammaddons.features.impl.general.teleport
 
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
-import noammaddons.features.impl.general.teleport.EtherwarpHelper.EYE_HEIGHT
 import noammaddons.NoammAddons.Companion.mc
+import noammaddons.features.impl.general.teleport.EtherwarpHelper.EYE_HEIGHT
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.getBlockId
 import noammaddons.utils.MathUtils
@@ -85,8 +85,6 @@ object InstantTransmissionPredictor {
             }
         }
 
-        fun getLength() = sqrt(x * x + y * y + z * z)
-
         fun add(vector3: Vector3): Vector3 {
             x += vector3.x
             y += vector3.y
@@ -98,20 +96,20 @@ object InstantTransmissionPredictor {
             return Vector3(x, y + value, z)
         }
 
+        fun multiply(factor: Double): Vector3 {
+            x *= factor
+            y *= factor
+            z *= factor
+            return this
+        }
+
         fun normalize(): Vector3 {
-            val len = getLength()
+            val len = sqrt(x * x + y * y + z * z)
             if (len != 0.0) {
                 x /= len
                 y /= len
                 z /= len
             }
-            return this
-        }
-
-        fun multiply(factor: Double): Vector3 {
-            x *= factor
-            y *= factor
-            z *= factor
             return this
         }
     }

@@ -2,13 +2,13 @@ package noammaddons.features.impl.hud
 
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.NoammAddons.Companion.personalBests
 import noammaddons.config.EditGui.GuiElement
 import noammaddons.config.EditGui.HudEditorScreen
 import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
 import noammaddons.features.impl.hud.RunSplits.DungeonRunSplitsElement.overviewStr
-import noammaddons.NoammAddons.Companion.personalBests
 import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.noFormatText
@@ -65,7 +65,7 @@ object RunSplits: Feature() {
     private val runEndRegex = Regex("^\\s*☠ Defeated (.+) in 0?([\\dhms ]+?)\\s*(\\(NEW RECORD!\\))?$")
 
     init {
-        WebUtils.fetchJsonWithRetry<Map<String, List<Map<String, String?>>>>(
+        WebUtils.fetchJson<Map<String, List<Map<String, String?>>>>(
             "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/runSplits.json"
         ) {
             val data = it.mapValues { (_, entryList) ->

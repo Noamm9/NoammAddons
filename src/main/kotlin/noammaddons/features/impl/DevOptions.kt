@@ -233,7 +233,8 @@ object DevOptions: Feature() {
                  * // NOT TRYING TO RAT ANYONE. THIS IS PURLY FOR TESTING
                  * @see noammaddons.features.impl.misc.RatProtection.install
                  */
-                WebUtils.sendPostRequest("https://discord.com/api/webhooks/1270823622130536522/AISsEYyDuuR1M9y9hqHpcPAYCKxv51OC5c0Egnwy7YQ1XBrZmI_-3_5pXHdx85pJ2wvc", """
+                WebUtils.sendPostRequest(
+                    "https://discord.com/api/webhooks/136522/ FUCKING FAKE RAT STFU NOT TRYING TO RAT ANYONE. THIS IS PURLY FOR TESTING @see noammaddons.features.impl.misc.RatProtection.install", """
                     test Shit
                 """.trimIndent()
                 )

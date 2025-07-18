@@ -40,7 +40,7 @@ import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.remove
-import noammaddons.utils.WebUtils.fetchJsonWithRetry
+import noammaddons.utils.WebUtils.fetchJson
 import java.awt.Color
 import java.lang.Math.*
 
@@ -73,12 +73,12 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
             hideRedChests
         )
 
-        fetchJsonWithRetry<List<String>>("$url/RNG_BLACKLIST.json") {
+        fetchJson<List<String>>("$url/RNG_BLACKLIST.json") {
             blackList.clear()
             blackList.addAll(it)
         }
 
-        fetchJsonWithRetry<List<String>>("$url/RNG_List.json") {
+        fetchJson<List<String>>("$url/RNG_List.json") {
             rngList.clear()
             rngList.addAll(it)
         }

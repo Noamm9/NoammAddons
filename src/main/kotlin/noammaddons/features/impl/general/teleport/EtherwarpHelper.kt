@@ -2,11 +2,12 @@ package noammaddons.features.impl.general.teleport
 
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
-import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.getBlockId
 import noammaddons.utils.MathUtils
 import noammaddons.utils.MathUtils.add
+import noammaddons.utils.MathUtils.getLook
+import noammaddons.utils.MathUtils.multiply
 import noammaddons.utils.ServerPlayer
 import noammaddons.utils.Utils.equalsOneOf
 import java.util.*
@@ -23,21 +24,6 @@ object EtherwarpHelper {
     }
 
     const val EYE_HEIGHT = 1.62
-
-    fun getLook(yaw: Float = mc.thePlayer?.rotationYaw ?: 0f, pitch: Float = mc.thePlayer?.rotationPitch ?: 0f): Vec3 {
-        val f2 = - cos(- pitch * 0.017453292f).toDouble()
-        return Vec3(
-            sin(- yaw * 0.017453292f - 3.1415927f) * f2,
-            sin(- pitch * 0.017453292f).toDouble(),
-            cos(- yaw * 0.017453292f - 3.1415927f) * f2
-        )
-    }
-
-    fun Vec3.multiply(factor: Double) = Vec3(
-        xCoord * factor,
-        yCoord * factor,
-        zCoord * factor
-    )
 
     fun getEtherPos(pos: Vec3, rotation: MathUtils.Rotation, distance: Double = 60.0, returnEnd: Boolean = false): EtherPos {
         val startPos: Vec3 = pos.add(y = EYE_HEIGHT - if (ServerPlayer.player.sneaking) .08 else .0)
@@ -100,10 +86,8 @@ object EtherwarpHelper {
 
             }
 
-            // End Reached without finding a block
             if (x == endX && y == endY && z == endZ) return EtherPos.NONE
 
-            // Find the next direction to step in
             if (tMaxX < tMaxY) {
                 if (tMaxX < tMaxZ) {
                     tMaxX += tDeltaX
@@ -126,7 +110,7 @@ object EtherwarpHelper {
             }
         }
 
-        return EtherPos.NONE // Iteration limit reached
+        return EtherPos.NONE
     }
 
 

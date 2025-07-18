@@ -21,7 +21,7 @@ object IHateDiorite: Feature("Relplace the eye burning diorite with glass on f7"
         "RedArray" to Blocks.stained_glass.getStateFromMeta(14)
     )
 
-    override fun init() = WebUtils.fetchJsonWithRetry<Map<String, List<Map<String, Double>>>>(
+    override fun init() = WebUtils.fetchJson<Map<String, List<Map<String, Double>>>>(
         "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/iHateDioriteBlocks.json"
     ) { data ->
         val newMap = mutableMapOf<String, List<BlockPos>>()

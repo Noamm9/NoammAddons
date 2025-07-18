@@ -63,15 +63,15 @@ object BetterFloors: Feature("Basically my FunnyMapExtras's config port. Place a
     )
 
     init {
-        WebUtils.fetchJsonWithRetry<Map<String, List<Map<String, Double>>>>(
+        WebUtils.fetchJson<Map<String, List<Map<String, Double>>>>(
             "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/betterFloors/F7BossCoords.json"
         ) { f7Config = it }
 
-        WebUtils.fetchJsonWithRetry<Map<String, List<Map<String, Double>>>>(
+        WebUtils.fetchJson<Map<String, List<Map<String, Double>>>>(
             "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/betterFloors/F6BossCoords.json"
         ) { f6Config = it }
 
-        WebUtils.fetchJsonWithRetry<Map<String, List<Map<String, Double>>>>(
+        WebUtils.fetchJson<Map<String, List<Map<String, Double>>>>(
             "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/betterFloors/F5BossCoords.json"
         ) { f5Config = it }
     }

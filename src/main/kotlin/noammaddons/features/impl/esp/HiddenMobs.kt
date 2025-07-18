@@ -18,7 +18,7 @@ object HiddenMobs: Feature("Reveals invisible mobs in dungeons") {
     private val showStealthy by ToggleSetting("Show Stealthy")
 
     init {
-        WebUtils.fetchJsonWithRetry<List<String>?>(
+        WebUtils.fetchJson<List<String>?>(
             "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/watcherMobs.json"
         ) { watcherMobs = it }
     }

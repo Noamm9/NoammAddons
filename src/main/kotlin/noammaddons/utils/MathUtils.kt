@@ -2,6 +2,7 @@ package noammaddons.utils
 
 import net.minecraft.init.Blocks
 import net.minecraft.util.*
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.toVec
 import noammaddons.utils.PlayerUtils.getEyePos
@@ -156,21 +157,21 @@ object MathUtils {
         return (startYaw + delta * progress)
     }
 
-    fun interpolatePitch(startPitch: Float, targetPitch: Float, progress: Float): Float {
-        var delta = (targetPitch - startPitch)
-
-        // Clamp the delta within the valid pitch range (-90 to 90)
-        if (delta > 90) delta = 90f
-        if (delta < - 90) delta = - 90f
-
-        return (startPitch + delta * progress)
-    }
-
-
     fun BlockPos.add(x: Number = 0.0, y: Number = 0.0, z: Number = 0.0) = add(x.toDouble(), y.toDouble(), z.toDouble())
 
     fun Vec3.floor() = Vec3(floor(xCoord), floor(yCoord), floor(zCoord))
     fun Vec3.add(x: Number = 0.0, y: Number = 0.0, z: Number = 0.0) = add(Vec3(x.toDouble(), y.toDouble(), z.toDouble()))
     fun Vec3i.destructured() = listOf(x, y, z)
     fun Vec3.destructured() = listOf(xCoord, yCoord, zCoord)
+    fun Vec3.copy() = Vec3(xCoord, yCoord, zCoord)
+    fun Vec3.multiply(factor: Double) = Vec3(xCoord * factor, yCoord * factor, zCoord * factor)
+
+    fun getLook(yaw: Float = mc.thePlayer?.rotationYaw ?: 0f, pitch: Float = mc.thePlayer?.rotationPitch ?: 0f): Vec3 {
+        val f2 = - cos(- pitch * 0.017453292f).toDouble()
+        return Vec3(
+            sin(- yaw * 0.017453292f - 3.1415927f) * f2,
+            sin(- pitch * 0.017453292f).toDouble(),
+            cos(- yaw * 0.017453292f - 3.1415927f) * f2
+        )
+    }
 }

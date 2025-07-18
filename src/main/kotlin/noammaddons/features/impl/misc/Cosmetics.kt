@@ -10,9 +10,9 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.ResourceLocation
-import noammaddons.features.impl.misc.PlayerModel.getPlayerScaleFactor
 import noammaddons.NoammAddons.Companion.MOD_ID
 import noammaddons.NoammAddons.Companion.mc
+import noammaddons.features.impl.misc.PlayerModel.getPlayerScaleFactor
 import noammaddons.utils.GuiUtils.isInGui
 import noammaddons.utils.RenderHelper.getPartialTicks
 import noammaddons.utils.WebUtils
@@ -23,7 +23,7 @@ object Cosmetics {
     private var devPlayers: List<String>? = null
 
     init {
-        WebUtils.fetchJsonWithRetry<List<String>>(
+        WebUtils.fetchJson<List<String>>(
             "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/devPlayers.json"
         ) { devPlayers = it }
     }

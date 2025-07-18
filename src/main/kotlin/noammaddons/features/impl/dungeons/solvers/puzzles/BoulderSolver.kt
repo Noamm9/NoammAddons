@@ -42,7 +42,7 @@ object BoulderSolver: Feature() {
     var startTime: Long? = null
 
     init {
-        WebUtils.fetchJsonWithRetry<Map<String, List<List<Double>>>>(
+        WebUtils.fetchJson<Map<String, List<List<Double>>>>(
             "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/BoulderSolutions.json"
         ) {
             boulderSolutions.putAll(it)

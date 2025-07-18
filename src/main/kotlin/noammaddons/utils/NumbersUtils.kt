@@ -79,6 +79,7 @@ object NumbersUtils {
      * @author jpdymond
      */
     fun Double.toFixed(precision: Int): String {
+        if (this.isNaN()) return toString()
         val scale = 10.0.pow(precision).toInt()
         val rounded = (this * scale).roundToInt().toDouble() / scale
         val parts = rounded.toString().split(".")
