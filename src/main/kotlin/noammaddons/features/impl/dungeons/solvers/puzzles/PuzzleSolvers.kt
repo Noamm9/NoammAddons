@@ -10,7 +10,8 @@ import java.awt.Color
 object PuzzleSolvers: Feature("Puzzle Solvers for Dungeon Clear") {
     private val solvers = listOf(
         CreeperBeamSolver, BlazeSolver,
-        BoulderSolver, ThreeWeirdosSolver
+        BoulderSolver, ThreeWeirdosSolver,
+        TeleportMazeSolver
     )
 
     override fun onEnable() {
@@ -46,6 +47,11 @@ object PuzzleSolvers: Feature("Puzzle Solvers for Dungeon Clear") {
     val Wcolor = ColorSetting("Correct Chest Color", favoriteColor.withAlpha(40)).addDependency(weirdos)
     val WcolorWrong = ColorSetting("Incorrect Chest Color", Color.RED.withAlpha(40)).addDependency { WremoveChests.value }.addDependency(weirdos)
 
+    val tpMaze = ToggleSetting("Teleport Maze ")
+    val correctTpPadColor = ColorSetting("Correct Pad Color", Color.GREEN.withAlpha(80))
+    val wrongTpPadColor = ColorSetting("Wrong Pad Color", Color.RED.withAlpha(111))
+
+
     override fun init() = addSettings(
         SeperatorSetting("Creeper Beam"),
         creeper, CBlines, CBphase,
@@ -54,6 +60,8 @@ object PuzzleSolvers: Feature("Puzzle Solvers for Dungeon Clear") {
         SeperatorSetting("Boulder"),
         boulder, BshowAll, BzeroPing, BboxColor, BclickColor,
         SeperatorSetting("Three Weirdos"),
-        weirdos, WremoveNPCS, WremoveChests, Wcolor, WcolorWrong
+        weirdos, WremoveNPCS, WremoveChests, Wcolor, WcolorWrong,
+        SeperatorSetting("Teleport Maze"),
+        tpMaze, correctTpPadColor, wrongTpPadColor
     )
 }

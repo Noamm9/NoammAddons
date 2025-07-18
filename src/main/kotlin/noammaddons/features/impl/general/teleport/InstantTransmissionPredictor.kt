@@ -74,7 +74,7 @@ object InstantTransmissionPredictor {
         return boundingBox.isVecInside(pos)
     }
 
-    private data class Vector3(var x: Double = 0.0, var y: Double = 0.0, var z: Double = 0.0) {
+    data class Vector3(var x: Double = 0.0, var y: Double = 0.0, var z: Double = 0.0) {
         companion object {
             fun fromPitchYaw(pitch: Double, yaw: Double): Vector3 {
                 val f = cos(- yaw * 0.017453292 - Math.PI)
@@ -104,13 +104,27 @@ object InstantTransmissionPredictor {
         }
 
         fun normalize(): Vector3 {
-            val len = sqrt(x * x + y * y + z * z)
+            val len = getLength()
             if (len != 0.0) {
                 x /= len
                 y /= len
                 z /= len
             }
             return this
+        }
+
+        fun getLength() = sqrt(x * x + y * y + z * z)
+
+        fun dotProduct(vector3: Vector3): Double {
+            return (x * vector3.x) + (y * vector3.y) + (z * vector3.z)
+        }
+
+        fun getAngleRad(vector3: Vector3): Double {
+            return acos(dotProduct(vector3) / (getLength() * vector3.getLength()))
+        }
+
+        fun getAngleDeg(vector3: Vector3): Double {
+            return 180 / Math.PI * getAngleRad(vector3)
         }
     }
 }

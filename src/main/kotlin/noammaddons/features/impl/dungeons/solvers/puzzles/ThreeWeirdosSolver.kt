@@ -6,13 +6,13 @@ import net.minecraft.init.Blocks
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.util.BlockPos
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.NoammAddons.Companion.mc
+import noammaddons.NoammAddons.Companion.personalBests
 import noammaddons.events.*
-import noammaddons.features.Feature
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.Wcolor
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.WcolorWrong
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.WremoveChests
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.WremoveNPCS
-import noammaddons.NoammAddons.Companion.personalBests
 import noammaddons.utils.BlockUtils.ghostBlock
 import noammaddons.utils.ChatUtils.clickableChat
 import noammaddons.utils.ChatUtils.debugMessage
@@ -27,7 +27,7 @@ import noammaddons.utils.Utils.formatPbPuzzleMessage
 import java.util.concurrent.CopyOnWriteArraySet
 
 
-object ThreeWeirdosSolver: Feature() {
+object ThreeWeirdosSolver {
     private val npcRegex = Regex("\\[NPC] (\\w+): (.+)")
 
     private var inWeirdos = false

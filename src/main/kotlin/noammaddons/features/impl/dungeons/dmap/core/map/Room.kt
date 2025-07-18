@@ -89,9 +89,9 @@ class Room(override val x: Int, override val z: Int, var data: RoomData): Tile {
                 val (rx, rz) = offset
                 val pos = BlockPos(x + rx, highestBlock !!.toDouble(), z + rz)
                 val state = getStateAt(pos)
-
                 if (state.getBlockId() != 159 || state.getMetadata() != 11) return@forEach
-                this.rotation = i * 90
+
+                rotation = i * 90
                 return
             }
         }

@@ -5,9 +5,9 @@ import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.entity.monster.EntityBlaze
 import net.minecraft.init.Blocks
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.NoammAddons.Companion.personalBests
 import noammaddons.events.*
-import noammaddons.features.Feature
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.BlineColor
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.blazeCount
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.firstBlazeColor
@@ -28,7 +28,7 @@ import noammaddons.utils.Utils.formatPbPuzzleMessage
 import noammaddons.utils.Utils.remove
 
 
-object BlazeSolver: Feature() {
+object BlazeSolver {
     private val BlazeHpRegex = Regex("""^\[Lv15] Blaze [\d,]+/([\d,]+)❤$""")
     private var inBlaze = false
     private val blazes = mutableListOf<Entity>()

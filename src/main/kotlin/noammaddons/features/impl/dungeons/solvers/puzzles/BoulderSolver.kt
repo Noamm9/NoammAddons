@@ -4,9 +4,9 @@ import net.minecraft.init.Blocks.*
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.util.BlockPos
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.NoammAddons.Companion.personalBests
 import noammaddons.events.*
-import noammaddons.features.Feature
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.BboxColor
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.BclickColor
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.BshowAll
@@ -27,7 +27,7 @@ import noammaddons.utils.ScanUtils.getRoomCenterAt
 import noammaddons.utils.Utils.formatPbPuzzleMessage
 
 
-object BoulderSolver: Feature() {
+object BoulderSolver {
     private data class BoulderBox(val box: BlockPos, val click: BlockPos, val render: BlockPos)
 
     private val boulderSolutions: MutableMap<String, List<List<Double>>> = mutableMapOf()
