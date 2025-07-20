@@ -13,10 +13,11 @@ import net.minecraft.network.play.server.S2EPacketCloseWindow
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.GuiMouseClickEvent
-import noammaddons.events.PacketEvent
+import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.features.impl.gui.Menus.*
+import noammaddons.ui.config.core.impl.*
+import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.GuiUtils.sendWindowClickPacket
 import noammaddons.utils.ItemUtils.getHeadSkinTexture
@@ -26,13 +27,42 @@ import noammaddons.utils.RenderUtils.drawPlayerHead
 import noammaddons.utils.RenderUtils.drawRainbowRoundedBorder
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.RenderUtils.renderItem
-import noammaddons.utils.SoundUtils
 import noammaddons.utils.Utils.equalsOneOf
 import org.lwjgl.input.Keyboard
 import kotlin.math.floor
 
 
-object CustomWardrobeMenu: Feature() {
+object WardrobeMenu: Feature() {
+    private val customMenu = ToggleSetting("Custom Menu")
+
+    private val wardrobeKeybinds = ToggleSetting("Wardrobe Keybinds")
+    private val closeAfterUse = ToggleSetting("Auto Close On Use").addDependency(wardrobeKeybinds)
+    private val useHotbarBinds = ToggleSetting("Use Hotbar Binds").addDependency(wardrobeKeybinds)
+    private val keybinds = (1 .. 9).mapIndexed { index, slot ->
+        KeybindSetting("Wardrobe Slot $slot", Keyboard.KEY_1 + index)
+            .addDependency { useHotbarBinds.value }
+            .addDependency(wardrobeKeybinds)
+    }
+
+    override fun init() {
+        hotbarKeyMap = mc.gameSettings.keyBindsHotbar.mapIndexed { i, key -> key.keyCode to i }.toMap()
+
+        addSettings(
+            customMenu,
+            wardrobeKeybinds,
+            closeAfterUse, useHotbarBinds,
+            SeperatorSetting("Keybinds").addDependency { useHotbarBinds.value }.addDependency(wardrobeKeybinds),
+            *keybinds.toTypedArray()
+        )
+    }
+
+    private lateinit var hotbarKeyMap: Map<Int, Int>
+    private var lastClick = System.currentTimeMillis()
+    private val keyMap = mapOf(
+        0 to 36, 1 to 37, 2 to 38, 3 to 39, 4 to 40,
+        5 to 41, 6 to 42, 7 to 43, 8 to 44
+    )
+
     private const val EDIT_SLOT = 50
     private val wardrobeMenuRegex = Regex("^Wardrobe \\(\\d/\\d\\)$")
     private var inWardrobeMenu = false
@@ -50,6 +80,7 @@ object CustomWardrobeMenu: Feature() {
 
     @SubscribeEvent
     fun onOpen(event: PacketEvent.Received) {
+        if (! customMenu.value) return
         if (event.packet is S2DPacketOpenWindow) {
             inWardrobeMenu = event.packet.windowTitle.unformattedText.matches(wardrobeMenuRegex)
 
@@ -67,6 +98,7 @@ object CustomWardrobeMenu: Feature() {
 
     @SubscribeEvent
     fun onClose(event: PacketEvent.Sent) {
+        if (! customMenu.value) return
         if (inWardrobeMenu && event.packet is C0DPacketCloseWindow) {
             inWardrobeMenu = false
         }
@@ -76,6 +108,7 @@ object CustomWardrobeMenu: Feature() {
     fun onClick(event: GuiMouseClickEvent) {
         if (! inWardrobeMenu) return
         if (! event.button.equalsOneOf(0, 1, 2)) return
+        if (System.currentTimeMillis() - lastClick < 300) return
         val container = mc.thePlayer?.openContainer?.inventorySlots ?: return
         event.isCanceled = true
 
@@ -104,7 +137,6 @@ object CustomWardrobeMenu: Feature() {
         }
         else this.handleSlotClick(event.button, slot)
     }
-
 
     @SubscribeEvent
     fun cancelGui(event: GuiScreenEvent.DrawScreenEvent.Pre) {
@@ -163,7 +195,7 @@ object CustomWardrobeMenu: Feature() {
             if (i >= windowSize) return@forEach
             if (stack == null) return@forEach
             if (slot.stack?.item is ItemSkull) return@forEach
-            if (stack?.getItemId() == 160 && stack.metadata == 15) return@forEach
+            if (stack.getItemId() == 160 && stack.metadata == 15) return@forEach
             stack.tagCompound.removeTag("ench")
 
             renderItem(
@@ -187,6 +219,27 @@ object CustomWardrobeMenu: Feature() {
         drawLore(item.displayName, item.lore, mx, my, scale, screenSize)
     }
 
+    @SubscribeEvent
+    fun onKeyInput(event: GuiKeybourdInputEvent) {
+        if (! wardrobeKeybinds.value) return
+        if (! ActionUtils.inWardrobeMenu) return
+        if (System.currentTimeMillis() - lastClick < 300) return
+        if (event.keyCode.equalsOneOf(Keyboard.KEY_ESCAPE, Keyboard.KEY_E)) return
+        val windowId = mc.thePlayer?.openContainer?.windowId ?: return
+        val index = if (useHotbarBinds.value) hotbarKeyMap[event.keyCode] ?: return
+        else keybinds.withIndex().find { (_, key) -> key.value == event.keyCode }?.index ?: return
+        val slot = keyMap[index]?.takeIf { mc.thePlayer.openContainer.getSlot(it).stack != null } ?: return
+        event.isCanceled = true
+
+        if (closeAfterUse.value) {
+            sendWindowClickPacket(slot, 0, 0)
+            PlayerUtils.closeScreen()
+        }
+        else mc.playerController.windowClick(windowId, slot, 0, 0, mc.thePlayer)
+
+        lastClick = System.currentTimeMillis()
+    }
+
     private fun injectEditButton(slot: Slot) {
         val itemStack = ItemStack(Blocks.anvil)
         itemStack.setStackDisplayName("&l&bEdit".addColor())
@@ -198,10 +251,8 @@ object CustomWardrobeMenu: Feature() {
 
     private fun handleSlotClick(button: Int, slotIndex: Int) {
         val mainSlot = allowedSlots.values.firstOrNull { slotIndex in it }?.get(0) ?: slotIndex
-        sendWindowClickPacket(
-            mainSlot, button,
-            if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)) 1 else 0
-        )
+        lastClick = System.currentTimeMillis()
+        sendWindowClickPacket(mainSlot, button, 0)
         SoundUtils.click()
     }
 }

@@ -603,6 +603,16 @@ object ConfigGUI: GuiScreen() {
     override fun doesGuiPauseGame() = false
 
     fun openGui() {
+        scope.launch {
+            for (c in config.values) {
+                for (s in c) {
+                    for (comp in s.components) {
+                        comp.updateVisibility()
+                    }
+                }
+            }
+        }
+
         RenderHelper.optifineFastRender(false)
         openScreen(
             when (guiType) {

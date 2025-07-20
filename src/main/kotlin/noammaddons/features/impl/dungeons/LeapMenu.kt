@@ -79,6 +79,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
 
     @SubscribeEvent
     fun onChat(event: Chat) {
+        if (! enabled) return
         Regex("^You have teleported to (.+)!\$").find(event.component.noFormatText)?.let {
             if (announceSpiritLeaps.value) {
                 val name = it.destructured.component1()
@@ -106,6 +107,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
     fun preGuiRender(event: GuiScreenEvent.DrawScreenEvent.Pre) {
         if (! inSpiritLeap()) return
         updateLeapMenu()
+        if (! enabled) return
         event.isCanceled = true
 
         if (players.filterNotNull().isEmpty()) {
@@ -215,6 +217,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
 
     @SubscribeEvent
     fun onClick(event: GuiMouseClickEvent) {
+        if (! enabled) return
         if (! inSpiritLeap()) return
         event.isCanceled = true
 
@@ -242,6 +245,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
 
     @SubscribeEvent
     fun onKey(event: GuiKeybourdInputEvent) {
+        if (! enabled) return
         if (! inSpiritLeap()) return
         if (! leapKeybinds.value) return
         if (event.keyCode.equalsOneOf(Keyboard.KEY_ESCAPE, Keyboard.KEY_RETURN)) return closeScreen()

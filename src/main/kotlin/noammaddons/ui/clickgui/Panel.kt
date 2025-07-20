@@ -1,8 +1,8 @@
 package noammaddons.ui.clickgui
 
+import noammaddons.NoammAddons.Companion.textRenderer
 import noammaddons.features.Feature
 import noammaddons.features.impl.gui.ConfigGui.accentColor
-import noammaddons.NoammAddons.Companion.textRenderer
 import noammaddons.ui.clickgui.ClickGuiScreen.currentSettingMenu
 import noammaddons.ui.clickgui.ClickGuiScreen.mc
 import noammaddons.ui.clickgui.ClickGuiScreen.scale
@@ -15,8 +15,6 @@ import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderUtils.drawRect
 import noammaddons.utils.RenderUtils.drawRoundedRect
 import noammaddons.utils.StencilUtils
-import noammaddons.utils.Utils.remove
-import noammaddons.utils.Utils.removeSpace
 import java.awt.Color
 import kotlin.math.max
 
@@ -37,7 +35,7 @@ class Panel(val category: CategoryType, val features: MutableList<Feature>): Abs
         this.height = ((headerHeight + if (open) getFilteredFeatures().size * itemHeight else 0f).coerceAtMost(mc.getHeight().div(scale).times(0.8f))) + 10f
         this.y = 20f
 
-        features.sortByDescending { textRenderer.getStringWidth(it.name.remove(" ").trim()) }
+        features.sortByDescending { textRenderer.getStringWidth(it.name) }
     }
 
     override fun draw(mouseX: Float, mouseY: Float) {
@@ -54,7 +52,6 @@ class Panel(val category: CategoryType, val features: MutableList<Feature>): Abs
         )
 
         if (! open) return
-        textRenderer.drawText(searchBar.value, 10, 10)
 
         StencilUtils.beginStencilClip {
             drawRect(Color(0), x, y + headerHeight, width, height - headerHeight - itemHeight)
@@ -63,8 +60,6 @@ class Panel(val category: CategoryType, val features: MutableList<Feature>): Abs
 
         var featureY = y + headerHeight - scrollY
         features.forEach { f ->
-            if (searchBar.value.remove(" ").contains(f.name.removeSpace().trim(), true)) return@forEach
-
             onMouseEnter(mouseX, mouseY, x, featureY, width, itemHeight) {
                 if (currentSettingMenu != null) return@onMouseEnter
                 val actualItemWidth = if (isCurrentlyScrollable()) width - scrollbarWidth - (2 * scrollbarMargin) else width
@@ -78,7 +73,7 @@ class Panel(val category: CategoryType, val features: MutableList<Feature>): Abs
             }
 
             textRenderer.drawCenteredText(
-                (if (f.enabled) "&l" else "") + f.name.removeSpace().trim(),
+                (if (f.enabled) "&l" else "") + f.name,
                 x + width / 2,
                 featureY + itemHeight / 2 - textRenderer.HALF_FONT_HEIGHT + 1,
                 if (f.enabled) accentColor else textColor

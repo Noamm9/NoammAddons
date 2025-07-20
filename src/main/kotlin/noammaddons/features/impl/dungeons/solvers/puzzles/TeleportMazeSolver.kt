@@ -12,7 +12,6 @@ import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.wrongTpP
 import noammaddons.features.impl.general.teleport.InstantTransmissionPredictor.Vector3
 import noammaddons.features.impl.general.teleport.InstantTransmissionPredictor.Vector3.Companion.fromPitchYaw
 import noammaddons.utils.BlockUtils.getBlockAt
-import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.RenderUtils.drawBlockBox
 import noammaddons.utils.ScanUtils
 import noammaddons.utils.ScanUtils.getRoomCenterAt
@@ -28,7 +27,6 @@ object TeleportMazeSolver {
     @SubscribeEvent
     fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (! tpMaze.value) return
-        if (event.room.rotation == null) return modMessage("MazeTpSolver >> Room Rotation is null")
 
         val center = getRoomCenterAt(mc.thePlayer.position)
         val pos1 = ScanUtils.getRealCoord(BlockPos(0, 69, - 3), center, 360 - event.room.rotation !!)
@@ -162,6 +160,13 @@ object TeleportMazeSolver {
         return false
     }
 
+    private class Cell(val xIndex: Int, val zIndex: Int) {
+        val pads = mutableSetOf<TpPad>()
+        fun addPad(pad: TpPad) {
+            pads += pad
+        }
+    }
+
     private class TpPad(
         val pos: BlockPos,
         var twin: TpPad? = null,
@@ -170,11 +175,4 @@ object TeleportMazeSolver {
         var totalAngle: Double = 0.0,
         var blacklisted: Boolean = false
     )
-
-    private class Cell(val xIndex: Int, val zIndex: Int) {
-        val pads = mutableSetOf<TpPad>()
-        fun addPad(pad: TpPad) {
-            pads += pad
-        }
-    }
 }

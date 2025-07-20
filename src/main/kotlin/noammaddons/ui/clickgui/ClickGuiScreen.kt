@@ -119,6 +119,8 @@ object ClickGuiScreen: GuiScreen() {
         val mx = mouseX / scale
         val my = mouseY / scale
 
+        currentSettingMenu?.mouseClicked(mx, my, mouseButton)
+
         if (currentSettingMenu == null) {
             searchBar.mouseClicked(mx.toDouble(), my.toDouble(), mouseButton)
             panels.forEach { it.mouseClicked(mx, my, mouseButton) }
@@ -135,7 +137,6 @@ object ClickGuiScreen: GuiScreen() {
             }
         }
 
-        currentSettingMenu?.mouseClicked(mx, my, mouseButton)
         dragging = mouseButton
     }
 
@@ -156,7 +157,11 @@ object ClickGuiScreen: GuiScreen() {
             return
         }
 
-        if (searchBar.keyTyped(typedChar, keyCode)) return
+        
+        val cancel = searchBar.keyTyped(typedChar, keyCode)
+        if (searchBar.focused && searchBar.value.isNotEmpty()) panels.forEach { it.scrollY = 0f }
+        if (cancel) return
+
         super.keyTyped(typedChar, keyCode)
     }
 

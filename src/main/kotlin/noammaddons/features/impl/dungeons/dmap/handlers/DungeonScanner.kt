@@ -1,7 +1,6 @@
 package noammaddons.features.impl.dungeons.dmap.handlers
 
 import net.minecraft.init.Blocks
-import net.minecraft.util.BlockPos
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.features.impl.dungeons.dmap.core.map.*
 import noammaddons.utils.BlockUtils.getBlockAt
@@ -49,7 +48,10 @@ object DungeonScanner {
                 // This room has already been added in a previous scan.
                 val roomInGrid = DungeonInfo.dungeonList[x + z * 11]
                 if (roomInGrid !is Unknown && (roomInGrid as? Room)?.data?.name != "Unknown") {
-                    (roomInGrid as? Room)?.findRotation()
+                    if (roomInGrid is Room) {
+                        roomInGrid.highestBlock = ScanUtils.gethighestBlockAt(xPos, zPos)
+                        roomInGrid.findRotation()
+                    }
                     continue
                 }
 
@@ -106,7 +108,7 @@ object DungeonScanner {
                 Door(
                     x, z,
                     // Finds door type from door block
-                    type = when (getBlockAt(BlockPos(x, 69, z))) {
+                    type = when (getBlockAt(x, 69, z)) {
                         Blocks.coal_block -> {
                             DungeonInfo.witherDoors ++
                             DoorType.WITHER
