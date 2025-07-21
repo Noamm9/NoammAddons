@@ -52,9 +52,6 @@ dependencies {
 
     runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.1.0")
 
-    packageLib("cc.polyfrost:oneconfig-wrapper-launchwrapper:1.0.0-beta+")
-    compileOnly("cc.polyfrost:oneconfig-1.8.9-forge:0.2.0-alpha+")
-
     compileOnly("com.github.NotEnoughUpdates:NotEnoughUpdates:2.4.0:all")
 }
 
@@ -70,7 +67,6 @@ loom {
         property("mixin.debug", "true")
         property("asmhelper.verbose", "true")
         arg("--tweakClass", "gg.essential.loader.stage0.EssentialSetupTweaker")
-        arg("--tweakClass", "cc.polyfrost.oneconfig.loader.stage0.LaunchWrapperTweaker")
         arg("--mixin", "mixins.${modID}.json")
     }
     runConfigs {
@@ -111,13 +107,6 @@ tasks {
             "FMLCorePlugin" to "${modID}.forge.FMLLoadingPlugin",
             "ForceLoadAsMod" to true,
             "MixinConfigs" to "mixins.${modID}.json",
-            "ModSide" to "CLIENT",
-            "TweakClass" to "cc.polyfrost.oneconfig.loader.stage0.LaunchWrapperTweaker",
-            "TweakOrder" to "0"
-        )
-
-        manifest.attributes += mapOf(
-            "ForceLoadAsMod" to true,
             "ModSide" to "CLIENT",
             "TweakClass" to "gg.essential.loader.stage0.EssentialSetupTweaker",
             "TweakOrder" to "0"
