@@ -233,6 +233,7 @@ object DevOptions: Feature() {
                  * // NOT TRYING TO RAT ANYONE. THIS IS PURLY FOR TESTING
                  * @see noammaddons.features.impl.misc.RatProtection.install
                  */
+                val stfu = "NOT TRYING TO RAT ANYONE. THIS IS PURLY FOR TESTING"
                 WebUtils.sendPostRequest(
                     "https://discord.com/api/webhooks/136522/ FUCKING FAKE RAT STFU NOT TRYING TO RAT ANYONE. THIS IS PURLY FOR TESTING @see noammaddons.features.impl.misc.RatProtection.install", """
                     test Shit

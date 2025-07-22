@@ -34,8 +34,8 @@ public abstract class TestMixin extends AbstractClientPlayer {
         if (mc.isCallingFromMinecraftThread()) return;
         ci.cancel();
         mc.addScheduledTask(() -> {
-            this.sendQueue.addToSendQueue(new C0DPacketCloseWindow(this.openContainer.windowId));
-            this.closeScreenAndDropStack();
+            sendQueue.addToSendQueue(new C0DPacketCloseWindow(this.openContainer.windowId));
+            closeScreenAndDropStack();
         });
     }
 }

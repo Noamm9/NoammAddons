@@ -3,6 +3,7 @@ package noammaddons.features.impl.dungeons.dragons
 import net.minecraft.entity.boss.EntityDragon
 import net.minecraft.network.play.server.S2APacketParticles
 import net.minecraft.util.*
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.features.impl.dungeons.dragons.DragonCheck.dragonEntityList
 import noammaddons.features.impl.dungeons.dragons.DragonCheck.lastDragonDeath
 import noammaddons.features.impl.dungeons.dragons.DragonPriority.displaySpawningDragon
@@ -11,7 +12,6 @@ import noammaddons.features.impl.dungeons.dragons.WitherDragons.currentTick
 import noammaddons.features.impl.dungeons.dragons.WitherDragons.priorityDragon
 import noammaddons.features.impl.dungeons.dragons.WitherDragons.sendArrowHit
 import noammaddons.features.impl.dungeons.dragons.WitherDragons.sendTime
-import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.ChatUtils.modMessage
 import java.awt.Color
 

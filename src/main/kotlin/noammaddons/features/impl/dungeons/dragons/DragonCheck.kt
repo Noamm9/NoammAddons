@@ -7,10 +7,10 @@ import net.minecraft.item.Item
 import net.minecraft.network.play.server.*
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.Vec3
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.features.impl.dungeons.dragons.WitherDragonEnum.Companion.WitherDragonState.*
 import noammaddons.features.impl.dungeons.dragons.WitherDragons.currentTick
 import noammaddons.features.impl.dungeons.dragons.WitherDragons.sendSpray
-import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.ChatUtils.modMessage
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -20,7 +20,7 @@ object DragonCheck {
 
     fun dragonUpdate(packet: S1CPacketEntityMetadata) {
         val dragon = WitherDragonEnum.entries.find { it.entityId == packet.entityId }?.apply { if (entity == null) updateEntity(packet.entityId) } ?: return
-        (packet.func_149376_c().find { it.dataValueId == 6 }?.`object` as? Float)?.let { health ->
+        (packet.func_149376_c().find { it.dataValueId == 6 }?.getObject() as? Float)?.let { health ->
             if (health <= 0 && dragon.state != DEAD) dragon.setDead()
         }
     }
@@ -28,7 +28,7 @@ object DragonCheck {
     fun dragonSpawn(packet: S0FPacketSpawnMob) {
         if (packet.entityType != 63) return
         WitherDragonEnum.entries.find {
-            isVecInXZ(Vec3(packet.x / 32.0, packet.y / 32.0, packet.z / 32.0), it.boxesDimensions) && it.state == SPAWNING
+            isVecInAABB(Vec3(packet.x / 32.0, packet.y / 32.0, packet.z / 32.0), it.boxesDimensions) && it.state == SPAWNING
         }?.setAlive(packet.entityID)
     }
 
@@ -43,6 +43,14 @@ object DragonCheck {
         }
     }
 
-    private fun isVecInXZ(vec: Vec3, aabb: AxisAlignedBB) =
+    fun trackArrows(packet: S29PacketSoundEffect) {
+        if (packet.soundName != "random.successful_hit") return
+        WitherDragonEnum.entries.forEach { dragon ->
+            if (dragon.state != ALIVE || currentTick - dragon.spawnedTime >= dragon.skipKillTime) return@forEach
+            dragon.arrowsHit ++
+        }
+    }
+
+    private fun isVecInAABB(vec: Vec3, aabb: AxisAlignedBB) =
         vec.xCoord in aabb.minX .. aabb.maxX && vec.zCoord in aabb.minZ .. aabb.maxZ
 }

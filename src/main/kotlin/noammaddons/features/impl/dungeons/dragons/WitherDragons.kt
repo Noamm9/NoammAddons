@@ -10,17 +10,18 @@ import noammaddons.features.Feature
 import noammaddons.features.impl.dungeons.dragons.DragonCheck.dragonSpawn
 import noammaddons.features.impl.dungeons.dragons.DragonCheck.dragonSprayed
 import noammaddons.features.impl.dungeons.dragons.DragonCheck.dragonUpdate
+import noammaddons.features.impl.dungeons.dragons.DragonCheck.trackArrows
 import noammaddons.features.impl.dungeons.dragons.WitherDragonEnum.*
 import noammaddons.features.impl.dungeons.dragons.WitherDragonEnum.Companion.WitherDragonState.*
 import noammaddons.features.impl.dungeons.dragons.WitherDragonEnum.Companion.handleSpawnPacket
+import noammaddons.features.impl.esp.EspSettings
 import noammaddons.ui.config.core.impl.*
-import noammaddons.utils.LocationUtils
+import noammaddons.utils.*
 import noammaddons.utils.MathUtils.add
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderHelper.renderVec
-import noammaddons.utils.RenderUtils
 import noammaddons.utils.RenderUtils.renderManager
 import org.lwjgl.opengl.GL11
 import java.awt.Color
@@ -39,6 +40,8 @@ object WitherDragons: Feature(
     private val lineThickness by SliderSetting("Line Width", 1f, 5f, 0.1f, 2f).addDependency { ! dragonBoxes }
 
     private val sss by SeperatorSetting("Dragon Spawn ")
+    private val dragonHealth by ToggleSetting("Dragon Health", true)
+    private val highlightDragons by ToggleSetting("Highlight Dragons")
     val dragonTitle by ToggleSetting("Dragon Title", true)
     private val dragonTracers by ToggleSetting("Dragon Tracer", false)
     private val tracerThickness by SliderSetting("Tracer Width", 1f, 5f, 0.5f, 1f).addDependency { ! dragonTracers }
@@ -47,8 +50,6 @@ object WitherDragons: Feature(
     val sendTime by ToggleSetting("Send Dragon Time Alive", true)
     val sendSpray by ToggleSetting("Send Ice Sprayed", true)
     val sendArrowHit by ToggleSetting("Send Arrows Hit", true)
-
-    private val dragonHealth by ToggleSetting("Dragon Health", true)
 
     private val sssss by SeperatorSetting("Dragon Priority ")
     val dragonPriorityToggle by ToggleSetting("Dragon Priority", false)
@@ -71,13 +72,7 @@ object WitherDragons: Feature(
             is S04PacketEntityEquipment -> dragonSprayed(packet)
             is S0FPacketSpawnMob -> dragonSpawn(packet)
             is S1CPacketEntityMetadata -> dragonUpdate(packet)
-            is S29PacketSoundEffect -> {
-                if (packet.soundName != "random.successful_hit") return
-                WitherDragonEnum.entries.forEach { dragon ->
-                    if (dragon.state != ALIVE || currentTick - dragon.spawnedTime >= dragon.skipKillTime) return@forEach
-                    dragon.arrowsHit ++
-                }
-            }
+            is S29PacketSoundEffect -> trackArrows(packet)
         }
     }
 
@@ -86,14 +81,6 @@ object WitherDragons: Feature(
         WitherDragonEnum.entries.forEach { if (it.state == SPAWNING && it.timeToSpawn > 0) it.timeToSpawn -- }
         currentTick ++
     }
-
-
-    /*
-    onMessage(Regex("^\\[BOSS] Wither King: (Oh, this one hurts!|I have more of those\\.|My soul is disposable\\.)$"), { enabled && DungeonUtils.getF7Phase() == M7Phases.P5 }) {
-        WitherDragonsEnum.entries.find { lastDragonDeath == it && lastDragonDeath != WitherDragonsEnum.None }?.let {
-            if (sendNotification) modMessage("&${it.colorCode}${it.name} dragon counts.")
-        }
-    }*/
 
     @SubscribeEvent
     fun onRenderWorld(event: RenderWorld) {
@@ -132,6 +119,33 @@ object WitherDragons: Feature(
             )
         }
     }
+
+    @SubscribeEvent
+    @Suppress("UNCHECKED_CAST")
+    fun onRenderModelEvent(event: PostRenderEntityModelEvent) {
+        if (! highlightDragons) return
+
+        val phaseSetting = EspSettings.getSettingByName("Phase") as? ToggleSetting ?: return
+        val lineSetting = EspSettings.getSettingByName("Line Width") as? Component<Number> ?: return
+
+        val originalPhase = phaseSetting.value
+        val originalLineWidth = lineSetting.value
+
+        phaseSetting.value = false
+        lineSetting.value = 20f
+
+        WitherDragonEnum.entries
+            .asSequence()
+            .filter { it.state == ALIVE }
+            .mapNotNull { it.entity?.let { entity -> it to entity } }
+            .forEach { (dragon, entity) ->
+                EspUtils.espMob(entity, dragon.color, EspUtils.ESPType.FILLED_OUTLINE.ordinal)
+            }
+
+        phaseSetting.value = originalPhase
+        lineSetting.value = originalLineWidth
+    }
+
 
     private fun getDragonTimer(spawnTime: Int): String = when (dragonTimerStyle) {
         0 -> "${(spawnTime * 50)}${if (showSymbol) "ms" else ""}"

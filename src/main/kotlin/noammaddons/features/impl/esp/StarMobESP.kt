@@ -6,8 +6,7 @@ import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.entity.monster.EntityEnderman
 import net.minecraft.entity.passive.EntityBat
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.network.play.server.S0FPacketSpawnMob
-import net.minecraft.network.play.server.S1CPacketEntityMetadata
+import net.minecraft.network.play.server.*
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
@@ -20,6 +19,7 @@ import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.ThreadUtils.scheduledTask
+import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.favoriteColor
 import java.awt.Color
 
@@ -67,7 +67,7 @@ object StarMobESP: Feature("Highlights Star Mobs in the dungeon") {
         if (! inDungeon) return
         if (inBoss) return
 
-        scheduledTask(1) { // execute on next tick
+        scheduledTask(2) { // execute on next tick
             when (val packet = event.packet) {
                 is S1CPacketEntityMetadata -> {
                     val armorStand = mc.theWorld.getEntityByID(packet.entityId) as? EntityArmorStand ?: return@scheduledTask
@@ -78,17 +78,22 @@ object StarMobESP: Feature("Highlights Star Mobs in the dungeon") {
 
                 is S0FPacketSpawnMob -> {
                     if (packet.entityType != 30) return@scheduledTask
-                    val nameData = packet.func_149027_c()?.find { "§6✯" in "${it.getObject()}" } ?: return@scheduledTask
-                    val name = nameData.getObject().toString()
+                    val name = packet.func_149027_c().find { it.dataValueId == 2 }?.getObject().toString().takeIf { "§6✯" in it } ?: return@scheduledTask
                     if (! name.matches(dungeonMobRegex)) return@scheduledTask
                     val armorStand = mc.theWorld?.getEntityByID(packet.entityID) as? EntityArmorStand? ?: return@scheduledTask
                     checkStarMob(armorStand)
+                }
+
+                is S0CPacketSpawnPlayer -> {
+                    val name = mc.netHandler.getPlayerInfo(packet.player).gameProfile.name
+                    if (! name.equalsOneOf("Shadow Assassin", "Lost Adventurer", "Diamond Guy", "King Midas")) return@scheduledTask
+                    starMobs.add(mc.theWorld.getEntityByID(packet.entityID))
                 }
             }
 
         }
     }
-
+    
     @SubscribeEvent
     fun onRenderEntity(event: PostRenderEntityModelEvent) {
         if (! inDungeon) return
