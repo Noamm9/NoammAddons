@@ -74,6 +74,7 @@ object Melody {
     @SubscribeEvent
     fun cancelGui(event: GuiScreenEvent.DrawScreenEvent.Pre) {
         if (! isInTerminal) return
+        disableNEUInventoryButtons()
         event.isCanceled = true
 
         val termScale = getTermScale()
@@ -163,7 +164,6 @@ object Melody {
 
         terminalSlots.clear()
         repeat(slotCount) { terminalSlots.add(null) }
-        disableNEUInventoryButtons()
         windowSize = slotCount
         isInTerminal = true
     }

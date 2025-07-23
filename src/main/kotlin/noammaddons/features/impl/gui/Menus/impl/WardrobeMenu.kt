@@ -1,7 +1,6 @@
 package noammaddons.features.impl.gui.Menus.impl
 
 import io.github.moulberry.notenoughupdates.NEUApi
-import io.github.moulberry.notenoughupdates.NotEnoughUpdates
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.init.Blocks
 import net.minecraft.inventory.Slot
@@ -11,7 +10,6 @@ import net.minecraft.network.play.client.C0DPacketCloseWindow
 import net.minecraft.network.play.server.S2DPacketOpenWindow
 import net.minecraft.network.play.server.S2EPacketCloseWindow
 import net.minecraftforge.client.event.GuiScreenEvent
-import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
@@ -83,12 +81,6 @@ object WardrobeMenu: Feature() {
         if (! customMenu.value) return
         if (event.packet is S2DPacketOpenWindow) {
             inWardrobeMenu = event.packet.windowTitle.unformattedText.matches(wardrobeMenuRegex)
-
-            // Fuck NEU horrible code, but thanks for api 😘
-            if (Loader.instance().activeModList.none { it.modId == NotEnoughUpdates.MODID }) return
-            if (! inWardrobeMenu) return
-
-            NEUApi.setInventoryButtonsToDisabled()
         }
 
         if (inWardrobeMenu && event.packet is S2EPacketCloseWindow) {
@@ -143,7 +135,10 @@ object WardrobeMenu: Feature() {
         if (! inWardrobeMenu) return
         event.isCanceled = true
         val container = mc.thePlayer?.openContainer?.inventorySlots ?: return
-        injectEditButton(container[EDIT_SLOT])
+        runCatching {
+            NEUApi.setInventoryButtonsToDisabled()
+            injectEditButton(container[EDIT_SLOT])
+        }
 
         val scale = calculateScale()
         val (mx, my) = getMouseScaledCoordinates(scale)

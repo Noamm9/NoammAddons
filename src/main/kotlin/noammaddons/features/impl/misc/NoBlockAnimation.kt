@@ -22,7 +22,7 @@ object NoBlockAnimation: Feature() {
     @SubscribeEvent
     fun onInteract(event: PlayerInteractEvent) {
         if (event.action != PlayerInteractEvent.Action.RIGHT_CLICK_AIR) return
-        val item = ServerPlayer.player.getHeldItem()?.takeIf { it.item !is ItemSword } ?: return
+        val item = ServerPlayer.player.getHeldItem()?.takeIf { it.item is ItemSword } ?: return
         if (item.lore.none { it.contains("§6Ability: ") && it.endsWith("§e§lRIGHT CLICK") }) return
         if (! isRightClickKeyDown) C08PacketPlayerBlockPlacement(ServerPlayer.player.getHeldItem()).send()
         event.isCanceled = true

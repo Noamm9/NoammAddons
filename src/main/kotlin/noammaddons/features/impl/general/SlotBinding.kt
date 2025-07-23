@@ -138,7 +138,7 @@ object SlotBinding: Feature(desc = "Allows you to bind slots to hotbar slots for
         val hoveredSlotNumber = gui.slotUnderMouse?.slotNumber?.takeIf { it in 5 .. 44 }
 
         GlStateManager.pushMatrix()
-        GlStateManager.translate(0f, 0f, 300f)
+        GlStateManager.translate(0f, 0f, 290f)
 
         if (showBoundSlots.value) data.takeUnless { it.isEmpty() }?.forEach { (invSlotNum, hbSlotNum) ->
             if (neuStyle.value && ! hoveredSlotNumber.equalsOneOf(invSlotNum.toInt(), hbSlotNum.toInt())) return@forEach

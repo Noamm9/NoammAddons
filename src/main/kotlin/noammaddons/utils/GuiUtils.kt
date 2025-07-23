@@ -3,7 +3,6 @@ package noammaddons.utils
 import gg.essential.api.EssentialAPI
 import gg.essential.elementa.state.BasicState
 import io.github.moulberry.notenoughupdates.NEUApi
-import io.github.moulberry.notenoughupdates.NotEnoughUpdates
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.gui.inventory.GuiChest
 import net.minecraft.client.gui.inventory.GuiContainer
@@ -11,7 +10,6 @@ import net.minecraft.inventory.*
 import net.minecraft.network.play.client.C0EPacketClickWindow
 import net.minecraftforge.client.event.GuiOpenEvent
 import net.minecraftforge.client.event.GuiScreenEvent
-import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.events.RenderOverlay
@@ -82,11 +80,9 @@ object GuiUtils {
         field.setCustomName(title)
     }
 
-    fun disableNEUInventoryButtons() {
-        if (Loader.instance().activeModList.any { it.modId == NotEnoughUpdates.MODID }) {
-            NEUApi.setInventoryButtonsToDisabled()
-        }
-    }
+    fun disableNEUInventoryButtons() = runCatching {
+        NEUApi.setInventoryButtonsToDisabled()
+    }.isSuccess
 
     fun openScreen(screen: GuiScreen?) = EssentialAPI.getGuiUtil().openScreen(screen)
 

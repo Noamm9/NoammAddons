@@ -16,6 +16,7 @@ import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.currentChestName
+import noammaddons.utils.GuiUtils.disableNEUInventoryButtons
 import noammaddons.utils.ItemUtils.getItemId
 import noammaddons.utils.ItemUtils.lore
 import noammaddons.utils.LocationUtils.WorldType.*
@@ -36,18 +37,10 @@ object CustomPartyFinderMenu {
     var selectedClass: String? = null
 
     @SubscribeEvent
-    fun fuckNEU(event: InventoryFullyOpenedEvent) {
-        // Fuck NEU horrible code, but thanks for api 😘
-        if (Loader.instance().activeModList.none { it.modId == NotEnoughUpdates.MODID }) return
-        if (! inPartyFinder) return
-
-        NEUApi.setInventoryButtonsToDisabled()
-    }
-
-    @SubscribeEvent
     fun guiRender(event: GuiScreenEvent.DrawScreenEvent.Pre) {
         if (! inPartyFinder) return
         if (! world.equalsOneOf(DungeonHub, Hub)) return
+        disableNEUInventoryButtons()
         event.isCanceled = true
         val container = mc.thePlayer?.openContainer?.inventorySlots ?: return
 

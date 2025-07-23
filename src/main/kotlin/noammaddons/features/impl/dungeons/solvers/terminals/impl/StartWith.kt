@@ -6,6 +6,7 @@ import net.minecraft.network.play.server.S2DPacketOpenWindow
 import net.minecraft.network.play.server.S2FPacketSetSlot
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.events.*
 import noammaddons.features.impl.dungeons.solvers.terminals.TerminalSolver
 import noammaddons.features.impl.dungeons.solvers.terminals.TerminalSolver.getClickMode
@@ -15,7 +16,6 @@ import noammaddons.features.impl.dungeons.solvers.terminals.TerminalSolver.getTe
 import noammaddons.features.impl.dungeons.solvers.terminals.core.ClickMode
 import noammaddons.features.impl.dungeons.solvers.terminals.core.TerminalSlot
 import noammaddons.features.impl.gui.Menus.renderBackground
-import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.disableNEUInventoryButtons
@@ -86,6 +86,7 @@ object StartWith {
     @SubscribeEvent
     fun cancelGui(event: GuiScreenEvent.DrawScreenEvent.Pre) {
         if (! inTerminal) return
+        disableNEUInventoryButtons()
         event.isCanceled = true
 
         val termScale = getTermScale()
@@ -158,7 +159,6 @@ object StartWith {
             clicked = false
             terminalSlots.clear()
             windowSize = slotCount
-            disableNEUInventoryButtons()
         }
         else inTerminal = false
     }

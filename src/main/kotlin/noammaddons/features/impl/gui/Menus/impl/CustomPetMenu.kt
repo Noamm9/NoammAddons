@@ -14,6 +14,7 @@ import noammaddons.features.impl.gui.Menus.*
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.currentChestName
+import noammaddons.utils.GuiUtils.disableNEUInventoryButtons
 import noammaddons.utils.ItemUtils.getItemId
 import noammaddons.utils.ItemUtils.lore
 import noammaddons.utils.PlayerUtils.closeScreen
@@ -36,15 +37,6 @@ object CustomPetMenu: Feature() {
         28, 29, 30, 31, 32, 33, 34,
         37, 38, 39, 40, 41, 42, 43
     )
-
-    @SubscribeEvent
-    fun fuckNEU(event: InventoryFullyOpenedEvent) {
-        // Fuck NEU horrible code, but thanks for api 😘
-        if (Loader.instance().activeModList.none { it.modId == NotEnoughUpdates.MODID }) return
-        if (! inPetMenu) return
-
-        NEUApi.setInventoryButtonsToDisabled()
-    }
 
 
     @SubscribeEvent
@@ -82,6 +74,7 @@ object CustomPetMenu: Feature() {
     @SubscribeEvent
     fun cancelGui(event: GuiScreenEvent.DrawScreenEvent.Pre) {
         if (! inPetMenu) return
+        disableNEUInventoryButtons()
         event.isCanceled = true
         val container = mc.thePlayer?.openContainer?.inventorySlots ?: return
 

@@ -18,6 +18,7 @@ import noammaddons.utils.ChatUtils.sendPartyMessage
 import noammaddons.utils.DungeonUtils.dungeonTeammatesNoSelf
 import noammaddons.utils.DungeonUtils.leapTeammates
 import noammaddons.utils.GuiUtils.currentChestName
+import noammaddons.utils.GuiUtils.disableNEUInventoryButtons
 import noammaddons.utils.GuiUtils.sendWindowClickPacket
 import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.MouseUtils.getMouseX
@@ -108,6 +109,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
         if (! inSpiritLeap()) return
         updateLeapMenu()
         if (! enabled) return
+        disableNEUInventoryButtons()
         event.isCanceled = true
 
         if (players.filterNotNull().isEmpty()) {

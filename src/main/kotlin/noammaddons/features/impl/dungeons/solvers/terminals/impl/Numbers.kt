@@ -86,6 +86,7 @@ object Numbers {
     @SubscribeEvent
     fun cancelGui(event: GuiScreenEvent.DrawScreenEvent.Pre) {
         if (! inTerminal) return
+        disableNEUInventoryButtons()
         event.isCanceled = true
 
         val termScale = getTermScale()
@@ -165,7 +166,6 @@ object Numbers {
             clicked = false
             terminalSlots.clear()
             windowSize = slotCount
-            disableNEUInventoryButtons()
         }
         else inTerminal = false
     }

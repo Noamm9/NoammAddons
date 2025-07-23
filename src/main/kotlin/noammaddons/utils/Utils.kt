@@ -2,6 +2,7 @@ package noammaddons.utils
 
 import gg.essential.universal.UChat
 import gg.essential.universal.UDesktop
+import io.github.moulberry.notenoughupdates.NEUApi
 import net.minecraft.network.Packet
 import noammaddons.NoammAddons.Companion.CHAT_PREFIX
 import noammaddons.NoammAddons.Companion.Logger
