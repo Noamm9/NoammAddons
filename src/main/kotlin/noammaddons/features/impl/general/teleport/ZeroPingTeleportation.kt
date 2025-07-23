@@ -94,7 +94,7 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
         if (ScanUtils.currentRoom?.data?.name.equalsOneOf("New Trap", "Old Trap", "Teleport Maze", "Boulder")) return
         runCatching {
             val block = mc.objectMouseOver.blockPos?.let { getBlockAt(it) } ?: air
-            if (block.equalsOneOf(trapped_chest, chest, ender_chest, hopper, cauldron)) return
+            if (block.equalsOneOf(trapped_chest, chest, ender_chest, hopper, cauldron, lever, wooden_button, stone_button)) return
         }
         if (LocationUtils.isInHubCarnival()) return
         val tpInfo = getTeleportInfo(packet) ?: return

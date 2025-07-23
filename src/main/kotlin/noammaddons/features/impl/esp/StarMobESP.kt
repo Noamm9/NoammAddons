@@ -67,7 +67,7 @@ object StarMobESP: Feature("Highlights Star Mobs in the dungeon") {
         if (! inDungeon) return
         if (inBoss) return
 
-        scheduledTask(2) { // execute on next tick
+        scheduledTask(2) {
             when (val packet = event.packet) {
                 is S1CPacketEntityMetadata -> {
                     val armorStand = mc.theWorld.getEntityByID(packet.entityId) as? EntityArmorStand ?: return@scheduledTask
@@ -90,18 +90,14 @@ object StarMobESP: Feature("Highlights Star Mobs in the dungeon") {
                     starMobs.add(mc.theWorld.getEntityByID(packet.entityID))
                 }
             }
-
         }
     }
-    
+
     @SubscribeEvent
     fun onRenderEntity(event: PostRenderEntityModelEvent) {
-        if (! inDungeon) return
-        if (inBoss) return
+        if (! inDungeon || inBoss) return
         val color = if (event.entity in starMobs) starMobColor.value else getColor(event.entity)
-        if (color == null) return
-
-        espMob(event.entity, color)
+        espMob(event.entity, color ?: return)
     }
 
     fun checkStarMob(armorStand: EntityArmorStand) {

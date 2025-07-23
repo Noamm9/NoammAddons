@@ -17,7 +17,7 @@ object TpsDisplay: Feature() {
 
     private object TpsDisplayElement: GuiElement(hudData.getData().tpsDisplay) {
         override val enabled: Boolean get() = TpsDisplay.enabled
-        var text = "TPS: &f2O"
+        var text = "TPS: &f20"
         override val width: Float get() = getStringWidth(text)
         override val height: Float get() = 9f
         override fun draw() {
@@ -25,7 +25,7 @@ object TpsDisplay: Feature() {
             drawText(text, getX(), getY(), getScale(), color)
         }
 
-        override fun exampleDraw() = drawText("TPS: &f2O", getX(), getY(), getScale(), color)
+        override fun exampleDraw() = drawText("TPS: &f20", getX(), getY(), getScale(), color)
     }
 
     fun getTps() = "TPS: ${TpsDisplayElement.text.removeFormatting().remove("TPS: ").toInt().coerceAtMost(20)}"

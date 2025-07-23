@@ -1,6 +1,7 @@
 package noammaddons.features.impl.general.teleport
 
 import gg.essential.elementa.utils.withAlpha
+import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.RenderWorld
@@ -8,7 +9,9 @@ import noammaddons.features.Feature
 import noammaddons.features.impl.general.teleport.ZeroPingTeleportation.TeleportInfo
 import noammaddons.features.impl.general.teleport.ZeroPingTeleportation.TeleportInfo.Companion.Types
 import noammaddons.ui.config.core.impl.*
+import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.ItemUtils.skyblockID
+import noammaddons.utils.MathUtils.add
 import noammaddons.utils.PlayerUtils
 import noammaddons.utils.RenderUtils.drawBlockBox
 import noammaddons.utils.RenderUtils.drawBox
@@ -52,7 +55,10 @@ object TeleportOverlay: Feature() {
 
         if (teleportInfo.type == Types.Etherwarp) {
             if (! etherwarp.value || ! ServerPlayer.player.sneaking) return
-            val (valid, pos) = EtherwarpHelper.getEtherPos(playerPos, playerRot, teleportInfo.distance)
+            var (valid, pos) = EtherwarpHelper.getEtherPos(playerPos, playerRot, teleportInfo.distance)
+            if (pos == null) return
+            val blockAbove = getBlockAt(pos.add(y = 1))
+            if (blockAbove == Blocks.carpet) pos = pos.add(y = 1)
             drawBlockBox(
                 blockPos = pos ?: return,
                 overlayColor = if (valid) fillColor.value else invalidFillColor.value,

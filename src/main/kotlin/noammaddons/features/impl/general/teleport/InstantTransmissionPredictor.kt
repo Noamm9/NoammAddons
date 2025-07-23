@@ -3,7 +3,6 @@ package noammaddons.features.impl.general.teleport
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
 import noammaddons.NoammAddons.Companion.mc
-import noammaddons.features.impl.general.teleport.EtherwarpHelper.EYE_HEIGHT
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.getBlockId
 import noammaddons.utils.MathUtils
@@ -11,67 +10,97 @@ import noammaddons.utils.MathUtils.floor
 import noammaddons.utils.ServerPlayer.player
 import kotlin.math.*
 
-// zph port
 object InstantTransmissionPredictor {
-    private val IGNORED = setOf(0, 51, 8, 9, 10, 11, 171, 331, 39, 40, 115, 132, 77, 143, 66, 27, 28, 157)
-    private val IGNORED2 = setOf(44, 182, 126)
-    private val SPECIAL = setOf(65, 106, 111)
+    // Blocks that can be passed through without stopping (air, liquids, grass, etc.).
+    private val PASSABLE_BLOCK_IDS = setOf(
+        0, 51, 8, 9, 10, 11, 171, 331, 39, 40, 115, 132, 77, 143, 66, 27, 28, 157,
+        175, 31, 6, 38, 55, 75, 76, 69, 149, 150, 93, 94, 65, 106, 37, 50, 140, 105,
+        59, 141, 142, 32, 83
+    )
 
-    private const val STEPS = 1000.0
+    // Blocks that are solid but have a non-full bounding box (slabs, etc.).
+    private val PARTIAL_SOLID_BLOCK_IDS = setOf(44, 182, 126)
 
-    fun getEye() = EYE_HEIGHT - if (player.sneaking) 0.08 else .0
+    // Special case blocks that require specific handling (ladders, vines).
+    private val SPECIAL_COLLISION_BLOCK_IDS = setOf<Int>()
 
-    fun predictTeleport(distance: Double, pos: Vec3, rot: MathUtils.Rotation): Vec3? {
-        val forward = Vector3.fromPitchYaw(rot.pitch.toDouble(), rot.yaw.toDouble()).multiply(1.0 / STEPS)
-        val cur = Vector3(pos.xCoord, pos.yCoord + getEye(), pos.zCoord)
-        var i = 0.0
+    private const val RAY_TRACE_STEPS = 1000.0
+    private const val PLAYER_EYE_HEIGHT = 1.62
+    private const val SNEAK_HEIGHT_ADJUSTMENT = 0.08
 
-        while (i <= distance * STEPS) {
-            if (i % STEPS == 0.0 && ! isSpecial(cur) && ! isSpecial(cur.addY(1.0))) {
-                if (! isIgnored(cur) || ! isIgnored(cur.addY(1.0))) {
-                    cur.add(forward.multiply(- STEPS))
-                    return if (i == 0.0 || ! isIgnored(cur) || ! isIgnored(cur.addY(1.0))) null
-                    else Vec3(floor(cur.x) + 0.5, floor(cur.y), floor(cur.z) + 0.5)
-                }
+
+    fun predictTeleport(distance: Double, startPos: Vec3, rotation: MathUtils.Rotation): Vec3? {
+        val eyeHeight = PLAYER_EYE_HEIGHT - if (player.sneaking) SNEAK_HEIGHT_ADJUSTMENT else 0.0
+        val currentPosition = Vector3(startPos.xCoord, startPos.yCoord + eyeHeight, startPos.zCoord)
+        val direction = Vector3.fromPitchYaw(rotation.pitch.toDouble(), rotation.yaw.toDouble())
+        val stepVector = direction.copy().multiply(1.0 / RAY_TRACE_STEPS)
+
+        for (step in 0 .. (distance * RAY_TRACE_STEPS).toInt()) {
+            val isFullBlockInterval = step % RAY_TRACE_STEPS == 0.0
+
+            if (isFullBlockInterval && isSolidBlockInPath(currentPosition)) {
+                currentPosition.add(stepVector.copy().multiply(- RAY_TRACE_STEPS))
+
+                return if (step == 0 || isSolidBlockInPath(currentPosition)) null
+                else createLandingVector(currentPosition)
             }
 
-            if ((! isIgnored2(cur) && inBB(cur)) || (! isIgnored2(cur.addY(1.0)) && inBB(cur.addY(1.0)))) {
-                cur.add(forward.multiply(- STEPS))
-                return if (i == 0.0 || (! isIgnored(cur) && inBB(cur)) || (! isIgnored(cur.addY(1.0)) && inBB(cur.addY(1.0)))) null
-                else break
+            if (isPartialBlockInPath(currentPosition)) {
+                currentPosition.add(stepVector.copy().multiply(- RAY_TRACE_STEPS))
+                break
             }
 
-            cur.add(forward)
-            i ++
+            currentPosition.add(stepVector)
         }
 
-        val finalPos = Vector3(pos.xCoord, pos.yCoord + getEye(), pos.zCoord)
-            .add(Vector3.fromPitchYaw(rot.pitch.toDouble(), rot.yaw.toDouble()).multiply(i / STEPS))
-
-        return if ((! isIgnored(cur) && inBB(cur)) || (! isIgnored(cur.addY(1.0)) && inBB(cur.addY(1.0)))) null
-        else Vec3(floor(finalPos.x) + 0.5, floor(finalPos.y), floor(finalPos.z) + 0.5)
-
+        return if (isSolidBlockInPath(currentPosition)) null
+        else createLandingVector(currentPosition)
     }
 
-    private fun isIgnored(vec: Vector3): Boolean {
-        val blockId = getBlockAt(Vec3(vec.x, vec.y, vec.z).floor()).getBlockId()
-        return IGNORED.contains(blockId)
+
+    private fun isSolidBlockInPath(position: Vector3): Boolean {
+        val isSpecialAtFeet = isSpecialCollisionBlock(position)
+        val isSpecialAtHead = isSpecialCollisionBlock(position.copy().addY(1.0))
+
+        // Special blocks (ladders, vines) don't count as solid barriers at whole-block checks
+        if (! isSpecialAtFeet && ! isSpecialAtHead) {
+            val isIgnoredAtFeet = isPassableBlock(position)
+            val isIgnoredAtHead = isPassableBlock(position.copy().addY(1.0))
+            // If either feet or head position is not ignored (i.e., solid), return true
+            return ! isIgnoredAtFeet || ! isIgnoredAtHead
+        }
+        return false
     }
 
-    private fun isIgnored2(vec: Vector3): Boolean {
-        val blockId = getBlockAt(Vec3(vec.x, vec.y, vec.z).floor()).getBlockId()
-        return isIgnored(vec) || IGNORED2.contains(blockId)
+    private fun isPartialBlockInPath(position: Vector3): Boolean {
+        val isPartialAtFeet = isPartialSolidBlock(position) && positionIsInBoundingBox(position)
+        val isPartialAtHead = isPartialSolidBlock(position.copy().addY(1.0)) && positionIsInBoundingBox(position.copy().addY(1.0))
+        return isPartialAtFeet || isPartialAtHead
     }
 
-    private fun isSpecial(vec: Vector3): Boolean {
-        val blockId = getBlockAt(Vec3(vec.x, vec.y, vec.z).floor()).getBlockId()
-        return SPECIAL.contains(blockId)
+    private fun getBlockIdAtVector(vec: Vector3): Int {
+        val blockPos = Vec3(vec.x, vec.y, vec.z).floor()
+        return getBlockAt(blockPos).getBlockId()
     }
 
-    private fun inBB(vec: Vector3): Boolean {
+    private fun isPassableBlock(vec: Vector3) = PASSABLE_BLOCK_IDS.contains(getBlockIdAtVector(vec))
+    private fun isSpecialCollisionBlock(vec: Vector3) = SPECIAL_COLLISION_BLOCK_IDS.contains(getBlockIdAtVector(vec))
+
+    private fun isPartialSolidBlock(vec: Vector3): Boolean {
+        val blockId = getBlockIdAtVector(vec)
+        // A block is considered a partial solid if it's not a standard passable block
+        // AND it's in the designated list of partial solids.
+        return ! PASSABLE_BLOCK_IDS.contains(blockId) && PARTIAL_SOLID_BLOCK_IDS.contains(blockId)
+    }
+
+    private fun positionIsInBoundingBox(vec: Vector3): Boolean {
         val pos = Vec3(vec.x, vec.y, vec.z).floor()
         val boundingBox = getBlockAt(pos).getSelectedBoundingBox(mc.theWorld, BlockPos(pos))
-        return boundingBox.isVecInside(pos)
+        return boundingBox?.isVecInside(pos) ?: false
+    }
+
+    private fun createLandingVector(finalPos: Vector3): Vec3 {
+        return Vec3(floor(finalPos.x) + 0.5, floor(finalPos.y), floor(finalPos.z) + 0.5)
     }
 
     data class Vector3(var x: Double = 0.0, var y: Double = 0.0, var z: Double = 0.0) {
@@ -85,42 +114,39 @@ object InstantTransmissionPredictor {
             }
         }
 
-        fun add(vector3: Vector3): Vector3 {
-            x += vector3.x
-            y += vector3.y
-            z += vector3.z
+        fun add(other: Vector3): Vector3 {
+            this.x += other.x
+            this.y += other.y
+            this.z += other.z
             return this
         }
 
         fun addY(value: Double): Vector3 {
-            return Vector3(x, y + value, z)
+            this.y += value
+            return this
         }
 
         fun multiply(factor: Double): Vector3 {
-            x *= factor
-            y *= factor
-            z *= factor
+            this.x *= factor
+            this.y *= factor
+            this.z *= factor
             return this
         }
 
         fun normalize(): Vector3 {
-            val len = getLength()
-            if (len != 0.0) {
-                x /= len
-                y /= len
-                z /= len
-            }
+            val length = length()
+            if (length != 0.0) multiply(1.0 / length)
             return this
         }
 
-        fun getLength() = sqrt(x * x + y * y + z * z)
+        fun length(): Double = sqrt(x * x + y * y + z * z)
 
         fun dotProduct(vector3: Vector3): Double {
             return (x * vector3.x) + (y * vector3.y) + (z * vector3.z)
         }
 
         fun getAngleRad(vector3: Vector3): Double {
-            return acos(dotProduct(vector3) / (getLength() * vector3.getLength()))
+            return acos(dotProduct(vector3) / (length() * vector3.length()))
         }
 
         fun getAngleDeg(vector3: Vector3): Double {
