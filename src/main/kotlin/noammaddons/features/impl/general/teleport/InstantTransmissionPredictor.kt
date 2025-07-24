@@ -13,16 +13,13 @@ import kotlin.math.*
 object InstantTransmissionPredictor {
     // Blocks that can be passed through without stopping (air, liquids, grass, etc.).
     private val PASSABLE_BLOCK_IDS = setOf(
-        0, 51, 8, 9, 10, 11, 171, 331, 39, 40, 115, 132, 77, 143, 66, 27, 28, 157,
-        175, 31, 6, 38, 55, 75, 76, 69, 149, 150, 93, 94, 65, 106, 37, 50, 140, 105,
-        59, 141, 142, 32, 83
+        0, 6, 8, 9, 10, 11, 27, 28, 30, 31, 32, 37, 38, 39, 40, 50, 51, 55, 59, 65, 66,
+        69, 75, 76, 77, 83, 93, 94, 105, 106, 115, 132, 140, 141, 142, 143, 149, 150,
+        157, 171, 175, 331
     )
 
     // Blocks that are solid but have a non-full bounding box (slabs, etc.).
     private val PARTIAL_SOLID_BLOCK_IDS = setOf(44, 182, 126)
-
-    // Special case blocks that require specific handling (ladders, vines).
-    private val SPECIAL_COLLISION_BLOCK_IDS = setOf<Int>()
 
     private const val RAY_TRACE_STEPS = 1000.0
     private const val PLAYER_EYE_HEIGHT = 1.62
@@ -59,17 +56,9 @@ object InstantTransmissionPredictor {
 
 
     private fun isSolidBlockInPath(position: Vector3): Boolean {
-        val isSpecialAtFeet = isSpecialCollisionBlock(position)
-        val isSpecialAtHead = isSpecialCollisionBlock(position.copy().addY(1.0))
-
-        // Special blocks (ladders, vines) don't count as solid barriers at whole-block checks
-        if (! isSpecialAtFeet && ! isSpecialAtHead) {
-            val isIgnoredAtFeet = isPassableBlock(position)
-            val isIgnoredAtHead = isPassableBlock(position.copy().addY(1.0))
-            // If either feet or head position is not ignored (i.e., solid), return true
-            return ! isIgnoredAtFeet || ! isIgnoredAtHead
-        }
-        return false
+        val isIgnoredAtFeet = isPassableBlock(position)
+        val isIgnoredAtHead = isPassableBlock(position.copy().addY(1.0))
+        return ! isIgnoredAtFeet || ! isIgnoredAtHead
     }
 
     private fun isPartialBlockInPath(position: Vector3): Boolean {
@@ -84,12 +73,9 @@ object InstantTransmissionPredictor {
     }
 
     private fun isPassableBlock(vec: Vector3) = PASSABLE_BLOCK_IDS.contains(getBlockIdAtVector(vec))
-    private fun isSpecialCollisionBlock(vec: Vector3) = SPECIAL_COLLISION_BLOCK_IDS.contains(getBlockIdAtVector(vec))
 
     private fun isPartialSolidBlock(vec: Vector3): Boolean {
         val blockId = getBlockIdAtVector(vec)
-        // A block is considered a partial solid if it's not a standard passable block
-        // AND it's in the designated list of partial solids.
         return ! PASSABLE_BLOCK_IDS.contains(blockId) && PARTIAL_SOLID_BLOCK_IDS.contains(blockId)
     }
 
