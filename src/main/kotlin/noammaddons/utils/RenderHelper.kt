@@ -8,7 +8,7 @@ import net.minecraft.entity.Entity
 import net.minecraft.inventory.Slot
 import net.minecraft.util.Vec3
 import noammaddons.NoammAddons.Companion.mc
-import noammaddons.mixins.AccessorMinecraft
+import noammaddons.mixins.accessor.AccessorMinecraft
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.debugMessage
 import noammaddons.utils.MathUtils.lerp

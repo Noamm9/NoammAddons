@@ -12,7 +12,7 @@ import noammaddons.config.EditGui.GuiElement
 import noammaddons.config.EditGui.HudEditorScreen
 import noammaddons.events.*
 import noammaddons.features.Feature
-import noammaddons.mixins.AccessorGuiContainer
+import noammaddons.mixins.accessor.AccessorGuiContainer
 import noammaddons.ui.config.core.impl.SeperatorSetting
 import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.ChatUtils.modMessage

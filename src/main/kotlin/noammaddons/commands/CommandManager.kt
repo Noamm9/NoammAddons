@@ -2,7 +2,7 @@ package noammaddons.commands
 
 import net.minecraftforge.client.ClientCommandHandler
 import noammaddons.commands.commands.*
-import noammaddons.mixins.AccessorCommandHandler
+import noammaddons.mixins.accessor.AccessorCommandHandler
 
 object CommandManager {
     val commands = setOf(

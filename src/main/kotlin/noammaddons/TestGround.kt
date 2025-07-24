@@ -1,7 +1,11 @@
 package noammaddons
 
 import net.minecraft.client.gui.GuiDownloadTerrain
+import net.minecraft.entity.item.EntityArmorStand
+import net.minecraft.entity.monster.EntityMob
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.network.play.client.C01PacketChatMessage
+import net.minecraft.network.play.server.*
 import net.minecraftforge.event.entity.player.AttackEntityEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent
@@ -9,10 +13,13 @@ import noammaddons.NoammAddons.Companion.mc
 import noammaddons.events.*
 import noammaddons.utils.ChatUtils.debugMessage
 import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.ChatUtils.removeUnicode
 import noammaddons.utils.ChatUtils.sendChatMessage
 import noammaddons.utils.DungeonUtils
 import noammaddons.utils.LocationUtils.inDungeon
+import noammaddons.utils.LocationUtils.inSkyblock
 import noammaddons.utils.LocationUtils.onHypixel
+import noammaddons.utils.ScoreboardUtils
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.send
@@ -88,5 +95,70 @@ object TestGround {
         if (e.entityPlayer != mc.thePlayer) return
         if (DungeonUtils.dungeonTeammates.none { it.entity == e.target }) return
         e.isCanceled = true
+    }
+
+    private var recentlyRemovedEntities = ArrayDeque<Int>()
+    private var recentlySpawnedEntities = ArrayDeque<Int>()
+    private val hiddenEntityIds = mutableListOf<Int>()
+
+    @SubscribeEvent
+    fun onWorldChange(event: WorldUnloadEvent) {
+        recentlyRemovedEntities = ArrayDeque()
+        recentlySpawnedEntities = ArrayDeque()
+        hiddenEntityIds.clear()
+    }
+
+    @SubscribeEvent
+    fun onPacketReceive(event: PacketEvent.Received) {
+        if (! inSkyblock) return
+        //if (!config.fixGhostEntities) return
+        if (ScoreboardUtils.sidebarLines.any { removeUnicode(it.removeFormatting()).contains("Kuudra's Hollow", true) }) return
+
+        when (val packet = event.packet) {
+            is S0CPacketSpawnPlayer -> {
+                if (packet.entityID in recentlyRemovedEntities) {
+                    hiddenEntityIds.add(packet.entityID)
+                }
+                recentlySpawnedEntities.addLast(packet.entityID)
+            }
+
+            is S0FPacketSpawnMob -> {
+                if (packet.entityID in recentlyRemovedEntities) {
+                    hiddenEntityIds.add(packet.entityID)
+                }
+                recentlySpawnedEntities.addLast(packet.entityID)
+            }
+
+            is S13PacketDestroyEntities -> {
+                for (entityID in packet.entityIDs) {
+                    if (entityID !in recentlySpawnedEntities) {
+                        recentlyRemovedEntities.addLast(entityID)
+                        if (recentlyRemovedEntities.size == 10) {
+                            recentlyRemovedEntities.removeFirst()
+                        }
+                    }
+                    hiddenEntityIds.remove(entityID)
+                }
+            }
+        }
+    }
+
+    @SubscribeEvent
+    fun onCheckRender(event: RenderEntityEvent) {
+        if (event.entity is EntityArmorStand) {
+            with(event.entity) {
+                if (ticksExisted < 10 && (0 .. 3).map { getCurrentArmor(it) }.all { it == null }) {
+                    event.isCanceled = true
+                    return
+                }
+            }
+        }
+        if ((event.entity is EntityMob || event.entity is EntityPlayer)) {
+            with(event.entity) {
+                if (hiddenEntityIds.contains(entityId)) {
+                    event.isCanceled = true
+                }
+            }
+        }
     }
 }

@@ -4,11 +4,6 @@
   "package": "noammaddons.mixins",
   "refmap": "mixins.${modid}.refmap.json",
   "client": [
-    "AccessorGuiChat",
-    "AccessorGuiContainer",
-    "AccessorGuiIngame",
-    "AccessorGuiPlayerTabOverlay",
-    "AccessorMinecraft",
     "MixinBossStatus",
     "MixinEntityPlayerSP",
     "MixinEntityRenderer",
@@ -19,22 +14,23 @@
     "MixinGuiNewChat",
     "MixinGuiPlayerTabOverlay",
     "MixinGuiScreen",
-    "MixinGuiUtils",
     "MixinInventoryEffectRenderer",
     "MixinItemRenderer",
     "MixinMinecraft",
     "MixinNetHandlerPlayClient",
     "MixinNetworkManager",
-    "MixinPatcherEntityCulling",
     "MixinRendererLivingEntity",
     "MixinRenderManager",
     "MixinThePlayer",
     "MixinTileEntityChestRenderer",
-    "TestMixin"
+    "TestMixin",
+    "accessor.AccessorGuiChat",
+    "accessor.AccessorGuiContainer",
+    "accessor.AccessorGuiIngame",
+    "accessor.AccessorGuiPlayerTabOverlay",
+    "accessor.AccessorMinecraft"
   ],
   "mixins": [
-    "AccessorCommandHandler",
-    "EntityAccessor",
     "MixinBlockButton",
     "MixinBlockLever",
     "MixinBlockMushroom",
@@ -42,9 +38,13 @@
     "MixinEntity",
     "MixinEntityLivingBase",
     "MixinEntityPlayer",
+    "MixinGuiUtils",
     "MixinItem",
     "MixinModList",
+    "MixinPatcherEntityCulling",
     "MixinSkytilsFunny",
-    "MixinWorld"
+    "MixinWorld",
+    "accessor.AccessorCommandHandler",
+    "accessor.EntityAccessor"
   ]
 }

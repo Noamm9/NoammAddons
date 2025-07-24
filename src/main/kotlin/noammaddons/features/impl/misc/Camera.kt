@@ -9,7 +9,7 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.PreKeyInputEvent
 import noammaddons.features.Feature
-import noammaddons.mixins.EntityAccessor
+import noammaddons.mixins.accessor.EntityAccessor
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.PlayerUtils.isHoldingWitherImpact
 import noammaddons.utils.RenderHelper.getPartialTicks

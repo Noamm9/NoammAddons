@@ -13,7 +13,7 @@ import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.events.RenderOverlay
-import noammaddons.mixins.AccessorGuiContainer
+import noammaddons.mixins.accessor.AccessorGuiContainer
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ReflectionUtils.getField
 import noammaddons.utils.ThreadUtils.setTimeout

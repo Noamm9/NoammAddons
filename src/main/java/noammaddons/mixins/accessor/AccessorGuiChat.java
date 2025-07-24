@@ -1,4 +1,4 @@
-package noammaddons.mixins;
+package noammaddons.mixins.accessor;
 
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.GuiTextField;

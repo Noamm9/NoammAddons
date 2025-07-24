@@ -8,7 +8,7 @@ import net.minecraftforge.fml.common.eventhandler.Event
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
-import noammaddons.mixins.AccessorGuiChat
+import noammaddons.mixins.accessor.AccessorGuiChat
 import noammaddons.utils.ChatUtils.debugMessage
 import noammaddons.utils.GuiUtils.openScreen
 

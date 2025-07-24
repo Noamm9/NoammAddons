@@ -15,8 +15,6 @@ import java.util.Map;
 import static noammaddons.NoammAddons.getMc;
 
 
-// full Credit to soshimee
-// https://github.com/Noamm9/secretguide/blob/master/src/main/java/com/github/soshimee/secretguide/mixin/MixinModList.java
 @Mixin(value = FMLHandshakeMessage.ModList.class, remap = false)
 public class MixinModList {
     @Shadow

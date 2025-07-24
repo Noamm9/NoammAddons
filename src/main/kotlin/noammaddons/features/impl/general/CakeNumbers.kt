@@ -5,7 +5,7 @@ import net.minecraft.init.Items
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.features.Feature
-import noammaddons.mixins.AccessorGuiContainer
+import noammaddons.mixins.accessor.AccessorGuiContainer
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.currentChestName
 import noammaddons.utils.RenderUtils.drawCenteredText

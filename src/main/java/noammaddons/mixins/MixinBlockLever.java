@@ -12,8 +12,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 
-// Taken from Odin mod
-// Under BSD 3-Clause License
 @Mixin(BlockLever.class)
 public class MixinBlockLever extends Block {
     public MixinBlockLever(Material materialIn) {

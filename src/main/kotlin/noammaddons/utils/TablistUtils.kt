@@ -3,8 +3,8 @@ package noammaddons.utils
 import com.google.common.collect.ComparisonChain
 import net.minecraft.client.network.NetworkPlayerInfo
 import net.minecraft.world.WorldSettings.*
-import noammaddons.mixins.AccessorGuiPlayerTabOverlay
 import noammaddons.NoammAddons.Companion.mc
+import noammaddons.mixins.accessor.AccessorGuiPlayerTabOverlay
 
 
 object TablistUtils {
