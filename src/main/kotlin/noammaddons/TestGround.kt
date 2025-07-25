@@ -147,7 +147,7 @@ object TestGround {
     fun onCheckRender(event: RenderEntityEvent) {
         if (event.entity is EntityArmorStand) {
             with(event.entity) {
-                if (ticksExisted < 10 && (0 .. 3).map { getCurrentArmor(it) }.all { it == null }) {
+                if (ticksExisted < 10 && (0 .. 3).map { getCurrentArmor(it) }.all { it == null } && ! hasCustomName() && nbtTagCompound == null) {
                     event.isCanceled = true
                     return
                 }

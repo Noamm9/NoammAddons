@@ -42,7 +42,7 @@ object FeatureManager {
         WitherShieldTimer, BowHitSound, ZeroPingTeleportation, TeleportOverlay, CustomScoreboard,
         BlockOverlay, WardrobeMenu, CustomPetMenu, TimeChanger, CustomTabList, TerminalSolver,
         ChamNametags, CustomSlotHighlight, InventoryDisplay, StopCloseMyChat, InventorySearchbar,
-        BlessingDisplay, ClientTimer, DarkMode, Animations,
+        BlessingDisplay, ClientTimer, DarkMode, Animations, EnchantmentsColors,
 
         DungeonMap,
 

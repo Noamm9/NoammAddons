@@ -149,4 +149,42 @@ object RenderHelper {
     catch (_: NoSuchFieldException) {
         false
     }
+
+    private val colorMap: Map<Char, Color> = mapOf(
+        '0' to Color(0, 0, 0),
+        '1' to Color(0, 0, 170),
+        '2' to Color(0, 170, 0),
+        '3' to Color(0, 170, 170),
+        '4' to Color(170, 0, 0),
+        '5' to Color(170, 0, 170),
+        '6' to Color(255, 170, 0),
+        '7' to Color(170, 170, 170),
+        '8' to Color(85, 85, 85),
+        '9' to Color(85, 85, 255),
+        'a' to Color(0, 255, 0),
+        'b' to Color(0, 255, 255),
+        'c' to Color(255, 85, 85),
+        'd' to Color(255, 0, 255),
+        'e' to Color(255, 255, 0),
+        'f' to Color(255, 255, 255)
+    )
+
+    fun getColorCode(color: Color): String {
+        var minDistanceSquared = Int.MAX_VALUE
+        var closestCode = 'f'
+
+        for ((code, mcColor) in colorMap) {
+            val rDiff = color.red - mcColor.red
+            val gDiff = color.green - mcColor.green
+            val bDiff = color.blue - mcColor.blue
+            val distanceSquared = rDiff * rDiff + gDiff * gDiff + bDiff * bDiff
+
+            if (distanceSquared < minDistanceSquared) {
+                minDistanceSquared = distanceSquared
+                closestCode = code
+            }
+        }
+
+        return "&$closestCode"
+    }
 }

@@ -14,7 +14,7 @@ object InstantTransmissionPredictor {
     // Blocks that can be passed through without stopping (air, liquids, grass, etc.).
     private val PASSABLE_BLOCK_IDS = setOf(
         0, 6, 8, 9, 10, 11, 27, 28, 30, 31, 32, 37, 38, 39, 40, 50, 51, 55, 59, 65, 66,
-        69, 75, 76, 77, 83, 93, 94, 105, 106, 115, 132, 140, 141, 142, 143, 149, 150,
+        69, 75, 76, 77, 83, 90, 93, 94, 105, 106, 115, 132, 140, 141, 142, 143, 149, 150,
         157, 171, 175, 331
     )
 

@@ -244,6 +244,8 @@ object DevOptions: Feature() {
             "fr" -> {
                 modMessage("fastRender: " + mc.gameSettings::class.java.getField("ofFastRender").getBoolean(mc.gameSettings))
             }
+
+            // "enchants" -> getEnchants(mc.thePlayer.heldItem ?: return)
         }
     }
 

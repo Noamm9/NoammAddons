@@ -15,7 +15,7 @@ import java.util.*
 @Dev
 object RatProtection: Feature() {
     private val blockEndPoint by ToggleSetting("Block Mojang Endpoint")
-    private val blockSusConnections by ToggleSetting("Block Suspicious Connections")
+    private val blockSusConnections by ToggleSetting("Block Suspicious Connections ", true)
     private lateinit var proxySelector: ProxySelector
 
     private val suspiciousEndpoints = setOf(
@@ -25,13 +25,13 @@ object RatProtection: Feature() {
         "pastebin.com/api",
         "requestbin.com",
         "discord.com/api/webhooks",
+        "media.guilded.gg/webhooks",
         "hastebin.com",
         "paste.ee/api",
         "gooning.shop",
         "heroku",
         "onrender",
         "vercel",
-        "guilded",
         "cloud-xip.com",
         "pythonanywhere",
         "heroku",

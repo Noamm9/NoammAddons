@@ -1,6 +1,5 @@
 package noammaddons.features.impl.general.teleport
 
-
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
 import noammaddons.utils.BlockUtils.getBlockAt
@@ -12,7 +11,6 @@ import noammaddons.utils.MathUtils.multiply
 import noammaddons.utils.ServerPlayer
 import java.util.*
 import kotlin.math.*
-
 
 object EtherwarpHelper {
     data class EtherPos(val succeeded: Boolean, val pos: BlockPos?) {
@@ -111,7 +109,7 @@ object EtherwarpHelper {
     private val validEtherwarpFeetIds = BitSet(500).apply {
         arrayOf(
             0, 6, 8, 9, 10, 11, 30, 31, 32, 37, 38, 39, 40, 50, 51, 55, 59,
-            65, 66, 69, 75, 76, 77, 78, 83, 93, 94, 104, 105,
+            65, 66, 69, 75, 76, 77, 78, 83, 90, 93, 94, 104, 105,
             106, 115, 131, 132, 140, 141, 142, 143, 144, 149,
             150, 157, 171, 175, 176, 177, 397, 127
         ).forEach { set(it) }
