@@ -5,6 +5,7 @@ import net.minecraft.network.play.server.S08PacketPlayerPosLook
 import net.minecraft.util.BlockPos
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.NoammAddons.Companion.mc
+import noammaddons.NoammAddons.Companion.personalBests
 import noammaddons.events.*
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.correctTpPadColor
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.tpMaze
@@ -12,9 +13,14 @@ import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.wrongTpP
 import noammaddons.features.impl.general.teleport.InstantTransmissionPredictor.Vector3
 import noammaddons.features.impl.general.teleport.InstantTransmissionPredictor.Vector3.Companion.fromPitchYaw
 import noammaddons.utils.BlockUtils.getBlockAt
+import noammaddons.utils.ChatUtils.clickableChat
+import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.ChatUtils.sendPartyMessage
+import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderUtils.drawBlockBox
 import noammaddons.utils.ScanUtils
 import noammaddons.utils.ScanUtils.getRoomCenterAt
+import noammaddons.utils.Utils.formatPbPuzzleMessage
 import kotlin.math.abs
 
 object TeleportMazeSolver {
@@ -23,6 +29,9 @@ object TeleportMazeSolver {
     private var cells: List<Cell>? = null
     private var orderedPads: MutableList<TpPad>? = null
     private var inTpMaze = false
+
+    private var startTime: Long? = null
+    private var trueTime: Long? = null
 
     @SubscribeEvent
     fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
@@ -38,6 +47,7 @@ object TeleportMazeSolver {
         }
 
         inTpMaze = true
+        trueTime = System.currentTimeMillis()
 
         val pads = mutableListOf<TpPad>()
         for (dx in 0 .. 31) {
@@ -95,12 +105,31 @@ object TeleportMazeSolver {
         if (packet.x % 0.5 != 0.0 || packet.y != 69.5 || packet.z % 0.5 != 0.0) return
         val oldPad = getPadNear(mc.thePlayer.posX, mc.thePlayer.posZ) ?: return
         val newPad = getPadNear(packet.x, packet.z) ?: return
+        if (startTime == null) startTime = System.currentTimeMillis()
 
-        if (isPadInStartOrEndCell(newPad)) return cells !!.forEach { cell ->
-            cell.pads.forEach {
-                it.blacklisted = false
-                it.totalAngle = 0.0
+        if (isPadInStartOrEndCell(newPad)) return run {
+            cells !!.forEach { cell ->
+                cell.pads.forEach {
+                    it.blacklisted = false
+                    it.totalAngle = 0.0
+                }
             }
+
+            val personalBestsData = personalBests.getData().pazzles
+            val previousBest = personalBestsData["Teleport Maze"]
+            val completionTime = (System.currentTimeMillis() - startTime !!).toDouble()
+            val totalTime = (System.currentTimeMillis() - trueTime !!).toDouble()
+
+            val message = formatPbPuzzleMessage("Teleport Maze", completionTime, previousBest)
+
+            sendPartyMessage(message)
+
+            clickableChat(
+                msg = message,
+                cmd = "/na copy ${message.removeFormatting()}",
+                hover = "Total Time: &b${(totalTime / 1000.0).toFixed(2)}s",
+                prefix = false
+            )
         }
 
         newPad.blacklisted = true
@@ -130,6 +159,8 @@ object TeleportMazeSolver {
         cells = null
         orderedPads = null
         inTpMaze = false
+        startTime = null
+        trueTime = null
     }
 
     private fun getCellAt(x: Int, z: Int): Cell? {

@@ -2,7 +2,6 @@ package noammaddons.utils
 
 import gg.essential.universal.UChat
 import gg.essential.universal.UDesktop
-import io.github.moulberry.notenoughupdates.NEUApi
 import net.minecraft.network.Packet
 import noammaddons.NoammAddons.Companion.CHAT_PREFIX
 import noammaddons.NoammAddons.Companion.Logger
@@ -105,14 +104,12 @@ object Utils {
     }
 
     fun formatPbPuzzleMessage(puzzle: String, completionTime: Double, previousBest: Double?): String {
-        val pb = previousBest ?: Double.MAX_VALUE
-
         val formattedTime = (completionTime / 1000.0).toFixed(2)
-        val formattedBest = (pb / 1000.0).toFixed(2)
+        val formattedBest = (((previousBest ?: 20000.0) / 1000.0)).toFixed(2)
 
         return buildString {
-            append("$CHAT_PREFIX &b$puzzle Done: &d")
-            if (completionTime <= pb) {
+            append("$CHAT_PREFIX &b$puzzle Took: &d")
+            if (previousBest != null && completionTime <= previousBest) {
                 val data = personalBests.getData()
                 data.pazzles[puzzle] = completionTime
                 personalBests.setData(data)
@@ -120,7 +117,14 @@ object Utils {
 
                 append("${formattedTime}s &d&lPB! &7(${formattedBest}s)")
             }
-            else append("${formattedTime}s &7(${formattedBest}s)")
+            else if (previousBest != null) append("${formattedTime}s &7(${formattedBest}s)")
+            else {
+                val data = personalBests.getData()
+                data.pazzles[puzzle] = completionTime
+                personalBests.setData(data)
+                personalBests.save()
+                append("${formattedTime}s")
+            }
         }.addColor()
     }
 }

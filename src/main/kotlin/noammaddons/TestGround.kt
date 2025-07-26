@@ -14,15 +14,14 @@ import noammaddons.NoammAddons.Companion.mc
 import noammaddons.events.*
 import noammaddons.features.impl.dungeons.dmap.core.map.Room
 import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
+import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.debugMessage
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.removeUnicode
 import noammaddons.utils.ChatUtils.sendChatMessage
-import noammaddons.utils.DungeonUtils
 import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.LocationUtils.inSkyblock
 import noammaddons.utils.LocationUtils.onHypixel
-import noammaddons.utils.ScoreboardUtils
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.send
@@ -170,6 +169,8 @@ object TestGround {
         if (event.room.rotation != null) return
         DungeonInfo.dungeonList.filterIsInstance<Room>().filterNot { it.isSeparator }.forEach {
             if (it.rotation != null) return@forEach
+            it.highestBlock = ScanUtils.gethighestBlockAt(it.x, it.z)
+            it.findRotation()
             it.findRotation()
         }
     }

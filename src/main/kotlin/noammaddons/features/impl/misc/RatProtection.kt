@@ -73,7 +73,7 @@ object RatProtection: Feature() {
             override fun select(uri: URI): List<Proxy> {
                 val url = uri.toString()
                 if (enabled && blockSusConnections && isSuspicious(url)) {
-                    modMessage("Rat Protection >> &c&lSuspicious request: &r&c$url")
+                    modMessage("Rat Protection >> &c&lBlcoked URL connection: &r&b$url")
                     return listOf(Proxy(Proxy.Type.HTTP, InetSocketAddress("localhost", 0)))
                 }
                 return default?.select(uri) ?: listOf(Proxy.NO_PROXY)
