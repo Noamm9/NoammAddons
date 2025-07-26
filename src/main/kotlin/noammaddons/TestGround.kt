@@ -7,10 +7,13 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.network.play.client.C01PacketChatMessage
 import net.minecraft.network.play.server.*
 import net.minecraftforge.event.entity.player.AttackEntityEvent
+import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.events.*
+import noammaddons.features.impl.dungeons.dmap.core.map.Room
+import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
 import noammaddons.utils.ChatUtils.debugMessage
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.removeUnicode
@@ -159,6 +162,15 @@ object TestGround {
                     event.isCanceled = true
                 }
             }
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    fun onEnter(event: DungeonEvent.RoomEvent.onEnter) {
+        if (event.room.rotation != null) return
+        DungeonInfo.dungeonList.filterIsInstance<Room>().filterNot { it.isSeparator }.forEach {
+            if (it.rotation != null) return@forEach
+            it.findRotation()
         }
     }
 }

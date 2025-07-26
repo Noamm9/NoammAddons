@@ -15,6 +15,8 @@ import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.features.FeatureManager
 import noammaddons.features.FeatureManager.registerFeatures
+import noammaddons.features.impl.dungeons.dmap.core.map.Room
+import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
 import noammaddons.features.impl.dungeons.dmap.handlers.DungeonScanner
 import noammaddons.features.impl.dungeons.solvers.devices.AutoI4.testi4
 import noammaddons.features.impl.esp.StarMobESP
@@ -245,7 +247,13 @@ object DevOptions: Feature() {
                 modMessage("fastRender: " + mc.gameSettings::class.java.getField("ofFastRender").getBoolean(mc.gameSettings))
             }
 
-            // "enchants" -> getEnchants(mc.thePlayer.heldItem ?: return)
+            "scanrot" -> {
+                event.isCanceled = true
+                DungeonInfo.dungeonList.filterIsInstance<Room>().filterNot { it.isSeparator }.forEach {
+                    if (it.rotation != null) return@forEach
+                    it.findRotation()
+                }
+            }
         }
     }
 

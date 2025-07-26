@@ -82,9 +82,9 @@ object DungeonScanner {
             rowEven && columnEven -> {
                 val roomCore = ScanUtils.getCore(x, z)
                 Room(x, z, ScanUtils.getRoomData(roomCore) ?: return null).apply {
-                    core = roomCore
-                    highestBlock = ScanUtils.gethighestBlockAt(x, z)
                     addToUnique(row, column)
+                    core = roomCore
+                    highestBlock = height
                     findRotation()
                 }
             }
