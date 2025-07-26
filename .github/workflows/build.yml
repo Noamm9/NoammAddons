@@ -30,7 +30,8 @@ jobs:
       - name: Get version
         id: get_version
         run: |
-          VERSION=$(grep mod_version gradle.properties | cut -d= -f2)
+          # Correctly read 'modVersion' from the properties file
+          VERSION=$(grep '^modVersion=' gradle.properties | cut -d= -f2)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Upload release JAR
