@@ -2,6 +2,7 @@ package noammaddons.utils
 
 import gg.essential.universal.UChat
 import gg.essential.universal.UDesktop
+import kotlinx.serialization.json.*
 import net.minecraft.network.Packet
 import noammaddons.NoammAddons.Companion.CHAT_PREFIX
 import noammaddons.NoammAddons.Companion.Logger
@@ -127,4 +128,33 @@ object Utils {
             }
         }.addColor()
     }
+
+    fun JsonElement.toGson(): com.google.gson.JsonElement {
+        return when (this) {
+            is JsonObject -> com.google.gson.JsonObject().apply {
+                this@toGson.forEach { (key, value) ->
+                    add(key, value.toGson())
+                }
+            }
+
+            is JsonArray -> com.google.gson.JsonArray().apply {
+                this@toGson.forEach { element ->
+                    add(element.toGson())
+                }
+            }
+
+            is JsonPrimitive -> when {
+                this.isString -> com.google.gson.JsonPrimitive(this.content)
+                this.booleanOrNull != null -> com.google.gson.JsonPrimitive(this.boolean)
+                this.intOrNull != null -> com.google.gson.JsonPrimitive(this.int)
+                this.longOrNull != null -> com.google.gson.JsonPrimitive(this.long)
+                this.doubleOrNull != null -> com.google.gson.JsonPrimitive(this.double)
+                else -> com.google.gson.JsonNull.INSTANCE
+            }
+
+            JsonNull -> com.google.gson.JsonNull.INSTANCE
+            else -> com.google.gson.JsonNull.INSTANCE
+        }
+    }
+
 }

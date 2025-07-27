@@ -19,7 +19,6 @@ import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawCenteredText
 
 object MaxorsCrystals: Feature() {
-    private val crystalData get() = personalBests.getData().crystals
     private var tickTimer: Int? = null
     private var pickupTime: Long? = null
 
@@ -61,9 +60,9 @@ object MaxorsCrystals: Feature() {
 
         val placeTime = ((System.currentTimeMillis() - pickupTime !!) / 1000.0)
         var msg = "&aCrystal placed in &e${placeTime.toFixed(3)}s&a."
-        val crystalTime = crystalData[0]
-        if (placeTime < (crystalTime ?: Double.MAX_VALUE) || crystalTime == null) {
-            crystalData[0] = placeTime
+        val crystalTime = personalBests.getData().crystals[0]
+        if (placeTime < (crystalTime ?: Double.MAX_VALUE)) {
+            personalBests.getData().crystals[0] = placeTime
             personalBests.save()
             msg += " &d&l(PB)"
         }

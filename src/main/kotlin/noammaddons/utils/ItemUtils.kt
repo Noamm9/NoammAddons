@@ -23,6 +23,7 @@ import noammaddons.utils.NumbersUtils.romanToDecimal
 import noammaddons.utils.NumbersUtils.toRoman
 import noammaddons.utils.Utils.remove
 import noammaddons.utils.Utils.startsWithOneOf
+import noammaddons.utils.Utils.toGson
 import java.awt.Color
 
 
@@ -70,6 +71,37 @@ object ItemUtils {
         get() = tagCompound?.getCompoundTag("display")?.getTagList("Lore", 8)?.let {
             List(it.tagCount()) { i -> it.getStringTagAt(i) }
         }.orEmpty()
+
+
+    fun ItemStack.getSkyblockId(): String? {
+        val nbt = this.extraAttributes ?: return null
+        val id = nbt.getString("id") ?: return null
+
+        if (id == "PET" && nbt.hasKey("petInfo")) {
+            val petInfoNbt = nbt.getString("petInfo") ?: return null
+            val petInfoJson = JsonUtils.stringToJson(petInfoNbt).toGson()
+            if (! petInfoJson.isJsonObject) return null
+            val petInfo = petInfoJson.asJsonObject
+            val tier = petInfo.get("tier").asString
+            return "${petInfo.get("type").asString}-$tier"
+        }
+
+        if (id == "RUNE" && nbt.hasKey("runes")) {
+            val runeType = nbt.getCompoundTag("runes")?.keySet?.firstOrNull()
+            if (runeType != null) return "${runeType}_RUNE-${nbt.getCompoundTag("runes").getInteger(runeType)}"
+        }
+
+        if (id == "NEW_YEAR_CAKE") {
+            val year = nbt.getInteger("new_years_cake")
+            return "NEW_YEAR_CAKE-$year"
+        }
+
+        if (id == "ENCHANTED_BOOK" || this.item == Items.enchanted_book) {
+            return this@ItemUtils.enchantNameToID(lore[0])
+        }
+
+        return id
+    }
 
     fun setItemLore(item: ItemStack, newLore: List<String>) {
         val compound = item.tagCompound ?: return

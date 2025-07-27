@@ -6,6 +6,7 @@ import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.entity.monster.EntityEnderman
 import net.minecraft.entity.passive.EntityBat
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.entity.projectile.EntityArrow
 import net.minecraft.network.play.server.*
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -21,6 +22,7 @@ import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.ThreadUtils.scheduledTask
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.favoriteColor
+import noammaddons.utils.Utils.isOneOf
 import java.awt.Color
 
 
@@ -64,10 +66,8 @@ object StarMobESP: Feature("Highlights Star Mobs in the dungeon") {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     fun onPacket(event: PostPacketEvent.Received) {
-        if (! inDungeon) return
-        if (inBoss) return
-
-        scheduledTask(2) {
+        if (! inDungeon || inBoss) return
+        scheduledTask(6) {
             when (val packet = event.packet) {
                 is S1CPacketEntityMetadata -> {
                     val armorStand = mc.theWorld.getEntityByID(packet.entityId) as? EntityArmorStand ?: return@scheduledTask
@@ -78,8 +78,8 @@ object StarMobESP: Feature("Highlights Star Mobs in the dungeon") {
 
                 is S0FPacketSpawnMob -> {
                     if (packet.entityType != 30) return@scheduledTask
-                    val name = packet.func_149027_c().find { it.dataValueId == 2 }?.getObject().toString().takeIf { "§6✯" in it } ?: return@scheduledTask
-                    if (! name.matches(dungeonMobRegex)) return@scheduledTask
+                    val name = packet.func_149027_c().find { it.dataValueId == 2 }?.getObject()?.toString() ?: return@scheduledTask
+                    if (! name.matches(dungeonMobRegex) || "§6✯" !in name) return@scheduledTask
                     val armorStand = mc.theWorld?.getEntityByID(packet.entityID) as? EntityArmorStand? ?: return@scheduledTask
                     checkStarMob(armorStand)
                 }
@@ -107,7 +107,7 @@ object StarMobESP: Feature("Highlights Star Mobs in the dungeon") {
         val id = if (name.contains("WITHERMANCER")) 3 else 1
 
         val mob = armorStand.entityWorld.getEntityByID(armorStand.entityId - id)
-        if (mob !is EntityArmorStand && mob !in starMobs) {
+        if (! mob.isOneOf(EntityArmorStand::class, EntityArrow::class) && mob !in starMobs) {
             starMobs.add(mob)
             checked.add(armorStand)
             return
@@ -115,7 +115,7 @@ object StarMobESP: Feature("Highlights Star Mobs in the dungeon") {
 
         val possibleEntities = armorStand.entityWorld.getEntitiesInAABBexcluding(
             armorStand, armorStand.entityBoundingBox.offset(0.0, - 1.0, 0.0)
-        ) { it !is EntityArmorStand }
+        ) { ! mob.isOneOf(EntityArmorStand::class, EntityArrow::class) }
         possibleEntities.find {
             ! starMobs.contains(it) && when (it) {
                 is EntityPlayer -> ! it.isInvisible() && it.getUniqueID()
