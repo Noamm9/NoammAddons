@@ -30,11 +30,17 @@ jobs:
       - name: Get version
         id: get_version
         run: |
-          VERSION=$(grep mod_version gradle.properties | cut -d= -f2)
+          VERSION=$(grep '^modVersion=' gradle.properties | cut -d= -f2)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Get Name
+        id: get_name
+        run: |
+          NAME=$(grep '^modName=' gradle.properties | cut -d= -f2)
+          echo "name=$NAME" >> $GITHUB_OUTPUT
 
       - name: Upload release JAR
         uses: actions/upload-artifact@v4
         with:
-          name: Mod-JAR
+          name: ${{ steps.get_name.outputs.name }}-${{ steps.get_version.outputs.version }}
           path: build/libs/NoammAddons-${{ steps.get_version.outputs.version }}.jar
