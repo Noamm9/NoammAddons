@@ -30,8 +30,8 @@ object DungeonMap: Feature(toggled = false) {
     private val openConfigBtn by ButtonSetting("Open Config") {
         GuiUtils.openScreen(DungeonMapConfig.gui())
     }
-    
-    val debug get() = EssentialAPI.getMinecraftUtil().isDevelopment() || DevOptions.devMode
+
+    val debug get() = EssentialAPI.getMinecraftUtil().isDevelopment() || DevOptions.devMode || DevOptions.enabled
 
     @SubscribeEvent
     fun onRenderOverlay(event: RenderOverlay) {

@@ -2,10 +2,10 @@ package noammaddons.utils
 
 import kotlinx.coroutines.launch
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.Tick
-import noammaddons.features.impl.DevOptions
 import noammaddons.NoammAddons.Companion.Logger
 import noammaddons.NoammAddons.Companion.scope
+import noammaddons.events.Tick
+import noammaddons.features.impl.DevOptions
 import java.util.concurrent.*
 
 object ThreadUtils {
@@ -53,7 +53,7 @@ object ThreadUtils {
                 }
                 catch (e: Exception) {
                     if (! DevOptions.devMode) {
-                        e.stackTrace.take(10).forEach { Logger.error(it) }
+                        e.stackTrace.take(30).forEach { Logger.error(it) }
                     }
                 }
                 finally {
@@ -76,7 +76,7 @@ object ThreadUtils {
                 }
                 else {
                     runCatching { task.task.run() }.onFailure {
-                        it.stackTrace.take(10).forEach(Logger::error)
+                        it.stackTrace.take(30).forEach(Logger::error)
                     }
                     true
                 }

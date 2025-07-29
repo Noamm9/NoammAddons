@@ -36,7 +36,7 @@ import noammaddons.utils.Utils.openDiscordLink
 import java.net.URI
 
 
-object NoammAddonsCommands: Command("na", listOf("noammaddons, noamm, noam, noamaddons")) {
+object NoammAddonsCommands: Command("na", listOf("noammaddons", "noamm", "noam", "noamaddons")) {
     override fun getCommandUsage(sender: ICommandSender): String {
         return Usage()
     }
@@ -160,7 +160,7 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons, noamm, noam, noam
         }
     }
 
-    val commandsList = listOf(
+    private val commandsList = listOf(
         "&b/na &7- &oOpens the Settings GUI.",
         "&b/na help &7- &oShows this Message.",
         "&b/na discord &7- &oOpens link to my Discord Server.",

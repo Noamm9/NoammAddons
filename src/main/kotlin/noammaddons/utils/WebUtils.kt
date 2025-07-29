@@ -106,6 +106,7 @@ object WebUtils {
         CoroutineScope(Dispatchers.IO).launch {
             val connection = makeWebRequest(url) as HttpsURLConnection
             connection.requestMethod = "POST"
+            connection.setRequestProperty("Content-Type", "application/json")
             connection.doOutput = true
             connection.outputStream.use { os ->
                 os.write(body.toString().toByteArray(Charsets.UTF_8))
@@ -113,4 +114,19 @@ object WebUtils {
             connection.disconnect()
         }
     }
+
+    fun sendPostRequest(url: String, body: Any, callback: (HttpsURLConnection) -> Unit) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val connection = makeWebRequest(url) as HttpsURLConnection
+            connection.requestMethod = "POST"
+            connection.setRequestProperty("Content-Type", "application/json")
+            connection.doOutput = true
+            connection.outputStream.use { os ->
+                os.write(Gson().toJson(body).toByteArray(Charsets.UTF_8))
+            }
+            callback(connection)
+            connection.disconnect()
+        }
+    }
+
 }

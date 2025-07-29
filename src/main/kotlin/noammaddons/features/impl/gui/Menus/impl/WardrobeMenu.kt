@@ -136,8 +136,8 @@ object WardrobeMenu: Feature() {
         event.isCanceled = true
         val container = mc.thePlayer?.openContainer?.inventorySlots ?: return
         runCatching {
-            NEUApi.setInventoryButtonsToDisabled()
             injectEditButton(container[EDIT_SLOT])
+            NEUApi.setInventoryButtonsToDisabled()
         }
 
         val scale = calculateScale()

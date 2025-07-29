@@ -1,5 +1,7 @@
 package noammaddons.features.impl.misc
 
+import com.google.gson.JsonObject
+import com.google.gson.JsonPrimitive
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.annotations.Dev
 import noammaddons.ui.config.core.impl.ToggleSetting
@@ -50,7 +52,7 @@ object RatProtection: Feature() {
         "drive.google"
     )
 
-    override fun init() = loop(25) {
+    override fun init() = loop(1000) {
         if (! enabled) return@loop
         if (! blockEndPoint) return@loop
         if (mc.theWorld == null) return@loop
@@ -58,11 +60,11 @@ object RatProtection: Feature() {
 
         WebUtils.sendPostRequest(
             "https://sessionserver.mojang.com/session/minecraft/join",
-            mapOf(
-                "accessToken" to mc.session.token,
-                "selectedProfile" to mc.session.playerID.remove("-"),
-                "serverId" to UUID.randomUUID().toString().remove("-")
-            )
+            JsonObject().apply {
+                add("accessToken", JsonPrimitive(mc.session.token))
+                add("selectedProfile", JsonPrimitive(mc.session.playerID.remove("-")))
+                add("serverId", JsonPrimitive(UUID.randomUUID().toString().remove("-")))
+            }
         )
     }
 
@@ -73,7 +75,7 @@ object RatProtection: Feature() {
             override fun select(uri: URI): List<Proxy> {
                 val url = uri.toString()
                 if (enabled && blockSusConnections && isSuspicious(url)) {
-                    modMessage("Rat Protection >> &c&lBlcoked URL connection: &r&b$url")
+                    modMessage("Rat Protection >> &c&lBlocked URL connection: &r&b$url")
                     return listOf(Proxy(Proxy.Type.HTTP, InetSocketAddress("localhost", 0)))
                 }
                 return default?.select(uri) ?: listOf(Proxy.NO_PROXY)

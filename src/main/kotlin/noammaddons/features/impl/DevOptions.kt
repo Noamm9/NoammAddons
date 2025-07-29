@@ -57,6 +57,7 @@ object DevOptions: Feature() {
     @JvmStatic
     val devMode by ToggleSetting("Dev Mode")
 
+    @Suppress("unused")
     val copyFeatureList by ButtonSetting("Copy Feature List") {
         GuiScreen.setClipboardString(FeatureManager.createFeatureList())
         ChatUtils.Alert(message = "Copied all feaures to clipboard")

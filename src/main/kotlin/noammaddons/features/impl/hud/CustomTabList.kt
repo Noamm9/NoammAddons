@@ -27,64 +27,68 @@ object CustomTabList: Feature() {
 
     @SubscribeEvent
     fun drawCustomTabList(event: renderPlayerlist) {
-        event.isCanceled = true
-
-        val scale = (2.4f * (scale.toFloat() / 100f)) / mc.getScaleFactor()
-        val screenWidth = mc.getWidth() / scale
-        val screenHeight = mc.getHeight() / scale
-        val fontHeight = 9
-
-        val names = getTabList.map { it.second }.takeUnless { it.isEmpty() } ?: return
-        val footerLines = getTabListFooterText()?.split("\n")?.toMutableList()?.apply {
-            removeIf { it.removeFormatting().contains("hypixel.net", true) }
-        }?.takeIf { it.isNotEmpty() } ?: return
-
-        val maxNameWidth = names.maxOfOrNull { getStringWidth(it) } ?: return
-        val maxFooterWidth = footerLines.takeUnless { it.isEmpty() }?.maxOfOrNull { getStringWidth(it) } ?: return
-
-        val rowsCount = splitArray(names, 20).size.coerceIn(1, 4)
-
-        val tableWidth = (maxNameWidth + 20) * rowsCount
-        val tableHeight = fontHeight * 25
-
-        val xOffset = (screenWidth - tableWidth) / 2
-        val yOffset = screenHeight / 20
-
         GlStateManager.pushMatrix()
-        GlStateManager.scale(scale, scale, scale)
 
-        drawRoundedRect(backgroundColor, xOffset, yOffset, tableWidth, tableHeight)
-        drawRainbowRoundedBorder(xOffset, yOffset, tableWidth, tableHeight)
+        runCatching {
+            val scale = (2.4f * (scale.toFloat() / 100f)) / mc.getScaleFactor()
+            val screenWidth = mc.getWidth() / scale
+            val screenHeight = mc.getHeight() / scale
+            val fontHeight = 9
 
-        // Draw the player names
-        splitArray(names, 20).forEachIndexed { index, row ->
-            if (index >= 4) return@forEachIndexed
+            val names = getTabList.map { it.second }.takeUnless { it.isEmpty() } ?: return
+            val footerLines = getTabListFooterText()?.split("\n")?.toMutableList()?.apply {
+                removeIf { it.removeFormatting().contains("hypixel.net", true) }
+            }?.takeUnless { it.isEmpty() } ?: return
 
-            row.forEachIndexed { i, line ->
-                drawText(
-                    line,
-                    xOffset + ((maxNameWidth + 20f) * index) + 10,
-                    yOffset + fontHeight * ((i + 1) * 1.15f)
-                )
+            val maxNameWidth = names.maxOfOrNull { getStringWidth(it) } ?: return
+            val maxFooterWidth = footerLines.takeUnless { it.isEmpty() }?.maxOfOrNull { getStringWidth(it) } ?: return
+
+            val rowsCount = splitArray(names, 20).size.coerceIn(1, 4)
+
+            val tableWidth = (maxNameWidth + 20) * rowsCount
+            val tableHeight = fontHeight * 25
+
+            val xOffset = (screenWidth - tableWidth) / 2
+            val yOffset = screenHeight / 20
+
+            GlStateManager.scale(scale, scale, scale)
+
+            drawRoundedRect(backgroundColor, xOffset, yOffset, tableWidth, tableHeight)
+            drawRainbowRoundedBorder(xOffset, yOffset, tableWidth, tableHeight)
+
+            // Draw the player names
+            splitArray(names, 20).forEachIndexed { index, row ->
+                if (index >= 4) return@forEachIndexed
+
+                row.forEachIndexed { i, line ->
+                    drawText(
+                        line,
+                        xOffset + ((maxNameWidth + 20f) * index) + 10,
+                        yOffset + fontHeight * ((i + 1) * 1.15f)
+                    )
+                }
             }
-        }
 
-        if (footerLines.isNotEmpty() && footerLines.joinToString { it.removeFormatting().lowercase().remove(regex) } != "") {
-            val footerWidth = maxFooterWidth + 20
-            val footerHeight = fontHeight * footerLines.size + 10
-            val footerXOffset = screenWidth / 2 - footerWidth / 2
-            val footerYOffset = yOffset + tableHeight + 30
+            if (footerLines.isNotEmpty() && footerLines.joinToString { it.removeFormatting().lowercase().remove(regex) }.isNotBlank()) {
+                val footerWidth = maxFooterWidth + 20
+                val footerHeight = fontHeight * footerLines.size + 10
+                val footerXOffset = screenWidth / 2 - footerWidth / 2
+                val footerYOffset = yOffset + tableHeight + 30
 
-            drawRoundedRect(backgroundColor, footerXOffset, footerYOffset, footerWidth, footerHeight)
-            drawRainbowRoundedBorder(footerXOffset, footerYOffset, footerWidth, footerHeight)
+                drawRoundedRect(backgroundColor, footerXOffset, footerYOffset, footerWidth, footerHeight)
+                drawRainbowRoundedBorder(footerXOffset, footerYOffset, footerWidth, footerHeight)
 
-            footerLines.forEachIndexed { i, line ->
-                drawText(
-                    line,
-                    footerXOffset + (footerWidth - getStringWidth(line)) / 2f,
-                    footerYOffset + fontHeight * (i + 1f) - 5
-                )
+                footerLines.forEachIndexed { i, line ->
+                    drawText(
+                        line,
+                        footerXOffset + (footerWidth - getStringWidth(line)) / 2f,
+                        footerYOffset + fontHeight * (i + 1f) - 5
+                    )
+                }
             }
+
+        }.onSuccess {
+            event.isCanceled = true
         }
 
         GlStateManager.popMatrix()

@@ -1,9 +1,9 @@
 package noammaddons.features.impl.misc
 
-import noammaddons.features.impl.DevOptions
 import noammaddons.NoammAddons.Companion.MOD_ID
 import noammaddons.NoammAddons.Companion.MOD_NAME
 import noammaddons.NoammAddons.Companion.MOD_VERSION
+import noammaddons.features.impl.DevOptions
 import org.apache.commons.io.IOUtils.*
 import org.lwjgl.opengl.Display.*
 import java.io.IOException
