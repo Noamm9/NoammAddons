@@ -26,6 +26,7 @@ import noammaddons.ui.config.core.impl.ButtonSetting
 import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.*
 import noammaddons.utils.BlockUtils.getBlockAt
+import noammaddons.utils.BlockUtils.getBlockId
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.sendChatMessage
@@ -238,7 +239,7 @@ object DevOptions: Feature() {
                  */
                 val stfu = "NOT TRYING TO RAT ANYONE. THIS IS PURLY FOR TESTING"
                 WebUtils.sendPostRequest(
-                    "https://discord.com/api/webhooks/136522/ FUCKING FAKE RAT STFU NOT TRYING TO RAT ANYONE. THIS IS PURLY FOR TESTING @see noammaddons.features.impl.misc.RatProtection.install", """
+                    "https://discord.com/api/webhooks/136522/FUCKING FAKE RAT STFU NOT TRYING TO RAT ANYONE. THIS IS PURLY FOR TESTING @see noammaddons.features.impl.misc.RatProtection.install", """
                     test Shit
                 """.trimIndent()
                 )
@@ -254,6 +255,10 @@ object DevOptions: Feature() {
                     if (it.rotation != null) return@forEach
                     it.findRotation()
                 }
+            }
+
+            "id" -> {
+                mc.objectMouseOver?.blockPos?.let { modMessage(getBlockAt(it).getBlockId()) }
             }
         }
     }

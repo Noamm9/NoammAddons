@@ -35,6 +35,8 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
         }
     }
 
+    private val interactableBlocks = setOf(trapped_chest, chest, ender_chest, hopper, cauldron, lever, wooden_button, stone_button, iron_trapdoor, trapdoor)
+
     private const val MAX_PENDING_TELEPORTS = 3
     private const val MAX_FAILED_TELEPORTS = 3
     private const val FAIL_TIMEOUT = 20_000L
@@ -88,14 +90,12 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
         if (packet.placedBlockDirection != 255) return
         if (pendingTeleports.size == MAX_PENDING_TELEPORTS) return
         if (failedTeleports.size == MAX_FAILED_TELEPORTS) return
-        if (LocationUtils.world == Home) return
+        if (LocationUtils.world.equalsOneOf(Home, Garden)) return
         if (LocationUtils.dungeonFloorNumber == 7 && LocationUtils.inBoss) return
+        if (mc.thePlayer.isRiding) return
         if (ActionBarParser.currentMana < ActionBarParser.maxMana * 0.1) return
         if (ScanUtils.currentRoom?.data?.name.equalsOneOf("New Trap", "Old Trap", "Teleport Maze", "Boulder")) return
-        runCatching {
-            val block = mc.objectMouseOver.blockPos?.let { getBlockAt(it) } ?: air
-            if (block.equalsOneOf(trapped_chest, chest, ender_chest, hopper, cauldron, lever, wooden_button, stone_button)) return
-        }
+        runCatching { if ((mc.objectMouseOver.blockPos?.let { getBlockAt(it) } ?: air) in interactableBlocks) return }
         if (LocationUtils.isInHubCarnival()) return
         val tpInfo = getTeleportInfo(packet) ?: return
 
@@ -149,8 +149,8 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
     }
 
     private fun doZeroPingEtherwarp(tpInfo: TeleportInfo) {
-        val playerPos = ServerPlayer.player.getVec()
-        val playerRot = ServerPlayer.player.getRotation()
+        val playerPos = ServerPlayer.player.getVec() ?: return
+        val playerRot = ServerPlayer.player.getRotation() ?: return
         val etherPos = EtherwarpHelper.getEtherPos(playerPos, playerRot, tpInfo.distance).takeIf { it.succeeded && it.pos != null } ?: return
 
         if (ScanUtils.getRoomFromPos(etherPos.pos !!)?.data?.name.equalsOneOf("Teleport Maze", "Boulder")) return
@@ -164,8 +164,8 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
     }
 
     private fun doZeroPingInstantTransmission(tpInfo: TeleportInfo) {
-        val playerPos = ServerPlayer.player.getVec()
-        val playerRot = ServerPlayer.player.getRotation()
+        val playerPos = ServerPlayer.player.getVec() ?: return
+        val playerRot = ServerPlayer.player.getRotation() ?: return
 
         val pos = InstantTransmissionPredictor.predictTeleport(tpInfo.distance, playerPos, playerRot) ?: return
         if (ScanUtils.getRoomFromPos(pos)?.data?.name.equalsOneOf("Teleport Maze", "Boulder")) return

@@ -1,5 +1,6 @@
 package noammaddons.utils
 
+import net.minecraft.item.ItemStack
 import net.minecraft.network.play.client.*
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
@@ -10,32 +11,41 @@ import noammaddons.events.PacketEvent
 
 
 object ServerPlayer {
-    data class PlayerState(
-        var x: Double = - 1.0,
-        var y: Double = - 1.0,
-        var z: Double = - 1.0,
-        var yaw: Float = 0f,
-        var pitch: Float = 0f,
-        var onGround: Boolean = false,
-        var sneaking: Boolean = false,
-        var heldHotbarSlot: Int = 0
-    ) {
-        val initialized get() = x != - 1.0 && y != - 1.0 && z != - 1.0
+    class PlayerState {
+        var x: Double? = null
+        var y: Double? = null
+        var z: Double? = null
+        var yaw: Float? = null
+        var pitch: Float? = null
+        var onGround: Boolean? = null
+        var sneaking: Boolean = false
+        var heldHotbarSlot: Int? = null
 
-        fun getPos() = BlockPos(x, y, z)
-        fun getVec() = Vec3(x, y, z)
-        fun getRotation() = MathUtils.Rotation(yaw, pitch)
-        fun getHeldItem() = mc.thePlayer.inventory.getStackInSlot(heldHotbarSlot)
+        fun getPos(): BlockPos? {
+            return BlockPos(x ?: return null, y ?: return null, z ?: return null)
+        }
+
+        fun getVec(): Vec3? {
+            return Vec3(x ?: return null, y ?: return null, z ?: return null)
+        }
+
+        fun getRotation(): MathUtils.Rotation? {
+            return MathUtils.Rotation(yaw ?: return null, pitch ?: return null)
+        }
+
+        fun getHeldItem(): ItemStack? {
+            return mc.thePlayer.inventory.getStackInSlot(heldHotbarSlot ?: return null)
+        }
 
         fun reset() {
-            x = - 1.0
-            y = - 1.0
-            z = - 1.0
-            yaw = 0f
-            pitch = 0f
-            onGround = false
+            x = null
+            y = null
+            z = null
+            yaw = null
+            pitch = null
+            onGround = null
             sneaking = false
-            heldHotbarSlot = 0
+            heldHotbarSlot = null
         }
     }
 

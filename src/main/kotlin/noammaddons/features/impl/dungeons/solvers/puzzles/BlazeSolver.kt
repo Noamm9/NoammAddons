@@ -44,7 +44,7 @@ object BlazeSolver {
         if (! event.room.data.name.contains("Blaze")) return
         inBlaze = true
 
-        val center = getRoomCenterAt(ServerPlayer.player.getPos())
+        val center = getRoomCenterAt(ServerPlayer.player.getPos() ?: return)
         reversed = getBlockAt(center.add(1, 118, 0)) != Blocks.cobblestone
         trueTimeStarted = System.currentTimeMillis()
         lastBlazeCount = 10

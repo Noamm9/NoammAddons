@@ -28,6 +28,7 @@ object RatProtection: Feature() {
         "requestbin.com",
         "discord.com/api/webhooks",
         "media.guilded.gg/webhooks",
+        "hst.sh",
         "hastebin.com",
         "paste.ee/api",
         "gooning.shop",

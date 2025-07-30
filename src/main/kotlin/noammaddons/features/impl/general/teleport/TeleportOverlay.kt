@@ -50,8 +50,8 @@ object TeleportOverlay: Feature() {
     fun onRenderWorld(event: RenderWorld) {
         val heldItem = ServerPlayer.player.getHeldItem() ?: return
         val teleportInfo = getType(heldItem) ?: return
-        val playerPos = ServerPlayer.player.getVec()
-        val playerRot = ServerPlayer.player.getRotation()
+        val playerPos = ServerPlayer.player.getVec() ?: return
+        val playerRot = ServerPlayer.player.getRotation() ?: return
 
         if (teleportInfo.type == Types.Etherwarp) {
             if (! etherwarp.value || ! ServerPlayer.player.sneaking) return

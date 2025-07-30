@@ -38,7 +38,7 @@ object GyroHelper: Feature("Shows the sucking range of the Gyrokinetic wand") {
         if (boxColor.value.alpha + ringColor.value.alpha == 0) return
         if (mc.thePlayer?.heldItem?.skyblockID != "GYROKINETIC_WAND") return
         val rot = player.getRotation().takeIf { useServerPos.value } ?: PlayerUtils.getRotation()
-        val pos = player.getVec().add(y = mc.thePlayer.getEyeHeight()).takeIf { useServerPos.value } ?: PlayerUtils.getEyePos()
+        val pos = player.getVec()?.add(y = mc.thePlayer.getEyeHeight()).takeIf { useServerPos.value } ?: PlayerUtils.getEyePos()
         val gyroPos = getBlockFromLook(rot, 25, pos.xCoord, pos.yCoord, pos.zCoord) ?: return
         val posID = getBlockAt(gyroPos).getBlockId()
         val idAbovePos = getBlockAt(gyroPos.add(y = 1)).getBlockId()

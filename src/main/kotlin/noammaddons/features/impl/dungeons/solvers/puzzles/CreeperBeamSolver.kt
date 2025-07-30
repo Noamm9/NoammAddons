@@ -70,7 +70,7 @@ object CreeperBeamSolver {
 
         // I accidentally took all solutions coords with a 180 rotation room
         rotation = 360 - event.room.rotation !! + 180
-        roomCenter = getRoomCenterAt(ServerPlayer.player.getPos())
+        roomCenter = getRoomCenterAt(ServerPlayer.player.getPos() ?: return)
 
         solve()
     }

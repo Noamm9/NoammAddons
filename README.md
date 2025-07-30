@@ -1,69 +1,86 @@
 # NoammAddons
 
-### [My Discord Server](https://discord.gg/pj9mQGxMxB)
+[![GitHub Downloads](https://img.shields.io/github/downloads/Noamm9/NoammAddons/total?style=for-the-badge&logo=github)](https://github.com/Noamm9/NoammAddons/releases)
+[![Discord](https://img.shields.io/discord/1281979747605418024?color=5865F2&logo=discord&logoColor=white&style=for-the-badge)](https://discord.gg/pj9mQGxMxB)
 
-NoammAddons is a Forge mod designed to decrese the ammont of small mods I had installed
-the mod offer various QOL improvements and small utilities.
-This mod is primarily focused on Hypixel Skyblock.
-</br>
+NoammAddons is a Forge mod for Minecraft, created to consolidate numerous small Quality of Life (QOL) features into a single package. It is primarily designed to enhance the **Hypixel Skyblock**
+experience.
 
-## Key Features ( Very Outdated )
+---
 
-#### General
+## ✨ Features
 
-- **Slot Binding** - Allows binding of slots to hotbar slots for quick item swaps.
-- **Custom Item Entity** - Replaces the default item entity with a Colored Box that also shows the name of the grounded item.
-- **Party Name & Outline** - Displays the names of the people in the party & draws a rainbow Outline around them.
+> **Note:** This list may be outdated. For the most current feature list, please explore the in-game configuration menu.
 
-#### Dungeons
+### General
 
-- **Auto I4** - Automaticly shoots and rodswap to pheonix and after the device is done leaps to mage.
-- **Auto Reaper Armor Swap** - Automatically preforme Reaper Armor Swap before the dragons on M7 Spawns Can also be Triggered with ```/na ras```.
-- **M7 Dragons** - Displays a timer, Dragon Kill box and Prio when a dragon spawns. Based on server ticks, so it should work perfectly even if the server is lagging.
+* **Slot Binding:** Bind hotbar slots to inventory slots for rapid item swapping.
+* **Custom Item Entities:** Replaces default item entities with a colored box displaying the item's name for better visibility.
+* **Party Member Display:** Shows party members' names above their heads and adds a customizable outline.
 
-#### Terminals
+### Dungeons
 
-- **Custom Terminal GUI** - Hides Minecraft's default ugly GUI and draw a custom one with built-in queue for clicks.
-- **Terminal Numbers** - Places a number on each terminal, so you know what number it is.
-- **Melody Alert** - Sends a Message in chat when you open Melody Terminal.
+* **Auto I4:** Automates the Inquisitor phase 4 strategy: shoots, rod-swaps to a Phoenix, and leaps to the mage.
+* **Auto Reaper Armor Swap:** Automatically performs a Reaper Armor swap before the M7 dragons spawn. Can also be triggered manually with `/na ras`.
+* **M7 Dragons:** Displays timers, health, kill priority, and hitboxes for Master Mode Floor 7 dragons. Timers are tick-based for accuracy, even during server lag.
 
-#### ESP
+### Terminals
 
-- **Dungeon Starred Mob** - Outline all starred mobs.
-- **Livid Solver** - Outline and trace the right livid to kill
-- **Very Customizable** - Has diffrent ESP mode, color options etc...
+* **Custom Terminal GUI:** Replaces the vanilla terminal GUI with a clean, custom interface featuring a built-in click queue.
+* **Terminal Numbers:** Overlays a number on each terminal for easier callouts.
+* **Melody Alert:** Sends a chat alert when you open a Melody's Hair terminal.
 
-#### Alerts
+### ESP
 
-- **RNG Meter** - Shows on screen when the RNG Meter Resets, Also Plays Really cool intro music.
-- **Sold AH Notification** - Plays A sound when an item on your AH sold and shows an Alert on the screen.
-- **Masks Alerts** - Shows on screen when eider Bonzo, Spirit or Phoenix has been used.
+* **Starred Mob ESP:** Highlights all starred mobs within dungeons.
+* **Livid Solver:** Highlights and draws a tracer to the correct Livid.
+* **Highly Customizable:** Offers various ESP modes, color options, and more.
 
-#### GUI
+### Alerts
 
-- **Custom Leap Menu** - Renders a Custom Menu for leaps.
-- **Scalable Tooltips** - Allows you to scale the size of the item tooltips and move them around your screen.
-- **Party Finder Overlay** - Displays the lvl of each party along with its missing classes and whether you can join it.
+* **RNG Meter Alerts:** Displays an on-screen notification and plays music when your RNGesus Meter is ready to claim.
+* **Sold AH Notification:** Plays a sound and shows an on-screen alert when an item sells on the Auction House.
+* **Mask Alerts:** Notifies you when a Bonzo, Spirit, or Phoenix mask has been activated.
 
-#### HUD
+### GUI
 
-- **Player HUD** - Draws the hp, currentDefense, currentMana, and effective hp of the player on screen, Same as SBA.
-- **Spring Boots Display** - Renders Spring Boots Charge Display.
-- **Custom Scoreboard & TabList** - Hides Minecraft's defult elements and draws a Custom one with a cool design.
+* **Custom Leap Menu:** Provides a custom menu for Spirit Leaps, showing player names and classes.
+* **Scalable Tooltips:** Allows you to resize and reposition item tooltips on your screen.
+* **Party Finder Overlay:** Enhances the Party Finder, showing each party's average Catacombs level, missing classes, and joinability.
 
-#### Cosmetic
+### HUD
 
-- **Player Scale** - Allows to dynamically adjust the size of the player character.
-- **Custom Damage Splash** - Reformats Hypixel SkyBlock's Shitty Damage Splash for a more readable one.
-- **Block Overlay** - A highly Customizable block highlight display.
+* **Player Stats HUD:** Displays your current health, defense, mana, and effective health (EHP) on-screen.
+* **Spring Boots Display:** Renders a HUD element to show the charge status of Spring Boots.
+* **Custom Scoreboard & TabList:** Replaces the default scoreboard and tab list with a clean, custom design.
 
-</br>
+### Cosmetic
 
-## Contributions
+* **Player Scale:** Dynamically adjust the visual size of your player character.
+* **Custom Damage Splash:** Reformats Hypixel's damage splashes to be more readable.
+* **Block Overlay:** A highly customizable overlay for targeted blocks.
 
-Contributions are welcome! If you'd like to contribute, feel free to open a pull request or issue.
-</br>
+---
 
-## License
+## 💾 Installation
 
-This project is licensed under the [GPL-3.0 license](LICENSE).
+1. Make sure you have **[Forge for Minecraft 1.8.9](https://files.minecraftforge.net/net/minecraftforge/forge/index_1.8.9.html)** installed.
+2. Download the latest `.jar` file from the [**Releases Page**](https://github.com/Noamm9/NoammAddons/releases).
+3. Place the downloaded `.jar` file into your `mods` folder, located in your `.minecraft` directory.
+4. Launch Minecraft with the Forge profile.
+
+## ⚙️ Usage & Configuration
+
+* Once in-game, you can configure all features of NoammAddons.
+* Use the command **`/na`** or **`/noammaddons`** to open the main configuration GUI.
+* Explore the different categories to enable, disable, and customize features to your liking.
+
+---
+
+## 🤝 Contributions
+
+Contributions are always welcome! If you have a feature idea or want to fix a bug, feel free to open an issue or submit a pull request.
+
+## 📜 License
+
+This project is licensed under the [**GPL-3.0 License**](LICENSE).

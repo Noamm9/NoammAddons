@@ -2,6 +2,7 @@ package noammaddons.features.impl.hud
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.config.EditGui.GuiElement
+import noammaddons.config.EditGui.HudEditorScreen
 import noammaddons.events.Chat
 import noammaddons.events.RenderOverlay
 import noammaddons.features.Feature
@@ -11,11 +12,10 @@ import noammaddons.utils.RenderUtils.drawText
 
 
 object PetDisplay: Feature() {
-
     private object PetDisplayElement: GuiElement(hudData.getData().petDisplay.hudData) {
         override val enabled get() = PetDisplay.enabled
         var text = hudData.getData().petDisplay.pet
-        override val width: Float get() = getStringWidth(text)
+        override val width: Float get() = getStringWidth(if (HudEditorScreen.isOpen()) "&6Golden Dragon" else text)
         override val height: Float get() = 9f
 
         override fun draw() = drawText(text, getX(), getY(), getScale())

@@ -40,7 +40,7 @@ object SpringBootsDisplay: Feature() {
     fun onSound(event: SoundPlayEvent) {
         if (event.name != "note.pling") return
         if (! ServerPlayer.player.sneaking) return
-        if (! ServerPlayer.player.onGround) return
+        if (ServerPlayer.player.onGround == false) return
         if (progress >= 42) return
         if (event.pitch.toDouble() !in pitchList) return  // 42 - fill to 100%
         if (! IsWearingSpringBoots()) return
@@ -50,7 +50,7 @@ object SpringBootsDisplay: Feature() {
     @SubscribeEvent
     fun onRenderOverlay(event: RenderOverlay) {
         if (! ServerPlayer.player.sneaking) progress = 0
-        if (! ServerPlayer.player.onGround) progress = 0
+        if (ServerPlayer.player.onGround == false) progress = 0
         if (! IsWearingSpringBoots()) progress = 0
         if (progress <= 0) return
 

@@ -36,7 +36,7 @@ object BlessingDisplay: Feature("Displays the current active blessings of the du
     )
 
     object BlessingDisplayElement: GuiElement(hudData.getData().blessingDisplay) {
-        lateinit var text: List<String>
+        private var text: List<String> = listOf()
         override val enabled get() = BlessingDisplay.enabled
         override val width get() = text.takeIf { it.isNotEmpty() }?.maxOf(RenderHelper::getStringWidth) ?: 10f
         override val height get() = RenderHelper.getStringHeight(text).takeIf { it > 0 } ?: 10f

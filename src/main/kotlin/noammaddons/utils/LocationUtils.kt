@@ -6,10 +6,10 @@ import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.Event
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent.*
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.events.Tick
 import noammaddons.events.WorldUnloadEvent
 import noammaddons.features.impl.DevOptions
-import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.MathUtils.isCoordinateInsideBox
 import noammaddons.utils.ScoreboardUtils.cleanSB
@@ -147,14 +147,14 @@ object LocationUtils {
 
     fun isInHubCarnival(): Boolean {
         return isCoordinateInsideBox(
-            ServerPlayer.player.takeIf { it.initialized }?.getPos() ?: return false,
+            ServerPlayer.player.getPos() ?: return false,
             BlockPos(- 123, 100, 36), BlockPos(- 64, 70, - 31)
         )
     }
 
     private fun getPhase(): Int? {
         if (dungeonFloorNumber != 7 || ! inBoss) return null
-        val playerPosition = ServerPlayer.player.takeIf { it.initialized }?.getPos() ?: return null
+        val playerPosition = ServerPlayer.player.getPos() ?: return null
 
         return when {
             playerPosition.y > 210 -> 1
@@ -174,10 +174,10 @@ object LocationUtils {
 
     private fun getP3Section_(): Int? {
         if (F7Phase != 3) return null
-        val player = ServerPlayer.player.takeIf { it.initialized } ?: return null
+        val playerPos = ServerPlayer.player.getPos() ?: return null
 
-        P3Sections.forEachIndexed { i, (one, two) ->
-            if (isCoordinateInsideBox(player.getPos(), one, two)) {
+        P3Sections.forEachIndexed { i, (a, b) ->
+            if (isCoordinateInsideBox(playerPos, a, b)) {
                 return i + 1
             }
         }
@@ -196,9 +196,9 @@ object LocationUtils {
     )
 
     private fun isInBossRoom(): Boolean {
-        val player = ServerPlayer.player.takeIf { it.initialized } ?: return false
+        val playerPos = ServerPlayer.player.getPos() ?: return false
         val floor = dungeonFloorNumber ?: return false
         val corners = bossRoomCorners[floor] ?: return false
-        return isCoordinateInsideBox(player.getPos(), corners.first, corners.second)
+        return isCoordinateInsideBox(playerPos, corners.first, corners.second)
     }
 }

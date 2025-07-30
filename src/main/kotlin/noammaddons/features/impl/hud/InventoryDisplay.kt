@@ -41,7 +41,8 @@ object InventoryDisplay: Feature() {
             GlStateManager.scale(getScale(), getScale(), getScale())
             GlStateManager.translate(getX() / getScale(), getY() / getScale(), 1f)
 
-            drawRectBorder(borderColor.value, - 1, - 1, width, height, 2f)
+            drawRectBorder(borderColor.value, 0, 0, width, height, 2f)
+            GlStateManager.translate(1f, 1f, 0f)
 
             val numDisplaySlots = if (showHotbar.value) 36 else 27
 
