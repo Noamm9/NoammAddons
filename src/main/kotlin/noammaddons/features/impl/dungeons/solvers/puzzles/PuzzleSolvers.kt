@@ -48,8 +48,8 @@ object PuzzleSolvers: Feature("Puzzle Solvers for Dungeon Clear") {
     val WcolorWrong = ColorSetting("Incorrect Chest Color", Color.RED.withAlpha(40)).addDependency { WremoveChests.value }.addDependency(weirdos)
 
     val tpMaze = ToggleSetting("Teleport Maze ")
-    val correctTpPadColor = ColorSetting("Correct Pad Color", Color.GREEN.withAlpha(80))
-    val wrongTpPadColor = ColorSetting("Wrong Pad Color", Color.RED.withAlpha(111))
+    val correctTpPadColor = ColorSetting("Correct Pad Color", Color.GREEN.withAlpha(80)).addDependency(tpMaze)
+    val wrongTpPadColor = ColorSetting("Wrong Pad Color", Color.RED.withAlpha(111)).addDependency(tpMaze)
 
 
     override fun init() = addSettings(

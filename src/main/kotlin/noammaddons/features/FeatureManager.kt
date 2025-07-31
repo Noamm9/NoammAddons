@@ -13,7 +13,8 @@ import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers
 import noammaddons.features.impl.dungeons.solvers.terminals.TerminalSolver
 import noammaddons.features.impl.esp.*
 import noammaddons.features.impl.general.*
-import noammaddons.features.impl.general.teleport.*
+import noammaddons.features.impl.general.teleport.Etherwarp
+import noammaddons.features.impl.general.teleport.TeleportOverlay
 import noammaddons.features.impl.gui.*
 import noammaddons.features.impl.gui.Menus.impl.CustomPetMenu
 import noammaddons.features.impl.gui.Menus.impl.WardrobeMenu
@@ -39,12 +40,13 @@ object FeatureManager {
         ExtraSlayerInfo, SalvageOverlay, RagAxe, ShadowAssassin, MelodyAlert,
         PlayerHud, FullBlock, TerminalNumbers, F7Titles, ScalableTooltips, FpsDisplay,
         ClockDisplay, TpsDisplay, PetDisplay, MaskTimers, SpringBootsDisplay, NoBlockAnimation,
-        WitherShieldTimer, BowHitSound, ZeroPingTeleportation, TeleportOverlay, CustomScoreboard,
+        WitherShieldTimer, BowHitSound, TeleportOverlay, CustomScoreboard,
         BlockOverlay, WardrobeMenu, CustomPetMenu, TimeChanger, CustomTabList, TerminalSolver,
         ChamNametags, CustomSlotHighlight, InventoryDisplay, StopCloseMyChat, InventorySearchbar,
         BlessingDisplay, ClientTimer, DarkMode, Animations, EnchantmentsColors,
 
         DungeonMap,
+        //    ZeroPingTeleportation, - R.I.P fuck hypixel
 
         DevOptions, CompTest, ConfigGui,
         //ProfileViewer,

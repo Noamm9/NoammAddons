@@ -6,7 +6,6 @@ import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.entity.monster.EntityEnderman
 import net.minecraft.entity.passive.EntityBat
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.entity.projectile.EntityArrow
 import net.minecraft.network.play.server.*
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -22,7 +21,6 @@ import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.ThreadUtils.scheduledTask
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.favoriteColor
-import noammaddons.utils.Utils.isOneOf
 import java.awt.Color
 
 
@@ -107,7 +105,7 @@ object StarMobESP: Feature("Highlights Star Mobs in the dungeon") {
         val id = if (name.contains("WITHERMANCER")) 3 else 1
 
         val mob = armorStand.entityWorld.getEntityByID(armorStand.entityId - id)
-        if (! mob.isOneOf(EntityArmorStand::class, EntityArrow::class) && mob !in starMobs) {
+        if (mob !is EntityArmorStand && mob !in starMobs) {
             starMobs.add(mob)
             checked.add(armorStand)
             return
@@ -115,7 +113,7 @@ object StarMobESP: Feature("Highlights Star Mobs in the dungeon") {
 
         val possibleEntities = armorStand.entityWorld.getEntitiesInAABBexcluding(
             armorStand, armorStand.entityBoundingBox.offset(0.0, - 1.0, 0.0)
-        ) { ! mob.isOneOf(EntityArmorStand::class, EntityArrow::class) }
+        ) { it !is EntityArmorStand }
         possibleEntities.find {
             ! starMobs.contains(it) && when (it) {
                 is EntityPlayer -> ! it.isInvisible() && it.getUniqueID()
