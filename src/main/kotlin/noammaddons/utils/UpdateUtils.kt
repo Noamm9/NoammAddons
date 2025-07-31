@@ -38,7 +38,7 @@ object UpdateUtils {
             val latestVersion = latestRelease.tag_name.remove(removeCharsRegex)
             if (MOD_VERSION == latestVersion) {
                 if (! startup) {
-                    Alert(message = "\n&a&lYour are running the latest release", duration = 3)
+                    Alert(message = "\n&a&lYou are running the latest release", duration = 3)
                     startup = true
                 }
                 return@launch
