@@ -2,7 +2,6 @@ package noammaddons.utils
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import gg.essential.universal.UDesktop.browse
 import kotlinx.coroutines.*
 import noammaddons.NoammAddons.Companion.FULL_PREFIX
 import noammaddons.NoammAddons.Companion.MOD_VERSION
@@ -11,7 +10,6 @@ import noammaddons.utils.ChatUtils.clickableChat
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.Utils.remove
 import java.net.HttpURLConnection
-import java.net.URI
 
 object UpdateUtils {
     private data class Release(val tag_name: String, val html_url: String, val prerelease: Boolean)
@@ -53,17 +51,7 @@ object UpdateUtils {
                 "/na openlink ${updateVersion.html_url}",
                 "&bNew version available, Click to Open the download link of the latest version"
             )
-
-            Alert(
-                message = "\n&a&lNew version available, \n&a&lClick to Open the download link of the latest version",
-                closeFunction = {
-                    browse(URI(updateVersion.html_url))
-                    isMessageOnScreen = false
-                },
-                duration = - 1
-            )
         }
-
     }
 
     // function from https://github.com/kiwidotzip/zen/blob/master/src/main/kotlin/meowing/zen/UpdateChecker.kt#L65
