@@ -24,6 +24,7 @@ import noammaddons.utils.LocationUtils
 import noammaddons.utils.LocationUtils.F7Phase
 import noammaddons.utils.MouseUtils.getMouseX
 import noammaddons.utils.MouseUtils.getMouseY
+import noammaddons.utils.PacketManager
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawRoundedRect
@@ -52,6 +53,7 @@ object StartWith {
     fun onClick(event: GuiMouseClickEvent) {
         if (! inTerminal) return
         event.isCanceled = true
+        if (System.currentTimeMillis() - PacketManager.getTermOpenTime() < 350L) return
 
         val termScale = getTermScale()
         val x = getMouseX() / termScale

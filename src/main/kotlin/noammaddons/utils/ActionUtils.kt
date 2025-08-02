@@ -118,7 +118,7 @@ object ActionUtils {
         if (rotationJob?.isActive != true) processRotationQueue()
     }
 
-    private fun easeInOutCubic(t: Double): Double = if (t < 0.5) 4 * t * t * t else (t - 1) * (2 * t - 2) * (2 * t - 2) + 1
+    private val easeInOutCubic = fun(t: Double) = if (t < 0.5) 4 * t * t * t else (t - 1) * (2 * t - 2) * (2 * t - 2) + 1
 
     fun rotateSmoothly(rot: Rotation, time: Long, block: () -> Unit = {}) {
         queueRotation {
@@ -128,10 +128,7 @@ object ActionUtils {
             val targetPitch = normalizePitch(rot.pitch)
             val tolerance = 1.0f
 
-            if (abs(currentYaw - targetYaw) <= tolerance && abs(currentPitch - targetPitch) <= tolerance) {
-                block()
-                return@queueRotation
-            }
+            if (abs(currentYaw - targetYaw) <= tolerance && abs(currentPitch - targetPitch) <= tolerance) return@queueRotation block()
 
             val startTime = System.currentTimeMillis()
 
@@ -213,7 +210,7 @@ object ActionUtils {
         if (getArmor().any { it.skyblockID == itemID }) return
 
         C01PacketChatMessage("/eq").send()
-        hideGui(true) { drawTitle("&5[Swapping...]", "&bPlease wait") }
+        hideGui(true) { drawTitle("&5[Swapping]", "") }
         awaiting4EQ = itemID
         setTimeout(5000) { awaiting4EQ = "" }
 
@@ -225,7 +222,7 @@ object ActionUtils {
 
         closeScreen()
         sendChatMessage("/pb")
-        hideGui(true) { drawTitle("&d[Getting potion...] ", "&bPlease wait") }
+        hideGui(true) { drawTitle("&d[Getting potion] ", "") }
 
         awaitingPotionBag = name
         setTimeout(5000) { awaitingPotionBag = "" }
@@ -237,13 +234,13 @@ object ActionUtils {
         if (thePlayer?.isDead == true) return
 
         C01PacketChatMessage("/wd").send()
-        hideGui(true) { drawTitle("&8[Swapping armor...] ", "&bPlease wait") }
+        hideGui(true) { drawTitle("&8[Swapping armor]", "") }
 
         while (! inWardrobeMenu) delay(50)
         delay(250)
 
         val container = mc.thePlayer.openContainer.inventory
-        val reaperArmorSlot: Int = autoReaperArmorSlot.value.toInt() + 35
+        val reaperArmorSlot: Int = autoReaperArmorSlot.value + 35
         var reaperSwapPreviousArmorSlot = 0
 
         for (i in 35 until 45) {

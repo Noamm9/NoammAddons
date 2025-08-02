@@ -6,6 +6,7 @@ import net.minecraft.network.play.server.S2DPacketOpenWindow
 import net.minecraft.network.play.server.S2FPacketSetSlot
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.events.*
 import noammaddons.features.impl.dungeons.solvers.terminals.TerminalSolver
 import noammaddons.features.impl.dungeons.solvers.terminals.TerminalSolver.getClickMode
@@ -15,7 +16,6 @@ import noammaddons.features.impl.dungeons.solvers.terminals.TerminalSolver.getTe
 import noammaddons.features.impl.dungeons.solvers.terminals.core.ClickMode
 import noammaddons.features.impl.dungeons.solvers.terminals.core.TerminalSlot
 import noammaddons.features.impl.gui.Menus.renderBackground
-import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.disableNEUInventoryButtons
@@ -24,6 +24,7 @@ import noammaddons.utils.LocationUtils.F7Phase
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.MouseUtils.getMouseX
 import noammaddons.utils.MouseUtils.getMouseY
+import noammaddons.utils.PacketManager
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawRoundedRect
@@ -65,6 +66,7 @@ object Colors {
     fun onGuiClick(event: GuiMouseClickEvent) {
         if (! inTerminal) return
         event.isCanceled = true
+        if (System.currentTimeMillis() - PacketManager.getTermOpenTime() < 350L) return
 
         val termScale = getTermScale()
         val x = getMouseX() / termScale

@@ -100,7 +100,7 @@ class NoammAddons {
             ActionBarParser, PartyUtils,
             ChatUtils, EspUtils, ActionUtils,
             TablistListener, ServerPlayer,
-            ScoreboardUtils,
+            ScoreboardUtils, PacketManager,
             FeatureManager
         ).forEach(MinecraftForge.EVENT_BUS::register)
 
