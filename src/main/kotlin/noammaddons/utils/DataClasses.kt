@@ -136,33 +136,6 @@ class DataClasses {
         val dungeonSplits = mutableMapOf<String, MutableMap<String, Long>>()
     }
 
-    // todo use JsonUtils's get function
-    data class Release(
-        val html_url: String,
-        val id: Int,
-        val tag_name: String,
-        val name: String?,
-        val body: String?,
-        val draft: Boolean,
-        val prerelease: Boolean,
-        val created_at: String,
-        val published_at: String,
-        val author: Author,
-        val assets: List<Asset>
-    )
-
-    data class Author(val login: String, val id: Int, val avatar_url: String)
-
-    data class Asset(
-        val id: Int,
-        val name: String,
-        val label: String?,
-        val content_type: String,
-        val size: Int,
-        val download_count: Int,
-        val browser_download_url: String
-    )
-
     data class PlayerData(
         var name: String = "",
         var rank: String = "",

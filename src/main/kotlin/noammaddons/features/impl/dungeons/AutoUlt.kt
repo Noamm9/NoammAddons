@@ -13,7 +13,7 @@ import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.PlayerUtils.useDungeonClassAbility
 
 object AutoUlt: Feature("Automatically uses your dungeon class ultimate when needed") {
-    data class UltMessage(val msg: String, val classes: List<DungeonUtils.Classes>, val floor: Int)
+    private class UltMessage(val msg: String, val classes: List<DungeonUtils.Classes>, val floor: Int)
 
     // todo offload to json?
     private val UltMessages = listOf(
@@ -26,12 +26,7 @@ object AutoUlt: Feature("Automatically uses your dungeon class ultimate when nee
             msg = "[BOSS] Goldor: You have done it, you destroyed the factory…",
             classes = listOf(Healer, Tank),
             floor = 7
-        ),/*
-        UltMessage(
-            msg = "[BOSS] Storm: I should have known that I stood no chance.",
-            classes = listOf(Berserk),
-            floor = 7
-        ),*/
+        ),
         UltMessage(
             msg = "[BOSS] Sadan: My giants! Unleashed!",
             classes = listOf(Healer, Tank, Archer, Berserk, Mage),
@@ -53,7 +48,7 @@ object AutoUlt: Feature("Automatically uses your dungeon class ultimate when nee
         } ?: return
 
         if (thePlayer?.clazz !in matchingMessage.classes) return
-        useDungeonClassAbility(true)
+        useDungeonClassAbility(ultimate = true)
         modMessage("Used Ultimate!")
     }
 }

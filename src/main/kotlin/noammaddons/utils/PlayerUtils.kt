@@ -96,12 +96,12 @@ object PlayerUtils {
     }
 
     /**
-     * @param [Ultimate] A boolean indicating whether to use the ultimate or the regular ability.
+     * @param [ultimate] A boolean indicating whether to use the ultimate or the regular ability.
      * If true, the ultimate ability will be used. If false, the regular class ability will be used.
      * The default value is false, meaning the regular ability will be used.
      */
-    fun useDungeonClassAbility(Ultimate: Boolean = false) {
-        mc.thePlayer?.dropOneItem(! Ultimate) ?: return
+    fun useDungeonClassAbility(ultimate: Boolean = false) {
+        mc.thePlayer?.dropOneItem(! ultimate) ?: return
     }
 
     fun getEyePos(): Vec3 = mc.thePlayer.run { renderVec.add(y = getEyeHeight()) }

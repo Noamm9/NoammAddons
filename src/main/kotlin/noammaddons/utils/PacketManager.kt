@@ -28,6 +28,7 @@ object PacketManager {
         inTerm = windowTitle?.matches(termRegex) ?: false
         windowOpenTime = if (inTerm && windowOpenTime != null) windowOpenTime else System.currentTimeMillis()
         currentWindowId = packet.windowId
+        if (windowTitle == "Click the button on time!") lastInteract = 0
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -70,7 +71,7 @@ object PacketManager {
         if (event.packet !is C02PacketUseEntity) return
         val entity = event.packet.getEntityFromWorld(mc.theWorld) ?: return
         if (entity.name.removeFormatting() != "Inactive Terminal") return
-        if (windowTitle != "Click the button on time!" && (lastInteract > 0 || currentWindowId != null))
+        if (lastInteract > 0 || currentWindowId != null)
             cancel(event, "Cenceled UseEntity. either in gui or using entity too fast")
         else lastInteract = 15
     }

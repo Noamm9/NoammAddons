@@ -21,40 +21,37 @@ import java.awt.Color
 object ArrowAlignSolver: Feature() {
     private val frameGridCorner = Vec3(- 2.0, 120.0, 75.0)
     private val recentClickTimestamps = mutableMapOf<Int, Long>()
-    val clicksRemaining = mutableMapOf<Int, Int>()
-    var currentFrameRotations: List<Int>? = null
-    private var targetSolution: List<Int>? = null
+    private val clicksRemaining = mutableMapOf<Int, Int>()
+    private var currentFrameRotations: List<Int>? = null
+    private var targetSolution: IntArray? = null
 
     private val blockWrongClicks by ToggleSetting("Block Wrong Clicks")
 
-    init {
-        // Run on a timer Thread to reduce the impact on preformance
-        loop(50) {
-            if (! enabled) return@loop
-            if (LocationUtils.F7Phase != 3) return@loop
-            if (distance3D(mc.thePlayer.positionVector, Vec3(0.0, 120.0, 77.0)) > 14) {
-                currentFrameRotations = null
-                targetSolution = null
-                clicksRemaining.clear()
-                return@loop
+    override fun init() = loop(50) {
+        if (! enabled) return@loop
+        if (LocationUtils.F7Phase != 3) return@loop
+        if (distance3D(mc.thePlayer.positionVector, Vec3(0.0, 120.0, 77.0)) > 14) {
+            currentFrameRotations = null
+            targetSolution = null
+            clicksRemaining.clear()
+            return@loop
+        }
+
+        currentFrameRotations = getFrames()
+
+        possibleSolutions.forEach { arr ->
+            for (i in arr.indices) {
+                val currentRotation = currentFrameRotations?.get(i) ?: - 1
+                if ((arr[i] == - 1 || currentRotation == - 1) && arr[i] != currentRotation) return@forEach
             }
 
-            currentFrameRotations = getFrames()
+            targetSolution = arr
 
-            possibleSolutions.forEach { arr ->
-                for (i in arr.indices) {
-                    val currentRotation = currentFrameRotations?.get(i) ?: - 1
-                    if ((arr[i] == - 1 || currentRotation == - 1) && arr[i] != currentRotation) return@forEach
-                }
-
-                targetSolution = arr
-
-                for (i in arr.indices) {
-                    val currentRotation = currentFrameRotations?.get(i) ?: return@forEach
-                    val clicksNeeded = calculateClicksNeeded(currentRotation, arr[i])
-                    if (clicksNeeded == 0) continue
-                    clicksRemaining[i] = clicksNeeded
-                }
+            for (i in arr.indices) {
+                val currentRotation = currentFrameRotations?.get(i) ?: return@forEach
+                val clicksNeeded = calculateClicksNeeded(currentRotation, arr[i])
+                if (clicksNeeded == 0) continue
+                clicksRemaining[i] = clicksNeeded
             }
         }
     }
@@ -136,19 +133,19 @@ object ArrowAlignSolver: Feature() {
         }
     }
 
-    private fun getFramePositionFromIndex(index: Int): Vec3 = frameGridCorner.add(0, index % 5, index / 5)
-    private fun calculateClicksNeeded(currentRotation: Int, targetRotation: Int): Int = (8 - currentRotation + targetRotation) % 8
+    private fun getFramePositionFromIndex(index: Int) = frameGridCorner.add(0, index % 5, index / 5)
+    private fun calculateClicksNeeded(currentRotation: Int, targetRotation: Int) = (8 - currentRotation + targetRotation) % 8
 
     // todo offload to json?
     private val possibleSolutions = listOf(
-        listOf(7, 7, - 1, - 1, - 1, 1, - 1, - 1, - 1, - 1, 1, 3, 3, 3, 3, - 1, - 1, - 1, - 1, 1, - 1, - 1, - 1, 7, 1),
-        listOf(- 1, - 1, 7, 7, 5, - 1, 7, 1, - 1, 5, - 1, - 1, - 1, - 1, - 1, - 1, 7, 5, - 1, 1, - 1, - 1, 7, 7, 1),
-        listOf(7, 7, - 1, - 1, - 1, 1, - 1, - 1, - 1, - 1, 1, 3, - 1, 7, 5, - 1, - 1, - 1, - 1, 5, - 1, - 1, - 1, 3, 3),
-        listOf(5, 3, 3, 3, - 1, 5, - 1, - 1, - 1, - 1, 7, 7, - 1, - 1, - 1, 1, - 1, - 1, - 1, - 1, 1, 3, 3, 3, - 1),
-        listOf(5, 3, 3, 3, 3, 5, - 1, - 1, - 1, 1, 7, 7, - 1, - 1, 1, - 1, - 1, - 1, - 1, 1, - 1, 7, 7, 7, 1),
-        listOf(7, 7, 7, 7, - 1, 1, - 1, - 1, - 1, - 1, 1, 3, 3, 3, 3, - 1, - 1, - 1, - 1, 1, - 1, 7, 7, 7, 1),
-        listOf(- 1, - 1, - 1, - 1, - 1, 1, - 1, 1, - 1, 1, 1, - 1, 1, - 1, 1, 1, - 1, 1, - 1, 1, - 1, - 1, - 1, - 1, - 1),
-        listOf(- 1, - 1, - 1, - 1, - 1, 1, 3, 3, 3, 3, - 1, - 1, - 1, - 1, 1, 7, 7, 7, 7, 1, - 1, - 1, - 1, - 1, - 1),
-        listOf(- 1, - 1, - 1, - 1, - 1, - 1, 1, - 1, 1, - 1, 7, 1, 7, 1, 3, 1, - 1, 1, - 1, 1, - 1, - 1, - 1, - 1, - 1)
+        intArrayOf(7, 7, - 1, - 1, - 1, 1, - 1, - 1, - 1, - 1, 1, 3, 3, 3, 3, - 1, - 1, - 1, - 1, 1, - 1, - 1, - 1, 7, 1),
+        intArrayOf(- 1, - 1, 7, 7, 5, - 1, 7, 1, - 1, 5, - 1, - 1, - 1, - 1, - 1, - 1, 7, 5, - 1, 1, - 1, - 1, 7, 7, 1),
+        intArrayOf(7, 7, - 1, - 1, - 1, 1, - 1, - 1, - 1, - 1, 1, 3, - 1, 7, 5, - 1, - 1, - 1, - 1, 5, - 1, - 1, - 1, 3, 3),
+        intArrayOf(5, 3, 3, 3, - 1, 5, - 1, - 1, - 1, - 1, 7, 7, - 1, - 1, - 1, 1, - 1, - 1, - 1, - 1, 1, 3, 3, 3, - 1),
+        intArrayOf(5, 3, 3, 3, 3, 5, - 1, - 1, - 1, 1, 7, 7, - 1, - 1, 1, - 1, - 1, - 1, - 1, 1, - 1, 7, 7, 7, 1),
+        intArrayOf(7, 7, 7, 7, - 1, 1, - 1, - 1, - 1, - 1, 1, 3, 3, 3, 3, - 1, - 1, - 1, - 1, 1, - 1, 7, 7, 7, 1),
+        intArrayOf(- 1, - 1, - 1, - 1, - 1, 1, - 1, 1, - 1, 1, 1, - 1, 1, - 1, 1, 1, - 1, 1, - 1, 1, - 1, - 1, - 1, - 1, - 1),
+        intArrayOf(- 1, - 1, - 1, - 1, - 1, 1, 3, 3, 3, 3, - 1, - 1, - 1, - 1, 1, 7, 7, 7, 7, 1, - 1, - 1, - 1, - 1, - 1),
+        intArrayOf(- 1, - 1, - 1, - 1, - 1, - 1, 1, - 1, 1, - 1, 7, 1, 7, 1, 3, 1, - 1, 1, - 1, 1, - 1, - 1, - 1, - 1, - 1)
     )
 }
