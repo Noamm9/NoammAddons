@@ -46,7 +46,7 @@ object FeatureManager {
         BlessingDisplay, ClientTimer, DarkMode, Animations, EnchantmentsColors,
 
         DungeonMap,
-        //    ZeroPingTeleportation, - R.I.P fuck hypixel
+        // ZeroPingTeleportation, // - R.I.P fuck hypixel, fuck blinkers
 
         DevOptions, CompTest, ConfigGui,
         //ProfileViewer,

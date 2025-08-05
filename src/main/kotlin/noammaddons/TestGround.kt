@@ -23,7 +23,7 @@ import noammaddons.utils.Utils.send
 
 
 // used to be a place for me to test shit.
-// but now it's just a dump of silent features
+// but now it's just a dump of silent features/fixes
 
 object TestGround {
     private var fuckingBitch = false

@@ -12,7 +12,6 @@ import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.BlockUtils.getBlockAt
-import noammaddons.utils.BlockUtils.getBlockId
 import noammaddons.utils.LocationUtils.P3Section
 import noammaddons.utils.MathUtils.add
 import noammaddons.utils.MathUtils.distance2D
@@ -23,16 +22,14 @@ import java.awt.Color
 
 
 object SimonSaysSolver: Feature() {
-    val blocks = mutableSetOf<BlockPos>()
-    val startObsidianBlock = BlockPos(111, 120, 92)
-    val devStartBtn = BlockPos(110, 121, 91)
-    var lastExisted = false
-    const val BUTTONHEIGHT = 0.26
-    const val BUTTONWIDTH = 0.4
-
-    val atSS get() = enabled && distance2D(startObsidianBlock, mc.thePlayer?.position ?: BlockPos(0, 0, 0)) < 15 && P3Section == 1
-
     private val blockWrongClicks by ToggleSetting("Block Wrong Clicks")
+
+    private val blocks = mutableSetOf<BlockPos>()
+    private val startObsidianBlock = BlockPos(111, 120, 92)
+    private val devStartBtn = BlockPos(110, 121, 91)
+    private var lastExisted = false
+
+    private val atSS get() = enabled && distance2D(startObsidianBlock, mc.thePlayer?.position ?: BlockPos(0, 0, 0)) < 15 && P3Section == 1
 
     private fun getColor(index: Int) = when (index) {
         0 -> Color.GREEN
@@ -40,11 +37,10 @@ object SimonSaysSolver: Feature() {
         else -> Color.RED
     }.withAlpha(100)
 
-
     @SubscribeEvent
     fun onTick(event: Tick) {
         if (! atSS) return blocks.clear()
-        val buttonsExist = getBlockAt(startObsidianBlock.add(- 1, 0, 0)).getBlockId() == 77
+        val buttonsExist = getBlockAt(startObsidianBlock.add(- 1, 0, 0)) == Blocks.stone_button
         if (buttonsExist && ! lastExisted) lastExisted = true
 
         if (! buttonsExist && lastExisted) {
@@ -52,8 +48,6 @@ object SimonSaysSolver: Feature() {
             blocks.clear()
         }
 
-        // From the bottom right of the board, search from right upwards
-        // Starting from bottom right, searching upward
         for (dy in 0 .. 3) {
             for (dz in 0 .. 3) {
                 val pos = startObsidianBlock.add(0, dy, dz)
@@ -75,13 +69,13 @@ object SimonSaysSolver: Feature() {
         blocks.withIndex().forEach { (index, pos) ->
             val color = getColor(index)
             RenderUtils.drawBox(
-                pos.x - BUTTONHEIGHT / 2,
+                pos.x - 0.13,
                 pos.y + 0.37,
                 pos.z + 0.3,
                 color, outline = true,
                 fill = true, phase = false,
-                width = BUTTONWIDTH,
-                height = BUTTONHEIGHT
+                width = 0.4,
+                height = 0.26
             )
         }
     }
@@ -107,10 +101,10 @@ object SimonSaysSolver: Feature() {
     @SubscribeEvent
     fun onPacketSent(event: PacketEvent.Sent) {
         if (! atSS) return
-        val blocksArr = blocks.toTypedArray()
 
         when (event.packet) {
             is C08PacketPlayerBlockPlacement -> {
+                val blocksArr = blocks.toTypedArray()
                 if (event.packet.position == devStartBtn) return blocks.clear()
                 if (getBlockAt(event.packet.position) != Blocks.stone_button) return
                 if (blocksArr.isEmpty()) return
@@ -119,6 +113,7 @@ object SimonSaysSolver: Feature() {
             }
 
             is C07PacketPlayerDigging -> {
+                val blocksArr = blocks.toTypedArray()
                 if (event.packet.position == devStartBtn) return blocks.clear()
                 if (getBlockAt(event.packet.position) != Blocks.stone_button) return
                 if (blocksArr.isEmpty()) return

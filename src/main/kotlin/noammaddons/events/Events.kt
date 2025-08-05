@@ -93,10 +93,11 @@ class ServerTick: Event()
 
 class Tick: Event()
 
+@Cancelable
 class PreKeyInputEvent(val key: Int, val character: Char): Event()
 
 @Cancelable
-class renderPlayerlist(val width: Int, val scoreObjectiveIn: ScoreObjective?): Event()
+class RenderPlayerList(val width: Int, val scoreObjectiveIn: ScoreObjective?): Event()
 
 abstract class RenderChestEvent(var chest: TileEntityChest, var x: Double, var y: Double, var z: Double, var partialTicks: Float): Event() {
 

@@ -8,6 +8,7 @@ import net.minecraft.crash.CrashReport
 import noammaddons.NoammAddons.Companion.Logger
 import noammaddons.NoammAddons.Companion.MOD_NAME
 import noammaddons.NoammAddons.Companion.mc
+import noammaddons.NoammAddons.Companion.scope
 import noammaddons.utils.Utils.equalsOneOf
 import java.io.BufferedReader
 import java.lang.reflect.Type
@@ -16,9 +17,7 @@ import java.security.KeyStore
 import javax.net.ssl.*
 
 object WebUtils {
-
-    @JvmStatic
-    val sslContext by lazy {
+    private val sslContext by lazy {
         try {
             val myKeyStore = KeyStore.getInstance("JKS")
             myKeyStore.load(this::class.java.getResourceAsStream("/ctjskeystore.jks"), "changeit".toCharArray())
@@ -48,7 +47,7 @@ object WebUtils {
     }
 
     inline fun <reified T> fetchJson(url: String, crossinline callback: (T) -> Unit) {
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch(Dispatchers.IO) {
             while (isActive) {
                 val connection = makeWebRequest(url) as HttpURLConnection
                 try {
@@ -88,7 +87,7 @@ object WebUtils {
     }
 
     fun get(url: String, block: (JsonObject) -> Unit) {
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch(Dispatchers.IO) {
             runCatching {
                 val connection = makeWebRequest(url) as HttpURLConnection
                 connection.requestMethod = "GET"
@@ -103,7 +102,7 @@ object WebUtils {
     }
 
     fun sendPostRequest(url: String, body: Any) {
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch(Dispatchers.IO) {
             val connection = makeWebRequest(url) as HttpsURLConnection
             connection.requestMethod = "POST"
             connection.setRequestProperty("Content-Type", "application/json")
@@ -114,19 +113,4 @@ object WebUtils {
             connection.disconnect()
         }
     }
-
-    fun sendPostRequest(url: String, body: Any, callback: (HttpsURLConnection) -> Unit) {
-        CoroutineScope(Dispatchers.IO).launch {
-            val connection = makeWebRequest(url) as HttpsURLConnection
-            connection.requestMethod = "POST"
-            connection.setRequestProperty("Content-Type", "application/json")
-            connection.doOutput = true
-            connection.outputStream.use { os ->
-                os.write(Gson().toJson(body).toByteArray(Charsets.UTF_8))
-            }
-            callback(connection)
-            connection.disconnect()
-        }
-    }
-
 }

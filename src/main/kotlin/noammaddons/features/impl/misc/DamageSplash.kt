@@ -14,10 +14,9 @@ import noammaddons.utils.LocationUtils.inSkyblock
 import noammaddons.utils.NumbersUtils.format
 import noammaddons.utils.Utils.containsOneOf
 
-
 object DamageSplash: Feature() {
     //  private val mode = DropdownSetting("Mode", arrayListOf("Minimal", "Decimal comma"))
-    private val disableinBoss = ToggleSetting("Disable in Boss").register1()
+    private val disableinBoss by ToggleSetting("Disable in Boss")
 
     // Thanks Skytils 😘
     val damageRegex = Regex("[✧✯]?(\\d{1,3}(?:,\\d{3})*[⚔+✧❤♞☄✷ﬗ✯]*)")
@@ -32,8 +31,7 @@ object DamageSplash: Feature() {
         val nameData = packet.func_149027_c()?.find { it.getObject().toString().contains("§") } ?: return
         val name = "${nameData.getObject()}".removeFormatting()
         val damage = damageRegex.matchEntire(name)?.destructured?.component1() ?: return
-        if (inBoss && disableinBoss.value) return event.setCanceled(true)
-
+        if (inBoss && disableinBoss) return event.setCanceled(true)
 
         val newName = if (name.containsOneOf("✧", "✯")) "&f✧${addRandomColorCodes(format(damage))}&f✧"
         else "&3${format(damage)}"

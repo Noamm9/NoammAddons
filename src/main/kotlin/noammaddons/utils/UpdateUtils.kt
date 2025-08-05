@@ -2,9 +2,10 @@ package noammaddons.utils
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.*
+import kotlinx.coroutines.launch
 import noammaddons.NoammAddons.Companion.FULL_PREFIX
 import noammaddons.NoammAddons.Companion.MOD_VERSION
+import noammaddons.NoammAddons.Companion.scope
 import noammaddons.utils.ChatUtils.Alert
 import noammaddons.utils.ChatUtils.clickableChat
 import noammaddons.utils.ChatUtils.modMessage
@@ -25,7 +26,7 @@ object UpdateUtils {
         if (System.currentTimeMillis() - lastCheck < 25_000 || isMessageOnScreen) return
         lastCheck = System.currentTimeMillis()
 
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             val connection = WebUtils.makeWebRequest(GITHUB_API_URL) as HttpURLConnection
             val response = connection.inputStream.bufferedReader().readText()
             val type = object: TypeToken<List<Release>>() {}.type

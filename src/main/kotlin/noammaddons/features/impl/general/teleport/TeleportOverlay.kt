@@ -6,8 +6,10 @@ import net.minecraft.item.ItemStack
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.RenderWorld
 import noammaddons.features.Feature
-import noammaddons.features.impl.general.teleport.ZeroPingTeleportation.TeleportInfo
-import noammaddons.features.impl.general.teleport.ZeroPingTeleportation.TeleportInfo.Companion.Types
+import noammaddons.features.impl.general.teleport.core.TeleportInfo
+import noammaddons.features.impl.general.teleport.core.TeleportType
+import noammaddons.features.impl.general.teleport.helpers.EtherwarpHelper
+import noammaddons.features.impl.general.teleport.helpers.InstantTransmissionHelper
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.ItemUtils.skyblockID
@@ -53,12 +55,13 @@ object TeleportOverlay: Feature() {
         val playerPos = ServerPlayer.player.getVec() ?: return
         val playerRot = ServerPlayer.player.getRotation() ?: return
 
-        if (teleportInfo.type == Types.Etherwarp) {
+        if (teleportInfo.type == TeleportType.Etherwarp) {
             if (! etherwarp.value || ! ServerPlayer.player.sneaking) return
             var (valid, pos) = EtherwarpHelper.getEtherPos(playerPos, playerRot, teleportInfo.distance)
             if (pos == null) return
             val blockAbove = getBlockAt(pos.add(y = 1))
             if (blockAbove == Blocks.carpet) pos = pos.add(y = 1)
+
             drawBlockBox(
                 blockPos = pos ?: return,
                 overlayColor = if (valid) fillColor.value else invalidFillColor.value,
@@ -71,13 +74,12 @@ object TeleportOverlay: Feature() {
             return
         }
 
-        if ((teleportInfo.type == Types.InstantTransmission && ! aote.value) ||
-            (teleportInfo.type == Types.WitherImpact && ! witherImpact.value) ||
+        if ((teleportInfo.type == TeleportType.InstantTransmission && ! aote.value) ||
+            (teleportInfo.type == TeleportType.WitherImpact && ! witherImpact.value) ||
             (PlayerUtils.isHoldingEtherwarpItem(heldItem) && ServerPlayer.player.sneaking)
         ) return
 
-        val prediction = InstantTransmissionPredictor.predictTeleport(teleportInfo.distance, playerPos, playerRot) ?: return
-
+        val prediction = InstantTransmissionHelper.predictTeleport(teleportInfo.distance, playerPos, playerRot) ?: return
 
         drawBox(
             prediction.xCoord - .25,
@@ -97,14 +99,14 @@ object TeleportOverlay: Feature() {
             val nbt = stack.getSubCompound("ExtraAttributes", false)
             val tuners = nbt?.getByte("tuned_transmission")?.toInt() ?: 0
             return if (ServerPlayer.player.sneaking && nbt?.getByte("ethermerge") == 1.toByte()) {
-                TeleportInfo(57.0 + tuners - 1, Types.Etherwarp)
+                TeleportInfo(57.0 + tuners, TeleportType.Etherwarp)
             }
             else {
-                TeleportInfo(8.0 + tuners, Types.InstantTransmission)
+                TeleportInfo(8.0 + tuners, TeleportType.InstantTransmission)
             }
         }
         if (PlayerUtils.isHoldingWitherImpact(stack)) {
-            return TeleportInfo(10.0, Types.WitherImpact)
+            return TeleportInfo(10.0, TeleportType.WitherImpact)
         }
         return null
     }

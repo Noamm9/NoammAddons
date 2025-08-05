@@ -25,7 +25,7 @@ object MaskTimers: Feature() {
         var text = ""
         private val exampleText = Masks.entries.joinToString("\n") { "${it.color}${it.maskName}: &aREADY" }
 
-        override val enabled get() = true
+        override val enabled get() = MaskTimers.enabled
         override val width: Float get() = if (mc.currentScreen is HudEditorScreen) getStringWidth(exampleText) else getStringWidth(text)
         override val height: Float get() = if (mc.currentScreen is HudEditorScreen) getStringHeight(exampleText) else getStringHeight(text)
 

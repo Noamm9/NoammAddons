@@ -149,7 +149,7 @@ object LocationUtils {
         return isCoordinateInsideBox(
             ServerPlayer.player.getPos() ?: return false,
             BlockPos(- 123, 100, 36), BlockPos(- 64, 70, - 31)
-        )
+        ) && world == WorldType.Hub
     }
 
     private fun getPhase(): Int? {

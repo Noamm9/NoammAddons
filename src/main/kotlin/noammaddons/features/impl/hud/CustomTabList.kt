@@ -2,7 +2,7 @@ package noammaddons.features.impl.hud
 
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.renderPlayerlist
+import noammaddons.events.RenderPlayerList
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.SliderSetting
 import noammaddons.utils.ChatUtils.removeFormatting
@@ -26,7 +26,7 @@ object CustomTabList: Feature() {
     private val scale by SliderSetting("Scale", 1, 100, 1, 75)
 
     @SubscribeEvent
-    fun drawCustomTabList(event: renderPlayerlist) {
+    fun drawCustomTabList(event: RenderPlayerList) {
         GlStateManager.pushMatrix()
 
         runCatching {

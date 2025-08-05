@@ -3,7 +3,7 @@
 package noammaddons.features.impl
 
 import gg.essential.api.EssentialAPI
-import kotlinx.coroutines.*
+import kotlinx.coroutines.launch
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.item.EntityArmorStand
@@ -20,6 +20,7 @@ import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
 import noammaddons.features.impl.dungeons.dmap.handlers.DungeonScanner
 import noammaddons.features.impl.dungeons.solvers.devices.AutoI4.testi4
 import noammaddons.features.impl.esp.StarMobESP
+import noammaddons.features.impl.general.teleport.helpers.InstantTransmissionHelper
 import noammaddons.ui.clickgui.ClickGuiScreen
 import noammaddons.ui.config.core.annotations.Dev
 import noammaddons.ui.config.core.impl.ButtonSetting
@@ -44,7 +45,10 @@ import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.LocationUtils.inSkyblock
 import noammaddons.utils.LocationUtils.onHypixel
 import noammaddons.utils.LocationUtils.world
+import noammaddons.utils.MathUtils.add
 import noammaddons.utils.RenderHelper.getScaleFactor
+import noammaddons.utils.RenderUtils.draw3DLine
+import noammaddons.utils.RenderUtils.drawBox
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.ScanUtils.currentRoom
 import noammaddons.utils.ScanUtils.getCore
@@ -77,6 +81,8 @@ object DevOptions: Feature() {
     val printBlockCoords by ToggleSetting("Print Block Coords")
 
     val printC08 by ToggleSetting("Print C08")
+
+    val debugServerPlayer by ToggleSetting("Show ServerPlayer")
 
 
     private val titles = mutableListOf<String>()
@@ -212,7 +218,7 @@ object DevOptions: Feature() {
 
             "secrets" -> {
                 event.isCanceled = true
-                CoroutineScope(Dispatchers.IO).launch {
+                scope.launch {
                     DungeonUtils.dungeonTeammates.toList().forEach { player ->
                         val s = ProfileUtils.getSecrets(player.name)
                         modMessage("${player.name} has $s secrets")
@@ -257,8 +263,29 @@ object DevOptions: Feature() {
                 }
             }
 
-            "id" -> {
-                mc.objectMouseOver?.blockPos?.let { modMessage(getBlockAt(it).getBlockId()) }
+            "id" -> mc.objectMouseOver?.blockPos?.let { modMessage(getBlockAt(it).getBlockId()) }
+
+            "checked" -> {
+                StarMobESP.checked.forEach {
+                    modMessage(it.name)
+                }
+            }
+            //  "block" -> ZeroPingTeleportation.blockLivingUpdate = ! ZeroPingTeleportation.blockLivingUpdate
+        }
+    }
+
+    @SubscribeEvent
+    fun renderworld(event: RenderWorld) {
+        if (! debugServerPlayer) return
+
+        ServerPlayer.player.getVec()?.let { pos ->
+            val boxColor = if (ServerPlayer.player.onGround == true) Color.GREEN else Color.RED
+            drawBox(pos.xCoord - 0.1, pos.yCoord - 0.1, pos.zCoord - 0.1, boxColor, true, true, 0.2, 0.2)
+
+            ServerPlayer.player.getRotation()?.let {
+                val sneakOffset = if (ServerPlayer.player.sneaking) (1.62 - 0.08) else 1.62
+                val a = InstantTransmissionHelper.Vector3.fromPitchYaw(it.pitch.toDouble(), it.yaw.toDouble()).multiply(10.0)
+                draw3DLine(pos.add(y = sneakOffset), pos.add(a.x, a.y + sneakOffset, a.z), Color.CYAN)
             }
         }
     }

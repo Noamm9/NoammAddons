@@ -29,7 +29,7 @@ import noammaddons.utils.Utils.remove
 
 
 object BlazeSolver {
-    private val BlazeHpRegex = Regex("""^\[Lv15] Blaze [\d,]+/([\d,]+)❤$""")
+    private val blazeHpRegex = Regex("^\\[Lv15].+Blaze [\\d,]+/([\\d,]+)❤$")
     private var inBlaze = false
     private val blazes = mutableListOf<Entity>()
     private var lastBlazeCount = 10
@@ -58,7 +58,7 @@ object BlazeSolver {
         hpMap.clear()
 
         mc.theWorld.loadedEntityList.filterIsInstance<EntityArmorStand>().forEach { entity ->
-            val match = BlazeHpRegex.find(entity.displayName.noFormatText) ?: return@forEach
+            val match = blazeHpRegex.find(entity.displayName.noFormatText) ?: return@forEach
             val health = match.groupValues[1].remove(",").toIntOrNull() ?: return@forEach
             val possibleEntity = entity.entityWorld.getEntitiesInAABBexcluding(
                 entity, entity.entityBoundingBox.offset(0.0, - 1.0, 0.0)

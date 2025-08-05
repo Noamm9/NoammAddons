@@ -1,15 +1,17 @@
 package noammaddons.features.impl.dungeons.dmap.handlers
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import net.minecraft.event.HoverEvent
 import net.minecraft.util.ChatComponentText
 import net.minecraft.util.ChatStyle
+import noammaddons.NoammAddons.Companion.CHAT_PREFIX
+import noammaddons.NoammAddons.Companion.mc
+import noammaddons.NoammAddons.Companion.scope
 import noammaddons.features.impl.dungeons.dmap.DungeonMap.debug
 import noammaddons.features.impl.dungeons.dmap.core.ClearInfo
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapConfig
 import noammaddons.features.impl.dungeons.dmap.core.map.*
-import noammaddons.NoammAddons.Companion.CHAT_PREFIX
-import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.DungeonUtils
@@ -42,7 +44,7 @@ object ClearInfoUpdater {
         if (debug) modMessage("$player died: $reason")
     }
 
-    fun initStartSecrets() = CoroutineScope(Dispatchers.IO).launch {
+    fun initStartSecrets() = scope.launch(Dispatchers.IO) {
         if (! DungeonMapConfig.printPlayersClearInfo) return@launch
         DungeonUtils.runPlayersNames.keys.toList().forEach { name ->
             val ci = ClearInfo.get(name) ?: return@forEach
@@ -52,7 +54,7 @@ object ClearInfoUpdater {
         }
     }
 
-    fun sendClearInfoMessage() = CoroutineScope(Dispatchers.IO).launch {
+    fun sendClearInfoMessage() = scope.launch(Dispatchers.IO) {
         if (! DungeonMapConfig.printPlayersClearInfo) return@launch
         val msgList = DungeonUtils.dungeonTeammates.toList().map { teammate ->
             val secretsAfterRun = ProfileUtils.getSecrets(teammate.name)

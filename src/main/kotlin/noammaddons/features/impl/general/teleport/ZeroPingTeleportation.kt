@@ -1,20 +1,20 @@
 package noammaddons.features.impl.general.teleport
 
-import net.minecraft.init.Blocks.*
 import net.minecraft.network.play.client.C03PacketPlayer
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.network.play.server.S08PacketPlayerPosLook
-import net.minecraft.util.Vec3
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
-import noammaddons.features.impl.DevOptions
-import noammaddons.features.impl.general.teleport.ZeroPingTeleportation.TeleportInfo.Companion.Types
+import noammaddons.features.impl.general.teleport.core.*
+import noammaddons.features.impl.general.teleport.helpers.EtherwarpHelper
+import noammaddons.features.impl.general.teleport.helpers.InstantTransmissionHelper
 import noammaddons.ui.config.core.impl.SeperatorSetting
 import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.*
 import noammaddons.utils.BlockUtils.getBlockAt
+import noammaddons.utils.BlockUtils.getBlockId
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ItemUtils.extraAttributes
@@ -28,14 +28,15 @@ import kotlin.math.abs
 
 
 object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for the server's teleport packet.") {
-    data class TeleportPrediction(val rotation: MathUtils.Rotation, val position: Vec3)
-    data class TeleportInfo(val distance: Double, val type: Types, val keepMotion: Boolean = false) {
-        companion object {
-            enum class Types { Etherwarp, InstantTransmission, WitherImpact }
-        }
-    }
+    private val aote by ToggleSetting("Instant Transmission")
+    private val etherwarp by ToggleSetting("Etherwarp")
+    private val witherImpact by ToggleSetting("Wither Impact")
+    private val _s by SeperatorSetting("Keep Motion").addDependency { ! aote && ! etherwarp && ! witherImpact }
+    private val aoteKm by ToggleSetting("Instant Transmission ").addDependency { ! aote }
+    private val etherwarpKm by ToggleSetting("Etherwarp ").addDependency { ! etherwarp }
+    private val witherImpactKm by ToggleSetting("Wither Impact ").addDependency { ! witherImpact }
 
-    private val interactableBlocks = setOf(trapped_chest, chest, ender_chest, hopper, cauldron, lever, wooden_button, stone_button, iron_trapdoor, trapdoor)
+    private val interactableBlocks = setOf(146, 54, 130, 154, 118, 69, 77, 143, 96, 167)
 
     private const val MAX_PENDING_TELEPORTS = 3
     private const val MAX_FAILED_TELEPORTS = 3
@@ -44,28 +45,20 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
     private val withinTolerance = fun(n1: Float, n2: Float) = abs(n1 - n2) < 1e-4
     private val pendingTeleports = mutableListOf<TeleportPrediction>()
     private val failedTeleports = mutableListOf<Long>()
-    private var hasSoulFlow = true
 
     private var witherImpactLastUse = System.currentTimeMillis()
+    private var hasSoulFlow = true
 
-    private val aote = ToggleSetting("Instant Transmission")
-    private val etherwarp = ToggleSetting("Etherwarp")
-    private val witherImpact = ToggleSetting("Wither Impact")
-    private val s = SeperatorSetting("Keep Motion").addDependency { ! aote.value && ! etherwarp.value && ! witherImpact.value }
-    private val aoteKm = ToggleSetting("Instant Transmission ").addDependency(aote)
-    private val etherwarpKm = ToggleSetting("Etherwarp ").addDependency(etherwarp)
-    private val witherImpactKm = ToggleSetting("Wither Impact ").addDependency(witherImpact)
 
-    override fun init() = addSettings(aote, etherwarp, witherImpact, s, aoteKm, etherwarpKm, witherImpactKm)
-
-    private fun teleport(prediction: TeleportPrediction, keepMotion: Boolean) = ThreadUtils.scheduledTask(0) {
+    private fun teleport(prediction: TeleportPrediction) = ThreadUtils.scheduledTask(0) {
         val (x, y, z) = prediction.position.destructured()
         val (yaw, pitch) = prediction.rotation
+        val keepMotion = prediction.info.keepMotion
 
         mc.thePlayer.setPosition(x, y, z)
         C03PacketPlayer.C06PacketPlayerPosLook(x, y, z, yaw, pitch, mc.thePlayer.onGround).send()
-        if (! keepMotion) mc.thePlayer.setVelocity(.0, .0, .0)
-        else mc.thePlayer.setVelocity(mc.thePlayer.motionX, .0, mc.thePlayer.motionZ)
+        if (keepMotion) mc.thePlayer.motionY = .0
+        else mc.thePlayer.setVelocity(.0, .0, .0)
     }
 
     private fun onTeleportFail() {
@@ -89,20 +82,19 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
         val packet = event.packet as? C08PacketPlayerBlockPlacement ?: return
         if (packet.placedBlockDirection != 255) return
         if (pendingTeleports.size == MAX_PENDING_TELEPORTS) return
-        if (failedTeleports.size == MAX_FAILED_TELEPORTS) return
         if (LocationUtils.world.equalsOneOf(Home, Garden)) return
         if (LocationUtils.dungeonFloorNumber == 7 && LocationUtils.inBoss) return
         if (mc.thePlayer.isRiding) return
         if (ActionBarParser.currentMana < ActionBarParser.maxMana * 0.1) return
         if (ScanUtils.currentRoom?.data?.name.equalsOneOf("New Trap", "Old Trap", "Teleport Maze", "Boulder")) return
-        runCatching { if ((mc.objectMouseOver.blockPos?.let { getBlockAt(it) } ?: air) in interactableBlocks) return }
+        runCatching { if ((mc.objectMouseOver.blockPos?.let { getBlockAt(it).getBlockId() } ?: 0) in interactableBlocks) return }
         if (LocationUtils.isInHubCarnival()) return
         val tpInfo = getTeleportInfo(packet) ?: return
 
         when (tpInfo.type) {
-            Types.Etherwarp -> doZeroPingEtherwarp(tpInfo)
-            Types.InstantTransmission -> doZeroPingInstantTransmission(tpInfo)
-            Types.WitherImpact -> doZeroPingWitherImpact(tpInfo)
+            TeleportType.Etherwarp -> doZeroPingEtherwarp(tpInfo)
+            TeleportType.InstantTransmission -> doZeroPingInstantTransmission(tpInfo)
+            TeleportType.WitherImpact -> doZeroPingWitherImpact(tpInfo)
         }
     }
 
@@ -118,15 +110,6 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
             val x = packet.x == prediction.position.xCoord
             val y = packet.y == prediction.position.yCoord
             val z = packet.z == prediction.position.zCoord
-
-            if (DevOptions.devMode) {
-                modMessage("yaw: $yaw")
-                modMessage("pitch: $pitch")
-                modMessage("x: $x")
-                modMessage("y: $y")
-                modMessage("z: $z")
-            }
-
             yaw && pitch && x && y && z
         }
 
@@ -137,13 +120,12 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
 
     @SubscribeEvent
     fun onChat(event: Chat) = with(event.component.noFormatText) {
-        if (! etherwarp.value) return
+        if (! etherwarp) return
         if (lowercase() != "not enough soulflow!") return
         hasSoulFlow = false
     }
 
     @SubscribeEvent
-    @Suppress("UNUSED_PARAMETER")
     fun onWorldUnload(event: WorldUnloadEvent) {
         hasSoulFlow = true
     }
@@ -158,29 +140,28 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
         playerRot.yaw %= 360
         if (playerRot.yaw < 0) playerRot.yaw += 360
 
-        val prediction = TeleportPrediction(playerRot, etherPos.vec !!.add(0.5, 1.05, 0.5))
+        val prediction = TeleportPrediction(playerRot, etherPos.vec !!.add(0.5, 1.05, 0.5), tpInfo)
         if (! mc.isSingleplayer) pendingTeleports.add(prediction)
-        teleport(prediction, tpInfo.keepMotion)
+        teleport(prediction)
     }
 
     private fun doZeroPingInstantTransmission(tpInfo: TeleportInfo) {
         val playerPos = ServerPlayer.player.getVec() ?: return
         val playerRot = ServerPlayer.player.getRotation() ?: return
 
-        val pos = InstantTransmissionPredictor.predictTeleport(tpInfo.distance, playerPos, playerRot) ?: return
+        val pos = InstantTransmissionHelper.predictTeleport(tpInfo.distance, playerPos, playerRot) ?: return
         if (ScanUtils.getRoomFromPos(pos)?.data?.name.equalsOneOf("Teleport Maze", "Boulder")) return
 
         playerRot.yaw %= 360
 
-        val prediction = TeleportPrediction(playerRot, pos)
+        val prediction = TeleportPrediction(playerRot, pos, tpInfo)
         if (! mc.isSingleplayer) pendingTeleports.add(prediction)
-        teleport(prediction, tpInfo.keepMotion)
+        teleport(prediction)
     }
 
     private fun doZeroPingWitherImpact(tpInfo: TeleportInfo) {
         if (System.currentTimeMillis() - witherImpactLastUse <= 125) return // 8 CPS limit
         witherImpactLastUse = System.currentTimeMillis()
-
         doZeroPingInstantTransmission(tpInfo)
     }
 
@@ -193,30 +174,30 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
             val nbt = heldItem.extraAttributes
             val tuners = nbt?.getByte("tuned_transmission")?.toInt() ?: 0
             if (ServerPlayer.player.sneaking && nbt?.getByte("ethermerge") == 1.toByte()) {
-                if (! etherwarp.value) return null
+                if (! etherwarp) return null
                 if (! hasSoulFlow) return null
 
                 return TeleportInfo(
                     distance = 57.0 + tuners,
-                    type = Types.Etherwarp,
-                    keepMotion = etherwarpKm.value
+                    type = TeleportType.Etherwarp,
+                    keepMotion = etherwarpKm
                 )
             }
             else {
-                if (! aote.value) return null
+                if (! aote) return null
                 return TeleportInfo(
                     distance = 8.0 + tuners,
-                    type = Types.InstantTransmission,
-                    keepMotion = aoteKm.value
+                    type = TeleportType.InstantTransmission,
+                    keepMotion = aoteKm
                 )
             }
         }
         else if (PlayerUtils.isHoldingWitherImpact(heldItem)) {
-            if (! witherImpact.value) return null
+            if (! witherImpact) return null
             return TeleportInfo(
                 distance = 10.0,
-                type = Types.WitherImpact,
-                keepMotion = witherImpactKm.value
+                type = TeleportType.WitherImpact,
+                keepMotion = witherImpactKm
             )
         }
         return null

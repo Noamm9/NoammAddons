@@ -76,12 +76,13 @@ public class MixinMinecraft {
         locationMojangPng = new ResourceLocation("noammaddons:menu/loadingScreen.png");
     }
 
-    @Inject(method = {"runTick"}, at = {@At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;dispatchKeypresses()V")})
+    @Inject(method = "runTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;dispatchKeypresses()V"), cancellable = true)
     public void keyPresses(CallbackInfo ci) {
         int k = (Keyboard.getEventKey() == 0) ? (Keyboard.getEventCharacter() + 256) : Keyboard.getEventKey();
         char character = Keyboard.getEventCharacter();
         if (Keyboard.getEventKeyState()) {
-            postAndCatch(new PreKeyInputEvent(k, character));
+            if (postAndCatch(new PreKeyInputEvent(k, character)))
+                ci.cancel();
         }
     }
 }

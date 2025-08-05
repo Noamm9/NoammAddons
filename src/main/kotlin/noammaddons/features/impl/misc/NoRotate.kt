@@ -43,10 +43,12 @@ object NoRotate: Feature("Stop server packets from rotating you") {
         if (player.heldItem?.skyblockID.equalsOneOf("SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP")) return
         event.setCanceled(true)
 
-        player.setPosition(updatedPosition.xCoord, updatedPosition.yCoord, updatedPosition.zCoord)
-        C03PacketPlayer.C06PacketPlayerPosLook(
-            player.posX, player.entityBoundingBox.minY, player.posZ, updatedRotation.yaw, updatedRotation.pitch, false
-        ).send()
+        mc.addScheduledTask {
+            player.setPosition(updatedPosition.xCoord, updatedPosition.yCoord, updatedPosition.zCoord)
+            C03PacketPlayer.C06PacketPlayerPosLook(
+                player.posX, player.entityBoundingBox.minY, player.posZ, updatedRotation.yaw, updatedRotation.pitch, false
+            ).send()
+        }
     }
 
 

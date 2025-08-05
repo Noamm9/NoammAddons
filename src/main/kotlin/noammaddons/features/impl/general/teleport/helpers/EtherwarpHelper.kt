@@ -1,4 +1,4 @@
-package noammaddons.features.impl.general.teleport
+package noammaddons.features.impl.general.teleport.helpers
 
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3

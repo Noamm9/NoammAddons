@@ -10,8 +10,8 @@ import noammaddons.events.*
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.correctTpPadColor
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.tpMaze
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.wrongTpPadColor
-import noammaddons.features.impl.general.teleport.InstantTransmissionPredictor.Vector3
-import noammaddons.features.impl.general.teleport.InstantTransmissionPredictor.Vector3.Companion.fromPitchYaw
+import noammaddons.features.impl.general.teleport.helpers.InstantTransmissionHelper.Vector3
+import noammaddons.features.impl.general.teleport.helpers.InstantTransmissionHelper.Vector3.Companion.fromPitchYaw
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.ChatUtils.clickableChat
 import noammaddons.utils.ChatUtils.removeFormatting

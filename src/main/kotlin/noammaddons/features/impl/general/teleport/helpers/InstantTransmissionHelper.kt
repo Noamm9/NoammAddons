@@ -1,4 +1,4 @@
-package noammaddons.features.impl.general.teleport
+package noammaddons.features.impl.general.teleport.helpers
 
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
@@ -10,7 +10,7 @@ import noammaddons.utils.MathUtils.floor
 import noammaddons.utils.ServerPlayer.player
 import kotlin.math.*
 
-object InstantTransmissionPredictor {
+object InstantTransmissionHelper {
     // Blocks that can be passed through without stopping (air, liquids, grass, etc.).
     private val PASSABLE_BLOCK_IDS = setOf(
         0, 6, 8, 9, 10, 11, 27, 28, 30, 31, 32, 37, 38, 39, 40, 50, 51, 55, 59, 65, 66,

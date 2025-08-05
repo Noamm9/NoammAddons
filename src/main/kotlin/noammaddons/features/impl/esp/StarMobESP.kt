@@ -83,7 +83,7 @@ object StarMobESP: Feature("Highlights Star Mobs in the dungeon") {
                 }
 
                 is S0CPacketSpawnPlayer -> {
-                    val name = mc.netHandler.getPlayerInfo(packet.player).gameProfile.name
+                    val name = mc.netHandler.getPlayerInfo(packet.player)?.gameProfile?.name
                     if (! name.equalsOneOf("Shadow Assassin", "Lost Adventurer", "Diamond Guy", "King Midas")) return@scheduledTask
                     starMobs.add(mc.theWorld.getEntityByID(packet.entityID))
                 }
