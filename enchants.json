@@ -132,6 +132,12 @@
       "maxLevel": 6,
       "nbtName": "gravity"
     },
+    "dragon hunter": {
+      "goodLevel": 5,
+      "loreName": "Dragon Hunter",
+      "maxLevel": 6,
+      "nbtName": "dragon_hunter"
+    },
     "dragon tracer": {
       "goodLevel": 5,
       "loreName": "Dragon Tracer",
