@@ -1,11 +1,11 @@
 package noammaddons.features.impl.general
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.NoammAddons.Companion.CHAT_PREFIX
 import noammaddons.events.Chat
 import noammaddons.events.DungeonEvent
 import noammaddons.features.Feature
 import noammaddons.features.impl.hud.TpsDisplay
-import noammaddons.NoammAddons.Companion.CHAT_PREFIX
 import noammaddons.ui.config.core.impl.SeperatorSetting
 import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.ChatUtils.getPing

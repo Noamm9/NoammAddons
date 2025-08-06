@@ -3,6 +3,8 @@ package noammaddons.commands
 import gg.essential.universal.UChat
 import gg.essential.universal.UDesktop.browse
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.jsonPrimitive
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.command.ICommandSender
 import noammaddons.NoammAddons.Companion.FULL_PREFIX
@@ -33,6 +35,8 @@ import noammaddons.utils.ScanUtils.getRoomCenterAt
 import noammaddons.utils.UpdateUtils
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.openDiscordLink
+import noammaddons.utils.Utils.remove
+import noammaddons.utils.WebUtils
 import java.net.URI
 
 
@@ -143,6 +147,27 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons", "noamm", "noam",
             "status" -> scope.launch {
                 val name = args.getOrNull(1) ?: return@launch modMessage("&cInvalid usage of command. &bUsage: /na status [name]")
                 modMessage("&b$name is " + if (getStatus(name)) "&aOnline" else "&cOffline")
+            }
+
+            "rtca" -> {
+                WebUtils.get("https://soopy.dev/api/guildBot/runCommand?user=${args.getOrNull(1) ?: mc.session.username}&cmd=rtca") { obj ->
+                    if (obj["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
+                    val regex = Regex("""It will take ([\d,]+) m7 runs for (\w+) to reach class average 50 \((.+)\)""")
+                    val str = regex.replace(obj["raw"].toString().remove("\"")) { match ->
+                        val total = match.groupValues[1]
+                        val name = match.groupValues[2]
+                        val classes = match.groupValues[3]
+
+                        val formattedClasses = classes.split(" | ").joinToString(" | ") { part ->
+                            val (value, cls) = part.split(" ")
+                            "${cls.replaceFirstChar { it.uppercase() }}: $value"
+                        }
+
+                        "$name (Total: $total | $formattedClasses)"
+                    }
+
+                    modMessage(str)
+                }
             }
 
             else -> modMessage("&cInvalid usage of command. &bUsage: /na <command>")

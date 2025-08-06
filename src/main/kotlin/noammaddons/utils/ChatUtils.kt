@@ -12,18 +12,17 @@ import net.minecraft.event.HoverEvent
 import net.minecraft.network.play.client.C01PacketChatMessage
 import net.minecraft.util.*
 import net.minecraft.util.ChatAllowedCharacters.*
-import net.minecraft.util.StringUtils.*
 import net.minecraftforge.client.ClientCommandHandler
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.*
-import noammaddons.events.EventDispatcher.postAndCatch
-import noammaddons.features.impl.DevOptions
 import noammaddons.NoammAddons.Companion.CHAT_PREFIX
 import noammaddons.NoammAddons.Companion.DEBUG_PREFIX
 import noammaddons.NoammAddons.Companion.FULL_PREFIX
 import noammaddons.NoammAddons.Companion.Logger
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.NoammAddons.Companion.scope
+import noammaddons.events.*
+import noammaddons.events.EventDispatcher.postAndCatch
+import noammaddons.features.impl.DevOptions
 import noammaddons.utils.LocationUtils.inSkyblock
 import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderUtils.drawTitle
@@ -84,12 +83,9 @@ object ChatUtils {
     fun modMessage(message: Any?) = UChat.chat("$CHAT_PREFIX ${message.toString().addColor()}")
 
     fun debugMessage(message: Any?) {
-        if (! DevOptions.devMode) return
-
-        stripControlCodes(message.toString())
-
-        UChat.chat("$DEBUG_PREFIX&r ${message.toString().addColor()}")
         Logger.debug(message.toString().removeFormatting())
+        if (! DevOptions.devMode) return
+        UChat.chat("$DEBUG_PREFIX&r ${message.toString().addColor()}")
     }
 
 

@@ -13,11 +13,9 @@ import noammaddons.utils.WebUtils
 object VisualWords: Feature("Replace some text with other text", toggled = true) {
     private var wordsMap: Map<String, String>? = null
 
-    init {
-        WebUtils.fetchJson<Map<String, String>>(
-            "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/VisualWords.json"
-        ) { wordsMap = it }
-    }
+    override fun init() = WebUtils.fetchJson<Map<String, String>>(
+        "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/VisualWords.json"
+    ) { wordsMap = it }
 
     @JvmStatic
     @Suppress("KotlinConstantConditions")

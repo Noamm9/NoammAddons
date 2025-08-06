@@ -1,6 +1,6 @@
 package noammaddons.features.impl.dungeons
 
-import net.minecraft.init.Items
+import net.minecraft.item.ItemTool
 import net.minecraft.network.play.client.C07PacketPlayerDigging
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.PacketEvent
@@ -13,14 +13,14 @@ object StonkSwap: Feature("A bunch of qol features for stonk swapping") {
     // Also, don't make a sound if you swapped from a bow because it does not work with bows for some reason work.
 
     private val stonkSwapSoundName = TextInputSetting("Sound Name", "random.orb")
-    private val stonkSwapVolume = SliderSetting("Volume", 0, 1, 0.1, 0.5)
-    private val stonkSwapPitch = SliderSetting("Pitch", 0, 2, 0.1, 1.0)
+    private val stonkSwapVolume = SliderSetting("Volume", 0f, 1f, 0.1f, 0.5f)
+    private val stonkSwapPitch = SliderSetting("Pitch", 0f, 2f, 0.1f, 1f)
     private val playSound = ButtonSetting("Play Sound") {
         repeat(5) {
             mc.thePlayer?.playSound(
                 stonkSwapSoundName.value,
-                stonkSwapVolume.value.toFloat(),
-                stonkSwapPitch.value.toFloat()
+                stonkSwapVolume.value,
+                stonkSwapPitch.value
             )
         }
     }
@@ -32,7 +32,7 @@ object StonkSwap: Feature("A bunch of qol features for stonk swapping") {
         val packet = event.packet as? C07PacketPlayerDigging ?: return
         if (packet.status != C07PacketPlayerDigging.Action.START_DESTROY_BLOCK) return
         if (ServerPlayer.player.heldHotbarSlot == mc.thePlayer.inventory.currentItem) return
-        if (mc.thePlayer.heldItem?.item == Items.bow) return
+        if (mc.thePlayer.heldItem?.item !is ItemTool) return
         playSound.invoke()
     }
 }
