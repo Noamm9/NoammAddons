@@ -204,6 +204,7 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons", "noamm", "noam",
         "&b/na roominfo &7- &oShows current room info.",
         "&b/na update &7- &oChecks for an Update.",
         "&b/na openlink [URL] &7- &oOpens the provided URL in a web browser.",
-        "&b/na status [name] &7- &oChecks if the player is online."
+        "&b/na status [name] &7- &oChecks if the player is online.",
+        "&b/na rtca [name] &7- &oChecks the player's runs untill class avrage 50."
     )
 }
