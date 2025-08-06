@@ -5,13 +5,7 @@ import kotlinx.serialization.json.*
 import noammaddons.NoammAddons.Companion.Logger
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.JsonUtils.getString
-import java.io.BufferedReader
-import javax.net.ssl.HttpsURLConnection
-
-/*
-  readUrl("https://api.tenios.dev/secrets/$uuid").toInt()
-  readUrl("https://subat0mic.click/secrets/$uuid").toInt()
-*/
+import noammaddons.utils.WebUtils.readUrl
 
 
 object ProfileUtils {
@@ -65,12 +59,5 @@ object ProfileUtils {
         val isOnline = json?.get("session")?.jsonObject?.get("online")?.jsonPrimitive?.boolean ?: false
         Logger.info("$name is online: $isOnline")
         return isOnline
-    }
-
-    private fun readUrl(url: String): String {
-        val connection = WebUtils.makeWebRequest(url)
-        (connection as HttpsURLConnection).requestMethod = "GET"
-        connection.setRequestProperty("Accept", "application/json")
-        return connection.inputStream.bufferedReader().use(BufferedReader::readText)
     }
 }

@@ -31,7 +31,8 @@ import org.apache.logging.log4j.LogManager
     modid = NoammAddons.MOD_ID,
     name = NoammAddons.MOD_NAME,
     version = NoammAddons.MOD_VERSION,
-    clientSideOnly = true
+    clientSideOnly = true,
+    dependencies = "before:*"
 )
 class NoammAddons {
     private var loadTime = 0L

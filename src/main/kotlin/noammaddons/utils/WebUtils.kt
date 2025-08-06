@@ -103,14 +103,23 @@ object WebUtils {
 
     fun sendPostRequest(url: String, body: Any) {
         scope.launch(Dispatchers.IO) {
-            val connection = makeWebRequest(url) as HttpsURLConnection
-            connection.requestMethod = "POST"
-            connection.setRequestProperty("Content-Type", "application/json")
-            connection.doOutput = true
-            connection.outputStream.use { os ->
-                os.write(body.toString().toByteArray(Charsets.UTF_8))
-            }
-            connection.disconnect()
+            runCatching {
+                val connection = makeWebRequest(url) as HttpsURLConnection
+                connection.requestMethod = "POST"
+                connection.setRequestProperty("Content-Type", "application/json")
+                connection.doOutput = true
+                connection.outputStream.use { os ->
+                    os.write(body.toString().toByteArray(Charsets.UTF_8))
+                }
+                connection.disconnect()
+            }.onFailure(Throwable::printStackTrace)
         }
+    }
+
+    fun readUrl(url: String): String {
+        val connection = makeWebRequest(url)
+        (connection as HttpsURLConnection).requestMethod = "GET"
+        connection.setRequestProperty("Accept", "application/json")
+        return connection.inputStream.bufferedReader().use(BufferedReader::readText)
     }
 }

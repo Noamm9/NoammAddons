@@ -17,7 +17,7 @@ import java.util.regex.Pattern
 
 
 object EnchantmentsColors: Feature() {
-    private val ENCHANTMENT_PATTERN: Pattern = Pattern.compile("(?<enchant>[A-Za-z][A-Za-z -]+) (?<levelNumeral>[IVXLCDM]+)(?=, |$| [\\d,]+$)")
+    private val ENCHANTMENT_PATTERN = Pattern.compile("(?<enchant>[A-Za-z][A-Za-z -]+) (?<levelNumeral>[IVXLCDM]+)(?=, |$| [\\d,]+$)")
     val enchantments = mutableListOf<Enchantment>()
 
     private val showNumbers by ToggleSetting("Show Enchantment Levels as Numbers")
@@ -27,28 +27,24 @@ object EnchantmentsColors: Feature() {
     private val badLevelColor by ColorSetting("Bad Level Enchantment Color", Color(170, 170, 170), false)
 
     override fun init() {
-        fetchJson<Map<String, Map<String, Map<String, Any?>>>>("https://raw.githubusercontent.com/Fix3dll/SkyblockAddons/refs/heads/main/src/main/resources/enchants.json") { enchantmentMap ->
-            runCatching {
-                val mappedList = enchantmentMap.flatMap { (type, innerMap) ->
-                    innerMap.map { (key, rawDataMap) ->
-                        val goodLevel = (rawDataMap["goodLevel"] as Double).toInt()
-                        val loreName = rawDataMap["loreName"] as String
-                        val maxLevel = (rawDataMap["maxLevel"] as Double).toInt()
-                        val nbtName = rawDataMap["nbtName"] as String
-                        val nbtNum = rawDataMap["nbtNum"] as? String
-                        val statLabel = rawDataMap["statLabel"] as? String
-                        val stackLevel = (rawDataMap["stackLevel"] as? List<*>)?.mapNotNull { (it as? Double)?.toInt() }
+        fetchJson<Map<String, Map<String, Map<String, Any?>>>>("https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/enchants.json") { enchantmentMap ->
+            val mappedList = enchantmentMap.flatMap { (type, innerMap) ->
+                innerMap.map { (key, rawDataMap) ->
+                    val goodLevel = (rawDataMap["goodLevel"] as Double).toInt()
+                    val loreName = rawDataMap["loreName"] as String
+                    val maxLevel = (rawDataMap["maxLevel"] as Double).toInt()
+                    val nbtName = rawDataMap["nbtName"] as String
+                    val nbtNum = rawDataMap["nbtNum"] as? String
+                    val statLabel = rawDataMap["statLabel"] as? String
+                    val stackLevel = (rawDataMap["stackLevel"] as? List<*>)?.mapNotNull { (it as? Double)?.toInt() }
 
-                        Enchantment(key, type, goodLevel, loreName, maxLevel, nbtName, nbtNum, stackLevel, statLabel)
-                    }
+                    Enchantment(key, type, goodLevel, loreName, maxLevel, nbtName, nbtNum, stackLevel, statLabel)
                 }
-
-                enchantments.clear()
-                enchantments.addAll(mappedList)
-                Logger.info("Successfully loaded ${enchantments.size} enchantments data.")
-            }.onFailure {
-                Logger.error("Failed to parse fetched enchantment data.", it)
             }
+
+            enchantments.clear()
+            enchantments.addAll(mappedList)
+            Logger.info("Successfully loaded ${enchantments.size} enchantments data.")
         }
     }
 
@@ -59,7 +55,7 @@ object EnchantmentsColors: Feature() {
         val lore = event.toolTip.map { it.removeFormatting() }.withIndex()
 
         for ((i, line) in lore) {
-            if ("◆" in line) continue
+            if ("◆" in line) continue // rune
             val m = ENCHANTMENT_PATTERN.matcher(line)
             var str = line
             while (m.find()) {

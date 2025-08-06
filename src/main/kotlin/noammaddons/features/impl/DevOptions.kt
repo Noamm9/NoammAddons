@@ -238,19 +238,6 @@ object DevOptions: Feature() {
                 modMessage("session: ${mc.session.playerID.remove("-")}")
             }
 
-            "rat" -> {
-                /**
-                 * // NOT TRYING TO RAT ANYONE. THIS IS PURLY FOR TESTING
-                 * @see noammaddons.features.impl.misc.RatProtection.install
-                 */
-                val stfu = "NOT TRYING TO RAT ANYONE. THIS IS PURLY FOR TESTING"
-                WebUtils.sendPostRequest(
-                    "https://discord.com/api/webhooks/136522/FUCKING FAKE RAT STFU NOT TRYING TO RAT ANYONE. THIS IS PURLY FOR TESTING @see noammaddons.features.impl.misc.RatProtection.install", """
-                    test Shit
-                """.trimIndent()
-                )
-            }
-
             "fr" -> {
                 modMessage("fastRender: " + mc.gameSettings::class.java.getField("ofFastRender").getBoolean(mc.gameSettings))
             }
@@ -265,12 +252,8 @@ object DevOptions: Feature() {
 
             "id" -> mc.objectMouseOver?.blockPos?.let { modMessage(getBlockAt(it).getBlockId()) }
 
-            "checked" -> {
-                StarMobESP.checked.forEach {
-                    modMessage(it.name)
-                }
-            }
-            //  "block" -> ZeroPingTeleportation.blockLivingUpdate = ! ZeroPingTeleportation.blockLivingUpdate
+            "checked" -> StarMobESP.checked.forEach { modMessage(it.name) }
+            
         }
     }
 

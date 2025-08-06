@@ -32,7 +32,7 @@ object ThreadUtils {
                 }
                 catch (e: Exception) {
                     if (! DevOptions.devMode) {
-                        e.stackTrace.take(10).forEach { Logger.error(it) }
+                        e.stackTrace.take(30).forEach { Logger.error(it) }
                     }
                 }
                 finally {

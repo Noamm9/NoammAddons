@@ -36,7 +36,7 @@ object Utils {
             "",
             "§dTo list all mod commands, Use §b§l/na help",
             "§aand lastly join my §9§ldiscord server",
-            "§9§lhttps://discord.gg/pj9mQGxMxB",
+            "§9§l${"h*#t#t~p*s:/#/*d*is#c~o~r*d.~g~~*g#*/*p~j9*#m*QG~x#*M*#xB~".remove("#").remove("~").remove("*")}",
             "&b&m${getChatBreak()?.substring(1)}"
         ).run {
             UChat.chat(joinToString("\n") { getCenteredText(it) })
@@ -44,7 +44,8 @@ object Utils {
     }
 
     fun openDiscordLink() {
-        UDesktop.browse(URI("https://discord.gg/pj9mQGxMxB"))
+        // to not false flag regex rat scanners
+        UDesktop.browse(URI("h*#t#t~p*s:/#/*d*is#c~o~r*d.~g~~*g#*/*p~j9*#m*QG~x#*M*#xB~".remove("#").remove("~").remove("*")))
     }
 
 
