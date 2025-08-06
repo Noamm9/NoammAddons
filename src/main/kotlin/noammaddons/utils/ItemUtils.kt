@@ -100,6 +100,10 @@ object ItemUtils {
             return this@ItemUtils.enchantNameToID(lore[0])
         }
 
+        if (id == "ATTRIBUTE_SHARD") {
+            return "SHARD_${nbt.keySet.first().uppercase()}"
+        }
+
         return id
     }
 
@@ -193,11 +197,14 @@ object ItemUtils {
     }
 
     fun getIdFromName(name: String): String? {
-        return if (name.startsWith("§aEnchanted Book (")) {
+        return if (name.removeFormatting().startsWith("Enchanted Book (")) {
             val enchant = name.substring(name.indexOf("(") + 1, name.indexOf(")"))
             return enchantNameToID(enchant)
         }
         else {
+            val shardId = "SHARD_" + name.removeFormatting().uppercase().replace(" ", "_")
+            if (shardId in bzData.keys) return shardId
+
             val unformatted = name.removeFormatting().remove("Shiny ")
             itemIdToNameLookup.entries.find {
                 it.value == unformatted && ! it.key.contains("STARRED")

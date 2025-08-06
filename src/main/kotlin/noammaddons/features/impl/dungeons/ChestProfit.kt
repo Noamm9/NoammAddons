@@ -127,7 +127,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
                 for (obj in event.items) {
                     if (obj.value?.getItemId() == 160) continue
 
-                    val itemId = obj.value.skyblockID
+                    val itemId = obj.value?.skyblockID
                     val itemName = obj.value?.displayName
 
                     if (itemId == "ENCHANTED_BOOK") {
@@ -141,6 +141,11 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
                     }
 
                     calculatedProfit += (itemId?.let { getPrice(it, currentDungeonChest) } ?: 0)
+
+                    if (itemName?.contains("Shard") == true) {
+                        val shardId = "SHARD_${itemName.removeFormatting().uppercase().remove(" SHARD").replace(" ", "_").remove("_X1")}"
+                        calculatedProfit += getPrice(shardId, currentDungeonChest)
+                    }
                 }
                 currentDungeonChest.profit = calculatedProfit
                 currentDungeonChest.openedInSequence = true
@@ -161,10 +166,8 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
                     var calculatedProfit = getChestPrice(lore) * - 1
 
                     lore.drop(contentIndex + 1).takeWhile { it != "" }.forEach { drop ->
-                        val value = when (drop.contains("Essence")) {
-                            true -> getEssenceValue(drop).toInt()
-                            else -> getPrice(getIdFromName(drop) ?: return@forEach, chestTypeEnum)
-                        }
+                        val value = if (drop.contains("Essence")) getEssenceValue(drop).toInt()
+                        else getPrice(getIdFromName(drop) ?: return@forEach, chestTypeEnum)
                         calculatedProfit += value
                     }
                     chestTypeEnum.profit = calculatedProfit
