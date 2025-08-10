@@ -4,17 +4,17 @@ import kotlinx.coroutines.*
 import net.minecraft.init.Blocks
 import net.minecraft.util.BlockPos
 import net.minecraft.world.storage.MapData
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapPlayer
 import noammaddons.features.impl.dungeons.dmap.core.map.*
 import noammaddons.features.impl.dungeons.dmap.utils.MapUtils.mapX
 import noammaddons.features.impl.dungeons.dmap.utils.MapUtils.mapZ
 import noammaddons.features.impl.dungeons.dmap.utils.MapUtils.yaw
-import noammaddons.NoammAddons.Companion.mc
-import noammaddons.NoammAddons.Companion.scope
 import noammaddons.utils.*
 import noammaddons.utils.Utils.equalsOneOf
 
 object MapUpdater {
+    private val playerHeadScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     val playerJobs = mutableMapOf<String, Job>()
 
     fun updatePlayers(mapData: MapData) {
@@ -30,22 +30,25 @@ object MapUpdater {
 
     private fun smoothUpdatePlayer(player: DungeonMapPlayer, targetX: Float, targetZ: Float, targetYaw: Float) {
         playerJobs[player.teammate.name]?.cancel()
-
-        playerJobs[player.teammate.name] = scope.launch {
+        playerJobs[player.teammate.name] = playerHeadScope.launch {
             val startX = player.mapX
             val startZ = player.mapZ
             val startYaw = player.yaw
 
-            if (startYaw != 0f && startX != 0f && startZ != 0f) {
-                var progress = 0f
-                while (progress < 1f) {
-                    delay(25)
-                    progress += 0.2f
+            if (startX == targetX && startZ == targetZ && startYaw == targetYaw) return@launch
 
-                    player.mapX = MathUtils.lerp(startX, targetX, progress).toFloat()
-                    player.mapZ = MathUtils.lerp(startZ, targetZ, progress).toFloat()
-                    player.yaw = MathUtils.interpolateYaw(startYaw, targetYaw, progress)
-                }
+            val startTime = System.currentTimeMillis()
+            var progress = 0f
+
+            while (progress < 1f) {
+                val elapsedTime = System.currentTimeMillis() - startTime
+                progress = (elapsedTime.toFloat() / 150L).coerceAtMost(1f)
+
+                player.mapX = MathUtils.lerp(startX, targetX, progress).toFloat()
+                player.mapZ = MathUtils.lerp(startZ, targetZ, progress).toFloat()
+                player.yaw = MathUtils.interpolateYaw(startYaw, targetYaw, progress)
+
+                delay(10L)
             }
 
             player.mapX = targetX
@@ -59,17 +62,17 @@ object MapUpdater {
         if (LocationUtils.inBoss) return
         if (DungeonUtils.dungeonEnded) return
         if (DungeonUtils.thePlayer?.isDead == true) return
-        DungeonMapColorParser.updateMap(mapData)
+        HotbarMapColorParser.updateMap(mapData)
 
         for (x in 0 .. 10) {
             for (z in 0 .. 10) {
                 val room = DungeonInfo.dungeonList[z * 11 + x]
-                val mapTile = DungeonMapColorParser.getTile(x, z)
+                val mapTile = HotbarMapColorParser.getTile(x, z)
 
                 if (room is Unknown) {
                     DungeonInfo.dungeonList[z * 11 + x] = mapTile
                     if (mapTile is Room) {
-                        val connected = DungeonMapColorParser.getConnected(x, z)
+                        val connected = HotbarMapColorParser.getConnected(x, z)
                         connected.firstOrNull { it.data.name != "Unknown" }?.let {
                             mapTile.addToUnique(z, x, it.data.name)
                         }

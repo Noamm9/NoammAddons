@@ -51,8 +51,6 @@ object ProfileUtils {
         return secrets
     }
 
-    fun getSpiritPet(name: String) = readUrl("https://api.tenios.dev/spiritPet/${getUUID(name)}").toBoolean()
-
     fun getStatus(name: String): Boolean {
         val raw = readUrl("https://api.skyblockextras.com/hypixel/status?uuid=${getUUID(name)}")
         val json = JsonUtils.stringToJson(raw).takeIf { it.getValue("success").jsonPrimitive.boolean }

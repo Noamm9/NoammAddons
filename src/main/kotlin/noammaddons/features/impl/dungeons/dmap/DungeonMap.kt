@@ -71,6 +71,11 @@ object DungeonMap: Feature(toggled = false) {
                 MapUpdater.updateRooms(it)
                 MapUpdater.updatePlayers(it)
             }
+
+            TablistUtils.getTabList.map { it.second }.takeUnless { it.size < 18 || ! it[0].contains("§r§b§lParty §r§f(") }?.let {
+                ScoreCalculation.updateFromScoreboard()
+                ScoreCalculation.updateFromTab(it)
+            }
         }
 
         if (DungeonScanner.shouldScan || DevOptions.devMode) {
@@ -87,13 +92,14 @@ object DungeonMap: Feature(toggled = false) {
         MapUtils.mapRoomSize = 16
         MapUtils.coordMultiplier = 0.625
         MapUpdater.playerJobs.clear()
+        ScoreCalculation.onWorldUnload()
     }
 
     @SubscribeEvent
     fun onWorldRender(event: RenderWorld) {
         if (! inDungeon || ! DungeonMapConfig.boxWitherDoors || inBoss) return
         DungeonInfo.dungeonList.filterIsInstance<Door>()
-            .filter { ! it.type.equalsOneOf(DoorType.ENTRANCE, DoorType.NORMAL) && ! it.opened }
+            .filterNot { it.type.equalsOneOf(DoorType.ENTRANCE, DoorType.NORMAL) || it.opened }
             .filterNot { (DungeonUtils.dungeonStarted || ! DungeonMapConfig.dungeonMapCheater) && it.state == RoomState.UNDISCOVERED }
             .forEach {
                 val color = if (DungeonInfo.keys > 0) DungeonMapConfig.witherDoorKeyColor
@@ -130,11 +136,9 @@ object DungeonMap: Feature(toggled = false) {
             DungeonInfo.guessMapData = guess
         }
 
-        if (MapUtils.calibrated) {
-            ItemMap.loadMapData(id, mc.theWorld)?.let { mapData ->
-                MapUpdater.updateRooms(mapData)
-                MapUpdater.updatePlayers(mapData)
-            }
+        if (MapUtils.calibrated) ItemMap.loadMapData(id, mc.theWorld)?.let { mapData ->
+            MapUpdater.updateRooms(mapData)
+            MapUpdater.updatePlayers(mapData)
         }
     }
 
@@ -159,9 +163,6 @@ object DungeonMap: Feature(toggled = false) {
     @SubscribeEvent
     fun onPlayerDeathEvent(event: DungeonEvent.PlayerDeathEvent) {
         ClearInfoUpdater.updateDeaths(event.name, event.reason)
-        if (TablistListener.deathCount == 0) {
-            DungeonInfo.firstDeathHadSpirit = ProfileUtils.getSpiritPet(event.name)
-        }
     }
 
     @SubscribeEvent

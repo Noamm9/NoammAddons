@@ -59,7 +59,7 @@ object MapUtils {
             }
             coordMultiplier = (mapRoomSize + 4.0) / DungeonScanner.roomSize
 
-            DungeonMapColorParser.calibrate()
+            HotbarMapColorParser.calibrate()
             return true
         }
         return false

@@ -13,7 +13,6 @@ object DungeonInfo {
     var witherDoors = 0
     var cryptCount = 0
     var secretCount = 0
-    var firstDeathHadSpirit = false
 
     var keys = 0
 

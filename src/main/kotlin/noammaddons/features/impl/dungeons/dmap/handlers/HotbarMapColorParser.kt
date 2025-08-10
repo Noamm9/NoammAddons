@@ -5,7 +5,7 @@ import net.minecraft.world.storage.MapData
 import noammaddons.features.impl.dungeons.dmap.core.map.*
 import noammaddons.features.impl.dungeons.dmap.utils.MapUtils
 
-object DungeonMapColorParser {
+object HotbarMapColorParser {
     private var centerColors: ByteArray = ByteArray(121)
     private var sideColors: ByteArray = ByteArray(121)
     private var cachedTiles: Array<Tile?> = Array(121) { null }
@@ -13,7 +13,6 @@ object DungeonMapColorParser {
     var halfRoom = MapUtils.mapRoomSize / 2
     var halfTile = halfRoom + 2
 
-    // connectorSize
     var quarterRoom = halfRoom / 2
     var startX = MapUtils.startCorner.first + halfRoom
     var startY = MapUtils.startCorner.second + halfRoom

@@ -2,22 +2,22 @@ package noammaddons.features.impl.dungeons.dmap.core
 
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.util.ResourceLocation
-import noammaddons.config.EditGui.GuiElement
-import noammaddons.features.impl.dungeons.MimicDetector
-import noammaddons.features.impl.dungeons.dmap.core.map.*
-import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
-import noammaddons.features.impl.dungeons.dmap.handlers.DungeonMapColorParser
-import noammaddons.features.impl.dungeons.dmap.utils.MapRenderUtils
-import noammaddons.features.impl.dungeons.dmap.utils.MapUtils
 import noammaddons.NoammAddons.Companion.MOD_ID
 import noammaddons.NoammAddons.Companion.hudData
 import noammaddons.NoammAddons.Companion.mc
-import noammaddons.utils.*
+import noammaddons.config.EditGui.GuiElement
+import noammaddons.features.impl.dungeons.MimicDetector
+import noammaddons.features.impl.dungeons.dmap.core.map.*
+import noammaddons.features.impl.dungeons.dmap.handlers.*
+import noammaddons.features.impl.dungeons.dmap.utils.MapRenderUtils
+import noammaddons.features.impl.dungeons.dmap.utils.MapUtils
+import noammaddons.utils.DungeonUtils
 import noammaddons.utils.DungeonUtils.dungeonStarted
 import noammaddons.utils.DungeonUtils.thePlayer
 import noammaddons.utils.RenderHelper.colorCodeByPresent
 import noammaddons.utils.RenderHelper.getStringHeight
 import noammaddons.utils.RenderHelper.getStringWidth
+import noammaddons.utils.RenderUtils
 import noammaddons.utils.Utils.equalsOneOf
 import org.lwjgl.opengl.GL11
 import java.awt.Color
@@ -84,7 +84,7 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
 
         GlStateManager.pushMatrix()
         GlStateManager.translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat(), 0f)
-        val connectorSize = DungeonMapColorParser.quarterRoom
+        val connectorSize = HotbarMapColorParser.quarterRoom
 
         for (y in 0 .. 10) {
             for (x in 0 .. 10) {
@@ -139,7 +139,7 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
         DungeonInfo.uniqueRooms.forEach { unq ->
             val room = unq.mainRoom
             if (! DungeonMapConfig.dungeonMapCheater && (room.state == RoomState.UNDISCOVERED || room.state == RoomState.UNOPENED)) return@forEach
-            val size = MapUtils.mapRoomSize + DungeonMapColorParser.quarterRoom
+            val size = MapUtils.mapRoomSize + HotbarMapColorParser.quarterRoom
             val checkPos = unq.getCheckmarkPosition()
             val xOffsetCheck = (checkPos.first / 2f) * size
             val yOffsetCheck = (checkPos.second / 2f) * size
@@ -173,8 +173,8 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
 
                 MapRenderUtils.renderCenteredText(
                     lines,
-                    (xOffsetName + DungeonMapColorParser.halfRoom).toInt(),
-                    (yOffsetName + DungeonMapColorParser.halfRoom).toInt(),
+                    (xOffsetName + HotbarMapColorParser.halfRoom).toInt(),
+                    (yOffsetName + HotbarMapColorParser.halfRoom).toInt(),
                     if (room.data.type != RoomType.ENTRANCE) color else 0xffffff,
                     textScale
                 )
@@ -183,8 +183,8 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
             if (room.data.type == RoomType.NORMAL && DungeonMapConfig.dungeonMapCheckmarkStyle == 2/* && secretCount > 0*/)
                 MapRenderUtils.renderCenteredText(
                     listOf("$secretCount"),
-                    (xOffsetName + DungeonMapColorParser.halfRoom).toInt(),
-                    (yOffsetName + 1 + DungeonMapColorParser.halfRoom).toInt(),
+                    (xOffsetName + HotbarMapColorParser.halfRoom).toInt(),
+                    (yOffsetName + 1 + HotbarMapColorParser.halfRoom).toInt(),
                     color, DungeonMapConfig.textScale * 2f
                 )
 
@@ -269,7 +269,6 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
         )
     }
 
-    // TODO ScoreCalculator when?
     private fun drawExtraInfo() {
         if (! DungeonMapConfig.mapExtraInfo) return
         if (! DungeonMapConfig.dungeonMapCheater && ! dungeonStarted) return
@@ -277,15 +276,14 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
         GlStateManager.pushMatrix()
         GlStateManager.translate(128f / 2f, 128f, 1f)
 
-        val foundSecrets = TablistListener.secretsFound
-        val totalSecrets = maxOf(DungeonInfo.secretCount, TablistListener.secretTotal)
-        val crypts = TablistListener.cryptsCount.get()
-        val deaths = TablistListener.deathCount
-        val deathPenalty = - TablistListener.deathPenalty
+        val foundSecrets = ScoreCalculation.dungeonStats.secretCount
+        val totalSecrets = DungeonInfo.secretCount
+        val crypts = ScoreCalculation.dungeonStats.cryptsCount.get()
+        val deaths = ScoreCalculation.dungeonStats.deathCount
         val mimicStatus = if (MimicDetector.mimicKilled.get()) "&a&l✔&r" else "&c&l✖&r"
 
         val line1 = "&6Secrets: &b$foundSecrets&f/&e$totalSecrets    ${colorCodeByPresent(crypts, 5)}Crypts: $crypts"
-        val line2 = "&cDeaths: ${colorCodeByPresent(deaths, 4, true)}$deaths: $deathPenalty&r    &cMimic: $mimicStatus"
+        val line2 = "&eScore: ${ScoreCalculation.score}&r    &cDeaths: ${colorCodeByPresent(deaths, 4, true)}$deaths&r    &cMimic: $mimicStatus"
         val text = listOf(line1, line2)
 
         MapRenderUtils.renderCenteredText(text, 0, 3, 0xffffff, 0.7f)

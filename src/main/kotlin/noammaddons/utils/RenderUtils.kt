@@ -696,8 +696,11 @@ object RenderUtils {
 
     fun drawPlayerHead(resourceLocation: ResourceLocation, x: Float, y: Float, width: Float, height: Float, radius: Float = 10f) {
         GlStateManager.pushMatrix()
-        preDraw2()
-        GlStateManager.enableTexture2D()
+
+        GlStateManager.disableLighting()
+        GlStateManager.enableBlend()
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
+        GlStateManager.enableAlpha()
         GlStateManager.translate(x + width / 2, y + height / 2, 0f)
         bindColor(Color.WHITE)
 
@@ -723,7 +726,8 @@ object RenderUtils {
 
         StencilUtils.endStencilClip()
 
-        postDraw2()
+        GlStateManager.disableBlend()
+        GlStateManager.resetColor()
         GlStateManager.popMatrix()
     }
 
