@@ -38,7 +38,7 @@ abstract class GuiElement(val dataObj: DataClasses.HudElementData) {
     open fun exampleDraw() = this.draw()
 
     open fun isHovered(mouseX: Float, mouseY: Float): Boolean {
-        return MouseUtils.isElementHovered(
+        return MouseUtils.isMouseOver(
             mouseX, mouseY,
             getX(), getY(),
             width * getScale(),

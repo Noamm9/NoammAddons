@@ -140,7 +140,7 @@ object MathUtils {
         return prev.toDouble() + (newPos.toDouble() - prev.toDouble()) * partialTicks.toDouble()
     }
 
-    fun interpolateColor(color1: Color, color2: Color, value: Float): Color {
+    fun lerpColor(color1: Color, color2: Color, value: Number): Color {
         return Color(
             lerp(color1.red, color2.red, value).toInt(),
             lerp(color1.green, color2.green, value).toInt(),

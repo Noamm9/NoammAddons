@@ -164,7 +164,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
                 }
 
                 tintDeadPlayers.value && entry.player.isDead -> {
-                    val color = MathUtils.interpolateColor(darkMode, Color.RED, 0.2f)
+                    val color = MathUtils.lerpColor(darkMode, Color.RED, 0.2f)
                     if (i == hoveredIndex) color.brighter()
                     else color
                 }

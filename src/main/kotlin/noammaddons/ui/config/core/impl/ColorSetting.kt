@@ -2,6 +2,7 @@ package noammaddons.ui.config.core.impl
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
+import gg.essential.elementa.utils.withAlpha
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import noammaddons.NoammAddons.Companion.scope
@@ -9,127 +10,255 @@ import noammaddons.NoammAddons.Companion.textRenderer
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.save.Savable
 import noammaddons.utils.MathUtils.lerp
+import noammaddons.utils.MathUtils.lerpColor
+import noammaddons.utils.MouseUtils.isMouseOver
+import noammaddons.utils.RenderHelper.colorFromHSB
+import noammaddons.utils.RenderUtils.drawCheckerboard
+import noammaddons.utils.RenderUtils.drawGradientRect
 import noammaddons.utils.RenderUtils.drawRect
+import noammaddons.utils.RenderUtils.drawRectBorder
+import noammaddons.utils.StencilUtils
+import noammaddons.utils.ThreadUtils.setTimeout
+import noammaddons.utils.Utils.equalsOneOf
 import java.awt.Color
+import kotlin.math.roundToInt
 import kotlin.reflect.KProperty
 
 
-class ColorSetting(label: String, override var defaultValue: Color, val withAlpha: Boolean = true): Component<Color>(label), Savable {
-    override var value = defaultValue
+class ColorSetting(
+    name: String, override var defaultValue: Color, val withAlpha: Boolean = true
+): Component<Color>(name), Savable {
+    private var isPickerOpen = false
+    override var value: Color = defaultValue
+
+    private var pickerX = 0.0
+    private var pickerY = 0.0
+    private val pickerWidth = 140.0
+    private val pickerHeight = 110.0
+
+    private var currentHue = 0f
+    private var currentSaturation = 1f
+    private var currentBrightness = 1f
+    private var currentAlpha = 1f
+
+    private var draggingSatBri = false
+    private var draggingHue = false
+    private var draggingAlpha = false
+
+    private val borderColor = Color.white
 
     private var expanded = false
-    private var animProgress = 0.0
-    private var draggingChannel: Int? = null
-    private val sliderWidth = 140
+    private var expandAnimProgress = 0.0
+
+    private var isHovered = false
+    private var hoverAnimProgress = 0.0
+
     private val collapsedHeight = 22.0
-    private val expandedHeight = if (withAlpha) 96.0 else 77.0
+    private val expandedHeight = collapsedHeight + pickerHeight + 3
 
     override var height = collapsedHeight
 
     override fun draw(x: Double, y: Double, mouseX: Double, mouseY: Double) {
-        drawSmoothRect(compBackgroundColor, x, y, width, height)
+        val currentlyHovered = mouseX in x .. (x + width) && mouseY in y .. (y + collapsedHeight)
+        if (currentlyHovered != isHovered) {
+            isHovered = currentlyHovered
+            animateHover(isHovered)
+        }
+
+        val headerBgColor = lerpColor(compBackgroundColor, hoverColor, hoverAnimProgress)
+        drawSmoothRect(headerBgColor, x, y, width, collapsedHeight)
+
+        if (height > collapsedHeight) drawSmoothRect(compBackgroundColor, x, y + collapsedHeight, width, height - collapsedHeight)
+
         textRenderer.drawText(name, x + 6, y + 7)
 
-        val previewX = x + width - 20
-        val previewY = y + 4
-        drawCheckerboard(previewX, previewY, 14.0, 14.0, 2.0)
-        drawRect(value, previewX, previewY, 14.0, 14.0)
+        val previewX = x + width - 22
+        val previewY = y + 3
+        drawCheckerboard(previewX, previewY, 16, 16, 2)
+        drawRect(value, previewX, previewY, 16, 16)
 
-        if (animProgress <= 0.0) return
-
-        val components = mutableListOf(
-            Triple("R", value.red, Color.RED),
-            Triple("G", value.green, Color.GREEN),
-            Triple("B", value.blue, Color.BLUE)
-        )
-        if (withAlpha) components.add(Triple("A", value.alpha, Color.WHITE))
-
-        val offsetY = y + 24
-        for ((index, triple) in components.withIndex()) {
-            val (label, value, fillColor) = triple
-            val sliderY = offsetY + index * 18
-            if (sliderY + 8 > y + height) break
-            textRenderer.drawText("$label:", x + 6, sliderY + 1)
-            drawSmoothRect(hoverColor, x + 20, sliderY, sliderWidth, 8.0)
-            drawSmoothRect(fillColor, x + 20, sliderY, sliderWidth * (value / 255.0), 8.0)
-            textRenderer.drawText("$value", x + 20 + sliderWidth + 6, sliderY - 1)
+        StencilUtils.beginStencilClip {
+            drawRect(Color(0), x, y, width, height)
         }
+
+        if (isPickerOpen) {
+            pickerX = x + 6
+            pickerY = y + 27
+            drawPicker(pickerX, pickerY)
+        }
+
+        StencilUtils.endStencilClip()
     }
 
     override fun mouseClicked(x: Double, y: Double, mouseX: Double, mouseY: Double, button: Int) {
-        if (mouseX in x .. (x + width) && mouseY in y .. (y + collapsedHeight)) {
+        if (! button.equalsOneOf(0, 1)) return
+        if (isMouseOver(mouseX, mouseY, x, y, width, collapsedHeight)) {
             expanded = ! expanded
             animateExpand()
+            if (expanded) togglePicker()
+            else setTimeout(200, ::togglePicker)
             return
         }
 
-        if (! expanded || button != 0) return
-
-        val offsetY = y + 24
-        val indices = (0 .. 2).toMutableList().apply { if (withAlpha) add(3) }
-
-        val checkClick = { index: Int ->
-            val sliderY = offsetY + index * 18
-            mouseX in (x + 20) .. (x + 20 + sliderWidth) && mouseY in sliderY .. (sliderY + 8.0)
+        if (! expanded || button != 0 || ! isPickerOpen) return
+        if (isMouseOver(mouseX, mouseY, pickerX, pickerY, pickerWidth, pickerHeight)) {
+            handlePickerInteraction(mouseX, mouseY, isClick = true)
         }
-
-        for (i in indices) if (checkClick(i)) draggingChannel = i
     }
 
     override fun mouseDragged(x: Double, y: Double, mouseX: Double, mouseY: Double, button: Int) {
-        if (! expanded || draggingChannel == null) return
-
-        val color = value
-        val percent = ((mouseX - (x + 20)) / sliderWidth).coerceIn(0.0, 1.0)
-        val newValue = (percent * 255).toInt()
-
-        value = when (draggingChannel) {
-            0 -> Color(newValue, color.green, color.blue, color.alpha)
-            1 -> Color(color.red, newValue, color.blue, color.alpha)
-            2 -> Color(color.red, color.green, newValue, color.alpha)
-            3 -> Color(color.red, color.green, color.blue, newValue)
-            else -> value
-        }
+        if (button == 0 && isPickerOpen) handlePickerInteraction(mouseX, mouseY, isClick = false)
     }
 
     override fun mouseRelease(x: Double, y: Double, mouseX: Double, mouseY: Double, button: Int) {
-        draggingChannel = null
+        draggingSatBri = false
+        draggingHue = false
+        draggingAlpha = false
     }
 
-    private fun drawCheckerboard(x: Double, y: Double, width: Double, height: Double, squareSize: Double) {
-        val c1 = Color(180, 180, 180)
-        val c2 = Color(140, 140, 140)
-        var currentX = x
-        while (currentX < x + width) {
-            var currentY = y
-            var colSwitch = (((currentX - x) / squareSize).toInt() % 2 != 0)
-            while (currentY < y + height) {
-                val actualSquareWidth = (currentX + squareSize).coerceAtMost(x + width) - currentX
-                val actualSquareHeight = (currentY + squareSize).coerceAtMost(y + height) - currentY
-                drawRect(if (colSwitch) c1 else c2, currentX, currentY, actualSquareWidth, actualSquareHeight)
-                currentY += squareSize
-                colSwitch = ! colSwitch
-            }
-            currentX += squareSize
+    private fun togglePicker() {
+        if (isPickerOpen) isPickerOpen = false
+        else {
+            isPickerOpen = true
+            val hsb = Color.RGBtoHSB(value.red, value.green, value.blue, null)
+            currentHue = hsb[0]
+            currentSaturation = hsb[1]
+            currentBrightness = hsb[2]
+            currentAlpha = value.alpha / 255f
         }
+    }
+
+    private fun drawPicker(x: Double, y: Double) {
+        val satBriX = x + 5
+        val satBriY = y + 5
+        val satBriW = pickerWidth - 50
+        val satBriH = pickerHeight - 20
+
+        val hueX = satBriX + satBriW + if (withAlpha) 5 else 8
+        val hueW = 15.0
+
+        drawRect(compBackgroundColor, x, y, if (withAlpha) pickerWidth else pickerWidth - 15.0, pickerHeight - 10)
+        drawRectBorder(borderColor, x, y, if (withAlpha) pickerWidth else pickerWidth - 15.0, pickerHeight - 10)
+
+        drawSatBriArea(satBriX, satBriY)
+        val satBriIndicatorX = satBriX + satBriW * currentSaturation
+        val satBriIndicatorY = satBriY + satBriH * (1 - currentBrightness)
+        drawRect(Color.WHITE, satBriIndicatorX - 2, satBriIndicatorY - 2, 4.0, 4.0)
+        drawRect(Color.BLACK, satBriIndicatorX - 1, satBriIndicatorY - 1, 2.0, 2.0)
+
+        drawHueSlider(hueX, satBriY)
+        val hueIndicatorY = satBriY + satBriH * currentHue
+        drawRect(Color.WHITE, hueX - 2, hueIndicatorY - 1, hueW + 4, 2.0)
+
+        if (withAlpha) {
+            val alphaX = hueX + hueW + 5
+            val alphaY = y + 5
+            val alphaW = 15.0
+
+            drawAlphaSlider(alphaX, alphaY)
+            val alphaIndicatorY = alphaY + satBriH * (1 - currentAlpha)
+            drawRect(Color.WHITE, alphaX - 2, alphaIndicatorY - 1, alphaW + 4, 2.0)
+        }
+    }
+
+    private fun handlePickerInteraction(mouseX: Double, mouseY: Double, isClick: Boolean) {
+        val satBriX = pickerX + 5
+        val satBriY = pickerY + 5
+        val satBriW = pickerWidth - 50
+        val satBriH = pickerHeight - 20
+        val hueX = satBriX + satBriW + 5
+        val alphaX = hueX + 15 + 5
+
+        if (isClick) {
+            draggingSatBri = isMouseOver(mouseX, mouseY, satBriX, satBriY, satBriW, satBriH)
+            draggingHue = isMouseOver(mouseX, mouseY, hueX, satBriY, 15.0, satBriH)
+            draggingAlpha = isMouseOver(mouseX, mouseY, alphaX, satBriY, 15.0, satBriH)
+        }
+
+        if (draggingSatBri) {
+            currentSaturation = ((mouseX - satBriX) / satBriW).toFloat().coerceIn(0f, 1f)
+            currentBrightness = (1f - (mouseY - satBriY) / satBriH).toFloat().coerceIn(0f, 1f)
+        }
+
+        if (draggingHue) currentHue = ((mouseY - satBriY) / satBriH).toFloat().coerceIn(0f, 1f)
+        if (draggingAlpha) currentAlpha = (1f - (mouseY - satBriY) / satBriH).toFloat().coerceIn(0f, 1f)
+        if (draggingSatBri || draggingHue || draggingAlpha) recalculateColor()
+    }
+
+    private fun recalculateColor() {
+        this.value = colorFromHSB(currentHue, currentSaturation, currentBrightness)
+            .withAlpha((currentAlpha * 255).roundToInt().coerceIn(0, 255))
+    }
+
+    private fun drawSatBriArea(x: Double, y: Double) {
+        val topLeftColor = colorFromHSB(currentHue, 0.0f, 1.0f)
+        val topRightColor = colorFromHSB(currentHue, 1.0f, 1.0f)
+        val bottomLeftColor = colorFromHSB(currentHue, 0.0f, 0.0f)
+        val bottomRightColor = colorFromHSB(currentHue, 1.0f, 0.0f)
+
+        drawGradientRect(x, y, 90, 90, topLeftColor, topRightColor, bottomLeftColor, bottomRightColor)
+        drawRectBorder(borderColor, x - 1, y - 1, 92, 92)
+    }
+
+    private fun drawHueSlider(x: Double, y: Double) {
+        val segments = 6
+        val segmentHeight = 90.0 / segments
+
+        for (i in 0 until segments) {
+            val hue1 = i.toFloat() / segments
+            val hue2 = (i + 1).toFloat() / segments
+            val color1 = colorFromHSB(hue1, 1.0f, 1.0f)
+            val color2 = colorFromHSB(hue2, 1.0f, 1.0f)
+            drawGradientRect(x, y + i * segmentHeight, 15, segmentHeight, color1, color2)
+        }
+
+        drawRectBorder(borderColor, x, y, 15, 90)
+    }
+
+    private fun drawAlphaSlider(x: Double, y: Double) {
+        drawCheckerboard(x, y, 15, 90, 4.0)
+
+        val baseColor = colorFromHSB(currentHue, currentSaturation, currentBrightness)
+        val startColor = Color(baseColor.red, baseColor.green, baseColor.blue, 255)
+        val endColor = Color(baseColor.red, baseColor.green, baseColor.blue, 0)
+
+        drawGradientRect(x, y, 15, 90, startColor, endColor)
+        drawRectBorder(borderColor, x, y, 15, 90)
+    }
+
+    private fun animateHover(hovering: Boolean) = scope.launch {
+        val start = hoverAnimProgress
+        val end = if (hovering) 1.0 else 0.0
+        val duration = 0.15
+        val startTime = System.nanoTime()
+        while (true) {
+            val elapsed = (System.nanoTime() - startTime) / 1e9
+            if (elapsed >= duration) break
+            val t = elapsed / duration
+            hoverAnimProgress = lerp(start, end, easeOutQuad(t))
+            delay(7)
+        }
+        hoverAnimProgress = end
     }
 
     private fun animateExpand() {
         scope.launch {
-            val start = animProgress
+            val start = expandAnimProgress
             val end = if (expanded) 1.0 else 0.0
-            val duration = 0.2
-            val startTime = System.nanoTime()
-            while (true) {
-                val elapsed = (System.nanoTime() - startTime) / 1e9
-                val t = (elapsed / duration).coerceIn(0.0, 1.0)
-                animProgress = lerp(start, end, easeOutQuad(t))
-                height = collapsedHeight + animProgress * (expandedHeight - collapsedHeight)
-                if (t == 1.0) break
+            val duration = 250L
+
+            val startTime = System.currentTimeMillis()
+            var elapsedTime: Long
+
+            while (System.currentTimeMillis() - startTime < duration) {
+                elapsedTime = System.currentTimeMillis() - startTime
+                val t = elapsedTime.toDouble() / duration
+                expandAnimProgress = lerp(start, end, easeOutQuad(t))
                 delay(7)
+                height = collapsedHeight + expandAnimProgress * (expandedHeight - collapsedHeight)
             }
-            animProgress = end
-            height = collapsedHeight + animProgress * (expandedHeight - collapsedHeight)
+            expandAnimProgress = end
+            height = collapsedHeight + expandAnimProgress * (expandedHeight - collapsedHeight)
         }
     }
 
@@ -140,9 +269,10 @@ class ColorSetting(label: String, override var defaultValue: Color, val withAlph
     }
 
     override fun read(element: JsonElement?) {
-        element?.asInt?.let {
-            value = Color(it, withAlpha)
+        element?.let { element1 ->
+            element1.asInt.let {
+                value = Color(it, withAlpha)
+            }
         }
     }
 }
-

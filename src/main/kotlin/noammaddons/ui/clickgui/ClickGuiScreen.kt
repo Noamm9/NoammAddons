@@ -16,7 +16,7 @@ import noammaddons.ui.font.TextRenderer
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.MathUtils.lerp
 import noammaddons.utils.MouseUtils
-import noammaddons.utils.MouseUtils.isElementHovered
+import noammaddons.utils.MouseUtils.isMouseOver
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getScaleFactor
 import noammaddons.utils.RenderHelper.getWidth
@@ -96,8 +96,8 @@ object ClickGuiScreen: GuiScreen() {
         GlStateManager.scale(scale, scale, scale)
 
         panels.forEach { it.draw(mx, my) }
-        currentSettingMenu?.draw(mx, my)
         searchBar.draw(mx.toDouble(), my.toDouble())
+        currentSettingMenu?.draw(mx, my)
 
         val str = "${FULL_PREFIX.remove("&n".addColor())} &6&lv$MOD_VERSION"
         val x = mc.getWidth() / scale - textRenderer.getStringWidth(str) - 2
@@ -119,13 +119,11 @@ object ClickGuiScreen: GuiScreen() {
         val mx = mouseX / scale
         val my = mouseY / scale
 
-        currentSettingMenu?.mouseClicked(mx, my, mouseButton)
-
-        if (currentSettingMenu == null) {
+        currentSettingMenu?.mouseClicked(mx, my, mouseButton) ?: run {
             searchBar.mouseClicked(mx.toDouble(), my.toDouble(), mouseButton)
             panels.forEach { it.mouseClicked(mx, my, mouseButton) }
             if (mouseButton == 0) {
-                draggingPanel = panels.firstOrNull { isElementHovered(mx, my, it.x, it.y, it.width, 20) }
+                draggingPanel = panels.firstOrNull { isMouseOver(mx, my, it.x, it.y, it.width, 20) }
 
                 if (draggingPanel != null) {
                     dragOffsetX = mx - draggingPanel !!.x
@@ -157,7 +155,7 @@ object ClickGuiScreen: GuiScreen() {
             return
         }
 
-        
+
         val cancel = searchBar.keyTyped(typedChar, keyCode)
         if (searchBar.focused && searchBar.value.isNotEmpty()) panels.forEach { it.scrollY = 0f }
         if (cancel) return

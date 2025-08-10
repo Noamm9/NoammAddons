@@ -21,9 +21,9 @@ import noammaddons.ui.config.core.save.Config
 import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.GuiUtils.openScreen
-import noammaddons.utils.MathUtils.interpolateColor
+import noammaddons.utils.MathUtils.lerpColor
 import noammaddons.utils.MathUtils.lerp
-import noammaddons.utils.MouseUtils.isElementHovered
+import noammaddons.utils.MouseUtils.isMouseOver
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getScaleFactor
 import noammaddons.utils.RenderHelper.getStringWidth
@@ -88,7 +88,7 @@ object ConfigGUI: GuiScreen() {
         const val padding = 6.0 * 2.0
 
         fun onClick(mx: Double, my: Double) {
-            isFocused = isElementHovered(mx, my, x, y, w, h)
+            isFocused = isMouseOver(mx, my, x, y, w, h)
         }
 
         fun draw(mouseX: Double, mouseY: Double) {
@@ -177,16 +177,16 @@ object ConfigGUI: GuiScreen() {
         var h = .0
 
         fun onClick(mx: Number, my: Number) {
-            if (! isElementHovered(mx, my, x, y, w, h)) return
+            if (! isMouseOver(mx, my, x, y, w, h)) return
             openScreen(HudEditorScreen)
         }
 
         fun draw(mx: Number, my: Number) {
-            hovered = isElementHovered(mx, my, x, y, w, h)
+            hovered = isMouseOver(mx, my, x, y, w, h)
             hoverAnim = (hoverAnim + (if (hovered) 1f else 0f - hoverAnim) * 0.2f).coerceIn(0f, 1f)
 
-            val backgroundColor = interpolateColor(Color(35, 35, 35), hoverColor, hoverAnim)
-            val outlineColor = interpolateColor(compBackgroundColor, accentColor, hoverAnim)
+            val backgroundColor = lerpColor(Color(35, 35, 35), hoverColor, hoverAnim)
+            val outlineColor = lerpColor(compBackgroundColor, accentColor, hoverAnim)
 
             drawRoundedRect(backgroundColor, x, y, w, h)
             drawRoundedBorder(outlineColor, x, y, w, h, 1.2f)

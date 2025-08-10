@@ -19,7 +19,7 @@ import noammaddons.utils.JsonUtils.getDouble
 import noammaddons.utils.JsonUtils.getInt
 import noammaddons.utils.JsonUtils.getObj
 import noammaddons.utils.JsonUtils.getString
-import noammaddons.utils.MouseUtils.isElementHovered
+import noammaddons.utils.MouseUtils.isMouseOver
 import noammaddons.utils.NumbersUtils.format
 import noammaddons.utils.NumbersUtils.toRoman
 import noammaddons.utils.RenderHelper.getScaleFactor
@@ -90,7 +90,7 @@ object ProfileViewer: Feature() {
             val profileName = skycryptData.getString("cute_name") ?: "Unknown"
             val profileMode = skycryptData.getString("game_mode") ?: "Unknown"
             val joinDate = skycryptData.getObj("data")?.getObj("user_data")?.getObj("first_join")?.getString("text") ?: "Unknown"
-            
+
             drawText("&6Joined: &b$joinDate&r", x + boxWidth / 25, y + boxHeight / 12 + 12 * 11.4f, 0.75f)
             drawText("&6Profile: &b$profileName&r", x + boxWidth / 25, y + boxHeight / 12 + 12 * 10f, 0.75f)
             drawText("&6Mode: &b${upperCaseFirst(profileMode)}&r", x + boxWidth / 25, y + boxHeight / 12 + 12 * 10.7f, 0.75f)
@@ -108,7 +108,7 @@ object ProfileViewer: Feature() {
                         val xp = format(obj.getDouble("xp") ?: 0.0)
                         val rank = formatCommas(obj.getInt("rank") ?: 0)
 
-                        val isHovered = isElementHovered(
+                        val isHovered = isMouseOver(
                             rawMouseX - x, rawMouseY - y,
                             boxWidth / 3.0, boxHeight / 8.0 + (i * 12),
                             getStringWidth(skillStr, 0.85f), 12
@@ -139,7 +139,7 @@ object ProfileViewer: Feature() {
 
                         drawText(slayerStr, x + boxWidth - (boxWidth / 3), y + boxHeight / 8 + (i * 12), 0.85f)
 
-                        val isSlayerHoverd = isElementHovered(
+                        val isSlayerHoverd = isMouseOver(
                             rawMouseX - x, rawMouseY - y,
                             boxWidth - (boxWidth / 3.0),
                             boxHeight / 8.0 + (i * 12),
@@ -176,7 +176,7 @@ object ProfileViewer: Feature() {
                     drawText(totalSlayerXpStr, x + boxWidth - (boxWidth / 3), y + boxHeight / 8 + (7 * 12), 0.85f)
                     drawText(totalCoinsSpentStr, x + boxWidth - (boxWidth / 3), y + boxHeight / 8 + (8 * 12), 0.85f)
 
-                    val isCoinsHovered = isElementHovered(
+                    val isCoinsHovered = isMouseOver(
                         rawMouseX, rawMouseY,
                         x + boxWidth - (boxWidth / 3.0),
                         y + boxHeight / 8.0 + (8 * 12),
@@ -197,7 +197,7 @@ object ProfileViewer: Feature() {
                         tooltipLore = lore
                     }
 
-                    val isSlayersHovered = isElementHovered(
+                    val isSlayersHovered = isMouseOver(
                         rawMouseX, rawMouseY,
                         x + boxWidth - (boxWidth / 3.0),
                         y + boxHeight / 8.0 + (7 * 12),
@@ -230,7 +230,7 @@ object ProfileViewer: Feature() {
                     val weightStr = "&bLilyWeight Weight: &6${formatCommas(data.lilyWeight?.getObj("summary")?.getDouble("total")?.toInt() ?: 0)}"
                     drawText(weightStr, x + boxWidth - (boxWidth / 3), y + boxHeight / 8 + (9 * 12), 0.85f)
 
-                    val isWeightHovered = isElementHovered(
+                    val isWeightHovered = isMouseOver(
                         rawMouseX, rawMouseY,
                         x + boxWidth - (boxWidth / 3.0),
                         y + boxHeight / 8.0 + (9 * 12),
@@ -280,7 +280,7 @@ object ProfileViewer: Feature() {
                 categories.forEachIndexed { i, str ->
                     if (str == currentCategory) return@forEachIndexed
                     val sectionWidth = boxWidth / categories.size
-                    if (isElementHovered(rawMouseX, rawMouseY, x + (i * sectionWidth), y, sectionWidth, 10)) {
+                    if (isMouseOver(rawMouseX, rawMouseY, x + (i * sectionWidth), y, sectionWidth, 10)) {
                         currentCategory = str
                         SoundUtils.click()
                         debugMessage("Selected category: $str")

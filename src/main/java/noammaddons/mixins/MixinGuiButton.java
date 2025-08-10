@@ -55,7 +55,7 @@ public abstract class MixinGuiButton {
 
         GlStateManager.pushMatrix();
         GlStateManager.disableTexture2D();
-        hovered = MouseUtils.isElementHovered(mouseX, mouseY, xPosition, yPosition, width, height);
+        hovered = MouseUtils.isMouseOver(mouseX, mouseY, xPosition, yPosition, width, height);
         Color buttonColor = hovered ? new Color(19, 19, 19) : new Color(33, 33, 33);
 
         RenderUtils.INSTANCE.drawFloatingRect(

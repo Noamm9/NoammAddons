@@ -19,5 +19,5 @@ open class AbstractElement {
 
     open fun onScroll(delta: Int) {}
 
-    fun isHovered(mx: Float, my: Float): Boolean = MouseUtils.isElementHovered(mx, my, x, y, width, height)
+    fun isHovered(mx: Float, my: Float): Boolean = MouseUtils.isMouseOver(mx, my, x, y, width, height)
 }

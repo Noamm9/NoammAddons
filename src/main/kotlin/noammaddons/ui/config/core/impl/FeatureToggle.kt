@@ -11,7 +11,7 @@ import noammaddons.ui.config.ConfigGUI
 import noammaddons.ui.config.ConfigGUI.settingsScroll
 import noammaddons.ui.config.core.FeatureElement
 import noammaddons.ui.config.core.save.Config
-import noammaddons.utils.MathUtils.interpolateColor
+import noammaddons.utils.MathUtils.lerpColor
 import noammaddons.utils.MathUtils.lerp
 import noammaddons.utils.RenderUtils.drawCircle
 import noammaddons.utils.Utils.equalsOneOf
@@ -40,7 +40,7 @@ open class FeatureToggle(name: String, val cat: FeatureElement): Component<() ->
     override fun draw(x: Double, y: Double, mouseX: Double, mouseY: Double) {
         val hovered = mouseX in x .. (x + width) && mouseY in y .. (y + 20)
         hoverAnimation = (hoverAnimation + (if (! hovered) 1f else 0f - hoverAnimation) * 0.1f).coerceIn(0f, 1f)
-        val color = interpolateColor(hoverColor, compBackgroundColor, hoverAnimation)
+        val color = lerpColor(hoverColor, compBackgroundColor, hoverAnimation)
 
         drawSmoothRect(color, x, y, width, height)
         textRenderer.drawText(name, x + 6, y + 6)
@@ -55,7 +55,7 @@ open class FeatureToggle(name: String, val cat: FeatureElement): Component<() ->
         val trackX = x + width - switchPaddingRight - switchTrackWidth
         val trackY = y + (this.height - switchTrackHeight) / 2.0
 
-        val currentTrackColor = interpolateColor(Color(23, 23, 23), accentColor, animProgress)
+        val currentTrackColor = lerpColor(Color(23, 23, 23), accentColor, animProgress)
         drawSmoothRect(currentTrackColor, trackX, trackY, switchTrackWidth, switchTrackHeight)
 
         val knobDiameter = switchKnobRadius * 2.0

@@ -56,7 +56,7 @@ dependencies {
 }
 
 sourceSets.main {
-    output.setResourcesDir(file("${buildDir}/classes/kotlin/main"))
+    output.setResourcesDir(file("$buildDir/classes/kotlin/main"))
 }
 
 sourceSets["main"].java.srcDirs("src/main/kotlin")
@@ -67,7 +67,7 @@ loom {
         property("mixin.debug", "true")
         property("asmhelper.verbose", "true")
         arg("--tweakClass", "gg.essential.loader.stage0.EssentialSetupTweaker")
-        arg("--mixin", "mixins.${modID}.json")
+        arg("--mixin", "mixins.$modID.json")
     }
     runConfigs {
         getByName("client") {
@@ -77,9 +77,9 @@ loom {
     }
     forge {
         pack200Provider.set(Pack200Adapter())
-        mixinConfig("mixins.${modID}.json")
+        mixinConfig("mixins.$modID.json")
     }
-    mixin.defaultRefmapName.set("mixins.${modID}.refmap.json")
+    mixin.defaultRefmapName.set("mixins.$modID.refmap.json")
 }
 
 tasks {
@@ -89,7 +89,7 @@ tasks {
         inputs.property("version", project.version)
         inputs.property("mcversion", "1.8.9")
 
-        filesMatching(listOf("mcmod.info", "mixins.${modID}.json")) {
+        filesMatching(listOf("mcmod.info", "mixins.$modID.json")) {
             expand(
                 mapOf(
                     "modname" to modName,
@@ -104,9 +104,9 @@ tasks {
     named<Jar>("jar") {
         manifest.attributes(
             "FMLCorePluginContainsFMLMod" to true,
-            "FMLCorePlugin" to "${modID}.forge.FMLLoadingPlugin",
+            "FMLCorePlugin" to "$modID.forge.FMLLoadingPlugin",
             "ForceLoadAsMod" to true,
-            "MixinConfigs" to "mixins.${modID}.json",
+            "MixinConfigs" to "mixins.$modID.json",
             "ModSide" to "CLIENT",
             "TweakClass" to "gg.essential.loader.stage0.EssentialSetupTweaker",
             "TweakOrder" to "0"

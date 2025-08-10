@@ -2,23 +2,28 @@ package noammaddons.ui.config.core.impl
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import noammaddons.NoammAddons.Companion.scope
 import noammaddons.NoammAddons.Companion.textRenderer
 import noammaddons.features.Feature
 import noammaddons.features.impl.gui.ConfigGui.accentColor
 import noammaddons.ui.config.core.save.Savable
+import noammaddons.utils.MathUtils.lerp
+import noammaddons.utils.MathUtils.lerpColor
 import org.lwjgl.input.Keyboard
 import kotlin.reflect.KProperty
 
-
 class KeybindSetting(name: String, override var defaultValue: Int = Keyboard.KEY_NONE): Component<Int>(name), Savable {
     override var value = defaultValue
-
     private var listening = false
+
+    private var hoverAnimProgress = 0.0
+    private var isHovered = false
 
     fun isDown() = Keyboard.isKeyDown(value)
 
     private var previousState = false
-
     fun isPressed(): Boolean {
         val currentState = isDown()
         val wasPressed = ! previousState && currentState
@@ -27,7 +32,15 @@ class KeybindSetting(name: String, override var defaultValue: Int = Keyboard.KEY
     }
 
     override fun draw(x: Double, y: Double, mouseX: Double, mouseY: Double) {
-        drawSmoothRect(compBackgroundColor, x, y, width, height)
+        val currentlyHovered = isMouseOver(x, y, mouseX, mouseY) && ! listening
+        if (currentlyHovered != isHovered) {
+            isHovered = currentlyHovered
+            animateHover(isHovered)
+        }
+
+        val animatedBgColor = lerpColor(compBackgroundColor, hoverColor, hoverAnimProgress)
+        drawSmoothRect(animatedBgColor, x, y, width, height)
+
         textRenderer.drawText(name, x + 5, y + 6)
 
         val displayText = if (listening) "..." else if (value == Keyboard.KEY_NONE) "NONE" else Keyboard.getKeyName(value)
@@ -36,42 +49,48 @@ class KeybindSetting(name: String, override var defaultValue: Int = Keyboard.KEY
         val buttonX = x + width - buttonWidth - 8
         val buttonY = y + (height - buttonHeight) / 2
 
-        val color = if (value == Keyboard.KEY_NONE) hoverColor else accentColor
-
-        drawSmoothRect(color, buttonX, buttonY, buttonWidth, buttonHeight)
+        drawSmoothRect(accentColor, buttonX, buttonY, buttonWidth, buttonHeight)
         textRenderer.drawCenteredText(displayText, buttonX + buttonWidth / 2, buttonY + 2)
     }
 
+    private fun isMouseOver(x: Double, y: Double, mouseX: Double, mouseY: Double): Boolean {
+        return mouseX in x .. (x + width) && mouseY in y .. (y + height)
+    }
+
     override fun mouseClicked(x: Double, y: Double, mouseX: Double, mouseY: Double, button: Int) {
-        listening = mouseX in x .. x + width && mouseY in y .. y + height && button == 0
+        listening = isMouseOver(x, y, mouseX, mouseY) && button == 0
     }
 
     override fun keyTyped(typedChar: Char, keyCode: Int): Boolean {
         if (! listening) return false
-        var cencel = false
 
-        this.value = when (keyCode) {
-            Keyboard.KEY_ESCAPE, Keyboard.KEY_NONE -> {
-                cencel = true
-                Keyboard.KEY_NONE
-            }
-
-            else -> keyCode
-        }
-
+        val shouldCancel = keyCode == Keyboard.KEY_ESCAPE
+        this.value = if (shouldCancel) Keyboard.KEY_NONE else keyCode
         listening = false
-        return cencel
+
+        return true
+    }
+
+    private fun animateHover(hovering: Boolean) = scope.launch {
+        val startProgress = hoverAnimProgress
+        val endProgress = if (hovering) 1.0 else 0.0
+        val animationDuration = 150L
+
+        val startTime = System.currentTimeMillis()
+        var elapsedTime: Long
+
+        while (System.currentTimeMillis() - startTime < animationDuration) {
+            elapsedTime = System.currentTimeMillis() - startTime
+            val t = elapsedTime.toDouble() / animationDuration
+            hoverAnimProgress = lerp(startProgress, endProgress, easeOutQuad(t))
+            delay(7)
+        }
+        hoverAnimProgress = endProgress
     }
 
     override fun getValue(thisRef: Feature, property: KProperty<*>) = value
-
-    override fun write(): JsonElement {
-        return JsonPrimitive(value)
-    }
-
+    override fun write(): JsonElement = JsonPrimitive(value)
     override fun read(element: JsonElement?) {
-        element?.asInt?.let {
-            value = it
-        }
+        element?.asInt?.let { value = it }
     }
 }

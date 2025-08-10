@@ -23,7 +23,7 @@ object MouseUtils {
 
 
     @JvmStatic
-    fun isElementHovered(mx: Number, my: Number, x: Number, y: Number, w: Number, h: Number): Boolean {
+    fun isMouseOver(mx: Number, my: Number, x: Number, y: Number, w: Number, h: Number): Boolean {
         val (mxD, myD) = mx.toDouble() to my.toDouble()
         val (xD, yD) = x.toDouble() to y.toDouble()
         val (wD, hD) = w.toDouble() to h.toDouble()
@@ -31,7 +31,7 @@ object MouseUtils {
     }
 
     fun onMouseEnter(mx: Number, my: Number, x: Number, y: Number, w: Number, h: Number, block: () -> Unit) {
-        if (! isElementHovered(mx, my, x, y, w, h)) return
+        if (! isMouseOver(mx, my, x, y, w, h)) return
         block()
     }
 }

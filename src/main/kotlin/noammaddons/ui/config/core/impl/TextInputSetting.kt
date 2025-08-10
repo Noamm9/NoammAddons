@@ -2,12 +2,17 @@ package noammaddons.ui.config.core.impl
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.util.ChatAllowedCharacters
+import noammaddons.NoammAddons.Companion.scope
 import noammaddons.NoammAddons.Companion.textRenderer
 import noammaddons.features.Feature
 import noammaddons.features.impl.gui.ConfigGui.accentColor
 import noammaddons.ui.config.core.save.Savable
+import noammaddons.utils.MathUtils.lerp
+import noammaddons.utils.MathUtils.lerpColor
 import noammaddons.utils.RenderUtils.drawRect
 import noammaddons.utils.StencilUtils
 import org.lwjgl.input.Keyboard
@@ -36,24 +41,34 @@ class TextInputSetting(label: String, override val defaultValue: String = ""): C
 
     private var focused = false
     private var isDragging = false
-    private var caretVisible = true
 
+    // ADDED: State for hover animation
+    private var hoverAnimProgress = 0.0
+    private var isHovered = false
+
+    // Caret and selection state...
+    private var caretVisible = true
     private var lastBlink = System.currentTimeMillis()
     private val caretBlinkRate = 500L
-
     private var cursorIndex = defaultValue.length
     private var selectionAnchor = defaultValue.length
-
     private val selectionStart: Int get() = min(cursorIndex, selectionAnchor)
     private val selectionEnd: Int get() = max(cursorIndex, selectionAnchor)
     private val hasSelection: Boolean get() = selectionStart != selectionEnd
-
     private var scrollOffset = 0.0
     private var lastClickTime = 0L
     private var clickCount = 0
 
     override fun draw(x: Double, y: Double, mouseX: Double, mouseY: Double) {
-        drawSmoothRect(compBackgroundColor, x, y, width, height)
+        val currentlyHovered = isMouseOver(x, y, mouseX, mouseY) && ! focused
+        if (currentlyHovered != isHovered) {
+            isHovered = currentlyHovered
+            animateHover(isHovered)
+        }
+
+        val animatedBgColor = lerpColor(compBackgroundColor, hoverColor, hoverAnimProgress)
+        drawSmoothRect(animatedBgColor, x, y, width, height)
+
         textRenderer.drawText(name, x + padding, y + 1 + padding)
 
         val fieldX = x + padding
@@ -75,7 +90,6 @@ class TextInputSetting(label: String, override val defaultValue: String = ""): C
             val selEndStr = value.substring(0, selectionEnd)
             val x1 = fieldX + textPadding - scrollOffset + textRenderer.getStringWidth(selStartStr)
             val x2 = fieldX + textPadding - scrollOffset + textRenderer.getStringWidth(selEndStr)
-
             drawRect(accentColor, x1, fieldY + 1, x2 - x1, inputHeight - 2)
         }
 
@@ -95,6 +109,27 @@ class TextInputSetting(label: String, override val defaultValue: String = ""): C
             caretVisible = ! caretVisible
             lastBlink = System.currentTimeMillis()
         }
+    }
+
+    private fun isMouseOver(x: Double, y: Double, mouseX: Double, mouseY: Double): Boolean {
+        return mouseX in x .. (x + width) && mouseY in y .. (y + height)
+    }
+
+    private fun animateHover(hovering: Boolean) = scope.launch {
+        val startProgress = hoverAnimProgress
+        val endProgress = if (hovering) 1.0 else 0.0
+        val animationDuration = 150L
+
+        val startTime = System.currentTimeMillis()
+        var elapsedTime: Long
+
+        while (System.currentTimeMillis() - startTime < animationDuration) {
+            elapsedTime = System.currentTimeMillis() - startTime
+            val t = elapsedTime.toDouble() / animationDuration
+            hoverAnimProgress = lerp(startProgress, endProgress, easeOutQuad(t))
+            delay(7)
+        }
+        hoverAnimProgress = endProgress
     }
 
     override fun mouseClicked(x: Double, y: Double, mouseX: Double, mouseY: Double, button: Int) {

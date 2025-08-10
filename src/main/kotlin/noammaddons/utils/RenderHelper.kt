@@ -18,6 +18,10 @@ import java.awt.Color
 
 
 object RenderHelper {
+    private val colorMap = (('0' .. '9') + ('a' .. 'f')).associateWith {
+        Color(mc.fontRendererObj.getColorCode(it))
+    }
+
     fun getRainbowColor(hueOffset: Float): Color = Color.getHSBColor(((System.currentTimeMillis() % 4500L) / 4500.0f + hueOffset) % 1.0f, 1.0f, 1.0f)
 
     @JvmStatic
@@ -62,9 +66,18 @@ object RenderHelper {
     )
 
     @JvmStatic
-    fun Color.destructured(withAlpha: Boolean = false): MutableList<Int> {
-        return if (! withAlpha) mutableListOf(red, green, blue)
-        else mutableListOf(red, green, blue, alpha)
+    fun Color.destructured(withAlpha: Boolean = false): List<Int> {
+        return if (! withAlpha) listOf(red, green, blue)
+        else listOf(red, green, blue, alpha)
+    }
+
+    fun colorFromHSB(hue: Float, saturation: Float, brightness: Float): Color {
+        val rgb = Color.HSBtoRGB(hue, saturation, brightness)
+        return Color(
+            (rgb shr 16) and 0xFF,
+            (rgb shr 8) and 0xFF,
+            rgb and 0xFF
+        )
     }
 
     @JvmStatic
@@ -149,25 +162,6 @@ object RenderHelper {
     catch (_: NoSuchFieldException) {
         false
     }
-
-    private val colorMap: Map<Char, Color> = mapOf(
-        '0' to Color(0, 0, 0),
-        '1' to Color(0, 0, 170),
-        '2' to Color(0, 170, 0),
-        '3' to Color(0, 170, 170),
-        '4' to Color(170, 0, 0),
-        '5' to Color(170, 0, 170),
-        '6' to Color(255, 170, 0),
-        '7' to Color(170, 170, 170),
-        '8' to Color(85, 85, 85),
-        '9' to Color(85, 85, 255),
-        'a' to Color(0, 255, 0),
-        'b' to Color(0, 255, 255),
-        'c' to Color(255, 85, 85),
-        'd' to Color(255, 0, 255),
-        'e' to Color(255, 255, 0),
-        'f' to Color(255, 255, 255)
-    )
 
     fun getColorCode(color: Color): String {
         var minDistanceSquared = Int.MAX_VALUE

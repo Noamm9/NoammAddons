@@ -20,7 +20,7 @@ object EnchantmentsColors: Feature() {
     private val ENCHANTMENT_PATTERN = Pattern.compile("(?<enchant>[A-Za-z][A-Za-z -]+) (?<levelNumeral>[IVXLCDM]+)(?=, |$| [\\d,]+$)")
     val enchantments = mutableListOf<Enchantment>()
 
-    private val showNumbers by ToggleSetting("Show Enchantment Levels as Numbers")
+    private val showNumbers by ToggleSetting("Enchantment Levels as Numbers")
     private val maxLevelColor by ColorSetting("Max Level Enchantment (Bold) Color", Color(255, 170, 0), false)
     private val highLevelColor by ColorSetting("High Level Enchantment Color", Color(255, 170, 0), false)
     private val normalLevelColor by ColorSetting("Normal Level Enchantment Color", Color(0, 170, 170), false)

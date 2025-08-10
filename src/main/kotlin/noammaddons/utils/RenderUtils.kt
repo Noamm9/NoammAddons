@@ -47,6 +47,26 @@ object RenderUtils {
     val worldRenderer: WorldRenderer = tessellator.worldRenderer
 
     fun preDraw() {
+        GlStateManager.shadeModel(GL_SMOOTH)
+        GlStateManager.enableBlend()
+        GlStateManager.disableTexture2D()
+        GlStateManager.disableCull()
+        GlStateManager.disableLighting()
+        GlStateManager.disableAlpha()
+        GlStateManager.tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO)
+        GlStateManager.tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+    }
+
+    fun postDraw() {
+        GlStateManager.enableTexture2D()
+        GlStateManager.disableBlend()
+        GlStateManager.enableCull()
+        GlStateManager.enableAlpha()
+        GlStateManager.resetColor()
+        GlStateManager.shadeModel(GL_FLAT)
+    }
+
+    fun preDraw2() {
         GlStateManager.disableLighting()
         GlStateManager.disableTexture2D()
         GlStateManager.disableCull()
@@ -55,7 +75,7 @@ object RenderUtils {
         GlStateManager.enableAlpha()
     }
 
-    fun postDraw() {
+    fun postDraw2() {
         GlStateManager.disableBlend()
         GlStateManager.enableCull()
         GlStateManager.enableTexture2D()
@@ -604,12 +624,13 @@ object RenderUtils {
         preDraw()
         bindColor(color)
 
+        val worldRenderer = Tessellator.getInstance().worldRenderer
         worldRenderer.begin(7, DefaultVertexFormats.POSITION)
         worldRenderer.pos(pos[0].toDouble(), pos[3].toDouble(), 0.0).endVertex()
         worldRenderer.pos(pos[2].toDouble(), pos[3].toDouble(), 0.0).endVertex()
         worldRenderer.pos(pos[2].toDouble(), pos[1].toDouble(), 0.0).endVertex()
         worldRenderer.pos(pos[0].toDouble(), pos[1].toDouble(), 0.0).endVertex()
-        tessellator.draw()
+        Tessellator.getInstance().draw()
 
         postDraw()
         GlStateManager.popMatrix()
@@ -637,9 +658,45 @@ object RenderUtils {
         GlStateManager.popMatrix()
     }
 
-    fun drawPlayerHead(resourceLocation: ResourceLocation, x: Float, y: Float, width: Float, height: Float, radius: Float = 10f) {
+    fun drawGradientRect(x: Number, y: Number, width: Number, height: Number, topLeft: Color, topRight: Color, bottomLeft: Color, bottomRight: Color) {
         GlStateManager.pushMatrix()
         preDraw()
+        worldRenderer.begin(7, DefaultVertexFormats.POSITION_COLOR)
+        worldRenderer.pos(x.toDouble(), y.toDouble() + height.toDouble(), .0).color(bottomLeft.red, bottomLeft.green, bottomLeft.blue, bottomLeft.alpha).endVertex()
+        worldRenderer.pos(x.toDouble() + width.toDouble(), y.toDouble() + height.toDouble(), .0).color(bottomRight.red, bottomRight.green, bottomRight.blue, bottomRight.alpha).endVertex()
+        worldRenderer.pos(x.toDouble() + width.toDouble(), y.toDouble(), .0).color(topRight.red, topRight.green, topRight.blue, topRight.alpha).endVertex()
+        worldRenderer.pos(x.toDouble(), y.toDouble(), .0).color(topLeft.red, topLeft.green, topLeft.blue, topLeft.alpha).endVertex()
+        tessellator.draw()
+        postDraw()
+        GlStateManager.popMatrix()
+    }
+
+    fun drawGradientRect(x: Number, y: Number, width: Number, height: Number, startColor: Color, endColor: Color) {
+        drawGradientRect(x, y, width, height, startColor, startColor, endColor, endColor)
+    }
+
+    fun drawCheckerboard(x: Number, y: Number, width: Number, height: Number, squareSize: Number) {
+        var currentX = x.toDouble()
+        while (currentX < x.toDouble() + width.toDouble()) {
+            var currentY = y.toDouble()
+            var colSwitch = (((currentX - x.toDouble()) / squareSize.toDouble()).toInt() % 2 != 0)
+            while (currentY < y.toDouble() + height.toDouble()) {
+                val actualSquareWidth = (currentX + squareSize.toDouble()).coerceAtMost(x.toDouble() + width.toDouble()) - currentX
+                val actualSquareHeight = (currentY + squareSize.toDouble()).coerceAtMost(y.toDouble() + height.toDouble()) - currentY
+                drawRect(
+                    if (colSwitch) Color(180, 180, 180) else Color(140, 140, 140),
+                    currentX, currentY, actualSquareWidth, actualSquareHeight
+                )
+                currentY += squareSize.toDouble()
+                colSwitch = ! colSwitch
+            }
+            currentX += squareSize.toDouble()
+        }
+    }
+
+    fun drawPlayerHead(resourceLocation: ResourceLocation, x: Float, y: Float, width: Float, height: Float, radius: Float = 10f) {
+        GlStateManager.pushMatrix()
+        preDraw2()
         GlStateManager.enableTexture2D()
         GlStateManager.translate(x + width / 2, y + height / 2, 0f)
         bindColor(Color.WHITE)
@@ -666,7 +723,7 @@ object RenderUtils {
 
         StencilUtils.endStencilClip()
 
-        postDraw()
+        postDraw2()
         GlStateManager.popMatrix()
     }
 

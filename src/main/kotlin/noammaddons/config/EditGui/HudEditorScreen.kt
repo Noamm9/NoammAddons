@@ -8,7 +8,7 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import noammaddons.NoammAddons
 import noammaddons.NoammAddons.Companion.hudData
 import noammaddons.NoammAddons.Companion.textRenderer
-import noammaddons.utils.MouseUtils.isElementHovered
+import noammaddons.utils.MouseUtils.isMouseOver
 import noammaddons.utils.RenderUtils
 import noammaddons.utils.RenderUtils.drawRectBorder
 import org.lwjgl.input.Keyboard
@@ -116,7 +116,7 @@ object HudEditorScreen: GuiScreen() {
         val x = (sr.scaledWidth - width) / 2
         val y = ((sr.scaledHeight + height) * 0.85).toInt()
 
-        val isHovered = isElementHovered(mx, my, x - 4, y - 4, width + 8, height + 8)
+        val isHovered = isMouseOver(mx, my, x - 4, y - 4, width + 8, height + 8)
         val alpha = if (isHovered) 140 else 90
         val borderColor = when {
             isHovered -> Color(100, 180, 255)
@@ -209,7 +209,7 @@ object HudEditorScreen: GuiScreen() {
         val x = (sr.scaledWidth - width) / 2
         val y = ((sr.scaledHeight + height) * 0.85).toInt()
 
-        if (! isElementHovered(mx, my, x - 4, y - 4, width + 8, height + 8)) return
+        if (! isMouseOver(mx, my, x - 4, y - 4, width + 8, height + 8)) return
 
         showResetConfirm = true
     }
