@@ -1,7 +1,6 @@
 package noammaddons.features.impl.dungeons
 
 import gg.essential.elementa.utils.withAlpha
-import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
 import net.minecraft.network.play.client.C0DPacketCloseWindow
@@ -13,17 +12,19 @@ import noammaddons.events.*
 import noammaddons.events.DungeonEvent.*
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.*
-import noammaddons.utils.*
 import noammaddons.utils.ActionBarParser.SECRETS_REGEX
 import noammaddons.utils.ActionBarParser.maxSecrets
 import noammaddons.utils.ActionBarParser.secrets
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.GuiUtils.currentChestName
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.inDungeon
+import noammaddons.utils.PlayerUtils
 import noammaddons.utils.RenderHelper.colorCodeByPresent
 import noammaddons.utils.RenderHelper.getStringHeight
 import noammaddons.utils.RenderHelper.getStringWidth
+import noammaddons.utils.RenderUtils.drawBlockBox
 import noammaddons.utils.RenderUtils.drawCenteredText
 import noammaddons.utils.RenderUtils.renderItem
 import noammaddons.utils.Utils.equalsOneOf
@@ -35,17 +36,53 @@ import noammaddons.utils.Utils.send
 object Secrets: Feature() {
     private data class ClickedSecret(val pos: BlockPos, val time: Long)
     private object SecretDisplayElement: GuiElement(hudData.getData().secretDisplay) {
-        override val enabled get() = hudDisplay.value
+        override val enabled get() = hudDisplay.value && Secrets.enabled
         var lines = listOf("&7Secrets", "&c3&7/&a7")
         val exampleLines = listOf("&7Secrets", "&c3&7/&a7")
-        override val width: Float get() = lines.maxOf { getStringWidth(it) } + 16f
-        override val height: Float get() = getStringHeight(lines)
+        override val width get() = lines.maxOf { getStringWidth(it) } + 16f
+        override val height get() = getStringHeight(lines)
 
-        override fun draw() = draw(lines, getX(), getY(), getScale())
-        override fun exampleDraw() = draw(exampleLines, getX(), getY(), getScale())
+        override fun draw() {
+            val textWidth = lines.maxOf { getStringWidth(it) + 16 } * getScale() / 2
+            val textHeight = lines.size * 9f * getScale() / 2
+
+            drawCenteredText(
+                lines,
+                getX() + textWidth + (38 * getScale() / 4),
+                getY() + textHeight,
+                getScale()
+            )
+
+            if (chestIcon.value) renderItem(
+                chestItem,
+                getX() + textWidth - 38 * getScale() + (38 * getScale() / 4),
+                getY() + textHeight - 9f * getScale(),
+                getScale()
+            )
+        }
+
+        override fun exampleDraw() {
+            val textWidth = exampleLines.maxOf { getStringWidth(it) + 16 } * getScale() / 2
+            val textHeight = exampleLines.size * 9f * getScale() / 2
+
+            drawCenteredText(
+                lines,
+                getX() + textWidth + (38 * getScale() / 4),
+                getY() + textHeight,
+                getScale()
+            )
+
+            if (chestIcon.value) renderItem(
+                chestItem,
+                getX() + textWidth - 38 * getScale() + (38 * getScale() / 4),
+                getY() + textHeight - 9f * getScale(),
+                getScale()
+            )
+        }
     }
 
     private val hudDisplay = ToggleSetting("Secret HUD")
+    private val chestIcon = ToggleSetting("Draw Chest Icon").addDependency(hudDisplay)
 
     private val secretClicked = ToggleSetting("Secret Clicked")
     private val displayTime = SliderSetting("Hightlight Time", 0.5, 5, 0.1, 2).addDependency(secretClicked)
@@ -71,7 +108,8 @@ object Secrets: Feature() {
     private val closeMode = DropdownSetting("Close Mode", arrayListOf("Auto", "Any Key")).addDependency(closeChest)
 
     override fun init() = addSettings(
-        hudDisplay,
+        SeperatorSetting("HUD"),
+        hudDisplay, chestIcon,
         SeperatorSetting("Clicked"),
         secretClicked, displayTime,
         secretClickedColor, mode, phase,
@@ -106,8 +144,8 @@ object Secrets: Feature() {
     fun onRenderWorld(event: RenderWorld) {
         if (clicked.isEmpty()) return
         clicked.removeIf { it.time + (displayTime.value.toDouble() * 1000) < System.currentTimeMillis() }
-        clicked.takeIf { it.isNotEmpty() }?.toList()?.forEach {
-            RenderUtils.drawBlockBox(
+        clicked.takeUnless { it.isEmpty() }?.toList()?.forEach {
+            drawBlockBox(
                 it.pos,
                 secretClickedColor.value,
                 outline = mode.value.equalsOneOf(1, 2),
@@ -120,10 +158,8 @@ object Secrets: Feature() {
     @SubscribeEvent
     fun onRenderOvelay(event: RenderOverlay) {
         if (! SecretDisplayElement.enabled) return
-        if (! inDungeon) return
-        if (inBoss) return
-        if (secrets == null) return
-        if (maxSecrets == null) return
+        if (! inDungeon || inBoss) return
+        if (secrets == null || maxSecrets == null) return
 
         SecretDisplayElement.lines = listOf("&7Secrets", "${colorCodeByPresent(secrets !!, maxSecrets !!)}$secrets&7/&a$maxSecrets")
         SecretDisplayElement.draw()
@@ -132,9 +168,9 @@ object Secrets: Feature() {
     @SubscribeEvent
     fun onOpenWindow(event: PacketEvent.Received) {
         if (! closeChest.value) return
-        val packet = event.packet as? S2DPacketOpenWindow ?: return
         if (closeMode.value != 0) return
         if (! inDungeon) return
+        val packet = event.packet as? S2DPacketOpenWindow ?: return
         if (! packet.windowTitle.noFormatText.equalsOneOf("Chest", "Large Chest")) return
         C0DPacketCloseWindow(packet.windowId).send()
         event.isCanceled = true
@@ -144,7 +180,7 @@ object Secrets: Feature() {
     fun onInput(event: GuiKeybourdInputEvent) {
         if (! closeChest.value) return
         if (! inDungeon || closeMode.value != 1) return
-        if (GuiUtils.currentChestName.removeFormatting().equalsOneOf("Chest", "Large Chest")) {
+        if (currentChestName.removeFormatting().equalsOneOf("Chest", "Large Chest")) {
             PlayerUtils.closeScreen()
         }
     }
@@ -153,26 +189,11 @@ object Secrets: Feature() {
     fun onMouse(event: GuiMouseClickEvent) {
         if (! closeChest.value) return
         if (! inDungeon || closeMode.value != 1) return
-        if (GuiUtils.currentChestName.removeFormatting().equalsOneOf("Chest", "Large Chest")) {
+        if (currentChestName.removeFormatting().equalsOneOf("Chest", "Large Chest")) {
             PlayerUtils.closeScreen()
         }
     }
 
-
-    fun draw(text: List<String>, x: Float, y: Float, scale: Float) {
-        val textWidth = text.maxOf { getStringWidth(it) + 16 } * scale
-        val textHeight = text.size * 9f * scale
-        val iconX = 38f
-
-        GlStateManager.pushMatrix()
-        GlStateManager.translate(x + iconX / 2, y, 1f)
-        GlStateManager.translate(textWidth / 2f, textHeight / 2f, 0f)
-
-        drawCenteredText(text, 0, 0, scale)
-        renderItem(chestItem, - iconX * scale, - 9f * scale, scale)
-
-        GlStateManager.popMatrix()
-    }
 
     /**
      * @see noammaddons.mixins.MixinGuiIngame.modifyActionBar

@@ -156,7 +156,6 @@ object EventDispatcher {
 
             is S32PacketConfirmTransaction -> {
                 if (packet.func_148888_e()) return
-                if (packet.actionNumber > 0) return
                 if (awaitS32) awaitS32 = false
                 ServerTick().postCatch()
             }

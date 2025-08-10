@@ -206,8 +206,8 @@ object F7Titles: Feature(name = "F7 Titles", desc = "Custom Titles for f7 boss f
             startTickTimer = true
             // adding an extra 1.35 seconds for the lightning effect
             timerTime = when (title) {
-                "4" -> 5.35 * 20
-                "6" -> 7.35 * 20
+                "4" -> 5.35 * 20.0
+                "6" -> 7.35 * 20.0
                 else -> return
             }.roundToInt()
 

@@ -73,7 +73,8 @@ object DungeonUtils {
         "Healing Potion VIII Splash Potion", "Healing VIII Splash Potion",
         "Healing 8 Splash Potion", "Decoy", "Inflatable Jerry", "Spirit Leap",
         "Trap", "Training Weights", "Defuse Kit", "Dungeon Chest Key",
-        "Treasure Talisman", "Revive Stone", "Architect's First Draft"
+        "Treasure Talisman", "Revive Stone", "Architect's First Draft",
+        "Secret Dye", "Candycomb"
     )
 
     enum class Classes(val color: Color) {

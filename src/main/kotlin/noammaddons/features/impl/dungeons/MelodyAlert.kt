@@ -1,17 +1,19 @@
 package noammaddons.features.impl.dungeons
 
 import net.minecraft.client.gui.GuiScreen
+import net.minecraft.network.play.client.C01PacketChatMessage
 import net.minecraftforge.client.event.GuiOpenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.Tick
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.TextInputSetting
 import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.ChatUtils.sendPartyMessage
 import noammaddons.utils.GuiUtils.currentChestName
 import noammaddons.utils.GuiUtils.getContainerName
 import noammaddons.utils.LocationUtils.F7Phase
+import noammaddons.utils.PartyUtils
 import noammaddons.utils.ThreadUtils.setTimeout
+import noammaddons.utils.Utils.send
 
 object MelodyAlert: Feature() {
     private val msg by TextInputSetting("Melody Messaage", "I ❤ Melody")
@@ -39,7 +41,8 @@ object MelodyAlert: Feature() {
 
         setTimeout(100) {
             if (currentChestName.removeFormatting() == "Click the button on time!") {
-                sendPartyMessage(msg)
+                if (! PartyUtils.inParty) return@setTimeout
+                C01PacketChatMessage(msg).send()
             }
         }
     }
@@ -57,7 +60,8 @@ object MelodyAlert: Feature() {
         if (greenClays.isEmpty()) return
 
         val lastClay = greenClays.last()
-        sendPartyMessage(claySlots[lastClay] ?: return)
+        val message = claySlots[lastClay] ?: return
+        if (PartyUtils.inParty) C01PacketChatMessage(message).send()
         greenClays.forEach { claySlots.remove(it) }
     }
 }

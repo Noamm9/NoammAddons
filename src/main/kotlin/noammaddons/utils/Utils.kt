@@ -20,6 +20,10 @@ import kotlin.reflect.KClass
 
 
 object Utils {
+    interface INetworkManager {
+        fun sendPacketNoEvent(packet: Packet<*>?)
+    }
+
     val favoriteColor = Color(0, 134, 255)
 
     fun <T> splitArray(array: List<T>, size: Int): List<List<T>> {
@@ -74,6 +78,12 @@ object Utils {
     fun Packet<*>.send(delay: Number? = null) {
         if (delay == null) mc.netHandler.networkManager.sendPacket(this)
         else setTimeout(delay.toLong()) { mc.netHandler.networkManager.sendPacket(this) }
+    }
+
+    fun Packet<*>.sendNoEvent(delay: Number? = null) {
+        val networkManager = mc.netHandler.networkManager as INetworkManager
+        if (delay == null) networkManager.sendPacketNoEvent(this)
+        else setTimeout(delay.toLong()) { networkManager.sendPacketNoEvent(this) }
     }
 
     fun <K, V> MutableMap<K, V>.removeIf(predicate: (Map.Entry<K, V>) -> Boolean): Boolean {

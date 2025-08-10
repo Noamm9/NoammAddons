@@ -124,6 +124,8 @@ object WitherDragons: Feature(
     @Suppress("UNCHECKED_CAST")
     fun onRenderModelEvent(event: PostRenderEntityModelEvent) {
         if (! highlightDragons) return
+        if (LocationUtils.F7Phase != 5) return
+        if (WitherDragonEnum.entries.none { it.entity != null }) return
 
         val phaseSetting = EspSettings.getSettingByName("Phase") as? ToggleSetting ?: return
         val lineSetting = EspSettings.getSettingByName("Line Width") as? Component<Number> ?: return

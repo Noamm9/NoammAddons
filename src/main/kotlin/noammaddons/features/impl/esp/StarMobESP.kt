@@ -35,10 +35,10 @@ object StarMobESP: Feature("Highlights Star Mobs in the dungeon") {
     private val customMinibossesColors = ToggleSetting("Custom Minibosses Colors")
 
     private val starMobColor = ColorSetting("Star Mob Color", favoriteColor, false)
-    private val felColor = ColorSetting("Fel Color", Color.pink, false)
-    private val batColor = ColorSetting("Bat Color", Color.GREEN, false)
+    private val batColor = ColorSetting("Bat Color", Color.GREEN, false).addDependency(espBats)
+    private val felColor = ColorSetting("Fel Color", Color.pink, false).addDependency(espFels)
 
-    private val shadowAssasianColor = ColorSetting("Shadow Assasian", Color.BLACK, false).addDependency(customMinibossesColors)
+    private val shadowAssasianColor = ColorSetting("Shadow Assassin", Color.BLACK, false).addDependency(customMinibossesColors)
     private val angryArchaeologistColor = ColorSetting("Angry Archaeologist", favoriteColor, false).addDependency(customMinibossesColors)
     private val unstableDragonColor = ColorSetting("Unstable Dragon", Color(100, 0, 100), false).addDependency(customMinibossesColors)
     private val youngDragonColor = ColorSetting("Young Dragon", Color.WHITE.darker(), false).addDependency(customMinibossesColors)
@@ -130,7 +130,7 @@ object StarMobESP: Feature("Highlights Star Mobs in the dungeon") {
 
     @JvmStatic
     fun getColor(entity: Entity) = when (entity) {
-        is EntityBat -> if (espBats.value && ! entity.isInvisible) batColor else null
+        is EntityBat -> if (espBats.value && ! entity.isInvisible && ! entity.isRiding) batColor else null
         is EntityEnderman -> if (espFels.value && entity.name == "Dinnerbone") felColor else null
         is EntityPlayer -> when {
             entity.name.contains("Shadow Assassin") -> if (customMinibossesColors.value) shadowAssasianColor else starMobColor

@@ -20,26 +20,27 @@ object ScoreboardUtils {
             && event.packet !is S3DPacketDisplayScoreboard
         ) return
 
-        getSidebarLines()
+        mc.addScheduledTask(ScoreboardUtils::getSidebarLines)
     }
 
     @SubscribeEvent
     fun onWorldUnload(event: WorldUnloadEvent) {
-        sidebarLines = emptyList()
+        mc.addScheduledTask { sidebarLines = emptyList() }
     }
 
-
     private fun getSidebarLines() {
-        val objective = mc.theWorld?.scoreboard?.getObjectiveInDisplaySlot(1)
-        if (objective == null) {
+        val scoreboard = mc.theWorld?.scoreboard ?: return
+        val objective = scoreboard.getObjectiveInDisplaySlot(1) ?: run {
             sidebarLines = emptyList()
             return
         }
 
-        sidebarLines = mc.theWorld.scoreboard.getSortedScores(objective).asSequence()
-            .filterNot { it?.playerName?.startsWith("#") == true }.take(15)
-            .map { ScorePlayerTeam.formatPlayerName(mc.theWorld.scoreboard.getPlayersTeam(it.playerName), it.playerName) }
-            .plus(objective.displayName).toList()
+        sidebarLines = scoreboard.getSortedScores(objective).asSequence()
+            .filterNot { it?.playerName?.startsWith("#") == true }
+            .take(15)
+            .map { ScorePlayerTeam.formatPlayerName(scoreboard.getPlayersTeam(it.playerName), it.playerName) }
+            .plus(objective.displayName)
+            .toList()
     }
 
     fun cleanSB(scoreboard: String): String = removeUnicode(scoreboard.removeFormatting())
