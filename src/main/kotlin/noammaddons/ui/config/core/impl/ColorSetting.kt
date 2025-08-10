@@ -102,12 +102,12 @@ class ColorSetting(
 
         if (! expanded || button != 0 || ! isPickerOpen) return
         if (isMouseOver(mouseX, mouseY, pickerX, pickerY, pickerWidth, pickerHeight)) {
-            handlePickerInteraction(mouseX, mouseY, isClick = true)
+            onPickerInteraction(mouseX, mouseY, isClick = true)
         }
     }
 
     override fun mouseDragged(x: Double, y: Double, mouseX: Double, mouseY: Double, button: Int) {
-        if (button == 0 && isPickerOpen) handlePickerInteraction(mouseX, mouseY, isClick = false)
+        if (button == 0 && isPickerOpen) onPickerInteraction(mouseX, mouseY, isClick = false)
     }
 
     override fun mouseRelease(x: Double, y: Double, mouseX: Double, mouseY: Double, button: Int) {
@@ -140,7 +140,7 @@ class ColorSetting(
         drawRect(compBackgroundColor, x, y, if (withAlpha) pickerWidth else pickerWidth - 15.0, pickerHeight - 10)
         drawRectBorder(borderColor, x, y, if (withAlpha) pickerWidth else pickerWidth - 15.0, pickerHeight - 10)
 
-        drawSatBriArea(satBriX, satBriY)
+        drawSvBox(satBriX, satBriY)
         val satBriIndicatorX = satBriX + satBriW * currentSaturation
         val satBriIndicatorY = satBriY + satBriH * (1 - currentBrightness)
         drawRect(Color.WHITE, satBriIndicatorX - 2, satBriIndicatorY - 2, 4.0, 4.0)
@@ -161,7 +161,7 @@ class ColorSetting(
         }
     }
 
-    private fun handlePickerInteraction(mouseX: Double, mouseY: Double, isClick: Boolean) {
+    private fun onPickerInteraction(mouseX: Double, mouseY: Double, isClick: Boolean) {
         val satBriX = pickerX + 5
         val satBriY = pickerY + 5
         val satBriW = pickerWidth - 50
@@ -190,14 +190,22 @@ class ColorSetting(
             .withAlpha((currentAlpha * 255).roundToInt().coerceIn(0, 255))
     }
 
-    private fun drawSatBriArea(x: Double, y: Double) {
-        val topLeftColor = colorFromHSB(currentHue, 0.0f, 1.0f)
-        val topRightColor = colorFromHSB(currentHue, 1.0f, 1.0f)
-        val bottomLeftColor = colorFromHSB(currentHue, 0.0f, 0.0f)
-        val bottomRightColor = colorFromHSB(currentHue, 1.0f, 0.0f)
+    private fun drawSvBox(x: Double, y: Double) {
+        val satBriW = 90.0
+        val satBriH = 90.0
 
-        drawGradientRect(x, y, 90, 90, topLeftColor, topRightColor, bottomLeftColor, bottomRightColor)
-        drawRectBorder(borderColor, x - 1, y - 1, 92, 92)
+        val pureHueColor = colorFromHSB(currentHue, 1.0f, 1.0f)
+        drawRect(pureHueColor, x, y, satBriW, satBriH)
+
+        val white = Color.WHITE
+        val transparentWhite = white.withAlpha(0)
+        drawGradientRect(x, y, satBriW, satBriH, white, transparentWhite, white, transparentWhite)
+
+        val black = Color.BLACK
+        val transparentBlack = black.withAlpha(0)
+        drawGradientRect(x, y, satBriW, satBriH, transparentBlack, transparentBlack, black, black)
+
+        drawRectBorder(borderColor, x - 1, y - 1, satBriW + 2, satBriH + 2)
     }
 
     private fun drawHueSlider(x: Double, y: Double) {
