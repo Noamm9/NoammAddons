@@ -1,6 +1,8 @@
 package noammaddons.features.impl.esp
 
 import net.minecraft.entity.boss.EntityWither
+import net.minecraft.network.play.server.S0FPacketSpawnMob
+import net.minecraft.network.play.server.S13PacketDestroyEntities
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
@@ -11,11 +13,12 @@ import noammaddons.utils.LocationUtils.F7Phase
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.world
+import noammaddons.utils.ThreadUtils
 import java.awt.Color
 
 
 object WitherESP: Feature("Highlights Withers in the world") {
-    private enum class Wither(val color: Color) {
+    enum class Wither(val color: Color) {
         MAXOR(Color(88, 4, 164)),
         STORM(Color(0, 208, 255)),
         GOLDOR(Color(255, 255, 255)),
@@ -56,13 +59,26 @@ object WitherESP: Feature("Highlights Withers in the world") {
      Vanquisher: isArmored: false/true, invulTime: 250
      */
     @SubscribeEvent
-    fun onArmorStandRender(event: PostEntityMetadataEvent) {
+    fun onPacket(event: PostPacketEvent.Received) {
         if (! isValidLoc()) return
-        val entity = event.entity as? EntityWither ?: return
-        if (entity.isInvisible) return
-        if (entity.invulTime == 800) return
-        if (entity.nbtTagCompound != null) return
-        Wither.currentWither = entity
+        when (val packet = event.packet) {
+            is S0FPacketSpawnMob -> {
+                if (packet.entityType != 64) return // EntityWither
+                val id = packet.entityID
+
+                ThreadUtils.scheduledTask(1) {
+                    val entity = mc.theWorld.getEntityByID(id) as? EntityWither ?: return@scheduledTask
+                    if (entity.isInvisible || entity.invulTime == 800) return@scheduledTask
+                    Wither.currentWither = entity
+                }
+            }
+
+            is S13PacketDestroyEntities -> {
+                packet.entityIDs.find { Wither.currentWither?.entityId == it }?.let {
+                    Wither.currentWither = null
+                }
+            }
+        }
     }
 
     @SubscribeEvent
