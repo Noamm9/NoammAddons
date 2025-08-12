@@ -8,12 +8,12 @@ class Door(override val x: Int, override val z: Int, var type: DoorType): Tile {
     override var state: RoomState = RoomState.UNDISCOVERED
     override val color: Color
         get() {
-            return if (state == RoomState.UNOPENED) DungeonMapConfig.colorUnopenedDoor
+            return if (state == RoomState.UNOPENED) DungeonMapConfig.colorUnopenedDoor.value
             else when (this.type) {
                 DoorType.BLOOD -> DungeonMapConfig.colorBloodDoor
                 DoorType.ENTRANCE -> DungeonMapConfig.colorEntranceDoor
                 DoorType.WITHER -> if (opened) DungeonMapConfig.colorOpenWitherDoor else DungeonMapConfig.colorWitherDoor
                 else -> DungeonMapConfig.colorRoomDoor
-            }
+            }.value
         }
 }

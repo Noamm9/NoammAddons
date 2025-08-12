@@ -17,19 +17,17 @@ import noammaddons.features.impl.dungeons.dmap.core.map.*
 import noammaddons.features.impl.dungeons.dmap.handlers.*
 import noammaddons.features.impl.dungeons.dmap.utils.MapUtils
 import noammaddons.ui.config.core.annotations.AlwaysActive
-import noammaddons.ui.config.core.impl.ButtonSetting
 import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.inDungeon
+import noammaddons.utils.TablistUtils.getTabList
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.remove
 
 @AlwaysActive
 object DungeonMap: Feature(toggled = false) {
-    private val openConfigBtn by ButtonSetting("Open Config") {
-        GuiUtils.openScreen(DungeonMapConfig.gui())
-    }
+    override fun init() = addSettings(*DungeonMapConfig.setup())
 
     val debug get() = EssentialAPI.getMinecraftUtil().isDevelopment() || DevOptions.devMode || DevOptions.enabled
 
@@ -48,9 +46,9 @@ object DungeonMap: Feature(toggled = false) {
             )
         }
 
-        if (! DungeonMapConfig.mapEnabled || ! inDungeon) return
-        if (! DungeonMapConfig.dungeonMapCheater && ! DungeonUtils.dungeonStarted) return
-        if (DungeonMapConfig.mapHideInBoss && inBoss) return
+        if (! DungeonMapConfig.mapEnabled.value || ! inDungeon) return
+        if (! DungeonMapConfig.dungeonMapCheater.value && ! DungeonUtils.dungeonStarted) return
+        if (DungeonMapConfig.mapHideInBoss.value && inBoss) return
 
         DungeonMapElement.draw()
     }
@@ -71,11 +69,9 @@ object DungeonMap: Feature(toggled = false) {
                 MapUpdater.updateRooms(it)
                 MapUpdater.updatePlayers(it)
             }
-
-            TablistUtils.getTabList.map { it.second }.takeUnless { it.size < 18 || ! it[0].contains("§r§b§lParty §r§f(") }?.let {
-                ScoreCalculation.updateFromScoreboard()
-                ScoreCalculation.updateFromTab(it)
-            }
+            
+            ScoreCalculation.updateFromScoreboard()
+            ScoreCalculation.updateFromTab(getTabList.map { it.second })
         }
 
         if (DungeonScanner.shouldScan || DevOptions.devMode) {
@@ -97,20 +93,20 @@ object DungeonMap: Feature(toggled = false) {
 
     @SubscribeEvent
     fun onWorldRender(event: RenderWorld) {
-        if (! inDungeon || ! DungeonMapConfig.boxWitherDoors || inBoss) return
+        if (! inDungeon || ! DungeonMapConfig.boxWitherDoors.value || inBoss) return
         DungeonInfo.dungeonList.filterIsInstance<Door>()
             .filterNot { it.type.equalsOneOf(DoorType.ENTRANCE, DoorType.NORMAL) || it.opened }
-            .filterNot { (DungeonUtils.dungeonStarted || ! DungeonMapConfig.dungeonMapCheater) && it.state == RoomState.UNDISCOVERED }
+            .filterNot { (DungeonUtils.dungeonStarted || ! DungeonMapConfig.dungeonMapCheater.value) && it.state == RoomState.UNDISCOVERED }
             .forEach {
-                val color = if (DungeonInfo.keys > 0) DungeonMapConfig.witherDoorKeyColor
-                else DungeonMapConfig.witherDoorNoKeyColor
+                val color = if (DungeonInfo.keys > 0) DungeonMapConfig.witherDoorKeyColor.value
+                else DungeonMapConfig.witherDoorNoKeyColor.value
 
                 RenderUtils.drawBox(
                     it.x - 1, 69.0, it.z - 1,
                     width = 3, height = 4,
-                    color = color.withAlpha(DungeonMapConfig.witherDoorFill),
+                    color = color.withAlpha(DungeonMapConfig.witherDoorFill.value),
                     outline = true, fill = true, phase = true,
-                    lineWidth = DungeonMapConfig.witherDoorOutlineWidth
+                    lineWidth = DungeonMapConfig.witherDoorOutlineWidth.value
                 )
             }
     }
@@ -150,7 +146,6 @@ object DungeonMap: Feature(toggled = false) {
         text = text.remove(commandName)
         event.isCanceled = true
         when (text) {
-            "", " " -> openConfigBtn.run()
             " setexplored" -> DungeonInfo.dungeonList.forEach { it.state = RoomState.DISCOVERED }
         }
     }

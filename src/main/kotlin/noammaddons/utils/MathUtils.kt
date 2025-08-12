@@ -120,7 +120,7 @@ object MathUtils {
         var y = eyeY
         var z = eyeZ
 
-        val stepSize = 0.05 // Small increments for precision
+        val stepSize = 0.05
         for (i in 0 until ((maxDistance.toDouble() / stepSize).toInt())) {
             x += dirX * stepSize
             y += dirY * stepSize

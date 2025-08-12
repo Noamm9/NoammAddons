@@ -22,8 +22,8 @@ import noammaddons.utils.EspUtils.espMob
 import noammaddons.utils.MathUtils.add
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderUtils.draw3DLine
-import noammaddons.utils.ScanUtils.getRoomCenterAt
-import noammaddons.utils.ServerPlayer
+import noammaddons.utils.ScanUtils.getRoomCenter
+import noammaddons.utils.ScanUtils.getRoomCorner
 import noammaddons.utils.Utils.formatPbPuzzleMessage
 import noammaddons.utils.Utils.remove
 
@@ -44,8 +44,8 @@ object BlazeSolver {
         if (! event.room.data.name.contains("Blaze")) return
         inBlaze = true
 
-        val center = getRoomCenterAt(ServerPlayer.player.getPos() ?: return)
-        reversed = getBlockAt(center.add(1, 118, 0)) != Blocks.cobblestone
+        val center = getRoomCenter(getRoomCorner(event.room.getRoomComponent()))
+        reversed = getBlockAt(center.first + 1, 118, center.second) != Blocks.cobblestone
         trueTimeStarted = System.currentTimeMillis()
         lastBlazeCount = 10
     }

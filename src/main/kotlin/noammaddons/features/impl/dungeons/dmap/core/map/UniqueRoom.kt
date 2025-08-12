@@ -59,5 +59,5 @@ class UniqueRoom(arrX: Int, arrY: Int, room: Room) {
         }
     }
 
-    fun getCheckmarkPosition() = if (DungeonMapConfig.centerStyle) center else topLeft
+    fun getCheckmarkPosition() = if (DungeonMapConfig.centerStyle.value) center else topLeft
 }

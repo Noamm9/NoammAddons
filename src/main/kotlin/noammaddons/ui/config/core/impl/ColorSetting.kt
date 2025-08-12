@@ -45,8 +45,6 @@ class ColorSetting(
     private var draggingHue = false
     private var draggingAlpha = false
 
-    private val borderColor = Color.white
-
     private var expanded = false
     private var expandAnimProgress = 0.0
 
@@ -138,7 +136,7 @@ class ColorSetting(
         val hueW = 15.0
 
         drawRect(compBackgroundColor, x, y, if (withAlpha) pickerWidth else pickerWidth - 15.0, pickerHeight - 10)
-        drawRectBorder(borderColor, x, y, if (withAlpha) pickerWidth else pickerWidth - 15.0, pickerHeight - 10)
+        drawRectBorder(Color.WHITE, x, y, if (withAlpha) pickerWidth else pickerWidth - 15.0, pickerHeight - 10)
 
         drawSvBox(satBriX, satBriY)
         val satBriIndicatorX = satBriX + satBriW * currentSaturation
@@ -166,13 +164,14 @@ class ColorSetting(
         val satBriY = pickerY + 5
         val satBriW = pickerWidth - 50
         val satBriH = pickerHeight - 20
+
         val hueX = satBriX + satBriW + 5
         val alphaX = hueX + 15 + 5
 
         if (isClick) {
             draggingSatBri = isMouseOver(mouseX, mouseY, satBriX, satBriY, satBriW, satBriH)
             draggingHue = isMouseOver(mouseX, mouseY, hueX, satBriY, 15.0, satBriH)
-            draggingAlpha = isMouseOver(mouseX, mouseY, alphaX, satBriY, 15.0, satBriH)
+            draggingAlpha = isMouseOver(mouseX, mouseY, alphaX, satBriY, 15.0, satBriH) && withAlpha
         }
 
         if (draggingSatBri) {
@@ -205,7 +204,7 @@ class ColorSetting(
         val transparentBlack = black.withAlpha(0)
         drawGradientRect(x, y, satBriW, satBriH, transparentBlack, transparentBlack, black, black)
 
-        drawRectBorder(borderColor, x - 1, y - 1, satBriW + 2, satBriH + 2)
+        drawRectBorder(Color.WHITE, x - 1, y - 1, satBriW + 2, satBriH + 2)
     }
 
     private fun drawHueSlider(x: Double, y: Double) {
@@ -220,7 +219,7 @@ class ColorSetting(
             drawGradientRect(x, y + i * segmentHeight, 15, segmentHeight, color1, color2)
         }
 
-        drawRectBorder(borderColor, x, y, 15, 90)
+        drawRectBorder(Color.WHITE, x, y, 15, 90)
     }
 
     private fun drawAlphaSlider(x: Double, y: Double) {
@@ -231,7 +230,7 @@ class ColorSetting(
         val endColor = Color(baseColor.red, baseColor.green, baseColor.blue, 0)
 
         drawGradientRect(x, y, 15, 90, startColor, endColor)
-        drawRectBorder(borderColor, x, y, 15, 90)
+        drawRectBorder(Color.WHITE, x, y, 15, 90)
     }
 
     private fun animateHover(hovering: Boolean) = scope.launch {

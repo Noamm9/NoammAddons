@@ -138,7 +138,6 @@ class MultiCheckboxSetting(
         if (isOpen && expandAnimProgress == 1.0) {
             if (mouseX in x .. (x + width) && mouseY > contentY) {
                 val optionIndex = ((mouseY - contentY) / mainBoxHeight).toInt()
-                // MODIFIED: Use the ordered list here as well.
                 if (optionIndex in orderedOptions.indices) {
                     foundHoveredOption = orderedOptions[optionIndex]
                 }

@@ -22,7 +22,7 @@ object ClearInfoUpdater {
     private val componentSepetator = createComponent(" &f|&r ")
 
     fun checkSplits(room: RoomData, oldState: RoomState, newState: RoomState, players: List<DungeonUtils.DungeonPlayer>) {
-        if (! DungeonMapConfig.printPlayersClearInfo) return
+        if (! DungeonMapConfig.printPlayersClearInfo.value) return
         if (players.isEmpty()) return
         if (room.type.equalsOneOf(RoomType.FAIRY, RoomType.ENTRANCE)) return
         if (! oldState.equalsOneOf(RoomState.UNDISCOVERED, RoomState.DISCOVERED, RoomState.UNOPENED)) return
@@ -39,13 +39,13 @@ object ClearInfoUpdater {
     }
 
     fun updateDeaths(player: String, reason: String) {
-        if (! DungeonMapConfig.printPlayersClearInfo) return
+        if (! DungeonMapConfig.printPlayersClearInfo.value) return
         ClearInfo.get(player)?.deaths?.add(reason)
         if (debug) modMessage("$player died: $reason")
     }
 
     fun initStartSecrets() = scope.launch(Dispatchers.IO) {
-        if (! DungeonMapConfig.printPlayersClearInfo) return@launch
+        if (! DungeonMapConfig.printPlayersClearInfo.value) return@launch
         DungeonUtils.runPlayersNames.keys.toList().forEach { name ->
             val ci = ClearInfo.get(name) ?: return@forEach
             val secrets = ProfileUtils.getSecrets(name)
@@ -55,7 +55,7 @@ object ClearInfoUpdater {
     }
 
     fun sendClearInfoMessage() = scope.launch(Dispatchers.IO) {
-        if (! DungeonMapConfig.printPlayersClearInfo) return@launch
+        if (! DungeonMapConfig.printPlayersClearInfo.value) return@launch
         val msgList = DungeonUtils.dungeonTeammates.toList().map { teammate ->
             val secretsAfterRun = ProfileUtils.getSecrets(teammate.name)
             if (debug) modMessage("${teammate.name} has $secretsAfterRun secrets after the run")

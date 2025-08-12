@@ -16,7 +16,6 @@ class ButtonSetting(
     name: String,
     override val defaultValue: Runnable
 ): Component<Runnable>(name) {
-    // --- Click Animation State ---
     private var isClickAnimating: Boolean = false
     private var clickAnimationStartMillis: Long = 0L
     private val clickAnimationDurationMillis: Long = 200L

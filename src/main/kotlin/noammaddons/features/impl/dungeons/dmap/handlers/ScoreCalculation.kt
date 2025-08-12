@@ -3,9 +3,11 @@ package noammaddons.features.impl.dungeons.dmap.handlers
 import gg.essential.elementa.state.BasicState
 import noammaddons.features.impl.alerts.CryptsDone
 import noammaddons.features.impl.dungeons.MimicDetector
+import noammaddons.features.impl.dungeons.ScoreCalculator
 import noammaddons.utils.DungeonUtils
 import noammaddons.utils.DungeonUtils.watcherClearTime
 import noammaddons.utils.LocationUtils.dungeonFloor
+import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.ScoreboardUtils
 import kotlin.math.floor
@@ -22,8 +24,11 @@ object ScoreCalculation {
     private val dungeonClearedPattern = Regex("Cleared: (?<percentage>\\d+)% \\(\\d+\\)")
     private val timeElapsedPattern = Regex(" Elapsed: (?:(?<hrs>\\d+)h )?(?:(?<min>\\d+)m )?(?:(?<sec>\\d+)s)?")
 
-    var dungeonStats = DungeonStats().apply { cryptsCount.onSetValue(CryptsDone.func) }
     private var puzzles = mutableListOf<Pair<String, Boolean?>>()
+    var dungeonStats = DungeonStats().apply { cryptsCount.onSetValue(CryptsDone.func) }
+
+    var alerted300 = false
+    var alerted270 = false
 
     data class DungeonStats(
         var deathCount: Int = 0,
@@ -49,23 +54,23 @@ object ScoreCalculation {
             val currentFloor = dungeonFloor ?: return 0
             val effectiveCompletedRooms = dungeonStats.completedRooms + (if (watcherClearTime == null) 1 else 0) + (if (! inBoss) 1 else 0)
 
-            val secretRatio = (dungeonStats.secretPercentage / (requiredSecretPercentage[currentFloor] ?: 100.0)).coerceIn(0.0, 1.0)
-            val exploreFromSecrets = (secretRatio * 40).toInt()
-            val exploreFromRooms = (effectiveCompletedRooms.toFloat() / totalRooms * 60f).coerceIn(0f, 60f).toInt()
-            val explorationScore = exploreFromSecrets + exploreFromRooms
+            val exploration = floor((dungeonStats.secretPercentage / (requiredSecretPercentage[currentFloor] !! / 100.0)) / 100.0 * 40.0)
+                .coerceIn(.0, 40.0).toInt() + (effectiveCompletedRooms.toFloat() / totalRooms * 60f).coerceIn(0f, 60f).toInt()
 
-            val skillFromRooms = (effectiveCompletedRooms.toFloat() / totalRooms * 80f).coerceIn(0f, 80f).toInt()
+            val skillRooms = floor(effectiveCompletedRooms.toFloat() / totalRooms * 80f).coerceIn(0f, 80f)
             val puzzlePenalty = (dungeonStats.puzzleCount - puzzles.count { it.second == true }) * 10
-            val deathPenalty = (dungeonStats.deathCount * 2 - 1).coerceAtLeast(0) // assumes Spirit pet
-            val skillScore = (20 + skillFromRooms - puzzlePenalty - deathPenalty).coerceAtLeast(0)
 
-            return explorationScore + skillScore + bonusScore + speedScore
+            val score = (exploration + (20 + skillRooms - puzzlePenalty - (dungeonStats.deathCount * 2 - 1).coerceAtLeast(0)).coerceIn(20f, 100f) + bonusScore + speedScore).toInt()
+
+            if (score >= 270 && ! alerted270) ScoreCalculator.on270Score()
+            if (score >= 300 && ! alerted300) ScoreCalculator.on300Score()
+            return score
         }
 
     val bonusScore: Int
         get() {
             var score = dungeonStats.cryptsCount.get().coerceAtMost(5)
-            if (MimicDetector.mimicKilled.get()) score += 2
+            if (MimicDetector.mimicKilled.get() && (dungeonFloorNumber ?: 0) > 5) score += 2
             if (MimicDetector.princeKilled.get()) score += 1
             if (DungeonUtils.isPaul()) score += 10
             return score
@@ -82,6 +87,8 @@ object ScoreCalculation {
     fun onWorldUnload() {
         dungeonStats = DungeonStats().apply { cryptsCount.onSetValue(CryptsDone.func) }
         puzzles.clear()
+        alerted300 = false
+        alerted270 = false
     }
 
     fun updateFromTab(tabEntries: List<String>) {
@@ -103,8 +110,9 @@ object ScoreCalculation {
 
                 line.contains("Deaths:") -> deathsPattern.find(line)?.let { dungeonStats.deathCount = it.groups["deaths"]?.value?.toIntOrNull() ?: dungeonStats.deathCount }
 
-                line.contains("Secrets Found:") -> if (line.contains('%')) secretsFoundPercentagePattern.find(line)
-                    ?.let { dungeonStats.secretPercentage = it.groups["percentage"]?.value?.toDoubleOrNull() ?: dungeonStats.secretPercentage }
+                line.contains("Secrets Found:") -> if (line.contains('%')) secretsFoundPercentagePattern.find(line)?.let {
+                    dungeonStats.secretPercentage = it.groups["percentage"]?.value?.toDoubleOrNull() ?: dungeonStats.secretPercentage
+                }
                 else secretsFoundPattern.find(line)?.let { dungeonStats.secretCount = it.groups["secrets"]?.value?.toIntOrNull() ?: dungeonStats.secretCount }
 
                 line.contains("Crypts:") -> cryptsPattern.find(line)?.let { dungeonStats.cryptsCount.set(it.groups["crypts"]?.value?.toIntOrNull() ?: dungeonStats.cryptsCount.get()) }

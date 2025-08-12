@@ -23,8 +23,8 @@ class Room(override val x: Int, override val z: Int, var data: RoomData): Tile {
         if (uniqueRoom?.mainRoom != this) return@observable
         if (oldValue == newValue) return@observable
         if (data.name == "Unknown") return@observable
-        if (DungeonMapConfig.dungeonMapCheater && oldValue == RoomState.UNOPENED && newValue == RoomState.UNDISCOVERED) return@observable
-        if (DungeonMapConfig.dungeonMapCheater && newValue == RoomState.UNOPENED && oldValue == RoomState.UNDISCOVERED) return@observable
+        if (DungeonMapConfig.dungeonMapCheater.value && oldValue == RoomState.UNOPENED && newValue == RoomState.UNDISCOVERED) return@observable
+        if (DungeonMapConfig.dungeonMapCheater.value && newValue == RoomState.UNOPENED && oldValue == RoomState.UNDISCOVERED) return@observable
         ChatUtils.debugMessage("${data.name}: $oldValue -> $newValue")
 
         val roomPlayers = DungeonUtils.dungeonTeammates.filter {
@@ -36,7 +36,7 @@ class Room(override val x: Int, override val z: Int, var data: RoomData): Tile {
 
     override val color: Color
         get() {
-            return if (state == RoomState.UNOPENED) DungeonMapConfig.colorUnopened
+            return if (state == RoomState.UNOPENED) DungeonMapConfig.colorUnopened.value
             else when (data.type) {
                 RoomType.BLOOD -> DungeonMapConfig.colorBlood
                 RoomType.CHAMPION -> DungeonMapConfig.colorMiniboss
@@ -46,7 +46,7 @@ class Room(override val x: Int, override val z: Int, var data: RoomData): Tile {
                 RoomType.RARE -> DungeonMapConfig.colorRare
                 RoomType.TRAP -> DungeonMapConfig.colorTrap
                 else -> DungeonMapConfig.colorRoom
-            }
+            }.value
         }
     var uniqueRoom: UniqueRoom? = null
 

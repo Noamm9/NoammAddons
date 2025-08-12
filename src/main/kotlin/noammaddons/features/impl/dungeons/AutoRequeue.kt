@@ -1,7 +1,5 @@
 package noammaddons.features.impl.dungeons
 
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.DungeonEvent
@@ -14,9 +12,8 @@ import noammaddons.utils.ThreadUtils.setTimeout
 
 object AutoRequeue: Feature() {
     private val checkParty by ToggleSetting("Check Party", true)
-    private val delay by SliderSetting("Delay", 0, 10, 0.5, 5)
+    private val delay by SliderSetting("Delay", 0L, 10L, 1L, 5L)
     private val feedback by ToggleSetting("Feedback", true)
-
 
     private const val prefix = "&bAutoRequeue &f>"
     private val masterMode get() = if (LocationUtils.isMasterMode) "MASTER_" else ""
@@ -35,9 +32,8 @@ object AutoRequeue: Feature() {
             if (PartyCommands.downtimeList.isNotEmpty()) return feedBackMessage("There are players in downtime!")
         }
 
-        scope.launch {
-            delay(delay.toLong() * 1000)
-            if (checkParty && PartyUtils.leader != mc.session.username) return@launch feedBackMessage("You are not the party leader!")
+        setTimeout(delay * 1000) {
+            if (checkParty && PartyUtils.leader != mc.session.username) return@setTimeout feedBackMessage("You are not the party leader!")
             ChatUtils.sendChatMessage("/joininstance ${masterMode}CATACOMBS_FLOOR_${floor}")
         }
     }

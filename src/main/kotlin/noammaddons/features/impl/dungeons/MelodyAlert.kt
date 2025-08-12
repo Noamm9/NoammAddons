@@ -42,7 +42,7 @@ object MelodyAlert: Feature() {
         setTimeout(100) {
             if (currentChestName.removeFormatting() == "Click the button on time!") {
                 if (! PartyUtils.inParty) return@setTimeout
-                C01PacketChatMessage(msg).send()
+                C01PacketChatMessage("/pc $msg").send()
             }
         }
     }
@@ -61,7 +61,7 @@ object MelodyAlert: Feature() {
 
         val lastClay = greenClays.last()
         val message = claySlots[lastClay] ?: return
-        if (PartyUtils.inParty) C01PacketChatMessage(message).send()
+        if (PartyUtils.inParty) C01PacketChatMessage("/pc $message").send()
         greenClays.forEach { claySlots.remove(it) }
     }
 }

@@ -42,11 +42,9 @@ class TextInputSetting(label: String, override val defaultValue: String = ""): C
     private var focused = false
     private var isDragging = false
 
-    // ADDED: State for hover animation
     private var hoverAnimProgress = 0.0
     private var isHovered = false
 
-    // Caret and selection state...
     private var caretVisible = true
     private var lastBlink = System.currentTimeMillis()
     private val caretBlinkRate = 500L

@@ -30,11 +30,11 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
     private val CheckMarkCross = ResourceLocation(MOD_ID, "dungeonmap/checkmarks/cross.png")
     private val CheckMarkQuestion = ResourceLocation(MOD_ID, "dungeonmap/checkmarks/question.png")
     val playerMarker = ResourceLocation(MOD_ID, "dungeonmap/marker.png")
-    val checkmarkSize get() = 10.0 * DungeonMapConfig.checkmarkSize
+    private val checkmarkSize get() = 10.0 * DungeonMapConfig.checkmarkSize.value
 
-    override val enabled: Boolean get() = DungeonMapConfig.mapEnabled
+    override val enabled: Boolean get() = DungeonMapConfig.mapEnabled.value
     override val width: Float get() = 128f
-    override val height: Float get() = if (DungeonMapConfig.mapExtraInfo) 140f else 128f
+    override val height: Float get() = if (DungeonMapConfig.mapExtraInfo.value) 140f else 128f
 
     override fun draw() {
         GlStateManager.pushMatrix()
@@ -51,19 +51,19 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
     }
 
 
-    private fun drawMapBackground() = when (DungeonMapConfig.mapBackgroundStyle) {
+    private fun drawMapBackground() = when (DungeonMapConfig.mapBackgroundStyle.value) {
         0 -> {
             MapRenderUtils.renderRect(
                 0.0, 0.0,
                 width.toDouble(), height.toDouble(),
-                DungeonMapConfig.mapBackground
+                DungeonMapConfig.mapBackground.value
             )
 
             MapRenderUtils.renderRectBorder(
                 0.0, 0.0,
                 width.toDouble(), height.toDouble(),
-                DungeonMapConfig.mapBorderWidth.toDouble(),
-                DungeonMapConfig.mapBorderColor
+                DungeonMapConfig.mapBorderWidth.value,
+                DungeonMapConfig.mapBorderColor.value
             )
         }
 
@@ -74,9 +74,9 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
 
 
     private fun renderRooms() {
-        if (DungeonMapConfig.dungeonMapCheater) {
+        if (DungeonMapConfig.dungeonMapCheater.value) {
             DungeonInfo.dungeonList.forEach {
-                if (it.state.equalsOneOf(RoomState.UNOPENED)) {
+                if (it.state == RoomState.UNOPENED) {
                     it.state = RoomState.UNDISCOVERED
                 }
             }
@@ -89,7 +89,7 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
         for (y in 0 .. 10) {
             for (x in 0 .. 10) {
                 val tile = DungeonInfo.dungeonList[y * 11 + x]
-                if (! DungeonMapConfig.dungeonMapCheater && (tile is Unknown || tile.state == RoomState.UNDISCOVERED)) continue
+                if (! DungeonMapConfig.dungeonMapCheater.value && (tile is Unknown || tile.state == RoomState.UNDISCOVERED)) continue
                 val color = if (tile.state == RoomState.UNDISCOVERED) tile.color.darker().darker() else tile.color
 
                 val xOffset = (x shr 1) * (MapUtils.mapRoomSize + connectorSize)
@@ -138,7 +138,7 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
 
         DungeonInfo.uniqueRooms.forEach { unq ->
             val room = unq.mainRoom
-            if (! DungeonMapConfig.dungeonMapCheater && (room.state == RoomState.UNDISCOVERED || room.state == RoomState.UNOPENED)) return@forEach
+            if (! DungeonMapConfig.dungeonMapCheater.value && (room.state == RoomState.UNDISCOVERED || room.state == RoomState.UNOPENED)) return@forEach
             val size = MapUtils.mapRoomSize + HotbarMapColorParser.quarterRoom
             val checkPos = unq.getCheckmarkPosition()
             val xOffsetCheck = (checkPos.first / 2f) * size
@@ -158,15 +158,15 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
 
             drawCheckmark(room, xOffsetCheck, yOffsetCheck, checkmarkSize)
 
-            if ((DungeonMapConfig.mapRoomNames != 0 && roomType == RoomType.PUZZLE) ||
-                (DungeonMapConfig.mapRoomNames >= 2 && roomType.equalsOneOf(RoomType.TRAP, RoomType.CHAMPION, RoomType.FAIRY)) ||
-                (DungeonMapConfig.mapRoomNames == 3 && roomType.equalsOneOf(RoomType.NORMAL, RoomType.RARE) || DungeonMapConfig.dungeonMapCheckmarkStyle == 3)
+            if ((DungeonMapConfig.mapRoomNames.value != 0 && roomType == RoomType.PUZZLE) ||
+                (DungeonMapConfig.mapRoomNames.value >= 2 && roomType.equalsOneOf(RoomType.TRAP, RoomType.CHAMPION, RoomType.FAIRY)) ||
+                (DungeonMapConfig.mapRoomNames.value == 3 && roomType.equalsOneOf(RoomType.NORMAL, RoomType.RARE) || DungeonMapConfig.dungeonMapCheckmarkStyle.value == 3)
             ) {
                 val lines = room.data.name.split(" ")
                 if ("Unknown" in lines) return@forEach
-                var textScale = DungeonMapConfig.textScale
+                var textScale = DungeonMapConfig.textScale.value
 
-                if (DungeonMapConfig.limitRoomNameSize) {
+                if (DungeonMapConfig.limitRoomNameSize.value) {
                     while (lines.maxOf { getStringWidth(it, textScale) } > MapUtils.mapRoomSize) textScale *= 0.99f
                     while (getStringHeight(lines, textScale) > MapUtils.mapRoomSize) textScale *= 0.99f
                 }
@@ -180,12 +180,12 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
                 )
             }
 
-            if (room.data.type == RoomType.NORMAL && DungeonMapConfig.dungeonMapCheckmarkStyle == 2/* && secretCount > 0*/)
+            if (room.data.type == RoomType.NORMAL && DungeonMapConfig.dungeonMapCheckmarkStyle.value == 2/* && secretCount > 0*/)
                 MapRenderUtils.renderCenteredText(
                     listOf("$secretCount"),
                     (xOffsetName + HotbarMapColorParser.halfRoom).toInt(),
                     (yOffsetName + 1 + HotbarMapColorParser.halfRoom).toInt(),
-                    color, DungeonMapConfig.textScale * 2f
+                    color, DungeonMapConfig.textScale.value * 2f
                 )
 
         }
@@ -196,17 +196,17 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
         RoomState.CLEARED -> CheckMarkWhite
         RoomState.GREEN -> CheckMarkGreen
         RoomState.FAILED -> CheckMarkCross
-        RoomState.UNOPENED -> if (! DungeonMapConfig.hideQuestionCheckmarks) CheckMarkQuestion
+        RoomState.UNOPENED -> if (! DungeonMapConfig.hideQuestionCheckmarks.value) CheckMarkQuestion
         else null
 
         else -> null
     }
 
     private fun drawCheckmark(tile: Tile, xOffset: Float, yOffset: Float, checkmarkSize: Double) {
-        if (DungeonMapConfig.dungeonMapCheckmarkStyle != 1) return
-
+        if (DungeonMapConfig.dungeonMapCheckmarkStyle.value != 1) return
         val room = tile as? Room ?: return
-        when (DungeonMapConfig.mapRoomNames) {
+
+        when (DungeonMapConfig.mapRoomNames.value) {
             0 -> {}
             1 -> if (room.data.type == RoomType.PUZZLE) return
             2 -> if (room.data.type.equalsOneOf(RoomType.PUZZLE, RoomType.TRAP, RoomType.CHAMPION, RoomType.FAIRY)) return
@@ -234,22 +234,19 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
     }
 
     private fun renderPlayerHeads() {
-        if (DungeonMapConfig.dungeonMapCheater && ! dungeonStarted) {
-            DungeonUtils.runPlayersNames.toMap().entries.forEach { (name, skin) ->
-                if (name == mc.session.username) return@forEach
-                val entity = mc.theWorld.getPlayerEntityByName(name) ?: return@forEach
-                MapRenderUtils.drawPlayerHead(name, skin, entity)
-            }
-        }
-
         DungeonUtils.dungeonTeammatesNoSelf.filterNot { it.isDead }.map { it.mapIcon }.forEach(MapRenderUtils::drawPlayerHead)
 
-        if (DungeonMapConfig.dungeonMapCheater) MapRenderUtils.drawPlayerHead(
-            mc.session.username,
-            mc.thePlayer.locationSkin,
-            mc.thePlayer
-        )
-        else thePlayer?.mapIcon?.run(MapRenderUtils::drawPlayerHead)
+        if (DungeonMapConfig.dungeonMapCheater.value) MapRenderUtils.drawPlayerHead(mc.session.username, mc.thePlayer.locationSkin, mc.thePlayer)
+        else thePlayer?.mapIcon?.let(MapRenderUtils::drawPlayerHead)
+
+        if (DungeonMapConfig.dungeonMapCheater.value && ! dungeonStarted) {
+            DungeonUtils.runPlayersNames.filterNot { (name, _) -> name == mc.session.username }
+                .forEach { (name, skin) ->
+                    mc.theWorld.getPlayerEntityByName(name)?.let { entity ->
+                        MapRenderUtils.drawPlayerHead(name, skin, entity)
+                    }
+                }
+        }
     }
 
     private fun drawRoomConnector(x: Int, y: Int, doorWidth: Int, doorway: Boolean, vertical: Boolean, color: Color) {
@@ -257,12 +254,10 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
         val width = if (doorway) 6 else MapUtils.mapRoomSize
         var x1 = if (vertical) x + MapUtils.mapRoomSize else x
         var y1 = if (vertical) y else y + MapUtils.mapRoomSize
-        if (doorway) {
-            if (vertical) y1 += doorwayOffset else x1 += doorwayOffset
-        }
+        if (doorway) if (vertical) y1 += doorwayOffset else x1 += doorwayOffset
+
         MapRenderUtils.renderRect(
-            x1.toDouble(),
-            y1.toDouble(),
+            x1.toDouble(), y1.toDouble(),
             (if (vertical) doorWidth else width).toDouble(),
             (if (vertical) width else doorWidth).toDouble(),
             color
@@ -270,8 +265,8 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
     }
 
     private fun drawExtraInfo() {
-        if (! DungeonMapConfig.mapExtraInfo) return
-        if (! DungeonMapConfig.dungeonMapCheater && ! dungeonStarted) return
+        if (! DungeonMapConfig.mapExtraInfo.value) return
+        if (! DungeonMapConfig.dungeonMapCheater.value && ! dungeonStarted) return
 
         GlStateManager.pushMatrix()
         GlStateManager.translate(128f / 2f, 128f, 1f)

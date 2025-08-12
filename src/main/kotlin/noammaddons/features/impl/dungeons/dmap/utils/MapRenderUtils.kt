@@ -82,7 +82,7 @@ object MapRenderUtils {
         postDraw()
     }
 
-    fun renderCenteredText(text: List<String>, x: Int, y: Int, color: Int, scale: Float = DungeonMapConfig.textScale) {
+    fun renderCenteredText(text: List<String>, x: Int, y: Int, color: Int, scale: Float = DungeonMapConfig.textScale.value) {
         if (text.isEmpty()) return
         GlStateManager.pushMatrix()
         GlStateManager.translate(x.toFloat(), y.toFloat(), 0f)
@@ -120,11 +120,11 @@ object MapRenderUtils {
         }
 
 
-        GlStateManager.scale(DungeonMapConfig.playerHeadScale, DungeonMapConfig.playerHeadScale, 1f)
+        GlStateManager.scale(DungeonMapConfig.playerHeadScale.value, DungeonMapConfig.playerHeadScale.value, 1f)
 
-        if (DungeonMapConfig.mapVanillaMarker && player.teammate.name == mc.thePlayer.name) {
+        if (DungeonMapConfig.mapVanillaMarker.value && player.teammate.name == mc.thePlayer.name) {
             GlStateManager.rotate(180f, 0f, 0f, 1f)
-            bindColor(DungeonMapConfig.mapVanillaMarkerColor)
+            bindColor(DungeonMapConfig.mapVanillaMarkerColor.value)
             mc.textureManager.bindTexture(playerMarker)
             worldRenderer.begin(7, DefaultVertexFormats.POSITION_TEX)
             worldRenderer.pos(- 6.0, 6.0, 0.0).tex(0.0, 0.0).endVertex()
@@ -137,8 +137,8 @@ object MapRenderUtils {
         else {
             // @formatter:off Render border around the player head
                 renderRectBorder(- 6.0, - 6.0, 12.0, 12.0, 1.0, when {
-                    DungeonMapConfig.mapPlayerHeadColorClassBased -> player.teammate.clazz.color
-                    else -> DungeonMapConfig.mapPlayerHeadColor
+                    DungeonMapConfig.mapPlayerHeadColorClassBased.value -> player.teammate.clazz.color
+                    else -> DungeonMapConfig.mapPlayerHeadColor.value
                 })
 
                 preDraw()
@@ -153,19 +153,18 @@ object MapRenderUtils {
                 postDraw()
             }
 
-            // Handle player names
-            if (DungeonMapConfig.playerHeads == 2 || DungeonMapConfig.playerHeads == 1 && mc.thePlayer.heldItem.skyblockID.equalsOneOf(
+            if (DungeonMapConfig.playerHeads.value == 2 || DungeonMapConfig.playerHeads.value == 1 && mc.thePlayer.heldItem.skyblockID.equalsOneOf(
                     "SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP", "HAUNT_ABILITY"
                 )
             ) {
                 if (player.teammate.entity == null) GlStateManager.rotate(player.yaw + 180f, 0f, 0f, - 1f)
                 else player.teammate.entity?.let { GlStateManager.rotate(it.rotationYaw + 180f, 0f, 0f, - 1f) }
                 GlStateManager.translate(0f, 8f, 0f)
-                GlStateManager.scale(DungeonMapConfig.playerNameScale, DungeonMapConfig.playerNameScale, 1f)
+                GlStateManager.scale(DungeonMapConfig.playerNameScale.value, DungeonMapConfig.playerNameScale.value, 1f)
                 RenderUtils.drawCenteredText(
                     player.teammate.name,
                     0, 0, 1f,
-                    if (DungeonMapConfig.mapPlayerNameClassColorBased && player.teammate.clazz != DungeonUtils.Classes.Empty) player.teammate.clazz.color
+                    if (DungeonMapConfig.mapPlayerNameClassColorBased.value && player.teammate.clazz != DungeonUtils.Classes.Empty) player.teammate.clazz.color
                     else Color.WHITE
                 )
             }
@@ -180,11 +179,11 @@ object MapRenderUtils {
 
         GlStateManager.translate(x, z, 0f)
         GlStateManager.rotate(playerEntity.rotationYaw + 180f, 0f, 0f, 1f)
-        GlStateManager.scale(DungeonMapConfig.playerHeadScale, DungeonMapConfig.playerHeadScale, 1f)
+        GlStateManager.scale(DungeonMapConfig.playerHeadScale.value, DungeonMapConfig.playerHeadScale.value, 1f)
 
-        if (DungeonMapConfig.mapVanillaMarker && name == mc.thePlayer.name) {
+        if (DungeonMapConfig.mapVanillaMarker.value && name == mc.thePlayer.name) {
             GlStateManager.rotate(180f, 0f, 0f, 1f)
-            bindColor(DungeonMapConfig.mapVanillaMarkerColor)
+            bindColor(DungeonMapConfig.mapVanillaMarkerColor.value)
             mc.textureManager.bindTexture(playerMarker)
             worldRenderer.begin(7, DefaultVertexFormats.POSITION_TEX)
             worldRenderer.pos(- 6.0, 6.0, 0.0).tex(0.0, 0.0).endVertex()
@@ -197,8 +196,8 @@ object MapRenderUtils {
         else {
             // @formatter:off Render border around the player head
             renderRectBorder(- 6.0, - 6.0, 12.0, 12.0, 1.0, when {
-                DungeonMapConfig.mapPlayerHeadColorClassBased -> DungeonUtils.Classes.Empty.color
-                else -> DungeonMapConfig.mapPlayerHeadColor
+                DungeonMapConfig.mapPlayerHeadColorClassBased.value -> DungeonUtils.Classes.Empty.color
+                else -> DungeonMapConfig.mapPlayerHeadColor.value
             })
 
             preDraw()
@@ -213,12 +212,12 @@ object MapRenderUtils {
             postDraw()
         }
 
-        if (DungeonMapConfig.playerHeads == 2 || DungeonMapConfig.playerHeads == 1 && mc.thePlayer.heldItem.skyblockID.equalsOneOf(
+        if (DungeonMapConfig.playerHeads.value == 2 || DungeonMapConfig.playerHeads.value == 1 && mc.thePlayer.heldItem.skyblockID.equalsOneOf(
                 "SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP", "HAUNT_ABILITY"
         )) {
             GlStateManager.rotate(playerEntity.rotationYaw + 180f, 0f, 0f, - 1f)
             GlStateManager.translate(0f, 8f, 0f)
-            GlStateManager.scale(DungeonMapConfig.playerNameScale, DungeonMapConfig.playerNameScale, 1f)
+            GlStateManager.scale(DungeonMapConfig.playerNameScale.value, DungeonMapConfig.playerNameScale.value, 1f)
             RenderUtils.drawCenteredText(name, 0, 0, 1f, Color.WHITE)
         }
         GlStateManager.popMatrix()

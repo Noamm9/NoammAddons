@@ -1,10 +1,13 @@
 package noammaddons.ui.config.core.impl
 
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import noammaddons.NoammAddons.Companion.scope
 import noammaddons.NoammAddons.Companion.textRenderer
 import noammaddons.features.Feature
+import noammaddons.ui.config.core.save.Savable
 import noammaddons.utils.MathUtils.lerp
 import noammaddons.utils.MathUtils.lerpColor
 import noammaddons.utils.RenderUtils.drawRect
@@ -16,8 +19,8 @@ class CategorySetting(
     name: String,
     val components: List<Component<*>>,
     defaultExpanded: Boolean = true,
-    override val defaultValue: Unit = Unit
-): Component<Unit>(name) {
+    override val defaultValue: List<Component<*>> = components
+): Component<List<Component<*>>>(name), Savable {
 
     private var isExpanded = defaultExpanded
     private val headerHeight = 22.0
@@ -46,14 +49,6 @@ class CategorySetting(
         drawSmoothRect(headerBgColor, x, y, width, headerHeight)
         textRenderer.drawText(name, x + 6, y + (headerHeight - textRenderer.fr.fontHeight) / 2 + 1)
 
-        // --- Draw Arrow ---
-        val arrowRotation = (expandAnimProgress * 90.0).toFloat()
-        val arrowSize = 6.0
-        val arrowX = x + width - arrowSize - 8
-        val arrowY = y + (headerHeight / 2.0)
-        // drawTriangle(Color.WHITE, arrowX, arrowY, arrowSize, arrowRotation)
-
-        // --- Draw Children (if expanded/animating) ---
         if (expandAnimProgress > 0.0) {
             val contentHeight = components.sumOf { it.height }
             val animatedContentHeight = contentHeight * expandAnimProgress
@@ -93,7 +88,7 @@ class CategorySetting(
                 childOffsetY += component.height
             }
 
-            // @formatter:off
+
             scope.launch { repeat(250) { updateHeight(); delay(1) } }
         }
     }
@@ -160,5 +155,23 @@ class CategorySetting(
         hoverAnimProgress = end
     }
 
-    override fun getValue(thisRef: Feature, property: KProperty<*>) = Unit
+    override fun getValue(thisRef: Feature, property: KProperty<*>) = components
+
+    override fun write(): JsonElement {
+        return JsonObject().apply {
+            for (comp in components) {
+                if (comp !is Savable) continue
+                add(comp.name, comp.write())
+            }
+        }
+    }
+
+    override fun read(element: JsonElement?) {
+        element?.let {
+            for (comp in components) {
+                if (comp !is Savable) continue
+                comp.read(it.asJsonObject.get(comp.name))
+            }
+        }
+    }
 }
