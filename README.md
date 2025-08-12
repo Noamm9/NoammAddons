@@ -3,14 +3,14 @@
 [![GitHub Downloads](https://img.shields.io/github/downloads/Noamm9/NoammAddons/total?style=for-the-badge&logo=github)](https://github.com/Noamm9/NoammAddons/releases)
 [![Discord](https://img.shields.io/discord/1281979747605418024?color=5865F2&logo=discord&logoColor=white&style=for-the-badge)](https://discord.gg/pj9mQGxMxB)
 
-NoammAddons is a Forge mod for Minecraft, created to consolidate numerous small Quality of Life (QOL) features into a single package. It is primarily designed to enhance the **Hypixel Skyblock**
+NoammAddons is a Forge mod for Minecraft 1.8.9, mostly designed to reduce the number of mods you use.
 experience.
 
 ---
 
 ## ✨ Features
 
-> **Note:** This list may be outdated. For the most current feature list, please explore the in-game configuration menu.
+> **Note:** This list is very outdated.
 
 ### General
 
