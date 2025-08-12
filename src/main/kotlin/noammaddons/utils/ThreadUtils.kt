@@ -1,9 +1,7 @@
 package noammaddons.utils
 
-import kotlinx.coroutines.launch
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.NoammAddons.Companion.Logger
-import noammaddons.NoammAddons.Companion.scope
 import noammaddons.events.Tick
 import noammaddons.features.impl.DevOptions
 import java.util.concurrent.*
@@ -68,7 +66,7 @@ object ThreadUtils {
 
     @SubscribeEvent
     fun onTick(@Suppress("UNUSED_PARAMETER") event: Tick) {
-        scope.launch {
+        executor.submit {
             tickTasks.removeIf { task ->
                 if (task.ticks > 0) {
                     task.ticks --

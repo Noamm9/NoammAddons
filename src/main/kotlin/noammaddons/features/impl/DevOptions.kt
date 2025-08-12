@@ -253,7 +253,7 @@ object DevOptions: Feature() {
             "id" -> mc.objectMouseOver?.blockPos?.let { modMessage(getBlockAt(it).getBlockId()) }
 
             "checked" -> StarMobESP.checked.forEach { modMessage(it.name) }
-            
+
         }
     }
 

@@ -52,6 +52,7 @@ object ScoreCalculator: Feature("Shows the score of the dungeon run") {
         val floorColor = if (LocationUtils.isMasterMode) "&c" else "&a"
         val time = formatTime(ScoreCalculation.dungeonStats.secondsElapsed)
         modMessage("&e$score&a score reached in &6$time &f|| $floorColor${LocationUtils.dungeonFloor}.")
+        repeat(2) { mc.thePlayer.playSound("random.orb", 1f, 0f) }
         field.set(true)
     }
 

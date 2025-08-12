@@ -226,21 +226,19 @@ object ChatUtils {
     /**
      * Displays a notification with a custom message and duration.
      *
-     * @param title The title of the notification.
      * @param message The message to display in the notification.
      * @param duration The duration in seconds for which the notification should be displayed. Defaults to 3 seconds.
      * @param clickFunction The function to be executed when the notification is clicked. Defaults to an empty function.
      * @param closeFunction The function to be executed when the notification is closed. Defaults to an empty function.
      */
-    fun Alert(title: String = FULL_PREFIX, message: String, duration: Int = 3, clickFunction: () -> Unit = {}, closeFunction: () -> Unit = {}) {
+    fun Alert(message: String, duration: Int = 3, clickFunction: () -> Unit = {}, closeFunction: () -> Unit = {}) {
         EssentialAPI.getNotifications().push(
-            title.addColor(),
+            FULL_PREFIX,
             message.addColor(),
             if (duration == - 1) Float.MAX_VALUE
             else duration.toFloat(),
             clickFunction,
             closeFunction
         )
-        SoundUtils.notificationSound()
     }
 }

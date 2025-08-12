@@ -57,7 +57,7 @@ object EventDispatcher {
             MinecraftForge.EVENT_BUS.post(this)
         }.onFailure {
             it.printStackTrace()
-            Logger.error("An error occurred ${it.message}")
+            Logger.error("An error occurred ${it.message}", it)
             ChatUtils.clickableChat(
                 "Caught and logged an ${it::class.simpleName ?: "error"} at ${this::class.simpleName}. Please report this!, Error: ${it.message}",
                 "", it.stackTrace.take(30).joinToString("\n")

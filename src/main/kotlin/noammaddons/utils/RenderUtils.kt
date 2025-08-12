@@ -1,6 +1,5 @@
 package noammaddons.utils
 
-import gg.essential.elementa.components.UIRoundedRectangle.Companion.drawRoundedRectangle
 import gg.essential.elementa.utils.withAlpha
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
@@ -37,8 +36,7 @@ import noammaddons.utils.RenderHelper.renderZ
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
 import java.util.*
-import kotlin.math.cos
-import kotlin.math.sin
+import kotlin.math.*
 
 
 object RenderUtils {
@@ -49,12 +47,11 @@ object RenderUtils {
     fun preDraw() {
         GlStateManager.shadeModel(GL_SMOOTH)
         GlStateManager.enableBlend()
+        GlStateManager.tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
         GlStateManager.disableTexture2D()
         GlStateManager.disableCull()
         GlStateManager.disableLighting()
         GlStateManager.disableAlpha()
-        GlStateManager.tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO)
-        GlStateManager.tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
     }
 
     fun postDraw() {
@@ -64,22 +61,6 @@ object RenderUtils {
         GlStateManager.enableAlpha()
         GlStateManager.resetColor()
         GlStateManager.shadeModel(GL_FLAT)
-    }
-
-    fun preDraw2() {
-        GlStateManager.disableLighting()
-        GlStateManager.disableTexture2D()
-        GlStateManager.disableCull()
-        GlStateManager.enableBlend()
-        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
-        GlStateManager.enableAlpha()
-    }
-
-    fun postDraw2() {
-        GlStateManager.disableBlend()
-        GlStateManager.enableCull()
-        GlStateManager.enableTexture2D()
-        GlStateManager.resetColor()
     }
 
     fun enableDepth() {
@@ -94,29 +75,24 @@ object RenderUtils {
 
 
     fun drawOutlinedAABB(aabb: AxisAlignedBB, c: Color) {
-        glEnable(GL_LINE_SMOOTH)
-        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
-
         bindColor(c)
-        worldRenderer.begin(3, DefaultVertexFormats.POSITION)
+        worldRenderer.begin(GL_LINES, DefaultVertexFormats.POSITION)
         worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
         worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
         worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
-        tessellator.draw()
-
-        bindColor(c)
-        worldRenderer.begin(3, DefaultVertexFormats.POSITION)
         worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
         worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
         worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
-        tessellator.draw()
-
-        bindColor(c)
-        worldRenderer.begin(1, DefaultVertexFormats.POSITION)
         worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
         worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
@@ -126,58 +102,35 @@ object RenderUtils {
         worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
         worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
         tessellator.draw()
-
-        glDisable(GL_LINE_SMOOTH)
     }
 
     fun drawFilledAABB(aabb: AxisAlignedBB, color: Color) {
-
         bindColor(color)
         worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
         worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
         worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
-        tessellator.draw()
-
-        bindColor(color)
-        worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
+        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
         worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
-        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
-        tessellator.draw()
-
-        bindColor(color)
-        worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
-        worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
-        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
-        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
         worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
-        tessellator.draw()
-
-        bindColor(color)
-        worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
+        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
-        tessellator.draw()
-
-        bindColor(color)
-        worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
-        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
-        worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.minZ).endVertex()
-        worldRenderer.pos(aabb.maxX, aabb.minY, aabb.minZ).endVertex()
-        worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
-        tessellator.draw()
-
-        bindColor(color)
-        worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
         worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.minY, aabb.maxZ).endVertex()
         worldRenderer.pos(aabb.maxX, aabb.maxY, aabb.maxZ).endVertex()
         worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.minY, aabb.minZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.minY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.maxZ).endVertex()
+        worldRenderer.pos(aabb.minX, aabb.maxY, aabb.minZ).endVertex()
         tessellator.draw()
     }
 
@@ -596,20 +549,46 @@ object RenderUtils {
         GlStateManager.popMatrix()
     }
 
-    fun drawRoundedRect(color: Color, x: Number, y: Number, width: Number, height: Number, radius: Number = 5f) {
-        GlStateManager.pushMatrix()
-        GlStateManager.scale(0.25f, 0.25f, 0.25f) // downscaling for better resolution
-        preDraw()
+    fun drawRoundedRect(color: Color, x: Number, y: Number, width: Number, height: Number, radius: Number = 5) {
+        val xd = x.toDouble() * 2.0
+        val yd = y.toDouble() * 2.0
+        val widthd = width.toDouble() * 2.0
+        val heightd = height.toDouble() * 2.0
+        val radiusd = radius.toDouble() * 2.0
 
-        drawRoundedRectangle(
-            UMatrixStack(),
-            x.toFloat() * 4f,
-            y.toFloat() * 4f,
-            (x.toFloat() + width.toFloat()) * 4f,
-            (y.toFloat() + height.toFloat()) * 4f,
-            radius.toFloat() * 4f,
-            color
-        )
+        GlStateManager.pushMatrix()
+        GlStateManager.scale(0.5, 0.5, 0.5)
+        preDraw()
+        bindColor(color)
+
+        val x1 = xd + radiusd
+        val y1 = yd + radiusd
+        val x2 = xd + widthd - radiusd
+        val y2 = yd + heightd - radiusd
+
+        worldRenderer.begin(GL_POLYGON, DefaultVertexFormats.POSITION)
+
+        for (i in 180 .. 270 step 3) {
+            val angle = i * PI / 180
+            worldRenderer.pos(x1 + sin(angle) * radiusd, y1 + cos(angle) * radiusd, 0.0).endVertex()
+        }
+
+        for (i in 270 .. 360 step 3) {
+            val angle = i * PI / 180
+            worldRenderer.pos(x1 + sin(angle) * radiusd, y2 + cos(angle) * radiusd, 0.0).endVertex()
+        }
+
+        for (i in 0 .. 90 step 3) {
+            val angle = i * PI / 180
+            worldRenderer.pos(x2 + sin(angle) * radiusd, y2 + cos(angle) * radiusd, 0.0).endVertex()
+        }
+
+        for (i in 90 .. 180 step 3) {
+            val angle = i * PI / 180
+            worldRenderer.pos(x2 + sin(angle) * radiusd, y1 + cos(angle) * radiusd, 0.0).endVertex()
+        }
+
+        tessellator.draw()
 
         postDraw()
         GlStateManager.popMatrix()
@@ -697,37 +676,38 @@ object RenderUtils {
     fun drawPlayerHead(resourceLocation: ResourceLocation, x: Float, y: Float, width: Float, height: Float, radius: Float = 10f) {
         GlStateManager.pushMatrix()
 
-        GlStateManager.disableLighting()
         GlStateManager.enableBlend()
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
         GlStateManager.enableAlpha()
+        GlStateManager.disableLighting()
         GlStateManager.translate(x + width / 2, y + height / 2, 0f)
-        bindColor(Color.WHITE)
 
         StencilUtils.beginStencilClip {
             drawRoundedRect(Color.BLACK, - width / 2, - height / 2, width, height, radius)
         }
+
+        bindColor(Color.WHITE)
+        GlStateManager.enableTexture2D()
 
         mc.textureManager.bindTexture(resourceLocation)
 
         worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION_TEX)
         worldRenderer.pos((- width / 2).toDouble(), (height / 2).toDouble(), 0.0).tex(8.0 / 64.0, 16.0 / 64.0).endVertex()
         worldRenderer.pos((width / 2).toDouble(), (height / 2).toDouble(), 0.0).tex(16.0 / 64.0, 16.0 / 64.0).endVertex()
-        worldRenderer.pos((width / 2).toDouble(), (- height / 2).toDouble(), 0.0).tex(16.0 / 64.0, 8.0 / 64.0).endVertex()
-        worldRenderer.pos((- width / 2).toDouble(), (- height / 2).toDouble(), 0.0).tex(8.0 / 64.0, 8.0 / 64.0).endVertex()
+        worldRenderer.pos((width / 2).toDouble(), (- width / 2).toDouble(), 0.0).tex(16.0 / 64.0, 8.0 / 64.0).endVertex()
+        worldRenderer.pos((- width / 2).toDouble(), (- width / 2).toDouble(), 0.0).tex(8.0 / 64.0, 8.0 / 64.0).endVertex()
         tessellator.draw()
 
         worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION_TEX)
         worldRenderer.pos((- width / 2).toDouble(), (height / 2).toDouble(), 0.0).tex(40.0 / 64.0, 16.0 / 64.0).endVertex()
         worldRenderer.pos((width / 2).toDouble(), (height / 2).toDouble(), 0.0).tex(48.0 / 64.0, 16.0 / 64.0).endVertex()
-        worldRenderer.pos((width / 2).toDouble(), (- height / 2).toDouble(), 0.0).tex(48.0 / 64.0, 8.0 / 64.0).endVertex()
-        worldRenderer.pos((- width / 2).toDouble(), (- height / 2).toDouble(), 0.0).tex(40.0 / 64.0, 8.0 / 64.0).endVertex()
+        worldRenderer.pos((width / 2).toDouble(), (- width / 2).toDouble(), 0.0).tex(48.0 / 64.0, 8.0 / 64.0).endVertex()
+        worldRenderer.pos((- width / 2).toDouble(), (- width / 2).toDouble(), 0.0).tex(40.0 / 64.0, 8.0 / 64.0).endVertex()
         tessellator.draw()
 
         StencilUtils.endStencilClip()
 
         GlStateManager.disableBlend()
-        GlStateManager.resetColor()
         GlStateManager.popMatrix()
     }
 
@@ -750,56 +730,50 @@ object RenderUtils {
     }
 
     fun drawRoundedBorder(color: Color, x: Number, y: Number, width: Number, height: Number, radius: Number = 5f, thickness: Number = 2f) {
-        val radius1 = radius.toFloat() * 0.5142857142857143
+        val xd = x.toDouble()
+        val yd = y.toDouble()
+        val widthd = width.toDouble()
+        val heightd = height.toDouble()
+        val radiusd = radius.toDouble() * 0.5142857142857143
 
-        glPushMatrix()
-        glPushAttrib(GL_ALL_ATTRIB_BITS)
-        glDisable(GL_TEXTURE_2D)
-        glDisable(GL_LIGHTING)
-        glBindColor(color)
-        glScaled(0.25, 0.25, 0.25)
+        GlStateManager.pushMatrix()
+        preDraw()
+        bindColor(color)
+
         glLineWidth(thickness.toFloat())
-        glEnable(GL_LINE_SMOOTH)
-        glShadeModel(GL_SMOOTH)
-        glBegin(GL_LINE_LOOP)
 
-        for (i in 0 .. 16) {
-            val angle = Math.toRadians(180.0) + i * Math.toRadians(90.0) / 16
-            val x2 = x.toFloat() + radius1 + cos(angle) * radius1
-            val y2 = y.toFloat() + radius1 + sin(angle) * radius1
-            glVertex2d(x2 * 4, y2 * 4)
+        val x1 = xd + radiusd
+        val y1 = yd + radiusd
+        val x2 = xd + widthd - radiusd
+        val y2 = yd + heightd - radiusd
+
+        worldRenderer.begin(GL_LINE_LOOP, DefaultVertexFormats.POSITION)
+
+        for (i in 270 .. 360 step 3) {
+            val angle = i * PI / 180
+            worldRenderer.pos(x1 + sin(angle) * radiusd, y2 + cos(angle) * radiusd, 0.0).endVertex()
         }
 
-        for (i in 0 .. 16) {
-            val angle = Math.toRadians(270.0) + i * Math.toRadians(90.0) / 16
-            val x2 = x.toFloat() + width.toFloat() - radius1 + cos(angle) * radius1
-            val y2 = y.toFloat() + radius1 + sin(angle) * radius1
-            glVertex2d(x2 * 4, y2 * 4)
+        for (i in 0 .. 90 step 3) {
+            val angle = i * PI / 180
+            worldRenderer.pos(x2 + sin(angle) * radiusd, y2 + cos(angle) * radiusd, 0.0).endVertex()
         }
 
-        for (i in 0 .. 16) {
-            val angle = Math.toRadians(.0) + i * Math.toRadians((90).toDouble()) / 16
-            val x2 = x.toFloat() + width.toFloat() - radius1 + cos(angle) * radius1
-            val y2 = y.toFloat() + height.toFloat() - radius1 + sin(angle) * radius1
-            glVertex2d(x2 * 4, y2 * 4)
+        for (i in 90 .. 180 step 3) {
+            val angle = i * PI / 180
+            worldRenderer.pos(x2 + sin(angle) * radiusd, y1 + cos(angle) * radiusd, 0.0).endVertex()
         }
 
-        for (i in 0 .. 16) {
-            val angle = Math.toRadians(90.0) + i * Math.toRadians(90.0) / 16
-            val x2 = x.toFloat() + radius1 + cos(angle) * radius1
-            val y2 = y.toFloat() + height.toFloat() - radius1 + sin(angle) * radius1
-            glVertex2d(x2 * 4, y2 * 4)
+        for (i in 180 .. 270 step 3) {
+            val angle = i * PI / 180
+            worldRenderer.pos(x1 + sin(angle) * radiusd, y1 + cos(angle) * radiusd, 0.0).endVertex()
         }
 
-        glEnd()
+        tessellator.draw()
 
-        glDisable(GL_LINE_SMOOTH)
-        glShadeModel(GL_FLAT)
-        glEnable(GL_TEXTURE_2D)
-        glEnable(GL_LIGHTING)
-        glBindColor(Color.WHITE)
-        glPopAttrib()
-        glPopMatrix()
+        glLineWidth(1f)
+        postDraw()
+        GlStateManager.popMatrix()
     }
 
     fun drawRainbowRoundedBorder(x: Number, y: Number, width: Number, height: Number, radius: Number = 5f, thickness: Number = 2f, speed: Number = 1) {
@@ -825,7 +799,6 @@ object RenderUtils {
 
         glBegin(GL_LINE_LOOP)
 
-        // Top-left corner (color1 to color3)
         glBindColor(getRainbowColor(0 * speed.toFloat()))
         for (i in 0 .. 90 step 3) {
             val angle = Math.toRadians(i.toDouble())
@@ -835,7 +808,6 @@ object RenderUtils {
             )
         }
 
-        // Bottom-left corner (color3 to color4)
         glBindColor(getRainbowColor(0.66f * speed.toFloat()))
         for (i in 90 .. 180 step 3) {
             val angle = Math.toRadians(i.toDouble())
@@ -845,7 +817,6 @@ object RenderUtils {
             )
         }
 
-        // Bottom-right corner (color4 to color2)
         glBindColor(getRainbowColor(1 * speed.toFloat()))
         for (i in 0 .. 90 step 3) {
             val angle = Math.toRadians(i.toDouble())
@@ -855,7 +826,6 @@ object RenderUtils {
             )
         }
 
-        // Top-right corner (color2 to color1)
         glBindColor(getRainbowColor(0.33f * speed.toFloat()))
         for (i in 90 .. 180 step 3) {
             val angle = Math.toRadians(i.toDouble())
@@ -963,20 +933,6 @@ object RenderUtils {
         glColor4f(1.0f, 1.0f, 1.0f, 1.0f)
         GlStateManager.enableTexture2D()
         GlStateManager.disableBlend()
-    }
-
-    fun drawWithNoLeak(callback: () -> Unit) {
-        GlStateManager.pushMatrix()
-        GlStateManager.disableLighting()
-        GlStateManager.enableBlend()
-        GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-        callback()
-
-        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f)
-        GlStateManager.disableBlend()
-        GlStateManager.enableLighting()
-        GlStateManager.popMatrix()
     }
 
     fun drawTitle(title: String, subtitle: String, rainbow: Boolean = false) {

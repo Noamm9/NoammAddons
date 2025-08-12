@@ -1,27 +1,22 @@
 package noammaddons.features.impl.gui.Menus.impl
 
-import io.github.moulberry.notenoughupdates.NEUApi
-import io.github.moulberry.notenoughupdates.NotEnoughUpdates
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.item.ItemSkull
 import net.minecraftforge.client.event.GuiScreenEvent
-import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.GuiMouseClickEvent
-import noammaddons.events.InventoryFullyOpenedEvent
 import noammaddons.features.Feature
 import noammaddons.features.impl.gui.Menus.*
-import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.currentChestName
 import noammaddons.utils.GuiUtils.disableNEUInventoryButtons
 import noammaddons.utils.ItemUtils.getItemId
 import noammaddons.utils.ItemUtils.lore
 import noammaddons.utils.PlayerUtils.closeScreen
+import noammaddons.utils.RenderHelper.bindColor
 import noammaddons.utils.RenderHelper.getRainbowColor
 import noammaddons.utils.RenderUtils.drawGradientRoundedRect
-import noammaddons.utils.RenderUtils.drawTextWithoutColorLeak
-import noammaddons.utils.RenderUtils.drawWithNoLeak
+import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.RenderUtils.renderItem
 import noammaddons.utils.Utils.equalsOneOf
 import org.lwjgl.input.Keyboard
@@ -58,7 +53,7 @@ object CustomPetMenu: Feature() {
         val slot = getSlotIndex(slotPosition.first, slotPosition.second)
 
         if (slot >= windowSize) return
-        container[slot].run {
+        container[slot]?.run {
             if (stack == null) return
             if (stack.getItemId() == 160 && stack.metadata == 15) return
         }
@@ -90,11 +85,7 @@ object CustomPetMenu: Feature() {
         GlStateManager.scale(scale, scale, scale)
 
         renderBackground(offsetX, offsetY, width, height, backgroundColor)
-
-        drawTextWithoutColorLeak(
-            "&6&l&n[&b&l&nN&d&l&nA&6&l&n]&r &b&lPet Menu".addColor(),
-            offsetX, offsetY, 1f, Color.WHITE
-        )
+        drawText("&6&l&n[&b&l&nN&d&l&nA&6&l&n]&r &b&lPet Menu", offsetX, offsetY, 1f, Color.WHITE)
 
         for (slot in container) {
             val i = slot !!.slotNumber
@@ -106,7 +97,7 @@ object CustomPetMenu: Feature() {
             val currentOffsetX = i % 9 * 18 + offsetX
             val currentOffsetY = floor(i / 9.0).toInt() * 18 + offsetY
 
-            if (slot.stack.lore.joinToString().removeFormatting().contains("Click to despawn!")) drawWithNoLeak {
+            if (slot.stack.lore.any { it.removeFormatting().contains("Click to despawn!") })
                 drawGradientRoundedRect(
                     currentOffsetX + 0.5f, currentOffsetY + 0.5f,
                     15f, 15f, 1.5f,
@@ -115,9 +106,9 @@ object CustomPetMenu: Feature() {
                     getRainbowColor(1f),
                     getRainbowColor(0.66f),
                 )
-            }
         }
 
+        bindColor(Color.WHITE)
         renderHeads(container, windowSize, offsetX, offsetY, slotPosition, 0)
 
         container.forEach { slot ->
