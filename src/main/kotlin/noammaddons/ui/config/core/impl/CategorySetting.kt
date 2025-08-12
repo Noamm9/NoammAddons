@@ -18,7 +18,7 @@ import kotlin.reflect.KProperty
 class CategorySetting(
     name: String,
     val components: List<Component<*>>,
-    defaultExpanded: Boolean = true,
+    defaultExpanded: Boolean = false,
     override val defaultValue: List<Component<*>> = components
 ): Component<List<Component<*>>>(name), Savable {
 
