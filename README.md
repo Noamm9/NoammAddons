@@ -4,7 +4,6 @@
 [![Discord](https://img.shields.io/discord/1281979747605418024?color=5865F2&logo=discord&logoColor=white&style=for-the-badge)](https://discord.gg/pj9mQGxMxB)
 
 NoammAddons is a Forge mod for Minecraft 1.8.9, mostly designed to reduce the number of mods you use.
-experience.
 
 ---
 
