@@ -65,7 +65,7 @@ object EspUtils {
                 ESPType.OUTLINE.getEntities().find { it.first == event.entity }?.second?.let { renderOutline(event, it) }
             }
 
-            is RenderOverlay -> processAndRemoveEntities(ESPType.BOX2D) { entity, color ->
+            is RenderOverlayNoCaching -> processAndRemoveEntities(ESPType.BOX2D) { entity, color ->
                 draw2dEsp(entity, color)
             }
 

@@ -33,7 +33,6 @@ object MaskTimers: Feature() {
         override fun exampleDraw() = drawText(exampleText, getX(), getY(), getScale())
     }
 
-
     private val bonzo = ToggleSetting("Bonzo")
     private val phoenix = ToggleSetting("Phoenix")
     private val spirit = ToggleSetting("Spirit")
@@ -138,15 +137,16 @@ object MaskTimers: Feature() {
     @SubscribeEvent
     fun onRender(event: RenderOverlay) {
         if (! LocationUtils.inSkyblock) return
-        if (Masks.activeMasks.isNotEmpty()) {
-            MaskTimersElement.text = Masks.activeMasks.joinToString("\n") { mask ->
-                if (mask.cooldownTime > 0) "${mask.color}${mask.maskName}: &a${mask.cooldownTime.toFixed(1)}"
-                else "${mask.color}${mask.maskName}: &aREADY"
-            }
-            MaskTimersElement.draw()
-        }
+        val masks = Masks.activeMasks.toList().takeUnless { it.isEmpty() } ?: return
 
-        Masks.activeMasks.maxByOrNull { it.invTicks }?.takeIf { it.invTicks != - 1 }?.let { mask ->
+        MaskTimersElement.text = masks.joinToString("\n") { mask ->
+            if (mask.cooldownTime > 0) "${mask.color}${mask.maskName}: &a${mask.cooldownTime.toFixed(1)}"
+            else "${mask.color}${mask.maskName}: &aREADY"
+        }
+        MaskTimersElement.draw()
+
+
+        masks.maxByOrNull { it.invTicks }?.takeIf { it.invTicks != - 1 }?.let { mask ->
             val str = mask.color + mask.maskName.remove("Pet", "Mask", " ") + ": ${colorCodeByPresent(mask.invTicks, mask.invulnerabilityTime)}${mask.invTicks}"
             val x = mc.getWidth() / 2f
             val y = mc.getHeight() / 3f

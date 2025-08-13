@@ -195,7 +195,6 @@ object ChatUtils {
     fun renderTitles(event: RenderOverlay) {
         titles.toList().forEach { title ->
             if (title.time <= 0) return
-
             drawTitle(title.title.toString(), title.subtitle.toString(), title.rainbow)
         }
     }

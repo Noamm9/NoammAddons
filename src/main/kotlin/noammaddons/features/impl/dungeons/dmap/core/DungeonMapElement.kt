@@ -271,10 +271,10 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
         GlStateManager.pushMatrix()
         GlStateManager.translate(128f / 2f, 128f, 1f)
 
-        val foundSecrets = ScoreCalculation.dungeonStats.secretCount
+        val foundSecrets = ScoreCalculation.secretCount
         val totalSecrets = DungeonInfo.secretCount
-        val crypts = ScoreCalculation.dungeonStats.cryptsCount.get()
-        val deaths = ScoreCalculation.dungeonStats.deathCount
+        val crypts = ScoreCalculation.cryptsCount.get()
+        val deaths = ScoreCalculation.deathCount
         val mimicStatus = if (MimicDetector.mimicKilled.get()) "&a&l✔&r" else "&c&l✖&r"
 
         val line1 = "&6Secrets: &b$foundSecrets&f/&e$totalSecrets    ${colorCodeByPresent(crypts, 5)}Crypts: $crypts"

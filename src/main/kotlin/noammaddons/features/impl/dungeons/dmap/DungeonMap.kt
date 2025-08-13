@@ -7,6 +7,7 @@ import gg.essential.elementa.utils.withAlpha
 import net.minecraft.item.ItemMap
 import net.minecraft.network.play.server.S34PacketMaps
 import net.minecraft.world.storage.MapData
+import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
@@ -31,8 +32,8 @@ object DungeonMap: Feature(toggled = false) {
 
     val debug get() = EssentialAPI.getMinecraftUtil().isDevelopment() || DevOptions.devMode || DevOptions.enabled
 
-    @SubscribeEvent
-    fun onRenderOverlay(event: RenderOverlay) {
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    fun onRenderOverlay(event: RenderOverlayNoCaching) {
         if (debug) {
             val currentRoom = ScanUtils.currentRoom
             val rot = currentRoom?.rotation
@@ -69,7 +70,7 @@ object DungeonMap: Feature(toggled = false) {
                 MapUpdater.updateRooms(it)
                 MapUpdater.updatePlayers(it)
             }
-            
+
             ScoreCalculation.updateFromScoreboard()
             ScoreCalculation.updateFromTab(getTabList.map { it.second })
         }

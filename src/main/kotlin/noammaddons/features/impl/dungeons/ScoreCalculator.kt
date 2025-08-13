@@ -1,17 +1,37 @@
 package noammaddons.features.impl.dungeons
 
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.config.EditGui.GuiElement
+import noammaddons.config.EditGui.HudEditorScreen
+import noammaddons.events.RenderOverlay
 import noammaddons.features.Feature
 import noammaddons.features.impl.dungeons.dmap.handlers.ScoreCalculation
 import noammaddons.ui.config.core.impl.*
+import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.sendPartyMessage
 import noammaddons.utils.ChatUtils.showTitle
-import noammaddons.utils.LocationUtils
-import noammaddons.utils.ThreadUtils
+import noammaddons.utils.RenderUtils.drawText
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.KMutableProperty0
 
 object ScoreCalculator: Feature("Shows the score of the dungeon run") {
+    object ScoreCalculatorElement: GuiElement(hudData.getData().scoreCalculator) {
+        override val enabled: Boolean get() = ScoreCalculator.enabled && hudElement.value
+        private val text: String
+            get() {
+                if (HudEditorScreen.isOpen()) return "&7Score: &a300"
+                val score = ScoreCalculation.score
+                val color = if (score >= 300) "&a" else if (score >= 270) "&e" else "&c"
+                return "&7Score: $color$score"
+            }
+        override val width: Float get() = RenderHelper.getStringWidth(text)
+        override val height: Float get() = 9f
+
+        override fun draw() = drawText(text, getX(), getY(), getScale())
+    }
+
+    private val hudElement = ToggleSetting("HUD Element")
     private val sendMessageOn270Score = ToggleSetting("Send message on 270 score", false)
     private val message270Score = TextInputSetting("Message for 270 score", "270 Score!").addDependency(sendMessageOn270Score)
     private val createTitleOn270Score = ToggleSetting("Create Title on 270 score", false)
@@ -24,6 +44,7 @@ object ScoreCalculator: Feature("Shows the score of the dungeon run") {
 
     override fun init() {
         addSettings(
+            hudElement,
             sendMessageOn270Score, message270Score,
             createTitleOn270Score, messageTitle270Score,
             sendMessageOn300Score, message300Score,
@@ -31,6 +52,13 @@ object ScoreCalculator: Feature("Shows the score of the dungeon run") {
         )
 
         ThreadUtils.loop(1000) { ScoreCalculation.score }
+    }
+
+    @SubscribeEvent
+    fun onRenderOverlay(event: RenderOverlay) {
+        if (HudEditorScreen.isOpen()) return
+        if (! LocationUtils.inDungeon) return
+        ScoreCalculatorElement.draw()
     }
 
     fun on270Score() = onScoreMileStone(270, sendMessageOn270Score, message270Score, createTitleOn270Score, messageTitle270Score, ScoreCalculation::alerted270)
@@ -50,7 +78,7 @@ object ScoreCalculator: Feature("Shows the score of the dungeon run") {
         if (createTitleToggle.value) showTitle(titleText.value)
 
         val floorColor = if (LocationUtils.isMasterMode) "&c" else "&a"
-        val time = formatTime(ScoreCalculation.dungeonStats.secondsElapsed)
+        val time = formatTime(ScoreCalculation.secondsElapsed)
         modMessage("&e$score&a score reached in &6$time &f|| $floorColor${LocationUtils.dungeonFloor}.")
         repeat(2) { mc.thePlayer.playSound("random.orb", 1f, 0f) }
         field.set(true)

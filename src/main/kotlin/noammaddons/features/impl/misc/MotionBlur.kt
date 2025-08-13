@@ -5,7 +5,7 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.client.shader.Framebuffer
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.RenderOverlay
+import noammaddons.events.RenderOverlayNoCaching
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.annotations.Dev
 import noammaddons.ui.config.core.impl.SliderSetting
@@ -19,7 +19,7 @@ object MotionBlur: Feature("Blurs your screen a little to simulate smoother and 
     private var blurBufferInto: Framebuffer? = null
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    fun renderOverlay(event: RenderOverlay) {
+    fun renderOverlay(event: RenderOverlayNoCaching) {
         if (mc.currentScreen != null) return
         if (! OpenGlHelper.isFramebufferEnabled()) return
 
