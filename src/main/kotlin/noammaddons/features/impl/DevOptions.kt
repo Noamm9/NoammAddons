@@ -18,7 +18,7 @@ import noammaddons.features.FeatureManager.registerFeatures
 import noammaddons.features.impl.dungeons.dmap.core.map.Room
 import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
 import noammaddons.features.impl.dungeons.dmap.handlers.DungeonScanner
-import noammaddons.features.impl.dungeons.solvers.devices.AutoI4.testi4
+import noammaddons.features.impl.dungeons.solvers.devices.AutoI4.testI4
 import noammaddons.features.impl.esp.StarMobESP
 import noammaddons.features.impl.general.teleport.helpers.InstantTransmissionHelper
 import noammaddons.ui.clickgui.ClickGuiScreen
@@ -152,7 +152,7 @@ object DevOptions: Feature() {
         when (event.message) {
             "i4" -> {
                 event.isCanceled = true
-                scope.launch { testi4() }
+                scope.launch { testI4() }
             }
 
             "chat" -> {

@@ -31,7 +31,6 @@ import noammaddons.utils.DungeonUtils.isSecret
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.RenderHelper.getPartialTicks
-import noammaddons.utils.ThreadUtils
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.equalsOneOf
 
@@ -160,9 +159,7 @@ object EventDispatcher {
             is S32PacketConfirmTransaction -> {
                 if (packet.func_148888_e()) return
                 if (awaitS32) awaitS32 = false
-                ThreadUtils.runOnNewThread {
-                    ServerTick().postCatch()
-                }w
+                ServerTick().postCatch()
             }
 
             is S03PacketTimeUpdate -> {

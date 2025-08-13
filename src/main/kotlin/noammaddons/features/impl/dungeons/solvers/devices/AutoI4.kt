@@ -1,5 +1,6 @@
 package noammaddons.features.impl.dungeons.solvers.devices
 
+
 import kotlinx.coroutines.*
 import net.minecraft.init.Blocks.*
 import net.minecraft.item.ItemBow
@@ -9,8 +10,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.events.EventDispatcher.postAndCatch
 import noammaddons.features.Feature
-import noammaddons.ui.config.core.impl.SliderSetting
-import noammaddons.ui.config.core.impl.ToggleSetting
+import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.ActionUtils.changeMask
 import noammaddons.utils.ActionUtils.currentAction
 import noammaddons.utils.ActionUtils.leap
@@ -23,182 +23,209 @@ import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.DungeonUtils.Classes.*
 import noammaddons.utils.DungeonUtils.leapTeammates
+import noammaddons.utils.MathUtils.destructured
 import noammaddons.utils.PlayerUtils.holdClick
 import noammaddons.utils.PlayerUtils.sendRightClickAirPacket
 import noammaddons.utils.RenderUtils.drawBlockBox
+import noammaddons.utils.ServerPlayer
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.equalsOneOf
 import java.awt.Color
 
 
 object AutoI4: Feature("Fully Automated I4.") {
-    private val rotationTime = SliderSetting("Rotation time", 0, 250, 10, 170)
-    private val predit = ToggleSetting("Predictions", true)
-    private val rod = ToggleSetting("Auto Rod")
-    private val mask = ToggleSetting("Auto Mask")
-    private val leap = ToggleSetting("Auto Leap")
+    private val rotationTime = SliderSetting("Rotation Time", 0, 250, 10, 170)
+    private val predictSetting = ToggleSetting("Predictions", true)
+    private val rodSetting = ToggleSetting("Auto Rod", true)
+    private val maskSetting = ToggleSetting("Auto Mask", true)
+    private val leapSetting = ToggleSetting("Auto Leap", true)
+    private val LeapPriorities = listOf(Mage, Tank, Healer, Archer)
+    private val preferredLeapClass = DropdownSetting("Leap Priority", LeapPriorities.map { it.toString() })
 
-    override fun init() = addSettings(rotationTime, predit, rod, mask, leap)
-
-    private val doneCoords = mutableSetOf<BlockPos>()
-    private val classLeapPriority = listOf(Mage, Tank, Healer, Archer) // correct me if wrong
-    private val devBlocks = listOf(
-        BlockPos(68, 130, 50), BlockPos(66, 130, 50), BlockPos(64, 130, 50),
-        BlockPos(68, 128, 50), BlockPos(66, 128, 50), BlockPos(64, 128, 50),
-        BlockPos(68, 126, 50), BlockPos(66, 126, 50), BlockPos(64, 126, 50)
+    override fun init() = addSettings(
+        rotationTime, predictSetting, rodSetting, maskSetting, leapSetting, preferredLeapClass
     )
-    private val devDoneRegex = Regex("^(\\w{3,16}) completed a device! \\(\\d/\\d\\)\$")
-    private var tickTimer = - 1
-    private var lastEmeraldTick = - 1
+
+    private data class PhaseState(
+        val tickTimer: Int = - 1,
+        val lastEmeraldTick: Int = - 1,
+        val doneCoords: MutableSet<BlockPos> = mutableSetOf(),
+        val hasLeaped: Boolean = false,
+        val hasChangedMask: Boolean = false,
+        val hasAlerted: Boolean = false
+    )
+
+    private var state = PhaseState()
     private var shootingAt: BlockPos? = null
     private var isPredicting = false
-    private var alerted = true
-    private var Leaped = false
-    private var changedMask = false
-    private var i4Job: Job? = null
+    private var deviceShootingJob: Job? = null
 
-    private fun isOnDev() = mc.thePlayer.posY == 127.0 && mc.thePlayer.posX in 62.0 .. 65.0 && mc.thePlayer.posZ in 34.0 .. 37.0 && enabled
+    @SubscribeEvent
+    fun onBlockChange(event: BlockChangeEvent) {
+        if (! isInDevicePhase() || ServerPlayer.player.getHeldItem()?.item !is ItemBow) return
+        if (event.pos !in devBlocks || event.oldBlock != stained_hardened_clay || event.block != emerald_block) return
 
-    private fun getTargetVec(pos: BlockPos): Vec3 {
-        val i = devBlocks.indexOf(pos)
-        val x = i % 3
-        val y = i / 3
+        state = state.copy(lastEmeraldTick = state.tickTimer)
+        deviceShootingJob?.cancel()
+        rotationJob?.cancel()
 
-        return Vec3(
-            if (x == 0 || (x == 1 && doneCoords.contains(devBlocks[x + 1 + y * 3]))) 67.5 else 65.5,
-            131.3 - 2 * y, 50.0
-        )
+        deviceShootingJob = scope.launch {
+            while (currentAction() == "Rod Swap") delay(1)
+
+            val shotVec = getTargetVector(event.pos)
+            state.doneCoords.add(event.pos)
+            shootingAt = event.pos
+            isPredicting = false
+            rotateAndShoot(shotVec)
+            while (rotationJob?.isActive == true) delay(1)
+
+            if (! predictSetting.value) return@launch
+            if (rotationTime.value > 0) delay(rotationTime.value.toLong())
+
+            getPredictionTarget(event.pos)?.let { nextTarget ->
+                val predictionVec = getTargetVector(nextTarget)
+                shootingAt = nextTarget
+                isPredicting = true
+                rotateAndShoot(predictionVec)
+                while (rotationJob?.isActive == true) delay(1)
+            }
+        }
     }
 
-    private fun rotateAndShot(vec: Vec3) {
-        if (rotationTime.value.toLong() == 0L) return
+    @SubscribeEvent
+    fun onRenderWorld(event: RenderWorld) {
+        if (! isInDevicePhase()) return reset()
+
+        devBlocks.forEach { pos ->
+            val color = when {
+                pos in state.doneCoords -> if (getBlockAt(pos) == emerald_block) Color.GREEN else Color.RED
+                else -> Color(0, 136, 255)
+            }
+            drawBlockBox(pos, color, outline = false, fill = true, phase = true)
+        }
+    }
+
+    @SubscribeEvent
+    fun onChat(event: Chat) {
+        val message = event.component.noFormatText
+        when {
+            message == STORM_DEATH_MESSAGE -> {
+                state = state.copy(tickTimer = 0)
+                setTimeout(30_000L) { state = state.copy(tickTimer = - 1) }
+            }
+
+            message.matches(DEVICE_DONE_REGEX) && state.tickTimer >= 0 && isInDevicePhase() && leapSetting.value -> {
+                triggerPhaseCompletion("Completed Device")
+            }
+        }
+    }
+
+    @SubscribeEvent
+    fun onServerTick(event: ServerTick) {
+        if (state.tickTimer == - 1) return
+        state = state.copy(tickTimer = state.tickTimer + 1)
+        if (! isInDevicePhase()) return
+
+        val action = ! currentAction().equalsOneOf("Change Mask", "Leap")
+
+        when {
+            state.tickTimer.equalsOneOf(251, 307) && leapSetting.value && action -> performLeap()
+            state.tickTimer == 244 && maskSetting.value && ! state.hasChangedMask && action -> changeMask()
+            state.tickTimer == 174 && maskSetting.value && action -> {
+                state = state.copy(hasChangedMask = true)
+                changeMask()
+            }
+
+            state.tickTimer == 174 && rodSetting.value && action -> rodSwap()
+        }
+
+        val ticksSinceLastEmerald = state.tickTimer - state.lastEmeraldTick
+        val hasEmeraldBlock = devBlocks.none { getBlockAt(it) == emerald_block }
+
+        if (state.tickTimer > 150 && ticksSinceLastEmerald > 30 && hasEmeraldBlock && state.doneCoords.size > 4)
+            triggerPhaseCompletion("Device stalled")
+    }
+
+    private fun reset() {
+        if (state.doneCoords.size > 1) holdClick(false)
+        deviceShootingJob?.cancel()
+        state = PhaseState().copy(tickTimer = state.tickTimer)
+        shootingAt = null
+        isPredicting = false
+    }
+
+    private fun performLeap() {
+        if (state.hasLeaped) return
+        state = state.copy(hasLeaped = true)
+
+        val aliveTeammates = leapTeammates.filterNot { it.isDead }
+        val preferredClass = LeapPriorities[preferredLeapClass.value]
+
+        val target = aliveTeammates.find { it.clazz == preferredClass }
+            ?: LeapPriorities.firstNotNullOfOrNull { priority ->
+                aliveTeammates.find { it.clazz == priority }
+            }
+
+        target?.let {
+            leap(it)
+            state = state.copy(tickTimer = - 1)
+        }
+    }
+
+    private fun triggerPhaseCompletion(reason: String) {
+        if (state.hasAlerted) return
+        scope.launch {
+            state = state.copy(hasAlerted = true)
+            deviceShootingJob?.cancel()
+            state = state.copy(tickTimer = - 1)
+
+            if (currentAction() != "Leap") performLeap()
+
+            modMessage("Predicted ${9 - state.doneCoords.size}/9")
+            modMessage("Trigger: $reason")
+        }
+    }
+
+    private fun isInDevicePhase(): Boolean {
+        val (x, y, z) = ServerPlayer.player.getVec()?.destructured() ?: return false
+        return y == 127.0 && x in 62.0 .. 65.0 && z in 34.0 .. 37.0 && enabled
+    }
+
+    private fun getTargetVector(pos: BlockPos): Vec3 {
+        val i = devBlocks.indexOf(pos)
+        val col = i % 3
+        val row = i / 3
+
+        val isBlockToTheRightDone = (col < 2) && devBlocks[i + 1] in state.doneCoords
+        val targetX = if (col == 0 || isBlockToTheRightDone) 67.5 else 65.5
+
+        return Vec3(targetX, 131.3 - 2 * row, 50.0)
+    }
+
+    private fun rotateAndShoot(vec: Vec3) {
+        if (rotationTime.value == 0) return
         rotateSmoothlyTo(vec, rotationTime.value.toLong()) {
             Thread.sleep(20)
             sendRightClickAirPacket()
         }
     }
 
+    private fun getPredictionTarget(lastHitPos: BlockPos): BlockPos? {
+        return devBlocks.shuffled().find { potentialTarget ->
+            val isNotDone = potentialTarget !in state.doneCoords
+            val isCorrectBlockType = getBlockAt(potentialTarget) == stained_hardened_clay
+            val isNotAdjacent = potentialTarget.x == lastHitPos.x && potentialTarget.distanceSq(lastHitPos) > 4
 
-    private fun reset() {
-        if (doneCoords.size > 1) holdClick(false)
-        doneCoords.clear()
-        isPredicting = false
-        alerted = false
-        Leaped = false
-        shootingAt = null
-        changedMask = false
-        i4Job?.cancel()
-    }
-
-    @SubscribeEvent
-    fun onBlock(event: BlockChangeEvent) {
-        if (! isOnDev()) return
-        if (mc.thePlayer?.heldItem?.item !is ItemBow) return
-        if (event.pos !in devBlocks) return
-        if (event.oldBlock != stained_hardened_clay || event.block != emerald_block) return
-        lastEmeraldTick = tickTimer
-
-        i4Job?.cancel()
-        rotationJob?.cancel()
-
-        i4Job = scope.launch {
-            while (currentAction() == "Rod Swap") delay(1)
-            val shotVec = getTargetVec(event.pos)
-            doneCoords.add(event.pos)
-            shootingAt = event.pos
-            isPredicting = false
-            rotateAndShot(shotVec)
-
-            if (! predit.value) return@launch
-            if (rotationTime.value.toLong() != 0L) delay(rotationTime.value.toLong())
-
-            val nextTarget = devBlocks.shuffled().find {
-                val notDone = it !in doneCoords
-                val isStained = getBlockAt(it) == stained_hardened_clay
-                val nextToLast = it.x == event.pos.x && it.distanceSq(event.pos) <= 4
-
-                notDone && isStained && ! nextToLast
-            } ?: return@launch
-            val predictionVec = getTargetVec(nextTarget)
-
-            shootingAt = nextTarget
-            isPredicting = true
-            rotateAndShot(predictionVec)
+            isNotDone && isCorrectBlockType && ! isNotAdjacent
         }
     }
 
-    @SubscribeEvent
-    fun renderDevBlocks(event: RenderWorld) {
-        if (! isOnDev()) return reset()
-
-        devBlocks.forEach {
-            if (it in doneCoords) {
-                drawBlockBox(
-                    it,
-                    when (getBlockAt(it)) {
-                        emerald_block -> Color.GREEN
-                        else -> Color.RED
-                    },
-                    outline = false, fill = true, phase = true
-                )
-            }
-            else {
-                drawBlockBox(
-                    it,
-                    Color(0, 136, 255),
-                    outline = false, fill = true, phase = true
-                )
-            }
-        }
-    }
-
-    @SubscribeEvent
-    fun onChat(event: Chat) {
-        val msg = event.component.noFormatText
-
-        when {
-            msg == "[BOSS] Storm: I should have known that I stood no chance." -> {
-                setTimeout(30_000) { tickTimer = - 1 } // lazy ass way ik
-                tickTimer = 0
-            }
-
-            msg.matches(devDoneRegex) && tickTimer >= 0 && isOnDev() && leap.value -> alert("Trigger by Chat Message")
-        }
-    }
-
-    @SubscribeEvent
-    fun onServerTick(event: ServerTick) {
-        if (tickTimer == - 1) return
-        tickTimer ++
-        if (! isOnDev()) return
-
-        val actionCheck = currentAction().equalsOneOf("Change Mask", "Leap")
-
-        when {
-            tickTimer == 174 && rod.value -> rodSwap()
-            tickTimer == 174 && mask.value -> {
-                changedMask = true
-                changeMask()
-            }
-
-            tickTimer == 244 && ! actionCheck && mask.value && ! changedMask -> changeMask()
-
-            tickTimer == 251 && ! actionCheck && ! changedMask && leap.value -> saveLeap()
-            tickTimer == 307 && ! actionCheck && leap.value -> saveLeap()
-        }
-
-        if (tickTimer > 150 && tickTimer - lastEmeraldTick > 30 && devBlocks.none { getBlockAt(it) == emerald_block } && doneCoords.size > 4) alert(
-            "Trigger by lastEmeraldTick:\ntimer: $tickTimer, emeraldTicks: $lastEmeraldTick"
-        )
-    }
-
-    suspend fun testi4() {
-        //   ChatUtils.sendFakeChatMessage("[BOSS] Storm: I should have known that I stood no chance.")
-        // delay(5200)
+    suspend fun testI4() {
+        //    ChatUtils.sendFakeChatMessage(STORM_DEATH_MESSAGE)
+        //    delay(STORM_PHASE_START_DELAY)
 
         for (pos in devBlocks.shuffled()) {
             delay(600)
-
             postAndCatch(BlockChangeEvent(pos, emerald_block, stained_hardened_clay))
             ghostBlock(pos, emerald_block.defaultState)
             delay(400)
@@ -207,31 +234,15 @@ object AutoI4: Feature("Fully Automated I4.") {
         }
     }
 
-    private fun saveLeap() {
-        if (Leaped) return
-        Leaped = true
-        for (clazz in classLeapPriority) {
-            leapTeammates.filterNot { it.isDead }.forEach {
-                if (it.clazz == clazz) {
-                    leap(it)
-                    tickTimer = - 1
-                    return
-                }
-            }
-        }
-    }
 
-    private fun alert(s: String) {
-        if (alerted) return
-        scope.launch {
-            alerted = true
-            i4Job?.cancel()
-            tickTimer = - 1
-            if (currentAction() != "Leap") saveLeap()
-            val str = listOf("&a&lI4 Done!", "Predicted ${9 - doneCoords.size}/9", s)
-            str.forEach(::modMessage)
-        }
-    }
+    private const val STORM_DEATH_MESSAGE = "[BOSS] Storm: I should have known that I stood no chance."
+    private val DEVICE_DONE_REGEX = Regex("^(\\w{3,16}) completed a device! \\(\\d/\\d\\)\$")
+
+    private val devBlocks = listOf(
+        BlockPos(68, 130, 50), BlockPos(66, 130, 50), BlockPos(64, 130, 50),
+        BlockPos(68, 128, 50), BlockPos(66, 128, 50), BlockPos(64, 128, 50),
+        BlockPos(68, 126, 50), BlockPos(66, 126, 50), BlockPos(64, 126, 50)
+    )
 }
 
 
