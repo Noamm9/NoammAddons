@@ -103,11 +103,8 @@ object ActionUtils {
     private fun processRotationQueue() {
         rotationJob = scope.launch {
             while (rotationQueue.isNotEmpty()) {
-                try {
+                runCatching {
                     rotationQueue.removeFirst().invoke()
-                }
-                catch (e: Exception) {
-                    modMessage("Error during Rotation: ${e.message}")
                 }
             }
         }
@@ -120,7 +117,7 @@ object ActionUtils {
 
     private val easeInOutCubic = fun(t: Double) = if (t < 0.5) 4 * t * t * t else (t - 1) * (2 * t - 2) * (2 * t - 2) + 1
 
-    fun rotateSmoothly(rot: Rotation, time: Long, block: () -> Unit = {}) {
+    fun rotateSmoothly(rot: Rotation, time: Long, block: suspend () -> Unit = {}) {
         queueRotation {
             val currentYaw = normalizeYaw(mc.thePlayer?.rotationYaw ?: return@queueRotation)
             val currentPitch = normalizePitch(mc.thePlayer?.rotationPitch ?: return@queueRotation)
@@ -149,7 +146,7 @@ object ActionUtils {
         }
     }
 
-    fun rotateSmoothlyTo(vec: Vec3, time: Long, block: () -> Unit = {}) {
+    fun rotateSmoothlyTo(vec: Vec3, time: Long, block: suspend () -> Unit = {}) {
         rotateSmoothly(calcYawPitch(vec), time, block)
     }
 

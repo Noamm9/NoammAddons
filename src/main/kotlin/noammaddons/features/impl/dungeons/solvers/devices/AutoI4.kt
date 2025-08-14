@@ -29,7 +29,6 @@ import noammaddons.utils.PlayerUtils.sendRightClickAirPacket
 import noammaddons.utils.RenderUtils.drawBlockBox
 import noammaddons.utils.ServerPlayer
 import noammaddons.utils.ThreadUtils.setTimeout
-import noammaddons.utils.Utils.equalsOneOf
 import java.awt.Color
 
 
@@ -62,7 +61,7 @@ object AutoI4: Feature("Fully Automated I4.") {
 
     @SubscribeEvent
     fun onBlockChange(event: BlockChangeEvent) {
-        if (! isInDevicePhase() || ServerPlayer.player.getHeldItem()?.item !is ItemBow) return
+        if (! isOnDev() || ServerPlayer.player.getHeldItem()?.item !is ItemBow) return
         if (event.pos !in devBlocks || event.oldBlock != stained_hardened_clay || event.block != emerald_block) return
 
         state = state.copy(lastEmeraldTick = state.tickTimer)
@@ -80,7 +79,6 @@ object AutoI4: Feature("Fully Automated I4.") {
             while (rotationJob?.isActive == true) delay(1)
 
             if (! predictSetting.value) return@launch
-            if (rotationTime.value > 0) delay(rotationTime.value.toLong())
 
             getPredictionTarget(event.pos)?.let { nextTarget ->
                 val predictionVec = getTargetVector(nextTarget)
@@ -94,7 +92,7 @@ object AutoI4: Feature("Fully Automated I4.") {
 
     @SubscribeEvent
     fun onRenderWorld(event: RenderWorld) {
-        if (! isInDevicePhase()) return reset()
+        if (! isOnDev()) return reset()
 
         devBlocks.forEach { pos ->
             val color = when {
@@ -114,7 +112,7 @@ object AutoI4: Feature("Fully Automated I4.") {
                 setTimeout(30_000L) { state = state.copy(tickTimer = - 1) }
             }
 
-            message.matches(DEVICE_DONE_REGEX) && state.tickTimer >= 0 && isInDevicePhase() && leapSetting.value -> {
+            message.matches(DEVICE_DONE_REGEX) && state.tickTimer >= 0 && isOnDev() && leapSetting.value -> {
                 triggerPhaseCompletion("Completed Device")
             }
         }
@@ -124,25 +122,28 @@ object AutoI4: Feature("Fully Automated I4.") {
     fun onServerTick(event: ServerTick) {
         if (state.tickTimer == - 1) return
         state = state.copy(tickTimer = state.tickTimer + 1)
-        if (! isInDevicePhase()) return
-
-        val action = ! currentAction().equalsOneOf("Change Mask", "Leap")
+        if (! isOnDev()) return
 
         when {
-            state.tickTimer.equalsOneOf(251, 307) && leapSetting.value && action -> performLeap()
-            state.tickTimer == 244 && maskSetting.value && ! state.hasChangedMask && action -> changeMask()
-            state.tickTimer == 174 && maskSetting.value && action -> {
+            state.tickTimer == 307 && leapSetting.value -> performLeap()
+            state.tickTimer == 244 && maskSetting.value && ! state.hasChangedMask -> changeMask()
+
+            state.tickTimer == 174 && rodSetting.value -> {
+                rodSwap()
+                deviceShootingJob?.cancel()
+                rotationJob?.cancel()
+            }
+
+            state.tickTimer == 174 && maskSetting.value -> {
                 state = state.copy(hasChangedMask = true)
                 changeMask()
             }
-
-            state.tickTimer == 174 && rodSetting.value && action -> rodSwap()
         }
 
         val ticksSinceLastEmerald = state.tickTimer - state.lastEmeraldTick
-        val hasEmeraldBlock = devBlocks.none { getBlockAt(it) == emerald_block }
+        val hasEmeraldBlock = devBlocks.any { getBlockAt(it) == emerald_block }
 
-        if (state.tickTimer > 150 && ticksSinceLastEmerald > 30 && hasEmeraldBlock && state.doneCoords.size > 4)
+        if (rotationTime.value > 0 && state.tickTimer > 150 && ticksSinceLastEmerald > 30 && ! hasEmeraldBlock && state.doneCoords.size > 4)
             triggerPhaseCompletion("Device stalled")
     }
 
@@ -174,19 +175,19 @@ object AutoI4: Feature("Fully Automated I4.") {
 
     private fun triggerPhaseCompletion(reason: String) {
         if (state.hasAlerted) return
-        scope.launch {
-            state = state.copy(hasAlerted = true)
-            deviceShootingJob?.cancel()
-            state = state.copy(tickTimer = - 1)
 
-            if (currentAction() != "Leap") performLeap()
+        state = state.copy(hasAlerted = true)
+        deviceShootingJob?.cancel()
+        state = state.copy(tickTimer = - 1)
 
-            modMessage("Predicted ${9 - state.doneCoords.size}/9")
-            modMessage("Trigger: $reason")
-        }
+        performLeap()
+
+        modMessage("Predicted ${9 - state.doneCoords.size}/9")
+        modMessage("Trigger: $reason")
+
     }
 
-    private fun isInDevicePhase(): Boolean {
+    private fun isOnDev(): Boolean {
         val (x, y, z) = ServerPlayer.player.getVec()?.destructured() ?: return false
         return y == 127.0 && x in 62.0 .. 65.0 && z in 34.0 .. 37.0 && enabled
     }
@@ -205,8 +206,10 @@ object AutoI4: Feature("Fully Automated I4.") {
     private fun rotateAndShoot(vec: Vec3) {
         if (rotationTime.value == 0) return
         rotateSmoothlyTo(vec, rotationTime.value.toLong()) {
-            Thread.sleep(20)
+            if (currentAction() == "Rod Swap") delay(1)
+            delay(20)
             sendRightClickAirPacket()
+            delay(20)
         }
     }
 
