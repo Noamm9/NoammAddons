@@ -115,7 +115,7 @@ object ActionUtils {
         if (rotationJob?.isActive != true) processRotationQueue()
     }
 
-    private val easeInOutCubic = fun(t: Double) = if (t < 0.5) 4 * t * t * t else (t - 1) * (2 * t - 2) * (2 * t - 2) + 1
+    val easeInOutCubic = fun(t: Double) = if (t < 0.5) 4 * t * t * t else (t - 1) * (2 * t - 2) * (2 * t - 2) + 1
 
     fun rotateSmoothly(rot: Rotation, time: Long, block: suspend () -> Unit = {}) {
         queueRotation {
@@ -150,7 +150,7 @@ object ActionUtils {
         rotateSmoothly(calcYawPitch(vec), time, block)
     }
 
-    private suspend fun rodSwapAction() {
+    suspend fun rodSwapAction() {
         if (thePlayer?.isDead == true) return
         val slotBeforeSwap = mc.thePlayer?.inventory?.currentItem ?: return
         val rodIndex = getItemIndexInHotbar("rod") ?: return modMessage("&cNo rod found in hotbar!")
@@ -167,7 +167,7 @@ object ActionUtils {
         delay(100)
     }
 
-    private suspend fun leapAction(leapTarget: DungeonPlayer) {
+    suspend fun leapAction(leapTarget: DungeonPlayer) {
         if (thePlayer?.isDead == true) return
         if (getItemIndexInHotbar("Haunt") != null) return
         if (leapTarget.isDead) return modMessage(leapTarget.name + " is dead R.I.P!")
@@ -196,7 +196,7 @@ object ActionUtils {
         }
     }
 
-    private suspend fun changeMaskAction() {
+    suspend fun changeMaskAction() {
         val sbIds = mc.thePlayer.inventory.mainInventory.mapNotNull { it?.skyblockID }
         val mask = sbIds.find { it.containsOneOf("SPIRIT_MASK", "BONZO_MASK") } ?: return
         quickSwapAction(mask)

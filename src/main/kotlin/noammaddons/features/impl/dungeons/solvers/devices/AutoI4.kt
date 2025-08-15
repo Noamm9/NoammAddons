@@ -1,6 +1,5 @@
 package noammaddons.features.impl.dungeons.solvers.devices
 
-
 import kotlinx.coroutines.*
 import net.minecraft.init.Blocks.*
 import net.minecraft.item.ItemBow
@@ -11,44 +10,53 @@ import noammaddons.events.*
 import noammaddons.events.EventDispatcher.postAndCatch
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.*
-import noammaddons.utils.ActionUtils.changeMask
-import noammaddons.utils.ActionUtils.currentAction
+import noammaddons.utils.*
+import noammaddons.utils.ActionUtils.easeInOutCubic
 import noammaddons.utils.ActionUtils.leap
-import noammaddons.utils.ActionUtils.rodSwap
-import noammaddons.utils.ActionUtils.rotateSmoothlyTo
-import noammaddons.utils.ActionUtils.rotationJob
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.ghostBlock
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.DungeonUtils.Classes.*
 import noammaddons.utils.DungeonUtils.leapTeammates
+import noammaddons.utils.MathUtils.calcYawPitch
 import noammaddons.utils.MathUtils.destructured
+import noammaddons.utils.MathUtils.interpolateYaw
+import noammaddons.utils.MathUtils.lerp
+import noammaddons.utils.MathUtils.normalizePitch
+import noammaddons.utils.MathUtils.normalizeYaw
 import noammaddons.utils.PlayerUtils.holdClick
+import noammaddons.utils.PlayerUtils.rotate
 import noammaddons.utils.PlayerUtils.sendRightClickAirPacket
 import noammaddons.utils.RenderUtils.drawBlockBox
-import noammaddons.utils.ServerPlayer
 import noammaddons.utils.ThreadUtils.setTimeout
 import java.awt.Color
+import kotlin.math.abs
+import kotlin.math.min
 
 
 object AutoI4: Feature("Fully Automated I4.") {
-    private val rotationTime = SliderSetting("Rotation Time", 0, 250, 10, 170)
-    private val predictSetting = ToggleSetting("Predictions", true)
-    private val rodSetting = ToggleSetting("Auto Rod", true)
-    private val maskSetting = ToggleSetting("Auto Mask", true)
-    private val leapSetting = ToggleSetting("Auto Leap", true)
+    private val rotationTime by SliderSetting("Rotation Time", 0, 250, 10, 170)
+    private val predictSetting by ToggleSetting("Predictions", true)
+    private val rodSetting by ToggleSetting("Auto Rod", true)
+    private val maskSetting by ToggleSetting("Auto Mask", true)
+    private val leapSetting by ToggleSetting("Auto Leap", true)
     private val LeapPriorities = listOf(Mage, Tank, Healer, Archer)
-    private val preferredLeapClass = DropdownSetting("Leap Priority", LeapPriorities.map { it.toString() })
+    private val preferredLeapClass by DropdownSetting("Leap Priority", LeapPriorities.map(Any::toString))
 
-    override fun init() = addSettings(
-        rotationTime, predictSetting, rodSetting, maskSetting, leapSetting, preferredLeapClass
+    private const val STORM_DEATH_MESSAGE = "[BOSS] Storm: I should have known that I stood no chance."
+    private val DEVICE_DONE_REGEX = Regex("^(\\w{3,16}) completed a device! \\(\\d/\\d\\)\$")
+
+    private val devBlocks = listOf(
+        BlockPos(68, 130, 50), BlockPos(66, 130, 50), BlockPos(64, 130, 50),
+        BlockPos(68, 128, 50), BlockPos(66, 128, 50), BlockPos(64, 128, 50),
+        BlockPos(68, 126, 50), BlockPos(66, 126, 50), BlockPos(64, 126, 50)
     )
 
     private data class PhaseState(
         val tickTimer: Int = - 1,
         val lastEmeraldTick: Int = - 1,
-        val doneCoords: MutableSet<BlockPos> = mutableSetOf(),
+        val doneCoords: Set<BlockPos> = emptySet(),
         val hasLeaped: Boolean = false,
         val hasChangedMask: Boolean = false,
         val hasAlerted: Boolean = false
@@ -57,36 +65,56 @@ object AutoI4: Feature("Fully Automated I4.") {
     private var state = PhaseState()
     private var shootingAt: BlockPos? = null
     private var isPredicting = false
-    private var deviceShootingJob: Job? = null
+    private val deviceShootingJobs = ArrayDeque<suspend () -> Unit>()
+    private var deviceJob: Job? = null
+
+
+    private fun queue(action: suspend () -> Unit) {
+        deviceShootingJobs.add(action)
+        if (deviceJob?.isActive != true) {
+            processDeviceQueue()
+        }
+    }
+
+    private fun processDeviceQueue() {
+        deviceJob = scope.launch {
+            while (deviceShootingJobs.isNotEmpty()) {
+                runCatching {
+                    deviceShootingJobs.removeFirst().invoke()
+                }
+            }
+        }
+    }
+
+    private fun cancelAllJobs() {
+        deviceShootingJobs.clear()
+        deviceJob?.cancel()
+    }
 
     @SubscribeEvent
     fun onBlockChange(event: BlockChangeEvent) {
-        if (! isOnDev() || ServerPlayer.player.getHeldItem()?.item !is ItemBow) return
+        if (! isOnDev() || mc.thePlayer.heldItem?.item !is ItemBow) return
         if (event.pos !in devBlocks || event.oldBlock != stained_hardened_clay || event.block != emerald_block) return
 
-        state = state.copy(lastEmeraldTick = state.tickTimer)
-        deviceShootingJob?.cancel()
-        rotationJob?.cancel()
+        state = state.copy(
+            lastEmeraldTick = state.tickTimer,
+            doneCoords = state.doneCoords + event.pos
+        )
 
-        deviceShootingJob = scope.launch {
-            while (currentAction() == "Rod Swap") delay(1)
-
+        queue {
             val shotVec = getTargetVector(event.pos)
-            state.doneCoords.add(event.pos)
             shootingAt = event.pos
             isPredicting = false
             rotateAndShoot(shotVec)
-            while (rotationJob?.isActive == true) delay(1)
 
-            if (! predictSetting.value) return@launch
-
+            if (! predictSetting) return@queue
             getPredictionTarget(event.pos)?.let { nextTarget ->
                 val predictionVec = getTargetVector(nextTarget)
                 shootingAt = nextTarget
                 isPredicting = true
                 rotateAndShoot(predictionVec)
-                while (rotationJob?.isActive == true) delay(1)
             }
+
         }
     }
 
@@ -107,14 +135,12 @@ object AutoI4: Feature("Fully Automated I4.") {
     fun onChat(event: Chat) {
         val message = event.component.noFormatText
         when {
-            message == STORM_DEATH_MESSAGE -> {
-                state = state.copy(tickTimer = 0)
+            message == STORM_DEATH_MESSAGE -> state = PhaseState(tickTimer = 0).also {
                 setTimeout(30_000L) { state = state.copy(tickTimer = - 1) }
             }
 
-            message.matches(DEVICE_DONE_REGEX) && state.tickTimer >= 0 && isOnDev() && leapSetting.value -> {
+            message.matches(DEVICE_DONE_REGEX) && state.tickTimer >= 0 && isOnDev() && leapSetting ->
                 triggerPhaseCompletion("Completed Device")
-            }
         }
     }
 
@@ -125,42 +151,42 @@ object AutoI4: Feature("Fully Automated I4.") {
         if (! isOnDev()) return
 
         when {
-            state.tickTimer == 307 && leapSetting.value -> performLeap()
-            state.tickTimer == 244 && maskSetting.value && ! state.hasChangedMask -> changeMask()
-
-            state.tickTimer == 174 && rodSetting.value -> {
-                rodSwap()
-                deviceShootingJob?.cancel()
-                rotationJob?.cancel()
+            state.tickTimer == 307 && leapSetting -> {
+                cancelAllJobs()
+                queue(::performLeap)
             }
 
-            state.tickTimer == 174 && maskSetting.value -> {
+            state.tickTimer == 244 && maskSetting && ! state.hasChangedMask -> queue(ActionUtils::changeMaskAction)
+
+            state.tickTimer == 174 && rodSetting -> queue(ActionUtils::rodSwapAction)
+
+            state.tickTimer == 174 && maskSetting -> {
                 state = state.copy(hasChangedMask = true)
-                changeMask()
+                queue(ActionUtils::changeMaskAction)
             }
         }
 
         val ticksSinceLastEmerald = state.tickTimer - state.lastEmeraldTick
         val hasEmeraldBlock = devBlocks.any { getBlockAt(it) == emerald_block }
+        val shouldCheckForStall = rotationTime > 0 && state.tickTimer > 150 &&
+                ticksSinceLastEmerald > 30 && state.doneCoords.size > 4
 
-        if (rotationTime.value > 0 && state.tickTimer > 150 && ticksSinceLastEmerald > 30 && ! hasEmeraldBlock && state.doneCoords.size > 4)
-            triggerPhaseCompletion("Device stalled")
-    }
-
-    private fun reset() {
-        if (state.doneCoords.size > 1) holdClick(false)
-        deviceShootingJob?.cancel()
-        state = PhaseState().copy(tickTimer = state.tickTimer)
-        shootingAt = null
-        isPredicting = false
+        if (shouldCheckForStall) {
+            if (hasEmeraldBlock) {
+                state = state.copy(lastEmeraldTick = state.tickTimer)
+            }
+            else {
+                triggerPhaseCompletion("Device stalled")
+            }
+        }
     }
 
     private fun performLeap() {
-        if (state.hasLeaped) return
+        if (! leapSetting || state.hasLeaped) return
         state = state.copy(hasLeaped = true)
 
         val aliveTeammates = leapTeammates.filterNot { it.isDead }
-        val preferredClass = LeapPriorities[preferredLeapClass.value]
+        val preferredClass = LeapPriorities[preferredLeapClass]
 
         val target = aliveTeammates.find { it.clazz == preferredClass }
             ?: LeapPriorities.firstNotNullOfOrNull { priority ->
@@ -176,20 +202,63 @@ object AutoI4: Feature("Fully Automated I4.") {
     private fun triggerPhaseCompletion(reason: String) {
         if (state.hasAlerted) return
 
-        state = state.copy(hasAlerted = true)
-        deviceShootingJob?.cancel()
-        state = state.copy(tickTimer = - 1)
+        cancelAllJobs()
+        val remainingBlocks = 9 - state.doneCoords.size
 
-        performLeap()
+        queue {
+            if (state.hasAlerted) return@queue
+            state = state.copy(hasAlerted = true, tickTimer = - 1)
+            performLeap()
+            modMessage("Predicted $remainingBlocks/9")
+            modMessage("Trigger: $reason")
+        }
+    }
 
-        modMessage("Predicted ${9 - state.doneCoords.size}/9")
-        modMessage("Trigger: $reason")
+    private suspend fun rotateAndShoot(targetVec: Vec3) {
+        if (rotationTime == 0) return
+        val block = suspend {
+            delay(50)
+            sendRightClickAirPacket()
+        }
 
+
+        val (targetYaw, targetPitch) = calcYawPitch(targetVec)
+        val currentYaw = normalizeYaw(mc.thePlayer.rotationYaw)
+        val currentPitch = normalizePitch(mc.thePlayer.rotationPitch)
+        val tolerance = 1.0f
+
+        if (abs(currentYaw - targetYaw) <= tolerance && abs(currentPitch - targetPitch) <= tolerance) {
+            return block()
+        }
+
+        val startTime = System.currentTimeMillis()
+        while (true) {
+            val elapsed = System.currentTimeMillis() - startTime
+            val progress = if (rotationTime <= 0) 1.0 else min(elapsed.toDouble() / rotationTime, 1.0)
+
+            if (progress >= 1.0) {
+                block()
+                break
+            }
+
+            val easedProgress = easeInOutCubic(progress).toFloat()
+            val newYaw = interpolateYaw(currentYaw, targetYaw, easedProgress)
+            val newPitch = lerp(currentPitch, targetPitch, easedProgress).toFloat()
+            rotate(newYaw, newPitch)
+        }
+    }
+
+    private fun reset() {
+        if (state.doneCoords.size > 1) holdClick(false)
+        cancelAllJobs()
+        state = PhaseState().copy(tickTimer = state.tickTimer)
+        shootingAt = null
+        isPredicting = false
     }
 
     private fun isOnDev(): Boolean {
         val (x, y, z) = ServerPlayer.player.getVec()?.destructured() ?: return false
-        return y == 127.0 && x in 62.0 .. 65.0 && z in 34.0 .. 37.0 && enabled
+        return enabled && y == 127.0 && x in 62.0 .. 65.0 && z in 34.0 .. 37.0
     }
 
     private fun getTargetVector(pos: BlockPos): Vec3 {
@@ -203,49 +272,26 @@ object AutoI4: Feature("Fully Automated I4.") {
         return Vec3(targetX, 131.3 - 2 * row, 50.0)
     }
 
-    private fun rotateAndShoot(vec: Vec3) {
-        if (rotationTime.value == 0) return
-        rotateSmoothlyTo(vec, rotationTime.value.toLong()) {
-            if (currentAction() == "Rod Swap") delay(1)
-            delay(20)
-            sendRightClickAirPacket()
-            delay(20)
-        }
-    }
-
     private fun getPredictionTarget(lastHitPos: BlockPos): BlockPos? {
         return devBlocks.shuffled().find { potentialTarget ->
             val isNotDone = potentialTarget !in state.doneCoords
             val isCorrectBlockType = getBlockAt(potentialTarget) == stained_hardened_clay
-            val isNotAdjacent = potentialTarget.x == lastHitPos.x && potentialTarget.distanceSq(lastHitPos) > 4
-
-            isNotDone && isCorrectBlockType && ! isNotAdjacent
+            val isNonAdjacentInSameColumn = potentialTarget.x == lastHitPos.x && potentialTarget.distanceSq(lastHitPos) > 4
+            isNotDone && isCorrectBlockType && ! isNonAdjacentInSameColumn
         }
     }
 
     suspend fun testI4() {
-        //    ChatUtils.sendFakeChatMessage(STORM_DEATH_MESSAGE)
-        //    delay(STORM_PHASE_START_DELAY)
+        ChatUtils.sendFakeChatMessage(STORM_DEATH_MESSAGE)
+        delay(5000)
 
         for (pos in devBlocks.shuffled()) {
-            delay(600)
-            postAndCatch(BlockChangeEvent(pos, emerald_block, stained_hardened_clay))
+            delay(800)
             ghostBlock(pos, emerald_block.defaultState)
-            delay(400)
             postAndCatch(BlockChangeEvent(pos, stained_hardened_clay, emerald_block))
+            delay(600)
             ghostBlock(pos, stained_hardened_clay.defaultState)
+            postAndCatch(BlockChangeEvent(pos, emerald_block, stained_hardened_clay))
         }
     }
-
-
-    private const val STORM_DEATH_MESSAGE = "[BOSS] Storm: I should have known that I stood no chance."
-    private val DEVICE_DONE_REGEX = Regex("^(\\w{3,16}) completed a device! \\(\\d/\\d\\)\$")
-
-    private val devBlocks = listOf(
-        BlockPos(68, 130, 50), BlockPos(66, 130, 50), BlockPos(64, 130, 50),
-        BlockPos(68, 128, 50), BlockPos(66, 128, 50), BlockPos(64, 128, 50),
-        BlockPos(68, 126, 50), BlockPos(66, 126, 50), BlockPos(64, 126, 50)
-    )
 }
-
-

@@ -95,7 +95,7 @@ class DataClasses {
         val customScoreBoard = HudElementData(100f, 100f, 0.7f)
         val secretDisplay = HudElementData(100f, 100f, 1f)
         val dungeonMap = HudElementData(100f, 100f, 1f)
-        val scoreCalculator = HudElementData(100f, 100f, 1f) // todo
+        val scoreCalculator = HudElementData(100f, 100f, 1f)
         val inventoryDisplay = HudElementData(100f, 100f, 1f)
         val dungeonWarpCooldown = HudElementData(100f, 100f, 1f)
         val dungeonRunSplits = HudElementData(100f, 100f, 1f)

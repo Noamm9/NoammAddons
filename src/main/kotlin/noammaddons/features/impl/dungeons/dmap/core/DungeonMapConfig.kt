@@ -18,9 +18,9 @@ object DungeonMapConfig {
     val playerNameScale = SliderSetting("Player Name Scale", 0f, 2f, 0.05f, 0.8f)
 
     val mapBackgroundStyle = DropdownSetting("Map Background Style", listOf("Default", "Vanilla", "Disabled"), 0)
-    val mapBackground = ColorSetting("Map Background Color", Color(255, 255, 255, 50), true)
-    val mapBorderColor = ColorSetting("Map Border Color", Color(255, 255, 255), true)
-    val mapBorderWidth = SliderSetting("Border Thickness", 0.0, 10.0, 0.5, 1.0)
+    val mapBackground = ColorSetting("Map Background Color", Color(255, 255, 255, 50), true).addDependency { mapBackgroundStyle.value != 0 }
+    val mapBorderColor = ColorSetting("Map Border Color", Color(255, 255, 255), true).addDependency { mapBackgroundStyle.value != 0 }
+    val mapBorderWidth = SliderSetting("Border Thickness", 0.0, 10.0, 0.5, 1.0).addDependency { mapBackgroundStyle.value != 0 }
 
     val mapRoomNames = DropdownSetting("Room Names", listOf("None", "Puzzles", "Puzzles / Trap", "All"), 2)
     val limitRoomNameSize = ToggleSetting("Limit Room Name Size", true)
