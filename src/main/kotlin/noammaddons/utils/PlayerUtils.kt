@@ -6,6 +6,7 @@ import net.minecraft.entity.EntityLivingBase
 import net.minecraft.init.Items
 import net.minecraft.item.ItemStack
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
+import net.minecraft.util.MathHelper
 import net.minecraft.util.Vec3
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.features.impl.misc.PlayerModel.getPlayerScaleFactor
@@ -19,6 +20,7 @@ import noammaddons.utils.RenderHelper.renderVec
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.send
 
+
 object PlayerUtils {
     fun getPlayerHeight(ent: Entity, add: Number = 0): Float {
         return (1.8f + add.toFloat()) * getPlayerScaleFactor(ent)
@@ -30,7 +32,7 @@ object PlayerUtils {
         }
     }
 
-    fun swinghand() {
+    fun swingHand() {
         (mc.thePlayer as EntityLivingBase).apply {
             swingProgressInt = - 1
             isSwingInProgress = true
@@ -70,7 +72,7 @@ object PlayerUtils {
     }
 
     fun sendRightClickAirPacket() {
-        C08PacketPlayerBlockPlacement(mc.thePlayer?.heldItem).send()
+        C08PacketPlayerBlockPlacement(mc.thePlayer?.heldItem ?: return).send()
     }
 
     fun holdClick(hold: Boolean, type: String = "RIGHT") {
@@ -106,11 +108,23 @@ object PlayerUtils {
 
     fun getEyePos(): Vec3 = mc.thePlayer.run { renderVec.add(y = getEyeHeight()) }
 
-    fun rotate(yaw: Float, pitch: Float) = mc.thePlayer.apply {
+    fun rotate(yaw_: Float, pitch_: Float) = mc.thePlayer.apply {
+        var yaw = rotationYaw + MathHelper.wrapAngleTo180_float(yaw_ - rotationYaw)
+        var pitch = rotationPitch + MathHelper.wrapAngleTo180_float(pitch_ - mc.thePlayer.rotationPitch)
+
+        val rotations = floatArrayOf(yaw, pitch)
+        val lastRotations = floatArrayOf(rotationYaw, rotationPitch)
+
+        val fixedRotations = MathUtils.fixRot(rotations, lastRotations)
+
+        yaw = fixedRotations[0]
+        pitch = fixedRotations[1]
+
+        pitch = MathHelper.clamp_float(pitch, - 90.0f, 90.0f)
+
         rotationYaw = yaw
         rotationPitch = pitch
     }
-
 
     fun swapToSlot(slotIndex: Int) {
         if (mc.thePlayer == null || slotIndex !in 0 .. 8) return modMessage(

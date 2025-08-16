@@ -191,6 +191,7 @@ object ActionUtils {
         LeapMenu.players.find { it?.player?.name == leapTarget.name }?.let { target ->
             modMessage("Leaping To: &e[${leapTarget.clazz.name[0]}] &a${leapTarget.name}")
             sendWindowClickPacket(target.slot, 0, 0)
+            closeScreen()
             delay(500)
             hideGui(false)
         }
@@ -211,7 +212,7 @@ object ActionUtils {
         awaiting4EQ = itemID
         setTimeout(5000) { awaiting4EQ = "" }
 
-        while (awaiting4EQ.isNotBlank()) delay(50)
+        while (awaiting4EQ.isNotBlank()) delay(1)
     }
 
     private suspend fun getPotionAction(name: String) {
@@ -313,6 +314,7 @@ object ActionUtils {
                 LeapMenu.players.find { it?.player?.name == LEAP_TARGET?.name }?.let { target ->
                     modMessage("Leaping To: &e[${LEAP_TARGET !!.clazz.name[0]}] &a${LEAP_TARGET !!.name}")
                     sendWindowClickPacket(target.slot, 0, 0)
+                    closeScreen()
                     LEAP_TARGET = null
                     setTimeout(500) { hideGui(false) }
                 }
@@ -334,22 +336,13 @@ object ActionUtils {
         }
     }
 
-    init {
-        ThreadUtils.loop(250) {
-            if (! LocationUtils.inDungeon) return@loop
-            if (thePlayer == null) return@loop
-            if (thePlayer?.isDead == true) return@loop
-
-            actionQueue.clear()
-            rotationQueue.clear()
-        }
-    }
-
     private fun resetEQ(message: String? = null) {
-        setTimeout(1000) { hideGui(false) }
+        setTimeout(1000) {
+            hideGui(false)
+            awaiting4EQ = ""
+        }
         message?.let { modMessage(it) }
         closeScreen()
         SoundUtils.Pling()
-        awaiting4EQ = ""
     }
 }

@@ -9,7 +9,7 @@ import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.PlayerUtils.isHoldingEtherwarpItem
 import noammaddons.utils.PlayerUtils.rightClick
-import noammaddons.utils.PlayerUtils.swinghand
+import noammaddons.utils.PlayerUtils.swingHand
 import noammaddons.utils.PlayerUtils.toggleSneak
 import noammaddons.utils.ServerPlayer.player
 
@@ -65,13 +65,13 @@ object Etherwarp: Feature("Various features for the Etherwarp Ability") {
                 val halfTime = autoSneakDelaySlider.value.toLong() / 2
                 toggleSneak(true)
                 delay(halfTime)
-                if (swingHandToggle.value) swinghand()
+                if (swingHandToggle.value) swingHand()
                 rightClick()
                 delay(halfTime)
                 toggleSneak(false)
             }
             else {
-                if (swingHandToggle.value) swinghand()
+                if (swingHandToggle.value) swingHand()
                 rightClick()
             }
         }

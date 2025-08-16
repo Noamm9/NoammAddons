@@ -171,7 +171,7 @@ object DevOptions: Feature() {
 
             "leap" -> {
                 event.isCanceled = true
-                ActionUtils.leap("WebbierAmoeba0")
+                ActionUtils.leap("Noamissad")
             }
 
             "ah" -> {

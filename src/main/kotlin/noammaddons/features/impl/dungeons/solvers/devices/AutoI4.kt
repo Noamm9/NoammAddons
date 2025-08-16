@@ -12,7 +12,7 @@ import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.*
 import noammaddons.utils.ActionUtils.easeInOutCubic
-import noammaddons.utils.ActionUtils.leap
+import noammaddons.utils.ActionUtils.leapAction
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.ghostBlock
 import noammaddons.utils.ChatUtils.modMessage
@@ -53,24 +53,26 @@ object AutoI4: Feature("Fully Automated I4.") {
         BlockPos(68, 126, 50), BlockPos(66, 126, 50), BlockPos(64, 126, 50)
     )
 
+    private data class Action(val priority: Int, val block: suspend () -> Unit)
     private data class PhaseState(
         val tickTimer: Int = - 1,
         val lastEmeraldTick: Int = - 1,
         val doneCoords: Set<BlockPos> = emptySet(),
         val hasLeaped: Boolean = false,
         val hasChangedMask: Boolean = false,
-        val hasAlerted: Boolean = false
+        val hasAlerted: Boolean = false,
     )
 
-    private var state = PhaseState()
     private var shootingAt: BlockPos? = null
-    private var isPredicting = false
-    private val deviceShootingJobs = ArrayDeque<suspend () -> Unit>()
+    private var isPredicting: Boolean = false
+    private var state = PhaseState()
+    private val deviceActionQueue = ArrayDeque<Action>()
     private var deviceJob: Job? = null
 
 
-    private fun queue(action: suspend () -> Unit) {
-        deviceShootingJobs.add(action)
+    private fun queue(priority: Int, block: suspend () -> Unit) {
+        deviceActionQueue.add(Action(priority, block))
+        deviceActionQueue.sortByDescending { it.priority }
         if (deviceJob?.isActive != true) {
             processDeviceQueue()
         }
@@ -78,16 +80,16 @@ object AutoI4: Feature("Fully Automated I4.") {
 
     private fun processDeviceQueue() {
         deviceJob = scope.launch {
-            while (deviceShootingJobs.isNotEmpty()) {
+            while (deviceActionQueue.isNotEmpty()) {
                 runCatching {
-                    deviceShootingJobs.removeFirst().invoke()
+                    deviceActionQueue.removeFirst().block()
                 }
             }
         }
     }
 
     private fun cancelAllJobs() {
-        deviceShootingJobs.clear()
+        deviceActionQueue.clear()
         deviceJob?.cancel()
     }
 
@@ -101,20 +103,19 @@ object AutoI4: Feature("Fully Automated I4.") {
             doneCoords = state.doneCoords + event.pos
         )
 
-        queue {
-            val shotVec = getTargetVector(event.pos)
+        queue(1) {
             shootingAt = event.pos
             isPredicting = false
+            val shotVec = getTargetVector(event.pos)
             rotateAndShoot(shotVec)
 
             if (! predictSetting) return@queue
             getPredictionTarget(event.pos)?.let { nextTarget ->
-                val predictionVec = getTargetVector(nextTarget)
                 shootingAt = nextTarget
                 isPredicting = true
+                val predictionVec = getTargetVector(nextTarget)
                 rotateAndShoot(predictionVec)
             }
-
         }
     }
 
@@ -151,18 +152,15 @@ object AutoI4: Feature("Fully Automated I4.") {
         if (! isOnDev()) return
 
         when {
-            state.tickTimer == 307 && leapSetting -> {
-                cancelAllJobs()
-                queue(::performLeap)
-            }
+            state.tickTimer == 307 && leapSetting -> queue(4, ::performLeap)
 
-            state.tickTimer == 244 && maskSetting && ! state.hasChangedMask -> queue(ActionUtils::changeMaskAction)
+            state.tickTimer == 244 && maskSetting && ! state.hasChangedMask -> queue(3, ActionUtils::changeMaskAction)
 
-            state.tickTimer == 174 && rodSetting -> queue(ActionUtils::rodSwapAction)
+            state.tickTimer == 174 && rodSetting -> queue(2, ActionUtils::rodSwapAction)
 
             state.tickTimer == 174 && maskSetting -> {
                 state = state.copy(hasChangedMask = true)
-                queue(ActionUtils::changeMaskAction)
+                queue(3, ActionUtils::changeMaskAction)
             }
         }
 
@@ -172,42 +170,34 @@ object AutoI4: Feature("Fully Automated I4.") {
                 ticksSinceLastEmerald > 30 && state.doneCoords.size > 4
 
         if (shouldCheckForStall) {
-            if (hasEmeraldBlock) {
-                state = state.copy(lastEmeraldTick = state.tickTimer)
-            }
-            else {
-                triggerPhaseCompletion("Device stalled")
-            }
+            if (hasEmeraldBlock) state = state.copy(lastEmeraldTick = state.tickTimer)
+            else triggerPhaseCompletion("Device stalled")
         }
     }
 
-    private fun performLeap() {
+    suspend fun performLeap() {
         if (! leapSetting || state.hasLeaped) return
         state = state.copy(hasLeaped = true)
 
         val aliveTeammates = leapTeammates.filterNot { it.isDead }
         val preferredClass = LeapPriorities[preferredLeapClass]
-
         val target = aliveTeammates.find { it.clazz == preferredClass }
             ?: LeapPriorities.firstNotNullOfOrNull { priority ->
                 aliveTeammates.find { it.clazz == priority }
-            }
+            } ?: return
 
-        target?.let {
-            leap(it)
-            state = state.copy(tickTimer = - 1)
-        }
+        state = state.copy(tickTimer = - 1)
+        leapAction(target)
+        while (isOnDev()) delay(1)
     }
 
     private fun triggerPhaseCompletion(reason: String) {
         if (state.hasAlerted) return
-
-        cancelAllJobs()
+        state = state.copy(hasAlerted = true, tickTimer = - 1)
         val remainingBlocks = 9 - state.doneCoords.size
 
-        queue {
-            if (state.hasAlerted) return@queue
-            state = state.copy(hasAlerted = true, tickTimer = - 1)
+
+        queue(4) {
             performLeap()
             modMessage("Predicted $remainingBlocks/9")
             modMessage("Trigger: $reason")
@@ -220,7 +210,6 @@ object AutoI4: Feature("Fully Automated I4.") {
             delay(50)
             sendRightClickAirPacket()
         }
-
 
         val (targetYaw, targetPitch) = calcYawPitch(targetVec)
         val currentYaw = normalizeYaw(mc.thePlayer.rotationYaw)

@@ -43,7 +43,7 @@ object FeatureManager {
         WitherShieldTimer, BowHitSound, TeleportOverlay, CustomScoreboard, ScoreCalculator,
         BlockOverlay, WardrobeMenu, CustomPetMenu, TimeChanger, CustomTabList, TerminalSolver,
         ChamNametags, CustomSlotHighlight, InventoryDisplay, StopCloseMyChat, InventorySearchbar,
-        BlessingDisplay, ClientTimer, DarkMode, Animations, EnchantmentsColors,
+        BlessingDisplay, ClientTimer, DarkMode, Animations, EnchantmentsColors, TermAutoClicker,
 
         DungeonMap,
         // ZeroPingTeleportation, // - R.I.P fuck hypixel, fuck blinkers
