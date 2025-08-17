@@ -15,7 +15,7 @@ object CryptsDone: Feature() {
     private val message = TextInputSetting("Message", "$CHAT_PREFIX Crypts Done!").addDependency(sendMessage).register1()
 
     /**
-     * @see ScoreCalculation
+     * @see noammaddons.features.impl.dungeons.dmap.handlers.ScoreCalculation
      */
     val func = onSetValue@{ cryptsCount: Int ->
         if (! enabled) return@onSetValue

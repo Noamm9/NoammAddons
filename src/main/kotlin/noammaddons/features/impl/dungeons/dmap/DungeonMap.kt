@@ -70,9 +70,6 @@ object DungeonMap: Feature(toggled = false) {
                 MapUpdater.updateRooms(it)
                 MapUpdater.updatePlayers(it)
             }
-
-            ScoreCalculation.updateFromScoreboard()
-            ScoreCalculation.updateFromTab()
         }
 
         if (DungeonScanner.shouldScan || DevOptions.devMode) {
@@ -122,6 +119,8 @@ object DungeonMap: Feature(toggled = false) {
     @SubscribeEvent
     fun onPacket(event: PacketEvent.Received) {
         if (! inDungeon) return
+        ScoreCalculation.onPacket(event)
+
         if (event.packet !is S34PacketMaps) return
         if (DungeonInfo.dungeonMap != null) return
         if (mc.theWorld == null) return
