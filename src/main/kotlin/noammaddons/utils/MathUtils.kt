@@ -101,12 +101,12 @@ object MathUtils {
         return result
     }
 
-    fun fixRot(rot: FloatArray, lastRot: FloatArray): FloatArray {
-        val yaw = rot[0]
-        val pitch = rot[1]
+    fun fixRot(rot: Rotation, lastRot: Rotation): Rotation {
+        val yaw = rot.yaw
+        val pitch = rot.pitch
 
-        val lastYaw = lastRot[0]
-        val lastPitch = lastRot[1]
+        val lastYaw = lastRot.yaw
+        val lastPitch = lastRot.pitch
 
         val f = mc.gameSettings.mouseSensitivity * 0.6f + 0.2f
         val gcd = f * f * f * 1.2f
@@ -120,7 +120,7 @@ object MathUtils {
         val fixedYaw = lastYaw + fixedDYaw
         val fixedPitch = lastPitch + fixedDPitch
 
-        return floatArrayOf(fixedYaw, fixedPitch)
+        return Rotation(fixedYaw, fixedPitch)
     }
 
     fun calcYawPitch(blockPos: Vec3, playerPos: Vec3 = getEyePos()): Rotation {

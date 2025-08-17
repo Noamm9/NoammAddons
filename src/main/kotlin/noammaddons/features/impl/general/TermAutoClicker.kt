@@ -13,7 +13,7 @@ object TermAutoClicker: Feature(name = "Term AutoClicker") {
     private var nextClick = .0
 
     @SubscribeEvent
-    fun onRenderWorldLast(event: ClientTickEvent) {
+    fun onClientTickEvent(event: ClientTickEvent) {
         if (event.phase != Phase.START) return
         if (mc.currentScreen != null) return
         if (! mc.gameSettings.keyBindUseItem.isKeyDown) return

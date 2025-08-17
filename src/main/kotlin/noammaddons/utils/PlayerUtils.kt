@@ -112,13 +112,13 @@ object PlayerUtils {
         var yaw = rotationYaw + MathHelper.wrapAngleTo180_float(yaw_ - rotationYaw)
         var pitch = rotationPitch + MathHelper.wrapAngleTo180_float(pitch_ - mc.thePlayer.rotationPitch)
 
-        val rotations = floatArrayOf(yaw, pitch)
-        val lastRotations = floatArrayOf(rotationYaw, rotationPitch)
+        val rotations = Rotation(yaw, pitch)
+        val lastRotations = Rotation(rotationYaw, rotationPitch)
 
         val fixedRotations = MathUtils.fixRot(rotations, lastRotations)
 
-        yaw = fixedRotations[0]
-        pitch = fixedRotations[1]
+        yaw = fixedRotations.yaw
+        pitch = fixedRotations.pitch
 
         pitch = MathHelper.clamp_float(pitch, - 90.0f, 90.0f)
 

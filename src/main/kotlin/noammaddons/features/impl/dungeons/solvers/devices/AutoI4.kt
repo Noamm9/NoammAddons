@@ -1,5 +1,6 @@
 package noammaddons.features.impl.dungeons.solvers.devices
 
+import gg.essential.elementa.utils.withAlpha
 import kotlinx.coroutines.*
 import net.minecraft.init.Blocks.*
 import net.minecraft.item.ItemBow
@@ -125,10 +126,12 @@ object AutoI4: Feature("Fully Automated I4.") {
 
         devBlocks.forEach { pos ->
             val color = when {
+                isPredicting && shootingAt == pos -> Color.YELLOW
+                ! isPredicting && shootingAt == pos -> Color.GREEN
                 pos in state.doneCoords -> if (getBlockAt(pos) == emerald_block) Color.GREEN else Color.RED
                 else -> Color(0, 136, 255)
             }
-            drawBlockBox(pos, color, outline = false, fill = true, phase = true)
+            drawBlockBox(pos, color.withAlpha(30), outline = true, fill = true, phase = true)
         }
     }
 

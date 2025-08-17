@@ -159,8 +159,8 @@ object ActionUtils {
         if (keyState) holdClick(false)
         swapToSlot(rodIndex)
         delay(80)
-        sendRightClickAirPacket()
         mc.thePlayer.swingItem()
+        sendRightClickAirPacket()
         delay(80)
         swapToSlot(slotBeforeSwap)
         holdClick(keyState)
@@ -337,10 +337,8 @@ object ActionUtils {
     }
 
     private fun resetEQ(message: String? = null) {
-        setTimeout(1000) {
-            hideGui(false)
-            awaiting4EQ = ""
-        }
+        setTimeout(1000) { hideGui(false) }
+        awaiting4EQ = ""
         message?.let { modMessage(it) }
         closeScreen()
         SoundUtils.Pling()
