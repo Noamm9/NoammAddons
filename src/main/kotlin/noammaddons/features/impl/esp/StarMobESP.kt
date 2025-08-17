@@ -65,7 +65,7 @@ object StarMobESP: Feature("Highlights Star Mobs in the dungeon") {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     fun onPacket(event: PostPacketEvent.Received) {
         if (! inDungeon || inBoss) return
-        scheduledTask(6) {
+        scheduledTask(2) {
             when (val packet = event.packet) {
                 is S1CPacketEntityMetadata -> {
                     val armorStand = mc.theWorld.getEntityByID(packet.entityId) as? EntityArmorStand ?: return@scheduledTask

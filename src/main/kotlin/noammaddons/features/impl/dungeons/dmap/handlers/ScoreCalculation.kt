@@ -7,6 +7,7 @@ import noammaddons.features.impl.dungeons.ScoreCalculator
 import noammaddons.features.impl.dungeons.dmap.core.map.RoomState
 import noammaddons.utils.DungeonUtils
 import noammaddons.utils.DungeonUtils.puzzles
+import noammaddons.utils.DungeonUtils.watcherClearTime
 import noammaddons.utils.LocationUtils.dungeonFloor
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.LocationUtils.inBoss
@@ -22,6 +23,7 @@ object ScoreCalculation {
     private val completedRoomsRegex = Regex("§r Completed Rooms: §r§d(?<count>\\d+)§r")
     private val dungeonClearedPattern = Regex("Cleared: (?<percentage>\\d+)% \\(\\d+\\)")
     private val timeElapsedPattern = Regex(" Elapsed: (?:(?<hrs>\\d+)h )?(?:(?<min>\\d+)m )?(?:(?<sec>\\d+)s)?")
+    private var bloodDone = false
 
     var alerted300 = false
     var alerted270 = false
@@ -50,16 +52,16 @@ object ScoreCalculation {
     val score: Int
         get() {
             val currentFloor = dungeonFloor ?: return 0
-            val effectiveCompletedRooms = completedRooms + (/*if (! bloodDone) */1/* else 0*/) + (if (! inBoss) 1 else 0)
+            val effectiveCompletedRooms = completedRooms + (if (! bloodDone) 1 else 0) + (if (! inBoss) 1 else 0)
 
-            val exploration = floor((secretPercentage / (requiredSecretPercentage[currentFloor] !!)) / 100.0 * 40.0)
-                .coerceIn(.0, 40.0).toInt() + (effectiveCompletedRooms.toDouble() / totalRooms.toDouble() * 60.0).coerceIn(.0, 60.0).toInt()
+            val secretsScore = floor((secretPercentage / (requiredSecretPercentage[currentFloor] !!)) / 100.0 * 40.0).coerceIn(.0, 40.0).toInt()
+            val completedRoomScore = (effectiveCompletedRooms.toDouble() / totalRooms.toDouble() * 60.0).coerceIn(.0, 60.0).toInt()
 
             val skillRooms = floor(effectiveCompletedRooms.toDouble() / totalRooms.toDouble() * 80f).coerceIn(.0, 80.0).toInt()
             val puzzlePenalty = (puzzles.size - puzzles.count { it.state == RoomState.GREEN }) * 10
             val deathPenalty = (deathCount * 2 - 1).coerceAtLeast(0)
 
-            val score = exploration + (20 + skillRooms - puzzlePenalty - deathPenalty).coerceIn(20, 100) + bonusScore + speedScore
+            val score = secretsScore + completedRoomScore + (20 + skillRooms - puzzlePenalty - deathPenalty).coerceIn(20, 100) + bonusScore + speedScore
 
             if (score >= 270 && ! alerted270) ScoreCalculator.on270Score()
             if (score >= 300 && ! alerted300) ScoreCalculator.on300Score()
@@ -83,6 +85,7 @@ object ScoreCalculation {
             return (100 - getSpeedDeduction(percentageOver)).toInt().coerceAtLeast(0)
         }
 
+
     fun onWorldUnload() {
         deathCount = 0
         secretCount = 0
@@ -95,6 +98,7 @@ object ScoreCalculation {
         princeKilled = false
         alerted300 = false
         alerted270 = false
+        bloodDone = false
     }
 
     fun updateFromTab() {
@@ -106,7 +110,11 @@ object ScoreCalculation {
                 else secretsFoundPattern.find(line)?.let { secretCount = it.groups["secrets"]?.value?.toIntOrNull() ?: secretCount }
 
                 line.contains("Crypts:") -> cryptsPattern.find(line)?.let { cryptsCount.set(it.groups["crypts"]?.value?.toIntOrNull() ?: cryptsCount.get()) }
-                line.contains("Completed Rooms:") -> completedRoomsRegex.find(line)?.let { completedRooms = it.groups["count"]?.value?.toIntOrNull() ?: completedRooms }
+                line.contains("Completed Rooms:") -> completedRoomsRegex.find(line)?.let {
+                    val newCompletedRooms = it.groups["count"]?.value?.toIntOrNull()
+                    if (newCompletedRooms != completedRooms && watcherClearTime != null) bloodDone = true
+                    completedRooms = newCompletedRooms ?: completedRooms
+                }
             }
         }
     }
