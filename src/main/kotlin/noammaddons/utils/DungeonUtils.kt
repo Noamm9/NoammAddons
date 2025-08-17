@@ -28,7 +28,7 @@ import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.NumbersUtils.romanToDecimal
-import noammaddons.utils.TablistUtils.getTabList
+import noammaddons.utils.TablistUtils.tabList
 import noammaddons.utils.Utils.equalsOneOf
 import java.awt.Color
 
@@ -165,7 +165,7 @@ object DungeonUtils {
             }
         }
 
-        val tabList = getTabList.takeIf { it.size >= 18 || it[0].second.contains("§r§b§lParty §r§f(") } ?: return
+        val tabList = tabList.takeIf { it.size >= 18 || it[0].second.contains("§r§b§lParty §r§f(") } ?: return
         for ((networkPlayerInfo, line) in tabList) {
             val (sbLvl, name, clazz, clazzLevel) = tablistRegex.find(line.removeFormatting())?.destructured ?: continue
             runPlayersNames[name] = networkPlayerInfo.locationSkin
@@ -209,7 +209,7 @@ object DungeonUtils {
     }
 
     fun updatePuzzles() {
-        val tabList = getTabList.map { it.second.removeFormatting() }
+        val tabList = tabList.map { it.second.removeFormatting() }
         if (tabList.size < 60) return
 
         val oldInfoByName = puzzles.associateBy { it.name }

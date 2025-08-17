@@ -7,25 +7,21 @@ import noammaddons.features.impl.dungeons.ScoreCalculator
 import noammaddons.features.impl.dungeons.dmap.core.map.RoomState
 import noammaddons.utils.DungeonUtils
 import noammaddons.utils.DungeonUtils.puzzles
-import noammaddons.utils.DungeonUtils.watcherClearTime
 import noammaddons.utils.LocationUtils.dungeonFloor
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.ScoreboardUtils
+import noammaddons.utils.TablistUtils.tabList
 import kotlin.math.floor
 
 
 object ScoreCalculation {
-    private val deathsPattern = Regex("§r§a§l(?:Team )?Deaths: §r§f\\((?<deaths>\\d+)\\)§r")
-    private val puzzlePattern = Regex("§r (?<puzzle>.+): §r§7\\[§r§[ac6]§l(?<state>[✔✖✦])§r§7].+")
-    private val puzzleCountRegex = Regex("§r§b§lPuzzles: §r§f\\((?<count>\\d)\\)§r")
     private val secretsFoundPattern = Regex("§r Secrets Found: §r§b(?<secrets>\\d+)§r")
     private val secretsFoundPercentagePattern = Regex("§r Secrets Found: §r§[ae](?<percentage>[\\d.]+)%§r")
     private val cryptsPattern = Regex("§r Crypts: §r§6(?<crypts>\\d+)§r")
     private val completedRoomsRegex = Regex("§r Completed Rooms: §r§d(?<count>\\d+)§r")
     private val dungeonClearedPattern = Regex("Cleared: (?<percentage>\\d+)% \\(\\d+\\)")
     private val timeElapsedPattern = Regex(" Elapsed: (?:(?<hrs>\\d+)h )?(?:(?<min>\\d+)m )?(?:(?<sec>\\d+)s)?")
-    private inline val bloodDone get() = watcherClearTime != null
 
     var alerted300 = false
     var alerted270 = false
@@ -54,15 +50,16 @@ object ScoreCalculation {
     val score: Int
         get() {
             val currentFloor = dungeonFloor ?: return 0
-            val effectiveCompletedRooms = completedRooms + (if (! bloodDone) 1 else 0) + (if (! inBoss) 1 else 0)
+            val effectiveCompletedRooms = completedRooms + (/*if (! bloodDone) */1/* else 0*/) + (if (! inBoss) 1 else 0)
 
             val exploration = floor((secretPercentage / (requiredSecretPercentage[currentFloor] !!)) / 100.0 * 40.0)
                 .coerceIn(.0, 40.0).toInt() + (effectiveCompletedRooms.toDouble() / totalRooms.toDouble() * 60.0).coerceIn(.0, 60.0).toInt()
 
             val skillRooms = floor(effectiveCompletedRooms.toDouble() / totalRooms.toDouble() * 80f).coerceIn(.0, 80.0).toInt()
             val puzzlePenalty = (puzzles.size - puzzles.count { it.state == RoomState.GREEN }) * 10
+            val deathPenalty = (deathCount * 2 - 1).coerceAtLeast(0)
 
-            val score = exploration + (20 + skillRooms - puzzlePenalty - (deathCount * 2 - 1).coerceAtLeast(0)).coerceIn(20, 100) + bonusScore + speedScore
+            val score = exploration + (20 + skillRooms - puzzlePenalty - deathPenalty).coerceIn(20, 100) + bonusScore + speedScore
 
             if (score >= 270 && ! alerted270) ScoreCalculator.on270Score()
             if (score >= 300 && ! alerted300) ScoreCalculator.on300Score()
@@ -100,11 +97,9 @@ object ScoreCalculation {
         alerted270 = false
     }
 
-    fun updateFromTab(tabEntries: List<String>) {
-        tabEntries.forEach { line ->
+    fun updateFromTab() {
+        tabList.forEach { (p, line) ->
             when {
-                line.contains("Deaths:") -> deathsPattern.find(line)?.let { deathCount = it.groups["deaths"]?.value?.toIntOrNull() ?: deathCount }
-
                 line.contains("Secrets Found:") -> if (line.contains('%')) secretsFoundPercentagePattern.find(line)?.let {
                     secretPercentage = it.groups["percentage"]?.value?.toDoubleOrNull() ?: secretPercentage
                 }

@@ -16,13 +16,13 @@ import noammaddons.features.impl.dungeons.dmap.core.DungeonMapConfig
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapElement
 import noammaddons.features.impl.dungeons.dmap.core.map.*
 import noammaddons.features.impl.dungeons.dmap.handlers.*
+import noammaddons.features.impl.dungeons.dmap.handlers.ScoreCalculation.deathCount
 import noammaddons.features.impl.dungeons.dmap.utils.MapUtils
 import noammaddons.ui.config.core.annotations.AlwaysActive
 import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.inDungeon
-import noammaddons.utils.TablistUtils.getTabList
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.remove
 
@@ -72,7 +72,7 @@ object DungeonMap: Feature(toggled = false) {
             }
 
             ScoreCalculation.updateFromScoreboard()
-            ScoreCalculation.updateFromTab(getTabList.map { it.second })
+            ScoreCalculation.updateFromTab()
         }
 
         if (DungeonScanner.shouldScan || DevOptions.devMode) {
@@ -159,6 +159,7 @@ object DungeonMap: Feature(toggled = false) {
     @SubscribeEvent
     fun onPlayerDeathEvent(event: DungeonEvent.PlayerDeathEvent) {
         ClearInfoUpdater.updateDeaths(event.name, event.reason)
+        deathCount ++
     }
 
     @SubscribeEvent

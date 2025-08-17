@@ -14,7 +14,7 @@ import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.MathUtils.isCoordinateInsideBox
 import noammaddons.utils.ScoreboardUtils.cleanSB
 import noammaddons.utils.ScoreboardUtils.sidebarLines
-import noammaddons.utils.TablistUtils.getTabList
+import noammaddons.utils.TablistUtils.tabList
 
 
 object LocationUtils {
@@ -131,7 +131,7 @@ object LocationUtils {
 
     private fun updateWorldName() = WorldType.get(
         WorldNameRegex.find(
-            getTabList.joinToString { it.second.removeFormatting() }
+            tabList.joinToString { it.second.removeFormatting() }
         )?.destructured?.component2()
     )
 

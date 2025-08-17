@@ -54,7 +54,7 @@ object BloodRoom: Feature() {
 
     private data class BloodEntity(var startVec: Vec3, val start: Int, var firstSpawn: Boolean, var endVec: Vec3?)
 
-    private val entities = mutableMapOf<EntityArmorStand, BloodEntity>()
+    private val bloodMobs = mutableMapOf<EntityArmorStand, BloodEntity>()
     private var watcherEntity: EntityZombie? = null
     private var firstSpawns = true
     private var currentTicks = 0
@@ -145,7 +145,7 @@ object BloodRoom: Feature() {
             (entity.serverPosZ + packet.func_149064_e()) / 32.0,
         )
 
-        val data = entities.getOrPut(entity) {
+        val data = bloodMobs.getOrPut(entity) {
             BloodEntity(packetVector, currentTicks, firstSpawns, null)
         }.takeUnless { packetVector == it.startVec || it.endVec != null } ?: return
 
@@ -160,9 +160,9 @@ object BloodRoom: Feature() {
         if (! bloodCamp.value || watcherClearTime != null || bloodOpenTime == null) return
         if (! (showTimer.value || showLine.value || showBox.value)) return
 
-        entities.takeUnless { it.isEmpty() }?.entries?.toList()?.forEach { (entity, bloodMob) ->
+        bloodMobs.takeUnless { it.isEmpty() }?.entries?.toList()?.forEach { (entity, bloodMob) ->
             if (entity.isDead) {
-                entities.remove(entity)
+                bloodMobs.remove(entity)
                 return@forEach
             }
 
@@ -188,7 +188,7 @@ object BloodRoom: Feature() {
 
     @SubscribeEvent
     fun onWorldUnload(event: WorldUnloadEvent) {
-        entities.clear()
+        bloodMobs.clear()
         watcherEntity = null
         firstSpawns = true
         currentTicks = 0

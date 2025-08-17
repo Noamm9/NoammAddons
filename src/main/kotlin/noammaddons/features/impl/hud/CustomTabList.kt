@@ -13,8 +13,8 @@ import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawRainbowRoundedBorder
 import noammaddons.utils.RenderUtils.drawRoundedRect
 import noammaddons.utils.RenderUtils.drawText
-import noammaddons.utils.TablistUtils.getTabList
 import noammaddons.utils.TablistUtils.getTabListFooterText
+import noammaddons.utils.TablistUtils.tabList
 import noammaddons.utils.Utils.remove
 import noammaddons.utils.Utils.splitArray
 import java.awt.Color
@@ -37,7 +37,7 @@ object CustomTabList: Feature() {
         val screenHeight = mc.getHeight() / scale
         val fontHeight = 9
 
-        val names = getTabList.map { it.second }.takeUnless { it.isEmpty() } ?: return
+        val names = tabList.map { it.second }.takeUnless { it.isEmpty() } ?: return
         val footerLines = getTabListFooterText()?.split("\n")?.toMutableList()?.apply {
             removeIf { it.removeFormatting().contains("hypixel.net", true) }
         }?.takeUnless { it.isEmpty() } ?: return
