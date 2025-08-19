@@ -10,8 +10,8 @@ import net.minecraft.command.ICommandSender
 import noammaddons.NoammAddons.Companion.FULL_PREFIX
 import noammaddons.config.EditGui.HudEditorScreen
 import noammaddons.features.impl.dungeons.AutoPotion.potionName
-import noammaddons.features.impl.hud.TpsDisplay.getTps
 import noammaddons.ui.config.ConfigGUI
+import noammaddons.utils.*
 import noammaddons.utils.ActionUtils.changeMask
 import noammaddons.utils.ActionUtils.getPotion
 import noammaddons.utils.ActionUtils.leap
@@ -32,11 +32,9 @@ import noammaddons.utils.ProfileUtils.getStatus
 import noammaddons.utils.ScanUtils.currentRoom
 import noammaddons.utils.ScanUtils.getCore
 import noammaddons.utils.ScanUtils.getRoomCenterAt
-import noammaddons.utils.UpdateUtils
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.openDiscordLink
 import noammaddons.utils.Utils.remove
-import noammaddons.utils.WebUtils
 import java.net.URI
 
 
@@ -116,7 +114,7 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons", "noamm", "noam",
                 )
             )
 
-            "tps" -> modMessage(getTps())
+            "tps" -> modMessage("&bServer TPS: &f${ServerUtils.averageTps}")
 
             "potion" -> getPotion(
                 if (args.size > 1) args.copyOfRange(1, args.size).joinToString(" ")
@@ -170,6 +168,8 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons", "noamm", "noam",
                 }
             }
 
+            "ping" -> modMessage("&bAverage Ping: &a${ServerUtils.averagePing}ms")
+
             else -> modMessage("&cInvalid usage of command. &bUsage: /na <command>")
         }
     }
@@ -205,6 +205,7 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons", "noamm", "noam",
         "&b/na update &7- &oChecks for an Update.",
         "&b/na openlink [URL] &7- &oOpens the provided URL in a web browser.",
         "&b/na status [name] &7- &oChecks if the player is online.",
-        "&b/na rtca [name] &7- &oChecks the player's runs untill class avrage 50."
+        "&b/na rtca [name] &7- &oChecks the player's runs untill class avrage 50.",
+        "&b/na ping &7- &oPrints your current ping to chat"
     )
 }

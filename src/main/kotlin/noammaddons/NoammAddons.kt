@@ -101,7 +101,8 @@ class NoammAddons {
             ActionBarParser, PartyUtils,
             ChatUtils, EspUtils, ActionUtils,
             ServerPlayer, ScoreboardUtils,
-            PacketManager, FeatureManager
+            PacketManager, ServerUtils,
+            FeatureManager
         ).forEach(MinecraftForge.EVENT_BUS::register)
 
         mc.renderManager.skinMap.let {

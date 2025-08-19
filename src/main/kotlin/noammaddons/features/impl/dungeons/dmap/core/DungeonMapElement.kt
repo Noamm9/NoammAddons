@@ -278,10 +278,18 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
         val mimicStatus = if (MimicDetector.mimicKilled.get()) "&a&l✔&r" else "&c&l✖&r"
 
         val line1 = "&6Secrets: &b$foundSecrets&f/&e$totalSecrets    ${colorCodeByPresent(crypts, 5)}Crypts: $crypts"
-        val line2 = "&eScore: ${ScoreCalculation.score}&r    &cDeaths: ${colorCodeByPresent(deaths, 4, true)}$deaths&r    &cMimic: $mimicStatus"
+        val line2 = "&eScore: ${colorizeScore(ScoreCalculation.score)}&r    &cDeaths: ${colorCodeByPresent(deaths, 4, true)}$deaths&r    &cMimic: $mimicStatus"
         val text = listOf(line1, line2)
 
         MapRenderUtils.renderCenteredText(text, 0, 3, 0xffffff, 0.7f)
         GlStateManager.popMatrix()
+    }
+
+    fun colorizeScore(score: Int): String {
+        return when {
+            score < 270 -> "§c${score}"
+            score < 300 -> "§e${score}"
+            else -> "§a${score}"
+        }
     }
 }

@@ -1,9 +1,9 @@
 package noammaddons.features.impl.dungeons.dmap.handlers
 
 import gg.essential.elementa.state.BasicState
+import net.minecraft.network.Packet
 import net.minecraft.network.play.server.S38PacketPlayerListItem
 import net.minecraft.network.play.server.S3EPacketTeams
-import noammaddons.events.PacketEvent
 import noammaddons.features.impl.alerts.CryptsDone
 import noammaddons.features.impl.dungeons.MimicDetector
 import noammaddons.features.impl.dungeons.ScoreCalculator
@@ -105,56 +105,46 @@ object ScoreCalculation {
     }
 
 
-    fun onPacket(event: PacketEvent.Received) {
-        when (event.packet) {
+    fun onPacket(packet: Packet<*>) {
+        when (packet) {
             is S38PacketPlayerListItem -> {
-                if (! event.packet.action.equalsOneOf(S38PacketPlayerListItem.Action.UPDATE_DISPLAY_NAME, S38PacketPlayerListItem.Action.ADD_PLAYER)) return
-                val tabListEntries = event.packet.entries?.mapNotNull { it?.displayName?.formattedText } ?: return
-                updateFromTab(tabListEntries)
+                if (! packet.action.equalsOneOf(S38PacketPlayerListItem.Action.UPDATE_DISPLAY_NAME, S38PacketPlayerListItem.Action.ADD_PLAYER)) return
+                val tabListEntries = packet.entries?.mapNotNull { it?.displayName?.formattedText } ?: return
+                tabListEntries.forEach { line ->
+                    when {
+                        line.contains("Crypts:") -> cryptsPattern.find(line)?.let { cryptsCount.set(it.groups["crypts"]?.value?.toIntOrNull() ?: cryptsCount.get()) }
+                        line.contains("Completed Rooms:") -> completedRoomsRegex.find(line)?.let {
+                            completedRooms = it.groups["count"]?.value?.toIntOrNull() ?: completedRooms
+                        }
+
+                        line.contains("Secrets Found:") -> if (line.contains('%')) secretsFoundPercentagePattern.find(line)?.let {
+                            secretPercentage = it.groups["percentage"]?.value?.toDoubleOrNull() ?: secretPercentage
+                        }
+                        else secretsFoundPattern.find(line)?.let { secretCount = it.groups["secrets"]?.value?.toIntOrNull() ?: secretCount }
+                    }
+                }
             }
 
             is S3EPacketTeams -> {
-                if (event.packet.action != 2) return
-                val text = event.packet.prefix?.plus(event.packet.suffix) ?: return
-                updateFromScoreboard(ScoreboardUtils.cleanSB(text))
+                if (packet.action != 2) return
+                val text = ScoreboardUtils.cleanSB(packet.prefix?.plus(packet.suffix) ?: return)
+                when {
+                    text.startsWith("Cleared:") -> dungeonClearedPattern.find(text)?.let {
+                        val newCompletedRooms = it.groups["percentage"]?.value?.toIntOrNull()
+                        if (newCompletedRooms != clearedPercentage && watcherClearTime != null) bloodDone = true
+                        clearedPercentage = newCompletedRooms ?: clearedPercentage
+                    }
+
+                    text.startsWith("Time Elapsed:") -> timeElapsedPattern.find(text)?.let { matcher ->
+                        val hours = matcher.groups["hrs"]?.value?.toIntOrNull() ?: 0
+                        val minutes = matcher.groups["min"]?.value?.toIntOrNull() ?: 0
+                        val seconds = matcher.groups["sec"]?.value?.toIntOrNull() ?: 0
+                        secondsElapsed = (hours * 3600 + minutes * 60 + seconds)
+                    }
+                }
             }
         }
     }
-
-
-    fun updateFromTab(tabListEntries: List<String>) {
-        tabListEntries.forEach { line ->
-            when {
-                line.contains("Crypts:") -> cryptsPattern.find(line)?.let { cryptsCount.set(it.groups["crypts"]?.value?.toIntOrNull() ?: cryptsCount.get()) }
-                line.contains("Completed Rooms:") -> completedRoomsRegex.find(line)?.let {
-                    completedRooms = it.groups["count"]?.value?.toIntOrNull() ?: completedRooms
-                }
-
-                line.contains("Secrets Found:") -> if (line.contains('%')) secretsFoundPercentagePattern.find(line)?.let {
-                    secretPercentage = it.groups["percentage"]?.value?.toDoubleOrNull() ?: secretPercentage
-                }
-                else secretsFoundPattern.find(line)?.let { secretCount = it.groups["secrets"]?.value?.toIntOrNull() ?: secretCount }
-            }
-        }
-    }
-
-    fun updateFromScoreboard(line: String) = when {
-        line.startsWith("Cleared:") -> dungeonClearedPattern.find(line)?.let {
-            val newCompletedRooms = it.groups["percentage"]?.value?.toIntOrNull()
-            if (newCompletedRooms != clearedPercentage && watcherClearTime != null) bloodDone = true
-            clearedPercentage = newCompletedRooms ?: clearedPercentage
-        }
-
-        line.startsWith("Time Elapsed:") -> timeElapsedPattern.find(line)?.let { matcher ->
-            val hours = matcher.groups["hrs"]?.value?.toIntOrNull() ?: 0
-            val minutes = matcher.groups["min"]?.value?.toIntOrNull() ?: 0
-            val seconds = matcher.groups["sec"]?.value?.toIntOrNull() ?: 0
-            secondsElapsed = (hours * 3600 + minutes * 60 + seconds)
-        }
-
-        else -> {}
-    }
-
 
     private fun getSpeedDeduction(percentage: Float): Float {
         var percentageOver = percentage

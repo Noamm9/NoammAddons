@@ -34,7 +34,7 @@ class CategorySetting(
     }
 
     private fun updateHeight() {
-        val contentHeight = components.sumOf { it.height }
+        val contentHeight = components.filterNot { it.hidden }.sumOf { it.height }
         height = headerHeight + (contentHeight * expandAnimProgress)
     }
 
@@ -50,7 +50,7 @@ class CategorySetting(
         textRenderer.drawText(name, x + 6, y + (headerHeight - textRenderer.fr.fontHeight) / 2 + 1)
 
         if (expandAnimProgress > 0.0) {
-            val contentHeight = components.sumOf { it.height }
+            val contentHeight = components.filterNot { it.hidden }.sumOf { it.height }
             val animatedContentHeight = contentHeight * expandAnimProgress
             val contentY = y + headerHeight
 
@@ -59,7 +59,7 @@ class CategorySetting(
             }
 
             var childOffsetY = 0.0
-            for (component in components) {
+            for (component in components.filterNot { it.hidden }) {
                 component.width = this.width - 8
                 val componentX = x + 4
                 val componentY = contentY + childOffsetY
@@ -80,14 +80,13 @@ class CategorySetting(
         }
         else if (isExpanded) {
             var childOffsetY = 0.0
-            for (component in components) {
+            for (component in components.filterNot { it.hidden }) {
                 val componentY = y + headerHeight + childOffsetY
                 if (mouseY >= componentY && mouseY < componentY + component.height) {
                     component.mouseClicked(x + 4, componentY, mouseX, mouseY, button)
                 }
                 childOffsetY += component.height
             }
-
 
             scope.launch { repeat(250) { updateHeight(); delay(1) } }
         }
@@ -96,7 +95,7 @@ class CategorySetting(
     override fun mouseRelease(x: Double, y: Double, mouseX: Double, mouseY: Double, button: Int) {
         if (! isExpanded) return
         var childOffsetY = 0.0
-        for (component in components) {
+        for (component in components.filterNot { it.hidden }) {
             val componentY = y + headerHeight + childOffsetY
             if (mouseY >= componentY && mouseY < componentY + component.height) {
                 component.mouseRelease(x + 4, componentY, mouseX, mouseY, button)
@@ -108,7 +107,7 @@ class CategorySetting(
     override fun mouseDragged(x: Double, y: Double, mouseX: Double, mouseY: Double, button: Int) {
         if (! isExpanded) return
         var childOffsetY = 0.0
-        for (component in components) {
+        for (component in components.filterNot { it.hidden }) {
             val componentY = y + headerHeight + childOffsetY
             if (mouseY >= componentY && mouseY < componentY + component.height) {
                 component.mouseDragged(x + 4, componentY, mouseX, mouseY, button)
@@ -119,7 +118,7 @@ class CategorySetting(
 
     override fun keyTyped(typedChar: Char, keyCode: Int): Boolean {
         if (! isExpanded) return false
-        return components.any { it.keyTyped(typedChar, keyCode) }
+        return components.filterNot { it.hidden }.any { it.keyTyped(typedChar, keyCode) }
     }
 
 

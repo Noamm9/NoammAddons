@@ -5,10 +5,9 @@ import noammaddons.NoammAddons.Companion.CHAT_PREFIX
 import noammaddons.events.Chat
 import noammaddons.events.DungeonEvent
 import noammaddons.features.Feature
-import noammaddons.features.impl.hud.TpsDisplay
 import noammaddons.ui.config.core.impl.MultiCheckboxSetting
 import noammaddons.ui.config.core.impl.ToggleSetting
-import noammaddons.utils.ChatUtils.getPing
+import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
@@ -16,8 +15,6 @@ import noammaddons.utils.ChatUtils.sendChatMessage
 import noammaddons.utils.ChatUtils.sendPartyMessage
 import noammaddons.utils.ChatUtils.showTitle
 import noammaddons.utils.MathUtils.destructured
-import noammaddons.utils.PartyUtils
-import noammaddons.utils.SoundUtils
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.remove
 import noammaddons.utils.Utils.removeIf
@@ -91,7 +88,7 @@ object PartyCommands: Feature("Allows Party members to execute leader commands w
             }
 
             commands.get("!tps") && command == "tps" -> {
-                runCommand("pc ${CHAT_PREFIX.removeFormatting()} ${TpsDisplay.getTps()}")
+                runCommand("pc ${CHAT_PREFIX.removeFormatting()} TPS: ${ServerUtils.averageTps}")
             }
 
             commands.get("!dt") && command.equalsOneOf("dt", "downtime") -> {
@@ -104,8 +101,8 @@ object PartyCommands: Feature("Allows Party members to execute leader commands w
                 runCommand("pc $target is $gayPercentage% gay.")
             }
 
-            commands.get("!ping") && command == "ping" -> getPing { ping ->
-                runCommand("pc ${CHAT_PREFIX.removeFormatting()} Ping: ${ping}ms")
+            commands.get("!ping") && command == "ping" -> {
+                runCommand("pc ${CHAT_PREFIX.removeFormatting()} Ping: ${ServerUtils.latestPing}ms")
             }
 
             commands.get("!inv") && command.equalsOneOf("invite", "inv", "kidnap") -> {

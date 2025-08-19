@@ -119,7 +119,7 @@ object DungeonMap: Feature(toggled = false) {
     @SubscribeEvent
     fun onPacket(event: PacketEvent.Received) {
         if (! inDungeon) return
-        ScoreCalculation.onPacket(event)
+        ScoreCalculation.onPacket(event.packet)
 
         if (event.packet !is S34PacketMaps) return
         if (DungeonInfo.dungeonMap != null) return

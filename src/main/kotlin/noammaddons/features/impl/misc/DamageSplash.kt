@@ -7,7 +7,6 @@ import noammaddons.events.PacketEvent
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.ChatUtils.addColor
-import noammaddons.utils.ChatUtils.addRandomColorCodes
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.inSkyblock
@@ -37,5 +36,20 @@ object DamageSplash: Feature() {
         else "&3${format(damage)}"
 
         nameData.setObject(newName.addColor())
+    }
+
+    private fun addRandomColorCodes(inputString: String): String {
+        val colorCodes = listOf("§6", "§c", "§e", "§f")
+        val result = StringBuilder()
+        var lastColor: String? = null
+
+        for (char in inputString.removeFormatting()) {
+            val availableColors = colorCodes.filter { it != lastColor }
+            val randomColor = availableColors.random()
+            result.append(randomColor).append(char).append("§r")
+            lastColor = randomColor
+        }
+
+        return result.toString()
     }
 }

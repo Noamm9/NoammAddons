@@ -5,8 +5,6 @@ import gg.essential.api.EssentialAPI
 import gg.essential.universal.UChat
 import gg.essential.universal.UChat.addColor
 import gg.essential.universal.wrappers.message.UTextComponent
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import net.minecraft.event.ClickEvent
 import net.minecraft.event.HoverEvent
 import net.minecraft.network.play.client.C01PacketChatMessage
@@ -19,17 +17,14 @@ import noammaddons.NoammAddons.Companion.DEBUG_PREFIX
 import noammaddons.NoammAddons.Companion.FULL_PREFIX
 import noammaddons.NoammAddons.Companion.Logger
 import noammaddons.NoammAddons.Companion.mc
-import noammaddons.NoammAddons.Companion.scope
 import noammaddons.events.*
 import noammaddons.events.EventDispatcher.postAndCatch
 import noammaddons.features.impl.DevOptions
-import noammaddons.utils.LocationUtils.inSkyblock
 import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderUtils.drawTitle
 import noammaddons.utils.ThreadUtils.loop
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.remove
-import noammaddons.utils.Utils.send
 import java.util.*
 import kotlin.math.roundToInt
 
@@ -37,12 +32,8 @@ import kotlin.math.roundToInt
 object ChatUtils {
     data class title(val title: Any?, val subtitle: Any?, var time: Long, val rainbow: Boolean)
 
-    val unicodeRegex = Regex("[^\\u0000-\\u007F§]")
-
     private val titles = mutableListOf<title>()
-    private var startTime = 0L
-    private var ping = 0
-    private var isCalculatingPing = false
+    private val unicodeRegex = Regex("[^\\u0000-\\u007F§]")
 
 
     fun getChatBreak(separator: String = "-"): String? {
@@ -148,20 +139,6 @@ object ChatUtils {
         mc.thePlayer?.addChatMessage(textComponent)
     }
 
-    fun addRandomColorCodes(inputString: String): String {
-        val colorCodes = listOf("§6", "§c", "§e", "§f")
-        val result = StringBuilder()
-        var lastColor: String? = null
-
-        for (char in inputString.removeFormatting()) {
-            val availableColors = colorCodes.filter { it != lastColor }
-            val randomColor = availableColors.random()
-            result.append(randomColor).append(char).append("§r")
-            lastColor = randomColor
-        }
-
-        return result.toString()
-    }
 
     /**
      * Display a title.
@@ -197,29 +174,6 @@ object ChatUtils {
             if (title.time <= 0) return
             drawTitle(title.title.toString(), title.subtitle.toString(), title.rainbow)
         }
-    }
-
-    fun getPing(callback: (ping: Int) -> Unit) {
-        if (! inSkyblock) return
-        if (isCalculatingPing) return // Prevent multiple ping checks simultaneously
-
-        C01PacketChatMessage("/Noamm9 is the best!").send()
-        isCalculatingPing = true
-        startTime = System.currentTimeMillis()
-
-        scope.launch {
-            while (isCalculatingPing) delay(1)
-            callback(ping)
-        }
-    }
-
-    @SubscribeEvent
-    fun calcPing(event: Chat) {
-        if (! event.component.unformattedText.removeFormatting().contains("('Noamm9 is the best!')")) return
-        event.isCanceled = true
-
-        ping = (System.currentTimeMillis() - startTime).toInt()
-        isCalculatingPing = false
     }
 
     /**
