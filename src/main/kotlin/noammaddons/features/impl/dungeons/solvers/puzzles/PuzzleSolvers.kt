@@ -11,7 +11,7 @@ object PuzzleSolvers: Feature("Puzzle Solvers for Dungeon Clear") {
     private val solvers = listOf(
         CreeperBeamSolver, BlazeSolver,
         BoulderSolver, ThreeWeirdosSolver,
-        TeleportMazeSolver
+        TeleportMazeSolver, WaterBoardSolver
     )
 
     override fun onEnable() {
@@ -51,6 +51,9 @@ object PuzzleSolvers: Feature("Puzzle Solvers for Dungeon Clear") {
     val correctTpPadColor = ColorSetting("Correct Pad Color", Color.GREEN.withAlpha(80)).addDependency(tpMaze)
     val wrongTpPadColor = ColorSetting("Wrong Pad Color", Color.RED.withAlpha(111)).addDependency(tpMaze)
 
+    val waterBoard = ToggleSetting("Water Board ")
+    val firstTracerColor = ColorSetting("First Tracer Color", favoriteColor, false).addDependency(waterBoard)
+    val secondTracerColor = ColorSetting("Second Tracer Color", Color.YELLOW, false).addDependency(waterBoard)
 
     override fun init() = addSettings(
         SeperatorSetting("Creeper Beam"),
@@ -62,6 +65,8 @@ object PuzzleSolvers: Feature("Puzzle Solvers for Dungeon Clear") {
         SeperatorSetting("Three Weirdos"),
         weirdos, WremoveNPCS, WremoveChests, Wcolor, WcolorWrong,
         SeperatorSetting("Teleport Maze"),
-        tpMaze, correctTpPadColor, wrongTpPadColor
+        tpMaze, correctTpPadColor, wrongTpPadColor,
+        SeperatorSetting("Water Board"),
+        waterBoard, firstTracerColor, secondTracerColor
     )
 }
