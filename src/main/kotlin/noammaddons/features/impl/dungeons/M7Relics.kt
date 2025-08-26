@@ -49,7 +49,7 @@ object M7Relics: Feature(name = "M7 Relics", desc = "A bunch of M7 Relics featur
     private var spawnTimerTicks = 0
     private var p5StartTime = 0L
 
-    private val RelicCauldrons = mapOf(
+    private val relicCauldrons = mapOf(
         "Corrupted Blue Relic" to RelicCauldron(Vec3(59.0, 7.0, 44.0), Color(0, 138, 255, 40), BlockPos(91, 7, 94)),
         "Corrupted Orange Relic" to RelicCauldron(Vec3(57.0, 7.0, 42.0), Color(255, 114, 0, 40), BlockPos(92, 7, 56)),
         "Corrupted Purple Relic" to RelicCauldron(Vec3(54.0, 7.0, 41.0), Color(129, 0, 111, 40), BlockPos(56, 9, 132)),
@@ -121,7 +121,7 @@ object M7Relics: Feature(name = "M7 Relics", desc = "A bunch of M7 Relics featur
         if (F7Phase != 5) return
         val packet = event.packet as? S2FPacketSetSlot ?: return
 
-        RelicCauldrons[packet.func_149174_e()?.displayName?.removeFormatting()]?.let { c ->
+        relicCauldrons[packet.func_149174_e()?.displayName?.removeFormatting()]?.let { c ->
             if (! c.relicPos.equalsOneOf(BlockPos(92, 7, 56), BlockPos(20, 7, 59))) return@let
             ActionUtils.rotateSmoothlyTo(c.cauldronPos.add(0.5, 0.5, 0.5), relicLookTime.value.toLong())
         }
@@ -146,13 +146,13 @@ object M7Relics: Feature(name = "M7 Relics", desc = "A bunch of M7 Relics featur
         if (! relicBox.value) return
         if (F7Phase != 5) return
 
-        RelicCauldrons[mc.thePlayer?.inventory?.getStackInSlot(8)?.displayName?.removeFormatting()]?.let { c ->
+        relicCauldrons[mc.thePlayer?.inventory?.getStackInSlot(8)?.displayName?.removeFormatting()]?.let { c ->
             drawBlockBox(c.cauldronPos.toPos(), c.color, outline = true, fill = true, phase = true)
             drawTracer(c.cauldronPos.add(Vec3(0.5, 0.5, 0.5)), c.color)
         }
 
         if (! drawOutline) return
-        RelicCauldrons.values.forEach { v ->
+        relicCauldrons.values.forEach { v ->
             drawBox(
                 v.relicPos.x + 0.25,
                 v.relicPos.y + 0.3,

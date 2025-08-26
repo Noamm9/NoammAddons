@@ -32,7 +32,7 @@ object ScoreCalculation {
     var alerted270 = false
 
     var deathCount = 0
-    var secretCount = 0
+    var foundSecrets = 0
     var cryptsCount = BasicState(0)
 
     init {
@@ -91,7 +91,7 @@ object ScoreCalculation {
 
     fun onWorldUnload() {
         deathCount = 0
-        secretCount = 0
+        foundSecrets = 0
         cryptsCount.set(0)
         secretPercentage = 0.0
         clearedPercentage = 0
@@ -120,7 +120,7 @@ object ScoreCalculation {
                         line.contains("Secrets Found:") -> if (line.contains('%')) secretsFoundPercentagePattern.find(line)?.let {
                             secretPercentage = it.groups["percentage"]?.value?.toDoubleOrNull() ?: secretPercentage
                         }
-                        else secretsFoundPattern.find(line)?.let { secretCount = it.groups["secrets"]?.value?.toIntOrNull() ?: secretCount }
+                        else secretsFoundPattern.find(line)?.let { foundSecrets = it.groups["secrets"]?.value?.toIntOrNull() ?: foundSecrets }
                     }
                 }
             }

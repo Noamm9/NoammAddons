@@ -268,20 +268,20 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
         if (! DungeonMapConfig.mapExtraInfo.value) return
         if (! DungeonMapConfig.dungeonMapCheater.value && ! dungeonStarted) return
 
+        val secretsStr = "&6Secrets: &b${ScoreCalculation.foundSecrets}&f/&e${DungeonInfo.secretCount}"
+        val cryptsStr = colorCodeByPresent(ScoreCalculation.cryptsCount.get(), 5) + "Crypts: ${ScoreCalculation.cryptsCount.get()}"
+        val scoreStr = "&eScore: ${colorizeScore(ScoreCalculation.score)}&r"
+        val deathsStr = "&cDeaths: ${colorCodeByPresent(ScoreCalculation.deathCount, 4, true)}${ScoreCalculation.deathCount}&r"
+        val mimicStr = "&cM: ${if (MimicDetector.mimicKilled.get()) "&a&l✔&r" else "&c&l✖&r"}"
+        val princeStr = "&eP: ${if (MimicDetector.princeKilled.get()) "&a&l✔&r" else "&c&l✖&r"}"
+
+        val line1 = "$secretsStr    $cryptsStr"
+        val line2 = "$scoreStr   $deathsStr   $mimicStr $princeStr"
+        val textLines = listOf(line1, line2)
+
         GlStateManager.pushMatrix()
         GlStateManager.translate(128f / 2f, 128f, 1f)
-
-        val foundSecrets = ScoreCalculation.secretCount
-        val totalSecrets = DungeonInfo.secretCount
-        val crypts = ScoreCalculation.cryptsCount.get()
-        val deaths = ScoreCalculation.deathCount
-        val mimicStatus = if (MimicDetector.mimicKilled.get()) "&a&l✔&r" else "&c&l✖&r"
-
-        val line1 = "&6Secrets: &b$foundSecrets&f/&e$totalSecrets    ${colorCodeByPresent(crypts, 5)}Crypts: $crypts"
-        val line2 = "&eScore: ${colorizeScore(ScoreCalculation.score)}&r    &cDeaths: ${colorCodeByPresent(deaths, 4, true)}$deaths&r    &cMimic: $mimicStatus"
-        val text = listOf(line1, line2)
-
-        MapRenderUtils.renderCenteredText(text, 0, 3, 0xffffff, 0.7f)
+        MapRenderUtils.renderCenteredText(textLines, 0, 3, 0xffffff, 0.7f)
         GlStateManager.popMatrix()
     }
 

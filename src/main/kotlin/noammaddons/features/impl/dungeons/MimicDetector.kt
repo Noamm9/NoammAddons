@@ -48,7 +48,7 @@ object MimicDetector: Feature("Detects when a mimic is killed") {
 
     private val princeMessages = listOf(
         "prince dead", "prince dead!", "\$skytils-dungeon-score-prince\$",
-        "prince killed", "prince slain", "prince killed!"
+        "prince killed", "prince slain", "prince killed!", "a prince falls. +1 bonus score"
     )
 
     private fun sendMimicMessage() {
@@ -65,7 +65,6 @@ object MimicDetector: Feature("Detects when a mimic is killed") {
         highlightChest, highlightColor
     )
 
-
     @SubscribeEvent
     fun onWorldUnload(event: WorldUnloadEvent) {
         mimicKilled.set(false)
@@ -76,8 +75,13 @@ object MimicDetector: Feature("Detects when a mimic is killed") {
     fun onChat(event: Chat) {
         if (! inDungeon) return
         val msg = event.component.noFormatText.lowercase()
-        if (mimicMessages.any { msg.contains(it) }) return mimicKilled.set(true)
-        if (princeMessages.any { msg.contains(it) }) return princeKilled.set(true)
+        if (princeMessages.any { msg.contains(it) }) {
+            princeKilled.set(true)
+            if (msg == "a prince falls. +1 bonus score")
+                sendPartyMessage("Prince Killed")
+            return
+        }
+        if (mimicMessages.any { msg.contains(it) }) mimicKilled.set(true)
     }
 
     @SubscribeEvent

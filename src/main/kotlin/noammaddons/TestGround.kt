@@ -79,11 +79,16 @@ object TestGround {
 
     @SubscribeEvent
     fun fuckLocraw2(event: PacketEvent.Sent) {
-        if (! fuckingBitch) return
         val packet = event.packet as? C01PacketChatMessage ?: return
-        if (packet.message != "/locraw") return
-        debugMessage("Cancelling /locraw")
-        event.isCanceled = true
+        if (fuckingBitch) {
+            if (packet.message != "/locraw") return
+            debugMessage("Cancelling /locraw")
+            event.isCanceled = true
+        }
+
+        if (event.packet.message == "/odingetpingcommand-----") {
+            event.isCanceled = true
+        }
     }
 
     @SubscribeEvent
