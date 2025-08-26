@@ -20,18 +20,18 @@ import noammaddons.utils.Utils.splitArray
 import java.awt.Color
 
 object CustomTabList: Feature() {
-    private val backgroundColor = Color(33, 33, 33, 153)
-    private val regex = Regex("\\s")
-
     private val scale by SliderSetting("Scale", 1, 100, 1, 75)
 
     @SubscribeEvent
     fun onRenderOverlayNoCaching(event: RenderOverlayNoCaching) {
         if (! mc.gameSettings.keyBindPlayerList.isKeyDown) return
-
         GlStateManager.pushMatrix()
         GlStateManager.translate(0f, 0f, 300f)
+        drawTablist()
+        GlStateManager.popMatrix()
+    }
 
+    fun drawTablist() {
         val scale = (2.4f * (scale.toFloat() / 100f)) / mc.getScaleFactor()
         val screenWidth = mc.getWidth() / scale
         val screenHeight = mc.getHeight() / scale
@@ -40,10 +40,10 @@ object CustomTabList: Feature() {
         val names = tabList.map { it.second }.takeUnless { it.isEmpty() } ?: return
         val footerLines = getTabListFooterText()?.split("\n")?.toMutableList()?.apply {
             removeIf { it.removeFormatting().contains("hypixel.net", true) }
-        }?.takeUnless { it.isEmpty() } ?: return
+        }?.takeUnless { it.isEmpty() }
 
         val maxNameWidth = names.maxOfOrNull { getStringWidth(it) } ?: return
-        val maxFooterWidth = footerLines.takeUnless { it.isEmpty() }?.maxOfOrNull { getStringWidth(it) } ?: return
+        val maxFooterWidth = footerLines.takeUnless { it?.isEmpty() == true }?.maxOfOrNull { getStringWidth(it) } ?: 0f
 
         val rowsCount = splitArray(names, 20).size.coerceIn(1, 4)
 
@@ -55,7 +55,7 @@ object CustomTabList: Feature() {
 
         GlStateManager.scale(scale, scale, scale)
 
-        drawRoundedRect(backgroundColor, xOffset, yOffset, tableWidth, tableHeight)
+        drawRoundedRect(Color(33, 33, 33, 153), xOffset, yOffset, tableWidth, tableHeight)
         drawRainbowRoundedBorder(xOffset, yOffset, tableWidth, tableHeight)
 
         splitArray(names, 20).forEachIndexed { index, row ->
@@ -70,13 +70,14 @@ object CustomTabList: Feature() {
             }
         }
 
-        if (footerLines.isNotEmpty() && footerLines.joinToString { it.removeFormatting().lowercase().remove(regex) }.isNotBlank()) {
+        if (footerLines == null) return
+        if (footerLines.isNotEmpty() && footerLines.joinToString { it.removeFormatting().lowercase().remove(Regex("\\s")) }.isNotBlank()) {
             val footerWidth = maxFooterWidth + 20
             val footerHeight = fontHeight * footerLines.size + 10
             val footerXOffset = screenWidth / 2 - footerWidth / 2
             val footerYOffset = yOffset + tableHeight + 30
 
-            drawRoundedRect(backgroundColor, footerXOffset, footerYOffset, footerWidth, footerHeight)
+            drawRoundedRect(Color(33, 33, 33, 153), footerXOffset, footerYOffset, footerWidth, footerHeight)
             drawRainbowRoundedBorder(footerXOffset, footerYOffset, footerWidth, footerHeight)
 
             footerLines.forEachIndexed { i, line ->
@@ -87,7 +88,5 @@ object CustomTabList: Feature() {
                 )
             }
         }
-
-        GlStateManager.popMatrix()
     }
 }

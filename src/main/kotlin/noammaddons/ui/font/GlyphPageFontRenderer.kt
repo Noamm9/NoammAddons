@@ -6,6 +6,7 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import noammaddons.NoammAddons.Companion.MOD_ID
 import org.lwjgl.opengl.GL11
 import java.awt.Font
+import kotlin.math.round
 
 
 class GlyphPageFontRenderer(
@@ -147,8 +148,8 @@ class GlyphPageFontRenderer(
         GlStateManager.enableAlpha()
         resetStyles()
 
-        val roundedX = (kotlin.math.round(x * 2) / 2.0).toFloat()
-        val roundedY = (kotlin.math.round(y * 2) / 2.0).toFloat()
+        val roundedX = (round(x * 2) / 2.0).toFloat()
+        val roundedY = (round(y * 2) / 2.0).toFloat()
 
         val finalWidth: Int
         if (dropShadow) {

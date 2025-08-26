@@ -36,12 +36,13 @@ object ScoreboardUtils {
         }
 
         sidebarLines = scoreboard.getSortedScores(objective).asSequence()
-            .filterNot { it?.playerName?.startsWith("#") == true }
-            .take(15)
+            .filterNot { it?.playerName?.startsWith("#") == true }.take(15)
             .map { ScorePlayerTeam.formatPlayerName(scoreboard.getPlayersTeam(it.playerName), it.playerName) }
             .plus(objective.displayName)
-            .toList()
+            .map(::removeInvisibleChars).toList()
     }
+
+    fun removeInvisibleChars(str: String) = str.filter { mc.fontRendererObj.getCharWidth(it) > 0 || it == '§' }
 
     fun cleanSB(scoreboard: String): String = removeUnicode(scoreboard.removeFormatting())
 }

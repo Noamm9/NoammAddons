@@ -53,8 +53,8 @@ object HudEditorScreen: GuiScreen() {
         super.drawScreen(mouseX, mouseY, partialTicks)
 
         dragging?.let { element ->
-            element.setX((actualMouseX - dragOffsetX).coerceIn(0f, sr.scaledWidth - element.width))
-            element.setY((actualMouseY - dragOffsetY).coerceIn(0f, sr.scaledHeight - element.height))
+            element.setX((actualMouseX - dragOffsetX))
+            element.setY((actualMouseY - dragOffsetY))
         }
     }
 
@@ -184,11 +184,7 @@ object HudEditorScreen: GuiScreen() {
         val actualMouseX = Mouse.getX() * width / mc.displayWidth
         val actualMouseY = height - Mouse.getY() * height / mc.displayHeight - 1
 
-        if (showResetConfirm) {
-            handleResetConfirmClick(actualMouseX, actualMouseY)
-            return
-        }
-
+        if (showResetConfirm) return handleResetConfirmClick(actualMouseX, actualMouseY)
         handleResetButtonClick(actualMouseX, actualMouseY, mouseButton)
 
         if (mouseButton == 0) handleElementDrag(actualMouseX, actualMouseY)
