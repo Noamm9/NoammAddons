@@ -45,6 +45,7 @@ object FeatureManager {
         TimeChanger, CustomTabList, TerminalSolver, ChamNametags, CustomSlotHighlight,
         InventoryDisplay, StopCloseMyChat, InventorySearchbar, BlessingDisplay,
         ClientTimer, DarkMode, Animations, EnchantmentsColors, TermAutoClicker,
+        ArrowFix,
 
         DungeonMap,
         // ZeroPingTeleportation, // - R.I.P fuck hypixel, fuck blinkers
