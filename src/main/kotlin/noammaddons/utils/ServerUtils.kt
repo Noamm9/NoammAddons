@@ -1,15 +1,15 @@
 package noammaddons.utils
 
-import net.minecraft.network.play.client.C16PacketClientStatus
+import net.minecraft.network.play.client.C14PacketTabComplete
 import net.minecraft.network.play.server.S03PacketTimeUpdate
-import net.minecraft.network.play.server.S37PacketStatistics
+import net.minecraft.network.play.server.S3APacketTabComplete
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.events.PacketEvent
 import noammaddons.events.Tick
 import noammaddons.utils.NumbersUtils.toFixed
-import noammaddons.utils.Utils.sendNoEvent
+import noammaddons.utils.Utils.send
 import java.util.*
 
 
@@ -51,7 +51,7 @@ object ServerUtils {
 
     @SubscribeEvent
     fun onPacketReceived(event: PacketEvent.Received) {
-        if (event.packet is S37PacketStatistics && isPinging) {
+        if (event.packet is S3APacketTabComplete && isPinging) {
             val rttNano = System.nanoTime() - pingStartTime
             val rttMillis = (rttNano / 1_000_000).toInt()
 
@@ -71,7 +71,7 @@ object ServerUtils {
 
         isPinging = true
         pingStartTime = System.nanoTime()
-        C16PacketClientStatus(C16PacketClientStatus.EnumState.REQUEST_STATS).sendNoEvent()
+        C14PacketTabComplete(mc.session.username).send()
     }
 
     private fun updateAverage(newPing: Int) {
