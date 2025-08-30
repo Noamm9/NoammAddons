@@ -129,7 +129,8 @@ class DataClasses {
             "Three Weirdos" to null,
             "Boulder" to null,
             "Teleport Maze" to null,
-            "Water Board" to null
+            "Water Board" to null,
+            "Tic Tac Toe" to null
         )
 
         val crystals = mutableListOf<Double?>()

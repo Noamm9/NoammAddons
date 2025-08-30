@@ -11,7 +11,8 @@ object PuzzleSolvers: Feature("Puzzle Solvers for Dungeon Clear") {
     private val solvers = listOf(
         CreeperBeamSolver, BlazeSolver,
         BoulderSolver, ThreeWeirdosSolver,
-        TeleportMazeSolver, WaterBoardSolver
+        TeleportMazeSolver, WaterBoardSolver,
+        TicTacToeSolver
     )
 
     override fun onEnable() {
@@ -55,6 +56,9 @@ object PuzzleSolvers: Feature("Puzzle Solvers for Dungeon Clear") {
     val firstTracerColor = ColorSetting("First Tracer Color", favoriteColor, false).addDependency(waterBoard)
     val secondTracerColor = ColorSetting("Second Tracer Color", Color.YELLOW, false).addDependency(waterBoard)
 
+    val ticTacToe = ToggleSetting("Tic Tac Toe ")
+    val ticTacToeColor = ColorSetting("Solver Color", favoriteColor.withAlpha(50)).addDependency(ticTacToe)
+
     override fun init() = addSettings(
         SeperatorSetting("Creeper Beam"),
         creeper, CBlines, CBphase,
@@ -67,6 +71,8 @@ object PuzzleSolvers: Feature("Puzzle Solvers for Dungeon Clear") {
         SeperatorSetting("Teleport Maze"),
         tpMaze, correctTpPadColor, wrongTpPadColor,
         SeperatorSetting("Water Board"),
-        waterBoard, firstTracerColor, secondTracerColor
+        waterBoard, firstTracerColor, secondTracerColor,
+        SeperatorSetting("Tic Tac Toe"),
+        ticTacToe, ticTacToeColor
     )
 }
