@@ -51,6 +51,7 @@ object BoulderSolver {
 
     @SubscribeEvent
     fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
+        if (! PuzzleSolvers.boulder.value) return
         if (event.room.data.name != "Boulder") return
         inBoulder = true
 

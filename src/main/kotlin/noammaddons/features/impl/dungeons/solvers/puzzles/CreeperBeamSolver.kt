@@ -65,6 +65,7 @@ object CreeperBeamSolver {
 
     @SubscribeEvent
     fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
+        if (! PuzzleSolvers.creeper.value) return
         if (event.room.data.name != "Creeper Beams") return
         inCreeperBeams = true
 

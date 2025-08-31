@@ -36,7 +36,7 @@ object WardrobeMenu: Feature() {
     private val wardrobeKeybinds = ToggleSetting("Wardrobe Keybinds")
     private val closeAfterUse = ToggleSetting("Auto Close On Use").addDependency(wardrobeKeybinds)
     private val useHotbarBinds = ToggleSetting("Use Hotbar Binds").addDependency(wardrobeKeybinds)
-    private val preventUnequip = ToggleSetting("Prevent unequip").addDependency(wardrobeKeybinds)
+    private val preventUnequip = ToggleSetting("Prevent Unequip").addDependency(wardrobeKeybinds)
     private val keybinds = (1 .. 9).mapIndexed { index, slot ->
         KeybindSetting("Wardrobe Slot $slot", Keyboard.KEY_1 + index)
             .addDependency { useHotbarBinds.value }
@@ -241,15 +241,12 @@ object WardrobeMenu: Feature() {
     private fun injectEditButton(slot: Slot) {
         val itemStack = ItemStack(Blocks.anvil)
         itemStack.setStackDisplayName("&l&bEdit".addColor())
-
         if (slot.stack == itemStack) return
-
         slot.putStack(itemStack)
     }
 
     private fun handleSlotClick(button: Int, slotIndex: Int) {
         if (isSlotEquipped(slotIndex) && preventUnequip.value) return
-
         val mainSlot = allowedSlots.values.firstOrNull { slotIndex in it }?.get(0) ?: slotIndex
         lastClick = System.currentTimeMillis()
         sendWindowClickPacket(mainSlot, button, 0)

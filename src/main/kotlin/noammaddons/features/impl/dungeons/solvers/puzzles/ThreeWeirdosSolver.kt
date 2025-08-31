@@ -41,6 +41,7 @@ object ThreeWeirdosSolver {
 
     @SubscribeEvent
     fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
+        if (! PuzzleSolvers.weirdos.value) return
         if (event.room.data.name != "Three Weirdos") return
         inWeirdos = true
 
