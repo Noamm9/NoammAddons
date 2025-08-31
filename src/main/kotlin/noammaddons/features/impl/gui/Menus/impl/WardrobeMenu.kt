@@ -36,6 +36,7 @@ object WardrobeMenu: Feature() {
     private val wardrobeKeybinds = ToggleSetting("Wardrobe Keybinds")
     private val closeAfterUse = ToggleSetting("Auto Close On Use").addDependency(wardrobeKeybinds)
     private val useHotbarBinds = ToggleSetting("Use Hotbar Binds").addDependency(wardrobeKeybinds)
+    private val preventUnequip = ToggleSetting("Prevent unequip").addDependency(wardrobeKeybinds)
     private val keybinds = (1 .. 9).mapIndexed { index, slot ->
         KeybindSetting("Wardrobe Slot $slot", Keyboard.KEY_1 + index)
             .addDependency { useHotbarBinds.value }
@@ -48,7 +49,7 @@ object WardrobeMenu: Feature() {
         addSettings(
             customMenu,
             wardrobeKeybinds,
-            closeAfterUse, useHotbarBinds,
+            closeAfterUse, useHotbarBinds, preventUnequip,
             SeperatorSetting("Keybinds").addDependency { useHotbarBinds.value }.addDependency(wardrobeKeybinds),
             *keybinds.toTypedArray()
         )
@@ -226,6 +227,8 @@ object WardrobeMenu: Feature() {
         val slot = keyMap[index]?.takeIf { mc.thePlayer.openContainer.getSlot(it).stack != null } ?: return
         event.isCanceled = true
 
+        if (isSlotEquipped(slot) && preventUnequip.value) return
+
         if (closeAfterUse.value) {
             sendWindowClickPacket(slot, 0, 0)
             PlayerUtils.closeScreen()
@@ -245,9 +248,16 @@ object WardrobeMenu: Feature() {
     }
 
     private fun handleSlotClick(button: Int, slotIndex: Int) {
+        if (isSlotEquipped(slotIndex) && preventUnequip.value) return
+
         val mainSlot = allowedSlots.values.firstOrNull { slotIndex in it }?.get(0) ?: slotIndex
         lastClick = System.currentTimeMillis()
         sendWindowClickPacket(mainSlot, button, 0)
         SoundUtils.click()
+    }
+
+    private fun isSlotEquipped(slot: Int): Boolean {
+        val container = mc.thePlayer?.openContainer?.inventorySlots ?: return false
+        return container[slot]?.stack?.metadata == 10
     }
 }
