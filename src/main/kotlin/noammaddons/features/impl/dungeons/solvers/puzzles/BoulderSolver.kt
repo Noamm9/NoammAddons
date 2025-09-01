@@ -132,7 +132,7 @@ object BoulderSolver {
         drawBlockBox(
             box.click,
             BclickColor.value,
-            LineThickness = 2f,
+            lineWidth = 2f,
             fill = true,
             outline = true,
             phase = true

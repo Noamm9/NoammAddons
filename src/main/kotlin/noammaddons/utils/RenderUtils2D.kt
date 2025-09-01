@@ -7,10 +7,9 @@ import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.Entity
 import net.minecraft.init.Blocks
 import net.minecraft.util.*
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.features.impl.esp.EspSettings
 import noammaddons.features.impl.esp.EspSettings.lineWidth
-import noammaddons.NoammAddons
-import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.BlockUtils.getStateAt
 import noammaddons.utils.MathUtils.add
 import noammaddons.utils.RenderHelper.renderVec
@@ -32,7 +31,7 @@ object RenderUtils2D {
     val projectionMatrix: FloatBuffer = BufferUtils.createFloatBuffer(16)
     val viewportDims: IntBuffer = BufferUtils.createIntBuffer(16)
 
-    private fun worldToScreenPosition(vec3: Vec3): Vec3? {
+    fun worldToScreenPosition(vec3: Vec3): Vec3? {
         val coords = BufferUtils.createFloatBuffer(3)
         val success = Project.gluProject(
             vec3.xCoord.toFloat(), vec3.yCoord.toFloat(), vec3.zCoord.toFloat(),
@@ -40,7 +39,7 @@ object RenderUtils2D {
         )
 
         return success.takeIf { it && coords[2] in 0.0 .. 1.0 }?.run {
-            val sr = ScaledResolution(NoammAddons.mc)
+            val sr = ScaledResolution(mc)
             Vec3(coords[0] / sr.scaleFactor.toDouble(), (sr.scaledHeight - (coords[1] / sr.scaleFactor)).toDouble(), coords[2].toDouble())
         }
     }

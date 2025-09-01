@@ -56,6 +56,7 @@ object ScoreCalculator: Feature("Shows the score of the dungeon run") {
 
     @SubscribeEvent
     fun onRenderOverlay(event: RenderOverlay) {
+        if (! ScoreCalculatorElement.enabled) return
         if (HudEditorScreen.isOpen()) return
         if (! LocationUtils.inDungeon) return
         ScoreCalculatorElement.draw()

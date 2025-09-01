@@ -134,10 +134,10 @@ object RenderUtils {
         tessellator.draw()
     }
 
-    fun drawBlockBox(blockPos: BlockPos, overlayColor: Color, outlineColor: Color = overlayColor, outline: Boolean, fill: Boolean, phase: Boolean = true, LineThickness: Float = 3f) {
+    fun drawBlockBox(blockPos: BlockPos, overlayColor: Color, outlineColor: Color = overlayColor, outline: Boolean, fill: Boolean, phase: Boolean = true, lineWidth: Float = 3f) {
         if (! outline && ! fill) throw IllegalArgumentException("outline and fill cannot both be false")
         val distance = distance3D(blockPos.toVec(), mc.thePlayer?.renderVec ?: return)
-        val adjustedLineWidth = (LineThickness.toDouble() / (distance / 8f)).coerceIn(0.5, LineThickness.toDouble()).toFloat()
+        val adjustedLineWidth = (lineWidth.toDouble() / (distance / 8f)).coerceIn(0.5, lineWidth.toDouble()).toFloat()
 
         GlStateManager.pushMatrix()
         preDraw()

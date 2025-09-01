@@ -69,7 +69,7 @@ object TeleportOverlay: Feature() {
                 outline = mode.value.equalsOneOf(0, 2),
                 fill = mode.value.equalsOneOf(1, 2),
                 phase = phase.value,
-                LineThickness = lineWidth.value.toFloat()
+                lineWidth = lineWidth.value.toFloat()
             )
             return
         }

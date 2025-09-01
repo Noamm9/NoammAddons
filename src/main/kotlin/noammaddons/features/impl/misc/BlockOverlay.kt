@@ -33,7 +33,7 @@ object BlockOverlay: Feature() {
                 outline = mode.equalsOneOf(0, 2),
                 fill = mode.equalsOneOf(1, 2),
                 phase = phase,
-                LineThickness = lineWidth.toFloat()
+                lineWidth = lineWidth.toFloat()
             )
         }
     }
