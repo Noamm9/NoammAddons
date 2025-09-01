@@ -24,11 +24,15 @@ object FpsBoost: Feature() {
     private val hideDamageNumbers = ToggleSetting("Hide Damage Numbers")
     private val hideFallingBlocks = ToggleSetting("Hide Falling Blocks")
 
+    @JvmField
+    val hideFireOnEntities = ToggleSetting("Hide Fire On Entities")
+
     override fun init() = addSettings(
         SeperatorSetting("Dungeons"),
         hideNonStar, hideStar,
         SeperatorSetting("Other"),
-        hideDamageNumbers, hideFallingBlocks
+        hideDamageNumbers, hideFallingBlocks,
+        hideFireOnEntities
     )
 
     @SubscribeEvent

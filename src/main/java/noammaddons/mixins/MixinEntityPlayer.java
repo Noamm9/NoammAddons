@@ -28,17 +28,6 @@ public class MixinEntityPlayer {
     @Shadow
     private int itemInUseCount;
 
-    @Inject(method = "getEyeHeight", at = @At("HEAD"), cancellable = true)
-    public void getEyeHeight(CallbackInfoReturnable<Float> cir) {
-        if (!Camera.INSTANCE.enabled) return;
-        if (!Camera.smoothSneak.getValue()) return;
-        EntityPlayer player = (EntityPlayer) (Object) this;
-        float sneakingOffset = Camera.SmoothSneak.getEyeHeightHook(player);
-        float newHeight = player.getDefaultEyeHeight() + sneakingOffset;
-        player.eyeHeight = newHeight;
-        cir.setReturnValue(newHeight);
-    }
-
     @Inject(method = "onUpdate", at = @At("HEAD"))
     private void fixPullBack(CallbackInfo ci) {
         if (!ArrowFix.INSTANCE.enabled || getMc().thePlayer == null || getMc().theWorld == null) return;
@@ -48,5 +37,16 @@ public class MixinEntityPlayer {
         if (!ArrowFix.isShortbow(itemStack)) return;
         itemInUse = null;
         itemInUseCount = 0;
+    }
+
+    @Inject(method = "getEyeHeight", at = @At("HEAD"), cancellable = true)
+    public void getEyeHeightHook(CallbackInfoReturnable<Float> cir) {
+        if (!Camera.INSTANCE.enabled) return;
+        if (!Camera.smoothSneak.getValue()) return;
+        EntityPlayer player = (EntityPlayer) (Object) this;
+        float sneakingOffset = Camera.SmoothSneak.getEyeHeightHook(player);
+        float newHeight = player.getDefaultEyeHeight() + sneakingOffset;
+        player.eyeHeight = newHeight;
+        cir.setReturnValue(newHeight);
     }
 }

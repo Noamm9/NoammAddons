@@ -6,9 +6,9 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(Entity.class)
 public interface EntityAccessor {
-    @Accessor
+    @Accessor("inPortal")
     boolean isInPortal();
 
-    @Accessor
+    @Accessor("inPortal")
     void setInPortal(boolean newValue);
 }
