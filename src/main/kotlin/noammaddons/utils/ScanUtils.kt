@@ -64,6 +64,8 @@ object ScanUtils {
 
 
     fun getRoomData(hash: Int): RoomData? {
+        // temp fix until skytils update thier roomCore list
+        if (hash == - 336135931) return roomList.find { it.name == "Tic Tac Toe" }
         return roomList.find { hash in it.cores }
     }
 
