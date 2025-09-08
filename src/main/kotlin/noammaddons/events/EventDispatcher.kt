@@ -30,7 +30,7 @@ import noammaddons.utils.DungeonUtils.dungeonItemDrops
 import noammaddons.utils.DungeonUtils.isSecret
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.inDungeon
-import noammaddons.utils.RenderHelper.getPartialTicks
+import noammaddons.utils.RenderHelper.partialTicks
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.equalsOneOf
 
@@ -102,9 +102,9 @@ object EventDispatcher {
             }
 
             is RenderGameOverlayEvent.Text -> {
-                RenderOverlay(getPartialTicks()).postCatch()
+                RenderOverlay(partialTicks).postCatch()
                 if (EssentialAPI.getMinecraftUtil().isDevelopment())
-                    RenderOverlayNoCaching(getPartialTicks()).postCatch()
+                    RenderOverlayNoCaching(partialTicks).postCatch()
             }
 
             is RenderWorldLastEvent -> {

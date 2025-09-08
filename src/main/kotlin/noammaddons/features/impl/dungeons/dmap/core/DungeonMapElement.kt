@@ -11,13 +11,12 @@ import noammaddons.features.impl.dungeons.dmap.core.map.*
 import noammaddons.features.impl.dungeons.dmap.handlers.*
 import noammaddons.features.impl.dungeons.dmap.utils.MapRenderUtils
 import noammaddons.features.impl.dungeons.dmap.utils.MapUtils
-import noammaddons.utils.DungeonUtils
+import noammaddons.utils.*
 import noammaddons.utils.DungeonUtils.dungeonStarted
 import noammaddons.utils.DungeonUtils.thePlayer
 import noammaddons.utils.RenderHelper.colorCodeByPresent
 import noammaddons.utils.RenderHelper.getStringHeight
 import noammaddons.utils.RenderHelper.getStringWidth
-import noammaddons.utils.RenderUtils
 import noammaddons.utils.Utils.equalsOneOf
 import org.lwjgl.opengl.GL11
 import java.awt.Color
@@ -196,8 +195,9 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
         RoomState.CLEARED -> CheckMarkWhite
         RoomState.GREEN -> CheckMarkGreen
         RoomState.FAILED -> CheckMarkCross
-        RoomState.UNOPENED -> if (! DungeonMapConfig.hideQuestionCheckmarks.value) CheckMarkQuestion
-        else null
+        RoomState.UNOPENED -> if (DungeonMapConfig.dungeonMapCheater.value) null
+        else if (DungeonMapConfig.hideQuestionCheckmarks.value) null
+        else CheckMarkQuestion
 
         else -> null
     }
@@ -234,6 +234,7 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
     }
 
     private fun renderPlayerHeads() {
+        if (LocationUtils.inBoss) return
         DungeonUtils.dungeonTeammatesNoSelf.filterNot { it.isDead }.map { it.mapIcon }.forEach(MapRenderUtils::drawPlayerHead)
 
         if (DungeonMapConfig.dungeonMapCheater.value) MapRenderUtils.drawPlayerHead(mc.session.username, mc.thePlayer.locationSkin, mc.thePlayer)

@@ -153,7 +153,7 @@ object RenderUtils {
         if (block != null) {
             block.setBlockBoundsBasedOnState(mc.theWorld, blockPos)
             axisAlignedBB = block.getSelectedBoundingBox(mc.theWorld, blockPos)
-                .expand(0.0020000000949949026, 0.0020000000949949026, 0.0020000000949949026)
+                .expand(.0020000000949949056, .0020000000949949056, .0020000000949949056)
                 .offset(- renderManager.viewerPosX, - renderManager.viewerPosY, - renderManager.viewerPosZ)
         }
 
@@ -173,23 +173,22 @@ object RenderUtils {
 
     fun drawEntityBox(entity: Entity, color: Color, outline: Boolean = outlineOpacity != .0, fill: Boolean = fillOpacity != .0) {
         if (! outline && ! fill) return
-        val x = entity.renderX - renderManager.viewerPosX
-        val y = entity.renderY - renderManager.viewerPosY
-        val z = entity.renderZ - renderManager.viewerPosZ
         val distance = distance3D(entity.renderVec, mc.thePlayer?.renderVec ?: return)
         val adjustedLineWidth = (lineWidth.toDouble() / (distance / 8f)).coerceIn(0.5, lineWidth.toDouble()).toFloat()
 
-        var axisAlignedBB: AxisAlignedBB
-        entity.entityBoundingBox.run {
-            axisAlignedBB = AxisAlignedBB(
-                minX - entity.posX,
-                minY - entity.posY,
-                minZ - entity.posZ,
-                maxX - entity.posX,
-                maxY - entity.posY,
-                maxZ - entity.posZ
-            ).offset(x, y, z)
-        }
+        val axisAlignedBB = AxisAlignedBB(
+            entity.entityBoundingBox.minX - entity.posX,
+            entity.entityBoundingBox.minY - entity.posY,
+            entity.entityBoundingBox.minZ - entity.posZ,
+            entity.entityBoundingBox.maxX - entity.posX,
+            entity.entityBoundingBox.maxY - entity.posY,
+            entity.entityBoundingBox.maxZ - entity.posZ
+        ).offset(
+            entity.renderX - renderManager.viewerPosX,
+            entity.renderY - renderManager.viewerPosY,
+            entity.renderZ - renderManager.viewerPosZ
+        )
+
 
         GlStateManager.pushMatrix()
         preDraw()
@@ -197,7 +196,7 @@ object RenderUtils {
 
         if (outline) {
             glLineWidth(adjustedLineWidth)
-            drawOutlinedAABB(axisAlignedBB, color)
+            drawOutlinedAABB(axisAlignedBB, color.withAlpha(255))
             glLineWidth(1f)
         }
 
@@ -209,7 +208,7 @@ object RenderUtils {
     }
 
     fun drawBox(x: Number, y: Number, z: Number, color: Color, outline: Boolean, fill: Boolean, width: Number = 1f, height: Number = 1f, phase: Boolean = true, lineWidth: Number = 3f) {
-        if (! outline && ! fill) throw IllegalArgumentException("outline and fill cannot both be false")
+        if (! outline && ! fill) return
         val distance = distance3D(Vec3(x.toDouble(), y.toDouble(), z.toDouble()), mc.thePlayer?.renderVec ?: return)
         val adjustedLineWidth = (lineWidth.toDouble() / (distance / 8f)).coerceIn(0.5, lineWidth.toDouble()).toFloat()
 
@@ -222,7 +221,7 @@ object RenderUtils {
             x.toDouble() + width.toDouble(),
             y.toDouble() + height.toDouble(),
             z.toDouble() + width.toDouble()
-        ).expand(.0020000000949949026, .0020000000949949026, .0020000000949949026).offset(
+        ).expand(.0020000000949949056, .0020000000949949056, .0020000000949949056).offset(
             - renderManager.viewerPosX,
             - renderManager.viewerPosY,
             - renderManager.viewerPosZ
@@ -253,7 +252,6 @@ object RenderUtils {
 
     fun drawString(text: String, pos: Vec3, color: Color = Color.WHITE, scale: Float = 1f, phase: Boolean = true) {
         val fText = text.addColor()
-
         GlStateManager.pushMatrix()
         if (phase) disableDepth()
         GlStateManager.translate(- renderManager.viewerPosX, - renderManager.viewerPosY, - renderManager.viewerPosZ)

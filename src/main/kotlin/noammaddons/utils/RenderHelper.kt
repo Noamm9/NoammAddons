@@ -25,16 +25,16 @@ object RenderHelper {
     fun getRainbowColor(hueOffset: Float): Color = Color.getHSBColor(((System.currentTimeMillis() % 4500L) / 4500.0f + hueOffset) % 1.0f, 1.0f, 1.0f)
 
     @JvmStatic
-    fun getPartialTicks() = (mc as AccessorMinecraft).timer.renderPartialTicks
+    val partialTicks get() = (mc as AccessorMinecraft).timer.renderPartialTicks
 
     @JvmStatic
-    val Entity.renderX: Double get() = lerp(lastTickPosX, posX, getPartialTicks())
+    val Entity.renderX: Double get() = lerp(lastTickPosX, posX, partialTicks)
 
     @JvmStatic
-    val Entity.renderY: Double get() = lerp(lastTickPosY, posY, getPartialTicks())
+    val Entity.renderY: Double get() = lerp(lastTickPosY, posY, partialTicks)
 
     @JvmStatic
-    val Entity.renderZ: Double get() = lerp(lastTickPosZ, posZ, getPartialTicks())
+    val Entity.renderZ: Double get() = lerp(lastTickPosZ, posZ, partialTicks)
 
     @JvmStatic
     val Entity.renderVec: Vec3 get() = Vec3(renderX, renderY, renderZ)

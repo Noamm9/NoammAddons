@@ -12,51 +12,71 @@ import noammaddons.features.impl.dungeons.dmap.utils.MapUtils.mapZ
 import noammaddons.features.impl.dungeons.dmap.utils.MapUtils.yaw
 import noammaddons.utils.*
 import noammaddons.utils.Utils.equalsOneOf
+import java.util.concurrent.ConcurrentHashMap
 
 object MapUpdater {
-    private val playerHeadScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-    val playerJobs = mutableMapOf<String, Job>()
+    private val playerHeadScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    val playerJobs = ConcurrentHashMap<String, Job>()
 
     fun updatePlayers(mapData: MapData) {
         if (DungeonUtils.dungeonTeammates.isEmpty()) return
         val mapDecorations = mapData.mapDecorations.entries.toList()
-        val teammates = DungeonUtils.dungeonTeammates.toList()
+        val teammates = DungeonUtils.dungeonTeammates.filterNot { it.isDead }
 
         teammates.forEach { teammate ->
-            val (_, vec4b) = mapDecorations.find { it.key == teammate.mapIcon.icon } ?: return@forEach
+            val vec4b = mapDecorations.find { it.key == teammate.mapIcon.icon }?.value ?: return@forEach
             smoothUpdatePlayer(teammate.mapIcon, vec4b.mapX, vec4b.mapZ, vec4b.yaw)
         }
     }
 
+    fun onPlayerDeath() {
+        playerJobs.forEach { it.value.cancel() }
+        playerJobs.clear()
+    }
+
     private fun smoothUpdatePlayer(player: DungeonMapPlayer, targetX: Float, targetZ: Float, targetYaw: Float) {
-        playerJobs[player.teammate.name]?.cancel()
-        playerJobs[player.teammate.name] = playerHeadScope.launch {
+        if (player.mapX == 0f && player.mapZ == 0f && player.yaw == 0f) {
+            player.mapX = targetX
+            player.mapZ = targetZ
+            player.yaw = targetYaw
+            return
+        }
+
+        if (player.mapX == targetX && player.mapZ == targetZ && player.yaw == targetYaw) {
+            playerJobs.remove(player.teammate.name)?.cancel()
+            return
+        }
+
+        playerHeadScope.launch {
+            val oldJob = playerJobs.put(player.teammate.name, this.coroutineContext.job)
+            oldJob?.cancelAndJoin()
+
             val startX = player.mapX
             val startZ = player.mapZ
             val startYaw = player.yaw
 
-            if (startX == targetX && startZ == targetZ && startYaw == targetYaw) return@launch
-
+            val animationDuration = 350L
             val startTime = System.currentTimeMillis()
             var progress = 0f
 
-            while (progress < 1f) {
+            while (progress < 1f && isActive) {
                 val elapsedTime = System.currentTimeMillis() - startTime
-                progress = (elapsedTime.toFloat() / 150L).coerceAtMost(1f)
+                progress = (elapsedTime.toFloat() / animationDuration).coerceAtMost(1f)
 
                 player.mapX = MathUtils.lerp(startX, targetX, progress).toFloat()
                 player.mapZ = MathUtils.lerp(startZ, targetZ, progress).toFloat()
                 player.yaw = MathUtils.interpolateYaw(startYaw, targetYaw, progress)
 
-                delay(10L)
+                delay(10)
             }
 
-            player.mapX = targetX
-            player.mapZ = targetZ
-            player.yaw = targetYaw
+            if (isActive) {
+                player.mapX = targetX
+                player.mapZ = targetZ
+                player.yaw = targetYaw
+            }
         }
     }
-
 
     fun updateRooms(mapData: MapData) {
         if (LocationUtils.inBoss) return
@@ -95,13 +115,11 @@ object MapUpdater {
                         room.opened = false
                     }
                     else if (! room.opened) {
-                        val chunk = mc.theWorld.getChunkFromChunkCoords(
-                            room.x shr 4,
-                            room.z shr 4
-                        )
+                        val chunk = mc.theWorld.getChunkFromChunkCoords(room.x shr 4, room.z shr 4)
                         if (chunk.isLoaded) {
-                            if (chunk.getBlockState(BlockPos(room.x, 69, room.z)).block == Blocks.air)
+                            if (chunk.getBlockState(BlockPos(room.x, 69, room.z)).block == Blocks.air) {
                                 room.opened = true
+                            }
                         }
                         else if (mapTile is Door && mapTile.state == RoomState.DISCOVERED) {
                             if (room.type == DoorType.BLOOD) {
@@ -113,9 +131,7 @@ object MapUpdater {
                                     room.opened = true
                                 }
                             }
-                            else {
-                                room.opened = true
-                            }
+                            else room.opened = true
                         }
                     }
                 }

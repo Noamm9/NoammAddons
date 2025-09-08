@@ -58,20 +58,6 @@ object DungeonMap: Feature(toggled = false) {
     fun onTick(event: Tick) {
         if (! inDungeon || mc.thePlayer == null) return
 
-        if (DungeonUtils.dungeonStarted) {
-            if (! MapUtils.calibrated) {
-                if (DungeonInfo.dungeonMap == null) {
-                    DungeonInfo.dungeonMap = MapUtils.getMapData()
-                }
-                MapUtils.calibrated = MapUtils.calibrateMap()
-            }
-
-            (DungeonInfo.dungeonMap ?: DungeonInfo.guessMapData)?.let {
-                MapUpdater.updateRooms(it)
-                MapUpdater.updatePlayers(it)
-            }
-        }
-
         if (DungeonScanner.shouldScan || DevOptions.devMode) {
             DungeonScanner.scan()
         }
@@ -121,20 +107,21 @@ object DungeonMap: Feature(toggled = false) {
         if (! inDungeon) return
         ScoreCalculation.onPacket(event.packet)
 
-        if (event.packet !is S34PacketMaps) return
-        if (DungeonInfo.dungeonMap != null) return
-        if (mc.theWorld == null) return
-        val id = event.packet.mapId
-        if (id and 1000 != 0) return
+        val packet = event.packet as? S34PacketMaps ?: return
+        val mapData = mc.thePlayer?.inventory?.getStackInSlot(8)
+            ?.takeIf { it.item is ItemMap || it.displayName.contains("Magical Map") }
+            ?.let { (it.item as? ItemMap)?.getMapData(it, mc.theWorld) }
+            ?: MapData("map_${packet.mapId}")
 
-        val guess = mc.theWorld.mapStorage.loadData(MapData::class.java, "map_${id}") as MapData? ?: return
-        if (guess.mapDecorations.any { it.value.func_176110_a() == 1.toByte() }) {
-            DungeonInfo.guessMapData = guess
-        }
+        mc.addScheduledTask {
+            packet.setMapdataTo(mapData)
+            DungeonInfo.mapData = mapData
 
-        if (MapUtils.calibrated) ItemMap.loadMapData(id, mc.theWorld)?.let { mapData ->
-            MapUpdater.updateRooms(mapData)
-            MapUpdater.updatePlayers(mapData)
+            if (! MapUtils.calibrated) MapUtils.calibrated = MapUtils.calibrateMap()
+            else {
+                MapUpdater.updateRooms(mapData)
+                MapUpdater.updatePlayers(mapData)
+            }
         }
     }
 
@@ -158,6 +145,7 @@ object DungeonMap: Feature(toggled = false) {
     @SubscribeEvent
     fun onPlayerDeathEvent(event: DungeonEvent.PlayerDeathEvent) {
         ClearInfoUpdater.updateDeaths(event.name, event.reason)
+        MapUpdater.onPlayerDeath()
         deathCount ++
     }
 

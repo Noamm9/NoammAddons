@@ -1,11 +1,8 @@
 package noammaddons.features.impl.dungeons.dmap.utils
 
-import net.minecraft.item.ItemMap
 import net.minecraft.util.Vec3
 import net.minecraft.util.Vec4b
-import net.minecraft.world.storage.MapData
 import noammaddons.features.impl.dungeons.dmap.handlers.*
-import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.Utils.equalsOneOf
 
@@ -21,24 +18,10 @@ object MapUtils {
         return Pair(x, z)
     }
 
-    fun mapToCoords(mapCoords: Pair<Float, Float>): Vec3 {
-        val x = (mapCoords.first - startCorner.first) / coordMultiplier + DungeonScanner.startX - 15
-        val z = (mapCoords.second - startCorner.second) / coordMultiplier + DungeonScanner.startZ - 15
-        return Vec3(x, 0.0, z)
-    }
-
-    fun idxFromComp(comp: Pair<Int, Int>) = comp.second * 6 + comp.first
-
     var startCorner = Pair(5, 5)
     var mapRoomSize = 16
     var coordMultiplier = 0.625
     var calibrated = false
-
-    fun getMapData(): MapData? {
-        val map = mc.thePlayer?.inventory?.getStackInSlot(8) ?: return null
-        if (map.item !is ItemMap || ! map.displayName.contains("Magical Map")) return null
-        return (map.item as ItemMap).getMapData(map, mc.theWorld)
-    }
 
     /**
      * Calibrates map metrics based on the size and location of the entrance room.
@@ -71,7 +54,7 @@ object MapUtils {
     private fun findEntranceCorner(): Pair<Int, Int> {
         var start = 0
         var currLength = 0
-        (DungeonInfo.dungeonMap ?: DungeonInfo.guessMapData)?.colors?.forEachIndexed { index, byte ->
+        DungeonInfo.mapData?.colors?.forEachIndexed { index, byte ->
             if (byte == 30.toByte()) {
                 if (currLength == 0) start = index
                 currLength ++

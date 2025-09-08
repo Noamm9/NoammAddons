@@ -15,8 +15,7 @@ object DungeonInfo {
 
     var keys = 0
 
-    var dungeonMap: MapData? = null
-    var guessMapData: MapData? = null
+    var mapData: MapData? = null
 
     fun reset() {
         dungeonList.fill(Unknown(0, 0))
@@ -30,7 +29,6 @@ object DungeonInfo {
 
         keys = 0
 
-        dungeonMap = null
-        guessMapData = null
+        mapData = null
     }
 }

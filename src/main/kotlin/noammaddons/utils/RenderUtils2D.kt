@@ -100,8 +100,8 @@ object RenderUtils2D {
     }
 
     fun canSeeThroughSoftBlocks(entity: Entity): Boolean {
-        val from = mc.thePlayer.getPositionEyes(RenderHelper.getPartialTicks())
-        val to = entity.getPositionEyes(RenderHelper.getPartialTicks())
+        val from = mc.thePlayer.getPositionEyes(RenderHelper.partialTicks)
+        val to = entity.getPositionEyes(RenderHelper.partialTicks)
         val step = 0.2
         val distance = from.distanceTo(to)
         val steps = (distance / step).toInt()

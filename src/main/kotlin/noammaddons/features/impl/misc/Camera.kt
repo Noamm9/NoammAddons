@@ -12,7 +12,7 @@ import noammaddons.features.Feature
 import noammaddons.mixins.accessor.EntityAccessor
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.PlayerUtils.isHoldingWitherImpact
-import noammaddons.utils.RenderHelper.getPartialTicks
+import noammaddons.utils.RenderHelper.partialTicks
 
 
 object Camera: Feature() {
@@ -122,7 +122,7 @@ object Camera: Feature() {
         }
 
         private fun calculateTimeDiff(): Float {
-            val now = mc.thePlayer.ticksExisted.toFloat() + getPartialTicks()
+            val now = mc.thePlayer.ticksExisted.toFloat() + partialTicks
             val timeDiff = if (lastOperationTime == 0f) 0f else now - lastOperationTime
             lastOperationTime = now
             return timeDiff

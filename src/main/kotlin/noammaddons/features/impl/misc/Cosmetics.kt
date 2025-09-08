@@ -14,7 +14,7 @@ import noammaddons.NoammAddons.Companion.MOD_ID
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.features.impl.misc.PlayerModel.getPlayerScaleFactor
 import noammaddons.utils.GuiUtils.isInGui
-import noammaddons.utils.RenderHelper.getPartialTicks
+import noammaddons.utils.RenderHelper.partialTicks
 import noammaddons.utils.WebUtils
 import kotlin.math.cos
 import kotlin.math.sin
@@ -164,10 +164,8 @@ object Cosmetics {
     }
 
     private fun interpolate(yaw1: Float, yaw2: Float): Float {
-        var f = (yaw1 + (yaw2 - yaw1) * getPartialTicks()) % 360
-        if (f < 0) {
-            f += 360f
-        }
+        var f = (yaw1 + (yaw2 - yaw1) * partialTicks) % 360
+        if (f < 0) f += 360f
         return f
     }
 

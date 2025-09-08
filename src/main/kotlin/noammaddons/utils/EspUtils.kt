@@ -52,6 +52,7 @@ object EspUtils {
 
         companion object {
             fun fromId(id: Int): ESPType? = entries.find { it.ordinal == id }
+            fun fromDisplayName(displayName: String): ESPType? = entries.find { it.displayName == displayName }
             fun resetAll() = entries.forEach(ESPType::clearEntities)
         }
     }
@@ -130,7 +131,7 @@ object EspUtils {
         glLineWidth(adjustedLineWidth)
         glEnable(GL_LINE_SMOOTH)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-        RenderHelper.glBindColor(color)
+        RenderHelper.glBindColor(color, 255)
 
         render(event)
 

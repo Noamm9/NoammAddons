@@ -196,9 +196,8 @@ object DungeonUtils {
         thePlayer?.isDead = mc.thePlayer.inventory.getStackInSlot(0)?.skyblockID == "HAUNT_ABILITY"
         dungeonTeammatesNoSelf = dungeonTeammates.filter { it != thePlayer }
         leapTeammates = dungeonTeammatesNoSelf.sortedBy { it.clazz }
-        val aliveTeammates = dungeonTeammatesNoSelf.filterNot { it.isDead }
 
-        aliveTeammates.forEachIndexed { i, teammate ->
+        dungeonTeammatesNoSelf.filterNot { it.isDead }.forEachIndexed { i, teammate ->
             teammate.mapIcon.icon = "icon-$i"
         }
 
@@ -299,12 +298,12 @@ object DungeonUtils {
             }
 
             unformatted == "[BOSS] The Watcher: You have proven yourself. You may pass." -> {
-                DungeonInfo.dungeonList.find { it is Room && it.data.type == RoomType.BLOOD }?.state = RoomState.GREEN
+                DungeonInfo.uniqueRooms.find { it.mainRoom.data.type == RoomType.BLOOD }?.mainRoom?.state = RoomState.GREEN
                 watcherClearTime = System.currentTimeMillis()
             }
 
             unformatted == "[BOSS] The Watcher: That will be enough for now." -> {
-                DungeonInfo.dungeonList.find { it is Room && it.data.type == RoomType.BLOOD }?.state = RoomState.CLEARED
+                DungeonInfo.uniqueRooms.find { it.mainRoom.data.type == RoomType.BLOOD }?.mainRoom?.state = RoomState.CLEARED
                 watcherSpawnTime = System.currentTimeMillis()
             }
 
