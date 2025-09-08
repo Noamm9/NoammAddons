@@ -80,7 +80,7 @@ class ColorSetting(
         }
 
         if (isPickerOpen) {
-            pickerX = x + 6
+            pickerX = x + width / 2 - pickerWidth / 2
             pickerY = y + 27
             drawPicker(pickerX, pickerY)
         }
@@ -223,7 +223,7 @@ class ColorSetting(
     }
 
     private fun drawAlphaSlider(x: Double, y: Double) {
-        drawCheckerboard(x, y, 15, 90, 4.0)
+        drawCheckerboard(x, y, 15, 90, 4)
 
         val baseColor = colorFromHSB(currentHue, currentSaturation, currentBrightness)
         val startColor = Color(baseColor.red, baseColor.green, baseColor.blue, 255)
