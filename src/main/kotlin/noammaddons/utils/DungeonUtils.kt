@@ -260,10 +260,10 @@ object DungeonUtils {
             }
 
             is S2FPacketSetSlot -> {
-                if (packet.func_149175_c() != 0) return
-                if (packet.func_149173_d() !in 9 .. 44) return
-                if (packet.func_149173_d() == 36 && packet.func_149174_e().skyblockID != "HAUNT_ABILITY") return
-                thePlayer?.isDead = true
+                if (packet.func_149175_c() != 0 || packet.func_149173_d() != 36) return
+                val wasDead = mc.thePlayer.inventory.getStackInSlot(0)?.skyblockID == "HAUNT_ABILITY"
+                val isNowDead = packet.func_149174_e()?.skyblockID == "HAUNT_ABILITY"
+                if (wasDead != isNowDead) thePlayer?.isDead = isNowDead
             }
         }
     }
