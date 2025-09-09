@@ -5,8 +5,7 @@ import kotlinx.coroutines.launch
 import net.minecraft.block.BlockSkull
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.init.Blocks
-import net.minecraft.network.play.server.S38PacketPlayerListItem
-import net.minecraft.network.play.server.S47PacketPlayerListHeaderFooter
+import net.minecraft.network.play.server.*
 import net.minecraft.tileentity.TileEntitySkull
 import net.minecraft.util.BlockPos
 import net.minecraft.util.ResourceLocation
@@ -158,7 +157,6 @@ object DungeonUtils {
                 dungeonTeammates.addAll(list)
 
                 thePlayer = dungeonTeammates.find { it.entity == mc.thePlayer }
-                thePlayer?.isDead = mc.thePlayer.inventory.getStackInSlot(0)?.skyblockID == "HAUNT_ABILITY"
                 dungeonTeammatesNoSelf = dungeonTeammates.filterNot { it == thePlayer }
                 leapTeammates = dungeonTeammatesNoSelf.sortedBy { it.clazz }
                 return
@@ -178,7 +176,7 @@ object DungeonUtils {
                 currentTeammate.clazzLvl = clazzLevel.romanToDecimal()
                 currentTeammate.skin = networkPlayerInfo.locationSkin
                 currentTeammate.entity = mc.theWorld.getPlayerEntityByName(name)
-                currentTeammate.isDead = clazz == "DEAD"
+                if (currentTeammate != thePlayer) currentTeammate.isDead = clazz == "DEAD"
             }
             else dungeonTeammates.add(
                 DungeonPlayer(
@@ -193,7 +191,6 @@ object DungeonUtils {
         }
 
         thePlayer = dungeonTeammates.find { it.entity == mc.thePlayer }
-        thePlayer?.isDead = mc.thePlayer.inventory.getStackInSlot(0)?.skyblockID == "HAUNT_ABILITY"
         dungeonTeammatesNoSelf = dungeonTeammates.filter { it != thePlayer }
         leapTeammates = dungeonTeammatesNoSelf.sortedBy { it.clazz }
 
@@ -261,6 +258,13 @@ object DungeonUtils {
                     blessing.current = it.groupValues[1].romanToDecimal()
                 }
             }
+
+            is S2FPacketSetSlot -> {
+                if (packet.func_149175_c() != 0) return
+                if (packet.func_149173_d() !in 9 .. 44) return
+                if (packet.func_149173_d() == 36 && packet.func_149174_e().skyblockID != "HAUNT_ABILITY") return
+                thePlayer?.isDead = true
+            }
         }
     }
 
@@ -289,10 +293,11 @@ object DungeonUtils {
 
             "§r§c ☠" in text && "reconnected" !in unformatted -> {
                 val match = deathRegex.find(unformatted) ?: return
-                val username = match.groups["username"]?.value ?: mc.session.username
+                val username = match.groups["username"]?.value?.takeUnless { it == "You" } ?: mc.session.username
                 val reason = match.groups["reason"]?.value ?: ""
                 scope.launch {
                     while (thePlayer == null) delay(1)
+                    if (username == mc.session.username) thePlayer?.isDead = true
                     postAndCatch(DungeonEvent.PlayerDeathEvent(username, reason))
                 }
             }

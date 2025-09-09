@@ -3,6 +3,7 @@ package noammaddons.features.impl.dungeons
 import gg.essential.elementa.state.BasicState
 import gg.essential.elementa.utils.withAlpha
 import net.minecraft.entity.monster.EntityZombie
+import net.minecraft.tileentity.TileEntityChest
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.NoammAddons.Companion.CHAT_PREFIX
 import noammaddons.events.*
@@ -11,7 +12,6 @@ import noammaddons.ui.config.core.annotations.AlwaysActive
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.sendPartyMessage
-import noammaddons.utils.ChatUtils.showTitle
 import noammaddons.utils.ItemUtils.getSkullValue
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.LocationUtils.inBoss
@@ -22,48 +22,23 @@ import noammaddons.utils.RenderUtils
 import java.awt.Color
 
 @AlwaysActive
-object MimicDetector: Feature("Detects when a mimic is killed") {
-    private val sendMessage = ToggleSetting("Send Message", true)
-    private val message = TextInputSetting("Message", "Mimic killed!").addDependency(sendMessage)
-    private val showTitle = ToggleSetting("Show Title", false)
-    private val titleMsg = TextInputSetting("Title Message", "Mimic killed!").addDependency(showTitle)
+object MimicDetector: Feature("Detects when a Mimic or Prince is killed") {
+    private val mimic = ToggleSetting("Send Mimic Message", true)
+    private val prince = ToggleSetting("Send Prince Message", true)
     private val highlightChest = ToggleSetting("Highlight Chest", false)
-    private val highlightColor = ColorSetting("Highlight Color", Color.RED.withAlpha(0.3f)).addDependency(highlightChest)
-
-    val mimicKilled = BasicState(false)
-    val princeKilled = BasicState(false)
-
-    fun check() = ! mimicKilled.get() && inDungeon && (dungeonFloorNumber ?: 0) >= 6 && ! inBoss
-
-    private const val MIMIC_TEXTURE =
-        "ewogICJ0aW1lc3RhbXAiIDogMTY3Mjc2NTM1NTU0MCwKICAicHJvZmlsZUlkIiA6ICJhNWVmNzE3YWI0MjA0MTQ4ODlhOTI5ZDA5OTA0MzcwMyIsCiAgInByb2ZpbGVOYW1lIiA6ICJXaW5zdHJlYWtlcnoiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTE5YzEyNTQzYmM3NzkyNjA1ZWY2OGUxZjg3NDlhZThmMmEzODFkOTA4NWQ0ZDRiNzgwYmExMjgyZDM1OTdhMCIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9"
-
-    private val mimicMessages = listOf(
-        "mimic dead!", "mimic dead", "mimic killed!",
-        "mimic killed", "\$skytils-dungeon-score-mimic$",
-        "child destroyed!", "mimic obliterated!", "mimic exorcised!",
-        "mimic destroyed!", "mimic annhilated!", "breefing killed",
-        "breefing dead"
-    )
-
-    private val princeMessages = listOf(
-        "prince dead", "prince dead!", "\$skytils-dungeon-score-prince\$",
-        "prince killed", "prince slain", "prince killed!", "a prince falls. +1 bonus score"
-    )
-
-    private fun sendMimicMessage() {
-        mimicKilled.set(true)
-        if (! enabled) return
-        if (sendMessage.value) sendPartyMessage("$CHAT_PREFIX ${message.value}")
-        if (showTitle.value) showTitle(titleMsg.value)
-    }
+    private val highlightColor = ColorSetting("Highlight Color", Color.RED.withAlpha(0.3f))
+        .addDependency(highlightChest)
 
     override fun init() = addSettings(
-        sendMessage, message,
-        showTitle, titleMsg,
+        mimic, prince,
         SeperatorSetting("Highlight"),
         highlightChest, highlightColor
     )
+
+    private val isMimicDetectionActive get() = ! mimicKilled.get() && inDungeon && (dungeonFloorNumber ?: 0) >= 6 && ! inBoss
+    val mimicKilled = BasicState(false)
+    val princeKilled = BasicState(false)
+
 
     @SubscribeEvent
     fun onWorldUnload(event: WorldUnloadEvent) {
@@ -75,44 +50,79 @@ object MimicDetector: Feature("Detects when a mimic is killed") {
     fun onChat(event: Chat) {
         if (! inDungeon) return
         val msg = event.component.noFormatText.lowercase()
-        if (princeMessages.any { msg.contains(it) }) {
-            princeKilled.set(true)
-            if (msg == "a prince falls. +1 bonus score")
-                sendPartyMessage("Prince Killed")
-            return
-        }
-        if (mimicMessages.any { msg.contains(it) }) mimicKilled.set(true)
+        handlePrinceKillChat(msg)
+        handleMimicKillChat(msg)
     }
 
     @SubscribeEvent
     fun onEntityLeaveWorld(event: EntityLeaveWorldEvent) {
-        if (! check()) return
-        if (event.entity !is EntityZombie) return
-        if (! event.entity.isChild) return
-        if (getSkullValue(event.entity) != MIMIC_TEXTURE) return
-        sendMimicMessage()
+        if (! isMimicDetectionActive) return
+        val entity = event.entity as? EntityZombie ?: return
+        if (! entity.isChild) return
+        if (getSkullValue(entity) != MIMIC_TEXTURE) return
+        confirmMimicKill()
     }
 
     @SubscribeEvent
-    fun preChum(event: RenderChestEvent.Pre) {
-        if (! highlightChest.value) return
-        if (event.chest.chestType != 1) return
-        if (! check()) return
-        enableChums()
+    fun onRenderChestPre(event: RenderChestEvent.Pre) {
+        if (shouldHighlightMimicChest(event.chest))
+            enableChums()
     }
 
     @SubscribeEvent
-    fun postChum(event: RenderChestEvent.Post) {
-        if (! highlightChest.value) return
-        if (event.chest.chestType != 1) return
-        if (! check()) return
-
+    fun onRenderChestPost(event: RenderChestEvent.Post) {
+        if (! shouldHighlightMimicChest(event.chest)) return
         disableChums()
-
         RenderUtils.drawBlockBox(
             event.chest.pos,
             highlightColor.value,
             outline = true, fill = true, phase = true
         )
     }
+
+    private fun handlePrinceKillChat(message: String) {
+        if (princeMessages.any { message.contains(it) }) {
+            princeKilled.set(true)
+            if (enabled && prince.value && message == "a prince falls. +1 bonus score") {
+                sendPartyMessage("$CHAT_PREFIX Prince Killed")
+            }
+        }
+    }
+
+    private fun handleMimicKillChat(message: String) {
+        if (isMimicDetectionActive && mimicMessages.any { message.contains(it) }) {
+            mimicKilled.set(true)
+        }
+    }
+
+    private fun confirmMimicKill() {
+        if (mimicKilled.get()) return
+        mimicKilled.set(true)
+
+        if (enabled && mimic.value)
+            sendPartyMessage("$CHAT_PREFIX Mimic killed!")
+    }
+
+    private fun shouldHighlightMimicChest(chest: TileEntityChest): Boolean {
+        return enabled &&
+                highlightChest.value &&
+                isMimicDetectionActive &&
+                chest.chestType == 1 // Trapped Chest
+    }
+
+    private const val MIMIC_TEXTURE =
+        "ewogICJ0aW1lc3RhbXAiIDogMTY3Mjc2NTM1NTU0MCwKICAicHJvZmlsZUlkIiA6ICJhNWVmNzE3YWI0MjA0MTQ4ODlhOTI5ZDA5OTA0MzcwMyIsCiAgInByb2ZpbGVOYW1lIiA6ICJXaW5zdHJlYWtlcnoiLAogICJzaWduYXR1cmVSZXF1aWJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTE5YzEyNTQzYmM3NzkyNjA1ZWY2OGUxZjg3NDlhZThmMmEzODFkOTA4NWQ0ZDRiNzgwYmExMjgyZDM1OTdhMCIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9"
+
+    private val mimicMessages = setOf(
+        "mimic dead!", "mimic dead", "mimic killed!", "mimic killed",
+        "\$skytils-dungeon-score-mimic$", "child destroyed!", "mimic obliterated!",
+        "mimic exorcised!", "mimic destroyed!", "mimic annhilated!",
+        "breefing killed", "breefing dead"
+    )
+
+    private val princeMessages = setOf(
+        "prince dead", "prince dead!", "\$skytils-dungeon-score-prince\$",
+        "prince killed", "prince slain", "prince killed!",
+        "a prince falls. +1 bonus score"
+    )
 }

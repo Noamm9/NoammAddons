@@ -169,7 +169,6 @@ object ActionUtils {
 
     suspend fun leapAction(leapTarget: DungeonPlayer) {
         if (thePlayer?.isDead == true) return
-        if (getItemIndexInHotbar("Haunt") != null) return
         if (leapTarget.isDead) return modMessage(leapTarget.name + " is dead R.I.P!")
         val leapIndex = getItemIndexInHotbar("leap") ?: return modMessage("&cNo leap found in hotbar!")
 
