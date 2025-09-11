@@ -12,7 +12,7 @@ import noammaddons.utils.PlayerUtils.rightClick
 import noammaddons.utils.ServerPlayer
 import org.lwjgl.input.Keyboard
 
-object TermAutoClicker: Feature(name = "AutoClicker") {
+object AutoClicker: Feature(name = "AutoClicker") {
     private val leftClickToggle = ToggleSetting("Left Click")
     private val leftClickKeybind = KeybindSetting("Left Click Keybind").addDependency { leftClickToggle.value }
     private val rightClickToggle = ToggleSetting("Right Click")
