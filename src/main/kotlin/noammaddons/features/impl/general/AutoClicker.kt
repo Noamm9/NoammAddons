@@ -14,9 +14,9 @@ import org.lwjgl.input.Keyboard
 
 object AutoClicker: Feature(name = "AutoClicker") {
     private val leftClickToggle = ToggleSetting("Left Click")
-    private val leftClickKeybind = KeybindSetting("Left Click Keybind").addDependency { leftClickToggle.value }
+    private val leftClickKeybind = KeybindSetting("Left Click Keybind").addDependency(leftClickToggle)
     private val rightClickToggle = ToggleSetting("Right Click")
-    private val rightClickKeybind = KeybindSetting("Right Click Keybind").addDependency { rightClickToggle.value }
+    private val rightClickKeybind = KeybindSetting("Right Click Keybind").addDependency(rightClickToggle)
     private val terminatorCheck = ToggleSetting("Terminator Only")
     private val cps by SliderSetting("Clicks Per Second", 3f, 15f, .5f, 5f)
     private var nextLeftClick = .0
