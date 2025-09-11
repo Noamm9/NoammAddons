@@ -6,7 +6,6 @@ import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.KeybindSetting
 import noammaddons.ui.config.core.impl.SliderSetting
 import noammaddons.ui.config.core.impl.ToggleSetting
-import noammaddons.utils.ChatUtils
 import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.PlayerUtils.leftClick
 import noammaddons.utils.PlayerUtils.rightClick
@@ -39,8 +38,8 @@ object AutoClicker: Feature(name = "Auto Clicker") {
         if (terminatorCheck.value) {
             if (!mc.gameSettings.keyBindUseItem.isKeyDown) return
             if (ServerPlayer.player.getHeldItem().skyblockID != "TERMINATOR") return
-
             if (now < nextLeftClick) return
+
             nextLeftClick = now + ((1000 / cps) + ((Math.random() - .5) * 60.0))
             leftClick()
         } else {
