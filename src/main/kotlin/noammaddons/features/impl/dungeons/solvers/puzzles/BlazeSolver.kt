@@ -29,7 +29,7 @@ import noammaddons.utils.Utils.remove
 
 
 object BlazeSolver {
-    private val blazeHpRegex = Regex("^\\[Lv15].+Blaze [\\d,]+/([\\d,]+)❤$")
+    val blazeHpRegex = Regex("^\\[Lv15].+Blaze [\\d,]+/([\\d,]+)❤$")
     private var inBlaze = false
     private val blazes = mutableListOf<Entity>()
     private var lastBlazeCount = 10

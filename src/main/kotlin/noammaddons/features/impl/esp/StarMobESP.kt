@@ -98,7 +98,7 @@ object StarMobESP: Feature("Highlights Star Mobs in the dungeon") {
         espMob(event.entity, color ?: return)
     }
 
-    fun checkStarMob(armorStand: EntityArmorStand) {
+    private fun checkStarMob(armorStand: EntityArmorStand) {
         if (checked.contains(armorStand)) return
         val name = armorStand.customNameTag.removeFormatting().uppercase()
         // withermancers are always -3 to real entity the -1 and -2 are the wither skulls that they shoot

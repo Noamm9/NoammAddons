@@ -23,6 +23,7 @@ import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
 import noammaddons.utils.ActionBarParser.maxSecrets
 import noammaddons.utils.ActionBarParser.secrets
 import noammaddons.utils.BlockUtils.getBlockAt
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.LocationUtils.inDungeon
@@ -103,10 +104,10 @@ object DungeonUtils {
         var name: String,
         var clazz: Classes,
         var clazzLvl: Int,
-        var skin: ResourceLocation = mc.thePlayer.locationSkin,
-        var entity: EntityPlayer? = null,
+        var skin: ResourceLocation = ResourceLocation("textures/entity/steve.png"),
         var isDead: Boolean = false,
     ) {
+        val entity: EntityPlayer? get() = mc.theWorld.getPlayerEntityByName(name)
         val mapIcon = DungeonMapPlayer(this, skin)
         val clearInfo = ClearInfo()
     }
@@ -145,12 +146,12 @@ object DungeonUtils {
         return mayorPerks.any { it.name.contains("EZPZ") }
     }
 
-    private fun updateDungeonTeammates() {
+    private fun updateDungeonTeammates(tabListEntries: List<String>) {
         if (DevOptions.devMode) {
             listOf(
                 DungeonPlayer("Noamm", Classes.Mage, 50, isDead = false),
                 DungeonPlayer("Noamm9", Classes.Archer, 50, isDead = false),
-                DungeonPlayer("NoammALT", Classes.Healer, 50, isDead = true, entity = mc.theWorld.getPlayerEntityByName("NoammALT")),
+                DungeonPlayer("NoammALT", Classes.Healer, 50, isDead = true),
                 DungeonPlayer("NoamIsSad", Classes.Tank, 50, isDead = false),
             ).let { list ->
                 dungeonTeammates.clear()
@@ -163,10 +164,10 @@ object DungeonUtils {
             }
         }
 
-        val tabList = tabList.takeIf { it.size >= 18 || it[0].second.contains("§r§b§lParty §r§f(") } ?: return
-        for ((networkPlayerInfo, line) in tabList) {
+        for (line in tabListEntries) {
             val (sbLvl, name, clazz, clazzLevel) = tablistRegex.find(line.removeFormatting())?.destructured ?: continue
-            runPlayersNames[name] = networkPlayerInfo.locationSkin
+            val skin = mc.netHandler?.getPlayerInfo(name)?.locationSkin ?: ResourceLocation("textures/entity/steve.png")
+            runPlayersNames[name] = skin
             if (clazz == "EMPTY") continue
 
             val currentTeammate = dungeonTeammates.find { it.name == name }
@@ -174,8 +175,7 @@ object DungeonUtils {
             if (currentTeammate != null) {
                 currentTeammate.clazz = if (clazz != "DEAD") Classes.getByName(clazz) else currentTeammate.clazz
                 currentTeammate.clazzLvl = clazzLevel.romanToDecimal()
-                currentTeammate.skin = networkPlayerInfo.locationSkin
-                currentTeammate.entity = mc.theWorld.getPlayerEntityByName(name)
+                currentTeammate.skin = skin
                 if (currentTeammate != thePlayer) currentTeammate.isDead = clazz == "DEAD"
             }
             else dungeonTeammates.add(
@@ -183,8 +183,7 @@ object DungeonUtils {
                     name,
                     Classes.getByName(clazz),
                     clazzLevel.romanToDecimal(),
-                    networkPlayerInfo.locationSkin,
-                    mc.theWorld.getPlayerEntityByName(name),
+                    skin,
                     clazz == "DEAD",
                 )
             )
@@ -204,7 +203,7 @@ object DungeonUtils {
         }
     }
 
-    fun updatePuzzles() {
+    fun updatePuzzles(tabListEntries: List<String>) {
         val tabList = tabList.map { it.second.removeFormatting() }
         if (tabList.size < 60) return
 
@@ -249,8 +248,9 @@ object DungeonUtils {
         when (val packet = event.packet) {
             is S38PacketPlayerListItem -> {
                 if (! packet.action.equalsOneOf(S38PacketPlayerListItem.Action.UPDATE_DISPLAY_NAME, S38PacketPlayerListItem.Action.ADD_PLAYER)) return
-                ThreadUtils.scheduledTask(1, ::updateDungeonTeammates)
-                ThreadUtils.scheduledTask(1, ::updatePuzzles)
+                val tabListEntries = packet.entries?.mapNotNull { it.displayName?.noFormatText } ?: return
+                updateDungeonTeammates(tabListEntries)
+                updatePuzzles(tabListEntries)
             }
 
             is S47PacketPlayerListHeaderFooter -> Blessing.entries.forEach { blessing ->

@@ -143,7 +143,7 @@ object MapRenderUtils {
 
                 preDraw()
                 GlStateManager.enableTexture2D()
-                GlStateManager.color(1f, 1f, 1f, 1f)
+                bindColor(Color.WHITE)
 
                 mc.textureManager.bindTexture(player.skin)
 
@@ -154,27 +154,22 @@ object MapRenderUtils {
             }
 
             if (DungeonMapConfig.playerHeads.value == 2 || DungeonMapConfig.playerHeads.value == 1 && mc.thePlayer.heldItem.skyblockID.equalsOneOf(
-                    "SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP", "HAUNT_ABILITY"
-                )
-            ) {
+               "SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP", "HAUNT_ABILITY"
+            )) {
                 if (player.teammate.entity == null) GlStateManager.rotate(player.yaw + 180f, 0f, 0f, - 1f)
                 else player.teammate.entity?.let { GlStateManager.rotate(it.rotationYaw + 180f, 0f, 0f, - 1f) }
                 GlStateManager.translate(0f, 8f, 0f)
                 GlStateManager.scale(DungeonMapConfig.playerNameScale.value, DungeonMapConfig.playerNameScale.value, 1f)
-                RenderUtils.drawCenteredText(
-                    player.teammate.name,
-                    0, 0, 1f,
-                    if (DungeonMapConfig.mapPlayerNameClassColorBased.value && player.teammate.clazz != DungeonUtils.Classes.Empty) player.teammate.clazz.color
-                    else Color.WHITE
-                )
+                val color = if (DungeonMapConfig.mapPlayerNameClassColorBased.value && player.teammate.clazz != DungeonUtils.Classes.Empty) player.teammate.clazz.color else Color.WHITE
+                RenderUtils.drawCenteredText(player.teammate.name, 0, 0, 1f, color)
             }
         GlStateManager.popMatrix()
     }
 
     fun drawPlayerHead(name: String, skin:ResourceLocation, entity: EntityPlayer? = null) {
-        GlStateManager.pushMatrix()
-
         val playerEntity = entity ?: return
+
+        GlStateManager.pushMatrix()
         val (x, z) = MapUtils.coordsToMap(playerEntity.renderVec)
 
         GlStateManager.translate(x, z, 0f)
@@ -202,7 +197,7 @@ object MapRenderUtils {
 
             preDraw()
             GlStateManager.enableTexture2D()
-            GlStateManager.color(1f, 1f, 1f, 1f)
+            bindColor(Color.WHITE)
 
             mc.textureManager.bindTexture(skin)
 
@@ -213,7 +208,7 @@ object MapRenderUtils {
         }
 
         if (DungeonMapConfig.playerHeads.value == 2 || DungeonMapConfig.playerHeads.value == 1 && mc.thePlayer.heldItem.skyblockID.equalsOneOf(
-                "SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP", "HAUNT_ABILITY"
+            "SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP", "HAUNT_ABILITY"
         )) {
             GlStateManager.rotate(playerEntity.rotationYaw + 180f, 0f, 0f, - 1f)
             GlStateManager.translate(0f, 8f, 0f)
