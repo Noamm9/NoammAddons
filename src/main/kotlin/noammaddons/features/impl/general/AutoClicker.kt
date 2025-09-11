@@ -6,13 +6,14 @@ import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.KeybindSetting
 import noammaddons.ui.config.core.impl.SliderSetting
 import noammaddons.ui.config.core.impl.ToggleSetting
+import noammaddons.utils.ChatUtils
 import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.PlayerUtils.leftClick
 import noammaddons.utils.PlayerUtils.rightClick
 import noammaddons.utils.ServerPlayer
 import org.lwjgl.input.Keyboard
 
-object AutoClicker: Feature(name = "AutoClicker") {
+object AutoClicker: Feature(name = "Auto Clicker") {
     private val leftClickToggle = ToggleSetting("Left Click")
     private val leftClickKeybind = KeybindSetting("Left Click Keybind").addDependency(leftClickToggle)
     private val rightClickToggle = ToggleSetting("Right Click")
@@ -21,6 +22,13 @@ object AutoClicker: Feature(name = "AutoClicker") {
     private val cps by SliderSetting("Clicks Per Second", 3f, 15f, .5f, 5f)
     private var nextLeftClick = .0
     private var nextRightClick = .0
+
+    override fun init() {
+        addSettings(
+            leftClickToggle, leftClickKeybind,
+            rightClickToggle, rightClickKeybind, terminatorCheck
+        )
+    }
 
     @SubscribeEvent
     fun onClientTickEvent(event: ClientTickEvent) {
