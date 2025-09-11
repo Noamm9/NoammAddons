@@ -44,7 +44,7 @@ object FeatureManager {
         CustomScoreboard, ScoreCalculator, BlockOverlay, WardrobeMenu, CustomPetMenu,
         TimeChanger, CustomTabList, TerminalSolver, ChamNametags, CustomSlotHighlight,
         InventoryDisplay, StopCloseMyChat, InventorySearchbar, BlessingDisplay,
-        ClientTimer, DarkMode, Animations, EnchantmentsColors, TermAutoClicker,
+        ClientTimer, DarkMode, Animations, EnchantmentsColors, AutoClicker,
         ArrowFix,
 
         DungeonMap,
