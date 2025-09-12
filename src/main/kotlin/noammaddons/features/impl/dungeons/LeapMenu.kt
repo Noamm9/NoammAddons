@@ -225,54 +225,53 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
     }
 
     @SubscribeEvent
-    fun onClick(event: GuiMouseClickEvent) {
-        if (! enabled) return
-        if (! inSpiritLeap()) return
-        event.isCanceled = true
-
-        val centerX = mc.getWidth() / 2
-        val centerY = mc.getHeight() / 2
-
-        val mx = getMouseX()
-        val my = getMouseY()
-
-        val index = when {
-            mx < centerX && my < centerY -> 0
-            mx > centerX && my < centerY -> 1
-            mx < centerX && my > centerY -> 2
-            mx > centerX && my > centerY -> 3
-            else -> return
-        }
-
-        players[index]?.run {
-            SoundUtils.click()
-            if (player.isDead) return@run modMessage("&3LeapMenu >> &c${player.name} is dead!")
-            sendWindowClickPacket(slot, 0, 0)
-            closeScreen()
-        }
-    }
-
-    @SubscribeEvent
     fun onUserInput(event: UserInputEvent) {
         if (! enabled) return
         if (! inSpiritLeap()) return
-        if (! leapKeybinds.value) return
-        if (! event.isMouse && event.keyCode.equalsOneOf(Keyboard.KEY_ESCAPE, Keyboard.KEY_RETURN)) return closeScreen()
-        event.isCanceled = true
 
-        val index = when {
-            key1.isPressed() -> 0
-            key2.isPressed() -> 1
-            key3.isPressed() -> 2
-            key4.isPressed() -> 3
-            else -> return
+        if (event.isMouse) {
+            event.isCanceled = true
+
+            val centerX = mc.getWidth() / 2
+            val centerY = mc.getHeight() / 2
+
+            val mx = getMouseX()
+            val my = getMouseY()
+
+            val index = when {
+                mx < centerX && my < centerY -> 0
+                mx > centerX && my < centerY -> 1
+                mx < centerX && my > centerY -> 2
+                mx > centerX && my > centerY -> 3
+                else -> return
+            }
+
+            players[index]?.run {
+                SoundUtils.click()
+                if (player.isDead) return@run modMessage("&3LeapMenu >> &c${player.name} is dead!")
+                sendWindowClickPacket(slot, 0, 0)
+                closeScreen()
+            }
         }
+        else {
+            if (! leapKeybinds.value) return
+            if (event.keyCode.equalsOneOf(Keyboard.KEY_ESCAPE, Keyboard.KEY_RETURN)) return closeScreen()
+            event.isCanceled = true
 
-        players[index]?.run {
-            SoundUtils.click()
-            if (player.isDead) return@run modMessage("&3LeapMenu >> &c${player.name} is dead!")
-            sendWindowClickPacket(slot, 0, 0)
-            closeScreen()
+            val index = when {
+                key1.isPressed() -> 0
+                key2.isPressed() -> 1
+                key3.isPressed() -> 2
+                key4.isPressed() -> 3
+                else -> return
+            }
+
+            players[index]?.run {
+                SoundUtils.click()
+                if (player.isDead) return@run modMessage("&3LeapMenu >> &c${player.name} is dead!")
+                sendWindowClickPacket(slot, 0, 0)
+                closeScreen()
+            }
         }
     }
 

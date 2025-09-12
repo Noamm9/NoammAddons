@@ -11,9 +11,7 @@ import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.network.play.server.*
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
-import net.minecraftforge.client.event.MouseEvent
-import net.minecraftforge.client.event.RenderGameOverlayEvent
-import net.minecraftforge.client.event.RenderWorldLastEvent
+import net.minecraftforge.client.event.*
 import net.minecraftforge.client.event.sound.PlaySoundEvent
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.world.WorldEvent
@@ -135,21 +133,20 @@ object EventDispatcher {
 
             is WorldEvent.Load -> awaitS32 = ! mc.isSingleplayer
 
-            is PreKeyInputEvent -> UserInputEvent(false, keyCode = event.key).postCatch()
+            is PreKeyInputEvent -> event.isCanceled = UserInputEvent(false, keyCode = event.key).postCatch()
 
-            is GuiKeybourdInputEvent -> UserInputEvent(false, event.gui, event.keyCode).postCatch()
+            is GuiKeybourdInputEvent -> event.isCanceled = UserInputEvent(false, event.gui, event.keyCode).postCatch()
+
 
             is MouseEvent -> {
-                if (event.button == -1) return
+                if (event.button == - 1) return
                 if (! event.buttonstate) return
-
-                UserInputEvent(true, keyCode = event.button).postCatch()
+                event.isCanceled = UserInputEvent(true, keyCode = event.button).postCatch()
             }
 
             is GuiMouseClickEvent -> {
-                if (event.button == -1) return
-
-                UserInputEvent(true, event.gui, event.button).postCatch()
+                if (event.button == - 1) return
+                event.isCanceled = UserInputEvent(true, event.gui, event.button).postCatch()
             }
 
             is EntityLeaveWorldEvent -> {

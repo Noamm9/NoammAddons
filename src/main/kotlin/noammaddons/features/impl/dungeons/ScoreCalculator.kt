@@ -59,6 +59,7 @@ object ScoreCalculator: Feature("Shows the score of the dungeon run") {
         if (! ScoreCalculatorElement.enabled) return
         if (HudEditorScreen.isOpen()) return
         if (! LocationUtils.inDungeon) return
+        if (! DungeonUtils.dungeonStarted) return
         ScoreCalculatorElement.draw()
     }
 
@@ -78,8 +79,8 @@ object ScoreCalculator: Feature("Shows the score of the dungeon run") {
         if (sendMessageToggle.value) sendPartyMessage(messageText.value)
         if (createTitleToggle.value) showTitle(titleText.value)
 
-        val floorColor = if (LocationUtils.isMasterMode) "&c" else "&a"
         val time = formatTime(ScoreCalculation.secondsElapsed)
+        val floorColor = if (LocationUtils.isMasterMode) "&c" else "&a"
         modMessage("&e$score&a score reached in &6$time &f|| $floorColor${LocationUtils.dungeonFloor}.")
         repeat(2) { mc.thePlayer.playSound("random.orb", 1f, 0f) }
         field.set(true)
