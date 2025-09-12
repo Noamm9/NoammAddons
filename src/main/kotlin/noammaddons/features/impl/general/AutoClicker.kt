@@ -47,18 +47,12 @@ object AutoClicker: Feature(name = "Auto Clicker") {
             KeyBinding.onTick(mc.gameSettings.keyBindAttack.keyCode)
         }
         else {
-            if (leftClickToggle.value) {
-                if (! leftClickKeybind.isDown()) return
-                if (now < nextLeftClick) return
-
+            if (leftClickToggle.value && leftClickKeybind.isDown() && now < nextLeftClick) {
                 nextLeftClick = getNextClick(now)
                 KeyBinding.onTick(mc.gameSettings.keyBindAttack.keyCode)
             }
 
-            if (rightClickToggle.value) {
-                if (! rightClickKeybind.isDown()) return
-                if (now < nextRightClick) return
-
+            if (rightClickToggle.value && rightClickKeybind.isDown() && now < nextRightClick) {
                 nextRightClick = getNextClick(now)
                 KeyBinding.onTick(mc.gameSettings.keyBindUseItem.keyCode)
             }
