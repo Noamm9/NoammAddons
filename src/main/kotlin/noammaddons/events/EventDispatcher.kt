@@ -11,6 +11,7 @@ import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.network.play.server.*
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
+import net.minecraftforge.client.event.MouseEvent
 import net.minecraftforge.client.event.RenderGameOverlayEvent
 import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.client.event.sound.PlaySoundEvent
@@ -133,6 +134,23 @@ object EventDispatcher {
             is WorldEvent.Unload -> WorldUnloadEvent().postCatch()
 
             is WorldEvent.Load -> awaitS32 = ! mc.isSingleplayer
+
+            is PreKeyInputEvent -> UserInputEvent().postCatch()
+
+            is GuiKeybourdInputEvent -> UserInputEvent(event.gui).postCatch()
+
+            is MouseEvent -> {
+                if (event.button == -1) return
+                if (! event.buttonstate) return
+
+                UserInputEvent().postCatch()
+            }
+
+            is GuiMouseClickEvent -> {
+                if (event.button == -1) return
+
+                UserInputEvent(event.gui).postCatch()
+            }
 
             is EntityLeaveWorldEvent -> {
                 if (! inDungeon) return

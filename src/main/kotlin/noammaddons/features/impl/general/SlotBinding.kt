@@ -7,8 +7,8 @@ import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.config.PogObject
-import noammaddons.events.GuiKeybourdInputEvent
 import noammaddons.events.GuiMouseClickEvent
+import noammaddons.events.UserInputEvent
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.ChatUtils.modMessage
@@ -81,7 +81,7 @@ object SlotBinding: Feature(desc = "Allows you to bind slots to hotbar slots for
     }
 
     @SubscribeEvent
-    fun onGuiKeyPress(event: GuiKeybourdInputEvent) {
+    fun onUserInput(event: UserInputEvent) {
         val gui = event.gui as? GuiInventory ?: return
         if (!bindKey.isPressed() || bindKey.value == KEY_NONE) return
         val clickedSlotNumber = gui.slotUnderMouse?.slotNumber?.takeIf { it in 5 .. 44 } ?: return

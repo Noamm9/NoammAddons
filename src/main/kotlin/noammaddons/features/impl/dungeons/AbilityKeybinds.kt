@@ -1,7 +1,7 @@
 package noammaddons.features.impl.dungeons
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.PreKeyInputEvent
+import noammaddons.events.UserInputEvent
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.DungeonUtils.dungeonStarted
@@ -26,7 +26,7 @@ object AbilityKeybinds: Feature("Allows you do use your dungeon class ult/abilit
     }
 
     @SubscribeEvent
-    fun onKeyInput(event: PreKeyInputEvent) {
+    fun onUserInput(event: UserInputEvent) {
         if (! inDungeon || ! dungeonStarted) return
         if (classUltimate.value && ultKeybind.isPressed()) useDungeonClassAbility(true)
         if (classAbility.value && abilityKeybind.isPressed()) useDungeonClassAbility(false)
