@@ -12,6 +12,7 @@ import noammaddons.ui.config.core.save.Savable
 import noammaddons.utils.MathUtils.lerp
 import noammaddons.utils.MathUtils.lerpColor
 import org.lwjgl.input.Keyboard
+import org.lwjgl.input.Mouse
 import kotlin.reflect.KProperty
 
 class KeybindSetting(name: String, override var defaultValue: Int = Keyboard.KEY_NONE): Component<Int>(name), Savable {
@@ -21,15 +22,28 @@ class KeybindSetting(name: String, override var defaultValue: Int = Keyboard.KEY
     private var hoverAnimProgress = 0.0
     private var isHovered = false
 
-    fun isDown() = Keyboard.isKeyDown(value)
-
     private var previousState = false
+
+    fun isDown(): Boolean {
+        return if (isMouseButton(value)) {
+            Mouse.isButtonDown(getMouseButtonId(value))
+        } else {
+            Keyboard.isKeyDown(value)
+        }
+    }
+
     fun isPressed(): Boolean {
         val currentState = isDown()
-        val wasPressed = ! previousState && currentState
+        val wasPressed = !previousState && currentState
         previousState = currentState
         return wasPressed
     }
+
+    private fun isMouseButton(keyCode: Int) = keyCode >= MOUSE_BUTTON_OFFSET
+
+    private fun getMouseButtonId(keyCode: Int) = keyCode - MOUSE_BUTTON_OFFSET
+
+    private fun getMouseButtonKeyCode(buttonId: Int) = buttonId + MOUSE_BUTTON_OFFSET
 
     override fun draw(x: Double, y: Double, mouseX: Double, mouseY: Double) {
         val currentlyHovered = isMouseOver(x, y, mouseX, mouseY) && ! listening
@@ -43,7 +57,13 @@ class KeybindSetting(name: String, override var defaultValue: Int = Keyboard.KEY
 
         textRenderer.drawText(name, x + 5, y + 6)
 
-        val displayText = if (listening) "..." else if (value == Keyboard.KEY_NONE) "NONE" else Keyboard.getKeyName(value)
+        val displayText = when {
+            listening -> "..."
+            value == Keyboard.KEY_NONE -> "NONE"
+            isMouseButton(value) -> getMouseButtonName(getMouseButtonId(value))
+            else -> Keyboard.getKeyName(value)
+        }
+
         val buttonWidth = textRenderer.getStringWidth(displayText).coerceAtLeast(22f) + 6
         val buttonHeight = 12.0
         val buttonX = x + width - buttonWidth - 8
@@ -53,12 +73,26 @@ class KeybindSetting(name: String, override var defaultValue: Int = Keyboard.KEY
         textRenderer.drawCenteredText(displayText, buttonX + buttonWidth / 2, buttonY + 2)
     }
 
+    private fun getMouseButtonName(buttonId: Int) = when (buttonId) {
+        0 -> "LMB"
+        1 -> "RMB"
+        2 -> "MMB"
+        else -> "Mouse $buttonId"
+    }
+
     private fun isMouseOver(x: Double, y: Double, mouseX: Double, mouseY: Double): Boolean {
         return mouseX in x .. (x + width) && mouseY in y .. (y + height)
     }
 
     override fun mouseClicked(x: Double, y: Double, mouseX: Double, mouseY: Double, button: Int) {
-        listening = isMouseOver(x, y, mouseX, mouseY) && button == 0
+        if (isMouseOver(x, y, mouseX, mouseY)) {
+            if (listening) {
+                value = getMouseButtonKeyCode(button)
+                listening = false
+            } else if (button == 0) {
+                listening = true
+            }
+        }
     }
 
     override fun keyTyped(typedChar: Char, keyCode: Int): Boolean {
@@ -92,5 +126,9 @@ class KeybindSetting(name: String, override var defaultValue: Int = Keyboard.KEY
     override fun write(): JsonElement = JsonPrimitive(value)
     override fun read(element: JsonElement?) {
         element?.asInt?.let { value = it }
+    }
+
+    companion object {
+        private const val MOUSE_BUTTON_OFFSET = 1000
     }
 }
