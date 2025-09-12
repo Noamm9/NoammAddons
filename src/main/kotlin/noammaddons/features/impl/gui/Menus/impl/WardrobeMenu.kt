@@ -223,10 +223,9 @@ object WardrobeMenu: Feature() {
         if (! wardrobeKeybinds.value) return
         if (! ActionUtils.inWardrobeMenu) return
         if (System.currentTimeMillis() - lastClick < 300) return
-        val keyCode = Keyboard.getEventKey()
-        if (keyCode.equalsOneOf(Keyboard.KEY_ESCAPE, Keyboard.KEY_E)) return
+        if (! event.isMouse && event.keyCode.equalsOneOf(Keyboard.KEY_ESCAPE, Keyboard.KEY_E)) return
         val windowId = mc.thePlayer?.openContainer?.windowId ?: return
-        val index = if (useHotbarBinds.value) hotbarKeyMap[keyCode] ?: return
+        val index = if (useHotbarBinds.value) hotbarKeyMap[event.keyCode] ?: return
         else keybinds.withIndex().find { (_, key) -> key.isPressed() }?.index ?: return
         val slot = keyMap[index]?.takeIf { mc.thePlayer.openContainer.getSlot(it).stack != null } ?: return
         event.isCanceled = true

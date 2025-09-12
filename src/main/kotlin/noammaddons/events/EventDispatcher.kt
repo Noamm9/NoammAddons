@@ -135,21 +135,21 @@ object EventDispatcher {
 
             is WorldEvent.Load -> awaitS32 = ! mc.isSingleplayer
 
-            is PreKeyInputEvent -> UserInputEvent().postCatch()
+            is PreKeyInputEvent -> UserInputEvent(false, keyCode = event.key).postCatch()
 
-            is GuiKeybourdInputEvent -> UserInputEvent(event.gui).postCatch()
+            is GuiKeybourdInputEvent -> UserInputEvent(false, event.gui, event.keyCode).postCatch()
 
             is MouseEvent -> {
                 if (event.button == -1) return
                 if (! event.buttonstate) return
 
-                UserInputEvent().postCatch()
+                UserInputEvent(true, keyCode = event.button).postCatch()
             }
 
             is GuiMouseClickEvent -> {
                 if (event.button == -1) return
 
-                UserInputEvent(event.gui).postCatch()
+                UserInputEvent(true, event.gui, event.button).postCatch()
             }
 
             is EntityLeaveWorldEvent -> {
