@@ -83,7 +83,7 @@ object SlotBinding: Feature(desc = "Allows you to bind slots to hotbar slots for
     @SubscribeEvent
     fun onUserInput(event: UserInputEvent) {
         val gui = event.gui as? GuiInventory ?: return
-        if (!bindKey.isPressed() || bindKey.value == KEY_NONE) return
+        if (! bindKey.isDown() || bindKey.value == KEY_NONE) return
         val clickedSlotNumber = gui.slotUnderMouse?.slotNumber?.takeIf { it in 5 .. 44 } ?: return
 
         event.isCanceled = true

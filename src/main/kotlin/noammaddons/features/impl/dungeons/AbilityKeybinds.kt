@@ -28,7 +28,7 @@ object AbilityKeybinds: Feature("Allows you do use your dungeon class ult/abilit
     @SubscribeEvent
     fun onUserInput(event: UserInputEvent) {
         if (! inDungeon || ! dungeonStarted) return
-        if (classUltimate.value && ultKeybind.isPressed()) useDungeonClassAbility(true)
-        if (classAbility.value && abilityKeybind.isPressed()) useDungeonClassAbility(false)
+        if (classUltimate.value && ultKeybind.isDown()) useDungeonClassAbility(true)
+        if (classAbility.value && abilityKeybind.isDown()) useDungeonClassAbility(false)
     }
 }

@@ -25,12 +25,8 @@ class KeybindSetting(name: String, override var defaultValue: Int = Keyboard.KEY
     private var previousState = false
 
     fun isDown(): Boolean {
-        return if (isMouseButton(value)) {
-            Mouse.isButtonDown(value - MOUSE_BUTTON_OFFSET)
-        }
-        else {
-            Keyboard.isKeyDown(value)
-        }
+        return if (isMouseButton(value)) Mouse.isButtonDown(value - MOUSE_BUTTON_OFFSET)
+        else Keyboard.isKeyDown(value)
     }
 
     fun isPressed(): Boolean {
