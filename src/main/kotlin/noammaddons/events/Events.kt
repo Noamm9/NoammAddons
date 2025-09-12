@@ -35,7 +35,7 @@ class GuiMouseClickEvent(val mouseX: Int, val mouseY: Int, val button: Int, val 
 class GuiKeybourdInputEvent(val keyChar: Char, val keyCode: Int, val gui: GuiScreen): Event()
 
 @Cancelable
-class UserInputEvent(val isMouse: Boolean, val gui: GuiScreen? = null, val keyCode: Int? = null): Event()
+class UserInputEvent(val isMouse: Boolean, val gui: GuiScreen? = null, val keyCode: Int): Event()
 
 abstract class ClickEvent: Event() {
     @Cancelable

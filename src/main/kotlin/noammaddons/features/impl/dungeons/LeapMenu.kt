@@ -228,10 +228,9 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
     fun onUserInput(event: UserInputEvent) {
         if (! enabled) return
         if (! inSpiritLeap()) return
+        event.isCanceled = true
 
-        if (event.isMouse) {
-            event.isCanceled = true
-
+        if (event.isMouse && event.keyCode < 3) {
             val centerX = mc.getWidth() / 2
             val centerY = mc.getHeight() / 2
 
@@ -253,16 +252,14 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
                 closeScreen()
             }
         }
-        else {
-            if (! leapKeybinds.value) return
-            if (event.keyCode.equalsOneOf(Keyboard.KEY_ESCAPE, Keyboard.KEY_RETURN)) return closeScreen()
-            event.isCanceled = true
+        else if (leapKeybinds.value) {
+            if (! event.isMouse && event.keyCode.equalsOneOf(Keyboard.KEY_ESCAPE, Keyboard.KEY_RETURN)) return closeScreen()
 
             val index = when {
-                key1.isPressed() -> 0
-                key2.isPressed() -> 1
-                key3.isPressed() -> 2
-                key4.isPressed() -> 3
+                key1.isDown() -> 0
+                key2.isDown() -> 1
+                key3.isDown() -> 2
+                key4.isDown() -> 3
                 else -> return
             }
 

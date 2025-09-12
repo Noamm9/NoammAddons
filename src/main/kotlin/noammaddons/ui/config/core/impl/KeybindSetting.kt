@@ -26,24 +26,21 @@ class KeybindSetting(name: String, override var defaultValue: Int = Keyboard.KEY
 
     fun isDown(): Boolean {
         return if (isMouseButton(value)) {
-            Mouse.isButtonDown(getMouseButtonId(value))
-        } else {
+            Mouse.isButtonDown(value - MOUSE_BUTTON_OFFSET)
+        }
+        else {
             Keyboard.isKeyDown(value)
         }
     }
 
     fun isPressed(): Boolean {
         val currentState = isDown()
-        val wasPressed = !previousState && currentState
+        val wasPressed = ! previousState && currentState
         previousState = currentState
         return wasPressed
     }
 
     private fun isMouseButton(keyCode: Int) = keyCode >= MOUSE_BUTTON_OFFSET
-
-    private fun getMouseButtonId(keyCode: Int) = keyCode - MOUSE_BUTTON_OFFSET
-
-    private fun getMouseButtonKeyCode(buttonId: Int) = buttonId + MOUSE_BUTTON_OFFSET
 
     override fun draw(x: Double, y: Double, mouseX: Double, mouseY: Double) {
         val currentlyHovered = isMouseOver(x, y, mouseX, mouseY) && ! listening
@@ -60,7 +57,7 @@ class KeybindSetting(name: String, override var defaultValue: Int = Keyboard.KEY
         val displayText = when {
             listening -> "..."
             value == Keyboard.KEY_NONE -> "NONE"
-            isMouseButton(value) -> getMouseButtonName(getMouseButtonId(value))
+            isMouseButton(value) -> getMouseButtonName(value - MOUSE_BUTTON_OFFSET)
             else -> Keyboard.getKeyName(value)
         }
 
@@ -87,9 +84,10 @@ class KeybindSetting(name: String, override var defaultValue: Int = Keyboard.KEY
     override fun mouseClicked(x: Double, y: Double, mouseX: Double, mouseY: Double, button: Int) {
         if (isMouseOver(x, y, mouseX, mouseY)) {
             if (listening) {
-                value = getMouseButtonKeyCode(button)
+                value = button + MOUSE_BUTTON_OFFSET
                 listening = false
-            } else if (button == 0) {
+            }
+            else if (button == 0) {
                 listening = true
             }
         }
