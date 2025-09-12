@@ -250,6 +250,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
                 if (player.isDead) return@run modMessage("&3LeapMenu >> &c${player.name} is dead!")
                 sendWindowClickPacket(slot, 0, 0)
                 closeScreen()
+                return
             }
         }
         else if (leapKeybinds.value) {
