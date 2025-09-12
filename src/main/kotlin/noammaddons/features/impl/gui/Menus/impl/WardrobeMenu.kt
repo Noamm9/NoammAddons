@@ -39,12 +39,15 @@ object WardrobeMenu: Feature() {
     private val preventUnequip = ToggleSetting("Prevent Unequip").addDependency(wardrobeKeybinds)
     private val keybinds = (1 .. 9).mapIndexed { index, slot ->
         KeybindSetting("Wardrobe Slot $slot", Keyboard.KEY_1 + index)
-            .addDependency { useHotbarBinds.value }
-            .addDependency(wardrobeKeybinds)
     }
 
     override fun init() {
         hotbarKeyMap = mc.gameSettings.keyBindsHotbar.mapIndexed { i, key -> key.keyCode to i }.toMap()
+        keybinds.forEach { keybind ->
+            keybind
+                .addDependency { useHotbarBinds.value }
+                .addDependency(wardrobeKeybinds)
+        }
 
         addSettings(
             customMenu,
@@ -216,14 +219,14 @@ object WardrobeMenu: Feature() {
     }
 
     @SubscribeEvent
-    fun onKeyInput(event: GuiKeybourdInputEvent) {
+    fun onUserInput(event: UserInputEvent) {
         if (! wardrobeKeybinds.value) return
         if (! ActionUtils.inWardrobeMenu) return
         if (System.currentTimeMillis() - lastClick < 300) return
-        if (event.keyCode.equalsOneOf(Keyboard.KEY_ESCAPE, Keyboard.KEY_E)) return
+        if (! event.isMouse && event.keyCode.equalsOneOf(Keyboard.KEY_ESCAPE, Keyboard.KEY_E)) return
         val windowId = mc.thePlayer?.openContainer?.windowId ?: return
         val index = if (useHotbarBinds.value) hotbarKeyMap[event.keyCode] ?: return
-        else keybinds.withIndex().find { (_, key) -> key.value == event.keyCode }?.index ?: return
+        else keybinds.withIndex().find { (_, key) -> key.isDown() }?.index ?: return
         val slot = keyMap[index]?.takeIf { mc.thePlayer.openContainer.getSlot(it).stack != null } ?: return
         event.isCanceled = true
 

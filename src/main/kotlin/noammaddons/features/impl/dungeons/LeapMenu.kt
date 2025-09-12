@@ -44,10 +44,10 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
     val showLastDoorOpenner = ToggleSetting("Show Last Door Openner", false).addDependency(customLeapMenu)
     val tintDeadPlayers = ToggleSetting("Tint Dead Players", true).addDependency(customLeapMenu)
     val leapKeybinds = ToggleSetting("Leap Keybinds").addDependency(customLeapMenu)
-    val key1 = KeybindSetting("Slot 1", Keyboard.KEY_1).addDependency(leapKeybinds)
-    val key2 = KeybindSetting("Slot 2", Keyboard.KEY_2).addDependency(leapKeybinds)
-    val key3 = KeybindSetting("Slot 3", Keyboard.KEY_3).addDependency(leapKeybinds)
-    val key4 = KeybindSetting("Slot 4", Keyboard.KEY_4).addDependency(leapKeybinds)
+    val key1 = KeybindSetting("Slot 1", Keyboard.KEY_1)
+    val key2 = KeybindSetting("Slot 2", Keyboard.KEY_2)
+    val key3 = KeybindSetting("Slot 3", Keyboard.KEY_3)
+    val key4 = KeybindSetting("Slot 4", Keyboard.KEY_4)
 
     private val announceSpiritLeaps = ToggleSetting("Announce Leap", true)
     private val leapMsg = TextInputSetting("Leap Message", "ILY ❤ {name}").addDependency(announceSpiritLeaps)
@@ -56,16 +56,23 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
     private val hideTime = SliderSetting("Hide Time", 0.5, 5, 0.1, 3.5).addDependency(hideAfterLeap)
     private var hidePlayers = false
 
-    override fun init() = addSettings(
-        SeperatorSetting("Custom Leap Menu"),
-        customLeapMenu, scale,
-        showLastDoorOpenner, tintDeadPlayers,
-        leapKeybinds, key1, key2, key3, key4,
-        SeperatorSetting("Leap Announcement"),
-        announceSpiritLeaps, leapMsg,
-        SeperatorSetting("Hide Players After Leap"),
-        hideAfterLeap, hideTime
-    )
+    override fun init() {
+        key1.addDependency(leapKeybinds)
+        key2.addDependency(leapKeybinds)
+        key3.addDependency(leapKeybinds)
+        key4.addDependency(leapKeybinds)
+
+        addSettings(
+            SeperatorSetting("Custom Leap Menu"),
+            customLeapMenu, scale,
+            showLastDoorOpenner, tintDeadPlayers,
+            leapKeybinds, key1, key2, key3, key4,
+            SeperatorSetting("Leap Announcement"),
+            announceSpiritLeaps, leapMsg,
+            SeperatorSetting("Hide Players After Leap"),
+            hideAfterLeap, hideTime
+        )
+    }
 
     data class LeapMenuPlayer(val slot: Int, val player: DungeonUtils.DungeonPlayer)
 
@@ -218,54 +225,51 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
     }
 
     @SubscribeEvent
-    fun onClick(event: GuiMouseClickEvent) {
+    fun onUserInput(event: UserInputEvent) {
         if (! enabled) return
         if (! inSpiritLeap()) return
         event.isCanceled = true
 
-        val centerX = mc.getWidth() / 2
-        val centerY = mc.getHeight() / 2
+        if (event.isMouse && event.keyCode < 3) {
+            val centerX = mc.getWidth() / 2
+            val centerY = mc.getHeight() / 2
 
-        val mx = getMouseX()
-        val my = getMouseY()
+            val mx = getMouseX()
+            val my = getMouseY()
 
-        val index = when {
-            mx < centerX && my < centerY -> 0
-            mx > centerX && my < centerY -> 1
-            mx < centerX && my > centerY -> 2
-            mx > centerX && my > centerY -> 3
-            else -> return
+            val index = when {
+                mx < centerX && my < centerY -> 0
+                mx > centerX && my < centerY -> 1
+                mx < centerX && my > centerY -> 2
+                mx > centerX && my > centerY -> 3
+                else -> return
+            }
+
+            players[index]?.run {
+                SoundUtils.click()
+                if (player.isDead) return@run modMessage("&3LeapMenu >> &c${player.name} is dead!")
+                sendWindowClickPacket(slot, 0, 0)
+                closeScreen()
+                return
+            }
         }
+        else if (leapKeybinds.value) {
+            if (! event.isMouse && event.keyCode.equalsOneOf(Keyboard.KEY_ESCAPE, Keyboard.KEY_RETURN)) return closeScreen()
 
-        players[index]?.run {
-            SoundUtils.click()
-            if (player.isDead) return@run modMessage("&3LeapMenu >> &c${player.name} is dead!")
-            sendWindowClickPacket(slot, 0, 0)
-            closeScreen()
-        }
-    }
+            val index = when {
+                key1.isDown() -> 0
+                key2.isDown() -> 1
+                key3.isDown() -> 2
+                key4.isDown() -> 3
+                else -> return
+            }
 
-    @SubscribeEvent
-    fun onKey(event: GuiKeybourdInputEvent) {
-        if (! enabled) return
-        if (! inSpiritLeap()) return
-        if (! leapKeybinds.value) return
-        if (event.keyCode.equalsOneOf(Keyboard.KEY_ESCAPE, Keyboard.KEY_RETURN)) return closeScreen()
-        event.isCanceled = true
-
-        val index = when (event.keyCode) {
-            key1.value -> 0
-            key2.value -> 1
-            key3.value -> 2
-            key4.value -> 3
-            else -> return
-        }
-
-        players[index]?.run {
-            SoundUtils.click()
-            if (player.isDead) return@run modMessage("&3LeapMenu >> &c${player.name} is dead!")
-            sendWindowClickPacket(slot, 0, 0)
-            closeScreen()
+            players[index]?.run {
+                SoundUtils.click()
+                if (player.isDead) return@run modMessage("&3LeapMenu >> &c${player.name} is dead!")
+                sendWindowClickPacket(slot, 0, 0)
+                closeScreen()
+            }
         }
     }
 

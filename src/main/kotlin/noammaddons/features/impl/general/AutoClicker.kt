@@ -7,21 +7,23 @@ import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.ServerPlayer
-import org.lwjgl.input.Keyboard
 
 
 object AutoClicker: Feature(name = "Auto Clicker") {
     private val cps = SliderSetting("Clicks Per Second", 3f, 15f, .5f, 5f)
     private val terminatorCheck = ToggleSetting("Terminator Only")
     private val leftClickToggle = ToggleSetting("Left Click").addDependency { terminatorCheck.value }
-    private val leftClickKeybind = KeybindSetting("Left Click Keybind").addDependency(leftClickToggle).addDependency { terminatorCheck.value }
+    private val leftClickKeybind = KeybindSetting("Left Click Keybind")
     private val rightClickToggle = ToggleSetting("Right Click").addDependency { terminatorCheck.value }
-    private val rightClickKeybind = KeybindSetting("Right Click Keybind").addDependency(rightClickToggle).addDependency { terminatorCheck.value }
+    private val rightClickKeybind = KeybindSetting("Right Click Keybind")
 
     private var nextLeftClick = 0L
     private var nextRightClick = 0L
 
     override fun init() {
+        leftClickKeybind.addDependency(leftClickToggle).addDependency { terminatorCheck.value }
+        rightClickKeybind.addDependency(rightClickToggle).addDependency { terminatorCheck.value }
+
         addSettings(
             cps, terminatorCheck,
             leftClickToggle, leftClickKeybind,
@@ -45,18 +47,12 @@ object AutoClicker: Feature(name = "Auto Clicker") {
             KeyBinding.onTick(mc.gameSettings.keyBindAttack.keyCode)
         }
         else {
-            if (leftClickToggle.value) {
-                if (! Keyboard.isKeyDown(leftClickKeybind.value)) return
-                if (now < nextLeftClick) return
-
+            if (leftClickToggle.value && leftClickKeybind.isDown() && now > nextLeftClick) {
                 nextLeftClick = getNextClick(now)
                 KeyBinding.onTick(mc.gameSettings.keyBindAttack.keyCode)
             }
 
-            if (rightClickToggle.value) {
-                if (! Keyboard.isKeyDown(rightClickKeybind.value)) return
-                if (now < nextRightClick) return
-
+            if (rightClickToggle.value && rightClickKeybind.isDown() && now > nextRightClick) {
                 nextRightClick = getNextClick(now)
                 KeyBinding.onTick(mc.gameSettings.keyBindUseItem.keyCode)
             }

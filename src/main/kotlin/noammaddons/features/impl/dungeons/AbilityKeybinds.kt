@@ -1,7 +1,7 @@
 package noammaddons.features.impl.dungeons
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.PreKeyInputEvent
+import noammaddons.events.UserInputEvent
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.DungeonUtils.dungeonStarted
@@ -11,19 +11,24 @@ import noammaddons.utils.PlayerUtils.useDungeonClassAbility
 object AbilityKeybinds: Feature("Allows you do use your dungeon class ult/ability with a keybind") {
     val classUltimate = ToggleSetting("Class Ultimate", true)
     val classAbility = ToggleSetting("Class Ability", true)
-    val ultKeybind = KeybindSetting("Ultimate Keybind").addDependency(classUltimate)
-    val abilityKeybind = KeybindSetting("Ability Keybind").addDependency(classAbility)
+    val ultKeybind = KeybindSetting("Ultimate Keybind")
+    val abilityKeybind = KeybindSetting("Ability Keybind")
 
-    override fun init() = addSettings(
-        classUltimate, classAbility,
-        SeperatorSetting("Keybinds").addDependency { ! classUltimate.value || ! classAbility.value },
-        ultKeybind, abilityKeybind
-    )
+    override fun init() {
+        ultKeybind.addDependency(classUltimate)
+        abilityKeybind.addDependency(classAbility)
+
+        addSettings(
+            classUltimate, classAbility,
+            SeperatorSetting("Keybinds").addDependency { ! classUltimate.value || ! classAbility.value },
+            ultKeybind, abilityKeybind
+        )
+    }
 
     @SubscribeEvent
-    fun onKeyInput(event: PreKeyInputEvent) {
+    fun onUserInput(event: UserInputEvent) {
         if (! inDungeon || ! dungeonStarted) return
-        if (classUltimate.value && event.key == ultKeybind.value) useDungeonClassAbility(true)
-        if (classAbility.value && event.key == abilityKeybind.value) useDungeonClassAbility(false)
+        if (classUltimate.value && ultKeybind.isDown()) useDungeonClassAbility(true)
+        if (classAbility.value && abilityKeybind.isDown()) useDungeonClassAbility(false)
     }
 }
