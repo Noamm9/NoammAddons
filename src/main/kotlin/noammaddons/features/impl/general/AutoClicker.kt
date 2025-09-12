@@ -56,7 +56,7 @@ object AutoClicker: Feature(name = "Auto Clicker") {
             }
 
             if (rightClickToggle.value) {
-                if (! leftClickKeybind.isDown()) return
+                if (! rightClickKeybind.isDown()) return
                 if (now < nextRightClick) return
 
                 nextRightClick = getNextClick(now)
