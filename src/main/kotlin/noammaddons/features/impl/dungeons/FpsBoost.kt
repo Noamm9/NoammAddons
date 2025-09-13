@@ -93,13 +93,11 @@ object FpsBoost: Feature() {
         }
 
         if (this is S04PacketEntityEquipment && inDungeon) {
-            val entity = mc.theWorld.getEntityByID(entityID) ?: return
             val isTentacle = F7Phase == 5 && equipmentSlot == 4 && getSkullTexture(itemStack) == TENTACLE_TEXTURE
             val isSoulWeaver = equipmentSlot == 4 && getSkullTexture(itemStack) == SOUL_WEAVER_TEXTURE
             val isHealerFairy = equipmentSlot == 0 && getSkullTexture(itemStack) == HEALER_FAIRY_TEXTURE
             if (! isTentacle && ! isSoulWeaver && ! isHealerFairy) return
             event.isCanceled = true
-            entity.setDead()
         }
     }
 

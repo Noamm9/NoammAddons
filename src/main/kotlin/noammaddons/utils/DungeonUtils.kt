@@ -16,6 +16,7 @@ import noammaddons.NoammAddons.Companion.scope
 import noammaddons.events.*
 import noammaddons.events.EventDispatcher.postAndCatch
 import noammaddons.features.impl.DevOptions
+import noammaddons.features.impl.dungeons.ScoreCalculator
 import noammaddons.features.impl.dungeons.dmap.core.ClearInfo
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapPlayer
 import noammaddons.features.impl.dungeons.dmap.core.map.*
@@ -140,6 +141,7 @@ object DungeonUtils {
     }
 
     fun isPaul(): Boolean {
+        if (ScoreCalculator.forcePaul.value) return true
         val mayorPerks = mutableListOf<DataClasses.ApiMayor.Perk>()
         mayorData?.mayor?.perks?.let { mayorPerks.addAll(it) }
         mayorData?.mayor?.minister?.perks?.let { mayorPerks.addAll(it) }

@@ -31,6 +31,7 @@ object ScoreCalculator: Feature("Shows the score of the dungeon run") {
         override fun draw() = drawText(text, getX(), getY(), getScale())
     }
 
+    val forcePaul = ToggleSetting("Force Paul")
     private val hudElement = ToggleSetting("HUD Element")
     private val sendMessageOn270Score = ToggleSetting("Send message on 270 score", false)
     private val message270Score = TextInputSetting("Message for 270 score", "270 Score!").addDependency(sendMessageOn270Score)
@@ -44,7 +45,7 @@ object ScoreCalculator: Feature("Shows the score of the dungeon run") {
 
     override fun init() {
         addSettings(
-            hudElement,
+            forcePaul, hudElement,
             sendMessageOn270Score, message270Score,
             createTitleOn270Score, messageTitle270Score,
             sendMessageOn300Score, message300Score,

@@ -73,6 +73,9 @@ object WitherDragons: Feature(
             is S0FPacketSpawnMob -> dragonSpawn(packet)
             is S1CPacketEntityMetadata -> dragonUpdate(packet)
             is S29PacketSoundEffect -> trackArrows(packet)
+            is S13PacketDestroyEntities -> {
+                WitherDragonEnum.entries.find { (it.entityId ?: return@find false) in packet.entityIDs }?.state = DEAD
+            }
         }
     }
 
