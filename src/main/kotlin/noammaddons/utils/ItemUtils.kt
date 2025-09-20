@@ -177,16 +177,11 @@ object ItemUtils {
     }
 
     fun getSkullTexture(stack: ItemStack?): String? {
-        if (stack == null) return null
-        val nbt = stack.tagCompound ?: return null
-
-        val textures = nbt.getCompoundTag("SkullOwner")
+        return stack?.getSubCompound("SkullOwner", false)
             ?.getCompoundTag("Properties")
             ?.getTagList("textures", 10)
-
-        if (textures == null || textures.tagCount() == 0) return null
-
-        return textures.getCompoundTagAt(0)?.getString("Value")
+            ?.takeUnless { it.tagCount() == 0 }
+            ?.getCompoundTagAt(0)?.getString("Value")
     }
 
     fun getEssenceValue(text: String): Double {

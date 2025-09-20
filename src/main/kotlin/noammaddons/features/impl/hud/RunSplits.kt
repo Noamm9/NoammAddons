@@ -9,6 +9,7 @@ import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
 import noammaddons.features.impl.hud.RunSplits.DungeonRunSplitsElement.overviewStr
+import noammaddons.ui.config.core.annotations.AlwaysActive
 import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.noFormatText
@@ -17,7 +18,7 @@ import noammaddons.utils.ThreadUtils.loop
 import java.awt.Color
 import kotlin.math.roundToInt
 
-
+@AlwaysActive
 object RunSplits: Feature() {
     private object DungeonRunSplitsElement: GuiElement(hudData.getData().dungeonRunSplits) {
         private val exampleText = listOf(
@@ -61,8 +62,9 @@ object RunSplits: Feature() {
 
     private val floorSplits = mutableMapOf<String, List<DialogueEntry>>()
 
-    private val currentFloorSplits = mutableMapOf<String, Split>()
     private val runEndRegex = Regex("^\\s*☠ Defeated (.+) in 0?([\\dhms ]+?)\\s*(\\(NEW RECORD!\\))?$")
+    private val currentFloorSplits = mutableMapOf<String, Split>()
+    var currentTime = 0L
 
     init {
         WebUtils.fetchJson<Map<String, List<Map<String, String?>>>>(
@@ -85,21 +87,25 @@ object RunSplits: Feature() {
 
     private fun formatTime(ms: Long): String = "${(ms / 1000) / 60}m ${(ms / 1000) % 60}s"
     private fun formatSecs(ms: Long): String = "${ms / 1000}s"
-    private fun formatMillisAsDecimal(ms: Long): String = "${(ms / 10.0).roundToInt() / 100.0}s"
+    private fun formatMillisAsDecimal(ms: Long): String = "${((ms / 10.0).roundToInt() / 100.0).toFixed(1)}s"
     private fun DialogueEntry.startMatches(msg: String) = start == msg || start?.toRegex()?.matches(msg) == true
     private fun DialogueEntry.endMatches(msg: String) = end == msg || end?.toRegex()?.matches(msg) == true
 
     @SubscribeEvent
-    fun onWorldUnload(event: WorldUnloadEvent) = currentFloorSplits.clear()
+    fun onWorldUnload(event: WorldUnloadEvent) {
+        currentFloorSplits.clear()
+        currentTime = 0
+    }
 
     override fun init() = loop(50) {
+        if (! enabled) return@loop
         if (! LocationUtils.inDungeon) return@loop
 
         val splitLines = mutableListOf<String>()
 
         val bloodOpen = when {
             DungeonUtils.bloodOpenTime == null && DungeonUtils.dungeonStarted ->
-                formatTime(System.currentTimeMillis() - (DungeonUtils.dungeonStartTime ?: return@loop))
+                formatTime(currentTime - (DungeonUtils.dungeonStartTime ?: return@loop))
 
             DungeonUtils.bloodOpenTime != null ->
                 formatTime(DungeonUtils.bloodOpenTime !! - (DungeonUtils.dungeonStartTime ?: return@loop))
@@ -112,14 +118,14 @@ object RunSplits: Feature() {
                 formatSecs(DungeonUtils.watcherClearTime !! - (DungeonUtils.bloodOpenTime ?: return@loop))
 
             DungeonUtils.bloodOpenTime != null ->
-                formatSecs(System.currentTimeMillis() - DungeonUtils.bloodOpenTime !!)
+                formatSecs(currentTime - DungeonUtils.bloodOpenTime !!)
 
             else -> "?"
         }
 
         val portalTime = when {
             DungeonUtils.watcherClearTime != null && DungeonUtils.bossEntryTime == null ->
-                formatMillisAsDecimal(System.currentTimeMillis() - DungeonUtils.watcherClearTime !!)
+                formatMillisAsDecimal(currentTime - DungeonUtils.watcherClearTime !!)
 
             DungeonUtils.watcherClearTime != null && DungeonUtils.bossEntryTime != null ->
                 formatMillisAsDecimal(DungeonUtils.bossEntryTime !! - DungeonUtils.watcherClearTime !!)
@@ -128,34 +134,31 @@ object RunSplits: Feature() {
         }
 
         val bossEntry = if (DungeonUtils.dungeonStarted)
-            formatTime((DungeonUtils.bossEntryTime ?: System.currentTimeMillis()) - (DungeonUtils.dungeonStartTime ?: return@loop))
+            formatTime((DungeonUtils.bossEntryTime ?: currentTime) - (DungeonUtils.dungeonStartTime ?: return@loop))
         else "?"
 
-        val threadSafeCopy = currentFloorSplits.toMap()
-        if (threadSafeCopy.isNotEmpty()) {
-            for ((name, split) in threadSafeCopy) {
-                val text = when {
-                    split.start != null && split.end != null -> {
-                        val duration = ((split.end !! - split.start !!) / 1000.0).toFixed(2).toDouble()
-                        val pbTime = (split.pbTime !! / 1000.0).toFixed(2).toDouble()
-                        val splitSuffix = if (split.isPB) {
-                            val old = split.pbTimeOld?.let { (it / 1000.0).toFixed(2).toDouble() }
-                            if (old != null) "&7(${old}s)" else ""
-                        }
-                        else "&e(${pbTime}s)"
-
-                        "$name: ${duration}s&r $splitSuffix"
+        for ((name, split) in currentFloorSplits.toMap().takeUnless { it.isEmpty() } ?: return@loop) {
+            val text = when {
+                split.start != null && split.end != null -> {
+                    val duration = ((split.end !! - split.start !!) / 1000.0).toFixed(2).toDouble()
+                    val pbTime = (split.pbTime !! / 1000.0).toFixed(2).toDouble()
+                    val splitSuffix = if (split.isPB) {
+                        val old = split.pbTimeOld?.let { (it / 1000.0).toFixed(2).toDouble() }
+                        if (old != null) "&7(${old}s)" else ""
                     }
+                    else "&e(${pbTime}s)"
 
-                    split.start != null && split.end == null -> {
-                        val live = ((System.currentTimeMillis() - split.start !!) / 1000.0).toFixed(2)
-                        "$name: ${live}s&r"
-                    }
-
-                    else -> continue
+                    "$name: ${duration}s&r $splitSuffix"
                 }
-                splitLines.add(text)
+
+                split.start != null && split.end == null -> {
+                    val live = ((currentTime - split.start !!) / 1000.0).toFixed(2)
+                    "$name: ${live}s&r"
+                }
+
+                else -> continue
             }
+            splitLines.add(text)
         }
 
         val clearInfo = listOf(
@@ -173,6 +176,7 @@ object RunSplits: Feature() {
 
     @SubscribeEvent
     fun onChat(event: Chat) = with(event.component.noFormatText) {
+        if (! enabled) return@onChat
         if (! LocationUtils.inDungeon) return@onChat
         val floor = LocationUtils.dungeonFloor ?: return@onChat
         val currentSplits = floorSplits[floor] ?: floorSplits[floor.replace("M", "F")] ?: return@onChat
@@ -184,11 +188,11 @@ object RunSplits: Feature() {
             val split = currentFloorSplits.getOrPut(entry.name) { Split() }
 
             if (entry.startMatches(this) || currentSplits.getOrNull(i - 1)?.endMatches(this) == true) {
-                split.start = System.currentTimeMillis()
+                split.start = currentTime
             }
 
             if (entry.endMatches(this) || entry.end == null && runEndRegex.matches(this)) {
-                split.end = System.currentTimeMillis()
+                split.end = currentTime
                 val deltaTime = split.end !! - split.start !!
                 val pbTime = pbData[entry.name]
                 split.pbTime = pbTime
@@ -208,7 +212,14 @@ object RunSplits: Feature() {
     }
 
     @SubscribeEvent
+    fun onTick(event: ServerTick) {
+        if (! LocationUtils.inDungeon) return
+        currentTime += 50
+    }
+
+    @SubscribeEvent
     fun onRenderOverlay(event: RenderOverlay) {
+        if (! enabled) return
         if (! DungeonRunSplitsElement.enabled) return
         if (mc.currentScreen is HudEditorScreen) return
         if (! LocationUtils.inDungeon) return

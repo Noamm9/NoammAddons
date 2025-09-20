@@ -23,8 +23,8 @@ object DragonPriority {
     }
 
     fun displaySpawningDragon(dragon: WitherDragonEnum) {
-        if (dragon == None) return
-        if (dragonTitle && WitherDragons.enabled) showTitle("&${dragon.colorCode}${dragon.name}", time = 1.5)
+        if (dragon == None || ! (dragonTitle && WitherDragons.enabled)) return
+        showTitle("&${dragon.colorCode}${dragon.name}", time = 1.5)
     }
 
     private fun sortPriority(spawningDragons: MutableList<WitherDragonEnum>): WitherDragonEnum {

@@ -21,6 +21,7 @@ import noammaddons.features.impl.dungeons.dmap.core.ClearInfo
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapPlayer
 import noammaddons.features.impl.dungeons.dmap.core.map.*
 import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
+import noammaddons.features.impl.hud.RunSplits.currentTime
 import noammaddons.utils.ActionBarParser.maxSecrets
 import noammaddons.utils.ActionBarParser.secrets
 import noammaddons.utils.BlockUtils.getBlockAt
@@ -29,7 +30,6 @@ import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.NumbersUtils.romanToDecimal
-import noammaddons.utils.TablistUtils.tabList
 import noammaddons.utils.Utils.equalsOneOf
 import java.awt.Color
 
@@ -206,11 +206,8 @@ object DungeonUtils {
     }
 
     fun updatePuzzles(tabListEntries: List<String>) {
-        val tabList = tabList.map { it.second.removeFormatting() }
-        if (tabList.size < 60) return
-
         val oldInfoByName = puzzles.associateBy { it.name }
-        val newPuzzleInfo = tabList.slice(48 .. 52).mapNotNull { line ->
+        val newPuzzleInfo = tabListEntries.mapNotNull { line ->
             val name = puzzleRegex.find(line)?.destructured?.component1() ?: return@mapNotNull null
             val state = when {
                 "✔" in line -> RoomState.GREEN
@@ -287,7 +284,7 @@ object DungeonUtils {
         when {
             unformatted.matches(runEndRegex) -> {
                 dungeonEnded = true
-                dungeonEndTime = System.currentTimeMillis()
+                dungeonEndTime = currentTime
                 scope.launch { postAndCatch(DungeonEvent.RunEndedEvent()) }
             }
 
@@ -306,20 +303,20 @@ object DungeonUtils {
 
             unformatted == "[BOSS] The Watcher: You have proven yourself. You may pass." -> {
                 DungeonInfo.uniqueRooms.find { it.mainRoom.data.type == RoomType.BLOOD }?.mainRoom?.state = RoomState.GREEN
-                watcherClearTime = System.currentTimeMillis()
+                watcherClearTime = currentTime
             }
 
             unformatted == "[BOSS] The Watcher: That will be enough for now." -> {
                 DungeonInfo.uniqueRooms.find { it.mainRoom.data.type == RoomType.BLOOD }?.mainRoom?.state = RoomState.CLEARED
-                watcherSpawnTime = System.currentTimeMillis()
+                watcherSpawnTime = currentTime
             }
 
             watcherMessageRegex.matches(unformatted) && bloodOpenTime == null -> {
-                bloodOpenTime = System.currentTimeMillis()
+                bloodOpenTime = currentTime
             }
 
             unformatted == "[NPC] Mort: Here, I found this map when I first entered the dungeon." -> scope.launch {
-                dungeonStartTime = System.currentTimeMillis()
+                dungeonStartTime = currentTime
                 while (thePlayer == null) delay(1)
                 postAndCatch(DungeonEvent.RunStatedEvent())
             }

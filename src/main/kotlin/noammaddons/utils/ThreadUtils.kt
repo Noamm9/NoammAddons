@@ -2,6 +2,7 @@ package noammaddons.utils
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.NoammAddons.Companion.Logger
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.events.Tick
 import noammaddons.features.impl.DevOptions
 import java.util.concurrent.*
@@ -12,6 +13,19 @@ object ThreadUtils {
     private val executor = Executors.newSingleThreadExecutor()
     private val timerExecutor = Executors.newScheduledThreadPool(1)
     private val tickTasks = ConcurrentLinkedQueue<Task>()
+
+    fun runOnMcThread(block: () -> Unit) {
+        if (mc.isCallingFromMinecraftThread) {
+            runCatching(block).onFailure { e ->
+                e.stackTrace.forEach(Logger::error)
+            }
+        }
+        else mc.addScheduledTask {
+            runCatching(block).onFailure { e ->
+                e.stackTrace.forEach(Logger::error)
+            }
+        }
+    }
 
     fun setTimeout(delay: Long, callback: Runnable) = timerExecutor.schedule(callback, delay, TimeUnit.MILLISECONDS)
     fun scheduledTask(ticks: Int = 0, callback: Runnable) = tickTasks.add(Task(ticks, callback))

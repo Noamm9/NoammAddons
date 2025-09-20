@@ -10,6 +10,7 @@ import noammaddons.NoammAddons.Companion.mc
 import noammaddons.events.Tick
 import noammaddons.events.WorldUnloadEvent
 import noammaddons.features.impl.DevOptions
+import noammaddons.features.impl.hud.RunSplits
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.MathUtils.isCoordinateInsideBox
 import noammaddons.utils.ScoreboardUtils.cleanSB
@@ -119,7 +120,7 @@ object LocationUtils {
         if (inSkyblock) {
             inBoss = isInBossRoom()
             if (inBoss && DungeonUtils.bossEntryTime == null) {
-                DungeonUtils.bossEntryTime = System.currentTimeMillis()
+                DungeonUtils.bossEntryTime = RunSplits.currentTime
             }
             F7Phase = getPhase()
             P3Section = getP3Section_()

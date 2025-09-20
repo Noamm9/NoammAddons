@@ -80,7 +80,10 @@ object DungeonMap: Feature(toggled = false) {
         if (! inDungeon || ! DungeonMapConfig.boxWitherDoors.value || inBoss) return
         DungeonInfo.dungeonList.filterIsInstance<Door>()
             .filterNot { it.type.equalsOneOf(DoorType.ENTRANCE, DoorType.NORMAL) || it.opened }
-            .filterNot { (DungeonUtils.dungeonStarted || ! DungeonMapConfig.dungeonMapCheater.value) && it.state == RoomState.UNDISCOVERED }
+            .filterNot {
+                val startedAndNotFairy = (DungeonUtils.dungeonStarted && ScanUtils.getEntityRoom(mc.thePlayer)?.data?.type != RoomType.FAIRY)
+                (startedAndNotFairy || ! DungeonMapConfig.dungeonMapCheater.value) && it.state == RoomState.UNDISCOVERED
+            }
             .forEach {
                 val color = if (DungeonInfo.keys > 0) DungeonMapConfig.witherDoorKeyColor.value
                 else DungeonMapConfig.witherDoorNoKeyColor.value

@@ -10,7 +10,6 @@ import noammaddons.NoammAddons.Companion.mc
 import noammaddons.events.*
 import noammaddons.features.impl.esp.EspSettings
 import noammaddons.utils.MathUtils.destructured
-import noammaddons.utils.MathUtils.distance3D
 import noammaddons.utils.RenderHelper.renderVec
 import noammaddons.utils.RenderUtils.drawEntityBox
 import noammaddons.utils.RenderUtils2D.draw2dEsp
@@ -52,7 +51,6 @@ object EspUtils {
 
         companion object {
             fun fromId(id: Int): ESPType? = entries.find { it.ordinal == id }
-            fun fromDisplayName(displayName: String): ESPType? = entries.find { it.displayName == displayName }
             fun resetAll() = entries.forEach(ESPType::clearEntities)
         }
     }
@@ -89,8 +87,6 @@ object EspUtils {
     }
 
     private fun renderOutline(event: PostRenderEntityModelEvent, color: Color) {
-        val distance = distance3D(event.entity.renderVec, mc.thePlayer.renderVec).toFloat()
-        val adjustedLineWidth = (EspSettings.lineWidth / (distance / 8f)).coerceIn(0.5f, EspSettings.lineWidth)
         val fancyGraphics = mc.gameSettings.fancyGraphics
         val gamma = mc.gameSettings.gammaSetting
 
@@ -128,7 +124,7 @@ object EspUtils {
             glPolygonOffset(1.0f, - 2000000f)
         }
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0f, 240.0f)
-        glLineWidth(adjustedLineWidth)
+        glLineWidth(3f)
         glEnable(GL_LINE_SMOOTH)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
         RenderHelper.glBindColor(color, 255)

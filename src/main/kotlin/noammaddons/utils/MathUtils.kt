@@ -182,11 +182,16 @@ object MathUtils {
     fun BlockPos.add(x: Number = 0.0, y: Number = 0.0, z: Number = 0.0) = add(x.toDouble(), y.toDouble(), z.toDouble())
 
     fun Vec3.floor() = Vec3(floor(xCoord), floor(yCoord), floor(zCoord))
-    fun Vec3.add(x: Number = 0.0, y: Number = 0.0, z: Number = 0.0) = add(Vec3(x.toDouble(), y.toDouble(), z.toDouble()))
+    fun Vec3.add(x: Number = 0.0, y: Number = 0.0, z: Number = 0.0) = add(Vec3(x, y, z))
     fun Vec3i.destructured() = listOf(x, y, z)
     fun Vec3.destructured() = listOf(xCoord, yCoord, zCoord)
     fun Vec3.copy() = Vec3(xCoord, yCoord, zCoord)
     fun Vec3.multiply(factor: Double) = Vec3(xCoord * factor, yCoord * factor, zCoord * factor)
+    fun Vec3.inAABB(aabb: AxisAlignedBB) = xCoord in aabb.minX .. aabb.maxX && yCoord in aabb.minY .. aabb.maxY && zCoord in aabb.minZ .. aabb.maxZ
+    fun Vec3.xzInAABB(aabb: AxisAlignedBB) = xCoord in aabb.minX .. aabb.maxX && zCoord in aabb.minZ .. aabb.maxZ
+
+    @JvmName("Vec3")
+    fun Vec3(x: Number, y: Number, z: Number): Vec3 = net.minecraft.util.Vec3(x.toDouble(), y.toDouble(), z.toDouble())
 
     fun getLook(yaw: Float = mc.thePlayer?.rotationYaw ?: 0f, pitch: Float = mc.thePlayer?.rotationPitch ?: 0f): Vec3 {
         val f2 = - cos(- pitch * 0.017453292f).toDouble()

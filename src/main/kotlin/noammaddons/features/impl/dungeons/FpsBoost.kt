@@ -1,5 +1,6 @@
 package noammaddons.features.impl.dungeons
 
+import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.init.Items
@@ -11,12 +12,11 @@ import noammaddons.events.RenderEntityEvent
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.annotations.Dev
 import noammaddons.ui.config.core.impl.*
+import noammaddons.utils.*
 import noammaddons.utils.ItemUtils.getSkullTexture
-import noammaddons.utils.LocationUtils
 import noammaddons.utils.LocationUtils.F7Phase
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.inDungeon
-import noammaddons.utils.ScanUtils
 import noammaddons.utils.Utils.equalsOneOf
 
 @Dev
@@ -27,18 +27,16 @@ object FpsBoost: Feature() {
     private val hideNonStar = ToggleSetting("Hide Non Star Mob's Nametag")
     private val hideDamageNumbers = ToggleSetting("Hide Damage Numbers")
     private val hideFallingBlocks = ToggleSetting("Hide Falling Blocks")
-
-    @JvmField
-    val hideFireOnEntities = ToggleSetting("Hide Fire On Entities")
-
     private val removeTentacles = ToggleSetting("Remove P5 Tentacles")
     private val hideHealerFairy = ToggleSetting("Hide Healer Fairy")
     private val hideSoulWeaver = ToggleSetting("Hide Soul Weaver")
     private val hideArcherBones = ToggleSetting("Hide Archer Bones")
     private val hide0HealthNames = ToggleSetting("Hide 0 Health")
     private val hideDeadMobs = ToggleSetting("Hide Dead Mobs")
-
     private val showParticleOptions = MultiCheckboxSetting("Particles Options", mapOf("Hide P5 Particles" to false, "Remove Explosion" to false, "Hide Heart Particles" to false))
+
+    @JvmField
+    val hideFireOnEntities = ToggleSetting("Hide Fire On Entities")
 
     private const val TENTACLE_TEXTURE =
         "ewogICJ0aW1lc3RhbXAiIDogMTcxOTg1NzI3NzI0OSwKICAicHJvZmlsZUlkIiA6ICIxODA1Y2E2MmM0ZDI0M2NiOWQxYmY4YmM5N2E1YjgyNCIsCiAgInByb2ZpbGVOYW1lIiA6ICJSdWxsZWQiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzdkODM2NzQ5MjZiODk3MTRlNmI1YTU1NDcwNTAxYzA0YjA2NmRkODdiZjZjMzM1Y2RkYzZlNjBhMWExYTVmNSIKICAgIH0KICB9Cn0="
@@ -68,14 +66,12 @@ object FpsBoost: Feature() {
     fun onPacket(event: PacketEvent.Received) = with(event.packet) {
         if (! LocationUtils.inSkyblock) return@with
         if (this is S1CPacketEntityMetadata && hide0HealthNames.value) {
-            mc.theWorld?.getEntityByID(entityId)?.let { entity ->
-                func_149376_c()?.find { it.objectType == 4 }?.getObject()?.toString()?.let { name ->
-                    if (healthMatches.any { regex -> regex.matches(name) }) entity.setDead()
-                }
+            func_149376_c()?.find { it.objectType == 4 }?.getObject()?.toString()?.let { name ->
+                if (healthMatches.any { regex -> regex.matches(name) }) removeEntitySafe(entityId)
+            }
 
-                (func_149376_c()?.find { it.dataValueId == 6 }?.getObject() as? Float)?.let { health ->
-                    if (hideDeadMobs.value && health <= 0) entity.setDead()
-                }
+            (func_149376_c()?.find { it.dataValueId == 6 }?.getObject() as? Float)?.let { health ->
+                if (hideDeadMobs.value && health <= 0) removeEntitySafe(entityId)
             }
         }
 
@@ -97,6 +93,7 @@ object FpsBoost: Feature() {
             val isSoulWeaver = equipmentSlot == 4 && getSkullTexture(itemStack) == SOUL_WEAVER_TEXTURE
             val isHealerFairy = equipmentSlot == 0 && getSkullTexture(itemStack) == HEALER_FAIRY_TEXTURE
             if (! isTentacle && ! isSoulWeaver && ! isHealerFairy) return
+            removeEntitySafe(entityID)
             event.isCanceled = true
         }
     }
@@ -104,20 +101,45 @@ object FpsBoost: Feature() {
     @SubscribeEvent
     fun onPacketPost(event: RenderEntityEvent) {
         if (! inDungeon || inBoss) return
+
         event.entity.takeIf { it is EntityArmorStand }?.customNameTag?.takeIf { it.matches(dungeonMobRegex) }?.let { name ->
-            if (! name.matches(dungeonMobRegex)) return@let
-            if (ScanUtils.getEntityRoom(event.entity)?.data?.name?.contains("Blaze") == true) return@let
             val isStarred = name.contains("§6✯")
-            if (hideStar.value && isStarred || hideNonStar.value && ! isStarred) {
-                event.entity.setDead()
+            val inBlazeRoom = ScanUtils.getEntityRoom(event.entity)?.data?.name?.contains("Blaze") == true
+
+            if ((hideStar.value && isStarred || hideNonStar.value && ! isStarred) && ! inBlazeRoom) {
+                removeEntitySafe(event.entity)
                 event.isCanceled = true
+            }
+
+            /*
+            if (LocationUtils.dungeonFloorNumber == 7 && inBoss) {
+                if (name.removeFormatting().containsOneOf("Wither Miner", "Wither Guard", "Apostle")) {
+                    mc.theWorld.removeEntity(event.entity)
+                    event.isCanceled = true
+                }
+            }*/
+        }
+
+        (event.entity as? EntityItem)?.entityItem?.let { entityItem ->
+            if (entityItem.itemDamage == 15 && entityItem.item === Items.dye) {
+                removeEntitySafe(event.entity)
+                event.isCanceled = true
+
             }
         }
 
-        val entityItem = (event.entity as? EntityItem)?.entityItem ?: return
-        if (entityItem.itemDamage == 15 && entityItem.item === Items.dye) {
-            event.entity.setDead()
+        /*
+        if (event.entity is EntityArmorStand && F7Phase == 5) {
+            mc.theWorld.removeEntity(event.entity)
             event.isCanceled = true
+        }*/
+    }
+
+    fun removeEntitySafe(entity: Any) {
+        if (entity !is Entity && entity !is Int) return
+        ThreadUtils.runOnMcThread {
+            if (entity is Int) mc.theWorld.removeEntityFromWorld(entity)
+            else if (entity is Entity) mc.theWorld.removeEntity(entity)
         }
     }
 }

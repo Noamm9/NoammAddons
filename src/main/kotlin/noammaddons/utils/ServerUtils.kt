@@ -59,6 +59,7 @@ object ServerUtils {
             updateAverage(rttMillis)
 
             isPinging = false
+            event.isCanceled = true
         }
         else if (event.packet is S03PacketTimeUpdate) {
             if (prevTpsTime != 0L) averageTps = (20_000.0 / (System.currentTimeMillis() - prevTpsTime + 1)).coerceIn(0.0, 20.0).toFixed(1).toDouble()

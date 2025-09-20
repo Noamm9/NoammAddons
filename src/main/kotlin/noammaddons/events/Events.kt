@@ -166,3 +166,5 @@ abstract class DungeonEvent: Event() {
 class WorldUnloadEvent: Event()
 
 class EntityLeaveWorldEvent(val entity: Entity, val world: World): Event()
+
+class EntityDeathEvent(val entity: Entity): Event()

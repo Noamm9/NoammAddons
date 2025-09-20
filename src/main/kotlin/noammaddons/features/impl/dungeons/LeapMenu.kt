@@ -253,8 +253,9 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
                 return
             }
         }
-        else if (leapKeybinds.value) {
-            if (! event.isMouse && event.keyCode.equalsOneOf(Keyboard.KEY_ESCAPE, Keyboard.KEY_RETURN)) return closeScreen()
+        else {
+            if (! event.isMouse && event.keyCode.equalsOneOf(Keyboard.KEY_ESCAPE, Keyboard.KEY_RETURN, Keyboard.KEY_E)) return closeScreen()
+            if (! leapKeybinds.value) return
 
             val index = when {
                 key1.isDown() -> 0

@@ -13,7 +13,6 @@ import net.minecraft.util.*
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.features.impl.esp.EspSettings
 import noammaddons.features.impl.esp.EspSettings.fillOpacity
-import noammaddons.features.impl.esp.EspSettings.lineWidth
 import noammaddons.features.impl.esp.EspSettings.outlineOpacity
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.toVec
@@ -173,8 +172,6 @@ object RenderUtils {
 
     fun drawEntityBox(entity: Entity, color: Color, outline: Boolean = outlineOpacity != .0, fill: Boolean = fillOpacity != .0) {
         if (! outline && ! fill) return
-        val distance = distance3D(entity.renderVec, mc.thePlayer?.renderVec ?: return)
-        val adjustedLineWidth = (lineWidth.toDouble() / (distance / 8f)).coerceIn(0.5, lineWidth.toDouble()).toFloat()
 
         val axisAlignedBB = AxisAlignedBB(
             entity.entityBoundingBox.minX - entity.posX,
@@ -189,13 +186,12 @@ object RenderUtils {
             entity.renderZ - renderManager.viewerPosZ
         )
 
-
         GlStateManager.pushMatrix()
         preDraw()
         if (EspSettings.phase) disableDepth()
 
         if (outline) {
-            glLineWidth(adjustedLineWidth)
+            glLineWidth(2f)
             drawOutlinedAABB(axisAlignedBB, color.withAlpha(255))
             glLineWidth(1f)
         }
@@ -209,8 +205,6 @@ object RenderUtils {
 
     fun drawBox(x: Number, y: Number, z: Number, color: Color, outline: Boolean, fill: Boolean, width: Number = 1f, height: Number = 1f, phase: Boolean = true, lineWidth: Number = 3f) {
         if (! outline && ! fill) return
-        val distance = distance3D(Vec3(x.toDouble(), y.toDouble(), z.toDouble()), mc.thePlayer?.renderVec ?: return)
-        val adjustedLineWidth = (lineWidth.toDouble() / (distance / 8f)).coerceIn(0.5, lineWidth.toDouble()).toFloat()
 
         GlStateManager.pushMatrix()
         preDraw()
@@ -221,7 +215,7 @@ object RenderUtils {
             x.toDouble() + width.toDouble(),
             y.toDouble() + height.toDouble(),
             z.toDouble() + width.toDouble()
-        ).expand(.0020000000949949056, .0020000000949949056, .0020000000949949056).offset(
+        ).expand(.002, .002, .002).offset(
             - renderManager.viewerPosX,
             - renderManager.viewerPosY,
             - renderManager.viewerPosZ
@@ -230,13 +224,12 @@ object RenderUtils {
         if (fill) drawFilledAABB(axisAlignedBB, color)
 
         if (outline) {
-            glLineWidth(adjustedLineWidth)
+            glLineWidth(2f)
             drawOutlinedAABB(axisAlignedBB, color.withAlpha(255))
             glLineWidth(1f)
         }
 
         if (phase) enableDepth()
-
         postDraw()
         GlStateManager.popMatrix()
     }

@@ -37,7 +37,7 @@ object FeatureManager {
         WarpCooldown, RoomAlerts, RunSplits, RatProtection, PuzzleSolvers, LividSolver,
         SimonSaysSolver, ArrowAlignSolver, Floor4BossFight, WitherESP, StarMobESP,
         HiddenMobs, PestESP, Secrets, SmoothBossBar, NoRotate, RNGSound, BloodRoom,
-        ExtraSlayerInfo, SalvageOverlay, RagAxe, ShadowAssassin, MelodyAlert,
+        ExtraSlayerInfo, SalvageOverlay, Ragnarock, ShadowAssassin, MelodyAlert,
         PlayerHud, FullBlock, TerminalNumbers, F7Titles, ScalableTooltips, FpsDisplay,
         ClockDisplay, TpsDisplay, PetDisplay, MaskTimers, SpringBootsDisplay,
         NoBlockAnimation, WitherShieldTimer, BowHitSound, TeleportOverlay,

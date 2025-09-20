@@ -1,25 +1,24 @@
 package noammaddons.features.impl.dungeons.dragons
 
-import net.minecraft.entity.boss.EntityDragon
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.init.Blocks
 import net.minecraft.item.Item
 import net.minecraft.network.play.server.*
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.Vec3
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.features.impl.dungeons.dragons.WitherDragonEnum.Companion.WitherDragonState.*
 import noammaddons.features.impl.dungeons.dragons.WitherDragons.currentTick
-import noammaddons.features.impl.dungeons.dragons.WitherDragons.sendSpray
-import noammaddons.utils.ChatUtils.modMessage
-import java.util.concurrent.CopyOnWriteArrayList
+import noammaddons.features.impl.dungeons.dragons.WitherDragons.priorityDragon
+import noammaddons.utils.MathUtils.Vec3
+import noammaddons.utils.MathUtils.multiply
+import noammaddons.utils.MathUtils.xzInAABB
+import kotlin.math.floor
 
 object DragonCheck {
-    var lastDragonDeath: WitherDragonEnum = WitherDragonEnum.None
-    val dragonEntityList = CopyOnWriteArrayList<EntityDragon>()
-
     fun dragonUpdate(packet: S1CPacketEntityMetadata) {
-        val dragon = WitherDragonEnum.entries.find { it.entityId == packet.entityId }?.apply { if (entity == null) updateEntity(packet.entityId) } ?: return
+        val dragon = WitherDragonEnum.entries.find { it.entityId == packet.entityId }?.apply {
+            if (entity == null || entity?.isDead == true) updateEntity(packet.entityId)
+        } ?: return
+
         (packet.func_149376_c().find { it.dataValueId == 6 }?.getObject() as? Float)?.let { health ->
             if (health <= 0 && dragon.state != DEAD) dragon.setDead()
         }
@@ -27,9 +26,33 @@ object DragonCheck {
 
     fun dragonSpawn(packet: S0FPacketSpawnMob) {
         if (packet.entityType != 63) return
-        WitherDragonEnum.entries.find {
-            isVecInAABB(Vec3(packet.x / 32.0, packet.y / 32.0, packet.z / 32.0), it.boxesDimensions) && it.state == SPAWNING
-        }?.setAlive(packet.entityID)
+        val spawnVec = Vec3(packet.x, packet.y, packet.z).multiply(0.03125)
+        val newId = packet.entityID
+
+        WitherDragonEnum.entries.find { dragon ->
+            dragon.awaitingRespawn && dragon.lastPosition != null && dragon.lastPosition !!.squareDistanceTo(spawnVec) < 100
+        }?.let { return it.updateEntity(newId, true) }
+
+        WitherDragonEnum.entries.find { dragon ->
+            spawnVec.xzInAABB(dragon.boxesDimensions) && dragon.state == SPAWNING
+        }?.setAlive(newId)
+    }
+
+    fun dragonUnload(packet: S13PacketDestroyEntities) {
+        val destroyedIDs = packet.entityIDs
+
+        destroyedIDs.forEach { destroyedId ->
+            val dragon = WitherDragonEnum.entries.find { it.entityId == destroyedId && it.state == ALIVE } ?: return@forEach
+            val entity = mc.theWorld?.getEntityByID(dragon.entityId !!)
+            if (entity != null) {
+                dragon.lastPosition = entity.positionVector
+                val chunkX = floor(entity.posX / 16).toInt()
+                val chunkZ = floor(entity.posZ / 16).toInt()
+                dragon.lastChunk = Pair(chunkX, chunkZ)
+            }
+            dragon.awaitingRespawn = true
+            dragon.state = DEAD
+        }
     }
 
     fun dragonSprayed(packet: S04PacketEntityEquipment) {
@@ -37,20 +60,16 @@ object DragonCheck {
         val sprayedEntity = mc.theWorld?.getEntityByID(packet.entityID) as? EntityArmorStand ?: return
 
         WitherDragonEnum.entries.forEach { dragon ->
-            if (dragon.isSprayed || dragon.state != ALIVE || dragon.entity == null || sprayedEntity.getDistanceToEntity(dragon.entity) > 8) return@forEach
-            if (sendSpray) modMessage("&${dragon.colorCode}${dragon.name} &fdragon was sprayed in &c${(currentTick - dragon.spawnedTime).let { "$it &ftick${if (it > 1) "s" else ""}" }}.")
-            dragon.isSprayed = true
+            if (dragon.sprayedTime != null || dragon.state != ALIVE || dragon.entity == null || sprayedEntity.getDistanceToEntity(dragon.entity) > 8) return@forEach
+            dragon.sprayedTime = currentTick - dragon.spawnedTime
         }
     }
 
     fun trackArrows(packet: S29PacketSoundEffect) {
         if (packet.soundName != "random.successful_hit") return
         WitherDragonEnum.entries.forEach { dragon ->
-            if (dragon.state != ALIVE || currentTick - dragon.spawnedTime >= dragon.skipKillTime) return@forEach
+            if (dragon.state != ALIVE || currentTick - dragon.spawnedTime >= dragon.skipKillTime || dragon != priorityDragon) return@forEach
             dragon.arrowsHit ++
         }
     }
-
-    private fun isVecInAABB(vec: Vec3, aabb: AxisAlignedBB) =
-        vec.xCoord in aabb.minX .. aabb.maxX && vec.zCoord in aabb.minZ .. aabb.maxZ
 }

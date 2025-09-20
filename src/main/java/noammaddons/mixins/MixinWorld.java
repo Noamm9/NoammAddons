@@ -12,7 +12,7 @@ import static noammaddons.events.EventDispatcher.postAndCatch;
 
 @Mixin(World.class)
 public abstract class MixinWorld {
-    @Inject(method = "removeEntity", at = @At("HEAD"))
+    @Inject(method = "removeEntity", at = @At("RETURN"))
     private void onRemoveEntity(Entity entityIn, CallbackInfo ci) {
         postAndCatch(new EntityLeaveWorldEvent(entityIn, (World) (Object) this));
     }

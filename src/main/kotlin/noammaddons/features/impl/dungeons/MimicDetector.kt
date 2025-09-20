@@ -55,7 +55,7 @@ object MimicDetector: Feature("Detects when a Mimic or Prince is killed") {
     }
 
     @SubscribeEvent
-    fun onEntityLeaveWorld(event: EntityLeaveWorldEvent) {
+    fun onEntityLeaveWorld(event: EntityDeathEvent) {
         if (! isMimicDetectionActive) return
         val entity = event.entity as? EntityZombie ?: return
         if (! entity.isChild) return

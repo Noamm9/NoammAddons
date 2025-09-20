@@ -10,4 +10,8 @@ object EspSettings: Feature("ESP settings used by the entire mod") {
     val phase by ToggleSetting("Phase", true)
     val fillOpacity by SliderSetting("Fill Opacity", 0, 100f, 1, 30.0)
     val outlineOpacity by SliderSetting("Outline Opacity", 0, 100f, 1, 100.0)
+
+    override fun init() {
+        getSettingByName("Line Width") !!.addDependency { highlightType == EspUtils.ESPType.CHAM.ordinal }
+    }
 }
