@@ -27,10 +27,10 @@ object PartyCommands: Feature("Allows Party members to execute leader commands w
         "Commands", mapOf(
             "!w" to false, "!f (0-7)" to false,
             "!m (0-7)" to false, "!inv" to false,
-            "!dt" to false, "!ping" to false,
-            "!tps" to false, "!pt" to false,
-            "!ai" to false, "!coords" to false,
-            "!gay" to false
+            "!kick" to false, "!dt" to false,
+            "!ping" to false, "!tps" to false,
+            "!pt" to false, "!ai" to false,
+            "!coords" to false, "!gay" to false
         )
     )
 
@@ -53,24 +53,24 @@ object PartyCommands: Feature("Allows Party members to execute leader commands w
         val match = partyCommandRegex.find(event.component.noFormatText) ?: return
         val (name, sign, commandString) = match.destructured
         var args = commandString.split(" ")
-        val command = args.firstOrNull()?.lowercase() ?: return@onChat
+        val command = args.firstOrNull()?.lowercase() ?: return
         args = args.drop(1)
 
         when {
             commands.get("!f (0-7)") && command.startsWith("f") -> {
-                val floorNumber = command.remove("f").toIntOrNull() ?: args.getOrNull(0)?.toIntOrNull() ?: return@onChat
-                if (floorNumber !in 0 .. 7) return@onChat
+                val floorNumber = command.remove("f").toIntOrNull() ?: args.getOrNull(0)?.toIntOrNull() ?: return
+                if (floorNumber !in 0 .. 7) return
                 runCommand("joininstance CATACOMBS_FLOOR_${NUMBERS_TO_TEXT[floorNumber]}", true)
             }
 
             commands.get("!m (0-7)") && command.startsWith("m") -> {
                 val floorNumber = command.remove("m").toIntOrNull() ?: args.getOrNull(0)?.toIntOrNull() ?: return@onChat
-                if (floorNumber !in 1 .. 7) return@onChat
+                if (floorNumber !in 1 .. 7) return
                 runCommand("joininstance MASTER_CATACOMBS_FLOOR_${NUMBERS_TO_TEXT[floorNumber]}", true)
             }
 
             commands.get("!pt") && command.equalsOneOf("pt", "ptme") -> {
-                if (name == mc.session.username) return@onChat
+                if (name == mc.session.username) return
                 runCommand("p transfer ${args.firstOrNull() ?: name}", true)
             }
 
@@ -106,8 +106,14 @@ object PartyCommands: Feature("Allows Party members to execute leader commands w
             }
 
             commands.get("!inv") && command.equalsOneOf("invite", "inv", "kidnap") -> {
-                if (args.isEmpty()) return@onChat
+                if (args.isEmpty()) return
                 runCommand("p invite ${args.joinToString(" ")}", true)
+            }
+
+            commands.get("!kick") && command.equalsOneOf("kick", "k") -> {
+                if (args.isEmpty()) return
+                val member = PartyUtils.members.keys.find { it.lowercase().contains(args.first()) } ?: return
+                runCommand("p kick $member", true)
             }
         }
     }
