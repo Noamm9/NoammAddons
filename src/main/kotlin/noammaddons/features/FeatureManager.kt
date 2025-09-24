@@ -28,7 +28,7 @@ object FeatureManager {
     val features = mutableSetOf(
         EspSettings, CustomMenuSettings, MotionBlur, GyroHelper, ChatEmojis,
         Etherwarp, SlotBinding, PartyESP, SBKick, CakeNumbers, EnderPearlFix,
-        PartyCommands, ItemEntity, Gloomlock, VisualWords, Chat, ItemRarity,
+        ItemEntity, Gloomlock, VisualWords, Chat, ItemRarity,
         ItemsPrice, TeammatesESP, AbilityKeybinds, IHateDiorite, StonkSwap,
         MimicDetector, GhostPick, DoorKeys, AutoUlt, PartyFinder, TickTimers,
         LeapMenu, ReaperArmor, AutoI4, ArchitectDraft, BetterFloors, AutoGFS,
@@ -45,7 +45,7 @@ object FeatureManager {
         TimeChanger, CustomTabList, TerminalSolver, ChamNametags, CustomSlotHighlight,
         InventoryDisplay, StopCloseMyChat, InventorySearchbar, BlessingDisplay,
         ClientTimer, DarkMode, Animations, EnchantmentsColors, AutoClicker,
-        ArrowFix,
+        ArrowFix, PartyHelper,
 
         DungeonMap,
         // ZeroPingTeleportation, // - R.I.P fuck hypixel, fuck blinkers

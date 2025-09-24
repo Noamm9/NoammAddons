@@ -27,8 +27,6 @@ import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.LocationUtils.onHypixel
 import noammaddons.utils.ScanUtils
 import noammaddons.utils.ThreadUtils.setTimeout
-import noammaddons.utils.Utils.equalsOneOf
-import noammaddons.utils.Utils.send
 
 
 // used to be a place for me to test shit.
@@ -63,11 +61,6 @@ object TestGround {
                 sendChatMessage(modifiedMessage)
                 sent = true
             }
-        }
-
-        if (msg.equalsOneOf("/pll", "/pl")) {
-            event.isCanceled = true
-            C01PacketChatMessage("/pl").send()
         }
     }
 

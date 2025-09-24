@@ -33,6 +33,7 @@ import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.sendChatMessage
 import noammaddons.utils.DungeonUtils.dungeonEnded
 import noammaddons.utils.DungeonUtils.dungeonStarted
+import noammaddons.utils.DungeonUtils.puzzles
 import noammaddons.utils.GuiUtils.openScreen
 import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.ItemUtils.toJsonElement
@@ -140,6 +141,10 @@ object DevOptions: Feature() {
             20f, 200f, 1f,
             Color.PINK
         )
+
+        puzzles.forEachIndexed { i, puzzle ->
+            drawText(puzzle.name + ": " + puzzle.state, 350, 130 + (i * 9))
+        }
 
         GlStateManager.popMatrix()
     }

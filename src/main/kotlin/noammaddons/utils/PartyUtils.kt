@@ -20,7 +20,8 @@ object PartyUtils {
         Regex("^§cThe party was disbanded because the party leader disconnected\\.§r$"),
         Regex("^§eYou left the party\\.§r$"),
         Regex("^§6Party Members \\(\\d+\\)§r$"),
-        Regex("^You are not currently in a party\\.$"),
+        Regex("^§cYou are not currently in a party.§r$"),
+        Regex("^§cYou are not in a party right now.§r$")
     )
 
     private val playerRejoin = Regex("^((?:§.(?:\\[[^]]+])?)) *(\\w+) §r§ejoined the party.§r$")
