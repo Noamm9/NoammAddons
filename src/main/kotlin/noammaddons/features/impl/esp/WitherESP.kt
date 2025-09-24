@@ -6,6 +6,8 @@ import net.minecraft.network.play.server.S13PacketDestroyEntities
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
+import noammaddons.ui.config.core.impl.ColorSetting
+import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.EspUtils.espMob
 import noammaddons.utils.LocationUtils
@@ -18,26 +20,44 @@ import java.awt.Color
 
 
 object WitherESP: Feature("Highlights Withers in the world") {
-    enum class Wither(val color: Color) {
+    private val customColors = ToggleSetting("Custom Wither Colors").register1()
+    private val maxorColor by ColorSetting("Maxor Color", Color(88, 4, 164), false).addDependency(customColors)
+    private val stormColor by ColorSetting("Storm Color", Color(0, 208, 255), false).addDependency(customColors)
+    private val goldorColor by ColorSetting("Goldor Color", Color(255, 255, 255), false).addDependency(customColors)
+    private val necronColor by ColorSetting("Necron Color", Color(255, 0, 0), false).addDependency(customColors)
+    private val vanquisherColor by ColorSetting("Vanquisher Color", Color(88, 4, 164), false).addDependency(customColors)
+
+    enum class Wither(val defualtColor: Color) {
         MAXOR(Color(88, 4, 164)),
         STORM(Color(0, 208, 255)),
         GOLDOR(Color(255, 255, 255)),
         NECRON(Color(255, 0, 0)),
-        VANQUISHER(MAXOR.color);
+        VANQUISHER(MAXOR.defualtColor);
+
+        fun getColor(): Color {
+            return if (customColors.value) when (this) {
+                MAXOR -> maxorColor
+                STORM -> stormColor
+                GOLDOR -> goldorColor
+                NECRON -> necronColor
+                VANQUISHER -> vanquisherColor
+            }
+            else this.defualtColor
+        }
 
         companion object {
             var currentWither: EntityWither? = null
-            var currentColor: Color = MAXOR.color
+            var currentType: Wither = MAXOR
 
             fun reset() {
                 currentWither = null
-                currentColor = MAXOR.color
+                currentType = MAXOR
             }
 
-            fun updateColor(bossName: String) {
-                currentColor = entries.find {
+            fun updateType(bossName: String) {
+                currentType = entries.find {
                     bossName.contains(it.name)
-                }?.color ?: return
+                } ?: return
             }
         }
     }
@@ -64,10 +84,9 @@ object WitherESP: Feature("Highlights Withers in the world") {
         when (val packet = event.packet) {
             is S0FPacketSpawnMob -> {
                 if (packet.entityType != 64) return // EntityWither
-                val id = packet.entityID
 
                 ThreadUtils.scheduledTask(1) {
-                    val entity = mc.theWorld.getEntityByID(id) as? EntityWither ?: return@scheduledTask
+                    val entity = mc.theWorld.getEntityByID(packet.entityID) as? EntityWither ?: return@scheduledTask
                     if (entity.isInvisible || entity.invulTime == 800) return@scheduledTask
                     Wither.currentWither = entity
                 }
@@ -84,13 +103,13 @@ object WitherESP: Feature("Highlights Withers in the world") {
     @SubscribeEvent
     fun onBossbarUpdate(event: BossbarUpdateEvent.Pre) {
         if (! isValidLoc()) return
-        Wither.updateColor(event.bossName.removeFormatting().uppercase())
+        Wither.updateType(event.bossName.removeFormatting().uppercase())
     }
 
     @SubscribeEvent
     fun onEntityRender(event: PostRenderEntityModelEvent) {
         if (! isValidLoc()) return
         if (event.entity != Wither.currentWither) return
-        espMob(event.entity, Wither.currentColor)
+        espMob(event.entity, Wither.currentType.getColor())
     }
 }

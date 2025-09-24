@@ -53,7 +53,7 @@ object DungeonUtils {
     var leapTeammates = listOf<DungeonPlayer>()
     var thePlayer: DungeonPlayer? = null
 
-    data class Puzzle(val name: String, val state: RoomState)
+    data class Puzzle(val name: String, var state: RoomState)
 
     var puzzles = mutableListOf<Puzzle>()
 
@@ -162,6 +162,8 @@ object DungeonUtils {
                 thePlayer = dungeonTeammates.find { it.entity == mc.thePlayer }
                 dungeonTeammatesNoSelf = dungeonTeammates.filterNot { it == thePlayer }
                 leapTeammates = dungeonTeammatesNoSelf.sortedBy { it.clazz }
+
+
                 return
             }
         }
@@ -205,39 +207,33 @@ object DungeonUtils {
         }
     }
 
-    fun updatePuzzles(tabListEntries: List<String>) {
-        val oldInfoByName = puzzles.associateBy { it.name }
-        val newPuzzleInfo = tabListEntries.mapNotNull { line ->
-            val name = puzzleRegex.find(line)?.destructured?.component1() ?: return@mapNotNull null
+    private fun updatePuzzles(tabListEntries: List<String>) {
+        tabListEntries.forEach { line ->
+            val name = puzzleRegex.find(line)?.destructured?.component1()?.takeUnless { "?" in it } ?: return@forEach
             val state = when {
                 "✔" in line -> RoomState.GREEN
                 "✖" in line -> RoomState.FAILED
                 "✦" in line -> RoomState.DISCOVERED
                 else -> RoomState.UNOPENED
             }
-            Puzzle(name, state)
-        }
-
-        newPuzzleInfo.forEach { new ->
-            val old = oldInfoByName[new.name] ?: run {
-                postAndCatch(DungeonEvent.PuzzleEvent.Discovered(new.name))
+            val puzzle = puzzles.find { it.name == name } ?: run {
+                val newPuzzle = Puzzle(name, state)
+                puzzles.add(newPuzzle)
+                postAndCatch(DungeonEvent.PuzzleEvent.Discovered(name))
                 return@forEach
             }
 
-            if (old.state == new.state) return@forEach
-
             postAndCatch(
                 when {
-                    old.state == RoomState.DISCOVERED && new.state == RoomState.GREEN -> DungeonEvent.PuzzleEvent.Completed(new.name)
-                    old.state != RoomState.DISCOVERED && new.state == RoomState.DISCOVERED -> DungeonEvent.PuzzleEvent.Reset(new.name)
-                    old.state == RoomState.DISCOVERED && new.state == RoomState.FAILED -> DungeonEvent.PuzzleEvent.Failed(new.name)
+                    puzzle.state == RoomState.DISCOVERED && state == RoomState.GREEN -> DungeonEvent.PuzzleEvent.Completed(name)
+                    puzzle.state != RoomState.DISCOVERED && state == RoomState.DISCOVERED -> DungeonEvent.PuzzleEvent.Reset(name)
+                    puzzle.state == RoomState.DISCOVERED && state == RoomState.FAILED -> DungeonEvent.PuzzleEvent.Failed(name)
                     else -> return@forEach
                 }
             )
-        }
 
-        puzzles.clear()
-        puzzles.addAll(newPuzzleInfo)
+            puzzle.state = state
+        }
     }
 
     @SubscribeEvent
