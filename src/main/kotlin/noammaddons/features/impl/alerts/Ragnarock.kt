@@ -9,12 +9,12 @@ import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.showTitle
-import noammaddons.utils.DungeonUtils.thePlayer
 import noammaddons.utils.ItemUtils.lore
 import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.LocationUtils.F7Phase
 import noammaddons.utils.ServerPlayer
 import noammaddons.utils.SoundUtils
+import noammaddons.utils.ThreadUtils.setTimeout
 import kotlin.math.roundToInt
 
 object Ragnarock: Feature("Provides alerts about Ragnarock.") {
@@ -38,7 +38,7 @@ object Ragnarock: Feature("Provides alerts about Ragnarock.") {
 
     @SubscribeEvent
     fun onChat(event: Chat) {
-        if (m7Alert && F7Phase == 5 && thePlayer?.isDead != true && event.component.noFormatText == "[BOSS] Wither King: You... again?")
+        if (m7Alert && F7Phase == 5 && event.component.noFormatText == "[BOSS] Wither King: You... again?")
             ticks = 36
         else if (alertCancelled && event.component.noFormatText.matches(Regex("Ragnarock was cancelled due to (?:being hit|taking damage)!"))) {
             showTitle(subtitle = "&cRagnarock Cancelled")
@@ -52,7 +52,13 @@ object Ragnarock: Feature("Provides alerts about Ragnarock.") {
         ticks --
         if (ticks == 0) {
             showTitle("rag", rainbow = true)
-            SoundUtils.Pling()
+            repeat(5) { mc.thePlayer.playSound("note.harp", 50f, 1.22f) }
+            setTimeout(120) { repeat(5) { mc.thePlayer.playSound("note.harp", 50f, 1.13f) } }
+            setTimeout(240) { repeat(5) { mc.thePlayer.playSound("note.harp", 50f, 1.29f) } }
+            setTimeout(400) { repeat(5) { mc.thePlayer.playSound("note.harp", 50f, 1.60f) } }
+            setTimeout(520) { repeat(5) { mc.thePlayer.playSound("note.harp", 50f, 1.60f) } }
+            setTimeout(640) { repeat(5) { mc.thePlayer.playSound("note.harp", 50f, 1.72f) } }
+            setTimeout(780) { repeat(5) { mc.thePlayer.playSound("note.harp", 50f, 1.89f) } }
         }
     }
 
