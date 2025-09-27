@@ -169,31 +169,31 @@ object DungeonUtils {
         }
 
         for (line in tabListEntries) {
-            val (sbLvl, name, clazz, clazzLevel) = tablistRegex.find(line.removeFormatting())?.destructured ?: continue
-            val skin = mc.netHandler?.getPlayerInfo(name)?.locationSkin ?: ResourceLocation("textures/entity/steve.png")
+            var (sbLvl, name, clazz, clazzLevel) = tablistRegex.find(line.removeFormatting())?.destructured ?: continue
+            if (runPlayersNames.isEmpty()) name = mc.session.username
+            val skin = if (runPlayersNames.isEmpty()) mc.thePlayer.locationSkin else mc.netHandler?.getPlayerInfo(name)?.locationSkin ?: ResourceLocation("textures/entity/steve.png")
             runPlayersNames[name] = skin
             if (clazz == "EMPTY") continue
 
-            val currentTeammate = dungeonTeammates.find { it.name == name }
-
-            if (currentTeammate != null) {
+            dungeonTeammates.find { it.name == name }?.let { currentTeammate ->
                 currentTeammate.clazz = if (clazz != "DEAD") Classes.getByName(clazz) else currentTeammate.clazz
                 currentTeammate.clazzLvl = clazzLevel.romanToDecimal()
                 currentTeammate.skin = skin
                 if (currentTeammate != thePlayer) currentTeammate.isDead = clazz == "DEAD"
-            }
-            else dungeonTeammates.add(
-                DungeonPlayer(
-                    name,
-                    Classes.getByName(clazz),
-                    clazzLevel.romanToDecimal(),
-                    skin,
-                    clazz == "DEAD",
+            } ?: run {
+                dungeonTeammates.add(
+                    DungeonPlayer(
+                        name,
+                        Classes.getByName(clazz),
+                        clazzLevel.romanToDecimal(),
+                        skin,
+                        clazz == "DEAD",
+                    )
                 )
-            )
+            }
         }
 
-        thePlayer = dungeonTeammates.find { it.entity == mc.thePlayer }
+        thePlayer = dungeonTeammates.find { it.name == mc.session.username }
         dungeonTeammatesNoSelf = dungeonTeammates.filter { it != thePlayer }
         leapTeammates = dungeonTeammatesNoSelf.sortedBy { it.clazz }
 
