@@ -21,7 +21,7 @@ import noammaddons.features.impl.dungeons.dmap.handlers.DungeonScanner
 import noammaddons.features.impl.dungeons.solvers.devices.AutoI4.testI4
 import noammaddons.features.impl.esp.StarMobESP
 import noammaddons.features.impl.general.teleport.helpers.InstantTransmissionHelper
-import noammaddons.ui.clickgui.ClickGuiScreen
+import noammaddons.test.ModernConfigGui
 import noammaddons.ui.config.core.annotations.Dev
 import noammaddons.ui.config.core.impl.ButtonSetting
 import noammaddons.ui.config.core.impl.ToggleSetting
@@ -128,6 +128,8 @@ object DevOptions: Feature() {
 			getCore: ${getCore(rc.x, rc.z)}
 			currentRoom: ${currentRoom?.data?.name ?: "&cUnknown&r"}
 			getRoomCenter: $rc
+            roofHeight: ${currentRoom?.highestBlock ?: "&cUnknown&r"}
+            rotation: ${currentRoom?.rotation ?: "&cUnknown&r"}
 		""".trimIndent(),
             150f, 130f, 1f,
             Color.CYAN
@@ -234,7 +236,7 @@ object DevOptions: Feature() {
             "t" -> titles.forEach(ChatUtils::modMessage)
 
             "cri" -> {
-                openScreen(ClickGuiScreen)
+                openScreen(ModernConfigGui())
                 event.isCanceled = true
             }
 

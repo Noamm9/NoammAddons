@@ -38,7 +38,8 @@ object PuzzleSolvers: Feature("Puzzle Solvers for Dungeon Clear") {
 
     val boulder = ToggleSetting("Boulder ")
     val BshowAll = ToggleSetting("Show All", false).addDependency(boulder)
-    val BzeroPing = ToggleSetting("Zero Ping", false).addDependency(boulder)
+
+    //val BzeroPing = ToggleSetting("Zero Ping", false).addDependency(boulder) - R.I.P goodbye stonking
     val BboxColor = ColorSetting("Box Color", favoriteColor.withAlpha(40)).addDependency(boulder)
     val BclickColor = ColorSetting("Click Color", Color.RED.withAlpha(0.3f)).addDependency(boulder)
 
@@ -65,7 +66,7 @@ object PuzzleSolvers: Feature("Puzzle Solvers for Dungeon Clear") {
         SeperatorSetting("Blaze"),
         blaze, blazeCount, BlineColor, firstBlazeColor, secondBlazeColor, thirdBlazeColor,
         SeperatorSetting("Boulder"),
-        boulder, BshowAll, BzeroPing, BboxColor, BclickColor,
+        boulder, BshowAll,/* BzeroPing, */BboxColor, BclickColor,
         SeperatorSetting("Three Weirdos"),
         weirdos, WremoveNPCS, WremoveChests, Wcolor, WcolorWrong,
         SeperatorSetting("Teleport Maze"),

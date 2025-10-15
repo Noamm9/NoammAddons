@@ -28,10 +28,9 @@ object FeatureManager {
     val features = mutableSetOf(
         EspSettings, CustomMenuSettings, MotionBlur, GyroHelper, ChatEmojis,
         Etherwarp, SlotBinding, PartyESP, SBKick, CakeNumbers, EnderPearlFix,
-        ItemEntity, Gloomlock, VisualWords, Chat, ItemRarity,
-        ItemsPrice, TeammatesESP, AbilityKeybinds, IHateDiorite, StonkSwap,
-        MimicDetector, GhostPick, DoorKeys, AutoUlt, PartyFinder, TickTimers,
-        LeapMenu, ReaperArmor, AutoI4, ArchitectDraft, BetterFloors, AutoGFS,
+        ItemEntity, Gloomlock, VisualWords, Chat, ItemRarity, ItemsPrice,
+        TeammatesESP, AbilityKeybinds, IHateDiorite, MimicDetector, DoorKeys,
+        AutoUlt, PartyFinder, TickTimers, LeapMenu, AutoI4, ArchitectDraft, AutoGFS,
         AutoPotion, CryptsDone, M7Relics, MaxorsCrystals, ChestProfit, FpsBoost,
         Camera, PlayerModel, DamageSplash, AutoRequeue, WitherDragons, DungeonPlayerDeath,
         WarpCooldown, RoomAlerts, RunSplits, RatProtection, PuzzleSolvers, LividSolver,
@@ -40,18 +39,20 @@ object FeatureManager {
         ExtraSlayerInfo, SalvageOverlay, Ragnarock, ShadowAssassin, MelodyAlert,
         PlayerHud, FullBlock, TerminalNumbers, F7Titles, ScalableTooltips, FpsDisplay,
         ClockDisplay, TpsDisplay, PetDisplay, MaskTimers, SpringBootsDisplay,
-        NoBlockAnimation, WitherShieldTimer, BowHitSound, TeleportOverlay,
-        CustomScoreboard, ScoreCalculator, BlockOverlay, WardrobeMenu, CustomPetMenu,
-        TimeChanger, CustomTabList, TerminalSolver, ChamNametags, CustomSlotHighlight,
+        WitherShieldTimer, BowHitSound, TeleportOverlay, CustomScoreboard,
+        ScoreCalculator, BlockOverlay, WardrobeMenu, CustomPetMenu, TimeChanger,
+        CustomTabList, TerminalSolver, ChamNametags, CustomSlotHighlight,
         InventoryDisplay, StopCloseMyChat, InventorySearchbar, BlessingDisplay,
         ClientTimer, DarkMode, Animations, EnchantmentsColors, AutoClicker,
-        ArrowFix, PartyHelper,
+        ArrowFix, PartyHelper, DungeonMap,
 
-        DungeonMap,
+        // ProfileViewer, // never finished + Skycrpt api went down
         // ZeroPingTeleportation, // - R.I.P fuck hypixel, fuck blinkers
+        // BetterFloors, StonkSwap, GhostPick, // - R.I.P goodbye stonking
+        // ReaperArmor, // - R.I.P fuck reaper fix
+        NoBlockAnimation,
 
         DevOptions, CompTest, ConfigGui,
-        //ProfileViewer,
     ).sortedBy { it.name }
 
 

@@ -107,18 +107,14 @@ object MapRenderUtils {
     fun drawPlayerHead(player: DungeonMapPlayer) {
         GlStateManager.pushMatrix()
 
-        if (player.teammate.entity == null) {
+        player.teammate.entity?.takeUnless { it.isDead }?.let { entityPlayer ->
+            val (x, z) = MapUtils.coordsToMap(entityPlayer.positionVector)
+            GlStateManager.translate(x, z, 0f)
+            GlStateManager.rotate(entityPlayer.rotationYaw + 180f, 0f, 0f, 1f)
+        } ?: run {
             GlStateManager.translate(player.mapX, player.mapZ, 0f)
             GlStateManager.rotate(player.yaw + 180f, 0f, 0f, 1f)
         }
-        else {
-            player.teammate.entity?.let { entityPlayer ->
-                val (x, z) = MapUtils.coordsToMap(entityPlayer.renderVec)
-                GlStateManager.translate(x, z, 0f)
-                GlStateManager.rotate(entityPlayer.rotationYaw + 180f, 0f, 0f, 1f)
-            }
-        }
-
 
         GlStateManager.scale(DungeonMapConfig.playerHeadScale.value, DungeonMapConfig.playerHeadScale.value, 1f)
 
@@ -135,38 +131,38 @@ object MapRenderUtils {
             GlStateManager.rotate(- 180f, 0f, 0f, 1f)
         }
         else {
-            // @formatter:off Render border around the player head
-                renderRectBorder(- 6.0, - 6.0, 12.0, 12.0, 1.0, when {
-                    DungeonMapConfig.mapPlayerHeadColorClassBased.value -> player.teammate.clazz.color
-                    else -> DungeonMapConfig.mapPlayerHeadColor.value
-                })
+            // @formatter:off
+            renderRectBorder(- 6.0, - 6.0, 12.0, 12.0, 1.0, when {
+                DungeonMapConfig.mapPlayerHeadColorClassBased.value -> player.teammate.clazz.color
+                else -> DungeonMapConfig.mapPlayerHeadColor.value
+            })
 
-                preDraw()
-                GlStateManager.enableTexture2D()
-                bindColor(Color.WHITE)
+            preDraw()
+            GlStateManager.enableTexture2D()
+            bindColor(Color.WHITE)
 
-                mc.textureManager.bindTexture(player.skin)
+            mc.textureManager.bindTexture(player.skin)
 
-                Gui.drawScaledCustomSizeModalRect(- 6, - 6, 8f, 8f, 8, 8, 12, 12, 64f, 64f)
-                Gui.drawScaledCustomSizeModalRect(- 6, - 6, 40f, 8f, 8, 8, 12, 12, 64f, 64f)
+            Gui.drawScaledCustomSizeModalRect(- 6, - 6, 8f, 8f, 8, 8, 12, 12, 64f, 64f)
+            Gui.drawScaledCustomSizeModalRect(- 6, - 6, 40f, 8f, 8, 8, 12, 12, 64f, 64f)
 
-                postDraw()
-            }
+            postDraw()
+        }
 
-            if (DungeonMapConfig.playerHeads.value == 2 || DungeonMapConfig.playerHeads.value == 1 && mc.thePlayer.heldItem.skyblockID.equalsOneOf(
-               "SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP", "HAUNT_ABILITY"
-            )) {
-                if (player.teammate.entity == null) GlStateManager.rotate(player.yaw + 180f, 0f, 0f, - 1f)
-                else player.teammate.entity?.let { GlStateManager.rotate(it.rotationYaw + 180f, 0f, 0f, - 1f) }
-                GlStateManager.translate(0f, 8f, 0f)
-                GlStateManager.scale(DungeonMapConfig.playerNameScale.value, DungeonMapConfig.playerNameScale.value, 1f)
-                val color = if (DungeonMapConfig.mapPlayerNameClassColorBased.value && player.teammate.clazz != DungeonUtils.Classes.Empty) player.teammate.clazz.color else Color.WHITE
-                RenderUtils.drawCenteredText(player.teammate.name, 0, 0, 1f, color)
-            }
+        if (DungeonMapConfig.playerHeads.value == 2 || DungeonMapConfig.playerHeads.value == 1 && mc.thePlayer.heldItem.skyblockID.equalsOneOf(
+            "SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP", "HAUNT_ABILITY"
+        )) {
+            if (player.teammate.entity == null) GlStateManager.rotate(player.yaw + 180f, 0f, 0f, - 1f)
+            else player.teammate.entity?.let { GlStateManager.rotate(it.rotationYaw + 180f, 0f, 0f, - 1f) }
+            GlStateManager.translate(0f, 8f, 0f)
+            GlStateManager.scale(DungeonMapConfig.playerNameScale.value, DungeonMapConfig.playerNameScale.value, 1f)
+            val color = if (DungeonMapConfig.mapPlayerNameClassColorBased.value && player.teammate.clazz != DungeonUtils.Classes.Empty) player.teammate.clazz.color else Color.WHITE
+            RenderUtils.drawCenteredText(player.teammate.name, 0, 0, 1f, color)
+        }
         GlStateManager.popMatrix()
     }
 
-    fun drawPlayerHead(name: String, skin:ResourceLocation, entity: EntityPlayer? = null) {
+    fun drawPlayerHead(name: String, skin: ResourceLocation, entity: EntityPlayer? = null) {
         val playerEntity = entity ?: return
 
         GlStateManager.pushMatrix()

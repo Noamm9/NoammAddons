@@ -94,5 +94,5 @@ object PacketManager {
         event.isCanceled = true
     }
 
-    fun getTermOpenTime() = windowOpenTime !!
+    fun getTermOpenTime() = windowOpenTime ?: throw IllegalStateException("Tried to get term open time while not in a term? This should not be possible")
 }

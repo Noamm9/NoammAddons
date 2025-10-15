@@ -212,18 +212,18 @@ object PartyHelper: Feature("Party Commands, /pl reformatting") {
             if (self.type == PartyMemberType.LEADER && member.name != self.name) {
                 when (member.type) {
                     PartyMemberType.MODERATOR -> {
-                        component.appendSibling(createButton("  §a[⋀] ", "/p promote ${member.name}", "§aPromote ${member.name}"))
+                        component.appendSibling(createButton(" §a[⋀] ", "/p promote ${member.name}", "§aPromote ${member.name}"))
                             .appendSibling(createButton("§c[⋁] ", "/p demote ${member.name}", "§cDemote ${member.name}"))
                     }
 
                     PartyMemberType.MEMBER -> {
-                        component.appendSibling(createButton("§9[⋀] ", "/p transfer ${member.name}", "§9Transfer party to ${member.name}"))
+                        component.appendSibling(createButton(" §9[⋀] ", "/p transfer ${member.name}", "§9Transfer party to ${member.name}"))
                             .appendSibling(createButton("§a[⋀] ", "/p promote ${member.name}", "§aPromote ${member.name}"))
                     }
 
                     else -> {} // Leader can't act on themselves
                 }
-                component.appendSibling(createButton(" §4[✖]", "/p kick ${member.name}", "§4Kick ${member.name}"))
+                component.appendSibling(createButton("§4[✖] ", "/p kick ${member.name}", "§4Kick ${member.name}"))
                     .appendSibling(createButton("§7[B]", "/block add ${member.name}", "§7Block ${member.name}"))
             }
         }

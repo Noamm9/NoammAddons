@@ -237,7 +237,7 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
         if (LocationUtils.inBoss) return
         DungeonUtils.dungeonTeammatesNoSelf.filterNot { it.isDead }.map { it.mapIcon }.forEach(MapRenderUtils::drawPlayerHead)
 
-        if (DungeonMapConfig.dungeonMapCheater.value) MapRenderUtils.drawPlayerHead(mc.session.username, mc.thePlayer.locationSkin, mc.thePlayer)
+        if (DungeonMapConfig.dungeonMapCheater.value && ! dungeonStarted) MapRenderUtils.drawPlayerHead(mc.session.username, mc.thePlayer.locationSkin, mc.thePlayer)
         else thePlayer?.mapIcon?.let(MapRenderUtils::drawPlayerHead)
 
         if (DungeonMapConfig.dungeonMapCheater.value && ! dungeonStarted) {

@@ -10,8 +10,6 @@ import noammaddons.events.*
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.BboxColor
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.BclickColor
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.BshowAll
-import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.BzeroPing
-import noammaddons.utils.*
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.toVec
 import noammaddons.utils.ChatUtils.clickableChat
@@ -25,6 +23,7 @@ import noammaddons.utils.RenderUtils.drawBox
 import noammaddons.utils.ScanUtils.getRealCoord
 import noammaddons.utils.ScanUtils.getRoomCenterAt
 import noammaddons.utils.Utils.formatPbPuzzleMessage
+import noammaddons.utils.WebUtils
 
 
 object BoulderSolver {
@@ -87,11 +86,13 @@ object BoulderSolver {
             wall_sign, stone_button -> {
                 val entry = currentSolution.find { it.click == packet.position } ?: return
                 if (currentSolution.remove(entry) && startTime == null) startTime = System.currentTimeMillis()
-                if (! BzeroPing.value) return
 
-                MathUtils.getAllBlocksBetween(entry.box.add(- 1, - 1, - 1), entry.box.add(1, 1, 1)).forEach {
-                    BlockUtils.toAir(it)
-                }
+                /* - R.I.P goodbye stonking
+                if (BzeroPing.value) MathUtils.getAllBlocksBetween(
+                    entry.box.add(- 1, - 1, - 1),
+                    entry.box.add(1, 1, 1)
+                ).forEach(BlockUtils::toAir)
+                */
             }
 
             chest -> {

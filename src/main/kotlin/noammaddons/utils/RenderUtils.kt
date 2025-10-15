@@ -19,6 +19,8 @@ import noammaddons.utils.BlockUtils.toVec
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.MathUtils.distance3D
+import noammaddons.utils.NumbersUtils.minus
+import noammaddons.utils.NumbersUtils.plus
 import noammaddons.utils.PlayerUtils.getEyePos
 import noammaddons.utils.RenderHelper.bindColor
 import noammaddons.utils.RenderHelper.getHeight
@@ -321,7 +323,8 @@ object RenderUtils {
         GlStateManager.translate(- renderManager.viewerPosX, - renderManager.viewerPosY, - renderManager.viewerPosZ)
         glLineWidth(lineWidth)
         bindColor(color, 255)
-        glEnable(GL_LINE_SMOOTH)
+        val hadLineSmooth = glIsEnabled(GL_LINE_SMOOTH)
+        if (! hadLineSmooth) glEnable(GL_LINE_SMOOTH)
 
         worldRenderer.begin(GL_LINES, DefaultVertexFormats.POSITION)
         worldRenderer.pos(from.xCoord, from.yCoord, from.zCoord).endVertex()
@@ -329,7 +332,7 @@ object RenderUtils {
         tessellator.draw()
 
         glLineWidth(1f)
-        glDisable(GL_LINE_SMOOTH)
+        if (! hadLineSmooth) glDisable(GL_LINE_SMOOTH)
         if (phase) enableDepth()
         postDraw()
         GlStateManager.popMatrix()
@@ -1021,5 +1024,20 @@ object RenderUtils {
         glEnable(GL_TEXTURE_2D)
         glEnable(GL_CULL_FACE)
         glDisable(GL_BLEND)
+    }
+
+    fun drawBlurredShadow(color: Color, x: Number, y: Number, width: Number, height: Number, radius: Number, blurRadius: Number) {
+        GlStateManager.enableBlend()
+        GlStateManager.disableTexture2D()
+        GlStateManager.tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, 1, 0)
+
+        for (i in 0 until blurRadius.toInt()) {
+            val alpha = (color.alpha * ((blurRadius.toInt() - i).toFloat() / blurRadius.toInt())).toInt()
+            val shadowColor = Color((alpha shl 24) or (color.rgb and 0x00FFFFFF), true)
+            drawRoundedRect(shadowColor, x - i, y - i, width + i * 2, height + i * 2, radius + i)
+        }
+
+        GlStateManager.enableTexture2D()
+        GlStateManager.disableBlend()
     }
 }

@@ -34,19 +34,7 @@ object DungeonMap: Feature(toggled = false) {
 
     @SubscribeEvent(priority = EventPriority.HIGH)
     fun onRenderOverlay(event: RenderOverlayNoCaching) {
-        if (debug) {
-            val currentRoom = ScanUtils.currentRoom
-            val rot = currentRoom?.rotation
-            val h = currentRoom?.highestBlock
-            RenderUtils.drawText(
-                listOf(
-                    "roofHight: $h",
-                    "rotation: $rot",
-                ).joinToString("\n"),
-                300, 300,
-            )
-        }
-
+        if (! enabled) return
         if (! DungeonMapConfig.mapEnabled.value || ! inDungeon) return
         if (! DungeonMapConfig.dungeonMapCheater.value && ! DungeonUtils.dungeonStarted) return
         if (DungeonMapConfig.mapHideInBoss.value && inBoss) return
