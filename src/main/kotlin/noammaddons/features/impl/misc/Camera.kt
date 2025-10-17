@@ -32,15 +32,12 @@ object Camera: Feature() {
     private val noPortal = ToggleSetting("Disable Portal Effect")
     private val noFaceBlock = ToggleSetting("Disable Face Block")
 
-    @JvmField
-    val noPushOutOfBlocks = ToggleSetting("Disable Block Push")
-
     override fun init() = addSettings(
         SeperatorSetting("Animations"),
         smoothSneak,
         SeperatorSetting("Clean View"),
         customFov, fov, removeWaterFov, noBlind,
-        noNausea, noPortal, noFaceBlock, noPushOutOfBlocks
+        noNausea, noPortal, noFaceBlock
     )
 
     @SubscribeEvent

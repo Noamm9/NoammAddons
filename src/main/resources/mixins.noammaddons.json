@@ -5,7 +5,6 @@
   "refmap": "mixins.${modid}.refmap.json",
   "client": [
     "MixinBossStatus",
-    "MixinEntityPlayerSP",
     "MixinEntityRenderer",
     "MixinFontRenderer",
     "MixinGuiButton",
