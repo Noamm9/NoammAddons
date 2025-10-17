@@ -21,7 +21,6 @@ import noammaddons.features.impl.dungeons.dmap.handlers.DungeonScanner
 import noammaddons.features.impl.dungeons.solvers.devices.AutoI4.testI4
 import noammaddons.features.impl.esp.StarMobESP
 import noammaddons.features.impl.general.teleport.helpers.InstantTransmissionHelper
-import noammaddons.test.ModernConfigGui
 import noammaddons.ui.config.core.annotations.Dev
 import noammaddons.ui.config.core.impl.ButtonSetting
 import noammaddons.ui.config.core.impl.ToggleSetting
@@ -34,7 +33,6 @@ import noammaddons.utils.ChatUtils.sendChatMessage
 import noammaddons.utils.DungeonUtils.dungeonEnded
 import noammaddons.utils.DungeonUtils.dungeonStarted
 import noammaddons.utils.DungeonUtils.puzzles
-import noammaddons.utils.GuiUtils.openScreen
 import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.ItemUtils.toJsonElement
 import noammaddons.utils.LocationUtils.F7Phase
@@ -236,7 +234,6 @@ object DevOptions: Feature() {
             "t" -> titles.forEach(ChatUtils::modMessage)
 
             "cri" -> {
-                openScreen(ModernConfigGui())
                 event.isCanceled = true
             }
 
