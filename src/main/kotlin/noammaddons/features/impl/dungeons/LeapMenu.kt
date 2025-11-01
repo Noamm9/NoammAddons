@@ -54,6 +54,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
 
     private val hideAfterLeap = ToggleSetting("Hide Players After Leap ")
     private val hideTime = SliderSetting("Hide Time", 0.5, 5, 0.1, 3.5).addDependency(hideAfterLeap)
+    private val playerPattern = Regex("(?:\\[.+?] )?(?<name>\\w+)")
     private var hidePlayers = false
 
     override fun init() {
@@ -79,7 +80,8 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
     val players = mutableListOf<LeapMenuPlayer?>(null, null, null, null)
 
     private fun inSpiritLeap(): Boolean {
-        return currentChestName.removeFormatting().lowercase() == "spirit leap" && inDungeon && customLeapMenu.value
+        return currentChestName.removeFormatting().lowercase().equalsOneOf("spirit leap", "teleport to player")
+                && inDungeon && customLeapMenu.value
     }
 
     @SubscribeEvent
@@ -279,7 +281,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
             for (i in 0 ..< size - 36) {
                 val stack = get(i)?.stack ?: continue
                 if (stack.item !is ItemSkull) continue
-                val itemName = stack.displayName.removeFormatting()
+                val itemName = playerPattern.find(stack.displayName.removeFormatting())?.groups?.get("name")?.value ?: continue
 
                 leapTeammates.forEachIndexed { index, teammate ->
                     if (index > players.lastIndex) return@forEachIndexed
