@@ -18,6 +18,7 @@
     "MixinMinecraft",
     "MixinNetHandlerPlayClient",
     "MixinNetworkManager",
+    "MixinPlayerControllerMP",
     "MixinRendererLivingEntity",
     "MixinRenderManager",
     "MixinThePlayer",

@@ -117,6 +117,9 @@ object Chat: Feature() {
     }
 
     private val regex = listOf(
+        Regex("^You don't have enough charges to break this block right now!$"),
+        Regex("^A mystical force prevents you digging there!$"),
+        Regex("^A mystical force prevents you from digging that block!$"),
         Regex("^ {2}Clicking sketchy links can result in your account$"),
         Regex("^ {2}being stolen!$"),
         Regex("^ {2}Link looks suspicious\\? - Don't click it!$"),

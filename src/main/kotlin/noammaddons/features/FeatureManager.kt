@@ -44,7 +44,7 @@ object FeatureManager {
         CustomTabList, TerminalSolver, ChamNametags, CustomSlotHighlight,
         InventoryDisplay, StopCloseMyChat, InventorySearchbar, BlessingDisplay,
         ClientTimer, DarkMode, Animations, EnchantmentsColors, AutoClicker,
-        ArrowFix, PartyHelper, DungeonMap,
+        ArrowFix, PartyHelper, DungeonMap, DungeonBreaker,
 
         // ProfileViewer, // never finished + Skycrpt api went down
         // ZeroPingTeleportation, // - R.I.P fuck hypixel, fuck blinkers
