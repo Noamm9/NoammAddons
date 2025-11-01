@@ -19,20 +19,20 @@ object ProfileUtils {
         "https://api.ashcon.app/mojang/v2/user/"
     )
 
-    fun getUUID(name: String): String {
+    fun getUUID(name: String): String? {
         uuidCache[name]?.let { return it }
 
         for (api in mojangApiList) {
             val response = runCatching { readUrl(api + name) }.getOrNull() ?: continue
             val json = JsonUtils.stringToJson(response)
             val uuid = json.getString("id") ?: json.getString("uuid")
-            if (uuid.isNullOrBlank()) return "null"
-
-            uuidCache[name] = uuid
-            return uuid
+            if (! uuid.isNullOrBlank()) {
+                uuidCache[name] = uuid
+                return uuid
+            }
         }
 
-        return "null"
+        return null
     }
 
     fun getSecrets(name: String): Int {
@@ -42,7 +42,7 @@ object ProfileUtils {
         }
 
         // Thx axle <3
-        val response = readUrl("https://api.skyblockextras.com/hypixel/player?uuid=${getUUID(name)}")
+        val response = readUrl("https://api.skyblockextras.com/hypixel/player?uuid=${getUUID(name) ?: return 0}")
         val secrets = JsonParser().parse(response)?.asJsonObject?.getAsJsonObject("player")
             ?.getAsJsonObject("achievements")?.getAsJsonPrimitive("skyblock_treasure_hunter")?.asInt ?: 0
 
@@ -52,7 +52,7 @@ object ProfileUtils {
     }
 
     fun getStatus(name: String): Boolean {
-        val raw = readUrl("https://api.skyblockextras.com/hypixel/status?uuid=${getUUID(name)}")
+        val raw = readUrl("https://api.skyblockextras.com/hypixel/status?uuid=${getUUID(name) ?: return false}")
         val json = JsonUtils.stringToJson(raw).takeIf { it.getValue("success").jsonPrimitive.boolean }
         val isOnline = json?.get("session")?.jsonObject?.get("online")?.jsonPrimitive?.boolean ?: false
         Logger.info("$name is online: $isOnline")

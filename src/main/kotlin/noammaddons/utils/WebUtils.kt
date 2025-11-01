@@ -4,12 +4,9 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.JsonObject
-import net.minecraft.crash.CrashReport
 import noammaddons.NoammAddons.Companion.Logger
 import noammaddons.NoammAddons.Companion.MOD_NAME
-import noammaddons.NoammAddons.Companion.mc
 import noammaddons.NoammAddons.Companion.scope
-import noammaddons.utils.Utils.equalsOneOf
 import java.io.BufferedReader
 import java.lang.reflect.Type
 import java.net.*
@@ -54,14 +51,6 @@ object WebUtils {
                     connection.requestMethod = "GET"
                     connection.setRequestProperty("Accept", "application/json")
 
-                    when (connection.responseCode) {
-                        403 -> Logger.warn("403 Forbidden: $url")
-                        429 -> Logger.warn("429 Too Many Requests (surely axle?): $url")
-                        502 -> Logger.warn("502 Bad Gateway: $url")
-                        503 -> Logger.warn("503 Service Unavailable: $url")
-                        504 -> Logger.warn("504 Gateway Timeout: $url")
-                    }
-
                     connection.inputStream.bufferedReader(Charsets.UTF_8).use { reader ->
                         val response = reader.readText()
                         val type: Type = object: TypeToken<T>() {}.type
@@ -73,9 +62,6 @@ object WebUtils {
                 }
                 catch (e: Exception) {
                     Logger.error("Failed to fetch data from $url", e)
-                    if (connection.responseCode.equalsOneOf(403, 502, 503, 504, 429)) return@launch
-                    if (e is SocketTimeoutException) return@launch
-                    mc.crashed(CrashReport("Failed to fetch data from $url", e))
                 }
                 finally {
                     connection.disconnect()
@@ -117,8 +103,8 @@ object WebUtils {
     }
 
     fun readUrl(url: String): String {
-        val connection = makeWebRequest(url)
-        (connection as HttpsURLConnection).requestMethod = "GET"
+        val connection = makeWebRequest(url) as HttpsURLConnection
+        connection.requestMethod = "GET"
         connection.setRequestProperty("Accept", "application/json")
         return connection.inputStream.bufferedReader().use(BufferedReader::readText)
     }

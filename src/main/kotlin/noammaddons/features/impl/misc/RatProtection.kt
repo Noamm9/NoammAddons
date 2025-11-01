@@ -49,7 +49,10 @@ object RatProtection: Feature() {
     }
 
     fun install() {
-        val listStr = WebUtils.readUrl("https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/suspiciousEndpoints.json")
+        val listStr = runCatching {
+            WebUtils.readUrl("https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/suspiciousEndpoints.json")
+        }.getOrNull() ?: return NoammAddons.Logger.error("Failed to get suspiciousEndpoints.json. RatProtection will not work!")
+        
         val list: List<String> = Gson().fromJson(listStr, object: TypeToken<List<String>>() {}.type)
         val default = ProxySelector.getDefault()
 

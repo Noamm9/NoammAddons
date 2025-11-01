@@ -9,6 +9,7 @@ import noammaddons.events.ClickEvent;
 import noammaddons.events.GuiCloseEvent;
 import noammaddons.events.PreKeyInputEvent;
 import noammaddons.events.WorldLoadPostEvent;
+import noammaddons.features.impl.misc.RatProtection;
 import org.lwjgl.input.Keyboard;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
@@ -84,6 +85,11 @@ public class MixinMinecraft {
             if (postAndCatch(new PreKeyInputEvent(k, character)))
                 ci.cancel();
         }
+    }
+
+    @Inject(method = "startGame", at = @At("HEAD"))
+    public void onStartGame(CallbackInfo ci) {
+        RatProtection.INSTANCE.install();
     }
 }
 

@@ -8,7 +8,6 @@ import net.minecraft.client.Minecraft
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.common.event.FMLInitializationEvent
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.commands.CommandManager.registerCommands
 import noammaddons.config.PogObject
@@ -19,7 +18,6 @@ import noammaddons.features.FeatureManager.registerFeatures
 import noammaddons.features.impl.DevOptions
 import noammaddons.features.impl.misc.ClientBranding
 import noammaddons.features.impl.misc.Cosmetics.CosmeticRendering
-import noammaddons.features.impl.misc.RatProtection
 import noammaddons.ui.font.GlyphPageFontRenderer
 import noammaddons.ui.font.TextRenderer
 import noammaddons.utils.*
@@ -80,13 +78,8 @@ class NoammAddons {
     }
 
     @Mod.EventHandler
-    fun preInit(event: FMLPreInitializationEvent) {
-        RatProtection.install()
-    }
-
-    @Mod.EventHandler
     fun onInit(event: FMLInitializationEvent) {
-        Logger.info("Initializing NoammAddons")
+        Logger.info("Initializing $MOD_NAME")
         loadTime = System.currentTimeMillis()
 
         ClientBranding.setCustomIcon()
@@ -110,11 +103,11 @@ class NoammAddons {
             it["default"]?.run { addLayer(CosmeticRendering(this)) }
         }
 
+        this.init()
         registerFeatures()
         registerCommands()
-        this.init()
 
-        Logger.info("Finished Initializing NoammAddons")
+        Logger.info("Finished Initializing $MOD_NAME")
         Logger.info("Load Time: ${(System.currentTimeMillis() - loadTime) / 1000.0} seconds")
         initialized = true
     }

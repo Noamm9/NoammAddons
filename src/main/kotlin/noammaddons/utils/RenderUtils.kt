@@ -1003,27 +1003,27 @@ object RenderUtils {
     }
 
     fun drawCircle(color: Color, x: Number, y: Number, r: Number) {
+        glPushMatrix()
         glEnable(GL_BLEND)
         glDisable(GL_CULL_FACE)
         glDisable(GL_TEXTURE_2D)
-        glBegin(GL_TRIANGLE_FAN)
-
         glBindColor(color)
+
+        glBegin(GL_TRIANGLE_FAN)
         glVertex2d(x.toDouble(), y.toDouble())
-        var start = 0f
-        while (start <= 360f) {
-            glBindColor(color)
+
+        repeat(360) { i ->
             glVertex2d(
-                (r.toDouble() * cos(Math.PI * start / 180) + x.toDouble()),
-                (r.toDouble() * sin(Math.PI * start / 180) + y.toDouble())
+                (r.toDouble() * cos(Math.PI * i / 180) + x.toDouble()),
+                (r.toDouble() * sin(Math.PI * i / 180) + y.toDouble())
             )
-            start ++
         }
 
         glEnd()
         glEnable(GL_TEXTURE_2D)
         glEnable(GL_CULL_FACE)
         glDisable(GL_BLEND)
+        glPopMatrix()
     }
 
     fun drawBlurredShadow(color: Color, x: Number, y: Number, width: Number, height: Number, radius: Number, blurRadius: Number) {
