@@ -27,14 +27,26 @@ import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.remove
 
 @AlwaysActive
-object DungeonMap: Feature(toggled = false) {
+object DungeonMap: Feature() {
     override fun init() = addSettings(*DungeonMapConfig.setup())
 
     val debug get() = EssentialAPI.getMinecraftUtil().isDevelopment() || DevOptions.devMode || DevOptions.enabled
 
     @SubscribeEvent(priority = EventPriority.HIGH)
-    fun onRenderOverlay(event: RenderOverlayNoCaching) {
+    fun onRenderOverlayNoCaching(event: RenderOverlayNoCaching) {
         if (! enabled) return
+        if (mc.gameSettings.keyBindPlayerList.isKeyDown) return
+        if (! DungeonMapConfig.mapEnabled.value || ! inDungeon) return
+        if (! DungeonMapConfig.dungeonMapCheater.value && ! DungeonUtils.dungeonStarted) return
+        if (DungeonMapConfig.mapHideInBoss.value && inBoss) return
+
+        DungeonMapElement.draw()
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    fun onRenderOverlay(event: RenderOverlay) {
+        if (! enabled) return
+        if (! mc.gameSettings.keyBindPlayerList.isKeyDown) return
         if (! DungeonMapConfig.mapEnabled.value || ! inDungeon) return
         if (! DungeonMapConfig.dungeonMapCheater.value && ! DungeonUtils.dungeonStarted) return
         if (DungeonMapConfig.mapHideInBoss.value && inBoss) return
