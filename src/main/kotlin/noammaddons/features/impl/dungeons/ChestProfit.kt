@@ -46,7 +46,7 @@ import java.lang.Math.*
 
 object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay") {
     private const val url = "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/DungeonChestProfit"
-    private val croesusChestRegex = Regex("^(Master Mode )?The Catacombs - Flo(or (IV|V?I{0,3}))?$")
+    private val croesusChestRegex = Regex("^(Master )?Catacombs - Flo(or (IV|V?I{0,3}))?\$")
     private val chestsToHighlight = mutableListOf<DungeonChest>()
     private val rngList = mutableListOf<String>()
     private val blackList = mutableListOf<String>()
@@ -96,6 +96,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
         val chestName = event.title.removeFormatting()
 
         if (chestName.matches(croesusChestRegex)) {
+            modMessage("detected croesusChestRegex")
             if (chestsToHighlight.isEmpty()) {
                 DungeonChest.entries.forEach { it.reset() }
             }
@@ -152,7 +153,6 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
             }
 
             chestName.matches(croesusChestRegex) -> {
-
                 for (i in 10 .. 16) {
                     val item = event.items[i] ?: continue
                     if (item.getItemId() == 160) continue
@@ -257,43 +257,40 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
     @SubscribeEvent
     fun onDrawSlot(event: DrawSlotEvent) {
         if (! croesusChestHighlight.value) return
-        if (! world.equalsOneOf(DungeonHub, Catacombs)) return
         if (event.gui !is GuiChest) return
+        if (currentChestName.removeFormatting() != "Croesus") return
+        if (! world.equalsOneOf(DungeonHub, Catacombs)) return
         if (event.slot.inventory == mc.thePlayer.inventory) return
-        val stack = event.slot.stack ?: return
-        if (stack.item !is ItemSkull) return
-        val name = stack.displayName
-        if (! name.equalsOneOf("§cThe Catacombs", "§cMaster Mode The Catacombs")) return
-        val lore = stack.lore
+        val stack = event.slot.stack?.takeIf { it.item is ItemSkull } ?: return
+        if (! stack.displayName.equalsOneOf("§aThe Catacombs", "§aMaster Mode The Catacombs")) return
 
-        event.slot.highlight(
-            when {
-                lore.any { line -> line == "§aNo more Chests to open!" } -> {
-                    if (! hideRedChests.value) Color.RED
-                    else {
-                        event.isCanceled = true
-                        return
+        stack.lore.let {
+            event.slot.highlight(
+                when {
+                    it.any { line -> line == "§aNo more chests to open!" } -> {
+                        if (! hideRedChests.value) Color.RED
+                        else {
+                            event.isCanceled = true
+                            return
+                        }
                     }
 
-
-                }
-
-                lore.any { line -> line == "§8No Chests Opened!" } -> Color.GREEN
-                lore.any { line -> line.startsWith("§8Opened Chest: ") } -> Color.YELLOW
-                else -> return
-            }.withAlpha(100)
-        )
+                    it.any { line -> line == "§cNo chests opened yet!" } -> Color.GREEN
+                    it.any { line -> line.startsWith("§7Opened Chest: ") } -> Color.YELLOW
+                    else -> return
+                }.withAlpha(100)
+            )
+        }
     }
 
     @SubscribeEvent
     fun onGuiClick(event: SlotClickEvent) {
         if (! croesusChestsProfit.value) return
         if (event.gui !is GuiChest) return
+        if (currentChestName.removeFormatting() != "Croesus") return
         if (event.slot?.inventory == mc.thePlayer.inventory) return
-        val stack = event.slot?.stack ?: return
-        if (stack.item !is ItemSkull) return
-        val name = stack.displayName
-        if (! name.equalsOneOf("§cThe Catacombs", "§cMaster Mode The Catacombs")) return
+        val stack = event.slot?.stack?.takeIf { it.item is ItemSkull } ?: return
+        if (! stack.displayName.equalsOneOf("§aThe Catacombs", "§aMaster Mode The Catacombs")) return
 
         val floor = stack.lore[0].removeFormatting().substringAfterLast(" ").romanToDecimal()
         val title = if (name.startsWith("§cMaster")) "§c§lMaster Mode" else "§a§lFloor"
@@ -380,7 +377,8 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
             fun getFromName(name: String?): DungeonChest? {
                 if (name.isNullOrBlank()) return null
                 return entries.find {
-                    it.displayText == name
+
+                    it.displayText.remove(" Chest") == name.remove(" Chest")
                 }
             }
         }
