@@ -96,7 +96,6 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
         val chestName = event.title.removeFormatting()
 
         if (chestName.matches(croesusChestRegex)) {
-            modMessage("detected croesusChestRegex")
             if (chestsToHighlight.isEmpty()) {
                 DungeonChest.entries.forEach { it.reset() }
             }
@@ -264,22 +263,30 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
         val stack = event.slot.stack?.takeIf { it.item is ItemSkull } ?: return
         if (! stack.displayName.equalsOneOf("§aThe Catacombs", "§aMaster Mode The Catacombs")) return
 
-        stack.lore.let {
-            event.slot.highlight(
-                when {
-                    it.any { line -> line == "§aNo more chests to open!" } -> {
-                        if (! hideRedChests.value) Color.RED
-                        else {
-                            event.isCanceled = true
-                            return
-                        }
-                    }
+        var highlightColor: Color? = null
+        for (line in stack.lore) when {
+            line == "§aNo more chests to open!" -> {
+                if (hideRedChests.value) {
+                    event.isCanceled = true
+                    return
+                }
+                highlightColor = Color.RED
+                break
+            }
 
-                    it.any { line -> line == "§cNo chests opened yet!" } -> Color.GREEN
-                    it.any { line -> line.startsWith("§7Opened Chest: ") } -> Color.YELLOW
-                    else -> return
-                }.withAlpha(100)
-            )
+            line == "§cNo chests opened yet!" -> {
+                highlightColor = Color.GREEN
+                break
+            }
+
+            line.startsWith("§7Opened Chest: ") -> {
+                highlightColor = Color.YELLOW
+                break
+            }
+        }
+
+        highlightColor?.let { color ->
+            event.slot.highlight(color.withAlpha(100))
         }
     }
 
