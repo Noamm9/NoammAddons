@@ -1,5 +1,6 @@
 package noammaddons.features.impl.general.teleport
 
+import net.minecraft.item.ItemStack
 import net.minecraft.network.play.client.C03PacketPlayer
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.network.play.server.S08PacketPlayerPosLook
@@ -89,7 +90,7 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
         if (ScanUtils.currentRoom?.data?.name.equalsOneOf("New Trap", "Old Trap", "Teleport Maze", "Boulder")) return
         runCatching { if ((mc.objectMouseOver.blockPos?.let { getBlockAt(it).getBlockId() } ?: 0) in interactableBlocks) return }
         if (LocationUtils.isInHubCarnival()) return
-        val tpInfo = getTeleportInfo(packet) ?: return
+        val tpInfo = getTeleportInfo(packet.stack) ?: return
 
         when (tpInfo.type) {
             TeleportType.Etherwarp -> doZeroPingEtherwarp(tpInfo)
@@ -166,8 +167,8 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
     }
 
 
-    private fun getTeleportInfo(packet: C08PacketPlayerBlockPlacement): TeleportInfo? {
-        val heldItem = packet.stack ?: return null
+    fun getTeleportInfo(itemstack: ItemStack?): TeleportInfo? {
+        val heldItem = itemstack ?: return null
         val sbId = heldItem.skyblockID ?: return null
 
         if (sbId.equalsOneOf("ASPECT_OF_THE_VOID", "ASPECT_OF_THE_END")) {

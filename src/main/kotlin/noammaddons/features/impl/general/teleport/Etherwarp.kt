@@ -2,16 +2,23 @@ package noammaddons.features.impl.general.teleport
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraftforge.client.event.MouseEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.events.PacketEvent
 import noammaddons.events.SoundPlayEvent
 import noammaddons.features.Feature
+import noammaddons.features.impl.general.teleport.core.TeleportType
+import noammaddons.features.impl.general.teleport.helpers.EtherwarpHelper
 import noammaddons.ui.config.core.impl.*
+import noammaddons.utils.*
+import noammaddons.utils.BlockUtils.getBlockAt
+import noammaddons.utils.BlockUtils.getBlockId
 import noammaddons.utils.PlayerUtils.isHoldingEtherwarpItem
 import noammaddons.utils.PlayerUtils.rightClick
 import noammaddons.utils.PlayerUtils.swingHand
 import noammaddons.utils.PlayerUtils.toggleSneak
-import noammaddons.utils.ServerPlayer.player
+import noammaddons.utils.Utils.equalsOneOf
 
 
 object Etherwarp: Feature("Various features for the Etherwarp Ability") {
@@ -25,20 +32,23 @@ object Etherwarp: Feature("Various features for the Etherwarp Ability") {
     private val volume = SliderSetting("Volume", 0, 1, 0.1, 0.5).addDependency(etherwarpSound)
     private val pitch = SliderSetting("Pitch", 0, 2, 0.1, 1.0).addDependency(etherwarpSound)
     private val playSound = ButtonSetting("Play Sound") {
-        repeat(5) {
-            mc.thePlayer?.playSound(
-                soundName.value,
-                volume.value.toFloat(),
-                pitch.value.toFloat()
-            )
+        mc.addScheduledTask {
+            repeat(5) {
+                mc.thePlayer?.playSound(
+                    soundName.value,
+                    volume.value.toFloat(),
+                    pitch.value.toFloat()
+                )
+            }
         }
     }.addDependency(etherwarpSound)
+    private val zeroPingSound = ToggleSetting("Zero Ping Sound").addDependency(etherwarpSound)
 
     override fun init() = addSettings(
         SeperatorSetting("Left Click Etherwarp"),
         leftClickEtherwarp, swingHandToggle, autoSneakToggle, autoSneakDelaySlider,
         SeperatorSetting("Etherwarp Sound"),
-        etherwarpSound, soundName, volume, pitch, playSound
+        etherwarpSound, soundName, volume, pitch, playSound, zeroPingSound
     )
 
     @SubscribeEvent
@@ -46,7 +56,28 @@ object Etherwarp: Feature("Various features for the Etherwarp Ability") {
         if (! etherwarpSound.value) return
         if (event.name != "mob.enderdragon.hit") return
         if (event.pitch != 0.53968257f) return
+        if (! zeroPingSound.value) playSound.defaultValue.run()
         event.isCanceled = true
+    }
+
+    @SubscribeEvent
+    fun onC08PacketPlayerBlockPlacement(event: PacketEvent.Sent) {
+        if (! etherwarpSound.value) return
+        if (! zeroPingSound.value) return
+        val packet = event.packet as? C08PacketPlayerBlockPlacement ?: return
+        if (packet.placedBlockDirection != 255) return
+        if (LocationUtils.dungeonFloorNumber == 7 && LocationUtils.inBoss) return
+        if (ActionBarParser.currentMana < ActionBarParser.maxMana * 0.1) return
+        if (ScanUtils.currentRoom?.data?.name.equalsOneOf("New Trap", "Old Trap", "Teleport Maze", "Boulder")) return
+        runCatching { if ((mc.objectMouseOver.blockPos?.let { getBlockAt(it).getBlockId() } ?: 0) in setOf(146, 54, 130, 154, 118, 69, 77, 143, 96, 167)) return }
+        if (LocationUtils.isInHubCarnival()) return
+
+        val tpInfo = TeleportOverlay.getType(packet.stack)?.takeIf { it.type == TeleportType.Etherwarp } ?: return
+        val playerPos = ServerPlayer.player.getVec() ?: return
+        val playerRot = ServerPlayer.player.getRotation() ?: return
+        val etherPos = EtherwarpHelper.getEtherPos(playerPos, playerRot, tpInfo.distance).takeIf { it.succeeded && it.pos != null } ?: return
+
+        if (ScanUtils.getRoomFromPos(etherPos.pos !!)?.data?.name.equalsOneOf("Teleport Maze", "Boulder")) return
         playSound.defaultValue.run()
     }
 
@@ -55,13 +86,13 @@ object Etherwarp: Feature("Various features for the Etherwarp Ability") {
         if (! leftClickEtherwarp.value) return
         if (! event.buttonstate) return
         if (event.button != 0) return
-        if (! player.sneaking && ! autoSneakToggle.value) return
-        val item = player.getHeldItem() ?: return
+        if (! ServerPlayer.player.sneaking && ! autoSneakToggle.value) return
+        val item = ServerPlayer.player.getHeldItem() ?: return
         if (! isHoldingEtherwarpItem(item)) return
         event.isCanceled = true
 
         scope.launch {
-            if (autoSneakToggle.value && ! player.sneaking) {
+            if (autoSneakToggle.value && ! ServerPlayer.player.sneaking) {
                 val halfTime = autoSneakDelaySlider.value.toLong() / 2
                 toggleSneak(true)
                 delay(halfTime)
