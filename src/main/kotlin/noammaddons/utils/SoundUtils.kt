@@ -1,6 +1,8 @@
 package noammaddons.utils
 
+import net.minecraft.client.audio.ISound
 import net.minecraft.client.audio.SoundCategory
+import net.minecraft.util.ResourceLocation
 import noammaddons.NoammAddons.Companion.MOD_ID
 import noammaddons.NoammAddons.Companion.mc
 import java.io.ByteArrayInputStream
@@ -72,4 +74,20 @@ object SoundUtils {
     fun buff() = playSound("buff")
     fun bigFart() = playSound("bigFart")
     fun smallFart() = playSound("smallFart")
+
+    fun playSound(soundName: String, volume: Float, pitch: Float) {
+        mc.soundHandler.playSound(object: ISound {
+            override fun getAttenuationType() = ISound.AttenuationType.NONE
+            override fun getSoundLocation() = ResourceLocation(soundName)
+            override fun getVolume() = volume
+            override fun getPitch() = pitch
+
+            override fun getXPosF() = mc.thePlayer?.posX?.toFloat() ?: 0f
+            override fun getYPosF() = mc.thePlayer?.posY?.toFloat() ?: 0f
+            override fun getZPosF() = mc.thePlayer?.posZ?.toFloat() ?: 0f
+
+            override fun canRepeat() = false
+            override fun getRepeatDelay() = 0
+        })
+    }
 }

@@ -34,7 +34,7 @@ object Etherwarp: Feature("Various features for the Etherwarp Ability") {
     private val playSound = ButtonSetting("Play Sound") {
         mc.addScheduledTask {
             repeat(5) {
-                mc.thePlayer?.playSound(
+                SoundUtils.playSound(
                     soundName.value,
                     volume.value.toFloat(),
                     pitch.value.toFloat()
