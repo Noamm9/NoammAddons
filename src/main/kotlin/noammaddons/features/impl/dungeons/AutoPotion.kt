@@ -37,7 +37,7 @@ object AutoPotion: Feature() {
         } - 1
 
         val grammar = when (remainingPotions) {
-            0 -> "&cno &dPotions"
+            - 1, 0 -> "&cno &dPotions"
             1 -> "&e1 &dPotion"
             else -> "&a$remainingPotions &dPotions"
         }
