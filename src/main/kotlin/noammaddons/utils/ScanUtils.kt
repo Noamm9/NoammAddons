@@ -57,15 +57,12 @@ object ScanUtils {
 
     init {
         WebUtils.fetchJson<List<RoomData>>(
-            "https://raw.githubusercontent.com/Skytils/SkytilsMod/refs/heads/1.x/src/main/resources/assets/catlas/rooms.json",
+            "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/rooms.json",
             roomList::addAll
         )
     }
 
-
     fun getRoomData(hash: Int): RoomData? {
-        // temp fix until skytils update thier roomCore list
-        if (hash == - 336135931) return roomList.find { it.name == "Tic Tac Toe" }
         return roomList.find { hash in it.cores }
     }
 
@@ -74,7 +71,6 @@ object ScanUtils {
         val gz = floor((pos.z + 200 + 0.5) / 32).toInt()
         return Pair(gx, gz)
     }
-
 
     fun getRoomCorner(pair: Pair<Int, Int>): Pair<Int, Int> {
         return Pair(
