@@ -87,7 +87,7 @@ object DungeonUtils {
         Tank(Color(0, 125, 0));
 
         companion object {
-            fun getByName(name: String) = entries.first { it.name.lowercase() == name.lowercase() }
+            fun getByName(name: String) = entries.firstOrNull { it.name.lowercase() == name.lowercase() } ?: Empty
             fun getColorCode(clazz: Classes): String {
                 return when (clazz) {
                     Archer -> "§4"
@@ -256,9 +256,8 @@ object DungeonUtils {
 
             is S2FPacketSetSlot -> {
                 if (packet.func_149175_c() != 0 || packet.func_149173_d() != 36) return
-                val wasDead = mc.thePlayer.inventory.getStackInSlot(0)?.skyblockID == "HAUNT_ABILITY"
                 val isNowDead = packet.func_149174_e()?.skyblockID == "HAUNT_ABILITY"
-                if (wasDead != isNowDead) thePlayer?.isDead = isNowDead
+                thePlayer?.isDead = isNowDead
             }
         }
     }

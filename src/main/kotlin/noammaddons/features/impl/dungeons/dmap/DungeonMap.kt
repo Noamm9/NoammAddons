@@ -20,11 +20,9 @@ import noammaddons.features.impl.dungeons.dmap.handlers.ScoreCalculation.deathCo
 import noammaddons.features.impl.dungeons.dmap.utils.MapUtils
 import noammaddons.ui.config.core.annotations.AlwaysActive
 import noammaddons.utils.*
-import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.Utils.equalsOneOf
-import noammaddons.utils.Utils.remove
 
 @AlwaysActive
 object DungeonMap: Feature() {
@@ -125,18 +123,6 @@ object DungeonMap: Feature() {
                 MapUpdater.updateRooms(mapData)
                 MapUpdater.updatePlayers(mapData)
             }
-        }
-    }
-
-    @SubscribeEvent
-    fun onMessage(event: MessageSentEvent) {
-        var text = event.message.removeFormatting().lowercase()
-        val commandName = "/dmap"
-        if (! text.startsWith(commandName)) return
-        text = text.remove(commandName)
-        event.isCanceled = true
-        when (text) {
-            " setexplored" -> DungeonInfo.dungeonList.forEach { it.state = RoomState.DISCOVERED }
         }
     }
 

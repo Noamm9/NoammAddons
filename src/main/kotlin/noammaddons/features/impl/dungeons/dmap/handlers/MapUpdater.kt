@@ -86,11 +86,12 @@ object MapUpdater {
 
         for (x in 0 .. 10) {
             for (z in 0 .. 10) {
-                val room = DungeonInfo.dungeonList[z * 11 + x]
+                val idx = z * 11 + x
+                val room = DungeonInfo.dungeonList[idx]
                 val mapTile = HotbarMapColorParser.getTile(x, z)
 
                 if (room is Unknown) {
-                    DungeonInfo.dungeonList[z * 11 + x] = mapTile
+                    DungeonInfo.dungeonList[idx] = mapTile
                     if (mapTile is Room) {
                         val connected = HotbarMapColorParser.getConnected(x, z)
                         connected.firstOrNull { it.data.name != "Unknown" }?.let {
@@ -102,6 +103,10 @@ object MapUpdater {
 
                 if (mapTile.state.ordinal < room.state.ordinal) {
                     room.state = mapTile.state
+                }
+
+                if (mapTile is Room && room is Room && mapTile.data.type != room.data.type) {
+                    if (room.data.name == mapTile.data.name) room.data = mapTile.data
                 }
 
                 if (mapTile is Door && room is Door) {

@@ -16,7 +16,7 @@ class UniqueRoom(arrX: Int, arrY: Int, room: Room) {
         DungeonInfo.secretCount += room.data.secrets
         when (room.data.type) {
             RoomType.TRAP -> DungeonInfo.trapType = room.data.name.split(" ")[0]
-            //RoomType.PUZZLE -> Puzzle.fromName(room.data.name)?.let { Dungeon.Info.puzzles.putIfAbsent(it, false) }
+            //RoomType.PUZZLE -> Puzzle.fromName(room.data.name)?.let { DungeonInfo.puzzles.putIfAbsent(it, false) }
             else -> {}
         }
     }

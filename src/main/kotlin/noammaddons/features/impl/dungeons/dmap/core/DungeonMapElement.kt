@@ -42,6 +42,7 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
 
         drawMapBackground()
         renderRooms()
+        renderCheckmarks()
         renderText()
         renderPlayerHeads()
         drawExtraInfo()
@@ -71,8 +72,9 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
         else -> {}
     }
 
-
     private fun renderRooms() {
+        GlStateManager.translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat(), 0f)
+
         if (DungeonMapConfig.dungeonMapCheater.value) {
             DungeonInfo.dungeonList.forEach {
                 if (it.state == RoomState.UNOPENED) {
@@ -81,18 +83,14 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
             }
         }
 
-        GlStateManager.pushMatrix()
-        GlStateManager.translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat(), 0f)
-        val connectorSize = HotbarMapColorParser.quarterRoom
-
         for (y in 0 .. 10) {
             for (x in 0 .. 10) {
                 val tile = DungeonInfo.dungeonList[y * 11 + x]
                 if (! DungeonMapConfig.dungeonMapCheater.value && (tile is Unknown || tile.state == RoomState.UNDISCOVERED)) continue
                 val color = if (tile.state == RoomState.UNDISCOVERED) tile.color.darker().darker() else tile.color
 
-                val xOffset = (x shr 1) * (MapUtils.mapRoomSize + connectorSize)
-                val yOffset = (y shr 1) * (MapUtils.mapRoomSize + connectorSize)
+                val xOffset = (x shr 1) * (MapUtils.mapRoomSize + HotbarMapColorParser.quarterRoom)
+                val yOffset = (y shr 1) * (MapUtils.mapRoomSize + HotbarMapColorParser.quarterRoom)
 
                 val xEven = x and 1 == 0
                 val yEven = y and 1 == 0
@@ -112,36 +110,41 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
                         MapRenderUtils.renderRect(
                             xOffset.toDouble(),
                             yOffset.toDouble(),
-                            (MapUtils.mapRoomSize + connectorSize).toDouble(),
-                            (MapUtils.mapRoomSize + connectorSize).toDouble(),
+                            (MapUtils.mapRoomSize + HotbarMapColorParser.quarterRoom).toDouble(),
+                            (MapUtils.mapRoomSize + HotbarMapColorParser.quarterRoom).toDouble(),
                             color
                         )
                     }
 
                     else -> drawRoomConnector(
-                        xOffset, yOffset, connectorSize, tile is Door, ! xEven, color
+                        xOffset, yOffset, HotbarMapColorParser.quarterRoom, tile is Door, ! xEven, color
                     )
                 }
+            }
+        }
+    }
 
+    private fun renderCheckmarks() {
+        for (y in 0 .. 10) {
+            for (x in 0 .. 10) {
+                val tile = DungeonInfo.dungeonList[y * 11 + x]
+                if (! DungeonMapConfig.dungeonMapCheater.value && (tile is Unknown || tile.state == RoomState.UNDISCOVERED)) continue
                 if (tile !is Room) continue
-                if (tile.state != RoomState.UNOPENED) continue
+
+                val xOffset = (x shr 1) * (MapUtils.mapRoomSize + HotbarMapColorParser.quarterRoom)
+                val yOffset = (y shr 1) * (MapUtils.mapRoomSize + HotbarMapColorParser.quarterRoom)
                 drawCheckmark(tile, xOffset.toFloat(), yOffset.toFloat(), checkmarkSize)
             }
         }
-        GlStateManager.popMatrix()
     }
 
     private fun renderText() {
-        GlStateManager.pushMatrix()
-        GlStateManager.translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat(), 0f)
-
         DungeonInfo.uniqueRooms.forEach { unq ->
             val room = unq.mainRoom
             if (! DungeonMapConfig.dungeonMapCheater.value && (room.state == RoomState.UNDISCOVERED || room.state == RoomState.UNOPENED)) return@forEach
             val size = MapUtils.mapRoomSize + HotbarMapColorParser.quarterRoom
             val checkPos = unq.getCheckmarkPosition()
-            val xOffsetCheck = (checkPos.first / 2f) * size
-            val yOffsetCheck = (checkPos.second / 2f) * size
+
             val xOffsetName = (checkPos.first / 2f) * size
             val yOffsetName = (checkPos.second / 2f) * size
 
@@ -154,8 +157,6 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
                 RoomState.FAILED -> 0xff0000
                 else -> 0xaaaaaa
             }
-
-            drawCheckmark(room, xOffsetCheck, yOffsetCheck, checkmarkSize)
 
             if ((DungeonMapConfig.mapRoomNames.value != 0 && roomType == RoomType.PUZZLE) ||
                 (DungeonMapConfig.mapRoomNames.value >= 2 && roomType.equalsOneOf(RoomType.TRAP, RoomType.CHAMPION, RoomType.FAIRY)) ||
@@ -188,8 +189,10 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
                 )
 
         }
-        GlStateManager.popMatrix()
+
+        GlStateManager.translate(- MapUtils.startCorner.first.toFloat(), - MapUtils.startCorner.second.toFloat(), 0f)
     }
+
 
     private fun getCheckmark(state: RoomState) = when (state) {
         RoomState.CLEARED -> CheckMarkWhite
@@ -208,9 +211,9 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
 
         when (DungeonMapConfig.mapRoomNames.value) {
             0 -> {}
-            1 -> if (room.data.type == RoomType.PUZZLE) return
-            2 -> if (room.data.type.equalsOneOf(RoomType.PUZZLE, RoomType.TRAP, RoomType.CHAMPION, RoomType.FAIRY)) return
-            3 -> return
+            1 -> if (room.data.type == RoomType.PUZZLE && room.data.name != "Unknown") return
+            2 -> if (room.data.type.equalsOneOf(RoomType.PUZZLE, RoomType.TRAP, RoomType.CHAMPION, RoomType.FAIRY) && room.data.name != "Unknown") return
+            3 -> if (room.data.name != "Unknown") return
         }
 
         getCheckmark(tile.state)?.let {
@@ -280,10 +283,8 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
         val line2 = "$scoreStr   $deathsStr   $mimicStr $princeStr"
         val textLines = listOf(line1, line2)
 
-        GlStateManager.pushMatrix()
-        GlStateManager.translate(128f / 2f, 128f, 1f)
+        GlStateManager.translate(width / 2f, 128f, 1f)
         MapRenderUtils.renderCenteredText(textLines, 0, 3, 0xffffff, 0.7f)
-        GlStateManager.popMatrix()
     }
 
     fun colorizeScore(score: Int): String {

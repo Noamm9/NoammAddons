@@ -48,12 +48,9 @@ object HotbarMapColorParser {
                 }
                 else {
                     val horizontal = y % 2 == 1
-                    if (horizontal) {
-                        mapY * 128 + mapX - 4
-                    }
-                    else {
-                        (mapY - 4) * 128 + mapX
-                    }
+                    if (horizontal) mapY * 128 + mapX - 4
+                    else (mapY - 4) * 128 + mapX
+
                 }
 
                 sideColors[y * 11 + x] = mapData.colors[sideIndex]
@@ -67,8 +64,7 @@ object HotbarMapColorParser {
         if (cached == null) {
             val xPos = DungeonScanner.startX + arrayX * (DungeonScanner.roomSize shr 1)
             val zPos = DungeonScanner.startZ + arrayY * (DungeonScanner.roomSize shr 1)
-            cachedTiles[index] =
-                scanTile(arrayX, arrayY, xPos, zPos)
+            cachedTiles[index] = scanTile(arrayX, arrayY, xPos, zPos)
         }
         return cachedTiles[index] ?: Unknown(0, 0)
     }

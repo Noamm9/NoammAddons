@@ -29,6 +29,7 @@ object DungeonScanner {
     val shouldScan get() = ! isScanning && ! hasScanned && System.currentTimeMillis() - lastScanTime >= 250 && dungeonFloorNumber != null
 
     fun scan() {
+        return
         isScanning = true
         var allChunksLoaded = true
 
