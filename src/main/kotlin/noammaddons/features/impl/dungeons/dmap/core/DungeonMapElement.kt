@@ -18,7 +18,6 @@ import noammaddons.utils.DungeonUtils.dungeonStarted
 import noammaddons.utils.RenderHelper.colorCodeByPresent
 import noammaddons.utils.RenderHelper.getStringHeight
 import noammaddons.utils.RenderHelper.getStringWidth
-import noammaddons.utils.RenderHelper.renderVec
 import org.lwjgl.opengl.GL11
 import java.awt.Color
 
@@ -207,14 +206,23 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
     private fun renderPlayerHeads() {
         if (LocationUtils.inBoss) return
 
-        if (dungeonStarted) DungeonUtils.dungeonTeammates.filterNot { it.isDead && it != DungeonUtils.thePlayer }.forEach { p ->
-            drawPlayerHead(p.name, p.skin, p.clazz, p.entity, p.mapIcon.mapX, p.mapIcon.mapZ, p.mapIcon.yaw)
-        }
-        else DungeonUtils.runPlayersNames.forEach { (name, skin) ->
-            mc.theWorld.getPlayerEntityByName(name)?.let { entity ->
-                val (mapX, mapZ) = MapUtils.coordsToMap(entity.renderVec)
-                drawPlayerHead(name, skin, DungeonUtils.Classes.Empty, entity, mapX, mapZ, entity.rotationYaw)
+        if (dungeonStarted) {
+            DungeonUtils.dungeonTeammatesNoSelf.filterNot { it.isDead }.forEach { p ->
+                drawPlayerHead(p.name, p.skin, p.clazz, p.entity, p.mapIcon.mapX, p.mapIcon.mapZ, p.mapIcon.yaw)
             }
+
+            DungeonUtils.thePlayer?.let { p ->
+                drawPlayerHead(p.name, p.skin, p.clazz, p.entity)
+            }
+        }
+        else {
+            DungeonUtils.runPlayersNames.filterNot { it.key == mc.session.username }.forEach { (name, skin) ->
+                mc.theWorld.getPlayerEntityByName(name)?.let { entity ->
+                    drawPlayerHead(name, skin, DungeonUtils.Classes.Empty, entity)
+                }
+            }
+
+            drawPlayerHead(mc.session.username, mc.thePlayer.locationSkin, DungeonUtils.Classes.Empty, mc.thePlayer)
         }
     }
 
