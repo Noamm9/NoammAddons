@@ -8,8 +8,9 @@ import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.*
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.ItemUtils.skyblockID
+import noammaddons.utils.Utils.equalsOneOf
 
-object DungeonBreaker: Feature() {
+object DungeonBreaker: Feature(name = "DungeonBreaker") {
     private val zeropingbreaker by ToggleSetting("Zero Ping")
 
     private val blacklist = setOf(
@@ -27,7 +28,7 @@ object DungeonBreaker: Feature() {
         if (! zeropingbreaker) return
         if (! LocationUtils.inDungeon) return
         if (ServerPlayer.player.getHeldItem().skyblockID != "DUNGEONBREAKER") return
-        if (ScanUtils.currentRoom?.data?.type == RoomType.PUZZLE) return
+        if (ScanUtils.currentRoom?.data?.type.equalsOneOf(RoomType.PUZZLE, RoomType.FAIRY)) return
         val block = getBlockAt(pos).takeUnless { it in blacklist } ?: return
 
         mc.theWorld.setBlockToAir(pos)

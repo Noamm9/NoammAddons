@@ -142,7 +142,7 @@ object DungeonUtils {
 
     fun isPaul(): Boolean {
         if (ScoreCalculator.forcePaul.value) return true
-        val mayorPerks = mutableListOf<DataClasses.ApiMayor.Perk>()
+        val mayorPerks = mutableListOf<ApiMayor.Perk>()
         mayorData?.mayor?.perks?.let { mayorPerks.addAll(it) }
         mayorData?.mayor?.minister?.perks?.let { mayorPerks.addAll(it) }
         return mayorPerks.any { it.name.contains("EZPZ") }

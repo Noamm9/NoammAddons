@@ -12,15 +12,12 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.NoammAddons.Companion.personalBests
 import noammaddons.events.*
+import noammaddons.utils.*
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.ChatUtils.clickableChat
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendPartyMessage
-import noammaddons.utils.RenderUtils
 import noammaddons.utils.RenderUtils.renderManager
-import noammaddons.utils.ScanUtils.getRoomCenter
-import noammaddons.utils.ScanUtils.getRoomCorner
-import noammaddons.utils.ThreadUtils
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.formatPbPuzzleMessage
 import org.lwjgl.opengl.GL11
@@ -32,18 +29,19 @@ object TicTacToeSolver {
     private var inTicTacToe = false
     private var trueStartTime: Long? = null
     private var bestMove: AxisAlignedBB? = null
-    private var roomCenter: Pair<Int, Int>? = null
+    private var roomCenter: BlockPos? = null
 
     @SubscribeEvent
     fun onEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (! PuzzleSolvers.ticTacToe.value) return
         if (event.room.data.name != "Tic Tac Toe") return
+
         inTicTacToe = true
-        roomCenter = getRoomCenter(getRoomCorner(event.room.getRoomComponent()))
+        roomCenter = ScanUtils.getRoomCenter(event.room)
         trueStartTime = System.currentTimeMillis()
 
         ThreadUtils.scheduledTask(2) {
-            bestMove = scanBoard()
+            bestMove = scanBoard(roomCenter !!)
         }
     }
 
@@ -69,23 +67,22 @@ object TicTacToeSolver {
     fun onPacket(event: PostPacketEvent.Received) {
         if (! inTicTacToe) return
         val packet = event.packet as? S0EPacketSpawnObject ?: return
-        if (packet.type != 71) return
+        if (packet.type != 71) return // EntityItemFrame
 
         ThreadUtils.scheduledTask(2) {
-            bestMove = scanBoard()
+            bestMove = scanBoard(roomCenter !!)
         }
     }
 
-    fun scanBoard(): AxisAlignedBB? {        // -8, 1
-        val aabb = AxisAlignedBB(roomCenter !!.first - 9.0, 69 - 4.0, roomCenter !!.second - 9.0, roomCenter !!.first + 9.0, 69 + 4.0, roomCenter !!.second + 9.0)
-        val itemFrames = mc.theWorld.getEntitiesWithinAABB(EntityItemFrame::class.java, aabb)
-        val itemFramesWithMaps: MutableList<EntityItemFrame> = ArrayList()
+    fun scanBoard(center: BlockPos): AxisAlignedBB? {
+        val aabb = AxisAlignedBB(
+            center.x - 9.0, 65.0, center.z - 9.0,
+            center.x + 9.0, 73.0, center.z + 9.0
+        )
 
-        for (itemFrame in itemFrames) {
-            val item = itemFrame.displayedItem
-            if (item == null || item.item !is ItemMap) continue
-            (item.item as ItemMap).getMapData(item, mc.theWorld) ?: continue
-            itemFramesWithMaps.add(itemFrame)
+        val itemFrames = mc.theWorld.getEntitiesWithinAABB(EntityItemFrame::class.java, aabb)
+        val itemFramesWithMaps = itemFrames.filter { frame ->
+            frame.displayedItem?.let { (it.item as? ItemMap)?.getMapData(it, mc.theWorld) } != null
         }
 
         if (itemFramesWithMaps.size == 8 && trueStartTime != null) {
@@ -108,22 +105,21 @@ object TicTacToeSolver {
             roomCenter = null
             return null
         }
+
         if (itemFramesWithMaps.size == 8 || itemFramesWithMaps.size % 2 == 0) return null
 
         val board = Array(3) { CharArray(3) }
         var leftmostRow: BlockPos? = null
-        var sign = 1
         var facing = 'X'
+        var sign = 1
+
         for (itemFrame in itemFramesWithMaps) {
-            val map = itemFrame.displayedItem
-            val mapData = (map.item as ItemMap).getMapData(map, mc.theWorld)
+            val mapData = (itemFrame.displayedItem.item as ItemMap).getMapData(itemFrame.displayedItem, mc.theWorld)
 
-            var row = 0
-            sign = 1
-
-            if (itemFrame.facingDirection == EnumFacing.SOUTH || itemFrame.facingDirection == EnumFacing.WEST) sign = - 1
-
+            sign = if (itemFrame.facingDirection.equalsOneOf(EnumFacing.SOUTH, EnumFacing.WEST)) - 1 else 1
             val itemFramePos = BlockPos(itemFrame.posX, floor(itemFrame.posY), itemFrame.posZ)
+            var row = 0
+
             for (i in 2 downTo 0) {
                 val realI = i * sign
                 var blockPos = itemFramePos
@@ -132,6 +128,7 @@ object TicTacToeSolver {
                     blockPos = itemFramePos.add(0, 0, realI)
                     facing = 'Z'
                 }
+
                 if (getBlockAt(blockPos).equalsOneOf(Blocks.stone_button, Blocks.air)) {
                     leftmostRow = blockPos
                     row = i
@@ -139,14 +136,10 @@ object TicTacToeSolver {
                 }
             }
 
-            val column = if (itemFrame.posY == 72.5) 0
-            else if (itemFrame.posY == 71.5) 1
-            else if (itemFrame.posY == 70.5) 2
-            else continue
-
-            val colourInt: Int = (mapData.colors[8256] and 255.toByte()).toInt()
-            if (colourInt == 114) board[column][row] = 'X'
-            else if (colourInt == 33) board[column][row] = 'O'
+            val column = (72 - itemFrame.posY.toInt()).takeIf { it in 0 .. 2 } ?: continue
+            val byteColor = (mapData.colors[8256] and 255.toByte()).toInt()
+            if (byteColor == 114) board[column][row] = 'X'
+            else if (byteColor == 33) board[column][row] = 'O'
         }
 
         val bestMove = TicTacToeUtils.getBestMove(board) - 1

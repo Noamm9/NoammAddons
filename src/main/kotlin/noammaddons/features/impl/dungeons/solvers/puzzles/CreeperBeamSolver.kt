@@ -11,16 +11,13 @@ import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.CBlines
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.CBphase
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.ChatUtils.clickableChat
-import noammaddons.utils.ChatUtils.debugMessage
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendPartyMessage
-import noammaddons.utils.MathUtils.add
+import noammaddons.utils.MathUtils.center
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderUtils.draw3DLine
 import noammaddons.utils.RenderUtils.drawBlockBox
-import noammaddons.utils.ScanUtils.getRealCoord
-import noammaddons.utils.ScanUtils.getRoomCenterAt
-import noammaddons.utils.ServerPlayer
+import noammaddons.utils.ScanUtils
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.formatPbPuzzleMessage
 import noammaddons.utils.WebUtils
@@ -71,7 +68,7 @@ object CreeperBeamSolver {
 
         // I accidentally took all solutions coords with a 180 rotation room
         rotation = 360 - event.room.rotation !! + 180
-        roomCenter = getRoomCenterAt(ServerPlayer.player.getPos() ?: return)
+        roomCenter = ScanUtils.getRoomCenter(event.room)
 
         solve()
     }
@@ -91,8 +88,12 @@ object CreeperBeamSolver {
 
             drawBlockBox(start, color, fill = true, outline = true, phase = CBphase.value)
             drawBlockBox(end, color, fill = true, outline = true, phase = CBphase.value)
-            if (! CBlines.value) return@forEach
-            draw3DLine(Vec3(start).add(0.5, 0.5, 0.5), Vec3(end).add(0.5, 0.5, 0.5), color, phase = CBphase.value)
+
+            if (CBlines.value) {
+                val pos1 = Vec3(start).center()
+                val pos2 = Vec3(end).center()
+                draw3DLine(pos1, pos2, color, phase = CBphase.value)
+            }
         }
     }
 
@@ -100,7 +101,7 @@ object CreeperBeamSolver {
     fun onPacketReceived(event: BlockChangeEvent) {
         if (! inCreeperBeams) return
         if (event.block != air) return
-        if (event.pos == getRealCoord(BlockPos(- 1, 69, - 1), roomCenter, rotation)) return
+        if (event.pos == ScanUtils.getRealCoord(BlockPos(- 1, 69, - 1), roomCenter, rotation)) return
         if (currentSolve.filter { getBlockAt(it.start) != sea_lantern && getBlockAt(it.end) != sea_lantern }.size < 4) return
 
         val enterTime = enterTimestamp ?: return
@@ -131,8 +132,8 @@ object CreeperBeamSolver {
         beamSolutions.forEach { beam ->
             if (colorIndex >= colorPool.size) return@forEach
 
-            val startPos = getRealCoord(beam.start, roomCenter, rotation)
-            val endPos = getRealCoord(beam.end, roomCenter, rotation)
+            val startPos = ScanUtils.getRealCoord(beam.start, roomCenter, rotation)
+            val endPos = ScanUtils.getRealCoord(beam.end, roomCenter, rotation)
 
             if (! isBeamBlock(getBlockAt(startPos)) || ! isBeamBlock(getBlockAt(endPos))) return@forEach
             currentSolve.add(BeamPair(startPos, endPos, colorPool[colorIndex ++]))
@@ -151,27 +152,5 @@ object CreeperBeamSolver {
         solveTimestamp = null
         roomCenter = BlockPos(- 1, - 1, - 1)
         rotation = 0
-
-        debugMessage("Creeper Beam Solver reset.")
     }
 }
-
-/*
-private val beamSolutions = listOf(
-        Pair(listOf(0, 74, 0), listOf(- 2, 84, 0)),
-        Pair(listOf(- 12, 78, 0), listOf(12, 76, 0)),
-        Pair(listOf(7, 80, - 7), listOf(- 7, 72, 11)),
-        Pair(listOf(- 8, 77, - 9), listOf(9, 76, 10)),
-        Pair(listOf(- 1, 78, - 12), listOf(1, 75, 13)),
-        Pair(listOf(- 11, 78, 3), listOf(12, 76, - 3)),
-        Pair(listOf(6, 79, - 10), listOf(- 6, 75, 11)),
-        Pair(listOf(8, 76, - 10), listOf(- 10, 74, 9)),
-        Pair(listOf(- 7, 82, - 3), listOf(12, 69, 5)),
-        Pair(listOf(6, 81, - 3), listOf(- 12, 69, 6)),
-        Pair(listOf(5, 81, 6), listOf(- 8, 70, - 11)),
-        Pair(listOf(6, 81, - 3), listOf(- 12, 69, 6)),
-        Pair(listOf(3, 76, 12), listOf(- 3, 78, 11)),
-        Pair(rotateCoords(listOf(- 3, 76, - 12), 180), rotateCoords(listOf(3, 78, 11), 180)),
-        Pair(rotateCoords(listOf(7, 80, - 7), 180), rotateCoords(listOf(- 8, 72, 10), 180))
-    )
- */

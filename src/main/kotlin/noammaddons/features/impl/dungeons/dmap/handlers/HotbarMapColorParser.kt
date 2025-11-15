@@ -50,7 +50,6 @@ object HotbarMapColorParser {
                     val horizontal = y % 2 == 1
                     if (horizontal) mapY * 128 + mapX - 4
                     else (mapY - 4) * 128 + mapX
-
                 }
 
                 sideColors[y * 11 + x] = mapData.colors[sideIndex]

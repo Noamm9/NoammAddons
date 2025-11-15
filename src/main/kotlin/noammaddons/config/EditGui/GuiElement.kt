@@ -1,14 +1,14 @@
 package noammaddons.config.EditGui
 
 import net.minecraft.client.renderer.GlStateManager
-import noammaddons.utils.DataClasses
+import noammaddons.utils.HudElementData
 import noammaddons.utils.MouseUtils
 import noammaddons.utils.RenderUtils.drawRect
 import noammaddons.utils.RenderUtils.drawRectBorder
 import java.awt.Color
 
 
-abstract class GuiElement(val dataObj: DataClasses.HudElementData) {
+abstract class GuiElement(val dataObj: HudElementData) {
     init {
         HudEditorScreen.elements.add(this)
     }

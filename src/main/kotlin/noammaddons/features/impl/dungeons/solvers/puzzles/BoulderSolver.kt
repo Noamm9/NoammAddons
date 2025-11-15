@@ -4,7 +4,6 @@ import net.minecraft.init.Blocks.*
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.util.BlockPos
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.NoammAddons.Companion.mc
 import noammaddons.NoammAddons.Companion.personalBests
 import noammaddons.events.*
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.BboxColor
@@ -16,12 +15,11 @@ import noammaddons.utils.ChatUtils.clickableChat
 import noammaddons.utils.ChatUtils.debugMessage
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendPartyMessage
-import noammaddons.utils.MathUtils.destructured
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderUtils.drawBlockBox
 import noammaddons.utils.RenderUtils.drawBox
+import noammaddons.utils.ScanUtils
 import noammaddons.utils.ScanUtils.getRealCoord
-import noammaddons.utils.ScanUtils.getRoomCenterAt
 import noammaddons.utils.Utils.formatPbPuzzleMessage
 import noammaddons.utils.WebUtils
 
@@ -31,7 +29,6 @@ object BoulderSolver {
 
     private val boulderSolutions: MutableMap<String, List<List<Double>>> = mutableMapOf()
     private var currentSolution = mutableListOf<BoulderBox>()
-    private val bottemLeftBox = BlockPos(- 9, 65, - 9)
 
     private var inBoulder = false
     private var roomCenter = BlockPos(- 1, - 1, - 1)
@@ -56,7 +53,7 @@ object BoulderSolver {
 
         // I accidentally took all solutions coords with a 180 rotation room
         rotation = 360 - event.room.rotation !! + 180
-        roomCenter = getRoomCenterAt(mc.thePlayer.position)
+        roomCenter = ScanUtils.getRoomCenter(event.room)
 
         solve()
     }
@@ -87,7 +84,7 @@ object BoulderSolver {
                 val entry = currentSolution.find { it.click == packet.position } ?: return
                 if (currentSolution.remove(entry) && startTime == null) startTime = System.currentTimeMillis()
 
-                /* - R.I.P goodbye stonking
+                /* - R.I.P fuck prediction ac
                 if (BzeroPing.value) MathUtils.getAllBlocksBetween(
                     entry.box.add(- 1, - 1, - 1),
                     entry.box.add(1, 1, 1)
@@ -141,7 +138,7 @@ object BoulderSolver {
     }
 
     private fun solve() {
-        val (sx, sy, sz) = bottemLeftBox.destructured()
+        val (sx, sy, sz) = listOf(- 9, 65, - 9)
         var str = ""
 
         for (z in 0 .. 5) {

@@ -5,8 +5,8 @@ import noammaddons.config.EditGui.GuiElement
 import noammaddons.config.EditGui.HudEditorScreen
 import noammaddons.events.RenderOverlay
 import noammaddons.features.Feature
-import noammaddons.features.impl.dungeons.dmap.core.DungeonMapElement.colorizeScore
 import noammaddons.features.impl.dungeons.dmap.handlers.ScoreCalculation
+import noammaddons.features.impl.dungeons.dmap.utils.MapRenderUtils
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.modMessage
@@ -22,7 +22,7 @@ object ScoreCalculator: Feature("Shows the score of the dungeon run") {
         private val text: String
             get() {
                 if (HudEditorScreen.isOpen()) return "&7Score: &a300"
-                val score = colorizeScore(ScoreCalculation.score)
+                val score = MapRenderUtils.colorizeScore(ScoreCalculation.score)
                 return "&eScore: $score"
             }
         override val width: Float get() = RenderHelper.getStringWidth(text)

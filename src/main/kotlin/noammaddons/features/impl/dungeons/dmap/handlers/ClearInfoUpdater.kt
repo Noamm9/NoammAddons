@@ -50,7 +50,6 @@ object ClearInfoUpdater {
             val ci = ClearInfo.get(name) ?: return@forEach
             val secrets = ProfileUtils.getSecrets(name)
             ci.secretsBeforeRun = secrets
-            if (debug) modMessage("$name has $secrets secrets")
         }
     }
 

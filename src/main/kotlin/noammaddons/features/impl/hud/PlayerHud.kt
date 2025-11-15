@@ -7,7 +7,7 @@ import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.ActionBarParser
 import noammaddons.utils.ChatUtils.removeFormatting
-import noammaddons.utils.DataClasses
+import noammaddons.utils.HudElementData
 import noammaddons.utils.LocationUtils.inSkyblock
 import noammaddons.utils.NumbersUtils.format
 import noammaddons.utils.RenderHelper.getStringWidth
@@ -16,7 +16,7 @@ import noammaddons.utils.Utils.remove
 
 object PlayerHud: Feature() {
     private class PlayerHudElement(
-        data: DataClasses.HudElementData,
+        data: HudElementData,
         private val isEnabled: () -> Boolean,
         private val textSupplier: () -> String,
     ): GuiElement(data) {

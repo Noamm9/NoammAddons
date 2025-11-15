@@ -8,14 +8,11 @@ import net.minecraft.util.ResourceLocation
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapConfig
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapElement.playerMarker
-import noammaddons.features.impl.dungeons.dmap.core.DungeonMapPlayer
+import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.addColor
-import noammaddons.utils.DungeonUtils
 import noammaddons.utils.ItemUtils.skyblockID
+import noammaddons.utils.RenderHelper
 import noammaddons.utils.RenderHelper.bindColor
-import noammaddons.utils.RenderHelper.getStringWidth
-import noammaddons.utils.RenderHelper.renderVec
-import noammaddons.utils.RenderUtils
 import noammaddons.utils.Utils.equalsOneOf
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
@@ -55,15 +52,21 @@ object MapRenderUtils {
         tessellator.draw()
     }
 
+    fun colorizeScore(score: Int): String {
+        return when {
+            score < 270 -> "§c${score}"
+            score < 300 -> "§e${score}"
+            else -> "§a${score}"
+        }
+    }
+
     fun renderRect(x: Double, y: Double, w: Double, h: Double, color: Color) {
         if (color.alpha == 0) return
         preDraw()
         bindColor(color)
-
         worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
         addQuadVertices(x, y, w, h)
         tessellator.draw()
-
         postDraw()
     }
 
@@ -82,94 +85,58 @@ object MapRenderUtils {
         postDraw()
     }
 
-    fun renderCenteredText(text: List<String>, x: Int, y: Int, color: Int, scale: Float = DungeonMapConfig.textScale.value) {
+    fun renderCenteredText(text: List<String>, x: Float, y: Float, color: Int, scale: Float = 1.0f) {
         if (text.isEmpty()) return
-        GlStateManager.pushMatrix()
-        GlStateManager.translate(x.toFloat(), y.toFloat(), 0f)
-        GlStateManager.scale(scale, scale, 1f)
 
-        val fontHeight = mc.fontRendererObj.FONT_HEIGHT + 1
-        val yTextOffset = text.size * fontHeight / - 2f
+        GlStateManager.enableTexture2D()
 
-        text.forEachIndexed { index, str ->
-            mc.fontRendererObj.drawString(
-                str.addColor(),
-                getStringWidth(str) / - 2f,
-                yTextOffset + index * fontHeight,
-                color,
-                true
-            )
+        if (scale == 1.0f) drawTextLinesInternal(text, x, y, color)
+        else {
+            GlStateManager.pushMatrix()
+            GlStateManager.translate(x, y, 0f)
+            GlStateManager.scale(scale, scale, 1f)
+            drawTextLinesInternal(text, 0f, 0f, color)
+            GlStateManager.popMatrix()
         }
-
-        GlStateManager.popMatrix()
     }
 
-    fun drawPlayerHead(player: DungeonMapPlayer) {
-        GlStateManager.pushMatrix()
+    private fun drawTextLinesInternal(text: List<String>, x: Float, y: Float, color: Int) {
+        val fontHeight = mc.fontRendererObj.FONT_HEIGHT + 1
+        val totalTextHeight = text.size * fontHeight
+        val startY = y - (totalTextHeight / 2f)
 
-        player.teammate.entity?.takeUnless { it.isDead }?.let { entityPlayer ->
-            val (x, z) = MapUtils.coordsToMap(entityPlayer.positionVector)
-            GlStateManager.translate(x, z, 0f)
-            GlStateManager.rotate(entityPlayer.rotationYaw + 180f, 0f, 0f, 1f)
-        } ?: run {
-            GlStateManager.translate(player.mapX, player.mapZ, 0f)
-            GlStateManager.rotate(player.yaw + 180f, 0f, 0f, 1f)
+        text.forEachIndexed { index, line ->
+            val startX = x - (RenderHelper.getStringWidth(line) / 2f)
+            mc.fontRendererObj.drawString(line.addColor(), startX, startY + index * fontHeight, color, true)
         }
+    }
 
-        GlStateManager.scale(DungeonMapConfig.playerHeadScale.value, DungeonMapConfig.playerHeadScale.value, 1f)
+    fun drawPlayerHead(
+        name: String,
+        skin: ResourceLocation,
+        clazz: DungeonUtils.Classes,
+        entity: EntityPlayer?,
+        fallbackMapX: Float = 0f,
+        fallbackMapZ: Float = 0f,
+        fallbackYaw: Float = 0f
+    ) {
+        GlStateManager.pushMatrix()
+        GlStateManager.enableTexture2D()
 
-        if (DungeonMapConfig.mapVanillaMarker.value && player.teammate.name == mc.thePlayer.name) {
-            GlStateManager.rotate(180f, 0f, 0f, 1f)
-            bindColor(DungeonMapConfig.mapVanillaMarkerColor.value)
-            mc.textureManager.bindTexture(playerMarker)
-            worldRenderer.begin(7, DefaultVertexFormats.POSITION_TEX)
-            worldRenderer.pos(- 6.0, 6.0, 0.0).tex(0.0, 0.0).endVertex()
-            worldRenderer.pos(6.0, 6.0, 0.0).tex(1.0, 0.0).endVertex()
-            worldRenderer.pos(6.0, - 6.0, 0.0).tex(1.0, 1.0).endVertex()
-            worldRenderer.pos(- 6.0, - 6.0, 0.0).tex(0.0, 1.0).endVertex()
-            tessellator.draw()
-            GlStateManager.rotate(- 180f, 0f, 0f, 1f)
+        val currentYaw: Float
+        val liveEntity = entity?.takeUnless { it.isDead }
+
+        if (liveEntity != null) {
+            val (x, z) = MapUtils.coordsToMap(liveEntity.positionVector)
+            GlStateManager.translate(x, z, 0f)
+            currentYaw = liveEntity.rotationYaw
         }
         else {
-            // @formatter:off
-            renderRectBorder(- 6.0, - 6.0, 12.0, 12.0, 1.0, when {
-                DungeonMapConfig.mapPlayerHeadColorClassBased.value -> player.teammate.clazz.color
-                else -> DungeonMapConfig.mapPlayerHeadColor.value
-            })
-
-            preDraw()
-            GlStateManager.enableTexture2D()
-            bindColor(Color.WHITE)
-
-            mc.textureManager.bindTexture(player.skin)
-
-            Gui.drawScaledCustomSizeModalRect(- 6, - 6, 8f, 8f, 8, 8, 12, 12, 64f, 64f)
-            Gui.drawScaledCustomSizeModalRect(- 6, - 6, 40f, 8f, 8, 8, 12, 12, 64f, 64f)
-
-            postDraw()
+            GlStateManager.translate(fallbackMapX, fallbackMapZ, 0f)
+            currentYaw = fallbackYaw
         }
 
-        if (DungeonMapConfig.playerHeads.value == 2 || DungeonMapConfig.playerHeads.value == 1 && mc.thePlayer.heldItem.skyblockID.equalsOneOf(
-            "SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP", "HAUNT_ABILITY"
-        )) {
-            if (player.teammate.entity == null) GlStateManager.rotate(player.yaw + 180f, 0f, 0f, - 1f)
-            else player.teammate.entity?.let { GlStateManager.rotate(it.rotationYaw + 180f, 0f, 0f, - 1f) }
-            GlStateManager.translate(0f, 8f, 0f)
-            GlStateManager.scale(DungeonMapConfig.playerNameScale.value, DungeonMapConfig.playerNameScale.value, 1f)
-            val color = if (DungeonMapConfig.mapPlayerNameClassColorBased.value && player.teammate.clazz != DungeonUtils.Classes.Empty) player.teammate.clazz.color else Color.WHITE
-            RenderUtils.drawCenteredText(player.teammate.name, 0, 0, 1f, color)
-        }
-        GlStateManager.popMatrix()
-    }
-
-    fun drawPlayerHead(name: String, skin: ResourceLocation, entity: EntityPlayer? = null) {
-        val playerEntity = entity ?: return
-
-        GlStateManager.pushMatrix()
-        val (x, z) = MapUtils.coordsToMap(playerEntity.renderVec)
-
-        GlStateManager.translate(x, z, 0f)
-        GlStateManager.rotate(playerEntity.rotationYaw + 180f, 0f, 0f, 1f)
+        GlStateManager.rotate(currentYaw + 180f, 0f, 0f, 1f)
         GlStateManager.scale(DungeonMapConfig.playerHeadScale.value, DungeonMapConfig.playerHeadScale.value, 1f)
 
         if (DungeonMapConfig.mapVanillaMarker.value && name == mc.thePlayer.name) {
@@ -185,16 +152,15 @@ object MapRenderUtils {
             GlStateManager.rotate(- 180f, 0f, 0f, 1f)
         }
         else {
-            // @formatter:off Render border around the player head
+            // @formatter:off
             renderRectBorder(- 6.0, - 6.0, 12.0, 12.0, 1.0, when {
-                DungeonMapConfig.mapPlayerHeadColorClassBased.value -> DungeonUtils.Classes.Empty.color
+                DungeonMapConfig.mapPlayerHeadColorClassBased.value -> clazz.color
                 else -> DungeonMapConfig.mapPlayerHeadColor.value
             })
 
             preDraw()
             GlStateManager.enableTexture2D()
             bindColor(Color.WHITE)
-
             mc.textureManager.bindTexture(skin)
 
             Gui.drawScaledCustomSizeModalRect(- 6, - 6, 8f, 8f, 8, 8, 12, 12, 64f, 64f)
@@ -203,14 +169,15 @@ object MapRenderUtils {
             postDraw()
         }
 
-        if (DungeonMapConfig.playerHeads.value == 2 || DungeonMapConfig.playerHeads.value == 1 && mc.thePlayer.heldItem.skyblockID.equalsOneOf(
+        if (DungeonMapConfig.playerHeads.value == 2 || (DungeonMapConfig.playerHeads.value == 1 && mc.thePlayer.heldItem.skyblockID.equalsOneOf(
             "SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP", "HAUNT_ABILITY"
-        )) {
-            GlStateManager.rotate(playerEntity.rotationYaw + 180f, 0f, 0f, - 1f)
+        ))) {
+            GlStateManager.rotate(currentYaw + 180f, 0f, 0f, - 1f)
             GlStateManager.translate(0f, 8f, 0f)
             GlStateManager.scale(DungeonMapConfig.playerNameScale.value, DungeonMapConfig.playerNameScale.value, 1f)
-            RenderUtils.drawCenteredText(name, 0, 0, 1f, Color.WHITE)
+            RenderUtils.drawCenteredText(name, 0, 0, 1f, if (DungeonMapConfig.mapPlayerNameClassColorBased.value && clazz != DungeonUtils.Classes.Empty) clazz.color else Color.WHITE)
         }
+
         GlStateManager.popMatrix()
     }
 }

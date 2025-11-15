@@ -16,9 +16,7 @@ object ShadowAssassin: Feature() {
     fun onPacket(event: PacketEvent.Received) {
         if (! inDungeon) return
         val packet = event.packet as? S44PacketWorldBorder ?: return
-        val border = WorldBorder()
-        packet.func_179788_a(border) // onAction
-        if (border.diameter != 1.0) return
+        if (WorldBorder().apply(packet::func_179788_a).diameter != 1.0) return
 
         SoundUtils.ayaya()
         setTimeout(300) { SoundUtils.ayaya() }

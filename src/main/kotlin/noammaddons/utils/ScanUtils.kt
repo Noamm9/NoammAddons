@@ -89,6 +89,10 @@ object ScanUtils {
         }
     }
 
+    fun getRoomCenter(room: Room): BlockPos {
+        return getRoomCenter(getRoomCorner(room.getRoomComponent())).run { BlockPos(first, 0, second) }
+    }
+
     fun getRoomFromPos(pos: BlockPos) = DungeonInfo.dungeonList.filterIsInstance<Room>().find { room ->
         room.getRoomComponent() == getRoomComponnent(pos)
     }?.uniqueRoom?.mainRoom

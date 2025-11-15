@@ -35,13 +35,13 @@ import kotlin.math.roundToInt
 
 // yes, it's a mess
 object ProfileViewer: Feature() {
-    val profileCache = mutableMapOf<String, Pair<DataClasses.PlayerData, Long>>()
+    val profileCache = mutableMapOf<String, Pair<PlayerData, Long>>()
     val categories = listOf("&bSkills", "&bDungeons", "&bInventory", "&bPets", "&bMisc")
     var currentCategory = categories[0]
     var tooltipLore = listOf<String>()
     var shouldDrawToolTip = false
 
-    val data = DataClasses.PlayerData()
+    val data = PlayerData()
 
 
     class ProfleViewerGUI: GuiScreen() {

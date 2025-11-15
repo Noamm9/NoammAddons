@@ -116,25 +116,16 @@ object MapUpdater {
                 }
 
                 if (room is Door && room.type.equalsOneOf(DoorType.ENTRANCE, DoorType.WITHER, DoorType.BLOOD)) {
-                    if (mapTile is Door && mapTile.type == DoorType.WITHER) {
-                        room.opened = false
-                    }
+                    if (mapTile is Door && mapTile.type == DoorType.WITHER) room.opened = false
                     else if (! room.opened) {
                         val chunk = mc.theWorld.getChunkFromChunkCoords(room.x shr 4, room.z shr 4)
                         if (chunk.isLoaded) {
-                            if (chunk.getBlockState(BlockPos(room.x, 69, room.z)).block == Blocks.air) {
-                                room.opened = true
-                            }
+                            if (chunk.getBlockState(BlockPos(room.x, 69, room.z)).block.equalsOneOf(Blocks.air, Blocks.barrier)) room.opened = true
                         }
                         else if (mapTile is Door && mapTile.state == RoomState.DISCOVERED) {
                             if (room.type == DoorType.BLOOD) {
-                                val bloodRoom = DungeonInfo.uniqueRooms.find { r ->
-                                    r.mainRoom.data.type == RoomType.BLOOD
-                                }
-
-                                if (bloodRoom != null && bloodRoom.mainRoom.state != RoomState.UNOPENED) {
-                                    room.opened = true
-                                }
+                                val bloodRoom = DungeonInfo.dungeonList.filterIsInstance<Room>().find { it.data.type == RoomType.BLOOD }
+                                if (bloodRoom != null && bloodRoom.state != RoomState.UNOPENED) room.opened = true
                             }
                             else room.opened = true
                         }

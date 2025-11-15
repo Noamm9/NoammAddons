@@ -15,11 +15,9 @@ import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.WremoveC
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.WremoveNPCS
 import noammaddons.utils.BlockUtils.ghostBlock
 import noammaddons.utils.ChatUtils.clickableChat
-import noammaddons.utils.ChatUtils.debugMessage
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendPartyMessage
-import noammaddons.utils.DungeonUtils
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderUtils.drawBlockBox
 import noammaddons.utils.ScanUtils.rotate
@@ -48,7 +46,6 @@ object ThreeWeirdosSolver {
         rotation = 360 - event.room.rotation !!
         trueTimeStart = System.currentTimeMillis()
 
-        debugMessage("Three Weirdos: Rotation: $rotation")
     }
 
     @SubscribeEvent
@@ -84,35 +81,38 @@ object ThreeWeirdosSolver {
     @SubscribeEvent
     fun onChat(event: Chat) {
         if (! inWeirdos) return
-        npcRegex.find(event.component.noFormatText)?.let { match ->
-            val (npc, msg) = match.destructured
-            if (solutions.none { it.matches(msg) } && wrong.none { it.matches(msg) }) return
-            val correctNPC = mc.theWorld?.loadedEntityList?.find { it is EntityArmorStand && it.name.removeFormatting() == npc } ?: return
-            val offset = BlockPos(1, 0, 0).rotate(rotation)
-            val pos = BlockPos(correctNPC.posX - 0.5, 69.0, correctNPC.posZ - 0.5).add(offset)
 
-            if (solutions.any { it.matches(msg) }) {
-                mc.thePlayer.playSound("note.pling", 2f, 1f)
-                timeStart = System.currentTimeMillis()
-                correctPos = pos to correctNPC
-                if (! WremoveNPCS.value) return
+        val (npc, msg) = npcRegex.find(event.component.noFormatText)?.destructured ?: return
+        if (solutions.none { it.matches(msg) } && wrong.none { it.matches(msg) }) return
 
-                val entitiesToRemove = mc.theWorld.getEntitiesInAABBexcluding(
+        val correctNPC = mc.theWorld?.loadedEntityList?.filterIsInstance<EntityArmorStand>()?.find { it.name.removeFormatting() == npc } ?: return
+        val pos = BlockPos(correctNPC.posX - 0.5, 69.0, correctNPC.posZ - 0.5).add(BlockPos(1, 0, 0).rotate(rotation))
+
+        val entitiesToRemove: List<Entity>
+
+        if (solutions.any { it.matches(msg) }) {
+            mc.thePlayer.playSound("note.pling", 2f, 1f)
+            timeStart = System.currentTimeMillis()
+            correctPos = pos to correctNPC
+
+            if (WremoveNPCS.value) {
+                entitiesToRemove = mc.theWorld.getEntitiesInAABBexcluding(
                     mc.thePlayer, correctNPC.entityBoundingBox.offset(0.0, - 1.0, 0.0)
-                ) { it !in DungeonUtils.dungeonTeammates.map { teammate -> teammate.entity } }
+                ) { it?.uniqueID?.version() == 2 || it is EntityArmorStand }
 
                 entitiesToRemove.forEach { it.setDead() }
             }
-            else {
-                val entitiesToRemove = mc.theWorld.getEntitiesInAABBexcluding(
-                    mc.thePlayer, correctNPC.entityBoundingBox.offset(0.0, - 1.0, 0.0)
-                ) { it !in DungeonUtils.dungeonTeammates.map { teammate -> teammate.entity } }
-
-                if (WremoveNPCS.value) entitiesToRemove.forEach { it.setDead() }
-                if (WremoveChests.value) mc.theWorld.setBlockToAir(pos)
-                wrongPositions.add(pos to correctNPC)
-            }
         }
+        else {
+            entitiesToRemove = mc.theWorld.getEntitiesInAABBexcluding(
+                mc.thePlayer, correctNPC.entityBoundingBox.offset(0.0, - 1.0, 0.0)
+            ) { it?.uniqueID?.version() == 2 || it is EntityArmorStand }
+
+            if (WremoveNPCS.value) entitiesToRemove.forEach { it.setDead() }
+            if (WremoveChests.value) mc.theWorld.setBlockToAir(pos)
+            wrongPositions.add(pos to correctNPC)
+        }
+
     }
 
     @SubscribeEvent

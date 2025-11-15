@@ -8,7 +8,8 @@ import noammaddons.utils.BlockUtils.getBlockId
 import noammaddons.utils.MathUtils
 import noammaddons.utils.MathUtils.floor
 import noammaddons.utils.ServerPlayer.player
-import kotlin.math.*
+import noammaddons.utils.Vector3
+import kotlin.math.floor
 
 object InstantTransmissionHelper {
     // Blocks that can be passed through without stopping (air, liquids, grass, etc.).
@@ -24,7 +25,6 @@ object InstantTransmissionHelper {
     private const val RAY_TRACE_STEPS = 1000.0
     private const val PLAYER_EYE_HEIGHT = 1.62
     private const val SNEAK_HEIGHT_ADJUSTMENT = 0.08
-
 
     fun predictTeleport(distance: Double, startPos: Vec3, rotation: MathUtils.Rotation): Vec3? {
         val eyeHeight = PLAYER_EYE_HEIGHT - if (player.sneaking) SNEAK_HEIGHT_ADJUSTMENT else 0.0
@@ -53,7 +53,6 @@ object InstantTransmissionHelper {
         return if (isSolidBlockInPath(currentPosition)) null
         else createLandingVector(currentPosition)
     }
-
 
     private fun isSolidBlockInPath(position: Vector3): Boolean {
         val isIgnoredAtFeet = isPassableBlock(position)
@@ -87,56 +86,5 @@ object InstantTransmissionHelper {
 
     private fun createLandingVector(finalPos: Vector3): Vec3 {
         return Vec3(floor(finalPos.x) + 0.5, floor(finalPos.y), floor(finalPos.z) + 0.5)
-    }
-
-    data class Vector3(var x: Double = 0.0, var y: Double = 0.0, var z: Double = 0.0) {
-        companion object {
-            fun fromPitchYaw(pitch: Double, yaw: Double): Vector3 {
-                val f = cos(- yaw * 0.017453292 - Math.PI)
-                val f1 = sin(- yaw * 0.017453292 - Math.PI)
-                val f2 = - cos(- pitch * 0.017453292)
-                val f3 = sin(- pitch * 0.017453292)
-                return Vector3(f1 * f2, f3, f * f2).normalize()
-            }
-        }
-
-        fun add(other: Vector3): Vector3 {
-            this.x += other.x
-            this.y += other.y
-            this.z += other.z
-            return this
-        }
-
-        fun addY(value: Double): Vector3 {
-            this.y += value
-            return this
-        }
-
-        fun multiply(factor: Double): Vector3 {
-            this.x *= factor
-            this.y *= factor
-            this.z *= factor
-            return this
-        }
-
-        fun normalize(): Vector3 {
-            val length = length()
-            if (length != 0.0) multiply(1.0 / length)
-            return this
-        }
-
-        fun length(): Double = sqrt(x * x + y * y + z * z)
-
-        fun dotProduct(vector3: Vector3): Double {
-            return (x * vector3.x) + (y * vector3.y) + (z * vector3.z)
-        }
-
-        fun getAngleRad(vector3: Vector3): Double {
-            return acos(dotProduct(vector3) / (length() * vector3.length()))
-        }
-
-        fun getAngleDeg(vector3: Vector3): Double {
-            return 180 / Math.PI * getAngleRad(vector3)
-        }
     }
 }

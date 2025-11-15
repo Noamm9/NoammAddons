@@ -46,14 +46,14 @@ class NoammAddons {
         @JvmField
         val Logger = LogManager.getLogger(MOD_NAME)
 
-        @JvmStatic
+        @JvmField
         val mc = Minecraft.getMinecraft()
 
         val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
-        val hudData = PogObject("hudData", DataClasses.HudElementConfig())
+        val hudData = PogObject("hudData", HudElementConfig())
         private val firstLoad = PogObject("firstLoad", true)
-        val personalBests = PogObject("PersonalBests", DataClasses.PersonalBestData())
+        val personalBests = PogObject("PersonalBests", PersonalBestData())
 
         @JvmField
         val ahData = mutableMapOf<String, Double>()
@@ -66,7 +66,7 @@ class NoammAddons {
 
         @JvmField
         val itemIdToNameLookup = mutableMapOf<String, String>()
-        var mayorData: DataClasses.ApiMayor? = null
+        var mayorData: ApiMayor? = null
 
         @JvmStatic
         lateinit var textRenderer: TextRenderer
@@ -132,7 +132,7 @@ class NoammAddons {
             if (obj["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
 
             val rawBzData = JsonUtils.json.decodeFromJsonElement(
-                MapSerializer(String.serializer(), DataClasses.bzitem.serializer()),
+                MapSerializer(String.serializer(), bzitem.serializer()),
                 obj["products"] !!
             )
 
@@ -146,7 +146,7 @@ class NoammAddons {
             if (obj["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
 
             val items = JsonUtils.json.decodeFromJsonElement(
-                ListSerializer(DataClasses.APISBItem.serializer()),
+                ListSerializer(APISBItem.serializer()),
                 obj["items"] !!
             )
 
@@ -165,7 +165,7 @@ class NoammAddons {
         WebUtils.get("https://api.hypixel.net/v2/resources/skyblock/election") { jsonObject ->
             if (jsonObject["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
             val dataElement = jsonObject["data"] ?: return@get
-            mayorData = JsonUtils.json.decodeFromJsonElement(DataClasses.ApiMayor.serializer(), dataElement)
+            mayorData = JsonUtils.json.decodeFromJsonElement(ApiMayor.serializer(), dataElement)
         }
     }
 }

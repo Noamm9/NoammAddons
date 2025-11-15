@@ -11,24 +11,19 @@ import noammaddons.events.*
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.firstTracerColor
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.secondTracerColor
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.waterBoard
+import noammaddons.utils.*
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.toPos
 import noammaddons.utils.BlockUtils.toVec
 import noammaddons.utils.ChatUtils.clickableChat
-import noammaddons.utils.ChatUtils.debugMessage
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendPartyMessage
 import noammaddons.utils.NumbersUtils.toFixed
-import noammaddons.utils.RenderUtils
 import noammaddons.utils.RenderUtils.draw3DLine
 import noammaddons.utils.RenderUtils.drawTracer
 import noammaddons.utils.ScanUtils.getRealCoord
-import noammaddons.utils.ScanUtils.getRoomCenter
-import noammaddons.utils.ScanUtils.getRoomCorner
-import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.formatPbPuzzleMessage
-import noammaddons.utils.WebUtils
 
 object WaterBoardSolver {
     private lateinit var waterSolutions: JsonObject
@@ -54,47 +49,36 @@ object WaterBoardSolver {
     fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (! waterBoard.value) return
         if (event.room.data.name != "Water Board") return
-        if (event.room.rotation == null) return modMessage("Failed to get WaterBoard room Rotation")
         if (patternIdentifier != - 1) return
 
-        roomCenter = getRoomCenter(getRoomCorner(event.room.getRoomComponent())).run { BlockPos(first, 0, second) }
+        roomCenter = ScanUtils.getRoomCenter(event.room)
         rotation = 360 - event.room.rotation !!
         trueStartTime = System.currentTimeMillis()
 
-        setTimeout(1000) {
-            debugMessage("started scanning water")
+        ThreadUtils.scheduledTask(20) {
+            solve()
+        }
+    }
 
-            val closeWalls = WoolColor.entries.joinToString("") {
-                if (it.isClose) it.ordinal.toString() else ""
-            }.takeIf { it.length == 3 } ?: return@setTimeout
+    private fun solve() {
+        val roomCenter = roomCenter ?: return
+        val rotation = rotation ?: return
 
-            debugMessage("started scanning patternIdentifier")
+        val closeWalls = WoolColor.entries.joinToString("") {
+            if (it.isClose()) it.ordinal.toString() else ""
+        }.takeIf { it.length == 3 } ?: return
 
-            patternIdentifier = when {
-                getBlockAt(getRealCoord(BlockPos(- 1, 77, 12), roomCenter !!, rotation !!)) == Blocks.hardened_clay -> 0
-                getBlockAt(getRealCoord(BlockPos(1, 78, 12), roomCenter !!, rotation !!)) == Blocks.emerald_block -> 1
-                getBlockAt(getRealCoord(BlockPos(- 1, 78, 12), roomCenter !!, rotation !!)) == Blocks.diamond_block -> 2
-                getBlockAt(getRealCoord(BlockPos(- 1, 78, 12), roomCenter !!, rotation !!)) == Blocks.quartz_block -> 3
-                else -> return@setTimeout modMessage("&cFailed to get Water Board pattern. Was the puzzle already started?")
-            }
+        patternIdentifier = when {
+            getBlockAt(getRealCoord(BlockPos(- 1, 77, 12), roomCenter, rotation)) == Blocks.hardened_clay -> 0
+            getBlockAt(getRealCoord(BlockPos(1, 78, 12), roomCenter, rotation)) == Blocks.emerald_block -> 1
+            getBlockAt(getRealCoord(BlockPos(- 1, 78, 12), roomCenter, rotation)) == Blocks.diamond_block -> 2
+            getBlockAt(getRealCoord(BlockPos(- 1, 78, 12), roomCenter, rotation)) == Blocks.quartz_block -> 3
+            else -> return modMessage("&cFailed to get Water Board pattern. Was the puzzle already started?")
+        }
 
-            debugMessage("water: patternIdentifier: $patternIdentifier")
-
-            solutions.clear()
-            waterSolutions[patternIdentifier.toString()]?.jsonObject?.get(closeWalls)?.jsonObject?.entries?.forEach { entry ->
-                solutions[
-                    when (entry.key) {
-                        "diamond_block" -> LeverBlock.DIAMOND
-                        "emerald_block" -> LeverBlock.EMERALD
-                        "hardened_clay" -> LeverBlock.CLAY
-                        "quartz_block" -> LeverBlock.QUARTZ
-                        "gold_block" -> LeverBlock.GOLD
-                        "coal_block" -> LeverBlock.COAL
-                        "water" -> LeverBlock.WATER
-                        else -> LeverBlock.NONE
-                    }
-                ] = entry.value.jsonArray.map { it.jsonPrimitive.double }.toTypedArray()
-            }
+        solutions.clear()
+        waterSolutions[patternIdentifier.toString()]?.jsonObject?.get(closeWalls)?.jsonObject?.entries?.forEach { entry ->
+            solutions[LeverBlock.fromString(entry.key)] = entry.value.jsonArray.map { it.jsonPrimitive.double }.toTypedArray()
         }
     }
 
@@ -113,11 +97,11 @@ object WaterBoardSolver {
             .sortedBy { (lever, time) -> time + if (lever == LeverBlock.WATER) 0.01 else 0.0 }
 
         val firstSolution = solutionList.firstOrNull()?.first ?: return
-        drawTracer(firstSolution.leverPos.addVector(.5, .5, .5), color = firstTracerColor.value, lineWidth = 1.5f)
+        drawTracer(firstSolution.getLever().addVector(.5, .5, .5), color = firstTracerColor.value, lineWidth = 1.5f)
 
-        if (solutionList.size > 1 && firstSolution.leverPos != solutionList[1].first.leverPos) {
+        if (solutionList.size > 1 && firstSolution.getLever() != solutionList[1].first.getLever()) {
             draw3DLine(
-                firstSolution.leverPos.addVector(.5, .5, .5), solutionList[1].first.leverPos.addVector(.5, .5, .5),
+                firstSolution.getLever().addVector(.5, .5, .5), solutionList[1].first.getLever().addVector(.5, .5, .5),
                 color = secondTracerColor.value, lineWidth = 1.5f, false
             )
         }
@@ -146,25 +130,25 @@ object WaterBoardSolver {
                             else "&a&lCLICK"
                         }
                     },
-                    lever.leverPos.addVector(0.5, (index + lever.i) * 0.5 + 1.5, 0.5), scale = 1.35f, phase = true
+                    lever.getLever().addVector(0.5, (index + lever.i) * 0.5 + 1.5, 0.5), scale = 1.35f, phase = true
                 )
             }
         }
     }
 
     @SubscribeEvent
-    fun onPacketSent(event: PacketEvent.Sent) = with(event.packet) {
-        if (solutions.isEmpty()) return@with
-        if (this !is C08PacketPlayerBlockPlacement) return@with
+    fun onPacketSent(event: PacketEvent.Sent) {
+        if (solutions.isEmpty()) return
+        val packet = event.packet as? C08PacketPlayerBlockPlacement ?: return
 
-        LeverBlock.entries.find { it.leverPos.toPos() == position }?.let {
+        LeverBlock.entries.find { it.getLever().toPos() == packet.position }?.let {
             if (startTime == null) startTime = System.currentTimeMillis()
             if (it == LeverBlock.WATER && openedWaterTicks == - 1) openedWaterTicks = tickCounter
             it.i ++
         }
 
-        if (getBlockAt(position) == Blocks.chest) {
-            if (WoolColor.entries.any { it.isClose }) return@with
+        if (getBlockAt(packet.position) == Blocks.chest) {
+            if (WoolColor.entries.any { it.isClose() }) return
 
             val personalBestsData = personalBests.getData().pazzles
             val previousBest = personalBestsData["Water Board"]
@@ -211,8 +195,7 @@ object WaterBoardSolver {
         GREEN(BlockPos(0, 56, 1)),
         RED(BlockPos(0, 56, 0));
 
-        inline val isClose: Boolean
-            get() = getBlockAt(getRealCoord(relativePosition, roomCenter !!, rotation !!)) == Blocks.wool
+        fun isClose() = getBlockAt(getRealCoord(relativePosition, roomCenter !!, rotation !!)) == Blocks.wool
     }
 
     private enum class LeverBlock(val relativePosition: Vec3, var i: Int = 0) {
@@ -225,11 +208,19 @@ object WaterBoardSolver {
         WATER(Vec3(0.0, 60.0, - 10.0)),
         NONE(Vec3(0.0, 0.0, 0.0));
 
-        inline val leverPos: Vec3
-            get() {
-                val c = roomCenter ?: return Vec3(0.0, 0.0, 0.0)
-                val r = rotation ?: return Vec3(0.0, 0.0, 0.0)
-                return getRealCoord(relativePosition.toPos(), c, r).toVec()
+        fun getLever() = getRealCoord(relativePosition.toPos(), roomCenter !!, rotation !!).toVec()
+
+        companion object {
+            fun fromString(str: String) = when (str) {
+                "diamond_block" -> DIAMOND
+                "emerald_block" -> EMERALD
+                "hardened_clay" -> CLAY
+                "quartz_block" -> QUARTZ
+                "gold_block" -> GOLD
+                "coal_block" -> COAL
+                "water" -> WATER
+                else -> NONE
             }
+        }
     }
 }

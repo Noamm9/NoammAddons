@@ -186,6 +186,7 @@ object MathUtils {
     fun Vec3i.destructured() = listOf(x, y, z)
     fun Vec3.destructured() = listOf(xCoord, yCoord, zCoord)
     fun Vec3.copy() = Vec3(xCoord, yCoord, zCoord)
+    fun Vec3.center() = add(Vec3(0.5, 0.5, 0.5))
     fun Vec3.multiply(factor: Double) = Vec3(xCoord * factor, yCoord * factor, zCoord * factor)
     fun Vec3.inAABB(aabb: AxisAlignedBB) = xCoord in aabb.minX .. aabb.maxX && yCoord in aabb.minY .. aabb.maxY && zCoord in aabb.minZ .. aabb.maxZ
     fun Vec3.xzInAABB(aabb: AxisAlignedBB) = xCoord in aabb.minX .. aabb.maxX && zCoord in aabb.minZ .. aabb.maxZ

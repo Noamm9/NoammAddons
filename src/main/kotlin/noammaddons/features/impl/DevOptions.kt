@@ -20,7 +20,6 @@ import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
 import noammaddons.features.impl.dungeons.dmap.handlers.DungeonScanner
 import noammaddons.features.impl.dungeons.solvers.devices.AutoI4.testI4
 import noammaddons.features.impl.esp.StarMobESP
-import noammaddons.features.impl.general.teleport.helpers.InstantTransmissionHelper
 import noammaddons.ui.config.core.annotations.Dev
 import noammaddons.ui.config.core.impl.ButtonSetting
 import noammaddons.ui.config.core.impl.ToggleSetting
@@ -271,7 +270,7 @@ object DevOptions: Feature() {
 
             ServerPlayer.player.getRotation()?.let {
                 val sneakOffset = if (ServerPlayer.player.sneaking) (1.62 - 0.08) else 1.62
-                val a = InstantTransmissionHelper.Vector3.fromPitchYaw(it.pitch.toDouble(), it.yaw.toDouble()).multiply(10.0)
+                val a = Vector3.fromPitchYaw(it.pitch.toDouble(), it.yaw.toDouble()).multiply(10.0)
                 draw3DLine(pos.add(y = sneakOffset), pos.add(a.x, a.y + sneakOffset, a.z), Color.CYAN)
             }
         }

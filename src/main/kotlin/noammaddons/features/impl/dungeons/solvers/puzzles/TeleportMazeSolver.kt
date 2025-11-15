@@ -10,8 +10,6 @@ import noammaddons.events.*
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.correctTpPadColor
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.tpMaze
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.wrongTpPadColor
-import noammaddons.features.impl.general.teleport.helpers.InstantTransmissionHelper.Vector3
-import noammaddons.features.impl.general.teleport.helpers.InstantTransmissionHelper.Vector3.Companion.fromPitchYaw
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.ChatUtils.clickableChat
 import noammaddons.utils.ChatUtils.removeFormatting
@@ -19,8 +17,9 @@ import noammaddons.utils.ChatUtils.sendPartyMessage
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderUtils.drawBlockBox
 import noammaddons.utils.ScanUtils
-import noammaddons.utils.ScanUtils.getRoomCenterAt
 import noammaddons.utils.Utils.formatPbPuzzleMessage
+import noammaddons.utils.Vector3
+import noammaddons.utils.Vector3.Companion.fromPitchYaw
 import kotlin.math.abs
 
 object TeleportMazeSolver {
@@ -38,8 +37,9 @@ object TeleportMazeSolver {
         if (! tpMaze.value) return
         if (event.room.data.name != "Teleport Maze") return
 
-        val center = getRoomCenterAt(mc.thePlayer.position)
-        val pos1 = ScanUtils.getRealCoord(BlockPos(0, 69, - 3), center, 360 - event.room.rotation !!)
+        val rotation = 360 - event.room.rotation !!
+        val center = ScanUtils.getRoomCenter(event.room)
+        val pos1 = ScanUtils.getRealCoord(BlockPos(0, 69, - 3), center, rotation)
 
         if (getBlockAt(pos1) != Blocks.end_portal_frame) {
             inTpMaze = false
@@ -47,7 +47,6 @@ object TeleportMazeSolver {
         }
 
         inTpMaze = true
-        trueTime = System.currentTimeMillis()
 
         val pads = mutableListOf<TpPad>()
         for (dx in 0 .. 31) {
@@ -68,6 +67,8 @@ object TeleportMazeSolver {
             val index = pad.cellX * 3 + pad.cellZ
             cells !![index].addPad(pad)
         }
+
+        trueTime = System.currentTimeMillis()
     }
 
     @SubscribeEvent
@@ -134,10 +135,18 @@ object TeleportMazeSolver {
 
         newPad.blacklisted = true
         oldPad.blacklisted = true
-        newPad.twin = oldPad
-        oldPad.twin = newPad
 
         calcPadAngles(packet.x, packet.z, packet.yaw)
+    }
+
+    private fun reset() {
+        minX = null
+        minZ = null
+        cells = null
+        orderedPads = null
+        inTpMaze = false
+        startTime = null
+        trueTime = null
     }
 
     private fun calcPadAngles(x: Double, z: Double, yaw: Float) {
@@ -153,30 +162,16 @@ object TeleportMazeSolver {
         orderedPads?.sortBy { it.totalAngle }
     }
 
-    private fun reset() {
-        minX = null
-        minZ = null
-        cells = null
-        orderedPads = null
-        inTpMaze = false
-        startTime = null
-        trueTime = null
-    }
-
     private fun getCellAt(x: Int, z: Int): Cell? {
         val minX = minX ?: return null
         val minZ = minZ ?: return null
         if (x < minX || x > minX + 23 || z < minZ || z > minZ + 23) return null
-        val cx = (x - minX) / 8
-        val cz = (z - minZ) / 8
-        return cells?.find { it.xIndex == cx && it.zIndex == cz }
+        return cells?.find { it.xIndex == (x - minX) / 8 && it.zIndex == (z - minZ) / 8 }
     }
 
     private fun getPadNear(x: Double, z: Double): TpPad? {
         val cell = getCellAt(x.toInt(), z.toInt()) ?: return null
-        return cell.pads.find {
-            manhattanDistance(x, z, it.pos.x.toDouble(), it.pos.z.toDouble()) <= 3.0
-        }
+        return cell.pads.find { manhattanDistance(x, z, it.pos.x.toDouble(), it.pos.z.toDouble()) <= 3.0 }
     }
 
     private fun manhattanDistance(x1: Double, z1: Double, x2: Double, z2: Double): Double {
@@ -186,9 +181,7 @@ object TeleportMazeSolver {
     private fun isPadInStartOrEndCell(pad: TpPad): Boolean {
         val c = cells ?: return false
         if (c.getOrNull(4)?.pads?.contains(pad) == true) return true
-        for (cell in c) {
-            if (cell != c[4] && cell.pads.size == 1 && pad in cell.pads) return true
-        }
+        for (cell in c) if (cell != c[4] && cell.pads.size == 1 && pad in cell.pads) return true
         return false
     }
 
@@ -201,7 +194,6 @@ object TeleportMazeSolver {
 
     private class TpPad(
         val pos: BlockPos,
-        var twin: TpPad? = null,
         var cellX: Int = 0,
         var cellZ: Int = 0,
         var totalAngle: Double = 0.0,

@@ -22,8 +22,7 @@ import noammaddons.utils.EspUtils.espMob
 import noammaddons.utils.MathUtils.add
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderUtils.draw3DLine
-import noammaddons.utils.ScanUtils.getRoomCenter
-import noammaddons.utils.ScanUtils.getRoomCorner
+import noammaddons.utils.ScanUtils
 import noammaddons.utils.Utils.formatPbPuzzleMessage
 import noammaddons.utils.Utils.remove
 
@@ -44,8 +43,8 @@ object BlazeSolver {
         if (! event.room.data.name.contains("Blaze")) return
         inBlaze = true
 
-        val center = getRoomCenter(getRoomCorner(event.room.getRoomComponent()))
-        reversed = getBlockAt(center.first + 1, 118, center.second) != Blocks.cobblestone
+        val center = ScanUtils.getRoomCenter(event.room)
+        reversed = getBlockAt(center.x + 1, 118, center.z) != Blocks.cobblestone
         trueTimeStarted = System.currentTimeMillis()
         lastBlazeCount = 10
     }
@@ -126,7 +125,6 @@ object BlazeSolver {
     fun a(event: PostRenderEntityModelEvent) {
         if (blazes.isEmpty()) return
 
-        // RenderWorld cant keep up with the number of blazes
         blazes.indexOf(event.entity).takeIf { it != - 1 && it < blazeCount.value }?.let { i ->
             espMob(event.entity, getBlazeColor(i))
         }
