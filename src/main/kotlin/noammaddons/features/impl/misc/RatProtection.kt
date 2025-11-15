@@ -1,12 +1,13 @@
 package noammaddons.features.impl.misc
 
-import com.google.common.reflect.TypeToken
-import com.google.gson.*
+import com.google.gson.JsonObject
+import com.google.gson.JsonPrimitive
 import noammaddons.NoammAddons
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.annotations.Dev
 import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.ChatUtils.modMessage
+import noammaddons.utils.DataDownloader
 import noammaddons.utils.ReflectionUtils.getField
 import noammaddons.utils.ThreadUtils.loop
 import noammaddons.utils.Utils.remove
@@ -49,11 +50,7 @@ object RatProtection: Feature() {
     }
 
     fun install() {
-        val listStr = runCatching {
-            WebUtils.readUrl("https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/suspiciousEndpoints.json")
-        }.getOrNull() ?: return NoammAddons.Logger.error("Failed to get suspiciousEndpoints.json. RatProtection will not work!")
-        
-        val list: List<String> = Gson().fromJson(listStr, object: TypeToken<List<String>>() {}.type)
+        val list = DataDownloader.loadJson<List<String>>("suspiciousEndpoints.json")
         val default = ProxySelector.getDefault()
 
         proxySelector = object: ProxySelector() {

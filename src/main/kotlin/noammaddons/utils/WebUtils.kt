@@ -1,14 +1,12 @@
 package noammaddons.utils
 
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import noammaddons.NoammAddons.Companion.Logger
 import noammaddons.NoammAddons.Companion.MOD_NAME
 import noammaddons.NoammAddons.Companion.scope
 import java.io.BufferedReader
-import java.lang.reflect.Type
 import java.net.*
 import java.security.KeyStore
 import javax.net.ssl.*
@@ -41,35 +39,6 @@ object WebUtils {
         connection.connectTimeout = 10_000
         connection.readTimeout = 30_000
         return connection
-    }
-
-    inline fun <reified T> fetchJson(url: String, crossinline callback: (T) -> Unit) {
-        scope.launch(Dispatchers.IO) {
-            while (isActive) {
-                val connection = makeWebRequest(url) as HttpURLConnection
-                try {
-                    connection.requestMethod = "GET"
-                    connection.setRequestProperty("Accept", "application/json")
-
-                    connection.inputStream.bufferedReader(Charsets.UTF_8).use { reader ->
-                        val response = reader.readText()
-                        val type: Type = object: TypeToken<T>() {}.type
-                        val data: T = Gson().fromJson(response, type)
-                        callback(data)
-                        cancel("Successful Fetch")
-                        return@launch
-                    }
-                }
-                catch (e: Exception) {
-                    Logger.error("Failed to fetch data from $url", e)
-                }
-                finally {
-                    connection.disconnect()
-                }
-
-                delay(300_000)
-            }
-        }
     }
 
     fun get(url: String, block: (JsonObject) -> Unit) {

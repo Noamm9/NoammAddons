@@ -76,7 +76,7 @@ object Utils {
     }
 
     fun Packet<*>.send(delay: Number? = null) {
-        if (delay == null) mc.netHandler.networkManager.sendPacket(this)
+        if (delay == null || delay.toLong() <= 0) mc.netHandler.networkManager.sendPacket(this)
         else setTimeout(delay.toLong()) { mc.netHandler.networkManager.sendPacket(this) }
     }
 

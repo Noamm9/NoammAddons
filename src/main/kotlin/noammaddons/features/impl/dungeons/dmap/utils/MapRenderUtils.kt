@@ -13,6 +13,7 @@ import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.RenderHelper
 import noammaddons.utils.RenderHelper.bindColor
+import noammaddons.utils.RenderHelper.renderVec
 import noammaddons.utils.Utils.equalsOneOf
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
@@ -127,7 +128,7 @@ object MapRenderUtils {
         val liveEntity = entity?.takeUnless { it.isDead }
 
         if (liveEntity != null) {
-            val (x, z) = MapUtils.coordsToMap(liveEntity.positionVector)
+            val (x, z) = MapUtils.coordsToMap(liveEntity.renderVec)
             GlStateManager.translate(x, z, 0f)
             currentYaw = liveEntity.rotationYaw
         }

@@ -23,7 +23,7 @@ import kotlin.math.floor
 
 
 object ScanUtils {
-    val roomList = mutableListOf<RoomData>()
+    private val roomList = DataDownloader.loadJson<List<RoomData>>("rooms.json")
 
     @SubscribeEvent
     fun onWorldUnload(event: WorldUnloadEvent) {
@@ -55,12 +55,6 @@ object ScanUtils {
     @JvmField
     var lastKnownRoom: Room? = null
 
-    init {
-        WebUtils.fetchJson<List<RoomData>>(
-            "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/rooms.json",
-            roomList::addAll
-        )
-    }
 
     fun getRoomData(hash: Int): RoomData? {
         return roomList.find { hash in it.cores }

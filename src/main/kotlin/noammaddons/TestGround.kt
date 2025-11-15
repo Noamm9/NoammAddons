@@ -2,6 +2,7 @@ package noammaddons
 
 import com.google.gson.*
 import net.minecraft.client.gui.GuiDownloadTerrain
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityList
 import net.minecraft.item.ItemStack
@@ -10,7 +11,7 @@ import net.minecraft.network.play.client.C01PacketChatMessage
 import net.minecraft.network.play.server.S0FPacketSpawnMob
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Rotations
-import net.minecraftforge.event.entity.player.AttackEntityEvent
+import net.minecraftforge.client.event.RenderPlayerEvent
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent
@@ -22,8 +23,6 @@ import noammaddons.features.impl.dungeons.dragons.WitherDragonEnum
 import noammaddons.utils.ChatUtils.debugMessage
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendChatMessage
-import noammaddons.utils.DungeonUtils.dungeonTeammates
-import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.LocationUtils.onHypixel
 import noammaddons.utils.ScanUtils
 import noammaddons.utils.ThreadUtils.setTimeout
@@ -93,14 +92,6 @@ object TestGround {
         }
     }
 
-    @SubscribeEvent
-    fun onPlaterInteract(e: AttackEntityEvent) {
-        if (! inDungeon) return
-        if (e.entityPlayer != mc.thePlayer) return
-        if (dungeonTeammates.none { it.entity == e.target }) return
-        e.isCanceled = true
-    }
-
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     fun onEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (event.room.rotation != null) return
@@ -116,6 +107,21 @@ object TestGround {
     fun dragonSpawn(event: PacketEvent.Received) {
         val packet = event.packet as? S0FPacketSpawnMob ?: return
         if (packet.entityType != 63) return
+    }
+
+    @SubscribeEvent
+    fun sizeTest(event: RenderPlayerEvent.Pre) {
+        if (event.entity == mc.thePlayer) {
+            GlStateManager.pushMatrix()
+            GlStateManager.scale(1.5, 0.2, 1.5)
+        }
+    }
+
+    @SubscribeEvent
+    fun sizeTest2(event: RenderPlayerEvent.Post) {
+        if (event.entity == mc.thePlayer) {
+            GlStateManager.popMatrix()
+        }
     }
 
 

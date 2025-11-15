@@ -14,24 +14,13 @@ import noammaddons.utils.RenderHelper.renderVec
 import java.awt.Color
 
 object PestESP: Feature("Highlight Pests in the Garden") {
-    private val pestList = mutableMapOf<String, String>()
-
-    init {
-        WebUtils.fetchJson<Map<String, String>>(
-            "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/PestTextures.json"
-        ) {
-            for ((k, v) in it) {
-                pestList[v] = k
-            }
-        }
-    }
+    private val pestList = DataDownloader.loadJson<Map<String, String>>("PestTextures.json").entries.associate { it.value to it.key }
 
     private val box = ToggleSetting("Box")
     private val trace = ToggleSetting("Tracer")
     private val boxColor = ColorSetting("Box Color", Color.CYAN.withAlpha(50))
     private val traceColor = ColorSetting("Tracer Color", Color.CYAN, false)
     override fun init() = addSettings(box, trace, SeperatorSetting("Colors"), boxColor, traceColor)
-
 
     @SubscribeEvent
     fun onRenderWorld(event: RenderWorld) {

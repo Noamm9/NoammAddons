@@ -18,6 +18,7 @@ import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendPartyMessage
+import noammaddons.utils.DataDownloader
 import noammaddons.utils.GuiUtils.changeTitle
 import noammaddons.utils.GuiUtils.currentChestName
 import noammaddons.utils.GuiUtils.getSlotFromIndex
@@ -40,16 +41,14 @@ import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.remove
-import noammaddons.utils.WebUtils.fetchJson
 import java.awt.Color
 import java.lang.Math.*
 
 object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay") {
-    private const val url = "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/DungeonChestProfit"
     private val croesusChestRegex = Regex("^(Master )?Catacombs - Flo(or (IV|V?I{0,3}))?\$")
     private val chestsToHighlight = mutableListOf<DungeonChest>()
-    private val rngList = mutableListOf<String>()
-    private val blackList = mutableListOf<String>()
+    private val rngList = DataDownloader.loadJson<List<String>>("DungeonChestProfit/RNG_List.json")
+    private val blackList = DataDownloader.loadJson<List<String>>("DungeonChestProfit/RNG_BLACKLIST.json")
     private var resentSent = mutableListOf<String>()
     private var newName: String? = null
 
@@ -72,16 +71,6 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
             croesusChestHighlight,
             hideRedChests
         )
-
-        fetchJson<List<String>>("$url/RNG_BLACKLIST.json") {
-            blackList.clear()
-            blackList.addAll(it)
-        }
-
-        fetchJson<List<String>>("$url/RNG_List.json") {
-            rngList.clear()
-            rngList.addAll(it)
-        }
     }
 
     @SubscribeEvent

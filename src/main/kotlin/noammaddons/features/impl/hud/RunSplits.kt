@@ -52,38 +52,17 @@ object RunSplits: Feature() {
     }
 
     private data class DialogueEntry(val name: String, val start: String? = null, val end: String? = null)
-    private class Split {
-        var start: Long? = null
-        var end: Long? = null
-        var isPB = false
-        var pbTime: Long? = null
-        var pbTimeOld: Long? = null
-    }
+    private data class Split(var start: Long? = null, var end: Long? = null, var isPB: Boolean = false, var pbTime: Long? = null, var pbTimeOld: Long? = null)
 
-    private val floorSplits = mutableMapOf<String, List<DialogueEntry>>()
+    private val floorSplits = DataDownloader.loadJson<Map<String, List<Map<String, String?>>>>("runSplits.json").mapValues {
+        it.value.map { entryMap ->
+            DialogueEntry(entryMap["name"] ?: error("Missing 'name' in DialogueEntry"), entryMap["start"], entryMap["end"])
+        }
+    }
 
     private val runEndRegex = Regex("^\\s*☠ Defeated (.+) in 0?([\\dhms ]+?)\\s*(\\(NEW RECORD!\\))?$")
     private val currentFloorSplits = mutableMapOf<String, Split>()
     var currentTime = 0L
-
-    init {
-        WebUtils.fetchJson<Map<String, List<Map<String, String?>>>>(
-            "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/runSplits.json"
-        ) {
-            val data = it.mapValues { (_, entryList) ->
-                entryList.map { entryMap ->
-                    DialogueEntry(
-                        name = entryMap["name"] ?: error("Missing 'name' in DialogueEntry"),
-                        start = entryMap["start"],
-                        end = entryMap["end"]
-                    )
-                }
-            }
-
-            floorSplits.clear()
-            floorSplits.putAll(data)
-        }
-    }
 
     private fun formatTime(ms: Long): String = "${(ms / 1000) / 60}m ${(ms / 1000) % 60}s"
     private fun formatSecs(ms: Long): String = "${ms / 1000}s"

@@ -21,7 +21,6 @@ import noammaddons.features.impl.misc.Cosmetics.CosmeticRendering
 import noammaddons.ui.font.GlyphPageFontRenderer
 import noammaddons.ui.font.TextRenderer
 import noammaddons.utils.*
-import noammaddons.utils.WebUtils.fetchJson
 import org.apache.logging.log4j.LogManager
 
 
@@ -123,9 +122,8 @@ class NoammAddons {
     fun init() = ThreadUtils.loop(600_000) {
         if (DevOptions.updateChecker) UpdateUtils.update()
 
-        fetchJson<Map<String, Double>>("https://moulberry.codes/lowestbin.json") { data ->
-            ahData.clear()
-            ahData.putAll(data)
+        WebUtils.get("https://moulberry.codes/lowestbin.json") { obj ->
+            ahData.putAll(JsonUtils.json.decodeFromJsonElement(MapSerializer(String.serializer(), Double.serializer()), obj))
         }
 
         WebUtils.get("https://api.hypixel.net/v2/skyblock/bazaar") { obj ->

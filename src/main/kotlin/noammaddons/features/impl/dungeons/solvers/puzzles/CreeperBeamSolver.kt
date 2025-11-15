@@ -13,6 +13,7 @@ import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.ChatUtils.clickableChat
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendPartyMessage
+import noammaddons.utils.DataDownloader
 import noammaddons.utils.MathUtils.center
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderUtils.draw3DLine
@@ -20,7 +21,6 @@ import noammaddons.utils.RenderUtils.drawBlockBox
 import noammaddons.utils.ScanUtils
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.formatPbPuzzleMessage
-import noammaddons.utils.WebUtils
 import java.awt.Color
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -28,7 +28,10 @@ import java.util.concurrent.CopyOnWriteArrayList
 object CreeperBeamSolver {
     private data class BeamPair(val start: BlockPos, val end: BlockPos, val color: Color = Color.WHITE)
 
-    private val beamSolutions = mutableListOf<BeamPair>()
+    private val beamSolutions = DataDownloader.loadJson<List<List<List<Int>>>>("CreeperBeamSolutions.json").map {
+        BeamPair(BlockPos(it[0][0], it[0][1], it[0][2]), BlockPos(it[1][0], it[1][1], it[1][2]))
+    }
+
     private val currentSolve = CopyOnWriteArrayList<BeamPair>()
 
     private var inCreeperBeams = false
@@ -43,22 +46,6 @@ object CreeperBeamSolver {
         Color.CYAN, Color.ORANGE, Color.WHITE, Color.MAGENTA
     )
 
-    init {
-        WebUtils.fetchJson<List<List<List<Int>>>>(
-            "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/CreeperBeamSolutions.json"
-        ) { beamsList ->
-            beamSolutions.clear()
-
-            beamsList.forEach { beamPair ->
-                beamSolutions.add(
-                    BeamPair(
-                        BlockPos(beamPair[0][0], beamPair[0][1], beamPair[0][2]),
-                        BlockPos(beamPair[1][0], beamPair[1][1], beamPair[1][2]),
-                    )
-                )
-            }
-        }
-    }
 
     @SubscribeEvent
     fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {

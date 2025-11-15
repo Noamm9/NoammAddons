@@ -13,20 +13,13 @@ import net.minecraft.util.ResourceLocation
 import noammaddons.NoammAddons.Companion.MOD_ID
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.features.impl.misc.PlayerModel.getPlayerScaleFactor
-import noammaddons.utils.GuiUtils.isInGui
+import noammaddons.utils.DataDownloader
 import noammaddons.utils.RenderHelper.partialTicks
-import noammaddons.utils.WebUtils
 import kotlin.math.cos
 import kotlin.math.sin
 
 object Cosmetics {
-    private var devPlayers: List<String>? = null
-
-    init {
-        WebUtils.fetchJson<List<String>>(
-            "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/devPlayers.json"
-        ) { devPlayers = it }
-    }
+    private var devPlayers = DataDownloader.loadJson<List<String>>("devPlayers.json")
 
     class CosmeticRendering(private val playerRenderer: RenderPlayer): LayerRenderer<EntityLivingBase> {
         override fun doRenderLayer(
@@ -35,7 +28,7 @@ object Cosmetics {
             _5: Float, _6: Float, _7: Float
         ) {
             val player = entityLivingBaseIn as EntityPlayer
-            val dev = devPlayers?.find { it == player.uniqueID.toString() } ?: return
+            val dev = devPlayers.find { it == player.uniqueID.toString() } ?: return
 
             GlStateManager.pushMatrix()
             GlStateManager.disableLighting()
@@ -292,7 +285,7 @@ object Cosmetics {
 
         fun drawHalo(player: EntityPlayer, devID: String?) {
             if (player.uniqueID.toString() != devID) return
-            val rotation = if (isInGui()) player.renderYawOffset
+            val rotation = if (mc.currentScreen != null) player.renderYawOffset
             else interpolate(player.prevRenderYawOffset, player.renderYawOffset)
             val scale = getPlayerScaleFactor(player)
             val yPos = if (scale == 1f) 0.3f else 0.45f

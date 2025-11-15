@@ -58,9 +58,6 @@ object GuiUtils {
         ).send()
     }
 
-
-    fun isInGui(): Boolean = mc.currentScreen != null
-
     fun getContainerName(gui: GuiScreen? = mc.currentScreen): String {
         val chestGui = gui as? GuiChest ?: return ""
         val container = chestGui.inventorySlots as? ContainerChest ?: return ""

@@ -177,10 +177,8 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
                         val scaleToFitWidth = MapUtils.mapRoomSize / (lines.maxOfOrNull { getStringWidth(it) } ?: 0f)
                         val scaleToFitHeight = MapUtils.mapRoomSize / getStringHeight(lines)
                         textScale = minOf(scaleToFitWidth, scaleToFitHeight).coerceAtMost(textScale)
+                        if ("Withermancer" in lines) textScale *= 2 // temp fix trust
                     }
-
-                    // temp fix trust
-                    if ("Withermancer" in lines) textScale *= 2
 
                     MapRenderUtils.renderCenteredText(
                         lines,
@@ -191,14 +189,12 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
                     )
                 }
 
-                2 -> {
-                    if (DungeonMapConfig.dungeonMapCheckmarkStyle.value == 2) MapRenderUtils.renderCenteredText(
-                        listOf("${room.data.secrets}"),
-                        xOffset + HotbarMapColorParser.halfRoom,
-                        yOffset + 1 + HotbarMapColorParser.halfRoom,
-                        color, DungeonMapConfig.textScale.value * 2f
-                    )
-                }
+                2 -> MapRenderUtils.renderCenteredText(
+                    listOf("${room.data.secrets}"),
+                    xOffset + HotbarMapColorParser.halfRoom,
+                    yOffset + 1 + HotbarMapColorParser.halfRoom,
+                    color, DungeonMapConfig.textScale.value * 2f
+                )
             }
         }
     }

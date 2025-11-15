@@ -51,7 +51,7 @@ class PogObject<T: Any>(fileName: String, val defaultObject: T) {
             toJson(dataFile, data)
             lastSavedTime = System.currentTimeMillis()
         }
-        catch (e: Exception) {
+        catch (_: Exception) {
         }
     }
 
@@ -128,7 +128,7 @@ class PogObject<T: Any>(fileName: String, val defaultObject: T) {
                 catch (e: InterruptedException) {
                     Thread.currentThread().interrupt()
                 }
-                catch (e: Exception) {
+                catch (_: Exception) {
                 }
             }.apply {
                 isDaemon = true

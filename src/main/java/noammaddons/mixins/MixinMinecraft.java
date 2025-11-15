@@ -10,6 +10,7 @@ import noammaddons.events.GuiCloseEvent;
 import noammaddons.events.PreKeyInputEvent;
 import noammaddons.events.WorldLoadPostEvent;
 import noammaddons.features.impl.misc.RatProtection;
+import noammaddons.utils.DataDownloader;
 import org.lwjgl.input.Keyboard;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
@@ -89,6 +90,7 @@ public class MixinMinecraft {
 
     @Inject(method = "startGame", at = @At("HEAD"))
     public void onStartGame(CallbackInfo ci) {
+        DataDownloader.INSTANCE.downloadData();
         RatProtection.INSTANCE.install();
     }
 }

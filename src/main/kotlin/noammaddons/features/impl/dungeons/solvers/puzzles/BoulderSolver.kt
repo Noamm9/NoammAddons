@@ -12,22 +12,21 @@ import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers.BshowAll
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.toVec
 import noammaddons.utils.ChatUtils.clickableChat
-import noammaddons.utils.ChatUtils.debugMessage
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendPartyMessage
+import noammaddons.utils.DataDownloader
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderUtils.drawBlockBox
 import noammaddons.utils.RenderUtils.drawBox
 import noammaddons.utils.ScanUtils
 import noammaddons.utils.ScanUtils.getRealCoord
 import noammaddons.utils.Utils.formatPbPuzzleMessage
-import noammaddons.utils.WebUtils
 
 
 object BoulderSolver {
     private data class BoulderBox(val box: BlockPos, val click: BlockPos, val render: BlockPos)
 
-    private val boulderSolutions: MutableMap<String, List<List<Double>>> = mutableMapOf()
+    private val boulderSolutions = DataDownloader.loadJson<Map<String, List<List<Double>>>>("BoulderSolutions.json")
     private var currentSolution = mutableListOf<BoulderBox>()
 
     private var inBoulder = false
@@ -37,13 +36,6 @@ object BoulderSolver {
     var trueStartTime: Long? = null
     var startTime: Long? = null
 
-    init {
-        WebUtils.fetchJson<Map<String, List<List<Double>>>>(
-            "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/BoulderSolutions.json"
-        ) {
-            boulderSolutions.putAll(it)
-        }
-    }
 
     @SubscribeEvent
     fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
@@ -147,8 +139,6 @@ object BoulderSolver {
                 str += if (getBlockAt(pos) == air) "0" else "1"
             }
         }
-
-        debugMessage(str)
 
         currentSolution = boulderSolutions[str]?.map { sol ->
             val box = getRealCoord(BlockPos(sol[0].toInt(), sy, sol[1].toInt()), roomCenter, rotation)
