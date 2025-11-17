@@ -2,7 +2,6 @@ package noammaddons
 
 import com.google.gson.*
 import net.minecraft.client.gui.GuiDownloadTerrain
-import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityList
 import net.minecraft.item.ItemStack
@@ -11,7 +10,6 @@ import net.minecraft.network.play.client.C01PacketChatMessage
 import net.minecraft.network.play.server.S0FPacketSpawnMob
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Rotations
-import net.minecraftforge.client.event.RenderPlayerEvent
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent
@@ -108,22 +106,6 @@ object TestGround {
         val packet = event.packet as? S0FPacketSpawnMob ?: return
         if (packet.entityType != 63) return
     }
-
-    @SubscribeEvent
-    fun sizeTest(event: RenderPlayerEvent.Pre) {
-        if (event.entity == mc.thePlayer) {
-            GlStateManager.pushMatrix()
-            GlStateManager.scale(1.5, 0.2, 1.5)
-        }
-    }
-
-    @SubscribeEvent
-    fun sizeTest2(event: RenderPlayerEvent.Post) {
-        if (event.entity == mc.thePlayer) {
-            GlStateManager.popMatrix()
-        }
-    }
-
 
     fun serializeEntityToJson_1_8_9(entity: Entity, type: WitherDragonEnum): String {
         val gson = GsonBuilder().setPrettyPrinting().create()

@@ -17,6 +17,7 @@ import noammaddons.features.FeatureManager
 import noammaddons.features.FeatureManager.registerFeatures
 import noammaddons.features.impl.DevOptions
 import noammaddons.features.impl.misc.ClientBranding
+import noammaddons.features.impl.misc.Cosmetics
 import noammaddons.features.impl.misc.Cosmetics.CosmeticRendering
 import noammaddons.ui.font.GlyphPageFontRenderer
 import noammaddons.ui.font.TextRenderer
@@ -101,6 +102,8 @@ class NoammAddons {
             it["slim"]?.run { addLayer(CosmeticRendering(this)) }
             it["default"]?.run { addLayer(CosmeticRendering(this)) }
         }
+
+        MinecraftForge.EVENT_BUS.register(Cosmetics.CustomPlayerSize)
 
         this.init()
         registerFeatures()

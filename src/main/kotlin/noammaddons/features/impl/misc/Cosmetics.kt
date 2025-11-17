@@ -10,6 +10,9 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.ResourceLocation
+import net.minecraftforge.client.event.RenderPlayerEvent
+import net.minecraftforge.fml.common.eventhandler.EventPriority
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.NoammAddons.Companion.MOD_ID
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.features.impl.misc.PlayerModel.getPlayerScaleFactor
@@ -162,10 +165,6 @@ object Cosmetics {
         return f
     }
 
-    /**
-     * Modified
-     * @author Odin Mod.
-     */
     object DragonWings: ModelBase() {
         private val dragonWingTextureLocation = ResourceLocation("textures/entity/enderdragon/dragon.png")
         private val wing: ModelRenderer
@@ -307,6 +306,27 @@ object Cosmetics {
 
             GlStateManager.disableCull()
             GlStateManager.popMatrix()
+        }
+    }
+
+    object CustomPlayerSize {
+        private data class ResizedPlayer(val uuid: String, val x: Double, val y: Double, val z: Double)
+
+        private var resizedPlayers = DataDownloader.loadJson<List<ResizedPlayer>>("resizedPlayers.json")
+
+        @SubscribeEvent(priority = EventPriority.LOW)
+        fun preRenderPlayerEvent(event: RenderPlayerEvent.Pre) {
+            val player = resizedPlayers.find { it.uuid == event.entity.uniqueID.toString() } ?: return
+
+            GlStateManager.pushMatrix()
+            GlStateManager.scale(player.x, player.y, player.z)
+        }
+
+        @SubscribeEvent(priority = EventPriority.LOW)
+        fun postRenderPlayerEvent(event: RenderPlayerEvent.Post) {
+            if (resizedPlayers.any { it.uuid == event.entity.uniqueID.toString() }) {
+                GlStateManager.popMatrix()
+            }
         }
     }
 }
