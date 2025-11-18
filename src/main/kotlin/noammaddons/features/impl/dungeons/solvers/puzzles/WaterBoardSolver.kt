@@ -1,6 +1,5 @@
 package noammaddons.features.impl.dungeons.solvers.puzzles
 
-import kotlinx.serialization.json.*
 import net.minecraft.init.Blocks
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.util.BlockPos
@@ -26,15 +25,9 @@ import noammaddons.utils.ScanUtils.getRealCoord
 import noammaddons.utils.Utils.formatPbPuzzleMessage
 
 object WaterBoardSolver {
-    private lateinit var waterSolutions: JsonObject
+    private val waterSolutions = DataDownloader.loadJson<Map<String, Map<String, Map<String, List<Double>>>>>("waterSolutions.json")
 
-    init {
-        WebUtils.get("https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/waterSolutions.json") {
-            waterSolutions = it
-        }
-    }
-
-    private var solutions = HashMap<LeverBlock, Array<Double>>()
+    private var solutions = HashMap<LeverBlock, List<Double>>()
     private var patternIdentifier = - 1
     private var openedWaterTicks = - 1
     private var tickCounter = 0
@@ -77,8 +70,8 @@ object WaterBoardSolver {
         }
 
         solutions.clear()
-        waterSolutions[patternIdentifier.toString()]?.jsonObject?.get(closeWalls)?.jsonObject?.entries?.forEach { entry ->
-            solutions[LeverBlock.fromString(entry.key)] = entry.value.jsonArray.map { it.jsonPrimitive.double }.toTypedArray()
+        waterSolutions["$patternIdentifier"]?.get(closeWalls)?.entries?.forEach { entry ->
+            solutions[LeverBlock.fromString(entry.key)] = entry.value
         }
     }
 
