@@ -34,9 +34,16 @@ class Room(override val x: Int, override val z: Int, var data: RoomData): Tile {
         EventDispatcher.postAndCatch(DungeonEvent.RoomEvent.onStateChange(this, oldValue, newValue, roomPlayers))
     }
 
+    @Suppress("RecursivePropertyAccessor")
     override val color: Color
         get() {
-            return if (state == RoomState.UNOPENED) DungeonMapConfig.colorUnopened.value
+            return if (state == RoomState.UNOPENED) {
+                if (DungeonMapConfig.dungeonMapCheater.value) {
+                    state = RoomState.UNDISCOVERED
+                    return this.color
+                }
+                DungeonMapConfig.colorUnopened.value
+            }
             else when (data.type) {
                 RoomType.BLOOD -> DungeonMapConfig.colorBlood
                 RoomType.CHAMPION -> DungeonMapConfig.colorMiniboss

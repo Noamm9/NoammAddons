@@ -2,6 +2,7 @@ package noammaddons.features.impl.dungeons.dmap.handlers
 
 import net.minecraft.util.EnumFacing
 import net.minecraft.world.storage.MapData
+import noammaddons.features.impl.dungeons.dmap.core.DungeonMapConfig
 import noammaddons.features.impl.dungeons.dmap.core.map.*
 import noammaddons.features.impl.dungeons.dmap.utils.MapUtils
 
@@ -106,7 +107,7 @@ object HotbarMapColorParser {
 
                     34 -> RoomState.CLEARED
 
-                    85, 119 -> RoomState.UNOPENED
+                    85, 119 -> if (DungeonMapConfig.dungeonMapCheater.value) RoomState.UNDISCOVERED else RoomState.UNOPENED
 
                     else -> RoomState.DISCOVERED
                 }
@@ -116,7 +117,13 @@ object HotbarMapColorParser {
             if (sideColor == 0) {
                 val type = DoorType.fromMapColor(centerColor) ?: return Unknown(worldX, worldZ)
                 Door(worldX, worldZ, type).apply {
-                    state = if (centerColor == 85) RoomState.UNOPENED else RoomState.DISCOVERED
+                    state = if (centerColor == 85) {
+                        if (DungeonMapConfig.dungeonMapCheater.value) {
+                            RoomState.UNDISCOVERED
+                        }
+                        else RoomState.UNOPENED
+                    }
+                    else RoomState.DISCOVERED
                 }
             }
             else {

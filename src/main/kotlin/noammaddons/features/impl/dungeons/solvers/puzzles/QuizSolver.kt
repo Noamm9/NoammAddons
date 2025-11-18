@@ -119,9 +119,11 @@ object QuizSolver {
             }
         }
 
-        if (correctAnswer != null) ThreadUtils.scheduledTask(2) {
-            modMessage("&dQuizSolver &f> &aCorrect answer is: $correctAnswer")
+        correctAnswer?.let {
             correctAnswer = null
+            ThreadUtils.scheduledTask(2) {
+                modMessage("&dQuizSolver &f> &aCorrect answer is: $it")
+            }
         }
     }
 

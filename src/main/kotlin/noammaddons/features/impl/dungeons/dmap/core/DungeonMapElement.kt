@@ -75,14 +75,6 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
     }
 
     private fun renderRooms() {
-        if (DungeonMapConfig.dungeonMapCheater.value) {
-            DungeonInfo.dungeonList.forEach {
-                if (it.state == RoomState.UNOPENED) {
-                    it.state = RoomState.UNDISCOVERED
-                }
-            }
-        }
-
         for (y in 0 .. 10) {
             for (x in 0 .. 10) {
                 val tile = DungeonInfo.dungeonList[y * 11 + x]
@@ -153,7 +145,7 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
 
     private fun renderText() {
         DungeonInfo.uniqueRooms.forEach { unq ->
-            val room = unq.mainRoom
+            val room = unq.mainRoom.takeUnless { it.data.type == RoomType.ENTRANCE } ?: return@forEach
             if (! DungeonMapConfig.dungeonMapCheater.value && (room.state == RoomState.UNDISCOVERED || room.state == RoomState.UNOPENED)) return@forEach
             val size = MapUtils.mapRoomSize + HotbarMapColorParser.quarterRoom
             val checkPos = unq.getCheckmarkPosition()
@@ -184,8 +176,7 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
                         lines,
                         xOffset + HotbarMapColorParser.halfRoom,
                         yOffset + HotbarMapColorParser.halfRoom,
-                        if (room.data.type != RoomType.ENTRANCE) color else 0xffffff,
-                        textScale
+                        color, textScale
                     )
                 }
 
