@@ -319,7 +319,9 @@ object Cosmetics {
             val player = resizedPlayers.find { it.uuid == event.entity.uniqueID.toString() } ?: return
 
             GlStateManager.pushMatrix()
+            GlStateManager.translate(event.x, event.y, event.z)
             GlStateManager.scale(player.x, player.y, player.z)
+            GlStateManager.translate(- event.x, - event.y, - event.z)
         }
 
         @SubscribeEvent(priority = EventPriority.LOW)
