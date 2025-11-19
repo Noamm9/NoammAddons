@@ -313,9 +313,8 @@ object ProfileViewer: Feature() {
 
 
     fun getExpValues(): List<Int> {
-        mayorData?.mayor?.let {
-            if (it.perks.any { perk -> perk.name == "Slayer XP Buff" } ||
-                it.minister?.perks?.any { perk -> perk.name == "Slayer XP Buff" } == true) {
+        mayorData?.let {
+            if ((it.mayor.perks + it.minister.perk).any { perk -> perk.name == "Slayer XP Buff" }) {
                 return listOf(1850, 625, 125, 37, 7)
             }
         }

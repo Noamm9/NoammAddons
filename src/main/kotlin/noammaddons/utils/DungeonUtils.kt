@@ -143,9 +143,9 @@ object DungeonUtils {
     fun isPaul(): Boolean {
         if (ScoreCalculator.forcePaul.value) return true
         val mayorPerks = mutableListOf<ApiMayor.Perk>()
-        mayorData?.mayor?.perks?.let { mayorPerks.addAll(it) }
-        mayorData?.mayor?.minister?.perks?.let { mayorPerks.addAll(it) }
-        return mayorPerks.any { it.name.contains("EZPZ") }
+        mayorData.mayor.perks.let(mayorPerks::addAll)
+        mayorData.minister.perk.let(mayorPerks::add)
+        return mayorPerks.any { it.name == "EZPZ" }
     }
 
     private fun updateDungeonTeammates(tabListEntries: List<String>) {

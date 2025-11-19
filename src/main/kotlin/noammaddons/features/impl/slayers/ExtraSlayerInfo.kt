@@ -44,8 +44,7 @@ object ExtraSlayerInfo: Feature() {
         if (slayerQuestIndex == - 1) return null
         val level = lines[slayerQuestIndex - 1].substringAfterLast(" ").romanToDecimal()
         val baseXp = slayerXpMap[level] ?: return null
-        val hasAatroxBuff = mayorData?.mayor?.perks?.any { it.name == "Slayer XP Buff" } == true
-                || mayorData?.mayor?.minister?.perks?.any { it.name == "Slayer XP Buff" } == true
+        val hasAatroxBuff = mayorData?.let { (it.mayor.perks + it.minister.perk).any { it.name == "Slayer XP Buff" } } ?: false
         val bossEXP = if (hasAatroxBuff) (baseXp * 1.25).roundToInt() else baseXp
 
         return bossEXP

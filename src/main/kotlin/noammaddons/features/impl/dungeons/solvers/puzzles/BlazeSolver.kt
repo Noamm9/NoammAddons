@@ -23,6 +23,7 @@ import noammaddons.utils.MathUtils.add
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderUtils.draw3DLine
 import noammaddons.utils.ScanUtils
+import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.formatPbPuzzleMessage
 import noammaddons.utils.Utils.remove
 
@@ -75,6 +76,7 @@ object BlazeSolver {
         if (blazes.size == 9 && timeStarted == null) timeStarted = System.currentTimeMillis()
 
         if (blazes.isEmpty() && lastBlazeCount == 1) {
+            if (null.equalsOneOf(timeStarted, trueTimeStarted)) return
             val personalBestsData = personalBests.getData().pazzles
             val previousBest = personalBestsData["Blaze"]
             val completionTime = (System.currentTimeMillis() - timeStarted !!).toDouble()

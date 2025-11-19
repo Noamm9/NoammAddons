@@ -57,19 +57,29 @@ data class Vector3(var x: Double = 0.0, var y: Double = 0.0, var z: Double = 0.0
     }
 }
 
-@Serializable
+
 data class ApiMayor(
-    @SerialName("mayor")
     val mayor: Candidate,
+    val minister: Minister
 ) {
+    companion object {
+        val empty = ApiMayor(Candidate("", emptyList()), Minister("", Perk("", "")))
+    }
+
     @Serializable
     data class Candidate(
         @SerialName("name")
         val name: String,
         @SerialName("perks")
-        val perks: List<Perk> = emptyList(),
-        @SerialName("minister")
-        val minister: Candidate? = null
+        val perks: List<Perk>,
+    )
+
+    @Serializable
+    data class Minister(
+        @SerialName("name")
+        val name: String,
+        @SerialName("perk")
+        val perk: Perk
     )
 
     @Serializable

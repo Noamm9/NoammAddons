@@ -2,8 +2,7 @@ package noammaddons
 
 import kotlinx.coroutines.*
 import kotlinx.serialization.builtins.*
-import kotlinx.serialization.json.booleanOrNull
-import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.*
 import net.minecraft.client.Minecraft
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.Mod
@@ -66,7 +65,7 @@ class NoammAddons {
 
         @JvmField
         val itemIdToNameLookup = mutableMapOf<String, String>()
-        var mayorData: ApiMayor? = null
+        var mayorData: ApiMayor = ApiMayor.empty
 
         @JvmStatic
         lateinit var textRenderer: TextRenderer
@@ -165,8 +164,13 @@ class NoammAddons {
 
         WebUtils.get("https://api.hypixel.net/v2/resources/skyblock/election") { jsonObject ->
             if (jsonObject["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
-            val dataElement = jsonObject["data"] ?: return@get
-            mayorData = JsonUtils.json.decodeFromJsonElement(ApiMayor.serializer(), dataElement)
+            val mayorElement = jsonObject["mayor"] ?: return@get
+            val ministerElement = mayorElement.jsonObject["minister"] ?: return@get
+            mayorData = ApiMayor(
+                JsonUtils.json.decodeFromJsonElement(ApiMayor.Candidate.serializer(), mayorElement),
+                JsonUtils.json.decodeFromJsonElement(ApiMayor.Minister.serializer(), ministerElement)
+            )
+            Logger.info("[Debug] Mayor data successfully updated: $mayorData")
         }
     }
 }

@@ -24,8 +24,10 @@ import noammaddons.utils.RenderUtils.drawTracer
 import noammaddons.utils.ScanUtils.getRealCoord
 import noammaddons.utils.Utils.formatPbPuzzleMessage
 
+private typealias WaterBoardSolutions = Map<String, Map<String, Map<String, List<Double>>>>
+
 object WaterBoardSolver {
-    private val waterSolutions = DataDownloader.loadJson<Map<String, Map<String, Map<String, List<Double>>>>>("waterSolutions.json")
+    private val waterSolutions = DataDownloader.loadJson<WaterBoardSolutions>("waterSolutions.json")
 
     private var solutions = HashMap<LeverBlock, List<Double>>()
     private var patternIdentifier = - 1
@@ -217,3 +219,4 @@ object WaterBoardSolver {
         }
     }
 }
+
