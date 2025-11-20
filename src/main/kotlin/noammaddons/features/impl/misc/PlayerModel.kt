@@ -68,7 +68,7 @@ object PlayerModel: Feature() {
 
     // IDK why but this shit legit gave me a headache
     fun getPlayerScaleFactor(ent: Entity): Float {
-        if (! playerScale.value) return 1f
+        if (! playerScale.value || ! enabled) return 1f
         return if (scaleEveryone.value) pScale.value
         else if (ent == mc.thePlayer) pScale.value
         else 1f

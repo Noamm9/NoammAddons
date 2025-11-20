@@ -77,7 +77,7 @@ object QuizSolver {
                         it.isCorrect = false
                     }
                     triviaAnswers = null
-                    ticks = 0
+                    ticks = - 1
                     correctAnswer = null
                     timeStarted?.let {
                         val personalBestsData = personalBests.getData().pazzles
