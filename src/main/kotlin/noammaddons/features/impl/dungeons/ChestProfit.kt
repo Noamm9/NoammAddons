@@ -8,6 +8,7 @@ import net.minecraft.item.Item
 import net.minecraft.item.ItemSkull
 import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumParticleTypes
+import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.NoammAddons.Companion.CHAT_PREFIX
@@ -39,6 +40,7 @@ import noammaddons.utils.NumbersUtils.romanToDecimal
 import noammaddons.utils.RenderHelper.getStringHeight
 import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderHelper.highlight
+import noammaddons.utils.RenderUtils
 import noammaddons.utils.RenderUtils.drawCenteredText
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.ThreadUtils.setTimeout
@@ -282,37 +284,13 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
             }
         }
 
-        if(croesusKismetDisplay.value) {
-            var kismet = true
-            for (index in stack.lore.size - 1 downTo 0) {
-                if (stack.lore[index] == " §9Kismet Feather") {
-                    kismet = false
-                    break
-                }
-            }
-
-            if (kismet)
-                drawFeather(event.slot.xDisplayPosition.toFloat() + 7, event.slot.yDisplayPosition.toFloat() + 7)
-        }
-
         highlightColor?.let { color ->
             event.slot.highlight(color.withAlpha(100))
         }
-    }
 
-    private fun drawFeather(x: Float, y: Float) {
-        val scale = 0.7f
-        GlStateManager.pushMatrix()
-
-        GlStateManager.enableDepth()
-        GlStateManager.depthFunc(GL11.GL_LEQUAL)
-        GlStateManager.translate(x, y, 0f)
-        GlStateManager.scale(scale, scale, 1f)
-
-        mc.renderItem.renderItemAndEffectIntoGUI(featherStack, 0, 0)
-        mc.renderItem.renderItemOverlayIntoGUI(mc.fontRendererObj, featherStack, 0, 0, null)
-
-        GlStateManager.popMatrix()
+        if(croesusKismetDisplay.value && stack.lore[stack.lore.size - 4] != " §9Kismet Feather") {
+            RenderUtils.drawTexture(ResourceLocation("textures/items/feather.png"), event.slot.xDisplayPosition + 7, event.slot.yDisplayPosition + 7, 11.2f, 11.2f)
+        }
     }
 
     @SubscribeEvent
