@@ -3,7 +3,10 @@ package noammaddons.features.impl.dungeons
 import gg.essential.elementa.utils.withAlpha
 import net.minecraft.client.gui.inventory.GuiChest
 import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.renderer.RenderHelper
+import net.minecraft.item.Item
 import net.minecraft.item.ItemSkull
+import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumParticleTypes
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -41,6 +44,7 @@ import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.remove
+import org.lwjgl.opengl.GL11
 import java.awt.Color
 import java.lang.Math.*
 
@@ -61,6 +65,9 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
     private val croesusChestsProfit = ToggleSetting("Croesus Chests Profit")
     private val croesusChestHighlight = ToggleSetting("Highlight Croesus Chests")
     private val hideRedChests = ToggleSetting("Hide Opened Chests").addDependency(croesusChestHighlight)
+    private val croesusKismetDisplay = ToggleSetting("Highlight Rerolled Chests")
+
+    private val featherStack = ItemStack(Item.getItemById(288))
 
     override fun init() {
         addSettings(
@@ -69,7 +76,8 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
             SeperatorSetting("Croesus"),
             croesusChestsProfit,
             croesusChestHighlight,
-            hideRedChests
+            hideRedChests,
+            croesusKismetDisplay
         )
     }
 
@@ -274,9 +282,37 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
             }
         }
 
+        if(croesusKismetDisplay.value) {
+            var kismet = true
+            for (index in stack.lore.size - 1 downTo 0) {
+                if (stack.lore[index] == " §9Kismet Feather") {
+                    kismet = false
+                    break
+                }
+            }
+
+            if (kismet)
+                drawFeather(event.slot.xDisplayPosition.toFloat() + 7, event.slot.yDisplayPosition.toFloat() + 7)
+        }
+
         highlightColor?.let { color ->
             event.slot.highlight(color.withAlpha(100))
         }
+    }
+
+    private fun drawFeather(x: Float, y: Float) {
+        val scale = 0.7f
+        GlStateManager.pushMatrix()
+
+        GlStateManager.enableDepth()
+        GlStateManager.depthFunc(GL11.GL_LEQUAL)
+        GlStateManager.translate(x, y, 0f)
+        GlStateManager.scale(scale, scale, 1f)
+
+        mc.renderItem.renderItemAndEffectIntoGUI(featherStack, 0, 0)
+        mc.renderItem.renderItemOverlayIntoGUI(mc.fontRendererObj, featherStack, 0, 0, null)
+
+        GlStateManager.popMatrix()
     }
 
     @SubscribeEvent
