@@ -3,10 +3,7 @@ package noammaddons.features.impl.dungeons
 import gg.essential.elementa.utils.withAlpha
 import net.minecraft.client.gui.inventory.GuiChest
 import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.RenderHelper
-import net.minecraft.item.Item
 import net.minecraft.item.ItemSkull
-import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumParticleTypes
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.event.GuiScreenEvent
@@ -46,7 +43,6 @@ import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.remove
-import org.lwjgl.opengl.GL11
 import java.awt.Color
 import java.lang.Math.*
 
@@ -68,8 +64,6 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
     private val croesusChestHighlight = ToggleSetting("Highlight Croesus Chests")
     private val hideRedChests = ToggleSetting("Hide Opened Chests").addDependency(croesusChestHighlight)
     private val croesusKismetDisplay = ToggleSetting("Highlight Rerolled Chests")
-
-    private val featherStack = ItemStack(Item.getItemById(288))
 
     override fun init() {
         addSettings(
@@ -288,8 +282,12 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
             event.slot.highlight(color.withAlpha(100))
         }
 
-        if(croesusKismetDisplay.value && stack.lore[stack.lore.size - 4] != " §9Kismet Feather") {
-            RenderUtils.drawTexture(ResourceLocation("textures/items/feather.png"), event.slot.xDisplayPosition + 7, event.slot.yDisplayPosition + 7, 11.2f, 11.2f)
+        if (croesusKismetDisplay.value && stack.lore[stack.lore.size - 4] != " §9Kismet Feather") {
+            RenderUtils.drawTexture(
+                ResourceLocation("textures/items/feather.png"),
+                event.slot.xDisplayPosition + 7, event.slot.yDisplayPosition + 7,
+                11.2f, 11.2f
+            )
         }
     }
 
@@ -303,7 +301,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
         if (! stack.displayName.equalsOneOf("§aThe Catacombs", "§aMaster Mode The Catacombs")) return
 
         val floor = stack.lore[0].removeFormatting().substringAfterLast(" ").romanToDecimal()
-        val title = if (name.startsWith("§cMaster")) "§c§lMaster Mode" else "§a§lFloor"
+        val title = if (name.startsWith("§aMaster")) "§c§lMaster Mode" else "§a§lFloor"
 
         newName = "$title §e§l$floor"
     }
