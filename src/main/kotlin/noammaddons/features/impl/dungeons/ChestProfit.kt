@@ -3,8 +3,12 @@ package noammaddons.features.impl.dungeons
 import gg.essential.elementa.utils.withAlpha
 import net.minecraft.client.gui.inventory.GuiChest
 import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.renderer.RenderHelper
+import net.minecraft.item.Item
 import net.minecraft.item.ItemSkull
+import net.minecraft.item.ItemStack
 import net.minecraft.util.EnumParticleTypes
+import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.NoammAddons.Companion.CHAT_PREFIX
@@ -36,11 +40,13 @@ import noammaddons.utils.NumbersUtils.romanToDecimal
 import noammaddons.utils.RenderHelper.getStringHeight
 import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderHelper.highlight
+import noammaddons.utils.RenderUtils
 import noammaddons.utils.RenderUtils.drawCenteredText
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.remove
+import org.lwjgl.opengl.GL11
 import java.awt.Color
 import java.lang.Math.*
 
@@ -61,6 +67,9 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
     private val croesusChestsProfit = ToggleSetting("Croesus Chests Profit")
     private val croesusChestHighlight = ToggleSetting("Highlight Croesus Chests")
     private val hideRedChests = ToggleSetting("Hide Opened Chests").addDependency(croesusChestHighlight)
+    private val croesusKismetDisplay = ToggleSetting("Highlight Rerolled Chests")
+
+    private val featherStack = ItemStack(Item.getItemById(288))
 
     override fun init() {
         addSettings(
@@ -69,7 +78,8 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
             SeperatorSetting("Croesus"),
             croesusChestsProfit,
             croesusChestHighlight,
-            hideRedChests
+            hideRedChests,
+            croesusKismetDisplay
         )
     }
 
@@ -276,6 +286,10 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
 
         highlightColor?.let { color ->
             event.slot.highlight(color.withAlpha(100))
+        }
+
+        if(croesusKismetDisplay.value && stack.lore[stack.lore.size - 4] != " §9Kismet Feather") {
+            RenderUtils.drawTexture(ResourceLocation("textures/items/feather.png"), event.slot.xDisplayPosition + 7, event.slot.yDisplayPosition + 7, 11.2f, 11.2f)
         }
     }
 
