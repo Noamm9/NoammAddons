@@ -168,7 +168,7 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons", "noamm", "noam",
                 }
             }
 
-            "ping" -> modMessage("&bAverage Ping: f${ServerUtils.latestPing}ms")
+            "ping" -> modMessage("&bAverage Ping: &f${ServerUtils.latestPing}ms")
 
             else -> modMessage("&cInvalid usage of command. &bUsage: /na <command>")
         }
