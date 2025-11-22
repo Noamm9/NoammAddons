@@ -168,7 +168,7 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons", "noamm", "noam",
                 }
             }
 
-            "ping" -> modMessage("&bAverage Ping: &a${ServerUtils.latestPing}ms")
+            "ping" -> modMessage("&bAverage Ping: f${ServerUtils.latestPing}ms")
 
             else -> modMessage("&cInvalid usage of command. &bUsage: /na <command>")
         }
@@ -186,25 +186,25 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons", "noamm", "noam",
     }
 
     private val commandsList = listOf(
-        "&b/na &7- &oOpens the Settings GUI.",
-        "&b/na help &7- &oShows this Message.",
-        "&b/na discord &7- &oOpens link to my Discord Server.",
+        "&b/na &7- &oOpens the settings GUI.",
+        "&b/na help &7- &oShows this message.",
+        "&b/na discord &7- &oOpens a link to my Discord Server in a web browser.",
         "&b/na sim [message] &7- &oSimulates a received chat message.",
-        "&b/na edit &7- &oOpens the Edit Hud GUI.",
+        "&b/na edit &7- &oOpens the Edit HUD GUI.",
         "&b/na rotate [yaw] [pitch] [ms?] &7- &oRotates the player to the specified yaw and pitch.",
         "&b/na leap [name] &7- &oLeaps to the specified player.",
-        "&b/na swapmask &7- &oAutomatically preform Mask Swap.",
-        "&b/na rodswap &7- &oAutomatically preform Rod Swap.",
-        "&b/na quickswap [ItemID] &7- &oAutomatically equip the item in the EQ menu",
-        "&b/na holdclick [LEFT, RIGHT, MIDDLE] &7- &oHolds the Mouse buttom for you.",
-        "&b/na potion &7- &oAutomatically get a Potion from the Potion Bag.",
-        "&b/na tps &7- &oShows the current server's TPS.",
-        "&b/na copy [message] &7- &oCopies the message to the clipboard.",
+        "&b/na swapmask &7- &oAutomatically performs Mask Swap.",
+        "&b/na rodswap &7- &oAutomatically performs Rod Swap.",
+        "&b/na quickswap [ItemID] &7- &oAutomatically equips the item in the EQ menu.",
+        "&b/na holdclick [LEFT, RIGHT, MIDDLE] &7- &oHolds the specified mouse button for you.",
+        "&b/na potion &7- &oAutomatically get a potion from the Potion Bag.",
+        "&b/na tps &7- &oPrints the current server's TPS in chat.",
+        "&b/na copy [message] &7- &oCopies [message] to the clipboard.",
         "&b/na roominfo &7- &oShows current room info.",
-        "&b/na update &7- &oChecks for an Update.",
+        "&b/na update &7- &oChecks for an update.",
         "&b/na openlink [URL] &7- &oOpens the provided URL in a web browser.",
         "&b/na status [name] &7- &oChecks if the player is online.",
-        "&b/na rtca [name] &7- &oChecks the player's runs untill class avrage 50.",
-        "&b/na ping &7- &oPrints your current ping to chat"
+        "&b/na rtca [name] &7- &oChecks the player's runs until class average 50.",
+        "&b/na ping &7- &oPrints your current ping in chat."
     )
 }
