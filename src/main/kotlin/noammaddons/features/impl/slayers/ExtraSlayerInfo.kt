@@ -54,7 +54,7 @@ object ExtraSlayerInfo: Feature() {
         val grammar = if (bossesLeft == 1) "boss" else "bosses"
         return listOf(
             "&b&m${getChatBreak("-")?.drop(20)}",
-            "   &b&nCurrent&r $slayerName &a&nLevel&r: &6&l&n$level&r",
+            "   &b&nCurrent&r &n$slayerName&r &a&nLevel&r: &6&l&n$level&r",
             "",
             "   &eNeed &b$bossesLeft $grammar &eTo reach &aLevel: &6&l${level + 1}",
             "   &aMissing XP: &d$missingXP",
