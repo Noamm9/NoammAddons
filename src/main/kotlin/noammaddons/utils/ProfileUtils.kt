@@ -2,15 +2,24 @@ package noammaddons.utils
 
 import com.google.gson.JsonParser
 import kotlinx.serialization.json.*
-import noammaddons.NoammAddons.Companion.Logger
+import net.minecraft.item.ItemStack
 import noammaddons.NoammAddons.Companion.mc
+import noammaddons.utils.ItemUtils.lore
+import noammaddons.utils.ItemUtils.skyblockID
+import noammaddons.utils.JsonUtils.getArray
+import noammaddons.utils.JsonUtils.getBoolean
+import noammaddons.utils.JsonUtils.getObj
 import noammaddons.utils.JsonUtils.getString
+import noammaddons.utils.Utils.remove
 import noammaddons.utils.WebUtils.readUrl
+import kotlin.math.floor
 
 
 object ProfileUtils {
+    val profileCache = mutableMapOf<String, Pair<JsonObject, Long>>()
     val uuidCache = mutableMapOf(mc.session.username to mc.session.playerID)
     val secretCache = mutableMapOf<String, Pair<Int, Long>>()
+    const val FIVE_MINUTES = 60 * 5 * 1000
     const val TWO_MINUTES = 60 * 2 * 1000
 
     private val mojangApiList = listOf(
@@ -47,7 +56,6 @@ object ProfileUtils {
             ?.getAsJsonObject("achievements")?.getAsJsonPrimitive("skyblock_treasure_hunter")?.asInt ?: 0
 
         if (secrets > 0) secretCache[name] = secrets to System.currentTimeMillis()
-        Logger.info("$name has $secrets")
         return secrets
     }
 
@@ -55,7 +63,94 @@ object ProfileUtils {
         val raw = readUrl("https://api.skyblockextras.com/hypixel/status?uuid=${getUUID(name) ?: return false}")
         val json = JsonUtils.stringToJson(raw).takeIf { it.getValue("success").jsonPrimitive.boolean }
         val isOnline = json?.get("session")?.jsonObject?.get("online")?.jsonPrimitive?.boolean ?: false
-        Logger.info("$name is online: $isOnline")
         return isOnline
+    }
+
+    fun getSelectedProfile(name: String): JsonObject? {
+        val uuid = getUUID(name) ?: return null
+        profileCache[uuid]?.let { (profile, lastFetch) ->
+            if (System.currentTimeMillis() - lastFetch > FIVE_MINUTES) return@let
+            return profile
+        }
+
+        val raw = readUrl("https://api.skyblockextras.com/hypixel/skyblock/profiles?uuid=$uuid")
+        val jsonObject = JsonUtils.stringToJson(raw).takeIf { it.getValue("success").jsonPrimitive.boolean } ?: return null
+        val selectedProfile = jsonObject.getArray("profiles")?.find {
+            it.jsonObject.getBoolean("selected") == true
+        }?.jsonObject?.getObj("members")?.entries?.find {
+            it.key == uuid.remove("-")
+        }?.value?.jsonObject
+
+        return if (selectedProfile != null) {
+            profileCache[uuid] = Pair(selectedProfile, System.currentTimeMillis())
+            ThreadUtils.setTimeout(FIVE_MINUTES) { profileCache.remove(uuid) }
+            selectedProfile
+        }
+        else null
+    }
+
+    private val xpRequirements = listOf(
+        50, 125, 235, 395, 625, 955, 1425, 2095, 3045, 4385, 6275, 8940, 12700, 17960, 25340, 35640, 50040, 70040,
+        97640, 135640, 188140, 259640, 356640, 488640, 668640, 911640, 1239640, 1683640, 2284640, 3084640, 4149640,
+        5559640, 7459640, 9959640, 13259640, 17559640, 23159640, 30359640, 39559640, 51559640, 66559640, 85559640,
+        109559640, 139559640, 177559640, 225559640, 285559640, 360559640, 453559640, 569809640,
+    )
+
+    fun getCatacombsLevel(totalXp: Double): Int {
+        if (totalXp < 0) return 0
+        for (i in xpRequirements.indices) {
+            if (totalXp < xpRequirements[i].toDouble()) {
+                return i
+            }
+        }
+
+        val lastLevelInList = xpRequirements.size
+        val xpRequiredForLastLevelInList = xpRequirements.last().toDouble()
+        val xpBeyondLastLevelInList = totalXp - xpRequiredForLastLevelInList
+        val levelsAboveLastLevel = (xpBeyondLastLevelInList / 200_000_000.0).toInt()
+        return lastLevelInList + levelsAboveLastLevel
+    }
+
+    private val requiredRegex = Regex("§7§4☠ §cRequires §5.+§c.")
+    fun getMagicalPower(talismanBag: MutableList<ItemStack?>, profileInfo: JsonObject): Int {
+        return talismanBag.filterNotNull().map {
+            val itemId = it.skyblockID?.let { id -> if (id.startsWith("PARTY_HAT_")) "PARTY_HAT" else id }
+            val unusable = it.lore.any { line -> requiredRegex.matches(line) }
+            val rarity = ItemUtils.getRarity(it)
+
+            val mp = if (unusable) 0
+            else when (rarity) {
+                ItemUtils.ItemRarity.MYTHIC -> 22
+                ItemUtils.ItemRarity.LEGENDARY -> 16
+                ItemUtils.ItemRarity.EPIC -> 12
+                ItemUtils.ItemRarity.RARE -> 8
+                ItemUtils.ItemRarity.UNCOMMON -> 5
+                ItemUtils.ItemRarity.COMMON -> 3
+                ItemUtils.ItemRarity.SPECIAL -> 3
+                ItemUtils.ItemRarity.VERY_SPECIAL -> 5
+                else -> 0
+            }
+
+            val bonus = when (itemId) {
+                "HEGEMONY_ARTIFACT" -> mp
+                "ABICASE" -> {
+                    val contacts = profileInfo.getObj("nether_island_player_data")?.getObj("abiphone")?.getArray("active_contacts")?.size ?: 0
+                    floor(contacts / 2.0).toInt()
+                }
+
+                else -> 0
+            }
+
+            Pair(itemId, mp + bonus)
+        }.groupBy { it.first }.mapValues { entry ->
+            entry.value.maxBy { it.second }
+        }.values.fold(0) { acc, pair ->
+            acc + pair.second
+        }.let {
+            when {
+                profileInfo.getObj("rift")?.getObj("access")?.get("consumed_prism") != null -> it + 11
+                else -> it
+            }
+        }
     }
 }
