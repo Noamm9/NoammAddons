@@ -27,7 +27,7 @@ object ThreadUtils {
         }
     }
 
-    fun setTimeout(delay: Long, callback: Runnable) = timerExecutor.schedule(callback, delay, TimeUnit.MILLISECONDS)
+    fun setTimeout(delay: Number, callback: Runnable) = timerExecutor.schedule(callback, delay.toLong(), TimeUnit.MILLISECONDS)
     fun scheduledTask(ticks: Int = 0, callback: Runnable) = tickTasks.add(Task(ticks, callback))
 
     fun runOnNewThread(block: () -> Unit) = executor.submit {
@@ -81,13 +81,13 @@ object ThreadUtils {
     @SubscribeEvent
     fun onTick(@Suppress("UNUSED_PARAMETER") event: Tick) {
         executor.submit {
-            tickTasks.removeIf { task ->
-                if (task.ticks > 0) {
-                    task.ticks --
+            tickTasks.removeIf { entry ->
+                if (entry.ticks > 0) {
+                    entry.ticks --
                     false
                 }
                 else {
-                    runCatching { task.task.run() }.onFailure {
+                    runCatching(entry.task::run).onFailure {
                         it.stackTrace.take(30).forEach(Logger::error)
                     }
                     true

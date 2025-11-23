@@ -75,6 +75,8 @@ object Utils {
             .trim()
     }
 
+    fun String.uppercaseFirst() = this[0].uppercase() + substring(1)
+
     fun Packet<*>.send(delay: Number? = null) {
         if (delay == null || delay.toLong() <= 0) mc.netHandler.networkManager.sendPacket(this)
         else setTimeout(delay.toLong()) { mc.netHandler.networkManager.sendPacket(this) }

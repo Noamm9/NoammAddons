@@ -139,17 +139,15 @@ class NoammAddons {
             val data = rawBzData.entries.associate {
                 it.value.quick_status.productId to (it.value.buy_summary.firstOrNull()?.get("pricePerUnit")?.toInt() ?: 0)
             }
-            
+
             bzData.putAll(data)
         }
 
         WebUtils.get("https://api.hypixel.net/resources/skyblock/items") { obj ->
             if (obj["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
-
             val items = JsonUtils.json.decodeFromJsonElement(ListSerializer(APISBItem.serializer()), obj["items"] !!)
             val sellPrices = items.filter { it.npcSellPrice != null }.associate { it.id to it.npcSellPrice !! }
             val idToName = items.associate { it.id to it.name }.toMutableMap()
-
             itemIdToNameLookup.putAll(idToName)
             npcData.putAll(sellPrices)
         }
@@ -162,7 +160,6 @@ class NoammAddons {
                 JsonUtils.json.decodeFromJsonElement(ApiMayor.Candidate.serializer(), mayorElement),
                 JsonUtils.json.decodeFromJsonElement(ApiMayor.Minister.serializer(), ministerElement)
             )
-            Logger.info("[Debug] Mayor data successfully updated: $mayorData")
         }
     }
 }
