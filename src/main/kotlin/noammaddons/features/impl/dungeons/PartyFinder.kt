@@ -168,7 +168,7 @@ object PartyFinder: Feature("A group of many features regarding the dungeon ape 
             }
         }
 
-        val completionsList = listOf(
+        val completionsList = listOfNotNull(
             catacombs.getObj("fastest_time")?.keys?.mapNotNull { it.toIntOrNull() }?.maxOrNull()?.let { highestFloor ->
                 val completionObj = catacombs.getObj("tier_completions")
                 val highestFloorPb = "§7(F$highestFloor): ${formatPb(catacombs.getObj("fastest_time_s_plus")?.getInt("$highestFloor") ?: "N/A")}"
@@ -216,7 +216,7 @@ object PartyFinder: Feature("A group of many features regarding the dungeon ape 
             UChat.chat(" ")
             armorList.forEach(UChat::chat)
             UChat.chat(" ")
-            completionsList.filterNotNull().forEach(UChat::chat)
+            completionsList.forEach(UChat::chat)
             UChat.chat("§a§l------------------------------------§r")
         }
     }

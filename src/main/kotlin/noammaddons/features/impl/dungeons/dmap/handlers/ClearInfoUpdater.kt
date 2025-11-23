@@ -56,8 +56,7 @@ object ClearInfoUpdater {
     fun sendClearInfoMessage() = scope.launch(Dispatchers.IO) {
         if (! DungeonMapConfig.printPlayersClearInfo.value) return@launch
         val msgList = DungeonUtils.dungeonTeammates.toList().map { teammate ->
-            val secretsAfterRun = ProfileUtils.getSecrets(teammate.name)
-            if (debug) modMessage("${teammate.name} has $secretsAfterRun secrets after the run")
+            val secretsAfterRun = if (teammate.clearInfo.secretsBeforeRun != 0) ProfileUtils.getSecrets(teammate.name) else 0
             val playerFormatted = "${DungeonUtils.Classes.getColorCode(teammate.clazz)}${teammate.name}"
             val foundSecrets = secretsAfterRun - teammate.clearInfo.secretsBeforeRun
             val baseComp = createComponent("$CHAT_PREFIX $playerFormatted&f:&r ")
