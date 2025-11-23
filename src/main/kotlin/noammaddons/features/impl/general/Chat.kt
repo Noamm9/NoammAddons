@@ -17,6 +17,7 @@ import noammaddons.utils.RenderHelper.renderVec
 import noammaddons.utils.RenderUtils
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.favoriteColor
+import noammaddons.utils.DataDownloader
 import java.util.concurrent.CopyOnWriteArrayList
 
 
@@ -98,10 +99,30 @@ object Chat: Feature() {
         }
     }
 
+    private var lastMessageBlank: Boolean = false
+
     @SubscribeEvent
     fun onNewChatMessage(event: AddMessageToChatEvent) {
         if (! hideUseless.value) return
-        if (regex.any { it.matches(event.component.noFormatText) }) return event.setCanceled(true)
+        val text = event.component.noFormatText
+
+        // If the message is blank, cancel only if the last visible message was also blank.
+        if (text.isBlank()) {
+            if (lastMessageBlank) {
+                return event.setCanceled(true)
+            } else {
+                lastMessageBlank = true
+                return
+            }
+        }
+
+        // For non-blank messages: if it's classified as useless, cancel it but don't change
+        // lastMessageBlank (canceled messages should not affect blank-message tracking).
+        val regexList = DataDownloader.loadJson<List<String>>("uselessMessages.json").map { Regex(it) }
+        if (regexList.any { it.matches(text) }) return event.setCanceled(true)
+
+        // A visible non-blank message resets the blank tracker.
+        lastMessageBlank = false
     }
 
     @SubscribeEvent
@@ -115,6 +136,7 @@ object Chat: Feature() {
         }
     }
 
+    /*
     private val regex = listOf(
         // === SYSTEM & SERVER MESSAGES ===
         Regex("^Warping you to your SkyBlock island\\.\\.\\.$"),
@@ -252,7 +274,7 @@ object Chat: Feature() {
         Regex(".*Granted you.+"),
         
         // === ITEM DROPS & OBTAINS ===
-        Regex(".+ has obtained Superboom TNT (x[0-9])?!"),
+        Regex(".+ has obtained Superboom TNT( x[0-9])?!"),
         Regex(".+ has obtained Revive Stone!"),
         Regex(".+ has obtained Premium Flesh!"),
         Regex(".+ has obtained Beating Heart!"),
@@ -327,14 +349,18 @@ object Chat: Feature() {
         Regex("Some of your autopet rules did not trigger."),
         
         // === LOBBY & SOCIAL ===
-        Regex(".+ joined the lobby!"),
+        Regex(".+ joined the lobby!.*"),
         
         // === EVENTS ===
         Regex("FISHING FESTIVAL The festival is now underway! Break out your fishing rods and watch out for sharks!"),
         Regex("Hoppity's Hunt has begun! Help Hoppity find his Chocolate Rabbit Eggs across SkyBlock each day during the Spring!"),
+        Regex(" +You have [0-9]+ unclaimed event rewards!"),
+        Regex(" +>>> CLICK HERE to claim! <<<"),
+        Regex(" +Event rewards are deleted after 10 SkyBlock years!"),
         
         // === COMBAT - KILL COMBO ===
         Regex("\\+[0-9]+ Kill Combo .+"),
         Regex("Your Kill Combo has expired! You reached a [0-9]+ Kill Combo!")
     )
+    */
 }
