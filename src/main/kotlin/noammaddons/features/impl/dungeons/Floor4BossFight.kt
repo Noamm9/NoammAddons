@@ -5,6 +5,7 @@ import net.minecraft.client.entity.EntityOtherPlayerMP
 import net.minecraft.entity.boss.BossStatus
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.entity.monster.EntityGhast
+import net.minecraft.entity.passive.*
 import net.minecraft.init.Blocks.*
 import net.minecraft.item.ItemBow
 import net.minecraft.util.BlockPos
@@ -40,6 +41,13 @@ object Floor4BossFight: Feature(name = "Floor 4 Boss", desc = "Spirit bear spawn
     private val spiritBearSpawnTimer by ToggleSetting("Bear Spawn Timer")
     private val boxSpiritBow by ToggleSetting("Box Spirit Bow")
     private val traceSpiritBow by ToggleSetting("Trace Spirit Bow")
+    private val spiritMobEsp by MultiCheckboxSetting(
+        "Spirit Mob Esp", mapOf(
+            "Rabbit" to false, "Wolf" to false,
+            "Sheep" to false, "Cow" to false,
+            "Chicken" to false,
+        )
+    )
     private val aaa by SeperatorSetting("Colors")
     private val boxSpiritBowColor by ColorSetting("Box Color", Color.CYAN.withAlpha(50))
     private val traceSpiritBowColor by ColorSetting("Tracer Color", Color.CYAN, false)
@@ -56,6 +64,31 @@ object Floor4BossFight: Feature(name = "Floor 4 Boss", desc = "Spirit bear spawn
                 if (! espSpiritBear) return
                 if (! entity.displayName.noFormatText.lowercase().startsWith("spirit bear")) return
                 espMob(event.entity, espSpiritBearColor)
+            }
+
+            is EntitySheep -> {
+                if (! spiritMobEsp["Sheep"] !!) return
+                espMob(event.entity, Color.CYAN.withAlpha(50))
+            }
+
+            is EntityRabbit -> {
+                if (! spiritMobEsp["Rabbit"] !!) return
+                espMob(event.entity, Color.CYAN.withAlpha(50))
+            }
+
+            is EntityWolf -> {
+                if (! spiritMobEsp["Wolf"] !!) return
+                espMob(event.entity, Color.CYAN.withAlpha(50))
+            }
+
+            is EntityCow -> {
+                if (! spiritMobEsp["Cow"] !!) return
+                espMob(event.entity, Color.CYAN.withAlpha(50))
+            }
+
+            is EntityChicken -> {
+                if (! spiritMobEsp["Chicken"] !!) return
+                espMob(event.entity, Color.CYAN.withAlpha(50))
             }
         }
     }
