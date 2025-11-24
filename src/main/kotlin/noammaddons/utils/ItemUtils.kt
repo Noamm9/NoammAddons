@@ -201,12 +201,15 @@ object ItemUtils {
             return enchantNameToID(enchant)
         }
         else {
-            val shardId = "SHARD_" + name.removeFormatting().uppercase().replace(" ", "_")
-            if (shardId in bzData.keys) return shardId
+            val unformatted = name.removeFormatting()
+            if (unformatted.endsWith("Shard")) {
+                val shardId = "SHARD_${unformatted.uppercase().remove(" SHARD").replace(" ", "_")}"
+                return shardId
+            }
 
-            val unformatted = name.removeFormatting().remove("Shiny ")
+            val listName = unformatted.remove("Shiny ")
             itemIdToNameLookup.entries.find {
-                it.value == unformatted && ! it.key.contains("STARRED")
+                it.value == listName && ! it.key.contains("STARRED")
             }?.key
         }
     }

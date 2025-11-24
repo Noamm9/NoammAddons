@@ -16,6 +16,7 @@ import kotlin.math.floor
 
 
 object ProfileUtils {
+    private const val API = "https://api.noammaddons.workers.dev"
     val profileCache = mutableMapOf<String, JsonObject>()
     val uuidCache = mutableMapOf(mc.session.username to mc.session.playerID)
     const val FIVE_MINUTES = 60 * 5 * 1000
@@ -44,7 +45,7 @@ object ProfileUtils {
 
     fun getHypixelPlayer(name: String): JsonObject? {
         val uuid = getUUID(name) ?: return null
-        val raw = runCatching { readUrl("https://my-api.noammaddons.workers.dev/hypixel/player?uuid=$uuid") }.getOrNull() ?: return null
+        val raw = runCatching { readUrl("$API/hypixel/player?uuid=$uuid") }.getOrNull() ?: return null
         return JsonUtils.stringToJson(raw).takeIf { it.getBoolean("success") == true }?.getObj("player")
     }
 
@@ -52,7 +53,7 @@ object ProfileUtils {
         val uuid = getUUID(name) ?: return null
         profileCache[uuid]?.let { return it }
 
-        val raw = readUrl("https://my-api.noammaddons.workers.dev/hypixel/skyblock/profiles?uuid=$uuid")
+        val raw = readUrl("$API/hypixel/skyblock/profiles?uuid=$uuid")
         val jsonObject = JsonUtils.stringToJson(raw).takeIf { it.getValue("success").jsonPrimitive.boolean } ?: return null
         val selectedProfile = jsonObject.getArray("profiles")?.find {
             it.jsonObject.getBoolean("selected") == true
@@ -69,7 +70,7 @@ object ProfileUtils {
     }
 
     fun getStatus(name: String): Boolean {
-        val raw = readUrl("https://my-api.noammaddons.workers.dev/hypixel/status?uuid=${getUUID(name) ?: return false}")
+        val raw = readUrl("$API/hypixel/status?uuid=${getUUID(name) ?: return false}")
         val json = JsonUtils.stringToJson(raw).takeIf { it.getValue("success").jsonPrimitive.boolean }
         val isOnline = json?.get("session")?.jsonObject?.get("online")?.jsonPrimitive?.boolean ?: false
         return isOnline

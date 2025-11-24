@@ -10,6 +10,7 @@ import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.noFormatText
+import noammaddons.utils.DataDownloader
 import noammaddons.utils.LocationUtils.inSkyblock
 import noammaddons.utils.MathUtils.add
 import noammaddons.utils.MathUtils.distance3D
@@ -17,14 +18,13 @@ import noammaddons.utils.RenderHelper.renderVec
 import noammaddons.utils.RenderUtils
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.favoriteColor
-import noammaddons.utils.DataDownloader
 import java.util.concurrent.CopyOnWriteArrayList
 
 
 object Chat: Feature() {
     data class Waypoint(val name: String, val loc: Vec3)
 
-    private val regexList = DataDownloader.loadJson<List<String>>("uselessMessages.json").map { Regex(it) }
+    private val regexList = DataDownloader.loadJson<List<String>>("uselessMessages.json").map(::Regex)
 
     private val hideUseless = ToggleSetting("Hide Useless Messages", false)
     private val printSbEXP = ToggleSetting("Print SkyBlock XP", false)
@@ -107,14 +107,15 @@ object Chat: Feature() {
     fun onNewChatMessage(event: AddMessageToChatEvent) {
         if (! hideUseless.value) return
         val text = event.component.noFormatText
+
         if (text.isBlank()) {
-            if (lastMessageBlank) {
-                return event.setCanceled(true)
-            } else {
+            if (lastMessageBlank) return event.setCanceled(true)
+            else {
                 lastMessageBlank = true
                 return
             }
         }
+        
         if (regexList.any { it.matches(text) }) return event.setCanceled(true)
         lastMessageBlank = false
     }

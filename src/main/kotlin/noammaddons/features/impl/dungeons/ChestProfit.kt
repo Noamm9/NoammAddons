@@ -151,8 +151,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
                     val chestTypeEnum = DungeonChest.getFromName(item.displayName.removeFormatting()) ?: continue
 
                     val lore = item.lore
-                    val contentIndex = lore.indexOf("§7Contents")
-                    if (contentIndex == - 1) continue
+                    val contentIndex = lore.indexOf("§7Contents").takeUnless { it == - 1 } ?: continue
 
                     chestTypeEnum.slot = i
                     var calculatedProfit = getChestPrice(lore) * - 1
