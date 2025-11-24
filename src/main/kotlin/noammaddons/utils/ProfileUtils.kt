@@ -2,6 +2,7 @@ package noammaddons.utils
 
 import kotlinx.serialization.json.*
 import net.minecraft.item.ItemStack
+import noammaddons.NoammAddons
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.ItemUtils.lore
 import noammaddons.utils.ItemUtils.skyblockID
@@ -19,7 +20,6 @@ object ProfileUtils {
     private const val API = "https://api.noammaddons.workers.dev"
     val profileCache = mutableMapOf<String, JsonObject>()
     val uuidCache = mutableMapOf(mc.session.username to mc.session.playerID)
-    const val FIVE_MINUTES = 60 * 5 * 1000
 
     private val mojangApiList = listOf(
         "https://api.minecraftservices.com/minecraft/profile/lookup/name/",
@@ -27,11 +27,13 @@ object ProfileUtils {
         "https://api.ashcon.app/mojang/v2/user/"
     )
 
-    fun getUUID(name: String): String? {
-        uuidCache[name]?.let { return it }
+    fun getUUID(_name: String): String? {
+        val name = _name.uppercase()
+        if (uuidCache.containsKey(name)) return uuidCache[name]
 
+        uuidCache[name] = null
         for (api in mojangApiList) {
-            val response = runCatching { readUrl(api + name) }.getOrNull() ?: continue
+            val response = runCatching { readUrl(api + _name) }.getOrNull() ?: continue
             val json = JsonUtils.stringToJson(response)
             val uuid = json.getString("id") ?: json.getString("uuid")
             if (! uuid.isNullOrBlank()) {
@@ -49,10 +51,13 @@ object ProfileUtils {
         return JsonUtils.stringToJson(raw).takeIf { it.getBoolean("success") == true }?.getObj("player")
     }
 
-    fun getSelectedProfile(name: String): JsonObject? {
+    fun getSelectedProfile(_name: String): JsonObject? {
+        val name = _name.uppercase()
+        if (profileCache.containsKey(name)) return profileCache[name]
         val uuid = getUUID(name) ?: return null
-        profileCache[uuid]?.let { return it }
 
+        profileCache[name] = JsonObject(mapOf())
+        NoammAddons.Logger.info("Fetching Skyblock Data for $_name")
         val raw = readUrl("$API/hypixel/skyblock/profiles?uuid=$uuid")
         val jsonObject = JsonUtils.stringToJson(raw).takeIf { it.getValue("success").jsonPrimitive.boolean } ?: return null
         val selectedProfile = jsonObject.getArray("profiles")?.find {
@@ -62,8 +67,8 @@ object ProfileUtils {
         }?.value?.jsonObject
 
         return if (selectedProfile != null) {
-            profileCache[uuid] = selectedProfile
-            ThreadUtils.setTimeout(FIVE_MINUTES) { profileCache.remove(uuid) }
+            profileCache[name] = selectedProfile
+            ThreadUtils.setTimeout(60 * 10 * 1000) { profileCache.remove(name) }
             selectedProfile
         }
         else null

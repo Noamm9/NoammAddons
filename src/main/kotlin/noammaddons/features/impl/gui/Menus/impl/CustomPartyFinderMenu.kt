@@ -1,26 +1,30 @@
 package noammaddons.features.impl.gui.Menus.impl
 
-import io.github.moulberry.notenoughupdates.NEUApi
-import io.github.moulberry.notenoughupdates.NotEnoughUpdates
+import kotlinx.serialization.json.jsonObject
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.item.ItemSkull
-import net.minecraft.item.ItemStack
 import net.minecraftforge.client.event.GuiScreenEvent
-import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.events.GuiMouseClickEvent
 import noammaddons.events.InventoryFullyOpenedEvent
 import noammaddons.features.impl.dungeons.PartyFinder
 import noammaddons.features.impl.gui.Menus.*
-import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.currentChestName
 import noammaddons.utils.GuiUtils.disableNEUInventoryButtons
 import noammaddons.utils.ItemUtils.getItemId
 import noammaddons.utils.ItemUtils.lore
+import noammaddons.utils.JsonUtils.getDouble
+import noammaddons.utils.JsonUtils.getInt
+import noammaddons.utils.JsonUtils.getObj
 import noammaddons.utils.LocationUtils.WorldType.*
 import noammaddons.utils.LocationUtils.world
+import noammaddons.utils.NumbersUtils
+import noammaddons.utils.NumbersUtils.romanToDecimal
+import noammaddons.utils.NumbersUtils.toFixed
+import noammaddons.utils.ProfileUtils
 import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.RenderUtils.drawTextWithoutColorLeak
@@ -73,9 +77,7 @@ object CustomPartyFinderMenu {
 
             stack.lore.forEach { line ->
                 when {
-                    levelRequiredRegex.matches(line.removeFormatting()) -> levelRequired = levelRequiredRegex.find(
-                        line.removeFormatting()
-                    )?.groupValues?.get(1)?.toInt() ?: 0
+                    line.contains("Dungeon Level Required:") -> levelRequired = levelRequiredRegex.find(line.removeFormatting())?.groupValues?.get(1)?.toInt() ?: 0
 
                     partyMembersRegex.matches(line) -> classes.add(
                         partyMembersRegex.matchEntire(line)?.destructured?.component2()?.removeFormatting() ?: ""
@@ -90,24 +92,10 @@ object CustomPartyFinderMenu {
                 missingClasses.drop(2).take(2).joinToString("")
             ).filter { it.isNotBlank() }
 
-            val TextScale = 0.60f
-
             GlStateManager.pushMatrix()
             GlStateManager.translate(x, y, 1f)
-
-
-            drawText(
-                if (levelRequired == 0) "" else "&c$levelRequired",
-                15f - getStringWidth("$levelRequired") * TextScale,
-                1f, TextScale
-            )
-
-            drawText(
-                missing.joinToString("\n"),
-                1.5f, 10f - if (missing.size == 2) 4.5f else 0f,
-                TextScale - 0.09f
-            )
-
+            drawText(if (levelRequired == 0) "" else "&c$levelRequired", 15f - getStringWidth("$levelRequired") * 0.6f, 1f, 0.6f)
+            drawText(missing.joinToString("\n"), 1.5f, 10f - if (missing.size == 2) 4.5f else 0f, 0.51f)
             GlStateManager.popMatrix()
         }
 
@@ -122,7 +110,36 @@ object CustomPartyFinderMenu {
 
         val item = container[slotIndex]?.stack ?: return
         if (item.getItemId() == 160 && item.metadata == 15) return
-        val lore = toolTipHandler(item) ?: item.lore
+
+        var floor = 0
+        var type = 'F'
+
+        val lore = item.lore.toMutableList().let { lore ->
+            if (item.item !is ItemSkull) return@let lore
+            val remainingClasses = classNames.map { it.removeFormatting() }.toMutableList()
+
+            lore.forEachIndexed { index, line ->
+                if (PartyFinder.customMenuShowStats.value && line.removeFormatting().contains("Dungeon: Master Mode")) type = 'M'
+                if (PartyFinder.customMenuShowStats.value && line.contains("§7Floor: §bFloor ")) floor = line.split(" ").last().let { it.toIntOrNull() ?: it.romanToDecimal() }
+                partyMembersRegex.matchEntire(line)?.destructured?.let { (pName, cName, cLvl) ->
+                    val playerName = pName.removeFormatting()
+                    val className = cName.removeFormatting()
+                    val level = cLvl.toInt()
+                    val color = getColor(level)
+                    val stats = getStats(playerName, floor, type)
+                    lore[index] = " $pName: §e$className $color$level $stats"
+                    remainingClasses.remove(className)
+                }
+            }
+
+            if (selectedClass?.removeFormatting() in remainingClasses) {
+                val idx = remainingClasses.indexOf(selectedClass?.removeFormatting())
+                remainingClasses[idx] = "$selectedClass§7"
+            }
+            lore.add("§cMissing: §7" + remainingClasses.joinToString(", ") { it.addColor() })
+
+            return@let lore
+        }
 
         updateLastSlot(slotIndex)
         drawLore(item.displayName, lore, mx, my, scale, screenSize)
@@ -170,30 +187,37 @@ object CustomPartyFinderMenu {
         }
     }
 
-    private fun toolTipHandler(item: ItemStack): List<String>? {
-        val classNames = classNames.map { it.removeFormatting() }.toMutableList()
-        val toolTip = item.lore.toMutableList()
-
-        toolTip.forEachIndexed { index, line ->
-            if (! line.matches(partyMembersRegex)) return@forEachIndexed
-
-            partyMembersRegex.matchEntire(line) !!.destructured.run {
-                val playerName = component1()
-                val className = component2().removeFormatting()
-                val level = component3().toInt()
-                val color = getColor(level)
-                toolTip[index] = " $playerName: §e$className $color$level"
-                classNames.remove(className)
-            }
+    private fun getStats(name: String, floor: Int, type: Char): String {
+        if (! PartyFinder.customMenuShowStats.value) return ""
+        val key = name.removeFormatting().uppercase()
+        if (! ProfileUtils.profileCache.containsKey(key)) {
+            Thread { ProfileUtils.getSelectedProfile(name) }.start()
+            return ""
         }
 
-        if (item.item !is ItemSkull) return null
+        val profile = ProfileUtils.profileCache[key] ?: return ""
+        val dungeons = profile["dungeons"]?.jsonObject
+        val catacombs = dungeons?.getObj("dungeon_types")?.getObj("catacombs")
+        val master_catacombs = dungeons?.getObj("dungeon_types")?.getObj("master_catacombs")
 
-        if (selectedClass?.removeFormatting() in classNames) classNames[classNames.indexOf(selectedClass?.removeFormatting())] = "$selectedClass§7"
-        toolTip.add("")
-        toolTip.add("§cMissing: §7" + classNames.joinToString(", ") { it.addColor() })
+        val totalSecrets = dungeons?.getInt("secrets")?.toDouble() ?: .0
+        val totalDungeonRunsCount = (catacombs?.getObj("tier_completions")?.getInt("total") ?: 0) + (master_catacombs?.getObj("tier_completions")?.getInt("total") ?: 0)
+        val secretAvg = (totalSecrets / totalDungeonRunsCount.toDouble()).toFixed(2)
 
-        return toolTip
+        val cataLvl = catacombs?.getDouble("experience")?.let(ProfileUtils::getCatacombsLevel) ?: "?"
+        val pb = (if (type == 'F') catacombs else master_catacombs)?.getObj("fastest_time_s_plus")?.getInt("$floor")?.let(NumbersUtils::formatTime) ?: "N/A"
+
+        // format style taken from SBD
+        return buildString {
+            val showSecrets = totalSecrets != .0
+            val secrets = if (showSecrets) totalSecrets.toInt() else "?"
+            val avg = if (showSecrets) secretAvg else "?"
+
+            append("§0§r§r")
+            append(" §b(§6$cataLvl§b)§r")
+            append(" §8[§a$secrets§8/§b$avg§8]§r")
+            append(" §8[§9$pb§8]§r")
+        }
     }
 
     private fun getColor(level: Int): String = when {

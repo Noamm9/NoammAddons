@@ -100,7 +100,6 @@ object NumbersUtils {
         }
     }
 
-
     fun Number.addSuffix(): String {
         val long = this.toLong()
         if (long in 11 .. 13) return "${this}th"
@@ -164,18 +163,23 @@ object NumbersUtils {
         else romanSymbols[l] + (this - l).toRoman()
     }
 
-    operator fun Number.div(number: Number): Number =
-        this.toDouble() / number.toDouble()
+    operator fun Number.div(number: Number) = this.toDouble() / number.toDouble()
+    operator fun Number.times(number: Number) = this.toDouble() * number.toDouble()
+    operator fun Number.minus(number: Number) = this.toDouble() - number.toDouble()
+    operator fun Number.plus(number: Number) = this.toDouble() + number.toDouble()
 
-    operator fun Number.times(number: Number): Number =
-        this.toDouble() * number.toDouble()
+    fun formatTime(milliseconds: Number): String {
+        val totalSecs = milliseconds.toLong() / 1000
+        val h = totalSecs / 3600
+        val m = (totalSecs % 3600) / 60
+        val s = totalSecs % 60
 
-    operator fun Number.minus(number: Number): Number =
-        this.toDouble() - number.toDouble()
-
-    operator fun Number.plus(number: Number): Number =
-        this.toDouble() + number.toDouble()
-
+        return buildList {
+            if (h > 0) add("${h}h")
+            if (m > 0) add("${m}m")
+            if (s > 0) add("${s}s")
+        }.joinToString(" ")
+    }
 
     private fun processDecimal(decimal: Int, lastNumber: Int, lastDecimal: Int): Int {
         return if (lastNumber > decimal) lastDecimal - decimal

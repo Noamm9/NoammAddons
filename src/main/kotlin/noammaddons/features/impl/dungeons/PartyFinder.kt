@@ -14,6 +14,7 @@ import noammaddons.NoammAddons.Companion.CHAT_PREFIX
 import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.features.impl.gui.Menus.impl.CustomPartyFinderMenu
+import noammaddons.ui.config.core.impl.SeperatorSetting
 import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.addColor
@@ -33,11 +34,17 @@ import java.time.Duration
 
 // todo pf join stats message and autokick?
 object PartyFinder: Feature("A group of many features regarding the dungeon ape finder") {
-    val customMenu = ToggleSetting("Custom Menu")
+    val customMenu = ToggleSetting("Enabled")
+    val customMenuShowStats = ToggleSetting("Show Players Stats").addDependency(customMenu)
     private val partyFinderStats = ToggleSetting("Party Finder Stats")
     private val reformatPfMessages = ToggleSetting("Cleaner Messages")
     private val joinedSound = ToggleSetting("Join Sound")
-    override fun init() = addSettings(customMenu, partyFinderStats, reformatPfMessages, joinedSound)
+    override fun init() = addSettings(
+        SeperatorSetting("Custom Menu"),
+        customMenu, customMenuShowStats,
+        SeperatorSetting("Misc"),
+        partyFinderStats, reformatPfMessages, joinedSound
+    )
 
     private val joinedRegex = Regex("^&dParty Finder &r&f> (.+?) &r&ejoined the dungeon group! \\(&r&b(\\w+) Level (\\d+)&r&e\\)&r\$".addColor())
     private val playerClassChangeRegex = Regex("^&dParty Finder &r&f> (.+?) &r&eset their class to &r&b(\\w+) Level (\\d+)&r&e!&r\$".addColor())
@@ -221,7 +228,7 @@ object PartyFinder: Feature("A group of many features regarding the dungeon ape 
         }
     }
 
-    private fun formatPb(milliseconds: Comparable<*>): String {
+    private fun formatPb(milliseconds: Any): String {
         if (milliseconds is String) return milliseconds
         val duration = Duration.ofMillis((milliseconds as Number).toLong())
         val minutes = duration.toMinutes()
