@@ -91,8 +91,8 @@ object ExtraSlayerInfo: Feature() {
             "   &eNeed &b$bossesLeft $grammar &eTo reach &aLevel: &6&l${level + 1}",
             "   &aMissing XP: &d$missingXP",
             "",
-            "   &6Need &b$bossesToMaxLevel $maxLevelGrammar &6To reach &c&lMAX LEVEL &6(9)",
-            "   &cTotal XP to Max: &e${formatNumber(xpToMaxLevel)}",
+            "   &6Need &b$bossesToMaxLevel $maxLevelGrammar &6To reach &c&lMAX LEVEL",
+            "   &d${formatNumber(xpToMaxLevel)} &cXP required for max level",
             "&b&m${getChatBreak("-")?.drop(20)}"
         ).joinToString("\n") { it.addColor() }
     }
