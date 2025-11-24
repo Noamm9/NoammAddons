@@ -16,10 +16,8 @@ import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 object ExtraSlayerInfo: Feature() {
-    // https://regex101.com/r/Rm0FR3/1 what the fuck is this
     private val regex = Regex("^\\s* (.*) Slayer LVL (.+) - Next LVL in (.+) XP!$")
     private val slayerXpMap = mapOf(1 to 5, 2 to 25, 3 to 100, 4 to 500, 5 to 1500)
-
 
     private val slayerCumulativeXpRequirements = mapOf(
         "Zombie" to mapOf(
@@ -56,8 +54,10 @@ object ExtraSlayerInfo: Feature() {
         val slayerName = match.component1().trim()
         val level = match.component2().toInt()
         val expToNextLevel = match.component3().remove(",").toDouble()
-        val bossesLeft = ceil(expToNextLevel / (bossEXP() ?: return)).toInt()
-        val message = createMessage(slayerName, level, bossesLeft, match.component3(), expToNextLevel)
+
+        if (level >= 9) return
+
+        val message = createMessage(slayerName, level, expToNextLevel, match.component3())
 
         setTimeout(1000L) {
             chat(message)
@@ -77,24 +77,41 @@ object ExtraSlayerInfo: Feature() {
         return bossEXP
     }
 
-    private fun createMessage(slayerName: String, level: Int, bossesLeft: Int, missingXP: String, expToNextLevel: Double): String {
+    private fun createMessage(slayerName: String, level: Int, expToNextLevel: Double, missingXP: String): String {
+        val bossExpValue = bossEXP() ?: 1
+        val bossesLeft = ceil(expToNextLevel / bossExpValue.toDouble()).toInt()
         val grammar = if (bossesLeft == 1) "boss" else "bosses"
 
-        val xpToMaxLevel = calculateXpToMaxLevel(slayerName, level, expToNextLevel)
-        val bossesToMaxLevel = if (xpToMaxLevel > 0) ceil(xpToMaxLevel / (bossEXP()?.toDouble() ?: 1.0)).toInt() else 0
-        val maxLevelGrammar = if (bossesToMaxLevel == 1) "boss" else "bosses"
+        return when {
+            level <= 7 -> {
+                val xpToMaxLevel = calculateXpToMaxLevel(slayerName, level, expToNextLevel)
+                val bossesToMaxLevel = if (xpToMaxLevel > 0) ceil(xpToMaxLevel / bossExpValue.toDouble()).toInt() else 0
+                val maxLevelGrammar = if (bossesToMaxLevel == 1) "boss" else "bosses"
 
-        return listOf(
-            "&b&m${getChatBreak("-")?.drop(20)}",
-            "   &b&nCurrent $slayerName &a&nLevel: &6&l&n$level",
-            "",
-            "   &eNeed &b$bossesLeft $grammar &eTo reach &aLevel: &6&l${level + 1}",
-            "   &aMissing XP: &d$missingXP",
-            "",
-            "   &6Need &b$bossesToMaxLevel $maxLevelGrammar &6To reach &c&lMAX LEVEL",
-            "   &d${formatNumber(xpToMaxLevel)} &cXP required for max level",
-            "&b&m${getChatBreak("-")?.drop(20)}"
-        ).joinToString("\n") { it.addColor() }
+                listOf(
+                    "&b&m${getChatBreak("-")?.drop(20)}",
+                    "   &b&nCurrent $slayerName &a&nLevel: &6&l&n$level",
+                    "",
+                    "   &eNeed &b$bossesLeft $grammar &eTo reach &aLevel: &6&l${level + 1}",
+                    "   &aMissing XP: &d$missingXP",
+                    "",
+                    "   &6Need &b$bossesToMaxLevel $maxLevelGrammar &6To reach &c&lMAX LEVEL &6(9)",
+                    "   &cTotal XP to Max: &e${formatNumber(xpToMaxLevel)}",
+                    "&b&m${getChatBreak("-")?.drop(20)}"
+                ).joinToString("\n") { it.addColor() }
+            }
+            level == 8 -> {
+                listOf(
+                    "&b&m${getChatBreak("-")?.drop(20)}",
+                    "   &b&nCurrent $slayerName &a&nLevel: &6&l&n$level",
+                    "",
+                    "   &eNeed &b$bossesLeft $grammar &eTo reach &aLevel: &6&l${level + 1}",
+                    "   &aMissing XP: &d$missingXP",
+                    "&b&m${getChatBreak("-")?.drop(20)}"
+                ).joinToString("\n") { it.addColor() }
+            }
+            else -> ""
+        }
     }
 
     private fun calculateXpToMaxLevel(slayerName: String, currentLevel: Int, expToNextLevel: Double): Int {
@@ -102,9 +119,7 @@ object ExtraSlayerInfo: Feature() {
 
         val slayerRequirements = slayerCumulativeXpRequirements[slayerName] ?: return 0
 
-
         var xpNeeded = expToNextLevel.toInt()
-
 
         for (level in (currentLevel + 2)..9) {
             val levelXp = slayerRequirements[level] ?: 0
