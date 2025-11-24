@@ -301,7 +301,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
         if (! stack.displayName.equalsOneOf("§aThe Catacombs", "§aMaster Mode The Catacombs")) return
 
         val floor = stack.lore[0].removeFormatting().substringAfterLast(" ").romanToDecimal()
-        val title = if (name.startsWith("§aMaster")) "§c§lMaster Mode" else "§a§lFloor"
+        val title = if (stack.displayName.startsWith("§aMaster")) "§c§lMaster Mode" else "§a§lFloor"
 
         newName = "$title §e§l$floor"
     }

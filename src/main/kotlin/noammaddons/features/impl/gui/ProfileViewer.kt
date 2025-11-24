@@ -313,7 +313,7 @@ object ProfileViewer: Feature() {
 
 
     fun getExpValues(): List<Int> {
-        mayorData?.let {
+        mayorData.let {
             if ((it.mayor.perks + it.minister.perk).any { perk -> perk.name == "Slayer XP Buff" }) {
                 return listOf(1850, 625, 125, 37, 7)
             }
@@ -346,42 +346,6 @@ object ProfileViewer: Feature() {
         "Runecrafting" -> "&5$skill"
         else -> "&f$skill"
     }
-
-    /*
-        fun getPlayerSkin(name: String): ResourceLocation? {
-            profileCache[name.lowercase()]?.let {
-                return it.first.skin
-            }
-
-            return try {
-                val uuid = EssentialAPI.getMojangAPI().getUUID(name)?.get()
-                val imageUrl = "https://crafatar.com/renders/body/$uuid?overlay"
-
-                val inputStream = URL(imageUrl).openStream().use { stream ->
-                    ImageIO.read(stream)
-                }
-
-                val byteArrayOutputStream = ByteArrayOutputStream()
-                ImageIO.write(inputStream, "PNG", byteArrayOutputStream)
-                val imageBytes = byteArrayOutputStream.toByteArray()
-                val image = ImageIO.read(ByteArrayInputStream(imageBytes))
-                val dynamicTexture = DynamicTexture(image)
-                val resourceLocation = ResourceLocation(MOD_ID, "$name!Body")
-                mc.textureManager.loadTexture(resourceLocation, dynamicTexture)
-                resourceLocation
-
-            }
-            catch (e: Exception) {
-                listOf("Failed to get $name skin: ${e.message}").run {
-                    errorMessage(this)
-                    Logger.error(this[0])
-                    e.printStackTrace()
-                    null
-                }
-            }
-        }
-    */
-
 
     fun createFakePlayer(name: String): EntityOtherPlayerMP {
         val uuid = UUID.fromString((ProfileUtils.getUUID(name)))

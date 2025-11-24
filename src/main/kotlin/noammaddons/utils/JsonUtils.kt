@@ -15,9 +15,11 @@ object JsonUtils {
     val json = Json { ignoreUnknownKeys = true }
 
     fun JsonObject.getObj(key: String) = this[key]?.jsonObject
+    fun JsonObject.getArray(key: String) = this[key]?.jsonArray
     fun JsonObject.getString(key: String) = this[key]?.jsonPrimitive?.content
     fun JsonObject.getInt(key: String) = this[key]?.jsonPrimitive?.int
     fun JsonObject.getDouble(key: String) = this[key]?.jsonPrimitive?.double
+    fun JsonObject.getBoolean(key: String) = this[key]?.jsonPrimitive?.boolean
 
 
     fun stringToJson(s: String): JsonObject {
