@@ -80,7 +80,7 @@ object ExtraSlayerInfo: Feature() {
         val grammar = if (bossesLeft == 1) "boss" else "bosses"
         
         val xpToMaxLevel = calculateXpToMaxLevel(slayerName, level, expToNextLevel)
-        val bossesToMaxLevel = if (xpToMaxLevel > 0) ceil(xpToMaxLevel / (bossEXP() ?: 1.0)).toInt() else 0
+        val bossesToMaxLevel = if (xpToMaxLevel > 0) ceil(xpToMaxLevel / (bossEXP()?.toDouble() ?: 1.0)).toInt() else 0
         val maxLevelGrammar = if (bossesToMaxLevel == 1) "boss" else "bosses"
         
         return listOf(
