@@ -1,6 +1,5 @@
 package noammaddons.features.impl.gui.Menus.impl
 
-import kotlinx.serialization.json.jsonObject
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.item.ItemSkull
 import net.minecraftforge.client.event.GuiScreenEvent
@@ -25,6 +24,7 @@ import noammaddons.utils.NumbersUtils
 import noammaddons.utils.NumbersUtils.romanToDecimal
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.ProfileUtils
+import noammaddons.utils.ProfileUtils.getCatacombsLevel
 import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.RenderUtils.drawTextWithoutColorLeak
@@ -191,20 +191,20 @@ object CustomPartyFinderMenu {
         if (! PartyFinder.customMenuShowStats.value) return ""
         val key = name.removeFormatting().uppercase()
         if (! ProfileUtils.profileCache.containsKey(key)) {
-            Thread { ProfileUtils.getSelectedProfile(name) }.start()
+            Thread { ProfileUtils.getDungeonStats(name) }.start()
             return ""
         }
 
-        val profile = ProfileUtils.profileCache[key] ?: return ""
-        val dungeons = profile["dungeons"]?.jsonObject
-        val catacombs = dungeons?.getObj("dungeon_types")?.getObj("catacombs")
-        val master_catacombs = dungeons?.getObj("dungeon_types")?.getObj("master_catacombs")
+        val data = ProfileUtils.profileCache[key] ?: return ""
+        val dungeons = data.getObj("dungeons")
+        val catacombs = dungeons?.getObj("catacombs")
+        val master_catacombs = dungeons?.getObj("master_catacombs")
 
         val totalSecrets = dungeons?.getInt("secrets")?.toDouble() ?: .0
-        val totalDungeonRunsCount = (catacombs?.getObj("tier_completions")?.getInt("total") ?: 0) + (master_catacombs?.getObj("tier_completions")?.getInt("total") ?: 0)
-        val secretAvg = (totalSecrets / totalDungeonRunsCount.toDouble()).toFixed(2)
+        val totalRuns = dungeons?.getInt("total_runs")?.toDouble() ?: .0
+        val secretAvg = (totalSecrets / totalRuns).toFixed(2)
 
-        val cataLvl = catacombs?.getDouble("experience")?.let(ProfileUtils::getCatacombsLevel) ?: "?"
+        val cataLvl = dungeons?.getDouble("catacombs_experience")?.let { getCatacombsLevel(it) } ?: "?"
         val pb = (if (type == 'F') catacombs else master_catacombs)?.getObj("fastest_time_s_plus")?.getInt("$floor")?.let(NumbersUtils::formatTime) ?: "N/A"
 
         // format style taken from SBD
@@ -213,8 +213,7 @@ object CustomPartyFinderMenu {
             val secrets = if (showSecrets) totalSecrets.toInt() else "?"
             val avg = if (showSecrets) secretAvg else "?"
 
-            append("§0§r§r")
-            append(" §b(§6$cataLvl§b)§r")
+            append("§b(§6$cataLvl§b)§r")
             append(" §8[§a$secrets§8/§b$avg§8]§r")
             append(" §8[§9$pb§8]§r")
         }

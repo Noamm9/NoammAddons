@@ -2,8 +2,7 @@ package noammaddons.features.impl.dungeons
 
 import gg.essential.universal.UChat
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.*
 import net.minecraft.event.ClickEvent
 import net.minecraft.event.HoverEvent
 import net.minecraft.util.ChatComponentText
@@ -14,22 +13,22 @@ import noammaddons.NoammAddons.Companion.CHAT_PREFIX
 import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.features.impl.gui.Menus.impl.CustomPartyFinderMenu
-import noammaddons.ui.config.core.impl.SeperatorSetting
-import noammaddons.ui.config.core.impl.ToggleSetting
+import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
+import noammaddons.utils.ChatUtils.sendChatMessage
 import noammaddons.utils.ItemUtils.lore
+import noammaddons.utils.JsonUtils.getArray
 import noammaddons.utils.JsonUtils.getDouble
 import noammaddons.utils.JsonUtils.getInt
 import noammaddons.utils.JsonUtils.getObj
 import noammaddons.utils.JsonUtils.getString
+import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.ProfileUtils.getCatacombsLevel
 import noammaddons.utils.Utils.equalsOneOf
-import noammaddons.utils.Utils.remove
 import noammaddons.utils.Utils.uppercaseFirst
-import java.time.Duration
 
 
 // todo pf join stats message and autokick?
@@ -39,9 +38,23 @@ object PartyFinder: Feature("A group of many features regarding the dungeon ape 
     private val partyFinderStats = ToggleSetting("Party Finder Stats")
     private val reformatPfMessages = ToggleSetting("Cleaner Messages")
     private val joinedSound = ToggleSetting("Join Sound")
+
+    private val autoKick = ToggleSetting("Enabled ")
+    private val autoKickFloors = listOf("F7", "M4", "M5", "M6", "M7")
+    private val autoKickFloor = DropdownSetting("Selected Floor", autoKickFloors).addDependency(autoKick)
+    private val autoKickReasons = MultiCheckboxSetting(
+        "Kick Reasons", mapOf(
+            "Personal Best" to false, "Secrets Average" to false, "Spirit Pet" to false
+        )
+    ).addDependency(autoKick)
+    private val pbReq = TextInputSetting("PB Requirement", "5:30").addDependency(autoKick).addDependency { autoKickReasons.value["Personal Best"] != true }
+    private val secretsReq = TextInputSetting("Secrets Average Requirement", "6.0").addDependency(autoKick).addDependency { autoKickReasons.value["Secrets Average"] != true }
+
     override fun init() = addSettings(
         SeperatorSetting("Custom Menu"),
         customMenu, customMenuShowStats,
+        SeperatorSetting("Auto Kick"),
+        autoKick, autoKickFloor, autoKickReasons, pbReq, secretsReq,
         SeperatorSetting("Misc"),
         partyFinderStats, reformatPfMessages, joinedSound
     )
@@ -64,11 +77,13 @@ object PartyFinder: Feature("A group of many features regarding the dungeon ape 
     }
 
     @SubscribeEvent
-    fun onChat(event: Chat) {
+    fun onChat(event: Chat) = ThreadUtils.runOnNewThread {
         val msg = event.component.formattedText
-        val playerFormatted = joinedRegex.find(msg)?.destructured?.component1() ?: return
-        if (partyFinderStats.value && playerFormatted.removeFormatting() != mc.session.username) printPlayerStats(playerFormatted)
+        val playerFormatted = joinedRegex.find(msg)?.destructured?.component1() ?: return@runOnNewThread
+        val playerUnformatted = playerFormatted.removeFormatting()
         if (joinedSound.value) SoundUtils.Pling()
+        if (partyFinderStats.value && playerUnformatted != mc.session.username) printPlayerStats(playerFormatted)
+        if (autoKick.value && ! playerUnformatted.equalsOneOf("Noamm", mc.session.username)) autoKickPlayer(playerUnformatted, playerFormatted)
     }
 
     @SubscribeEvent
@@ -124,48 +139,45 @@ object PartyFinder: Feature("A group of many features regarding the dungeon ape 
     }
 
     private fun printPlayerStats(name: String) = scope.launch {
-        val profile = ProfileUtils.getSelectedProfile(name.removeFormatting()) ?: return@launch
-        val dungeons = profile["dungeons"]?.jsonObject ?: return@launch
-        val pets = profile["pets"]?.jsonArray?.map { it.jsonObject } ?: return@launch
-        val accessoryBag = profile.getObj("accessory_bag_storage") ?: return@launch
+        val data = ProfileUtils.getDungeonStats(name.removeFormatting()) ?: return@launch
+        val dungeons = data["dungeons"]?.jsonObject ?: return@launch
+        val catacombs = dungeons.getObj("catacombs")
+        val master_catacombs = dungeons.getObj("master_catacombs")
 
-        val selectedArrow = profile.getString("favorite_arrow")?.lowercase()?.remove("_arrow")?.uppercaseFirst() ?: "None"
-        val powerStone = accessoryBag.getString("selected_power")?.uppercaseFirst() ?: "None"
+        val selectedArrow = data.getString("favorite_arrow")?.uppercaseFirst() ?: return@launch
+        val powerStone = data.getString("selected_power")?.uppercaseFirst() ?: return@launch
 
-        val catacombs = dungeons.getObj("dungeon_types")?.getObj("catacombs") ?: return@launch
-        val master_catacombs = dungeons.getObj("dungeon_types")?.getObj("master_catacombs")
+        val bloodMobsKilled = data.getInt("blood_mobs_killed") ?: return@launch
 
-        val bloodMobsKilled = profile.getObj("player_stats")?.getObj("kills")?.run { (getInt("watcher_summon_undead") ?: 0) + (getInt("master_watcher_summon_undead") ?: 0) } ?: return@launch
-
-        val catacombsRuns = catacombs.getObj("tier_completions")?.getInt("total") ?: return@launch
-        val masterCatacombsRuns = master_catacombs?.getObj("tier_completions")?.getInt("total") ?: 0
-        val totalDungeonRunsCount = (catacombsRuns + masterCatacombsRuns).toDouble()
         val totalSecrets = dungeons.getInt("secrets")?.toDouble() ?: return@launch
-        val secretAvg = totalSecrets / totalDungeonRunsCount
+        val totalRuns = dungeons.getInt("total_runs")?.toDouble() ?: .0
+        val secretAvg = totalSecrets / totalRuns
 
-        val cataLvl = catacombs.getDouble("experience")?.let { getCatacombsLevel(it) } ?: return@launch
-        val classAvg = dungeons.getObj("player_classes")?.values?.let { it.sumOf { clazz -> getCatacombsLevel(clazz.jsonObject.getDouble("experience") !!).toDouble() } / it.size.toDouble() } ?: return@launch
+        val cataLvl = dungeons.getDouble("catacombs_experience")?.let { getCatacombsLevel(it) } ?: return@launch
+        val classAvg = dungeons.getObj("player_classes")?.values?.takeUnless(Collection<*>::isEmpty)?.let {
+            it.sumOf { clazzElement -> getCatacombsLevel(clazzElement.jsonPrimitive.double) } / it.size.toDouble()
+        } ?: return@launch
 
-        val petsList = pets.filter {
-            it.getString("type").equalsOneOf("GOLDEN_DRAGON", "ENDER_DRAGON", "JELLYFISH", "SPIRIT", "BABY_YETI")
-                    && it.getString("tier").equalsOneOf("LEGENDARY", "MYTHIC")
-        }.map {
-            ItemUtils.ItemRarity.valueOf(it.getString("tier") !!).baseColor to it.getString("type") !!.let { type ->
-                if (type.endsWith("_DRAGON")) {
-                    if (type.startsWith("GOLDEN")) "Gdrag" else "Edrag"
-                }
-                else if (type.startsWith("BABY_")) "Yeti"
-                else type.lowercase().split("_").joinToString(" ") { word -> word.uppercaseFirst() }
+        val petsList = data.getArray("pets")?.mapNotNull { element ->
+            val petObject = element.jsonObject
+            val tier = petObject.getString("tier") ?: return@mapNotNull null
+            val type = petObject.getString("type") ?: return@mapNotNull null
+
+            val rarityColor = runCatching { ItemUtils.ItemRarity.valueOf(tier).baseColor }.getOrNull() ?: return@mapNotNull null
+
+            val formattedType = when {
+                type.endsWith("_DRAGON") -> if (type.startsWith("GOLDEN")) "Gdrag" else "Edrag"
+                type.startsWith("BABY_") -> "Yeti"
+                else -> type.lowercase().split("_").joinToString(" ") { word -> word.uppercaseFirst() }
             }
-        }.toSet()
 
-        //val equippmentInv = decodeBase64ItemList(profile.getObj("equippment_contents")?.getString("data") ?: return@launch)
-        //val playerInv = decodeBase64ItemList(profile.getObj("inv_contents")?.getString("data") ?: return@launch)
+            rarityColor to formattedType
+        }?.toSet() ?: return@launch
 
-        val talismenBag = ItemUtils.decodeBase64ItemList(profile.getObj("talisman_bag")?.getString("data") ?: return@launch)
-        val magicalPower = ProfileUtils.getMagicalPower(talismenBag, profile)
+        val talismenBag = data.getString("talisman_bag_data")?.let(ItemUtils::decodeBase64ItemList) ?: return@launch
+        val magicalPower = ProfileUtils.getMagicalPower(talismenBag, data)
+        val armorInv = data.getString("armor_data")?.let(ItemUtils::decodeBase64ItemList) ?: return@launch
 
-        val armorInv = ItemUtils.decodeBase64ItemList(profile.getObj("inv_armor")?.getString("data") ?: return@launch)
         val armorList = armorInv.filterNotNull().reversed().map { armorPiece ->
             val lore = armorPiece.lore.toMutableList().apply { add(0, armorPiece.displayName) }
             ChatComponentText("  " + armorPiece.displayName).apply {
@@ -176,7 +188,7 @@ object PartyFinder: Feature("A group of many features regarding the dungeon ape 
         }
 
         val completionsList = listOfNotNull(
-            catacombs.getObj("fastest_time")?.keys?.mapNotNull { it.toIntOrNull() }?.maxOrNull()?.let { highestFloor ->
+            catacombs?.getObj("tier_completions")?.keys?.mapNotNull(String::toIntOrNull)?.maxOrNull()?.let { highestFloor ->
                 val completionObj = catacombs.getObj("tier_completions")
                 val highestFloorPb = "§7(F$highestFloor): ${formatPb(catacombs.getObj("fastest_time_s_plus")?.getInt("$highestFloor") ?: "N/A")}"
 
@@ -194,7 +206,7 @@ object PartyFinder: Feature("A group of many features regarding the dungeon ape 
                     }
                 }
             },
-            master_catacombs?.getObj("fastest_time")?.keys?.mapNotNull { it.toIntOrNull() }?.maxOrNull()?.let { highestFloor ->
+            master_catacombs?.getObj("tier_completions")?.keys?.mapNotNull(String::toIntOrNull)?.maxOrNull()?.let { highestFloor ->
                 val masterCompletionObj = master_catacombs.getObj("tier_completions")
                 val highestFloorPb = "§7(M$highestFloor): ${formatPb(master_catacombs.getObj("fastest_time_s_plus")?.getInt("$highestFloor") ?: "N/A")}"
 
@@ -228,20 +240,60 @@ object PartyFinder: Feature("A group of many features regarding the dungeon ape 
         }
     }
 
-    private fun formatPb(milliseconds: Any): String {
-        if (milliseconds is String) return milliseconds
-        val duration = Duration.ofMillis((milliseconds as Number).toLong())
-        val minutes = duration.toMinutes()
-        val seconds = duration.seconds % 60
-        val resultBuilder = StringBuilder()
+    private fun autoKickPlayer(name: String, playerFormatted: String) {
+        val data = ProfileUtils.getDungeonStats(name) ?: return
+        val dungeons = data.getObj("dungeons")
+        val catacombs = dungeons?.getObj("catacombs")
+        val master_catacombs = dungeons?.getObj("master_catacombs")
 
-        if (minutes > 0) resultBuilder.append("${minutes}m")
-
-        if (seconds > 0) {
-            if (resultBuilder.isNotEmpty()) resultBuilder.append(" ")
-            resultBuilder.append("${seconds}s")
+        val secretAvg = dungeons.let {
+            val totalRuns = it?.getInt("total_runs")?.toDouble() !!
+            val totalSecrets = it.getInt("secrets")?.toDouble() !!
+            totalSecrets / totalRuns
         }
 
-        return resultBuilder.toString()
+        val spirit = data.getArray("pets")?.any { it.jsonObject.getString("type") == "SPIRIT" } ?: false
+
+        val pb = autoKickFloors[autoKickFloor.value].run { (if (startsWith('F')) catacombs else master_catacombs)?.getObj("fastest_time_s_plus")?.getInt("${last()}") }
+        val prefix = "&9AutoKick &f>"
+
+        fun kickPlayer(reason: String) {
+            modMessage("$prefix Kicking $playerFormatted ($reason)")
+            sendChatMessage("/p kick $name")
+        }
+
+        if (autoKickReasons.value["Personal Best"] == true) {
+            val requiredPb = pbReq.value.split(":").let { parts ->
+                when (parts.size) {
+                    1 -> parts[0].toIntOrNull()?.times(1000) ?: Int.MAX_VALUE
+                    2 -> {
+                        val minutes = parts[0].toIntOrNull() ?: return@let Int.MAX_VALUE
+                        val seconds = parts[1].toIntOrNull() ?: return@let Int.MAX_VALUE
+                        (minutes * 60 * 1000) + (seconds * 1000)
+                    }
+
+                    else -> {
+                        modMessage("$prefix &cError: Invalid PB time format '${pbReq.value}'. Expected 'MM:SS' or 'SS'.")
+                        null
+                    }
+                }
+            }
+
+            if (pb == null) return kickPlayer("PB: No S+ | Req: ${pbReq.value}")
+            if (requiredPb != null && pb > requiredPb) return kickPlayer("PB: ${formatPb(pb)} | Req: ${pbReq.value}")
+        }
+
+        if (autoKickReasons.value["Secrets Average"] == true) {
+            val requiredSecretsAvg = secretsReq.value.toDoubleOrNull()
+            if (requiredSecretsAvg == null) modMessage("$prefix &cError: Secrets Average input is not a valid number \"${secretsReq.value}\".")
+            else if (secretAvg < requiredSecretsAvg) return kickPlayer("SecretsAvg: ${secretAvg.toFixed(2)} | Req: $requiredSecretsAvg")
+        }
+
+        if (autoKickReasons.value["Spirit Pet"] == true && ! spirit) return kickPlayer("Missing Spirit Pet")
+    }
+
+    private fun formatPb(milliseconds: Any): String {
+        return if (milliseconds is String) milliseconds
+        else NumbersUtils.formatTime(milliseconds as Number)
     }
 }

@@ -2,7 +2,6 @@ package noammaddons.utils
 
 import kotlinx.serialization.json.*
 import net.minecraft.item.ItemStack
-import noammaddons.NoammAddons
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.ItemUtils.lore
 import noammaddons.utils.ItemUtils.skyblockID
@@ -11,7 +10,6 @@ import noammaddons.utils.JsonUtils.getBoolean
 import noammaddons.utils.JsonUtils.getInt
 import noammaddons.utils.JsonUtils.getObj
 import noammaddons.utils.JsonUtils.getString
-import noammaddons.utils.Utils.remove
 import noammaddons.utils.WebUtils.readUrl
 import kotlin.math.floor
 
@@ -51,27 +49,17 @@ object ProfileUtils {
         return JsonUtils.stringToJson(raw).takeIf { it.getBoolean("success") == true }?.getObj("player")
     }
 
-    fun getSelectedProfile(_name: String): JsonObject? {
+    fun getDungeonStats(_name: String): JsonObject? {
         val name = _name.uppercase()
         if (profileCache.containsKey(name)) return profileCache[name]
         val uuid = getUUID(name) ?: return null
 
         profileCache[name] = JsonObject(mapOf())
-        NoammAddons.Logger.info("Fetching Skyblock Data for $_name")
-        val raw = readUrl("$API/hypixel/skyblock/profiles?uuid=$uuid")
-        val jsonObject = JsonUtils.stringToJson(raw).takeIf { it.getValue("success").jsonPrimitive.boolean } ?: return null
-        val selectedProfile = jsonObject.getArray("profiles")?.find {
-            it.jsonObject.getBoolean("selected") == true
-        }?.jsonObject?.getObj("members")?.entries?.find {
-            it.key == uuid.remove("-")
-        }?.value?.jsonObject
+        val data = JsonUtils.stringToJson(readUrl("$API/dungeonstats?uuid=$uuid"))
 
-        return if (selectedProfile != null) {
-            profileCache[name] = selectedProfile
-            ThreadUtils.setTimeout(60 * 10 * 1000) { profileCache.remove(name) }
-            selectedProfile
-        }
-        else null
+        profileCache[name] = data
+        ThreadUtils.setTimeout(60 * 10 * 1000) { profileCache.remove(name) }
+        return data
     }
 
     fun getStatus(name: String): Boolean {
@@ -130,7 +118,7 @@ object ProfileUtils {
             val bonus = when (itemId) {
                 "HEGEMONY_ARTIFACT" -> mp
                 "ABICASE" -> {
-                    val contacts = profileInfo.getObj("nether_island_player_data")?.getObj("abiphone")?.getArray("active_contacts")?.size ?: 0
+                    val contacts = profileInfo.getArray("abiphone_contacts")?.size ?: 0
                     floor(contacts / 2.0).toInt()
                 }
 
@@ -144,7 +132,7 @@ object ProfileUtils {
             acc + pair.second
         }.let {
             when {
-                profileInfo.getObj("rift")?.getObj("access")?.get("consumed_prism") != null -> it + 11
+                profileInfo.getBoolean("consumed_rift_prism") == true -> it + 11
                 else -> it
             }
         }
