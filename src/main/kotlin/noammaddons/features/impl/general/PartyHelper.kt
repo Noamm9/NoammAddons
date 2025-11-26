@@ -5,7 +5,6 @@ import net.minecraft.event.HoverEvent
 import net.minecraft.util.ChatComponentText
 import net.minecraft.util.ChatStyle
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.NoammAddons.Companion.CHAT_PREFIX
 import noammaddons.events.*
 import noammaddons.events.Chat
 import noammaddons.features.Feature
@@ -13,7 +12,6 @@ import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.noFormatText
-import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendChatMessage
 import noammaddons.utils.ChatUtils.sendPartyMessage
 import noammaddons.utils.ChatUtils.showTitle
@@ -128,8 +126,8 @@ object PartyHelper: Feature("Party Commands, /pl reformatting") {
                 runCommand("pc x: $x, y: $y, z: $z")
             }
 
-            commands.get("!tps") && command == "tps" -> runCommand("pc ${CHAT_PREFIX.removeFormatting()} TPS: ${ServerUtils.averageTps}")
-            commands.get("!ping") && command == "ping" -> runCommand("pc ${CHAT_PREFIX.removeFormatting()} Ping: ${ServerUtils.latestPing}ms")
+            commands.get("!tps") && command == "tps" -> runCommand("pc TPS: ${ServerUtils.averageTps}")
+            commands.get("!ping") && command == "ping" -> runCommand("pc Ping: ${ServerUtils.latestPing}ms")
 
             commands.get("!dt") && command.equalsOneOf("dt", "downtime") -> {
                 downtimeList[name] = if (args.isEmpty()) "No Reason Provided" else args.joinToString(" ")

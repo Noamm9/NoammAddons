@@ -1,6 +1,5 @@
 package noammaddons.features.impl.alerts
 
-import noammaddons.NoammAddons.Companion.CHAT_PREFIX
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.TextInputSetting
 import noammaddons.ui.config.core.impl.ToggleSetting
@@ -12,7 +11,7 @@ object CryptsDone: Feature() {
     private val showTitle = ToggleSetting("Show Title", true).register1()
     private val title = TextInputSetting("Title", "&aCrypts Done!").addDependency(showTitle).register1()
     private val sendMessage = ToggleSetting("Send Message", true).register1()
-    private val message = TextInputSetting("Message", "$CHAT_PREFIX Crypts Done!").addDependency(sendMessage).register1()
+    private val message = TextInputSetting("Message", "Crypts Done!").addDependency(sendMessage).register1()
 
     /**
      * @see noammaddons.features.impl.dungeons.dmap.handlers.ScoreCalculation

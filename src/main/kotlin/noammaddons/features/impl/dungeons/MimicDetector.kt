@@ -5,7 +5,6 @@ import gg.essential.elementa.utils.withAlpha
 import net.minecraft.entity.monster.EntityZombie
 import net.minecraft.tileentity.TileEntityChest
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.NoammAddons.Companion.CHAT_PREFIX
 import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.annotations.AlwaysActive
@@ -84,7 +83,7 @@ object MimicDetector: Feature("Detects when a Mimic or Prince is killed") {
         if (princeMessages.any { message.contains(it) }) {
             princeKilled.set(true)
             if (enabled && prince.value && message == "a prince falls. +1 bonus score") {
-                sendPartyMessage("$CHAT_PREFIX Prince Killed")
+                sendPartyMessage("Prince Killed")
             }
         }
     }
@@ -100,7 +99,7 @@ object MimicDetector: Feature("Detects when a Mimic or Prince is killed") {
         mimicKilled.set(true)
 
         if (enabled && mimic.value)
-            sendPartyMessage("$CHAT_PREFIX Mimic killed!")
+            sendPartyMessage("Mimic killed!")
     }
 
     private fun shouldHighlightMimicChest(chest: TileEntityChest): Boolean {

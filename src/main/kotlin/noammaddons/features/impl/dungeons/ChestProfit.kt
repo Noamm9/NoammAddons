@@ -8,7 +8,6 @@ import net.minecraft.util.EnumParticleTypes
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.client.event.GuiScreenEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.NoammAddons.Companion.CHAT_PREFIX
 import noammaddons.config.EditGui.GuiElement
 import noammaddons.config.EditGui.HudEditorScreen
 import noammaddons.events.*
@@ -341,7 +340,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator and Croesus Overlay
         if (str in resentSent) return
         resentSent.add(str)
 
-        if (rng.value) sendPartyMessage("$CHAT_PREFIX $str")
+        if (rng.value) sendPartyMessage(str)
         modMessage(str)
 
         mc.thePlayer.playSound("note.pling", 50f, 1.22f)

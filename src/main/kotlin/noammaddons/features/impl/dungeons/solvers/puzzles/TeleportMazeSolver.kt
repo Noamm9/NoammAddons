@@ -129,7 +129,6 @@ object TeleportMazeSolver {
                 msg = message,
                 cmd = "/na copy ${message.removeFormatting()}",
                 hover = "Total Time: &b${(totalTime / 1000.0).toFixed(2)}s",
-                prefix = false
             )
         }
 

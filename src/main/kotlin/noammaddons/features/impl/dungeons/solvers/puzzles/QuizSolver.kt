@@ -86,7 +86,7 @@ object QuizSolver {
                         val pbMessage = formatPbPuzzleMessage("Quiz", completionTime, previousBest)
 
                         sendPartyMessage(pbMessage)
-                        clickableChat(msg = pbMessage, cmd = "/na copy ${pbMessage.removeFormatting()}", prefix = false)
+                        clickableChat(pbMessage, "/na copy ${pbMessage.removeFormatting()}")
                         timeStarted = null
                     }
                 }

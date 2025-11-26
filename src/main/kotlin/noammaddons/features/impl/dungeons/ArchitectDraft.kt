@@ -1,7 +1,6 @@
 package noammaddons.features.impl.dungeons
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.NoammAddons.Companion.CHAT_PREFIX
 import noammaddons.events.Chat
 import noammaddons.features.Feature
 import noammaddons.features.impl.dungeons.dmap.core.map.RoomType
@@ -32,9 +31,9 @@ object ArchitectDraft: Feature("auto architect draft and anounces resets") {
         val msg = event.component.noFormatText
 
         if (sayDraft.value) resetPattern.find(msg)?.destructured?.component1()?.let {
-            sendPartyMessage("$CHAT_PREFIX Used Draft to Reset $it")
+            sendPartyMessage("Used Draft to Reset $it")
         }
-        
+
         if (autoDraft.value) {
             val match = failPattern1.find(msg) ?: failPattern2.find(msg)
             val name = match?.destructured?.component1()

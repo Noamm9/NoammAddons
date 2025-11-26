@@ -92,12 +92,7 @@ object TicTacToeSolver {
             val message = formatPbPuzzleMessage("Tic Tac Toe", completionTime, previousBest)
 
             sendPartyMessage(message)
-
-            clickableChat(
-                msg = message,
-                cmd = "/na copy ${message.removeFormatting()}",
-                prefix = false
-            )
+            clickableChat(message, "/na copy ${message.removeFormatting()}")
 
             inTicTacToe = false
             trueStartTime = null

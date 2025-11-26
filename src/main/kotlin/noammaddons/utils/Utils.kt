@@ -4,7 +4,6 @@ import gg.essential.universal.UChat
 import gg.essential.universal.UDesktop
 import kotlinx.serialization.json.*
 import net.minecraft.network.Packet
-import noammaddons.NoammAddons.Companion.CHAT_PREFIX
 import noammaddons.NoammAddons.Companion.Logger
 import noammaddons.NoammAddons.Companion.MOD_NAME
 import noammaddons.NoammAddons.Companion.mc
@@ -122,7 +121,7 @@ object Utils {
         val formattedBest = (((previousBest ?: 20000.0) / 1000.0)).toFixed(2)
 
         return buildString {
-            append("$CHAT_PREFIX &b$puzzle Took: &d")
+            append("&b$puzzle Took: &d")
             if (previousBest != null && completionTime <= previousBest) {
                 val data = personalBests.getData()
                 data.pazzles[puzzle] = completionTime

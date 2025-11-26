@@ -1,7 +1,6 @@
 package noammaddons.features.impl.general
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.NoammAddons.Companion.CHAT_PREFIX
 import noammaddons.events.Chat
 import noammaddons.events.RenderOverlay
 import noammaddons.features.Feature
@@ -21,7 +20,6 @@ object SBKick: Feature("Shows how long it has been since the last time you were 
     private val timer by ToggleSetting("Show Timer")
     private val sendMsg by ToggleSetting("Send Party Message")
 
-
     private var showTime = false
     private var lastKickTime = System.currentTimeMillis()
     private var hasWarned = false
@@ -35,13 +33,13 @@ object SBKick: Feature("Shows how long it has been since the last time you were 
             }
 
             "You were kicked while joining that server!" -> {
-                if (sendMsg) sendPartyMessage("$CHAT_PREFIX You were kicked while joining that server!")
+                if (sendMsg) sendPartyMessage("You were kicked while joining that server!")
                 lastKickTime = System.currentTimeMillis()
                 showTime = true
             }
 
             "A kick occurred in your connection, so you were put in the SkyBlock lobby!" -> {
-                if (sendMsg) sendPartyMessage("$CHAT_PREFIX You were kicked while joining that server!")
+                if (sendMsg) sendPartyMessage("You were kicked while joining that server!")
                 lastKickTime = System.currentTimeMillis()
                 showTime = true
             }
