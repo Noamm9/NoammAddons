@@ -16,7 +16,6 @@ import noammaddons.features.impl.dungeons.dmap.core.DungeonMapConfig
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapElement
 import noammaddons.features.impl.dungeons.dmap.core.map.*
 import noammaddons.features.impl.dungeons.dmap.handlers.*
-import noammaddons.features.impl.dungeons.dmap.handlers.ScoreCalculation.deathCount
 import noammaddons.features.impl.dungeons.dmap.utils.MapUtils
 import noammaddons.ui.config.core.annotations.AlwaysActive
 import noammaddons.utils.*
@@ -135,7 +134,7 @@ object DungeonMap: Feature() {
     fun onPlayerDeathEvent(event: DungeonEvent.PlayerDeathEvent) {
         ClearInfoUpdater.updateDeaths(event.name, event.reason)
         MapUpdater.onPlayerDeath()
-        deathCount ++
+        ScoreCalculation.deathCount ++
     }
 
     @SubscribeEvent
