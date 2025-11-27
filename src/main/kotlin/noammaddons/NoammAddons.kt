@@ -1,8 +1,8 @@
 package noammaddons
 
 import kotlinx.coroutines.*
-import kotlinx.serialization.builtins.*
-import kotlinx.serialization.json.*
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
 import net.minecraft.client.Minecraft
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.Mod
@@ -21,6 +21,7 @@ import noammaddons.features.impl.misc.Cosmetics.CosmeticRendering
 import noammaddons.ui.font.GlyphPageFontRenderer
 import noammaddons.ui.font.TextRenderer
 import noammaddons.utils.*
+import noammaddons.utils.JsonUtils.getObj
 import org.apache.logging.log4j.LogManager
 
 
@@ -58,7 +59,7 @@ class NoammAddons {
         val ahData = mutableMapOf<String, Double>()
 
         @JvmField
-        val bzData = mutableMapOf<String, Int>()
+        val bzData = mutableMapOf<String, Double>()
 
         @JvmField
         val npcData = mutableMapOf<String, Double>()
@@ -124,41 +125,26 @@ class NoammAddons {
     fun init() = ThreadUtils.loop(600_000) {
         if (DevOptions.updateChecker) UpdateUtils.update()
 
-        WebUtils.get("https://moulberry.codes/lowestbin.json") { obj ->
+        WebUtils.get("https://api.noammaddons.workers.dev/lowestbin") { obj ->
             ahData.putAll(JsonUtils.json.decodeFromJsonElement(MapSerializer(String.serializer(), Double.serializer()), obj))
         }
 
-        WebUtils.get("https://api.hypixel.net/v2/skyblock/bazaar") { obj ->
-            if (obj["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
-
-            val rawBzData = JsonUtils.json.decodeFromJsonElement(
-                MapSerializer(String.serializer(), bzitem.serializer()),
-                obj["products"] !!
-            )
-
-            val data = rawBzData.entries.associate {
-                it.value.quick_status.productId to (it.value.buy_summary.firstOrNull()?.get("pricePerUnit")?.toInt() ?: 0)
-            }
-
-            bzData.putAll(data)
+        WebUtils.get("https://api.noammaddons.workers.dev/bazaar") { obj ->
+            bzData.putAll(JsonUtils.json.decodeFromJsonElement(MapSerializer(String.serializer(), Double.serializer()), obj))
         }
 
-        WebUtils.get("https://api.hypixel.net/resources/skyblock/items") { obj ->
-            if (obj["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
-            val items = JsonUtils.json.decodeFromJsonElement(ListSerializer(APISBItem.serializer()), obj["items"] !!)
-            val sellPrices = items.filter { it.npcSellPrice != null }.associate { it.id to it.npcSellPrice !! }
-            val idToName = items.associate { it.id to it.name }.toMutableMap()
-            itemIdToNameLookup.putAll(idToName)
-            npcData.putAll(sellPrices)
+        WebUtils.get("https://api.noammaddons.workers.dev/items") { obj ->
+            itemIdToNameLookup.putAll(JsonUtils.json.decodeFromJsonElement(MapSerializer(String.serializer(), String.serializer()), obj["itemIdToName"] !!))
+            npcData.putAll(JsonUtils.json.decodeFromJsonElement(MapSerializer(String.serializer(), Double.serializer()), obj["sellPrice"] !!))
         }
 
-        WebUtils.get("https://api.hypixel.net/v2/resources/skyblock/election") { jsonObject ->
-            if (jsonObject["success"]?.jsonPrimitive?.booleanOrNull != true) return@get
-            val mayorElement = jsonObject["mayor"] ?: return@get
-            val ministerElement = mayorElement.jsonObject["minister"] ?: return@get
+        WebUtils.get("https://api.noammaddons.workers.dev/mayor") { jsonObject ->
+            val mayorElement = jsonObject.getObj("mayor") ?: return@get
+            val ministerElement = mayorElement["minister"]
             mayorData = ApiMayor(
                 JsonUtils.json.decodeFromJsonElement(ApiMayor.Candidate.serializer(), mayorElement),
-                JsonUtils.json.decodeFromJsonElement(ApiMayor.Minister.serializer(), ministerElement)
+                ministerElement?.let { JsonUtils.json.decodeFromJsonElement(ApiMayor.Minister.serializer(), it) }
+                    ?: ApiMayor.Minister("", ApiMayor.Perk.empty)
             )
         }
     }

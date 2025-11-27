@@ -58,10 +58,7 @@ data class Vector3(var x: Double = 0.0, var y: Double = 0.0, var z: Double = 0.0
 }
 
 
-data class ApiMayor(
-    val mayor: Candidate,
-    val minister: Minister
-) {
+data class ApiMayor(val mayor: Candidate, val minister: Minister) {
     companion object {
         val empty = ApiMayor(Candidate("", emptyList()), Minister("", Perk("", "")))
     }
@@ -83,52 +80,12 @@ data class ApiMayor(
     )
 
     @Serializable
-    data class Perk(val name: String, val description: String)
+    data class Perk(val name: String, val description: String) {
+        companion object {
+            val empty = Perk("", "")
+        }
+    }
 }
-
-@Serializable
-data class APISBItem(
-    @SerialName("id")
-    val id: String,
-    @SerialName("material")
-    val material: String,
-    @SerialName("motes_sell_price")
-    val motesSellPrice: Double? = null,
-    @SerialName("name")
-    val name: String,
-    @SerialName("npc_sell_price")
-    val npcSellPrice: Double? = null,
-)
-
-@Serializable
-data class bzitem(
-    @SerialName("quick_status")
-    val quick_status: ApiBzItem,
-    @SerialName("buy_summary")
-    val buy_summary: List<Map<String, Double>>
-)
-
-@Serializable
-data class ApiBzItem(
-    @SerialName("productId")
-    val productId: String,
-    @SerialName("sellPrice")
-    val sellPrice: Double,
-    @SerialName("sellVolume")
-    val sellVolume: Double,
-    @SerialName("sellMovingWeek")
-    val sellMovingWeek: Double,
-    @SerialName("sellOrders")
-    val sellOrders: Double,
-    @SerialName("buyPrice")
-    val buyPrice: Double,
-    @SerialName("buyVolume")
-    val buyVolume: Double,
-    @SerialName("buyMovingWeek")
-    val buyMovingWeek: Double,
-    @SerialName("buyOrders")
-    val buyOrders: Double
-)
 
 data class PetDisplayData(
     val hudData: HudElementData,

@@ -2,7 +2,6 @@ package noammaddons.utils
 
 import kotlinx.serialization.json.*
 import net.minecraft.item.ItemStack
-import noammaddons.NoammAddons.Companion.mc
 import noammaddons.utils.ItemUtils.lore
 import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.JsonUtils.getArray
@@ -16,8 +15,8 @@ import kotlin.math.floor
 
 object ProfileUtils {
     private const val API = "https://api.noammaddons.workers.dev"
-    val profileCache = mutableMapOf<String, JsonObject>()
-    val uuidCache = mutableMapOf(mc.session.username to mc.session.playerID)
+    val profileCache = HashMap<String, JsonObject>()
+    val uuidCache = HashMap<String, String?>()
 
     private val mojangApiList = listOf(
         "https://api.minecraftservices.com/minecraft/profile/lookup/name/",

@@ -34,7 +34,9 @@ object QuizSolver {
 
     private var inQuiz = false
     private var timeStarted: Long? = null
-    private var ticks = - 1
+
+    private var questionsStarted = false
+    private var answerTime = 0
 
 
     @SubscribeEvent
@@ -66,18 +68,21 @@ object QuizSolver {
         val trimmed = message.trim()
 
         if (message == "[STATUE] Oruo the Omniscient: I am Oruo the Omniscient. I have lived many lives. I have learned all there is to know.") {
-            if (ticks == - 1) ticks = 0
+            questionsStarted = true
+            answerTime = 12 * 20
         }
 
         when {
             message.startsWith("[STATUE] Oruo the Omniscient: ") && message.endsWith("correctly!") -> {
+                answerTime = (8.5 * 20).toInt()
                 if (message.contains("answered the final question")) {
+                    questionsStarted = false
                     triviaOptions.forEach {
                         it.blockPos = BlockPos(0, 0, 0)
                         it.isCorrect = false
                     }
                     triviaAnswers = null
-                    ticks = - 1
+                    answerTime = - 1
                     correctAnswer = null
                     timeStarted?.let {
                         val personalBestsData = personalBests.getData().pazzles
@@ -97,7 +102,7 @@ object QuizSolver {
 
             trimmed.startsWithOneOf("ⓐ", "ⓑ", "ⓒ") -> {
                 triviaAnswers?.firstOrNull { message.endsWith(it) }?.let {
-                    correctAnswer = it
+                    correctAnswer = "${trimmed[0]} $it"
                     when (trimmed[0]) {
                         'ⓐ' -> triviaOptions[0].isCorrect = true
                         'ⓑ' -> triviaOptions[1].isCorrect = true
@@ -141,20 +146,16 @@ object QuizSolver {
 
     @SubscribeEvent
     fun onRenderOverlay(event: RenderOverlay) {
-        if (ticks > 0) {
-            val timeleft = (242 - ticks) / 20
-            if (timeleft <= 0) {
-                ticks = - 1
-                return
-            }
+        if (answerTime > 0 && questionsStarted) {
+            val timeleft = (answerTime / 20).takeIf { it > 0 } ?: return
             RenderUtils.drawTitle("", "&dQuiz: &b$timeleft")
         }
     }
 
     @SubscribeEvent
     fun onServerTick(event: ServerTick) {
-        if (inQuiz && ticks != - 1) {
-            ticks ++
+        if (answerTime > 0 && questionsStarted) {
+            answerTime --
         }
     }
 }
