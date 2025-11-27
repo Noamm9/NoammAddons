@@ -84,6 +84,12 @@ object WaterBoardSolver {
     }
 
     @SubscribeEvent
+    fun onWorldUnload(event: WorldUnloadEvent) {
+        if (patternIdentifier == - 1) return
+        reset()
+    }
+
+    @SubscribeEvent
     fun onRenderWorld(event: RenderWorld) {
         if (patternIdentifier == - 1 || solutions.isEmpty()) return
 

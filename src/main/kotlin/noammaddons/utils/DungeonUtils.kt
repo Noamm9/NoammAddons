@@ -53,8 +53,6 @@ object DungeonUtils {
     var leapTeammates = listOf<DungeonPlayer>()
     var thePlayer: DungeonPlayer? = null
 
-    data class Puzzle(val name: String, var state: RoomState)
-
     var puzzles = mutableListOf<Puzzle>()
 
     val dungeonStarted get() = dungeonTeammates.isNotEmpty()
@@ -179,7 +177,7 @@ object DungeonUtils {
                 currentTeammate.clazz = if (clazz != "DEAD") Classes.getByName(clazz) else currentTeammate.clazz
                 currentTeammate.clazzLvl = clazzLevel.romanToDecimal()
                 currentTeammate.skin = skin
-                if (currentTeammate != thePlayer) currentTeammate.isDead = clazz == "DEAD"
+                currentTeammate.isDead = clazz == "DEAD"
             } ?: run {
                 dungeonTeammates.add(
                     DungeonPlayer(
@@ -209,17 +207,26 @@ object DungeonUtils {
 
     private fun updatePuzzles(tabListEntries: List<String>) {
         tabListEntries.forEach { line ->
-            val name = puzzleRegex.find(line)?.destructured?.component1()?.takeUnless { "?" in it } ?: return@forEach
+            val name = puzzleRegex.find(line)?.destructured?.component1() ?: return@forEach
             val state = when {
                 "✔" in line -> RoomState.GREEN
                 "✖" in line -> RoomState.FAILED
                 "✦" in line -> RoomState.DISCOVERED
-                else -> RoomState.UNOPENED
+                else -> return@forEach
             }
-            val puzzle = puzzles.find { it.name == name } ?: run {
-                val newPuzzle = Puzzle(name, state)
-                puzzles.add(newPuzzle)
-                postAndCatch(DungeonEvent.PuzzleEvent.Discovered(name))
+
+            val puzzle = puzzles.find {
+                name.equalsOneOf(it.roomDataName, it.tabName)
+                        && it.roomDataName != Puzzle.UNKNOWN.roomDataName
+            } ?: run {
+                val newPuzzle = Puzzle.fromName(name)?.also { newPuzzle ->
+                    if (newPuzzle != Puzzle.UNKNOWN) puzzles.find { it == Puzzle.UNKNOWN }?.let {
+                        puzzles.remove(it)
+                        puzzles.add(newPuzzle)
+                    }
+                    else puzzles.add(newPuzzle)
+                } ?: return@forEach
+                if (newPuzzle != Puzzle.UNKNOWN) postAndCatch(DungeonEvent.PuzzleEvent.Discovered(name))
                 return@forEach
             }
 
@@ -232,7 +239,7 @@ object DungeonUtils {
                 }
             )
 
-            puzzle.state = state
+            if (puzzle != Puzzle.UNKNOWN) puzzle.state = state
         }
     }
 

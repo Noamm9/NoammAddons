@@ -14,11 +14,14 @@ enum class Puzzle(val roomDataName: String, val tabName: String = roomDataName) 
     TELEPORT_MAZE("Teleport Maze"),
     THREE_WEIRDOS("Three Weirdos"),
     TIC_TAC_TOE("Tic Tac Toe"),
-    WATER_BOARD("Water Board");
+    WATER_BOARD("Water Board"),
+    UNKNOWN("???");
 
     companion object {
         fun fromName(name: String) = entries.find {
             name.equalsOneOf(it.roomDataName, it.tabName)
         }
     }
+
+    var state = if (roomDataName == "???") RoomState.UNOPENED else RoomState.DISCOVERED
 }
