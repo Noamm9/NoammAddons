@@ -29,6 +29,7 @@ import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderUtils.drawText
 import noammaddons.utils.RenderUtils.drawTextWithoutColorLeak
 import noammaddons.utils.Utils.equalsOneOf
+import noammaddons.utils.Utils.remove
 
 
 object CustomPartyFinderMenu {
@@ -205,7 +206,14 @@ object CustomPartyFinderMenu {
         val secretAvg = (totalSecrets / totalRuns).toFixed(2)
 
         val cataLvl = dungeons?.getDouble("catacombs_experience")?.let { getCatacombsLevel(it) } ?: "?"
-        val pb = (if (type == 'F') catacombs else master_catacombs)?.getObj("fastest_time_s_plus")?.getInt("$floor")?.let(NumbersUtils::formatTime) ?: "N/A"
+        val pb = ((if (type == 'F') catacombs else master_catacombs)?.getObj("fastest_time_s_plus")
+            ?.getInt("$floor")?.let {
+                val str = NumbersUtils.formatTime(it)
+                str.split(" ").joinToString(":") {
+                    if (it.length == 2 && it.contains("s")) ("0" + it.remove("s"))
+                    else it.remove("m", "s")
+                }
+            } ?: "N/A")
 
         // format style taken from SBD
         return buildString {

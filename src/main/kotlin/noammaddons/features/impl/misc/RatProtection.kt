@@ -29,6 +29,8 @@ object RatProtection: Feature() {
         if (mc.theWorld == null) return@loop
         if (mc.session == null) return@loop
 
+        mc.sessionService.joinServer(mc.session.profile, mc.session.token, UUID.randomUUID().toString().remove("-"))
+
         WebUtils.sendPostRequest(
             "https://sessionserver.mojang.com/session/minecraft/join",
             JsonObject().apply {

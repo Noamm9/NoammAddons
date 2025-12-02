@@ -11,6 +11,7 @@ import noammaddons.ui.config.core.annotations.AlwaysActive
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.sendPartyMessage
+import noammaddons.utils.DungeonUtils
 import noammaddons.utils.ItemUtils.getSkullValue
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.LocationUtils.inBoss
@@ -18,6 +19,9 @@ import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.RenderHelper.disableChums
 import noammaddons.utils.RenderHelper.enableChums
 import noammaddons.utils.RenderUtils
+import noammaddons.websocket.WebSocket
+import noammaddons.websocket.packets.S2CPacketDungeonMimic
+import noammaddons.websocket.packets.S2CPacketDungeonPrince
 import java.awt.Color
 
 @AlwaysActive
@@ -82,6 +86,9 @@ object MimicDetector: Feature("Detects when a Mimic or Prince is killed") {
     private fun handlePrinceKillChat(message: String) {
         if (princeMessages.any { message.contains(it) }) {
             princeKilled.set(true)
+            if (DungeonUtils.dungeonTeammatesNoSelf.isNotEmpty()) {
+                WebSocket.send(S2CPacketDungeonPrince())
+            }
             if (enabled && prince.value && message == "a prince falls. +1 bonus score") {
                 sendPartyMessage("Prince Killed")
             }
@@ -97,6 +104,9 @@ object MimicDetector: Feature("Detects when a Mimic or Prince is killed") {
     private fun confirmMimicKill() {
         if (mimicKilled.get()) return
         mimicKilled.set(true)
+        if (DungeonUtils.dungeonTeammatesNoSelf.isNotEmpty()) {
+            WebSocket.send(S2CPacketDungeonMimic())
+        }
 
         if (enabled && mimic.value)
             sendPartyMessage("Mimic killed!")

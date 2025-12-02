@@ -29,6 +29,7 @@ import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.ProfileUtils.getCatacombsLevel
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.uppercaseFirst
+import kotlin.math.abs
 
 
 // todo pf join stats message and autokick?
@@ -280,7 +281,7 @@ object PartyFinder: Feature("A group of many features regarding the dungeon ape 
             }
 
             if (pb == null) return kickPlayer("PB: No S+ | Req: ${pbReq.value}")
-            if (requiredPb != null && pb > requiredPb) return kickPlayer("PB: ${formatPb(pb)} | Req: ${pbReq.value}")
+            if (requiredPb != null && pb > requiredPb && abs(pb - requiredPb) > 1000) return kickPlayer("PB: ${formatPb(pb)} | Req: ${pbReq.value}")
         }
 
         if (autoKickReasons.value["Secrets Average"] == true) {

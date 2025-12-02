@@ -42,7 +42,7 @@ object DragonTest {
                         WitherDragonEnum.None -> return@forEach
                     }
 
-                    WitherDragonEnum.handleSpawnPacket(S2APacketParticles(EnumParticleTypes.FLAME, true, x, 19f, z, 2f, 3f, 2f, 0f, 20, 1))
+                    DragonCheck.handleSpawnPacket(S2APacketParticles(EnumParticleTypes.FLAME, true, x, 19f, z, 2f, 3f, 2f, 0f, 20, 1))
                 }
 
                 val dragonNames = dragonsToSimulate.joinToString(", ") { it.name }

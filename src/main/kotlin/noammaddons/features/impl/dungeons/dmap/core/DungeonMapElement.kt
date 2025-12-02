@@ -181,10 +181,10 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
                 }
 
                 2 -> MapRenderUtils.renderCenteredText(
-                    listOf("${room.data.secrets}"),
+                    listOf("${room.uniqueRoom?.foundSecrets ?: 0}/${room.data.secrets}"),
                     xOffset + HotbarMapColorParser.halfRoom,
                     yOffset + 1 + HotbarMapColorParser.halfRoom,
-                    color, DungeonMapConfig.textScale.value * 2f
+                    color, DungeonMapConfig.textScale.value
                 )
             }
         }

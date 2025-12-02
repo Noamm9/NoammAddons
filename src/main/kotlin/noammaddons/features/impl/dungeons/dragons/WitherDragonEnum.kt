@@ -1,17 +1,16 @@
 package noammaddons.features.impl.dungeons.dragons
 
 import net.minecraft.entity.boss.EntityDragon
-import net.minecraft.network.play.server.S2APacketParticles
 import net.minecraft.util.*
 import noammaddons.NoammAddons.Companion.mc
-import noammaddons.features.impl.dungeons.dragons.DragonPriority.displaySpawningDragon
-import noammaddons.features.impl.dungeons.dragons.DragonPriority.findPriority
 import noammaddons.features.impl.dungeons.dragons.WitherDragons.currentTick
 import noammaddons.features.impl.dungeons.dragons.WitherDragons.priorityDragon
 import noammaddons.features.impl.dungeons.dragons.WitherDragons.sendArrowHit
 import noammaddons.features.impl.dungeons.dragons.WitherDragons.sendSpray
 import noammaddons.features.impl.dungeons.dragons.WitherDragons.sendTime
 import noammaddons.utils.ChatUtils.modMessage
+import noammaddons.websocket.WebSocket
+import noammaddons.websocket.packets.S2CPacketM7Dragon
 import java.awt.Color
 
 enum class WitherDragonEnum(
@@ -31,9 +30,6 @@ enum class WitherDragonEnum(
     var sprayedTime: Long? = null,
     var spawnedTime: Long = 0,
     var arrowsHit: Int = 0,
-    var awaitingRespawn: Boolean = false,
-    var lastPosition: Vec3? = null,
-    var lastChunk: Pair<Int, Int>? = null
 ) {
     Red(Vec3(27.0, 14.0, 59.0), AxisAlignedBB(14.5, 13.0, 45.5, 39.5, 28.0, 70.5), 'c', Color(mc.fontRendererObj.getColorCode('c')), 24.0 .. 30.0, 56.0 .. 62.0, 50, BlockPos(32, 19, 59)),
     Orange(Vec3(85.0, 14.0, 56.0), AxisAlignedBB(72.0, 8.0, 47.0, 102.0, 28.0, 77.0), '6', Color(mc.fontRendererObj.getColorCode('6')), 82.0 .. 88.0, 53.0 .. 59.0, 62, BlockPos(80, 19, 56)),
@@ -53,20 +49,16 @@ enum class WitherDragonEnum(
         sprayedTime = null
         arrowsHit = 0
 
-        awaitingRespawn = false
-        lastPosition = null
-        lastChunk = null
+        WebSocket.send(S2CPacketM7Dragon(S2CPacketM7Dragon.DragonEvent.SPAWN, this))
     }
 
     fun setDead(silent: Boolean = false) {
         if (state == WitherDragonState.DEAD) return
 
         state = WitherDragonState.DEAD
+        timeToSpawn = 100
         entityId = null
         entity = null
-        awaitingRespawn = false
-        lastPosition = null
-        lastChunk = null
 
         if (WitherDragons.enabled && currentTick - spawnedTime < skipKillTime && ! silent) {
             val stats = mutableListOf<String>()
@@ -77,6 +69,8 @@ enum class WitherDragonEnum(
         }
 
         if (priorityDragon == this) priorityDragon = None
+
+        WebSocket.send(S2CPacketM7Dragon(S2CPacketM7Dragon.DragonEvent.DEATH, this))
     }
 
     fun updateEntity(id: Int, hard: Boolean = false) {
@@ -84,9 +78,6 @@ enum class WitherDragonEnum(
         else {
             entityId = id
             state = WitherDragonState.ALIVE
-            awaitingRespawn = false
-            lastPosition = null
-            lastChunk = null
         }
     }
 
@@ -104,57 +95,9 @@ enum class WitherDragonEnum(
                 it.entity = null
                 it.sprayedTime = null
                 it.spawnedTime = 0
-                it.awaitingRespawn = false
-                it.lastPosition = null
-                it.lastChunk = null
             }
             priorityDragon = None
             dragonSpawnCount = 0
-        }
-
-        fun handleSpawnPacket(particle: S2APacketParticles) {
-            if (particle.particleType != EnumParticleTypes.FLAME) return
-            if (particle.xCoordinate % 1 != 0.0) return
-            if (particle.zCoordinate % 1 != 0.0) return
-            if (particle.particleCount != 20) return
-            if (particle.yCoordinate != 19.0) return
-            if (particle.particleSpeed != 0f) return
-            if (! particle.isLongDistance) return
-            if (particle.xOffset != 2f) return
-            if (particle.yOffset != 3f) return
-            if (particle.zOffset != 2f) return
-
-            if (dragonSpawnCount >= 2) {
-                val spawningDragon = WitherDragonEnum.entries.find {
-                    particle.xCoordinate in it.xRange && particle.zCoordinate in it.zRange && it.state == WitherDragonState.DEAD
-                } ?: return
-
-                spawningDragon.state = WitherDragonState.SPAWNING
-                displaySpawningDragon(spawningDragon)
-                priorityDragon = spawningDragon
-                return
-            }
-
-            val (spawned, dragons) = WitherDragonEnum.entries.fold(0 to mutableListOf<WitherDragonEnum>()) { (spawned, dragons), dragon ->
-                val newSpawned = spawned + dragon.timesSpawned
-
-                if (dragon.state != WitherDragonState.DEAD) {
-                    if (dragon !in dragons) dragons.add(dragon)
-                    return@fold newSpawned to dragons
-                }
-
-                if (particle.xCoordinate !in dragon.xRange || particle.zCoordinate !in dragon.zRange) return@fold newSpawned to dragons
-
-                dragon.state = WitherDragonState.SPAWNING
-                dragons.add(dragon)
-                newSpawned to dragons
-            }
-
-            if (dragons.isNotEmpty() && (dragons.size == 2 || spawned >= 2)) {
-                priorityDragon = findPriority(dragons)
-                if (priorityDragon.state != WitherDragonState.SPAWNING) priorityDragon = dragons.first { it != priorityDragon }
-                displaySpawningDragon(priorityDragon)
-            }
         }
     }
 }

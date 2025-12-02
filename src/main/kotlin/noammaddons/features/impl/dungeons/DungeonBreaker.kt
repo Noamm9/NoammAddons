@@ -27,6 +27,7 @@ object DungeonBreaker: Feature(name = "DungeonBreaker") {
         if (! enabled) return
         if (! zeropingbreaker) return
         if (! LocationUtils.inDungeon) return
+        if (LocationUtils.inBoss && LocationUtils.dungeonFloorNumber != 7) return
         if (ServerPlayer.player.getHeldItem().skyblockID != "DUNGEONBREAKER") return
         if (ScanUtils.currentRoom?.data?.type.equalsOneOf(RoomType.PUZZLE, RoomType.FAIRY)) return
         val block = getBlockAt(pos).takeUnless { it in blacklist } ?: return

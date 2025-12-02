@@ -2,9 +2,11 @@ package noammaddons.utils
 
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.Actionbar
 import noammaddons.NoammAddons.Companion.mc
+import noammaddons.events.Actionbar
 import noammaddons.utils.Utils.remove
+import noammaddons.websocket.WebSocket
+import noammaddons.websocket.packets.S2CPacketRoomSecrets
 import kotlin.math.roundToInt
 
 
@@ -70,11 +72,23 @@ object ActionBarParser {
             salvation = match.groupValues[1].remove(",").toIntOrNull() ?: salvation
         }
 
-        SECRETS_REGEX.find(input)?.let { match ->
+        SECRETS_REGEX.takeIf { LocationUtils.inDungeon }?.find(input)?.let { match ->
             secrets = match.groupValues[1].remove(",").toIntOrNull() ?: secrets
             maxSecrets = match.groupValues[2].remove(",").toIntOrNull() ?: maxSecrets
+
+            ScanUtils.getEntityRoom(mc.thePlayer)?.let setFoundSecrets@{
+                if (it.data.name == "Unknown") return@setFoundSecrets
+                if (it.uniqueRoom?.foundSecrets != secrets) {
+                    it.uniqueRoom?.foundSecrets = secrets !!
+                    if (DungeonUtils.dungeonTeammatesNoSelf.isNotEmpty()) {
+                        WebSocket.send(S2CPacketRoomSecrets(it.data.name, secrets !!))
+                    }
+                }
+            }
+
             return
         }
+
         maxSecrets = null
         secrets = null
     }

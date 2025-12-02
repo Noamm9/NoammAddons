@@ -4,8 +4,11 @@ import net.minecraft.init.Blocks
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.features.impl.dungeons.dmap.core.map.*
 import noammaddons.utils.BlockUtils.getBlockAt
+import noammaddons.utils.DungeonUtils
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.ScanUtils
+import noammaddons.websocket.WebSocket
+import noammaddons.websocket.packets.S2CPacketDungeonRoom
 import kotlin.math.floor
 
 object DungeonScanner {
@@ -57,6 +60,11 @@ object DungeonScanner {
 
                 scanRoom(xPos, zPos, z, x)?.let {
                     DungeonInfo.dungeonList[z * 11 + x] = it
+                    if (it is Room && it.data.name != "Unknown") {
+                        if (DungeonUtils.dungeonTeammatesNoSelf.isNotEmpty()) {
+                            WebSocket.send(S2CPacketDungeonRoom(it.data.name, xPos, zPos, x, z, it.core, it.isSeparator))
+                        }
+                    }
                 }
             }
         }

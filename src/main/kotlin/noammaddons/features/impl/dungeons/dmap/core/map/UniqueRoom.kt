@@ -11,6 +11,8 @@ class UniqueRoom(arrX: Int, arrY: Int, room: Room) {
     var mainRoom = room
     val tiles = mutableListOf(room)
 
+    var foundSecrets = 0
+
     init {
         DungeonInfo.cryptCount += room.data.crypts
         DungeonInfo.secretCount += room.data.secrets

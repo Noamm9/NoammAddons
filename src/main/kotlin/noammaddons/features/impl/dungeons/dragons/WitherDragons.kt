@@ -7,18 +7,16 @@ import net.minecraft.init.Blocks
 import net.minecraft.network.play.server.*
 import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.event.world.ChunkEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.features.impl.dungeons.dragons.DragonCheck.dragonSpawn
 import noammaddons.features.impl.dungeons.dragons.DragonCheck.dragonSprayed
-import noammaddons.features.impl.dungeons.dragons.DragonCheck.dragonUnload
 import noammaddons.features.impl.dungeons.dragons.DragonCheck.dragonUpdate
+import noammaddons.features.impl.dungeons.dragons.DragonCheck.handleSpawnPacket
 import noammaddons.features.impl.dungeons.dragons.DragonCheck.trackArrows
 import noammaddons.features.impl.dungeons.dragons.WitherDragonEnum.*
 import noammaddons.features.impl.dungeons.dragons.WitherDragonEnum.Companion.WitherDragonState.*
-import noammaddons.features.impl.dungeons.dragons.WitherDragonEnum.Companion.handleSpawnPacket
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.*
 import noammaddons.utils.MathUtils.add
@@ -27,7 +25,6 @@ import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderHelper.renderVec
 import noammaddons.utils.RenderUtils.renderManager
-import noammaddons.utils.ThreadUtils.setTimeout
 import org.lwjgl.opengl.GL11
 import java.awt.Color
 
@@ -80,32 +77,12 @@ object WitherDragons: Feature(
 
     @SubscribeEvent
     fun onPacketReceived(event: PacketEvent.Received) {
-        if (LocationUtils.F7Phase != 5) return
         when (val packet = event.packet) {
             is S2APacketParticles -> handleSpawnPacket(packet)
             is S04PacketEntityEquipment -> dragonSprayed(packet)
             is S0FPacketSpawnMob -> dragonSpawn(packet)
             is S1CPacketEntityMetadata -> dragonUpdate(packet)
             is S29PacketSoundEffect -> trackArrows(packet)
-            is S13PacketDestroyEntities -> dragonUnload(packet)
-        }
-    }
-
-    @SubscribeEvent
-    fun onChunkLoad(event: ChunkEvent.Load) {
-        if (LocationUtils.F7Phase != 5) return
-
-        val dragon = WitherDragonEnum.entries.find {
-            it.awaitingRespawn && it.lastChunk?.first == event.chunk.xPosition && it.lastChunk?.second == event.chunk.zPosition
-        } ?: return
-
-        val expectedOldId = dragon.entityId
-        dragon.lastChunk = null
-
-        setTimeout(2000) {
-            if (dragon.awaitingRespawn && dragon.entityId == expectedOldId) {
-                dragon.setDead(true)
-            }
         }
     }
 
@@ -127,8 +104,13 @@ object WitherDragons: Feature(
 
     @SubscribeEvent
     fun onServerTick(event: ServerTick) {
-        WitherDragonEnum.entries.forEach { if (it.state == SPAWNING && it.timeToSpawn > 0) it.timeToSpawn -- }
         currentTick ++
+        WitherDragonEnum.entries.forEach {
+            if (it.state == SPAWNING) {
+                it.timeToSpawn --
+                if (it.timeToSpawn <= - 20) it.setDead(true)
+            }
+        }
     }
 
     @SubscribeEvent

@@ -1,12 +1,14 @@
 package noammaddons.features.impl
 
 import noammaddons.features.Feature
+import noammaddons.ui.config.core.annotations.AlwaysActive
 import noammaddons.ui.config.core.annotations.Dev
 import noammaddons.ui.config.core.impl.*
 import org.lwjgl.input.Keyboard
 import java.awt.Color
 
 @Dev
+@AlwaysActive
 object CompTest: Feature("Testing for all of the config menu's components") {
     override fun init() = addSettings(
         ButtonSetting("Test Button") {},

@@ -52,6 +52,8 @@ dependencies {
 
     runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.1.0")
 
+    packageLib("org.java-websocket:Java-WebSocket:1.5.4")
+
     compileOnly("com.github.NotEnoughUpdates:NotEnoughUpdates:2.4.0:all")
 }
 

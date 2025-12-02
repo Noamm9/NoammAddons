@@ -60,6 +60,10 @@ object ScanUtils {
         return roomList.find { hash in it.cores }
     }
 
+    fun getRoomData(name: String): RoomData? {
+        return roomList.find { it.name == name }
+    }
+
     fun getRoomComponnent(pos: Vec3i): Pair<Int, Int> {
         val gx = floor((pos.x + 200 + 0.5) / 32).toInt()
         val gz = floor((pos.z + 200 + 0.5) / 32).toInt()

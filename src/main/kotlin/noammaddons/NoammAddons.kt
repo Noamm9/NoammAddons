@@ -22,6 +22,7 @@ import noammaddons.ui.font.GlyphPageFontRenderer
 import noammaddons.ui.font.TextRenderer
 import noammaddons.utils.*
 import noammaddons.utils.JsonUtils.getObj
+import noammaddons.websocket.WebSocket
 import org.apache.logging.log4j.LogManager
 
 
@@ -104,6 +105,8 @@ class NoammAddons {
         }
 
         MinecraftForge.EVENT_BUS.register(Cosmetics.CustomPlayerSize)
+
+        WebSocket.init()
 
         this.init()
         registerFeatures()
