@@ -2,6 +2,7 @@ package noammaddons.websocket
 
 import gg.essential.universal.UChat
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.events.MessageSentEvent
 import noammaddons.features.impl.dungeons.dragons.WitherDragonEnum
 import noammaddons.utils.ChatUtils
@@ -35,13 +36,15 @@ object WebSocketTest {
             "chat" -> {
                 event.isCanceled = true
                 if (args.isEmpty()) return
-                S2CPacketChat(args.joinToString(" ")).let {
-                    it.handle()
+                S2CPacketChat("§d${mc.session.username}: §r${args.joinToString(" ")}").let {
                     WebSocket.send(it)
+                    it.handle()
                 }
             }
 
-            "info" -> {
+            "users" -> {
+                event.isCanceled = true
+                WebSocket.send(C2SPacketCheckUsers())
             }
         }
     }

@@ -20,11 +20,7 @@ class S2CPacketM7Dragon(val event: DragonEvent, val dragon: WitherDragonEnum): P
                         it.arrowsHit = 0
                     }
 
-                    DragonEvent.DEATH -> {
-                        it.state = WitherDragonState.DEAD
-                        it.entityId = null
-                        it.entity = null
-                    }
+                    DragonEvent.DEATH -> it.setDead()
                 }
             }
         }

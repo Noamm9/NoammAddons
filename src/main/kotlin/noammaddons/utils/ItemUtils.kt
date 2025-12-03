@@ -68,7 +68,8 @@ object ItemUtils {
 
     val ItemStack?.extraAttributes: NBTTagCompound? get() = this?.getSubCompound("ExtraAttributes", false)
     val ItemStack?.skyblockID: String? get() = this?.extraAttributes?.getString("id")
-    val ItemStack?.skyblockUUID: String get() = this?.extraAttributes?.getString("uuid") ?: ""
+    val ItemStack?.skyblockUUID: String? get() = this?.extraAttributes?.getString("uuid")
+    val ItemStack?.rune: String? get() = this.extraAttributes?.getCompoundTag("runes")?.keySet?.firstOrNull()
 
     val ItemStack.lore: List<String>
         get() = tagCompound?.getCompoundTag("display")?.getTagList("Lore", 8)?.let {

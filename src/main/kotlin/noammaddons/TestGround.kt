@@ -8,8 +8,8 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.*
 import net.minecraft.network.play.client.C01PacketChatMessage
 import net.minecraft.network.play.server.S0FPacketSpawnMob
-import net.minecraft.util.BlockPos
-import net.minecraft.util.Rotations
+import net.minecraft.network.play.server.S2APacketParticles
+import net.minecraft.util.*
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent
@@ -21,9 +21,12 @@ import noammaddons.features.impl.dungeons.dragons.WitherDragonEnum
 import noammaddons.utils.ChatUtils.debugMessage
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.sendChatMessage
+import noammaddons.utils.ItemUtils.rune
 import noammaddons.utils.LocationUtils.onHypixel
+import noammaddons.utils.PlayerUtils
 import noammaddons.utils.ScanUtils
 import noammaddons.utils.ThreadUtils.setTimeout
+import noammaddons.utils.Utils.equalsOneOf
 
 
 // used to be a place for me to test shit.
@@ -171,5 +174,15 @@ object TestGround {
             is NBTTagIntArray -> JsonArray().apply { tag.intArray.forEach { add(JsonPrimitive(it)) } }
             else -> JsonPrimitive("Unsupported Tag ID: ${tag.id}")
         }
+    }
+
+    @SubscribeEvent
+    fun onPacketReceived(event: PacketEvent.Received) {
+        val packet = event.packet as? S2APacketParticles ?: return
+        if (! packet.particleType.equalsOneOf(EnumParticleTypes.DRIP_WATER, EnumParticleTypes.CLOUD)) return
+        val vec = Vec3(packet.xCoordinate, packet.yCoordinate, packet.zCoordinate)
+        if (vec.squareDistanceTo(mc.thePlayer.positionVector) >= 16) return
+        if (PlayerUtils.getHelmet().rune != "RAINY_DAY") return
+        event.isCanceled = true
     }
 }

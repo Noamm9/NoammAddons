@@ -13,13 +13,14 @@ import noammaddons.NoammAddons.Companion.MOD_VERSION
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.events.WorldLoadPostEvent
 import noammaddons.utils.*
+import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.websocket.packets.C2SPacketServerHash
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
 
 object WebSocket {
-    private var socketClient: WebSocketClient? = null
+    var socketClient: WebSocketClient? = null
     private var receivedLocrawThisWorld = false
     private var locrawCountdown = - 1
     private var currentServer = 0
@@ -29,6 +30,7 @@ object WebSocket {
 
         runCatching {
             socketClient = NASocket()
+            socketClient !!.connectionLostTimeout = 30
             socketClient !!.addHeader("User-Agent", "$MOD_NAME - $MOD_VERSION")
             socketClient !!.connect()
 
@@ -100,6 +102,13 @@ object WebSocket {
     private class NASocket: WebSocketClient(URI("wss://api.noammaddons.workers.dev")) {
         override fun onOpen(handshakedata: ServerHandshake?) {
             NoammAddons.Logger.info("WebSocket Connected")
+            modMessage("WebSocket Connected")
+
+            if (currentServer != 0) {
+                NoammAddons.Logger.info("Resyncing Server Hash: $currentServer")
+                modMessage("Resyncing Server Hash: $currentServer")
+                send(C2SPacketServerHash(currentServer))
+            }
         }
 
         override fun onMessage(message: String?) {
@@ -121,11 +130,19 @@ object WebSocket {
 
         override fun onClose(code: Int, reason: String?, remote: Boolean) {
             NoammAddons.Logger.info("WebSocket Disconnected: $reason")
-            socketClient = null
+            modMessage("WebSocket Disconnected: $reason")
+            ThreadUtils.setTimeout(30_000, ::reconnect)
         }
 
         override fun onError(ex: Exception?) {
             NoammAddons.Logger.error("WebSocket Error: ${ex?.message}")
+            modMessage("WebSocket Error: ${ex?.message}")
+        }
+
+        override fun reconnect() {
+            super.reconnect()
+            NoammAddons.Logger.info("Websocket: attempting to reconnect with the server.")
+            modMessage("Websocket: attempting to reconnect with the server.")
         }
     }
 }

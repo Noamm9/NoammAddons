@@ -2,7 +2,6 @@ package noammaddons.websocket.packets
 
 import noammaddons.websocket.PacketRegistry
 
-@Suppress("UNUSED")
-class C2SPacketServerHash(val hash: Int): PacketRegistry.WebSocketPacket("server_hash") {
+class C2SPacketCheckUsers: PacketRegistry.WebSocketPacket("check_users") {
     override fun handle() {}
 }

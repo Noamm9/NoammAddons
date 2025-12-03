@@ -23,6 +23,7 @@
     "MixinRenderManager",
     "MixinThePlayer",
     "MixinTileEntityChestRenderer",
+    "MixinWorldClient",
     "TestMixin",
     "accessor.AccessorGuiChat",
     "accessor.AccessorGuiContainer",

@@ -15,6 +15,8 @@ object PacketRegistry {
         set("m7dragon", S2CPacketM7Dragon::class.java)
         set("dungeonroomsecrets", S2CPacketRoomSecrets::class.java)
         set("dungeonroom", S2CPacketDungeonRoom::class.java)
+        set("dungeondoor", S2CPacketDungeonDoor::class.java)
+        set("socket_info", S2CPacketSocketInfo::class.java)
     }
 
     fun getPacketClass(type: String): Class<out WebSocketPacket>? {

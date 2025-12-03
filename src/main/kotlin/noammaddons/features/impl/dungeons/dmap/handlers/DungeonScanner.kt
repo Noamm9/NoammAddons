@@ -8,6 +8,7 @@ import noammaddons.utils.DungeonUtils
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.ScanUtils
 import noammaddons.websocket.WebSocket
+import noammaddons.websocket.packets.S2CPacketDungeonDoor
 import noammaddons.websocket.packets.S2CPacketDungeonRoom
 import kotlin.math.floor
 
@@ -63,6 +64,12 @@ object DungeonScanner {
                     if (it is Room && it.data.name != "Unknown") {
                         if (DungeonUtils.dungeonTeammatesNoSelf.isNotEmpty()) {
                             WebSocket.send(S2CPacketDungeonRoom(it.data.name, xPos, zPos, x, z, it.core, it.isSeparator))
+                        }
+                    }
+
+                    if (it is Door) {
+                        if (DungeonUtils.dungeonTeammatesNoSelf.isNotEmpty()) {
+                            WebSocket.send(S2CPacketDungeonDoor(xPos, zPos, x, z, it.type))
                         }
                     }
                 }

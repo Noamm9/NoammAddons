@@ -60,7 +60,7 @@ enum class WitherDragonEnum(
         entityId = null
         entity = null
 
-        if (WitherDragons.enabled && currentTick - spawnedTime < skipKillTime && ! silent) {
+        if (WitherDragons.enabled && ! silent) {
             val stats = mutableListOf<String>()
             if (sendTime) stats.add("&7Time: &6${(currentTick - spawnedTime) / 20.0}s")
             if (sendArrowHit && this == priorityDragon) stats.add("&fArrows: &6$arrowsHit")
