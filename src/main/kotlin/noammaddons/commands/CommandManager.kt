@@ -7,11 +7,9 @@ import noammaddons.mixins.accessor.AccessorCommandHandler
 object CommandManager {
     val commands = setOf(
         NoammAddonsCommands,
-        CrimonIsle,
-        DungeonHub,
-        End,
-        Skyblock,
-        hub
+        CrimonIsle, DungeonHub,
+        End, Skyblock, hub,
+        DungeonWaypointCommand,
     )
 
     fun registerCommands() {

@@ -12,7 +12,7 @@ class Door(override val x: Int, override val z: Int, var type: DoorType): Tile {
             else when (this.type) {
                 DoorType.BLOOD -> DungeonMapConfig.colorBloodDoor
                 DoorType.ENTRANCE -> DungeonMapConfig.colorEntranceDoor
-                DoorType.WITHER -> if (opened) DungeonMapConfig.colorOpenWitherDoor else DungeonMapConfig.colorWitherDoor
+                DoorType.WITHER -> if (opened && state != RoomState.UNDISCOVERED) DungeonMapConfig.colorOpenWitherDoor else DungeonMapConfig.colorWitherDoor
                 else -> DungeonMapConfig.colorRoomDoor
             }.value
         }

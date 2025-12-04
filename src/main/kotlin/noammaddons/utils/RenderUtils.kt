@@ -205,7 +205,7 @@ object RenderUtils {
         GlStateManager.popMatrix()
     }
 
-    fun drawBox(x: Number, y: Number, z: Number, color: Color, outline: Boolean, fill: Boolean, width: Number = 1f, height: Number = 1f, phase: Boolean = true, lineWidth: Number = 3f) {
+    fun drawBox(x: Number, y: Number, z: Number, color: Color, outline: Boolean, fill: Boolean, width: Number = 1f, height: Number = 1f, phase: Boolean = true) {
         if (! outline && ! fill) return
 
         GlStateManager.pushMatrix()
@@ -236,13 +236,17 @@ object RenderUtils {
         GlStateManager.popMatrix()
     }
 
-    fun drawBox(from: Vec3, to: Vec3, color: Color, outline: Boolean, fill: Boolean, phase: Boolean = true, LineThickness: Number = 3f) {
+    fun drawBox(from: Vec3, to: Vec3, color: Color, outline: Boolean, fill: Boolean, phase: Boolean = true) {
         drawBox(
             from.xCoord.toFloat(), from.yCoord.toFloat(), from.zCoord.toFloat(),
             color, outline, fill,
             width = to.xCoord.toFloat() - from.xCoord.toFloat(), height = to.yCoord.toFloat() - from.yCoord.toFloat(),
-            phase = phase, lineWidth = LineThickness
+            phase = phase
         )
+    }
+
+    fun drawBox(pos: BlockPos, color: Color, outline: Boolean, fill: Boolean, width: Number = 1f, height: Number = 1f, phase: Boolean = true) {
+        drawBox(pos.x, pos.y, pos.z, color, outline, fill, width, height, phase)
     }
 
     fun drawString(text: String, pos: Vec3, color: Color = Color.WHITE, scale: Float = 1f, phase: Boolean = true) {

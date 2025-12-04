@@ -23,7 +23,7 @@ import kotlin.math.floor
 
 
 object ScanUtils {
-    private val roomList = DataDownloader.loadJson<List<RoomData>>("rooms.json")
+    val roomList by lazy { DataDownloader.loadJson<List<RoomData>>("rooms.json") }
 
     @SubscribeEvent
     fun onWorldUnload(event: WorldUnloadEvent) {
@@ -97,7 +97,6 @@ object ScanUtils {
 
     fun getEntityRoom(entity: Entity) = getRoomFromPos(entity.positionVector)
 
-
     fun getRoomFromPos(pos: Vec3) = getRoomFromPos(BlockPos(pos))
 
     fun getCore(x: Int, z: Int): Int {
@@ -133,10 +132,15 @@ object ScanUtils {
         }
     }
 
-
     fun getRealCoord(pos: BlockPos, roomCenter: BlockPos, rotation: Int): BlockPos {
         val (cx, _, cz) = roomCenter.destructured()
         return pos.rotate(rotation).add(cx, 0, cz)
+    }
+
+    fun getRelativeCoord(realPos: BlockPos, roomCenter: BlockPos, rotation: Int): BlockPos {
+        val (cx, _, cz) = roomCenter.destructured()
+        val centeredPos = realPos.add(- cx, 0, - cz)
+        return centeredPos.rotate(- rotation)
     }
 
     fun gethighestBlockAt(x: Int, z: Int): Int? {

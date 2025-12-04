@@ -11,6 +11,7 @@ import noammaddons.features.impl.dungeons.solvers.LividSolver
 import noammaddons.features.impl.dungeons.solvers.devices.*
 import noammaddons.features.impl.dungeons.solvers.puzzles.PuzzleSolvers
 import noammaddons.features.impl.dungeons.solvers.terminals.TerminalSolver
+import noammaddons.features.impl.dungeons.waypoints.DungeonWaypoints
 import noammaddons.features.impl.esp.*
 import noammaddons.features.impl.general.*
 import noammaddons.features.impl.general.teleport.Etherwarp
@@ -44,7 +45,7 @@ object FeatureManager {
         CustomTabList, TerminalSolver, ChamNametags, CustomSlotHighlight,
         InventoryDisplay, StopCloseMyChat, InventorySearchbar, BlessingDisplay,
         ClientTimer, DarkMode, Animations, EnchantmentsColors, AutoClicker,
-        ArrowFix, PartyHelper, DungeonMap, DungeonBreaker,
+        ArrowFix, PartyHelper, DungeonMap, DungeonBreaker, DungeonWaypoints,
 
         // ProfileViewer, // never finished + Skycrpt api went down
         // ZeroPingTeleportation, // - R.I.P fuck hypixel, fuck blinkers

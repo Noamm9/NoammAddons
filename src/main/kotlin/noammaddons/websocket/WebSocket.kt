@@ -2,7 +2,6 @@ package noammaddons.websocket
 
 import com.google.gson.JsonParser
 import gg.essential.api.EssentialAPI
-import net.minecraftforge.client.event.ClientChatReceivedEvent
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -11,9 +10,11 @@ import noammaddons.NoammAddons
 import noammaddons.NoammAddons.Companion.MOD_NAME
 import noammaddons.NoammAddons.Companion.MOD_VERSION
 import noammaddons.NoammAddons.Companion.mc
+import noammaddons.events.Chat
 import noammaddons.events.WorldLoadPostEvent
 import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.modMessage
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.websocket.packets.C2SPacketServerHash
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
@@ -21,14 +22,18 @@ import java.net.URI
 
 object WebSocket {
     var socketClient: WebSocketClient? = null
+
     private var receivedLocrawThisWorld = false
     private var locrawCountdown = - 1
     private var currentServer = 0
 
+    private val LOCRAW_REGEX = Regex("^\\{\"server\":\"(.+)\",\"gametype\":\"(.+)\",\"mode\":\"(.+)\",\"map\":\"(.+)\"\\}\$")
+
     fun init() {
-        if (socketClient != null && socketClient !!.isOpen) return
+        if (socketClient != null && (socketClient !!.isOpen)) return
 
         runCatching {
+            NoammAddons.Logger.info("WebSocket: Initializing connection...")
             socketClient = NASocket()
             socketClient !!.connectionLostTimeout = 30
             socketClient !!.addHeader("User-Agent", "$MOD_NAME - $MOD_VERSION")
@@ -45,12 +50,11 @@ object WebSocket {
     }
 
     fun send(packet: PacketRegistry.WebSocketPacket) {
-        if (socketClient != null && socketClient !!.isOpen) ThreadUtils.runOnNewThread {
+        if (socketClient != null && socketClient !!.isOpen) {
             val json = JsonUtils.gson.toJson(packet)
             socketClient !!.send(json)
         }
     }
-
 
     @SubscribeEvent
     fun onWorldLoad(event: WorldLoadPostEvent) {
@@ -68,31 +72,30 @@ object WebSocket {
             if (locrawCountdown == 0) {
                 if (! receivedLocrawThisWorld && LocationUtils.onHypixel) {
                     NoammAddons.Logger.info("Requesting Locraw...")
-                    mc.thePlayer.sendChatMessage("/locraw")
+                    ChatUtils.sendChatMessage("/locraw")
                 }
             }
         }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    fun onChat(event: ClientChatReceivedEvent) {
-        if (event.type.toInt() == 2) return
-        val text = event.message.unformattedText
+    fun onChat(event: Chat) {
+        val text = event.component.noFormatText
 
         if (text.startsWith("{") && text.contains("\"server\":") && text.endsWith("}")) {
-            val regex = Regex("^\\{\"server\":\"(.+)\",\"gametype\":\"(.+)\",\"mode\":\"(.+)\",\"map\":\"(.+)\"\\}\$")
-            val matchResult = regex.find(text)
-            event.isCanceled = true
+            val matchResult = LOCRAW_REGEX.find(text)
             receivedLocrawThisWorld = true
             locrawCountdown = - 1
 
             if (matchResult != null) {
+                event.isCanceled = true
+
                 val (server, gametype, mode, map) = matchResult.destructured
                 val newHash = (server + gametype + mode + map).hashCode()
 
                 if (currentServer != newHash) {
                     currentServer = newHash
-                    NoammAddons.Logger.info("Detected World Change. Hash: $currentServer")
+                    NoammAddons.Logger.info("WebSocket: Detected World Change. Hash: $currentServer")
                     send(C2SPacketServerHash(currentServer))
                 }
             }
@@ -101,13 +104,12 @@ object WebSocket {
 
     private class NASocket: WebSocketClient(URI("wss://api.noammaddons.workers.dev")) {
         override fun onOpen(handshakedata: ServerHandshake?) {
-            NoammAddons.Logger.info("WebSocket Connected")
-            modMessage("WebSocket Connected")
+            NoammAddons.Logger.info("WebSocket: Connected Successfully")
+            modMessage("WebSocket: Connected Successfully")
 
             if (currentServer != 0) {
-                NoammAddons.Logger.info("Resyncing Server Hash: $currentServer")
-                modMessage("Resyncing Server Hash: $currentServer")
-                send(C2SPacketServerHash(currentServer))
+                val packet = C2SPacketServerHash(currentServer)
+                this.send(JsonUtils.gson.toJson(packet))
             }
         }
 
@@ -120,30 +122,29 @@ object WebSocket {
                     ?: return NoammAddons.Logger.warn("Unknown packet type received: $type")
 
                 val packet = JsonUtils.gson.fromJson(message, packetClass)
-                packet.handle()
+
+                try {
+                    packet.handle()
+                }
+                catch (e: Exception) {
+                    NoammAddons.Logger.error("Error executing packet logic: ${e.message}")
+                }
             }
             catch (e: Exception) {
-                NoammAddons.Logger.error("Error handling packet: ${e.message}")
-                e.printStackTrace()
+                NoammAddons.Logger.error("Error parsing packet: ${e.message}")
             }
         }
 
         override fun onClose(code: Int, reason: String?, remote: Boolean) {
             NoammAddons.Logger.info("WebSocket Disconnected: $reason")
-            modMessage("WebSocket Disconnected: $reason")
-            ThreadUtils.setTimeout(30_000, ::reconnect)
+            ThreadUtils.setTimeout(10_000) {
+                NoammAddons.Logger.info("Attempting auto-reconnect...")
+                reconnect()
+            }
         }
 
         override fun onError(ex: Exception?) {
             NoammAddons.Logger.error("WebSocket Error: ${ex?.message}")
-            modMessage("WebSocket Error: ${ex?.message}")
-        }
-
-        override fun reconnect() {
-            super.reconnect()
-            NoammAddons.Logger.info("Websocket: attempting to reconnect with the server.")
-            modMessage("Websocket: attempting to reconnect with the server.")
         }
     }
 }
-

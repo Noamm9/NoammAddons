@@ -176,7 +176,7 @@ object BloodRoom: Feature() {
 
             if (showTimer.value) RenderUtils.drawString(time, Vec3(x, y + 0.5, z), scale = 2f)
             if (showLine.value) RenderUtils.draw3DLine(entity.renderVec.add(y = 1.5), Vec3(x, y, z), lineColor.value, 2f)
-            if (showBox.value) RenderUtils.drawBox(x - 0.5, y, z - 0.5, boxColor.value, true, false, 1.0, 1.0, true, 2f)
+            if (showBox.value) RenderUtils.drawBox(x - 0.5, y, z - 0.5, boxColor.value, true, false, 1.0, 1.0, true)
         }
     }
 

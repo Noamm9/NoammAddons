@@ -159,6 +159,8 @@ abstract class DungeonEvent: Event() {
 
     class PlayerDeathEvent(val name: String, val reason: String): DungeonEvent()
 
+    class BossEnterEvent: DungeonEvent()
+
     class RunStatedEvent: DungeonEvent()
     class RunEndedEvent: DungeonEvent()
 }

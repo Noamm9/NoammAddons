@@ -1,6 +1,6 @@
 package noammaddons.websocket.packets
 
-import net.minecraft.client.Minecraft
+import noammaddons.NoammAddons.Companion.mc
 import noammaddons.features.impl.dungeons.dragons.WitherDragonEnum
 import noammaddons.features.impl.dungeons.dragons.WitherDragonEnum.Companion.WitherDragonState
 import noammaddons.features.impl.dungeons.dragons.WitherDragons
@@ -8,7 +8,7 @@ import noammaddons.websocket.PacketRegistry
 
 class S2CPacketM7Dragon(val event: DragonEvent, val dragon: WitherDragonEnum): PacketRegistry.WebSocketPacket("m7dragon") {
     override fun handle() {
-        Minecraft.getMinecraft().addScheduledTask {
+        mc.addScheduledTask {
             WitherDragonEnum.valueOf(dragon.name).let {
                 when (event) {
                     DragonEvent.SPAWN -> {

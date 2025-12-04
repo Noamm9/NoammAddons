@@ -6,10 +6,12 @@ import noammaddons.events.EventDispatcher
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapConfig
 import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
 import noammaddons.features.impl.dungeons.dmap.handlers.DungeonScanner
+import noammaddons.features.impl.dungeons.dmap.handlers.DungeonScanner.halfRoomSize
 import noammaddons.utils.*
 import noammaddons.utils.BlockUtils.getBlockId
 import noammaddons.utils.BlockUtils.getMetadata
 import noammaddons.utils.BlockUtils.getStateAt
+import noammaddons.utils.MathUtils.add
 import java.awt.Color
 import kotlin.properties.Delegates
 
@@ -17,6 +19,7 @@ class Room(override val x: Int, override val z: Int, var data: RoomData): Tile {
     var core = 0
     var isSeparator = false
     var rotation: Int? = null
+    var corner: BlockPos? = null
     var highestBlock: Int? = null
 
     override var state: RoomState by Delegates.observable(RoomState.UNDISCOVERED) { _, oldValue, newValue ->
@@ -86,20 +89,43 @@ class Room(override val x: Int, override val z: Int, var data: RoomData): Tile {
         }
         if (data.type == RoomType.FAIRY) {
             rotation = 0
+            corner = BlockPos(x - 15, 0, z - 15)
             return
         }
 
-        val realComponents = uniqueRoom?.tiles?.map { Pair(it.x, it.z) } ?: return
-        for (c in realComponents) {
-            val (x, z) = c
-            DungeonScanner.clayBlocksCorners.withIndex().forEach { (i, offset) ->
-                val (rx, rz) = offset
-                val pos = BlockPos(x + rx, highestBlock !!.toDouble(), z + rz)
-                val state = getStateAt(pos)
-                if (state.getBlockId() != 159 || state.getMetadata() != 11) return@forEach
+        val uniqueRoom = uniqueRoom ?: return
+        val yLevel = highestBlock !!.toDouble()
+        val scannedPositions = HashSet<BlockPos>()
 
+        val minX = uniqueRoom.tiles.minOf { it.x }
+        val maxX = uniqueRoom.tiles.maxOf { it.x }
+        val minZ = uniqueRoom.tiles.minOf { it.z }
+        val maxZ = uniqueRoom.tiles.maxOf { it.z }
+
+        listOf(
+            Pair(minX - halfRoomSize, minZ - halfRoomSize),
+            Pair(maxX + halfRoomSize, minZ - halfRoomSize),
+            Pair(maxX + halfRoomSize, maxZ + halfRoomSize),
+            Pair(minX - halfRoomSize, maxZ + halfRoomSize)
+        ).forEachIndexed { i, (x, z) ->
+            val pos = BlockPos(x, yLevel, z)
+            scannedPositions.add(pos)
+            getStateAt(pos).takeIf { it.getBlockId() == 159 && it.getMetadata() == 11 }?.let {
                 rotation = i * 90
+                corner = pos.add(y = - yLevel)
                 return
+            }
+        }
+
+        for ((x, z) in uniqueRoom.tiles.map { Pair(it.x, it.z) }) {
+            DungeonScanner.clayBlocksCorners.forEachIndexed { i, (rx, rz) ->
+                val pos = BlockPos(x + rx, yLevel, z + rz)
+                if (scannedPositions.contains(pos)) return@forEachIndexed
+                getStateAt(pos).takeIf { it.getBlockId() == 159 && it.getMetadata() == 11 }?.let {
+                    rotation = i * 90
+                    corner = pos.add(y = - yLevel)
+                    return
+                }
             }
         }
     }

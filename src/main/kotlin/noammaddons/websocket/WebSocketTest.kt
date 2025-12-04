@@ -5,8 +5,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.events.MessageSentEvent
 import noammaddons.features.impl.dungeons.dragons.WitherDragonEnum
-import noammaddons.utils.ChatUtils
-import noammaddons.utils.JsonUtils
+import noammaddons.utils.*
 import noammaddons.websocket.packets.*
 
 object WebSocketTest {
@@ -45,6 +44,11 @@ object WebSocketTest {
             "users" -> {
                 event.isCanceled = true
                 WebSocket.send(C2SPacketCheckUsers())
+            }
+
+            "rot" -> {
+                event.isCanceled = true
+                ScanUtils.getEntityRoom(mc.thePlayer)?.rotation = listOf(0, 90, 180, 270).random()
             }
         }
     }

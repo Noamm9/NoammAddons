@@ -73,9 +73,9 @@ object SimonSaysSolver: Feature() {
                 pos.y + 0.37,
                 pos.z + 0.3,
                 color, outline = true,
-                fill = true, phase = false,
-                width = 0.4,
-                height = 0.26
+                fill = true, width = 0.4,
+                height = 0.26,
+                phase = false
             )
         }
     }

@@ -113,8 +113,8 @@ object BoulderSolver {
             box.box.add(- 1, - 1, - 1).toVec(),
             box.box.add(2, 2, 2).toVec(),
             BboxColor.value,
-            fill = true,
             outline = true,
+            fill = true,
             phase = true
         )
 

@@ -41,8 +41,7 @@ object PestESP: Feature("Highlight Pests in the Garden") {
             if (box.value) RenderUtils.drawBox(
                 x - XZoffset, y + Yoffset, z - XZoffset,
                 boxColor.value, outline = true, fill = true,
-                width = 1, height = 1, phase = true,
-                lineWidth = 1.5
+                width = 1, height = 1, phase = true
             )
 
             if (trace.value) RenderUtils.drawTracer(

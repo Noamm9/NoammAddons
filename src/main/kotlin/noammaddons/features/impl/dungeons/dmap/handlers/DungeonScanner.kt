@@ -17,7 +17,7 @@ object DungeonScanner {
     const val startX = - 185
     const val startZ = - 185
 
-    private val halfRoomSize = floor((roomSize - 1.0) / 2.0)
+    val halfRoomSize = floor((roomSize - 1.0) / 2.0)
 
     val clayBlocksCorners = listOf(
         Pair(- halfRoomSize, - halfRoomSize),

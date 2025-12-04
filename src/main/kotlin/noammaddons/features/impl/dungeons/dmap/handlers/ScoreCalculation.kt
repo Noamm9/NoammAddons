@@ -54,6 +54,7 @@ object ScoreCalculation {
 
     val score: Int
         get() {
+            if (! DungeonUtils.dungeonStarted) return 0
             val currentFloor = dungeonFloor ?: return 0
             val effectiveCompletedRooms = completedRooms + (if (! bloodDone) 1 else 0) + (if (! inBoss) 1 else 0)
 
@@ -61,7 +62,7 @@ object ScoreCalculation {
             val completedRoomScore = (effectiveCompletedRooms.toDouble() / totalRooms.toDouble() * 60.0).coerceIn(.0, 60.0).toInt()
 
             val skillRooms = floor(effectiveCompletedRooms.toDouble() / totalRooms.toDouble() * 80f).coerceIn(.0, 80.0).toInt()
-            val puzzlePenalty = (puzzles.size - puzzles.count { it.state == RoomState.GREEN }) * 10
+            val puzzlePenalty = (puzzles.size - puzzles.count { it.state.equalsOneOf(RoomState.GREEN, RoomState.CLEARED) }) * 10
             val deathPenalty = (deathCount * 2 - 1).coerceAtLeast(0)
 
             val score = secretsScore + completedRoomScore + (20 + skillRooms - puzzlePenalty - deathPenalty).coerceIn(20, 100) + bonusScore + speedScore

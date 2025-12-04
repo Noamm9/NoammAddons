@@ -4,7 +4,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import noammaddons.NoammAddons.Companion.Logger
-import noammaddons.NoammAddons.Companion.MOD_NAME
 import noammaddons.NoammAddons.Companion.scope
 import java.io.BufferedReader
 import java.net.*
@@ -32,12 +31,12 @@ object WebUtils {
 
     fun makeWebRequest(url: String): URLConnection {
         val connection = URL(url).openConnection()
-        connection.setRequestProperty("User-Agent", "Mozilla/5.0 ($MOD_NAME)")
+        connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
         if (connection is HttpsURLConnection) {
             connection.sslSocketFactory = sslContext?.socketFactory ?: connection.sslSocketFactory
         }
         connection.connectTimeout = 10_000
-        connection.readTimeout = 30_000
+        connection.readTimeout = 10_000
         return connection
     }
 

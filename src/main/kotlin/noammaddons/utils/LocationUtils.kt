@@ -7,8 +7,7 @@ import net.minecraftforge.fml.common.eventhandler.Event
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent.*
 import noammaddons.NoammAddons.Companion.mc
-import noammaddons.events.Tick
-import noammaddons.events.WorldUnloadEvent
+import noammaddons.events.*
 import noammaddons.features.impl.DevOptions
 import noammaddons.features.impl.hud.RunSplits
 import noammaddons.utils.ChatUtils.removeFormatting
@@ -119,8 +118,11 @@ object LocationUtils {
 
         if (inSkyblock) {
             inBoss = isInBossRoom()
-            if (inBoss && DungeonUtils.bossEntryTime == null) {
-                DungeonUtils.bossEntryTime = RunSplits.currentTime
+            if (inBoss) {
+                if (DungeonUtils.bossEntryTime == null) {
+                    EventDispatcher.postAndCatch(DungeonEvent.BossEnterEvent())
+                    DungeonUtils.bossEntryTime = RunSplits.currentTime
+                }
             }
             F7Phase = getPhase()
             P3Section = getP3Section_()

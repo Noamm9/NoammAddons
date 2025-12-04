@@ -87,10 +87,9 @@ object DungeonMap: Feature() {
 
                 RenderUtils.drawBox(
                     it.x - 1, 69.0, it.z - 1,
-                    width = 3, height = 4,
-                    color = color.withAlpha(DungeonMapConfig.witherDoorFill.value),
-                    outline = true, fill = true, phase = true,
-                    lineWidth = DungeonMapConfig.witherDoorOutlineWidth.value
+                    color = color.withAlpha(DungeonMapConfig.witherDoorFill.value), outline = true,
+                    fill = true,
+                    width = 3, height = 4, phase = true
                 )
             }
     }
