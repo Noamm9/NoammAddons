@@ -1,11 +1,11 @@
 package noammaddons.utils
 
 import com.google.gson.*
-import com.google.gson.stream.JsonReader
-import com.google.gson.stream.JsonWriter
+import com.google.gson.stream.*
 import kotlinx.serialization.json.*
 import kotlinx.serialization.json.Json.Default.parseToJsonElement
 import kotlinx.serialization.json.JsonObject
+import net.minecraft.util.BlockPos
 import net.minecraft.util.ResourceLocation
 import noammaddons.NoammAddons.Companion.mc
 import java.awt.Color
@@ -23,9 +23,48 @@ object JsonUtils {
         }
     }
 
-    val gson = Gson()
-    val gsonBuilder = GsonBuilder().setPrettyPrinting().registerTypeAdapter(Color::class.java, colorAdapter).create()
+    private val blockPosAdapter = object: TypeAdapter<BlockPos>() {
+        override fun write(out: JsonWriter, value: BlockPos?) {
+            if (value == null) {
+                out.nullValue()
+                return
+            }
+            out.beginObject()
+            out.name("x").value(value.x)
+            out.name("y").value(value.y)
+            out.name("z").value(value.z)
+            out.endObject()
+        }
+
+        override fun read(input: JsonReader): BlockPos? {
+            if (input.peek() == JsonToken.NULL) {
+                input.nextNull()
+                return null
+            }
+
+            var x = 0
+            var y = 0
+            var z = 0
+
+            input.beginObject()
+            while (input.hasNext()) {
+                when (input.nextName()) {
+                    "x" -> x = input.nextInt()
+                    "y" -> y = input.nextInt()
+                    "z" -> z = input.nextInt()
+                    else -> input.skipValue()
+                }
+            }
+            input.endObject()
+            return BlockPos(x, y, z)
+        }
+    }
+
     val json = Json { ignoreUnknownKeys = true }
+    val gsonBuilder = GsonBuilder().setPrettyPrinting()
+        .registerTypeAdapter(Color::class.java, colorAdapter)
+        .registerTypeAdapter(BlockPos::class.java, blockPosAdapter)
+        .create()
 
     fun JsonObject.getObj(key: String) = this[key]?.jsonObject
     fun JsonObject.getArray(key: String) = this[key]?.jsonArray
@@ -48,7 +87,7 @@ object JsonUtils {
 
     fun <T> fromJson(file: File, clazz: Class<T>): T? {
         return try {
-            FileReader(file).use { reader -> gson.fromJson(reader, clazz) }
+            FileReader(file).use { reader -> this.gsonBuilder.fromJson(reader, clazz) }
         }
         catch (e: Exception) {
             println("[PogObject] Failed to parse JSON: Type: ${clazz.javaClass.simpleName} ${e.message}")
@@ -58,7 +97,7 @@ object JsonUtils {
 
     fun toJson(file: File, data: Any) {
         FileWriter(file).use { writer ->
-            gsonBuilder.toJson(data, writer)
+            this.gsonBuilder.toJson(data, writer)
         }
     }
 

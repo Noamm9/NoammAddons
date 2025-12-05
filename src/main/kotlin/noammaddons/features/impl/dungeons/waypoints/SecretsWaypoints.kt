@@ -30,13 +30,13 @@ object SecretsWaypoints {
         val roomCorner = room.corner !!
         val roomName = room.data.name
 
-        waypoints[roomName]?.let {
+        waypoints[roomName]?.let { secretCoords ->
             val roomWaypoints = mutableListOf<SecretWaypoint>()
-            it.redstoneKey.forEach { roomWaypoints.add(SecretWaypoint(ScanUtils.getRealCoord(it.toPos(), roomCorner, roomRotation), "REDSTONE_KEY")) }
-            it.wither.forEach { roomWaypoints.add(SecretWaypoint(ScanUtils.getRealCoord(it.toPos(), roomCorner, roomRotation), "WITHER_ESSANCE")) }
-            it.bat.forEach { roomWaypoints.add(SecretWaypoint(ScanUtils.getRealCoord(it.toPos(), roomCorner, roomRotation), "BAT")) }
-            it.item.forEach { roomWaypoints.add(SecretWaypoint(ScanUtils.getRealCoord(it.toPos(), roomCorner, roomRotation), "ITEM")) }
-            it.chest.forEach { roomWaypoints.add(SecretWaypoint(ScanUtils.getRealCoord(it.toPos(), roomCorner, roomRotation), "CHEST")) }
+            secretCoords.redstoneKey.forEach { roomWaypoints.add(SecretWaypoint(ScanUtils.getRealCoord(it, roomCorner, roomRotation), "REDSTONE_KEY")) }
+            secretCoords.wither.forEach { roomWaypoints.add(SecretWaypoint(ScanUtils.getRealCoord(it, roomCorner, roomRotation), "WITHER_ESSANCE")) }
+            secretCoords.bat.forEach { roomWaypoints.add(SecretWaypoint(ScanUtils.getRealCoord(it, roomCorner, roomRotation), "BAT")) }
+            secretCoords.item.forEach { roomWaypoints.add(SecretWaypoint(ScanUtils.getRealCoord(it, roomCorner, roomRotation), "ITEM")) }
+            secretCoords.chest.forEach { roomWaypoints.add(SecretWaypoint(ScanUtils.getRealCoord(it, roomCorner, roomRotation), "CHEST")) }
             currentRoomWaypoints.addAll(roomWaypoints)
         }
     }
@@ -55,5 +55,5 @@ object SecretsWaypoints {
         currentRoomWaypoints.clear()
     }
 
-    private fun Map<String, Int>.toPos() = values.toList().let { BlockPos(it[0], it[1], it[2]) }
+    // private fun Map<String, Int>.toPos() = values.toList().let { BlockPos(it[0], it[1], it[2]) }
 }

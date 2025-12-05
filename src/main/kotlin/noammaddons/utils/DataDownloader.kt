@@ -103,7 +103,7 @@ object DataDownloader {
 
     inline fun <reified T> loadJson(fileName: String): T {
         return getReader(fileName).use { reader ->
-            JsonUtils.gson.fromJson(reader, object: TypeToken<T>() {}.type)
+            JsonUtils.gsonBuilder.fromJson(reader, object: TypeToken<T>() {}.type)
         }
     }
 

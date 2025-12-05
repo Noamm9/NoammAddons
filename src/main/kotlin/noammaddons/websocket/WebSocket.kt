@@ -51,7 +51,7 @@ object WebSocket {
 
     fun send(packet: PacketRegistry.WebSocketPacket) {
         if (socketClient != null && socketClient !!.isOpen) {
-            val json = JsonUtils.gson.toJson(packet)
+            val json = JsonUtils.gsonBuilder.toJson(packet)
             socketClient !!.send(json)
         }
     }
@@ -109,7 +109,7 @@ object WebSocket {
 
             if (currentServer != 0) {
                 val packet = C2SPacketServerHash(currentServer)
-                this.send(JsonUtils.gson.toJson(packet))
+                this.send(JsonUtils.gsonBuilder.toJson(packet))
             }
         }
 
@@ -121,7 +121,7 @@ object WebSocket {
                 val packetClass = PacketRegistry.getPacketClass(type)
                     ?: return NoammAddons.Logger.warn("Unknown packet type received: $type")
 
-                val packet = JsonUtils.gson.fromJson(message, packetClass)
+                val packet = JsonUtils.gsonBuilder.fromJson(message, packetClass)
 
                 try {
                     packet.handle()

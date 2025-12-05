@@ -28,7 +28,7 @@ object WebSocketTest {
                 event.isCanceled = true
                 if (args.isNotEmpty()) return
                 runCatching {
-                    JsonUtils.gson.toJson(S2CPacketM7Dragon(S2CPacketM7Dragon.DragonEvent.SPAWN, WitherDragonEnum.Orange))
+                    JsonUtils.gsonBuilder.toJson(S2CPacketM7Dragon(S2CPacketM7Dragon.DragonEvent.SPAWN, WitherDragonEnum.Orange))
                 }.getOrNull().let { UChat.chat(it.toString()) }
             }
 

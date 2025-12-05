@@ -16,7 +16,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 object DungeonWaypoints: Feature("add a custom waypoint with /dw add while looking at a block") {
     data class DungeonWaypoint(val pos: BlockPos, val color: Color, val filled: Boolean, val outline: Boolean, val phase: Boolean)
 
-    private val configFile = File("config/$MOD_NAME/dungeon_waypoints.json")
+    private val configFile = File("config/$MOD_NAME/dungeonWaypoints.json")
     val waypoints = mutableMapOf<String, List<DungeonWaypoint>>()
     val currentRoomWaypoints: CopyOnWriteArrayList<DungeonWaypoint> = CopyOnWriteArrayList()
 
@@ -25,7 +25,7 @@ object DungeonWaypoints: Feature("add a custom waypoint with /dw add while looki
     override fun init() {
         val reader = configFile.takeIf(File::exists)?.let(::FileReader) ?: return
         val type = object: TypeToken<MutableMap<String, List<DungeonWaypoint>>>() {}.type
-        val loadedData: MutableMap<String, List<DungeonWaypoint>>? = JsonUtils.gson.fromJson(reader, type)
+        val loadedData = runCatching { JsonUtils.gsonBuilder.fromJson<MutableMap<String, List<DungeonWaypoint>>?>(reader, type) }.getOrNull()
 
         if (loadedData != null) {
             waypoints.clear()
@@ -38,7 +38,7 @@ object DungeonWaypoints: Feature("add a custom waypoint with /dw add while looki
     fun saveConfig() {
         configFile.parentFile.takeUnless(File::exists)?.let(File::mkdirs)
         val writer = FileWriter(configFile)
-        JsonUtils.gson.toJson(waypoints, writer)
+        JsonUtils.gsonBuilder.toJson(waypoints, writer)
         writer.close()
     }
 
@@ -53,7 +53,7 @@ object DungeonWaypoints: Feature("add a custom waypoint with /dw add while looki
 
         waypoints[roomName]?.map {
             DungeonWaypoint(
-                ScanUtils.getRealCoord(it.pos, roomCenter, roomRotation),
+                ScanUtils.getRealCoord(it.pos, roomCenter, 360 - roomRotation),
                 it.color, it.filled, it.outline, it.phase
             )
         }?.let { currentRoomWaypoints.addAll(it) }

@@ -1,5 +1,7 @@
 package noammaddons.features.impl.dungeons.dmap.core.map
 
+import net.minecraft.util.BlockPos
+
 data class RoomData(
     val name: String,
     val type: RoomType,
@@ -20,11 +22,11 @@ data class RoomData(
     )
 
     data class SecretCoords(
-        val redstoneKey: List<Map<String, Int>> = emptyList(),
-        val wither: List<Map<String, Int>> = emptyList(),
-        val bat: List<Map<String, Int>> = emptyList(),
-        val item: List<Map<String, Int>> = emptyList(),
-        val chest: List<Map<String, Int>> = emptyList(),
+        val redstoneKey: List<BlockPos> = emptyList(),
+        val wither: List<BlockPos> = emptyList(),
+        val bat: List<BlockPos> = emptyList(),
+        val item: List<BlockPos> = emptyList(),
+        val chest: List<BlockPos> = emptyList(),
     )
 
     companion object {
