@@ -1,23 +1,46 @@
 package noammaddons.features.impl.dungeons.waypoints
 
+import com.google.gson.reflect.TypeToken
 import net.minecraft.util.BlockPos
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.config.PogObject
+import noammaddons.NoammAddons.Companion.MOD_NAME
 import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.modMessage
 import java.awt.Color
+import java.io.*
 import java.util.concurrent.CopyOnWriteArrayList
 
 object DungeonWaypoints: Feature("add a custom waypoint with /dw add while looking at a block") {
     data class DungeonWaypoint(val pos: BlockPos, val color: Color, val filled: Boolean, val outline: Boolean, val phase: Boolean)
 
-    val waypoints = PogObject<Map<String, List<DungeonWaypoint>>>("dungeonWaypoints", mapOf())
+    private val configFile = File("config/$MOD_NAME/dungeon_waypoints.json")
+    val waypoints = mutableMapOf<String, List<DungeonWaypoint>>()
     val currentRoomWaypoints: CopyOnWriteArrayList<DungeonWaypoint> = CopyOnWriteArrayList()
 
     val secretWaypoints by ToggleSetting("Secret Waypoints")
+
+    override fun init() {
+        val reader = configFile.takeIf(File::exists)?.let(::FileReader) ?: return
+        val type = object: TypeToken<MutableMap<String, List<DungeonWaypoint>>>() {}.type
+        val loadedData: MutableMap<String, List<DungeonWaypoint>>? = JsonUtils.gson.fromJson(reader, type)
+
+        if (loadedData != null) {
+            waypoints.clear()
+            waypoints.putAll(loadedData)
+        }
+
+        reader.close()
+    }
+
+    fun saveConfig() {
+        configFile.parentFile.takeUnless(File::exists)?.let(File::mkdirs)
+        val writer = FileWriter(configFile)
+        JsonUtils.gson.toJson(waypoints, writer)
+        writer.close()
+    }
 
     @SubscribeEvent
     fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
@@ -26,11 +49,11 @@ object DungeonWaypoints: Feature("add a custom waypoint with /dw add while looki
 
         val roomName = event.room.data.name.takeUnless { it == "Unknown" } ?: return
         val roomRotation = event.room.rotation ?: return
-        val roomCorner = event.room.corner ?: return
+        val roomCenter = ScanUtils.getRoomCenter(event.room)
 
-        waypoints.getData()[roomName]?.map {
+        waypoints[roomName]?.map {
             DungeonWaypoint(
-                ScanUtils.getRealCoord(it.pos, roomCorner, 360 - roomRotation),
+                ScanUtils.getRealCoord(it.pos, roomCenter, roomRotation),
                 it.color, it.filled, it.outline, it.phase
             )
         }?.let { currentRoomWaypoints.addAll(it) }
@@ -40,7 +63,7 @@ object DungeonWaypoints: Feature("add a custom waypoint with /dw add while looki
     fun onBossEnter(event: DungeonEvent.BossEnterEvent) {
         SecretsWaypoints.onWorldUnload()
         currentRoomWaypoints.clear()
-        waypoints.getData()["B" + LocationUtils.dungeonFloorNumber]?.let { currentRoomWaypoints.addAll(it) }
+        waypoints["B" + LocationUtils.dungeonFloorNumber]?.let { currentRoomWaypoints.addAll(it) }
     }
 
     @SubscribeEvent
@@ -49,11 +72,9 @@ object DungeonWaypoints: Feature("add a custom waypoint with /dw add while looki
         if (currentRoomWaypoints.isEmpty()) return
 
         for (waypoint in currentRoomWaypoints) {
-            RenderUtils.drawBox(
-                waypoint.pos, waypoint.color,
-                outline = waypoint.outline,
-                fill = waypoint.filled,
-                1f, 1f, phase = waypoint.phase
+            RenderUtils.drawBlockBox(
+                waypoint.pos, waypoint.color, outline = waypoint.outline,
+                fill = waypoint.filled, phase = waypoint.phase
             )
         }
     }
@@ -67,15 +88,16 @@ object DungeonWaypoints: Feature("add a custom waypoint with /dw add while looki
     fun saveWaypoint(absPos: BlockPos, relPos: BlockPos, roomName: String, color: Color, filled: Boolean, outline: Boolean, phase: Boolean) {
         val newWaypoint = DungeonWaypoint(relPos, color, filled, outline, phase)
 
-        val currentData = waypoints.getData().toMutableMap()
+        val currentData = waypoints.toMutableMap()
         val roomList = currentData.getOrDefault(roomName, emptyList()).toMutableList()
         val wasReplaced = roomList.removeIf { it.pos == relPos }
 
         roomList.add(newWaypoint)
         currentData[roomName] = roomList
 
-        waypoints.setData(currentData)
-        waypoints.save()
+        waypoints.clear()
+        waypoints.putAll(currentData)
+        saveConfig()
 
         currentRoomWaypoints.removeIf { it.pos == absPos }
 

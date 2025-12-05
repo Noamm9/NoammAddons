@@ -1,17 +1,30 @@
 package noammaddons.utils
 
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
+import com.google.gson.*
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonWriter
 import kotlinx.serialization.json.*
 import kotlinx.serialization.json.Json.Default.parseToJsonElement
+import kotlinx.serialization.json.JsonObject
 import net.minecraft.util.ResourceLocation
 import noammaddons.NoammAddons.Companion.mc
+import java.awt.Color
 import java.io.*
 
 
 object JsonUtils {
+    private val colorAdapter = object: TypeAdapter<Color>() {
+        override fun write(out: JsonWriter, value: Color?) {
+            out.value(value?.rgb)
+        }
+
+        override fun read(input: JsonReader): Color {
+            return Color(input.nextInt(), true)
+        }
+    }
+
     val gson = Gson()
-    val gsonBuilder = GsonBuilder().setPrettyPrinting().create()
+    val gsonBuilder = GsonBuilder().setPrettyPrinting().registerTypeAdapter(Color::class.java, colorAdapter).create()
     val json = Json { ignoreUnknownKeys = true }
 
     fun JsonObject.getObj(key: String) = this[key]?.jsonObject

@@ -32,11 +32,11 @@ object SecretsWaypoints {
 
         waypoints[roomName]?.let {
             val roomWaypoints = mutableListOf<SecretWaypoint>()
-            it.redstoneKey.forEach { roomWaypoints.add(SecretWaypoint(ScanUtils.getRealCoord(it, roomCorner, roomRotation), "REDSTONE_KEY")) }
-            it.wither.forEach { roomWaypoints.add(SecretWaypoint(ScanUtils.getRealCoord(it, roomCorner, roomRotation), "WITHER_ESSANCE")) }
-            it.bat.forEach { roomWaypoints.add(SecretWaypoint(ScanUtils.getRealCoord(it, roomCorner, roomRotation), "BAT")) }
-            it.item.forEach { roomWaypoints.add(SecretWaypoint(ScanUtils.getRealCoord(it, roomCorner, roomRotation), "ITEM")) }
-            it.chest.forEach { roomWaypoints.add(SecretWaypoint(ScanUtils.getRealCoord(it, roomCorner, roomRotation), "CHEST")) }
+            it.redstoneKey.forEach { roomWaypoints.add(SecretWaypoint(ScanUtils.getRealCoord(it.toPos(), roomCorner, roomRotation), "REDSTONE_KEY")) }
+            it.wither.forEach { roomWaypoints.add(SecretWaypoint(ScanUtils.getRealCoord(it.toPos(), roomCorner, roomRotation), "WITHER_ESSANCE")) }
+            it.bat.forEach { roomWaypoints.add(SecretWaypoint(ScanUtils.getRealCoord(it.toPos(), roomCorner, roomRotation), "BAT")) }
+            it.item.forEach { roomWaypoints.add(SecretWaypoint(ScanUtils.getRealCoord(it.toPos(), roomCorner, roomRotation), "ITEM")) }
+            it.chest.forEach { roomWaypoints.add(SecretWaypoint(ScanUtils.getRealCoord(it.toPos(), roomCorner, roomRotation), "CHEST")) }
             currentRoomWaypoints.addAll(roomWaypoints)
         }
     }
@@ -47,16 +47,13 @@ object SecretsWaypoints {
 
         for (waypoint in currentRoomWaypoints) {
             if (waypoint.type == "REDSTONE_KEY" && getBlockAt(waypoint.pos) != Blocks.skull) continue
-
-            RenderUtils.drawBlockBox(
-                waypoint.pos, waypoint.color,
-                fill = false, outline = true,
-                phase = true
-            )
+            RenderUtils.drawBox(waypoint.pos, waypoint.color, fill = false, outline = true)
         }
     }
 
     fun onWorldUnload() {
         currentRoomWaypoints.clear()
     }
+
+    private fun Map<String, Int>.toPos() = values.toList().let { BlockPos(it[0], it[1], it[2]) }
 }

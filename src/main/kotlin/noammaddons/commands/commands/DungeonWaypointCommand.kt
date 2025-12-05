@@ -52,13 +52,12 @@ object DungeonWaypointCommand: Command("dw", aliases = listOf("dungeonwaypoint",
                 if (closest != null && closest.pos.distanceSq(playerPos) < 25.0) {
                     val relativePosToRemove = ScanUtils.getRelativeCoord(closest.pos, roomCenter, rotation)
 
-                    val currentData = DungeonWaypoints.waypoints.getData().toMutableMap()
+                    val currentData = DungeonWaypoints.waypoints
                     val roomList = currentData.getOrDefault(roomName, emptyList()).toMutableList()
 
                     if (roomList.removeIf { it.pos == relativePosToRemove }) {
-                        currentData[roomName] = roomList
-                        DungeonWaypoints.waypoints.setData(currentData)
-                        DungeonWaypoints.waypoints.save()
+                        DungeonWaypoints.waypoints[roomName] = roomList
+                        DungeonWaypoints.saveConfig()
                         DungeonWaypoints.currentRoomWaypoints.remove(closest)
                         ChatUtils.modMessage("§aWaypoint removed.")
                     }
@@ -70,10 +69,8 @@ object DungeonWaypointCommand: Command("dw", aliases = listOf("dungeonwaypoint",
 
             "clear" -> {
                 if (DungeonWaypoints.currentRoomWaypoints.isEmpty()) return ChatUtils.modMessage("§cNo waypoints set for this room.")
-                val currentData = DungeonWaypoints.waypoints.getData().toMutableMap()
-                currentData.remove(roomName)
-                DungeonWaypoints.waypoints.setData(currentData)
-                DungeonWaypoints.waypoints.save()
+                DungeonWaypoints.waypoints.remove(roomName)
+                DungeonWaypoints.saveConfig()
                 DungeonWaypoints.currentRoomWaypoints.clear()
                 ChatUtils.modMessage("§aAll waypoints cleared.")
             }
