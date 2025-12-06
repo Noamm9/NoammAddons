@@ -96,12 +96,10 @@ object MapRenderUtils {
         GlStateManager.scale(DungeonMapConfig.playerHeadScale.value, DungeonMapConfig.playerHeadScale.value, 1f)
 
         if (DungeonMapConfig.mapVanillaMarker.value && name == mc.thePlayer.name) {
-            GlStateManager.rotate(180f, 0f, 0f, 1f)
             RenderHelper.bindColor(DungeonMapConfig.mapVanillaMarkerColor.value)
             GlStateManager.enableTexture2D()
             mc.textureManager.bindTexture(playerMarker)
             drawTexturedQuad(- 6.0, - 6.0, 12.0, 12.0)
-            GlStateManager.rotate(- 180f, 0f, 0f, 1f)
         }
         else {
             GlStateManager.disableTexture2D()

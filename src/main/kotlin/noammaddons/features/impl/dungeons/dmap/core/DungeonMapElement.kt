@@ -229,6 +229,7 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
         DungeonInfo.uniqueRooms.forEach { unq ->
             val room = unq.mainRoom
 
+            if (unq.name == "Unknown") return@forEach
             if (room.data.type == RoomType.ENTRANCE) return@forEach
             if (! DungeonMapConfig.dungeonMapCheater.value && (room.state == RoomState.UNDISCOVERED || room.state == RoomState.UNOPENED)) return@forEach
 
