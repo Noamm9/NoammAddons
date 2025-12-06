@@ -20,6 +20,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 0,
     "crypts": 34
@@ -81,6 +82,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 6,
     "crypts": 3
@@ -118,6 +120,7 @@
       ],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 2,
     "crypts": 0
@@ -161,6 +164,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 3,
     "crypts": 4
@@ -192,6 +196,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 1
@@ -254,6 +259,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 6,
     "crypts": 5
@@ -303,6 +309,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 4,
     "crypts": 0
@@ -334,6 +341,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 1
@@ -365,6 +373,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 0
@@ -402,6 +411,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 2,
     "crypts": 2
@@ -438,6 +448,7 @@
       ],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 2,
     "crypts": 1
@@ -480,6 +491,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 3,
     "crypts": 1
@@ -505,6 +517,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 0,
     "crypts": 0
@@ -536,6 +549,7 @@
       ],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 4
@@ -561,6 +575,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 0,
     "crypts": 0
@@ -587,6 +602,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 0,
     "crypts": 0
@@ -647,6 +663,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 6,
     "crypts": 6
@@ -701,6 +718,7 @@
         }
       ]
     },
+    "trappedChests": 1,
     "reviveStones": 0,
     "secrets": 5,
     "crypts": 21
@@ -732,6 +750,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 0
@@ -769,6 +788,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 2,
     "crypts": 0
@@ -803,6 +823,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 3
@@ -874,6 +895,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 8,
     "crypts": 5
@@ -934,6 +956,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 6,
     "crypts": 5
@@ -965,6 +988,7 @@
       ],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 0
@@ -1001,6 +1025,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 2,
     "crypts": 0
@@ -1055,6 +1080,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 5,
     "crypts": 6
@@ -1091,6 +1117,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 2,
     "crypts": 1
@@ -1117,41 +1144,10 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 0,
     "crypts": 0
-  },
-  {
-    "name": "Criss Cross",
-    "type": "NORMAL",
-    "shape": "1x1",
-    "cores": [
-      650161016,
-      1002362494
-    ],
-    "secretDetails": {
-      "redstoneKey": 0,
-      "wither": 0,
-      "bat": 0,
-      "item": 0,
-      "chest": 1
-    },
-    "secretCoords": {
-      "redstoneKey": [],
-      "wither": [],
-      "bat": [],
-      "item": [],
-      "chest": [
-        {
-          "x": 15,
-          "y": 66,
-          "z": 6
-        }
-      ]
-    },
-    "reviveStones": 0,
-    "secrets": 1,
-    "crypts": 6
   },
   {
     "name": "Crypt",
@@ -1202,6 +1198,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 5,
     "crypts": 2
@@ -1257,6 +1254,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 6,
     "crypts": 4
@@ -1283,6 +1281,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 0,
     "crypts": 0
@@ -1332,6 +1331,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 4,
     "crypts": 3
@@ -1382,6 +1382,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 4,
     "crypts": 4
@@ -1418,6 +1419,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 2,
     "crypts": 3
@@ -1455,6 +1457,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 2,
     "crypts": 2
@@ -1508,6 +1511,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 5,
     "crypts": 7
@@ -1551,6 +1555,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 3,
     "crypts": 0
@@ -1576,6 +1581,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 0,
     "crypts": 0
@@ -1612,6 +1618,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 2,
     "crypts": 6
@@ -1655,6 +1662,7 @@
         }
       ]
     },
+    "trappedChests": 1,
     "reviveStones": 0,
     "secrets": 3,
     "crypts": 6
@@ -1686,6 +1694,7 @@
       ],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 0
@@ -1723,6 +1732,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 2,
     "crypts": 1
@@ -1750,6 +1760,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 0,
     "crypts": 0
@@ -1775,6 +1786,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 0,
     "crypts": 0
@@ -1841,6 +1853,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 7,
     "crypts": 8
@@ -1873,6 +1886,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 0
@@ -1915,6 +1929,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 1
@@ -1964,6 +1979,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 4,
     "crypts": 2
@@ -2001,6 +2017,7 @@
       ],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 2,
     "crypts": 0
@@ -2046,6 +2063,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 3,
     "crypts": 4
@@ -2107,6 +2125,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 6,
     "crypts": 2
@@ -2132,6 +2151,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 0,
     "crypts": 0
@@ -2176,6 +2196,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 3,
     "crypts": 1
@@ -2209,6 +2230,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 0
@@ -2240,6 +2262,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 0,
     "crypts": 0
@@ -2265,6 +2288,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 0,
     "crypts": 0
@@ -2296,6 +2320,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 0
@@ -2321,6 +2346,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 0,
     "crypts": 1
@@ -2363,6 +2389,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 3,
     "crypts": 0
@@ -2388,6 +2415,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 3,
     "crypts": 0
@@ -2448,6 +2476,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 6,
     "crypts": 4
@@ -2518,6 +2547,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 8,
     "crypts": 0
@@ -2549,6 +2579,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 1
@@ -2580,6 +2611,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 1
@@ -2626,6 +2658,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 4,
     "crypts": 0
@@ -2662,6 +2695,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 3,
     "crypts": 3
@@ -2703,6 +2737,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 3,
     "crypts": 1
@@ -2736,6 +2771,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 0
@@ -2785,6 +2821,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 4,
     "crypts": 0
@@ -2840,6 +2877,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 5,
     "crypts": 4
@@ -2904,6 +2942,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 7,
     "crypts": 4
@@ -2984,6 +3023,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 10,
     "crypts": 11
@@ -3032,6 +3072,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 4,
     "crypts": 3
@@ -3063,6 +3104,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 0
@@ -3112,6 +3154,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 4,
     "crypts": 2
@@ -3143,6 +3186,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 0
@@ -3174,6 +3218,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 0
@@ -3229,6 +3274,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 5,
     "crypts": 4
@@ -3260,6 +3306,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 0
@@ -3303,6 +3350,7 @@
         }
       ]
     },
+    "trappedChests": 1,
     "reviveStones": 0,
     "secrets": 3,
     "crypts": 1
@@ -3350,6 +3398,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 4,
     "crypts": 2
@@ -3393,6 +3442,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 3,
     "crypts": 0
@@ -3430,6 +3480,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 2,
     "crypts": 1
@@ -3467,6 +3518,7 @@
       ],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 2,
     "crypts": 0
@@ -3521,6 +3573,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 5,
     "crypts": 1
@@ -3558,6 +3611,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 2,
     "crypts": 1
@@ -3624,6 +3678,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 7,
     "crypts": 9
@@ -3685,6 +3740,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 6,
     "crypts": 2
@@ -3741,6 +3797,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 5,
     "crypts": 4
@@ -3799,6 +3856,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 6,
     "crypts": 6
@@ -3830,6 +3888,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 1
@@ -3884,6 +3943,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 5,
     "crypts": 7
@@ -3920,6 +3980,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 2,
     "crypts": 0
@@ -3986,6 +4047,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 7,
     "crypts": 9
@@ -4011,6 +4073,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 0,
     "crypts": 0
@@ -4057,6 +4120,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 4,
     "crypts": 2
@@ -4099,6 +4163,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 3,
     "crypts": 3
@@ -4176,6 +4241,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 9,
     "crypts": 1
@@ -4201,6 +4267,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 3,
     "crypts": 0
@@ -4226,6 +4293,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 0
@@ -4276,6 +4344,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 4,
     "crypts": 1
@@ -4318,6 +4387,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 3,
     "crypts": 2
@@ -4361,6 +4431,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 3,
     "crypts": 0
@@ -4409,6 +4480,7 @@
         }
       ]
     },
+    "trappedChests": 1,
     "reviveStones": 0,
     "secrets": 3,
     "crypts": 4
@@ -4452,6 +4524,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 3,
     "crypts": 4
@@ -4494,6 +4567,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 3,
     "crypts": 1
@@ -4525,6 +4599,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 1
@@ -4568,6 +4643,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 3,
     "crypts": 1
@@ -4605,6 +4681,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 2,
     "crypts": 0
@@ -4630,6 +4707,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 0,
     "crypts": 2
@@ -4661,6 +4739,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 0
@@ -4698,6 +4777,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 2,
     "crypts": 0
@@ -4734,6 +4814,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 2,
     "crypts": 2
@@ -4790,6 +4871,7 @@
         }
       ]
     },
+    "trappedChests": 1,
     "reviveStones": 0,
     "secrets": 5,
     "crypts": 1
@@ -4821,6 +4903,7 @@
       ],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 1
@@ -4858,6 +4941,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 2,
     "crypts": 1
@@ -4895,6 +4979,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 2,
     "crypts": 5
@@ -4970,6 +5055,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 9,
     "crypts": 3
@@ -5013,6 +5099,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 3,
     "crypts": 2
@@ -5056,6 +5143,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 3,
     "crypts": 2
@@ -5106,6 +5194,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 4,
     "crypts": 1
@@ -5137,6 +5226,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 1
@@ -5173,6 +5263,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 2,
     "crypts": 1
@@ -5234,6 +5325,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 6,
     "crypts": 6
@@ -5260,6 +5352,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 0,
     "crypts": 0
@@ -5304,6 +5397,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 3,
     "crypts": 0
@@ -5329,6 +5423,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 0
@@ -5354,6 +5449,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 0,
     "crypts": 0
@@ -5386,6 +5482,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 0
@@ -5411,6 +5508,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 2,
     "crypts": 0
@@ -5436,6 +5534,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 0,
     "crypts": 0
@@ -5467,6 +5566,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 0
@@ -5504,6 +5604,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 2,
     "crypts": 0
@@ -5530,6 +5631,7 @@
       "item": [],
       "chest": []
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 0,
     "crypts": 0
@@ -5601,6 +5703,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 8,
     "crypts": 3
@@ -5666,6 +5769,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 7,
     "crypts": 5
@@ -5715,6 +5819,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 4,
     "crypts": 6
@@ -5765,6 +5870,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 4,
     "crypts": 8
@@ -5796,6 +5902,7 @@
         }
       ]
     },
+    "trappedChests": 0,
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 1
