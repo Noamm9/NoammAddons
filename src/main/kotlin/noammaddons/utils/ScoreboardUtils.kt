@@ -4,7 +4,7 @@ import net.minecraft.network.play.server.*
 import net.minecraft.scoreboard.ScorePlayerTeam
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.NoammAddons.Companion.mc
-import noammaddons.events.PostPacketEvent
+import noammaddons.events.MainThreadPacketRecivedEvent
 import noammaddons.events.WorldUnloadEvent
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.ChatUtils.removeUnicode
@@ -14,13 +14,13 @@ object ScoreboardUtils {
         private set
 
     @SubscribeEvent
-    fun onScoreboardChange(event: PostPacketEvent.Received) {
+    fun onScoreboardChange(event: MainThreadPacketRecivedEvent) {
         if (event.packet !is S3EPacketTeams
             && event.packet !is S3CPacketUpdateScore
             && event.packet !is S3DPacketDisplayScoreboard
         ) return
 
-        mc.addScheduledTask(ScoreboardUtils::getSidebarLines)
+        updateSidebarLines()
     }
 
     @SubscribeEvent
@@ -28,7 +28,7 @@ object ScoreboardUtils {
         mc.addScheduledTask { sidebarLines = emptyList() }
     }
 
-    private fun getSidebarLines() {
+    private fun updateSidebarLines() {
         val scoreboard = mc.theWorld?.scoreboard ?: return
         val objective = scoreboard.getObjectiveInDisplaySlot(1) ?: run {
             sidebarLines = emptyList()

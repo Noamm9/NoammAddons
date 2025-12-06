@@ -9,7 +9,6 @@ import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
 import noammaddons.NoammAddons;
 import noammaddons.events.PacketEvent;
-import noammaddons.events.PostPacketEvent;
 import noammaddons.utils.Utils;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -51,16 +50,6 @@ public abstract class MixinNetworkManager extends SimpleChannelInboundHandler<Pa
     @Inject(method = "sendPacket(Lnet/minecraft/network/Packet;)V", at = @At("HEAD"), cancellable = true)
     private void onSentPacket(Packet<?> packet, CallbackInfo ci) {
         if (postAndCatch(new PacketEvent.Sent(packet))) ci.cancel();
-    }
-
-    @Inject(method = "channelRead0*", at = @At("TAIL"))
-    private void onPostReceivePacket(ChannelHandlerContext context, Packet<?> packet, CallbackInfo ci) {
-        postAndCatch(new PostPacketEvent.Received(packet));
-    }
-
-    @Inject(method = "sendPacket(Lnet/minecraft/network/Packet;)V", at = @At("TAIL"))
-    private void onPostSentPacket(Packet<?> packet, CallbackInfo ci) {
-        postAndCatch(new PostPacketEvent.Sent(packet));
     }
 
     @Unique

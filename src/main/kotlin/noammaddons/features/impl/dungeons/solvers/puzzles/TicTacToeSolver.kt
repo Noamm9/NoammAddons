@@ -64,7 +64,7 @@ object TicTacToeSolver {
     }
 
     @SubscribeEvent
-    fun onPacket(event: PostPacketEvent.Received) {
+    fun onPacket(event: MainThreadPacketRecivedEvent) {
         if (! inTicTacToe) return
         val packet = event.packet as? S0EPacketSpawnObject ?: return
         if (packet.type != 71) return // EntityItemFrame

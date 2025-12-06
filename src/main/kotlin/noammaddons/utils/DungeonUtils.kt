@@ -244,7 +244,7 @@ object DungeonUtils {
     }
 
     @SubscribeEvent
-    fun onPacket(event: PostPacketEvent.Received) {
+    fun onPacket(event: MainThreadPacketRecivedEvent) {
         if (! inDungeon) return
 
         when (val packet = event.packet) {

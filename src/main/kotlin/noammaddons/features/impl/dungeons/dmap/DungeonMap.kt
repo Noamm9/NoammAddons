@@ -12,6 +12,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.features.impl.DevOptions
+import noammaddons.features.impl.dungeons.MimicDetector
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapConfig
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapElement
 import noammaddons.features.impl.dungeons.dmap.core.map.*
@@ -57,6 +58,12 @@ object DungeonMap: Feature() {
 
         if (DungeonScanner.shouldScan || DevOptions.devMode) {
             DungeonScanner.scan()
+        }
+
+        if (MimicDetector.mimicRoom == null && MimicDetector.shouldScanMimic) {
+            MimicDetector.findMimicRoom()?.let {
+                ChatUtils.modMessage("&cMimicDetector &f> &7Mimic Room: &c${it.name}")
+            }
         }
     }
 

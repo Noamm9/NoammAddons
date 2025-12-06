@@ -63,7 +63,7 @@ object StarMobESP: Feature("Highlights Star Mobs in the dungeon") {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    fun onPacket(event: PostPacketEvent.Received) {
+    fun onPacket(event: MainThreadPacketRecivedEvent) {
         if (! inDungeon || inBoss) return
         scheduledTask(2) {
             when (val packet = event.packet) {

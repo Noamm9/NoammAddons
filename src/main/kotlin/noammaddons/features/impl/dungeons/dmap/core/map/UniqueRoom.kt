@@ -12,6 +12,7 @@ class UniqueRoom(arrX: Int, arrY: Int, room: Room) {
     val tiles = mutableListOf(room)
 
     var foundSecrets = 0
+    var hasMimic = false
 
     init {
         DungeonInfo.cryptCount += room.data.crypts

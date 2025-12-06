@@ -45,6 +45,7 @@
     "MixinPatcherEntityCulling",
     "MixinSkytilsFunny",
     "MixinWorld",
+    "PacketThreadUtilMixin",
     "accessor.AccessorCommandHandler",
     "accessor.EntityAccessor"
   ]

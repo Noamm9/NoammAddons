@@ -53,11 +53,7 @@ abstract class PacketEvent: Event() {
     class Sent(val packet: Packet<*>): PacketEvent()
 }
 
-abstract class PostPacketEvent: Event() {
-    class Received(val packet: Packet<*>): PacketEvent()
-
-    class Sent(val packet: Packet<*>): PacketEvent()
-}
+class MainThreadPacketRecivedEvent(val packet: Packet<*>): Event()
 
 class PostRenderEntityModelEvent(
     var entity: EntityLivingBase,
@@ -168,5 +164,3 @@ abstract class DungeonEvent: Event() {
 class WorldUnloadEvent: Event()
 
 class EntityLeaveWorldEvent(val entity: Entity, val world: World): Event()
-
-class EntityDeathEvent(val entity: Entity): Event()

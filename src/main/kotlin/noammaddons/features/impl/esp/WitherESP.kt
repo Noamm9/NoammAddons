@@ -79,7 +79,7 @@ object WitherESP: Feature("Highlights Withers in the world") {
      Vanquisher: isArmored: false/true, invulTime: 250
      */
     @SubscribeEvent
-    fun onPacket(event: PostPacketEvent.Received) {
+    fun onPacket(event: MainThreadPacketRecivedEvent) {
         if (! isValidLoc()) return
         when (val packet = event.packet) {
             is S0FPacketSpawnMob -> {

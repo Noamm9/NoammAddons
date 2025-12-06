@@ -7,6 +7,7 @@ import net.minecraft.init.Blocks
 import net.minecraft.network.play.server.*
 import net.minecraft.util.AxisAlignedBB
 import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.event.entity.living.LivingDeathEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
@@ -87,7 +88,7 @@ object WitherDragons: Feature(
     }
 
     @SubscribeEvent
-    fun onEntityDeath(event: EntityDeathEvent) {
+    fun onEntityDeath(event: LivingDeathEvent) {
         if (LocationUtils.F7Phase != 5) return
         if (event.entity !is EntityDragon) return
         WitherDragonEnum.entries.find { it.entityId == event.entity.entityId }?.setDead()

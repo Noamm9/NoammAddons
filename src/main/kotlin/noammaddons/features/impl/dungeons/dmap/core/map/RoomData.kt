@@ -9,6 +9,7 @@ data class RoomData(
     val cores: List<Int>,
     val secretDetails: SecretDetails,
     val secretCoords: SecretCoords,
+    val trappedChests: Int = 0,
     val reviveStones: Int = 0,
     val secrets: Int = 0,
     val crypts: Int = 0,
