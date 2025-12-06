@@ -21,6 +21,7 @@ class Room(override val x: Int, override val z: Int, var data: RoomData): Tile {
     var rotation: Int? = null
     var corner: BlockPos? = null
     var highestBlock: Int? = null
+    var uniqueRoom: UniqueRoom? = null
 
     override var state: RoomState by Delegates.observable(RoomState.UNDISCOVERED) { _, oldValue, newValue ->
         if (uniqueRoom?.mainRoom != this) return@observable
@@ -58,7 +59,6 @@ class Room(override val x: Int, override val z: Int, var data: RoomData): Tile {
                 else -> DungeonMapConfig.colorRoom
             }.value
         }
-    var uniqueRoom: UniqueRoom? = null
 
     fun getArrayPosition(): Pair<Int, Int> {
         return Pair((x - DungeonScanner.startX) / 16, (z - DungeonScanner.startZ) / 16)

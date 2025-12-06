@@ -1,6 +1,10 @@
 package noammaddons.features.impl.dungeons.dmap.core
 
+
+import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.ResourceLocation
 import noammaddons.NoammAddons.Companion.MOD_ID
 import noammaddons.NoammAddons.Companion.hudData
@@ -11,15 +15,13 @@ import noammaddons.features.impl.dungeons.dmap.core.map.*
 import noammaddons.features.impl.dungeons.dmap.handlers.*
 import noammaddons.features.impl.dungeons.dmap.utils.MapRenderUtils
 import noammaddons.features.impl.dungeons.dmap.utils.MapRenderUtils.colorizeScore
-import noammaddons.features.impl.dungeons.dmap.utils.MapRenderUtils.drawPlayerHead
 import noammaddons.features.impl.dungeons.dmap.utils.MapUtils
 import noammaddons.utils.*
 import noammaddons.utils.DungeonUtils.dungeonStarted
 import noammaddons.utils.RenderHelper.colorCodeByPresent
-import noammaddons.utils.RenderHelper.getStringHeight
-import noammaddons.utils.RenderHelper.getStringWidth
 import org.lwjgl.opengl.GL11
 import java.awt.Color
+import kotlin.math.max
 
 
 object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
@@ -40,15 +42,30 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
         GlStateManager.translate(getX(), getY(), 1f)
         GlStateManager.scale(getScale(), getScale(), getScale())
 
-        drawMapBackground()
-        GlStateManager.translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat(), 0f)
-        renderRooms()
-        renderCheckmarks()
-        renderText()
-        GlStateManager.translate(- MapUtils.startCorner.first.toFloat(), - MapUtils.startCorner.second.toFloat(), 0f)
-        renderPlayerHeads()
-        drawExtraInfo()
+        mc.mcProfiler.startSection("dungeonmap")
 
+        mc.mcProfiler.startSection("drawMapBackground")
+        drawMapBackground()
+        mc.mcProfiler.endSection()
+        GlStateManager.translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat(), 0f)
+        mc.mcProfiler.startSection("renderRooms")
+        renderRooms()
+        mc.mcProfiler.endSection()
+        mc.mcProfiler.startSection("renderCheckmarks")
+        renderCheckmarks()
+        mc.mcProfiler.endSection()
+        mc.mcProfiler.startSection("renderText")
+        renderText()
+        mc.mcProfiler.endSection()
+        GlStateManager.translate(- MapUtils.startCorner.first.toFloat(), - MapUtils.startCorner.second.toFloat(), 0f)
+        mc.mcProfiler.startSection("renderPlayerHeads")
+        renderPlayerHeads()
+        mc.mcProfiler.endSection()
+        mc.mcProfiler.startSection("drawExtraInfo")
+        drawExtraInfo()
+        mc.mcProfiler.endSection()
+
+        mc.mcProfiler.endSection()
         GlStateManager.popMatrix()
     }
 
@@ -56,18 +73,32 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
     private fun drawMapBackground() {
         when (DungeonMapConfig.mapBackgroundStyle.value) {
             0 -> {
-                MapRenderUtils.renderRect(
-                    0.0, 0.0,
-                    width.toDouble(), height.toDouble(),
+                val tessellator = Tessellator.getInstance()
+                val worldRenderer = tessellator.worldRenderer
+
+                GlStateManager.pushMatrix()
+                GlStateManager.enableBlend()
+                GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
+                GlStateManager.disableTexture2D()
+
+                worldRenderer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR)
+
+                MapRenderUtils.addRectToBatch(
+                    0.0, 0.0, width.toDouble(), height.toDouble(),
                     DungeonMapConfig.mapBackground.value
                 )
 
-                MapRenderUtils.renderRectBorder(
-                    0.0, 0.0,
-                    width.toDouble(), height.toDouble(),
+                MapRenderUtils.addRectBorderToBatch(
+                    0.0, 0.0, width.toDouble(), height.toDouble(),
                     DungeonMapConfig.mapBorderWidth.value,
                     DungeonMapConfig.mapBorderColor.value
                 )
+
+                tessellator.draw()
+
+                GlStateManager.enableTexture2D()
+                GlStateManager.disableBlend()
+                GlStateManager.popMatrix()
             }
 
             1 -> RenderUtils.drawTexture(RES_MAP_BACKGROUND, - 2.5, - 2.5, width + 5, height + 5)
@@ -75,11 +106,29 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
     }
 
     private fun renderRooms() {
+        val tessellator = Tessellator.getInstance()
+        val worldRenderer = tessellator.worldRenderer
+
+        GlStateManager.pushMatrix()
+        GlStateManager.enableBlend()
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
+        GlStateManager.disableTexture2D()
+
+        worldRenderer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR)
+
         for (y in 0 .. 10) {
             for (x in 0 .. 10) {
                 val tile = DungeonInfo.dungeonList[y * 11 + x]
                 if (! DungeonMapConfig.dungeonMapCheater.value && (tile is Unknown || tile.state == RoomState.UNDISCOVERED)) continue
-                val color = if (tile.state == RoomState.UNDISCOVERED) tile.color.darker().darker() else tile.color
+                val color = (if (tile.state == RoomState.UNDISCOVERED) tile.color.darker().darker() else tile.color).let {
+                    return@let if (DungeonMapConfig.highlightMimicRoom.value && (tile as? Room)?.uniqueRoom?.hasMimic == true) {
+                        val r = (it.red + (255 - it.red) * 0.2).toInt()
+                        val g = (it.green * (1 - 0.2)).toInt()
+                        val b = (it.blue * (1 - 0.2)).toInt()
+                        Color(r, g, b, it.alpha)
+                    }
+                    else it
+                }
 
                 val xOffset = (x shr 1) * (MapUtils.mapRoomSize + HotbarMapColorParser.quarterRoom)
                 val yOffset = (y shr 1) * (MapUtils.mapRoomSize + HotbarMapColorParser.quarterRoom)
@@ -89,7 +138,7 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
 
                 when {
                     xEven && yEven -> if (tile is Room) {
-                        MapRenderUtils.renderRect(
+                        MapRenderUtils.addRectToBatch(
                             xOffset.toDouble(),
                             yOffset.toDouble(),
                             MapUtils.mapRoomSize.toDouble(),
@@ -99,7 +148,7 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
                     }
 
                     ! xEven && ! yEven -> {
-                        MapRenderUtils.renderRect(
+                        MapRenderUtils.addRectToBatch(
                             xOffset.toDouble(),
                             yOffset.toDouble(),
                             (MapUtils.mapRoomSize + HotbarMapColorParser.quarterRoom).toDouble(),
@@ -108,12 +157,31 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
                         )
                     }
 
-                    else -> drawRoomConnector(
-                        xOffset, yOffset, HotbarMapColorParser.quarterRoom, tile is Door, ! xEven, color
-                    )
+                    else -> {
+                        val doorway = tile is Door
+                        val vertical = ! xEven
+                        val doorWidth = HotbarMapColorParser.quarterRoom
+
+                        val doorwayOffset = if (MapUtils.mapRoomSize == 16) 5 else 6
+                        val width = if (doorway) 6 else MapUtils.mapRoomSize
+                        var x1 = if (vertical) xOffset + MapUtils.mapRoomSize else xOffset
+                        var y1 = if (vertical) yOffset else yOffset + MapUtils.mapRoomSize
+                        if (doorway) if (vertical) y1 += doorwayOffset else x1 += doorwayOffset
+
+                        val finalW = if (vertical) doorWidth else width
+                        val finalH = if (vertical) width else doorWidth
+
+                        MapRenderUtils.addRectToBatch(x1.toDouble(), y1.toDouble(), finalW.toDouble(), finalH.toDouble(), color)
+                    }
                 }
             }
         }
+
+        tessellator.draw()
+
+        GlStateManager.enableTexture2D()
+        GlStateManager.disableBlend()
+        GlStateManager.popMatrix()
     }
 
     private fun renderCheckmarks() {
@@ -144,14 +212,29 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
     }
 
     private fun renderText() {
-        DungeonInfo.uniqueRooms.forEach { unq ->
-            val room = unq.mainRoom.takeUnless { it.data.type == RoomType.ENTRANCE } ?: return@forEach
-            if (! DungeonMapConfig.dungeonMapCheater.value && (room.state == RoomState.UNDISCOVERED || room.state == RoomState.UNOPENED)) return@forEach
-            val size = MapUtils.mapRoomSize + HotbarMapColorParser.quarterRoom
-            val checkPos = unq.getCheckmarkPosition()
+        val mc = Minecraft.getMinecraft()
+        val fr = mc.fontRendererObj
 
-            val xOffset = (checkPos.first / 2f) * size
-            val yOffset = (checkPos.second / 2f) * size
+        GlStateManager.pushMatrix()
+        GlStateManager.enableTexture2D()
+        GlStateManager.enableBlend()
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
+        GlStateManager.color(1f, 1f, 1f, 1f)
+
+        val roomSize = MapUtils.mapRoomSize.toFloat()
+        val gapSize = HotbarMapColorParser.quarterRoom.toFloat()
+        val halfRoom = HotbarMapColorParser.halfRoom.toFloat()
+        val fullCellSize = roomSize + gapSize
+
+        DungeonInfo.uniqueRooms.forEach { unq ->
+            val room = unq.mainRoom
+
+            if (room.data.type == RoomType.ENTRANCE) return@forEach
+            if (! DungeonMapConfig.dungeonMapCheater.value && (room.state == RoomState.UNDISCOVERED || room.state == RoomState.UNOPENED)) return@forEach
+
+            val checkPos = unq.getCheckmarkPosition()
+            val cX = (checkPos.first / 2f) * fullCellSize + halfRoom
+            val cY = (checkPos.second / 2f) * fullCellSize + halfRoom
 
             val color = when (room.state) {
                 RoomState.GREEN -> 0x55ff55
@@ -160,56 +243,120 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
                 else -> 0xaaaaaa
             }
 
+
+            GlStateManager.pushMatrix()
+            GlStateManager.translate(cX, cY, 0f)
+
             when (DungeonMapConfig.dungeonMapCheckmarkStyle.value) {
-                3 -> {
-                    val lines = room.data.name.split(" ").takeUnless { "Unknown" in it } ?: return@forEach
-                    var textScale = DungeonMapConfig.textScale.value
+                3, 4 -> {
+                    var scale = DungeonMapConfig.textScale.value
 
                     if (DungeonMapConfig.limitRoomNameSize.value) {
-                        val scaleToFitWidth = MapUtils.mapRoomSize / (lines.maxOfOrNull { getStringWidth(it) } ?: 0f)
-                        val scaleToFitHeight = MapUtils.mapRoomSize / getStringHeight(lines)
-                        textScale = minOf(scaleToFitWidth, scaleToFitHeight).coerceAtMost(textScale)
-                        if ("Withermancer" in lines) textScale *= 2 // temp fix trust
+                        var maxWidth = roomSize
+                        var maxHeight = roomSize
+
+                        if (room.data.shape != "L" || room.data.shape != "1x1" || room.data.shape != "2x2") {
+                            var minX = Int.MAX_VALUE;
+                            var maxX = Int.MIN_VALUE
+                            var minZ = Int.MAX_VALUE;
+                            var maxZ = Int.MIN_VALUE
+
+                            for (tile in unq.tiles) {
+                                if (tile.x < minX) minX = tile.x
+                                if (tile.x > maxX) maxX = tile.x
+                                if (tile.z < minZ) minZ = tile.z
+                                if (tile.z > maxZ) maxZ = tile.z
+                            }
+
+                            val tilesWide = maxX - minX + 1
+                            val tilesTall = maxZ - minZ + 1
+
+                            maxWidth = (tilesWide * roomSize) + (max(0, tilesWide - 1) * gapSize)
+                            maxHeight = (tilesTall * roomSize) + (max(0, tilesTall - 1) * gapSize)
+                        }
+
+                        if (room.data.shape == "L") maxWidth = roomSize * 2
+                        else if (room.data.shape == "2x2") {
+                            maxWidth = roomSize * 2
+                            maxHeight = roomSize * 2
+                        }
+
+                        var maxLineW = 0
+                        for (line in unq.cacheSplitName) {
+                            val w = fr.getStringWidth(line)
+                            if (w > maxLineW) maxLineW = w
+                        }
+
+                        var totalH = unq.cacheSplitName.size * fr.FONT_HEIGHT
+
+                        if (DungeonMapConfig.dungeonMapCheckmarkStyle.value == 4 && room.data.secrets > 0) {
+                            val w = fr.getStringWidth("${unq.foundSecrets}/${room.data.secrets}")
+                            if (w > maxLineW) maxLineW = w
+                            totalH += fr.FONT_HEIGHT
+                        }
+
+                        if (maxLineW > 0 && totalH > 0) {
+                            val sW = maxWidth / maxLineW
+                            val sH = maxHeight / totalH
+                            scale = sW.coerceAtMost(sH).coerceIn(0.4f, DungeonMapConfig.textScale.value)
+                        }
                     }
 
-                    MapRenderUtils.renderCenteredText(
-                        lines,
-                        xOffset + HotbarMapColorParser.halfRoom,
-                        yOffset + HotbarMapColorParser.halfRoom,
-                        color, textScale
-                    )
+                    GlStateManager.scale(scale, scale, 1f)
+
+                    val showSecrets = DungeonMapConfig.dungeonMapCheckmarkStyle.value == 4 && room.data.secrets > 0
+                    val totalLines = unq.cacheSplitName.size + (if (showSecrets) 1 else 0)
+                    val totalH = totalLines * fr.FONT_HEIGHT
+
+                    var currentY = - (totalH / 2f)
+
+                    for (line in unq.cacheSplitName) {
+                        fr.drawString(line, - fr.getStringWidth(line) / 2f, currentY, color, true)
+                        currentY += fr.FONT_HEIGHT
+                    }
+
+                    if (showSecrets) {
+                        val secStr = "${unq.foundSecrets}/${room.data.secrets}"
+                        fr.drawString(secStr, - fr.getStringWidth(secStr) / 2f, currentY, color, true)
+                    }
                 }
 
-                2 -> MapRenderUtils.renderCenteredText(
-                    listOf("${room.uniqueRoom?.foundSecrets ?: 0}/${room.data.secrets}"),
-                    xOffset + HotbarMapColorParser.halfRoom,
-                    yOffset + 1 + HotbarMapColorParser.halfRoom,
-                    color, DungeonMapConfig.textScale.value
-                )
+                2 -> {
+                    val str = if (room.data.secrets == 0) "0" else "${unq.foundSecrets}/${room.data.secrets}"
+                    GlStateManager.scale(DungeonMapConfig.textScale.value, DungeonMapConfig.textScale.value, 1f)
+                    fr.drawString(str, - fr.getStringWidth(str) / 2f, - (fr.FONT_HEIGHT / 2f) + 1, color, true)
+                }
             }
+
+            GlStateManager.popMatrix()
         }
+
+        GlStateManager.disableBlend()
+        GlStateManager.popMatrix()
     }
 
     private fun renderPlayerHeads() {
         if (LocationUtils.inBoss) return
 
         if (dungeonStarted) {
-            DungeonUtils.dungeonTeammatesNoSelf.filterNot { it.isDead }.forEach { p ->
-                drawPlayerHead(p.name, p.skin, p.clazz, p.entity, p.mapIcon.mapX, p.mapIcon.mapZ, p.mapIcon.yaw)
+            DungeonUtils.dungeonTeammatesNoSelf.forEach { p ->
+                if (p.isDead) return@forEach
+                MapRenderUtils.drawPlayerHead(p.name, p.skin, p.clazz, p.entity, p.mapIcon.mapX, p.mapIcon.mapZ, p.mapIcon.yaw)
             }
 
             DungeonUtils.thePlayer?.let { p ->
-                drawPlayerHead(p.name, p.skin, p.clazz, p.entity)
+                MapRenderUtils.drawPlayerHead(p.name, p.skin, p.clazz, p.entity)
             }
         }
         else {
-            DungeonUtils.runPlayersNames.filterNot { it.key == mc.session.username }.forEach { (name, skin) ->
+            DungeonUtils.runPlayersNames.forEach { (name, skin) ->
+                if (name == mc.session.username) return@forEach
                 mc.theWorld.getPlayerEntityByName(name)?.let { entity ->
-                    drawPlayerHead(name, skin, DungeonUtils.Classes.Empty, entity)
+                    MapRenderUtils.drawPlayerHead(name, skin, DungeonUtils.Classes.Empty, entity)
                 }
             }
 
-            drawPlayerHead(mc.session.username, mc.thePlayer.locationSkin, DungeonUtils.Classes.Empty, mc.thePlayer)
+            MapRenderUtils.drawPlayerHead(mc.session.username, mc.thePlayer.locationSkin, DungeonUtils.Classes.Empty, mc.thePlayer)
         }
     }
 
@@ -260,20 +407,5 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
         )
 
         GlStateManager.disableBlend()
-    }
-
-    private fun drawRoomConnector(x: Int, y: Int, doorWidth: Int, doorway: Boolean, vertical: Boolean, color: Color) {
-        val doorwayOffset = if (MapUtils.mapRoomSize == 16) 5 else 6
-        val width = if (doorway) 6 else MapUtils.mapRoomSize
-        var x1 = if (vertical) x + MapUtils.mapRoomSize else x
-        var y1 = if (vertical) y else y + MapUtils.mapRoomSize
-        if (doorway) if (vertical) y1 += doorwayOffset else x1 += doorwayOffset
-
-        MapRenderUtils.renderRect(
-            x1.toDouble(), y1.toDouble(),
-            (if (vertical) doorWidth else width).toDouble(),
-            (if (vertical) width else doorWidth).toDouble(),
-            color
-        )
     }
 }

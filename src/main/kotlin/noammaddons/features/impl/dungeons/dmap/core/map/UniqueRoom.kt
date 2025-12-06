@@ -6,6 +6,7 @@ import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
 
 class UniqueRoom(arrX: Int, arrY: Int, room: Room) {
     val name = room.data.name
+    val cacheSplitName = name.split(" ")
     private var topLeft = Pair(arrX, arrY)
     private var center = Pair(arrX, arrY)
     var mainRoom = room

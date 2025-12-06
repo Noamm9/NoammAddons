@@ -62,7 +62,8 @@ object DungeonMap: Feature() {
 
         if (MimicDetector.mimicRoom == null && MimicDetector.shouldScanMimic) {
             MimicDetector.findMimicRoom()?.let {
-                ChatUtils.modMessage("&cMimicDetector &f> &7Mimic Room: &c${it.name}")
+                MimicDetector.mimicRoom = it
+                it.hasMimic = true
             }
         }
     }

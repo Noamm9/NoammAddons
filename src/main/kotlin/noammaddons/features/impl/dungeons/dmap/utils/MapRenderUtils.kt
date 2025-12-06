@@ -1,6 +1,5 @@
 package noammaddons.features.impl.dungeons.dmap.utils
 
-import net.minecraft.client.gui.Gui
 import net.minecraft.client.renderer.*
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.player.EntityPlayer
@@ -12,9 +11,7 @@ import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.RenderHelper
-import noammaddons.utils.RenderHelper.bindColor
 import noammaddons.utils.RenderHelper.renderVec
-import noammaddons.utils.Utils.equalsOneOf
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
 
@@ -22,26 +19,23 @@ object MapRenderUtils {
     private val tessellator: Tessellator = Tessellator.getInstance()
     private val worldRenderer: WorldRenderer = tessellator.worldRenderer
 
-    private fun preDraw() {
-        GlStateManager.enableAlpha()
-        GlStateManager.enableBlend()
-        GlStateManager.disableDepth()
-        GlStateManager.disableLighting()
-        GlStateManager.disableTexture2D()
-        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
+    fun addRectToBatch(x: Double, y: Double, w: Double, h: Double, color: Color) {
+        val r = color.red
+        val g = color.green
+        val b = color.blue
+        val a = color.alpha
+
+        worldRenderer.pos(x, y + h, .0).color(r, g, b, a).endVertex()
+        worldRenderer.pos(x + w, y + h, .0).color(r, g, b, a).endVertex()
+        worldRenderer.pos(x + w, y, .0).color(r, g, b, a).endVertex()
+        worldRenderer.pos(x, y, .0).color(r, g, b, a).endVertex()
     }
 
-    private fun postDraw() {
-        GlStateManager.disableBlend()
-        GlStateManager.enableDepth()
-        GlStateManager.enableTexture2D()
-    }
-
-    private fun addQuadVertices(x: Double, y: Double, w: Double, h: Double) {
-        worldRenderer.pos(x, y + h, 0.0).endVertex()
-        worldRenderer.pos(x + w, y + h, 0.0).endVertex()
-        worldRenderer.pos(x + w, y, 0.0).endVertex()
-        worldRenderer.pos(x, y, 0.0).endVertex()
+    fun addRectBorderToBatch(x: Double, y: Double, w: Double, h: Double, thickness: Double, color: Color) {
+        addRectToBatch(x - thickness, y, thickness, h, color)
+        addRectToBatch(x - thickness, y - thickness, w + thickness * 2, thickness, color)
+        addRectToBatch(x + w, y, thickness, h, color)
+        addRectToBatch(x - thickness, y + h, w + thickness * 2, thickness, color)
     }
 
     fun drawTexturedQuad(x: Double, y: Double, width: Double, height: Double) {
@@ -61,31 +55,6 @@ object MapRenderUtils {
         }
     }
 
-    fun renderRect(x: Double, y: Double, w: Double, h: Double, color: Color) {
-        if (color.alpha == 0) return
-        preDraw()
-        bindColor(color)
-        worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
-        addQuadVertices(x, y, w, h)
-        tessellator.draw()
-        postDraw()
-    }
-
-    fun renderRectBorder(x: Double, y: Double, w: Double, h: Double, thickness: Double, color: Color) {
-        if (color.alpha == 0) return
-        preDraw()
-        bindColor(color)
-
-        worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
-        addQuadVertices(x - thickness, y, thickness, h)
-        addQuadVertices(x - thickness, y - thickness, w + thickness * 2, thickness)
-        addQuadVertices(x + w, y, thickness, h)
-        addQuadVertices(x - thickness, y + h, w + thickness * 2, thickness)
-        tessellator.draw()
-
-        postDraw()
-    }
-
     fun renderCenteredText(text: List<String>, x: Float, y: Float, color: Int, scale: Float = 1.0f) {
         if (text.isEmpty()) return
 
@@ -101,17 +70,6 @@ object MapRenderUtils {
         }
     }
 
-    private fun drawTextLinesInternal(text: List<String>, x: Float, y: Float, color: Int) {
-        val fontHeight = mc.fontRendererObj.FONT_HEIGHT + 1
-        val totalTextHeight = text.size * fontHeight
-        val startY = y - (totalTextHeight / 2f)
-
-        text.forEachIndexed { index, line ->
-            val startX = x - (RenderHelper.getStringWidth(line) / 2f)
-            mc.fontRendererObj.drawString(line.addColor(), startX, startY + index * fontHeight, color, true)
-        }
-    }
-
     fun drawPlayerHead(
         name: String,
         skin: ResourceLocation,
@@ -122,15 +80,12 @@ object MapRenderUtils {
         fallbackYaw: Float = 0f
     ) {
         GlStateManager.pushMatrix()
-        GlStateManager.enableTexture2D()
 
         val currentYaw: Float
-        val liveEntity = entity?.takeUnless { it.isDead }
-
-        if (liveEntity != null) {
-            val (x, z) = MapUtils.coordsToMap(liveEntity.renderVec)
+        if (entity != null && ! entity.isDead) {
+            val (x, z) = MapUtils.coordsToMap(entity.renderVec)
             GlStateManager.translate(x, z, 0f)
-            currentYaw = liveEntity.rotationYaw
+            currentYaw = entity.rotationYaw
         }
         else {
             GlStateManager.translate(fallbackMapX, fallbackMapZ, 0f)
@@ -142,43 +97,60 @@ object MapRenderUtils {
 
         if (DungeonMapConfig.mapVanillaMarker.value && name == mc.thePlayer.name) {
             GlStateManager.rotate(180f, 0f, 0f, 1f)
-            bindColor(DungeonMapConfig.mapVanillaMarkerColor.value)
+            RenderHelper.bindColor(DungeonMapConfig.mapVanillaMarkerColor.value)
+            GlStateManager.enableTexture2D()
             mc.textureManager.bindTexture(playerMarker)
-            worldRenderer.begin(7, DefaultVertexFormats.POSITION_TEX)
-            worldRenderer.pos(- 6.0, 6.0, 0.0).tex(0.0, 0.0).endVertex()
-            worldRenderer.pos(6.0, 6.0, 0.0).tex(1.0, 0.0).endVertex()
-            worldRenderer.pos(6.0, - 6.0, 0.0).tex(1.0, 1.0).endVertex()
-            worldRenderer.pos(- 6.0, - 6.0, 0.0).tex(0.0, 1.0).endVertex()
-            tessellator.draw()
+            drawTexturedQuad(- 6.0, - 6.0, 12.0, 12.0)
             GlStateManager.rotate(- 180f, 0f, 0f, 1f)
         }
         else {
-            // @formatter:off
-            renderRectBorder(- 6.0, - 6.0, 12.0, 12.0, 1.0, when {
-                DungeonMapConfig.mapPlayerHeadColorClassBased.value -> clazz.color
-                else -> DungeonMapConfig.mapPlayerHeadColor.value
-            })
+            GlStateManager.disableTexture2D()
+            GlStateManager.enableBlend()
 
-            preDraw()
+            worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION_COLOR)
+            addRectBorderToBatch(- 6.0, - 6.0, 12.0, 12.0, 1.0, if (DungeonMapConfig.mapPlayerHeadColorClassBased.value) clazz.color else DungeonMapConfig.mapPlayerHeadColor.value)
+            tessellator.draw()
+
             GlStateManager.enableTexture2D()
-            bindColor(Color.WHITE)
+            GlStateManager.color(1f, 1f, 1f, 1f)
             mc.textureManager.bindTexture(skin)
-
-            Gui.drawScaledCustomSizeModalRect(- 6, - 6, 8f, 8f, 8, 8, 12, 12, 64f, 64f)
-            Gui.drawScaledCustomSizeModalRect(- 6, - 6, 40f, 8f, 8, 8, 12, 12, 64f, 64f)
-
-            postDraw()
+            worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION_TEX)
+            worldRenderer.pos(- 6.0, 6.0, 0.0).tex(0.125, 0.25).endVertex()
+            worldRenderer.pos(6.0, 6.0, 0.0).tex(0.25, 0.25).endVertex()
+            worldRenderer.pos(6.0, - 6.0, 0.0).tex(0.25, 0.125).endVertex()
+            worldRenderer.pos(- 6.0, - 6.0, 0.0).tex(0.125, 0.125).endVertex()
+            worldRenderer.pos(- 6.0, 6.0, 0.0).tex(0.625, 0.25).endVertex()
+            worldRenderer.pos(6.0, 6.0, 0.0).tex(0.75, 0.25).endVertex()
+            worldRenderer.pos(6.0, - 6.0, 0.0).tex(0.75, 0.125).endVertex()
+            worldRenderer.pos(- 6.0, - 6.0, 0.0).tex(0.625, 0.125).endVertex()
+            tessellator.draw()
         }
 
-        if (DungeonMapConfig.playerHeads.value == 2 || (DungeonMapConfig.playerHeads.value == 1 && mc.thePlayer.heldItem.skyblockID.equalsOneOf(
-            "SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP", "HAUNT_ABILITY"
-        ))) {
+        val heldItem = ServerPlayer.player.getHeldItem()
+        if (DungeonMapConfig.playerHeads.value == 2 || (DungeonMapConfig.playerHeads.value == 1
+                    && (heldItem != null && (heldItem.skyblockID == "SPIRIT_LEAP" || heldItem.skyblockID == "INFINITE_SPIRIT_LEAP"
+                    || heldItem.skyblockID == "HAUNT_ABILITY")))
+        ) {
             GlStateManager.rotate(currentYaw + 180f, 0f, 0f, - 1f)
             GlStateManager.translate(0f, 8f, 0f)
             GlStateManager.scale(DungeonMapConfig.playerNameScale.value, DungeonMapConfig.playerNameScale.value, 1f)
-            RenderUtils.drawCenteredText(name, 0, 0, 1f, if (DungeonMapConfig.mapPlayerNameClassColorBased.value && clazz != DungeonUtils.Classes.Empty) clazz.color else Color.WHITE)
+            mc.fontRendererObj.drawString(name, - mc.fontRendererObj.getStringWidth(name) / 2f, 0f,
+                                          if (DungeonMapConfig.mapPlayerNameClassColorBased.value && clazz != DungeonUtils.Classes.Empty) clazz.color.rgb else 0xFFFFFF, true
+            )
         }
 
         GlStateManager.popMatrix()
+    }
+
+
+    private fun drawTextLinesInternal(text: List<String>, x: Float, y: Float, color: Int) {
+        val fontHeight = mc.fontRendererObj.FONT_HEIGHT + 1
+        val totalTextHeight = text.size * fontHeight
+        val startY = y - (totalTextHeight / 2f)
+
+        text.forEachIndexed { index, line ->
+            val startX = x - (RenderHelper.getStringWidth(line) / 2f)
+            mc.fontRendererObj.drawString(line.addColor(), startX, startY + index * fontHeight, color, true)
+        }
     }
 }

@@ -141,7 +141,10 @@ object DungeonScanner {
                 when {
                     it !is Room -> null
                     it.data.type == RoomType.ENTRANCE -> Door(x, z, DoorType.ENTRANCE)
-                    else -> Room(x, z, it.data).apply { isSeparator = true }
+                    else -> Room(x, z, it.data).apply {
+                        isSeparator = true
+                        addToUnique(row, column)
+                    }
                 }
             }
         }
