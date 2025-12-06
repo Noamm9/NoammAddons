@@ -46,7 +46,7 @@
   "Used Throwing Axe!",
   ".+ is now ready!",
   "Your .+ stats are doubled because you are the only player using this class!",
-  ".+ Milestone.+",
+  "(Archer|Mage|Berserker|Tank|Healer) Milestone.+",
   "^You earned .+ Event EXP from playing SkyBlock!$",
   "You earned .+ GEXP from playing .+!",
   "BONUS! Temporarily earn [0-9]+% more skill experience!",
@@ -140,12 +140,13 @@
   "You have 60 seconds to warp out! CLICK to warp now!",
   "Only up to 2 rules may trigger at once!",
   "Some of your autopet rules did not trigger.",
-  ".+ joined the lobby!.*",
+  ".+ the lobby!.*",
   "FISHING FESTIVAL The festival is now underway! Break out your fishing rods and watch out for sharks!",
   "Hoppity's Hunt has begun! Help Hoppity find his Chocolate Rabbit Eggs across SkyBlock each day during the Spring!",
   " +You have [0-9]+ unclaimed event rewards!",
   " +>>> CLICK HERE to claim! <<<",
   " +Event rewards are deleted after 10 SkyBlock years!",
   "\\+[0-9]+ Kill Combo .+",
-  "Your Kill Combo has expired! You reached a [0-9]+ Kill Combo!"
+  "Your Kill Combo has expired! You reached a [0-9]+ Kill Combo!",
+  "Your Auto Recombobulator recombobulated .+!"
 ]
