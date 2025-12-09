@@ -26,6 +26,38 @@
     "crypts": 34
   },
   {
+    "name": "Criss Cross",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      650161016
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 15,
+          "y": 66,
+          "z": 6
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 6
+  },
+  {
     "name": "Altar",
     "type": "NORMAL",
     "shape": "L",
