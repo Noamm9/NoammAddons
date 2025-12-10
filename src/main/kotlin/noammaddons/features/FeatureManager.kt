@@ -22,6 +22,7 @@ import noammaddons.features.impl.gui.Menus.impl.WardrobeMenu
 import noammaddons.features.impl.hud.*
 import noammaddons.features.impl.misc.*
 import noammaddons.features.impl.slayers.ExtraSlayerInfo
+import noammaddons.features.impl.slayers.SlayerFeatures
 import noammaddons.ui.config.core.save.Config
 import noammaddons.utils.RenderHelper.getStringWidth
 
@@ -46,12 +47,12 @@ object FeatureManager {
         InventoryDisplay, StopCloseMyChat, InventorySearchbar, BlessingDisplay,
         ClientTimer, DarkMode, Animations, EnchantmentsColors, AutoClicker,
         ArrowFix, PartyHelper, DungeonMap, DungeonBreaker, DungeonWaypoints,
+        NoBlockAnimation, SlayerFeatures, LifelineHud,
 
         // ProfileViewer, // never finished + Skycrpt api went down
         // ZeroPingTeleportation, // - R.I.P fuck hypixel, fuck blinkers
         // BetterFloors, StonkSwap, GhostPick, // - R.I.P goodbye stonking
         // ReaperArmor, // - R.I.P fuck reaper fix
-        NoBlockAnimation, SlayerFeatures,
 
         DevOptions, CompTest, ConfigGui,
     ).sortedBy { it.name }
