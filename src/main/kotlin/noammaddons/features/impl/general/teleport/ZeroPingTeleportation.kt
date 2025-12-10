@@ -32,10 +32,10 @@ object ZeroPingTeleportation: Feature("Instantly Teleport without waiting for th
     private val aote by ToggleSetting("Instant Transmission")
     private val etherwarp by ToggleSetting("Etherwarp")
     private val witherImpact by ToggleSetting("Wither Impact")
-    private val _s by SeperatorSetting("Keep Motion").addDependency { ! aote && ! etherwarp && ! witherImpact }
-    private val aoteKm by ToggleSetting("Instant Transmission ").addDependency { ! aote }
-    private val etherwarpKm by ToggleSetting("Etherwarp ").addDependency { ! etherwarp }
-    private val witherImpactKm by ToggleSetting("Wither Impact ").addDependency { ! witherImpact }
+    private val _s by SeperatorSetting("Keep Motion").hideIf { ! aote && ! etherwarp && ! witherImpact }
+    private val aoteKm by ToggleSetting("Instant Transmission ").hideIf { ! aote }
+    private val etherwarpKm by ToggleSetting("Etherwarp ").hideIf { ! etherwarp }
+    private val witherImpactKm by ToggleSetting("Wither Impact ").hideIf { ! witherImpact }
 
     private val interactableBlocks = setOf(146, 54, 130, 154, 118, 69, 77, 143, 96, 167)
 

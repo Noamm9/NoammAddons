@@ -35,8 +35,8 @@ object WitherDragons: Feature(
 ) {
     private val s by SeperatorSetting("Dragon Timer")
     private val dragonTimer by ToggleSetting("Dragon Timer ", true)
-    private val dragonTimerStyle by DropdownSetting("Timer Style", listOf("Milliseconds", "Seconds", "Ticks"), 0).addDependency { ! dragonTimer }
-    private val showSymbol by ToggleSetting("Timer Symbol", true).addDependency { ! dragonTimer }
+    private val dragonTimerStyle by DropdownSetting("Timer Style", listOf("Milliseconds", "Seconds", "Ticks"), 0).hideIf { ! dragonTimer }
+    private val showSymbol by ToggleSetting("Timer Symbol", true).hideIf { ! dragonTimer }
 
     private val ss by SeperatorSetting("Dragon Boxes")
     private val dragonBoxes by ToggleSetting("Dragon Boxes ", true)
@@ -46,7 +46,7 @@ object WitherDragons: Feature(
     private val highlightDragons by ToggleSetting("Highlight Dragons")
     val dragonTitle by ToggleSetting("Dragon Title", true)
     private val dragonTracers by ToggleSetting("Dragon Tracer", false)
-    private val tracerThickness by SliderSetting("Tracer Width", 1f, 5f, 0.5f, 1f).addDependency { ! dragonTracers }
+    private val tracerThickness by SliderSetting("Tracer Width", 1f, 5f, 0.5f, 1f).hideIf { ! dragonTracers }
 
     private val ssss by SeperatorSetting("Dragon Alerts ")
     val sendTime by ToggleSetting("Send Dragon Time Alive", true)
@@ -55,10 +55,10 @@ object WitherDragons: Feature(
 
     private val sssss by SeperatorSetting("Dragon Priority ")
     val dragonPriorityToggle by ToggleSetting("Dragon Priority", false)
-    val normalPower by SliderSetting("Normal Power", 0f, 32f, 1f, 22f).addDependency { ! dragonPriorityToggle }
-    val easyPower by SliderSetting("Easy Power", 0f, 32f, 1f, 19f).addDependency { ! dragonPriorityToggle }
-    val soloDebuff by DropdownSetting("Purple Solo Debuff", listOf("Tank", "Healer")).addDependency { ! dragonPriorityToggle }
-    val soloDebuffOnAll by ToggleSetting("Solo Debuff on All Splits", true).addDependency { ! dragonPriorityToggle }
+    val normalPower by SliderSetting("Normal Power", 0f, 32f, 1f, 22f).hideIf { ! dragonPriorityToggle }
+    val easyPower by SliderSetting("Easy Power", 0f, 32f, 1f, 19f).hideIf { ! dragonPriorityToggle }
+    val soloDebuff by DropdownSetting("Purple Solo Debuff", listOf("Tank", "Healer")).hideIf { ! dragonPriorityToggle }
+    val soloDebuffOnAll by ToggleSetting("Solo Debuff on All Splits", true).hideIf { ! dragonPriorityToggle }
 
     var priorityDragon = None
     var currentTick: Long = 0

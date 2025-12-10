@@ -26,13 +26,13 @@ abstract class Component<T>(val name: String) {
     open fun mouseRelease(x: Double, y: Double, mouseX: Double, mouseY: Double, button: Int) {}
     open fun keyTyped(typedChar: Char, keyCode: Int): Boolean = false
 
-    fun addDependency(block: () -> Boolean): Component<T> {
+    fun hideIf(block: () -> Boolean): Component<T> {
         dependencies.add(block)
         return this
     }
 
     fun addDependency(dependentOn: Component<Boolean>): Component<T> {
-        addDependency { ! dependentOn.value }
+        hideIf { ! dependentOn.value }
         return this
     }
 

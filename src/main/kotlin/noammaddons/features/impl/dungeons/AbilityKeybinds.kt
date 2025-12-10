@@ -20,7 +20,7 @@ object AbilityKeybinds: Feature("Allows you do use your dungeon class ult/abilit
 
         addSettings(
             classUltimate, classAbility,
-            SeperatorSetting("Keybinds").addDependency { ! classUltimate.value || ! classAbility.value },
+            SeperatorSetting("Keybinds").hideIf { ! classUltimate.value || ! classAbility.value },
             ultKeybind, abilityKeybind
         )
     }

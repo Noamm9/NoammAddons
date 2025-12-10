@@ -18,14 +18,14 @@ object DungeonMapConfig {
     val playerNameScale = SliderSetting("Player Name Scale", 0f, 2f, 0.05f, 0.8f)
 
     val mapBackgroundStyle = DropdownSetting("Map Background Style", listOf("Default", "Vanilla", "Disabled"), 0)
-    val mapBackground = ColorSetting("Map Background Color", Color(255, 255, 255, 50), true).addDependency { mapBackgroundStyle.value != 0 }
-    val mapBorderColor = ColorSetting("Map Border Color", Color(255, 255, 255), true).addDependency { mapBackgroundStyle.value != 0 }
-    val mapBorderWidth = SliderSetting("Border Thickness", 0.0, 10.0, 0.5, 1.0).addDependency { mapBackgroundStyle.value != 0 }
+    val mapBackground = ColorSetting("Map Background Color", Color(255, 255, 255, 50), true).hideIf { mapBackgroundStyle.value != 0 }
+    val mapBorderColor = ColorSetting("Map Border Color", Color(255, 255, 255), true).hideIf { mapBackgroundStyle.value != 0 }
+    val mapBorderWidth = SliderSetting("Border Thickness", 0.0, 10.0, 0.5, 1.0).hideIf { mapBackgroundStyle.value != 0 }
 
     val dungeonMapCheckmarkStyle = DropdownSetting("Checkmark Style", listOf("Off", "Default Checkmarks", "Room Secrets", "Room Name", "Room Name + Secrets"), 1)
     val centerStyle = ToggleSetting("Center Checkmark", true)
     val hideQuestionCheckmarks = ToggleSetting("Hide Unknown Room Checkmark", false)
-    val limitRoomNameSize = ToggleSetting("Limit Room Name Size", true).addDependency { dungeonMapCheckmarkStyle.value != 3 }
+    val limitRoomNameSize = ToggleSetting("Limit Room Name Size", true).hideIf { dungeonMapCheckmarkStyle.value != 3 }
     val highlightMimicRoom = ToggleSetting("Hightlight Mimic Room", true)
 
     val mapVanillaMarkerColor = ColorSetting("Vanilla Head Marker", Color(0, 255, 0), true)

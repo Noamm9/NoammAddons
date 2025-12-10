@@ -33,8 +33,8 @@ object PuzzleSolvers: Feature("Puzzle Solvers for Dungeon Clear") {
     val blazeCount = SliderSetting("Blaze count", 1, 3, 1, 2).addDependency(blaze)
     val BlineColor = ColorSetting("Line Color", Color.WHITE, false).addDependency(blaze)
     val firstBlazeColor = ColorSetting("First Blaze Color", Color.GREEN, false).addDependency(blaze)
-    val secondBlazeColor = ColorSetting("Second Blaze Color", Color.YELLOW, false).addDependency { blazeCount.value != 1 }.addDependency(blaze)
-    val thirdBlazeColor = ColorSetting("Last Blaze Color", Color.RED, false).addDependency { blazeCount.value == 3 }.addDependency(blaze)
+    val secondBlazeColor = ColorSetting("Second Blaze Color", Color.YELLOW, false).hideIf { blazeCount.value != 1 }.addDependency(blaze)
+    val thirdBlazeColor = ColorSetting("Last Blaze Color", Color.RED, false).hideIf { blazeCount.value == 3 }.addDependency(blaze)
 
     val boulder = ToggleSetting("Boulder ")
     val BshowAll = ToggleSetting("Show All", false).addDependency(boulder)
@@ -47,7 +47,7 @@ object PuzzleSolvers: Feature("Puzzle Solvers for Dungeon Clear") {
     val WremoveNPCS = ToggleSetting("Remove NPCS", false).addDependency(weirdos)
     val WremoveChests = ToggleSetting("Remove Wrong Chests", false).addDependency(weirdos)
     val Wcolor = ColorSetting("Correct Chest Color", favoriteColor.withAlpha(40)).addDependency(weirdos)
-    val WcolorWrong = ColorSetting("Incorrect Chest Color", Color.RED.withAlpha(40)).addDependency { WremoveChests.value }.addDependency(weirdos)
+    val WcolorWrong = ColorSetting("Incorrect Chest Color", Color.RED.withAlpha(40)).hideIf { WremoveChests.value }.addDependency(weirdos)
 
     val tpMaze = ToggleSetting("Teleport Maze ")
     val correctTpPadColor = ColorSetting("Correct Pad Color", Color.GREEN.withAlpha(80)).addDependency(tpMaze)

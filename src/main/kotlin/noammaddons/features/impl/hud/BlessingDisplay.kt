@@ -19,11 +19,11 @@ object BlessingDisplay: Feature("Displays the current active blessings of the du
     private val life by ToggleSetting("Life Blessing", false)
     private val stone by ToggleSetting("Stone Blessing", false)
     private val s by SeperatorSetting("Colors")
-    private val powerColor by ColorSetting("Power Color", Color(mc.fontRendererObj.getColorCode('4'))).addDependency { ! power }
-    private val timeColor by ColorSetting("Time Color", Color(mc.fontRendererObj.getColorCode('5'))).addDependency { ! time }
-    private val wisdomColor by ColorSetting("Wisdom Color", Color(mc.fontRendererObj.getColorCode('b'))).addDependency { ! wisdom }
-    private val lifeColor by ColorSetting("Life Color", Color(mc.fontRendererObj.getColorCode('c'))).addDependency { ! life }
-    private val stoneColor by ColorSetting("Stone Color", Color(mc.fontRendererObj.getColorCode('7'))).addDependency { ! stone }
+    private val powerColor by ColorSetting("Power Color", Color(mc.fontRendererObj.getColorCode('4'))).hideIf { ! power }
+    private val timeColor by ColorSetting("Time Color", Color(mc.fontRendererObj.getColorCode('5'))).hideIf { ! time }
+    private val wisdomColor by ColorSetting("Wisdom Color", Color(mc.fontRendererObj.getColorCode('b'))).hideIf { ! wisdom }
+    private val lifeColor by ColorSetting("Life Color", Color(mc.fontRendererObj.getColorCode('c'))).hideIf { ! life }
+    private val stoneColor by ColorSetting("Stone Color", Color(mc.fontRendererObj.getColorCode('7'))).hideIf { ! stone }
 
     private data class BlessingData(val type: Blessing, val enabled: () -> Boolean, val color: () -> Color)
 

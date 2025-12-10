@@ -23,11 +23,11 @@ import java.awt.Color
 
 object SlotBinding: Feature(desc = "Allows you to bind slots to hotbar slots for quick item swaps.") {
     private val showBoundSlots = ToggleSetting("Show Bound Slots", true)
-    private val neuStyle = ToggleSetting("Hover Only", false).addDependency { ! showBoundSlots.value }
-    private val drawLines = ToggleSetting("Draw Lines", true).addDependency { ! showBoundSlots.value }
-    private val drawBorders = ToggleSetting("Draw Borders", true).addDependency { ! showBoundSlots.value }
-    private val lineColor = ColorSetting("Line Color", Color.WHITE, false).addDependency { ! showBoundSlots.value || ! drawLines.value }
-    private val borderColor = ColorSetting("Border Color", favoriteColor, false).addDependency { ! showBoundSlots.value || ! drawBorders.value }
+    private val neuStyle = ToggleSetting("Hover Only", false).hideIf { ! showBoundSlots.value }
+    private val drawLines = ToggleSetting("Draw Lines", true).hideIf { ! showBoundSlots.value }
+    private val drawBorders = ToggleSetting("Draw Borders", true).hideIf { ! showBoundSlots.value }
+    private val lineColor = ColorSetting("Line Color", Color.WHITE, false).hideIf { ! showBoundSlots.value || ! drawLines.value }
+    private val borderColor = ColorSetting("Border Color", favoriteColor, false).hideIf { ! showBoundSlots.value || ! drawBorders.value }
     private val bindKey = KeybindSetting("Add/Remove Bind Key")
 
     override fun init() = addSettings(
@@ -36,7 +36,7 @@ object SlotBinding: Feature(desc = "Allows you to bind slots to hotbar slots for
         SeperatorSetting("Rendering"),
         showBoundSlots, neuStyle,
         drawLines, drawBorders,
-        SeperatorSetting("Colors").addDependency { ! showBoundSlots.value },
+        SeperatorSetting("Colors").hideIf { ! showBoundSlots.value },
         lineColor, borderColor
     )
 

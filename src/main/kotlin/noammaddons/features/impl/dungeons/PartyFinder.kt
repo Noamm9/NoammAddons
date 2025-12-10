@@ -48,8 +48,8 @@ object PartyFinder: Feature("A group of many features regarding the dungeon ape 
             "Personal Best" to false, "Secrets Average" to false, "Spirit Pet" to false
         )
     ).addDependency(autoKick)
-    private val pbReq = TextInputSetting("PB Requirement", "5:30").addDependency(autoKick).addDependency { autoKickReasons.value["Personal Best"] != true }
-    private val secretsReq = TextInputSetting("Secrets Average Requirement", "6.0").addDependency(autoKick).addDependency { autoKickReasons.value["Secrets Average"] != true }
+    private val pbReq = TextInputSetting("PB Requirement", "5:30").addDependency(autoKick).hideIf { autoKickReasons.value["Personal Best"] != true }
+    private val secretsReq = TextInputSetting("Secrets Average Requirement", "6.0").addDependency(autoKick).hideIf { autoKickReasons.value["Secrets Average"] != true }
 
     override fun init() = addSettings(
         SeperatorSetting("Custom Menu"),

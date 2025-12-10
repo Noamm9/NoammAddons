@@ -45,7 +45,7 @@ object WardrobeMenu: Feature() {
         hotbarKeyMap = mc.gameSettings.keyBindsHotbar.mapIndexed { i, key -> key.keyCode to i }.toMap()
         keybinds.forEach { keybind ->
             keybind
-                .addDependency { useHotbarBinds.value }
+                .hideIf { useHotbarBinds.value }
                 .addDependency(wardrobeKeybinds)
         }
 
@@ -53,7 +53,7 @@ object WardrobeMenu: Feature() {
             customMenu,
             wardrobeKeybinds,
             closeAfterUse, useHotbarBinds, preventUnequip,
-            SeperatorSetting("Keybinds").addDependency { useHotbarBinds.value }.addDependency(wardrobeKeybinds),
+            SeperatorSetting("Keybinds").hideIf { useHotbarBinds.value }.addDependency(wardrobeKeybinds),
             *keybinds.toTypedArray()
         )
     }

@@ -12,17 +12,17 @@ import noammaddons.utils.ServerPlayer
 object AutoClicker: Feature(name = "Auto Clicker") {
     private val cps = SliderSetting("Clicks Per Second", 3f, 15f, .5f, 5f)
     private val terminatorCheck = ToggleSetting("Terminator Only")
-    private val leftClickToggle = ToggleSetting("Left Click").addDependency { terminatorCheck.value }
+    private val leftClickToggle = ToggleSetting("Left Click").hideIf { terminatorCheck.value }
     private val leftClickKeybind = KeybindSetting("Left Click Keybind")
-    private val rightClickToggle = ToggleSetting("Right Click").addDependency { terminatorCheck.value }
+    private val rightClickToggle = ToggleSetting("Right Click").hideIf { terminatorCheck.value }
     private val rightClickKeybind = KeybindSetting("Right Click Keybind")
 
     private var nextLeftClick = 0L
     private var nextRightClick = 0L
 
     override fun init() {
-        leftClickKeybind.addDependency(leftClickToggle).addDependency { terminatorCheck.value }
-        rightClickKeybind.addDependency(rightClickToggle).addDependency { terminatorCheck.value }
+        leftClickKeybind.addDependency(leftClickToggle).hideIf { terminatorCheck.value }
+        rightClickKeybind.addDependency(rightClickToggle).hideIf { terminatorCheck.value }
 
         addSettings(
             cps, terminatorCheck,

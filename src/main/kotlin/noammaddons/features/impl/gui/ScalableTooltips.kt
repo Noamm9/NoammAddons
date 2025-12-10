@@ -32,7 +32,7 @@ object ScalableTooltips: Feature("Allows you to scroll and scale tooltips") {
     private val rarityBorder by ToggleSetting("Rarity Border Color")
     private val s by SeperatorSetting("Colors")
     private val backgroundColor by ColorSetting("Background Color", Color(16, 0, 16, 240))
-    private val borderColor by ColorSetting("Border Color", Color(80, 0, 255, 80)).addDependency {
+    private val borderColor by ColorSetting("Border Color", Color(80, 0, 255, 80)).hideIf {
         (getSettingByName("Rarity Border Color") as ToggleSetting).value
     }
 

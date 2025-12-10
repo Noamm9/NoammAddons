@@ -19,7 +19,7 @@ object Animations: Feature(desc = "Changes the appearance of the first-person vi
     val ignoreHaste by ToggleSetting("Ignore Haste", false)
     private val noEquipReset by ToggleSetting("No Equip Reset", false)
     private val noSwing by ToggleSetting("No Swing", false)
-    private val scaleSwing by ToggleSetting("Scale Swing", true).addDependency { noSwing }
+    private val scaleSwing by ToggleSetting("Scale Swing", true).hideIf { noSwing }
 
     private val reset by ButtonSetting("Reset") {
         configSettings.forEach {

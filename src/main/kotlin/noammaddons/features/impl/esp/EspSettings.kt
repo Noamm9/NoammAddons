@@ -12,6 +12,6 @@ object EspSettings: Feature("ESP settings used by the entire mod") {
     val outlineOpacity by SliderSetting("Outline Opacity", 0, 100f, 1, 100.0)
 
     override fun init() {
-        getSettingByName("Line Width") !!.addDependency { highlightType == EspUtils.ESPType.CHAM.ordinal }
+        getSettingByName("Line Width") !!.hideIf { highlightType == EspUtils.ESPType.CHAM.ordinal }
     }
 }
