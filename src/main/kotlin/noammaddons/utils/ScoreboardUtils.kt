@@ -14,7 +14,7 @@ object ScoreboardUtils {
         private set
 
     @SubscribeEvent
-    fun onScoreboardChange(event: MainThreadPacketRecivedEvent) {
+    fun onScoreboardChange(event: MainThreadPacketRecivedEvent.Post) {
         if (event.packet !is S3EPacketTeams
             && event.packet !is S3CPacketUpdateScore
             && event.packet !is S3DPacketDisplayScoreboard

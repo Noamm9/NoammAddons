@@ -20,6 +20,7 @@ import net.minecraftforge.fml.common.eventhandler.Event
 import noammaddons.features.impl.dungeons.dmap.core.map.Room
 import noammaddons.features.impl.dungeons.dmap.core.map.RoomState
 import noammaddons.utils.DungeonUtils
+import noammaddons.utils.SlayerUtils
 
 
 @Cancelable
@@ -53,7 +54,13 @@ abstract class PacketEvent: Event() {
     class Sent(val packet: Packet<*>): PacketEvent()
 }
 
-class MainThreadPacketRecivedEvent(val packet: Packet<*>): Event()
+abstract class MainThreadPacketRecivedEvent(val packet: Packet<*>): Event() {
+    @Cancelable
+    class Pre(packet: Packet<*>): MainThreadPacketRecivedEvent(packet)
+
+    @Cancelable
+    class Post(packet: Packet<*>): MainThreadPacketRecivedEvent(packet)
+}
 
 class PostRenderEntityModelEvent(
     var entity: EntityLivingBase,

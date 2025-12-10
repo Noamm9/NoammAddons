@@ -64,11 +64,10 @@ object TicTacToeSolver {
     }
 
     @SubscribeEvent
-    fun onPacket(event: MainThreadPacketRecivedEvent) {
+    fun onPacket(event: MainThreadPacketRecivedEvent.Post) {
         if (! inTicTacToe) return
         val packet = event.packet as? S0EPacketSpawnObject ?: return
         if (packet.type != 71) return // EntityItemFrame
-
         ThreadUtils.scheduledTask(2) {
             bestMove = scanBoard(roomCenter !!)
         }

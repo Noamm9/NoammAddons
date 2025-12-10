@@ -1,5 +1,6 @@
 package noammaddons.mixins;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import net.minecraft.network.INetHandler;
 import net.minecraft.network.Packet;
 import net.minecraft.network.PacketThreadUtil;
@@ -12,19 +13,17 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(PacketThreadUtil.class)
 public class PacketThreadUtilMixin {
-    @Redirect(
-            method = "checkThreadAndEnqueue",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/util/IThreadListener;addScheduledTask(Ljava/lang/Runnable;)Lcom/google/common/util/concurrent/ListenableFuture;"
-            )
-    )
-    private static com.google.common.util.concurrent.ListenableFuture<?> onAddScheduledTask(
-            IThreadListener listener, Runnable originalRunnable, Packet<?> packet, INetHandler handler
-    ) {
+    @Redirect(method = "checkThreadAndEnqueue", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/IThreadListener;addScheduledTask(Ljava/lang/Runnable;)Lcom/google/common/util/concurrent/ListenableFuture;"))
+    private static ListenableFuture<?> onAddScheduledTask(IThreadListener listener, Runnable originalRunnable, Packet<?> packet, INetHandler handler) {
         Runnable wrapper = () -> {
-            originalRunnable.run();
-            EventDispatcher.postAndCatch(new MainThreadPacketRecivedEvent(packet));
+            if (!EventDispatcher.postAndCatch(new MainThreadPacketRecivedEvent.Pre(packet))) {
+                try {
+                    originalRunnable.run();
+                } catch (Exception ignored) {
+
+                }
+                EventDispatcher.postAndCatch(new MainThreadPacketRecivedEvent.Post(packet));
+            }
         };
 
         return listener.addScheduledTask(wrapper);

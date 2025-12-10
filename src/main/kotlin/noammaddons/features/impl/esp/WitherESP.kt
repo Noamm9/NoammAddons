@@ -15,7 +15,6 @@ import noammaddons.utils.LocationUtils.F7Phase
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.world
-import noammaddons.utils.ThreadUtils
 import java.awt.Color
 
 
@@ -79,17 +78,14 @@ object WitherESP: Feature("Highlights Withers in the world") {
      Vanquisher: isArmored: false/true, invulTime: 250
      */
     @SubscribeEvent
-    fun onPacket(event: MainThreadPacketRecivedEvent) {
+    fun onPacket(event: MainThreadPacketRecivedEvent.Post) {
         if (! isValidLoc()) return
         when (val packet = event.packet) {
             is S0FPacketSpawnMob -> {
                 if (packet.entityType != 64) return // EntityWither
-
-                ThreadUtils.scheduledTask(1) {
-                    val entity = mc.theWorld.getEntityByID(packet.entityID) as? EntityWither ?: return@scheduledTask
-                    if (entity.isInvisible || entity.invulTime == 800) return@scheduledTask
-                    Wither.currentWither = entity
-                }
+                val entity = mc.theWorld.getEntityByID(packet.entityID) as? EntityWither ?: return
+                if (entity.isInvisible || entity.invulTime == 800) return
+                Wither.currentWither = entity
             }
 
             is S13PacketDestroyEntities -> {

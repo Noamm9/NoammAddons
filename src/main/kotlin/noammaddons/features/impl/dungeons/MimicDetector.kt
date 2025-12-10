@@ -82,7 +82,7 @@ object MimicDetector: Feature("Detects when a Mimic or Prince is killed") {
     }
 
     @SubscribeEvent
-    fun onEntityDeath(event: MainThreadPacketRecivedEvent) {
+    fun onEntityDeath(event: MainThreadPacketRecivedEvent.Pre) {
         if (! inDungeon || mimicKilled.get()) return
         val packet = event.packet as? S19PacketEntityStatus ?: return
         if (packet.opCode.toInt() != 3) return

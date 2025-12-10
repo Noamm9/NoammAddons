@@ -18,7 +18,6 @@ import noammaddons.utils.EspUtils.espMob
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.inDungeon
-import noammaddons.utils.ThreadUtils.scheduledTask
 import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.favoriteColor
 import java.awt.Color
@@ -63,30 +62,28 @@ object StarMobESP: Feature("Highlights Star Mobs in the dungeon") {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    fun onPacket(event: MainThreadPacketRecivedEvent) {
+    fun onPacket(event: MainThreadPacketRecivedEvent.Post) {
         if (! inDungeon || inBoss) return
-        scheduledTask(2) {
-            when (val packet = event.packet) {
-                is S1CPacketEntityMetadata -> {
-                    val armorStand = mc.theWorld.getEntityByID(packet.entityId) as? EntityArmorStand ?: return@scheduledTask
-                    if (! armorStand.hasCustomName()) return@scheduledTask
-                    if (! armorStand.customNameTag.contains("§6✯")) return@scheduledTask
-                    checkStarMob(armorStand)
-                }
+        when (val packet = event.packet) {
+            is S1CPacketEntityMetadata -> {
+                val armorStand = mc.theWorld.getEntityByID(packet.entityId) as? EntityArmorStand ?: return
+                if (! armorStand.hasCustomName()) return
+                if (! armorStand.customNameTag.contains("§6✯")) return
+                checkStarMob(armorStand)
+            }
 
-                is S0FPacketSpawnMob -> {
-                    if (packet.entityType != 30) return@scheduledTask
-                    val name = packet.func_149027_c().find { it.dataValueId == 2 }?.getObject()?.toString() ?: return@scheduledTask
-                    if (! name.matches(dungeonMobRegex) || "§6✯" !in name) return@scheduledTask
-                    val armorStand = mc.theWorld?.getEntityByID(packet.entityID) as? EntityArmorStand? ?: return@scheduledTask
-                    checkStarMob(armorStand)
-                }
+            is S0FPacketSpawnMob -> {
+                if (packet.entityType != 30) return
+                val name = packet.func_149027_c().find { it.dataValueId == 2 }?.getObject()?.toString() ?: return
+                if (! name.matches(dungeonMobRegex) || "§6✯" !in name) return
+                val armorStand = mc.theWorld?.getEntityByID(packet.entityID) as? EntityArmorStand? ?: return
+                checkStarMob(armorStand)
+            }
 
-                is S0CPacketSpawnPlayer -> {
-                    val name = mc.netHandler.getPlayerInfo(packet.player)?.gameProfile?.name
-                    if (! name.equalsOneOf("Shadow Assassin", "Lost Adventurer", "Diamond Guy", "King Midas")) return@scheduledTask
-                    starMobs.add(mc.theWorld.getEntityByID(packet.entityID))
-                }
+            is S0CPacketSpawnPlayer -> {
+                val name = mc.netHandler.getPlayerInfo(packet.player)?.gameProfile?.name
+                if (! name.equalsOneOf("Shadow Assassin", "Lost Adventurer", "Diamond Guy", "King Midas")) return
+                starMobs.add(mc.theWorld.getEntityByID(packet.entityID))
             }
         }
     }

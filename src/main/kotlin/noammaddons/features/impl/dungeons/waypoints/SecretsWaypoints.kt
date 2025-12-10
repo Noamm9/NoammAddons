@@ -51,9 +51,5 @@ object SecretsWaypoints {
         }
     }
 
-    fun onWorldUnload() {
-        currentRoomWaypoints.clear()
-    }
-
-    // private fun Map<String, Int>.toPos() = values.toList().let { BlockPos(it[0], it[1], it[2]) }
+    fun onWorldUnload() = currentRoomWaypoints.clear()
 }

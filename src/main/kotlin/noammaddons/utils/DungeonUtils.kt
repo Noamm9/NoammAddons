@@ -67,66 +67,6 @@ object DungeonUtils {
 
     var lastDoorOpenner: DungeonPlayer? = null
 
-    val dungeonItemDrops = listOf(
-        "Health Potion VIII Splash Potion", "Healing Potion 8 Splash Potion",
-        "Healing Potion VIII Splash Potion", "Healing VIII Splash Potion",
-        "Healing 8 Splash Potion", "Decoy", "Inflatable Jerry", "Spirit Leap",
-        "Trap", "Training Weights", "Defuse Kit", "Dungeon Chest Key",
-        "Treasure Talisman", "Revive Stone", "Architect's First Draft",
-        "Secret Dye", "Candycomb"
-    )
-
-    enum class Classes(val color: Color) {
-        Empty(Color(0, 0, 0)),
-        Archer(Color(125, 0, 0)),
-        Berserk(Color(205, 106, 0)),
-        Healer(Color(123, 0, 123)),
-        Mage(Color(0, 185, 185)),
-        Tank(Color(0, 125, 0));
-
-        companion object {
-            fun getByName(name: String) = entries.firstOrNull { it.name.lowercase() == name.lowercase() } ?: Empty
-            fun getColorCode(clazz: Classes): String {
-                return when (clazz) {
-                    Archer -> "§4"
-                    Berserk -> "§6"
-                    Healer -> "§5"
-                    Mage -> "§3"
-                    Tank -> "§2"
-                    else -> "§7"
-                }
-            }
-        }
-    }
-
-    data class DungeonPlayer(
-        var name: String,
-        var clazz: Classes,
-        var clazzLvl: Int,
-        var skin: ResourceLocation = ResourceLocation("textures/entity/steve.png"),
-        var isDead: Boolean = false,
-    ) {
-        val entity: EntityPlayer? get() = mc.theWorld.getPlayerEntityByName(name)
-        val mapIcon = DungeonMapPlayer(this, skin)
-        val clearInfo = ClearInfo()
-    }
-
-    enum class Blessing(
-        var regex: Regex,
-        val displayString: String,
-        var current: Int = 0
-    ) {
-        POWER(Regex("Blessing of Power (X{0,3}(IX|IV|V?I{0,3}))"), "Power"),
-        LIFE(Regex("Blessing of Life (X{0,3}(IX|IV|V?I{0,3}))"), "Life"),
-        WISDOM(Regex("Blessing of Wisdom (X{0,3}(IX|IV|V?I{0,3}))"), "Wisdom"),
-        STONE(Regex("Blessing of Stone (X{0,3}(IX|IV|V?I{0,3}))"), "Stone"),
-        TIME(Regex("Blessing of Time (V)"), "Time");
-
-        companion object {
-            fun reset() = entries.forEach { it.current = 0 }
-        }
-    }
-
     @JvmStatic
     fun isSecret(pos: BlockPos): Boolean {
         val block = getBlockAt(pos)
@@ -160,7 +100,6 @@ object DungeonUtils {
                 thePlayer = dungeonTeammates.find { it.entity == mc.thePlayer }
                 dungeonTeammatesNoSelf = dungeonTeammates.filterNot { it == thePlayer }
                 leapTeammates = dungeonTeammatesNoSelf.sortedBy { it.clazz }
-
 
                 return
             }
@@ -244,9 +183,8 @@ object DungeonUtils {
     }
 
     @SubscribeEvent
-    fun onPacket(event: MainThreadPacketRecivedEvent) {
+    fun onPacket(event: MainThreadPacketRecivedEvent.Pre) {
         if (! inDungeon) return
-
         when (val packet = event.packet) {
             is S38PacketPlayerListItem -> {
                 if (! packet.action.equalsOneOf(S38PacketPlayerListItem.Action.UPDATE_DISPLAY_NAME, S38PacketPlayerListItem.Action.ADD_PLAYER)) return
@@ -255,16 +193,21 @@ object DungeonUtils {
                 updatePuzzles(tabListEntries)
             }
 
-            is S47PacketPlayerListHeaderFooter -> Blessing.entries.forEach { blessing ->
-                blessing.regex.find(packet.footer?.unformattedText?.removeFormatting() ?: return@forEach)?.let {
-                    blessing.current = it.groupValues[1].romanToDecimal()
-                }
-            }
-
             is S2FPacketSetSlot -> {
                 if (packet.func_149175_c() != 0 || packet.func_149173_d() != 36) return
-                val isNowDead = packet.func_149174_e()?.skyblockID == "HAUNT_ABILITY"
-                thePlayer?.isDead = isNowDead
+                thePlayer?.isDead = packet.func_149174_e()?.skyblockID == "HAUNT_ABILITY"
+            }
+        }
+    }
+
+
+    @SubscribeEvent
+    fun onPacket(event: PacketEvent.Received) {
+        if (! inDungeon) return
+        val packet = event.packet as? S47PacketPlayerListHeaderFooter ?: return
+        Blessing.entries.forEach { blessing ->
+            blessing.regex.find(packet.footer?.unformattedText?.removeFormatting() ?: return@forEach)?.let {
+                blessing.current = it.groupValues[1].romanToDecimal()
             }
         }
     }
@@ -338,9 +281,8 @@ object DungeonUtils {
         }
     }
 
-
     @SubscribeEvent
-    fun reset(event: WorldUnloadEvent) {
+    fun onWorldUnload(event: WorldUnloadEvent) {
         dungeonTeammates.clear()
         dungeonTeammatesNoSelf = emptyList()
         leapTeammates = emptyList()
@@ -357,5 +299,66 @@ object DungeonUtils {
         bossEntryTime = null
         dungeonEndTime = null
         Blessing.reset()
+    }
+
+
+    val dungeonItemDrops = listOf(
+        "Health Potion VIII Splash Potion", "Healing Potion 8 Splash Potion",
+        "Healing Potion VIII Splash Potion", "Healing VIII Splash Potion",
+        "Healing 8 Splash Potion", "Decoy", "Inflatable Jerry", "Spirit Leap",
+        "Trap", "Training Weights", "Defuse Kit", "Dungeon Chest Key",
+        "Treasure Talisman", "Revive Stone", "Architect's First Draft",
+        "Secret Dye", "Candycomb"
+    )
+
+    enum class Classes(val color: Color) {
+        Empty(Color(0, 0, 0)),
+        Archer(Color(125, 0, 0)),
+        Berserk(Color(205, 106, 0)),
+        Healer(Color(123, 0, 123)),
+        Mage(Color(0, 185, 185)),
+        Tank(Color(0, 125, 0));
+
+        companion object {
+            fun getByName(name: String) = entries.firstOrNull { it.name.lowercase() == name.lowercase() } ?: Empty
+            fun getColorCode(clazz: Classes): String {
+                return when (clazz) {
+                    Archer -> "§4"
+                    Berserk -> "§6"
+                    Healer -> "§5"
+                    Mage -> "§3"
+                    Tank -> "§2"
+                    else -> "§7"
+                }
+            }
+        }
+    }
+
+    data class DungeonPlayer(
+        var name: String,
+        var clazz: Classes,
+        var clazzLvl: Int,
+        var skin: ResourceLocation = ResourceLocation("textures/entity/steve.png"),
+        var isDead: Boolean = false,
+    ) {
+        val entity: EntityPlayer? get() = mc.theWorld.getPlayerEntityByName(name)
+        val mapIcon = DungeonMapPlayer(this, skin)
+        val clearInfo = ClearInfo()
+    }
+
+    enum class Blessing(
+        val displayString: String,
+        var regex: Regex,
+        var current: Int = 0
+    ) {
+        POWER("Power", Regex("Blessing of Power (X{0,3}(IX|IV|V?I{0,3}))")),
+        LIFE("Life", Regex("Blessing of Life (X{0,3}(IX|IV|V?I{0,3}))")),
+        WISDOM("Wisdom", Regex("Blessing of Wisdom (X{0,3}(IX|IV|V?I{0,3}))")),
+        STONE("Stone", Regex("Blessing of Stone (X{0,3}(IX|IV|V?I{0,3}))")),
+        TIME("Time", Regex("Blessing of Time (V)"));
+
+        companion object {
+            fun reset() = entries.forEach { it.current = 0 }
+        }
     }
 }
