@@ -51,7 +51,7 @@ object FeatureManager {
         // ZeroPingTeleportation, // - R.I.P fuck hypixel, fuck blinkers
         // BetterFloors, StonkSwap, GhostPick, // - R.I.P goodbye stonking
         // ReaperArmor, // - R.I.P fuck reaper fix
-        NoBlockAnimation,
+        NoBlockAnimation, SlayerFeatures,
 
         DevOptions, CompTest, ConfigGui,
     ).sortedBy { it.name }

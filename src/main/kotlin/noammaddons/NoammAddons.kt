@@ -96,6 +96,7 @@ class NoammAddons {
             ChatUtils, EspUtils, ActionUtils,
             ServerPlayer, ScoreboardUtils,
             PacketManager, ServerUtils,
+            SlayerUtils,
             FeatureManager
         ).forEach(MinecraftForge.EVENT_BUS::register)
 

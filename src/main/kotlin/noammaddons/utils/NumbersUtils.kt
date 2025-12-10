@@ -181,6 +181,17 @@ object NumbersUtils {
         }.joinToString(" ")
     }
 
+    fun formatMilis(milliseconds: Number): String {
+        val totalSeconds = milliseconds.toDouble() / 1000.0
+
+        if (totalSeconds < 60) return String.format("%.3f sec", totalSeconds)
+        else {
+            val minutes = (totalSeconds / 60).toInt()
+            val remainingSeconds = totalSeconds % 60
+            return String.format("%d min %.3f seconds", minutes, remainingSeconds)
+        }
+    }
+
     private fun processDecimal(decimal: Int, lastNumber: Int, lastDecimal: Int): Int {
         return if (lastNumber > decimal) lastDecimal - decimal
         else lastDecimal + decimal

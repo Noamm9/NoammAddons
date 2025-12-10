@@ -171,3 +171,11 @@ abstract class DungeonEvent: Event() {
 class WorldUnloadEvent: Event()
 
 class EntityLeaveWorldEvent(val entity: Entity, val world: World): Event()
+
+abstract class SlayerEvent: Event() {
+    class QuestStartEvent: SlayerEvent()
+    class QuestEndEvent: SlayerEvent()
+    class BossSpawnEvent: SlayerEvent()
+    class BossDeathEvent: SlayerEvent()
+    class MiniBossSpawnEvent(val entityId: Int, val type: SlayerUtils.BossType): SlayerEvent()
+}
