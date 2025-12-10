@@ -20,6 +20,7 @@ public class MixinBlockButton extends Block {
 
     @Inject(method = "updateBlockBounds", at = @At("HEAD"), cancellable = true)
     private void onUpdateBlockBounds(IBlockState state, CallbackInfo ci) {
+        if (!FullBlock.INSTANCE.enabled) return;
         if (!FullBlock.button.getValue()) return;
         ci.cancel();
         EnumFacing enumfacing = state.getValue(BlockButton.FACING);

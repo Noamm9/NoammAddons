@@ -20,6 +20,7 @@ public class MixinBlockLever extends Block {
 
     @Inject(method = "setBlockBoundsBasedOnState", at = @At("HEAD"), cancellable = true)
     private void onSetBlockBoundsBasedOnState(IBlockAccess worldIn, BlockPos pos, CallbackInfo ci) {
+        if (!FullBlock.INSTANCE.enabled) return;
         if (!FullBlock.lever.getValue()) return;
         this.setBlockBounds(0, 0, 0, 1, 1, 1);
         ci.cancel();

@@ -27,6 +27,7 @@ public class MixinBlockSkull extends Block {
 
     @Inject(method = "setBlockBoundsBasedOnState", at = @At("HEAD"), cancellable = true)
     private void onSetBlockBoundsBasedOnState(IBlockAccess worldIn, BlockPos pos, CallbackInfo ci) {
+        if (!FullBlock.INSTANCE.enabled) return;
         if (!FullBlock.skull.getValue()) return;
         if (!isSecret(pos)) return;
 
@@ -36,6 +37,7 @@ public class MixinBlockSkull extends Block {
 
     @Inject(method = "getCollisionBoundingBox", at = @At("HEAD"), cancellable = true)
     private void onGetCollisionBoundingBox(World worldIn, BlockPos pos, IBlockState state, CallbackInfoReturnable<AxisAlignedBB> cir) {
+        if (!FullBlock.INSTANCE.enabled) return;
         if (!FullBlock.skull.getValue()) return;
 
         switch (worldIn.getBlockState(pos).getValue(FACING)) {

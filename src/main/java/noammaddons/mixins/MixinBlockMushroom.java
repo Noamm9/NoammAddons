@@ -22,13 +22,17 @@ public class MixinBlockMushroom extends BlockBush {
 
     @Override
     public AxisAlignedBB getSelectedBoundingBox(World worldIn, BlockPos pos) {
-        if (FullBlock.mushroom.getValue()) noammAddons$setFullBlock();
+        if (FullBlock.INSTANCE.enabled && FullBlock.mushroom.getValue()) {
+            noammAddons$setFullBlock();
+        }
         return super.getSelectedBoundingBox(worldIn, pos);
     }
 
     @Override
     public MovingObjectPosition collisionRayTrace(World worldIn, BlockPos pos, Vec3 start, Vec3 end) {
-        if (FullBlock.mushroom.getValue()) noammAddons$setFullBlock();
+        if (FullBlock.INSTANCE.enabled && FullBlock.mushroom.getValue()) {
+            noammAddons$setFullBlock();
+        }
         return super.collisionRayTrace(worldIn, pos, start, end);
     }
 }
