@@ -120,6 +120,7 @@ object DungeonMap: Feature() {
             ?.let { (it.item as? ItemMap)?.getMapData(it, mc.theWorld) }
             ?: MapData("map_${packet.mapId}")
 
+
         mc.addScheduledTask {
             packet.setMapdataTo(mapData)
             DungeonInfo.mapData = mapData

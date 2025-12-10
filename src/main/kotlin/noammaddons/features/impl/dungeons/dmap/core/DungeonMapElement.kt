@@ -120,14 +120,10 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
             for (x in 0 .. 10) {
                 val tile = DungeonInfo.dungeonList[y * 11 + x]
                 if (! DungeonMapConfig.dungeonMapCheater.value && (tile is Unknown || tile.state == RoomState.UNDISCOVERED)) continue
-                val color = (if (tile.state == RoomState.UNDISCOVERED) tile.color.darker().darker() else tile.color).let {
-                    return@let if (DungeonMapConfig.highlightMimicRoom.value && (tile as? Room)?.uniqueRoom?.hasMimic == true) {
-                        val r = (it.red + (255 - it.red) * 0.2).toInt()
-                        val g = (it.green * (1 - 0.2)).toInt()
-                        val b = (it.blue * (1 - 0.2)).toInt()
-                        Color(r, g, b, it.alpha)
-                    }
-                    else it
+                val color = (if (tile.state == RoomState.UNDISCOVERED) tile.color.darker().darker() else tile.color).let { base ->
+                    base.takeIf { DungeonMapConfig.highlightMimicRoom.value && (tile as? Room)?.uniqueRoom?.hasMimic == true }?.let {
+                        MathUtils.lerpColor(it, DungeonMapConfig.colorMimic.value, 0.2)
+                    } ?: base
                 }
 
                 val xOffset = (x shr 1) * (MapUtils.mapRoomSize + HotbarMapColorParser.quarterRoom)

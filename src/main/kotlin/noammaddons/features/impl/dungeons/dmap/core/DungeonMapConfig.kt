@@ -39,6 +39,7 @@ object DungeonMapConfig {
     val colorMiniboss = ColorSetting("Miniboss Room", Color(255, 200, 0), true)
     val colorRoom = ColorSetting("Normal Room", Color(121, 70, 0), true)
     val colorPuzzle = ColorSetting("Puzzle Room", Color(123, 0, 123), true)
+    val colorMimic = ColorSetting("Mimic Room", Color(255, 0, 0), true).addDependency(highlightMimicRoom)
     val colorRare = ColorSetting("Rare Room", Color(178, 178, 178), true)
     val colorTrap = ColorSetting("Trap Room", Color(255, 130, 0), true)
     val colorUnopened = ColorSetting("Unopened Room", Color(65, 65, 65), true)
@@ -106,6 +107,7 @@ object DungeonMapConfig {
                 colorMiniboss,
                 colorRoom,
                 colorPuzzle,
+                colorMimic,
                 colorRare,
                 colorTrap,
                 colorUnopened,
