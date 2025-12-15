@@ -19,9 +19,12 @@ import noammaddons.websocket.packets.C2SPacketServerHash
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
+import java.util.concurrent.Executors
 
 object WebSocket {
-    var socketClient: WebSocketClient? = null
+    private var socketClient: WebSocketClient? = null
+
+    private var sendExecutor = Executors.newSingleThreadExecutor()
 
     private var receivedLocrawThisWorld = false
     private var locrawCountdown = - 1
@@ -41,6 +44,7 @@ object WebSocket {
 
             EssentialAPI.getShutdownHookUtil().register {
                 socketClient?.close()
+                sendExecutor.shutdownNow()
             }
         }.onFailure { NoammAddons.Logger.error(it) }
 
@@ -50,9 +54,17 @@ object WebSocket {
     }
 
     fun send(packet: PacketRegistry.WebSocketPacket) {
-        if (socketClient != null && socketClient !!.isOpen) {
-            val json = JsonUtils.gsonBuilder.toJson(packet)
-            socketClient !!.send(json)
+        sendExecutor.execute {
+            if (socketClient != null && socketClient !!.isOpen) {
+                try {
+                    val json = JsonUtils.gsonBuilder.toJson(packet)
+                    socketClient !!.send(json)
+                    Thread.sleep(50L)
+                }
+                catch (e: Exception) {
+                    NoammAddons.Logger.error("Failed to send packet: ${e.message}")
+                }
+            }
         }
     }
 
@@ -107,10 +119,7 @@ object WebSocket {
             NoammAddons.Logger.info("WebSocket: Connected Successfully")
             modMessage("WebSocket: Connected Successfully")
 
-            if (currentServer != 0) {
-                val packet = C2SPacketServerHash(currentServer)
-                this.send(JsonUtils.gsonBuilder.toJson(packet))
-            }
+            if (currentServer != 0) send(C2SPacketServerHash(currentServer))
         }
 
         override fun onMessage(message: String?) {
@@ -137,6 +146,10 @@ object WebSocket {
 
         override fun onClose(code: Int, reason: String?, remote: Boolean) {
             NoammAddons.Logger.info("WebSocket Disconnected: $reason")
+
+            sendExecutor.shutdownNow()
+            sendExecutor = Executors.newSingleThreadExecutor()
+
             ThreadUtils.setTimeout(10_000) {
                 NoammAddons.Logger.info("Attempting auto-reconnect...")
                 reconnect()
