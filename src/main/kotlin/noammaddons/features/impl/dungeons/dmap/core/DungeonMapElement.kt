@@ -9,7 +9,7 @@ import net.minecraft.util.ResourceLocation
 import noammaddons.NoammAddons.Companion.MOD_ID
 import noammaddons.NoammAddons.Companion.hudData
 import noammaddons.NoammAddons.Companion.mc
-import noammaddons.config.EditGui.GuiElement
+import noammaddons.config.editgui.GuiElement
 import noammaddons.features.impl.dungeons.MimicDetector
 import noammaddons.features.impl.dungeons.dmap.core.map.*
 import noammaddons.features.impl.dungeons.dmap.handlers.*

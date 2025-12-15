@@ -1,8 +1,8 @@
 package noammaddons.features.impl.hud
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.config.EditGui.GuiElement
-import noammaddons.events.ClickEvent.*
+import noammaddons.config.editgui.GuiElement
+import noammaddons.events.ClickEvent.RightClickEvent
 import noammaddons.events.RenderOverlay
 import noammaddons.events.ServerTick
 import noammaddons.features.Feature

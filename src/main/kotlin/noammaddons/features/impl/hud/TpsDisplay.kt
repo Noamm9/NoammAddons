@@ -1,8 +1,8 @@
 package noammaddons.features.impl.hud
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.config.EditGui.GuiElement
-import noammaddons.config.EditGui.HudEditorScreen
+import noammaddons.config.editgui.GuiElement
+import noammaddons.config.editgui.HudEditorScreen
 import noammaddons.events.RenderOverlay
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.ColorSetting

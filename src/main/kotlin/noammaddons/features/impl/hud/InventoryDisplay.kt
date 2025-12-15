@@ -4,10 +4,12 @@ import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.config.EditGui.GuiElement
+import noammaddons.config.editgui.GuiElement
 import noammaddons.events.RenderOverlay
 import noammaddons.features.Feature
-import noammaddons.ui.config.core.impl.*
+import noammaddons.ui.config.core.impl.ColorSetting
+import noammaddons.ui.config.core.impl.SeperatorSetting
+import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.RenderHelper.bindColor
 import noammaddons.utils.RenderUtils
 import noammaddons.utils.RenderUtils.drawRectBorder

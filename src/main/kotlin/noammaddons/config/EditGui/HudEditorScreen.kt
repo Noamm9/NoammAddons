@@ -1,4 +1,4 @@
-package noammaddons.config.EditGui
+package noammaddons.config.editgui
 
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.gui.ScaledResolution

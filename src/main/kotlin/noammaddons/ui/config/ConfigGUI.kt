@@ -1,6 +1,8 @@
 package noammaddons.ui.config
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.util.ChatAllowedCharacters
@@ -8,7 +10,7 @@ import noammaddons.NoammAddons.Companion.FULL_PREFIX
 import noammaddons.NoammAddons.Companion.MOD_VERSION
 import noammaddons.NoammAddons.Companion.scope
 import noammaddons.NoammAddons.Companion.textRenderer
-import noammaddons.config.EditGui.HudEditorScreen
+import noammaddons.config.editgui.HudEditorScreen
 import noammaddons.features.impl.gui.ConfigGui.accentColor
 import noammaddons.features.impl.gui.ConfigGui.guiType
 import noammaddons.ui.clickgui.ClickGuiScreen
@@ -18,12 +20,13 @@ import noammaddons.ui.config.core.impl.Component.Companion.compBackgroundColor
 import noammaddons.ui.config.core.impl.Component.Companion.drawSmoothRect
 import noammaddons.ui.config.core.impl.Component.Companion.hoverColor
 import noammaddons.ui.config.core.save.Config
-import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.GuiUtils.openScreen
-import noammaddons.utils.MathUtils.lerpColor
 import noammaddons.utils.MathUtils.lerp
+import noammaddons.utils.MathUtils.lerpColor
+import noammaddons.utils.MouseUtils
 import noammaddons.utils.MouseUtils.isMouseOver
+import noammaddons.utils.RenderHelper
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getScaleFactor
 import noammaddons.utils.RenderHelper.getStringWidth
@@ -31,6 +34,7 @@ import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawRect
 import noammaddons.utils.RenderUtils.drawRoundedBorder
 import noammaddons.utils.RenderUtils.drawRoundedRect
+import noammaddons.utils.StencilUtils
 import noammaddons.utils.Utils.remove
 import org.lwjgl.input.Keyboard
 import org.lwjgl.input.Mouse

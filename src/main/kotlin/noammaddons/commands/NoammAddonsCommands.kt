@@ -8,7 +8,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.command.ICommandSender
 import noammaddons.NoammAddons.Companion.FULL_PREFIX
-import noammaddons.config.EditGui.HudEditorScreen
+import noammaddons.config.editgui.HudEditorScreen
 import noammaddons.features.impl.dungeons.AutoPotion.potionName
 import noammaddons.ui.config.ConfigGUI
 import noammaddons.utils.*
@@ -40,14 +40,14 @@ import java.net.URI
 
 object NoammAddonsCommands: Command("na", listOf("noammaddons", "noamm", "noam", "noamaddons")) {
     override fun getCommandUsage(sender: ICommandSender): String {
-        return Usage()
+        return _getUsage()
     }
 
     override fun processCommand(sender: ICommandSender, args: Array<out String>) {
         if (args.isEmpty()) ConfigGUI.openGui()
         else when (args[0].lowercase()) {
 
-            "help" -> UChat.chat(Usage())
+            "help" -> UChat.chat(_getUsage())
 
             "sim" -> if (args.size > 1) sendFakeChatMessage(args.copyOfRange(1, args.size).joinToString(" "))
             else modMessage("&cInvalid Usage. &bUsage: /na sim [message]")
@@ -138,12 +138,18 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons", "noamm", "noam",
             "holdclick" -> {
                 val type = args.getOrNull(1)?.uppercase() ?: "RIGHT"
 
-                if (! type.equalsOneOf("RIGHT", "LEFT", "MIDDLE")) return modMessage("&cInvalid usage of command. &bUsage: /na holdclick [LEFT, RIGHT, MIDDLE]")
+                if (! type.equalsOneOf(
+                        "RIGHT",
+                        "LEFT",
+                        "MIDDLE"
+                    )
+                ) return modMessage("&cInvalid usage of command. &bUsage: /na holdclick [LEFT, RIGHT, MIDDLE]")
                 holdClick(true, type)
             }
 
             "status" -> scope.launch {
-                val name = args.getOrNull(1) ?: return@launch modMessage("&cInvalid usage of command. &bUsage: /na status [name]")
+                val name = args.getOrNull(1)
+                    ?: return@launch modMessage("&cInvalid usage of command. &bUsage: /na status [name]")
                 modMessage("&b$name is " + if (getStatus(name)) "&aOnline" else "&cOffline")
             }
 
@@ -174,7 +180,7 @@ object NoammAddonsCommands: Command("na", listOf("noammaddons", "noamm", "noam",
         }
     }
 
-    fun Usage(): String {
+    private fun _getUsage(): String {
         val separator = "&b&m${getChatBreak()?.substring(1)}\n"
 
         return buildString {

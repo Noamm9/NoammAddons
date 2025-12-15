@@ -7,9 +7,9 @@ import net.minecraft.network.play.client.C0DPacketCloseWindow
 import net.minecraft.network.play.server.S2DPacketOpenWindow
 import net.minecraft.util.BlockPos
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.config.EditGui.GuiElement
+import noammaddons.config.editgui.GuiElement
 import noammaddons.events.*
-import noammaddons.events.DungeonEvent.*
+import noammaddons.events.DungeonEvent.SecretEvent
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.ActionBarParser.SECRETS_REGEX

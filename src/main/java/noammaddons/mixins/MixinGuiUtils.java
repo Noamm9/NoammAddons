@@ -3,7 +3,7 @@ package noammaddons.mixins;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraftforge.fml.client.config.GuiUtils;
 import noammaddons.NoammAddons;
-import noammaddons.config.EditGui.HudEditorScreen;
+import noammaddons.config.editgui.HudEditorScreen;
 import noammaddons.features.impl.gui.ScalableTooltips;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

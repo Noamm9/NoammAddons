@@ -1,11 +1,13 @@
 package noammaddons.features.impl.hud
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.config.EditGui.GuiElement
-import noammaddons.config.EditGui.HudEditorScreen
+import noammaddons.config.editgui.GuiElement
+import noammaddons.config.editgui.HudEditorScreen
 import noammaddons.events.RenderOverlay
 import noammaddons.features.Feature
-import noammaddons.ui.config.core.impl.*
+import noammaddons.ui.config.core.impl.ColorSetting
+import noammaddons.ui.config.core.impl.SeperatorSetting
+import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.DungeonUtils.Blessing
 import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.RenderHelper

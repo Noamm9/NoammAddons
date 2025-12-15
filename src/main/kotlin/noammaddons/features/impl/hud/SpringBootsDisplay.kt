@@ -1,14 +1,16 @@
 package noammaddons.features.impl.hud
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.config.EditGui.GuiElement
+import noammaddons.config.editgui.GuiElement
 import noammaddons.events.RenderOverlay
 import noammaddons.events.SoundPlayEvent
 import noammaddons.features.Feature
-import noammaddons.utils.*
 import noammaddons.utils.ItemUtils.skyblockID
+import noammaddons.utils.PlayerUtils
+import noammaddons.utils.RenderHelper
 import noammaddons.utils.RenderHelper.getStringWidth
 import noammaddons.utils.RenderUtils.drawText
+import noammaddons.utils.ServerPlayer
 import kotlin.math.roundToInt
 
 object SpringBootsDisplay: Feature() {

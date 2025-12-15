@@ -1,18 +1,23 @@
 package noammaddons.features.impl.dungeons
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.config.EditGui.GuiElement
-import noammaddons.config.EditGui.HudEditorScreen
+import noammaddons.config.editgui.GuiElement
+import noammaddons.config.editgui.HudEditorScreen
 import noammaddons.events.RenderOverlay
 import noammaddons.features.Feature
 import noammaddons.features.impl.dungeons.dmap.handlers.ScoreCalculation
 import noammaddons.features.impl.dungeons.dmap.utils.MapRenderUtils
-import noammaddons.ui.config.core.impl.*
-import noammaddons.utils.*
+import noammaddons.ui.config.core.impl.Component
+import noammaddons.ui.config.core.impl.TextInputSetting
+import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.sendPartyMessage
 import noammaddons.utils.ChatUtils.showTitle
+import noammaddons.utils.DungeonUtils
+import noammaddons.utils.LocationUtils
+import noammaddons.utils.RenderHelper
 import noammaddons.utils.RenderUtils.drawText
+import noammaddons.utils.ThreadUtils
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.KMutableProperty0
 

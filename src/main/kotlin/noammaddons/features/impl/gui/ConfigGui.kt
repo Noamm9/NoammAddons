@@ -1,10 +1,12 @@
 package noammaddons.features.impl.gui
 
-import noammaddons.config.EditGui.HudEditorScreen
+import noammaddons.config.editgui.HudEditorScreen
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.annotations.AlwaysActive
 import noammaddons.ui.config.core.annotations.Dev
-import noammaddons.ui.config.core.impl.*
+import noammaddons.ui.config.core.impl.ButtonSetting
+import noammaddons.ui.config.core.impl.ColorSetting
+import noammaddons.ui.config.core.impl.DropdownSetting
 import noammaddons.utils.GuiUtils.openScreen
 import java.awt.Color
 

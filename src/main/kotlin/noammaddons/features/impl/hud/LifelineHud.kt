@@ -1,7 +1,7 @@
 package noammaddons.features.impl.hud
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.config.EditGui.GuiElement
+import noammaddons.config.editgui.GuiElement
 import noammaddons.events.RenderOverlay
 import noammaddons.features.Feature
 import noammaddons.utils.RenderHelper
