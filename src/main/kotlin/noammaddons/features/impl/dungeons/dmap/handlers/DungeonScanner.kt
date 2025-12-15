@@ -51,13 +51,7 @@ object DungeonScanner {
 
                 // This room has already been added in a previous scan.
                 val roomInGrid = DungeonInfo.dungeonList[x + z * 11]
-                if (roomInGrid !is Unknown && (roomInGrid as? Room)?.data?.name != "Unknown") {
-                    if (roomInGrid is Room) {
-                        roomInGrid.highestBlock = ScanUtils.gethighestBlockAt(xPos, zPos)
-                        roomInGrid.findRotation()
-                    }
-                    continue
-                }
+                if (roomInGrid !is Unknown && (roomInGrid as? Room)?.data?.name != "Unknown") continue
 
                 scanRoom(xPos, zPos, z, x)?.let {
                     DungeonInfo.dungeonList[z * 11 + x] = it
@@ -97,10 +91,8 @@ object DungeonScanner {
             rowEven && columnEven -> {
                 val roomCore = ScanUtils.getCore(x, z)
                 Room(x, z, ScanUtils.getRoomData(roomCore) ?: return null).apply {
-                    addToUnique(row, column)
                     core = roomCore
-                    highestBlock = height
-                    findRotation()
+                    addToUnique(row, column)
                 }
             }
 

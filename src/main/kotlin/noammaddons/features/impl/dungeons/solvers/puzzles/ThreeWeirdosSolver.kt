@@ -40,7 +40,7 @@ object ThreeWeirdosSolver {
     @SubscribeEvent
     fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (! PuzzleSolvers.weirdos.value) return
-        if (event.room.data.name != "Three Weirdos") return
+        if (event.room.name != "Three Weirdos") return
         inWeirdos = true
 
         rotation = 360 - event.room.rotation !!
@@ -54,6 +54,7 @@ object ThreeWeirdosSolver {
     @SubscribeEvent
     fun onPazzleEvent(event: DungeonEvent.PuzzleEvent.Reset) {
         if (! inWeirdos) return
+        if (event.pazzle.room?.name != "Three Weirdos") return
         wrongPositions.forEach {
             if (WremoveNPCS.value) mc.theWorld.addEntityToWorld(it.second.entityId, it.second)
             if (WremoveChests.value) ghostBlock(it.first, Blocks.chest.defaultState)

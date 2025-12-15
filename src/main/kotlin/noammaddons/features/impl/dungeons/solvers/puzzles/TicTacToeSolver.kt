@@ -34,10 +34,10 @@ object TicTacToeSolver {
     @SubscribeEvent
     fun onEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (! PuzzleSolvers.ticTacToe.value) return
-        if (event.room.data.name != "Tic Tac Toe") return
+        if (event.room.name != "Tic Tac Toe") return
 
         inTicTacToe = true
-        roomCenter = ScanUtils.getRoomCenter(event.room)
+        roomCenter = ScanUtils.getRoomCenter(event.room.mainRoom)
         trueStartTime = System.currentTimeMillis()
 
         ThreadUtils.scheduledTask(2) {

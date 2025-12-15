@@ -15,9 +15,9 @@ object RoomAlerts: Feature() {
 
     @SubscribeEvent
     fun onRoomStateChange(event: DungeonEvent.RoomEvent.onStateChange) {
-        if (DungeonUtils.thePlayer !in event.roomPlayers) return
         if (! event.room.data.type.equalsOneOf(RoomType.NORMAL, RoomType.PUZZLE, RoomType.RARE, RoomType.TRAP)) return
-        if (event.room.data.type == RoomType.PUZZLE && event.room.data.name != "Blaze") return
+        if (event.room.data.type == RoomType.PUZZLE && event.room.name != "Blaze") return
+        if (DungeonUtils.thePlayer !in event.roomPlayers) return
 
         when (event.newState) {
             RoomState.CLEARED -> if (clear) {

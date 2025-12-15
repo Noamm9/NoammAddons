@@ -50,12 +50,12 @@ object CreeperBeamSolver {
     @SubscribeEvent
     fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (! PuzzleSolvers.creeper.value) return
-        if (event.room.data.name != "Creeper Beams") return
+        if (event.room.name != "Creeper Beams") return
         inCreeperBeams = true
 
         // I accidentally took all solutions coords with a 180 rotation room
         rotation = 360 - event.room.rotation !! + 180
-        roomCenter = ScanUtils.getRoomCenter(event.room)
+        roomCenter = ScanUtils.getRoomCenter(event.room.mainRoom)
 
         solve()
     }

@@ -35,10 +35,10 @@ object TeleportMazeSolver {
     @SubscribeEvent
     fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (! tpMaze.value) return
-        if (event.room.data.name != "Teleport Maze") return
+        if (event.room.name != "Teleport Maze") return
 
         val rotation = 360 - event.room.rotation !!
-        val center = ScanUtils.getRoomCenter(event.room)
+        val center = ScanUtils.getRoomCenter(event.room.mainRoom)
         val pos1 = ScanUtils.getRealCoord(BlockPos(0, 69, - 3), center, rotation)
 
         if (getBlockAt(pos1) != Blocks.end_portal_frame) {

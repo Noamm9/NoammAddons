@@ -43,10 +43,10 @@ object WaterBoardSolver {
     @SubscribeEvent
     fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (! waterBoard.value) return
-        if (event.room.data.name != "Water Board") return
+        if (event.room.name != "Water Board") return
         if (patternIdentifier != - 1) return
 
-        roomCenter = ScanUtils.getRoomCenter(event.room)
+        roomCenter = ScanUtils.getRoomCenter(event.room.mainRoom)
         rotation = 360 - event.room.rotation !!
         trueStartTime = System.currentTimeMillis()
 

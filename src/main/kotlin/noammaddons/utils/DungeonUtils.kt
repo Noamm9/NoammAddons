@@ -19,7 +19,8 @@ import noammaddons.features.impl.DevOptions
 import noammaddons.features.impl.dungeons.ScoreCalculator
 import noammaddons.features.impl.dungeons.dmap.core.ClearInfo
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapPlayer
-import noammaddons.features.impl.dungeons.dmap.core.map.*
+import noammaddons.features.impl.dungeons.dmap.core.map.Puzzle
+import noammaddons.features.impl.dungeons.dmap.core.map.RoomState
 import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
 import noammaddons.features.impl.hud.RunSplits.currentTime
 import noammaddons.utils.ActionBarParser.maxSecrets
@@ -155,8 +156,7 @@ object DungeonUtils {
             }
 
             val puzzle = puzzles.find {
-                name.equalsOneOf(it.roomDataName, it.tabName)
-                        && it.roomDataName != Puzzle.UNKNOWN.roomDataName
+                name.equalsOneOf(it.roomDataName, it.tabName) && it.roomDataName != Puzzle.UNKNOWN.roomDataName
             } ?: run {
                 val newPuzzle = Puzzle.fromName(name)?.also { newPuzzle ->
                     if (newPuzzle != Puzzle.UNKNOWN) puzzles.find { it == Puzzle.UNKNOWN }?.let {
@@ -165,15 +165,15 @@ object DungeonUtils {
                     }
                     else puzzles.add(newPuzzle)
                 } ?: return@forEach
-                if (newPuzzle != Puzzle.UNKNOWN) postAndCatch(DungeonEvent.PuzzleEvent.Discovered(name))
+                if (newPuzzle != Puzzle.UNKNOWN) postAndCatch(DungeonEvent.PuzzleEvent.Discovered(Puzzle.UNKNOWN))
                 return@forEach
             }
 
             postAndCatch(
                 when {
-                    puzzle.state == RoomState.DISCOVERED && state == RoomState.GREEN -> DungeonEvent.PuzzleEvent.Completed(name)
-                    puzzle.state != RoomState.DISCOVERED && state == RoomState.DISCOVERED -> DungeonEvent.PuzzleEvent.Reset(name)
-                    puzzle.state == RoomState.DISCOVERED && state == RoomState.FAILED -> DungeonEvent.PuzzleEvent.Failed(name)
+                    puzzle.state == RoomState.DISCOVERED && state.equalsOneOf(RoomState.GREEN, RoomState.CLEARED) -> DungeonEvent.PuzzleEvent.Completed(puzzle)
+                    puzzle.state != RoomState.DISCOVERED && state == RoomState.DISCOVERED -> DungeonEvent.PuzzleEvent.Reset(puzzle)
+                    puzzle.state == RoomState.DISCOVERED && state == RoomState.FAILED -> DungeonEvent.PuzzleEvent.Failed(puzzle)
                     else -> return@forEach
                 }
             )
@@ -200,7 +200,6 @@ object DungeonUtils {
         }
     }
 
-
     @SubscribeEvent
     fun onPacket(event: PacketEvent.Received) {
         if (! inDungeon) return
@@ -215,7 +214,7 @@ object DungeonUtils {
     @SubscribeEvent
     fun onRoomStateChange(event: DungeonEvent.RoomEvent.onStateChange) {
         if (lastDoorOpenner == null) return
-        if (event.room.data.type != RoomType.BLOOD) return
+        if (event.room.name != "Blood") return
         if (! event.newState.equalsOneOf(RoomState.DISCOVERED, RoomState.CLEARED, RoomState.GREEN)) return
         lastDoorOpenner = null
     }
@@ -227,6 +226,13 @@ object DungeonUtils {
         val unformatted = text.removeFormatting()
 
         when {
+            unformatted.lowercase().contains("blaze done") -> {
+                puzzles.find { it.tabName == "Higher Or Lower" }?.let {
+                    it.state = RoomState.CLEARED
+                    postAndCatch(DungeonEvent.PuzzleEvent.Completed(it))
+                }
+            }
+
             unformatted.matches(runEndRegex) -> {
                 dungeonEnded = true
                 dungeonEndTime = currentTime
@@ -247,12 +253,12 @@ object DungeonUtils {
             }
 
             unformatted == "[BOSS] The Watcher: You have proven yourself. You may pass." -> {
-                DungeonInfo.uniqueRooms.find { it.mainRoom.data.type == RoomType.BLOOD }?.mainRoom?.state = RoomState.GREEN
+                DungeonInfo.uniqueRooms["Blood"]?.mainRoom?.state = RoomState.GREEN
                 watcherClearTime = currentTime
             }
 
             unformatted == "[BOSS] The Watcher: That will be enough for now." -> {
-                DungeonInfo.uniqueRooms.find { it.mainRoom.data.type == RoomType.BLOOD }?.mainRoom?.state = RoomState.CLEARED
+                DungeonInfo.uniqueRooms["Blood"]?.mainRoom?.state = RoomState.CLEARED
                 watcherSpawnTime = currentTime
             }
 

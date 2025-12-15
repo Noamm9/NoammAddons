@@ -119,8 +119,8 @@ object MimicDetector: Feature("Detects when a Mimic or Prince is killed") {
     fun findMimicRoom(): UniqueRoom? {
         mc.theWorld.loadedTileEntityList.filter { it is TileEntityChest && it.chestType == 1 }
             .groupingBy { ScanUtils.getRoomFromPos(it.pos)?.data?.name }.eachCount().forEach { (room, trappedChests) ->
-                DungeonInfo.uniqueRooms.find { it.name == room && it.mainRoom.data.trappedChests < trappedChests }?.let {
-                    return it
+                DungeonInfo.uniqueRooms.entries.find { it.key == room && it.value.data.trappedChests < trappedChests }?.let {
+                    return it.value
                 }
             }
         return null

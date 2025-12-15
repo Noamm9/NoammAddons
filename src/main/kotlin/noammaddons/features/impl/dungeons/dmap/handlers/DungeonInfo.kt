@@ -5,7 +5,7 @@ import noammaddons.features.impl.dungeons.dmap.core.map.*
 
 object DungeonInfo {
     val dungeonList = Array<Tile>(121) { Unknown(0, 0) }
-    val uniqueRooms = mutableSetOf<UniqueRoom>()
+    val uniqueRooms = mutableMapOf<String, UniqueRoom>()
     var roomCount = 0
 
     var trapType = ""

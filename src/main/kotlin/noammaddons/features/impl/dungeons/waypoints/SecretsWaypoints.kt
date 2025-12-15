@@ -2,7 +2,7 @@ package noammaddons.features.impl.dungeons.waypoints
 
 import net.minecraft.init.Blocks
 import net.minecraft.util.BlockPos
-import noammaddons.features.impl.dungeons.dmap.core.map.Room
+import noammaddons.features.impl.dungeons.dmap.core.map.UniqueRoom
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.RenderUtils
 import noammaddons.utils.ScanUtils
@@ -21,14 +21,14 @@ object SecretsWaypoints {
     private val waypoints = ScanUtils.roomList.associate { it.name to it.secretCoords }
     private val currentRoomWaypoints: CopyOnWriteArrayList<SecretWaypoint> = CopyOnWriteArrayList()
 
-    fun onRoomEnter(room: Room) {
+    fun onRoomEnter(room: UniqueRoom) {
         if (! DungeonWaypoints.secretWaypoints) return
         currentRoomWaypoints.clear()
         if (room.rotation == null) return
 
         val roomRotation = 360 - room.rotation !!
         val roomCorner = room.corner !!
-        val roomName = room.data.name
+        val roomName = room.name
 
         waypoints[roomName]?.let { secretCoords ->
             val roomWaypoints = mutableListOf<SecretWaypoint>()

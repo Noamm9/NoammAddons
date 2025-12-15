@@ -9,7 +9,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.features.impl.dungeons.dmap.core.map.RoomState
-import noammaddons.features.impl.dungeons.dmap.core.map.RoomType
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.noFormatText
@@ -81,7 +80,7 @@ object BloodRoom: Feature() {
         if (inBoss || isDialogueSkipRunning) return
         if (watcherClearTime != null) return
         if (thePlayer?.clazz != DungeonUtils.Classes.Mage && mage.value) return
-        if (event.room.data.type != RoomType.BLOOD) return
+        if (event.room.name != "Blood") return
         if (event.newState != RoomState.DISCOVERED) return
 
         dialogueSkipStartTime = currentTicks

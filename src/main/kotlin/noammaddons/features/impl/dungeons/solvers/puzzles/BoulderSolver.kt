@@ -40,12 +40,12 @@ object BoulderSolver {
     @SubscribeEvent
     fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (! PuzzleSolvers.boulder.value) return
-        if (event.room.data.name != "Boulder") return
+        if (event.room.name != "Boulder") return
         inBoulder = true
 
         // I accidentally took all solutions coords with a 180 rotation room
         rotation = 360 - event.room.rotation !! + 180
-        roomCenter = ScanUtils.getRoomCenter(event.room)
+        roomCenter = ScanUtils.getRoomCenter(event.room.mainRoom)
 
         solve()
     }

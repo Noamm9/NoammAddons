@@ -17,8 +17,7 @@ import net.minecraft.util.*
 import net.minecraft.world.World
 import net.minecraftforge.fml.common.eventhandler.Cancelable
 import net.minecraftforge.fml.common.eventhandler.Event
-import noammaddons.features.impl.dungeons.dmap.core.map.Room
-import noammaddons.features.impl.dungeons.dmap.core.map.RoomState
+import noammaddons.features.impl.dungeons.dmap.core.map.*
 import noammaddons.utils.DungeonUtils
 import noammaddons.utils.SlayerUtils
 
@@ -142,18 +141,18 @@ class PostEntityMetadataEvent(val entity: Entity): Event()
 
 
 abstract class DungeonEvent: Event() {
-    abstract class PuzzleEvent(val pazzle: String): DungeonEvent() {
-        class Reset(pazzle: String): PuzzleEvent(pazzle)
-        class Discovered(pazzle: String): PuzzleEvent(pazzle)
-        class Completed(pazzle: String): PuzzleEvent(pazzle)
-        class Failed(pazzle: String): PuzzleEvent(pazzle)
+    abstract class PuzzleEvent(val pazzle: Puzzle): DungeonEvent() {
+        class Reset(pazzle: Puzzle): PuzzleEvent(pazzle)
+        class Discovered(pazzle: Puzzle): PuzzleEvent(pazzle)
+        class Completed(pazzle: Puzzle): PuzzleEvent(pazzle)
+        class Failed(pazzle: Puzzle): PuzzleEvent(pazzle)
     }
 
-    abstract class RoomEvent(val room: Room): DungeonEvent() {
-        class onEnter(room: Room): RoomEvent(room)
-        class onExit(room: Room): RoomEvent(room)
+    abstract class RoomEvent(val room: UniqueRoom): DungeonEvent() {
+        class onEnter(room: UniqueRoom): RoomEvent(room)
+        class onExit(room: UniqueRoom): RoomEvent(room)
 
-        class onStateChange(room: Room, val oldState: RoomState, val newState: RoomState, val roomPlayers: List<DungeonUtils.DungeonPlayer>): RoomEvent(room)
+        class onStateChange(room: UniqueRoom, val oldState: RoomState, val newState: RoomState, val roomPlayers: List<DungeonUtils.DungeonPlayer>): RoomEvent(room)
     }
 
     class SecretEvent(val type: SecretType, val pos: BlockPos): DungeonEvent() {

@@ -47,9 +47,9 @@ object DungeonWaypoints: Feature("add a custom waypoint with /dw add while looki
         SecretsWaypoints.onRoomEnter(event.room)
         currentRoomWaypoints.clear()
 
-        val roomName = event.room.data.name.takeUnless { it == "Unknown" } ?: return
+        val roomName = event.room.name
         val roomRotation = event.room.rotation ?: return
-        val roomCenter = ScanUtils.getRoomCenter(event.room)
+        val roomCenter = ScanUtils.getRoomCenter(event.room.mainRoom)
 
         waypoints[roomName]?.map {
             DungeonWaypoint(

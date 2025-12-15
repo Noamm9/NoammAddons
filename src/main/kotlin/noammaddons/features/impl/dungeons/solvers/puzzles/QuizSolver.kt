@@ -45,12 +45,20 @@ object QuizSolver {
     }
 
     @SubscribeEvent
+    fun onPuzzleReset(event: DungeonEvent.PuzzleEvent.Reset) {
+        if (event.pazzle.room?.name != "Quiz") return
+        triviaOptions.forEach { it.isCorrect = false }
+        triviaAnswers = null
+        correctAnswer = null
+    }
+
+    @SubscribeEvent
     fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (! PuzzleSolvers.quiz.value) return
-        if (inQuiz || event.room.data.name != "Quiz") return
+        if (inQuiz || event.room.name != "Quiz") return
 
         inQuiz = true
-        val roomCenter = ScanUtils.getRoomCenter(event.room)
+        val roomCenter = ScanUtils.getRoomCenter(event.room.mainRoom)
         val rotation = 360 - event.room.rotation !!
 
         triviaOptions[0].blockPos = getRealCoord(BlockPos(5, 70, - 9), roomCenter, rotation)

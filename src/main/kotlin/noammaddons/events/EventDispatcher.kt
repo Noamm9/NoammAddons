@@ -16,20 +16,21 @@ import net.minecraftforge.client.event.sound.PlaySoundEvent
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.*
-import net.minecraftforge.fml.common.gameevent.TickEvent.*
+import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent
+import net.minecraftforge.fml.common.gameevent.TickEvent.Phase
 import noammaddons.NoammAddons.Companion.Logger
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.NoammAddons.Companion.scope
 import noammaddons.features.impl.dungeons.dmap.core.map.Room
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.ChatUtils
-import noammaddons.utils.ChatUtils.debugMessage
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.DungeonUtils.dungeonItemDrops
 import noammaddons.utils.DungeonUtils.isSecret
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.RenderHelper.partialTicks
+import noammaddons.utils.ScanUtils
 import noammaddons.utils.ThreadUtils.setTimeout
 import noammaddons.utils.Utils.equalsOneOf
 
@@ -243,13 +244,13 @@ object EventDispatcher {
     }
 
     fun checkForRoomChange(currentRoom: Room?, lastKnownRoom: Room?) {
-        lastKnownRoom?.let {
+        lastKnownRoom?.uniqueRoom?.let {
             DungeonEvent.RoomEvent.onExit(it).postCatch()
-            debugMessage("onExit ${it.data.name} to ${currentRoom?.data?.name ?: "Unknown"}")
         }
-        currentRoom?.let {
+        currentRoom?.uniqueRoom?.let {
+            it.highestBlock = ScanUtils.gethighestBlockAt(it.mainRoom.x, it.mainRoom.z)
+            it.findRotation()
             DungeonEvent.RoomEvent.onEnter(it).postCatch()
-            debugMessage("onEnter ${lastKnownRoom?.data?.name ?: "Unknown"} to ${it.data.name}")
         }
     }
 }

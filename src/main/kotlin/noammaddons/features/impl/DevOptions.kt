@@ -15,8 +15,6 @@ import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.features.FeatureManager
 import noammaddons.features.FeatureManager.registerFeatures
-import noammaddons.features.impl.dungeons.dmap.core.map.Room
-import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
 import noammaddons.features.impl.dungeons.dmap.handlers.DungeonScanner
 import noammaddons.features.impl.dungeons.solvers.devices.AutoI4.testI4
 import noammaddons.features.impl.esp.StarMobESP
@@ -125,8 +123,8 @@ object DevOptions: Feature() {
 			getCore: ${getCore(rc.x, rc.z)}
 			currentRoom: ${currentRoom?.data?.name ?: "&cUnknown&r"}
 			getRoomCenter: $rc
-            roofHeight: ${currentRoom?.highestBlock ?: "&cUnknown&r"}
-            rotation: ${currentRoom?.rotation ?: "&cUnknown&r"}
+            roofHeight: ${currentRoom?.uniqueRoom?.highestBlock ?: "&cUnknown&r"}
+            rotation: ${currentRoom?.uniqueRoom?.rotation ?: "&cUnknown&r"}
 		""".trimIndent(),
             150f, 130f, 1f,
             Color.CYAN
@@ -247,8 +245,8 @@ object DevOptions: Feature() {
 
             "scanrot" -> {
                 event.isCanceled = true
-                DungeonInfo.dungeonList.filterIsInstance<Room>().filterNot { it.isSeparator }.forEach {
-                    if (it.rotation != null) return@forEach
+                currentRoom?.uniqueRoom?.let {
+                    it.highestBlock = ScanUtils.gethighestBlockAt(it.mainRoom.x, it.mainRoom.z)
                     it.findRotation()
                 }
             }

@@ -54,7 +54,6 @@ object DungeonMapConfig {
     val boxWitherDoors = ToggleSetting("Box Wither Doors", true)
     val witherDoorNoKeyColor = ColorSetting("No Key Color", Color(255, 0, 0), false).addDependency(boxWitherDoors)
     val witherDoorKeyColor = ColorSetting("Has Key Color", Color(0, 255, 0), false).addDependency(boxWitherDoors)
-    val witherDoorOutlineWidth = SliderSetting("Door Outline Width", 1f, 10f, 0.5f, 3f).addDependency(boxWitherDoors)
     val witherDoorFill = SliderSetting("Door Fill Opacity", 0f, 1f, 0.05f, 0.25f).addDependency(boxWitherDoors)
 
     fun setup(): Array<CategorySetting> {
@@ -79,9 +78,8 @@ object DungeonMapConfig {
                 mapBackgroundStyle,
                 mapBackground,
                 mapBorderColor,
-                mapBorderWidth,
-            )
-            ),
+                mapBorderWidth
+            )),
 
             CategorySetting("Rooms", listOf(
                 SeperatorSetting("Style"),
@@ -90,8 +88,7 @@ object DungeonMapConfig {
                 hideQuestionCheckmarks,
                 limitRoomNameSize,
                 highlightMimicRoom
-            )
-            ),
+            )),
 
             CategorySetting("Colors", listOf(
                 SeperatorSetting("Markers"),
@@ -119,17 +116,14 @@ object DungeonMapConfig {
                 colorWitherDoor,
                 colorOpenWitherDoor,
                 colorUnopenedDoor,
-            )
-            ),
+            )),
 
             CategorySetting("Wither Door ESP", listOf(
                 boxWitherDoors,
                 witherDoorNoKeyColor,
                 witherDoorKeyColor,
-                witherDoorOutlineWidth,
                 witherDoorFill,
-            )
-            )
+            ))
         )
     }
 }

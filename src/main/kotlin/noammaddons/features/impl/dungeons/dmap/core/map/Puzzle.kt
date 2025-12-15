@@ -1,5 +1,6 @@
 package noammaddons.features.impl.dungeons.dmap.core.map
 
+import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
 import noammaddons.utils.Utils.equalsOneOf
 
 enum class Puzzle(val roomDataName: String, val tabName: String = roomDataName) {
@@ -24,4 +25,6 @@ enum class Puzzle(val roomDataName: String, val tabName: String = roomDataName) 
     }
 
     var state = if (roomDataName == "???") RoomState.UNOPENED else RoomState.DISCOVERED
+
+    val room get() = DungeonInfo.uniqueRooms[roomDataName]
 }

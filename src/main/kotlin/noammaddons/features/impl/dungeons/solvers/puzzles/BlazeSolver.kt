@@ -41,10 +41,10 @@ object BlazeSolver {
     @SubscribeEvent
     fun onEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (! PuzzleSolvers.blaze.value) return
-        if (! event.room.data.name.contains("Blaze")) return
+        if (! event.room.name.contains("Blaze")) return
         inBlaze = true
 
-        val center = ScanUtils.getRoomCenter(event.room)
+        val center = ScanUtils.getRoomCenter(event.room.mainRoom)
         reversed = getBlockAt(center.x + 1, 118, center.z) != Blocks.cobblestone
         trueTimeStarted = System.currentTimeMillis()
         lastBlazeCount = 10

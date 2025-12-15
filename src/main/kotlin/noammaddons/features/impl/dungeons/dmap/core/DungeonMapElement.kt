@@ -194,7 +194,7 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
             }
         }
 
-        DungeonInfo.uniqueRooms.forEach { unq ->
+        DungeonInfo.uniqueRooms.values.forEach { unq ->
             val room = unq.mainRoom
             if (! DungeonMapConfig.dungeonMapCheater.value && (room.state == RoomState.UNDISCOVERED || room.state == RoomState.UNOPENED)) return@forEach
 
@@ -222,10 +222,10 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
         val halfRoom = HotbarMapColorParser.halfRoom.toFloat()
         val fullCellSize = roomSize + gapSize
 
-        DungeonInfo.uniqueRooms.forEach { unq ->
+        DungeonInfo.uniqueRooms.forEach { (name, unq) ->
             val room = unq.mainRoom
 
-            if (unq.name == "Unknown") return@forEach
+            if (name == "Unknown") return@forEach
             if (room.data.type == RoomType.ENTRANCE) return@forEach
             if (! DungeonMapConfig.dungeonMapCheater.value && (room.state == RoomState.UNDISCOVERED || room.state == RoomState.UNOPENED)) return@forEach
 
