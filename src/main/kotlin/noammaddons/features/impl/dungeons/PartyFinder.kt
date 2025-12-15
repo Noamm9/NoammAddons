@@ -175,11 +175,12 @@ object PartyFinder: Feature("A group of many features regarding the dungeon ape 
             rarityColor to formattedType
         }?.toSet() ?: return@launch
 
+        val inventoryApi = data.getString("talisman_bag_data")?.isNotEmpty() ?: false
         val talismenBag = data.getString("talisman_bag_data")?.let(ItemUtils::decodeBase64ItemList) ?: return@launch
-        val magicalPower = ProfileUtils.getMagicalPower(talismenBag, data)
+        val magicalPower = if (inventoryApi) ProfileUtils.getMagicalPower(talismenBag, data) else 0
         val armorInv = data.getString("armor_data")?.let(ItemUtils::decodeBase64ItemList) ?: return@launch
 
-        val armorList = armorInv.filterNotNull().reversed().map { armorPiece ->
+        val armorList = if (! inventoryApi) emptyList() else armorInv.filterNotNull().reversed().map { armorPiece ->
             val lore = armorPiece.lore.toMutableList().apply { add(0, armorPiece.displayName) }
             ChatComponentText("  " + armorPiece.displayName).apply {
                 chatStyle = ChatStyle().apply {
@@ -229,12 +230,12 @@ object PartyFinder: Feature("A group of many features regarding the dungeon ape 
 
         ThreadUtils.scheduledTask {
             UChat.chat("§a§l--- §r§b$name§b's Dungeon Stats §a§l---§r")
-            UChat.chat("  §4Cata Level: §b$cataLvl §f| §dClass Avg: §b${"%.1f".format(classAvg)} §f| §dMP: §e$magicalPower")
+            UChat.chat("  §4Cata Level: §b$cataLvl §f| §dClass Avg: §b${"%.1f".format(classAvg)} §f| §dMP: ${if (inventoryApi) "§e$magicalPower" else "§cAPI off"}")
             UChat.chat("  §bSecrets: §d${totalSecrets.toInt()} §b(§d${"%.2f".format(secretAvg)}§b) §f| §cBlood Mobs: §f$bloodMobsKilled")
             UChat.chat("  Pets: ${petsList.joinToString("§7,§r ") { it.first + it.second }}")
             UChat.chat("  §9Power Stone: &e$powerStone §f| §6Arrows: §e$selectedArrow")
             UChat.chat(" ")
-            armorList.forEach(UChat::chat)
+            if (armorList.isEmpty()) UChat.chat("  §cInventory Api is Off") else armorList.forEach(UChat::chat)
             UChat.chat(" ")
             completionsList.forEach(UChat::chat)
             UChat.chat("§a§l------------------------------------§r")

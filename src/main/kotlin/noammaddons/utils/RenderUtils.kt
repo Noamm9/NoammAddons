@@ -154,7 +154,7 @@ object RenderUtils {
         if (block != null) {
             block.setBlockBoundsBasedOnState(mc.theWorld, blockPos)
             axisAlignedBB = block.getSelectedBoundingBox(mc.theWorld, blockPos)
-                .expand(.0020000000949949056, .0020000000949949056, .0020000000949949056)
+                .expand(.0021000000949949055, .0021000000949949055, .0021000000949949055)
                 .offset(- renderManager.viewerPosX, - renderManager.viewerPosY, - renderManager.viewerPosZ)
         }
 

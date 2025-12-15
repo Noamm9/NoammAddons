@@ -4,7 +4,6 @@ import com.google.gson.*
 import com.mojang.authlib.minecraft.MinecraftProfileTexture.*
 import gg.essential.universal.ChatColor
 import net.minecraft.entity.Entity
-import net.minecraft.init.Blocks
 import net.minecraft.init.Items
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
@@ -27,6 +26,7 @@ import noammaddons.utils.Utils.startsWithOneOf
 import noammaddons.utils.Utils.toGson
 import java.awt.Color
 import java.io.ByteArrayInputStream
+import java.io.DataInputStream
 import java.util.*
 
 
@@ -290,20 +290,32 @@ object ItemUtils {
         }
     }
 
-    fun decodeBase64ItemList(compressed: String): MutableList<ItemStack?> {
-        val byteArray = Base64.getDecoder().decode(compressed)
-        val inputStream = ByteArrayInputStream(byteArray)
-        val nbt = CompressedStreamTools.readCompressed(inputStream)
-        val items = nbt.getTagList("i", Constants.NBT.TAG_COMPOUND)
+    fun decodeBase64ItemList(encoded: String): MutableList<ItemStack?> {
+        if (encoded.isEmpty()) return mutableListOf()
 
-        val resultList = MutableList<ItemStack?>(items.tagCount()) { null }
-        for (i in 0 until items.tagCount()) {
-            val itemNBT = items.getCompoundTagAt(i).takeUnless { it.hasNoTags() } ?: continue
-            val itemStack = ItemStack(Blocks.air)
-            itemStack.readFromNBT(itemNBT)
-            resultList[i] = itemStack
+        try {
+            val byteArray = Base64.getDecoder().decode(encoded)
+            val inputStream = ByteArrayInputStream(byteArray)
+
+            val nbt = runCatching { CompressedStreamTools.readCompressed(inputStream) }.getOrNull() ?: run {
+                inputStream.reset()
+                CompressedStreamTools.read(DataInputStream(inputStream))
+            }
+
+            val items = nbt.getTagList("i", Constants.NBT.TAG_COMPOUND)
+            val resultList = MutableList<ItemStack?>(items.tagCount()) { null }
+
+            for (i in 0 until items.tagCount()) {
+                val itemNBT = items.getCompoundTagAt(i)
+                val itemStack = ItemStack.loadItemStackFromNBT(itemNBT)
+                resultList[i] = itemStack
+            }
+
+            return resultList
         }
-
-        return resultList
+        catch (e: Exception) {
+            e.printStackTrace()
+            return mutableListOf()
+        }
     }
 }
