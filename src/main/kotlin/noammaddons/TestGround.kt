@@ -93,17 +93,6 @@ object TestGround {
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    fun onEnter(event: DungeonEvent.RoomEvent.onEnter) {
-        if (event.room.rotation != null) return
-        DungeonInfo.dungeonList.filterIsInstance<Room>().filterNot { it.isSeparator }.forEach {
-            if (it.rotation != null) return@forEach
-            it.highestBlock = ScanUtils.gethighestBlockAt(it.x, it.z)
-            it.findRotation()
-            it.findRotation()
-        }
-    }
-
     @SubscribeEvent
     fun dragonSpawn(event: PacketEvent.Received) {
         val packet = event.packet as? S0FPacketSpawnMob ?: return
@@ -181,7 +170,7 @@ object TestGround {
         val packet = event.packet as? S2APacketParticles ?: return
         if (! packet.particleType.equalsOneOf(EnumParticleTypes.DRIP_WATER, EnumParticleTypes.CLOUD)) return
         val vec = Vec3(packet.xCoordinate, packet.yCoordinate, packet.zCoordinate)
-        if (vec.squareDistanceTo(mc.thePlayer.positionVector) >= 16) return
+        if (vec.squareDistanceTo(mc.thePlayer?.positionVector ?: return) >= 16) return
         if (PlayerUtils.getHelmet().rune != "RAINY_DAY") return
         event.isCanceled = true
     }

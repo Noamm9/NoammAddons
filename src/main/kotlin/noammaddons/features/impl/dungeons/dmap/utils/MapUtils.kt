@@ -18,10 +18,19 @@ object MapUtils {
         return Pair(x, z)
     }
 
+    var mapId: Int? = null
     var startCorner = Pair(5, 5)
     var mapRoomSize = 16
     var coordMultiplier = 0.625
     var calibrated = false
+
+    fun reset() {
+        calibrated = false
+        startCorner = Pair(5, 5)
+        mapRoomSize = 16
+        coordMultiplier = 0.625
+        mapId = null
+    }
 
     /**
      * Calibrates map metrics based on the size and location of the entrance room.

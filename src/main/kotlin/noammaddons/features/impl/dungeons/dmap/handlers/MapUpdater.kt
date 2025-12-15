@@ -3,7 +3,6 @@ package noammaddons.features.impl.dungeons.dmap.handlers
 import kotlinx.coroutines.*
 import net.minecraft.init.Blocks
 import net.minecraft.util.BlockPos
-import net.minecraft.world.storage.MapData
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.features.impl.dungeons.dmap.core.DungeonMapPlayer
 import noammaddons.features.impl.dungeons.dmap.core.map.*
@@ -18,7 +17,8 @@ object MapUpdater {
     private val playerHeadScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     val playerJobs = ConcurrentHashMap<String, Job>()
 
-    fun updatePlayers(mapData: MapData) {
+    fun updatePlayers() {
+        val mapData = DungeonInfo.mapData ?: return
         if (DungeonUtils.dungeonTeammates.isEmpty()) return
         val mapDecorations = mapData.mapDecorations.entries.toList()
         val teammates = DungeonUtils.dungeonTeammates.filterNot { it.isDead }
@@ -78,10 +78,11 @@ object MapUpdater {
         }
     }
 
-    fun updateRooms(mapData: MapData) {
+    fun updateRooms() {
         if (LocationUtils.inBoss) return
         if (DungeonUtils.dungeonEnded) return
         if (DungeonUtils.thePlayer?.isDead == true) return
+        val mapData = DungeonInfo.mapData ?: return
         HotbarMapColorParser.updateMap(mapData)
 
         for (x in 0 .. 10) {

@@ -22,7 +22,6 @@ import noammaddons.ui.config.core.annotations.AlwaysActive
 import noammaddons.utils.*
 import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.LocationUtils.inDungeon
-import noammaddons.utils.Utils.equalsOneOf
 
 @AlwaysActive
 object DungeonMap: Feature() {
@@ -72,70 +71,62 @@ object DungeonMap: Feature() {
     fun onWorldUnload(event: WorldUnloadEvent) {
         DungeonInfo.reset()
         DungeonScanner.hasScanned = false
-        MapUtils.calibrated = false
-        MapUtils.startCorner = Pair(5, 5)
-        MapUtils.mapRoomSize = 16
-        MapUtils.coordMultiplier = 0.625
+        MapUtils.reset()
         MapUpdater.playerJobs.clear()
-        ScoreCalculation.onWorldUnload()
+        ScoreCalculation.reset()
     }
 
     @SubscribeEvent
     fun onWorldRender(event: RenderWorld) {
-        if (! inDungeon || ! DungeonMapConfig.boxWitherDoors.value || inBoss) return
-        DungeonInfo.dungeonList.filterIsInstance<Door>()
-            .filterNot { it.type.equalsOneOf(DoorType.ENTRANCE, DoorType.NORMAL) || it.opened }
-            .filterNot {
-                val startedAndNotFairy = (DungeonUtils.dungeonStarted && ScanUtils.getEntityRoom(mc.thePlayer)?.data?.type != RoomType.FAIRY)
-                (startedAndNotFairy || ! DungeonMapConfig.dungeonMapCheater.value) && it.state == RoomState.UNDISCOVERED
-            }
-            .forEach {
-                val color = if (DungeonInfo.keys > 0) DungeonMapConfig.witherDoorKeyColor.value
-                else DungeonMapConfig.witherDoorNoKeyColor.value
+        if (! inDungeon || inBoss || ! DungeonMapConfig.boxWitherDoors.value) return
 
-                RenderUtils.drawBox(
-                    it.x - 1, 69.0, it.z - 1,
-                    color = color.withAlpha(DungeonMapConfig.witherDoorFill.value), outline = true,
-                    fill = true,
-                    width = 3, height = 4, phase = true
-                )
-            }
+        val shouldHideUndiscovered = ! DungeonMapConfig.dungeonMapCheater.value || (DungeonUtils.dungeonStarted && ScanUtils.getEntityRoom(mc.thePlayer)?.data?.type != RoomType.FAIRY)
+        val color = (if (DungeonInfo.keys > 0) DungeonMapConfig.witherDoorKeyColor.value else DungeonMapConfig.witherDoorNoKeyColor.value).withAlpha(DungeonMapConfig.witherDoorFill.value)
+
+        for (tile in DungeonInfo.dungeonList) {
+            if (tile !is Door) continue
+            if (tile.opened || tile.type == DoorType.ENTRANCE || tile.type == DoorType.NORMAL) continue
+            if (shouldHideUndiscovered && tile.state == RoomState.UNDISCOVERED) continue
+
+            RenderUtils.drawBox(
+                tile.x - 1.0, 69.0, tile.z - 1.0,
+                color, outline = true, fill = true,
+                width = 3.0, height = 4.0, phase = true
+            )
+        }
     }
 
     @SubscribeEvent
-    fun onPuzzleReset(event: DungeonEvent.PuzzleEvent.Reset) {
-        DungeonInfo.uniqueRooms.filter { it.mainRoom.data.type == RoomType.PUZZLE }.find {
-            event.pazzle == Puzzle.fromName(it.name)?.tabName
-        }?.run { mainRoom.state = RoomState.DISCOVERED }
-    }
-
-    @SubscribeEvent
-    fun onPacket(event: PacketEvent.Received) {
+    fun onPacketRecivedRecived(event: MainThreadPacketRecivedEvent.Post) {
         if (! inDungeon) return
         ScoreCalculation.onPacket(event.packet)
 
         val packet = event.packet as? S34PacketMaps ?: return
-        val mapData = mc.thePlayer?.inventory?.getStackInSlot(8)
-            ?.takeIf { it.item is ItemMap || it.displayName.contains("Magical Map") }
-            ?.let { (it.item as? ItemMap)?.getMapData(it, mc.theWorld) }
-            ?: MapData("map_${packet.mapId}")
+        val mapId = packet.mapId.takeIf { it in 1000 .. 1400 } ?: return
 
-
-        mc.addScheduledTask {
-            packet.setMapdataTo(mapData)
-            DungeonInfo.mapData = mapData
-
-            if (! MapUtils.calibrated) MapUtils.calibrated = MapUtils.calibrateMap()
-            else {
-                MapUpdater.updateRooms(mapData)
-                MapUpdater.updatePlayers(mapData)
-            }
+        if (MapUtils.mapId == null) {
+            val hotbarId = mc.thePlayer.inventory.getStackInSlot(8)?.takeIf { it.item is ItemMap }?.metadata
+            DungeonInfo.mapData = mc.theWorld.loadItemData(MapData::class.java, "map_${hotbarId ?: mapId}") as? MapData ?: return
+            if (mapId == hotbarId) MapUtils.mapId = mapId
         }
+
+        if (! MapUtils.calibrated) MapUtils.calibrated = MapUtils.calibrateMap()
+
+        if (MapUtils.calibrated) {
+            MapUpdater.updateRooms()
+            MapUpdater.updatePlayers()
+        }
+    }
+
+    @SubscribeEvent
+    fun onPuzzleReset(event: DungeonEvent.PuzzleEvent.Reset) {
+        event.pazzle.room?.mainRoom?.state = RoomState.DISCOVERED
     }
 
     @SubscribeEvent
     fun onRoomStateChangeEvent(event: DungeonEvent.RoomEvent.onStateChange) {
         ClearInfoUpdater.checkSplits(event.room.data, event.oldState, event.newState, event.roomPlayers)
+        if (event.newState == RoomState.GREEN) event.room.foundSecrets = event.room.data.secrets
     }
 
     @SubscribeEvent
