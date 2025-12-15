@@ -7,7 +7,7 @@ import noammaddons.mixins.accessor.AccessorCommandHandler
 object CommandManager {
     val commands = setOf(
         NoammAddonsCommands,
-        CrimonIsle, DungeonHub,
+        CrimsonIsle, DungeonHub,
         End, Skyblock, hub,
         DungeonWaypointCommand,
     )

@@ -5,7 +5,7 @@ import noammaddons.commands.Command
 import noammaddons.utils.ChatUtils.sendChatMessage
 
 
-object CrimonIsle: Command("nether") {
+object CrimsonIsle : Command("nether") {
     override fun processCommand(sender: ICommandSender, args: Array<out String>) {
         sendChatMessage("/warp nether")
     }
