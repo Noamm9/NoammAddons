@@ -17,7 +17,7 @@ object AutoGFS: Feature("Automatically refills certain items from your sacks.") 
     private val refillJerry by ToggleSetting("Refill Jerry")
     private val refillLeaps by ToggleSetting("Refill Leaps")
 
-    override fun init() = loop({ timerIncrements.toLong() * 1000 }, func = ::refill)
+    override fun init() = loop({ timerIncrements.toLong() * 1000 }, block = ::refill)
 
     fun refill() {
         if (! enabled) return

@@ -2,7 +2,7 @@ package noammaddons.utils
 
 import com.google.common.collect.ComparisonChain
 import net.minecraft.client.network.NetworkPlayerInfo
-import net.minecraft.world.WorldSettings.*
+import net.minecraft.world.WorldSettings.GameType
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.mixins.accessor.AccessorGuiPlayerTabOverlay
 
@@ -24,4 +24,9 @@ object TablistUtils {
                 o2.playerTeam?.registeredName ?: ""
             ).compare(o1.gameProfile.name, o2.gameProfile.name).result()
         }) ?: emptyList()).map { Pair(it, mc.ingameGUI.tabList.getPlayerName(it)) }
+
+
+    fun getDungeonTabList(): List<Pair<NetworkPlayerInfo, String>>? {
+        return tabList.let { if (it.size > 18 && it[0].second.contains("§r§b§lParty §r§f(")) it else null }
+    }
 }

@@ -31,8 +31,6 @@ import noammaddons.utils.Utils.equalsOneOf
 import noammaddons.utils.Utils.uppercaseFirst
 import kotlin.math.abs
 
-
-// todo pf join stats message and autokick?
 object PartyFinder: Feature("A group of many features regarding the dungeon ape finder") {
     val customMenu = ToggleSetting("Enabled")
     val customMenuShowStats = ToggleSetting("Show Players Stats").addDependency(customMenu)
@@ -78,9 +76,9 @@ object PartyFinder: Feature("A group of many features regarding the dungeon ape 
     }
 
     @SubscribeEvent
-    fun onChat(event: Chat) = ThreadUtils.runOnNewThread {
+    fun onChat(event: Chat) = ThreadUtils.runAsync {
         val msg = event.component.formattedText
-        val playerFormatted = joinedRegex.find(msg)?.destructured?.component1() ?: return@runOnNewThread
+        val playerFormatted = joinedRegex.find(msg)?.destructured?.component1() ?: return@runAsync
         val playerUnformatted = playerFormatted.removeFormatting()
         if (joinedSound.value) SoundUtils.Pling()
         if (partyFinderStats.value && playerUnformatted != mc.session.username) printPlayerStats(playerFormatted)
@@ -180,7 +178,8 @@ object PartyFinder: Feature("A group of many features regarding the dungeon ape 
         val magicalPower = if (inventoryApi) ProfileUtils.getMagicalPower(talismenBag, data) else 0
         val armorInv = data.getString("armor_data")?.let(ItemUtils::decodeBase64ItemList) ?: return@launch
 
-        val armorList = if (! inventoryApi) emptyList() else armorInv.filterNotNull().reversed().map { armorPiece ->
+        val armorList = if (! inventoryApi) emptyList()
+        else armorInv.filterNotNull().reversed().map { armorPiece ->
             val lore = armorPiece.lore.toMutableList().apply { add(0, armorPiece.displayName) }
             ChatComponentText("  " + armorPiece.displayName).apply {
                 chatStyle = ChatStyle().apply {
@@ -228,7 +227,7 @@ object PartyFinder: Feature("A group of many features regarding the dungeon ape 
             }
         )
 
-        ThreadUtils.scheduledTask {
+        ThreadUtils.runOnMcThread {
             UChat.chat("§a§l--- §r§b$name§b's Dungeon Stats §a§l---§r")
             UChat.chat("  §4Cata Level: §b$cataLvl §f| §dClass Avg: §b${"%.1f".format(classAvg)} §f| §dMP: ${if (inventoryApi) "§e$magicalPower" else "§cAPI off"}")
             UChat.chat("  §bSecrets: §d${totalSecrets.toInt()} §b(§d${"%.2f".format(secretAvg)}§b) §f| §cBlood Mobs: §f$bloodMobsKilled")
@@ -295,7 +294,6 @@ object PartyFinder: Feature("A group of many features regarding the dungeon ape 
     }
 
     private fun formatPb(milliseconds: Any): String {
-        return if (milliseconds is String) milliseconds
-        else NumbersUtils.formatTime(milliseconds as Number)
+        return milliseconds as? String ?: NumbersUtils.formatTime(milliseconds as Number)
     }
 }

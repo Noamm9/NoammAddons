@@ -140,7 +140,11 @@ object DevOptions: Feature() {
         )
 
         puzzles.forEachIndexed { i, puzzle ->
-            drawText(puzzle.name + ": " + puzzle.state, 350, 130 + (i * 9))
+            drawText(puzzle.name + ": " + puzzle.state, 380, 130 + (i * 9))
+        }
+
+        DungeonUtils.dungeonTeammates.forEachIndexed { i, player ->
+            drawText("DungeonPlayer(name=${player.name}, class=${player.clazz}:${player.clazzLvl}, isdead=${player.isDead}, mapIcon=${player.mapIcon.icon})", 380, 200 + (i * 9))
         }
 
         GlStateManager.popMatrix()

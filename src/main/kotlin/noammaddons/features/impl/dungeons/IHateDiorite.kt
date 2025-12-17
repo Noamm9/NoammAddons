@@ -13,9 +13,10 @@ import noammaddons.utils.LocationUtils.F7Phase
 import noammaddons.utils.ThreadUtils
 
 object IHateDiorite: Feature("Relplace the eye burning diorite with glass on f7") {
-    private val iHateDioriteBlocks = DataDownloader.loadJson<Map<String, List<Map<String, Double>>>>("iHateDioriteBlocks.json").entries.associate {
-        it.key to it.value.map { BlockPos(it["x"] as Double, it["y"] as Double, it["z"] as Double) }
-    }
+    private val iHateDioriteBlocks = DataDownloader.loadJson<Map<String, List<Map<String, Double>>>>("iHateDioriteBlocks.json")
+        .entries.associate {
+            it.key to it.value.map { BlockPos(it["x"] as Double, it["y"] as Double, it["z"] as Double) }
+        }
 
     private val blockTypes = mapOf(
         "GreenArray" to Blocks.stained_glass.getStateFromMeta(5),
@@ -29,7 +30,7 @@ object IHateDiorite: Feature("Relplace the eye burning diorite with glass on f7"
         if (event.phase != TickEvent.Phase.END) return
         if (F7Phase != 2) return
 
-        ThreadUtils.runOnNewThread {
+        ThreadUtils.runAsync {
             iHateDioriteBlocks.forEach { (key, coordsList) ->
                 val blockType = blockTypes[key] ?: return@forEach
                 coordsList.forEach { pos ->

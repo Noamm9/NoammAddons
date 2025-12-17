@@ -5,21 +5,15 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.NoammAddons.Companion.personalBests
 import noammaddons.config.editgui.GuiElement
 import noammaddons.config.editgui.HudEditorScreen
-import noammaddons.events.Chat
-import noammaddons.events.RenderOverlay
-import noammaddons.events.ServerTick
-import noammaddons.events.WorldUnloadEvent
+import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
 import noammaddons.features.impl.hud.RunSplits.DungeonRunSplitsElement.overviewStr
 import noammaddons.ui.config.core.annotations.AlwaysActive
+import noammaddons.utils.*
 import noammaddons.utils.ChatUtils.addColor
 import noammaddons.utils.ChatUtils.noFormatText
-import noammaddons.utils.DataDownloader
-import noammaddons.utils.DungeonUtils
-import noammaddons.utils.LocationUtils
 import noammaddons.utils.NumbersUtils.toFixed
-import noammaddons.utils.RenderHelper
 import noammaddons.utils.ThreadUtils.loop
 import java.awt.Color
 import kotlin.math.roundToInt
@@ -125,8 +119,8 @@ object RunSplits: Feature() {
         for ((name, split) in currentFloorSplits.toMap().takeUnless { it.isEmpty() } ?: return@loop) {
             val text = when {
                 split.start != null && split.end != null -> {
-                    val duration = ((split.end !! - split.start !!) / 1000.0).toFixed(2).toDouble()
-                    val pbTime = (split.pbTime !! / 1000.0).toFixed(2).toDouble()
+                    val duration = (((split.end ?: 0) - (split.start ?: 0)) / 1000.0).toFixed(2).toDouble()
+                    val pbTime = ((split.pbTime ?: 0) / 1000.0).toFixed(2).toDouble()
                     val splitSuffix = if (split.isPB) {
                         val old = split.pbTimeOld?.let { (it / 1000.0).toFixed(2).toDouble() }
                         if (old != null) "&7(${old}s)" else ""
@@ -137,7 +131,7 @@ object RunSplits: Feature() {
                 }
 
                 split.start != null && split.end == null -> {
-                    val live = ((currentTime - split.start !!) / 1000.0).toFixed(2)
+                    val live = ((currentTime - (split.start ?: 0)) / 1000.0).toFixed(2)
                     "$name: ${live}s&r"
                 }
 
@@ -178,7 +172,7 @@ object RunSplits: Feature() {
 
             if (entry.endMatches(this) || entry.end == null && runEndRegex.matches(this)) {
                 split.end = currentTime
-                val deltaTime = split.end !! - split.start !!
+                val deltaTime = (split.end ?: 0) - (split.start ?: 0)
                 val pbTime = pbData[entry.name]
                 split.pbTime = pbTime
                 if (pbTime == null || pbTime > deltaTime) {
@@ -197,7 +191,7 @@ object RunSplits: Feature() {
     }
 
     @SubscribeEvent
-    fun onTick(event: ServerTick) {
+    fun onServerTick(event: ServerTick) {
         if (! LocationUtils.inDungeon) return
         currentTime += 50
     }

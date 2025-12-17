@@ -1,25 +1,23 @@
 package noammaddons.utils
 
 import gg.essential.api.EssentialAPI
+import net.minecraft.network.play.server.*
 import net.minecraft.util.BlockPos
-import net.minecraftforge.event.world.WorldEvent
-import net.minecraftforge.fml.common.eventhandler.Event
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.network.FMLNetworkEvent.*
-import noammaddons.NoammAddons.Companion.mc
+import net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientDisconnectionFromServerEvent
 import noammaddons.events.*
 import noammaddons.features.impl.DevOptions
 import noammaddons.features.impl.hud.RunSplits
+import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.MathUtils.isCoordinateInsideBox
-import noammaddons.utils.ScoreboardUtils.cleanSB
-import noammaddons.utils.ScoreboardUtils.sidebarLines
-import noammaddons.utils.TablistUtils.tabList
+import noammaddons.utils.Utils.equalsOneOf
+import noammaddons.utils.Utils.remove
+import noammaddons.utils.Utils.startsWithOneOf
 
 
 object LocationUtils {
     private val WorldNameRegex = Regex("(Area|Dungeon): ([\\w ]+)")
-    private var TickTimer = 0
 
     @JvmStatic
     val onHypixel get() = EssentialAPI.getMinecraftUtil().isHypixel()
@@ -51,7 +49,7 @@ object LocationUtils {
     @JvmField
     var world: WorldType? = null
 
-    enum class WorldType(val string: String) {
+    enum class WorldType(val tabName: String) {
         DungeonHub("Dungeon Hub"),
         Catacombs("Catacombs"),
         Home("Private Island"),
@@ -67,30 +65,49 @@ object LocationUtils {
         TheBarn("The Farming Islands"),
         BackwaterBayou("Backwater Bayou"),
         Garden("Garden");
+    }
 
-        companion object {
-            fun get(string: String?) = entries.find { it.string == string }
+    @SubscribeEvent
+    fun onPacketRecived(event: MainThreadPacketRecivedEvent.Post) {
+        if (! onHypixel) return
+        if (DevOptions.devMode) return setDevModeValues()
+
+        if (event.packet is S38PacketPlayerListItem) {
+            if (world != null || ! event.packet.action.equalsOneOf(S38PacketPlayerListItem.Action.UPDATE_DISPLAY_NAME, S38PacketPlayerListItem.Action.ADD_PLAYER)) return
+            val area = event.packet.entries?.find { it?.displayName?.noFormatText?.startsWithOneOf("Area: ", "Dungeon: ") == true }?.displayName?.noFormatText ?: return
+            world = WorldType.entries.firstOrNull { area.remove("Area: ", "Dungeon: ") == it.tabName }
+        }
+        else if (event.packet is S3EPacketTeams) {
+            if (world == null || event.packet.action != 2) return
+            val text = event.packet.prefix?.plus(event.packet.suffix)?.removeFormatting() ?: return
+
+            if (! inDungeon && text.contains("The Catacombs (") && ! text.contains("Queue")) {
+                inDungeon = true
+                dungeonFloor = text.substringAfter("(").substringBefore(")")
+                dungeonFloorNumber = dungeonFloor?.lastOrNull()?.digitToIntOrNull() ?: 0
+            }
+        }
+        else if (event.packet is S3BPacketScoreboardObjective) {
+            if (! inSkyblock) inSkyblock = onHypixel && event.packet.func_149339_c() == "SBScoreboard"
+        }
+        else if (event.packet is S32PacketConfirmTransaction) {
+            inBoss = isInBossRoom()
+            if (inBoss) {
+                if (DungeonUtils.bossEntryTime == null) {
+                    EventDispatcher.postAndCatch(DungeonEvent.BossEnterEvent())
+                    DungeonUtils.bossEntryTime = RunSplits.currentTime
+                }
+            }
+            F7Phase = getPhase()
+            P3Section = getP3Section_()
         }
     }
 
     @SubscribeEvent
-    fun onEvent(event: Event) {
-        when (event) {
-            is Tick -> {
-                TickTimer ++
-                if (TickTimer == 20) return
-                if (DevOptions.devMode) setDevModeValues()
-                else updateLocation()
-                TickTimer = 0
-            }
+    fun onWorldUnload(event: WorldUnloadEvent) = reset()
 
-            is WorldUnloadEvent -> reset()
-            is WorldEvent.Load -> reset()
-            is ClientDisconnectionFromServerEvent -> reset()
-            else -> return
-        }
-    }
-
+    @SubscribeEvent
+    fun onDisconnect(event: ClientDisconnectionFromServerEvent) = reset()
 
     private fun reset() {
         inSkyblock = false
@@ -111,41 +128,6 @@ object LocationUtils {
         F7Phase = getPhase()
         P3Section = getP3Section_()
         inBoss = isInBossRoom()
-    }
-
-    private fun updateLocation() {
-        inSkyblock = onHypixel && mc.theWorld.scoreboard.getObjectiveInDisplaySlot(1)?.name == "SBScoreboard"
-
-        if (inSkyblock) {
-            inBoss = isInBossRoom()
-            if (inBoss) {
-                if (DungeonUtils.bossEntryTime == null) {
-                    EventDispatcher.postAndCatch(DungeonEvent.BossEnterEvent())
-                    DungeonUtils.bossEntryTime = RunSplits.currentTime
-                }
-            }
-            F7Phase = getPhase()
-            P3Section = getP3Section_()
-            world = updateWorldName()
-        }
-
-        if (! inDungeon) updateDungeonStatus()
-    }
-
-    private fun updateWorldName() = WorldType.get(
-        WorldNameRegex.find(
-            tabList.joinToString { it.second.removeFormatting() }
-        )?.destructured?.component2()
-    )
-
-    private fun updateDungeonStatus() = sidebarLines.find {
-        cleanSB(it).run {
-            contains("The Catacombs (") && ! contains("Queue")
-        }
-    }?.run {
-        inDungeon = true
-        dungeonFloor = cleanSB(this).substringAfter("(").substringBefore(")")
-        dungeonFloorNumber = dungeonFloor?.lastOrNull()?.digitToIntOrNull() ?: 0
     }
 
     fun isInHubCarnival(): Boolean {

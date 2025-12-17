@@ -19,11 +19,10 @@ object MapUpdater {
 
     fun updatePlayers() {
         val mapData = DungeonInfo.mapData ?: return
-        if (DungeonUtils.dungeonTeammates.isEmpty()) return
+        val aliveTeammates = DungeonUtils.dungeonTeammates.filterNot { it.isDead }.takeUnless { it.isEmpty() } ?: return
         val mapDecorations = mapData.mapDecorations.entries.toList()
-        val teammates = DungeonUtils.dungeonTeammates.filterNot { it.isDead }
 
-        teammates.forEach { teammate ->
+        aliveTeammates.forEach { teammate ->
             val vec4b = mapDecorations.find { it.key == teammate.mapIcon.icon }?.value ?: return@forEach
             smoothUpdatePlayer(teammate.mapIcon, vec4b.mapX, vec4b.mapZ, vec4b.yaw)
         }

@@ -8,11 +8,11 @@ import noammaddons.ui.config.core.impl.SliderSetting
 import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.ActionUtils.reaperSwap
 import noammaddons.utils.ChatUtils.noFormatText
-import noammaddons.utils.DungeonUtils.Classes.*
+import noammaddons.utils.DungeonUtils.Classes.Archer
+import noammaddons.utils.DungeonUtils.Classes.Berserk
 import noammaddons.utils.DungeonUtils.thePlayer
 import noammaddons.utils.Utils.equalsOneOf
 
-// todo cooldown timer?
 object ReaperArmor: Feature("auto reaper armor swap, /na ras") {
     val autoReaperArmorSlot = SliderSetting("Auto Reaper Armor Slot", 1, 9, 1, 1)
     private val autoSwap = ToggleSetting("M7 Dragons Auto Swap")
