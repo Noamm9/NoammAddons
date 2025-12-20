@@ -16,7 +16,7 @@ import java.awt.Color
 
 object FreezeDisplay: Feature(desc = "Shows how long the server froze after a chosen threshold.") {
     private val color by ColorSetting("Color", Color(245, 73, 39), false)
-    private val threshold by SliderSetting("Threshold", 50, 2000, 1, 5000)
+    private val threshold by SliderSetting("Threshold", 50, 2000, 1, 500)
     private val dungeonsOnly by ToggleSetting("Only In Dungeons", true)
 
     private var lastTick = System.currentTimeMillis()
