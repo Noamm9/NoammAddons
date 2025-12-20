@@ -119,6 +119,7 @@ class HudElementConfig {
     val blessingDisplay = HudElementData(100f, 100f, 1f)
     val chestProfitHud = HudElementData(10f, 10f, 1f)
     val lifelineHud = HudElementData(10f, 10f, 1f)
+    val freezeDisplay = HudElementData(100f, 100f, 1.5f)
 }
 
 data class HudElementData(var x: Float, var y: Float, var scale: Float)

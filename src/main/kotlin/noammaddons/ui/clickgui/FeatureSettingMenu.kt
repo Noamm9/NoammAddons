@@ -56,7 +56,13 @@ class FeatureSettingMenu(val feature: Feature): AbstractElement() {
 
     override fun mouseClicked(mouseX: Float, mouseY: Float, button: Int) {
         val descHight = textRenderer.warpText(feature.desc, width - 10).toFloat()
+        if (!(mouseX in x..(x + width) && mouseY in y..(y + height)) && button == 0) {
+            ClickGuiScreen.currentSettingMenu = null
+            return
+        }
         var y = y + 40 + descHight - scrollY
+
+
 
         feature.configSettings.forEach { setting ->
             if (setting.hidden) return@forEach

@@ -122,18 +122,25 @@ class Panel(val category: CategoryType, val features: MutableList<Feature>): Abs
         if (! open) return
 
         var featureY = y + headerHeight - scrollY
-        getFilteredFeatures().forEach { f ->
+        for (f in getFilteredFeatures()) {
             val itemClickableWidth = if (isCurrentlyScrollable()) width - scrollbarWidth - (2 * scrollbarMargin) else width
+            var interacted = false
+
             onMouseEnter(mouseX, mouseY, x, featureY, itemClickableWidth, itemHeight) {
-                if (button == 0) f.toggle()
+                if (button == 0) {
+                    f.toggle()
+                    interacted = true
+                }
                 if (button == 1 && f.configSettings.isNotEmpty()) {
                     currentSettingMenu = menus.getOrPut(f) {
                         FeatureSettingMenu(f)
                     }
+                    interacted = true
                 }
             }
 
             featureY += itemHeight
+            if (interacted) break
         }
     }
 

@@ -47,7 +47,7 @@ object FeatureManager {
         InventoryDisplay, StopCloseMyChat, InventorySearchbar, BlessingDisplay,
         ClientTimer, DarkMode, Animations, EnchantmentsColors, AutoClicker,
         ArrowFix, PartyHelper, DungeonMap, DungeonBreaker, DungeonWaypoints,
-        NoBlockAnimation, SlayerFeatures, LifelineHud,
+        NoBlockAnimation, SlayerFeatures, LifelineHud, FreezeDisplay,
 
         // ProfileViewer, // never finished + Skycrpt api went down
         // ZeroPingTeleportation, // - R.I.P fuck hypixel, fuck blinkers
