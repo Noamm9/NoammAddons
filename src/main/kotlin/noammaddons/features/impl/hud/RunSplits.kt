@@ -84,17 +84,17 @@ object RunSplits: Feature() {
 
         val bloodOpen = when {
             DungeonUtils.bloodOpenTime == null && DungeonUtils.dungeonStarted ->
-                formatTime(currentTime - (DungeonUtils.dungeonStartTime ?: return@loop))
+                formatTime(currentTime - DungeonUtils.dungeonStartTime !!)
 
             DungeonUtils.bloodOpenTime != null ->
-                formatTime(DungeonUtils.bloodOpenTime !! - (DungeonUtils.dungeonStartTime ?: return@loop))
+                formatTime(DungeonUtils.bloodOpenTime !! - DungeonUtils.dungeonStartTime !!)
 
             else -> "?"
         }
 
         val watcherClear = when {
             DungeonUtils.watcherClearTime != null ->
-                formatSecs(DungeonUtils.watcherClearTime !! - (DungeonUtils.bloodOpenTime ?: return@loop))
+                formatSecs(DungeonUtils.watcherClearTime !! - DungeonUtils.bloodOpenTime !!)
 
             DungeonUtils.bloodOpenTime != null ->
                 formatSecs(currentTime - DungeonUtils.bloodOpenTime !!)
@@ -113,7 +113,7 @@ object RunSplits: Feature() {
         }
 
         val bossEntry = if (DungeonUtils.dungeonStarted)
-            formatTime((DungeonUtils.bossEntryTime ?: currentTime) - (DungeonUtils.dungeonStartTime ?: return@loop))
+            formatTime((DungeonUtils.bossEntryTime ?: currentTime) - DungeonUtils.dungeonStartTime !!)
         else "?"
 
         for ((name, split) in currentFloorSplits.toMap().takeUnless { it.isEmpty() } ?: return@loop) {

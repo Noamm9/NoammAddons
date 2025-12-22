@@ -21,8 +21,8 @@ object DungeonWaypointCommand: Command("dw", aliases = listOf("dungeonwaypoint",
         if (! LocationUtils.inBoss) {
             val currentRoom = ScanUtils.currentRoom ?: return ChatUtils.modMessage("§cYou must be in a dungeon room to edit waypoints!")
             roomName = currentRoom.data.name
-            roomCenter = ScanUtils.getRoomCenter(currentRoom)
-            rotation = 360 - (currentRoom.uniqueRoom?.rotation ?: return)
+            roomCenter = ScanUtils.getRoomCenter(currentRoom.mainRoom)
+            rotation = 360 - (currentRoom.rotation ?: return)
         }
         else {
             roomName = "B" + LocationUtils.dungeonFloorNumber

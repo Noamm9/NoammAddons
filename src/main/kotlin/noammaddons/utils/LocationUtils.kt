@@ -17,13 +17,14 @@ import noammaddons.utils.Utils.startsWithOneOf
 
 
 object LocationUtils {
-    private val WorldNameRegex = Regex("(Area|Dungeon): ([\\w ]+)")
-
     @JvmStatic
     val onHypixel get() = EssentialAPI.getMinecraftUtil().isHypixel()
 
     @JvmField
     var inSkyblock = false
+
+    @JvmField
+    var world: WorldType? = null
 
     @JvmField
     var inDungeon = false
@@ -45,9 +46,6 @@ object LocationUtils {
 
     @JvmField
     var F7Phase: Int? = null
-
-    @JvmField
-    var world: WorldType? = null
 
     enum class WorldType(val tabName: String) {
         DungeonHub("Dungeon Hub"),
@@ -78,7 +76,7 @@ object LocationUtils {
             world = WorldType.entries.firstOrNull { area.remove("Area: ", "Dungeon: ") == it.tabName }
         }
         else if (event.packet is S3EPacketTeams) {
-            if (world == null || event.packet.action != 2) return
+            if (! event.packet.action.equalsOneOf(0, 2)) return
             val text = event.packet.prefix?.plus(event.packet.suffix)?.removeFormatting() ?: return
 
             if (! inDungeon && text.contains("The Catacombs (") && ! text.contains("Queue")) {

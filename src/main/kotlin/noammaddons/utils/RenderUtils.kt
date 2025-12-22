@@ -935,7 +935,7 @@ object RenderUtils {
 
     fun drawTitle(title: String, subtitle: String, rainbow: Boolean = false) {
         val x = mc.getWidth() / 2f
-        val y = mc.getHeight() / 2f - 60
+        val y = mc.getHeight() / 2f - (mc.getHeight() * 0.056).roundToInt()
 
         when (rainbow) {
             true -> {

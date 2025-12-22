@@ -45,11 +45,13 @@ object ThreeWeirdosSolver {
 
         rotation = 360 - event.room.rotation !!
         trueTimeStart = System.currentTimeMillis()
-
     }
 
     @SubscribeEvent
-    fun onRoomExit(event: DungeonEvent.RoomEvent.onExit) = reset()
+    fun onRoomExit(event: DungeonEvent.RoomEvent.onExit) {
+        if (event.room.name != "Three Weirdos") return
+        reset()
+    }
 
     @SubscribeEvent
     fun onPazzleEvent(event: DungeonEvent.PuzzleEvent.Reset) {

@@ -123,8 +123,8 @@ object DevOptions: Feature() {
 			getCore: ${getCore(rc.x, rc.z)}
 			currentRoom: ${currentRoom?.data?.name ?: "&cUnknown&r"}
 			getRoomCenter: $rc
-            roofHeight: ${currentRoom?.uniqueRoom?.highestBlock ?: "&cUnknown&r"}
-            rotation: ${currentRoom?.uniqueRoom?.rotation ?: "&cUnknown&r"}
+            roofHeight: ${currentRoom?.highestBlock ?: "&cUnknown&r"}
+            rotation: ${currentRoom?.rotation ?: "&cUnknown&r"}
 		""".trimIndent(),
             150f, 130f, 1f,
             Color.CYAN
@@ -249,7 +249,7 @@ object DevOptions: Feature() {
 
             "scanrot" -> {
                 event.isCanceled = true
-                currentRoom?.uniqueRoom?.let {
+                currentRoom?.let {
                     it.highestBlock = ScanUtils.gethighestBlockAt(it.mainRoom.x, it.mainRoom.z)
                     it.findRotation()
                 }

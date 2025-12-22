@@ -21,7 +21,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent.Phase
 import noammaddons.NoammAddons.Companion.Logger
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.NoammAddons.Companion.scope
-import noammaddons.features.impl.dungeons.dmap.core.map.Room
+import noammaddons.features.impl.dungeons.dmap.core.map.UniqueRoom
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.ChatUtils
 import noammaddons.utils.ChatUtils.removeFormatting
@@ -243,11 +243,11 @@ object EventDispatcher {
         }
     }
 
-    fun checkForRoomChange(currentRoom: Room?, lastKnownRoom: Room?) {
-        lastKnownRoom?.uniqueRoom?.let {
+    fun checkForRoomChange(currentRoom: UniqueRoom?, lastKnownRoom: UniqueRoom?) {
+        lastKnownRoom?.let {
             DungeonEvent.RoomEvent.onExit(it).postCatch()
         }
-        currentRoom?.uniqueRoom?.let {
+        currentRoom?.let {
             it.highestBlock = ScanUtils.gethighestBlockAt(it.mainRoom.x, it.mainRoom.z)
             it.findRotation()
             DungeonEvent.RoomEvent.onEnter(it).postCatch()

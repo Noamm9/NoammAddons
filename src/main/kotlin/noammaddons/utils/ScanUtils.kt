@@ -2,15 +2,15 @@ package noammaddons.utils
 
 import net.minecraft.block.Block
 import net.minecraft.entity.Entity
-import net.minecraft.init.Blocks.*
+import net.minecraft.init.Blocks.air
+import net.minecraft.init.Blocks.wool
 import net.minecraft.util.*
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.events.EventDispatcher
 import noammaddons.events.WorldUnloadEvent
 import noammaddons.features.impl.DevOptions
-import noammaddons.features.impl.dungeons.dmap.core.map.Room
-import noammaddons.features.impl.dungeons.dmap.core.map.RoomData
+import noammaddons.features.impl.dungeons.dmap.core.map.*
 import noammaddons.features.impl.dungeons.dmap.handlers.DungeonInfo
 import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.BlockUtils.getBlockId
@@ -39,7 +39,7 @@ object ScanUtils {
                 if (inBoss) return@loop
             }
 
-            val room = getRoomFromPos(mc.thePlayer.position)
+            val room = getRoomFromPos(ServerPlayer.player.getPos() !!)?.uniqueRoom
             if (currentRoom == room) return@loop
 
             lastKnownRoom = currentRoom
@@ -50,10 +50,10 @@ object ScanUtils {
     }
 
     @JvmField
-    var currentRoom: Room? = null
+    var currentRoom: UniqueRoom? = null
 
     @JvmField
-    var lastKnownRoom: Room? = null
+    var lastKnownRoom: UniqueRoom? = null
 
 
     fun getRoomData(hash: Int): RoomData? {
