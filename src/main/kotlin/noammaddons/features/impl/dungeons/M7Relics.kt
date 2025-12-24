@@ -31,7 +31,7 @@ import kotlin.math.pow
 import kotlin.math.sqrt
 
 
-object M7Relics: Feature("M7 Relics", "A bunch of M7 Relics features") {
+object M7Relics: Feature(name = "M7 Relics", desc = "A bunch of M7 Relics features") {
     private val relicBox = ToggleSetting("Box Relics")
     private val relicSpawnTimer = ToggleSetting("Spawn Timer")
     private val relicTimer = ToggleSetting("Place Timer")
@@ -39,7 +39,7 @@ object M7Relics: Feature("M7 Relics", "A bunch of M7 Relics features") {
     private val relicLookTime = SliderSetting("Relic Look Time", 0, 250, 10, 150.0).addDependency(relicLook)
     private val blockWrongRelic = ToggleSetting("Block Wrong Relic")
 
-    override fun init() = addSettings(relicBox, relicSpawnTimer, relicTimer, relicLook, relicLookTime)
+    override fun init() = addSettings(relicBox, relicSpawnTimer, relicTimer, relicLook, relicLookTime, blockWrongRelic)
 
     private val relicPickUpRegex = Regex("^(\\w{3,16}) picked the Corrupted (.+) Relic!$")
     private val relicTimes = mutableListOf<RelicEntry>()
