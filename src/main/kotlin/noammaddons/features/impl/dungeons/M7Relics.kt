@@ -4,6 +4,7 @@ import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.network.play.server.S2FPacketSetSlot
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
+import net.minecraftforge.event.entity.player.PlayerInteractEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.NoammAddons.Companion.personalBests
 import noammaddons.events.*
@@ -17,8 +18,6 @@ import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.DungeonUtils.thePlayer
 import noammaddons.utils.LocationUtils.F7Phase
-import noammaddons.utils.MathUtils.add
-import noammaddons.utils.MathUtils.distance2D
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
@@ -28,62 +27,63 @@ import noammaddons.utils.RenderUtils.drawCenteredText
 import noammaddons.utils.RenderUtils.drawTracer
 import noammaddons.utils.Utils.equalsOneOf
 import java.awt.Color
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 
-object M7Relics: Feature(name = "M7 Relics", desc = "A bunch of M7 Relics features") {
-    private data class RelicCauldron(val cauldronPos: Vec3, val color: Color, val relicPos: BlockPos)
-    private data class RelicTime(val player: String, val type: String, val pickuptime: Long, var placeTime: String = "", var isPB: Boolean = false)
-
+object M7Relics: Feature("M7 Relics", "A bunch of M7 Relics features") {
     private val relicBox = ToggleSetting("Box Relics")
     private val relicSpawnTimer = ToggleSetting("Spawn Timer")
     private val relicTimer = ToggleSetting("Place Timer")
     private val relicLook = ToggleSetting("Relic Look")
     private val relicLookTime = SliderSetting("Relic Look Time", 0, 250, 10, 150.0).addDependency(relicLook)
+    private val blockWrongRelic = ToggleSetting("Block Wrong Relic")
+
     override fun init() = addSettings(relicBox, relicSpawnTimer, relicTimer, relicLook, relicLookTime)
 
-
     private val relicPickUpRegex = Regex("^(\\w{3,16}) picked the Corrupted (.+) Relic!$")
-    private val relicTimes = mutableListOf<RelicTime>()
-    private var startTickTimer = false
-    private var drawOutline = true
+    private val relicTimes = mutableListOf<RelicEntry>()
+
+    private var isP5Active = false
+    private var shouldDrawSpawnOutlines = true
     private var spawnTimerTicks = 0
     private var p5StartTime = 0L
 
-    private val relicCauldrons = mapOf(
-        "Corrupted Blue Relic" to RelicCauldron(Vec3(59.0, 7.0, 44.0), Color(0, 138, 255, 40), BlockPos(91, 7, 94)),
-        "Corrupted Orange Relic" to RelicCauldron(Vec3(57.0, 7.0, 42.0), Color(255, 114, 0, 40), BlockPos(92, 7, 56)),
-        "Corrupted Purple Relic" to RelicCauldron(Vec3(54.0, 7.0, 41.0), Color(129, 0, 111, 40), BlockPos(56, 9, 132)),
-        "Corrupted Red Relic" to RelicCauldron(Vec3(51.0, 7.0, 42.0), Color(255, 0, 0, 40), BlockPos(20, 7, 59)),
-        "Corrupted Green Relic" to RelicCauldron(Vec3(49.0, 7.0, 44.0), Color(0, 255, 0, 40), BlockPos(20, 7, 94))
-    )
+    enum class WitherRelic(
+        val formalName: String,
+        val colorCode: String,
+        val cauldronPos: Vec3,
+        val visualColor: Color,
+        val spawnPos: BlockPos,
+        val cauldronCoords: Pair<Int, Int>,
+    ) {
+        RED("Corrupted Red Relic", "&c", Vec3(51.0, 7.0, 42.0), Color(255, 0, 0, 40), BlockPos(20, 7, 59), 52 to 43),
+        ORANGE("Corrupted Orange Relic", "&6", Vec3(57.0, 7.0, 42.0), Color(255, 114, 0, 40), BlockPos(92, 7, 56), 58 to 43),
+        GREEN("Corrupted Green Relic", "&a", Vec3(49.0, 7.0, 44.0), Color(0, 255, 0, 40), BlockPos(20, 7, 94), 50 to 45),
+        BLUE("Corrupted Blue Relic", "&b", Vec3(59.0, 7.0, 44.0), Color(0, 138, 255, 40), BlockPos(91, 7, 94), 60 to 45),
+        PURPLE("Corrupted Purple Relic", "&5", Vec3(54.0, 7.0, 41.0), Color(129, 0, 111, 40), BlockPos(56, 9, 132), 55 to 42);
 
-    val relicColors = mapOf(
-        "Red" to "&c",
-        "Orange" to "&6",
-        "Green" to "&a",
-        "Blue" to "&b",
-        "Purple" to "&5"
-    )
+        val coloredName: String get() = "$colorCode${name.lowercase().replaceFirstChar { it.uppercase() }}"
 
-    val relicPositions = listOf(
-        "&cRed" to (52 to 43),
-        "&aGreen" to (50 to 45),
-        "&5Purple" to (55 to 42),
-        "&6Orange" to (58 to 43),
-        "&bBlue" to (60 to 45)
-    )
-
-    private fun checkDistance(pos: Vec3, x: Int, z: Int) = distance2D(pos, Vec3(x.toDouble(), .0, z.toDouble())) < 1
-    private fun getRelics() = mc.theWorld.loadedEntityList.filterIsInstance<EntityArmorStand>().filter {
-        it.getCurrentArmor(3)?.tagCompound.toString().contains("Relic")
+        companion object {
+            fun fromName(name: String): WitherRelic? = entries.find { name.contains(it.formalName) }
+        }
     }
 
+    data class RelicEntry(
+        val relic: WitherRelic,
+        val player: String,
+        val pickupTimeMs: Long,
+        var placeTimeSeconds: Double = 0.0,
+        var isPlaced: Boolean = false,
+        var isPB: Boolean = false
+    )
 
     @SubscribeEvent
     fun onWorldUnload(event: WorldUnloadEvent) {
-        startTickTimer = false
+        isP5Active = false
         spawnTimerTicks = 0
-        drawOutline = true
+        shouldDrawSpawnOutlines = true
         relicTimes.clear()
     }
 
@@ -91,50 +91,65 @@ object M7Relics: Feature(name = "M7 Relics", desc = "A bunch of M7 Relics featur
     fun onChat(event: Chat) {
         val msg = event.component.noFormatText
 
-        when (msg) {
-            "[BOSS] Wither King: You... again?" -> if (relicBox.value) drawOutline = false
-            "[BOSS] Necron: All this, for nothing..." -> {
+        when {
+            msg == "[BOSS] Wither King: You... again?" -> {
+                if (relicBox.value) shouldDrawSpawnOutlines = false
+            }
+
+            msg == "[BOSS] Necron: All this, for nothing..." -> {
                 p5StartTime = System.currentTimeMillis()
+                isP5Active = true
                 if (relicSpawnTimer.value) {
-                    startTickTimer = true
                     spawnTimerTicks = 50
                 }
             }
-        }
 
-        if (! relicTimer.value) return
-        val (player, relicType) = relicPickUpRegex.find(msg)?.destructured ?: return
-        relicTimes.add(RelicTime(player, relicColors[relicType] + relicType, System.currentTimeMillis()))
+            relicTimer.value -> {
+                val match = relicPickUpRegex.find(msg) ?: return
+                val (player, relicType) = match.destructured
+                val relic = WitherRelic.fromName(relicType) ?: return
+                relicTimes.add(RelicEntry(relic, player, System.currentTimeMillis()))
+            }
+        }
     }
 
     @SubscribeEvent
     fun onServerTick(event: ServerTick) {
-        if (! relicSpawnTimer.value) return
-        if (! startTickTimer) return
-        if (spawnTimerTicks <= 0) return
-        spawnTimerTicks --
+        if (spawnTimerTicks > 0) spawnTimerTicks --
     }
 
     @SubscribeEvent
-    fun onPacket(event: PacketEvent.Received) {
-        if (! relicLook.value) return
-        if (F7Phase != 5) return
-        val packet = event.packet as? S2FPacketSetSlot ?: return
+    fun onInteract(event: PlayerInteractEvent) {
+        if (! blockWrongRelic.value || F7Phase != 5) return
+        if (event.action != PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK) return
+        val relic = WitherRelic.fromName(mc.thePlayer?.inventory?.getStackInSlot(8)?.displayName?.removeFormatting() ?: return) ?: return
 
-        relicCauldrons[packet.func_149174_e()?.displayName?.removeFormatting()]?.let { c ->
-            if (! c.relicPos.equalsOneOf(BlockPos(92, 7, 56), BlockPos(20, 7, 59))) return@let
-            ActionUtils.rotateSmoothlyTo(c.cauldronPos.add(0.5, 0.5, 0.5), relicLookTime.value.toLong())
+        if (relic.cauldronPos.xCoord.toInt() != event.pos.x || relic.cauldronPos.zCoord.toInt() != event.pos.z) {
+            event.isCanceled = true
         }
     }
 
+    @SubscribeEvent
+    fun onPacket(event: MainThreadPacketRecivedEvent.Pre) {
+        if (! relicLook.value || F7Phase != 5) return
+        val packet = event.packet as? S2FPacketSetSlot ?: return
+
+        val itemStack = packet.func_149174_e() ?: return
+        val relic = WitherRelic.fromName(itemStack.displayName.removeFormatting()) ?: return
+
+        // Only rotate for Red/Orange
+        if (relic.spawnPos.equalsOneOf(BlockPos(92, 7, 56), BlockPos(20, 7, 59))) {
+            ActionUtils.rotateSmoothlyTo(relic.cauldronPos.addVector(0.5, 0.5, 0.5), relicLookTime.value.toLong())
+        }
+    }
 
     @SubscribeEvent
-    fun drawTimer(event: RenderOverlay) {
-        if (! relicSpawnTimer.value) return
-        if (spawnTimerTicks <= 0) return
+    fun onRenderOverlay(event: RenderOverlay) {
+        if (! relicSpawnTimer.value || spawnTimerTicks <= 0) return
 
+        val displayTime = (spawnTimerTicks / 20.0).toFixed(2)
         drawCenteredText(
-            (spawnTimerTicks / 20.0).toFixed(2),
+            displayTime,
             mc.getWidth() / 2f,
             mc.getHeight() * 0.4f,
             3f, thePlayer?.clazz?.color ?: Color.WHITE
@@ -143,64 +158,69 @@ object M7Relics: Feature(name = "M7 Relics", desc = "A bunch of M7 Relics featur
 
     @SubscribeEvent
     fun onRenderWorld(event: RenderWorld) {
-        if (! relicBox.value) return
         if (F7Phase != 5) return
 
-        relicCauldrons[mc.thePlayer?.inventory?.getStackInSlot(8)?.displayName?.removeFormatting()]?.let { c ->
-            drawBlockBox(c.cauldronPos.toPos(), c.color, outline = true, fill = true, phase = true)
-            drawTracer(c.cauldronPos.add(Vec3(0.5, 0.5, 0.5)), c.color)
+        if (relicBox.value) {
+            val heldItemName = mc.thePlayer?.inventory?.getStackInSlot(8)?.displayName?.removeFormatting() ?: ""
+            WitherRelic.fromName(heldItemName)?.let { heldRelic ->
+                drawBlockBox(heldRelic.cauldronPos.toPos(), heldRelic.visualColor, outline = true, fill = true, phase = true)
+                drawTracer(heldRelic.cauldronPos.addVector(0.5, 0.5, 0.5), heldRelic.visualColor)
+            }
         }
 
-        if (! drawOutline) return
-        relicCauldrons.values.forEach { v ->
-            drawBox(
-                v.relicPos.x + 0.25,
-                v.relicPos.y + 0.3,
-                v.relicPos.z + 0.25,
-                v.color,
-                outline = true, fill = true,
-                width = 0.5, height = 0.5
-            )
+        if (relicBox.value && shouldDrawSpawnOutlines) {
+            WitherRelic.entries.forEach { r ->
+                drawBox(
+                    r.spawnPos.x + 0.25, r.spawnPos.y + 0.3, r.spawnPos.z + 0.25,
+                    r.visualColor, outline = true, fill = true, width = 0.5, height = 0.5
+                )
+            }
         }
     }
 
     @SubscribeEvent
     fun onTick(event: Tick) {
-        if (! relicTimer.value) return
-        if (F7Phase != 5) return
-        if (relicTimes.isEmpty()) return
+        if (! relicTimer.value || F7Phase != 5 || relicTimes.isEmpty()) return
 
-        for (entity in getRelics()) {
-            relicPositions.forEach { (type, coords) ->
-                val relic = relicTimes.find { it.type == type } ?: return@forEach
-                if (relic.placeTime != "") return@forEach
-                if (! checkDistance(entity.positionVector, coords.first, coords.second)) return@forEach
-                val placeTime = (System.currentTimeMillis() - p5StartTime) / 1000.0
-                relic.placeTime = "$placeTime".take(5)
+        val activeRelics = relicTimes.filter { ! it.isPlaced }
+        if (activeRelics.isEmpty()) return
 
-                if (relic.player != mc.session.username) return@forEach
-                val data = personalBests.getData()
-                val name = relic.type.removeFormatting()
-                relic.isPB = relic.let {
-                    val me = it.player == mc.session.username
-                    val has = data.relics[name] != null
-                    val better = if (has) placeTime < data.relics[name] !! else false
-                    me && (! has || better)
-                }
+        val armorStands = mc.theWorld.loadedEntityList.filter {
+            it is EntityArmorStand && it.getCurrentArmor(3)?.tagCompound?.toString()?.contains("Relic") == true
+        }
 
-                if (relic.isPB) {
-                    data.relics[name] = placeTime
-                    personalBests.save()
+        for (entity in armorStands) {
+            for (entry in activeRelics) {
+                if (isEntityAtCauldron(entity.positionVector, entry.relic)) {
+                    val currentTime = (System.currentTimeMillis() - p5StartTime) / 1000.0
+                    entry.placeTimeSeconds = currentTime.toFixed(2).toDouble()
+                    entry.isPlaced = true
+
+                    if (entry.player == mc.session.username) {
+                        val data = personalBests.getData()
+                        val relicName = entry.relic.formalName
+                        val currentPB = data.relics[relicName]
+
+                        if (currentPB == null || entry.placeTimeSeconds < currentPB) {
+                            data.relics[relicName] = entry.placeTimeSeconds
+                            entry.isPB = true
+                            personalBests.save()
+                        }
+                    }
                 }
             }
         }
 
-        if (relicTimes.any { it.placeTime == "" }) return
-
-        relicTimes.toList().sortedBy { it.placeTime }.forEach { relic ->
-            val pbStr = if (relic.isPB) " &d&l(PB)" else ""
-            modMessage("${relic.type} &aRelic placed in &e${relic.placeTime}s&a.$pbStr")
+        if (relicTimes.size == 5 && relicTimes.all { it.isPlaced }) {
+            relicTimes.sortedBy { it.placeTimeSeconds }.forEach { entry ->
+                val pbSuffix = if (entry.isPB) " &d&l(PB)" else ""
+                modMessage("${entry.relic.coloredName} &aRelic placed in &e${entry.placeTimeSeconds}s&a.$pbSuffix")
+            }
+            relicTimes.clear()
         }
-        relicTimes.clear()
+    }
+
+    private fun isEntityAtCauldron(pos: Vec3, relic: WitherRelic): Boolean {
+        return sqrt((pos.xCoord - relic.cauldronCoords.first).pow(2.0) + (pos.zCoord - relic.cauldronCoords.second).pow(2.0)) < 1.0
     }
 }
