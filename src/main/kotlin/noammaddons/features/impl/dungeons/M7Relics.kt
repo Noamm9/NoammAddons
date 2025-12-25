@@ -18,6 +18,10 @@ import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.DungeonUtils.thePlayer
 import noammaddons.utils.LocationUtils.F7Phase
+import noammaddons.utils.LocationUtils.dungeonFloor
+import noammaddons.utils.LocationUtils.inBoss
+import noammaddons.utils.LocationUtils.inDungeon
+import noammaddons.utils.MathUtils.distance2D
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
@@ -27,8 +31,6 @@ import noammaddons.utils.RenderUtils.drawCenteredText
 import noammaddons.utils.RenderUtils.drawTracer
 import noammaddons.utils.Utils.equalsOneOf
 import java.awt.Color
-import kotlin.math.pow
-import kotlin.math.sqrt
 
 
 object M7Relics: Feature(name = "M7 Relics", desc = "A bunch of M7 Relics features") {
@@ -41,7 +43,7 @@ object M7Relics: Feature(name = "M7 Relics", desc = "A bunch of M7 Relics featur
 
     override fun init() = addSettings(relicBox, relicSpawnTimer, relicTimer, relicLook, relicLookTime, blockWrongRelic)
 
-    private val relicPickUpRegex = Regex("^(\\w{3,16}) picked the Corrupted (.+) Relic!$")
+    private val relicPickUpRegex = Regex("^(\\w{3,16}) picked the Corrupted (\\w{3,6}) Relic!$") // https://regex101.com/r/JDZSgU/1
     private val relicTimes = mutableListOf<RelicEntry>()
 
     private var isP5Active = false
@@ -55,7 +57,7 @@ object M7Relics: Feature(name = "M7 Relics", desc = "A bunch of M7 Relics featur
         val cauldronPos: Vec3,
         val visualColor: Color,
         val spawnPos: BlockPos,
-        val cauldronCoords: Pair<Int, Int>,
+        val coords: Pair<Int, Int>,
     ) {
         RED("Corrupted Red Relic", "&c", Vec3(51.0, 7.0, 42.0), Color(255, 0, 0, 40), BlockPos(20, 7, 59), 52 to 43),
         ORANGE("Corrupted Orange Relic", "&6", Vec3(57.0, 7.0, 42.0), Color(255, 114, 0, 40), BlockPos(92, 7, 56), 58 to 43),
@@ -66,7 +68,7 @@ object M7Relics: Feature(name = "M7 Relics", desc = "A bunch of M7 Relics featur
         val coloredName: String get() = "$colorCode${name.lowercase().replaceFirstChar { it.uppercase() }}"
 
         companion object {
-            fun fromName(name: String): WitherRelic? = entries.find { name.contains(it.formalName) }
+            fun fromName(name: String): WitherRelic? = entries.find { name.lowercase() in it.formalName.lowercase() }
         }
     }
 
@@ -89,6 +91,7 @@ object M7Relics: Feature(name = "M7 Relics", desc = "A bunch of M7 Relics featur
 
     @SubscribeEvent
     fun onChat(event: Chat) {
+        if (! inDungeon || ! inBoss || dungeonFloor != "M7") return
         val msg = event.component.noFormatText
 
         when {
@@ -105,8 +108,7 @@ object M7Relics: Feature(name = "M7 Relics", desc = "A bunch of M7 Relics featur
             }
 
             relicTimer.value -> {
-                val match = relicPickUpRegex.find(msg) ?: return
-                val (player, relicType) = match.destructured
+                val (player, relicType) = relicPickUpRegex.find(msg)?.destructured ?: return
                 val relic = WitherRelic.fromName(relicType) ?: return
                 relicTimes.add(RelicEntry(relic, player, System.currentTimeMillis()))
             }
@@ -137,8 +139,7 @@ object M7Relics: Feature(name = "M7 Relics", desc = "A bunch of M7 Relics featur
         val itemStack = packet.func_149174_e() ?: return
         val relic = WitherRelic.fromName(itemStack.displayName.removeFormatting()) ?: return
 
-        // Only rotate for Red/Orange
-        if (relic.spawnPos.equalsOneOf(BlockPos(92, 7, 56), BlockPos(20, 7, 59))) {
+        if (relic.equalsOneOf(WitherRelic.RED, WitherRelic.ORANGE)) {
             ActionUtils.rotateSmoothlyTo(relic.cauldronPos.addVector(0.5, 0.5, 0.5), relicLookTime.value.toLong())
         }
     }
@@ -198,7 +199,7 @@ object M7Relics: Feature(name = "M7 Relics", desc = "A bunch of M7 Relics featur
 
                     if (entry.player == mc.session.username) {
                         val data = personalBests.getData()
-                        val relicName = entry.relic.formalName
+                        val relicName = entry.relic.name.lowercase().replaceFirstChar { it.uppercase() }
                         val currentPB = data.relics[relicName]
 
                         if (currentPB == null || entry.placeTimeSeconds < currentPB) {
@@ -221,6 +222,6 @@ object M7Relics: Feature(name = "M7 Relics", desc = "A bunch of M7 Relics featur
     }
 
     private fun isEntityAtCauldron(pos: Vec3, relic: WitherRelic): Boolean {
-        return sqrt((pos.xCoord - relic.cauldronCoords.first).pow(2.0) + (pos.zCoord - relic.cauldronCoords.second).pow(2.0)) < 1.0
+        return distance2D(pos, Vec3(relic.coords.first.toDouble(), .0, relic.coords.second.toDouble())) < 1
     }
 }
