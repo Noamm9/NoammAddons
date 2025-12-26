@@ -39,8 +39,8 @@ object Floor4BossFight: Feature(name = "Floor 4 Boss", desc = "Spirit bear spawn
     private val espThorn by ToggleSetting("ESP Thorn")
     private val espSpiritBear by ToggleSetting("ESP Spirit Bear")
     private val spiritBearSpawnTimer by ToggleSetting("Bear Spawn Timer")
-    private val boxSpiritBow by ToggleSetting("Box Spirit Bow")
-    private val traceSpiritBow by ToggleSetting("Trace Spirit Bow")
+    private val boxSpiritBow by ToggleSetting("Spirit Bow Box")
+    private val traceSpiritBow by ToggleSetting("Spirit Bow Tracer")
     private val spiritMobEsp by MultiCheckboxSetting(
         "ESP Spirit Mobs", mapOf(
             "Rabbit" to false, "Wolf" to false,
