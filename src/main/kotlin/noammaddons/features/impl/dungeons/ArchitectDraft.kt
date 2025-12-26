@@ -14,7 +14,7 @@ import noammaddons.utils.ScanUtils
 import noammaddons.utils.ThreadUtils.setTimeout
 
 
-object ArchitectDraft: Feature("auto architect draft and anounces resets") {
+object ArchitectDraft: Feature("Auto architect draft and announces resets") {
     private val resetPattern = Regex("^You used the Architect's First Draft to reset (.+)!\$")
     private val failPattern1 = Regex("^PUZZLE FAIL! (?<player>\\w{1,16}) .+$")
     private val failPattern2 = Regex("^\\[STATUE] Oruo the Omniscient: (?<player>\\w{1,16}) chose the wrong answer! I shall never forget this moment of misrememberance\\.$")
