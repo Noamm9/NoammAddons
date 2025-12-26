@@ -21,7 +21,7 @@ import org.lwjgl.input.Keyboard.*
 import java.awt.Color
 
 
-object SlotBinding: Feature(desc = "Allows you to bind slots to hotbar slots for quick item swaps.") {
+object SlotBinding: Feature(desc = "Allows you to bind slots to hotbar slots for quick item swaps") {
     private val showBoundSlots = ToggleSetting("Show Bound Slots", true)
     private val neuStyle = ToggleSetting("Hover Only", false).hideIf { ! showBoundSlots.value }
     private val drawLines = ToggleSetting("Draw Lines", true).hideIf { ! showBoundSlots.value }
