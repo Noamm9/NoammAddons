@@ -10,7 +10,7 @@ import noammaddons.utils.LocationUtils.inDungeon
 import noammaddons.utils.ThreadUtils.loop
 
 
-object AutoGFS: Feature("Automatically refills certain items from your sacks.") {
+object AutoGFS: Feature("Automatically refills certain items from your sacks") {
     private val timerIncrements by SliderSetting("Delay (in seconds)", 1, 60, 1, 20)
     private val refillPearl by ToggleSetting("Refill Pearl")
     private val refillTNT by ToggleSetting("Refill TNT")
