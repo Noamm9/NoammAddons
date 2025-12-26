@@ -5,7 +5,7 @@ import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.*
 import kotlin.math.*
 
-object Animations: Feature(desc = "Changes the appearance of the first-person view model.") {
+object Animations: Feature(desc = "Changes the appearance of the first-person held-item view model") {
     private val s by SeperatorSetting("General")
     private val x by SliderSetting("X", - 2.5f, 1.5f, 0.05f, 0f)
     private val y by SliderSetting("Y", - 1.5f, 1.5f, 0.05f, 0f)
