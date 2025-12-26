@@ -71,7 +71,7 @@ object F7Titles: Feature(name = "F7 Titles", desc = "Custom Titles for f7 boss f
     }
 
     private val termTitles by ToggleSetting("Terminal Titles")
-    private val crystalTitles by ToggleSetting("Crystal Tittles")
+    private val crystalTitles by ToggleSetting("Crystal Titles")
     private val witherTitles by ToggleSetting("Wither Titles")
     private val lightningTimer by ToggleSetting("Lightning Timer")
 
