@@ -12,7 +12,7 @@ import noammaddons.utils.PlayerUtils.getPlayerHeight
 import noammaddons.utils.RenderHelper.renderVec
 
 
-object TeammatesESP: Feature("Highlight teammate in dungeons") {
+object TeammatesESP: Feature("Highlight teammates the dungeon") {
     private val drawNames = ToggleSetting("Draw Name", true)
     private val drawHighlight = ToggleSetting("Highlight", true)
     override fun init() = addSettings(drawNames, drawHighlight)
