@@ -10,7 +10,7 @@ import noammaddons.utils.BlockUtils.getBlockAt
 import noammaddons.utils.ItemUtils.skyblockID
 import noammaddons.utils.Utils.equalsOneOf
 
-object DungeonBreaker: Feature(name = "DungeonBreaker") {
+object DungeonBreaker: Feature(name = "Dungeonbreaker") {
     private val zeropingbreaker by ToggleSetting("Zero Ping")
 
     private val blacklist = setOf(
