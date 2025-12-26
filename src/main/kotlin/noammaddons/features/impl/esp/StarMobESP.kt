@@ -23,7 +23,7 @@ import noammaddons.utils.Utils.favoriteColor
 import java.awt.Color
 
 
-object StarMobESP: Feature("Highlights Star Mobs in the dungeon") {
+object StarMobESP: Feature("Highlights Starred Mobs in the dungeon") {
     val checked = HashSet<Entity>()
 
     @JvmField
