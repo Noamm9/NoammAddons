@@ -7,7 +7,7 @@ import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.Utils.favoriteColor
 import java.awt.Color
 
-object PuzzleSolvers: Feature("Puzzle Solvers for Dungeon Clear") {
+object PuzzleSolvers: Feature("Puzzle Solvers for dungeon clear") {
     private val solvers = listOf(
         CreeperBeamSolver, BlazeSolver,
         BoulderSolver, ThreeWeirdosSolver,
