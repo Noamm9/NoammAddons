@@ -13,7 +13,7 @@ import java.awt.Color
 import java.io.*
 import java.util.concurrent.CopyOnWriteArrayList
 
-object DungeonWaypoints: Feature("add a custom waypoint with /dw add while looking at a block") {
+object DungeonWaypoints: Feature("Add a custom waypoint with /dw add while looking at a block") {
     data class DungeonWaypoint(val pos: BlockPos, val color: Color, val filled: Boolean, val outline: Boolean, val phase: Boolean)
 
     private val configFile = File("config/$MOD_NAME/dungeonWaypoints.json")

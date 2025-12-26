@@ -30,9 +30,9 @@ object PlayerHud: Feature() {
     private val health = ToggleSetting("Health").register1()
     private val defense = ToggleSetting("Defense").register1()
     private val mana = ToggleSetting("Mana").register1()
-    private val overflowMana = ToggleSetting("OverFlow Mana").register1()
+    private val overflowMana = ToggleSetting("Overflow Mana").register1()
     private val hideIf0 = ToggleSetting("Hide if 0").addDependency(overflowMana).register1()
-    private val ehp by ToggleSetting("Effective Hp")
+    private val ehp by ToggleSetting("Effective HP")
     private val speed by ToggleSetting("Speed")
 
 

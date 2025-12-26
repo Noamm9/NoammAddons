@@ -13,7 +13,7 @@ import noammaddons.utils.RenderHelper.getWidth
 import noammaddons.utils.RenderUtils.drawCenteredText
 
 
-object TickTimers: Feature("Shows various types of server tick timers for f7 boss fight") {
+object TickTimers: Feature("Shows various types of server tick timers for F7 boss fight") {
     private val showPrefix = ToggleSetting("Prefix", true)
     private val showSuffix = ToggleSetting("Suffix", true)
     private val format = DropdownSetting("Format", listOf("Seconds", "Ticks"), 0)

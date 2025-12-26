@@ -30,7 +30,7 @@ import noammaddons.utils.RenderUtils.drawTracer
 import java.awt.Color
 import kotlin.math.abs
 
-object Floor4BossFight: Feature(name = "Floor 4 Boss", desc = "Spirit bear spawn timer, hightlights and more") {
+object Floor4BossFight: Feature(name = "Floor 4 Boss", desc = "Spirit bear spawn timer, hightlights, and more") {
     private val inM4boss get() = dungeonFloorNumber == 4 && inBoss
     private const val bearSpawnTime = 68
     private var bearSpawning = false
@@ -39,10 +39,10 @@ object Floor4BossFight: Feature(name = "Floor 4 Boss", desc = "Spirit bear spawn
     private val espThorn by ToggleSetting("ESP Thorn")
     private val espSpiritBear by ToggleSetting("ESP Spirit Bear")
     private val spiritBearSpawnTimer by ToggleSetting("Bear Spawn Timer")
-    private val boxSpiritBow by ToggleSetting("Box Spirit Bow")
-    private val traceSpiritBow by ToggleSetting("Trace Spirit Bow")
+    private val boxSpiritBow by ToggleSetting("Spirit Bow Box")
+    private val traceSpiritBow by ToggleSetting("Spirit Bow Tracer")
     private val spiritMobEsp by MultiCheckboxSetting(
-        "Spirit Mob Esp", mapOf(
+        "ESP Spirit Mobs", mapOf(
             "Rabbit" to false, "Wolf" to false,
             "Sheep" to false, "Cow" to false,
             "Chicken" to false,

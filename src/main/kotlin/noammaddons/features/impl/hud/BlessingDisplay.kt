@@ -14,7 +14,7 @@ import noammaddons.utils.RenderHelper
 import noammaddons.utils.RenderUtils
 import java.awt.Color
 
-object BlessingDisplay: Feature("Displays the current active blessings of the dungeon.") {
+object BlessingDisplay: Feature("Displays the current active blessings of the dungeon") {
     private val power by ToggleSetting("Power Blessing", true)
     private val time by ToggleSetting("Time Blessing", true)
     private val wisdom by ToggleSetting("Wisdom Blessing", false)

@@ -17,7 +17,7 @@ import noammaddons.utils.RenderUtils.drawBox
 import noammaddons.utils.RenderUtils.drawTracer
 import java.awt.Color
 
-object DoorKeys: Feature("Highlight blood/wither door key in the world") {
+object DoorKeys: Feature("Highlight blood/wither door key in the dungeon") {
 
     private val highlightWither = ToggleSetting("Wither Key")
     private val highlightBlood = ToggleSetting("Blood Key")

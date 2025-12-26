@@ -36,7 +36,7 @@ import kotlin.math.abs
 import kotlin.math.min
 
 
-object AutoI4: Feature("Fully Automated I4.") {
+object AutoI4: Feature("Fully Automated I4") {
     private val rotationTime by SliderSetting("Rotation Time", 0, 250, 10, 170)
     private val predictSetting by ToggleSetting("Predictions", true)
     private val rodSetting by ToggleSetting("Auto Rod", true)

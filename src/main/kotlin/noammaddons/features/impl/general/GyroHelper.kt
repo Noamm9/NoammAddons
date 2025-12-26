@@ -18,7 +18,7 @@ import noammaddons.utils.ServerPlayer.player
 import noammaddons.utils.Utils.favoriteColor
 
 
-object GyroHelper: Feature("Shows the sucking range of the Gyrokinetic wand") {
+object GyroHelper: Feature("Shows the sucking range of the Gyrokinetic Wand") {
     private val useServerPos = ToggleSetting("Use Server Position", false)
     private val drawRing = ToggleSetting("Ring", true)
     private val drawBox = ToggleSetting("Box")

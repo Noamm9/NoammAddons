@@ -11,7 +11,7 @@ import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
 import java.awt.Color
 
-object DarkMode: Feature("Applys a dark tint to your game") {
+object DarkMode: Feature("Applies a dark tint to your game") {
     private val strength by SliderSetting("Opacity", 0f, 100f, 1f, 20f)
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)

@@ -17,7 +17,7 @@ import noammaddons.utils.SoundUtils
 import noammaddons.utils.ThreadUtils.setTimeout
 import kotlin.math.roundToInt
 
-object Ragnarock: Feature("Provides alerts about Ragnarock.") {
+object Ragnarock: Feature("Provides alerts about Ragnarock") {
     private val alertCancelled by ToggleSetting("Alert Cancelled", true)
     private val strengthGainedMessage by ToggleSetting("Strength Gained", true)
     private val m7Alert by ToggleSetting("M7 Dragon Alert")
