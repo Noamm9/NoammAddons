@@ -31,7 +31,7 @@ import java.awt.Color
 
 object WitherDragons: Feature(
     name = "Wither Dragons",
-    desc = "M7 dragons timers, boxes, priority, health and alerts."
+    desc = "M7 dragons timers, boxes, priority, health, and alerts"
 ) {
     private val s by SeperatorSetting("Dragon Timer")
     private val dragonTimer by ToggleSetting("Dragon Timer ", true)
