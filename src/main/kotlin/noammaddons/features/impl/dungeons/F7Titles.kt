@@ -20,7 +20,7 @@ import noammaddons.utils.Utils.equalsOneOf
 import kotlin.math.roundToInt
 
 
-object F7Titles: Feature(name = "F7 Titles", desc = "Custom Titles for f7 boss fight") {
+object F7Titles: Feature(name = "F7 Titles", desc = "Custom Titles for F7 boss fight") {
     private val termRegex = Regex("^(\\w+) (?:activated|completed) a (\\w+)! \\((\\d)\\/(\\d)\\)\$") // https://regex101.com/r/lnW03M/1
     private val crystalRegex = Regex("^(\\d)\\/(\\d) Energy Crystals are now active!\$") // https://regex101.com/r/HrYH7P/1
     private var currentTitle = ChatUtils.title("", "", 0L, false)
