@@ -41,7 +41,7 @@ import java.awt.Color
 object LeapMenu: Feature("Custom Leap Menu and leap message") {
     val customLeapMenu = ToggleSetting("Leap Menu", false)
     val scale = SliderSetting("Menu Scale", 1, 100, 1, 50.0).addDependency(customLeapMenu)
-    val showLastDoorOpenner = ToggleSetting("Show Last Door Openner", false).addDependency(customLeapMenu)
+    val showLastDoorOpenner = ToggleSetting("Show Last Door Opener", false).addDependency(customLeapMenu)
     val tintDeadPlayers = ToggleSetting("Tint Dead Players", true).addDependency(customLeapMenu)
     val leapKeybinds = ToggleSetting("Leap Keybinds").addDependency(customLeapMenu)
     val key1 = KeybindSetting("Slot 1", Keyboard.KEY_1)

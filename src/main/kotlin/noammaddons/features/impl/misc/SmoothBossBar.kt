@@ -4,8 +4,8 @@ import net.minecraft.client.gui.Gui
 import net.minecraft.entity.boss.BossStatus
 import noammaddons.features.Feature
 import noammaddons.utils.MathUtils.lerp
+import noammaddons.utils.RenderHelper
 import noammaddons.utils.RenderHelper.getWidth
-import noammaddons.utils.RenderUtils.drawCenteredText
 import noammaddons.utils.RenderUtils.drawTexturedModalRect
 import java.awt.Color
 import kotlin.math.pow
@@ -34,6 +34,8 @@ object SmoothBossBar: Feature("Animate the boss health change") {
         mc.textureManager.bindTexture(Gui.icons)
         drawTexturedModalRect(barX, 12, 0, 74, 182, 5)
         if (barWidth > 0) drawTexturedModalRect(barX, 12, 0, 79, barWidth, 5)
-        drawCenteredText(name, screenWidth / 2f, 2f, 1, Color.WHITE)
+        mc.fontRendererObj.drawStringWithShadow(name, (screenWidth / 2f) - RenderHelper.getStringWidth(name) / 2, 2f, Color.WHITE.rgb)
+        RenderHelper.bindColor(Color.WHITE)
+        mc.textureManager.bindTexture(Gui.icons)
     }
 }

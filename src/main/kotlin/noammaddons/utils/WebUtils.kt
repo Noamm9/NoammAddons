@@ -65,6 +65,7 @@ object WebUtils {
                 connection.outputStream.use { os ->
                     os.write(body.toString().toByteArray(Charsets.UTF_8))
                 }
+                connection.responseCode
                 connection.disconnect()
             }.onFailure(Throwable::printStackTrace)
         }

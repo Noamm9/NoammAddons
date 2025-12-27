@@ -1,17 +1,13 @@
 package noammaddons.features.impl.misc
 
-import com.google.gson.JsonObject
-import com.google.gson.JsonPrimitive
 import noammaddons.NoammAddons
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.annotations.Dev
 import noammaddons.ui.config.core.impl.ToggleSetting
-import noammaddons.utils.ChatUtils.modMessage
+import noammaddons.utils.ChatUtils
 import noammaddons.utils.DataDownloader
-import noammaddons.utils.ReflectionUtils.getField
 import noammaddons.utils.ThreadUtils.loop
 import noammaddons.utils.Utils.remove
-import noammaddons.utils.WebUtils
 import java.io.IOException
 import java.net.*
 import java.util.*
@@ -29,26 +25,9 @@ object RatProtection: Feature() {
         if (mc.theWorld == null) return@loop
         if (mc.session == null) return@loop
 
-        mc.sessionService.joinServer(mc.session.profile, mc.session.token, UUID.randomUUID().toString().remove("-"))
-
-        WebUtils.sendPostRequest(
-            "https://sessionserver.mojang.com/session/minecraft/join",
-            JsonObject().apply {
-                add("accessToken",
-                    JsonPrimitive(
-                        // to not false flag regex rat scanners
-                        (getField(mc.session, connectString("*f*i*e*l*d*_", "#1#48###2#5#8", "~_~c~~"))
-                            ?: getField(mc.session, connectString("*t*o***", "#ke##", "~n~~~"))).toString()
-                    )
-                )
-                add("selectedProfile", JsonPrimitive(mc.session.playerID.remove("-")))
-                add("serverId", JsonPrimitive(UUID.randomUUID().toString().remove("-")))
-            }
-        )
-    }
-
-    private fun connectString(a: String, b: String, c: String): String {
-        return a.remove("*") + b.remove("#") + c.remove("~")
+        runCatching {
+            mc.sessionService.joinServer(mc.session.profile, mc.session.token, UUID.randomUUID().toString().remove("-"))
+        }
     }
 
     fun install() {
@@ -59,9 +38,10 @@ object RatProtection: Feature() {
             override fun select(uri: URI): List<Proxy> {
                 val url = uri.toString()
                 if (enabled && blockSusConnections && isSuspicious(url)) {
-                    val str = "Rat Protection >> &c&lBlocked URL connection: &r&b$url"
-                    NoammAddons.Logger.info(str).also { modMessage(str) }
-                    return listOf(Proxy(Proxy.Type.HTTP, InetSocketAddress("localhost", 0)))
+                    val str = "Rat Protection >> &c&lBlocked URL: &r&b$url"
+                    NoammAddons.Logger.info(str)
+                    ChatUtils.modMessage(str)
+                    throw SecurityException("Connection blocked by Rat Protection: $url")
                 }
                 return default?.select(uri) ?: listOf(Proxy.NO_PROXY)
             }

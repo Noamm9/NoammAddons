@@ -38,7 +38,8 @@ object HudEditorScreen: GuiScreen() {
         GlStateManager.enableBlend()
 
         drawGrid(sr)
-        elements.filter { it.enabled }.forEach {
+        elements.forEach {
+            if (! it.enabled) return@forEach
             it.renderBackground(it.isHovered(actualMouseX.toFloat(), actualMouseY.toFloat()))
             it.exampleDraw()
         }
@@ -188,7 +189,7 @@ object HudEditorScreen: GuiScreen() {
         handleResetButtonClick(actualMouseX, actualMouseY, mouseButton)
 
         if (mouseButton == 0) handleElementDrag(actualMouseX, actualMouseY)
-        else if (mouseButton == 1) elements.find { it.isHovered(actualMouseX.toFloat(), actualMouseY.toFloat()) }?.let {
+        else if (mouseButton == 1) elements.find { it.enabled && it.isHovered(actualMouseX.toFloat(), actualMouseY.toFloat()) }?.let {
             selected = it
         }
 
