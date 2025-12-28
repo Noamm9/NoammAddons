@@ -12,8 +12,11 @@ object DataDownloader {
     private const val RAW_URL = "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/"
     private const val GITHUB_API_URL = "https://api.github.com/repos/Noamm9/NoammAddons/commits/data"
     private val SHA_REGEX = Regex(""""sha"\s*:\s*"([^"]+)"""")
-    private val modDataPath = File(File(System.getProperty("user.dir")), "config").resolve("@NAME@").resolve("data").toPath()
     private val LOGGER = LogManager.getLogger("@NAME@ - DataDownloader")
+    private val modDataPath = File(File(System.getProperty("user.dir")), "config").resolve("@NAME@").resolve("data").toPath().also {
+        LOGGER.info("The directory is: ${it.toAbsolutePath()}")
+    }
+    
 
     fun downloadData() {
         val versionFile = modDataPath.resolve("version.txt")

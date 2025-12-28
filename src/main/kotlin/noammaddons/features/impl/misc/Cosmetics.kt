@@ -81,7 +81,7 @@ object Cosmetics {
                 else -> {}
             }
 
-            if (entityLivingBaseIn.isSneaking()) {
+            if (entityLivingBaseIn.isSneaking) {
                 getSneakTranslation(size)
             }
 
@@ -108,7 +108,7 @@ object Cosmetics {
                 else -> {}
             }
 
-            if (entityLivingBaseIn.isSneaking()) {
+            if (entityLivingBaseIn.isSneaking) {
                 getSneakTranslation(size)
             }
 
@@ -138,7 +138,7 @@ object Cosmetics {
                 else -> {}
             }
 
-            if (entityLivingBaseIn.isSneaking()) {
+            if (entityLivingBaseIn.isSneaking) {
                 getSneakTranslation(size)
             }
 

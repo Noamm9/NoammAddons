@@ -71,7 +71,7 @@ object LocationUtils {
         if (DevOptions.devMode) return setDevModeValues()
 
         if (event.packet is S38PacketPlayerListItem) {
-            if (world != null || ! event.packet.action.equalsOneOf(S38PacketPlayerListItem.Action.UPDATE_DISPLAY_NAME, S38PacketPlayerListItem.Action.ADD_PLAYER)) return
+            if (! event.packet.action.equalsOneOf(S38PacketPlayerListItem.Action.UPDATE_DISPLAY_NAME, S38PacketPlayerListItem.Action.ADD_PLAYER)) return
             val area = event.packet.entries?.find { it?.displayName?.noFormatText?.startsWithOneOf("Area: ", "Dungeon: ") == true }?.displayName?.noFormatText ?: return
             world = WorldType.entries.firstOrNull { area.remove("Area: ", "Dungeon: ") == it.tabName }
         }

@@ -102,7 +102,7 @@ object DungeonMap: Feature() {
         ScoreCalculation.onPacket(event.packet)
 
         val packet = event.packet as? S34PacketMaps ?: return
-        val mapId = packet.mapId.takeIf { it in 1000 .. 1400 } ?: return
+        val mapId = packet.mapId
 
         if (MapUtils.mapId == null) {
             val hotbarId = mc.thePlayer.inventory.getStackInSlot(8)?.takeIf { it.item is ItemMap }?.metadata

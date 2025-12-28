@@ -2,7 +2,8 @@ package noammaddons.features.impl.dungeons.solvers.devices
 
 import gg.essential.elementa.utils.withAlpha
 import kotlinx.coroutines.*
-import net.minecraft.init.Blocks.*
+import net.minecraft.init.Blocks.emerald_block
+import net.minecraft.init.Blocks.stained_hardened_clay
 import net.minecraft.item.ItemBow
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
@@ -20,6 +21,9 @@ import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.DungeonUtils.Classes.*
 import noammaddons.utils.DungeonUtils.leapTeammates
+import noammaddons.utils.LocationUtils.P3Section
+import noammaddons.utils.LocationUtils.dungeonFloorNumber
+import noammaddons.utils.LocationUtils.inBoss
 import noammaddons.utils.MathUtils.calcYawPitch
 import noammaddons.utils.MathUtils.destructured
 import noammaddons.utils.MathUtils.interpolateYaw
@@ -96,6 +100,7 @@ object AutoI4: Feature("Fully Automated I4") {
 
     @SubscribeEvent
     fun onBlockChange(event: BlockChangeEvent) {
+        if (dungeonFloorNumber != 7 || ! inBoss || P3Section != 4) return
         if (! isOnDev() || mc.thePlayer.heldItem?.item !is ItemBow) return
         if (event.pos !in devBlocks || event.oldBlock != stained_hardened_clay || event.block != emerald_block) return
 
@@ -122,6 +127,7 @@ object AutoI4: Feature("Fully Automated I4") {
 
     @SubscribeEvent
     fun onRenderWorld(event: RenderWorld) {
+        if (dungeonFloorNumber != 7 || ! inBoss || P3Section != 4) return
         if (! isOnDev()) return reset()
 
         devBlocks.forEach { pos ->
@@ -137,14 +143,17 @@ object AutoI4: Feature("Fully Automated I4") {
 
     @SubscribeEvent
     fun onChat(event: Chat) {
+        if (dungeonFloorNumber != 7 || ! inBoss || P3Section != 4) return
         val message = event.component.noFormatText
-        when {
-            message == STORM_DEATH_MESSAGE -> state = PhaseState(tickTimer = 0).also {
-                setTimeout(30_000L) { state = state.copy(tickTimer = - 1) }
-            }
 
-            message.matches(DEVICE_DONE_REGEX) && state.tickTimer >= 0 && isOnDev() && leapSetting ->
-                triggerPhaseCompletion("Completed Device")
+        if (message == STORM_DEATH_MESSAGE) state = PhaseState(tickTimer = 0).also {
+            setTimeout(30_000L) { state = state.copy(tickTimer = - 1) }
+        }
+
+        if (message.contains("completed a device!")) {
+            if (! (state.tickTimer >= 0 && isOnDev() && leapSetting)) return
+            if (DEVICE_DONE_REGEX.find(message)?.groupValues?.get(1) != mc.session.username) return
+            triggerPhaseCompletion("Completed Device")
         }
     }
 
