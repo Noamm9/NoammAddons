@@ -103,7 +103,7 @@ object WitherESP: Feature("Highlights Withers in the world") {
     }
 
     @SubscribeEvent
-    fun onEntityRender(event: PostRenderEntityModelEvent) {
+    fun onEntityRender(event: RenderEntityModelEvent) {
         if (! isValidLoc()) return
         if (event.entity != Wither.currentWither) return
         espMob(event.entity, Wither.currentType.getColor())

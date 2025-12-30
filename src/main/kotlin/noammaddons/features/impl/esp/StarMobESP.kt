@@ -89,7 +89,7 @@ object StarMobESP: Feature("Highlights Starred Mobs in the dungeon") {
     }
 
     @SubscribeEvent
-    fun onRenderEntity(event: PostRenderEntityModelEvent) {
+    fun onRenderEntity(event: RenderEntityModelEvent) {
         if (! inDungeon || inBoss) return
         val color = if (event.entity in starMobs) starMobColor.value else getColor(event.entity)
         espMob(event.entity, color ?: return)
@@ -113,7 +113,7 @@ object StarMobESP: Feature("Highlights Starred Mobs in the dungeon") {
         ) { it !is EntityArmorStand }
         possibleEntities.find {
             ! starMobs.contains(it) && when (it) {
-                is EntityPlayer -> ! it.isInvisible() && it.getUniqueID()
+                is EntityPlayer -> ! it.isInvisible && it.uniqueID
                     .version() == 2 && it != mc.thePlayer
 
                 is EntityWither -> false

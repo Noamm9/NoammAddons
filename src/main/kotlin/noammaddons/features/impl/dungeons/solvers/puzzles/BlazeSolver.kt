@@ -123,7 +123,7 @@ object BlazeSolver {
     }
 
     @SubscribeEvent
-    fun a(event: PostRenderEntityModelEvent) {
+    fun a(event: RenderEntityModelEvent) {
         if (blazes.isEmpty()) return
 
         blazes.indexOf(event.entity).takeIf { it != - 1 && it < blazeCount.value }?.let { i ->

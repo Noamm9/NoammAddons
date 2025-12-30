@@ -16,8 +16,8 @@ import noammaddons.features.impl.dungeons.dragons.DragonCheck.dragonSprayed
 import noammaddons.features.impl.dungeons.dragons.DragonCheck.dragonUpdate
 import noammaddons.features.impl.dungeons.dragons.DragonCheck.handleSpawnPacket
 import noammaddons.features.impl.dungeons.dragons.DragonCheck.trackArrows
-import noammaddons.features.impl.dungeons.dragons.WitherDragonEnum.*
 import noammaddons.features.impl.dungeons.dragons.WitherDragonEnum.Companion.WitherDragonState.*
+import noammaddons.features.impl.dungeons.dragons.WitherDragonEnum.None
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.*
 import noammaddons.utils.MathUtils.add
@@ -153,7 +153,7 @@ object WitherDragons: Feature(
     }
 
     @SubscribeEvent
-    fun onRenderModelEvent(event: PostRenderEntityModelEvent) {
+    fun onRenderModelEvent(event: RenderEntityModelEvent) {
         if (! highlightDragons) return
         if (LocationUtils.F7Phase != 5) return
         if (WitherDragonEnum.entries.none { it.entity != null }) return

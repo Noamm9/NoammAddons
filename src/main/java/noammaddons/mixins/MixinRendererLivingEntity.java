@@ -1,13 +1,12 @@
 package noammaddons.mixins;
 
-import kotlin.Pair;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.entity.EntityLivingBase;
-import noammaddons.events.PostRenderEntityModelEvent;
+import noammaddons.events.RenderEntityModelEvent;
 import noammaddons.features.impl.esp.ChamNametags;
 import noammaddons.features.impl.esp.EspSettings;
 import noammaddons.utils.RenderHelper;
@@ -15,7 +14,6 @@ import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -38,26 +36,15 @@ public abstract class MixinRendererLivingEntity {
     @Shadow
     protected FloatBuffer brightnessBuffer;
 
-    @Unique
-    private Color noammAddons$getChamColor(EntityLivingBase entity) {
-        return CHAM.getEntities().stream().filter(it -> it.getFirst() == entity)
-                .map(Pair::getSecond).findAny().orElse(null);
-    }
+    @Inject(method = "renderModel", at = @At("HEAD"))
+    private <T extends EntityLivingBase> void onRenderLayersPost(T entitylivingbaseIn, float p_77036_2_, float p_77036_3_, float p_77036_4_, float p_77036_5_, float p_77036_6_, float scaleFactor, CallbackInfo ci) {
+        if (CHAM.getEntities().containsKey(entitylivingbaseIn)) CHAM.removeEntity(entitylivingbaseIn);
 
-    @Unique
-    private Boolean noammAddons$hasCham(EntityLivingBase entity) {
-        return CHAM.containsEntity(entity);
-    }
-
-    @Inject(method = "renderLayers", at = @At("RETURN"))
-    private <T extends EntityLivingBase> void onRenderLayersPost(T entitylivingbaseIn, float p_177093_2_, float p_177093_3_, float partialTicks, float p_177093_5_, float p_177093_6_, float p_177093_7_, float p_177093_8_, CallbackInfo ci) {
-        if (noammAddons$hasCham(entitylivingbaseIn)) CHAM.removeEntity(entitylivingbaseIn);
-
-        postAndCatch(new PostRenderEntityModelEvent(
+        postAndCatch(new RenderEntityModelEvent(
                 entitylivingbaseIn,
-                p_177093_2_, p_177093_3_,
-                p_177093_5_, p_177093_6_,
-                p_177093_7_, p_177093_8_,
+                p_77036_2_, p_77036_3_,
+                p_77036_4_, p_77036_5_,
+                p_77036_6_, scaleFactor,
                 mainModel
         ));
 
@@ -65,7 +52,7 @@ public abstract class MixinRendererLivingEntity {
 
     @Inject(method = "setBrightness", at = @At(value = "HEAD"), cancellable = true)
     private <T extends EntityLivingBase> void setBrightness(T entity, float partialTicks, boolean combineTextures, CallbackInfoReturnable<Boolean> cir) {
-        Color chamColor = noammAddons$getChamColor(entity);
+        Color chamColor = CHAM.getColor(entity);
         if (chamColor == null) return;
 
         GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
@@ -119,13 +106,13 @@ public abstract class MixinRendererLivingEntity {
 
     @Inject(method = "doRender(Lnet/minecraft/entity/EntityLivingBase;DDDFF)V", at = @At("HEAD"))
     private <T extends EntityLivingBase> void injectChamsPre(T entity, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo callbackInfo) {
-        if (!noammAddons$hasCham(entity) || !EspSettings.INSTANCE.getPhase()) return;
+        if (!CHAM.getEntities().containsKey(entity) || !EspSettings.INSTANCE.getPhase()) return;
         RenderHelper.enableChums();
     }
 
     @Inject(method = "doRender(Lnet/minecraft/entity/EntityLivingBase;DDDFF)V", at = @At("RETURN"))
     private <T extends EntityLivingBase> void injectChamsPost(T entity, double x, double y, double z, float a, float b, CallbackInfo callbackInfo) {
-        if (!noammAddons$hasCham(entity) || !EspSettings.INSTANCE.getPhase()) return;
+        if (!CHAM.getEntities().containsKey(entity) || !EspSettings.INSTANCE.getPhase()) return;
         RenderHelper.disableChums();
     }
 

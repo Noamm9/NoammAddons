@@ -24,7 +24,7 @@ public class MixinPatcherEntityCulling {
     @Dynamic
     @Inject(method = "checkEntity", at = @At("HEAD"), cancellable = true)
     private static void overrideEntityCulling(Entity entity, CallbackInfoReturnable<Boolean> cir) {
-        boolean inEspList = EspUtils.ESPType.getEntries().stream().anyMatch(it -> it.containsEntity(entity));
+        boolean inEspList = EspUtils.ESPType.getEntries().contains(entity);
         boolean isStarMob = StarMobESP.starMobs.contains(entity);
         boolean isWither = WitherESP.Wither.Companion.getCurrentWither() == entity;
         boolean isBlaze = entity instanceof EntityBlaze &&

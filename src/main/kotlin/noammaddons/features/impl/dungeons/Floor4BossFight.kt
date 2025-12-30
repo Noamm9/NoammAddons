@@ -6,7 +6,8 @@ import net.minecraft.entity.boss.BossStatus
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.entity.monster.EntityGhast
 import net.minecraft.entity.passive.*
-import net.minecraft.init.Blocks.*
+import net.minecraft.init.Blocks.coal_block
+import net.minecraft.init.Blocks.sea_lantern
 import net.minecraft.item.ItemBow
 import net.minecraft.util.BlockPos
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -14,7 +15,7 @@ import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.ChatUtils.noFormatText
-import noammaddons.utils.EspUtils.ESPType.*
+import noammaddons.utils.EspUtils.ESPType.BOX
 import noammaddons.utils.EspUtils.espMob
 import noammaddons.utils.LocationUtils.dungeonFloorNumber
 import noammaddons.utils.LocationUtils.inBoss
@@ -56,7 +57,7 @@ object Floor4BossFight: Feature(name = "Floor 4 Boss", desc = "Spirit bear spawn
 
 
     @SubscribeEvent
-    fun onPostRenderEntityModel(event: PostRenderEntityModelEvent) {
+    fun onPostRenderEntityModel(event: RenderEntityModelEvent) {
         if (! inM4boss) return
         when (val entity = event.entity) {
             is EntityGhast -> if (espThorn) espMob(event.entity, espThornColor)

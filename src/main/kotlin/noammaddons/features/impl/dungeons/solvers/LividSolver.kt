@@ -89,7 +89,7 @@ object LividSolver: Feature() {
     }
 
     @SubscribeEvent
-    fun onRenderWorld(event: PostRenderEntityModelEvent) {
+    fun onRenderWorld(event: RenderEntityModelEvent) {
         if (dungeonFloorNumber != 5 || ! inBoss) return
         if (currentLivid?.isDead.equalsOneOf(null, true)) return
         if (currentLivid?.isPlayerSleeping.equalsOneOf(null, true)) return

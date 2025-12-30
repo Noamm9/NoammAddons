@@ -61,7 +61,7 @@ abstract class MainThreadPacketRecivedEvent(val packet: Packet<*>): Event() {
     class Post(packet: Packet<*>): MainThreadPacketRecivedEvent(packet)
 }
 
-class PostRenderEntityModelEvent(
+class RenderEntityModelEvent(
     var entity: EntityLivingBase,
     var p_77036_2_: Float,
     var p_77036_3_: Float,
