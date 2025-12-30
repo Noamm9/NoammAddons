@@ -77,7 +77,7 @@ object EspUtils {
             }
 
             is RenderWorld -> {
-                OutlineShader.drawOutline(radius = 2.0f)
+                OutlineShader.drawOutline(lineWidth = 2.0f)
 
                 processAndRemoveEntities(ESPType.BOX) { entity, color ->
                     drawEntityBox(entity, color)

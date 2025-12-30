@@ -20,23 +20,22 @@ object PartyESP: Feature("Highlight party members in the world") {
     private val drawHighlight = ToggleSetting("Highlight", true)
     override fun init() = addSettings(drawNames, drawHighlight)
 
-    private fun getPartyNoSelf() = PartyUtils.entities.filter { it != mc.thePlayer }
-
     @SubscribeEvent
     fun onRenderEntity(event: RenderLivingEvent.Specials.Pre<*>) {
         if (! drawHighlight.value && ! drawNames.value) return
         if (LocationUtils.inDungeon) return
-        val member = getPartyNoSelf().find { it.entityId == event.entity.entityId } ?: return
+        if (event.entity == mc.thePlayer) return
+        if (! PartyUtils.members.contains(event.entity.name)) return
         if (drawHighlight.value) espMob(event.entity, getRainbowColor(1f))
-        val distance = distance3D(mc.thePlayer.renderVec, member.renderVec)
+        val distance = distance3D(mc.thePlayer.renderVec, event.entity.renderVec)
         var scale = (distance * 0.0875).toFloat()
         if (scale < 0.7f) scale = 0.7f
         if (! drawNames.value) return
         event.isCanceled = true
 
         drawString(
-            member.displayName.formattedText,
-            member.renderVec.add(y = getPlayerHeight(member, 1) + distance * 0.02f),
+            event.entity.displayName.formattedText,
+            event.entity.renderVec.add(y = getPlayerHeight(event.entity, 1) + distance * 0.02f),
             phase = phase,
             scale = scale
         )

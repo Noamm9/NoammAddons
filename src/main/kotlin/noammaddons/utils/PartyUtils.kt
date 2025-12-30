@@ -9,6 +9,7 @@ import noammaddons.utils.ChatUtils.modMessage
 import noammaddons.utils.ChatUtils.removeFormatting
 import noammaddons.utils.GuiUtils.currentChestName
 import noammaddons.utils.ItemUtils.lore
+import java.util.concurrent.ConcurrentHashMap
 
 object PartyUtils {
     data class PartyMember(var name: String, var rank: String, var rankFormated: String, var formattedName: String, var online: Boolean)
@@ -41,10 +42,8 @@ object PartyUtils {
 
     var inParty = false
     var leader: String? = null
-    val members = mutableMapOf<String, PartyMember>()
+    val members = ConcurrentHashMap<String, PartyMember>()
     var size = 0
-
-    val entities get() = HashMap(members).mapNotNull { mc.theWorld.getPlayerEntityByName(it.key) }
 
     private val cachedranks = mutableMapOf<String, String>()
 
@@ -55,17 +54,24 @@ object PartyUtils {
         playerRejoin.matchAndRun(message) { (rank, name) -> addMember(name, rank) }
         playerleft.matchAndRun(message) { (_, name) -> removeMember(name) }
         playerRemove.matchAndRun(message) { (_, name) -> removeMember(name) }
-        inviteRegex.matchAndRun(message) { (rank, name) -> addMember(name, rank) }
+        inviteRegex.matchAndRun(message) { (rank, name) ->
+            addMember(name, rank)
+            if (leader == null) leader = name
+        }
         partyMsg.matchAndRun(message) { (rank, name) -> addMember(name, rank, true) }
-        partyfinder.matchAndRun(message) { (color, name) ->
+        partyfinder.matchAndRun(message) { (_, name) ->
             addMember(name)
-            storedNames.forEach { (n, t) -> addMember(n); if (t == "L") leader = n }
+            storedNames.forEach { (n, t) ->
+                addMember(n)
+                if (t == "L") leader = n
+            }
             storedNames.clear()
         }
 
         for (regex in disbandsRegexs) {
             if (regex.matches(message)) {
                 disband()
+                break
             }
         }
 
@@ -103,7 +109,7 @@ object PartyUtils {
             addMember(name2, rank2)
         }
 
-        leaveTransfer.matchAndRun(message) { (rank1, name1, leaderRank, leaderName) ->
+        leaveTransfer.matchAndRun(message) { (rank1, name1, _, leaderName) ->
             addMember(name1, rank1)
             leader = name1
             removeMember(leaderName)

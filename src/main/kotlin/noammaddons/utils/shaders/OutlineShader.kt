@@ -56,6 +56,8 @@ object OutlineShader {
         glDisable(GL_TEXTURE_2D)
         glDisable(GL_LIGHTING)
 
+        val ht = event.entity.hurtTime
+        event.entity.hurtTime = 0
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0f, 240.0f)
 
         if (phase) {
@@ -74,6 +76,7 @@ object OutlineShader {
             event.p_77036_4_, event.p_77036_5_, event.p_77036_6_, event.scaleFactor
         )
 
+        event.entity.hurtTime = ht
         glPopAttrib()
         glPopMatrix()
 
@@ -81,7 +84,7 @@ object OutlineShader {
     }
 
 
-    fun drawOutline(radius: Float) {
+    fun drawOutline(lineWidth: Float) {
         if (! hasAnyEntities) return
         val fbo = entityFbo ?: return
         val sr = ScaledResolution(mc)
@@ -99,7 +102,7 @@ object OutlineShader {
 
         shader.bind()
         shader.setUniform("TexelSize", 1f / mc.displayWidth, 1f / mc.displayHeight)
-        shader.setUniform("Radius", radius)
+        shader.setUniform("Radius", lineWidth)
 
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
