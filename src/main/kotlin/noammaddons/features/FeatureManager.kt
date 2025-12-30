@@ -37,7 +37,7 @@ object FeatureManager {
         Camera, PlayerModel, DamageSplash, AutoRequeue, WitherDragons, DungeonPlayerDeath,
         WarpCooldown, RoomAlerts, RunSplits, RatProtection, PuzzleSolvers, LividSolver,
         SimonSaysSolver, ArrowAlignSolver, Floor4BossFight, WitherESP, StarMobESP,
-        HiddenMobs, PestESP, Secrets, SmoothBossBar, NoRotate, RNGSound, BloodRoom,
+        HiddenMobs, PestESP, Secrets, SmoothBossBar, RNGSound, BloodRoom,
         ExtraSlayerInfo, SalvageOverlay, Ragnarock, ShadowAssassin, MelodyAlert,
         PlayerHud, FullBlock, TerminalNumbers, F7Titles, ScalableTooltips, FpsDisplay,
         ClockDisplay, TpsDisplay, PetDisplay, MaskTimers, SpringBootsDisplay,
@@ -53,6 +53,7 @@ object FeatureManager {
         // ZeroPingTeleportation, // - R.I.P fuck hypixel, fuck blinkers
         // BetterFloors, StonkSwap, GhostPick, // - R.I.P goodbye stonking
         // ReaperArmor, // - R.I.P fuck reaper fix
+        // NoRotate, // - R.I.P Prediction AC
 
         DevOptions, CompTest, ConfigGui,
     ).sortedBy { it.name }

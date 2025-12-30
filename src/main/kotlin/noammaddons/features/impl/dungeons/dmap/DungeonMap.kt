@@ -78,7 +78,7 @@ object DungeonMap: Feature() {
 
     @SubscribeEvent
     fun onWorldRender(event: RenderWorld) {
-        if (! inDungeon || inBoss || ! DungeonMapConfig.boxWitherDoors.value) return
+        if (! enabled || ! inDungeon || inBoss || ! DungeonMapConfig.boxWitherDoors.value) return
 
         val shouldHideUndiscovered = ! DungeonMapConfig.dungeonMapCheater.value || (DungeonUtils.dungeonStarted && ScanUtils.getEntityRoom(mc.thePlayer)?.data?.type != RoomType.FAIRY)
         val color = (if (DungeonInfo.keys > 0) DungeonMapConfig.witherDoorKeyColor.value else DungeonMapConfig.witherDoorNoKeyColor.value).withAlpha(DungeonMapConfig.witherDoorFill.value)
