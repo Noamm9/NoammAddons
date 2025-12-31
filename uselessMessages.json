@@ -61,10 +61,8 @@
   "The Lost Adventurer used Dragon's Breath on you!",
   "A Crypt Wither Skull exploded, hitting you for .+ damage.",
   "The .+ Trap hit you for .+ damage!",
-  "The Stormy .+ struck you for .+ damage!",
-  "The Flamethrower hit you for .+ damage!",
   "The Mage's Magma burnt you for .+ true damage.",
-  ".+(?:struck|hit|exploded).+ (?:for |you for ).+",
+  ".+ (?:struck|hit|exploded) .+ (?:for |you for ).+",
   "Your .+ hit .+ for [\\d,.]+ damage\\.",
   "Your .+ hit .+ (?:enemy|enemies) for .+ damage.",
   "Your Spirit Pet hit .+ enemy for .+ damage.",
@@ -141,7 +139,6 @@
   "Only up to 2 rules may trigger at once!",
   "Some of your autopet rules did not trigger.",
   ".+ the lobby!.*",
-  "FISHING FESTIVAL The festival is now underway! Break out your fishing rods and watch out for sharks!",
   "Hoppity's Hunt has begun! Help Hoppity find his Chocolate Rabbit Eggs across SkyBlock each day during the Spring!",
   " +You have [0-9]+ unclaimed event rewards!",
   " +>>> CLICK HERE to claim! <<<",
@@ -149,4 +146,5 @@
   "\\+[0-9]+ Kill Combo .+",
   "Your Kill Combo has expired! You reached a [0-9]+ Kill Combo!",
   "Your Auto Recombobulator recombobulated .+!"
+
 ]
