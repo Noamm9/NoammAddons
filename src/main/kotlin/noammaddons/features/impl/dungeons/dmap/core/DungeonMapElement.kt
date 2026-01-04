@@ -253,9 +253,9 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
                         var maxHeight = roomSize
 
                         if (room.data.shape != "L" || room.data.shape != "1x1" || room.data.shape != "2x2") {
-                            var minX = Int.MAX_VALUE;
+                            var minX = Int.MAX_VALUE
                             var maxX = Int.MIN_VALUE
-                            var minZ = Int.MAX_VALUE;
+                            var minZ = Int.MAX_VALUE
                             var maxZ = Int.MIN_VALUE
 
                             for (tile in unq.tiles) {
@@ -295,7 +295,7 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
                         if (maxLineW > 0 && totalH > 0) {
                             val sW = maxWidth / maxLineW
                             val sH = maxHeight / totalH
-                            scale = sW.coerceAtMost(sH).coerceIn(0.4f, DungeonMapConfig.textScale.value)
+                            scale = sW.coerceAtMost(sH).coerceIn(0.4f, DungeonMapConfig.textScale.value.coerceAtLeast(0.4f))
                         }
                     }
 
@@ -383,8 +383,8 @@ object DungeonMapElement: GuiElement(hudData.getData().dungeonMap) {
             RoomState.CLEARED -> CheckMarkWhite
             RoomState.GREEN -> CheckMarkGreen
             RoomState.FAILED -> CheckMarkCross
-            RoomState.UNOPENED -> if (DungeonMapConfig.dungeonMapCheater.value) null
-            else if (DungeonMapConfig.hideQuestionCheckmarks.value) null
+            RoomState.UNOPENED -> if (DungeonMapConfig.dungeonMapCheater.value) return
+            else if (DungeonMapConfig.hideQuestionCheckmarks.value) return
             else CheckMarkQuestion
 
             else -> return
