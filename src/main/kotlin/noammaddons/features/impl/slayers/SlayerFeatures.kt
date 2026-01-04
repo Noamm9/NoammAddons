@@ -1,12 +1,13 @@
 package noammaddons.features.impl.slayers
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import noammaddons.events.PostRenderEntityEvent
+import noammaddons.events.RenderEntityEvent
 import noammaddons.events.SlayerEvent
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.ColorSetting
 import noammaddons.ui.config.core.impl.ToggleSetting
 import noammaddons.utils.*
+import noammaddons.utils.ChatUtils.modMessage
 import java.awt.Color
 
 object SlayerFeatures: Feature() {
@@ -27,7 +28,7 @@ object SlayerFeatures: Feature() {
     }
 
     @SubscribeEvent
-    fun onRenderEntity(event: PostRenderEntityEvent) {
+    fun onRenderEntity(event: RenderEntityEvent) {
         if (! SlayerUtils.isQuestActive) return
 
         if (highlightSlayerBoss && SlayerUtils.slayerBossEntity.entityId == event.entity.entityId) {
@@ -40,12 +41,19 @@ object SlayerFeatures: Feature() {
 
     @SubscribeEvent
     fun onSlayerBossSpawn(event: SlayerEvent.BossSpawnEvent) {
+        if (SlayerUtils.slayerBossEntity.type == SlayerUtils.BossType.SPIDER) {
+            if (SlayerUtils.slayerBossEntity.entity.name == "Dinnerbone") return
+        }
         slayerBossSpawnTime = System.currentTimeMillis()
     }
 
     @SubscribeEvent
     fun onSlayerBossDeath(event: SlayerEvent.BossDeathEvent) {
-        ChatUtils.modMessage(
+        if (SlayerUtils.slayerBossEntity.type == SlayerUtils.BossType.SPIDER) {
+            if (SlayerUtils.slayerBossEntity.entity.name != "Dinnerbone") return
+        }
+
+        modMessage(
             "${SlayerUtils.slayerBossEntity.type.displayName} &bBoss Took:&f ${
                 NumbersUtils.formatMilis(System.currentTimeMillis() - slayerBossSpawnTime)
             } &bto kill"

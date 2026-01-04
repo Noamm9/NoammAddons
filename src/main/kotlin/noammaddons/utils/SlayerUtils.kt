@@ -11,7 +11,6 @@ import net.minecraftforge.event.entity.living.LivingDeathEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.NoammAddons.Companion.mc
 import noammaddons.events.*
-import noammaddons.features.impl.slayers.SlayerFeatures.slayerBossSpawnTime
 import noammaddons.utils.ChatUtils.noFormatText
 import noammaddons.utils.ChatUtils.removeFormatting
 import java.util.concurrent.CopyOnWriteArraySet
@@ -40,12 +39,12 @@ object SlayerUtils {
                 // The Spawned By armorstand is always ID+3 from the actual boss entity
                 slayerBossEntity.entityId = packet.entityId - 3
                 slayerBossEntity.type = BossType.getTypeByEntity(slayerBossEntity.entity)
-                slayerBossSpawnTime = System.currentTimeMillis()
 
                 EventDispatcher.postAndCatch(SlayerEvent.BossSpawnEvent())
             }
         }
 
+        if (name.contains(" 0❤")) return
         BossType.entries.find { it.minibosses.any { mbName -> name.contains(mbName, true) } }?.let { bossType ->
             // The nametag armor stand is usually ID+1 from the mob
             val mobId = packet.entityId - 1
@@ -78,7 +77,7 @@ object SlayerUtils {
         if (! LocationUtils.inSkyblock) return
         if (LocationUtils.inDungeon) return
         when (event.component.noFormatText.trim()) {
-            "SLAYER QUEST FAILED!", "SLAYER QUEST COMPLETE!", "Your Slayer Quest has been cancelled!" -> {
+            "SLAYER QUEST FAILED!", "SLAYER QUEST COMPLETE!", "Your Slayer Quest has been cancelled!", "NICE! SLAYER BOSS SLAIN!" -> {
                 isQuestActive = false
                 slayerBossEntity.reset()
                 isFightingBoss = false
@@ -111,7 +110,7 @@ object SlayerUtils {
 
     enum class BossType(val displayName: String, val minibosses: Array<String>) {
         REV("§2Revenant§r", arrayOf("Revenant Sycophant", "Revenant Champion", "Deformed Revenant", "Atoned Champion", "Atoned Revenant")),
-        SPIDER("§cTarantula§r", arrayOf("Tarantula Vermin", "Tarantula Beast", "Mutant Tarantula")),
+        SPIDER("§cTarantula§r", arrayOf("Tarantula Vermin", "Tarantula Beast", "Mutant Tarantula", "Primordial Jockey", "Primordial Viscount")),
         SVEN("§cSven§r", arrayOf("Pack Enforcer", "Sven Follower", "Sven Alpha")),
         EMAN("§5Voidgloom§r", arrayOf("Voidling Devotee", "Voidling Radical", "Voidcrazed Maniac")),
         BLAZE("§6Inferno Demonlord§r", arrayOf("Flare Demon", "Kindleheart Demon", "Burningsoul Demon")),
