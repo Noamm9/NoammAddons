@@ -67,8 +67,8 @@ object LocationUtils {
 
     @SubscribeEvent
     fun onPacketRecived(event: MainThreadPacketRecivedEvent.Post) {
-        if (! onHypixel) return
         if (DevOptions.devMode) return setDevModeValues()
+        if (! onHypixel) return
 
         if (event.packet is S38PacketPlayerListItem) {
             if (! event.packet.action.equalsOneOf(S38PacketPlayerListItem.Action.UPDATE_DISPLAY_NAME, S38PacketPlayerListItem.Action.ADD_PLAYER)) return

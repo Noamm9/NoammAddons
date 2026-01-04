@@ -14,17 +14,13 @@ object VisualWords: Feature("Replace some text with other text", toggled = true)
     private var wordsMap = DataDownloader.loadJson<Map<String, String>>("VisualWords.json")
 
     @JvmStatic
-    @Suppress("KotlinConstantConditions")
     fun replaceText(text: String?): String? {
         if (! enabled) return text
         if (text == null) return text
         if (mc.currentScreen is SettingsGui) return text
 
-        var newText = text
-        wordsMap.entries.forEach { (key, value) ->
-            newText = newText?.replace(key, value)
+        return wordsMap.entries.fold(text) { it, entry ->
+            it.replace(entry.key, entry.value)
         }
-
-        return newText
     }
 }

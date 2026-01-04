@@ -22,14 +22,24 @@ import java.awt.Color
 import java.util.concurrent.ConcurrentHashMap
 
 object EspUtils {
+    val queue = mutableMapOf<EntityLivingBase, Color>()
+
     fun espMob(sourceEntity: Entity, color: Color, typeId: Int = EspSettings.highlightType) {
         val espType = ESPType.fromId(typeId).takeIf { it != ESPType.Disable } ?: return
         val entity = sourceEntity as? EntityLivingBase ?: return
-        if (espType == ESPType.FILLED_OUTLINE) {
-            ESPType.OUTLINE.addEntity(entity, color)
-            ESPType.CHAM.addEntity(entity, color)
+        when (espType) {
+            ESPType.FILLED_OUTLINE -> {
+                ESPType.OUTLINE.addEntity(entity, color)
+                sceduleAddEntity(entity, color)
+            }
+
+            ESPType.CHAM -> sceduleAddEntity(entity, color)
+            else -> espType.addEntity(entity, color)
         }
-        else espType.addEntity(entity, color)
+    }
+
+    fun sceduleAddEntity(entity: Entity, color: Color) {
+        queue[entity as EntityLivingBase] = color
     }
 
     enum class ESPType(val displayName: String) {
@@ -67,7 +77,7 @@ object EspUtils {
         when (event) {
             is WorldUnloadEvent -> ESPType.resetAll()
 
-            is RenderOverlayNoCaching -> processAndRemoveEntities(ESPType.BOX2D) { entity, color ->
+            is RenderOverlayNoCaching -> processEntities(ESPType.BOX2D) { entity, color ->
                 draw2dEsp(entity, color)
             }
 
@@ -79,7 +89,7 @@ object EspUtils {
             is RenderWorld -> {
                 OutlineShader.drawOutline(lineWidth = 2.0f)
 
-                processAndRemoveEntities(ESPType.BOX) { entity, color ->
+                processEntities(ESPType.BOX) { entity, color ->
                     drawEntityBox(entity, color)
                 }
             }
@@ -104,7 +114,7 @@ object EspUtils {
         }
     }
 
-    private fun processAndRemoveEntities(espType: ESPType, renderAction: (entity: EntityLivingBase, color: Color) -> Unit) {
+    private fun processEntities(espType: ESPType, renderAction: (entity: EntityLivingBase, color: Color) -> Unit) {
         val map = espType.getEntities()
         if (map.isEmpty()) return
 

@@ -33,13 +33,13 @@ object ScanUtils {
 
     init {
         loop(250) {
+            if (mc.thePlayer == null) return@loop
             if (! DevOptions.devMode) {
-                if (mc.thePlayer == null) return@loop
                 if (! inDungeon) return@loop
                 if (inBoss) return@loop
             }
 
-            val room = getRoomFromPos(ServerPlayer.player.getPos() !!)?.uniqueRoom
+            val room = getRoomFromPos(ServerPlayer.player.getPos() ?: return@loop)?.uniqueRoom
             if (currentRoom == room) return@loop
 
             lastKnownRoom = currentRoom
