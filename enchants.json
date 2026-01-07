@@ -18,6 +18,12 @@
       "maxLevel": 1,
       "nbtName": "aqua_affinity"
     },
+    "arcane": {
+      "goodLevel": 0,
+      "loreName": "Arcane",
+      "maxLevel": 5,
+      "nbtName": "arcane"
+    },
     "bane of arthropods": {
       "goodLevel": 5,
       "loreName": "Bane of Arthropods",
@@ -119,6 +125,18 @@
       "loreName": "Divine Gift",
       "maxLevel": 3,
       "nbtName": "divine_gift"
+    },
+    "gravity": {
+      "goodLevel": 5,
+      "loreName": "Gravity",
+      "maxLevel": 6,
+      "nbtName": "gravity"
+    },
+    "dragon hunter": {
+      "goodLevel": 5,
+      "loreName": "Dragon Hunter",
+      "maxLevel": 6,
+      "nbtName": "dragon_hunter"
     },
     "dragon tracer": {
       "goodLevel": 5,
