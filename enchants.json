@@ -18,12 +18,6 @@
       "maxLevel": 1,
       "nbtName": "aqua_affinity"
     },
-    "arcane": {
-      "goodLevel": 0,
-      "loreName": "Arcane",
-      "maxLevel": 5,
-      "nbtName": "arcane"
-    },
     "bane of arthropods": {
       "goodLevel": 5,
       "loreName": "Bane of Arthropods",
@@ -67,7 +61,7 @@
       "nbtName": "chance"
     },
     "charm": {
-      "goodLevel": 0,
+      "goodLevel": 5,
       "loreName": "Charm",
       "maxLevel": 6,
       "nbtName": "charm"
@@ -125,18 +119,6 @@
       "loreName": "Divine Gift",
       "maxLevel": 3,
       "nbtName": "divine_gift"
-    },
-    "gravity": {
-      "goodLevel": 5,
-      "loreName": "Gravity",
-      "maxLevel": 6,
-      "nbtName": "gravity"
-    },
-    "dragon hunter": {
-      "goodLevel": 5,
-      "loreName": "Dragon Hunter",
-      "maxLevel": 6,
-      "nbtName": "dragon_hunter"
     },
     "dragon tracer": {
       "goodLevel": 5,
@@ -234,6 +216,12 @@
       "maxLevel": 2,
       "nbtName": "frost_walker"
     },
+    "gravity": {
+      "goodLevel": 5,
+      "loreName": "Gravity",
+      "maxLevel": 6,
+      "nbtName": "dragon_hunter"
+    },
     "giant killer": {
       "goodLevel": 5,
       "loreName": "Giant Killer",
@@ -277,9 +265,9 @@
       "nbtName": "ice_cold"
     },
     "impaling": {
-      "goodLevel": 3,
+      "goodLevel": 5,
       "loreName": "Impaling",
-      "maxLevel": 3,
+      "maxLevel": 5,
       "nbtName": "impaling"
     },
     "infinite quiver": {
@@ -648,6 +636,12 @@
       "maxLevel": 5,
       "nbtName": "turbo_melon"
     },
+    "turbo-moonflower": {
+      "goodLevel": 0,
+      "loreName": "Turbo-Moonflower",
+      "maxLevel": 5,
+      "nbtName": "turbo_moonflower"
+    },
     "turbo-mushrooms": {
       "goodLevel": 0,
       "loreName": "Turbo-Mushrooms",
@@ -665,6 +659,18 @@
       "loreName": "Turbo-Pumpkin",
       "maxLevel": 5,
       "nbtName": "turbo_pumpkin"
+    },
+    "turbo-rose": {
+      "goodLevel": 0,
+      "loreName": "Turbo-Rose",
+      "maxLevel": 5,
+      "nbtName": "turbo_rose"
+    },
+    "turbo-sunflower": {
+      "goodLevel": 0,
+      "loreName": "Turbo-Sunflower",
+      "maxLevel": 5,
+      "nbtName": "turbo_sunflower"
     },
     "turbo-warts": {
       "goodLevel": 0,
@@ -687,7 +693,7 @@
     "venomous": {
       "goodLevel": 5,
       "loreName": "Venomous",
-      "maxLevel": 6,
+      "maxLevel": 7,
       "nbtName": "venomous"
     },
     "vicious": {
@@ -695,6 +701,12 @@
       "loreName": "Vicious",
       "maxLevel": 5,
       "nbtName": "vicious"
+    },
+    "woodsplitter": {
+      "goodLevel": 5,
+      "loreName": "Woodsplitter",
+      "maxLevel": 6,
+      "nbtName": "arcane"
     }
   },
   "STACKING": {
@@ -863,6 +875,12 @@
       "loreName": "Combo",
       "maxLevel": 5,
       "nbtName": "ultimate_combo"
+    },
+    "crop fever": {
+      "goodLevel": 0,
+      "loreName": "Crop Fever",
+      "maxLevel": 5,
+      "nbtName": "ultimate_crop_fever"
     },
     "duplex": {
       "goodLevel": 0,
