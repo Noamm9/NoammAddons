@@ -18,7 +18,6 @@ object MapUtils {
         return Pair(x, z)
     }
 
-    var mapId: Int? = null
     var startCorner = Pair(5, 5)
     var mapRoomSize = 16
     var coordMultiplier = 0.625
@@ -29,7 +28,6 @@ object MapUtils {
         startCorner = Pair(5, 5)
         mapRoomSize = 16
         coordMultiplier = 0.625
-        mapId = null
     }
 
     /**

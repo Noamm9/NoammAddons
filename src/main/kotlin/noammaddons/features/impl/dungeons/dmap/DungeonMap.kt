@@ -30,20 +30,8 @@ object DungeonMap: Feature() {
     val debug get() = EssentialAPI.getMinecraftUtil().isDevelopment() || DevOptions.devMode || DevOptions.enabled
 
     @SubscribeEvent(priority = EventPriority.HIGH)
-    fun onRenderOverlayNoCaching(event: RenderOverlayNoCaching) {
-        if (! enabled) return
-        if (mc.gameSettings.keyBindPlayerList.isKeyDown) return
-        if (! DungeonMapConfig.mapEnabled.value || ! inDungeon) return
-        if (! DungeonMapConfig.dungeonMapCheater.value && ! DungeonUtils.dungeonStarted) return
-        if (DungeonMapConfig.mapHideInBoss.value && inBoss) return
-
-        DungeonMapElement.draw()
-    }
-
-    @SubscribeEvent(priority = EventPriority.HIGH)
     fun onRenderOverlay(event: RenderOverlay) {
         if (! enabled) return
-        if (! mc.gameSettings.keyBindPlayerList.isKeyDown) return
         if (! DungeonMapConfig.mapEnabled.value || ! inDungeon) return
         if (! DungeonMapConfig.dungeonMapCheater.value && ! DungeonUtils.dungeonStarted) return
         if (DungeonMapConfig.mapHideInBoss.value && inBoss) return
@@ -102,13 +90,9 @@ object DungeonMap: Feature() {
         ScoreCalculation.onPacket(event.packet)
 
         val packet = event.packet as? S34PacketMaps ?: return
-        val mapId = packet.mapId
+        val mapId = mc.thePlayer.inventory.getStackInSlot(8)?.takeIf { it.item is ItemMap }?.metadata ?: packet.mapId
 
-        if (MapUtils.mapId == null) {
-            val hotbarId = mc.thePlayer.inventory.getStackInSlot(8)?.takeIf { it.item is ItemMap }?.metadata
-            DungeonInfo.mapData = mc.theWorld.loadItemData(MapData::class.java, "map_${hotbarId ?: mapId}") as? MapData ?: return
-            if (mapId == hotbarId) MapUtils.mapId = mapId
-        }
+        DungeonInfo.mapData = mc.theWorld.loadItemData(MapData::class.java, "map_$mapId") as? MapData ?: return
 
         if (! MapUtils.calibrated) MapUtils.calibrated = MapUtils.calibrateMap()
 

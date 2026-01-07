@@ -47,7 +47,7 @@ object WebUtils {
                 connection.requestMethod = "GET"
                 connection.setRequestProperty("Accept", "application/json")
 
-                val response = connection.inputStream.bufferedReader().use(BufferedReader::readText)
+                val response = connection.inputStream.bufferedReader().use(BufferedReader::readText).takeIf { it.isNotBlank() } ?: return@runCatching
                 val jsonObject = JsonUtils.stringToJson(response)
 
                 jsonObject.apply(block)
