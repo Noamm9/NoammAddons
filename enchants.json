@@ -234,12 +234,6 @@
       "maxLevel": 2,
       "nbtName": "frost_walker"
     },
-    "gravity": {
-      "goodLevel": 5,
-      "loreName": "Gravity",
-      "maxLevel": 6,
-      "nbtName": "dragon_hunter"
-    },
     "giant killer": {
       "goodLevel": 5,
       "loreName": "Giant Killer",
