@@ -126,12 +126,6 @@
       "maxLevel": 3,
       "nbtName": "divine_gift"
     },
-    "gravity": {
-      "goodLevel": 5,
-      "loreName": "Gravity",
-      "maxLevel": 6,
-      "nbtName": "gravity"
-    },
     "dragon hunter": {
       "goodLevel": 5,
       "loreName": "Dragon Hunter",
