@@ -1,12 +1,13 @@
 package noammaddons.features.impl.dungeons
 
+import net.minecraft.network.play.server.S03PacketTimeUpdate
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import noammaddons.events.*
 import noammaddons.features.Feature
 import noammaddons.ui.config.core.impl.*
 import noammaddons.utils.ChatUtils.noFormatText
-import noammaddons.utils.LocationUtils.dungeonFloorNumber
-import noammaddons.utils.LocationUtils.inBoss
+import noammaddons.utils.DungeonUtils
+import noammaddons.utils.LocationUtils
 import noammaddons.utils.NumbersUtils.toFixed
 import noammaddons.utils.RenderHelper.getHeight
 import noammaddons.utils.RenderHelper.getWidth
@@ -23,11 +24,16 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
     private val p3 = ToggleSetting("Goldor Start")
     private val p4 = ToggleSetting("Necron Start")
 
+    private val deathTickTimer = ToggleSetting("0s DeathTick")
+    private val secretTickTimer = ToggleSetting("SecretTick")
+
     val goldorDeathTickTimer = ToggleSetting("Goldor Death Ticks")
     val padTimer = ToggleSetting("Storm Pad Timer")
 
     override fun init() = addSettings(
         showPrefix, showSuffix, format,
+        SeperatorSetting("Clear Timers"),
+        deathTickTimer, secretTickTimer,
         SeperatorSetting("Phase Timers"),
         p1, p2, p3, p4,
         goldorDeathTickTimer,
@@ -83,6 +89,8 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
         goldorTickTime = - 1
         startTickTime - 1
         storm = false
+        deathTickTime = - 1
+        secretTickTime = - 1
     }
 
     @SubscribeEvent
@@ -92,17 +100,21 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
         if (padTickTime != - 1 && storm) padTickTime --
         if (padTickTime == 0 && storm) padTickTime = 20
 
-
         if (goldorTickTime != - 1) goldorTickTime --
         if (goldorTickTime == 0) goldorTickTime = 60
+
+        if (deathTickTime == 0 && deathTickTimer.value) deathTickTime = 40
+        if (deathTickTime >= 0 && deathTickTimer.value) deathTickTime --
+        if (secretTickTime == 0 && secretTickTimer.value && ! LocationUtils.inBoss) secretTickTime = 20
+        if (secretTickTime >= 0 && secretTickTimer.value) secretTickTime --
     }
 
     @SubscribeEvent
     fun onRender(event: RenderOverlay) {
-        if (! inBoss) return
-        if (dungeonFloorNumber != 7) return
 
         val str = when {
+            deathTickTime != - 1 -> formatTimer(deathTickTime, 40, "&cDeath:")
+            secretTickTime != - 1 -> formatTimer(secretTickTime, 40, "&dSecret:")
             startTickTime != - 1 -> formatTimer(startTickTime, 150, "&aStart:")
             goldorTickTime != - 1 -> formatTimer(goldorTickTime, 60, "&7Goldor:")
             padTickTime != - 1 -> formatTimer(padTickTime, 20, "&bPad:")
@@ -115,6 +127,21 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
             mc.getHeight() / 2f + 30f,
             1.5f
         )
+    }
+
+    var deathTickTime = - 1
+    var secretTickTime = - 1
+
+    @SubscribeEvent
+    fun onPacket(event: PacketEvent.Received) {
+        if (! LocationUtils.inDungeon) return
+        val packet = event.packet as? S03PacketTimeUpdate ?: return
+        val worldTime = packet.totalWorldTime
+        if (! DungeonUtils.dungeonStarted) deathTickTime = 40 - (worldTime % 40).toInt()
+        else {
+            secretTickTime = 20 - (worldTime % 20).toInt()
+            deathTickTime = - 1
+        }
     }
 }
 
