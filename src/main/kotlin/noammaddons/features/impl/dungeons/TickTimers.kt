@@ -100,8 +100,8 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
         if (padTickTime != - 1 && storm) padTickTime --
         if (padTickTime == 0 && storm) padTickTime = 20
 
-        if (goldorTickTime != - 1) goldorTickTime --
         if (goldorTickTime == 0) goldorTickTime = 60
+        if (goldorTickTime >= 0) goldorTickTime --
 
         if (deathTickTime == 0 && deathTickTimer.value) deathTickTime = 40
         if (deathTickTime >= 0 && deathTickTimer.value) deathTickTime --
@@ -114,7 +114,7 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
 
         val str = when {
             deathTickTime != - 1 -> formatTimer(deathTickTime, 40, "&cDeath:")
-            secretTickTime != - 1 -> formatTimer(secretTickTime, 40, "&dSecret:")
+            secretTickTime != - 1 -> formatTimer(secretTickTime, 20, "&dSecret:")
             startTickTime != - 1 -> formatTimer(startTickTime, 150, "&aStart:")
             goldorTickTime != - 1 -> formatTimer(goldorTickTime, 60, "&7Goldor:")
             padTickTime != - 1 -> formatTimer(padTickTime, 20, "&bPad:")
@@ -131,18 +131,24 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
 
     var deathTickTime = - 1
     var secretTickTime = - 1
+    var dungeonStartTime = 0L
 
     @SubscribeEvent
     fun onPacket(event: PacketEvent.Received) {
         if (! LocationUtils.inDungeon) return
         val packet = event.packet as? S03PacketTimeUpdate ?: return
         val worldTime = packet.totalWorldTime
-        if (! DungeonUtils.dungeonStarted) deathTickTime = 40 - (worldTime % 40).toInt()
-        else {
+        if (System.currentTimeMillis() - dungeonStartTime < 6000 || ! DungeonUtils.dungeonStarted) {
+            deathTickTime = 40 - (worldTime % 40).toInt()
+        }
+        else if (! LocationUtils.inBoss) {
             secretTickTime = 20 - (worldTime % 20).toInt()
             deathTickTime = - 1
         }
     }
+
+    @SubscribeEvent
+    fun onPacket(event: DungeonEvent.RunStatedEvent) {
+        dungeonStartTime = System.currentTimeMillis()
+    }
 }
-
-
