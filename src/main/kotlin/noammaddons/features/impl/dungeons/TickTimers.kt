@@ -91,6 +91,7 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
         storm = false
         deathTickTime = - 1
         secretTickTime = - 1
+        dungeonStartTime = 0L
     }
 
     @SubscribeEvent
@@ -103,7 +104,7 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
         if (goldorTickTime == 0) goldorTickTime = 60
         if (goldorTickTime >= 0) goldorTickTime --
 
-        if (deathTickTime == 0 && deathTickTimer.value) deathTickTime = 40
+        if (deathTickTime == 0 && deathTickTimer.value && (System.currentTimeMillis() - dungeonStartTime < 6000 || ! DungeonUtils.dungeonStarted)) deathTickTime = 40
         if (deathTickTime >= 0 && deathTickTimer.value) deathTickTime --
         if (secretTickTime == 0 && secretTickTimer.value && ! LocationUtils.inBoss) secretTickTime = 20
         if (secretTickTime >= 0 && secretTickTimer.value) secretTickTime --
@@ -137,13 +138,18 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
     fun onPacket(event: PacketEvent.Received) {
         if (! LocationUtils.inDungeon) return
         val packet = event.packet as? S03PacketTimeUpdate ?: return
-        val worldTime = packet.totalWorldTime
         if (System.currentTimeMillis() - dungeonStartTime < 6000 || ! DungeonUtils.dungeonStarted) {
-            deathTickTime = 40 - (worldTime % 40).toInt()
+            if (deathTickTimer.value) deathTickTime = 40 - (packet.totalWorldTime % 40).toInt()
         }
         else if (! LocationUtils.inBoss) {
-            secretTickTime = 20 - (worldTime % 20).toInt()
-            deathTickTime = - 1
+            if (secretTickTimer.value) {
+                secretTickTime = 20 - (packet.totalWorldTime % 20).toInt()
+                deathTickTime = - 1
+            }
+            else {
+                secretTickTime = - 1
+                deathTickTime = - 1
+            }
         }
     }
 
