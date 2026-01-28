@@ -8,6 +8,7 @@ import noammaddons.utils.DataDownloader
 
 /**
  * @see noammaddons.mixins.MixinFontRenderer
+ * @see noammaddons.mixins.MixinGuiUtilRenderComponents
  */
 @Dev
 object VisualWords: Feature("Replace some text with other text", toggled = true) {
