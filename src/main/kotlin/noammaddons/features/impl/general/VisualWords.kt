@@ -13,6 +13,9 @@ import noammaddons.utils.DataDownloader
 object VisualWords: Feature("Replace some text with other text", toggled = true) {
     private var wordsMap = DataDownloader.loadJson<Map<String, String>>("VisualWords.json")
 
+    @JvmField
+    var isSplittingChat = false
+
     @JvmStatic
     fun replaceText(text: String?): String? {
         if (! enabled) return text
