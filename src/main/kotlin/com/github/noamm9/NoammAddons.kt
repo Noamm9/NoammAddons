@@ -8,6 +8,7 @@ import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.ui.clickgui.ClickGuiScreen
 import com.github.noamm9.ui.hud.HudEditorScreen
 import com.github.noamm9.utils.*
+import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner.roomSize
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner.startX
@@ -115,7 +116,7 @@ object NoammAddons: ClientModInitializer {
                     )
                     .then(ClientCommandManager.literal("sim").then(ClientCommandManager.argument("message", StringArgumentType.greedyString())
                         .executes { context ->
-                            val msg = StringArgumentType.getString(context, "message")
+                            val msg = StringArgumentType.getString(context, "message").addColor()
                             if (msg.isBlank()) return@executes 0
 
                             ChatUtils.modMessage(msg)

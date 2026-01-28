@@ -5,6 +5,7 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.componnents.getValue
 import com.github.noamm9.ui.clickgui.componnents.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.componnents.provideDelegate
+import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.height
@@ -14,7 +15,7 @@ object PetDisplay: Feature("Pet Features") {
     private val petDisplay by ToggleSetting("Pet Display")
     private val autoPetTitles by ToggleSetting("Auto Pet Title")
 
-    private val chatPetRuleRegex = Regex("§cAutopet &eequipped your §7\\[Lvl .*] (?<pet>.*)§e! §a§lVIEW RULE")
+    private val chatPetRuleRegex = Regex("§cAutopet §eequipped your §7\\[Lvl .*] (?<pet>.*)§e! §a§lVIEW RULE")
     private val chatSpawnRegex = Regex("§aYou summoned your (?<pet>.*)§a!")
     private val chatDespawnRegex = Regex("§aYou despawned your .*§a!")
 
@@ -35,6 +36,7 @@ object PetDisplay: Feature("Pet Features") {
 
                 val match1 = chatSpawnRegex.find(it)?.destructured?.component1()
                 val match3 = chatPetRuleRegex.find(it)?.destructured?.component1()
+                if(match3 != null) ChatUtils.showTitle(match3)
                 cacheData.getData()["pet"] = match1 ?: match3 ?: return@let
             }
         }

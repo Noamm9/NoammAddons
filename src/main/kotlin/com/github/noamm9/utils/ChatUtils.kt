@@ -159,7 +159,7 @@ object ChatUtils {
 
         register<RenderOverlayEvent>(EventPriority.LOW) {
             if (time > 0) {
-                Render2D.drawCenteredString(event.context, title, mc.window.guiScaledWidth / 2f, mc.window.guiScaledHeight / 2f - 10f, scale = 2.5)
+                Render2D.drawCenteredString(event.context, title, mc.window.guiScaledWidth / 2f, mc.window.guiScaledHeight / 2f - 50f, scale = 2.5)
                 Render2D.drawCenteredString(event.context, subtitle, mc.window.guiScaledWidth / 2f, mc.window.guiScaledHeight / 2f + 20f, scale = 1.5)
             }
         }
