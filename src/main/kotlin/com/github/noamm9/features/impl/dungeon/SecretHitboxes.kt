@@ -22,7 +22,7 @@ object SecretHitboxes: Feature("Changes the hitboxes of secret blocks to be larg
     private val BlackListedLevers =
         listOf(
             BlockPos(61, 136, 142), BlockPos(60, 136, 142), BlockPos(59, 136, 142),
-            BlockPos(62, 135, 142), BlockPos(62, 135, 142), BlockPos(59, 135, 142), BlockPos(58, 135, 142),
+            BlockPos(62, 135, 142), BlockPos(61, 135, 142), BlockPos(59, 135, 142), BlockPos(58, 135, 142),
             BlockPos(62, 134, 142), BlockPos(61, 134, 142), BlockPos(59, 134, 142), BlockPos(58, 134, 142),
             BlockPos(61, 133, 142), BlockPos(60, 133, 142), BlockPos(59, 133, 142)
         )
