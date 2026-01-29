@@ -49,7 +49,7 @@ object PetDisplay: Feature("Pet Features") {
 
                 val match1 = chatSpawnRegex.find(it)?.destructured?.component1()
                 val match3 = chatPetRuleRegex.find(it)?.destructured?.component1()
-                if(match3 != null) ChatUtils.showTitle(match3)
+                if(match3 != null && autoPetTitles.value) ChatUtils.showTitle(match3)
                 cacheData.getData()["pet"] = match1 ?: match3 ?: return@let
             }
         }
