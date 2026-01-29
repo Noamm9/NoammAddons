@@ -5,6 +5,7 @@ import com.github.noamm9.ui.clickgui.componnents.getValue
 import com.github.noamm9.ui.clickgui.componnents.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.componnents.provideDelegate
 import com.github.noamm9.ui.clickgui.componnents.withDescription
+import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.level.block.ButtonBlock
 import net.minecraft.world.level.block.FaceAttachedHorizontalDirectionalBlock
@@ -17,6 +18,21 @@ object SecretHitboxes: Feature("Changes the hitboxes of secret blocks to be larg
 
     @JvmStatic
     val lever by ToggleSetting("Lever").withDescription("Full block Lever hitbox.")
+
+    private val BlackListedLevers =
+        listOf(
+            BlockPos(61, 136, 142), BlockPos(60, 136, 142), BlockPos(59, 136, 142),
+            BlockPos(62, 135, 142), BlockPos(62, 135, 142), BlockPos(59, 135, 142), BlockPos(58, 135, 142),
+            BlockPos(62, 134, 142), BlockPos(61, 134, 142), BlockPos(59, 134, 142), BlockPos(58, 134, 142),
+            BlockPos(61, 133, 142), BlockPos(60, 133, 142), BlockPos(59, 133, 142)
+        )
+    @JvmStatic
+    fun isValidLever(pos: BlockPos): Boolean {
+        for (blockPos in BlackListedLevers) {
+            if (blockPos == pos) return false
+        }
+        return true
+    }
 
     @JvmStatic
     val button by ToggleSetting("Button").withDescription("Full block button hitbox.")
