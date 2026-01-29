@@ -18,7 +18,7 @@ object NoItemPlace: Feature("Stops you from placing skull blocks/Items") {
         val id = item.skyblockId
 
         return when {
-            LocationUtils.F7Phase == 5 && WitherRelicRegex.matches(item.hoverName.unformattedText) -> true
+            LocationUtils.F7Phase == 5 && WitherRelicRegex.matches(item.item.name.unformattedText) -> true
 
             id.startsWithOneOf("ABIPHONE") -> true
 

@@ -1,5 +1,6 @@
 package com.github.noamm9.features.impl.dungeon.solvers.devices
 
+import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.impl.BlockChangeEvent
 import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
@@ -8,8 +9,11 @@ import com.github.noamm9.ui.clickgui.componnents.getValue
 import com.github.noamm9.ui.clickgui.componnents.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.componnents.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.componnents.provideDelegate
+import com.github.noamm9.ui.clickgui.componnents.section
 import com.github.noamm9.ui.clickgui.componnents.withDescription
+import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils
+import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.Utils.equalsOneOf
@@ -25,28 +29,34 @@ import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 object SimonSaysSolver: Feature() {
-    private val blockWrongClicks by ToggleSetting("Block Wrong Clicks").withDescription("Blocks wrong clicks. &eSneak to Override and stop blocking.")
+    private val blockWrongClicks by ToggleSetting("Block Wrong Clicks").withDescription("Blocks wrong clicks. &eSneak to Override and stop blocking.").section("Options")
+    private val sendReset by ToggleSetting("Send Reset Message").withDescription("Sends a reset message to the party when the solver breaks.")
 
-    private val color1 by ColorSetting("First Color", Color.GREEN).withDescription("Color of the first button.")
+    private val color1 by ColorSetting("First Color", Color.GREEN).withDescription("Color of the first button.").section("Colors")
     private val color2 by ColorSetting("Second Color", Color.YELLOW).withDescription("Color of the second button.")
     private val color3 by ColorSetting("Other Color", Color.RED).withDescription("Color of the rest of the buttons.")
 
     private val blocks = LinkedHashSet<BlockPos>()
-    private var buttonsPreviouslyExisted = false
+    private var hadButtons = false
 
     private val isSimonSaysActive get() = enabled && LocationUtils.F7Phase == 3
     private val startObsidianBlock = BlockPos(111, 120, 92)
-    private val buttonCheckPos = startObsidianBlock.add(- 1, 0, 0)
+    private val startButtonPos = startObsidianBlock.add(- 1, 0, 0)
     private val devStartBtn = BlockPos(110, 121, 91)
 
 
     override fun init() {
         register<BlockChangeEvent> {
             if (! isSimonSaysActive) return@register
-            val buttonsExist = WorldUtils.getBlockAt(buttonCheckPos) == Blocks.STONE_BUTTON
-            if (buttonsExist != buttonsPreviouslyExisted) {
-                buttonsPreviouslyExisted = buttonsExist
-                if (! buttonsExist) blocks.clear()
+            val buttonsExist = WorldUtils.getBlockAt(startButtonPos) == Blocks.STONE_BUTTON
+            if (buttonsExist != hadButtons) {
+                hadButtons = buttonsExist
+                if (! buttonsExist) {
+                    if (sendReset.value && blocks.isNotEmpty() && MathUtils.distance2D(startButtonPos, mc.player !!.blockPosition()) < 5) {
+                        ChatUtils.sendPartyMessage("SS BROKE!!! SS BROKE!!! SS BROKE!!! SS BROKE!!! SS BROKE!!! SS BROKE!!! SS BROKE!!!")
+                    }
+                    blocks.clear()
+                }
             }
 
             for (dy in 0 .. 3) {
@@ -56,6 +66,10 @@ object SimonSaysSolver: Feature() {
                         blocks.add(pos)
                     }
                 }
+            }
+
+            if (! blocks.isEmpty() && NoammAddons.debugFlags.contains("ss")) {
+                ChatUtils.modMessage("SimonSaysSolver: ${blocks.size}")
             }
         }
 

@@ -1,4 +1,4 @@
-package com.github.noamm9.utils.dungeons
+package com.github.noamm9.utils.dungeons.enums
 
 import com.github.noamm9.utils.Utils.equalsOneOf
 import com.github.noamm9.utils.dungeons.map.DungeonInfo

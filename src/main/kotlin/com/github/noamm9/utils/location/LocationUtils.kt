@@ -52,7 +52,7 @@ object LocationUtils {
     private val lobbyRegex = Regex("\\d\\d/\\d\\d/\\d\\d (\\w{0,6}) *")
 
     init {
-        EventBus.register<MainThreadPacketRecivedEvent.Post>(EventPriority.HIGHEST) {
+        EventBus.register<MainThreadPacketReceivedEvent.Post>(EventPriority.HIGHEST) {
             if (NoammAddons.debugFlags.contains("dev")) return@register setDevModeValues()
             if (! onHypixel) return@register
 

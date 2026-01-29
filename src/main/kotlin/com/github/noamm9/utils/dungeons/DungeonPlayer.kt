@@ -1,6 +1,7 @@
 package com.github.noamm9.utils.dungeons
 
 import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.utils.dungeons.enums.Classes
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.utils.MapUtils
 import net.minecraft.client.player.AbstractClientPlayer

@@ -77,12 +77,12 @@ open class Feature(
     fun hudElement(
         name: String,
         enabled: () -> Boolean = { true },
-        toggled: () -> Boolean = { true },
+        shouldDraw: () -> Boolean = { true },
         render: (GuiGraphics, Boolean) -> Pair<Float, Float>
     ): HudElement {
         return object: HudElement() {
             override val name = name
-            override val toggle: Boolean get() = this@Feature.enabled && toggled.invoke()
+            override val toggle: Boolean get() = this@Feature.enabled && shouldDraw.invoke()
             override val shouldDraw: Boolean get() = enabled.invoke()
             override fun draw(ctx: GuiGraphics, example: Boolean): Pair<Float, Float> = render(ctx, example)
         }.also(hudElements::add)

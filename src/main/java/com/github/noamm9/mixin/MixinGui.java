@@ -83,23 +83,13 @@ public abstract class MixinGui {
         DebugHUD.render(guiGraphics);
     }
 
-    @Inject(method = "render", at = @At(value = "HEAD"))
-    public void onRenderHudPre(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
-        if (DarkMode.INSTANCE.enabled && !DarkMode.INSTANCE.getRenderOverGUI().getValue()) guiGraphics.fill(
+    @Inject(method = "render", at = @At(value = "TAIL"))
+    public void onRenderHudPost(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+        if (DarkMode.INSTANCE.enabled) guiGraphics.fill(
             0, 0,
             minecraft.getWindow().getGuiScaledWidth(),
             minecraft.getWindow().getGuiScaledHeight(),
             ColorUtils.INSTANCE.withAlpha(Color.BLACK, DarkMode.getOpacity()).getRGB()
-        );
-    }
-
-    @Inject(method = "render", at = @At(value = "TAIL"))
-    public void onRenderHudPost(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
-        if (DarkMode.INSTANCE.enabled && DarkMode.INSTANCE.getRenderOverGUI().getValue()) guiGraphics.fill(
-                0, 0,
-                minecraft.getWindow().getGuiScaledWidth(),
-                minecraft.getWindow().getGuiScaledHeight(),
-                ColorUtils.INSTANCE.withAlpha(Color.BLACK, DarkMode.getOpacity()).getRGB()
         );
     }
 

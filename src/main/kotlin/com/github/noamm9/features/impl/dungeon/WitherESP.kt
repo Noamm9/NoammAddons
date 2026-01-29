@@ -1,7 +1,7 @@
 package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.event.impl.CheckEntityGlowEvent
-import com.github.noamm9.event.impl.MainThreadPacketRecivedEvent
+import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.componnents.getValue
@@ -33,7 +33,7 @@ object WitherESP: Feature("Highlights all Withers in F7") {
     override fun init() {
         register<WorldChangeEvent> { currentWither = null }
 
-        register<MainThreadPacketRecivedEvent.Post> {
+        register<MainThreadPacketReceivedEvent.Post> {
             if (! isValidLoc()) return@register
             when (val packet = event.packet) {
                 is ClientboundSetEntityDataPacket -> {

@@ -1,7 +1,7 @@
 package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.event.impl.DungeonEvent
-import com.github.noamm9.event.impl.MainThreadPacketRecivedEvent
+import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.componnents.*
@@ -97,7 +97,7 @@ object Secrets: Feature() {
     private var lastPlayed = System.currentTimeMillis()
 
     override fun init() {
-        register<MainThreadPacketRecivedEvent.Pre> {
+        register<MainThreadPacketReceivedEvent.Pre> {
             if (! closeChest.value) return@register
             if (! LocationUtils.inDungeon) return@register
             val packet = event.packet as? ClientboundOpenScreenPacket ?: return@register

@@ -3,7 +3,7 @@ package com.github.noamm9.utils
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.EventPriority
-import com.github.noamm9.event.impl.MainThreadPacketRecivedEvent
+import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.Utils.remove
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
@@ -38,7 +38,7 @@ object ActionBarParser {
     var maxSecrets: Int? = 0
 
     fun init() {
-        register<MainThreadPacketRecivedEvent.Post>(EventPriority.HIGHEST) {
+        register<MainThreadPacketReceivedEvent.Post>(EventPriority.HIGHEST) {
             if (! LocationUtils.inSkyblock) return@register
             if (event.packet is ClientboundSystemChatPacket) {
                 if (event.packet.overlay()) {

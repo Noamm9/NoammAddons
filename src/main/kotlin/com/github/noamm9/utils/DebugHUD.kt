@@ -1,9 +1,9 @@
 package com.github.noamm9.utils
 
 import com.github.noamm9.NoammAddons
-import com.github.noamm9.utils.dungeons.Blessing
 import com.github.noamm9.utils.dungeons.DungeonListener
-import com.github.noamm9.utils.dungeons.Puzzle
+import com.github.noamm9.utils.dungeons.enums.Blessing
+import com.github.noamm9.utils.dungeons.enums.Puzzle
 import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D

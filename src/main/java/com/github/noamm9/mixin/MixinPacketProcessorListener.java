@@ -1,7 +1,7 @@
 package com.github.noamm9.mixin;
 
 import com.github.noamm9.event.EventBus;
-import com.github.noamm9.event.impl.MainThreadPacketRecivedEvent;
+import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent;
 import net.minecraft.network.protocol.Packet;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,7 +20,7 @@ public class MixinPacketProcessorListener {
         cancellable = true
     )
     private void onPreHandle(CallbackInfo ci) {
-        if (EventBus.post(new MainThreadPacketRecivedEvent.Pre(this.packet))) {
+        if (EventBus.post(new MainThreadPacketReceivedEvent.Pre(this.packet))) {
             ci.cancel();
         }
     }
@@ -30,6 +30,6 @@ public class MixinPacketProcessorListener {
         at = @At(value = "INVOKE", target = "Lnet/minecraft/network/protocol/Packet;handle(Lnet/minecraft/network/PacketListener;)V", shift = At.Shift.AFTER)
     )
     private void onPostHandle(CallbackInfo ci) {
-        EventBus.post(new MainThreadPacketRecivedEvent.Post(this.packet));
+        EventBus.post(new MainThreadPacketReceivedEvent.Post(this.packet));
     }
 }

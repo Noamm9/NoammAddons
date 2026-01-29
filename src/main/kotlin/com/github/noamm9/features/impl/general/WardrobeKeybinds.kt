@@ -1,7 +1,7 @@
 package com.github.noamm9.features.impl.general
 
 import com.github.noamm9.event.impl.ContainerEvent
-import com.github.noamm9.event.impl.MainThreadPacketRecivedEvent
+import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.IKeyMapping
@@ -45,7 +45,7 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
     }
 
     override fun init() {
-        register<MainThreadPacketRecivedEvent.Pre> {
+        register<MainThreadPacketReceivedEvent.Pre> {
             if (event.packet is ClientboundOpenScreenPacket) {
                 inWardrobeMenu = event.packet.title.unformattedText.matches(wardrobeMenuRegex)
             }

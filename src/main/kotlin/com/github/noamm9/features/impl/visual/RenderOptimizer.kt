@@ -1,7 +1,7 @@
 package com.github.noamm9.features.impl.visual
 
 import com.github.noamm9.event.impl.EntityCheckRenderEvent
-import com.github.noamm9.event.impl.MainThreadPacketRecivedEvent
+import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.componnents.getValue
 import com.github.noamm9.ui.clickgui.componnents.impl.ToggleSetting
@@ -46,7 +46,7 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless shit.") {
     )
 
     override fun init() {
-        register<MainThreadPacketRecivedEvent.Pre> {
+        register<MainThreadPacketReceivedEvent.Pre> {
             if (! LocationUtils.inSkyblock) return@register
             if (event.packet is ClientboundSetEntityDataPacket) {
                 if (event.packet.id == mc.player?.id) return@register

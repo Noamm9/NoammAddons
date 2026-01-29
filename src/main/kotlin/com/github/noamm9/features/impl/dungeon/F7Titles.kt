@@ -55,7 +55,7 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
             }
         }
 
-        register<MainThreadPacketRecivedEvent.Pre> {
+        register<MainThreadPacketReceivedEvent.Pre> {
             if (dungeonFloorNumber != 7 || ! inBoss) return@register
 
             when (val packet = event.packet) {

@@ -1,6 +1,6 @@
 package com.github.noamm9.features.impl.visual
 
-import com.github.noamm9.event.impl.MainThreadPacketRecivedEvent
+import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.componnents.getValue
 import com.github.noamm9.ui.clickgui.componnents.impl.ToggleSetting
@@ -27,9 +27,9 @@ object DamageSplash: Feature("Reformat Skyblock's Damage Indicators.") {
 
     @Suppress("UNCHECKED_CAST")
     override fun init() {
-        register<MainThreadPacketRecivedEvent.Pre> {
-            if (event.packet !is ClientboundSetEntityDataPacket) return@register
+        register<MainThreadPacketReceivedEvent.Pre> {
             if (! LocationUtils.inSkyblock) return@register
+            if (event.packet !is ClientboundSetEntityDataPacket) return@register
             val entity = mc.level?.getEntity(event.packet.id) as? ArmorStand ?: return@register
             for (entry in event.packet.packedItems) {
                 val value = entry.value() as? Optional<Component> ?: continue
@@ -37,8 +37,7 @@ object DamageSplash: Feature("Reformat Skyblock's Damage Indicators.") {
                 val rawText = content.formattedText.takeIf { it.contains("§") } ?: continue
                 val damageNum = damageRegex.matchEntire(rawText.removeFormatting())?.destructured?.component1() ?: continue
 
-                if ((LocationUtils.inBoss && disableinBoss.value) ||
-                    (LocationUtils.inDungeon && ! LocationUtils.inBoss && disableinClear.value)) {
+                if ((LocationUtils.inBoss && disableinBoss.value) || (LocationUtils.inDungeon && ! LocationUtils.inBoss && disableinClear.value)) {
                     entity.remove(Entity.RemovalReason.DISCARDED)
                     event.isCanceled = true
                     return@register

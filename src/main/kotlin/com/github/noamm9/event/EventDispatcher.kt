@@ -18,24 +18,16 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents
 import net.minecraft.core.BlockPos
-import net.minecraft.network.chat.Component
 import net.minecraft.network.protocol.common.ClientboundPingPacket
-import net.minecraft.network.protocol.game.*
+import net.minecraft.network.protocol.game.ClientboundSoundPacket
+import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
+import net.minecraft.network.protocol.game.ClientboundTakeItemEntityPacket
+import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.entity.item.ItemEntity
-import net.minecraft.world.inventory.MenuType
-import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.Blocks
 
 object EventDispatcher {
-    private var invWindowId: Int = - 1
-    private var invTitle: Component? = null
-    private var invSlotCount: Int = 0
-    private val invItems = mutableMapOf<Int, ItemStack>()
-    private var invAccept = false
-    private var invFired = false
-
-
     fun init() {
         WorldRenderEvents.END_MAIN.register { context ->
             EventBus.post(RenderWorldEvent(RenderContext.fromContext(context)))
@@ -95,37 +87,6 @@ object EventDispatcher {
                     DungeonEvent.SecretEvent(DungeonEvent.SecretEvent.SecretType.ITEM, entity.blockPosition())
                 )
             }
-            else if (event.packet is ClientboundContainerClosePacket) {
-                if (event.packet.containerId == invWindowId) resetInventoryState()
-            }
-            else if (event.packet is ClientboundOpenScreenPacket) {
-                resetInventoryState()
-                invAccept = true
-                invWindowId = event.packet.containerId
-                invTitle = event.packet.title
-                invSlotCount = getSlotCount(event.packet.type)
-            }
-            else if (event.packet is ClientboundContainerSetContentPacket) {
-                if (event.packet.containerId == invWindowId) {
-                    event.packet.items.forEachIndexed { index, stack ->
-                        if (index < invSlotCount && ! stack.isEmpty) {
-                            invItems[index] = stack
-                        }
-                    }
-                    finishInventoryLoading()
-                }
-            }
-            else if (event.packet is ClientboundContainerSetSlotPacket) {
-                if (invAccept && event.packet.containerId == invWindowId) {
-                    val slot = event.packet.slot
-                    if (slot < invSlotCount) {
-                        if (! event.packet.item.isEmpty) invItems[slot] = event.packet.item
-                    }
-                    else finishInventoryLoading()
-
-                    if (invItems.size >= invSlotCount) finishInventoryLoading()
-                }
-            }
         }
 
         register<PacketEvent.Sent> {
@@ -156,47 +117,6 @@ object EventDispatcher {
             it.highestBlock = ScanUtils.getHighestY(it.mainRoom.x, it.mainRoom.z)
             it.findRotation()
             EventBus.post(DungeonEvent.RoomEvent.onEnter(it))
-        }
-    }
-
-
-    private fun resetInventoryState() {
-        invWindowId = - 1
-        invTitle = null
-        invSlotCount = 0
-        invItems.clear()
-        invAccept = false
-        invFired = false
-    }
-
-    private fun finishInventoryLoading() {
-        if (! invAccept) return
-        invAccept = false
-
-        // Capture state
-        val winId = invWindowId
-        val slotCount = invSlotCount
-        val title = invTitle ?: return
-        val items = HashMap(invItems)
-
-        if (invFired) return
-        if (invWindowId != winId) return
-
-        invFired = true
-        EventBus.post(InventoryFullyOpenedEvent(title, winId, slotCount, items))
-    }
-
-    private fun getSlotCount(type: MenuType<*>): Int {
-        return when (type) {
-            MenuType.GENERIC_9x1 -> 9
-            MenuType.GENERIC_9x2 -> 18
-            MenuType.GENERIC_9x3 -> 27
-            MenuType.GENERIC_9x4 -> 36
-            MenuType.GENERIC_9x5 -> 45
-            MenuType.GENERIC_9x6 -> 54
-            MenuType.GENERIC_3x3 -> 9
-            MenuType.HOPPER -> 5
-            else -> 0
         }
     }
 }

@@ -55,7 +55,7 @@ object DungeonMap: Feature() {
             }
         }
 
-        register<MainThreadPacketRecivedEvent.Post> {
+        register<MainThreadPacketReceivedEvent.Post> {
             if (! LocationUtils.inDungeon) return@register
             ScoreCalculation.onPacket(event.packet)
             val packet = event.packet as? ClientboundMapItemDataPacket ?: return@register
@@ -77,6 +77,7 @@ object DungeonMap: Feature() {
             MapUtils.reset()
             MapUpdater.onPlayerDeath()
             ScoreCalculation.reset()
+            DungeonInfo.mimicRoom = null
         }
 
         register<RenderWorldEvent> {

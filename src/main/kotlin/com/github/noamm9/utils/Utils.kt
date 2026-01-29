@@ -29,6 +29,7 @@ object Utils {
 
     fun String.startsWithOneOf(vararg prefixes: String): Boolean = prefixes.any { startsWith(it) }
     fun String.endsWithOneOf(vararg suffixes: String): Boolean = suffixes.any { endsWith(it) }
+
     fun String.spaceCaps(): String {
         return this
             .replace(Regex("(?<=[a-z])(?=[A-Z])"), " ")

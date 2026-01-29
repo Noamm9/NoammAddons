@@ -1,6 +1,6 @@
 package com.github.noamm9.features.impl.dungeon
 
-import com.github.noamm9.event.impl.MainThreadPacketRecivedEvent
+import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
@@ -40,7 +40,7 @@ object DoorKeys: Feature("ESP box & Tracer for wither doors and blood door") {
     override fun init() {
         register<WorldChangeEvent> { doorKey = null }
 
-        register<MainThreadPacketRecivedEvent.Post> {
+        register<MainThreadPacketReceivedEvent.Post> {
             val packet = event.packet as? ClientboundSetEquipmentPacket ?: return@register
             if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
             val entity = mc.level?.getEntity(packet.entity) as? ArmorStand ?: return@register

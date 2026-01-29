@@ -6,7 +6,7 @@ import com.github.noamm9.features.impl.dungeon.map.MapConfig
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.Utils.equalsOneOf
-import com.github.noamm9.utils.dungeons.Classes
+import com.github.noamm9.utils.dungeons.enums.Classes
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.DungeonPlayer
 import com.github.noamm9.utils.dungeons.map.core.RoomData

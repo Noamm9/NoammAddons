@@ -1,7 +1,7 @@
 package com.github.noamm9.features.impl.misc
 
 import com.github.noamm9.event.EventPriority
-import com.github.noamm9.event.impl.MainThreadPacketRecivedEvent
+import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.componnents.getValue
 import com.github.noamm9.ui.clickgui.componnents.impl.DropdownSetting
@@ -14,7 +14,7 @@ object TimeChanger: Feature("Changes the world time") {
     private val TIME_VALUES = longArrayOf(1000L, 6000L, 12000L, 13000L, 18000L, 23000L)
 
     override fun init() {
-        register<MainThreadPacketRecivedEvent.Pre>(EventPriority.LOW) {
+        register<MainThreadPacketReceivedEvent.Pre>(EventPriority.LOW) {
             if (event.packet !is ClientboundSetTimePacket) return@register
             val customTime = TIME_VALUES.getOrElse(timeChangerMode.value) { getTickTime() }
             mc.level?.setTimeFromServer(mc.level !!.gameTime, customTime, false)

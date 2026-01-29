@@ -41,7 +41,7 @@ object FEAT_ItemRarity: Feature(name = "Item Rarity", description = "Draws the r
             1 -> Render2D.drawBorder(ctx, x, y, 16, 16, color)
             2 -> {
                 ctx.fill(x, y, x + 16, y + 16, color.rgb)
-                Render2D.drawBorder(ctx, x, y, 16, 16, color)
+                Render2D.drawBorder(ctx, x, y, 16, 16, rarity.color)
             }
         }
     }

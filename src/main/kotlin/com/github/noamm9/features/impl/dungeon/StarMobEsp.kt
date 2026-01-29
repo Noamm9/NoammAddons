@@ -2,7 +2,7 @@ package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.event.impl.CheckEntityGlowEvent
 import com.github.noamm9.event.impl.EntityDeathEvent
-import com.github.noamm9.event.impl.MainThreadPacketRecivedEvent
+import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.componnents.*
@@ -40,7 +40,7 @@ object StarMobEsp: Feature("Hightlights all starred mobs in a dungeon.") {
 
 
     override fun init() {
-        register<MainThreadPacketRecivedEvent.Post> {
+        register<MainThreadPacketReceivedEvent.Post> {
             if (! LocationUtils.inDungeon || inBoss) return@register
             if (event.packet !is ClientboundSetEntityDataPacket) return@register
             val entity = mc.level?.getEntity(event.packet.id) ?: return@register

@@ -1,4 +1,4 @@
-package com.github.noamm9.utils.dungeons
+package com.github.noamm9.utils.dungeons.enums
 
 enum class Blessing(
     val displayString: String,

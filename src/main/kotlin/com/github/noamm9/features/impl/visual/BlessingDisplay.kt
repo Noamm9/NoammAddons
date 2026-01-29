@@ -9,7 +9,7 @@ import com.github.noamm9.ui.clickgui.componnents.section
 import com.github.noamm9.ui.clickgui.componnents.showIf
 import com.github.noamm9.ui.hud.getValue
 import com.github.noamm9.ui.hud.provideDelegate
-import com.github.noamm9.utils.dungeons.Blessing
+import com.github.noamm9.utils.dungeons.enums.Blessing
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
 import net.minecraft.ChatFormatting

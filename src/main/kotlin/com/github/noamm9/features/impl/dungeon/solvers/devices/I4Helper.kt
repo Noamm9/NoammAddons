@@ -70,27 +70,29 @@ object I4Helper: Feature(name = "I4 Helper") {
             onComplete()
         }
 
-        register<MainThreadPacketRecivedEvent.Post> {
+        register<MainThreadPacketReceivedEvent.Post> {
             if (LocationUtils.P3Section != 4) return@register
             val packet = event.packet as? ClientboundSetEntityDataPacket ?: return@register
             if (mc.level?.getEntity(packet.id)?.name?.string == "Active") onComplete()
         }
 
-        register<WorldChangeEvent> { reset() }
+        register<WorldChangeEvent> {
+            reset()
+            alerted = false
+        }
     }
 
     private fun reset() {
         doneCoords.clear()
         target = null
         prediction = null
-        alerted = false
     }
 
     private fun onComplete() {
         if (alerted) return
         alerted = true
         val remaining = devBlocks.size - doneCoords.size
-        ChatUtils.showTitle("&aCompleted Device!", "&ePredicted: $remaining/9")
+        ChatUtils.showTitle("&aCompleted Device!", if (remaining < 9) "&ePredicted: $remaining/9" else "")
     }
 
     fun getPredictionTarget(lastHitPos: BlockPos, doneCoords: Collection<BlockPos>): BlockPos? {
