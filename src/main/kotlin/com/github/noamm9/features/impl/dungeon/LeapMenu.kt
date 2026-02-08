@@ -5,6 +5,7 @@ import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.EntityCheckRenderEvent
 import com.github.noamm9.event.impl.ScreenEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.features.impl.general.AutoSprint
 import com.github.noamm9.ui.clickgui.componnents.*
 import com.github.noamm9.ui.clickgui.componnents.impl.*
 import com.github.noamm9.ui.utils.Resolution
@@ -14,6 +15,7 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.MathUtils
+import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.DungeonPlayer
 import com.github.noamm9.utils.location.LocationUtils
@@ -50,6 +52,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
         .withDescription("Hides players for a certain amount of time after you leap")
     private val hideTime by SliderSetting("Hide Time", 3.5, 0.5, 5.0, 0.1).showIf { hideAfterLeap.value }
 
+    private val movementFix by ToggleSetting("Movement Fix").withDescription("Stops you from sprinting shorty after leaping to prevent a lagback")
 
     data class LeapMenuPlayer(val slotIndex: Int, val player: DungeonPlayer)
 
@@ -69,6 +72,15 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
 
                 if (hideAfterLeap.value) {
                     shouldHide = System.currentTimeMillis() + ((hideTime.value * 1000L).toLong())
+                }
+
+                if(movementFix.value) {
+                    if(AutoSprint.enabled) AutoSprint.toggle()
+                    mc.options.keySprint.isDown = false
+                    ThreadUtils.scheduledTask(4) {
+                        mc.options.keySprint.isDown = true
+                        if(!AutoSprint.enabled) AutoSprint.toggle()
+                    }
                 }
             }
         }

@@ -3,16 +3,20 @@ package com.github.noamm9.features.impl.dungeon
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
+import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.componnents.*
 import com.github.noamm9.ui.clickgui.componnents.impl.*
 import com.github.noamm9.ui.hud.getValue
 import com.github.noamm9.ui.hud.provideDelegate
 import com.github.noamm9.utils.ActionBarParser
+import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.colorCodeByPresent
 import com.github.noamm9.utils.ColorUtils.withAlpha
+import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.Utils
+import com.github.noamm9.utils.Utils.containsOneOf
 import com.github.noamm9.utils.Utils.equalsOneOf
 import com.github.noamm9.utils.dungeons.enums.SecretType
 import com.github.noamm9.utils.location.LocationUtils
@@ -25,6 +29,8 @@ import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.sounds.SoundEvents
+import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.HitResult
 import java.util.concurrent.CopyOnWriteArraySet
 
 object Secrets: Feature() {
@@ -87,10 +93,14 @@ object Secrets: Feature() {
         return@hudElement line.width().toFloat() to 9f
     }
 
+    private val secretTriggerBot by ToggleSetting("Secret Triggerbot").section("Extras").withDescription("Clicks when hoving a secret with every 0.6s")
+
     private data class ClickedSecret(val pos: BlockPos, val time: Long)
 
     private val clicked = CopyOnWriteArraySet<ClickedSecret>()
     private var lastPlayed = System.currentTimeMillis()
+
+    private var lastClick = System.currentTimeMillis()
 
     override fun init() {
         register<MainThreadPacketReceivedEvent.Pre> {
@@ -127,6 +137,23 @@ object Secrets: Feature() {
             if (secretClicked.value) {
                 if (clicked.any { it.pos == event.pos }) return@register
                 clicked.add(ClickedSecret(event.pos, System.currentTimeMillis()))
+            }
+        }
+
+        register<TickEvent.Start> {
+            if (!secretTriggerBot.value) return@register
+            if(System.currentTimeMillis() - lastClick < 600) return@register
+            if(mc.screen != null) return@register
+            val hoveredResult = mc.hitResult ?: return@register
+
+            if (hoveredResult.type == HitResult.Type.BLOCK) {
+                val blockHit = hoveredResult as BlockHitResult
+                val pos = blockHit.blockPos
+                val blockState = mc.level?.getBlockState(pos) ?: return@register
+                if(blockState.block.name.unformattedText.containsOneOf("Chest", "Lever")) {
+                    lastClick = System.currentTimeMillis()
+                    PlayerUtils.rightClick()
+                }
             }
         }
     }
