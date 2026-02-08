@@ -32,6 +32,7 @@ object AbilityKeybinds: Feature("Allows you do use your dungeon class ult/abilit
 
             if (classAbility.value && abilityKeybind.isPressed()) {
                 event.isCanceled = true
+                mc.player?.eyeHeight
                 return@register useDungeonClassAbility(false)
             }
         }

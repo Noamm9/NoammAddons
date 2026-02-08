@@ -10,6 +10,8 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.OptionInstance;
+import net.minecraft.client.Options;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -63,5 +65,19 @@ public class MixinGameRenderer {
         }
 
         original.call(instance, guiGraphics, i, j, f);
+    }
+
+    @WrapOperation(method = "getFov", at = @At(value = "INVOKE", target = "Ljava/lang/Integer;intValue()I"))
+    private int onFOVChange(Integer instance, Operation<Integer> original) {
+        if(!Camera.INSTANCE.enabled) return original.call(instance);
+        if (!Camera.getCustomFOV().getValue()) return original.call(instance);
+        return Camera.getCustomFOVSlider().getValue();
+    }
+
+    @WrapOperation(method = "getProjectionMatrixForCulling", at = @At(value = "INVOKE", target = "Ljava/lang/Integer;intValue()I"))
+    private int onFOVChange2(Integer instance, Operation<Integer> original) {
+        if(!Camera.INSTANCE.enabled) return original.call(instance);
+        if (!Camera.getCustomFOV().getValue()) return original.call(instance);
+        return Camera.getCustomFOVSlider().getValue();
     }
 }

@@ -1,5 +1,6 @@
 package com.github.noamm9.features.impl.tweaks
 
+import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.componnents.*
 import com.github.noamm9.ui.clickgui.componnents.impl.SliderSetting
@@ -46,4 +47,10 @@ object Camera: Feature() {
 
     @JvmStatic
     val isFullBright get() = enabled && fullBright.value
+
+    @JvmStatic
+    val customFOV by ToggleSetting("Custom FOV").section("Custom FOV")
+
+    @JvmStatic
+    val customFOVSlider by SliderSetting("Custom FOV", 70, 30, 200, 5).hideIf { !customFOV.value }
 }
