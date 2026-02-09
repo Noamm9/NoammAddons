@@ -64,6 +64,16 @@ object EventDispatcher {
 
         ClientEntityEvents.ENTITY_UNLOAD.register { entity, _ ->
             EventBus.post(EntityDeathEvent(entity))
+
+            // for items that are in the personal deletor
+            if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
+            val entity = entity as? ItemEntity ?: return@register
+            if (entity.item.hoverName.unformattedText !in DungeonUtils.dungeonItemDrops) return@register
+            if (mc.player !!.distanceTo(entity) > 6) return@register
+
+            EventBus.post(
+                DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition())
+            )
         }
 
 

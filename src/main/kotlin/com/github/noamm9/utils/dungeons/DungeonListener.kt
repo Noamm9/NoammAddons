@@ -210,26 +210,30 @@ object DungeonListener {
     }
 
     private fun updateDungeonTeammates(tabName: String) {
-        if (NoammAddons.debugFlags.contains("dev")) {
-            listOf(
-                DungeonPlayer("Noamm", DungeonClass.Mage, 50, isDead = false),
-                DungeonPlayer("Noamm9", DungeonClass.Archer, 50, isDead = false),
-                DungeonPlayer("NoammALT", DungeonClass.Healer, 50, isDead = true),
-                DungeonPlayer("NoamIsSad", DungeonClass.Tank, 50, isDead = false),
-            ).let { list ->
-                dungeonTeammates.clear()
-                dungeonTeammates.addAll(list)
+        if (NoammAddons.debugFlags.contains("dev")) listOf(
+            DungeonPlayer("Noamm", DungeonClass.Mage, 50, isDead = false),
+            DungeonPlayer("Noamm9", DungeonClass.Archer, 50, isDead = false),
+            DungeonPlayer("NoammALT", DungeonClass.Healer, 50, isDead = true),
+            DungeonPlayer("NoamIsSad", DungeonClass.Tank, 50, isDead = false),
+        ).let { list ->
+            dungeonTeammates.clear()
+            dungeonTeammates.addAll(list)
 
-                thePlayer = dungeonTeammates.find { it.name == mc.user.name }
-                dungeonTeammatesNoSelf = dungeonTeammates.filterNot { it == thePlayer }
-                leapTeammates = dungeonTeammatesNoSelf.sortedBy { it.clazz }
-
-                dungeonTeammates.onEach { teammate ->
-                    teammate.entity = mc.level?.players()?.find { it.name.string == teammate.name } ?: teammate.entity
-                }
-
-                return
+            thePlayer = dungeonTeammates.find { it.name == mc.user.name }
+            dungeonTeammatesNoSelf = dungeonTeammates.filterNot { it == thePlayer }
+            leapTeammates = when (LeapMenu.sorting.value) {
+                0 -> dungeonTeammatesNoSelf.sortedWith(compareBy({ it.clazz.ordinal }, { it.name }))
+                1 -> dungeonTeammatesNoSelf.sortedBy { it.name }
+                2 -> odinSorting(dungeonTeammatesNoSelf.sortedBy { it.clazz.priority }).toList()
+                3 -> dungeonTeammatesNoSelf.sortedBy { LeapMenu.customLeapOrder.indexOf(it.name.lowercase()).takeUnless { i -> i == - 1 } ?: Int.MAX_VALUE }
+                else -> dungeonTeammatesNoSelf
             }
+
+            dungeonTeammates.onEach { teammate ->
+                teammate.entity = mc.level?.players()?.find { it.name.string == teammate.name } ?: teammate.entity
+            }
+
+            return
         }
 
         var (_, name, clazz, clazzLevel) = tablistRegex.find(tabName.removeFormatting())?.destructured ?: return
@@ -265,8 +269,6 @@ object DungeonListener {
             3 -> dungeonTeammatesNoSelf.sortedBy { LeapMenu.customLeapOrder.indexOf(it.name.lowercase()).takeIf { index -> index != - 1 } ?: Int.MAX_VALUE }
             else -> dungeonTeammatesNoSelf
         }
-
-        leapTeammates = dungeonTeammatesNoSelf.sortedBy { it.clazz }
 
         dungeonTeammates.onEach { teammate ->
             teammate.entity = mc.level?.players()?.find { it.name.string == teammate.name } ?: teammate.entity

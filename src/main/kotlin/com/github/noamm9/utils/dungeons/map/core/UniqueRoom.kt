@@ -114,8 +114,8 @@ class UniqueRoom(arrX: Int, arrY: Int, room: Room) {
         for (tile in tiles) {
             for (i in DungeonScanner.clayBlocksCorners.indices) {
                 val offset = DungeonScanner.clayBlocksCorners[i]
-                val tx = tile.x + offset.first.toInt()
-                val tz = tile.z + offset.second.toInt()
+                val tx = tile.x + offset.first
+                val tz = tile.z + offset.second
 
                 mutablePos.set(tx, y, tz)
                 if (level.getBlockState(mutablePos).block == Blocks.BLUE_TERRACOTTA) {

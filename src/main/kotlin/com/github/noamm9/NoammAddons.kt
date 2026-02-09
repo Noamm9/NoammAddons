@@ -10,10 +10,12 @@ import com.github.noamm9.utils.*
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.network.WebUtils
 import com.github.noamm9.utils.network.data.ElectionData
+import com.github.noamm9.utils.render.RoundedRect
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import net.fabricmc.api.ClientModInitializer
+import net.fabricmc.fabric.api.client.rendering.v1.SpecialGuiElementRegistry
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screens.Screen
 import org.slf4j.LoggerFactory
@@ -51,6 +53,8 @@ object NoammAddons: ClientModInitializer {
 
         FeatureManager.registerFeatures()
         CommandManager.registerAll()
+
+        SpecialGuiElementRegistry.register { buffer -> RoundedRect(buffer.vertexConsumers()) }
 
         EventBus.register<TickEvent.Start> {
             mc.execute {

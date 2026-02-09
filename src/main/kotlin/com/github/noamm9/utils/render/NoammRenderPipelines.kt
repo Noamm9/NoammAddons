@@ -1,8 +1,10 @@
 package com.github.noamm9.utils.render
 
 import com.github.noamm9.NoammAddons
+import com.mojang.blaze3d.pipeline.BlendFunction
 import com.mojang.blaze3d.pipeline.RenderPipeline
 import com.mojang.blaze3d.platform.DepthTestFunction
+import com.mojang.blaze3d.shaders.UniformType
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import com.mojang.blaze3d.vertex.VertexFormat
 import net.minecraft.client.renderer.RenderPipelines
@@ -23,17 +25,17 @@ object NoammRenderPipelines {
             .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
             .build()
     )
-    /*
-        val ROUND_RECT: RenderPipeline = RenderPipelines.register(
-            RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)
-                .withLocation(id("round_rect"))
-                .withFragmentShader(id("round_rect"))
-                .withVertexShader(id("round_rect"))
-                .withBlend(BlendFunction.TRANSLUCENT)
-                .withUniform("u", UniformType.UNIFORM_BUFFER)
-                .withVertexFormat(DefaultVertexFormat.POSITION, VertexFormat.Mode.QUADS)
-                .build()
-        )*/
+
+    val ROUND_RECT: RenderPipeline = RenderPipelines.register(
+        RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
+            .withLocation(ResourceLocation.fromNamespaceAndPath(NoammAddons.MOD_ID, "pipeline/round_rect"))
+            .withVertexShader(ResourceLocation.fromNamespaceAndPath(NoammAddons.MOD_ID, "core/round_rect"))
+            .withFragmentShader(ResourceLocation.fromNamespaceAndPath(NoammAddons.MOD_ID, "core/round_rect"))
+            .withBlend(BlendFunction.TRANSLUCENT)
+            .withUniform("u", UniformType.UNIFORM_BUFFER)
+            .withVertexFormat(DefaultVertexFormat.POSITION, VertexFormat.Mode.QUADS)
+            .build()
+    )
 
     private fun id(path: String) = ResourceLocation.fromNamespaceAndPath(NoammAddons.MOD_ID, path)
 }

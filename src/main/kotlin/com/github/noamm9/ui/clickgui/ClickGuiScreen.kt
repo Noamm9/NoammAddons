@@ -76,7 +76,7 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
         val viewportHeight = 195f
         val maxScroll = if (totalContentHeight > viewportHeight) totalContentHeight - viewportHeight else 0f
 
-        context.enableScissor(x.toInt(), (y + 30).toInt(), (x + menuWidth).toInt(), (y + 30 + 195).toInt())
+        context.enableScissor(x.toInt(), (y + 30).toInt(), (x + menuWidth).toInt(), (y + 30 + 210).toInt())
 
         scrollAnim.update(scrollTarget)
         var sY = y + 40 + scrollAnim.value
@@ -114,8 +114,6 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
 
         if (scrollTarget > 0) scrollTarget = 0f
         if (scrollTarget < - maxScroll) scrollTarget = - maxScroll
-
-        Render2D.drawCenteredString(context, "§7Click outside to close", Resolution.width / 2, y + 235)
     }
 
     private fun drawSearchBar(context: GuiGraphics, mX: Float, mY: Float) {

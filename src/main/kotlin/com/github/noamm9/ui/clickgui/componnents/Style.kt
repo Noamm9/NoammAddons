@@ -17,7 +17,6 @@ object Style {
     val accentColor get() = ClickGui.accsentColor.value
     val accentColorTrans get() = accentColor.withAlpha(120)
     val bg = Color(10, 10, 10, 100)
-    val textDim = Color(160, 160, 160)
 
     fun drawBackground(ctx: GuiGraphics, x: Number, y: Number, w: Number, h: Number) {
         Render2D.drawRect(ctx, x, y, w, h, bg)
@@ -45,7 +44,7 @@ object Style {
     }
 
     fun playClickSound(pitch: Float) {
-        if (!ClickGui.playClickSound.value) return
+        if (! ClickGui.playClickSound.value) return
         mc.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, pitch))
     }
 }

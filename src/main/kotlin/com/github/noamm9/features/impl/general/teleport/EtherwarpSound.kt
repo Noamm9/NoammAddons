@@ -23,7 +23,7 @@ import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.level.block.Blocks
 
 object EtherwarpSound: Feature() {
-    private val zeroPingSound by ToggleSetting("Zero-Ping Sound")
+    private val zeroPingSound by ToggleSetting("Zero-Ping Sound").withDescription("plays the Etherwarp Sound Client-side instead of waiting for the server to send the sound packet")
     private val sound by SoundSetting("Sound", SoundEvents.EXPERIENCE_ORB_PICKUP).withDescription("The internal Minecraft sound key to play.")
     private val volume by SliderSetting("Volume", 0.5f, 0f, 1f, 0.1f).withDescription("The loudness of the sound.")
     private val pitch by SliderSetting("Pitch", 1f, 0f, 2f, 0.1f).withDescription("The pitch/frequency of the sound.")
@@ -51,7 +51,7 @@ object EtherwarpSound: Feature() {
             if (! zeroPingSound.value) return@register
             if (event.packet !is ServerboundUseItemPacket) return@register
             val player = mc.player ?: return@register
-            if (! player.isCrouching) return@register
+            if (! mc.options.keyShift.isDown) return@register
             if (LocationUtils.F7Phase == 3 && LocationUtils.inBoss) return@register
             if (ScanUtils.currentRoom?.data?.name.equalsOneOf("New Trap", "Old Trap", "Teleport Maze", "Boulder")) return@register
             PlayerUtils.getSelectionBlock()?.let { if (WorldUtils.getBlockAt(it) in interactable) return@register }

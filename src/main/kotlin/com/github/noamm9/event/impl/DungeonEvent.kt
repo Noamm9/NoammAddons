@@ -17,7 +17,6 @@ abstract class DungeonEvent: Event(false) {
 
     class SecretEvent(val type: SecretType, val pos: BlockPos): DungeonEvent()
 
-
     class PlayerDeathEvent(val name: String, val reason: String): DungeonEvent()
 
     class Score(val score: Int): DungeonEvent()

@@ -81,11 +81,10 @@ object LocationUtils {
         }
 
         EventBus.register<TickEvent.Start>(EventPriority.HIGHEST) {
-            inBoss = isInBossRoom().also {
-                if (it && DungeonListener.bossEntryTime == null) {
-                    DungeonListener.bossEntryTime = DungeonListener.currentTime
-                    EventBus.post(DungeonEvent.BossEnterEvent)
-                }
+            inBoss = isInBossRoom()
+            if (inBoss && DungeonListener.bossEntryTime == null) {
+                DungeonListener.bossEntryTime = DungeonListener.currentTime
+                EventBus.post(DungeonEvent.BossEnterEvent)
             }
             F7Phase = getPhase()
             P3Section = findP3Section()

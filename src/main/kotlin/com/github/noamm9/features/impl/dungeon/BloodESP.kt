@@ -64,16 +64,32 @@ object BloodESP: Feature("Highlight the bloods before the dungeon start to help 
                 fill = false,
                 phase = true
             )
+            /*
+                        Render3D.renderBox(
+                            event.ctx,
+                            doorX, 98.99, doorZ,
+                            3, 1,
+                            Color.CYAN.withAlpha(70),
+                            outline = false,
+                            fill = true,
+                            phase = false
+                        )*/
         }
     }
 
     private fun findBlood(): Pair<BlockPos, Int>? {
         val mainRoom = DungeonInfo.uniqueRooms["Blood"]?.mainRoom ?: return null
-        val pos = BlockPos(mainRoom.x, 99, mainRoom.z)
+        val center = BlockPos(mainRoom.x, 99, mainRoom.z)
+        val checkOffsets = arrayOf(
+            Triple(- 15, - 6, 0),
+            Triple(- 6, 15, 1),
+            Triple(15, 6, 3),
+            Triple(6, - 15, 2)
+        )
 
-        DungeonScanner.clayBlocksCorners.forEachIndexed { i, (dx, dz) ->
-            if (WorldUtils.getBlockAt(pos.x + dx, pos.y, pos.z + dz) == Blocks.BLUE_TERRACOTTA) {
-                return pos to i
+        checkOffsets.forEach { (dx, dz, i) ->
+            if (WorldUtils.getBlockAt(center.x + dx, center.y, center.z + dz) == Blocks.REDSTONE_BLOCK) {
+                return center to i
             }
         }
 

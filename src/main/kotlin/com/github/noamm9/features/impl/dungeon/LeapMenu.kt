@@ -17,6 +17,7 @@ import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.dungeons.DungeonListener.leapTeammates
 import com.github.noamm9.utils.dungeons.DungeonPlayer
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
@@ -239,18 +240,21 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
     fun updateLeapMenu() {
         players.fill(null)
 
+        val loadedHeads = mutableMapOf<String, Int>()
+
         mc.player?.containerMenu?.let { menu ->
             for (i in (menu.slots.indices - 36)) {
                 val stack = menu.slots[i].item
                 if (! stack.`is`(Items.PLAYER_HEAD)) continue
                 val headName = playerRegex.find(stack.hoverName.unformattedText)?.groups?.get("name")?.value ?: continue
-
-                DungeonListener.leapTeammates.forEachIndexed { index, teammate ->
-                    if (index > players.lastIndex) return@forEachIndexed
-                    if (headName != teammate.name) return@forEachIndexed
-                    players[index] = LeapMenuPlayer(i, teammate)
-                }
+                loadedHeads[headName] = i
             }
+        }
+
+        leapTeammates.forEachIndexed { index, teammate ->
+            if (index >= players.size) return@forEachIndexed
+            val slotIndex = loadedHeads[teammate.name] ?: return@forEachIndexed
+            players[index] = LeapMenuPlayer(slotIndex, teammate)
         }
     }
 

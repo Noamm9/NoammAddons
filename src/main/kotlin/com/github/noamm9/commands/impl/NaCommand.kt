@@ -112,11 +112,6 @@ object NaCommand: BaseCommand("na") {
 
         for (i in 1 .. count) {
             val inputName = StringArgumentType.getString(ctx, "player$i")
-
-            if (PartyUtils.members.none { it.equals(inputName, ignoreCase = true) })
-                return ChatUtils.modMessage("§cError: Player '§e$inputName§c' is not in your party.")
-
-
             validPlayers.add(inputName.lowercase())
         }
 
