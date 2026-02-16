@@ -92,15 +92,6 @@ object BloodESP: Feature("Highlight the bloods before the dungeon start to help 
             val block3 = WorldUtils.getBlockAt(x + 32 * triesx + 30, y, z + 32 * triesz + 21).name.string == "Block of Redstone"
 
             if (block0 || block1 || block2 || block3) {
-//        tickblood.unregister()
-
-//        text = "&c&lBlood found"
-//        bloodtitle.register()
-//        World.playSound("random.orb", 1, 2)
-//        setTimeout(() => {
-//          bloodtitle.unregister()
-//        }, 1250)
-
                 val orientation = if (block0) 0 else if (block1) 1 else if (block2) 2 else 3
                 return BlockPos(x + triesx * 32 + 15, 99, z + triesz * 32 + 15) to orientation
             }
