@@ -78,21 +78,43 @@ object BloodESP: Feature("Highlight the bloods before the dungeon start to help 
     }
 
     private fun findBlood(): Pair<BlockPos, Int>? {
-        val mainRoom = DungeonInfo.uniqueRooms["Blood"]?.mainRoom ?: return null
-        val center = BlockPos(mainRoom.x, 99, mainRoom.z)
-        val checkOffsets = arrayOf(
-            Triple(- 15, - 6, 0),
-            Triple(- 6, 15, 1),
-            Triple(15, 6, 3),
-            Triple(6, - 15, 2)
-        )
+        val x = -200
+        val y = 99
+        val z = -200
 
-        checkOffsets.forEach { (dx, dz, i) ->
-            if (WorldUtils.getBlockAt(center.x + dx, center.y, center.z + dz) == Blocks.REDSTONE_BLOCK) {
-                return center to i
+        var triesx = 0
+        var triesz = 0
+        while (triesx != 6) {
+
+            val block0 = WorldUtils.getBlockAt(x + 32 * triesx, y, z + 32 * triesz + 9).name.string == "Block of Redstone"
+            val block1 = WorldUtils.getBlockAt(x + 32 * triesx + 9, y, z + 32 * triesz + 30).name.string == "Block of Redstone"
+            val block2 = WorldUtils.getBlockAt(x + 32 * triesx + 21, y, z + 32 * triesz).name.string == "Block of Redstone"
+            val block3 = WorldUtils.getBlockAt(x + 32 * triesx + 30, y, z + 32 * triesz + 21).name.string == "Block of Redstone"
+
+            if (block0 || block1 || block2 || block3) {
+//        tickblood.unregister()
+
+//        text = "&c&lBlood found"
+//        bloodtitle.register()
+//        World.playSound("random.orb", 1, 2)
+//        setTimeout(() => {
+//          bloodtitle.unregister()
+//        }, 1250)
+
+                val orientation = if (block0) 0 else if (block1) 1 else if (block2) 2 else 3
+                return BlockPos(x + triesx * 32 + 15, 99, z + triesz * 32 + 15) to orientation
             }
+
+            triesz++
+
+            if (triesz == 6) {
+                triesz = 0
+                triesx++
+            }
+
         }
 
         return null
     }
+
 }
