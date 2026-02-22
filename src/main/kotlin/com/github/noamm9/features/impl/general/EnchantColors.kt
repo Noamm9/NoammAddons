@@ -25,6 +25,7 @@ object EnchantColors: Feature() {
     private val highLevelColor by ColorSetting("High Level Color", Color(255, 170, 0), false)
     private val normalLevelColor by ColorSetting("Normal Level Color", Color(0, 170, 170), false)
     private val badLevelColor by ColorSetting("Bad Level Color", Color(170, 170, 170), false)
+    private val boldMaxEnchants by ToggleSetting("Bold Max Enchants")
 
     private val ENCHANTMENT_PATTERN = Pattern.compile("(?<enchant>[A-Za-z][A-Za-z -]+) (?<levelNumeral>[IVXLCDM]+)(?=, |$| [\\d,]+$)")
 
@@ -120,7 +121,7 @@ object EnchantColors: Feature() {
                     else -> badLevelColor.value.mcColor
                 }
 
-                Style.EMPTY.withColor(color).withBold(level >= maxLevel)
+                Style.EMPTY.withColor(color).withBold(level >= maxLevel && boldMaxEnchants.value)
             }
         }
     }
