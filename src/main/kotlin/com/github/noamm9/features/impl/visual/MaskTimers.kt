@@ -68,7 +68,7 @@ object MaskTimers: Feature("Mask Cooldwon Timers, Invulnerability Timers and mor
 
             val text = if (maskTimerStyle.value == 0) {
                 val time = if (example) mask.cooldownTicks / 40f else cd / 20f
-                if (time > 0) "${mask.color}${mask.displayName} Mask: &a${time.toFixed(1)}"
+                if (time > 0) "${mask.color}${mask.displayName} ${if(mask.displayName != Mask.PHOENIX.displayName) "Mask" else ""}: &a${time.toFixed(1)}"
                 else "${mask.color}${mask.displayName} Mask: &aREADY"
             }
             else {
