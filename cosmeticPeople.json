@@ -102,5 +102,8 @@
   },
   "096409cf-8fce-4b91-9ee1-b8fe36bcdd26": {
     "name": "{\"text\":\"\",\"extra\":[{\"text\":\"I\",\"color\":\"#F2C6DE\"},{\"text\":\"t\",\"color\":\"#EFB7D6\"},{\"text\":\"s\",\"color\":\"#EDA9CE\"},{\"text\":\"N\",\"color\":\"#EB9AC6\"},{\"text\":\"o\",\"color\":\"#E98ABE\"},{\"text\":\"a\",\"color\":\"#E87BB6\"},{\"text\":\"h\",\"color\":\"#E66BAE\"},{\"text\":\"F\",\"color\":\"#E55BA6\"},{\"text\":\"F\",\"color\":\"#E54B9E\"},{\"text\":\"S\",\"color\":\"#E43A96\"}]}"
+  },
+  "938b47a1-f5d2-469c-a589-5e9db4fdefc8": {
+    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"A\",\"color\":\"#CED9EF\",\"bold\":true},{\"text\":\"u\",\"color\":\"#CFC7FB\",\"bold\":true},{\"text\":\"r\",\"color\":\"#E2C6EE\",\"bold\":true},{\"text\":\"a\",\"color\":\"#D7E9DC\",\"bold\":true}]}"
   }
 }
