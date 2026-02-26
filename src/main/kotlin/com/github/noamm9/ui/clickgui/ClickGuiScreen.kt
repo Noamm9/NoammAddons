@@ -251,6 +251,7 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
 
     override fun onClose() {
         selectFeature(null)
+        searchHandler.listening = false
         Config.save()
         super.onClose()
     }

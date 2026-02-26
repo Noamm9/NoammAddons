@@ -58,7 +58,7 @@ class TextInputHandler(
 
     private var previousMousePos = 0f to 0f
 
-    fun draw(context: GuiGraphics, mouseX: Float, mouseY: Float) {
+    fun draw(context: GuiGraphics, mouseX: Float, mouseY: Float, suffix: String? = null) {
         if (previousMousePos != mouseX to mouseY) mouseDragged(mouseX)
         previousMousePos = mouseX to mouseY
 
@@ -87,7 +87,10 @@ class TextInputHandler(
                 caretBlinkTime = System.currentTimeMillis()
         }
 
-        Render2D.drawString(context, text, x + 4f - textOffset, y + height / 2f - 5)
+        if (suffix == null)
+            Render2D.drawString(context, text, x + 4f - textOffset, y + height / 2f - 5)
+        else
+            Render2D.drawString(context, text + suffix, x + 4f - textOffset, y + height / 2f - 5)
 
         context.disableScissor()
     }

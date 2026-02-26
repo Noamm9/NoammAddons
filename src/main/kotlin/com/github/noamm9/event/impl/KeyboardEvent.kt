@@ -1,5 +1,10 @@
 package com.github.noamm9.event.impl
 
 import com.github.noamm9.event.Event
+import net.minecraft.client.input.CharacterEvent
+import net.minecraft.client.input.KeyEvent
 
-class KeyboardEvent(val key: Int, val modifiers: Int, val scanCode: Int): Event(true)
+abstract class KeyboardEvent() : Event(cancelable = true) {
+    class KeyPressed(val keyEvent: KeyEvent) : KeyboardEvent()
+    class CharTyped(val charEvent: CharacterEvent) : KeyboardEvent()
+}

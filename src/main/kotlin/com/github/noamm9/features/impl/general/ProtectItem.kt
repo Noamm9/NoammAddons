@@ -60,12 +60,12 @@ object ProtectItem: Feature("Prevents dropping or selling important items. /prot
             }
         }
 
-        register<KeyboardEvent> {
+        register<KeyboardEvent.KeyPressed> {
             if (! enabled || mc.screen != null) return@register
             if (LocationUtils.inDungeon) return@register
 
             val dropKey = (mc.options.keyDrop as? IKeyMapping)?.key?.value ?: - 1
-            if (event.key != dropKey || event.scanCode != GLFW.GLFW_PRESS) return@register
+            if (event.keyEvent.key != dropKey || event.keyEvent.scancode != GLFW.GLFW_PRESS) return@register
 
             val heldItem = mc.player?.inventory?.selectedItem ?: return@register
             if (getProtectType(heldItem) != ProtectType.None) {
