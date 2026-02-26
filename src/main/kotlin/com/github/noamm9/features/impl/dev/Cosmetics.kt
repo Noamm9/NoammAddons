@@ -2,9 +2,9 @@ package com.github.noamm9.features.impl.dev
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.componnents.getValue
-import com.github.noamm9.ui.clickgui.componnents.impl.ToggleSetting
-import com.github.noamm9.ui.clickgui.componnents.provideDelegate
+import com.github.noamm9.ui.clickgui.components.getValue
+import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.utils.DataDownloader
 import com.github.noamm9.utils.network.ProfileUtils
 import com.mojang.authlib.GameProfile
@@ -18,7 +18,6 @@ import net.minecraft.world.entity.Avatar
 import net.minecraft.world.phys.Vec3
 import java.util.*
 import kotlin.math.absoluteValue
-
 
 object Cosmetics: Feature(toggled = true) {
     val customNames by ToggleSetting("Show Custom Names")
