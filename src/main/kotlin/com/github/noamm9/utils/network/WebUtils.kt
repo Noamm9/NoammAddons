@@ -3,19 +3,27 @@ package com.github.noamm9.utils.network
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.utils.JsonUtils
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
-import java.net.*
+import java.net.HttpURLConnection
+import java.net.URI
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 
 object WebUtils {
     private const val USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    private const val PROXY_URL = "https://api.allorigins.win/raw?url="
     private const val TIMEOUT = 10_000
 
-    private fun prepareConnection(url: String): HttpURLConnection {
+    private val threadCounter = AtomicInteger(1)
+    val networkDispatcher = Executors.newFixedThreadPool(5) {
+        Thread(it, "${NoammAddons.MOD_NAME}-Net-${threadCounter.getAndIncrement()}").apply {
+            isDaemon = true
+        }
+    }.asCoroutineDispatcher()
+
+    fun prepareConnection(url: String): HttpURLConnection {
         if (mc.isSameThread) throw Exception("Cannot make network request on main thread")
-        NoammAddons.logger.info("making a web request to: $url")
         val connection = URI(url).toURL().openConnection() as HttpURLConnection
         connection.setRequestProperty("User-Agent", USER_AGENT)
         connection.connectTimeout = TIMEOUT
@@ -23,20 +31,12 @@ object WebUtils {
         return connection
     }
 
-    suspend fun getString(url: String): Result<String> = withContext(Dispatchers.IO) {
+    suspend fun getString(url: String) = withContext(networkDispatcher) {
         runCatching {
             val connection = prepareConnection(url)
             connection.requestMethod = "GET"
             connection.setRequestProperty("Accept", "application/json")
             handleResponse(connection)
-        }.recoverCatching { e ->
-            if (! url.startsWith(PROXY_URL) && (e is UnknownHostException || e is ConnectException || e is SocketTimeoutException)) {
-                val connection = prepareConnection(PROXY_URL + url)
-                connection.requestMethod = "GET"
-                connection.setRequestProperty("Accept", "application/json")
-                handleResponse(connection)
-            }
-            else throw e
         }
     }
 
@@ -46,7 +46,7 @@ object WebUtils {
         }
     }
 
-    suspend fun post(url: String, body: Any): Result<String> = withContext(Dispatchers.IO) {
+    suspend fun post(url: String, body: Any): Result<String> = withContext(networkDispatcher) {
         runCatching {
             val connection = prepareConnection(url)
             connection.requestMethod = "POST"
@@ -61,7 +61,7 @@ object WebUtils {
         }
     }
 
-    suspend fun downloadBytes(url: String): Result<ByteArray> = withContext(Dispatchers.IO) {
+    suspend fun downloadBytes(url: String): Result<ByteArray> = withContext(networkDispatcher) {
         runCatching {
             val connection = prepareConnection(url)
             connection.requestMethod = "GET"
@@ -72,19 +72,6 @@ object WebUtils {
             if (code !in 200 .. 299) throw IllegalStateException("HTTP $code")
 
             stream.use { it.readBytes() }
-        }.recoverCatching { e ->
-            if (! url.startsWith(PROXY_URL) && (e is UnknownHostException || e is ConnectException || e is SocketTimeoutException)) {
-                val connection = prepareConnection(PROXY_URL + url)
-                connection.requestMethod = "GET"
-
-                val code = connection.responseCode
-                val stream = if (code in 200 .. 299) connection.inputStream else connection.errorStream
-
-                if (code !in 200 .. 299) throw IllegalStateException("HTTP $code")
-
-                stream.use { it.readBytes() }
-            }
-            else throw e
         }
     }
 

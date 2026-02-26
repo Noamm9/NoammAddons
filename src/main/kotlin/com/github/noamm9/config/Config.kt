@@ -1,17 +1,18 @@
 package com.github.noamm9.config
 
-import com.github.noamm9.NoammAddons.MOD_NAME
+import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.logger
 import com.github.noamm9.features.FeatureManager
-import com.google.gson.*
+import com.github.noamm9.utils.JsonUtils
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
+import com.google.gson.JsonPrimitive
 import net.fabricmc.loader.api.FabricLoader
 import java.io.File
 
 object Config {
-    private val gson = GsonBuilder().setPrettyPrinting().create()
-    private val parser = JsonParser()
-
-    private val configDir = FabricLoader.getInstance().configDir.resolve(MOD_NAME).toFile()
+    private val configDir = FabricLoader.getInstance().configDir.resolve(NoammAddons.MOD_NAME).toFile()
     private val configFile = File(configDir, "config.json").apply {
         if (! configDir.exists()) configDir.mkdirs()
         runCatching(::createNewFile).apply {
@@ -24,7 +25,7 @@ object Config {
     fun load() {
         runCatching {
             val fileContent = configFile.bufferedReader().use { it.readText() }.takeUnless { it.isEmpty() } ?: return
-            val jsonObject = parser.parse(fileContent).asJsonObject ?: return
+            val jsonObject = JsonParser.parseString(fileContent).asJsonObject ?: return
 
             for (featureElement in jsonObject.getAsJsonArray("config") ?: return) {
                 val featureObj = featureElement.asJsonObject
@@ -83,7 +84,7 @@ object Config {
                 })
             }
 
-            configFile.bufferedWriter().use { it.write(gson.toJson(jsonObject)) }
+            configFile.bufferedWriter().use { it.write(JsonUtils.gsonBuilder.toJson(jsonObject)) }
         }.apply {
             onFailure { logger.error("Error on saving config", it) }
             onSuccess { logger.info("Successfully saved config") }

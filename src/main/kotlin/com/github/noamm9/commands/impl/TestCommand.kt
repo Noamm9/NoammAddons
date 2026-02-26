@@ -1,5 +1,6 @@
 package com.github.noamm9.commands.impl
 
+import com.github.noamm9.NoammAddons.electionData
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.NoammAddons.priceData
 import com.github.noamm9.commands.BaseCommand
@@ -30,6 +31,12 @@ object TestCommand: BaseCommand("test") {
             runs {
                 Config.save()
                 Config.load()
+            }
+        }
+
+        literal("mayor") {
+            runs {
+                ChatUtils.chat(electionData)
             }
         }
 

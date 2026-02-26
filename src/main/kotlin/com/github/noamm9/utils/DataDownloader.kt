@@ -1,38 +1,40 @@
 package com.github.noamm9.utils
 
-import com.github.noamm9.NoammAddons.MOD_ID
-import com.github.noamm9.NoammAddons.MOD_NAME
+import com.github.noamm9.NoammAddons
 import com.github.noamm9.utils.network.WebUtils
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import net.fabricmc.loader.api.FabricLoader
 import org.slf4j.LoggerFactory
 import java.io.BufferedReader
 import java.io.IOException
-import java.net.URL
+import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.util.zip.ZipInputStream
-import kotlin.concurrent.thread
 import kotlin.io.path.*
 
 object DataDownloader {
-    private const val DOWNLOAD_URL = "https://api.noammaddons.workers.dev/repo?type=zip"
-    private const val HASH_URL = "https://api.noammaddons.workers.dev/repo?type=hash"
-    val LOGGER = LoggerFactory.getLogger("$MOD_NAME - DataDownloader")
+    private const val DOWNLOAD_URL = "https://github.com/Noamm9/NoammAddons-1.21.10/archive/refs/heads/data.zip"
+    private const val RAW_URL = "https://raw.githubusercontent.com/Noamm9/NoammAddons-1.21.10/refs/heads/data/"
+    private const val GITHUB_API_URL = "https://api.github.com/repos/Noamm9/NoammAddons-1.21.10/commits/data"
+    private val SHA_REGEX = Regex(""""sha"\s*:\s*"([^"]+)"""")
+    val LOGGER = LoggerFactory.getLogger("${NoammAddons.MOD_NAME} - DataDownloader")
 
-    private val modDataPath: Path = FabricLoader.getInstance().configDir.resolve(MOD_ID).resolve("data").also {
+    private val modDataPath = FabricLoader.getInstance().configDir.resolve(NoammAddons.MOD_NAME).resolve("data").also {
         if (! it.exists()) it.createDirectories()
     }
 
-    fun downloadData() {
-        thread(start = true, isDaemon = true, name = "$MOD_NAME - DataDownloader") {
+    fun downloadData() = runBlocking {
+        withContext(WebUtils.networkDispatcher) {
             val versionFile = modDataPath.resolve("version.txt")
 
             try {
                 LOGGER.info("Checking for remote data updates...")
-                val remoteHash = runBlocking { WebUtils.getString(HASH_URL).getOrNull() } ?: return@thread LOGGER.error("Could not fetch remote version hash.")
+                val remoteHash = SHA_REGEX.find(WebUtils.getString(GITHUB_API_URL).getOrThrow())?.groups?.get(1)?.value
+                    ?: return@withContext LOGGER.error("Could not fetch remote version hash.")
                 val localHash = if (versionFile.exists()) versionFile.readText().trim() else null
 
                 if (remoteHash != localHash || ! modDataPath.exists()) {
@@ -52,7 +54,7 @@ object DataDownloader {
         try {
             val tempZipFile = Files.createTempFile("data-download-", ".zip")
 
-            URL(DOWNLOAD_URL).openStream().use { input ->
+            URI.create(DOWNLOAD_URL).toURL().openStream().use { input ->
                 Files.copy(input, tempZipFile, StandardCopyOption.REPLACE_EXISTING)
             }
 
@@ -108,12 +110,12 @@ object DataDownloader {
     fun getReader(fileName: String): BufferedReader {
         val localFile = modDataPath.resolve(fileName)
         return if (localFile.exists()) localFile.bufferedReader()
-        else TODO("Implement remote file fetching")
-
-        /*
-        LOGGER.warn("Local file '$fileName' missing. Fetching from RAW URL.")
-        val connection = URL(RAW_URL + fileName).openConnection() as HttpURLConnection
-        connection.requestMethod = "GET"
-        return connection.inputStream.bufferedReader()*/
+        else {
+            LOGGER.warn("Local file '$fileName' missing. Fetching from RAW URL.")
+            val connection = WebUtils.prepareConnection(RAW_URL + fileName)
+            connection.setRequestProperty("Accept", "application/json")
+            connection.requestMethod = "GET"
+            connection.inputStream.bufferedReader()
+        }
     }
 }

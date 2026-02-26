@@ -15,17 +15,14 @@ import java.util.concurrent.TimeUnit
 object ThreadUtils {
     data class TickTask(var ticks: Int, val action: () -> Unit)
 
-
     private val scheduler = Executors.newScheduledThreadPool(1) { Thread(it, "$MOD_NAME-Scheduler").apply { isDaemon = true } }
     private val serverTickTasks = ConcurrentLinkedQueue<TickTask>()
     private val clientTickTasks = ConcurrentLinkedQueue<TickTask>()
-
 
     fun runOnMcThread(block: () -> Unit) {
         if (mc.isSameThread) safeRun(block)
         else mc.execute { safeRun(block) }
     }
-
 
     fun setTimeout(delay: Long, block: () -> Unit): ScheduledFuture<*> {
         return scheduler.schedule({ safeRun(block) }, delay, TimeUnit.MILLISECONDS)
@@ -99,4 +96,3 @@ object ThreadUtils {
         }
     }
 }
-

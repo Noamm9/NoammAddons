@@ -41,6 +41,7 @@ object ClearInfoUpdater {
     }
 
     fun initStartSecrets() = NoammAddons.scope.launch(Dispatchers.IO) {
+        return@launch // todo api
         if (! DungeonMap.enabled) return@launch
         if (! MapConfig.printPlayersClearInfo.value) return@launch
         DungeonListener.dungeonTeammates.toList().forEach { teammate ->
@@ -76,7 +77,7 @@ object ClearInfoUpdater {
 
             val comps = listOfNotNull(
                 getRoomsClearedComponent(solo, stacked),
-                createComponent("&b$foundSecrets Secrets&r"),
+                //    createComponent("&b$foundSecrets Secrets&r"), todo api
                 getDeathCountComponent(deaths)
             )
 

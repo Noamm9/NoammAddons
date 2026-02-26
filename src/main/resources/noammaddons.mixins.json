@@ -17,6 +17,7 @@
     "MixinLeverBlock",
     "MixinLivingEntity",
     "MixinMushroomBlock",
+    "MixinOdinTelemetry",
     "MixinPacketProcessorListener",
     "MixinPlayer",
     "MixinSkullBlock"

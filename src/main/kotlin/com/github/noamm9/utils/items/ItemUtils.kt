@@ -8,10 +8,9 @@ import com.github.noamm9.utils.items.ItemRarity.Companion.PET_PATTERN
 import com.github.noamm9.utils.items.ItemRarity.Companion.RARITY_PATTERN
 import com.github.noamm9.utils.items.ItemRarity.Companion.rarityCache
 import com.github.noamm9.utils.network.WebUtils
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.minecraft.core.component.DataComponents
@@ -23,22 +22,27 @@ import kotlin.jvm.optionals.getOrNull
 
 
 object ItemUtils {
-    private var idToNameMap = mapOf<String, String>()
-    private var nameToIdMap = mapOf<String, String>()
+    private val idToNameMap = mutableMapOf<String, String>()
+    private val nameToIdMap = mutableMapOf<String, String>()
 
     fun getNameById(id: String) = idToNameMap[id]
     fun getIdByName(name: String) = nameToIdMap[name]
 
     fun init() = NoammAddons.scope.launch {
-        while (isActive) {
-            WebUtils.get<JsonObject>("https://api.noammaddons.workers.dev/items").onSuccess { obj ->
-                idToNameMap = obj["itemIdToName"]?.jsonObject?.map { it.key to it.value.jsonPrimitive.content }?.associate { it } ?: return@onSuccess
-                nameToIdMap = idToNameMap.entries.associate { (k, v) -> v to k }
-                return@launch
-            }
+        WebUtils.get<JsonObject>("https://api.hypixel.net/v2/resources/skyblock/items")
+            .onSuccess { obj ->
+                val itemsArray = obj["items"]?.jsonArray ?: return@onSuccess
 
-            delay(600_000)
-        }
+                for (element in itemsArray) {
+                    val item = element.jsonObject
+                    val id = item["id"]?.jsonPrimitive?.content ?: continue
+                    val name = item["name"]?.jsonPrimitive?.content ?: continue
+
+                    idToNameMap[id] = name
+                    nameToIdMap[name] = id
+                }
+            }
+            .onFailure { NoammAddons.logger.error("Error fetching Skyblock items", it) }
     }
 
     val ItemStack.customData: CompoundTag get() = getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag()
@@ -69,6 +73,12 @@ object ItemUtils {
         val profile = stack.get(DataComponents.PROFILE) ?: return null
         val properties = profile.partialProfile().properties
         return properties["textures"].firstOrNull()?.value
+    }
+
+    fun getSkullId(stack: ItemStack): String? {
+        if (stack.isEmpty) return null
+        val profile = stack.get(DataComponents.PROFILE) ?: return null
+        return profile.partialProfile().id.toString()
     }
 
     fun ItemStack.hasGlint() = componentsPatch.get(DataComponents.ENCHANTMENT_GLINT_OVERRIDE)?.isPresent == true

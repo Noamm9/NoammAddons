@@ -12,6 +12,7 @@ import net.minecraft.network.chat.Component
 import java.awt.Color
 
 object HudEditorScreen: Screen(Component.literal("HudEditor")) {
+    val enabledElements get() = FeatureManager.hudElements.filter { it.toggle }
 
     override fun init() {
         super.init()
@@ -42,9 +43,9 @@ object HudEditorScreen: Screen(Component.literal("HudEditor")) {
         val mY = Resolution.getMouseY(mouseY)
         val midX = Resolution.width / 2
 
-        FeatureManager.hudElements.forEach { it.drawEditor(context, mX, mY) }
+        enabledElements.forEach { it.drawEditor(context, mX, mY) }
 
-        val element = FeatureManager.hudElements.find { it.isDragging }
+        val element = enabledElements.find { it.isDragging }
         Render2D.drawCenteredString(context, element?.name.orEmpty(), midX, 10f, Color.WHITE, 1.2f)
         Render2D.drawCenteredString(context, "ESC to Save and Exit", midX, Resolution.height - 20f, Color.GRAY, shadow = false)
 
@@ -54,7 +55,7 @@ object HudEditorScreen: Screen(Component.literal("HudEditor")) {
     }
 
     override fun mouseScrolled(mouseX: Double, mouseY: Double, horizontal: Double, vertical: Double): Boolean {
-        FeatureManager.hudElements.forEach { element ->
+        enabledElements.forEach { element ->
             if (element.isDragging) {
                 val increment = (vertical * 0.1).toFloat()
                 element.scale = (element.scale + increment).coerceIn(0.5f, 5.0f)
@@ -71,7 +72,7 @@ object HudEditorScreen: Screen(Component.literal("HudEditor")) {
         val mY = Resolution.getMouseY(mouseButtonEvent.y)
 
         if (mouseButtonEvent.button() == 0) {
-            FeatureManager.hudElements.forEach {
+            enabledElements.forEach {
                 it.startDragging(mX, mY)
                 if (it.isDragging) return true
             }
@@ -81,7 +82,7 @@ object HudEditorScreen: Screen(Component.literal("HudEditor")) {
     }
 
     override fun mouseReleased(mouseButtonEvent: MouseButtonEvent): Boolean {
-        FeatureManager.hudElements.forEach { it.isDragging = false }
+        enabledElements.forEach { it.isDragging = false }
         return super.mouseReleased(mouseButtonEvent)
     }
 

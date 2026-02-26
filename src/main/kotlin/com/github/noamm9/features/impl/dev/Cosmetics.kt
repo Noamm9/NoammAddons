@@ -2,7 +2,9 @@ package com.github.noamm9.features.impl.dev
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.features.Feature
-import com.github.noamm9.features.annotations.AlwaysActive
+import com.github.noamm9.ui.clickgui.componnents.getValue
+import com.github.noamm9.ui.clickgui.componnents.impl.ToggleSetting
+import com.github.noamm9.ui.clickgui.componnents.provideDelegate
 import com.github.noamm9.utils.DataDownloader
 import com.github.noamm9.utils.network.ProfileUtils
 import com.mojang.authlib.GameProfile
@@ -18,14 +20,14 @@ import java.util.*
 import kotlin.math.absoluteValue
 
 
-@AlwaysActive
 object Cosmetics: Feature(toggled = true) {
-    override fun toggle() {}
+    val customNames by ToggleSetting("Show Custom Names")
+    val customSizes by ToggleSetting("Show Custom Sizes")
 
     val cosmeticPeople by lazy {
-        DataDownloader.loadJson<Map<UUID, CosmeticData>>("cosmeticPeople.json").also { data ->
+        DataDownloader.loadJson<Map<UUID, CosmeticData>>("cosmeticPeople.json").also {
             scope.launch {
-                for ((uuid, cosmetic) in data.filter { it.value.hasCustomName }) {
+                for ((uuid, cosmetic) in it.filter { it.value.hasCustomName }) {
                     val profile = ProfileUtils.getNameByUUID(uuid.toString()).getOrThrow()
                     TextReplacer.replaceMap[profile.name] = cosmetic.name
                     delay(200)
@@ -36,12 +38,14 @@ object Cosmetics: Feature(toggled = true) {
 
     @JvmStatic
     fun extractRenderStateHook(avatar: Avatar, state: AvatarRenderState) {
+        if (! enabled) return
+        if (! customSizes.value) return
         if (avatar !is AbstractClientPlayer) return
         state.setData<GameProfile>(GAME_PROFILE_KEY, avatar.gameProfile)
     }
 
     @JvmStatic
-    fun preRenderCallbackScaleHook(state: AvatarRenderState, poseStack: PoseStack) {
+    fun scaleHook(state: AvatarRenderState, poseStack: PoseStack) {
         val gameProfile = state.getData(GAME_PROFILE_KEY) ?: return
         val data = cosmeticPeople[gameProfile.id] ?: return
         if (! data.hasCustomSize) return

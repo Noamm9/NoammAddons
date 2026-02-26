@@ -12,8 +12,8 @@ object HumanClickOrder {
     fun getBestClick(availableClicks: List<TerminalClick>, type: TerminalType): TerminalClick {
         if (availableClicks.isEmpty()) throw IllegalStateException("Solution list is empty")
 
-        val MIDDLE_SLOT = type.slotCount.div(2)
-        if (this.lastClickedSlot == null) this.lastClickedSlot = MIDDLE_SLOT
+        val middle = type.slotCount.div(2)
+        if (this.lastClickedSlot == null) this.lastClickedSlot = middle
 
         val lastSlot = this.lastClickedSlot ?: throw IllegalStateException("Last clicked slot is null")
 
@@ -39,8 +39,8 @@ object HumanClickOrder {
     fun getWorstClick(availableClicks: List<TerminalClick>, type: TerminalType): TerminalClick {
         if (availableClicks.isEmpty()) throw IllegalStateException("Solution list is empty")
 
-        val MIDDLE_SLOT = type.slotCount.div(2)
-        if (this.lastClickedSlot == null) this.lastClickedSlot = MIDDLE_SLOT
+        val middle = type.slotCount.div(2)
+        if (this.lastClickedSlot == null) this.lastClickedSlot = middle
 
         val lastSlot = this.lastClickedSlot ?: throw IllegalStateException("Last clicked slot is null")
 
