@@ -133,10 +133,11 @@
   },
   "13ebaba3-0663-464c-9ae9-34cadda85008": {
     "name": "{\"text\":\"\",\"extra\":[{\"text\":\"E\",\"color\":\"#B282FF\",\"bold\":true},{\"text\":\"m\",\"color\":\"#D4ABFF\",\"bold\":true},{\"text\":\"z\",\"color\":\"#E1CCFF\",\"bold\":true},{\"text\":\"y\",\"color\":\"#F0E6FF\",\"bold\":true},{\"text\":\"o\",\"color\":\"#F7EDFF\",\"bold\":true}]}",
-    "sizeX": 1.0,
-    "sizeY": 1.0,
-    "sizeZ": 1.0
+    "sizeX": 0.7,
+    "sizeY": 0.7,
+    "sizeZ": 0.7
   }
 }
+
 
 
