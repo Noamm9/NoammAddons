@@ -1,6 +1,7 @@
 package com.github.noamm9.commands
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.features.impl.misc.WarpShortcuts
 import io.github.classgraph.ClassGraph
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
@@ -9,12 +10,8 @@ object CommandManager {
     val commands = mutableSetOf<BaseCommand>()
 
     init {
-        val scanResult = ClassGraph()
-            .enableAllInfo()
-            .acceptPackages("com.github.noamm9")
-            .ignoreClassVisibility()
-            .overrideClassLoaders(Thread.currentThread().contextClassLoader)
-            .scan()
+        val scanResult = ClassGraph().enableAllInfo().acceptPackages("com.github.noamm9").ignoreClassVisibility()
+            .overrideClassLoaders(Thread.currentThread().contextClassLoader).scan()
 
         scanResult.use { result ->
             val commandClasses = result.getSubclasses("com.github.noamm9.commands.BaseCommand")
@@ -33,6 +30,8 @@ object CommandManager {
                 }
             }
         }
+        WarpShortcuts.init()
+        NoammAddons.logger.info("CommandManager initialized with ${WarpShortcuts.commands.size} commands.")
     }
 
     fun registerAll() {
@@ -43,6 +42,12 @@ object CommandManager {
                 dispatcher.register(root)
                 commands.add(command)
                 NoammAddons.logger.debug("Registered command: /${command.name}")
+            }
+
+            WarpShortcuts.commands.forEach { warpCommand ->
+                val root = ClientCommandManager.literal(warpCommand.input)
+                CommandNodeBuilder(root).apply { with(warpCommand) { build() } }
+                dispatcher.register(root)
             }
         }
     }

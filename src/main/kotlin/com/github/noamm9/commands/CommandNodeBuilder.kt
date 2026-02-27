@@ -43,4 +43,8 @@ class CommandNodeBuilder(private val builder: ArgumentBuilder<FabricClientComman
             }
         }
     }
+
+    fun requires(condition: () -> Boolean) {
+        builder.requires { condition() }
+    }
 }
