@@ -54,7 +54,7 @@ public class MixinGameRenderer {
             target = "Lnet/minecraft/client/gui/screens/Screen;renderWithTooltipAndSubtitles(Lnet/minecraft/client/gui/GuiGraphics;IIF)V"
         )
     )
-    private void redirectScreenRender(Screen instance, GuiGraphics guiGraphics, int i, int j, float f, Operation<Void> original) {
+    private void warpScreenRender(Screen instance, GuiGraphics guiGraphics, int i, int j, float f, Operation<Void> original) {
         if (EventBus.post(new ScreenEvent.PreRender(instance, guiGraphics, i, j))) return;
         original.call(instance, guiGraphics, i, j, f);
         EventBus.post(new ScreenEvent.PostRender(instance, guiGraphics, i, j));

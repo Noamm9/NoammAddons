@@ -196,8 +196,8 @@ object NumbersUtils {
         else lastDecimal + decimal
     }
 
-    fun formatComma(value: Long?): String {
-        return value?.let { NumberFormat.getNumberInstance(Locale.US).format(it) } ?: ""
+    fun formatComma(value: Number?): String {
+        return value?.let { NumberFormat.getNumberInstance(Locale.US).format(it) }.orEmpty()
     }
 
     fun parseCompactNumber(value: String): Long? {

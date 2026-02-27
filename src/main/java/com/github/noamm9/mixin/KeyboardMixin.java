@@ -1,6 +1,5 @@
 package com.github.noamm9.mixin;
 
-import com.github.noamm9.NoammAddons;
 import com.github.noamm9.event.EventBus;
 import com.github.noamm9.event.impl.KeyboardEvent;
 import net.minecraft.client.KeyboardHandler;
@@ -24,9 +23,8 @@ public abstract class KeyboardMixin {
 
     @Inject(method = "charTyped", at = @At("HEAD"), cancellable = true)
     private void onChar(long window, CharacterEvent event, CallbackInfo ci) {
-        if(EventBus.post(new KeyboardEvent.CharTyped(event))) {
+        if (EventBus.post(new KeyboardEvent.CharTyped(event))) {
             ci.cancel();
         }
     }
 }
-
