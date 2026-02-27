@@ -10,8 +10,12 @@ object CommandManager {
     val commands = mutableSetOf<BaseCommand>()
 
     init {
-        val scanResult = ClassGraph().enableAllInfo().acceptPackages("com.github.noamm9").ignoreClassVisibility()
-            .overrideClassLoaders(Thread.currentThread().contextClassLoader).scan()
+        val scanResult = ClassGraph()
+            .enableAllInfo()
+            .acceptPackages("com.github.noamm9")
+            .ignoreClassVisibility()
+            .overrideClassLoaders(Thread.currentThread().contextClassLoader)
+            .scan()
 
         scanResult.use { result ->
             val commandClasses = result.getSubclasses("com.github.noamm9.commands.BaseCommand")
