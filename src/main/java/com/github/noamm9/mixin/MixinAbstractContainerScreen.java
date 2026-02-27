@@ -1,21 +1,23 @@
 package com.github.noamm9.mixin;
 
-import com.github.noamm9.NoammAddons;
 import com.github.noamm9.event.EventBus;
 import com.github.noamm9.event.impl.ContainerEvent;
 import com.github.noamm9.features.impl.misc.ScrollableTooltip;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
-import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -25,6 +27,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Mixin(AbstractContainerScreen.class)
 public abstract class MixinAbstractContainerScreen extends Screen {
@@ -82,26 +85,16 @@ public abstract class MixinAbstractContainerScreen extends Screen {
         EventBus.post(new ContainerEvent.MouseScroll(this, mouseX, mouseY, horizontalAmount, verticalAmount));
     }
 
-    @Inject(method = "renderTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;setTooltipForNextFrame(Lnet/minecraft/client/gui/Font;Ljava/util/List;Ljava/util/Optional;IILnet/minecraft/resources/ResourceLocation;)V", opcode = Opcodes.GETFIELD), cancellable = true)
-    private void onRenderTooltipMerged(GuiGraphics context, int mouseX, int mouseY, CallbackInfo ci, @Local ItemStack stack) {
-        if (stack != null && !stack.isEmpty()) {
+    @WrapOperation(method = "renderTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;setTooltipForNextFrame(Lnet/minecraft/client/gui/Font;Ljava/util/List;Ljava/util/Optional;IILnet/minecraft/resources/ResourceLocation;)V"))
+    private void onRenderTooltipMerged(GuiGraphics instance, Font font, List<Component> lines, Optional<TooltipComponent> tooltipImage, int x, int y, @Nullable ResourceLocation background, Operation<Void> original, @Local ItemStack stack) {
+        if (stack == null || stack.isEmpty()) original.call(instance, font, lines, tooltipImage, x, y, background);
+        else {
             ScrollableTooltip.setSlot(this.hoveredSlot.index);
 
-            ContainerEvent.Render.Tooltip event = new ContainerEvent.Render.Tooltip(
-                this, context, stack, mouseX, mouseY, new ArrayList<>(getTooltipFromContainerItem(stack))
-            );
+            var event = new ContainerEvent.Render.Tooltip(this, instance, stack, x, y, new ArrayList<>(lines));
+            if (EventBus.post(event)) return;
 
-            ci.cancel();
-
-            if (!EventBus.post(event)) {
-                context.setTooltipForNextFrame(
-                    NoammAddons.mc.font,
-                    event.getLore(),
-                    stack.getTooltipImage(),
-                    mouseX, mouseY,
-                    stack.get(DataComponents.TOOLTIP_STYLE)
-                );
-            }
+            original.call(instance, font, event.getLore(), tooltipImage, x, y, background);
         }
     }
 }

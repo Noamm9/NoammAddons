@@ -20,8 +20,8 @@ import java.util.*
 import kotlin.math.absoluteValue
 
 object Cosmetics: Feature(toggled = true) {
-    val customNames by ToggleSetting("Show Custom Names")
-    val customSizes by ToggleSetting("Show Custom Sizes")
+    val customNames by ToggleSetting("Show Custom Names", true)
+    val customSizes by ToggleSetting("Show Custom Sizes", true)
 
     val cosmeticPeople by lazy {
         DataDownloader.loadJson<Map<UUID, CosmeticData>>("cosmeticPeople.json").also {

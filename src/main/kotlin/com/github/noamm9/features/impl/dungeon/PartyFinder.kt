@@ -166,7 +166,7 @@ object PartyFinder: Feature() {
 
                 scope.launch {
                     try {
-                        //ProfileUtils.getProfile(key).getOrNull() todo api
+                        //ProfileUtils.getProfile(key).getOrThrow() todo api
                     }
                     catch (e: Exception) {
                         e.printStackTrace()
@@ -181,7 +181,7 @@ object PartyFinder: Feature() {
 
         val dungeons = cachedData.getObj("dungeons")
         val catacombs = dungeons?.getObj("catacombs")
-        val master_catacombs = dungeons?.getObj("master_catacombs")
+        val masterCatacombs = dungeons?.getObj("master_catacombs")
 
         val cataLvl = dungeons?.getDouble("catacombs_experience")?.let { ApiUtils.getCatacombsLevel(it) } ?: "?"
 
@@ -200,7 +200,7 @@ object PartyFinder: Feature() {
             }
 
             if (showPB.value) {
-                val pbObj = if (type == 'F') catacombs else master_catacombs
+                val pbObj = if (type == 'F') catacombs else masterCatacombs
                 val pbTime = pbObj?.getObj("fastest_time_s_plus")?.getInt("$floor")
 
                 val pb = pbTime?.let { time ->

@@ -18,6 +18,7 @@ import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.highlight
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.client.input.MouseButtonInfo
 import org.lwjgl.glfw.GLFW
@@ -34,11 +35,10 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
 
     private const val WIDTH = 200f
     private const val HEIGHT = 22f
-    private var inContainer = false
 
     override fun init() {
         register<ScreenEvent.PostRender> {
-            if (! inContainer) return@register
+            if (mc.screen !is AbstractContainerScreen<*>) return@register
 
             Resolution.refresh()
             Resolution.push(event.context)
@@ -58,14 +58,14 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
             Render2D.drawRect(event.context, x, y + HEIGHT - 1, WIDTH, 1f, color)
 
             if (searchQuery.isEmpty() && ! searchHandler.listening) Render2D.drawCenteredString(event.context, "§8Search...", x + WIDTH / 2, y + 6)
-            else if (expressionResult != null) searchHandler.draw(event.context, mx.toFloat(), my.toFloat(), "= §e${NumbersUtils.formatComma(expressionResult)}")
+            else if (expressionResult != null) searchHandler.draw(event.context, mx.toFloat(), my.toFloat(), " = §e${NumbersUtils.formatComma(expressionResult)}")
             else searchHandler.draw(event.context, mx.toFloat(), my.toFloat())
 
             Resolution.pop(event.context)
         }
 
         register<MouseClickEvent> {
-            if (! inContainer) return@register
+            if (mc.screen !is AbstractContainerScreen<*>) return@register
             if (event.action == GLFW.GLFW_RELEASE) searchHandler.mouseReleased()
             if (event.action == GLFW.GLFW_PRESS) {
                 searchHandler.mouseClicked(
@@ -77,7 +77,7 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
         }
 
         register<KeyboardEvent.CharTyped> {
-            if (! inContainer) return@register
+            if (mc.screen !is AbstractContainerScreen<*>) return@register
             if (! searchHandler.listening) return@register
 
             searchHandler.keyTyped(event.charEvent)
@@ -85,7 +85,7 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
         }
 
         register<KeyboardEvent.KeyPressed> {
-            if (! inContainer) return@register
+            if (mc.screen !is AbstractContainerScreen<*>) return@register
             if (! searchHandler.listening) return@register
 
             if (mc.options.keyInventory.matches(event.keyEvent)) {
@@ -101,17 +101,6 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
             val name = stack.hoverName.unformattedText.contains(searchQuery, ignoreCaps.value)
             val lore = searchLore.value && stack.lore.any { it.removeFormatting().contains(searchQuery, ignoreCaps.value) }
             if (name || lore) event.slot.highlight(event.context, highlightColor.value)
-        }
-
-        register<ContainerEvent.Close> {
-            inContainer = false
-            searchHandler.listening = false
-            searchQuery = ""
-            expressionResult = null
-        }
-
-        register<ContainerEvent.Open> {
-            inContainer = true
         }
     }
 

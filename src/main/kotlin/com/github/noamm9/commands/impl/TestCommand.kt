@@ -1,5 +1,6 @@
 package com.github.noamm9.commands.impl
 
+import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.electionData
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.NoammAddons.priceData
@@ -10,6 +11,8 @@ import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 object TestCommand: BaseCommand("test") {
     override fun CommandNodeBuilder.build() {
@@ -37,6 +40,15 @@ object TestCommand: BaseCommand("test") {
         literal("mayor") {
             runs {
                 ChatUtils.chat(electionData)
+            }
+        }
+
+        literal("scope") {
+            runs {
+                NoammAddons.scope.launch {
+                    delay(1000)
+                    println("hi")
+                }
             }
         }
 

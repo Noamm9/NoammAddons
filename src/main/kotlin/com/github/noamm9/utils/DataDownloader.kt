@@ -3,7 +3,7 @@ package com.github.noamm9.utils
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.utils.network.WebUtils
 import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.fabricmc.loader.api.FabricLoader
 import org.slf4j.LoggerFactory
@@ -27,7 +27,7 @@ object DataDownloader {
         if (! it.exists()) it.createDirectories()
     }
 
-    fun downloadData() = runBlocking {
+    fun downloadData() = NoammAddons.scope.launch {
         withContext(WebUtils.networkDispatcher) {
             val versionFile = modDataPath.resolve("version.txt")
 
@@ -45,7 +45,8 @@ object DataDownloader {
 
             }
             catch (e: Exception) {
-                LOGGER.error("Failed to check for data updates", e)
+                LOGGER.error("Failed to check for data updates")
+                e.printStackTrace()
             }
         }
     }
