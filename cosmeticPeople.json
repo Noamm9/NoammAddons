@@ -133,5 +133,13 @@
   },
   "c89c700e-28ed-4c85-89d3-8565297eedb4": {
     "name": "{\"text\":\"\",\"extra\":[{\"text\":\"B\",\"color\":\"#000000\"},{\"text\":\"L\",\"color\":\"#120C0C\"},{\"text\":\"A\",\"color\":\"#291114\"},{\"text\":\"C\",\"color\":\"#47111B\"},{\"text\":\"K\",\"color\":\"#6B0A22\"},{\"text\":\"U\",\"color\":\"#76093E\"},{\"text\":\"M\",\"color\":\"#810761\"}]}"
-  }
+  },
+   "13ebaba3-0663-464c-9ae9-34cadda85008": {
+    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"E\",\"color\":\"#B282FF\",\"bold\":true},{\"text\":\"m\",\"color\":\"#D4ABFF\",\"bold\":true},{\"text\":\"z\",\"color\":\"#E1CCFF\",\"bold\":true},{\"text\":\"y\",\"color\":\"#F0E6FF\",\"bold\":true},{\"text\":\"o\",\"color\":\"#F7EDFF\",\"bold\":true}]}",
+    "sizeX": 0.7,
+    "sizeY": 0.7,
+    "sizeZ": 0.7
+   }
 }
+
+
