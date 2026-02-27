@@ -5,11 +5,11 @@ import com.github.noamm9.event.impl.KeyboardEvent
 import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.event.impl.ScreenEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.componnents.Style
-import com.github.noamm9.ui.clickgui.componnents.getValue
-import com.github.noamm9.ui.clickgui.componnents.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.componnents.impl.ToggleSetting
-import com.github.noamm9.ui.clickgui.componnents.provideDelegate
+import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.components.getValue
+import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
+import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.TextInputHandler
 import com.github.noamm9.utils.ChatUtils.removeFormatting
