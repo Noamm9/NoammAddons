@@ -12,7 +12,8 @@ object NotificationManager {
     private val notifications = CopyOnWriteArrayList<Notification>()
     private var lastFrameTime = System.currentTimeMillis()
 
-    fun push(title: String, message: String, duration: Long = 5000L) {
+    fun push(title: String, message: String, duration: Long = 3000L) {
+        if (notifications.any { it.title == title && it.message == message && it.duration == duration }) return
         notifications.add(Notification(title, message, duration))
     }
 

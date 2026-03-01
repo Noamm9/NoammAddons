@@ -1,7 +1,5 @@
 package com.github.noamm9.features.impl.general
 
-import com.github.noamm9.event.EventPriority
-import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.interfaces.IChatComponent
@@ -15,19 +13,17 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.DataDownloader
 import net.minecraft.client.GuiMessage
 import net.minecraft.client.gui.screens.ChatScreen
-import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
+import net.minecraft.network.chat.Component
 import org.lwjgl.glfw.GLFW
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
 object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy messages.") {
-    val uselessMessages by lazy { DataDownloader.loadJson<List<String>>("uselessMessages.json").map(::Regex) }
+    private val uselessMessages by lazy { DataDownloader.loadJson<List<String>>("uselessMessages.json").map(::Regex) }
 
-    private val ctrlClickToCopy by ToggleSetting("Ctrl Click to Copy", true)
-        .withDescription("Ctrl + Left Click a message to copy it to your clipboard.")
+    private val ctrlClickToCopy by ToggleSetting("Ctrl Click to Copy", true).withDescription("Ctrl + Left Click a message to copy it to your clipboard.")
+    private val removeUselessMessages by ToggleSetting("Remove useless messages", true).withDescription("Removes a lot of useless messages from the chat.")
 
-    private val removeUselessMessages by ToggleSetting("Remove useless messages", true)
-        .withDescription("Removes a lot of useless messages from the chat.")
-
-    private var lastMessageBlank: Boolean = false
+    private var lastMessageBlank = false
 
     override fun init() {
         register<MouseClickEvent> {
@@ -42,23 +38,24 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
             mc.keyboardHandler.clipboard = message
             event.isCanceled = true
         }
+    }
 
-        register<MainThreadPacketReceivedEvent.Pre>(EventPriority.LOW) {
-            if (! removeUselessMessages.value) return@register
-            if (event.packet !is ClientboundSystemChatPacket) return@register
-            val msg = event.packet.content.unformattedText
+    @JvmStatic
+    fun addMassageHook(comp: Component, ci: CallbackInfo) {
+        if (! enabled) return
+        if (! removeUselessMessages.value) return
+        val msg = comp.unformattedText
 
-            if (msg.isBlank()) {
-                if (lastMessageBlank) return@register event.cancel()
-                else {
-                    lastMessageBlank = true
-                    return@register
-                }
+        if (msg.isBlank()) {
+            if (lastMessageBlank) return ci.cancel()
+            else {
+                lastMessageBlank = true
+                return
             }
-
-            if (uselessMessages.any { it.matches(msg) }) return@register event.cancel()
-            lastMessageBlank = false
         }
+
+        if (uselessMessages.any { it.matches(msg) }) return ci.cancel()
+        lastMessageBlank = false
     }
 
     private fun getHoveredMsg(): String {

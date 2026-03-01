@@ -27,7 +27,7 @@ import java.awt.Color
 object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox and undercut mode.") {
     private var stack: ItemStack? = null
     private var input = ""
-    private var undercut = true
+    private var undercut = false
 
     override fun init() {
         ScreenEvents.AFTER_INIT.register { _, screen, width, height ->

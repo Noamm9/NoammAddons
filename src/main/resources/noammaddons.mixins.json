@@ -54,6 +54,7 @@
     "MixinGui",
     "MixinGuiGraphics",
     "MixinItemInHandRenderer",
+    "MixinItemModelResolver",
     "MixinLerpingBossEvent",
     "MixinLightTexture",
     "MixinMinecraft",

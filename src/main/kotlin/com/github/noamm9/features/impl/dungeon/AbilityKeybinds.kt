@@ -22,7 +22,7 @@ object AbilityKeybinds: Feature("Allows you do use your dungeon class ult/abilit
     override fun init() {
         register<KeyboardEvent.KeyPressed> {
             if (! LocationUtils.inDungeon || ! DungeonListener.dungeonStarted) return@register
-            if (event.keyEvent.scancode != GLFW.GLFW_PRESS) return@register
+            if (event.action != GLFW.GLFW_PRESS) return@register
             if (mc.screen != null) return@register
 
             if (classUltimate.value && ultKeybind.isPressed()) {

@@ -75,7 +75,7 @@ object LividSolver: Feature() {
 
             if (tracer.value) Render3D.renderTracer(event.ctx, livid.renderVec.add(y = 0.9), tracerColor.value)
             if (showHp.value) Render3D.renderString(
-                ColorUtils.colorCodeByPresent(livid.health, livid.maxHealth) + NumbersUtils.format(livid.health),
+                ColorUtils.colorCodeByPercent(livid.health, livid.maxHealth) + NumbersUtils.format(livid.health),
                 livid.renderVec.add(y = 3.0), scale = 1.5f
             )
         }

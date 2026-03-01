@@ -93,9 +93,9 @@ open class Feature(
         }.also(hudElements::add)
     }
 
-    data class SoundSettings(val sound: SoundSetting, val volume: SliderSetting<Float>, val pitch: SliderSetting<Float>, val play: ButtonSetting)
+    protected data class SoundSettings(val sound: SoundSetting, val volume: SliderSetting<Float>, val pitch: SliderSetting<Float>, val play: ButtonSetting)
 
-    fun createSoundSettings(name: String, sound: SoundEvent, showIf: () -> Boolean = { true }): SoundSettings {
+    protected fun createSoundSettings(name: String, sound: SoundEvent, showIf: () -> Boolean = { true }): SoundSettings {
         val sound = SoundSetting(name, sound)
             .withDescription("The internal Minecraft sound key to play.")
             .showIf(showIf)

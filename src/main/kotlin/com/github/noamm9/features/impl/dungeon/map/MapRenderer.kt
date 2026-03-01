@@ -3,7 +3,7 @@ package com.github.noamm9.features.impl.dungeon.map
 import com.github.noamm9.NoammAddons.MOD_ID
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.ui.hud.HudElement
-import com.github.noamm9.utils.ColorUtils.colorCodeByPresent
+import com.github.noamm9.utils.ColorUtils.colorCodeByPercent
 import com.github.noamm9.utils.ColorUtils.colorizeScore
 import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
@@ -63,9 +63,9 @@ object MapRenderer: HudElement() {
         if (! MapConfig.dungeonMapCheater.value && ! DungeonListener.dungeonStarted) return
 
         val secretsStr = "&6Secrets: &b${ScoreCalculation.foundSecrets}&f/&e${DungeonInfo.secretCount}"
-        val cryptsStr = colorCodeByPresent(ScoreCalculation.cryptsCount, 5) + "Crypts: ${ScoreCalculation.cryptsCount}"
+        val cryptsStr = colorCodeByPercent(ScoreCalculation.cryptsCount, 6) + "Crypts: ${ScoreCalculation.cryptsCount}"
         val scoreStr = "&eScore: ${colorizeScore(ScoreCalculation.score)}&r"
-        val deathsStr = "&cDeaths: ${colorCodeByPresent(ScoreCalculation.deathCount, 4, true)}${ScoreCalculation.deathCount}&r"
+        val deathsStr = "&cDeaths: ${colorCodeByPercent(ScoreCalculation.deathCount, 4, true)}${ScoreCalculation.deathCount}&r"
         val mimicStr = "&cM: ${if (ScoreCalculation.mimicKilled) "&a&l✔&r" else "&c&l✖&r"}"
         val princeStr = "&eP: ${if (ScoreCalculation.princeKilled) "&a&l✔&r" else "&c&l✖&r"}"
 

@@ -108,7 +108,7 @@ object TerminalTitles: Feature("Reformats the Terminal titles on P3.") {
     }
 
     private fun handleTitle(name: String, type: String, min: Int, max: Int): String {
-        val color = ColorUtils.colorCodeByPresent(min, max)
+        val color = ColorUtils.colorCodeByPercent(min, max)
         if (phaseDone.value && min == max) return "&a&lPhase Done!"
         val brackets = when (bracket.value) {
             0 -> listOf("(", ")")

@@ -34,14 +34,16 @@ object ScanUtils {
 
         ThreadUtils.loop(250) {
             if (! inDungeon) return@loop
+            ThreadUtils.scheduledTask {
 
-            val room = getRoomFromPos(mc.player?.position() ?: return@loop)
-            if (currentRoom == room) return@loop
+                val room = getRoomFromPos(mc.player?.position() ?: return@scheduledTask)
+                if (currentRoom == room) return@scheduledTask
 
-            lastKnownRoom = currentRoom
-            currentRoom = room
+                lastKnownRoom = currentRoom
+                currentRoom = room
 
-            EventDispatcher.checkForRoomChange(currentRoom, lastKnownRoom)
+                EventDispatcher.checkForRoomChange(currentRoom, lastKnownRoom)
+            }
         }
     }
 

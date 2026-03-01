@@ -40,7 +40,7 @@ object WaterBoardSolver {
         if (patternId != - 1) return
 
         center = event.room.centerPos
-        rotation = 360 - event.room.rotation !!
+        rotation = 360 - (event.room.rotation ?: return)
 
         ThreadUtils.scheduledTaskServer(30, ::solve)
     }

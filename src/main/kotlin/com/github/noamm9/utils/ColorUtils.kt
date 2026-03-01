@@ -19,7 +19,7 @@ object ColorUtils {
         }
     }
 
-    fun colorCodeByPresent(value: Number, maxValue: Number, reversed: Boolean = false): String {
+    fun colorCodeByPercent(value: Number, maxValue: Number, reversed: Boolean = false): String {
         val max = maxValue.toFloat().coerceAtLeast(1f)
         val current = value.toFloat().coerceIn(0f, max)
 

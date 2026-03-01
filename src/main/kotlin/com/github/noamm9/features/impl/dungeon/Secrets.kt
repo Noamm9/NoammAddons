@@ -80,7 +80,7 @@ object Secrets: Feature() {
         else {
             val max = ActionBarParser.maxSecrets ?: return@hudElement 0f to 0f
             val current = ActionBarParser.secrets ?: return@hudElement 0f to 0f
-            "&7Secrets: ${ColorUtils.colorCodeByPresent(current, max)}$current&7/&a$max"
+            "&7Secrets: ${ColorUtils.colorCodeByPercent(current, max)}$current&7/&a$max"
         }
 
         Render2D.drawString(ctx, line, 0, 0)

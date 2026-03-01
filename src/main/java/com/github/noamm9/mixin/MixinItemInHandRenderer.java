@@ -2,6 +2,7 @@ package com.github.noamm9.mixin;
 
 
 import com.github.noamm9.features.impl.visual.Animations;
+import com.github.noamm9.features.impl.visual.RevertAxes;
 import com.github.noamm9.utils.items.ItemUtils;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -19,6 +20,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.util.Objects;
 
 @Mixin(ItemInHandRenderer.class)
 public abstract class MixinItemInHandRenderer {
@@ -96,6 +99,17 @@ public abstract class MixinItemInHandRenderer {
             oOffHandHeight = 1f;
             offHandHeight = 1f;
         }
+    }
+
+    @ModifyVariable(
+        method = "renderArmWithItem",
+        at = @At("HEAD"),
+        argsOnly = true
+    )
+    private ItemStack revertAxe(ItemStack original) {
+        if (original == null || original.isEmpty()) return original;
+        ItemStack replacement = RevertAxes.shouldReplace(original);
+        return Objects.requireNonNullElse(replacement, original);
     }
 }
 
