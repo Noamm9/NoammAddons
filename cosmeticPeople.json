@@ -93,7 +93,7 @@
   },
   "e826a25a-6910-42cf-9893-e289b95bf53a": {
     "sizeX": 3,
-    "sizeY": 0.2
+    "sizeY": -0.2
   },
   "62284887-58f6-4ac8-ab07-8cc89c12fa09": {
     "name": "{\"text\":\"\",\"extra\":[{\"text\":\"X\",\"color\":\"#240000\",\"bold\":true,\"italic\":true},{\"text\":\"f\",\"color\":\"#000000\",\"bold\":true,\"italic\":true},{\"text\":\"c\",\"color\":\"#240000\",\"bold\":true,\"italic\":true},{\"text\":\"o\",\"color\":\"#000000\",\"bold\":true,\"italic\":true}]}"
@@ -142,5 +142,20 @@
   },
   "655ccbdf-c704-4627-9804-e70673018f0e": {
     "name": "{\"text\":\"\",\"extra\":[{\"text\":\"v\",\"color\":\"#5B0000\",\"bold\":true,\"italic\":true},{\"text\":\"e\",\"color\":\"#740000\",\"bold\":true,\"italic\":true},{\"text\":\"r\",\"color\":\"#8C0101\",\"bold\":true,\"italic\":true},{\"text\":\"y\",\"color\":\"#A40101\",\"bold\":true,\"italic\":true},{\"text\":\"r\",\"color\":\"#BC0202\",\"bold\":true,\"italic\":true},{\"text\":\"u\",\"color\":\"#D40303\",\"bold\":true,\"italic\":true},{\"text\":\"s\",\"color\":\"#EC0404\",\"bold\":true,\"italic\":true},{\"text\":\"s\",\"color\":\"#FA0F0F\",\"bold\":true,\"italic\":true},{\"text\":\"i\",\"color\":\"#FA2828\",\"bold\":true,\"italic\":true},{\"text\":\"a\",\"color\":\"#FA4141\",\"bold\":true,\"italic\":true},{\"text\":\"n\",\"color\":\"#FA5A5A\",\"bold\":true,\"italic\":true}]}"
+  },
+  "13ebaba3-0663-464c-9ae9-34cadda85008": {
+    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"E\",\"color\":\"#B30085\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.4,0.05,0.19,1]},{\"text\":\"m\",\"color\":\"#871DAA\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.35,0.09,0.32,1]},{\"text\":\"z\",\"color\":\"#5A39CE\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.29,0.13,0.45,1]},{\"text\":\"y\",\"color\":\"#633BE7\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.23,0.16,0.57,1]},{\"text\":\"o\",\"color\":\"#6C3DFF\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.31,0.15,0.46,1]}]}",
+    "sizeX": 0.7,
+    "sizeY": 0.7,
+    "sizeZ": 0.7
+  },
+  "a6017340-3ac8-4658-98a9-04d9b5588967": {
+    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"s\",\"color\":\"#E43A96\",\"bold\":true},{\"text\":\"i\",\"color\":\"#E74689\",\"bold\":true},{\"text\":\"g\",\"color\":\"#E9537E\",\"bold\":true},{\"text\":\"m\",\"color\":\"#EC5F75\",\"bold\":true},{\"text\":\"a\",\"color\":\"#EE6C70\",\"bold\":true},{\"text\":\"s\",\"color\":\"#F08579\",\"bold\":true},{\"text\":\"e\",\"color\":\"#F29073\",\"bold\":true},{\"text\":\"a\",\"color\":\"#F49D6E\",\"bold\":true},{\"text\":\"l\",\"color\":\"#F7AC68\",\"bold\":true},{\"text\":\"4\",\"color\":\"#F9BD62\",\"bold\":true},{\"text\":\"2\",\"color\":\"#FCD05C\",\"bold\":true}]}"
+  },
+  "06656b80-ab61-4686-ac27-0008b0db78ae": {
+    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"c\",\"color\":\"#4498DB\",\"bold\":true},{\"text\":\"r\",\"color\":\"#5CA4E0\",\"bold\":true},{\"text\":\"i\",\"color\":\"#72AFE4\",\"bold\":true},{\"text\":\"b\",\"color\":\"#87BBE9\",\"bold\":true},{\"text\":\"o\",\"color\":\"#9BC6ED\",\"bold\":true},{\"text\":\"x\",\"color\":\"#AFD2F1\",\"bold\":true},{\"text\":\"u\",\"color\":\"#C3DDF5\",\"bold\":true},{\"text\":\"s\",\"color\":\"#D7E8F8\",\"bold\":true},{\"text\":\"e\",\"color\":\"#EBF4FC\",\"bold\":true},{\"text\":\"r\",\"color\":\"#FFFFFF\",\"bold\":true}]}"
+  },
+  "2c439658-cc9c-4fe1-b3f4-50f610f6ef3b": {
+    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"彡\",\"color\":\"#98E388\",\"bold\":true},{\"text\":\"E\",\"color\":\"#84C875\",\"bold\":true},{\"text\":\"i\",\"color\":\"#70AF63\",\"bold\":true},{\"text\":\"n\",\"color\":\"#5D9551\",\"bold\":true},{\"text\":\"f\",\"color\":\"#4A7D40\",\"bold\":true},{\"text\":\"x\",\"color\":\"#38652F\",\"bold\":true},{\"text\":\"c\",\"color\":\"#274F1F\",\"bold\":true},{\"text\":\"h\",\"color\":\"#163910\",\"bold\":true},{\"text\":\"D\",\"color\":\"#1A4615\",\"bold\":true},{\"text\":\"a\",\"color\":\"#1E531B\",\"bold\":true},{\"text\":\"v\",\"color\":\"#226020\",\"bold\":true},{\"text\":\"i\",\"color\":\"#266E26\",\"bold\":true},{\"text\":\"d\",\"color\":\"#297C2C\",\"bold\":true},{\"text\":\"彡\",\"color\":\"#2D8A32\",\"bold\":true}]}"
   }
 }
