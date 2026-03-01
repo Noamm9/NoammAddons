@@ -9,7 +9,6 @@ import com.github.noamm9.utils.DataDownloader
 import com.github.noamm9.utils.network.ProfileUtils
 import com.mojang.authlib.GameProfile
 import com.mojang.blaze3d.vertex.PoseStack
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.fabricmc.fabric.api.client.rendering.v1.RenderStateDataKey
 import net.minecraft.client.player.AbstractClientPlayer
@@ -23,14 +22,15 @@ object Cosmetics: Feature(toggled = true) {
     val customNames by ToggleSetting("Show Custom Names", true)
     val customSizes by ToggleSetting("Show Custom Sizes", true)
 
-    val cosmeticPeople by lazy {
-        DataDownloader.loadJson<Map<UUID, CosmeticData>>("cosmeticPeople.json").also {
-            scope.launch {
-                for ((uuid, cosmetic) in it.filter { it.value.hasCustomName }) {
-                    val profile = ProfileUtils.getNameByUUID(uuid.toString()).getOrThrow()
-                    TextReplacer.replaceMap[profile.name] = cosmetic.name
-                    delay(200)
-                }
+    lateinit var cosmeticPeople: Map<UUID, CosmeticData>
+
+    override fun init() {
+        cosmeticPeople = DataDownloader.loadJson<Map<UUID, CosmeticData>>("cosmeticPeople.json")
+
+        scope.launch {
+            for ((uuid, cosmetic) in cosmeticPeople.filter { it.value.hasCustomName }) {
+                val profile = ProfileUtils.getNameByUUID(uuid.toString()).getOrThrow()
+                TextReplacer.replaceMap[profile.name] = cosmetic.name
             }
         }
     }
@@ -59,7 +59,7 @@ object Cosmetics: Feature(toggled = true) {
     }
 
     @JvmField
-    val GAME_PROFILE_KEY: RenderStateDataKey<GameProfile> = RenderStateDataKey.create { "${NoammAddons.MOD_ID}:game_profile" }
+    val GAME_PROFILE_KEY = RenderStateDataKey.create<GameProfile> { "${NoammAddons.MOD_ID}:game_profile" }
 
     data class CosmeticData(
         val name: String = "",

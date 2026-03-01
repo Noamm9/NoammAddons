@@ -61,7 +61,6 @@ class PogObject<T: Any>(fileName: String, val defaultObject: T) {
 
     @Synchronized
     fun setData(newData: T) {
-        if (this.data == newData) return
         this.data = newData
         save()
     }

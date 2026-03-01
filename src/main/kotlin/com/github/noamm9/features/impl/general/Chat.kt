@@ -1,5 +1,6 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.interfaces.IChatComponent
@@ -8,9 +9,12 @@ import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.ui.notification.NotificationManager
+import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.DataDownloader
+import com.github.noamm9.utils.NumbersUtils
+import com.github.noamm9.utils.Utils.remove
 import net.minecraft.client.GuiMessage
 import net.minecraft.client.gui.screens.ChatScreen
 import net.minecraft.network.chat.Component
@@ -23,6 +27,7 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
     private val ctrlClickToCopy by ToggleSetting("Ctrl Click to Copy", true).withDescription("Ctrl + Left Click a message to copy it to your clipboard.")
     private val removeUselessMessages by ToggleSetting("Remove useless messages", true).withDescription("Removes a lot of useless messages from the chat.")
 
+    private val explosiveShotRegex = Regex("Your Explosive Shot hit (\\d+) .+ for (.+) damage\\.")
     private var lastMessageBlank = false
 
     override fun init() {
@@ -37,6 +42,17 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
             NotificationManager.push("Message copied to clipboard", message)
             mc.keyboardHandler.clipboard = message
             event.isCanceled = true
+        }
+
+        register<ChatMessageEvent> {
+            if (! removeUselessMessages.value) return@register
+            val (sHits, fDamage) = explosiveShotRegex.find(event.unformattedText)?.destructured ?: return@register
+            val hits = sHits.toIntOrNull() ?: return@register
+            val damage = fDamage.remove(",").substringBefore(".").toIntOrNull()?.let {
+                if (hits > 1) it / hits else it
+            } ?: return@register
+
+            ChatUtils.modMessage("&cExplosive Shot hit: &e${NumbersUtils.format(damage)}")
         }
     }
 
