@@ -18,7 +18,7 @@
     "sizeZ": 1.0
   },
   "3f9bb5dc-4b93-4961-a37a-ef19be83b353": {
-    "name": "cat",
+    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"c\",\"color\":\"#FFAA00\"},{\"text\":\"a\",\"color\":\"#FFAA00\"},{\"text\":\"t\",\"color\":\"#FFAA00\"}]}",
     "sizeX": 2.0,
     "sizeY": 2.0,
     "sizeZ": 2.0
@@ -132,6 +132,7 @@
     "name": "{\"text\":\"\",\"extra\":[{\"text\":\"S\",\"color\":\"#91D7FF\"},{\"text\":\"k\",\"color\":\"#86B4FF\"},{\"text\":\"y\",\"color\":\"#7B8BFF\"},{\"text\":\"Q\",\"color\":\"#8470FF\"},{\"text\":\"o\",\"color\":\"#A365FF\"},{\"text\":\"L\",\"color\":\"#C75AFF\"}]}"
   }
 }
+
 
 
 
