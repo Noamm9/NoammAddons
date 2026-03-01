@@ -17,7 +17,6 @@ object WarpShortcuts : Feature("removes the /warp in warp commands", "Warp Short
     }
 
     override fun init() {
-        CommandManager.updateCommandsAtRuntime()
         commands.clear()
         commands.addAll(
             listOf(
@@ -70,10 +69,10 @@ object WarpShortcuts : Feature("removes the /warp in warp commands", "Warp Short
                 WarpUtils("rift", "rift"),
                 WarpUtils("spider", "spider"),
                 WarpUtils("stonks", "stonks"),
-                WarpUtils("tomb", "tomb"),
-                WarpUtils("smold", "tomb"),
-                WarpUtils("smoldering", "tomb"),
-                WarpUtils("blaze", "tomb"),
+                WarpUtils("tomb", "smold"),
+                WarpUtils("smold", "smold"),
+                WarpUtils("smoldering", "smold"),
+                WarpUtils("blaze", "smold"),
                 WarpUtils("trapper", "trapper"),
                 WarpUtils("trevor", "trapper"),
                 WarpUtils("taylor", "taylor"),
@@ -83,6 +82,7 @@ object WarpShortcuts : Feature("removes the /warp in warp commands", "Warp Short
                 WarpUtils("wizard", "wizard"),
             )
         )
+        CommandManager.updateCommandsAtRuntime()
     }
 
     private fun warp(destination: String) {
