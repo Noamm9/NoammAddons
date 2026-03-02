@@ -155,7 +155,7 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
 
     private fun showTitle(subtitle: String) {
         ChatUtils.showTitle(subtitle = subtitle)
-        mc.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1f))
+        mc.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_PLING, 1f))
     }
 
     private fun formatProgress(current: Int, max: Int): String {

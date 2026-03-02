@@ -110,15 +110,13 @@ class PogObject<T: Any>(fileName: String, val defaultObject: T) {
                         val objectsToProcess = ArrayList(activePogObjects)
                         objectsToProcess.forEach { pogObject ->
                             pogObject.currentAutosaveIntervalMillis?.let { interval ->
-                                if (currentTime - pogObject.lastSavedTime >= interval) {
-                                    val onDiskData = fromJson(pogObject.dataFile, Any::class.java)
-                                    if (onDiskData != pogObject.getData()) pogObject.save()
-                                    else pogObject.lastSavedTime = currentTime
+                                if (currentTime - pogObject.lastSavedTime < interval) return@forEach
 
-                                    synchronized(pogObject) {
-                                        pogObject.save()
-                                    }
-                                }
+                                val onDiskData = fromJson(pogObject.dataFile, Any::class.java)
+                                if (onDiskData == pogObject.getData()) return@forEach
+
+                                pogObject.lastSavedTime = currentTime
+                                synchronized(pogObject) { pogObject.save() }
                             }
                         }
                     }

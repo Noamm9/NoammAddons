@@ -38,8 +38,8 @@ object DoorKeys: Feature("ESP box & Tracer for wither doors and blood door.") {
             val entity = mc.level?.getEntity(packet.id) as? ArmorStand ?: return@register
 
             doorKey = Pair(entity, when (entity.customName?.unformattedText) {
-                "Wither Key" -> witherColor.value
-                "Blood Key" -> bloodColor.value
+                "Wither Key" if highlightWither.value -> witherColor.value
+                "Blood Key" if highlightBlood.value -> bloodColor.value
                 else -> return@register
             })
         }
@@ -63,10 +63,6 @@ object DoorKeys: Feature("ESP box & Tracer for wither doors and blood door.") {
                     fill = true,
                     phase = true,
                 )
-            }
-
-            register<WorldChangeEvent> {
-                doorKey = null
             }
         }
     }

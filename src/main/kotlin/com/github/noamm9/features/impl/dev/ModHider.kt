@@ -25,8 +25,8 @@ import kotlin.jvm.optionals.getOrNull
 // stops the exploit where the server can send a translation key inside a Sign or Anvil to gets the mods you are using
 // mods without language keys are safe from this
 object ModHider {
-    private val language: Language = ILanguage.invokeLoadDefault()
-    private val serverLanguages: MutableMap<ClientPacketListener?, Language?> = IdentityHashMap<ClientPacketListener?, Language?>()
+    private val language = ILanguage.invokeLoadDefault()
+    private val serverLanguages = IdentityHashMap<ClientPacketListener?, Language?>()
 
     /*
     private val serverCheckedMods = ObjectArraySet<String>()
