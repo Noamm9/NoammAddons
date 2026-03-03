@@ -175,5 +175,17 @@
   },
   "bf1ee032-29a7-4216-bbd4-be14d19ba212": {
     "name": "{\"text\":\"\",\"extra\":[{\"text\":\"L\",\"color\":\"#FCD05C\",\"bold\":true},{\"text\":\"i\",\"color\":\"#D2B277\",\"bold\":true},{\"text\":\"n\",\"color\":\"#A89392\",\"bold\":true},{\"text\":\"_\",\"color\":\"#7E75AE\",\"bold\":true},{\"text\":\"D\",\"color\":\"#5457C9\",\"bold\":true},{\"text\":\"a\",\"color\":\"#2A38E4\",\"bold\":true},{\"text\":\"n\",\"color\":\"#001AFF\",\"bold\":true}]}"
+  },
+  "0b0e22bd-4a51-4a07-9a20-eea86446bd7a": {
+    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"v\",\"color\":\"#351A9E\",\"bold\":true,\"italic\":true},{\"text\":\"2\",\"color\":\"#431BAC\",\"bold\":true,\"italic\":true},{\"text\":\"K\",\"color\":\"#531DB9\",\"bold\":true,\"italic\":true},{\"text\":\"i\",\"color\":\"#641EC7\",\"bold\":true,\"italic\":true},{\"text\":\"l\",\"color\":\"#781FD5\",\"bold\":true,\"italic\":true},{\"text\":\"l\",\"color\":\"#8C24E0\",\"bold\":true,\"italic\":true},{\"text\":\"u\",\"color\":\"#A030E2\",\"bold\":true,\"italic\":true},{\"text\":\"a\",\"color\":\"#B23DE5\",\"bold\":true,\"italic\":true}]}"
+  },
+  "a915bd9c-b43f-4fb8-b11e-8e564ff6ae6b": {
+    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"a\",\"color\":\"#FFAA00\"},{\"text\":\"x\",\"color\":\"#FFAA00\"},{\"text\":\"l\",\"color\":\"#FFAA00\"},{\"text\":\"e\",\"color\":\"#FFAA00\"},{\"text\":\".\",\"color\":\"#FFAA00\"},{\"text\":\"c\",\"color\":\"#FFAA00\"},{\"text\":\"o\",\"color\":\"#FFAA00\"},{\"text\":\"f\",\"color\":\"#FFAA00\"},{\"text\":\"f\",\"color\":\"#FFAA00\"},{\"text\":\"e\",\"color\":\"#FFAA00\"},{\"text\":\"e\",\"color\":\"#FFAA00\"}]}",
+    "sizeX": 0.5,
+    "sizeY": 0.5,
+    "sizeZ": 0.5
+  },
+  "5cbc899f-ef19-462a-90c0-6f8174251287": {
+    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"s\",\"color\":\"#00AA00\"},{\"text\":\"a\",\"color\":\"#00AA00\"},{\"text\":\"d\",\"color\":\"#00AA00\"},{\"text\":\"c\",\"color\":\"#00AA00\"},{\"text\":\"o\",\"color\":\"#00AA00\"},{\"text\":\"l\",\"color\":\"#00AA00\"},{\"text\":\"o\",\"color\":\"#00AA00\"},{\"text\":\"r\",\"color\":\"#00AA00\"},{\"text\":\"s\",\"color\":\"#00AA00\"}]}"
   }
 }
