@@ -93,6 +93,7 @@ object JsonUtils {
         }
         catch (e: Exception) {
             println("[PogObject] Failed to parse JSON: Type: ${clazz.javaClass.simpleName} ${e.message}")
+            e.printStackTrace()
             null
         }
     }

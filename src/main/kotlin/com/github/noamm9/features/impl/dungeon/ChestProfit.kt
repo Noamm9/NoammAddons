@@ -48,7 +48,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
     private val chestsToHighlight = mutableListOf<DungeonChest>()
     private var sortedChestsCache = emptyList<DungeonChest>()
 
-    init {
+    override fun init() {
         register<WorldChangeEvent> {
             DungeonChest.entries.forEach { it.reset() }
             chestsToHighlight.clear()

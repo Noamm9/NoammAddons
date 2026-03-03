@@ -16,7 +16,6 @@ import com.github.noamm9.utils.world.WorldUtils
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents
 import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
@@ -40,14 +39,6 @@ object EventDispatcher {
     fun init() {
         WorldRenderEvents.END_MAIN.register { context ->
             EventBus.post(RenderWorldEvent(RenderContext.fromContext(context)))
-        }
-
-        ClientPlayConnectionEvents.JOIN.register { _, _, _ ->
-            EventBus.post(ServerEvent.Connect)
-        }
-
-        ClientPlayConnectionEvents.DISCONNECT.register { _, _ ->
-            EventBus.post(ServerEvent.Disconnect)
         }
 
         ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE.register { _, _ ->

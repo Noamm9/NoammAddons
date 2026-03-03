@@ -4,7 +4,10 @@ import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.EventPriority
-import com.github.noamm9.event.impl.*
+import com.github.noamm9.event.impl.DungeonEvent
+import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
+import com.github.noamm9.event.impl.TickEvent
+import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.Utils.remove
@@ -91,7 +94,6 @@ object LocationUtils {
         }
 
         EventBus.register<WorldChangeEvent>(EventPriority.HIGHEST) { reset() }
-        EventBus.register<ServerEvent.Disconnect>(EventPriority.HIGHEST) { reset() }
     }
 
     private fun reset() {
