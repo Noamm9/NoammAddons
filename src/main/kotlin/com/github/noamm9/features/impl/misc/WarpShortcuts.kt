@@ -7,96 +7,88 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ChatUtils
 
 object WarpShortcuts : Feature("removes the /warp in warp commands", "Warp Shortcuts") {
-    val commands = mutableListOf<WarpUtils>()
+    val commands = mutableListOf<WarpCommand>()
 
-    class WarpUtils(var input: String, var output: String) : BaseCommand(input) {
+    class WarpCommand(var input: String, var output: String) : BaseCommand(input) {
         override fun CommandNodeBuilder.build() {
-            requires { WarpShortcuts.enabled }
+            requires { enabled }
             runs { warp(output) }
+        }
+
+        private fun warp(destination: String) {
+            if (enabled) ChatUtils.sendCommand("warp $destination")
+            else return
         }
     }
 
     override fun init() {
-        CommandManager.updateCommandsAtRuntime()
+        CommandManager.commands.removeIf { it is WarpCommand }
         commands.clear()
         commands.addAll(
             listOf(
-                WarpUtils("arachne", "arachne"),
-                WarpUtils("barn", "barn"),
-                WarpUtils("bayou", "bayou"),
-                WarpUtils("back", "bayou"),
-                WarpUtils("backwater", "bayou"),
-                WarpUtils("camp", "camp"),
-                WarpUtils("base", "camp"),
-                WarpUtils("tunnels", "camp"),
-                WarpUtils("castle", "castle"),
-                WarpUtils("cn", "cn"),
-                WarpUtils("nc", "cn"),
-                WarpUtils("carnival", "carnival"),
-                WarpUtils("crypts", "crypts"),
-                WarpUtils("zombie", "crypts"),
-                WarpUtils("da", "da"),
-                WarpUtils("deep", "deep"),
-                WarpUtils("desert", "desert"),
-                WarpUtils("crystals", "crystals"),
-                WarpUtils("dhub", "dhub"),
-                WarpUtils("dn", "dhub"),
-                WarpUtils("dh", "dhub"),
-                WarpUtils("d", "dhub"),
-                WarpUtils("dungeon", "dhub"),
-                WarpUtils("drag", "drag"),
-                WarpUtils("elizabeth", "elizabeth"),
-                WarpUtils("end", "end"),
-                WarpUtils("forge", "forge"),
-                WarpUtils("galatea", "galatea"),
-                WarpUtils("garden", "garden"),
-                WarpUtils("gold", "gold"),
-                WarpUtils("howl", "howl"),
-                WarpUtils("wolf", "howl"),
-                WarpUtils("h", "hub"),
-                WarpUtils("isle", "isle"),
-                WarpUtils("nether", "isle"),
-                WarpUtils("jerry", "jerry"),
-                WarpUtils("jungle", "jungle"),
-                WarpUtils("kuudra", "kuudra"),
-                WarpUtils("skull", "kuudra"),
-                WarpUtils("mines", "mines"),
-                WarpUtils("murk", "murk"),
-                WarpUtils("murkwater", "murk"),
-                WarpUtils("loch", "murk"),
-                WarpUtils("museum", "museum"),
-                WarpUtils("nest", "nest"),
-                WarpUtils("park", "park"),
-                WarpUtils("rift", "rift"),
-                WarpUtils("spider", "spider"),
-                WarpUtils("stonks", "stonks"),
-                WarpUtils("tomb", "tomb"),
-                WarpUtils("smold", "tomb"),
-                WarpUtils("smoldering", "tomb"),
-                WarpUtils("blaze", "tomb"),
-                WarpUtils("trapper", "trapper"),
-                WarpUtils("trevor", "trapper"),
-                WarpUtils("taylor", "taylor"),
-                WarpUtils("void", "void"),
-                WarpUtils("eman", "void"),
-                WarpUtils("wiz", "wizard"),
-                WarpUtils("wizard", "wizard"),
+                WarpCommand("arachne", "arachne"),
+                WarpCommand("barn", "barn"),
+                WarpCommand("bayou", "bayou"),
+                WarpCommand("back", "bayou"),
+                WarpCommand("backwater", "bayou"),
+                WarpCommand("camp", "camp"),
+                WarpCommand("base", "camp"),
+                WarpCommand("tunnels", "camp"),
+                WarpCommand("castle", "castle"),
+                WarpCommand("cn", "cn"),
+                WarpCommand("nc", "cn"),
+                WarpCommand("carnival", "carnival"),
+                WarpCommand("crypts", "crypts"),
+                WarpCommand("zombie", "crypts"),
+                WarpCommand("da", "da"),
+                WarpCommand("deep", "deep"),
+                WarpCommand("desert", "desert"),
+                WarpCommand("crystals", "crystals"),
+                WarpCommand("dhub", "dhub"),
+                WarpCommand("dn", "dhub"),
+                WarpCommand("dh", "dhub"),
+                WarpCommand("d", "dhub"),
+                WarpCommand("dungeon", "dhub"),
+                WarpCommand("drag", "drag"),
+                WarpCommand("elizabeth", "elizabeth"),
+                WarpCommand("end", "end"),
+                WarpCommand("forge", "forge"),
+                WarpCommand("galatea", "galatea"),
+                WarpCommand("garden", "garden"),
+                WarpCommand("gold", "gold"),
+                WarpCommand("howl", "howl"),
+                WarpCommand("wolf", "howl"),
+                WarpCommand("h", "hub"),
+                WarpCommand("isle", "isle"),
+                WarpCommand("nether", "isle"),
+                WarpCommand("jerry", "jerry"),
+                WarpCommand("jungle", "jungle"),
+                WarpCommand("kuudra", "kuudra"),
+                WarpCommand("skull", "kuudra"),
+                WarpCommand("mines", "mines"),
+                WarpCommand("murk", "murk"),
+                WarpCommand("murkwater", "murk"),
+                WarpCommand("loch", "murk"),
+                WarpCommand("museum", "museum"),
+                WarpCommand("nest", "nest"),
+                WarpCommand("park", "park"),
+                WarpCommand("rift", "rift"),
+                WarpCommand("spider", "spider"),
+                WarpCommand("stonks", "stonks"),
+                WarpCommand("tomb", "tomb"),
+                WarpCommand("smold", "tomb"),
+                WarpCommand("smoldering", "tomb"),
+                WarpCommand("blaze", "tomb"),
+                WarpCommand("trapper", "trapper"),
+                WarpCommand("trevor", "trapper"),
+                WarpCommand("taylor", "taylor"),
+                WarpCommand("void", "void"),
+                WarpCommand("eman", "void"),
+                WarpCommand("wiz", "wizard"),
+                WarpCommand("wizard", "wizard"),
             )
         )
-    }
-
-    private fun warp(destination: String) {
-        if (enabled) ChatUtils.sendCommand("warp $destination")
-        else return
-    }
-
-    override fun onEnable() {
-        super.onEnable()
-        CommandManager.updateCommandsAtRuntime()
-    }
-
-    override fun onDisable() {
-        super.onDisable()
+        CommandManager.commands.addAll(commands)
         CommandManager.updateCommandsAtRuntime()
     }
 }

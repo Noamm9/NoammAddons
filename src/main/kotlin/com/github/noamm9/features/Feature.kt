@@ -1,6 +1,7 @@
 package com.github.noamm9.features
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.commands.CommandManager
 import com.github.noamm9.config.Savable
 import com.github.noamm9.event.Event
 import com.github.noamm9.event.EventBus.EventContext
@@ -63,12 +64,13 @@ open class Feature(
     }
 
     open fun toggle() {
-        enabled = ! enabled
+        enabled = !enabled
         if (enabled || alwaysActive) onEnable()
         else onDisable()
+        CommandManager.updateCommandsAtRuntime()
     }
 
-    protected inline fun <reified T: Event> register(
+    protected inline fun <reified T : Event> register(
         priority: EventPriority = EventPriority.NORMAL,
         noinline block: EventContext<T>.() -> Unit
     ): EventListener<T> {
@@ -84,7 +86,7 @@ open class Feature(
         centered: Boolean = false,
         render: (GuiGraphics, Boolean) -> Pair<Float, Float>,
     ): HudElement {
-        return object: HudElement() {
+        return object : HudElement() {
             override val name = name
             override val toggle: Boolean get() = this@Feature.enabled && enabled.invoke()
             override val shouldDraw: Boolean get() = shouldDraw.invoke()
@@ -93,9 +95,18 @@ open class Feature(
         }.also(hudElements::add)
     }
 
-    protected data class SoundSettings(val sound: SoundSetting, val volume: SliderSetting<Float>, val pitch: SliderSetting<Float>, val play: ButtonSetting)
+    protected data class SoundSettings(
+        val sound: SoundSetting,
+        val volume: SliderSetting<Float>,
+        val pitch: SliderSetting<Float>,
+        val play: ButtonSetting
+    )
 
-    protected fun createSoundSettings(name: String, sound: SoundEvent, showIf: () -> Boolean = { true }): SoundSettings {
+    protected fun createSoundSettings(
+        name: String,
+        sound: SoundEvent,
+        showIf: () -> Boolean = { true }
+    ): SoundSettings {
         val sound = SoundSetting(name, sound)
             .withDescription("The internal Minecraft sound key to play.")
             .showIf(showIf)
@@ -126,9 +137,14 @@ open class Feature(
     }
 
     private fun initCategory(): CategoryType {
-        val parts = this::class.java.`package` !!.name.split(".")
+        val parts = this::class.java.`package`!!.name.split(".")
         val categoryName = parts[parts.indexOf("impl") + 1].uppercase()
-        if (CategoryType.entries.none { it.name.equals(categoryName, true) }) throw Error("Category does not exist: $categoryName")
+        if (CategoryType.entries.none {
+                it.name.equals(
+                    categoryName,
+                    true
+                )
+            }) throw Error("Category does not exist: $categoryName")
         return CategoryType.valueOf(categoryName.uppercase())
     }
 }
