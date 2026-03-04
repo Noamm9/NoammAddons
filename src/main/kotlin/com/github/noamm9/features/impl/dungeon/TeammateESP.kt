@@ -54,6 +54,7 @@ object TeammateESP: Feature("Highlights your dungeon party.") {
 
     @JvmStatic
     fun shouldHideNametag(entity: Entity): Boolean {
+        if (! enabled) return false
         if (! drawName.value) return false
         if (! LocationUtils.inDungeon) return false
         return DungeonListener.dungeonTeammatesNoSelf.any { it.entity?.id == entity.id }
