@@ -40,7 +40,8 @@ object PartyFinder: Feature() {
     private val selectedClassRegex = Regex("Currently Selected: (.+)")
     private val selectDungeonClassRegex = Regex("§7View and select a dungeon class\\.")
     private val classNames = listOf("&4&lArcher", "&a&lTank", "&6&lBerserk", "&5&lHealer", "&b&lMage")
-    var selectedClass: String? = null
+    private var selectedClass: String? = null
+    private var inPartyFinder = false
 
     private val pendingRequests = Collections.synchronizedSet(HashSet<String>())
 
@@ -52,8 +53,8 @@ object PartyFinder: Feature() {
 
     override fun init() {
         register<ContainerEvent.Render.Slot.Post> {
+            if (! inPartyFinder) return@register
             if (! showLevelReq.value && ! showMissingOverlay.value) return@register
-            if (event.screen.title.string != "Party Finder") return@register
             if (event.slot.index !in headSlots) return@register
             val item = event.slot.item.takeUnless { it.isEmpty || ! it.`is`(Blocks.PLAYER_HEAD.asItem()) } ?: return@register
 
@@ -94,7 +95,7 @@ object PartyFinder: Feature() {
         }
 
         register<ContainerEvent.Render.Tooltip> {
-            if (event.screen.title.string != "Party Finder") return@register
+            if (! inPartyFinder) return@register
             if (! event.stack.`is`(Items.PLAYER_HEAD)) return@register
             if (event.screen.menu.slots.find { it.item == event.stack }?.index !in headSlots) return@register
 
@@ -133,13 +134,23 @@ object PartyFinder: Feature() {
         }
 
         register<ContainerFullyOpenedEvent> {
-            if (event.title.string != "Catacombs Gate") return@register
-            event.items[45]?.lore?.takeIf { it.size > 3 && it[0].matches(selectDungeonClassRegex) }?.run {
-                selectedClassRegex.matchEntire(get(2).removeFormatting())?.destructured?.run {
-                    selectedClass = classNames[classNames.map { it.removeFormatting() }.indexOf(component1())]
+            if (event.title.string == "Catacombs Gate") {
+                event.items[45]?.lore?.takeIf { it.size > 3 && it[0].matches(selectDungeonClassRegex) }?.run {
+                    selectedClassRegex.matchEntire(get(2).removeFormatting())?.destructured?.run {
+                        selectedClass = classNames[classNames.map { it.removeFormatting() }.indexOf(component1())]
+                    }
+                }
+            }
+            else if (event.title.string == "Party Finder") {
+                event.items[50]?.takeIf { it.`is`(Items.NETHER_STAR) }?.lore[5]?.let {
+                    if (! it.contains("§aCombat Level: ")) {
+                        inPartyFinder = true
+                    }
                 }
             }
         }
+
+        register<ContainerEvent.Close> { inPartyFinder = false }
     }
 
     private fun getColor(level: Int) = when {
