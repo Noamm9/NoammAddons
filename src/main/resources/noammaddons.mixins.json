@@ -68,8 +68,6 @@
     "MixinScreenEffectRenderer",
     "MixinSoundManager",
     "NameTagFeatureRendererMixin",
-    "PlayerRendererMixin",
-    "CommandNodeAccessor",
-    "ClientboundCommandsPacketAccessor"
+    "PlayerRendererMixin"
   ]
 }

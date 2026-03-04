@@ -89,6 +89,5 @@ object WarpShortcuts : Feature("removes the /warp in warp commands", "Warp Short
             )
         )
         CommandManager.commands.addAll(commands)
-        CommandManager.updateCommandsAtRuntime()
     }
 }

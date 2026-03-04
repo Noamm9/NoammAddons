@@ -67,7 +67,6 @@ open class Feature(
         enabled = !enabled
         if (enabled || alwaysActive) onEnable()
         else onDisable()
-        CommandManager.updateCommandsAtRuntime()
     }
 
     protected inline fun <reified T : Event> register(
