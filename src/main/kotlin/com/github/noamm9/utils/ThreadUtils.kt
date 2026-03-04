@@ -21,7 +21,7 @@ object ThreadUtils {
 
     fun runOnMcThread(block: () -> Unit) {
         if (mc.isSameThread) safeRun(block)
-        else mc.execute { safeRun(block) }
+        else scheduledTask { safeRun(block) }
     }
 
     fun setTimeout(delay: Long, block: () -> Unit): ScheduledFuture<*> {

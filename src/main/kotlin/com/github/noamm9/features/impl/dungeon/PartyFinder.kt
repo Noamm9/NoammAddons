@@ -17,6 +17,7 @@ import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.Utils.remove
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.network.ApiUtils
+import com.github.noamm9.utils.network.ProfileUtils
 import com.github.noamm9.utils.network.cache.ProfileCache
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
@@ -177,7 +178,7 @@ object PartyFinder: Feature() {
 
                 scope.launch {
                     try {
-                        //ProfileUtils.getProfile(key).getOrThrow() todo api
+                        ProfileUtils.getProfile(key).getOrThrow()
                     }
                     catch (e: Exception) {
                         e.printStackTrace()

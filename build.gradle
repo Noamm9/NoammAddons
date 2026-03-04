@@ -36,7 +36,6 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
 
-//    modImplementation "com.github.noamm9:noammaddons:master-SNAPSHOT"
     modRuntimeOnly "me.djtheredstoner:DevAuth-fabric:1.2.2"
 
     implementation "io.github.classgraph:classgraph:4.8.174"
@@ -47,6 +46,9 @@ dependencies {
 
     implementation "io.github.llamalad7:mixinextras-fabric:0.4.1"
     annotationProcessor "io.github.llamalad7:mixinextras-fabric:0.4.1"
+
+    implementation "org.java-websocket:Java-WebSocket:1.5.4"
+    include "org.java-websocket:Java-WebSocket:1.5.4"
 }
 
 processResources {

@@ -13,6 +13,7 @@ import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.Utils.remove
 import com.github.noamm9.utils.Utils.startsWithOneOf
 import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.websocket.WebSocket
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
 import net.minecraft.network.protocol.game.ClientboundSetObjectivePacket
@@ -70,7 +71,11 @@ object LocationUtils {
             else if (event.packet is ClientboundSetPlayerTeamPacket) {
                 val prams = event.packet.parameters.getOrNull() ?: return@register
                 val text = (prams.playerPrefix.string + prams.playerSuffix.string).removeFormatting()
-                lobbyRegex.find(text)?.groupValues?.get(1)?.let { lobbyId = it }
+                lobbyRegex.find(text)?.groupValues?.get(1)?.let {
+                    if (it.length < 5) return@let
+                    WebSocket.hash = it
+                    lobbyId = it
+                }
 
                 if (! inDungeon && text.contains("The Catacombs (") && ! text.contains("Queue")) {
                     inDungeon = true
@@ -105,6 +110,8 @@ object LocationUtils {
         P3Section = null
         F7Phase = null
         world = null
+        lobbyId = null
+        WebSocket.hash = null
     }
 
     private fun setDevModeValues() {

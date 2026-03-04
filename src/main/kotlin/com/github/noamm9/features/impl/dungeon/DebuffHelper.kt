@@ -76,7 +76,7 @@ object DebuffHelper: Feature(description = "Automatically pulls and fires bows b
 
             val ticks = getTicks().takeIf { it > 0 } ?: return@register
             if (ticksHeld >= ticks) {
-                fire()
+                ThreadUtils.scheduledTask(0, ::fire)
             }
         }
     }

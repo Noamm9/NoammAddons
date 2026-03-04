@@ -6,10 +6,13 @@ import com.github.noamm9.event.EventPriority
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.Utils.remove
+import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.core.Room
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.websocket.WebSocket
+import com.github.noamm9.websocket.packets.S2CPacketRoomSecrets
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
 import kotlin.math.roundToInt
@@ -95,6 +98,9 @@ object ActionBarParser {
 
                 if (room.uniqueRoom?.foundSecrets != secrets && room.data.secrets == maxSecrets) {
                     room.uniqueRoom?.foundSecrets = secrets !!
+                    if (DungeonListener.dungeonTeammatesNoSelf.isNotEmpty()) {
+                        WebSocket.send(S2CPacketRoomSecrets(room.data.name, secrets !!))
+                    }
                 }
             }
 

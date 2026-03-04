@@ -11,6 +11,7 @@ import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
+import com.github.noamm9.utils.network.ProfileUtils
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -20,6 +21,16 @@ object TestCommand: BaseCommand("test") {
             runs {
                 val room = ScanUtils.currentRoom ?: return@runs
                 ChatUtils.chat(ScanUtils.getRelativeCoord(PlayerUtils.getSelectionBlock() !!, room.centerPos, room.rotation ?: return@runs))
+            }
+        }
+
+        literal("secrets") {
+            runs {
+                NoammAddons.scope.launch {
+                    ProfileUtils.getSecrets(mc.user.name)
+                        .onSuccess { ChatUtils.modMessage(it) }
+                        .onFailure { it.printStackTrace() }
+                }
             }
         }
 

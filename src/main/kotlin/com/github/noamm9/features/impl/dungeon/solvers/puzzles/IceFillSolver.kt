@@ -1,6 +1,5 @@
 package com.github.noamm9.features.impl.dungeon.solvers.puzzles
 
-import com.github.noamm9.NoammAddons.scope
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.icefillColor
 import com.github.noamm9.utils.ChatUtils
@@ -8,7 +7,6 @@ import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderContext
 import com.github.noamm9.utils.world.WorldUtils
-import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.level.block.Blocks
@@ -22,10 +20,7 @@ object IceFillSolver {
 
     fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (event.room.name != "Ice Fill") return
-
-        scope.launch {
-            solve(event.room.centerPos, 360 - event.room.rotation !!)
-        }
+        solve(event.room.centerPos, 360 - event.room.rotation !!)
     }
 
     fun onRenderWorld(ctx: RenderContext) {
@@ -50,11 +45,10 @@ object IceFillSolver {
             val pos = center.offset(dx, dy - center.y, dz)
             val state = WorldUtils.getStateAt(pos)
 
-            if (state.`is`(Blocks.ICE) || state.`is`(Blocks.PACKED_ICE)) {
-                if (WorldUtils.getStateAt(pos.above()).isAir) {
-                    allIceBlocks.add(pos.above())
-                }
-            }
+            if (! state.`is`(Blocks.ICE) && ! state.`is`(Blocks.PACKED_ICE)) continue
+            if (! WorldUtils.getStateAt(pos.above()).isAir) continue
+
+            allIceBlocks.add(pos.above())
         }
 
         if (allIceBlocks.isEmpty()) return
@@ -81,6 +75,7 @@ object IceFillSolver {
                     }
                 }
             }
+
             clusters.add(cluster)
         }
 
@@ -116,9 +111,7 @@ object IceFillSolver {
             val tempPath = ArrayList<BlockPos>(spaces.size)
             tempPath.add(start)
 
-            val success = dfs(start, visited, tempPath)
-            if (success) path = tempPath
-
+            if (dfs(start, visited, tempPath)) path = tempPath
             return this
         }
 

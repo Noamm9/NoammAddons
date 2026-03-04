@@ -31,7 +31,7 @@ object BoulderSolver {
         if (event.room.name != "Boulder") return
 
         inBoulder = true
-        rotation = (360 - event.room.rotation !! + 180)
+        rotation = event.room.rotation?.let { 360 - it + 180 } ?: return
         roomCenter = event.room.centerPos
 
         solve()

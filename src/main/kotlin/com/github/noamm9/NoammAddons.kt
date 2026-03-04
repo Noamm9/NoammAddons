@@ -13,6 +13,7 @@ import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.network.WebUtils
 import com.github.noamm9.utils.network.data.ElectionData
 import com.github.noamm9.utils.render.RoundedRect
+import com.github.noamm9.websocket.WebSocket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -62,6 +63,7 @@ object NoammAddons: ClientModInitializer {
 
         FeatureManager.registerFeatures()
         CommandManager.registerAll()
+        WebSocket.init()
 
         SpecialGuiElementRegistry.register { buffer -> RoundedRect(buffer.vertexConsumers()) }
 
@@ -93,11 +95,17 @@ object NoammAddons: ClientModInitializer {
                     )
                 )
             }
-            .onFailure { logger.error("Error while making a web request", it) }
+            .onFailure {
+                logger.error("Error while making a web request", it)
+                it.printStackTrace()
+            }
 
         WebUtils.get<Map<String, Long>>("https://lb.tricked.dev/lowestbins")
             .onSuccess { priceData.putAll(it) }
-            .onFailure { logger.error("Error while making a web request", it) }
+            .onFailure {
+                logger.error("Error while making a web request", it)
+                it.printStackTrace()
+            }
 
         WebUtils.get<JsonObject>("https://api.hypixel.net/v2/skyblock/bazaar")
             .onSuccess { data ->
@@ -110,6 +118,9 @@ object NoammAddons: ClientModInitializer {
                     priceData[productId] = buyPrice
                 }
             }
-            .onFailure { logger.error("Error while making a web request", it) }
+            .onFailure {
+                logger.error("Error while making a web request", it)
+                it.printStackTrace()
+            }
     }
 }
