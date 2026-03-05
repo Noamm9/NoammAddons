@@ -58,8 +58,17 @@ object TestCommand: BaseCommand("test") {
             runs {
                 NoammAddons.scope.launch {
                     delay(1000)
-                    println("hi")
+
+                    ChatUtils.chat("aa")
                 }
+            }
+        }
+
+        literal("uuid") {
+            NoammAddons.scope.launch {
+                ProfileUtils.getUUIDbyName("Id00d")
+                    .onSuccess { ChatUtils.chat(it.uuid) }
+                    .onFailure { it.printStackTrace() }
             }
         }
 

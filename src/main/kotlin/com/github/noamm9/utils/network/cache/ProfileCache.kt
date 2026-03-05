@@ -9,10 +9,6 @@ object ProfileCache {
     private val cache: Cache<String, JsonObject> = CacheBuilder.newBuilder()
         .maximumSize(100).expireAfterAccess(5, TimeUnit.MINUTES).build()
 
-    fun addToCache(name: String, profile: JsonObject) {
-        val lowercase = name.lowercase()
-        cache.put(lowercase, profile)
-    }
-
+    fun addToCache(name: String, profile: JsonObject) = cache.put(name.lowercase(), profile)
     fun getFromCache(name: String) = cache.getIfPresent(name.lowercase())
 }
