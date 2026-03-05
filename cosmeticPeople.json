@@ -196,5 +196,11 @@
   },
   "322bee68-91de-4cff-ba6d-99c9cb5ad452": {
     "name": "{\"text\":\"\",\"extra\":[{\"text\":\"M\",\"color\":\"#005155\",\"bold\":true},{\"text\":\"i\",\"color\":\"#076460\",\"bold\":true},{\"text\":\"n\",\"color\":\"#127163\",\"bold\":true},{\"text\":\"o\",\"color\":\"#1F7A64\",\"bold\":true},{\"text\":\"s\",\"color\":\"#308064\",\"bold\":true},{\"text\":\"_\",\"color\":\"#448367\",\"bold\":true},{\"text\":\"K\",\"color\":\"#1A7F72\",\"bold\":true},{\"text\":\"i\",\"color\":\"#00566B\",\"bold\":true},{\"text\":\"n\",\"color\":\"#00566B\",\"bold\":true},{\"text\":\"g\",\"color\":\"#00566B\",\"bold\":true}]}"
+  },
+  "23c185aa-cf34-476c-a956-142e162f800b": {
+    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"T\",\"color\":\"#7A1FFF\",\"bold\":true},{\"text\":\"o\",\"color\":\"#A027FF\",\"bold\":true},{\"text\":\"L\",\"color\":\"#C42FFF\",\"bold\":true},{\"text\":\"i\",\"color\":\"#E537FF\",\"bold\":true},{\"text\":\"f\",\"color\":\"#FF3FFA\",\"bold\":true},{\"text\":\"e\",\"color\":\"#FF47DE\",\"bold\":true},{\"text\":\"I\",\"color\":\"#FF4EC4\",\"bold\":true},{\"text\":\"s\",\"color\":\"#FF56AC\",\"bold\":true},{\"text\":\"T\",\"color\":\"#FF5E97\",\"bold\":true},{\"text\":\"o\",\"color\":\"#FF6685\",\"bold\":true},{\"text\":\"S\",\"color\":\"#FF6E75\",\"bold\":true},{\"text\":\"u\",\"color\":\"#FF8576\",\"bold\":true},{\"text\":\"f\",\"color\":\"#FF8F65\",\"bold\":true},{\"text\":\"f\",\"color\":\"#FF9E55\",\"bold\":true},{\"text\":\"e\",\"color\":\"#FFB244\",\"bold\":true},{\"text\":\"r\",\"color\":\"#FFCC33\",\"bold\":true}]}",
+    "sizeX": 0.2,
+    "sizeY": 0.1,
+    "sizeZ": 2.0
   }
 }
