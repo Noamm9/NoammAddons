@@ -202,5 +202,8 @@
     "sizeX": 0.2,
     "sizeY": 0.1,
     "sizeZ": 2.0
+  },
+  "50882e50-1cc8-41fe-819f-647fd1db516a": {
+    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"y\",\"color\":\"#B444DB\",\"bold\":true},{\"text\":\"o\",\"color\":\"#E146DD\",\"bold\":true},{\"text\":\"n\",\"color\":\"#E649B6\",\"bold\":true},{\"text\":\"t\",\"color\":\"#EB4C8D\",\"bold\":true},{\"text\":\"i\",\"color\":\"#F05064\",\"bold\":true},{\"text\":\"1\",\"color\":\"#F46D53\",\"bold\":true},{\"text\":\"2\",\"color\":\"#F89F58\",\"bold\":true},{\"text\":\"3\",\"color\":\"#FCD05C\",\"bold\":true}]}"
   }
 }
