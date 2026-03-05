@@ -35,7 +35,6 @@ object QuizSolver {
     private var questionsStarted = false
     private var answerTime: Long = 0
 
-
     fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (event.room.name != "Quiz") return
         if (inQuiz) return
@@ -113,7 +112,7 @@ object QuizSolver {
     }
 
     fun onRenderOverlay(ctx: GuiGraphics) {
-        if (quizTimer.value && answerTime > 0 && questionsStarted) {
+        if (quizTimer.value && answerTime > 0 && questionsStarted && ! LocationUtils.inBoss) {
             val secondsLeft = ((answerTime - DungeonListener.currentTime) / 20.0).toFixed(1)
             Render2D.drawCenteredString(
                 ctx,
