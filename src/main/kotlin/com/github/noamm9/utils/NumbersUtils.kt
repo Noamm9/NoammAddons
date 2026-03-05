@@ -202,14 +202,12 @@ object NumbersUtils {
 
     fun parseCompactNumber(value: String): Long? {
         if (value.isBlank()) return null
-        value.toLongOrNull()?.let { return it }
-
-        val cleanValue = value.lowercase().replace(",", "")
+        val cleanValue = value.lowercase().replace(",", "").trim()
+        cleanValue.toLongOrNull()?.let { return it }
         val lastChar = cleanValue.lastOrNull() ?: return null
-
         if (! lastChar.isLetter()) return null
 
-        val multiplier: Long = when (lastChar) {
+        val multiplier = when (lastChar) {
             'k' -> 1_000L
             'm' -> 1_000_000L
             'b' -> 1_000_000_000L
@@ -217,8 +215,7 @@ object NumbersUtils {
             else -> return null
         }
 
-        val numberPartString = cleanValue.substring(0, cleanValue.length - 1)
-
-        return (numberPartString.toDouble() * multiplier).toLong()
+        val number = cleanValue.substring(0, cleanValue.length - 1).toDoubleOrNull() ?: return null
+        return (number * multiplier).toLong()
     }
 }

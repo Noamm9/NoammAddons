@@ -4,9 +4,15 @@ import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.IAbstractSignEditScreen
+import com.github.noamm9.ui.clickgui.components.getValue
+import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
+import com.github.noamm9.ui.clickgui.components.impl.MultiCheckboxSetting
+import com.github.noamm9.ui.clickgui.components.provideDelegate
+import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.ui.utils.componnents.UIButton
 import com.github.noamm9.ui.utils.componnents.UISearchBox
 import com.github.noamm9.utils.NumbersUtils
+import com.github.noamm9.utils.Utils.uppercaseFirst
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.network.PacketUtils.send
 import com.github.noamm9.utils.render.Render2D
@@ -25,35 +31,36 @@ import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox and undercut mode.") {
-    private var stack: ItemStack? = null
+    private val defaultMode by DropdownSetting("Default mode", 0, listOf("Normal", "Undercut"))
+        .withDescription("The default input mode that will be used when you open the menu")
+
+    private val rememberInput by MultiCheckboxSetting("Remember Input", mutableMapOf("Text" to false, "Mode" to false))
+        .withDescription("Toggles for settings on the input menu that should be restored after reopening it")
+
+    private enum class InputMode { NORMAL, UNDERCUT }
+
+    private var item: ItemStack? = null
+    private var mode: InputMode? = null
     private var input = ""
-    private var undercut = false
 
     override fun init() {
         ScreenEvents.AFTER_INIT.register { _, screen, width, height ->
             if (! enabled) return@register
             if (screen !is AbstractSignEditScreen) return@register
-            val stack = stack ?: return@register
+            val stack = item ?: return@register
             val sign = (screen as IAbstractSignEditScreen).getSign() ?: return@register
+            val lines = Array(4) { i -> sign.frontText.getMessage(i, false).string }
 
-            val line1 = sign.frontText.getMessage(1, false).string
-            val line2 = sign.frontText.getMessage(2, false).string
-            val line3 = sign.frontText.getMessage(3, false).string
-
-            if (line1 == "^^^^^^^^^^^^^^^" && line2 == "Your auction" && line3 == "starting bid") mc.execute {
-                val existingText = Array(4) { i -> sign.frontText.getMessage(i, false).string }
-
+            if (lines[1] == "^^^^^^^^^^^^^^^" && lines[2] == "Your auction" && lines[3] == "starting bid") mc.execute {
                 // manually setting the screen so the sign gui wont close
-                val newscreen = AuctionInputScreen(sign, existingText, stack)
-                newscreen.init(mc, width, height)
-                mc.screen = newscreen
+                mc.screen = AuctionInputScreen(sign, lines, stack).apply { init(mc, width, height) }
             }
         }
 
         register<ContainerEvent.SlotClick> {
             if (event.screen.title.string != "Create BIN Auction") return@register
             if (event.slotId != 31) return@register
-            stack = event.screen.menu.getSlot(13).item.takeIf { it.skyblockId.isNotEmpty() }
+            item = event.screen.menu.getSlot(13).item.takeIf { it.skyblockId.isNotEmpty() }
         }
     }
 
@@ -69,6 +76,10 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
 
         override fun init() {
             super.init()
+
+            if (rememberInput.value["Text"] != true) input = ""
+            mode = if (rememberInput.value["Mode"] == true && mode != null) mode else InputMode.entries[defaultMode.value]
+
             lowestBin = NoammAddons.priceData[stack.skyblockId] ?: 0L
 
             val centerX = width / 2
@@ -92,13 +103,13 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             })
 
             addRenderableWidget(UIButton(centerX - 100, centerY + 35, 200, 20, getModeText()) { button ->
-                undercut = ! undercut
+                mode = if (mode == InputMode.NORMAL) InputMode.UNDERCUT else InputMode.NORMAL
                 button.message = Component.literal(getModeText())
                 recalculateValue()
             })
         }
 
-        private fun getModeText() = "Mode: ${if (undercut) "UnderCut" else "Normal"}"
+        private fun getModeText() = "Mode: ${mode !!.name.lowercase().uppercaseFirst()}"
 
         override fun render(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
             val centerX = width / 2
@@ -112,23 +123,15 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             if (mouseX >= itemX && mouseX <= itemX + 16 && mouseY >= itemY && mouseY <= itemY + 16) {
                 val lore = stack.getOrDefault(DataComponents.LORE, ItemLore.EMPTY).styledLines().drop(1)
                 guiGraphics.setTooltipForNextFrame(
-                    mc.font,
-                    lore,
-                    stack.tooltipImage,
-                    mouseX, mouseY,
-                    stack.get(DataComponents.TOOLTIP_STYLE)
+                    mc.font, lore, stack.tooltipImage, mouseX, mouseY, stack.get(DataComponents.TOOLTIP_STYLE)
                 )
             }
 
-            guiGraphics.drawCenteredString(font,
-                if (undercut) "Lowest BIN: ${NumbersUtils.format(lowestBin)}" else "Set Auction Price",
-                centerX,
-                centerY - 50,
-                Color.ORANGE.rgb
-            )
+            val headerText = if (mode == InputMode.UNDERCUT) "Lowest BIN: ${NumbersUtils.format(lowestBin)}" else "Set Auction Price"
+            guiGraphics.drawCenteredString(font, headerText, centerX, centerY - 50, Color.ORANGE.rgb)
 
             val displayText = if (parsedValue != null) "§aValue: §e${NumbersUtils.formatComma(parsedValue)}"
-            else if (inputField.value.isEmpty()) "§7Enter a value (e.g. 10m, 5k)"
+            else if (input.isEmpty()) "§7Enter a value (e.g. 10m, 5k)"
             else "§cInvalid format"
 
             Render2D.drawCenteredString(guiGraphics, displayText, centerX, centerY - 35)
@@ -145,7 +148,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
         }
 
         private fun finish() {
-            val finalLine0 = parsedValue?.toString() ?: inputField.value
+            val finalLine0 = parsedValue?.toString() ?: input
 
             ServerboundSignUpdatePacket(
                 sign.blockPos, true, finalLine0,
@@ -156,14 +159,14 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
         }
 
         private fun recalculateValue() {
-            val textValue = NumbersUtils.parseCompactNumber(inputField.value)
+            val textValue = NumbersUtils.parseCompactNumber(input)
 
             if (textValue == null) {
                 parsedValue = null
                 return
             }
 
-            parsedValue = if (undercut) (lowestBin - textValue).coerceAtLeast(0)
+            parsedValue = if (mode == InputMode.UNDERCUT) (lowestBin - textValue).coerceAtLeast(0)
             else textValue
         }
     }
