@@ -30,11 +30,11 @@ object EtherwarpOverlay: Feature() {
     override fun init() {
         register<RenderWorldEvent> {
             val player = mc.player ?: return@register
-            if (! player.isCrouching) return@register
+            if (! player.isSteppingCarefully) return@register
             val heldItem = player.mainHandItem.takeUnless { it.isEmpty } ?: return@register
             val distance = EtherwarpHelper.getEtherwarpDistance(heldItem) ?: return@register
             val (valid, pos) = EtherwarpHelper.getEtherPos(player.position(), distance)
-            
+
             Render3D.renderBlock(
                 event.ctx, pos ?: return@register,
                 if (valid) outlineColor.value else invalidOutlineColor.value,

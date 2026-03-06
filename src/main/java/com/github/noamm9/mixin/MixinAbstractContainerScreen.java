@@ -37,9 +37,6 @@ public abstract class MixinAbstractContainerScreen extends Screen {
         super(component);
     }
 
-    @Shadow
-    protected abstract List<Component> getTooltipFromContainerItem(ItemStack itemStack);
-
     @Inject(method = "init", at = @At("HEAD"), cancellable = true)
     protected void onInit(CallbackInfo ci) {
         if (EventBus.post(new ContainerEvent.Open(this))) {
@@ -87,7 +84,7 @@ public abstract class MixinAbstractContainerScreen extends Screen {
 
     @WrapOperation(method = "renderTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;setTooltipForNextFrame(Lnet/minecraft/client/gui/Font;Ljava/util/List;Ljava/util/Optional;IILnet/minecraft/resources/ResourceLocation;)V"))
     private void onRenderTooltipMerged(GuiGraphics instance, Font font, List<Component> lines, Optional<TooltipComponent> tooltipImage, int x, int y, @Nullable ResourceLocation background, Operation<Void> original, @Local ItemStack stack) {
-        if (stack == null || stack.isEmpty()) original.call(instance, font, lines, tooltipImage, x, y, background);
+        if (stack == null || stack.isEmpty() || lines.isEmpty()) original.call(instance, font, lines, tooltipImage, x, y, background);
         else {
             ScrollableTooltip.setSlot(this.hoveredSlot.index);
 

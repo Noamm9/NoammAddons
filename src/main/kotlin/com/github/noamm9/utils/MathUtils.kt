@@ -11,6 +11,7 @@ import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import java.awt.Color
 import kotlin.math.*
+import kotlin.random.Random
 
 object MathUtils {
     data class Rotation(var yaw: Float, var pitch: Float)
@@ -48,34 +49,23 @@ object MathUtils {
         return positions
     }
 
-    /**
-     * Calculates the distance between two points in a 3D space using Vec3.
-     * @param vec1 The first point as a Vec3.
-     * @param vec2 The second point as a Vec3.
-     * @return The distance between the two points.
-     */
-    fun distance3D(vec1: Vec3, vec2: Vec3) = vec1.distanceTo(vec2)
-    fun distance3D(pos1: BlockPos, pos2: BlockPos): Double {
-        val delta = pos1.subtract(pos2)
-        return sqrt(delta.x.toDouble().pow(2) + delta.y.toDouble().pow(2) + delta.z.toDouble().pow(2))
+    fun gaussianRandom(min: Int, max: Int): Int {
+        val u1 = 1.0 - Random.nextDouble()
+        val u2 = 1.0 - Random.nextDouble()
+        val gaussian = sqrt(- 2.0 * ln(u1)) * cos(2.0 * Math.PI * u2)
+
+        val mean = min + (max - min) / 2.0
+        val stdDev = (max - min) / 6.0
+
+        val result = (gaussian * stdDev) + mean
+
+        return max(min.toDouble(), min(max.toDouble(), result)).toInt()
     }
 
-    /**
-     * Calculates the distance between two points in a 2D space (ignoring the Y coordinate) using Vec3.
-     * @param vec1 The first point as a Vec3.
-     * @param vec2 The second point as a Vec3.
-     * @return The distance between the two points in 2D space.
-     */
     fun distance2D(vec1: Vec3, vec2: Vec3): Double {
         val deltaX = vec1.x - vec2.x
         val deltaZ = vec1.z - vec2.z
         return sqrt(deltaX * deltaX + deltaZ * deltaZ)
-    }
-
-    fun distance2D(pos1: BlockPos, pos2: BlockPos): Double {
-        val deltaX = pos1.x - pos2.x
-        val deltaZ = pos1.z - pos2.z
-        return sqrt((deltaX * deltaX + deltaZ * deltaZ).toDouble())
     }
 
     fun normalizeYaw(value: Float): Float {

@@ -60,15 +60,8 @@ object TestCommand: BaseCommand("test") {
                     delay(1000)
 
                     ChatUtils.chat("aa")
+                    
                 }
-            }
-        }
-
-        literal("uuid") {
-            NoammAddons.scope.launch {
-                ProfileUtils.getUUIDbyName("Id00d")
-                    .onSuccess { ChatUtils.chat(it.uuid) }
-                    .onFailure { it.printStackTrace() }
             }
         }
 

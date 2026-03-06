@@ -7,9 +7,9 @@ import com.github.noamm9.ui.clickgui.components.*
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.ThreadUtils
 import net.minecraft.world.inventory.ClickType
-import kotlin.random.Random
 
 object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     private val randomDelay by ToggleSetting("Random Delay", true).section("Settings")
@@ -92,6 +92,8 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
 
     fun onItemsUpdated() {
         if (! enabled) return
+        val type = TerminalListener.currentType ?: return
+        if (! shouldAutoSolve(type)) return
 
         if (TerminalSolver.solution.isEmpty()) {
             TerminalSolver.solve()
@@ -100,13 +102,10 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
         val solution = TerminalSolver.solution
         if (solution.isEmpty()) return
 
-        autoClick(solution)
+        autoClick(solution, type)
     }
 
-    private fun autoClick(solution: List<TerminalClick>) {
-        val type = TerminalListener.currentType ?: return
-        if (! shouldAutoSolve(type)) return
-
+    private fun autoClick(solution: List<TerminalClick>, type: TerminalType) {
         val rawClick = if (type == TerminalType.NUMBERS) solution.first()
         else when (clickOrder.value) {
             1 -> solution.random()
@@ -126,7 +125,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
             randomDelay.value -> {
                 val min = minRandomDelay.value.toInt().coerceAtLeast(0)
                 val max = maxRandomDelay.value.toInt().coerceAtLeast(0)
-                if (min == max) min else Random.nextInt(minOf(min, max), maxOf(min, max))
+                if (min == max) min else MathUtils.gaussianRandom(minOf(min, max), maxOf(min, max))
             }
 
             else -> autoDelay.value.toInt()

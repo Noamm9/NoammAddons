@@ -22,6 +22,7 @@ import com.github.noamm9.utils.PlayerUtils.leapAction
 import com.github.noamm9.utils.PlayerUtils.rotate
 import com.github.noamm9.utils.ThreadUtils.setTimeout
 import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.world.WorldUtils
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -91,6 +92,7 @@ object AutoI4: Feature("Fully Automated I4") {
         }
 
         register<ChatMessageEvent> {
+            if (! LocationUtils.inBoss || LocationUtils.dungeonFloorNumber != 7) return@register
             val msg = event.unformattedText
             if (msg == STORM_DEATH_MESSAGE) state = PhaseState(tickTimer = 0).also {
                 setTimeout(30_000L) { state = state.copy(tickTimer = - 1) }
@@ -103,6 +105,7 @@ object AutoI4: Feature("Fully Automated I4") {
         }
 
         register<BlockChangeEvent> {
+            if (! LocationUtils.inBoss || LocationUtils.dungeonFloorNumber != 7) return@register
             if (! I4Helper.isOnDev()) {
                 state = PhaseState(tickTimer = state.tickTimer)
                 return@register
