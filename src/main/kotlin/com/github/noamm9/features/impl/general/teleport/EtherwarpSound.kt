@@ -14,6 +14,7 @@ import com.github.noamm9.utils.MathUtils.toVec
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.Utils.equalsOneOf
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
+import com.github.noamm9.utils.items.EtherwarpHelper
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.world.WorldUtils
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
@@ -57,7 +58,7 @@ object EtherwarpSound: Feature() {
             PlayerUtils.getSelectionBlock()?.let { if (WorldUtils.getBlockAt(it) in interactable) return@register }
             val dist = EtherwarpHelper.getEtherwarpDistance(player.mainHandItem) ?: return@register
 
-            val (succeeded, pos) = EtherwarpHelper.getEtherPos(player.position(), dist)
+            val (succeeded, pos) = EtherwarpHelper.getEtherPos(player.position(), player.lookAngle, dist)
             if (! succeeded || pos == null) return@register
 
             if (ScanUtils.getRoomFromPos(pos.toVec())?.data?.name.equalsOneOf("Teleport Maze", "Boulder")) return@register

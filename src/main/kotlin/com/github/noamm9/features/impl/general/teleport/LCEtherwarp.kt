@@ -8,6 +8,7 @@ import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.ui.clickgui.components.showIf
 import com.github.noamm9.utils.PlayerUtils
+import com.github.noamm9.utils.items.EtherwarpHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.lwjgl.glfw.GLFW

@@ -37,6 +37,7 @@
     "IKeyMapping",
     "ILanguageManager",
     "ILerpingBossEvent",
+    "ILocalPlayer",
     "IPlayerTabOverlay",
     "KeyboardMixin",
     "MixinAbstractClientPlayer",

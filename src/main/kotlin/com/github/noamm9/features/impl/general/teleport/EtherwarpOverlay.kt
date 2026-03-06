@@ -13,6 +13,7 @@ import com.github.noamm9.ui.clickgui.components.section
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.Utils
 import com.github.noamm9.utils.Utils.equalsOneOf
+import com.github.noamm9.utils.items.EtherwarpHelper
 import com.github.noamm9.utils.render.Render3D
 import java.awt.Color
 
@@ -33,7 +34,7 @@ object EtherwarpOverlay: Feature() {
             if (! player.isSteppingCarefully) return@register
             val heldItem = player.mainHandItem.takeUnless { it.isEmpty } ?: return@register
             val distance = EtherwarpHelper.getEtherwarpDistance(heldItem) ?: return@register
-            val (valid, pos) = EtherwarpHelper.getEtherPos(player.position(), distance)
+            val (valid, pos) = EtherwarpHelper.getEtherPos(player.position(), player.lookAngle, distance)
 
             Render3D.renderBlock(
                 event.ctx, pos ?: return@register,

@@ -7,6 +7,7 @@ import com.github.noamm9.utils.world.WorldUtils
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Vec3i
+import net.minecraft.util.Mth
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import java.awt.Color
@@ -165,5 +166,15 @@ object MathUtils {
         }
 
         return null
+    }
+
+    fun getLookVec(yaw: Float, pitch: Float): Vec3 {
+        val f = pitch * (Math.PI / 180.0).toFloat()
+        val g = - yaw * (Math.PI / 180.0).toFloat()
+        val h = Mth.cos(g)
+        val i = Mth.sin(g)
+        val j = Mth.cos(f)
+        val k = Mth.sin(f)
+        return Vec3((i * j).toDouble(), - k.toDouble(), (h * j).toDouble())
     }
 }

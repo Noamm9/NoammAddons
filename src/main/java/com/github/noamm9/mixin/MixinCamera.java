@@ -1,5 +1,8 @@
 package com.github.noamm9.mixin;
 
+import com.github.noamm9.features.impl.misc.NoRotate;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.client.Camera;
 import net.minecraft.core.Holder;
 import net.minecraft.util.Mth;
@@ -61,6 +64,11 @@ public abstract class MixinCamera {
         }
 
         return instance.getAttributeValue(holder);
+    }
+
+    @WrapOperation(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setPosition(DDD)V"))
+    private void overrideCameraPos(Camera instance, double x, double y, double z, Operation<Void> original) {
+        NoRotate.cameraHook(instance, x, y, z, original);
     }
 
     @Inject(method = "getMaxZoom", at = @At("HEAD"), cancellable = true)

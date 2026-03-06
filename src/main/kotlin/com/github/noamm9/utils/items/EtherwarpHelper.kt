@@ -1,4 +1,4 @@
-package com.github.noamm9.features.impl.general.teleport
+package com.github.noamm9.utils.items
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.utils.MathUtils.add
@@ -23,6 +23,8 @@ object EtherwarpHelper {
     private const val SNEAK_OFFSET = 0.08
 
     data class EtherPos(val succeeded: Boolean, val pos: BlockPos?) {
+        val vec = pos?.let { Vec3(it) }
+
         companion object {
             val NONE = EtherPos(false, null)
         }
@@ -38,10 +40,10 @@ object EtherwarpHelper {
         return null
     }
 
-    fun getEtherPos(pos: Vec3, distance: Double = 60.0): EtherPos {
+    fun getEtherPos(pos: Vec3, lookVec: Vec3, distance: Double): EtherPos {
         val player = mc.player ?: return EtherPos.NONE
         val startPos = pos.add(y = EYE_HEIGHT - if (player.isCrouching) SNEAK_OFFSET else 0.0)
-        val endPos = startPos.add(player.lookAngle.scale(distance))
+        val endPos = startPos.add(lookVec.scale(distance))
         return traverseVoxels(startPos, endPos)
     }
 
