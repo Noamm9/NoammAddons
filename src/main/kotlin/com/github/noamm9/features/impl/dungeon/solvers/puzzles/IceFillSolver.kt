@@ -1,5 +1,6 @@
 package com.github.noamm9.features.impl.dungeon.solvers.puzzles
 
+import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.icefillColor
 import com.github.noamm9.utils.ChatUtils
@@ -7,6 +8,7 @@ import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderContext
 import com.github.noamm9.utils.world.WorldUtils
+import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.level.block.Blocks
@@ -20,7 +22,9 @@ object IceFillSolver {
 
     fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (event.room.name != "Ice Fill") return
-        solve(event.room.centerPos, 360 - event.room.rotation !!)
+        NoammAddons.scope.launch {
+            solve(event.room.centerPos, 360 - event.room.rotation !!)
+        }
     }
 
     fun onRenderWorld(ctx: RenderContext) {
