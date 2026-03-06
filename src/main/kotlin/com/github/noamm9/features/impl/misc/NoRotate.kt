@@ -33,7 +33,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
 
-object NoRotate: Feature() {
+object NoRotate: Feature("Prevents the server from snapping back your head when teleporting.") {
     private val tpItems by MultiCheckboxSetting("Teleport Items", mutableMapOf(
         Pair("Etherwarp", true),
         Pair("Instant Transmission", true),

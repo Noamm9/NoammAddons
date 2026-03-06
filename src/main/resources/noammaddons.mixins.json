@@ -58,6 +58,7 @@
     "MixinGameRenderer",
     "MixinGui",
     "MixinGuiGraphics",
+    "MixinInputConstants",
     "MixinItemInHandRenderer",
     "MixinItemModelResolver",
     "MixinLerpingBossEvent",
