@@ -55,6 +55,7 @@ object PartyFinder: Feature() {
     override fun init() {
         register<ContainerEvent.Render.Slot.Post> {
             if (! inPartyFinder) return@register
+            if (event.screen.title.string != "Party Finder") return@register
             if (! showLevelReq.value && ! showMissingOverlay.value) return@register
             if (event.slot.index !in headSlots) return@register
             val item = event.slot.item.takeUnless { it.isEmpty || ! it.`is`(Blocks.PLAYER_HEAD.asItem()) } ?: return@register
@@ -97,6 +98,7 @@ object PartyFinder: Feature() {
 
         register<ContainerEvent.Render.Tooltip> {
             if (! inPartyFinder) return@register
+            if (event.screen.title.string != "Party Finder") return@register
             if (! event.stack.`is`(Items.PLAYER_HEAD)) return@register
             if (event.screen.menu.slots.find { it.item == event.stack }?.index !in headSlots) return@register
 
