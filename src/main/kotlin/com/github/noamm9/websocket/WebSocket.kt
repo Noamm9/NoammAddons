@@ -26,7 +26,7 @@ object WebSocket {
         }
 
     fun init() {
-        if (socketClient != null && (socketClient !!.isOpen)) return
+        PacketRegistry.init()
 
         runCatching {
             NoammAddons.logger.info("WebSocket: Initializing connection...")
@@ -43,8 +43,6 @@ object WebSocket {
             NoammAddons.logger.error("Failed to Connect to Websocket")
             it.printStackTrace()
         }
-
-        PacketRegistry.init()
     }
 
     fun send(packet: PacketRegistry.WebSocketPacket) = sendExecutor.execute {
@@ -79,8 +77,6 @@ object WebSocket {
 
         override fun onClose(code: Int, reason: String?, remote: Boolean) {
             NoammAddons.logger.info("WebSocket Disconnected: code: $code, remote: $remote, reason: $reason")
-
-            hash = null
 
             sendExecutor.shutdownNow()
             sendExecutor = Executors.newSingleThreadExecutor()

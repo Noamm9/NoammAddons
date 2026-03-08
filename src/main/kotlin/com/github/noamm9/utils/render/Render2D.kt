@@ -151,8 +151,4 @@ object Render2D {
         ctx.fillGradient(0, 0, iw, ih, color1.rgb, color2.rgb)
         ctx.pose().translate(- fx, - fy)
     }
-
-    fun drawCircle(ctx: GuiGraphics, x: Int, y: Int, radius: Int, color: Color = Color.WHITE) {
-        RoundedRect.draw(ctx, x, y, radius, radius, 90, color)
-    }
 }

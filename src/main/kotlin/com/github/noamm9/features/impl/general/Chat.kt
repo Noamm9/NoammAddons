@@ -14,7 +14,6 @@ import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.DataDownloader
 import com.github.noamm9.utils.NumbersUtils
-import com.github.noamm9.utils.Utils.remove
 import net.minecraft.client.GuiMessage
 import net.minecraft.client.gui.screens.ChatScreen
 import net.minecraft.network.chat.Component
@@ -27,7 +26,7 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
     private val ctrlClickToCopy by ToggleSetting("Ctrl Click to Copy", true).withDescription("Ctrl + Left Click a message to copy it to your clipboard.")
     private val removeUselessMessages by ToggleSetting("Remove useless messages", true).withDescription("Removes a lot of useless messages from the chat.")
 
-    private val explosiveShotRegex = Regex("Your Explosive Shot hit (\\d+) .+ for (.+) damage\\.")
+    private val explosiveShotRegex = Regex("^Your Explosive Shot hit (\\d+) enemies for ([\\d,.]+) damage\\.$")
     private var lastMessageBlank = false
 
     override fun init() {
@@ -48,11 +47,9 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
             if (! removeUselessMessages.value) return@register
             val (sHits, fDamage) = explosiveShotRegex.find(event.unformattedText)?.destructured ?: return@register
             val hits = sHits.toIntOrNull() ?: return@register
-            val damage = fDamage.remove(",").substringBefore(".").toIntOrNull()?.let {
-                if (hits > 1) it / hits else it
-            } ?: return@register
-
-            ChatUtils.modMessage("&cExplosive Shot hit: &e${NumbersUtils.format(damage)}")
+            val totalDamage = fDamage.replace(",", "").toDoubleOrNull() ?: return@register
+            val damagePerEntity = if (hits > 0) totalDamage / hits else totalDamage
+            ChatUtils.modMessage("&aExplosive shot did &e${NumbersUtils.format(damagePerEntity.toLong())}&a damage per enemy.")
         }
     }
 

@@ -6,13 +6,12 @@ import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.client.renderer.RenderStateShard
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.RenderType.CompositeState
-import java.util.OptionalDouble
+import java.util.*
 import java.util.function.DoubleFunction
 
 object NoammRenderLayers {
     private val linesThroughWallsLayers: Double2ObjectMap<RenderType.CompositeRenderType> = Double2ObjectOpenHashMap()
     private val linesLayers: Double2ObjectMap<RenderType.CompositeRenderType> = Double2ObjectOpenHashMap()
-
 
     private val LINES_THROUGH_WALLS = DoubleFunction { width ->
         RenderType.create(
@@ -45,7 +44,6 @@ object NoammRenderLayers {
             .setLayeringState(RenderStateShard.VIEW_OFFSET_Z_LAYERING)
             .createCompositeState(false)
     )
-
 
     val FILLED_THROUGH_WALLS: RenderType.CompositeRenderType = RenderType.create(
         "filled_through_walls", RenderType.TRANSIENT_BUFFER_SIZE, false, true,

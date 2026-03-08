@@ -3,9 +3,12 @@ package com.github.noamm9.features.impl.dev
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.getValue
+import com.github.noamm9.ui.clickgui.components.impl.ButtonSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
+import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.DataDownloader
+import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.network.ProfileUtils
 import com.mojang.authlib.GameProfile
 import com.mojang.blaze3d.vertex.PoseStack
@@ -21,10 +24,16 @@ import kotlin.math.absoluteValue
 object Cosmetics: Feature(toggled = true) {
     val customNames by ToggleSetting("Show Custom Names", true)
     val customSizes by ToggleSetting("Show Custom Sizes", true)
+    val reload by ButtonSetting("Reload Cosmetics") {
+        if (System.currentTimeMillis() - lastReload >= 300_000) init()
+        else NotificationManager.push("Cosmetics", "Please wait another ${NumbersUtils.formatTime(300_000 - (System.currentTimeMillis() - lastReload))} before reloading again.")
+    }
 
+    private var lastReload = System.currentTimeMillis()
     lateinit var cosmeticPeople: Map<UUID, CosmeticData>
 
     override fun init() {
+        lastReload = System.currentTimeMillis()
         cosmeticPeople = DataDownloader.loadJson<Map<UUID, CosmeticData>>("cosmeticPeople.json")
 
         scope.launch {

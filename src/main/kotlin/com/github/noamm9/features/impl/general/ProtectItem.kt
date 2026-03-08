@@ -83,6 +83,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
 
         register<ContainerEvent.Render.Tooltip> {
             if (event.stack.isEmpty) return@register
+            if (event.lore.isEmpty()) return@register
             val type = getProtectType(event.stack)
             if (type != ProtectType.None) {
                 event.lore.add(1, Component.literal("§aItem Protected §7(${type.name})"))

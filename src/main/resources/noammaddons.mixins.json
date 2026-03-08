@@ -3,7 +3,6 @@
   "package": "com.github.noamm9.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "ExampleMixin",
     "FuckFirmament",
     "ILanguage",
     "IMapState",
@@ -58,7 +57,6 @@
     "MixinGameRenderer",
     "MixinGui",
     "MixinGuiGraphics",
-    "MixinInputConstants",
     "MixinItemInHandRenderer",
     "MixinItemModelResolver",
     "MixinLerpingBossEvent",

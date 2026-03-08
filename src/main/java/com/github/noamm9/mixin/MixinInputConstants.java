@@ -1,5 +1,6 @@
 package com.github.noamm9.mixin;
 
+/*
 import com.github.noamm9.features.impl.misc.NoCursorReset;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -14,4 +15,4 @@ public abstract class MixinInputConstants {
         if (NoCursorReset.INSTANCE.enabled && NoCursorReset.inContainer) return;
         original.call(window, xpos, ypos);
     }
-}
+}*/
