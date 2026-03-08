@@ -203,14 +203,17 @@
   "50882e50-1cc8-41fe-819f-647fd1db516a": {
     "name": "{\"text\":\"\",\"extra\":[{\"text\":\"y\",\"color\":\"#B444DB\",\"bold\":true},{\"text\":\"o\",\"color\":\"#E146DD\",\"bold\":true},{\"text\":\"n\",\"color\":\"#E649B6\",\"bold\":true},{\"text\":\"t\",\"color\":\"#EB4C8D\",\"bold\":true},{\"text\":\"i\",\"color\":\"#F05064\",\"bold\":true},{\"text\":\"1\",\"color\":\"#F46D53\",\"bold\":true},{\"text\":\"2\",\"color\":\"#F89F58\",\"bold\":true},{\"text\":\"3\",\"color\":\"#FCD05C\",\"bold\":true}]}"
   },
-  "2dc856e8-447f-4582-826e-9e2018876eee": {
-    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"S\",\"color\":\"#FFBABA\",\"bold\":true},{\"text\":\"t\",\"color\":\"#FAA2AB\",\"bold\":true},{\"text\":\"a\",\"color\":\"#F78998\",\"bold\":true},{\"text\":\"n\",\"color\":\"#F37086\",\"bold\":true},{\"text\":\"n\",\"color\":\"#EE5877\",\"bold\":true},{\"text\":\"i\",\"color\":\"#E84169\",\"bold\":true},{\"text\":\"c\",\"color\":\"#E12B5D\",\"bold\":true}]}"
+  "9dcfeac9-06d4-4ae1-9c3c-a3d8e8215d17": {
+    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"N\",\"color\":\"#D52D00\",\"bold\":true},{\"text\":\"o\",\"color\":\"#E74929\",\"bold\":true},{\"text\":\"t\",\"color\":\"#DB7E70\",\"bold\":true},{\"text\":\"Y\",\"color\":\"#DBB0AC\",\"bold\":true},{\"text\":\"u\",\"color\":\"#E7DCDB\",\"bold\":true},{\"text\":\"k\",\"color\":\"#FFFFFF\",\"bold\":true},{\"text\":\"i\",\"color\":\"#D162A4\",\"bold\":true},{\"text\":\"m\",\"color\":\"#D82B92\",\"bold\":true},{\"text\":\"i\",\"color\":\"#C3127B\",\"bold\":true},{\"text\":\"i\",\"color\":\"#A30262\",\"bold\":true}]}"
   },
   "1b0e04b1-2b5b-4282-8a95-4b81180dd2e7": {
-    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"Z\",\"color\":\"#FF00FF\",\"bold\":true,\"italic\":true},{\"text\":\"e\",\"color\":\"#D400FF\",\"bold\":true,\"italic\":true},{\"text\":\"n\",\"color\":\"#AA00FF\",\"bold\":true,\"italic\":true},{\"text\":\"P\",\"color\":\"#7F00FF\",\"bold\":true,\"italic\":true},{\"text\":\"o\",\"color\":\"#5500FF\",\"bold\":true,\"italic\":true},{\"text\":\"o\",\"color\":\"#2A00FF\",\"bold\":true,\"italic\":true},{\"text\":\"f\",\"color\":\"#0000FF\",\"bold\":true,\"italic\":true}]}"
+    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"Z\",\"color\":\"#FF00FF\",\"bold\":true,\"italic\":true},{\"text\":\"e\",\"color\":\"#D400FF\",\"bold\":true,\"italic\":true},{\"text\":\"n\",\"color\":\"#AA00FF\",\"bold\":true,\"italic\":true},{\"text\":\"P\",\"color\":\"#7F00FF\",\"bold\":true,\"italic\":true},{\"text\":\"o\",\"color\":\"#5500FF\",\"bold\":true,\"italic\":true},{\"text\":\"o\",\"color\":\"#2A00FF\",\"bold\":true,\"italic\":true},{\"text\":\"f\",\"color\":\"#0000FF\",\"bold\":true,\"italic\":true}]}",
+    "sizeX": 3.0,
+    "sizeY": 0.9,
+    "sizeZ": 3.0
   },
   "3dd55b0a-604b-4de8-9295-f8e9df019c33": {
-    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"Roggow\",\"color\":\"#61C6EE\"}]}"
+    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"R\",\"color\":\"#A84EDE\",\"bold\":true},{\"text\":\"o\",\"color\":\"#9127DD\",\"bold\":true},{\"text\":\"g\",\"color\":\"#7419C4\",\"bold\":true},{\"text\":\"g\",\"color\":\"#5911A5\",\"bold\":true},{\"text\":\"o\",\"color\":\"#400A84\",\"bold\":true},{\"text\":\"w\",\"color\":\"#2A0562\",\"bold\":true}]}"
   },
   "d73ee6c5-4c99-49fd-8d2f-ce1507ed6edd": {
     "name": "{\"text\":\"\",\"extra\":[{\"text\":\"C\",\"color\":\"#9863E7\"},{\"text\":\"u\",\"color\":\"#B067EB\"},{\"text\":\"t\",\"color\":\"#C86BEF\"},{\"text\":\"e\",\"color\":\"#E06FF3\"},{\"text\":\"F\",\"color\":\"#F773F6\"},{\"text\":\"e\",\"color\":\"#FA78E5\"},{\"text\":\"m\",\"color\":\"#FC7ED5\"},{\"text\":\"b\",\"color\":\"#FF83C6\"},{\"text\":\"o\",\"color\":\"#FF80CF\"},{\"text\":\"y\",\"color\":\"#FF7ED8\"},{\"text\":\"A\",\"color\":\"#FF7BE1\"},{\"text\":\"n\",\"color\":\"#FF78EB\"},{\"text\":\"g\",\"color\":\"#FF75F6\"},{\"text\":\"e\",\"color\":\"#FD73FF\"},{\"text\":\"l\",\"color\":\"#F270FF\"}]}"
@@ -222,4 +225,3 @@
     "name": "{\"text\":\"\",\"extra\":[{\"text\":\"F\",\"color\":\"#8B4ADC\",\"bold\":true},{\"text\":\"r\",\"color\":\"#7453DB\",\"bold\":true},{\"text\":\"i\",\"color\":\"#615CDA\",\"bold\":true},{\"text\":\"k\",\"color\":\"#6578DA\",\"bold\":true},{\"text\":\"d\",\"color\":\"#6D95D9\",\"bold\":true},{\"text\":\"u\",\"color\":\"#76AED9\",\"bold\":true},{\"text\":\"f\",\"color\":\"#7EC4D9\",\"bold\":true}]}"
   }
 }
-
