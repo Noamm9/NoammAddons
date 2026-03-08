@@ -231,5 +231,8 @@
     "sizeX": 0.3,
     "sizeY": 0.3,
     "sizeZ": 0.3
+  },
+  "36023a25-c541-4ec6-8525-a9a123caab92": {
+    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"D\",\"color\":\"#B83AE4\",\"bold\":true},{\"text\":\"r\",\"color\":\"#CF35E6\",\"bold\":true},{\"text\":\"a\",\"color\":\"#E72FE9\",\"bold\":true},{\"text\":\"g\",\"color\":\"#EB29D4\",\"bold\":true},{\"text\":\"o\",\"color\":\"#EE24BC\",\"bold\":true},{\"text\":\"n\",\"color\":\"#F11EA3\",\"bold\":true},{\"text\":\"B\",\"color\":\"#F31886\",\"bold\":true},{\"text\":\"r\",\"color\":\"#F61268\",\"bold\":true},{\"text\":\"o\",\"color\":\"#F90C48\",\"bold\":true},{\"text\":\"8\",\"color\":\"#FC0625\",\"bold\":true},{\"text\":\"5\",\"color\":\"#FF0000\",\"bold\":true}]}"
   }
 }
