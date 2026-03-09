@@ -21,9 +21,9 @@ import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.PlayerUtils.leapAction
 import com.github.noamm9.utils.PlayerUtils.rotate
 import com.github.noamm9.utils.ThreadUtils.setTimeout
+import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.world.WorldUtils
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

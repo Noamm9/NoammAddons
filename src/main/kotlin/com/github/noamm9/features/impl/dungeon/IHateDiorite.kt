@@ -3,8 +3,8 @@ package com.github.noamm9.features.impl.dungeon
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.DataDownloader
+import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.world.WorldUtils
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockState

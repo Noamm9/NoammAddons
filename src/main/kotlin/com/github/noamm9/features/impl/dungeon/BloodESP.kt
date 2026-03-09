@@ -9,12 +9,12 @@ import com.github.noamm9.ui.clickgui.components.impl.CategorySetting
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.MathUtils.Vec3
+import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render3D
-import com.github.noamm9.utils.world.WorldUtils
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Blocks
 import java.awt.Color

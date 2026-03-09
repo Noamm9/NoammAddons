@@ -11,11 +11,11 @@ import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.ThreadUtils
+import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.NoammRenderLayers
 import com.github.noamm9.utils.render.RenderContext
-import com.github.noamm9.utils.world.WorldUtils
 import kotlinx.coroutines.launch
 import net.minecraft.client.renderer.ShapeRenderer
 import net.minecraft.core.BlockPos

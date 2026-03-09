@@ -10,11 +10,11 @@ import com.github.noamm9.utils.MathUtils.toPos
 import com.github.noamm9.utils.MathUtils.toVec
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.ThreadUtils
+import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderContext
-import com.github.noamm9.utils.world.WorldUtils
 import net.minecraft.core.BlockPos
 import net.minecraft.tags.BlockTags
 import net.minecraft.world.level.block.Block

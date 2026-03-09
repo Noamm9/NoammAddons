@@ -5,10 +5,10 @@ import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.correctTpPadColor
 import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.wrongTpPadColor
+import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderContext
-import com.github.noamm9.utils.world.WorldUtils
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket
 import net.minecraft.world.level.block.Blocks

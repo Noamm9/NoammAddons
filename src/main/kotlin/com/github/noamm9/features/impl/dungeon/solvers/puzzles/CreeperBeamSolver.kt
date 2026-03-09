@@ -5,11 +5,11 @@ import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.pha
 import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.renderLines
 import com.github.noamm9.utils.DataDownloader
 import com.github.noamm9.utils.Utils.equalsOneOf
+import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderContext
-import com.github.noamm9.utils.world.WorldUtils
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks

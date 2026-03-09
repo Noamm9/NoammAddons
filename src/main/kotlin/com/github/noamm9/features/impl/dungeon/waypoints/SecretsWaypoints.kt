@@ -2,13 +2,13 @@ package com.github.noamm9.features.impl.dungeon.waypoints
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.impl.DungeonEvent
+import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.enums.SecretType
 import com.github.noamm9.utils.dungeons.map.core.UniqueRoom
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderContext
-import com.github.noamm9.utils.world.WorldUtils
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Blocks
 import java.awt.Color

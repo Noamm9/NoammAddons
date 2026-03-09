@@ -10,10 +10,10 @@ import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.pre
 import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.preventMissClick
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.Utils.equalsOneOf
+import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.render.NoammRenderLayers
 import com.github.noamm9.utils.render.RenderContext
-import com.github.noamm9.utils.world.WorldUtils
 import net.minecraft.client.renderer.ShapeRenderer
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
