@@ -19,6 +19,7 @@ import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.WitherRelic
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.width
 import com.github.noamm9.utils.render.Render3D
 import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
@@ -102,23 +103,12 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
             }
         }
 
-        register<RenderOverlayEvent> {
-            if (! relicSpawnTimer.value) return@register
-            val timeLeft = spawnTimerTicks - DungeonListener.currentTime
-            if (timeLeft <= 0) return@register
-
+        hudElement("Relic Spawn Timer", { relicSpawnTimer.value }, { (spawnTimerTicks - DungeonListener.currentTime) > 0 }, centered = true) { ctx, example ->
+            val timeLeft = if (example) 25 else spawnTimerTicks - DungeonListener.currentTime
             val displayTime = (timeLeft / 20.0).toFixed(2)
-            val width = mc.window.guiScaledWidth
-            val height = mc.window.guiScaledHeight
-
-            Render2D.drawCenteredString(
-                event.context,
-                displayTime,
-                width / 2f,
-                height * 0.4f,
-                scale = 3f,
-                color = DungeonListener.thePlayer?.clazz?.color ?: Color.WHITE
-            )
+            val color = DungeonListener.thePlayer?.clazz?.color ?: Color.WHITE
+            Render2D.drawCenteredString(ctx, displayTime, 0, 0, color)
+            return@hudElement displayTime.width().toFloat() to 9f
         }
 
         register<RenderWorldEvent> {
@@ -135,26 +125,22 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
             if (! relicTimer.value || LocationUtils.F7Phase != 5 || relicTimes.isEmpty()) return@register
             val activeRelics = relicTimes.filter { ! it.isPlaced }.takeUnless { it.isEmpty() } ?: return@register
 
-            val relicStands = (mc.level?.entitiesForRendering()?.filterIsInstance<ArmorStand>() ?: emptyList()).filter {
+            val relicStands = mc.level !!.entitiesForRendering().filterIsInstance<ArmorStand>().filter {
                 it.getItemBySlot(EquipmentSlot.HEAD).hoverName.string.contains("Relic")
             }
 
-            for (entity in relicStands) {
-                for (entry in activeRelics) {
-                    if (isEntityAtCauldron(entity.position(), entry.relic)) {
-                        val currentTime = (DungeonListener.currentTime - p5StartTime) / 20.0
-                        entry.placeTimeSeconds = currentTime.toFixed(2).toDouble()
-                        entry.isPlaced = true
+            for (entity in relicStands) for (entry in activeRelics) {
+                if (! isEntityAtCauldron(entity.position(), entry.relic)) continue
+                val currentTime = (DungeonListener.currentTime - p5StartTime) / 20.0
+                entry.placeTimeSeconds = currentTime.toFixed(2).toDouble()
+                entry.isPlaced = true
 
-                        if (entry.player == mc.user.name) {
-                            entry.isPB = PersonalBest.checkAndSetPB(
-                                key = "M7_relic_${entry.relic.name}",
-                                value = entry.placeTimeSeconds,
-                                lowerIsBetter = true
-                            )
-                        }
-                    }
-                }
+                if (entry.player != mc.user.name) continue
+                entry.isPB = PersonalBest.checkAndSetPB(
+                    key = "M7_relic_${entry.relic.name}",
+                    value = entry.placeTimeSeconds,
+                    lowerIsBetter = true
+                )
             }
 
             if (relicTimes.size == 5 && relicTimes.all { it.isPlaced }) {
