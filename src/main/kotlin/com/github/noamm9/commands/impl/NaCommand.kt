@@ -29,6 +29,7 @@ object NaCommand: BaseCommand("na") {
         "/na sim" to "Simulate chat message",
         "/na leaporder" to "Configure custom leap sorting",
         "/na swapmask" to "Equips either Bonzo Mask or Spirit Mask",
+        "/na rodswap" to "Automatically rodswaps for you",
         "/na ping" to "Shows your ping in chat",
         "/na leap <class>" to "Automatically leaps to the selected class"
     )
@@ -117,6 +118,14 @@ object NaCommand: BaseCommand("na") {
             runs {
                 scope.launch {
                     PlayerUtils.changeMaskAction()
+                }
+            }
+        }
+
+        literal("rodswap") {
+            runs {
+                scope.launch {
+                    PlayerUtils.rodSwap()
                 }
             }
         }

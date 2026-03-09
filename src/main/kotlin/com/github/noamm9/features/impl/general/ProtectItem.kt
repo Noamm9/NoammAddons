@@ -31,7 +31,7 @@ import org.lwjgl.glfw.GLFW
 object ProtectItem: Feature("Prevents dropping or selling important items via /protectitem or the keybind.") {
     private val data = PogObject("item_protection", mutableMapOf<String, List<String>>("uuids" to emptyList(), "ids" to emptyList()))
 
-    private val protectNodification by ToggleSetting("Protect Notification", true).withDescription("Shows a notification on the bottom right side of the screen when the feature saved ur item")
+    private val protectNodification by ToggleSetting("Protect Notification", true).withDescription("Shows a notification on the bottom right side of the screen when the feature saved your item")
     private val protectBind by KeybindSetting("Protect Key", GLFW.GLFW_KEY_L).section("Keybind").withDescription("Press while hovering an item in an inventory to protect/unprotect it via UUID.")
     private val showProtected by ToggleSetting("Show Protected Items").withDescription("Shows protected items in the menu with a small icon indicator.")
     private val protectUUID by ToggleSetting("Protect UUID", true)
