@@ -95,19 +95,19 @@ object NaCommand: BaseCommand("na") {
         literal("leaporder") {
             argument("player1", StringArgumentType.word()) {
                 suggests(partyMembersSuggestion)
-                runs { ctx -> handleLeapOrder(ctx, 1) }
+                runs { ctx -> setLeapOrder(ctx, 1) }
 
                 argument("player2", StringArgumentType.word()) {
                     suggests(partyMembersSuggestion)
-                    runs { ctx -> handleLeapOrder(ctx, 2) }
+                    runs { ctx -> setLeapOrder(ctx, 2) }
 
                     argument("player3", StringArgumentType.word()) {
                         suggests(partyMembersSuggestion)
-                        runs { ctx -> handleLeapOrder(ctx, 3) }
+                        runs { ctx -> setLeapOrder(ctx, 3) }
 
                         argument("player4", StringArgumentType.word()) {
                             suggests(partyMembersSuggestion)
-                            runs { ctx -> handleLeapOrder(ctx, 4) }
+                            runs { ctx -> setLeapOrder(ctx, 4) }
                         }
                     }
                 }
@@ -144,7 +144,7 @@ object NaCommand: BaseCommand("na") {
 
     private val partyMembersSuggestion = { PartyUtils.members.map { it.lowercase() } }
 
-    private fun handleLeapOrder(ctx: CommandContext<FabricClientCommandSource>, count: Int) {
+    private fun setLeapOrder(ctx: CommandContext<FabricClientCommandSource>, count: Int) {
         val validPlayers = mutableListOf<String>()
 
         for (i in 1 .. count) {

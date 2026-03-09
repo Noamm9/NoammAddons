@@ -1,7 +1,7 @@
 package com.github.noamm9.features.impl.misc
 
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
-import com.github.noamm9.event.impl.PlayerInteractEvent
+import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.ILocalPlayer
@@ -12,7 +12,6 @@ import com.github.noamm9.utils.ActionBarParser
 import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.Utils.equalsOneOf
-import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.items.EtherwarpHelper
 import com.github.noamm9.utils.items.InstantTransmissionHelper
@@ -23,14 +22,13 @@ import com.github.noamm9.utils.location.WorldType
 import com.github.noamm9.utils.network.PacketUtils.send
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation
 import net.minecraft.client.Camera
-import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket
 import net.minecraft.network.protocol.game.ServerboundAcceptTeleportationPacket
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket
+import net.minecraft.network.protocol.game.ServerboundUseItemPacket
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.PositionMoveRotation
 import net.minecraft.world.item.ItemStack
-import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
 
@@ -50,37 +48,28 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
     private val withinTolerance = fun(n1: Float, n2: Float) = abs(n1 - n2) < 1e-4
     private val pendingTeleports = mutableListOf<TeleportPrediction>()
     private var lastWitherImpact = System.currentTimeMillis()
-    private val interactableBlocks = setOf(
-        Blocks.TRAPPED_CHEST, Blocks.CHEST, Blocks.ENDER_CHEST, Blocks.HOPPER, Blocks.CAULDRON,
-        Blocks.LEVER, Blocks.STONE_BUTTON, Blocks.OAK_BUTTON, Blocks.OAK_TRAPDOOR, Blocks.IRON_TRAPDOOR
-    )
-
-
+    
     override fun init() {
         register<WorldChangeEvent> {
             pendingTeleports.clear()
             lastWitherImpact = System.currentTimeMillis()
         }
 
-        fun onRightClick(item: ItemStack?, pos: BlockPos? = null) {
-            if (item == null || item.isEmpty) return
-            if (LocationUtils.world.equalsOneOf(WorldType.Home, WorldType.Garden)) return
-            if (LocationUtils.dungeonFloorNumber == 7 && LocationUtils.inBoss) return
-            if (ActionBarParser.currentMana < ActionBarParser.maxMana * 0.1) return
-            if (ScanUtils.currentRoom?.data?.name.equalsOneOf("New Trap", "Old Trap", "Teleport Maze", "Boulder")) return
-            if (pos?.let { WorldUtils.getBlockAt(it) in interactableBlocks } == true) return
-            val player = mc.player?.takeUnless { it.isPassenger } ?: return
-            val tpInfo = getTeleportInfo(item) ?: return
+        register<PacketEvent.Sent> {
+            val packet = event.packet as? ServerboundUseItemPacket ?: return@register
+            if (LocationUtils.world.equalsOneOf(WorldType.Home, WorldType.Garden)) return@register
+            if (LocationUtils.dungeonFloorNumber == 7 && LocationUtils.inBoss) return@register
+            if (ActionBarParser.currentMana < ActionBarParser.maxMana * 0.1) return@register
+            if (ScanUtils.currentRoom?.data?.name.equalsOneOf("New Trap", "Old Trap", "Teleport Maze", "Boulder")) return@register
+            if (mc.player !!.isPassenger) return@register
+            val tpInfo = getTeleportInfo(mc.player !!.getItemInHand(packet.hand)) ?: return@register
 
             when (tpInfo.type) {
-                TeleportType.Etherwarp -> doZeroPingEtherwarp(tpInfo, player.yRot, player.xRot)
-                TeleportType.InstantTransmission -> doZeroPingInstantTransmission(tpInfo, player.yRot, player.xRot)
-                TeleportType.WitherImpact -> doZeroPingWitherImpact(tpInfo, player.yRot, player.xRot)
+                TeleportType.Etherwarp -> doZeroPingEtherwarp(tpInfo, packet.yRot, packet.xRot)
+                TeleportType.InstantTransmission -> doZeroPingInstantTransmission(tpInfo, packet.yRot, packet.xRot)
+                TeleportType.WitherImpact -> doZeroPingWitherImpact(tpInfo, packet.yRot, packet.xRot)
             }
         }
-
-        register<PlayerInteractEvent.RIGHT_CLICK.BLOCK> { onRightClick(event.item, event.pos) }
-        register<PlayerInteractEvent.RIGHT_CLICK.AIR> { onRightClick(event.item) }
 
         register<MainThreadPacketReceivedEvent.Pre> {
             val packet = event.packet as? ClientboundPlayerPositionPacket ?: return@register
