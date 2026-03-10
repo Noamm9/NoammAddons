@@ -21,8 +21,7 @@ public abstract class MixinLightTexture {
 
     @Redirect(method = "updateLightTexture", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;getEffectBlendFactor(Lnet/minecraft/core/Holder;F)F"))
     private float injectAntiDarkness(LocalPlayer instance, Holder<MobEffect> registryEntry, float v) {
-        if (Camera.INSTANCE.enabled && Camera.getDisableDarkness().getValue() && registryEntry == MobEffects.DARKNESS)
-            return 0f;
+        if (Camera.INSTANCE.enabled && Camera.getDisableDarkness().getValue() && registryEntry == MobEffects.DARKNESS) return 0f;
         return instance.getEffectBlendFactor(registryEntry, v);
     }
 }

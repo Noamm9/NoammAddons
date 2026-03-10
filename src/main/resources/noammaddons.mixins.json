@@ -3,6 +3,7 @@
   "package": "com.github.noamm9.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "AnvilMenuMixin",
     "FuckFirmament",
     "ILanguage",
     "IMapState",

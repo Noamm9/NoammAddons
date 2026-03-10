@@ -1,8 +1,8 @@
 package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.event.impl.ChatMessageEvent
-import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.CheckEntityRenderEvent
+import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.ScreenEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.*
@@ -283,8 +283,9 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
 
         for (player in teammates) {
             val preferredIndex = neededSorting.indexOf(player.clazz)
-
-            if (preferredIndex != - 1) quadrants[preferredIndex] = player
+            if (preferredIndex != - 1 && preferredIndex < 4 && quadrants[preferredIndex] == null) {
+                quadrants[preferredIndex] = player
+            }
             else secondRound.add(player)
         }
 
