@@ -102,7 +102,10 @@
     "name": "{\"text\":\"\",\"extra\":[{\"text\":\"I\",\"color\":\"#F2C6DE\"},{\"text\":\"t\",\"color\":\"#EFB7D6\"},{\"text\":\"s\",\"color\":\"#EDA9CE\"},{\"text\":\"N\",\"color\":\"#EB9AC6\"},{\"text\":\"o\",\"color\":\"#E98ABE\"},{\"text\":\"a\",\"color\":\"#E87BB6\"},{\"text\":\"h\",\"color\":\"#E66BAE\"},{\"text\":\"F\",\"color\":\"#E55BA6\"},{\"text\":\"F\",\"color\":\"#E54B9E\"},{\"text\":\"S\",\"color\":\"#E43A96\"}]}"
   },
   "eaca29a3-ec52-4971-b00d-a6d0aedc9190": {
-    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"n\",\"color\":\"#E43A96\"},{\"text\":\"t\",\"color\":\"#E66BAE\"},{\"text\":\"b\",\"color\":\"#EB9AC6\"},{\"text\":\"t\",\"color\":\"#F2C6DE\"}]}"
+    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"n\",\"color\":\"#E43A96\"},{\"text\":\"t\",\"color\":\"#E66BAE\"},{\"text\":\"b\",\"color\":\"#EB9AC6\"},{\"text\":\"t\",\"color\":\"#F2C6DE\"}]}",
+    "sizeX": 2,
+    "sizeY": 0.3,
+    "sizeZ": 2
   },
   "4ef4f5a5-e5ad-4d9c-9bfe-435075c4d83b": {
     "name": "{\"text\":\"\",\"extra\":[{\"text\":\"L\",\"color\":\"#FF73F4\",\"bold\":true,\"italic\":true},{\"text\":\"u\",\"color\":\"#E074F7\",\"bold\":true,\"italic\":true},{\"text\":\"n\",\"color\":\"#BB76ED\",\"bold\":true,\"italic\":true},{\"text\":\"a\",\"color\":\"#9C79E3\",\"bold\":true,\"italic\":true},{\"text\":\"c\",\"color\":\"#847DD9\",\"bold\":true,\"italic\":true},{\"text\":\"i\",\"color\":\"#818ECD\",\"bold\":true,\"italic\":true},{\"text\":\"i\",\"color\":\"#7AA4D4\",\"bold\":true,\"italic\":true},{\"text\":\"a\",\"color\":\"#72C3DB\",\"bold\":true,\"italic\":true}]}"
@@ -263,3 +266,4 @@
     "name": "{\"text\":\"\",\"extra\":[{\"text\":\"e\",\"color\":\"#B4A3FF\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.16,0.1,0.76,1]},{\"text\":\"l\",\"color\":\"#A794FF\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.17,0.1,0.75,1]},{\"text\":\"y\",\"color\":\"#9A86FF\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.19,0.1,0.73,1]},{\"text\":\"k\",\"color\":\"#8C77FF\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.2,0.1,0.72,1]},{\"text\":\"j\",\"color\":\"#7E69FF\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.22,0.1,0.7,1]},{\"text\":\"a\",\"color\":\"#705AFF\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.23,0.1,0.69,1]}]}"
   }
 }
+
