@@ -258,5 +258,8 @@
   },
   "7920ead5-2372-4286-b3f1-124257c0aff8": {
     "name": "{\"text\":\"\",\"extra\":[{\"text\":\"O\",\"color\":\"#000000\",\"bold\":true,\"italic\":true,\"shadow_color\":[0,0,0,1]},{\"text\":\"h\",\"color\":\"#000000\",\"bold\":true,\"italic\":true,\"shadow_color\":[0,0,0,1]},{\"text\":\"M\",\"color\":\"#602020\",\"bold\":true,\"italic\":true,\"shadow_color\":[0,0,0,1]},{\"text\":\"e\",\"color\":\"#FF0000\",\"bold\":true,\"italic\":true,\"shadow_color\":[0,0,0,1]},{\"text\":\"d\",\"color\":\"#FF0000\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.02,0.02,0.02,1]},{\"text\":\"o\",\"color\":\"#FF0000\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.03,0.03,0.03,1]}]}"
+  },
+  "03d400f5-1126-4ae4-b4af-473b7aad407e": {
+    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"e\",\"color\":\"#B4A3FF\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.16,0.1,0.76,1]},{\"text\":\"l\",\"color\":\"#A794FF\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.17,0.1,0.75,1]},{\"text\":\"y\",\"color\":\"#9A86FF\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.19,0.1,0.73,1]},{\"text\":\"k\",\"color\":\"#8C77FF\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.2,0.1,0.72,1]},{\"text\":\"j\",\"color\":\"#7E69FF\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.22,0.1,0.7,1]},{\"text\":\"a\",\"color\":\"#705AFF\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.23,0.1,0.69,1]}]}"
   }
 }
