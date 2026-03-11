@@ -130,8 +130,15 @@
   },
   "27ad87bb-efdf-4e13-b680-4d2ec7027b75": {
     "name": "{\"text\":\"\",\"extra\":[{\"text\":\"S\",\"color\":\"#91D7FF\"},{\"text\":\"k\",\"color\":\"#86B4FF\"},{\"text\":\"y\",\"color\":\"#7B8BFF\"},{\"text\":\"Q\",\"color\":\"#8470FF\"},{\"text\":\"o\",\"color\":\"#A365FF\"},{\"text\":\"L\",\"color\":\"#C75AFF\"}]}"
+  },
+  "e7c4c37a-1de3-4a90-9a1b-b44a65f00591": {
+    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"z\",\"color\":\"#FFFFFF\",\"bold\":true},{\"text\":\"y\",\"color\":\"#BFBFBF\",\"bold\":true},{\"text\":\"y\",\"color\":\"#808080\",\"bold\":true},{\"text\":\"3\",\"color\":\"#404040\",\"bold\":true},{\"text\":\"d\",\"color\":\"#000000\",\"bold\":true}]}"
+    "sizeX": 3.0,
+    "sizeY": 0.7,
+    "sizeZ": 3.0
   }
 }
+
 
 
 
