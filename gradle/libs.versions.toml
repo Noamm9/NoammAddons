@@ -1,0 +1,38 @@
+[versions]
+loom = "1.14-SNAPSHOT"
+kotlin = "2.3.0"
+
+devauth = "1.2.1"
+
+fabric-loader = "0.18.4"
+fabric-language-kotlin = "1.13.8+kotlin.2.3.0"
+
+fabric-api-1-21-10 = "0.138.4+1.21.10"
+fabric-api-1-21-11 = "0.140.2+1.21.11"
+
+parchment-1-21-10 = "2025.10.12"
+parchment-1-21-11 = "2025.12.20"
+
+classgraph = "4.8.174"
+serialization = "1.7.3"
+websocket = "1.5.4"
+
+[libraries]
+fabric-loader = { module = "net.fabricmc:fabric-loader", version.ref = "fabric-loader" }
+fabric-language-kotlin = { module = "net.fabricmc:fabric-language-kotlin", version.ref = "fabric-language-kotlin" }
+
+devauth = { module = "me.djtheredstoner:DevAuth-fabric", version.ref = "devauth" }
+
+fabric-api-1-21-10 = { module = "net.fabricmc.fabric-api:fabric-api", version.ref = "fabric-api-1-21-10" }
+fabric-api-1-21-11 = { module = "net.fabricmc.fabric-api:fabric-api", version.ref = "fabric-api-1-21-11" }
+
+parchment-1-21-10 = { module = "org.parchmentmc.data:parchment-1.21.10", version.ref = "parchment-1-21-10" }
+parchment-1-21-11 = { module = "org.parchmentmc.data:parchment-1.21.11", version.ref = "parchment-1-21-11" }
+
+classgraph = { module = "io.github.classgraph:classgraph", version.ref = "classgraph" }
+serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+websocket = { module = "org.java-websocket:Java-WebSocket", version.ref = "websocket" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+loom = { id = "fabric-loom", version.ref = "loom" }
