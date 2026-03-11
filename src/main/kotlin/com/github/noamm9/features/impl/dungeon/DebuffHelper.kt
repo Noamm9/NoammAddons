@@ -1,5 +1,7 @@
 package com.github.noamm9.features.impl.dungeon
 
+//#if CHEAT
+
 import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.TickEvent
@@ -126,3 +128,4 @@ object DebuffHelper: Feature(description = "Automatically pulls and fires bows b
         }
     }
 }
+//#endif

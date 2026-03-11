@@ -3,7 +3,11 @@
   "id": "noammaddons",
   "version": "${version}",
   "name": "NoammAddons",
-  "description": "1.21.10 port of the greatest skyblock mod ever made!",
+  //#if CHEAT
+  "description": "1.21.10 port of the greatest skyblock mod ever made! Version: Cheat",
+  //#else
+  //$"description": "1.21.10 port of the greatest skyblock mod ever made! Version: Legit",
+  //#endif
   "authors": [
     "Noamm"
   ],

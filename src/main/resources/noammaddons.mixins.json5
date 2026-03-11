@@ -11,17 +11,25 @@
     "LevelChunkMixin",
     "MixinBlockItem",
     "MixinBossEvent",
+    //#if CHEAT
     "MixinButtonBlock",
+    //#endif
     "MixinConnection",
     "MixinEntity",
     "MixinItemStack",
+    //#if CHEAT
     "MixinLeverBlock",
+    //#endif
     "MixinLivingEntity",
+    //#if CHEAT
     "MixinMushroomBlock",
+    //#endif
     "MixinOdinTelemetry",
     "MixinPacketProcessorListener",
     "MixinPlayer",
+    //#if CHEAT
     "MixinSkullBlock"
+    //#endif
   ],
   "injectors": {
     "defaultRequire": 1

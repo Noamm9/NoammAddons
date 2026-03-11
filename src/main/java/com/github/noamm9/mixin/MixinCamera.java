@@ -1,6 +1,5 @@
 package com.github.noamm9.mixin;
 
-import com.github.noamm9.features.impl.misc.NoRotate;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.client.Camera;
@@ -16,7 +15,6 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import static com.github.noamm9.features.impl.misc.Camera.*;
-
 
 @Mixin(Camera.class)
 public abstract class MixinCamera {
@@ -66,10 +64,12 @@ public abstract class MixinCamera {
         return instance.getAttributeValue(holder);
     }
 
+    //#if CHEAT
     @WrapOperation(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setPosition(DDD)V"))
     private void overrideCameraPos(Camera instance, double x, double y, double z, Operation<Void> original) {
-        NoRotate.cameraHook(instance, x, y, z, original);
+        com.github.noamm9.features.impl.misc.NoRotate.cameraHook(instance, x, y, z, original);
     }
+    //#endif
 
     @Inject(method = "getMaxZoom", at = @At("HEAD"), cancellable = true)
     private void onGetMaxZoom(float f, CallbackInfoReturnable<Float> cir) {

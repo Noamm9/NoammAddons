@@ -5,7 +5,6 @@ import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
@@ -16,11 +15,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
-import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket
 import net.minecraft.network.protocol.game.ClientboundSetTimePacket
 import net.minecraft.world.entity.ambient.Bat
 import java.awt.Color
 
+@Suppress("unused")
 class TestGround {
     private var lastServerTime = - 1L
     private var lastRealTime = - 1L
@@ -28,11 +27,8 @@ class TestGround {
     companion object {
         val experimental get() = NoammAddons.debugFlags.contains("tick")
         val rotation get() = NoammAddons.debugFlags.contains("rotation")
-        val norotate get() = NoammAddons.debugFlags.contains("norotate")
         val bat get() = NoammAddons.debugFlags.contains("bat")
     }
-
-    private var oldRot = MathUtils.Rotation(0f, 0f)
 
     init {
         EventBus.register<WorldChangeEvent> {
@@ -88,23 +84,6 @@ class TestGround {
             }
         }
 
-
-        EventBus.register<MainThreadPacketReceivedEvent.Pre> {
-            if (! norotate) return@register
-            if (event.packet is ClientboundPlayerPositionPacket) {
-                oldRot.yaw = mc.player !!.yRot
-                oldRot.pitch = mc.player !!.xRot
-            }
-        }
-
-        EventBus.register<MainThreadPacketReceivedEvent.Post> {
-            if (! norotate) return@register
-            if (event.packet is ClientboundPlayerPositionPacket) {
-                mc.player !!.yRot = oldRot.yaw
-                mc.player !!.xRot = oldRot.pitch
-            }
-        }
-
         EventBus.register<MainThreadPacketReceivedEvent.Post> {
             if (! bat) return@register
             if (event.packet is ClientboundAddEntityPacket) {
@@ -115,6 +94,16 @@ class TestGround {
 
                 }
             }
+        }
+
+        EventBus.register<TickEvent.Start> {
+            //#if CHEAT
+            //$$ val text = "CHEAT"
+            //#else
+            val text = "LEGIT"
+            //#endif
+
+            // ChatUtils.modMessage("version is $text")
         }
     }
 }

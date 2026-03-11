@@ -1,5 +1,7 @@
 package com.github.noamm9.features.impl.general
 
+//#if CHEAT
+
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.features.Feature
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
@@ -15,3 +17,4 @@ object CancelInteract: Feature("Disables Hypixel's stupid Ender Pearl throw bloc
         }
     }
 }
+//#endif

@@ -1,5 +1,7 @@
 package com.github.noamm9.features.impl.dungeon
 
+//#if CHEAT
+
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
@@ -65,3 +67,4 @@ object AutoGFS: Feature("Automatically refills dungeon items from your sacks usi
         }
     }
 }
+//#endif

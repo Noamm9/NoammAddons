@@ -1,5 +1,7 @@
 package com.github.noamm9.features.impl.dungeon.solvers.devices
 
+//#if CHEAT
+
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.BlockChangeEvent
 import com.github.noamm9.event.impl.ChatMessageEvent
@@ -35,7 +37,6 @@ import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
 import kotlin.math.min
-
 
 object AutoI4: Feature("Fully Automated I4") {
     private val rotationTime by SliderSetting<Long>("Rotation Time", 170, 0, 250, 1).withDescription("Time (ms) to interpolate rotations when aiming at dev block targets. &eSet to 0 to disable the auto rotation.")
@@ -255,3 +256,4 @@ object AutoI4: Feature("Fully Automated I4") {
         }
     }
 }
+//#endif

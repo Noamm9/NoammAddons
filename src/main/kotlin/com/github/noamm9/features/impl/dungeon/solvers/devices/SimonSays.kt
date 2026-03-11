@@ -31,6 +31,7 @@ object SimonSays: Feature("Simon Says Solver") {
     private val color2 by ColorSetting("Second Color", Color.YELLOW).withDescription("Color of the second button.")
     private val color3 by ColorSetting("Other Color", Color.RED).withDescription("Color of the rest of the buttons.")
 
+    //#if CHEAT
     private val autoStart by ToggleSetting("Auto Start", false).withDescription("Automatically starts the device when it can be started.").section("Auto")
     private val startClicks by SliderSetting("Start Clicks", 3, 1, 10, 1).withDescription("Amount of clicks to start the device.").showIf { autoStart.value }
     private val startClickDelay by SliderSetting("Start Click Delay", 3, 1, 25, 1).withDescription("Delay in ticks between each start click.").showIf { autoStart.value }
@@ -38,6 +39,7 @@ object SimonSays: Feature("Simon Says Solver") {
     private val autoSS by ToggleSetting("Auto SS").withDescription("Automatically does the device.").showIf { NoammAddons.debugFlags.contains("autoss") }
     private val autoSSDelay by SliderSetting("Auto SS delay", 3, 1, 10, 1)
         .withDescription("Delay in Server ticks.").showIf { autoSS.value && NoammAddons.debugFlags.contains("autoss") }
+    //#endif
 
     private val alertsEnabled by ToggleSetting("Alerts Enabled", true).section("Alerts")
     private val sendChat by ToggleSetting("SS Break Alert", true).showIf { alertsEnabled.value }.withDescription("Sends in party chat when the device got reset")
@@ -74,6 +76,7 @@ object SimonSays: Feature("Simon Says Solver") {
             reset()
         }
 
+        //#if CHEAT
         register<ChatMessageEvent> {
             if (! autoStart.value) return@register
             if (LocationUtils.F7Phase != 3) return@register
@@ -84,6 +87,7 @@ object SimonSays: Feature("Simon Says Solver") {
                 }
             }
         }
+        //#endif
 
         register<TickEvent.Start> {
             if (LocationUtils.F7Phase != 3) return@register
@@ -104,6 +108,7 @@ object SimonSays: Feature("Simon Says Solver") {
                     lastExisted = true
                     skipOver = true
 
+                    //#if CHEAT
                     if (autoSS.value && NoammAddons.debugFlags.contains("autoss")) scope.launch {
                         val list = solution.toList()
                         for (pos in list) {
@@ -115,6 +120,7 @@ object SimonSays: Feature("Simon Says Solver") {
                             if (list.first() != pos) PlayerUtils.rightClick()
                         }
                     }
+                    //#endif
                 }
             }
 
