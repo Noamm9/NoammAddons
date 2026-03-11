@@ -74,7 +74,7 @@ public abstract class MixinGui {
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;renderSleepOverlay(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/DeltaTracker;)V"))
     public void onRenderHud(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
         if (this.minecraft.options.hideGui) return;
-        if (this.minecraft.getDebugOverlay().showDebugScreen()) return;
+        if (this.minecraft.debugEntries.isF3Visible()) return;
         EventBus.post(new RenderOverlayEvent(guiGraphics, deltaTracker));
 
         DebugHUD.render(guiGraphics);
