@@ -270,6 +270,12 @@
   },
   "329da111-a2e5-4eb1-b28f-b03d12d5c0df": {
     "name": "{\"text\":\"\",\"extra\":[{\"text\":\"❀\",\"color\":\"#3C3E94\"},{\"text\":\"✧\",\"color\":\"#3C3E94\"},{\"text\":\" \"},{\"text\":\"j\",\"color\":\"#9734CA\"},{\"text\":\"v\",\"color\":\"#A652C2\"},{\"text\":\"z\",\"color\":\"#B670BB\"},{\"text\":\"1\",\"color\":\"#C58EB3\"},{\"text\":\" \"},{\"text\":\"✧\",\"color\":\"#3C3E94\"},{\"text\":\"❀\",\"color\":\"#3C3E94\"}]}"
+  },
+  "a99151d8-d96f-4a19-8994-18cbae1a1201": {
+    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"L\",\"color\":\"#FF8FEA\"},{\"text\":\"o\",\"color\":\"#FFD6FF\"},{\"text\":\"o\",\"color\":\"#FFC6F5\"},{\"text\":\"t\",\"color\":\"#FFB0E8\"},{\"text\":\"i\",\"color\":\"#FF9BE0\"},{\"text\":\"n\",\"color\":\"#FFBFF0\"},{\"text\":\"g\",\"color\":\"#FFD6FF\"},{\"text\":\"_\",\"color\":\"#FFC6F5\"},{\"text\":\"V\",\"color\":\"#FFB0E8\"},{\"text\":\"I\",\"color\":\"#FF9BE0\"},{\"text\":\"I\",\"color\":\"#FFD6FF\"}]}",
+    "sizeY": 0.6
+  },
+  "b98a8c9b-ecb7-4a26-a2f0-844426073e25": {
+    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"\uD83D\uDCA0D\",\"color\":\"#00008B\",\"bold\":true},{\"text\":\"ag\",\"color\":\"#00008B\",\"bold\":true},{\"text\":\"on\",\"color\":\"#1D298D\",\"bold\":true},{\"text\":\"ix\",\"color\":\"#2D3FA0\",\"bold\":true},{\"text\":\"90\",\"color\":\"#3A55B7\",\"bold\":true},{\"text\":\"00\",\"color\":\"#476AD1\",\"bold\":true},{\"text\":\"\uD83D\uDCA0\",\"color\":\"#476AD1\",\"bold\":true}]}"
   }
 }
-
