@@ -28,10 +28,12 @@ object NaCommand: BaseCommand("na") {
         "/na debug" to "Debug flags",
         "/na sim" to "Simulate chat message",
         "/na leaporder" to "Configure custom leap sorting",
+        "/na ping" to "Shows your ping in chat",
+        //#if CHEAT
         "/na swapmask" to "Equips either Bonzo Mask or Spirit Mask",
         "/na rodswap" to "Automatically rodswaps for you",
-        "/na ping" to "Shows your ping in chat",
         "/na leap <class>" to "Automatically leaps to the selected class"
+        //#endif
     )
 
     override fun CommandNodeBuilder.build() {
@@ -114,6 +116,7 @@ object NaCommand: BaseCommand("na") {
             }
         }
 
+        //#if CHEAT
         literal("swapmask") {
             runs {
                 scope.launch {
@@ -140,6 +143,7 @@ object NaCommand: BaseCommand("na") {
                 }
             }
         }
+        //#endif
     }
 
     private val partyMembersSuggestion = { PartyUtils.members.map { it.lowercase() } }

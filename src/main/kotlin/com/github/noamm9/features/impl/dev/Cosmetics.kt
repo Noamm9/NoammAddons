@@ -8,8 +8,10 @@ import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.DataDownloader
+import com.github.noamm9.utils.JsonUtils
 import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.network.ProfileUtils
+import com.google.gson.reflect.TypeToken
 import com.mojang.authlib.GameProfile
 import com.mojang.blaze3d.vertex.PoseStack
 import kotlinx.coroutines.launch
@@ -34,7 +36,9 @@ object Cosmetics: Feature(toggled = true) {
 
     override fun init() {
         lastReload = System.currentTimeMillis()
-        cosmeticPeople = DataDownloader.loadJson<Map<UUID, CosmeticData>>("cosmeticPeople.json")
+        cosmeticPeople = DataDownloader.getReader("cosmeticPeople.json", true).use {
+            JsonUtils.gsonBuilder.fromJson(it, object: TypeToken<Map<UUID, CosmeticData>>() {}.type)
+        }
 
         scope.launch {
             for ((uuid, cosmetic) in cosmeticPeople.filter { it.value.hasCustomName }) {
@@ -55,6 +59,7 @@ object Cosmetics: Feature(toggled = true) {
     @JvmStatic
     fun scaleHook(state: AvatarRenderState, poseStack: PoseStack) {
         val gameProfile = state.getData(GAME_PROFILE_KEY) ?: return
+        if (! ::cosmeticPeople.isInitialized) return
         val data = cosmeticPeople[gameProfile.id] ?: return
         if (! data.hasCustomSize) return
 

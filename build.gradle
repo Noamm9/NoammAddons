@@ -309,24 +309,21 @@ tasks.named("processCheatResources").configure {
 
 tasks.named("compileKotlin").configure {
     dependsOn("preprocessLegit")
-    doFirst {
-        source = fileTree("${buildDir}/preprocessed/legit/kotlin") { include "**/*.kt" }
-    }
+    source = fileTree("${buildDir}/preprocessed/legit/kotlin") { include "**/*.kt" }
+    inputs.dir("${buildDir}/preprocessed/legit/kotlin")
     kotlinOptions.freeCompilerArgs += ["-Xjava-source-roots=${buildDir}/preprocessed/legit/java"]
 }
 
 tasks.named("compileJava").configure {
     dependsOn("preprocessLegit", "compileKotlin")
-    doFirst {
-        source = fileTree("${buildDir}/preprocessed/legit/java") { include "**/*.java" }
-    }
+    source = fileTree("${buildDir}/preprocessed/legit/java") { include "**/*.java" }
+    inputs.dir("${buildDir}/preprocessed/legit/java")
 }
 
 tasks.named("compileCheatKotlin").configure {
     dependsOn("preprocessCheat")
-    doFirst {
-        source = fileTree("${buildDir}/preprocessed/cheat/kotlin") { include "**/*.kt" }
-    }
+    source = fileTree("${buildDir}/preprocessed/cheat/kotlin") { include "**/*.kt" }
+    inputs.dir("${buildDir}/preprocessed/cheat/kotlin")
     kotlinOptions.freeCompilerArgs += ["-Xjava-source-roots=${buildDir}/preprocessed/cheat/java"]
     kotlinOptions {
         jvmTarget = 21
@@ -335,9 +332,8 @@ tasks.named("compileCheatKotlin").configure {
 
 tasks.named("compileCheatJava").configure {
     dependsOn("preprocessCheat", "compileCheatKotlin")
-    doFirst {
-        source = fileTree("${buildDir}/preprocessed/cheat/java") { include "**/*.java" }
-    }
+    source = fileTree("${buildDir}/preprocessed/cheat/java") { include "**/*.java" }
+    inputs.dir("${buildDir}/preprocessed/cheat/java")
     options.release = 21
 }
 

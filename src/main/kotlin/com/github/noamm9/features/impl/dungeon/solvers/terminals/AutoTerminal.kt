@@ -49,14 +49,23 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
 
     override fun onEnable() {
         super.onEnable()
-        register()
+        TerminalListener.packetRecivedListener.register()
+        TerminalListener.packetSentListener.register()
+        TerminalListener.tickListener.register()
+        TerminalListener.worldChangeListener.register()
+        Scheduler.tickListener.register()
+        Scheduler.timeListener.register()
     }
 
     override fun onDisable() {
         super.onDisable()
-        if (! TerminalSolver.enabled) {
-            unregister()
-        }
+        if (TerminalSolver.enabled) return
+        TerminalListener.packetRecivedListener.unregister()
+        TerminalListener.packetSentListener.unregister()
+        TerminalListener.tickListener.unregister()
+        TerminalListener.worldChangeListener.unregister()
+        Scheduler.timeListener.unregister()
+        Scheduler.tickListener.unregister()
     }
 
     override fun init() {
@@ -167,24 +176,6 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     fun reset() {
         lastClickTime = 0
         lastClickedSlot = null
-    }
-
-    fun register() {
-        TerminalListener.packetRecivedListener.register()
-        TerminalListener.packetSentListener.register()
-        TerminalListener.tickListener.register()
-        TerminalListener.worldChangeListener.register()
-        Scheduler.tickListener.register()
-        Scheduler.timeListener.register()
-    }
-
-    fun unregister() {
-        TerminalListener.packetRecivedListener.unregister()
-        TerminalListener.packetSentListener.unregister()
-        TerminalListener.tickListener.unregister()
-        TerminalListener.worldChangeListener.unregister()
-        Scheduler.timeListener.unregister()
-        Scheduler.tickListener.unregister()
     }
 }
 //#endif

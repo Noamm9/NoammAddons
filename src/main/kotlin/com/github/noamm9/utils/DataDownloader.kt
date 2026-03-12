@@ -108,9 +108,9 @@ object DataDownloader {
         }
     }
 
-    fun getReader(fileName: String): BufferedReader {
+    fun getReader(fileName: String, web: Boolean = false): BufferedReader {
         val localFile = modDataPath.resolve(fileName)
-        return if (localFile.exists()) localFile.bufferedReader()
+        return if (localFile.exists() && ! web) localFile.bufferedReader()
         else {
             LOGGER.warn("Local file '$fileName' missing. Fetching from RAW URL.")
             val connection = WebUtils.prepareConnection(RAW_URL + fileName)
