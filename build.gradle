@@ -266,10 +266,10 @@ sourceSets {
     }
     cheat {
         java {
-            setSrcDirs([])
+            setSrcDirs(["${buildDir}/preprocessed/cheat/java"])
         }
         kotlin {
-            setSrcDirs([])
+            setSrcDirs(["${buildDir}/preprocessed/cheat/kotlin"])
         }
         resources {
             setSrcDirs(["src/main/resources"])
@@ -330,9 +330,6 @@ tasks.named("compileCheatKotlin").configure {
     dependsOn("preprocessCheat")
     inputs.dir("src/main/kotlin")
     inputs.dir("${buildDir}/preprocessed/cheat/kotlin")
-    doFirst {
-        source = fileTree("${buildDir}/preprocessed/cheat/kotlin") { include "**/*.kt" }
-    }
     kotlinOptions.freeCompilerArgs += ["-Xjava-source-roots=${buildDir}/preprocessed/cheat/java"]
     kotlinOptions {
         jvmTarget = 21
@@ -343,9 +340,6 @@ tasks.named("compileCheatJava").configure {
     dependsOn("preprocessCheat", "compileCheatKotlin")
     inputs.dir("src/main/java")
     inputs.dir("${buildDir}/preprocessed/cheat/java")
-    doFirst {
-        source = fileTree("${buildDir}/preprocessed/cheat/java") { include "**/*.java" }
-    }
     options.release = 21
 }
 
