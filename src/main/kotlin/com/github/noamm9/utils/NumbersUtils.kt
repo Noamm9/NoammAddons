@@ -218,4 +218,26 @@ object NumbersUtils {
         val number = cleanValue.substring(0, cleanValue.length - 1).toDoubleOrNull() ?: return null
         return (number * multiplier).toLong()
     }
+
+    fun parseCompactNumberDouble(value: String): Double? {
+        if (value.isBlank()) return null
+        value.toDoubleOrNull()?.let { return it }
+
+        val cleanValue = value.lowercase().replace(",", "")
+        val lastChar = cleanValue.lastOrNull() ?: return null
+
+        if (! lastChar.isLetter()) return null
+
+        val multiplier: Long = when (lastChar) {
+            'k' -> 1_000L
+            'm' -> 1_000_000L
+            'b' -> 1_000_000_000L
+            't' -> 1_000_000_000_000L
+            else -> return null
+        }
+
+        val numberPartString = cleanValue.substring(0, cleanValue.length - 1)
+
+        return (numberPartString.toDouble() * multiplier)
+    }
 }
