@@ -48,7 +48,7 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
     ))
 
     private val withinTolerance = fun(n1: Float, n2: Float) = abs(n1 - n2) < 1e-4
-    private val pendingTeleports = mutableListOf<TeleportPrediction>()
+    val pendingTeleports = mutableListOf<TeleportPrediction>()
     private var lastWitherImpact = System.currentTimeMillis()
 
     override fun init() {
