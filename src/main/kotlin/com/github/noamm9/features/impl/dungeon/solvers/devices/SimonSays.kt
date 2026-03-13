@@ -134,6 +134,7 @@ object SimonSays: Feature("Simon Says Solver") {
                 val block = WorldUtils.getBlockAt(pos)
                 if (block != Blocks.SEA_LANTERN || solution.contains(pos)) continue
 
+                if (solution.contains(pos)) solution.remove(pos)
                 solution.add(pos)
 
                 if (! skipOver && ssSkip.value && solution.size == 3) {
