@@ -1,4 +1,4 @@
-package com.github.noamm9.features.impl.dungeon
+package com.github.noamm9.features.impl.floor7
 
 //#if CHEAT
 

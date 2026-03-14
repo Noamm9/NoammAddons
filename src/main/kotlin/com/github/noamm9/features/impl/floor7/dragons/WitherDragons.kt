@@ -1,4 +1,4 @@
-package com.github.noamm9.features.impl.dungeon.dragons
+package com.github.noamm9.features.impl.floor7.dragons
 
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature

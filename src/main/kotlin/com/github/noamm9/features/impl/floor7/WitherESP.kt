@@ -1,4 +1,4 @@
-package com.github.noamm9.features.impl.dungeon
+package com.github.noamm9.features.impl.floor7
 
 import com.github.noamm9.event.impl.CheckEntityGlowEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
