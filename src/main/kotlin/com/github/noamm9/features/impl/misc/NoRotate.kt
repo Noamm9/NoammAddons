@@ -41,7 +41,7 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
         Pair("Wither Impact", true)
     ))
 
-    private val zeroPingCamera by MultiCheckboxSetting("Zero Ping Camera", mutableMapOf(
+    val zeroPingCamera by MultiCheckboxSetting("Zero Ping Camera", mutableMapOf(
         Pair("Etherwarp", true),
         Pair("Instant Transmission", true),
         Pair("Wither Impact", true)
