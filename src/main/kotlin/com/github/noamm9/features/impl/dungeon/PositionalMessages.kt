@@ -1,5 +1,7 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.NoammAddons
+import com.github.noamm9.NoammAddons.MOD_NAME
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
@@ -9,11 +11,16 @@ import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.JsonUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render3D
+import com.google.gson.reflect.TypeToken
 import net.minecraft.world.phys.AABB
 import java.awt.Color
+import java.io.File
+import java.io.FileReader
+import java.io.FileWriter
 
 object PositionalMessages : Feature("Sends a party message when near a position. /posmsg") {
     private val onlyDungeons by ToggleSetting("Only in Dungeons", true)
@@ -25,13 +32,18 @@ object PositionalMessages : Feature("Sends a party message when near a position.
         val x: Double, val y: Double, val z: Double,
         val x2: Double?, val y2: Double?, val z2: Double?,
         val delay: Double, val distance: Double?,
-        val color: Color, val message: String
-    )
+        val colorRgb: Int, val message: String
+    ) {
+        val color: Color get() = Color(colorRgb)
+    }
 
-    val posMessages = mutableListOf<PosMessage>()
+    private val configFile = File("config/$MOD_NAME/positionalMessages.json")
+    val posMessages: MutableList<PosMessage> = mutableListOf()
     private val sentMessages = mutableMapOf<PosMessage, Boolean>()
 
     override fun init() {
+        loadConfig()
+
         register<WorldChangeEvent> {
             if (oncePerWorld.value) sentMessages.forEach { (msg, _) -> sentMessages[msg] = false }
         }
@@ -89,11 +101,41 @@ object PositionalMessages : Feature("Sends a party message when near a position.
         }
     }
 
+    private fun loadConfig() {
+        if (!configFile.exists()) return
+
+        runCatching {
+            FileReader(configFile).use { reader ->
+                val type = object : TypeToken<MutableList<PosMessage>>() {}.type
+                val loaded = JsonUtils.gsonBuilder.fromJson<MutableList<PosMessage>>(reader, type)
+                if (loaded != null) {
+                    posMessages.clear()
+                    posMessages.addAll(loaded)
+                    NoammAddons.logger.info("PositionalMessages: Loaded ${posMessages.size} messages.")
+                }
+            }
+        }.onFailure {
+            NoammAddons.logger.error("PositionalMessages: Failed to load config!", it)
+        }
+    }
+
+    fun saveConfig() {
+        runCatching {
+            configFile.parentFile?.mkdirs()
+            FileWriter(configFile).use { writer ->
+                JsonUtils.gsonBuilder.toJson(posMessages, writer)
+            }
+            NoammAddons.logger.info("PositionalMessages: Config saved.")
+        }.onFailure {
+            NoammAddons.logger.error("PositionalMessages: Failed to save config!", it)
+        }
+    }
+
     private fun handleAtMessage(msg: PosMessage) {
         val player = mc.player ?: return
         val sent = sentMessages.getOrDefault(msg, false)
 
-        if (player.distanceToSqr(msg.x, msg.y, msg.z) <= (msg.distance ?: return) * (msg.distance)) {
+        if (player.distanceToSqr(msg.x, msg.y, msg.z) <= (msg.distance ?: return) * msg.distance) {
             if (!sent) {
                 sentMessages[msg] = true
                 val delayTicks = (msg.delay * 20).toInt()

@@ -32,9 +32,10 @@ object PosMsgCommand : BaseCommand("posmsg") {
                                                 x, y, z,
                                                 null, null, null,
                                                 delay, radius,
-                                                Color.CYAN, message
+                                                Color.CYAN.rgb, message
                                             )
                                         )
+                                        PositionalMessages.saveConfig()
                                         ChatUtils.modMessage("&aAdded positional message at &e$x, $y, $z &awith delay &e${delay}s")
                                     }
                                 }
@@ -54,6 +55,7 @@ object PosMsgCommand : BaseCommand("posmsg") {
                         return@runs
                     }
                     PositionalMessages.posMessages.removeAt(index)
+                    PositionalMessages.saveConfig()
                     ChatUtils.modMessage("&aRemoved message at index $index.")
                 }
             }
@@ -74,6 +76,7 @@ object PosMsgCommand : BaseCommand("posmsg") {
         literal("clear") {
             runs {
                 PositionalMessages.posMessages.clear()
+                PositionalMessages.saveConfig()
                 ChatUtils.modMessage("&aCleared all positional messages.")
             }
         }
