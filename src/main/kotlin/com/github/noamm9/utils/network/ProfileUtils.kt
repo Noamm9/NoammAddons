@@ -42,7 +42,7 @@ object ProfileUtils {
 
                 if (errorMsg.contains("429")) {
                     apiCooldowns[api] = System.currentTimeMillis() + (5 * 60 * 1000)
-                    logger.warn("Mojang API Rate Limited (429): $api - Switching to fallback.")
+                    logger.warn("API Rate Limited (429): $api - Switching to fallback.")
                     continue
                 }
                 else if (errorMsg.contains("404") || errorMsg.contains("204")) break
