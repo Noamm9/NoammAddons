@@ -6,7 +6,7 @@ import com.github.noamm9.websocket.WebSocket
 
 class C2SPacketPing: PacketRegistry.WebSocketPacket("ping") {
     override fun handle() {
-        val myName = NoammAddons.mc.user.name ?: return
-        WebSocket.send(S2CPacketPong(myName))
+        val name = NoammAddons.mc.user.name ?: return
+        WebSocket.send(S2CPacketPong(name))
     }
 }

@@ -7,14 +7,14 @@ import com.github.noamm9.ui.clickgui.components.impl.ButtonSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.ui.notification.NotificationManager
-import com.github.noamm9.utils.DataDownloader
-import com.github.noamm9.utils.JsonUtils
 import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.network.ProfileUtils
-import com.google.gson.reflect.TypeToken
+import com.github.noamm9.utils.network.WebUtils
 import com.mojang.authlib.GameProfile
 import com.mojang.blaze3d.vertex.PoseStack
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import net.fabricmc.fabric.api.client.rendering.v1.RenderStateDataKey
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.client.renderer.entity.state.AvatarRenderState
@@ -28,22 +28,24 @@ object Cosmetics: Feature(toggled = true) {
     val customSizes by ToggleSetting("Show Custom Sizes", true)
     val reload by ButtonSetting("Reload Cosmetics") {
         if (System.currentTimeMillis() - lastReload >= 300_000) init()
-        else NotificationManager.push("Cosmetics", "Please wait another ${NumbersUtils.formatTime(300_000 - (System.currentTimeMillis() - lastReload))} before reloading again.")
+        else NotificationManager.push("Cosmetics", "Please wait another ${NumbersUtils.formatTime(150_000 - (System.currentTimeMillis() - lastReload))} before reloading again.")
     }
 
     private var lastReload = System.currentTimeMillis()
     lateinit var cosmeticPeople: Map<UUID, CosmeticData>
 
     override fun init() {
-        lastReload = System.currentTimeMillis()
-        cosmeticPeople = DataDownloader.getReader("cosmeticPeople.json", true).use {
-            JsonUtils.gsonBuilder.fromJson(it, object: TypeToken<Map<UUID, CosmeticData>>() {}.type)
-        }
+        scope.launch(Dispatchers.IO) {
+            lastReload = System.currentTimeMillis()
+            WebUtils.getAs<Map<String, CosmeticData>>("https://old-api.noamm.org/cosmeticPeople.json").onSuccess { data ->
+                cosmeticPeople = data.mapKeys { UUID.fromString(it.key) }
 
-        scope.launch {
-            for ((uuid, cosmetic) in cosmeticPeople.filter { it.value.hasCustomName }) {
-                val profile = ProfileUtils.getNameByUUID(uuid.toString()).getOrThrow()
-                TextReplacer.replaceMap[profile.name] = cosmetic.name
+                cosmeticPeople.filter { it.value.hasCustomName }.forEach { (uuid, cosmetic) ->
+                    val profile = ProfileUtils.getNameByUUID(uuid.toString()).getOrThrow()
+                    TextReplacer.replaceMap[profile.name] = cosmetic.name
+                }
+            }.onFailure { cause ->
+                NoammAddons.logger.error("Failed to load cosmetic people", cause)
             }
         }
     }
@@ -75,6 +77,7 @@ object Cosmetics: Feature(toggled = true) {
     @JvmField
     val GAME_PROFILE_KEY = RenderStateDataKey.create<GameProfile> { "${NoammAddons.MOD_ID}:game_profile" }
 
+    @Serializable
     data class CosmeticData(
         val name: String = "",
         val sizeX: Float = 1f,

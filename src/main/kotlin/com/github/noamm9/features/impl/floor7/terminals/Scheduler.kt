@@ -1,4 +1,4 @@
-package com.github.noamm9.features.impl.dungeon.solvers.terminals
+package com.github.noamm9.features.impl.floor7.terminals
 
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.RenderWorldEvent
@@ -12,8 +12,10 @@ object Scheduler {
     private class Task(val targetMs: Long, val targetTicks: Long, val action: Runnable) {
         @Volatile
         var msPassed = false
+
         @Volatile
         var ticksPassed = false
+
         @Volatile
         var executed = false
     }

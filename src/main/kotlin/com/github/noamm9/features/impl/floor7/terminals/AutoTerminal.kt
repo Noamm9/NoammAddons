@@ -1,10 +1,10 @@
-package com.github.noamm9.features.impl.dungeon.solvers.terminals
+package com.github.noamm9.features.impl.floor7.terminals
 
 //#if CHEAT
 
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.features.impl.dungeon.solvers.terminals.TerminalListener.FIRST_CLICK_DELAY
+import com.github.noamm9.features.impl.floor7.terminals.TerminalListener.FIRST_CLICK_DELAY
 import com.github.noamm9.ui.clickgui.components.*
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting

@@ -13,7 +13,6 @@ import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.Utils.remove
 import com.github.noamm9.utils.Utils.startsWithOneOf
 import com.github.noamm9.utils.dungeons.DungeonListener
-import com.github.noamm9.websocket.WebSocket
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
 import net.minecraft.network.protocol.game.ClientboundSetObjectivePacket
@@ -51,14 +50,14 @@ object LocationUtils {
     @JvmField
     var F7Phase: Int? = null
 
+    @JvmField
     var lobbyId: String? = null
-        private set
 
     private val lobbyRegex = Regex("\\d\\d/\\d\\d/\\d\\d (\\w{0,6}) *")
 
     init {
         EventBus.register<MainThreadPacketReceivedEvent.Post>(EventPriority.HIGHEST) {
-            if (NoammAddons.debugFlags.contains("dev")) return@register setDevModeValues()
+            if (NoammAddons.isDev) return@register setDevModeValues()
             if (! onHypixel) return@register
 
             if (event.packet is ClientboundPlayerInfoUpdatePacket) {
@@ -73,7 +72,6 @@ object LocationUtils {
                 val text = (prams.playerPrefix.string + prams.playerSuffix.string).removeFormatting()
                 lobbyRegex.find(text)?.groupValues?.get(1)?.let {
                     if (it.length < 5) return@let
-                    WebSocket.hash = it
                     lobbyId = it
                 }
 
@@ -111,7 +109,6 @@ object LocationUtils {
         F7Phase = null
         world = null
         lobbyId = null
-        WebSocket.hash = null
     }
 
     private fun setDevModeValues() {

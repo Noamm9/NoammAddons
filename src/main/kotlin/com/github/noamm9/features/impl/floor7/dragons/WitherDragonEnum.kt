@@ -1,10 +1,6 @@
-package com.github.noamm9.features.impl.dungeon.dragons
+package com.github.noamm9.features.impl.floor7.dragons
 
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.features.impl.dungeon.dragons.WitherDragons.priorityDragon
-import com.github.noamm9.features.impl.dungeon.dragons.WitherDragons.sendArrowHit
-import com.github.noamm9.features.impl.dungeon.dragons.WitherDragons.sendSpray
-import com.github.noamm9.features.impl.dungeon.dragons.WitherDragons.sendTime
 import com.github.noamm9.utils.ChatUtils.modMessage
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.websocket.WebSocket
@@ -68,13 +64,13 @@ enum class WitherDragonEnum(
 
         if (WitherDragons.enabled && ! silent) {
             val stats = mutableListOf<String>()
-            if (sendTime.value) stats.add("&7Time: &6${(DungeonListener.currentTime - spawnedTime) / 20.0}s")
-            if (sendArrowHit.value && this == priorityDragon) stats.add("&fArrows: &6$arrowsHit")
-            if (sendSpray.value && sprayedTime != null) stats.add("&bSprayed: &c${sprayedTime}t")
+            if (WitherDragons.sendTime.value) stats.add("&7Time: &6${(DungeonListener.currentTime - spawnedTime) / 20.0}s")
+            if (WitherDragons.sendArrowHit.value && this == WitherDragons.priorityDragon) stats.add("&fArrows: &6$arrowsHit")
+            if (WitherDragons.sendSpray.value && sprayedTime != null) stats.add("&bSprayed: &c${sprayedTime}t")
             if (stats.isNotEmpty()) modMessage("&${colorCode}${name}: &f${stats.joinToString(" &7| ")}")
         }
 
-        if (priorityDragon == this) priorityDragon = None
+        if (WitherDragons.priorityDragon == this) WitherDragons.priorityDragon = None
 
         if (DungeonListener.dungeonTeammatesNoSelf.isNotEmpty()) {
             WebSocket.send(S2CPacketM7Dragon(S2CPacketM7Dragon.DragonEvent.DEATH, this))
@@ -93,7 +89,7 @@ enum class WitherDragonEnum(
         var dragonSpawnCount = 0
 
         fun reset() {
-            WitherDragonEnum.entries.forEach {
+            entries.forEach {
                 it.timeToSpawn = 100
                 it.timesSpawned = 0
                 it.state = WitherDragonState.DEAD

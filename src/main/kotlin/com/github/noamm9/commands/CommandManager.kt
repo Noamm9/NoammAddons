@@ -9,28 +9,16 @@ object CommandManager {
     val commands = mutableSetOf<BaseCommand>()
 
     init {
-        val scanResult = ClassGraph()
+        val result = ClassGraph()
             .enableAllInfo()
-            .acceptPackages("com.github.noamm9")
-            .ignoreClassVisibility()
+            .acceptPackages(this::class.java.`package`.name)
             .overrideClassLoaders(Thread.currentThread().contextClassLoader)
             .scan()
 
-        scanResult.use { result ->
-            val commandClasses = result.getSubclasses("com.github.noamm9.commands.BaseCommand")
-            NoammAddons.logger.info("CommandManager found ${commandClasses.size} commands.")
-
-            commandClasses.forEach { classInfo ->
-                try {
-                    val instance = classInfo.loadClass().getDeclaredField("INSTANCE").get(null) as? BaseCommand
-
-                    instance?.let { command ->
-                        commands.add(command)
-                        NoammAddons.logger.info("Registered command: /${command.name}")
-                    }
-                } catch (e: Exception) {
-                    NoammAddons.logger.error("Failed to register command: ${classInfo.name}", e)
-                }
+        result.use {
+            it.getSubclasses(BaseCommand::class.qualifiedName).forEach { ci ->
+                val i = ci.loadClass().getDeclaredField("INSTANCE").get(null) as? BaseCommand
+                i?.let(commands::add)
             }
         }
     }

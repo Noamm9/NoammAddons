@@ -1,4 +1,4 @@
-package com.github.noamm9.features.impl.dungeon.solvers.terminals
+package com.github.noamm9.features.impl.floor7.terminals
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus.register

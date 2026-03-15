@@ -1,4 +1,4 @@
-package com.github.noamm9.features.impl.dungeon
+package com.github.noamm9.features.impl.floor7
 
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.TickEvent
@@ -30,7 +30,7 @@ object TerminalTitles: Feature("Reformats the Terminal titles on P3.") {
 
     private val hud = object: HudElement() {
         override val name = "Terminal Titles"
-        override val toggle get() = TerminalTitles.enabled
+        override val toggle get() = enabled
         override val shouldDraw get() = titleStr.isNotBlank()
 
         override fun draw(ctx: GuiGraphics, example: Boolean): Pair<Float, Float> {

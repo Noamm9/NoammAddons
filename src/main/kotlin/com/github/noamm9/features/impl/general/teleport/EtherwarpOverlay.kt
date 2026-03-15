@@ -36,7 +36,10 @@ object EtherwarpOverlay: Feature() {
             val distance = EtherwarpHelper.getEtherwarpDistance(heldItem) ?: return@register
             val (valid, pos) = EtherwarpHelper.getEtherPos(
                 //#if CHEAT
-                com.github.noamm9.features.impl.misc.NoRotate.pendingTeleports.lastOrNull()?.position ?: player.position(),
+                com.github.noamm9.features.impl.misc.NoRotate.run {
+                    if (zeroPingCamera.value["Etherwarp"] == true) pendingTeleports.lastOrNull()?.position ?: player.position()
+                    else player.position()
+                },
                 //#else
                 //$$player.position(),
                 //#endif

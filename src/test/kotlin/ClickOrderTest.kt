@@ -1,4 +1,4 @@
-import com.github.noamm9.features.impl.dungeon.solvers.terminals.TerminalClick
+import com.github.noamm9.features.impl.floor7.terminals.TerminalClick
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.floor

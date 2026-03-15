@@ -1,11 +1,14 @@
 package com.github.noamm9.ui.clickgui
 
+import com.github.noamm9.features.Feature
 import com.github.noamm9.features.FeatureManager
+import com.github.noamm9.features.impl.dev.ClickGui
 import com.github.noamm9.features.impl.misc.sound.SoundManager
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.width
 import net.minecraft.client.gui.GuiGraphics
 import java.awt.Color
 
@@ -36,17 +39,14 @@ class Panel(val category: CategoryType, var x: Int, var y: Int) {
             y = mouseY - dragY
         }
 
-        val filteredFeatures = features.filter {
-            it.name.contains(ClickGuiScreen.searchQuery, ignoreCase = true)
-        }
-
+        val filteredFeatures = getSorting()
         if (filteredFeatures.isEmpty() && ClickGuiScreen.searchQuery.isNotEmpty()) return
 
         openAnim.update(if (collapsed && features.size == filteredFeatures.size) 0f else 1f)
 
         Render2D.drawRect(context, x, y, width, headerHeight, headerBg)
         Render2D.drawRect(context, x, y, width, 2, Style.accentColor)
-        Render2D.drawCenteredString(context, "§l${category.name}", x + width / 2, y + 7)
+        Render2D.drawCenteredString(context, "§l${if (category != CategoryType.FLOOR7) category.name else "Floor 7"}", x + width / 2, y + 7)
 
         if (openAnim.value > 0.01f || features.size != filteredFeatures.size) {
             val totalContentHeight = filteredFeatures.size * buttonHeight
@@ -108,7 +108,7 @@ class Panel(val category: CategoryType, var x: Int, var y: Int) {
     }
 
     fun isMouseOver(mx: Int, my: Int): Boolean {
-        val filteredFeatures = features.filter { it.name.contains(ClickGuiScreen.searchQuery, ignoreCase = true) }
+        val filteredFeatures = getSorting()
         val totalContentHeight = filteredFeatures.size * buttonHeight
         val visibleHeight = totalContentHeight.coerceAtMost(maxDisplayHeight)
 
@@ -135,7 +135,7 @@ class Panel(val category: CategoryType, var x: Int, var y: Int) {
             return
         }
 
-        val filteredFeatures = features.filter { it.name.contains(ClickGuiScreen.searchQuery, ignoreCase = true) }
+        val filteredFeatures = getSorting()
         if (collapsed && features.size == filteredFeatures.size) return
 
         val totalContentHeight = filteredFeatures.size * buttonHeight
@@ -166,5 +166,15 @@ class Panel(val category: CategoryType, var x: Int, var y: Int) {
 
     fun mouseReleased(mouseX: Double, mouseY: Double, button: Int) {
         if (button == 0) dragging = false
+    }
+
+    private fun getSorting(): List<Feature> {
+        val base = features.filter { it.name.contains(ClickGuiScreen.searchQuery, ignoreCase = true) }
+
+        return when (ClickGui.panelSorting.value) {
+            0 -> base.sortedBy { it.name }
+            1 -> base.sortedByDescending { it.name.width() }
+            else -> base
+        }
     }
 }

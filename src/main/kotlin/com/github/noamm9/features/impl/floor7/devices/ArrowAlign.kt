@@ -1,4 +1,4 @@
-package com.github.noamm9.features.impl.dungeon.solvers.devices
+package com.github.noamm9.features.impl.floor7.devices
 
 import com.github.noamm9.event.impl.PlayerInteractEvent
 import com.github.noamm9.event.impl.RenderWorldEvent

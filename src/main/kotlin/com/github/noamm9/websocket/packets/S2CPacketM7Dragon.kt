@@ -1,7 +1,7 @@
 package com.github.noamm9.websocket.packets
 
-import com.github.noamm9.features.impl.dungeon.dragons.WitherDragonEnum
-import com.github.noamm9.features.impl.dungeon.dragons.WitherDragonState
+import com.github.noamm9.features.impl.floor7.dragons.WitherDragonEnum
+import com.github.noamm9.features.impl.floor7.dragons.WitherDragonState
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.websocket.PacketRegistry

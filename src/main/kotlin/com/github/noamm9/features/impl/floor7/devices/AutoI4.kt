@@ -1,4 +1,4 @@
-package com.github.noamm9.features.impl.dungeon.solvers.devices
+package com.github.noamm9.features.impl.floor7.devices
 
 //#if CHEAT
 
@@ -7,7 +7,7 @@ import com.github.noamm9.event.impl.BlockChangeEvent
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.features.impl.dungeon.solvers.devices.I4Helper.getPredictionTarget
+import com.github.noamm9.features.impl.floor7.devices.I4Helper.getPredictionTarget
 import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
