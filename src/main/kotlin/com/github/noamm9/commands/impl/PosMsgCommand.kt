@@ -9,7 +9,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
 import java.awt.Color
 
-object PosMsgCommand : BaseCommand("posmsg") {
+object PosMsgCommand: BaseCommand("posmsg") {
 
     private val colorMap = mapOf(
         "red" to Color.RED,
@@ -36,40 +36,30 @@ object PosMsgCommand : BaseCommand("posmsg") {
     override fun CommandNodeBuilder.build() {
 
         literal("add") {
-            argument("x", DoubleArgumentType.doubleArg()) {
-                argument("y", DoubleArgumentType.doubleArg()) {
-                    argument("z", DoubleArgumentType.doubleArg()) {
-                        argument("radius", DoubleArgumentType.doubleArg(0.1)) {
-                            argument("delay", DoubleArgumentType.doubleArg(0.0)) {
-                                argument("color", StringArgumentType.word()) {
-                                    suggests { colorMap.keys.toList() + listOf("#RRGGBB") }
-                                    argument("message", StringArgumentType.greedyString()) {
-                                        runs {
-                                            val x = DoubleArgumentType.getDouble(it, "x")
-                                            val y = DoubleArgumentType.getDouble(it, "y")
-                                            val z = DoubleArgumentType.getDouble(it, "z")
-                                            val radius = DoubleArgumentType.getDouble(it, "radius")
-                                            val delay = DoubleArgumentType.getDouble(it, "delay")
-                                            val colorInput = StringArgumentType.getString(it, "color")
-                                            val message = StringArgumentType.getString(it, "message")
-                                            val color = parseColor(colorInput)
+            chainArgs(
+                "x" to DoubleArgumentType.doubleArg(),
+                "y" to DoubleArgumentType.doubleArg(),
+                "z" to DoubleArgumentType.doubleArg(),
+                "radius" to DoubleArgumentType.doubleArg(0.1),
+                "delay" to DoubleArgumentType.doubleArg(0.0),
+                "color" to StringArgumentType.word(),
+                "message" to StringArgumentType.greedyString()
+            ) {
+                runs { ctx ->
+                    val x = DoubleArgumentType.getDouble(ctx, "x")
+                    val y = DoubleArgumentType.getDouble(ctx, "y")
+                    val z = DoubleArgumentType.getDouble(ctx, "z")
+                    val radius = DoubleArgumentType.getDouble(ctx, "radius")
+                    val delay = DoubleArgumentType.getDouble(ctx, "delay")
+                    val colorInput = StringArgumentType.getString(ctx, "color")
+                    val message = StringArgumentType.getString(ctx, "message")
 
-                                            PositionalMessages.posMessages.add(
-                                                PositionalMessages.PosMessage(
-                                                    x, y, z,
-                                                    null, null, null,
-                                                    delay, radius,
-                                                    color.rgb, message
-                                                )
-                                            )
-                                            PositionalMessages.saveConfig()
-                                            ChatUtils.modMessage("&aAdded positional message at &e$x, $y, $z &awith delay &e${delay}s &aand color &e$colorInput")
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    val color = parseColor(colorInput)
+                    PositionalMessages.posMessages.add(
+                        PositionalMessages.PosMessage(x, y, z, delay, radius, color.rgb, message)
+                    )
+                    PositionalMessages.saveConfig()
+                    ChatUtils.modMessage("&aAdded positional message at &e$x, $y, $z &awith delay &e${delay}s &aand color &e$colorInput")
                 }
             }
         }

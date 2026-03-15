@@ -30,6 +30,24 @@ class CommandNodeBuilder(private val builder: ArgumentBuilder<FabricClientComman
         builder.then(argNode)
     }
 
+    fun <T> argument(name: String, type: ArgumentType<T>): CommandNodeBuilder {
+        val argNode = ClientCommandManager.argument(name, type)
+        builder.then(argNode)
+        return CommandNodeBuilder(argNode)
+    }
+
+    fun chainArgs(
+        vararg args: Pair<String, ArgumentType<*>>,
+        block: CommandNodeBuilder.() -> Unit
+    ) {
+        if (args.isEmpty()) return this.block()
+        val (name, type) = args.first()
+
+        argument(name, type) {
+            chainArgs(*args.drop(1).toTypedArray(), block = block)
+        }
+    }
+
     fun suggests(provider: SuggestionProvider<FabricClientCommandSource>) {
         if (builder is RequiredArgumentBuilder<*, *>) {
             (builder as RequiredArgumentBuilder<FabricClientCommandSource, *>).suggests(provider)
