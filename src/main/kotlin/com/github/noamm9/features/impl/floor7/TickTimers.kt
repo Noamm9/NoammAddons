@@ -20,7 +20,7 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
     private val format by DropdownSetting("Format", 0, listOf("Seconds", "Ticks"))
 
     private val deathTickTimer by ToggleSetting("0s Death Tick").section("clear")
-    private val secretTickTimer by ToggleSetting("SecretTick")
+    private val secretTickTimer by ToggleSetting("Secret Tick")
 
     private val p1 by ToggleSetting("Maxor Start").section("F7")
     private val p2 by ToggleSetting("Storm Start")
@@ -29,11 +29,14 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
 
     private val goldorDeathTickTimer by ToggleSetting("Goldor Death Ticks")
     private val padTimer by ToggleSetting("Storm Pad Timer")
+    private val pyTimer by ToggleSetting("Storm PY Timer")
 
     private var startTickTime = - 1
     private var goldorTickTime = - 1
     private var padTickTime = - 1
+    private var pyTickTime = - 1
     private var stormActive = false
+    private var pyTriggered = false
 
     private var deathTickTime = - 1
     private var secretTickTime = - 1
@@ -45,6 +48,7 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
             else when {
                 startTickTime != - 1 -> formatTimer(startTickTime, 150, "§aStart:")
                 goldorTickTime != - 1 -> formatTimer(goldorTickTime, 60, "§7Goldor:")
+                pyTickTime != - 1 -> formatTimer(pyTickTime, 95, "§5PY:")
                 padTickTime != - 1 -> formatTimer(padTickTime, 20, "§bPad:")
                 deathTickTime != - 1 -> formatTimer(deathTickTime, 40, "§cDeath:")
                 secretTickTime != - 1 -> formatTimer(secretTickTime, 20, "§dSecret:")
@@ -64,8 +68,19 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
 
                 "[BOSS] Maxor: I'M TOO YOUNG TO DIE AGAIN!" -> if (p2.value) startTickTime = 120
 
+                "[BOSS] Storm: ENERGY HEED MY CALL!", "[BOSS] Storm: THUNDER LET ME BE YOUR CATALYST!" -> {
+                    if (pyTimer.value && ! pyTriggered) {
+                        pyTriggered = true
+                        pyTickTime = 95
+                    }
+                }
+
                 "[BOSS] Storm: I should have known that I stood no chance." -> {
                     if (p3.value) startTickTime = 104
+                    if (pyTriggered) {
+                        pyTriggered = false
+                        pyTickTime = - 1
+                    }
                     if (stormActive) {
                         stormActive = false
                         padTickTime = - 1
@@ -117,6 +132,8 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
                 if (padTickTime <= 0) padTickTime = 20
             }
 
+            if (pyTimer.value && pyTickTime >= 0) pyTickTime --
+
             if (goldorTickTime >= 0) {
                 goldorTickTime --
                 if (goldorTickTime == 0) goldorTickTime = 60
@@ -139,6 +156,8 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
         goldorTickTime = - 1
         startTickTime = - 1
         stormActive = false
+        pyTickTime = - 1
+        pyTriggered = false
         deathTickTime = - 1
         secretTickTime = - 1
         dungeonStartTime = 0L
