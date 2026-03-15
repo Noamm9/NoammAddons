@@ -6,14 +6,14 @@ import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render3D
 import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.Vec3
 import java.awt.Color
+import java.util.*
+import kotlin.concurrent.schedule
 
 object PositionalMessages : Feature("Sends a party message when near a position. /posmsg") {
     private val onlyDungeons by ToggleSetting("Only in Dungeons", true)
@@ -48,7 +48,14 @@ object PositionalMessages : Feature("Sends a party message when near a position.
             val player = mc.player ?: return@register
 
             posMessages.forEach { message ->
-                val dist = player.distanceToSqr(message.x, message.y, message.z)
+                val dist = if (message.distance != null) {
+                    player.distanceToSqr(message.x, message.y, message.z)
+                } else {
+                    val centerX = (message.x + (message.x2 ?: message.x)) / 2
+                    val centerY = (message.y + (message.y2 ?: message.y)) / 2
+                    val centerZ = (message.z + (message.z2 ?: message.z)) / 2
+                    player.distanceToSqr(centerX, centerY, centerZ)
+                }
                 if (dist > 1024) return@forEach
 
                 if (message.distance != null) {
@@ -83,14 +90,12 @@ object PositionalMessages : Feature("Sends a party message when near a position.
     private fun handleAtMessage(msg: PosMessage) {
         val player = mc.player ?: return
         val sent = sentMessages.getOrDefault(msg, false)
-        val dist = msg.distance ?: return
 
-        if (player.distanceToSqr(msg.x, msg.y, msg.z) <= dist * dist) {
+        if (player.distanceToSqr(msg.x, msg.y, msg.z) <= (msg.distance ?: return)) {
             if (!sent) {
                 sentMessages[msg] = true
-                scope.launch {
-                    kotlinx.coroutines.delay(msg.delay)
-                    if (player.distanceToSqr(msg.x, msg.y, msg.z) <= dist * dist)
+                Timer().schedule(msg.delay) {
+                    if (player.distanceToSqr(msg.x, msg.y, msg.z) <= msg.distance)
                         ChatUtils.sendCommand("pc ${msg.message}")
                 }
             }
@@ -107,9 +112,8 @@ object PositionalMessages : Feature("Sends a party message when near a position.
         if (box.contains(pos)) {
             if (!sent) {
                 sentMessages[msg] = true
-                scope.launch {
-                    kotlinx.coroutines.delay(msg.delay)
-                    if (box.contains(mc.player?.position() ?: return@launch))
+                Timer().schedule(msg.delay) {
+                    if (box.contains(mc.player?.position() ?: return@schedule))
                         ChatUtils.sendCommand("pc ${msg.message}")
                 }
             }
