@@ -17,14 +17,14 @@ object PosMsgCommand : BaseCommand("posmsg") {
                 argument("y", DoubleArgumentType.doubleArg()) {
                     argument("z", DoubleArgumentType.doubleArg()) {
                         argument("radius", DoubleArgumentType.doubleArg(0.1)) {
-                            argument("delay", IntegerArgumentType.integer(0)) {
+                            argument("delay", DoubleArgumentType.doubleArg(0.0)) {
                                 argument("message", StringArgumentType.greedyString()) {
                                     runs {
                                         val x = DoubleArgumentType.getDouble(it, "x")
                                         val y = DoubleArgumentType.getDouble(it, "y")
                                         val z = DoubleArgumentType.getDouble(it, "z")
                                         val radius = DoubleArgumentType.getDouble(it, "radius")
-                                        val delay = IntegerArgumentType.getInteger(it, "delay").toLong()
+                                        val delay = DoubleArgumentType.getDouble(it, "delay")
                                         val message = StringArgumentType.getString(it, "message")
 
                                         PositionalMessages.posMessages.add(
@@ -35,7 +35,7 @@ object PosMsgCommand : BaseCommand("posmsg") {
                                                 Color.CYAN, message
                                             )
                                         )
-                                        ChatUtils.modMessage("&aAdded positional message at &e$x, $y, $z")
+                                        ChatUtils.modMessage("&aAdded positional message at &e$x, $y, $z &awith delay &e${delay}s")
                                     }
                                 }
                             }
@@ -66,7 +66,7 @@ object PosMsgCommand : BaseCommand("posmsg") {
                     return@runs
                 }
                 PositionalMessages.posMessages.forEachIndexed { i, msg ->
-                    ChatUtils.modMessage("&e$i&f: &7(${msg.x}, ${msg.y}, ${msg.z}) r=${msg.distance} &f-> &b${msg.message}")
+                    ChatUtils.modMessage("&e$i&f: &7(${msg.x}, ${msg.y}, ${msg.z}) r=${msg.distance} delay=${msg.delay}s &f-> &b${msg.message}")
                 }
             }
         }
@@ -79,7 +79,7 @@ object PosMsgCommand : BaseCommand("posmsg") {
         }
 
         runs {
-            ChatUtils.modMessage("&eUsage: /posmsg add <x> <y> <z> <radius> <delay_ms> <message>")
+            ChatUtils.modMessage("&eUsage: /posmsg add <x> <y> <z> <radius> <delay_seconds> <message>")
             ChatUtils.modMessage("&eOther: /posmsg remove <index> | list | clear")
         }
     }

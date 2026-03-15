@@ -9,12 +9,11 @@ import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render3D
 import net.minecraft.world.phys.AABB
 import java.awt.Color
-import java.util.*
-import kotlin.concurrent.schedule
 
 object PositionalMessages : Feature("Sends a party message when near a position. /posmsg") {
     private val onlyDungeons by ToggleSetting("Only in Dungeons", true)
@@ -25,7 +24,7 @@ object PositionalMessages : Feature("Sends a party message when near a position.
     data class PosMessage(
         val x: Double, val y: Double, val z: Double,
         val x2: Double?, val y2: Double?, val z2: Double?,
-        val delay: Long, val distance: Double?,
+        val delay: Double, val distance: Double?,
         val color: Color, val message: String
     )
 
@@ -67,7 +66,7 @@ object PositionalMessages : Feature("Sends a party message when near a position.
                         message.x, message.y, message.z,
                         message.distance * 2, 0.2,
                         message.color,
-                        outline = true, fill = false, phase = !showPositions.value
+                        outline = true, fill = false, phase = false
                     )
                 } else {
                     val box = AABB(
@@ -94,12 +93,17 @@ object PositionalMessages : Feature("Sends a party message when near a position.
         val player = mc.player ?: return
         val sent = sentMessages.getOrDefault(msg, false)
 
-        if (player.distanceToSqr(msg.x, msg.y, msg.z) <= (msg.distance ?: return)) {
+        if (player.distanceToSqr(msg.x, msg.y, msg.z) <= (msg.distance ?: return) * (msg.distance)) {
             if (!sent) {
                 sentMessages[msg] = true
-                Timer().schedule(msg.delay) {
-                    if (player.distanceToSqr(msg.x, msg.y, msg.z) <= msg.distance)
-                        ChatUtils.sendCommand("pc ${msg.message}")
+                val delayTicks = (msg.delay * 20).toInt()
+                if (delayTicks <= 0) {
+                    ChatUtils.sendCommand("pc ${msg.message}")
+                } else {
+                    ThreadUtils.scheduledTask(delayTicks) {
+                        if (mc.player?.distanceToSqr(msg.x, msg.y, msg.z) ?: Double.MAX_VALUE <= msg.distance * msg.distance)
+                            ChatUtils.sendCommand("pc ${msg.message}")
+                    }
                 }
             }
         } else if (!oncePerWorld.value) {
@@ -115,9 +119,14 @@ object PositionalMessages : Feature("Sends a party message when near a position.
         if (box.contains(pos)) {
             if (!sent) {
                 sentMessages[msg] = true
-                Timer().schedule(msg.delay) {
-                    if (box.contains(mc.player?.position() ?: return@schedule))
-                        ChatUtils.sendCommand("pc ${msg.message}")
+                val delayTicks = (msg.delay * 20).toInt()
+                if (delayTicks <= 0) {
+                    ChatUtils.sendCommand("pc ${msg.message}")
+                } else {
+                    ThreadUtils.scheduledTask(delayTicks) {
+                        if (box.contains(mc.player?.position() ?: return@scheduledTask))
+                            ChatUtils.sendCommand("pc ${msg.message}")
+                    }
                 }
             }
         } else if (!oncePerWorld.value) {
