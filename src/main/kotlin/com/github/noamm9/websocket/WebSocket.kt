@@ -1,63 +1,57 @@
 package com.github.noamm9.websocket
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.EventPriority
+import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
+import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.JsonUtils
+import com.github.noamm9.utils.TabListUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.websocket.packets.C2SPacketServerHash
+import com.github.noamm9.websocket.packets.C2SPacketTabListUpdate
 import com.google.gson.JsonParser
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
-import java.util.concurrent.Executors
 
 object WebSocket {
-    private var socketClient: WebSocketClient? = null
-    private var sendExecutor = Executors.newSingleThreadExecutor()
-
-    var hash: String? = null
-        set(value) {
-            if (field == value) return
-            field = value
-
-            if (value != null) {
-                send(C2SPacketServerHash(value.hashCode()))
-            }
-        }
+    private var lastTablist = emptyList<String>()
 
     fun init() {
         PacketRegistry.init()
 
         runCatching {
             NoammAddons.logger.info("WebSocket: Initializing connection...")
-            socketClient = NASocket()
-            socketClient !!.connectionLostTimeout = 30
-            socketClient !!.addHeader("User-Agent", NoammAddons.MOD_NAME)
-            socketClient !!.connect()
+            NASocket.connect()
 
-            Runtime.getRuntime().addShutdownHook(Thread {
-                socketClient?.close()
-                sendExecutor.shutdownNow()
-            })
+            Runtime.getRuntime().addShutdownHook(Thread { NASocket.close() })
         }.onFailure {
             NoammAddons.logger.error("Failed to Connect to Websocket")
             it.printStackTrace()
         }
-    }
 
-    fun send(packet: PacketRegistry.WebSocketPacket) = sendExecutor.execute {
-        if (socketClient == null || ! socketClient !!.isOpen) return@execute
-        runCatching {
-            socketClient !!.send(JsonUtils.gsonBuilder.toJson(packet))
-        }.onFailure {
-            NoammAddons.logger.error("Failed to send packet: ${it.message}")
+        EventBus.register<MainThreadPacketReceivedEvent.Post>(EventPriority.LOW) {
+            if (! LocationUtils.inSkyblock) return@register
+            if (event.packet !is ClientboundPlayerInfoUpdatePacket) return@register
+            if (! event.packet.actions().contains(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER)) return@register
+            sendTabList()
         }
+
+        EventBus.register<WorldChangeEvent> { lastTablist = emptyList() }
     }
 
-    private class NASocket: WebSocketClient(URI("wss://noamm.org")) {
+    fun send(packet: PacketRegistry.WebSocketPacket) {
+        NASocket.send(JsonUtils.gsonBuilder.toJson(packet))
+    }
+
+    private object NASocket: WebSocketClient(URI("wss://noamm.org")) {
         override fun onOpen(handshakedata: ServerHandshake?) {
             NoammAddons.logger.info("Connected to WebSocket")
-            hash = LocationUtils.lobbyId
+            sendTabList()
         }
 
         override fun onMessage(message: String?) {
@@ -77,9 +71,7 @@ object WebSocket {
 
         override fun onClose(code: Int, reason: String?, remote: Boolean) {
             NoammAddons.logger.info("WebSocket Disconnected: code: $code, remote: $remote, reason: $reason")
-
-            sendExecutor.shutdownNow()
-            sendExecutor = Executors.newSingleThreadExecutor()
+            ChatUtils.modMessage("WebSocket Disconnected: code: $code, remote: $remote, reason: $reason")
 
             ThreadUtils.setTimeout(10_000) {
                 NoammAddons.logger.info("Attempting auto-reconnect...")
@@ -87,8 +79,18 @@ object WebSocket {
             }
         }
 
-        override fun onError(ex: Exception?) {
-            NoammAddons.logger.error("WebSocket Error: ${ex?.message}")
-        }
+        override fun onError(ex: Exception?) = NoammAddons.logger.error("WebSocket Error: ${ex?.message}")
+    }
+
+    private fun sendTabList() {
+        val players = TabListUtils.getTabList()
+            .mapNotNull { it.second.profile.name }
+            .filterNot { it.matches("^![A-Z]-[a-z]$".toRegex()) }
+            .filter { it != mc.user.name }
+            .takeIf { it.isNotEmpty() && it != lastTablist } ?: return
+
+        lastTablist = players
+        ChatUtils.modMessage(players.toString())
+        send(C2SPacketTabListUpdate(mc.user.name, players))
     }
 }

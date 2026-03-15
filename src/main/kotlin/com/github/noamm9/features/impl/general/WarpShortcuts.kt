@@ -7,16 +7,14 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ChatUtils
 
 object WarpShortcuts: Feature("removes the /warp in warp commands", "Warp Shortcuts") {
-    private fun warpCommand(name: String, loc: String) = object: BaseCommand(name) {
-        override fun CommandNodeBuilder.build() {
-            requires { enabled }
-            runs { ChatUtils.sendCommand("warp $loc") }
+    private fun warpCommand(name: String, loc: String) = CommandManager.commands.add(
+        object: BaseCommand(name) {
+            override fun CommandNodeBuilder.build() {
+                requires { enabled }
+                runs { ChatUtils.sendCommand("warp $loc") }
+            }
         }
-
-        init {
-            CommandManager.commands.add(this)
-        }
-    }
+    )
 
     override fun init() {
         warpCommand("arachne", "arachne")
