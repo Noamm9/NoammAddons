@@ -20,7 +20,7 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
     private val format by DropdownSetting("Format", 0, listOf("Seconds", "Ticks"))
 
     private val deathTickTimer by ToggleSetting("0s Death Tick").section("clear")
-    private val secretTickTimer by ToggleSetting("SecretTick")
+    private val secretTickTimer by ToggleSetting("Secret Tick")
 
     private val p1 by ToggleSetting("Maxor Start").section("F7")
     private val p2 by ToggleSetting("Storm Start")
@@ -48,20 +48,12 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
             else when {
                 startTickTime != - 1 -> formatTimer(startTickTime, 150, "§aStart:")
                 goldorTickTime != - 1 -> formatTimer(goldorTickTime, 60, "§7Goldor:")
+                pyTickTime != - 1 -> formatTimer(pyTickTime, 95, "§5PY:")
                 padTickTime != - 1 -> formatTimer(padTickTime, 20, "§bPad:")
                 deathTickTime != - 1 -> formatTimer(deathTickTime, 40, "§cDeath:")
                 secretTickTime != - 1 -> formatTimer(secretTickTime, 20, "§dSecret:")
                 else -> return@hudElement 0f to 0f
             }
-
-            Render2D.drawCenteredString(ctx, textToRender, 0f, 0f)
-            return@hudElement textToRender.width().toFloat() to 9F
-        }
-
-        hudElement("PY Timer", shouldDraw = { LocationUtils.inDungeon }, enabled = {pyTimer.value}, centered = true) { ctx, example ->
-            val textToRender = if (example) "§5PY: 95t"
-            else if (pyTickTime != - 1) formatTimer(pyTickTime, 95, "§5PY:")
-            else return@hudElement 0f to 0f
 
             Render2D.drawCenteredString(ctx, textToRender, 0f, 0f)
             return@hudElement textToRender.width().toFloat() to 9F
@@ -140,9 +132,7 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
                 if (padTickTime <= 0) padTickTime = 20
             }
 
-            if (pyTimer.value && pyTickTime >= 0) {
-                pyTickTime --
-            }
+            if (pyTimer.value && pyTickTime >= 0) pyTickTime --
 
             if (goldorTickTime >= 0) {
                 goldorTickTime --
