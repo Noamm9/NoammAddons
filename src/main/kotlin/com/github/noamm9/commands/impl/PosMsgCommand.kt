@@ -7,10 +7,10 @@ import com.github.noamm9.utils.ChatUtils
 import com.mojang.brigadier.arguments.DoubleArgumentType
 import com.mojang.brigadier.arguments.IntegerArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
+import net.minecraft.core.BlockPos
 import java.awt.Color
 
 object PosMsgCommand: BaseCommand("posmsg") {
-
     private val colorMap = mapOf(
         "red" to Color.RED,
         "green" to Color.GREEN,
@@ -34,30 +34,27 @@ object PosMsgCommand: BaseCommand("posmsg") {
     }
 
     override fun CommandNodeBuilder.build() {
-
         literal("add") {
             chainArgs(
-                "x" to DoubleArgumentType.doubleArg(),
-                "y" to DoubleArgumentType.doubleArg(),
-                "z" to DoubleArgumentType.doubleArg(),
+                "x" to IntegerArgumentType.integer(),
+                "y" to IntegerArgumentType.integer(),
+                "z" to IntegerArgumentType.integer(),
                 "radius" to DoubleArgumentType.doubleArg(0.1),
                 "delay" to DoubleArgumentType.doubleArg(0.0),
                 "color" to StringArgumentType.word(),
                 "message" to StringArgumentType.greedyString()
             ) {
                 runs { ctx ->
-                    val x = DoubleArgumentType.getDouble(ctx, "x")
-                    val y = DoubleArgumentType.getDouble(ctx, "y")
-                    val z = DoubleArgumentType.getDouble(ctx, "z")
+                    val x = IntegerArgumentType.getInteger(ctx, "x")
+                    val y = IntegerArgumentType.getInteger(ctx, "y")
+                    val z = IntegerArgumentType.getInteger(ctx, "z")
                     val radius = DoubleArgumentType.getDouble(ctx, "radius")
                     val delay = DoubleArgumentType.getDouble(ctx, "delay")
                     val colorInput = StringArgumentType.getString(ctx, "color")
                     val message = StringArgumentType.getString(ctx, "message")
 
                     val color = parseColor(colorInput)
-                    PositionalMessages.posMessages.add(
-                        PositionalMessages.PosMessage(x, y, z, delay, radius, color.rgb, message)
-                    )
+                    PositionalMessages.posMessages.add(PositionalMessages.PosMessage(BlockPos(x, y, z), delay, radius, color, message))
                     PositionalMessages.saveConfig()
                     ChatUtils.modMessage("&aAdded positional message at &e$x, $y, $z &awith delay &e${delay}s &aand color &e$colorInput")
                 }
@@ -86,7 +83,7 @@ object PosMsgCommand: BaseCommand("posmsg") {
                     return@runs
                 }
                 PositionalMessages.posMessages.forEachIndexed { i, msg ->
-                    ChatUtils.modMessage("&e$i&f: &7(${msg.x}, ${msg.y}, ${msg.z}) r=${msg.distance} delay=${msg.delay}s &f-> &b${msg.message}")
+                    ChatUtils.modMessage("&e$i&f: &7(${msg.pos}) r=${msg.radius} delay=${msg.delay}s &f-> &b${msg.message}")
                 }
             }
         }

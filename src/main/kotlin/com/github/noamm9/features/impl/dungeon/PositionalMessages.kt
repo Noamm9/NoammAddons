@@ -16,6 +16,7 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render3D
 import com.google.gson.reflect.TypeToken
+import net.minecraft.core.BlockPos
 import java.awt.Color
 import java.io.File
 import java.io.FileReader
@@ -26,13 +27,7 @@ object PositionalMessages: Feature("Sends a party message when near a position. 
     private val showPositions by ToggleSetting("Show Positions", true)
     private val renderDistance by SliderSetting("Render Distance", 64f, 16f, 128f, 16f)
 
-    data class PosMessage(
-        val x: Double, val y: Double, val z: Double,
-        val delay: Double, val distance: Double,
-        val colorRgb: Int, val message: String
-    ) {
-        val color: Color get() = Color(colorRgb)
-    }
+    data class PosMessage(val pos: BlockPos, val delay: Double, val radius: Double, val color: Color, val message: String)
 
     private val configFile = File("config/$MOD_NAME/positionalMessages.json")
     val posMessages = mutableListOf<PosMessage>()
@@ -54,25 +49,39 @@ object PositionalMessages: Feature("Sends a party message when near a position. 
             val player = mc.player ?: return@register
 
             posMessages.forEach { message ->
-                val dist = player.distanceToSqr(message.x, message.y, message.z)
+                val dist = player.blockPosition().distSqr(message.pos)
                 val maxDist = renderDistance.value.pow(2)
                 if (dist > maxDist) return@forEach
 
                 Render3D.renderBox(
                     event.ctx,
-                    message.x, message.y, message.z,
-                    message.distance * 2, 0.2,
+                    message.pos.x, message.pos.y, message.pos.z,
+                    message.radius * 2, 0.2,
                     message.color,
                     outline = true, fill = false, phase = false
                 )
                 Render3D.renderString(
                     message.message,
-                    message.x, message.y + 1.5, message.z,
+                    message.pos.x, message.pos.y + 1.5, message.pos.z,
                     message.color,
                     scale = 1f,
                     phase = false
                 )
             }
+        }
+    }
+
+    private fun handleAtMessage(msg: PosMessage) {
+        val player = mc.player ?: return
+        if (sentMessages.contains(msg)) return
+        if (player.blockPosition().distSqr(msg.pos) > msg.radius.pow(2)) return
+        sentMessages.add(msg)
+
+        val delayTicks = (msg.delay * 20).toInt()
+        if (delayTicks <= 0) ChatUtils.sendCommand("pc ${msg.message}")
+        else ThreadUtils.scheduledTask(delayTicks) {
+            if (player.blockPosition().distSqr(msg.pos) > msg.radius.pow(2)) return@scheduledTask
+            ChatUtils.sendCommand("pc ${msg.message}")
         }
     }
 
@@ -102,20 +111,6 @@ object PositionalMessages: Feature("Sends a party message when near a position. 
             NoammAddons.logger.info("PositionalMessages: Config saved.")
         }.onFailure {
             NoammAddons.logger.error("PositionalMessages: Failed to save config!", it)
-        }
-    }
-
-    private fun handleAtMessage(msg: PosMessage) {
-        val player = mc.player ?: return
-        if (sentMessages.contains(msg)) return
-        if (player.distanceToSqr(msg.x, msg.y, msg.z) > msg.distance.pow(2)) return
-
-        sentMessages.add(msg)
-        val delayTicks = (msg.delay * 20).toInt()
-        if (delayTicks <= 0) ChatUtils.sendCommand("pc ${msg.message}")
-        else ThreadUtils.scheduledTask(delayTicks) {
-            if (player.distanceToSqr(msg.x, msg.y, msg.z) <= msg.distance.pow(2))
-                ChatUtils.sendCommand("pc ${msg.message}")
         }
     }
 }
