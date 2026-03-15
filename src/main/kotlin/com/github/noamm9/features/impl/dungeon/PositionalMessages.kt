@@ -6,6 +6,7 @@ import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.location.LocationUtils
@@ -19,6 +20,7 @@ object PositionalMessages : Feature("Sends a party message when near a position.
     private val onlyDungeons by ToggleSetting("Only in Dungeons", true)
     private val oncePerWorld by ToggleSetting("Once Per World", false)
     private val showPositions by ToggleSetting("Show Positions", true)
+    private val renderDistance by SliderSetting("Render Distance", 64f, 16f, 128f, 16f)
 
     data class PosMessage(
         val x: Double, val y: Double, val z: Double,
@@ -56,7 +58,8 @@ object PositionalMessages : Feature("Sends a party message when near a position.
                     val centerZ = (message.z + (message.z2 ?: message.z)) / 2
                     player.distanceToSqr(centerX, centerY, centerZ)
                 }
-                if (dist > 1024) return@forEach
+                val maxDist = renderDistance.value * renderDistance.value
+                if (dist > maxDist) return@forEach
 
                 if (message.distance != null) {
                     Render3D.renderBox(
