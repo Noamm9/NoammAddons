@@ -1,6 +1,7 @@
 package com.github.noamm9.utils.network
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.NoammAddons.MOD_VERSION
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.utils.JsonUtils
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -12,7 +13,9 @@ import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 
 object WebUtils {
-    private const val USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    private val USER_AGENT = "NoammAddons/$MOD_VERSION${if (NoammAddons.isDev) "-dev" else ""} (+https://noamm.org)"
+    private const val PRIVATE_USER_AGENT =
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     private const val TIMEOUT = 10_000
 
     private val threadCounter = AtomicInteger(1)
@@ -25,40 +28,55 @@ object WebUtils {
     fun prepareConnection(url: String): HttpURLConnection {
         if (mc.isSameThread) throw Exception("Cannot make network request on main thread")
         val connection = URI(url).toURL().openConnection() as HttpURLConnection
-        connection.setRequestProperty("User-Agent", USER_AGENT)
+        connection.setRequestProperty(
+            "User-Agent",
+            if (url.contains("api.hypixel.net", true)) PRIVATE_USER_AGENT else USER_AGENT
+        )
         connection.connectTimeout = TIMEOUT
         connection.readTimeout = TIMEOUT
         return connection
     }
 
-    suspend fun getString(url: String) = withContext(networkDispatcher) {
+    suspend fun get(url: String): Result<HttpResponse> = withContext(networkDispatcher) {
         runCatching {
             val connection = prepareConnection(url)
             connection.requestMethod = "GET"
-            connection.setRequestProperty("Accept", "application/json")
+            connection.setRequestProperty("Accept", "application/json; charset=UTF-8")
             handleResponse(connection)
         }
     }
 
-    suspend inline fun <reified T> get(url: String): Result<T> = runCatching {
+    suspend fun post(url: String, body: Any?): Result<HttpResponse> = withContext(networkDispatcher) {
+        runCatching {
+            val connection = prepareConnection(url)
+            connection.requestMethod = "GET"
+            connection.setRequestProperty("Accept", "application/json; charset=UTF-8")
+            if (body != null) {
+                connection.doOutput = true
+                connection.outputStream.use { os ->
+                    os.write(body.toString().toByteArray(Charsets.UTF_8))
+                }
+            }
+            handleResponse(connection)
+        }
+    }
+
+    suspend fun getString(url: String) = withContext(networkDispatcher) {
+        runCatching {
+            val res = get(url).getOrThrow()
+            if (res.code !in 200..299) throw IllegalStateException("HTTP ${res.code}: ${res.data}")
+            res.data
+        }
+    }
+
+    suspend inline fun <reified T> getAs(url: String): Result<T> = runCatching {
         return getString(url).mapCatching {
             JsonUtils.json.decodeFromString<T>(it)
         }
     }
 
-    suspend fun post(url: String, body: Any): Result<String> = withContext(networkDispatcher) {
-        runCatching {
-            val connection = prepareConnection(url)
-            connection.requestMethod = "POST"
-            connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8")
-            connection.doOutput = true
-
-            connection.outputStream.use { os ->
-                os.write(body.toString().toByteArray(Charsets.UTF_8))
-            }
-
-            handleResponse(connection)
-        }
+    inline fun <reified T> getAs(res: HttpResponse): Result<T> = runCatching {
+        JsonUtils.json.decodeFromString<T>(res.data)
     }
 
     suspend fun downloadBytes(url: String): Result<ByteArray> = withContext(networkDispatcher) {
@@ -67,20 +85,24 @@ object WebUtils {
             connection.requestMethod = "GET"
 
             val code = connection.responseCode
-            val stream = if (code in 200 .. 299) connection.inputStream else connection.errorStream
+            val stream = if (code in 200..299) connection.inputStream else connection.errorStream
 
-            if (code !in 200 .. 299) throw IllegalStateException("HTTP $code")
+            if (code !in 200..299) throw IllegalStateException("HTTP $code")
 
             stream.use { it.readBytes() }
         }
     }
 
-    private fun handleResponse(connection: HttpURLConnection): String {
+    private fun handleResponse(connection: HttpURLConnection): HttpResponse {
         val code = connection.responseCode
-        val stream = if (code in 200 .. 299) connection.inputStream
+        val stream = if (code in 200..299) connection.inputStream
         else connection.errorStream ?: connection.inputStream
-        val response = stream.bufferedReader().use(BufferedReader::readText)
-        if (code !in 200 .. 299) throw IllegalStateException("HTTP $code: $response")
-        return response
+        val data = stream.bufferedReader().use(BufferedReader::readText)
+        val headers = connection.headerFields
+            .filterKeys { it != null }
+            .mapValues { (_, values) -> values.joinToString(", ") }
+        return HttpResponse(code, data, headers)
     }
+
+    data class HttpResponse(val code: Int, val data: String, val headers: Map<String, String>)
 }

@@ -1,6 +1,6 @@
 package com.github.noamm9.utils.network
 
-import com.github.noamm9.NoammAddons
+import com.github.noamm9.NoammAddons.logger
 import com.github.noamm9.utils.JsonUtils
 import com.github.noamm9.utils.JsonUtils.getObj
 import com.github.noamm9.utils.JsonUtils.getString
@@ -11,6 +11,7 @@ import com.github.noamm9.utils.network.data.MojangData
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.max
 
 object ProfileUtils {
     private val uuidApis = listOf(
@@ -41,7 +42,7 @@ object ProfileUtils {
 
                 if (errorMsg.contains("429")) {
                     apiCooldowns[api] = System.currentTimeMillis() + (5 * 60 * 1000)
-                    NoammAddons.logger.warn("API Rate Limited (429): $api - Switching to fallback.")
+                    logger.warn("API Rate Limited (429): $api - Switching to fallback.")
                     continue
                 }
                 else if (errorMsg.contains("404") || errorMsg.contains("204")) break
@@ -71,23 +72,44 @@ object ProfileUtils {
         if (cached == "FAILED") return Result.failure(Exception("UUID not found (Cached)"))
         if (cached != null) return Result.success(MojangData(cached, cleanUuid))
 
-        return WebUtils.get<MojangData>("https://sessionserver.mojang.com/session/minecraft/profile/$cleanUuid").apply {
+        return WebUtils.getAs<MojangData>("https://sessionserver.mojang.com/session/minecraft/profile/$cleanUuid").apply {
             onSuccess { UuidCache.addToCache(it.name, it.uuid) }
-            onFailure { NoammAddons.logger.error("Failed to fetch Name for UUID $cleanUuid: ${it.message}") }
+            onFailure { logger.error("Failed to fetch Name for UUID $cleanUuid: ${it.message}") }
         }
+    }
+
+    private suspend inline fun <reified T> doApiRequest(path: String): T {
+        var cooldown = apiCooldowns["noamm"] ?: 0L
+        if(System.currentTimeMillis() < apiCooldowns.getOrDefault("noamm", 0L)) throw IllegalStateException("Rate limited")
+
+        val res = WebUtils.get("https://api.noamm.org$path").getOrThrow()
+        if(res.headers["x-ratelimit-remaining"] == "0" && res.headers.contains("x-ratelimit-reset")) {
+            val reset = res.headers["x-ratelimit-reset"]!!.toLong()
+            cooldown = max(cooldown, System.currentTimeMillis() + reset * 1000L)
+            apiCooldowns["noamm"] = cooldown
+            logger.warn("API Rate limit hit, reset in $reset seconds.")
+        }
+        if(res.headers["x-global-remaining"] == "0" && res.headers.contains("x-global-reset")) {
+            val reset = res.headers["x-global-reset"]!!.toLong()
+            cooldown = max(cooldown, System.currentTimeMillis() + reset * 1000L)
+            apiCooldowns["noamm"] = cooldown
+            logger.warn("API Global rate limit hit, reset in $reset seconds.")
+        }
+
+        return WebUtils.getAs<T>(res).getOrThrow()
     }
 
     suspend fun getSecrets(playerName: String): Result<Long> {
         SecretCache.getFromCache(playerName)?.let { return Result.success(it) }
         return getUUIDbyName(playerName).mapCatching { mojangData ->
-            WebUtils.get<Long>("https://api.noamm.org/secrets?uuid=${mojangData.uuid}").getOrThrow()
+            doApiRequest<Long>("/secrets?uuid=${mojangData.uuid}")
         }.onSuccess { SecretCache.addToCache(playerName, it) }
     }
 
     suspend fun getProfile(playerName: String): Result<JsonObject> {
         ProfileCache.getFromCache(playerName)?.let { return Result.success(it) }
         return getUUIDbyName(playerName).mapCatching { mojangData ->
-            WebUtils.get<JsonObject>("https://api.noamm.org/dungeonstats?uuid=${mojangData.uuid}").getOrThrow()
+            doApiRequest<JsonObject>("/dungeonstats?uuid=${mojangData.uuid}")
         }.onSuccess { ProfileCache.addToCache(playerName, it) }
     }
 }

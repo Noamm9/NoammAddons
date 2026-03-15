@@ -18,14 +18,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.serialization.json.*
 import net.fabricmc.api.ClientModInitializer
+import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screens.Screen
 import org.slf4j.LoggerFactory
 
 object NoammAddons: ClientModInitializer {
     const val MOD_NAME = "NoammAddons"
-    const val PREFIX = "§6§l[§b§lN§d§lA§6§l]§r"
     const val MOD_ID = "noammaddons"
+    val MOD_VERSION get() = FabricLoader.getInstance().getModContainer(MOD_ID).get().metadata.version.friendlyString
+    const val PREFIX = "§6§l[§b§lN§d§lA§6§l]§r"
 
     val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
@@ -38,6 +40,8 @@ object NoammAddons: ClientModInitializer {
 
     val cacheData = PogObject("cacheData", mutableMapOf<String, Any>())
     val debugFlags = mutableSetOf<String>()
+    val isDev get() = debugFlags.contains("dev")
+
     var screen: Screen? = null
 
     var electionData = ElectionData.empty
@@ -75,7 +79,7 @@ object NoammAddons: ClientModInitializer {
     }
 
     private fun initNetworkLoop() = ThreadUtils.loop(600_000) {
-        WebUtils.get<JsonObject>("https://api.hypixel.net/v2/resources/skyblock/election")
+        WebUtils.getAs<JsonObject>("https://api.hypixel.net/v2/resources/skyblock/election")
             .onSuccess { data ->
                 val mayor = data["mayor"]?.jsonObject !!
                 val minister = mayor["minister"]?.jsonObject !!
@@ -96,7 +100,7 @@ object NoammAddons: ClientModInitializer {
                 it.printStackTrace()
             }
 
-        WebUtils.get<Map<String, Long>>("https://lb.tricked.dev/lowestbins")
+        WebUtils.getAs<Map<String, Long>>("https://lb.tricked.dev/lowestbins")
             .onSuccess { priceData.putAll(it) }
             .onFailure {
                 logger.error("Error while making a web request", it)
@@ -104,7 +108,7 @@ object NoammAddons: ClientModInitializer {
             }
         
 
-        WebUtils.get<JsonObject>("https://api.hypixel.net/v2/skyblock/bazaar")
+        WebUtils.getAs<JsonObject>("https://api.hypixel.net/v2/skyblock/bazaar")
             .onSuccess { data ->
                 data["products"]?.jsonObject?.forEach { (key, element) ->
                     val product = element.jsonObject
