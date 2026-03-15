@@ -2,81 +2,13 @@
   "required": true,
   "package": "com.github.noamm9.mixin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": [
-    "AnvilMenuMixin",
-    "FuckFirmament",
-    "ILanguage",
-    "IMapState",
-    "IServerboundInteractPacket",
-    "LevelChunkMixin",
-    "MixinBlockItem",
-    "MixinBossEvent",
-    //#if CHEAT
-    "MixinButtonBlock",
-    //#endif
-    "MixinConnection",
-    "MixinEntity",
-    "MixinItemStack",
-    //#if CHEAT
-    "MixinLeverBlock",
-    //#endif
-    "MixinLivingEntity",
-    //#if CHEAT
-    "MixinMushroomBlock",
-    //#endif
-    "MixinOdinTelemetry",
-    "MixinPacketProcessorListener",
-    "MixinPlayer",
-    //#if CHEAT
-    "MixinSkullBlock"
-    //#endif
-  ],
+  "plugin": "com.github.noamm9.init.AutoMixinDiscovery",
+  "mixins": [],
+  "client": [],
   "injectors": {
     "defaultRequire": 1
   },
   "overwrites": {
     "requireAnnotations": true
-  },
-  "client": [
-    "AbstractRecipeBookScreenMixin",
-    "EffectsInInventoryMixin",
-    "IAbstractContainerScreen",
-    "IAbstractSignEditScreen",
-    "IKeyMapping",
-    "ILanguageManager",
-    "ILerpingBossEvent",
-    "ILocalPlayer",
-    "IPlayerTabOverlay",
-    "KeyboardMixin",
-    "MixinAbstractClientPlayer",
-    "MixinAbstractContainerScreen",
-    "MixinAbstractRecipeBookScreen",
-    "MixinAbstractSignEditScreen",
-    "MixinAbstractSoundInstance",
-    "MixinAnvilScreen",
-    "MixinAvatarRenderer",
-    "MixinBlindnessFogEnvironment",
-    "MixinBossHealthOverlay",
-    "MixinCamera",
-    "MixinChatComponent",
-    "MixinClientPacketListener",
-    "MixinEntityRenderDispatcher",
-    "MixinEntityRenderer",
-    "MixinFont",
-    "MixinGameRenderer",
-    "MixinGui",
-    "MixinGuiGraphics",
-    "MixinItemInHandRenderer",
-    "MixinItemModelResolver",
-    "MixinLerpingBossEvent",
-    "MixinLightTexture",
-    "MixinMinecraft",
-    "MixinMouseHandler",
-    "MixinMultiPlayerGameMode",
-    "MixinOptions",
-    "MixinScreenEffectRenderer",
-    "MixinSoundManager",
-    "NameTagFeatureRendererMixin",
-    "PlayerRendererMixin"
-  ]
+  }
 }

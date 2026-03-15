@@ -180,8 +180,6 @@ object TicTacToeSolver {
     }
 
     private fun renderTTTBox(ctx: RenderContext, pos: BlockPos, color: Color) {
-        val consumers = ctx.consumers ?: return
-        val matrices = ctx.matrixStack ?: return
         val rotation = rotation ?: return
         if (WorldUtils.getBlockAt(pos) != Blocks.STONE_BUTTON) return
         val cam = ctx.camera.position.reverse()
@@ -233,18 +231,18 @@ object TicTacToeSolver {
             else -> return
         }
 
-        matrices.pushPose()
-        matrices.translate(cam.x, cam.y, cam.z)
+        ctx.matrixStack.pushPose()
+        ctx.matrixStack.translate(cam.x, cam.y, cam.z)
 
         ShapeRenderer.addChainedFilledBoxVertices(
-            matrices,
-            consumers.getBuffer(NoammRenderLayers.FILLED_THROUGH_WALLS),
+            ctx.matrixStack,
+            ctx.consumers.getBuffer(NoammRenderLayers.FILLED_THROUGH_WALLS),
             minX, minY, minZ,
             maxX, maxY, maxZ,
             color.red / 255f, color.green / 255f, color.blue / 255f, 0.7f
         )
 
-        matrices.popPose()
+        ctx.matrixStack.popPose()
     }
 
     /**

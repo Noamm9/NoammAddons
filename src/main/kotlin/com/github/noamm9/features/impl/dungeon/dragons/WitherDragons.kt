@@ -173,20 +173,18 @@ object WitherDragons: Feature(
     }
 
     private fun drawDragonBox(ctx: RenderContext, aabb: AABB, color: Color) {
-        val mstack = ctx.matrixStack ?: return
-        val consumers = ctx.consumers ?: return
         val camPos = ctx.camera.position
 
-        mstack.pushPose()
-        mstack.translate(- camPos.x, - camPos.y, - camPos.z)
+        ctx.matrixStack.pushPose()
+        ctx.matrixStack.translate(- camPos.x, - camPos.y, - camPos.z)
 
         ShapeRenderer.renderLineBox(
-            mstack.last(),
-            consumers.getBuffer(NoammRenderLayers.getLines(2.0)),
+            ctx.matrixStack.last(),
+            ctx.consumers.getBuffer(NoammRenderLayers.getLines(2.0)),
             aabb,
             color.red / 255f, color.green / 255f, color.blue / 255f, 1f
         )
 
-        mstack.popPose()
+        ctx.matrixStack.popPose()
     }
 }

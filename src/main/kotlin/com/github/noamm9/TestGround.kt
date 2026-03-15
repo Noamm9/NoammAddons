@@ -95,16 +95,6 @@ class TestGround {
                 }
             }
         }
-
-        EventBus.register<TickEvent.Start> {
-            //#if CHEAT
-            //$$ val text = "CHEAT"
-            //#else
-            val text = "LEGIT"
-            //#endif
-
-            // ChatUtils.modMessage("version is $text")
-        }
     }
 }
 /*

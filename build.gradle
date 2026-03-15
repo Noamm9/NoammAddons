@@ -74,184 +74,6 @@ jar {
     }
 }
 
-def preprocessSources = { String variantName, File outRoot ->
-    def kotlinIn = file("src/main/kotlin")
-    def javaIn = file("src/main/java")
-    def kotlinOut = new File(outRoot, "kotlin")
-    def javaOut = new File(outRoot, "java")
-
-    def processTree = { File inputRoot, File outputRoot ->
-        if (!inputRoot.exists()) return
-        project.fileTree(inputRoot).matching { include "**/*.kt", "**/*.java" }.files.each { File f ->
-            def rel = inputRoot.toPath().relativize(f.toPath()).toString()
-            def outFile = new File(outputRoot, rel)
-            outFile.parentFile.mkdirs()
-
-            def stack = []
-            def include = true
-            def lines = []
-
-            f.eachLine { String line, int idx ->
-                def trimmed = line.trim()
-                def directive = trimmed.replaceFirst(/^\/\/\s*/, "")
-
-                if (directive == "#if CHEAT") {
-                    stack << include
-                    include = (variantName == "cheat") && include
-                    return
-                }
-                if (directive == "#if LEGIT") {
-                    stack << include
-                    include = (variantName != "cheat") && include
-                    return
-                }
-                if (directive == "#else") {
-                    if (stack.isEmpty()) {
-                        throw new GradleException("Unmatched #else in ${f} at line ${idx}")
-                    }
-                    def prev = stack.last()
-                    include = (variantName != "cheat") && prev
-                    return
-                }
-                if (directive == "#endif") {
-                    if (stack.isEmpty()) {
-                        throw new GradleException("Unmatched #endif in ${f} at line ${idx}")
-                    }
-                    include = stack.remove(stack.size() - 1)
-                    return
-                }
-
-                if (include) {
-                    def marker = "//\$\$"
-                    def markerIndex = line.indexOf(marker)
-                    if (markerIndex >= 0) {
-                        lines << line.substring(0, markerIndex) + line.substring(markerIndex + marker.length())
-                    } else {
-                        lines << line
-                    }
-                }
-            }
-
-            if (!stack.isEmpty()) {
-                throw new GradleException("Unclosed #if in ${f}")
-            }
-
-            outFile.text = lines.join(System.lineSeparator())
-        }
-    }
-
-    processTree(kotlinIn, kotlinOut)
-    processTree(javaIn, javaOut)
-}
-
-def preprocessResources = { String variantName, File outRoot ->
-    def resIn = file("src/main/resources")
-    if (!resIn.exists()) return
-
-    def preprocessConditionalFile = { File srcFile, File outFile, boolean expandVersion ->
-        def stack = []
-        def include = true
-        def lines = []
-
-        srcFile.eachLine { String line, int idx ->
-            def trimmed = line.trim()
-            def directive = trimmed.replaceFirst(/^\/\/\s*/, "")
-
-            if (directive == "#if CHEAT") {
-                stack << include
-                include = (variantName == "cheat") && include
-                return
-            }
-            if (directive == "#if LEGIT") {
-                stack << include
-                include = (variantName != "cheat") && include
-                return
-            }
-            if (directive == "#else") {
-                if (stack.isEmpty()) {
-                    throw new GradleException("Unmatched #else in ${srcFile} at line ${idx}")
-                }
-                def prev = stack.last()
-                include = (variantName != "cheat") && prev
-                return
-            }
-            if (directive == "#endif") {
-                if (stack.isEmpty()) {
-                    throw new GradleException("Unmatched #endif in ${srcFile} at line ${idx}")
-                }
-                include = stack.remove(stack.size() - 1)
-                return
-            }
-
-            if (!include) return
-
-            def marker = '//$'
-            def trimmedLine = line.trim()
-            if (trimmedLine.startsWith("//") && !trimmedLine.startsWith(marker)) {
-                return
-            }
-            def markerIndex = line.indexOf(marker)
-            if (markerIndex >= 0) {
-                lines << line.substring(0, markerIndex) + line.substring(markerIndex + marker.length())
-            } else {
-                lines << line
-            }
-        }
-
-        if (!stack.isEmpty()) {
-            throw new GradleException("Unclosed #if in ${srcFile}")
-        }
-
-        def content = lines.join(System.lineSeparator())
-        if (expandVersion) {
-            content = content.replace('${version}', project.version.toString())
-        }
-        outFile.text = content
-    }
-
-    def fabricSrc = new File(resIn, "fabric.mod.json5")
-    if (fabricSrc.exists()) {
-        def fabricOut = new File(outRoot, "fabric.mod.json")
-        fabricOut.parentFile.mkdirs()
-        preprocessConditionalFile(fabricSrc, fabricOut, true)
-    }
-
-    def mixinsSrc = new File(resIn, "noammaddons.mixins.json5")
-    if (mixinsSrc.exists()) {
-        def mixinsOut = new File(outRoot, "noammaddons.mixins.json")
-        mixinsOut.parentFile.mkdirs()
-        preprocessConditionalFile(mixinsSrc, mixinsOut, false)
-    }
-}
-
-tasks.register("preprocessLegit") {
-    def outRoot = file("${buildDir}/preprocessed/legit")
-    inputs.dir("src/main/kotlin")
-    inputs.dir("src/main/java")
-    inputs.file("src/main/resources/fabric.mod.json5")
-    inputs.file("src/main/resources/noammaddons.mixins.json5")
-    outputs.dir(outRoot)
-    outputs.dir(file("${buildDir}/preprocessed/legit/resources"))
-    doLast {
-        preprocessSources("legit", outRoot)
-        preprocessResources("legit", file("${buildDir}/preprocessed/legit/resources"))
-    }
-}
-
-tasks.register("preprocessCheat") {
-    def outRoot = file("${buildDir}/preprocessed/cheat")
-    inputs.dir("src/main/kotlin")
-    inputs.dir("src/main/java")
-    inputs.file("src/main/resources/fabric.mod.json5")
-    inputs.file("src/main/resources/noammaddons.mixins.json5")
-    outputs.dir(outRoot)
-    outputs.dir(file("${buildDir}/preprocessed/cheat/resources"))
-    doLast {
-        preprocessSources("cheat", outRoot)
-        preprocessResources("cheat", file("${buildDir}/preprocessed/cheat/resources"))
-    }
-}
-
 sourceSets {
     main {
         java {
@@ -276,34 +98,6 @@ sourceSets {
         }
         compileClasspath += sourceSets.main.compileClasspath
         runtimeClasspath += sourceSets.main.runtimeClasspath
-    }
-}
-
-tasks.named("processResources").configure {
-    inputs.property "version", project.version
-    dependsOn("preprocessLegit")
-    exclude("fabric.mod.json5")
-    exclude("noammaddons.mixins.json5")
-    from("${buildDir}/preprocessed/legit/resources") {
-        include "fabric.mod.json"
-        include "noammaddons.mixins.json"
-    }
-    filesMatching("fabric.mod.json") {
-        expand "version": inputs.properties.version
-    }
-}
-
-tasks.named("processCheatResources").configure {
-    inputs.property "version", project.version
-    dependsOn("preprocessCheat")
-    exclude("fabric.mod.json5")
-    exclude("noammaddons.mixins.json5")
-    from("${buildDir}/preprocessed/cheat/resources") {
-        include "fabric.mod.json"
-        include "noammaddons.mixins.json"
-    }
-    filesMatching("fabric.mod.json") {
-        expand "version": inputs.properties.version
     }
 }
 
@@ -341,6 +135,7 @@ tasks.named("compileCheatJava").configure {
     inputs.dir("src/main/java")
     inputs.dir("${buildDir}/preprocessed/cheat/java")
     options.release = 21
+    classpath += files(tasks.named("compileCheatKotlin").flatMap { it.destinationDirectory })
 }
 
 tasks.named("cheatClasses").configure {
@@ -399,8 +194,10 @@ loom {
         cheatClient {
             inherit client
             name "Cheat Client"
-            runDir "run/cheat"
+            runDir "run/"
             source sourceSets.cheat
         }
     }
 }
+
+apply from: file('preprocess.gradle')
