@@ -310,5 +310,8 @@
   },
   "9e9c88f8-1c38-4824-8d1b-15bd151d85a1": {
     "name": "{\"text\":\"\",\"extra\":[{\"text\":\"I\",\"color\":\"#D2DCDF\",\"bold\":true,\"shadow_color\":[0.96,0.96,0.95,0]},{\"text\":\"_\",\"color\":\"#C9CBEF\",\"bold\":true,\"shadow_color\":[0.84,0.61,1,0.5]},{\"text\":\"A\",\"color\":\"#608C90\",\"bold\":true,\"shadow_color\":[0.7,0,1,1]},{\"text\":\"M\",\"color\":\"#638A99\",\"bold\":true,\"shadow_color\":[0.32,0.31,0.31,0]},{\"text\":\"1\",\"color\":\"#83AFAC\",\"bold\":true,\"shadow_color\":[0.51,0.29,0.65,0.5]},{\"text\":\"2\",\"color\":\"#AECCD6\",\"bold\":true,\"shadow_color\":[0.7,0,1,1]}]}"
+  },
+  "778ba3b1-bdfd-4768-a526-521d65363737": {
+    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"❄\",\"color\":\"#FFFFFF\"},{\"text\":\" \"},{\"text\":\"r\",\"color\":\"#00FFFF\"},{\"text\":\"a\",\"color\":\"#55FFFF\"},{\"text\":\"a\",\"color\":\"#AAFFFF\"},{\"text\":\"a\",\"color\":\"#FFFFFF\"},{\"text\":\"y\",\"color\":\"#AAFFFF\"},{\"text\":\"e\",\"color\":\"#55FFFF\"},{\"text\":\"n\",\"color\":\"#00FFFF\"},{\"text\":\" \"},{\"text\":\"❄\",\"color\":\"#FFFFFF\"}]}"
   }
 }
