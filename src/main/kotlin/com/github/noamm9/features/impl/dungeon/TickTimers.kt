@@ -58,7 +58,7 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
             return@hudElement textToRender.width().toFloat() to 9F
         }
 
-        hudElement("PY Timer", shouldDraw = { LocationUtils.inDungeon && pyTimer.value }, centered = true) { ctx, example ->
+        hudElement("PY Timer", shouldDraw = { LocationUtils.inDungeon }, enabled = {pyTimer.value}, centered = true) { ctx, example ->
             val textToRender = if (example) "§5PY: 95t"
             else if (pyTickTime != - 1) formatTimer(pyTickTime, 95, "§5PY:")
             else return@hudElement 0f to 0f
@@ -89,9 +89,9 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
                         pyTriggered = false
                         pyTickTime = - 1
                     }
-                    if(stormActive) {
+                    if (stormActive) {
                         stormActive = false
-                        padTickTime = -1
+                        padTickTime = - 1
                     }
                 }
 
