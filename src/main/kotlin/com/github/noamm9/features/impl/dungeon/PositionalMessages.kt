@@ -80,21 +80,35 @@ object PositionalMessages : Feature("Sends a party message when near a position.
                         message.color,
                         outline = true, fill = false, phase = false
                     )
-                } else {
-                    val box = AABB(
-                        message.x, message.y, message.z,
-                        message.x2 ?: return@forEach,
-                        message.y2 ?: return@forEach,
-                        message.z2 ?: return@forEach
+                    Render3D.renderString(
+                        message.message,
+                        message.x, message.y + 1.5, message.z,
+                        message.color,
+                        scale = 1f,
+                        phase = false
                     )
+                } else {
+                    val x2 = message.x2 ?: return@forEach
+                    val y2 = message.y2 ?: return@forEach
+                    val z2 = message.z2 ?: return@forEach
+                    val box = AABB(message.x, message.y, message.z, x2, y2, z2)
+                    val centerX = (message.x + x2) / 2
+                    val centerY = message.y
+                    val centerZ = (message.z + z2) / 2
+
                     Render3D.renderBox(
                         event.ctx,
-                        (message.x + message.x2!!) / 2,
-                        message.y,
-                        (message.z + message.z2!!) / 2,
+                        centerX, centerY, centerZ,
                         box.xsize, box.ysize,
                         message.color,
                         outline = true, fill = false, phase = false
+                    )
+                    Render3D.renderString(
+                        message.message,
+                        centerX, message.y + box.ysize + 0.5, centerZ,
+                        message.color,
+                        scale = 1f,
+                        phase = false
                     )
                 }
             }
@@ -103,7 +117,6 @@ object PositionalMessages : Feature("Sends a party message when near a position.
 
     private fun loadConfig() {
         if (!configFile.exists()) return
-
         runCatching {
             FileReader(configFile).use { reader ->
                 val type = object : TypeToken<MutableList<PosMessage>>() {}.type
