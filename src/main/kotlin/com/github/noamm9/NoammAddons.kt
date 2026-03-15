@@ -79,7 +79,7 @@ object NoammAddons: ClientModInitializer {
     }
 
     private fun initNetworkLoop() = ThreadUtils.loop(600_000) {
-        WebUtils.get<JsonObject>("https://api.hypixel.net/v2/resources/skyblock/election")
+        WebUtils.getAs<JsonObject>("https://api.hypixel.net/v2/resources/skyblock/election")
             .onSuccess { data ->
                 val mayor = data["mayor"]?.jsonObject !!
                 val minister = mayor["minister"]?.jsonObject !!
@@ -100,7 +100,7 @@ object NoammAddons: ClientModInitializer {
                 it.printStackTrace()
             }
 
-        WebUtils.get<Map<String, Long>>("https://lb.tricked.dev/lowestbins")
+        WebUtils.getAs<Map<String, Long>>("https://lb.tricked.dev/lowestbins")
             .onSuccess { priceData.putAll(it) }
             .onFailure {
                 logger.error("Error while making a web request", it)
@@ -108,7 +108,7 @@ object NoammAddons: ClientModInitializer {
             }
         
 
-        WebUtils.get<JsonObject>("https://api.hypixel.net/v2/skyblock/bazaar")
+        WebUtils.getAs<JsonObject>("https://api.hypixel.net/v2/skyblock/bazaar")
             .onSuccess { data ->
                 data["products"]?.jsonObject?.forEach { (key, element) ->
                     val product = element.jsonObject

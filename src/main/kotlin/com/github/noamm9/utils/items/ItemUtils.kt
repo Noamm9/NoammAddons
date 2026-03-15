@@ -29,7 +29,7 @@ object ItemUtils {
     fun getIdByName(name: String) = nameToIdMap[name]
 
     fun init() = NoammAddons.scope.launch {
-        WebUtils.get<JsonObject>("https://api.hypixel.net/v2/resources/skyblock/items")
+        WebUtils.getAs<JsonObject>("https://api.hypixel.net/v2/resources/skyblock/items")
             .onSuccess { obj ->
                 val itemsArray = obj["items"]?.jsonArray ?: return@onSuccess
 

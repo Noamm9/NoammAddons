@@ -37,7 +37,7 @@ object Cosmetics: Feature(toggled = true) {
     override fun init() {
         scope.launch(Dispatchers.IO) {
             lastReload = System.currentTimeMillis()
-            WebUtils.get<Map<String, CosmeticData>>("https://old-api.noamm.org/cosmeticPeople.json").onSuccess { data ->
+            WebUtils.getAs<Map<String, CosmeticData>>("https://old-api.noamm.org/cosmeticPeople.json").onSuccess { data ->
                 cosmeticPeople = data.mapKeys { UUID.fromString(it.key) }
 
                 cosmeticPeople.filter { it.value.hasCustomName }.forEach { (uuid, cosmetic) ->
