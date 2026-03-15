@@ -6,7 +6,6 @@ import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.EventPriority
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
-import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.JsonUtils
 import com.github.noamm9.utils.TabListUtils
 import com.github.noamm9.utils.ThreadUtils
@@ -71,7 +70,6 @@ object WebSocket {
 
         override fun onClose(code: Int, reason: String?, remote: Boolean) {
             NoammAddons.logger.info("WebSocket Disconnected: code: $code, remote: $remote, reason: $reason")
-            ChatUtils.modMessage("WebSocket Disconnected: code: $code, remote: $remote, reason: $reason")
 
             ThreadUtils.setTimeout(10_000) {
                 NoammAddons.logger.info("Attempting auto-reconnect...")
@@ -90,7 +88,6 @@ object WebSocket {
             .takeIf { it.isNotEmpty() && it != lastTablist } ?: return
 
         lastTablist = players
-        ChatUtils.modMessage(players.toString())
         send(C2SPacketTabListUpdate(mc.user.name, players))
     }
 }
