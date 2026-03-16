@@ -39,7 +39,7 @@ object PosMsgCommand: BaseCommand("posmsg") {
                 "x" to IntegerArgumentType.integer(),
                 "y" to IntegerArgumentType.integer(),
                 "z" to IntegerArgumentType.integer(),
-                "radius" to DoubleArgumentType.doubleArg(0.1),
+                "radius" to DoubleArgumentType.doubleArg(0.0),
                 "delay" to DoubleArgumentType.doubleArg(0.0),
                 "color" to StringArgumentType.word(),
                 "message" to StringArgumentType.greedyString()
@@ -98,7 +98,7 @@ object PosMsgCommand: BaseCommand("posmsg") {
 
         runs {
             ChatUtils.modMessage("&eUsage: /posmsg add <x> <y> <z> <radius> <delay_seconds> <color> <message>")
-            ChatUtils.modMessage("&eColors: red, green, blue, yellow, cyan, magenta, white, orange, pink, gray, purple, or #RRGGBB")
+            ChatUtils.modMessage("&eColors: ${colorMap.keys.joinToString(", ")}, or #RRGGBB")
             ChatUtils.modMessage("&eOther: /posmsg remove <index> | list | clear")
         }
     }

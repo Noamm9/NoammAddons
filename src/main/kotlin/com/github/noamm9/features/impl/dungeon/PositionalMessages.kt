@@ -31,7 +31,7 @@ object PositionalMessages: Feature("Sends a party message when near a position. 
 
     private val configFile = File("config/$MOD_NAME/positionalMessages.json")
     val posMessages = mutableListOf<PosMessage>()
-    private val sentMessages = mutableListOf<PosMessage>()
+    private val sentMessages = mutableSetOf<PosMessage>()
 
     override fun init() {
         loadConfig()
@@ -47,11 +47,11 @@ object PositionalMessages: Feature("Sends a party message when near a position. 
             if (! showPositions.value) return@register
             if (! LocationUtils.inDungeon) return@register
             val player = mc.player ?: return@register
+            val maxDist = renderDistance.value.pow(2)
+            val playerPos = player.blockPosition()
 
             posMessages.forEach { message ->
-                val dist = player.blockPosition().distSqr(message.pos)
-                val maxDist = renderDistance.value.pow(2)
-                if (dist > maxDist) return@forEach
+                if (playerPos.distSqr(message.pos) > maxDist) return@forEach
 
                 Render3D.renderBox(
                     event.ctx,
@@ -73,7 +73,7 @@ object PositionalMessages: Feature("Sends a party message when near a position. 
 
     private fun handleAtMessage(msg: PosMessage) {
         val player = mc.player ?: return
-        if (sentMessages.contains(msg)) return
+        if (msg in sentMessages) return
         if (player.blockPosition().distSqr(msg.pos) > msg.radius.pow(2)) return
         sentMessages.add(msg)
 
@@ -94,11 +94,11 @@ object PositionalMessages: Feature("Sends a party message when near a position. 
                 if (loaded != null) {
                     posMessages.clear()
                     posMessages.addAll(loaded)
-                    NoammAddons.logger.info("PositionalMessages: Loaded ${posMessages.size} messages.")
+                    NoammAddons.logger.info("${this.javaClass.simpleName}: Loaded ${posMessages.size} messages.")
                 }
             }
         }.onFailure {
-            NoammAddons.logger.error("PositionalMessages: Failed to load config!", it)
+            NoammAddons.logger.error("${this.javaClass.simpleName}: Failed to load config!", it)
         }
     }
 
@@ -108,9 +108,9 @@ object PositionalMessages: Feature("Sends a party message when near a position. 
             FileWriter(configFile).use { writer ->
                 JsonUtils.gsonBuilder.toJson(posMessages, writer)
             }
-            NoammAddons.logger.info("PositionalMessages: Config saved.")
+            NoammAddons.logger.info("${this.javaClass.simpleName}: Config saved.")
         }.onFailure {
-            NoammAddons.logger.error("PositionalMessages: Failed to save config!", it)
+            NoammAddons.logger.error("${this.javaClass.simpleName}: Failed to save config!", it)
         }
     }
 }
