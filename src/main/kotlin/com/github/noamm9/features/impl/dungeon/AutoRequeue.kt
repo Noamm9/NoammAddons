@@ -19,13 +19,8 @@ object AutoRequeue: Feature() {
     private val feedback by ToggleSetting("Feedback", true).withDescription("Print feedback messages from auto in chat.")
 
     private const val prefix = "&bAutoRequeue &f>"
-    private val NUMBERS_TO_TEXT = mapOf(
-        0 to "ENTRANCE", 1 to "ONE", 2 to "TWO", 3 to "THREE",
-        4 to "FOUR", 5 to "FIVE", 6 to "SIX", 7 to "SEVEN"
-    )
-
     private val masterMode get() = if (LocationUtils.isMasterMode) "MASTER_" else ""
-    private val floor get() = NUMBERS_TO_TEXT[LocationUtils.dungeonFloorNumber ?: 0]
+    private val floor get() = LocationUtils.FLOOR_NAMES[LocationUtils.dungeonFloorNumber ?: 0]
 
     private fun feedBackMessage(msg: String) {
         if (! feedback.value) return
