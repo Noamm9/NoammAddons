@@ -29,8 +29,8 @@ object Config {
 
             for (featureElement in jsonObject.getAsJsonArray("config") ?: return) {
                 val featureObj = featureElement.asJsonObject
-                val feature = FeatureManager.getFeatureByName(featureObj.get("name").asString) ?: continue
-                if (featureObj.get("enabled").asBoolean != feature.enabled) feature.toggle()
+                val feature = FeatureManager.getFeatureByName(featureObj.get("name")?.asString ?: continue) ?: continue
+                if (featureObj.get("enabled")?.asBoolean != feature.enabled) feature.toggle()
 
                 featureObj.getAsJsonArray("configSettings")?.forEach { settingElement ->
                     val settingEntry = settingElement.asJsonObject.entrySet().firstOrNull() ?: return@forEach
@@ -41,7 +41,7 @@ object Config {
 
             jsonObject.getAsJsonArray("hud")?.forEach { hudElement ->
                 val hudObj = hudElement.asJsonObject
-                val hudInstance = FeatureManager.getHudByName(hudObj.get("name").asString) ?: return@forEach
+                val hudInstance = FeatureManager.getHudByName(hudObj.get("name")?.asString ?: return@forEach) ?: return@forEach
 
                 hudObj.get("x")?.let { hudInstance.x = it.asFloat }
                 hudObj.get("y")?.let { hudInstance.y = it.asFloat }
