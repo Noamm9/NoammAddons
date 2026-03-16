@@ -17,6 +17,7 @@ object WebUtils {
     private const val PRIVATE_USER_AGENT =
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     private const val TIMEOUT = 10_000
+    private val SUCCESS_RANGE = 200..299
 
     private val threadCounter = AtomicInteger(1)
     val networkDispatcher = Executors.newFixedThreadPool(5) {
@@ -64,7 +65,7 @@ object WebUtils {
     suspend fun getString(url: String) = withContext(networkDispatcher) {
         runCatching {
             val res = get(url).getOrThrow()
-            if (res.code !in 200..299) throw IllegalStateException("HTTP ${res.code}: ${res.data}")
+            if (res.code !in SUCCESS_RANGE) throw IllegalStateException("HTTP ${res.code}: ${res.data}")
             res.data
         }
     }
@@ -85,9 +86,9 @@ object WebUtils {
             connection.requestMethod = "GET"
 
             val code = connection.responseCode
-            val stream = if (code in 200..299) connection.inputStream else connection.errorStream
+            val stream = if (code in SUCCESS_RANGE) connection.inputStream else connection.errorStream
 
-            if (code !in 200..299) throw IllegalStateException("HTTP $code")
+            if (code !in SUCCESS_RANGE) throw IllegalStateException("HTTP $code")
 
             stream.use { it.readBytes() }
         }
@@ -95,7 +96,7 @@ object WebUtils {
 
     private fun handleResponse(connection: HttpURLConnection): HttpResponse {
         val code = connection.responseCode
-        val stream = if (code in 200..299) connection.inputStream
+        val stream = if (code in SUCCESS_RANGE) connection.inputStream
         else connection.errorStream ?: connection.inputStream
         val data = stream.bufferedReader().use(BufferedReader::readText)
         val headers = connection.headerFields
