@@ -13,6 +13,8 @@ import kotlinx.serialization.json.jsonObject
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 
+import com.github.noamm9.NoammAddons.BASE_URL
+
 object ProfileUtils {
     private val uuidApis = listOf(
         "https://playerdb.co/api/player/minecraft/",
@@ -82,7 +84,7 @@ object ProfileUtils {
         var cooldown = apiCooldowns["noamm"] ?: 0L
         if(System.currentTimeMillis() < apiCooldowns.getOrDefault("noamm", 0L)) throw IllegalStateException("Rate limited")
 
-        val res = WebUtils.get("https://api.noamm.org$path").getOrThrow()
+        val res = WebUtils.get("${BASE_URL}$path").getOrThrow()
         if(res.headers["x-ratelimit-remaining"] == "0" && res.headers.contains("x-ratelimit-reset")) {
             val reset = res.headers["x-ratelimit-reset"]!!.toLong()
             cooldown = max(cooldown, System.currentTimeMillis() + reset * 1000L)
