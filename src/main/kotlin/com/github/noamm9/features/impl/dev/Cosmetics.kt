@@ -7,6 +7,7 @@ import com.github.noamm9.ui.clickgui.components.impl.ButtonSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.ui.notification.NotificationManager
+import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.network.ProfileUtils
 import com.github.noamm9.utils.network.WebUtils
@@ -27,7 +28,7 @@ object Cosmetics: Feature(toggled = true) {
     val customNames by ToggleSetting("Show Custom Names", true)
     val customSizes by ToggleSetting("Show Custom Sizes", true)
     val reload by ButtonSetting("Reload Cosmetics") {
-        if (System.currentTimeMillis() - lastReload >= 300_000) init()
+        if (System.currentTimeMillis() - lastReload >= 15_000) init()
         else NotificationManager.push("Cosmetics", "Please wait another ${NumbersUtils.formatTime(150_000 - (System.currentTimeMillis() - lastReload))} before reloading again.")
     }
 
@@ -46,6 +47,7 @@ object Cosmetics: Feature(toggled = true) {
                 }
             }.onFailure { cause ->
                 NoammAddons.logger.error("Failed to load cosmetic people", cause)
+                ChatUtils.modMessage("&cFailed to load cosmetic people: ${cause.message}")
             }
         }
     }

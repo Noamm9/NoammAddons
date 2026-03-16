@@ -49,7 +49,7 @@ object WebUtils {
     suspend fun post(url: String, body: Any?): Result<HttpResponse> = withContext(networkDispatcher) {
         runCatching {
             val connection = prepareConnection(url)
-            connection.requestMethod = "GET"
+            connection.requestMethod = "POST"
             connection.setRequestProperty("Accept", "application/json; charset=UTF-8")
             if (body != null) {
                 connection.doOutput = true
@@ -64,7 +64,7 @@ object WebUtils {
     suspend fun getString(url: String) = withContext(networkDispatcher) {
         runCatching {
             val res = get(url).getOrThrow()
-            if (res.code !in 200..299) throw IllegalStateException("HTTP ${res.code}: ${res.data}")
+            if (res.code !in 200 .. 299) throw IllegalStateException("HTTP ${res.code}: ${res.data}")
             res.data
         }
     }
@@ -85,9 +85,9 @@ object WebUtils {
             connection.requestMethod = "GET"
 
             val code = connection.responseCode
-            val stream = if (code in 200..299) connection.inputStream else connection.errorStream
+            val stream = if (code in 200 .. 299) connection.inputStream else connection.errorStream
 
-            if (code !in 200..299) throw IllegalStateException("HTTP $code")
+            if (code !in 200 .. 299) throw IllegalStateException("HTTP $code")
 
             stream.use { it.readBytes() }
         }
@@ -95,7 +95,7 @@ object WebUtils {
 
     private fun handleResponse(connection: HttpURLConnection): HttpResponse {
         val code = connection.responseCode
-        val stream = if (code in 200..299) connection.inputStream
+        val stream = if (code in 200 .. 299) connection.inputStream
         else connection.errorStream ?: connection.inputStream
         val data = stream.bufferedReader().use(BufferedReader::readText)
         val headers = connection.headerFields
