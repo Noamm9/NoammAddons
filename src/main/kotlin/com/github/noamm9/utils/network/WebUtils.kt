@@ -50,7 +50,7 @@ object WebUtils {
     suspend fun post(url: String, body: Any?): Result<HttpResponse> = withContext(networkDispatcher) {
         runCatching {
             val connection = prepareConnection(url)
-            connection.requestMethod = "GET"
+            connection.requestMethod = "POST"
             connection.setRequestProperty("Accept", "application/json; charset=UTF-8")
             if (body != null) {
                 connection.doOutput = true

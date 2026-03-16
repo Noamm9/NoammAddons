@@ -156,6 +156,9 @@ tasks.register("preprocessLegit") {
     inputs.file("src/main/resources/noammaddons.mixins.json5")
     outputs.dir(outRoot)
     outputs.dir(file("${buildDir}/preprocessed/legit/resources"))
+    doFirst {
+        delete(outRoot)
+    }
     doLast {
         preprocessSources("legit", outRoot)
         preprocessResources("legit", file("${buildDir}/preprocessed/legit/resources"))
@@ -170,6 +173,9 @@ tasks.register("preprocessCheat") {
     inputs.file("src/main/resources/noammaddons.mixins.json5")
     outputs.dir(outRoot)
     outputs.dir(file("${buildDir}/preprocessed/cheat/resources"))
+    doFirst {
+        delete(outRoot)
+    }
     doLast {
         preprocessSources("cheat", outRoot)
         preprocessResources("cheat", file("${buildDir}/preprocessed/cheat/resources"))
@@ -177,6 +183,20 @@ tasks.register("preprocessCheat") {
 }
 
 tasks.named("processResources").configure {
+    inputs.property "version", project.version
+    dependsOn("preprocessLegit")
+    exclude("fabric.mod.json5")
+    exclude("noammaddons.mixins.json5")
+    from("${buildDir}/preprocessed/legit/resources") {
+        include "fabric.mod.json"
+        include "noammaddons.mixins.json"
+    }
+    filesMatching("fabric.mod.json") {
+        expand "version": inputs.properties.version
+    }
+}
+
+tasks.named("processLegitResources").configure {
     inputs.property "version", project.version
     dependsOn("preprocessLegit")
     exclude("fabric.mod.json5")

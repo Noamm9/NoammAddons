@@ -86,6 +86,19 @@ sourceSets {
             setSrcDirs(["src/main/resources"])
         }
     }
+    legit {
+        java {
+            setSrcDirs(["${buildDir}/preprocessed/legit/java"])
+        }
+        kotlin {
+            setSrcDirs(["${buildDir}/preprocessed/legit/kotlin"])
+        }
+        resources {
+            setSrcDirs(["src/main/resources"])
+        }
+        compileClasspath += sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.runtimeClasspath
+    }
     cheat {
         java {
             setSrcDirs(["${buildDir}/preprocessed/cheat/java"])
@@ -101,25 +114,6 @@ sourceSets {
     }
 }
 
-tasks.named("compileKotlin").configure {
-    dependsOn("preprocessLegit")
-    inputs.dir("src/main/kotlin")
-    inputs.dir("${buildDir}/preprocessed/legit/kotlin")
-    doFirst {
-        source = fileTree("${buildDir}/preprocessed/legit/kotlin") { include "**/*.kt" }
-    }
-    kotlinOptions.freeCompilerArgs += ["-Xjava-source-roots=${buildDir}/preprocessed/legit/java"]
-}
-
-tasks.named("compileJava").configure {
-    dependsOn("preprocessLegit", "compileKotlin")
-    inputs.dir("src/main/java")
-    inputs.dir("${buildDir}/preprocessed/legit/java")
-    doFirst {
-        source = fileTree("${buildDir}/preprocessed/legit/java") { include "**/*.java" }
-    }
-}
-
 tasks.named("compileCheatKotlin").configure {
     dependsOn("preprocessCheat")
     inputs.dir("src/main/kotlin")
@@ -128,6 +122,10 @@ tasks.named("compileCheatKotlin").configure {
     kotlinOptions {
         jvmTarget = 21
     }
+}
+
+tasks.named("compileKotlin").configure {
+    kotlinOptions.freeCompilerArgs += ["-Xjava-source-roots=${project.projectDir}/src/main/java"]
 }
 
 tasks.named("compileCheatJava").configure {
@@ -142,10 +140,40 @@ tasks.named("cheatClasses").configure {
     dependsOn("compileCheatKotlin", "compileCheatJava")
 }
 
+tasks.named("compileLegitKotlin").configure {
+    dependsOn("preprocessLegit")
+    inputs.dir("src/main/kotlin")
+    inputs.dir("${buildDir}/preprocessed/legit/kotlin")
+    kotlinOptions.freeCompilerArgs += ["-Xjava-source-roots=${buildDir}/preprocessed/legit/java"]
+}
+
+tasks.named("compileLegitJava").configure {
+    dependsOn("preprocessLegit", "compileLegitKotlin")
+    inputs.dir("src/main/java")
+    inputs.dir("${buildDir}/preprocessed/legit/java")
+    options.release = 21
+    classpath += files(tasks.named("compileLegitKotlin").flatMap { it.destinationDirectory })
+}
+
+tasks.named("legitClasses").configure {
+    dependsOn("compileLegitKotlin", "compileLegitJava")
+}
+
 tasks.register("jarCheat", Jar) {
     dependsOn("cheatClasses", "processCheatResources")
     from(sourceSets.cheat.output)
     archiveClassifier = "cheat"
+    destinationDirectory = file("${project.layout.buildDirectory.get()}/tmp/intermediateJars")
+
+    from("LICENSE") {
+        rename { "${it}_${project.base.archivesName.get()}" }
+    }
+}
+
+tasks.register("jarLegit", Jar) {
+    dependsOn("legitClasses", "processLegitResources")
+    from(sourceSets.legit.output)
+    archiveClassifier = "legit"
     destinationDirectory = file("${project.layout.buildDirectory.get()}/tmp/intermediateJars")
 
     from("LICENSE") {
@@ -178,7 +206,11 @@ publishing {
 }
 
 tasks.named('remapJar') {
+    dependsOn("jarLegit")
+    inputFile = tasks.named("jarLegit").flatMap { it.archiveFile }
     archiveFileName = "$mod_name - ${version}-legit.jar"
+    destinationDirectory = file("${project.layout.buildDirectory.get()}/libs")
+    classpath.from(sourceSets.legit.runtimeClasspath)
 }
 
 kotlin {
@@ -189,13 +221,35 @@ tasks.register("buildAll") {
     dependsOn("remapJar", "remapJarCheat")
 }
 
+tasks.named("build").configure {
+    dependsOn("buildAll")
+}
+
 loom {
     runs {
+        client {
+            ideConfigGenerated = false
+        }
+        server {
+            ideConfigGenerated = false
+        }
         cheatClient {
             inherit client
             name "Cheat Client"
             runDir "run/"
+            source sourceSets.main
+        }
+        cheatClientPreprocessed {
+            inherit client
+            name "Cheat Client (Preprocessed)"
+            runDir "run/"
             source sourceSets.cheat
+        }
+        legitClientPreprocessed {
+            inherit client
+            name "Legit Client (Preprocessed)"
+            runDir "run/"
+            source sourceSets.legit
         }
     }
 }
