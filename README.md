@@ -19,7 +19,7 @@
 3. Download the latest mod file from the   [**Releases page**](https://github.com/Noamm9/NoammAddons-1.21.10/releases)
 4. Put the downloaded `.jar` files into your `.minecraft/mods` folder
 5. Launch Minecraft using the **Fabric** profile
-
+ddwdwadwdawdawdawdaw
 * Type  `/na` in chat to open the config menu.
 
 ## Contributions
