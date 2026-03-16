@@ -35,11 +35,6 @@ object LocationUtils {
     @JvmField
     var dungeonFloor: String? = null
 
-    val FLOOR_NAMES = mapOf(
-        0 to "ENTRANCE", 1 to "ONE", 2 to "TWO", 3 to "THREE",
-        4 to "FOUR", 5 to "FIVE", 6 to "SIX", 7 to "SEVEN"
-    )
-
     @JvmField
     var dungeonFloorNumber: Int? = null
 

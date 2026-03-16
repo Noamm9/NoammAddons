@@ -11,6 +11,7 @@ import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.PartyUtils
 import com.github.noamm9.utils.ThreadUtils
+import com.github.noamm9.utils.dungeons.DungeonUtils
 import com.github.noamm9.utils.location.LocationUtils
 
 object AutoRequeue: Feature() {
@@ -20,7 +21,7 @@ object AutoRequeue: Feature() {
 
     private const val prefix = "&bAutoRequeue &f>"
     private val masterMode get() = if (LocationUtils.isMasterMode) "MASTER_" else ""
-    private val floor get() = LocationUtils.FLOOR_NAMES[LocationUtils.dungeonFloorNumber ?: 0]
+    private val floor get() = DungeonUtils.FLOOR_NAMES[LocationUtils.dungeonFloorNumber ?: 0]
 
     private fun feedBackMessage(msg: String) {
         if (! feedback.value) return
