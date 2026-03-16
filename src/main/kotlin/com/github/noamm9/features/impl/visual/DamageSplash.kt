@@ -60,8 +60,9 @@ object DamageSplash: Feature("Reformat Skyblock's Damage Indicators.") {
         }
     }
 
+    private val colorCodes = listOf("§6", "§c", "§e", "§f")
+
     private fun addRandomColorCodes(inputString: String): String {
-        val colorCodes = listOf("§6", "§c", "§e", "§f")
         val result = StringBuilder()
         var lastColor: String? = null
 
