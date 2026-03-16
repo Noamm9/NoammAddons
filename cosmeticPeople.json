@@ -316,5 +316,11 @@
   },
   "00967646-f242-4c92-9e2a-d50dc070f006": {
     "name": "{\"text\":\"\",\"extra\":[{\"text\":\"s\",\"color\":\"#9F00FF\",\"shadow_color\":[0.96,0.96,0.95,0]},{\"text\":\"i\",\"color\":\"#3B0063\",\"shadow_color\":[0.84,0.61,1,0.5]},{\"text\":\"x\",\"color\":\"#000000\",\"shadow_color\":[0.7,0,1,1]},{\"text\":\"x\",\"color\":\"#B300FF\",\"shadow_color\":[0.32,0.31,0.31,0]},{\"text\":\"_\",\"color\":\"#430063\",\"shadow_color\":[0.51,0.29,0.65,0.5]},{\"text\":\"2\",\"color\":\"#000000\",\"shadow_color\":[0.7,0,1,1]}]}"
+  },
+  "beb87cfc-eac0-49d0-9e33-5f8e6fa49258": {
+    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"E\",\"color\":\"#5D0031\",\"bold\":true,\"italic\":true,\"shadow_color\":[0,0,0,1]},{\"text\":\"s\",\"color\":\"#731945\",\"bold\":true,\"italic\":true,\"shadow_color\":[0,0,0,1]},{\"text\":\"t\",\"color\":\"#892E59\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.03,0,0.01,1]},{\"text\":\"r\",\"color\":\"#A0416F\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.09,0,0.03,1]},{\"text\":\"o\",\"color\":\"#B75585\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.15,0,0.07,1]},{\"text\":\"P\",\"color\":\"#CF699C\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.22,0,0.11,1]},{\"text\":\"u\",\"color\":\"#E77DB4\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.29,0,0.15,1]},{\"text\":\"p\",\"color\":\"#FF92CC\",\"bold\":true,\"italic\":true,\"shadow_color\":[0.36,0,0.19,1]}]}"
+  },
+  "d2f233fe-814e-45cb-b81e-79e91fd38d35": {
+    "name": "{\"text\":\"\",\"extra\":[{\"text\":\"c\",\"color\":\"#008099\",\"bold\":true},{\"text\":\"h\",\"color\":\"#0087A1\",\"bold\":true},{\"text\":\"r\",\"color\":\"#008EA9\",\"bold\":true},{\"text\":\"i\",\"color\":\"#0095B2\",\"bold\":true},{\"text\":\"s\",\"color\":\"#009CBA\",\"bold\":true},{\"text\":\"t\",\"color\":\"#00A3C2\",\"bold\":true},{\"text\":\"h\",\"color\":\"#00AACB\",\"bold\":true},{\"text\":\"e\",\"color\":\"#00B1D3\",\"bold\":true},{\"text\":\"g\",\"color\":\"#00B8DC\",\"bold\":true},{\"text\":\"1\",\"color\":\"#00C0E5\",\"bold\":true},{\"text\":\"1\",\"color\":\"#00C7ED\",\"bold\":true},{\"text\":\"2\",\"color\":\"#00CFF6\",\"bold\":true},{\"text\":\"2\",\"color\":\"#00D6FF\",\"bold\":true}]}"
   }
 }
