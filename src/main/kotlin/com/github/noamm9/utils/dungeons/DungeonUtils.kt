@@ -11,6 +11,7 @@ import net.minecraft.world.level.block.SkullBlock
 import net.minecraft.world.level.block.entity.SkullBlockEntity
 
 object DungeonUtils {
+    val FLOOR_NAMES = listOf("ENTRANCE", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN")
     const val WITHER_ESSENCE_ID = "e0f3e929-869e-3dca-9504-54c666ee6f23"
     const val REDSTONE_KEY_ID = "fed95410-aba1-39df-9b95-1d4f361eb66e"
 

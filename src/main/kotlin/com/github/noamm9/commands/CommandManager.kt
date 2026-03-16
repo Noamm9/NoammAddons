@@ -29,7 +29,6 @@ object CommandManager {
                 val root = ClientCommandManager.literal(command.name)
                 CommandNodeBuilder(root).apply { with(command) { build() } }
                 dispatcher.register(root)
-                commands.add(command)
                 NoammAddons.logger.debug("Registered command: /${command.name}")
             }
         }
