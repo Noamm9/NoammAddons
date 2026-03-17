@@ -11,14 +11,14 @@ object CommandManager {
     init {
         val result = ClassGraph()
             .enableAllInfo()
-            .acceptPackages(this::class.java.`package`.name)
+            .acceptPackages(NoammAddons::class.java.`package`.name)
             .overrideClassLoaders(Thread.currentThread().contextClassLoader)
             .scan()
 
         result.use {
             it.getSubclasses(BaseCommand::class.qualifiedName).forEach { ci ->
-                val i = ci.loadClass().getDeclaredField("INSTANCE").get(null) as? BaseCommand
-                i?.let(commands::add)
+                val i = runCatching { ci.loadClass().getDeclaredField("INSTANCE").get(null) as? BaseCommand }
+                i.getOrNull()?.let(commands::add)
             }
         }
     }
