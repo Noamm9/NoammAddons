@@ -21,25 +21,22 @@ import java.util.function.BiFunction;
 public class MixinGlDevice {
     @Unique private static boolean lastFullBright = false;
 
-    @WrapOperation(
-        method = "compileShader",
-        at = @At(value = "INVOKE", target = "Ljava/util/function/BiFunction;apply(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;")
-    )
+    @WrapOperation(method = "compileShader", at = @At(value = "INVOKE", target = "Ljava/util/function/BiFunction;apply(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"))
     private Object noammaddons$fullbright(BiFunction<ResourceLocation, ShaderType, String> instance, Object id_, Object type_, Operation<String> original) {
-        if (!Camera.INSTANCE.enabled || !Camera.getFullBright().getValue())
-            return original.call(instance, id_, type_);
+        if (!Camera.INSTANCE.enabled || !Camera.getFullBright().getValue()) return original.call(instance, id_, type_);
 
-        ResourceLocation id = (ResourceLocation) id_;
-        ShaderType type = (ShaderType) type_;
-        if (type != ShaderType.FRAGMENT || !id.equals(RenderPipelines.LIGHTMAP.getFragmentShader()))
+        var id = (ResourceLocation) id_;
+        var shaderType = (ShaderType) type_;
+
+        if (shaderType != ShaderType.FRAGMENT || !id.equals(RenderPipelines.LIGHTMAP.getFragmentShader()))
             return original.call(instance, id_, type_);
 
         return """
             #version 150
-
+            
             in vec2 texCoord;
             out vec4 fragColor;
-
+            
             void main() {
                 fragColor = vec4(1.0);
             }
