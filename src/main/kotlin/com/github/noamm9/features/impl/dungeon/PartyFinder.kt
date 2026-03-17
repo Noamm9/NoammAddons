@@ -1,10 +1,16 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.NoammAddons.PREFIX
+import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
+import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.*
+import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
+import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
@@ -14,6 +20,8 @@ import com.github.noamm9.utils.JsonUtils.getObj
 import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
 import com.github.noamm9.utils.NumbersUtils.toFixed
+import com.github.noamm9.utils.PartyUtils
+import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.Utils.remove
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.network.ApiUtils
@@ -22,6 +30,7 @@ import com.github.noamm9.utils.network.cache.ProfileCache
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
 import kotlinx.coroutines.launch
+import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Blocks
@@ -35,6 +44,17 @@ object PartyFinder: Feature() {
     private val showSecrets by ToggleSetting("Show Secrets", true).withDescription("Shows Total Secrets and Average.").showIf { showTooltipStats.value }
     private val showPB by ToggleSetting("Show PB", true).withDescription("Shows Personal Best for the current floor.").showIf { showTooltipStats.value }
     private val showMissingTooltip by ToggleSetting("Show Missing List", true).withDescription("Shows the list of missing classes at the bottom of the tooltip.")
+
+    private val sendKickLine by ToggleSetting("Send Kick Line", true).withDescription("Shows a clickable kick button in chat when a player joins.").section("Auto Kick")
+    private val autoKick by ToggleSetting("Auto Kick", false).withDescription("Automatically kick players that don't meet requirements.")
+    private val autoKickFloor by DropdownSetting("Floor", 6, listOf("F1", "F2", "F3", "F4", "F5", "F6", "F7")).showIf { autoKick.value }
+    private val masterMode by ToggleSetting("Master Mode", true).showIf { autoKick.value }
+    private val informKicked by ToggleSetting("Inform Kicked", false).withDescription("Send a party chat message before kicking.").showIf { autoKick.value }
+    private val maximumSeconds by SliderSetting("Maximum Seconds", 400, 60, 480, 10, suffix = "s").withDescription("Maximum S+ PB time in seconds.").showIf { autoKick.value }
+    private val minimumSecrets by SliderSetting("Minimum Secrets", 0, 0, 200, 1, suffix = "k").withDescription("Minimum secrets in thousands.").showIf { autoKick.value }
+
+    private val pfJoinRegex = Regex("^Party Finder > (?:\\[[^]]*?])? ?(\\w{1,16}) joined the dungeon group! \\(.*\\)$")
+    private val kickedPlayers = mutableSetOf<String>()
 
     private val partyMembersRegex = Regex("§5 (.+)§f: §e(.+)§b \\(..(\\d+)..\\)")
     private val levelRequiredRegex = Regex("§7Dungeon Level Required: §b(\\d+)")
@@ -154,6 +174,41 @@ object PartyFinder: Feature() {
         }
 
         register<ContainerEvent.Close> { inPartyFinder = false }
+        register<WorldChangeEvent> { kickedPlayers.clear() }
+
+        register<ChatMessageEvent> {
+            val match = pfJoinRegex.find(event.unformattedText) ?: return@register
+            val name = match.groupValues[1]
+
+            if (sendKickLine.value) {
+                ChatUtils.chat(Component.literal("$PREFIX §aClick to kick §e$name").withStyle {
+                    it.withClickEvent(ClickEvent.RunCommand("/party kick $name"))
+                })
+            }
+
+            if (!autoKick.value) return@register
+            if (!PartyUtils.isLeader()) return@register
+
+            if (name in kickedPlayers) {
+                ChatUtils.modMessage("&cAuto-kicking &e$name &c(previously kicked)")
+                ThreadUtils.scheduledTask(6) { ChatUtils.sendCommand("party kick $name") }
+                return@register
+            }
+
+            scope.launch {
+                val reasons = checkPlayer(name)
+                if (reasons.isNotEmpty()) {
+                    kickedPlayers.add(name)
+                    if (informKicked.value) {
+                        ChatUtils.sendCommand("pc Kicked $name: ${reasons.joinToString(", ")}")
+                        ThreadUtils.scheduledTask(6) { ChatUtils.sendCommand("party kick $name") }
+                    } else {
+                        ChatUtils.sendCommand("party kick $name")
+                    }
+                    ChatUtils.modMessage("&cKicked &e$name&c: ${reasons.joinToString(", ")}")
+                }
+            }
+        }
     }
 
     private fun getColor(level: Int) = when {
@@ -168,6 +223,32 @@ object PartyFinder: Feature() {
         level >= 10 -> "§e"
         level >= 5 -> "§f"
         else -> "§7"
+    }
+
+    private suspend fun checkPlayer(name: String): List<String> {
+        val reasons = mutableListOf<String>()
+        val profile = ProfileUtils.getProfile(name).getOrNull() ?: return reasons
+
+        val dungeons = profile.getObj("dungeons") ?: return reasons
+        val floor = autoKickFloor.value + 1
+        val dungeonType = if (masterMode.value) dungeons.getObj("master_catacombs") else dungeons.getObj("catacombs")
+
+        val floorPrefix = if (masterMode.value) "M" else "F"
+        val pb = dungeonType?.getObj("fastest_time_s_plus")?.getInt("$floor")
+        if (pb == null || pb / 1000 > maximumSeconds.value) {
+            val actual = pb?.let { "${it / 1000}s" } ?: "N/A"
+            reasons.add("Did not meet time req for $floorPrefix$floor: $actual/${maximumSeconds.value}s")
+        }
+
+        if (minimumSecrets.value > 0) {
+            val secrets = dungeons.getInt("secrets") ?: 0
+            val minRequired = minimumSecrets.value * 1000
+            if (secrets < minRequired) {
+                reasons.add("Did not meet secret req: ${secrets / 1000}k/${minimumSecrets.value}k")
+            }
+        }
+
+        return reasons
     }
 
     private fun getStats(name: String, floor: Int, type: Char): String {

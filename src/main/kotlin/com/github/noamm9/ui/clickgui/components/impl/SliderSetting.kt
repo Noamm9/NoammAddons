@@ -20,7 +20,8 @@ open class SliderSetting<T: Number>(
     value: T,
     val min: T,
     val max: T,
-    val step: T
+    val step: T,
+    val suffix: String = ""
 ): Setting<T>(name, value), Savable {
     private var dragging = false
     private var isTyping = false
@@ -49,7 +50,7 @@ open class SliderSetting<T: Number>(
         Style.drawHoverBar(ctx, x, y, 20f, hoverAnim.value)
         Style.drawNudgedText(ctx, name, x + 8f, y + 2f, hoverAnim.value)
 
-        val valStr = if (isTyping) inputBuffer else stringfy(value)
+        val valStr = if (isTyping) inputBuffer else stringfy(value) + suffix
         val textColor = if (isTyping) Style.accentColor else Color(180, 180, 180)
         Render2D.drawString(ctx, valStr, x + width - valStr.width() - 8f, y + 2f, textColor)
 
