@@ -1,6 +1,5 @@
 package com.github.noamm9.features.impl.dungeon
 
-import com.github.noamm9.NoammAddons.PREFIX
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
@@ -17,12 +16,11 @@ import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.JsonUtils.getDouble
 import com.github.noamm9.utils.JsonUtils.getInt
 import com.github.noamm9.utils.JsonUtils.getObj
-import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.PartyUtils
 import com.github.noamm9.utils.ThreadUtils
-import com.github.noamm9.utils.Utils.remove
+import com.github.noamm9.utils.Utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.network.ApiUtils
 import com.github.noamm9.utils.network.ProfileUtils
@@ -30,7 +28,6 @@ import com.github.noamm9.utils.network.cache.ProfileCache
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
 import kotlinx.coroutines.launch
-import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Blocks
@@ -53,8 +50,9 @@ object PartyFinder: Feature() {
     private val maximumSeconds by SliderSetting("Maximum Seconds", 400, 60, 480, 10, suffix = "s").withDescription("Maximum S+ PB time in seconds.").showIf { autoKick.value }
     private val minimumSecrets by SliderSetting("Minimum Secrets", 0, 0, 200, 1, suffix = "k").withDescription("Minimum secrets in thousands.").showIf { autoKick.value }
 
-    private val pfJoinRegex = Regex("^Party Finder > (?:\\[[^]]*?])? ?(\\w{1,16}) joined the dungeon group! \\(.*\\)$")
+    private val joinedRegex = Regex("^§dParty Finder §f> (.+?) §ejoined the dungeon group! \\(§b(\\w+) Level (\\d+)§e\\)$")
     private val kickedPlayers = mutableSetOf<String>()
+    private const val prefix = "&9AutoKick &f>"
 
     private val partyMembersRegex = Regex("§5 (.+)§f: §e(.+)§b \\(..(\\d+)..\\)")
     private val levelRequiredRegex = Regex("§7Dungeon Level Required: §b(\\d+)")
@@ -174,59 +172,41 @@ object PartyFinder: Feature() {
         }
 
         register<ContainerEvent.Close> { inPartyFinder = false }
+
         register<WorldChangeEvent> { kickedPlayers.clear() }
 
         register<ChatMessageEvent> {
-            val match = pfJoinRegex.find(event.unformattedText) ?: return@register
-            val name = match.groupValues[1]
+            val name = joinedRegex.find(event.formattedText)?.destructured?.component1() ?: return@register
 
-            if (sendKickLine.value) {
-                ChatUtils.chat(Component.literal("$PREFIX §aClick to kick §e$name").withStyle {
-                    it.withClickEvent(ClickEvent.RunCommand("/party kick $name"))
-                })
+            if (sendKickLine.value) ThreadUtils.scheduledTask {
+                ChatUtils.clickableChat("§aClick to kick §e$name", true, command = "/party kick $name")
             }
 
-            if (!autoKick.value) return@register
-            if (!PartyUtils.isLeader()) return@register
+            if (! autoKick.value || ! PartyUtils.isLeader()) return@register
 
             if (name in kickedPlayers) {
-                ChatUtils.modMessage("&cAuto-kicking &e$name &c(previously kicked)")
+                ChatUtils.modMessage("$prefix &cAuto-kicking &e$name &c(previously kicked)")
                 ThreadUtils.scheduledTask(6) { ChatUtils.sendCommand("party kick $name") }
                 return@register
             }
 
             scope.launch {
-                val reasons = checkPlayer(name)
-                if (reasons.isNotEmpty()) {
-                    kickedPlayers.add(name)
-                    if (informKicked.value) {
-                        ChatUtils.sendCommand("pc Kicked $name: ${reasons.joinToString(", ")}")
-                        ThreadUtils.scheduledTask(6) { ChatUtils.sendCommand("party kick $name") }
-                    } else {
-                        ChatUtils.sendCommand("party kick $name")
-                    }
-                    ChatUtils.modMessage("&cKicked &e$name&c: ${reasons.joinToString(", ")}")
+                val reasons = checkPlayer(name.removeFormatting()).takeUnless { it.isEmpty() } ?: return@launch
+                ChatUtils.modMessage("&cKicking &e$name:&r ${reasons.joinToString(", ")}")
+                kickedPlayers.add(name)
+
+                if (informKicked.value) {
+                    ChatUtils.sendCommand("pc Kicking $name: ${reasons.joinToString(", ")}")
+                    ThreadUtils.scheduledTask(6) { ChatUtils.sendCommand("party kick $name") }
                 }
+                else ChatUtils.sendCommand("party kick $name")
             }
         }
     }
 
-    private fun getColor(level: Int) = when {
-        level >= 50 -> "§c§l"
-        level >= 45 -> "§c"
-        level >= 40 -> "§6"
-        level >= 35 -> "§d"
-        level >= 30 -> "§9"
-        level >= 25 -> "§b"
-        level >= 20 -> "§2"
-        level >= 15 -> "§a"
-        level >= 10 -> "§e"
-        level >= 5 -> "§f"
-        else -> "§7"
-    }
-
     private suspend fun checkPlayer(name: String): List<String> {
         val reasons = mutableListOf<String>()
+        if (name.equalsOneOf("Noamm", mc.user.name)) return reasons
         val profile = ProfileUtils.getProfile(name).getOrNull() ?: return reasons
 
         val dungeons = profile.getObj("dungeons") ?: return reasons
@@ -234,17 +214,17 @@ object PartyFinder: Feature() {
         val dungeonType = if (masterMode.value) dungeons.getObj("master_catacombs") else dungeons.getObj("catacombs")
 
         val floorPrefix = if (masterMode.value) "M" else "F"
-        val pb = dungeonType?.getObj("fastest_time_s_plus")?.getInt("$floor")
-        if (pb == null || pb / 1000 > maximumSeconds.value) {
-            val actual = pb?.let { "${it / 1000}s" } ?: "N/A"
-            reasons.add("Did not meet time req for $floorPrefix$floor: $actual/${maximumSeconds.value}s")
+        val pbReq = formatTime(maximumSeconds.value * 1000)
+        val pb = dungeonType?.getObj("fastest_time_s_plus")?.getInt("$floor")?.div(1000)
+        if (pb == null) reasons.add("PB(&c&lNo S+&f/$pbReq)")
+        else if (pb / 1000 > maximumSeconds.value) {
+            reasons.add("$floorPrefix$floor: PB(${formatTime(pb)}/$pbReq)")
         }
 
         if (minimumSecrets.value > 0) {
             val secrets = dungeons.getInt("secrets") ?: 0
-            val minRequired = minimumSecrets.value * 1000
-            if (secrets < minRequired) {
-                reasons.add("Did not meet secret req: ${secrets / 1000}k/${minimumSecrets.value}k")
+            if (secrets < minimumSecrets.value * 1000) {
+                reasons.add("Secrets(${secrets / 1000}k/${minimumSecrets.value}k)")
             }
         }
 
@@ -297,17 +277,37 @@ object PartyFinder: Feature() {
             if (showPB.value) {
                 val pbObj = if (type == 'F') catacombs else masterCatacombs
                 val pbTime = pbObj?.getObj("fastest_time_s_plus")?.getInt("$floor")
-
-                val pb = pbTime?.let { time ->
-                    val str = NumbersUtils.formatTime(time)
-                    str.split(" ").joinToString(":") {
-                        if (it.length == 2 && it.contains("s")) ("0" + it.remove("s"))
-                        else it.remove("m", "s")
-                    }
-                } ?: "N/A"
-
+                val pb = pbTime?.let(::formatTime) ?: "N/A"
                 append(" §8[§9$pb§8]§r")
             }
         }
+    }
+
+
+    private fun getColor(level: Int) = when {
+        level >= 50 -> "§c§l"
+        level >= 45 -> "§c"
+        level >= 40 -> "§6"
+        level >= 35 -> "§d"
+        level >= 30 -> "§9"
+        level >= 25 -> "§b"
+        level >= 20 -> "§2"
+        level >= 15 -> "§a"
+        level >= 10 -> "§e"
+        level >= 5 -> "§f"
+        else -> "§7"
+    }
+
+    private fun formatTime(milliseconds: Number): String {
+        val totalSecs = milliseconds.toLong() / 1000
+        val h = totalSecs / 3600
+        val m = (totalSecs % 3600) / 60
+        val s = totalSecs % 60
+
+        return buildList {
+            if (h > 0) add(h)
+            if (m > 0) add(m)
+            if (s > 0) add(s)
+        }.joinToString(":")
     }
 }
