@@ -1,0 +1,47 @@
+package com.github.noamm9.mixin;
+
+import com.github.noamm9.features.impl.misc.Camera;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.mojang.blaze3d.opengl.GlDevice;
+import com.mojang.blaze3d.opengl.GlRenderPipeline;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.shaders.ShaderSource;
+import com.mojang.blaze3d.shaders.ShaderType;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.resources.Identifier;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+@Mixin(GlDevice.class)
+public class MixinGlDevice {
+    @Unique private static boolean lastFullBright = false;
+
+    @WrapOperation(method = "compileShader", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/shaders/ShaderSource;get(Lnet/minecraft/resources/Identifier;Lcom/mojang/blaze3d/shaders/ShaderType;)Ljava/lang/String;"))
+    private String noammaddons$fullbright(ShaderSource instance, Identifier id, ShaderType shaderType, Operation<String> original) {
+        if (!Camera.INSTANCE.enabled || !Camera.getFullBright().getValue()) return original.call(instance, id, shaderType);
+        if (shaderType != ShaderType.FRAGMENT || !id.equals(RenderPipelines.LIGHTMAP.getFragmentShader())) return original.call(instance, id, shaderType);
+
+        return """
+            #version 150
+            
+            in vec2 texCoord;
+            out vec4 fragColor;
+            
+            void main() {
+                fragColor = vec4(1.0);
+            }
+            """;
+    }
+
+    @Inject(method = "getOrCompilePipeline", at = @At("HEAD"))
+    private void noammaddons$checkFullBrightToggle(RenderPipeline pipeline, CallbackInfoReturnable<GlRenderPipeline> cir) {
+        boolean current = Camera.INSTANCE.enabled && Camera.getFullBright().getValue();
+        if (current == lastFullBright) return;
+        lastFullBright = current;
+        ((GlDevice) (Object) this).clearPipelineCache();
+    }
+}
