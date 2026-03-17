@@ -15,6 +15,7 @@ object DebugHUD {
     fun render(guiGraphics: GuiGraphics) {
         renderDungeonDebug(guiGraphics)
         renderLocationDebug(guiGraphics)
+        renderPartyDebug(guiGraphics)
     }
 
 
@@ -140,5 +141,37 @@ object DebugHUD {
             draw("P3 Section: $sectionName")
         }
 
+    }
+
+    private fun renderPartyDebug(graphics: GuiGraphics) {
+        if (! NoammAddons.debugFlags.contains("party")) return
+        var y = 20
+        val x = 350
+
+        fun draw(text: String, color: Int = 0xFFFFFF) {
+            Render2D.drawString(graphics, text, x, y, color = Color(color))
+            y += 10
+        }
+
+        draw("§d§lPARTY DEBUGGER", 0xFF55FF)
+        draw("In Party: ${if (PartyUtils.isInParty) "§aYES" else "§cNO"}")
+        draw("Is Leader: ${if (PartyUtils.isLeader()) "§aYES" else "§cNO"}")
+
+        val leaderName = PartyUtils.partyLeader
+        val selfName = NoammAddons.mc.player?.gameProfile?.name
+        draw("Party Leader: ${leaderName?.let { "§f$it" } ?: "§7None"}")
+
+        y += 5
+        draw("§b§lMEMBERS (${PartyUtils.members.size})", 0x55FFFF)
+        if (PartyUtils.members.isEmpty()) draw(" §7No members detected...")
+        else PartyUtils.members.forEach { member ->
+            val tags = buildList {
+                if (member == leaderName) add("§6[LEADER]")
+                if (member == selfName) add("§d(YOU)")
+            }.joinToString(" ")
+
+            val tagText = if (tags.isNotEmpty()) " $tags" else ""
+            draw(" §f$member$tagText")
+        }
     }
 }
