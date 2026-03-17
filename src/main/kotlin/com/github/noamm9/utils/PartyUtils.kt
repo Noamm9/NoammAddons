@@ -141,6 +141,8 @@ object PartyUtils {
         }
     }
 
+    fun isLeader(): Boolean = partyLeader == mc.user.name
+
     private fun addMember(playerName: String) {
         if (! isInParty) isInParty = true
         if (playerName !in members) members.add(playerName)
@@ -157,6 +159,4 @@ object PartyUtils {
         partyLeader = null
         isInParty = false
     }
-
-    fun isLeader(): Boolean = partyLeader == mc.player?.gameProfile?.name
 }

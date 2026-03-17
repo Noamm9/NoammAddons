@@ -37,7 +37,7 @@ object AutoRequeue: Feature() {
             }
 
             ThreadUtils.setTimeout(delay.value * 1000) {
-                if (checkParty.value && !PartyUtils.isLeader()) return@setTimeout feedBackMessage("You are not the party leader!")
+                if (checkParty.value && ! PartyUtils.isLeader()) return@setTimeout feedBackMessage("You are not the party leader!")
                 ChatUtils.sendMessage("/joininstance ${masterMode}CATACOMBS_FLOOR_${floor}")
             }
         }
