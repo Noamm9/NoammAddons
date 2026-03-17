@@ -28,13 +28,6 @@ public class MixinGameRenderer {
     @Final
     private Minecraft minecraft;
 
-    @Inject(method = "getNightVisionScale", at = @At("HEAD"), cancellable = true)
-    private static void onGetNightVisionScale(LivingEntity entity, float partialTicks, CallbackInfoReturnable<Float> cir) {
-        if (Camera.INSTANCE.enabled && Camera.getFullBright().getValue()) {
-            cir.setReturnValue(0.0f);
-        }
-    }
-
     @Inject(method = "bobHurt", at = @At("HEAD"), cancellable = true)
     public void onBobHurt(PoseStack poseStack, float f, CallbackInfo ci) {
         if (this.minecraft.options.damageTiltStrength().get() == 0) {
