@@ -312,12 +312,14 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
     }
 
     private fun sendClickPacket(slot: Int, btn: Int) {
-        mc.gameMode?.handleInventoryMouseClick(
+        val player = mc.player ?: return
+        val gameMode = mc.gameMode ?: return
+        gameMode.handleInventoryMouseClick(
             TerminalListener.lastWindowId,
             slot,
             if (btn == 0) 2 else btn,
             if (btn == 0) ClickType.CLONE else ClickType.PICKUP,
-            mc.player
+            player
         )
 
         if (NoammAddons.debugFlags.contains("terminal")) {

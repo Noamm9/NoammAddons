@@ -14,7 +14,7 @@ object ArrowHitSound: Feature() {
     @JvmStatic
     fun onSoundPlay(soundInstance: SoundInstance): Boolean {
         if (! enabled) return false
-        if (soundInstance.location != SoundEvents.ARROW_HIT_PLAYER.location) return false
+        if (soundInstance.identifier != SoundEvents.ARROW_HIT_PLAYER.location()) return false
         soundConfig.play.action()
         return true
     }

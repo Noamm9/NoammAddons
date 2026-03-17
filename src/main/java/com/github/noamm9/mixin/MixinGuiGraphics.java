@@ -8,7 +8,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3x2fStack;
@@ -26,7 +26,7 @@ public abstract class MixinGuiGraphics {
     @Shadow @Final private Matrix3x2fStack pose;
 
     @WrapMethod(method = "renderTooltip")
-    private void onRenderTooltipPre(Font font, List<ClientTooltipComponent> components, int x, int y, ClientTooltipPositioner positioner, @Nullable ResourceLocation background, Operation<Void> original) {
+    private void onRenderTooltipPre(Font font, List<ClientTooltipComponent> components, int x, int y, ClientTooltipPositioner positioner, @Nullable Identifier background, Operation<Void> original) {
         if (!ScrollableTooltip.INSTANCE.enabled) original.call(font, components, x, y, positioner, background);
         else {
             pose.pushMatrix();

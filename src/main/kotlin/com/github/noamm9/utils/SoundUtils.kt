@@ -5,7 +5,7 @@ import com.github.noamm9.NoammAddons.mc
 import net.minecraft.client.resources.sounds.SoundInstance
 import net.minecraft.client.sounds.JOrbisAudioStream
 import net.minecraft.core.Holder
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import net.minecraft.sounds.SoundEvent
 import org.lwjgl.openal.AL10
 import java.io.InputStream
@@ -25,7 +25,7 @@ object SoundUtils {
         val sound = weightedSoundSet.getSound(SoundInstance.createUnseededRandom())
         val soundLocation = sound.location
         val actualPath = "sounds/${soundLocation.path}.ogg"
-        val fileLocation = ResourceLocation.fromNamespaceAndPath(soundLocation.namespace, actualPath)
+        val fileLocation = Identifier.fromNamespaceAndPath(soundLocation.namespace, actualPath)
         playInternal(fileLocation, volume, pitch)
     }
 
@@ -40,7 +40,7 @@ object SoundUtils {
         }
     }
 
-    fun playInternal(id: ResourceLocation, volume: Float = 1.0f, pitch: Float = 1f) {
+    fun playInternal(id: Identifier, volume: Float = 1.0f, pitch: Float = 1f) {
         val resource = mc.resourceManager.getResource(id)
         if (resource.isEmpty) return
 
@@ -562,11 +562,11 @@ object SoundUtils {
         "entity.wolf.whine" to "WOLF_WHINE",
     )
 
-    val REVERSE_MAP: Map<ResourceLocation, String> by lazy {
-        val result = mutableMapOf<ResourceLocation, String>()
+    val REVERSE_MAP: Map<Identifier, String> by lazy {
+        val result = mutableMapOf<Identifier, String>()
 
         MAP.forEach { (path, prettyName) ->
-            val location = ResourceLocation.fromNamespaceAndPath("minecraft", path)
+            val location = Identifier.fromNamespaceAndPath("minecraft", path)
             result[location] = prettyName
         }
 

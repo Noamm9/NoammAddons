@@ -117,7 +117,8 @@ object TextReplacer {
         seq.accept { _, style, codePoint ->
             if (style != currentStyle) {
                 if (buffer.isNotEmpty()) {
-                    rebuilt.append(Component.literal(buffer.toString()).withStyle(currentStyle))
+                    val style = currentStyle ?: Style.EMPTY
+                    rebuilt.append(Component.literal(buffer.toString()).withStyle(style))
                     buffer.clear()
                 }
                 currentStyle = style
@@ -126,7 +127,8 @@ object TextReplacer {
             true
         }
         if (buffer.isNotEmpty()) {
-            rebuilt.append(Component.literal(buffer.toString()).withStyle(currentStyle))
+            val style = currentStyle ?: Style.EMPTY
+            rebuilt.append(Component.literal(buffer.toString()).withStyle(style))
         }
 
         return handleComponent(rebuilt).visualOrderText

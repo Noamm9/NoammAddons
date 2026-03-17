@@ -168,9 +168,9 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     }
 
     private fun sendClickPacket(slot: Int) {
-        mc.gameMode?.handleInventoryMouseClick(
-            TerminalListener.lastWindowId, slot, 2, ClickType.CLONE, mc.player
-        )
+        val player = mc.player ?: return
+        val gameMode = mc.gameMode ?: return
+        gameMode.handleInventoryMouseClick(TerminalListener.lastWindowId, slot, 2, ClickType.CLONE, player)
     }
 
     fun reset() {

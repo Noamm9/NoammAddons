@@ -21,7 +21,7 @@ class UIButton(
 
     var overrideColor: Color? = null
 
-    override fun renderWidget(context: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
+    override fun renderContents(context: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
         val bgColor = if (isHovered) Color(45, 45, 45, 220) else Color(30, 30, 30, 200)
         Render2D.drawRect(context, x, y, width, height, bgColor)
 

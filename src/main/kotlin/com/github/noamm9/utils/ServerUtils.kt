@@ -6,7 +6,7 @@ import com.github.noamm9.event.EventPriority
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
-import net.minecraft.Util
+import net.minecraft.util.Util
 import net.minecraft.network.protocol.game.ClientboundSetTimePacket
 import net.minecraft.network.protocol.ping.ClientboundPongResponsePacket
 import net.minecraft.network.protocol.ping.ServerboundPingRequestPacket
@@ -60,11 +60,11 @@ object ServerUtils {
                 lastTimePacket = now
             }
             else if (packet is ClientboundPongResponsePacket) {
-                currentPing = (Util.getMillis() - packet.time).coerceAtLeast(0)
+                currentPing = (Util.getMillis() - packet.time).coerceAtLeast(0L)
                 isPinging = false
 
                 val pingLog = mc.debugOverlay.pingLogger
-                val sampleSize = min(pingLog.size(), 10)
+                val sampleSize = min(pingLog.size().toInt(), 10)
 
                 if (sampleSize > 0) {
                     var total = 0L

@@ -20,7 +20,7 @@ import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
 import com.github.noamm9.utils.render.RenderHelper.renderVec
 import net.minecraft.client.gui.GuiGraphics
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import java.awt.Color
 import kotlin.math.max
 
@@ -29,12 +29,12 @@ object MapRenderer: HudElement() {
     override val toggle get() = DungeonMap.enabled && MapConfig.mapEnabled.value
     override val shouldDraw get() = LocationUtils.inDungeon && ! LocationUtils.inBoss
 
-    private val checkmarkGreen = ResourceLocation.fromNamespaceAndPath(MOD_ID, "dungeonmap/checkmarks/green_check")
-    private val checkmarkWhite = ResourceLocation.fromNamespaceAndPath(MOD_ID, "dungeonmap/checkmarks/white_check")
-    private val checkmarkUnknown = ResourceLocation.fromNamespaceAndPath(MOD_ID, "dungeonmap/checkmarks/question")
-    private val checkmarkFail = ResourceLocation.fromNamespaceAndPath(MOD_ID, "dungeonmap/checkmarks/cross")
-    private val ownPlayerMarker = ResourceLocation.fromNamespaceAndPath(MOD_ID, "dungeonmap/marker_self")
-    // private val otherPlayerMarker = ResourceLocation.fromNamespaceAndPath(MOD_ID, "dungeonmap/marker_other")
+    private val checkmarkGreen = Identifier.fromNamespaceAndPath(MOD_ID, "dungeonmap/checkmarks/green_check")
+    private val checkmarkWhite = Identifier.fromNamespaceAndPath(MOD_ID, "dungeonmap/checkmarks/white_check")
+    private val checkmarkUnknown = Identifier.fromNamespaceAndPath(MOD_ID, "dungeonmap/checkmarks/question")
+    private val checkmarkFail = Identifier.fromNamespaceAndPath(MOD_ID, "dungeonmap/checkmarks/cross")
+    private val ownPlayerMarker = Identifier.fromNamespaceAndPath(MOD_ID, "dungeonmap/marker_self")
+    // private val otherPlayerMarker = Identifier.fromNamespaceAndPath(MOD_ID, "dungeonmap/marker_other")
 
     override fun draw(ctx: GuiGraphics, example: Boolean): Pair<Float, Float> {
 

@@ -4,16 +4,16 @@
   "version": "${version}",
   "name": "NoammAddons",
   //#if CHEAT
-  "description": "1.21.10 port of the greatest skyblock mod ever made! Version: Cheat",
+  "description": "1.21.11 port of the greatest skyblock mod ever made! Version: Cheat",
   //#else
-  //$"description": "1.21.10 port of the greatest skyblock mod ever made! Version: Legit",
+  //$"description": "1.21.11 port of the greatest skyblock mod ever made! Version: Legit",
   //#endif
   "authors": [
     "Noamm"
   ],
   "contact": {
     "homepage": "https://github.com/Noamm9",
-    "sources": "https://github.com/Noamm9/NoammAddons-1.21.10"
+    "sources": "https://github.com/Noamm9/NoammAddons-1.21.11"
   },
   "license": "CC0-1.0",
   "icon": "assets/noammaddons/icon.png",
@@ -31,7 +31,7 @@
   ],
   "depends": {
     "fabricloader": ">=0.17.3",
-    "minecraft": "~1.21.10",
+    "minecraft": "~1.21.11",
     "java": ">=21",
     "fabric-api": "*",
     "fabric-language-kotlin": "*"

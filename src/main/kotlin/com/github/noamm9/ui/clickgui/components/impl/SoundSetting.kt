@@ -17,7 +17,7 @@ import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.client.input.MouseButtonInfo
 import net.minecraft.core.Holder
 import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import net.minecraft.sounds.SoundEvent
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
@@ -31,16 +31,19 @@ class SoundSetting(name: String, defaultValue: SoundEvent): Setting<SoundEvent>(
 
         private val allSounds by lazy {
             BuiltInRegistries.SOUND_EVENT.entrySet()
-                .filter { it.key.location() in prettyNames.keys }
-                .map { it.value }
+                .mapNotNull { entry ->
+                    val id = BuiltInRegistries.SOUND_EVENT.getKey(entry.value) ?: return@mapNotNull null
+                    if (id !in prettyNames.keys) return@mapNotNull null
+                    entry.value
+                }
                 .sortedBy { prettyNames[it.location()] }
         }
 
-        private fun getSoundName(loc: ResourceLocation): String {
+        private fun getSoundName(loc: Identifier): String {
             return prettyNames[loc] !!
         }
 
-        private fun getSound(loc: ResourceLocation): Holder.Reference<SoundEvent>? {
+        private fun getSound(loc: Identifier): Holder.Reference<SoundEvent>? {
             return BuiltInRegistries.SOUND_EVENT.get(loc).orElse(null)
         }
     }
@@ -216,7 +219,7 @@ class SoundSetting(name: String, defaultValue: SoundEvent): Setting<SoundEvent>(
 
     override fun read(element: JsonElement?) {
         element?.asString?.let {
-            val loc = ResourceLocation.tryParse(it) ?: return
+            val loc = Identifier.tryParse(it) ?: return
             val sound = getSound(loc) ?: return
             value = sound.value()
         }

@@ -13,12 +13,10 @@ import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.NoammRenderLayers
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderContext
 import com.github.noamm9.utils.render.RenderHelper.renderVec
-import net.minecraft.client.renderer.ShapeRenderer
 import net.minecraft.network.protocol.game.*
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon
 import net.minecraft.world.level.block.Blocks
@@ -173,18 +171,16 @@ object WitherDragons: Feature(
     }
 
     private fun drawDragonBox(ctx: RenderContext, aabb: AABB, color: Color) {
-        val camPos = ctx.camera.position
-
-        ctx.matrixStack.pushPose()
-        ctx.matrixStack.translate(- camPos.x, - camPos.y, - camPos.z)
-
-        ShapeRenderer.renderLineBox(
-            ctx.matrixStack.last(),
-            ctx.consumers.getBuffer(NoammRenderLayers.getLines(2.0)),
-            aabb,
-            color.red / 255f, color.green / 255f, color.blue / 255f, 1f
+        Render3D.renderBoxBounds(
+            ctx,
+            aabb.minX, aabb.minY, aabb.minZ,
+            aabb.maxX, aabb.maxY, aabb.maxZ,
+            color,
+            color,
+            outline = true,
+            fill = false,
+            phase = false,
+            lineWidth = 2.0
         )
-
-        ctx.matrixStack.popPose()
     }
 }

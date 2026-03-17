@@ -3,8 +3,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
     id 'maven-publish'
-    id "org.jetbrains.kotlin.jvm" version "2.3.0"
-    id "org.jetbrains.kotlin.plugin.serialization" version "2.3.0"
+    id "org.jetbrains.kotlin.jvm" version "2.3.10"
+    id "org.jetbrains.kotlin.plugin.serialization" version "2.3.10"
 }
 
 version = project.mod_version
@@ -29,7 +29,6 @@ dependencies {
 
     mappings loom.layered() {
         officialMojangMappings()
-        parchment "org.parchmentmc.data:parchment-1.21.10:2025.10.12@zip"
     }
 
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"

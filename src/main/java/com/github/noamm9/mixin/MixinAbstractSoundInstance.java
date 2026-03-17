@@ -12,7 +12,7 @@ public class MixinAbstractSoundInstance {
     @Inject(method = "getVolume", at = @At("RETURN"), cancellable = true)
     private void onGetVolume(CallbackInfoReturnable<Float> cir) {
         AbstractSoundInstance sound = (AbstractSoundInstance) (Object) this;
-        String id = sound.getLocation().toString();
+        String id = sound.getIdentifier().toString();
         float multiplier = SoundManager.getMultiplier(id);
         cir.setReturnValue(cir.getReturnValue() * multiplier);
     }

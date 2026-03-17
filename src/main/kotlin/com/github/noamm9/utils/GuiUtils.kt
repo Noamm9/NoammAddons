@@ -11,12 +11,14 @@ object GuiUtils {
     }
 
     fun clickSlot(slotIndex: Int, btn: ButtonType) {
-        val containerId = mc.player?.containerMenu?.containerId ?: return
+        val player = mc.player ?: return
+        val containerId = player.containerMenu.containerId
+        val gameMode = mc.gameMode ?: return
 
-        mc.gameMode?.handleInventoryMouseClick(
+        gameMode.handleInventoryMouseClick(
             containerId, slotIndex, btn.ordinal,
             if (btn == ButtonType.MIDDLE) ClickType.CLONE
-            else ClickType.PICKUP, mc.player
+            else ClickType.PICKUP, player
         )
     }
 

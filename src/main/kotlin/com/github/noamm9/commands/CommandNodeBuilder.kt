@@ -24,7 +24,7 @@ class CommandNodeBuilder(private val builder: ArgumentBuilder<FabricClientComman
         builder.then(subNode)
     }
 
-    fun <T> argument(name: String, type: ArgumentType<T>, block: CommandNodeBuilder.() -> Unit) {
+    fun <T : Any> argument(name: String, type: ArgumentType<T>, block: CommandNodeBuilder.() -> Unit) {
         val argNode = ClientCommandManager.argument(name, type)
         CommandNodeBuilder(argNode).apply(block)
         builder.then(argNode)

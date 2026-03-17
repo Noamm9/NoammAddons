@@ -53,7 +53,9 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
 
             if (lines[1] == "^^^^^^^^^^^^^^^" && lines[2] == "Your auction" && lines[3] == "starting bid") mc.execute {
                 // manually setting the screen so the sign gui wont close
-                mc.screen = AuctionInputScreen(sign, lines, stack).apply { init(mc, width, height) }
+                val customScreen = AuctionInputScreen(sign, lines, stack)
+                mc.screen = customScreen
+                customScreen.resize(width, height)
             }
         }
 

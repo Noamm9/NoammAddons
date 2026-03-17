@@ -21,7 +21,7 @@ public class MixinFont {
         return TextReplacer.handleString(text);
     }
 
-    @ModifyVariable(method = "prepareText(Lnet/minecraft/util/FormattedCharSequence;FFIZI)Lnet/minecraft/client/gui/Font$PreparedText;", at = @At("HEAD"), argsOnly = true)
+    @ModifyVariable(method = "prepareText(Lnet/minecraft/util/FormattedCharSequence;FFIZZI)Lnet/minecraft/client/gui/Font$PreparedText;", at = @At("HEAD"), argsOnly = true)
     private FormattedCharSequence onDrawSequence(FormattedCharSequence text) {
         if (!NoammAddons.isLoaded) return text;
         if (!Cosmetics.INSTANCE.enabled) return text;

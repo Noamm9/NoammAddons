@@ -21,14 +21,39 @@ public abstract class MixinChatComponent implements IChatComponent {
 
     @Shadow @Final private List<GuiMessage.Line> trimmedMessages;
 
-    @Shadow
-    protected abstract double screenToChatX(double d);
+    @Shadow private int chatScrollbarPos;
+    @Shadow protected abstract boolean isChatHidden();
+    @Shadow public abstract boolean isChatFocused();
+    @Shadow protected abstract int getWidth();
+    @Shadow protected abstract double getScale();
+    @Shadow public abstract int getLinesPerPage();
+    @Shadow protected abstract int getLineHeight();
 
-    @Shadow
-    protected abstract double screenToChatY(double d);
+    private double screenToChatX(double x) {
+        return (x / getScale()) - 4.0;
+    }
 
-    @Shadow
-    protected abstract int getMessageLineIndexAt(double d, double e);
+    private double screenToChatY(double y) {
+        double scaledHeight = mc.getWindow().getGuiScaledHeight();
+        double yFromBottom = scaledHeight - y - 40.0;
+        return yFromBottom / (getScale() * getLineHeight());
+    }
+
+    private int getMessageLineIndexAt(double x, double y) {
+        if (!isChatFocused() || isChatHidden()) return -1;
+        if (x < -4.0) return -1;
+
+        double maxX = Math.floor(getWidth() / getScale());
+        if (x > maxX) return -1;
+
+        int maxLines = Math.min(getLinesPerPage(), trimmedMessages.size());
+        if (y >= 0 && y < maxLines) {
+            int index = (int) Math.floor(y + chatScrollbarPos);
+            if (index >= 0 && index < trimmedMessages.size()) return index;
+        }
+
+        return -1;
+    }
 
     @Override
     public double getMouseXtoChatX() {

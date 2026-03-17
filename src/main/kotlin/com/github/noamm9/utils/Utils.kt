@@ -1,7 +1,7 @@
 package com.github.noamm9.utils
 
 import com.github.noamm9.NoammAddons
-import net.minecraft.Util
+import net.minecraft.util.Util
 import java.awt.Color
 import java.net.URI
 import kotlin.reflect.KClass

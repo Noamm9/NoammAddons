@@ -14,11 +14,10 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.MathUtils.Vec3
 import com.github.noamm9.utils.Utils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.NoammRenderLayers
+import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderHelper.renderX
 import com.github.noamm9.utils.render.RenderHelper.renderY
 import com.github.noamm9.utils.render.RenderHelper.renderZ
-import net.minecraft.client.renderer.ShapeRenderer
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.entity.decoration.ArmorStand
 import java.awt.Color
@@ -59,18 +58,9 @@ object TerminalHitboxes: Feature() {
             val terminalsToRender = cachedTerminals[section] ?: return@register
             terminalsToRender.removeIf { it.isRemoved || it.customName?.unformattedText == "Terminal Active" }
             if (terminalsToRender.isEmpty()) return@register
-            val consumers = event.ctx.consumers
-            val matrices = event.ctx.matrixStack
-            val cam = event.ctx.camera.position
 
             val drawFill = mode.value == 1 || mode.value == 2
             val drawOutline = mode.value == 0 || mode.value == 2
-
-            val fillBuffer = if (drawFill) consumers.getBuffer(if (phase.value) NoammRenderLayers.FILLED_THROUGH_WALLS else NoammRenderLayers.FILLED) else null
-            val outlineBuffer = if (drawOutline) consumers.getBuffer(if (phase.value) NoammRenderLayers.getLinesThroughWalls(2.0) else NoammRenderLayers.getLines(2.0)) else null
-
-            matrices.pushPose()
-            matrices.translate(- cam.x, - cam.y, - cam.z)
 
             for (entity in terminalsToRender) {
                 val hw = entity.bbWidth / 2.0
@@ -83,24 +73,17 @@ object TerminalHitboxes: Feature() {
                 val maxY = entity.renderY + hd
                 val maxZ = entity.renderZ + hw
 
-                if (drawFill && fillBuffer != null) {
-                    ShapeRenderer.addChainedFilledBoxVertices(
-                        matrices, fillBuffer,
-                        minX, minY, minZ, maxX, maxY, maxZ,
-                        fillColor.value.red / 255f, fillColor.value.green / 255f, fillColor.value.blue / 255f, fillColor.value.alpha / 255f
-                    )
-                }
-
-                if (drawOutline && outlineBuffer != null) {
-                    ShapeRenderer.renderLineBox(
-                        matrices.last(), outlineBuffer,
-                        minX, minY, minZ, maxX, maxY, maxZ,
-                        outlineColor.value.red / 255f, outlineColor.value.green / 255f, outlineColor.value.blue / 255f, 1f
-                    )
-                }
+                Render3D.renderBoxBounds(
+                    event.ctx,
+                    minX, minY, minZ, maxX, maxY, maxZ,
+                    outlineColor.value,
+                    fillColor.value,
+                    outline = drawOutline,
+                    fill = drawFill,
+                    phase = phase.value,
+                    lineWidth = 2.0
+                )
             }
-
-            matrices.popPose()
         }
     }
 }

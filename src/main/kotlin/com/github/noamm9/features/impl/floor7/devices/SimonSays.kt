@@ -14,10 +14,9 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.NoammRenderLayers
 import com.github.noamm9.utils.render.RenderContext
+import com.github.noamm9.utils.render.Render3D
 import kotlinx.coroutines.launch
-import net.minecraft.client.renderer.ShapeRenderer
 import net.minecraft.core.BlockPos
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.level.block.Blocks
@@ -258,8 +257,6 @@ object SimonSays: Feature("Simon Says Solver") {
     }
 
     private fun renderSSBox(ctx: RenderContext, pos: BlockPos, color: Color) {
-        val cam = ctx.camera.position.reverse()
-
         val w = 0.4 / 2.0
         val h = 0.26 / 2.0
 
@@ -273,18 +270,17 @@ object SimonSays: Feature("Simon Says Solver") {
         val minZ = cz - w
         val maxZ = cz + w
 
-        ctx.matrixStack.pushPose()
-        ctx.matrixStack.translate(cam.x, cam.y, cam.z)
-
-        ShapeRenderer.addChainedFilledBoxVertices(
-            ctx.matrixStack,
-            ctx.consumers.getBuffer(NoammRenderLayers.FILLED_THROUGH_WALLS),
+        val fillColor = Color(color.red, color.green, color.blue, (0.7f * 255).toInt())
+        Render3D.renderBoxBounds(
+            ctx,
             minX, minY, minZ,
             cx, maxY, maxZ,
-            color.red / 255f, color.green / 255f, color.blue / 255f, 0.7f
+            fillColor,
+            fillColor,
+            outline = false,
+            fill = true,
+            phase = true
         )
-
-        ctx.matrixStack.popPose()
     }
 }
 

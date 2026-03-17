@@ -5,14 +5,14 @@ import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.utils.MapUtils
 import net.minecraft.client.player.AbstractClientPlayer
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import net.minecraft.world.phys.Vec3
 
 data class DungeonPlayer(
     var name: String,
     var clazz: DungeonClass,
     var clazzLvl: Int,
-    var skin: ResourceLocation = mc.player !!.skin.body.texturePath(),
+    var skin: Identifier = mc.player !!.skin.body.texturePath(),
     var isDead: Boolean = false,
 ) {
     var entity: AbstractClientPlayer? = null

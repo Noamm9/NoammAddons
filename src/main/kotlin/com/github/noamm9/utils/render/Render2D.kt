@@ -7,7 +7,7 @@ import com.github.noamm9.utils.NumbersUtils.plus
 import com.github.noamm9.utils.NumbersUtils.times
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.renderer.RenderPipelines
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import net.minecraft.world.inventory.Slot
 import net.minecraft.world.item.ItemStack
 import java.awt.Color
@@ -18,7 +18,7 @@ import kotlin.math.sqrt
 object Render2D {
     fun Slot.highlight(ctx: GuiGraphics, color: Color) = drawRect(ctx, x, y, 16, 16, color)
 
-    fun drawTexture(ctx: GuiGraphics, texture: ResourceLocation, x: Number, y: Number, width: Number, height: Number) {
+    fun drawTexture(ctx: GuiGraphics, texture: Identifier, x: Number, y: Number, width: Number, height: Number) {
         ctx.blitSprite(RenderPipelines.GUI_TEXTURED, texture, x.toInt(), y.toInt(), width.toInt(), height.toInt())
     }
 
@@ -103,7 +103,7 @@ object Render2D {
         graphics.fill(ix + 1, iy + 1, ix + iw - 1, iy + ih - 1, base)
     }
 
-    fun drawPlayerHead(context: GuiGraphics, x: Int, y: Int, size: Int, skin: ResourceLocation) {
+    fun drawPlayerHead(context: GuiGraphics, x: Int, y: Int, size: Int, skin: Identifier) {
         context.blit(RenderPipelines.GUI_TEXTURED, skin, x, y, 8f, 8f, size, size, 8, 8, 64, 64, - 1)
         context.blit(RenderPipelines.GUI_TEXTURED, skin, x, y, 40f, 8f, size, size, 8, 8, 64, 64, - 1)
     }
