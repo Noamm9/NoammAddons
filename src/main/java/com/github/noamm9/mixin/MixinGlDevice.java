@@ -22,14 +22,9 @@ public class MixinGlDevice {
     @Unique private static boolean lastFullBright = false;
 
     @WrapOperation(method = "compileShader", at = @At(value = "INVOKE", target = "Ljava/util/function/BiFunction;apply(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"))
-    private Object noammaddons$fullbright(BiFunction<ResourceLocation, ShaderType, String> instance, Object id_, Object type_, Operation<String> original) {
-        if (!Camera.INSTANCE.enabled || !Camera.getFullBright().getValue()) return original.call(instance, id_, type_);
-
-        var id = (ResourceLocation) id_;
-        var shaderType = (ShaderType) type_;
-
-        if (shaderType != ShaderType.FRAGMENT || !id.equals(RenderPipelines.LIGHTMAP.getFragmentShader()))
-            return original.call(instance, id_, type_);
+    private Object noammaddons$fullbright(BiFunction<ResourceLocation, ShaderType, String> instance, Object id, Object type, Operation<String> original) {
+        if (!Camera.INSTANCE.enabled || !Camera.getFullBright().getValue()) return original.call(instance, id, type);
+        if (type != ShaderType.FRAGMENT || id != RenderPipelines.LIGHTMAP.getFragmentShader()) return original.call(instance, id, type);
 
         return """
             #version 150

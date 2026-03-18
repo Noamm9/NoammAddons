@@ -76,7 +76,8 @@ object ActionBarParser {
         }
 
         MANA_USAGE_REGEX.find(input)?.let { match ->
-            currentMana -= match.groupValues[1].remove(",").toIntOrNull() ?: 0
+            val usage = match.groupValues[1].remove(",").toIntOrNull() ?: 0
+            currentMana = (currentMana - usage).coerceAtLeast(0)
         }
 
         STACKS_REGEX.find(input)?.let { match ->
