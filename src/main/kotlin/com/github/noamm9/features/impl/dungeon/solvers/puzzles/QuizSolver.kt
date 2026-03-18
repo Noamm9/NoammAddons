@@ -34,6 +34,7 @@ object QuizSolver {
     private var inQuiz = false
     private var questionsStarted = false
     private var answerTime: Long = 0
+    private var stage = 0
 
     fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (event.room.name != "Quiz") return
@@ -55,21 +56,28 @@ object QuizSolver {
 
         if (message.contains("I am Oruo the Omniscient. I have lived many lives.")) {
             questionsStarted = true
-            answerTime = DungeonListener.currentTime + 12 * 20
+            stage = 1
+            answerTime = DungeonListener.currentTime + 220
             return
         }
 
-        if (message.startsWith("[STATUE] Oruo the Omniscient: ") && message.endsWith("correctly!")) {
-            answerTime = DungeonListener.currentTime + (8.5 * 20).toInt()
+        if (message.contains("2 questions left... Then you will have proven your worth to me!")) {
+            stage = 2
+            answerTime = DungeonListener.currentTime + 100
+            triviaOptions.forEach { it.isCorrect = false }
+            return
+        }
 
-            if (message.contains("answered the final question")) {
-                questionsStarted = false
-                reset()
-            }
-            else if (message.contains("answered Question #")) {
-                triviaOptions.forEach { it.isCorrect = false }
-            }
+        if (message.contains("One more question!")) {
+            stage = 3
+            answerTime = DungeonListener.currentTime + 100
+            triviaOptions.forEach { it.isCorrect = false }
+            return
+        }
 
+        if (message.startsWith("[STATUE] Oruo the Omniscient: ") && message.contains("answered the final question") && message.endsWith("correctly!")) {
+            questionsStarted = false
+            reset()
             return
         }
 
@@ -112,11 +120,13 @@ object QuizSolver {
     }
 
     fun onRenderOverlay(ctx: GuiGraphics) {
-        if (quizTimer.value && answerTime > 0 && questionsStarted && ! LocationUtils.inBoss) {
-            val secondsLeft = ((answerTime - DungeonListener.currentTime) / 20.0).toFixed(1)
+        if (quizTimer.value && questionsStarted && ! LocationUtils.inBoss) {
+            val ticksLeft = answerTime - DungeonListener.currentTime
+            if (ticksLeft <= 0) return
+            val secondsLeft = (ticksLeft / 20.0).toFixed(1)
             Render2D.drawCenteredString(
                 ctx,
-                "§dQuiz: §b$secondsLeft",
+                "§dQuiz §7(§f$stage/3§7): §b${secondsLeft}s",
                 mc.window.guiScaledWidth / 2f,
                 mc.window.guiScaledHeight / 3f,
                 scale = 3f
@@ -130,5 +140,6 @@ object QuizSolver {
         triviaAnswers = null
         correctAnswer = null
         answerTime = - 1
+        stage = 0
     }
 }
