@@ -57,7 +57,7 @@ object PuzzleSolvers: Feature() {
 
     val icepath by ToggleSetting("Enabled         ").section("Ice Path Solver")
     val icePathFirstColor by ColorSetting("Next Segment Color", Color.GREEN).showIf { icepath.value }
-    val icePathColor by ColorSetting("Other Segments Color", Color.RED).showIf { icepath.value }
+    val icePathColor by ColorSetting("Segments Color", Color.RED).showIf { icepath.value }
 
     override fun init() {
         register<WorldChangeEvent> {

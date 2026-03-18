@@ -30,6 +30,7 @@ object IcePathSolver {
     private val currentSolution = ConcurrentLinkedQueue<PathSegment>()
     private var silverfishEntity: Silverfish? = null
     private var lastGridPos: Point? = null
+    private var grid: Array<IntArray>? = null
     private var inPath = false
     private var roomCenter: BlockPos? = null
     private var roomRotation: Int = 0
@@ -38,7 +39,7 @@ object IcePathSolver {
         if (event.room.name != "Ice Path") return
         inPath = true
         roomCenter = event.room.centerPos
-        roomRotation = 360 - event.room.rotation!!
+        roomRotation = 360 - (event.room.rotation ?: return)
     }
 
     fun onTick() {
@@ -83,7 +84,8 @@ object IcePathSolver {
     }
 
     private fun recalculateFromBFS(fishGridPos: Point, center: BlockPos) {
-        val grid = buildGrid(center) ?: return
+        if (grid == null) grid = buildGrid(center) ?: return
+        val grid = grid ?: return
         val path = solve(grid, fishGridPos.x, fishGridPos.y, END_X, END_Y)
         if (path.size < 2) return
 
@@ -98,7 +100,7 @@ object IcePathSolver {
     fun onRenderWorld(ctx: RenderContext) {
         if (currentSolution.isEmpty()) return
 
-        currentSolution.forEachIndexed { idx, seg ->
+        currentSolution.toList().forEachIndexed { idx, seg ->
             Render3D.renderLine(ctx, seg.start, seg.end, if (idx == 0) icePathFirstColor.value else icePathColor.value, thickness = 3f)
         }
     }
@@ -149,14 +151,13 @@ object IcePathSolver {
                 parent[next.y][next.x] = Point(curr.x, curr.y)
 
                 if (next.x == endX && next.y == endY) {
-                    val path = mutableListOf<Point>()
+                    val path = ArrayDeque<Point>()
                     var tmp: Point? = next
                     while (tmp != null && tmp != startPoint) {
-                        path.add(tmp)
+                        path.addFirst(tmp)
                         tmp = parent[tmp.y][tmp.x]
                     }
-                    path.add(startPoint)
-                    path.reverse()
+                    path.addFirst(startPoint)
                     return path
                 }
             }
@@ -182,6 +183,7 @@ object IcePathSolver {
         inPath = false
         silverfishEntity = null
         lastGridPos = null
+        grid = null
         currentSolution.clear()
         roomCenter = null
     }
