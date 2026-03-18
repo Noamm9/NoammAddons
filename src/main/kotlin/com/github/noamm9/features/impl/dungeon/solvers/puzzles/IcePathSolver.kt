@@ -21,19 +21,6 @@ import kotlin.math.abs
 object IcePathSolver {
     private data class PathSegment(val start: Vec3, val end: Vec3)
 
-    private val relativeSolutions = listOf(
-        intArrayOf(-7, -6, -3, -6),
-        intArrayOf(-3, -6, -3, -7),
-        intArrayOf(-3, -7, 5, -7),
-        intArrayOf(5, -7, 5, 9),
-        intArrayOf(5, 9, 4, 9),
-        intArrayOf(4, 9, 4, 8),
-        intArrayOf(4, 8, 6, 8),
-        intArrayOf(6, 8, 6, -1),
-        intArrayOf(6, -1, -1, -1),
-        intArrayOf(-1, -1, -1, 10)
-    )
-
     private const val GRID_ORIGIN_X = -8
     private const val GRID_ORIGIN_Z = -8
     private const val GRID_SIZE = 19
@@ -52,13 +39,6 @@ object IcePathSolver {
         inPath = true
         roomCenter = event.room.centerPos
         roomRotation = 360 - event.room.rotation!!
-
-        val center = roomCenter!!
-        for (sol in relativeSolutions) {
-            val pos1 = ScanUtils.getRealCoord(BlockPos(sol[0], 66, sol[1]), center, roomRotation)
-            val pos2 = ScanUtils.getRealCoord(BlockPos(sol[2], 66, sol[3]), center, roomRotation)
-            currentSolution.add(PathSegment(Vec3(pos1.x + 0.5, 67.5, pos1.z + 0.5), Vec3(pos2.x + 0.5, 67.5, pos2.z + 0.5)))
-        }
     }
 
     fun onTick() {
