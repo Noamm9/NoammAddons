@@ -100,9 +100,8 @@ object TicTacToeSolver {
         val level = mc.level ?: return
         val aabb = AABB(center.x - 9.0, 65.0, center.z - 9.0, center.x + 9.0, 73.0, center.z + 9.0)
 
-        val frames = level.getEntitiesOfClass(ItemFrame::class.java, aabb).filter { frame ->
-            val stack = frame.item
-            stack.item is MapItem && stack.has(DataComponents.MAP_ID)
+        val frames = level.getEntitiesOfClass(ItemFrame::class.java, aabb).filter {
+            it.item.item is MapItem && it.item.has(DataComponents.MAP_ID)
         }
 
         if (frames.size == 8) return reset()
