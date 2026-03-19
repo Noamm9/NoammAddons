@@ -42,11 +42,12 @@ object WaterBoardSolver {
         center = event.room.centerPos
         rotation = 360 - (event.room.rotation ?: return)
 
-        ThreadUtils.scheduledTaskServer(30, ::solve)
+        ThreadUtils.loop(500, { patternId != - 1 }) { solve() }
     }
 
     fun onRenderWorld(ctx: RenderContext) {
         if (patternId == - 1 || solution.isEmpty()) return
+        val solution = solution.toMap()
 
         val clicks = solution
             .flatMap { (lever, times) -> times.drop(lever.clickCount).map { lever to it } }
