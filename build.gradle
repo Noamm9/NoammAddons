@@ -205,7 +205,7 @@ kotlin {
 }
 
 tasks.register("buildAll") {
-    dependsOn("remapJar", "remapJarCheat")
+    dependsOn("remapJarCheat", "remapJar")
 }
 
 tasks.named("build").configure {
