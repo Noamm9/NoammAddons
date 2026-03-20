@@ -13,7 +13,6 @@ import com.github.noamm9.utils.network.ProfileUtils
 import com.github.noamm9.utils.network.WebUtils
 import com.mojang.authlib.GameProfile
 import com.mojang.blaze3d.vertex.PoseStack
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import net.fabricmc.fabric.api.client.rendering.v1.RenderStateDataKey
@@ -36,8 +35,9 @@ object Cosmetics: Feature(toggled = true) {
     lateinit var cosmeticPeople: Map<UUID, CosmeticData>
 
     override fun init() {
-        scope.launch(Dispatchers.IO) {
+        scope.launch(WebUtils.networkDispatcher) {
             lastReload = System.currentTimeMillis()
+            NoammAddons.logger.info("fetching cosmeticPeople")
             WebUtils.getAs<Map<String, CosmeticData>>("https://old-api.noamm.org/cosmeticPeople.json").onSuccess { data ->
                 cosmeticPeople = data.mapKeys { UUID.fromString(it.key) }
 

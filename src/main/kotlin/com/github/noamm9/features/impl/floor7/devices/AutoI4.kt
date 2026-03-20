@@ -25,6 +25,7 @@ import com.github.noamm9.utils.PlayerUtils.rotate
 import com.github.noamm9.utils.ThreadUtils.setTimeout
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -45,8 +46,8 @@ object AutoI4: Feature("Fully Automated I4") {
     private val rodSetting by ToggleSetting("Auto Rod", true)
     private val maskSetting by ToggleSetting("Auto Mask", true)
     private val leapSetting by ToggleSetting("Auto Leap", true)
-    private val leapPriorities = listOf("Tank", "Mage", "Healer", "Archer")
-    private val preferredLeapClass by DropdownSetting("Leap Priority", 0, leapPriorities)
+    private val leapPriorities = listOf(DungeonClass.Tank, DungeonClass.Mage, DungeonClass.Healer, DungeonClass.Archer)
+    private val preferredLeapClass by DropdownSetting("Leap Priority", 0, leapPriorities.map { it.name })
 
     private const val STORM_DEATH_MESSAGE = "[BOSS] Storm: I should have known that I stood no chance."
 
@@ -228,9 +229,9 @@ object AutoI4: Feature("Fully Automated I4") {
         val aliveTeammates = DungeonListener.dungeonTeammatesNoSelf.filterNot { it.isDead }
 
         val preferredClass = leapPriorities[preferredLeapClass.value]
-        val target = aliveTeammates.find { it.clazz.name == preferredClass }
+        val target = aliveTeammates.find { it.clazz == preferredClass }
             ?: leapPriorities.firstNotNullOfOrNull { priority ->
-                aliveTeammates.find { it.clazz.name == priority }
+                aliveTeammates.find { it.clazz == priority }
             } ?: return
 
         leapAction(target)

@@ -43,8 +43,8 @@ object WebSocket {
         EventBus.register<WorldChangeEvent> { lastTablist = emptyList() }
     }
 
-    fun send(packet: PacketRegistry.WebSocketPacket) {
-        NASocket.send(JsonUtils.gsonBuilder.toJson(packet))
+    fun send(packet: PacketRegistry.WebSocketPacket) = runCatching {
+        if (NASocket.isOpen) NASocket.send(JsonUtils.gsonBuilder.toJson(packet))
     }
 
     private object NASocket: WebSocketClient(URI("wss://noamm.org")) {

@@ -30,10 +30,13 @@ object NoammAddons: ClientModInitializer {
     const val PREFIX = "§6§l[§b§lN§d§lA§6§l]§r"
     const val BASE_URL = "https://api.noamm.org"
 
+    @JvmField
     val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     @JvmField
     val mc = Minecraft.getInstance()
+
+    @JvmField
     val logger = LoggerFactory.getLogger(MOD_NAME)
 
     @JvmField
@@ -107,7 +110,7 @@ object NoammAddons: ClientModInitializer {
                 logger.error("Error while making a web request", it)
                 it.printStackTrace()
             }
-        
+
 
         WebUtils.getAs<JsonObject>("${BASE_URL}/bazaar")
             .onSuccess { data ->
