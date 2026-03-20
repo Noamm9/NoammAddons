@@ -61,7 +61,7 @@ object AutoHotbar: Feature("Automatically swaps items to specific hotbar slots u
     }
 
     override fun init() {
-        config = FileReader(configFile).use { JsonUtils.gsonBuilder.fromJson(it, AutoSwapConfig::class.java) }
+        loadConfig()
         Runtime.getRuntime().addShutdownHook(Thread { saveConfig() })
 
         register<WorldChangeEvent> {
@@ -151,6 +151,13 @@ object AutoHotbar: Feature("Automatically swaps items to specific hotbar slots u
 
             Render2D.drawCenteredString(ctx, text, 0, 0)
             return@hudElement text.width().toFloat() to 9f
+        }
+    }
+
+    private fun loadConfig() {
+        if (! configFile.exists()) return
+        config = FileReader(configFile).use {
+            JsonUtils.gsonBuilder.fromJson(it, AutoSwapConfig::class.java)
         }
     }
 
