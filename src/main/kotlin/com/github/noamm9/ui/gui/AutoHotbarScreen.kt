@@ -65,6 +65,7 @@ class AutoHotbarScreen: Screen(Component.literal("AutoSwap Configuration")) {
 
         nameInput = UISearchBox(centerX - 80, centerY - 25, 160, 20, Component.literal("Name"))
         messageInput = UISearchBox(centerX - 80, centerY + 5, 160, 20, Component.literal("Msg"))
+        messageInput.setMaxLength(256)
 
         saveTriggerBtn = UIButton(centerX - 80, centerY + 35, 78, 20, "§aSave") {
             if (nameInput.value.isNotBlank() && messageInput.value.isNotBlank()) {
@@ -101,8 +102,6 @@ class AutoHotbarScreen: Screen(Component.literal("AutoSwap Configuration")) {
     private fun getCurrentTrigger() = triggers.getOrNull(selectedTriggerIndex) ?: "None"
 
     override fun render(ctx: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
-        renderBackground(ctx, mouseX, mouseY, partialTick)
-
         val centerX = width / 2
         val centerY = height / 2
 

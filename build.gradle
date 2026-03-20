@@ -189,22 +189,6 @@ tasks.register("remapJarCheat", net.fabricmc.loom.task.RemapJarTask) {
     classpath.from(sourceSets.cheat.runtimeClasspath)
 }
 
-test {
-    failOnNoDiscoveredTests = false
-}
-
-publishing {
-    publications {
-        create("mavenJava", MavenPublication) {
-            artifactId = archives_base_name
-            from components.java
-        }
-    }
-
-    repositories {
-    }
-}
-
 tasks.named('remapJar') {
     dependsOn("jarLegit")
     inputFile = tasks.named("jarLegit").flatMap { it.archiveFile }
@@ -213,6 +197,9 @@ tasks.named('remapJar') {
     classpath.from(sourceSets.legit.runtimeClasspath)
 }
 
+test {
+    failOnNoDiscoveredTests = false
+}
 kotlin {
     jvmToolchain(21)
 }
@@ -223,6 +210,19 @@ tasks.register("buildAll") {
 
 tasks.named("build").configure {
     dependsOn("buildAll")
+}
+
+publishing {
+    publications {
+        create("mavenLegit", MavenPublication) {
+            artifactId = "${archives_base_name}-legit"
+            artifact(tasks.named("remapJar"))
+        }
+        create("mavenCheat", MavenPublication) {
+            artifactId = "${archives_base_name}-cheat"
+            artifact(tasks.named("remapJarCheat"))
+        }
+    }
 }
 
 loom {
