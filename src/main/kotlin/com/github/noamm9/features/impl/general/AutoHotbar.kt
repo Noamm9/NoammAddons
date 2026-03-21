@@ -33,7 +33,7 @@ import java.util.*
 
 object AutoHotbar: Feature("Automatically swaps items to specific hotbar slots upon chat triggers.") {
     private val configFile = File(mc.gameDirectory, "config/$MOD_NAME/autoHotbar.json")
-    var config = AutoSwapConfig(mutableMapOf(), mutableMapOf())
+    var config = AutoSwapConfig(mutableMapOf(), mutableMapOf(), mutableSetOf())
 
     private val swapDelay by SliderSetting("Base Delay", 100, 0, 500, 5).withDescription("How much time to wait between slot swapping").section("Timing (ms)")
     private val jitter by SliderSetting("Random Delay", 50, 0, 100, 1).withDescription("Random Delay to add on top of the Base Delay")
@@ -74,7 +74,11 @@ object AutoHotbar: Feature("Automatically swaps items to specific hotbar slots u
         }
 
         register<ChatMessageEvent> {
-            val key = config.triggers.entries.find { it.value == event.unformattedText }?.key ?: return@register
+            // FIX: Only find a matching trigger if it is NOT in the disabledTriggers set
+            val key = config.triggers.entries.find {
+                it.value == event.unformattedText && !config.disabledTriggers.contains(it.key)
+            }?.key ?: return@register
+
             if (key in triggeredMessages) return@register
             val rules = config.rules[key] ?: return@register
             if (rules.isEmpty()) return@register
@@ -159,6 +163,11 @@ object AutoHotbar: Feature("Automatically swaps items to specific hotbar slots u
         config = FileReader(configFile).use {
             JsonUtils.gsonBuilder.fromJson(it, AutoSwapConfig::class.java)
         }
+
+        // Prevent null exceptions if loading an old config file that doesn't have the `disabledTriggers` array yet
+        if (config.disabledTriggers == null) {
+            config.disabledTriggers = mutableSetOf()
+        }
     }
 
     fun saveConfig() {
@@ -170,7 +179,8 @@ object AutoHotbar: Feature("Automatically swaps items to specific hotbar slots u
 
     data class AutoSwapConfig(
         val triggers: MutableMap<String, String>,
-        val rules: MutableMap<String, MutableList<SwapRule>>
+        val rules: MutableMap<String, MutableList<SwapRule>>,
+        var disabledTriggers: MutableSet<String> = mutableSetOf()
     )
 }
 //#endif
