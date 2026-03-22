@@ -15,6 +15,7 @@ import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.PartyUtils
 import com.github.noamm9.utils.PartyUtils.isLeader
 import com.github.noamm9.utils.ServerUtils
+import com.github.noamm9.utils.dungeons.DungeonUtils
 import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.network.chat.ClickEvent
@@ -48,11 +49,6 @@ object PartyHelper: Feature("Party commands and reformatting.") {
     private val partyStartPattern = Regex("^Party Members \\((\\d+)\\)$")
     private val playerPattern = Regex("(?<rank>(?:\\[.+?] )?)(?<name>\\w+) ?(?<status>.) ?● ?")
     private val partyCommandRegex = Regex("^Party > (?:\\[[^]]+] )?([^:]+): ([!?.\\-@#`/])(.+)$")
-
-    private val NUMBERS_TO_TEXT = mapOf(
-        0 to "ENTRANCE", 1 to "ONE", 2 to "TWO", 3 to "THREE",
-        4 to "FOUR", 5 to "FIVE", 6 to "SIX", 7 to "SEVEN"
-    )
 
     override fun init() {
         register<PacketEvent.Sent> {
@@ -99,12 +95,12 @@ object PartyHelper: Feature("Party commands and reformatting.") {
         when {
             canRun("!f") && cmd.startsWith("f") -> {
                 val floor = cmd.removePrefix("f").toIntOrNull() ?: args.getOrNull(0)?.toIntOrNull() ?: return
-                if (floor in 0 .. 7) runCommand("joininstance CATACOMBS_FLOOR_${NUMBERS_TO_TEXT[floor]}", true)
+                if (floor in 0 .. 7) runCommand("joininstance CATACOMBS_FLOOR_${DungeonUtils.FLOOR_NAMES[floor]}", true)
             }
 
             canRun("!m") && cmd.startsWith("m") -> {
                 val floor = cmd.removePrefix("m").toIntOrNull() ?: args.getOrNull(0)?.toIntOrNull() ?: return
-                if (floor in 1 .. 7) runCommand("joininstance MASTER_CATACOMBS_FLOOR_${NUMBERS_TO_TEXT[floor]}", true)
+                if (floor in 1 .. 7) runCommand("joininstance MASTER_CATACOMBS_FLOOR_${DungeonUtils.FLOOR_NAMES[floor]}", true)
             }
 
             canRun("!pt") && (cmd == "pt" || cmd == "ptme") -> {

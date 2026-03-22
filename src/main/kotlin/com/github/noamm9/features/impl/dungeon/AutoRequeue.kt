@@ -11,6 +11,7 @@ import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.PartyUtils
 import com.github.noamm9.utils.ThreadUtils
+import com.github.noamm9.utils.dungeons.DungeonUtils
 import com.github.noamm9.utils.location.LocationUtils
 
 object AutoRequeue: Feature() {
@@ -19,13 +20,8 @@ object AutoRequeue: Feature() {
     private val feedback by ToggleSetting("Feedback", true).withDescription("Print feedback messages from auto in chat.")
 
     private const val prefix = "&bAutoRequeue &f>"
-    private val NUMBERS_TO_TEXT = mapOf(
-        0 to "ENTRANCE", 1 to "ONE", 2 to "TWO", 3 to "THREE",
-        4 to "FOUR", 5 to "FIVE", 6 to "SIX", 7 to "SEVEN"
-    )
-
     private val masterMode get() = if (LocationUtils.isMasterMode) "MASTER_" else ""
-    private val floor get() = NUMBERS_TO_TEXT[LocationUtils.dungeonFloorNumber ?: 0]
+    private val floor get() = DungeonUtils.FLOOR_NAMES[LocationUtils.dungeonFloorNumber ?: 0]
 
     private fun feedBackMessage(msg: String) {
         if (! feedback.value) return
@@ -41,7 +37,7 @@ object AutoRequeue: Feature() {
             }
 
             ThreadUtils.setTimeout(delay.value * 1000) {
-                if (checkParty.value && PartyUtils.isLeader()) return@setTimeout feedBackMessage("You are not the party leader!")
+                if (checkParty.value && ! PartyUtils.isLeader()) return@setTimeout feedBackMessage("You are not the party leader!")
                 ChatUtils.sendMessage("/joininstance ${masterMode}CATACOMBS_FLOOR_${floor}")
             }
         }

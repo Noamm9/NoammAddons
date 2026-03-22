@@ -14,9 +14,9 @@ import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.toVec
 import com.github.noamm9.utils.Utils
+import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.render.Render3D
-import com.github.noamm9.utils.world.WorldUtils
 import net.minecraft.tags.BlockTags
 
 object GyroHelper: Feature("Renders a circle where your gyro will be located.", "Gyro Helper") {

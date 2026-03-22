@@ -24,6 +24,7 @@ object DamageSplash: Feature("Reformat Skyblock's Damage Indicators.") {
     private val disableinBoss by ToggleSetting("Hide in Boss").withDescription("Hides all damage indicators in dungeon boss room.")
 
     private val damageRegex = Regex("[✧✯]?(\\d{1,3}(?:,\\d{3})*[⚔+✧❤♞☄✷ﬗ✯]*)")
+    private val colors = listOf("§6", "§c", "§e", "§f")
 
     @Suppress("UNCHECKED_CAST")
     override fun init() {
@@ -61,12 +62,11 @@ object DamageSplash: Feature("Reformat Skyblock's Damage Indicators.") {
     }
 
     private fun addRandomColorCodes(inputString: String): String {
-        val colorCodes = listOf("§6", "§c", "§e", "§f")
         val result = StringBuilder()
         var lastColor: String? = null
 
         for (char in inputString) {
-            val availableColors = colorCodes.filter { it != lastColor }
+            val availableColors = colors.filter { it != lastColor }
             val randomColor = availableColors.random()
             result.append(randomColor).append(char).append("§r")
             lastColor = randomColor

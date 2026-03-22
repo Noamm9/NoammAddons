@@ -123,9 +123,8 @@ object PartyUtils {
                     val memberMatch = memberFormat.find(segment.trim()) ?: return@forEach
                     addMember(memberMatch.groupValues[2])
                     if (type == "Leader") partyLeader = memberMatch.groupValues[2]
-
-                    return@register
                 }
+                return@register
             }
 
             partyWith.find(message)?.let { match ->
@@ -141,6 +140,8 @@ object PartyUtils {
             dungeonJoin.find(message)?.let { return@register addMember(it.groupValues[1]) }
         }
     }
+
+    fun isLeader(): Boolean = partyLeader == mc.user.name
 
     private fun addMember(playerName: String) {
         if (! isInParty) isInParty = true
@@ -158,6 +159,4 @@ object PartyUtils {
         partyLeader = null
         isInParty = false
     }
-
-    fun isLeader(): Boolean = partyLeader == mc.player?.gameProfile?.name
 }

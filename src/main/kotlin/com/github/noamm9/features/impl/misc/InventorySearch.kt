@@ -142,7 +142,7 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
         val stack = ArrayDeque<String>()
 
         for (token in tokens) {
-            val numCheck = NumbersUtils.parseCompactNumber(token)?.toDouble()
+            val numCheck = NumbersUtils.parseCompactNumberDouble(token)?.toDouble()
             when {
                 numCheck != null -> output.add(token)
 
@@ -172,7 +172,7 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
         val evalStack = ArrayDeque<Double>()
 
         for (token in output) {
-            val num = NumbersUtils.parseCompactNumber(token)?.toDouble()
+            val num = NumbersUtils.parseCompactNumberDouble(token)?.toDouble()
 
             if (num != null) evalStack.addFirst(num)
             else if (token in operators) {

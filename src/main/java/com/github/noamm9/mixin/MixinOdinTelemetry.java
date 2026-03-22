@@ -6,15 +6,15 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Pseudo
-@Mixin(targets = "com.odtheking.odin.OdinMod", remap = false)
+@Mixin(targets = "com.odtheking.odin.OdinMod$onInitializeClient$5", remap = false)
 public class MixinOdinTelemetry {
     @Dynamic
-    @Inject(method = "onInitializeClient()V", at = @At(value = "INVOKE", target = "Lkotlin/text/Regex;<init>(Ljava/lang/String;)V", remap = false), cancellable = true)
-    private void stopTelemetry(CallbackInfo ci) {
+    @Inject(method = "invokeSuspend", at = @At(value = "HEAD"), cancellable = true, require = 0)
+    private void stopTelemetry(Object result, CallbackInfoReturnable ci) {
+        NoammAddons.logger.info("Blocked Odin Telemetry");
         ci.cancel();
-        NoammAddons.INSTANCE.getLogger().info("Blocked Odin Telemetry");
     }
 }

@@ -14,7 +14,6 @@ import com.github.noamm9.utils.render.Render2D.width
 import java.util.concurrent.ConcurrentHashMap
 
 object RunSplits: Feature("A Splits HUD for Dungeons.") {
-    private val runEndRegex = Regex("^\\s*☠ Defeated (.+) in 0?([\\dhms ]+?)\\s*(\\(NEW RECORD!\\))?$")
     private val floorSplits by lazy {
         DataDownloader.loadJson<Map<String, List<Map<String, String?>>>>("runSplits.json").mapValues {
             it.value.map { entryMap ->
@@ -27,6 +26,7 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
         }
     }
 
+    private val runEndRegex = Regex("^\\s*☠ Defeated (.+) in 0?([\\dhms ]+?)\\s*(\\(NEW RECORD!\\))?$")
     private val currentFloorSplits = ConcurrentHashMap<String, Split>()
 
     private var currentText: List<String> = emptyList()
@@ -37,12 +37,6 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
         "§dPortal: ?",
         "§aBoss Entry: ?"
     )
-
-    private data class Split(var start: Long? = null, var end: Long? = null)
-    private data class DialogueEntry(val name: String, val start: String? = null, val end: String? = null) {
-        fun startMatches(msg: String) = start == msg || start?.toRegex()?.matches(msg) == true
-        fun endMatches(msg: String) = end == msg || end?.toRegex()?.matches(msg) == true
-    }
 
     override fun init() {
         hudElement("Run Splits", shouldDraw = { LocationUtils.inDungeon }) { ctx, example ->
@@ -72,10 +66,6 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
             val watcher = DungeonListener.watcherClearTime
             val boss = DungeonListener.bossEntryTime
 
-            fun formatTime(ms: Long) = "${(ms / 20) / 60}m ${(ms / 20) % 60}s"
-            fun formatSecs(ms: Long) = "${ms / 20}s"
-            fun formatDec(ms: Long) = "${(ms / 20.0).toFixed(1)}s"
-
             val bloodOpen = when {
                 blood == null && DungeonListener.dungeonStarted -> formatTime(DungeonListener.currentTime - start)
                 blood != null -> formatTime(blood - start)
@@ -96,23 +86,15 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
 
             val bossEntry = if (DungeonListener.dungeonStarted) formatTime((boss ?: DungeonListener.currentTime) - start) else "?"
 
-            val splitLines = mutableListOf<String>()
-
-            currentFloorSplits.forEach { (name, split) ->
-                val text = when {
-                    split.start != null && split.end != null -> {
-                        val duration = ((split.end !! - split.start !!) / 20.0).toFixed(2)
-                        "$name: ${duration}s§r"
-                    }
-
-                    split.start != null && split.end == null -> {
-                        val live = ((DungeonListener.currentTime - split.start !!) / 20.0).toFixed(2)
-                        "$name: ${live}s§r"
-                    }
-
-                    else -> return@forEach
+            val splitLines = currentFloorSplits.mapNotNull { (name, split) ->
+                val start = split.start ?: return@mapNotNull null
+                val endTime = split.end ?: DungeonListener.currentTime
+                val duration = ((endTime - start) / 20.0).toFixed(2)
+                "$name: ${duration}s§r"
+            }.toMutableList().apply {
+                indexOfFirst { it.startsWith("&aBoss") }.takeUnless { it == - 1 }?.let {
+                    add(removeAt(it))
                 }
-                splitLines.add(text)
             }
 
             val clearInfo = listOf(
@@ -151,4 +133,14 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
             }
         }
     }
+
+    private data class Split(var start: Long? = null, var end: Long? = null)
+    private data class DialogueEntry(val name: String, val start: String? = null, val end: String? = null) {
+        fun startMatches(msg: String) = start == msg || start?.toRegex()?.matches(msg) == true
+        fun endMatches(msg: String) = end == msg || end?.toRegex()?.matches(msg) == true
+    }
+
+    private fun formatTime(ms: Long) = "${(ms / 20) / 60}m ${(ms / 20) % 60}s"
+    private fun formatSecs(ms: Long) = "${ms / 20}s"
+    private fun formatDec(ms: Long) = "${(ms / 20.0).toFixed(1)}s"
 }

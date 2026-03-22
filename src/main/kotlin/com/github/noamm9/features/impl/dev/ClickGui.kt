@@ -6,6 +6,7 @@ import com.github.noamm9.ui.clickgui.ClickGuiScreen
 import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.ButtonSetting
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
+import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.ui.clickgui.components.withDescription
@@ -18,6 +19,9 @@ object ClickGui: Feature("A feature used to change the ClickGui configuration.",
 
     val accsentColor by ColorSetting("Accent Color", Color.CYAN, false)
         .withDescription("The accent color used by the whole ClickGui.")
+
+    val panelSorting by DropdownSetting("Sorting", 1, listOf("A-Z Sorting", "Width Sorting", "No Sorting"))
+        .withDescription("The order of the features in the panels.")
 
     val editGuiButton by ButtonSetting("Open HUD Editor") {
         ClickGuiScreen.onClose()

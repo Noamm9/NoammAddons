@@ -55,6 +55,10 @@ object PuzzleSolvers: Feature() {
     val icefill by ToggleSetting("Enabled        ").section("Ice Fill Solver")
     val icefillColor by ColorSetting("Click Color", Color.GREEN).showIf { icefill.value }
 
+    val icepath by ToggleSetting("Enabled         ").section("Ice Path Solver")
+    val icePathFirstColor by ColorSetting("Next Segment Color", Color.GREEN).showIf { icepath.value }
+    val icePathColor by ColorSetting("Segments Color", Color.RED).showIf { icepath.value }
+
     override fun init() {
         register<WorldChangeEvent> {
             if (blaze.value) BlazeSolver.reset()
@@ -66,6 +70,7 @@ object PuzzleSolvers: Feature() {
             if (ttt.value) TicTacToeSolver.reset()
             if (water.value) WaterBoardSolver.reset()
             if (icefill.value) IceFillSolver.reset()
+            if (icepath.value) IcePathSolver.reset()
         }
 
         register<DungeonEvent.RoomEvent.onExit> {
@@ -76,6 +81,7 @@ object PuzzleSolvers: Feature() {
             if (ttt.value) TicTacToeSolver.reset()
             if (water.value) WaterBoardSolver.reset()
             if (icefill.value) IceFillSolver.reset()
+            if (icepath.value) IcePathSolver.reset()
         }
 
         register<DungeonEvent.RoomEvent.onStateChange> {
@@ -93,6 +99,11 @@ object PuzzleSolvers: Feature() {
             if (ttt.value) TicTacToeSolver.onRoomEnter(event)
             if (water.value) WaterBoardSolver.onRoomEnter(event)
             if (icefill.value) IceFillSolver.onRoomEnter(event)
+            if (icepath.value) IcePathSolver.onRoomEnter(event)
+        }
+
+        register<TickEvent.Server> {
+            if (icepath.value) IcePathSolver.onTick()
         }
 
         register<MainThreadPacketReceivedEvent.Pre> {
@@ -119,6 +130,7 @@ object PuzzleSolvers: Feature() {
             if (ttt.value) TicTacToeSolver.onRenderWorld(event.ctx)
             if (water.value) WaterBoardSolver.onRenderWorld(event.ctx)
             if (icefill.value) IceFillSolver.onRenderWorld(event.ctx)
+            if (icepath.value) IcePathSolver.onRenderWorld(event.ctx)
         }
 
         register<RenderOverlayEvent> {

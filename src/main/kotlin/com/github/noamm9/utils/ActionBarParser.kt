@@ -24,7 +24,7 @@ object ActionBarParser {
     val OVERFLOW_REGEX = Regex("§3([\\d,]+)ʬ") // §3100ʬ
     val STACKS_REGEX = Regex("§6([0-9]+[ᝐ⁑Ѫ])") // §610⁑
     val SALVATION_REGEX = Regex("T([1-3])!")
-    val MANA_USAGE_REGEX = Regex("§b-[\\d,]+ Mana \\(§6.+?§b\\)|§c§lNOT ENOUGH MANA") // §b-50 Mana (§6Speed Boost§b) , §c§lNOT ENOUGH MANA
+    val MANA_USAGE_REGEX = Regex("§b-([\\d,]+) Mana \\(§6.+?§b\\)|§c§lNOT ENOUGH MANA") // §b-50 Mana (§6Speed Boost§b) , §c§lNOT ENOUGH MANA
     val SECRETS_REGEX = Regex("\\s*§7(\\d+)/(\\d+) Secrets") // §76/10 Secrets§r
 
     val currentSpeed get() = ((mc.player?.abilities?.walkingSpeed ?: 0.1f) * 1000).roundToInt()
@@ -76,7 +76,8 @@ object ActionBarParser {
         }
 
         MANA_USAGE_REGEX.find(input)?.let { match ->
-            currentMana -= match.groupValues.first().remove(",").toIntOrNull() ?: 0
+            val usage = match.groupValues[1].remove(",").toIntOrNull() ?: 0
+            currentMana = (currentMana - usage).coerceAtLeast(0)
         }
 
         STACKS_REGEX.find(input)?.let { match ->

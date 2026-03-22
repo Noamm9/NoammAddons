@@ -13,10 +13,10 @@ import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.utils.MathUtils.toVec
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.Utils.equalsOneOf
+import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.items.EtherwarpHelper
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.world.WorldUtils
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket

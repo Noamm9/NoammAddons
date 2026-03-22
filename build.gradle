@@ -51,14 +51,6 @@ dependencies {
     include "org.java-websocket:Java-WebSocket:1.5.4"
 }
 
-processResources {
-    inputs.property "version", project.version
-
-    filesMatching("fabric.mod.json") {
-        expand "version": inputs.properties.version
-    }
-}
-
 tasks.withType(JavaCompile).configureEach {
     it.options.release = 21
 }
@@ -82,26 +74,184 @@ jar {
     }
 }
 
+sourceSets {
+    main {
+        java {
+            setSrcDirs(["src/main/java"])
+        }
+        kotlin {
+            setSrcDirs(["src/main/kotlin"])
+        }
+        resources {
+            setSrcDirs(["src/main/resources"])
+        }
+    }
+    legit {
+        java {
+            setSrcDirs(["${buildDir}/preprocessed/legit/java"])
+        }
+        kotlin {
+            setSrcDirs(["${buildDir}/preprocessed/legit/kotlin"])
+        }
+        resources {
+            setSrcDirs(["src/main/resources"])
+        }
+        compileClasspath += sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.runtimeClasspath
+    }
+    cheat {
+        java {
+            setSrcDirs(["${buildDir}/preprocessed/cheat/java"])
+        }
+        kotlin {
+            setSrcDirs(["${buildDir}/preprocessed/cheat/kotlin"])
+        }
+        resources {
+            setSrcDirs(["src/main/resources"])
+        }
+        compileClasspath += sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.runtimeClasspath
+    }
+}
+
+tasks.named("compileCheatKotlin").configure {
+    dependsOn("preprocessCheat")
+    inputs.dir("src/main/kotlin")
+    inputs.dir("${buildDir}/preprocessed/cheat/kotlin")
+    kotlinOptions.freeCompilerArgs += ["-Xjava-source-roots=${buildDir}/preprocessed/cheat/java"]
+    kotlinOptions {
+        jvmTarget = 21
+    }
+}
+
+tasks.named("compileKotlin").configure {
+    kotlinOptions.freeCompilerArgs += ["-Xjava-source-roots=${project.projectDir}/src/main/java"]
+}
+
+tasks.named("compileCheatJava").configure {
+    dependsOn("preprocessCheat", "compileCheatKotlin")
+    inputs.dir("src/main/java")
+    inputs.dir("${buildDir}/preprocessed/cheat/java")
+    options.release = 21
+    classpath += files(tasks.named("compileCheatKotlin").flatMap { it.destinationDirectory })
+}
+
+tasks.named("cheatClasses").configure {
+    dependsOn("compileCheatKotlin", "compileCheatJava")
+}
+
+tasks.named("compileLegitKotlin").configure {
+    dependsOn("preprocessLegit")
+    inputs.dir("src/main/kotlin")
+    inputs.dir("${buildDir}/preprocessed/legit/kotlin")
+    kotlinOptions.freeCompilerArgs += ["-Xjava-source-roots=${buildDir}/preprocessed/legit/java"]
+}
+
+tasks.named("compileLegitJava").configure {
+    dependsOn("preprocessLegit", "compileLegitKotlin")
+    inputs.dir("src/main/java")
+    inputs.dir("${buildDir}/preprocessed/legit/java")
+    options.release = 21
+    classpath += files(tasks.named("compileLegitKotlin").flatMap { it.destinationDirectory })
+}
+
+tasks.named("legitClasses").configure {
+    dependsOn("compileLegitKotlin", "compileLegitJava")
+}
+
+tasks.register("jarCheat", Jar) {
+    dependsOn("cheatClasses", "processCheatResources")
+    from(sourceSets.cheat.output)
+    archiveClassifier = "cheat"
+    destinationDirectory = file("${project.layout.buildDirectory.get()}/tmp/intermediateJars")
+
+    from("LICENSE") {
+        rename { "${it}_${project.base.archivesName.get()}" }
+    }
+}
+
+tasks.register("jarLegit", Jar) {
+    dependsOn("legitClasses", "processLegitResources")
+    from(sourceSets.legit.output)
+    archiveClassifier = "legit"
+    destinationDirectory = file("${project.layout.buildDirectory.get()}/tmp/intermediateJars")
+
+    from("LICENSE") {
+        rename { "${it}_${project.base.archivesName.get()}" }
+    }
+}
+
+tasks.register("remapJarCheat", net.fabricmc.loom.task.RemapJarTask) {
+    dependsOn("jarCheat")
+    inputFile = tasks.named("jarCheat").flatMap { it.archiveFile }
+    archiveFileName = "${mod_name} - ${version}-cheat.jar"
+    destinationDirectory = file("${project.layout.buildDirectory.get()}/libs")
+    classpath.from(sourceSets.cheat.runtimeClasspath)
+}
+
+tasks.named('remapJar') {
+    dependsOn("jarLegit")
+    inputFile = tasks.named("jarLegit").flatMap { it.archiveFile }
+    archiveFileName = "$mod_name - ${version}-legit.jar"
+    destinationDirectory = file("${project.layout.buildDirectory.get()}/libs")
+    classpath.from(sourceSets.legit.runtimeClasspath)
+}
+
 test {
     failOnNoDiscoveredTests = false
+}
+kotlin {
+    jvmToolchain(21)
+}
+
+tasks.register("buildAll") {
+    dependsOn("remapJar", "remapJarCheat")
+}
+
+tasks.named("build").configure {
+    dependsOn("buildAll")
 }
 
 publishing {
     publications {
-        create("mavenJava", MavenPublication) {
-            artifactId = archives_base_name
-            from components.java
+        create("mavenLegit", MavenPublication) {
+            artifactId = "${archives_base_name}-legit"
+            artifact(tasks.named("remapJar"))
+        }
+        create("mavenCheat", MavenPublication) {
+            artifactId = "${archives_base_name}-cheat"
+            artifact(tasks.named("remapJarCheat"))
         }
     }
+}
 
-    repositories {
+loom {
+    runs {
+        client {
+            ideConfigGenerated = false
+        }
+        server {
+            ideConfigGenerated = false
+        }
+        cheatClient {
+            inherit client
+            name "Cheat Client"
+            runDir "run/"
+            source sourceSets.main
+        }
+        cheatClientPreprocessed {
+            inherit client
+            name "Cheat Client (Preprocessed)"
+            runDir "run/"
+            source sourceSets.cheat
+        }
+        legitClientPreprocessed {
+            inherit client
+            name "Legit Client (Preprocessed)"
+            runDir "run/"
+            source sourceSets.legit
+        }
     }
 }
 
-tasks.named('remapJar') {
-    archiveFileName = "$mod_name - ${version}.jar"
-}
-
-kotlin {
-    jvmToolchain(21)
-}
+apply from: file('preprocess.gradle')

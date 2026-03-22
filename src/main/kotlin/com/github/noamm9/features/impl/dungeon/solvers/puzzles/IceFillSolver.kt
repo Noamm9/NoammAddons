@@ -4,10 +4,10 @@ import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.icefillColor
 import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderContext
-import com.github.noamm9.utils.world.WorldUtils
 import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction

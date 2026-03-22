@@ -32,8 +32,10 @@ object Secrets: Feature() {
         .withDescription("Displays the current room's secrets on screen.")
         .section("HUD")
 
+    //#if CHEAT
     private val closeChest by ToggleSetting("Close Chest").section("Auto")
         .withDescription("Automatically closes the secret chest for you.")
+    //#endif
 
     private val secretClicked by ToggleSetting("Highlight Clicked Secret")
         .withDescription("Highlights the block of a secret when you interact with it.")
@@ -93,6 +95,7 @@ object Secrets: Feature() {
     private var lastPlayed = System.currentTimeMillis()
 
     override fun init() {
+        //#if CHEAT
         register<MainThreadPacketReceivedEvent.Pre> {
             if (! closeChest.value) return@register
             if (! LocationUtils.inDungeon) return@register
@@ -101,6 +104,7 @@ object Secrets: Feature() {
             ServerboundContainerClosePacket(packet.containerId).send()
             event.isCanceled = true
         }
+        //#endif
 
         register<RenderWorldEvent> {
             if (clicked.isEmpty()) return@register

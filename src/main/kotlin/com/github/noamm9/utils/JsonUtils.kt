@@ -1,5 +1,6 @@
 package com.github.noamm9.utils
 
+import com.github.noamm9.NoammAddons
 import com.google.gson.GsonBuilder
 import com.google.gson.TypeAdapter
 import com.google.gson.stream.JsonReader
@@ -92,7 +93,7 @@ object JsonUtils {
             FileReader(file).use { reader -> this.gsonBuilder.fromJson(reader, clazz) }
         }
         catch (e: Exception) {
-            println("[PogObject] Failed to parse JSON: Type: ${clazz.javaClass.simpleName} ${e.message}")
+            NoammAddons.logger.error("[JsonUtils] Failed to parse JSON: Type: ${clazz.javaClass.simpleName} ${e.message}")
             e.printStackTrace()
             null
         }

@@ -1,5 +1,7 @@
 package com.github.noamm9.features.impl.misc
 
+//#if CHEAT
+
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
@@ -7,7 +9,6 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.ILocalPlayer
 import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.MultiCheckboxSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.utils.ActionBarParser
 import com.github.noamm9.utils.MathUtils
@@ -40,12 +41,15 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
         Pair("Wither Impact", true)
     ))
 
-    private val zeroPingCamera by ToggleSetting("Zero Ping Camera")
+    val zeroPingCamera by MultiCheckboxSetting("Zero Ping Camera", mutableMapOf(
+        Pair("Etherwarp", true),
+        Pair("Instant Transmission", true),
+        Pair("Wither Impact", true)
+    ))
 
     private val withinTolerance = fun(n1: Float, n2: Float) = abs(n1 - n2) < 1e-4
-    private val pendingTeleports = mutableListOf<TeleportPrediction>()
+    val pendingTeleports = mutableListOf<TeleportPrediction>()
     private var lastWitherImpact = System.currentTimeMillis()
-
 
     override fun init() {
         register<WorldChangeEvent> {
@@ -115,10 +119,18 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
 
     @JvmStatic
     fun cameraHook(instance: Camera, x: Double, y: Double, z: Double, original: Operation<Void>) {
-        if (pendingTeleports.isEmpty() || ! zeroPingCamera.value) original.call(instance, x, y, z)
-        else pendingTeleports.last().position.let {
+        if (pendingTeleports.isNotEmpty()) pendingTeleports.last().takeIf {
+            when (it.info.type) {
+                TeleportType.Etherwarp -> zeroPingCamera.value["Etherwarp"] !!
+                TeleportType.InstantTransmission -> zeroPingCamera.value["Instant Transmission"] !!
+                TeleportType.WitherImpact -> zeroPingCamera.value["Wither Impact"] !!
+            }
+        }?.position?.let {
             original.call(instance, it.x, it.y + mc.player !!.eyeHeight, it.z)
+            return
         }
+
+        original.call(instance, x, y, z)
     }
 
     private fun teleport(prediction: TeleportPrediction) {
@@ -191,3 +203,4 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
     data class TeleportInfo(val distance: Double, val type: TeleportType)
     data class TeleportPrediction(val rotation: MathUtils.Rotation, val position: Vec3, val info: TeleportInfo)
 }
+//#endif

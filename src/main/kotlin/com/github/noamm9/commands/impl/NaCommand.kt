@@ -28,9 +28,12 @@ object NaCommand: BaseCommand("na") {
         "/na debug" to "Debug flags",
         "/na sim" to "Simulate chat message",
         "/na leaporder" to "Configure custom leap sorting",
-        "/na swapmask" to "Equips either Bonzo Mask or Spirit Mask",
         "/na ping" to "Shows your ping in chat",
+        //#if CHEAT
+        "/na swapmask" to "Equips either Bonzo Mask or Spirit Mask",
+        "/na rodswap" to "Automatically rodswaps for you",
         "/na leap <class>" to "Automatically leaps to the selected class"
+        //#endif
     )
 
     override fun CommandNodeBuilder.build() {
@@ -94,25 +97,26 @@ object NaCommand: BaseCommand("na") {
         literal("leaporder") {
             argument("player1", StringArgumentType.word()) {
                 suggests(partyMembersSuggestion)
-                runs { ctx -> handleLeapOrder(ctx, 1) }
+                runs { ctx -> setLeapOrder(ctx, 1) }
 
                 argument("player2", StringArgumentType.word()) {
                     suggests(partyMembersSuggestion)
-                    runs { ctx -> handleLeapOrder(ctx, 2) }
+                    runs { ctx -> setLeapOrder(ctx, 2) }
 
                     argument("player3", StringArgumentType.word()) {
                         suggests(partyMembersSuggestion)
-                        runs { ctx -> handleLeapOrder(ctx, 3) }
+                        runs { ctx -> setLeapOrder(ctx, 3) }
 
                         argument("player4", StringArgumentType.word()) {
                             suggests(partyMembersSuggestion)
-                            runs { ctx -> handleLeapOrder(ctx, 4) }
+                            runs { ctx -> setLeapOrder(ctx, 4) }
                         }
                     }
                 }
             }
         }
 
+        //#if CHEAT
         literal("swapmask") {
             runs {
                 scope.launch {
@@ -121,9 +125,17 @@ object NaCommand: BaseCommand("na") {
             }
         }
 
+        literal("rodswap") {
+            runs {
+                scope.launch {
+                    PlayerUtils.rodSwap()
+                }
+            }
+        }
+
         literal("leap") {
             argument("class", StringArgumentType.word()) {
-                suggests { DungeonClass.entries.map { it.name } }
+                suggests { DungeonClass.entries.filterNot { it == DungeonClass.Empty }.map { it.name } }
                 runs { ctx ->
                     val clazz = StringArgumentType.getString(ctx, "class")
                     val player = DungeonListener.dungeonTeammatesNoSelf.find { it.clazz.name == clazz } ?: return@runs ChatUtils.modMessage("leap target not found")
@@ -131,11 +143,12 @@ object NaCommand: BaseCommand("na") {
                 }
             }
         }
+        //#endif
     }
 
     private val partyMembersSuggestion = { PartyUtils.members.map { it.lowercase() } }
 
-    private fun handleLeapOrder(ctx: CommandContext<FabricClientCommandSource>, count: Int) {
+    private fun setLeapOrder(ctx: CommandContext<FabricClientCommandSource>, count: Int) {
         val validPlayers = mutableListOf<String>()
 
         for (i in 1 .. count) {

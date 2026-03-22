@@ -10,11 +10,11 @@ import com.github.noamm9.utils.MathUtils.toPos
 import com.github.noamm9.utils.MathUtils.toVec
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.ThreadUtils
+import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderContext
-import com.github.noamm9.utils.world.WorldUtils
 import net.minecraft.core.BlockPos
 import net.minecraft.tags.BlockTags
 import net.minecraft.world.level.block.Block
@@ -42,11 +42,12 @@ object WaterBoardSolver {
         center = event.room.centerPos
         rotation = 360 - (event.room.rotation ?: return)
 
-        ThreadUtils.scheduledTaskServer(30, ::solve)
+        ThreadUtils.loop(500, { patternId != - 1 }) { solve() }
     }
 
     fun onRenderWorld(ctx: RenderContext) {
         if (patternId == - 1 || solution.isEmpty()) return
+        val solution = solution.toMap()
 
         val clicks = solution
             .flatMap { (lever, times) -> times.drop(lever.clickCount).map { lever to it } }

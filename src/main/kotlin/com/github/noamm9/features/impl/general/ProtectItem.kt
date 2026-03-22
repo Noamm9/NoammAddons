@@ -31,7 +31,7 @@ import org.lwjgl.glfw.GLFW
 object ProtectItem: Feature("Prevents dropping or selling important items via /protectitem or keybind.") {
     private val data = PogObject("item_protection", mutableMapOf<String, List<String>>("uuids" to emptyList(), "ids" to emptyList()))
 
-    private val protectedNotification by ToggleSetting("Protected Notification", true).withDescription("Shows a notification when an action is blocked due to a protected item.")
+    private val protectNodification by ToggleSetting("Protect Notification", true).withDescription("Shows a notification on the bottom right side of the screen when the feature saved your item")
     private val protectBind by KeybindSetting("Protect Key", GLFW.GLFW_KEY_L).section("Keybind").withDescription("Press while hovering an item in an inventory to protect/unprotect it via UUID.")
     private val showProtected by ToggleSetting("Show Protected Items").withDescription("Shows protected items in container GUIs with a small indicator.")
     private val protectUUID by ToggleSetting("Protect UUID", true)
@@ -57,7 +57,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
 
             if (isThrowing || isSelling) {
                 if (getProtectType(stack) != ProtectType.None) {
-                    if (protectedNotification.value) NotificationManager.push("Action Blocked", "This item is protected!", 1500L)
+                    if (protectNodification.value) NotificationManager.push("Action Blocked", "This item is protected!", 1500L)
                     event.isCanceled = true
                 }
             }
@@ -77,13 +77,14 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
             val heldItem = mc.player?.inventory?.selectedItem ?: return@register
 
             if (getProtectType(heldItem) != ProtectType.None) {
-                if (protectedNotification.value) NotificationManager.push("Action Blocked", "This item is protected!", 1500L)
+                if (protectNodification.value) NotificationManager.push("Action Blocked", "This item is protected!", 1500L)
                 event.isCanceled = true
             }
         }
 
         register<ContainerEvent.Render.Tooltip> {
             if (event.stack.isEmpty) return@register
+            if (event.lore.isEmpty()) return@register
             val type = getProtectType(event.stack)
             if (type != ProtectType.None) {
                 event.lore.add(1, Component.literal("§aItem Protected §7(${type.name})"))

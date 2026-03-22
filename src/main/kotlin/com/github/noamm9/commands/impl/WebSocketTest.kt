@@ -3,7 +3,7 @@ package com.github.noamm9.commands.impl
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.commands.BaseCommand
 import com.github.noamm9.commands.CommandNodeBuilder
-import com.github.noamm9.features.impl.dungeon.dragons.WitherDragonEnum
+import com.github.noamm9.features.impl.floor7.dragons.WitherDragonEnum
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.JsonUtils

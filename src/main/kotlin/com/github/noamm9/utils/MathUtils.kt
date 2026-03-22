@@ -3,7 +3,6 @@ package com.github.noamm9.utils
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.utils.NumbersUtils.div
 import com.github.noamm9.utils.render.RenderHelper.renderVec
-import com.github.noamm9.utils.world.WorldUtils
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Vec3i

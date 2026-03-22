@@ -1,11 +1,11 @@
 package com.github.noamm9.utils.dungeons.map.handlers
 
 import com.github.noamm9.utils.MathUtils.Vec3
+import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.core.*
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
-import com.github.noamm9.utils.world.WorldUtils
 import com.github.noamm9.websocket.WebSocket
 import com.github.noamm9.websocket.packets.S2CPacketDungeonDoor
 import com.github.noamm9.websocket.packets.S2CPacketDungeonRoom
@@ -87,9 +87,7 @@ object DungeonScanner {
                     it.key == roomName && it.value.data.trappedChests < trappedCount
                 }
 
-                if (roomEntry != null) {
-                    return roomEntry.value
-                }
+                if (roomEntry != null) return roomEntry.value
             }
 
         return null

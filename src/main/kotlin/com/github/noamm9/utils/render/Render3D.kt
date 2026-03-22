@@ -35,8 +35,6 @@ object Render3D {
         if (! outline && ! fill) return
 
         val state = mc.level?.getBlockState(pos) ?: return
-        val mstack = ctx.matrixStack ?: return
-        val consumers = ctx.consumers ?: return
         val camPos = ctx.camera.position
         val shape = if (state.block != Blocks.AIR) state.getShape(mc.level !!, pos) else Shapes.block()
         val adjustedLineWidth = lineWidth.toDouble()
@@ -65,23 +63,16 @@ object Render3D {
         val z2 = maxZ - camPos.z
 
         if (fill) ShapeRenderer.addChainedFilledBoxVertices(
-            mstack,
-            consumers.getBuffer(if (phase) NoammRenderLayers.FILLED_THROUGH_WALLS else NoammRenderLayers.FILLED),
-            x1, y1, z1,
-            x2, y2, z2,
+            ctx.matrixStack,
+            ctx.consumers.getBuffer(if (phase) NoammRenderLayers.FILLED_THROUGH_WALLS else NoammRenderLayers.FILLED),
+            x1, y1, z1, x2, y2, z2,
             fillR, fillG, fillB, fillA
         )
 
         if (outline) ShapeRenderer.renderLineBox(
-            mstack.last(),
-            consumers.getBuffer(
-                if (phase) NoammRenderLayers.getLinesThroughWalls(adjustedLineWidth)
-                else NoammRenderLayers.getLines(
-                    adjustedLineWidth
-                )
-            ),
-            x1, y1, z1,
-            x2, y2, z2,
+            ctx.matrixStack.last(),
+            ctx.consumers.getBuffer(if (phase) NoammRenderLayers.getLinesThroughWalls(adjustedLineWidth) else NoammRenderLayers.getLines(adjustedLineWidth)),
+            x1, y1, z1, x2, y2, z2,
             outlineR, outlineG, outlineB, 1f
         )
     }
@@ -104,20 +95,19 @@ object Render3D {
         thickness: Number = 2,
         phase: Boolean = false
     ) {
-        val matrices = ctx.matrixStack ?: return
-        val cameraPos = mc.gameRenderer.mainCamera.position
+        val cameraPos = ctx.camera.position
         val segments = (36 * radius).toInt()
 
-        matrices.pushPose()
-        matrices.translate(- cameraPos.x, - cameraPos.y, - cameraPos.z)
+        ctx.matrixStack.pushPose()
+        ctx.matrixStack.translate(- cameraPos.x, - cameraPos.y, - cameraPos.z)
 
-        val buffer = ctx.consumers !!.getBuffer(if (phase) NoammRenderLayers.FILLED_THROUGH_WALLS else NoammRenderLayers.FILLED)
+        val buffer = ctx.consumers.getBuffer(if (phase) NoammRenderLayers.FILLED_THROUGH_WALLS else NoammRenderLayers.FILLED)
 
         val r = color.red / 255f
         val g = color.green / 255f
         val b = color.blue / 255f
         val a = color.alpha / 255f
-        val entry = matrices.last().pose()
+        val matrix = ctx.matrixStack.last().pose()
 
         val size = thickness.toDouble() / 40.0
         val innerR = radius - size
@@ -144,28 +134,28 @@ object Render3D {
             val x2Outer = (center.x + outerR * c2).toFloat()
             val z2Outer = (center.z + outerR * s2).toFloat()
 
-            buffer.addVertex(entry, x1Inner, topY, z1Inner).setColor(r, g, b, a)
-            buffer.addVertex(entry, x1Outer, topY, z1Outer).setColor(r, g, b, a)
-            buffer.addVertex(entry, x2Outer, topY, z2Outer).setColor(r, g, b, a)
-            buffer.addVertex(entry, x2Inner, topY, z2Inner).setColor(r, g, b, a)
+            buffer.addVertex(matrix, x1Inner, topY, z1Inner).setColor(r, g, b, a)
+            buffer.addVertex(matrix, x1Outer, topY, z1Outer).setColor(r, g, b, a)
+            buffer.addVertex(matrix, x2Outer, topY, z2Outer).setColor(r, g, b, a)
+            buffer.addVertex(matrix, x2Inner, topY, z2Inner).setColor(r, g, b, a)
 
-            buffer.addVertex(entry, x1Outer, bottomY, z1Outer).setColor(r, g, b, a)
-            buffer.addVertex(entry, x1Outer, topY, z1Outer).setColor(r, g, b, a)
-            buffer.addVertex(entry, x2Outer, topY, z2Outer).setColor(r, g, b, a)
-            buffer.addVertex(entry, x2Outer, bottomY, z2Outer).setColor(r, g, b, a)
+            buffer.addVertex(matrix, x1Outer, bottomY, z1Outer).setColor(r, g, b, a)
+            buffer.addVertex(matrix, x1Outer, topY, z1Outer).setColor(r, g, b, a)
+            buffer.addVertex(matrix, x2Outer, topY, z2Outer).setColor(r, g, b, a)
+            buffer.addVertex(matrix, x2Outer, bottomY, z2Outer).setColor(r, g, b, a)
 
-            buffer.addVertex(entry, x1Inner, bottomY, z1Inner).setColor(r, g, b, a)
-            buffer.addVertex(entry, x1Inner, topY, z1Inner).setColor(r, g, b, a)
-            buffer.addVertex(entry, x2Inner, topY, z2Inner).setColor(r, g, b, a)
-            buffer.addVertex(entry, x2Inner, bottomY, z2Inner).setColor(r, g, b, a)
+            buffer.addVertex(matrix, x1Inner, bottomY, z1Inner).setColor(r, g, b, a)
+            buffer.addVertex(matrix, x1Inner, topY, z1Inner).setColor(r, g, b, a)
+            buffer.addVertex(matrix, x2Inner, topY, z2Inner).setColor(r, g, b, a)
+            buffer.addVertex(matrix, x2Inner, bottomY, z2Inner).setColor(r, g, b, a)
 
-            buffer.addVertex(entry, x1Inner, bottomY, z1Inner).setColor(r, g, b, a)
-            buffer.addVertex(entry, x1Outer, bottomY, z1Outer).setColor(r, g, b, a)
-            buffer.addVertex(entry, x2Outer, bottomY, z2Outer).setColor(r, g, b, a)
-            buffer.addVertex(entry, x2Inner, bottomY, z2Inner).setColor(r, g, b, a)
+            buffer.addVertex(matrix, x1Inner, bottomY, z1Inner).setColor(r, g, b, a)
+            buffer.addVertex(matrix, x1Outer, bottomY, z1Outer).setColor(r, g, b, a)
+            buffer.addVertex(matrix, x2Outer, bottomY, z2Outer).setColor(r, g, b, a)
+            buffer.addVertex(matrix, x2Inner, bottomY, z2Inner).setColor(r, g, b, a)
         }
 
-        matrices.popPose()
+        ctx.matrixStack.popPose()
     }
 
     fun renderBox(
@@ -183,9 +173,6 @@ object Render3D {
         lineWidth: Number = 2.5
     ) {
         if (! outline && ! fill) return
-
-        val consumers = ctx.consumers ?: return
-        val matrices = ctx.matrixStack ?: return
         val cam = ctx.camera.position.reverse()
 
         val xd = x.toDouble()
@@ -194,31 +181,26 @@ object Render3D {
         val hw = width.toDouble() / 2.0
         val hd = height.toDouble()
 
-        matrices.pushPose()
-        matrices.translate(cam.x, cam.y, cam.z)
+        ctx.matrixStack.pushPose()
+        ctx.matrixStack.translate(cam.x, cam.y, cam.z)
 
         if (fill) ShapeRenderer.addChainedFilledBoxVertices(
-            matrices,
-            consumers.getBuffer(if (phase) NoammRenderLayers.FILLED_THROUGH_WALLS else NoammRenderLayers.FILLED),
+            ctx.matrixStack,
+            ctx.consumers.getBuffer(if (phase) NoammRenderLayers.FILLED_THROUGH_WALLS else NoammRenderLayers.FILLED),
             xd - hw, yd, zd - hw,
             xd + hw, yd + hd, zd + hw,
             fillColor.red / 255f, fillColor.green / 255f, fillColor.blue / 255f, fillColor.alpha / 255f
         )
 
         if (outline) ShapeRenderer.renderLineBox(
-            matrices.last(),
-            consumers.getBuffer(
-                if (phase) NoammRenderLayers.getLinesThroughWalls(lineWidth.toDouble())
-                else NoammRenderLayers.getLines(
-                    lineWidth.toDouble()
-                )
-            ),
+            ctx.matrixStack.last(),
+            ctx.consumers.getBuffer(if (phase) NoammRenderLayers.getLinesThroughWalls(lineWidth.toDouble()) else NoammRenderLayers.getLines(lineWidth.toDouble())),
             xd - hw, yd, zd - hw,
             xd + hw, yd + hd, zd + hw,
             outlineColor.red / 255f, outlineColor.green / 255f, outlineColor.blue / 255f, 1f
         )
 
-        matrices.popPose()
+        ctx.matrixStack.popPose()
     }
 
     fun renderBox(
@@ -284,10 +266,9 @@ object Render3D {
 
 
     fun renderLine(ctx: RenderContext, start: Vec3, finish: Vec3, color: Color, thickness: Number = 2) {
-        val matrices = ctx.matrixStack ?: return
-        val cameraPos = mc.gameRenderer.mainCamera.position
-        matrices.pushPose()
-        matrices.translate(- cameraPos.x, - cameraPos.y, - cameraPos.z)
+        val cameraPos = ctx.camera.position
+        ctx.matrixStack.pushPose()
+        ctx.matrixStack.translate(- cameraPos.x, - cameraPos.y, - cameraPos.z)
 
         val buffer = (ctx.consumers as MultiBufferSource.BufferSource).getBuffer(RenderType.lines())
         RenderSystem.lineWidth(thickness.toFloat())
@@ -297,15 +278,13 @@ object Render3D {
         val b = color.blue / 255f
         val a = color.alpha / 255f
         val direction = finish.subtract(start).normalize().toVector3f()
-        val entry = matrices.last()
+        val matrix = ctx.matrixStack.last()
 
-        buffer.addVertex(entry, start.x.toFloat(), start.y.toFloat(), start.z.toFloat()).setColor(r, g, b, a)
-            .setNormal(entry, direction)
-        buffer.addVertex(entry, finish.x.toFloat(), finish.y.toFloat(), finish.z.toFloat()).setColor(r, g, b, a)
-            .setNormal(entry, direction)
+        buffer.addVertex(matrix, start.x.toFloat(), start.y.toFloat(), start.z.toFloat()).setColor(r, g, b, a).setNormal(matrix, direction)
+        buffer.addVertex(matrix, finish.x.toFloat(), finish.y.toFloat(), finish.z.toFloat()).setColor(r, g, b, a).setNormal(matrix, direction)
 
         ctx.consumers.endBatch(RenderType.lines())
-        matrices.popPose()
+        ctx.matrixStack.popPose()
     }
 
     fun renderLine(ctx: RenderContext, start: BlockPos, end: BlockPos, thickness: Number, color: Color) {
@@ -313,31 +292,21 @@ object Render3D {
     }
 
     fun renderTracer(ctx: RenderContext, point: Vec3, color: Color, thickness: Number = 2) {
-        val camera = ctx.camera
-        val matrixStack = ctx.matrixStack ?: return
-        val consumers = ctx.consumers
-        val cameraPos = camera.position
+        ctx.matrixStack.pushPose()
+        ctx.matrixStack.translate(- ctx.camera.position.x, - ctx.camera.position.y, - ctx.camera.position.z)
 
-        matrixStack.pushPose()
-        matrixStack.translate(- cameraPos.x, - cameraPos.y, - cameraPos.z)
-
-        val buffer =
-            (consumers as MultiBufferSource.BufferSource).getBuffer(NoammRenderLayers.getLinesThroughWalls(2.5))
-        val cameraPoint = cameraPos.add(Vec3.directionFromRotation(camera.xRot, camera.yRot))
-        val normal = point.toVector3f().sub(cameraPoint.x.toFloat(), cameraPoint.y.toFloat(), cameraPoint.z.toFloat())
-            .normalize()
-        val entry = matrixStack.last() ?: return
+        val buffer = (ctx.consumers as MultiBufferSource.BufferSource).getBuffer(NoammRenderLayers.getLinesThroughWalls(2.5))
+        val cameraPoint = ctx.camera.position.add(Vec3.directionFromRotation(ctx.camera.xRot, ctx.camera.yRot))
+        val normal = point.toVector3f().sub(cameraPoint.x.toFloat(), cameraPoint.y.toFloat(), cameraPoint.z.toFloat()).normalize()
+        val entry = ctx.matrixStack.last()
 
         RenderSystem.lineWidth(thickness.toFloat())
 
-        buffer.addVertex(entry, cameraPoint.x.toFloat(), cameraPoint.y.toFloat(), cameraPoint.z.toFloat())
-            .setColor(color.red / 255f, color.green / 255f, color.blue / 255f, 1f)
-            .setNormal(entry, normal)
-        buffer.addVertex(entry, point.x.toFloat(), point.y.toFloat(), point.z.toFloat())
-            .setColor(color.red / 255f, color.green / 255f, color.blue / 255f, 1f).setNormal(entry, normal)
+        buffer.addVertex(entry, cameraPoint.x.toFloat(), cameraPoint.y.toFloat(), cameraPoint.z.toFloat()).setColor(color.red / 255f, color.green / 255f, color.blue / 255f, 1f).setNormal(entry, normal)
+        buffer.addVertex(entry, point.x.toFloat(), point.y.toFloat(), point.z.toFloat()).setColor(color.red / 255f, color.green / 255f, color.blue / 255f, 1f).setNormal(entry, normal)
 
-        consumers.endBatch(RenderType.lines())
-        matrixStack.popPose()
+        ctx.consumers.endBatch(RenderType.lines())
+        ctx.matrixStack.popPose()
     }
 
     fun renderTracer(ctx: RenderContext, point: BlockPos, color: Color, thickness: Number) {
