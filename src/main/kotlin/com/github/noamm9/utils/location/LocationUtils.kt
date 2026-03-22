@@ -159,7 +159,7 @@ object LocationUtils {
         6 to Pair(BlockPos(- 40, 51, - 8), BlockPos(22, 110, 134)),
         5 to Pair(BlockPos(- 40, 112, - 8), BlockPos(50, 53, 118)),
         4 to Pair(BlockPos(- 40, 112, - 40), BlockPos(50, 53, 47)),
-        3 to Pair(BlockPos(- 40, 118, - 40), BlockPos(42, 64, 31)),
+        3 to Pair(BlockPos(- 40, 118, - 40), BlockPos(42, 64, 37)),
         2 to Pair(BlockPos(- 40, 99, - 40), BlockPos(24, 54, 59)),
         1 to Pair(BlockPos(- 14, 55, 49), BlockPos(- 72, 146, - 40))
     )
