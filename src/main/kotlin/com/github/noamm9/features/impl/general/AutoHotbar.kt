@@ -4,6 +4,7 @@ package com.github.noamm9.features.impl.general
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.MOD_NAME
+import com.github.noamm9.event.EventPriority
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
@@ -33,7 +34,22 @@ import java.util.*
 
 object AutoHotbar: Feature("Automatically swaps items to specific hotbar slots upon chat triggers.") {
     private val configFile = File(mc.gameDirectory, "config/$MOD_NAME/autoHotbar.json")
-    var config = AutoSwapConfig(mutableMapOf(), mutableMapOf())
+    var config = AutoSwapConfig(mutableMapOf(), mutableMapOf(), mutableSetOf())
+
+    val disabledTriggers: MutableSet<String>
+        get() {
+            val current = config.disabled
+            if (current != null) return current
+            val created = mutableSetOf<String>()
+            config.disabled = created
+            return created
+        }
+
+    fun isTriggerEnabled(trigger: String) = trigger !in disabledTriggers
+
+    fun setTriggerEnabled(trigger: String, enabled: Boolean) {
+        if (enabled) disabledTriggers.remove(trigger) else disabledTriggers.add(trigger)
+    }
 
     private val swapDelay by SliderSetting("Base Delay", 100, 0, 500, 5).withDescription("How much time to wait between slot swapping").section("Timing (ms)")
     private val jitter by SliderSetting("Random Delay", 50, 0, 100, 1).withDescription("Random Delay to add on top of the Base Delay")
@@ -73,8 +89,9 @@ object AutoHotbar: Feature("Automatically swaps items to specific hotbar slots u
             movementLockEndTime = 0L
         }
 
-        register<ChatMessageEvent> {
+        register<ChatMessageEvent>(EventPriority.HIGH) {
             val key = config.triggers.entries.find { it.value == event.unformattedText }?.key ?: return@register
+            if (key in disabledTriggers) return@register
             if (key in triggeredMessages) return@register
             val rules = config.rules[key] ?: return@register
             if (rules.isEmpty()) return@register
@@ -95,13 +112,15 @@ object AutoHotbar: Feature("Automatically swaps items to specific hotbar slots u
             movementKeys.forEach { it.isDown = false }
             (mc.options.keyUse as IKeyMapping).clickCount = 0
             (mc.options.keyAttack as IKeyMapping).clickCount = 0
+            mc.player?.isSprinting = false
+
         }
 
-        register<TickEvent.End> {
+        register<TickEvent.Start> {
             if (swapQueue.isEmpty()) {
                 if (isSwapping) {
                     isSwapping = false
-                    movementLockEndTime = System.currentTimeMillis() + 200
+                    movementLockEndTime = System.currentTimeMillis() + 250
                 }
                 return@register
             }
@@ -109,16 +128,15 @@ object AutoHotbar: Feature("Automatically swaps items to specific hotbar slots u
             val player = mc.player ?: return@register
             val now = System.currentTimeMillis()
 
-            val isMoving = player.deltaMovement.horizontalDistanceSqr() > 0.001
-            if (isMoving || ! player.onGround()) {
+            if (player.deltaMovement.horizontalDistanceSqr() > 0.001) {
                 stationaryTicks = 0
-                nextSwapTime = now + pingDelay.value.toLong()
+                nextSwapTime = now + 250
                 return@register
             }
 
             stationaryTicks ++
 
-            if (stationaryTicks < 5) return@register
+            if (stationaryTicks < 10) return@register
             if (now < nextSwapTime) return@register
             if (ServerUtils.tps < 18f || ServerUtils.currentPing > 500) return@register
             if (mc.screen != null) {
@@ -146,8 +164,8 @@ object AutoHotbar: Feature("Automatically swaps items to specific hotbar slots u
 
         hudElement("AutoSwap Status", enabled = { showTitles.value }, shouldDraw = { swapQueue.isNotEmpty() }, centered = true) { ctx, example ->
             val text = if (example) "&bSwapping &f3 left"
-            else if (stationaryTicks < 5) "&cStop Moving!"
-            else "&bSwapping &7· &f${swapQueue.size} left"
+            else if (stationaryTicks < 10) "&cStop Moving!"
+            else "&bSwapping &f${swapQueue.size} left"
 
             Render2D.drawCenteredString(ctx, text, 0, 0)
             return@hudElement text.width().toFloat() to 9f
@@ -169,8 +187,9 @@ object AutoHotbar: Feature("Automatically swaps items to specific hotbar slots u
     data class SwapRule(val id: String, val hotbarSlot: Int)
 
     data class AutoSwapConfig(
-        val triggers: MutableMap<String, String>,
-        val rules: MutableMap<String, MutableList<SwapRule>>
+        var triggers: MutableMap<String, String>,
+        var rules: MutableMap<String, MutableList<SwapRule>>,
+        var disabled: MutableSet<String>
     )
 }
 //#endif

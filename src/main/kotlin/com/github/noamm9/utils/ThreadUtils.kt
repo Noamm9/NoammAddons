@@ -24,6 +24,10 @@ object ThreadUtils {
         else scheduledTask { safeRun(block) }
     }
 
+    fun async(block: () -> Unit) {
+        return scheduler.execute { safeRun(block) }
+    }
+    
     fun setTimeout(delay: Long, block: () -> Unit): ScheduledFuture<*> {
         return scheduler.schedule({ safeRun(block) }, delay, TimeUnit.MILLISECONDS)
     }

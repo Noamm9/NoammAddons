@@ -21,4 +21,3 @@ class S2CPacketSocketInfo(
         }
     }
 }
-

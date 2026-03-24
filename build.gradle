@@ -18,10 +18,7 @@ base {
 
 repositories {
     maven { url = "https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1" }
-    maven {
-        name = 'ParchmentMC'
-        url = 'https://maven.parchmentmc.org'
-    }
+    maven { url = 'https://maven.parchmentmc.org' }
 }
 
 dependencies {
@@ -76,39 +73,21 @@ jar {
 
 sourceSets {
     main {
-        java {
-            setSrcDirs(["src/main/java"])
-        }
-        kotlin {
-            setSrcDirs(["src/main/kotlin"])
-        }
-        resources {
-            setSrcDirs(["src/main/resources"])
-        }
+        java { setSrcDirs(["src/main/java"]) }
+        kotlin { setSrcDirs(["src/main/kotlin"]) }
+        resources { setSrcDirs(["src/main/resources"]) }
     }
-    legit {
-        java {
-            setSrcDirs(["${buildDir}/preprocessed/legit/java"])
-        }
-        kotlin {
-            setSrcDirs(["${buildDir}/preprocessed/legit/kotlin"])
-        }
-        resources {
-            setSrcDirs(["src/main/resources"])
-        }
+    cheat {
+        java { setSrcDirs(["${buildDir}/preprocessed/cheat/java"]) }
+        kotlin { setSrcDirs(["${buildDir}/preprocessed/cheat/kotlin"]) }
+        resources { setSrcDirs(["src/main/resources"]) }
         compileClasspath += sourceSets.main.compileClasspath
         runtimeClasspath += sourceSets.main.runtimeClasspath
     }
-    cheat {
-        java {
-            setSrcDirs(["${buildDir}/preprocessed/cheat/java"])
-        }
-        kotlin {
-            setSrcDirs(["${buildDir}/preprocessed/cheat/kotlin"])
-        }
-        resources {
-            setSrcDirs(["src/main/resources"])
-        }
+    legit {
+        java { setSrcDirs(["${buildDir}/preprocessed/legit/java"]) }
+        kotlin { setSrcDirs(["${buildDir}/preprocessed/legit/kotlin"]) }
+        resources { setSrcDirs(["src/main/resources"]) }
         compileClasspath += sourceSets.main.compileClasspath
         runtimeClasspath += sourceSets.main.runtimeClasspath
     }
@@ -205,21 +184,17 @@ kotlin {
 }
 
 tasks.register("buildAll") {
-    dependsOn("remapJar", "remapJarCheat")
-}
-
-tasks.named("build").configure {
-    dependsOn("buildAll")
+    dependsOn("remapJarCheat", "remapJar")
 }
 
 publishing {
     publications {
         create("mavenLegit", MavenPublication) {
-            artifactId = "${archives_base_name}-legit"
+            artifactId = "legit"
             artifact(tasks.named("remapJar"))
         }
         create("mavenCheat", MavenPublication) {
-            artifactId = "${archives_base_name}-cheat"
+            artifactId = "cheat"
             artifact(tasks.named("remapJarCheat"))
         }
     }
@@ -227,12 +202,8 @@ publishing {
 
 loom {
     runs {
-        client {
-            ideConfigGenerated = false
-        }
-        server {
-            ideConfigGenerated = false
-        }
+        client { ideConfigGenerated = false }
+        server { ideConfigGenerated = false }
         cheatClient {
             inherit client
             name "Cheat Client"

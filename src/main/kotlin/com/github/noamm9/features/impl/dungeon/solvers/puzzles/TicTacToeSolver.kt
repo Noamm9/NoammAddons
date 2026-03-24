@@ -12,6 +12,7 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.Utils.equalsOneOf
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.core.RoomState
+import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.NoammRenderLayers
 import com.github.noamm9.utils.render.RenderContext
 import net.minecraft.client.renderer.ShapeRenderer
@@ -62,10 +63,10 @@ object TicTacToeSolver {
 
     fun onInteract(event: PlayerInteractEvent.RIGHT_CLICK.BLOCK) {
         if (! inTicTacToe || ! preventMissClick.value) return
+        if (LocationUtils.inBoss) return
         if (WorldUtils.getBlockAt(event.pos) != Blocks.STONE_BUTTON) return
-        if (event.pos !in bestMoves) {
-            event.isCanceled = true
-        }
+        if (event.pos !in bestMoves) event.isCanceled = true
+
     }
 
     fun onRenderWorld(ctx: RenderContext) {
@@ -82,8 +83,10 @@ object TicTacToeSolver {
 
     private fun solveAsync() {
         ThreadUtils.scheduledTaskServer(3) {
-            val center = roomCenter ?: return@scheduledTaskServer
-            scanBoard(center)
+            ThreadUtils.async {
+                val center = roomCenter ?: return@async
+                scanBoard(center)
+            }
         }
     }
 

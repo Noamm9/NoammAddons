@@ -14,7 +14,6 @@ import com.github.noamm9.ui.clickgui.components.section
 import com.github.noamm9.ui.clickgui.components.showIf
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ChatUtils
-import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.Utils.equalsOneOf
@@ -335,29 +334,23 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
         solution.clear()
 
         when (type) {
-            TerminalType.NUMBERS -> {
-                currentItems.filter { it.value.item == Items.RED_STAINED_GLASS_PANE }
-                    .toList()
-                    .sortedBy { it.second.count }
-                    .forEach {
-                        TerminalType.numbersSlotCounts[it.first] = it.second.count
-                        solution.add(TerminalClick(it.first))
-                    }
-            }
+            TerminalType.NUMBERS -> currentItems.filter { it.value.item == Items.RED_STAINED_GLASS_PANE }
+                .toList().sortedBy { it.second.count }.forEach {
+                    TerminalType.numbersSlotCounts[it.first] = it.second.count
+                    solution.add(TerminalClick(it.first))
+                }
 
-            TerminalType.REDGREEN -> {
-                currentItems.filter { it.value.item == Items.RED_STAINED_GLASS_PANE }
-                    .forEach { solution.add(TerminalClick(it.key)) }
-            }
+            TerminalType.REDGREEN -> currentItems.filter { it.value.item == Items.RED_STAINED_GLASS_PANE }
+                .forEach { solution.add(TerminalClick(it.key)) }
 
             TerminalType.STARTWITH -> {
                 val match = TerminalType.startwithRegex.matchEntire(TerminalListener.currentTitle)
                 val letter = match?.groupValues?.get(1)?.lowercase() ?: return
-                currentItems.forEach { (slot, item) ->
-                    val name = item.hoverName.string.removeFormatting().lowercase()
-                    if (name.startsWith(letter) && ! item.hasGlint() && slot !in TerminalType.clickedStartWithSlots) {
-                        solution.add(TerminalClick(slot))
-                    }
+
+                currentItems.filterNot { it.key in TerminalType.clickedStartWithSlots }.forEach { (slot, item) ->
+                    if (! item.hoverName.unformattedText.lowercase().startsWith(letter)) return@forEach
+                    if (item.hasGlint()) return@forEach
+                    solution.add(TerminalClick(slot))
                 }
             }
 
@@ -392,6 +385,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
                         }
                     }
                 }
+
                 val origin = costs.indices.minByOrNull { costs[it] } ?: 0
                 panes.forEach { (slotId, itemStack) ->
                     val currentIdx = TerminalType.rubixOrder.indexOf(itemStack.item)

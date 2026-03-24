@@ -96,6 +96,7 @@ object WaterBoardSolver {
     }
 
     fun onInteract(event: PlayerInteractEvent.RIGHT_CLICK.BLOCK) {
+        if (patternId == - 1) return
         if (solution.isEmpty()) return
         val center = center ?: return
         val rotation = rotation ?: return

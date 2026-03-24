@@ -13,6 +13,8 @@ import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.Utils.remove
 import com.github.noamm9.utils.Utils.startsWithOneOf
 import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.websocket.WebSocket
+import com.github.noamm9.websocket.packets.C2SPacketLobbyPing
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
 import net.minecraft.network.protocol.game.ClientboundSetObjectivePacket
@@ -51,11 +53,13 @@ object LocationUtils {
     var F7Phase: Int? = null
 
     @JvmField
-    var lobbyId: String? = null
+    var serverId: String? = null
 
     private val lobbyRegex = Regex("\\d\\d/\\d\\d/\\d\\d (\\w{0,6}) *")
 
     init {
+        LocrawListener.init()
+
         EventBus.register<MainThreadPacketReceivedEvent.Post>(EventPriority.HIGHEST) {
             if (NoammAddons.isDev) return@register setDevModeValues()
             if (! onHypixel) return@register
@@ -72,7 +76,8 @@ object LocationUtils {
                 val text = (prams.playerPrefix.string + prams.playerSuffix.string).removeFormatting()
                 lobbyRegex.find(text)?.groupValues?.get(1)?.let {
                     if (it.length < 5) return@let
-                    lobbyId = it
+                    serverId = it
+                    WebSocket.send(C2SPacketLobbyPing())
                 }
 
                 if (! inDungeon && text.contains("The Catacombs (") && ! text.contains("Queue")) {
@@ -108,7 +113,7 @@ object LocationUtils {
         P3Section = null
         F7Phase = null
         world = null
-        lobbyId = null
+        serverId = null
     }
 
     private fun setDevModeValues() {

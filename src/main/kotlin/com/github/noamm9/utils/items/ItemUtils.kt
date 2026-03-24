@@ -81,7 +81,7 @@ object ItemUtils {
         return profile.partialProfile().id.toString()
     }
 
-    fun ItemStack.hasGlint() = componentsPatch.get(DataComponents.ENCHANTMENT_GLINT_OVERRIDE)?.isPresent == true
+    fun ItemStack.hasGlint() = componentsPatch.toString().contains("minecraft:enchantment_glint_override=>true")
 
     fun getRarity(item: ItemStack?): ItemRarity {
         item ?: return ItemRarity.NONE

@@ -72,6 +72,7 @@ object ThreeWeirdosSolver {
 
     fun onInteract(event: PlayerInteractEvent.RIGHT_CLICK.BLOCK) {
         if (! inThreeWeirdos) return
+        if (LocationUtils.inBoss) return
         if (event.pos == correctPos) reset()
     }
 
