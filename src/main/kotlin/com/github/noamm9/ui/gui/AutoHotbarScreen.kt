@@ -47,9 +47,7 @@ class AutoHotbarScreen: Screen(Component.literal("AutoSwap Configuration")) {
             isDropdownOpen = ! isDropdownOpen
         }
 
-        addRenderableWidget(selectorBtn)
-
-        addRenderableWidget(UIButton(centerX + 38, centerY - 75, 20, 20, "§a+") {
+        val createButton = UIButton(centerX + 38, centerY - 75, 20, 20, "§a+") {
             isDropdownOpen = false
             if (isCreatingNew && editingTrigger == null) closeEditor()
             else {
@@ -64,7 +62,7 @@ class AutoHotbarScreen: Screen(Component.literal("AutoSwap Configuration")) {
                 updateEnabledButton()
                 refreshVisibility()
             }
-        })
+        }
 
         val deleteBtn = UIButton(centerX + 61, centerY - 75, 20, 20, "§c§lX") {
             if (triggers.isEmpty()) return@UIButton
@@ -76,7 +74,6 @@ class AutoHotbarScreen: Screen(Component.literal("AutoSwap Configuration")) {
             selectorBtn.message = Component.literal(getCurrentTriggerLabel())
             isDropdownOpen = false
         }
-        addRenderableWidget(deleteBtn)
 
         nameInput = UISearchBox(centerX - 80, centerY - 25, 160, 20, Component.literal("Name"))
         messageInput = UISearchBox(centerX - 80, centerY + 5, 160, 20, Component.literal("Msg"))
@@ -115,18 +112,16 @@ class AutoHotbarScreen: Screen(Component.literal("AutoSwap Configuration")) {
             closeEditor()
         }
 
-        enabledToggleBtn = UIButton(
-            centerX - 80,
-            centerY + 60,
-            160,
-            20,
-            "",
-            { if (editEnabled) Color(0, 200, 120) else Color(200, 60, 60) }
+        enabledToggleBtn = UIButton(centerX - 80, centerY + 60, 160, 20, "",
+            { if (editEnabled) Color.GREEN else Color.RED }
         ) {
             editEnabled = ! editEnabled
             updateEnabledButton()
         }
 
+        addRenderableWidget(selectorBtn)
+        addRenderableWidget(createButton)
+        addRenderableWidget(deleteBtn)
         addRenderableWidget(nameInput)
         addRenderableWidget(messageInput)
         addRenderableWidget(saveTriggerBtn)
@@ -157,7 +152,7 @@ class AutoHotbarScreen: Screen(Component.literal("AutoSwap Configuration")) {
             }
             else {
                 Render2D.drawCenteredString(ctx, "Select item, then hotbar slot", centerX, centerY - 50, Color.GRAY)
-                renderInventory(ctx, centerX, centerY, mouseX, mouseY, mouseX, mouseY)
+                renderInventory(ctx, centerX, centerY, mouseX, mouseY)
             }
         }
 
@@ -194,9 +189,8 @@ class AutoHotbarScreen: Screen(Component.literal("AutoSwap Configuration")) {
         }
     }
 
-    private fun renderInventory(ctx: GuiGraphics, cx: Int, cy: Int, mouseX: Int, mouseY: Int, rawMouseX: Int, rawMouseY: Int) {
-        val player = minecraft?.player ?: return
-        val inv = player.inventory
+    private fun renderInventory(ctx: GuiGraphics, cx: Int, cy: Int, mouseX: Int, mouseY: Int) {
+        val inv = minecraft?.player?.inventory ?: return
 
         for (i in 0 until 27) {
             val x = cx - 82 + ((i % 9) * 18)
@@ -206,7 +200,7 @@ class AutoHotbarScreen: Screen(Component.literal("AutoSwap Configuration")) {
                 stack.itemUUID.ifBlank { stack.skyblockId }.ifBlank { stack.hoverName.string } == rule.id
             }
 
-            drawSlot(ctx, x, y, stack, mouseX, mouseY, rawMouseX, rawMouseY, highlight = (swapRule != null))
+            drawSlot(ctx, x, y, stack, mouseX, mouseY, highlight = (swapRule != null))
 
             if (swapRule != null && ! stack.isEmpty) {
                 Render2D.drawCenteredString(ctx, "${swapRule.hotbarSlot + 1}", x + 9, y + 7)
@@ -219,14 +213,14 @@ class AutoHotbarScreen: Screen(Component.literal("AutoSwap Configuration")) {
             val stack = inv.getItem(i)
             val rule = config.rules[getCurrentTrigger()]?.find { it.hotbarSlot == i }
 
-            drawSlot(ctx, x, y, stack, mouseX, mouseY, rawMouseX, rawMouseY, highlight = (rule != null))
+            drawSlot(ctx, x, y, stack, mouseX, mouseY, highlight = (rule != null))
             if (rule != null) Render2D.drawCenteredString(ctx, "${i + 1}", x + 9, y + 6)
         }
 
         sourceItem?.let { ctx.renderItem(it, mouseX - 8, mouseY - 8) }
     }
 
-    private fun drawSlot(ctx: GuiGraphics, x: Int, y: Int, stack: ItemStack, mx: Int, my: Int, rawMouseX: Int, rawMouseY: Int, highlight: Boolean = false) {
+    private fun drawSlot(ctx: GuiGraphics, x: Int, y: Int, stack: ItemStack, mx: Int, my: Int, highlight: Boolean = false) {
         val isHovered = mx >= x && mx <= x + 18 && my >= y && my <= y + 18
         val color = when {
             isHovered -> Color(255, 255, 255, 60)
@@ -239,7 +233,7 @@ class AutoHotbarScreen: Screen(Component.literal("AutoSwap Configuration")) {
         if (! stack.isEmpty) {
             ctx.renderItem(stack, x + 1, y + 1)
             if (isHovered && sourceItem == null && ! isDropdownOpen) {
-                ctx.setTooltipForNextFrame(font, stack, rawMouseX, rawMouseY)
+                ctx.setTooltipForNextFrame(font, stack, mx, my)
             }
         }
     }
@@ -348,7 +342,7 @@ class AutoHotbarScreen: Screen(Component.literal("AutoSwap Configuration")) {
     private fun getCurrentTrigger() = triggers.getOrNull(selectedTriggerIndex) ?: "None"
     private fun getCurrentTriggerLabel() = triggers.getOrNull(selectedTriggerIndex)?.let { if (AutoHotbar.isTriggerEnabled(it)) it else "$it (off)" } ?: "None"
     private fun updateEnabledButton() {
-        enabledToggleBtn.message = Component.literal(if (editEnabled) "&aEnabled" else "&cDisabled")
+        enabledToggleBtn.message = Component.literal(if (editEnabled) "Enabled" else "Disabled")
     }
 
     private fun openEditTrigger(trigger: String) {

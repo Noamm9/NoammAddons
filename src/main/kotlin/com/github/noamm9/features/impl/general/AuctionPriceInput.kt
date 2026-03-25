@@ -89,6 +89,8 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             inputField.value = input
             inputField.setMaxLength(32)
             recalculateValue()
+            inputField.moveCursorToEnd(false)
+            inputField.setHighlightPos(0)
 
             inputField.setResponder {
                 input = it
