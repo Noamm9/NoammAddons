@@ -183,10 +183,6 @@ kotlin {
     jvmToolchain(21)
 }
 
-tasks.register("buildAll") {
-    dependsOn("remapJarCheat", "remapJar")
-}
-
 publishing {
     publications {
         create("mavenLegit", MavenPublication) {
@@ -223,6 +219,10 @@ loom {
             source sourceSets.legit
         }
     }
+}
+
+tasks.named('build') {
+    dependsOn("remapJarCheat", "remapJar")
 }
 
 apply from: file('preprocess.gradle')
