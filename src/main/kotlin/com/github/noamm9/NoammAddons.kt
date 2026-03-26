@@ -56,7 +56,6 @@ object NoammAddons: ClientModInitializer {
         DataDownloader.downloadData()
 
         EventDispatcher.init()
-        ThreadUtils.init()
         DungeonListener.init()
         ServerUtils.init()
         ActionBarParser.init()

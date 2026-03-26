@@ -6,6 +6,7 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.EventPriority
 import com.github.noamm9.event.impl.TickEvent
+import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Executors
@@ -13,90 +14,69 @@ import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 
 object ThreadUtils {
-    data class TickTask(var ticks: Int, val action: () -> Unit)
+    data class TickTask(var ticks: Int, val action: suspend () -> Unit)
 
     private val scheduler = Executors.newScheduledThreadPool(1) { Thread(it, "$MOD_NAME-Scheduler").apply { isDaemon = true } }
     private val serverTickTasks = ConcurrentLinkedQueue<TickTask>()
     private val clientTickTasks = ConcurrentLinkedQueue<TickTask>()
+
+    init {
+        register<TickEvent.Start>(EventPriority.HIGHEST) { prossess(clientTickTasks) }
+        register<TickEvent.Server>(EventPriority.HIGHEST) { prossess(serverTickTasks) }
+    }
 
     fun runOnMcThread(block: () -> Unit) {
         if (mc.isSameThread) safeRun(block)
         else scheduledTask { safeRun(block) }
     }
 
-    fun async(block: () -> Unit) {
-        return scheduler.execute { safeRun(block) }
-    }
-    
-    fun setTimeout(delay: Long, block: () -> Unit): ScheduledFuture<*> {
-        return scheduler.schedule({ safeRun(block) }, delay, TimeUnit.MILLISECONDS)
+    fun setTimeout(delay: Number, block: () -> Unit): ScheduledFuture<*> {
+        return scheduler.schedule({ safeRun(block) }, delay.toLong(), TimeUnit.MILLISECONDS)
     }
 
-    fun scheduledTask(ticks: Int = 0, block: () -> Unit) {
-        clientTickTasks.add(TickTask(ticks, block))
-    }
+    fun async(block: () -> Unit) = scheduler.execute { safeRun(block) }
+    fun scheduledTask(ticks: Int = 0, block: suspend () -> Unit) = clientTickTasks.add(TickTask(ticks, block))
+    fun scheduledTaskServer(ticks: Int = 0, block: suspend () -> Unit) = serverTickTasks.add(TickTask(ticks, block))
 
-    fun scheduledTaskServer(ticks: Int = 0, block: () -> Unit): TickTask {
-        val task = TickTask(ticks, block)
-        serverTickTasks.add(task)
-        return task
-    }
-
-    fun loop(delayProvider: () -> Number, stopCondition: suspend () -> Boolean = { false }, block: suspend () -> Unit) {
-        val taskWrapper = object: Runnable {
+    fun loop(delayProvider: () -> Number, stopCondition: () -> Boolean = { false }, block: suspend () -> Unit) {
+        val task = object: Runnable {
             override fun run() {
                 safeRun(block)
-                if (! runBlocking { stopCondition() }) {
+                if (! stopCondition()) {
                     scheduler.schedule(this, delayProvider().toLong(), TimeUnit.MILLISECONDS)
                 }
             }
         }
-        scheduler.execute(taskWrapper)
+
+        scheduler.execute(task)
     }
 
-    fun loop(delay: Number, stopCondition: suspend () -> Boolean = { false }, block: suspend () -> Unit) {
+    fun loop(delay: Number, stopCondition: () -> Boolean = { false }, block: suspend () -> Unit) {
         loop({ delay }, stopCondition, block)
     }
 
-    fun init() {
-        register<TickEvent.Start>(EventPriority.HIGHEST) {
-            if (clientTickTasks.isEmpty()) return@register
-
-            clientTickTasks.removeIf { entry ->
-                if (entry.ticks <= 0) {
-                    safeRun(entry.action)
-                    true
-                }
-                else {
-                    entry.ticks --
-                    false
-                }
-            }
-        }
-
-        register<TickEvent.Server>(EventPriority.HIGHEST) {
-            if (serverTickTasks.isEmpty()) return@register
-
-            serverTickTasks.removeIf { entry ->
-                if (entry.ticks <= 0) {
-                    safeRun(entry.action)
-                    true
-                }
-                else {
-                    entry.ticks --
-                    false
-                }
-            }
-        }
-    }
-
-    private inline fun safeRun(crossinline block: suspend () -> Unit) {
+    private fun safeRun(block: suspend () -> Unit) {
         try {
-            runBlocking { block() }
+            runBlocking { block.invoke() }
         }
         catch (e: Throwable) {
             logger.error("Error in ThreadUtils task: ${e.message}")
             e.printStackTrace()
+        }
+    }
+
+    private fun prossess(list: ConcurrentLinkedQueue<TickTask>) {
+        if (list.isEmpty()) return
+
+        list.removeIf { entry ->
+            if (entry.ticks <= 0) {
+                safeRun(entry.action)
+                true
+            }
+            else {
+                entry.ticks --
+                false
+            }
         }
     }
 }
