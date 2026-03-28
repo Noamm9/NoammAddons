@@ -5,6 +5,8 @@ import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.Utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.customData
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
+import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.location.WorldType
 import net.minecraft.core.BlockPos
 import net.minecraft.core.SectionPos
 import net.minecraft.world.item.ItemStack
@@ -20,7 +22,14 @@ import kotlin.math.sign
 
 object EtherwarpHelper {
     private const val EYE_HEIGHT = 1.62
-    private const val SNEAK_OFFSET = 0.08
+    private inline val SNEAK_OFFSET: Double
+        get() {
+            if (LocationUtils.world.equalsOneOf(WorldType.Galatea, WorldType.Home, WorldType.Park, WorldType.SpiderDen)) {
+                return 0.35
+            }
+
+            return 0.08
+        }
 
     data class EtherPos(val succeeded: Boolean, val pos: BlockPos?) {
         val vec = pos?.let { Vec3(it) }

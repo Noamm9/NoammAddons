@@ -1,19 +1,26 @@
 package com.github.noamm9.utils.location
 
 enum class WorldType(val tabName: String) {
-    DungeonHub("Dungeon Hub"),
+    BackwaterBayou("Backwater Bayou"),
     Catacombs("Catacombs"),
+    CrimonIsle("Crimson Isle"),
+    CrystalHollows("Crystal Hollows"),
+    DarkAuction("Dark Auction"),
+    DeepCaverns("Deep Caverns"),
+    Dungeon("Catacombs"),
+    DungeonHub("Dungeon Hub"),
+    DwarvenMines("Dwarven Mines"),
+    End("The End"),
+    Galatea("Galatea"),
+    Garden("Garden"),
+    GoldMine("Gold Mine"),
     Home("Private Island"),
     Hub("Hub"),
+    JerryWorkshop("Jerry's Workshop"),
+    Kuudra("Kuudra"),
+    Mineshaft("Mineshaft"),
     Park("The Park"),
+    Rift("The Rift"),
     SpiderDen("Spider"),
-    End("The End"),
-    CrimonIsle("Crimson Isle"),
-    GoldMine("Gold Mine"),
-    DeepCaverns("Deep Caverns"),
-    DwarvenMines("Dwarven Mines"),
-    CrystalHollows("Crystal Hollows"),
-    TheBarn("The Farming Islands"),
-    BackwaterBayou("Backwater Bayou"),
-    Garden("Garden");
+    TheBarn("The Farming Islands");
 }

@@ -3,7 +3,7 @@ package com.github.noamm9.features.impl.misc
 //#if CHEAT
 
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
-import com.github.noamm9.event.impl.PlayerInteractEvent
+import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.ILocalPlayer
@@ -32,6 +32,7 @@ import net.minecraft.client.Camera
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket
 import net.minecraft.network.protocol.game.ServerboundAcceptTeleportationPacket
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket
+import net.minecraft.network.protocol.game.ServerboundUseItemPacket
 import net.minecraft.world.entity.PositionMoveRotation
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.phys.Vec3
@@ -60,23 +61,21 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
             lastWitherImpact = System.currentTimeMillis()
         }
 
-        fun onInteract(event: PlayerInteractEvent.RIGHT_CLICK) {
-            if (LocationUtils.world.equalsOneOf(WorldType.Home, WorldType.Garden)) return
-            if (LocationUtils.dungeonFloorNumber == 7 && LocationUtils.inBoss) return
-            if (ActionBarParser.currentMana < ActionBarParser.maxMana * 0.1) return
-            if (ScanUtils.currentRoom?.data?.name.equalsOneOf("New Trap", "Old Trap", "Teleport Maze", "Boulder")) return
-            if (mc.player?.isPassenger == true) return
-            val tpInfo = getTeleportInfo(event.item) ?: return
+        register<PacketEvent.Sent> {
+            val packet = event.packet as? ServerboundUseItemPacket ?: return@register
+            if (LocationUtils.world.equalsOneOf(WorldType.Home, WorldType.Garden)) return@register
+            if (LocationUtils.dungeonFloorNumber == 7 && LocationUtils.inBoss) return@register
+            if (ActionBarParser.currentMana < ActionBarParser.maxMana * 0.1) return@register
+            if (ScanUtils.currentRoom?.data?.name.equalsOneOf("New Trap", "Old Trap", "Teleport Maze", "Boulder")) return@register
+            if (mc.player !!.isPassenger) return@register
+            val tpInfo = getTeleportInfo(mc.player !!.getItemInHand(packet.hand)) ?: return@register
 
             when (tpInfo.type) {
-                TeleportType.Etherwarp -> doZeroPingEtherwarp(tpInfo)
-                TeleportType.InstantTransmission -> doZeroPingInstantTransmission(tpInfo)
-                TeleportType.WitherImpact -> doZeroPingWitherImpact(tpInfo)
+                TeleportType.Etherwarp -> doZeroPingEtherwarp(tpInfo, packet.yRot, packet.xRot)
+                TeleportType.InstantTransmission -> doZeroPingInstantTransmission(tpInfo, packet.yRot, packet.xRot)
+                TeleportType.WitherImpact -> doZeroPingWitherImpact(tpInfo, packet.yRot, packet.xRot)
             }
         }
-
-        register<PlayerInteractEvent.RIGHT_CLICK.AIR> { onInteract(event) }
-        register<PlayerInteractEvent.RIGHT_CLICK.BLOCK> { onInteract(event) }
 
         register<MainThreadPacketReceivedEvent.Pre> {
             val packet = event.packet as? ClientboundPlayerPositionPacket ?: return@register
@@ -127,11 +126,11 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
         ThreadUtils.setTimeout(resyncTimeout.value) { pendingTeleports.remove(prediction) }
     }
 
-    private fun doZeroPingEtherwarp(tpInfo: TeleportInfo) {
+    private fun doZeroPingEtherwarp(tpInfo: TeleportInfo, yaw: Float? = null, pitch: Float? = null) {
         val player = mc.player as ILocalPlayer
 
         val playerPos = pendingTeleports.lastOrNull()?.position ?: player.let { Vec3(it.serverX, it.serverY, it.serverZ) }
-        val etherPos = EtherwarpHelper.getEtherPos(playerPos, MathUtils.getLookVec(player.serverYaw, player.serverPitch), tpInfo.distance)
+        val etherPos = EtherwarpHelper.getEtherPos(playerPos, MathUtils.getLookVec(yaw ?: player.serverYaw, pitch ?: player.serverPitch), tpInfo.distance)
         if (! etherPos.succeeded || etherPos.pos == null) return
         if (ScanUtils.getRoomFromPos(etherPos.vec !!)?.data?.name.equalsOneOf("Teleport Maze", "Boulder")) return
 
@@ -139,21 +138,21 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
         teleport(prediction)
     }
 
-    private fun doZeroPingInstantTransmission(tpInfo: TeleportInfo) {
+    private fun doZeroPingInstantTransmission(tpInfo: TeleportInfo, yaw: Float? = null, pitch: Float? = null) {
         val player = mc.player as ILocalPlayer
 
         val playerPos = pendingTeleports.lastOrNull()?.position ?: Vec3(player.serverX, player.serverY, player.serverZ)
-        val pos = InstantTransmissionHelper.predictTeleport(tpInfo.distance, playerPos, player.serverYaw, player.serverPitch) ?: return
+        val pos = InstantTransmissionHelper.predictTeleport(tpInfo.distance, playerPos, yaw ?: player.serverYaw, pitch ?: player.serverPitch) ?: return
         if (ScanUtils.getRoomFromPos(pos)?.data?.name.equalsOneOf("Teleport Maze", "Boulder")) return
 
         val prediction = TeleportPrediction(pos, tpInfo)
         teleport(prediction)
     }
 
-    private fun doZeroPingWitherImpact(tpInfo: TeleportInfo) {
+    private fun doZeroPingWitherImpact(tpInfo: TeleportInfo, yaw: Float? = null, pitch: Float? = null) {
         if (System.currentTimeMillis() - lastWitherImpact <= 125) return // 8 CPS limit
         lastWitherImpact = System.currentTimeMillis()
-        doZeroPingInstantTransmission(tpInfo)
+        doZeroPingInstantTransmission(tpInfo, yaw, pitch)
     }
 
     private fun getTeleportInfo(stack: ItemStack?): TeleportInfo? {

@@ -82,49 +82,50 @@ object NoammAddons: ClientModInitializer {
     }
 
     private fun initNetworkLoop() = ThreadUtils.loop(600_000) {
-        WebUtils.getAs<JsonObject>("${BASE_URL}/mayor")
-            .onSuccess { data ->
-                val mayor = data["mayor"]?.jsonObject !!
-                val minister = mayor["minister"]?.jsonObject !!
+        runCatching {
+            val data = WebUtils.getAs<JsonObject>("${BASE_URL}/mayor").getOrThrow()
+            val mayor = data["mayor"]?.jsonObject !!
+            val minister = mayor["minister"]?.jsonObject
+            val perks = mayor["perks"]?.jsonArray
+                ?.map { it.jsonObject["name"]?.jsonPrimitive?.content to it.jsonObject["description"]?.jsonPrimitive?.content?.removeFormatting() }
+                ?.map { ElectionData.Perk(it.first !!, it.second !!) }
+                ?: return@runCatching
 
-                electionData = ElectionData(
-                    ElectionData.Mayor(
-                        mayor["name"]?.jsonPrimitive?.content !!,
-                        mayor["perks"]?.jsonArray?.map { it.jsonObject["name"]?.jsonPrimitive?.content to it.jsonObject["description"]?.jsonPrimitive?.content?.removeFormatting() }?.map { ElectionData.Perk(it.first !!, it.second !!) } ?: return@onSuccess
-                    ),
-                    ElectionData.Minister(
-                        minister["name"]?.jsonPrimitive?.content !!,
-                        ElectionData.Perk(minister["perk"]?.jsonObject["name"]?.jsonPrimitive?.content !!, minister["perk"]?.jsonObject["description"]?.jsonPrimitive?.content?.removeFormatting() !!)
-                    )
+            electionData = ElectionData(
+                ElectionData.Mayor(
+                    mayor["name"]?.jsonPrimitive?.content !!,
+                    perks
+                ),
+                ElectionData.Minister(
+                    minister?.get("name")?.jsonPrimitive?.content.orEmpty(),
+                    ElectionData.Perk(minister?.get("perk")?.jsonObject["name"]?.jsonPrimitive?.content.orEmpty(), minister?.get("perk")?.jsonObject["description"]?.jsonPrimitive?.content?.removeFormatting().orEmpty())
                 )
-            }
-            .onFailure {
-                logger.error("Error while making a web request", it)
-                it.printStackTrace()
-            }
+            )
+        }.onFailure {
+            logger.error("Error while making a web request", it)
+            it.printStackTrace()
+        }
 
-        WebUtils.getAs<Map<String, Long>>("${BASE_URL}/lowestbin")
-            .onSuccess { priceData.putAll(it) }
-            .onFailure {
-                logger.error("Error while making a web request", it)
-                it.printStackTrace()
-            }
+        runCatching {
+            priceData.putAll(WebUtils.getAs<Map<String, Long>>("${BASE_URL}/lowestbin").getOrThrow())
+        }.onFailure {
+            logger.error("Error while making a web request", it)
+            it.printStackTrace()
+        }
 
+        runCatching {
+            val data = WebUtils.getAs<JsonObject>("${BASE_URL}/bazaar").getOrThrow()
+            data["products"]?.jsonObject?.forEach { (key, element) ->
+                val product = element.jsonObject
+                val productId = product["product_id"]?.jsonPrimitive?.content ?: key
+                val buyPrice = product["buy_summary"]?.jsonArray?.getOrNull(0)
+                    ?.jsonObject?.get("pricePerUnit")?.jsonPrimitive?.doubleOrNull?.toLong() ?: 0L
 
-        WebUtils.getAs<JsonObject>("${BASE_URL}/bazaar")
-            .onSuccess { data ->
-                data["products"]?.jsonObject?.forEach { (key, element) ->
-                    val product = element.jsonObject
-                    val productId = product["product_id"]?.jsonPrimitive?.content ?: key
-                    val buyPrice = product["buy_summary"]?.jsonArray?.getOrNull(0)
-                        ?.jsonObject?.get("pricePerUnit")?.jsonPrimitive?.doubleOrNull?.toLong() ?: 0L
-
-                    priceData[productId] = buyPrice
-                }
+                priceData[productId] = buyPrice
             }
-            .onFailure {
-                logger.error("Error while making a web request", it)
-                it.printStackTrace()
-            }
+        }.onFailure {
+            logger.error("Error while making a web request", it)
+            it.printStackTrace()
+        }
     }
 }

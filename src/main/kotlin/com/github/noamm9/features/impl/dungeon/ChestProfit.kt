@@ -72,9 +72,10 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
 
                     var profit = - getChestCost(lore)
 
-                    event.items.forEach { (_, stack) ->
+                    event.items.forEach { (slot, stack) ->
                         if (stack.item == Items.GRAY_STAINED_GLASS_PANE) return@forEach
-                        profit += getItemValue(stack)
+                        val value = getItemValue(stack)
+                        profit += value
                     }
 
                     currentChest.profit = profit
@@ -95,8 +96,10 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                         var profit = - getChestCost(lore.map { it.removeFormatting() })
 
                         lore.drop(contentIndex + 1).takeWhile { it.isNotBlank() }.forEach { line ->
-                            profit += if (line.contains("Essence")) getEssenceValue(line)
+                            val value = if (line.contains("Essence")) getEssenceValue(line)
                             else getIdFromName(line)?.let { getPrice(it) } ?: 0
+
+                            profit += value
                         }
 
                         chestType.profit = profit
@@ -209,7 +212,10 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
         value += getPrice(itemId)
         if (itemName.contains("Shard")) {
             val cleanName = itemName.removeFormatting().uppercase().remove(" SHARD").replace(" ", "_").remove("_X1")
-            value += getPrice("SHARD_$cleanName")
+            val shardId = "SHARD_$cleanName"
+            val shardPrice = getPrice(shardId)
+
+            value += shardPrice
         }
 
         return value
@@ -247,7 +253,6 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
 
         val levelStr = enchant.substringAfterLast(" ").removeFormatting()
         val level = levelStr.toIntOrNull() ?: levelStr.romanToDecimal()
-
         return "ENCHANTMENT_${enchantId}_$level"
     }
 
@@ -262,14 +267,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
             enabled = { hud.value },
             shouldDraw = { LocationUtils.world.equalsOneOf(WorldType.DungeonHub, WorldType.Catacombs) }
         ) { ctx, example ->
-            val text = if (example) listOf(
-                DungeonChest.WOOD to "Wood Chest: §a75k",
-                DungeonChest.GOLD to "Gold Chest: §4-62k",
-                DungeonChest.DIAMOND to "Diamond Chest: §a24k",
-                DungeonChest.EMERALD to "Emerald Chest: §4-442k",
-                DungeonChest.OBSIDIAN to "Obsidian Chest: §4-624k",
-                DungeonChest.BEDROCK to "Bedrock Chest: §a5m"
-            )
+            val text = if (example) DungeonChest.example
             else {
                 val chests = sortedChestsCache.takeIf { it.isNotEmpty() } ?: DungeonChest.entries.filter { it.openedInSequence }.sortedByDescending { it.profit }
                 if (chests.isEmpty()) return@hudElement 0f to 0f
@@ -316,6 +314,15 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                     it.displayText.remove(" Chest") == name.remove(" Chest")
                 }
             }
+
+            internal val example = listOf(
+                WOOD to "Wood Chest: §a75k",
+                GOLD to "Gold Chest: §4-62k",
+                DIAMOND to "Diamond Chest: §a24k",
+                EMERALD to "Emerald Chest: §4-442k",
+                OBSIDIAN to "Obsidian Chest: §4-624k",
+                BEDROCK to "Bedrock Chest: §a5m"
+            )
         }
     }
 }

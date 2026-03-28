@@ -25,6 +25,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.sounds.SoundEvents
+import net.minecraft.world.inventory.MenuType
 import java.util.concurrent.CopyOnWriteArraySet
 
 object Secrets: Feature() {
@@ -71,6 +72,7 @@ object Secrets: Feature() {
             if (! closeChest.value) return@register
             if (! LocationUtils.inDungeon) return@register
             val packet = event.packet as? ClientboundOpenScreenPacket ?: return@register
+            if (! packet.type.equalsOneOf(MenuType.GENERIC_9x3, MenuType.GENERIC_9x6)) return@register
             if (! packet.title.unformattedText.equalsOneOf("Chest", "Large Chest")) return@register
             ServerboundContainerClosePacket(packet.containerId).send()
             event.isCanceled = true
