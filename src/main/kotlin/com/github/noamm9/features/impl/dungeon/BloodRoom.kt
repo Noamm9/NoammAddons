@@ -28,39 +28,6 @@ object BloodRoom: Feature() {
     )
 
     override fun init() {
-        register<ChatMessageEvent> {
-            if (! bloodCamp.value) return@register
-            // Ensure we are in the specific dungeon state
-            if (DungeonListener.bloodOpenTime != null && DungeonListener.watcherClearTime == null) {
-                val msg = event.unformattedText
-                when {
-                    msg in watcherIntroRegex -> firstSpawns = true
-                    msg.matches(firstSpawnRegex) -> firstSpawns = false
-                }
-            }
-        }
-
-        // Use standard/Pre packet event to capture the equipment before logic potentially changes
-        register<MainThreadPacketReceivedEvent.Pre> {
-            if (! bloodCamp.value) return@register
-            if (watcherEntity != null) return@register
-
-            val packet = event.packet
-            if (packet !is ClientboundSetEquipmentPacket) return@register
-
-            val entity = mc.level?.getEntity(packet.entity) as? Zombie ?: return@register
-
-            // In 1.21 Equipment packet uses a list of pairs
-            val itemStack = packet.slots.find { it.first == EquipmentSlot.HEAD }?.second ?: return@register
-
-            if (itemStack.isEmpty || ! itemStack.`is`(Items.PLAYER_HEAD)) return@register
-            if (ItemUtils.getSkullTexture(itemStack) !in watcherSkulls) return@register
-
-            watcherEntity = entity
-            ChatUtils.modMessage("found watcher Entity")
-        }
-
-        // Use Pre packet event so 'entity.x' is the OLD position, and we add 'packet.xa' (delta)
         register<MainThreadPacketReceivedEvent.Pre> {
             if (! bloodCamp.value) return@register
             if (DungeonListener.bloodOpenTime == null) return@register
@@ -123,6 +90,222 @@ object BloodRoom: Feature() {
             firstSpawns = true
         }
     }
+}*/
+
+import com.github.noamm9.event.impl.*
+import com.github.noamm9.features.Feature
+import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.ChatUtils.modMessage
+import com.github.noamm9.utils.MathUtils.add
+import com.github.noamm9.utils.NumbersUtils.toFixed
+import com.github.noamm9.utils.ServerUtils
+import com.github.noamm9.utils.ThreadUtils
+import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.items.ItemUtils
+import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.render.NoammRenderLayers
+import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.RenderContext
+import net.minecraft.client.renderer.ShapeRenderer
+import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket
+import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket
+import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
+import net.minecraft.world.entity.EquipmentSlot
+import net.minecraft.world.entity.decoration.ArmorStand
+import net.minecraft.world.entity.monster.Zombie
+import net.minecraft.world.item.Items
+import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.Vec3
+import java.awt.Color
+
+object BloodCamp: Feature("Features for Blood Camping.") {
+
+    private val entityDataMap = HashMap<ArmorStand, EntityData>()
+    private val renderDataMap = HashMap<ArmorStand, RenderEData>()
+    private var watcherEntity: Zombie? = null
+    private var firstSpawns = true
+
+    private var moveTimeSeconds: Float? = null
+    private var currentTickTime = 0L
+    private var startTime: Long? = null
+
+
+    private data class RenderEData(
+        var currVector: Vec3, var endVector: Vec3, var endVecUpdated: Long, var speedVector: Vec3,
+        var lastEndVector: Vec3? = null, var lastPingPoint: Vec3? = null, var lastEndPoint: Vec3? = null,
+        var time: Float? = null,
+    )
+
+    private data class EntityData(
+        var startVector: Vec3,
+        val started: Long,
+        var firstSpawns: Boolean = true,
+        val deltaHistory: ArrayDeque<Vec3> = ArrayDeque(),
+        var lastPosition: Vec3 = startVector
+    )
+
+    private fun getTime(firstSpawn: Boolean, timeTook: Long) = (if (firstSpawn) 2000 else 0) + 1900 - timeTook + 40
+
+    private val BLOOD_START_REGEX = Regex("^\\[BOSS] The Watcher: (Congratulations, you made it through the Entrance\\.|Ah, you've finally arrived\\.|Ah, we meet again\\.\\.\\.|So you made it this far\\.\\.\\. interesting\\.|You've managed to scratch and claw your way here, eh\\?|I'm starting to get tired of seeing you around here\\.\\.\\.|Oh\\.\\. hello\\?|Things feel a little more roomy now, eh\\?)$")
+    private val BLOOD_MOVE_REGEX = Regex("^\\[BOSS] The Watcher: Let's see how you can handle this\\.$")
+
+    override fun init() {
+        register<ChatMessageEvent> {
+            if (LocationUtils.inBoss) return@register
+            val msg = event.unformattedText
+            if (BLOOD_START_REGEX.matches(msg)) startTime = DungeonListener.currentTime
+            else if (BLOOD_MOVE_REGEX.matches(msg)) {
+                firstSpawns = false
+                val tickTime = startTime ?: return@register
+                val predTicks = when (val moveTicks = DungeonListener.currentTime - tickTime) {
+                    in 31 ..< 34 -> 36
+                    in 28 ..< 31 -> 33
+                    in 25 ..< 28 -> 30
+                    in 22 ..< 25 -> 27
+                    in 1 ..< 22 -> 24
+                    else -> moveTicks + 3
+                }
+
+                moveTimeSeconds = predTicks / 20f
+                modMessage("Watcher will move in ${moveTimeSeconds?.toFixed(2)}s.")
+
+                ThreadUtils.scheduledTaskServer(predTicks) {
+                    ChatUtils.showTitle("Kill Mobs")
+                    moveTimeSeconds = null
+                }
+            }
+        }
+
+        register<MainThreadPacketReceivedEvent.Pre> {
+            if (watcherEntity != null || LocationUtils.inBoss) return@register
+            val packet = event.packet as? ClientboundSetEquipmentPacket ?: return@register
+            val itemStack = packet.slots.find { it.first == EquipmentSlot.HEAD }?.second ?: return@register
+            if (itemStack.isEmpty || ! itemStack.`is`(Items.PLAYER_HEAD)) return@register
+            if (ItemUtils.getSkullTexture(itemStack) !in watcherSkulls) return@register
+            watcherEntity = mc.level?.getEntity(packet.entity) as? Zombie
+        }
+
+        register<MainThreadPacketReceivedEvent.Pre> {
+            if (watcherEntity == null) return@register
+            val packet = event.packet as? ClientboundRemoveEntitiesPacket ?: return@register
+            if (packet.entityIds.none { it == watcherEntity?.id }) return@register
+            watcherEntity = null
+        }
+
+        register<MainThreadPacketReceivedEvent.Pre> {
+            val packet = event.packet as? ClientboundMoveEntityPacket ?: return@register
+            if (packet.xa == 0.toShort() && packet.ya == 0.toShort() && packet.za == 0.toShort()) return@register
+            val level = mc.level ?: return@register
+            if (LocationUtils.inBoss) return@register
+
+            val entity = packet.getEntity(level) as? ArmorStand ?: return@register
+            if (watcherEntity?.let { it.distanceTo(entity) <= 20 } != true) return@register
+            val item = entity.getItemBySlot(EquipmentSlot.HEAD).takeIf { it.`is`(Items.PLAYER_HEAD) } ?: return@register
+            if (ItemUtils.getSkullTexture(item) !in mobSkulls) return@register
+
+            val packetVec = Vec3(
+                entity.x + (packet.xa / 4096),
+                entity.y + (packet.ya / 4096),
+                entity.z + (packet.za / 4096)
+            )
+
+            val data = entityDataMap.getOrPut(entity) { EntityData(packetVec, currentTickTime, firstSpawns, lastPosition = packetVec) }
+            val delta = packetVec.subtract(data.lastPosition)
+            data.lastPosition = packetVec
+
+            if (delta.lengthSqr() > 0) data.deltaHistory.addLast(delta)
+
+            val totalDelta = data.deltaHistory.fold(Vec3.ZERO) { acc, d -> acc.add(d) }
+            val endpoint = data.startVector.add((if (totalDelta.lengthSqr() > 0) totalDelta.normalize() else Vec3.ZERO).scale(if (data.firstSpawns) 16.1 else 11.9))
+            val timeTook = currentTickTime - data.started
+            val speedVec = Vec3(
+                (packetVec.x - data.startVector.x) / timeTook,
+                (packetVec.y - data.startVector.y) / timeTook,
+                (packetVec.z - data.startVector.z) / timeTook
+            )
+
+            renderDataMap.getOrPut(entity) { RenderEData(packetVec, endpoint, currentTickTime, speedVec) }.apply {
+                lastEndVector = endVector
+                endVecUpdated = currentTickTime
+                speedVector = speedVec
+                currVector = packetVec
+                endVector = endpoint
+            }
+        }
+
+        register<TickEvent.Server> {
+            currentTickTime += 50
+            moveTimeSeconds?.let { moveTimeSeconds = it - 0.05f }
+        }
+
+        register<WorldChangeEvent> {
+            watcherEntity = null
+            entityDataMap.clear()
+            renderDataMap.clear()
+            currentTickTime = 0
+            firstSpawns = true
+            moveTimeSeconds = null
+            startTime = null
+        }
+
+        register<RenderWorldEvent> {
+            if (LocationUtils.inBoss) return@register
+            val boxSize = 0.8
+            val boxOffset = Vec3(boxSize / - 2.0, 1.5, boxSize / - 2.0)
+
+            renderDataMap.forEach { (entity, renderData) ->
+                if (! entity.isAlive) return@forEach
+                val data = entityDataMap[entity] ?: return@forEach
+                val (currVector, endVector, _, speedVectors) = renderData
+
+                val timeTook = currentTickTime - data.started
+                val time = getTime(data.firstSpawns, timeTook)
+
+                val mobOffset = ServerUtils.averagePing.toFloat()
+                val pingPoint = Vec3(entity.x + speedVectors.x * mobOffset, entity.y + speedVectors.y * mobOffset, entity.z + speedVectors.z * mobOffset)
+
+                renderData.lastEndPoint = endVector
+                renderData.lastPingPoint = pingPoint
+
+                val pingAABB = AABB(boxSize, boxSize, boxSize, 0.0, 0.0, 0.0).move(boxOffset.add(pingPoint))
+                val endAABB = AABB(boxSize, boxSize, boxSize, 0.0, 0.0, 0.0).move(boxOffset.add(endVector))
+
+                if (mobOffset < time) {
+                    drawWireFrameBox(event.ctx, pingAABB, Color.RED)
+                    drawWireFrameBox(event.ctx, endAABB, Color.cyan)
+                }
+                else drawWireFrameBox(event.ctx, endAABB, Color.GREEN)
+
+                Render3D.renderLine(event.ctx, currVector.add(y = 2), endVector.add(y = 2), Color.RED)
+
+                val timeDisplay = ((time.toFloat() - 40) / 1000).also { renderData.time = it }
+                val colorTime = when {
+                    timeDisplay > 1.5 -> 'a'
+                    timeDisplay in 0.5 .. 1.5 -> '6'
+                    timeDisplay in 0.0 .. 0.5 -> 'c'
+                    else -> 'b'
+                }
+
+                Render3D.renderString("§$colorTime${timeDisplay.toFixed(2)}s", endVector.add(y = 2), scale = 2f)
+            }
+        }
+    }
+
+    private fun drawWireFrameBox(ctx: RenderContext, aabb: AABB, bboxColor: Color) {
+        val cam = ctx.camera.position.reverse()
+        ctx.matrixStack.pushPose()
+        ctx.matrixStack.translate(cam.x, cam.y, cam.z)
+
+        ShapeRenderer.renderLineBox(
+            ctx.matrixStack.last(),
+            ctx.consumers.getBuffer(NoammRenderLayers.getLinesThroughWalls(2.0)),
+            aabb.minX, aabb.minY, aabb.minZ,
+            aabb.maxX, aabb.maxY, aabb.maxZ,
+            bboxColor.red / 255f, bboxColor.green / 255f, bboxColor.blue / 255f, 0.7f
+        )
+
+        ctx.matrixStack.popPose()
+    }
 
     private val watcherSkulls = setOf(
         "ewogICJ0aW1lc3RhbXAiIDogMTY5NzMwOTQxNzI1NiwKICAicHJvZmlsZUlkIiA6ICJjYjYxY2U5ODc4ZWI0NDljODA5MzliNWYxNTkwMzE1MiIsCiAgInByb2ZpbGVOYW1lIiA6ICJWb2lkZWRUcmFzaDUxODUiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTY2MmI2ZmI0YjhiNTg2ZGM0Y2RmODAzYjA0NDRkOWI0MWQyNDVjZGY2NjhkYWIzOGZhNmMwNjRhZmU4ZTQ2MSIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9",
@@ -161,4 +344,4 @@ object BloodRoom: Feature() {
         "ewogICJ0aW1lc3RhbXAiIDogMTU4OTc5MzA2ODgzOSwKICAicHJvZmlsZUlkIiA6ICIyYzEwNjRmY2Q5MTc0MjgyODRlM2JmN2ZhYTdlM2UxYSIsCiAgInByb2ZpbGVOYW1lIiA6ICJOYWVtZSIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS83ZGU3YmJiZGYyMmJmZTE3OTgwZDRlMjA2ODdlMzg2ZjExZDU5ZWUxZGI2ZjhiNDc2MjM5MWI3OWE1YWM1MzJkIgogICAgfQogIH0KfQ==",
         "ewogICJ0aW1lc3RhbXAiIDogMTU5ODk3NzI1OTM1NywKICAicHJvZmlsZUlkIiA6ICJlNzkzYjJjYTdhMmY0MTI2YTA5ODA5MmQ3Yzk5NDE3YiIsCiAgInByb2ZpbGVOYW1lIiA6ICJUaGVfSG9zdGVyX01hbiIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9jMTAwN2M1YjcxMTRhYmVjNzM0MjA2ZDRmYzYxM2RhNGYzYTBlOTlmNzFmZjk0OWNlZGFkYzk5MDc5MTM1YTBiIgogICAgfQogIH0KfQ=="
     )
-}*/
+}

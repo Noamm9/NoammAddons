@@ -10,11 +10,15 @@ import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.MathUtils
+import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.Utils.remove
 import com.github.noamm9.utils.Utils.startsWithOneOf
 import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.dungeons.map.DungeonInfo
+import com.github.noamm9.utils.dungeons.map.core.Room
+import com.github.noamm9.utils.dungeons.map.core.RoomType
 import com.github.noamm9.websocket.WebSocket
-import com.github.noamm9.websocket.packets.C2SPacketLobbyPing
+import com.github.noamm9.websocket.packets.C2SPacketDungeonStart
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
 import net.minecraft.network.protocol.game.ClientboundSetObjectivePacket
@@ -74,16 +78,22 @@ object LocationUtils {
             else if (event.packet is ClientboundSetPlayerTeamPacket) {
                 val prams = event.packet.parameters.getOrNull() ?: return@register
                 val text = (prams.playerPrefix.string + prams.playerSuffix.string).removeFormatting()
-                lobbyRegex.find(text)?.groupValues?.get(1)?.let {
-                    if (it.length < 5) return@let
-                    serverId = it
-                    WebSocket.send(C2SPacketLobbyPing())
-                }
+                lobbyRegex.find(text)?.groupValues?.get(1)?.let { serverId = it }
 
                 if (! inDungeon && text.contains("The Catacombs (") && ! text.contains("Queue")) {
                     inDungeon = true
                     dungeonFloor = text.substringAfter("(").substringBefore(")")
                     dungeonFloorNumber = dungeonFloor?.lastOrNull()?.digitToIntOrNull() ?: 0
+
+                    ThreadUtils.scheduledTaskServer(30) ws@{
+                        if (DungeonListener.dungeonTeammatesNoSelf.isEmpty()) return@ws
+                        val serverId = LocrawListener.server.ifEmpty { serverId } ?: return@ws
+                        val floor = dungeonFloor ?: return@ws
+                        val team = DungeonListener.dungeonTeammates.map { it.name }.ifEmpty { return@ws }
+                        val entrance = (DungeonInfo.dungeonList.find { (it as? Room)?.data?.type == RoomType.ENTRANCE } as? Room)?.getArrayPosition() ?: return@ws
+
+                        WebSocket.send(C2SPacketDungeonStart(serverId, floor, team, entrance))
+                    }
                 }
             }
             else if (event.packet is ClientboundSetObjectivePacket) {
@@ -114,6 +124,7 @@ object LocationUtils {
         F7Phase = null
         world = null
         serverId = null
+        WebSocket.send(mapOf("type" to "reset"))
     }
 
     private fun setDevModeValues() {

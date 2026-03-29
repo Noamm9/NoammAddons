@@ -2,7 +2,7 @@ package com.github.noamm9.mixin;
 
 import com.github.noamm9.NoammAddons;
 import com.github.noamm9.features.impl.dev.Cosmetics;
-import com.github.noamm9.features.impl.dev.TextReplacer;
+import com.github.noamm9.features.impl.dev.text.TextReplacer;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;

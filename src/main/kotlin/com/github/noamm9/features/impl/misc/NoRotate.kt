@@ -113,12 +113,16 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
     }
 
     @JvmStatic
-    fun cameraHook(instance: Camera, x: Double, y: Double, z: Double, original: Operation<Void>) {
+    fun cameraHook(instance: Camera, x: Double, y: Double, z: Double, original: Operation<Void>): Void? {
+        if (! enabled) return original.call(instance, x, y, z)
+        val player = mc.player ?: return original.call(instance, x, y, z)
+
         val config = zeroPingCamera.value.values.toList()
         val (x, y, z) = pendingTeleports.lastOrNull()?.takeIf { config[it.info.type.ordinal] }
-            ?.position?.add(y = mc.player !!.eyeHeight)?.destructured() ?: Triple(x, y, z)
+            ?.position?.add(y = player.eyeHeight - if (player.isCrouching) 0.35f else 0f)?.destructured()
+            ?: Triple(x, y, z)
 
-        original.call(instance, x, y, z)
+        return original.call(instance, x, y, z)
     }
 
     private fun teleport(prediction: TeleportPrediction) {

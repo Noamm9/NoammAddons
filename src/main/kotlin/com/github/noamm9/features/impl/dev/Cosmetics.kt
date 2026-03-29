@@ -2,6 +2,7 @@ package com.github.noamm9.features.impl.dev
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.features.Feature
+import com.github.noamm9.features.impl.dev.text.TextReplacer
 import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.ButtonSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
@@ -40,11 +41,14 @@ object Cosmetics: Feature(toggled = true) {
             NoammAddons.logger.info("fetching cosmeticPeople")
             WebUtils.getAs<Map<String, CosmeticData>>("https://old-api.noamm.org/cosmeticPeople.json").onSuccess { data ->
                 cosmeticPeople = data.mapKeys { UUID.fromString(it.key) }
+                val customNames = HashMap<String, String>()
 
                 cosmeticPeople.filter { it.value.hasCustomName }.forEach { (uuid, cosmetic) ->
                     val profile = ProfileUtils.getNameByUUID(uuid.toString()).getOrThrow()
-                    TextReplacer.replaceMap[profile.name] = cosmetic.name
+                    customNames[profile.name] = cosmetic.name
                 }
+
+                TextReplacer.setCustomReplacements(customNames)
             }.onFailure { cause ->
                 NoammAddons.logger.error("Failed to load cosmetic people", cause)
                 ChatUtils.modMessage("&cFailed to load cosmetic people: ${cause.message}")
