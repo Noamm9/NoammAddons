@@ -119,7 +119,7 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
 
         val config = zeroPingCamera.value.values.toList()
         val (x, y, z) = pendingTeleports.lastOrNull()?.takeIf { config[it.info.type.ordinal] }
-            ?.position?.add(y = player.eyeHeight - if (player.isCrouching) 0.35f else 0f)?.destructured()
+            ?.position?.add(y = player.eyeHeight)?.destructured()
             ?: Triple(x, y, z)
 
         return original.call(instance, x, y, z)

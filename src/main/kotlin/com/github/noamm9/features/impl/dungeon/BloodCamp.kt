@@ -1,101 +1,12 @@
 package com.github.noamm9.features.impl.dungeon
 
-/*
-object BloodRoom: Feature() {
-    private val bloodCamp by ToggleSetting("Blood Camp Helper", true)
-    private val showTimer by ToggleSetting("Show Timer", true).showIf { bloodCamp.value }
-    private val showBox by ToggleSetting("Show Box", true).showIf { bloodCamp.value }
-    private val showLine by ToggleSetting("Show Line", true).showIf { bloodCamp.value }
-    private val boxColor by ColorSetting("Box Color", Color(255, 0, 255)).showIf { bloodCamp.value && showBox.value }
-    private val lineColor by ColorSetting("Line Color", Color.CYAN).showIf { bloodCamp.value && showLine.value }
-
-    private data class BloodEntity(var startVec: Vec3, val start: Long, var firstSpawn: Boolean, var endVec: Vec3?)
-
-    private val bloodMobs = mutableMapOf<ArmorStand, BloodEntity>()
-    private var watcherEntity: Zombie? = null
-    private var firstSpawns = true
-
-    private val firstSpawnRegex = Regex("^\\[BOSS\\] The Watcher\\: Let\\'s see how you can handle this\\.\$")
-    private val watcherIntroRegex = setOf(
-        "[BOSS] The Watcher: Congratulations, you made it through the Entrance.",
-        "[BOSS] The Watcher: Ah, you've finally arrived.",
-        "[BOSS] The Watcher: Ah, we meet again...",
-        "[BOSS] The Watcher: So you made it this far... interesting.",
-        "[BOSS] The Watcher: You've managed to scratch and claw your way here, eh?",
-        "[BOSS] The Watcher: I'm starting to get tired of seeing you around here...",
-        "[BOSS] The Watcher: Oh.. hello?",
-        "[BOSS] The Watcher: Things feel a little more roomy now, eh?"
-    )
-
-    override fun init() {
-        register<MainThreadPacketReceivedEvent.Pre> {
-            if (! bloodCamp.value) return@register
-            if (DungeonListener.bloodOpenTime == null) return@register
-            if (DungeonListener.watcherClearTime != null) return@register
-
-            val packet = event.packet as? ClientboundMoveEntityPacket ?: return@register
-            if (packet.xa == 0.toShort() && packet.ya == 0.toShort() && packet.za == 0.toShort()) return@register
-            val entity = packet.getEntity(mc.level) as? ArmorStand ?: return@register
-            if (watcherEntity?.let { it.distanceTo(entity) > 20 } != false) return@register
-            val skull = entity.getItemBySlot(EquipmentSlot.HEAD)
-            if (skull.isEmpty || ! skull.`is`(Items.PLAYER_HEAD)) return@register
-            if (ItemUtils.getSkullTexture(skull) !in mobSkulls) return@register
-
-            val packetVec = Vec3(
-                entity.x + packet.xa / 4096.0,
-                entity.y + packet.ya / 4096.0,
-                entity.z + packet.za / 4096.0
-            )
-
-            val data = bloodMobs.getOrPut(entity) {
-                BloodEntity(packetVec, DungeonListener.currentTime, firstSpawns, null)
-            }.takeUnless { packetVec == it.startVec || it.endVec != null } ?: return@register
-
-            val timeTook = (DungeonListener.currentTime - data.start).toDouble()
-            val spawnTime = (if (data.firstSpawn) 78 else 38) - timeTook + 0.8
-            val directionVec = packetVec.subtract(data.startVec).multiply(spawnTime / timeTook)
-            data.endVec = packetVec.add(directionVec)
-        }
-
-        register<RenderWorldEvent> {
-            //  if (! bloodCamp.value || DungeonListener.watcherClearTime != null || DungeonListener.bloodOpenTime == null) return@register
-            //    if (! (showTimer.value || showLine.value || showBox.value)) return@register
-
-            bloodMobs.entries.removeIf { ! it.key.isAlive }
-
-            bloodMobs.forEach { (entity, bloodMob) ->
-                val endVector = bloodMob.endVec ?: return@forEach
-                val spawnTime = if (bloodMob.firstSpawn) 78 else 38
-                val timeLeft = ((spawnTime - (DungeonListener.currentTime - bloodMob.start) + 0.8) / 20.0)
-
-                val x = endVector.x
-                val y = endVector.y + 1.5
-                val z = endVector.z
-
-                //    if (showTimer.value) {
-                Render3D.renderString(timeLeft.toFixed(1), Vec3(x, y + 0.5, z), scale = 2f, phase = true)
-                //   }
-                //   if (showLine.value) {
-                Render3D.renderLine(event.ctx, entity.renderVec.center().add(y = 1), Vec3(x, y, z), 2f, lineColor.value)
-                //   }
-                //  if (showBox.value) {
-                Render3D.renderBox(event.ctx, x - 0.5, y, z - 0.5, 1.0, 1.0, boxColor.value, outline = true, fill = false, phase = true)
-                //  }
-            }
-        }
-
-        register<WorldChangeEvent> {
-            bloodMobs.clear()
-            watcherEntity = null
-            firstSpawns = true
-        }
-    }
-}*/
-
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
+import com.github.noamm9.ui.clickgui.components.*
+import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
+import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
-import com.github.noamm9.utils.ChatUtils.modMessage
+import com.github.noamm9.utils.ColorUtils.invert
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.ServerUtils
@@ -106,10 +17,13 @@ import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.NoammRenderLayers
 import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderContext
+import com.github.noamm9.utils.render.RenderHelper.renderVec
 import net.minecraft.client.renderer.ShapeRenderer
+import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
+import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.monster.Zombie
@@ -118,62 +32,61 @@ import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import java.awt.Color
 
-object BloodCamp: Feature("Features for Blood Camping.") {
 
-    private val entityDataMap = HashMap<ArmorStand, EntityData>()
-    private val renderDataMap = HashMap<ArmorStand, RenderEData>()
+object BloodCamp: Feature("Features for Blood Room.") {
+    private val bloodCamp by ToggleSetting("Blood Camp Helper", true).section("Blood Camp Helper")
+    private val timerColor by ColorSetting("Timer Color", Color.WHITE).showIf { bloodCamp.value }
+    private val boxColor by ColorSetting("Box Color", Color(255, 0, 255)).showIf { bloodCamp.value }
+    private val lineColor by ColorSetting("Line Color", Color.CYAN).showIf { bloodCamp.value }
+
+    private val killTitle by ToggleSetting("Kill Title").section("Alerts").withDescription("Displays a Title when the blood mobs are ready to be killed. &bNOTE: Not always accurate, you will get better move times by learning when to kill the mobs yourself.")
+    private val speedAlert by ToggleSetting("Speed Alert").withDescription("Shows a title for the Watcher speed. (slow, normal, fast)")
+
+    private val bloodMobs = HashMap<ArmorStand, BloodEntity>()
     private var watcherEntity: Zombie? = null
     private var firstSpawns = true
 
-    private var moveTimeSeconds: Float? = null
-    private var currentTickTime = 0L
-    private var startTime: Long? = null
-
-
-    private data class RenderEData(
-        var currVector: Vec3, var endVector: Vec3, var endVecUpdated: Long, var speedVector: Vec3,
-        var lastEndVector: Vec3? = null, var lastPingPoint: Vec3? = null, var lastEndPoint: Vec3? = null,
-        var time: Float? = null,
-    )
-
-    private data class EntityData(
-        var startVector: Vec3,
+    private data class BloodEntity(
+        var startVec: Vec3,
         val started: Long,
-        var firstSpawns: Boolean = true,
+        var firstSpawn: Boolean = true,
         val deltaHistory: ArrayDeque<Vec3> = ArrayDeque(),
-        var lastPosition: Vec3 = startVector
+        var lastPosition: Vec3 = startVec,
+        var currentVector: Vec3 = startVec,
+        var endVector: Vec3? = null,
     )
-
-    private fun getTime(firstSpawn: Boolean, timeTook: Long) = (if (firstSpawn) 2000 else 0) + 1900 - timeTook + 40
-
-    private val BLOOD_START_REGEX = Regex("^\\[BOSS] The Watcher: (Congratulations, you made it through the Entrance\\.|Ah, you've finally arrived\\.|Ah, we meet again\\.\\.\\.|So you made it this far\\.\\.\\. interesting\\.|You've managed to scratch and claw your way here, eh\\?|I'm starting to get tired of seeing you around here\\.\\.\\.|Oh\\.\\. hello\\?|Things feel a little more roomy now, eh\\?)$")
-    private val BLOOD_MOVE_REGEX = Regex("^\\[BOSS] The Watcher: Let's see how you can handle this\\.$")
 
     override fun init() {
         register<ChatMessageEvent> {
             if (LocationUtils.inBoss) return@register
-            val msg = event.unformattedText
-            if (BLOOD_START_REGEX.matches(msg)) startTime = DungeonListener.currentTime
-            else if (BLOOD_MOVE_REGEX.matches(msg)) {
-                firstSpawns = false
-                val tickTime = startTime ?: return@register
-                val predTicks = when (val moveTicks = DungeonListener.currentTime - tickTime) {
+            if (event.unformattedText != "[BOSS] The Watcher: Let's see how you can handle this.") return@register
+            val startTime = DungeonListener.bloodOpenTime ?: return@register
+            val seconds = (DungeonListener.currentTime - startTime) / 20
+            firstSpawns = false
+
+            if (killTitle.value) {
+                val moveTicks = when (seconds) {
                     in 31 ..< 34 -> 36
                     in 28 ..< 31 -> 33
                     in 25 ..< 28 -> 30
                     in 22 ..< 25 -> 27
                     in 1 ..< 22 -> 24
-                    else -> moveTicks + 3
+                    else -> seconds + 3
                 }
 
-                moveTimeSeconds = predTicks / 20f
-                modMessage("Watcher will move in ${moveTimeSeconds?.toFixed(2)}s.")
-
-                ThreadUtils.scheduledTaskServer(predTicks) {
-                    ChatUtils.showTitle("Kill Mobs")
-                    moveTimeSeconds = null
+                val moveSeconds = moveTicks / 20f
+                ChatUtils.modMessage("Watcher will move in ${moveSeconds.toFixed(2)}s.")
+                ThreadUtils.scheduledTaskServer(moveTicks) {
+                    ChatUtils.showTitle("&c&lKill Mobs")
                 }
             }
+
+            if (! speedAlert.value) return@register
+            val title = if (seconds < 22) "&4&lFAST WATCHER" else if (seconds < 25) "&cNormal Watcher" else "&8Slow Watcher"
+            val sound = if (seconds < 22) SoundEvents.TRIDENT_THUNDER.value() else if (seconds < 25) SoundEvents.WARDEN_DEATH else SoundEvents.VILLAGER_DEATH
+
+            repeat(5) { mc.soundManager.play(SimpleSoundInstance.forUI(sound, 1f)) }
+            ChatUtils.showTitle(title)
         }
 
         register<MainThreadPacketReceivedEvent.Pre> {
@@ -193,13 +106,12 @@ object BloodCamp: Feature("Features for Blood Camping.") {
         }
 
         register<MainThreadPacketReceivedEvent.Pre> {
+            if (! bloodCamp.value) return@register
+            if (LocationUtils.inBoss) return@register
             val packet = event.packet as? ClientboundMoveEntityPacket ?: return@register
             if (packet.xa == 0.toShort() && packet.ya == 0.toShort() && packet.za == 0.toShort()) return@register
-            val level = mc.level ?: return@register
-            if (LocationUtils.inBoss) return@register
-
-            val entity = packet.getEntity(level) as? ArmorStand ?: return@register
-            if (watcherEntity?.let { it.distanceTo(entity) <= 20 } != true) return@register
+            val entity = mc.level?.let { packet.getEntity(it) } as? ArmorStand ?: return@register
+            if (watcherEntity?.let { it.distanceToSqr(entity) <= 400 } != true) return@register
             val item = entity.getItemBySlot(EquipmentSlot.HEAD).takeIf { it.`is`(Items.PLAYER_HEAD) } ?: return@register
             if (ItemUtils.getSkullTexture(item) !in mobSkulls) return@register
 
@@ -209,102 +121,64 @@ object BloodCamp: Feature("Features for Blood Camping.") {
                 entity.z + (packet.za / 4096)
             )
 
-            val data = entityDataMap.getOrPut(entity) { EntityData(packetVec, currentTickTime, firstSpawns, lastPosition = packetVec) }
+            val data = bloodMobs.getOrPut(entity) {
+                BloodEntity(packetVec, DungeonListener.currentTime, firstSpawns)
+            }
+
             val delta = packetVec.subtract(data.lastPosition)
             data.lastPosition = packetVec
 
             if (delta.lengthSqr() > 0) data.deltaHistory.addLast(delta)
 
+            val spawnTime = if (data.firstSpawn) 16.1 else 11.9
             val totalDelta = data.deltaHistory.fold(Vec3.ZERO) { acc, d -> acc.add(d) }
-            val endpoint = data.startVector.add((if (totalDelta.lengthSqr() > 0) totalDelta.normalize() else Vec3.ZERO).scale(if (data.firstSpawns) 16.1 else 11.9))
-            val timeTook = currentTickTime - data.started
-            val speedVec = Vec3(
-                (packetVec.x - data.startVector.x) / timeTook,
-                (packetVec.y - data.startVector.y) / timeTook,
-                (packetVec.z - data.startVector.z) / timeTook
-            )
-
-            renderDataMap.getOrPut(entity) { RenderEData(packetVec, endpoint, currentTickTime, speedVec) }.apply {
-                lastEndVector = endVector
-                endVecUpdated = currentTickTime
-                speedVector = speedVec
-                currVector = packetVec
-                endVector = endpoint
-            }
+            val endpoint = data.startVec.add((totalDelta.normalize()).scale(spawnTime))
+            data.endVector = endpoint
         }
 
-        register<TickEvent.Server> {
-            currentTickTime += 50
-            moveTimeSeconds?.let { moveTimeSeconds = it - 0.05f }
+        register<EntityDeathEvent> {
+            if (! bloodCamp.value) return@register
+            bloodMobs.remove(event.entity)
         }
 
         register<WorldChangeEvent> {
+            bloodMobs.clear()
             watcherEntity = null
-            entityDataMap.clear()
-            renderDataMap.clear()
-            currentTickTime = 0
             firstSpawns = true
-            moveTimeSeconds = null
-            startTime = null
         }
 
         register<RenderWorldEvent> {
+            if (! bloodCamp.value) return@register
             if (LocationUtils.inBoss) return@register
-            val boxSize = 0.8
-            val boxOffset = Vec3(boxSize / - 2.0, 1.5, boxSize / - 2.0)
+            val boxOffset = Vec3(- 0.5, 1.5, - 0.5)
 
-            renderDataMap.forEach { (entity, renderData) ->
-                if (! entity.isAlive) return@forEach
-                val data = entityDataMap[entity] ?: return@forEach
-                val (currVector, endVector, _, speedVectors) = renderData
+            bloodMobs.forEach { (entity, data) ->
+                val endVector = data.endVector ?: return@forEach
+                val timeTook = DungeonListener.currentTime - data.started
+                val time = (if (data.firstSpawn) 40 else 0) + 38 - timeTook + 0.8
+                val endAABB = AABB(1.0, 1.0, 1.0, 0.0, 0.0, 0.0).move(boxOffset.add(endVector))
 
-                val timeTook = currentTickTime - data.started
-                val time = getTime(data.firstSpawns, timeTook)
-
-                val mobOffset = ServerUtils.averagePing.toFloat()
-                val pingPoint = Vec3(entity.x + speedVectors.x * mobOffset, entity.y + speedVectors.y * mobOffset, entity.z + speedVectors.z * mobOffset)
-
-                renderData.lastEndPoint = endVector
-                renderData.lastPingPoint = pingPoint
-
-                val pingAABB = AABB(boxSize, boxSize, boxSize, 0.0, 0.0, 0.0).move(boxOffset.add(pingPoint))
-                val endAABB = AABB(boxSize, boxSize, boxSize, 0.0, 0.0, 0.0).move(boxOffset.add(endVector))
-
-                if (mobOffset < time) {
-                    drawWireFrameBox(event.ctx, pingAABB, Color.RED)
-                    drawWireFrameBox(event.ctx, endAABB, Color.cyan)
-                }
-                else drawWireFrameBox(event.ctx, endAABB, Color.GREEN)
-
-                Render3D.renderLine(event.ctx, currVector.add(y = 2), endVector.add(y = 2), Color.RED)
-
-                val timeDisplay = ((time.toFloat() - 40) / 1000).also { renderData.time = it }
-                val colorTime = when {
-                    timeDisplay > 1.5 -> 'a'
-                    timeDisplay in 0.5 .. 1.5 -> '6'
-                    timeDisplay in 0.0 .. 0.5 -> 'c'
-                    else -> 'b'
-                }
-
-                Render3D.renderString("§$colorTime${timeDisplay.toFixed(2)}s", endVector.add(y = 2), scale = 2f)
+                event.ctx.drawWireFrameBox(endAABB, if (ServerUtils.averagePing > time * 50) boxColor.value.invert() else boxColor.value)
+                Render3D.renderLine(event.ctx, entity.renderVec.add(y = 2), endVector.add(y = 2), lineColor.value, phase = true)
+                Render3D.renderString(((time - 0.8) / 20).toFixed(1), endVector.add(y = 2), scale = 2f, color = timerColor.value, phase = true)
             }
         }
     }
 
-    private fun drawWireFrameBox(ctx: RenderContext, aabb: AABB, bboxColor: Color) {
-        val cam = ctx.camera.position.reverse()
-        ctx.matrixStack.pushPose()
-        ctx.matrixStack.translate(cam.x, cam.y, cam.z)
+    private fun RenderContext.drawWireFrameBox(aabb: AABB, bboxColor: Color) {
+        val cam = camera.position.reverse()
+        matrixStack.pushPose()
+        matrixStack.translate(cam.x, cam.y, cam.z)
 
         ShapeRenderer.renderLineBox(
-            ctx.matrixStack.last(),
-            ctx.consumers.getBuffer(NoammRenderLayers.getLinesThroughWalls(2.0)),
+            matrixStack.last(),
+            consumers.getBuffer(NoammRenderLayers.getLinesThroughWalls(2.0)),
             aabb.minX, aabb.minY, aabb.minZ,
             aabb.maxX, aabb.maxY, aabb.maxZ,
             bboxColor.red / 255f, bboxColor.green / 255f, bboxColor.blue / 255f, 0.7f
         )
 
-        ctx.matrixStack.popPose()
+        matrixStack.popPose()
     }
 
     private val watcherSkulls = setOf(

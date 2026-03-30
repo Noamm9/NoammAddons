@@ -34,4 +34,5 @@ object ColorUtils {
     }
 
     val Color.mcColor: TextColor get() = TextColor.fromRgb(this.rgb)
+    fun Color.invert() = Color(255 - red, 255 - green, 255 - blue, alpha)
 }

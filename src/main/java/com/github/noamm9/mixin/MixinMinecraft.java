@@ -25,15 +25,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(Minecraft.class)
 public abstract class MixinMinecraft {
     @Shadow @Nullable public Screen screen;
-    @Shadow
-    @Nullable
-    public HitResult hitResult;
-    @Shadow
-    public LocalPlayer player;
+    @Shadow @Nullable public HitResult hitResult;
+    @Shadow public LocalPlayer player;
     @Shadow @Nullable public ClientLevel level;
 
-    @Shadow
-    public abstract void setScreen(@Nullable Screen screen);
 
     @Inject(method = "startAttack", at = @At("HEAD"))
     private void onStartAttack(CallbackInfoReturnable<Boolean> cir) {

@@ -265,13 +265,13 @@ object Render3D {
     ) = renderString(text, pos.x, pos.y, pos.z, color, scale, phase)
 
 
-    fun renderLine(ctx: RenderContext, start: Vec3, finish: Vec3, color: Color, thickness: Number = 2) {
+    fun renderLine(ctx: RenderContext, start: Vec3, finish: Vec3, color: Color, thickness: Number = 2, phase: Boolean = false) {
         val cameraPos = ctx.camera.position
         ctx.matrixStack.pushPose()
         ctx.matrixStack.translate(- cameraPos.x, - cameraPos.y, - cameraPos.z)
 
-        val buffer = (ctx.consumers as MultiBufferSource.BufferSource).getBuffer(RenderType.lines())
-        RenderSystem.lineWidth(thickness.toFloat())
+        val lines = if (phase) NoammRenderLayers.getLinesThroughWalls(thickness.toDouble()) else NoammRenderLayers.getLines(thickness.toDouble())
+        val buffer = (ctx.consumers as MultiBufferSource.BufferSource).getBuffer(lines)
 
         val r = color.red / 255f
         val g = color.green / 255f
@@ -283,7 +283,7 @@ object Render3D {
         buffer.addVertex(matrix, start.x.toFloat(), start.y.toFloat(), start.z.toFloat()).setColor(r, g, b, a).setNormal(matrix, direction)
         buffer.addVertex(matrix, finish.x.toFloat(), finish.y.toFloat(), finish.z.toFloat()).setColor(r, g, b, a).setNormal(matrix, direction)
 
-        ctx.consumers.endBatch(RenderType.lines())
+        ctx.consumers.endBatch(lines)
         ctx.matrixStack.popPose()
     }
 
@@ -291,11 +291,11 @@ object Render3D {
         renderLine(ctx, Vec3.atCenterOf(start), Vec3.atCenterOf(end), color, thickness)
     }
 
-    fun renderTracer(ctx: RenderContext, point: Vec3, color: Color, thickness: Number = 2) {
+    fun renderTracer(ctx: RenderContext, point: Vec3, color: Color, thickness: Number = 2.5) {
         ctx.matrixStack.pushPose()
         ctx.matrixStack.translate(- ctx.camera.position.x, - ctx.camera.position.y, - ctx.camera.position.z)
 
-        val buffer = (ctx.consumers as MultiBufferSource.BufferSource).getBuffer(NoammRenderLayers.getLinesThroughWalls(2.5))
+        val buffer = (ctx.consumers as MultiBufferSource.BufferSource).getBuffer(NoammRenderLayers.getLinesThroughWalls(thickness.toDouble()))
         val cameraPoint = ctx.camera.position.add(Vec3.directionFromRotation(ctx.camera.xRot, ctx.camera.yRot))
         val normal = point.toVector3f().sub(cameraPoint.x.toFloat(), cameraPoint.y.toFloat(), cameraPoint.z.toFloat()).normalize()
         val entry = ctx.matrixStack.last()
