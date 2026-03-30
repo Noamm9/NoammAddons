@@ -3,27 +3,34 @@ package com.github.noamm9.features.impl.dungeon
 import com.github.noamm9.event.impl.BlockChangeEvent
 import com.github.noamm9.event.impl.CheckEntityGlowEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
+import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
+import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.ui.clickgui.components.section
+import com.github.noamm9.ui.clickgui.components.showIf
 import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.network.PacketUtils.send
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
+import net.minecraft.network.protocol.game.ServerboundUseItemPacket
+import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.monster.Ghast
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.block.Blocks
+import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 object F4Features: Feature(name = "F4 Features", description = "Spirit bear spawn timer, highlights, and more.") {
@@ -31,6 +38,8 @@ object F4Features: Feature(name = "F4 Features", description = "Spirit bear spaw
     private val espSpiritBow by ToggleSetting("ESP Spirit Bow", true).withDescription("Highlights the Spirit Bow")
     private val espSpiritBear by ToggleSetting("ESP Spirit Bear", true).withDescription("Highlights the Spirit Bear")
     private val spiritBearHud by ToggleSetting("Spirit Bear HUD", true).withDescription("Shows the required mobs to spawn the Spirit Bear and a spawn timer for when he's about to spawn.")
+    private val tribalSpearHold by ToggleSetting("Tribal Spear Hold", false).withDescription("Toggles right click for you while holding a Tribal Spear in the F4/M4 boss room.")
+    private val tribalSpearKey by KeybindSetting("Spear Toggle Key", GLFW.GLFW_MOUSE_BUTTON_RIGHT).apply { isMouse = true }.showIf { tribalSpearHold.value }
 
     private val espThornColor by ColorSetting("Thorn Color", Color(255, 0, 0, 50)).section("Colors")
     private val espSpiritBearColor by ColorSetting("Bear Color", Color(255, 0, 255, 50))
@@ -43,7 +52,19 @@ object F4Features: Feature(name = "F4 Features", description = "Spirit bear spaw
     private const val bearSpawnTime = 68
     private var timer = - 1L
     private var count = 0
+    private var spearToggled = false
+    private var spearKeyWasDown = false
+    private var useItemSequence = 0
 
+
+    private fun isSpearKeyDown(): Boolean {
+        val handle = mc.window?.handle() ?: return false
+        return if (tribalSpearKey.isMouse) {
+            GLFW.glfwGetMouseButton(handle, tribalSpearKey.value) == GLFW.GLFW_PRESS
+        } else {
+            GLFW.glfwGetKey(handle, tribalSpearKey.value) == GLFW.GLFW_PRESS
+        }
+    }
 
     override fun init() {
         hudElement("Spirit Bear", { spiritBearHud.value }, { inM4boss && ! DungeonListener.dungeonEnded }, centered = true) { ctx, example ->
@@ -96,10 +117,52 @@ object F4Features: Feature(name = "F4 Features", description = "Spirit bear spaw
             spiritbows.add(packet.entity)
         }
 
+        register<TickEvent.Start> {
+            if (! tribalSpearHold.value || ! inM4boss) {
+                if (spearToggled) {
+                    spearToggled = false
+                    mc.options.keyUse.isDown = false
+                }
+                spearKeyWasDown = false
+                return@register
+            }
+
+            val player = mc.player ?: return@register
+            val itemName = player.mainHandItem.hoverName.unformattedText
+            if (! itemName.contains("Tribal Spear")) {
+                if (spearToggled) {
+                    spearToggled = false
+                    mc.options.keyUse.isDown = false
+                }
+                spearKeyWasDown = false
+                return@register
+            }
+
+            val keyDown = isSpearKeyDown()
+            if (keyDown && ! spearKeyWasDown) {
+                spearToggled = ! spearToggled
+            }
+            spearKeyWasDown = keyDown
+
+            if (! spearToggled) {
+                mc.options.keyUse.isDown = false
+                return@register
+            }
+
+            if (mc.screen == null && mc.isWindowActive) {
+                mc.options.keyUse.isDown = true
+            } else {
+                ServerboundUseItemPacket(InteractionHand.MAIN_HAND, useItemSequence ++, player.yRot, player.xRot).send()
+            }
+        }
+
         register<WorldChangeEvent> {
             spiritbows.clear()
             timer = - 1
             count = 0
+            spearToggled = false
+            spearKeyWasDown = false
+            useItemSequence = 0
         }
     }
 
