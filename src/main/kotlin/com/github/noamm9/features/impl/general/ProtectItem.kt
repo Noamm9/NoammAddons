@@ -122,12 +122,12 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
 
         if (protectUUID.value) {
             val uuid = stack.itemUUID
-            if (uuid.isNotBlank() && data.getData()["uuids"] !!.contains(uuid)) return ProtectType.UUID
+            if (uuid.isNotBlank() && data.getData()["uuids"]?.contains(uuid) == true) return ProtectType.UUID
         }
 
         if (protectID.value) {
             val id = stack.skyblockId
-            if (id.isNotBlank() && data.getData()["ids"] !!.contains(id)) return ProtectType.SkyblockID
+            if (id.isNotBlank() && data.getData()["ids"]?.contains(id) == true) return ProtectType.SkyblockID
         }
 
         val data = stack.customData

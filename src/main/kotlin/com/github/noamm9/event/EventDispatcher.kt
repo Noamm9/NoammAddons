@@ -60,7 +60,7 @@ object EventDispatcher {
             if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
             val entity = entity as? ItemEntity ?: return@register
             if (entity.item.hoverName.unformattedText !in DungeonUtils.dungeonItemDrops) return@register
-            if (mc.player !!.distanceTo(entity) > 6) return@register
+            if ((mc.player ?: return@register).distanceTo(entity) > 6) return@register
 
             EventBus.post(
                 DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition())
@@ -87,7 +87,7 @@ object EventDispatcher {
                 if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
                 val entity = mc.level?.getEntity(event.packet.itemId) as? ItemEntity ?: return@register
                 if (entity.item.hoverName.unformattedText !in DungeonUtils.dungeonItemDrops) return@register
-                if (mc.player !!.distanceTo(entity) > 6) return@register
+                if ((mc.player ?: return@register).distanceTo(entity) > 6) return@register
 
                 EventBus.post(
                     DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition())
