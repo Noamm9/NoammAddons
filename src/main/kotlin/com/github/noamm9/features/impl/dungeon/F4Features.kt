@@ -17,6 +17,7 @@ import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.network.PacketUtils.send
 import com.github.noamm9.utils.render.Render2D
@@ -38,7 +39,7 @@ object F4Features: Feature(name = "F4 Features", description = "Spirit bear spaw
     private val espSpiritBow by ToggleSetting("ESP Spirit Bow", true).withDescription("Highlights the Spirit Bow")
     private val espSpiritBear by ToggleSetting("ESP Spirit Bear", true).withDescription("Highlights the Spirit Bear")
     private val spiritBearHud by ToggleSetting("Spirit Bear HUD", true).withDescription("Shows the required mobs to spawn the Spirit Bear and a spawn timer for when he's about to spawn.")
-    private val tribalSpearHold by ToggleSetting("Tribal Spear Hold", false).withDescription("Toggles right click for you while holding a Tribal Spear in the F4/M4 boss room.")
+    private val tribalSpearHold by ToggleSetting("AFK Thorn Stun", false).withDescription("Toggles right click for you while holding a Tribal Spear in the F4/M4 boss room.")
     private val tribalSpearKey by KeybindSetting("Spear Toggle Key", GLFW.GLFW_MOUSE_BUTTON_RIGHT).apply { isMouse = true }.showIf { tribalSpearHold.value }
 
     private val espThornColor by ColorSetting("Thorn Color", Color(255, 0, 0, 50)).section("Colors")
@@ -53,18 +54,8 @@ object F4Features: Feature(name = "F4 Features", description = "Spirit bear spaw
     private var timer = - 1L
     private var count = 0
     private var spearToggled = false
-    private var spearKeyWasDown = false
     private var useItemSequence = 0
 
-
-    private fun isSpearKeyDown(): Boolean {
-        val handle = mc.window?.handle() ?: return false
-        return if (tribalSpearKey.isMouse) {
-            GLFW.glfwGetMouseButton(handle, tribalSpearKey.value) == GLFW.GLFW_PRESS
-        } else {
-            GLFW.glfwGetKey(handle, tribalSpearKey.value) == GLFW.GLFW_PRESS
-        }
-    }
 
     override fun init() {
         hudElement("Spirit Bear", { spiritBearHud.value }, { inM4boss && ! DungeonListener.dungeonEnded }, centered = true) { ctx, example ->
@@ -118,31 +109,19 @@ object F4Features: Feature(name = "F4 Features", description = "Spirit bear spaw
         }
 
         register<TickEvent.Start> {
-            if (! tribalSpearHold.value || ! inM4boss) {
-                if (spearToggled) {
-                    spearToggled = false
-                    mc.options.keyUse.isDown = false
-                }
-                spearKeyWasDown = false
-                return@register
-            }
-
             val player = mc.player ?: return@register
-            val itemName = player.mainHandItem.hoverName.unformattedText
-            if (! itemName.contains("Tribal Spear")) {
+
+            if (! tribalSpearHold.value || ! inM4boss || player.mainHandItem.skyblockId != "TRIBAL_SPEAR") {
                 if (spearToggled) {
                     spearToggled = false
                     mc.options.keyUse.isDown = false
                 }
-                spearKeyWasDown = false
                 return@register
             }
 
-            val keyDown = isSpearKeyDown()
-            if (keyDown && ! spearKeyWasDown) {
+            if (tribalSpearKey.isPressed()) {
                 spearToggled = ! spearToggled
             }
-            spearKeyWasDown = keyDown
 
             if (! spearToggled) {
                 mc.options.keyUse.isDown = false
@@ -161,7 +140,6 @@ object F4Features: Feature(name = "F4 Features", description = "Spirit bear spaw
             timer = - 1
             count = 0
             spearToggled = false
-            spearKeyWasDown = false
             useItemSequence = 0
         }
     }
