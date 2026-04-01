@@ -91,7 +91,6 @@ class TestGround {
                 val room = ScanUtils.getRoomFromPos(bat.position()) ?: return@register
                 ThreadUtils.scheduledTask(5) {
                     ChatUtils.modMessage("bat hp: ${bat.maxHealth}. (${room.name})")
-
                 }
             }
         }

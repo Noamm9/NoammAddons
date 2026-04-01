@@ -35,15 +35,14 @@ import java.util.*
 
 object PartyFinder: Feature() {
     private val showLevelReq by ToggleSetting("Show Level Req", true).withDescription("Shows the red level requirement number.").section("Menu")
-    private val showMissingOverlay by ToggleSetting("Show Missing Classes", true).withDescription("Shows missing classes initials on the head.")
+    private val showMissingOverlay by ToggleSetting("Show Missing Classes", true).withDescription("Shows missing classes on the head.")
 
     private val showTooltipStats by ToggleSetting("Show Stats", true).withDescription("Shows player stats (Cata/Secrets/PB) in tooltip.").section("Tooltip")
     private val showSecrets by ToggleSetting("Show Secrets", true).withDescription("Shows Total Secrets and Average.").showIf { showTooltipStats.value }
     private val showPB by ToggleSetting("Show PB", true).withDescription("Shows Personal Best for the current floor.").showIf { showTooltipStats.value }
     private val showMissingTooltip by ToggleSetting("Show Missing List", true).withDescription("Shows the list of missing classes at the bottom of the tooltip.")
 
-    private val sendKickLine by ToggleSetting("Send Kick Line", true).withDescription("Shows a clickable kick button in chat when a player joins.").section("Auto Kick")
-    private val autoKick by ToggleSetting("Auto Kick", false).withDescription("Automatically kick players that don't meet requirements.")
+    private val autoKick by ToggleSetting("Auto Kick", false).withDescription("Automatically kick players that don't meet requirements.").section("Auto Kick")
     private val autoKickFloor by DropdownSetting("Floor", 6, listOf("F1", "F2", "F3", "F4", "F5", "F6", "F7")).showIf { autoKick.value }
     private val masterMode by ToggleSetting("Master Mode", true).showIf { autoKick.value }
     private val informKicked by ToggleSetting("Inform Kicked", false).withDescription("Send a party chat message before kicking.").showIf { autoKick.value }
@@ -176,13 +175,8 @@ object PartyFinder: Feature() {
         register<WorldChangeEvent> { kickedPlayers.clear() }
 
         register<ChatMessageEvent> {
-            val name = joinedRegex.find(event.formattedText)?.destructured?.component1() ?: return@register
-
-            if (sendKickLine.value) ThreadUtils.scheduledTask {
-                ChatUtils.clickableChat("§aClick to kick §e$name", true, command = "/party kick $name")
-            }
-
             if (! autoKick.value || ! PartyUtils.isLeader()) return@register
+            val name = joinedRegex.find(event.formattedText)?.destructured?.component1() ?: return@register
 
             if (name in kickedPlayers) {
                 ChatUtils.modMessage("$prefix &cAuto-kicking &e$name &c(previously kicked)")
@@ -192,14 +186,16 @@ object PartyFinder: Feature() {
 
             scope.launch {
                 val reasons = checkPlayer(name.removeFormatting()).takeUnless { it.isEmpty() } ?: return@launch
-                ChatUtils.modMessage("&cKicking &e$name:&r ${reasons.joinToString(", ")}")
                 kickedPlayers.add(name)
 
                 if (informKicked.value) {
                     ChatUtils.sendCommand("pc Kicking $name: ${reasons.joinToString(", ")}")
                     ThreadUtils.scheduledTask(6) { ChatUtils.sendCommand("party kick $name") }
                 }
-                else ChatUtils.sendCommand("party kick $name")
+                else {
+                    ChatUtils.modMessage("&cKicking &e$name:&r ${reasons.joinToString(", ")}")
+                    ChatUtils.sendCommand("party kick $name")
+                }
             }
         }
     }
@@ -216,7 +212,7 @@ object PartyFinder: Feature() {
         val floorPrefix = if (masterMode.value) "M" else "F"
         val pbReq = formatTime(maximumSeconds.value * 1000)
         val pb = dungeonType?.getObj("fastest_time_s_plus")?.getInt("$floor")?.div(1000)
-        if (pb == null) reasons.add("PB(&c&lNo S+&f/$pbReq)")
+        if (pb == null) reasons.add("PB(No S+/$pbReq)")
         else if (pb / 1000 > maximumSeconds.value) {
             reasons.add("$floorPrefix$floor: PB(${formatTime(pb)}/$pbReq)")
         }
