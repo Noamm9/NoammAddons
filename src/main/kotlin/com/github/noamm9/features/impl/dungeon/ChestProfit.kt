@@ -241,7 +241,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
         val cleanName = name.removeFormatting()
         if (cleanName.startsWith("Enchanted Book (")) return enchantNameToID(name.substringAfter("(").substringBefore(")"))
         if (cleanName.contains("Shard")) return "SHARD_${cleanName.removeFormatting().uppercase().remove(" SHARD").replace(" ", "_").remove("_X1")}"
-        return ItemUtils.getIdByName(cleanName.remove("Shiny "))
+        return ItemUtils.nameToIdMap[cleanName.remove("Shiny ")]
     }
 
     private fun enchantNameToID(enchant: String): String {

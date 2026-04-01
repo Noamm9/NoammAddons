@@ -9,7 +9,8 @@ import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.dungeons.DungeonListener
-import com.github.noamm9.utils.items.ItemUtils
+import com.github.noamm9.utils.items.ItemUtils.idToNameMap
+import com.github.noamm9.utils.items.ItemUtils.nameToIdMap
 import com.github.noamm9.utils.network.WebUtils
 import com.github.noamm9.utils.network.data.ElectionData
 import com.github.noamm9.websocket.WebSocket
@@ -61,7 +62,6 @@ object NoammAddons: ClientModInitializer {
         ActionBarParser.init()
         PartyUtils.init()
         ChatUtils.init()
-        ItemUtils.init()
         TestGround()
 
         this.initNetworkLoop()
@@ -125,6 +125,22 @@ object NoammAddons: ClientModInitializer {
             }
         }.onFailure {
             logger.error("Error while making a web request", it)
+            it.printStackTrace()
+        }
+
+        runCatching {
+            val data = WebUtils.getAs<JsonObject>("$BASE_URL/items").getOrThrow()
+            val itemsArray = data["items"]?.jsonArray ?: return@runCatching
+            for (element in itemsArray) {
+                val item = element.jsonObject
+                val id = item["id"]?.jsonPrimitive?.content ?: continue
+                val name = item["name"]?.jsonPrimitive?.content ?: continue
+
+                idToNameMap[id] = name
+                nameToIdMap[name] = id
+            }
+        }.onFailure {
+            logger.error("Error fetching Skyblock items", it)
             it.printStackTrace()
         }
     }

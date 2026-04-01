@@ -10,6 +10,7 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
+import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.render.Render3D
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -28,6 +29,7 @@ class TestGround {
         val experimental get() = NoammAddons.debugFlags.contains("tick")
         val rotation get() = NoammAddons.debugFlags.contains("rotation")
         val bat get() = NoammAddons.debugFlags.contains("bat")
+        val slot get() = NoammAddons.debugFlags.contains("slot")
     }
 
     init {
@@ -94,6 +96,12 @@ class TestGround {
 
                 }
             }
+        }
+
+        EventBus.register<ContainerEvent.SlotClick> {
+            if (! slot) return@register
+            val stack = event.screen.menu.getSlot(event.slotId).item
+            ChatUtils.modMessage(stack.skyblockId)
         }
     }
 }

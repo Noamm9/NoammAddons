@@ -45,20 +45,26 @@ object TerminalHitboxes: Feature() {
             if (LocationUtils.dungeonFloorNumber != 7 || LocationUtils.F7Phase != 3) return@register
             val packet = event.packet as? ClientboundSetEntityDataPacket ?: return@register
             val entity = mc.level?.getEntity(packet.id) as? ArmorStand ?: return@register
-            if (entity.customName?.unformattedText == "Terminal Active") return@register
+            val name = entity.customName?.unformattedText
 
-            for ((section, posList) in terminalPositions.withIndex()) {
-                if (posList.none { entity.distanceToSqr(it) <= 1.5 }) continue
-                cachedTerminals.getOrPut(section + 1) { mutableSetOf() }.add(entity)
+            if (name == "Inactive Terminal") {
+                for ((section, posList) in terminalPositions.withIndex()) {
+                    if (posList.none { entity.distanceToSqr(it) <= 1.5 }) continue
+                    cachedTerminals.getOrPut(section + 1) { mutableSetOf() }.add(entity)
+                }
+            }
+            else if (name == "Terminal Active") {
+                for (i in terminalPositions.indices) {
+                    cachedTerminals[i + 1]?.remove(entity)
+                }
             }
         }
 
         register<RenderWorldEvent> {
             if (! LocationUtils.inDungeon || LocationUtils.F7Phase != 3) return@register
             val section = LocationUtils.P3Section ?: return@register
-            val terminalsToRender = cachedTerminals[section] ?: return@register
-            terminalsToRender.removeIf { it.isRemoved || it.customName?.unformattedText == "Terminal Active" }
-            if (terminalsToRender.isEmpty()) return@register
+            val terminalsToRender = cachedTerminals[section]?.takeUnless { it.isEmpty() } ?: return@register
+
             val consumers = event.ctx.consumers
             val matrices = event.ctx.matrixStack
             val cam = event.ctx.camera.position
@@ -83,21 +89,17 @@ object TerminalHitboxes: Feature() {
                 val maxY = entity.renderY + hd
                 val maxZ = entity.renderZ + hw
 
-                if (drawFill && fillBuffer != null) {
-                    ShapeRenderer.addChainedFilledBoxVertices(
-                        matrices, fillBuffer,
-                        minX, minY, minZ, maxX, maxY, maxZ,
-                        fillColor.value.red / 255f, fillColor.value.green / 255f, fillColor.value.blue / 255f, fillColor.value.alpha / 255f
-                    )
-                }
+                if (drawFill) ShapeRenderer.addChainedFilledBoxVertices(
+                    matrices, fillBuffer,
+                    minX, minY, minZ, maxX, maxY, maxZ,
+                    fillColor.value.red / 255f, fillColor.value.green / 255f, fillColor.value.blue / 255f, fillColor.value.alpha / 255f
+                )
 
-                if (drawOutline && outlineBuffer != null) {
-                    ShapeRenderer.renderLineBox(
-                        matrices.last(), outlineBuffer,
-                        minX, minY, minZ, maxX, maxY, maxZ,
-                        outlineColor.value.red / 255f, outlineColor.value.green / 255f, outlineColor.value.blue / 255f, 1f
-                    )
-                }
+                if (drawOutline) ShapeRenderer.renderLineBox(
+                    matrices.last(), outlineBuffer,
+                    minX, minY, minZ, maxX, maxY, maxZ,
+                    outlineColor.value.red / 255f, outlineColor.value.green / 255f, outlineColor.value.blue / 255f, 1f
+                )
             }
 
             matrices.popPose()
