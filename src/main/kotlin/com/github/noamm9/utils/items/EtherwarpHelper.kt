@@ -10,8 +10,6 @@ import com.github.noamm9.utils.location.WorldType
 import net.minecraft.core.BlockPos
 import net.minecraft.core.SectionPos
 import net.minecraft.world.item.ItemStack
-import net.minecraft.world.level.block.*
-import net.minecraft.world.level.block.piston.PistonHeadBlock
 import net.minecraft.world.level.chunk.LevelChunk
 import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.CollisionContext
@@ -131,14 +129,6 @@ object EtherwarpHelper {
     private fun isPassable(pos: BlockPos, chunk: LevelChunk): Boolean {
         val level = mc.level ?: return true
         val state = chunk.getBlockState(pos)
-        if (extraPassable.any { it.isInstance(state.block) }) return true
         return state.getCollisionShape(level, pos, CollisionContext.empty()).isEmpty
     }
-
-    private val extraPassable = setOf(
-        CarpetBlock::class, SkullBlock::class, WallSkullBlock::class,
-        LadderBlock::class, SnowLayerBlock::class, BubbleColumnBlock::class,
-        FlowerPotBlock::class, LiquidBlock::class, PistonHeadBlock::class,
-        ComparatorBlock::class, RedstoneTorchBlock::class, RepeaterBlock::class
-    )
 }

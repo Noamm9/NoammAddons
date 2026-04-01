@@ -55,7 +55,7 @@ object WaterBoardSolver {
 
         val nextClick = clicks.firstOrNull()?.first ?: return
 
-        Render3D.renderTracer(ctx, nextClick.getPos().center(), currentClickColor.value, 1.5f)
+        Render3D.renderTracer(ctx, nextClick.getPos().center(), currentClickColor.value, 2.5f)
 
         if (clicks.size > 1) {
             val secondClick = clicks[1].first
