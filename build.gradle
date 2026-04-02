@@ -19,6 +19,7 @@ base {
 repositories {
     maven { url = "https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1" }
     maven { url = 'https://maven.parchmentmc.org' }
+    maven { url = 'https://api.modrinth.com/maven' }
 }
 
 dependencies {
@@ -34,6 +35,8 @@ dependencies {
     modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
 
     modRuntimeOnly "me.djtheredstoner:DevAuth-fabric:1.2.2"
+
+    modCompileOnly "maven.modrinth:iris:${project.iris_version}"
 
     implementation "io.github.classgraph:classgraph:4.8.174"
     include "io.github.classgraph:classgraph:4.8.174"

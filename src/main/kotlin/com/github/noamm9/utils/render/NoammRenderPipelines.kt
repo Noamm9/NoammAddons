@@ -1,5 +1,7 @@
 package com.github.noamm9.utils.render
 
+import com.github.noamm9.IrisCompat
+import com.github.noamm9.IrisShaderType
 import com.github.noamm9.NoammAddons
 import com.mojang.blaze3d.pipeline.RenderPipeline
 import com.mojang.blaze3d.platform.DepthTestFunction
@@ -23,6 +25,11 @@ object NoammRenderPipelines {
             .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
             .build()
     )
-    
+
+    fun init() {
+        IrisCompat.registerPipeline(LINES_THROUGH_WALLS, IrisShaderType.LINES)
+        IrisCompat.registerPipeline(FILLED_THROUGH_WALLS, IrisShaderType.BASIC)
+    }
+
     private fun id(path: String) = ResourceLocation.fromNamespaceAndPath(NoammAddons.MOD_ID, path)
 }
