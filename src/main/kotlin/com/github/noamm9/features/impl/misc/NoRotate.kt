@@ -143,7 +143,7 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
         if (ScanUtils.getRoomFromPos(etherPos.vec !!)?.data?.name.equalsOneOf("Teleport Maze", "Boulder")) return
 
         val tags = WorldUtils.getStateAt(etherPos.pos).tags.toList()
-        val prediction = if (tags.containsOneOf(BlockTags.FENCES, BlockTags.WALLS)) etherPos.vec.add(0.5, 2.05, 0.5) else etherPos.vec.add(0.5, 1.05, 0.5)
+        val prediction = if (tags.containsOneOf(BlockTags.FENCES, BlockTags.WALLS, BlockTags.FENCE_GATES)) etherPos.vec.add(0.5, 2.05, 0.5) else etherPos.vec.add(0.5, 1.05, 0.5)
         teleport(TeleportPrediction(prediction, tpInfo))
     }
 
