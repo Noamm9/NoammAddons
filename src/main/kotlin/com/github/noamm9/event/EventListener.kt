@@ -6,7 +6,7 @@ data class EventListener<T: Event>(
     val priority: EventPriority = EventPriority.NORMAL,
     val callback: EventBus.EventContext<T>.() -> Unit
 ) {
-    fun isRegistered() = EventBus.listeners[eventClass]?.contains(this) == true
+    fun isRegistered() = EventBus.listeners[eventClass]?.any { it === this } == true
 
     fun unregister(): EventListener<T> {
         EventBus.unregister(this)
@@ -17,5 +17,4 @@ data class EventListener<T: Event>(
         EventBus.register(this)
         return this
     }
-
 }

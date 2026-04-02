@@ -135,7 +135,7 @@ object NaCommand: BaseCommand("na") {
 
         literal("leap") {
             argument("class", StringArgumentType.word()) {
-                suggests { DungeonClass.entries.map { it.name } }
+                suggests { DungeonClass.entries.filterNot { it == DungeonClass.Empty }.map { it.name } }
                 runs { ctx ->
                     val clazz = StringArgumentType.getString(ctx, "class")
                     val player = DungeonListener.dungeonTeammatesNoSelf.find { it.clazz.name == clazz } ?: return@runs ChatUtils.modMessage("leap target not found")

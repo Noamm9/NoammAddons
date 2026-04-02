@@ -16,13 +16,13 @@ object InstantTransmissionHelper {
 
     private const val RAY_TRACE_STEPS = 1000.0
 
-    fun predictTeleport(distance: Double, startPos: Vec3, rotation: MathUtils.Rotation): Vec3? {
+    fun predictTeleport(distance: Double, startPos: Vec3, yaw: Float, pitch: Float): Vec3? {
         val player = NoammAddons.mc.player ?: return null
 
         val eyeHeight = EYE_HEIGHT - if ((player as ILocalPlayer).isSneakingServer) SNEAK_OFFSET else .0
         var currentPosition = Vec3(startPos.x, startPos.y + eyeHeight, startPos.z)
 
-        val direction = MathUtils.getLookVec(rotation.yaw, rotation.pitch)
+        val direction = MathUtils.getLookVec(yaw, pitch)
         val stepVector = direction.scale(1.0 / RAY_TRACE_STEPS)
 
         for (step in 0 .. (distance * RAY_TRACE_STEPS).roundToInt()) {

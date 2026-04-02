@@ -13,6 +13,7 @@ import com.github.noamm9.utils.Utils.equalsOneOf
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.RenderContext
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -61,10 +62,9 @@ object TicTacToeSolver {
 
     fun onInteract(event: PlayerInteractEvent.RIGHT_CLICK.BLOCK) {
         if (! inTicTacToe || ! preventMissClick.value) return
+        if (LocationUtils.inBoss) return
         if (WorldUtils.getBlockAt(event.pos) != Blocks.STONE_BUTTON) return
-        if (event.pos !in bestMoves) {
-            event.isCanceled = true
-        }
+        if (event.pos !in bestMoves) event.isCanceled = true
     }
 
     fun onRenderWorld(ctx: RenderContext) {
@@ -81,8 +81,10 @@ object TicTacToeSolver {
 
     private fun solveAsync() {
         ThreadUtils.scheduledTaskServer(3) {
-            val center = roomCenter ?: return@scheduledTaskServer
-            scanBoard(center)
+            ThreadUtils.async {
+                val center = roomCenter ?: return@async
+                scanBoard(center)
+            }
         }
     }
 
@@ -99,9 +101,8 @@ object TicTacToeSolver {
         val level = mc.level ?: return
         val aabb = AABB(center.x - 9.0, 65.0, center.z - 9.0, center.x + 9.0, 73.0, center.z + 9.0)
 
-        val frames = level.getEntitiesOfClass(ItemFrame::class.java, aabb).filter { frame ->
-            val stack = frame.item
-            stack.item is MapItem && stack.has(DataComponents.MAP_ID)
+        val frames = level.getEntitiesOfClass(ItemFrame::class.java, aabb).filter {
+            it.item.item is MapItem && it.item.has(DataComponents.MAP_ID)
         }
 
         if (frames.size == 8) return reset()

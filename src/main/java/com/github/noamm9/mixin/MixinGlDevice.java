@@ -16,6 +16,13 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.function.BiFunction;
+
+/***
+ * @author DocilElm
+ * @from https://github.com/Synnerz/devonian/blob/1.21.10/src/main/java/com/github/synnerz/devonian/mixin/GlDeviceMixin.java
+ * Slightly modified
+ */
 @Mixin(GlDevice.class)
 public class MixinGlDevice {
     @Unique private static boolean lastFullBright = false;

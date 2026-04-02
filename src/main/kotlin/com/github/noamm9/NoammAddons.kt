@@ -9,7 +9,8 @@ import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.dungeons.DungeonListener
-import com.github.noamm9.utils.items.ItemUtils
+import com.github.noamm9.utils.items.ItemUtils.idToNameMap
+import com.github.noamm9.utils.items.ItemUtils.nameToIdMap
 import com.github.noamm9.utils.network.WebUtils
 import com.github.noamm9.utils.network.data.ElectionData
 import com.github.noamm9.websocket.WebSocket
@@ -30,10 +31,13 @@ object NoammAddons: ClientModInitializer {
     const val PREFIX = "§6§l[§b§lN§d§lA§6§l]§r"
     const val BASE_URL = "https://api.noamm.org"
 
+    @JvmField
     val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     @JvmField
     val mc = Minecraft.getInstance()
+
+    @JvmField
     val logger = LoggerFactory.getLogger(MOD_NAME)
 
     @JvmField
@@ -53,13 +57,11 @@ object NoammAddons: ClientModInitializer {
         DataDownloader.downloadData()
 
         EventDispatcher.init()
-        ThreadUtils.init()
         DungeonListener.init()
         ServerUtils.init()
         ActionBarParser.init()
         PartyUtils.init()
         ChatUtils.init()
-        ItemUtils.init()
         TestGround()
 
         this.initNetworkLoop()
@@ -80,49 +82,66 @@ object NoammAddons: ClientModInitializer {
     }
 
     private fun initNetworkLoop() = ThreadUtils.loop(600_000) {
-        WebUtils.getAs<JsonObject>("${BASE_URL}/mayor")
-            .onSuccess { data ->
-                val mayor = data["mayor"]?.jsonObject !!
-                val minister = mayor["minister"]?.jsonObject !!
+        runCatching {
+            val data = WebUtils.getAs<JsonObject>("${BASE_URL}/mayor").getOrThrow()
+            val mayor = data["mayor"]?.jsonObject !!
+            val minister = mayor["minister"]?.jsonObject
+            val perks = mayor["perks"]?.jsonArray
+                ?.map { it.jsonObject["name"]?.jsonPrimitive?.content to it.jsonObject["description"]?.jsonPrimitive?.content?.removeFormatting() }
+                ?.map { ElectionData.Perk(it.first !!, it.second !!) }
+                ?: return@runCatching
 
-                electionData = ElectionData(
-                    ElectionData.Mayor(
-                        mayor["name"]?.jsonPrimitive?.content !!,
-                        mayor["perks"]?.jsonArray?.map { it.jsonObject["name"]?.jsonPrimitive?.content to it.jsonObject["description"]?.jsonPrimitive?.content?.removeFormatting() }?.map { ElectionData.Perk(it.first !!, it.second !!) } ?: return@onSuccess
-                    ),
-                    ElectionData.Minister(
-                        minister["name"]?.jsonPrimitive?.content !!,
-                        ElectionData.Perk(minister["perk"]?.jsonObject["name"]?.jsonPrimitive?.content !!, minister["perk"]?.jsonObject["description"]?.jsonPrimitive?.content?.removeFormatting() !!)
-                    )
+            electionData = ElectionData(
+                ElectionData.Mayor(
+                    mayor["name"]?.jsonPrimitive?.content !!,
+                    perks
+                ),
+                ElectionData.Minister(
+                    minister?.get("name")?.jsonPrimitive?.content.orEmpty(),
+                    ElectionData.Perk(minister?.get("perk")?.jsonObject["name"]?.jsonPrimitive?.content.orEmpty(), minister?.get("perk")?.jsonObject["description"]?.jsonPrimitive?.content?.removeFormatting().orEmpty())
                 )
-            }
-            .onFailure {
-                logger.error("Error while making a web request", it)
-                it.printStackTrace()
-            }
+            )
+        }.onFailure {
+            logger.error("Error while making a web request", it)
+            it.printStackTrace()
+        }
 
-        WebUtils.getAs<Map<String, Long>>("${BASE_URL}/lowestbin")
-            .onSuccess { priceData.putAll(it) }
-            .onFailure {
-                logger.error("Error while making a web request", it)
-                it.printStackTrace()
-            }
-        
+        runCatching {
+            priceData.putAll(WebUtils.getAs<Map<String, Long>>("${BASE_URL}/lowestbin").getOrThrow())
+        }.onFailure {
+            logger.error("Error while making a web request", it)
+            it.printStackTrace()
+        }
 
-        WebUtils.getAs<JsonObject>("${BASE_URL}/bazaar")
-            .onSuccess { data ->
-                data["products"]?.jsonObject?.forEach { (key, element) ->
-                    val product = element.jsonObject
-                    val productId = product["product_id"]?.jsonPrimitive?.content ?: key
-                    val buyPrice = product["buy_summary"]?.jsonArray?.getOrNull(0)
-                        ?.jsonObject?.get("pricePerUnit")?.jsonPrimitive?.doubleOrNull?.toLong() ?: 0L
+        runCatching {
+            val data = WebUtils.getAs<JsonObject>("${BASE_URL}/bazaar").getOrThrow()
+            data["products"]?.jsonObject?.forEach { (key, element) ->
+                val product = element.jsonObject
+                val productId = product["product_id"]?.jsonPrimitive?.content ?: key
+                val buyPrice = product["buy_summary"]?.jsonArray?.getOrNull(0)
+                    ?.jsonObject?.get("pricePerUnit")?.jsonPrimitive?.doubleOrNull?.toLong() ?: 0L
 
-                    priceData[productId] = buyPrice
-                }
+                priceData[productId] = buyPrice
             }
-            .onFailure {
-                logger.error("Error while making a web request", it)
-                it.printStackTrace()
+        }.onFailure {
+            logger.error("Error while making a web request", it)
+            it.printStackTrace()
+        }
+
+        runCatching {
+            val data = WebUtils.getAs<JsonObject>("$BASE_URL/items").getOrThrow()
+            val itemsArray = data["items"]?.jsonArray ?: return@runCatching
+            for (element in itemsArray) {
+                val item = element.jsonObject
+                val id = item["id"]?.jsonPrimitive?.content ?: continue
+                val name = item["name"]?.jsonPrimitive?.content ?: continue
+
+                idToNameMap[id] = name
+                nameToIdMap[name] = id
             }
+        }.onFailure {
+            logger.error("Error fetching Skyblock items", it)
+            it.printStackTrace()
+        }
     }
 }

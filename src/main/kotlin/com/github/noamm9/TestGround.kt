@@ -10,6 +10,7 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
+import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.render.Render3D
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -28,6 +29,7 @@ class TestGround {
         val experimental get() = NoammAddons.debugFlags.contains("tick")
         val rotation get() = NoammAddons.debugFlags.contains("rotation")
         val bat get() = NoammAddons.debugFlags.contains("bat")
+        val slot get() = NoammAddons.debugFlags.contains("slot")
     }
 
     init {
@@ -91,91 +93,14 @@ class TestGround {
                 val room = ScanUtils.getRoomFromPos(bat.position()) ?: return@register
                 ThreadUtils.scheduledTask(5) {
                     ChatUtils.modMessage("bat hp: ${bat.maxHealth}. (${room.name})")
-
                 }
             }
         }
+
+        EventBus.register<ContainerEvent.SlotClick> {
+            if (! slot) return@register
+            val stack = event.screen.menu.getSlot(event.slotId).item
+            ChatUtils.modMessage(stack.skyblockId)
+        }
     }
 }
-/*
-    fun onPacket(event: PacketReceivedEvent) {
-        when (val packet = event.packet) {
-            is ClientboundPingPacket -> {
-                if (lastPingParameter == packet.id) return
-                lastPingParameter = packet.id
-
-                totalServerTicks++
-                ServerTickEvent.post()
-            }
-        }
-    }
-
-    private var lastPingParameter = 0
-        var totalServerTicks: Long = 0L
-        private set
- */
-
-/*
-object PathWalker {
-    private var path: List<BlockPos> = emptyList()
-    private var currentIndex = 0
-    var active = false
-
-    private const val REACH_THRESHOLD = 0.3
-    private const val WALK_SPEED = 0.28
-
-    fun start(newPath: List<BlockPos>) {
-        if (newPath.isEmpty()) return
-        path = newPath
-        currentIndex = 0
-        active = true
-        ChatUtils.modMessage("§aStarted walking path with ${path.size} nodes.")
-    }
-
-    fun stop() {
-        active = false
-        path = emptyList()
-        stopMotion()
-        ChatUtils.modMessage("§cPath walking stopped.")
-    }
-
-    init {
-        EventBus.register<TickEvent.Start> {
-            if (! active || mc.player == null) return@register
-            if (currentIndex >= path.size) return@register stop()
-
-            val player = mc.player !!
-            val targetPos = path[currentIndex]
-
-            val targetVec = Vec3(targetPos.x + 0.5, player.y, targetPos.z + 0.5)
-
-            val dx = targetVec.x - player.x
-            val dz = targetVec.z - player.z
-            val dist = sqrt(dx * dx + dz * dz)
-
-            if (dist < REACH_THRESHOLD) {
-                currentIndex ++
-                if (currentIndex >= path.size) stop()
-                return@register
-            }
-
-            if (dist > 0.0001) {
-                val speedFactor = WALK_SPEED / dist
-                val motionX = dx * speedFactor
-                val motionZ = dz * speedFactor
-                val currentY = player.deltaMovement.y
-
-                player.deltaMovement = Vec3(motionX, currentY, motionZ)
-            }
-        }
-
-        EventBus.register<PlayerInteractEvent.RIGHT_CLICK.BLOCK> {
-            PathWalker.start(MathUtils.getAllBlocksBetween(BlockPos(61, 83, - 148), event.pos))
-        }
-    }
-
-    private fun stopMotion() {
-        val player = mc.player ?: return
-        player.deltaMovement = Vec3(0.0, player.deltaMovement.y, 0.0)
-    }
-}*/

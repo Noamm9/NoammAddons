@@ -6,25 +6,32 @@ import net.minecraft.core.component.DataComponents
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 
+/**
+ * @see com.github.noamm9.mixin.MixinPlayer
+ */
 object ArrowFix: Feature("Disables Bow Pullback on Shortbows.") {
-    private val bowCache = mutableSetOf<String>()
+    private val notBowCache = HashSet<String>()
+    private val bowCache = HashSet<String>()
 
     @JvmStatic
     fun isShortbow(item: ItemStack?): Boolean {
         if (item == null || item.isEmpty) return false
         if (! item.`is`(Items.BOW)) return false
-        if (item.skyblockId in bowCache) return true
+        val id = item.skyblockId
+        if (id in bowCache) return true
+        if (id in notBowCache) return false
         if (! item.has(DataComponents.LORE)) return false
-        val lore = item.get(DataComponents.LORE) ?: return false
+        val lore = item.get(DataComponents.LORE)?.lines() ?: return false
 
-        for (lineComponent in lore.lines()) {
-            val lineText = lineComponent.string
-            if (lineText.contains("Shortbow: Instantly shoots!")) {
-                bowCache.add(item.skyblockId)
+        for (i in (lore.size - 3) downTo 0) {
+            val line = lore[i].string
+            if ("Shortbow: Instantly shoots!" in line) {
+                bowCache.add(id)
                 return true
             }
         }
 
+        notBowCache.add(id)
         return false
     }
 }

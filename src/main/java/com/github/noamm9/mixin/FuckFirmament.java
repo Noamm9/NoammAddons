@@ -16,6 +16,6 @@ public class FuckFirmament {
     @Inject(method = "onServerJoin", at = @At("HEAD"), cancellable = true)
     private void stopFeddingEveryone(@Coerce Object event, CallbackInfo ci) {
         ci.cancel();
-        NoammAddons.INSTANCE.getLogger().info("FUCK FIRMAMENT");
+        NoammAddons.logger.info("FUCK FIRMAMENT");
     }
 }

@@ -6,25 +6,23 @@ import com.github.noamm9.websocket.packets.*
 object PacketRegistry {
     private val packets = HashMap<String, Class<out WebSocketPacket>>()
 
-    fun init() = packets.apply {
-        set("chat", S2CPacketChat::class.java)
-        set("dungeonmimic", S2CPacketDungeonMimic::class.java)
-        set("dungeonprince", S2CPacketDungeonPrince::class.java)
-        set("ping", C2SPacketPing::class.java)
-        set("pong", S2CPacketPong::class.java)
-        set("m7dragon", S2CPacketM7Dragon::class.java)
-        set("dungeonroomsecrets", S2CPacketRoomSecrets::class.java)
-        set("dungeonroom", S2CPacketDungeonRoom::class.java)
-        set("dungeondoor", S2CPacketDungeonDoor::class.java)
-        set("socket_info", S2CPacketSocketInfo::class.java)
+    fun init() {
+        register<S2CPacketChat>("chat")
+        register<S2CPacketDungeonRoom>("dungeonroom")
+        register<S2CPacketDungeonDoor>("dungeondoor")
+        register<S2CPacketDungeonMimic>("dungeonmimic")
+        register<S2CPacketDungeonScore>("dungeonprince")
+        register<S2CPacketRoomSecrets>("dungeonroomsecrets")
+        register<S2CPacketM7Dragon>("m7dragon")
+        register<S2CPacketSocketInfo>("socket_info")
     }
 
     fun getPacketClass(type: String): Class<out WebSocketPacket>? {
         return packets[type]
     }
 
-    abstract class WebSocketPacket(val type: String) {
-        abstract fun handle()
+    private inline fun <reified T: WebSocketPacket> register(type: String) {
+        packets[type] = T::class.java
     }
 }
 

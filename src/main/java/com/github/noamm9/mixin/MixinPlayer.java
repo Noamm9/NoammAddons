@@ -21,8 +21,7 @@ public abstract class MixinPlayer extends LivingEntity {
     @Inject(method = "tick", at = @At("HEAD"))
     private void fixPullBack(CallbackInfo ci) {
         if (!ArrowFix.INSTANCE.enabled) return;
-        if ((Player) (Object) this != NoammAddons.mc.player) return;
-        if (useItem.isEmpty()) return;
+        if (NoammAddons.mc.player.getId() != getId()) return;
         if (ArrowFix.isShortbow(useItem)) {
             useItem = ItemStack.EMPTY;
             useItemRemaining = 0;

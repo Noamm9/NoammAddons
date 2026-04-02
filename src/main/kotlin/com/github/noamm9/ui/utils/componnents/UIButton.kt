@@ -1,6 +1,7 @@
 package com.github.noamm9.ui.utils.componnents
 
 import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.render.Render2D
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
@@ -17,7 +18,7 @@ class UIButton(
     text: String,
     private val colorProvider: (() -> Color)? = null,
     private val action: (UIButton) -> Unit
-): Button(x, y, width, height, Component.literal(text), { btn -> action(btn as UIButton) }, DEFAULT_NARRATION) {
+): Button(x, y, width, height, Component.literal(text.addColor()), { btn -> action(btn as UIButton) }, DEFAULT_NARRATION) {
 
     var overrideColor: Color? = null
 

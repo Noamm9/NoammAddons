@@ -16,7 +16,7 @@ import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.websocket.WebSocket
 import com.github.noamm9.websocket.packets.S2CPacketDungeonMimic
-import com.github.noamm9.websocket.packets.S2CPacketDungeonPrince
+import com.github.noamm9.websocket.packets.S2CPacketDungeonScore
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.ClientboundEntityEventPacket
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
@@ -166,7 +166,7 @@ object ScoreCalculation {
                 princeKilled = true
 
                 if (DungeonListener.dungeonTeammatesNoSelf.isNotEmpty()) {
-                    WebSocket.send(S2CPacketDungeonPrince())
+                    WebSocket.send(S2CPacketDungeonScore())
                 }
 
                 if (ScoreCalculator.enabled && ScoreCalculator.sendPrince.value && msg == "a prince falls. +1 bonus score") {

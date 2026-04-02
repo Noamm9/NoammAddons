@@ -44,20 +44,25 @@ object TerminalHitboxes: Feature() {
             if (LocationUtils.dungeonFloorNumber != 7 || LocationUtils.F7Phase != 3) return@register
             val packet = event.packet as? ClientboundSetEntityDataPacket ?: return@register
             val entity = mc.level?.getEntity(packet.id) as? ArmorStand ?: return@register
-            if (entity.customName?.unformattedText == "Terminal Active") return@register
+            val name = entity.customName?.unformattedText
 
-            for ((section, posList) in terminalPositions.withIndex()) {
-                if (posList.none { entity.distanceToSqr(it) <= 1.5 }) continue
-                cachedTerminals.getOrPut(section + 1) { mutableSetOf() }.add(entity)
+            if (name == "Inactive Terminal") {
+                for ((section, posList) in terminalPositions.withIndex()) {
+                    if (posList.none { entity.distanceToSqr(it) <= 1.5 }) continue
+                    cachedTerminals.getOrPut(section + 1) { mutableSetOf() }.add(entity)
+                }
+            }
+            else if (name == "Terminal Active") {
+                for (i in terminalPositions.indices) {
+                    cachedTerminals[i + 1]?.remove(entity)
+                }
             }
         }
 
         register<RenderWorldEvent> {
             if (! LocationUtils.inDungeon || LocationUtils.F7Phase != 3) return@register
             val section = LocationUtils.P3Section ?: return@register
-            val terminalsToRender = cachedTerminals[section] ?: return@register
-            terminalsToRender.removeIf { it.isRemoved || it.customName?.unformattedText == "Terminal Active" }
-            if (terminalsToRender.isEmpty()) return@register
+            val terminalsToRender = cachedTerminals[section]?.takeUnless { it.isEmpty() } ?: return@register
 
             val drawFill = mode.value == 1 || mode.value == 2
             val drawOutline = mode.value == 0 || mode.value == 2

@@ -9,11 +9,18 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.ILocalPlayer
 import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.MultiCheckboxSetting
+import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
+import com.github.noamm9.ui.clickgui.components.showIf
+import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.utils.ActionBarParser
 import com.github.noamm9.utils.MathUtils
+import com.github.noamm9.utils.MathUtils.add
+import com.github.noamm9.utils.MathUtils.destructured
 import com.github.noamm9.utils.ThreadUtils
+import com.github.noamm9.utils.Utils.containsOneOf
 import com.github.noamm9.utils.Utils.equalsOneOf
+import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.items.EtherwarpHelper
 import com.github.noamm9.utils.items.InstantTransmissionHelper
@@ -28,26 +35,27 @@ import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket
 import net.minecraft.network.protocol.game.ServerboundAcceptTeleportationPacket
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket
-import net.minecraft.util.Mth
+import net.minecraft.tags.BlockTags
 import net.minecraft.world.entity.PositionMoveRotation
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.Vec3
-import kotlin.math.abs
 
 object NoRotate: Feature("Prevents the server from snapping back your head when teleporting.") {
     private val tpItems by MultiCheckboxSetting("Teleport Items", mutableMapOf(
-        Pair("Etherwarp", true),
-        Pair("Instant Transmission", true),
-        Pair("Wither Impact", true)
+        Pair("Etherwarp", false),
+        Pair("Instant Transmission", false),
+        Pair("Wither Impact", false)
     ))
 
     val zeroPingCamera by MultiCheckboxSetting("Zero Ping Camera", mutableMapOf(
-        Pair("Etherwarp", true),
-        Pair("Instant Transmission", true),
-        Pair("Wither Impact", true)
-    ))
+        Pair("Etherwarp", false),
+        Pair("Instant Transmission", false),
+        Pair("Wither Impact", false)
+    )).withDescription("Instently sets your camera at the teleport position.")
 
-    private val withinTolerance = fun(n1: Float, n2: Float) = abs(n1 - n2) < 1e-4
+    private val resyncTimeout by SliderSetting("Resync Timeout", 500, 300, 1000, 50).showIf { zeroPingCamera.value.values.any { it } }
+
     val pendingTeleports = mutableListOf<TeleportPrediction>()
     private var lastWitherImpact = System.currentTimeMillis()
 
@@ -76,19 +84,10 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
         register<MainThreadPacketReceivedEvent.Pre> {
             val packet = event.packet as? ClientboundPlayerPositionPacket ?: return@register
             if (pendingTeleports.isEmpty()) return@register
-            val prediction = pendingTeleports.removeFirst()
-            val change = packet.change()
+            val prediction = pendingTeleports.removeFirst().position
+            val change = packet.change().position()
 
-            val isMatchingPacket = run {
-                val yaw = withinTolerance(prediction.rotation.yaw, change.yRot) || change.yRot == 0f
-                val pitch = withinTolerance(prediction.rotation.pitch, change.xRot) || change.xRot == 0f
-                val x = change.position().x == prediction.position.x
-                val y = change.position().y == prediction.position.y
-                val z = change.position().z == prediction.position.z
-                yaw && pitch && x && y && z
-            }
-
-            if (! isMatchingPacket) pendingTeleports.clear()
+            if (change != prediction) pendingTeleports.clear()
             else {
                 val player = mc.player ?: return@register
 
@@ -98,13 +97,13 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
                 player.setPos(new.position())
                 player.deltaMovement = new.deltaMovement()
 
-                val newOldPos = PositionMoveRotation.calculateAbsolute(PositionMoveRotation(player.oldPosition(), Vec3.ZERO, player.yRotO, player.xRotO), packet.change(), packet.relatives())
+                val newOldPos = PositionMoveRotation.calculateAbsolute(
+                    PositionMoveRotation(player.oldPosition(), Vec3.ZERO, player.yRotO, player.xRotO), packet.change(), packet.relatives()
+                )
 
-                player.run {
-                    this.xo = newOldPos.position().x.also { this.xOld = it }
-                    this.yo = newOldPos.position().y.also { this.yOld = it }
-                    this.zo = newOldPos.position().z.also { this.zOld = it }
-                }
+                player.xo = newOldPos.position().x.also { player.xOld = it }
+                player.yo = newOldPos.position().y.also { player.yOld = it }
+                player.zo = newOldPos.position().z.also { player.zOld = it }
 
                 ServerboundAcceptTeleportationPacket(packet.id).send()
                 ServerboundMovePlayerPacket.PosRot(player.x, player.y, player.z, new.yRot, new.xRot, false, false).send()
@@ -118,55 +117,44 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
     }
 
     @JvmStatic
-    fun cameraHook(instance: Camera, x: Double, y: Double, z: Double, original: Operation<Void>) {
-        if (pendingTeleports.isNotEmpty()) pendingTeleports.last().takeIf {
-            when (it.info.type) {
-                TeleportType.Etherwarp -> zeroPingCamera.value["Etherwarp"] !!
-                TeleportType.InstantTransmission -> zeroPingCamera.value["Instant Transmission"] !!
-                TeleportType.WitherImpact -> zeroPingCamera.value["Wither Impact"] !!
-            }
-        }?.position?.let {
-            original.call(instance, it.x, it.y + mc.player !!.eyeHeight, it.z)
-            return
-        }
+    fun cameraHook(instance: Camera, x: Double, y: Double, z: Double, original: Operation<Void>): Void? {
+        if (! enabled) return original.call(instance, x, y, z)
+        val player = mc.player ?: return original.call(instance, x, y, z)
 
-        original.call(instance, x, y, z)
+        val config = zeroPingCamera.value.values.toList()
+        val (x, y, z) = pendingTeleports.lastOrNull()?.takeIf { config[it.info.type.ordinal] }
+            ?.position?.add(y = player.eyeHeight)?.destructured()
+            ?: Triple(x, y, z)
+
+        return original.call(instance, x, y, z)
     }
 
     private fun teleport(prediction: TeleportPrediction) {
         pendingTeleports.add(prediction)
-        ThreadUtils.setTimeout(500) { pendingTeleports.remove(prediction) }
+        ThreadUtils.setTimeout(resyncTimeout.value) { pendingTeleports.remove(prediction) }
     }
 
     private fun doZeroPingEtherwarp(tpInfo: TeleportInfo, yaw: Float? = null, pitch: Float? = null) {
         val player = mc.player as ILocalPlayer
 
         val playerPos = pendingTeleports.lastOrNull()?.position ?: player.let { Vec3(it.serverX, it.serverY, it.serverZ) }
-        val playerRot = if (yaw == null || pitch == null) player.let { MathUtils.Rotation(it.serverYaw, it.serverPitch) } else MathUtils.Rotation(yaw, pitch)
-        val etherPos = EtherwarpHelper.getEtherPos(playerPos, MathUtils.getLookVec(playerRot.yaw, playerRot.pitch), tpInfo.distance)
+        val etherPos = EtherwarpHelper.getEtherPos(playerPos, MathUtils.getLookVec(yaw ?: player.serverYaw, pitch ?: player.serverPitch), tpInfo.distance)
         if (! etherPos.succeeded || etherPos.pos == null) return
         if (ScanUtils.getRoomFromPos(etherPos.vec !!)?.data?.name.equalsOneOf("Teleport Maze", "Boulder")) return
 
-        playerRot.yaw %= 360
-        if (playerRot.yaw < 0) playerRot.yaw += 360
-
-        val prediction = TeleportPrediction(playerRot, etherPos.vec.add(0.5, 1.05, 0.5), tpInfo)
-        teleport(prediction)
+        val tags = WorldUtils.getStateAt(etherPos.pos).tags.toList()
+        val prediction = if (tags.containsOneOf(BlockTags.FENCES, BlockTags.WALLS, BlockTags.FENCE_GATES)) etherPos.vec.add(0.5, 2.05, 0.5) else etherPos.vec.add(0.5, 1.05, 0.5)
+        teleport(TeleportPrediction(prediction, tpInfo))
     }
 
     private fun doZeroPingInstantTransmission(tpInfo: TeleportInfo, yaw: Float? = null, pitch: Float? = null) {
         val player = mc.player as ILocalPlayer
 
-        val playerPos = pendingTeleports.lastOrNull()?.position ?: player.let { Vec3(it.serverX, it.serverY, it.serverZ) }
-        val playerRot = if (yaw == null || pitch == null) player.let { MathUtils.Rotation(it.serverYaw, it.serverPitch) } else MathUtils.Rotation(yaw, pitch)
-
-        val pos = InstantTransmissionHelper.predictTeleport(tpInfo.distance, playerPos, playerRot) ?: return
+        val playerPos = pendingTeleports.lastOrNull()?.position ?: Vec3(player.serverX, player.serverY, player.serverZ)
+        val pos = InstantTransmissionHelper.predictTeleport(tpInfo.distance, playerPos, yaw ?: player.serverYaw, pitch ?: player.serverPitch) ?: return
         if (ScanUtils.getRoomFromPos(pos)?.data?.name.equalsOneOf("Teleport Maze", "Boulder")) return
-
-        playerRot.yaw = Mth.wrapDegrees(playerRot.yaw)
-
-        val prediction = TeleportPrediction(playerRot, pos, tpInfo)
-        teleport(prediction)
+        val prediction = if (WorldUtils.getBlockAt(pos.add(0.5, - 1, 0.5)) == Blocks.AIR) pos.add(y = - 1) else pos
+        teleport(TeleportPrediction(prediction, tpInfo))
     }
 
     private fun doZeroPingWitherImpact(tpInfo: TeleportInfo, yaw: Float? = null, pitch: Float? = null) {
@@ -201,6 +189,6 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
 
     enum class TeleportType { Etherwarp, InstantTransmission, WitherImpact }
     data class TeleportInfo(val distance: Double, val type: TeleportType)
-    data class TeleportPrediction(val rotation: MathUtils.Rotation, val position: Vec3, val info: TeleportInfo)
+    data class TeleportPrediction(val position: Vec3, val info: TeleportInfo)
 }
 //#endif

@@ -45,7 +45,9 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
 
             var currentY = 0f
             var width = 0f
-            text.forEach { line ->
+
+            for (i in text.indices) {
+                val line = text[i]
                 Render2D.drawString(ctx, line, 0, currentY)
                 width = maxOf(width, line.width().toFloat())
                 currentY += 9f

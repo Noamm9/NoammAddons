@@ -42,11 +42,12 @@ object WaterBoardSolver {
         center = event.room.centerPos
         rotation = 360 - (event.room.rotation ?: return)
 
-        ThreadUtils.scheduledTaskServer(30, ::solve)
+        ThreadUtils.loop(500, { patternId != - 1 }) { solve() }
     }
 
     fun onRenderWorld(ctx: RenderContext) {
         if (patternId == - 1 || solution.isEmpty()) return
+        val solution = solution.toMap()
 
         val clicks = solution
             .flatMap { (lever, times) -> times.drop(lever.clickCount).map { lever to it } }
@@ -54,7 +55,7 @@ object WaterBoardSolver {
 
         val nextClick = clicks.firstOrNull()?.first ?: return
 
-        Render3D.renderTracer(ctx, nextClick.getPos().center(), currentClickColor.value, 1.5f)
+        Render3D.renderTracer(ctx, nextClick.getPos().center(), currentClickColor.value, 2.5f)
 
         if (clicks.size > 1) {
             val secondClick = clicks[1].first
@@ -95,6 +96,7 @@ object WaterBoardSolver {
     }
 
     fun onInteract(event: PlayerInteractEvent.RIGHT_CLICK.BLOCK) {
+        if (patternId == - 1) return
         if (solution.isEmpty()) return
         val center = center ?: return
         val rotation = rotation ?: return

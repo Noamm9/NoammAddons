@@ -4,7 +4,7 @@ import com.github.noamm9.NoammAddons
 import com.github.noamm9.commands.BaseCommand
 import com.github.noamm9.commands.CommandNodeBuilder
 import com.github.noamm9.features.impl.dungeon.waypoints.DungeonWaypoints
-import com.github.noamm9.features.impl.dungeon.waypoints.WaypointEditorGui
+import com.github.noamm9.ui.gui.DungeonWaypointScreen
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
@@ -33,7 +33,7 @@ object DungeonWaypointCommand: BaseCommand("ndw") {
 
                 val relativePos = ScanUtils.getRelativeCoord(lookingAt, roomCorner, rotation)
 
-                NoammAddons.screen = WaypointEditorGui(roomName, lookingAt, relativePos)
+                NoammAddons.screen = DungeonWaypointScreen(roomName, lookingAt, relativePos)
             }
         }
 
@@ -57,7 +57,7 @@ object DungeonWaypointCommand: BaseCommand("ndw") {
                 }
 
                 val relativePos = ScanUtils.getRelativeCoord(lookingAt, roomCorner, rotation)
-                NoammAddons.mc.setScreen(WaypointEditorGui(roomName, lookingAt, relativePos, existing))
+                NoammAddons.mc.setScreen(DungeonWaypointScreen(roomName, lookingAt, relativePos, existing))
             }
         }
 

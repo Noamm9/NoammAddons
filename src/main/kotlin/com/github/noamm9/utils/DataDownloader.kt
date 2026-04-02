@@ -17,9 +17,9 @@ import java.util.zip.ZipInputStream
 import kotlin.io.path.*
 
 object DataDownloader {
-    private const val DOWNLOAD_URL = "https://github.com/Noamm9/NoammAddons-1.21.10/archive/refs/heads/data.zip"
-    private const val RAW_URL = "https://raw.githubusercontent.com/Noamm9/NoammAddons-1.21.10/refs/heads/data/"
-    private const val GITHUB_API_URL = "https://api.github.com/repos/Noamm9/NoammAddons-1.21.10/commits/data"
+    private const val DOWNLOAD_URL = "https://github.com/Noamm9/NoammAddons/archive/refs/heads/data.zip"
+    private const val RAW_URL = "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/"
+    private const val GITHUB_API_URL = "https://api.github.com/repos/Noamm9/NoammAddons/commits/data"
     private val SHA_REGEX = Regex(""""sha"\s*:\s*"([^"]+)"""")
     val LOGGER = LoggerFactory.getLogger("${NoammAddons.MOD_NAME} - DataDownloader")
 

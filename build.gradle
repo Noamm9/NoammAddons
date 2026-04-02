@@ -18,10 +18,7 @@ base {
 
 repositories {
     maven { url = "https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1" }
-    maven {
-        name = 'ParchmentMC'
-        url = 'https://maven.parchmentmc.org'
-    }
+    maven { url = 'https://maven.parchmentmc.org' }
 }
 
 dependencies {
@@ -75,39 +72,21 @@ jar {
 
 sourceSets {
     main {
-        java {
-            setSrcDirs(["src/main/java"])
-        }
-        kotlin {
-            setSrcDirs(["src/main/kotlin"])
-        }
-        resources {
-            setSrcDirs(["src/main/resources"])
-        }
+        java { setSrcDirs(["src/main/java"]) }
+        kotlin { setSrcDirs(["src/main/kotlin"]) }
+        resources { setSrcDirs(["src/main/resources"]) }
     }
-    legit {
-        java {
-            setSrcDirs(["${buildDir}/preprocessed/legit/java"])
-        }
-        kotlin {
-            setSrcDirs(["${buildDir}/preprocessed/legit/kotlin"])
-        }
-        resources {
-            setSrcDirs(["src/main/resources"])
-        }
+    cheat {
+        java { setSrcDirs(["${buildDir}/preprocessed/cheat/java"]) }
+        kotlin { setSrcDirs(["${buildDir}/preprocessed/cheat/kotlin"]) }
+        resources { setSrcDirs(["src/main/resources"]) }
         compileClasspath += sourceSets.main.compileClasspath
         runtimeClasspath += sourceSets.main.runtimeClasspath
     }
-    cheat {
-        java {
-            setSrcDirs(["${buildDir}/preprocessed/cheat/java"])
-        }
-        kotlin {
-            setSrcDirs(["${buildDir}/preprocessed/cheat/kotlin"])
-        }
-        resources {
-            setSrcDirs(["src/main/resources"])
-        }
+    legit {
+        java { setSrcDirs(["${buildDir}/preprocessed/legit/java"]) }
+        kotlin { setSrcDirs(["${buildDir}/preprocessed/legit/kotlin"]) }
+        resources { setSrcDirs(["src/main/resources"]) }
         compileClasspath += sourceSets.main.compileClasspath
         runtimeClasspath += sourceSets.main.runtimeClasspath
     }
@@ -188,22 +167,6 @@ tasks.register("remapJarCheat", net.fabricmc.loom.task.RemapJarTask) {
     classpath.from(sourceSets.cheat.runtimeClasspath)
 }
 
-test {
-    failOnNoDiscoveredTests = false
-}
-
-publishing {
-    publications {
-        create("mavenJava", MavenPublication) {
-            artifactId = archives_base_name
-            from components.java
-        }
-    }
-
-    repositories {
-    }
-}
-
 tasks.named('remapJar') {
     dependsOn("jarLegit")
     inputFile = tasks.named("jarLegit").flatMap { it.archiveFile }
@@ -212,26 +175,30 @@ tasks.named('remapJar') {
     classpath.from(sourceSets.legit.runtimeClasspath)
 }
 
+test {
+    failOnNoDiscoveredTests = false
+}
 kotlin {
     jvmToolchain(21)
 }
 
-tasks.register("buildAll") {
-    dependsOn("remapJar", "remapJarCheat")
-}
-
-tasks.named("build").configure {
-    dependsOn("buildAll")
+publishing {
+    publications {
+        create("mavenLegit", MavenPublication) {
+            artifactId = "legit"
+            artifact(tasks.named("remapJar"))
+        }
+        create("mavenCheat", MavenPublication) {
+            artifactId = "cheat"
+            artifact(tasks.named("remapJarCheat"))
+        }
+    }
 }
 
 loom {
     runs {
-        client {
-            ideConfigGenerated = false
-        }
-        server {
-            ideConfigGenerated = false
-        }
+        client { ideConfigGenerated = false }
+        server { ideConfigGenerated = false }
         cheatClient {
             inherit client
             name "Cheat Client"
@@ -251,6 +218,10 @@ loom {
             source sourceSets.legit
         }
     }
+}
+
+tasks.named('build') {
+    dependsOn("remapJarCheat", "remapJar")
 }
 
 apply from: file('preprocess.gradle')

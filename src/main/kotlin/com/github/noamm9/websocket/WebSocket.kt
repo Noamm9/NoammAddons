@@ -1,93 +1,53 @@
 package com.github.noamm9.websocket
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.NoammAddons.debugFlags
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.event.EventBus
-import com.github.noamm9.event.EventPriority
-import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
-import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.JsonUtils
-import com.github.noamm9.utils.TabListUtils
-import com.github.noamm9.utils.ThreadUtils
-import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.websocket.packets.C2SPacketTabListUpdate
 import com.google.gson.JsonParser
-import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 object WebSocket {
-    private var lastTablist = emptyList<String>()
+    private val worker = Executors.newSingleThreadScheduledExecutor {
+        Thread(it, "${NoammAddons.MOD_NAME}-WebSocket").apply { isDaemon = true }
+    }
 
     fun init() {
         PacketRegistry.init()
-
-        runCatching {
-            NoammAddons.logger.info("WebSocket: Initializing connection...")
-            NASocket.connect()
-
-            Runtime.getRuntime().addShutdownHook(Thread { NASocket.close() })
-        }.onFailure {
-            NoammAddons.logger.error("Failed to Connect to Websocket")
-            it.printStackTrace()
-        }
-
-        EventBus.register<MainThreadPacketReceivedEvent.Post>(EventPriority.LOW) {
-            if (! LocationUtils.inSkyblock) return@register
-            if (event.packet !is ClientboundPlayerInfoUpdatePacket) return@register
-            if (! event.packet.actions().contains(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER)) return@register
-            sendTabList()
-        }
-
-        EventBus.register<WorldChangeEvent> { lastTablist = emptyList() }
+        NASocket.connect()
+        Runtime.getRuntime().addShutdownHook(Thread { NASocket.close(1000, "client stopping") })
     }
 
-    fun send(packet: PacketRegistry.WebSocketPacket) {
-        NASocket.send(JsonUtils.gsonBuilder.toJson(packet))
+    fun send(packet: Any) = worker.execute {
+        if (! NASocket.isOpen) return@execute
+        val raw = JsonUtils.gsonBuilder.toJson(packet)
+        if (debugFlags.contains("ws")) ChatUtils.chat(raw)
+        runCatching { NASocket.send(raw) }
     }
 
     private object NASocket: WebSocketClient(URI("wss://noamm.org")) {
-        override fun onOpen(handshakedata: ServerHandshake?) {
-            NoammAddons.logger.info("Connected to WebSocket")
-            sendTabList()
-        }
-
-        override fun onMessage(message: String?) {
-            if (message == null) return
+        override fun onMessage(message: String) = worker.execute {
             runCatching {
-                val json = JsonParser.parseString(message).asJsonObject.takeIf { it.has("type") } ?: return
-                val type = json.get("type").asString
-                val packetClass = PacketRegistry.getPacketClass(type)
-                    ?: return NoammAddons.logger.warn("Unknown packet type received: $type")
-
-                JsonUtils.gsonBuilder.fromJson(message, packetClass).handle()
-            }.onFailure {
-                NoammAddons.logger.error("Error parsing packet: ${it.message}")
-                it.printStackTrace()
+                val json = JsonParser.parseString(message).takeIf { it.isJsonObject }?.asJsonObject ?: return@execute
+                val type = json.get("type")?.asString.takeUnless { it.isNullOrBlank() } ?: return@execute
+                val packetClass = PacketRegistry.getPacketClass(type) ?: return@execute
+                val packet = JsonUtils.gsonBuilder.fromJson(message, packetClass)
+                mc.execute { packet.handle() }
             }
         }
 
-        override fun onClose(code: Int, reason: String?, remote: Boolean) {
-            NoammAddons.logger.info("WebSocket Disconnected: code: $code, remote: $remote, reason: $reason")
-
-            ThreadUtils.setTimeout(10_000) {
-                NoammAddons.logger.info("Attempting auto-reconnect...")
-                reconnect()
-            }
+        init {
+            connectionLostTimeout = 30
+            isTcpNoDelay = true
         }
 
-        override fun onError(ex: Exception?) = NoammAddons.logger.error("WebSocket Error: ${ex?.message}")
-    }
-
-    private fun sendTabList() {
-        val players = TabListUtils.getTabList()
-            .mapNotNull { it.second.profile.name }
-            .filterNot { it.matches("^![A-Z]-[a-z]$".toRegex()) }
-            .filter { it != mc.user.name }
-            .takeIf { it.isNotEmpty() && it != lastTablist } ?: return
-
-        lastTablist = players
-        send(C2SPacketTabListUpdate(mc.user.name, players))
+        override fun onClose(code: Int, reason: String, remote: Boolean) = worker.execute { worker.schedule({ reconnect() }, 30, TimeUnit.SECONDS) }
+        override fun onOpen(handshakedata: ServerHandshake) = worker.execute { NoammAddons.logger.info("WebSocket: Connected Successfully") }
+        override fun onError(ex: Exception) = worker.execute { NoammAddons.logger.error("WebSocket: transport error", ex) }
     }
 }

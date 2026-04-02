@@ -35,7 +35,6 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless shit.") {
     private val hideP5p by ToggleSetting("Hide P5 Particles")
     val hideFireOnEntities by ToggleSetting("Hide Fire On Entities")
 
-    private val dungeonMobRegex = Regex("^(?:§.)*(.+).+§c❤$")
     private val healthMatches = arrayOf(
         Regex("^§.\\[§.Lv\\d+§.] §.+ (?:§.)+0§f/.+§c❤$"),
         Regex("^.+ (?:§.)+0§c❤$")
@@ -111,7 +110,7 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless shit.") {
 
             if (! LocationUtils.inDungeon) return@register
             val name = event.entity.displayName?.formattedText ?: return@register
-            if (! dungeonMobRegex.matches(name)) return@register
+            if (! name.endsWith("§c❤")) return@register
 
             val isStarred = name.contains("✯")
             if ((isStarred && hideStar.value) || (! isStarred && hideNonStar.value)) {

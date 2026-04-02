@@ -26,10 +26,6 @@ import net.minecraft.world.entity.player.Player
 import java.awt.Color
 
 object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
-    private val dungeonMobRegex = Regex("^.+❤$")
-
-    private val starMobs = HashSet<Int>()
-    private val checked = HashSet<Int>()
 
     private val espBats by ToggleSetting("Highlight Bats", true).withDescription("Highlights Bats in Dungeons.")
     private val espFels by ToggleSetting("Highlight Fels", false).withDescription("Highlights Fels, even when they are invisible.")
@@ -38,6 +34,8 @@ object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
     private val batColor by ColorSetting("Bat Color", Color.GREEN, false).withDescription("The color used for highlighted bats.").showIf { espBats.value }
     private val felColor by ColorSetting("Fel Color", Color.PINK, false).withDescription("The color used for fels.").showIf { espFels.value }
 
+    private val starMobs = HashSet<Int>()
+    private val checked = HashSet<Int>()
 
     override fun init() {
         register<MainThreadPacketReceivedEvent.Post> {
@@ -46,7 +44,7 @@ object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
             val entity = mc.level?.getEntity(event.packet.id) ?: return@register
             if (entity is ArmorStand) {
                 val name = entity.customName?.formattedText ?: return@register
-                if (name.matches(dungeonMobRegex) && name.contains("✯")) {
+                if (name.endsWith("§c❤") && name.contains("✯")) {
                     checkStarMob(entity, name)
                 }
             }
@@ -108,12 +106,12 @@ object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
         if (! checked.add(armorStand.id)) return
         val name = name.removeFormatting().uppercase()
         // withermancers are always -3 to real entity the -1 and -2 are the wither skulls that they shoot
-        val id = if (name.contains("WITHERMANCER")) 3 else 1
-        val realEntityId = armorStand.id - id
+        val offset = if (name.contains("WITHERMANCER")) 3 else 1
+        val id = armorStand.id - offset
 
-        val mob = armorStand.level().getEntity(realEntityId)
-        if (mob !is ArmorStand && realEntityId !in starMobs && mob != null) {
-            starMobs.add(realEntityId)
+        val mob = armorStand.level().getEntity(id)
+        if (mob !is ArmorStand && id !in starMobs && mob != null) {
+            starMobs.add(id)
             return
         }
 

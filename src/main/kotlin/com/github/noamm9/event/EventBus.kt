@@ -7,26 +7,31 @@ import com.github.noamm9.utils.ChatUtils
 import java.util.concurrent.ConcurrentHashMap
 
 object EventBus {
-    class EventContext<T: Event>(val event: T, val listener: EventListener<T>)
+    class EventContext<T: Event>(val event: T, var listener: EventListener<T>)
 
-    val listeners = ConcurrentHashMap<Class<out Event>, List<EventListener<*>>>()
+    val listeners = ConcurrentHashMap<Class<out Event>, Array<EventListener<*>>>()
 
     @JvmStatic
     fun post(event: Event): Boolean {
-        val list = listeners[event.javaClass] ?: return event.isCanceled
+        val handlers = listeners[event.javaClass] ?: return event.cancelable && event.isCanceled
+        var context: EventContext<Event>? = null
 
-        for (i in list.indices) {
-            val handler = list[i]
+        for (handler in handlers) {
+            val typedHandler = handler as EventListener<Event>
+
             try {
-                val callback = handler.callback as EventContext<Event>.() -> Unit
-                callback.invoke(EventContext(event, handler as EventListener<Event>))
-            } catch (e: Exception) {
+                val currentContext = context ?: EventContext(event, typedHandler).also { context = it }
+                currentContext.listener = typedHandler
+                typedHandler.callback.invoke(currentContext)
+            }
+            catch (e: Exception) {
+                val stacktrace = e.stackTrace.joinToString("\n")
                 NoammAddons.logger.error("EventBus Error in ${event.javaClass.name}", e)
-                ChatUtils.clickableChat("EventBus Error: class ${event.javaClass.name}. message: ${e.message}", true, copy = e.stackTrace.joinToString("\n"))
+                ChatUtils.clickableChat("EventBus Error: class ${event.javaClass.name}. message: ${e.message}", true, copy = stacktrace, hover = stacktrace)
             }
         }
 
-        return if (event.cancelable) event.isCanceled else false
+        return event.cancelable && event.isCanceled
     }
 
     @JvmStatic
@@ -37,9 +42,8 @@ object EventBus {
         val eventListener = EventListener(T::class.java, priority, block)
 
         synchronized(listeners) {
-            val oldList = listeners[T::class.java] ?: emptyList()
-            val newList = (oldList + eventListener).sortedBy { it.priority.ordinal }
-            listeners[T::class.java] = newList
+            val oldListeners = listeners[T::class.java] ?: emptyArray()
+            listeners[T::class.java] = sortListeners(oldListeners.asList() + eventListener)
         }
 
         return eventListener
@@ -47,20 +51,25 @@ object EventBus {
 
     fun unregister(listener: EventListener<*>) {
         synchronized(listeners) {
-            val oldList = listeners[listener.eventClass] ?: return
-            val newList = oldList.filter { it !== listener }
+            val oldListeners = listeners[listener.eventClass] ?: return
+            val newListeners = oldListeners.filter { it !== listener }
 
-            if (newList.isEmpty()) listeners.remove(listener.eventClass)
-            else listeners[listener.eventClass] = newList
+            if (newListeners.isEmpty()) listeners.remove(listener.eventClass)
+            else listeners[listener.eventClass] = newListeners.toTypedArray()
         }
     }
 
     fun register(listener: EventListener<*>) {
         synchronized(listeners) {
-            val oldList = listeners[listener.eventClass] ?: emptyList()
-            if (oldList.contains(listener)) return
-            val newList = (oldList + listener).sortedBy { it.priority.ordinal }
-            listeners[listener.eventClass] = newList
+            val oldListeners = listeners[listener.eventClass] ?: emptyArray()
+            if (oldListeners.any { it === listener }) return
+
+            listeners[listener.eventClass] = sortListeners(oldListeners.asList() + listener)
         }
+    }
+
+    @PublishedApi
+    internal fun sortListeners(listeners: List<EventListener<*>>): Array<EventListener<*>> {
+        return listeners.sortedBy { it.priority.ordinal }.toTypedArray()
     }
 }

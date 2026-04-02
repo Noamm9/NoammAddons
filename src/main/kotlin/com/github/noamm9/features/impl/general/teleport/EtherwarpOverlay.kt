@@ -34,18 +34,7 @@ object EtherwarpOverlay: Feature() {
             if (! player.isSteppingCarefully) return@register
             val heldItem = player.mainHandItem.takeUnless { it.isEmpty } ?: return@register
             val distance = EtherwarpHelper.getEtherwarpDistance(heldItem) ?: return@register
-            val (valid, pos) = EtherwarpHelper.getEtherPos(
-                //#if CHEAT
-                com.github.noamm9.features.impl.misc.NoRotate.run {
-                    if (zeroPingCamera.value["Etherwarp"] == true) pendingTeleports.lastOrNull()?.position ?: player.position()
-                    else player.position()
-                },
-                //#else
-                //$$player.position(),
-                //#endif
-                player.lookAngle,
-                distance
-            )
+            val (valid, pos) = EtherwarpHelper.getEtherPos(player.position(), player.lookAngle, distance)
 
             Render3D.renderBlock(
                 event.ctx, pos ?: return@register,

@@ -26,9 +26,12 @@ object CommandManager {
     fun registerAll() {
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
             commands.forEach { command ->
-                val root = ClientCommandManager.literal(command.name)
-                CommandNodeBuilder(root).apply { with(command) { build() } }
-                dispatcher.register(root)
+                val roots = mutableListOf(ClientCommandManager.literal(command.name))
+                command.aliases.forEach { roots.add(ClientCommandManager.literal(it)) }
+                roots.forEach { root ->
+                    CommandNodeBuilder(root).apply { with(command) { build() } }
+                    dispatcher.register(root)
+                }
                 NoammAddons.logger.debug("Registered command: /${command.name}")
             }
         }

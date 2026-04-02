@@ -25,54 +25,26 @@ import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.sounds.SoundEvents
+import net.minecraft.world.inventory.MenuType
 import java.util.concurrent.CopyOnWriteArraySet
 
 object Secrets: Feature() {
-    private val hudDisplay by ToggleSetting("Secret HUD", true)
-        .withDescription("Displays the current room's secrets on screen.")
-        .section("HUD")
+    private val hudDisplay by ToggleSetting("Secret HUD", true).withDescription("Displays the current room's secrets on screen.").section("HUD")
 
     //#if CHEAT
-    private val closeChest by ToggleSetting("Close Chest").section("Auto")
-        .withDescription("Automatically closes the secret chest for you.")
+    private val closeChest by ToggleSetting("Close Chest").section("Auto").withDescription("Automatically closes the secret chest for you.")
     //#endif
 
-    private val secretClicked by ToggleSetting("Highlight Clicked Secret")
-        .withDescription("Highlights the block of a secret when you interact with it.")
-        .section("Secret Clicked")
+    private val secretClicked by ToggleSetting("Highlight Clicked Secret").withDescription("Highlights the block of a secret when you interact with it.").section("Secret Clicked")
+    private val displayTime by SliderSetting("Highlight Time", 2.0, 0.5, 5.0, 0.1).withDescription("How long (in seconds) the highlight box remains visible.").showIf { secretClicked.value }
+    private val secretClickedColor by ColorSetting("Highlight Color", Utils.favoriteColor.withAlpha(50)).withDescription("The color of the secret highlight box.").showIf { secretClicked.value }
+    private val mode by DropdownSetting("Render Mode", 2, listOf("Fill", "Outline", "Filled Outline")).withDescription("Choose how the box is rendered.").showIf { secretClicked.value }
+    private val phase by ToggleSetting("See Through Walls").withDescription("If enabled, the highlight will be visible through other blocks.").showIf { secretClicked.value }
 
-    private val displayTime by SliderSetting("Highlight Time", 2.0, 0.5, 5.0, 0.1)
-        .withDescription("How long (in seconds) the highlight box remains visible.")
-        .showIf { secretClicked.value }
-
-    private val secretClickedColor by ColorSetting("Highlight Color", Utils.favoriteColor.withAlpha(50))
-        .withDescription("The color of the secret highlight box.")
-        .showIf { secretClicked.value }
-
-    private val mode by DropdownSetting("Render Mode", 2, listOf("Fill", "Outline", "Filled Outline"))
-        .withDescription("Choose how the box is rendered.")
-        .showIf { secretClicked.value }
-
-    private val phase by ToggleSetting("See Through Walls")
-        .withDescription("If enabled, the highlight will be visible through other blocks.")
-        .showIf { secretClicked.value }
-
-    private val secretSound by ToggleSetting("Secret Sound")
-        .withDescription("Plays a sound effect when a secret is clicked/found.")
-        .section("Secret Sound")
-
-    private val sound by SoundSetting("Sound", SoundEvents.EXPERIENCE_ORB_PICKUP)
-        .withDescription("The internal Minecraft sound key to play.")
-        .showIf { secretSound.value }
-
-    private val volume by SliderSetting("Volume", 0.5f, 0f, 1f, 0.1f)
-        .withDescription("The loudness of the sound.")
-        .showIf { secretSound.value }
-
-    private val pitch by SliderSetting("Pitch", 1f, 0f, 2f, 0.1f)
-        .withDescription("The pitch/frequency of the sound.")
-        .showIf { secretSound.value }
-
+    private val secretSound by ToggleSetting("Secret Sound").withDescription("Plays a sound effect when a secret is clicked/found.").section("Secret Sound")
+    private val sound by SoundSetting("Sound", SoundEvents.EXPERIENCE_ORB_PICKUP).withDescription("The internal Minecraft sound key to play.").showIf { secretSound.value }
+    private val volume by SliderSetting("Volume", 0.5f, 0f, 1f, 0.1f).withDescription("The loudness of the sound.").showIf { secretSound.value }
+    private val pitch by SliderSetting("Pitch", 1f, 0f, 2f, 0.1f).withDescription("The pitch/frequency of the sound.").showIf { secretSound.value }
     private val playSound by ButtonSetting("Test Sound", false) {
         repeat(5) { mc.soundManager.play(SimpleSoundInstance.forUI(sound.value, pitch.value, volume.value)) }
     }.withDescription("Click to test the current sound configuration.").showIf { secretSound.value }
@@ -100,6 +72,7 @@ object Secrets: Feature() {
             if (! closeChest.value) return@register
             if (! LocationUtils.inDungeon) return@register
             val packet = event.packet as? ClientboundOpenScreenPacket ?: return@register
+            if (! packet.type.equalsOneOf(MenuType.GENERIC_9x3, MenuType.GENERIC_9x6)) return@register
             if (! packet.title.unformattedText.equalsOneOf("Chest", "Large Chest")) return@register
             ServerboundContainerClosePacket(packet.containerId).send()
             event.isCanceled = true

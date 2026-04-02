@@ -1,5 +1,6 @@
-package com.github.noamm9.features.impl.dungeon.waypoints
+package com.github.noamm9.ui.gui
 
+import com.github.noamm9.features.impl.dungeon.waypoints.DungeonWaypoints
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.componnents.UIButton
 import com.github.noamm9.utils.ChatUtils
@@ -10,7 +11,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
 import java.awt.Color
 
-class WaypointEditorGui(
+class DungeonWaypointScreen(
     private val roomName: String,
     private val absolutePos: BlockPos,
     private val relativePos: BlockPos,

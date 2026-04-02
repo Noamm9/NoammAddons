@@ -1,16 +1,11 @@
 package com.github.noamm9.utils.items
 
-import com.github.noamm9.NoammAddons
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.JsonUtils
 import com.github.noamm9.utils.items.ItemRarity.Companion.PET_PATTERN
 import com.github.noamm9.utils.items.ItemRarity.Companion.RARITY_PATTERN
 import com.github.noamm9.utils.items.ItemRarity.Companion.rarityCache
-import com.github.noamm9.utils.network.WebUtils
-import kotlinx.coroutines.launch
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.minecraft.core.component.DataComponents
@@ -22,28 +17,8 @@ import kotlin.jvm.optionals.getOrNull
 
 
 object ItemUtils {
-    private val idToNameMap = mutableMapOf<String, String>()
-    private val nameToIdMap = mutableMapOf<String, String>()
-
-    fun getNameById(id: String) = idToNameMap[id]
-    fun getIdByName(name: String) = nameToIdMap[name]
-
-    fun init() = NoammAddons.scope.launch {
-        WebUtils.getAs<JsonObject>("https://api.hypixel.net/v2/resources/skyblock/items")
-            .onSuccess { obj ->
-                val itemsArray = obj["items"]?.jsonArray ?: return@onSuccess
-
-                for (element in itemsArray) {
-                    val item = element.jsonObject
-                    val id = item["id"]?.jsonPrimitive?.content ?: continue
-                    val name = item["name"]?.jsonPrimitive?.content ?: continue
-
-                    idToNameMap[id] = name
-                    nameToIdMap[name] = id
-                }
-            }
-            .onFailure { NoammAddons.logger.error("Error fetching Skyblock items", it) }
-    }
+    val idToNameMap = mutableMapOf<String, String>()
+    val nameToIdMap = mutableMapOf<String, String>()
 
     val ItemStack.customData: CompoundTag get() = getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag()
 
@@ -81,7 +56,7 @@ object ItemUtils {
         return profile.partialProfile().id.toString()
     }
 
-    fun ItemStack.hasGlint() = componentsPatch.get(DataComponents.ENCHANTMENT_GLINT_OVERRIDE)?.isPresent == true
+    fun ItemStack.hasGlint() = componentsPatch.toString().contains("minecraft:enchantment_glint_override=>true")
 
     fun getRarity(item: ItemStack?): ItemRarity {
         item ?: return ItemRarity.NONE

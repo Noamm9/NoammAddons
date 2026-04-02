@@ -27,7 +27,7 @@ import kotlin.math.max
 object MapRenderer: HudElement() {
     override val name get() = "Dungeon Map"
     override val toggle get() = DungeonMap.enabled && MapConfig.mapEnabled.value
-    override val shouldDraw get() = LocationUtils.inDungeon && ! LocationUtils.inBoss
+    override val shouldDraw get() = LocationUtils.inDungeon && (! LocationUtils.inBoss || ! MapConfig.mapHideInBoss.value)
 
     private val checkmarkGreen = Identifier.fromNamespaceAndPath(MOD_ID, "dungeonmap/checkmarks/green_check")
     private val checkmarkWhite = Identifier.fromNamespaceAndPath(MOD_ID, "dungeonmap/checkmarks/white_check")
@@ -155,6 +155,7 @@ object MapRenderer: HudElement() {
             if (vertical) DungeonInfo.dungeonList[(row - 1) * 11 + column] to DungeonInfo.dungeonList[(row + 1) * 11 + column]
             else DungeonInfo.dungeonList[row * 11 + column - 1] to DungeonInfo.dungeonList[row * 11 + column + 1]
         }.getOrNull() ?: return null
+
         return (connectingTiles.first as? Room ?: return null) to (connectingTiles.second as? Room ?: return null)
     }
 

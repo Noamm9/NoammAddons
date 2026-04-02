@@ -10,9 +10,15 @@ import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.MathUtils
+import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.Utils.remove
 import com.github.noamm9.utils.Utils.startsWithOneOf
 import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.dungeons.map.DungeonInfo
+import com.github.noamm9.utils.dungeons.map.core.Room
+import com.github.noamm9.utils.dungeons.map.core.RoomType
+import com.github.noamm9.websocket.WebSocket
+import com.github.noamm9.websocket.packets.C2SPacketDungeonStart
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
 import net.minecraft.network.protocol.game.ClientboundSetObjectivePacket
@@ -51,11 +57,13 @@ object LocationUtils {
     var F7Phase: Int? = null
 
     @JvmField
-    var lobbyId: String? = null
+    var serverId: String? = null
 
     private val lobbyRegex = Regex("\\d\\d/\\d\\d/\\d\\d (\\w{0,6}) *")
 
     init {
+        LocrawListener.init()
+
         EventBus.register<MainThreadPacketReceivedEvent.Post>(EventPriority.HIGHEST) {
             if (NoammAddons.isDev) return@register setDevModeValues()
             if (! onHypixel) return@register
@@ -70,15 +78,22 @@ object LocationUtils {
             else if (event.packet is ClientboundSetPlayerTeamPacket) {
                 val prams = event.packet.parameters.getOrNull() ?: return@register
                 val text = (prams.playerPrefix.string + prams.playerSuffix.string).removeFormatting()
-                lobbyRegex.find(text)?.groupValues?.get(1)?.let {
-                    if (it.length < 5) return@let
-                    lobbyId = it
-                }
+                lobbyRegex.find(text)?.groupValues?.get(1)?.let { serverId = it }
 
                 if (! inDungeon && text.contains("The Catacombs (") && ! text.contains("Queue")) {
                     inDungeon = true
                     dungeonFloor = text.substringAfter("(").substringBefore(")")
                     dungeonFloorNumber = dungeonFloor?.lastOrNull()?.digitToIntOrNull() ?: 0
+
+                    ThreadUtils.scheduledTaskServer(30) ws@{
+                        if (DungeonListener.dungeonTeammatesNoSelf.isEmpty()) return@ws
+                        val serverId = LocrawListener.server.ifEmpty { serverId } ?: return@ws
+                        val floor = dungeonFloor ?: return@ws
+                        val team = DungeonListener.dungeonTeammates.map { it.name }.ifEmpty { return@ws }
+                        val entrance = (DungeonInfo.dungeonList.find { (it as? Room)?.data?.type == RoomType.ENTRANCE } as? Room)?.getArrayPosition() ?: return@ws
+
+                        WebSocket.send(C2SPacketDungeonStart(serverId, floor, team, entrance))
+                    }
                 }
             }
             else if (event.packet is ClientboundSetObjectivePacket) {
@@ -108,7 +123,8 @@ object LocationUtils {
         P3Section = null
         F7Phase = null
         world = null
-        lobbyId = null
+        serverId = null
+        WebSocket.send(mapOf("type" to "reset"))
     }
 
     private fun setDevModeValues() {
@@ -159,7 +175,7 @@ object LocationUtils {
         6 to Pair(BlockPos(- 40, 51, - 8), BlockPos(22, 110, 134)),
         5 to Pair(BlockPos(- 40, 112, - 8), BlockPos(50, 53, 118)),
         4 to Pair(BlockPos(- 40, 112, - 40), BlockPos(50, 53, 47)),
-        3 to Pair(BlockPos(- 40, 118, - 40), BlockPos(42, 64, 31)),
+        3 to Pair(BlockPos(- 40, 118, - 40), BlockPos(42, 64, 37)),
         2 to Pair(BlockPos(- 40, 99, - 40), BlockPos(24, 54, 59)),
         1 to Pair(BlockPos(- 14, 55, 49), BlockPos(- 72, 146, - 40))
     )

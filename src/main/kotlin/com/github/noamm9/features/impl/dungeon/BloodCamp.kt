@@ -1,120 +1,144 @@
 package com.github.noamm9.features.impl.dungeon
 
-/*
-object BloodRoom: Feature() {
-    private val bloodCamp by ToggleSetting("Blood Camp Helper", true)
-    private val showTimer by ToggleSetting("Show Timer", true).showIf { bloodCamp.value }
-    private val showBox by ToggleSetting("Show Box", true).showIf { bloodCamp.value }
-    private val showLine by ToggleSetting("Show Line", true).showIf { bloodCamp.value }
-    private val boxColor by ColorSetting("Box Color", Color(255, 0, 255)).showIf { bloodCamp.value && showBox.value }
-    private val lineColor by ColorSetting("Line Color", Color.CYAN).showIf { bloodCamp.value && showLine.value }
+import com.github.noamm9.event.impl.*
+import com.github.noamm9.features.Feature
+import com.github.noamm9.ui.clickgui.components.*
+import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
+import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.ColorUtils.invert
+import com.github.noamm9.utils.MathUtils.add
+import com.github.noamm9.utils.NumbersUtils.toFixed
+import com.github.noamm9.utils.ServerUtils
+import com.github.noamm9.utils.ThreadUtils
+import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.items.ItemUtils
+import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.render.NoammRenderLayers
+import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.RenderContext
+import com.github.noamm9.utils.render.RenderHelper.renderVec
+import net.minecraft.client.renderer.ShapeRenderer
+import net.minecraft.client.resources.sounds.SimpleSoundInstance
+import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket
+import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket
+import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
+import net.minecraft.sounds.SoundEvents
+import net.minecraft.world.entity.EquipmentSlot
+import net.minecraft.world.entity.decoration.ArmorStand
+import net.minecraft.world.entity.monster.Zombie
+import net.minecraft.world.item.Items
+import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.Vec3
+import java.awt.Color
 
-    private data class BloodEntity(var startVec: Vec3, val start: Long, var firstSpawn: Boolean, var endVec: Vec3?)
 
-    private val bloodMobs = mutableMapOf<ArmorStand, BloodEntity>()
+object BloodCamp: Feature("Features for Blood Room.") {
+    private val bloodCamp by ToggleSetting("Blood Camp Helper", true).section("Blood Camp Helper")
+    private val timerColor by ColorSetting("Timer Color", Color.WHITE).showIf { bloodCamp.value }
+    private val boxColor by ColorSetting("Box Color", Color(255, 0, 255)).showIf { bloodCamp.value }
+    private val lineColor by ColorSetting("Line Color", Color.CYAN).showIf { bloodCamp.value }
+
+    private val killTitle by ToggleSetting("Kill Title").section("Alerts").withDescription("Displays a Title when the blood mobs are ready to be killed. &bNOTE: Not always accurate, you will get better move times by learning when to kill the mobs yourself.")
+    private val speedAlert by ToggleSetting("Speed Alert").withDescription("Shows a title for the Watcher speed. (slow, normal, fast)")
+
+    private val bloodMobs = HashMap<ArmorStand, BloodEntity>()
     private var watcherEntity: Zombie? = null
     private var firstSpawns = true
 
-    private val firstSpawnRegex = Regex("^\\[BOSS\\] The Watcher\\: Let\\'s see how you can handle this\\.\$")
-    private val watcherIntroRegex = setOf(
-        "[BOSS] The Watcher: Congratulations, you made it through the Entrance.",
-        "[BOSS] The Watcher: Ah, you've finally arrived.",
-        "[BOSS] The Watcher: Ah, we meet again...",
-        "[BOSS] The Watcher: So you made it this far... interesting.",
-        "[BOSS] The Watcher: You've managed to scratch and claw your way here, eh?",
-        "[BOSS] The Watcher: I'm starting to get tired of seeing you around here...",
-        "[BOSS] The Watcher: Oh.. hello?",
-        "[BOSS] The Watcher: Things feel a little more roomy now, eh?"
+    private data class BloodEntity(
+        var startVec: Vec3,
+        val started: Long,
+        var firstSpawn: Boolean = true,
+        val deltaHistory: ArrayDeque<Vec3> = ArrayDeque(),
+        var lastPosition: Vec3 = startVec,
+        var currentVector: Vec3 = startVec,
+        var endVector: Vec3? = null,
     )
 
     override fun init() {
         register<ChatMessageEvent> {
-            if (! bloodCamp.value) return@register
-            // Ensure we are in the specific dungeon state
-            if (DungeonListener.bloodOpenTime != null && DungeonListener.watcherClearTime == null) {
-                val msg = event.unformattedText
-                when {
-                    msg in watcherIntroRegex -> firstSpawns = true
-                    msg.matches(firstSpawnRegex) -> firstSpawns = false
+            if (LocationUtils.inBoss) return@register
+            if (event.unformattedText != "[BOSS] The Watcher: Let's see how you can handle this.") return@register
+            val startTime = DungeonListener.bloodOpenTime ?: return@register
+            val seconds = (DungeonListener.currentTime - startTime) / 20
+            firstSpawns = false
+
+            if (killTitle.value) {
+                val moveTicks = when (seconds) {
+                    in 31 ..< 34 -> 36
+                    in 28 ..< 31 -> 33
+                    in 25 ..< 28 -> 30
+                    in 22 ..< 25 -> 27
+                    in 1 ..< 22 -> 24
+                    else -> seconds + 3
+                }
+
+                val moveSeconds = moveTicks / 20f
+                ChatUtils.modMessage("Watcher will move in ${moveSeconds.toFixed(2)}s.")
+                ThreadUtils.scheduledTaskServer(moveTicks) {
+                    ChatUtils.showTitle("&c&lKill Mobs")
                 }
             }
+
+            if (! speedAlert.value) return@register
+            val title = if (seconds < 22) "&4&lFAST WATCHER" else if (seconds < 25) "&cNormal Watcher" else "&8Slow Watcher"
+            val sound = if (seconds < 22) SoundEvents.TRIDENT_THUNDER.value() else if (seconds < 25) SoundEvents.WARDEN_DEATH else SoundEvents.VILLAGER_DEATH
+
+            repeat(5) { mc.soundManager.play(SimpleSoundInstance.forUI(sound, 1f)) }
+            ChatUtils.showTitle(title)
         }
 
-        // Use standard/Pre packet event to capture the equipment before logic potentially changes
         register<MainThreadPacketReceivedEvent.Pre> {
-            if (! bloodCamp.value) return@register
-            if (watcherEntity != null) return@register
-
-            val packet = event.packet
-            if (packet !is ClientboundSetEquipmentPacket) return@register
-
-            val entity = mc.level?.getEntity(packet.entity) as? Zombie ?: return@register
-
-            // In 1.21 Equipment packet uses a list of pairs
+            if (watcherEntity != null || LocationUtils.inBoss) return@register
+            val packet = event.packet as? ClientboundSetEquipmentPacket ?: return@register
             val itemStack = packet.slots.find { it.first == EquipmentSlot.HEAD }?.second ?: return@register
-
             if (itemStack.isEmpty || ! itemStack.`is`(Items.PLAYER_HEAD)) return@register
             if (ItemUtils.getSkullTexture(itemStack) !in watcherSkulls) return@register
-
-            watcherEntity = entity
-            ChatUtils.modMessage("found watcher Entity")
+            watcherEntity = mc.level?.getEntity(packet.entity) as? Zombie
         }
 
-        // Use Pre packet event so 'entity.x' is the OLD position, and we add 'packet.xa' (delta)
+        register<MainThreadPacketReceivedEvent.Pre> {
+            if (watcherEntity == null) return@register
+            val packet = event.packet as? ClientboundRemoveEntitiesPacket ?: return@register
+            if (packet.entityIds.none { it == watcherEntity?.id }) return@register
+            watcherEntity = null
+        }
+
         register<MainThreadPacketReceivedEvent.Pre> {
             if (! bloodCamp.value) return@register
-            if (DungeonListener.bloodOpenTime == null) return@register
-            if (DungeonListener.watcherClearTime != null) return@register
-
+            if (LocationUtils.inBoss) return@register
             val packet = event.packet as? ClientboundMoveEntityPacket ?: return@register
             if (packet.xa == 0.toShort() && packet.ya == 0.toShort() && packet.za == 0.toShort()) return@register
-            val entity = packet.getEntity(mc.level) as? ArmorStand ?: return@register
-            if (watcherEntity?.let { it.distanceTo(entity) > 20 } != false) return@register
-            val skull = entity.getItemBySlot(EquipmentSlot.HEAD)
-            if (skull.isEmpty || ! skull.`is`(Items.PLAYER_HEAD)) return@register
-            if (ItemUtils.getSkullTexture(skull) !in mobSkulls) return@register
+            val entity = mc.level?.let { packet.getEntity(it) } as? ArmorStand ?: return@register
+            if (watcherEntity?.let { it.distanceToSqr(entity) <= 400 } != true) return@register
+            val item = entity.getItemBySlot(EquipmentSlot.HEAD).takeIf { it.`is`(Items.PLAYER_HEAD) } ?: return@register
+            if (ItemUtils.getSkullTexture(item) !in mobSkulls) return@register
 
             val packetVec = Vec3(
-                entity.x + packet.xa / 4096.0,
-                entity.y + packet.ya / 4096.0,
-                entity.z + packet.za / 4096.0
+                entity.x + (packet.xa / 4096),
+                entity.y + (packet.ya / 4096),
+                entity.z + (packet.za / 4096)
             )
 
             val data = bloodMobs.getOrPut(entity) {
-                BloodEntity(packetVec, DungeonListener.currentTime, firstSpawns, null)
-            }.takeUnless { packetVec == it.startVec || it.endVec != null } ?: return@register
+                BloodEntity(packetVec, DungeonListener.currentTime, firstSpawns)
+            }
 
-            val timeTook = (DungeonListener.currentTime - data.start).toDouble()
-            val spawnTime = (if (data.firstSpawn) 78 else 38) - timeTook + 0.8
-            val directionVec = packetVec.subtract(data.startVec).multiply(spawnTime / timeTook)
-            data.endVec = packetVec.add(directionVec)
+            val delta = packetVec.subtract(data.lastPosition)
+            data.lastPosition = packetVec
+
+            if (delta.lengthSqr() > 0) data.deltaHistory.addLast(delta)
+
+            val spawnTime = if (data.firstSpawn) 16.1 else 11.9
+            val totalDelta = data.deltaHistory.fold(Vec3.ZERO) { acc, d -> acc.add(d) }
+            val endpoint = data.startVec.add((totalDelta.normalize()).scale(spawnTime))
+            data.endVector = endpoint
         }
 
-        register<RenderWorldEvent> {
-            //  if (! bloodCamp.value || DungeonListener.watcherClearTime != null || DungeonListener.bloodOpenTime == null) return@register
-            //    if (! (showTimer.value || showLine.value || showBox.value)) return@register
-
-            bloodMobs.entries.removeIf { ! it.key.isAlive }
-
-            bloodMobs.forEach { (entity, bloodMob) ->
-                val endVector = bloodMob.endVec ?: return@forEach
-                val spawnTime = if (bloodMob.firstSpawn) 78 else 38
-                val timeLeft = ((spawnTime - (DungeonListener.currentTime - bloodMob.start) + 0.8) / 20.0)
-
-                val x = endVector.x
-                val y = endVector.y + 1.5
-                val z = endVector.z
-
-                //    if (showTimer.value) {
-                Render3D.renderString(timeLeft.toFixed(1), Vec3(x, y + 0.5, z), scale = 2f, phase = true)
-                //   }
-                //   if (showLine.value) {
-                Render3D.renderLine(event.ctx, entity.renderVec.center().add(y = 1), Vec3(x, y, z), 2f, lineColor.value)
-                //   }
-                //  if (showBox.value) {
-                Render3D.renderBox(event.ctx, x - 0.5, y, z - 0.5, 1.0, 1.0, boxColor.value, outline = true, fill = false, phase = true)
-                //  }
-            }
+        register<EntityDeathEvent> {
+            if (! bloodCamp.value) return@register
+            bloodMobs.remove(event.entity)
         }
 
         register<WorldChangeEvent> {
@@ -122,6 +146,39 @@ object BloodRoom: Feature() {
             watcherEntity = null
             firstSpawns = true
         }
+
+        register<RenderWorldEvent> {
+            if (! bloodCamp.value) return@register
+            if (LocationUtils.inBoss) return@register
+            val boxOffset = Vec3(- 0.5, 1.5, - 0.5)
+
+            bloodMobs.forEach { (entity, data) ->
+                val endVector = data.endVector ?: return@forEach
+                val timeTook = DungeonListener.currentTime - data.started
+                val time = (if (data.firstSpawn) 40 else 0) + 38 - timeTook + 0.8
+                val endAABB = AABB(1.0, 1.0, 1.0, 0.0, 0.0, 0.0).move(boxOffset.add(endVector))
+
+                event.ctx.drawWireFrameBox(endAABB, if (ServerUtils.averagePing > time * 50) boxColor.value.invert() else boxColor.value)
+                Render3D.renderLine(event.ctx, entity.renderVec.add(y = 2), endVector.add(y = 2), lineColor.value, phase = true)
+                Render3D.renderString(((time - 0.8) / 20).toFixed(1), endVector.add(y = 2), scale = 2f, color = timerColor.value, phase = true)
+            }
+        }
+    }
+
+    private fun RenderContext.drawWireFrameBox(aabb: AABB, bboxColor: Color) {
+        val cam = camera.position.reverse()
+        matrixStack.pushPose()
+        matrixStack.translate(cam.x, cam.y, cam.z)
+
+        ShapeRenderer.renderLineBox(
+            matrixStack.last(),
+            consumers.getBuffer(NoammRenderLayers.getLinesThroughWalls(2.0)),
+            aabb.minX, aabb.minY, aabb.minZ,
+            aabb.maxX, aabb.maxY, aabb.maxZ,
+            bboxColor.red / 255f, bboxColor.green / 255f, bboxColor.blue / 255f, 0.7f
+        )
+
+        matrixStack.popPose()
     }
 
     private val watcherSkulls = setOf(
@@ -161,4 +218,4 @@ object BloodRoom: Feature() {
         "ewogICJ0aW1lc3RhbXAiIDogMTU4OTc5MzA2ODgzOSwKICAicHJvZmlsZUlkIiA6ICIyYzEwNjRmY2Q5MTc0MjgyODRlM2JmN2ZhYTdlM2UxYSIsCiAgInByb2ZpbGVOYW1lIiA6ICJOYWVtZSIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS83ZGU3YmJiZGYyMmJmZTE3OTgwZDRlMjA2ODdlMzg2ZjExZDU5ZWUxZGI2ZjhiNDc2MjM5MWI3OWE1YWM1MzJkIgogICAgfQogIH0KfQ==",
         "ewogICJ0aW1lc3RhbXAiIDogMTU5ODk3NzI1OTM1NywKICAicHJvZmlsZUlkIiA6ICJlNzkzYjJjYTdhMmY0MTI2YTA5ODA5MmQ3Yzk5NDE3YiIsCiAgInByb2ZpbGVOYW1lIiA6ICJUaGVfSG9zdGVyX01hbiIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9jMTAwN2M1YjcxMTRhYmVjNzM0MjA2ZDRmYzYxM2RhNGYzYTBlOTlmNzFmZjk0OWNlZGFkYzk5MDc5MTM1YTBiIgogICAgfQogIH0KfQ=="
     )
-}*/
+}

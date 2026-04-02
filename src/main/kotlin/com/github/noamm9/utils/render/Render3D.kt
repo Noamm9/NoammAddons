@@ -324,12 +324,14 @@ object Render3D {
         phase: Boolean = false
     ) = renderString(text, pos.x, pos.y, pos.z, color, scale, phase)
 
-    fun renderLine(ctx: RenderContext, start: Vec3, finish: Vec3, color: Color, thickness: Number = 2) {
+
+    fun renderLine(ctx: RenderContext, start: Vec3, finish: Vec3, color: Color, thickness: Number = 2, phase: Boolean = false) {
         val cameraPos = ctx.camera.positionVec
         ctx.matrixStack.pushPose()
         ctx.matrixStack.translate(- cameraPos.x, - cameraPos.y, - cameraPos.z)
 
-        val buffer = (ctx.consumers as MultiBufferSource.BufferSource).getBuffer(RenderTypes.lines())
+        val lines = if (phase) NoammRenderLayers.getLinesThroughWalls(thickness.toDouble()) else NoammRenderLayers.getLines(thickness.toDouble())
+        val buffer = (ctx.consumers as MultiBufferSource.BufferSource).getBuffer(lines)
 
         val r = color.red / 255f
         val g = color.green / 255f
@@ -341,7 +343,7 @@ object Render3D {
         buffer.addVertex(matrix, start.x.toFloat(), start.y.toFloat(), start.z.toFloat()).setColor(r, g, b, a).setNormal(matrix, direction).setLineWidth(thickness.toFloat())
         buffer.addVertex(matrix, finish.x.toFloat(), finish.y.toFloat(), finish.z.toFloat()).setColor(r, g, b, a).setNormal(matrix, direction).setLineWidth(thickness.toFloat())
 
-        ctx.consumers.endBatch(RenderTypes.lines())
+        ctx.consumers.endBatch(lines)
         ctx.matrixStack.popPose()
     }
 
@@ -349,10 +351,12 @@ object Render3D {
         renderLine(ctx, Vec3.atCenterOf(start), Vec3.atCenterOf(end), color, thickness)
     }
 
-    fun renderTracer(ctx: RenderContext, point: Vec3, color: Color, thickness: Number = 2) {
+    fun renderTracer(ctx: RenderContext, point: Vec3, color: Color, thickness: Number = 2.5) {
         ctx.matrixStack.pushPose()
         ctx.matrixStack.translate(- ctx.camera.positionVec.x, - ctx.camera.positionVec.y, - ctx.camera.positionVec.z)
 
+        val buffer = (ctx.consumers as MultiBufferSource.BufferSource).getBuffer(NoammRenderLayers.getLinesThroughWalls(thickness.toDouble()))
+        val cameraPoint = ctx.camera.position.add(Vec3.directionFromRotation(ctx.camera.xRot, ctx.camera.yRot))
         val renderType = NoammRenderLayers.LINES_THROUGH_WALLS
         val buffer = (ctx.consumers as MultiBufferSource.BufferSource).getBuffer(renderType)
         val cameraPoint = ctx.camera.positionVec.add(Vec3.directionFromRotation(ctx.camera.xRot(), ctx.camera.yRot()))
