@@ -11,7 +11,6 @@ import com.mojang.blaze3d.vertex.VertexConsumer
 import net.minecraft.client.gui.Font
 import net.minecraft.client.renderer.LightTexture
 import net.minecraft.client.renderer.MultiBufferSource
-import net.minecraft.client.renderer.rendertype.RenderTypes
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.level.block.Blocks
@@ -330,7 +329,7 @@ object Render3D {
         ctx.matrixStack.pushPose()
         ctx.matrixStack.translate(- cameraPos.x, - cameraPos.y, - cameraPos.z)
 
-        val lines = if (phase) NoammRenderLayers.getLinesThroughWalls(thickness.toDouble()) else NoammRenderLayers.getLines(thickness.toDouble())
+        val lines = if (phase) NoammRenderLayers.LINES_THROUGH_WALLS else NoammRenderLayers.LINES
         val buffer = (ctx.consumers as MultiBufferSource.BufferSource).getBuffer(lines)
 
         val r = color.red / 255f
@@ -355,10 +354,7 @@ object Render3D {
         ctx.matrixStack.pushPose()
         ctx.matrixStack.translate(- ctx.camera.positionVec.x, - ctx.camera.positionVec.y, - ctx.camera.positionVec.z)
 
-        val buffer = (ctx.consumers as MultiBufferSource.BufferSource).getBuffer(NoammRenderLayers.getLinesThroughWalls(thickness.toDouble()))
-        val cameraPoint = ctx.camera.position.add(Vec3.directionFromRotation(ctx.camera.xRot, ctx.camera.yRot))
-        val renderType = NoammRenderLayers.LINES_THROUGH_WALLS
-        val buffer = (ctx.consumers as MultiBufferSource.BufferSource).getBuffer(renderType)
+        val buffer = (ctx.consumers as MultiBufferSource.BufferSource).getBuffer(NoammRenderLayers.LINES_THROUGH_WALLS)
         val cameraPoint = ctx.camera.positionVec.add(Vec3.directionFromRotation(ctx.camera.xRot(), ctx.camera.yRot()))
         val normal = point.toVector3f().sub(cameraPoint.x.toFloat(), cameraPoint.y.toFloat(), cameraPoint.z.toFloat()).normalize()
         val entry = ctx.matrixStack.last()
@@ -366,7 +362,7 @@ object Render3D {
         buffer.addVertex(entry, cameraPoint.x.toFloat(), cameraPoint.y.toFloat(), cameraPoint.z.toFloat()).setColor(color.red / 255f, color.green / 255f, color.blue / 255f, 1f).setNormal(entry, normal).setLineWidth(thickness.toFloat())
         buffer.addVertex(entry, point.x.toFloat(), point.y.toFloat(), point.z.toFloat()).setColor(color.red / 255f, color.green / 255f, color.blue / 255f, 1f).setNormal(entry, normal).setLineWidth(thickness.toFloat())
 
-        ctx.consumers.endBatch(renderType)
+        ctx.consumers.endBatch(NoammRenderLayers.LINES_THROUGH_WALLS)
         ctx.matrixStack.popPose()
     }
 
