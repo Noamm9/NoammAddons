@@ -1,6 +1,9 @@
 package com.github.noamm9.utils.items
 
 import com.github.noamm9.NoammAddons.mc
+//#if CHEAT
+import com.github.noamm9.features.impl.misc.NoRotate
+//#endif
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.Utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.customData
@@ -10,6 +13,11 @@ import com.github.noamm9.utils.location.WorldType
 import net.minecraft.core.BlockPos
 import net.minecraft.core.SectionPos
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.block.FlowerPotBlock
+import net.minecraft.world.level.block.LadderBlock
+import net.minecraft.world.level.block.SignBlock
+import net.minecraft.world.level.block.SkullBlock
+import net.minecraft.world.level.block.WallSkullBlock
 import net.minecraft.world.level.chunk.LevelChunk
 import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.CollisionContext
@@ -22,7 +30,7 @@ object EtherwarpHelper {
     private const val EYE_HEIGHT = 1.62
     private inline val SNEAK_OFFSET: Double
         get() {
-            if (LocationUtils.world.equalsOneOf(WorldType.Galatea, WorldType.Home, WorldType.Park, WorldType.SpiderDen)) {
+            if (LocationUtils.world.equalsOneOf(WorldType.Galatea, WorldType.GoldMine, WorldType.Hub, WorldType.End, WorldType.Park, WorldType.SpiderDen, WorldType.TheBarn)) {
                 return 0.35
             }
 
@@ -49,9 +57,22 @@ object EtherwarpHelper {
 
     fun getEtherPos(pos: Vec3, lookVec: Vec3, distance: Double): EtherPos {
         val player = mc.player ?: return EtherPos.NONE
-        val startPos = pos.add(y = EYE_HEIGHT - if (player.isCrouching) SNEAK_OFFSET else 0.0)
+        val startPos = getZeroPingCameraPos(pos).add(y = EYE_HEIGHT - if (player.isCrouching) SNEAK_OFFSET else 0.0)
         val endPos = startPos.add(lookVec.scale(distance))
         return traverseVoxels(startPos, endPos)
+    }
+
+    private fun getZeroPingCameraPos(fallback: Vec3): Vec3 {
+        //#if CHEAT
+        val pendingTeleport = NoRotate.pendingTeleports.lastOrNull() ?: return fallback
+        if (! NoRotate.enabled) return fallback
+
+        val zeroPingConfig = NoRotate.zeroPingCamera.value.values.toList()
+        return pendingTeleport.position.takeIf { zeroPingConfig.getOrNull(pendingTeleport.info.type.ordinal) == true }
+            ?: fallback
+        //#else
+        //$$return fallback
+        //#endif
     }
 
     private fun traverseVoxels(start: Vec3, end: Vec3): EtherPos {
@@ -122,13 +143,26 @@ object EtherwarpHelper {
 
     private fun isValidEtherwarpBlock(pos: BlockPos, chunk: LevelChunk): Boolean {
         if (isPassable(pos, chunk)) return false
-        if (! isPassable(pos.above(1), chunk)) return false
-        return isPassable(pos.above(2), chunk)
+        if (! isPassable(pos.above(1), chunk) || blocksFeet(pos.above(1), chunk)) return false
+        return isPassable(pos.above(2), chunk) && !blocksFeet(pos.above(2), chunk)
     }
 
     private fun isPassable(pos: BlockPos, chunk: LevelChunk): Boolean {
         val level = mc.level ?: return true
         val state = chunk.getBlockState(pos)
-        return state.getCollisionShape(level, pos, CollisionContext.empty()).isEmpty
+        return when (state.block) {
+            is FlowerPotBlock -> true
+            is LadderBlock -> true
+            is SkullBlock, is WallSkullBlock -> true
+            is SignBlock -> false
+            else -> state.getCollisionShape(level, pos, CollisionContext.empty()).isEmpty
+        }
+    }
+
+    private fun blocksFeet(pos: BlockPos, chunk: LevelChunk): Boolean {
+        return when (chunk.getBlockState(pos).block) {
+            is SkullBlock, is WallSkullBlock -> true
+            else -> false
+        }
     }
 }
