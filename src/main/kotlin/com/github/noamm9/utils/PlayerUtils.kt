@@ -1,5 +1,6 @@
 package com.github.noamm9.utils
 
+import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
@@ -168,7 +169,7 @@ object PlayerUtils {
     fun swapToSlot(slot: Int) {
         if (! Inventory.isHotbarSlot(slot)) return
         if (mc.player?.inventory?.selectedSlot == slot) return
-        modMessage("swapped to hotbar Slot $slot")
+        if (NoammAddons.debugFlags.isNotEmpty()) modMessage("swapped to hotbar Slot $slot")
         mc.player?.inventory?.selectedSlot = slot
     }
 
