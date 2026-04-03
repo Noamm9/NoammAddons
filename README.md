@@ -17,6 +17,10 @@
 
 * Type  `/na` in chat to open the config menu.
 
+## Features
+
+* Rift Living Snake helper that swaps to Frozen Water Pungi after a mined segment, uses it, then swaps back to your Self-Recursive Pickaxe.
+
 ## Contributions
 
 Contributions are always welcome! If you have a feature idea or want to fix a bug, feel free to open an issue or submit
