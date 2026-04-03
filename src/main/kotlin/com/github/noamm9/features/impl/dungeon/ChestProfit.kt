@@ -207,7 +207,11 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
         val itemId = stack.skyblockId
         var value = 0L
 
-        if (itemId == "ENCHANTED_BOOK") value += getPrice(enchantNameToID(stack.lore.first()))
+        if (itemId == "ENCHANTED_BOOK") {
+            val lore = stack.lore
+            val bookName = lore[0].takeIf { it != "§8Combinable in Anvil" } ?: lore[2]
+            value += getPrice(enchantNameToID(bookName))
+        }
         value += getEssenceValue(itemName)
         value += getPrice(itemId)
         if (itemName.contains("Shard")) {
