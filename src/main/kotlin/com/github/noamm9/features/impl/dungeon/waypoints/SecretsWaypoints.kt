@@ -5,7 +5,6 @@ import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.Utils.equalsOneOf
 import com.github.noamm9.utils.dungeons.enums.SecretType
-import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.core.UniqueRoom
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
@@ -28,9 +27,11 @@ object SecretsWaypoints {
     private val secretDefinitions by lazy { ScanUtils.roomList.associate { it.name to it.secretCoords } }
 
     private val currentSecrets = CopyOnWriteArrayList<SecretWaypoint>()
+    private var currentRoom: UniqueRoom? = null
 
     fun onRoomEnter(room: UniqueRoom) {
         if (! DungeonWaypoints.secretWaypoints.value) return
+        currentRoom = room
         currentSecrets.clear()
 
         val rotation = room.rotation?.let { 360 - it } ?: return
@@ -57,7 +58,8 @@ object SecretsWaypoints {
         if (! DungeonWaypoints.secretWaypoints.value) return
         if (LocationUtils.inBoss) return
         if (currentSecrets.isEmpty()) return
-        if (DungeonWaypoints.hideWhenCompleted.value && ScanUtils.currentRoom?.mainRoom?.state.equalsOneOf(RoomState.GREEN, RoomState.CLEARED)) return
+        val room = currentRoom
+        if (DungeonWaypoints.hideWhenCompleted.value && room != null && room.data.secrets > 0 && room.foundSecrets >= room.data.secrets) return
 
         for (wp in currentSecrets) {
             if (wp.type == SecretType.REDSTONE_KEY && WorldUtils.getBlockAt(wp.pos) != Blocks.PLAYER_HEAD) continue
@@ -87,5 +89,8 @@ object SecretsWaypoints {
         target?.let(currentSecrets::remove)
     }
 
-    fun clear() = currentSecrets.clear()
+    fun clear() {
+        currentRoom = null
+        currentSecrets.clear()
+    }
 }

@@ -34,7 +34,7 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
     val hideWhenCompleted by ToggleSetting("Hide When Completed", true).section("Settings")
 
     val mode by DropdownSetting("Mode", 0, listOf("Outline", "Fill", "Filled Outline"))
-    val phase by ToggleSetting("Phase")
+    val phase by ToggleSetting("See Through Walls")
     val lineWidth by SliderSetting("Line Width", 1.0, 1.0, 10.0, 0.1).hideIf { mode.value == 1 }
 
     val fillColor by ColorSetting("Fill Color", Utils.favoriteColor.withAlpha(50)).hideIf { mode.value == 0 }.section("Colors")
