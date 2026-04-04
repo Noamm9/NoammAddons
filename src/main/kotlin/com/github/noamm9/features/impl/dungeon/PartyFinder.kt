@@ -131,7 +131,7 @@ object PartyFinder: Feature() {
                     missingClasses.drop(2).take(2).joinToString("")
                 ).filter { it.isNotBlank() }
 
-                for ((index, line) in missingLines.withIndex()) {
+                for ((i, line) in missingLines.withIndex()) {
                     Render2D.drawString(
                         event.context,
                         line,
