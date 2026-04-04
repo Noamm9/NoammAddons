@@ -3,7 +3,6 @@ package com.github.noamm9.features.impl.dev.text
 import com.github.noamm9.NoammAddons.mc
 import com.google.gson.JsonParser
 import com.mojang.serialization.JsonOps
-import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.ComponentSerialization
 import net.minecraft.network.chat.MutableComponent
@@ -15,66 +14,88 @@ import java.util.*
 import java.util.regex.Pattern
 
 object TextReplacer {
-    private class Replacement(val target: String, val component: Component, val plainString: String)
-    private class Snapshot(val replacements: List<Replacement>, val replacementsByFirstChar: Char2ObjectOpenHashMap<Array<Replacement>>)
+    private data class Match(val startIndex: Int, val replacement: Replacement)
 
     private val unchanged = Any()
     private val hexPattern = Pattern.compile("&#([A-Fa-f0-9]{6})")
     private val stringCache = Collections.synchronizedMap(newBoundedCache<String, String>(2048))
     private val literalCache = Collections.synchronizedMap(newBoundedCache<Style, MutableMap<String, Any>>(64))
-    private val emptySnapshot = Snapshot(emptyList(), Char2ObjectOpenHashMap())
 
     @Volatile
     private var replacementVersion = - 1
 
     @Volatile
-    private var preparedSnapshot = emptySnapshot
+    private var preparedReplacements = emptyList<Replacement>()
 
     private val replacementMap = ReplacementMap(::clearCache)
 
-    fun setCustomNames(replacements: Map<String, String>) {
+    private var ahoCorasick: AhoCorasick = AhoCorasick(listOf())
+
+    fun setCustomReplacements(replacements: Map<String, String>) {
         replacementMap.clear()
         replacementMap.putAll(replacements)
+        ahoCorasick = AhoCorasick(getCache())
     }
 
     @JvmStatic
-    fun replaceForRender(text: String): String {
+    fun handleString(text: String): String {
         if (text.isEmpty()) return text
-
-        val snapshot = getSnapshot()
-        if (snapshot.replacements.isEmpty()) return text
+        val replacements = getCache()
+        if (replacements.isEmpty()) return text
 
         return synchronized(stringCache) {
-            stringCache.getOrPut(text) { replaceText(text, snapshot) ?: text }
+            stringCache.getOrPut(text) { replaceText(text) ?: text }
         }
     }
 
     @JvmStatic
     fun handleComponent(component: Component): Component {
-        val snapshot = getSnapshot()
-        if (snapshot.replacements.isEmpty()) return component
+        val replacements = getCache()
+        if (replacements.isEmpty()) return component
 
-        return rebuildComponent(component, snapshot) ?: component
+        return rebuildComponent(component) ?: component
+    }
+
+    private fun collectMatches(text: String): List<Match> {
+        val hits = mutableListOf<Match>()
+        var node = ahoCorasick.root
+
+        for (i in text.indices) {
+            node = ahoCorasick.goto(node, text[i])
+            var outputNode: AhoCorasickNode? = if (node.output != null) node else node.outputLink
+
+            while (outputNode != null) {
+                val r = outputNode.output!!
+                hits.add(Match(i - r.target.length + 1, r))
+                outputNode = outputNode.outputLink
+            }
+        }
+
+        hits.sortWith(compareBy<Match> { it.startIndex }.thenByDescending { it.replacement.target.length })
+        val matches = mutableListOf<Match>()
+        var blockedUntil = 0
+        for (hit in hits) {
+            if (hit.startIndex < blockedUntil) continue
+            matches.add(hit)
+            blockedUntil = hit.startIndex + hit.replacement.target.length
+        }
+        return matches
     }
 
     @JvmStatic
     fun handleCharSequence(seq: FormattedCharSequence): FormattedCharSequence {
-        val snapshot = getSnapshot()
-        if (snapshot.replacements.isEmpty()) return seq
+        val replacements = getCache()
+        if (replacements.isEmpty()) return seq
 
         val styles = ArrayList<Style>()
         val texts = ArrayList<String>()
         var currentStyle = Style.EMPTY
         val currentText = StringBuilder()
-        var hasMatch = false
 
         fun flush() {
             if (currentText.isEmpty()) return
-
-            val text = currentText.toString()
-            if (! hasMatch && containsTarget(text, snapshot)) hasMatch = true
             styles.add(currentStyle)
-            texts.add(text)
+            texts.add(currentText.toString())
             currentText.setLength(0)
         }
 
@@ -90,16 +111,147 @@ object TextReplacer {
 
         flush()
 
-        if (! hasMatch) return seq
+        val segmentOffsets = IntArray(texts.size + 1)
+        for (i in texts.indices) segmentOffsets[i + 1] = segmentOffsets[i] + texts[i].length
+        val joined = texts.joinToString("")
 
-        val rebuilt = Component.empty()
-        for (i in texts.indices) {
-            val text = texts[i]
-            val style = styles[i]
-            rebuilt.append(replaceLiteral(text, style, snapshot) ?: Component.literal(text).withStyle(style))
+        val matches = collectMatches(joined)
+        if (matches.isEmpty()) return seq
+
+        fun styleAt(pos: Int): Style {
+            val seg = segmentOffsets.indexOfLast { it <= pos }.coerceAtLeast(0)
+            return styles[minOf(seg, styles.lastIndex)]
         }
 
+        fun appendSpan(result: MutableComponent, from: Int, to: Int) {
+            if (from >= to) return
+            var pos = from
+
+            while (pos < to) {
+                val seg = segmentOffsets.indexOfLast { it <= pos }.coerceAtLeast(0)
+                val segEnd = minOf(segmentOffsets[minOf(seg + 1, segmentOffsets.lastIndex)], to)
+                val style = styles[minOf(seg, styles.lastIndex)]
+
+                result.append(Component.literal(joined.substring(pos, segEnd)).withStyle(style))
+                pos = segEnd
+            }
+        }
+
+        val rebuilt = Component.empty()
+        var cursor = 0
+        for (match in matches) {
+            appendSpan(rebuilt, cursor, match.startIndex)
+
+            val replacementComp = match.replacement.component.copy()
+            if (replacementComp.style.isEmpty) replacementComp.withStyle(styleAt(match.startIndex))
+
+            rebuilt.append(replacementComp)
+            cursor = match.startIndex + match.replacement.target.length
+        }
+
+        appendSpan(rebuilt, cursor, joined.length);
+
         return rebuilt.visualOrderText
+    }
+
+    private fun rebuildComponent(component: Component): MutableComponent? {
+        val replacedLiteral = (component.contents as? PlainTextContents)?.let {
+            replaceLiteral(it.text(), component.style)
+        }
+
+        var siblingsChanged = false
+        val siblings = if (component.siblings.isEmpty()) null else ArrayList<Component>(component.siblings.size)
+
+        for (sibling in component.siblings) {
+            val rebuilt = rebuildComponent(sibling)
+            if (rebuilt != null) siblingsChanged = true
+            siblings?.add(rebuilt ?: sibling)
+        }
+
+        if (replacedLiteral == null && ! siblingsChanged) return null
+
+        val result = replacedLiteral ?: component.plainCopy().apply { style = component.style }
+        if (result.style.isEmpty) result.style = component.style
+        siblings?.forEach(result::append)
+
+        return result
+    }
+
+    private fun replaceLiteral(text: String, parentStyle: Style): MutableComponent? {
+        val styleCache = synchronized(literalCache) {
+            literalCache.getOrPut(parentStyle) {
+                Collections.synchronizedMap(newBoundedCache<String, Any>(128))
+            }
+        }
+
+        val cached = synchronized(styleCache) {
+            styleCache.getOrPut(text) { buildLiteralReplacement(text, parentStyle) ?: unchanged }
+        }
+
+        return when (cached) {
+            is MutableComponent -> cached.copy()
+            else -> null
+        }
+    }
+
+    private fun buildLiteralReplacement(text: String, parentStyle: Style): MutableComponent? {
+        val accepted = collectMatches(text)
+        if (accepted.isEmpty()) return null
+
+        val result = Component.empty()
+        var cursor = 0
+        for (match in accepted) {
+
+            if (match.startIndex > cursor) {
+                result.append(Component.literal(text.substring(cursor, match.startIndex)).withStyle(parentStyle))
+            }
+
+            val replacementComp = match.replacement.component.copy()
+            if (replacementComp.style.isEmpty) replacementComp.withStyle(parentStyle)
+
+            result.append(replacementComp)
+            cursor = match.startIndex + match.replacement.target.length
+        }
+
+        if (cursor < text.length) result.append(Component.literal(text.substring(cursor)).withStyle(parentStyle))
+        if (result.style.isEmpty) result.style = parentStyle
+
+        return result
+    }
+
+    private fun replaceText(text: String): String? {
+        val accepted = collectMatches(text)
+        if (accepted.isEmpty()) return null
+
+        val result = StringBuilder(text.length)
+        var cursor = 0
+
+        for (match in accepted) {
+            if (match.startIndex > cursor) result.append(text, cursor, match.startIndex)
+            result.append(match.replacement.plainString)
+            cursor = match.startIndex + match.replacement.target.length
+        }
+
+        if (cursor < text.length) result.append(text, cursor, text.length)
+
+        return result.toString()
+    }
+
+    private fun getCache(): List<Replacement> {
+        val version = replacementMap.version
+        if (replacementVersion == version) return preparedReplacements
+
+        val replacements = replacementMap.entries.asSequence()
+            .map { (target, replacement) ->
+                val component = parseJsonToComponent(replacement) ?: Component.literal(applyColorCodes(replacement))
+                Replacement(target, component, applyColorCodes(component.string))
+            }
+            .sortedWith(compareByDescending<Replacement> { it.target.length }.thenBy { it.target })
+            .toList()
+
+        preparedReplacements = replacements
+        replacementVersion = version
+        return replacements
     }
 
     private fun parseJsonToComponent(json: String): MutableComponent? {
@@ -115,147 +267,6 @@ object TextReplacer {
         catch (_: Exception) {
             return null
         }
-    }
-
-    private fun rebuildComponent(component: Component, snapshot: Snapshot): MutableComponent? {
-        val replacedLiteral = (component.contents as? PlainTextContents)?.let {
-            replaceLiteral(it.text(), component.style, snapshot)
-        }
-
-        var siblingsChanged = false
-        val siblings = if (component.siblings.isEmpty()) null else ArrayList<Component>(component.siblings.size)
-
-        for (sibling in component.siblings) {
-            val rebuilt = rebuildComponent(sibling, snapshot)
-            if (rebuilt != null) siblingsChanged = true
-            siblings?.add(rebuilt ?: sibling)
-        }
-
-        if (replacedLiteral == null && ! siblingsChanged) return null
-
-        val result = replacedLiteral ?: component.plainCopy().apply { style = component.style }
-        if (result.style.isEmpty) result.style = component.style
-        siblings?.forEach(result::append)
-        return result
-    }
-
-    private fun replaceLiteral(text: String, parentStyle: Style, snapshot: Snapshot): MutableComponent? {
-        val styleCache = synchronized(literalCache) {
-            literalCache.getOrPut(parentStyle) {
-                Collections.synchronizedMap(newBoundedCache<String, Any>(128))
-            }
-        }
-
-        val cached = synchronized(styleCache) {
-            styleCache.getOrPut(text) { buildLiteralReplacement(text, parentStyle, snapshot) ?: unchanged }
-        }
-
-        return when (cached) {
-            is MutableComponent -> cached.copy()
-            else -> null
-        }
-    }
-
-    private fun buildLiteralReplacement(text: String, parentStyle: Style, snapshot: Snapshot): MutableComponent? {
-        var index = 0
-        var plainStart = 0
-        var rebuilt: MutableComponent? = null
-
-        while (index < text.length) {
-            val match = matchAt(text, index, snapshot)
-            if (match == null) {
-                index ++
-                continue
-            }
-
-            val result = rebuilt ?: Component.empty().also { rebuilt = it }
-            if (index > plainStart) {
-                result.append(Component.literal(text.substring(plainStart, index)).withStyle(parentStyle))
-            }
-            val replacementComponent = match.component.copy()
-            if (replacementComponent.style.isEmpty) replacementComponent.withStyle(parentStyle)
-            result.append(replacementComponent)
-
-            index += match.target.length
-            plainStart = index
-        }
-
-        val result = rebuilt ?: return null
-        if (plainStart < text.length) result.append(Component.literal(text.substring(plainStart)).withStyle(parentStyle))
-        if (result.style.isEmpty) result.style = parentStyle
-        return result
-    }
-
-    private fun replaceText(text: String, snapshot: Snapshot): String? {
-        var index = 0
-        var plainStart = 0
-        var rebuilt: StringBuilder? = null
-
-        while (index < text.length) {
-            val match = matchAt(text, index, snapshot)
-            if (match == null) {
-                index ++
-                continue
-            }
-
-            val result = rebuilt ?: StringBuilder(text.length).also { rebuilt = it }
-            if (index > plainStart) result.append(text, plainStart, index)
-            result.append(match.plainString)
-            index += match.target.length
-            plainStart = index
-        }
-
-        val result = rebuilt ?: return null
-        if (plainStart < text.length) result.append(text, plainStart, text.length)
-        return result.toString()
-    }
-
-    private fun containsTarget(text: String, snapshot: Snapshot): Boolean {
-        for (index in text.indices) {
-            if (matchAt(text, index, snapshot) != null) return true
-        }
-        return false
-    }
-
-    private fun matchAt(text: String, index: Int, snapshot: Snapshot): Replacement? {
-        val candidates = snapshot.replacementsByFirstChar.get(text[index]) ?: return null
-        for (replacement in candidates) {
-            if (text.regionMatches(index, replacement.target, 0, replacement.target.length, false)) {
-                return replacement
-            }
-        }
-        return null
-    }
-
-    private fun getSnapshot(): Snapshot {
-        val version = replacementMap.version
-        if (replacementVersion == version) return preparedSnapshot
-
-        val replacements = replacementMap.entries.asSequence()
-            .filter { (target, replacement) -> target.isNotEmpty() && replacement.isNotEmpty() }
-            .map { (target, replacement) ->
-                val component = parseJsonToComponent(replacement) ?: Component.literal(applyColorCodes(replacement))
-                Replacement(target, component, applyColorCodes(component.string))
-            }
-            .sortedWith(compareByDescending<Replacement> { it.target.length }.thenBy { it.target })
-            .toList()
-
-        val mutableBuckets = Char2ObjectOpenHashMap<MutableList<Replacement>>()
-        for (replacement in replacements) {
-            val firstChar = replacement.target[0]
-            val bucket = mutableBuckets.get(firstChar)
-            if (bucket == null) mutableBuckets.put(firstChar, mutableListOf(replacement))
-            else bucket.add(replacement)
-        }
-
-        val buckets = Char2ObjectOpenHashMap<Array<Replacement>>(mutableBuckets.size)
-        for (entry in mutableBuckets.char2ObjectEntrySet()) {
-            buckets.put(entry.charKey, entry.value.toTypedArray())
-        }
-
-        preparedSnapshot = Snapshot(replacements, buckets)
-        replacementVersion = version
-        return preparedSnapshot
     }
 
     private fun applyColorCodes(text: String): String {
@@ -275,14 +286,16 @@ object TextReplacer {
 
     private fun <K, V> newBoundedCache(maxEntries: Int): LinkedHashMap<K, V> {
         return object: LinkedHashMap<K, V>(maxEntries + 1, 0.75f, true) {
-            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<K, V>?) = size > maxEntries
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<K, V>?): Boolean {
+                return size > maxEntries
+            }
         }
     }
 
     private fun clearCache() {
         synchronized(stringCache) { stringCache.clear() }
         synchronized(literalCache) { literalCache.clear() }
-        preparedSnapshot = emptySnapshot
+        preparedReplacements = emptyList()
         replacementVersion = - 1
     }
 }
