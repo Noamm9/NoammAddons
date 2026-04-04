@@ -4,6 +4,7 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.EventPriority
 import com.github.noamm9.event.impl.ChatMessageEvent
+import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
 
 
@@ -12,6 +13,11 @@ import com.github.noamm9.utils.location.LocationUtils
  * @link https://github.com/odtheking/OdinFabric/blob/main/src/main/kotlin/com/odtheking/odin/utils/skyblock/PartyUtils.kt
  */
 object PartyUtils {
+    data class DungeonMemberInfo(
+        val dungeonClass: DungeonClass,
+        val classLevel: Int,
+    )
+
     private val joinedSelf = Regex("^You have joined ((?:\\[[^]]*?])? ?)?(\\w{1,16})'s? party!$")
     private val joinedOther = Regex("^((?:\\[[^]]*?])? ?)?(\\w{1,16}) joined the party\\.$")
     private val leftParty = Regex("^((?:\\[[^]]*?])? ?)?(\\w{1,16}) has left the party\\.$")
@@ -42,12 +48,15 @@ object PartyUtils {
     )
 
     val members = mutableListOf<String>()
+    private val dungeonMemberInfo = mutableMapOf<String, DungeonMemberInfo>()
 
     var partyLeader: String? = null
         private set
 
     var isInParty: Boolean = false
         private set
+
+    fun getDungeonMemberInfo(playerName: String): DungeonMemberInfo? = dungeonMemberInfo[playerName.lowercase()]
 
     fun init() {
         register<ChatMessageEvent>(EventPriority.HIGHEST) {
@@ -137,7 +146,14 @@ object PartyUtils {
 
             kuudraJoin.find(message)?.let { return@register addMember(it.groupValues[2]) }
 
-            dungeonJoin.find(message)?.let { return@register addMember(it.groupValues[1]) }
+            dungeonJoin.find(message)?.let {
+                addMember(it.groupValues[1])
+                dungeonMemberInfo[it.groupValues[1].lowercase()] = DungeonMemberInfo(
+                    DungeonClass.fromName(it.groupValues[2]),
+                    it.groupValues[3].toInt()
+                )
+                return@register
+            }
         }
     }
 
@@ -151,11 +167,13 @@ object PartyUtils {
     private fun removeMember(playerName: String) {
         if (playerName !in members) return
         members.remove(playerName)
+        dungeonMemberInfo.remove(playerName.lowercase())
         if (members.isEmpty()) disband()
     }
 
     private fun disband() {
         members.clear()
+        dungeonMemberInfo.clear()
         partyLeader = null
         isInParty = false
     }
