@@ -46,7 +46,11 @@ object PartyFinder: Feature() {
     private val minimumPB by ToggleSetting("Minimum PB", true).withDescription("Require players to have an S+ PB at or under the configured minimum seconds.").showIf { autoKick.value }
     private val pbLimitSeconds by SliderSetting("Minimum Seconds", 400, 60, 480, 10, suffix = "s").withDescription("Players fail if their selected-floor S+ PB is missing or slower than this many seconds.").showIf { autoKick.value && minimumPB.value }
     private val minimumSecrets by SliderSetting("Minimum Secrets", 0, 0, 200, 1, suffix = "k").withDescription("Minimum secrets in thousands.").showIf { autoKick.value }
-    private val minimumSecretsPerRun by SliderSetting("Minimum Secrets / Run", 0.0, 0.0, 20.0, 0.1).withDescription("Minimum overall dungeon secrets per run.").showIf { autoKick.value }
+    private val minimumSprArcher by SliderSetting("Minimum SPR Archer", 0.0, 0.0, 20.0, 0.1).withDescription("Minimum overall dungeon secrets per run for Archers.").showIf { autoKick.value }
+    private val minimumSprBerserk by SliderSetting("Minimum SPR Berserk", 0.0, 0.0, 20.0, 0.1).withDescription("Minimum overall dungeon secrets per run for Berserks.").showIf { autoKick.value }
+    private val minimumSprHealer by SliderSetting("Minimum SPR Healer", 0.0, 0.0, 20.0, 0.1).withDescription("Minimum overall dungeon secrets per run for Healers.").showIf { autoKick.value }
+    private val minimumSprMage by SliderSetting("Minimum SPR Mage", 0.0, 0.0, 20.0, 0.1).withDescription("Minimum overall dungeon secrets per run for Mages.").showIf { autoKick.value }
+    private val minimumSprTank by SliderSetting("Minimum SPR Tank", 0.0, 0.0, 20.0, 0.1).withDescription("Minimum overall dungeon secrets per run for Tanks.").showIf { autoKick.value }
 
     private val joinedRegex = Regex("^§dParty Finder §f> (.+?) §ejoined the dungeon group! \\(§b(\\w+) Level (\\d+)§e\\)$")
     private val kickedPlayers = mutableSetOf<String>()
@@ -220,7 +224,7 @@ object PartyFinder: Feature() {
                 enforcePbLimit = minimumPB.value,
                 pbLimitSeconds = pbLimitSeconds.value,
                 minimumSecretsThousands = minimumSecrets.value,
-                minimumSecretsPerRun = minimumSecretsPerRun.value
+                minimumSecretsPerRun = minimumSecretsPerRunThreshold(joinedClass)
             )
         )
 
@@ -263,7 +267,24 @@ object PartyFinder: Feature() {
 
     private fun formatTime(milliseconds: Number) = PartyFinderRules.formatDuration(milliseconds)
 
-    private fun requiresProfileCheck() = minimumPB.value || minimumSecrets.value > 0 || minimumSecretsPerRun.value > 0
+    private fun requiresProfileCheck() = minimumPB.value || minimumSecrets.value > 0 || hasMinimumSprRequirement()
+
+    private fun hasMinimumSprRequirement() = listOf(
+        minimumSprArcher.value,
+        minimumSprBerserk.value,
+        minimumSprHealer.value,
+        minimumSprMage.value,
+        minimumSprTank.value,
+    ).any { it > 0 }
+
+    private fun minimumSecretsPerRunThreshold(dungeonClass: DungeonClass) = when (dungeonClass) {
+        DungeonClass.Archer -> minimumSprArcher.value
+        DungeonClass.Berserk -> minimumSprBerserk.value
+        DungeonClass.Healer -> minimumSprHealer.value
+        DungeonClass.Mage -> minimumSprMage.value
+        DungeonClass.Tank -> minimumSprTank.value
+        else -> 0.0
+    }
 
     private fun currentPartyClasses(excludeName: String): Set<DungeonClass> {
         val classes = PartyUtils.members.asSequence()
