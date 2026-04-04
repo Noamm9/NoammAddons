@@ -40,7 +40,6 @@ object PartyHud: Feature(
     )
 
     private val kickButtonHitboxes = mutableListOf<KickButtonHitbox>()
-    private var lastRosterRefresh = 0L
     private val kickColumnWidth = 8f
     private val horizontalPadding = 4f
     private val verticalPadding = 3f
@@ -95,8 +94,6 @@ object PartyHud: Feature(
 
                 return drawRows(ctx, rows, showKickButtons = false, members = null)
             }
-
-            requestRosterRefreshIfNeeded()
             val members = hudMembers()
             if (members.isEmpty()) return 0f to 0f
 
@@ -188,19 +185,6 @@ object PartyHud: Feature(
                 PartyHudMember(playerName, info.dungeonClass, info.classLevel)
             } ?: PartyHudMember(playerName, DungeonClass.Empty, null)
         }
-    }
-
-    private fun requestRosterRefreshIfNeeded() {
-        if (!enabled || LocationUtils.inDungeon) return
-        if (!showOutsideDungeons.value) return
-        if (showOnlyInDhub.value && LocationUtils.world != WorldType.DungeonHub) return
-        if (!PartyUtils.isInParty) return
-
-        val now = System.currentTimeMillis()
-        if (now - lastRosterRefresh < 5_000L) return
-
-        lastRosterRefresh = now
-        PartyUtils.requestRefresh()
     }
 
     private fun displayConfig() = PartyHudDisplayConfig(

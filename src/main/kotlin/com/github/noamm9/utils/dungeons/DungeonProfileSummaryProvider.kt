@@ -14,6 +14,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.util.concurrent.ConcurrentHashMap
 
 data class DungeonProfileSummary(
@@ -34,7 +35,7 @@ object DungeonProfileSummaryProvider {
     fun summarize(profile: JsonObject, floor: Int? = null, masterMode: Boolean = false): DungeonProfileSummary {
         val dungeons = profile.getObj("dungeons")
         val totalSecrets = dungeons?.getInt("secrets")
-        val totalRuns = dungeons?.getInt("total_runs")
+        val totalRuns = extractTotalRuns(dungeons)
         val selectedMode = if (masterMode) dungeons?.getObj("master_catacombs") else dungeons?.getObj("catacombs")
         val classLevels = extractClassLevels(dungeons)
         val selectedClass = dungeons?.getString("selected_dungeon_class")
@@ -105,6 +106,29 @@ object DungeonProfileSummaryProvider {
     private fun cacheKey(playerName: String) = cleanName(playerName).lowercase()
 
     private fun cleanName(playerName: String) = playerName.removeFormatting()
+
+    private fun extractTotalRuns(dungeons: JsonObject?): Int? {
+        if (dungeons == null) return null
+
+        val normalRuns = extractTierCompletionTotal(dungeons.getObj("catacombs")?.getObj("tier_completions"))
+        val masterRuns = extractTierCompletionTotal(dungeons.getObj("master_catacombs")?.getObj("tier_completions"))
+
+        return if (normalRuns != null || masterRuns != null) {
+            (normalRuns ?: 0) + (masterRuns ?: 0)
+        }
+        else dungeons.getInt("total_runs")
+    }
+
+    private fun extractTierCompletionTotal(completions: JsonObject?): Int? {
+        if (completions == null) return null
+
+        completions.getInt("total")?.let { return it }
+
+        val perFloorValues = completions.entries
+            .mapNotNull { (key, value) -> key.toIntOrNull()?.let { value.jsonPrimitive.content.toIntOrNull() } }
+
+        return perFloorValues.takeIf { it.isNotEmpty() }?.sum()
+    }
 
     private fun extractClassLevels(dungeons: JsonObject?): Map<DungeonClass, Int> {
         if (dungeons == null) return emptyMap()

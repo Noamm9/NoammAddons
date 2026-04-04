@@ -33,12 +33,12 @@ object PartyUtils {
     private val memberFormat = Regex("^((?:\\[[^]]*?])? ?)?(\\w{1,16})$")
     private val partyWith = Regex("^You'll be partying with: (.+)$")
 
-    private val queuedInFinder = Regex("^Party Finder > Your party has been queued in the dungeon finder!$")
-    private val dungeonJoin = Regex("^Party Finder > (\\w{1,16}) joined the dungeon group! \\(\\w+ Level (\\d+)\\)$")
+    private const val queuedInFinder = "Party Finder > Your party has been queued in the dungeon finder!"
+    private val dungeonJoin = Regex("^Party Finder > (\\w{1,16}) joined the dungeon group! \\((\\w+) Level (\\d+)\\)$")
     private val kuudraJoin = Regex("^Party Finder > ((?:\\[[^]]*?])? ?)?(\\w{1,16}) joined the group! \\(Combat Level (\\d+)\\)$")
     private val membersList = Regex("^Party (Leader|Moderators|Members): (.+)$")
-    private val partyListStart = Regex("^Party Members \\((\\d+)\\)$")
-    private val partyListName = Regex("(?:\\[[^]]+] )?(\\w{1,16})")
+    private const val partyListHeaderPrefix = "Party Members ("
+    private val partyLineSeparator = Regex("\\s+[\\u25CF\\u2022]\\s+")
 
     private val disbandPatterns = listOf(
         Regex("^((?:\\[[^]]*?])? ?)?(\\w{1,16}) has disbanded the party!$"),
@@ -58,41 +58,25 @@ object PartyUtils {
     var isInParty: Boolean = false
         private set
 
-    private var awaitingPartyListDelimiter = 0
-    private var suppressPartyListChat = false
-    private var lastPartyRefreshRequest = 0L
+    private var isParsingPartyList = false
     private val parsedPartyMembers = linkedSetOf<String>()
     private var parsedPartyLeader: String? = null
 
     fun getDungeonMemberInfo(playerName: String): DungeonMemberInfo? = dungeonMemberInfo[playerName.lowercase()]
-
-    fun requestRefresh(silent: Boolean = true) {
-        if (! LocationUtils.onHypixel) return
-
-        val now = System.currentTimeMillis()
-        if (now - lastPartyRefreshRequest < 4_500L) return
-        lastPartyRefreshRequest = now
-
-        awaitingPartyListDelimiter = 2
-        suppressPartyListChat = silent
-        parsedPartyMembers.clear()
-        parsedPartyLeader = null
-        ChatUtils.sendCommand("party list")
-    }
 
     fun init() {
         register<ChatMessageEvent>(EventPriority.HIGHEST) {
             if (! LocationUtils.onHypixel) return@register
             val message = event.unformattedText
 
-            if (awaitingPartyListDelimiter > 0 && handlePartyListRefresh(message, event)) return@register
+            if (handlePartyListRefresh(message)) return@register
 
             joinedOther.find(message)?.let { return@register addMember(it.groupValues[2]) }
 
             joinedSelf.find(message)?.let {
-                addMember(it.groupValues[2])
-                partyLeader = it.groupValues[2]
-                addMember(mc.player?.gameProfile?.name ?: return@register)
+                val leader = it.groupValues[2]
+                val selfName = mc.player?.gameProfile?.name ?: return@register
+                applyPartySnapshot(listOf(leader, selfName), leader)
                 return@register
             }
 
@@ -139,7 +123,7 @@ object PartyUtils {
                 return@register
             }
 
-            queuedInFinder.find(message)?.let {
+            if (message == queuedInFinder) {
                 addMember(mc.player?.gameProfile?.name ?: return@register)
                 if (partyLeader == null) partyLeader = mc.player?.gameProfile?.name
                 return@register
@@ -151,20 +135,23 @@ object PartyUtils {
 
             membersList.find(message)?.let { match ->
                 val type = match.groupValues[1]
+                val names = parsePartyLineMembers(match.groupValues[2])
 
-                match.groupValues[2].split(" ●").forEach { segment ->
-                    val memberMatch = memberFormat.find(segment.trim()) ?: return@forEach
-                    addMember(memberMatch.groupValues[2])
-                    if (type == "Leader") partyLeader = memberMatch.groupValues[2]
-                }
+                names.forEach(::addMember)
+                if (type == "Leader") partyLeader = names.firstOrNull()
                 return@register
             }
 
             partyWith.find(message)?.let { match ->
-                match.groupValues[1].split(", ").forEach { playerName ->
-                    val memberMatch = memberFormat.find(playerName.trim()) ?: return@forEach
-                    addMember(memberMatch.groupValues[2])
-                }
+                val snapshot = match.groupValues[1].split(", ")
+                    .mapNotNull(::parseMemberName)
+                    .toMutableList()
+
+                mc.player?.gameProfile?.name
+                    ?.takeIf { selfName -> snapshot.none { it.equals(selfName, ignoreCase = true) } }
+                    ?.let(snapshot::add)
+
+                applyPartySnapshot(snapshot, partyLeader)
                 return@register
             }
 
@@ -183,40 +170,34 @@ object PartyUtils {
 
     fun isLeader(): Boolean = partyLeader == mc.user.name
 
-    private fun handlePartyListRefresh(message: String, event: ChatMessageEvent): Boolean {
-        val shouldCancel = suppressPartyListChat
-
+    private fun handlePartyListRefresh(message: String): Boolean {
         when {
-            partyListStart.matches(message) -> {
-                parsedPartyMembers.clear()
-                parsedPartyLeader = null
-                if (shouldCancel) event.isCanceled = true
+            message.startsWith(partyListHeaderPrefix) -> {
+                resetPartyListSnapshot()
+                isParsingPartyList = true
                 return true
             }
 
-            message.startsWith("Party Leader: ") || message.startsWith("Party Moderators: ") || message.startsWith("Party Members: ") -> {
+            isParsingPartyList && (
+                message.startsWith("Party Leader: ") ||
+                    message.startsWith("Party Moderators: ") ||
+                    message.startsWith("Party Members: ")
+                ) -> {
                 val type = message.substringBefore(": ")
-                val names = partyListName.findAll(message.substringAfter(": "))
-                    .map { it.groupValues[1] }
-                    .toList()
+                val names = parsePartyLineMembers(message.substringAfter(": "))
 
                 names.forEach(::addParsedMember)
                 if (type == "Party Leader") {
                     parsedPartyLeader = names.firstOrNull()
                 }
 
-                if (shouldCancel) event.isCanceled = true
                 return true
             }
 
-            message.startsWith("-----------------") -> {
-                if (shouldCancel) event.isCanceled = true
-
-                awaitingPartyListDelimiter--
-                if (awaitingPartyListDelimiter <= 0) {
-                    applyPartyListSnapshot()
-                    suppressPartyListChat = false
-                }
+            isParsingPartyList && message.startsWith("-----------------") -> {
+                applyPartySnapshot(parsedPartyMembers, parsedPartyLeader)
+                resetPartyListSnapshot()
+                isParsingPartyList = false
                 return true
             }
         }
@@ -228,17 +209,33 @@ object PartyUtils {
         parsedPartyMembers.add(playerName)
     }
 
-    private fun applyPartyListSnapshot() {
-        val snapshot = parsedPartyMembers.toList()
-
-        members.clear()
-        members.addAll(snapshot)
-        dungeonMemberInfo.keys.removeIf { key -> snapshot.none { it.equals(key, ignoreCase = true) } }
-        partyLeader = parsedPartyLeader
-        isInParty = snapshot.isNotEmpty()
-
+    private fun resetPartyListSnapshot() {
         parsedPartyMembers.clear()
         parsedPartyLeader = null
+    }
+
+    private fun parsePartyLineMembers(line: String): List<String> {
+        return partyLineSeparator.split(line)
+            .mapNotNull(::parseMemberName)
+    }
+
+    private fun parseMemberName(segment: String): String? {
+        val memberMatch = memberFormat.find(segment.trim()) ?: return null
+        return memberMatch.groupValues[2]
+    }
+
+    private fun applyPartySnapshot(snapshot: Collection<String>, leader: String? = partyLeader) {
+        val normalizedSnapshot = linkedSetOf<String>()
+        snapshot.forEach { playerName ->
+            if (playerName.isNotBlank()) normalizedSnapshot.add(playerName)
+        }
+
+        members.clear()
+        members.addAll(normalizedSnapshot)
+        dungeonMemberInfo.keys.removeIf { key -> normalizedSnapshot.none { it.equals(key, ignoreCase = true) } }
+        partyLeader = leader?.takeIf { candidate -> normalizedSnapshot.any { it.equals(candidate, ignoreCase = true) } }
+            ?: normalizedSnapshot.firstOrNull()
+        isInParty = normalizedSnapshot.isNotEmpty()
     }
 
     private fun addMember(playerName: String) {
@@ -260,4 +257,3 @@ object PartyUtils {
         isInParty = false
     }
 }
-
