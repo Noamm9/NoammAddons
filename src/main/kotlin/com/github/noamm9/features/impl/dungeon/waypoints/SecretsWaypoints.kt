@@ -3,7 +3,9 @@ package com.github.noamm9.features.impl.dungeon.waypoints
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.utils.WorldUtils
+import com.github.noamm9.utils.Utils.equalsOneOf
 import com.github.noamm9.utils.dungeons.enums.SecretType
+import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.core.UniqueRoom
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
@@ -55,10 +57,19 @@ object SecretsWaypoints {
         if (! DungeonWaypoints.secretWaypoints.value) return
         if (LocationUtils.inBoss) return
         if (currentSecrets.isEmpty()) return
+        if (DungeonWaypoints.hideWhenCompleted.value && ScanUtils.currentRoom?.mainRoom?.state.equalsOneOf(RoomState.GREEN, RoomState.CLEARED)) return
 
         for (wp in currentSecrets) {
             if (wp.type == SecretType.REDSTONE_KEY && WorldUtils.getBlockAt(wp.pos) != Blocks.PLAYER_HEAD) continue
-            Render3D.renderBlock(ctx, wp.pos, wp.color, fill = false, outline = true, phase = true)
+            Render3D.renderBlock(
+                ctx, wp.pos,
+                DungeonWaypoints.outlineColor.value,
+                DungeonWaypoints.fillColor.value,
+                DungeonWaypoints.mode.value.equalsOneOf(0, 2),
+                DungeonWaypoints.mode.value.equalsOneOf(1, 2),
+                phase = DungeonWaypoints.phase.value,
+                lineWidth = DungeonWaypoints.lineWidth.value.toFloat()
+            )
         }
     }
 

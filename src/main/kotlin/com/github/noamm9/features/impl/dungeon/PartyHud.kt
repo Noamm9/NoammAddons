@@ -3,9 +3,13 @@ package com.github.noamm9.features.impl.dungeon
 import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.getValue
+import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
+import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
+import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.ui.clickgui.components.section
+import com.github.noamm9.ui.clickgui.components.showIf
 import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.ui.utils.Resolution
@@ -15,11 +19,13 @@ import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.DungeonProfileSummaryProvider
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.location.WorldType
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
 import net.minecraft.client.gui.screens.ChatScreen
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import org.lwjgl.glfw.GLFW
+import java.awt.Color
 
 object PartyHud: Feature(
     name = "Party HUD",
@@ -35,12 +41,17 @@ object PartyHud: Feature(
 
     private val kickButtonHitboxes = mutableListOf<KickButtonHitbox>()
     private val kickColumnWidth = 8f
+    private val horizontalPadding = 4f
+    private val verticalPadding = 3f
 
     private val showInDungeons by ToggleSetting("Show In Dungeons", true)
         .withDescription("Allows Party HUD to render while you are inside dungeons.")
         .section("Behavior")
     private val showOutsideDungeons by ToggleSetting("Show Outside Dungeons", true)
         .withDescription("Allows Party HUD to render outside active dungeons using party fallback data.")
+    private val showOnlyInDhub by ToggleSetting("Show Only In DHub", false)
+        .withDescription("Restricts outside-dungeon Party HUD rendering to Dungeon Hub only.")
+        .showIf { showOutsideDungeons.value }
     private val includeSelf by ToggleSetting("Include Self", true)
         .withDescription("Includes your own player row in the Party HUD.")
 
@@ -54,7 +65,18 @@ object PartyHud: Feature(
     private val showCatacombsLevel by ToggleSetting("Catacombs Level", true)
         .withDescription("Displays catacombs level.")
     private val showPersonalBest by ToggleSetting("Personal Best", true)
-        .withDescription("Displays the selected-floor S+ PB when the current floor is known.")
+        .withDescription("Displays the selected-floor S+ PB using the configured floor and mode.")
+    private val pbFloorSetting by DropdownSetting("PB Floor", 6, listOf("F1", "F2", "F3", "F4", "F5", "F6", "F7"))
+        .withDescription("Selects which floor Party HUD uses for PB lookup.")
+        .showIf { showPersonalBest.value }
+    private val pbMasterMode by ToggleSetting("Master Mode", false)
+        .withDescription("Uses master mode PBs instead of regular-floor PBs.")
+        .showIf { showPersonalBest.value }
+
+    private val backgroundColor by ColorSetting("Party Hud Background Color", Color(255, 255, 255, 50), true)
+        .section("Style")
+    private val borderColor by ColorSetting("Party Hud Border Color", Color(255, 255, 255), true)
+    private val borderThickness by SliderSetting("Border Thickness", 1, 1, 5, 1)
 
     private val partyHudElement = object: HudElement() {
         override val name = "Party HUD"
@@ -70,49 +92,65 @@ object PartyHud: Feature(
                 val rows = PartyHudFormatter.previewRows(displayConfig)
                 if (rows.isEmpty()) return 0f to 0f
 
-                var maxWidth = 0f
-                rows.forEachIndexed { index, row ->
-                    Render2D.drawString(ctx, row, 0f, index * 9f)
-                    maxWidth = maxOf(maxWidth, row.width().toFloat())
-                }
-
-                return maxWidth to rows.size * 9f
+                return drawRows(ctx, rows, showKickButtons = false, members = null)
             }
 
             val members = hudMembers()
             if (members.isEmpty()) return 0f to 0f
 
-            val floor = LocationUtils.dungeonFloorNumber?.takeIf { it > 0 }
-            val masterMode = LocationUtils.isMasterMode
-            var maxWidth = 0f
-            members.forEachIndexed { index, member ->
+            val floor = (pbFloorSetting.value + 1).takeIf { showPersonalBest.value }
+            val masterMode = pbMasterMode.value
+            val rows = members.map { member ->
                 val summary = if (displayConfig.usesProfileSummary) {
                     DungeonProfileSummaryProvider.getSummaryOrRequest(member.name, floor, masterMode)
                 }
                 else null
-
-                val row = PartyHudFormatter.formatRow(member, summary, displayConfig)
-                val rowY = index * 9f
-                val rowX = if (showKickButtons) kickColumnWidth else 0f
-
-                if (showKickButtons && !member.name.equals(mc.user.name, ignoreCase = true)) {
-                    Render2D.drawString(ctx, "&cX", 0f, rowY)
-                    kickButtonHitboxes.add(
-                        KickButtonHitbox(
-                            playerName = member.name,
-                            x = x,
-                            y = y + rowY * scale,
-                            width = kickColumnWidth * scale,
-                            height = 9f * scale,
-                        )
-                    )
-                }
-
-                Render2D.drawString(ctx, row, rowX, rowY)
-                maxWidth = maxOf(maxWidth, rowX + row.width().toFloat())
+                PartyHudFormatter.formatRow(member, summary, displayConfig)
             }
 
-            return maxWidth to members.size * 9f
+            return drawRows(ctx, rows, showKickButtons, members)
+        }
+
+        private fun drawRows(
+            ctx: net.minecraft.client.gui.GuiGraphics,
+            rows: List<String>,
+            showKickButtons: Boolean,
+            members: List<PartyHudMember>?,
+        ): Pair<Float, Float> {
+            if (rows.isEmpty()) return 0f to 0f
+
+            val contentStartX = horizontalPadding
+            val textOffsetX = contentStartX + if (showKickButtons) kickColumnWidth else 0f
+            val maxTextWidth = rows.maxOf { it.width().toFloat() }
+            val totalWidth = textOffsetX + maxTextWidth + horizontalPadding
+            val totalHeight = (rows.size * 9f) + (verticalPadding * 2f)
+
+            Render2D.drawRect(ctx, 0f, 0f, totalWidth, totalHeight, backgroundColor.value)
+            Render2D.drawBorder(ctx, 0f, 0f, totalWidth, totalHeight, borderColor.value, borderThickness.value)
+
+            rows.forEachIndexed { index, row ->
+                val rowY = verticalPadding + (index * 9f)
+
+                if (showKickButtons && members != null) {
+                    val member = members[index]
+                    if (!member.name.equals(mc.user.name, ignoreCase = true)) {
+                        Render2D.drawString(ctx, "&cX", contentStartX, rowY)
+                        kickButtonHitboxes.add(
+                            KickButtonHitbox(
+                                playerName = member.name,
+                                x = x + contentStartX * scale,
+                                y = y + rowY * scale,
+                                width = kickColumnWidth * scale,
+                                height = 9f * scale,
+                            )
+                        )
+                    }
+                }
+
+                Render2D.drawString(ctx, row, textOffsetX, rowY)
+            }
+
+            return totalWidth to totalHeight
         }
     }.also(hudElements::add)
 
@@ -131,6 +169,9 @@ object PartyHud: Feature(
         }
 
         if (!showOutsideDungeons.value) {
+            return emptyList()
+        }
+        if (showOnlyInDhub.value && LocationUtils.world != WorldType.DungeonHub) {
             return emptyList()
         }
 
