@@ -1,8 +1,8 @@
 package com.github.noamm9.utils.render
 
-import com.github.noamm9.IrisCompat
-import com.github.noamm9.IrisShaderType
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.utils.render.iris.IrisCompatibility
+import com.github.noamm9.utils.render.iris.IrisShaderType
 import com.mojang.blaze3d.pipeline.RenderPipeline
 import com.mojang.blaze3d.platform.DepthTestFunction
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
@@ -27,8 +27,8 @@ object NoammRenderPipelines {
     )
 
     fun init() {
-        IrisCompat.registerPipeline(LINES_THROUGH_WALLS, IrisShaderType.LINES)
-        IrisCompat.registerPipeline(FILLED_THROUGH_WALLS, IrisShaderType.BASIC)
+        IrisCompatibility.registerPipeline(LINES_THROUGH_WALLS, IrisShaderType.LINES)
+        IrisCompatibility.registerPipeline(FILLED_THROUGH_WALLS, IrisShaderType.BASIC)
     }
 
     private fun id(path: String) = ResourceLocation.fromNamespaceAndPath(NoammAddons.MOD_ID, path)

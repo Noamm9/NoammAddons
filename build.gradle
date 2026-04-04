@@ -35,7 +35,6 @@ dependencies {
     modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
 
     modRuntimeOnly "me.djtheredstoner:DevAuth-fabric:1.2.2"
-
     modCompileOnly "maven.modrinth:iris:${project.iris_version}"
 
     implementation "io.github.classgraph:classgraph:4.8.174"
