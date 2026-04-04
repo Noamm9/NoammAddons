@@ -13,32 +13,28 @@ import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
-import com.github.noamm9.utils.JsonUtils.getDouble
-import com.github.noamm9.utils.JsonUtils.getInt
-import com.github.noamm9.utils.JsonUtils.getObj
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.PartyUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.Utils.equalsOneOf
+import com.github.noamm9.utils.dungeons.DungeonProfileSummary
+import com.github.noamm9.utils.dungeons.DungeonProfileSummaryProvider
+import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.items.ItemUtils.lore
-import com.github.noamm9.utils.network.ApiUtils
-import com.github.noamm9.utils.network.ProfileUtils
-import com.github.noamm9.utils.network.cache.ProfileCache
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
 import kotlinx.coroutines.launch
 import net.minecraft.network.chat.Component
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Blocks
-import java.util.*
 
 object PartyFinder: Feature() {
     private val showLevelReq by ToggleSetting("Show Level Req", true).withDescription("Shows the red level requirement number.").section("Menu")
     private val showMissingOverlay by ToggleSetting("Show Missing Classes", true).withDescription("Shows missing classes on the head.")
 
     private val showTooltipStats by ToggleSetting("Show Stats", true).withDescription("Shows player stats (Cata/Secrets/PB) in tooltip.").section("Tooltip")
-    private val showSecrets by ToggleSetting("Show Secrets", true).withDescription("Shows Total Secrets and Average.").showIf { showTooltipStats.value }
+    private val showSecrets by ToggleSetting("Show Secrets", true).withDescription("Shows total secrets and overall secrets per run.").showIf { showTooltipStats.value }
     private val showPB by ToggleSetting("Show PB", true).withDescription("Shows Personal Best for the current floor.").showIf { showTooltipStats.value }
     private val showMissingTooltip by ToggleSetting("Show Missing List", true).withDescription("Shows the list of missing classes at the bottom of the tooltip.")
 
@@ -46,8 +42,15 @@ object PartyFinder: Feature() {
     private val autoKickFloor by DropdownSetting("Floor", 6, listOf("F1", "F2", "F3", "F4", "F5", "F6", "F7")).showIf { autoKick.value }
     private val masterMode by ToggleSetting("Master Mode", true).showIf { autoKick.value }
     private val informKicked by ToggleSetting("Inform Kicked", false).withDescription("Send a party chat message before kicking.").showIf { autoKick.value }
-    private val maximumSeconds by SliderSetting("Maximum Seconds", 400, 60, 480, 10, suffix = "s").withDescription("Maximum S+ PB time in seconds.").showIf { autoKick.value }
+    private val noDupe by ToggleSetting("No Dupe", false).withDescription("Automatically kicks players who join with a class that is already in your party.").showIf { autoKick.value }
+    private val minimumPB by ToggleSetting("Minimum PB", true).withDescription("Require players to have an S+ PB at or under the configured minimum seconds.").showIf { autoKick.value }
+    private val pbLimitSeconds by SliderSetting("Minimum Seconds", 400, 60, 480, 10, suffix = "s").withDescription("Players fail if their selected-floor S+ PB is missing or slower than this many seconds.").showIf { autoKick.value && minimumPB.value }
     private val minimumSecrets by SliderSetting("Minimum Secrets", 0, 0, 200, 1, suffix = "k").withDescription("Minimum secrets in thousands.").showIf { autoKick.value }
+    private val minimumSprArcher by SliderSetting("Minimum SPR Archer", 0.0, 0.0, 20.0, 0.1).withDescription("Minimum overall dungeon secrets per run for Archers.").showIf { autoKick.value }
+    private val minimumSprBerserk by SliderSetting("Minimum SPR Berserk", 0.0, 0.0, 20.0, 0.1).withDescription("Minimum overall dungeon secrets per run for Berserks.").showIf { autoKick.value }
+    private val minimumSprHealer by SliderSetting("Minimum SPR Healer", 0.0, 0.0, 20.0, 0.1).withDescription("Minimum overall dungeon secrets per run for Healers.").showIf { autoKick.value }
+    private val minimumSprMage by SliderSetting("Minimum SPR Mage", 0.0, 0.0, 20.0, 0.1).withDescription("Minimum overall dungeon secrets per run for Mages.").showIf { autoKick.value }
+    private val minimumSprTank by SliderSetting("Minimum SPR Tank", 0.0, 0.0, 20.0, 0.1).withDescription("Minimum overall dungeon secrets per run for Tanks.").showIf { autoKick.value }
 
     private val joinedRegex = Regex("^§dParty Finder §f> (.+?) §ejoined the dungeon group! \\(§b(\\w+) Level (\\d+)§e\\)$")
     private val kickedPlayers = mutableSetOf<String>()
@@ -60,8 +63,6 @@ object PartyFinder: Feature() {
     private val classNames = listOf("&4&lArcher", "&a&lTank", "&6&lBerserk", "&5&lHealer", "&b&lMage")
     private var selectedClass: String? = null
     private var inPartyFinder = false
-
-    private val pendingRequests = Collections.synchronizedSet(HashSet<String>())
 
     private val headSlots = setOf(
         10, 11, 12, 13, 14, 15, 16,
@@ -176,7 +177,9 @@ object PartyFinder: Feature() {
 
         register<ChatMessageEvent> {
             if (! autoKick.value || ! PartyUtils.isLeader()) return@register
-            val name = joinedRegex.find(event.formattedText)?.destructured?.component1() ?: return@register
+            val joinedMatch = joinedRegex.find(event.formattedText)?.destructured ?: return@register
+            val name = joinedMatch.component1().removeFormatting()
+            val joinedClass = DungeonClass.fromName(joinedMatch.component2())
 
             if (name in kickedPlayers) {
                 ChatUtils.modMessage("$prefix &cAuto-kicking &e$name &c(previously kicked)")
@@ -185,7 +188,7 @@ object PartyFinder: Feature() {
             }
 
             scope.launch {
-                val reasons = checkPlayer(name.removeFormatting()).takeUnless { it.isEmpty() } ?: return@launch
+                val reasons = checkPlayer(name, joinedClass).takeUnless { it.isEmpty() } ?: return@launch
                 kickedPlayers.add(name)
 
                 if (informKicked.value) {
@@ -200,85 +203,53 @@ object PartyFinder: Feature() {
         }
     }
 
-    private suspend fun checkPlayer(name: String): List<String> {
+    private suspend fun checkPlayer(name: String, joinedClass: DungeonClass): List<String> {
         val reasons = mutableListOf<String>()
         if (name.equalsOneOf("Noamm", mc.user.name)) return reasons
-        val profile = ProfileUtils.getProfile(name).getOrNull() ?: return reasons
 
-        val dungeons = profile.getObj("dungeons") ?: return reasons
+        if (noDupe.value) {
+            PartyFinderRules.duplicateClassReason(joinedClass, currentPartyClasses(name))?.let(reasons::add)
+        }
+
+        if (! requiresProfileCheck()) return reasons
+
         val floor = autoKickFloor.value + 1
-        val dungeonType = if (masterMode.value) dungeons.getObj("master_catacombs") else dungeons.getObj("catacombs")
+        val summary = DungeonProfileSummaryProvider.loadSummary(name, floor.takeIf { minimumPB.value }, masterMode.value) ?: return reasons
 
-        val floorPrefix = if (masterMode.value) "M" else "F"
-        val pbReq = formatTime(maximumSeconds.value * 1000)
-        val pb = dungeonType?.getObj("fastest_time_s_plus")?.getInt("$floor")?.div(1000)
-        if (pb == null) reasons.add("PB(No S+/$pbReq)")
-        else if (pb / 1000 > maximumSeconds.value) {
-            reasons.add("$floorPrefix$floor: PB(${formatTime(pb)}/$pbReq)")
-        }
-
-        if (minimumSecrets.value > 0) {
-            val secrets = dungeons.getInt("secrets") ?: 0
-            if (secrets < minimumSecrets.value * 1000) {
-                reasons.add("Secrets(${secrets / 1000}k/${minimumSecrets.value}k)")
-            }
-        }
+        reasons += PartyFinderRules.evaluate(
+            summary,
+            PartyFinderRuleConfig(
+                floor = floor,
+                masterMode = masterMode.value,
+                enforcePbLimit = minimumPB.value,
+                pbLimitSeconds = pbLimitSeconds.value,
+                minimumSecretsThousands = minimumSecrets.value,
+                minimumSecretsPerRun = minimumSecretsPerRunThreshold(joinedClass)
+            )
+        )
 
         return reasons
     }
 
     private fun getStats(name: String, floor: Int, type: Char): String {
-        val key = name.removeFormatting().uppercase()
-        val cachedData = ProfileCache.getFromCache(key)
-
-        if (cachedData == null) {
-            if (! pendingRequests.contains(key) && pendingRequests.size < 5) {
-                pendingRequests.add(key)
-
-                scope.launch {
-                    try {
-                        ProfileUtils.getProfile(key).getOrThrow()
-                    }
-                    catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                    finally {
-                        pendingRequests.remove(key)
-                    }
-                }
-            }
-            return "§7(Loading...)"
-        }
-
-        val dungeons = cachedData.getObj("dungeons")
-        val catacombs = dungeons?.getObj("catacombs")
-        val masterCatacombs = dungeons?.getObj("master_catacombs")
-
-        val cataLvl = dungeons?.getDouble("catacombs_experience")?.let { ApiUtils.getCatacombsLevel(it) } ?: "?"
+        val summary = DungeonProfileSummaryProvider.getSummaryOrRequest(name, floor.takeIf { it > 0 }, type == 'M')
+            ?: return "§7(Loading...)"
 
         return buildString {
-            append("§b(§6$cataLvl§b)§r")
+            append("§b(§6${summary.catacombsLevel ?: "?"}§b)§r")
 
             if (showSecrets.value) {
-                val totalSecrets = dungeons?.getInt("secrets")?.toDouble() ?: .0
-                val totalRuns = dungeons?.getInt("total_runs")?.toDouble() ?: .0
-                val secretAvg = if (totalRuns > 0) (totalSecrets / totalRuns).toFixed(2) else "0.00"
-                val showSecretsVal = totalSecrets != .0
-                val secrets = if (showSecretsVal) totalSecrets.toInt() else "?"
-                val avg = if (showSecretsVal) secretAvg else "?"
-
+                val secrets = summary.totalSecrets?.toString() ?: "?"
+                val avg = summary.secretsPerRun?.toFixed(2) ?: "?"
                 append(" §8[§a$secrets§8/§b$avg§8]§r")
             }
 
             if (showPB.value) {
-                val pbObj = if (type == 'F') catacombs else masterCatacombs
-                val pbTime = pbObj?.getObj("fastest_time_s_plus")?.getInt("$floor")
-                val pb = pbTime?.let(::formatTime) ?: "N/A"
+                val pb = summary.floorPbMilliseconds?.let(::formatTime) ?: "N/A"
                 append(" §8[§9$pb§8]§r")
             }
         }
     }
-
 
     private fun getColor(level: Int) = when {
         level >= 50 -> "§c§l"
@@ -294,16 +265,38 @@ object PartyFinder: Feature() {
         else -> "§7"
     }
 
-    private fun formatTime(milliseconds: Number): String {
-        val totalSecs = milliseconds.toLong() / 1000
-        val h = totalSecs / 3600
-        val m = (totalSecs % 3600) / 60
-        val s = totalSecs % 60
+    private fun formatTime(milliseconds: Number) = PartyFinderRules.formatDuration(milliseconds)
 
-        return buildList {
-            if (h > 0) add(h)
-            if (m > 0) add(m)
-            if (s > 0) add(s)
-        }.joinToString(":")
+    private fun requiresProfileCheck() = minimumPB.value || minimumSecrets.value > 0 || hasMinimumSprRequirement()
+
+    private fun hasMinimumSprRequirement() = listOf(
+        minimumSprArcher.value,
+        minimumSprBerserk.value,
+        minimumSprHealer.value,
+        minimumSprMage.value,
+        minimumSprTank.value,
+    ).any { it > 0 }
+
+    private fun minimumSecretsPerRunThreshold(dungeonClass: DungeonClass) = when (dungeonClass) {
+        DungeonClass.Archer -> minimumSprArcher.value
+        DungeonClass.Berserk -> minimumSprBerserk.value
+        DungeonClass.Healer -> minimumSprHealer.value
+        DungeonClass.Mage -> minimumSprMage.value
+        DungeonClass.Tank -> minimumSprTank.value
+        else -> 0.0
+    }
+
+    private fun currentPartyClasses(excludeName: String): Set<DungeonClass> {
+        val classes = PartyUtils.members.asSequence()
+            .filter { ! it.equals(excludeName, ignoreCase = true) }
+            .mapNotNull { PartyUtils.getDungeonMemberInfo(it)?.dungeonClass?.takeUnless { clazz -> clazz == DungeonClass.Empty } }
+            .toMutableSet()
+
+        selectedClass?.removeFormatting()
+            ?.let(DungeonClass::fromName)
+            ?.takeUnless { it == DungeonClass.Empty || mc.user.name.equals(excludeName, ignoreCase = true) }
+            ?.let(classes::add)
+
+        return classes
     }
 }
