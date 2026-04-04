@@ -23,6 +23,7 @@ object ProfileUtils {
     )
 
     private val apiCooldowns = ConcurrentHashMap<String, Long>()
+    private val failedPaths = ConcurrentHashMap<String, Long>()
 
     suspend fun getUUIDbyName(name: String): Result<MojangData> {
         val uppercase = name.uppercase()
@@ -81,21 +82,46 @@ object ProfileUtils {
     }
 
     private suspend inline fun <reified T> doApiRequest(path: String): T {
-        var cooldown = apiCooldowns["noamm"] ?: 0L
-        if (System.currentTimeMillis() < apiCooldowns.getOrDefault("noamm", 0L)) throw IllegalStateException("Rate limited")
+        val now = System.currentTimeMillis()
 
-        val res = WebUtils.get("${BASE_URL}$path").getOrThrow()
-        if (res.headers["x-ratelimit-remaining"] == "0" && res.headers.contains("x-ratelimit-reset")) {
-            val reset = res.headers["x-ratelimit-reset"] !!.toLong()
-            cooldown = max(cooldown, System.currentTimeMillis() + reset * 1000L)
-            apiCooldowns["noamm"] = cooldown
-            logger.warn("API Rate limit hit, reset in $reset seconds.")
+        if (now < (apiCooldowns["noamm"] ?: 0L)) throw IllegalStateException("API is currently rate limited globally.")
+        if (now < (failedPaths[path] ?: 0L)) throw IllegalStateException("Resource is negative cached due to previous errors.")
+
+        val resResult = WebUtils.get("$BASE_URL$path")
+
+        if (resResult.isFailure) {
+            val exception = resResult.exceptionOrNull()
+            val msg = exception?.message ?: ""
+
+            when {
+                msg.contains("429") -> {
+                    apiCooldowns["noamm"] = now + 60 * 1000
+                    logger.warn("Received 429 from Noamm API. Entering global cooldown for 1m.")
+                }
+
+                msg.contains("404") || msg.contains("500") || msg.contains("502") || msg.contains("503") -> {
+                    failedPaths[path] = now + (5 * 60 * 1000)
+                    logger.warn("API Error ($msg) for path $path. Negative caching for 5m.")
+                }
+            }
+
+            throw exception ?: Exception("Unknown API error")
         }
-        if (res.headers["x-global-remaining"] == "0" && res.headers.contains("x-global-reset")) {
-            val reset = res.headers["x-global-reset"] !!.toLong()
-            cooldown = max(cooldown, System.currentTimeMillis() + reset * 1000L)
-            apiCooldowns["noamm"] = cooldown
-            logger.warn("API Global rate limit hit, reset in $reset seconds.")
+
+        val res = resResult.getOrThrow()
+
+        res.headers["x-ratelimit-remaining"]?.let { remaining ->
+            if (remaining != "0") return@let
+            val reset = res.headers["x-ratelimit-reset"]?.toLongOrNull() ?: 10L
+            apiCooldowns["noamm"] = max(apiCooldowns["noamm"] ?: 0L, now + (reset * 1000L))
+            logger.warn("API Rate limit hit via headers, reset in $reset seconds.")
+        }
+
+        res.headers["x-global-remaining"]?.let { remaining ->
+            if (remaining != "0") return@let
+            val reset = res.headers["x-global-reset"]?.toLongOrNull() ?: 10L
+            apiCooldowns["noamm"] = max(apiCooldowns["noamm"] ?: 0L, now + (reset * 1000L))
+            logger.warn("Global Rate limit hit via headers.")
         }
 
         return WebUtils.getAs<T>(res).getOrThrow()
