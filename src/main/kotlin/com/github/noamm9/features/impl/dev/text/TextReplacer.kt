@@ -14,7 +14,7 @@ import java.util.*
 import java.util.regex.Pattern
 
 object TextReplacer {
-    private class Replacement(val target: String, val component: Component, val plainString: String)
+    private data class Match(val startIndex: Int, val replacement: Replacement)
 
     private val unchanged = Any()
     private val hexPattern = Pattern.compile("&#([A-Fa-f0-9]{6})")
@@ -29,9 +29,12 @@ object TextReplacer {
 
     private val replacementMap = ReplacementMap(::clearCache)
 
+    private var ahoCorasick: AhoCorasick = AhoCorasick(listOf())
+
     fun setCustomReplacements(replacements: Map<String, String>) {
         replacementMap.clear()
         replacementMap.putAll(replacements)
+        ahoCorasick = AhoCorasick(getCache())
     }
 
     @JvmStatic
@@ -41,7 +44,7 @@ object TextReplacer {
         if (replacements.isEmpty()) return text
 
         return synchronized(stringCache) {
-            stringCache.getOrPut(text) { replaceText(text, replacements) ?: text }
+            stringCache.getOrPut(text) { replaceText(text) ?: text }
         }
     }
 
@@ -50,7 +53,33 @@ object TextReplacer {
         val replacements = getCache()
         if (replacements.isEmpty()) return component
 
-        return rebuildComponent(component, replacements) ?: component
+        return rebuildComponent(component) ?: component
+    }
+
+    private fun collectMatches(text: String): List<Match> {
+        val hits = mutableListOf<Match>()
+        var node = ahoCorasick.root
+
+        for (i in text.indices) {
+            node = ahoCorasick.goto(node, text[i])
+            var outputNode: AhoCorasickNode? = if (node.output != null) node else node.outputLink
+
+            while (outputNode != null) {
+                val r = outputNode.output!!
+                hits.add(Match(i - r.target.length + 1, r))
+                outputNode = outputNode.outputLink
+            }
+        }
+
+        hits.sortWith(compareBy<Match> { it.startIndex }.thenByDescending { it.replacement.target.length })
+        val matches = mutableListOf<Match>()
+        var blockedUntil = 0
+        for (hit in hits) {
+            if (hit.startIndex < blockedUntil) continue
+            matches.add(hit)
+            blockedUntil = hit.startIndex + hit.replacement.target.length
+        }
+        return matches
     }
 
     @JvmStatic
@@ -62,15 +91,11 @@ object TextReplacer {
         val texts = ArrayList<String>()
         var currentStyle = Style.EMPTY
         val currentText = StringBuilder()
-        var hasMatch = false
 
         fun flush() {
             if (currentText.isEmpty()) return
-
-            val text = currentText.toString()
-            if (! hasMatch && containsTarget(text, replacements)) hasMatch = true
             styles.add(currentStyle)
-            texts.add(text)
+            texts.add(currentText.toString())
             currentText.setLength(0)
         }
 
@@ -86,28 +111,59 @@ object TextReplacer {
 
         flush()
 
-        if (! hasMatch) return seq
+        val segmentOffsets = IntArray(texts.size + 1)
+        for (i in texts.indices) segmentOffsets[i + 1] = segmentOffsets[i] + texts[i].length
+        val joined = texts.joinToString("")
+
+        val matches = collectMatches(joined)
+        if (matches.isEmpty()) return seq
+
+        fun styleAt(pos: Int): Style {
+            val seg = segmentOffsets.indexOfLast { it <= pos }.coerceAtLeast(0)
+            return styles[minOf(seg, styles.lastIndex)]
+        }
+
+        fun appendSpan(result: MutableComponent, from: Int, to: Int) {
+            if (from >= to) return
+            var pos = from
+
+            while (pos < to) {
+                val seg = segmentOffsets.indexOfLast { it <= pos }.coerceAtLeast(0)
+                val segEnd = minOf(segmentOffsets[minOf(seg + 1, segmentOffsets.lastIndex)], to)
+                val style = styles[minOf(seg, styles.lastIndex)]
+
+                result.append(Component.literal(joined.substring(pos, segEnd)).withStyle(style))
+                pos = segEnd
+            }
+        }
 
         val rebuilt = Component.empty()
-        for (i in texts.indices) {
-            val text = texts[i]
-            val style = styles[i]
-            rebuilt.append(replaceLiteral(text, style, replacements) ?: Component.literal(text).withStyle(style))
+        var cursor = 0
+        for (match in matches) {
+            appendSpan(rebuilt, cursor, match.startIndex)
+
+            val replacementComp = match.replacement.component.copy()
+            if (replacementComp.style.isEmpty) replacementComp.withStyle(styleAt(match.startIndex))
+
+            rebuilt.append(replacementComp)
+            cursor = match.startIndex + match.replacement.target.length
         }
+
+        appendSpan(rebuilt, cursor, joined.length);
 
         return rebuilt.visualOrderText
     }
 
-    private fun rebuildComponent(component: Component, replacements: List<Replacement>): MutableComponent? {
+    private fun rebuildComponent(component: Component): MutableComponent? {
         val replacedLiteral = (component.contents as? PlainTextContents)?.let {
-            replaceLiteral(it.text(), component.style, replacements)
+            replaceLiteral(it.text(), component.style)
         }
 
         var siblingsChanged = false
         val siblings = if (component.siblings.isEmpty()) null else ArrayList<Component>(component.siblings.size)
 
         for (sibling in component.siblings) {
-            val rebuilt = rebuildComponent(sibling, replacements)
+            val rebuilt = rebuildComponent(sibling)
             if (rebuilt != null) siblingsChanged = true
             siblings?.add(rebuilt ?: sibling)
         }
@@ -117,10 +173,11 @@ object TextReplacer {
         val result = replacedLiteral ?: component.plainCopy().apply { style = component.style }
         if (result.style.isEmpty) result.style = component.style
         siblings?.forEach(result::append)
+
         return result
     }
 
-    private fun replaceLiteral(text: String, parentStyle: Style, replacements: List<Replacement>): MutableComponent? {
+    private fun replaceLiteral(text: String, parentStyle: Style): MutableComponent? {
         val styleCache = synchronized(literalCache) {
             literalCache.getOrPut(parentStyle) {
                 Collections.synchronizedMap(newBoundedCache<String, Any>(128))
@@ -128,7 +185,7 @@ object TextReplacer {
         }
 
         val cached = synchronized(styleCache) {
-            styleCache.getOrPut(text) { buildLiteralReplacement(text, parentStyle, replacements) ?: unchanged }
+            styleCache.getOrPut(text) { buildLiteralReplacement(text, parentStyle) ?: unchanged }
         }
 
         return when (cached) {
@@ -137,85 +194,47 @@ object TextReplacer {
         }
     }
 
-    private fun buildLiteralReplacement(text: String, parentStyle: Style, replacements: List<Replacement>): MutableComponent? {
+    private fun buildLiteralReplacement(text: String, parentStyle: Style): MutableComponent? {
+        val accepted = collectMatches(text)
+        if (accepted.isEmpty()) return null
+
+        val result = Component.empty()
         var cursor = 0
-        var rebuilt: MutableComponent? = null
+        for (match in accepted) {
 
-        while (cursor < text.length) {
-            var bestIndex = Int.MAX_VALUE
-            var bestReplacement: Replacement? = null
-
-            for (replacement in replacements) {
-                val index = text.indexOf(replacement.target, cursor)
-                if (index == - 1 || index >= bestIndex) continue
-
-                bestIndex = index
-                bestReplacement = replacement
-
-                if (index == cursor) break
+            if (match.startIndex > cursor) {
+                result.append(Component.literal(text.substring(cursor, match.startIndex)).withStyle(parentStyle))
             }
 
-            val match = bestReplacement ?: break
-            val result = rebuilt ?: Component.empty().also { rebuilt = it }
-
-            if (bestIndex > cursor) {
-                result.append(Component.literal(text.substring(cursor, bestIndex)).withStyle(parentStyle))
-            }
-
-            val replacementComp = match.component.copy()
+            val replacementComp = match.replacement.component.copy()
             if (replacementComp.style.isEmpty) replacementComp.withStyle(parentStyle)
-            result.append(replacementComp)
 
-            cursor = bestIndex + match.target.length
+            result.append(replacementComp)
+            cursor = match.startIndex + match.replacement.target.length
         }
 
-        val result = rebuilt ?: return null
         if (cursor < text.length) result.append(Component.literal(text.substring(cursor)).withStyle(parentStyle))
         if (result.style.isEmpty) result.style = parentStyle
+
         return result
     }
 
-    private fun replaceText(text: String, replacements: List<Replacement>): String? {
+    private fun replaceText(text: String): String? {
+        val accepted = collectMatches(text)
+        if (accepted.isEmpty()) return null
+
+        val result = StringBuilder(text.length)
         var cursor = 0
-        var rebuilt: StringBuilder? = null
 
-        while (cursor < text.length) {
-            var bestIndex = Int.MAX_VALUE
-            var bestReplacement: Replacement? = null
-
-            for (replacement in replacements) {
-                val index = text.indexOf(replacement.target, cursor)
-                if (index == - 1 || index >= bestIndex) continue
-
-                bestIndex = index
-                bestReplacement = replacement
-
-                if (index == cursor) break
-            }
-
-            val match = bestReplacement ?: break
-            val result = rebuilt ?: StringBuilder(text.length).also { rebuilt = it }
-
-            if (bestIndex > cursor) {
-                result.append(text, cursor, bestIndex)
-            }
-
-            result.append(match.plainString)
-            cursor = bestIndex + match.target.length
+        for (match in accepted) {
+            if (match.startIndex > cursor) result.append(text, cursor, match.startIndex)
+            result.append(match.replacement.plainString)
+            cursor = match.startIndex + match.replacement.target.length
         }
 
-        val result = rebuilt ?: return null
         if (cursor < text.length) result.append(text, cursor, text.length)
-        return result.toString()
-    }
 
-    private fun containsTarget(text: String, replacements: List<Replacement>): Boolean {
-        for (replacement in replacements) {
-            if (text.indexOf(replacement.target) != - 1) {
-                return true
-            }
-        }
-        return false
+        return result.toString()
     }
 
     private fun getCache(): List<Replacement> {
