@@ -41,6 +41,7 @@ object BloodCamp: Feature("Features for Blood Room.") {
 
     private val killTitle by ToggleSetting("Kill Title").section("Alerts").withDescription("Displays a Title when the blood mobs are ready to be killed. &bNOTE: Not always accurate, you will get better move times by learning when to kill the mobs yourself.")
     private val speedAlert by ToggleSetting("Speed Alert").withDescription("Shows a title for the Watcher speed. (slow, normal, fast)")
+    private val partySpeedAlert by ToggleSetting("Party Speed Alert").withDescription("Alerts in party chat for the Watcher speed.")
 
     private val bloodMobs = HashMap<ArmorStand, BloodEntity>()
     private var watcherEntity: Zombie? = null
@@ -81,12 +82,19 @@ object BloodCamp: Feature("Features for Blood Room.") {
                 }
             }
 
+            if (partySpeedAlert.value) {
+                val alert = if (seconds < 22) "Fast Watcher" else if (seconds < 25) "Normal Watcher" else "Slow Watcher"
+                ChatUtils.sendPartyMessage("[NA] $alert")
+            }
+
             if (! speedAlert.value) return@register
             val title = if (seconds < 22) "&4&lFAST WATCHER" else if (seconds < 25) "&cNormal Watcher" else "&8Slow Watcher"
             val sound = if (seconds < 22) SoundEvents.TRIDENT_THUNDER.value() else if (seconds < 25) SoundEvents.WARDEN_DEATH else SoundEvents.VILLAGER_DEATH
 
+
             repeat(5) { mc.soundManager.play(SimpleSoundInstance.forUI(sound, 1f)) }
             ChatUtils.showTitle(title)
+
         }
 
         register<MainThreadPacketReceivedEvent.Pre> {
