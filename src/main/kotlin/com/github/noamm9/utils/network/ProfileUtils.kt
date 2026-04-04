@@ -13,9 +13,9 @@ import kotlinx.serialization.json.jsonObject
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 
-import com.github.noamm9.NoammAddons.BASE_URL
-
 object ProfileUtils {
+    const val BASE_URL = "https://api.noamm.org"
+
     private val uuidApis = listOf(
         "https://playerdb.co/api/player/minecraft/",
         "https://api.minecraftservices.com/minecraft/profile/lookup/name/",
@@ -59,7 +59,7 @@ object ProfileUtils {
 
             if (uuid.isNullOrBlank() || fetchedName.isNullOrBlank()) continue
 
-            UuidCache.addToCache(uppercase, uuid)
+            UuidCache.addToCache(fetchedName, uuid)
             return Result.success(MojangData(fetchedName, uuid))
         }
 
@@ -82,17 +82,17 @@ object ProfileUtils {
 
     private suspend inline fun <reified T> doApiRequest(path: String): T {
         var cooldown = apiCooldowns["noamm"] ?: 0L
-        if(System.currentTimeMillis() < apiCooldowns.getOrDefault("noamm", 0L)) throw IllegalStateException("Rate limited")
+        if (System.currentTimeMillis() < apiCooldowns.getOrDefault("noamm", 0L)) throw IllegalStateException("Rate limited")
 
         val res = WebUtils.get("${BASE_URL}$path").getOrThrow()
-        if(res.headers["x-ratelimit-remaining"] == "0" && res.headers.contains("x-ratelimit-reset")) {
-            val reset = res.headers["x-ratelimit-reset"]!!.toLong()
+        if (res.headers["x-ratelimit-remaining"] == "0" && res.headers.contains("x-ratelimit-reset")) {
+            val reset = res.headers["x-ratelimit-reset"] !!.toLong()
             cooldown = max(cooldown, System.currentTimeMillis() + reset * 1000L)
             apiCooldowns["noamm"] = cooldown
             logger.warn("API Rate limit hit, reset in $reset seconds.")
         }
-        if(res.headers["x-global-remaining"] == "0" && res.headers.contains("x-global-reset")) {
-            val reset = res.headers["x-global-reset"]!!.toLong()
+        if (res.headers["x-global-remaining"] == "0" && res.headers.contains("x-global-reset")) {
+            val reset = res.headers["x-global-reset"] !!.toLong()
             cooldown = max(cooldown, System.currentTimeMillis() + reset * 1000L)
             apiCooldowns["noamm"] = cooldown
             logger.warn("API Global rate limit hit, reset in $reset seconds.")

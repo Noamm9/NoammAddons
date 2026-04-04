@@ -8,49 +8,45 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.util.FormattedCharSequence;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 @Mixin(Font.class)
 public class MixinFont {
+    @Unique
+    private static boolean noammaddons$shouldReplace() {
+        return NoammAddons.isLoaded && Cosmetics.INSTANCE.enabled && Cosmetics.INSTANCE.getCustomNames().getValue();
+    }
+
     @ModifyVariable(method = "prepareText(Ljava/lang/String;FFIZI)Lnet/minecraft/client/gui/Font$PreparedText;", at = @At("HEAD"), argsOnly = true)
     private String onDrawString(String text) {
-        if (!NoammAddons.isLoaded) return text;
-        if (!Cosmetics.INSTANCE.enabled) return text;
-        if (!Cosmetics.INSTANCE.getCustomNames().getValue()) return text;
-        return TextReplacer.handleString(text);
+        if (!noammaddons$shouldReplace()) return text;
+        return TextReplacer.replaceForRender(text);
     }
 
     @ModifyVariable(method = "prepareText(Lnet/minecraft/util/FormattedCharSequence;FFIZI)Lnet/minecraft/client/gui/Font$PreparedText;", at = @At("HEAD"), argsOnly = true)
     private FormattedCharSequence onDrawSequence(FormattedCharSequence text) {
-        if (!NoammAddons.isLoaded) return text;
-        if (!Cosmetics.INSTANCE.enabled) return text;
-        if (!Cosmetics.INSTANCE.getCustomNames().getValue()) return text;
+        if (!noammaddons$shouldReplace()) return text;
         return TextReplacer.handleCharSequence(text);
     }
 
     @ModifyVariable(method = "width(Ljava/lang/String;)I", at = @At("HEAD"), argsOnly = true)
     private String onWidthString(String text) {
-        if (!NoammAddons.isLoaded) return text;
-        if (!Cosmetics.INSTANCE.enabled) return text;
-        if (!Cosmetics.INSTANCE.getCustomNames().getValue()) return text;
-        return TextReplacer.handleString(text);
+        if (!noammaddons$shouldReplace()) return text;
+        return TextReplacer.replaceForRender(text);
     }
 
     @ModifyVariable(method = "width(Lnet/minecraft/network/chat/FormattedText;)I", at = @At("HEAD"), argsOnly = true)
     private FormattedText onWidthComponent(FormattedText text) {
-        if (!NoammAddons.isLoaded) return text;
-        if (!Cosmetics.INSTANCE.enabled) return text;
-        if (!Cosmetics.INSTANCE.getCustomNames().getValue()) return text;
-        if (text instanceof Component) return TextReplacer.handleComponent((Component) text);
+        if (!noammaddons$shouldReplace()) return text;
+        if (text instanceof Component component) return TextReplacer.handleComponent(component);
         return text;
     }
 
     @ModifyVariable(method = "width(Lnet/minecraft/util/FormattedCharSequence;)I", at = @At("HEAD"), argsOnly = true)
     private FormattedCharSequence onWidthSequence(FormattedCharSequence text) {
-        if (!NoammAddons.isLoaded) return text;
-        if (!Cosmetics.INSTANCE.enabled) return text;
-        if (!Cosmetics.INSTANCE.getCustomNames().getValue()) return text;
+        if (!noammaddons$shouldReplace()) return text;
         return TextReplacer.handleCharSequence(text);
     }
 }
