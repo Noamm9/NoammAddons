@@ -13,6 +13,7 @@ import com.github.noamm9.utils.items.ItemUtils.idToNameMap
 import com.github.noamm9.utils.items.ItemUtils.nameToIdMap
 import com.github.noamm9.utils.network.WebUtils
 import com.github.noamm9.utils.network.data.ElectionData
+import com.github.noamm9.utils.render.NoammRenderPipelines
 import com.github.noamm9.websocket.WebSocket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -55,6 +56,7 @@ object NoammAddons: ClientModInitializer {
     override fun onInitializeClient() {
         DataDownloader.downloadData()
 
+        NoammRenderPipelines.init()
         EventDispatcher.init()
         DungeonListener.init()
         ServerUtils.init()
