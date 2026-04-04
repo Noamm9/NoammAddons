@@ -232,7 +232,7 @@ object PartyFinder: Feature() {
         val cachedData = ProfileCache.getFromCache(key)
 
         if (cachedData == null) {
-            if (! pendingRequests.contains(key) && pendingRequests.size < 5) {
+            if (key !in pendingRequests && pendingRequests.size < 5) {
                 pendingRequests.add(key)
 
                 scope.launch {
@@ -247,6 +247,7 @@ object PartyFinder: Feature() {
                     }
                 }
             }
+
             return "§7(Loading...)"
         }
 
@@ -296,14 +297,8 @@ object PartyFinder: Feature() {
 
     private fun formatTime(milliseconds: Number): String {
         val totalSecs = milliseconds.toLong() / 1000
-        val h = totalSecs / 3600
         val m = (totalSecs % 3600) / 60
-        val s = totalSecs % 60
-
-        return buildList {
-            if (h > 0) add(h)
-            if (m > 0) add(m)
-            if (s > 0) add(s)
-        }.joinToString(":")
+        val s = (totalSecs % 60).toString().padStart(2, '0')
+        return "$m:$s"
     }
 }
