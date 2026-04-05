@@ -1,10 +1,12 @@
 package com.github.noamm9.utils.network
 
 import com.github.noamm9.NoammAddons.logger
+import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.NoammAddons.scope
 import com.github.noamm9.utils.JsonUtils
 import com.github.noamm9.utils.JsonUtils.getObj
 import com.github.noamm9.utils.JsonUtils.getString
+import com.github.noamm9.utils.Utils.containsOneOf
 import com.github.noamm9.utils.network.cache.ProfileCache
 import com.github.noamm9.utils.network.cache.SecretCache
 import com.github.noamm9.utils.network.cache.UuidCache
@@ -14,6 +16,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 
@@ -30,57 +33,72 @@ object ProfileUtils {
     private val apiCooldowns = ConcurrentHashMap<String, Long>()
 
     suspend fun getUUIDbyName(name: String): Result<MojangData> {
-        UuidCache.getFromCache(name)?.let {
-            if (it == "null" || it == "FAILED") return Result.failure(Exception("$name not found or pending"))
+        val lowerName = name.lowercase()
+
+        mc.connection?.onlinePlayers?.find { it.profile.name.equals(name, true) }?.let {
+            return Result.success(MojangData(it.profile))
+        }
+
+        UuidCache.getFromCache(lowerName)?.let {
+            if (it == "FAILED") return Result.failure(Exception("$name not found (cached)"))
             return Result.success(MojangData(name, it))
         }
 
-        UuidCache.addToCache(name, "null")
-
-        for ((i, api) in uuidApis.withIndex()) {
-            if (System.currentTimeMillis() < (apiCooldowns[api] ?: 0L)) continue
-
-            val result = WebUtils.getString(api + name)
-
-            if (result.isFailure) {
-                val errorMsg = result.exceptionOrNull()?.message ?: ""
-
-                if (errorMsg.contains("429")) {
-                    apiCooldowns[api] = System.currentTimeMillis() + (5 * 60 * 1000)
-                    logger.warn("API Rate Limited (429): $api - Switching to fallback.")
-                    continue
-                }
-                else if (errorMsg.contains("404") || errorMsg.contains("204")) break
-                else continue
+        return awaitSharedRequest("UUID", lowerName) {
+            UuidCache.getFromCache(lowerName)?.let {
+                if (it == "FAILED") return@awaitSharedRequest Result.failure(Exception("$name not found"))
+                return@awaitSharedRequest Result.success(MojangData(name, it))
             }
 
-            val responseString = result.getOrNull() ?: continue
-            val response = runCatching { JsonUtils.stringToJson(responseString).jsonObject }.getOrNull() ?: continue
+            for ((i, api) in uuidApis.withIndex()) {
+                if (System.currentTimeMillis() < (apiCooldowns[api] ?: 0L)) continue
 
-            val uuid = if (i == 0) response.getObj("player")?.getString("id") else response.getString("id")
-            val fetchedName = if (i == 0) response.getObj("player")?.getString("username") else response.getString("name")
+                val result = WebUtils.getString(api + lowerName)
+                if (result.isFailure) {
+                    val msg = result.exceptionOrNull()?.message ?: ""
+                    if (msg.contains("429")) {
+                        apiCooldowns[api] = System.currentTimeMillis() + (5 * 60 * 1000)
+                        continue
+                    }
+                    if (msg.containsOneOf("404", "204")) break
+                    continue
+                }
 
-            if (uuid.isNullOrBlank() || fetchedName.isNullOrBlank()) continue
+                val response = runCatching { JsonUtils.stringToJson(result.getOrThrow()).jsonObject }.getOrNull() ?: continue
+                val uuid = if (i == 0) response.getObj("player")?.getString("id") else response.getString("id")
+                val fetchedName = if (i == 0) response.getObj("player")?.getString("username") else response.getString("name")
 
-            UuidCache.addToCache(fetchedName, uuid)
-            return Result.success(MojangData(fetchedName, uuid))
+                if (uuid.isNullOrBlank() || fetchedName.isNullOrBlank()) continue
+
+                val cleanUuid = uuid.replace("-", "")
+                UuidCache.addToCache(fetchedName, cleanUuid)
+                return@awaitSharedRequest Result.success(MojangData(fetchedName, cleanUuid))
+            }
+
+            Result.failure<MojangData>(Exception("$name not found")).also { UuidCache.addToCache(lowerName, "FAILED") }
         }
-
-        UuidCache.addToCache(name, "FAILED")
-        return Result.failure(Exception("$name not found or APIs unavailable"))
     }
 
-    suspend fun getNameByUUID(uuid: String): Result<MojangData> {
-        val cached = UuidCache.getNameFromCache(uuid)
-        if (cached == "FAILED") return Result.failure(Exception("UUID not found (Cached)"))
-        if (cached != null) return Result.success(MojangData(cached, uuid))
+    suspend fun getNameByUUID(uuid: UUID): Result<MojangData> {
+        val key = uuid.toString().replace("-", "")
 
-        return WebUtils.getAs<MojangData>("https://sessionserver.mojang.com/session/minecraft/profile/$uuid")
-            .onSuccess { UuidCache.addToCache(it.name, it.uuid) }
+        mc.connection?.getPlayerInfo(uuid)?.let {
+            return Result.success(MojangData(it.profile))
+        }
+
+        UuidCache.getNameFromCache(key)?.let {
+            if (it == "FAILED") return Result.failure(Exception("UUID not found"))
+            return Result.success(MojangData(it, key))
+        }
+
+        return WebUtils.getAs<MojangData>("https://sessionserver.mojang.com/session/minecraft/profile/$key")
+            .onSuccess { UuidCache.addToCache(it.name, key) }
     }
 
     suspend fun getSecrets(playerName: String): Result<Long> {
-        val name = playerName.uppercase()
+        val name = playerName.lowercase()
+        SecretCache.getFromCache(name)?.let { return Result.success(it) }
+
         return awaitSharedRequest("SECRETS", name) {
             SecretCache.getFromCache(name)?.let { return@awaitSharedRequest Result.success(it) }
             getUUIDbyName(name).mapCatching { mojangData ->
@@ -90,7 +108,9 @@ object ProfileUtils {
     }
 
     suspend fun getProfile(playerName: String): Result<JsonObject> {
-        val name = playerName.uppercase()
+        val name = playerName.lowercase()
+        ProfileCache.getFromCache(name)?.let { return Result.success(it) }
+
         return awaitSharedRequest("PROFILE", name) {
             ProfileCache.getFromCache(name)?.let { return@awaitSharedRequest Result.success(it) }
             getUUIDbyName(name).mapCatching { mojangData ->
@@ -101,51 +121,49 @@ object ProfileUtils {
 
     @Suppress("UNCHECKED_CAST")
     private suspend fun <T> awaitSharedRequest(type: String, name: String, request: suspend () -> Result<T>): Result<T> {
-        val key = "$type:${name.uppercase()}"
+        val key = "$type:${name.lowercase()}"
 
-        (sharedRequests[key] as? Deferred<Result<T>>)?.let { return it.await() }
+        while (true) {
+            sharedRequests[key]?.let { return it.await() as Result<T> }
 
-        val deferred = scope.async(start = CoroutineStart.LAZY) { request() }
-        deferred.invokeOnCompletion { sharedRequests.remove(key, deferred) }
+            val deferred = scope.async(start = CoroutineStart.LAZY) { request() }
 
-        val active = sharedRequests.putIfAbsent(key, deferred) as? Deferred<Result<T>> ?: deferred
-        if (active === deferred) deferred.start()
-
-        return active.await()
+            sharedRequests.putIfAbsent(key, deferred) ?: run {
+                deferred.invokeOnCompletion { sharedRequests.remove(key, deferred) }
+                deferred.start()
+                return deferred.await()
+            }
+        }
     }
 
     private suspend inline fun <reified T> doApiRequest(path: String): T {
         val now = System.currentTimeMillis()
-
-        if (now < (apiCooldowns["noamm"] ?: 0L)) throw IllegalStateException("API is currently rate limited globally.")
-        if (now < (apiCooldowns[path] ?: 0L)) throw IllegalStateException("Resource is negative cached.")
+        if (now < (apiCooldowns["noamm"] ?: 0L)) throw IllegalStateException("API global cooldown")
+        if (now < (apiCooldowns[path] ?: 0L)) throw IllegalStateException("Path negative cached")
 
         val resResult = WebUtils.get("$BASE_URL$path")
-
         if (resResult.isFailure) {
-            val exception = resResult.exceptionOrNull()
-            val msg = exception?.message ?: ""
-
+            val msg = resResult.exceptionOrNull()?.message ?: ""
             when {
                 msg.contains("429") -> {
-                    apiCooldowns["noamm"] = now + 60 * 1000
-                    logger.warn("Received 429 from Noamm API. Entering global cooldown for 1m.")
+                    apiCooldowns["noamm"] = now + 60_000
+                    logger.warn("429 Rate Limit: Global cooldown 1m.")
                 }
 
-                msg.contains("404") || msg.contains("500") || msg.contains("502") || msg.contains("503") -> {
-                    apiCooldowns[path] = now + (5 * 60 * 1000)
-                    logger.warn("API Error ($msg) for path $path. Negative caching for 5m.")
+                msg.containsOneOf("404", "500", "502", "503") -> {
+                    apiCooldowns[path] = now + 300_000 // 5m negative cache
+                    logger.warn("API Error $msg: Negative caching path.")
                 }
             }
-            throw exception ?: Exception("Unknown API error")
+            throw resResult.exceptionOrNull() ?: Exception("API Error")
         }
 
         val res = resResult.getOrThrow()
-
-        res.headers["x-ratelimit-remaining"]?.let { remaining ->
-            if (remaining != "0") return@let
-            val reset = res.headers["x-ratelimit-reset"]?.toLongOrNull() ?: 10L
-            apiCooldowns["noamm"] = max(apiCooldowns["noamm"] ?: 0L, now + (reset * 1000L))
+        res.headers["x-ratelimit-remaining"]?.let {
+            if (it == "0") {
+                val reset = res.headers["x-ratelimit-reset"]?.toLongOrNull() ?: 10L
+                apiCooldowns["noamm"] = max(apiCooldowns["noamm"] ?: 0L, now + (reset * 1000L))
+            }
         }
 
         return WebUtils.getAs<T>(res).getOrThrow()

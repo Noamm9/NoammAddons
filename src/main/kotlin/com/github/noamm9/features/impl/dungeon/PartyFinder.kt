@@ -21,6 +21,7 @@ import com.github.noamm9.utils.JsonUtils.getString
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.PartyUtils
+import com.github.noamm9.utils.TabListUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.Utils.equalsOneOf
 import com.github.noamm9.utils.Utils.uppercaseFirst
@@ -204,7 +205,7 @@ object PartyFinder: Feature() {
                     1
                 }.then(ClientCommandManager.argument("ign", StringArgumentType.word())
                     .suggests { _, builder ->
-                        val players = mc.connection?.onlinePlayers?.map { it.profile.name }.orEmpty()
+                        val players = TabListUtils.getTabList().mapNotNull { it.second.profile.name }.filterNot { it.matches("^![A-Z]-[a-z]$".toRegex()) }
                         players.forEach { builder.suggest(it) }
                         builder.buildFuture()
                     }

@@ -46,7 +46,7 @@ object Cosmetics: Feature(toggled = true) {
                 val customNames = HashMap<String, String>()
 
                 cosmeticPeople.filter { it.value.hasCustomName }.forEach { (uuid, cosmetic) ->
-                    val resolvedName = ProfileUtils.getNameByUUID(uuid.toString()).map { it.name }.getOrNull()
+                    val resolvedName = ProfileUtils.getNameByUUID(uuid).map { it.name }.getOrNull()
                         ?: profileNames[uuid] ?: return@forEach
 
                     profileNames[uuid] = resolvedName
