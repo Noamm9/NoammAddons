@@ -167,17 +167,17 @@ object NumbersUtils {
     operator fun Number.minus(number: Number) = this.toDouble() - number.toDouble()
     operator fun Number.plus(number: Number) = this.toDouble() + number.toDouble()
 
-    fun formatTime(milliseconds: Number): String {
+    fun formatTime(milliseconds: Number, separator: String = " ", suffixes: Boolean = true): String {
         val totalSecs = milliseconds.toLong() / 1000
         val h = totalSecs / 3600
         val m = (totalSecs % 3600) / 60
         val s = totalSecs % 60
 
         return buildList {
-            if (h > 0) add("${h}h")
-            if (m > 0) add("${m}m")
-            if (s > 0) add("${s}s")
-        }.joinToString(" ")
+            if (h > 0) add(if (suffixes) "${h}h" else "$h")
+            if (m > 0) add(if (suffixes) "${m}m" else "$m")
+            if (s > 0) add(if (suffixes) "${s}s" else "$s")
+        }.joinToString(separator)
     }
 
     private fun processDecimal(decimal: Int, lastNumber: Int, lastDecimal: Int): Int {

@@ -16,6 +16,7 @@ import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.JsonUtils.getDouble
 import com.github.noamm9.utils.JsonUtils.getInt
 import com.github.noamm9.utils.JsonUtils.getObj
+import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.PartyUtils
@@ -294,16 +295,5 @@ object PartyFinder: Feature() {
         else -> "§7"
     }
 
-    private fun formatTime(milliseconds: Number): String {
-        val totalSecs = milliseconds.toLong() / 1000
-        val h = totalSecs / 3600
-        val m = (totalSecs % 3600) / 60
-        val s = totalSecs % 60
-
-        return buildList {
-            if (h > 0) add(h)
-            if (m > 0) add(m)
-            if (s > 0) add(s)
-        }.joinToString(":")
-    }
+    private fun formatTime(milliseconds: Number) = NumbersUtils.formatTime(milliseconds, ":", false)
 }
