@@ -13,27 +13,40 @@ import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
+import com.github.noamm9.utils.JsonUtils.getArray
 import com.github.noamm9.utils.JsonUtils.getDouble
 import com.github.noamm9.utils.JsonUtils.getInt
 import com.github.noamm9.utils.JsonUtils.getObj
+import com.github.noamm9.utils.JsonUtils.getString
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.PartyUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.Utils.equalsOneOf
+import com.github.noamm9.utils.Utils.uppercaseFirst
+import com.github.noamm9.utils.items.ItemRarity
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.network.ApiUtils
 import com.github.noamm9.utils.network.ProfileUtils
 import com.github.noamm9.utils.network.cache.ProfileCache
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
+import com.mojang.brigadier.arguments.StringArgumentType
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.double
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.HoverEvent
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Blocks
 import java.util.*
 
 object PartyFinder: Feature() {
+    private val showJoinStats by ToggleSetting("Join Stats", true).withDescription("Prints the dungeon stats of a player that joins your party.").section("Join Stats")
+
     private val showLevelReq by ToggleSetting("Show Level Req", true).withDescription("Shows the red level requirement number.").section("Menu")
     private val showMissingOverlay by ToggleSetting("Show Missing Classes", true).withDescription("Shows missing classes on the head.")
 
@@ -49,9 +62,8 @@ object PartyFinder: Feature() {
     private val maximumSeconds by SliderSetting("Maximum Seconds", 400, 60, 480, 10, suffix = "s").withDescription("Maximum S+ PB time in seconds.").showIf { autoKick.value }
     private val minimumSecrets by SliderSetting("Minimum Secrets", 0, 0, 200, 1, suffix = "k").withDescription("Minimum secrets in thousands.").showIf { autoKick.value }
 
-    private val joinedRegex = Regex("^§dParty Finder §f> (.+?) §ejoined the dungeon group! \\(§b(\\w+) Level (\\d+)§e\\)$")
+    private val dungeonGroupJoinRegex = Regex("^Party Finder > (\\w{1,16}) joined the dungeon group! \\((\\w+) Level (\\d+)\\)$")
     private val kickedPlayers = mutableSetOf<String>()
-    private const val prefix = "&9AutoKick &f>"
 
     private val partyMembersRegex = Regex("§5 (.+)§f: §e(.+)§b \\(..(\\d+)..\\)")
     private val levelRequiredRegex = Regex("§7Dungeon Level Required: §b(\\d+)")
@@ -136,7 +148,7 @@ object PartyFinder: Feature() {
                     val level = cLvl.toInt()
                     val color = getColor(level)
 
-                    val stats = if (showTooltipStats.value) getStats(playerName, floor, type) else ""
+                    val stats = if (showTooltipStats.value) getLoreStats(playerName, floor, type) else ""
 
                     event.lore[index] = Component.literal(" $pName: §e$className $color$level $stats".addColor())
                     remainingClasses.remove(className)
@@ -145,7 +157,7 @@ object PartyFinder: Feature() {
 
             if (selectedClass?.removeFormatting() in remainingClasses) {
                 val idx = remainingClasses.indexOf(selectedClass?.removeFormatting())
-                remainingClasses[idx] = "$selectedClass§7"
+                remainingClasses[idx] = "${selectedClass}§7"
             }
 
             if (showMissingTooltip.value) {
@@ -175,59 +187,190 @@ object PartyFinder: Feature() {
         register<WorldChangeEvent> { kickedPlayers.clear() }
 
         register<ChatMessageEvent> {
-            if (! autoKick.value || ! PartyUtils.isLeader()) return@register
-            val name = joinedRegex.find(event.formattedText)?.destructured?.component1() ?: return@register
-
-            if (name in kickedPlayers) {
-                ChatUtils.modMessage("$prefix &cAuto-kicking &e$name &c(previously kicked)")
-                ThreadUtils.scheduledTask(6) { ChatUtils.sendCommand("party kick $name") }
-                return@register
-            }
+            if (! autoKick.value && ! showJoinStats.value) return@register
+            val name = dungeonGroupJoinRegex.find(event.unformattedText)?.groupValues?.getOrNull(1) ?: return@register
+            if (name == mc.user.name) return@register
 
             scope.launch {
-                val reasons = checkPlayer(name.removeFormatting()).takeUnless { it.isEmpty() } ?: return@launch
-                kickedPlayers.add(name)
-
-                if (informKicked.value) {
-                    ChatUtils.sendCommand("pc Kicking $name: ${reasons.joinToString(", ")}")
-                    ThreadUtils.scheduledTask(6) { ChatUtils.sendCommand("party kick $name") }
-                }
-                else {
-                    ChatUtils.modMessage("&cKicking &e$name:&r ${reasons.joinToString(", ")}")
-                    ChatUtils.sendCommand("party kick $name")
-                }
-            }
-        }
-    }
-
-    private suspend fun checkPlayer(name: String): List<String> {
-        val reasons = mutableListOf<String>()
-        if (name.equalsOneOf("Noamm", mc.user.name)) return reasons
-        val profile = ProfileUtils.getProfile(name).getOrNull() ?: return reasons
-
-        val dungeons = profile.getObj("dungeons") ?: return reasons
-        val floor = autoKickFloor.value + 1
-        val dungeonType = if (masterMode.value) dungeons.getObj("master_catacombs") else dungeons.getObj("catacombs")
-
-        val floorPrefix = if (masterMode.value) "M" else "F"
-        val pbReq = formatTime(maximumSeconds.value * 1000)
-        val pb = dungeonType?.getObj("fastest_time_s_plus")?.getInt("$floor")?.div(1000)
-        if (pb == null) reasons.add("PB(No S+/$pbReq)")
-        else if (pb / 1000 > maximumSeconds.value) {
-            reasons.add("$floorPrefix$floor: PB(${formatTime(pb)}/$pbReq)")
-        }
-
-        if (minimumSecrets.value > 0) {
-            val secrets = dungeons.getInt("secrets") ?: 0
-            if (secrets < minimumSecrets.value * 1000) {
-                reasons.add("Secrets(${secrets / 1000}k/${minimumSecrets.value}k)")
+                if (autoKick.value && PartyUtils.isLeader()) autoKickPlayer(name)
+                if (showJoinStats.value) printPlayerStats(name)
             }
         }
 
-        return reasons
+        ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
+            dispatcher.register(
+                ClientCommandManager.literal("pfs").executes {
+                    scope.launch { printPlayerStats(mc.user.name) }
+                    1
+                }.then(ClientCommandManager.argument("ign", StringArgumentType.word())
+                    .suggests { _, builder ->
+                        val players = mc.connection?.onlinePlayers?.map { it.profile.name }.orEmpty()
+                        players.forEach { builder.suggest(it) }
+                        builder.buildFuture()
+                    }
+                    .executes { context ->
+                        val ign = StringArgumentType.getString(context, "ign")
+                        scope.launch { printPlayerStats(ign) }
+                        1
+                    }
+                )
+            )
+        }
     }
 
-    private fun getStats(name: String, floor: Int, type: Char): String {
+    private suspend fun printPlayerStats(name: String) {
+        val cleanName = name.removeFormatting()
+
+        val data = ProfileUtils.getProfile(cleanName).getOrNull() ?: return
+        val dungeons = data.getObj("dungeons") ?: return
+        val catacombs = dungeons.getObj("catacombs")
+        val masterCatacombs = dungeons.getObj("master_catacombs")
+
+        val selectedArrow = data.getString("favorite_arrow")?.lowercase()?.split("_")?.joinToString(" ") { it.uppercaseFirst() }
+        val powerStone = data.getString("selected_power")?.lowercase()?.split("_")?.joinToString(" ") { it.uppercaseFirst() }
+
+        val bloodMobsKilled = data.getInt("blood_mobs_killed") ?: 0
+        val totalSecrets = dungeons.getInt("secrets")?.toDouble() ?: .0
+        val totalRuns = dungeons.getInt("total_runs")?.toDouble() ?: .0
+        val secretAvg = if (totalRuns > 0) totalSecrets / totalRuns else .0
+
+        val cataLvl = dungeons.getDouble("catacombs_experience")?.let(ApiUtils::getCatacombsLevel) ?: return
+        val classAvg = dungeons.getObj("player_classes")?.values
+            ?.mapNotNull { element -> runCatching { ApiUtils.getCatacombsLevel(element.jsonPrimitive.double) }.getOrNull()?.toDouble() }
+            ?.takeUnless(Collection<*>::isEmpty)
+            ?.average()
+            ?: return
+
+        val pets = data.getArray("pets")?.mapNotNull { element ->
+            val petObject = element.jsonObject
+            val tier = petObject.getString("tier") ?: return@mapNotNull null
+            val type = petObject.getString("type") ?: return@mapNotNull null
+            val rarity = runCatching { ItemRarity.valueOf(tier) }.getOrNull() ?: return@mapNotNull null
+            val formattedType = when {
+                type.endsWith("_DRAGON") -> if (type.startsWith("GOLDEN")) "Gdrag" else "Edrag"
+                type.startsWith("BABY_") -> "Yeti"
+                else -> type.lowercase().split("_").joinToString(" ") { it.uppercaseFirst() }
+            }
+            rarity.baseColor.toString() to formattedType
+        }?.toSet().orEmpty()
+
+        val inventoryApiEnabled = ! data.getString("talisman_bag_data").isNullOrBlank()
+        val talismanBag = data.getString("talisman_bag_data")?.let(ApiUtils::decodeBase64ItemList)
+        val magicalPower = talismanBag?.let { ApiUtils.getMagicalPower(it, data) }
+        val armorItems = data.getString("armor_data")?.let(ApiUtils::decodeBase64ItemList)
+        val armorComponents = armorItems.orEmpty().reversed().map { item ->
+            val displayName = item.hoverName.formattedText
+            val hoverText = buildList {
+                add(displayName)
+                addAll(item.lore)
+            }.joinToString("\n")
+
+            Component.literal("  $displayName".addColor()).withStyle {
+                it.withHoverEvent(HoverEvent.ShowText(Component.literal(hoverText.addColor())))
+            }
+        }
+
+        val completionComponents = listOfNotNull(
+            catacombs?.getObj("tier_completions")?.let { completionObj ->
+                val highestFloor = completionObj.keys.mapNotNull(String::toIntOrNull).maxOrNull() ?: return@let null
+                val header = "  &aFloor Completions &7(F$highestFloor): ${catacombs.getObj("fastest_time_s_plus")?.getInt("$highestFloor")?.let(::formatTime) ?: "N/A"}"
+                val hover = (0 .. highestFloor).joinToString("\n") { floor ->
+                    val completions = completionObj.getInt("$floor")
+                    val pb = catacombs.getObj("fastest_time_s_plus")?.getInt("$floor")?.let(::formatTime) ?: "&cNo Comp"
+                    val floorName = if (floor == 0) "Entrance" else floor.toString()
+                    "&2&l*&a Floor $floorName: ${completions?.let { "&e$it &7(&6S+ &e$pb&7)" } ?: "&cDNF"}"
+                }
+
+                Component.literal(header.addColor()).withStyle {
+                    it.withHoverEvent(HoverEvent.ShowText(Component.literal(hover.addColor())))
+                }
+            },
+            masterCatacombs?.getObj("tier_completions")?.let { completionObj ->
+                val highestFloor = completionObj.keys.mapNotNull(String::toIntOrNull).maxOrNull() ?: return@let null
+                val header = "  &l&4Master Completions &7(M$highestFloor): ${masterCatacombs.getObj("fastest_time_s_plus")?.getInt("$highestFloor")?.let(::formatTime) ?: "N/A"}"
+                val hover = (1 .. highestFloor).joinToString("\n") { floor ->
+                    val completions = completionObj.getInt("$floor")
+                    val pb = masterCatacombs.getObj("fastest_time_s_plus")?.getInt("$floor")?.let(::formatTime) ?: "&cNo Comp"
+                    "&c&l*&4 Floor $floor: ${completions?.let { "&e$it &7(&6S+ &e$pb&7)" } ?: "&cDNF"}"
+                }
+
+                Component.literal(header.addColor()).withStyle {
+                    it.withHoverEvent(HoverEvent.ShowText(Component.literal(hover.addColor())))
+                }
+            }
+        )
+
+        ChatUtils.chat("&a&l--- &r&b$cleanName&b's Dungeon Stats &a&l---&r")
+        ChatUtils.chat(
+            "  &4Cata Level: &b$cataLvl &f| &dClass Avg: &b${classAvg.toFixed(1)} &f| &dMP: ${
+                if (! inventoryApiEnabled || magicalPower == null) "&cAPI off" else "&e$magicalPower"
+            }"
+        )
+        ChatUtils.chat("  &bSecrets: &d${totalSecrets.toInt()} &b(&d${secretAvg.toFixed(2)}&b) &f| &cBlood Mobs: &f$bloodMobsKilled")
+        ChatUtils.chat("  Pets: ${if (pets.isEmpty()) "&cNone" else pets.joinToString("&7,&r ") { it.first + it.second }}")
+        ChatUtils.chat("  &9Power Stone: ${powerStone?.let { "&e$it" } ?: "&cUnknown"} &f| &6Arrows: ${selectedArrow?.let { "&e$it" } ?: "&cUnknown"}")
+        ChatUtils.chat(" ")
+
+        when {
+            ! inventoryApiEnabled -> ChatUtils.chat("  &cInventory API is Off")
+            armorComponents.isEmpty() -> ChatUtils.chat("  &cArmor data unavailable")
+            else -> armorComponents.forEach(ChatUtils::chat)
+        }
+
+        if (completionComponents.isNotEmpty()) {
+            ChatUtils.chat(" ")
+            completionComponents.forEach(ChatUtils::chat)
+        }
+
+        ChatUtils.chat("&a&l------------------------------------&r")
+    }
+
+    private suspend fun autoKickPlayer(name: String) {
+        if (name in kickedPlayers) {
+            ChatUtils.modMessage("&9AutoKick &f> &cAuto-kicking &e$name &c(previously kicked)")
+            ThreadUtils.scheduledTask(6) { ChatUtils.sendCommand("party kick $name") }
+            return
+        }
+
+        val reasons = mutableListOf<String>().apply {
+            if (name.equalsOneOf("Noamm", mc.user.name)) return@apply
+            val profile = ProfileUtils.getProfile(name).getOrNull() ?: return@apply
+
+            val dungeons = profile.getObj("dungeons") ?: return@apply
+            val floor = autoKickFloor.value + 1
+            val dungeonType = if (masterMode.value) dungeons.getObj("master_catacombs") else dungeons.getObj("catacombs")
+
+            val floorPrefix = if (masterMode.value) "M" else "F"
+            val pbReq = formatTime(maximumSeconds.value * 1000)
+            val pb = dungeonType?.getObj("fastest_time_s_plus")?.getInt("$floor")?.div(1000)
+            if (pb == null) add("PB(No S+/$pbReq)")
+            else if (pb > maximumSeconds.value) {
+                add("$floorPrefix$floor: PB(${formatTime(pb)}/$pbReq)")
+            }
+
+            if (minimumSecrets.value > 0) {
+                val secrets = dungeons.getInt("secrets") ?: 0
+                if (secrets < minimumSecrets.value * 1000) {
+                    add("Secrets(${secrets / 1000}k/${minimumSecrets.value}k)")
+                }
+            }
+
+            if (isEmpty()) return
+        }
+
+        kickedPlayers.add(name)
+
+        if (informKicked.value) {
+            ChatUtils.sendCommand("pc Kicking $name: ${reasons.joinToString(", ")}")
+            ThreadUtils.scheduledTask(6) { ChatUtils.sendCommand("party kick $name") }
+        }
+        else {
+            ChatUtils.modMessage("&cKicking &e$name:&r ${reasons.joinToString(", ")}")
+            ChatUtils.sendCommand("party kick $name")
+        }
+    }
+
+    private fun getLoreStats(name: String, floor: Int, type: Char): String {
         val key = name.removeFormatting().uppercase()
         val cachedData = ProfileCache.getFromCache(key)
 
@@ -264,9 +407,9 @@ object PartyFinder: Feature() {
                 val totalSecrets = dungeons?.getInt("secrets")?.toDouble() ?: .0
                 val totalRuns = dungeons?.getInt("total_runs")?.toDouble() ?: .0
                 val secretAvg = if (totalRuns > 0) (totalSecrets / totalRuns).toFixed(2) else "0.00"
-                val showSecretsVal = totalSecrets != .0
-                val secrets = if (showSecretsVal) totalSecrets.toInt() else "?"
-                val avg = if (showSecretsVal) secretAvg else "?"
+                val showSecrets = totalSecrets != .0
+                val secrets = if (showSecrets) totalSecrets.toInt() else "?"
+                val avg = if (showSecrets) secretAvg else "?"
 
                 append(" §8[§a$secrets§8/§b$avg§8]§r")
             }
@@ -279,7 +422,6 @@ object PartyFinder: Feature() {
             }
         }
     }
-
 
     private fun getColor(level: Int) = when {
         level >= 50 -> "§c§l"

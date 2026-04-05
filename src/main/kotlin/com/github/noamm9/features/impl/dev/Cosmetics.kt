@@ -53,7 +53,7 @@ object Cosmetics: Feature(toggled = true) {
                     customNames[resolvedName] = cosmetic.name
                 }
 
-                TextReplacer.setCustomNames(customNames)
+                TextReplacer.setCustomReplacements(customNames)
             }.onFailure { cause ->
                 NoammAddons.logger.error("Failed to load cosmetic people", cause)
                 ChatUtils.modMessage("&cFailed to load cosmetic people: ${cause.message}")
