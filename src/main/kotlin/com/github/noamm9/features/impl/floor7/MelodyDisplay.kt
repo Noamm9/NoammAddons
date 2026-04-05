@@ -29,6 +29,8 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
     private data class MelodyState(val name: String, val progress: Int, val timestamp: Long)
 
     private val melodyRegex = Regex("""Party > (?:\[[^]]+]\s)?(\w+):""")
+
+    @Volatile
     private var currentState: MelodyState? = null
 
     private val hud by hudElement("Melody Display", centered = true, shouldDraw = { LocationUtils.F7Phase == 3 }) { ctx, example ->

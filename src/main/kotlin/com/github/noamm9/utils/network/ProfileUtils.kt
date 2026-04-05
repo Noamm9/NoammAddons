@@ -1,117 +1,171 @@
 package com.github.noamm9.utils.network
 
 import com.github.noamm9.NoammAddons.logger
+import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.NoammAddons.scope
 import com.github.noamm9.utils.JsonUtils
 import com.github.noamm9.utils.JsonUtils.getObj
 import com.github.noamm9.utils.JsonUtils.getString
+import com.github.noamm9.utils.Utils.containsOneOf
 import com.github.noamm9.utils.network.cache.ProfileCache
 import com.github.noamm9.utils.network.cache.SecretCache
 import com.github.noamm9.utils.network.cache.UuidCache
 import com.github.noamm9.utils.network.data.MojangData
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 
-import com.github.noamm9.NoammAddons.BASE_URL
-
 object ProfileUtils {
+    const val BASE_URL = "https://api.noamm.org"
+
     private val uuidApis = listOf(
         "https://playerdb.co/api/player/minecraft/",
         "https://api.minecraftservices.com/minecraft/profile/lookup/name/",
         "https://api.mojang.com/users/profiles/minecraft/",
     )
 
+    private val sharedRequests = ConcurrentHashMap<String, Deferred<*>>()
     private val apiCooldowns = ConcurrentHashMap<String, Long>()
 
     suspend fun getUUIDbyName(name: String): Result<MojangData> {
-        val uppercase = name.uppercase()
+        val lowerName = name.lowercase()
 
-        UuidCache.getFromCache(uppercase)?.let {
-            if (it == "null" || it == "FAILED") return Result.failure(Exception("$name not found or pending"))
+        mc.connection?.onlinePlayers?.find { it.profile.name.equals(name, true) }?.let {
+            return Result.success(MojangData(it.profile))
+        }
+
+        UuidCache.getFromCache(lowerName)?.let {
+            if (it == "FAILED") return Result.failure(Exception("$name not found (cached)"))
             return Result.success(MojangData(name, it))
         }
 
-        UuidCache.addToCache(uppercase, "null")
-
-        for ((i, api) in uuidApis.withIndex()) {
-            if (System.currentTimeMillis() < (apiCooldowns[api] ?: 0L)) continue
-
-            val result = WebUtils.getString(api + uppercase)
-
-            if (result.isFailure) {
-                val errorMsg = result.exceptionOrNull()?.message ?: ""
-
-                if (errorMsg.contains("429")) {
-                    apiCooldowns[api] = System.currentTimeMillis() + (5 * 60 * 1000)
-                    logger.warn("API Rate Limited (429): $api - Switching to fallback.")
-                    continue
-                }
-                else if (errorMsg.contains("404") || errorMsg.contains("204")) break
-                else continue
+        return awaitSharedRequest("UUID", lowerName) {
+            UuidCache.getFromCache(lowerName)?.let {
+                if (it == "FAILED") return@awaitSharedRequest Result.failure(Exception("$name not found"))
+                return@awaitSharedRequest Result.success(MojangData(name, it))
             }
 
-            val responseString = result.getOrNull() ?: continue
-            val response = runCatching { JsonUtils.stringToJson(responseString).jsonObject }.getOrNull() ?: continue
+            for ((i, api) in uuidApis.withIndex()) {
+                if (System.currentTimeMillis() < (apiCooldowns[api] ?: 0L)) continue
 
-            val uuid = if (i == 0) response.getObj("player")?.getString("id") else response.getString("id")
-            val fetchedName = if (i == 0) response.getObj("player")?.getString("username") else response.getString("name")
+                val result = WebUtils.getString(api + lowerName)
+                if (result.isFailure) {
+                    val msg = result.exceptionOrNull()?.message ?: ""
+                    if (msg.contains("429")) {
+                        apiCooldowns[api] = System.currentTimeMillis() + (5 * 60 * 1000)
+                        continue
+                    }
+                    if (msg.containsOneOf("404", "204")) break
+                    continue
+                }
 
-            if (uuid.isNullOrBlank() || fetchedName.isNullOrBlank()) continue
+                val response = runCatching { JsonUtils.stringToJson(result.getOrThrow()).jsonObject }.getOrNull() ?: continue
+                val uuid = if (i == 0) response.getObj("player")?.getString("id") else response.getString("id")
+                val fetchedName = if (i == 0) response.getObj("player")?.getString("username") else response.getString("name")
 
-            UuidCache.addToCache(uppercase, uuid)
-            return Result.success(MojangData(fetchedName, uuid))
+                if (uuid.isNullOrBlank() || fetchedName.isNullOrBlank()) continue
+
+                val cleanUuid = uuid.replace("-", "")
+                UuidCache.addToCache(fetchedName, cleanUuid)
+                return@awaitSharedRequest Result.success(MojangData(fetchedName, cleanUuid))
+            }
+
+            Result.failure<MojangData>(Exception("$name not found")).also { UuidCache.addToCache(lowerName, "FAILED") }
         }
-
-        UuidCache.addToCache(uppercase, "FAILED")
-        return Result.failure(Exception("$name not found or APIs unavailable"))
     }
 
-    suspend fun getNameByUUID(uuid: String): Result<MojangData> {
-        val cleanUuid = uuid.replace("-", "")
+    suspend fun getNameByUUID(uuid: UUID): Result<MojangData> {
+        val key = uuid.toString().replace("-", "")
 
-        val cached = UuidCache.getNameFromCache(cleanUuid)
-        if (cached == "FAILED") return Result.failure(Exception("UUID not found (Cached)"))
-        if (cached != null) return Result.success(MojangData(cached, cleanUuid))
+        mc.connection?.getPlayerInfo(uuid)?.let {
+            return Result.success(MojangData(it.profile))
+        }
 
-        return WebUtils.getAs<MojangData>("https://sessionserver.mojang.com/session/minecraft/profile/$cleanUuid").apply {
-            onSuccess { UuidCache.addToCache(it.name, it.uuid) }
-            onFailure { logger.error("Failed to fetch Name for UUID $cleanUuid: ${it.message}") }
+        UuidCache.getNameFromCache(key)?.let {
+            if (it == "FAILED") return Result.failure(Exception("UUID not found"))
+            return Result.success(MojangData(it, key))
+        }
+
+        return WebUtils.getAs<MojangData>("https://sessionserver.mojang.com/session/minecraft/profile/$key")
+            .onSuccess { UuidCache.addToCache(it.name, key) }
+    }
+
+    suspend fun getSecrets(playerName: String): Result<Long> {
+        val name = playerName.lowercase()
+        SecretCache.getFromCache(name)?.let { return Result.success(it) }
+
+        return awaitSharedRequest("SECRETS", name) {
+            SecretCache.getFromCache(name)?.let { return@awaitSharedRequest Result.success(it) }
+            getUUIDbyName(name).mapCatching { mojangData ->
+                doApiRequest<Long>("/secrets?uuid=${mojangData.uuid}")
+            }.onSuccess { SecretCache.addToCache(name, it) }
+        }
+    }
+
+    suspend fun getProfile(playerName: String): Result<JsonObject> {
+        val name = playerName.lowercase()
+        ProfileCache.getFromCache(name)?.let { return Result.success(it) }
+
+        return awaitSharedRequest("PROFILE", name) {
+            ProfileCache.getFromCache(name)?.let { return@awaitSharedRequest Result.success(it) }
+            getUUIDbyName(name).mapCatching { mojangData ->
+                doApiRequest<JsonObject>("/dungeonstats?uuid=${mojangData.uuid}")
+            }.onSuccess { ProfileCache.addToCache(name, it) }
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private suspend fun <T> awaitSharedRequest(type: String, name: String, request: suspend () -> Result<T>): Result<T> {
+        val key = "$type:${name.lowercase()}"
+
+        while (true) {
+            sharedRequests[key]?.let { return it.await() as Result<T> }
+
+            val deferred = scope.async(start = CoroutineStart.LAZY) { request() }
+
+            sharedRequests.putIfAbsent(key, deferred) ?: run {
+                deferred.invokeOnCompletion { sharedRequests.remove(key, deferred) }
+                deferred.start()
+                return deferred.await()
+            }
         }
     }
 
     private suspend inline fun <reified T> doApiRequest(path: String): T {
-        var cooldown = apiCooldowns["noamm"] ?: 0L
-        if(System.currentTimeMillis() < apiCooldowns.getOrDefault("noamm", 0L)) throw IllegalStateException("Rate limited")
+        val now = System.currentTimeMillis()
+        if (now < (apiCooldowns["noamm"] ?: 0L)) throw IllegalStateException("API global cooldown")
+        if (now < (apiCooldowns[path] ?: 0L)) throw IllegalStateException("Path negative cached")
 
-        val res = WebUtils.get("${BASE_URL}$path").getOrThrow()
-        if(res.headers["x-ratelimit-remaining"] == "0" && res.headers.contains("x-ratelimit-reset")) {
-            val reset = res.headers["x-ratelimit-reset"]!!.toLong()
-            cooldown = max(cooldown, System.currentTimeMillis() + reset * 1000L)
-            apiCooldowns["noamm"] = cooldown
-            logger.warn("API Rate limit hit, reset in $reset seconds.")
+        val resResult = WebUtils.get("$BASE_URL$path")
+        if (resResult.isFailure) {
+            val msg = resResult.exceptionOrNull()?.message ?: ""
+            when {
+                msg.contains("429") -> {
+                    apiCooldowns["noamm"] = now + 60_000
+                    logger.warn("429 Rate Limit: Global cooldown 1m.")
+                }
+
+                msg.containsOneOf("404", "500", "502", "503") -> {
+                    apiCooldowns[path] = now + 300_000 // 5m negative cache
+                    logger.warn("API Error $msg: Negative caching path.")
+                }
+            }
+            throw resResult.exceptionOrNull() ?: Exception("API Error")
         }
-        if(res.headers["x-global-remaining"] == "0" && res.headers.contains("x-global-reset")) {
-            val reset = res.headers["x-global-reset"]!!.toLong()
-            cooldown = max(cooldown, System.currentTimeMillis() + reset * 1000L)
-            apiCooldowns["noamm"] = cooldown
-            logger.warn("API Global rate limit hit, reset in $reset seconds.")
+
+        val res = resResult.getOrThrow()
+        res.headers["x-ratelimit-remaining"]?.let {
+            if (it == "0") {
+                val reset = res.headers["x-ratelimit-reset"]?.toLongOrNull() ?: 10L
+                apiCooldowns["noamm"] = max(apiCooldowns["noamm"] ?: 0L, now + (reset * 1000L))
+            }
         }
 
         return WebUtils.getAs<T>(res).getOrThrow()
-    }
-
-    suspend fun getSecrets(playerName: String): Result<Long> {
-        SecretCache.getFromCache(playerName)?.let { return Result.success(it) }
-        return getUUIDbyName(playerName).mapCatching { mojangData ->
-            doApiRequest<Long>("/secrets?uuid=${mojangData.uuid}")
-        }.onSuccess { SecretCache.addToCache(playerName, it) }
-    }
-
-    suspend fun getProfile(playerName: String): Result<JsonObject> {
-        ProfileCache.getFromCache(playerName)?.let { return Result.success(it) }
-        return getUUIDbyName(playerName).mapCatching { mojangData ->
-            doApiRequest<JsonObject>("/dungeonstats?uuid=${mojangData.uuid}")
-        }.onSuccess { ProfileCache.addToCache(playerName, it) }
     }
 }

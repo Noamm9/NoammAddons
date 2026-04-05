@@ -4,6 +4,7 @@ import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.enums.SecretType
+import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.core.UniqueRoom
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
@@ -16,7 +17,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 object SecretsWaypoints {
     private data class SecretWaypoint(val pos: BlockPos, val type: SecretType) {
-        val color: Color = when (type) {
+        val color = when (type) {
             SecretType.REDSTONE_KEY -> Color.RED
             SecretType.WITHER_ESSANCE -> Color.BLACK
             else -> Color.MAGENTA
@@ -30,6 +31,7 @@ object SecretsWaypoints {
     fun onRoomEnter(room: UniqueRoom) {
         if (! DungeonWaypoints.secretWaypoints.value) return
         currentSecrets.clear()
+        if (room.mainRoom.state == RoomState.GREEN) return
 
         val rotation = room.rotation?.let { 360 - it } ?: return
         val corner = room.corner ?: return
@@ -55,6 +57,7 @@ object SecretsWaypoints {
         if (! DungeonWaypoints.secretWaypoints.value) return
         if (LocationUtils.inBoss) return
         if (currentSecrets.isEmpty()) return
+        if (ScanUtils.currentRoom?.mainRoom?.state == RoomState.GREEN) return
 
         for (wp in currentSecrets) {
             if (wp.type == SecretType.REDSTONE_KEY && WorldUtils.getBlockAt(wp.pos) != Blocks.PLAYER_HEAD) continue

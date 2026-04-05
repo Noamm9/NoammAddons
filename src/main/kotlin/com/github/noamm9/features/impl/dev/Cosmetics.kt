@@ -22,6 +22,7 @@ import net.minecraft.client.renderer.entity.state.AvatarRenderState
 import net.minecraft.world.entity.Avatar
 import net.minecraft.world.phys.Vec3
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.absoluteValue
 
 object Cosmetics: Feature(toggled = true) {
@@ -33,6 +34,7 @@ object Cosmetics: Feature(toggled = true) {
     }
 
     private var lastReload = System.currentTimeMillis()
+    private val profileNames = ConcurrentHashMap<UUID, String>()
     lateinit var cosmeticPeople: Map<UUID, CosmeticData>
 
     override fun init() {
@@ -44,8 +46,11 @@ object Cosmetics: Feature(toggled = true) {
                 val customNames = HashMap<String, String>()
 
                 cosmeticPeople.filter { it.value.hasCustomName }.forEach { (uuid, cosmetic) ->
-                    val profile = ProfileUtils.getNameByUUID(uuid.toString()).getOrThrow()
-                    customNames[profile.name] = cosmetic.name
+                    val resolvedName = ProfileUtils.getNameByUUID(uuid).map { it.name }.getOrNull()
+                        ?: profileNames[uuid] ?: return@forEach
+
+                    profileNames[uuid] = resolvedName
+                    customNames[resolvedName] = cosmetic.name
                 }
 
                 TextReplacer.setCustomReplacements(customNames)
