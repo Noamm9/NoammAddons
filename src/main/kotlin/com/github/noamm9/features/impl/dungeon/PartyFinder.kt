@@ -211,10 +211,10 @@ object PartyFinder: Feature() {
 
         val floorPrefix = if (masterMode.value) "M" else "F"
         val pbReq = formatTime(maximumSeconds.value * 1000)
-        val pb = dungeonType?.getObj("fastest_time_s_plus")?.getInt("$floor")?.div(1000)
-        if (pb == null) reasons.add("PB(No S+/$pbReq)")
-        else if (pb / 1000 > maximumSeconds.value) {
-            reasons.add("$floorPrefix$floor: PB(${formatTime(pb)}/$pbReq)")
+        val pbMs = dungeonType?.getObj("fastest_time_s_plus")?.getInt("$floor")
+        if (pbMs == null) reasons.add("PB(No S+/$pbReq)")
+        else if (pbMs / 1000 > maximumSeconds.value) {
+            reasons.add("$floorPrefix$floor: PB(${formatTime(pbMs)}/$pbReq)")
         }
 
         if (minimumSecrets.value > 0) {
