@@ -24,14 +24,13 @@ object Animations: Feature("Allows you to modify your hand view-model") {
 
     val disableEquip by ToggleSetting("Disable equip animation").withDescription("Disables the equip animation when your held item changes.")
     val disableSwingAnimation by ToggleSetting("Disable swing animation").withDescription("Disables the held item swing animation.")
-    val terminatorOnly by ToggleSetting("Disable Terminator Only").withDescription("Disables the swing animation only for terminator.")
+    val terminatorOnly by ToggleSetting("Disable Terminator Only").withDescription("Disables the swing animation only for terminator.").showIf { disableSwingAnimation.value }
 
-    val swingSpeed by SliderSetting("Swing Speed", .0, - 2f, 1f, 0.05).hideIf { disableSwingAnimation.value }
-    val ignoreHaste by ToggleSetting("Ignore Haste").withDescription("Ignores the haste speed boost.").hideIf { disableSwingAnimation.value }
+    val swingSpeed by SliderSetting("Swing Speed", .0, - 2f, 1f, 0.05).hideIf { disableSwingAnimation.value && !terminatorOnly.value }
+    val ignoreHaste by ToggleSetting("Ignore Haste").withDescription("Ignores the haste speed boost.").hideIf { disableSwingAnimation.value && !terminatorOnly.value }
 
     private val reset by ButtonSetting("Reset") {
         configSettings.forEach(Setting<*>::reset)
     }
 }
-
 
