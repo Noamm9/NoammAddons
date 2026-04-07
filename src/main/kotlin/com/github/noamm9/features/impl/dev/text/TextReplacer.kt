@@ -147,7 +147,8 @@ object TextReplacer {
 
             while (outputNode != null) {
                 val r = outputNode.output !!
-                hits.add(Match(i - r.target.length + 1, r))
+                if (i + 1 == text.length || text[i + 1] == ' ')
+                    hits.add(Match(i - r.target.length + 1, r))
                 outputNode = outputNode.outputLink
             }
         }
