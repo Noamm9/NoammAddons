@@ -6,11 +6,18 @@ import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.ui.clickgui.components.hideIf
 import com.github.noamm9.ui.clickgui.components.getValue
+import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
+import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
+import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
+import com.github.noamm9.ui.clickgui.components.section
 import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.JsonUtils
+import com.github.noamm9.utils.Utils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render3D
@@ -24,6 +31,14 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while looking at a block") {
     val secretWaypoints by ToggleSetting("Secret Waypoints")
+    val hideWhenCompleted by ToggleSetting("Hide When Completed", true).section("Settings")
+
+    val mode by DropdownSetting("Mode", 0, listOf("Outline", "Fill", "Filled Outline"))
+    val phase by ToggleSetting("See Through Walls")
+    val lineWidth by SliderSetting("Line Width", 1.0, 1.0, 10.0, 0.1).hideIf { mode.value == 1 }
+
+    val fillColor by ColorSetting("Fill Color", Utils.favoriteColor.withAlpha(50)).hideIf { mode.value == 0 }.section("Colors")
+    val outlineColor by ColorSetting("Outline Color", Utils.favoriteColor, false).hideIf { mode.value == 1 }
 
     data class DungeonWaypoint(val pos: BlockPos, val color: Color, val filled: Boolean, val outline: Boolean, val phase: Boolean)
 

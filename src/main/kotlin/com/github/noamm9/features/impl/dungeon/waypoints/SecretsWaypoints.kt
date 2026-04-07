@@ -3,8 +3,8 @@ package com.github.noamm9.features.impl.dungeon.waypoints
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.utils.WorldUtils
+import com.github.noamm9.utils.Utils.equalsOneOf
 import com.github.noamm9.utils.dungeons.enums.SecretType
-import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.core.UniqueRoom
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
@@ -17,7 +17,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 object SecretsWaypoints {
     private data class SecretWaypoint(val pos: BlockPos, val type: SecretType) {
-        val color = when (type) {
+        val color: Color = when (type) {
             SecretType.REDSTONE_KEY -> Color.RED
             SecretType.WITHER_ESSANCE -> Color.BLACK
             else -> Color.MAGENTA
@@ -27,11 +27,12 @@ object SecretsWaypoints {
     private val secretDefinitions by lazy { ScanUtils.roomList.associate { it.name to it.secretCoords } }
 
     private val currentSecrets = CopyOnWriteArrayList<SecretWaypoint>()
+    private var currentRoom: UniqueRoom? = null
 
     fun onRoomEnter(room: UniqueRoom) {
         if (! DungeonWaypoints.secretWaypoints.value) return
+        currentRoom = room
         currentSecrets.clear()
-        if (room.mainRoom.state == RoomState.GREEN) return
 
         val rotation = room.rotation?.let { 360 - it } ?: return
         val corner = room.corner ?: return
@@ -57,11 +58,20 @@ object SecretsWaypoints {
         if (! DungeonWaypoints.secretWaypoints.value) return
         if (LocationUtils.inBoss) return
         if (currentSecrets.isEmpty()) return
-        if (ScanUtils.currentRoom?.mainRoom?.state == RoomState.GREEN) return
+        val room = currentRoom
+        if (DungeonWaypoints.hideWhenCompleted.value && room != null && room.data.secrets > 0 && room.foundSecrets >= room.data.secrets) return
 
         for (wp in currentSecrets) {
             if (wp.type == SecretType.REDSTONE_KEY && WorldUtils.getBlockAt(wp.pos) != Blocks.PLAYER_HEAD) continue
-            Render3D.renderBlock(ctx, wp.pos, wp.color, fill = false, outline = true, phase = true)
+            Render3D.renderBlock(
+                ctx, wp.pos,
+                DungeonWaypoints.outlineColor.value,
+                DungeonWaypoints.fillColor.value,
+                DungeonWaypoints.mode.value.equalsOneOf(0, 2),
+                DungeonWaypoints.mode.value.equalsOneOf(1, 2),
+                phase = DungeonWaypoints.phase.value,
+                lineWidth = DungeonWaypoints.lineWidth.value.toFloat()
+            )
         }
     }
 
@@ -79,5 +89,8 @@ object SecretsWaypoints {
         target?.let(currentSecrets::remove)
     }
 
-    fun clear() = currentSecrets.clear()
+    fun clear() {
+        currentRoom = null
+        currentSecrets.clear()
+    }
 }
