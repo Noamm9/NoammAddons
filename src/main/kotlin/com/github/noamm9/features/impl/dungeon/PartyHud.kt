@@ -60,7 +60,7 @@ data class PartyHudDisplayConfig(
         get() = showClassName || showClassLevel || showSecretsStats || showCatacombsLevel || showPersonalBest
 }
 
-data class DungeonProfileSummary(
+data class PartyHudProfileSummary(
     val catacombsLevel: Int?,
     val totalSecrets: Int?,
     val totalRuns: Int?,
@@ -273,14 +273,14 @@ object PartyHud: Feature(
         }
     }
 
-    private fun getSummaryOrRequest(playerName: String, floor: Int? = null, masterMode: Boolean = false): DungeonProfileSummary? {
+    private fun getSummaryOrRequest(playerName: String, floor: Int? = null, masterMode: Boolean = false): PartyHudProfileSummary? {
         return getCachedSummary(playerName, floor, masterMode) ?: run {
             requestProfile(playerName)
             null
         }
     }
 
-    private fun getCachedSummary(playerName: String, floor: Int? = null, masterMode: Boolean = false): DungeonProfileSummary? {
+    private fun getCachedSummary(playerName: String, floor: Int? = null, masterMode: Boolean = false): PartyHudProfileSummary? {
         val key = cacheKey(playerName)
         val profile = ProfileCache.getFromCache(key) ?: return null
         return summarize(profile, floor, masterMode)
@@ -304,7 +304,7 @@ object PartyHud: Feature(
         }
     }
 
-    private fun summarize(profile: JsonObject, floor: Int? = null, masterMode: Boolean = false): DungeonProfileSummary {
+    private fun summarize(profile: JsonObject, floor: Int? = null, masterMode: Boolean = false): PartyHudProfileSummary {
         val dungeons = profile.getObj("dungeons")
         val totalSecrets = dungeons?.getInt("secrets")
         val totalRuns = extractTotalRuns(dungeons)
@@ -315,7 +315,7 @@ object PartyHud: Feature(
             ?.takeUnless { it == DungeonClass.Empty }
         val bestClassEntry = classLevels.maxByOrNull { it.value }
 
-        return DungeonProfileSummary(
+        return PartyHudProfileSummary(
             catacombsLevel = dungeons?.getDouble("catacombs_experience")?.let(ApiUtils::getCatacombsLevel),
             totalSecrets = totalSecrets,
             totalRuns = totalRuns,
@@ -383,7 +383,7 @@ object PartyHud: Feature(
 
     private fun formatRow(
         member: PartyHudMember,
-        summary: DungeonProfileSummary?,
+        summary: PartyHudProfileSummary?,
         config: PartyHudDisplayConfig = PartyHudDisplayConfig(),
     ): String {
         val resolvedClass = member.dungeonClass.takeUnless { it == DungeonClass.Empty }
@@ -435,11 +435,11 @@ object PartyHud: Feature(
 
     private fun previewRows(config: PartyHudDisplayConfig = PartyHudDisplayConfig()): List<String> {
         val previewData = listOf(
-            PartyHudMember("ArcherGuy", DungeonClass.Archer, 50) to DungeonProfileSummary(53, 17_400, 2_900, 6.0, 271_000, DungeonClass.Archer, 50, DungeonClass.Archer, 50),
-            PartyHudMember("MageMain", DungeonClass.Mage, 49) to DungeonProfileSummary(52, 24_300, 3_000, 8.1, 274_000, DungeonClass.Mage, 49, DungeonClass.Mage, 49),
-            PartyHudMember("HealBot", DungeonClass.Healer, 44) to DungeonProfileSummary(48, 12_600, 2_400, 5.25, 332_000, DungeonClass.Healer, 44, DungeonClass.Healer, 44),
-            PartyHudMember("Tanky", DungeonClass.Tank, 41) to DungeonProfileSummary(47, 11_200, 2_800, 4.0, 359_000, DungeonClass.Tank, 41, DungeonClass.Tank, 41),
-            PartyHudMember("Bers", DungeonClass.Berserk, 46) to DungeonProfileSummary(50, 16_500, 2_750, 6.0, 287_000, DungeonClass.Berserk, 46, DungeonClass.Berserk, 46),
+            PartyHudMember("ArcherGuy", DungeonClass.Archer, 50) to PartyHudProfileSummary(53, 17_400, 2_900, 6.0, 271_000, DungeonClass.Archer, 50, DungeonClass.Archer, 50),
+            PartyHudMember("MageMain", DungeonClass.Mage, 49) to PartyHudProfileSummary(52, 24_300, 3_000, 8.1, 274_000, DungeonClass.Mage, 49, DungeonClass.Mage, 49),
+            PartyHudMember("HealBot", DungeonClass.Healer, 44) to PartyHudProfileSummary(48, 12_600, 2_400, 5.25, 332_000, DungeonClass.Healer, 44, DungeonClass.Healer, 44),
+            PartyHudMember("Tanky", DungeonClass.Tank, 41) to PartyHudProfileSummary(47, 11_200, 2_800, 4.0, 359_000, DungeonClass.Tank, 41, DungeonClass.Tank, 41),
+            PartyHudMember("Bers", DungeonClass.Berserk, 46) to PartyHudProfileSummary(50, 16_500, 2_750, 6.0, 287_000, DungeonClass.Berserk, 46, DungeonClass.Berserk, 46),
         )
 
         return previewData.map { (member, summary) -> formatRow(member, summary, config) }
@@ -473,3 +473,4 @@ object PartyHud: Feature(
         }
     }
 }
+
