@@ -16,6 +16,7 @@ import com.github.noamm9.ui.clickgui.components.impl.SoundSetting
 import com.github.noamm9.ui.clickgui.components.showIf
 import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.ui.hud.HudElement
+import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.Utils.spaceCaps
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
@@ -109,7 +110,7 @@ open class Feature(
             .showIf(showIf)
 
         val play = ButtonSetting("Play Sound", false) {
-            repeat(5) { mc.soundManager.play(SimpleSoundInstance.forUI(sound.value, pitch.value, volume.value)) }
+            ThreadUtils.runOnMcThread { repeat(5) { mc.soundManager.play(SimpleSoundInstance.forUI(sound.value, pitch.value, volume.value)) } }
         }.withDescription("Click to test the current sound configuration.").showIf(showIf)
 
         configSettings.add(sound)

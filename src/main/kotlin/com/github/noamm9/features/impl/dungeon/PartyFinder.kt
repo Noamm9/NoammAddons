@@ -249,7 +249,6 @@ object PartyFinder: Feature() {
             val rarity = runCatching { ItemRarity.valueOf(tier) }.getOrNull() ?: return@mapNotNull null
             val formattedType = when {
                 type.endsWith("_DRAGON") -> if (type.startsWith("GOLDEN")) "Gdrag" else "Edrag"
-                type.startsWith("BABY_") -> "Yeti"
                 else -> type.lowercase().split("_").joinToString(" ") { it.uppercaseFirst() }
             }
             rarity.baseColor.toString() to formattedType
