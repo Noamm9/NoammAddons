@@ -19,7 +19,7 @@ object TextReplacer {
     private val hexPattern = Pattern.compile("&#([A-Fa-f0-9]{6})")
     private val stringCache = Collections.synchronizedMap(newBoundedCache<String, String>(2048))
     private val literalCache = Collections.synchronizedMap(newBoundedCache<Style, MutableMap<String, Any>>(64))
-    private val SEPARATORS = listOf(' ', ':')
+    private val SEPARATORS = hashSetOf(' ', ':', ',', '.', ';', '/', '\\')
 
     @Volatile
     private var replacementVersion = - 1
