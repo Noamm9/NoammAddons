@@ -19,6 +19,7 @@ object TextReplacer {
     private val hexPattern = Pattern.compile("&#([A-Fa-f0-9]{6})")
     private val stringCache = Collections.synchronizedMap(newBoundedCache<String, String>(2048))
     private val literalCache = Collections.synchronizedMap(newBoundedCache<Style, MutableMap<String, Any>>(64))
+    private val SEPARATORS = listOf(' ', ':')
 
     @Volatile
     private var replacementVersion = - 1
@@ -147,7 +148,7 @@ object TextReplacer {
 
             while (outputNode != null) {
                 val r = outputNode.output !!
-                if (i + 1 == text.length || text[i + 1] == ' ')
+                if (i + 1 == text.length || text[i + 1] in SEPARATORS)
                     hits.add(Match(i - r.target.length + 1, r))
                 outputNode = outputNode.outputLink
             }
