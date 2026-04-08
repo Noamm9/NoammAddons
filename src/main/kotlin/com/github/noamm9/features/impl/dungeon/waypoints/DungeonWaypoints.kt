@@ -22,6 +22,7 @@ import com.github.noamm9.utils.Utils.equalsOneOf
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.enums.SecretType
 import com.github.noamm9.utils.dungeons.map.core.RoomState
+import com.github.noamm9.utils.dungeons.map.core.UniqueRoom
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render3D
@@ -42,6 +43,8 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
     val lineWidth by SliderSetting("Line Width", 1.5f, 1f, 10f, 0.1f).hideIf { mode.value == 0 }
 
     val chestColor by ColorSetting("Chest Color", Color.MAGENTA, false).section("Colors")
+    val lockedChestColor by ColorSetting("Locked Chest Color", Color(255, 140, 0), false)
+    val leverColor by ColorSetting("Lever Color", Color.YELLOW, false)
     val itemColor by ColorSetting("Item Color", Utils.favoriteColor, false)
     val batColor by ColorSetting("Bat Color", Color.GREEN, false)
     val essanceColor by ColorSetting("Essance Color", Color.BLACK, false)
@@ -53,6 +56,8 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
             SecretType.REDSTONE_KEY -> keyColor
             SecretType.WITHER_ESSANCE -> essanceColor
             SecretType.CHEST -> chestColor
+            SecretType.TRAPPED_CHEST -> lockedChestColor
+            SecretType.LEVER -> leverColor
             SecretType.ITEM -> itemColor
             SecretType.BAT -> batColor
             else -> chestColor
@@ -96,13 +101,12 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
                 addSecrets(coords.chest, SecretType.CHEST)
             }
 
-            currentSecrets.addAll(activeSecrets)
+            currentSecrets.addAll((activeSecrets + scanRoomSecrets(event.room)).distinctBy { it.pos })
         }
 
         register<DungeonEvent.SecretEvent> {
             if (! secretWaypoints.value || currentSecrets.isEmpty()) return@register
             val playerPos = NoammAddons.mc.player?.blockPosition() ?: return@register
-            if (event.type == SecretType.LEVER) return@register
             if (event.pos.distSqr(playerPos) > 36) return@register
 
             val distinctTypes = setOf(SecretType.BAT, SecretType.ITEM)
@@ -146,6 +150,29 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
         register<WorldChangeEvent> {
             currentSecrets.clear()
             currentRoomWaypoints.clear()
+        }
+    }
+
+    private fun scanRoomSecrets(room: UniqueRoom): List<SecretWaypoint> {
+        val level = NoammAddons.mc.level ?: return emptyList()
+        val maxY = room.highestBlock ?: 140
+
+        return buildList {
+            val pos = BlockPos.MutableBlockPos()
+            for (tile in room.tiles) {
+                for (x in tile.x - 15 .. tile.x + 15) {
+                    for (z in tile.z - 15 .. tile.z + 15) {
+                        for (y in 0 .. maxY) {
+                            pos.set(x, y, z)
+                            when (level.getBlockState(pos).block) {
+                                Blocks.LEVER -> add(SecretWaypoint(pos.immutable(), SecretType.LEVER))
+                                Blocks.TRAPPED_CHEST -> add(SecretWaypoint(pos.immutable(), SecretType.TRAPPED_CHEST))
+                                else -> continue
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
