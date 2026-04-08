@@ -7,8 +7,7 @@ import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 
 object Animations: Feature("Allows you to modify your hand view-model") {
-    val mainHandItemScale by SliderSetting("Item Scale", 0.0, - 1.5f, 1.5f, 0.05f)
-        .withDescription("0 is normal size. -0.5 is half size. 1 is double size.")
+    val mainHandItemScale by SliderSetting("Item Scale", 0.0, - 1.5f, 1.5f, 0.05f).withDescription("0 is normal size. -0.5 is half size. 1 is double size.")
 
     val mainHandX by SliderSetting("X", .0, - 2.0, 2.0, 0.01)
     val mainHandY by SliderSetting("Y", 0.0, - 2.0, 2.0, 0.01)
@@ -26,8 +25,8 @@ object Animations: Feature("Allows you to modify your hand view-model") {
     val disableSwingAnimation by ToggleSetting("Disable swing animation").withDescription("Disables the held item swing animation.")
     val terminatorOnly by ToggleSetting("Terminator Only").withDescription("Disables the swing animation only for terminator.").showIf { disableSwingAnimation.value }
 
-    val swingSpeed by SliderSetting("Swing Speed", .0, - 2f, 1f, 0.05).hideIf { disableSwingAnimation.value }
-    val ignoreHaste by ToggleSetting("Ignore Haste").withDescription("Ignores the haste speed boost.").hideIf { disableSwingAnimation.value }
+    val swingSpeed by SliderSetting("Swing Speed", .0, - 2f, 1f, 0.05).hideIf { disableSwingAnimation.value && ! terminatorOnly.value }
+    val ignoreHaste by ToggleSetting("Ignore Haste").withDescription("Ignores the haste speed boost.").hideIf { disableSwingAnimation.value && ! terminatorOnly.value }
 
     private val reset by ButtonSetting("Reset") {
         configSettings.forEach(Setting<*>::reset)
