@@ -105,6 +105,7 @@ object LocationUtils {
             inBoss = isInBossRoom()
             if (inBoss && DungeonListener.bossEntryTime == null) {
                 DungeonListener.bossEntryTime = DungeonListener.currentTime
+                DungeonListener.realBossEntryTime = System.currentTimeMillis()
                 EventBus.post(DungeonEvent.BossEnterEvent)
             }
             F7Phase = getPhase()
