@@ -229,11 +229,13 @@ publishing {
         create<MavenPublication>("mavenLegit") {
             artifactId = "legit"
             artifact(tasks.named("remapJar"))
+            from(components["java"])
         }
 
         create<MavenPublication>("mavenCheat") {
             artifactId = "cheat"
             artifact(remapJarCheat)
+            from(components["java"])
         }
     }
 }
