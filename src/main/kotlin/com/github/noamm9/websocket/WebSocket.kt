@@ -5,6 +5,7 @@ import com.github.noamm9.NoammAddons.debugFlags
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.JsonUtils
+import com.github.noamm9.utils.ThreadUtils
 import com.google.gson.JsonParser
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
@@ -20,7 +21,7 @@ object WebSocket {
     fun init() {
         PacketRegistry.init()
         NASocket.connect()
-        Runtime.getRuntime().addShutdownHook(Thread { NASocket.close(1000, "client stopping") })
+        ThreadUtils.addShutdownHook { NASocket.close(1000, "client stopping") }
     }
 
     fun send(packet: Any) = worker.execute {
