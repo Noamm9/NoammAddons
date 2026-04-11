@@ -38,10 +38,16 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
         .withDescription("How to sort the leap menu. /na leaporder to configure custom sorting.")
 
     val leapKeybinds by ToggleSetting("Leap Keybinds").showIf { customLeapMenu.value }.section("Leap Keybinds")
-    val key1 by KeybindSetting("Slot 1", GLFW.GLFW_KEY_1).showIf { leapKeybinds.value }
-    val key2 by KeybindSetting("Slot 2", GLFW.GLFW_KEY_2).showIf { leapKeybinds.value }
-    val key3 by KeybindSetting("Slot 3", GLFW.GLFW_KEY_3).showIf { leapKeybinds.value }
-    val key4 by KeybindSetting("Slot 4", GLFW.GLFW_KEY_4).showIf { leapKeybinds.value }
+    val keybindMode by DropdownSetting("Mode", 0, listOf("Corners", "Class")).showIf { leapKeybinds.value }
+    val key1 by KeybindSetting("Slot 1", GLFW.GLFW_KEY_1).showIf { leapKeybinds.value && keybindMode.value == 0 }
+    val key2 by KeybindSetting("Slot 2", GLFW.GLFW_KEY_2).showIf { leapKeybinds.value && keybindMode.value == 0 }
+    val key3 by KeybindSetting("Slot 3", GLFW.GLFW_KEY_3).showIf { leapKeybinds.value && keybindMode.value == 0 }
+    val key4 by KeybindSetting("Slot 4", GLFW.GLFW_KEY_4).showIf { leapKeybinds.value && keybindMode.value == 0 }
+    val keyArcher by KeybindSetting("Archer", GLFW.GLFW_KEY_UNKNOWN).showIf { leapKeybinds.value && keybindMode.value == 1 }
+    val keyBerserk by KeybindSetting("Berserk", GLFW.GLFW_KEY_UNKNOWN).showIf { leapKeybinds.value && keybindMode.value == 1 }
+    val keyHealer by KeybindSetting("Healer", GLFW.GLFW_KEY_UNKNOWN).showIf { leapKeybinds.value && keybindMode.value == 1 }
+    val keyMage by KeybindSetting("Mage", GLFW.GLFW_KEY_UNKNOWN).showIf { leapKeybinds.value && keybindMode.value == 1 }
+    val keyTank by KeybindSetting("Tank", GLFW.GLFW_KEY_UNKNOWN).showIf { leapKeybinds.value && keybindMode.value == 1 }
 
     private val announceSpiritLeaps by ToggleSetting("Announce Leap", true).section("Extras")
     private val leapMsg by TextInputSetting("Leap Message", "ILY ❤ {name}")
@@ -204,12 +210,23 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
             if (! customLeapMenu.value || ! leapKeybinds.value) return@register
             if (! inSpiritLeap(event.screen)) return@register
 
-            val index = when (event.key) {
+            val index = if (keybindMode.value == 0) when (event.key) {
                 key1.value -> 0
                 key2.value -> 1
                 key3.value -> 2
                 key4.value -> 3
                 else -> return@register
+            }
+            else {
+                val clazz = when (event.key) {
+                    keyArcher.value -> DungeonClass.Archer
+                    keyBerserk.value -> DungeonClass.Berserk
+                    keyHealer.value -> DungeonClass.Healer
+                    keyMage.value -> DungeonClass.Mage
+                    keyTank.value -> DungeonClass.Tank
+                    else -> return@register
+                }
+                players.indexOfFirst { it?.player?.clazz == clazz }.takeIf { it != - 1 } ?: return@register
             }
 
             event.isCanceled = true
