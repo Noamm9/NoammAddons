@@ -45,14 +45,16 @@ object DungeonListener {
 
     var maxPuzzleCount = 0
     var puzzles = mutableListOf<Puzzle>()
+    data class DualTime(val ticks: Long, val real: Long = System.currentTimeMillis())
+
     var dungeonStarted = false
-    var dungeonStartTime: Long? = null
+    var dungeonStartTime: DualTime? = null
     var dungeonEnded = false
 
-    var bloodOpenTime: Long? = null
-    var watcherClearTime: Long? = null
+    var bloodOpenTime: DualTime? = null
+    var watcherClearTime: DualTime? = null
     var watcherFinishSpawnTime: Long? = null
-    var bossEntryTime: Long? = null
+    var bossEntryTime: DualTime? = null
     var dungeonEndTime: Long? = null
 
     var lastDoorOpenner: DungeonPlayer? = null
@@ -136,7 +138,7 @@ object DungeonListener {
 
                 unformatted == "[BOSS] The Watcher: You have proven yourself. You may pass." -> {
                     DungeonInfo.uniqueRooms["Blood"]?.mainRoom?.state = RoomState.GREEN
-                    watcherClearTime = currentTime
+                    watcherClearTime = DualTime(currentTime)
                 }
 
                 unformatted == "[BOSS] The Watcher: That will be enough for now." -> {
@@ -145,11 +147,11 @@ object DungeonListener {
                 }
 
                 watcherMessageRegex.matches(unformatted) && bloodOpenTime == null -> {
-                    bloodOpenTime = currentTime
+                    bloodOpenTime = DualTime(currentTime)
                 }
 
                 unformatted == "[NPC] Mort: Here, I found this map when I first entered the dungeon." -> scope.launch {
-                    dungeonStartTime = currentTime
+                    dungeonStartTime = DualTime(currentTime)
                     while (thePlayer?.clazz == DungeonClass.Empty) delay(50)
                     dungeonStarted = true
                     EventBus.post(DungeonEvent.RunStatedEvent)
