@@ -62,7 +62,7 @@ object BloodCamp: Feature("Features for Blood Room.") {
         register<ChatMessageEvent> {
             if (LocationUtils.inBoss) return@register
             if (event.unformattedText != "[BOSS] The Watcher: Let's see how you can handle this.") return@register
-            val startTime = DungeonListener.bloodOpenTime ?: return@register
+            val startTime = DungeonListener.bloodOpenTime?.ticks ?: return@register
             val seconds = (DungeonListener.currentTime - startTime) / 20
             firstSpawns = false
 

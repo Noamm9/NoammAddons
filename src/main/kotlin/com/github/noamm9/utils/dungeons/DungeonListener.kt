@@ -45,21 +45,17 @@ object DungeonListener {
 
     var maxPuzzleCount = 0
     var puzzles = mutableListOf<Puzzle>()
+    data class DualTime(val ticks: Long, val real: Long = System.currentTimeMillis())
+
     var dungeonStarted = false
-    var dungeonStartTime: Long? = null
+    var dungeonStartTime: DualTime? = null
     var dungeonEnded = false
 
-    var bloodOpenTime: Long? = null
-    var watcherClearTime: Long? = null
+    var bloodOpenTime: DualTime? = null
+    var watcherClearTime: DualTime? = null
     var watcherFinishSpawnTime: Long? = null
-    var bossEntryTime: Long? = null
+    var bossEntryTime: DualTime? = null
     var dungeonEndTime: Long? = null
-
-    var realStartTime: Long? = null
-    var realBloodOpenTime: Long? = null
-    var realWatcherClearTime: Long? = null
-    var realBossEntryTime: Long? = null
-    var realCurrentTime = 0L
 
     var lastDoorOpenner: DungeonPlayer? = null
 
@@ -142,8 +138,7 @@ object DungeonListener {
 
                 unformatted == "[BOSS] The Watcher: You have proven yourself. You may pass." -> {
                     DungeonInfo.uniqueRooms["Blood"]?.mainRoom?.state = RoomState.GREEN
-                    watcherClearTime = currentTime
-                    realWatcherClearTime = System.currentTimeMillis()
+                    watcherClearTime = DualTime(currentTime)
                 }
 
                 unformatted == "[BOSS] The Watcher: That will be enough for now." -> {
@@ -152,13 +147,11 @@ object DungeonListener {
                 }
 
                 watcherMessageRegex.matches(unformatted) && bloodOpenTime == null -> {
-                    bloodOpenTime = currentTime
-                    realBloodOpenTime = System.currentTimeMillis()
+                    bloodOpenTime = DualTime(currentTime)
                 }
 
                 unformatted == "[NPC] Mort: Here, I found this map when I first entered the dungeon." -> scope.launch {
-                    dungeonStartTime = currentTime
-                    realStartTime = System.currentTimeMillis()
+                    dungeonStartTime = DualTime(currentTime)
                     while (thePlayer?.clazz == DungeonClass.Empty) delay(50)
                     dungeonStarted = true
                     EventBus.post(DungeonEvent.RunStatedEvent)
@@ -182,7 +175,6 @@ object DungeonListener {
         register<TickEvent.Server>(EventPriority.HIGHEST) {
             if (! inDungeon) return@register
             currentTime ++
-            if (realStartTime != null) realCurrentTime = System.currentTimeMillis() - realStartTime!!
         }
 
         register<WorldChangeEvent>(EventPriority.HIGHEST) {
@@ -202,11 +194,6 @@ object DungeonListener {
             lastDoorOpenner = null
             currentTime = 0
             doorKeys = 0
-            realStartTime = null
-            realBloodOpenTime = null
-            realWatcherClearTime = null
-            realBossEntryTime = null
-            realCurrentTime = 0L
             Blessing.reset()
         }
 

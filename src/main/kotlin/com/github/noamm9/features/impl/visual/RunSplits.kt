@@ -7,6 +7,7 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.DataDownloader
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.dungeons.DungeonListener.DualTime
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
@@ -56,58 +57,46 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
             return@hudElement width to currentY
         }
 
-        register<WorldChangeEvent> { 
-            currentFloorSplits.clear() 
-        }
+        register<WorldChangeEvent> { currentFloorSplits.clear() }
 
         register<TickEvent.Start> {
             if (! LocationUtils.inDungeon) return@register
 
-            val start = DungeonListener.dungeonStartTime ?: 0L
+            val now = DualTime(DungeonListener.currentTime)
+            val start = DungeonListener.dungeonStartTime ?: now
             val blood = DungeonListener.bloodOpenTime
             val watcher = DungeonListener.watcherClearTime
             val boss = DungeonListener.bossEntryTime
 
-            val rStart = DungeonListener.realStartTime ?: 0L
-            val rBlood = DungeonListener.realBloodOpenTime
-            val rWatcher = DungeonListener.realWatcherClearTime
-            val rBoss = DungeonListener.realBossEntryTime
-            val rNow = if (rStart > 0) System.currentTimeMillis() else null
-
             val bloodOpen = when {
-                blood == null && DungeonListener.dungeonStarted -> dual(DungeonListener.currentTime - start, rNow?.minus(rStart), ::formatTime)
-                blood != null -> dual(blood - start, rBlood?.minus(rStart), ::formatTime)
+                blood == null && DungeonListener.dungeonStarted -> dual(now - start, ::formatTime)
+                blood != null -> dual(blood - start, ::formatTime)
                 else -> "?"
             }
 
             val watcherClear = when {
-                watcher != null && blood != null -> dual(watcher - blood, realDiff(rWatcher, rBlood), ::formatSecs)
-                blood != null -> dual(DungeonListener.currentTime - blood, realDiff(rNow, rBlood), ::formatSecs)
+                watcher != null && blood != null -> dual(watcher - blood, ::formatSecs)
+                blood != null -> dual(now - blood, ::formatSecs)
                 else -> "?"
             }
 
             val portalTime = when {
-                watcher != null && boss == null -> dual(DungeonListener.currentTime - watcher, realDiff(rNow, rWatcher), ::formatDec)
-                watcher != null && boss != null -> dual(boss - watcher, realDiff(rBoss, rWatcher), ::formatDec)
+                watcher != null && boss == null -> dual(now - watcher, ::formatDec)
+                watcher != null && boss != null -> dual(boss - watcher, ::formatDec)
                 else -> "?"
             }
 
-            val bossEntry = if (DungeonListener.dungeonStarted) dual(
-                (boss ?: DungeonListener.currentTime) - start, rBoss?.minus(rStart) ?: rNow?.minus(rStart), ::formatTime
-            ) else "?"
+            val bossEntry = if (DungeonListener.dungeonStarted) dual((boss ?: now) - start, ::formatTime) else "?"
 
             val splitLines = currentFloorSplits.mapNotNull { (name, split) ->
-                val splitStart = split.start ?: return@mapNotNull null
-                val tickDur = ((split.end ?: DungeonListener.currentTime) - splitStart) / 20.0
-                val realDur = split.realStart?.let { rs -> ((split.realEnd ?: System.currentTimeMillis()) - rs) / 1000.0 }
-
-                val t = tickDur.toFixed(2) + "s"
-                val r = realDur?.let { it.toFixed(2) + "s" }
-                "$name: ${r ?: t}${r?.let { " §7(§b${t}§7)" } ?: ""}§r"
+                val s = split.start ?: return@mapNotNull null
+                val e = split.end ?: DualTime(DungeonListener.currentTime)
+                val diff = e - s
+                val t = (diff.ticks / 20.0).toFixed(2) + "s"
+                val r = (diff.real / 1000.0).toFixed(2) + "s"
+                "$name: ${r} §7(§b${t}§7)§r"
             }.toMutableList().apply {
-                indexOfFirst { it.startsWith("&aBoss") }.takeUnless { it == - 1 }?.let { 
-                    add(removeAt(it)) 
-                }
+                indexOfFirst { it.startsWith("&aBoss") }.takeUnless { it == - 1 }?.let { add(removeAt(it)) }
             }
 
             val clearInfo = listOf(
@@ -118,8 +107,7 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
                 "§aBoss Entry: $bossEntry"
             )
 
-            currentText = if (splitLines.isEmpty()) clearInfo
-            else clearInfo + "-----------------------" + splitLines
+            currentText = if (splitLines.isEmpty()) clearInfo else clearInfo + "-----------------------" + splitLines
         }
 
         register<ChatMessageEvent> {
@@ -133,30 +121,26 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
                 val split = currentFloorSplits.getOrPut(entry.name) { Split() }
 
                 if (entry.startMatches(msg) || (i > 0 && currentSplits[i - 1].endMatches(msg))) {
-                    split.start = DungeonListener.currentTime
-                    split.realStart = System.currentTimeMillis()
+                    split.start = DualTime(DungeonListener.currentTime)
                 }
 
                 if (entry.endMatches(msg) || (entry.end == null && runEndRegex.matches(msg))) {
-                    split.end = DungeonListener.currentTime
-                    split.realEnd = System.currentTimeMillis()
+                    split.end = DualTime(DungeonListener.currentTime)
                 }
 
-                if (split.start != null || split.end != null) {
-                    currentFloorSplits[entry.name] = split
-                }
+                if (split.start != null || split.end != null) currentFloorSplits[entry.name] = split
             }
         }
     }
 
-    private data class Split(var start: Long? = null, var end: Long? = null, var realStart: Long? = null, var realEnd: Long? = null)
+    private data class Split(var start: DualTime? = null, var end: DualTime? = null)
     private data class DialogueEntry(val name: String, val start: String? = null, val end: String? = null) {
         fun startMatches(msg: String) = start == msg || start?.toRegex()?.matches(msg) == true
         fun endMatches(msg: String) = end == msg || end?.toRegex()?.matches(msg) == true
     }
 
-    private fun realDiff(a: Long?, b: Long?) = if (a != null && b != null) a - b else null
-    private fun dual(ticks: Long, realMs: Long?, fmt: (Long) -> String) = realMs?.let { "${fmt(it / 50)} §7(§b${fmt(ticks)}§7)" } ?: fmt(ticks)
+    private operator fun DualTime.minus(other: DualTime) = DualTime(ticks - other.ticks, real - other.real)
+    private fun dual(diff: DualTime, fmt: (Long) -> String) = "${fmt(diff.real / 50)} §7(§b${fmt(diff.ticks)}§7)"
     private fun formatTime(ticks: Long) = "${(ticks / 20) / 60}m ${(ticks / 20) % 60}s"
     private fun formatSecs(ticks: Long) = "${ticks / 20}s"
     private fun formatDec(ticks: Long) = "${(ticks / 20.0).toFixed(1)}s"
