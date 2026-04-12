@@ -4,10 +4,7 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.google.gson.JsonParser
 import com.mojang.serialization.JsonOps
-import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.ComponentSerialization
-import net.minecraft.network.chat.MutableComponent
-import net.minecraft.network.chat.Style
+import net.minecraft.network.chat.*
 import net.minecraft.resources.RegistryOps
 import net.minecraft.util.FormattedCharSequence
 import java.util.*
@@ -17,19 +14,18 @@ object TextReplacer {
     private data class Match(val startIndex: Int, val replacement: Replacement)
 
     private val hexPattern = Pattern.compile("&#([A-Fa-f0-9]{6})")
-    private val stringCache = Collections.synchronizedMap(newBoundedCache<String, String>(2048))
     private val literalCache = Collections.synchronizedMap(newBoundedCache<Style, MutableMap<String, Any>>(64))
-    private val SEPARATORS = hashSetOf(' ', ':', ',', '.', ';', '/', '\\')
+    private val stringCache = Collections.synchronizedMap(newBoundedCache<String, String>(2048))
 
-    @Volatile
-    private var replacementVersion = - 1
-
-    @Volatile
-    private var preparedReplacements = emptyList<Replacement>()
+    @Volatile private var preparedReplacements = emptyList<Replacement>()
+    @Volatile private var replacementVersion = - 1
 
     private val replacementMap = ReplacementMap(::clearCache)
-
-    private var ahoCorasick: AhoCorasick = AhoCorasick(listOf())
+    private var ahoCorasick = AhoCorasick(emptyList())
+    private val SEPARATORS = hashSetOf(
+        ' ', ':', ',', '.', ';', '/', '\\', '!', '\'', '?', '@', '-', '(', ')', '*', '&', '^', '$', '#',
+        '"', '`', '~', '+', '=', '[', ']', '{', '}', '<', '>', '|', '%', '\t', '\n', '\r'
+    )
 
     fun setCustomReplacements(replacements: Map<String, String>) {
         replacementMap.clear()
@@ -77,12 +73,50 @@ object TextReplacer {
 
         flush()
 
+        return rebuildStyledText(styles, texts)?.visualOrderText ?: seq
+    }
+
+    @JvmStatic
+    fun handleFormattedText(text: FormattedText): FormattedText {
+        val replacements = getCache()
+        if (replacements.isEmpty()) return text
+
+        val styles = ArrayList<Style>()
+        val texts = ArrayList<String>()
+        var currentStyle = Style.EMPTY
+        val currentText = StringBuilder()
+
+        fun flush() {
+            if (currentText.isEmpty()) return
+            styles.add(currentStyle)
+            texts.add(currentText.toString())
+            currentText.setLength(0)
+        }
+
+        text.visit({ style, segment ->
+            if (style != currentStyle) {
+                flush()
+                currentStyle = style
+            }
+
+            currentText.append(segment)
+            Optional.empty<Any>()
+        }, Style.EMPTY)
+
+        flush()
+
+        return rebuildStyledText(styles, texts) ?: text
+    }
+
+    private fun rebuildStyledText(styles: List<Style>, texts: List<String>): MutableComponent? {
+        if (texts.isEmpty()) return null
+
         val segmentOffsets = IntArray(texts.size + 1)
         for (i in texts.indices) segmentOffsets[i + 1] = segmentOffsets[i] + texts[i].length
         val joined = texts.joinToString("")
 
         val matches = collectMatches(joined)
-        if (matches.isEmpty()) return seq
+        if (matches.isEmpty()) return null
 
         fun styleAt(pos: Int): Style {
             val seg = segmentOffsets.indexOfLast { it <= pos }.coerceAtLeast(0)
@@ -115,9 +149,8 @@ object TextReplacer {
             cursor = match.startIndex + match.replacement.target.length
         }
 
-        appendSpan(rebuilt, cursor, joined.length);
-
-        return rebuilt.visualOrderText
+        appendSpan(rebuilt, cursor, joined.length)
+        return rebuilt
     }
 
     private fun replaceText(text: String): String? {

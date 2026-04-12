@@ -44,11 +44,11 @@ object DebugHUD {
             val display = time?.let { "§f${it}t §8(${it / 20}s)" } ?: "§7N/A"
             draw("$name: $display")
         }
-        formatTS("Start", DungeonListener.dungeonStartTime)
-        formatTS("Blood Open", DungeonListener.bloodOpenTime)
+        formatTS("Start", DungeonListener.dungeonStartTime?.ticks)
+        formatTS("Blood Open", DungeonListener.bloodOpenTime?.ticks)
         formatTS("Watcher Spawn", DungeonListener.watcherFinishSpawnTime)
-        formatTS("Watcher Clear", DungeonListener.watcherClearTime)
-        formatTS("Boss Entry", DungeonListener.bossEntryTime)
+        formatTS("Watcher Clear", DungeonListener.watcherClearTime?.ticks)
+        formatTS("Boss Entry", DungeonListener.bossEntryTime?.ticks)
         formatTS("Run End", DungeonListener.dungeonEndTime)
 
         y += 5

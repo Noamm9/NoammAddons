@@ -1,4 +1,5 @@
 package com.github.noamm9.features.impl.general
+/*
 
 //#if CHEAT
 
@@ -193,3 +194,5 @@ object AutoHotbar: Feature("Automatically swaps items to specific hotbar slots u
     )
 }
 //#endif
+
+ */

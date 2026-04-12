@@ -1,5 +1,5 @@
 package com.github.noamm9.ui.gui
-
+/*
 //#if CHEAT
 
 import com.github.noamm9.features.impl.general.AutoHotbar
@@ -370,3 +370,5 @@ class AutoHotbarScreen: Screen(Component.literal("AutoSwap Configuration")) {
     }
 }
 //#endif
+
+ */
