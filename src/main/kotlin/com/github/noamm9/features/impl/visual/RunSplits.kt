@@ -4,6 +4,10 @@ import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.ui.clickgui.components.getValue
+import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.ui.clickgui.components.provideDelegate
+import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.utils.DataDownloader
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.dungeons.DungeonListener
@@ -15,6 +19,8 @@ import com.github.noamm9.utils.render.Render2D.width
 import java.util.concurrent.ConcurrentHashMap
 
 object RunSplits: Feature("A Splits HUD for Dungeons.") {
+    private val showTotalTime by ToggleSetting("Total Time", false).withDescription("Shows total time, clear time, boss time and tick difference.")
+
     private val floorSplits by lazy {
         DataDownloader.loadJson<Map<String, List<Map<String, String?>>>>("runSplits.json").mapValues {
             it.value.map { entryMap ->
@@ -32,11 +38,11 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
 
     private var currentText: List<String> = emptyList()
     private val exampleText = listOf(
-        "§8Wither Doors: §7?",
-        "§4Blood Open: ?",
-        "§cWatcher Clear: ?",
-        "§dPortal: ?",
-        "§aBoss Entry: ?"
+        "§8Wither Doors: §72",
+        "§4Blood Open: 1:07 §7(§b1:06§7)",
+        "§cWatcher Clear: 67 §7(§b66§7)",
+        "§dPortal: 4.2 §7(§b4.1§7)",
+        "§aBoss Entry: 5:49 §7(§b5:47§7)"
     )
 
     override fun init() {
@@ -92,14 +98,14 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
                 val s = split.start ?: return@mapNotNull null
                 val e = split.end ?: DualTime(DungeonListener.currentTime)
                 val diff = e - s
-                val t = (diff.ticks / 20.0).toFixed(2) + "s"
-                val r = (diff.real / 1000.0).toFixed(2) + "s"
+                val t = (diff.ticks / 20.0).toFixed(2)
+                val r = (diff.real / 1000.0).toFixed(2)
                 "$name: ${r} §7(§b${t}§7)§r"
             }.toMutableList().apply {
                 indexOfFirst { it.startsWith("&aBoss") }.takeUnless { it == - 1 }?.let { add(removeAt(it)) }
             }
 
-            val clearInfo = listOf(
+            val clearInfo = mutableListOf(
                 "§8Wither Doors: §7${DungeonInfo.witherDoors}",
                 "§4Blood Open: $bloodOpen",
                 "§cWatcher Clear: $watcherClear",
@@ -107,7 +113,23 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
                 "§aBoss Entry: $bossEntry"
             )
 
-            currentText = if (splitLines.isEmpty()) clearInfo else clearInfo + "-----------------------" + splitLines
+            if (splitLines.isNotEmpty()) {
+                clearInfo.add("-----------------------")
+                clearInfo.addAll(splitLines)
+            }
+
+            if (showTotalTime.value && DungeonListener.dungeonStarted) {
+                val total = now - start
+                val diffMs = total.real - (total.ticks * 50)
+
+                clearInfo.add("-----------------------")
+                clearInfo.add("§eTotal: ${dual(total, ::formatTime)}")
+                if (DungeonListener.dungeonEnded) {
+                    clearInfo.add("§8Lag Lost: ${if (diffMs > 0) "§c+" else "§a"}${diffMs / 1000}s")
+                }
+            }
+
+            currentText = clearInfo
         }
 
         register<ChatMessageEvent> {
@@ -141,7 +163,7 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
 
     private operator fun DualTime.minus(other: DualTime) = DualTime(ticks - other.ticks, real - other.real)
     private fun dual(diff: DualTime, fmt: (Long) -> String) = "${fmt(diff.real / 50)} §7(§b${fmt(diff.ticks)}§7)"
-    private fun formatTime(ticks: Long) = "${(ticks / 20) / 60}m ${(ticks / 20) % 60}s"
-    private fun formatSecs(ticks: Long) = "${ticks / 20}s"
-    private fun formatDec(ticks: Long) = "${(ticks / 20.0).toFixed(1)}s"
+    private fun formatTime(ticks: Long) = "${ticks / 20 / 60}:${(ticks / 20 % 60).toString().padStart(2, '0')}"
+    private fun formatSecs(ticks: Long) = "${ticks / 20}"
+    private fun formatDec(ticks: Long) = if (ticks / 20 >= 60) formatTime(ticks) else (ticks / 20.0).toFixed(1)
 }
