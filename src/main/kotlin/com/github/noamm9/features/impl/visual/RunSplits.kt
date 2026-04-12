@@ -12,6 +12,7 @@ import com.github.noamm9.utils.DataDownloader
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.DungeonListener.DualTime
+import com.github.noamm9.utils.dungeons.DungeonListener.DualTime.Companion.minus
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
@@ -19,7 +20,9 @@ import com.github.noamm9.utils.render.Render2D.width
 import java.util.concurrent.ConcurrentHashMap
 
 object RunSplits: Feature("A Splits HUD for Dungeons.") {
-    private val showTotalTime by ToggleSetting("Total Time", false).withDescription("Shows total time, clear time, boss time and tick difference.")
+    private val showWitherDoors by ToggleSetting("Show Wither Doors").withDescription("Show The Number of Wither Doors in the run")
+    private val showTotalTime by ToggleSetting("Total Time").withDescription("Shows the total run time.")
+    private val showTimeLost by ToggleSetting("Show Time Lost").withDescription("Shows the total time run time that was lost due to server lags.")
 
     private val floorSplits by lazy {
         DataDownloader.loadJson<Map<String, List<Map<String, String?>>>>("runSplits.json").mapValues {
@@ -67,6 +70,7 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
 
         register<TickEvent.Start> {
             if (! LocationUtils.inDungeon) return@register
+            if (DungeonListener.dungeonEnded) return@register
 
             val now = DualTime(DungeonListener.currentTime)
             val start = DungeonListener.dungeonStartTime ?: now
@@ -100,33 +104,30 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
                 val diff = e - s
                 val t = (diff.ticks / 20.0).toFixed(2)
                 val r = (diff.real / 1000.0).toFixed(2)
-                "$name: ${r} §7(§b${t}§7)§r"
+                "$name: $r §7(§b$t§7)§r"
             }.toMutableList().apply {
                 indexOfFirst { it.startsWith("&aBoss") }.takeUnless { it == - 1 }?.let { add(removeAt(it)) }
             }
 
-            val clearInfo = mutableListOf(
-                "§8Wither Doors: §7${DungeonInfo.witherDoors}",
-                "§4Blood Open: $bloodOpen",
-                "§cWatcher Clear: $watcherClear",
-                "§dPortal: $portalTime",
-                "§aBoss Entry: $bossEntry"
-            )
+            val clearInfo = mutableListOf<String>()
+            if (showWitherDoors.value) clearInfo.add("§8Wither Doors: §7${DungeonInfo.witherDoors}")
+            clearInfo.add("§4Blood Open: $bloodOpen")
+            clearInfo.add("§cWatcher Clear: $watcherClear")
+            clearInfo.add("§dPortal: $portalTime")
+            clearInfo.add("§aBoss Entry: $bossEntry")
 
             if (splitLines.isNotEmpty()) {
                 clearInfo.add("-----------------------")
                 clearInfo.addAll(splitLines)
             }
 
-            if (showTotalTime.value && DungeonListener.dungeonStarted) {
+            if (DungeonListener.dungeonStarted) {
                 val total = now - start
                 val diffMs = total.real - (total.ticks * 50)
 
-                clearInfo.add("-----------------------")
-                clearInfo.add("§eTotal: ${dual(total, ::formatTime)}")
-                if (DungeonListener.dungeonEnded) {
-                    clearInfo.add("§8Lag Lost: ${if (diffMs > 0) "§c+" else "§a"}${diffMs / 1000}s")
-                }
+                if (showTotalTime.value || showTimeLost.value) clearInfo.add("-----------------------")
+                if (showTotalTime.value) clearInfo.add("§eTotal: ${dual(total, ::formatTime)}")
+                if (showTimeLost.value && diffMs >= 1000) clearInfo.add("§8Lag Lost: §c+${diffMs / 1000}s")
             }
 
             currentText = clearInfo
@@ -161,7 +162,6 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
         fun endMatches(msg: String) = end == msg || end?.toRegex()?.matches(msg) == true
     }
 
-    private operator fun DualTime.minus(other: DualTime) = DualTime(ticks - other.ticks, real - other.real)
     private fun dual(diff: DualTime, fmt: (Long) -> String) = "${fmt(diff.real / 50)} §7(§b${fmt(diff.ticks)}§7)"
     private fun formatTime(ticks: Long) = "${ticks / 20 / 60}:${(ticks / 20 % 60).toString().padStart(2, '0')}"
     private fun formatSecs(ticks: Long) = "${ticks / 20}"
