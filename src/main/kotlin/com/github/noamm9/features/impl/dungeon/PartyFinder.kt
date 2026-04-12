@@ -5,6 +5,7 @@ import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.features.impl.general.Chat
 import com.github.noamm9.ui.clickgui.components.*
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
@@ -333,7 +334,8 @@ object PartyFinder: Feature() {
         }
 
         val reasons = mutableListOf<String>().apply {
-            if (name.equalsOneOf("Noamm", mc.user.name)) return@apply
+            //dont delete my name please please please please please
+            if (name.equalsOneOf("Noamm", "ds_game_over", mc.user.name)) return@apply
             val profile = ProfileUtils.getProfile(name).getOrNull() ?: return@apply
 
             val dungeons = profile.getObj("dungeons") ?: return@apply
@@ -342,9 +344,11 @@ object PartyFinder: Feature() {
 
             val floorPrefix = if (masterMode.value) "M" else "F"
             val pbReq = formatTime(maximumSeconds.value * 1000)
-            val pb = dungeonType?.getObj("fastest_time_s_plus")?.getInt("$floor")?.div(1000)
-            if (pb == null) add("PB(No S+/$pbReq)")
-            else if (pb > maximumSeconds.value) {
+            val pb = dungeonType?.getObj("fastest_time_s_plus")?.getInt("$floor")
+            if (pb == null) {
+                add("PB(No S+/$pbReq)")
+            }
+            else if (pb / 1000 > maximumSeconds.value) {
                 add("$floorPrefix$floor: PB(${formatTime(pb)}/$pbReq)")
             }
 
