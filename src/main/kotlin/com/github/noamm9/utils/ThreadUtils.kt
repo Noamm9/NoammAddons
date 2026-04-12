@@ -7,6 +7,7 @@ import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.EventPriority
 import com.github.noamm9.event.impl.TickEvent
 import kotlinx.coroutines.runBlocking
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Executors
 import java.util.concurrent.PriorityBlockingQueue
 import java.util.concurrent.TimeUnit
@@ -19,7 +20,7 @@ object ThreadUtils {
 
     private val serverTickTasks = PriorityBlockingQueue<TickTask>()
     private val clientTickTasks = PriorityBlockingQueue<TickTask>()
-    private val shutdownTasks = ArrayDeque<Runnable>()
+    private val shutdownTasks = ConcurrentLinkedQueue<Runnable>()
 
     private val taskOrder = AtomicLong()
     private val serverTickCounter = AtomicLong()
@@ -28,7 +29,7 @@ object ThreadUtils {
     init {
         register<TickEvent.Start>(EventPriority.HIGHEST) { process(clientTickTasks, clientTickCounter.incrementAndGet()) }
         register<TickEvent.Server>(EventPriority.HIGHEST) { process(serverTickTasks, serverTickCounter.incrementAndGet()) }
-        Runtime.getRuntime().addShutdownHook(Thread({ shutdownTasks.forEach { runCatching(it::run) } }, "$MOD_NAME-Shutdown-Hook"))
+        Runtime.getRuntime().addShutdownHook(Thread({ shutdownTasks.forEach { runCatching(it::run).onFailure { it.printStackTrace() } } }, "$MOD_NAME-Shutdown-Hook"))
     }
 
     fun runOnMcThread(block: Runnable) = if (mc.isSameThread) safeRun(block) else mc.execute { safeRun(block) }
