@@ -1,9 +1,11 @@
 package com.github.noamm9.features.impl.misc
 
+import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.*
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 
 object Camera: Feature() {
     @JvmStatic
@@ -23,6 +25,8 @@ object Camera: Feature() {
 
     @JvmStatic
     val cameraDistance by SliderSetting("Camera Distance", 4, 1, 10, 0.1).withDescription("The distance of the camera from the player.").showIf { customCameraDistance.value }
+
+    private val doubleSneakFix by ToggleSetting("Double Sneak Fix").withDescription("Prevents the server from setting your sneak state")
 
     @JvmStatic
     val hideFireOverlay by ToggleSetting("Hide Fire Overlay").withDescription("Hides the fire overlay on your screen.").section("Hide Overlays")
@@ -50,4 +54,13 @@ object Camera: Feature() {
 
     @JvmStatic
     val customFOVSlider by SliderSetting("FOV", 110, 30, 179, 1).hideIf { ! customFOV.value }
+
+    override fun init() {
+        register<MainThreadPacketReceivedEvent.Pre> {
+            if (! doubleSneakFix.value) return@register
+            val packet = event.packet as? ClientboundSetEntityDataPacket ?: return@register
+            if (mc.player?.id != packet.id) return@register
+            packet.packedItems.removeIf { it.id == 6 }
+        }
+    }
 }
