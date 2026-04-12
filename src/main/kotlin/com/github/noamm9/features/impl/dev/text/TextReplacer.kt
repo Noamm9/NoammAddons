@@ -19,10 +19,7 @@ object TextReplacer {
     private val hexPattern = Pattern.compile("&#([A-Fa-f0-9]{6})")
     private val stringCache = Collections.synchronizedMap(newBoundedCache<String, String>(2048))
     private val literalCache = Collections.synchronizedMap(newBoundedCache<Style, MutableMap<String, Any>>(64))
-    private val SEPARATORS = hashSetOf(
-        ' ', ':', ',', '.', ';', '/', '\\', '!', '\'', '?', '@', '-', '(', ')', '*', '&', '^', '$', '#',
-        '"', '`', '~', '+', '=', '[', ']', '{', '}', '<', '>', '|', '%'
-    )
+    private val SEPARATORS = hashSetOf(' ', ':', ',', '.', ';', '/', '\\')
 
     @Volatile
     private var replacementVersion = - 1
@@ -32,12 +29,23 @@ object TextReplacer {
 
     private val replacementMap = ReplacementMap(::clearCache)
 
-    private var ahoCorasick = AhoCorasick(listOf())
+    private var ahoCorasick: AhoCorasick = AhoCorasick(listOf())
 
     fun setCustomReplacements(replacements: Map<String, String>) {
         replacementMap.clear()
         replacementMap.putAll(replacements)
         ahoCorasick = AhoCorasick(getCache())
+    }
+
+    @JvmStatic
+    fun handleString(text: String): String {
+        if (text.isEmpty()) return text
+        val replacements = getCache()
+        if (replacements.isEmpty()) return text
+
+        return synchronized(stringCache) {
+            stringCache.getOrPut(text) { replaceText(text) ?: text }
+        }
     }
 
     @JvmStatic
@@ -69,18 +77,12 @@ object TextReplacer {
 
         flush()
 
-        return rebuildStyledText(styles, texts)?.visualOrderText ?: seq
-    }
-
-    private fun rebuildStyledText(styles: List<Style>, texts: List<String>): MutableComponent? {
-        if (texts.isEmpty()) return null
-
         val segmentOffsets = IntArray(texts.size + 1)
         for (i in texts.indices) segmentOffsets[i + 1] = segmentOffsets[i] + texts[i].length
         val joined = texts.joinToString("")
 
         val matches = collectMatches(joined)
-        if (matches.isEmpty()) return null
+        if (matches.isEmpty()) return seq
 
         fun styleAt(pos: Int): Style {
             val seg = segmentOffsets.indexOfLast { it <= pos }.coerceAtLeast(0)
@@ -113,8 +115,27 @@ object TextReplacer {
             cursor = match.startIndex + match.replacement.target.length
         }
 
-        appendSpan(rebuilt, cursor, joined.length)
-        return rebuilt
+        appendSpan(rebuilt, cursor, joined.length);
+
+        return rebuilt.visualOrderText
+    }
+
+    private fun replaceText(text: String): String? {
+        val accepted = collectMatches(text)
+        if (accepted.isEmpty()) return null
+
+        val result = StringBuilder(text.length)
+        var cursor = 0
+
+        for (match in accepted) {
+            if (match.startIndex > cursor) result.append(text, cursor, match.startIndex)
+            result.append(match.replacement.plainString)
+            cursor = match.startIndex + match.replacement.target.length
+        }
+
+        if (cursor < text.length) result.append(text, cursor, text.length)
+
+        return result.toString()
     }
 
     private fun collectMatches(text: String): List<Match> {
