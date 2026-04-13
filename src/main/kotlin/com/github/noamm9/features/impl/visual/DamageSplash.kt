@@ -3,6 +3,7 @@ package com.github.noamm9.features.impl.visual
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.getValue
+import com.github.noamm9.ui.clickgui.components.hideIf
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.ui.clickgui.components.withDescription
@@ -19,9 +20,10 @@ import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
 object DamageSplash: Feature("Reformat Skyblock's Damage Indicators.") {
-    private val uppercase by ToggleSetting("Uppercase Formatting").withDescription("Changes the damage number to uppercase.")
-    private val disableinClear by ToggleSetting("Hide in Clear").withDescription("Hides all damage indicators in dungeon clear.")
-    private val disableinBoss by ToggleSetting("Hide in Boss").withDescription("Hides all damage indicators in dungeon boss room.")
+    private val hideDamage by ToggleSetting("Hide Damage Nametag").withDescription("Hides all damage indicators.")
+    private val uppercase by ToggleSetting("Uppercase Formatting").withDescription("Changes the damage number to uppercase.").hideIf { hideDamage.value }
+    private val disableinClear by ToggleSetting("Hide in Clear").withDescription("Hides all damage indicators in dungeon clear.").hideIf { hideDamage.value }
+    private val disableinBoss by ToggleSetting("Hide in Boss").withDescription("Hides all damage indicators in dungeon boss room.").hideIf { hideDamage.value }
 
     private val damageRegex = Regex("[✧✯]?(\\d{1,3}(?:,\\d{3})*[⚔+✧❤♞☄✷ﬗ✯]*)")
     private val colors = listOf("§6", "§c", "§e", "§f")
@@ -38,7 +40,11 @@ object DamageSplash: Feature("Reformat Skyblock's Damage Indicators.") {
                 val rawText = content.formattedText.takeIf { it.contains("§") } ?: continue
                 val damageNum = damageRegex.matchEntire(rawText.removeFormatting())?.destructured?.component1() ?: continue
 
-                if ((LocationUtils.inBoss && disableinBoss.value) || (LocationUtils.inDungeon && ! LocationUtils.inBoss && disableinClear.value)) {
+                val hide = hideDamage.value
+                val inClear = LocationUtils.inDungeon && ! LocationUtils.inBoss && disableinClear.value
+                val inBoss = LocationUtils.inBoss && disableinBoss.value
+
+                if (hide || inClear || inBoss) {
                     entity.remove(Entity.RemovalReason.DISCARDED)
                     event.isCanceled = true
                     return@register
