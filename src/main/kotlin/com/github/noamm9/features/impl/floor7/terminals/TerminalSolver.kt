@@ -16,6 +16,7 @@ import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
+import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.Utils.equalsOneOf
 import com.github.noamm9.utils.Utils.uppercaseFirst
 import com.github.noamm9.utils.items.ItemUtils.hasGlint
@@ -286,9 +287,8 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
         sendClickPacket(click.slotId, click.btn)
 
         val initialWindowId = TerminalListener.lastWindowId
-        Scheduler.schedule(resyncTimeout.value.toInt(), resyncTimeout.value.toInt() / 50) {
-            if (! TerminalListener.inTerm || initialWindowId != TerminalListener.lastWindowId) return@schedule
-
+        ThreadUtils.setTimeout(resyncTimeout.value) {
+            if (! TerminalListener.inTerm || initialWindowId != TerminalListener.lastWindowId) return@setTimeout
             if (NoammAddons.debugFlags.contains("terminal")) {
                 ChatUtils.modMessage("Resync Timeout Triggered")
             }
