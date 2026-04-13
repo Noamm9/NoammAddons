@@ -22,10 +22,6 @@ object TextReplacer {
 
     private val replacementMap = ReplacementMap(::clearCache)
     private var ahoCorasick = AhoCorasick(emptyList())
-    private val SEPARATORS = hashSetOf(
-        ' ', ':', ',', '.', ';', '/', '\\', '!', '\'', '?', '@', '-', '(', ')', '*', '&', '^', '$', '#',
-        '"', '`', '~', '+', '=', '[', ']', '{', '}', '<', '>', '|', '%', '\t', '\n', '\r'
-    )
 
     fun setCustomReplacements(replacements: Map<String, String>) {
         replacementMap.clear()
@@ -175,14 +171,19 @@ object TextReplacer {
         val hits = mutableListOf<Match>()
         var node = ahoCorasick.root
 
+        fun isNameChar(c: Char): Boolean {
+            return c.isLetterOrDigit() || c == '_'
+        }
+
         for (i in text.indices) {
             node = ahoCorasick.goto(node, text[i])
             var outputNode = if (node.output != null) node else node.outputLink
 
             while (outputNode != null) {
                 val r = outputNode.output !!
-                if (i + 1 == text.length || text[i + 1] in SEPARATORS)
-                    hits.add(Match(i - r.target.length + 1, r))
+                val start = i - r.target.length + 1
+                if ((start - 1 < 0 || !isNameChar(text[start - 1])) && (i + 1 == text.length || !isNameChar(text[i + 1])))
+                    hits.add(Match(start, r))
                 outputNode = outputNode.outputLink
             }
         }
