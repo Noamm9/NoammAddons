@@ -1,5 +1,5 @@
-import net.fabricmc.loom.configuration.ide.RunConfigSettings
 import net.fabricmc.loom.task.RemapJarTask
+import net.fabricmc.loom.task.RemapSourcesJarTask
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -17,37 +17,25 @@ val loader_version: String by project
 val fabric_kotlin_version: String by project
 val mod_version: String by project
 val maven_group: String by project
-val archives_base_name: String by project
 val mod_name: String by project
 val fabric_version: String by project
 val iris_version: String by project
 
-fun SourceSet.kotlin(action: SourceDirectorySet.() -> Unit) {
-    (extensions.getByName("kotlin") as SourceDirectorySet).action()
-}
-
 version = mod_version
 group = maven_group
 
-base {
-    archivesName.set(archives_base_name)
-}
+base { archivesName.set(mod_name) }
+kotlin { jvmToolchain(21) }
+java { toolchain.languageVersion = JavaLanguageVersion.of(21) }
 
 repositories {
     maven(url = uri("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1"))
-    maven(url = uri("https://maven.parchmentmc.org"))
     maven(url = uri("https://api.modrinth.com/maven"))
 }
 
 dependencies {
     minecraft("com.mojang:minecraft:$minecraft_version")
-
-    mappings(
-        loom.layered {
-            officialMojangMappings()
-            parchment("org.parchmentmc.data:parchment-1.21.10:2025.10.12@zip")
-        }
-    )
+    mappings(loom.officialMojangMappings())
 
     modImplementation("net.fabricmc:fabric-loader:$loader_version")
     modImplementation("net.fabricmc.fabric-api:fabric-api:$fabric_version")
@@ -56,33 +44,21 @@ dependencies {
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
     modCompileOnly("maven.modrinth:iris:$iris_version")
 
-    implementation("io.github.classgraph:classgraph:4.8.174")
-    include("io.github.classgraph:classgraph:4.8.174")
-
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
-    include("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
-
     implementation("io.github.llamalad7:mixinextras-fabric:0.4.1")
     annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.4.1")
 
-    implementation("org.java-websocket:Java-WebSocket:1.5.4")
-    include("org.java-websocket:Java-WebSocket:1.5.4")
-}
-
-tasks.withType<JavaCompile>().configureEach {
-    options.release.set(21)
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_21)
+    listOf(
+        "org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3",
+        "io.github.classgraph:classgraph:4.8.174",
+        "org.java-websocket:Java-WebSocket:1.5.4"
+    ).forEach {
+        implementation(it)
+        include(it)
     }
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
-}
+tasks.withType<JavaCompile>().configureEach { options.release.set(21) }
+tasks.withType<KotlinCompile>().configureEach { compilerOptions { jvmTarget.set(JvmTarget.JVM_21) } }
 
 val intermediateJarsDir = layout.buildDirectory.dir("tmp/intermediateJars")
 val libsDir = layout.buildDirectory.dir("libs")
@@ -94,7 +70,7 @@ tasks.named<Jar>("jar") {
     archiveClassifier.set("dev")
 
     from("LICENSE") {
-        rename { "${it}_$archives_base_name" }
+        rename { "${it}_$mod_name" }
     }
 }
 
@@ -106,23 +82,13 @@ val cheatKotlinDir = layout.buildDirectory.dir("preprocessed/cheat/kotlin")
 val legitJavaDir = layout.buildDirectory.dir("preprocessed/legit/java")
 val legitKotlinDir = layout.buildDirectory.dir("preprocessed/legit/kotlin")
 
-fun SourceSet.configurePreprocessedVariant(
-    javaDir: Provider<Directory>,
-    kotlinDir: Provider<Directory>,
-) {
+fun SourceSet.configurePreprocessedVariant(javaDir: Provider<Directory>, kotlinDir: Provider<Directory>) {
     java.setSrcDirs(listOf(javaDir.get().asFile))
-    kotlin {
-        setSrcDirs(listOf(kotlinDir.get().asFile))
-    }
+    (extensions.getByName("kotlin") as SourceDirectorySet).apply { setSrcDirs(listOf(kotlinDir.get().asFile)) }
     resources.setSrcDirs(listOf("src/main/resources"))
     compileClasspath += mainSourceSet.compileClasspath
     runtimeClasspath += mainSourceSet.runtimeClasspath - mainSourceSet.output
 }
-
-fun NamedDomainObjectContainer<RunConfigSettings>.configureRunConfig(
-    configName: String,
-    configure: RunConfigSettings.() -> Unit,
-): RunConfigSettings = maybeCreate(configName).apply(configure)
 
 fun Configuration.copyAttributesFrom(other: Configuration) {
     other.attributes.keySet().forEach { key ->
@@ -132,28 +98,19 @@ fun Configuration.copyAttributesFrom(other: Configuration) {
     }
 }
 
-val cheatSourceSet: SourceSet = sourceSets.create("cheat").apply {
-    configurePreprocessedVariant(cheatJavaDir, cheatKotlinDir)
-}
-
-val legitSourceSet: SourceSet = sourceSets.create("legit").apply {
-    configurePreprocessedVariant(legitJavaDir, legitKotlinDir)
-}
+val cheatSourceSet = sourceSets.create("cheat").apply { configurePreprocessedVariant(cheatJavaDir, cheatKotlinDir) }
+val legitSourceSet = sourceSets.create("legit").apply { configurePreprocessedVariant(legitJavaDir, legitKotlinDir) }
 
 tasks.named<KotlinCompile>("compileCheatKotlin") {
     dependsOn("preprocessCheat")
     inputs.dir("src/main/kotlin")
     inputs.dir(cheatKotlinDir)
 
-    compilerOptions {
-        freeCompilerArgs.add("-Xjava-source-roots=${cheatJavaDir.get().asFile.invariantSeparatorsPath}")
-    }
+    compilerOptions { freeCompilerArgs.add("-Xjava-source-roots=${cheatJavaDir.get().asFile.invariantSeparatorsPath}") }
 }
 
 tasks.named<KotlinCompile>("compileKotlin") {
-    compilerOptions {
-        freeCompilerArgs.add("-Xjava-source-roots=${file("src/main/java").invariantSeparatorsPath}")
-    }
+    compilerOptions { freeCompilerArgs.add("-Xjava-source-roots=${file("src/main/java").invariantSeparatorsPath}") }
 }
 
 tasks.named<JavaCompile>("compileCheatJava") {
@@ -173,9 +130,7 @@ tasks.named<KotlinCompile>("compileLegitKotlin") {
     inputs.dir("src/main/kotlin")
     inputs.dir(legitKotlinDir)
 
-    compilerOptions {
-        freeCompilerArgs.add("-Xjava-source-roots=${legitJavaDir.get().asFile.invariantSeparatorsPath}")
-    }
+    compilerOptions { freeCompilerArgs.add("-Xjava-source-roots=${legitJavaDir.get().asFile.invariantSeparatorsPath}") }
 }
 
 tasks.named<JavaCompile>("compileLegitJava") {
@@ -195,10 +150,7 @@ val jarCheat = tasks.register<Jar>("jarCheat") {
     from(cheatSourceSet.output)
     archiveClassifier.set("cheat")
     destinationDirectory.set(intermediateJarsDir)
-
-    from("LICENSE") {
-        rename { "${it}_$archives_base_name" }
-    }
+    from("LICENSE") { rename { "${it}_$mod_name" } }
 }
 
 val jarLegit = tasks.register<Jar>("jarLegit") {
@@ -206,10 +158,7 @@ val jarLegit = tasks.register<Jar>("jarLegit") {
     from(legitSourceSet.output)
     archiveClassifier.set("legit")
     destinationDirectory.set(intermediateJarsDir)
-
-    from("LICENSE") {
-        rename { "${it}_$archives_base_name" }
-    }
+    from("LICENSE") { rename { "${it}_$mod_name" } }
 }
 
 val remapJarCheat = tasks.register<RemapJarTask>("remapJarCheat") {
@@ -232,30 +181,36 @@ val legitSourcesJar = tasks.register<Jar>("legitSourcesJar") {
     dependsOn("preprocessLegit")
     from(legitJavaDir)
     from(legitKotlinDir)
-    from(layout.buildDirectory.dir("preprocessed/legit/resources")) {
-        include("fabric.mod.json")
-        include("noammaddons.mixins.json")
-    }
+    archiveClassifier.set("legit-sources-raw")
+    destinationDirectory.set(intermediateJarsDir)
+}
+
+val remapLegitSourcesJar = tasks.register<RemapSourcesJarTask>("remapLegitSourcesJar") {
+    dependsOn(legitSourcesJar)
+    inputFile.set(legitSourcesJar.flatMap { it.archiveFile })
     archiveClassifier.set("sources")
-    destinationDirectory.set(variantSourcesDir.map { it.dir("legit") })
+    destinationDirectory.set(libsDir)
 }
 
 val cheatSourcesJar = tasks.register<Jar>("cheatSourcesJar") {
     dependsOn("preprocessCheat")
     from(cheatJavaDir)
     from(cheatKotlinDir)
-    from(layout.buildDirectory.dir("preprocessed/cheat/resources")) {
-        include("fabric.mod.json")
-        include("noammaddons.mixins.json")
-    }
-    archiveClassifier.set("sources")
-    destinationDirectory.set(variantSourcesDir.map { it.dir("cheat") })
+    archiveClassifier.set("cheat-sources-raw")
+    destinationDirectory.set(intermediateJarsDir)
+}
+
+val remapCheatSourcesJar = tasks.register<RemapSourcesJarTask>("remapCheatSourcesJar") {
+    dependsOn(cheatSourcesJar)
+    inputFile.set(cheatSourcesJar.flatMap { it.archiveFile })
+    archiveClassifier.set("cheat-sources")
+    destinationDirectory.set(libsDir)
 }
 
 val baseApiElements = configurations.named("apiElements")
 val baseRuntimeElements = configurations.named("runtimeElements")
 
-val cheatApiElements = configurations.create("cheatApiElements") {
+val cheatApiElements = configurations.create("cheatApiElements").apply {
     isCanBeConsumed = true
     isCanBeResolved = false
     extendsFrom(baseApiElements.get())
@@ -263,7 +218,7 @@ val cheatApiElements = configurations.create("cheatApiElements") {
     outgoing.artifact(remapJarCheat)
 }
 
-val cheatRuntimeElements = configurations.create("cheatRuntimeElements") {
+val cheatRuntimeElements = configurations.create("cheatRuntimeElements").apply {
     isCanBeConsumed = true
     isCanBeResolved = false
     extendsFrom(baseRuntimeElements.get())
@@ -271,35 +226,32 @@ val cheatRuntimeElements = configurations.create("cheatRuntimeElements") {
     outgoing.artifact(remapJarCheat)
 }
 
-val cheatComponent = softwareComponentFactory.adhoc("cheat")
-components.add(cheatComponent)
-cheatComponent.addVariantsFromConfiguration(cheatApiElements) {
-    mapToMavenScope("compile")
-}
-cheatComponent.addVariantsFromConfiguration(cheatRuntimeElements) {
-    mapToMavenScope("runtime")
+val cheatComponent = softwareComponentFactory.adhoc("cheat").apply {
+    components.add(this)
+    addVariantsFromConfiguration(cheatApiElements) { mapToMavenScope("compile") }
+    addVariantsFromConfiguration(cheatRuntimeElements) { mapToMavenScope("runtime") }
 }
 
 tasks.named<Test>("test") {
     failOnNoDiscoveredTests = false
 }
 
-kotlin {
-    jvmToolchain(21)
-}
-
 publishing {
     publications {
         create<MavenPublication>("mavenLegit") {
-            artifactId = "legit"
+            artifactId = mod_name
             from(components["java"])
-            artifact(legitSourcesJar)
+            artifact(remapLegitSourcesJar) {
+                classifier = "legit-sources"
+            }
         }
 
         create<MavenPublication>("mavenCheat") {
-            artifactId = "cheat"
+            artifactId = mod_name
             from(components["cheat"])
-            artifact(cheatSourcesJar)
+            artifact(remapCheatSourcesJar) {
+                classifier = "cheat-sources"
+            }
         }
     }
 }
@@ -312,21 +264,21 @@ loom {
         clientRun.configure { ideConfigGenerated(false) }
         serverRun.configure { ideConfigGenerated(false) }
 
-        configureRunConfig("cheatClient") {
+        maybeCreate("cheatClient").apply {
             inherit(clientRun.get())
             name("Cheat Client")
             runDir("run/")
             source(mainSourceSet)
         }
 
-        configureRunConfig("cheatClientPreprocessed") {
+        maybeCreate("cheatClientPreprocessed").apply {
             inherit(clientRun.get())
             name("Cheat Client (Preprocessed)")
             runDir("run/")
             source(cheatSourceSet)
         }
 
-        configureRunConfig("legitClientPreprocessed") {
+        maybeCreate("legitClientPreprocessed").apply {
             inherit(clientRun.get())
             name("Legit Client (Preprocessed)")
             runDir("run/")
@@ -339,4 +291,4 @@ tasks.named("build") {
     dependsOn(remapJarCheat, tasks.named("remapJar"))
 }
 
-apply(from = file("preprocess.gradle.kts"))
+apply(file("preprocess.gradle.kts"))
