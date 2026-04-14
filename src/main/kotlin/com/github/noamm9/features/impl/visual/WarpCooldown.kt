@@ -2,6 +2,7 @@ package com.github.noamm9.features.impl.visual
 
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.utils.dungeons.DungeonUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.height
@@ -9,7 +10,6 @@ import com.github.noamm9.utils.render.Render2D.width
 import kotlin.math.roundToInt
 
 object WarpCooldown: Feature("Displays on screen how long until you can start another dungeon run.") {
-    private val floorEnterRegex = Regex("-+\\s.+ entered.+The Catacombs, Floor [IVX]+!\\s-+")
     private var startTime = System.currentTimeMillis()
     private var onCd = false
 
@@ -25,7 +25,7 @@ object WarpCooldown: Feature("Displays on screen how long until you can start an
         register<ChatMessageEvent> {
             if (! LocationUtils.onHypixel) return@register
             if (onCd) return@register
-            if (! event.unformattedText.matches(floorEnterRegex)) return@register
+            if (! event.unformattedText.matches(DungeonUtils.floorEnterRegex)) return@register
             startTime = System.currentTimeMillis()
             onCd = true
         }

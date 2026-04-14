@@ -4,6 +4,9 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.EventPriority
 import com.github.noamm9.event.impl.ChatMessageEvent
+import com.github.noamm9.event.impl.DungeonEvent
+import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.dungeons.DungeonUtils
 import com.github.noamm9.utils.location.LocationUtils
 
 
@@ -135,9 +138,21 @@ object PartyUtils {
                 return@register
             }
 
+            DungeonUtils.floorEnterRegex.find(message)?.let {
+                val name = message.substringBefore(" entered").split(" ").last()
+                addMember(name)
+                partyLeader = name
+                return@register
+            }
+
             kuudraJoin.find(message)?.let { return@register addMember(it.groupValues[2]) }
 
             dungeonJoin.find(message)?.let { return@register addMember(it.groupValues[1]) }
+        }
+
+        register<DungeonEvent.RunStatedEvent> {
+            DungeonListener.dungeonTeammates.forEach { addMember(it.name) }
+            if (partyLeader == null) partyLeader = mc.user.name
         }
     }
 
