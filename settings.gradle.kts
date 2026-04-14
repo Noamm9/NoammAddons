@@ -1,8 +1,6 @@
 rootProject.name = "NoammAddons"
 
 pluginManagement {
-    val loomVersion = providers.gradleProperty("loom_version").getOrElse("1.15-SNAPSHOT")
-
     repositories {
         gradlePluginPortal()
         mavenCentral()
@@ -10,6 +8,6 @@ pluginManagement {
     }
 
     plugins {
-        id("net.fabricmc.fabric-loom-remap") version loomVersion
+        id("net.fabricmc.fabric-loom-remap") version providers.gradleProperty("loom_version").get()
     }
 }

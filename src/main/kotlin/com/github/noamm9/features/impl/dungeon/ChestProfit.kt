@@ -195,7 +195,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                     pose.pushMatrix()
                     pose.scale(0.7f)
                     pose.translate((event.slot.x + 7) / 0.7f, (event.slot.y + 7) / 0.7f)
-                    event.context.renderFakeItem(ItemStack(Items.FEATHER), 0, 0)
+                    Render2D.renderItem(event.context, "minecraft:item/feather", 0, 0, 16)
                     pose.popMatrix()
                 }
             }

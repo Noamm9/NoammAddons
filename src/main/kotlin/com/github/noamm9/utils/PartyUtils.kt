@@ -13,6 +13,7 @@ import com.github.noamm9.utils.location.LocationUtils
 /**
  * @author Odin
  * @link https://github.com/odtheking/OdinFabric/blob/main/src/main/kotlin/com/odtheking/odin/utils/skyblock/PartyUtils.kt
+ * Modified
  */
 object PartyUtils {
     private val joinedSelf = Regex("^You have joined ((?:\\[[^]]*?])? ?)?(\\w{1,16})'s? party!$")

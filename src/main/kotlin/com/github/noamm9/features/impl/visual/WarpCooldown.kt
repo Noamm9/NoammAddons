@@ -13,15 +13,15 @@ object WarpCooldown: Feature("Displays on screen how long until you can start an
     private var startTime = System.currentTimeMillis()
     private var onCd = false
 
-    private val warpCooldown = hudElement("WarpCooldown", { onCd }) { ctx, example ->
-        val remaining = (30 - (System.currentTimeMillis() - startTime) / 1000.0).roundToInt()
-        if (remaining < 0) onCd = false
-        val text = "&bWarp Cooldown: &f${if (example) 30 else remaining}s"
-        Render2D.drawString(ctx, text, 0, 0)
-        return@hudElement text.width().toFloat() to text.height().toFloat()
-    }
-
     override fun init() {
+        hudElement("WarpCooldown", { onCd }) { ctx, example ->
+            val remaining = (30 - (System.currentTimeMillis() - startTime) / 1000.0).roundToInt()
+            if (remaining < 0) onCd = false
+            val text = "&bWarp Cooldown: &f${if (example) 30 else remaining}s"
+            Render2D.drawString(ctx, text, 0, 0)
+            return@hudElement text.width().toFloat() to text.height().toFloat()
+        }
+
         register<ChatMessageEvent> {
             if (! LocationUtils.onHypixel) return@register
             if (onCd) return@register
