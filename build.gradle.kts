@@ -1,6 +1,5 @@
 import net.fabricmc.loom.configuration.ide.RunConfigSettings
 import net.fabricmc.loom.task.RemapJarTask
-import net.fabricmc.loom.task.RemapSourcesJarTask
 import org.gradle.jvm.tasks.Jar
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -218,20 +217,6 @@ tasks.named<RemapJarTask>("remapJar") {
     classpath.from(legitSourceSet.runtimeClasspath)
 }
 
-val sourcesJarCheat = tasks.register<Jar>("sourcesJarCheat") {
-    dependsOn("preprocessCheat")
-    archiveClassifier.set("cheat-sources")
-    destinationDirectory.set(intermediateJarsDir)
-    from(legitSourceSet.allSource)
-}
-
-val remapSourcesJarCheat = tasks.register<RemapSourcesJarTask>("remapSourcesJarCheat") {
-    dependsOn(sourcesJarCheat)
-    archiveClassifier.set("cheat-sources")
-    destinationDirectory.set(intermediateJarsDir)
-    from(cheatSourceSet.allSource)
-}
-
 tasks.named<Test>("test") {
     failOnNoDiscoveredTests = false
 }
@@ -245,17 +230,13 @@ publishing {
         create<MavenPublication>("mavenLegit") {
             artifactId = "legit"
             from(components["java"])
-
             artifact(tasks.named("remapJar"))
-            artifact(tasks.named("remapSourcesJar"))
         }
 
         create<MavenPublication>("mavenCheat") {
             artifactId = "cheat"
             from(components["java"])
-
             artifact(remapJarCheat)
-            artifact(remapSourcesJarCheat)
         }
     }
 }
