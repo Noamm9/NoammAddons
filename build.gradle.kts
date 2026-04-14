@@ -1,5 +1,6 @@
 import net.fabricmc.loom.configuration.ide.RunConfigSettings
 import net.fabricmc.loom.task.RemapJarTask
+import net.fabricmc.loom.task.RemapSourcesJarTask
 import org.gradle.jvm.tasks.Jar
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -88,6 +89,7 @@ val libsDir = layout.buildDirectory.dir("libs")
 
 tasks.named<Jar>("jar") {
     destinationDirectory.set(intermediateJarsDir)
+    archiveClassifier.set("dev")
 
     from("LICENSE") {
         rename { "${it}_$archives_base_name" }
@@ -203,7 +205,7 @@ val jarLegit = tasks.register<Jar>("jarLegit") {
 val remapJarCheat = tasks.register<RemapJarTask>("remapJarCheat") {
     dependsOn(jarCheat)
     inputFile.set(jarCheat.flatMap { it.archiveFile })
-    archiveFileName.set("$mod_name - ${project.version}-cheat.jar")
+    archiveClassifier.set("cheat")
     destinationDirectory.set(libsDir)
     classpath.from(cheatSourceSet.runtimeClasspath)
 }
@@ -211,9 +213,23 @@ val remapJarCheat = tasks.register<RemapJarTask>("remapJarCheat") {
 tasks.named<RemapJarTask>("remapJar") {
     dependsOn(jarLegit)
     inputFile.set(jarLegit.flatMap { it.archiveFile })
-    archiveFileName.set("$mod_name - ${project.version}-legit.jar")
+    archiveClassifier.set("legit")
     destinationDirectory.set(libsDir)
     classpath.from(legitSourceSet.runtimeClasspath)
+}
+
+val sourcesJarCheat = tasks.register<Jar>("sourcesJarCheat") {
+    dependsOn("preprocessCheat")
+    archiveClassifier.set("cheat-sources")
+    destinationDirectory.set(intermediateJarsDir)
+    from(legitSourceSet.allSource)
+}
+
+val remapSourcesJarCheat = tasks.register<RemapSourcesJarTask>("remapSourcesJarCheat") {
+    dependsOn(sourcesJarCheat)
+    archiveClassifier.set("cheat-sources")
+    destinationDirectory.set(intermediateJarsDir)
+    from(cheatSourceSet.allSource)
 }
 
 tasks.named<Test>("test") {
@@ -228,14 +244,18 @@ publishing {
     publications {
         create<MavenPublication>("mavenLegit") {
             artifactId = "legit"
-            artifact(tasks.named("remapJar"))
             from(components["java"])
+
+            artifact(tasks.named("remapJar"))
+            artifact(tasks.named("remapSourcesJar"))
         }
 
         create<MavenPublication>("mavenCheat") {
             artifactId = "cheat"
-            artifact(remapJarCheat)
             from(components["java"])
+
+            artifact(remapJarCheat)
+            artifact(remapSourcesJarCheat)
         }
     }
 }
