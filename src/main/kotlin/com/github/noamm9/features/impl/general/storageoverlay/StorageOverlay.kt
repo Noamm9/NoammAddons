@@ -109,7 +109,6 @@ class StorageOverlayCustom(
     override fun mouseScrolled(mouseX: Double, mouseY: Double, horizontalAmount: Double, verticalAmount: Double) = overview.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)
 
     override fun render(context: GuiGraphics, delta: Float, mouseX: Int, mouseY: Int) {
-        context.fill(0, 0, screen.width, screen.height, Color(0, 0, 0, 200).rgb)
         Render2D.drawRect(context, overview.measurements.x, overview.measurements.y, overview.measurements.overviewWidth, overview.measurements.overviewHeight, Color(24, 24, 27))
         Render2D.drawBorder(context, overview.measurements.x, overview.measurements.y, overview.measurements.overviewWidth, overview.measurements.overviewHeight, Color(60, 60, 65))
         val activeSlot = (handler as? StorageBackingHandle.Page)?.storagePageSlot

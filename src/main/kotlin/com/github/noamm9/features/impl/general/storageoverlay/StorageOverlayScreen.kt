@@ -46,6 +46,9 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
     private val scrollKnobColor = Color(120, 120, 130)
     private val borderColor = Color(60, 60, 65)
 
+    private val cachedSlotCellBg = slotCellColor.rgb
+    private val cachedSlotCellBorder = slotCellBorder.rgb
+
     inner class Measurements {
         val innerScrollPanelWidth = PAGE_WIDTH * pageWidthCount + (pageWidthCount - 1) * PADDING
         val overviewWidth = innerScrollPanelWidth + 3 * PADDING + SCROLL_BAR_WIDTH
@@ -89,7 +92,6 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
     }
 
     fun drawOverlay(context: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
-        context.fill(0, 0, width, height, Color(0, 0, 0, 180).rgb)
         Render2D.drawRect(context, measurements.x, measurements.y, measurements.overviewWidth, measurements.overviewHeight, panelColor)
         Render2D.drawBorder(context, measurements.x, measurements.y, measurements.overviewWidth, measurements.overviewHeight, borderColor)
         drawPages(context, mouseX, mouseY, delta, null, null)
@@ -118,7 +120,11 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
     ) {
         createScissors(context)
         val data = StorageOverlay.storageData
-        layoutedForEach(data) { x, y, _, _, page, inventory ->
+        val panel = getScrollPanelInner()
+        val viewTop = panel[1]
+        val viewBottom = panel[1] + panel[3]
+        layoutedForEach(data) { x, y, _, ph, page, inventory ->
+            if (y + ph < viewTop || y > viewBottom) return@layoutedForEach
             drawPage(context, x, y, page, inventory, if (excluding == page) slots else null, mouseX, mouseY)
         }
         context.disableScissor()
@@ -154,15 +160,44 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
 
     fun drawPlayerInventory(context: GuiGraphics, mouseX: Int, mouseY: Int) {
         val items = mc.player?.inventory?.nonEquipmentItems ?: return
-        for (i in 0 until 36) {
-            val (sx, sy) = getPlayerInventorySlotPosition(i)
-            Render2D.drawRect(context, sx - 1, sy - 1, SLOT_SIZE, SLOT_SIZE, slotCellColor)
-            Render2D.drawBorder(context, sx - 1, sy - 1, SLOT_SIZE, SLOT_SIZE, slotCellBorder)
+        val (invX, invY) = getPlayerInventorySlotPosition(9)
+        val (hotX, hotY) = getPlayerInventorySlotPosition(0)
+        val gridW = 9 * SLOT_SIZE
+        val invGridX = invX - 1
+        val invGridY = invY - 1
+        val invGridH = 3 * SLOT_SIZE
+        val hotGridX = hotX - 1
+        val hotGridY = hotY - 1
+        val hotGridH = SLOT_SIZE
+        val bg = cachedSlotCellBg
+        val bc = cachedSlotCellBorder
+
+        context.fill(invGridX, invGridY, invGridX + gridW, invGridY + invGridH, bg)
+        for (col in 0..9) {
+            val lx = invGridX + col * SLOT_SIZE
+            context.fill(lx, invGridY, lx + 1, invGridY + invGridH, bc)
         }
-        items.withIndex().forEach { (index, item) ->
-            val (x, y) = getPlayerInventorySlotPosition(index)
-            context.renderItem(item, x, y, 0)
-            context.renderItemDecorations(font, item, x, y)
+        for (row in 0..3) {
+            val ly = invGridY + row * SLOT_SIZE
+            context.fill(invGridX, ly, invGridX + gridW, ly + 1, bc)
+        }
+
+        context.fill(hotGridX, hotGridY, hotGridX + gridW, hotGridY + hotGridH, bg)
+        for (col in 0..9) {
+            val lx = hotGridX + col * SLOT_SIZE
+            context.fill(lx, hotGridY, lx + 1, hotGridY + hotGridH, bc)
+        }
+        for (row in 0..1) {
+            val ly = hotGridY + row * SLOT_SIZE
+            context.fill(hotGridX, ly, hotGridX + gridW, ly + 1, bc)
+        }
+
+        for (i in 0 until 36) {
+            val item = items[i]
+            if (item.isEmpty) continue
+            val (sx, sy) = getPlayerInventorySlotPosition(i)
+            context.renderItem(item, sx, sy, 0)
+            context.renderItemDecorations(font, item, sx, sy)
         }
     }
 
@@ -217,33 +252,64 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
 
         context.drawString(font, Component.literal(name), x + 6, y + 3, if (isActive) activePageBorder.rgb else 0xFFFFFF, true)
 
-        val panel = getScrollPanelInner()
-        val itemCount = inv?.stacks?.size ?: (slots?.size ?: (rows * 9))
+        val panelX = measurements.x + PADDING
+        val panelY = measurements.y + PADDING
+        val panelW = measurements.innerScrollPanelWidth
+        val panelH = measurements.innerScrollPanelHeight
+        val screenAccessor = if (isActive) mc.screen as? IAbstractContainerScreen else null
+        val offX = screenAccessor?.leftPos ?: 0
+        val offY = screenAccessor?.topPos ?: 0
+        var hoveredStack: net.minecraft.world.item.ItemStack? = null
+        var hoveredX = 0
+        var hoveredY = 0
+
+        val gridX = x + 2
+        val gridY = slotsY
+        val gridW = 9 * SLOT_SIZE
+        val gridH = rows * SLOT_SIZE
+        context.fill(gridX, gridY, gridX + gridW, gridY + gridH, cachedSlotCellBg)
+        for (col in 0..9) {
+            val lx = gridX + col * SLOT_SIZE
+            context.fill(lx, gridY, lx + 1, gridY + gridH, cachedSlotCellBorder)
+        }
+        for (row in 0..rows) {
+            val ly = gridY + row * SLOT_SIZE
+            context.fill(gridX, ly, gridX + gridW, ly + 1, cachedSlotCellBorder)
+        }
+
+        val viewBottom = panelY + panelH
+        val viewTop = panelY
+        val activeSlots = slots
+        val invStacks = inv?.stacks
+        val itemCount = invStacks?.size ?: (activeSlots?.size ?: (rows * 9))
+
         for (index in 0 until itemCount) {
             val slotX = (index % 9) * SLOT_SIZE + x + 3
             val slotY = (index / 9) * SLOT_SIZE + slotsY + 1
 
-            Render2D.drawRect(context, slotX - 1, slotY - 1, SLOT_SIZE, SLOT_SIZE, slotCellColor)
-            Render2D.drawBorder(context, slotX - 1, slotY - 1, SLOT_SIZE, SLOT_SIZE, slotCellBorder)
+            if (activeSlots != null && index < activeSlots.size) {
+                activeSlots[index].setSlotX(slotX - offX)
+                activeSlots[index].setSlotY(slotY - offY)
+            }
 
-            val displayStack = if (slots != null && index < slots.size) slots[index].item
-                else inv?.stacks?.getOrNull(index) ?: net.minecraft.world.item.ItemStack.EMPTY
+            if (slotY + 16 < viewTop || slotY > viewBottom) continue
+
+            val displayStack = if (activeSlots != null && index < activeSlots.size) activeSlots[index].item
+                else invStacks?.get(index) ?: continue
+            if (displayStack.isEmpty) continue
+
             context.renderItem(displayStack, slotX, slotY)
             context.renderItemDecorations(font, displayStack, slotX, slotY)
 
-            if (!displayStack.isEmpty && mouseX >= slotX && mouseY >= slotY && mouseX <= slotX + 16 && mouseY <= slotY + 16 && mouseX >= panel[0] && mouseY >= panel[1] && mouseX < panel[0] + panel[2] && mouseY < panel[1] + panel[3]) {
-                try {
-                    context.setTooltipForNextFrame(font, displayStack, mouseX, mouseY)
-                } catch (_: Exception) {}
+            if (hoveredStack == null && mouseX >= slotX && mouseY >= slotY && mouseX <= slotX + 16 && mouseY <= slotY + 16 && mouseX >= panelX && mouseY >= panelY && mouseX < panelX + panelW && mouseY < panelY + panelH) {
+                hoveredStack = displayStack
+                hoveredX = mouseX
+                hoveredY = mouseY
             }
+        }
 
-            if (slots != null && index < slots.size) {
-                val screenAccessor = mc.screen as? IAbstractContainerScreen
-                val offX = screenAccessor?.leftPos ?: 0
-                val offY = screenAccessor?.topPos ?: 0
-                slots[index].setSlotX(slotX - offX)
-                slots[index].setSlotY(slotY - offY)
-            }
+        if (hoveredStack != null) {
+            try { context.setTooltipForNextFrame(font, hoveredStack, hoveredX, hoveredY) } catch (_: Exception) {}
         }
         return pageHeight + 6
     }

@@ -107,7 +107,7 @@ public class PatchAbstractContainerScreen<T extends AbstractContainerMenu> exten
         }
     }
 
-    @Inject(method = "renderContents", at = @At("HEAD"))
+    @Inject(method = "renderBackground", at = @At("HEAD"))
     public void moveSlotsBeforeRender(GuiGraphics context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
         if (override != null) {
             for (Slot slot : menu.slots) {
@@ -128,9 +128,9 @@ public class PatchAbstractContainerScreen<T extends AbstractContainerMenu> exten
     }
 
     @WrapWithCondition(
-        method = "renderContents",
-        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V"))
-    public boolean replaceScreenRender(Screen instance, GuiGraphics context, int mouseX, int mouseY, float delta) {
+        method = "renderBackground",
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/AbstractContainerScreen;renderBg(Lnet/minecraft/client/gui/GuiGraphics;FII)V"))
+    public boolean preventDrawingBackground(AbstractContainerScreen instance, GuiGraphics context, float delta, int mouseX, int mouseY) {
         if (override != null) {
             override.render(context, delta, mouseX, mouseY);
             return false;
