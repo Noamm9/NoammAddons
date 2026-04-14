@@ -1,6 +1,7 @@
 import net.fabricmc.loom.configuration.ide.RunConfigSettings
 import net.fabricmc.loom.task.RemapJarTask
 import org.gradle.jvm.tasks.Jar
+import org.gradle.kotlin.dsl.support.serviceOf
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -85,6 +86,8 @@ java {
 
 val intermediateJarsDir = layout.buildDirectory.dir("tmp/intermediateJars")
 val libsDir = layout.buildDirectory.dir("libs")
+val variantSourcesDir = layout.buildDirectory.dir("tmp/variantSources")
+val softwareComponentFactory = project.serviceOf<SoftwareComponentFactory>()
 
 tasks.named<Jar>("jar") {
     destinationDirectory.set(intermediateJarsDir)
@@ -120,6 +123,14 @@ fun NamedDomainObjectContainer<RunConfigSettings>.configureRunConfig(
     configName: String,
     configure: RunConfigSettings.() -> Unit,
 ): RunConfigSettings = maybeCreate(configName).apply(configure)
+
+fun Configuration.copyAttributesFrom(other: Configuration) {
+    other.attributes.keySet().forEach { key ->
+        @Suppress("UNCHECKED_CAST")
+        key as Attribute<Any>
+        other.attributes.getAttribute(key)?.let { attributes.attribute(key, it) }
+    }
+}
 
 val cheatSourceSet: SourceSet = sourceSets.create("cheat").apply {
     configurePreprocessedVariant(cheatJavaDir, cheatKotlinDir)
@@ -217,6 +228,58 @@ tasks.named<RemapJarTask>("remapJar") {
     classpath.from(legitSourceSet.runtimeClasspath)
 }
 
+val legitSourcesJar = tasks.register<Jar>("legitSourcesJar") {
+    dependsOn("preprocessLegit")
+    from(legitJavaDir)
+    from(legitKotlinDir)
+    from(layout.buildDirectory.dir("preprocessed/legit/resources")) {
+        include("fabric.mod.json")
+        include("noammaddons.mixins.json")
+    }
+    archiveClassifier.set("sources")
+    destinationDirectory.set(variantSourcesDir.map { it.dir("legit") })
+}
+
+val cheatSourcesJar = tasks.register<Jar>("cheatSourcesJar") {
+    dependsOn("preprocessCheat")
+    from(cheatJavaDir)
+    from(cheatKotlinDir)
+    from(layout.buildDirectory.dir("preprocessed/cheat/resources")) {
+        include("fabric.mod.json")
+        include("noammaddons.mixins.json")
+    }
+    archiveClassifier.set("sources")
+    destinationDirectory.set(variantSourcesDir.map { it.dir("cheat") })
+}
+
+val baseApiElements = configurations.named("apiElements")
+val baseRuntimeElements = configurations.named("runtimeElements")
+
+val cheatApiElements = configurations.create("cheatApiElements") {
+    isCanBeConsumed = true
+    isCanBeResolved = false
+    extendsFrom(baseApiElements.get())
+    copyAttributesFrom(baseApiElements.get())
+    outgoing.artifact(remapJarCheat)
+}
+
+val cheatRuntimeElements = configurations.create("cheatRuntimeElements") {
+    isCanBeConsumed = true
+    isCanBeResolved = false
+    extendsFrom(baseRuntimeElements.get())
+    copyAttributesFrom(baseRuntimeElements.get())
+    outgoing.artifact(remapJarCheat)
+}
+
+val cheatComponent = softwareComponentFactory.adhoc("cheat")
+components.add(cheatComponent)
+cheatComponent.addVariantsFromConfiguration(cheatApiElements) {
+    mapToMavenScope("compile")
+}
+cheatComponent.addVariantsFromConfiguration(cheatRuntimeElements) {
+    mapToMavenScope("runtime")
+}
+
 tasks.named<Test>("test") {
     failOnNoDiscoveredTests = false
 }
@@ -230,13 +293,13 @@ publishing {
         create<MavenPublication>("mavenLegit") {
             artifactId = "legit"
             from(components["java"])
-            artifact(tasks.named("remapJar"))
+            artifact(legitSourcesJar)
         }
 
         create<MavenPublication>("mavenCheat") {
             artifactId = "cheat"
-            from(components["java"])
-            artifact(remapJarCheat)
+            from(components["cheat"])
+            artifact(cheatSourcesJar)
         }
     }
 }
