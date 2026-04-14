@@ -21,9 +21,9 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
         const val PAGE_WIDTH = PAGE_SLOTS_WIDTH + 4
         const val SCROLL_BAR_WIDTH = 8
         const val SCROLL_BAR_HEIGHT = 16
-        const val PLAYER_SLOTS_WIDTH = SLOT_SIZE * 9  // 162
-        const val PLAYER_WIDTH = PLAYER_SLOTS_WIDTH + 6  // tight fit around slots
-        const val PLAYER_HEIGHT = SLOT_SIZE * 4 + 18  // 4 rows (3 inv + 1 hotbar) + gaps + padding
+        const val PLAYER_SLOTS_WIDTH = SLOT_SIZE * 9
+        const val PLAYER_WIDTH = PLAYER_SLOTS_WIDTH + 6
+        const val PLAYER_HEIGHT = SLOT_SIZE * 4 + 18
         const val PLAYER_Y_INSET = 3
 
         var scroll: Float = 0f
@@ -75,7 +75,7 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
 
     fun coerceScroll(offset: Float) { scroll = (scroll + offset).coerceAtMost(getMaxScroll()).coerceAtLeast(0f) }
 
-    fun getMaxScroll() = (lastRenderedInnerHeight.toFloat() - measurements.innerScrollPanelHeight).coerceAtLeast(0f)
+    fun getMaxScroll() = (lastRenderedInnerHeight.toFloat() + 6 - measurements.innerScrollPanelHeight).coerceAtLeast(0f)
 
     override fun onClose() {
         isExiting = true
@@ -270,7 +270,7 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
 
         val sb = getScrollBarRect()
         if (mouseX >= sb[0] && mouseX < sb[0] + sb[2] && mouseY >= sb[1] && mouseY < sb[1] + sb[3]) {
-            val percentage = (mouseY - sb[1]) / sb[3].toDouble()
+            val percentage = ((mouseY - sb[1]) / sb[3].toDouble()).coerceIn(0.0, 1.0)
             scroll = (getMaxScroll() * percentage).toFloat()
             knobGrabbed = true
             return true
@@ -287,7 +287,7 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
     override fun mouseDragged(click: MouseButtonEvent, offsetX: Double, offsetY: Double): Boolean {
         if (knobGrabbed) {
             val sb = getScrollBarRect()
-            val percentage = (click.y() - sb[1]) / sb[3].toDouble()
+            val percentage = ((click.y() - sb[1]) / sb[3].toDouble()).coerceIn(0.0, 1.0)
             scroll = (getMaxScroll() * percentage).toFloat()
             return true
         }

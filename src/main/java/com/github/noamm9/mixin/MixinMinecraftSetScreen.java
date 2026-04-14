@@ -13,6 +13,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Adapted from Firmament's ScreenChangeEventPatch.java
+ * Source: https://github.com/nea89o/Firmament/blob/master/src/main/java/moe/nea/firmament/mixins/ScreenChangeEventPatch.java
+ */
 @Mixin(Minecraft.class)
 public abstract class MixinMinecraftSetScreen {
     @Shadow @Nullable public Screen screen;

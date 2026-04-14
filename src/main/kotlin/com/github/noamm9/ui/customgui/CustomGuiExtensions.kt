@@ -1,7 +1,5 @@
 package com.github.noamm9.ui.customgui
 
-import com.github.noamm9.interfaces.ICoordRememberingSlot
-import com.github.noamm9.interfaces.IHasCustomGui
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.world.inventory.Slot
 

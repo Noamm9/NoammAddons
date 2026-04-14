@@ -11,6 +11,10 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.util.Base64
 
+/**
+ * Adapted from Firmament's VirtualInventory.kt
+ * Source: https://github.com/nea89o/Firmament/blob/master/src/main/kotlin/features/inventory/storageoverlay/VirtualInventory.kt
+ */
 data class VirtualInventory(val stacks: List<ItemStack>) {
     val rows = stacks.size / 9
 
