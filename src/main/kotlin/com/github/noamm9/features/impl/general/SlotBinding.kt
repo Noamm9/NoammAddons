@@ -19,6 +19,7 @@ import java.awt.Color
 
 object SlotBinding: Feature("Allows you to bind slots to hotbar slots for quick item swaps.") {
     private val bindKey by KeybindSetting("Binding key", GLFW.GLFW_KEY_R).section("Keybind").withDescription("Hold this key and click a hotbar slot and an inventory slot to link them.")
+    private val simpleClick by ToggleSetting("Simple Click Swap", false).withDescription("Swap bound slots with a normal click instead of Shift+Click.")
     private val showBoundSlots by ToggleSetting("Show Bound Slots", true).section("Rendering")
     private val neuStyle by ToggleSetting("Hover Only", false).withDescription("Only shows bound slots when hovering over a them.").showIf { showBoundSlots.value }
     private val drawBorders by ToggleSetting("Draw Border", true).showIf { showBoundSlots.value }
@@ -75,8 +76,9 @@ object SlotBinding: Feature("Allows you to bind slots to hotbar slots for quick 
                 return@register
             }
 
+            if (event.button != 0) return@register
             val isShiftDown = (event.modifiers and GLFW.GLFW_MOD_SHIFT) != 0
-            if (! isShiftDown || event.button != 0) return@register
+            if (! simpleClick.value && ! isShiftDown) return@register
 
             val boundPartner = binds[slotId.toString()]?.toInt() ?: binds.entries.find { it.value.toInt() == slotId }?.key?.toInt() ?: return@register
 
