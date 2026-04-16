@@ -7,9 +7,12 @@ import com.github.noamm9.ui.customgui.setSlotY
 import com.github.noamm9.utils.render.Render2D
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
+import net.minecraft.world.inventory.ClickType
 import net.minecraft.world.inventory.Slot
+import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
@@ -66,12 +69,29 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
 
     public override fun init() {
         super.init()
+        val oldMax = getMaxScroll()
+        val scrollPct = if (oldMax > 0) scroll / oldMax else 0f
         pageWidthCount = StorageOverlay.columns.coerceAtMost((width - PADDING) / (PAGE_WIDTH + PADDING)).coerceAtLeast(1)
         measurements = Measurements()
-        scroll = scroll.coerceAtMost(getMaxScroll()).coerceAtLeast(0f)
+        val newMax = getMaxScroll()
+        scroll = (scrollPct * newMax).coerceAtMost(newMax).coerceAtLeast(0f)
     }
 
     override fun mouseScrolled(mouseX: Double, mouseY: Double, horizontalAmount: Double, verticalAmount: Double): Boolean {
+        return mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount, null)
+    }
+
+    fun mouseScrolled(mouseX: Double, mouseY: Double, horizontalAmount: Double, verticalAmount: Double, activePage: StoragePageSlot?): Boolean {
+        if (activePage != null && StorageOverlay.lockScrollOnActive) {
+            val data = StorageOverlay.storageData
+            var overActive = false
+            layoutedForEach(data) { x, y, pw, ph, page, _ ->
+                if (page == activePage && mouseX >= x && mouseX < x + pw && mouseY >= y && mouseY < y + ph) {
+                    overActive = true
+                }
+            }
+            if (overActive) return false
+        }
         coerceScroll(StorageOverlay.adjustScrollSpeed(verticalAmount).toFloat())
         return true
     }
@@ -247,7 +267,7 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
         val pageHeight = rows * SLOT_SIZE + 8 + font.lineHeight
 
         if (isActive) {
-            Render2D.drawBorder(context, x, y, PAGE_WIDTH, pageHeight, activePageBorder, 2)
+            Render2D.drawBorder(context, x, y, PAGE_WIDTH + 1, pageHeight, activePageBorder, 2)
         }
 
         context.drawString(font, Component.literal(name), x + 6, y + 3, if (isActive) activePageBorder.rgb else 0xFFFFFF, true)
@@ -287,11 +307,6 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
             val slotX = (index % 9) * SLOT_SIZE + x + 3
             val slotY = (index / 9) * SLOT_SIZE + slotsY + 1
 
-            if (activeSlots != null && index < activeSlots.size) {
-                activeSlots[index].setSlotX(slotX - offX)
-                activeSlots[index].setSlotY(slotY - offY)
-            }
-
             if (slotY + 16 < viewTop || slotY > viewBottom) continue
 
             val displayStack = if (activeSlots != null && index < activeSlots.size) activeSlots[index].item
@@ -316,6 +331,43 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
 
     private var knobGrabbed = false
 
+    private fun dispatchActivePageSlotClick(click: MouseButtonEvent, mouseX: Double, mouseY: Double, activePage: StoragePageSlot): Boolean {
+        val containerScreen = mc.screen as? AbstractContainerScreen<*> ?: return false
+        val menu = containerScreen.menu
+        val chestSlots = menu.slots.take(menu.slots.size - 36).drop(9)
+        if (chestSlots.isEmpty()) return false
+
+        var hit = -1
+        var hitPageY = 0
+        var hitPageX = 0
+        val data = StorageOverlay.storageData
+        layoutedForEach(data) { x, y, _, _, page, inventory ->
+            if (page != activePage) return@layoutedForEach
+            val inv = inventory.inventory ?: return@layoutedForEach
+            val rows = inv.rows
+            val slotsY = y + 5 + font.lineHeight
+            val gridX = x + 3
+            val gridY = slotsY + 1
+            val gridW = 9 * SLOT_SIZE
+            val gridH = rows * SLOT_SIZE
+            if (mouseX < gridX || mouseX >= gridX + gridW || mouseY < gridY || mouseY >= gridY + gridH) return@layoutedForEach
+            val col = ((mouseX - gridX) / SLOT_SIZE).toInt().coerceIn(0, 8)
+            val row = ((mouseY - gridY) / SLOT_SIZE).toInt().coerceIn(0, rows - 1)
+            hit = row * 9 + col
+            hitPageX = gridX
+            hitPageY = gridY
+        }
+        if (hit < 0 || hit >= chestSlots.size) return false
+        val player = mc.player ?: return false
+        val gameMode = mc.gameMode ?: return false
+        val targetSlot = chestSlots[hit]
+        val button = click.button()
+        val shift = (click.modifiers() and GLFW.GLFW_MOD_SHIFT) != 0
+        val clickType = if (shift) ClickType.QUICK_MOVE else ClickType.PICKUP
+        gameMode.handleInventoryMouseClick(menu.containerId, targetSlot.index, button, clickType, player)
+        return true
+    }
+
     override fun mouseClicked(click: MouseButtonEvent, doubled: Boolean) = mouseClicked(click, doubled, null)
 
     fun mouseClicked(click: MouseButtonEvent, doubled: Boolean, activePage: StoragePageSlot?): Boolean {
@@ -325,6 +377,7 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
         val panel = getScrollPanelInner()
         if (mouseX >= panel[0] && mouseX < panel[0] + panel[2] && mouseY >= panel[1] && mouseY < panel[1] + panel[3]) {
             val data = StorageOverlay.storageData
+            if (activePage != null && dispatchActivePageSlotClick(click, mouseX, mouseY, activePage)) return true
             layoutedForEach(data) { x, y, pw, ph, page, _ ->
                 if (mouseX >= x && mouseX < x + pw && mouseY >= y && mouseY < y + ph && activePage != page && click.button() == 0) {
                     page.navigateTo()

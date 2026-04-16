@@ -28,7 +28,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * Adapted from Firmament's PatchHandledScreen.java
  * Source: https://github.com/nea89o/Firmament/blob/master/src/main/java/moe/nea/firmament/mixins/customgui/PatchHandledScreen.java
  */
-@Mixin(value = AbstractContainerScreen.class, priority = 500)
+@Mixin(value = AbstractContainerScreen.class, priority = 2000)
 public class PatchAbstractContainerScreen<T extends AbstractContainerMenu> extends Screen implements IHasCustomGui {
     @Shadow @Final protected T menu;
     @Shadow protected int leftPos;

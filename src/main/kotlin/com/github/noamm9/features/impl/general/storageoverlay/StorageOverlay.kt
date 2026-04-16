@@ -106,7 +106,7 @@ class StorageOverlayCustom(
     override fun mouseClick(click: MouseButtonEvent, doubled: Boolean) = overview.mouseClicked(click, doubled, (handler as? StorageBackingHandle.Page)?.storagePageSlot)
     override fun mouseReleased(click: MouseButtonEvent) = overview.mouseReleased(click)
     override fun mouseDragged(click: MouseButtonEvent, deltaX: Double, deltaY: Double) = overview.mouseDragged(click, deltaX, deltaY)
-    override fun mouseScrolled(mouseX: Double, mouseY: Double, horizontalAmount: Double, verticalAmount: Double) = overview.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)
+    override fun mouseScrolled(mouseX: Double, mouseY: Double, horizontalAmount: Double, verticalAmount: Double) = overview.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount, (handler as? StorageBackingHandle.Page)?.storagePageSlot)
 
     override fun render(context: GuiGraphics, delta: Float, mouseX: Int, mouseY: Int) {
         Render2D.drawRect(context, overview.measurements.x, overview.measurements.y, overview.measurements.overviewWidth, overview.measurements.overviewHeight, Color(24, 24, 27))
@@ -144,10 +144,12 @@ object StorageOverlay : Feature(
     private val scrollSpeedSetting by SliderSetting("Scroll Speed", 10, 1, 50, 1)
     private val inverseScrollSetting by ToggleSetting("Inverse Scroll", false)
     private val retainScrollSetting by ToggleSetting("Retain Scroll", true)
+    private val lockScrollOnActiveSetting by ToggleSetting("Lock Scroll on Active", false)
 
     val columns get() = columnsSetting.value
     val maxHeight get() = maxHeightSetting.value
     val retainScroll get() = retainScrollSetting.value
+    val lockScrollOnActive get() = lockScrollOnActiveSetting.value
 
     fun adjustScrollSpeed(amount: Double) = amount * scrollSpeedSetting.value * (if (inverseScrollSetting.value) 1 else -1)
 
