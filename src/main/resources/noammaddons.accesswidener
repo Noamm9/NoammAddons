@@ -1,0 +1,4 @@
+accessWidener v2 named
+
+mutable field net/minecraft/world/inventory/Slot x I
+mutable field net/minecraft/world/inventory/Slot y I
