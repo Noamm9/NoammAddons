@@ -24,7 +24,7 @@ import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.entity.EquipmentSlot
 import java.awt.Color
 
-object SpringBoots : Feature("Spring Boots Display") {
+object SpringBoots : Feature("Shows the spring boots charge progress on screen.") {
     private val show2DHud by ToggleSetting("Draw Height", true)
     private val textColor by ColorSetting("Text Color", Color.WHITE, false).showIf { show2DHud.value }
     private val drawMode by DropdownSetting("Draw Mode", 0, listOf("Blocks", "Percentage")).showIf { show2DHud.value }
@@ -32,7 +32,7 @@ object SpringBoots : Feature("Spring Boots Display") {
     private val show3DBox by ToggleSetting("Draw Box", true)
     private val renderMode by DropdownSetting("Render Mode", 1, listOf("Fill", "Outline", "Filled Outline")).showIf { show3DBox.value }
     private val boxColor by ColorSetting("Box Color", Color.GREEN, false).showIf { show3DBox.value }
-    private val boxPhase by ToggleSetting("See Through Ceiling", true).showIf { show3DBox.value }
+    private val boxPhase by ToggleSetting("See Through Walls", true).showIf { show3DBox.value }
 
     private val highPitches = setOf(0.82539684f, 0.8888889f, 0.93650794f, 1.0476191f, 1.1746032f, 1.3174603f, 1.7777778f)
     private const val LOW_PITCH = 0.6984127f
@@ -64,25 +64,24 @@ object SpringBoots : Feature("Spring Boots Display") {
         return Color(Color.HSBtoRGB((percent * 0.33).toFloat(), 1f, 1f))
     }
 
-    private val hud by hudElement(
-        name = "Spring Boots Height",
-        enabled = { LocationUtils.inSkyblock },
-        shouldDraw = { show2DHud.value }
-    ) { ctx, demo ->
-        val h = if (demo) 33.0f else currentHeight
-        if (h <= 0f && !demo) return@hudElement 0f to 0f
+    private val hud by hudElement(name = "Spring Boots Height", enabled = { LocationUtils.inSkyblock }, shouldDraw = { show2DHud.value }) { ctx, example ->
+        val h = if (example) 33.0f else currentHeight
+        if (h <= 0f && !example) return@hudElement 0f to 0f
 
         val isPercent = drawMode.value == 1
         val displayValue = if (isPercent) (h / MAX_HEIGHT) * 100f else h
         val suffix = if (isPercent) "%" else ""
+        val labelText = "Height: "
+        val valueText = "${"%.1f".format(displayValue)}$suffix"
+        val staticColor = textColor.value
+        val dynamicColor = if (example) getDynamicColor(17) else getDynamicColor(lows + highs)
 
-        val color = if (demo) textColor.value else getDynamicColor(lows + highs)
+        Render2D.drawString(ctx, labelText, 0, 0, staticColor)
 
-        val text = "§lHeight: ${"%.1f".format(displayValue)}$suffix"
+        val labelWidth = labelText.width()
+        Render2D.drawString(ctx, valueText, labelWidth, 0, dynamicColor)
 
-        Render2D.drawString(ctx, text, 0, 0, color)
-
-        return@hudElement text.width().toFloat() to 9f
+        return@hudElement (labelWidth + valueText.width()).toFloat() to 9f
     }
 
     override fun init() {
