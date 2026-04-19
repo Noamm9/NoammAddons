@@ -6,7 +6,6 @@ import com.github.noamm9.event.impl.ScreenChangeEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.features.annotations.AlwaysActive
 import com.github.noamm9.mixin.IAbstractContainerScreen
 import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
@@ -28,7 +27,6 @@ import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtAccounter
 import net.minecraft.nbt.NbtIo
-import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.inventory.ChestMenu
 import net.minecraft.world.inventory.Slot
@@ -97,7 +95,7 @@ class StorageOverlayCustom(
         val accessor = screen as IAbstractContainerScreen
         accessor.setLeftPos(overview.measurements.x)
         accessor.setTopPos(overview.measurements.y)
-        accessor.setImageWidth(overview.measurements.totalWidth)
+        accessor.setImageWidth(overview.measurements.overviewWidth)
         accessor.setImageHeight(overview.measurements.totalHeight)
     }
 
@@ -133,7 +131,6 @@ class StorageOverlayCustom(
     override fun isClickOutsideBounds(mouseX: Double, mouseY: Double) = false
 }
 
-@AlwaysActive
 object StorageOverlay : Feature(
     description = "Shows all storage pages in an overlay when opening storage.",
     name = "Storage Overlay",
@@ -172,12 +169,9 @@ object StorageOverlay : Feature(
     @Volatile private var handlingScreenChange = false
 
     override fun init() {
-        register<ScreenChangeEvent> { if (enabled) onScreenChange(event) }
+        register<ScreenChangeEvent> { onScreenChange(event) }
         register<WorldChangeEvent> { ensureDataLoaded() }
-        register<TickEvent.Start> {
-            if (!enabled) return@register
-            currentHandler?.let { rememberContent(it) }
-        }
+        register<TickEvent.Start> { currentHandler?.let { rememberContent(it) } }
         ThreadUtils.addShutdownHook { saveData() }
     }
 
@@ -279,48 +273,40 @@ object StorageOverlay : Feature(
     private fun saveData() {
         if (!dirty) return
         dirty = false
-        try {
-            val file = getDataFile()
-            val root = CompoundTag()
-            for ((slot, inv) in storageData.storageInventories) {
-                val prefix = slot.index.toString()
-                root.putString("${prefix}_title", inv.title)
-                inv.inventory?.let { root.putString("${prefix}_inv", it.serialize()) }
-            }
-            NbtIo.writeCompressed(root, file.toPath())
-        } catch (e: Exception) {
-            NoammAddons.logger.error("Failed to save storage data", e)
+        val file = getDataFile()
+        val root = CompoundTag()
+        for ((slot, inv) in storageData.storageInventories) {
+            val prefix = slot.index.toString()
+            root.putString("${prefix}_title", inv.title)
+            inv.inventory?.let { root.putString("${prefix}_inv", it.serialize()) }
         }
+        NbtIo.writeCompressed(root, file.toPath())
     }
 
     @Synchronized
     private fun loadData() {
         storageData = StorageData()
-        try {
-            val file = getDataFile()
-            if (!file.exists()) {
-                val oldFile = File("config/${NoammAddons.MOD_NAME}/storage_data.nbt")
-                if (oldFile.exists()) {
-                    oldFile.copyTo(file, overwrite = false)
-                    oldFile.delete()
-                }
+        val file = getDataFile()
+        if (!file.exists()) {
+            val oldFile = File("config/${NoammAddons.MOD_NAME}/storage_data.nbt")
+            if (oldFile.exists()) {
+                oldFile.copyTo(file, overwrite = false)
+                oldFile.delete()
             }
-            if (!file.exists()) return
-            val root = NbtIo.readCompressed(file.toPath(), NbtAccounter.unlimitedHeap())
-            val data = StorageData()
-            for (i in 0 until 27) {
-                val titleKey = "${i}_title"
-                val invKey = "${i}_inv"
-                if (!root.contains(titleKey)) continue
-                val title = root.getString(titleKey).orElse("")
-                if (title.isEmpty()) continue
-                val slot = StoragePageSlot(i)
-                val inventory = if (root.contains(invKey)) VirtualInventory.deserialize(root.getString(invKey).orElse("")) else null
-                data.storageInventories[slot] = StorageData.StorageInventory(title, slot, inventory)
-            }
-            storageData = data
-        } catch (e: Exception) {
-            NoammAddons.logger.error("Failed to load storage data", e)
         }
+        if (!file.exists()) return
+        val root = NbtIo.readCompressed(file.toPath(), NbtAccounter.unlimitedHeap())
+        val data = StorageData()
+        for (i in 0 until 27) {
+            val titleKey = "${i}_title"
+            val invKey = "${i}_inv"
+            if (!root.contains(titleKey)) continue
+            val title = root.getString(titleKey).orElse("")
+            if (title.isEmpty()) continue
+            val slot = StoragePageSlot(i)
+            val inventory = if (root.contains(invKey)) VirtualInventory.deserialize(root.getString(invKey).orElse("")) else null
+            data.storageInventories[slot] = StorageData.StorageInventory(title, slot, inventory)
+        }
+        storageData = data
     }
 }
