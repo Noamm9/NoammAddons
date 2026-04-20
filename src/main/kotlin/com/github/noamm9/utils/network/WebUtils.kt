@@ -66,10 +66,8 @@ object WebUtils {
         }
     }
 
-    suspend inline fun <reified T> getAs(url: String): Result<T> = runCatching {
-        return getString(url).mapCatching {
-            JsonUtils.json.decodeFromString<T>(it)
-        }
+    suspend inline fun <reified T> getAs(url: String) = getString(url).mapCatching {
+        JsonUtils.json.decodeFromString<T>(it)
     }
 
     inline fun <reified T> getAs(res: HttpResponse): Result<T> = runCatching {
@@ -97,6 +95,7 @@ object WebUtils {
         val data = stream.bufferedReader().use(BufferedReader::readText)
         val headers = connection.headerFields
             .filterKeys { it != null }
+            .mapKeys { it.key.lowercase() }
             .mapValues { (_, values) -> values.joinToString(", ") }
 
         return HttpResponse(code, data, headers)
