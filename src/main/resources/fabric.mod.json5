@@ -13,12 +13,16 @@
   ],
   "contact": {
     "homepage": "https://github.com/Noamm9",
-    "sources": "https://github.com/Noamm9/NoammAddons"
+    "sources": "https://github.com/Noamm9/NoammAddons",
+    "issues": "https://github.com/Noamm9/NoammAddons/issues"
   },
   "license": "CC0-1.0",
   "icon": "assets/noammaddons/icon.png",
   "environment": "*",
   "entrypoints": {
+    "modmenu": [
+      "com.github.noamm9.ui.clickgui.modmenu.ModMenuIntegration"
+    ],
     "client": [
       {
         "value": "com.github.noamm9.NoammAddons",
@@ -35,5 +39,12 @@
     "java": ">=21",
     "fabric-api": "*",
     "fabric-language-kotlin": "*"
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "Discord": "https://discord.com/invite/pj9mQGxMxB"
+      }
+    }
   }
 }
