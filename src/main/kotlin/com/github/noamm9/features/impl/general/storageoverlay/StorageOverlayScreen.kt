@@ -13,10 +13,8 @@ import net.minecraft.world.inventory.Slot
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
-data class Rect(val x: Int, val y: Int, val w: Int, val h: Int) {
-    fun contains(mx: Double, my: Double) = mx >= x && mx < x + w && my >= y && my < y + h
-    fun contains(mx: Int, my: Int) = mx >= x && mx < x + w && my >= y && my < y + h
-}
+private fun inRect(mx: Double, my: Double, x: Int, y: Int, w: Int, h: Int) = mx >= x && mx < x + w && my >= y && my < y + h
+private fun inRect(mx: Int, my: Int, x: Int, y: Int, w: Int, h: Int) = mx >= x && mx < x + w && my >= y && my < y + h
 
 class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
 
@@ -82,7 +80,7 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
             val data = StorageOverlay.storageData
             var overActive = false
             layoutedForEach(data) { x, y, pw, ph, page, _ ->
-                if (page == activePage && Rect(x, y, pw, ph).contains(mouseX, mouseY)) {
+                if (page == activePage && inRect(mouseX, mouseY, x, y, pw, ph)) {
                     overActive = true
                 }
             }
@@ -115,11 +113,17 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
         drawPlayerInventory(context, mouseX, mouseY)
     }
 
-    fun getScrollPanelInner() = Rect(measurements.x + PADDING, measurements.y + PADDING, measurements.innerScrollPanelWidth, measurements.innerScrollPanelHeight)
+    private val scrollPanelX get() = measurements.x + PADDING
+    private val scrollPanelY get() = measurements.y + PADDING
+    private val scrollPanelW get() = measurements.innerScrollPanelWidth
+    private val scrollPanelH get() = measurements.innerScrollPanelHeight
+
+    private val scrollBarX get() = measurements.x + PADDING + measurements.innerScrollPanelWidth + PADDING
+    private val scrollBarY get() = measurements.y + PADDING
+    private val scrollBarH get() = measurements.innerScrollPanelHeight
 
     fun createScissors(context: GuiGraphics) {
-        val p = getScrollPanelInner()
-        context.enableScissor(p.x, p.y, p.x + p.w, p.y + p.h)
+        context.enableScissor(scrollPanelX, scrollPanelY, scrollPanelX + scrollPanelW, scrollPanelY + scrollPanelH)
     }
 
     fun drawPages(
@@ -129,9 +133,8 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
     ) {
         createScissors(context)
         val data = StorageOverlay.storageData
-        val panel = getScrollPanelInner()
-        val viewTop = panel.y
-        val viewBottom = panel.y + panel.h
+        val viewTop = scrollPanelY
+        val viewBottom = scrollPanelY + scrollPanelH
         layoutedForEach(data) { x, y, _, ph, page, inventory ->
             if (y + ph < viewTop || y > viewBottom) return@layoutedForEach
             drawPage(context, x, y, page, inventory, if (excluding == page) slots else null, mouseX, mouseY)
@@ -140,15 +143,12 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
     }
 
     fun drawScrollBar(context: GuiGraphics) {
-        val sb = getScrollBarRect()
-        Render2D.drawRect(context, sb.x, sb.y, sb.w, sb.h, scrollBgColor)
+        Render2D.drawRect(context, scrollBarX, scrollBarY, SCROLL_BAR_WIDTH, scrollBarH, scrollBgColor)
         val maxScroll = getMaxScroll()
         val percentage = if (maxScroll > 0) scroll / maxScroll else 0f
-        val knobY = sb.y + (percentage * (sb.h - SCROLL_BAR_HEIGHT)).toInt()
-        Render2D.drawRect(context, sb.x, knobY, SCROLL_BAR_WIDTH, SCROLL_BAR_HEIGHT, scrollKnobColor)
+        val knobY = scrollBarY + (percentage * (scrollBarH - SCROLL_BAR_HEIGHT)).toInt()
+        Render2D.drawRect(context, scrollBarX, knobY, SCROLL_BAR_WIDTH, SCROLL_BAR_HEIGHT, scrollKnobColor)
     }
-
-    private fun getScrollBarRect() = Rect(measurements.x + PADDING + measurements.innerScrollPanelWidth + PADDING, measurements.y + PADDING, SCROLL_BAR_WIDTH, measurements.innerScrollPanelHeight)
 
     fun getPlayerInventorySlotPosition(index: Int): Pair<Int, Int> {
         val slotsWidth = 9 * SLOT_SIZE
@@ -245,7 +245,10 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
 
         context.drawString(font, Component.literal(name), x + 6, y + 3, if (isActive) activePageBorder.rgb else 0xFFFFFF, true)
 
-        val panel = getScrollPanelInner()
+        val panelX = scrollPanelX
+        val panelY = scrollPanelY
+        val panelW = scrollPanelW
+        val panelH = scrollPanelH
         var hoveredStack: net.minecraft.world.item.ItemStack? = null
         var hoveredX = 0
         var hoveredY = 0
@@ -259,7 +262,7 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
             val slotX = (index % 9) * SLOT_SIZE + x + 3
             val slotY = (index / 9) * SLOT_SIZE + slotsY + 1
 
-            if (slotY + 16 < panel.y || slotY > panel.y + panel.h) continue
+            if (slotY + 16 < panelY || slotY > panelY + panelH) continue
 
             val displayStack = if (slots != null && index < slots.size) slots[index].item
                 else invStacks?.get(index) ?: continue
@@ -271,7 +274,7 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
             context.renderItem(displayStack, slotX, slotY)
             context.renderItemDecorations(font, displayStack, slotX, slotY)
 
-            if (hoveredStack == null && Rect(slotX, slotY, 17, 17).contains(mouseX, mouseY) && panel.contains(mouseX, mouseY)) {
+            if (hoveredStack == null && inRect(mouseX, mouseY, slotX, slotY, 17, 17) && inRect(mouseX, mouseY, panelX, panelY, panelW, panelH)) {
                 hoveredStack = displayStack
                 hoveredX = mouseX
                 hoveredY = mouseY
@@ -300,7 +303,7 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
             val rows = inv.rows
             val gridX = x + 3
             val gridY = y + 5 + font.lineHeight + 1
-            if (!Rect(gridX, gridY, 9 * SLOT_SIZE, rows * SLOT_SIZE).contains(mouseX, mouseY)) return@layoutedForEach
+            if (!inRect(mouseX, mouseY, gridX, gridY, 9 * SLOT_SIZE, rows * SLOT_SIZE)) return@layoutedForEach
             val col = ((mouseX - gridX) / SLOT_SIZE).toInt().coerceIn(0, 8)
             val row = ((mouseY - gridY) / SLOT_SIZE).toInt().coerceIn(0, rows - 1)
             hit = row * 9 + col
@@ -322,11 +325,11 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
         val mouseX = click.x()
         val mouseY = click.y()
 
-        if (getScrollPanelInner().contains(mouseX, mouseY)) {
+        if (inRect(mouseX, mouseY, scrollPanelX, scrollPanelY, scrollPanelW, scrollPanelH)) {
             val data = StorageOverlay.storageData
             if (activePage != null && dispatchActivePageSlotClick(click, mouseX, mouseY, activePage)) return true
             layoutedForEach(data) { x, y, pw, ph, page, _ ->
-                if (Rect(x, y, pw, ph).contains(mouseX, mouseY) && activePage != page && click.button() == 0) {
+                if (inRect(mouseX, mouseY, x, y, pw, ph) && activePage != page && click.button() == 0) {
                     page.navigateTo()
                     return true
                 }
@@ -334,9 +337,8 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
             return false
         }
 
-        val sb = getScrollBarRect()
-        if (sb.contains(mouseX, mouseY)) {
-            val percentage = ((mouseY - sb.y) / sb.h.toDouble()).coerceIn(0.0, 1.0)
+        if (inRect(mouseX, mouseY, scrollBarX, scrollBarY, SCROLL_BAR_WIDTH, scrollBarH)) {
+            val percentage = ((mouseY - scrollBarY) / scrollBarH.toDouble()).coerceIn(0.0, 1.0)
             scroll = (getMaxScroll() * percentage).toFloat()
             knobGrabbed = true
             return true
@@ -352,8 +354,7 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
 
     override fun mouseDragged(click: MouseButtonEvent, offsetX: Double, offsetY: Double): Boolean {
         if (knobGrabbed) {
-            val sb = getScrollBarRect()
-            val percentage = ((click.y() - sb.y) / sb.h.toDouble()).coerceIn(0.0, 1.0)
+            val percentage = ((click.y() - scrollBarY) / scrollBarH.toDouble()).coerceIn(0.0, 1.0)
             scroll = (getMaxScroll() * percentage).toFloat()
             return true
         }
