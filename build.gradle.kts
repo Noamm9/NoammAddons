@@ -269,6 +269,7 @@ loom {
             name("Cheat Client")
             runDir("run/")
             source(mainSourceSet)
+            ideConfigGenerated(false)
         }
 
         maybeCreate("cheatClientPreprocessed").apply {
@@ -276,6 +277,7 @@ loom {
             name("Cheat Client (Preprocessed)")
             runDir("run/")
             source(cheatSourceSet)
+            ideConfigGenerated(false)
         }
 
         maybeCreate("legitClientPreprocessed").apply {
@@ -283,6 +285,7 @@ loom {
             name("Legit Client (Preprocessed)")
             runDir("run/")
             source(legitSourceSet)
+            ideConfigGenerated(false)
         }
     }
 }
