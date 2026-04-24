@@ -17,7 +17,7 @@ import com.github.noamm9.ui.clickgui.components.showIf
 import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.utils.ThreadUtils
-import com.github.noamm9.utils.Utils.spaceCaps
+import com.github.noamm9.utils.spaceCaps
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.sounds.SoundEvent

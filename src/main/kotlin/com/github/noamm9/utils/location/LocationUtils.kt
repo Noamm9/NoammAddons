@@ -9,20 +9,19 @@ import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.utils.ChatUtils.removeFormatting
-import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.ThreadUtils
-import com.github.noamm9.utils.Utils.remove
-import com.github.noamm9.utils.Utils.startsWithOneOf
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.core.Room
 import com.github.noamm9.utils.dungeons.map.core.RoomType
+import com.github.noamm9.utils.remove
+import com.github.noamm9.utils.startsWithOneOf
 import com.github.noamm9.websocket.WebSocket
 import com.github.noamm9.websocket.packets.C2SPacketDungeonStart
-import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
 import net.minecraft.network.protocol.game.ClientboundSetObjectivePacket
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket
+import net.minecraft.world.phys.AABB
 import kotlin.jvm.optionals.getOrNull
 
 object LocationUtils {
@@ -71,7 +70,7 @@ object LocationUtils {
             if (event.packet is ClientboundPlayerInfoUpdatePacket) {
                 val actions = event.packet.actions()
                 if (actions.contains(ClientboundPlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME) || actions.contains(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER)) {
-                    val area = event.packet.entries().find { it.displayName()?.string?.startsWithOneOf("Area: ", "Dungeon: ") == true }?.displayName?.string ?: return@register
+                    val area = event.packet.entries().find { it.displayName?.string?.startsWithOneOf("Area: ", "Dungeon: ") == true }?.displayName?.string ?: return@register
                     world = WorldType.entries.firstOrNull { area.remove("Area: ", "Dungeon: ") == it.tabName }
                 }
             }
@@ -150,19 +149,19 @@ object LocationUtils {
         }
     }
 
-    private val P3Sections = arrayOf(
-        Pair(BlockPos(90, 158, 123), BlockPos(111, 105, 32)),  //  1
-        Pair(BlockPos(16, 158, 122), BlockPos(111, 105, 143)), //  2
-        Pair(BlockPos(19, 158, 48), BlockPos(- 3, 106, 142)),  //  3
-        Pair(BlockPos(91, 158, 50), BlockPos(- 3, 106, 30))    //  4
+    private val p3Sections = arrayOf(
+        AABB(90.0, 158.0, 123.0, 111.0, 105.0, 32.0),
+        AABB(16.0, 158.0, 122.0, 111.0, 105.0, 143.0),
+        AABB(19.0, 158.0, 48.0, - 3.0, 106.0, 142.0),
+        AABB(91.0, 158.0, 50.0, - 3.0, 106.0, 30.0)
     )
 
     private fun findP3Section(): Int? {
         if (F7Phase != 3) return null
         val playerPos = mc.player?.position() ?: return null
 
-        P3Sections.forEachIndexed { i, (a, b) ->
-            if (MathUtils.isCoordinateInsideBox(playerPos, a, b)) {
+        for (i in p3Sections.indices) {
+            if (p3Sections[i].contains(playerPos)) {
                 return i + 1
             }
         }
@@ -170,20 +169,20 @@ object LocationUtils {
         return null
     }
 
-    private val bossRoomCorners = mapOf(
-        7 to Pair(BlockPos(- 8, 0, - 8), BlockPos(134, 254, 147)),
-        6 to Pair(BlockPos(- 40, 51, - 8), BlockPos(22, 110, 134)),
-        5 to Pair(BlockPos(- 40, 112, - 8), BlockPos(50, 53, 118)),
-        4 to Pair(BlockPos(- 40, 112, - 40), BlockPos(50, 53, 47)),
-        3 to Pair(BlockPos(- 40, 118, - 40), BlockPos(42, 64, 37)),
-        2 to Pair(BlockPos(- 40, 99, - 40), BlockPos(24, 54, 59)),
-        1 to Pair(BlockPos(- 14, 55, 49), BlockPos(- 72, 146, - 40))
+    private val bossRoomBounds = arrayOf(
+        AABB(- 14.0, 55.0, 49.0, - 72.0, 146.0, - 40.0),
+        AABB(- 40.0, 99.0, - 40.0, 24.0, 54.0, 59.0),
+        AABB(- 40.0, 118.0, - 40.0, 42.0, 64.0, 37.0),
+        AABB(- 40.0, 112.0, - 40.0, 50.0, 53.0, 47.0),
+        AABB(- 40.0, 112.0, - 8.0, 50.0, 53.0, 118.0),
+        AABB(- 40.0, 51.0, - 8.0, 22.0, 110.0, 134.0),
+        AABB(- 8.0, 0.0, - 8.0, 134.0, 254.0, 147.0)
     )
 
     private fun isInBossRoom(): Boolean {
         val playerPos = mc.player?.position() ?: return false
         val floor = dungeonFloorNumber ?: return false
-        val corners = bossRoomCorners[floor] ?: return false
-        return MathUtils.isCoordinateInsideBox(playerPos, corners.first, corners.second)
+        if (floor !in 1 .. 7) return false
+        return bossRoomBounds[floor - 1].contains(playerPos)
     }
 }

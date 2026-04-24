@@ -9,34 +9,20 @@ import com.github.noamm9.ui.clickgui.components.*
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
-import com.github.noamm9.utils.JsonUtils.getArray
-import com.github.noamm9.utils.JsonUtils.getDouble
-import com.github.noamm9.utils.JsonUtils.getInt
-import com.github.noamm9.utils.JsonUtils.getObj
-import com.github.noamm9.utils.JsonUtils.getString
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
 import com.github.noamm9.utils.NumbersUtils.toFixed
-import com.github.noamm9.utils.PartyUtils
-import com.github.noamm9.utils.TabListUtils
-import com.github.noamm9.utils.ThreadUtils
-import com.github.noamm9.utils.Utils.equalsOneOf
-import com.github.noamm9.utils.Utils.uppercaseFirst
 import com.github.noamm9.utils.items.ItemRarity
 import com.github.noamm9.utils.items.ItemUtils.lore
-import com.github.noamm9.utils.network.ApiUtils
 import com.github.noamm9.utils.network.ProfileUtils
 import com.github.noamm9.utils.network.cache.ProfileCache
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
 import com.mojang.brigadier.arguments.StringArgumentType
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.double
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.minecraft.network.chat.Component
@@ -223,42 +209,25 @@ object PartyFinder: Feature() {
         val cleanName = name.removeFormatting()
 
         val data = ProfileUtils.getProfile(cleanName).getOrNull() ?: return
-        val dungeons = data.getObj("dungeons") ?: return
-        val catacombs = dungeons.getObj("catacombs")
-        val masterCatacombs = dungeons.getObj("master_catacombs")
+        val dungeons = data.dungeons
 
-        val selectedArrow = data.getString("favorite_arrow")?.lowercase()?.split("_")?.joinToString(" ") { it.uppercaseFirst() }
-        val powerStone = data.getString("selected_power")?.lowercase()?.split("_")?.joinToString(" ") { it.uppercaseFirst() }
+        val catacombs = dungeons.catacombs
+        val masterCatacombs = dungeons.masterCatacombs
 
-        val bloodMobsKilled = data.getInt("blood_mobs_killed") ?: 0
-        val totalSecrets = dungeons.getInt("secrets")?.toDouble() ?: .0
-        val totalRuns = dungeons.getInt("total_runs")?.toDouble() ?: .0
-        val secretAvg = if (totalRuns > 0) totalSecrets / totalRuns else .0
+        val selectedArrow = data.favoriteArrow.lowercase().split("_").joinToString(" ") { it.uppercaseFirst() }
+        val powerStone = data.selectedPower.lowercase().split("_").joinToString(" ") { it.uppercaseFirst() }
 
-        val cataLvl = dungeons.getDouble("catacombs_experience")?.let(ApiUtils::getCatacombsLevel) ?: return
-        val classAvg = dungeons.getObj("player_classes")?.values
-            ?.mapNotNull { element -> runCatching { ApiUtils.getCatacombsLevel(element.jsonPrimitive.double) }.getOrNull()?.toDouble() }
-            ?.takeUnless(Collection<*>::isEmpty)
-            ?.average()
-            ?: return
-
-        val pets = data.getArray("pets")?.mapNotNull { element ->
-            val petObject = element.jsonObject
-            val tier = petObject.getString("tier") ?: return@mapNotNull null
-            val type = petObject.getString("type") ?: return@mapNotNull null
-            val rarity = runCatching { ItemRarity.valueOf(tier) }.getOrNull() ?: return@mapNotNull null
+        val pets = data.pets.map { pet ->
             val formattedType = when {
-                type.endsWith("_DRAGON") -> if (type.startsWith("GOLDEN")) "Gdrag" else "Edrag"
-                else -> type.lowercase().split("_").joinToString(" ") { it.uppercaseFirst() }
+                pet.type.endsWith("_DRAGON") -> if (pet.type.startsWith("GOLDEN")) "Gdrag" else "Edrag"
+                else -> pet.type.lowercase().split("_").joinToString(" ") { it.uppercaseFirst() }
             }
-            rarity.baseColor.toString() to formattedType
-        }?.toSet().orEmpty()
+            ItemRarity.valueOf(pet.tier).baseColor.toString() to formattedType
+        }.toSet()
 
-        val inventoryApiEnabled = ! data.getString("talisman_bag_data").isNullOrBlank()
-        val talismanBag = data.getString("talisman_bag_data")?.let(ApiUtils::decodeBase64ItemList)
-        val magicalPower = talismanBag?.let { ApiUtils.getMagicalPower(it, data) }
-        val armorItems = data.getString("armor_data")?.let(ApiUtils::decodeBase64ItemList)
-        val armorComponents = armorItems.orEmpty().reversed().map { item ->
+        val inventoryApiEnabled = data.talismanBagData.isNotBlank()
+
+        val armorComponents = data.armorInv.reversed().map { item ->
             val displayName = item.hoverName.formattedText
             val hoverText = buildList {
                 add(displayName)
@@ -271,27 +240,25 @@ object PartyFinder: Feature() {
         }
 
         val completionComponents = listOfNotNull(
-            catacombs?.getObj("tier_completions")?.let { completionObj ->
+            catacombs.tierCompletions.let { completionObj ->
                 val highestFloor = completionObj.keys.mapNotNull(String::toIntOrNull).maxOrNull() ?: return@let null
-                val header = "  &aFloor Completions &7(F$highestFloor): ${catacombs.getObj("fastest_time_s_plus")?.getInt("$highestFloor")?.let(::formatTime) ?: "N/A"}"
+                val header = "  &aFloor Completions &7(F$highestFloor): ${catacombs.fastestTimeSPlus["$highestFloor"]?.let(::formatTime) ?: "N/A"}"
                 val hover = (0 .. highestFloor).joinToString("\n") { floor ->
-                    val completions = completionObj.getInt("$floor")
-                    val pb = catacombs.getObj("fastest_time_s_plus")?.getInt("$floor")?.let(::formatTime) ?: "&cNo Comp"
+                    val pb = catacombs.fastestTimeSPlus["$floor"]?.let(::formatTime) ?: "&cNo Comp"
                     val floorName = if (floor == 0) "Entrance" else floor.toString()
-                    "&2&l*&a Floor $floorName: ${completions?.let { "&e$it &7(&6S+ &e$pb&7)" } ?: "&cDNF"}"
+                    "&2&l*&a Floor $floorName: ${completionObj["$floor"]?.let { "&e$it &7(&6S+ &e$pb&7)" } ?: "&cDNF"}"
                 }
 
                 Component.literal(header.addColor()).withStyle {
                     it.withHoverEvent(HoverEvent.ShowText(Component.literal(hover.addColor())))
                 }
             },
-            masterCatacombs?.getObj("tier_completions")?.let { completionObj ->
+            masterCatacombs.tierCompletions.let { completionObj ->
                 val highestFloor = completionObj.keys.mapNotNull(String::toIntOrNull).maxOrNull() ?: return@let null
-                val header = "  &l&4Master Completions &7(M$highestFloor): ${masterCatacombs.getObj("fastest_time_s_plus")?.getInt("$highestFloor")?.let(::formatTime) ?: "N/A"}"
+                val header = "  &l&4Master Completions &7(M$highestFloor): ${masterCatacombs.fastestTimeSPlus["$highestFloor"]?.let(::formatTime) ?: "N/A"}"
                 val hover = (1 .. highestFloor).joinToString("\n") { floor ->
-                    val completions = completionObj.getInt("$floor")
-                    val pb = masterCatacombs.getObj("fastest_time_s_plus")?.getInt("$floor")?.let(::formatTime) ?: "&cNo Comp"
-                    "&c&l*&4 Floor $floor: ${completions?.let { "&e$it &7(&6S+ &e$pb&7)" } ?: "&cDNF"}"
+                    val pb = masterCatacombs.fastestTimeSPlus["$floor"]?.let(::formatTime) ?: "&cNo Comp"
+                    "&c&l*&4 Floor $floor: ${completionObj["$floor"]?.let { "&e$it &7(&6S+ &e$pb&7)" } ?: "&cDNF"}"
                 }
 
                 Component.literal(header.addColor()).withStyle {
@@ -302,13 +269,13 @@ object PartyFinder: Feature() {
 
         ChatUtils.chat("&a&l--- &r&b$cleanName&b's Dungeon Stats &a&l---&r")
         ChatUtils.chat(
-            "  &4Cata Level: &b$cataLvl &f| &dClass Avg: &b${classAvg.toFixed(1)} &f| &dMP: ${
-                if (! inventoryApiEnabled || magicalPower == null) "&cAPI off" else "&e$magicalPower"
+            "  &4Cata Level: &b${data.cataLevel} &f| &dClass Avg: &b${data.classAverage.toFixed(1)} &f| &dMP: ${
+                if (! inventoryApiEnabled) "&cAPI off" else "&e${data.magicalPower}"
             }"
         )
-        ChatUtils.chat("  &bSecrets: &d${totalSecrets.toInt()} &b(&d${secretAvg.toFixed(2)}&b) &f| &cBlood Mobs: &f$bloodMobsKilled")
+        ChatUtils.chat("  &bSecrets: &d${dungeons.secrets} &b(&d${data.secretAverage.toFixed(2)}&b) &f| &cBlood Mobs: &f${data.bloodMobsKilled}")
         ChatUtils.chat("  Pets: ${if (pets.isEmpty()) "&cNone" else pets.joinToString("&7,&r ") { it.first + it.second }}")
-        ChatUtils.chat("  &9Power Stone: ${powerStone?.let { "&e$it" } ?: "&cUnknown"} &f| &6Arrows: ${selectedArrow?.let { "&e$it" } ?: "&cUnknown"}")
+        ChatUtils.chat("  &9Power Stone: &e$powerStone &f| &6Arrows: &e$selectedArrow")
         ChatUtils.chat(" ")
 
         when {
@@ -336,23 +303,20 @@ object PartyFinder: Feature() {
             if (name.equalsOneOf("Noamm", mc.user.name)) return@apply
             val profile = ProfileUtils.getProfile(name).getOrNull() ?: return@apply
 
-            val dungeons = profile.getObj("dungeons") ?: return@apply
+            val dungeons = profile.dungeons
             val floor = autoKickFloor.value + 1
-            val dungeonType = if (masterMode.value) dungeons.getObj("master_catacombs") else dungeons.getObj("catacombs")
+            val dungeonType = if (masterMode.value) dungeons.masterCatacombs else dungeons.catacombs
 
             val floorPrefix = if (masterMode.value) "M" else "F"
             val pbReq = formatTime(maximumSeconds.value * 1000)
-            val pb = dungeonType?.getObj("fastest_time_s_plus")?.getInt("$floor")
+            val pb = dungeonType.fastestTimeSPlus["$floor"]
             if (pb == null) add("PB(No S+/$pbReq)")
             else if (pb / 1000 > maximumSeconds.value) {
                 add("$floorPrefix$floor: PB(${formatTime(pb)}/$pbReq)")
             }
 
-            if (minimumSecrets.value > 0) {
-                val secrets = dungeons.getInt("secrets") ?: 0
-                if (secrets < minimumSecrets.value * 1000) {
-                    add("Secrets(${secrets / 1000}k/${minimumSecrets.value}k)")
-                }
+            if (minimumSecrets.value > 0 && dungeons.secrets < minimumSecrets.value * 1000) {
+                add("Secrets(${dungeons.secrets / 1000}k/${minimumSecrets.value}k)")
             }
 
             if (isEmpty()) return
@@ -394,30 +358,18 @@ object PartyFinder: Feature() {
             return "§7(Loading...)"
         }
 
-        val dungeons = cachedData.getObj("dungeons")
-        val catacombs = dungeons?.getObj("catacombs")
-        val masterCatacombs = dungeons?.getObj("master_catacombs")
-
-        val cataLvl = dungeons?.getDouble("catacombs_experience")?.let { ApiUtils.getCatacombsLevel(it) } ?: "?"
+        val dungeons = cachedData.dungeons
 
         return buildString {
-            append("§b(§6$cataLvl§b)§r")
+            append("§b(§6${cachedData.cataLevel}§b)§r")
 
             if (showSecrets.value) {
-                val totalSecrets = dungeons?.getInt("secrets")?.toDouble() ?: .0
-                val totalRuns = dungeons?.getInt("total_runs")?.toDouble() ?: .0
-                val secretAvg = if (totalRuns > 0) (totalSecrets / totalRuns).toFixed(2) else "0.00"
-                val showSecrets = totalSecrets != .0
-                val secrets = if (showSecrets) totalSecrets.toInt() else "?"
-                val avg = if (showSecrets) secretAvg else "?"
-
-                append(" §8[§a$secrets§8/§b$avg§8]§r")
+                append(" §8[§a${dungeons.secrets}§8/§b${cachedData.secretAverage.toFixed(2)}§8]§r")
             }
 
             if (showPB.value) {
-                val pbObj = if (type == 'F') catacombs else masterCatacombs
-                val pbTime = pbObj?.getObj("fastest_time_s_plus")?.getInt("$floor")
-                val pb = pbTime?.let(::formatTime) ?: "N/A"
+                val pbObj = if (type == 'F') dungeons.catacombs else dungeons.masterCatacombs
+                val pb = pbObj.fastestTimeSPlus["$floor"]?.let(::formatTime) ?: "N/A"
                 append(" §8[§9$pb§8]§r")
             }
         }

@@ -2,12 +2,12 @@ package com.github.noamm9.features.impl.misc
 
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ChatUtils.unformattedText
-import com.github.noamm9.utils.Utils.endsWithOneOf
-import com.github.noamm9.utils.Utils.equalsOneOf
-import com.github.noamm9.utils.Utils.startsWithOneOf
 import com.github.noamm9.utils.dungeons.enums.WitherRelic
+import com.github.noamm9.utils.endsWithOneOf
+import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.startsWithOneOf
 import net.minecraft.world.item.context.BlockPlaceContext
 
 /**

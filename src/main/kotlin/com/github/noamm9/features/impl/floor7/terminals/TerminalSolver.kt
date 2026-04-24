@@ -17,10 +17,10 @@ import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.ThreadUtils
-import com.github.noamm9.utils.Utils.equalsOneOf
-import com.github.noamm9.utils.Utils.uppercaseFirst
+import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.hasGlint
 import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.uppercaseFirst
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.world.inventory.ClickType
 import net.minecraft.world.item.ItemStack

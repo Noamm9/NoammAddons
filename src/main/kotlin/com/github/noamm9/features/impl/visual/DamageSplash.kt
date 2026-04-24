@@ -10,7 +10,7 @@ import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.NumbersUtils
-import com.github.noamm9.utils.Utils.containsOneOf
+import com.github.noamm9.utils.containsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.network.chat.Component
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket

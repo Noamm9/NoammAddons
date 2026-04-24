@@ -1,26 +1,24 @@
 package com.github.noamm9.utils.network
 
-import com.github.noamm9.NoammAddons.logger
 import com.github.noamm9.NoammAddons.scope
 import com.github.noamm9.utils.JsonUtils
 import com.github.noamm9.utils.JsonUtils.getObj
 import com.github.noamm9.utils.JsonUtils.getString
-import com.github.noamm9.utils.Utils.containsOneOf
+import com.github.noamm9.utils.containsOneOf
 import com.github.noamm9.utils.network.cache.ProfileCache
 import com.github.noamm9.utils.network.cache.SecretCache
 import com.github.noamm9.utils.network.cache.UuidCache
+import com.github.noamm9.utils.network.data.DungeonStats
 import com.github.noamm9.utils.network.data.MojangData
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
-import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
-import kotlin.math.max
+import java.util.concurrent.*
 
 object ProfileUtils {
-    const val BASE_URL = "https://api.noamm.org"
+    private const val BASE_URL = "https://api.noamm.org"
 
     private val nameToUuidApis = listOf(
         "https://playerdb.co/api/player/minecraft/",
@@ -132,20 +130,20 @@ object ProfileUtils {
         return awaitSharedRequest("SECRETS", name) {
             SecretCache.getFromCache(name)?.let { return@awaitSharedRequest Result.success(it) }
             getUUIDbyName(name).mapCatching { mojangData ->
-                doApiRequest<Long>("/secrets?uuid=${mojangData.uuid}")
+                doApiRequest<Long>("/hypixel/secrets/${mojangData.uuid}")
             }.onSuccess { SecretCache.addToCache(name, it) }
         }
     }
 
-    suspend fun getProfile(playerName: String): Result<JsonObject> {
+    suspend fun getProfile(playerName: String): Result<DungeonStats> {
         val name = playerName.lowercase()
         ProfileCache.getFromCache(name)?.let { return Result.success(it) }
 
         return awaitSharedRequest("PROFILE", name) {
             ProfileCache.getFromCache(name)?.let { return@awaitSharedRequest Result.success(it) }
             getUUIDbyName(name).mapCatching { mojangData ->
-                doApiRequest<JsonObject>("/dungeonstats?uuid=${mojangData.uuid}")
-            }.onSuccess { ProfileCache.addToCache(name, it) }
+                doApiRequest<DungeonStats>("/hypixel/dungeonstats/${mojangData.uuid}")
+            }.onSuccess { ProfileCache.addToCache(name, it) }.onFailure { it.printStackTrace() }
         }
     }
 
@@ -155,9 +153,7 @@ object ProfileUtils {
 
         while (true) {
             sharedRequests[key]?.let { return it.await() as Result<T> }
-
             val deferred = scope.async(start = CoroutineStart.LAZY) { request() }
-
             sharedRequests.putIfAbsent(key, deferred) ?: run {
                 deferred.invokeOnCompletion { sharedRequests.remove(key, deferred) }
                 deferred.start()
@@ -173,29 +169,16 @@ object ProfileUtils {
 
         val resResult = WebUtils.get("$BASE_URL$path")
         if (resResult.isFailure) {
-            val msg = resResult.exceptionOrNull()?.message ?: ""
+            val error = resResult.exceptionOrNull()
+            val msg = error?.message ?: ""
             when {
-                msg.contains("429") -> {
-                    apiCooldowns["noamm"] = now + 60_000
-                    logger.warn("429 Rate Limit: Global cooldown 1m.")
-                }
-
-                msg.containsOneOf("404", "500", "502", "503") -> {
-                    apiCooldowns[path] = now + 300_000 // 5m negative cache
-                    logger.warn("API Error $msg: Negative caching path.")
-                }
+                msg.contains("429") -> apiCooldowns["noamm"] = now + 60_000
+                msg.containsOneOf("404", "500", "502", "503", "403") -> apiCooldowns[path] = now + 300_000
             }
-            throw resResult.exceptionOrNull() ?: Exception("API Error")
+
+            throw error ?: Exception("API Error")
         }
 
-        val res = resResult.getOrThrow()
-        res.headers["x-ratelimit-remaining"]?.let {
-            if (it == "0") {
-                val reset = res.headers["x-ratelimit-reset"]?.toLongOrNull() ?: 10L
-                apiCooldowns["noamm"] = max(apiCooldowns["noamm"] ?: 0L, now + (reset * 1000L))
-            }
-        }
-
-        return WebUtils.getAs<T>(res).getOrThrow()
+        return WebUtils.getAs<T>(resResult.getOrThrow()).getOrThrow()
     }
 }

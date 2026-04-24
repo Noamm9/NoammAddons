@@ -4,7 +4,7 @@ import com.github.noamm9.config.PogObject
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.utils.ThreadUtils
-import com.github.noamm9.utils.Utils.remove
+import com.github.noamm9.utils.remove
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit

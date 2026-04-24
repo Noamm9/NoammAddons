@@ -1,8 +1,8 @@
 package com.github.noamm9.utils.dungeons.enums
 
-import com.github.noamm9.utils.Utils.equalsOneOf
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.core.RoomState
+import com.github.noamm9.utils.equalsOneOf
 
 enum class Puzzle(val roomDataName: String, val tabName: String = roomDataName) {
     BOMB_DEFUSE("Bomb Defuse"), // Rest in peace
