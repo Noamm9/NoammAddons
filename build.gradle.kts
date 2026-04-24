@@ -18,6 +18,7 @@ val fabric_kotlin_version: String by project
 val mod_version: String by project
 val maven_group: String by project
 val mod_name: String by project
+val modmenu_version: String by project
 val fabric_version: String by project
 val iris_version: String by project
 
@@ -31,6 +32,7 @@ java { toolchain.languageVersion = JavaLanguageVersion.of(21) }
 repositories {
     maven(url = uri("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1"))
     maven(url = uri("https://api.modrinth.com/maven"))
+    maven(url = uri("https://maven.terraformersmc.com/"))
 }
 
 dependencies {
@@ -43,6 +45,7 @@ dependencies {
 
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
     modCompileOnly("maven.modrinth:iris:$iris_version")
+    modCompileOnly("com.terraformersmc:modmenu:$modmenu_version")
 
     implementation("io.github.llamalad7:mixinextras-fabric:0.4.1")
     annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.4.1")
