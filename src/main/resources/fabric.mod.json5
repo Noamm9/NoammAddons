@@ -21,7 +21,7 @@
   "environment": "*",
   "entrypoints": {
     "modmenu": [
-      "com.github.noamm9.ui.clickgui.modmenu.ModMenuIntegration"
+      "com.github.noamm9.ui.clickgui.ModMenuIntegration"
     ],
     "client": [
       {

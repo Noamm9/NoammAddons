@@ -8,13 +8,13 @@ import com.github.noamm9.event.EventListener
 import com.github.noamm9.event.EventPriority
 import com.github.noamm9.features.annotations.AlwaysActive
 import com.github.noamm9.features.annotations.Dev
-import com.github.noamm9.ui.clickgui.CategoryType
 import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.impl.ButtonSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.SoundSetting
 import com.github.noamm9.ui.clickgui.components.showIf
 import com.github.noamm9.ui.clickgui.components.withDescription
+import com.github.noamm9.ui.clickgui.enums.CategoryType
 import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.spaceCaps

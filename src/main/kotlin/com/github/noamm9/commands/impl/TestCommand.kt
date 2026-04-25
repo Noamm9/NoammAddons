@@ -60,13 +60,13 @@ object TestCommand: BaseCommand("test") {
                     delay(1000)
 
                     ChatUtils.chat("aa")
-                    
+
                 }
             }
         }
 
         runs {
-            ChatUtils.chat("${mc.player?.mainHandItem.skyblockId}: ${priceData[mc.player?.mainHandItem.skyblockId]}")
+            ChatUtils.chat("${mc.player?.mainHandItem?.skyblockId}: ${priceData[mc.player?.mainHandItem?.skyblockId]}")
         }
     }
 }

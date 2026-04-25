@@ -5,7 +5,7 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.config.Config
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.impl.RenderOverlayEvent
-import com.github.noamm9.ui.clickgui.CategoryType
+import com.github.noamm9.ui.clickgui.enums.CategoryType
 import com.github.noamm9.ui.hud.HudEditorScreen
 import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.ui.utils.Resolution

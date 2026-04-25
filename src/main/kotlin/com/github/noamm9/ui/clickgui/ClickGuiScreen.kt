@@ -3,10 +3,10 @@ package com.github.noamm9.ui.clickgui
 import com.github.noamm9.config.Config
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.Style
-import com.github.noamm9.ui.utils.Animation
+import com.github.noamm9.ui.clickgui.enums.CategoryType
+import com.github.noamm9.ui.clickgui.enums.WindowClickAction
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.TextInputHandler
-import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.Render2D
 import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphics
@@ -20,7 +20,12 @@ import java.awt.Color
 
 
 object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
+    private const val defaultWindowWidth = 220f
+    private const val defaultWindowHeight = 260f
+    private const val windowCascadeOffset = 18f
+
     private val panels = mutableListOf<Panel>()
+    private val configWindows = mutableListOf<FeatureConfigWindow>()
     var searchQuery = ""
 
     private val searchHandler = TextInputHandler(
@@ -28,9 +33,12 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
         textSetter = { searchQuery = it }
     )
 
-    var selectedFeature: Feature? = null
-    private var scrollTarget = 0f
-    private val scrollAnim = Animation(200L)
+    var selectedFeature: Feature?
+        get() = configWindows.lastOrNull()?.feature
+        set(value) {
+            if (value == null) closeAllFeatureWindows()
+            else openFeatureWindow(value)
+        }
 
     init {
         CategoryType.entries.forEachIndexed { index, category ->
@@ -48,72 +56,13 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
         context.fillGradient(0, 0, Resolution.width.toInt(), Resolution.height.toInt(), Color(0, 0, 0, 100).rgb, Color(0, 0, 0, 150).rgb)
 
         panels.forEach { it.render(context, mX, mY) }
-
         drawSearchBar(context, mX.toFloat(), mY.toFloat())
-
-        selectedFeature?.let { feature ->
-            drawSettingsMenu(context, feature, mX, mY)
+        configWindows.forEachIndexed { index, window ->
+            window.render(context, mX, mY, index == configWindows.lastIndex)
         }
 
         TooltipManager.draw(context, Resolution.width, Resolution.height)
         Resolution.pop(context)
-    }
-
-    private fun drawSettingsMenu(context: GuiGraphics, feature: Feature, mx: Int, my: Int) {
-        val x = (Resolution.width / 2) - 100
-        val y = (Resolution.height / 2) - 125
-        val menuWidth = 200
-        val menuHeight = 250
-
-        Render2D.drawRect(context, x, y, menuWidth.toFloat(), menuHeight.toFloat(), Color(20, 20, 20, 240))
-        Render2D.drawRect(context, x, y, menuWidth.toFloat(), 2f, Style.accentColor)
-        Render2D.drawCenteredString(context, "§l${feature.name}", Resolution.width / 2, y + 10)
-        Render2D.drawRect(context, x + 10, y + 28, 180f, 1f, Color(255, 255, 255, 30))
-
-        val visibleSettings = feature.configSettings.filter { it.isVisible }
-
-        val totalContentHeight = visibleSettings.sumOf { it.height + 5 }.toFloat() + 10
-        val viewportHeight = 195f
-        val maxScroll = if (totalContentHeight > viewportHeight) totalContentHeight - viewportHeight else 0f
-
-        context.enableScissor(x.toInt(), (y + 30).toInt(), (x + menuWidth).toInt(), (y + 30 + 210).toInt())
-
-        scrollAnim.update(scrollTarget)
-        var sY = y + 40 + scrollAnim.value
-
-        visibleSettings.forEach { setting ->
-            setting.x = (Resolution.width / 2).toInt() - 90
-            setting.y = sY.toInt()
-            setting.width = 180
-
-            setting.draw(context, mx, my)
-
-            val isHovered = mx >= setting.x && mx <= setting.x + setting.width &&
-                my >= setting.y && my <= setting.y + setting.height &&
-                my > y + 30 && my < y + 225
-
-            if (isHovered) TooltipManager.hover(setting.description, mx, my)
-
-            sY += setting.height + 5
-        }
-        context.disableScissor()
-
-        if (maxScroll > 0) {
-            val barWidth = 2f
-            val barX = x + menuWidth - barWidth - 2f
-            val barY = y + 32f
-            val barHeight = viewportHeight - 4f
-
-            Render2D.drawRect(context, barX, barY, barWidth, barHeight, Color(255, 255, 255, 15))
-
-            val thumbHeight = (viewportHeight / totalContentHeight) * barHeight
-            val thumbY = barY + (- scrollAnim.value / totalContentHeight) * barHeight
-
-            Render2D.drawRect(context, barX, thumbY, barWidth, thumbHeight, Style.accentColor.withAlpha(160))
-        }
-
-        if (scrollTarget > 0) scrollTarget = 0f
-        if (scrollTarget < - maxScroll) scrollTarget = - maxScroll
     }
 
     private fun drawSearchBar(context: GuiGraphics, mX: Float, mY: Float) {
@@ -143,29 +92,26 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
         val my = Resolution.getMouseY(mouseButtonEvent.y)
         val button = mouseButtonEvent.button()
 
-        selectedFeature?.let { feature ->
-            val menuX = (Resolution.width / 2) - 100
-            val menuY = (Resolution.height / 2) - 125
-            if (mx < menuX || mx > menuX + 200 || my < menuY || my > menuY + 250) {
-                selectFeature(null)
-                return true
-            }
-            if (my > menuY + 30 && my < menuY + 225) {
-                feature.configSettings.forEach {
-                    if (! it.isVisible) return@forEach
-                    if (it.mouseClicked(mx.toDouble(), my.toDouble(), button)) return true
-                }
+        configWindows.asReversed().find { it.contains(mx.toFloat(), my.toFloat()) }?.let { window ->
+            focusWindow(window)
+            blurAllWindows(window)
+            searchHandler.listening = false
+
+            when (window.mouseClicked(mx, my, button)) {
+                WindowClickAction.CLOSE -> closeWindow(window)
+                WindowClickAction.CONSUMED -> {}
             }
             return true
         }
 
-        panels.asReversed().find { panel -> panel.isMouseOverHeader(mx.toDouble(), my.toDouble()) }?.let { clickedPanel ->
+        blurAllWindows()
+
+        panels.asReversed().find { it.isMouseOverHeader(mx.toDouble(), my.toDouble()) }?.let { clickedPanel ->
             panels.remove(clickedPanel)
             panels.add(clickedPanel)
 
             clickedPanel.mouseClicked(mx.toDouble(), my.toDouble(), button)
             searchHandler.listening = false
-
             return true
         }
 
@@ -173,16 +119,22 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
             return true
         }
 
-        panels.forEach { it.mouseClicked(mx.toDouble(), my.toDouble(), button) }
+        panels.asReversed().find { it.isMouseOver(mx, my) }?.let { panel ->
+            panel.mouseClicked(mx.toDouble(), my.toDouble(), button)
+            return true
+        }
+
         return super.mouseClicked(mouseButtonEvent, bl)
     }
 
     override fun mouseReleased(mouseButtonEvent: MouseButtonEvent): Boolean {
         val mx = Resolution.getMouseX(mouseButtonEvent.x)
         val my = Resolution.getMouseY(mouseButtonEvent.y)
+        val button = mouseButtonEvent.button()
+
         searchHandler.mouseReleased()
-        selectedFeature?.configSettings?.forEach { it.mouseReleased(mouseButtonEvent.button()) }
-        panels.forEach { it.mouseReleased(mx.toDouble(), my.toDouble(), mouseButtonEvent.button()) }
+        configWindows.forEach { it.mouseReleased(button) }
+        panels.forEach { it.mouseReleased(button) }
         return super.mouseReleased(mouseButtonEvent)
     }
 
@@ -190,12 +142,9 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
         val mx = Resolution.getMouseX(mouseX)
         val my = Resolution.getMouseY(mouseY)
 
-        if (selectedFeature != null) {
-            selectedFeature?.configSettings?.forEach {
-                if (it.mouseScrolled(mx, my, vertical)) return true
-            }
-
-            scrollTarget += (vertical * 30).toFloat()
+        configWindows.asReversed().find { it.contains(mx.toFloat(), my.toFloat()) }?.let { window ->
+            focusWindow(window)
+            window.mouseScrolled(mx, my, vertical)
             return true
         }
 
@@ -208,8 +157,8 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
     }
 
     override fun charTyped(characterEvent: CharacterEvent): Boolean {
-        selectedFeature?.configSettings?.forEach {
-            if (it.isVisible && it.charTyped(characterEvent.codepoint.toChar(), characterEvent.modifiers)) {
+        configWindows.lastOrNull()?.let { window ->
+            if (window.charTyped(characterEvent.codepoint.toChar(), characterEvent.modifiers)) {
                 return true
             }
         }
@@ -219,18 +168,14 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
     }
 
     override fun keyPressed(keyEvent: KeyEvent): Boolean {
-        if (selectedFeature != null) {
-            selectedFeature?.configSettings?.forEach {
-                if (it.isVisible && it.keyPressed(keyEvent.key, keyEvent.scancode, keyEvent.modifiers)) {
-                    return true
-                }
+        configWindows.lastOrNull()?.let { window ->
+            if (window.keyPressed(keyEvent.key, keyEvent.scancode, keyEvent.modifiers)) {
+                return true
             }
 
             if (keyEvent.key == InputConstants.KEY_ESCAPE) {
-                if (selectedFeature != null) {
-                    selectedFeature = null
-                    return true
-                }
+                closeWindow(window)
+                return true
             }
         }
 
@@ -243,14 +188,59 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
         return super.keyPressed(keyEvent)
     }
 
-    fun selectFeature(feature: Feature?) {
-        selectedFeature = feature
-        scrollTarget = 0f
-        scrollAnim.set(0f)
+    fun openFeatureWindow(feature: Feature, preferredX: Float? = null, preferredY: Float? = null) {
+        Resolution.refresh()
+
+        configWindows.find { it.feature == feature }?.let {
+            focusWindow(it)
+            blurAllWindows(it)
+            searchHandler.listening = false
+            return
+        }
+
+        blurAllWindows()
+        searchHandler.listening = false
+
+        val offset = configWindows.size * windowCascadeOffset
+        val startX = preferredX ?: (((Resolution.width - defaultWindowWidth) / 2f) + offset)
+        val startY = preferredY ?: (((Resolution.height - defaultWindowHeight) / 2f) + offset)
+
+        configWindows.add(
+            FeatureConfigWindow(
+                feature = feature,
+                startX = startX,
+                startY = startY,
+                startWidth = defaultWindowWidth,
+                startHeight = defaultWindowHeight
+            ).also { it.clampToScreen() }
+        )
+    }
+
+    fun isMouseOverConfigWindow(mouseX: Int, mouseY: Int): Boolean {
+        return configWindows.asReversed().any { it.contains(mouseX.toFloat(), mouseY.toFloat()) }
+    }
+
+    private fun focusWindow(window: FeatureConfigWindow) {
+        configWindows.remove(window)
+        configWindows.add(window)
+    }
+
+    private fun blurAllWindows(except: FeatureConfigWindow? = null) {
+        configWindows.forEach { if (it !== except) it.blur() }
+    }
+
+    private fun closeWindow(window: FeatureConfigWindow) {
+        window.blur()
+        configWindows.remove(window)
+    }
+
+    private fun closeAllFeatureWindows() {
+        blurAllWindows()
+        configWindows.clear()
     }
 
     override fun onClose() {
-        selectFeature(null)
+        closeAllFeatureWindows()
         searchHandler.listening = false
         Config.save()
         super.onClose()
