@@ -18,8 +18,8 @@ val fabric_kotlin_version: String by project
 val mod_version: String by project
 val maven_group: String by project
 val mod_name: String by project
-val modmenu_version: String by project
 val fabric_version: String by project
+val modmenu_version: String by project
 val iris_version: String by project
 
 version = mod_version
