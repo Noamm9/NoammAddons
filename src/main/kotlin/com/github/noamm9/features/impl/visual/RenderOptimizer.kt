@@ -108,10 +108,10 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless shit.") {
             }
 
             if (! LocationUtils.inDungeon) return@register
-            val displayName = event.entity.displayName ?: return@register
+            val name = event.entity.customName ?: return@register
             val info = entityNameCache.getOrPut(event.entity) {
-                val formatted = displayName.formattedText
-                EntityNameInfo(displayName, formatted.contains("✯"), formatted.endsWith("§c❤"))
+                val formatted = name.formattedText
+                EntityNameInfo(name, formatted.contains("✯"), formatted.endsWith("§c❤"))
             }
 
             if (! info.isHealthTag) return@register
