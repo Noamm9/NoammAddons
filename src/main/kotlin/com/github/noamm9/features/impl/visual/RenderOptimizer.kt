@@ -35,15 +35,14 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless shit.") {
     private val hideP5p by ToggleSetting("Hide P5 Particles")
     val hideFireOnEntities by ToggleSetting("Hide Fire On Entities")
 
-    private val healthMatches = arrayOf(
-        Regex("^§.\\[§.Lv\\d+§.] §.+ (?:§.)+0§f/.+§c❤$"),
-        Regex("^.+ (?:§.)+0§c❤$")
-    )
+    private val healthMatches = arrayOf(Regex("^§.\\[§.Lv\\d+§.] §.+ (?:§.)+0§f/.+§c❤$"), Regex("^.+ (?:§.)+0§c❤$"))
 
-    private const val TENTACLE_TEXTURE =
-        "ewogICJ0aW1lc3RhbXAiIDogMTcxOTg1NzI3NzI0OSwKICAicHJvZmlsZUlkIiA6ICIxODA1Y2E2MmM0ZDI0M2NiOWQxYmY4YmM5N2E1YjgyNCIsCiAgInByb2ZpbGVOYW1lIiA6ICJSdWxsZWQiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzdkODM2NzQ5MjZiODk3MTRlNmI1YTU1NDcwNTAxYzA0YjA2NmRkODdiZjZjMzM1Y2RkYzZlNjBhMWExYTVmNSIKICAgIH0KICB9Cn0="
-    private const val SOUL_WEAVER_TEXTURE =
-        "eyJ0aW1lc3RhbXAiOjE1NTk1ODAzNjI1NTMsInByb2ZpbGVJZCI6ImU3NmYwZDlhZjc4MjQyYzM5NDY2ZDY3MjE3MzBmNDUzIiwicHJvZmlsZU5hbWUiOiJLbGxscmFoIiwic2lnbmF0dXJlUmVxdWlyZWQiOnRydWUsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8yZjI0ZWQ2ODc1MzA0ZmE0YTFmMGM3ODViMmNiNmE2YTcyNTYzZTlmM2UyNGVhNTVlMTgxNzg0NTIxMTlhYTY2In19fQ=="
+    private data class EntityNameInfo(val component: Component, val isStarred: Boolean, val isHealthTag: Boolean)
+
+    private val entityNameCache = WeakHashMap<Entity, EntityNameInfo>()
+
+    private const val TENTACLE_TEXTURE = "ewogICJ0aW1lc3RhbXAiIDogMTcxOTg1NzI3NzI0OSwKICAicHJvZmlsZUlkIiA6ICIxODA1Y2E2MmM0ZDI0M2NiOWQxYmY4YmM5N2E1YjgyNCIsCiAgInByb2ZpbGVOYW1lIiA6ICJSdWxsZWQiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzdkODM2NzQ5MjZiODk3MTRlNmI1YTU1NDcwNTAxYzA0YjA2NmRkODdiZjZjMzM1Y2RkYzZlNjBhMWExYTVmNSIKICAgIH0KICB9Cn0="
+    private const val SOUL_WEAVER_TEXTURE = "eyJ0aW1lc3RhbXAiOjE1NTk1ODAzNjI1NTMsInByb2ZpbGVJZCI6ImU3NmYwZDlhZjc4MjQyYzM5NDY2ZDY3MjE3MzBmNDUzIiwicHJvZmlsZU5hbWUiOiJLbGxscmFoIiwic2lnbmF0dXJlUmVxdWlyZWQiOnRydWUsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8yZjI0ZWQ2ODc1MzA0ZmE0YTFmMGM3ODViMmNiNmE2YTcyNTYzZTlmM2UyNGVhNTVlMTgxNzg0NTIxMTlhYTY2In19fQ=="
 
     override fun init() {
         register<MainThreadPacketReceivedEvent.Pre> {
@@ -109,11 +108,15 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless shit.") {
             }
 
             if (! LocationUtils.inDungeon) return@register
-            val name = event.entity.displayName?.formattedText ?: return@register
-            if (! name.endsWith("§c❤")) return@register
+            val displayName = event.entity.displayName ?: return@register
+            val info = entityNameCache.getOrPut(event.entity) {
+                val formatted = displayName.formattedText
+                EntityNameInfo(displayName, formatted.contains("✯"), formatted.endsWith("§c❤"))
+            }
 
-            val isStarred = name.contains("✯")
-            if ((isStarred && hideStar.value) || (! isStarred && hideNonStar.value)) {
+            if (! info.isHealthTag) return@register
+
+            if ((info.isStarred && hideStar.value) || (! info.isStarred && hideNonStar.value)) {
                 event.isCanceled = true
             }
         }

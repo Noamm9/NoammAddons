@@ -11,6 +11,7 @@ import com.github.noamm9.utils.dungeons.DungeonPlayer
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.core.*
+import com.github.noamm9.utils.dungeons.map.handlers.DungeonPathFinder
 import com.github.noamm9.utils.dungeons.map.handlers.HotbarMapColorParser
 import com.github.noamm9.utils.dungeons.map.handlers.ScoreCalculation
 import com.github.noamm9.utils.dungeons.map.utils.MapUtils
@@ -143,19 +144,10 @@ object MapRenderer: HudElement() {
     }
 
     private fun getDoorState(row: Int, column: Int): RoomState {
-        val rooms = getConnectingDoorRooms(row, column) ?: return RoomState.UNDISCOVERED
-        if (rooms.toList().any { it.state == RoomState.UNDISCOVERED }) return RoomState.UNDISCOVERED
+        val rooms = DungeonPathFinder.getConnectingDoorRooms(row, column)
+        if (rooms.size != 2) return RoomState.UNDISCOVERED
+        if (rooms.any { it.state == RoomState.UNDISCOVERED }) return RoomState.UNDISCOVERED
         return RoomState.UNOPENED
-    }
-
-    private fun getConnectingDoorRooms(row: Int, column: Int): Pair<Room, Room>? {
-        val vertical = column % 2 == 0
-        val connectingTiles = runCatching {
-            if (vertical) DungeonInfo.dungeonList[(row - 1) * 11 + column] to DungeonInfo.dungeonList[(row + 1) * 11 + column]
-            else DungeonInfo.dungeonList[row * 11 + column - 1] to DungeonInfo.dungeonList[row * 11 + column + 1]
-        }.getOrNull() ?: return null
-
-        return (connectingTiles.first as? Room ?: return null) to (connectingTiles.second as? Room ?: return null)
     }
 
     private fun renderText(ctx: GuiGraphics) {

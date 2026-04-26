@@ -16,7 +16,7 @@ import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import kotlinx.coroutines.*
 import net.minecraft.world.level.saveddata.maps.MapDecorationTypes
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.*
 
 object MapUpdater {
     private val playerHeadScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -110,6 +110,7 @@ object MapUpdater {
 
                 if (room is Unknown) {
                     DungeonInfo.dungeonList[idx] = mapTile
+                    DungeonPathFinder.clearCache()
                     if (mapTile is Room) {
                         val connected = HotbarMapColorParser.getConnected(x, z)
                         connected.firstOrNull { it.data.name != "Unknown" }?.let {

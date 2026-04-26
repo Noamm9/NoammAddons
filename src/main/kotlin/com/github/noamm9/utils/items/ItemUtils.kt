@@ -55,7 +55,7 @@ object ItemUtils {
     fun getRarity(item: ItemStack?): ItemRarity {
         item ?: return ItemRarity.NONE
         if (item.isEmpty) return ItemRarity.NONE
-        rarityCache.getIfPresent(item)?.let { return it }
+        rarityCache[item]?.let { return it }
 
         val rarity = run {
             val lore = item.lore.takeUnless(List<*>::isEmpty) ?: return@run ItemRarity.NONE
@@ -69,7 +69,7 @@ object ItemUtils {
             PET_PATTERN.find(item.hoverName.formattedText)?.groupValues?.getOrNull(1)?.let(ItemRarity::byBaseColor) ?: ItemRarity.NONE
         }
 
-        rarityCache.put(item, rarity)
+        rarityCache[item] = rarity
         return rarity
     }
 }

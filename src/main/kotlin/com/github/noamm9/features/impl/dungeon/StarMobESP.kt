@@ -58,8 +58,8 @@ object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
 
         register<EntityDeathEvent> {
             if (! LocationUtils.inDungeon || inBoss) return@register
-            starMobs.removeIf { it == event.entity.id }
-            checked.removeIf { it == event.entity.id }
+            starMobs.remove(event.entity.id)
+            checked.remove(event.entity.id)
         }
 
         register<WorldChangeEvent> {
