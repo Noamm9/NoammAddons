@@ -3,8 +3,6 @@
   "package": "com.github.noamm9.mixin",
   "compatibilityLevel": "JAVA_21",
   "plugin": "com.github.noamm9.init.AutoMixinDiscovery",
-  "mixins": [],
-  "client": [],
   "injectors": {
     "defaultRequire": 1
   },

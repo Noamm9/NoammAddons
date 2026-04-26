@@ -155,7 +155,7 @@ class Panel(val category: CategoryType, var x: Int, var y: Int) {
                         ClickGuiScreen.selectedFeature = null
                         SoundManager.btn.action.invoke()
                     }
-                    else ClickGuiScreen.openFeatureWindow(feature, mouseX.toFloat() + 12f, mouseY.toFloat() - 12f)
+                    else ClickGuiScreen.openFeatureWindow(feature)
                     return
                 }
             }

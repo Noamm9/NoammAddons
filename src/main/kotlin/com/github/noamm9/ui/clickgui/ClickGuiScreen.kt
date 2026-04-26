@@ -128,8 +128,6 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
     }
 
     override fun mouseReleased(mouseButtonEvent: MouseButtonEvent): Boolean {
-        val mx = Resolution.getMouseX(mouseButtonEvent.x)
-        val my = Resolution.getMouseY(mouseButtonEvent.y)
         val button = mouseButtonEvent.button()
 
         searchHandler.mouseReleased()
