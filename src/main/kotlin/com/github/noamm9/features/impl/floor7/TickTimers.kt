@@ -48,7 +48,7 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
             else when {
                 startTickTime != - 1 -> formatTimer(startTickTime, 150, "§aStart:")
                 goldorTickTime != - 1 -> formatTimer(goldorTickTime, 60, "§7Goldor:")
-                pyTickTime != - 1 -> formatTimer(pyTickTime, 95, "§5PY:")
+                pyTickTime != - 1 -> formatTimer(pyTickTime, 72, "§5PY:")
                 padTickTime != - 1 -> formatTimer(padTickTime, 20, "§bPad:")
                 deathTickTime != - 1 -> formatTimer(deathTickTime, 40, "§cDeath:")
                 secretTickTime != - 1 -> formatTimer(secretTickTime, 20, "§dSecret:")
@@ -71,7 +71,7 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
                 "[BOSS] Storm: ENERGY HEED MY CALL!", "[BOSS] Storm: THUNDER LET ME BE YOUR CATALYST!" -> {
                     if (pyTimer.value && ! pyTriggered) {
                         pyTriggered = true
-                        pyTickTime = 95
+                        pyTickTime = 72
                     }
                 }
 
