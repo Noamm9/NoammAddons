@@ -114,6 +114,7 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
             "+" to 1,
             "-" to 1,
             "*" to 2,
+            "x" to 2,
             "/" to 2
         )
 
@@ -128,7 +129,7 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
                 tokens.add(expr.substring(start, i))
             }
 
-            expr[i] in "+-*/()" -> {
+            expr[i] in "+-*x/()" -> {
                 tokens.add(expr[i].toString())
                 i ++
             }
@@ -184,7 +185,7 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
                 val res = when (token) {
                     "+" -> a + b
                     "-" -> a - b
-                    "*" -> a * b
+                    "*", "x" -> a * b
                     "/" -> a / b
                     else -> return null
                 }

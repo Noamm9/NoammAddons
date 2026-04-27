@@ -8,15 +8,16 @@ import com.github.noamm9.event.EventListener
 import com.github.noamm9.event.EventPriority
 import com.github.noamm9.features.annotations.AlwaysActive
 import com.github.noamm9.features.annotations.Dev
-import com.github.noamm9.ui.clickgui.CategoryType
 import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.impl.ButtonSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.SoundSetting
 import com.github.noamm9.ui.clickgui.components.showIf
 import com.github.noamm9.ui.clickgui.components.withDescription
+import com.github.noamm9.ui.clickgui.enums.CategoryType
 import com.github.noamm9.ui.hud.HudElement
-import com.github.noamm9.utils.Utils.spaceCaps
+import com.github.noamm9.utils.ThreadUtils
+import com.github.noamm9.utils.spaceCaps
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.sounds.SoundEvent
@@ -109,7 +110,7 @@ open class Feature(
             .showIf(showIf)
 
         val play = ButtonSetting("Play Sound", false) {
-            repeat(5) { mc.soundManager.play(SimpleSoundInstance.forUI(sound.value, pitch.value, volume.value)) }
+            ThreadUtils.runOnMcThread { repeat(5) { mc.soundManager.play(SimpleSoundInstance.forUI(sound.value, pitch.value, volume.value)) } }
         }.withDescription("Click to test the current sound configuration.").showIf(showIf)
 
         configSettings.add(sound)

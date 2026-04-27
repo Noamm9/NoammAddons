@@ -12,12 +12,12 @@ import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.TabListUtils
-import com.github.noamm9.utils.Utils.equalsOneOf
 import com.github.noamm9.utils.dungeons.enums.Blessing
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.dungeons.enums.Puzzle
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.core.RoomState
+import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils.inDungeon
 import kotlinx.coroutines.delay
@@ -45,14 +45,21 @@ object DungeonListener {
 
     var maxPuzzleCount = 0
     var puzzles = mutableListOf<Puzzle>()
+
+    data class DualTime(val ticks: Long, val real: Long = System.currentTimeMillis()) {
+        companion object {
+            operator fun DualTime.minus(other: DualTime) = DualTime(ticks - other.ticks, real - other.real)
+        }
+    }
+
     var dungeonStarted = false
-    var dungeonStartTime: Long? = null
+    var dungeonStartTime: DualTime? = null
     var dungeonEnded = false
 
-    var bloodOpenTime: Long? = null
-    var watcherClearTime: Long? = null
+    var bloodOpenTime: DualTime? = null
+    var watcherClearTime: DualTime? = null
     var watcherFinishSpawnTime: Long? = null
-    var bossEntryTime: Long? = null
+    var bossEntryTime: DualTime? = null
     var dungeonEndTime: Long? = null
 
     var lastDoorOpenner: DungeonPlayer? = null
@@ -136,7 +143,7 @@ object DungeonListener {
 
                 unformatted == "[BOSS] The Watcher: You have proven yourself. You may pass." -> {
                     DungeonInfo.uniqueRooms["Blood"]?.mainRoom?.state = RoomState.GREEN
-                    watcherClearTime = currentTime
+                    watcherClearTime = DualTime(currentTime)
                 }
 
                 unformatted == "[BOSS] The Watcher: That will be enough for now." -> {
@@ -145,11 +152,11 @@ object DungeonListener {
                 }
 
                 watcherMessageRegex.matches(unformatted) && bloodOpenTime == null -> {
-                    bloodOpenTime = currentTime
+                    bloodOpenTime = DualTime(currentTime)
                 }
 
                 unformatted == "[NPC] Mort: Here, I found this map when I first entered the dungeon." -> scope.launch {
-                    dungeonStartTime = currentTime
+                    dungeonStartTime = DualTime(currentTime)
                     while (thePlayer?.clazz == DungeonClass.Empty) delay(50)
                     dungeonStarted = true
                     EventBus.post(DungeonEvent.RunStatedEvent)

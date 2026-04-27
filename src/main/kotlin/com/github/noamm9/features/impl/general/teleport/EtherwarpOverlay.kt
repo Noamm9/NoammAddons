@@ -12,7 +12,7 @@ import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.ui.clickgui.components.section
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.Utils
-import com.github.noamm9.utils.Utils.equalsOneOf
+import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.EtherwarpHelper
 import com.github.noamm9.utils.render.Render3D
 import java.awt.Color

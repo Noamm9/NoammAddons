@@ -60,7 +60,8 @@ object ChatUtils {
 
                     lastSentTime = System.currentTimeMillis()
                 }
-            } finally {
+            }
+            finally {
                 isProcessing.set(false)
                 if (queue.isNotEmpty()) process()
             }
@@ -139,7 +140,7 @@ object ChatUtils {
     fun chat(msg: Any?) = ThreadUtils.runOnMcThread { mc.gui?.chat?.addMessage(Component.literal(msg.toString().addColor())) }
     fun chat(comp: Component) = ThreadUtils.runOnMcThread { mc.gui?.chat?.addMessage(comp) }
 
-    fun String.addColor() = replace("&".toRegex(), "§")
+    fun String.addColor() = replace("&", "§")
 
     val Component.unformattedText: String get() = this.string.removeFormatting()
     val Component.formattedText: String

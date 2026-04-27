@@ -12,7 +12,7 @@ import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.ui.hud.getValue
 import com.github.noamm9.ui.hud.provideDelegate
-import com.github.noamm9.utils.Utils.containsOneOf
+import com.github.noamm9.utils.containsOneOf
 import com.github.noamm9.utils.dungeons.DungeonPlayer
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
@@ -29,6 +29,7 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
     private data class MelodyState(val name: String, val progress: Int, val timestamp: Long)
 
     private val melodyRegex = Regex("""Party > (?:\[[^]]+]\s)?(\w+):""")
+
     private var currentState: MelodyState? = null
 
     private val hud by hudElement("Melody Display", centered = true, shouldDraw = { LocationUtils.F7Phase == 3 }) { ctx, example ->

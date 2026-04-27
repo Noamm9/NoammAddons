@@ -13,6 +13,7 @@ import com.github.noamm9.utils.items.ItemUtils.idToNameMap
 import com.github.noamm9.utils.items.ItemUtils.nameToIdMap
 import com.github.noamm9.utils.network.WebUtils
 import com.github.noamm9.utils.network.data.ElectionData
+import com.github.noamm9.utils.render.NoammRenderPipelines
 import com.github.noamm9.websocket.WebSocket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,7 +30,6 @@ object NoammAddons: ClientModInitializer {
     const val MOD_ID = "noammaddons"
     val MOD_VERSION get() = FabricLoader.getInstance().getModContainer(MOD_ID).get().metadata.version.friendlyString
     const val PREFIX = "§6§l[§b§lN§d§lA§6§l]§r"
-    const val BASE_URL = "https://api.noamm.org"
 
     @JvmField
     val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
@@ -56,6 +56,7 @@ object NoammAddons: ClientModInitializer {
     override fun onInitializeClient() {
         DataDownloader.downloadData()
 
+        NoammRenderPipelines.init()
         EventDispatcher.init()
         DungeonListener.init()
         ServerUtils.init()
@@ -83,7 +84,7 @@ object NoammAddons: ClientModInitializer {
 
     private fun initNetworkLoop() = ThreadUtils.loop(600_000) {
         runCatching {
-            val data = WebUtils.getAs<JsonObject>("${BASE_URL}/mayor").getOrThrow()
+            val data = WebUtils.getAs<JsonObject>("https://api.hypixel.net/v2/resources/skyblock/election").getOrThrow()
             val mayor = data["mayor"]?.jsonObject !!
             val minister = mayor["minister"]?.jsonObject
             val perks = mayor["perks"]?.jsonArray
@@ -107,14 +108,16 @@ object NoammAddons: ClientModInitializer {
         }
 
         runCatching {
-            priceData.putAll(WebUtils.getAs<Map<String, Long>>("${BASE_URL}/lowestbin").getOrThrow())
+            priceData.putAll(WebUtils.getAs<Map<String, Double>>("https://lb.tricked.dev/lowestbins").getOrThrow().map {
+                it.key to it.value.toLong()
+            })
         }.onFailure {
             logger.error("Error while making a web request", it)
             it.printStackTrace()
         }
 
         runCatching {
-            val data = WebUtils.getAs<JsonObject>("${BASE_URL}/bazaar").getOrThrow()
+            val data = WebUtils.getAs<JsonObject>("https://api.hypixel.net/v2/skyblock/bazaar").getOrThrow()
             data["products"]?.jsonObject?.forEach { (key, element) ->
                 val product = element.jsonObject
                 val productId = product["product_id"]?.jsonPrimitive?.content ?: key
@@ -129,7 +132,7 @@ object NoammAddons: ClientModInitializer {
         }
 
         runCatching {
-            val data = WebUtils.getAs<JsonObject>("$BASE_URL/items").getOrThrow()
+            val data = WebUtils.getAs<JsonObject>("https://api.hypixel.net/v2/resources/skyblock/items").getOrThrow()
             val itemsArray = data["items"]?.jsonArray ?: return@runCatching
             for (element in itemsArray) {
                 val item = element.jsonObject

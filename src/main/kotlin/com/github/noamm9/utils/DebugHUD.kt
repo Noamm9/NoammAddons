@@ -1,10 +1,15 @@
 package com.github.noamm9.utils
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.Blessing
 import com.github.noamm9.utils.dungeons.enums.Puzzle
 import com.github.noamm9.utils.dungeons.map.core.RoomState
+import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner.roomSize
+import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner.startX
+import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner.startZ
+import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
 import net.minecraft.client.gui.GuiGraphics
@@ -44,11 +49,11 @@ object DebugHUD {
             val display = time?.let { "§f${it}t §8(${it / 20}s)" } ?: "§7N/A"
             draw("$name: $display")
         }
-        formatTS("Start", DungeonListener.dungeonStartTime)
-        formatTS("Blood Open", DungeonListener.bloodOpenTime)
+        formatTS("Start", DungeonListener.dungeonStartTime?.ticks)
+        formatTS("Blood Open", DungeonListener.bloodOpenTime?.ticks)
         formatTS("Watcher Spawn", DungeonListener.watcherFinishSpawnTime)
-        formatTS("Watcher Clear", DungeonListener.watcherClearTime)
-        formatTS("Boss Entry", DungeonListener.bossEntryTime)
+        formatTS("Watcher Clear", DungeonListener.watcherClearTime?.ticks)
+        formatTS("Boss Entry", DungeonListener.bossEntryTime?.ticks)
         formatTS("Run End", DungeonListener.dungeonEndTime)
 
         y += 5
@@ -89,6 +94,16 @@ object DebugHUD {
             }
         }
         if (! foundBlessing) draw(" §7No blessings active")
+
+        draw("CORE: ${
+            mc.player?.position()?.let {
+                ScanUtils.getRoomGraf(it).let {
+                    val x = startX + it.first * (roomSize shr 1)
+                    val y = startZ + it.second * (roomSize shr 1)
+                    ScanUtils.getCore(x, y)
+                }
+            }
+        }")
     }
 
     private fun renderLocationDebug(graphics: GuiGraphics) {

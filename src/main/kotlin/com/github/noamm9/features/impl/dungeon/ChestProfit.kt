@@ -9,16 +9,12 @@ import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.ui.clickgui.components.section
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.DataDownloader
-import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
-import com.github.noamm9.utils.Utils.equalsOneOf
-import com.github.noamm9.utils.Utils.remove
-import com.github.noamm9.utils.Utils.startsWithOneOf
 import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
@@ -195,7 +191,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                     pose.pushMatrix()
                     pose.scale(0.7f)
                     pose.translate((event.slot.x + 7) / 0.7f, (event.slot.y + 7) / 0.7f)
-                    event.context.renderFakeItem(ItemStack(Items.FEATHER), 0, 0)
+                    Render2D.renderItem(event.context, "minecraft:item/feather", 0, 0, 16)
                     pose.popMatrix()
                 }
             }
@@ -207,7 +203,11 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
         val itemId = stack.skyblockId
         var value = 0L
 
-        if (itemId == "ENCHANTED_BOOK") value += getPrice(enchantNameToID(stack.lore.first()))
+        if (itemId == "ENCHANTED_BOOK") {
+            val lore = stack.lore
+            val bookName = lore[0].takeIf { it != "§8Combinable in Anvil" } ?: lore[2]
+            value += getPrice(enchantNameToID(bookName))
+        }
         value += getEssenceValue(itemName)
         value += getPrice(itemId)
         if (itemName.contains("Shard")) {

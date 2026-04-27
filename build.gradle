@@ -3,14 +3,16 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
     id 'maven-publish'
-    id "org.jetbrains.kotlin.jvm" version "2.3.10"
-    id "org.jetbrains.kotlin.plugin.serialization" version "2.3.10"
+    id "org.jetbrains.kotlin.jvm" version "2.3.0"
+    id "org.jetbrains.kotlin.plugin.serialization" version "2.3.0"
 }
 
 version = project.mod_version
 group = project.maven_group
 mod_name = project.mod_name
 archives_base_name = project.archives_base_name
+modmenu_version = project.modmenu_version
+iris_version = project.iris_version
 
 base {
     archivesName = archives_base_name
@@ -19,6 +21,8 @@ base {
 repositories {
     maven { url = "https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1" }
     maven { url = 'https://maven.parchmentmc.org' }
+    maven { url = "https://api.modrinth.com/maven" }
+    maven { url = "https://maven.terraformersmc.com/" }
 }
 
 dependencies {
@@ -26,6 +30,7 @@ dependencies {
 
     mappings loom.layered() {
         officialMojangMappings()
+        parchment "org.parchmentmc.data:parchment-1.21.10:2025.10.12@zip"
     }
 
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
@@ -33,6 +38,8 @@ dependencies {
     modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
 
     modRuntimeOnly "me.djtheredstoner:DevAuth-fabric:1.2.2"
+    modCompileOnly("maven.modrinth:iris:$iris_version")
+    modCompileOnly("com.terraformersmc:modmenu:$modmenu_version")
 
     implementation "io.github.classgraph:classgraph:4.8.174"
     include "io.github.classgraph:classgraph:4.8.174"
@@ -224,4 +231,4 @@ tasks.named('build') {
     dependsOn("remapJarCheat", "remapJar")
 }
 
-apply from: file('preprocess.gradle')
+apply from: file('preprocess.gradle.kts')

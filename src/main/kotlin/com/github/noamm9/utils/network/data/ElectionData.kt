@@ -6,6 +6,6 @@ data class ElectionData(val mayor: Mayor, val minister: Minister? = null) {
     data class Perk(val name: String, val description: String)
 
     companion object {
-        val empty = ElectionData(Mayor(""))
+        val empty by lazy { ElectionData(Mayor("")) }
     }
 }

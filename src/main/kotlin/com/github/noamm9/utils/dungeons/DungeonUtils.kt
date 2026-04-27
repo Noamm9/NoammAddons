@@ -3,7 +3,7 @@ package com.github.noamm9.utils.dungeons
 import com.github.noamm9.NoammAddons.electionData
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.features.impl.dungeon.ScoreCalculator
-import com.github.noamm9.utils.Utils.equalsOneOf
+import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.network.data.ElectionData
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Blocks
@@ -12,6 +12,7 @@ import net.minecraft.world.level.block.entity.SkullBlockEntity
 
 object DungeonUtils {
     val FLOOR_NAMES = listOf("ENTRANCE", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN")
+    val floorEnterRegex = Regex("-+\\s.+ entered.+The Catacombs, Floor [IVX]+!\\s-+")
     const val WITHER_ESSENCE_ID = "e0f3e929-869e-3dca-9504-54c666ee6f23"
     const val REDSTONE_KEY_ID = "fed95410-aba1-39df-9b95-1d4f361eb66e"
 

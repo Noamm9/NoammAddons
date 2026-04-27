@@ -7,6 +7,8 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import com.mojang.blaze3d.vertex.VertexFormat
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.resources.Identifier
+import com.github.noamm9.utils.render.iris.IrisCompatibility
+import com.github.noamm9.utils.render.iris.IrisShaderType
 
 object NoammRenderPipelines {
     val FILLED: RenderPipeline = RenderPipelines.register(
@@ -30,6 +32,11 @@ object NoammRenderPipelines {
             .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
             .build()
     )
+
+    fun init() {
+        IrisCompatibility.registerPipeline(LINES_THROUGH_WALLS, IrisShaderType.LINES)
+        IrisCompatibility.registerPipeline(FILLED_THROUGH_WALLS, IrisShaderType.BASIC)
+    }
 
     private fun id(path: String) = Identifier.fromNamespaceAndPath(NoammAddons.MOD_ID, path)
 }

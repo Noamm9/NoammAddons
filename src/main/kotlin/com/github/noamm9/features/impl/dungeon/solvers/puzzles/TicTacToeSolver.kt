@@ -9,11 +9,12 @@ import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.pre
 import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.predictionColor
 import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.preventMissClick
 import com.github.noamm9.utils.ThreadUtils
-import com.github.noamm9.utils.Utils.equalsOneOf
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.core.RoomState
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.positionVec
+import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderContext
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -25,7 +26,7 @@ import net.minecraft.world.item.MapItem
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.AABB
 import java.awt.Color
-import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.*
 
 object TicTacToeSolver {
     private var inTicTacToe = false
@@ -182,6 +183,7 @@ object TicTacToeSolver {
     private fun renderTTTBox(ctx: RenderContext, pos: BlockPos, color: Color) {
         val rotation = rotation ?: return
         if (WorldUtils.getBlockAt(pos) != Blocks.STONE_BUTTON) return
+        val cam = ctx.camera.positionVec.reverse()
 
         val halfWidth = 0.2
         val halfHeight = 0.13
