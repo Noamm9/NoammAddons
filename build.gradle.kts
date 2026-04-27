@@ -18,6 +18,7 @@ val fabric_kotlin_version: String by project
 val mod_version: String by project
 val maven_group: String by project
 val mod_name: String by project
+val archives_base_name: String by project
 val fabric_version: String by project
 val modmenu_version: String by project
 val iris_version: String by project
@@ -25,7 +26,7 @@ val iris_version: String by project
 version = mod_version
 group = maven_group
 
-base { archivesName.set(mod_name) }
+base { archivesName.set(archives_base_name) }
 kotlin { jvmToolchain(21) }
 java { toolchain.languageVersion = JavaLanguageVersion.of(21) }
 
