@@ -24,6 +24,7 @@ import com.github.noamm9.utils.PlayerUtils.leapAction
 import com.github.noamm9.utils.PlayerUtils.rotate
 import com.github.noamm9.utils.ThreadUtils.setTimeout
 import com.github.noamm9.utils.WorldUtils
+import com.github.noamm9.utils.catch
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
@@ -214,9 +215,7 @@ object AutoI4: Feature("Fully Automated I4") {
     private fun processDeviceQueue() {
         deviceJob = scope.launch {
             while (deviceActionQueue.isNotEmpty()) {
-                runCatching {
-                    deviceActionQueue.removeFirst().block()
-                }
+                catch { deviceActionQueue.removeFirst().block() }
             }
         }
     }

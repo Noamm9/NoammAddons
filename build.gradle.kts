@@ -21,6 +21,7 @@ val mod_name: String by project
 val fabric_version: String by project
 val modmenu_version: String by project
 val iris_version: String by project
+val ktor_version: String by project
 
 version = mod_version
 group = maven_group
@@ -28,6 +29,12 @@ group = maven_group
 base { archivesName.set(mod_name) }
 kotlin { jvmToolchain(21) }
 java { toolchain.languageVersion = JavaLanguageVersion.of(21) }
+
+val bundled by configurations.creating
+
+configurations {
+    implementation.get().extendsFrom(bundled)
+}
 
 repositories {
     maven(url = uri("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1"))
@@ -50,13 +57,18 @@ dependencies {
     implementation("io.github.llamalad7:mixinextras-fabric:0.4.1")
     annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.4.1")
 
-    listOf(
-        "org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3",
-        "io.github.classgraph:classgraph:4.8.174",
-        "org.java-websocket:Java-WebSocket:1.5.4"
-    ).forEach {
-        implementation(it)
-        include(it)
+    bundled("io.github.classgraph:classgraph:4.8.174")
+    bundled("io.ktor:ktor-client-okhttp-jvm:$ktor_version")
+    bundled("io.ktor:ktor-client-websockets-jvm:$ktor_version")
+    bundled("io.ktor:ktor-client-content-negotiation-jvm:$ktor_version")
+    bundled("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")
+}
+
+afterEvaluate {
+    bundled.resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
+        artifact.moduleVersion.id.let { id ->
+            dependencies.add("include", "${id.group}:${id.name}:${id.version}")
+        }
     }
 }
 
