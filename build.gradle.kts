@@ -272,6 +272,7 @@ publishing {
 }
 
 loom {
+    accessWidenerPath.set(file("src/main/resources/noammaddons.accesswidener"))
     runs {
         val clientRun = named("client")
         val serverRun = named("server")

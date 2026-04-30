@@ -15,4 +15,22 @@ public interface IAbstractContainerScreen {
 
     @Accessor("topPos")
     int getTopPos();
+
+    @Accessor("leftPos")
+    void setLeftPos(int value);
+
+    @Accessor("topPos")
+    void setTopPos(int value);
+
+    @Accessor("imageWidth")
+    int getImageWidth();
+
+    @Accessor("imageHeight")
+    int getImageHeight();
+
+    @Accessor("imageWidth")
+    void setImageWidth(int value);
+
+    @Accessor("imageHeight")
+    void setImageHeight(int value);
 }
