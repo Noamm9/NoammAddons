@@ -5,6 +5,7 @@ import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.features.impl.dev.ClickGui
 import com.github.noamm9.features.impl.misc.sound.SoundManager
 import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.enums.CategoryType
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.Render2D
@@ -79,7 +80,7 @@ class Panel(val category: CategoryType, var x: Int, var y: Int) {
 
                     Render2D.drawCenteredString(context, feature.name, x + width / 2, currentY + 4)
 
-                    if (isHovered && ClickGuiScreen.selectedFeature == null) {
+                    if (isHovered && ! ClickGuiScreen.isMouseOverConfigWindow(mouseX, mouseY)) {
                         TooltipManager.hover(feature.description, mouseX, mouseY)
                     }
                 }
@@ -120,8 +121,6 @@ class Panel(val category: CategoryType, var x: Int, var y: Int) {
     }
 
     fun mouseClicked(mouseX: Double, mouseY: Double, button: Int) {
-        if (ClickGuiScreen.selectedFeature != null) return
-
         if (isMouseOverHeader(mouseX, mouseY)) {
             if (button == 0) {
                 dragging = true
@@ -153,10 +152,10 @@ class Panel(val category: CategoryType, var x: Int, var y: Int) {
                 }
                 else if (button == 1 && feature.configSettings.isNotEmpty()) {
                     if (feature is SoundManager) {
-                        ClickGuiScreen.selectFeature(null)
+                        ClickGuiScreen.selectedFeature = null
                         SoundManager.btn.action.invoke()
                     }
-                    else ClickGuiScreen.selectFeature(feature)
+                    else ClickGuiScreen.openFeatureWindow(feature)
                     return
                 }
             }
@@ -164,7 +163,7 @@ class Panel(val category: CategoryType, var x: Int, var y: Int) {
         }
     }
 
-    fun mouseReleased(mouseX: Double, mouseY: Double, button: Int) {
+    fun mouseReleased(button: Int) {
         if (button == 0) dragging = false
     }
 

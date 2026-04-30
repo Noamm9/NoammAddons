@@ -8,7 +8,6 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.*
 import com.github.noamm9.ui.clickgui.components.impl.*
 import com.github.noamm9.ui.utils.Resolution
-import com.github.noamm9.utils.ButtonType
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
@@ -282,18 +281,12 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
         if (entry.player.isDead) return ChatUtils.modMessage("§3LeapMenu >> §c${entry.player.name} is dead!")
 
         mc.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1F))
-        GuiUtils.clickSlot(entry.slotIndex, ButtonType.LEFT)
+        GuiUtils.clickSlot(entry.slotIndex, GuiUtils.ButtonType.LEFT)
         mc.player?.closeContainer()
     }
 
     fun odinSorting(teammates: List<DungeonPlayer>): Array<out DungeonPlayer?> {
-        val neededSorting = mapOf(
-            DungeonClass.Archer to listOf(DungeonClass.Mage, DungeonClass.Berserk, DungeonClass.Healer, DungeonClass.Tank),
-            DungeonClass.Mage to listOf(DungeonClass.Archer, DungeonClass.Berserk, DungeonClass.Healer, DungeonClass.Tank),
-            DungeonClass.Berserk to listOf(DungeonClass.Archer, DungeonClass.Mage, DungeonClass.Healer, DungeonClass.Tank),
-            DungeonClass.Healer to listOf(DungeonClass.Archer, DungeonClass.Berserk, DungeonClass.Mage, DungeonClass.Tank),
-            DungeonClass.Tank to listOf(DungeonClass.Archer, DungeonClass.Berserk, DungeonClass.Healer, DungeonClass.Mage)
-        )[DungeonListener.thePlayer?.clazz] ?: return teammates.toTypedArray()
+        val neededSorting = odinSorting[DungeonListener.thePlayer?.clazz] ?: return teammates.toTypedArray()
 
         val quadrants = arrayOfNulls<DungeonPlayer>(4)
         val secondRound = mutableListOf<DungeonPlayer>()
@@ -314,4 +307,12 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
 
         return quadrants
     }
+
+    private val odinSorting = mapOf(
+        DungeonClass.Archer to listOf(DungeonClass.Mage, DungeonClass.Berserk, DungeonClass.Healer, DungeonClass.Tank),
+        DungeonClass.Mage to listOf(DungeonClass.Archer, DungeonClass.Berserk, DungeonClass.Healer, DungeonClass.Tank),
+        DungeonClass.Berserk to listOf(DungeonClass.Archer, DungeonClass.Mage, DungeonClass.Healer, DungeonClass.Tank),
+        DungeonClass.Healer to listOf(DungeonClass.Archer, DungeonClass.Berserk, DungeonClass.Mage, DungeonClass.Tank),
+        DungeonClass.Tank to listOf(DungeonClass.Archer, DungeonClass.Berserk, DungeonClass.Healer, DungeonClass.Mage)
+    )
 }

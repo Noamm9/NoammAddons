@@ -2,7 +2,6 @@ package com.github.noamm9.utils.dungeons.map.handlers
 
 import com.github.noamm9.mixin.IMapState
 import com.github.noamm9.utils.MathUtils
-import com.github.noamm9.utils.Utils.equalsOneOf
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.DungeonListener.dungeonTeammatesNoSelf
@@ -13,10 +12,11 @@ import com.github.noamm9.utils.dungeons.map.utils.LegacyRegistry
 import com.github.noamm9.utils.dungeons.map.utils.MapUtils.mapX
 import com.github.noamm9.utils.dungeons.map.utils.MapUtils.mapZ
 import com.github.noamm9.utils.dungeons.map.utils.MapUtils.yaw
+import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import kotlinx.coroutines.*
 import net.minecraft.world.level.saveddata.maps.MapDecorationTypes
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.*
 
 object MapUpdater {
     private val playerHeadScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -110,6 +110,7 @@ object MapUpdater {
 
                 if (room is Unknown) {
                     DungeonInfo.dungeonList[idx] = mapTile
+                    DungeonPathFinder.clearCache()
                     if (mapTile is Room) {
                         val connected = HotbarMapColorParser.getConnected(x, z)
                         connected.firstOrNull { it.data.name != "Unknown" }?.let {

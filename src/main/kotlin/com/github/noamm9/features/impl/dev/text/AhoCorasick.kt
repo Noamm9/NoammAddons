@@ -37,9 +37,12 @@ class AhoCorasick(replacements: List<Replacement>) {
 
     fun goto(node: AhoCorasickNode, ch: Char): AhoCorasickNode {
         var current = node
-        while (current != root && ch !in current.children)
-            current = current.failure!!
 
-        return current.children[ch] ?: root
+        while (current != root) {
+            current.children[ch]?.let { return it }
+            current = current.failure ?: root
+        }
+
+        return root.children[ch] ?: root
     }
 }

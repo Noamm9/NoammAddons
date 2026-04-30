@@ -10,10 +10,9 @@ import com.github.noamm9.ui.clickgui.components.hideIf
 import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
-import com.github.noamm9.utils.ButtonType
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.GuiUtils
-import com.github.noamm9.utils.Utils.equalsOneOf
+import com.github.noamm9.utils.equalsOneOf
 import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
@@ -21,7 +20,6 @@ import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import org.lwjgl.glfw.GLFW
-
 
 object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your keyboard.") {
     private val wardrobeMenuRegex = Regex("^Wardrobe \\(\\d/\\d\\)$")
@@ -71,7 +69,7 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
 
             if (isSlotEquipped(slot) && preventUnequip.value) return@register
 
-            GuiUtils.clickSlot(slot, ButtonType.LEFT)
+            GuiUtils.clickSlot(slot, GuiUtils.ButtonType.LEFT)
 
             lastClick = System.currentTimeMillis()
             if (closeAfterUse.value) mc.player !!.closeContainer()

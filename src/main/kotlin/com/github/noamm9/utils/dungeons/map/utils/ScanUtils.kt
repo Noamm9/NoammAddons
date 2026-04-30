@@ -8,7 +8,6 @@ import com.github.noamm9.utils.DataDownloader
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.destructured
 import com.github.noamm9.utils.ThreadUtils
-import com.github.noamm9.utils.Utils.equalsOneOf
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.core.Room
@@ -17,6 +16,7 @@ import com.github.noamm9.utils.dungeons.map.core.UniqueRoom
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner.startX
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner.startZ
+import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils.inDungeon
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Blocks

@@ -5,7 +5,6 @@ import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.EventPriority
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.utils.ChatUtils.formattedText
-import com.github.noamm9.utils.Utils.remove
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.core.Room

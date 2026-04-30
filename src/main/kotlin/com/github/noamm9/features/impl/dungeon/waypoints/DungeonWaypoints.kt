@@ -14,12 +14,8 @@ import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.ui.clickgui.components.section
-import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.JsonUtils
-import com.github.noamm9.utils.Utils
-import com.github.noamm9.utils.Utils.equalsOneOf
-import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.enums.SecretType
 import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
@@ -32,7 +28,7 @@ import java.awt.Color
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
-import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.*
 
 object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while looking at a block") {
     val secretWaypoints by ToggleSetting("Secret Waypoints").section("Secret Waypoints")
@@ -149,16 +145,16 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
         }
     }
 
-    private fun loadConfig() = runCatching {
+    private fun loadConfig() = catch {
         FileReader(configFile).use { reader ->
             val type = object: TypeToken<MutableMap<String, List<DungeonWaypoint>>>() {}.type
-            val loadedData = JsonUtils.gsonBuilder.fromJson<MutableMap<String, List<DungeonWaypoint>>>(reader, type) ?: return@runCatching
+            val loadedData = JsonUtils.gsonBuilder.fromJson<MutableMap<String, List<DungeonWaypoint>>>(reader, type) ?: return@catch
             waypoints.putAll(loadedData)
         }
     }
 
 
-    fun saveConfig() = runCatching {
+    fun saveConfig() = catch {
         configFile.parentFile?.mkdirs()
         FileWriter(configFile).use { writer ->
             JsonUtils.gsonBuilder.toJson(waypoints, writer)

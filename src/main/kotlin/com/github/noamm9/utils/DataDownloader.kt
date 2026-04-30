@@ -3,17 +3,17 @@ package com.github.noamm9.utils
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.utils.network.WebUtils
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.runBlocking
 import net.fabricmc.loader.api.FabricLoader
 import org.slf4j.LoggerFactory
 import java.io.BufferedReader
 import java.io.IOException
-import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
-import java.util.zip.ZipInputStream
+import java.util.zip.*
 import kotlin.io.path.*
 
 object DataDownloader {
@@ -27,37 +27,32 @@ object DataDownloader {
         if (! it.exists()) it.createDirectories()
     }
 
-    fun downloadData() = NoammAddons.scope.launch {
-        withContext(WebUtils.networkDispatcher) {
-            val versionFile = modDataPath.resolve("version.txt")
+    fun downloadData() = NoammAddons.scope.launch(Dispatchers.IO) {
+        val versionFile = modDataPath.resolve("version.txt")
 
-            try {
-                LOGGER.info("Checking for remote data updates...")
-                val remoteHash = SHA_REGEX.find(WebUtils.getString(GITHUB_API_URL).getOrThrow())?.groups?.get(1)?.value
-                    ?: return@withContext LOGGER.error("Could not fetch remote version hash.")
-                val localHash = if (versionFile.exists()) versionFile.readText().trim() else null
+        try {
+            LOGGER.info("Checking for remote data updates...")
+            val remoteHash = SHA_REGEX.find(WebUtils.getAs<String>(GITHUB_API_URL).getOrThrow())?.groups?.get(1)?.value
+                ?: return@launch LOGGER.error("Could not fetch remote version hash.")
+            val localHash = if (versionFile.exists()) versionFile.readText().trim() else null
 
-                if (remoteHash != localHash || ! modDataPath.exists()) {
-                    LOGGER.info("Update required. Remote: $remoteHash, Local: ${localHash ?: "None"}")
-                    update(versionFile, remoteHash)
-                }
-                else LOGGER.info("Data is up-to-date (Version: $localHash).")
-
+            if (remoteHash != localHash || ! modDataPath.exists()) {
+                LOGGER.info("Update required. Remote: $remoteHash, Local: ${localHash ?: "None"}")
+                update(versionFile, remoteHash)
             }
-            catch (e: Exception) {
-                LOGGER.error("Failed to check for data updates")
-                e.printStackTrace()
-            }
+            else LOGGER.info("Data is up-to-date (Version: $localHash).")
+
+        }
+        catch (e: Exception) {
+            LOGGER.error("Failed to check for data updates")
+            e.printStackTrace()
         }
     }
 
-    private fun update(versionFile: Path, newHash: String) {
+    private suspend fun update(versionFile: Path, newHash: String) {
         try {
             val tempZipFile = Files.createTempFile("data-download-", ".zip")
-
-            URI.create(DOWNLOAD_URL).toURL().openStream().use { input ->
-                Files.copy(input, tempZipFile, StandardCopyOption.REPLACE_EXISTING)
-            }
+            Files.write(tempZipFile, WebUtils.getAs<ByteArray>(DOWNLOAD_URL).getOrThrow())
 
             if (modDataPath.exists()) modDataPath.toFile().deleteRecursively()
             modDataPath.createDirectories()
@@ -113,10 +108,9 @@ object DataDownloader {
         return if (localFile.exists()) localFile.bufferedReader()
         else {
             LOGGER.warn("Local file '$fileName' missing. Fetching from RAW URL.")
-            val connection = WebUtils.prepareConnection(RAW_URL + fileName)
-            connection.setRequestProperty("Accept", "application/json")
-            connection.requestMethod = "GET"
-            connection.inputStream.bufferedReader()
+            runBlocking(Dispatchers.IO) {
+                WebUtils.getAs<String>(RAW_URL + fileName).getOrThrow().reader().buffered()
+            }
         }
     }
 }

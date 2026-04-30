@@ -1,9 +1,9 @@
 package com.github.noamm9.utils.dungeons.map.utils
 
-import com.github.noamm9.utils.Utils.equalsOneOf
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.handlers.HotbarMapColorParser
+import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.world.level.saveddata.maps.MapDecoration
 import net.minecraft.world.phys.Vec3

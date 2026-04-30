@@ -4,7 +4,7 @@ import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.event.impl.PlayerInteractEvent
 import com.github.noamm9.utils.ChatUtils
-import com.github.noamm9.utils.Utils.remove
+import com.github.noamm9.utils.remove
 
 abstract class Event(val cancelable: Boolean = false) {
     var cancellationSource: String? = null

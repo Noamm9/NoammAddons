@@ -26,8 +26,8 @@ object HiddenMobs: Feature("Reveals invisible mobs in dungeons.") {
             if (! showFels.value && ! showSa.value && ! showStealthy.value) return@register
             if (! LocationUtils.inDungeon) return@register
             if (! event.entity.isInvisible) return@register
+            val name = event.entity.customName?.string?.trim() ?: return@register
 
-            val name = event.entity.name.string.trim()
             val isFel = event.entity is EnderMan && showFels.value && name == "Dinnerbone"
             val isSA = event.entity is AbstractClientPlayer && showSa.value && name.contains("Shadow Assassin")
             val isWatcherMob = event.entity is AbstractClientPlayer && showStealthy.value && watcherMobs.any { name == it }

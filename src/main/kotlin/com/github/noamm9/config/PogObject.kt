@@ -4,6 +4,7 @@ import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.logger
 import com.github.noamm9.utils.JsonUtils.fromJson
 import com.github.noamm9.utils.JsonUtils.toJson
+import com.github.noamm9.utils.ThreadUtils
 import java.io.File
 
 
@@ -73,7 +74,7 @@ class PogObject<T: Any>(fileName: String, val defaultObject: T) {
         private var autosaveThread: Thread? = null
 
         init {
-            Runtime.getRuntime().addShutdownHook(Thread { shutdown() })
+            ThreadUtils.addShutdownHook(::shutdown)
             startAutosaveLoop()
         }
 

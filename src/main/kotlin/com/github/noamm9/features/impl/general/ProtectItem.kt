@@ -14,6 +14,7 @@ import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.unformattedText
+import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.items.ItemUtils.customData
 import com.github.noamm9.utils.items.ItemUtils.itemUUID
 import com.github.noamm9.utils.items.ItemUtils.lore
@@ -71,7 +72,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
         }
 
         register<KeyboardEvent.KeyPressed> {
-            if (LocationUtils.inDungeon) return@register
+            if (LocationUtils.inDungeon && DungeonListener.dungeonStarted && !DungeonListener.dungeonEnded) return@register
             if (mc.screen != null) return@register
             if (! mc.options.keyDrop.matches(event.keyEvent)) return@register
             val heldItem = mc.player?.inventory?.selectedItem ?: return@register

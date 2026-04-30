@@ -14,6 +14,7 @@ import com.github.noamm9.utils.network.ProfileUtils
 import com.github.noamm9.utils.network.WebUtils
 import com.mojang.authlib.GameProfile
 import com.mojang.blaze3d.vertex.PoseStack
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import net.fabricmc.fabric.api.client.rendering.v1.RenderStateDataKey
@@ -22,7 +23,7 @@ import net.minecraft.client.renderer.entity.state.AvatarRenderState
 import net.minecraft.world.entity.Avatar
 import net.minecraft.world.phys.Vec3
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.*
 import kotlin.math.absoluteValue
 
 object Cosmetics: Feature(toggled = true) {
@@ -38,7 +39,7 @@ object Cosmetics: Feature(toggled = true) {
     lateinit var cosmeticPeople: Map<UUID, CosmeticData>
 
     override fun init() {
-        scope.launch(WebUtils.networkDispatcher) {
+        scope.launch(Dispatchers.IO) {
             lastReload = System.currentTimeMillis()
             NoammAddons.logger.info("fetching cosmeticPeople")
             WebUtils.getAs<Map<String, CosmeticData>>("https://api.noamm.org/cosmeticPeople.json").onSuccess { data ->
@@ -66,7 +67,7 @@ object Cosmetics: Feature(toggled = true) {
         if (! enabled) return
         if (! customSizes.value) return
         if (avatar !is AbstractClientPlayer) return
-        state.setData<GameProfile>(GAME_PROFILE_KEY, avatar.gameProfile)
+        state.setData(GAME_PROFILE_KEY, avatar.gameProfile)
     }
 
     @JvmStatic

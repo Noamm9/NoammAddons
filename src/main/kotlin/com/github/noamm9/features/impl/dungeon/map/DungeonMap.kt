@@ -13,10 +13,7 @@ import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.core.Door
 import com.github.noamm9.utils.dungeons.map.core.DoorType
 import com.github.noamm9.utils.dungeons.map.core.RoomState
-import com.github.noamm9.utils.dungeons.map.handlers.ClearInfoUpdater
-import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
-import com.github.noamm9.utils.dungeons.map.handlers.MapUpdater
-import com.github.noamm9.utils.dungeons.map.handlers.ScoreCalculation
+import com.github.noamm9.utils.dungeons.map.handlers.*
 import com.github.noamm9.utils.dungeons.map.utils.MapUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render3D
@@ -73,6 +70,7 @@ object DungeonMap: Feature() {
 
         register<WorldChangeEvent> {
             DungeonInfo.reset()
+            DungeonPathFinder.clearCache()
             DungeonScanner.hasScanned = false
             MapUtils.reset()
             MapUpdater.onPlayerDeath()
@@ -88,8 +86,12 @@ object DungeonMap: Feature() {
 
             for (tile in DungeonInfo.dungeonList) {
                 if (tile !is Door) continue
-                if (tile.opened || tile.type == DoorType.ENTRANCE || tile.type == DoorType.NORMAL) continue
-                if (shouldHideUndiscovered && tile.state == RoomState.UNDISCOVERED) continue
+                if (tile.type == DoorType.ENTRANCE || tile.type == DoorType.NORMAL) continue
+                if (tile.opened) continue
+
+                val isFairy = DungeonPathFinder.isFairy(tile)
+
+                if (shouldHideUndiscovered && tile.state == RoomState.UNDISCOVERED && ! isFairy) continue
 
                 Render3D.renderBox(
                     event.ctx,
