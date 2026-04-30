@@ -19,9 +19,11 @@ import com.github.noamm9.utils.dungeons.DungeonPlayer
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.uppercaseFirst
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.sounds.SoundEvents
+import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.Items
 import org.lwjgl.glfw.GLFW
@@ -38,15 +40,16 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
 
     val leapKeybinds by ToggleSetting("Leap Keybinds").showIf { customLeapMenu.value }.section("Leap Keybinds")
     val keybindMode by DropdownSetting("Mode", 0, listOf("Corners", "Class")).showIf { leapKeybinds.value }
-    val key1 by KeybindSetting("Slot 1", GLFW.GLFW_KEY_1).showIf { leapKeybinds.value && keybindMode.value == 0 }
-    val key2 by KeybindSetting("Slot 2", GLFW.GLFW_KEY_2).showIf { leapKeybinds.value && keybindMode.value == 0 }
-    val key3 by KeybindSetting("Slot 3", GLFW.GLFW_KEY_3).showIf { leapKeybinds.value && keybindMode.value == 0 }
-    val key4 by KeybindSetting("Slot 4", GLFW.GLFW_KEY_4).showIf { leapKeybinds.value && keybindMode.value == 0 }
-    val keyArcher by KeybindSetting("Archer", GLFW.GLFW_KEY_UNKNOWN).showIf { leapKeybinds.value && keybindMode.value == 1 }
-    val keyBerserk by KeybindSetting("Berserk", GLFW.GLFW_KEY_UNKNOWN).showIf { leapKeybinds.value && keybindMode.value == 1 }
-    val keyHealer by KeybindSetting("Healer", GLFW.GLFW_KEY_UNKNOWN).showIf { leapKeybinds.value && keybindMode.value == 1 }
-    val keyMage by KeybindSetting("Mage", GLFW.GLFW_KEY_UNKNOWN).showIf { leapKeybinds.value && keybindMode.value == 1 }
-    val keyTank by KeybindSetting("Tank", GLFW.GLFW_KEY_UNKNOWN).showIf { leapKeybinds.value && keybindMode.value == 1 }
+
+    val keybindKeys = (0 until 4).map { i ->
+        KeybindSetting("Slot ${1 + i}", GLFW.GLFW_KEY_1 + i)
+            .showIf { leapKeybinds.value && keybindMode.value == 0 }.apply(configSettings::add)
+    }
+
+    val classesKeys = DungeonClass.entries.dropLast(1).map {
+        KeybindSetting(it.name.lowercase().uppercaseFirst(), GLFW.GLFW_KEY_UNKNOWN)
+            .showIf { leapKeybinds.value && keybindMode.value == 1 }.apply(configSettings::add)
+    }
 
     private val announceSpiritLeaps by ToggleSetting("Announce Leap", true).section("Extras")
     private val leapMsg by TextInputSetting("Leap Message", "ILY ❤ {name}")
@@ -84,7 +87,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
             if (System.currentTimeMillis() > shouldHide) return@register
             if (event.entity !is Player) return@register
             if (event.entity == mc.player) return@register
-            if (event.entity.distanceToSqr(mc.player) > 4) return@register
+            if (event.entity.distanceToSqr(mc.player as Entity) > 4) return@register
             if (dungeonTeammatesNoSelf.none { it.name == event.entity.name.unformattedText }) return@register
             event.isCanceled = true
         }
@@ -128,18 +131,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
                 (startX + boxWidth + padding) to (startY + boxHeight + padding)
             )
 
-            val cx = mc.window.width / 2
-            val cy = mc.window.height / 2
-            val mx = mc.mouseHandler.xpos()
-            val my = mc.mouseHandler.ypos()
-
-            val hoveredIndex = when {
-                mx < cx && my < cy -> 0
-                mx > cx && my < cy -> 1
-                mx < cx && my > cy -> 2
-                mx > cx && my > cy -> 3
-                else -> - 1
-            }
+            val hoveredIndex = getHoveredIndex()
 
             players.forEachIndexed { i, entry ->
                 if (entry == null) return@forEachIndexed
@@ -187,52 +179,45 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
         }
 
         register<ContainerEvent.MouseClick> {
-            if (! customLeapMenu.value) return@register
             if (! inSpiritLeap(event.screen)) return@register
-
-            val cx = mc.window.width / 2
-            val cy = mc.window.height / 2
-
-            val quadrant = when {
-                mc.mouseHandler.xpos() < cx && mc.mouseHandler.ypos() < cy -> 0
-                mc.mouseHandler.xpos() > cx && mc.mouseHandler.ypos() < cy -> 1
-                mc.mouseHandler.xpos() < cx && mc.mouseHandler.ypos() > cy -> 2
-                mc.mouseHandler.xpos() > cx && mc.mouseHandler.ypos() > cy -> 3
-                else -> return@register
+            getHoveredIndex()?.let {
+                event.isCanceled = true
+                triggerLeap(it)
             }
-
-            event.isCanceled = true
-            triggerLeap(quadrant)
         }
 
         register<ContainerEvent.Keyboard> {
-            if (! customLeapMenu.value || ! leapKeybinds.value) return@register
-            if (! inSpiritLeap(event.screen)) return@register
+            if (! leapKeybinds.value || ! inSpiritLeap(event.screen)) return@register
 
-            val index = if (keybindMode.value == 0) when (event.key) {
-                key1.value -> 0
-                key2.value -> 1
-                key3.value -> 2
-                key4.value -> 3
-                else -> return@register
-            }
-            else {
-                val clazz = when (event.key) {
-                    keyArcher.value -> DungeonClass.Archer
-                    keyBerserk.value -> DungeonClass.Berserk
-                    keyHealer.value -> DungeonClass.Healer
-                    keyMage.value -> DungeonClass.Mage
-                    keyTank.value -> DungeonClass.Tank
-                    else -> return@register
+            val index = when (keybindMode.value) {
+                0 -> keybindKeys.indexOfFirst { it.value == event.key }
+                1 -> classesKeys.find { it.value == event.key }?.let { key ->
+                    players.indexOfFirst { it?.player?.clazz == DungeonClass.fromName(key.name) }
                 }
-                players.indexOfFirst { it?.player?.clazz == clazz }.takeIf { it != - 1 } ?: return@register
-            }
+
+                else -> - 1
+            }?.takeIf { it in players.indices } ?: return@register
 
             event.isCanceled = true
             triggerLeap(index)
         }
     }
 
+
+    private fun getHoveredIndex(): Int? {
+        val cx = mc.window.width / 2
+        val cy = mc.window.height / 2
+        val mx = mc.mouseHandler.xpos()
+        val my = mc.mouseHandler.ypos()
+
+        return when {
+            mx < cx && my < cy -> 0
+            mx > cx && my < cy -> 1
+            mx < cx && my > cy -> 2
+            mx > cx && my > cy -> 3
+            else -> null
+        }
+    }
 
     private fun inSpiritLeap(screen: Screen): Boolean {
         val title = screen.title.string.lowercase()
