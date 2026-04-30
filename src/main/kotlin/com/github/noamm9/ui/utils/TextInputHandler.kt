@@ -353,7 +353,7 @@ class TextInputHandler(
 
     private fun textWidth(text: String): Float = text.width().toFloat()
 
-    private fun resetState() {
+    fun resetState() {
         listening = false
         textOffset = 0f
         clearSelection()

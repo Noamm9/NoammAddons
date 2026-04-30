@@ -86,6 +86,13 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
 
         register<KeyboardEvent.KeyPressed> {
             if (mc.screen !is AbstractContainerScreen<*>) return@register
+
+            if (event.keyEvent.key == GLFW.GLFW_KEY_F && event.keyEvent.hasControlDown()) {
+                searchHandler.listening = ! searchHandler.listening
+                event.isCanceled = true
+                return@register
+            }
+
             if (! searchHandler.listening) return@register
 
             if (mc.options.keyInventory.matches(event.keyEvent)) {
@@ -143,7 +150,7 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
         val stack = ArrayDeque<String>()
 
         for (token in tokens) {
-            val numCheck = NumbersUtils.parseCompactNumberDouble(token)?.toDouble()
+            val numCheck = NumbersUtils.parseCompactNumberDouble(token)
             when {
                 numCheck != null -> output.add(token)
 
@@ -173,7 +180,7 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
         val evalStack = ArrayDeque<Double>()
 
         for (token in output) {
-            val num = NumbersUtils.parseCompactNumberDouble(token)?.toDouble()
+            val num = NumbersUtils.parseCompactNumberDouble(token)
 
             if (num != null) evalStack.addFirst(num)
             else if (token in operators) {
