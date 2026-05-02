@@ -23,11 +23,11 @@ object AutoGFS: Feature("Automatically refills dungeon items from your sacks usi
     private val refillTNT by ToggleSetting("Refill TNT")
     private val refillJerry by ToggleSetting("Refill Jerry")
     private val refillLeaps by ToggleSetting("Refill Leaps")
-    private val refillTwilight by ToggleSetting("Refill Twilight")
+    private val refillTwilight by ToggleSetting("Refill Twilight Arrow Poison (TAP)")
 
-    private val pyTwilight by ToggleSetting("Refill after lightning", true).section("Twilight").showIf { refillTwilight.value }
-    private val p5Twilight by ToggleSetting("Refill after m7 relics", true).showIf { refillTwilight.value }
-    private val twilightAmount by SliderSetting("Twilight Amount", 8, 4, 8, 1).withDescription("The amount of Twilight you want the auto to pull out of sax").showIf { (p5Twilight.value || pyTwilight.value) && refillTwilight.value }
+    private val pyTwilight by ToggleSetting("Refill after Lightning", true).section("Twilight").showIf { refillTwilight.value }
+    private val p5Twilight by ToggleSetting("Refill after M7 relics", true).showIf { refillTwilight.value }
+    private val twilightAmount by SliderSetting("TAP Amount", 8, 4, 8, 1).withDescription("The number of TAP you want the auto to pull out of sacks").showIf { (p5Twilight.value || pyTwilight.value) && refillTwilight.value }
 
     private val p5Message = Regex("^\\[BOSS] Wither King: I no longer wish to fight, but I know that will not stop you\\.$")
     private val pyMessage1 = Regex("^\\[BOSS] Storm: (ENERGY HEED MY CALL|THUNDER LET ME BE YOUR CATALYST)!$")
