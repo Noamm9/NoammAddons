@@ -103,17 +103,16 @@ object Render3D {
         ctx.matrixStack.pushPose()
         ctx.matrixStack.translate(- cameraPos.x, - cameraPos.y, - cameraPos.z)
 
-        val buffer = ctx.consumers.getBuffer(if (phase) NoammRenderLayers.FILLED_THROUGH_WALLS else NoammRenderLayers.FILLED)
+        val buffer = ctx.consumers.getBuffer(if (phase) NoammRenderLayers.CIRCLE_FILLED_THROUGH_WALLS else NoammRenderLayers.CIRCLE_FILLED)
 
         val r = color.red / 255f
         val g = color.green / 255f
         val b = color.blue / 255f
         val a = color.alpha / 255f
         val pose = ctx.matrixStack.last()
-
         val size = thickness.toDouble() / 40.0
-        val innerR = radius - size
-        val outerR = radius + size
+        val innerR = radius.toDouble() - size
+        val outerR = radius.toDouble() + size
         val bottomY = (center.y - size).toFloat()
         val topY = (center.y + size).toFloat()
 
@@ -136,41 +135,25 @@ object Render3D {
             val x2Outer = (center.x + outerR * c2).toFloat()
             val z2Outer = (center.z + outerR * s2).toFloat()
 
-            addQuad(
-                buffer, pose,
-                x1Inner, topY, z1Inner,
-                x1Outer, topY, z1Outer,
-                x2Outer, topY, z2Outer,
-                x2Inner, topY, z2Inner,
-                r, g, b, a
-            )
+            buffer.addVertex(pose, x1Inner, topY, z1Inner).setColor(r, g, b, a)
+            buffer.addVertex(pose, x1Outer, topY, z1Outer).setColor(r, g, b, a)
+            buffer.addVertex(pose, x2Outer, topY, z2Outer).setColor(r, g, b, a)
+            buffer.addVertex(pose, x2Inner, topY, z2Inner).setColor(r, g, b, a)
 
-            addQuad(
-                buffer, pose,
-                x1Outer, bottomY, z1Outer,
-                x1Outer, topY, z1Outer,
-                x2Outer, topY, z2Outer,
-                x2Outer, bottomY, z2Outer,
-                r, g, b, a
-            )
+            buffer.addVertex(pose, x1Outer, bottomY, z1Outer).setColor(r, g, b, a)
+            buffer.addVertex(pose, x1Outer, topY, z1Outer).setColor(r, g, b, a)
+            buffer.addVertex(pose, x2Outer, topY, z2Outer).setColor(r, g, b, a)
+            buffer.addVertex(pose, x2Outer, bottomY, z2Outer).setColor(r, g, b, a)
 
-            addQuad(
-                buffer, pose,
-                x1Inner, bottomY, z1Inner,
-                x1Inner, topY, z1Inner,
-                x2Inner, topY, z2Inner,
-                x2Inner, bottomY, z2Inner,
-                r, g, b, a
-            )
+            buffer.addVertex(pose, x1Inner, bottomY, z1Inner).setColor(r, g, b, a)
+            buffer.addVertex(pose, x1Inner, topY, z1Inner).setColor(r, g, b, a)
+            buffer.addVertex(pose, x2Inner, topY, z2Inner).setColor(r, g, b, a)
+            buffer.addVertex(pose, x2Inner, bottomY, z2Inner).setColor(r, g, b, a)
 
-            addQuad(
-                buffer, pose,
-                x1Inner, bottomY, z1Inner,
-                x1Outer, bottomY, z1Outer,
-                x2Outer, bottomY, z2Outer,
-                x2Inner, bottomY, z2Inner,
-                r, g, b, a
-            )
+            buffer.addVertex(pose, x1Inner, bottomY, z1Inner).setColor(r, g, b, a)
+            buffer.addVertex(pose, x1Outer, bottomY, z1Outer).setColor(r, g, b, a)
+            buffer.addVertex(pose, x2Outer, bottomY, z2Outer).setColor(r, g, b, a)
+            buffer.addVertex(pose, x2Inner, bottomY, z2Inner).setColor(r, g, b, a)
         }
 
         ctx.matrixStack.popPose()

@@ -18,6 +18,13 @@ object NoammRenderPipelines {
             .build()
     )
 
+    val CIRCLE_FILLED: RenderPipeline = RenderPipelines.register(
+        RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
+            .withLocation(id("pipeline/circle_filled"))
+            .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLE_STRIP)
+            .build()
+    )
+
     val LINES_THROUGH_WALLS: RenderPipeline = RenderPipelines.register(
         RenderPipeline.builder(RenderPipelines.LINES_SNIPPET)
             .withLocation(id("pipeline/lines_through_walls"))
@@ -33,9 +40,18 @@ object NoammRenderPipelines {
             .build()
     )
 
+    val CIRCLE_FILLED_THROUGH_WALLS: RenderPipeline = RenderPipelines.register(
+        RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
+            .withLocation(id("pipeline/circle_filled_through_walls"))
+            .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLE_STRIP)
+            .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+            .build()
+    )
+
     fun init() {
         IrisCompatibility.registerPipeline(LINES_THROUGH_WALLS, IrisShaderType.LINES)
         IrisCompatibility.registerPipeline(FILLED_THROUGH_WALLS, IrisShaderType.BASIC)
+        IrisCompatibility.registerPipeline(CIRCLE_FILLED_THROUGH_WALLS, IrisShaderType.BASIC)
     }
 
     private fun id(path: String) = Identifier.fromNamespaceAndPath(NoammAddons.MOD_ID, path)

@@ -8,6 +8,8 @@ import net.minecraft.client.renderer.rendertype.RenderType
 object NoammRenderLayers {
     val FILLED = RenderType.create("noamm_filled", RenderSetup.builder(NoammRenderPipelines.FILLED).createRenderSetup())
     val FILLED_THROUGH_WALLS = RenderType.create("noamm_filled_through_walls", RenderSetup.builder(NoammRenderPipelines.FILLED_THROUGH_WALLS).createRenderSetup())
+    val CIRCLE_FILLED = RenderType.create("noamm_circle_filled", RenderSetup.builder(NoammRenderPipelines.CIRCLE_FILLED).createRenderSetup())
+    val CIRCLE_FILLED_THROUGH_WALLS = RenderType.create("noamm_circle_filled_through_walls", RenderSetup.builder(NoammRenderPipelines.CIRCLE_FILLED_THROUGH_WALLS).createRenderSetup())
 
     val LINES = RenderType.create("noamm_lines", RenderSetup.builder(RenderPipelines.LINES).createRenderSetup())
     val LINES_THROUGH_WALLS = RenderType.create("noamm_lines_through_walls", RenderSetup.builder(NoammRenderPipelines.LINES_THROUGH_WALLS).createRenderSetup())
