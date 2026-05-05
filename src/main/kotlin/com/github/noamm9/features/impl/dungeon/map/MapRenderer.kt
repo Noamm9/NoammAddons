@@ -21,6 +21,7 @@ import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
 import com.github.noamm9.utils.render.RenderHelper.renderVec
 import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.navigation.ScreenRectangle
 import net.minecraft.resources.ResourceLocation
 import java.awt.Color
 import kotlin.math.max
@@ -37,14 +38,43 @@ object MapRenderer: HudElement() {
     private val ownPlayerMarker = ResourceLocation.fromNamespaceAndPath(MOD_ID, "dungeonmap/marker_self")
 
     override fun draw(ctx: GuiGraphics, example: Boolean): Pair<Float, Float> {
+        applyCheater()
 
         renderBackground(ctx)
-        ctx.pose().translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat())
-        applyCheater()
+
+        val pose = ctx.pose()
+
+        val borderWidth = MapConfig.mapBorderWidth.value
+        ctx.scissorStack.push(ScreenRectangle(borderWidth, borderWidth, 128 - borderWidth * 2, 128 - borderWidth * 2).transformAxisAligned(pose))
+
+        pose.pushMatrix()
+
+        val angle = DungeonListener.thePlayer?.let { player ->
+            if (! MapConfig.rotateMap.value) return@let 0f
+            val (centerX, centerY) = 64f to 64f
+
+            val (x, z, yaw) = getTeammatePosition(player)
+            val (translationX, translationY) = centerX - x to centerY - z
+            val normalized = MathUtils.normalizeYaw(yaw)
+            val angle = -Math.toRadians(normalized - 180.0).toFloat()
+
+            pose.translate(centerX, centerY)
+            pose.rotate(angle)
+            pose.translate(-centerX, -centerY)
+            pose.translate(translationX, translationY)
+
+            return@let -angle
+        } ?: 0f
+
+        pose.translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat())
         renderRooms(ctx)
-        renderText(ctx)
-        ctx.pose().translate(- MapUtils.startCorner.first.toFloat(), - MapUtils.startCorner.second.toFloat())
-        renderPlayerHeads(ctx)
+        renderText(ctx, angle)
+        pose.translate(- MapUtils.startCorner.first.toFloat(), - MapUtils.startCorner.second.toFloat())
+        renderPlayerHeads(ctx, angle)
+
+        ctx.disableScissor()
+        pose.popMatrix()
+
         renderExtraInfo(ctx)
 
         return 128f to if (MapConfig.mapExtraInfo.value) 140f else 128f
@@ -150,7 +180,7 @@ object MapRenderer: HudElement() {
         return RoomState.UNOPENED
     }
 
-    private fun renderText(ctx: GuiGraphics) {
+    private fun renderText(ctx: GuiGraphics, angle: Float = 0f) {
         val roomSize = MapUtils.mapRoomSize.toFloat()
         val gapSize = HotbarMapColorParser.quarterRoom.toFloat()
         val halfRoom = HotbarMapColorParser.halfRoom.toFloat()
@@ -174,6 +204,10 @@ object MapRenderer: HudElement() {
                 else -> Color(0xaaaaaa)
             }
 
+            val pose = ctx.pose()
+            pose.pushMatrix()
+            pose.translate(cX, cY)
+            pose.rotate(angle)
             when (MapConfig.dungeonMapCheckmarkStyle.value) {
                 2, 3 -> {
                     var scale = MapConfig.textScale.value.toFloat()
@@ -233,46 +267,46 @@ object MapRenderer: HudElement() {
                     val totalLines = unq.cacheSplitName.size + (if (showSecrets) 1 else 0)
                     val totalH = totalLines * mc.font.lineHeight * scale
 
-                    var currentY = cY - totalH / 2
+                    var currentY = -totalH / 2
 
                     for (line in unq.cacheSplitName) {
-                        Render2D.drawCenteredString(ctx, line, cX, currentY, color, scale)
+                        Render2D.drawCenteredString(ctx, line, 0, currentY, color, scale)
                         currentY += totalH / totalLines
                     }
 
                     if (showSecrets) {
                         val secStr = "${unq.foundSecrets}/${room.data.secrets}"
-                        Render2D.drawCenteredString(ctx, secStr, cX, currentY, color, scale)
+                        Render2D.drawCenteredString(ctx, secStr, 0, currentY, color, scale)
                     }
                 }
 
                 1 -> Render2D.drawCenteredString(
                     ctx,
                     if (room.data.secrets == 0) "0" else "${unq.foundSecrets}/${room.data.secrets}",
-                    cX,
-                    cY - mc.font.lineHeight / 2,
+                    0,
+                    -mc.font.lineHeight / 2,
                     color,
                     MapConfig.textScale.value
                 )
 
                 0 -> {
                     val checkmarkSize = MapConfig.checkmarkSize.value * 10
-                    val halfcheckmarkSize = checkmarkSize / 2
-                    drawCheckmark(ctx, unq.mainRoom, cX - halfcheckmarkSize, cY - halfcheckmarkSize, MapConfig.checkmarkSize.value * 10)
+                    drawCheckmark(ctx, unq.mainRoom, -checkmarkSize / 2f, -checkmarkSize / 2f, checkmarkSize)
                 }
             }
+            pose.popMatrix()
         }
     }
 
-    private fun renderPlayerHeads(ctx: GuiGraphics) {
+    private fun renderPlayerHeads(ctx: GuiGraphics, angle: Float = 0f) {
         if (LocationUtils.inBoss) return
 
         DungeonListener.dungeonTeammatesNoSelf.forEach { player ->
             if (player.isDead) return@forEach
-            drawPlayerHead(ctx, player)
+            drawPlayerHead(ctx, player, angle)
         }
 
-        drawPlayerHead(ctx, DungeonListener.thePlayer ?: return)
+        drawPlayerHead(ctx, DungeonListener.thePlayer ?: return, angle)
     }
 
 
@@ -288,16 +322,17 @@ object MapRenderer: HudElement() {
         Render2D.drawTexture(ctx, checkmark, x, y, size, size)
     }
 
-    private fun drawPlayerHead(ctx: GuiGraphics, teammate: DungeonPlayer) {
+    private fun getTeammatePosition(teammate: DungeonPlayer): Triple<Float, Float, Float> {
         val entity = teammate.entity
+        if (entity == null || ! entity.isAlive) {
+            return Triple(teammate.mapX, teammate.mapZ, teammate.yaw)
+        }
+        val (mx, mz) = MapUtils.coordsToMap(entity.renderVec)
+        return Triple(mx, mz, entity.yRot)
+    }
 
-        val (x, z, yaw) = if (entity == null || ! entity.isAlive) {
-            Triple(teammate.mapX, teammate.mapZ, teammate.yaw)
-        }
-        else {
-            val (mx, mz) = MapUtils.coordsToMap(entity.renderVec)
-            Triple(mx, mz, entity.yRot)
-        }
+    private fun drawPlayerHead(ctx: GuiGraphics, teammate: DungeonPlayer, angle: Float = 0f) {
+        val (x, z, yaw) = getTeammatePosition(teammate)
 
         val borderColor = if (MapConfig.mapPlayerHeadColorClassBased.value) teammate.clazz.color
         else MapConfig.mapPlayerHeadColor.value
@@ -308,7 +343,7 @@ object MapRenderer: HudElement() {
         ctx.pose().pushMatrix()
         ctx.pose().translate(x, z)
         val currentYaw = MathUtils.normalizeYaw(yaw)
-        val headYaw = Math.toRadians((currentYaw + 180).toDouble()).toFloat()
+        val headYaw = Math.toRadians(currentYaw + 180.0).toFloat()
 
         ctx.pose().rotate(headYaw)
         ctx.pose().scale(MapConfig.playerHeadScale.value)
@@ -327,7 +362,7 @@ object MapRenderer: HudElement() {
             || heldItem.skyblockId == "HAUNT_ABILITY")))
 
         if (shouldDrawName) {
-            ctx.pose().rotate(- headYaw)
+            ctx.pose().rotate(angle - headYaw)
             ctx.pose().translate(0f, 8f)
             ctx.pose().scale(MapConfig.playerNameScale.value)
             Render2D.drawCenteredString(ctx, teammate.name, 0, 0, nameColor)

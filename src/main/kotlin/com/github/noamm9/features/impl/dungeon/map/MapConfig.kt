@@ -7,6 +7,7 @@ import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.section
 import com.github.noamm9.ui.clickgui.components.showIf
+import com.github.noamm9.ui.clickgui.components.withDescription
 import java.awt.Color
 
 //#if LEGIT
@@ -27,6 +28,7 @@ object MapConfig {
     val printPlayersClearInfo = ToggleSetting("Player Clear Info", false)
     val playerNames = DropdownSetting("Show Player Names", 0, listOf("Off", "Holding Leap", "Always"))
     val mapVanillaMarker = ToggleSetting("Vanilla Head Marker", false)
+    val rotateMap = ToggleSetting("Rotate Map", false).withDescription("Rotates map to follow the player")
 
     val textScale = SliderSetting("Map Text Scale", 1f, 0.4f, 1.5f, 0.1).section("Size")
     val checkmarkSize = SliderSetting("Map Checkmark Scale", 1f, 0.3f, 1.5f, 0.1f)
@@ -78,7 +80,7 @@ object MapConfig {
     fun setup(): Array<Setting<*>> {
         return arrayOf(
             mapEnabled, dungeonMapCheater, mapExtraInfo, mapHideInBoss,
-            printPlayersClearInfo, playerNames, mapVanillaMarker, textScale,
+            printPlayersClearInfo, playerNames, mapVanillaMarker, rotateMap, textScale,
             checkmarkSize, playerHeadScale, playerNameScale, mapBackground,
             mapBorderColor, mapBorderWidth, dungeonMapCheckmarkStyle, centerStyle,
             hideQuestionCheckmarks, limitRoomNameSize, highlightMimicRoom,
