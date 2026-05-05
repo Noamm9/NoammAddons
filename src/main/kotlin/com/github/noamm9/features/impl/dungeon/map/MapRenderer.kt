@@ -23,7 +23,10 @@ import com.github.noamm9.utils.render.RenderHelper.renderVec
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.navigation.ScreenRectangle
 import net.minecraft.resources.ResourceLocation
+import org.joml.Vector2f
 import java.awt.Color
+import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.max
 
 object MapRenderer: HudElement() {
@@ -41,12 +44,9 @@ object MapRenderer: HudElement() {
         applyCheater()
 
         renderBackground(ctx)
+        pushMapContentScissor(ctx)
 
         val pose = ctx.pose()
-
-        val borderWidth = MapConfig.mapBorderWidth.value
-        ctx.scissorStack.push(ScreenRectangle(borderWidth, borderWidth, 128 - borderWidth * 2, 128 - borderWidth * 2).transformAxisAligned(pose))
-
         pose.pushMatrix()
 
         val angle = DungeonListener.thePlayer?.let { player ->
@@ -86,6 +86,18 @@ object MapRenderer: HudElement() {
 
         Render2D.drawRect(ctx, 0, 0, width, height, MapConfig.mapBackground.value)
         Render2D.drawBorder(ctx, 0, 0, width, height, MapConfig.mapBorderColor.value, MapConfig.mapBorderWidth.value)
+    }
+
+    private fun pushMapContentScissor(ctx: GuiGraphics) {
+        val borderWidth = MapConfig.mapBorderWidth.value
+        val inner = ScreenRectangle(borderWidth, borderWidth, 128 - borderWidth * 2, 124 - borderWidth * 2)
+        val topLeft = ctx.pose().transformPosition(inner.left().toFloat(), inner.top().toFloat(), Vector2f())
+        val bottomRight = ctx.pose().transformPosition(inner.right().toFloat(), inner.bottom().toFloat(), Vector2f())
+        val x0 = ceil(minOf(topLeft.x, bottomRight.x)).toInt()
+        val y0 = ceil(minOf(topLeft.y, bottomRight.y)).toInt()
+        val x1 = floor(maxOf(topLeft.x, bottomRight.x)).toInt()
+        val y1 = floor(maxOf(topLeft.y, bottomRight.y)).toInt()
+        ctx.scissorStack.push(ScreenRectangle(x0, y0, x1 - x0, y1 - y0))
     }
 
     private fun renderExtraInfo(ctx: GuiGraphics) {
