@@ -31,7 +31,7 @@ object ItemUtils {
             if (sbItemID == "PET") {
                 val petInfoRaw = customData.getString("petInfo").getOrNull()?.takeIf { it.isNotEmpty() } ?: return sbItemID
                 val petInfo = JsonUtils.json.decodeFromString<PetSummary>(petInfoRaw)
-                sbItemID += "-$${petInfo.type}-${petInfo.tier}"
+                sbItemID += "-${petInfo.type}-${petInfo.tier}"
             }
 
             return sbItemID.orEmpty()
