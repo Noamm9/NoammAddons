@@ -31,6 +31,7 @@ object TermAutoClicker: Feature(name = "Term AC", description = "Automatically u
 
             nextLeftClick = getNextClick(now)
             (mc.options.keyAttack as IKeyMapping).clickCount += 1
+            mc.missTime = 0
         }
     }
 
