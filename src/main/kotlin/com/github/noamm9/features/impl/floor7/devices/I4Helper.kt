@@ -98,9 +98,10 @@ object I4Helper: Feature(name = "I4 Helper") {
     fun getPredictionTarget(lastHitPos: BlockPos, doneCoords: Collection<BlockPos>): BlockPos? {
         return devBlocks.shuffled().find { potentialTarget ->
             val isNotDone = ! doneCoords.contains(potentialTarget)
+            val isNotLastHit = potentialTarget != lastHitPos
             val isCorrectBlockType = WorldUtils.getBlockAt(potentialTarget) == Blocks.BLUE_TERRACOTTA
             val isNonAdjacentInSameColumn = potentialTarget.x == lastHitPos.x && potentialTarget.distSqr(lastHitPos) > 4.0
-            isNotDone && isCorrectBlockType && ! isNonAdjacentInSameColumn
+            isNotDone && isNotLastHit && isCorrectBlockType && ! isNonAdjacentInSameColumn
         }
     }
 

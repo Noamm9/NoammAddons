@@ -2,7 +2,6 @@ package com.github.noamm9.features.impl.floor7.devices
 
 //#if CHEAT
 
-import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.BlockChangeEvent
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.TickEvent
@@ -15,6 +14,7 @@ import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.ui.utils.Animation.Companion.easeInOutCubic
+import com.github.noamm9.utils.ActionUtils
 import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.MathUtils.calcYawPitch
 import com.github.noamm9.utils.MathUtils.interpolateYaw
@@ -24,16 +24,11 @@ import com.github.noamm9.utils.PlayerUtils.leapAction
 import com.github.noamm9.utils.PlayerUtils.rotate
 import com.github.noamm9.utils.ThreadUtils.setTimeout
 import com.github.noamm9.utils.WorldUtils
-import com.github.noamm9.utils.catch
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
-import net.minecraft.network.chat.Component
-import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.Vec3
@@ -51,49 +46,9 @@ object AutoI4: Feature("Fully Automated I4") {
     private val preferredLeapClass by DropdownSetting("Leap Priority", 0, leapPriorities.map { it.name })
 
     private const val STORM_DEATH_MESSAGE = "[BOSS] Storm: I should have known that I stood no chance."
-
-    private data class PhaseState(
-        val tickTimer: Int = - 1,
-        val lastEmeraldTick: Int = - 1,
-        val doneCoords: Set<BlockPos> = emptySet(),
-        val hasLeaped: Boolean = false,
-        val hasChangedMask: Boolean = false,
-        val hasAlerted: Boolean = false,
-        val lastTarget: BlockPos? = null
-    )
-
-    private data class Action(val priority: Int, val block: suspend () -> Unit)
-
-    private var state = PhaseState()
-    private val deviceActionQueue = ArrayDeque<Action>()
-    private var deviceJob: Job? = null
+    @Volatile private var state = PhaseState()
 
     override fun init() {
-        register<TickEvent.Server> {
-            if (state.tickTimer == - 1) return@register
-            state = state.copy(tickTimer = state.tickTimer + 1)
-            if (! I4Helper.isOnDev()) return@register
-
-            when (state.tickTimer) {
-                307 if leapSetting.value -> queue(4, ::saveLeap)
-                244 if maskSetting.value && ! state.hasChangedMask -> queue(3, PlayerUtils::changeMaskAction)
-                174 if rodSetting.value -> queue(2, PlayerUtils::rodSwap)
-                174 if maskSetting.value -> {
-                    state = state.copy(hasChangedMask = true)
-                    queue(3, PlayerUtils::changeMaskAction)
-                }
-            }
-
-            /*
-            val ticksSinceLastEmerald = if (state.lastEmeraldTick < 0) Int.MAX_VALUE else (state.tickTimer - state.lastEmeraldTick)
-            val shouldCheckForStall = rotationTime.value > 0 && state.tickTimer > 150 && ticksSinceLastEmerald > 30 && state.doneCoords.size > 4
-            if (shouldCheckForStall) {
-                val hasEmeraldBlock = devBlocks.any { WorldUtils.getBlockAt(it) == Blocks.EMERALD_BLOCK }
-                if (hasEmeraldBlock) state = state.copy(lastEmeraldTick = state.tickTimer)
-                else onComplete("Device stalled")
-            }*/
-        }
-
         register<ChatMessageEvent> {
             if (! LocationUtils.inBoss || LocationUtils.dungeonFloorNumber != 7) return@register
             val msg = event.unformattedText
@@ -104,6 +59,22 @@ object AutoI4: Feature("Fully Automated I4") {
                 if (! (state.tickTimer >= 0 && I4Helper.isOnDev() && leapSetting.value)) return@register
                 if (I4Helper.DEVICE_DONE_REGEX.find(msg)?.groupValues?.get(1) != mc.user.name) return@register
                 onComplete()
+            }
+        }
+
+        register<TickEvent.Server> {
+            if (state.tickTimer == - 1) return@register
+            state = state.copy(tickTimer = state.tickTimer + 1)
+            if (! I4Helper.isOnDev()) return@register
+
+            when (state.tickTimer) {
+                307 if leapSetting.value -> ActionUtils.queue(4, true, ::saveLeap)
+                244 if maskSetting.value && ! state.hasChangedMask -> ActionUtils.queue(3, true, PlayerUtils::changeMaskAction)
+                174 if rodSetting.value -> ActionUtils.queue(2, true, PlayerUtils::rodSwap)
+                174 if maskSetting.value -> {
+                    state = state.copy(hasChangedMask = true)
+                    ActionUtils.queue(3, true, PlayerUtils::changeMaskAction)
+                }
             }
         }
 
@@ -124,9 +95,9 @@ object AutoI4: Feature("Fully Automated I4") {
 
             if (event.newBlock != Blocks.EMERALD_BLOCK) return@register
 
-            if (rotationTime.value > 0) queue(1) {
-                shootAtBlock(event.pos)
+            if (rotationTime.value > 0) ActionUtils.queue(1) {
                 state = state.copy(lastTarget = event.pos)
+                shootAtBlock(event.pos)
 
                 if (predictSetting.value) {
                     getPredictionTarget(event.pos, state.doneCoords)?.let { nextTarget ->
@@ -147,51 +118,6 @@ object AutoI4: Feature("Fully Automated I4") {
         }
     }
 
-    private suspend fun shootAtBlock(pos: BlockPos) {
-        val player = mc.player ?: return
-        val (yaw, pitch) = calcYawPitch(getTargetVector(pos))
-        val block = suspend {
-            delay(50)
-            PlayerUtils.rightClick()
-        }
-
-        findAnyEmeraldExcluding(state.lastTarget, pos)?.let { newer ->
-            state = state.copy(lastEmeraldTick = state.tickTimer, doneCoords = state.doneCoords + newer)
-            return shootAtBlock(newer)
-        }
-
-        val currentYaw = MathUtils.normalizeYaw(player.yRot)
-        val currentPitch = MathUtils.normalizePitch(player.xRot)
-        val targetYaw = MathUtils.normalizeYaw(yaw)
-        val targetPitch = MathUtils.normalizePitch(pitch)
-        val tolerance = 1f
-
-        if (abs(currentYaw - targetYaw) <= tolerance && abs(currentPitch - targetPitch) <= tolerance) return block()
-
-        val startTime = System.currentTimeMillis()
-        while (true) {
-            val newerDuring = findAnyEmeraldExcluding(state.lastTarget, pos)
-            if (newerDuring != null) {
-                state = state.copy(lastEmeraldTick = state.tickTimer, doneCoords = state.doneCoords + newerDuring)
-                return shootAtBlock(newerDuring)
-            }
-
-            val elapsed = System.currentTimeMillis() - startTime
-            val progress = if (rotationTime.value <= 0) 1.0 else min(elapsed.toDouble() / rotationTime.value, 1.0)
-
-            if (progress >= 1) {
-                rotate(targetYaw, targetPitch)
-                block()
-                break
-            }
-
-            val easedProgress = easeInOutCubic(progress).toFloat()
-            val newYaw = interpolateYaw(currentYaw, targetYaw, easedProgress)
-            val newPitch = lerp(currentPitch, targetPitch, easedProgress).toFloat()
-            rotate(newYaw, newPitch)
-        }
-    }
-
     private fun getTargetVector(pos: BlockPos): Vec3 {
         val i = I4Helper.devBlocks.indexOf(pos).coerceAtLeast(0)
         val col = i % 3
@@ -204,26 +130,59 @@ object AutoI4: Feature("Fully Automated I4") {
         return Vec3(targetX, targetY, 50.0)
     }
 
-    private fun queue(priority: Int, block: suspend () -> Unit) {
-        deviceActionQueue.add(Action(priority, block))
-        deviceActionQueue.sortByDescending { it.priority }
-        if (deviceJob?.isActive != true) {
-            processDeviceQueue()
+    private suspend fun shootAtBlock(pos: BlockPos) {
+        val player = mc.player ?: return
+        val (yaw, pitch) = calcYawPitch(getTargetVector(pos))
+        val block = suspend {
+            delay(50)
+            PlayerUtils.rightClick()
         }
-    }
 
-    private fun processDeviceQueue() {
-        deviceJob = scope.launch {
-            while (deviceActionQueue.isNotEmpty()) {
-                catch { deviceActionQueue.removeFirst().block() }
+        findAnyEmeraldExcluding(state.lastTarget, pos)?.let { newer ->
+            state = state.copy(lastEmeraldTick = state.tickTimer)
+            return shootAtBlock(newer)
+        }
+
+        val currentYaw = MathUtils.normalizeYaw(player.yRot)
+        val currentPitch = MathUtils.normalizePitch(player.xRot)
+        val targetYaw = MathUtils.normalizeYaw(yaw)
+        val targetPitch = MathUtils.normalizePitch(pitch)
+        val tolerance = 1f
+
+        if (abs(currentYaw - targetYaw) <= tolerance && abs(currentPitch - targetPitch) <= tolerance) return block()
+
+        if (rotationTime.value <= 0) {
+            rotate(targetYaw, targetPitch)
+            return block()
+        }
+
+        val startTime = System.currentTimeMillis()
+        while (true) {
+            val newerDuring = findAnyEmeraldExcluding(state.lastTarget, pos)
+            if (newerDuring != null) {
+                state = state.copy(lastEmeraldTick = state.tickTimer)
+                return shootAtBlock(newerDuring)
             }
+
+            val elapsed = System.currentTimeMillis() - startTime
+            val progress = min(elapsed.toDouble() / rotationTime.value, 1.0)
+
+            if (progress >= 1.0) {
+                rotate(targetYaw, targetPitch)
+                block()
+                break
+            }
+
+            val easedProgress = easeInOutCubic(progress).toFloat()
+            val newYaw = interpolateYaw(currentYaw, targetYaw, easedProgress)
+            val newPitch = lerp(currentPitch, targetPitch, easedProgress).toFloat()
+            rotate(newYaw, newPitch)
         }
     }
 
     private suspend fun saveLeap() {
         if (! leapSetting.value) return
         if (state.hasLeaped) return
-        deviceActionQueue.clear()
         state = state.copy(hasLeaped = true, tickTimer = - 1)
         val aliveTeammates = DungeonListener.dungeonTeammatesNoSelf.filterNot { it.isDead }
 
@@ -235,25 +194,23 @@ object AutoI4: Feature("Fully Automated I4") {
 
         leapAction(target)
         while (I4Helper.isOnDev()) delay(50)
+        ActionUtils.reset()
     }
 
     private fun onComplete() {
         if (state.hasAlerted) return
         state = state.copy(hasAlerted = true, tickTimer = - 1)
-        queue(4, ::saveLeap)
+        ActionUtils.queue(4, true, ::saveLeap)
     }
 
-    fun simDev() {
-        EventBus.post(ChatMessageEvent(Component.literal(STORM_DEATH_MESSAGE)))
-
-        scope.launch {
-            for (pos in I4Helper.devBlocks.shuffled()) {
-                delay(800)
-                ClientboundBlockUpdatePacket(pos, Blocks.EMERALD_BLOCK.defaultBlockState()).handle(mc.connection)
-                delay(600)
-                ClientboundBlockUpdatePacket(pos, Blocks.BLUE_TERRACOTTA.defaultBlockState()).handle(mc.connection)
-            }
-        }
-    }
+    private data class PhaseState(
+        val tickTimer: Int = - 1,
+        val lastEmeraldTick: Int = - 1,
+        val doneCoords: Set<BlockPos> = emptySet(),
+        val hasLeaped: Boolean = false,
+        val hasChangedMask: Boolean = false,
+        val hasAlerted: Boolean = false,
+        val lastTarget: BlockPos? = null
+    )
 }
 //#endif

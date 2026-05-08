@@ -61,9 +61,7 @@ object EventDispatcher {
             if (entity.item.hoverName.unformattedText !in DungeonUtils.dungeonItemDrops) return@register
             if (mc.player !!.distanceTo(entity) > 6) return@register
 
-            EventBus.post(
-                DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition())
-            )
+            EventBus.post(DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition()))
         }
 
 
@@ -88,9 +86,7 @@ object EventDispatcher {
                 if (entity.item.hoverName.unformattedText !in DungeonUtils.dungeonItemDrops) return@register
                 if (mc.player !!.distanceTo(entity) > 6) return@register
 
-                EventBus.post(
-                    DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition())
-                )
+                EventBus.post(DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition()))
             }
             else if (event.packet is ClientboundContainerClosePacket) {
                 if (event.packet.containerId == invWindowId) resetInventoryState()
