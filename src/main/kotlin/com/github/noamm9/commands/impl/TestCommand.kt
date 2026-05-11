@@ -6,10 +6,8 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.commands.BaseCommand
 import com.github.noamm9.commands.CommandNodeBuilder
 import com.github.noamm9.config.Config
-import com.github.noamm9.utils.ActionUtils
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.PlayerUtils
-import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.network.ProfileUtils
 import kotlinx.coroutines.delay
@@ -66,13 +64,7 @@ object TestCommand: BaseCommand("test") {
         }
 
         runs {
-            ActionUtils.isblocked = true
-            ChatUtils.chat("blocking")
-            PlayerUtils.rightClick()
-            ThreadUtils.setTimeout(1000) {
-                ActionUtils.isblocked = false
-                ChatUtils.chat("unblocking")
-            }
+            ChatUtils.modMessage("hi")
         }
     }
 }

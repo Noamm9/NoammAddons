@@ -15,6 +15,7 @@ import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.ui.utils.Animation.Companion.easeInOutCubic
 import com.github.noamm9.utils.ActionUtils
+import com.github.noamm9.utils.ActionUtils.queue
 import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.MathUtils.calcYawPitch
 import com.github.noamm9.utils.MathUtils.interpolateYaw
@@ -68,12 +69,12 @@ object AutoI4: Feature("Fully Automated I4") {
             if (! I4Helper.isOnDev()) return@register
 
             when (state.tickTimer) {
-                307 if leapSetting.value -> ActionUtils.queue(4, true, ::saveLeap)
-                244 if maskSetting.value && ! state.hasChangedMask -> ActionUtils.queue(3, true, PlayerUtils::changeMaskAction)
-                174 if rodSetting.value -> ActionUtils.queue(2, true, PlayerUtils::rodSwap)
+                307 if leapSetting.value -> queue(4, true, ::saveLeap)
+                244 if maskSetting.value && ! state.hasChangedMask -> queue(3, true, PlayerUtils::changeMaskAction)
+                174 if rodSetting.value -> queue(2, true, PlayerUtils::rodSwap)
                 174 if maskSetting.value -> {
                     state = state.copy(hasChangedMask = true)
-                    ActionUtils.queue(3, true, PlayerUtils::changeMaskAction)
+                    queue(3, true, PlayerUtils::changeMaskAction)
                 }
             }
         }
@@ -87,7 +88,6 @@ object AutoI4: Feature("Fully Automated I4") {
             if (! mc.player !!.mainHandItem.`is`(Items.BOW)) return@register
             if (event.pos !in I4Helper.devBlocks) return@register
 
-            state = state.copy(lastEmeraldTick = state.tickTimer)
             if (event.oldBlock == Blocks.EMERALD_BLOCK && event.newBlock == Blocks.BLUE_TERRACOTTA) {
                 state = state.copy(doneCoords = state.doneCoords + event.pos)
                 return@register
@@ -95,27 +95,23 @@ object AutoI4: Feature("Fully Automated I4") {
 
             if (event.newBlock != Blocks.EMERALD_BLOCK) return@register
 
-            if (rotationTime.value > 0) ActionUtils.queue(1) {
-                state = state.copy(lastTarget = event.pos)
+            if (rotationTime.value > 0) queue(1) {
                 shootAtBlock(event.pos)
+                state = state.copy(lastTarget = event.pos)
 
                 if (predictSetting.value) {
-                    getPredictionTarget(event.pos, state.doneCoords)?.let { nextTarget ->
-                        val preCheckEmerald = findAnyEmeraldExcluding(event.pos, nextTarget)
-                        if (preCheckEmerald != null) return@queue
-                        shootAtBlock(nextTarget)
-                    }
+                    val next = I4Helper.prediction ?: getPredictionTarget(event.pos, state.doneCoords) ?: return@queue
+                    if (getEmerald(event.pos, next) != null) return@queue
+                    shootAtBlock(next)
                 }
             }
         }
     }
 
-    private fun findAnyEmeraldExcluding(vararg exclude: BlockPos?): BlockPos? {
-        return I4Helper.devBlocks.find { pos ->
-            if (pos in exclude) return@find false
-            if (pos in state.doneCoords) return@find false
-            WorldUtils.getBlockAt(pos) == Blocks.EMERALD_BLOCK
-        }
+    private fun getEmerald(vararg exclude: BlockPos?) = I4Helper.devBlocks.find {
+        if (it in exclude) return@find false
+        if (it in state.doneCoords) return@find false
+        WorldUtils.getBlockAt(it) == Blocks.EMERALD_BLOCK
     }
 
     private fun getTargetVector(pos: BlockPos): Vec3 {
@@ -123,8 +119,8 @@ object AutoI4: Feature("Fully Automated I4") {
         val col = i % 3
         val row = i / 3
 
-        val isBlockToTheRightDone = (col < 2) && (i + 1 < I4Helper.devBlocks.size) && (I4Helper.devBlocks[i + 1] in state.doneCoords)
-        val targetX = if (col == 0 || isBlockToTheRightDone) 67.5 else 65.5
+        val isRightDone = (col < 2) && (i + 1 < I4Helper.devBlocks.size) && (I4Helper.devBlocks[i + 1] in state.doneCoords)
+        val targetX = if (col == 0 || isRightDone) 67.5 else 65.5
 
         val targetY = 131.3 - 2.0 * row
         return Vec3(targetX, targetY, 50.0)
@@ -138,8 +134,8 @@ object AutoI4: Feature("Fully Automated I4") {
             PlayerUtils.rightClick()
         }
 
-        findAnyEmeraldExcluding(state.lastTarget, pos)?.let { newer ->
-            state = state.copy(lastEmeraldTick = state.tickTimer)
+        getEmerald(state.lastTarget, pos)?.let { newer ->
+            state = state.copy(doneCoords = state.doneCoords + newer)
             return shootAtBlock(newer)
         }
 
@@ -151,23 +147,19 @@ object AutoI4: Feature("Fully Automated I4") {
 
         if (abs(currentYaw - targetYaw) <= tolerance && abs(currentPitch - targetPitch) <= tolerance) return block()
 
-        if (rotationTime.value <= 0) {
-            rotate(targetYaw, targetPitch)
-            return block()
-        }
-
         val startTime = System.currentTimeMillis()
+        val duration = rotationTime.value.toDouble() * (0.9 + Math.random() * 0.2)
         while (true) {
-            val newerDuring = findAnyEmeraldExcluding(state.lastTarget, pos)
+            val newerDuring = getEmerald(state.lastTarget, pos)
             if (newerDuring != null) {
-                state = state.copy(lastEmeraldTick = state.tickTimer)
+                state = state.copy(doneCoords = state.doneCoords + newerDuring)
                 return shootAtBlock(newerDuring)
             }
 
             val elapsed = System.currentTimeMillis() - startTime
-            val progress = min(elapsed.toDouble() / rotationTime.value, 1.0)
+            val progress = min(elapsed.toDouble() / duration, 1.0)
 
-            if (progress >= 1.0) {
+            if (progress >= 1) {
                 rotate(targetYaw, targetPitch)
                 block()
                 break
@@ -177,6 +169,7 @@ object AutoI4: Feature("Fully Automated I4") {
             val newYaw = interpolateYaw(currentYaw, targetYaw, easedProgress)
             val newPitch = lerp(currentPitch, targetPitch, easedProgress).toFloat()
             rotate(newYaw, newPitch)
+            delay(1)
         }
     }
 
@@ -200,17 +193,16 @@ object AutoI4: Feature("Fully Automated I4") {
     private fun onComplete() {
         if (state.hasAlerted) return
         state = state.copy(hasAlerted = true, tickTimer = - 1)
-        ActionUtils.queue(4, true, ::saveLeap)
+        queue(4, true, ::saveLeap)
     }
 
     private data class PhaseState(
         val tickTimer: Int = - 1,
-        val lastEmeraldTick: Int = - 1,
         val doneCoords: Set<BlockPos> = emptySet(),
-        val hasLeaped: Boolean = false,
+        val lastTarget: BlockPos? = null,
         val hasChangedMask: Boolean = false,
-        val hasAlerted: Boolean = false,
-        val lastTarget: BlockPos? = null
+        val hasLeaped: Boolean = false,
+        val hasAlerted: Boolean = false
     )
 }
 //#endif

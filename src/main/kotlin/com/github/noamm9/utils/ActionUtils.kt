@@ -7,41 +7,72 @@ import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import java.util.*
 
 object ActionUtils {
-    private data class Action(val priority: Int, val block: suspend () -> Unit)
+    private data class Action(val priority: Int, val blockInput: Boolean, val block: suspend () -> Unit): Comparable<Action> {
+        override fun compareTo(other: Action): Int = other.priority.compareTo(this.priority)
+    }
 
-    private val actionQueue = ArrayDeque<Action>()
-    private var job: Job? = null
-    @Volatile var isblocked = false
+    private val mutex = Mutex()
+    private val actionQueue = PriorityQueue<Action>()
+    private var processingJob: Job? = null
+
+    @Volatile private var isBlocked = false
 
     /**
      * @param priority The priority of the action (higher values executed first).
      * @param block The suspendable action to execute.
      */
-    fun queue(priority: Int = 0, blockInput: Boolean = false, block: suspend () -> Unit) {
-        actionQueue.add(Action(priority, block))
-        actionQueue.sortByDescending { it.priority }
+    fun queue(priority: Int = 0, blockInput: Boolean = false, block: suspend () -> Unit) = scope.launch {
+        mutex.withLock {
+            actionQueue.add(Action(priority, blockInput, block))
+            if (processingJob?.isActive != true) {
+                processingJob = scope.launch {
+                    runProcessor()
+                }
+            }
+        }
+    }
 
-        if (job?.isActive != true) job = scope.launch {
-            while (actionQueue.isNotEmpty()) {
-                isblocked = blockInput
-                catch { actionQueue.removeFirst().block() }
-                isblocked = false
+    private suspend fun runProcessor() {
+        while (true) {
+            val currentAction = mutex.withLock {
+                if (actionQueue.isEmpty()) return@runProcessor
+                actionQueue.poll()
+            }
+
+            try {
+                isBlocked = currentAction.blockInput
+                currentAction.block()
+            }
+            catch (e: Exception) {
+                e.printStackTrace()
+            }
+            finally {
+                isBlocked = false
             }
         }
     }
 
     fun reset() {
-        actionQueue.clear()
-        isblocked = false
-        job?.cancel()
+        processingJob?.cancel()
+        processingJob = null
+
+        scope.launch {
+            mutex.withLock {
+                actionQueue.clear()
+                isBlocked = false
+            }
+        }
     }
 
     init {
         EventBus.register<WorldChangeEvent> { reset() }
-        EventBus.register<MouseClickEvent> { if (isblocked) event.cancel() }
-        EventBus.register<KeyboardEvent.KeyPressed> { if (isblocked) event.cancel() }
-        EventBus.register<KeyboardEvent.CharTyped> { if (isblocked) event.cancel() }
+        EventBus.register<MouseClickEvent> { if (isBlocked) event.cancel() }
+        EventBus.register<KeyboardEvent.KeyPressed> { if (isBlocked) event.cancel() }
+        EventBus.register<KeyboardEvent.CharTyped> { if (isBlocked) event.cancel() }
     }
 }

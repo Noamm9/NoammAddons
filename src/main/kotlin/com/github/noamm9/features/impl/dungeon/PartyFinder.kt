@@ -318,9 +318,7 @@ object PartyFinder: Feature() {
             if (minimumSecrets.value > 0 && dungeons.secrets < minimumSecrets.value * 1000) {
                 add("Secrets(${dungeons.secrets / 1000}k/${minimumSecrets.value}k)")
             }
-
-            if (isEmpty()) return
-        }
+        }.ifEmpty { return }
 
         kickedPlayers.add(name)
 
