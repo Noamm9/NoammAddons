@@ -119,10 +119,20 @@ object AutoI4: Feature("Fully Automated I4") {
         val col = i % 3
         val row = i / 3
 
-        val isRightDone = (col < 2) && (i + 1 < I4Helper.devBlocks.size) && (I4Helper.devBlocks[i + 1] in state.doneCoords)
-        val targetX = if (col == 0 || isRightDone) 67.5 else 65.5
+        val isLeftDone = (col < 2) && (I4Helper.devBlocks[i + 1] in state.doneCoords)
+        val isRightDone = (col > 0) && (I4Helper.devBlocks[i - 1] in state.doneCoords)
 
-        val targetY = 131.3 - 2.0 * row
+        val targetX = when (col) {
+            0 -> 67.5
+            2 -> 65.5
+            else -> when {
+                isRightDone && ! isLeftDone -> 65.5
+                isLeftDone && ! isRightDone -> 67.5
+                else -> if (Math.random() < 0.5) 65.5 else 67.5
+            }
+        }
+
+        val targetY = 131 - 2.0 * row
         return Vec3(targetX, targetY, 50.0)
     }
 
