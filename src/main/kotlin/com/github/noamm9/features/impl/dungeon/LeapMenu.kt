@@ -8,7 +8,6 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.*
 import com.github.noamm9.ui.clickgui.components.impl.*
 import com.github.noamm9.ui.utils.Resolution
-import com.github.noamm9.utils.ButtonType
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
@@ -20,9 +19,11 @@ import com.github.noamm9.utils.dungeons.DungeonPlayer
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.uppercaseFirst
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.sounds.SoundEvents
+import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.Items
 import org.lwjgl.glfw.GLFW
@@ -38,10 +39,17 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
         .withDescription("How to sort the leap menu. /na leaporder to configure custom sorting.")
 
     val leapKeybinds by ToggleSetting("Leap Keybinds").showIf { customLeapMenu.value }.section("Leap Keybinds")
-    val key1 by KeybindSetting("Slot 1", GLFW.GLFW_KEY_1).showIf { leapKeybinds.value }
-    val key2 by KeybindSetting("Slot 2", GLFW.GLFW_KEY_2).showIf { leapKeybinds.value }
-    val key3 by KeybindSetting("Slot 3", GLFW.GLFW_KEY_3).showIf { leapKeybinds.value }
-    val key4 by KeybindSetting("Slot 4", GLFW.GLFW_KEY_4).showIf { leapKeybinds.value }
+    val keybindMode by DropdownSetting("Mode", 0, listOf("Corners", "Class")).showIf { leapKeybinds.value }
+
+    val keybindKeys = (0 until 4).map { i ->
+        KeybindSetting("Slot ${1 + i}", GLFW.GLFW_KEY_1 + i)
+            .showIf { leapKeybinds.value && keybindMode.value == 0 }.apply(configSettings::add)
+    }
+
+    val classesKeys = DungeonClass.entries.dropLast(1).map {
+        KeybindSetting(it.name.lowercase().uppercaseFirst(), GLFW.GLFW_KEY_UNKNOWN)
+            .showIf { leapKeybinds.value && keybindMode.value == 1 }.apply(configSettings::add)
+    }
 
     private val announceSpiritLeaps by ToggleSetting("Announce Leap", true).section("Extras")
     private val leapMsg by TextInputSetting("Leap Message", "ILY ❤ {name}")
@@ -61,6 +69,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
     private var shouldHide: Long = 0
 
     var customLeapOrder = listOf<String>()
+    var customLeapType = "name"
 
     override fun init() {
         register<ChatMessageEvent> {
@@ -79,7 +88,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
             if (System.currentTimeMillis() > shouldHide) return@register
             if (event.entity !is Player) return@register
             if (event.entity == mc.player) return@register
-            if (event.entity.distanceToSqr(mc.player) > 4) return@register
+            if (event.entity.distanceToSqr(mc.player as Entity) > 4) return@register
             if (dungeonTeammatesNoSelf.none { it.name == event.entity.name.unformattedText }) return@register
             event.isCanceled = true
         }
@@ -123,18 +132,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
                 (startX + boxWidth + padding) to (startY + boxHeight + padding)
             )
 
-            val cx = mc.window.width / 2
-            val cy = mc.window.height / 2
-            val mx = mc.mouseHandler.xpos()
-            val my = mc.mouseHandler.ypos()
-
-            val hoveredIndex = when {
-                mx < cx && my < cy -> 0
-                mx > cx && my < cy -> 1
-                mx < cx && my > cy -> 2
-                mx > cx && my > cy -> 3
-                else -> - 1
-            }
+            val hoveredIndex = getHoveredIndex()
 
             players.forEachIndexed { i, entry ->
                 if (entry == null) return@forEachIndexed
@@ -182,41 +180,45 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
         }
 
         register<ContainerEvent.MouseClick> {
-            if (! customLeapMenu.value) return@register
             if (! inSpiritLeap(event.screen)) return@register
-
-            val cx = mc.window.width / 2
-            val cy = mc.window.height / 2
-
-            val quadrant = when {
-                mc.mouseHandler.xpos() < cx && mc.mouseHandler.ypos() < cy -> 0
-                mc.mouseHandler.xpos() > cx && mc.mouseHandler.ypos() < cy -> 1
-                mc.mouseHandler.xpos() < cx && mc.mouseHandler.ypos() > cy -> 2
-                mc.mouseHandler.xpos() > cx && mc.mouseHandler.ypos() > cy -> 3
-                else -> return@register
+            getHoveredIndex()?.let {
+                event.isCanceled = true
+                triggerLeap(it)
             }
-
-            event.isCanceled = true
-            triggerLeap(quadrant)
         }
 
         register<ContainerEvent.Keyboard> {
-            if (! customLeapMenu.value || ! leapKeybinds.value) return@register
-            if (! inSpiritLeap(event.screen)) return@register
+            if (! leapKeybinds.value || ! inSpiritLeap(event.screen)) return@register
 
-            val index = when (event.key) {
-                key1.value -> 0
-                key2.value -> 1
-                key3.value -> 2
-                key4.value -> 3
-                else -> return@register
-            }
+            val index = when (keybindMode.value) {
+                0 -> keybindKeys.indexOfFirst { it.value == event.key }
+                1 -> classesKeys.find { it.value == event.key }?.let { key ->
+                    players.indexOfFirst { it?.player?.clazz == DungeonClass.fromName(key.name) }
+                }
+
+                else -> - 1
+            }?.takeIf { it in players.indices } ?: return@register
 
             event.isCanceled = true
             triggerLeap(index)
         }
     }
 
+
+    private fun getHoveredIndex(): Int? {
+        val cx = mc.window.width / 2
+        val cy = mc.window.height / 2
+        val mx = mc.mouseHandler.xpos()
+        val my = mc.mouseHandler.ypos()
+
+        return when {
+            mx < cx && my < cy -> 0
+            mx > cx && my < cy -> 1
+            mx < cx && my > cy -> 2
+            mx > cx && my > cy -> 3
+            else -> null
+        }
+    }
 
     private fun inSpiritLeap(screen: Screen): Boolean {
         val title = screen.title.string.lowercase()
@@ -228,6 +230,8 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
 
     fun updateLeapMenu() {
         players.clear()
+        repeat(4) { players.add(null) }
+
         val loadedHeads = mutableMapOf<String, Int>()
 
         mc.player?.containerMenu?.let { menu ->
@@ -239,24 +243,42 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
             }
         }
 
-        val leapTeammates: List<DungeonPlayer?> = when (sorting.value) {
+        val leapTeammates: List<DungeonPlayer> = when (sorting.value) {
             0 -> dungeonTeammatesNoSelf.sortedWith(compareBy({ it.clazz.ordinal }, { it.name }))
             1 -> dungeonTeammatesNoSelf.sortedBy { it.name }
-            2 -> odinSorting(dungeonTeammatesNoSelf).toList()
-            3 -> dungeonTeammatesNoSelf.sortedBy {
-                customLeapOrder.indexOf(it.name.lowercase()).takeIf { i -> i != - 1 } ?: Int.MAX_VALUE
+            2 -> odinSorting(dungeonTeammatesNoSelf).filterNotNull()
+            3 -> {
+                val sorted = dungeonTeammatesNoSelf.toMutableList()
+                sorted.sortWith(Comparator { a, b ->
+                    val type = customLeapType.lowercase()
+                    val priorityA = when (type) {
+                        "name" -> customLeapOrder.indexOf(a.name.lowercase())
+                        "class" -> customLeapOrder.indexOf(a.clazz.name.lowercase())
+                        else -> -1
+                    }.takeIf { it != -1 } ?: Int.MAX_VALUE
+
+                    val priorityB = when (type) {
+                        "name" -> customLeapOrder.indexOf(b.name.lowercase())
+                        "class" -> customLeapOrder.indexOf(b.clazz.name.lowercase())
+                        else -> -1
+                    }.takeIf { it != -1 } ?: Int.MAX_VALUE
+
+                    if (priorityA != priorityB) priorityA.compareTo(priorityB)
+                    else when (type) {
+                        "name" -> a.name.lowercase().compareTo(b.name.lowercase())
+                        "class" -> a.clazz.name.lowercase().compareTo(b.clazz.name.lowercase())
+                        else -> 0
+                    }
+                })
+                sorted
             }
 
             else -> dungeonTeammatesNoSelf
         }
 
-        leapTeammates.forEach { player ->
-            if (player == null) players.add(null)
-            else {
-                val slotIndex = loadedHeads[player.name]
-                if (slotIndex != null) players.add(LeapMenuPlayer(slotIndex, player))
-                else players.add(null)
-            }
+        leapTeammates.take(4).forEachIndexed { i, player ->
+            val slotIndex = loadedHeads[player.name]
+            if (slotIndex != null) players[i] = LeapMenuPlayer(slotIndex, player)
         }
     }
 
@@ -265,18 +287,12 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
         if (entry.player.isDead) return ChatUtils.modMessage("§3LeapMenu >> §c${entry.player.name} is dead!")
 
         mc.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1F))
-        GuiUtils.clickSlot(entry.slotIndex, ButtonType.LEFT)
+        GuiUtils.clickSlot(entry.slotIndex, GuiUtils.ButtonType.LEFT)
         mc.player?.closeContainer()
     }
 
     fun odinSorting(teammates: List<DungeonPlayer>): Array<out DungeonPlayer?> {
-        val neededSorting = mapOf(
-            DungeonClass.Archer to listOf(DungeonClass.Mage, DungeonClass.Berserk, DungeonClass.Healer, DungeonClass.Tank),
-            DungeonClass.Mage to listOf(DungeonClass.Archer, DungeonClass.Berserk, DungeonClass.Healer, DungeonClass.Tank),
-            DungeonClass.Berserk to listOf(DungeonClass.Archer, DungeonClass.Mage, DungeonClass.Healer, DungeonClass.Tank),
-            DungeonClass.Healer to listOf(DungeonClass.Archer, DungeonClass.Berserk, DungeonClass.Mage, DungeonClass.Tank),
-            DungeonClass.Tank to listOf(DungeonClass.Archer, DungeonClass.Berserk, DungeonClass.Healer, DungeonClass.Mage)
-        )[DungeonListener.thePlayer?.clazz] ?: return teammates.toTypedArray()
+        val neededSorting = odinSorting[DungeonListener.thePlayer?.clazz] ?: return teammates.toTypedArray()
 
         val quadrants = arrayOfNulls<DungeonPlayer>(4)
         val secondRound = mutableListOf<DungeonPlayer>()
@@ -297,4 +313,12 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
 
         return quadrants
     }
+
+    private val odinSorting = mapOf(
+        DungeonClass.Archer to listOf(DungeonClass.Mage, DungeonClass.Berserk, DungeonClass.Healer, DungeonClass.Tank),
+        DungeonClass.Mage to listOf(DungeonClass.Archer, DungeonClass.Berserk, DungeonClass.Healer, DungeonClass.Tank),
+        DungeonClass.Berserk to listOf(DungeonClass.Archer, DungeonClass.Mage, DungeonClass.Healer, DungeonClass.Tank),
+        DungeonClass.Healer to listOf(DungeonClass.Archer, DungeonClass.Berserk, DungeonClass.Mage, DungeonClass.Tank),
+        DungeonClass.Tank to listOf(DungeonClass.Archer, DungeonClass.Berserk, DungeonClass.Healer, DungeonClass.Mage)
+    )
 }

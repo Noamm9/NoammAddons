@@ -12,12 +12,12 @@ import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.TabListUtils
-import com.github.noamm9.utils.Utils.equalsOneOf
 import com.github.noamm9.utils.dungeons.enums.Blessing
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.dungeons.enums.Puzzle
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.core.RoomState
+import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils.inDungeon
 import kotlinx.coroutines.delay
@@ -45,7 +45,12 @@ object DungeonListener {
 
     var maxPuzzleCount = 0
     var puzzles = mutableListOf<Puzzle>()
-    data class DualTime(val ticks: Long, val real: Long = System.currentTimeMillis())
+
+    data class DualTime(val ticks: Long, val real: Long = System.currentTimeMillis()) {
+        companion object {
+            operator fun DualTime.minus(other: DualTime) = DualTime(ticks - other.ticks, real - other.real)
+        }
+    }
 
     var dungeonStarted = false
     var dungeonStartTime: DualTime? = null
@@ -207,10 +212,11 @@ object DungeonListener {
 
     private fun updateDungeonTeammates(tabName: String, second: PlayerInfo) {
         if (NoammAddons.isDev) listOf(
-            DungeonPlayer("Noamm", DungeonClass.Mage, 50, isDead = false),
-            DungeonPlayer("Noamm9", DungeonClass.Archer, 50, isDead = false),
-            DungeonPlayer("NoammALT", DungeonClass.Healer, 50, isDead = true),
-            DungeonPlayer("NoamIsSad", DungeonClass.Tank, 50, isDead = false),
+            DungeonPlayer("Noamm", DungeonClass.Mage, 50),
+            DungeonPlayer("Noamm9", DungeonClass.Archer, 50),
+            DungeonPlayer("NoammALT", DungeonClass.Healer, 50),
+            DungeonPlayer("NoamIsSad", DungeonClass.Tank, 50),
+            DungeonPlayer("BlackDragonLord", DungeonClass.Berserk, 50),
         ).let { list ->
             dungeonTeammates.clear()
             dungeonTeammates.addAll(list)

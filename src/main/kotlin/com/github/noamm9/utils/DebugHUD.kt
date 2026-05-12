@@ -1,10 +1,16 @@
 package com.github.noamm9.utils
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.features.impl.dungeon.LeapMenu
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.Blessing
 import com.github.noamm9.utils.dungeons.enums.Puzzle
 import com.github.noamm9.utils.dungeons.map.core.RoomState
+import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner.roomSize
+import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner.startX
+import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner.startZ
+import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
 import net.minecraft.client.gui.GuiGraphics
@@ -16,6 +22,7 @@ object DebugHUD {
         renderDungeonDebug(guiGraphics)
         renderLocationDebug(guiGraphics)
         renderPartyDebug(guiGraphics)
+        renderLeapDebug(guiGraphics)
     }
 
 
@@ -89,6 +96,16 @@ object DebugHUD {
             }
         }
         if (! foundBlessing) draw(" §7No blessings active")
+
+        draw("CORE: ${
+            mc.player?.position()?.let {
+                ScanUtils.getRoomGraf(it).let {
+                    val x = startX + it.first * (roomSize shr 1)
+                    val y = startZ + it.second * (roomSize shr 1)
+                    ScanUtils.getCore(x, y)
+                }
+            }
+        }")
     }
 
     private fun renderLocationDebug(graphics: GuiGraphics) {
@@ -158,7 +175,7 @@ object DebugHUD {
         draw("Is Leader: ${if (PartyUtils.isLeader()) "§aYES" else "§cNO"}")
 
         val leaderName = PartyUtils.partyLeader
-        val selfName = NoammAddons.mc.player?.gameProfile?.name
+        val selfName = mc.player?.gameProfile?.name
         draw("Party Leader: ${leaderName?.let { "§f$it" } ?: "§7None"}")
 
         y += 5
@@ -172,6 +189,30 @@ object DebugHUD {
 
             val tagText = if (tags.isNotEmpty()) " $tags" else ""
             draw(" §f$member$tagText")
+        }
+    }
+
+    private fun renderLeapDebug(graphics: GuiGraphics) {
+        if (! NoammAddons.debugFlags.contains("leap")) return
+
+        var y = 30
+        val x = 500
+
+        fun draw(text: String, color: Int = 0xFFFFFF) {
+            Render2D.drawString(graphics, text, x, y, color = Color(color))
+            y += 10
+        }
+
+        draw("Sorting Type: §e${LeapMenu.customLeapType}")
+        draw("Sorting Mode: §e${LeapMenu.sorting.value}")
+        draw("Custom Order: §f${LeapMenu.customLeapOrder.joinToString(", ")}")
+
+        y += 5
+        draw("§b§lLEAP PLAYERS", 0x55FFFF)
+        LeapMenu.players.forEachIndexed { i, entry ->
+            val player = entry?.player?.name ?: "§7None"
+            val clazz = entry?.player?.clazz?.name ?: ""
+            draw(" §fSlot ${i + 1}: $player ($clazz)")
         }
     }
 }

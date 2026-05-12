@@ -3,7 +3,7 @@ package com.github.noamm9.utils.location
 enum class WorldType(val tabName: String) {
     BackwaterBayou("Backwater Bayou"),
     Catacombs("Catacombs"),
-    CrimonIsle("Crimson Isle"),
+    CrimsonIsle("Crimson Isle"),
     CrystalHollows("Crystal Hollows"),
     DarkAuction("Dark Auction"),
     DeepCaverns("Deep Caverns"),

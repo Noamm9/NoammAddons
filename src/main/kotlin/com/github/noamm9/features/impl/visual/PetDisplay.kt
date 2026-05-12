@@ -12,9 +12,9 @@ import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
-import com.github.noamm9.utils.Utils.remove
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.remove
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.height
 import com.github.noamm9.utils.render.Render2D.width
@@ -33,7 +33,7 @@ object PetDisplay: Feature("Pet Features") {
     private val chatDespawnRegex = Regex("§aYou despawned your .*§a!")
 
     private val petLevelRegex = Regex(".+\\[Lvl .*]")
-    private var selectedPetSlot = -1
+    private var selectedPetSlot = - 1
 
     override fun init() {
         hudElement("PetDisplay",

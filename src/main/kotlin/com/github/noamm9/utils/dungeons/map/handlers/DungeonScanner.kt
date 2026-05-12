@@ -53,6 +53,7 @@ object DungeonScanner {
 
                 scanRoom(wX, wZ, z, x, roofHeight)?.let { room ->
                     DungeonInfo.dungeonList[z * 11 + x] = room
+                    DungeonPathFinder.clearCache()
                     if (DungeonListener.dungeonTeammatesNoSelf.isEmpty()) return@let
 
                     if (room is Room && room.data.name != "Unknown") {

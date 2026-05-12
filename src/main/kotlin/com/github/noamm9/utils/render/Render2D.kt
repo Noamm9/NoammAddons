@@ -7,6 +7,7 @@ import com.github.noamm9.utils.NumbersUtils.plus
 import com.github.noamm9.utils.NumbersUtils.times
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.renderer.RenderPipelines
+import net.minecraft.client.renderer.texture.TextureAtlas
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.inventory.Slot
 import net.minecraft.world.item.ItemStack
@@ -84,6 +85,16 @@ object Render2D {
         context.pose().translate(x.toFloat(), y.toFloat())
         context.pose().scale(scale.toFloat())
         context.renderItem(item, 0, 0)
+        context.pose().popMatrix()
+    }
+
+    fun renderItem(context: GuiGraphics, itemPath: String, x: Number, y: Number, size: Number) {
+        val location = ResourceLocation.parse(itemPath)
+        val atlas = mc.textureManager.getTexture(ResourceLocation.withDefaultNamespace("textures/atlas/blocks.png")) as TextureAtlas
+        val sprite = atlas.getSprite(location)
+        context.pose().pushMatrix()
+        context.pose().translate(x.toFloat(), y.toFloat())
+        context.blit(sprite.atlasLocation(), 0, 0, size.toInt(), size.toInt(), sprite.u0, sprite.u1, sprite.v0, sprite.v1)
         context.pose().popMatrix()
     }
 

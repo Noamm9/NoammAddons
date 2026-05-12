@@ -1,10 +1,9 @@
 package com.github.noamm9.utils.items
 
-import com.google.common.cache.CacheBuilder
 import net.minecraft.ChatFormatting
 import net.minecraft.world.item.ItemStack
 import java.awt.Color
-import java.util.concurrent.TimeUnit
+import java.util.*
 
 enum class ItemRarity(val baseColor: ChatFormatting, val color: Color = Color(baseColor.color !!)) {
     NONE(ChatFormatting.GRAY),
@@ -25,7 +24,7 @@ enum class ItemRarity(val baseColor: ChatFormatting, val color: Color = Color(ba
     }
 
     companion object {
-        val rarityCache = CacheBuilder.newBuilder().maximumSize(500).expireAfterAccess(5, TimeUnit.MINUTES).build<ItemStack, ItemRarity>()
+        val rarityCache = WeakHashMap<ItemStack, ItemRarity>()
 
         val RARITY_PATTERN by lazy {
             Regex("(?:§[\\da-f]§l§ka§r )?(?<rarity>${

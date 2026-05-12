@@ -1,22 +1,13 @@
-pluginManagement {
-    val loomVersion = providers.gradleProperty("loom_version").get()
+rootProject.name = "NoammAddons"
 
+pluginManagement {
     repositories {
         gradlePluginPortal()
         mavenCentral()
-
-        maven {
-            name = "Fabric"
-            url = uri("https://maven.fabricmc.net/")
-        }
-
-        maven {
-            name = "JitPack"
-            url = uri("https://jitpack.io")
-        }
+        maven("https://maven.fabricmc.net/")
     }
 
     plugins {
-        id("net.fabricmc.fabric-loom-remap") version loomVersion
+        id("net.fabricmc.fabric-loom-remap") version providers.gradleProperty("loom_version").get()
     }
 }

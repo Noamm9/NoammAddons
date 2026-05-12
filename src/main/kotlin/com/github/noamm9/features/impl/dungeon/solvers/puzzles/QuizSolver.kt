@@ -9,13 +9,13 @@ import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.DataDownloader
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.ThreadUtils
-import com.github.noamm9.utils.Utils.startsWithOneOf
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderContext
+import com.github.noamm9.utils.startsWithOneOf
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.core.BlockPos
 

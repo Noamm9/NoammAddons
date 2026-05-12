@@ -4,12 +4,16 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.EventPriority
 import com.github.noamm9.event.impl.ChatMessageEvent
+import com.github.noamm9.event.impl.DungeonEvent
+import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.dungeons.DungeonUtils
 import com.github.noamm9.utils.location.LocationUtils
 
 
 /**
  * @author Odin
  * @link https://github.com/odtheking/OdinFabric/blob/main/src/main/kotlin/com/odtheking/odin/utils/skyblock/PartyUtils.kt
+ * Modified
  */
 object PartyUtils {
     private val joinedSelf = Regex("^You have joined ((?:\\[[^]]*?])? ?)?(\\w{1,16})'s? party!$")
@@ -135,9 +139,21 @@ object PartyUtils {
                 return@register
             }
 
+            DungeonUtils.floorEnterRegex.find(message)?.let {
+                val name = message.substringBefore(" entered").split(" ").last()
+                addMember(name)
+                partyLeader = name
+                return@register
+            }
+
             kuudraJoin.find(message)?.let { return@register addMember(it.groupValues[2]) }
 
             dungeonJoin.find(message)?.let { return@register addMember(it.groupValues[1]) }
+        }
+
+        register<DungeonEvent.RunStatedEvent> {
+            DungeonListener.dungeonTeammates.forEach { addMember(it.name) }
+            if (partyLeader == null) partyLeader = mc.user.name
         }
     }
 

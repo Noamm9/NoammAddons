@@ -2,7 +2,7 @@ package com.github.noamm9.utils.items
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.utils.MathUtils.add
-import com.github.noamm9.utils.Utils.equalsOneOf
+import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.customData
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils

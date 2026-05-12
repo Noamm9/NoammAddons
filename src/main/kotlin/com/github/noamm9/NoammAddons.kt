@@ -108,7 +108,9 @@ object NoammAddons: ClientModInitializer {
         }
 
         runCatching {
-            priceData.putAll(WebUtils.getAs<Map<String, Long>>("https://lb.tricked.dev/lowestbins").getOrThrow())
+            priceData.putAll(WebUtils.getAs<Map<String, Double>>("https://lb.tricked.dev/lowestbins").getOrThrow().map {
+                it.key to it.value.toLong()
+            })
         }.onFailure {
             logger.error("Error while making a web request", it)
             it.printStackTrace()

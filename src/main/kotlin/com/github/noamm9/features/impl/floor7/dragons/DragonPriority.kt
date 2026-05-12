@@ -1,9 +1,9 @@
 package com.github.noamm9.features.impl.floor7.dragons
 
-import com.github.noamm9.utils.Utils.equalsOneOf
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.Blessing
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
+import com.github.noamm9.utils.equalsOneOf
 
 object DragonPriority {
     fun findPriority(spawningDragons: MutableList<WitherDragonEnum>): WitherDragonEnum {

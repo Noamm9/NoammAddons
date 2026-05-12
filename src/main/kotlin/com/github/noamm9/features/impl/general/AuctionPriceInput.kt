@@ -12,10 +12,10 @@ import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.ui.utils.componnents.UIButton
 import com.github.noamm9.ui.utils.componnents.UISearchBox
 import com.github.noamm9.utils.NumbersUtils
-import com.github.noamm9.utils.Utils.uppercaseFirst
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.network.PacketUtils.send
 import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.uppercaseFirst
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen

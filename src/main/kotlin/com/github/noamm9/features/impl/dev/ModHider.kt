@@ -3,7 +3,7 @@ package com.github.noamm9.features.impl.dev
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.mixin.ILanguage
 import com.github.noamm9.mixin.ILanguageManager
-import com.github.noamm9.utils.Utils.equalsOneOf
+import com.github.noamm9.utils.equalsOneOf
 import net.minecraft.client.multiplayer.ClientPacketListener
 import net.minecraft.client.multiplayer.ServerData
 import net.minecraft.client.resources.language.ClientLanguage

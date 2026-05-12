@@ -11,7 +11,7 @@ import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
-import com.github.noamm9.utils.Utils.equalsOneOf
+import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.location.LocationUtils.dungeonFloorNumber
 import com.github.noamm9.utils.location.LocationUtils.inBoss
@@ -58,8 +58,8 @@ object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
 
         register<EntityDeathEvent> {
             if (! LocationUtils.inDungeon || inBoss) return@register
-            starMobs.removeIf { it == event.entity.id }
-            checked.removeIf { it == event.entity.id }
+            starMobs.remove(event.entity.id)
+            checked.remove(event.entity.id)
         }
 
         register<WorldChangeEvent> {

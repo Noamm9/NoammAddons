@@ -4,7 +4,6 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.utils.ChatUtils.unformattedText
-import com.github.noamm9.utils.Utils.equalsOneOf
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonUtils
 import com.github.noamm9.utils.dungeons.DungeonUtils.isSecret
@@ -62,9 +61,7 @@ object EventDispatcher {
             if (entity.item.hoverName.unformattedText !in DungeonUtils.dungeonItemDrops) return@register
             if (mc.player !!.distanceTo(entity) > 6) return@register
 
-            EventBus.post(
-                DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition())
-            )
+            EventBus.post(DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition()))
         }
 
 
@@ -76,7 +73,7 @@ object EventDispatcher {
             }
             else if (event.packet is ClientboundSoundPacket) {
                 if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
-                if (! event.packet.sound.value().equalsOneOf(SoundEvents.BAT_HURT, SoundEvents.BAT_DEATH)) return@register
+                if (event.packet.sound.value() != SoundEvents.BAT_DEATH) return@register
 
                 EventBus.post(DungeonEvent.SecretEvent(
                     SecretType.BAT,
@@ -89,9 +86,7 @@ object EventDispatcher {
                 if (entity.item.hoverName.unformattedText !in DungeonUtils.dungeonItemDrops) return@register
                 if (mc.player !!.distanceTo(entity) > 6) return@register
 
-                EventBus.post(
-                    DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition())
-                )
+                EventBus.post(DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition()))
             }
             else if (event.packet is ClientboundContainerClosePacket) {
                 if (event.packet.containerId == invWindowId) resetInventoryState()

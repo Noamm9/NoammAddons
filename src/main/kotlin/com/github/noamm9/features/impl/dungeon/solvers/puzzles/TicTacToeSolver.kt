@@ -9,9 +9,9 @@ import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.pre
 import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.predictionColor
 import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.preventMissClick
 import com.github.noamm9.utils.ThreadUtils
-import com.github.noamm9.utils.Utils.equalsOneOf
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.core.RoomState
+import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.NoammRenderLayers
 import com.github.noamm9.utils.render.RenderContext

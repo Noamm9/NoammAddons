@@ -1,7 +1,5 @@
 package com.github.noamm9.ui.utils
 
-import kotlinx.coroutines.delay
-
 class Animation(var duration: Long = 200, initialValue: Float = 0f) {
     var value: Float = initialValue
         private set
@@ -24,28 +22,6 @@ class Animation(var duration: Long = 200, initialValue: Float = 0f) {
         else startValue + (targetValue - startValue) * easeOutQuad(progress).toFloat()
     }
 
-    suspend fun updateAsync(newTarget: Float) {
-        if (newTarget == targetValue) return
-
-        targetValue = newTarget
-        startValue = value
-        val localStartTime = System.currentTimeMillis()
-        startTime = localStartTime
-
-        while (true) {
-            val elapsed = System.currentTimeMillis() - localStartTime
-            val progress = (elapsed.toDouble() / duration).coerceIn(0.0, 1.0)
-
-            value = if (progress >= 1.0) targetValue
-            else startValue + (targetValue - startValue) * easeInOutQuad(progress).toFloat()
-
-            if (progress >= 1.0) break
-            if (startTime != localStartTime) break
-
-            delay(10)
-        }
-    }
-
     fun set(v: Float) {
         this.value = v
         this.startValue = v
@@ -55,7 +31,6 @@ class Animation(var duration: Long = 200, initialValue: Float = 0f) {
 
     companion object {
         fun easeOutQuad(t: Double): Double = 1.0 - (1.0 - t) * (1.0 - t)
-        fun easeInOutQuad(t: Double): Double = if (t < 0.5) 2.0 * t * t else 1.0 - (- 2.0 * t + 2.0).let { it * it } / 2.0
-        val easeInOutCubic = fun(t: Double) = if (t < 0.5) 4 * t * t * t else (t - 1) * (2 * t - 2) * (2 * t - 2) + 1
+        fun easeInOutCubic(t: Double) = if (t < 0.5) 4 * t * t * t else (t - 1) * (2 * t - 2) * (2 * t - 2) + 1
     }
 }

@@ -27,6 +27,9 @@ public interface ILocalPlayer {
     @Accessor("wasSprinting")
     boolean isSprintingServer();
 
+    @Accessor("lastOnGround")
+    boolean onGroundServer();
+
     @Accessor("yRotLast")
     void setLastYaw(float yaw);
 

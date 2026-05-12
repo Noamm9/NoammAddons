@@ -78,8 +78,8 @@ object ServerUtils {
 
     private fun sendPingRequest() {
         if (isPinging || mc.player == null) return
-
         val connection = mc.connection ?: return
+
         isPinging = true
         pingStartTime = Util.getNanos()
         connection.send(ServerboundPingRequestPacket(Util.getMillis()))

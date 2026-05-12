@@ -1,6 +1,7 @@
 package com.github.noamm9.commands
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.utils.catch
 import io.github.classgraph.ClassGraph
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
@@ -17,8 +18,8 @@ object CommandManager {
 
         result.use {
             it.getSubclasses(BaseCommand::class.qualifiedName).forEach { ci ->
-                val i = runCatching { ci.loadClass().getDeclaredField("INSTANCE").get(null) as? BaseCommand }
-                i.getOrNull()?.let(commands::add)
+                val i = catch { ci.loadClass().getDeclaredField("INSTANCE").get(null) as? BaseCommand }
+                i?.let(commands::add)
             }
         }
     }

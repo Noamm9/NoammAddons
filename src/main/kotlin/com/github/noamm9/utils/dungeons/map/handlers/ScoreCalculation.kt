@@ -8,11 +8,11 @@ import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
-import com.github.noamm9.utils.Utils.containsOneOf
-import com.github.noamm9.utils.Utils.equalsOneOf
+import com.github.noamm9.utils.containsOneOf
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.DungeonUtils
 import com.github.noamm9.utils.dungeons.map.core.RoomState
+import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.websocket.WebSocket
 import com.github.noamm9.websocket.packets.S2CPacketDungeonMimic

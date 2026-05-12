@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.network.protocol.game.ClientboundSetTimePacket
+import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.world.entity.ambient.Bat
 import java.awt.Color
 
@@ -30,6 +31,7 @@ class TestGround {
         val rotation get() = NoammAddons.debugFlags.contains("rotation")
         val bat get() = NoammAddons.debugFlags.contains("bat")
         val slot get() = NoammAddons.debugFlags.contains("slot")
+        val sound get() = NoammAddons.debugFlags.contains("sound")
     }
 
     init {
@@ -101,6 +103,15 @@ class TestGround {
             if (! slot) return@register
             val stack = event.screen.menu.getSlot(event.slotId).item
             ChatUtils.modMessage(stack.skyblockId)
+        }
+
+        EventBus.register<MainThreadPacketReceivedEvent.Pre> {
+            if (! sound) return@register
+            val packet = event.packet as? ClientboundSoundPacket ?: return@register
+            val name = packet.sound.value().location
+            val pitch = packet.pitch
+            val volume = packet.volume
+            ChatUtils.modMessage("name: $name, pitch: $pitch, volume: $volume")
         }
     }
 }

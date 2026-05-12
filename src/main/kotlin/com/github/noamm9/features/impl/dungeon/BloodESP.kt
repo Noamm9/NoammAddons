@@ -41,6 +41,7 @@ object BloodESP: Feature("Highlights the blood room before dungeon start to help
         }
 
         register<RenderWorldEvent> {
+            if (! box.value && ! tracer.value) return@register
             if (! LocationUtils.inDungeon) return@register
             if (DungeonListener.dungeonStarted) return@register
             val (center, rotation) = bloodData ?: return@register
@@ -53,11 +54,9 @@ object BloodESP: Feature("Highlights the blood room before dungeon start to help
                 else -> center.x to (center.z + halfRoom)
             }
 
-            if (tracer.value) {
-                Render3D.renderTracer(event.ctx, Vec3(doorX + 0.5, center.y, doorZ + 0.5), tracerColor.value)
-            }
+            if (tracer.value) Render3D.renderTracer(event.ctx, Vec3(doorX + 0.5, center.y, doorZ + 0.5), tracerColor.value)
 
-            Render3D.renderBox(
+            if (box.value) Render3D.renderBox(
                 event.ctx,
                 center.x + 0.5, 66, center.z + 0.5,
                 31, 34,
@@ -66,16 +65,6 @@ object BloodESP: Feature("Highlights the blood room before dungeon start to help
                 fill = false,
                 phase = true
             )
-            /*
-                        Render3D.renderBox(
-                            event.ctx,
-                            doorX, 98.99, doorZ,
-                            3, 1,
-                            Color.CYAN.withAlpha(70),
-                            outline = false,
-                            fill = true,
-                            phase = false
-                        )*/
         }
     }
 
