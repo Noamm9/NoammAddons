@@ -19,7 +19,7 @@ import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 
 object WebUtils {
-    val client = HttpClient(OkHttp) {
+    internal val client = HttpClient(OkHttp) {
         install(WebSockets) { pingIntervalMillis = 30_000 }
         install(UserAgent) { agent = "$MOD_NAME/$MOD_VERSION (+https://noamm.org)" }
         install(HttpTimeout) {

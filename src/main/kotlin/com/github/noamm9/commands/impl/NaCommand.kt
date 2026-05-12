@@ -102,25 +102,30 @@ object NaCommand: BaseCommand("na") {
         }
 
         literal("leaporder") {
-            argument("player1", StringArgumentType.word()) {
-                suggests(partyMembersSuggestion)
-                runs { ctx -> setLeapOrder(ctx, 1) }
+            argument("sorting", StringArgumentType.word()) {
+                suggests { listOf("name", "class") }
 
-                argument("player2", StringArgumentType.word()) {
+                argument("player1", StringArgumentType.word()) {
                     suggests(partyMembersSuggestion)
-                    runs { ctx -> setLeapOrder(ctx, 2) }
+                    runs { ctx -> setLeapOrder(ctx, 1) }
 
-                    argument("player3", StringArgumentType.word()) {
+                    argument("player2", StringArgumentType.word()) {
                         suggests(partyMembersSuggestion)
-                        runs { ctx -> setLeapOrder(ctx, 3) }
+                        runs { ctx -> setLeapOrder(ctx, 2) }
 
-                        argument("player4", StringArgumentType.word()) {
+                        argument("player3", StringArgumentType.word()) {
                             suggests(partyMembersSuggestion)
-                            runs { ctx -> setLeapOrder(ctx, 4) }
+                            runs { ctx -> setLeapOrder(ctx, 3) }
+
+                            argument("player4", StringArgumentType.word()) {
+                                suggests(partyMembersSuggestion)
+                                runs { ctx -> setLeapOrder(ctx, 4) }
+                            }
                         }
                     }
                 }
             }
+
         }
 
         literal("rtca") {
@@ -179,15 +184,18 @@ object NaCommand: BaseCommand("na") {
     private val partyMembersSuggestion = { PartyUtils.members.map { it.lowercase() } }
 
     private fun setLeapOrder(ctx: CommandContext<FabricClientCommandSource>, count: Int) {
-        val validPlayers = mutableListOf<String>()
+        val sortingType = StringArgumentType.getString(ctx, "sorting").lowercase()
+        if (sortingType != "name" && sortingType != "class") return ChatUtils.modMessage("§cInvalid sorting type! Use 'name' or 'class'")
 
+        val validPlayers = mutableListOf<String>()
         for (i in 1 .. count) {
             val inputName = StringArgumentType.getString(ctx, "player$i")
             validPlayers.add(inputName.lowercase())
         }
 
         LeapMenu.customLeapOrder = validPlayers
-        ChatUtils.modMessage("§aCustom leap order set to: §f${validPlayers.joinToString(", ")}")
+        LeapMenu.customLeapType = sortingType
+        ChatUtils.modMessage("§aCustom leap order set to: §f$sortingType §awith players: §f${validPlayers.joinToString(", ")}")
     }
 
     private fun sendRtca(name: String = mc.user.name) = scope.launch(Dispatchers.IO) {
