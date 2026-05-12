@@ -1,70 +1,50 @@
 package com.github.noamm9.features.impl.general.storageoverlay
 
-import com.github.noamm9.NoammAddons
-import net.minecraft.nbt.CompoundTag
-import net.minecraft.nbt.ListTag
-import net.minecraft.nbt.NbtAccounter
-import net.minecraft.nbt.NbtIo
-import net.minecraft.nbt.NbtOps
+import net.minecraft.nbt.*
 import net.minecraft.world.item.ItemStack
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.util.Base64
+import kotlin.io.encoding.Base64
+import kotlin.jvm.optionals.getOrElse
 
-/**
- * Adapted from Firmament's VirtualInventory.kt
- * Source: https://github.com/nea89o/Firmament/blob/master/src/main/kotlin/features/inventory/storageoverlay/VirtualInventory.kt
- */
-data class VirtualInventory(val stacks: List<ItemStack>) {
+internal data class VirtualInventory(val stacks: List<ItemStack>) {
     val rows = stacks.size / 9
 
-
-    fun serialize(): String {
+    fun encode(): String {
         val list = ListTag()
-        val ops = NoammAddons.mc.level?.registryAccess()?.createSerializationContext(NbtOps.INSTANCE) ?: NbtOps.INSTANCE
-        stacks.forEach { stack ->
-            if (stack.isEmpty) {
-                list.add(CompoundTag())
-            } else {
-                try {
-                    list.add(ItemStack.CODEC.encode(stack, ops, CompoundTag()).orThrow)
-                } catch (_: Exception) {
-                    list.add(CompoundTag())
-                }
-            }
+        val ops = NbtOps.INSTANCE
+
+        stacks.forEach {
+            list.add(
+                if (it.isEmpty) CompoundTag()
+                else ItemStack.CODEC.encode(it, ops, CompoundTag()).result().getOrElse { CompoundTag() }
+            )
         }
-        val tag = CompoundTag()
-        tag.put(INVENTORY_KEY, list)
-        val baos = ByteArrayOutputStream()
-        NbtIo.writeCompressed(tag, baos)
-        return Base64.getEncoder().encodeToString(baos.toByteArray())
+
+        return ByteArrayOutputStream().use {
+            val tag = CompoundTag().apply { put("i", list) }
+            NbtIo.writeCompressed(tag, it)
+            Base64.encode(it.toByteArray())
+        }
     }
 
     companion object {
-        private const val INVENTORY_KEY = "INVENTORY"
+        fun decode(encoded: String): VirtualInventory? = runCatching {
+            val bytes = Base64.decode(encoded)
 
-        fun deserialize(encoded: String): VirtualInventory? {
-            return try {
-                val bytes = Base64.getDecoder().decode(encoded)
-                val tag = NbtIo.readCompressed(ByteArrayInputStream(bytes), NbtAccounter.unlimitedHeap())
-                val list = tag.getList(INVENTORY_KEY).orElse(null) ?: return null
-                val ops = NoammAddons.mc.level?.registryAccess()?.createSerializationContext(NbtOps.INSTANCE) ?: NbtOps.INSTANCE
+            ByteArrayInputStream(bytes).use { bais ->
+                val tag = NbtIo.readCompressed(bais, NbtAccounter.unlimitedHeap())
+                val list = tag.getList("i").orElseThrow()
+                val ops = NbtOps.INSTANCE
+
                 val items = list.map { element ->
                     val compound = element as CompoundTag
-                    if (compound.isEmpty) {
-                        ItemStack.EMPTY
-                    } else {
-                        try {
-                            ItemStack.CODEC.parse(ops, compound).orThrow
-                        } catch (_: Exception) {
-                            ItemStack.EMPTY
-                        }
-                    }
+                    if (compound.isEmpty) ItemStack.EMPTY
+                    else ItemStack.CODEC.parse(ops, compound).result().getOrElse { ItemStack.EMPTY }
                 }
+
                 if (items.isEmpty()) null else VirtualInventory(items)
-            } catch (_: Exception) {
-                null
             }
-        }
+        }.getOrNull()
     }
 }

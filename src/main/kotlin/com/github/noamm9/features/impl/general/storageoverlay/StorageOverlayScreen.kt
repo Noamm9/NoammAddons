@@ -1,3 +1,5 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
 package com.github.noamm9.features.impl.general.storageoverlay
 
 import com.github.noamm9.NoammAddons.mc
@@ -13,10 +15,10 @@ import net.minecraft.world.inventory.Slot
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
-private fun inRect(mx: Double, my: Double, x: Int, y: Int, w: Int, h: Int) = mx >= x && mx < x + w && my >= y && my < y + h
-private fun inRect(mx: Int, my: Int, x: Int, y: Int, w: Int, h: Int) = mx >= x && mx < x + w && my >= y && my < y + h
+private inline fun inRect(mx: Double, my: Double, x: Int, y: Int, w: Int, h: Int) = mx >= x && mx < x + w && my >= y && my < y + h
+private inline fun inRect(mx: Int, my: Int, x: Int, y: Int, w: Int, h: Int) = mx >= x && mx < x + w && my >= y && my < y + h
 
-class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
+internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
     companion object {
         const val SLOT_SIZE = 18
@@ -31,12 +33,12 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
         var lastRenderedInnerHeight = 0
 
         fun resetScroll() {
-            if (!StorageOverlay.retainScroll) scroll = 0f
+            if (! StorageOverlay.retainScrollSetting.value) scroll = 0f
         }
     }
 
     var isExiting = false
-    var pageWidthCount = StorageOverlay.columns
+    var pageWidthCount = StorageOverlay.columnsSetting.value
 
     private val panelColor = Color(24, 24, 27, 220)
     private val slotBgColor = Color(50, 50, 55, 200)
@@ -51,7 +53,7 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
         val innerScrollPanelWidth = PAGE_WIDTH * pageWidthCount + (pageWidthCount - 1) * PADDING
         val overviewWidth = innerScrollPanelWidth + 3 * PADDING + SCROLL_BAR_WIDTH
         val x = width / 2 - overviewWidth / 2
-        val overviewHeight = minOf(height - PLAYER_HEIGHT - minOf(80, height / 10), StorageOverlay.maxHeight)
+        val overviewHeight = minOf(height - PLAYER_HEIGHT - minOf(80, height / 10), StorageOverlay.maxHeightSetting.value)
         val innerScrollPanelHeight = overviewHeight - PADDING * 2
         val y = height / 2 - (overviewHeight + PLAYER_HEIGHT) / 2
         val playerX = width / 2 - PLAYER_WIDTH / 2
@@ -65,18 +67,18 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
         super.init()
         val oldMax = getMaxScroll()
         val scrollPct = if (oldMax > 0) scroll / oldMax else 0f
-        pageWidthCount = StorageOverlay.columns.coerceAtMost((width - PADDING) / (PAGE_WIDTH + PADDING)).coerceAtLeast(1)
+        pageWidthCount = StorageOverlay.columnsSetting.value.coerceAtMost((width - PADDING) / (PAGE_WIDTH + PADDING)).coerceAtLeast(1)
         measurements = Measurements()
         val newMax = getMaxScroll()
         scroll = (scrollPct * newMax).coerceAtMost(newMax).coerceAtLeast(0f)
     }
 
     override fun mouseScrolled(mouseX: Double, mouseY: Double, horizontalAmount: Double, verticalAmount: Double): Boolean {
-        return mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount, null)
+        return mouseScrolled(mouseX, mouseY, verticalAmount, null)
     }
 
-    fun mouseScrolled(mouseX: Double, mouseY: Double, horizontalAmount: Double, verticalAmount: Double, activePage: StoragePageSlot?): Boolean {
-        if (activePage != null && StorageOverlay.lockScrollOnActive) {
+    fun mouseScrolled(mouseX: Double, mouseY: Double, verticalAmount: Double, activePage: StoragePageSlot?): Boolean {
+        if (activePage != null && StorageOverlay.lockScrollOnActiveSetting.value) {
             val data = StorageOverlay.storageData
             var overActive = false
             layoutedForEach(data) { x, y, pw, ph, page, _ ->
@@ -86,11 +88,15 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
             }
             if (overActive) return false
         }
-        coerceScroll(StorageOverlay.adjustScrollSpeed(verticalAmount).toFloat())
+        coerceScroll(adjustScrollSpeed(verticalAmount).toFloat())
         return true
     }
 
-    fun coerceScroll(offset: Float) { scroll = (scroll + offset).coerceAtMost(getMaxScroll()).coerceAtLeast(0f) }
+    fun coerceScroll(offset: Float) {
+        scroll = (scroll + offset).coerceAtMost(getMaxScroll()).coerceAtLeast(0f)
+    }
+
+    fun adjustScrollSpeed(amount: Double) = amount * StorageOverlay.scrollSpeedSetting.value * (if (StorageOverlay.inverseScrollSetting.value) 1 else - 1)
 
     fun getMaxScroll() = (lastRenderedInnerHeight.toFloat() + 6 - measurements.innerScrollPanelHeight).coerceAtLeast(0f)
 
@@ -164,11 +170,11 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
         val w = 9 * SLOT_SIZE
         val h = rows * SLOT_SIZE
         context.fill(x, y, x + w, y + h, slotCellBg)
-        for (col in 0..9) {
+        for (col in 0 .. 9) {
             val lx = x + col * SLOT_SIZE
             context.fill(lx, y, lx + 1, y + h, slotCellBorder)
         }
-        for (row in 0..rows) {
+        for (row in 0 .. rows) {
             val ly = y + row * SLOT_SIZE
             context.fill(x, ly, x + w, ly + 1, slotCellBorder)
         }
@@ -198,7 +204,7 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
         data: StorageData,
         func: (x: Int, y: Int, pageWidth: Int, pageHeight: Int, page: StoragePageSlot, inventory: StorageData.StorageInventory) -> Unit
     ) {
-        var yOffset = -scroll.toInt()
+        var yOffset = - scroll.toInt()
         var xOffset = 0
         var maxHeight = 0
         for ((page, inventory) in data.storageInventories.entries) {
@@ -207,7 +213,7 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
             val rectX = measurements.x + PADDING + (PAGE_WIDTH + PADDING) * xOffset
             val rectY = yOffset + measurements.y + PADDING
             func(rectX, rectY, PAGE_WIDTH, currentHeight, page, inventory)
-            xOffset++
+            xOffset ++
             if (xOffset >= pageWidthCount) {
                 yOffset += maxHeight
                 xOffset = 0
@@ -265,7 +271,7 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
             if (slotY + 16 < panelY || slotY > panelY + panelH) continue
 
             val displayStack = if (slots != null && index < slots.size) slots[index].item
-                else invStacks?.get(index) ?: continue
+            else invStacks?.get(index) ?: continue
             if (displayStack.isEmpty) continue
 
             if (InventorySearch.matches(displayStack)) {
@@ -295,7 +301,7 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
         val chestSlots = menu.slots.take(menu.slots.size - 36).drop(9)
         if (chestSlots.isEmpty()) return false
 
-        var hit = -1
+        var hit = - 1
         val data = StorageOverlay.storageData
         layoutedForEach(data) { x, y, _, _, page, inventory ->
             if (page != activePage) return@layoutedForEach
@@ -303,7 +309,7 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
             val rows = inv.rows
             val gridX = x + 3
             val gridY = y + 5 + font.lineHeight + 1
-            if (!inRect(mouseX, mouseY, gridX, gridY, 9 * SLOT_SIZE, rows * SLOT_SIZE)) return@layoutedForEach
+            if (! inRect(mouseX, mouseY, gridX, gridY, 9 * SLOT_SIZE, rows * SLOT_SIZE)) return@layoutedForEach
             val col = ((mouseX - gridX) / SLOT_SIZE).toInt().coerceIn(0, 8)
             val row = ((mouseY - gridY) / SLOT_SIZE).toInt().coerceIn(0, rows - 1)
             hit = row * 9 + col
@@ -348,7 +354,9 @@ class StorageOverlayScreen : Screen(Component.literal("Storage Overlay")) {
     }
 
     override fun mouseReleased(click: MouseButtonEvent): Boolean {
-        if (knobGrabbed) { knobGrabbed = false; return true }
+        if (knobGrabbed) {
+            knobGrabbed = false; return true
+        }
         return super.mouseReleased(click)
     }
 
