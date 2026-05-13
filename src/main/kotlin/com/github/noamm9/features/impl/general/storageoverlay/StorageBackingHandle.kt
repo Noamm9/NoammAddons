@@ -5,7 +5,7 @@ import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.world.inventory.ChestMenu
 
-sealed interface StorageBackingHandle {
+internal sealed interface StorageBackingHandle {
     sealed interface HasBackingScreen {
         val handler: ChestMenu
     }

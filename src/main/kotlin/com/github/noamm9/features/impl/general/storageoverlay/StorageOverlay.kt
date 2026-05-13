@@ -106,6 +106,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         data.compute(handler.storagePageSlot) { slot, existing ->
             (existing ?: StorageData.StorageInventory(slot.defaultName(), slot, null)).also { it.inventory = newStacks }
         }
+
         ThreadUtils.async(::saveData)
     }
 

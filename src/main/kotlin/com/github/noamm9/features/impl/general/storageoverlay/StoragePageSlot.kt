@@ -2,9 +2,9 @@ package com.github.noamm9.features.impl.general.storageoverlay
 
 import com.github.noamm9.utils.ChatUtils
 
-data class StoragePageSlot(val index: Int): Comparable<StoragePageSlot> {
-    val isEnderChest get() = index < 9
-    val isBackPack get() = ! isEnderChest
+internal data class StoragePageSlot(val index: Int): Comparable<StoragePageSlot> {
+    val isEnderChest = index < 9
+    val isBackPack = ! isEnderChest
 
     fun defaultName() = if (isEnderChest) "Ender Chest #${index + 1}" else "Backpack #${index - 9 + 1}"
     fun navigateTo() = ChatUtils.sendCommand(if (isBackPack) "backpack ${index - 9 + 1}" else "enderchest ${index + 1}")

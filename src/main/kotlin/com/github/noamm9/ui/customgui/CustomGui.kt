@@ -10,6 +10,8 @@ abstract class CustomGui {
 
     open fun render(context: GuiGraphics, delta: Float, mouseX: Int, mouseY: Int) {}
 
+    open fun renderCarriedItem(context: GuiGraphics, mouseX: Int, mouseY: Int): Boolean = false
+
     open fun mouseClick(click: MouseButtonEvent, doubled: Boolean): Boolean = false
 
     open fun mouseReleased(click: MouseButtonEvent): Boolean = false

@@ -4,6 +4,7 @@ package com.github.noamm9.features.impl.general.storageoverlay
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.features.impl.misc.InventorySearch
+import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.render.Render2D
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
@@ -14,6 +15,7 @@ import net.minecraft.world.inventory.ClickType
 import net.minecraft.world.inventory.Slot
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
+import kotlin.math.roundToInt
 
 private inline fun inRect(mx: Double, my: Double, x: Int, y: Int, w: Int, h: Int) = mx >= x && mx < x + w && my >= y && my < y + h
 private inline fun inRect(mx: Int, my: Int, x: Int, y: Int, w: Int, h: Int) = mx >= x && mx < x + w && my >= y && my < y + h
@@ -65,6 +67,7 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
 
     public override fun init() {
         super.init()
+        Resolution.refresh()
         val oldMax = getMaxScroll()
         val scrollPct = if (oldMax > 0) scroll / oldMax else 0f
         pageWidthCount = StorageOverlay.columnsSetting.value.coerceAtMost((width - PADDING) / (PAGE_WIDTH + PADDING)).coerceAtLeast(1)
@@ -72,6 +75,20 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
         val newMax = getMaxScroll()
         scroll = (scrollPct * newMax).coerceAtMost(newMax).coerceAtLeast(0f)
     }
+
+    fun ensureResolutionLayout() {
+        Resolution.refresh()
+        val resolutionWidth = Resolution.width.roundToInt()
+        val resolutionHeight = Resolution.height.roundToInt()
+        if (width != resolutionWidth || height != resolutionHeight) {
+            init(mc, resolutionWidth, resolutionHeight)
+        }
+    }
+
+    fun toGuiCoordinate(value: Int): Int = (value * Resolution.scale).roundToInt()
+
+    private fun toResolutionMouseX(mouseX: Double) = Resolution.getMouseX(mouseX)
+    private fun toResolutionMouseY(mouseY: Double) = Resolution.getMouseY(mouseY)
 
     override fun mouseScrolled(mouseX: Double, mouseY: Double, horizontalAmount: Double, verticalAmount: Double): Boolean {
         return mouseScrolled(mouseX, mouseY, verticalAmount, null)
@@ -108,7 +125,10 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
 
     override fun render(context: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
         super.render(context, mouseX, mouseY, delta)
-        drawOverlay(context, mouseX, mouseY, delta)
+        ensureResolutionLayout()
+        Resolution.push(context)
+        drawOverlay(context, toResolutionMouseX(mouseX.toDouble()), toResolutionMouseY(mouseY.toDouble()), delta)
+        Resolution.pop(context)
     }
 
     fun drawOverlay(context: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
@@ -184,6 +204,7 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
         val items = mc.player?.inventory?.nonEquipmentItems ?: return
         val (invX, invY) = getPlayerInventorySlotPosition(9)
         val (hotX, hotY) = getPlayerInventorySlotPosition(0)
+        var hoveredStack: net.minecraft.world.item.ItemStack? = null
 
         drawSlotGrid(context, invX - 1, invY - 1, 3)
         drawSlotGrid(context, hotX - 1, hotY - 1, 1)
@@ -197,7 +218,23 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
             }
             context.renderItem(item, sx, sy, 0)
             context.renderItemDecorations(font, item, sx, sy)
+
+            if (hoveredStack == null && inRect(mouseX, mouseY, sx, sy, 17, 17)) {
+                hoveredStack = item
+            }
         }
+
+        if (hoveredStack != null) {
+            context.setTooltipForNextFrame(font, hoveredStack, toGuiCoordinate(mouseX), toGuiCoordinate(mouseY))
+        }
+    }
+
+    private fun getPlayerInventoryIndexAt(mouseX: Int, mouseY: Int): Int? {
+        for (index in 0 until 36) {
+            val (slotX, slotY) = getPlayerInventorySlotPosition(index)
+            if (inRect(mouseX, mouseY, slotX, slotY, 17, 17)) return index
+        }
+        return null
     }
 
     private inline fun layoutedForEach(
@@ -288,14 +325,14 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
         }
 
         if (hoveredStack != null) {
-            context.setTooltipForNextFrame(font, hoveredStack, hoveredX, hoveredY)
+            context.setTooltipForNextFrame(font, hoveredStack, toGuiCoordinate(hoveredX), toGuiCoordinate(hoveredY))
         }
         return pageHeight + 6
     }
 
     private var knobGrabbed = false
 
-    private fun dispatchActivePageSlotClick(click: MouseButtonEvent, mouseX: Double, mouseY: Double, activePage: StoragePageSlot): Boolean {
+    private fun dispatchActivePageSlotClick(button: Int, modifiers: Int, mouseX: Double, mouseY: Double, activePage: StoragePageSlot): Boolean {
         val containerScreen = mc.screen as? AbstractContainerScreen<*> ?: return false
         val menu = containerScreen.menu
         val chestSlots = menu.slots.take(menu.slots.size - 36).drop(9)
@@ -318,24 +355,37 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
         val player = mc.player ?: return false
         val gameMode = mc.gameMode ?: return false
         val targetSlot = chestSlots[hit]
-        val button = click.button()
-        val shift = (click.modifiers() and GLFW.GLFW_MOD_SHIFT) != 0
+        val shift = (modifiers and GLFW.GLFW_MOD_SHIFT) != 0
         val clickType = if (shift) ClickType.QUICK_MOVE else ClickType.PICKUP
         gameMode.handleInventoryMouseClick(menu.containerId, targetSlot.index, button, clickType, player)
         return true
     }
 
-    override fun mouseClicked(click: MouseButtonEvent, doubled: Boolean) = mouseClicked(click, doubled, null)
+    private fun dispatchPlayerInventoryClick(button: Int, modifiers: Int, mouseX: Int, mouseY: Int): Boolean {
+        val slotIndex = getPlayerInventoryIndexAt(mouseX, mouseY) ?: return false
+        val containerScreen = mc.screen as? AbstractContainerScreen<*> ?: return false
+        val targetSlot = containerScreen.menu.slots.firstOrNull {
+            it.container is net.minecraft.world.entity.player.Inventory && it.containerSlot == slotIndex
+        } ?: return false
+        val player = mc.player ?: return false
+        val gameMode = mc.gameMode ?: return false
+        val shift = (modifiers and GLFW.GLFW_MOD_SHIFT) != 0
+        val clickType = if (shift) ClickType.QUICK_MOVE else ClickType.PICKUP
+        gameMode.handleInventoryMouseClick(containerScreen.menu.containerId, targetSlot.index, button, clickType, player)
+        return true
+    }
 
-    fun mouseClicked(click: MouseButtonEvent, doubled: Boolean, activePage: StoragePageSlot?): Boolean {
-        val mouseX = click.x()
-        val mouseY = click.y()
+    override fun mouseClicked(click: MouseButtonEvent, doubled: Boolean) = mouseClicked(click.x(), click.y(), click.button(), click.modifiers(), null)
 
-        if (inRect(mouseX, mouseY, scrollPanelX, scrollPanelY, scrollPanelW, scrollPanelH)) {
+    fun mouseClicked(mouseX: Double, mouseY: Double, button: Int, modifiers: Int, activePage: StoragePageSlot?): Boolean {
+        val resolutionMouseX = toResolutionMouseX(mouseX)
+        val resolutionMouseY = toResolutionMouseY(mouseY)
+
+        if (inRect(resolutionMouseX, resolutionMouseY, scrollPanelX, scrollPanelY, scrollPanelW, scrollPanelH)) {
             val data = StorageOverlay.storageData
-            if (activePage != null && dispatchActivePageSlotClick(click, mouseX, mouseY, activePage)) return true
+            if (activePage != null && dispatchActivePageSlotClick(button, modifiers, resolutionMouseX.toDouble(), resolutionMouseY.toDouble(), activePage)) return true
             layoutedForEach(data) { x, y, pw, ph, page, _ ->
-                if (inRect(mouseX, mouseY, x, y, pw, ph) && activePage != page && click.button() == 0) {
+                if (inRect(resolutionMouseX, resolutionMouseY, x, y, pw, ph) && activePage != page && button == 0) {
                     page.navigateTo()
                     return true
                 }
@@ -343,30 +393,37 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
             return false
         }
 
-        if (inRect(mouseX, mouseY, scrollBarX, scrollBarY, SCROLL_BAR_WIDTH, scrollBarH)) {
-            val percentage = ((mouseY - scrollBarY) / scrollBarH.toDouble()).coerceIn(0.0, 1.0)
+        if (inRect(resolutionMouseX, resolutionMouseY, scrollBarX, scrollBarY, SCROLL_BAR_WIDTH, scrollBarH)) {
+            val percentage = ((resolutionMouseY - scrollBarY) / scrollBarH.toDouble()).coerceIn(0.0, 1.0)
             scroll = (getMaxScroll() * percentage).toFloat()
             knobGrabbed = true
             return true
         }
 
-        return false
+        return dispatchPlayerInventoryClick(button, modifiers, resolutionMouseX, resolutionMouseY)
     }
 
     override fun mouseReleased(click: MouseButtonEvent): Boolean {
-        if (knobGrabbed) {
-            knobGrabbed = false; return true
-        }
-        return super.mouseReleased(click)
+        return mouseReleased()
+    }
+
+    fun mouseReleased(): Boolean {
+        if (! knobGrabbed) return false
+        knobGrabbed = false
+        return true
     }
 
     override fun mouseDragged(click: MouseButtonEvent, offsetX: Double, offsetY: Double): Boolean {
+        return mouseDragged(click.y())
+    }
+
+    fun mouseDragged(mouseY: Double): Boolean {
         if (knobGrabbed) {
-            val percentage = ((click.y() - scrollBarY) / scrollBarH.toDouble()).coerceIn(0.0, 1.0)
+            val percentage = ((toResolutionMouseY(mouseY) - scrollBarY) / scrollBarH.toDouble()).coerceIn(0.0, 1.0)
             scroll = (getMaxScroll() * percentage).toFloat()
             return true
         }
-        return super.mouseDragged(click, offsetX, offsetY)
+        return false
     }
 
     override fun shouldCloseOnEsc(): Boolean = this === mc.screen
