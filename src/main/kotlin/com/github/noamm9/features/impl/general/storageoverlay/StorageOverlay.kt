@@ -6,7 +6,6 @@ import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
-import com.github.noamm9.ui.customgui.customGui
 import com.github.noamm9.utils.ThreadUtils
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
@@ -49,7 +48,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
 
         val screen = newScreen as? ContainerScreen
         val storageOverlayScreen = oldScreen as? StorageOverlayScreen
-            ?: ((oldScreen as? AbstractContainerScreen<*>)?.customGui as? StorageOverlayCustom)?.overview
+            ?: (oldScreen as? AbstractContainerScreen<*>)?.let { it as IStorageOverlayHolder }?.noammaddons_getStorageOverlay()?.overview
 
         currentHandler?.let { rememberContent(it) }
         currentHandler = StorageBackingHandle.fromScreen(screen)
@@ -59,7 +58,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         if (storageOverlayScreen?.isExiting == true) return null
         val handler = currentHandler ?: return null
 
-        screen.customGui = StorageOverlayCustom(handler, screen, storageOverlayScreen ?: StorageOverlayScreen())
+        (screen as IStorageOverlayHolder).noammaddons_setStorageOverlay(StorageOverlayCustom(handler, screen, storageOverlayScreen ?: StorageOverlayScreen()))
 
         return null
     }

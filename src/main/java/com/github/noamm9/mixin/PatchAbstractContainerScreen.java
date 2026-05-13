@@ -1,8 +1,8 @@
 package com.github.noamm9.mixin;
 
-import com.github.noamm9.ui.customgui.CustomGui;
-import com.github.noamm9.ui.customgui.ICoordRememberingSlot;
-import com.github.noamm9.ui.customgui.IHasCustomGui;
+import com.github.noamm9.features.impl.general.storageoverlay.ICoordRememberingSlot;
+import com.github.noamm9.features.impl.general.storageoverlay.IStorageOverlayHolder;
+import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlayCustom;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -29,14 +29,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * Source: https://github.com/nea89o/Firmament/blob/master/src/main/java/moe/nea/firmament/mixins/customgui/PatchHandledScreen.java
  */
 @Mixin(value = AbstractContainerScreen.class, priority = 2000)
-public class PatchAbstractContainerScreen<T extends AbstractContainerMenu> extends Screen implements IHasCustomGui {
+public class PatchAbstractContainerScreen<T extends AbstractContainerMenu> extends Screen implements IStorageOverlayHolder {
     @Shadow @Final protected T menu;
     @Shadow protected int leftPos;
     @Shadow protected int topPos;
     @Shadow protected int imageHeight;
     @Shadow protected int imageWidth;
 
-    @Unique public CustomGui override;
+    @Unique public StorageOverlayCustom override;
     @Unique public boolean hasRememberedSlots = false;
     @Unique private int originalBackgroundWidth;
     @Unique private int originalBackgroundHeight;
@@ -47,12 +47,12 @@ public class PatchAbstractContainerScreen<T extends AbstractContainerMenu> exten
 
     @Nullable
     @Override
-    public CustomGui noammaddons_getCustomGui() {
+    public StorageOverlayCustom noammaddons_getStorageOverlay() {
         return override;
     }
 
     @Override
-    public void noammaddons_setCustomGui(@Nullable CustomGui gui) {
+    public void noammaddons_setStorageOverlay(@Nullable StorageOverlayCustom gui) {
         if (this.override != null) {
             imageHeight = originalBackgroundHeight;
             imageWidth = originalBackgroundWidth;
@@ -71,7 +71,7 @@ public class PatchAbstractContainerScreen<T extends AbstractContainerMenu> exten
 
     @Inject(method = "renderLabels", at = @At("HEAD"), cancellable = true)
     private void onDrawForeground(GuiGraphics guiGraphics, int i, int j, CallbackInfo ci) {
-        if (override != null && !override.shouldDrawForeground()) ci.cancel();
+        if (override != null) ci.cancel();
     }
 
     @Inject(method = "renderCarriedItem", at = @At("HEAD"), cancellable = true)
@@ -82,21 +82,12 @@ public class PatchAbstractContainerScreen<T extends AbstractContainerMenu> exten
     @Inject(method = "renderSlot", at = @At("HEAD"), cancellable = true)
     private void onBeforeSlotRender(GuiGraphics guiGraphics, Slot slot, CallbackInfo ci) {
         if (override == null) return;
-        if (!(slot.container instanceof net.minecraft.world.entity.player.Inventory)) {
-            ci.cancel();
-            return;
-        }
-        override.beforeSlotRender(guiGraphics, slot);
-    }
-
-    @Inject(method = "renderSlot", at = @At("TAIL"))
-    private void onAfterSlotRender(GuiGraphics guiGraphics, Slot slot, CallbackInfo ci) {
-        if (override != null) override.afterSlotRender(guiGraphics, slot);
+        if (!(slot.container instanceof net.minecraft.world.entity.player.Inventory)) ci.cancel();
     }
 
     @Inject(method = "hasClickedOutside", at = @At("HEAD"), cancellable = true)
     public void onIsClickOutsideBounds(double d, double e, int i, int j, CallbackInfoReturnable<Boolean> cir) {
-        if (override != null) cir.setReturnValue(override.isClickOutsideBounds(d, e));
+        if (override != null) cir.setReturnValue(false);
     }
 
     @Inject(method = "isHovering(Lnet/minecraft/world/inventory/Slot;DD)Z", at = @At("HEAD"), cancellable = true)
@@ -128,9 +119,9 @@ public class PatchAbstractContainerScreen<T extends AbstractContainerMenu> exten
         return true;
     }
 
-    @Inject(at = @At("HEAD"), method = "onClose", cancellable = true)
+    @Inject(at = @At("HEAD"), method = "onClose")
     private void onVoluntaryExit(CallbackInfo ci) {
-        if (override != null) if (!override.onVoluntaryExit()) ci.cancel();
+        if (override != null) override.onVoluntaryExit();
     }
 
     @WrapOperation(method = "mouseClicked", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;mouseClicked(Lnet/minecraft/client/input/MouseButtonEvent;Z)Z"))
@@ -142,11 +133,6 @@ public class PatchAbstractContainerScreen<T extends AbstractContainerMenu> exten
     @Inject(method = "mouseDragged", at = @At("HEAD"), cancellable = true)
     public void overrideMouseDrags(MouseButtonEvent mouseButtonEvent, double d, double e, CallbackInfoReturnable<Boolean> cir) {
         if (override != null) if (override.mouseDragged(mouseButtonEvent, d, e)) cir.setReturnValue(true);
-    }
-
-    @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
-    private void overrideKeyPressed(KeyEvent keyEvent, CallbackInfoReturnable<Boolean> cir) {
-        if (override != null) if (override.keyPressed(keyEvent)) cir.setReturnValue(true);
     }
 
     @Inject(method = "mouseReleased", at = @At("HEAD"), cancellable = true)

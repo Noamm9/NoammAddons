@@ -2,9 +2,6 @@ package com.github.noamm9.features.impl.general.storageoverlay
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.mixin.IAbstractContainerScreen
-import com.github.noamm9.ui.customgui.CustomGui
-import com.github.noamm9.ui.customgui.setSlotX
-import com.github.noamm9.ui.customgui.setSlotY
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.render.Render2D
 import net.minecraft.client.gui.GuiGraphics
@@ -13,7 +10,7 @@ import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.world.inventory.Slot
 import java.awt.Color
 
-internal class StorageOverlayCustom(val handler: StorageBackingHandle, val screen: ContainerScreen, val overview: StorageOverlayScreen): CustomGui() {
+internal class StorageOverlayCustom(val handler: StorageBackingHandle, val screen: ContainerScreen, val overview: StorageOverlayScreen) {
     private fun syncContainerBounds() {
         overview.init(NoammAddons.mc, Resolution.width.toInt(), Resolution.height.toInt())
         val accessor = screen as IAbstractContainerScreen
@@ -23,29 +20,26 @@ internal class StorageOverlayCustom(val handler: StorageBackingHandle, val scree
         accessor.setImageHeight(screen.height)
     }
 
-    override fun onVoluntaryExit(): Boolean {
+    fun onVoluntaryExit() {
         overview.isExiting = true
         StorageOverlayScreen.resetScroll()
-        return super.onVoluntaryExit()
     }
 
-    override fun onInit() {
+    fun onInit() {
         syncContainerBounds()
     }
 
-    override fun shouldDrawForeground() = false
-
-    override fun mouseClick(click: MouseButtonEvent, doubled: Boolean) = overview.mouseClicked(click.x(), click.y(), click.button(), click.modifiers(), (handler as? StorageBackingHandle.Page)?.storagePageSlot)
-    override fun mouseReleased(click: MouseButtonEvent) = overview.mouseReleased()
-    override fun mouseDragged(click: MouseButtonEvent, deltaX: Double, deltaY: Double) = overview.mouseDragged(click.y())
-    override fun mouseScrolled(mouseX: Double, mouseY: Double, horizontalAmount: Double, verticalAmount: Double) = overview.mouseScrolled(
+    fun mouseClick(click: MouseButtonEvent, doubled: Boolean) = overview.mouseClicked(click.x(), click.y(), click.button(), click.modifiers(), (handler as? StorageBackingHandle.Page)?.storagePageSlot)
+    fun mouseReleased(click: MouseButtonEvent) = overview.mouseReleased()
+    fun mouseDragged(click: MouseButtonEvent, deltaX: Double, deltaY: Double) = overview.mouseDragged(click.y())
+    fun mouseScrolled(mouseX: Double, mouseY: Double, horizontalAmount: Double, verticalAmount: Double) = overview.mouseScrolled(
         Resolution.getMouseX(mouseX).toDouble(),
         Resolution.getMouseY(mouseY).toDouble(),
         verticalAmount,
         (handler as? StorageBackingHandle.Page)?.storagePageSlot
     )
 
-    override fun render(context: GuiGraphics, delta: Float, mouseX: Int, mouseY: Int) {
+    fun render(context: GuiGraphics, delta: Float, mouseX: Int, mouseY: Int) {
         Resolution.refresh()
         syncContainerBounds()
         Resolution.push(context)
@@ -61,7 +55,7 @@ internal class StorageOverlayCustom(val handler: StorageBackingHandle, val scree
         Resolution.pop(context)
     }
 
-    override fun renderCarriedItem(context: GuiGraphics, mouseX: Int, mouseY: Int): Boolean {
+    fun renderCarriedItem(context: GuiGraphics, mouseX: Int, mouseY: Int): Boolean {
         val carried = screen.menu.carried
         if (carried.isEmpty) return true
 
@@ -75,10 +69,10 @@ internal class StorageOverlayCustom(val handler: StorageBackingHandle, val scree
         return true
     }
 
-    override fun moveSlot(slot: Slot) {
-        slot.setSlotX(- 100000)
-        slot.setSlotY(- 100000)
+    fun moveSlot(slot: Slot) {
+        (slot as ICoordRememberingSlot).noammaddons_setX(- 100000)
+        (slot as ICoordRememberingSlot).noammaddons_setY(- 100000)
     }
 
-    override fun isClickOutsideBounds(mouseX: Double, mouseY: Double) = false
+    fun isPointOverSlot(slot: Slot, xO: Int, yO: Int, pX: Double, pY: Double) = pX >= slot.x + xO && pX < slot.x + xO + 16 && pY >= slot.y + yO && pY < slot.y + yO + 16
 }
