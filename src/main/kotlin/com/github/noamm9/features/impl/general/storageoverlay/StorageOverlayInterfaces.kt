@@ -1,10 +1,5 @@
 package com.github.noamm9.features.impl.general.storageoverlay
 
-internal interface IStorageOverlayHolder {
-    fun noammaddons_getStorageOverlay(): StorageOverlayCustom?
-    fun noammaddons_setStorageOverlay(gui: StorageOverlayCustom?)
-}
-
 internal interface ICoordRememberingSlot {
     fun noammaddons_rememberCoords()
     fun noammaddons_restoreCoords()

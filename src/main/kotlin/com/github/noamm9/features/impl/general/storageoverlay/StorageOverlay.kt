@@ -8,7 +8,6 @@ import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.utils.ThreadUtils
 import net.minecraft.client.gui.screens.Screen
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtAccounter
@@ -31,6 +30,11 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     private var currentHandler: StorageBackingHandle? = null
     internal var storageData = StorageData()
 
+    internal var active: StorageOverlayCustom? = null
+
+    @JvmStatic @JvmName("activeFor")
+    internal fun activeFor(screen: ContainerScreen) = active?.takeIf { it.screen === screen }
+
     private val emptyStorageSlotItems = listOf(
         Blocks.RED_STAINED_GLASS_PANE.asItem(),
         Blocks.BROWN_STAINED_GLASS_PANE.asItem(),
@@ -47,18 +51,19 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         if (oldScreen == null && newScreen == null) return null
 
         val screen = newScreen as? ContainerScreen
-        val storageOverlayScreen = oldScreen as? StorageOverlayScreen
-            ?: (oldScreen as? AbstractContainerScreen<*>)?.let { it as IStorageOverlayHolder }?.noammaddons_getStorageOverlay()?.overview
+        val storageOverlayScreen = oldScreen as? StorageOverlayScreen ?: active?.overview
 
         currentHandler?.let { rememberContent(it) }
         currentHandler = StorageBackingHandle.fromScreen(screen)
+
+        if (oldScreen === active?.screen) active = null
 
         if (newScreen == null && storageOverlayScreen != null && ! storageOverlayScreen.isExiting) return storageOverlayScreen
         if (screen == null) return null
         if (storageOverlayScreen?.isExiting == true) return null
         val handler = currentHandler ?: return null
 
-        (screen as IStorageOverlayHolder).noammaddons_setStorageOverlay(StorageOverlayCustom(handler, screen, storageOverlayScreen ?: StorageOverlayScreen()))
+        active = StorageOverlayCustom(handler, screen, storageOverlayScreen ?: StorageOverlayScreen())
 
         return null
     }
