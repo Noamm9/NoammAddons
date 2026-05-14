@@ -6,7 +6,7 @@ import net.minecraft.world.item.ItemStack
 
 class ContainerFullyOpenedEvent(
     val title: Component,
-    val winId: Int,
+    val windowId: Int,
     val slotCount: Int,
     val items: HashMap<Int, ItemStack>
 ): Event(false)

@@ -1,11 +1,13 @@
 package com.github.noamm9.features.impl.general.storageoverlay
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
+import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.client.gui.screens.Screen
@@ -27,8 +29,9 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     internal val retainScrollSetting by ToggleSetting("Retain Scroll", true)
     internal val lockScrollOnActiveSetting by ToggleSetting("Lock Scroll on Active", false)
 
-    private val dataFile by lazy { File(mc.gameDirectory, "config/${NoammAddons.MOD_NAME}/storage/${mc.user.profileId}.nbt").also { it.mkdirs() } }
-    internal var storageData = StorageData()
+    private val storageDir by lazy { File(mc.gameDirectory, "config/${NoammAddons.MOD_NAME}/storage").also(File::mkdirs) }
+    private val dataFile by lazy { File(storageDir, "${mc.user.profileId}.nbt") }
+    @Volatile internal var storageData = StorageData()
 
     private var currentHandler: StorageBackingHandle? = null
     private var active: StorageOverlayScreen? = null
@@ -45,6 +48,17 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
 
     override fun init() {
         ThreadUtils.addShutdownHook(::saveData)
+
+        register<ContainerFullyOpenedEvent> {
+            if (! LocationUtils.inSkyblock) return@register
+            val screen = mc.screen as? ContainerScreen ?: return@register
+            if (screen.menu.containerId != event.windowId) return@register
+            if (screen.title.unformattedText != event.title.unformattedText) return@register
+            val handler = StorageBackingHandle.fromScreen(screen) ?: currentHandler ?: return@register
+            currentHandler = handler
+            rememberContent(handler)
+            active?.handler = handler
+        }
     }
 
     @JvmStatic
@@ -54,9 +68,12 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
 
         val screen = newScreen as? ContainerScreen
         val overlay = oldScreen as? StorageOverlayScreen ?: active
+        val handler = StorageBackingHandle.fromScreen(screen)
 
+        if (currentHandler == null && handler == null) loadData()
         currentHandler?.let { rememberContent(it) }
-        currentHandler = StorageBackingHandle.fromScreen(screen)
+        handler?.let { rememberContent(it) }
+        currentHandler = handler
 
         if (oldScreen === active?.containerScreen) {
             active?.containerScreen = null
@@ -67,12 +84,11 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         if (newScreen == null && overlay != null && ! overlay.isExiting) return overlay
         if (screen == null) return null
         if (overlay?.isExiting == true) return null
-        val handler = currentHandler ?: return null
+        val currentHandler = currentHandler ?: return null
 
         active = (overlay ?: StorageOverlayScreen()).also {
-            ThreadUtils.async(::loadData)
             it.containerScreen = screen
-            it.handler = handler
+            it.handler = currentHandler
         }
 
         return null
@@ -94,7 +110,8 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
             val isEmpty = stack.item in emptyStorageSlotItems
             if (slot in data) {
                 if (isEmpty) {
-                    data.remove(slot); changed = true
+                    data.remove(slot)
+                    changed = true
                 }
                 continue
             }
@@ -126,6 +143,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
 
     @Synchronized
     private fun saveData() {
+        if (! checkFile()) return
         val root = CompoundTag()
         for ((slot, inv) in storageData.storageInventories) {
             val prefix = slot.index.toString()
@@ -137,7 +155,9 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
 
     @Synchronized
     private fun loadData() {
+        if (! checkFile()) return
         if (! dataFile.exists()) return
+        if (storageData.storageInventories.isNotEmpty()) return
         val root = NbtIo.readCompressed(dataFile.toPath(), NbtAccounter.unlimitedHeap()) ?: return
         val data = StorageData()
 
@@ -153,5 +173,11 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         }
 
         storageData = data
+    }
+
+    private fun checkFile(): Boolean {
+        if (! dataFile.isDirectory) return true
+        val children = dataFile.listFiles().orEmpty()
+        return children.isEmpty() && dataFile.delete()
     }
 }

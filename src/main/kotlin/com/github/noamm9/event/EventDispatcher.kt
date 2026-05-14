@@ -172,9 +172,9 @@ object EventDispatcher {
         if (! invAccept) return
         invAccept = false
 
+        val title = invTitle ?: return
         val winId = invWindowId
         val slotCount = invSlotCount
-        val title = invTitle ?: return
         val items = HashMap(invItems)
 
         if (invFired) return
@@ -186,17 +186,15 @@ object EventDispatcher {
         }
     }
 
-    private fun getSlotCount(type: MenuType<*>): Int {
-        return when (type) {
-            MenuType.GENERIC_9x1 -> 9
-            MenuType.GENERIC_9x2 -> 18
-            MenuType.GENERIC_9x3 -> 27
-            MenuType.GENERIC_9x4 -> 36
-            MenuType.GENERIC_9x5 -> 45
-            MenuType.GENERIC_9x6 -> 54
-            MenuType.GENERIC_3x3 -> 9
-            MenuType.HOPPER -> 5
-            else -> 0
-        }
+    private fun getSlotCount(type: MenuType<*>) = when (type) {
+        MenuType.GENERIC_9x1 -> 9
+        MenuType.GENERIC_9x2 -> 18
+        MenuType.GENERIC_9x3 -> 27
+        MenuType.GENERIC_9x4 -> 36
+        MenuType.GENERIC_9x5 -> 45
+        MenuType.GENERIC_9x6 -> 54
+        MenuType.GENERIC_3x3 -> 9
+        MenuType.HOPPER -> 5
+        else -> 0
     }
 }
