@@ -30,6 +30,7 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
         const val SLOT_SIZE = 17 /// 17x17 instead of 16x16 because the border thickness is 1
         const val PADDING = 10
         const val PAGE_WIDTH = SLOT_SIZE * 9 + 4
+        const val ACTIVE_PAGE_BORDER_THICKNESS = 2
         const val SCROLL_BAR_WIDTH = 8
         const val SCROLL_BAR_HEIGHT = 16
         const val PLAYER_WIDTH = SLOT_SIZE * 9 + 6
@@ -127,7 +128,7 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
     }
 
     private fun GuiGraphics.drawPages(mouseX: Int, mouseY: Int, excluding: StoragePageSlot?, slots: List<Slot>?) {
-        enableScissor(scrollPanelX, scrollPanelY, scrollPanelX + scrollPanelW, scrollPanelY + scrollPanelH)
+        enableScissor(scrollPanelX, scrollPanelY, scrollPanelX + scrollPanelW + ACTIVE_PAGE_BORDER_THICKNESS, scrollPanelY + scrollPanelH)
         val data = StorageOverlay.storageData
         val viewTop = scrollPanelY
         val viewBottom = scrollPanelY + scrollPanelH
@@ -229,7 +230,7 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
         val pageHeight = rows * SLOT_SIZE + 8 + font.lineHeight
 
         if (isActive) {
-            Render2D.drawBorder(this, x, y, PAGE_WIDTH + 1, pageHeight, activePageBorder, 2)
+            Render2D.drawBorder(this, x, y, PAGE_WIDTH + 1, pageHeight, activePageBorder, ACTIVE_PAGE_BORDER_THICKNESS)
         }
 
         drawString(font, Component.literal(name), x + 6, y + 3, if (isActive) activePageBorder.rgb else 0xFFFFFF, true)
