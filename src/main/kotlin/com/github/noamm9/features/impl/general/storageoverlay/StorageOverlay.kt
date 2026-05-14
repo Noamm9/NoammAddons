@@ -7,6 +7,7 @@ import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.utils.ThreadUtils
+import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.nbt.CompoundTag
@@ -44,11 +45,11 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
 
     override fun init() {
         ThreadUtils.addShutdownHook(::saveData)
-        loadData()
     }
 
     @JvmStatic
     fun onScreenChange(oldScreen: Screen?, newScreen: Screen?): Screen? {
+        if (! LocationUtils.inSkyblock) return null
         if (oldScreen == null && newScreen == null) return null
 
         val screen = newScreen as? ContainerScreen
@@ -69,6 +70,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         val handler = currentHandler ?: return null
 
         active = (overlay ?: StorageOverlayScreen()).also {
+            ThreadUtils.async(::loadData)
             it.containerScreen = screen
             it.handler = handler
         }

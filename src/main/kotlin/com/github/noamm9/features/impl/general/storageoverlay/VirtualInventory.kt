@@ -1,50 +1,75 @@
 package com.github.noamm9.features.impl.general.storageoverlay
 
+import com.github.noamm9.NoammAddons.mc
+import net.minecraft.core.component.DataComponentPatch
 import net.minecraft.nbt.*
 import net.minecraft.world.item.ItemStack
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import kotlin.io.encoding.Base64
-import kotlin.jvm.optionals.getOrElse
 
 internal data class VirtualInventory(val stacks: List<ItemStack>) {
     val rows = stacks.size / 9
 
     fun encode(): String {
+        val registryAccess = getRegistryAccess()
         val list = ListTag()
-        val ops = NbtOps.INSTANCE
 
-        stacks.forEach {
-            list.add(
-                if (it.isEmpty) CompoundTag()
-                else ItemStack.CODEC.encode(it, ops, CompoundTag()).result().getOrElse { CompoundTag() }
-            )
+        stacks.forEach { stack ->
+            val tag = CompoundTag()
+
+            if (! stack.isEmpty) {
+                tag.putString("id", stack.itemHolder.unwrapKey().orElseThrow().location().toString())
+                tag.putInt("count", stack.count)
+
+                val patch = DataComponentPatch.CODEC.encodeStart(
+                    registryAccess.createSerializationContext(NbtOps.INSTANCE),
+                    stack.componentsPatch
+                ).result().orElse(null)
+
+                if (patch != null) tag.put("components", patch)
+            }
+
+            list.add(tag)
         }
 
-        return ByteArrayOutputStream().use {
-            val tag = CompoundTag().apply { put("i", list) }
-            NbtIo.writeCompressed(tag, it)
-            Base64.encode(it.toByteArray())
+        return ByteArrayOutputStream().use { baos ->
+            val root = CompoundTag().apply { put(KEY, list) }
+            NbtIo.writeCompressed(root, baos)
+            Base64.encode(baos.toByteArray())
         }
     }
 
     companion object {
-        fun decode(encoded: String): VirtualInventory? = runCatching {
+        private const val KEY = "INVENTORY"
+
+        fun decode(encoded: String) = runCatching {
+            val registryAccess = getRegistryAccess()
             val bytes = Base64.decode(encoded)
 
             ByteArrayInputStream(bytes).use { bais ->
-                val tag = NbtIo.readCompressed(bais, NbtAccounter.unlimitedHeap())
-                val list = tag.getList("i").orElseThrow()
-                val ops = NbtOps.INSTANCE
+                val root = NbtIo.readCompressed(bais, NbtAccounter.unlimitedHeap())
+                val list = root.getList(KEY).get()
 
-                val items = list.map { element ->
-                    val compound = element as CompoundTag
-                    if (compound.isEmpty) ItemStack.EMPTY
-                    else ItemStack.CODEC.parse(ops, compound).result().getOrElse { ItemStack.EMPTY }
+                val items = buildList {
+                    for (i in list.indices) {
+                        val tag = list.getCompound(i).get()
+
+                        if (tag.isEmpty) {
+                            add(ItemStack.EMPTY)
+                            continue
+                        }
+
+                        add(ItemStack.CODEC.parse(registryAccess.createSerializationContext(NbtOps.INSTANCE), tag).result().orElse(ItemStack.EMPTY))
+                    }
                 }
 
-                if (items.isEmpty()) null else VirtualInventory(items)
+                VirtualInventory(items)
             }
-        }.getOrNull()
+        }.onFailure { it.printStackTrace() }.getOrNull()
+
+        private fun getRegistryAccess() = mc.level?.registryAccess()
+            ?: mc.connection?.registryAccess()
+            ?: error("No registry access available")
     }
 }
