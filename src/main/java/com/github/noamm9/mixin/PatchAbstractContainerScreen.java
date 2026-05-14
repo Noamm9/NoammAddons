@@ -1,8 +1,8 @@
 package com.github.noamm9.mixin;
 
-import com.github.noamm9.features.impl.general.storageoverlay.ICoordRememberingSlot;
 import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlay;
 import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlayScreen;
+import com.github.noamm9.interfaces.ICoordRememberingSlot;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -40,6 +40,7 @@ public class PatchAbstractContainerScreen<T extends AbstractContainerMenu> exten
     }
 
     @Unique
+    @SuppressWarnings("ConstantValue")
     private StorageOverlayScreen storageOverlay() {
         if (!((Object) this instanceof ContainerScreen)) return null;
         return StorageOverlay.activeFor((ContainerScreen) (Object) this);
@@ -48,7 +49,7 @@ public class PatchAbstractContainerScreen<T extends AbstractContainerMenu> exten
     @Inject(method = "init", at = @At("TAIL"))
     private void onInit(CallbackInfo ci) {
         StorageOverlayScreen overlay = storageOverlay();
-        if (overlay != null) overlay.onInit();
+        if (overlay != null) overlay.updateBounds();
     }
 
     @Inject(method = "renderLabels", at = @At("HEAD"), cancellable = true)
@@ -84,7 +85,8 @@ public class PatchAbstractContainerScreen<T extends AbstractContainerMenu> exten
         if (overlay != null) {
             for (Slot slot : menu.slots) {
                 if (!hasRememberedSlots) ((ICoordRememberingSlot) slot).noammaddons_rememberCoords();
-                overlay.moveSlot(slot);
+                ((ICoordRememberingSlot) slot).noammaddons_setX(-100000);
+                ((ICoordRememberingSlot) slot).noammaddons_setY(-100000);
             }
             hasRememberedSlots = true;
         } else if (hasRememberedSlots) {
@@ -97,7 +99,7 @@ public class PatchAbstractContainerScreen<T extends AbstractContainerMenu> exten
     public boolean preventDrawingBackground(AbstractContainerScreen instance, GuiGraphics context, float delta, int mouseX, int mouseY) {
         StorageOverlayScreen overlay = storageOverlay();
         if (overlay != null) {
-            overlay.renderContainerOverlay(context, delta, mouseX, mouseY);
+            overlay.renderContainerOverlay(context, mouseX, mouseY);
             return false;
         }
         return true;
@@ -106,20 +108,20 @@ public class PatchAbstractContainerScreen<T extends AbstractContainerMenu> exten
     @Inject(at = @At("HEAD"), method = "onClose")
     private void onVoluntaryExit(CallbackInfo ci) {
         StorageOverlayScreen overlay = storageOverlay();
-        if (overlay != null) overlay.onVoluntaryExit();
+        if (overlay != null) overlay.onContainerClose();
     }
 
     @WrapOperation(method = "mouseClicked", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;mouseClicked(Lnet/minecraft/client/input/MouseButtonEvent;Z)Z"))
     public boolean overrideMouseClicks(AbstractContainerScreen instance, MouseButtonEvent click, boolean doubled, Operation<Boolean> original) {
         StorageOverlayScreen overlay = storageOverlay();
-        if (overlay != null && overlay.mouseClickFromContainer(click, doubled)) return true;
+        if (overlay != null && overlay.mouseClickFromContainer(click)) return true;
         return original.call(instance, click, doubled);
     }
 
     @Inject(method = "mouseDragged", at = @At("HEAD"), cancellable = true)
     public void overrideMouseDrags(MouseButtonEvent mouseButtonEvent, double d, double e, CallbackInfoReturnable<Boolean> cir) {
         StorageOverlayScreen overlay = storageOverlay();
-        if (overlay != null && overlay.mouseDraggedFromContainer(mouseButtonEvent, d, e)) cir.setReturnValue(true);
+        if (overlay != null && overlay.mouseDragged(mouseButtonEvent.y())) cir.setReturnValue(true);
     }
 
     @Inject(method = "mouseReleased", at = @At("HEAD"), cancellable = true)

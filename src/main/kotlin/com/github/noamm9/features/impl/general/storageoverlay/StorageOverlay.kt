@@ -26,13 +26,14 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     internal val retainScrollSetting by ToggleSetting("Retain Scroll", true)
     internal val lockScrollOnActiveSetting by ToggleSetting("Lock Scroll on Active", false)
 
-    private val dataFile = File("config/${NoammAddons.MOD_NAME}/storage/${mc.user.profileId}.nbt").also { it.mkdirs() }
-    private var currentHandler: StorageBackingHandle? = null
+    private val dataFile by lazy { File(mc.gameDirectory, "config/${NoammAddons.MOD_NAME}/storage/${mc.user.profileId}.nbt").also { it.mkdirs() } }
     internal var storageData = StorageData()
 
-    internal var active: StorageOverlayScreen? = null
+    private var currentHandler: StorageBackingHandle? = null
+    private var active: StorageOverlayScreen? = null
 
-    @JvmStatic @JvmName("activeFor")
+    @JvmStatic
+    @JvmName("activeFor")
     internal fun activeFor(screen: ContainerScreen) = active?.takeIf { it.containerScreen === screen }
 
     private val emptyStorageSlotItems = listOf(
@@ -57,8 +58,8 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         currentHandler = StorageBackingHandle.fromScreen(screen)
 
         if (oldScreen === active?.containerScreen) {
-            active?.handler = null
             active?.containerScreen = null
+            active?.handler = null
             active = null
         }
 
@@ -68,8 +69,8 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         val handler = currentHandler ?: return null
 
         active = (overlay ?: StorageOverlayScreen()).also {
-            it.handler = handler
             it.containerScreen = screen
+            it.handler = handler
         }
 
         return null

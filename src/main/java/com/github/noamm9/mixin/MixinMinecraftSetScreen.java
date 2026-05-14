@@ -18,6 +18,7 @@ public abstract class MixinMinecraftSetScreen {
 
     @Inject(method = "setScreen", at = @At("HEAD"))
     private void onSetScreen(Screen screen, CallbackInfo ci, @Local(argsOnly = true) LocalRef<Screen> screenRef) {
+        if (!StorageOverlay.INSTANCE.enabled) return;
         var newScreen = StorageOverlay.onScreenChange(this.screen, screen);
         if (newScreen != null) screenRef.set(newScreen);
     }
