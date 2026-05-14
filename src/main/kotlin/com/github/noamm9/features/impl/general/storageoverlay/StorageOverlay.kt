@@ -30,10 +30,10 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     private var currentHandler: StorageBackingHandle? = null
     internal var storageData = StorageData()
 
-    internal var active: StorageOverlayCustom? = null
+    internal var active: StorageOverlayScreen? = null
 
     @JvmStatic @JvmName("activeFor")
-    internal fun activeFor(screen: ContainerScreen) = active?.takeIf { it.screen === screen }
+    internal fun activeFor(screen: ContainerScreen) = active?.takeIf { it.containerScreen === screen }
 
     private val emptyStorageSlotItems = listOf(
         Blocks.RED_STAINED_GLASS_PANE.asItem(),
@@ -51,19 +51,26 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         if (oldScreen == null && newScreen == null) return null
 
         val screen = newScreen as? ContainerScreen
-        val storageOverlayScreen = oldScreen as? StorageOverlayScreen ?: active?.overview
+        val overlay = oldScreen as? StorageOverlayScreen ?: active
 
         currentHandler?.let { rememberContent(it) }
         currentHandler = StorageBackingHandle.fromScreen(screen)
 
-        if (oldScreen === active?.screen) active = null
+        if (oldScreen === active?.containerScreen) {
+            active?.handler = null
+            active?.containerScreen = null
+            active = null
+        }
 
-        if (newScreen == null && storageOverlayScreen != null && ! storageOverlayScreen.isExiting) return storageOverlayScreen
+        if (newScreen == null && overlay != null && ! overlay.isExiting) return overlay
         if (screen == null) return null
-        if (storageOverlayScreen?.isExiting == true) return null
+        if (overlay?.isExiting == true) return null
         val handler = currentHandler ?: return null
 
-        active = StorageOverlayCustom(handler, screen, storageOverlayScreen ?: StorageOverlayScreen())
+        active = (overlay ?: StorageOverlayScreen()).also {
+            it.handler = handler
+            it.containerScreen = screen
+        }
 
         return null
     }

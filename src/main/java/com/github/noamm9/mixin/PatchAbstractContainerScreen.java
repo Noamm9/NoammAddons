@@ -2,7 +2,7 @@ package com.github.noamm9.mixin;
 
 import com.github.noamm9.features.impl.general.storageoverlay.ICoordRememberingSlot;
 import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlay;
-import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlayCustom;
+import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlayScreen;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -40,14 +40,14 @@ public class PatchAbstractContainerScreen<T extends AbstractContainerMenu> exten
     }
 
     @Unique
-    private StorageOverlayCustom storageOverlay() {
+    private StorageOverlayScreen storageOverlay() {
         if (!((Object) this instanceof ContainerScreen)) return null;
         return StorageOverlay.activeFor((ContainerScreen) (Object) this);
     }
 
     @Inject(method = "init", at = @At("TAIL"))
     private void onInit(CallbackInfo ci) {
-        StorageOverlayCustom overlay = storageOverlay();
+        StorageOverlayScreen overlay = storageOverlay();
         if (overlay != null) overlay.onInit();
     }
 
@@ -58,7 +58,7 @@ public class PatchAbstractContainerScreen<T extends AbstractContainerMenu> exten
 
     @Inject(method = "renderCarriedItem", at = @At("HEAD"), cancellable = true)
     private void onRenderCarriedItem(GuiGraphics guiGraphics, int i, int j, CallbackInfo ci) {
-        StorageOverlayCustom overlay = storageOverlay();
+        StorageOverlayScreen overlay = storageOverlay();
         if (overlay != null && overlay.renderCarriedItem(guiGraphics, i, j)) ci.cancel();
     }
 
@@ -74,13 +74,13 @@ public class PatchAbstractContainerScreen<T extends AbstractContainerMenu> exten
 
     @Inject(method = "isHovering(Lnet/minecraft/world/inventory/Slot;DD)Z", at = @At("HEAD"), cancellable = true)
     public void onIsPointOverSlot(Slot slot, double d, double e, CallbackInfoReturnable<Boolean> cir) {
-        StorageOverlayCustom overlay = storageOverlay();
+        StorageOverlayScreen overlay = storageOverlay();
         if (overlay != null) cir.setReturnValue(overlay.isPointOverSlot(slot, this.leftPos, this.topPos, d, e));
     }
 
     @Inject(method = "renderBackground", at = @At("HEAD"))
     public void moveSlotsBeforeRender(GuiGraphics guiGraphics, int i, int j, float f, CallbackInfo ci) {
-        StorageOverlayCustom overlay = storageOverlay();
+        StorageOverlayScreen overlay = storageOverlay();
         if (overlay != null) {
             for (Slot slot : menu.slots) {
                 if (!hasRememberedSlots) ((ICoordRememberingSlot) slot).noammaddons_rememberCoords();
@@ -95,9 +95,9 @@ public class PatchAbstractContainerScreen<T extends AbstractContainerMenu> exten
 
     @WrapWithCondition(method = "renderBackground", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/AbstractContainerScreen;renderBg(Lnet/minecraft/client/gui/GuiGraphics;FII)V"))
     public boolean preventDrawingBackground(AbstractContainerScreen instance, GuiGraphics context, float delta, int mouseX, int mouseY) {
-        StorageOverlayCustom overlay = storageOverlay();
+        StorageOverlayScreen overlay = storageOverlay();
         if (overlay != null) {
-            overlay.render(context, delta, mouseX, mouseY);
+            overlay.renderContainerOverlay(context, delta, mouseX, mouseY);
             return false;
         }
         return true;
@@ -105,32 +105,32 @@ public class PatchAbstractContainerScreen<T extends AbstractContainerMenu> exten
 
     @Inject(at = @At("HEAD"), method = "onClose")
     private void onVoluntaryExit(CallbackInfo ci) {
-        StorageOverlayCustom overlay = storageOverlay();
+        StorageOverlayScreen overlay = storageOverlay();
         if (overlay != null) overlay.onVoluntaryExit();
     }
 
     @WrapOperation(method = "mouseClicked", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;mouseClicked(Lnet/minecraft/client/input/MouseButtonEvent;Z)Z"))
     public boolean overrideMouseClicks(AbstractContainerScreen instance, MouseButtonEvent click, boolean doubled, Operation<Boolean> original) {
-        StorageOverlayCustom overlay = storageOverlay();
-        if (overlay != null && overlay.mouseClick(click, doubled)) return true;
+        StorageOverlayScreen overlay = storageOverlay();
+        if (overlay != null && overlay.mouseClickFromContainer(click, doubled)) return true;
         return original.call(instance, click, doubled);
     }
 
     @Inject(method = "mouseDragged", at = @At("HEAD"), cancellable = true)
     public void overrideMouseDrags(MouseButtonEvent mouseButtonEvent, double d, double e, CallbackInfoReturnable<Boolean> cir) {
-        StorageOverlayCustom overlay = storageOverlay();
-        if (overlay != null && overlay.mouseDragged(mouseButtonEvent, d, e)) cir.setReturnValue(true);
+        StorageOverlayScreen overlay = storageOverlay();
+        if (overlay != null && overlay.mouseDraggedFromContainer(mouseButtonEvent, d, e)) cir.setReturnValue(true);
     }
 
     @Inject(method = "mouseReleased", at = @At("HEAD"), cancellable = true)
     public void overrideMouseReleases(MouseButtonEvent mouseButtonEvent, CallbackInfoReturnable<Boolean> cir) {
-        StorageOverlayCustom overlay = storageOverlay();
-        if (overlay != null && overlay.mouseReleased(mouseButtonEvent)) cir.setReturnValue(true);
+        StorageOverlayScreen overlay = storageOverlay();
+        if (overlay != null && overlay.mouseReleased()) cir.setReturnValue(true);
     }
 
     @Inject(method = "mouseScrolled", at = @At("HEAD"), cancellable = true)
     public void overrideMouseScroll(double d, double e, double f, double g, CallbackInfoReturnable<Boolean> cir) {
-        StorageOverlayCustom overlay = storageOverlay();
-        if (overlay != null && overlay.mouseScrolled(d, e, f, g)) cir.setReturnValue(true);
+        StorageOverlayScreen overlay = storageOverlay();
+        if (overlay != null && overlay.mouseScrolledFromContainer(d, e, g)) cir.setReturnValue(true);
     }
 }
