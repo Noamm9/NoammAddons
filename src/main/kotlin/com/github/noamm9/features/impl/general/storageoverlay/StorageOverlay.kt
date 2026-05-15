@@ -27,7 +27,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     internal val scrollSpeedSetting by SliderSetting("Scroll Speed", 10, 1, 50, 1)
     internal val inverseScrollSetting by ToggleSetting("Inverse Scroll", false)
     internal val retainScrollSetting by ToggleSetting("Retain Scroll", true)
-    internal val lockScrollOnActiveSetting by ToggleSetting("Lock Scroll on Active", false)
+    internal val enableTooltipInStorage by ToggleSetting("Enable Tooltip Scroll in Storage", true)
 
     private val storageDir by lazy { File(mc.gameDirectory, "config/${NoammAddons.MOD_NAME}/storage").also(File::mkdirs) }
     private val dataFile by lazy { File(storageDir, "${mc.user.profileId}.nbt") }

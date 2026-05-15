@@ -3,7 +3,9 @@
 package com.github.noamm9.features.impl.general.storageoverlay
 
 import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.features.impl.general.FEAT_ItemRarity
 import com.github.noamm9.features.impl.misc.InventorySearch
+import com.github.noamm9.features.impl.misc.ScrollableTooltip
 import com.github.noamm9.mixin.IAbstractContainerScreen
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ColorUtils.withAlpha
@@ -56,6 +58,7 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
     var isExiting = false
     private var pageWidthCount = StorageOverlay.columnsSetting.value
     private var knobGrabbed = false
+    private var hoveredOverlayItem: ItemStack? = null
 
     var handler: StorageBackingHandle? = null
     var containerScreen: ContainerScreen? = null
@@ -118,6 +121,8 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
         val mx = Resolution.getMouseX(mouseX.toDouble())
         val my = Resolution.getMouseY(mouseY.toDouble())
 
+        val prevHovered = hoveredOverlayItem
+        hoveredOverlayItem = null
         Resolution.push(context)
         Render2D.drawRect(context, measurements.x, measurements.y, measurements.overviewWidth, measurements.overviewHeight, panelColor)
         Render2D.drawBorder(context, measurements.x, measurements.y, measurements.overviewWidth, measurements.overviewHeight, borderColor)
@@ -125,6 +130,15 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
         context.drawScrollBar()
         context.drawPlayerInventory(mx, my)
         Resolution.pop(context)
+        resetTooltipIfHoverChanged(prevHovered)
+    }
+
+    private fun resetTooltipIfHoverChanged(prev: ItemStack?) {
+        if (hoveredOverlayItem !== prev) {
+            ScrollableTooltip.scrollAmountX = 0f
+            ScrollableTooltip.scrollAmountY = 0f
+            ScrollableTooltip.scaleOverride = 0f
+        }
     }
 
     private fun GuiGraphics.drawPages(mouseX: Int, mouseY: Int, excluding: StoragePageSlot?, slots: List<Slot>?) {
@@ -194,6 +208,7 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
             val isSlotHovered = inRect(mouseX, mouseY, sx, sy, 16, 16)
 
             if (! item.isEmpty) {
+                if (FEAT_ItemRarity.enabled) FEAT_ItemRarity.onSlotDraw(this, item, sx, sy)
                 if (InventorySearch.matches(item)) {
                     Render2D.drawRect(this, sx, sy, 16, 16, InventorySearch.color)
                 }
@@ -210,6 +225,7 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
         }
 
         if (hoveredStack != null) {
+            hoveredOverlayItem = hoveredStack
             setTooltipForNextFrame(font, hoveredStack, Resolution.toGuiScaled(mouseX), Resolution.toGuiScaled(mouseY))
         }
     }
@@ -257,6 +273,7 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
             val isSlotHovered = inRect(mouseX, mouseY, slotX, slotY, 16, 16) && inRect(mouseX, mouseY, panelX, panelY, panelW, panelH)
 
             if (! displayStack.isEmpty) {
+                if (FEAT_ItemRarity.enabled) FEAT_ItemRarity.onSlotDraw(this, displayStack, slotX, slotY)
                 if (InventorySearch.matches(displayStack)) {
                     Render2D.drawRect(this, slotX, slotY, 16, 16, InventorySearch.color)
                 }
@@ -275,6 +292,7 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
         }
 
         if (hoveredStack != null) {
+            hoveredOverlayItem = hoveredStack
             setTooltipForNextFrame(font, hoveredStack, Resolution.toGuiScaled(hoveredX), Resolution.toGuiScaled(hoveredY))
         }
 
@@ -343,13 +361,22 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
     }
 
     fun mouseScrolled(mouseX: Double, mouseY: Double, verticalAmount: Double, activePage: StoragePageSlot?): Boolean {
-        if (activePage != null && StorageOverlay.lockScrollOnActiveSetting.value) {
+        if (hoveredOverlayItem != null && ScrollableTooltip.enabled && StorageOverlay.enableTooltipInStorage.value) {
+            val scroll = (verticalAmount * ScrollableTooltip.scrollSpeed.value).toFloat()
+            val holdingShift = GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS
+            val holdingCtrl = GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_LEFT_CONTROL) == GLFW.GLFW_PRESS
+            when {
+                holdingShift && ! holdingCtrl -> ScrollableTooltip.scrollAmountX -= scroll
+                ! holdingShift && holdingCtrl -> ScrollableTooltip.scaleOverride += (verticalAmount / 10f).toFloat() * ScrollableTooltip.scaleSpeed.value.toFloat()
+                else -> ScrollableTooltip.scrollAmountY += scroll
+            }
+            return true
+        }
+        if (activePage != null) {
             val data = StorageOverlay.storageData
             var overActive = false
             layoutedForEach(data) { x, y, pw, ph, page, _ ->
-                if (page == activePage && inRect(mouseX, mouseY, x, y, pw, ph)) {
-                    overActive = true
-                }
+                if (page == activePage && inRect(mouseX, mouseY, x, y, pw, ph)) overActive = true
             }
             if (overActive) return false
         }
@@ -411,6 +438,8 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
         val screen = containerScreen ?: return
         Resolution.refresh()
         updateBounds()
+        val prevHovered = hoveredOverlayItem
+        hoveredOverlayItem = null
         Resolution.push(context)
         val scaledMouseX = Resolution.getMouseX(mouseX.toDouble())
         val scaledMouseY = Resolution.getMouseY(mouseY.toDouble())
@@ -422,6 +451,7 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
         context.drawScrollBar()
         context.drawPlayerInventory(scaledMouseX, scaledMouseY)
         Resolution.pop(context)
+        resetTooltipIfHoverChanged(prevHovered)
     }
 
     fun renderCarriedItem(context: GuiGraphics, mouseX: Int, mouseY: Int): Boolean {
