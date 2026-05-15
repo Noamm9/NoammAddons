@@ -1,3 +1,8 @@
+/*
+ * Based on TerminalWaypoints from Athen by Starred
+ * Original file: https://github.com/skies-starred/Athen/blob/master/src/main/kotlin/xyz/aerii/athen/modules/impl/dungeon/terminals/TerminalWaypoints.kt
+ * License: https://github.com/skies-starred/Athen/blob/master/LICENSE (BSD-3-Clause)
+ */
 package com.github.noamm9.features.impl.floor7
 
 import com.github.noamm9.event.impl.ChatMessageEvent
