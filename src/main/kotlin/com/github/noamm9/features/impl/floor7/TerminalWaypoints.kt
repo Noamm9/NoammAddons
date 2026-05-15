@@ -1,6 +1,8 @@
 package com.github.noamm9.features.impl.floor7
 
+import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
+import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.CategorySetting
@@ -13,7 +15,8 @@ import com.github.noamm9.ui.clickgui.components.section
 import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
-import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.location.LocationUtils.dungeonFloorNumber
+import com.github.noamm9.utils.location.LocationUtils.inBoss
 import com.github.noamm9.utils.render.Render3D
 import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.Vec3
@@ -68,7 +71,10 @@ object TerminalWaypoints : Feature("Renders waypoints for P3 F7 terminals and le
     private val terminalColor by ColorSetting("Terminal Color", Color(0, 255, 255, 200))
     private val leverColor by ColorSetting("Lever Color", Color(255, 255, 0, 200))
 
+    private val sectionCompleteRegex = Regex("""^\w{1,16} (?:activated|completed) a \w+! \((?:7/7|8/8)\)$""")
     private val nodeClassSettings = mutableMapOf<Node, DropdownSetting>()
+
+    private var currentSection = 0
 
     override fun init() {
         val nodesBySection = allNodes.groupBy { it.section }
@@ -92,15 +98,28 @@ object TerminalWaypoints : Feature("Renders waypoints for P3 F7 terminals and le
             }
         }
 
+        register<WorldChangeEvent> {
+            currentSection = 0
+        }
+
+        register<ChatMessageEvent> {
+            if (dungeonFloorNumber != 7 || !inBoss) return@register
+            when (event.unformattedText) {
+                "[BOSS] Storm: I should have known that I stood no chance." -> currentSection = 1
+                "The Core entrance is opening!" -> currentSection = 0
+                else -> if (sectionCompleteRegex.matches(event.unformattedText)) currentSection++
+            }
+        }
+
         register<RenderWorldEvent> {
-            val section = LocationUtils.P3Section ?: return@register
+            if (currentSection == 0) return@register
             val playerClass = DungeonListener.thePlayer?.clazz
             val outline = highlightStyle.value != 1
             val fill = highlightStyle.value != 0
             val phase = depthTest.value
 
             for (node in allNodes) {
-                if (node.section != section) continue
+                if (node.section != currentSection) continue
 
                 val assignedClass = classByIndex.getOrNull(nodeClassSettings[node]?.value ?: -1) ?: node.defaultClass
                 if (checkClass.value && playerClass != null && playerClass != assignedClass) continue
