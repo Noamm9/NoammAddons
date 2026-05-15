@@ -25,18 +25,21 @@ object I4Helper: Feature(name = "I4 Helper") {
     private val showPrediction by ToggleSetting("Show Prediction", true).withDescription("Highlights the next block to shoot at.")
     private val predictionColor by ColorSetting("Prediction Color", Color.YELLOW).withDescription("Color of the prediction.")
 
-    val DEVICE_DONE_REGEX = Regex("^(\\w{3,16}) completed a device! \\(\\d/\\d\\)$")
+    internal val DEVICE_DONE_REGEX = Regex("^(\\w{3,16}) completed a device! \\(\\d/\\d\\)$")
 
-    val devBlocks = listOf(
+    internal val devBlocks = listOf(
         BlockPos(68, 130, 50), BlockPos(66, 130, 50), BlockPos(64, 130, 50),
         BlockPos(68, 128, 50), BlockPos(66, 128, 50), BlockPos(64, 128, 50),
         BlockPos(68, 126, 50), BlockPos(66, 126, 50), BlockPos(64, 126, 50)
     )
 
-    val doneCoords = mutableSetOf<BlockPos>()
-    var target: BlockPos? = null
-    var prediction: BlockPos? = null
-    var alerted = false
+    private val doneCoords = mutableSetOf<BlockPos>()
+    private var target: BlockPos? = null
+    internal var prediction: BlockPos? = null
+    private var alerted = false
+
+    private val lastPredictions = mutableMapOf<BlockPos, Int>()
+    private const val MAX_PREDICTION_ATTEMPTS = 2
 
     override fun init() {
         register<BlockChangeEvent> {
@@ -86,6 +89,7 @@ object I4Helper: Feature(name = "I4 Helper") {
         doneCoords.clear()
         target = null
         prediction = null
+        lastPredictions.clear()
     }
 
     private fun onComplete() {
@@ -96,10 +100,10 @@ object I4Helper: Feature(name = "I4 Helper") {
     }
 
     fun getPredictionTarget(lastHitPos: BlockPos, doneCoords: Collection<BlockPos>): BlockPos? {
-        val available = devBlocks.filter { it !in doneCoords && it != lastHitPos && WorldUtils.getBlockAt(it) == Blocks.BLUE_TERRACOTTA }
-        if (available.isEmpty()) return null
+        val allValid = devBlocks.filter { it !in doneCoords && it != lastHitPos && WorldUtils.getBlockAt(it) == Blocks.BLUE_TERRACOTTA }.ifEmpty { return null }
+        val candidates = allValid.filter { (lastPredictions[it] ?: 0) < MAX_PREDICTION_ATTEMPTS }.ifEmpty { allValid }
 
-        val pairs = available.shuffled().groupBy { it.y }.flatMap { (_, blocks) ->
+        val pairs = candidates.shuffled().groupBy { it.y }.flatMap { (_, blocks) ->
             val sorted = blocks.sortedBy { it.x }
             buildList {
                 for (i in 0 until sorted.size - 1) {
@@ -110,7 +114,9 @@ object I4Helper: Feature(name = "I4 Helper") {
             }
         }
 
-        return if (pairs.isNotEmpty()) pairs.random().toList().random() else available.random()
+        val chosen = if (pairs.isNotEmpty()) pairs.random().toList().random() else candidates.random()
+        lastPredictions[chosen] = (lastPredictions[chosen] ?: 0) + 1
+        return chosen
     }
 
     fun isOnDev(): Boolean {

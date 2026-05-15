@@ -214,6 +214,7 @@ object PlayerUtils {
         rightClick()
         delay(100)
         swapToSlot(prev)
+        delay(100)
     }
 
     fun interactEntity(entity: Entity, hand: InteractionHand) {
