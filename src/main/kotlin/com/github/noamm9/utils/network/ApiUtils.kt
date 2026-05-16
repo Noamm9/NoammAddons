@@ -6,14 +6,11 @@ import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.network.data.DungeonStats
-import net.minecraft.core.component.DataComponents
+import me.owdding.dfu.item.LegacyDataFixer
 import net.minecraft.nbt.NbtAccounter
 import net.minecraft.nbt.NbtIo
-import net.minecraft.network.chat.Component
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
-import net.minecraft.world.item.component.CustomData
-import net.minecraft.world.item.component.ItemLore
 import java.io.ByteArrayInputStream
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
@@ -85,24 +82,7 @@ object ApiUtils {
         return try {
             val root = NbtIo.readCompressed(ByteArrayInputStream(Base64.getDecoder().decode(encoded)), NbtAccounter.unlimitedHeap())
             val itemNbtList = root.getList("i").getOrNull() ?: return mutableListOf()
-
-            itemNbtList.indices.mapNotNull { index ->
-                val compound = itemNbtList.getCompound(index).getOrNull()?.takeIf { it.size() > 0 } ?: return@mapNotNull null
-                val tag = compound.get("tag")?.asCompound()?.getOrNull() ?: return@mapNotNull null
-                val extraAttributes = tag.get("ExtraAttributes")?.asCompound()?.getOrNull() ?: return@mapNotNull null
-                val id = extraAttributes.get("id")?.asString()?.getOrNull().orEmpty()
-                val display = tag.get("display")?.asCompound()?.getOrNull() ?: return@mapNotNull null
-                val name = display.get("Name")?.asString()?.getOrNull().orEmpty()
-                val lore = display.get("Lore")?.asList()?.getOrNull()?.mapNotNull { it.asString().getOrNull() }.orEmpty()
-                val count = compound.getByte("Count").getOrNull()?.toInt()?.coerceAtLeast(1) ?: 1
-
-                ItemStack(Items.PAPER, count).apply {
-                    if (name.isNotBlank()) set(DataComponents.CUSTOM_NAME, Component.literal(name))
-                    if (lore.isNotEmpty()) set(DataComponents.LORE, ItemLore(lore.map(Component::literal)))
-                    val customData = extraAttributes.copy().also { if (! it.contains("id") && id.isNotBlank()) it.putString("id", id) }
-                    CustomData.set(DataComponents.CUSTOM_DATA, this, customData)
-                }
-            }.toMutableList()
+            mutableListOf<ItemStack>().apply { for (tag in itemNbtList) add(LegacyDataFixer.fromTag(tag) ?: Items.BARRIER.defaultInstance) }
         }
         catch (_: Exception) {
             mutableListOf()

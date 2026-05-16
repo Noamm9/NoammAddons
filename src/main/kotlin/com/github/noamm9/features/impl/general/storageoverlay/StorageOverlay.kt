@@ -10,6 +10,8 @@ import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.network.WebUtils
+import kotlinx.coroutines.runBlocking
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.nbt.CompoundTag
@@ -20,20 +22,20 @@ import net.minecraft.world.level.block.Blocks
 import java.io.File
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
+import com.github.noamm9.utils.network.data.StorageData as ApiStorageData
 
 object StorageOverlay: Feature("Shows all storage pages in an overlay when opening storage.", toggled = true) {
     internal val columnsSetting by SliderSetting("Columns", 3, 1, 10, 1)
     internal val maxHeightSetting by SliderSetting("Max Height", 324, 80, 600, 1)
     internal val scrollSpeedSetting by SliderSetting("Scroll Speed", 10, 1, 50, 1)
-    internal val inverseScrollSetting by ToggleSetting("Inverse Scroll", false)
     internal val retainScrollSetting by ToggleSetting("Retain Scroll", true)
-    internal val enableTooltipInStorage by ToggleSetting("Enable Tooltip Scroll in Storage", true)
+    internal val enableTooltipInStorage by ToggleSetting("Tooltip Scroll", true)
 
     private val storageDir by lazy { File(mc.gameDirectory, "config/${NoammAddons.MOD_NAME}/storage").also(File::mkdirs) }
     private val dataFile by lazy { File(storageDir, "${mc.user.profileId}.nbt") }
     @Volatile internal var storageData = StorageData()
 
-    private var currentHandler: StorageBackingHandle? = null
+    private var currentHandler: StorageMenu? = null
     private var active: StorageOverlayScreen? = null
 
     @JvmStatic
@@ -54,10 +56,8 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
             val screen = mc.screen as? ContainerScreen ?: return@register
             if (screen.menu.containerId != event.windowId) return@register
             if (screen.title.unformattedText != event.title.unformattedText) return@register
-            val handler = StorageBackingHandle.fromScreen(screen) ?: currentHandler ?: return@register
-            currentHandler = handler
-            rememberContent(handler)
-            active?.handler = handler
+            val handler = currentHandler ?: return@register
+            saveContent(handler)
         }
     }
 
@@ -68,11 +68,11 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
 
         val screen = newScreen as? ContainerScreen
         val overlay = oldScreen as? StorageOverlayScreen ?: active
-        val handler = StorageBackingHandle.fromScreen(screen)
+        val handler = StorageMenu.fromScreen(screen)
 
         if (currentHandler == null && handler == null) loadData()
-        currentHandler?.let { rememberContent(it) }
-        handler?.let { rememberContent(it) }
+        currentHandler?.let { saveContent(it) }
+        handler?.let { saveContent(it) }
         currentHandler = handler
 
         if (oldScreen === active?.containerScreen) {
@@ -94,19 +94,16 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         return null
     }
 
-    private fun rememberContent(handler: StorageBackingHandle) {
-        val data = storageData.storageInventories
-        when (handler) {
-            is StorageBackingHandle.Overview -> rememberStorageOverview(handler, data)
-            is StorageBackingHandle.Page -> rememberPage(handler, data)
-        }
+    private fun saveContent(handler: StorageMenu) = when (handler) {
+        is StorageMenu.Overview -> saveStorageOverview(handler, storageData.storageInventories)
+        is StorageMenu.Page -> savePage(handler, storageData.storageInventories)
     }
 
-    private fun rememberStorageOverview(handler: StorageBackingHandle.Overview, data: SortedMap<StoragePageSlot, StorageData.StorageInventory>) {
+    private fun saveStorageOverview(handler: StorageMenu.Overview, data: SortedMap<StoragePage, StorageData.StorageInventory>) {
         var changed = false
         for ((index, stack) in handler.handler.slots.map { it.item }.withIndex()) {
             if (stack.isEmpty) continue
-            val slot = StoragePageSlot.fromOverviewSlotIndex(index) ?: continue
+            val slot = StoragePage.fromOverviewSlotIndex(index) ?: continue
             val isEmpty = stack.item in emptyStorageSlotItems
             if (slot in data) {
                 if (isEmpty) {
@@ -123,20 +120,17 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         if (changed) ThreadUtils.async(::saveData)
     }
 
-    private fun rememberPage(handler: StorageBackingHandle.Page, data: SortedMap<StoragePageSlot, StorageData.StorageInventory>) {
-        if (handler.storagePageSlot !in data) {
-            data[handler.storagePageSlot] = StorageData.StorageInventory(handler.storagePageSlot.defaultName(), handler.storagePageSlot, null)
-            ThreadUtils.async(::saveData)
-        }
+    private fun savePage(handler: StorageMenu.Page, data: SortedMap<StoragePage, StorageData.StorageInventory>) {
+        val slot = handler.storagePage
+        val gui = handler.handler
 
-        val items = handler.handler.slots.map { it.item }
-        val chestItems = items.take(handler.handler.rowCount * 9).drop(9)
+        val end = (gui.rowCount * 9).takeIf { it > 9 } ?: return
+        val chestItems = gui.slots.subList(9, end).map { it.item.copy() }
         if (chestItems.isEmpty()) return
 
-        val newStacks = VirtualInventory(chestItems.map { it.copy() })
-        data.compute(handler.storagePageSlot) { slot, existing ->
-            (existing ?: StorageData.StorageInventory(slot.defaultName(), slot, null)).also { it.inventory = newStacks }
-        }
+        data.getOrPut(slot) {
+            StorageData.StorageInventory(slot.defaultName(), slot, null)
+        }.inventory = VirtualInventory(chestItems)
 
         ThreadUtils.async(::saveData)
     }
@@ -156,8 +150,8 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     @Synchronized
     private fun loadData() {
         if (! checkFile()) return
-        if (! dataFile.exists()) return
         if (storageData.storageInventories.isNotEmpty()) return
+        if (! dataFile.exists()) return ThreadUtils.async(::loadFromApi)
         val root = NbtIo.readCompressed(dataFile.toPath(), NbtAccounter.unlimitedHeap()) ?: return
         val data = StorageData()
 
@@ -167,7 +161,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
             if (! root.contains(titleKey)) continue
             val title = (root.getString(titleKey).getOrNull() ?: "").ifEmpty { continue }
 
-            val slot = StoragePageSlot(i)
+            val slot = StoragePage(i)
             val inventory = if (root.contains(invKey)) VirtualInventory.decode(root.getString(invKey).getOrNull() ?: "") else null
             data.storageInventories[slot] = StorageData.StorageInventory(title, slot, inventory)
         }
@@ -179,5 +173,25 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         if (! dataFile.isDirectory) return true
         val children = dataFile.listFiles().orEmpty()
         return children.isEmpty() && dataFile.delete()
+    }
+
+    private fun loadFromApi() = runBlocking {
+        WebUtils.getAs<ApiStorageData>("https://api.noamm.org/hypixel/storage/${mc.user.profileId}").onSuccess {
+            val data = StorageData()
+
+            it.enderchest.forEach { (i, stacks) ->
+                val slot = StoragePage(i)
+                val inventory = VirtualInventory(stacks)
+                data.storageInventories[slot] = StorageData.StorageInventory(slot.defaultName(), slot, inventory)
+            }
+
+            it.backpack.forEach { (i, stacks) ->
+                val slot = StoragePage(i + 9)
+                val inventory = VirtualInventory(stacks)
+                data.storageInventories[slot] = StorageData.StorageInventory(slot.defaultName(), slot, inventory)
+            }
+
+            storageData = data
+        }
     }
 }

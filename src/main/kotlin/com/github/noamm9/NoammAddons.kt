@@ -19,6 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.serialization.json.*
+import me.owdding.dfu.item.MeowddingItemDfu
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.Minecraft
@@ -63,6 +64,7 @@ object NoammAddons: ClientModInitializer {
         ActionBarParser.init()
         PartyUtils.init()
         ChatUtils.init()
+        MeowddingItemDfu.load()
         TestGround()
 
         this.initNetworkLoop()
