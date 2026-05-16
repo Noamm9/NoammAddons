@@ -114,7 +114,7 @@ public class PatchAbstractContainerScreen<T extends AbstractContainerMenu> exten
     @WrapOperation(method = "mouseClicked", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;mouseClicked(Lnet/minecraft/client/input/MouseButtonEvent;Z)Z"))
     public boolean overrideMouseClicks(AbstractContainerScreen instance, MouseButtonEvent click, boolean doubled, Operation<Boolean> original) {
         StorageOverlayScreen overlay = storageOverlay();
-        if (overlay != null && overlay.mouseClickFromContainer(click)) return true;
+        if (overlay != null && overlay.mouseClicked(click)) return true;
         return original.call(instance, click, doubled);
     }
 
@@ -133,6 +133,6 @@ public class PatchAbstractContainerScreen<T extends AbstractContainerMenu> exten
     @Inject(method = "mouseScrolled", at = @At("HEAD"), cancellable = true)
     public void overrideMouseScroll(double d, double e, double f, double g, CallbackInfoReturnable<Boolean> cir) {
         StorageOverlayScreen overlay = storageOverlay();
-        if (overlay != null && overlay.mouseScrolledFromContainer(d, e, g)) cir.setReturnValue(true);
+        if (overlay != null && overlay.mouseScrolled(d, e, g)) cir.setReturnValue(true);
     }
 }

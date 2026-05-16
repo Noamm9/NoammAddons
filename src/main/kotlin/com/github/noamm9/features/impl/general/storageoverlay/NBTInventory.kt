@@ -8,7 +8,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import kotlin.io.encoding.Base64
 
-internal data class VirtualInventory(val stacks: List<ItemStack>) {
+data class NBTInventory(val stacks: List<ItemStack>) {
     val rows = stacks.size / 9
 
     fun encode(): String {
@@ -64,7 +64,7 @@ internal data class VirtualInventory(val stacks: List<ItemStack>) {
                     }
                 }
 
-                VirtualInventory(items)
+                NBTInventory(items)
             }
         }.onFailure { it.printStackTrace() }.getOrNull()
 

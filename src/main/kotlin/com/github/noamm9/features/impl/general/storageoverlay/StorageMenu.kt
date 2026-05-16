@@ -5,7 +5,7 @@ import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.world.inventory.ChestMenu
 
-internal sealed interface StorageMenu {
+sealed interface StorageMenu {
     private sealed interface Menu {
         val handler: ChestMenu
     }

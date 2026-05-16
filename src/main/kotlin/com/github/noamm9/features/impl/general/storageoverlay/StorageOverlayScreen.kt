@@ -3,6 +3,7 @@
 package com.github.noamm9.features.impl.general.storageoverlay
 
 import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.features.impl.dev.ClickGui
 import com.github.noamm9.features.impl.general.FEAT_ItemRarity
 import com.github.noamm9.features.impl.misc.InventorySearch
 import com.github.noamm9.features.impl.misc.ScrollableTooltip
@@ -22,13 +23,12 @@ import net.minecraft.world.inventory.Slot
 import net.minecraft.world.item.ItemStack
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
-import kotlin.math.roundToInt
 
 private inline fun inRect(mx: Double, my: Double, x: Int, y: Int, w: Int, h: Int) = mx >= x && mx < x + w && my >= y && my < y + h
 private inline fun inRect(mx: Int, my: Int, x: Int, y: Int, w: Int, h: Int) = mx >= x && mx < x + w && my >= y && my < y + h
 
-internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
-    companion object {
+class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
+    private companion object {
         const val SLOT_SIZE = 17 /// 17x17 instead of 16x16 because the border thickness is 1
         const val PADDING = 10
         const val PAGE_WIDTH = SLOT_SIZE * 9 + 4
@@ -38,22 +38,18 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
         const val PLAYER_WIDTH = SLOT_SIZE * 9 + 6
         const val PLAYER_HEIGHT = SLOT_SIZE * 4 + 18
 
-        var scroll: Float = 0f
         var lastRenderedInnerHeight = 0
-
-        fun resetScroll() {
-            if (! StorageOverlay.retainScrollSetting.value) scroll = 0f
-        }
+        var scroll: Float = 0f
     }
 
-    private val panelColor = Color(24, 24, 27, 220)
+    private val menuBackgroundColor = Color(24, 24, 27)
+    private val menuBorderColor = Color(60, 60, 65)
     private val slotBgColor = Color(50, 50, 55, 200)
     private val slotCellBg = Color(30, 30, 34).rgb
     private val slotCellBorder = Color(55, 55, 60).rgb
-    private val activePageBorder = Color(80, 200, 80)
+    private val activePageBorder get() = ClickGui.accsentColor.value
     private val scrollBgColor = Color(30, 30, 35, 180)
     private val scrollKnobColor = Color(120, 120, 130)
-    private val borderColor = Color(60, 60, 65)
 
     var isExiting = false
     private var pageWidthCount = StorageOverlay.columnsSetting.value
@@ -63,7 +59,7 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
     var handler: StorageMenu? = null
     var containerScreen: ContainerScreen? = null
 
-    inner class Measurements {
+    private inner class Measurements {
         val innerScrollPanelWidth = PAGE_WIDTH * pageWidthCount + (pageWidthCount - 1) * PADDING
         val overviewWidth = innerScrollPanelWidth + 3 * PADDING + SCROLL_BAR_WIDTH
         val x = width / 2 - overviewWidth / 2
@@ -97,42 +93,6 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
         scroll = (scrollPct * newMax).coerceAtMost(newMax).coerceAtLeast(0f)
     }
 
-    override fun mouseScrolled(mouseX: Double, mouseY: Double, horizontalAmount: Double, verticalAmount: Double) = mouseScrolled(mouseX, mouseY, verticalAmount, null)
-    override fun mouseClicked(click: MouseButtonEvent, doubled: Boolean) = mouseClicked(click.x(), click.y(), click.button(), click.modifiers(), null)
-    override fun mouseReleased(click: MouseButtonEvent) = mouseReleased()
-    override fun mouseDragged(click: MouseButtonEvent, offsetX: Double, offsetY: Double) = mouseDragged(click.y())
-
-    override fun onClose() {
-        isExiting = true
-        resetScroll()
-        super.onClose()
-    }
-
-    override fun render(context: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
-        super.render(context, mouseX, mouseY, delta)
-
-        Resolution.refresh()
-        val resolutionWidth = Resolution.width.roundToInt()
-        val resolutionHeight = Resolution.height.roundToInt()
-        if (width != resolutionWidth || height != resolutionHeight) {
-            init(mc, resolutionWidth, resolutionHeight)
-        }
-
-        val mx = Resolution.getMouseX(mouseX.toDouble())
-        val my = Resolution.getMouseY(mouseY.toDouble())
-
-        val prevHovered = hoveredOverlayItem
-        hoveredOverlayItem = null
-        Resolution.push(context)
-        Render2D.drawRect(context, measurements.x, measurements.y, measurements.overviewWidth, measurements.overviewHeight, panelColor)
-        Render2D.drawBorder(context, measurements.x, measurements.y, measurements.overviewWidth, measurements.overviewHeight, borderColor)
-        context.drawPages(mx, my, null, null)
-        context.drawScrollBar()
-        context.drawPlayerInventory(mx, my)
-        Resolution.pop(context)
-        resetTooltip(prevHovered)
-    }
-
     private fun resetTooltip(prev: ItemStack?) {
         if (hoveredOverlayItem === prev) return
         ScrollableTooltip.scrollAmountX = 0f
@@ -142,7 +102,7 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
 
     private fun GuiGraphics.drawPages(mouseX: Int, mouseY: Int, excluding: StoragePage?, slots: List<Slot>?) {
         enableScissor(scrollPanelX, scrollPanelY, scrollPanelX + scrollPanelW + ACTIVE_PAGE_BORDER_THICKNESS, scrollPanelY + scrollPanelH)
-        val data = StorageOverlay.storageData
+        val data = StorageOverlay.storageMenuData
         val viewTop = scrollPanelY
         val viewBottom = scrollPanelY + scrollPanelH
         layoutedForEach(data) { x, y, _, ph, page, inventory ->
@@ -229,11 +189,11 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
         }
     }
 
-    private fun GuiGraphics.drawPage(x: Int, y: Int, inventory: StorageData.StorageInventory, slots: List<Slot>?, mouseX: Int, mouseY: Int): Int {
+    private fun GuiGraphics.drawPage(x: Int, y: Int, inventory: StorageMenuData.StorageInventory, slots: List<Slot>?, mouseX: Int, mouseY: Int): Int {
         val inv = inventory.inventory
         if (inv == null && slots == null) {
             Render2D.drawRect(this, x, y, PAGE_WIDTH, 18, slotBgColor)
-            Render2D.drawBorder(this, x, y, PAGE_WIDTH, 18, borderColor)
+            Render2D.drawBorder(this, x, y, PAGE_WIDTH, 18, menuBorderColor)
             Render2D.drawString(this, inventory.title + " - Click to load", x + 4f, y + 5f, Color(180, 180, 180))
             return 18
         }
@@ -298,7 +258,7 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
         return pageHeight + 6
     }
 
-    private inline fun layoutedForEach(data: StorageData, func: (x: Int, y: Int, pageWidth: Int, pageHeight: Int, page: StoragePage, inventory: StorageData.StorageInventory) -> Unit) {
+    private inline fun layoutedForEach(data: StorageMenuData, func: (x: Int, y: Int, pageWidth: Int, pageHeight: Int, page: StoragePage, inventory: StorageMenuData.StorageInventory) -> Unit) {
         var yOffset = - scroll.toInt()
         var xOffset = 0
         var maxHeight = 0
@@ -325,7 +285,7 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
         if (chestSlots.isEmpty()) return false
 
         var hit = - 1
-        val data = StorageOverlay.storageData
+        val data = StorageOverlay.storageMenuData
         layoutedForEach(data) { x, y, _, _, page, inventory ->
             if (page != activePage) return@layoutedForEach
             val inv = inventory.inventory ?: return@layoutedForEach
@@ -359,20 +319,25 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
         return true
     }
 
-    fun mouseScrolled(mouseX: Double, mouseY: Double, verticalAmount: Double, activePage: StoragePage?): Boolean {
+    fun mouseScrolled(x: Double, y: Double, verticalAmount: Double): Boolean {
+        val activePage = (handler as? StorageMenu.Page)?.storagePage
+        val mouseX = Resolution.getMouseX(x)
+        val mouseY = Resolution.getMouseY(y)
+
         if (hoveredOverlayItem != null && ScrollableTooltip.enabled && StorageOverlay.enableTooltipInStorage.value) {
             val scroll = (verticalAmount * ScrollableTooltip.scrollSpeed.value).toFloat()
             val holdingShift = GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS
             val holdingCtrl = GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_LEFT_CONTROL) == GLFW.GLFW_PRESS
             when {
-                holdingShift && ! holdingCtrl -> ScrollableTooltip.scrollAmountX -= scroll
+                holdingShift && ! holdingCtrl && StorageOverlay.enableTooltipInStorage.value -> ScrollableTooltip.scrollAmountX -= scroll
                 ! holdingShift && holdingCtrl -> ScrollableTooltip.scaleOverride += (verticalAmount / 10f).toFloat() * ScrollableTooltip.scaleSpeed.value.toFloat()
-                else -> ScrollableTooltip.scrollAmountY += scroll
+                StorageOverlay.enableTooltipInStorage.value -> ScrollableTooltip.scrollAmountY += scroll
             }
             return true
         }
+
         if (activePage != null) {
-            val data = StorageOverlay.storageData
+            val data = StorageOverlay.storageMenuData
             var overActive = false
             layoutedForEach(data) { x, y, pw, ph, page, _ ->
                 if (page == activePage && inRect(mouseX, mouseY, x, y, pw, ph)) overActive = true
@@ -385,12 +350,16 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
         return true
     }
 
-    fun mouseClicked(mouseX: Double, mouseY: Double, button: Int, modifiers: Int, activePage: StoragePage?): Boolean {
-        val resolutionMouseX = Resolution.getMouseX(mouseX)
-        val resolutionMouseY = Resolution.getMouseY(mouseY)
+    fun mouseClicked(click: MouseButtonEvent): Boolean {
+        val activePage = (handler as? StorageMenu.Page)?.storagePage
+        val button = click.button()
+        val modifiers = click.modifiers()
+
+        val resolutionMouseX = Resolution.getMouseX(click.x())
+        val resolutionMouseY = Resolution.getMouseY(click.y())
 
         if (inRect(resolutionMouseX, resolutionMouseY, scrollPanelX, scrollPanelY, scrollPanelW, scrollPanelH)) {
-            val data = StorageOverlay.storageData
+            val data = StorageOverlay.storageMenuData
             if (activePage != null && dispatchActivePageSlotClick(button, modifiers, resolutionMouseX.toDouble(), resolutionMouseY.toDouble(), activePage)) return true
             layoutedForEach(data) { x, y, pw, ph, page, _ ->
                 if (inRect(resolutionMouseX, resolutionMouseY, x, y, pw, ph) && activePage != page && button == 0) {
@@ -443,7 +412,7 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
         Resolution.push(context)
         val scaledMouseX = Resolution.getMouseX(mouseX.toDouble())
         val scaledMouseY = Resolution.getMouseY(mouseY.toDouble())
-        Render2D.drawRect(context, measurements.x, measurements.y, measurements.overviewWidth, measurements.overviewHeight, Color(24, 24, 27))
+        Render2D.drawRect(context, measurements.x, measurements.y, measurements.overviewWidth, measurements.overviewHeight, menuBackgroundColor)
         Render2D.drawBorder(context, measurements.x, measurements.y, measurements.overviewWidth, measurements.overviewHeight, Color(60, 60, 65))
         val activeSlot = (handler as? StorageMenu.Page)?.storagePage
         val chestSlots = screen.menu.slots.take(screen.menu.rowCount * 9).drop(9)
@@ -469,11 +438,9 @@ internal class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")
         return true
     }
 
-    fun mouseScrolledFromContainer(mouseX: Double, mouseY: Double, verticalAmount: Double) = mouseScrolled(Resolution.getMouseX(mouseX).toDouble(), Resolution.getMouseY(mouseY).toDouble(), verticalAmount, (handler as? StorageMenu.Page)?.storagePage)
-    fun mouseClickFromContainer(click: MouseButtonEvent) = mouseClicked(click.x(), click.y(), click.button(), click.modifiers(), (handler as? StorageMenu.Page)?.storagePage)
-    fun isPointOverSlot(slot: Slot, xO: Int, yO: Int, pX: Double, pY: Double) = pX >= slot.x + xO && pX < slot.x + xO + 16 && pY >= slot.y + yO && pY < slot.y + yO + 16
+    fun isPointOverSlot(slot: Slot, xO: Int, yO: Int, pX: Double, pY: Double) = inRect(pX, pY, slot.x + xO, slot.y + yO, 16, 16)
     fun onContainerClose() {
+        if (! StorageOverlay.retainScrollSetting.value) scroll = 0f
         isExiting = true
-        resetScroll()
     }
 }

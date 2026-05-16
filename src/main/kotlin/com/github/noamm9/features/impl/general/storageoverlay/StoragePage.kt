@@ -2,7 +2,7 @@ package com.github.noamm9.features.impl.general.storageoverlay
 
 import com.github.noamm9.utils.ChatUtils
 
-internal data class StoragePage(val index: Int): Comparable<StoragePage> {
+data class StoragePage(val index: Int): Comparable<StoragePage> {
     val isEnderChest = index < 9
     val isBackPack = ! isEnderChest
 
