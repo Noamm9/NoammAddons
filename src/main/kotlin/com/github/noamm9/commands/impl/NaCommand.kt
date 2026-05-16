@@ -34,6 +34,7 @@ object NaCommand: BaseCommand("na") {
         "/na sim" to "Simulate chat message",
         "/na leaporder" to "Configure custom leap sorting",
         "/na ping" to "Shows your ping in chat",
+        "/na tps" to "Shows the server's tps in chat",
         "/na rtca" to "Shows the runs needed for each class to hit class average 50",
         //#if CHEAT
         "/na swapmask" to "Equips either Bonzo Mask or Spirit Mask",
@@ -67,6 +68,12 @@ object NaCommand: BaseCommand("na") {
         literal("ping") {
             runs {
                 ChatUtils.modMessage("§aPing: §f${ServerUtils.averagePing}ms")
+            }
+        }
+
+        literal("tps") {
+            runs {
+                ChatUtils.modMessage("§aTPS: §f${ServerUtils.tps}")
             }
         }
 
