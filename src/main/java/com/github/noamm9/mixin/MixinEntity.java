@@ -13,6 +13,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+//#if LEGIT
+//$$import static com.github.noamm9.NoammAddons.mc;
+//#endif
+
 @Mixin(Entity.class)
 public abstract class MixinEntity {
     @Unique private int customGlowColor = 0xFFFFFF;
