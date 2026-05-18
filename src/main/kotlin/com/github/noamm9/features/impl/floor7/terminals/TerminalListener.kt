@@ -120,8 +120,11 @@ object TerminalListener {
     }
 
     fun checkFcDelay(): Boolean {
-        return DungeonListener.currentTime - initialOpenTick < FIRST_CLICK_DELAY ||
-            System.currentTimeMillis() - initialOpenTime < (FIRST_CLICK_DELAY * 50)
+        var delay = FIRST_CLICK_DELAY
+        if (currentType == TerminalType.MELODY) delay += 3
+
+        return DungeonListener.currentTime - initialOpenTick < delay ||
+            System.currentTimeMillis() - initialOpenTime < (delay * 50)
     }
 
     private fun reset() {
