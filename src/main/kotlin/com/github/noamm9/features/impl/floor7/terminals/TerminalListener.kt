@@ -20,7 +20,7 @@ import net.minecraft.world.item.ItemStack
 object TerminalListener {
     const val FIRST_CLICK_DELAY = 7
 
-    var inTerm = false
+    @JvmField var inTerm = false
     var currentType: TerminalType? = null
     var currentTitle = ""
     var initialOpenTick = 0L
