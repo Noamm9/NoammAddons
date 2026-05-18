@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(AbstractRecipeBookScreen.class)
 public abstract class AbstractRecipeBookScreenMixin {
     @Inject(method = "init", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/AbstractRecipeBookScreen;initButton()V"), cancellable = true)
-    private void handleInitButton(CallbackInfo ci) {
+    private void cancelInitButton(CallbackInfo ci) {
         if (!HideRecipeBook.INSTANCE.enabled) return;
         ci.cancel();
     }

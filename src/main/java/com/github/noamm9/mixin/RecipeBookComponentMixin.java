@@ -14,7 +14,7 @@ public abstract class RecipeBookComponentMixin {
     protected abstract void setVisible(boolean visible);
 
     @Inject(method = "init", at = @At("TAIL"))
-    private void afterInit(CallbackInfo ci) {
+    private void onInit(CallbackInfo ci) {
         if (!HideRecipeBook.INSTANCE.enabled) return;
         if (HideRecipeBook.getCloseRecipeBook().getValue()) {
             this.setVisible(false);
