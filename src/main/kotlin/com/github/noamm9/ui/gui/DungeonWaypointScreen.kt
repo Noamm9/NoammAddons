@@ -1,6 +1,6 @@
 package com.github.noamm9.ui.gui
 
-import com.github.noamm9.features.impl.dungeon.waypoints.DungeonWaypoints
+import com.github.noamm9.features.impl.dungeon.DungeonWaypoints
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.componnents.UIButton
 import com.github.noamm9.utils.ChatUtils
