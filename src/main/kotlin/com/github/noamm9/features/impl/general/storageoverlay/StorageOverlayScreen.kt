@@ -23,6 +23,7 @@ import net.minecraft.world.inventory.Slot
 import net.minecraft.world.item.ItemStack
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
+import java.util.*
 
 private inline fun inRect(mx: Double, my: Double, x: Int, y: Int, w: Int, h: Int) = mx >= x && mx < x + w && my >= y && my < y + h
 private inline fun inRect(mx: Int, my: Int, x: Int, y: Int, w: Int, h: Int) = mx >= x && mx < x + w && my >= y && my < y + h
@@ -56,7 +57,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     private var knobGrabbed = false
     private var hoveredOverlayItem: ItemStack? = null
 
-    var handler: StorageMenu? = null
+    var storageMenu: StorageMenu? = null
     var containerScreen: ContainerScreen? = null
 
     private inner class Measurements {
@@ -107,7 +108,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val viewBottom = scrollPanelY + scrollPanelH
         layoutedForEach(data) { x, y, _, ph, page, inventory ->
             if (y + ph < viewTop || y > viewBottom) return@layoutedForEach
-            drawPage(x, y, inventory, if (excluding == page) slots else null, mouseX, mouseY)
+            drawPage(x, y, page, inventory, if (excluding == page) slots else null, mouseX, mouseY)
         }
         disableScissor()
     }
@@ -189,17 +190,16 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         }
     }
 
-    private fun GuiGraphics.drawPage(x: Int, y: Int, inventory: StorageMenuData.StorageInventory, slots: List<Slot>?, mouseX: Int, mouseY: Int): Int {
-        val inv = inventory.inventory
-        if (inv == null && slots == null) {
+    private fun GuiGraphics.drawPage(x: Int, y: Int, page: StoragePage, inventory: NBTInventory?, slots: List<Slot>?, mouseX: Int, mouseY: Int): Int {
+        if (inventory == null && slots == null) {
             Render2D.drawRect(this, x, y, PAGE_WIDTH, 18, slotBgColor)
             Render2D.drawBorder(this, x, y, PAGE_WIDTH, 18, menuBorderColor)
-            Render2D.drawString(this, inventory.title + " - Click to load", x + 4f, y + 5f, Color(180, 180, 180))
+            Render2D.drawString(this, page.name + " - Click to load", x + 4f, y + 5f, Color(180, 180, 180))
             return 18
         }
-        val rows = inv?.rows ?: (slots?.size?.div(9)?.coerceIn(1, 5) ?: 3)
+        val rows = inventory?.rows ?: (slots?.size?.div(9)?.coerceIn(1, 5) ?: 3)
 
-        val name = inventory.title
+        val name = page.name
         val isActive = slots != null
         val slotsY = y + 5 + font.lineHeight
         val pageHeight = rows * SLOT_SIZE + 8 + font.lineHeight
@@ -220,7 +220,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
         drawSlotGrid(x + 2, slotsY, rows)
 
-        val invStacks = inv?.stacks
+        val invStacks = inventory?.stacks
         val itemCount = invStacks?.size ?: (slots?.size ?: (rows * 9))
 
         for (index in 0 until itemCount) {
@@ -258,12 +258,12 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         return pageHeight + 6
     }
 
-    private inline fun layoutedForEach(data: StorageMenuData, func: (x: Int, y: Int, pageWidth: Int, pageHeight: Int, page: StoragePage, inventory: StorageMenuData.StorageInventory) -> Unit) {
+    private inline fun layoutedForEach(data: SortedMap<StoragePage, NBTInventory?>, func: (x: Int, y: Int, pageWidth: Int, pageHeight: Int, page: StoragePage, inventory: NBTInventory?) -> Unit) {
         var yOffset = - scroll.toInt()
         var xOffset = 0
         var maxHeight = 0
-        for ((page, inventory) in data.storageInventories.entries) {
-            val currentHeight = inventory.inventory?.let { it.rows * SLOT_SIZE + 6 + font.lineHeight } ?: 18
+        for ((page, inventory) in data.entries) {
+            val currentHeight = inventory?.let { it.rows * SLOT_SIZE + 6 + font.lineHeight } ?: 18
             maxHeight = maxOf(maxHeight, currentHeight)
             val rectX = measurements.x + PADDING + (PAGE_WIDTH + PADDING) * xOffset
             val rectY = yOffset + measurements.y + PADDING
@@ -288,7 +288,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val data = StorageOverlay.storageMenuData
         layoutedForEach(data) { x, y, _, _, page, inventory ->
             if (page != activePage) return@layoutedForEach
-            val inv = inventory.inventory ?: return@layoutedForEach
+            val inv = inventory ?: return@layoutedForEach
             val rows = inv.rows
             val gridX = x + 3
             val gridY = y + 5 + font.lineHeight + 1
@@ -320,7 +320,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     }
 
     fun mouseScrolled(x: Double, y: Double, verticalAmount: Double): Boolean {
-        val activePage = (handler as? StorageMenu.Page)?.storagePage
+        val activePage = (storageMenu as? StorageMenu.Page)?.storagePage
         val mouseX = Resolution.getMouseX(x)
         val mouseY = Resolution.getMouseY(y)
 
@@ -351,7 +351,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     }
 
     fun mouseClicked(click: MouseButtonEvent): Boolean {
-        val activePage = (handler as? StorageMenu.Page)?.storagePage
+        val activePage = (storageMenu as? StorageMenu.Page)?.storagePage
         val button = click.button()
         val modifiers = click.modifiers()
 
@@ -363,7 +363,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             if (activePage != null && dispatchActivePageSlotClick(button, modifiers, resolutionMouseX.toDouble(), resolutionMouseY.toDouble(), activePage)) return true
             layoutedForEach(data) { x, y, pw, ph, page, _ ->
                 if (inRect(resolutionMouseX, resolutionMouseY, x, y, pw, ph) && activePage != page && button == 0) {
-                    page.navigateTo()
+                    page.open()
                     return true
                 }
             }
@@ -414,7 +414,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val scaledMouseY = Resolution.getMouseY(mouseY.toDouble())
         Render2D.drawRect(context, measurements.x, measurements.y, measurements.overviewWidth, measurements.overviewHeight, menuBackgroundColor)
         Render2D.drawBorder(context, measurements.x, measurements.y, measurements.overviewWidth, measurements.overviewHeight, Color(60, 60, 65))
-        val activeSlot = (handler as? StorageMenu.Page)?.storagePage
+        val activeSlot = (storageMenu as? StorageMenu.Page)?.storagePage
         val chestSlots = screen.menu.slots.take(screen.menu.rowCount * 9).drop(9)
         context.drawPages(scaledMouseX, scaledMouseY, activeSlot, chestSlots)
         context.drawScrollBar()

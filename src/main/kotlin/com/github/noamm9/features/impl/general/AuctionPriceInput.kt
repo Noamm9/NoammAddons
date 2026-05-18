@@ -31,11 +31,8 @@ import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox and undercut mode.") {
-    private val defaultMode by DropdownSetting("Default mode", 0, listOf("Normal", "Undercut"))
-        .withDescription("The default input mode that will be used when you open the menu")
-
-    private val rememberInput by MultiCheckboxSetting("Remember Input", mutableMapOf("Text" to false, "Mode" to false))
-        .withDescription("Toggles for settings on the input menu that should be restored after reopening it")
+    private val defaultMode by DropdownSetting("Default mode", 0, listOf("Normal", "Undercut")).withDescription("The default input mode that will be used when you open the menu")
+    private val rememberInput by MultiCheckboxSetting("Remember Input", mutableMapOf("Text" to false, "Mode" to false)).withDescription("Toggles for settings on the input menu that should be restored after reopening it")
 
     private enum class InputMode { NORMAL, UNDERCUT }
 

@@ -138,6 +138,6 @@ object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and mo
             )
         }
 
-        register<WorldChangeEvent> { Mask.entries.forEach { it.reset() } }
+        register<WorldChangeEvent> { Mask.entries.forEach(Mask::reset) }
     }
 }

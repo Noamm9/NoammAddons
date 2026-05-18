@@ -1,13 +1,13 @@
 package com.github.noamm9.utils.network.cache
 
+import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.config.PogObject
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.remove
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.*
 
 object UuidCache {
     private data class CacheData(
@@ -21,6 +21,7 @@ object UuidCache {
 
     init {
         ThreadUtils.loop(TimeUnit.MINUTES.toMillis(10), block = ::cleanupExpired)
+        addToCache(mc.user.name, mc.user.profileId.toString())
 
         EventBus.register<MainThreadPacketReceivedEvent.Post> {
             val packet = event.packet as? ClientboundPlayerInfoUpdatePacket ?: return@register

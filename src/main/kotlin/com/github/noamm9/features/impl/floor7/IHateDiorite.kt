@@ -12,24 +12,17 @@ import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockState
 
 object IHateDiorite: Feature("I Hate Diorite") {
-    private val blockStates = mapOf(
-        "GreenArray" to Blocks.GREEN_STAINED_GLASS.defaultBlockState(),
-        "YellowArray" to Blocks.YELLOW_STAINED_GLASS.defaultBlockState(),
-        "PurpleArray" to Blocks.PURPLE_STAINED_GLASS.defaultBlockState(),
-        "RedArray" to Blocks.RED_STAINED_GLASS.defaultBlockState()
-    )
+    private val positions: List<Pair<BlockState, List<BlockPos>>>? by lazy {
+        val blockStates = mapOf(
+            "GreenArray" to Blocks.GREEN_STAINED_GLASS.defaultBlockState(),
+            "YellowArray" to Blocks.YELLOW_STAINED_GLASS.defaultBlockState(),
+            "PurpleArray" to Blocks.PURPLE_STAINED_GLASS.defaultBlockState(),
+            "RedArray" to Blocks.RED_STAINED_GLASS.defaultBlockState()
+        )
 
-    private val flattenedPositions by lazy {
-        val data = DataDownloader.loadJson<Map<String, List<Map<String, Double>>>>("iHateDioriteBlocks.json")
-        val list = mutableListOf<Pair<BlockPos, BlockState>>()
-
-        data.forEach { (key, coords) ->
-            val state = blockStates[key] ?: return@forEach
-            coords.forEach { c ->
-                list.add(BlockPos(c["x"] !!.toInt(), c["y"] !!.toInt(), c["z"] !!.toInt()) to state)
-            }
+        DataDownloader.loadJson<Map<String, List<BlockPos>>>("iHateDioriteBlocks.json").mapNotNull { (key, positions) ->
+            blockStates[key]?.let { it to positions }
         }
-        list
     }
 
     private val cursor = BlockPos.MutableBlockPos()
@@ -39,13 +32,14 @@ object IHateDiorite: Feature("I Hate Diorite") {
             if (LocationUtils.F7Phase != 2) return@register
             val level = mc.level ?: return@register
 
-            for ((basePos, glassState) in flattenedPositions) {
-                for (yOffset in 0 .. 37) {
-                    cursor.set(basePos.x, basePos.y + yOffset, basePos.z)
-                    val currentState = level.getBlockState(cursor)
-
-                    if (currentState.`is`(Blocks.DIORITE) || currentState.`is`(Blocks.POLISHED_DIORITE)) {
-                        WorldUtils.setBlockAt(cursor, glassState)
+            positions?.forEach { (glassState, posList) ->
+                for (basePos in posList) {
+                    for (yOffset in 0 .. 37) {
+                        cursor.set(basePos.x, basePos.y + yOffset, basePos.z)
+                        val currentState = level.getBlockState(cursor)
+                        if (currentState.`is`(Blocks.DIORITE) || currentState.`is`(Blocks.POLISHED_DIORITE)) {
+                            WorldUtils.setBlockAt(cursor, glassState)
+                        }
                     }
                 }
             }

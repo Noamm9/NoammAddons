@@ -31,7 +31,7 @@ object ProfileUtils {
         "https://mc-api.io/uuid/",
     )
 
-    val uuidToNameApis = listOf(
+    private val uuidToNameApis = listOf(
         "https://playerdb.co/api/player/minecraft/",
         "https://mowojang.matdoes.dev/",
         "https://sessionserver.mojang.com/session/minecraft/profile/",

@@ -55,6 +55,18 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
     }
 
     override fun init() {
+        hudElement("Melody Display", centered = true, shouldDraw = { LocationUtils.F7Phase == 3 }) { ctx, example ->
+            val text = if (example) formatMessage(mc.user.name, 1)
+            else {
+                val state = currentState ?: return@hudElement 0f to 0f
+                formatMessage(state.name, state.progress)
+            }
+
+            Render2D.drawCenteredString(ctx, text, 0, 0)
+
+            return@hudElement text.width().toFloat() to 9f
+        }
+
         register<ChatMessageEvent> {
             if (LocationUtils.F7Phase != 3) return@register
             val message = event.unformattedText.takeIf { it.startsWith("Party > ") } ?: return@register

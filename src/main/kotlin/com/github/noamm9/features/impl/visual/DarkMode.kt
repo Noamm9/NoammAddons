@@ -16,6 +16,8 @@ import java.awt.Color
  */
 object DarkMode: Feature("Darkens the screen") {
     private val opacity by SliderSetting("Opacity", 25, 1, 100, 1).withDescription("The strength of the dark tint.")
+
+    @JvmStatic
     val tintHud by ToggleSetting("Tint HUD").withDescription("Should the dark tint also apply to HUD elements?")
 
     @JvmStatic

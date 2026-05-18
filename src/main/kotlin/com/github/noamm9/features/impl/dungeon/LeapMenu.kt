@@ -181,10 +181,9 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
 
         register<ContainerEvent.MouseClick> {
             if (! inSpiritLeap(event.screen)) return@register
-            getHoveredIndex()?.let {
-                event.isCanceled = true
-                triggerLeap(it)
-            }
+            val i = getHoveredIndex() ?: return@register
+            event.isCanceled = true
+            triggerLeap(i)
         }
 
         register<ContainerEvent.Keyboard> {
@@ -203,7 +202,6 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
             triggerLeap(index)
         }
     }
-
 
     private fun getHoveredIndex(): Int? {
         val cx = mc.window.width / 2
@@ -254,14 +252,14 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
                     val priorityA = when (type) {
                         "name" -> customLeapOrder.indexOf(a.name.lowercase())
                         "class" -> customLeapOrder.indexOf(a.clazz.name.lowercase())
-                        else -> -1
-                    }.takeIf { it != -1 } ?: Int.MAX_VALUE
+                        else -> - 1
+                    }.takeIf { it != - 1 } ?: Int.MAX_VALUE
 
                     val priorityB = when (type) {
                         "name" -> customLeapOrder.indexOf(b.name.lowercase())
                         "class" -> customLeapOrder.indexOf(b.clazz.name.lowercase())
-                        else -> -1
-                    }.takeIf { it != -1 } ?: Int.MAX_VALUE
+                        else -> - 1
+                    }.takeIf { it != - 1 } ?: Int.MAX_VALUE
 
                     if (priorityA != priorityB) priorityA.compareTo(priorityB)
                     else when (type) {
@@ -283,7 +281,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
     }
 
     private fun triggerLeap(index: Int) {
-        val entry = players[index] ?: return
+        val entry = players.getOrNull(index) ?: return
         if (entry.player.isDead) return ChatUtils.modMessage("§3LeapMenu >> §c${entry.player.name} is dead!")
 
         mc.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1F))

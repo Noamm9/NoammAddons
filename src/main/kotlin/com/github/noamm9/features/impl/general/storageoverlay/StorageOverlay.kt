@@ -35,9 +35,9 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
 
     private val storageDir by lazy { File(mc.gameDirectory, "config/${NoammAddons.MOD_NAME}/storage").also(File::mkdirs) }
     private val dataFile get() = File(storageDir, "${mc.user.profileId}.nbt")
-    @Volatile var storageMenuData = StorageMenuData()
+    @Volatile var storageMenuData: SortedMap<StoragePage, NBTInventory?> = TreeMap()
 
-    private var currentHandler: StorageMenu? = null
+    private var currentMenu: StorageMenu? = null
     private var active: StorageOverlayScreen? = null
 
     @JvmStatic
@@ -57,7 +57,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
             val screen = mc.screen as? ContainerScreen ?: return@register
             if (screen.menu.containerId != event.windowId) return@register
             if (screen.title.unformattedText != event.title.unformattedText) return@register
-            val handler = currentHandler ?: return@register
+            val handler = currentMenu ?: return@register
             saveContent(handler)
         }
     }
@@ -69,42 +69,42 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
 
         val screen = newScreen as? ContainerScreen
         val overlay = oldScreen as? StorageOverlayScreen ?: active
-        val handler = StorageMenu.fromScreen(screen)
+        val menu = StorageMenu.get(screen)
 
-        if (currentHandler == null && handler == null) loadData()
-        currentHandler?.let { saveContent(it) }
-        handler?.let { saveContent(it) }
-        currentHandler = handler
+        if (currentMenu == null && menu == null) loadData()
+        currentMenu?.let { saveContent(it) }
+        menu?.let { saveContent(it) }
+        currentMenu = menu
 
         if (oldScreen === active?.containerScreen) {
             active?.containerScreen = null
-            active?.handler = null
+            active?.storageMenu = null
             active = null
         }
 
         if (newScreen == null && overlay != null && ! overlay.isExiting) return overlay
         if (screen == null) return null
         if (overlay?.isExiting == true) return null
-        val currentHandler = currentHandler ?: return null
+        val currentHandler = currentMenu ?: return null
 
         active = (overlay ?: StorageOverlayScreen()).also {
             it.containerScreen = screen
-            it.handler = currentHandler
+            it.storageMenu = currentHandler
         }
 
         return null
     }
 
-    private fun saveContent(handler: StorageMenu) = when (handler) {
-        is StorageMenu.Overview -> saveStorageOverview(handler, storageMenuData.storageInventories)
-        is StorageMenu.Page -> savePage(handler, storageMenuData.storageInventories)
+    private fun saveContent(menu: StorageMenu) {
+        if (menu is StorageMenu.Overview) return saveOverview(menu, storageMenuData)
+        if (menu is StorageMenu.Page) return savePage(menu, storageMenuData)
     }
 
-    private fun saveStorageOverview(handler: StorageMenu.Overview, data: SortedMap<StoragePage, StorageMenuData.StorageInventory>) {
+    private fun saveOverview(handler: StorageMenu.Overview, data: SortedMap<StoragePage, NBTInventory?>) {
         var changed = false
         for ((index, stack) in handler.handler.slots.map { it.item }.withIndex()) {
             if (stack.isEmpty) continue
-            val slot = StoragePage.fromOverviewSlotIndex(index) ?: continue
+            val slot = StoragePage.overview(index) ?: continue
             val isEmpty = stack.item in emptyStorageSlotItems
             if (slot in data) {
                 if (isEmpty) {
@@ -114,14 +114,14 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
                 continue
             }
             if (! isEmpty) {
-                data[slot] = StorageMenuData.StorageInventory(slot.defaultName(), slot, null)
+                data[slot] = null
                 changed = true
             }
         }
         if (changed) ThreadUtils.async(::saveData)
     }
 
-    private fun savePage(handler: StorageMenu.Page, data: SortedMap<StoragePage, StorageMenuData.StorageInventory>) {
+    private fun savePage(handler: StorageMenu.Page, data: SortedMap<StoragePage, NBTInventory?>) {
         val slot = handler.storagePage
         val gui = handler.handler
 
@@ -129,10 +129,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         val chestItems = gui.slots.subList(9, end).map { it.item.copy() }
         if (chestItems.isEmpty()) return
 
-        data.getOrPut(slot) {
-            StorageMenuData.StorageInventory(slot.defaultName(), slot, null)
-        }.inventory = NBTInventory(chestItems)
-
+        data[slot] = NBTInventory(chestItems)
         ThreadUtils.async(::saveData)
     }
 
@@ -141,10 +138,8 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         val file = dataFile
         if (! checkFile(file)) return
         val root = CompoundTag()
-        for ((slot, inv) in storageMenuData.storageInventories) {
-            val prefix = slot.index.toString()
-            root.putString("${prefix}_title", inv.title)
-            inv.inventory?.let { root.putString("${prefix}_inv", it.encode()) }
+        for ((slot, inv) in storageMenuData) {
+            inv?.let { root.putString("${slot.index}_inv", it.encode()) }
         }
 
         NbtIo.writeCompressed(root, file.toPath())
@@ -154,20 +149,18 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     private fun loadData() {
         val file = dataFile
         if (! checkFile(file)) return
-        if (storageMenuData.storageInventories.isNotEmpty()) return
+        if (storageMenuData.isNotEmpty()) return
         if (! file.exists()) return ThreadUtils.async(::loadFromApi)
         val root = NbtIo.readCompressed(file.toPath(), NbtAccounter.unlimitedHeap()) ?: return
-        val data = StorageMenuData()
+        val data = TreeMap<StoragePage, NBTInventory?>()
 
         for (i in 0 until 27) {
-            val titleKey = "${i}_title"
             val invKey = "${i}_inv"
-            if (! root.contains(titleKey)) continue
-            val title = (root.getString(titleKey).getOrNull() ?: "").ifEmpty { continue }
+            if (! root.contains(invKey)) continue
 
             val slot = StoragePage(i)
             val inventory = if (root.contains(invKey)) NBTInventory.decode(root.getString(invKey).getOrNull() ?: "") else null
-            data.storageInventories[slot] = StorageMenuData.StorageInventory(title, slot, inventory)
+            data[slot] = inventory
         }
 
         storageMenuData = data
@@ -181,22 +174,9 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
 
     private fun loadFromApi() = runBlocking {
         WebUtils.getAs<StorageData>("https://api.noamm.org/hypixel/storage/${mc.user.profileId}").onSuccess {
-            val data = StorageMenuData()
-
-            it.enderchest.forEach { (i, stacks) ->
-                val slot = StoragePage(i)
-                val title = slot.defaultName()
-                val inventory = NBTInventory(stacks)
-                data.storageInventories[slot] = StorageMenuData.StorageInventory(title, slot, inventory)
-            }
-
-            it.backpack.forEach { (i, stacks) ->
-                val slot = StoragePage(i + 9)
-                val title = slot.defaultName()
-                val inventory = NBTInventory(stacks)
-                data.storageInventories[slot] = StorageMenuData.StorageInventory(title, slot, inventory)
-            }
-
+            val data = TreeMap<StoragePage, NBTInventory?>()
+            it.enderchest.forEach { (i, stacks) -> data[StoragePage(i)] = NBTInventory(stacks) }
+            it.backpack.forEach { (i, stacks) -> data[StoragePage(i + 9)] = NBTInventory(stacks) }
             storageMenuData = data
         }
     }

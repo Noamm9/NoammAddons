@@ -18,4 +18,3 @@ public abstract class MixinLightTexture {
         return instance.getEffectBlendFactor(registryEntry, v);
     }
 }
-

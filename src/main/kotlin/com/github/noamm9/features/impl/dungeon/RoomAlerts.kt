@@ -19,6 +19,7 @@ object RoomAlerts: Feature("Alerts when certain stuff happens in your current ro
 
     override fun init() {
         register<DungeonEvent.RoomEvent.onStateChange> {
+            if (! clear.value && ! secrets.value) return@register
             if (! event.room.data.type.equalsOneOf(RoomType.NORMAL, RoomType.PUZZLE, RoomType.RARE, RoomType.TRAP)) return@register
             if (event.room.data.type == RoomType.PUZZLE && event.room.name != "Blaze") return@register
             if (DungeonListener.thePlayer !in event.roomPlayers) return@register
