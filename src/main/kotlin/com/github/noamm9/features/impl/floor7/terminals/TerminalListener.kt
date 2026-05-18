@@ -32,7 +32,7 @@ object TerminalListener {
 
     val currentItems = mutableMapOf<Int, ItemStack>()
 
-    val packetRecivedListener = register<MainThreadPacketReceivedEvent.Pre> { onPacketReceived(event.packet) }.unregister()
+    val packetReceivedListener = register<MainThreadPacketReceivedEvent.Pre> { onPacketReceived(event.packet) }.unregister()
     val packetSentListener = register<PacketEvent.Sent> { onPacketSent(event.packet, event) }.unregister()
     val tickListener = register<TickEvent.Server> { onTick() }.unregister()
     val worldChangeListener = register<WorldChangeEvent> { reset() }.unregister()
