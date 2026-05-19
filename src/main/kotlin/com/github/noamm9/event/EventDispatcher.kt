@@ -67,6 +67,7 @@ object EventDispatcher {
 
         register<PacketEvent.Received> {
             if (event.packet is ClientboundSystemChatPacket) {
+                if (event.packet.overlay) return@register
                 if (EventBus.post(ChatMessageEvent(event.packet.content))) {
                     event.isCanceled = true
                 }

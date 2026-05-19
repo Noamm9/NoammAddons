@@ -12,15 +12,13 @@ import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.core.RoomType
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.network.ProfileUtils
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.HoverEvent
 import net.minecraft.network.chat.MutableComponent
 
 object ClearInfoUpdater {
     private val componentSeparator = createComponent(" &f|&r ")
-    private val cdebug get() = NoammAddons.debugFlags.contains("clearinfo")
 
     fun checkSplits(room: RoomData, oldState: RoomState, newState: RoomState, players: List<DungeonPlayer>) {
         if (! DungeonMap.enabled) return
@@ -43,58 +41,55 @@ object ClearInfoUpdater {
     fun initStartSecrets() = NoammAddons.scope.launch(Dispatchers.IO) {
         if (! DungeonMap.enabled) return@launch
         if (! MapConfig.printPlayersClearInfo.value) return@launch
-        DungeonListener.dungeonTeammates.toList().forEach { teammate ->
-            val name = teammate.name
-            val ci = DungeonPlayer.get(name) ?: return@forEach
-            ProfileUtils.getSecrets(name).onSuccess { secrets ->
-                ci.secretsBeforeRun = secrets
-                if (cdebug) ChatUtils.modMessage("$name has $secrets")
-            }.onFailure {
-                ci.secretsBeforeRun = 0
-                ChatUtils.modMessage("Failed to get secrets for &b$name&r. &cError: ${it.message}")
-                it.printStackTrace()
+        coroutineScope {
+            val jobs = DungeonListener.dungeonTeammates.map { teammate ->
+                async {
+                    ProfileUtils.getSecrets(teammate.name).onSuccess {
+                        teammate.secretsBeforeRun = it
+                    }.onFailure {
+                        teammate.secretsBeforeRun = 0
+                        ChatUtils.modMessage("Failed to get secrets for &b${teammate.name}&r. &cError: ${it.message}")
+                        it.printStackTrace()
+                    }
+                }
             }
+
+            jobs.awaitAll()
         }
     }
 
     fun sendClearInfoMessage() = NoammAddons.scope.launch(Dispatchers.IO) {
         if (! DungeonMap.enabled) return@launch
         if (! MapConfig.printPlayersClearInfo.value) return@launch
-        val teammates = DungeonListener.dungeonTeammates.toList()
+        val msgList = DungeonListener.dungeonTeammates.map { teammate ->
+            async {
+                val before = teammate.secretsBeforeRun
+                val secretsAfterRun = if (before != 0L) ProfileUtils.getSecrets(teammate.name).getOrDefault(before) else 0L
+                val playerFormatted = "${teammate.clazz.code}${teammate.name}"
+                val foundSecrets = secretsAfterRun - before
 
-        val msgList = teammates.map { teammate ->
-            val before = teammate.secretsBeforeRun
-            val secretsAfterRun = if (before != 0L) ProfileUtils.getSecrets(teammate.name).getOrDefault(before) else 0L
-            if (cdebug) ChatUtils.modMessage("${teammate.name} has $secretsAfterRun after run")
-            val playerFormatted = "${teammate.clazz.code}${teammate.name}"
-            val foundSecrets = secretsAfterRun - before
+                val baseComp = createComponent("${NoammAddons.PREFIX} $playerFormatted&f:&r ")
+                val (solo, stacked) = teammate.clearedRooms
+                val deaths = teammate.deaths
 
-            val baseComp = createComponent("${NoammAddons.PREFIX} $playerFormatted&f:&r ")
-            val solo = teammate.clearedRooms.first
-            val stacked = teammate.clearedRooms.second
-            val deaths = teammate.deaths
+                val comps = listOfNotNull(
+                    getRoomsClearedComponent(solo, stacked),
+                    createComponent("&b$foundSecrets Secrets&r"),
+                    if (deaths.isEmpty()) null else createComponent("&c${deaths.size} ${if (deaths.size > 1) "Deaths" else "Death"}", deaths.joinToString("\n")),
+                )
 
-            val comps = listOfNotNull(
-                getRoomsClearedComponent(solo, stacked),
-                createComponent("&b$foundSecrets Secrets&r"),
-                getDeathCountComponent(deaths)
-            )
+                comps.forEachIndexed { i, c ->
+                    baseComp.append(c)
+                    if (i != comps.lastIndex) {
+                        baseComp.append(componentSeparator)
+                    }
+                }
 
-            constructMessage(baseComp, comps)
-        }
-
-        msgList.forEach(ChatUtils::chat)
-    }
-
-
-    private fun constructMessage(baseComp: MutableComponent, allComps: List<MutableComponent>): MutableComponent {
-        allComps.forEachIndexed { i, c ->
-            baseComp.append(c)
-            if (i != allComps.lastIndex) {
-                baseComp.append(componentSeparator)
+                baseComp
             }
         }
-        return baseComp
+
+        msgList.awaitAll().forEach(ChatUtils::chat)
     }
 
     private fun getRoomsClearedComponent(solo: Collection<String>, stacked: Collection<String>): MutableComponent {
@@ -109,11 +104,6 @@ object ClearInfoUpdater {
 
             createComponent("&e$roomRange Rooms&r", tooltip)
         }
-    }
-
-    private fun getDeathCountComponent(deaths: Collection<String>): MutableComponent? {
-        return if (deaths.isEmpty()) null
-        else createComponent("&c${deaths.size} ${if (deaths.size > 1) "Deaths" else "Death"}", deaths.joinToString("\n"))
     }
 
     private fun createComponent(text: String, hoverText: String? = null): MutableComponent {

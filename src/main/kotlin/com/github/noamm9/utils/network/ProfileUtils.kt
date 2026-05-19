@@ -1,11 +1,14 @@
 package com.github.noamm9.utils.network
 
+import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.NoammAddons.scope
-import com.github.noamm9.utils.JsonUtils
+import com.github.noamm9.event.EventListener
+import com.github.noamm9.event.impl.ChatMessageEvent
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.JsonUtils.getObj
 import com.github.noamm9.utils.JsonUtils.getString
-import com.github.noamm9.utils.catch
-import com.github.noamm9.utils.containsOneOf
+import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.network.cache.ProfileCache
 import com.github.noamm9.utils.network.cache.SecretCache
 import com.github.noamm9.utils.network.cache.UuidCache
@@ -16,6 +19,7 @@ import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.serialization.json.jsonObject
 import java.util.*
 import java.util.concurrent.*
@@ -113,8 +117,8 @@ object ProfileUtils {
                 }
 
                 val response = catch { JsonUtils.stringToJson(result.getOrThrow()).jsonObject } ?: continue
-                val uuid = if (i == 0) response.getObj("player")?.getString("id") else response.getString("id") ?: key
-                val fetchedName = if (i == 0) response.getObj("player")?.getString("username") else response.getString("name")
+                val uuid = if (i == 0) response.getObj("data")?.getObj("player")?.getString("id") else response.getString("id") ?: key
+                val fetchedName = if (i == 0) response.getObj("data")?.getObj("player")?.getString("username") else response.getString("name")
 
                 if (uuid.isNullOrBlank() || fetchedName.isNullOrBlank()) continue
 
@@ -128,6 +132,10 @@ object ProfileUtils {
 
     suspend fun getSecrets(playerName: String): Result<Long> {
         val name = playerName.lowercase()
+        if (name == mc.user.name.lowercase() && DungeonListener.thePlayer?.isDead == false) {
+            return runCatching { getSecretsCMD() }
+        }
+
         SecretCache.getFromCache(name)?.let { return Result.success(it) }
 
         return awaitSharedRequest("SECRETS", name) {
@@ -183,5 +191,33 @@ object ProfileUtils {
         }
 
         return res.body()
+    }
+
+    // usuaslly i dont like running commands in the background
+    // but this one seems to behave exacly like /locraw.
+    // meaning it does not effect the message spam cooldown
+    private suspend fun getSecretsCMD(): Long {
+        if (! LocationUtils.inSkyblock) error("Not in Skyblock")
+        _totalSecrets = null
+        chatListener.register()
+        ChatUtils.sendCommand("/secretcount")
+        ThreadUtils.setTimeout(5000) { chatListener.unregister() }
+        while (chatListener.isRegistered()) delay(50)
+        return _totalSecrets ?: error("No secrets found")
+    }
+
+    private val regex = Regex("^\\w+: \\d+$")
+    private var _totalSecrets: Long? = null
+    private val chatListener = EventListener<ChatMessageEvent>(ChatMessageEvent::class.java) {
+        val text = event.unformattedText
+
+        if (text == "Secret Counts:") return@EventListener event.cancel()
+        if (text.matches(regex)) {
+            event.cancel()
+            if (text.substringBefore(":") == mc.user.name) {
+                _totalSecrets = text.substringAfter(": ").toLong()
+                listener.unregister()
+            }
+        }
     }
 }
