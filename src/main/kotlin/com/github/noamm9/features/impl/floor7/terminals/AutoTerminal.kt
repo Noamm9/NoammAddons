@@ -51,7 +51,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
 
     override fun onEnable() {
         super.onEnable()
-        TerminalListener.packetRecivedListener.register()
+        TerminalListener.packetReceivedListener.register()
         TerminalListener.packetSentListener.register()
         TerminalListener.tickListener.register()
         TerminalListener.worldChangeListener.register()
@@ -62,7 +62,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     override fun onDisable() {
         super.onDisable()
         if (TerminalSolver.enabled) return
-        TerminalListener.packetRecivedListener.unregister()
+        TerminalListener.packetReceivedListener.unregister()
         TerminalListener.packetSentListener.unregister()
         TerminalListener.tickListener.unregister()
         TerminalListener.worldChangeListener.unregister()

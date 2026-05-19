@@ -67,7 +67,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
 
     override fun onEnable() {
         super.onEnable()
-        TerminalListener.packetRecivedListener.register()
+        TerminalListener.packetReceivedListener.register()
         TerminalListener.packetSentListener.register()
         TerminalListener.tickListener.register()
         TerminalListener.worldChangeListener.register()
@@ -80,7 +80,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
         //#if CHEAT
         if (AutoTerminal.enabled) return
         //#endif
-        TerminalListener.packetRecivedListener.unregister()
+        TerminalListener.packetReceivedListener.unregister()
         TerminalListener.packetSentListener.unregister()
         TerminalListener.tickListener.unregister()
         TerminalListener.worldChangeListener.unregister()
