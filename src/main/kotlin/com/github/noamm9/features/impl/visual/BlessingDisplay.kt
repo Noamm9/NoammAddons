@@ -7,8 +7,6 @@ import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.ui.clickgui.components.section
 import com.github.noamm9.ui.clickgui.components.showIf
-import com.github.noamm9.ui.hud.getValue
-import com.github.noamm9.ui.hud.provideDelegate
 import com.github.noamm9.utils.dungeons.enums.Blessing
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
@@ -36,24 +34,26 @@ object BlessingDisplay: Feature("Displays the current active blessings in the du
         Blessing.WISDOM -> wisdom.value to wisdomColor.value
     }
 
-    val blessingHud by hudElement("BlessingDisplay") { context, example ->
-        var maxWidth = 0f
-        var currentY = 0f
+    override fun init() {
+        hudElement("BlessingDisplay") { context, example ->
+            var maxWidth = 0f
+            var currentY = 0f
 
-        Blessing.entries.forEach { blessing ->
-            val (enabled, color) = getBlessingConfig(blessing)
+            Blessing.entries.forEach { blessing ->
+                val (enabled, color) = getBlessingConfig(blessing)
 
-            val value = if (example) 5 else blessing.current
-            if (! enabled || value <= 0) return@forEach
+                val value = if (example) 5 else blessing.current
+                if (! enabled || value <= 0) return@forEach
 
-            val text = "${blessing.displayString} §f$value"
+                val text = "${blessing.displayString} §f$value"
 
-            Render2D.drawString(context, text, 0, currentY.toInt(), color)
+                Render2D.drawString(context, text, 0, currentY.toInt(), color)
 
-            maxWidth = maxOf(maxWidth, text.width().toFloat())
-            currentY += 9f
+                maxWidth = maxOf(maxWidth, text.width().toFloat())
+                currentY += 9f
+            }
+
+            return@hudElement maxWidth to currentY
         }
-
-        return@hudElement maxWidth to currentY
     }
 }

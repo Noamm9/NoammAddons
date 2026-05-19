@@ -23,12 +23,6 @@ public interface IAbstractContainerScreen {
     void setTopPos(int value);
 
     @Accessor("imageWidth")
-    int getImageWidth();
-
-    @Accessor("imageHeight")
-    int getImageHeight();
-
-    @Accessor("imageWidth")
     void setImageWidth(int value);
 
     @Accessor("imageHeight")

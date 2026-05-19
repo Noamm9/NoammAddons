@@ -20,7 +20,7 @@ import net.minecraft.world.item.ItemStack
 object TerminalListener {
     const val FIRST_CLICK_DELAY = 7
 
-    var inTerm = false
+    @JvmField var inTerm = false
     var currentType: TerminalType? = null
     var currentTitle = ""
     var initialOpenTick = 0L
@@ -32,7 +32,7 @@ object TerminalListener {
 
     val currentItems = mutableMapOf<Int, ItemStack>()
 
-    val packetRecivedListener = register<MainThreadPacketReceivedEvent.Pre> { onPacketReceived(event.packet) }.unregister()
+    val packetReceivedListener = register<MainThreadPacketReceivedEvent.Pre> { onPacketReceived(event.packet) }.unregister()
     val packetSentListener = register<PacketEvent.Sent> { onPacketSent(event.packet, event) }.unregister()
     val tickListener = register<TickEvent.Server> { onTick() }.unregister()
     val worldChangeListener = register<WorldChangeEvent> { reset() }.unregister()
@@ -120,8 +120,11 @@ object TerminalListener {
     }
 
     fun checkFcDelay(): Boolean {
-        return DungeonListener.currentTime - initialOpenTick < FIRST_CLICK_DELAY ||
-            System.currentTimeMillis() - initialOpenTime < (FIRST_CLICK_DELAY * 50)
+        var delay = FIRST_CLICK_DELAY
+        if (currentType == TerminalType.MELODY) delay += 3
+
+        return DungeonListener.currentTime - initialOpenTick < delay ||
+            System.currentTimeMillis() - initialOpenTime < (delay * 50)
     }
 
     private fun reset() {

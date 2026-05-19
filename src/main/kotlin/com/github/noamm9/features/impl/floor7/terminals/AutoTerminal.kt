@@ -2,6 +2,7 @@ package com.github.noamm9.features.impl.floor7.terminals
 
 //#if CHEAT
 
+import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.terminals.TerminalListener.FIRST_CLICK_DELAY
@@ -9,6 +10,7 @@ import com.github.noamm9.ui.clickgui.components.*
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.ThreadUtils
 import net.minecraft.world.inventory.ClickType
@@ -49,7 +51,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
 
     override fun onEnable() {
         super.onEnable()
-        TerminalListener.packetRecivedListener.register()
+        TerminalListener.packetReceivedListener.register()
         TerminalListener.packetSentListener.register()
         TerminalListener.tickListener.register()
         TerminalListener.worldChangeListener.register()
@@ -60,7 +62,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     override fun onDisable() {
         super.onDisable()
         if (TerminalSolver.enabled) return
-        TerminalListener.packetRecivedListener.unregister()
+        TerminalListener.packetReceivedListener.unregister()
         TerminalListener.packetSentListener.unregister()
         TerminalListener.tickListener.unregister()
         TerminalListener.worldChangeListener.unregister()
@@ -88,13 +90,13 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
             lastClickTime = System.currentTimeMillis()
             lastClickedSlot = actualSlot
 
-
             if (buttonRow == 3) return@register
             if (! melodySkip.value) return@register
             if (! melodySkipFirstRow.value && buttonRow == 0) return@register
             if (! (melodySkipMode.value == 1 || (melodySkipMode.value == 0 && (current == 0 || current == 4)))) return@register
 
-            val check = { TerminalListener.inTerm && TerminalListener.currentType == TerminalType.MELODY }
+            val windowId = TerminalListener.lastWindowId
+            val check = { TerminalListener.inTerm && TerminalListener.currentType == TerminalType.MELODY && windowId == TerminalListener.lastWindowId }
             if (buttonRow < 3) ThreadUtils.scheduledTask(1) { if (check()) sendClickPacket(actualSlot + 9) }
             if (buttonRow < 2) ThreadUtils.scheduledTask(2) { if (check()) sendClickPacket(actualSlot + 18) }
             if (buttonRow < 1) ThreadUtils.scheduledTask(3) { if (check()) sendClickPacket(actualSlot + 27) }
@@ -168,9 +170,8 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     }
 
     private fun sendClickPacket(slot: Int) {
-        mc.gameMode?.handleInventoryMouseClick(
-            TerminalListener.lastWindowId, slot, 2, ClickType.CLONE, mc.player
-        )
+        mc.gameMode !!.handleInventoryMouseClick(TerminalListener.lastWindowId, slot, 2, ClickType.CLONE, mc.player !!)
+        if (NoammAddons.debugFlags.contains("terminal")) ChatUtils.modMessage("Melody: Clicked: $slot")
     }
 
     fun reset() {

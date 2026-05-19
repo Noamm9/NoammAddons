@@ -82,14 +82,14 @@ public abstract class MixinGui {
 
     @Inject(method = "render", at = @At(value = "HEAD"))
     public void onRenderHudPre(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
-        if (!DarkMode.INSTANCE.getTintHud().getValue()) {
+        if (!DarkMode.getTintHud().getValue()) {
             DarkMode.drawOverlay(guiGraphics);
         }
     }
 
     @Inject(method = "render", at = @At(value = "TAIL"))
     public void onRenderHudPost(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
-        if (DarkMode.INSTANCE.getTintHud().getValue()) {
+        if (DarkMode.getTintHud().getValue()) {
             DarkMode.drawOverlay(guiGraphics);
         }
     }

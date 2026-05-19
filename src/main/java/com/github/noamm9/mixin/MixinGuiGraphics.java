@@ -19,7 +19,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 import java.util.List;
-import java.util.Objects;
 
 @Mixin(value = GuiGraphics.class)
 public abstract class MixinGuiGraphics {
@@ -41,8 +40,6 @@ public abstract class MixinGuiGraphics {
 
     @ModifyVariable(method = "renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/level/Level;Lnet/minecraft/world/item/ItemStack;III)V", at = @At("HEAD"), argsOnly = true)
     private ItemStack revertAxe(ItemStack original) {
-        if (original == null || original.isEmpty()) return original;
-        ItemStack replacement = RevertAxes.shouldReplace(original);
-        return Objects.requireNonNullElse(replacement, original);
+        return RevertAxes.shouldReplace(original);
     }
 }

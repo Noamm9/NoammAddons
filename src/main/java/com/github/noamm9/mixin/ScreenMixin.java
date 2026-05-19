@@ -21,3 +21,4 @@ public abstract class ScreenMixin {
         EventBus.post(new ScreenEvent.PostRender((Screen) (Object) this, context, mouseX, mouseY));
     }
 }
+

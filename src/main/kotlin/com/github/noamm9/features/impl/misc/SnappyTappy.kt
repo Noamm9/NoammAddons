@@ -15,9 +15,6 @@ object SnappyTappy: Feature("Prevents standing still when pressing opposing dire
 
     override fun init() {
         register<TickEvent.Start> {
-            val windowHandle = mc.window?.handle() ?: return@register
-            val opts = mc.options
-
             if (mc.screen != null) {
                 if (pressTicks.isNotEmpty()) {
                     movementKeys.forEach { it.isDown = false }
@@ -27,7 +24,7 @@ object SnappyTappy: Feature("Prevents standing still when pressing opposing dire
             }
 
             for (key in movementKeys) {
-                if (isKeyDown(windowHandle, key)) {
+                if (isKeyDown(key)) {
                     if (! pressTicks.containsKey(key)) {
                         pressTicks[key] = System.currentTimeMillis()
                     }
@@ -39,8 +36,8 @@ object SnappyTappy: Feature("Prevents standing still when pressing opposing dire
                 }
             }
 
-            resolveConflict(opts.keyLeft, opts.keyRight)
-            resolveConflict(opts.keyUp, opts.keyDown)
+            resolveConflict(mc.options.keyLeft, mc.options.keyRight)
+            resolveConflict(mc.options.keyUp, mc.options.keyDown)
         }
     }
 
@@ -52,7 +49,8 @@ object SnappyTappy: Feature("Prevents standing still when pressing opposing dire
         else a.isDown = false
     }
 
-    private fun isKeyDown(handle: Long, key: KeyMapping): Boolean {
+    private fun isKeyDown(key: KeyMapping): Boolean {
+        val handle = mc.window.handle()
         val bound = KeyBindingHelper.getBoundKeyOf(key) ?: return false
         return if (bound.type == InputConstants.Type.MOUSE) {
             GLFW.glfwGetMouseButton(handle, bound.value) == GLFW.GLFW_PRESS

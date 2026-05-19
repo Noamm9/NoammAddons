@@ -22,4 +22,3 @@ public class MixinBlockItem {
         if (NoItemPlace.placeHook(context)) cir.setReturnValue(InteractionResult.SUCCESS);
     }
 }
-

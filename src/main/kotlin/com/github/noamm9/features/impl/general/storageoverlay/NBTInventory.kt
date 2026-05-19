@@ -34,22 +34,20 @@ data class NBTInventory(val stacks: List<ItemStack>) {
         }
 
         return ByteArrayOutputStream().use { baos ->
-            val root = CompoundTag().apply { put(KEY, list) }
+            val root = CompoundTag().apply { put("i", list) }
             NbtIo.writeCompressed(root, baos)
             Base64.encode(baos.toByteArray())
         }
     }
 
     companion object {
-        private const val KEY = "INVENTORY"
-
         fun decode(encoded: String) = runCatching {
             val registryAccess = getRegistryAccess()
             val bytes = Base64.decode(encoded)
 
             ByteArrayInputStream(bytes).use { bais ->
                 val root = NbtIo.readCompressed(bais, NbtAccounter.unlimitedHeap())
-                val list = root.getList(KEY).get()
+                val list = root.getList("i").get()
 
                 val items = buildList {
                     for (i in list.indices) {

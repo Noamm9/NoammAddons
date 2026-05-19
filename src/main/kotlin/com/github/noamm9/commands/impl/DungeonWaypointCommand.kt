@@ -3,7 +3,7 @@ package com.github.noamm9.commands.impl
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.commands.BaseCommand
 import com.github.noamm9.commands.CommandNodeBuilder
-import com.github.noamm9.features.impl.dungeon.waypoints.DungeonWaypoints
+import com.github.noamm9.features.impl.dungeon.DungeonWaypoints
 import com.github.noamm9.ui.gui.DungeonWaypointScreen
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils

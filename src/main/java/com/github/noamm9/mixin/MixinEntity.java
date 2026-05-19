@@ -13,7 +13,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import static com.github.noamm9.NoammAddons.mc;
+//#if LEGIT
+//$$import static com.github.noamm9.NoammAddons.mc;
+//#endif
 
 @Mixin(Entity.class)
 public abstract class MixinEntity {
@@ -33,13 +35,11 @@ public abstract class MixinEntity {
         glowForced = event.getShouldGlow();
         customGlowColor = event.getColor().getRGB();
         //#else
-        glowForced = event.getShouldGlow() && mc.player.hasLineOfSight(entity) && !entity.isInvisibleTo(mc.player);
-        customGlowColor = event.getColor().getRGB();
+        //$$glowForced = event.getShouldGlow() && mc.player.hasLineOfSight(entity) && !entity.isInvisibleTo(mc.player);
+        //$$customGlowColor = event.getColor().getRGB();
         //#endif
 
-        if (this.glowForced) {
-            cir.setReturnValue(true);
-        }
+        if (this.glowForced) cir.setReturnValue(true);
     }
 
     @Inject(method = "getTeamColor", at = @At("HEAD"), cancellable = true)

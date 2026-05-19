@@ -252,8 +252,6 @@ object Render3D {
                 LightTexture.FULL_BLOCK
             )
         }
-
-        consumer.endBatch()
     }
 
     fun renderString(

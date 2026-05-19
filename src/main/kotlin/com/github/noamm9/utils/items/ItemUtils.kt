@@ -20,7 +20,7 @@ object ItemUtils {
 
     val ItemStack.customData get() = getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag()
     val ItemStack.lore get() = getOrDefault(DataComponents.LORE, ItemLore.EMPTY).styledLines().map { it.formattedText }
-    val ItemStack.itemUUID get() = customData.getString("uuid").orElse("")
+    val ItemStack.itemUUID get() = customData.getString("uuid").getOrNull() ?: ""
     val ItemStack.skyblockId: String
         get() {
             if (isEmpty) return ""

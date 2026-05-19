@@ -6,8 +6,6 @@ import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.*
 import com.github.noamm9.ui.clickgui.components.impl.*
-import com.github.noamm9.ui.hud.getValue
-import com.github.noamm9.ui.hud.provideDelegate
 import com.github.noamm9.utils.ActionBarParser
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils
@@ -26,7 +24,7 @@ import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.inventory.MenuType
-import java.util.concurrent.CopyOnWriteArraySet
+import java.util.concurrent.*
 
 object Secrets: Feature() {
     private val hudDisplay by ToggleSetting("Secret HUD", true).withDescription("Displays the current room's secrets on screen.").section("HUD")
@@ -49,17 +47,6 @@ object Secrets: Feature() {
         repeat(5) { mc.soundManager.play(SimpleSoundInstance.forUI(sound.value, pitch.value, volume.value)) }
     }.withDescription("Click to test the current sound configuration.").showIf { secretSound.value }
 
-    private val secretHud by hudElement("Secret Hud", { hudDisplay.value }, { LocationUtils.inDungeon && ! LocationUtils.inBoss }) { ctx, example ->
-        val line = if (example) "&7Secrets: &c3&7/&a7"
-        else {
-            val max = ActionBarParser.maxSecrets ?: return@hudElement 0f to 0f
-            val current = ActionBarParser.secrets ?: return@hudElement 0f to 0f
-            "&7Secrets: ${ColorUtils.colorCodeByPercent(current, max)}$current&7/&a$max"
-        }
-
-        Render2D.drawString(ctx, line, 0, 0)
-        return@hudElement line.width().toFloat() to 9f
-    }
 
     private data class ClickedSecret(val pos: BlockPos, val time: Long)
 
@@ -67,6 +54,18 @@ object Secrets: Feature() {
     private var lastPlayed = System.currentTimeMillis()
 
     override fun init() {
+        hudElement("Secret Hud", { hudDisplay.value }, { LocationUtils.inDungeon && ! LocationUtils.inBoss }) { ctx, example ->
+            val line = if (example) "&7Secrets: &c3&7/&a7"
+            else {
+                val max = ActionBarParser.maxSecrets ?: return@hudElement 0f to 0f
+                val current = ActionBarParser.secrets ?: return@hudElement 0f to 0f
+                "&7Secrets: ${ColorUtils.colorCodeByPercent(current, max)}$current&7/&a$max"
+            }
+
+            Render2D.drawString(ctx, line, 0, 0)
+            return@hudElement line.width().toFloat() to 9f
+        }
+
         //#if CHEAT
         register<MainThreadPacketReceivedEvent.Pre> {
             if (! closeChest.value) return@register

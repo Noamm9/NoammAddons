@@ -6,10 +6,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 
-/**
- * Adapted from Firmament's OriginalSlotCoords.java
- * Source: https://github.com/nea89o/Firmament/blob/master/src/main/java/moe/nea/firmament/mixins/customgui/OriginalSlotCoords.java
- */
 @Mixin(Slot.class)
 public class MixinSlot implements ICoordRememberingSlot {
     @Shadow public int x;

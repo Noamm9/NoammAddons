@@ -14,11 +14,6 @@ import java.util.stream.Stream;
 public abstract class MixinAbstractSignEditScreen {
     @Redirect(method = "<init>(Lnet/minecraft/world/level/block/entity/SignBlockEntity;ZZLnet/minecraft/network/chat/Component;)V", at = @At(value = "INVOKE", target = "Ljava/util/stream/Stream;map(Ljava/util/function/Function;)Ljava/util/stream/Stream;"))
     public Stream<String> init(Stream<Component> instance, Function<Component, String> function) {
-        return instance.map(message -> {
-            // if (!ModHider.INSTANCE.enabled) return message.getString();
-            String str = ModHider.getString(message);
-            //if (!str.equals(message.getString())) ModHider.addMod(str);
-            return str;
-        });
+        return instance.map(ModHider::getString);
     }
 }

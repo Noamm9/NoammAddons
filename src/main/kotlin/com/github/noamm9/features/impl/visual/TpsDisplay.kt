@@ -15,10 +15,11 @@ import java.awt.Color
 object TpsDisplay: Feature("Displays the Server's Ticks Per Second (TPS) on screen.") {
     private val color by ColorSetting("Color", Color(0, 114, 255), false)
 
-    private val tpsDisplayHud = hudElement("TpsDisplay") { ctx, example ->
-        val text = "TPS: &f${if (example) 20 else ServerUtils.tps.toFixed(1)}"
-        Render2D.drawString(ctx, text, 0, 0, color.value)
-        return@hudElement text.width().toFloat() to text.height().toFloat()
+    override fun init() {
+        hudElement("TpsDisplay") { ctx, example ->
+            val text = "TPS: &f${if (example) 20 else ServerUtils.tps.toFixed(1)}"
+            Render2D.drawString(ctx, text, 0, 0, color.value)
+            return@hudElement text.width().toFloat() to text.height().toFloat()
+        }
     }
 }
-

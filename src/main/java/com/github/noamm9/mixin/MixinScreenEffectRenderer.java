@@ -37,4 +37,3 @@ public abstract class MixinScreenEffectRenderer {
         }
     }
 }
-

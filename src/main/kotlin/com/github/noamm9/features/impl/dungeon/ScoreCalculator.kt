@@ -5,8 +5,6 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.*
 import com.github.noamm9.ui.clickgui.components.impl.TextInputSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.ui.hud.getValue
-import com.github.noamm9.ui.hud.provideDelegate
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils
 import com.github.noamm9.utils.dungeons.map.handlers.ScoreCalculation
@@ -45,15 +43,15 @@ object ScoreCalculator: Feature("Shows the score of the dungeon run.") {
         )
     }
 
-    val scoreHud by hudElement("ScoreCalculator", enabled = { LocationUtils.inDungeon }, shouldDraw = { hudElement.value }) { ctx, demoMode ->
-        val text = if (demoMode) "&eScore: &a300"
-        else "&eScore: " + ColorUtils.colorizeScore(ScoreCalculation.score)
-
-        Render2D.drawString(ctx, text, 0, 0)
-        return@hudElement text.width().toFloat() to 9f
-    }
-
     override fun init() {
+        hudElement("ScoreCalculator", enabled = { LocationUtils.inDungeon }, shouldDraw = { hudElement.value }) { ctx, demoMode ->
+            val text = if (demoMode) "&eScore: &a300"
+            else "&eScore: " + ColorUtils.colorizeScore(ScoreCalculation.score)
+
+            Render2D.drawString(ctx, text, 0, 0)
+            return@hudElement text.width().toFloat() to 9f
+        }
+
         register<DungeonEvent.Score> {
             milestones.find { it.score == event.score }?.let(::triggerMilestone)
         }
