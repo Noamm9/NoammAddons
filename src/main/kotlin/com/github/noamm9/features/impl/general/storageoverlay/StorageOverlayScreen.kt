@@ -57,8 +57,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     private var knobGrabbed = false
     private var hoveredOverlayItem: ItemStack? = null
 
-    var storageMenu: StorageMenu? = null
     var containerScreen: ContainerScreen? = null
+    var storageMenu: StorageMenu? = null
 
     private inner class Measurements {
         val innerScrollPanelWidth = PAGE_WIDTH * pageWidthCount + (pageWidthCount - 1) * PADDING

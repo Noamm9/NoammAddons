@@ -64,9 +64,10 @@ dependencies {
     bundled("io.ktor:ktor-client-content-negotiation-jvm:$ktor_version")
     bundled("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")
 
-
     modImplementation("com.github.Noamm9:DataFixer:7148621a34")
     include("com.github.Noamm9:DataFixer:7148621a34")
+
+    testImplementation(kotlin("test"))
 }
 
 afterEvaluate {
