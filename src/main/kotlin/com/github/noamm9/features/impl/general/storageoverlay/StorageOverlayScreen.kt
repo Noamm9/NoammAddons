@@ -59,6 +59,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
     var containerScreen: ContainerScreen? = null
     var storageMenu: StorageMenu? = null
+    var pendingCenterPage: StoragePage? = null
 
     private inner class Measurements {
         val innerScrollPanelWidth = PAGE_WIDTH * pageWidthCount + (pageWidthCount - 1) * PADDING
@@ -92,6 +93,19 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         measurements = Measurements()
         val newMax = maxScroll
         scroll = (scrollPct * newMax).coerceAtMost(newMax).coerceAtLeast(0f)
+    }
+
+    private fun centerOnPage(target: StoragePage) {
+        val rows = StorageOverlay.storageMenuData.entries.chunked(pageWidthCount)
+        var y = 0
+        var center = -1f
+        for (row in rows) {
+            val rowH = row.maxOf { (_, inv) -> inv?.let { it.rows * SLOT_SIZE + 6 + font.lineHeight } ?: 18 }
+            if (row.any { (page, _) -> page == target }) center = y + rowH / 2f - scrollPanelH / 2f
+            y += rowH
+        }
+        if (center < 0) return
+        scroll = center.coerceIn(0f, (y + 6f - scrollPanelH).coerceAtLeast(0f))
     }
 
     private fun resetTooltip(prev: ItemStack?) {
@@ -251,7 +265,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         }
 
         if (hoveredStack != null) {
-            hoveredOverlayItem = hoveredStack
+            if (isActive) hoveredOverlayItem = hoveredStack
             setTooltipForNextFrame(font, hoveredStack, Resolution.toGuiScaled(hoveredX), Resolution.toGuiScaled(hoveredY))
         }
 
@@ -320,29 +334,16 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     }
 
     fun mouseScrolled(x: Double, y: Double, verticalAmount: Double): Boolean {
-        val activePage = (storageMenu as? StorageMenu.Page)?.storagePage
-        val mouseX = Resolution.getMouseX(x)
-        val mouseY = Resolution.getMouseY(y)
-
         if (hoveredOverlayItem != null && ScrollableTooltip.enabled && StorageOverlay.enableTooltipInStorage.value) {
             val scroll = (verticalAmount * ScrollableTooltip.scrollSpeed.value).toFloat()
             val holdingShift = GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS
             val holdingCtrl = GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_LEFT_CONTROL) == GLFW.GLFW_PRESS
             when {
-                holdingShift && ! holdingCtrl && StorageOverlay.enableTooltipInStorage.value -> ScrollableTooltip.scrollAmountX -= scroll
+                holdingShift && ! holdingCtrl -> ScrollableTooltip.scrollAmountX -= scroll
                 ! holdingShift && holdingCtrl -> ScrollableTooltip.scaleOverride += (verticalAmount / 10f).toFloat() * ScrollableTooltip.scaleSpeed.value.toFloat()
-                StorageOverlay.enableTooltipInStorage.value -> ScrollableTooltip.scrollAmountY += scroll
+                else -> ScrollableTooltip.scrollAmountY += scroll
             }
             return true
-        }
-
-        if (activePage != null) {
-            val data = StorageOverlay.storageMenuData
-            var overActive = false
-            layoutedForEach(data) { x, y, pw, ph, page, _ ->
-                if (page == activePage && inRect(mouseX, mouseY, x, y, pw, ph)) overActive = true
-            }
-            if (overActive) return false
         }
 
         val speed = verticalAmount * StorageOverlay.scrollSpeedSetting.value * - 1
@@ -407,6 +408,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val screen = containerScreen ?: return
         Resolution.refresh()
         updateBounds()
+        pendingCenterPage?.let { centerOnPage(it); pendingCenterPage = null }
         val prevHovered = hoveredOverlayItem
         hoveredOverlayItem = null
         Resolution.push(context)
