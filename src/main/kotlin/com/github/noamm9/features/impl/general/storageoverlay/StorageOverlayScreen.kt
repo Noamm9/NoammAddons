@@ -58,8 +58,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     private var hoveredOverlayItem: ItemStack? = null
 
     var containerScreen: ContainerScreen? = null
-    var storageMenu: StorageMenu? = null
     var pendingCenterPage: StoragePage? = null
+    var storageMenu: StorageMenu? = null
 
     private inner class Measurements {
         val innerScrollPanelWidth = PAGE_WIDTH * pageWidthCount + (pageWidthCount - 1) * PADDING
@@ -98,7 +98,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     private fun centerOnPage(target: StoragePage) {
         val rows = StorageOverlay.storageMenuData.entries.chunked(pageWidthCount)
         var y = 0
-        var center = -1f
+        var center = - 1f
         for (row in rows) {
             val rowH = row.maxOf { (_, inv) -> inv?.let { it.rows * SLOT_SIZE + 6 + font.lineHeight } ?: 18 }
             if (row.any { (page, _) -> page == target }) center = y + rowH / 2f - scrollPanelH / 2f
@@ -106,6 +106,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         }
         if (center < 0) return
         scroll = center.coerceIn(0f, (y + 6f - scrollPanelH).coerceAtLeast(0f))
+        pendingCenterPage = null
     }
 
     private fun resetTooltip(prev: ItemStack?) {
@@ -333,7 +334,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         return true
     }
 
-    fun mouseScrolled(x: Double, y: Double, verticalAmount: Double): Boolean {
+    @Suppress("SameReturnValue")
+    fun mouseScrolled(verticalAmount: Double): Boolean {
         if (hoveredOverlayItem != null && ScrollableTooltip.enabled && StorageOverlay.enableTooltipInStorage.value) {
             val scroll = (verticalAmount * ScrollableTooltip.scrollSpeed.value).toFloat()
             val holdingShift = GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS
@@ -408,7 +410,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val screen = containerScreen ?: return
         Resolution.refresh()
         updateBounds()
-        pendingCenterPage?.let { centerOnPage(it); pendingCenterPage = null }
+        pendingCenterPage?.let(::centerOnPage)
         val prevHovered = hoveredOverlayItem
         hoveredOverlayItem = null
         Resolution.push(context)

@@ -21,6 +21,7 @@ import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screens.Screen
 import org.slf4j.LoggerFactory
+import java.util.concurrent.*
 
 object NoammAddons: ClientModInitializer {
     const val MOD_NAME = "NoammAddons"
@@ -47,7 +48,7 @@ object NoammAddons: ClientModInitializer {
     var screen: Screen? = null
 
     var electionData = ElectionData.empty
-    val priceData = java.util.concurrent.ConcurrentHashMap<String, Long>()
+    val priceData = ConcurrentHashMap<String, Long>()
 
 
     override fun onInitializeClient() {

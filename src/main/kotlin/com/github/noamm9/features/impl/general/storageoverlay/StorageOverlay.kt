@@ -57,8 +57,8 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
             val screen = mc.screen as? ContainerScreen ?: return@register
             if (screen.menu.containerId != event.windowId) return@register
             if (screen.title.unformattedText != event.title.unformattedText) return@register
-            val handler = currentMenu ?: return@register
-            saveContent(handler)
+            val menu = currentMenu ?: return@register
+            saveContent(menu)
         }
     }
 
@@ -72,8 +72,8 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         val overlay = oldScreen as? StorageOverlayScreen ?: active
 
         if (currentMenu == null && menu == null) loadData()
-        currentMenu?.let { saveContent(it) }
-        menu?.let { saveContent(it) }
+        currentMenu?.let(::saveContent)
+        menu?.let(::saveContent)
         currentMenu = menu
 
         if (oldScreen === active?.containerScreen) {
@@ -85,13 +85,12 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         if (newScreen == null && overlay != null && ! overlay.isExiting) return overlay
         if (screen == null) return null
         if (overlay?.isExiting == true) return null
-        val currentHandler = currentMenu ?: return null
+        val currentMenu = currentMenu ?: return null
 
-        val isFreshOverlay = overlay == null
         active = (overlay ?: StorageOverlayScreen()).also {
             it.containerScreen = screen
-            it.storageMenu = currentHandler
-            if (isFreshOverlay) it.pendingCenterPage = (currentHandler as? StorageMenu.Page)?.storagePage
+            it.storageMenu = currentMenu
+            if (overlay == null) it.pendingCenterPage = (currentMenu as? StorageMenu.Page)?.storagePage
         }
 
         return null
