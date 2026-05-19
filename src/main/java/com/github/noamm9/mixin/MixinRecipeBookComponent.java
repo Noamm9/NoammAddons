@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(RecipeBookComponent.class)
-public abstract class RecipeBookComponentMixin {
+public abstract class MixinRecipeBookComponent {
     @Shadow
     protected abstract void setVisible(boolean visible);
 

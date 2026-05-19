@@ -1,6 +1,7 @@
 package com.github.noamm9.mixin;
 
 import com.github.noamm9.features.impl.general.SlotBinding;
+import com.github.noamm9.features.impl.misc.HideRecipeBook;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.AbstractRecipeBookScreen;
@@ -17,6 +18,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinAbstractRecipeBookScreen<T extends RecipeBookMenu> extends AbstractContainerScreen<T> implements RecipeUpdateListener {
     public MixinAbstractRecipeBookScreen(T abstractContainerMenu, Inventory inventory, Component component) {
         super(abstractContainerMenu, inventory, component);
+    }
+
+    @Inject(method = "init", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/AbstractRecipeBookScreen;initButton()V"), cancellable = true)
+    private void renderRecipeBook(CallbackInfo ci) {
+        if (!HideRecipeBook.INSTANCE.enabled) return;
+        ci.cancel();
     }
 
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;nextStratum()V", ordinal = 0, shift = At.Shift.AFTER))
