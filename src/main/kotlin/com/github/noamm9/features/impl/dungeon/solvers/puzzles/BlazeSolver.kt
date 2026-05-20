@@ -1,7 +1,7 @@
 package com.github.noamm9.features.impl.dungeon.solvers.puzzles
 
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.EventListener
 import com.github.noamm9.event.impl.CheckEntityGlowEvent
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.TickEvent
@@ -59,7 +59,7 @@ object BlazeSolver {
         }
     }
 
-    private val tickListener = EventBus.register<TickEvent.Start> {
+    private val tickListener = EventListener.create<TickEvent.Start> {
         blazes.clear()
         hpMap.clear()
 
@@ -81,7 +81,7 @@ object BlazeSolver {
 
         blazes.sortBy { hpMap[it.id] }
         if (reversed) blazes.reverse()
-    }.unregister()
+    }
 
     fun reset() {
         tickListener.unregister()
