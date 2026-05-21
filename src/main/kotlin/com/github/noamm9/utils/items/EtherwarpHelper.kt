@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.SignBlock
 import net.minecraft.world.level.chunk.LevelChunk
 import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.CollisionContext
+import kotlin.jvm.optionals.getOrDefault
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.max
@@ -32,7 +33,7 @@ object EtherwarpHelper {
     private inline val SNEAK_OFFSET get() = if (LocationUtils.world in modernWorlds) 0.35 else 0.08
 
     data class EtherPos(val succeeded: Boolean, val pos: BlockPos?) {
-        val vec = pos?.let { Vec3(it) }
+        val vec = pos?.let(::Vec3)
 
         companion object {
             val NONE = EtherPos(false, null)
@@ -43,7 +44,7 @@ object EtherwarpHelper {
         if (stack.skyblockId.equalsOneOf("ASPECT_OF_THE_VOID", "ASPECT_OF_THE_END")) {
             val nbt = stack.customData
             if (nbt.getByte("ethermerge").orElse(0) != 1.toByte()) return null
-            val tuners = nbt.getByte("tuned_transmission").orElse(0).toInt()
+            val tuners = nbt.getByte("tuned_transmission").getOrDefault(0).toInt()
             return 57.0 + tuners
         }
         return null

@@ -116,14 +116,14 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         ScrollableTooltip.scaleOverride = 0f
     }
 
-    private fun GuiGraphics.drawPages(mouseX: Int, mouseY: Int, excluding: StoragePage?, slots: List<Slot>?) {
+    private fun GuiGraphics.drawPages(mouseX: Int, mouseY: Int, excluding: StoragePage?, slots: List<Slot>?, originalMouseX: Int, originalMouseY: Int) {
         enableScissor(scrollPanelX, scrollPanelY, scrollPanelX + scrollPanelW + ACTIVE_PAGE_BORDER_THICKNESS, scrollPanelY + scrollPanelH)
         val data = StorageOverlay.storageMenuData
         val viewTop = scrollPanelY
         val viewBottom = scrollPanelY + scrollPanelH
         layoutedForEach(data) { x, y, _, ph, page, inventory ->
             if (y + ph < viewTop || y > viewBottom) return@layoutedForEach
-            drawPage(x, y, page, inventory, if (excluding == page) slots else null, mouseX, mouseY)
+            drawPage(x, y, page, inventory, if (excluding == page) slots else null, mouseX, mouseY, originalMouseX, originalMouseY)
         }
         disableScissor()
     }
@@ -168,7 +168,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         }
     }
 
-    private fun GuiGraphics.drawPlayerInventory(mouseX: Int, mouseY: Int) {
+    private fun GuiGraphics.drawPlayerInventory(mouseX: Int, mouseY: Int, originalMouseX: Int, originalMouseY: Int) {
         val items = mc.player?.inventory?.nonEquipmentItems ?: return
         val (invX, invY) = getPlayerInvSlotPos(9)
         val (hotX, hotY) = getPlayerInvSlotPos(0)
@@ -201,11 +201,11 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
         if (hoveredStack != null) {
             hoveredOverlayItem = hoveredStack
-            setTooltipForNextFrame(font, hoveredStack, Resolution.toGuiScaled(mouseX), Resolution.toGuiScaled(mouseY))
+            setTooltipForNextFrame(font, hoveredStack, originalMouseX, originalMouseY)
         }
     }
 
-    private fun GuiGraphics.drawPage(x: Int, y: Int, page: StoragePage, inventory: NBTInventory?, slots: List<Slot>?, mouseX: Int, mouseY: Int): Int {
+    private fun GuiGraphics.drawPage(x: Int, y: Int, page: StoragePage, inventory: NBTInventory?, slots: List<Slot>?, mouseX: Int, mouseY: Int, originalMouseX: Int, originalMouseY: Int): Int {
         if (inventory == null && slots == null) {
             Render2D.drawRect(this, x, y, PAGE_WIDTH, 18, slotBgColor)
             Render2D.drawBorder(this, x, y, PAGE_WIDTH, 18, menuBorderColor)
@@ -230,8 +230,6 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val panelW = scrollPanelW
         val panelH = scrollPanelH
         var hoveredStack: ItemStack? = null
-        var hoveredX = 0
-        var hoveredY = 0
 
         drawSlotGrid(x + 2, slotsY, rows)
 
@@ -257,8 +255,6 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
                 if (isSlotHovered && hoveredStack == null) {
                     hoveredStack = displayStack
-                    hoveredX = mouseX
-                    hoveredY = mouseY
                 }
             }
 
@@ -267,7 +263,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
         if (hoveredStack != null) {
             if (isActive) hoveredOverlayItem = hoveredStack
-            setTooltipForNextFrame(font, hoveredStack, Resolution.toGuiScaled(hoveredX), Resolution.toGuiScaled(hoveredY))
+            setTooltipForNextFrame(font, hoveredStack, originalMouseX, originalMouseY)
         }
 
         return pageHeight + 6
@@ -358,12 +354,13 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val button = click.button()
         val modifiers = click.modifiers()
 
-        val resolutionMouseX = Resolution.getMouseX(click.x())
-        val resolutionMouseY = Resolution.getMouseY(click.y())
+        val scale = StorageOverlay.scaleSetting.value
+        val resolutionMouseX = Resolution.getMouseX(click.x()) / scale.toDouble()
+        val resolutionMouseY = Resolution.getMouseY(click.y()) / scale.toDouble()
 
         if (inRect(resolutionMouseX, resolutionMouseY, scrollPanelX, scrollPanelY, scrollPanelW, scrollPanelH)) {
             val data = StorageOverlay.storageMenuData
-            if (activePage != null && dispatchActivePageSlotClick(button, modifiers, resolutionMouseX.toDouble(), resolutionMouseY.toDouble(), activePage)) return true
+            if (activePage != null && dispatchActivePageSlotClick(button, modifiers, resolutionMouseX, resolutionMouseY, activePage)) return true
             layoutedForEach(data) { x, y, pw, ph, page, _ ->
                 if (inRect(resolutionMouseX, resolutionMouseY, x, y, pw, ph) && activePage != page && button == 0) {
                     page.open()
@@ -380,7 +377,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             return true
         }
 
-        return dispatchPlayerInventoryClick(button, modifiers, resolutionMouseX, resolutionMouseY)
+        return dispatchPlayerInventoryClick(button, modifiers, resolutionMouseX.toInt(), resolutionMouseY.toInt())
     }
 
     fun mouseReleased(): Boolean {
@@ -391,14 +388,16 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
     fun mouseDragged(mouseY: Double): Boolean {
         if (! knobGrabbed) return false
-        val percentage = ((Resolution.getMouseY(mouseY) - scrollBarY) / scrollBarH.toDouble()).coerceIn(0.0, 1.0)
+        val scale = StorageOverlay.scaleSetting.value
+        val percentage = ((Resolution.getMouseY(mouseY) / scale - scrollBarY) / scrollBarH.toDouble()).coerceIn(0.0, 1.0)
         scroll = (maxScroll * percentage).toFloat()
         return true
     }
 
     fun updateBounds() {
         val screen = containerScreen ?: return
-        init(mc, Resolution.width.toInt(), Resolution.height.toInt())
+        val scale = StorageOverlay.scaleSetting.value
+        init(mc, (Resolution.width / scale).toInt(), (Resolution.height / scale).toInt())
         val accessor = screen as IAbstractContainerScreen
         accessor.setLeftPos(0)
         accessor.setTopPos(0)
@@ -414,15 +413,17 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val prevHovered = hoveredOverlayItem
         hoveredOverlayItem = null
         Resolution.push(context)
-        val scaledMouseX = Resolution.getMouseX(mouseX.toDouble())
-        val scaledMouseY = Resolution.getMouseY(mouseY.toDouble())
+        val scale = StorageOverlay.scaleSetting.value
+        context.pose().scale(scale)
+        val scaledMouseX = (Resolution.getMouseX(mouseX.toDouble()) / scale).toInt()
+        val scaledMouseY = (Resolution.getMouseY(mouseY.toDouble()) / scale).toInt()
         Render2D.drawRect(context, measurements.x, measurements.y, measurements.overviewWidth, measurements.overviewHeight, menuBackgroundColor)
         Render2D.drawBorder(context, measurements.x, measurements.y, measurements.overviewWidth, measurements.overviewHeight, Color(60, 60, 65))
         val activeSlot = (storageMenu as? StorageMenu.Page)?.storagePage
         val chestSlots = screen.menu.slots.take(screen.menu.rowCount * 9).drop(9)
-        context.drawPages(scaledMouseX, scaledMouseY, activeSlot, chestSlots)
+        context.drawPages(scaledMouseX, scaledMouseY, activeSlot, chestSlots, mouseX, mouseY)
         context.drawScrollBar()
-        context.drawPlayerInventory(scaledMouseX, scaledMouseY)
+        context.drawPlayerInventory(scaledMouseX, scaledMouseY, mouseX, mouseY)
         Resolution.pop(context)
         resetTooltip(prevHovered)
     }
@@ -434,8 +435,10 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
         Resolution.refresh()
         Resolution.push(context)
-        val scaledMouseX = Resolution.getMouseX(mouseX.toDouble()) - 8
-        val scaledMouseY = Resolution.getMouseY(mouseY.toDouble()) - 8
+        val scale = StorageOverlay.scaleSetting.value
+        context.pose().scale(scale)
+        val scaledMouseX = (Resolution.getMouseX(mouseX.toDouble()) / scale).toInt() - 8
+        val scaledMouseY = (Resolution.getMouseY(mouseY.toDouble()) / scale).toInt() - 8
         context.renderItem(carried, scaledMouseX, scaledMouseY)
         context.renderItemDecorations(screen.font, carried, scaledMouseX, scaledMouseY)
         Resolution.pop(context)
