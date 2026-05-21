@@ -27,6 +27,7 @@ import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
 object StorageOverlay: Feature("Shows all storage pages in an overlay when opening storage.", toggled = true) {
+    val scaleSetting by SliderSetting("Scale", 1.0f, 0.5f, 2.0f, 0.05f).withDescription("The scale of the menu")
     val columnsSetting by SliderSetting("Columns", 3, 1, 10, 1).withDescription("The number of pages to show next to each other horizontally")
     val maxHeightSetting by SliderSetting("Max Height", 324, 80, 600, 1).withDescription("the maximum height of the entire menu")
     val scrollSpeedSetting by SliderSetting("Scroll Speed", 10, 1, 50, 1).withDescription("how fast you scroll")
