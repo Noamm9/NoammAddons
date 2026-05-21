@@ -10,6 +10,7 @@ import com.github.noamm9.init.NetworkLoop
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.network.data.ElectionData
+import com.github.noamm9.utils.render.ItemRenderer
 import com.github.noamm9.utils.render.NoammRenderPipelines
 import com.github.noamm9.websocket.WebSocket
 import kotlinx.coroutines.CoroutineScope
@@ -17,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import me.owdding.dfu.item.MeowddingItemDfu
 import net.fabricmc.api.ClientModInitializer
+import net.fabricmc.fabric.api.client.rendering.v1.SpecialGuiElementRegistry
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screens.Screen
@@ -55,6 +57,11 @@ object NoammAddons: ClientModInitializer {
         DataDownloader.downloadData()
 
         NoammRenderPipelines.init()
+
+        SpecialGuiElementRegistry.register {
+            ItemRenderer(it.vertexConsumers())
+        }
+
         EventDispatcher.init()
         DungeonListener.init()
         ServerUtils.init()

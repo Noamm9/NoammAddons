@@ -168,7 +168,7 @@ public abstract class MixinGui {
     @Inject(method = "renderSlot", at = @At("HEAD"))
     private void onRenderHotbarSlot(GuiGraphics guiGraphics, int i, int j, DeltaTracker deltaTracker, Player player, ItemStack itemStack, int k, CallbackInfo ci) {
         if (!FEAT_ItemRarity.INSTANCE.enabled) return;
-        if (FEAT_ItemRarity.INSTANCE.getDrawOnHotbar().getValue()) {
+        if (FEAT_ItemRarity.getDrawOnHotbar().getValue()) {
             FEAT_ItemRarity.onSlotDraw(guiGraphics, itemStack, i, j);
         }
     }
