@@ -1,6 +1,6 @@
 package com.github.noamm9.mixin;
 
-import com.github.noamm9.features.impl.misc.MonoAudio;
+import com.github.noamm9.features.impl.misc.sound.MonoAudio;
 import com.github.noamm9.interfaces.MonoAudioChannel;
 import net.minecraft.client.Camera;
 import net.minecraft.client.sounds.ChannelAccess;

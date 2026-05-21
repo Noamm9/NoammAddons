@@ -47,11 +47,17 @@ object PlayerUtils {
     }
 
     fun leftClick() {
-        (mc.options.keyAttack as IKeyMapping).clickCount += 1
+        val key = mc.options.keyAttack
+        key.isDown = true
+        (key as IKeyMapping).clickCount += 1
+        key.isDown = false
     }
 
     fun rightClick() {
-        (mc.options.keyUse as IKeyMapping).clickCount += 1
+        val key = mc.options.keyUse
+        key.isDown = true
+        (key as IKeyMapping).clickCount += 1
+        key.isDown = false
     }
 
     fun getSelectionBlock(): BlockPos? {
@@ -208,6 +214,7 @@ object PlayerUtils {
         rightClick()
         delay(100)
         swapToSlot(prev)
+        delay(100)
     }
 
     fun interactEntity(entity: Entity, hand: InteractionHand) {
@@ -231,7 +238,7 @@ object PlayerUtils {
                         val con = mc.player?.containerMenu?.slots ?: return@scheduledTask
 
                         val item = con.filter { it.index in con.size - 36 until con.size }.find {
-                            it.item?.skyblockId?.contains(awaiting4EQ) == true
+                            it.item.skyblockId.contains(awaiting4EQ)
                         } ?: return@scheduledTask
 
                         GuiUtils.clickSlot(item.index, GuiUtils.ButtonType.LEFT)

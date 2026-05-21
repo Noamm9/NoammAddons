@@ -12,8 +12,8 @@ import org.lwjgl.glfw.GLFW
 
 object ScrollableTooltip: Feature("Allows you to scroll through long tooltips.") {
     val scale by SliderSetting("Tooltip Scale", 100, 30, 150, 0.1).withDescription("how fast the tooltip scrolls")
-    private val scrollSpeed by SliderSetting("Scroll Speed", 3, 1, 10, 1).withDescription("how fast the tooltip scrolls")
-    private val scaleSpeed by SliderSetting("Scale Speed", 3, 1, 10, 1).withDescription("how fast the tooltip scales")
+    internal val scrollSpeed by SliderSetting("Scroll Speed", 3, 1, 10, 1).withDescription("how fast the tooltip scrolls")
+    internal val scaleSpeed by SliderSetting("Scale Speed", 3, 1, 10, 1).withDescription("how fast the tooltip scales")
 
     @JvmField
     var scrollAmountX = 0f

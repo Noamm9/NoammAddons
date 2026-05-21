@@ -61,46 +61,9 @@ fun String.remove(vararg patterns: String): String = patterns.fold(this) { acc, 
  */
 fun String.remove(vararg patterns: Regex): String = patterns.fold(this) { acc, r -> acc.replace(r, "") }
 
-/**
- * Casts an object safely to type [T] and runs the [block] if the cast succeeded.
- *
- * @param block The code to execute with the casted object.
- * @return The casted object of type [T], or null if the receiver is not an instance of [T].
- */
-inline fun <reified T> Any?.asType(block: (T) -> Unit): T? {
-    if (this is T) {
-        block(this)
-        return this
-    }
-    return null
+inline fun <T> catch(block: () -> T) = try {
+    block()
 }
-
-/**
- * Performs a safe cast of the receiver to type [T].
- * Equivalent to `this as? T`.
- */
-inline fun <reified T> Any?.cast(): T? = this as? T
-
-/**
- * Executes the given [block] on the receiver if the [condition] is true.
- * Returns the receiver to allow for further chaining.
- *
- * @param condition The boolean check to determine if the block should run.
- * @param block The lambda to execute on the receiver.
- */
-inline fun <T> T.runIf(condition: Boolean, block: T.() -> Unit): T {
-    if (condition) block()
-    return this
-}
-
-/**
- * Executes the given [block] on the receiver unless the [condition] is true.
- * Returns the receiver to allow for further chaining.
- *
- * @param condition If true, the block will NOT be executed.
- * @param block The lambda to execute on the receiver.
- */
-inline fun <T> T.runUnless(condition: Boolean, block: T.() -> Unit): T {
-    if (! condition) block()
-    return this
+catch (_: Throwable) {
+    null
 }

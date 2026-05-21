@@ -13,9 +13,9 @@ object HumanClickOrder {
         if (availableClicks.isEmpty()) throw IllegalStateException("Solution list is empty")
 
         val middle = type.slotCount.div(2)
-        if (this.lastClickedSlot == null) this.lastClickedSlot = middle
+        if (lastClickedSlot == null) lastClickedSlot = middle
 
-        val lastSlot = this.lastClickedSlot ?: throw IllegalStateException("Last clicked slot is null")
+        val lastSlot = lastClickedSlot ?: throw IllegalStateException("Last clicked slot is null")
 
         val bestClick = availableClicks.shuffled().sortedWith(Comparator { clickA, clickB ->
             val distA = getDistance(clickA.slotId, lastSlot)
@@ -31,7 +31,7 @@ object HumanClickOrder {
 
         }).first()
 
-        this.lastClickedSlot = bestClick.slotId
+        lastClickedSlot = bestClick.slotId
 
         return bestClick
     }
@@ -40,9 +40,9 @@ object HumanClickOrder {
         if (availableClicks.isEmpty()) throw IllegalStateException("Solution list is empty")
 
         val middle = type.slotCount.div(2)
-        if (this.lastClickedSlot == null) this.lastClickedSlot = middle
+        if (lastClickedSlot == null) lastClickedSlot = middle
 
-        val lastSlot = this.lastClickedSlot ?: throw IllegalStateException("Last clicked slot is null")
+        val lastSlot = lastClickedSlot ?: throw IllegalStateException("Last clicked slot is null")
 
         val bestClick = availableClicks.shuffled().sortedWith(Comparator { clickA, clickB ->
             val distA = getDistance(clickA.slotId, lastSlot)
@@ -58,7 +58,7 @@ object HumanClickOrder {
 
         }).last()
 
-        this.lastClickedSlot = bestClick.slotId
+        lastClickedSlot = bestClick.slotId
 
         return bestClick
     }

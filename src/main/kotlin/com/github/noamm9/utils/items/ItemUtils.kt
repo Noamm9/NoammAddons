@@ -11,16 +11,17 @@ import net.minecraft.core.component.DataComponents
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.component.CustomData
 import net.minecraft.world.item.component.ItemLore
+import java.util.concurrent.*
 import kotlin.jvm.optionals.getOrNull
 
 
 object ItemUtils {
-    val idToNameMap = mutableMapOf<String, String>()
-    val nameToIdMap = mutableMapOf<String, String>()
+    val idToNameMap = ConcurrentHashMap<String, String>()
+    val nameToIdMap = ConcurrentHashMap<String, String>()
 
     val ItemStack.customData get() = getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag()
     val ItemStack.lore get() = getOrDefault(DataComponents.LORE, ItemLore.EMPTY).styledLines().map { it.formattedText }
-    val ItemStack.itemUUID get() = customData.getString("uuid").orElse("")
+    val ItemStack.itemUUID get() = customData.getString("uuid").getOrNull() ?: ""
     val ItemStack.skyblockId: String
         get() {
             if (isEmpty) return ""
@@ -31,7 +32,7 @@ object ItemUtils {
             if (sbItemID == "PET") {
                 val petInfoRaw = customData.getString("petInfo").getOrNull()?.takeIf { it.isNotEmpty() } ?: return sbItemID
                 val petInfo = JsonUtils.json.decodeFromString<PetSummary>(petInfoRaw)
-                sbItemID += "-$${petInfo.type}-${petInfo.tier}"
+                sbItemID += "-${petInfo.type}-${petInfo.tier}"
             }
 
             return sbItemID.orEmpty()

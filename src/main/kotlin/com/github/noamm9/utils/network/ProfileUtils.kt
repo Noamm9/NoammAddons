@@ -1,18 +1,25 @@
 package com.github.noamm9.utils.network
 
+import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.NoammAddons.scope
-import com.github.noamm9.utils.JsonUtils
+import com.github.noamm9.event.EventListener
+import com.github.noamm9.event.impl.ChatMessageEvent
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.JsonUtils.getObj
 import com.github.noamm9.utils.JsonUtils.getString
-import com.github.noamm9.utils.containsOneOf
+import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.network.cache.ProfileCache
 import com.github.noamm9.utils.network.cache.SecretCache
 import com.github.noamm9.utils.network.cache.UuidCache
 import com.github.noamm9.utils.network.data.DungeonStats
 import com.github.noamm9.utils.network.data.MojangData
+import io.ktor.client.call.body
+import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.serialization.json.jsonObject
 import java.util.*
 import java.util.concurrent.*
@@ -28,7 +35,7 @@ object ProfileUtils {
         "https://mc-api.io/uuid/",
     )
 
-    val uuidToNameApis = listOf(
+    private val uuidToNameApis = listOf(
         "https://playerdb.co/api/player/minecraft/",
         "https://mowojang.matdoes.dev/",
         "https://sessionserver.mojang.com/session/minecraft/profile/",
@@ -55,7 +62,7 @@ object ProfileUtils {
             for ((i, api) in nameToUuidApis.withIndex()) {
                 if (System.currentTimeMillis() < (apiCooldowns[api] ?: 0L)) continue
 
-                val result = WebUtils.getString(api + lowerName)
+                val result = WebUtils.getAs<String>(api + lowerName)
                 if (result.isFailure) {
                     val msg = result.exceptionOrNull()?.message ?: ""
                     if (msg.contains("429")) {
@@ -66,7 +73,7 @@ object ProfileUtils {
                     continue
                 }
 
-                val response = runCatching { JsonUtils.stringToJson(result.getOrThrow()).jsonObject }.getOrNull() ?: continue
+                val response = catch { JsonUtils.stringToJson(result.getOrThrow()).jsonObject } ?: continue
                 val uuid = if (i == 0) response.getObj("player")?.getString("id") else response.getString("id")
                 val fetchedName = if (i == 0) response.getObj("player")?.getString("username") else response.getString("name") ?: name
 
@@ -98,7 +105,7 @@ object ProfileUtils {
             for ((i, api) in uuidToNameApis.withIndex()) {
                 if (System.currentTimeMillis() < (apiCooldowns[api] ?: 0L)) continue
 
-                val result = WebUtils.getString(api + key)
+                val result = WebUtils.getAs<String>(api + key)
                 if (result.isFailure) {
                     val msg = result.exceptionOrNull()?.message ?: ""
                     if (msg.contains("429")) {
@@ -109,9 +116,9 @@ object ProfileUtils {
                     continue
                 }
 
-                val response = runCatching { JsonUtils.stringToJson(result.getOrThrow()).jsonObject }.getOrNull() ?: continue
-                val uuid = if (i == 0) response.getObj("player")?.getString("id") else response.getString("id") ?: key
-                val fetchedName = if (i == 0) response.getObj("player")?.getString("username") else response.getString("name")
+                val response = catch { JsonUtils.stringToJson(result.getOrThrow()).jsonObject } ?: continue
+                val uuid = if (i == 0) response.getObj("data")?.getObj("player")?.getString("id") else response.getString("id") ?: key
+                val fetchedName = if (i == 0) response.getObj("data")?.getObj("player")?.getString("username") else response.getString("name")
 
                 if (uuid.isNullOrBlank() || fetchedName.isNullOrBlank()) continue
 
@@ -125,6 +132,10 @@ object ProfileUtils {
 
     suspend fun getSecrets(playerName: String): Result<Long> {
         val name = playerName.lowercase()
+        if (name == mc.user.name.lowercase() && DungeonListener.thePlayer?.isDead == false) {
+            return runCatching { getSecretsCMD() }
+        }
+
         SecretCache.getFromCache(name)?.let { return Result.success(it) }
 
         return awaitSharedRequest("SECRETS", name) {
@@ -167,18 +178,46 @@ object ProfileUtils {
         if (now < (apiCooldowns["noamm"] ?: 0L)) throw IllegalStateException("API global cooldown")
         if (now < (apiCooldowns[path] ?: 0L)) throw IllegalStateException("Path negative cached")
 
-        val resResult = WebUtils.get("$BASE_URL$path")
-        if (resResult.isFailure) {
-            val error = resResult.exceptionOrNull()
-            val msg = error?.message ?: ""
-            when {
-                msg.contains("429") -> apiCooldowns["noamm"] = now + 60_000
-                msg.containsOneOf("404", "500", "502", "503", "403") -> apiCooldowns[path] = now + 300_000
+        val res = WebUtils.get("$BASE_URL$path").getOrThrow()
+        val code = res.status.value
+
+        if (code !in 200 .. 299) {
+            when (code) {
+                429 -> apiCooldowns["noamm"] = now + 60_000
+                404, 500, 502, 503, 403 -> apiCooldowns[path] = now + 300_000
             }
 
-            throw error ?: Exception("API Error")
+            throw Error("HTTP ${res.status}: ${res.bodyAsText()}")
         }
 
-        return WebUtils.getAs<T>(resResult.getOrThrow()).getOrThrow()
+        return res.body()
+    }
+
+    // usuaslly i dont like running commands in the background
+    // but this one seems to behave exacly like /locraw.
+    // meaning it does not effect the message spam cooldown
+    private suspend fun getSecretsCMD(): Long {
+        if (! LocationUtils.inSkyblock) error("Not in Skyblock")
+        _totalSecrets = null
+        chatListener.register()
+        ChatUtils.sendCommand("/secretcount")
+        ThreadUtils.setTimeout(5000) { chatListener.unregister() }
+        while (chatListener.isRegistered()) delay(50)
+        return _totalSecrets ?: error("No secrets found")
+    }
+
+    private val regex = Regex("^\\w+: \\d+$")
+    private var _totalSecrets: Long? = null
+    private val chatListener = EventListener.create<ChatMessageEvent> {
+        val text = event.unformattedText
+
+        if (text == "Secret Counts:") return@create event.cancel()
+        if (text.matches(regex)) {
+            event.cancel()
+            if (text.substringBefore(":") == mc.user.name) {
+                _totalSecrets = text.substringAfter(": ").toLong()
+                listener.unregister()
+            }
+        }
     }
 }

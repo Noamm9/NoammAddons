@@ -14,10 +14,12 @@ object RevertAxes: Feature("Turns certain swords back into an axe") {
     )
 
     @JvmStatic
-    fun shouldReplace(itemStack: ItemStack): ItemStack? {
-        if (! enabled) return null
-        val skyblockID = itemStack.skyblockId.takeUnless { it.isEmpty() } ?: return null
-        val replace = replaceableItems[skyblockID] ?: return null
-        return itemStack.transmuteCopy(replace, itemStack.count)
+    fun shouldReplace(original: ItemStack?): ItemStack? {
+        if (! enabled) return original
+        if (original == null) return original
+        if (original.isEmpty) return original
+        val skyblockID = original.skyblockId.takeUnless { it.isEmpty() } ?: return original
+        val replace = replaceableItems[skyblockID] ?: return original
+        return original.transmuteCopy(replace, original.count) ?: original
     }
 }

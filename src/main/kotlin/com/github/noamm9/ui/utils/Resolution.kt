@@ -2,8 +2,10 @@ package com.github.noamm9.ui.utils
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.utils.NumbersUtils.div
+import com.github.noamm9.utils.NumbersUtils.times
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
+import kotlin.math.roundToInt
 
 object Resolution {
     private const val REFERENCE_HEIGHT = 540f
@@ -42,4 +44,6 @@ object Resolution {
 
     fun getMouseX() = (mc.mouseHandler.xpos() / mc.window.screenWidth.toDouble() * width).toInt()
     fun getMouseY() = (mc.mouseHandler.ypos() / mc.window.screenHeight.toDouble() * height).toInt()
+
+    fun toGuiScaled(value: Number) = (value * scale).roundToInt()
 }

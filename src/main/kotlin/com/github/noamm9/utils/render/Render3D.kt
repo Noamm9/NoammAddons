@@ -2,8 +2,6 @@ package com.github.noamm9.utils.render
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.utils.ChatUtils.addColor
-import com.github.noamm9.utils.NumbersUtils.minus
-import com.github.noamm9.utils.NumbersUtils.plus
 import com.github.noamm9.utils.NumbersUtils.times
 import com.github.noamm9.utils.render.RenderHelper.positionVec
 import com.mojang.blaze3d.vertex.PoseStack
@@ -294,8 +292,6 @@ object Render3D {
             0,
             LightTexture.FULL_BLOCK
         )
-
-        consumer.endBatch()
     }
 
     fun renderString(
@@ -369,17 +365,13 @@ object Render3D {
         addQuad(buffer, pose, maxX, minY, minZ, maxX, maxY, minZ, maxX, maxY, maxZ, maxX, minY, maxZ, r, g, b, a)
     }
 
-    private fun addVertex(buffer: VertexConsumer, pose: PoseStack.Pose, x: Float, y: Float, z: Float, r: Float, g: Float, b: Float, a: Float) {
-        buffer.addVertex(pose, x, y, z).setColor(r, g, b, a)
-    }
-
     private fun addQuad(buffer: VertexConsumer, pose: PoseStack.Pose, x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float, x3: Float, y3: Float, z3: Float, x4: Float, y4: Float, z4: Float, r: Float, g: Float, b: Float, a: Float) {
-        addVertex(buffer, pose, x1, y1, z1, r, g, b, a)
-        addVertex(buffer, pose, x2, y2, z2, r, g, b, a)
-        addVertex(buffer, pose, x3, y3, z3, r, g, b, a)
-        addVertex(buffer, pose, x1, y1, z1, r, g, b, a)
-        addVertex(buffer, pose, x3, y3, z3, r, g, b, a)
-        addVertex(buffer, pose, x4, y4, z4, r, g, b, a)
+        buffer.addVertex(pose, x1, y1, z1).setColor(r, g, b, a)
+        buffer.addVertex(pose, x2, y2, z2).setColor(r, g, b, a)
+        buffer.addVertex(pose, x3, y3, z3).setColor(r, g, b, a)
+        buffer.addVertex(pose, x1, y1, z1).setColor(r, g, b, a)
+        buffer.addVertex(pose, x3, y3, z3).setColor(r, g, b, a)
+        buffer.addVertex(pose, x4, y4, z4).setColor(r, g, b, a)
     }
 
     private fun renderLineBox(pose: PoseStack.Pose, buffer: VertexConsumer, x1: Double, y1: Double, z1: Double, x2: Double, y2: Double, z2: Double, r: Float, g: Float, b: Float, a: Float, lineWidth: Float) {

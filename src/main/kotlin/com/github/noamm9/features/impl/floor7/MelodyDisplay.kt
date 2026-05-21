@@ -1,6 +1,6 @@
 package com.github.noamm9.features.impl.floor7
 
-import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.EventListener
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
@@ -44,8 +44,8 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
         return@hudElement text.width().toFloat() to 9f
     }
 
-    private val timer = EventBus.register<TickEvent.Start> {
-        val state = currentState ?: return@register
+    private val timer = EventListener.create<TickEvent.Start> {
+        val state = currentState ?: return@create
         val durationMillis = (alertDuration.value * 1000).toLong()
 
         if (System.currentTimeMillis() - state.timestamp > durationMillis) {
@@ -55,6 +55,18 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
     }
 
     override fun init() {
+        hudElement("Melody Display", centered = true, shouldDraw = { LocationUtils.F7Phase == 3 }) { ctx, example ->
+            val text = if (example) formatMessage(mc.user.name, 1)
+            else {
+                val state = currentState ?: return@hudElement 0f to 0f
+                formatMessage(state.name, state.progress)
+            }
+
+            Render2D.drawCenteredString(ctx, text, 0, 0)
+
+            return@hudElement text.width().toFloat() to 9f
+        }
+
         register<ChatMessageEvent> {
             if (LocationUtils.F7Phase != 3) return@register
             val message = event.unformattedText.takeIf { it.startsWith("Party > ") } ?: return@register

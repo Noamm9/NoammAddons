@@ -23,10 +23,7 @@ import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.AABB
 import java.awt.Color
 
-object WitherDragons: Feature(
-    name = "Wither Dragons",
-    description = "M7 dragons timers, boxes, priority, health, and alerts"
-) {
+object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and alerts") {
     private val dragonTimer by ToggleSetting("Dragon Timer ", true).section("Dragon Timer")
     private val dragonTimerStyle by DropdownSetting("Timer Style", 0, listOf("Milliseconds", "Seconds", "Ticks")).showIf { dragonTimer.value }
     private val showSymbol by ToggleSetting("Timer Symbol", true).showIf { dragonTimer.value }

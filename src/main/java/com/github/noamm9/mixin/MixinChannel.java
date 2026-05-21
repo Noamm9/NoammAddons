@@ -1,6 +1,6 @@
 package com.github.noamm9.mixin;
 
-import com.github.noamm9.features.impl.misc.MonoAudio;
+import com.github.noamm9.features.impl.misc.sound.MonoAudio;
 import com.github.noamm9.interfaces.MonoAudioChannel;
 import com.mojang.blaze3d.audio.Channel;
 import net.minecraft.world.phys.Vec3;

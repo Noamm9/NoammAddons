@@ -40,19 +40,19 @@ public abstract class MixinCamera {
             float maxOffset = targetHeight - sneakingHeight;
             float totalCrouchDistance = standingHeight - sneakingHeight;
 
-            float currentEyeHeight = Mth.lerp(this.partialTickTime, this.eyeHeightOld, this.eyeHeight);
+            float currentEyeHeight = Mth.lerp(partialTickTime, eyeHeightOld, eyeHeight);
 
             if (currentEyeHeight < standingHeight) {
                 double crouchAmount = (standingHeight - currentEyeHeight) / totalCrouchDistance;
-                crouchAmount = Math.max(0, Math.min(1, crouchAmount));
+                crouchAmount = Math.clamp(crouchAmount, 0, 1);
                 double animatedOffset = crouchAmount * maxOffset;
 
-                this.setPosition(x, y + animatedOffset, z);
+                setPosition(x, y + animatedOffset, z);
                 return;
             }
         }
 
-        this.setPosition(x, y, z);
+        setPosition(x, y, z);
     }
 
     @Redirect(method = "setup", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getAttributeValue(Lnet/minecraft/core/Holder;)D"))

@@ -68,7 +68,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
 
     override fun onEnable() {
         super.onEnable()
-        TerminalListener.packetRecivedListener.register()
+        TerminalListener.packetReceivedListener.register()
         TerminalListener.packetSentListener.register()
         TerminalListener.tickListener.register()
         TerminalListener.worldChangeListener.register()
@@ -81,7 +81,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
         //#if CHEAT
         if (AutoTerminal.enabled) return
         //#endif
-        TerminalListener.packetRecivedListener.unregister()
+        TerminalListener.packetReceivedListener.unregister()
         TerminalListener.packetSentListener.unregister()
         TerminalListener.tickListener.unregister()
         TerminalListener.worldChangeListener.unregister()
@@ -222,30 +222,30 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
             val slot = slotX + slotY * 9
             if (slot >= windowSize) return@register
 
-            val click = when {
-                TerminalListener.currentType == TerminalType.NUMBERS -> solution.firstOrNull()?.takeIf { it.slotId == slot }
+            val click = when (termType) {
+                TerminalType.NUMBERS -> solution.firstOrNull()?.takeIf { it.slotId == slot }
 
-                TerminalListener.currentType.equalsOneOf(TerminalType.REDGREEN, TerminalType.STARTWITH, TerminalType.COLORS) -> {
+                TerminalType.REDGREEN, TerminalType.STARTWITH, TerminalType.COLORS -> {
                     solution.find { it.slotId == slot }
                 }
 
-                TerminalListener.currentType == TerminalType.RUBIX -> {
+                TerminalType.RUBIX -> {
                     solution.find { it.slotId == slot }?.btn?.let {
                         TerminalClick(slot, if (it > 0) 0 else 1)
                     }
                 }
 
-                TerminalListener.currentType == TerminalType.MELODY -> {
+                TerminalType.MELODY -> {
                     if (slot.equalsOneOf(16, 25, 34, 43)) sendClickPacket(slot, 0)
                     return@register
                 }
-
-                else -> null
             }
 
             if (click == null) return@register
+            if (mode.value == 0 && isClicked) return@register
 
-            if (mode.value != 0) predict(click)
+            predict(click)
+
             if (mode.value == 0) click(click) else if (isClicked) queue.add(click) else click(click)
         }
     }
@@ -287,25 +287,17 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
         sendClickPacket(click.slotId, click.btn)
 
         val initialWindowId = TerminalListener.lastWindowId
-        ThreadUtils.setTimeout(resyncTimeout.value) {
-            if (! TerminalListener.inTerm || initialWindowId != TerminalListener.lastWindowId) return@setTimeout
-            if (NoammAddons.debugFlags.contains("terminal")) {
-                ChatUtils.modMessage("Resync Timeout Triggered")
-            }
+        Scheduler.schedule(resyncTimeout.value.toInt(), resyncTimeout.value.toInt() / 50) {
+            if (! TerminalListener.inTerm || initialWindowId != TerminalListener.lastWindowId) return@schedule
+            if (NoammAddons.debugFlags.contains("terminal")) ChatUtils.modMessage("Resync Timeout Triggered")
 
-            if (mode.value == 1) {
-                TerminalType.clickedStartWithSlots.clear()
-                queue.clear()
-                solve()
-                isClicked = false
-            }
+            TerminalType.clickedStartWithSlots.clear()
+            isClicked = false
+            queue.clear()
+            solve()
 
             //#if CHEAT
-            if (AutoTerminal.enabled) {
-                TerminalType.clickedStartWithSlots.clear()
-                solve()
-                AutoTerminal.onItemsUpdated()
-            }
+            if (AutoTerminal.enabled) AutoTerminal.onItemsUpdated()
             //#endif
         }
     }
@@ -326,7 +318,10 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
         }
 
         if (TerminalListener.currentType == TerminalType.STARTWITH) {
-            TerminalType.clickedStartWithSlots.add(slot)
+            val item = TerminalListener.currentItems[slot]?.item
+            if (item.equalsOneOf(Items.NETHER_STAR, Items.EXPERIENCE_BOTTLE)) {
+                TerminalType.clickedStartWithSlots.add(slot)
+            }
         }
     }
 

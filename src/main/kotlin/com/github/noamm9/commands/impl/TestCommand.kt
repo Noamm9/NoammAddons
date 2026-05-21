@@ -3,14 +3,12 @@ package com.github.noamm9.commands.impl
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.electionData
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.NoammAddons.priceData
 import com.github.noamm9.commands.BaseCommand
 import com.github.noamm9.commands.CommandNodeBuilder
 import com.github.noamm9.config.Config
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
-import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.network.ProfileUtils
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -66,7 +64,7 @@ object TestCommand: BaseCommand("test") {
         }
 
         runs {
-            ChatUtils.chat("${mc.player?.mainHandItem?.skyblockId}: ${priceData[mc.player?.mainHandItem?.skyblockId]}")
+            ChatUtils.modMessage("hi")
         }
     }
 }

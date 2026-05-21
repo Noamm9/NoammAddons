@@ -4,22 +4,22 @@ package com.github.noamm9.event
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.utils.ChatUtils
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.*
 
 object EventBus {
     class EventContext<T: Event>(val event: T, var listener: EventListener<T>)
 
-    val listeners = ConcurrentHashMap<Class<out Event>, Array<EventListener<*>>>()
+    val listeners = ConcurrentHashMap<Class<out Event>, List<EventListener<*>>>()
 
     @JvmStatic
     fun post(event: Event): Boolean {
         val handlers = listeners[event.javaClass] ?: return event.cancelable && event.isCanceled
         var context: EventContext<Event>? = null
 
-        for (handler in handlers) {
-            val typedHandler = handler as EventListener<Event>
-
+        for (i in handlers.indices) {
+            val handler = handlers[i]
             try {
+                val typedHandler = handler as EventListener<Event>
                 val currentContext = context ?: EventContext(event, typedHandler).also { context = it }
                 currentContext.listener = typedHandler
                 typedHandler.callback.invoke(currentContext)
@@ -39,37 +39,20 @@ object EventBus {
         priority: EventPriority = EventPriority.NORMAL,
         noinline block: EventContext<T>.() -> Unit
     ): EventListener<T> {
-        val eventListener = EventListener(T::class.java, priority, block)
-
-        synchronized(listeners) {
-            val oldListeners = listeners[T::class.java] ?: emptyArray()
-            listeners[T::class.java] = sortListeners(oldListeners.asList() + eventListener)
-        }
-
-        return eventListener
+        return EventListener(T::class.java, priority, block).register()
     }
 
-    fun unregister(listener: EventListener<*>) {
-        synchronized(listeners) {
-            val oldListeners = listeners[listener.eventClass] ?: return
-            val newListeners = oldListeners.filter { it !== listener }
+    fun unregister(listener: EventListener<*>) = synchronized(listeners) {
+        val oldListeners = listeners[listener.eventClass] ?: return@synchronized
+        val newListeners = oldListeners.filter { it !== listener }
 
-            if (newListeners.isEmpty()) listeners.remove(listener.eventClass)
-            else listeners[listener.eventClass] = newListeners.toTypedArray()
-        }
+        if (newListeners.isEmpty()) listeners.remove(listener.eventClass)
+        else listeners[listener.eventClass] = newListeners
     }
 
-    fun register(listener: EventListener<*>) {
-        synchronized(listeners) {
-            val oldListeners = listeners[listener.eventClass] ?: emptyArray()
-            if (oldListeners.any { it === listener }) return
-
-            listeners[listener.eventClass] = sortListeners(oldListeners.asList() + listener)
-        }
-    }
-
-    @PublishedApi
-    internal fun sortListeners(listeners: List<EventListener<*>>): Array<EventListener<*>> {
-        return listeners.sortedBy { it.priority.ordinal }.toTypedArray()
+    fun register(listener: EventListener<*>) = synchronized(listeners) {
+        val oldListeners = listeners[listener.eventClass] ?: emptyList()
+        if (oldListeners.contains(listener)) return@synchronized
+        listeners[listener.eventClass] = (oldListeners + listener).sortedBy { it.priority.ordinal }
     }
 }

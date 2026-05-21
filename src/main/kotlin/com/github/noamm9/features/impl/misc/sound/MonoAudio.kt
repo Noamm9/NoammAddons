@@ -1,4 +1,4 @@
-package com.github.noamm9.features.impl.misc
+package com.github.noamm9.features.impl.misc.sound
 
 import com.github.noamm9.features.Feature
 import net.minecraft.world.phys.Vec3

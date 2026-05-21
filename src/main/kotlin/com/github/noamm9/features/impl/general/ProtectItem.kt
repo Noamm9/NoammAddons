@@ -14,6 +14,7 @@ import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.unformattedText
+import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.items.ItemUtils.customData
 import com.github.noamm9.utils.items.ItemUtils.itemUUID
 import com.github.noamm9.utils.items.ItemUtils.lore
@@ -27,6 +28,7 @@ import net.minecraft.world.inventory.ClickType
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import org.lwjgl.glfw.GLFW
+import kotlin.jvm.optionals.getOrDefault
 
 object ProtectItem: Feature("Prevents dropping or selling important items via /protectitem or keybind.") {
     private val data = PogObject("item_protection", mutableMapOf<String, List<String>>("uuids" to emptyList(), "ids" to emptyList()))
@@ -46,14 +48,14 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
 
             val stack = when (event.slotId) {
                 - 999 -> menu.carried
-                in 0 until menu.slots.size -> menu.slots[event.slotId].item
+                in menu.slots.indices -> menu.slots[event.slotId].item
                 else -> ItemStack.EMPTY
             }
 
             if (stack.isEmpty) return@register
 
             val isThrowing = event.clickType == ClickType.THROW || event.slotId == - 999
-            val isSelling = isSellMenu() && event.slotId in 0 until menu.slots.size
+            val isSelling = isSellMenu() && event.slotId in menu.slots.indices
 
             if (isThrowing || isSelling) {
                 if (getProtectType(stack) != ProtectType.None) {
@@ -71,7 +73,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
         }
 
         register<KeyboardEvent.KeyPressed> {
-            if (LocationUtils.inDungeon) return@register
+            if (LocationUtils.inDungeon && DungeonListener.dungeonStarted && ! DungeonListener.dungeonEnded) return@register
             if (mc.screen != null) return@register
             if (! mc.options.keyDrop.matches(event.keyEvent)) return@register
             val heldItem = mc.player?.inventory?.selectedItem ?: return@register
@@ -132,8 +134,8 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
 
         val data = stack.customData
         val name = stack.hoverName.unformattedText
-        if (protectStarred.value && (data.getInt("upgrade_level").orElse(0) > 0 || name.contains("✪"))) return ProtectType.Starred
-        if (protectRarity.value && data.getInt("rarity_upgrades").orElse(0) > 0) return ProtectType.RarityUpgraded
+        if (protectStarred.value && (data.getInt("upgrade_level").getOrDefault(0) > 0 || name.contains("✪"))) return ProtectType.Starred
+        if (protectRarity.value && data.getInt("rarity_upgrades").getOrDefault(0) > 0) return ProtectType.RarityUpgraded
 
         return ProtectType.None
     }

@@ -10,7 +10,7 @@ import java.net.JarURLConnection
 import java.net.URL
 import java.net.URLDecoder
 import java.util.*
-import java.util.jar.JarFile
+import java.util.jar.*
 
 class AutoMixinDiscovery: IMixinConfigPlugin {
     private val basePackage = "com.github.noamm9.mixin"

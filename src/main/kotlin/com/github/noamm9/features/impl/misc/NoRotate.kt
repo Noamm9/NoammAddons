@@ -35,6 +35,7 @@ import net.minecraft.world.entity.PositionMoveRotation
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.Vec3
+import kotlin.jvm.optionals.getOrNull
 
 object NoRotate: Feature("Prevents the server from snapping back your head when teleporting.") {
     private val tpItems by MultiCheckboxSetting("Teleport Items", mutableMapOf(
@@ -165,7 +166,7 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
         val nbt = stack.customData
 
         if (sbId.equalsOneOf("ASPECT_OF_THE_VOID", "ASPECT_OF_THE_END")) {
-            val tuners = nbt.getByte("tuned_transmission").orElse(0).toDouble()
+            val tuners = nbt.getByte("tuned_transmission").getOrNull()?.toDouble() ?: .0
 
             return if (tpItems.value["Etherwarp"] !! && player.isSneakingServer && nbt.getByte("ethermerge").orElse(0) == 1.toByte()) {
                 TeleportInfo(57 + tuners, TeleportType.Etherwarp)

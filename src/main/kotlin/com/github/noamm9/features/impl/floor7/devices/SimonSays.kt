@@ -1,7 +1,7 @@
 package com.github.noamm9.features.impl.floor7.devices
 
 import com.github.noamm9.NoammAddons
-import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.EventListener
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.*
@@ -214,7 +214,7 @@ object SimonSays: Feature("Simon Says Solver") {
         }
     }
 
-    val serverTickListener = EventBus.register<TickEvent.Server> {
+    val serverTickListener = EventListener.create<TickEvent.Server> {
         ticks --
 
         if (obsidians.any { WorldUtils.getBlockAt(it) != Blocks.OBSIDIAN }) {
@@ -227,11 +227,11 @@ object SimonSays: Feature("Simon Says Solver") {
                 if (showTitle.value) ChatUtils.showTitle("§a§l§nSS Started!")
             }
 
-            return@register
+            return@create
         }
 
-        if (ticks > 0 || ! canBreak) return@register
-        if (! buttons.all { pos -> WorldUtils.getBlockAt(pos) == Blocks.AIR }) return@register
+        if (ticks > 0 || ! canBreak) return@create
+        if (! buttons.all { pos -> WorldUtils.getBlockAt(pos) == Blocks.AIR }) return@create
 
         canBreak = false
         wasBroken = true
@@ -239,7 +239,7 @@ object SimonSays: Feature("Simon Says Solver") {
         if (sendChat.value) ChatUtils.sendCommand("pc SS Broke!")
         if (alertSound.value) mc.player?.playSound(SoundEvents.ANVIL_LAND, 5f, 0f)
         if (showTitle.value) ChatUtils.showTitle("§c§l§nSS BROKE!")
-    }.unregister()
+    }
 
     private fun resetSolver() {
         lastExisted = false

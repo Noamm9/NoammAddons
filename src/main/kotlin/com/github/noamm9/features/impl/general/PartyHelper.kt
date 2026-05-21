@@ -16,13 +16,14 @@ import com.github.noamm9.utils.PartyUtils
 import com.github.noamm9.utils.PartyUtils.isLeader
 import com.github.noamm9.utils.ServerUtils
 import com.github.noamm9.utils.dungeons.DungeonUtils
+import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.HoverEvent
 import net.minecraft.network.chat.MutableComponent
-import net.minecraft.network.protocol.game.ServerboundChatPacket
+import net.minecraft.network.protocol.game.ServerboundChatCommandPacket
 import net.minecraft.sounds.SoundEvents
 import kotlin.math.roundToInt
 
@@ -53,9 +54,8 @@ object PartyHelper: Feature("Party commands and reformatting.") {
     override fun init() {
         register<PacketEvent.Sent> {
             if (! LocationUtils.onHypixel || ! partyAddons.value) return@register
-            if (event.packet !is ServerboundChatPacket) return@register
-            val msg = event.packet.message.lowercase()
-            if (msg == "/pl" || msg == "/party list" || msg == "/p list") {
+            if (event.packet !is ServerboundChatCommandPacket) return@register
+            if (event.packet.command.lowercase().equalsOneOf("pl", "party list", "p list")) {
                 awaitingDelimiter = 2
             }
         }
@@ -128,7 +128,6 @@ object PartyHelper: Feature("Party commands and reformatting.") {
                 if (args.isEmpty()) return
                 PartyUtils.members.find { it.contains(args[0], true) }?.let {
                     runCommand("p kick $it", true)
-                    ChatUtils.modMessage("$it")
                 }
             }
 
@@ -193,7 +192,7 @@ object PartyHelper: Feature("Party commands and reformatting.") {
         }
 
         main.append("\n§9§m§l----------------------------------")
-        mc.execute { ChatUtils.chat(main) }
+        ChatUtils.chat(main)
     }
 
     private fun runCommand(cmd: String, leaderReq: Boolean = false) {

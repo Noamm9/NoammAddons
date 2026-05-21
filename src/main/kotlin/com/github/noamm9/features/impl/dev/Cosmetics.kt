@@ -14,7 +14,7 @@ import com.github.noamm9.utils.network.ProfileUtils
 import com.github.noamm9.utils.network.WebUtils
 import com.mojang.authlib.GameProfile
 import com.mojang.blaze3d.vertex.PoseStack
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlinx.serialization.Serializable
 import net.fabricmc.fabric.api.client.rendering.v1.RenderStateDataKey
 import net.minecraft.client.player.AbstractClientPlayer
@@ -22,7 +22,7 @@ import net.minecraft.client.renderer.entity.state.AvatarRenderState
 import net.minecraft.world.entity.Avatar
 import net.minecraft.world.phys.Vec3
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.*
 import kotlin.math.absoluteValue
 
 object Cosmetics: Feature(toggled = true) {
@@ -38,22 +38,25 @@ object Cosmetics: Feature(toggled = true) {
     lateinit var cosmeticPeople: Map<UUID, CosmeticData>
 
     override fun init() {
-        scope.launch(WebUtils.networkDispatcher) {
+        scope.launch(Dispatchers.IO) {
             lastReload = System.currentTimeMillis()
             NoammAddons.logger.info("fetching cosmeticPeople")
             WebUtils.getAs<Map<String, CosmeticData>>("https://api.noamm.org/cosmeticPeople.json").onSuccess { data ->
                 cosmeticPeople = data.mapKeys { UUID.fromString(it.key) }
-                val customNames = HashMap<String, String>()
+                coroutineScope {
+                    val customNames = HashMap<String, String>()
+                    val jobs = cosmeticPeople.filter { it.value.hasCustomName }.map { (uuid, cosmetic) ->
+                        async {
+                            val resolvedName = profileNames[uuid] ?: ProfileUtils.getNameByUUID(uuid).map { it.name }.getOrNull() ?: return@async
+                            profileNames[uuid] = resolvedName
+                            customNames[resolvedName] = cosmetic.name
+                        }
+                    }
 
-                cosmeticPeople.filter { it.value.hasCustomName }.forEach { (uuid, cosmetic) ->
-                    val resolvedName = ProfileUtils.getNameByUUID(uuid).map { it.name }.getOrNull()
-                        ?: profileNames[uuid] ?: return@forEach
-
-                    profileNames[uuid] = resolvedName
-                    customNames[resolvedName] = cosmetic.name
+                    jobs.awaitAll()
+                    TextReplacer.add(customNames)
                 }
 
-                TextReplacer.setCustomReplacements(customNames)
             }.onFailure { cause ->
                 NoammAddons.logger.error("Failed to load cosmetic people", cause)
                 ChatUtils.modMessage("&cFailed to load cosmetic people: ${cause.message}")
@@ -66,7 +69,7 @@ object Cosmetics: Feature(toggled = true) {
         if (! enabled) return
         if (! customSizes.value) return
         if (avatar !is AbstractClientPlayer) return
-        state.setData<GameProfile>(GAME_PROFILE_KEY, avatar.gameProfile)
+        state.setData(GAME_PROFILE_KEY, avatar.gameProfile)
     }
 
     @JvmStatic

@@ -10,7 +10,6 @@ import com.github.noamm9.utils.dungeons.DungeonUtils.isSecret
 import com.github.noamm9.utils.dungeons.enums.SecretType
 import com.github.noamm9.utils.dungeons.map.core.UniqueRoom
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
-import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.RenderContext
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents
@@ -62,21 +61,20 @@ object EventDispatcher {
             if (entity.item.hoverName.unformattedText !in DungeonUtils.dungeonItemDrops) return@register
             if (mc.player !!.distanceTo(entity) > 6) return@register
 
-            EventBus.post(
-                DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition())
-            )
+            EventBus.post(DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition()))
         }
 
 
         register<PacketEvent.Received> {
             if (event.packet is ClientboundSystemChatPacket) {
+                if (event.packet.overlay) return@register
                 if (EventBus.post(ChatMessageEvent(event.packet.content))) {
                     event.isCanceled = true
                 }
             }
             else if (event.packet is ClientboundSoundPacket) {
                 if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
-                if (! event.packet.sound.value().equalsOneOf(SoundEvents.BAT_HURT, SoundEvents.BAT_DEATH)) return@register
+                if (event.packet.sound.value() != SoundEvents.BAT_DEATH) return@register
 
                 EventBus.post(DungeonEvent.SecretEvent(
                     SecretType.BAT,
@@ -89,9 +87,7 @@ object EventDispatcher {
                 if (entity.item.hoverName.unformattedText !in DungeonUtils.dungeonItemDrops) return@register
                 if (mc.player !!.distanceTo(entity) > 6) return@register
 
-                EventBus.post(
-                    DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition())
-                )
+                EventBus.post(DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition()))
             }
             else if (event.packet is ClientboundContainerClosePacket) {
                 if (event.packet.containerId == invWindowId) resetInventoryState()
@@ -177,9 +173,9 @@ object EventDispatcher {
         if (! invAccept) return
         invAccept = false
 
+        val title = invTitle ?: return
         val winId = invWindowId
         val slotCount = invSlotCount
-        val title = invTitle ?: return
         val items = HashMap(invItems)
 
         if (invFired) return
@@ -191,17 +187,15 @@ object EventDispatcher {
         }
     }
 
-    private fun getSlotCount(type: MenuType<*>): Int {
-        return when (type) {
-            MenuType.GENERIC_9x1 -> 9
-            MenuType.GENERIC_9x2 -> 18
-            MenuType.GENERIC_9x3 -> 27
-            MenuType.GENERIC_9x4 -> 36
-            MenuType.GENERIC_9x5 -> 45
-            MenuType.GENERIC_9x6 -> 54
-            MenuType.GENERIC_3x3 -> 9
-            MenuType.HOPPER -> 5
-            else -> 0
-        }
+    private fun getSlotCount(type: MenuType<*>) = when (type) {
+        MenuType.GENERIC_9x1 -> 9
+        MenuType.GENERIC_9x2 -> 18
+        MenuType.GENERIC_9x3 -> 27
+        MenuType.GENERIC_9x4 -> 36
+        MenuType.GENERIC_9x5 -> 45
+        MenuType.GENERIC_9x6 -> 54
+        MenuType.GENERIC_3x3 -> 9
+        MenuType.HOPPER -> 5
+        else -> 0
     }
 }

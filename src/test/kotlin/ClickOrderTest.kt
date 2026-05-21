@@ -84,7 +84,6 @@ object ClickOrderTest {
             TerminalType.COLORS -> 7
             TerminalType.STARTWITH -> 7
             TerminalType.REDGREEN -> 5
-            else -> throw IllegalStateException("Melody/Numbers should not be randomaized")
         }
 
         fun getY(type: TerminalType) = when (type) {
@@ -92,7 +91,6 @@ object ClickOrderTest {
             TerminalType.COLORS -> 4
             TerminalType.STARTWITH -> 3
             TerminalType.REDGREEN -> 3
-            else -> throw IllegalStateException("Melody/Numbers should not be randomaized")
         }
 
         fun getBestClick(availableClicks: List<TerminalClick>, type: TerminalType): TerminalClick {

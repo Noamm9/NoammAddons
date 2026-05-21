@@ -1,7 +1,6 @@
-package com.github.noamm9.features.impl.dungeon.waypoints
+package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.NoammAddons
-import com.github.noamm9.NoammAddons.MOD_NAME
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
@@ -21,14 +20,14 @@ import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render3D
-import com.google.gson.reflect.TypeToken
+import com.google.common.reflect.TypeToken
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Blocks
 import java.awt.Color
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
-import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.*
 
 object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while looking at a block") {
     val secretWaypoints by ToggleSetting("Secret Waypoints").section("Secret Waypoints")
@@ -40,7 +39,7 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
     val chestColor by ColorSetting("Chest Color", Color.MAGENTA, false).section("Colors")
     val itemColor by ColorSetting("Item Color", Utils.favoriteColor, false)
     val batColor by ColorSetting("Bat Color", Color.GREEN, false)
-    val essanceColor by ColorSetting("Essance Color", Color.BLACK, false)
+    val essanceColor by ColorSetting("Essence Color", Color.BLACK, false)
     val keyColor by ColorSetting("Redstone Key Color", Color.RED, false)
 
     data class DungeonWaypoint(val pos: BlockPos, val color: Color, val filled: Boolean, val outline: Boolean, val phase: Boolean)
@@ -55,7 +54,7 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
         }.value
     }
 
-    private val configFile = File("config/$MOD_NAME/dungeonWaypoints.json")
+    private val configFile = File("config/${NoammAddons.MOD_NAME}/dungeonWaypoints.json")
     private val secretPositions by lazy { ScanUtils.roomList.associate { it.name to it.secretCoords } }
     val waypoints = mutableMapOf<String, List<DungeonWaypoint>>()
     val currentRoomWaypoints = CopyOnWriteArrayList<DungeonWaypoint>()
@@ -97,13 +96,24 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
 
         register<DungeonEvent.SecretEvent> {
             if (! secretWaypoints.value || currentSecrets.isEmpty()) return@register
-            val playerPos = NoammAddons.mc.player?.blockPosition() ?: return@register
             if (event.type == SecretType.LEVER) return@register
-            if (event.pos.distSqr(playerPos) > 36) return@register
 
-            val distinctTypes = setOf(SecretType.BAT, SecretType.ITEM)
-            val target = if (event.type !in distinctTypes) currentSecrets.find { it.pos == event.pos }
-            else currentSecrets.filter { it.type in distinctTypes }.minByOrNull { it.pos.distSqr(event.pos) }
+            val special = setOf(SecretType.BAT, SecretType.ITEM)
+            val target = if (event.type !in special) currentSecrets.find { it.pos == event.pos }
+            else {
+                val maxDistance = when (event.type) {
+                    SecretType.ITEM -> 25
+                    SecretType.BAT -> 144
+                    else -> Int.MAX_VALUE
+                }
+
+                currentSecrets.asSequence()
+                    .filter { it.type == event.type }
+                    .map { it to it.pos.distSqr(event.pos) }
+                    .minByOrNull { it.second }
+                    ?.takeIf { it.second <= maxDistance }
+                    ?.first
+            }
 
             target?.let(currentSecrets::remove)
         }
@@ -145,16 +155,16 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
         }
     }
 
-    private fun loadConfig() = runCatching {
+    private fun loadConfig() = catch {
         FileReader(configFile).use { reader ->
             val type = object: TypeToken<MutableMap<String, List<DungeonWaypoint>>>() {}.type
-            val loadedData = JsonUtils.gsonBuilder.fromJson<MutableMap<String, List<DungeonWaypoint>>>(reader, type) ?: return@runCatching
+            val loadedData = JsonUtils.gsonBuilder.fromJson<MutableMap<String, List<DungeonWaypoint>>>(reader, type) ?: return@catch
             waypoints.putAll(loadedData)
         }
     }
 
 
-    fun saveConfig() = runCatching {
+    fun saveConfig() = catch {
         configFile.parentFile?.mkdirs()
         FileWriter(configFile).use { writer ->
             JsonUtils.gsonBuilder.toJson(waypoints, writer)

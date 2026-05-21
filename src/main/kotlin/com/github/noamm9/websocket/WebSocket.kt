@@ -1,54 +1,77 @@
 package com.github.noamm9.websocket
 
 import com.github.noamm9.NoammAddons
-import com.github.noamm9.NoammAddons.debugFlags
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.JsonUtils
 import com.github.noamm9.utils.ThreadUtils
+import com.github.noamm9.utils.catch
+import com.github.noamm9.utils.network.WebUtils
+import com.google.gson.JsonElement
 import com.google.gson.JsonParser
-import org.java_websocket.client.WebSocketClient
-import org.java_websocket.handshake.ServerHandshake
-import java.net.URI
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
+import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
+import io.ktor.client.plugins.websocket.webSocket
+import io.ktor.websocket.Frame
+import io.ktor.websocket.close
+import io.ktor.websocket.readText
+import kotlinx.coroutines.*
+import java.lang.Runnable
+import java.util.concurrent.*
 
 object WebSocket {
-    private val worker = Executors.newSingleThreadScheduledExecutor {
-        Thread(it, "${NoammAddons.MOD_NAME}-WebSocket").apply { isDaemon = true }
+    private val worker = run {
+        val threadFactory = fun(it: Runnable) = Thread(it, "${NoammAddons.MOD_NAME}-WebSocket").apply { isDaemon = true }
+        CoroutineScope(Executors.newSingleThreadExecutor(threadFactory).asCoroutineDispatcher() + SupervisorJob())
     }
+
+    @Volatile private var session: DefaultClientWebSocketSession? = null
+    private var socketJob: Job? = null
 
     fun init() {
+        ThreadUtils.addShutdownHook(::shutdown)
         PacketRegistry.init()
-        NASocket.connect()
-        ThreadUtils.addShutdownHook { NASocket.close(1000, "client stopping") }
+        connect()
     }
 
-    fun send(packet: Any) = worker.execute {
-        if (! NASocket.isOpen) return@execute
+    fun send(packet: Any) = worker.launch {
+        val socket = session?.takeIf { it.isActive } ?: return@launch
         val raw = JsonUtils.gsonBuilder.toJson(packet)
-        if (debugFlags.contains("ws")) ChatUtils.chat(raw)
-        runCatching { NASocket.send(raw) }
+        socket.send(Frame.Text(raw))
     }
 
-    private object NASocket: WebSocketClient(URI("wss://noamm.org")) {
-        override fun onMessage(message: String) = worker.execute {
-            runCatching {
-                val json = JsonParser.parseString(message).takeIf { it.isJsonObject }?.asJsonObject ?: return@execute
-                val type = json.get("type")?.asString.takeUnless { it.isNullOrBlank() } ?: return@execute
-                val packetClass = PacketRegistry.getPacketClass(type) ?: return@execute
-                val packet = JsonUtils.gsonBuilder.fromJson(message, packetClass)
-                mc.execute { packet.handle() }
+    private fun connect() {
+        if (socketJob?.isActive == true) return
+
+        socketJob = worker.launch {
+            try {
+                WebUtils.client.webSocket("wss://noamm.org") {
+                    NoammAddons.logger.info("WebSocket: Connected Successfully")
+                    session = this
+
+                    for (frame in incoming) if (frame is Frame.Text) handleMessage(frame.readText())
+                }
+            }
+            catch (e: Exception) {
+                NoammAddons.logger.info("WebSocket: Disconnected", e)
+            }
+            finally {
+                session = null
+                socketJob = null
+                ThreadUtils.setTimeout(30_000, ::connect)
             }
         }
+    }
 
-        init {
-            connectionLostTimeout = 30
-            isTcpNoDelay = true
-        }
+    private fun handleMessage(message: String) = catch {
+        val json = JsonParser.parseString(message).takeIf(JsonElement::isJsonObject)?.asJsonObject ?: return@catch
+        val type = json.get("type")?.asString?.takeUnless(String::isBlank) ?: return@catch
+        val packetClass = PacketRegistry.getPacketClass(type) ?: return@catch
+        val packet = JsonUtils.gsonBuilder.fromJson(message, packetClass)
+        mc.submit(packet::handle)
+    }
 
-        override fun onClose(code: Int, reason: String, remote: Boolean) = worker.execute { worker.schedule({ reconnect() }, 30, TimeUnit.SECONDS) }
-        override fun onOpen(handshakedata: ServerHandshake) = worker.execute { NoammAddons.logger.info("WebSocket: Connected Successfully") }
-        override fun onError(ex: Exception) = worker.execute { NoammAddons.logger.error("WebSocket: transport error", ex) }
+    private fun shutdown() = runBlocking {
+        catch { session?.close() }
+        catch { socketJob?.cancelAndJoin() }
+        worker.cancel()
     }
 }
