@@ -10,6 +10,7 @@ import com.github.noamm9.features.impl.misc.ScrollableTooltip
 import com.github.noamm9.mixin.IAbstractContainerScreen
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ColorUtils.withAlpha
+import com.github.noamm9.utils.render.ItemRenderer.Companion.drawItemStack
 import com.github.noamm9.utils.render.Render2D
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
@@ -250,8 +251,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
                     Render2D.drawRect(this, slotX, slotY, 16, 16, InventorySearch.color)
                 }
 
-                renderItem(displayStack, slotX, slotY)
-                renderItemDecorations(font, displayStack, slotX, slotY)
+                drawItemStack(displayStack, slotX, slotY)
+                renderItemDecorations(mc.font, displayStack, slotX, slotY)
 
                 if (isSlotHovered && hoveredStack == null) {
                     hoveredStack = displayStack
