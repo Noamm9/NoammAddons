@@ -10,7 +10,7 @@ import com.github.noamm9.features.impl.misc.ScrollableTooltip
 import com.github.noamm9.mixin.IAbstractContainerScreen
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.render.ItemRenderer.Companion.drawItemStack
+import com.github.noamm9.utils.render.ItemRenderer
 import com.github.noamm9.utils.render.Render2D
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
@@ -126,6 +126,27 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             if (y + ph < viewTop || y > viewBottom) return@layoutedForEach
             drawPage(x, y, page, inventory, if (excluding == page) slots else null, mouseX, mouseY, originalMouseX, originalMouseY)
         }
+
+        ItemRenderer.endItemRendererBatch(this)
+
+        layoutedForEach(data) { x, y, _, ph, page, inventory ->
+            if (y + ph < viewTop || y > viewBottom) return@layoutedForEach
+            val rows = inventory?.rows ?: (if (excluding == page) slots?.size?.div(9)?.coerceIn(1, 5) ?: 3 else 0)
+            if (rows == 0 && inventory == null) return@layoutedForEach
+
+            val slotsY = y + 5 + font.lineHeight
+            val invStacks = inventory?.stacks
+            val itemCount = invStacks?.size ?: (if (excluding == page) slots?.size ?: (rows * 9) else 0)
+
+            for (index in 0 until itemCount) {
+                val slotX = (index % 9) * SLOT_SIZE + x + 3
+                val slotY = (index / 9) * SLOT_SIZE + slotsY + 1
+                if (slotY + 16 < viewTop || slotY > viewBottom) continue
+                val displayStack = if (excluding == page && slots != null && index < slots.size) slots[index].item else invStacks?.get(index) ?: continue
+                if (! displayStack.isEmpty) renderItemDecorations(mc.font, displayStack, slotX, slotY)
+            }
+        }
+
         disableScissor()
     }
 
@@ -189,15 +210,20 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
                     Render2D.drawRect(this, sx, sy, 16, 16, InventorySearch.color)
                 }
 
-                renderItem(item, sx, sy, 0)
-                renderItemDecorations(font, item, sx, sy)
+                ItemRenderer.drawBatchedItemStack(this, item, sx, sy)
 
-                if (hoveredStack == null && isSlotHovered) {
-                    hoveredStack = item
-                }
+                if (hoveredStack == null && isSlotHovered) hoveredStack = item
             }
 
             if (isSlotHovered) Render2D.drawRect(this, sx, sy, 16, 16, Color.white.withAlpha(50))
+        }
+
+        ItemRenderer.endItemRendererBatch(this)
+
+        for (i in 0 until 36) {
+            val item = items[i]
+            val (sx, sy) = getPlayerInvSlotPos(i)
+            if (! item.isEmpty) renderItemDecorations(mc.font, item, sx, sy)
         }
 
         if (hoveredStack != null) {
@@ -251,8 +277,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
                     Render2D.drawRect(this, slotX, slotY, 16, 16, InventorySearch.color)
                 }
 
-                drawItemStack(displayStack, slotX, slotY)
-                renderItemDecorations(mc.font, displayStack, slotX, slotY)
+                ItemRenderer.drawBatchedItemStack(this, displayStack, slotX, slotY)
 
                 if (isSlotHovered && hoveredStack == null) {
                     hoveredStack = displayStack
@@ -440,7 +465,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         context.pose().scale(scale)
         val scaledMouseX = (Resolution.getMouseX(mouseX.toDouble()) / scale).toInt() - 8
         val scaledMouseY = (Resolution.getMouseY(mouseY.toDouble()) / scale).toInt() - 8
-        context.renderItem(carried, scaledMouseX, scaledMouseY)
+        ItemRenderer.drawBatchedItemStack(context, carried, scaledMouseX, scaledMouseY)
+        ItemRenderer.endItemRendererBatch(context)
         context.renderItemDecorations(screen.font, carried, scaledMouseX, scaledMouseY)
         Resolution.pop(context)
         return true
