@@ -10,7 +10,7 @@ import com.github.noamm9.ui.clickgui.components.showIf
 import java.awt.Color
 
 //#if LEGIT
-//$$import com.github.noamm9.ui.clickgui.components.hideIf
+//$import com.github.noamm9.ui.clickgui.components.hideIf
 //#endif
 
 object MapConfig {
@@ -19,7 +19,7 @@ object MapConfig {
     //#if CHEAT
     val dungeonMapCheater = ToggleSetting("Cheater Map", false)
     //#else
-    //$$val dungeonMapCheater = ToggleSetting("Legit", false).hideIf { true }
+    //$val dungeonMapCheater = ToggleSetting("Legit", false).hideIf { true }
     //#endif
 
     val mapExtraInfo = ToggleSetting("Show Extra Info Under Map", false)
@@ -45,7 +45,7 @@ object MapConfig {
     //#if CHEAT
     val highlightMimicRoom = ToggleSetting("Highlight Mimic Room", true)
     //#else
-    //$$val highlightMimicRoom = ToggleSetting("Highlight Mimic Room Legit", false).hideIf { true }
+    //$val highlightMimicRoom = ToggleSetting("Highlight Mimic Room Legit", false).hideIf { true }
     //#endif
 
     val mapPlayerHeadColor = ColorSetting("Head Border", Color(0, 0, 0), true).section("Colors")
