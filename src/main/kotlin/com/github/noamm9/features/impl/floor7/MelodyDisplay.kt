@@ -1,6 +1,6 @@
 package com.github.noamm9.features.impl.floor7
 
-import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.EventListener
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
@@ -44,8 +44,8 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
         return@hudElement text.width().toFloat() to 9f
     }
 
-    private val timer = EventBus.register<TickEvent.Start> {
-        val state = currentState ?: return@register
+    private val timer = EventListener.create<TickEvent.Start> {
+        val state = currentState ?: return@create
         val durationMillis = (alertDuration.value * 1000).toLong()
 
         if (System.currentTimeMillis() - state.timestamp > durationMillis) {

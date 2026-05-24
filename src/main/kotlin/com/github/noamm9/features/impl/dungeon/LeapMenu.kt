@@ -8,18 +8,15 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.*
 import com.github.noamm9.ui.clickgui.components.impl.*
 import com.github.noamm9.ui.utils.Resolution
-import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.GuiUtils
-import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.DungeonListener.dungeonTeammatesNoSelf
 import com.github.noamm9.utils.dungeons.DungeonPlayer
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.uppercaseFirst
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.sounds.SoundEvents
@@ -64,7 +61,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
     data class LeapMenuPlayer(val slotIndex: Int, val player: DungeonPlayer)
 
     val players = MutableList<LeapMenuPlayer?>(4) { null }
-    private val leapRegex = Regex("^You have teleported to (.+)!$")
+
     private val playerRegex = Regex("(?:\\[.+?] )?(?<name>\\w+)")
     private var shouldHide: Long = 0
 
@@ -73,15 +70,16 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
 
     override fun init() {
         register<ChatMessageEvent> {
-            leapRegex.find(event.unformattedText)?.destructured?.component1()?.let { name ->
-                if (announceSpiritLeaps.value) leapMsg.value.replace("{name}", name).takeUnless { it.isBlank() }?.let {
-                    ChatUtils.sendPartyMessage(it)
-                }
+            val message = event.unformattedText
+            if (! message.endsWith("!")) return@register
+            if (! message.startsWith("You have teleported to ")) return@register
+            val name = message.remove("You have teleported to ", "!")
 
-                if (hideAfterLeap.value) {
-                    shouldHide = System.currentTimeMillis() + ((hideTime.value * 1000L).toLong())
-                }
+            if (announceSpiritLeaps.value) leapMsg.value.replace("{name}", name).takeUnless { it.isBlank() }?.let {
+                ChatUtils.sendPartyMessage(it)
             }
+
+            if (hideAfterLeap.value) shouldHide = System.currentTimeMillis() + ((hideTime.value * 1000L).toLong())
         }
 
         register<CheckEntityRenderEvent> {

@@ -1,6 +1,6 @@
 package com.github.noamm9.features.impl.floor7.terminals
 
-import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.EventListener
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.TickEvent
 import java.util.concurrent.*
@@ -32,14 +32,14 @@ object Scheduler {
         ))
     }
 
-    val tickListener = EventBus.register<TickEvent.Server> {
+    val tickListener = EventListener.create<TickEvent.Server> {
         currentTicks ++
         process { task ->
             task.ticksPassed = currentTicks >= task.targetTicks
         }
     }
 
-    val timeListener = EventBus.register<RenderWorldEvent> {
+    val timeListener = EventListener.create<RenderWorldEvent> {
         process { task ->
             task.msPassed = System.currentTimeMillis() >= task.targetMs
         }

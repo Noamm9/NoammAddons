@@ -129,6 +129,6 @@ public class MixinAbstractContainerScreenHook<T extends AbstractContainerMenu> e
     @Inject(method = "mouseScrolled", at = @At("HEAD"), cancellable = true)
     public void onMouseScroll(double d, double e, double f, double g, CallbackInfoReturnable<Boolean> cir) {
         StorageOverlayScreen overlay = storageOverlay();
-        if (overlay != null && overlay.mouseScrolled(d, e, g)) cir.setReturnValue(true);
+        if (overlay != null && overlay.mouseScrolled(g)) cir.setReturnValue(true);
     }
 }

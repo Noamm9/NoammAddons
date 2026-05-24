@@ -27,6 +27,7 @@ import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
 object StorageOverlay: Feature("Shows all storage pages in an overlay when opening storage.", toggled = true) {
+    val scaleSetting by SliderSetting("Scale", 1.0f, 0.5f, 2.0f, 0.05f).withDescription("The scale of the menu")
     val columnsSetting by SliderSetting("Columns", 3, 1, 10, 1).withDescription("The number of pages to show next to each other horizontally")
     val maxHeightSetting by SliderSetting("Max Height", 324, 80, 600, 1).withDescription("the maximum height of the entire menu")
     val scrollSpeedSetting by SliderSetting("Scroll Speed", 10, 1, 50, 1).withDescription("how fast you scroll")
@@ -57,8 +58,8 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
             val screen = mc.screen as? ContainerScreen ?: return@register
             if (screen.menu.containerId != event.windowId) return@register
             if (screen.title.unformattedText != event.title.unformattedText) return@register
-            val handler = currentMenu ?: return@register
-            saveContent(handler)
+            val menu = currentMenu ?: return@register
+            saveContent(menu)
         }
     }
 
@@ -68,12 +69,12 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         if (oldScreen == null && newScreen == null) return null
 
         val screen = newScreen as? ContainerScreen
-        val overlay = oldScreen as? StorageOverlayScreen ?: active
         val menu = StorageMenu.get(screen)
+        val overlay = oldScreen as? StorageOverlayScreen ?: active
 
         if (currentMenu == null && menu == null) loadData()
-        currentMenu?.let { saveContent(it) }
-        menu?.let { saveContent(it) }
+        currentMenu?.let(::saveContent)
+        menu?.let(::saveContent)
         currentMenu = menu
 
         if (oldScreen === active?.containerScreen) {
@@ -85,11 +86,12 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         if (newScreen == null && overlay != null && ! overlay.isExiting) return overlay
         if (screen == null) return null
         if (overlay?.isExiting == true) return null
-        val currentHandler = currentMenu ?: return null
+        val currentMenu = currentMenu ?: return null
 
         active = (overlay ?: StorageOverlayScreen()).also {
             it.containerScreen = screen
-            it.storageMenu = currentHandler
+            it.storageMenu = currentMenu
+            if (overlay == null) it.pendingCenterPage = (currentMenu as? StorageMenu.Page)?.storagePage
         }
 
         return null
@@ -151,7 +153,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         if (! checkFile(file)) return
         if (storageMenuData.isNotEmpty()) return
         if (! file.exists()) return ThreadUtils.async(::loadFromApi)
-        val root = NbtIo.readCompressed(file.toPath(), NbtAccounter.unlimitedHeap()) ?: return
+        val root = NbtIo.readCompressed(file.toPath(), NbtAccounter.unlimitedHeap())
         val data = TreeMap<StoragePage, NBTInventory?>()
 
         for (i in 0 until 27) {
