@@ -1,6 +1,7 @@
 package com.github.noamm9.mixin;
 
 import com.github.noamm9.features.impl.general.SlotBinding;
+import com.github.noamm9.features.impl.misc.HideRecipeBook;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.AbstractRecipeBookScreen;
@@ -21,7 +22,7 @@ public abstract class MixinAbstractRecipeBookScreen<T extends RecipeBookMenu> ex
 
     @Inject(method = "init", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/AbstractRecipeBookScreen;initButton()V"), cancellable = true)
     private void renderRecipeBook(CallbackInfo ci) {
-        ci.cancel();
+        if (HideRecipeBook.INSTANCE.enabled) ci.cancel();
     }
 
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;nextStratum()V", ordinal = 0, shift = At.Shift.AFTER))
