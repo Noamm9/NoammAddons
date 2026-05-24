@@ -22,8 +22,7 @@ public abstract class MixinAbstractRecipeBookScreen<T extends RecipeBookMenu> ex
 
     @Inject(method = "init", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/AbstractRecipeBookScreen;initButton()V"), cancellable = true)
     private void renderRecipeBook(CallbackInfo ci) {
-        if (!HideRecipeBook.INSTANCE.enabled) return;
-        ci.cancel();
+        if (HideRecipeBook.INSTANCE.enabled) ci.cancel();
     }
 
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;nextStratum()V", ordinal = 0, shift = At.Shift.AFTER))

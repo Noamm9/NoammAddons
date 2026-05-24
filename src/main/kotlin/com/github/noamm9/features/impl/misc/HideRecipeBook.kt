@@ -11,5 +11,5 @@ import com.github.noamm9.ui.clickgui.components.withDescription
  * @see com.github.noamm9.mixin.MixinRecipeBookComponent
  */
 object HideRecipeBook: Feature("Hides the recipe book button in inventory GUIs.") {
-    @JvmStatic val closeRecipeBook by ToggleSetting("Close Recipe Book", false).withDescription("Also closes the recipe book screen.")
+    @JvmStatic val closeRecipeBook by ToggleSetting("Close Recipe Book").withDescription("Also closes the recipe book screen.")
 }
