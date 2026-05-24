@@ -53,7 +53,7 @@ object DoorKeys: Feature("ESP box & Tracer for wither doors and blood door.") {
 
                 //#if CHEAT
                 //#else
-                //$$ if (! mc.player!!.hasLineOfSight(entity)) return@register
+                //$ if (! mc.player!!.hasLineOfSight(entity)) return@register
                 //#endif
 
                 Render3D.renderTracer(event.ctx, entity.renderVec.add(y = 1.7), color, 2)

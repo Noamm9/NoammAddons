@@ -30,7 +30,7 @@ object LCEtherwarp: Feature(name = "LC Etherwarp", description = "Allows you to 
             //#if CHEAT
             if (! player.isCrouching && ! autoSneak.value) return@register
             //#else
-            //$$if (! player.isCrouching) return@register
+            //$if (! player.isCrouching) return@register
             //#endif
             if (EtherwarpHelper.getEtherwarpDistance(player.mainHandItem) == null) return@register
 
@@ -53,8 +53,8 @@ object LCEtherwarp: Feature(name = "LC Etherwarp", description = "Allows you to 
                 if (swingHandToggle.value) PlayerUtils.swingArm()
             }
             //#else
-            //$$PlayerUtils.rightClick()
-            //$$if (swingHandToggle.value) PlayerUtils.swingArm()
+            //$PlayerUtils.rightClick()
+            //$if (swingHandToggle.value) PlayerUtils.swingArm()
             //#endif
         }
     }

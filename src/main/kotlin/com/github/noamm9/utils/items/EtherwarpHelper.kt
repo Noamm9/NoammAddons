@@ -66,7 +66,7 @@ object EtherwarpHelper {
         if (! config[pendingTeleport.info.type.ordinal]) return fallback
         return pendingTeleport.position
         //#else
-        //$$return fallback
+        //$return fallback
         //#endif
     }
 

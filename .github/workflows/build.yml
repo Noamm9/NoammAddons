@@ -25,3 +25,7 @@ jobs:
           path: |
             build/libs/*-legit.jar
             build/libs/*-cheat.jar
+      - name: generate nightly download link
+        run: |
+          echo "### Nightly Download Link" >> $GITHUB_STEP_SUMMARY
+          echo "You can download the artifacts from this run here: [NoammAddons-jars.zip](https://nightly.link/${{ github.repository }}/workflows/build/${{ github.ref_name }}/NoammAddons-jars.zip)" >> $GITHUB_STEP_SUMMARY
