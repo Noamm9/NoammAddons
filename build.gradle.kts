@@ -57,7 +57,7 @@ dependencies {
     annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.4.1")
 
     bundled("io.github.classgraph:classgraph:4.8.174")
-    bundled("io.ktor:ktor-client-cio:${ktor_version}")
+    bundled("io.ktor:ktor-client-cio:$ktor_version")
     bundled("io.ktor:ktor-client-websockets-jvm:$ktor_version")
     bundled("io.ktor:ktor-client-content-negotiation-jvm:$ktor_version")
     bundled("io.ktor:ktor-client-encoding:$ktor_version")

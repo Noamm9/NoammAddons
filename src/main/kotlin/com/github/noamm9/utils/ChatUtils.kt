@@ -20,8 +20,8 @@ import net.minecraft.network.protocol.game.ServerboundChatCommandPacket
 import net.minecraft.network.protocol.game.ServerboundChatCommandSignedPacket
 import net.minecraft.network.protocol.game.ServerboundChatPacket
 import java.util.*
-import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.*
+import java.util.concurrent.atomic.*
 import kotlin.math.roundToInt
 
 object ChatUtils {
@@ -131,6 +131,11 @@ object ChatUtils {
     }
 
     fun modMessage(msg: Any?) = chat("${NoammAddons.PREFIX} $msg")
+
+    fun debug(flag: String, msg: Any?) {
+        if (! NoammAddons.debugFlags.contains(flag)) return
+        chat("${NoammAddons.PREFIX} $msg")
+    }
 
     fun sendPartyMessage(msg: Any?) {
         if (! PartyUtils.isInParty) return

@@ -9,15 +9,10 @@ import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.utils.ChatUtils.removeFormatting
-import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
-import com.github.noamm9.utils.dungeons.map.DungeonInfo
-import com.github.noamm9.utils.dungeons.map.core.Room
-import com.github.noamm9.utils.dungeons.map.core.RoomType
 import com.github.noamm9.utils.remove
 import com.github.noamm9.utils.startsWithOneOf
 import com.github.noamm9.websocket.WebSocket
-import com.github.noamm9.websocket.packets.C2SPacketDungeonStart
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
 import net.minecraft.network.protocol.game.ClientboundSetObjectivePacket
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket
@@ -84,15 +79,7 @@ object LocationUtils {
                     dungeonFloor = text.substringAfter("(").substringBefore(")")
                     dungeonFloorNumber = dungeonFloor?.lastOrNull()?.digitToIntOrNull() ?: 0
 
-                    ThreadUtils.scheduledTaskServer(30) ws@{
-                        if (DungeonListener.dungeonTeammatesNoSelf.isEmpty()) return@ws
-                        val serverId = LocrawListener.server.ifEmpty { serverId } ?: return@ws
-                        val floor = dungeonFloor ?: return@ws
-                        val team = DungeonListener.dungeonTeammates.map { it.name }.ifEmpty { return@ws }
-                        val entrance = (DungeonInfo.dungeonList.find { (it as? Room)?.data?.type == RoomType.ENTRANCE } as? Room)?.getArrayPosition() ?: return@ws
-
-                        WebSocket.send(C2SPacketDungeonStart(serverId, floor, team, entrance))
-                    }
+                    WebSocket.sendDungeonInfo()
                 }
             }
             else if (event.packet is ClientboundSetObjectivePacket) {
@@ -123,7 +110,6 @@ object LocationUtils {
         F7Phase = null
         world = null
         serverId = null
-        WebSocket.send(mapOf("type" to "reset"))
     }
 
     private fun setDevModeValues() {
