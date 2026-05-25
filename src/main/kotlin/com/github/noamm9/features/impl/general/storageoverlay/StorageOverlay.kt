@@ -2,7 +2,7 @@ package com.github.noamm9.features.impl.general.storageoverlay
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
-import com.github.noamm9.event.impl.PacketEvent
+import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.misc.ScrollableTooltip
 import com.github.noamm9.ui.clickgui.components.getValue
@@ -64,15 +64,11 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
             saveContent(menu)
         }
 
-        register<PacketEvent.Received> {
+        register<MainThreadPacketReceivedEvent.Pre> {
             if (event.packet !is ClientboundContainerClosePacket) return@register
             val overlay = active ?: return@register
-            mc.execute {
-                overlay.isExiting = true
-                active = null
-                currentMenu = null
-                if (mc.screen === overlay) mc.setScreen(null)
-            }
+            overlay.isExiting = true
+            active = null
         }
     }
 
