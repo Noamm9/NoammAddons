@@ -52,6 +52,7 @@ object WarpShortcuts: Feature("removes the /warp in warp commands", "Warp Shortc
         warpCommand("jungle", "jungle")
         warpCommand("kuudra", "kuudra")
         warpCommand("loch", "murk")
+        warpCommand("lotus", "lotus")
         warpCommand("mines", "mines")
         warpCommand("murk", "murk")
         warpCommand("murkwater", "murk")
