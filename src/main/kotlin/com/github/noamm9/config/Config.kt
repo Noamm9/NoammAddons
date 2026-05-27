@@ -13,13 +13,13 @@ object Config {
     private val configFile = File(configDir, "config.json").apply {
         if (! configDir.exists()) configDir.mkdirs()
         runCatching(::createNewFile).apply {
-            onFailure { logger.error("Error initializing config", it) }
             onSuccess { logger.info("Successfully initialized config file path") }
+            onFailure { logger.error("Error initializing config", it) }
         }
     }
 
-    fun load() = runCatching {
-        val fileContent = configFile.readText().takeUnless(String::isEmpty) ?: return@runCatching
+    fun load() {
+        val fileContent = configFile.readText().takeUnless(String::isEmpty) ?: return
         val root = JsonUtils.json.parseToJsonElement(fileContent).jsonObject
 
         root["config"]?.jsonArray?.forEach { featureElement ->
@@ -41,43 +41,33 @@ object Config {
             hudObj["y"]?.jsonPrimitive?.floatOrNull?.let { hud.y = it }
             hudObj["scale"]?.jsonPrimitive?.floatOrNull?.let { hud.scale = it }
         }
-    }.apply {
-        onFailure { logger.error("Error loading config", it) }
-        onSuccess { logger.info("Successfully loaded config") }
     }
 
-    fun save() = runCatching {
-        val root = buildJsonObject {
-            putJsonArray("config") {
-                for (feature in FeatureManager.features) {
-                    addJsonObject {
-                        put("name", feature.name)
-                        put("enabled", feature.enabled)
-                        putJsonArray("configSettings") {
-                            for (setting in feature.configSettings) {
-                                if (setting is Savable) {
-                                    addJsonObject { put(setting.name, setting.write()) }
-                                }
+    fun save() = configFile.writeText(JsonUtils.json.encodeToString(buildJsonObject {
+        putJsonArray("config") {
+            for (feature in FeatureManager.features) {
+                addJsonObject {
+                    put("name", feature.name)
+                    put("enabled", feature.enabled)
+                    putJsonArray("configSettings") {
+                        for (setting in feature.configSettings) {
+                            if (setting is Savable) {
+                                addJsonObject { put(setting.name, setting.write()) }
                             }
                         }
                     }
                 }
             }
-            putJsonArray("hud") {
-                for (hud in FeatureManager.hudElements) {
-                    addJsonObject {
-                        put("name", hud.name)
-                        put("x", hud.x)
-                        put("y", hud.y)
-                        put("scale", hud.scale)
-                    }
+        }
+        putJsonArray("hud") {
+            for (hud in FeatureManager.hudElements) {
+                addJsonObject {
+                    put("name", hud.name)
+                    put("x", hud.x)
+                    put("y", hud.y)
+                    put("scale", hud.scale)
                 }
             }
         }
-
-        configFile.writeText(JsonUtils.json.encodeToString(root))
-    }.apply {
-        onFailure { logger.error("Error on saving config", it) }
-        onSuccess { logger.info("Successfully saved config") }
-    }
+    }))
 }
