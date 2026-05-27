@@ -4,16 +4,13 @@ import com.github.noamm9.event.EventListener
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.TextInputSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.ui.clickgui.components.provideDelegate
-import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.ui.hud.getValue
 import com.github.noamm9.ui.hud.provideDelegate
 import com.github.noamm9.utils.containsOneOf
-import com.github.noamm9.utils.dungeons.DungeonPlayer
+import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
@@ -72,7 +69,7 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
             val message = event.unformattedText.takeIf { it.startsWith("Party > ") } ?: return@register
             val name = melodyRegex.find(message)?.groupValues?.get(1)?.takeUnless { it == mc.user.name } ?: return@register
             val progress = (4 downTo 0).find { i -> message.containsOneOf("$i/4", "${i * 25}%") } ?: return@register
-            val color = DungeonPlayer.get(name)?.clazz?.code ?: "&7"
+            val color = DungeonListener.dungeonTeammates.find { it.name == name }?.clazz?.code ?: "&7"
 
             currentState = MelodyState("$color$name&r", progress, System.currentTimeMillis())
             if (soundEnabled.value) sound.play.action.invoke()

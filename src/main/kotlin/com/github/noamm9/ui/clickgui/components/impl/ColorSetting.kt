@@ -8,8 +8,9 @@ import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.catch
 import com.github.noamm9.utils.render.Render2D
-import com.google.gson.JsonElement
-import com.google.gson.JsonPrimitive
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.intOrNull
 import net.minecraft.client.gui.GuiGraphics
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
@@ -232,9 +233,9 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
         return false
     }
 
-    override fun write(): JsonElement = JsonPrimitive(value.rgb)
+    override fun write() = JsonPrimitive(value.rgb)
     override fun read(element: JsonElement?) {
-        element?.asInt?.let {
+        (element as? JsonPrimitive)?.intOrNull?.let {
             super.value = Color(it, true)
             val hsb = Color.RGBtoHSB(value.red, value.green, value.blue, null)
             h = hsb[0]; s = hsb[1]; b = hsb[2]; a = value.alpha / 255f

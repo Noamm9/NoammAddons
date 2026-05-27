@@ -141,7 +141,7 @@ object BloodCamp: Feature("Features for Blood Room.") {
             data.endVector = endpoint
         }
 
-        register<EntityDeathEvent> {
+        register<EntityUnloadEvent> {
             if (! bloodCamp.value) return@register
             bloodMobs.remove(event.entity)
         }

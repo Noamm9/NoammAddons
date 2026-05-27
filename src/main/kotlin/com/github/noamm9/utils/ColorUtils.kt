@@ -6,10 +6,13 @@ import java.awt.Color
 object ColorUtils {
     fun Color.withAlpha(i: Int) = Color(this.red, this.green, this.blue, i.coerceIn(0, 255))
     fun Color.withAlpha(f: Float) = Color(this.red, this.green, this.blue, (255 * f).coerceIn(0f, 255f).toInt())
+    fun Color.lerp(color: Color, value: Float) = lerpColor(this, color, value)
 
-    fun Color.lerp(color: Color, value: Float): Color {
-        return MathUtils.lerpColor(this, color, value)
-    }
+    fun lerpColor(color1: Color, color2: Color, value: Number) = Color(
+        MathUtils.lerp(color1.red, color2.red, value).toInt(),
+        MathUtils.lerp(color1.green, color2.green, value).toInt(),
+        MathUtils.lerp(color1.blue, color2.blue, value).toInt()
+    )
 
     fun colorizeScore(score: Int): String {
         return when {
@@ -33,6 +36,6 @@ object ColorUtils {
         }
     }
 
-    val Color.mcColor: TextColor get() = TextColor.fromRgb(this.rgb)
+    val Color.mcColor get() = TextColor.fromRgb(this.rgb)
     fun Color.invert() = Color(255 - red, 255 - green, 255 - blue, alpha)
 }

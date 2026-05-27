@@ -4,10 +4,7 @@ import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.logger
 import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.utils.JsonUtils
-import com.google.gson.JsonArray
-import com.google.gson.JsonObject
-import com.google.gson.JsonParser
-import com.google.gson.JsonPrimitive
+import kotlinx.serialization.json.*
 import net.fabricmc.loader.api.FabricLoader
 import java.io.File
 
@@ -22,69 +19,65 @@ object Config {
     }
 
     fun load() = runCatching {
-        val fileContent = configFile.bufferedReader().use { it.readText() }.takeUnless { it.isEmpty() } ?: return@runCatching
-        val jsonObject = JsonParser.parseString(fileContent).asJsonObject ?: return@runCatching
+        val fileContent = configFile.readText().takeUnless(String::isEmpty) ?: return@runCatching
+        val root = JsonUtils.json.parseToJsonElement(fileContent).jsonObject
 
-        for (featureElement in jsonObject.getAsJsonArray("config") ?: return@runCatching) {
-            val featureObj = featureElement.asJsonObject
-            val feature = FeatureManager.getFeatureByName(featureObj.get("name")?.asString ?: continue) ?: continue
-            if (featureObj.get("enabled")?.asBoolean != feature.enabled) feature.toggle()
+        root["config"]?.jsonArray?.forEach { featureElement ->
+            val featureObj = featureElement.jsonObject
+            val feature = FeatureManager.getFeatureByName(featureObj["name"]?.jsonPrimitive?.contentOrNull ?: return@forEach) ?: return@forEach
+            if (featureObj["enabled"]?.jsonPrimitive?.booleanOrNull != feature.enabled) feature.toggle()
 
-            featureObj.getAsJsonArray("configSettings")?.forEach { settingElement ->
-                val settingEntry = settingElement.asJsonObject.entrySet().firstOrNull() ?: return@forEach
-                val setting = feature.getSettingByName(settingEntry.key)
-                if (setting is Savable) setting.read(settingEntry.value)
+            featureObj["configSettings"]?.jsonArray?.forEach { settingElement ->
+                val entry = settingElement.jsonObject.entries.firstOrNull() ?: return@forEach
+                val setting = feature.getSettingByName(entry.key)
+                if (setting is Savable) setting.read(entry.value)
             }
         }
 
-        jsonObject.getAsJsonArray("hud")?.forEach { hudElement ->
-            val hudObj = hudElement.asJsonObject
-            val hudInstance = FeatureManager.getHudByName(hudObj.get("name")?.asString ?: return@forEach) ?: return@forEach
-
-            hudObj.get("x")?.let { hudInstance.x = it.asFloat }
-            hudObj.get("y")?.let { hudInstance.y = it.asFloat }
-            hudObj.get("scale")?.let { hudInstance.scale = it.asFloat }
+        root["hud"]?.jsonArray?.forEach { hudElement ->
+            val hudObj = hudElement.jsonObject
+            val hud = FeatureManager.getHudByName(hudObj["name"]?.jsonPrimitive?.contentOrNull ?: return@forEach) ?: return@forEach
+            hudObj["x"]?.jsonPrimitive?.floatOrNull?.let { hud.x = it }
+            hudObj["y"]?.jsonPrimitive?.floatOrNull?.let { hud.y = it }
+            hudObj["scale"]?.jsonPrimitive?.floatOrNull?.let { hud.scale = it }
         }
-
     }.apply {
         onFailure { logger.error("Error loading config", it) }
         onSuccess { logger.info("Successfully loaded config") }
     }
 
-
     fun save() = runCatching {
-        val jsonObject = JsonObject().apply {
-            add("config", JsonArray().apply {
+        val root = buildJsonObject {
+            putJsonArray("config") {
                 for (feature in FeatureManager.features) {
-                    add(JsonObject().apply {
-                        add("name", JsonPrimitive(feature.name))
-                        add("enabled", JsonPrimitive(feature.enabled))
-                        add("configSettings", JsonArray().apply {
+                    addJsonObject {
+                        put("name", feature.name)
+                        put("enabled", feature.enabled)
+                        putJsonArray("configSettings") {
                             for (setting in feature.configSettings) {
                                 if (setting is Savable) {
-                                    add(JsonObject().apply { add(setting.name, setting.write()) })
+                                    addJsonObject { put(setting.name, setting.write()) }
                                 }
                             }
-                        })
-                    })
+                        }
+                    }
                 }
-            })
-            add("hud", JsonArray().apply {
+            }
+            putJsonArray("hud") {
                 for (hud in FeatureManager.hudElements) {
-                    add(JsonObject().apply {
-                        add("name", JsonPrimitive(hud.name))
-                        add("x", JsonPrimitive(hud.x))
-                        add("y", JsonPrimitive(hud.y))
-                        add("scale", JsonPrimitive(hud.scale))
-                    })
+                    addJsonObject {
+                        put("name", hud.name)
+                        put("x", hud.x)
+                        put("y", hud.y)
+                        put("scale", hud.scale)
+                    }
                 }
-            })
+            }
         }
 
-        configFile.bufferedWriter().use { it.write(JsonUtils.gsonBuilder.toJson(jsonObject)) }
+        configFile.writeText(JsonUtils.json.encodeToString(root))
     }.apply {
         onFailure { logger.error("Error on saving config", it) }
         onSuccess { logger.info("Successfully saved config") }
     }
 }
-

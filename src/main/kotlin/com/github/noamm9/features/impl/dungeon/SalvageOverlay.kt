@@ -2,9 +2,7 @@ package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.items.ItemUtils.customData

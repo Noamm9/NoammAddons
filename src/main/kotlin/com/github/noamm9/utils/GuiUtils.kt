@@ -16,7 +16,7 @@ object GuiUtils {
         mc.gameMode?.handleInventoryMouseClick(
             containerId, slotIndex, btn.ordinal,
             if (btn == ButtonType.MIDDLE) ClickType.CLONE
-            else ClickType.PICKUP, mc.player
+            else ClickType.PICKUP, mc.player !!
         )
     }
 

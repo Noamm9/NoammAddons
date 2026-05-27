@@ -3,11 +3,8 @@ package com.github.noamm9.features.impl.dungeon
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.general.PartyHelper
-import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.ui.clickgui.components.provideDelegate
-import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.PartyUtils
 import com.github.noamm9.utils.ThreadUtils

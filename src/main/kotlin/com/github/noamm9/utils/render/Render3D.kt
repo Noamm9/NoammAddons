@@ -285,10 +285,6 @@ object Render3D {
         ctx.matrixStack.popPose()
     }
 
-    fun renderLine(ctx: RenderContext, start: BlockPos, end: BlockPos, thickness: Number, color: Color) {
-        renderLine(ctx, Vec3.atCenterOf(start), Vec3.atCenterOf(end), color, thickness)
-    }
-
     fun renderTracer(ctx: RenderContext, point: Vec3, color: Color, thickness: Number = 2.5) {
         ctx.matrixStack.pushPose()
         ctx.matrixStack.translate(- ctx.camera.position.x, - ctx.camera.position.y, - ctx.camera.position.z)
@@ -305,9 +301,5 @@ object Render3D {
 
         ctx.consumers.endBatch(RenderType.lines())
         ctx.matrixStack.popPose()
-    }
-
-    fun renderTracer(ctx: RenderContext, point: BlockPos, color: Color, thickness: Number) {
-        renderTracer(ctx, Vec3.atCenterOf(point), color, thickness)
     }
 }

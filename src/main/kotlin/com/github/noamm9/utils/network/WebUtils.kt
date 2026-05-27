@@ -37,9 +37,7 @@ object WebUtils {
         }
         install(UserAgent) { agent = "$MOD_NAME/$MOD_VERSION (+https://noamm.org)" }
         install(HttpTimeout) { connectTimeoutMillis = 10_000 }
-        install(ContentNegotiation) {
-            json(JsonUtils.json)
-        }
+        install(ContentNegotiation) { json(JsonUtils.json) }
         install(ContentEncoding) {
             gzip(1.0F)
             deflate(0.9F)

@@ -3,9 +3,7 @@ package com.github.noamm9.features.impl.dungeon
 import com.github.noamm9.event.impl.CheckEntityGlowEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render3D

@@ -1,6 +1,6 @@
 package com.github.noamm9.config
 
-import com.google.gson.JsonElement
+import kotlinx.serialization.json.JsonElement
 
 internal interface Savable {
     fun write(): JsonElement

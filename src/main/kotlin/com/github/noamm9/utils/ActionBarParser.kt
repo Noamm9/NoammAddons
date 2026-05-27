@@ -17,7 +17,7 @@ import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
 import kotlin.math.roundToInt
 
 object ActionBarParser {
-    val HP_REGEX = Regex("§[c6]([\\d,]+)\\/([\\d,]+)❤") // §c1389/1390❤ , §62181/1161❤
+    val HP_REGEX = Regex("§[c6]([\\d,]+)/([\\d,]+)❤") // §c1389/1390❤ , §62181/1161❤
     val DEF_REGEX = Regex("§a([\\d,]+)§a❈ Defense") // §a593§a❈ Defense
     val MANA_REGEX = Regex("§b([\\d,]+)/([\\d,]+)✎( Mana)?") // §b550/550✎ Mana§r
     val OVERFLOW_REGEX = Regex("§3([\\d,]+)ʬ") // §3100ʬ
@@ -42,20 +42,16 @@ object ActionBarParser {
     fun init() {
         register<MainThreadPacketReceivedEvent.Post>(EventPriority.HIGHEST) {
             if (! LocationUtils.inSkyblock) return@register
-            if (event.packet is ClientboundSystemChatPacket) {
-                if (event.packet.overlay()) {
-                    extractPlayerStats(event.packet.content.formattedText)
-                    effectiveHP = (currentHealth * (1 + currentDefense / 100))
-                }
+            if (event.packet is ClientboundSystemChatPacket && event.packet.overlay()) {
+                extractStats(event.packet.content.formattedText)
             }
             else if (event.packet is ClientboundSetActionBarTextPacket) {
-                extractPlayerStats(event.packet.text.formattedText)
-                effectiveHP = (currentHealth * (1 + currentDefense / 100))
+                extractStats(event.packet.text.formattedText)
             }
         }
     }
 
-    private fun extractPlayerStats(input: String) {
+    private fun extractStats(input: String) {
         HP_REGEX.find(input)?.let { match ->
             currentHealth = match.groupValues[1].remove(",").toIntOrNull() ?: currentHealth
             maxHealth = match.groupValues[2].remove(",").toIntOrNull() ?: maxHealth
@@ -64,6 +60,8 @@ object ActionBarParser {
         DEF_REGEX.find(input)?.let { match ->
             currentDefense = match.groupValues[1].remove(",").toIntOrNull() ?: currentDefense
         }
+
+        effectiveHP = (currentHealth * (1 + currentDefense / 100))
 
         MANA_REGEX.find(input)?.let { match ->
             currentMana = match.groupValues[1].remove(",").toIntOrNull() ?: currentMana
@@ -90,7 +88,6 @@ object ActionBarParser {
         SECRETS_REGEX.takeIf { LocationUtils.inDungeon }?.find(input)?.let { match ->
             secrets = match.groupValues[1].remove(",").toIntOrNull() ?: secrets
             maxSecrets = match.groupValues[2].remove(",").toIntOrNull() ?: maxSecrets
-
 
             ScanUtils.getRoomGraf(mc.player !!.position()).let { (gx, gy) ->
                 val room = DungeonInfo.dungeonList[gy * 11 + gx] as? Room ?: return

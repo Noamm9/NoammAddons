@@ -32,11 +32,7 @@ data class DungeonPlayer(
         (mapZ - MapUtils.startCorner.second) / MapUtils.coordMultiplier + DungeonScanner.startZ - 15
     )
 
-    val clearedRooms: Pair<MutableSet<String>, MutableSet<String>> = mutableSetOf<String>() to mutableSetOf()
-    val deaths: MutableList<String> = mutableListOf()
-    var secretsBeforeRun: Long = 0
-
-    companion object {
-        fun get(name: String) = DungeonListener.dungeonTeammates.find { it.name == name } ?: DungeonListener.thePlayer
-    }
+    val clearedRooms = mutableSetOf<String>() to mutableSetOf<String>()
+    val deaths = mutableListOf<String>()
+    var secretsBeforeRun = 0L
 }

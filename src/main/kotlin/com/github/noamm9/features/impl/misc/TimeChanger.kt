@@ -1,9 +1,7 @@
 package com.github.noamm9.features.impl.misc
 
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.provideDelegate
 import java.time.LocalTime
 
 /**

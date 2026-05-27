@@ -1,5 +1,6 @@
 package com.github.noamm9.mixin;
 
+import com.github.noamm9.NoammAddons;
 import com.github.noamm9.TestGround;
 import com.github.noamm9.event.EventBus;
 import com.github.noamm9.event.impl.PacketEvent;
@@ -28,7 +29,7 @@ public class MixinConnection {
     private void channelRead0(ChannelHandlerContext channelHandlerContext, Packet<?> packet, CallbackInfo ci) {
         if (packet instanceof ClientboundPingPacket pingPacket && pingPacket.getId() != 0) {
             if (!TestGround.Companion.getExperimental()) {
-                EventBus.post(TickEvent.Server.INSTANCE);
+                NoammAddons.mc.execute(() -> EventBus.post(TickEvent.Server.INSTANCE));
             }
         }
 

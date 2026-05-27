@@ -22,23 +22,23 @@ data class DungeonStats(
     val cataLevel by lazy { ApiUtils.getCatacombsLevel(dungeons.catacombsExperience) }
     val classAverage by lazy { dungeons.playerClasses.values.map(ApiUtils::getCatacombsLevel).average() }
     val secretAverage by lazy { dungeons.secrets.toDouble() / dungeons.totalRuns.toDouble() }
+
+    @Serializable
+    data class DungeonData(
+        @SerialName("total_runs") val totalRuns: Int,
+        val secrets: Int,
+        @SerialName("player_classes") val playerClasses: Map<String, Double>,
+        @SerialName("catacombs_experience") val catacombsExperience: Double,
+        val catacombs: TierData,
+        @SerialName("master_catacombs") val masterCatacombs: TierData
+    )
+
+    @Serializable
+    data class TierData(
+        @SerialName("tier_completions") val tierCompletions: Map<String, Int>,
+        @SerialName("fastest_time_s_plus") val fastestTimeSPlus: Map<String, Long>
+    )
+
+    @Serializable
+    data class PetSummary(val type: String, val tier: String)
 }
-
-@Serializable
-data class DungeonData(
-    @SerialName("total_runs") val totalRuns: Int,
-    val secrets: Int,
-    @SerialName("player_classes") val playerClasses: Map<String, Double>,
-    @SerialName("catacombs_experience") val catacombsExperience: Double,
-    val catacombs: TierData,
-    @SerialName("master_catacombs") val masterCatacombs: TierData
-)
-
-@Serializable
-data class TierData(
-    @SerialName("tier_completions") val tierCompletions: Map<String, Int>,
-    @SerialName("fastest_time_s_plus") val fastestTimeSPlus: Map<String, Long>
-)
-
-@Serializable
-data class PetSummary(val type: String, val tier: String)

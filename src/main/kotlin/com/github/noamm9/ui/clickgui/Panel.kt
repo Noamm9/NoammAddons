@@ -1,11 +1,13 @@
 package com.github.noamm9.ui.clickgui
 
+import com.github.noamm9.NoammAddons
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.features.impl.dev.ClickGui
 import com.github.noamm9.features.impl.misc.sound.SoundManager
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.clickgui.enums.CategoryType
+import com.github.noamm9.ui.gui.SoundManagerScreen
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.Render2D
@@ -153,7 +155,7 @@ class Panel(val category: CategoryType, var x: Int, var y: Int) {
                 else if (button == 1 && feature.configSettings.isNotEmpty()) {
                     if (feature is SoundManager) {
                         ClickGuiScreen.selectedFeature = null
-                        SoundManager.btn.action.invoke()
+                        NoammAddons.screen = SoundManagerScreen()
                     }
                     else ClickGuiScreen.openFeatureWindow(feature)
                     return

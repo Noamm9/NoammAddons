@@ -5,7 +5,7 @@ import com.google.common.cache.CacheBuilder
 import java.util.concurrent.*
 
 object ProfileCache {
-    private val cache = CacheBuilder.newBuilder().expireAfterAccess(120, TimeUnit.MINUTES).build<String, DungeonStats>()
+    private val cache = CacheBuilder.newBuilder().expireAfterAccess(4, TimeUnit.HOURS).build<String, DungeonStats>()
 
     fun addToCache(name: String, profile: DungeonStats) = cache.put(name.lowercase(), profile)
     fun getFromCache(name: String) = cache.getIfPresent(name.lowercase())

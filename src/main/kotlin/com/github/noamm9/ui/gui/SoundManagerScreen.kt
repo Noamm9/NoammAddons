@@ -9,7 +9,6 @@ import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.TextInputHandler
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.render.Render2D
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
@@ -131,7 +130,7 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
 
         if (draggingId == item.id) {
             val pct = ((mx - sliderX) / sliderW).coerceIn(0.0f, 1.0f)
-            SoundManager.volumes.getData()[item.id] = (pct * 2.0).toFloat()
+            SoundManager.volumes[item.id] = (pct * 2.0).toFloat()
         }
 
         val vol = SoundManager.getMultiplier(item.id)
@@ -177,7 +176,7 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
                 filteredItems.add(SoundItem.Sound(id, cleanName))
             }
         }
-        
+
         scrollTarget = 0f
     }
 
@@ -283,10 +282,8 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
     }
 
     override fun onClose() {
-        SoundManager.volumes.save()
-        ThreadUtils.scheduledTask {
-            NoammAddons.screen = ClickGuiScreen
-        }
+        SoundManager.volumes = SoundManager.volumes.toMutableMap()
+        NoammAddons.screen = ClickGuiScreen
     }
 
     private sealed class SoundItem {

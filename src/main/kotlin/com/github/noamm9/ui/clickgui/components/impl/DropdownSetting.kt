@@ -6,8 +6,9 @@ import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
-import com.google.gson.JsonElement
-import com.google.gson.JsonPrimitive
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.intOrNull
 import net.minecraft.client.gui.GuiGraphics
 import java.awt.Color
 
@@ -75,13 +76,10 @@ class DropdownSetting(name: String, value: Int = 0, val options: List<String>): 
         return false
     }
 
-    override fun write(): JsonElement {
-        return JsonPrimitive(value)
-    }
-
+    override fun write() = JsonPrimitive(value)
     override fun read(element: JsonElement?) {
-        element?.asInt?.let { newValue ->
-            value = newValue.coerceIn(0, options.lastIndex)
+        (element as? JsonPrimitive)?.intOrNull?.let {
+            value = it.coerceIn(0, options.lastIndex)
         }
     }
 }

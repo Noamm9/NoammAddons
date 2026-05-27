@@ -7,6 +7,4 @@ class C2SPacketDungeonStart(
     val floor: String,
     val members: List<String>,
     val entrance: Pair<Int, Int>
-): WebSocketPacket("dungeon_start") {
-    override fun handle() {}
-}
+): WebSocketPacket

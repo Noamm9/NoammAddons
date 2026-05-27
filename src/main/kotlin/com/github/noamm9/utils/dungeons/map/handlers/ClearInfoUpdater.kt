@@ -28,14 +28,14 @@ object ClearInfoUpdater {
         if (! oldState.equalsOneOf(RoomState.UNDISCOVERED, RoomState.DISCOVERED, RoomState.UNOPENED)) return
         if (! newState.equalsOneOf(RoomState.CLEARED, RoomState.GREEN)) return
 
-        if (players.size == 1) DungeonPlayer.get(players[0].name)?.clearedRooms?.first?.add(room.name)
-        else players.forEach { DungeonPlayer.get(it.name)?.clearedRooms?.second?.add(room.name) }
+        if (players.size == 1) DungeonListener.dungeonTeammates.find { it.name == players[0].name }?.clearedRooms?.first?.add(room.name)
+        else players.forEach { p -> DungeonListener.dungeonTeammates.find { it.name == p.name }?.clearedRooms?.second?.add(room.name) }
     }
 
     fun updateDeaths(player: String, reason: String) {
         if (! DungeonMap.enabled) return
         if (! MapConfig.printPlayersClearInfo.value) return
-        DungeonPlayer.get(player)?.deaths?.add(reason)
+        DungeonListener.dungeonTeammates.find { it.name == player }?.deaths?.add(reason)
     }
 
     fun initStartSecrets() = NoammAddons.scope.launch(Dispatchers.IO) {

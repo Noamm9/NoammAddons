@@ -6,29 +6,23 @@ import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.ui.clickgui.components.provideDelegate
-import com.github.noamm9.ui.clickgui.components.section
-import com.github.noamm9.ui.clickgui.components.withDescription
-import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
-import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundBlockChangedAckPacket
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket
 import net.minecraft.sounds.SoundEvents
+import net.minecraft.world.phys.AABB
 import org.lwjgl.glfw.GLFW
-
 
 object DebuffHelper: Feature(description = "Automatically pulls and fires bows based on Server Ticks (Lag Proof).") {
     private val semiAuto by ToggleSetting("Semi-Auto", true).withDescription("Automatically releases and re-draws the bow.").section("Options")
     private val soundEnabled by ToggleSetting("Play Sound", true).withDescription("Plays a sound when fully charged.")
     private val sound = createSoundSettings("Sound", SoundEvents.EXPERIENCE_ORB_PICKUP) { soundEnabled.value }
 
-    private val defaultTicks by SliderSetting("Default Ticks", 8, 1, 20, 1).withDescription("How many ticks should the bow be charged before it shoots. &e(Set to 0 to disable)").section("Ticks")
+    private val defaultTicks by SliderSetting("Default Ticks", 8, 0, 20, 1).withDescription("How many ticks should the bow be charged before it shoots. &e(Set to 0 to disable)").section("Ticks")
     private val p1Ticks by SliderSetting("P1 Ticks", 8, 0, 20, 1)
     private val p2Ticks by SliderSetting("P2 Ticks", 8, 0, 20, 1)
     private val p3Ticks by SliderSetting("P3 Ticks", 8, 0, 20, 1)
@@ -117,12 +111,14 @@ object DebuffHelper: Feature(description = "Automatically pulls and fires bows b
             2 -> p2Ticks.value
             3 -> p3Ticks.value
             4 -> p4Ticks.value
-            5 -> if (MathUtils.isCoordinateInsideBox(player, BlockPos(47, 28, 113), BlockPos(64, 8, 135))) purpleTicks.value
-            else if (MathUtils.isCoordinateInsideBox(player, BlockPos(40, 27, 85), BlockPos(13, 5, 103))) greenTicks.value
-            else if (MathUtils.isCoordinateInsideBox(player, BlockPos(40, 20, 68), BlockPos(13, 4, 47))) redTicks.value
-            else if (MathUtils.isCoordinateInsideBox(player, BlockPos(72, 31, 65), BlockPos(97, 3, 47))) orangeTicks.value
-            else if (MathUtils.isCoordinateInsideBox(player, BlockPos(72, 31, 85), BlockPos(97, 3, 107))) blueTicks.value
-            else defaultTicks.value
+            5 -> when {
+                AABB(47.0, 8.0, 113.0, 64.0, 28.0, 135.0).contains(player) -> purpleTicks.value
+                AABB(13.0, 5.0, 85.0, 40.0, 27.0, 103.0).contains(player) -> greenTicks.value
+                AABB(13.0, 4.0, 47.0, 40.0, 20.0, 68.0).contains(player) -> redTicks.value
+                AABB(72.0, 3.0, 47.0, 97.0, 31.0, 65.0).contains(player) -> orangeTicks.value
+                AABB(72.0, 3.0, 85.0, 97.0, 31.0, 107.0).contains(player) -> blueTicks.value
+                else -> defaultTicks.value
+            }
 
             else -> defaultTicks.value
         }

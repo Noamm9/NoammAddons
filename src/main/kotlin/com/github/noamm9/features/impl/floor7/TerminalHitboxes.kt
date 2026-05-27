@@ -4,12 +4,9 @@ import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.getValue
-import com.github.noamm9.ui.clickgui.components.hideIf
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.MathUtils.Vec3
 import com.github.noamm9.utils.Utils
@@ -69,7 +66,7 @@ object TerminalHitboxes: Feature() {
             val consumers = ctx.consumers
             val matrices = ctx.matrixStack
             val cam = ctx.camera.position
-            
+
             val drawFill = mode.value == 1 || mode.value == 2
             val drawOutline = mode.value == 0 || mode.value == 2
 

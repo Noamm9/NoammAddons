@@ -7,9 +7,8 @@ import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
-import com.google.gson.JsonElement
-import com.google.gson.JsonObject
 import com.mojang.blaze3d.platform.InputConstants
+import kotlinx.serialization.json.*
 import net.minecraft.client.gui.GuiGraphics
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
@@ -84,20 +83,17 @@ class KeybindSetting(name: String, value: Int = InputConstants.UNKNOWN.value): S
         return false
     }
 
-    override fun write(): JsonElement {
-        val obj = JsonObject()
-        obj.addProperty("key", value)
-        obj.addProperty("scan", scanCode)
-        obj.addProperty("isMouse", isMouse)
-        return obj
+    override fun write() = buildJsonObject {
+        put("key", value)
+        put("scan", scanCode)
+        put("isMouse", isMouse)
     }
 
     override fun read(element: JsonElement?) {
-        element?.asJsonObject?.let {
-            value = it.get("key").asInt
-            scanCode = it.get("scan").asInt
-            isMouse = it.get("isMouse")?.asBoolean ?: false
-        }
+        val obj = element?.jsonObject ?: return
+        value = obj["key"]?.jsonPrimitive?.intOrNull ?: return
+        scanCode = obj["scan"]?.jsonPrimitive?.intOrNull ?: return
+        isMouse = obj["isMouse"]?.jsonPrimitive?.booleanOrNull ?: false
     }
 
     fun isDown(): Boolean {

@@ -73,7 +73,7 @@ object ProfileUtils {
                     continue
                 }
 
-                val response = catch { JsonUtils.stringToJson(result.getOrThrow()).jsonObject } ?: continue
+                val response = catch { JsonUtils.json.parseToJsonElement(result.getOrThrow()).jsonObject } ?: continue
                 val uuid = if (i == 0) response.getObj("player")?.getString("id") else response.getString("id")
                 val fetchedName = if (i == 0) response.getObj("player")?.getString("username") else response.getString("name") ?: name
 
@@ -116,7 +116,7 @@ object ProfileUtils {
                     continue
                 }
 
-                val response = catch { JsonUtils.stringToJson(result.getOrThrow()).jsonObject } ?: continue
+                val response = catch { JsonUtils.json.parseToJsonElement(result.getOrThrow()).jsonObject } ?: continue
                 val uuid = if (i == 0) response.getObj("data")?.getObj("player")?.getString("id") else response.getString("id") ?: key
                 val fetchedName = if (i == 0) response.getObj("data")?.getObj("player")?.getString("username") else response.getString("name")
 
