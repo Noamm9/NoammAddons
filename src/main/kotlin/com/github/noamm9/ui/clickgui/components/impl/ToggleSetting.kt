@@ -6,8 +6,10 @@ import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.ColorUtils.lerp
 import com.github.noamm9.utils.render.Render2D
-import com.google.gson.JsonElement
-import com.google.gson.JsonPrimitive
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.jsonPrimitive
 import net.minecraft.client.gui.GuiGraphics
 import java.awt.Color
 
@@ -42,11 +44,8 @@ class ToggleSetting(name: String, value: Boolean = false): Setting<Boolean>(name
         return false
     }
 
-    override fun write(): JsonElement {
-        return JsonPrimitive(value)
-    }
-
+    override fun write() = JsonPrimitive(value)
     override fun read(element: JsonElement?) {
-        element?.asBoolean?.let { value = it }
+        value = element?.jsonPrimitive?.booleanOrNull ?: return
     }
 }

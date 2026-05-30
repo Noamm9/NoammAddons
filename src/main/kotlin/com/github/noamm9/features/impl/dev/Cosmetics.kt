@@ -3,10 +3,8 @@ package com.github.noamm9.features.impl.dev
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.dev.text.TextReplacer
-import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.ButtonSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.NumbersUtils

@@ -72,9 +72,10 @@ object ScanUtils {
 
     fun getCore(x: Int, z: Int): Int {
         val sb = StringBuilder(150)
+        val pos = BlockPos.MutableBlockPos(x, 0, z)
 
         for (y in 140 downTo 12) {
-            val id = LegacyRegistry.getLegacyId(WorldUtils.getStateAt(BlockPos(x, y, z)))
+            val id = LegacyRegistry.getLegacyId(WorldUtils.getStateAt(pos.setY(y)))
             if (id.equalsOneOf(5, 54, 146)) continue
             sb.append(id)
         }
@@ -82,14 +83,15 @@ object ScanUtils {
     }
 
     fun getHighestY(x: Int, z: Int): Int {
+        val pos = BlockPos.MutableBlockPos(x, 0, z)
         var height = 0
 
-        for (idx in 256 downTo 0) {
-            val blockState = WorldUtils.getStateAt(x, idx, z)
+        for (y in 256 downTo 0) {
+            val blockState = WorldUtils.getStateAt(pos.setY(y))
             val block = blockState?.block ?: continue
             if (blockState.isAir || block == Blocks.GOLD_BLOCK) continue
 
-            height = idx
+            height = y
             break
         }
 

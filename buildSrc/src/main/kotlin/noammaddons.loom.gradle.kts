@@ -42,4 +42,19 @@ configure<LoomGradleExtensionAPI> {
             ideConfigGenerated(false)
         }
     }
+
+    afterEvaluate {
+        val mixinAgentJar = configurations.runtimeClasspath.get().files.firstOrNull { file ->
+            file.name.startsWith("sponge-mixin-") && file.extension == "jar"
+        }?.absolutePath
+
+        runs.configureEach {
+            vmArg("-XX:+AllowEnhancedClassRedefinition")
+            vmArg("-Dmixin.hotSwap=true")
+
+            if (mixinAgentJar != null) {
+                vmArg("-javaagent:$mixinAgentJar")
+            }
+        }
+    }
 }

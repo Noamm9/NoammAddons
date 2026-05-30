@@ -53,7 +53,7 @@ object EventDispatcher {
         }
 
         ClientEntityEvents.ENTITY_UNLOAD.register { entity, _ ->
-            EventBus.post(EntityDeathEvent(entity))
+            EventBus.post(EntityUnloadEvent(entity))
 
             // for items that are in the personal deletor
             if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register

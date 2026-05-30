@@ -6,8 +6,10 @@ import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.ui.utils.TextInputHandler
 import com.github.noamm9.utils.render.Render2D
-import com.google.gson.JsonElement
-import com.google.gson.JsonPrimitive
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
@@ -68,11 +70,8 @@ class TextInputSetting(name: String, defaultValue: String): Setting<String>(name
         return handler.keyPressed(event)
     }
 
-    override fun write(): JsonElement = JsonPrimitive(value)
-
+    override fun write() = JsonPrimitive(value)
     override fun read(element: JsonElement?) {
-        element?.asString?.let {
-            value = it
-        }
+        value = element?.jsonPrimitive?.contentOrNull ?: return
     }
 }

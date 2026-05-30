@@ -1,32 +1,27 @@
 package com.github.noamm9.features.impl.dungeon
 
-import com.github.noamm9.NoammAddons
+import com.github.noamm9.config.PogObject
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.getValue
-import com.github.noamm9.ui.clickgui.components.hideIf
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.ui.clickgui.components.provideDelegate
-import com.github.noamm9.ui.clickgui.components.section
-import com.github.noamm9.utils.*
+import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
+import com.github.noamm9.utils.Utils
+import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.enums.SecretType
 import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
+import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render3D
-import com.google.common.reflect.TypeToken
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Blocks
 import java.awt.Color
-import java.io.File
-import java.io.FileReader
-import java.io.FileWriter
 import java.util.concurrent.*
 
 object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while looking at a block") {
@@ -54,15 +49,12 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
         }.value
     }
 
-    private val configFile = File("config/${NoammAddons.MOD_NAME}/dungeonWaypoints.json")
+    val waypoints by PogObject("dungeonWaypoints", mutableMapOf<String, MutableList<DungeonWaypoint>>())
     private val secretPositions by lazy { ScanUtils.roomList.associate { it.name to it.secretCoords } }
-    val waypoints = mutableMapOf<String, List<DungeonWaypoint>>()
     val currentRoomWaypoints = CopyOnWriteArrayList<DungeonWaypoint>()
     private val currentSecrets = CopyOnWriteArrayList<SecretWaypoint>()
 
     override fun init() {
-        loadConfig()
-
         register<DungeonEvent.RoomEvent.onEnter> {
             currentRoomWaypoints.clear()
             currentSecrets.clear()
@@ -155,30 +147,12 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
         }
     }
 
-    private fun loadConfig() = catch {
-        FileReader(configFile).use { reader ->
-            val type = object: TypeToken<MutableMap<String, List<DungeonWaypoint>>>() {}.type
-            val loadedData = JsonUtils.gsonBuilder.fromJson<MutableMap<String, List<DungeonWaypoint>>>(reader, type) ?: return@catch
-            waypoints.putAll(loadedData)
-        }
-    }
-
-
-    fun saveConfig() = catch {
-        configFile.parentFile?.mkdirs()
-        FileWriter(configFile).use { writer ->
-            JsonUtils.gsonBuilder.toJson(waypoints, writer)
-        }
-        NoammAddons.logger.info("${this.javaClass.simpleName} Config saved.")
-    }
-
-
     fun saveWaypoint(absPos: BlockPos, relPos: BlockPos, roomName: String, color: Color, filled: Boolean, outline: Boolean, phase: Boolean) {
         val newWaypoint = DungeonWaypoint(relPos, color, filled, outline, phase)
         val absWaypoint = newWaypoint.copy(pos = absPos)
 
         waypoints.compute(roomName) { _, list ->
-            val mutableList = list?.toMutableList() ?: mutableListOf()
+            val mutableList = list ?: mutableListOf()
             val replaced = mutableList.removeIf { it.pos == relPos }
             mutableList.add(newWaypoint)
 
@@ -187,8 +161,6 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
 
             mutableList
         }
-
-        saveConfig()
 
         currentRoomWaypoints.removeIf { it.pos == absPos }
         currentRoomWaypoints.add(absWaypoint)

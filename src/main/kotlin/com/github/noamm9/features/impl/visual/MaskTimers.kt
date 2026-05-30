@@ -5,16 +5,16 @@ import com.github.noamm9.event.impl.RenderOverlayEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import net.minecraft.world.entity.EquipmentSlot
 
 object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and more") {
@@ -41,7 +41,7 @@ object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and mo
             mc.player?.getItemBySlot(EquipmentSlot.HEAD)?.skyblockId?.contains("SPIRIT_MASK") == true
         }),
         PHOENIX("Phoenix", "Pet", "&c", 60 * 20, 4 * 20, Regex("Your Phoenix Pet saved you from certain death!"), {
-            cacheData.getData()["pet"].toString().contains("Phoenix")
+            (cacheData.get()["pet"] as? JsonPrimitive)?.contentOrNull.toString().contains("Phoenix")
         });
 
         var cdLeft = 0

@@ -3,9 +3,7 @@ package com.github.noamm9.features.impl.visual
 import com.github.noamm9.event.impl.CheckEntityRenderEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils

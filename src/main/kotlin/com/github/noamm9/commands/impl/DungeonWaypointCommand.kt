@@ -90,21 +90,14 @@ object DungeonWaypointCommand: BaseCommand("ndw") {
 
                         if (removed) {
                             DungeonWaypoints.waypoints[roomName] = roomList
-                            DungeonWaypoints.saveConfig()
                             DungeonWaypoints.currentRoomWaypoints.remove(closest)
                             ChatUtils.modMessage("§aWaypoint removed.")
                         }
-                        else {
-                            ChatUtils.modMessage("§cError syncing config.")
-                        }
+                        else ChatUtils.modMessage("§cError syncing config.")
                     }
-                    else {
-                        ChatUtils.modMessage("§cNo waypoint found nearby (must be within 5 blocks).")
-                    }
+                    else ChatUtils.modMessage("§cNo waypoint found nearby (must be within 5 blocks).")
                 }
-                else {
-                    ChatUtils.modMessage("§cNo waypoints found in this room.")
-                }
+                else ChatUtils.modMessage("§cNo waypoints found in this room.")
             }
         }
 
@@ -118,7 +111,6 @@ object DungeonWaypointCommand: BaseCommand("ndw") {
                 }
 
                 DungeonWaypoints.waypoints.remove(roomName)
-                DungeonWaypoints.saveConfig()
                 DungeonWaypoints.currentRoomWaypoints.clear()
                 ChatUtils.modMessage("§aAll waypoints cleared for room: $roomName")
             }

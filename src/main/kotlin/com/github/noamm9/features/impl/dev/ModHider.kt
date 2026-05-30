@@ -1,6 +1,6 @@
 package com.github.noamm9.features.impl.dev
 
-import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.ILanguage
 import com.github.noamm9.mixin.ILanguageManager
 import com.github.noamm9.utils.equalsOneOf
@@ -21,12 +21,10 @@ import net.minecraft.server.packs.resources.MultiPackResourceManager
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
-
-// stops the exploit where the server can send a translation key inside a Sign or Anvil to gets the mods you are using
-// mods without language keys are safe from this
-object ModHider {
-    private val language = ILanguage.invokeLoadDefault()
+object ModHider: Feature("stops the exploit that allows servers to send a translation key inside a Sign or Anvil to gets the mods you are using. mods without language keys are safe from this", toggled = true) {
+    override fun toggle() = Unit
     private val serverLanguages = IdentityHashMap<ClientPacketListener?, Language?>()
+    private val language = ILanguage.invokeLoadDefault()
 
     /*
     private val serverCheckedMods = ObjectArraySet<String>()
@@ -46,8 +44,8 @@ object ModHider {
 
     @JvmStatic
     fun addMod(key: String) = serverCheckedMods.add(key.substringAfter(".").substringBefore("."))
-
     */
+
     @JvmStatic
     fun getString(component: Component): String {
         if (component !is MutableComponent) return component.string

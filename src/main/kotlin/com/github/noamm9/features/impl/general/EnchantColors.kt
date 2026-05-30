@@ -2,11 +2,8 @@ package com.github.noamm9.features.impl.general
 
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.ui.clickgui.components.provideDelegate
-import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.utils.ColorUtils.mcColor
 import com.github.noamm9.utils.DataDownloader
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
@@ -17,7 +14,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Style
 import net.minecraft.network.chat.TextColor
 import java.awt.Color
-import java.util.regex.Pattern
+import java.util.regex.*
 
 object EnchantColors: Feature("Changes the color of enchantments in items lore.") {
     private val showNumbers by ToggleSetting("Levels as Numbers").withDescription("Show levels as numbers instead of roman numerals")

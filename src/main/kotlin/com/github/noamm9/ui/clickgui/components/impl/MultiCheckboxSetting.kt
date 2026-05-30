@@ -5,9 +5,7 @@ import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.render.Render2D
-import com.google.gson.JsonElement
-import com.google.gson.JsonObject
-import com.google.gson.JsonPrimitive
+import kotlinx.serialization.json.*
 import net.minecraft.client.gui.GuiGraphics
 import java.awt.Color
 
@@ -77,17 +75,13 @@ class MultiCheckboxSetting(name: String, options: MutableMap<String, Boolean>): 
         return false
     }
 
-    override fun write(): JsonElement {
-        val jsonObject = JsonObject()
-        value.forEach { (k, v) -> jsonObject.add(k, JsonPrimitive(v)) }
-        return jsonObject
+    override fun write() = buildJsonObject {
+        value.forEach { (k, v) -> put(k, v) }
     }
 
     override fun read(element: JsonElement?) {
-        if (element != null && element.isJsonObject) {
-            element.asJsonObject.entrySet().forEach { (k, v) ->
-                value[k] = v.asBoolean
-            }
+        element?.jsonObject?.forEach { (k, v) ->
+            value[k] = v.jsonPrimitive.booleanOrNull ?: return@forEach
         }
     }
 }

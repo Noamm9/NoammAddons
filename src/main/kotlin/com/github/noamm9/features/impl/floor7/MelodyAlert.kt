@@ -3,10 +3,8 @@ package com.github.noamm9.features.impl.floor7
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.TextInputSetting
-import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ThreadUtils

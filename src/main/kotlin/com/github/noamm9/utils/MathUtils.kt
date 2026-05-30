@@ -16,39 +16,6 @@ import kotlin.random.Random
 object MathUtils {
     data class Rotation(var yaw: Float, var pitch: Float)
 
-    fun isCoordinateInsideBox(coord: Vec3, corner1: Vec3i, corner2: Vec3i): Boolean {
-        val minX = minOf(corner1.x, corner2.x)
-        val maxX = maxOf(corner1.x, corner2.x)
-        val minY = minOf(corner1.y, corner2.y)
-        val maxY = maxOf(corner1.y, corner2.y)
-        val minZ = minOf(corner1.z, corner2.z)
-        val maxZ = maxOf(corner1.z, corner2.z)
-
-        val x = coord.x.toInt() in minX .. maxX
-        val y = coord.y.toInt() in minY .. maxY
-        val z = coord.z.toInt() in minZ .. maxZ
-        return x && y && z
-    }
-
-    fun getAllBlocksBetween(start: BlockPos, end: BlockPos): List<BlockPos> {
-        val minX = minOf(start.x, end.x)
-        val maxX = maxOf(start.x, end.x)
-        val minY = minOf(start.y, end.y)
-        val maxY = maxOf(start.y, end.y)
-        val minZ = minOf(start.z, end.z)
-        val maxZ = maxOf(start.z, end.z)
-
-        val positions = mutableListOf<BlockPos>()
-        for (x in minX .. maxX) {
-            for (y in minY .. maxY) {
-                for (z in minZ .. maxZ) {
-                    positions.add(BlockPos(x, y, z))
-                }
-            }
-        }
-        return positions
-    }
-
     fun gaussianRandom(min: Int, max: Int): Int {
         val u1 = 1.0 - Random.nextDouble()
         val u2 = 1.0 - Random.nextDouble()
@@ -104,7 +71,8 @@ object MathUtils {
         return Rotation(fixedYaw, fixedPitch)
     }
 
-    fun calcYawPitch(blockPos: Vec3, playerPos: Vec3 = mc.player !!.renderVec.add(y = mc.player !!.eyeHeight)): Rotation {
+    fun calcYawPitch(blockPos: Vec3): Rotation {
+        val playerPos = mc.player !!.renderVec.add(y = mc.player !!.eyeHeight)
         val delta = blockPos.subtract(playerPos)
         val yaw = - atan2(delta.x, delta.z) * (180 / PI)
         val pitch = - atan2(delta.y, sqrt(delta.x * delta.x + delta.z * delta.z)) * (180 / PI)
@@ -116,13 +84,12 @@ object MathUtils {
         return prev.toDouble() + (newPos.toDouble() - prev.toDouble()) * partialTicks.toDouble()
     }
 
-    fun lerpColor(color1: Color, color2: Color, value: Number): Color {
-        return Color(
-            lerp(color1.red, color2.red, value).toInt(),
-            lerp(color1.green, color2.green, value).toInt(),
-            lerp(color1.blue, color2.blue, value).toInt()
-        )
-    }
+    fun lerpColor(color1: Color, color2: Color, value: Number) = Color(
+        lerp(color1.red, color2.red, value).toInt(),
+        lerp(color1.green, color2.green, value).toInt(),
+        lerp(color1.blue, color2.blue, value).toInt()
+    )
+
 
     fun interpolateYaw(startYaw: Float, targetYaw: Float, progress: Float): Float {
         var delta = (targetYaw - startYaw) % 360
@@ -136,18 +103,14 @@ object MathUtils {
     fun BlockPos.add(x: Number = 0, y: Number = 0, z: Number = 0) = this.offset(x.toInt(), y.toInt(), z.toInt())
     fun BlockPos.toVec() = Vec3(x, y, z)
 
-    fun Vec3.floor() = Vec3(floor(x), floor(y), floor(z))
     fun Vec3.toPos() = BlockPos(floor(x).toInt(), floor(y).toInt(), floor(z).toInt())
     fun Vec3.add(x: Number = 0.0, y: Number = 0.0, z: Number = 0.0) = add(Vec3(x, y, z))
     fun Vec3i.destructured() = Triple(x, y, z)
     fun Vec3.destructured() = Triple(x, y, z)
-    fun Vec3.copy() = Vec3(x, y, z)
     fun Vec3.center() = add(Vec3(0.5, 0.5, 0.5))
-    fun Vec3.multiply(factor: Double) = Vec3(x * factor, y * factor, z * factor)
-    fun Vec3.inAABB(aabb: AABB) = x in aabb.minX .. aabb.maxX && y in aabb.minY .. aabb.maxY && z in aabb.minZ .. aabb.maxZ
     fun Vec3.xzInAABB(aabb: AABB) = x in aabb.minX .. aabb.maxX && z in aabb.minZ .. aabb.maxZ
 
-    @JvmName("Vec3")
+    @JvmName("Vec3FromNumbers")
     fun Vec3(x: Number, y: Number, z: Number): Vec3 = net.minecraft.world.phys.Vec3(x.toDouble(), y.toDouble(), z.toDouble())
 
     fun raytrace(player: LocalPlayer, range: Number): BlockPos? {

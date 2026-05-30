@@ -4,12 +4,8 @@ import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.MultiCheckboxSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.ui.clickgui.components.provideDelegate
-import com.github.noamm9.ui.clickgui.components.section
-import com.github.noamm9.ui.clickgui.components.showIf
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.PartyUtils

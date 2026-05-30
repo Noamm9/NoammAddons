@@ -1,14 +1,11 @@
 package com.github.noamm9.features.impl.dungeon
 
-import com.github.noamm9.NoammAddons.priceData
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.getValue
+import com.github.noamm9.init.NetworkLoop.priceData
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.ui.clickgui.components.provideDelegate
-import com.github.noamm9.ui.clickgui.components.section
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
@@ -39,7 +36,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
     private val blackList by lazy { DataDownloader.loadJson<List<String>>("blacklistDrops.json") }
 
     private val essenceRegex = Regex("§d(?<type>\\w+) Essence §8x(?<count>\\d+)")
-    private val croesusChestRegex = Regex("^(Master )?Catacombs - Flo(or (IV|V?I{0,3}))?\$")
+    private val croesusChestRegex = Regex("^(Master )?Catacombs - Flo(or (IV|V?I{0,3}))?$")
 
     private val chestsToHighlight = mutableListOf<DungeonChest>()
     private var sortedChestsCache = emptyList<DungeonChest>()

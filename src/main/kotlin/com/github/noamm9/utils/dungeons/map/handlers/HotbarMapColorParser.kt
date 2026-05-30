@@ -52,7 +52,6 @@ object HotbarMapColorParser {
                     else (mapY - 4) * 128 + mapX
                 }
 
-                // TODO: fix this if map is breaking
                 sideColors[y * 11 + x] = mapData.colors.getOrNull(sideIndex) ?: 0
             }
         }

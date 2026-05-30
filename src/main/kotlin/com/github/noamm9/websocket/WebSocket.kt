@@ -2,12 +2,14 @@ package com.github.noamm9.websocket
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.utils.JsonUtils
+import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.impl.WebSocketEvent
+import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.GsonUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.catch
 import com.github.noamm9.utils.network.WebUtils
-import com.google.gson.JsonElement
-import com.google.gson.JsonParser
+import io.ktor.client.plugins.timeout
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.websocket.Frame
@@ -34,8 +36,11 @@ object WebSocket {
 
     fun send(packet: Any) = worker.launch {
         val socket = session?.takeIf { it.isActive } ?: return@launch
-        val raw = JsonUtils.gsonBuilder.toJson(packet)
-        socket.send(Frame.Text(raw))
+        val json = GsonUtils.gson.toJsonTree(packet).asJsonObject
+        val type = PacketRegistry.getType(packet)
+        if (type != null) json.addProperty("type", type)
+        socket.send(Frame.Text(json.toString()))
+        ChatUtils.debug("ws", "[WS] sending $json")
     }
 
     private fun connect() {
@@ -43,15 +48,24 @@ object WebSocket {
 
         socketJob = worker.launch {
             try {
-                WebUtils.client.webSocket("wss://noamm.org") {
-                    NoammAddons.logger.info("WebSocket: Connected Successfully")
+                WebUtils.client.webSocket("wss://ws.noamm.org", {
+                    timeout {
+                        requestTimeoutMillis = 60_000
+                        socketTimeoutMillis = 60_000
+                    }
+                }) {
+                    mc.submit { EventBus.post(WebSocketEvent.Connect) }
                     session = this
 
-                    for (frame in incoming) if (frame is Frame.Text) handleMessage(frame.readText())
+                    for (frame in incoming) if (frame is Frame.Text) mc.submit {
+                        EventBus.post(WebSocketEvent.Payload(frame.readText()))
+                    }
                 }
             }
             catch (e: Exception) {
+                ChatUtils.debug("ws", "[WS] disconnected")
                 NoammAddons.logger.info("WebSocket: Disconnected", e)
+                mc.submit { EventBus.post(WebSocketEvent.Disconnect) }
             }
             finally {
                 session = null
@@ -59,14 +73,6 @@ object WebSocket {
                 ThreadUtils.setTimeout(30_000, ::connect)
             }
         }
-    }
-
-    private fun handleMessage(message: String) = catch {
-        val json = JsonParser.parseString(message).takeIf(JsonElement::isJsonObject)?.asJsonObject ?: return@catch
-        val type = json.get("type")?.asString?.takeUnless(String::isBlank) ?: return@catch
-        val packetClass = PacketRegistry.getPacketClass(type) ?: return@catch
-        val packet = JsonUtils.gsonBuilder.fromJson(message, packetClass)
-        mc.submit(packet::handle)
     }
 
     private fun shutdown() = runBlocking {

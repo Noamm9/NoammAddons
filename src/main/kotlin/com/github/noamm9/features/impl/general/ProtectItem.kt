@@ -4,12 +4,8 @@ import com.github.noamm9.config.PogObject
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.KeyboardEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.ui.clickgui.components.provideDelegate
-import com.github.noamm9.ui.clickgui.components.section
-import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.formattedText
@@ -31,7 +27,12 @@ import org.lwjgl.glfw.GLFW
 import kotlin.jvm.optionals.getOrDefault
 
 object ProtectItem: Feature("Prevents dropping or selling important items via /protectitem or keybind.") {
-    private val data = PogObject("item_protection", mutableMapOf<String, List<String>>("uuids" to emptyList(), "ids" to emptyList()))
+    private var data by PogObject("item_protection", ProtectData)
+
+    private data object ProtectData {
+        val uuids = mutableSetOf<String>()
+        val ids = mutableSetOf<String>()
+    }
 
     private val protectNodification by ToggleSetting("Protect Notification", true).withDescription("Shows a notification on the bottom right side of the screen when the feature saved your item")
     private val protectBind by KeybindSetting("Protect Key", GLFW.GLFW_KEY_L).section("Keybind").withDescription("Press while hovering an item in an inventory to protect/unprotect it via UUID.")
@@ -65,10 +66,8 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
             }
 
             if (protectBind.isDown()) {
-                if (stack.itemUUID.isNotBlank()) toggle(stack.itemUUID, "uuids", stack.hoverName.formattedText)
-                else if (stack.skyblockId.isNotBlank()) toggle(stack.skyblockId, "ids", stack.hoverName.formattedText)
-                else NotificationManager.push("Error", "Item has no protectable ID/UUID.")
                 event.isCanceled = true
+                protect(stack)
             }
         }
 
@@ -100,9 +99,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
                     return@executes 1
                 }
 
-                if (heldItem.itemUUID.isNotBlank()) toggle(heldItem.itemUUID, "uuids", heldItem.hoverName.formattedText)
-                else if (heldItem.skyblockId.isNotBlank()) toggle(heldItem.skyblockId, "ids", heldItem.hoverName.formattedText)
-                else NotificationManager.push("Error", "Item has no unique data.")
+                protect(heldItem)
 
                 1
             })
@@ -124,12 +121,12 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
 
         if (protectUUID.value) {
             val uuid = stack.itemUUID
-            if (uuid.isNotBlank() && data.getData()["uuids"] !!.contains(uuid)) return ProtectType.UUID
+            if (uuid.isNotBlank() && uuid in data.uuids) return ProtectType.UUID
         }
 
         if (protectID.value) {
             val id = stack.skyblockId
-            if (id.isNotBlank() && data.getData()["ids"] !!.contains(id)) return ProtectType.SkyblockID
+            if (id.isNotBlank() && id in data.ids) return ProtectType.SkyblockID
         }
 
         val data = stack.customData
@@ -152,18 +149,20 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
         }
     }
 
-    private fun toggle(id: String, key: String, label: String) {
-        val data = data.getData()
-        val set = data[key]?.toMutableSet() ?: return
+    private fun protect(stack: ItemStack) {
+        val label = stack.hoverName.formattedText
 
-        if (set.remove(id)) NotificationManager.push("&cProtection Removed", "No longer protecting $label.")
-        else {
-            set.add(id)
-            NotificationManager.push("&aProtection Added", "Now protecting $label.")
+        val (list, id) = when {
+            stack.itemUUID.isNotBlank() -> data.uuids to stack.itemUUID
+            stack.skyblockId.isNotBlank() -> data.ids to stack.skyblockId
+            else -> return NotificationManager.push("Error", "Item has no protectable ID/UUID.")
         }
 
-        data[key] = set.toList()
-        this.data.save()
+        if (list.remove(id)) NotificationManager.push("&cProtection Removed", "No longer protecting $label.")
+        else {
+            list.add(id)
+            NotificationManager.push("&aProtection Added", "Now protecting $label.")
+        }
     }
 
     private enum class ProtectType { UUID, SkyblockID, Starred, RarityUpgraded, None }

@@ -1,21 +1,18 @@
 package com.github.noamm9.features.impl.general
 
-import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.init.NetworkLoop
 import com.github.noamm9.mixin.IAbstractSignEditScreen
-import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.MultiCheckboxSetting
-import com.github.noamm9.ui.clickgui.components.provideDelegate
-import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.ui.utils.componnents.UIButton
 import com.github.noamm9.ui.utils.componnents.UISearchBox
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.NumbersUtils
+import com.github.noamm9.utils.Utils.send
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
-import com.github.noamm9.utils.network.PacketUtils.send
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.uppercaseFirst
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
@@ -103,7 +100,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             if (rememberInput.value["Text"] != true) input = ""
             mode = if (rememberInput.value["Mode"] == true && mode != null) mode else InputMode.entries[defaultMode.value]
 
-            lowestBin = NoammAddons.priceData[stack.skyblockId] ?: 0L
+            lowestBin = NetworkLoop.priceData[stack.skyblockId] ?: 0L
 
             val centerX = width / 2
             val centerY = height / 2

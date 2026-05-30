@@ -51,17 +51,19 @@ object DungeonScanner {
                 val roomInGrid = DungeonInfo.dungeonList[x + z * 11]
                 if (roomInGrid !is Unknown && (roomInGrid as? Room)?.data?.name != "Unknown") continue
 
-                scanRoom(wX, wZ, z, x, roofHeight)?.let { room ->
-                    DungeonInfo.dungeonList[z * 11 + x] = room
+                scanTile(wX, wZ, z, x, roofHeight)?.let { tile ->
+                    DungeonInfo.dungeonList[z * 11 + x] = tile
+                    (tile as? Room)?.uniqueRoom?.findRotation()
+
                     DungeonPathFinder.clearCache()
                     if (DungeonListener.dungeonTeammatesNoSelf.isEmpty()) return@let
 
-                    if (room is Room && room.data.name != "Unknown") {
-                        WebSocket.send(S2CPacketDungeonRoom(room.data.name, wX, wZ, x, z, room.core, room.isSeparator))
+                    if (tile is Room && tile.data.name != "Unknown") {
+                        WebSocket.send(S2CPacketDungeonRoom(tile.data.name, wX, wZ, x, z, tile.core, tile.isSeparator))
                     }
 
-                    if (room is Door) {
-                        WebSocket.send(S2CPacketDungeonDoor(wX, wZ, x, z, room.type))
+                    if (tile is Door) {
+                        WebSocket.send(S2CPacketDungeonDoor(wX, wZ, x, z, tile.type))
                     }
                 }
             }
@@ -94,7 +96,7 @@ object DungeonScanner {
         return null
     }
 
-    private fun scanRoom(x: Int, z: Int, row: Int, column: Int, roofHeight: Int): Tile? {
+    private fun scanTile(x: Int, z: Int, row: Int, column: Int, roofHeight: Int): Tile? {
         val rowEven = row and 1 == 0
         val columnEven = column and 1 == 0
 
@@ -105,6 +107,7 @@ object DungeonScanner {
                 Room(x, z, ScanUtils.getRoomData(roomCore) ?: return null).apply {
                     core = roomCore
                     addToUnique(row, column)
+                    uniqueRoom?.highestBlock = roofHeight
                 }
             }
 

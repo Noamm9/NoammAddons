@@ -3,9 +3,7 @@ package com.github.noamm9.features.impl.misc
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.RenderOverlayEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.NumbersUtils.toFixed

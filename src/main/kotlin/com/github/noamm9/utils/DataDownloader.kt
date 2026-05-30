@@ -2,13 +2,11 @@ package com.github.noamm9.utils
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.utils.network.WebUtils
-import com.google.gson.reflect.TypeToken
+import io.ktor.client.statement.bodyAsBytes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import net.fabricmc.loader.api.FabricLoader
 import org.slf4j.LoggerFactory
-import java.io.BufferedReader
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -18,12 +16,11 @@ import kotlin.io.path.*
 
 object DataDownloader {
     private const val DOWNLOAD_URL = "https://github.com/Noamm9/NoammAddons/archive/refs/heads/data.zip"
-    private const val RAW_URL = "https://raw.githubusercontent.com/Noamm9/NoammAddons/refs/heads/data/"
     private const val GITHUB_API_URL = "https://api.github.com/repos/Noamm9/NoammAddons/commits/data"
     private val SHA_REGEX = Regex(""""sha"\s*:\s*"([^"]+)"""")
-    val LOGGER = LoggerFactory.getLogger("${NoammAddons.MOD_NAME} - DataDownloader")
+    private val LOGGER = LoggerFactory.getLogger("${NoammAddons.MOD_NAME} - DataDownloader")
 
-    private val modDataPath = FabricLoader.getInstance().configDir.resolve(NoammAddons.MOD_NAME).resolve("data").also {
+    val modDataPath = FabricLoader.getInstance().configDir.resolve(NoammAddons.MOD_NAME).resolve("data").also {
         if (! it.exists()) it.createDirectories()
     }
 
@@ -52,7 +49,7 @@ object DataDownloader {
     private suspend fun update(versionFile: Path, newHash: String) {
         try {
             val tempZipFile = Files.createTempFile("data-download-", ".zip")
-            Files.write(tempZipFile, WebUtils.getAs<ByteArray>(DOWNLOAD_URL).getOrThrow())
+            Files.write(tempZipFile, WebUtils.get(DOWNLOAD_URL).getOrThrow().bodyAsBytes())
 
             if (modDataPath.exists()) modDataPath.toFile().deleteRecursively()
             modDataPath.createDirectories()
@@ -69,48 +66,26 @@ object DataDownloader {
         }
     }
 
-    private fun unzip(zipFilePath: Path) {
-        ZipInputStream(zipFilePath.inputStream()).use { zis ->
-            var rootDirName: String? = null
+    private fun unzip(zipFilePath: Path) = ZipInputStream(zipFilePath.inputStream()).use { zis ->
+        var rootDirName: String? = null
 
-            while (true) {
-                val entry = zis.nextEntry ?: break
+        while (true) {
+            val entry = zis.nextEntry ?: break
 
-                if (rootDirName == null) rootDirName = entry.name.substringBefore('/') + "/"
+            if (rootDirName == null) rootDirName = entry.name.substringBefore('/') + "/"
 
-                val entryName = entry.name.removePrefix(rootDirName)
-                if (entryName.isEmpty()) continue
+            val entryName = entry.name.removePrefix(rootDirName).ifEmpty { continue }
+            val targetPath = modDataPath.resolve(entryName)
 
-                val targetPath = modDataPath.resolve(entryName)
-
-                if (! targetPath.normalize().startsWith(modDataPath.normalize())) {
-                    throw IOException("Zip entry attempted to write outside target: ${entry.name}")
-                }
-
-                if (entry.isDirectory) targetPath.createDirectories()
-                else {
-                    targetPath.parent?.createDirectories()
-                    Files.copy(zis, targetPath, StandardCopyOption.REPLACE_EXISTING)
-                }
-                zis.closeEntry()
+            if (entry.isDirectory) targetPath.createDirectories()
+            else {
+                targetPath.parent?.createDirectories()
+                Files.copy(zis, targetPath, StandardCopyOption.REPLACE_EXISTING)
             }
+
+            zis.closeEntry()
         }
     }
 
-    inline fun <reified T> loadJson(fileName: String): T {
-        return getReader(fileName).use { reader ->
-            JsonUtils.gsonBuilder.fromJson(reader, object: TypeToken<T>() {}.type)
-        }
-    }
-
-    fun getReader(fileName: String): BufferedReader {
-        val localFile = modDataPath.resolve(fileName)
-        return if (localFile.exists()) localFile.bufferedReader()
-        else {
-            LOGGER.warn("Local file '$fileName' missing. Fetching from RAW URL.")
-            runBlocking(Dispatchers.IO) {
-                WebUtils.getAs<String>(RAW_URL + fileName).getOrThrow().reader().buffered()
-            }
-        }
-    }
+    inline fun <reified T: Any> loadJson(fileName: String) = GsonUtils.decode<T>(modDataPath.resolve(fileName).readText())
 }

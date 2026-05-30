@@ -7,15 +7,12 @@ import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.ILocalPlayer
-import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.MultiCheckboxSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.provideDelegate
-import com.github.noamm9.ui.clickgui.components.showIf
-import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.destructured
+import com.github.noamm9.utils.Utils.send
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.items.EtherwarpHelper
 import com.github.noamm9.utils.items.InstantTransmissionHelper
@@ -23,7 +20,6 @@ import com.github.noamm9.utils.items.ItemUtils.customData
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.location.WorldType
-import com.github.noamm9.utils.network.PacketUtils.send
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation
 import net.minecraft.client.Camera
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket

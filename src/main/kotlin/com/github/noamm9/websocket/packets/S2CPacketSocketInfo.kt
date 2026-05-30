@@ -3,11 +3,7 @@ package com.github.noamm9.websocket.packets
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.websocket.WebSocketPacket
 
-class S2CPacketSocketInfo(
-    var connectedUsers: Int = 0,
-    var usersInLobby: Int = 0,
-    var lobby: String = ""
-): WebSocketPacket("socket_info") {
+class S2CPacketSocketInfo(var connectedUsers: Int, var usersInLobby: Int, var lobby: String = ""): WebSocketPacket {
     override fun handle() {
         ChatUtils.chat("§b§m--------------------------------")
         ChatUtils.chat("§6§lWebSocket Stats")

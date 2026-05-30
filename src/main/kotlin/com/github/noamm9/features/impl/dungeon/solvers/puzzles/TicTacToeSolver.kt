@@ -13,7 +13,6 @@ import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.positionVec
 import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderContext
 import net.minecraft.core.BlockPos
@@ -183,7 +182,7 @@ object TicTacToeSolver {
     private fun renderTTTBox(ctx: RenderContext, pos: BlockPos, color: Color) {
         val rotation = rotation ?: return
         if (WorldUtils.getBlockAt(pos) != Blocks.STONE_BUTTON) return
-        val cam = ctx.camera.positionVec.reverse()
+        val cam = ctx.camera.position().reverse()
 
         val halfWidth = 0.2
         val halfHeight = 0.13

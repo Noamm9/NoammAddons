@@ -1,8 +1,8 @@
 package com.github.noamm9.utils.dungeons
 
-import com.github.noamm9.NoammAddons.electionData
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.features.impl.dungeon.ScoreCalculator
+import com.github.noamm9.init.NetworkLoop.electionData
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.network.data.ElectionData
 import net.minecraft.core.BlockPos

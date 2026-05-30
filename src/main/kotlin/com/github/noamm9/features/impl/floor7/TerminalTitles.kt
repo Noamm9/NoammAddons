@@ -4,16 +4,13 @@ import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.Style
-import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.ui.clickgui.components.provideDelegate
-import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils
-import com.github.noamm9.utils.dungeons.DungeonPlayer
+import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
@@ -125,7 +122,7 @@ object TerminalTitles: Feature("Reformats the Terminal titles on P3.") {
             else -> ""
         }
 
-        val formattedName = (DungeonPlayer.get(name)?.clazz?.code ?: "&7") + name
+        val formattedName = (DungeonListener.dungeonTeammates.find { it.name == name }?.clazz?.code ?: "&7") + name
 
         return when (mode.value) {
             0 -> "$formattedName $formattedType &f${brackets[0]}$color$min&8/&a$max&f${brackets[1]}"

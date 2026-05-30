@@ -6,13 +6,9 @@ import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.getValue
-import com.github.noamm9.ui.clickgui.components.hideIf
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.provideDelegate
-import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.Render3D
 import net.minecraft.network.protocol.Packet

@@ -6,7 +6,7 @@ import com.github.noamm9.utils.JsonUtils
 import com.github.noamm9.utils.items.ItemRarity.Companion.PET_PATTERN
 import com.github.noamm9.utils.items.ItemRarity.Companion.RARITY_PATTERN
 import com.github.noamm9.utils.items.ItemRarity.Companion.rarityCache
-import com.github.noamm9.utils.network.data.PetSummary
+import com.github.noamm9.utils.network.data.DungeonStats
 import net.minecraft.core.component.DataComponents
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.component.CustomData
@@ -31,7 +31,7 @@ object ItemUtils {
             if (customData.contains("id")) sbItemID = customData.getString("id").getOrNull()?.replace(":", "-")
             if (sbItemID == "PET") {
                 val petInfoRaw = customData.getString("petInfo").getOrNull()?.takeIf { it.isNotEmpty() } ?: return sbItemID
-                val petInfo = JsonUtils.json.decodeFromString<PetSummary>(petInfoRaw)
+                val petInfo = JsonUtils.json.decodeFromString<DungeonStats.PetSummary>(petInfoRaw)
                 sbItemID += "-${petInfo.type}-${petInfo.tier}"
             }
 

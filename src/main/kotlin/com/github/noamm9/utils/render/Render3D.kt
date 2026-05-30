@@ -3,7 +3,6 @@ package com.github.noamm9.utils.render
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.NumbersUtils.times
-import com.github.noamm9.utils.render.RenderHelper.positionVec
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
 import net.minecraft.client.gui.Font
@@ -34,7 +33,7 @@ object Render3D {
         if (! outline && ! fill) return
 
         val state = mc.level?.getBlockState(pos) ?: return
-        val camPos = ctx.camera.positionVec
+        val camPos = ctx.camera.position()
         val shape = if (state.block != Blocks.AIR) state.getShape(mc.level !!, pos) else Shapes.block()
         val adjustedLineWidth = lineWidth.toDouble()
 
@@ -95,7 +94,7 @@ object Render3D {
         thickness: Number = 2,
         phase: Boolean = false
     ) {
-        val cameraPos = ctx.camera.positionVec
+        val cameraPos = ctx.camera.position()
         val segments = (36 * radius).toInt()
 
         ctx.matrixStack.pushPose()
@@ -172,7 +171,7 @@ object Render3D {
         lineWidth: Number = 2.5
     ) {
         if (! outline && ! fill) return
-        val cam = ctx.camera.positionVec.reverse()
+        val cam = ctx.camera.position().reverse()
 
         val xd = x.toDouble()
         val yd = y.toDouble()
@@ -200,7 +199,6 @@ object Render3D {
             outlineColor.red / 255f, outlineColor.green / 255f, outlineColor.blue / 255f, 1f,
             lineWidth.toFloat()
         )
-
 
         ctx.matrixStack.popPose()
     }
@@ -235,7 +233,7 @@ object Render3D {
         lineWidth: Number = 2.5
     ) {
         if (! outline && ! fill) return
-        val cam = ctx.camera.positionVec
+        val cam = ctx.camera.position()
 
         ctx.matrixStack.pushPose()
         ctx.matrixStack.translate(- cam.x, - cam.y, - cam.z)
@@ -269,7 +267,7 @@ object Render3D {
         val matrices = Matrix4f()
         val textRenderer = mc.font
         val camera = mc.gameRenderer.mainCamera
-        val camPos = camera.positionVec
+        val camPos = camera.position()
         val dx = (x.toDouble() - camPos.x).toFloat()
         val dy = (y.toDouble() - camPos.y).toFloat()
         val dz = (z.toDouble() - camPos.z).toFloat()
@@ -304,7 +302,7 @@ object Render3D {
 
 
     fun renderLine(ctx: RenderContext, start: Vec3, finish: Vec3, color: Color, thickness: Number = 2, phase: Boolean = false) {
-        val cameraPos = ctx.camera.positionVec
+        val cameraPos = ctx.camera.position()
         ctx.matrixStack.pushPose()
         ctx.matrixStack.translate(- cameraPos.x, - cameraPos.y, - cameraPos.z)
 
@@ -325,16 +323,12 @@ object Render3D {
         ctx.matrixStack.popPose()
     }
 
-    fun renderLine(ctx: RenderContext, start: BlockPos, end: BlockPos, thickness: Number, color: Color) {
-        renderLine(ctx, Vec3.atCenterOf(start), Vec3.atCenterOf(end), color, thickness)
-    }
-
     fun renderTracer(ctx: RenderContext, point: Vec3, color: Color, thickness: Number = 2.5) {
         ctx.matrixStack.pushPose()
-        ctx.matrixStack.translate(- ctx.camera.positionVec.x, - ctx.camera.positionVec.y, - ctx.camera.positionVec.z)
+        ctx.matrixStack.translate(- ctx.camera.position().x, - ctx.camera.position().y, - ctx.camera.position().z)
 
         val buffer = (ctx.consumers as MultiBufferSource.BufferSource).getBuffer(NoammRenderLayers.LINES_THROUGH_WALLS)
-        val cameraPoint = ctx.camera.positionVec.add(Vec3.directionFromRotation(ctx.camera.xRot(), ctx.camera.yRot()))
+        val cameraPoint = ctx.camera.position().add(Vec3.directionFromRotation(ctx.camera.xRot(), ctx.camera.yRot()))
         val normal = point.toVector3f().sub(cameraPoint.x.toFloat(), cameraPoint.y.toFloat(), cameraPoint.z.toFloat()).normalize()
         val entry = ctx.matrixStack.last()
 
@@ -343,10 +337,6 @@ object Render3D {
 
         ctx.consumers.endBatch(NoammRenderLayers.LINES_THROUGH_WALLS)
         ctx.matrixStack.popPose()
-    }
-
-    fun renderTracer(ctx: RenderContext, point: BlockPos, color: Color, thickness: Number) {
-        renderTracer(ctx, Vec3.atCenterOf(point), color, thickness)
     }
 
     private fun addFilledBoxVertices(pose: PoseStack.Pose, buffer: VertexConsumer, x1: Double, y1: Double, z1: Double, x2: Double, y2: Double, z2: Double, r: Float, g: Float, b: Float, a: Float) {

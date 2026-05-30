@@ -14,6 +14,7 @@ object CakeNumbers: Feature("Displays the year of the cake in the New Year Cake 
             if (! LocationUtils.inSkyblock) return@register
             if (! event.slot.item.`is`(Items.CAKE)) return@register
             val name = event.slot.item.hoverName.unformattedText
+            if ("New Year Cake (Year " !in name) return@register
             val year = name.remove("New Year Cake (Year ", ")").trim()
             Render2D.drawCenteredString(event.context, "&b$year", event.slot.x + 8, event.slot.y + 8, scale = 0.8)
         }

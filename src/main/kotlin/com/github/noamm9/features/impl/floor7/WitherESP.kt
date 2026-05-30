@@ -4,9 +4,7 @@ import com.github.noamm9.event.impl.CheckEntityGlowEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket

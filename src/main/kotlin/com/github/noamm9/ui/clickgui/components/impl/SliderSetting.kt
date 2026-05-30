@@ -7,8 +7,9 @@ import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
-import com.google.gson.JsonElement
-import com.google.gson.JsonPrimitive
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.doubleOrNull
 import net.minecraft.client.gui.GuiGraphics
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
@@ -111,7 +112,7 @@ open class SliderSetting<T: Number>(
         }
         return false
     }
-    
+
 
     private fun getPercent(valIn: T): Float {
         val current = valIn.toDouble()
@@ -158,8 +159,10 @@ open class SliderSetting<T: Number>(
         }
     }
 
-    override fun write(): JsonElement = JsonPrimitive(value)
+    override fun write() = JsonPrimitive(value)
     override fun read(element: JsonElement?) {
-        element?.asNumber?.let { value = snapToStep(it.toDouble()) }
+        (element as? JsonPrimitive)?.doubleOrNull?.let {
+            value = snapToStep(it)
+        }
     }
 }

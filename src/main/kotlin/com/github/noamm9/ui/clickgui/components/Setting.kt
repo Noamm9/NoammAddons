@@ -34,46 +34,48 @@ abstract class Setting<T>(val name: String, val defaultValue: T) {
 
     open fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int) = false
     open fun charTyped(codePoint: Char, modifiers: Int) = false
-}
 
-fun <T: Setting<*>> T.section(name: String): T {
-    this.headerName = name
-    return this
-}
-
-fun <T: Setting<*>> T.withDescription(desc: String): T {
-    this.description = desc.let {
-        return@let if (! it.endsWith('.')) "$it."
-        else it
-    }
-    return this
-}
-
-fun <T: Setting<*>> T.showIf(condition: () -> Boolean): T {
-    this.visibility = condition
-    return this
-}
-
-fun <T: Setting<*>> T.hideIf(condition: () -> Boolean): T {
-    this.visibility = { ! condition() }
-    return this
-}
-
-
-operator fun <T, S: Setting<T>> S.provideDelegate(thisRef: Feature, prop: KProperty<*>): S {
-    this.headerName?.let { name ->
-        if (thisRef.configSettings.isNotEmpty()) {
-            thisRef.configSettings.add(SeparatorSetting().also { it.visibility = this.visibility })
+    companion object {
+        fun <T: Setting<*>> T.section(name: String): T {
+            this.headerName = name
+            return this
         }
-        thisRef.configSettings.add(CategorySetting(name).also {
-            it.visibility = this.visibility
-        })
+
+        fun <T: Setting<*>> T.withDescription(desc: String): T {
+            this.description = desc.let {
+                return@let if (! it.endsWith('.')) "$it."
+                else it
+            }
+            return this
+        }
+
+        fun <T: Setting<*>> T.showIf(condition: () -> Boolean): T {
+            this.visibility = condition
+            return this
+        }
+
+        fun <T: Setting<*>> T.hideIf(condition: () -> Boolean): T {
+            this.visibility = { ! condition() }
+            return this
+        }
+
+
+        operator fun <T, S: Setting<T>> S.provideDelegate(thisRef: Feature, prop: KProperty<*>): S {
+            this.headerName?.let { name ->
+                if (thisRef.configSettings.isNotEmpty()) {
+                    thisRef.configSettings.add(SeparatorSetting().also { it.visibility = this.visibility })
+                }
+                thisRef.configSettings.add(CategorySetting(name).also {
+                    it.visibility = this.visibility
+                })
+            }
+
+            thisRef.configSettings.add(this)
+            return this
+        }
+
+        operator fun <T, S: Setting<T>> S.getValue(thisRef: Feature, prop: KProperty<*>): S {
+            return this
+        }
     }
-
-    thisRef.configSettings.add(this)
-    return this
-}
-
-operator fun <T, S: Setting<T>> S.getValue(thisRef: Feature, prop: KProperty<*>): S {
-    return this
 }

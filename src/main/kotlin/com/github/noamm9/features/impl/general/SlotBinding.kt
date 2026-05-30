@@ -1,13 +1,12 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.config.PogObject
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.IAbstractContainerScreen
-import com.github.noamm9.ui.clickgui.components.*
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.utils.ChatUtils.modMessage
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.render.Render2D
 import net.minecraft.client.gui.GuiGraphics
@@ -26,11 +25,7 @@ object SlotBinding: Feature("Allows you to bind slots to hotbar slots for quick 
     private val borderColor by ColorSetting("Border Color", Color.PINK, false).showIf { showBoundSlots.value && drawBorders.value }.section("Colors")
     private val lineColor by ColorSetting("Line Color", Color.WHITE, false).showIf { showBoundSlots.value && drawLines.value }
 
-    @Suppress("UNCHECKED_CAST")
-    private val binds by lazy {
-        (cacheData.getData()["slotbindings"] as? Map<String, Number> ?: mutableMapOf()).toMutableMap()
-    }
-
+    private val binds by PogObject("slotbindings", mutableMapOf<Int, Int>())
     private var previousSlot: Int? = null
 
     override fun init() {
@@ -52,47 +47,34 @@ object SlotBinding: Feature("Allows you to bind slots to hotbar slots for quick 
                     if (firstIsHb != secondIsHb) {
                         val inv = if (firstIsHb) slotId else currentPrev
                         val hb = if (firstIsHb) currentPrev else slotId
-                        binds[inv.toString()] = hb
-                        cacheData.getData()["slotbindings"] = binds
-                        cacheData.save()
-                        modMessage("Bound $inv to $hb")
+                        binds[inv] = hb
                     }
                 }
                 else {
-                    val existingBind = binds[slotId.toString()] ?: binds.entries.find { it.value == slotId }?.key
-
+                    val existingBind = binds[slotId] ?: binds.entries.find { it.value == slotId }?.key
                     if (existingBind != null) {
-                        if (binds.containsKey(slotId.toString())) binds.remove(slotId.toString())
+                        if (slotId in binds) binds.remove(slotId)
                         else binds.entries.removeIf { it.value == slotId }
-
-                        cacheData.getData()["slotbindings"] = binds
-                        cacheData.save()
-                        modMessage("Bind removed")
                     }
                     else previousSlot = slotId
-
                 }
+
                 return@register
             }
 
             val isShiftDown = (event.modifiers and GLFW.GLFW_MOD_SHIFT) != 0
             if (! isShiftDown || event.button != 0) return@register
 
-            val boundPartner = binds[slotId.toString()]?.toInt() ?: binds.entries.find { it.value.toInt() == slotId }?.key?.toInt() ?: return@register
-
+            val boundPartner = binds[slotId] ?: binds.entries.find { it.value == slotId }?.key ?: return@register
             event.isCanceled = true
 
             val hotbarIndex = if (slotId in 36 .. 44) slotId - 36 else boundPartner - 36
             val inventorySlot = if (slotId in 36 .. 44) boundPartner else slotId
 
-            val player = mc.player ?: return@register
-            val gameMode = mc.gameMode ?: return@register
-            gameMode.handleInventoryMouseClick(player.containerMenu.containerId, inventorySlot, hotbarIndex, ClickType.SWAP, player)
+            mc.player?.run { mc.gameMode?.handleInventoryMouseClick(containerMenu.containerId, inventorySlot, hotbarIndex, ClickType.SWAP, this) }
         }
 
-        register<ContainerEvent.Close> {
-            previousSlot = null
-        }
+        register<ContainerEvent.Close> { previousSlot = null }
     }
 
     @JvmStatic
@@ -101,24 +83,22 @@ object SlotBinding: Feature("Allows you to bind slots to hotbar slots for quick 
         if (screen !is InventoryScreen) return
         val hoveredSlot = (screen as IAbstractContainerScreen).hoveredSlot?.index
 
-        if (showBoundSlots.value) {
-            binds.forEach { (inv, hb) ->
-                if (neuStyle.value && (hoveredSlot != inv.toInt() && hoveredSlot != hb.toInt())) return@forEach
+        if (showBoundSlots.value) binds.forEach { (inv, hb) ->
+            if (neuStyle.value && (hoveredSlot != inv && hoveredSlot != hb)) return@forEach
 
-                val p1 = GuiUtils.getSlotPos(screen, inv.toInt()) ?: return@forEach
-                val p2 = GuiUtils.getSlotPos(screen, hb.toInt()) ?: return@forEach
+            val p1 = GuiUtils.getSlotPos(screen, inv) ?: return@forEach
+            val p2 = GuiUtils.getSlotPos(screen, hb) ?: return@forEach
 
-                if (drawLines.value) Render2D.drawLine(
-                    context,
-                    p1.first + 8, p1.second + 8,
-                    p2.first + 8, p2.second + 8,
-                    lineColor.value
-                )
+            if (drawLines.value) Render2D.drawLine(
+                context,
+                p1.first + 8, p1.second + 8,
+                p2.first + 8, p2.second + 8,
+                lineColor.value
+            )
 
-                if (drawBorders.value) {
-                    Render2D.drawBorder(context, p1.first.toInt(), p1.second.toInt(), 16, 16, borderColor.value)
-                    Render2D.drawBorder(context, p2.first.toInt(), p2.second.toInt(), 16, 16, borderColor.value)
-                }
+            if (drawBorders.value) {
+                Render2D.drawBorder(context, p1.first.toInt(), p1.second.toInt(), 16, 16, borderColor.value)
+                Render2D.drawBorder(context, p2.first.toInt(), p2.second.toInt(), 16, 16, borderColor.value)
             }
         }
 

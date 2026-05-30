@@ -3,10 +3,7 @@ package com.github.noamm9.features.impl.dev
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.features.annotations.Dev
-import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.*
-import com.github.noamm9.ui.clickgui.components.provideDelegate
-import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.utils.render.Render2D.height
 import com.github.noamm9.utils.render.Render2D.width
 import net.minecraft.network.chat.Component

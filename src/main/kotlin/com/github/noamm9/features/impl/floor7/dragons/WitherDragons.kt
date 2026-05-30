@@ -2,13 +2,9 @@ package com.github.noamm9.features.impl.floor7.dragons
 
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.ui.clickgui.components.provideDelegate
-import com.github.noamm9.ui.clickgui.components.section
-import com.github.noamm9.ui.clickgui.components.showIf
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.NumbersUtils.toFixed
@@ -64,7 +60,7 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
             }
         }
 
-        register<EntityDeathEvent> {
+        register<EntityUnloadEvent> {
             if (LocationUtils.F7Phase != 5) return@register
             if (event.entity !is EnderDragon) return@register
             WitherDragonEnum.entries.find { it.entityId == event.entity.id }?.setDead()

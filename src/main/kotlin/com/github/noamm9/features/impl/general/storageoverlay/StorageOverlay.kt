@@ -2,13 +2,11 @@ package com.github.noamm9.features.impl.general.storageoverlay
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
+import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.misc.ScrollableTooltip
-import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.ui.clickgui.components.provideDelegate
-import com.github.noamm9.ui.clickgui.components.withDescription
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.location.LocationUtils
@@ -18,6 +16,7 @@ import kotlinx.coroutines.runBlocking
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import net.minecraft.nbt.NbtAccounter
 import net.minecraft.nbt.NbtIo
 import net.minecraft.world.item.Items
@@ -60,6 +59,13 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
             if (screen.title.unformattedText != event.title.unformattedText) return@register
             val menu = currentMenu ?: return@register
             saveContent(menu)
+        }
+
+        register<MainThreadPacketReceivedEvent.Pre> {
+            if (event.packet !is ClientboundContainerClosePacket) return@register
+            val overlay = active ?: return@register
+            overlay.isExiting = true
+            active = null
         }
     }
 

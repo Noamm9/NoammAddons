@@ -38,7 +38,7 @@ repositories {
     maven(url = uri("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1"))
     maven(url = uri("https://maven.terraformersmc.com/"))
     maven(url = uri("https://api.modrinth.com/maven"))
-    maven { url = uri("https://jitpack.io") }
+    maven(uri("https://jitpack.io"))
 }
 
 dependencies {
@@ -57,9 +57,10 @@ dependencies {
     annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.4.1")
 
     bundled("io.github.classgraph:classgraph:4.8.174")
-    bundled("io.ktor:ktor-client-okhttp-jvm:$ktor_version")
+    bundled("io.ktor:ktor-client-cio:$ktor_version")
     bundled("io.ktor:ktor-client-websockets-jvm:$ktor_version")
     bundled("io.ktor:ktor-client-content-negotiation-jvm:$ktor_version")
+    bundled("io.ktor:ktor-client-encoding:$ktor_version")
     bundled("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")
 
     modImplementation("com.github.Noamm9:datafixer:9a6e10fbfe")

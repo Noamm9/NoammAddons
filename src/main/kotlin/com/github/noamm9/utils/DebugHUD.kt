@@ -25,7 +25,6 @@ object DebugHUD {
         renderLeapDebug(guiGraphics)
     }
 
-
     private fun renderDungeonDebug(graphics: GuiGraphics) {
         if (! NoammAddons.debugFlags.contains("dungeon")) return
 
