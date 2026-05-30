@@ -15,7 +15,12 @@ class PogObject<T: Any>(fileName: String, val defaultObject: T, private val type
         objects.add(this)
     }
 
-    @Volatile private var data: T = load()
+    @Volatile private var data: T = run {
+        if (! dataFile.exists() || dataFile.length() == 0L) return@run defaultObject
+        val content = dataFile.readText().takeUnless(String::isNullOrBlank) ?: return@run defaultObject
+        if (content == "null") return@run defaultObject
+        GsonUtils.gson.fromJson(content, type)
+    }
 
     operator fun getValue(thisRef: Any?, property: KProperty<*>): T = data
     operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
@@ -26,17 +31,12 @@ class PogObject<T: Any>(fileName: String, val defaultObject: T, private val type
     fun get(): T = data
     fun save() = dataFile.writeText(GsonUtils.gson.toJson(data, type))
 
-    private fun load(): T {
-        if (! dataFile.exists() || dataFile.length() == 0L) return defaultObject
-        return GsonUtils.gson.fromJson(dataFile.readText(), type)
-    }
-
     companion object {
         private val objects = ArrayList<PogObject<*>>()
 
         inline operator fun <reified T: Any> invoke(fileName: String, defaultObject: T) =
             PogObject(fileName, defaultObject, object: TypeToken<T>() {}.type)
-        
+
         init {
             ThreadUtils.loop(TimeUnit.MINUTES.toMillis(5)) { objects.forEach(PogObject<*>::save) }
             ThreadUtils.addShutdownHook { objects.forEach(PogObject<*>::save) }

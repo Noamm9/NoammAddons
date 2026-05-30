@@ -1,11 +1,11 @@
 package com.github.noamm9.commands.impl
 
 import com.github.noamm9.NoammAddons
-import com.github.noamm9.NoammAddons.electionData
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.commands.BaseCommand
 import com.github.noamm9.commands.CommandNodeBuilder
 import com.github.noamm9.config.Config
+import com.github.noamm9.init.NetworkLoop.electionData
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils

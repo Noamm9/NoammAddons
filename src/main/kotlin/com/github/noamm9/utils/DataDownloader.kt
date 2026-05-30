@@ -2,6 +2,7 @@ package com.github.noamm9.utils
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.utils.network.WebUtils
+import io.ktor.client.statement.bodyAsBytes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.fabricmc.loader.api.FabricLoader
@@ -48,7 +49,7 @@ object DataDownloader {
     private suspend fun update(versionFile: Path, newHash: String) {
         try {
             val tempZipFile = Files.createTempFile("data-download-", ".zip")
-            Files.write(tempZipFile, WebUtils.getAs<ByteArray>(DOWNLOAD_URL).getOrThrow())
+            Files.write(tempZipFile, WebUtils.get(DOWNLOAD_URL).getOrThrow().bodyAsBytes())
 
             if (modDataPath.exists()) modDataPath.toFile().deleteRecursively()
             modDataPath.createDirectories()
@@ -65,31 +66,24 @@ object DataDownloader {
         }
     }
 
-    private fun unzip(zipFilePath: Path) {
-        ZipInputStream(zipFilePath.inputStream()).use { zis ->
-            var rootDirName: String? = null
+    private fun unzip(zipFilePath: Path) = ZipInputStream(zipFilePath.inputStream()).use { zis ->
+        var rootDirName: String? = null
 
-            while (true) {
-                val entry = zis.nextEntry ?: break
+        while (true) {
+            val entry = zis.nextEntry ?: break
 
-                if (rootDirName == null) rootDirName = entry.name.substringBefore('/') + "/"
+            if (rootDirName == null) rootDirName = entry.name.substringBefore('/') + "/"
 
-                val entryName = entry.name.removePrefix(rootDirName)
-                if (entryName.isEmpty()) continue
+            val entryName = entry.name.removePrefix(rootDirName).ifEmpty { continue }
+            val targetPath = modDataPath.resolve(entryName)
 
-                val targetPath = modDataPath.resolve(entryName)
-
-                if (! targetPath.normalize().startsWith(modDataPath.normalize())) {
-                    throw IOException("Zip entry attempted to write outside target: ${entry.name}")
-                }
-
-                if (entry.isDirectory) targetPath.createDirectories()
-                else {
-                    targetPath.parent?.createDirectories()
-                    Files.copy(zis, targetPath, StandardCopyOption.REPLACE_EXISTING)
-                }
-                zis.closeEntry()
+            if (entry.isDirectory) targetPath.createDirectories()
+            else {
+                targetPath.parent?.createDirectories()
+                Files.copy(zis, targetPath, StandardCopyOption.REPLACE_EXISTING)
             }
+
+            zis.closeEntry()
         }
     }
 

@@ -1,8 +1,8 @@
 package com.github.noamm9.features.impl.general
 
-import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.init.NetworkLoop
 import com.github.noamm9.mixin.IAbstractSignEditScreen
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.MultiCheckboxSetting
@@ -98,7 +98,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             if (rememberInput.value["Text"] != true) input = ""
             mode = if (rememberInput.value["Mode"] == true && mode != null) mode else InputMode.entries[defaultMode.value]
 
-            lowestBin = NoammAddons.priceData[stack.skyblockId] ?: 0L
+            lowestBin = NetworkLoop.priceData[stack.skyblockId] ?: 0L
 
             val centerX = width / 2
             val centerY = height / 2

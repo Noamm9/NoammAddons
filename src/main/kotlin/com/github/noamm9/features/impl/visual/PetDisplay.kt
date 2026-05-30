@@ -60,10 +60,7 @@ object PetDisplay: Feature("Pet Features") {
         }
 
         register<ContainerFullyOpenedEvent> {
-            if (! enabled) return@register
-            if (! activePetHighlight.value) return@register
             if (! event.title.unformattedText.startsWith("Pets")) return@register
-
             for (item in event.items) for (line in item.value.lore) {
                 if (line.removeFormatting() != "Click to despawn!") continue
                 selectedPetSlot = item.key
