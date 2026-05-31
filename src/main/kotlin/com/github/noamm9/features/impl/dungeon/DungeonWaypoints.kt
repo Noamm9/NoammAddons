@@ -34,14 +34,14 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
     val chestColor by ColorSetting("Chest Color", Color.MAGENTA, false).section("Colors")
     val itemColor by ColorSetting("Item Color", Utils.favoriteColor, false)
     val batColor by ColorSetting("Bat Color", Color.GREEN, false)
-    val essanceColor by ColorSetting("Essence Color", Color.BLACK, false)
+    val essenceColor by ColorSetting("Essence Color", Color.BLACK, false)
     val keyColor by ColorSetting("Redstone Key Color", Color.RED, false)
 
     data class DungeonWaypoint(val pos: BlockPos, val color: Color, val filled: Boolean, val outline: Boolean, val phase: Boolean)
     private data class SecretWaypoint(val pos: BlockPos, val type: SecretType) {
         val color = when (type) {
             SecretType.REDSTONE_KEY -> keyColor
-            SecretType.WITHER_ESSANCE -> essanceColor
+            SecretType.WITHER_ESSANCE -> essenceColor
             SecretType.CHEST -> chestColor
             SecretType.ITEM -> itemColor
             SecretType.BAT -> batColor

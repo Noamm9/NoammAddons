@@ -20,7 +20,7 @@ import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.entity.decoration.ArmorStand
 import java.awt.Color
 
-object TerminalHitboxes: Feature() {
+object TerminalHitboxes: Feature(description = "Renders the interactable hitboxes for F7 terminals.") {
     private val mode by DropdownSetting("Mode", 1, listOf("Outline", "Fill", "Filled Outline"))
     private val phase by ToggleSetting("Phase", false)
     private val fillColor by ColorSetting("Fill Color", Color.orange).hideIf { mode.value == 0 }
