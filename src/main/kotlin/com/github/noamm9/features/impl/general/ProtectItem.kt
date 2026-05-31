@@ -27,9 +27,10 @@ import org.lwjgl.glfw.GLFW
 import kotlin.jvm.optionals.getOrDefault
 
 object ProtectItem: Feature("Prevents dropping or selling important items via /protectitem or keybind.") {
-    private var data by PogObject("item_protection", ProtectData)
+    private val storage = PogObject("item_protection", ProtectData())
+    private val data by storage
 
-    private data object ProtectData {
+    private class ProtectData {
         val uuids = mutableSetOf<String>()
         val ids = mutableSetOf<String>()
     }
@@ -163,6 +164,8 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
             list.add(id)
             NotificationManager.push("&aProtection Added", "Now protecting $label.")
         }
+
+        storage.save()
     }
 
     private enum class ProtectType { UUID, SkyblockID, Starred, RarityUpgraded, None }
