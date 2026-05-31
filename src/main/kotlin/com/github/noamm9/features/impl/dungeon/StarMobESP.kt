@@ -25,7 +25,7 @@ import net.minecraft.world.entity.monster.EnderMan
 import net.minecraft.world.entity.player.Player
 import java.awt.Color
 
-object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
+object StarMobESP: Feature(name = "Star Mob Highlight", description = "Highlights all starred mobs in a dungeon.") {
 
     private val espBats by ToggleSetting("Highlight Bats", true).withDescription("Highlights Bats in Dungeons.")
     private val espFels by ToggleSetting("Highlight Fels", false).withDescription("Highlights Fels, even when they are invisible.")

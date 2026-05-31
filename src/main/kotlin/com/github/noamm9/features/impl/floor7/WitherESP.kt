@@ -19,7 +19,7 @@ import java.awt.Color
      Necron: isPowered: true, invulnerableTicks: 1
      Vanquisher: isPowered: false/true, invulnerableTicks: 250
 */
-object WitherESP: Feature("Highlights all Withers in F7.") {
+object WitherESP: Feature(name = "Wither Highlight", description = "Highlights all Withers in F7.") {
     private val color by ColorSetting("Highlight Color", Color.WHITE, false)
 
     var currentWither: WitherBoss? = null
