@@ -149,7 +149,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                 }
             }
             else if (titleName == "Croesus") {
-                val stack = event.slot.item ?: return@register
+                val stack = event.slot.item
                 if (stack.item != Items.PLAYER_HEAD) return@register
 
                 val name = stack.hoverName.formattedText

@@ -4,7 +4,7 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.utils.NumbersUtils.div
 import com.github.noamm9.utils.NumbersUtils.times
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import kotlin.math.roundToInt
 
 object Resolution {
@@ -30,12 +30,12 @@ object Resolution {
         width = guiWidth / scale
     }
 
-    fun push(ctx: GuiGraphics) {
+    fun push(ctx: GuiGraphicsExtractor) {
         ctx.pose().pushMatrix()
         ctx.pose().scale(scale, scale)
     }
 
-    fun pop(ctx: GuiGraphics) {
+    fun pop(ctx: GuiGraphicsExtractor) {
         ctx.pose().popMatrix()
     }
 

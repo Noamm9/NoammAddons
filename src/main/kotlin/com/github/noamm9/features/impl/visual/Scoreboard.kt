@@ -8,7 +8,7 @@ import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.chat.Component
 import net.minecraft.network.protocol.game.*
 import net.minecraft.world.scores.DisplaySlot
@@ -31,7 +31,7 @@ object Scoreboard: Feature("Draws a custom scoreboard instead of the vanilla one
         override val name = "Scoreboard"
         override val toggle get() = Scoreboard.enabled
 
-        override fun draw(ctx: GuiGraphics, example: Boolean): Pair<Float, Float> {
+        override fun draw(ctx: GuiGraphicsExtractor, example: Boolean): Pair<Float, Float> {
             val scoreboard = mc.level?.scoreboard ?: return 0f to 0f
             val objective = scoreboard.getDisplayObjective(DisplaySlot.SIDEBAR) ?: return 0f to 0f
 
@@ -67,7 +67,7 @@ object Scoreboard: Feature("Draws a custom scoreboard instead of the vanilla one
             return mx >= x - visualWidth - 5 && mx <= x && my >= y - (visualHeight / 2) && my <= y + (visualHeight / 2)
         }
 
-        override fun drawBackground(ctx: GuiGraphics, mx: Int, my: Int) {
+        override fun drawBackground(ctx: GuiGraphicsExtractor, mx: Int, my: Int) {
             if (cachedW == 0f) return
             val scaledW = cachedW * scale
             val scaledH = cachedH * scale

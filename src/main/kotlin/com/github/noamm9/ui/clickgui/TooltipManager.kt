@@ -4,7 +4,7 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.render.Render2D
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.chat.Component
 import java.awt.Color
 import kotlin.math.abs
@@ -32,7 +32,7 @@ object TooltipManager {
         hoveredText = text
     }
 
-    fun draw(context: GuiGraphics, logicalWidth: Float, logicalHeight: Float) {
+    fun draw(context: GuiGraphicsExtractor, logicalWidth: Float, logicalHeight: Float) {
         val text = hoveredText ?: return
         if (System.currentTimeMillis() - displayStartTime < displayDelay) return
 
@@ -52,7 +52,7 @@ object TooltipManager {
 
         var currentY = ty + padding
         lines.forEach { line ->
-            context.drawString(mc.font, line, (tx + padding).toInt(), currentY.toInt(), - 1, true)
+            context.text(mc.font, line, (tx + padding).toInt(), currentY.toInt(), - 1, true)
             currentY += mc.font.lineHeight + 2
         }
     }

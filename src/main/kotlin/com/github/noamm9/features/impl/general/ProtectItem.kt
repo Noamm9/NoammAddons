@@ -17,10 +17,10 @@ import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
+import net.fabricmc.fabric.api.client.command.v2.ClientCommands
 import net.minecraft.network.chat.Component
-import net.minecraft.world.inventory.ClickType
+import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import org.lwjgl.glfw.GLFW
@@ -53,7 +53,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
 
             if (stack.isEmpty) return@register
 
-            val isThrowing = event.clickType == ClickType.THROW || event.slotId == - 999
+            val isThrowing = event.clickType == ContainerInput.THROW || event.slotId == - 999
             val isSelling = isSellMenu() && event.slotId in menu.slots.indices
 
             if (isThrowing || isSelling) {
@@ -91,7 +91,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
         }
 
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
-            dispatcher.register(ClientCommandManager.literal("protectitem").executes {
+            dispatcher.register(ClientCommands.literal("protectitem").executes {
                 val heldItem = mc.player?.inventory?.selectedItem?.takeUnless { it.isEmpty } ?: run {
                     ChatUtils.modMessage("&cYou need to be holding an item.")
                     return@executes 1

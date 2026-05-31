@@ -6,14 +6,13 @@ import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.terminals.TerminalListener.FIRST_CLICK_DELAY
-import com.github.noamm9.ui.clickgui.components.*
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.ThreadUtils
-import net.minecraft.world.inventory.ClickType
+import net.minecraft.world.inventory.ContainerInput
 
 object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     private val randomDelay by ToggleSetting("Random Delay", true).section("Settings")
@@ -170,7 +169,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     }
 
     private fun sendClickPacket(slot: Int) {
-        mc.gameMode !!.handleInventoryMouseClick(TerminalListener.lastWindowId, slot, 2, ClickType.CLONE, mc.player !!)
+        mc.gameMode?.handleContainerInput(TerminalListener.lastWindowId, slot, 2, ContainerInput.CLONE, mc.player !!)
         if (NoammAddons.debugFlags.contains("terminal")) ChatUtils.modMessage("Melody: Clicked: $slot")
     }
 

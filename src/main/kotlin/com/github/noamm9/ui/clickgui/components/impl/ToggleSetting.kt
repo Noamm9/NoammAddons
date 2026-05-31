@@ -10,14 +10,14 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonPrimitive
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
 class ToggleSetting(name: String, value: Boolean = false): Setting<Boolean>(name, value), Savable {
     private val toggleAnim = Animation(200, if (value) 1f else 0f)
     private val hoverAnim = Animation(200, 0f)
 
-    override fun draw(ctx: GuiGraphics, mouseX: Int, mouseY: Int) {
+    override fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
         val isHovered = mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height
         toggleAnim.update(if (value) 1f else 0f)
         hoverAnim.update(if (isHovered) 1f else 0f)

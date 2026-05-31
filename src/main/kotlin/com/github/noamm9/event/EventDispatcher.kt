@@ -13,10 +13,10 @@ import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.RenderContext
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLevelEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents
 import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
 import net.minecraft.network.protocol.game.*
@@ -37,11 +37,11 @@ object EventDispatcher {
 
 
     fun init() {
-        WorldRenderEvents.END_MAIN.register { context ->
+        LevelRenderEvents.END_MAIN.register { context ->
             EventBus.post(RenderWorldEvent(RenderContext.fromContext(context)))
         }
 
-        ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE.register { _, _ ->
+        ClientLevelEvents.AFTER_CLIENT_LEVEL_CHANGE.register { _, _ ->
             EventBus.post(WorldChangeEvent)
         }
 

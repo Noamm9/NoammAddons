@@ -77,11 +77,11 @@ object CompTest: Feature(
 
     val testHud = hudElement("testHud") { context, _ ->
         val str = "testHud: FPS=${mc.fps}"
-        context.drawString(mc.font, str, 0, 0, Color.white.rgb, true)
+        context.text(mc.font, str, 0, 0, Color.white.rgb, true)
         return@hudElement str.width().toFloat() to str.height().toFloat()
     }
 
     override fun onEnable() {
-        mc.player?.displayClientMessage(Component.literal("§6[Debug] §fTest Feature Enabled"), false)
+        mc.player?.sendSystemMessage(Component.literal("§6[Debug] §fTest Feature Enabled"))
     }
 }

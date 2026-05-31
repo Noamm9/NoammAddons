@@ -70,7 +70,8 @@ object DragonCheck {
         val sprayedEntity = mc.level?.getEntity(packet.entity) as? ArmorStand ?: return
 
         WitherDragonEnum.entries.forEach { dragon ->
-            if (dragon.sprayedTime != null || dragon.state != WitherDragonState.ALIVE || dragon.entity == null || sprayedEntity.distanceTo(dragon.entity) > 8) return@forEach
+            val entity = dragon.entity
+            if (dragon.sprayedTime != null || dragon.state != WitherDragonState.ALIVE || entity == null || sprayedEntity.distanceTo(entity) > 8) return@forEach
             dragon.sprayedTime = DungeonListener.currentTime - dragon.spawnedTime
         }
     }

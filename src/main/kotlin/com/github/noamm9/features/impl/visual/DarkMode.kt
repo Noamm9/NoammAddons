@@ -4,7 +4,7 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
 /**
@@ -18,7 +18,7 @@ object DarkMode: Feature("Darkens the screen") {
     val tintHud by ToggleSetting("Tint HUD").withDescription("Should the dark tint also apply to HUD elements?")
 
     @JvmStatic
-    fun drawOverlay(ctx: GuiGraphics) {
+    fun drawOverlay(ctx: GuiGraphicsExtractor) {
         if (! enabled) return
         val window = mc.window
         ctx.fill(

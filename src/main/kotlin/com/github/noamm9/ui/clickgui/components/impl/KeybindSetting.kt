@@ -9,7 +9,7 @@ import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
 import com.mojang.blaze3d.platform.InputConstants
 import kotlinx.serialization.json.*
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
@@ -21,7 +21,7 @@ class KeybindSetting(name: String, value: Int = InputConstants.UNKNOWN.value): S
     var scanCode = 0
     var isMouse = false
 
-    override fun draw(ctx: GuiGraphics, mouseX: Int, mouseY: Int) {
+    override fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
         val isHovered = mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height
         hoverAnim.update(if (isHovered) 1f else 0f)
 

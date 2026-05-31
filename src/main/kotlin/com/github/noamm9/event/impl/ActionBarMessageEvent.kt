@@ -6,8 +6,8 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import net.minecraft.network.chat.Component
 
 class ActionBarMessageEvent(val component: Component): Event(cancelable = true) {
-    inline val formattedText: String get() = component.formattedText
-    inline val unformattedText: String get() = component.unformattedText
+    val formattedText by lazy { component.formattedText }
+    val unformattedText by lazy { component.unformattedText }
 
     var message = formattedText
 }

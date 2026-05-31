@@ -15,6 +15,8 @@ object TeammateESP: Feature("Highlights your dungeon party.") {
     val highlight by ToggleSetting("Highlight Teammates", true)
     val drawName by ToggleSetting("Show Teammate Name", true)
 
+    private val cache = HashMap<Int, Boolean>()
+
     override fun init() {
         register<CheckEntityGlowEvent> {
             if (! highlight.value) return@register
@@ -45,15 +47,19 @@ object TeammateESP: Feature("Highlights your dungeon party.") {
                     scale = scale,
                     phase = true
                 )
+
+                cache.clear()
             }
         }
     }
 
     @JvmStatic
     fun shouldHideNametag(entity: Entity): Boolean {
-        if (! enabled) return false
-        if (! drawName.value) return false
-        if (! LocationUtils.inDungeon) return false
-        return DungeonListener.dungeonTeammatesNoSelf.any { it.entity?.id == entity.id }
+        return cache.getOrPut(entity.id) {
+            if (! enabled) return@getOrPut false
+            if (! drawName.value) return@getOrPut false
+            if (! LocationUtils.inDungeon) return@getOrPut false
+            DungeonListener.dungeonTeammatesNoSelf.any { it.entity?.id == entity.id }
+        }
     }
 }

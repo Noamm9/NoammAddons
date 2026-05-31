@@ -138,8 +138,8 @@ object ChatUtils {
         sendMessage("/pc $msg")
     }
 
-    fun chat(msg: Any?) = ThreadUtils.runOnMcThread { mc.gui?.chat?.addMessage(Component.literal(msg.toString().addColor())) }
-    fun chat(comp: Component) = ThreadUtils.runOnMcThread { mc.gui?.chat?.addMessage(comp) }
+    fun chat(msg: Any?) = ThreadUtils.runOnMcThread { mc.gui.chat.addClientSystemMessage(Component.literal(msg.toString().addColor())) }
+    fun chat(comp: Component) = ThreadUtils.runOnMcThread { mc.gui.chat.addClientSystemMessage(comp) }
 
     fun String.addColor() = replace("&", "§")
 

@@ -16,7 +16,7 @@ import com.github.noamm9.ui.clickgui.enums.CategoryType
 import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.spaceCaps
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.sounds.SoundEvent
 import kotlin.reflect.KProperty
@@ -74,13 +74,13 @@ open class Feature(
         enabled: () -> Boolean = { true },
         shouldDraw: () -> Boolean = { true },
         centered: Boolean = false,
-        render: (GuiGraphics, Boolean) -> Pair<Float, Float>,
+        render: (GuiGraphicsExtractor, Boolean) -> Pair<Float, Float>,
     ): HudElement {
         return object: HudElement() {
             override val name = name
             override val toggle: Boolean get() = this@Feature.enabled && enabled.invoke()
             override val shouldDraw: Boolean get() = shouldDraw.invoke()
-            override fun draw(ctx: GuiGraphics, example: Boolean): Pair<Float, Float> = render(ctx, example)
+            override fun draw(ctx: GuiGraphicsExtractor, example: Boolean): Pair<Float, Float> = render(ctx, example)
             override val centered = centered
         }.also(hudElements::add)
     }

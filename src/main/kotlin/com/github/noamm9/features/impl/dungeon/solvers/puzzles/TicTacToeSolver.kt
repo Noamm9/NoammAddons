@@ -13,9 +13,8 @@ import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.NoammRenderLayers
+import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderContext
-import net.minecraft.client.renderer.ShapeRenderer
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.component.DataComponents
@@ -26,7 +25,7 @@ import net.minecraft.world.item.MapItem
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.AABB
 import java.awt.Color
-import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.*
 
 object TicTacToeSolver {
     private var inTicTacToe = false
@@ -66,7 +65,6 @@ object TicTacToeSolver {
         if (LocationUtils.inBoss) return
         if (WorldUtils.getBlockAt(event.pos) != Blocks.STONE_BUTTON) return
         if (event.pos !in bestMoves) event.isCanceled = true
-
     }
 
     fun onRenderWorld(ctx: RenderContext) {
@@ -184,7 +182,7 @@ object TicTacToeSolver {
     private fun renderTTTBox(ctx: RenderContext, pos: BlockPos, color: Color) {
         val rotation = rotation ?: return
         if (WorldUtils.getBlockAt(pos) != Blocks.STONE_BUTTON) return
-        val cam = ctx.camera.position.reverse()
+        val cam = ctx.camera.position().reverse()
 
         val halfWidth = 0.2
         val halfHeight = 0.13
@@ -233,18 +231,16 @@ object TicTacToeSolver {
             else -> return
         }
 
-        ctx.matrixStack.pushPose()
-        ctx.matrixStack.translate(cam.x, cam.y, cam.z)
-
-        ShapeRenderer.addChainedFilledBoxVertices(
-            ctx.matrixStack,
-            ctx.consumers.getBuffer(NoammRenderLayers.FILLED_THROUGH_WALLS),
-            minX, minY, minZ,
-            maxX, maxY, maxZ,
-            color.red / 255f, color.green / 255f, color.blue / 255f, 0.7f
+        val fillColor = Color(color.red, color.green, color.blue, (0.7f * 255).toInt())
+        Render3D.renderBoxBounds(
+            ctx,
+            minX, minY, minZ, maxX, maxY, maxZ,
+            fillColor,
+            fillColor,
+            outline = false,
+            fill = true,
+            phase = true
         )
-
-        ctx.matrixStack.popPose()
     }
 
     /**
@@ -314,4 +310,3 @@ object TicTacToeSolver {
         }
     }
 }
-

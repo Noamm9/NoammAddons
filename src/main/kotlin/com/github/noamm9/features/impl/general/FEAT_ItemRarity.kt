@@ -11,7 +11,7 @@ import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.items.ItemUtils.customData
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.chat.Component
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.component.CustomData
@@ -71,7 +71,7 @@ object FEAT_ItemRarity: Feature(name = "Item Rarity", description = "Draws the r
      * @see com.github.noamm9.mixin.MixinGui
      */
     @JvmStatic
-    fun onSlotDraw(ctx: GuiGraphics, stack: ItemStack?, x: Int, y: Int) {
+    fun onSlotDraw(ctx: GuiGraphicsExtractor, stack: ItemStack?, x: Int, y: Int) {
         if (! LocationUtils.inSkyblock) return
         if (stack == null) return
 

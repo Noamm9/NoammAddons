@@ -9,7 +9,7 @@ import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -22,17 +22,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class MixinMultiPlayerGameMode {
     @Shadow @Final private Minecraft minecraft;
 
-    @Inject(method = "handleInventoryMouseClick", at = @At("HEAD"), cancellable = true)
-    private void onHandleSlotClick(int i, int j, int k, ClickType clickType, Player player, CallbackInfo ci) {
+    @Inject(method = "handleContainerInput", at = @At("HEAD"), cancellable = true)
+    private void onHandleSlotClick(int containerId, int slotNum, int buttonNum, ContainerInput containerInput, Player player, CallbackInfo ci) {
         if (minecraft.screen == null) return;
         if (!(minecraft.screen instanceof AbstractContainerScreen<?>)) return;
-        if (EventBus.post(new ContainerEvent.SlotClick(minecraft.screen, j, k, clickType))) {
+        if (EventBus.post(new ContainerEvent.SlotClick(minecraft.screen, slotNum, buttonNum, containerInput))) {
             ci.cancel();
         }
     }
 
     @Inject(method = "startDestroyBlock", at = @At("HEAD"))
-    private void onBlockHit(BlockPos blockPos, Direction direction, CallbackInfoReturnable<Boolean> cir) {
-        BreakerHelper.onHitBlock(blockPos);
+    private void onBlockHit(BlockPos pos, Direction direction, CallbackInfoReturnable<Boolean> cir) {
+        BreakerHelper.onHitBlock(pos);
     }
 }

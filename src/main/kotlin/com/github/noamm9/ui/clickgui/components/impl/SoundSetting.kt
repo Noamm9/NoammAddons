@@ -12,14 +12,14 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.client.input.MouseButtonInfo
 import net.minecraft.core.Holder
 import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import net.minecraft.sounds.SoundEvent
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
@@ -33,12 +33,12 @@ class SoundSetting(name: String, defaultValue: SoundEvent): Setting<SoundEvent>(
 
         private val allSounds by lazy {
             BuiltInRegistries.SOUND_EVENT.entrySet()
-                .filter { it.key.location() in prettyNames.keys }
+                .filter { it.key.identifier() in prettyNames.keys }
                 .map { it.value }
                 .sortedBy { prettyNames[it.location] }
         }
 
-        private fun getSound(loc: ResourceLocation): Holder.Reference<SoundEvent>? {
+        private fun getSound(loc: Identifier): Holder.Reference<SoundEvent>? {
             return BuiltInRegistries.SOUND_EVENT.get(loc).orElse(null)
         }
     }
@@ -66,7 +66,7 @@ class SoundSetting(name: String, defaultValue: SoundEvent): Setting<SoundEvent>(
     override val height: Int
         get() = 20 + (openAnim.value * (searchHeight + listMaxHeight)).toInt()
 
-    override fun draw(ctx: GuiGraphics, mouseX: Int, mouseY: Int) {
+    override fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
         val isHovered = mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + 20
         openAnim.update(if (expanded) 1f else 0f)
         hoverAnim.update(if (isHovered) 1f else 0f)
@@ -184,9 +184,9 @@ class SoundSetting(name: String, defaultValue: SoundEvent): Setting<SoundEvent>(
         return false
     }
 
-    override fun charTyped(codePoint: Char, modifiers: Int): Boolean {
+    override fun charTyped(codePoint: Char): Boolean {
         if (! expanded) return false
-        val event = CharacterEvent(codePoint.code, modifiers)
+        val event = CharacterEvent(codePoint.code)
         return searchHandler.keyTyped(event)
     }
 
@@ -213,7 +213,7 @@ class SoundSetting(name: String, defaultValue: SoundEvent): Setting<SoundEvent>(
     override fun write() = JsonPrimitive(value.location().toString())
     override fun read(element: JsonElement?) {
         val str = element?.jsonPrimitive?.contentOrNull ?: return
-        val loc = ResourceLocation.tryParse(str) ?: return
+        val loc = Identifier.tryParse(str) ?: return
         val sound = getSound(loc) ?: return
         value = sound.value()
     }

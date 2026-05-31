@@ -19,7 +19,7 @@ data class NBTInventory(val stacks: List<ItemStack>) {
             val tag = CompoundTag()
 
             if (! stack.isEmpty) {
-                tag.putString("id", stack.itemHolder.unwrapKey().orElseThrow().location().toString())
+                tag.putString("id", stack.typeHolder().unwrapKey().orElseThrow().identifier().toString())
                 tag.putInt("count", stack.count)
 
                 val patch = DataComponentPatch.CODEC.encodeStart(

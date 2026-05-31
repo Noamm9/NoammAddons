@@ -5,7 +5,7 @@ import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.componnents.UIButton
 import com.github.noamm9.utils.render.Render2D
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
@@ -35,23 +35,23 @@ object HudEditorScreen: Screen(Component.literal("HudEditor")) {
         })
     }
 
-    override fun render(context: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
+    override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
         Resolution.refresh()
-        Resolution.push(context)
+        Resolution.push(graphics)
 
         val mX = Resolution.getMouseX(mouseX)
         val mY = Resolution.getMouseY(mouseY)
         val midX = Resolution.width / 2
 
-        enabledElements.forEach { it.drawEditor(context, mX, mY) }
+        enabledElements.forEach { it.drawEditor(graphics, mX, mY) }
 
         val element = enabledElements.find { it.isDragging }
-        Render2D.drawCenteredString(context, element?.name.orEmpty(), midX, 10f, Color.WHITE, 1.2f)
-        Render2D.drawCenteredString(context, "ESC to Save and Exit", midX, Resolution.height - 20f, Color.GRAY, shadow = false)
+        Render2D.drawCenteredString(graphics, element?.name.orEmpty(), midX, 10f, Color.WHITE, 1.2f)
+        Render2D.drawCenteredString(graphics, "ESC to Save and Exit", midX, Resolution.height - 20f, Color.GRAY, shadow = false)
 
-        Resolution.pop(context)
+        Resolution.pop(graphics)
 
-        super.render(context, mouseX, mouseY, delta)
+        super.extractRenderState(graphics, mouseX, mouseY, a)
     }
 
     override fun mouseScrolled(mouseX: Double, mouseY: Double, horizontal: Double, vertical: Double): Boolean {

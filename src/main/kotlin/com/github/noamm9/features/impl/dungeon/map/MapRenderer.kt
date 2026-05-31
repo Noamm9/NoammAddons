@@ -20,8 +20,8 @@ import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
 import com.github.noamm9.utils.render.RenderHelper.renderVec
-import net.minecraft.client.gui.GuiGraphics
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.client.gui.GuiGraphicsExtractor
+import net.minecraft.resources.Identifier
 import java.awt.Color
 import kotlin.math.max
 
@@ -30,13 +30,13 @@ object MapRenderer: HudElement() {
     override val toggle get() = DungeonMap.enabled && MapConfig.mapEnabled.value
     override val shouldDraw get() = LocationUtils.inDungeon && (! LocationUtils.inBoss || ! MapConfig.mapHideInBoss.value)
 
-    private val checkmarkGreen = ResourceLocation.fromNamespaceAndPath(MOD_ID, "dungeonmap/checkmarks/green_check")
-    private val checkmarkWhite = ResourceLocation.fromNamespaceAndPath(MOD_ID, "dungeonmap/checkmarks/white_check")
-    private val checkmarkUnknown = ResourceLocation.fromNamespaceAndPath(MOD_ID, "dungeonmap/checkmarks/question")
-    private val checkmarkFail = ResourceLocation.fromNamespaceAndPath(MOD_ID, "dungeonmap/checkmarks/cross")
-    private val ownPlayerMarker = ResourceLocation.fromNamespaceAndPath(MOD_ID, "dungeonmap/marker_self")
+    private val checkmarkGreen = Identifier.fromNamespaceAndPath(MOD_ID, "dungeonmap/checkmarks/green_check")
+    private val checkmarkWhite = Identifier.fromNamespaceAndPath(MOD_ID, "dungeonmap/checkmarks/white_check")
+    private val checkmarkUnknown = Identifier.fromNamespaceAndPath(MOD_ID, "dungeonmap/checkmarks/question")
+    private val checkmarkFail = Identifier.fromNamespaceAndPath(MOD_ID, "dungeonmap/checkmarks/cross")
+    private val ownPlayerMarker = Identifier.fromNamespaceAndPath(MOD_ID, "dungeonmap/marker_self")
 
-    override fun draw(ctx: GuiGraphics, example: Boolean): Pair<Float, Float> {
+    override fun draw(ctx: GuiGraphicsExtractor, example: Boolean): Pair<Float, Float> {
 
         renderBackground(ctx)
         ctx.pose().translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat())
@@ -50,7 +50,7 @@ object MapRenderer: HudElement() {
         return 128f to if (MapConfig.mapExtraInfo.value) 140f else 128f
     }
 
-    private fun renderBackground(ctx: GuiGraphics) {
+    private fun renderBackground(ctx: GuiGraphicsExtractor) {
         val width = 128
         val height = if (MapConfig.mapExtraInfo.value) 140f else 128f
 
@@ -58,7 +58,7 @@ object MapRenderer: HudElement() {
         Render2D.drawBorder(ctx, 0, 0, width, height, MapConfig.mapBorderColor.value, MapConfig.mapBorderWidth.value)
     }
 
-    private fun renderExtraInfo(ctx: GuiGraphics) {
+    private fun renderExtraInfo(ctx: GuiGraphicsExtractor) {
         if (! MapConfig.mapExtraInfo.value) return
         if (! MapConfig.dungeonMapCheater.value && ! DungeonListener.dungeonStarted) return
 
@@ -84,7 +84,7 @@ object MapRenderer: HudElement() {
         }
     }
 
-    private fun renderRooms(ctx: GuiGraphics) {
+    private fun renderRooms(ctx: GuiGraphicsExtractor) {
         val connectorSize = (HotbarMapColorParser.quarterRoom.takeUnless { it == - 1 } ?: 4)
 
         for (y in 0 .. 10) for (x in 0 .. 10) {
@@ -150,7 +150,7 @@ object MapRenderer: HudElement() {
         return RoomState.UNOPENED
     }
 
-    private fun renderText(ctx: GuiGraphics) {
+    private fun renderText(ctx: GuiGraphicsExtractor) {
         val roomSize = MapUtils.mapRoomSize.toFloat()
         val gapSize = HotbarMapColorParser.quarterRoom.toFloat()
         val halfRoom = HotbarMapColorParser.halfRoom.toFloat()
@@ -264,7 +264,7 @@ object MapRenderer: HudElement() {
         }
     }
 
-    private fun renderPlayerHeads(ctx: GuiGraphics) {
+    private fun renderPlayerHeads(ctx: GuiGraphicsExtractor) {
         if (LocationUtils.inBoss) return
 
         DungeonListener.dungeonTeammatesNoSelf.forEach { player ->
@@ -276,7 +276,7 @@ object MapRenderer: HudElement() {
     }
 
 
-    private fun drawCheckmark(ctx: GuiGraphics, tile: Tile, x: Number, y: Number, size: Number) {
+    private fun drawCheckmark(ctx: GuiGraphicsExtractor, tile: Tile, x: Number, y: Number, size: Number) {
         val checkmark = when (tile.state) {
             RoomState.CLEARED -> checkmarkWhite
             RoomState.GREEN -> checkmarkGreen
@@ -288,7 +288,7 @@ object MapRenderer: HudElement() {
         Render2D.drawTexture(ctx, checkmark, x, y, size, size)
     }
 
-    private fun drawPlayerHead(ctx: GuiGraphics, teammate: DungeonPlayer) {
+    private fun drawPlayerHead(ctx: GuiGraphicsExtractor, teammate: DungeonPlayer) {
         val entity = teammate.entity
 
         val (x, z, yaw) = if (entity == null || ! entity.isAlive) {
@@ -337,7 +337,7 @@ object MapRenderer: HudElement() {
     }
 
     private fun drawRoomConnector(
-        matrices: GuiGraphics, x: Int, y: Int, doorWidth: Int, doorway: Boolean, vertical: Boolean, color: Color,
+        matrices: GuiGraphicsExtractor, x: Int, y: Int, doorWidth: Int, doorway: Boolean, vertical: Boolean, color: Color,
     ) {
         val doorwayOffset = if (MapUtils.mapRoomSize == 16) 5 else 6
         val width = if (doorway) 6 else MapUtils.mapRoomSize

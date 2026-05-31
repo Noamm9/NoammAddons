@@ -8,7 +8,7 @@ import com.github.noamm9.utils.NumbersUtils.div
 import com.github.noamm9.utils.NumbersUtils.minus
 import com.github.noamm9.utils.NumbersUtils.plus
 import com.github.noamm9.utils.render.Render2D
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.sounds.SoundEvents
 import java.awt.Color
@@ -18,23 +18,23 @@ object Style {
     val accentColorTrans get() = accentColor.withAlpha(120)
     val bg = Color(10, 10, 10, 100)
 
-    fun drawBackground(ctx: GuiGraphics, x: Number, y: Number, w: Number, h: Number) {
+    fun drawBackground(ctx: GuiGraphicsExtractor, x: Number, y: Number, w: Number, h: Number) {
         Render2D.drawRect(ctx, x, y, w, h, bg)
     }
 
-    fun drawHoverBar(ctx: GuiGraphics, x: Number, y: Number, height: Number, anim: Float) {
+    fun drawHoverBar(ctx: GuiGraphicsExtractor, x: Number, y: Number, height: Number, anim: Float) {
         if (anim <= 0.01f) return
         val barH = (height - 6f) * anim
         val barY = y + (height / 2f) - (barH / 2f)
         Render2D.drawRect(ctx, x, barY, 1.5f, barH, accentColor.withAlpha((200 * anim).toInt()))
     }
 
-    fun drawNudgedText(ctx: GuiGraphics, text: String, x: Float, y: Float, anim: Float, color: Color = Color.WHITE) {
+    fun drawNudgedText(ctx: GuiGraphicsExtractor, text: String, x: Float, y: Float, anim: Float, color: Color = Color.WHITE) {
         val xOffset = 2f * anim
         Render2D.drawString(ctx, text, x + xOffset, y, color, 1, true)
     }
 
-    fun drawSlider(ctx: GuiGraphics, x: Float, y: Float, w: Float, progress: Float, hoverAnim: Float, color: Color) {
+    fun drawSlider(ctx: GuiGraphicsExtractor, x: Float, y: Float, w: Float, progress: Float, hoverAnim: Float, color: Color) {
         val h = 2.5f
         Render2D.drawRect(ctx, x, y, w, h, Color(40, 40, 40, 200))
         val barColor = MathUtils.lerpColor(Color(color.red, color.green, color.blue, 180), color, hoverAnim)

@@ -12,7 +12,7 @@ import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
 class Panel(val category: CategoryType, var x: Int, var y: Int) {
@@ -36,7 +36,7 @@ class Panel(val category: CategoryType, var x: Int, var y: Int) {
     private val bodyBg = Color(15, 15, 15, 180)
     private val hoverColor = Color(255, 255, 255, 30)
 
-    fun render(context: GuiGraphics, mouseX: Int, mouseY: Int) {
+    fun render(context: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
         if (dragging) {
             x = mouseX - dragX
             y = mouseY - dragY

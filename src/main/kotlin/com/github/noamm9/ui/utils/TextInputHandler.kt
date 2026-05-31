@@ -4,7 +4,7 @@ import com.github.noamm9.NoammAddons
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
 import net.minecraft.client.input.MouseButtonEvent
@@ -58,7 +58,7 @@ class TextInputHandler(
 
     private var previousMousePos = 0f to 0f
 
-    fun draw(context: GuiGraphics, mouseX: Float, mouseY: Float, suffix: String? = null) {
+    fun draw(context: GuiGraphicsExtractor, mouseX: Float, mouseY: Float, suffix: String? = null) {
         if (previousMousePos != mouseX to mouseY) mouseDragged(mouseX)
         previousMousePos = mouseX to mouseY
 

@@ -10,7 +10,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
 import net.minecraft.client.input.MouseButtonEvent
@@ -27,7 +27,7 @@ class TextInputSetting(name: String, defaultValue: String): Setting<String>(name
     private val hoverAnim = Animation(200L)
     override val height get() = 38
 
-    override fun draw(ctx: GuiGraphics, mouseX: Int, mouseY: Int) {
+    override fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
         val isHovered = mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height
         hoverAnim.update(if (isHovered || handler.listening) 1f else 0f)
 
@@ -60,8 +60,8 @@ class TextInputSetting(name: String, defaultValue: String): Setting<String>(name
         handler.mouseReleased()
     }
 
-    override fun charTyped(codePoint: Char, modifiers: Int): Boolean {
-        val event = CharacterEvent(codePoint.code, modifiers)
+    override fun charTyped(codePoint: Char): Boolean {
+        val event = CharacterEvent(codePoint.code)
         return handler.keyTyped(event)
     }
 

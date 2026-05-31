@@ -87,5 +87,5 @@ object DataDownloader {
         }
     }
 
-    inline fun <reified T> loadJson(fileName: String) = GsonUtils.decode<T>(modDataPath.resolve(fileName).readText())
+    inline fun <reified T: Any> loadJson(fileName: String) = GsonUtils.decode<T>(modDataPath.resolve(fileName).readText())
 }

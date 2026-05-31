@@ -10,7 +10,7 @@ import com.github.noamm9.utils.render.Render2D.width
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.doubleOrNull
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
 import kotlin.math.abs
@@ -31,7 +31,7 @@ open class SliderSetting<T: Number>(
     private val hoverAnim = Animation(200)
     private val sliderAnim = Animation(250, getPercent(value))
 
-    override fun draw(ctx: GuiGraphics, mouseX: Int, mouseY: Int) {
+    override fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
         val isHovered = mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height
         val target = getPercent(value)
 
@@ -103,7 +103,7 @@ open class SliderSetting<T: Number>(
         return false
     }
 
-    override fun charTyped(codePoint: Char, modifiers: Int): Boolean {
+    override fun charTyped(codePoint: Char): Boolean {
         if (isTyping) {
             if (codePoint.isDigit() || codePoint == '.' || codePoint == '-') {
                 inputBuffer += codePoint

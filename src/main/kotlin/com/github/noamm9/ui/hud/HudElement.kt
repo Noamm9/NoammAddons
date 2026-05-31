@@ -5,7 +5,7 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.utils.render.Render2D
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 import kotlin.random.Random
 import kotlin.reflect.KProperty
@@ -83,7 +83,7 @@ abstract class HudElement {
     private var dragX = 0f
     private var dragY = 0f
 
-    fun renderElement(ctx: GuiGraphics, example: Boolean) {
+    fun renderElement(ctx: GuiGraphicsExtractor, example: Boolean) {
         if (! toggle) return
 
         ctx.pose().pushMatrix()
@@ -98,9 +98,9 @@ abstract class HudElement {
         ctx.pose().popMatrix()
     }
 
-    abstract fun draw(ctx: GuiGraphics, example: Boolean): Pair<Float, Float>
+    abstract fun draw(ctx: GuiGraphicsExtractor, example: Boolean): Pair<Float, Float>
 
-    fun drawEditor(ctx: GuiGraphics, mx: Int, my: Int) {
+    fun drawEditor(ctx: GuiGraphicsExtractor, mx: Int, my: Int) {
         if (! toggle) return
 
         if (isDragging) {
@@ -112,7 +112,7 @@ abstract class HudElement {
         renderElement(ctx, true)
     }
 
-    open fun drawBackground(ctx: GuiGraphics, mx: Int, my: Int) {
+    open fun drawBackground(ctx: GuiGraphicsExtractor, mx: Int, my: Int) {
         val scaledW = width * scale
         val scaledH = height * scale
         val centeredOffset = if (centered) scaledW / 2f else 0f

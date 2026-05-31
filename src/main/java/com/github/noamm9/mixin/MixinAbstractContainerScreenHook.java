@@ -3,10 +3,9 @@ package com.github.noamm9.mixin;
 import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlay;
 import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlayScreen;
 import com.github.noamm9.interfaces.ICoordRememberingSlot;
-import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.ContainerScreen;
@@ -48,35 +47,35 @@ public class MixinAbstractContainerScreenHook<T extends AbstractContainerMenu> e
         if (overlay != null) overlay.updateBounds();
     }
 
-    @Inject(method = "renderLabels", at = @At("HEAD"), cancellable = true)
-    private void onRenderLabels(GuiGraphics guiGraphics, int i, int j, CallbackInfo ci) {
+    @Inject(method = "extractLabels", at = @At("HEAD"), cancellable = true)
+    private void onRenderLabels(GuiGraphicsExtractor graphics, int xm, int ym, CallbackInfo ci) {
         if (storageOverlay() != null) ci.cancel();
     }
 
-    @Inject(method = "renderCarriedItem", at = @At("HEAD"), cancellable = true)
-    private void onRenderCarriedItem(GuiGraphics guiGraphics, int i, int j, CallbackInfo ci) {
+    @Inject(method = "extractCarriedItem", at = @At("HEAD"), cancellable = true)
+    private void onRenderCarriedItem(GuiGraphicsExtractor graphics, int mouseX, int mouseY, CallbackInfo ci) {
         StorageOverlayScreen overlay = storageOverlay();
-        if (overlay != null && overlay.renderCarriedItem(guiGraphics, i, j)) ci.cancel();
+        if (overlay != null && overlay.renderCarriedItem(graphics, mouseX, mouseY)) ci.cancel();
     }
 
-    @Inject(method = "renderSlot", at = @At("HEAD"), cancellable = true)
-    private void onRenderSlot(GuiGraphics guiGraphics, Slot slot, CallbackInfo ci) {
+    @Inject(method = "extractSlot", at = @At("HEAD"), cancellable = true)
+    private void onRenderSlot(GuiGraphicsExtractor graphics, Slot slot, int mouseX, int mouseY, CallbackInfo ci) {
         if (storageOverlay() != null && !(slot.container instanceof net.minecraft.world.entity.player.Inventory)) ci.cancel();
     }
 
     @Inject(method = "hasClickedOutside", at = @At("HEAD"), cancellable = true)
-    public void onHasClickedOutside(double d, double e, int i, int j, CallbackInfoReturnable<Boolean> cir) {
+    public void onHasClickedOutside(double mx, double my, int xo, int yo, CallbackInfoReturnable<Boolean> cir) {
         if (storageOverlay() != null) cir.setReturnValue(false);
     }
 
     @Inject(method = "isHovering(Lnet/minecraft/world/inventory/Slot;DD)Z", at = @At("HEAD"), cancellable = true)
-    public void onIsHovering(Slot slot, double d, double e, CallbackInfoReturnable<Boolean> cir) {
+    public void onIsHovering(Slot slot, double xm, double ym, CallbackInfoReturnable<Boolean> cir) {
         StorageOverlayScreen overlay = storageOverlay();
-        if (overlay != null) cir.setReturnValue(overlay.isPointOverSlot(slot, this.leftPos, this.topPos, d, e));
+        if (overlay != null) cir.setReturnValue(overlay.isPointOverSlot(slot, this.leftPos, this.topPos, xm, ym));
     }
 
-    @Inject(method = "renderBackground", at = @At("HEAD"))
-    public void onRenderBackground(GuiGraphics guiGraphics, int i, int j, float f, CallbackInfo ci) {
+    @Inject(method = "extractSlotHighlightBack", at = @At("HEAD"))
+    public void onRenderBackground(GuiGraphicsExtractor graphics, CallbackInfo ci) {
         StorageOverlayScreen overlay = storageOverlay();
         if (overlay != null) {
             for (Slot slot : menu.slots) {
@@ -91,14 +90,13 @@ public class MixinAbstractContainerScreenHook<T extends AbstractContainerMenu> e
         }
     }
 
-    @WrapWithCondition(method = "renderBackground", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/AbstractContainerScreen;renderBg(Lnet/minecraft/client/gui/GuiGraphics;FII)V"))
-    public boolean renderBgHook(AbstractContainerScreen instance, GuiGraphics context, float delta, int mouseX, int mouseY) {
+    @Inject(method = "extractRenderState", at = @At("HEAD"), cancellable = true)
+    public void renderBgHook(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
         StorageOverlayScreen overlay = storageOverlay();
         if (overlay != null) {
-            overlay.renderContainerOverlay(context, mouseX, mouseY);
-            return false;
+            overlay.renderContainerOverlay(graphics, mouseX, mouseY);
+            ci.cancel();
         }
-        return true;
     }
 
     @Inject(at = @At("HEAD"), method = "onClose")
@@ -115,20 +113,20 @@ public class MixinAbstractContainerScreenHook<T extends AbstractContainerMenu> e
     }
 
     @Inject(method = "mouseDragged", at = @At("HEAD"), cancellable = true)
-    public void onMouseDrag(MouseButtonEvent mouseButtonEvent, double d, double e, CallbackInfoReturnable<Boolean> cir) {
+    public void onMouseDrag(MouseButtonEvent event, double dx, double dy, CallbackInfoReturnable<Boolean> cir) {
         StorageOverlayScreen overlay = storageOverlay();
-        if (overlay != null && overlay.mouseDragged(mouseButtonEvent.y())) cir.setReturnValue(true);
+        if (overlay != null && overlay.mouseDragged(event.y())) cir.setReturnValue(true);
     }
 
     @Inject(method = "mouseReleased", at = @At("HEAD"), cancellable = true)
-    public void onMouseRelease(MouseButtonEvent mouseButtonEvent, CallbackInfoReturnable<Boolean> cir) {
+    public void onMouseRelease(MouseButtonEvent event, CallbackInfoReturnable<Boolean> cir) {
         StorageOverlayScreen overlay = storageOverlay();
         if (overlay != null && overlay.mouseReleased()) cir.setReturnValue(true);
     }
 
     @Inject(method = "mouseScrolled", at = @At("HEAD"), cancellable = true)
-    public void onMouseScroll(double d, double e, double f, double g, CallbackInfoReturnable<Boolean> cir) {
+    public void onMouseScroll(double x, double y, double scrollX, double scrollY, CallbackInfoReturnable<Boolean> cir) {
         StorageOverlayScreen overlay = storageOverlay();
-        if (overlay != null && overlay.mouseScrolled(g)) cir.setReturnValue(true);
+        if (overlay != null && overlay.mouseScrolled(scrollY)) cir.setReturnValue(true);
     }
 }

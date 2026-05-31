@@ -3,7 +3,7 @@ package com.github.noamm9.utils
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.mixin.IAbstractContainerScreen
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
-import net.minecraft.world.inventory.ClickType
+import net.minecraft.world.inventory.ContainerInput
 
 object GuiUtils {
     enum class ButtonType {
@@ -13,10 +13,10 @@ object GuiUtils {
     fun clickSlot(slotIndex: Int, btn: ButtonType) {
         val containerId = mc.player?.containerMenu?.containerId ?: return
 
-        mc.gameMode?.handleInventoryMouseClick(
+        mc.gameMode?.handleContainerInput(
             containerId, slotIndex, btn.ordinal,
-            if (btn == ButtonType.MIDDLE) ClickType.CLONE
-            else ClickType.PICKUP, mc.player !!
+            if (btn == ButtonType.MIDDLE) ContainerInput.CLONE
+            else ContainerInput.PICKUP, mc.player !!
         )
     }
 

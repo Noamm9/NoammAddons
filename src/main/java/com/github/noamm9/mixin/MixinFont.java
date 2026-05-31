@@ -26,10 +26,10 @@ public class MixinFont {
         return TextReplacer.handleString(text);
     }
 
-    @ModifyVariable(method = "prepareText(Lnet/minecraft/util/FormattedCharSequence;FFIZI)Lnet/minecraft/client/gui/Font$PreparedText;", at = @At("HEAD"), argsOnly = true)
-    private FormattedCharSequence onDrawSequence(FormattedCharSequence value) {
-        if (!noammaddons$shouldReplace()) return value;
-        return TextReplacer.handleCharSequence(value);
+    @ModifyVariable(method = "prepareText(Lnet/minecraft/util/FormattedCharSequence;FFIZZI)Lnet/minecraft/client/gui/Font$PreparedText;", at = @At("HEAD"), argsOnly = true)
+    private FormattedCharSequence onDrawSequence(FormattedCharSequence text) {
+        if (!noammaddons$shouldReplace()) return text;
+        return TextReplacer.handleCharSequence(text);
     }
 
     @ModifyVariable(method = "width(Ljava/lang/String;)I", at = @At("HEAD"), argsOnly = true)

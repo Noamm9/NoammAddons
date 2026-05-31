@@ -2,7 +2,6 @@ package com.github.noamm9.features.impl.visual
 
 import com.github.noamm9.event.impl.ActionBarMessageEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.*
 import com.github.noamm9.ui.clickgui.components.impl.MultiCheckboxSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ActionBarParser
@@ -23,9 +22,9 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
         "Dungeon Room Secrets" to false
     ))
 
-    val hideFoodbar by ToggleSetting("Hide Food bar").withDescription("Hides the food bar.").section("Extras")
-    val hideHealthbar by ToggleSetting("Hide Health bar").withDescription("Hides the health bar.")
-    val hideArmorbar by ToggleSetting("Hide Armor bar").withDescription("Hides the defense bar.").hideIf { hideHealthbar.value }
+    @JvmStatic val hideFoodbar by ToggleSetting("Hide Food bar").withDescription("Hides the food bar.").section("Extras")
+    @JvmStatic val hideHealthbar by ToggleSetting("Hide Health bar").withDescription("Hides the health bar.")
+    @JvmStatic val hideArmorbar by ToggleSetting("Hide Armor bar").withDescription("Hides the defense bar.").hideIf { hideHealthbar.value }
 
     override fun init() {
         hudElement(

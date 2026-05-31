@@ -14,11 +14,10 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.scores.Objective;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -37,139 +36,100 @@ public abstract class MixinGui {
     @Shadow @Nullable private Component title;
     @Shadow @Nullable private Component subtitle;
 
-    @Inject(method = "renderArmor", at = @At("HEAD"), cancellable = true)
-    private static void renderArmor(GuiGraphics guiGraphics, Player player, int i, int j, int k, int l, CallbackInfo ci) {
-        if (PlayerHud.INSTANCE.getHideArmorbar().getValue()) {
-            ci.cancel();
-        }
+
+    @Inject(method = "extractArmor", at = @At("HEAD"), cancellable = true)
+    private static void renderArmor(GuiGraphicsExtractor graphics, Player player, int yLineBase, int numHealthRows, int healthRowHeight, int xLeft, CallbackInfo ci) {
+        if (PlayerHud.getHideArmorbar().getValue()) ci.cancel();
     }
 
     @Shadow
     public abstract Font getFont();
 
-    @Inject(method = "renderTitle", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix3x2fStack;scale(FF)Lorg/joml/Matrix3x2f;", ordinal = 0, shift = At.Shift.AFTER))
-    private void onScaleTitle(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+    @Inject(method = "extractTitle", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix3x2fStack;scale(FF)Lorg/joml/Matrix3x2f;", ordinal = 0, shift = At.Shift.AFTER))
+    private void onScaleTitle(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
         if (title == null) return;
 
         float maxWidth = minecraft.getWindow().getGuiScaledWidth() * 0.85f;
         float currentWidth = minecraft.font.width(title) * 4.0f;
         if (currentWidth > maxWidth) {
             float scaleFactor = maxWidth / currentWidth;
-            guiGraphics.pose().scale(scaleFactor);
+            graphics.pose().scale(scaleFactor);
         }
     }
 
-    @Inject(method = "renderTitle", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix3x2fStack;scale(FF)Lorg/joml/Matrix3x2f;", ordinal = 1, shift = At.Shift.AFTER))
-    private void onScaleSubtitle(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+    @Inject(method = "extractTitle", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix3x2fStack;scale(FF)Lorg/joml/Matrix3x2f;", ordinal = 1, shift = At.Shift.AFTER))
+    private void onScaleSubtitle(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
         if (subtitle == null) return;
 
         float maxWidth = minecraft.getWindow().getGuiScaledWidth() * 0.85f;
         float currentWidth = minecraft.font.width(subtitle) * 2.0f;
         if (currentWidth > maxWidth) {
             float scaleFactor = maxWidth / currentWidth;
-            guiGraphics.pose().scale(scaleFactor);
+            graphics.pose().scale(scaleFactor);
         }
     }
 
-    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;renderSleepOverlay(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/DeltaTracker;)V"))
-    public void onRenderHud(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+    @Inject(method = "extractRenderState", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;extractSleepOverlay(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/DeltaTracker;)V"))
+    public void onRenderHud(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
         if (this.minecraft.options.hideGui) return;
-        if (this.minecraft.debugEntries.isF3Visible()) return;
-        EventBus.post(new RenderOverlayEvent(guiGraphics, deltaTracker));
+        if (this.minecraft.debugEntries.isOverlayVisible()) return;
+        EventBus.post(new RenderOverlayEvent(graphics, deltaTracker));
 
-        DebugHUD.render(guiGraphics);
+        DebugHUD.render(graphics);
     }
 
-    @Inject(method = "render", at = @At(value = "HEAD"))
-    public void onRenderHudPre(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
-        if (!DarkMode.getTintHud().getValue()) {
-            DarkMode.drawOverlay(guiGraphics);
-        }
+    @Inject(method = "extractRenderState", at = @At(value = "HEAD"))
+    public void onRenderHudPre(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+        if (!DarkMode.getTintHud().getValue()) DarkMode.drawOverlay(graphics);
     }
 
-    @Inject(method = "render", at = @At(value = "TAIL"))
-    public void onRenderHudPost(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
-        if (DarkMode.getTintHud().getValue()) {
-            DarkMode.drawOverlay(guiGraphics);
-        }
+    @Inject(method = "extractRenderState", at = @At(value = "TAIL"))
+    public void onRenderHudPost(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+        if (DarkMode.getTintHud().getValue()) DarkMode.drawOverlay(graphics);
     }
 
-    @Inject(method = "renderPortalOverlay", at = @At("HEAD"), cancellable = true)
-    public void onRenderPortalOverlay(GuiGraphics guiGraphics, float f, CallbackInfo ci) {
-        if (Camera.INSTANCE.enabled && Camera.getHidePortalOverlay().getValue()) {
-            ci.cancel();
-        }
+    @Inject(method = "extractPortalOverlay", at = @At("HEAD"), cancellable = true)
+    public void onRenderPortalOverlay(GuiGraphicsExtractor graphics, float alpha, CallbackInfo ci) {
+        if (Camera.INSTANCE.enabled && Camera.getHidePortalOverlay().getValue()) ci.cancel();
     }
 
-    @Inject(method = "renderConfusionOverlay", at = @At("HEAD"), cancellable = true)
-    public void onRenderConfusionOverlay(GuiGraphics guiGraphics, float f, CallbackInfo ci) {
-        if (Camera.INSTANCE.enabled && Camera.getDisableNausea().getValue()) {
-            ci.cancel();
-        }
+    @Inject(method = "extractConfusionOverlay", at = @At("HEAD"), cancellable = true)
+    public void onRenderConfusionOverlay(GuiGraphicsExtractor graphics, float strength, CallbackInfo ci) {
+        if (Camera.INSTANCE.enabled && Camera.getDisableNausea().getValue()) ci.cancel();
     }
 
-    @Inject(method = "displayScoreboardSidebar", at = @At("HEAD"), cancellable = true)
-    public void renderScoreboardSidebar(GuiGraphics guiGraphics, Objective objective, CallbackInfo ci) {
-        if (Scoreboard.INSTANCE.enabled) {
-            ci.cancel();
-        }
+    @Inject(method = "extractScoreboardSidebar", at = @At("HEAD"), cancellable = true)
+    public void renderScoreboardSidebar(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+        if (Scoreboard.INSTANCE.enabled) ci.cancel();
     }
-
-    /*
-    @Inject(method = "renderTabList", at = @At("HEAD"), cancellable = true)
-    public void renderTabList(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
-        ci.cancel();
-
-        Scoreboard scoreboard = this.minecraft.level.getScoreboard();
-        Objective objective = scoreboard.getDisplayObjective(DisplaySlot.LIST);
-        if (!this.minecraft.options.keyPlayerList.isDown()
-            || this.minecraft.isLocalServer() && this.minecraft.player.connection.getListedOnlinePlayers().size() <= 1 && objective == null) {
-            this.tabList.setVisible(false);
-        } else {
-            this.tabList.setVisible(true);
-            guiGraphics.nextStratum();
-            ClientBranding.
-
-
-            drawTablist(guiGraphics);
-        }
-    }
-
-    */
 
     @ModifyVariable(method = "setOverlayMessage", at = @At("HEAD"), argsOnly = true)
-    private Component onSetOverlayMessage(Component component) {
-        var event = new ActionBarMessageEvent(component);
+    private Component onSetOverlayMessage(Component string) {
+        var event = new ActionBarMessageEvent(string);
         if (EventBus.post(event)) return Component.empty();
         return Component.literal(event.getMessage());
     }
 
-    @Inject(method = "renderPlayerHealth", at = @At("HEAD"), cancellable = true)
-    public void renderPlayerHealth(GuiGraphics guiGraphics, CallbackInfo ci) {
-        if (PlayerHud.INSTANCE.getHideHealthbar().getValue()) {
-            ci.cancel();
-        }
+    @Inject(method = "extractPlayerHealth", at = @At("HEAD"), cancellable = true)
+    public void renderPlayerHealth(GuiGraphicsExtractor graphics, CallbackInfo ci) {
+        if (PlayerHud.getHideHealthbar().getValue()) ci.cancel();
     }
 
-    @Inject(method = "renderFood", at = @At("HEAD"), cancellable = true)
-    public void renderFood(GuiGraphics guiGraphics, Player player, int i, int j, CallbackInfo ci) {
-        if (PlayerHud.INSTANCE.getHideFoodbar().getValue()) {
-            ci.cancel();
-        }
+    @Inject(method = "extractFood", at = @At("HEAD"), cancellable = true)
+    public void renderFood(GuiGraphicsExtractor graphics, Player player, int yLineBase, int xRight, CallbackInfo ci) {
+        if (PlayerHud.getHideFoodbar().getValue()) ci.cancel();
     }
 
-    @Inject(method = "renderEffects", at = @At("HEAD"), cancellable = true)
-    private void onRenderEffects(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
-        if (LocationUtils.inSkyblock) {
-            ci.cancel();
-        }
+    @Inject(method = "extractEffects", at = @At("HEAD"), cancellable = true)
+    private void onRenderEffects(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+        if (LocationUtils.inSkyblock) ci.cancel();
     }
 
-    @Inject(method = "renderSlot", at = @At("HEAD"))
-    private void onRenderHotbarSlot(GuiGraphics guiGraphics, int i, int j, DeltaTracker deltaTracker, Player player, ItemStack itemStack, int k, CallbackInfo ci) {
+    @Inject(method = "extractSlot", at = @At("HEAD"))
+    private void onRenderHotbarSlot(GuiGraphicsExtractor graphics, int x, int y, DeltaTracker deltaTracker, Player player, ItemStack itemStack, int seed, CallbackInfo ci) {
         if (!FEAT_ItemRarity.INSTANCE.enabled) return;
         if (FEAT_ItemRarity.getDrawOnHotbar().getValue()) {
-            FEAT_ItemRarity.onSlotDraw(guiGraphics, itemStack, i, j);
+            FEAT_ItemRarity.onSlotDraw(graphics, itemStack, x, y);
         }
     }
 }

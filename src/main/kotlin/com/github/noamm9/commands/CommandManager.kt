@@ -3,8 +3,8 @@ package com.github.noamm9.commands
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.utils.catch
 import io.github.classgraph.ClassGraph
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
+import net.fabricmc.fabric.api.client.command.v2.ClientCommands
 
 object CommandManager {
     val commands = mutableSetOf<BaseCommand>()
@@ -27,8 +27,8 @@ object CommandManager {
     fun registerAll() {
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
             commands.forEach { command ->
-                val roots = mutableListOf(ClientCommandManager.literal(command.name))
-                command.aliases.forEach { roots.add(ClientCommandManager.literal(it)) }
+                val roots = mutableListOf(ClientCommands.literal(command.name))
+                command.aliases.forEach { roots.add(ClientCommands.literal(it)) }
                 roots.forEach { root ->
                     CommandNodeBuilder(root).apply { with(command) { build() } }
                     dispatcher.register(root)

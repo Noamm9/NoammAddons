@@ -1,11 +1,9 @@
-import net.fabricmc.loom.task.RemapJarTask
-import net.fabricmc.loom.task.RemapSourcesJarTask
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("net.fabricmc.fabric-loom-remap")
+    id("net.fabricmc.fabric-loom")
     kotlin("jvm")
 }
 
@@ -59,7 +57,7 @@ tasks.named<JavaCompile>("compileCheatJava") {
     dependsOn("preprocessCheat", "compileCheatKotlin")
     inputs.dir("src/main/java")
     inputs.dir(cheatJavaDir)
-    options.release.set(21)
+    options.release.set(25)
     classpath += files(tasks.named<KotlinCompile>("compileCheatKotlin").flatMap { it.destinationDirectory })
 }
 
@@ -79,7 +77,7 @@ tasks.named<JavaCompile>("compileLegitJava") {
     dependsOn("preprocessLegit", "compileLegitKotlin")
     inputs.dir("src/main/java")
     inputs.dir(legitJavaDir)
-    options.release.set(21)
+    options.release.set(25)
     classpath += files(tasks.named<KotlinCompile>("compileLegitKotlin").flatMap { it.destinationDirectory })
 }
 
@@ -91,45 +89,23 @@ val jarCheat = tasks.register<Jar>("jarCheat") {
     dependsOn("cheatClasses", "processCheatResources")
     from(cheatSourceSet.output)
     archiveClassifier.set("cheat")
-    destinationDirectory.set(intermediateJarsDir)
+    destinationDirectory.set(libsDir)
     from("LICENSE") { rename { "${it}_$mod_name" } }
 }
 
-val jarLegit = tasks.register<Jar>("jarLegit") {
+val jarLegit = tasks.named<Jar>("jar") {
     dependsOn("legitClasses", "processLegitResources")
     from(legitSourceSet.output)
     archiveClassifier.set("legit")
-    destinationDirectory.set(intermediateJarsDir)
+    destinationDirectory.set(libsDir)
     from("LICENSE") { rename { "${it}_$mod_name" } }
-}
-
-val remapJarCheat = tasks.register<RemapJarTask>("remapJarCheat") {
-    dependsOn(jarCheat)
-    inputFile.set(jarCheat.flatMap { it.archiveFile })
-    archiveClassifier.set("cheat")
-    destinationDirectory.set(libsDir)
-    classpath.from(cheatSourceSet.runtimeClasspath)
-}
-
-tasks.named<RemapJarTask>("remapJar") {
-    dependsOn(jarLegit)
-    inputFile.set(jarLegit.flatMap { it.archiveFile })
-    archiveClassifier.set("legit")
-    destinationDirectory.set(libsDir)
-    classpath.from(legitSourceSet.runtimeClasspath)
+    exclude { it.file.absolutePath.contains("classes/kotlin/main") || it.file.absolutePath.contains("resources/main") }
 }
 
 val legitSourcesJar = tasks.register<Jar>("legitSourcesJar") {
     dependsOn("preprocessLegit")
     from(legitJavaDir)
     from(legitKotlinDir)
-    archiveClassifier.set("legit-sources-raw")
-    destinationDirectory.set(intermediateJarsDir)
-}
-
-val remapLegitSourcesJar = tasks.register<RemapSourcesJarTask>("remapLegitSourcesJar") {
-    dependsOn(legitSourcesJar)
-    inputFile.set(legitSourcesJar.flatMap { it.archiveFile })
     archiveClassifier.set("sources")
     destinationDirectory.set(libsDir)
 }
@@ -138,13 +114,6 @@ val cheatSourcesJar = tasks.register<Jar>("cheatSourcesJar") {
     dependsOn("preprocessCheat")
     from(cheatJavaDir)
     from(cheatKotlinDir)
-    archiveClassifier.set("cheat-sources-raw")
-    destinationDirectory.set(intermediateJarsDir)
-}
-
-val remapCheatSourcesJar = tasks.register<RemapSourcesJarTask>("remapCheatSourcesJar") {
-    dependsOn(cheatSourcesJar)
-    inputFile.set(cheatSourcesJar.flatMap { it.archiveFile })
     archiveClassifier.set("cheat-sources")
     destinationDirectory.set(libsDir)
 }
@@ -157,7 +126,7 @@ val cheatApiElements = configurations.create("cheatApiElements").apply {
     isCanBeResolved = false
     extendsFrom(baseApiElements.get())
     copyAttributesFrom(baseApiElements.get())
-    outgoing.artifact(remapJarCheat)
+    outgoing.artifact(jarCheat)
 }
 
 val cheatRuntimeElements = configurations.create("cheatRuntimeElements").apply {
@@ -165,7 +134,7 @@ val cheatRuntimeElements = configurations.create("cheatRuntimeElements").apply {
     isCanBeResolved = false
     extendsFrom(baseRuntimeElements.get())
     copyAttributesFrom(baseRuntimeElements.get())
-    outgoing.artifact(remapJarCheat)
+    outgoing.artifact(jarCheat)
 }
 
 val cheatComponent = softwareComponentFactory.adhoc("cheat").apply {
@@ -175,5 +144,5 @@ val cheatComponent = softwareComponentFactory.adhoc("cheat").apply {
 }
 
 tasks.named("build") {
-    dependsOn(remapJarCheat, tasks.named("remapJar"))
+    dependsOn(jarCheat, jarLegit)
 }

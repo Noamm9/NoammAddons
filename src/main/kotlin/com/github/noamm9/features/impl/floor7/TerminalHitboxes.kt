@@ -11,11 +11,10 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.MathUtils.Vec3
 import com.github.noamm9.utils.Utils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.NoammRenderLayers
+import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderHelper.renderX
 import com.github.noamm9.utils.render.RenderHelper.renderY
 import com.github.noamm9.utils.render.RenderHelper.renderZ
-import net.minecraft.client.renderer.ShapeRenderer
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.entity.decoration.ArmorStand
 import java.awt.Color
@@ -62,57 +61,31 @@ object TerminalHitboxes: Feature() {
             val section = LocationUtils.P3Section ?: return@register
             val terminalsToRender = cachedTerminals[section]?.takeUnless { it.isEmpty() } ?: return@register
 
-            val ctx = event.ctx
-            val consumers = ctx.consumers
-            val matrices = ctx.matrixStack
-            val cam = ctx.camera.position
-
             val drawFill = mode.value == 1 || mode.value == 2
             val drawOutline = mode.value == 0 || mode.value == 2
 
-            matrices.pushPose()
-            matrices.translate(- cam.x, - cam.y, - cam.z)
+            for (entity in terminalsToRender) {
+                val hw = entity.bbWidth / 2.0
+                val hd = entity.bbHeight.toDouble()
 
-            val fColor = fillColor.value
-            val fR = fColor.red / 255f
-            val fG = fColor.green / 255f
-            val fB = fColor.blue / 255f
-            val fA = fColor.alpha / 255f
+                val minX = entity.renderX - hw
+                val minY = entity.renderY
+                val minZ = entity.renderZ - hw
+                val maxX = entity.renderX + hw
+                val maxY = entity.renderY + hd
+                val maxZ = entity.renderZ + hw
 
-            val oColor = outlineColor.value
-            val oR = oColor.red / 255f
-            val oG = oColor.green / 255f
-            val oB = oColor.blue / 255f
-
-            if (drawFill) {
-                val fillBuffer = consumers.getBuffer(if (phase.value) NoammRenderLayers.FILLED_THROUGH_WALLS else NoammRenderLayers.FILLED)
-                for (entity in terminalsToRender) {
-                    val hw = entity.bbWidth / 2.0
-                    val h = entity.bbHeight.toDouble()
-                    ShapeRenderer.addChainedFilledBoxVertices(
-                        matrices, fillBuffer,
-                        entity.renderX - hw, entity.renderY, entity.renderZ - hw,
-                        entity.renderX + hw, entity.renderY + h, entity.renderZ + hw,
-                        fR, fG, fB, fA
-                    )
-                }
+                Render3D.renderBoxBounds(
+                    event.ctx,
+                    minX, minY, minZ, maxX, maxY, maxZ,
+                    outlineColor.value,
+                    fillColor.value,
+                    outline = drawOutline,
+                    fill = drawFill,
+                    phase = phase.value,
+                    lineWidth = 2.0
+                )
             }
-
-            if (drawOutline) {
-                val outlineBuffer = consumers.getBuffer(if (phase.value) NoammRenderLayers.getLinesThroughWalls(2.0) else NoammRenderLayers.getLines(2.0))
-                for (entity in terminalsToRender) {
-                    val hw = entity.bbWidth / 2.0
-                    val h = entity.bbHeight.toDouble()
-                    ShapeRenderer.renderLineBox(
-                        matrices.last(), outlineBuffer,
-                        entity.renderX - hw, entity.renderY, entity.renderZ - hw,
-                        entity.renderX + hw, entity.renderY + h, entity.renderZ + hw,
-                        oR, oG, oB, 1f
-                    )
-                }
-            }
-
-            matrices.popPose()
         }
     }
 }

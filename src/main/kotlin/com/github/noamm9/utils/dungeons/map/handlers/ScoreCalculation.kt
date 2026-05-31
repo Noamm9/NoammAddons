@@ -24,7 +24,7 @@ import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket.Act
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
-import net.minecraft.world.entity.monster.Zombie
+import net.minecraft.world.entity.monster.zombie.Zombie
 import kotlin.jvm.optionals.getOrNull
 import kotlin.math.floor
 

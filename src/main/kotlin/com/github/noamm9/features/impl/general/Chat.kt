@@ -11,8 +11,8 @@ import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.DataDownloader
 import com.github.noamm9.utils.NumbersUtils
-import net.minecraft.client.GuiMessage
 import net.minecraft.client.gui.screens.ChatScreen
+import net.minecraft.client.multiplayer.chat.GuiMessage
 import net.minecraft.network.chat.Component
 import org.lwjgl.glfw.GLFW
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo

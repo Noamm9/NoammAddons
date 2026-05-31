@@ -5,7 +5,7 @@ import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.componnents.UIButton
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.render.Render2D
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
@@ -106,7 +106,7 @@ class DungeonWaypointScreen(
         })
     }
 
-    override fun render(context: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
+    override fun extractRenderState(context: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
         val centerX = this.width / 2
         val centerY = this.height / 2
 
@@ -125,7 +125,7 @@ class DungeonWaypointScreen(
         Render2D.drawCenteredString(context, "§b$roomName", centerX, panelY + 30)
         Render2D.drawCenteredString(context, "§7[${absolutePos.x}, ${absolutePos.y}, ${absolutePos.z}]", centerX, panelY + 43)
 
-        super.render(context, mouseX, mouseY, partialTicks)
+        super.extractRenderState(context, mouseX, mouseY, a)
     }
 
     private fun colorBoolean(bl: Boolean) = if (bl) "§atrue" else "§cfalse"

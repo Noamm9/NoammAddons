@@ -11,7 +11,7 @@ import com.github.noamm9.utils.render.Render2D
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.intOrNull
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
 import java.util.*
@@ -55,7 +55,7 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
 
     override val height get() = 20 + (openAnim.value * 115).toInt()
 
-    override fun draw(ctx: GuiGraphics, mouseX: Int, mouseY: Int) {
+    override fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
         val isHovered = mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + 20
         openAnim.update(if (expanded) 1f else 0f)
         hoverAnim.update(if (isHovered) 1f else 0f)
@@ -132,7 +132,7 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
         }
     }
 
-    override fun charTyped(codePoint: Char, modifiers: Int): Boolean {
+    override fun charTyped(codePoint: Char): Boolean {
         if (expanded && hexFocused) {
             val codePoint = codePoint.lowercase()
             if (validHexChars.contains(codePoint) && hexText.length < (if (withAlpha) 8 else 6)) {
@@ -173,7 +173,7 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
         }
     }
 
-    private fun drawSVBox(ctx: GuiGraphics, sx: Float, sy: Float, sw: Float, sh: Float) {
+    private fun drawSVBox(ctx: GuiGraphicsExtractor, sx: Float, sy: Float, sw: Float, sh: Float) {
         Render2D.drawRect(ctx, sx, sy, sw, sh, Color.getHSBColor(h, 1f, 1f))
         Render2D.drawHorizontalGradient(ctx, sx, sy, sw, sh, Color.WHITE, Color(255, 255, 255, 0))
         Render2D.drawVerticalGradient(ctx, sx, sy, sw, sh, Color(0, 0, 0, 0), Color.BLACK)
@@ -184,7 +184,7 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
         Render2D.drawRect(ctx, ix - 0.5f, iy - 0.5f, 1f, 1f, Color.BLACK)
     }
 
-    private fun drawVerticalHueBar(ctx: GuiGraphics, hx: Float, hy: Float, hw: Float, hh: Float) {
+    private fun drawVerticalHueBar(ctx: GuiGraphicsExtractor, hx: Float, hy: Float, hw: Float, hh: Float) {
         val segments = 12
         val step = hh / segments.toFloat()
 
@@ -199,7 +199,7 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
         Render2D.drawRect(ctx, hx - 1f, hy + (h * hh) - 0.5f, hw + 2f, 1f, Color.WHITE)
     }
 
-    private fun drawVerticalAlphaBar(ctx: GuiGraphics, ax: Float, ay: Float, aw: Float, ah: Float) {
+    private fun drawVerticalAlphaBar(ctx: GuiGraphicsExtractor, ax: Float, ay: Float, aw: Float, ah: Float) {
         drawCheckerboard(ctx, ax, ay, aw, ah, 2)
         val base = Color(Color.HSBtoRGB(h, s, b))
         val cTop = base.withAlpha(255)
@@ -209,7 +209,7 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
         Render2D.drawRect(ctx, ax - 1f, ay + ((1f - a) * ah) - 0.5f, aw + 2f, 1f, Color.WHITE)
     }
 
-    private fun drawCheckerboard(ctx: GuiGraphics, x: Float, y: Float, w: Float, h: Float, size: Int) {
+    private fun drawCheckerboard(ctx: GuiGraphicsExtractor, x: Float, y: Float, w: Float, h: Float, size: Int) {
         for (i in 0 until (w / size).toInt()) {
             for (j in 0 until (h / size).toInt()) {
                 val color = if ((i + j) % 2 == 0) Color(50, 50, 50, 200) else Color(30, 30, 30, 200)

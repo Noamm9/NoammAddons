@@ -10,7 +10,7 @@ import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.render.Render2D
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
 class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, startWidth: Float, startHeight: Float) {
@@ -54,7 +54,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
     private var interactionStartWidth = startWidth
     private var interactionStartHeight = startHeight
 
-    fun render(context: GuiGraphics, mouseX: Int, mouseY: Int, focused: Boolean) {
+    fun render(context: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, focused: Boolean) {
         updateInteraction(mouseX.toFloat(), mouseY.toFloat())
         clampToScreen()
 
@@ -216,9 +216,9 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         return false
     }
 
-    fun charTyped(codePoint: Char, modifiers: Int): Boolean {
+    fun charTyped(codePoint: Char): Boolean {
         visibleSettings.forEach {
-            if (it.charTyped(codePoint, modifiers)) {
+            if (it.charTyped(codePoint)) {
                 return true
             }
         }
@@ -327,7 +327,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
             mouseY >= closeY && mouseY <= closeY + closeButtonSize
     }
 
-    private fun drawCloseButton(context: GuiGraphics, hovered: Boolean) {
+    private fun drawCloseButton(context: GuiGraphicsExtractor, hovered: Boolean) {
         val closeX = x + width - windowPadding - closeButtonSize
         val closeY = y + ((titleBarHeight - closeButtonSize) / 2f)
         val background = if (hovered) Color(180, 60, 60, 220) else Color(255, 255, 255, 18)

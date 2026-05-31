@@ -9,7 +9,7 @@ import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.TextInputHandler
 import com.github.noamm9.utils.render.Render2D
 import com.mojang.blaze3d.platform.InputConstants
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
@@ -46,7 +46,7 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
         }
     }
 
-    override fun render(context: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
+    override fun extractRenderState(context: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
         Resolution.refresh()
         Resolution.push(context)
         val mX = Resolution.getMouseX(mouseX.toDouble())
@@ -65,7 +65,7 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
         Resolution.pop(context)
     }
 
-    private fun drawSearchBar(context: GuiGraphics, mX: Float, mY: Float) {
+    private fun drawSearchBar(context: GuiGraphicsExtractor, mX: Float, mY: Float) {
         val bw = 150f
         val bh = 22f
         val bx = (Resolution.width / 2) - (bw / 2)
@@ -156,7 +156,7 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
 
     override fun charTyped(characterEvent: CharacterEvent): Boolean {
         configWindows.lastOrNull()?.let { window ->
-            if (window.charTyped(characterEvent.codepoint.toChar(), characterEvent.modifiers)) {
+            if (window.charTyped(characterEvent.codepoint.toChar())) {
                 return true
             }
         }

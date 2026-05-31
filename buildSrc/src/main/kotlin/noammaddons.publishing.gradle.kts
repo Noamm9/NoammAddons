@@ -9,8 +9,8 @@ publishing {
         register<MavenPublication>("mavenLegit") {
             artifactId = mod_name
             from(components["java"])
-            val remapLegitSourcesJar by tasks.existing
-            artifact(remapLegitSourcesJar) {
+            val legitSourcesJar by tasks.existing
+            artifact(legitSourcesJar) {
                 classifier = "legit-sources"
             }
         }
@@ -18,8 +18,8 @@ publishing {
         register<MavenPublication>("mavenCheat") {
             artifactId = mod_name
             from(components["cheat"])
-            val remapCheatSourcesJar by tasks.existing
-            artifact(remapCheatSourcesJar) {
+            val cheatSourcesJar by tasks.existing
+            artifact(cheatSourcesJar) {
                 classifier = "cheat-sources"
             }
         }

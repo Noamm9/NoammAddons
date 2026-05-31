@@ -14,7 +14,7 @@ object TimeChanger: Feature("Changes the world time.") {
     @JvmStatic
     fun setTime() {
         val customTime = TIME_VALUES.getOrElse(timeChangerMode.value) { getTickTime() }
-        mc.level?.setTimeFromServer(mc.level !!.gameTime, customTime, false)
+        mc.level?.setTimeFromServer(customTime)
     }
 
     private fun getTickTime(): Long {

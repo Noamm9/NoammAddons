@@ -3,7 +3,7 @@ package com.github.noamm9.ui.clickgui.components
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.CategorySetting
 import com.github.noamm9.ui.clickgui.components.impl.SeparatorSetting
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import kotlin.reflect.KProperty
 
 abstract class Setting<T>(val name: String, val defaultValue: T) {
@@ -26,14 +26,14 @@ abstract class Setting<T>(val name: String, val defaultValue: T) {
         value = defaultValue
     }
 
-    abstract fun draw(ctx: GuiGraphics, mouseX: Int, mouseY: Int)
+    abstract fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int)
     abstract fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean
 
     open fun mouseReleased(button: Int) {}
     open fun mouseScrolled(mouseX: Int, mouseY: Int, delta: Double) = false
 
     open fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int) = false
-    open fun charTyped(codePoint: Char, modifiers: Int) = false
+    open fun charTyped(codePoint: Char) = false
 
     companion object {
         fun <T: Setting<*>> T.section(name: String): T {

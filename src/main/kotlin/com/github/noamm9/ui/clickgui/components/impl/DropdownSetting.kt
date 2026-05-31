@@ -9,7 +9,7 @@ import com.github.noamm9.utils.render.Render2D.width
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.intOrNull
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
 class DropdownSetting(name: String, value: Int = 0, val options: List<String>): Setting<Int>(name, value), Savable {
@@ -19,7 +19,7 @@ class DropdownSetting(name: String, value: Int = 0, val options: List<String>): 
 
     override val height get() = 20 + (openAnim.value * (options.size * 16)).toInt()
 
-    override fun draw(ctx: GuiGraphics, mouseX: Int, mouseY: Int) {
+    override fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
         val isHovered = mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + 20
         openAnim.update(if (expanded) 1f else 0f)
         hoverAnim.update(if (isHovered) 1f else 0f)

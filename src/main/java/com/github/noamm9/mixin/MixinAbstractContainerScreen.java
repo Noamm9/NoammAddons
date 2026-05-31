@@ -7,13 +7,13 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
@@ -51,16 +51,16 @@ public abstract class MixinAbstractContainerScreen extends Screen {
         }
     }
 
-    @Inject(method = "renderSlot", at = @At("HEAD"), cancellable = true)
-    private void onDrawSlotPre(GuiGraphics guiGraphics, Slot slot, CallbackInfo ci) {
-        if (EventBus.post(new ContainerEvent.Render.Slot.Pre(this, guiGraphics, slot))) {
+    @Inject(method = "extractSlot", at = @At("HEAD"), cancellable = true)
+    private void onDrawSlotPre(GuiGraphicsExtractor graphics, Slot slot, int mouseX, int mouseY, CallbackInfo ci) {
+        if (EventBus.post(new ContainerEvent.Render.Slot.Pre(this, graphics, slot))) {
             ci.cancel();
         }
     }
 
-    @Inject(method = "renderSlot", at = @At("TAIL"))
-    private void onDrawSlotPost(GuiGraphics guiGraphics, Slot slot, CallbackInfo ci) {
-        EventBus.post(new ContainerEvent.Render.Slot.Post(this, guiGraphics, slot));
+    @Inject(method = "extractSlot", at = @At("TAIL"))
+    private void onDrawSlotPost(GuiGraphicsExtractor graphics, Slot slot, int mouseX, int mouseY, CallbackInfo ci) {
+        EventBus.post(new ContainerEvent.Render.Slot.Post(this, graphics, slot));
     }
 
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
@@ -82,16 +82,16 @@ public abstract class MixinAbstractContainerScreen extends Screen {
         EventBus.post(new ContainerEvent.MouseScroll(this, mouseX, mouseY, horizontalAmount, verticalAmount));
     }
 
-    @WrapOperation(method = "renderTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;setTooltipForNextFrame(Lnet/minecraft/client/gui/Font;Ljava/util/List;Ljava/util/Optional;IILnet/minecraft/resources/ResourceLocation;)V"))
-    private void onRenderTooltipMerged(GuiGraphics instance, Font font, List<Component> lines, Optional<TooltipComponent> tooltipImage, int x, int y, @Nullable ResourceLocation background, Operation<Void> original, @Local ItemStack stack) {
-        if (stack == null || stack.isEmpty() || lines.isEmpty()) original.call(instance, font, lines, tooltipImage, x, y, background);
+    @WrapOperation(method = "extractTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;setTooltipForNextFrame(Lnet/minecraft/client/gui/Font;Ljava/util/List;Ljava/util/Optional;IILnet/minecraft/resources/Identifier;)V"))
+    private void onRenderTooltipMerged(GuiGraphicsExtractor instance, Font font, List<Component> texts, Optional<TooltipComponent> optionalImage, int xo, int yo, @org.jspecify.annotations.Nullable Identifier style, Operation<Void> original, @Local ItemStack stack) {
+        if (stack == null || stack.isEmpty() || texts.isEmpty()) original.call(instance, font, texts, optionalImage, xo, yo, style);
         else {
             ScrollableTooltip.setSlot(this.hoveredSlot.index);
 
-            var event = new ContainerEvent.Render.Tooltip(this, instance, stack, x, y, new ArrayList<>(lines));
+            var event = new ContainerEvent.Render.Tooltip(this, instance, stack, xo, yo, new ArrayList<>(texts));
             if (EventBus.post(event)) return;
 
-            original.call(instance, font, event.getLore(), tooltipImage, x, y, background);
+            original.call(instance, font, event.getLore(), optionalImage, xo, yo, style);
         }
     }
 }

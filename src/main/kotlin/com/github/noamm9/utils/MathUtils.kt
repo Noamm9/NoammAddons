@@ -131,12 +131,14 @@ object MathUtils {
     }
 
     fun getLookVec(yaw: Float, pitch: Float): Vec3 {
-        val f = pitch * (Math.PI / 180.0).toFloat()
-        val g = - yaw * (Math.PI / 180.0).toFloat()
-        val h = Mth.cos(g)
-        val i = Mth.sin(g)
-        val j = Mth.cos(f)
-        val k = Mth.sin(f)
-        return Vec3((i * j).toDouble(), - k.toDouble(), (h * j).toDouble())
+        val pitchRad = pitch * (Math.PI / 180.0)
+        val yawRad = - yaw * (Math.PI / 180.0)
+
+        val cosYaw = Mth.cos(yawRad)
+        val sinYaw = Mth.sin(yawRad)
+        val cosPitch = Mth.cos(pitchRad)
+        val sinPitch = Mth.sin(pitchRad)
+
+        return Vec3((sinYaw * cosPitch).toDouble(), (- sinPitch).toDouble(), (cosYaw * cosPitch).toDouble())
     }
 }

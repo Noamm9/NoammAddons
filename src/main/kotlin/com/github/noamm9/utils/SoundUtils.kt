@@ -1,6 +1,6 @@
 package com.github.noamm9.utils
 
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 
 object SoundUtils {
     private val MAP = mapOf(
@@ -485,5 +485,5 @@ object SoundUtils {
         "entity.wolf.whine" to "WOLF_WHINE",
     )
 
-    val REVERSE_MAP = MAP.mapKeys { ResourceLocation.fromNamespaceAndPath("minecraft", it.key) }
+    val REVERSE_MAP = MAP.mapKeys { Identifier.fromNamespaceAndPath("minecraft", it.key) }
 }

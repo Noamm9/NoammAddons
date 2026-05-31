@@ -30,5 +30,5 @@ object GsonUtils {
     }
 
     fun encode(obj: Any) = gson.toJson(obj)
-    inline fun <reified T> decode(json: String): T = gson.fromJson(json, object: TypeToken<T>() {}.type)
+    inline fun <reified T: Any> decode(json: String): T = gson.fromJson(json, object: TypeToken<T>() {}.type)
 }

@@ -11,7 +11,7 @@ import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.EtherwarpHelper
 import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderContext
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents
 
 object BlockOverlay: Feature() {
     private val mode by DropdownSetting("Mode", 2, listOf("Outline", "Fill", "Filled Outline"))
@@ -22,7 +22,7 @@ object BlockOverlay: Feature() {
     private val hideDuringEtherwarp by ToggleSetting("Hide with Etherwarp")
 
     override fun init() {
-        WorldRenderEvents.BEFORE_BLOCK_OUTLINE.register { context, blockOutlineContext ->
+        LevelRenderEvents.BEFORE_BLOCK_OUTLINE.register { context, blockOutlineContext ->
             if (! enabled) return@register true
             if (mc.options.hideGui) return@register true
             if (hideDuringEtherwarp.value && shouldHide()) return@register false

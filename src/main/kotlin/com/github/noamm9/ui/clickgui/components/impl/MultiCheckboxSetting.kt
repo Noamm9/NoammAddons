@@ -6,7 +6,7 @@ import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.render.Render2D
 import kotlinx.serialization.json.*
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
 class MultiCheckboxSetting(name: String, options: MutableMap<String, Boolean>): Setting<MutableMap<String, Boolean>>(name, options), Savable {
@@ -16,7 +16,7 @@ class MultiCheckboxSetting(name: String, options: MutableMap<String, Boolean>): 
 
     override val height get() = 20 + (openAnim.value * (value.size * 16)).toInt()
 
-    override fun draw(ctx: GuiGraphics, mouseX: Int, mouseY: Int) {
+    override fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
         val isHovered = mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + 20
         openAnim.update(if (expanded) 1f else 0f)
         hoverAnim.update(if (isHovered) 1f else 0f)

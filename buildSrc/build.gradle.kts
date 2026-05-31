@@ -8,7 +8,7 @@ repositories {
 }
 
 dependencies {
-    implementation("net.fabricmc:fabric-loom:1.14.10")
+    implementation("net.fabricmc:fabric-loom:1.16.2")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:2.3.0")
     implementation("org.jetbrains.kotlin:kotlin-serialization:2.3.0")
 }

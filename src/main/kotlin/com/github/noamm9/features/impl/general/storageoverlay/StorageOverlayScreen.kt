@@ -12,14 +12,14 @@ import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.ItemRenderer
 import com.github.noamm9.utils.render.Render2D
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Inventory
-import net.minecraft.world.inventory.ClickType
+import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.inventory.Slot
 import net.minecraft.world.item.ItemStack
 import org.lwjgl.glfw.GLFW
@@ -117,7 +117,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         ScrollableTooltip.scaleOverride = 0f
     }
 
-    private fun GuiGraphics.drawPages(mouseX: Int, mouseY: Int, excluding: StoragePage?, slots: List<Slot>?, originalMouseX: Int, originalMouseY: Int) {
+    private fun GuiGraphicsExtractor.drawPages(mouseX: Int, mouseY: Int, excluding: StoragePage?, slots: List<Slot>?, originalMouseX: Int, originalMouseY: Int) {
         enableScissor(scrollPanelX, scrollPanelY, scrollPanelX + scrollPanelW + ACTIVE_PAGE_BORDER_THICKNESS, scrollPanelY + scrollPanelH)
         val data = StorageOverlay.storageMenuData
         val viewTop = scrollPanelY
@@ -143,14 +143,14 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
                 val slotY = (index / 9) * SLOT_SIZE + slotsY + 1
                 if (slotY + 16 < viewTop || slotY > viewBottom) continue
                 val displayStack = if (excluding == page && slots != null && index < slots.size) slots[index].item else invStacks?.get(index) ?: continue
-                if (! displayStack.isEmpty) renderItemDecorations(mc.font, displayStack, slotX, slotY)
+                if (! displayStack.isEmpty) itemDecorations(mc.font, displayStack, slotX, slotY)
             }
         }
 
         disableScissor()
     }
 
-    private fun GuiGraphics.drawScrollBar() {
+    private fun GuiGraphicsExtractor.drawScrollBar() {
         Render2D.drawRect(this, scrollBarX, scrollBarY, SCROLL_BAR_WIDTH, scrollBarH, scrollBgColor)
         val maxScroll = maxScroll
         val percentage = if (maxScroll > 0) scroll / maxScroll else 0f
@@ -176,7 +176,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         return null
     }
 
-    private fun GuiGraphics.drawSlotGrid(x: Int, y: Int, rows: Int) {
+    private fun GuiGraphicsExtractor.drawSlotGrid(x: Int, y: Int, rows: Int) {
         val w = 9 * SLOT_SIZE
         val h = rows * SLOT_SIZE
         fill(x, y, x + w, y + h, slotCellBg)
@@ -190,7 +190,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         }
     }
 
-    private fun GuiGraphics.drawPlayerInventory(mouseX: Int, mouseY: Int, originalMouseX: Int, originalMouseY: Int) {
+    private fun GuiGraphicsExtractor.drawPlayerInventory(mouseX: Int, mouseY: Int, originalMouseX: Int, originalMouseY: Int) {
         val items = mc.player?.inventory?.nonEquipmentItems ?: return
         val (invX, invY) = getPlayerInvSlotPos(9)
         val (hotX, hotY) = getPlayerInvSlotPos(0)
@@ -223,7 +223,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         for (i in 0 until 36) {
             val item = items[i]
             val (sx, sy) = getPlayerInvSlotPos(i)
-            if (! item.isEmpty) renderItemDecorations(mc.font, item, sx, sy)
+            if (! item.isEmpty) itemDecorations(mc.font, item, sx, sy)
         }
 
         if (hoveredStack != null) {
@@ -232,7 +232,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         }
     }
 
-    private fun GuiGraphics.drawPage(x: Int, y: Int, page: StoragePage, inventory: NBTInventory?, slots: List<Slot>?, mouseX: Int, mouseY: Int, originalMouseX: Int, originalMouseY: Int): Int {
+    private fun GuiGraphicsExtractor.drawPage(x: Int, y: Int, page: StoragePage, inventory: NBTInventory?, slots: List<Slot>?, mouseX: Int, mouseY: Int, originalMouseX: Int, originalMouseY: Int): Int {
         if (inventory == null && slots == null) {
             Render2D.drawRect(this, x, y, PAGE_WIDTH, 18, slotBgColor)
             Render2D.drawBorder(this, x, y, PAGE_WIDTH, 18, menuBorderColor)
@@ -250,7 +250,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             Render2D.drawBorder(this, x, y, PAGE_WIDTH + 1, pageHeight, activePageBorder, ACTIVE_PAGE_BORDER_THICKNESS)
         }
 
-        drawString(font, Component.literal(name), x + 6, y + 3, if (isActive) activePageBorder.rgb else 0xFFFFFF, true)
+        text(font, Component.literal(name), x + 6, y + 3, if (isActive) activePageBorder.rgb else 0xFFFFFF, true)
 
         val panelX = scrollPanelX
         val panelY = scrollPanelY
@@ -339,8 +339,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val gameMode = mc.gameMode ?: return false
         val targetSlot = chestSlots[hit]
         val shift = (modifiers and GLFW.GLFW_MOD_SHIFT) != 0
-        val clickType = if (shift) ClickType.QUICK_MOVE else ClickType.PICKUP
-        gameMode.handleInventoryMouseClick(menu.containerId, targetSlot.index, button, clickType, player)
+        val clickType = if (shift) ContainerInput.QUICK_MOVE else ContainerInput.PICKUP
+        gameMode.handleContainerInput(menu.containerId, targetSlot.index, button, clickType, player)
         return true
     }
 
@@ -351,8 +351,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val player = mc.player ?: return false
         val gameMode = mc.gameMode ?: return false
         val shift = (modifiers and GLFW.GLFW_MOD_SHIFT) != 0
-        val clickType = if (shift) ClickType.QUICK_MOVE else ClickType.PICKUP
-        gameMode.handleInventoryMouseClick(containerScreen.menu.containerId, targetSlot.index, button, clickType, player)
+        val clickType = if (shift) ContainerInput.QUICK_MOVE else ContainerInput.PICKUP
+        gameMode.handleContainerInput(containerScreen.menu.containerId, targetSlot.index, button, clickType, player)
         return true
     }
 
@@ -423,7 +423,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     fun updateBounds() {
         val screen = containerScreen ?: return
         val scale = StorageOverlay.scaleSetting.value
-        init(mc, (Resolution.width / scale).toInt(), (Resolution.height / scale).toInt())
+        init((Resolution.width / scale).toInt(), (Resolution.height / scale).toInt())
         val accessor = screen as IAbstractContainerScreen
         accessor.setLeftPos(0)
         accessor.setTopPos(0)
@@ -431,7 +431,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         accessor.setImageHeight(screen.height)
     }
 
-    fun renderContainerOverlay(context: GuiGraphics, mouseX: Int, mouseY: Int) {
+    fun renderContainerOverlay(context: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
         val screen = containerScreen ?: return
         Resolution.refresh()
         updateBounds()
@@ -454,7 +454,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         resetTooltip(prevHovered)
     }
 
-    fun renderCarriedItem(context: GuiGraphics, mouseX: Int, mouseY: Int): Boolean {
+    fun renderCarriedItem(context: GuiGraphicsExtractor, mouseX: Int, mouseY: Int): Boolean {
         val screen = containerScreen ?: return false
         val carried = screen.menu.carried
         if (carried.isEmpty) return true
@@ -467,7 +467,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val scaledMouseY = (Resolution.getMouseY(mouseY.toDouble()) / scale).toInt() - 8
         ItemRenderer.drawBatchedItemStack(context, carried, scaledMouseX, scaledMouseY)
         ItemRenderer.endItemRendererBatch(context)
-        context.renderItemDecorations(screen.font, carried, scaledMouseX, scaledMouseY)
+        context.itemDecorations(screen.font, carried, scaledMouseX, scaledMouseY)
         Resolution.pop(context)
         return true
     }

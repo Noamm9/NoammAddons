@@ -3,7 +3,7 @@ package com.github.noamm9.features.impl.misc
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.mojang.blaze3d.platform.InputConstants
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.minecraft.client.KeyMapping
 import org.lwjgl.glfw.GLFW
 
@@ -51,7 +51,7 @@ object SnappyTappy: Feature("Prevents standing still when pressing opposing dire
 
     private fun isKeyDown(key: KeyMapping): Boolean {
         val handle = mc.window.handle()
-        val bound = KeyBindingHelper.getBoundKeyOf(key) ?: return false
+        val bound = KeyMappingHelper.getBoundKeyOf(key)
         return if (bound.type == InputConstants.Type.MOUSE) {
             GLFW.glfwGetMouseButton(handle, bound.value) == GLFW.GLFW_PRESS
         }

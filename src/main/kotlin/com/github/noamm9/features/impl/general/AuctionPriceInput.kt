@@ -16,7 +16,7 @@ import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.uppercaseFirst
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.AbstractSignEditScreen
 import net.minecraft.client.input.KeyEvent
@@ -53,7 +53,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
 
             if (lines[1] == "^^^^^^^^^^^^^^^" && lines[2] == "Your auction" && lines[3] == "starting bid") mc.execute {
                 // manually setting the screen so the sign gui wont close
-                mc.screen = AuctionInputScreen(sign, lines, stack).apply { init(mc, width, height) }
+                mc.screen = AuctionInputScreen(sign, lines, stack).apply { init(width, height) }
             }
         }
 
@@ -131,14 +131,14 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
 
         private fun getModeText() = "Mode: ${mode !!.name.lowercase().uppercaseFirst()}"
 
-        override fun render(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
+        override fun extractRenderState(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
             val centerX = width / 2
             val centerY = height / 2
 
             val itemX = centerX - 8
             val itemY = centerY - 75
-            guiGraphics.renderItem(stack, itemX, itemY)
-            guiGraphics.renderItemDecorations(font, stack, itemX, itemY)
+            guiGraphics.item(stack, itemX, itemY)
+            guiGraphics.itemDecorations(font, stack, itemX, itemY)
 
             if (mouseX >= itemX && mouseX <= itemX + 16 && mouseY >= itemY && mouseY <= itemY + 16) {
                 val lore = stack.getOrDefault(DataComponents.LORE, ItemLore.EMPTY).styledLines().drop(1)
@@ -148,8 +148,8 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             }
 
             val headerText = if (mode == InputMode.UNDERCUT) "Undercut Mode" else "Set Auction Price"
-            guiGraphics.drawCenteredString(font, headerText, centerX, centerY - 55, Color.ORANGE.rgb)
-            guiGraphics.drawCenteredString(font, "Lowest BIN: ${NumbersUtils.format(lowestBin)}", centerX, centerY - 45, Color.ORANGE.rgb)
+            guiGraphics.centeredText(font, headerText, centerX, centerY - 55, Color.ORANGE.rgb)
+            guiGraphics.centeredText(font, "Lowest BIN: ${NumbersUtils.format(lowestBin)}", centerX, centerY - 45, Color.ORANGE.rgb)
 
             val displayText = if (parsedValue != null) "§aValue: §e${NumbersUtils.formatComma(parsedValue)}"
             else if (input.isEmpty()) "§7Enter a value (e.g. 10m, 5k)"
@@ -157,7 +157,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
 
             Render2D.drawCenteredString(guiGraphics, displayText, centerX, centerY - 35)
 
-            super.render(guiGraphics, mouseX, mouseY, partialTick)
+            super.extractRenderState(guiGraphics, mouseX, mouseY, a)
         }
 
         override fun keyPressed(event: KeyEvent): Boolean {

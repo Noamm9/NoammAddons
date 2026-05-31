@@ -9,10 +9,10 @@ import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.render.Render2D
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.gui.screens.inventory.InventoryScreen
-import net.minecraft.world.inventory.ClickType
+import net.minecraft.world.inventory.ContainerInput
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
@@ -71,14 +71,14 @@ object SlotBinding: Feature("Allows you to bind slots to hotbar slots for quick 
             val hotbarIndex = if (slotId in 36 .. 44) slotId - 36 else boundPartner - 36
             val inventorySlot = if (slotId in 36 .. 44) boundPartner else slotId
 
-            mc.player?.run { mc.gameMode?.handleInventoryMouseClick(containerMenu.containerId, inventorySlot, hotbarIndex, ClickType.SWAP, this) }
+            mc.player?.run { mc.gameMode?.handleContainerInput(containerMenu.containerId, inventorySlot, hotbarIndex, ContainerInput.SWAP, this) }
         }
 
         register<ContainerEvent.Close> { previousSlot = null }
     }
 
     @JvmStatic
-    fun drawSlotBinding(context: GuiGraphics, mouseX: Int, mouseY: Int, screen: AbstractContainerScreen<*>) {
+    fun drawSlotBinding(context: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, screen: AbstractContainerScreen<*>) {
         if (! enabled) return
         if (screen !is InventoryScreen) return
         val hoveredSlot = (screen as IAbstractContainerScreen).hoveredSlot?.index
