@@ -5,13 +5,11 @@ import com.github.noamm9.NoammAddons.logger
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.EventPriority
+import com.github.noamm9.event.impl.ShutdownEvent
 import com.github.noamm9.event.impl.TickEvent
 import kotlinx.coroutines.runBlocking
-import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.Executors
-import java.util.concurrent.PriorityBlockingQueue
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.*
+import java.util.concurrent.atomic.*
 
 object ThreadUtils {
     private val scheduler = Executors.newSingleThreadScheduledExecutor {
@@ -29,7 +27,7 @@ object ThreadUtils {
     init {
         register<TickEvent.Start>(EventPriority.HIGHEST) { process(clientTickTasks, clientTickCounter.incrementAndGet()) }
         register<TickEvent.Server>(EventPriority.HIGHEST) { process(serverTickTasks, serverTickCounter.incrementAndGet()) }
-        Runtime.getRuntime().addShutdownHook(Thread({ shutdownTasks.forEach { runCatching(it::run).onFailure { it.printStackTrace() } } }, "$MOD_NAME-Shutdown-Hook"))
+        register<ShutdownEvent> { shutdownTasks.forEach { runCatching(it::run).onFailure { it.printStackTrace() } } }
     }
 
     fun runOnMcThread(block: Runnable) = if (mc.isSameThread) safeRun(block) else mc.execute { safeRun(block) }

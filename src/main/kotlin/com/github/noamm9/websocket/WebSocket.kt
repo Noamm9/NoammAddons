@@ -77,6 +77,7 @@ object WebSocket {
 
     private fun shutdown() = runBlocking {
         catch { session?.close() }
+        catch { session?.cancel() }
         catch { socketJob?.cancelAndJoin() }
         worker.cancel()
     }
