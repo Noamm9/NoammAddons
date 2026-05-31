@@ -15,7 +15,7 @@ object WebSocketTest: BaseCommand("ws") {
             argument("message", StringArgumentType.greedyString()) {
                 runs {
                     val message = StringArgumentType.getString(it, "message").addColor()
-                    WebSocket.send(S2CPacketChat("§d${NoammAddons.mc.user.name}: §r$message").apply { handle() })
+                    WebSocket.send(S2CPacketChat("§d${NoammAddons.mc.user.name}: §r$message").apply(S2CPacketChat::handle))
                 }
             }
 

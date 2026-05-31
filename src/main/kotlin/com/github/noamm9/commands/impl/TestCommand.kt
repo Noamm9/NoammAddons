@@ -6,6 +6,7 @@ import com.github.noamm9.commands.BaseCommand
 import com.github.noamm9.commands.CommandNodeBuilder
 import com.github.noamm9.config.Config
 import com.github.noamm9.init.NetworkLoop.electionData
+import com.github.noamm9.ui.gui.SoundManagerScreen
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
@@ -65,6 +66,7 @@ object TestCommand: BaseCommand("test") {
 
         runs {
             ChatUtils.modMessage("hi")
+            NoammAddons.screen = SoundManagerScreen()
         }
     }
 }

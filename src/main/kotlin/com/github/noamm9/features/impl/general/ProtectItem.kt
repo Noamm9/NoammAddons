@@ -27,12 +27,10 @@ import org.lwjgl.glfw.GLFW
 import kotlin.jvm.optionals.getOrDefault
 
 object ProtectItem: Feature("Prevents dropping or selling important items via /protectitem or keybind.") {
-    private var data by PogObject("item_protection", ProtectData)
-
-    private data object ProtectData {
+    private var data by PogObject("item_protection", object {
         val uuids = mutableSetOf<String>()
         val ids = mutableSetOf<String>()
-    }
+    })
 
     private val protectNodification by ToggleSetting("Protect Notification", true).withDescription("Shows a notification on the bottom right side of the screen when the feature saved your item")
     private val protectBind by KeybindSetting("Protect Key", GLFW.GLFW_KEY_L).section("Keybind").withDescription("Press while hovering an item in an inventory to protect/unprotect it via UUID.")
