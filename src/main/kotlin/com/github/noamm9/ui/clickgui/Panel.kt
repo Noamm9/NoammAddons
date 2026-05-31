@@ -152,12 +152,12 @@ class Panel(val category: CategoryType, var x: Int, var y: Int) {
                     feature.toggle()
                     return
                 }
-                else if (button == 1 && feature.configSettings.isNotEmpty()) {
+                else if (button == 1) {
                     if (feature is SoundManager) {
                         ClickGuiScreen.selectedFeature = null
                         NoammAddons.screen = SoundManagerScreen()
                     }
-                    else ClickGuiScreen.openFeatureWindow(feature)
+                    else if (feature.configSettings.isNotEmpty()) ClickGuiScreen.openFeatureWindow(feature)
                     return
                 }
             }
