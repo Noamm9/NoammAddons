@@ -22,7 +22,7 @@ object EtherwarpHelper {
     private val modernWorlds = setOf(
         WorldType.Galatea, WorldType.GoldMine, WorldType.Hub,
         WorldType.End, WorldType.Park, WorldType.SpiderDen,
-        WorldType.TheBarn
+        WorldType.TheBarn, WorldType.Catacombs
     )
 
     private const val EYE_HEIGHT = 1.62
