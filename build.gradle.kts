@@ -1,3 +1,6 @@
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+import org.gradle.jvm.tasks.Jar
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -29,6 +32,7 @@ group = maven_group
 base { archivesName.set(mod_name) }
 
 val bundled by configurations.creating
+val processedIncludeJarsDir = layout.buildDirectory.dir("processIncludeJars")
 
 configurations {
     implementation.get().extendsFrom(bundled)
@@ -77,12 +81,66 @@ afterEvaluate {
 tasks.withType<JavaCompile>().configureEach { options.release.set(25) }
 tasks.withType<KotlinCompile>().configureEach { compilerOptions { jvmTarget.set(JvmTarget.JVM_25) } }
 
+fun File.writeWithoutNestedJarMetadata() {
+    if (! isFile) return
+
+    val modJson = JsonSlurper().parse(this).let { parsed ->
+        @Suppress("UNCHECKED_CAST")
+        (parsed as Map<String, Any?>).toMutableMap()
+    }
+
+    modJson.remove("jars")
+    writeText(JsonOutput.prettyPrint(JsonOutput.toJson(modJson)))
+}
+
+fun ProcessResources.writeNestedJarMetadata() {
+    dependsOn("processIncludeJars")
+    inputs.dir(processedIncludeJarsDir)
+
+    doLast {
+        val modJsonFile = destinationDir.resolve("fabric.mod.json")
+        val modJson = JsonSlurper().parse(modJsonFile).let { parsed ->
+            @Suppress("UNCHECKED_CAST")
+            (parsed as Map<String, Any?>).toMutableMap()
+        }
+
+        modJson["jars"] = processedIncludeJarsDir.get().asFile.listFiles()
+            ?.filter { it.isFile && it.extension == "jar" }
+            ?.sortedBy { it.name }
+            ?.map { mapOf("file" to "META-INF/jars/${it.name}") }
+            .orEmpty()
+
+        modJsonFile.writeText(JsonOutput.prettyPrint(JsonOutput.toJson(modJson)))
+    }
+}
+
+tasks.named<ProcessResources>("processResources") {
+    doLast {
+        destinationDir.resolve("fabric.mod.json").writeWithoutNestedJarMetadata()
+    }
+}
+
+listOf("processCheatResources", "processLegitResources").forEach { taskName ->
+    tasks.named<ProcessResources>(taskName) {
+        writeNestedJarMetadata()
+    }
+}
+
 tasks.named<Jar>("jar") {
     destinationDirectory.set(layout.buildDirectory.dir("tmp/intermediateJars"))
     archiveClassifier.set("dev")
 
     from("LICENSE") {
         rename { "${it}_$mod_name" }
+    }
+}
+
+listOf("jarCheat", "jarLegit").forEach { taskName ->
+    tasks.named<Jar>(taskName) {
+        dependsOn("processIncludeJars")
+        from(processedIncludeJarsDir) {
+            into("META-INF/jars")
+        }
     }
 }
 
