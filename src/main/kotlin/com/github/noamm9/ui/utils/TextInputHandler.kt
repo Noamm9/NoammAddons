@@ -195,13 +195,13 @@ class TextInputHandler(
                 if (input.hasControlDown() && ! input.hasShiftDown()) {
                     when (input.key) {
                         GLFW.GLFW_KEY_V -> {
-                            NoammAddons.mc.keyboardHandler?.clipboard?.let { insert(it) }
+                            insert(NoammAddons.mc.keyboardHandler.clipboard)
                             true
                         }
 
                         GLFW.GLFW_KEY_C -> {
                             if (caret != selection) {
-                                NoammAddons.mc.keyboardHandler?.clipboard = text.substringSafe(caret, selection)
+                                NoammAddons.mc.keyboardHandler.clipboard = text.substringSafe(caret, selection)
                                 true
                             }
                             else false
@@ -209,7 +209,7 @@ class TextInputHandler(
 
                         GLFW.GLFW_KEY_X -> {
                             if (caret != selection) {
-                                NoammAddons.mc.keyboardHandler?.clipboard = text.substringSafe(caret, selection)
+                                NoammAddons.mc.keyboardHandler.clipboard = text.substringSafe(caret, selection)
                                 deleteSelection()
                                 true
                             }

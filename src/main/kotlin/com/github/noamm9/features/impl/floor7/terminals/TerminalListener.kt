@@ -106,8 +106,9 @@ object TerminalListener {
             is ServerboundContainerClosePacket -> if (inTerm) reset()
 
             is ServerboundInteractPacket -> {
+                @Suppress("CAST_NEVER_SUCCEEDS")
                 val entity = mc.level?.getEntity((packet as IServerboundInteractPacket).entityId) as? ArmorStand ?: return
-                if (entity.displayName?.unformattedText != "Inactive Terminal") return
+                if (entity.displayName.unformattedText != "Inactive Terminal") return
 
                 if (interactCooldown > 0 || lastWindowId != - 1) event.isCanceled = true else interactCooldown = 15
             }

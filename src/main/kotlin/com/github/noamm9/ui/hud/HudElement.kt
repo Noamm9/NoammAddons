@@ -24,7 +24,6 @@ abstract class HudElement {
     }
 
     private fun randomizePosition() {
-        if (mc.window == null) return
         val screenW = mc.window.guiScaledWidth
         val screenH = mc.window.guiScaledHeight
 

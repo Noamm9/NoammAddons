@@ -85,7 +85,7 @@ object SpringBoots: Feature("Shows the spring boots charge progress on screen.")
             if (! isNote && ! isFirework) return@register
 
             when {
-                isNote && player.isCrouching && player.getItemBySlot(EquipmentSlot.FEET)?.skyblockId == "SPRING_BOOTS" -> {
+                isNote && player.isCrouching && player.getItemBySlot(EquipmentSlot.FEET).skyblockId == "SPRING_BOOTS" -> {
                     when {
                         pitch == LOW_PITCH -> lows = (lows + 1).coerceAtMost(2)
                         highPitches.any { it == pitch } -> highs ++

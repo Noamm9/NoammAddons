@@ -5,7 +5,6 @@ import com.github.noamm9.event.impl.CheckEntityRenderEvent
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.ScreenEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.*
 import com.github.noamm9.ui.clickgui.components.impl.*
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.*
@@ -232,7 +231,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
 
         mc.player?.containerMenu?.let { menu ->
             for (i in 0 until (menu.slots.size - 36)) {
-                val stack = menu.slots[i].item ?: continue
+                val stack = menu.slots[i].item
                 if (stack.isEmpty || ! stack.`is`(Items.PLAYER_HEAD)) continue
                 val headName = playerRegex.find(stack.hoverName.string)?.groups?.get("name")?.value ?: continue
                 loadedHeads[headName] = i

@@ -26,7 +26,7 @@ object EtherwarpSound: Feature() {
     private val volume by SliderSetting("Volume", 0.5f, 0f, 1f, 0.1f).withDescription("The loudness of the sound.")
     private val pitch by SliderSetting("Pitch", 1f, 0f, 2f, 0.1f).withDescription("The pitch/frequency of the sound.")
     private val playSound by ButtonSetting("Play Sound", false) {
-        repeat(5) { mc.soundManager?.play(SimpleSoundInstance.forUI(sound.value, pitch.value, volume.value)) }
+        repeat(5) { mc.soundManager.play(SimpleSoundInstance.forUI(sound.value, pitch.value, volume.value)) }
     }.withDescription("Click to play sound.")
 
     private val interactable = listOf(

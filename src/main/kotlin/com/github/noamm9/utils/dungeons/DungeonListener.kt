@@ -24,7 +24,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.minecraft.client.multiplayer.PlayerInfo
 import net.minecraft.client.player.AbstractClientPlayer
-import net.minecraft.client.resources.DefaultPlayerSkin
 import net.minecraft.network.protocol.game.*
 import net.minecraft.world.entity.EntityType
 
@@ -81,11 +80,9 @@ object DungeonListener {
                     }
                 }
 
-                is ClientboundTabListPacket -> packet.footer.string?.let { footerText ->
-                    Blessing.entries.forEach { blessing ->
-                        blessing.regex.find(footerText)?.let {
-                            blessing.current = it.groupValues[1].romanToDecimal()
-                        }
+                is ClientboundTabListPacket -> Blessing.entries.forEach { blessing ->
+                    blessing.regex.find(packet.footer.string)?.let {
+                        blessing.current = it.groupValues[1].romanToDecimal()
                     }
                 }
 
@@ -232,7 +229,7 @@ object DungeonListener {
         }
 
         val (_, name, clazz, clazzLevel) = tablistRegex.find(tabName.removeFormatting())?.destructured ?: return
-        val skin = second.skin?.body?.texturePath() ?: DefaultPlayerSkin.getDefaultTexture()
+        val skin = second.skin.body.texturePath()
 
         dungeonTeammates.find { it.name == name }?.let { currentTeammate ->
             currentTeammate.clazz = if (clazz != "DEAD") DungeonClass.fromName(clazz) else currentTeammate.clazz

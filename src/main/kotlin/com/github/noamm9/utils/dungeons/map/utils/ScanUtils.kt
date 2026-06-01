@@ -88,8 +88,7 @@ object ScanUtils {
 
         for (y in 256 downTo 0) {
             val blockState = WorldUtils.getStateAt(pos.setY(y))
-            val block = blockState?.block ?: continue
-            if (blockState.isAir || block == Blocks.GOLD_BLOCK) continue
+            if (blockState.isAir || blockState.block == Blocks.GOLD_BLOCK) continue
 
             height = y
             break

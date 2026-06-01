@@ -20,6 +20,6 @@ object RevertAxes: Feature("Turns certain swords back into an axe") {
         if (original.isEmpty) return original
         val skyblockID = original.skyblockId.takeUnless { it.isEmpty() } ?: return original
         val replace = replaceableItems[skyblockID] ?: return original
-        return original.transmuteCopy(replace, original.count) ?: original
+        return original.transmuteCopy(replace, original.count)
     }
 }

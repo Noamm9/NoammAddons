@@ -26,7 +26,7 @@ object HiddenMobs: Feature("Reveals invisible mobs in dungeons.") {
             if (! LocationUtils.inDungeon) return@register
             val packet = event.packet as? ClientboundSetEntityDataPacket ?: return@register
             val entity = mc.level?.getEntity(packet.id)?.takeIf { it.isInvisible } ?: return@register
-            val name = entity.displayName?.string?.trim() ?: return@register
+            val name = entity.displayName.string.trim()
 
             val isFel = entity is EnderMan && showFels.value && name == "Dinnerbone"
             val isSA = entity is AbstractClientPlayer && showSa.value && name.contains("Shadow Assassin")

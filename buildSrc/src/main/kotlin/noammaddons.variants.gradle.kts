@@ -9,9 +9,7 @@ plugins {
 
 val mod_name: String by project
 
-val intermediateJarsDir = layout.buildDirectory.dir("tmp/intermediateJars")
 val libsDir = layout.buildDirectory.dir("libs")
-val variantSourcesDir = layout.buildDirectory.dir("tmp/variantSources")
 val softwareComponentFactory = project.serviceOf<SoftwareComponentFactory>()
 
 val sourceSets = the<SourceSetContainer>()
@@ -61,6 +59,10 @@ tasks.named<JavaCompile>("compileCheatJava") {
     classpath += files(tasks.named<KotlinCompile>("compileCheatKotlin").flatMap { it.destinationDirectory })
 }
 
+tasks.named<JavaCompile>("compileJava") {
+    options.release.set(25)
+}
+
 tasks.named("cheatClasses") {
     dependsOn("compileCheatKotlin", "compileCheatJava")
 }
@@ -93,13 +95,12 @@ val jarCheat = tasks.register<Jar>("jarCheat") {
     from("LICENSE") { rename { "${it}_$mod_name" } }
 }
 
-val jarLegit = tasks.named<Jar>("jar") {
+val jarLegit = tasks.register<Jar>("jarLegit") {
     dependsOn("legitClasses", "processLegitResources")
     from(legitSourceSet.output)
     archiveClassifier.set("legit")
     destinationDirectory.set(libsDir)
     from("LICENSE") { rename { "${it}_$mod_name" } }
-    exclude { it.file.absolutePath.contains("classes/kotlin/main") || it.file.absolutePath.contains("resources/main") }
 }
 
 val legitSourcesJar = tasks.register<Jar>("legitSourcesJar") {

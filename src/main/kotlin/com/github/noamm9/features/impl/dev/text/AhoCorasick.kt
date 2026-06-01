@@ -167,7 +167,7 @@ class AhoCorasick {
         fun ensureResult(): MutableComponent {
             val existing = result
             if (existing != null) return existing
-            val r = Component.literal("") as MutableComponent
+            val r = Component.literal("")
             result = r
             return r
         }
@@ -189,7 +189,7 @@ class AhoCorasick {
                 flush(ensureResult(), bl)
 
                 val baseStyle = bs[bl] ?: Style.EMPTY
-                val rep = r1[outIdx].copy() as MutableComponent
+                val rep = r1[outIdx].copy()
                 if (rep.style.isEmpty) rep.withStyle(baseStyle)
                 ensureResult().append(rep)
 

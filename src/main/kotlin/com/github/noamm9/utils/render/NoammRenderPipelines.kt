@@ -32,6 +32,12 @@ object NoammRenderPipelines {
             .build()
     )
 
+    val LINES: RenderPipeline = RenderPipelines.register(
+        RenderPipeline.builder(RenderPipelines.LINES_SNIPPET)
+            .withLocation(id("pipeline/lines"))
+            .build()
+    )
+
     val FILLED_THROUGH_WALLS: RenderPipeline = RenderPipelines.register(
         RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
             .withLocation(id("pipeline/filled_through_walls"))
