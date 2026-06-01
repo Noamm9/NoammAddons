@@ -12,7 +12,7 @@ jobs:
       - name: setup jdk
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: '25'
           distribution: 'microsoft'
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
@@ -25,6 +25,7 @@ jobs:
           path: |
             build/libs/*-legit.jar
             build/libs/*-cheat.jar
+          compression-level: 0
       - name: generate nightly download link
         run: |
           echo "### Nightly Download Link" >> $GITHUB_STEP_SUMMARY
