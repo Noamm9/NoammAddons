@@ -3,6 +3,7 @@ package com.github.noamm9.features.impl.general.storageoverlay
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
+import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.misc.ScrollableTooltip
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
@@ -16,9 +17,10 @@ import kotlinx.coroutines.runBlocking
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import net.minecraft.nbt.NbtAccounter
 import net.minecraft.nbt.NbtIo
+import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
+import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Blocks
 import java.io.File
@@ -50,8 +52,6 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     )
 
     override fun init() {
-        ThreadUtils.addShutdownHook(::saveData)
-
         register<ContainerFullyOpenedEvent> {
             if (! LocationUtils.inSkyblock) return@register
             val screen = mc.screen as? ContainerScreen ?: return@register
@@ -64,8 +64,15 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         register<MainThreadPacketReceivedEvent.Pre> {
             if (event.packet !is ClientboundContainerClosePacket) return@register
             val overlay = active ?: return@register
+            currentMenu?.let(::saveContent)
             overlay.isExiting = true
             active = null
+        }
+
+        register<PacketEvent.Sent> {
+            if (event.packet !is ServerboundContainerClosePacket) return@register
+            if (active == null) return@register
+            currentMenu?.let(::saveContent)
         }
     }
 
