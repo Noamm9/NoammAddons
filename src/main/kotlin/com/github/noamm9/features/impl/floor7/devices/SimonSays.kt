@@ -9,6 +9,7 @@ import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.WorldUtils
@@ -270,117 +271,6 @@ object SimonSays: Feature("Simon Says Solver") {
         val minZ = cz - w
         val maxZ = cz + w
 
-        val fillColor = Color(color.red, color.green, color.blue, (0.7f * 255).toInt())
-        Render3D.renderBoxBounds(
-            ctx,
-            minX, minY, minZ,
-            cx, maxY, maxZ,
-            fillColor,
-            fillColor,
-            outline = false,
-            fill = true,
-            phase = true
-        )
+        Render3D.renderBoxBounds(ctx, minX, minY, minZ, cx, maxY, maxZ, color.withAlpha(178), outline = false, fill = true, phase = true)
     }
 }
-
-/*
-object SimonSaysAlert: Feature("SS Alert") {
-    private val alertsEnabled by ToggleSetting("Alerts Enabled", true).section("Alerts")
-    private val sendChat by ToggleSetting("Send Party Chat", true).showIf { alertsEnabled.value }
-    private val sendRestartChat by ToggleSetting("Send Restart Chat", true).showIf { alertsEnabled.value }
-    private val alertSound by ToggleSetting("Alert Sound", true).showIf { alertsEnabled.value }
-    private val showTitle by ToggleSetting("Show Title", true).showIf { alertsEnabled.value }
-
-    private var thingsDone = 0
-    private var ticks = 0
-    private var allowBreak = false
-    private var hasBroken = false
-    private var isListening = false
-
-    private val obsidians = (120 .. 123).flatMap { y -> (92 .. 95).map { z -> BlockPos(111, y, z) } }
-    private val buttons = (120 .. 123).flatMap { y -> (92 .. 95).map { z -> BlockPos(110, y, z) } }
-
-    private val goldorStartRegex = Regex("\\[BOSS] Goldor: Who dares trespass into my domain\\?")
-    private val deviceRegex = Regex("(.+) (activated|completed) a (terminal|device|lever)! \\((\\d)/(\\d)\\)")
-
-    override fun init() {
-        register<WorldChangeEvent> { reset() }
-
-        register<ChatMessageEvent> {
-            val msg = event.unformattedText
-
-            if (goldorStartRegex.matches(msg)) {
-                reset()
-                isListening = true
-                return@register
-            }
-
-            if (! isListening) return@register
-
-            val (_, _, type, completedStr, _) = deviceRegex.find(msg)?.destructured ?: return@register
-            val completed = completedStr.toIntOrNull() ?: 0
-
-            when (type) {
-                "terminal", "lever" -> thingsDone ++
-                "device" -> {
-                    if ((thingsDone + 1) >= completed) {
-                        isListening = false
-                    }
-                }
-            }
-        }
-
-        register<TickEvent.Server> {
-            if (! isListening || mc.level == null) return@register
-            ticks --
-
-            val isGameActive = obsidians.any { pos ->
-                WorldUtils.getBlockAt(pos) != Blocks.OBSIDIAN
-            }
-
-            if (isGameActive) {
-                ticks = 12
-                allowBreak = true
-
-                if (hasBroken) {
-                    hasBroken = false
-                    if (sendRestartChat.value) ChatUtils.sendCommand("pc SS Started Again!")
-                    if (showTitle.value) {
-                        ChatUtils.showTitle("§a§l§nSS Started!")
-                    }
-                }
-                return@register
-            }
-
-            if (ticks > 0 || ! allowBreak) return@register
-
-            val allButtonsMissing = buttons.all { pos ->
-                WorldUtils.getBlockAt(pos) == Blocks.AIR
-            }
-
-            if (! allButtonsMissing) return@register
-
-            allowBreak = false
-            hasBroken = true
-
-            if (sendChat.value) ChatUtils.sendCommand("pc SS Broke!")
-
-            if (alertSound.value) {
-                mc.player?.playSound(SoundEvents.ANVIL_LAND, 5f, 0f)
-            }
-
-            if (showTitle.value) {
-                ChatUtils.showTitle("§c§l§nSS BROKE!")
-            }
-        }
-    }
-
-    private fun reset() {
-        isListening = false
-        thingsDone = 0
-        ticks = 0
-        allowBreak = false
-        hasBroken = false
-    }
-}*/

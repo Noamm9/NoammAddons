@@ -56,14 +56,12 @@ dependencies {
     annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.4.1")
 
     bundled("io.github.classgraph:classgraph:4.8.174")
+    bundled("com.github.Noamm9:datafixer:d60875927e")
     bundled("io.ktor:ktor-client-cio:$ktor_version")
     bundled("io.ktor:ktor-client-websockets-jvm:$ktor_version")
     bundled("io.ktor:ktor-client-content-negotiation-jvm:$ktor_version")
     bundled("io.ktor:ktor-client-encoding:$ktor_version")
     bundled("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")
-
-    implementation("com.github.Noamm9:datafixer:d60875927e")
-    include("com.github.Noamm9:datafixer:d60875927e")
 
     testImplementation(kotlin("test"))
 }

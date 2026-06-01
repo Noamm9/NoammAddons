@@ -59,7 +59,7 @@ object TerminalHitboxes: Feature() {
         register<RenderWorldEvent> {
             if (! LocationUtils.inDungeon || LocationUtils.F7Phase != 3) return@register
             val section = LocationUtils.P3Section ?: return@register
-            val terminalsToRender = cachedTerminals[section]?.takeUnless { it.isEmpty() } ?: return@register
+            val terminalsToRender = cachedTerminals[section]?.takeUnless(Collection<*>::isEmpty) ?: return@register
 
             val drawFill = mode.value == 1 || mode.value == 2
             val drawOutline = mode.value == 0 || mode.value == 2

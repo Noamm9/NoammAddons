@@ -8,6 +8,7 @@ import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.col
 import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.prediction
 import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.predictionColor
 import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.preventMissClick
+import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.core.RoomState
@@ -182,7 +183,6 @@ object TicTacToeSolver {
     private fun renderTTTBox(ctx: RenderContext, pos: BlockPos, color: Color) {
         val rotation = rotation ?: return
         if (WorldUtils.getBlockAt(pos) != Blocks.STONE_BUTTON) return
-        val cam = ctx.camera.position().reverse()
 
         val halfWidth = 0.2
         val halfHeight = 0.13
@@ -231,16 +231,7 @@ object TicTacToeSolver {
             else -> return
         }
 
-        val fillColor = Color(color.red, color.green, color.blue, (0.7f * 255).toInt())
-        Render3D.renderBoxBounds(
-            ctx,
-            minX, minY, minZ, maxX, maxY, maxZ,
-            fillColor,
-            fillColor,
-            outline = false,
-            fill = true,
-            phase = true
-        )
+        Render3D.renderBoxBounds(ctx, minX, minY, minZ, maxX, maxY, maxZ, color.withAlpha(178), outline = false, fill = true, phase = true)
     }
 
     /**
@@ -258,12 +249,12 @@ object TicTacToeSolver {
 
         fun isWon(p: CharArray): Boolean {
             for (ws in WIN_SETS) {
-                if (p[ws[0]] != '\u0000' && p[ws[0]] == p[ws[1]] && p[ws[0]] == p[ws[2]]) return true
+                if (p[ws[0]] != UNPLAYED && p[ws[0]] == p[ws[1]] && p[ws[0]] == p[ws[2]]) return true
             }
             return false
         }
 
-        private fun getAvailableMoves(p: CharArray) = p.indices.filter { p[it] == '\u0000' }
+        private fun getAvailableMoves(p: CharArray) = p.indices.filter { p[it] == UNPLAYED }
 
         fun findBestMoves(board: CharArray, player: Char, opponent: Char): List<Int> {
             val moves = getAvailableMoves(board)

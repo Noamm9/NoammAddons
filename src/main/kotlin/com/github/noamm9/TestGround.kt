@@ -21,7 +21,6 @@ import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.world.entity.ambient.Bat
 import java.awt.Color
 
-@Suppress("unused")
 class TestGround {
     private var lastServerTime = - 1L
     private var lastRealTime = - 1L

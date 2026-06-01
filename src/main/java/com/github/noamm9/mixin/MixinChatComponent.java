@@ -88,7 +88,7 @@ public abstract class MixinChatComponent implements IChatComponent {
         return this.trimmedMessages;
     }
 
-    @Inject(method = "addClientSystemMessage", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "addServerSystemMessage", at = @At("HEAD"), cancellable = true)
     private void clearMessages(Component message, CallbackInfo ci) {
         Chat.addMassageHook(message, ci);
     }

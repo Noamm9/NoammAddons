@@ -1,6 +1,7 @@
 package com.github.noamm9.features
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.NoammAddons.MOD_NAME
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.config.Config
 import com.github.noamm9.event.EventBus.register
@@ -11,6 +12,7 @@ import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.render.Render2D.width
 import io.github.classgraph.ClassGraph
+import net.minecraft.util.profiling.Profiler
 
 object FeatureManager {
     val hudElements = mutableListOf<HudElement>()
@@ -50,10 +52,13 @@ object FeatureManager {
 
         register<RenderOverlayEvent> {
             if (mc.screen == HudEditorScreen) return@register
+            val profiler = Profiler.get()
+            profiler.push("$MOD_NAME-Hud")
             Resolution.refresh()
             Resolution.push(event.context)
             hudElements.forEach { if (it.shouldDraw) it.renderElement(event.context, false) }
             Resolution.pop(event.context)
+            profiler.pop()
         }
     }
 

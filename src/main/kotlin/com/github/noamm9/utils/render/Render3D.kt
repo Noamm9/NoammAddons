@@ -11,6 +11,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.util.LightCoordsUtil
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.Shapes
 import org.joml.Matrix4f
@@ -20,6 +21,10 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 object Render3D {
+    init {
+        RenderTest.init()
+    }
+
     fun renderBlock(
         ctx: RenderContext,
         pos: BlockPos,
@@ -33,7 +38,6 @@ object Render3D {
         if (! outline && ! fill) return
 
         val state = mc.level?.getBlockState(pos) ?: return
-        val camPos = ctx.camera.position()
         val shape = if (state.block != Blocks.AIR) state.getShape(mc.level !!, pos) else Shapes.block()
 
         val outlineR = outlineColor.red / 255f
@@ -52,27 +56,25 @@ object Render3D {
         val maxY = pos.y + shape.max(Direction.Axis.Y) + 0.002
         val maxZ = pos.z + shape.max(Direction.Axis.Z) + 0.002
 
-        val x1 = minX - camPos.x
-        val y1 = minY - camPos.y
-        val z1 = minZ - camPos.z
-        val x2 = maxX - camPos.x
-        val y2 = maxY - camPos.y
-        val z2 = maxZ - camPos.z
+        ctx.matrixStack.pushPose()
+        ctx.matrixStack.translate(ctx.camera.position().reverse())
 
         if (fill) addFilledBoxVertices(
             ctx.matrixStack.last(),
             ctx.consumers.getBuffer(if (phase) NoammRenderLayers.FILLED_THROUGH_WALLS else NoammRenderLayers.FILLED),
-            x1, y1, z1, x2, y2, z2,
+            minX, minY, minZ, maxX, maxY, maxZ,
             fillR, fillG, fillB, fillA
         )
 
         if (outline) renderLineBox(
             ctx.matrixStack.last(),
             ctx.consumers.getBuffer(if (phase) NoammRenderLayers.LINES_THROUGH_WALLS else NoammRenderLayers.LINES),
-            x1, y1, z1, x2, y2, z2,
+            minX, minY, minZ, maxX, maxY, maxZ,
             outlineR, outlineG, outlineB, 1f,
             lineWidth.toFloat()
         )
+
+        ctx.matrixStack.popPose()
     }
 
     fun renderBlock(
@@ -93,12 +95,8 @@ object Render3D {
         thickness: Number = 2,
         phase: Boolean = false
     ) {
-        val cameraPos = ctx.camera.position()
-        val segments = (36 * radius).toInt()
-
         ctx.matrixStack.pushPose()
-        ctx.matrixStack.translate(- cameraPos.x, - cameraPos.y, - cameraPos.z)
-
+        ctx.matrixStack.translate(ctx.camera.position().reverse())
         val buffer = ctx.consumers.getBuffer(if (phase) NoammRenderLayers.CIRCLE_FILLED_THROUGH_WALLS else NoammRenderLayers.CIRCLE_FILLED)
 
         val r = color.red / 255f
@@ -106,6 +104,7 @@ object Render3D {
         val b = color.blue / 255f
         val a = color.alpha / 255f
         val pose = ctx.matrixStack.last()
+        val segments = (36 * radius).toInt()
         val size = thickness.toDouble() / 40.0
         val innerR = radius.toDouble() - size
         val outerR = radius.toDouble() + size
@@ -189,7 +188,6 @@ object Render3D {
             fillColor.red / 255f, fillColor.green / 255f, fillColor.blue / 255f, fillColor.alpha / 255f
         )
 
-
         if (outline) renderLineBox(
             ctx.matrixStack.last(),
             ctx.consumers.getBuffer(if (phase) NoammRenderLayers.LINES_THROUGH_WALLS else NoammRenderLayers.LINES),
@@ -255,6 +253,17 @@ object Render3D {
         ctx.matrixStack.popPose()
     }
 
+    fun renderBoxBounds(
+        ctx: RenderContext,
+        aabb: AABB,
+        outlineColor: Color,
+        fillColor: Color = outlineColor,
+        outline: Boolean = true,
+        fill: Boolean = true,
+        phase: Boolean = false,
+        lineWidth: Number = 2.5
+    ) = renderBoxBounds(ctx, aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ, outlineColor, fillColor, outline, fill, phase, lineWidth)
+
     fun renderString(
         text: String,
         x: Number, y: Number, z: Number,
@@ -298,7 +307,6 @@ object Render3D {
         scale: Number = 1f,
         phase: Boolean = false
     ) = renderString(text, pos.x, pos.y, pos.z, color, scale, phase)
-
 
     fun renderLine(ctx: RenderContext, start: Vec3, finish: Vec3, color: Color, thickness: Number = 2, phase: Boolean = false) {
         val cameraPos = ctx.camera.position()

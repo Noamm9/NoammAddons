@@ -37,7 +37,7 @@ object EventDispatcher {
 
 
     fun init() {
-        LevelRenderEvents.END_MAIN.register { context ->
+        LevelRenderEvents.AFTER_TRANSLUCENT_TERRAIN.register { context ->
             EventBus.post(RenderWorldEvent(RenderContext.fromContext(context)))
         }
 

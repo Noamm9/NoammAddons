@@ -11,13 +11,10 @@ import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render3D
-import com.github.noamm9.utils.render.RenderContext
 import com.github.noamm9.utils.render.RenderHelper.renderVec
 import net.minecraft.network.protocol.game.*
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.phys.AABB
-import java.awt.Color
 
 object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and alerts") {
     private val dragonTimer by ToggleSetting("Dragon Timer ", true).section("Dragon Timer")
@@ -97,8 +94,8 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
                     dragon.spawnPos, scale = 6f
                 )
 
-                if (dragonBoxes.value && dragon.state != WitherDragonState.DEAD) drawDragonBox(
-                    event.ctx, dragon.boxesDimensions, dragon.color.withAlpha(0.5f)
+                if (dragonBoxes.value && dragon.state != WitherDragonState.DEAD) Render3D.renderBoxBounds(
+                    event.ctx, dragon.boxesDimensions, dragon.color.withAlpha(0.5f), outline = true, fill = false, phase = false, lineWidth = 2.0
                 )
             }
 
@@ -161,19 +158,5 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
         }
 
         return color + str
-    }
-
-    private fun drawDragonBox(ctx: RenderContext, aabb: AABB, color: Color) {
-        Render3D.renderBoxBounds(
-            ctx,
-            aabb.minX, aabb.minY, aabb.minZ,
-            aabb.maxX, aabb.maxY, aabb.maxZ,
-            color,
-            color,
-            outline = true,
-            fill = false,
-            phase = false,
-            lineWidth = 2.0
-        )
     }
 }

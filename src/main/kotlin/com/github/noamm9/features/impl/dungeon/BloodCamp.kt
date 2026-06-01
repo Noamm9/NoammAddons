@@ -15,7 +15,6 @@ import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render3D
-import com.github.noamm9.utils.render.RenderContext
 import com.github.noamm9.utils.render.RenderHelper.renderVec
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket
@@ -160,21 +159,11 @@ object BloodCamp: Feature("Features for Blood Room.") {
                 val time = (if (data.firstSpawn) 40 else 0) + 38 - timeTook + 0.8
                 val endAABB = AABB(1.0, 1.0, 1.0, 0.0, 0.0, 0.0).move(boxOffset.add(endVector))
 
-                event.ctx.drawWireFrameBox(endAABB, if (ServerUtils.averagePing > time * 50) boxColor.value.invert() else boxColor.value)
+                Render3D.renderBoxBounds(event.ctx, endAABB, if (ServerUtils.averagePing > time * 50) boxColor.value.invert() else boxColor.value, outline = true, fill = false, phase = true)
                 Render3D.renderLine(event.ctx, entity.renderVec.add(y = 2), endVector.add(y = 2), lineColor.value, phase = true)
                 Render3D.renderString(((time - 0.8) / 20).toFixed(1), endVector.add(y = 2), scale = 2f, color = timerColor.value, phase = true)
             }
         }
-    }
-
-    private fun RenderContext.drawWireFrameBox(aabb: AABB, bboxColor: Color) {
-        Render3D.renderBoxBounds(
-            this,
-            aabb.minX, aabb.minY, aabb.minZ,
-            aabb.maxX, aabb.maxY, aabb.maxZ,
-            bboxColor, outline = true,
-            fill = false, phase = true
-        )
     }
 
     private val watcherSkulls = setOf(

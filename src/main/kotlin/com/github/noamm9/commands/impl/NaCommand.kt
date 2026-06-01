@@ -8,6 +8,7 @@ import com.github.noamm9.commands.BaseCommand
 import com.github.noamm9.commands.CommandNodeBuilder
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ChatMessageEvent
+import com.github.noamm9.event.impl.NoammDebugFlagEvent
 import com.github.noamm9.features.impl.dungeon.LeapMenu
 import com.github.noamm9.ui.clickgui.ClickGuiScreen
 import com.github.noamm9.ui.hud.HudEditorScreen
@@ -85,11 +86,18 @@ object NaCommand: BaseCommand("na") {
             argument("flag", StringArgumentType.word()) {
                 runs { ctx ->
                     val flag = StringArgumentType.getString(ctx, "flag")
-                    if (debugFlags.remove(flag)) ChatUtils.modMessage("§cRemoved debug flag: §b$flag")
+                    val event: NoammDebugFlagEvent
+                    if (debugFlags.remove(flag)) {
+                        ChatUtils.modMessage("§cRemoved debug flag: §b$flag")
+                        event = NoammDebugFlagEvent.Remove(flag)
+                    }
                     else {
                         debugFlags.add(flag)
                         ChatUtils.modMessage("§aAdded debug flag: §b$flag")
+                        event = NoammDebugFlagEvent.Add(flag)
                     }
+
+                    EventBus.post(event)
                 }
             }
         }
