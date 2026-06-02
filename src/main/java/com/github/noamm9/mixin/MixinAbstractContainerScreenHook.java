@@ -90,15 +90,6 @@ public class MixinAbstractContainerScreenHook<T extends AbstractContainerMenu> e
         }
     }
 
-    @Inject(method = "extractRenderState", at = @At("HEAD"), cancellable = true)
-    public void renderBgHook(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
-        StorageOverlayScreen overlay = storageOverlay();
-        if (overlay != null) {
-            overlay.renderContainerOverlay(graphics, mouseX, mouseY);
-            ci.cancel();
-        }
-    }
-
     @Inject(at = @At("HEAD"), method = "onClose")
     private void onContainerClose(CallbackInfo ci) {
         StorageOverlayScreen overlay = storageOverlay();
