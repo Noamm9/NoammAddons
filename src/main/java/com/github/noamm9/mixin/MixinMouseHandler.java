@@ -2,6 +2,7 @@ package com.github.noamm9.mixin;
 
 import com.github.noamm9.event.EventBus;
 import com.github.noamm9.event.impl.MouseClickEvent;
+import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlay;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
 import net.minecraft.client.input.MouseButtonInfo;
@@ -22,5 +23,10 @@ public abstract class MixinMouseHandler {
         if (EventBus.post(new MouseClickEvent(mouseButtonInfo.button(), i, mouseButtonInfo.modifiers()))) {
             ci.cancel();
         }
+    }
+
+    @Inject(method = "grabMouse", at = @At("HEAD"), cancellable = true)
+    private void noammaddons$keepCursorBetweenStoragePages(CallbackInfo ci) {
+        if (StorageOverlay.getInStorageTransition()) ci.cancel();
     }
 }

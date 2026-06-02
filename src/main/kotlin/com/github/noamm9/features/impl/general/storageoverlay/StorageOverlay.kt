@@ -42,6 +42,8 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     private var currentMenu: StorageMenu? = null
     private var active: StorageOverlayScreen? = null
 
+    @JvmStatic @Volatile var inStorageTransition = false
+
     @JvmStatic
     fun activeFor(screen: ContainerScreen) = active?.takeIf { it.containerScreen === screen }
 
@@ -67,6 +69,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
             currentMenu?.let(::saveContent)
             overlay.isExiting = true
             active = null
+            inStorageTransition = true
         }
 
         register<PacketEvent.Sent> {
@@ -100,6 +103,8 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         if (screen == null) return null
         if (overlay?.isExiting == true) return null
         val currentMenu = currentMenu ?: return null
+
+        inStorageTransition = false
 
         active = (overlay ?: StorageOverlayScreen()).also {
             it.containerScreen = screen
