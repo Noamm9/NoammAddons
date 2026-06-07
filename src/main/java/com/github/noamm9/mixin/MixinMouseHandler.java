@@ -18,15 +18,15 @@ public abstract class MixinMouseHandler {
     @Shadow @Final private Minecraft minecraft;
 
     @Inject(method = "onButton", at = @At("HEAD"), cancellable = true)
-    private void onMouseButton(long l, MouseButtonInfo mouseButtonInfo, int i, CallbackInfo ci) {
-        if (l != minecraft.getWindow().handle()) return;
-        if (EventBus.post(new MouseClickEvent(mouseButtonInfo.button(), i, mouseButtonInfo.modifiers()))) {
+    private void onMouseButton(long handle, MouseButtonInfo rawButtonInfo, int action, CallbackInfo ci) {
+        if (handle != minecraft.getWindow().handle()) return;
+        if (EventBus.post(new MouseClickEvent(rawButtonInfo.button(), action, rawButtonInfo.modifiers()))) {
             ci.cancel();
         }
     }
 
     @Inject(method = "grabMouse", at = @At("HEAD"), cancellable = true)
     private void noammaddons$keepCursorBetweenStoragePages(CallbackInfo ci) {
-        if (StorageOverlay.getInStorageTransition()) ci.cancel();
+        if (StorageOverlay.inStorageTransition) ci.cancel();
     }
 }

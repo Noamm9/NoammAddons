@@ -39,10 +39,10 @@ configurations {
 }
 
 repositories {
-    maven(url = uri("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1"))
-    maven(url = uri("https://maven.terraformersmc.com/"))
-    maven(url = uri("https://api.modrinth.com/maven"))
-    maven(uri("https://jitpack.io"))
+    maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
+    maven("https://maven.terraformersmc.com/")
+    maven("https://api.modrinth.com/maven")
+    maven("https://jitpack.io")
 }
 
 dependencies {

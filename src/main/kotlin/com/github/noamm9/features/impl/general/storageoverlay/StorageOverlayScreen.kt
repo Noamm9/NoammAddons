@@ -128,7 +128,14 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         }
 
         ItemRenderer.endItemRendererBatch(this)
+        disableScissor()
+    }
 
+    private fun GuiGraphicsExtractor.drawPagesDecorations(excluding: StoragePage?, slots: List<Slot>?) {
+        enableScissor(scrollPanelX, scrollPanelY, scrollPanelX + scrollPanelW + ACTIVE_PAGE_BORDER_THICKNESS, scrollPanelY + scrollPanelH)
+        val data = StorageOverlay.storageMenuData
+        val viewTop = scrollPanelY
+        val viewBottom = scrollPanelY + scrollPanelH
         layoutedForEach(data) { x, y, _, ph, page, inventory ->
             if (y + ph < viewTop || y > viewBottom) return@layoutedForEach
             val rows = inventory?.rows ?: (if (excluding == page) slots?.size?.div(9)?.coerceIn(1, 5) ?: 3 else 0)
@@ -146,7 +153,6 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
                 if (! displayStack.isEmpty) itemDecorations(mc.font, displayStack, slotX, slotY)
             }
         }
-
         disableScissor()
     }
 
@@ -220,15 +226,18 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
         ItemRenderer.endItemRendererBatch(this)
 
+        if (hoveredStack != null) {
+            hoveredOverlayItem = hoveredStack
+            setTooltipForNextFrame(font, hoveredStack, originalMouseX, originalMouseY)
+        }
+    }
+
+    private fun GuiGraphicsExtractor.drawPlayerInventoryDecorations() {
+        val items = mc.player?.inventory?.nonEquipmentItems ?: return
         for (i in 0 until 36) {
             val item = items[i]
             val (sx, sy) = getPlayerInvSlotPos(i)
             if (! item.isEmpty) itemDecorations(mc.font, item, sx, sy)
-        }
-
-        if (hoveredStack != null) {
-            hoveredOverlayItem = hoveredStack
-            setTooltipForNextFrame(font, hoveredStack, originalMouseX, originalMouseY)
         }
     }
 
@@ -447,9 +456,14 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         Render2D.drawBorder(context, measurements.x, measurements.y, measurements.overviewWidth, measurements.overviewHeight, Color(60, 60, 65))
         val activeSlot = (storageMenu as? StorageMenu.Page)?.storagePage
         val chestSlots = screen.menu.slots.take(screen.menu.rowCount * 9).drop(9)
+
         context.drawPages(scaledMouseX, scaledMouseY, activeSlot, chestSlots, mouseX, mouseY)
         context.drawScrollBar()
         context.drawPlayerInventory(scaledMouseX, scaledMouseY, mouseX, mouseY)
+
+        context.drawPagesDecorations(activeSlot, chestSlots)
+        context.drawPlayerInventoryDecorations()
+
         Resolution.pop(context)
         resetTooltip(prevHovered)
     }

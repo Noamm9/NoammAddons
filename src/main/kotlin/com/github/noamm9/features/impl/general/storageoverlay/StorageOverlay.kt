@@ -42,7 +42,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     private var currentMenu: StorageMenu? = null
     private var active: StorageOverlayScreen? = null
 
-    @JvmStatic @Volatile var inStorageTransition = false
+    @JvmField @Volatile var inStorageTransition = false
 
     @JvmStatic
     fun activeFor(screen: ContainerScreen) = active?.takeIf { it.containerScreen === screen }
