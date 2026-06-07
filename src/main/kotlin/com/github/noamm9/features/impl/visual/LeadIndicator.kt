@@ -31,6 +31,7 @@ object LeadIndicator : Feature("Shows a lead indicator for all Ender Dragons whe
     private const val ALPHA = 0.15
     private const val BASE_PROJECTILE_SPEED = 3.0
     private const val GRAVITY = 0.06
+    private const val maxTicks = 160
 
     private var cachedProjectileSpeed = BASE_PROJECTILE_SPEED
     @Volatile
@@ -66,7 +67,6 @@ object LeadIndicator : Feature("Shows a lead indicator for all Ender Dragons whe
 
         register<RenderWorldEvent> {
             val player = mc.player ?: return@register
-            if (!ArrowFix.isShortbow(player.mainHandItem)) return@register
             val eyePos = player.eyePosition
 
             cachedDragons.forEach { entity ->
@@ -118,13 +118,12 @@ object LeadIndicator : Feature("Shows a lead indicator for all Ender Dragons whe
 
     private fun calculateLead(playerPos: Vec3, target: EnderDragon, vP: Double): Vec3? {
         val targetPos = target.renderVec.add(0.0, target.bbHeight / 2.0, 0.0)
-        var targetVel = smoothedVelocities[target.id] ?: Vec3(
+        val targetVel = smoothedVelocities[target.id] ?: Vec3(
             target.x - target.xo,
             target.y - target.yo,
             target.z - target.zo
         )
 
-        val maxTicks = 160
         var currentArrowDist = 0.0
         var currentSpeed = vP
 
