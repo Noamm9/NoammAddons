@@ -2,12 +2,7 @@ package com.github.noamm9.utils.render
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.utils.ChatUtils.addColor
-import com.github.noamm9.utils.NumbersUtils.minus
-import com.github.noamm9.utils.NumbersUtils.plus
-import com.github.noamm9.utils.NumbersUtils.times
 import com.mojang.blaze3d.systems.RenderSystem
-import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.blaze3d.vertex.VertexConsumer
 import net.minecraft.client.gui.Font
 import net.minecraft.client.renderer.LightTexture
 import net.minecraft.client.renderer.MultiBufferSource
@@ -117,7 +112,7 @@ object Render3D {
         val innerR = (radiusVal - thicknessVal).coerceAtLeast(0.0)
         val outerR = radiusVal + thicknessVal
 
-        for (i in 0..segments) {
+        for (i in 0 .. segments) {
             val angle = i * (2.0 * Math.PI / segments)
             val c = cos(angle).toFloat()
             val s = sin(angle).toFloat()
@@ -159,7 +154,7 @@ object Render3D {
         val innerR = (radiusVal - thicknessVal).coerceAtLeast(0.0)
         val outerR = radiusVal + thicknessVal
 
-        for (i in 0..segments) {
+        for (i in 0 .. segments) {
             val angle = i * (2.0 * Math.PI / segments)
             val c = cos(angle).toFloat()
             val s = sin(angle).toFloat()
@@ -315,5 +310,4 @@ object Render3D {
         ctx.consumers.endBatch(RenderType.lines())
         ctx.matrixStack.popPose()
     }
-
 }

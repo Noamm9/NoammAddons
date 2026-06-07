@@ -35,8 +35,6 @@ object LeadIndicator : Feature("Shows a lead indicator for all Ender Dragons whe
     private const val ALPHA = 0.15
     private const val BASE_PROJECTILE_SPEED = 3.0
     private const val MAX_TICKS = 160
-    private val EGG_POS = Vec3(-672.5, 20.0, -275.5)
-    private val END_SPAWN_POS = Vec3(-672.5, 64.0, -275.5)
 
     private var cachedProjectileSpeed = BASE_PROJECTILE_SPEED
     @Volatile
