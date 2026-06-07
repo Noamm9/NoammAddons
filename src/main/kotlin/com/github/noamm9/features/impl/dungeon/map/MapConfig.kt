@@ -49,6 +49,7 @@ object MapConfig {
     //#endif
 
     val mapPlayerHeadColor = ColorSetting("Head Border", Color(0, 0, 0), true).section("Colors")
+    val mapVanillaMarkerColor = ColorSetting("Vanilla Head Marker", Color(0, 255, 0), true)
     val mapPlayerHeadColorClassBased = ToggleSetting("Head Border Class Base", false)
     val mapPlayerNameClassColorBased = ToggleSetting("Player Names Class Base", false)
 
@@ -82,12 +83,12 @@ object MapConfig {
             checkmarkSize, playerHeadScale, playerNameScale, mapBackground,
             mapBorderColor, mapBorderWidth, dungeonMapCheckmarkStyle, centerStyle,
             hideQuestionCheckmarks, limitRoomNameSize, highlightMimicRoom,
-            mapPlayerHeadColor, mapPlayerHeadColorClassBased, mapPlayerNameClassColorBased,
-            colorBlood, colorEntrance, colorFairy, colorMiniboss, colorRoom, colorPuzzle,
-            colorMimic, colorRare, colorTrap, colorUnopened, colorBloodDoor,
-            colorEntranceDoor, colorRoomDoor, colorWitherDoor, colorOpenWitherDoor,
-            colorUnopenedDoor, boxWitherDoors, witherDoorNoKeyColor, witherDoorKeyColor,
-            witherDoorFill
+            mapPlayerHeadColor, mapVanillaMarkerColor, mapPlayerHeadColorClassBased,
+            mapPlayerNameClassColorBased, colorBlood, colorEntrance, colorFairy,
+            colorMiniboss, colorRoom, colorPuzzle, colorMimic, colorRare, colorTrap,
+            colorUnopened, colorBloodDoor, colorEntranceDoor, colorRoomDoor,
+            colorWitherDoor, colorOpenWitherDoor, colorUnopenedDoor, boxWitherDoors,
+            witherDoorNoKeyColor, witherDoorKeyColor, witherDoorFill
         )
     }
 }
