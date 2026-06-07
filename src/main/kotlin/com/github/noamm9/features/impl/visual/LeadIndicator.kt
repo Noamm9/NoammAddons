@@ -72,6 +72,7 @@ object LeadIndicator: Feature("Shows a lead indicator for all Ender Dragons when
 
             for (id in cachedDragons) {
                 val dragon = mc.level?.getEntity(id) as? EnderDragon ?: continue
+                if (dragon.isDeadOrDying) continue
                 val leadPos = calculateLead(eyePos, dragon, cachedProjectileSpeed) ?: continue
 
                 val distance = eyePos.distanceTo(dragon.position())
@@ -95,6 +96,9 @@ object LeadIndicator: Feature("Shows a lead indicator for all Ender Dragons when
                         val scaledSize = indicatorSize.value * sqrt(distance / 50.0).coerceAtLeast(0.5)
 
                         Render3D.renderBillboardedCircle(event.ctx, leadPos, scaledSize, indicatorColor.value, indicatorThickness.value, phase = true)
+                    }
+                    if (dragon.state == WitherDragonState.DEAD) {
+                        dragon.entityId?.let { cachedDragons.remove(it) }
                     }
                 }
             }
