@@ -6,6 +6,8 @@ import com.github.noamm9.utils.NumbersUtils.minus
 import com.github.noamm9.utils.NumbersUtils.plus
 import com.github.noamm9.utils.NumbersUtils.times
 import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.PoseStack
+import com.mojang.blaze3d.vertex.VertexConsumer
 import net.minecraft.client.gui.Font
 import net.minecraft.client.renderer.LightTexture
 import net.minecraft.client.renderer.MultiBufferSource
@@ -96,12 +98,13 @@ object Render3D {
         phase: Boolean = false
     ) {
         val cameraPos = ctx.camera.position
-        val segments = (36 * radius).toInt()
+        val segments = (radius.toDouble() * 36).toInt().coerceAtLeast(32)
 
         ctx.matrixStack.pushPose()
-        ctx.matrixStack.translate(- cameraPos.x, - cameraPos.y, - cameraPos.z)
+        ctx.matrixStack.translate(center.x - cameraPos.x, center.y - cameraPos.y, center.z - cameraPos.z)
 
-        val buffer = ctx.consumers.getBuffer(if (phase) NoammRenderLayers.FILLED_THROUGH_WALLS else NoammRenderLayers.FILLED)
+        val layer = if (phase) NoammRenderLayers.FILLED_THROUGH_WALLS else NoammRenderLayers.FILLED
+        val buffer = ctx.consumers.getBuffer(layer)
 
         val r = color.red / 255f
         val g = color.green / 255f
@@ -109,50 +112,60 @@ object Render3D {
         val a = color.alpha / 255f
         val matrix = ctx.matrixStack.last().pose()
 
-        val size = thickness.toDouble() / 40.0
-        val innerR = radius - size
-        val outerR = radius + size
-        val bottomY = (center.y - size).toFloat()
-        val topY = (center.y + size).toFloat()
+        val thicknessVal = thickness.toDouble() / 40.0
+        val radiusVal = radius.toDouble()
+        val innerR = (radiusVal - thicknessVal).coerceAtLeast(0.0)
+        val outerR = radiusVal + thicknessVal
 
-        for (i in 0 until segments) {
-            val angle1 = i * (2.0 * Math.PI / segments)
-            val angle2 = (i + 1) * (2.0 * Math.PI / segments)
+        for (i in 0..segments) {
+            val angle = i * (2.0 * Math.PI / segments)
+            val c = cos(angle).toFloat()
+            val s = sin(angle).toFloat()
 
-            val c1 = cos(angle1).toFloat()
-            val s1 = sin(angle1).toFloat()
-            val c2 = cos(angle2).toFloat()
-            val s2 = sin(angle2).toFloat()
+            buffer.addVertex(matrix, (innerR * c).toFloat(), 0f, (innerR * s).toFloat()).setColor(r, g, b, a)
+            buffer.addVertex(matrix, (outerR * c).toFloat(), 0f, (outerR * s).toFloat()).setColor(r, g, b, a)
+        }
 
-            val x1Inner = (center.x + innerR * c1).toFloat()
-            val z1Inner = (center.z + innerR * s1).toFloat()
-            val x1Outer = (center.x + outerR * c1).toFloat()
-            val z1Outer = (center.z + outerR * s1).toFloat()
+        ctx.matrixStack.popPose()
+    }
 
-            val x2Inner = (center.x + innerR * c2).toFloat()
-            val z2Inner = (center.z + innerR * s2).toFloat()
-            val x2Outer = (center.x + outerR * c2).toFloat()
-            val z2Outer = (center.z + outerR * s2).toFloat()
+    fun renderBillboardedCircle(
+        ctx: RenderContext,
+        center: Vec3,
+        radius: Number,
+        color: Color,
+        thickness: Number = 2,
+        phase: Boolean = false
+    ) {
+        val camera = ctx.camera
+        val cameraPos = camera.position
+        val segments = (radius.toDouble() * 100).toInt().coerceAtLeast(64)
 
-            buffer.addVertex(matrix, x1Inner, topY, z1Inner).setColor(r, g, b, a)
-            buffer.addVertex(matrix, x1Outer, topY, z1Outer).setColor(r, g, b, a)
-            buffer.addVertex(matrix, x2Outer, topY, z2Outer).setColor(r, g, b, a)
-            buffer.addVertex(matrix, x2Inner, topY, z2Inner).setColor(r, g, b, a)
+        ctx.matrixStack.pushPose()
+        ctx.matrixStack.translate(center.x - cameraPos.x, center.y - cameraPos.y, center.z - cameraPos.z)
+        ctx.matrixStack.mulPose(camera.rotation())
 
-            buffer.addVertex(matrix, x1Outer, bottomY, z1Outer).setColor(r, g, b, a)
-            buffer.addVertex(matrix, x1Outer, topY, z1Outer).setColor(r, g, b, a)
-            buffer.addVertex(matrix, x2Outer, topY, z2Outer).setColor(r, g, b, a)
-            buffer.addVertex(matrix, x2Outer, bottomY, z2Outer).setColor(r, g, b, a)
+        val layer = if (phase) NoammRenderLayers.FILLED_THROUGH_WALLS else NoammRenderLayers.FILLED
+        val buffer = ctx.consumers.getBuffer(layer)
 
-            buffer.addVertex(matrix, x1Inner, bottomY, z1Inner).setColor(r, g, b, a)
-            buffer.addVertex(matrix, x1Inner, topY, z1Inner).setColor(r, g, b, a)
-            buffer.addVertex(matrix, x2Inner, topY, z2Inner).setColor(r, g, b, a)
-            buffer.addVertex(matrix, x2Inner, bottomY, z2Inner).setColor(r, g, b, a)
+        val r = color.red / 255f
+        val g = color.green / 255f
+        val b = color.blue / 255f
+        val a = color.alpha / 255f
+        val matrix = ctx.matrixStack.last().pose()
 
-            buffer.addVertex(matrix, x1Inner, bottomY, z1Inner).setColor(r, g, b, a)
-            buffer.addVertex(matrix, x1Outer, bottomY, z1Outer).setColor(r, g, b, a)
-            buffer.addVertex(matrix, x2Outer, bottomY, z2Outer).setColor(r, g, b, a)
-            buffer.addVertex(matrix, x2Inner, bottomY, z2Inner).setColor(r, g, b, a)
+        val thicknessVal = thickness.toDouble() / 40.0
+        val radiusVal = radius.toDouble()
+        val innerR = (radiusVal - thicknessVal).coerceAtLeast(0.0)
+        val outerR = radiusVal + thicknessVal
+
+        for (i in 0..segments) {
+            val angle = i * (2.0 * Math.PI / segments)
+            val c = cos(angle).toFloat()
+            val s = sin(angle).toFloat()
+
+            buffer.addVertex(matrix, (innerR * c).toFloat(), (innerR * s).toFloat(), 0f).setColor(r, g, b, a)
+            buffer.addVertex(matrix, (outerR * c).toFloat(), (outerR * s).toFloat(), 0f).setColor(r, g, b, a)
         }
 
         ctx.matrixStack.popPose()
@@ -302,4 +315,5 @@ object Render3D {
         ctx.consumers.endBatch(RenderType.lines())
         ctx.matrixStack.popPose()
     }
+
 }
