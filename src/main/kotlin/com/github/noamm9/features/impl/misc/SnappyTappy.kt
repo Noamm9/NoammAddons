@@ -2,6 +2,7 @@ package com.github.noamm9.features.impl.misc
 
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.features.impl.general.AutoHotbar
 import com.mojang.blaze3d.platform.InputConstants
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
 import net.minecraft.client.KeyMapping
@@ -15,6 +16,8 @@ object SnappyTappy: Feature("Prevents standing still when pressing opposing dire
 
     override fun init() {
         register<TickEvent.Start> {
+            if (AutoHotbar.isSwapping) return@register
+
             if (mc.screen != null) {
                 if (pressTicks.isNotEmpty()) {
                     movementKeys.forEach { it.isDown = false }
