@@ -7,13 +7,11 @@ import com.github.noamm9.event.impl.WebSocketEvent
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.GsonUtils
 import com.github.noamm9.utils.ThreadUtils
-import com.github.noamm9.utils.catch
 import com.github.noamm9.utils.network.WebUtils
 import io.ktor.client.plugins.timeout
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.websocket.Frame
-import io.ktor.websocket.close
 import io.ktor.websocket.readText
 import kotlinx.coroutines.*
 import java.lang.Runnable
@@ -29,7 +27,6 @@ object WebSocket {
     private var socketJob: Job? = null
 
     fun init() {
-        ThreadUtils.addShutdownHook(::shutdown)
         PacketRegistry.init()
         connect()
     }
@@ -73,12 +70,5 @@ object WebSocket {
                 ThreadUtils.setTimeout(30_000, ::connect)
             }
         }
-    }
-
-    private fun shutdown() = runBlocking {
-        catch { session?.close() }
-        catch { session?.cancel() }
-        catch { socketJob?.cancelAndJoin() }
-        worker.cancel()
     }
 }
