@@ -16,9 +16,9 @@ import kotlinx.coroutines.runBlocking
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import net.minecraft.nbt.NbtAccounter
 import net.minecraft.nbt.NbtIo
+import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Blocks
 import java.io.File
@@ -50,8 +50,6 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     )
 
     override fun init() {
-        ThreadUtils.addShutdownHook(::saveData)
-
         register<ContainerFullyOpenedEvent> {
             if (! LocationUtils.inSkyblock) return@register
             val screen = mc.screen as? ContainerScreen ?: return@register
