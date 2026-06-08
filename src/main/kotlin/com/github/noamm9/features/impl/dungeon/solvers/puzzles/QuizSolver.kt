@@ -4,6 +4,7 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.answerColor
+import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.highlightCorrect
 import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.quizTimer
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.DataDownloader
@@ -83,19 +84,27 @@ object QuizSolver {
 
         if (trimmed.startsWithOneOf("ⓐ", "ⓑ", "ⓒ")) {
             val optionChar = trimmed[0]
-            triviaAnswers?.firstOrNull { message.endsWith(it) }?.let { matchedAnswer ->
-                correctAnswer = "$optionChar $matchedAnswer"
+            if (!highlightCorrect.value) {
+                triviaAnswers?.firstOrNull { message.endsWith(it) }?.let { matchedAnswer ->
+                    correctAnswer = "$optionChar $matchedAnswer"
 
-                when (optionChar) {
-                    'ⓐ' -> triviaOptions[0].isCorrect = true
-                    'ⓑ' -> triviaOptions[1].isCorrect = true
-                    'ⓒ' -> triviaOptions[2].isCorrect = true
-                }
+                    when (optionChar) {
+                        'ⓐ' -> triviaOptions[0].isCorrect = true
+                        'ⓑ' -> triviaOptions[1].isCorrect = true
+                        'ⓒ' -> triviaOptions[2].isCorrect = true
+                    }
 
-                ThreadUtils.scheduledTaskServer(2) {
-                    ChatUtils.modMessage("&dQuizSolver &f> &aCorrect answer is: &b${"$optionChar $matchedAnswer"}")
+                    ThreadUtils.scheduledTaskServer(2) {
+                        ChatUtils.modMessage("&dQuizSolver &f> &aCorrect answer is: &b${"$optionChar $matchedAnswer"}")
+                    }
                 }
+            } else {
+                triviaAnswers?.firstOrNull { message.endsWith(it) }?.let { matchedAnswer ->
+                    correctAnswer = "$optionChar $matchedAnswer"
+                    event.modify("&a$message")
+                } ?: event.modify("&c$message")
             }
+
             return
         }
 

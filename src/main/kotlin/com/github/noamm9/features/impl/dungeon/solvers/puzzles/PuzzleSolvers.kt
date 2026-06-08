@@ -27,6 +27,7 @@ object PuzzleSolvers: Feature() {
 
     val quiz by ToggleSetting("Enabled   ").section("Quiz Solver")
     val answerColor by ColorSetting("Answer Color", Color.CYAN.withAlpha(128)).showIf { quiz.value }
+    val highlightCorrect by ToggleSetting("Highlight Correct", false).showIf { quiz.value }
     val quizTimer by ToggleSetting("Quiz Timer", true).showIf { quiz.value }
 
     val tpmaze by ToggleSetting("Enabled    ").section("Teleport Maze Solver")
