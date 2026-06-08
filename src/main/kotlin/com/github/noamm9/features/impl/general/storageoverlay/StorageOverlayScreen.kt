@@ -288,7 +288,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         }
 
         if (hoveredStack != null) {
-            hoveredOverlayItem = hoveredStack
+            if (isActive) hoveredOverlayItem = hoveredStack
             setTooltipForNextFrame(font, hoveredStack, originalMouseX, originalMouseY)
         }
 

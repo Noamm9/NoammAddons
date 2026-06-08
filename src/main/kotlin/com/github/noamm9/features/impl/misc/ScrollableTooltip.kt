@@ -36,9 +36,9 @@ object ScrollableTooltip: Feature("Allows you to scroll through long tooltips.")
 
     override fun init() {
         ScreenEvents.BEFORE_INIT.register { _, screen, _, _ ->
+            if (! enabled) return@register
             val containerScreen = screen as? AbstractContainerScreen<*> ?: return@register
             ScreenMouseEvents.afterMouseScroll(containerScreen).register { _, _, _, _, verticalAmount, _ ->
-                if (!enabled) return@register false
                 if (containerScreen is ContainerScreen && StorageOverlay.activeFor(containerScreen) != null) return@register false
                 val hoveredSlot = (containerScreen as IAbstractContainerScreen).hoveredSlot ?: return@register false
                 if (hoveredSlot.item.isEmpty) return@register false
@@ -47,8 +47,8 @@ object ScrollableTooltip: Feature("Allows you to scroll through long tooltips.")
                 val holdingShift = GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS
                 val holdingCtrl = GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_LEFT_CONTROL) == GLFW.GLFW_PRESS
 
-                if (holdingShift && !holdingCtrl) scrollAmountX -= scroll
-                else if (!holdingShift && holdingCtrl) scaleOverride += (verticalAmount / 10f).toFloat() * scaleSpeed.value.toFloat()
+                if (holdingShift && ! holdingCtrl) scrollAmountX -= scroll
+                else if (! holdingShift && holdingCtrl) scaleOverride += (verticalAmount / 10f).toFloat() * scaleSpeed.value.toFloat()
                 else scrollAmountY += scroll
 
                 true
