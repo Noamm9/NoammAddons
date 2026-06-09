@@ -58,5 +58,7 @@
   "wiz": "wizard",
   "wizard": "wizard",
   "wolf": "howl",
-  "zombie": "crypts"
+  "zombie": "crypts",
+  "nuc": "nucleus",
+  "nucleus": "nucleus"
 }
