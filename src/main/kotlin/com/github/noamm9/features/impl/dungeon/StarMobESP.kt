@@ -3,18 +3,23 @@ package com.github.noamm9.features.impl.dungeon
 import com.github.noamm9.event.impl.CheckEntityGlowEvent
 import com.github.noamm9.event.impl.EntityUnloadEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
+import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.*
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
+import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
+import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.location.LocationUtils.dungeonFloorNumber
 import com.github.noamm9.utils.location.LocationUtils.inBoss
+import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.RenderHelper.renderVec
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EquipmentSlot
@@ -27,6 +32,7 @@ import java.awt.Color
 
 object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
 
+    private val renderStyle by DropdownSetting("Render Style", 0, listOf("Glow", "Outline", "Filled", "Filled Outline"))
     private val espBats by ToggleSetting("Highlight Bats", true).withDescription("Highlights Bats in Dungeons.")
     private val espFels by ToggleSetting("Highlight Fels", false).withDescription("Highlights Fels, even when they are invisible.")
 
@@ -68,6 +74,7 @@ object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
         }
 
         register<CheckEntityGlowEvent> {
+            if (renderStyle.value != 0) return@register
             if (! LocationUtils.inDungeon || inBoss) return@register
 
             if (event.entity.id in starMobs) {
@@ -79,6 +86,53 @@ object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
                 event.color = it
             }
         }
+
+        register<RenderWorldEvent> {
+            if (renderStyle.value == 0) return@register
+            if (!LocationUtils.inDungeon || inBoss) return@register
+
+            val level = mc.level ?: return@register
+            val drawOutline = renderStyle.value.equalsOneOf(1, 3)
+            val drawFill = renderStyle.value.equalsOneOf(2, 3)
+
+            starMobs.mapNotNull(level::getEntity).forEach { entity ->
+                renderMobBox(event, entity, starMobColor.value, drawOutline, drawFill)
+            }
+
+            level.entitiesForRendering().forEach { entity ->
+                if (entity.id in starMobs) return@forEach
+                val color = getColor(entity) ?: return@forEach
+                renderMobBox(event, entity, color, drawOutline, drawFill)
+            }
+        }
+    }
+
+    private fun renderMobBox(event: RenderWorldEvent, entity: Entity, color: Color, outline: Boolean, fill: Boolean) {
+        if (!entity.isAlive) return
+        //#if CHEAT
+        //#else
+        //$ if (!mc.player!!.hasLineOfSight(entity)) return
+        //#endif
+
+        val pos = entity.renderVec
+
+        Render3D.renderBox(
+            event.ctx,
+            pos.x,
+            pos.y,
+            pos.z,
+            entity.bbWidth + 0.2,
+            entity.bbHeight + 0.2,
+            color,
+            color.withAlpha(50),
+            outline,
+            fill,
+            //#if CHEAT
+            phase = true
+            //#else
+            //$ phase = false
+            //#endif
+        )
     }
 
     private fun getColor(entity: Entity): Color? {
