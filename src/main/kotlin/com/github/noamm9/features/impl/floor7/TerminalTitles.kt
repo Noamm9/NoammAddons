@@ -18,7 +18,7 @@ import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket
 import java.awt.Color
 
-object TerminalTitles: Feature("Reformats the Terminal titles on P3.") {
+object TerminalTitles: Feature("Reformats the Terminal titles in P3.") {
     private val duration by SliderSetting("Duration", 2.5, 0.5, 6, 0.5).withDescription("Duration of the title in seconds")
     private val mode by DropdownSetting("Mode", 0, listOf("Name + Term + Progress", "Term + Progress", "Progress"))
     private val bracket by DropdownSetting("Bracket Type", 0, listOf("()", "[]", "<>", "{}"))
