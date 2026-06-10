@@ -27,6 +27,7 @@ object MapConfig {
     val printPlayersClearInfo = ToggleSetting("Player Clear Info", false)
     val playerNames = DropdownSetting("Show Player Names", 0, listOf("Off", "Holding Leap", "Always"))
     val mapVanillaMarker = ToggleSetting("Vanilla Head Marker", false)
+    val highlightOwnHead = ToggleSetting("Highlight Own Head", false)
 
     val textScale = SliderSetting("Map Text Scale", 1f, 0.4f, 1.5f, 0.1).section("Size")
     val checkmarkSize = SliderSetting("Map Checkmark Scale", 1f, 0.3f, 1.5f, 0.1f)
@@ -50,6 +51,7 @@ object MapConfig {
 
     val mapPlayerHeadColor = ColorSetting("Head Border", Color(0, 0, 0), true).section("Colors")
     val mapPlayerHeadColorClassBased = ToggleSetting("Head Border Class Base", false)
+    val ownHeadHighlightColor = ColorSetting("Own Head Highlight", Color(255, 255, 0), true).showIf { highlightOwnHead.value }
     val mapPlayerNameClassColorBased = ToggleSetting("Player Names Class Base", false)
 
     val colorBlood = ColorSetting("Blood Room", Color(178, 0, 0), true)
@@ -78,11 +80,12 @@ object MapConfig {
     fun setup(): Array<Setting<*>> {
         return arrayOf(
             mapEnabled, dungeonMapCheater, mapExtraInfo, mapHideInBoss,
-            printPlayersClearInfo, playerNames, mapVanillaMarker, textScale,
+            printPlayersClearInfo, playerNames, mapVanillaMarker, highlightOwnHead, textScale,
             checkmarkSize, playerHeadScale, playerNameScale, mapBackground,
             mapBorderColor, mapBorderWidth, dungeonMapCheckmarkStyle, centerStyle,
             hideQuestionCheckmarks, limitRoomNameSize, highlightMimicRoom,
-            mapPlayerHeadColor, mapPlayerHeadColorClassBased, mapPlayerNameClassColorBased,
+            mapPlayerHeadColor, mapPlayerHeadColorClassBased, ownHeadHighlightColor,
+            mapPlayerNameClassColorBased,
             colorBlood, colorEntrance, colorFairy, colorMiniboss, colorRoom, colorPuzzle,
             colorMimic, colorRare, colorTrap, colorUnopened, colorBloodDoor,
             colorEntranceDoor, colorRoomDoor, colorWitherDoor, colorOpenWitherDoor,
