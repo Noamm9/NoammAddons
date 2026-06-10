@@ -72,8 +72,14 @@ object MapConfig {
     val colorUnopenedDoor = ColorSetting("Unopened Door", colorUnopened.value, true)
 
     val boxWitherDoors = ToggleSetting("Box Wither Doors", true).section("Wither Door ESP")
-    val witherDoorNoKeyColor = ColorSetting("No Key Color", Color(255, 0, 0), false).showIf { boxWitherDoors.value }
-    val witherDoorKeyColor = ColorSetting("Has Key Color", Color(0, 255, 0), false).showIf { boxWitherDoors.value }
+    //#if CHEAT
+    val boxAllWitherDoors = ToggleSetting("Box All Wither Doors", false).showIf { boxWitherDoors.value }
+    //#else
+    //$val boxAllWitherDoors = ToggleSetting("Box All Wither Doors Legit", false).hideIf { true }
+    //#endif
+    val traceWitherDoors = ToggleSetting("Wither Door Tracer", false)
+    val witherDoorNoKeyColor = ColorSetting("No Key Color", Color(255, 0, 0), false).showIf { boxWitherDoors.value || traceWitherDoors.value }
+    val witherDoorKeyColor = ColorSetting("Has Key Color", Color(0, 255, 0), false).showIf { boxWitherDoors.value || traceWitherDoors.value }
     val witherDoorFill = SliderSetting("Door Fill Opacity", 40, 0, 100, 1).showIf { boxWitherDoors.value }
 
     fun setup(): Array<Setting<*>> {
@@ -88,7 +94,8 @@ object MapConfig {
             colorMiniboss, colorRoom, colorPuzzle, colorMimic, colorRare, colorTrap,
             colorUnopened, colorBloodDoor, colorEntranceDoor, colorRoomDoor,
             colorWitherDoor, colorOpenWitherDoor, colorUnopenedDoor, boxWitherDoors,
-            witherDoorNoKeyColor, witherDoorKeyColor, witherDoorFill
+            boxAllWitherDoors, traceWitherDoors, witherDoorNoKeyColor,
+            witherDoorKeyColor, witherDoorFill
         )
     }
 }
