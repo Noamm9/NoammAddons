@@ -1,6 +1,8 @@
 package com.github.noamm9.features.impl.general.storageoverlay
 
 import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.utils.items.ItemRarity
+import com.github.noamm9.utils.items.ItemUtils
 import net.minecraft.core.component.DataComponentPatch
 import net.minecraft.nbt.*
 import net.minecraft.world.item.ItemStack
@@ -10,6 +12,9 @@ import kotlin.io.encoding.Base64
 
 data class NBTInventory(val stacks: List<ItemStack>) {
     val rows = stacks.size / 9
+
+    /** Rarity per slot, computed once - the stacks are immutable, so [ItemUtils.getRarity] need not run every frame. */
+    val rarities: List<ItemRarity> by lazy(LazyThreadSafetyMode.NONE) { stacks.map(ItemUtils::getRarity) }
 
     fun encode(): String {
         val registryAccess = getRegistryAccess()

@@ -44,3 +44,7 @@ replay_*.log
 /.kotlin
 *.salive
 /logs
+
+# local notes / specs (never committed)
+docs/
+*.sparkprofile

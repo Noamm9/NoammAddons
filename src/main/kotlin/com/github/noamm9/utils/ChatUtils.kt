@@ -141,7 +141,7 @@ object ChatUtils {
     fun chat(msg: Any?) = ThreadUtils.runOnMcThread { mc.gui?.chat?.addMessage(Component.literal(msg.toString().addColor())) }
     fun chat(comp: Component) = ThreadUtils.runOnMcThread { mc.gui?.chat?.addMessage(comp) }
 
-    fun String.addColor() = replace("&", "§")
+    fun String.addColor() = if ('&' in this) replace("&", "§") else this // skip the scan+alloc when there is nothing to convert (hot path: per-line text drawn every frame)
 
     val Component.unformattedText get() = string.removeFormatting()
     val Component.formattedText get() = formatted(this)

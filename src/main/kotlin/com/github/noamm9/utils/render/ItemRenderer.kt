@@ -26,54 +26,7 @@ class ItemRenderer(vertexConsumers: MultiBufferSource.BufferSource): PictureInPi
     private var lastRenderAtNanos = System.nanoTime()
 
     override fun renderToTexture(itemState: ItemState, poseStack: PoseStack) {
-        val dispatcher = mc.gameRenderer.featureRenderDispatcher
-        val guiScale = mc.window.guiScale
-        val guiPose = PoseStack()
-
-        fun renderItem(item: GuiItemRenderState) {
-            guiPose.pushPose()
-            guiPose.last().pose().mul(Matrix4f(
-                item.pose().m00(), item.pose().m10(), 0f, 0f,
-                item.pose().m01(), item.pose().m11(), 0f, 0f,
-                0f, 0f, 1f, 0f,
-                item.pose().m20(), item.pose().m21(), 0f, 1f
-            ))
-            guiPose.translate((item.x() + 8.0) * guiScale, (item.y() + 8.0) * guiScale, 150.0)
-            guiPose.scale(16f * guiScale, - 16f * guiScale, 16f * guiScale)
-            item.itemStackRenderState().submit(guiPose, dispatcher.submitNodeStorage, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, 0)
-            guiPose.popPose()
-        }
-
-        var hasBlocks = false
-        for (i in itemState.items.indices) {
-            val item = itemState.items[i]
-            if (! item.itemStackRenderState().usesBlockLight()) continue
-
-            if (! hasBlocks) {
-                mc.gameRenderer.lighting.setupFor(Lighting.Entry.ITEMS_3D)
-                hasBlocks = true
-            }
-
-            renderItem(item)
-        }
-
-        if (hasBlocks) dispatcher.renderAllFeatures()
-
-        var hasItems = false
-        for (i in itemState.items.indices) {
-            val item = itemState.items[i]
-            if (item.itemStackRenderState().usesBlockLight()) continue
-
-            if (! hasItems) {
-                mc.gameRenderer.lighting.setupFor(Lighting.Entry.ITEMS_FLAT)
-                hasItems = true
-            }
-
-            renderItem(item)
-        }
-
-        if (hasItems) dispatcher.renderAllFeatures()
-
+        renderItems(itemState.items)
         lastRenderAtNanos = System.nanoTime()
     }
 
@@ -98,11 +51,74 @@ class ItemRenderer(vertexConsumers: MultiBufferSource.BufferSource): PictureInPi
         private const val FRAME_INTERVAL_NANOS = 1_000_000_000L / TARGET_FPS
         private val batchList = mutableListOf<GuiItemRenderState>()
 
+        /**
+         * Caches the resolved item model per stack so [net.minecraft.client.renderer.item.ItemModelResolver.updateForTopItem]
+         * (full model resolution) runs only when a slot's stack actually changes, instead of every frame for every visible
+         * item - the hot path behind storage-overlay frame drops. Keyed by identity ([ItemStack] has no value equals/hashCode):
+         * a replaced stack misses and re-resolves, and unreferenced stacks are evicted automatically. The GPU texture render
+         * is already throttled to [TARGET_FPS] via [textureIsReadyToBlit]; this removes the remaining per-frame CPU cost.
+         */
+        private class Resolved(val state: TrackingItemStackRenderState, val label: String)
+        private val resolveCache = java.util.WeakHashMap<ItemStack, Resolved>()
+
+        /** Resolves [item]'s model (cached) and builds a GUI render state at (x, y) using the current pose/scissor, or null if empty. */
+        fun prepareItem(ctx: GuiGraphics, item: ItemStack, x: Int, y: Int): GuiItemRenderState? {
+            if (item.isEmpty) return null
+            val resolved = resolveCache.getOrPut(item) {
+                val state = TrackingItemStackRenderState()
+                mc.itemModelResolver.updateForTopItem(state, item, ItemDisplayContext.GUI, mc.level, mc.player, 0)
+                Resolved(state, item.item.name.string)
+            }
+            return GuiItemRenderState(resolved.label, Matrix3x2f(ctx.pose()), resolved.state, x, y, ctx.scissorStack.peek())
+        }
+
         fun drawBatchedItemStack(ctx: GuiGraphics, item: ItemStack, x: Int, y: Int) {
-            if (item.isEmpty) return
-            val tracking = TrackingItemStackRenderState()
-            mc.itemModelResolver.updateForTopItem(tracking, item, ItemDisplayContext.GUI, mc.level, mc.player, 0)
-            batchList.add(GuiItemRenderState(item.item.name.string, Matrix3x2f(ctx.pose()), tracking, x, y, ctx.scissorStack.peek()))
+            batchList.add(prepareItem(ctx, item, x, y) ?: return)
+        }
+
+        /** Shared item-model render loop used by the PIP renderers - submits each item's model to the feature dispatcher. */
+        fun renderItems(items: List<GuiItemRenderState>) {
+            val dispatcher = mc.gameRenderer.featureRenderDispatcher
+            val guiScale = mc.window.guiScale
+            val guiPose = PoseStack()
+
+            fun renderItem(item: GuiItemRenderState) {
+                guiPose.pushPose()
+                guiPose.last().pose().mul(Matrix4f(
+                    item.pose().m00(), item.pose().m10(), 0f, 0f,
+                    item.pose().m01(), item.pose().m11(), 0f, 0f,
+                    0f, 0f, 1f, 0f,
+                    item.pose().m20(), item.pose().m21(), 0f, 1f
+                ))
+                guiPose.translate((item.x() + 8.0) * guiScale, (item.y() + 8.0) * guiScale, 150.0)
+                guiPose.scale(16f * guiScale, - 16f * guiScale, 16f * guiScale)
+                item.itemStackRenderState().submit(guiPose, dispatcher.submitNodeStorage, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, 0)
+                guiPose.popPose()
+            }
+
+            var hasBlocks = false
+            for (i in items.indices) {
+                val item = items[i]
+                if (! item.itemStackRenderState().usesBlockLight()) continue
+                if (! hasBlocks) {
+                    mc.gameRenderer.lighting.setupFor(Lighting.Entry.ITEMS_3D)
+                    hasBlocks = true
+                }
+                renderItem(item)
+            }
+            if (hasBlocks) dispatcher.renderAllFeatures()
+
+            var hasItems = false
+            for (i in items.indices) {
+                val item = items[i]
+                if (item.itemStackRenderState().usesBlockLight()) continue
+                if (! hasItems) {
+                    mc.gameRenderer.lighting.setupFor(Lighting.Entry.ITEMS_FLAT)
+                    hasItems = true
+                }
+                renderItem(item)
+            }
+            if (hasItems) dispatcher.renderAllFeatures()
         }
 
         fun endItemRendererBatch(ctx: GuiGraphics) {

@@ -5,16 +5,17 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.items.ItemRarity
 import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.items.ItemUtils.customData
 import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.render.FastFill
 import com.github.noamm9.utils.render.Render2D
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.network.chat.Component
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.component.CustomData
+import java.awt.Color
 import kotlin.jvm.optionals.getOrDefault
 import kotlin.jvm.optionals.getOrNull
 
@@ -77,14 +78,47 @@ object FEAT_ItemRarity: Feature(name = "Item Rarity", description = "Draws the r
 
         val rarity = ItemUtils.getRarity(stack)
         if (rarity == ItemRarity.NONE) return
-        val color = rarity.color.withAlpha(rarityOpacity.value / 100)
+        // Build the ARGB int directly instead of allocating a Color per item per frame (hot path in storage overlays).
+        val base = rarity.color
+        val alpha = (255 * rarityOpacity.value / 100f).toInt().coerceIn(0, 255)
+        val argb = (alpha shl 24) or (base.rgb and 0xFFFFFF)
 
         when (style.value) {
-            0 -> ctx.fill(x, y, x + 16, y + 16, color.rgb)
-            1 -> Render2D.drawBorder(ctx, x, y, 16, 16, color)
+            0 -> ctx.fill(x, y, x + 16, y + 16, argb)
+            1 -> Render2D.drawBorder(ctx, x, y, 16, 16, Color(argb, true))
             2 -> {
-                ctx.fill(x, y, x + 16, y + 16, color.rgb)
-                Render2D.drawBorder(ctx, x, y, 16, 16, rarity.color)
+                ctx.fill(x, y, x + 16, y + 16, argb)
+                Render2D.drawBorder(ctx, x, y, 16, 16, base)
+            }
+        }
+    }
+
+    /**
+     * Same as [onSlotDraw] but routes the rects into [FastFill] instead of issuing individual `GuiGraphics.fill`
+     * calls. Used by the storage overlay, which draws hundreds of slots per frame - batching keeps it to a single
+     * render state. Caller is responsible for flushing the batch.
+     */
+    @JvmStatic
+    fun drawRarity(stack: ItemStack?, x: Int, y: Int) {
+        if (stack == null) return
+        drawRarity(ItemUtils.getRarity(stack), x, y)
+    }
+
+    /** Like [drawRarity] above but takes an already-resolved [rarity] (the storage overlay pre-computes it per page). */
+    @JvmStatic
+    fun drawRarity(rarity: ItemRarity, x: Int, y: Int) {
+        if (! LocationUtils.inSkyblock) return
+        if (rarity == ItemRarity.NONE) return
+        val base = rarity.color
+        val alpha = (255 * rarityOpacity.value / 100f).toInt().coerceIn(0, 255)
+        val argb = (alpha shl 24) or (base.rgb and 0xFFFFFF)
+
+        when (style.value) {
+            0 -> FastFill.add(x, y, x + 16, y + 16, argb)
+            1 -> FastFill.addBorder(x, y, 16, 16, 1, argb)
+            2 -> {
+                FastFill.add(x, y, x + 16, y + 16, argb)
+                FastFill.addBorder(x, y, 16, 16, 1, base.rgb)
             }
         }
     }

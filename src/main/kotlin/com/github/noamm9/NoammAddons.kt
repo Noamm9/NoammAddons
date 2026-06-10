@@ -10,6 +10,7 @@ import com.github.noamm9.utils.*
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.render.ItemRenderer
 import com.github.noamm9.utils.render.NoammRenderPipelines
+import com.github.noamm9.utils.render.CachedItemRenderer
 import com.github.noamm9.websocket.WebSocket
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -61,6 +62,7 @@ object NoammAddons: ClientModInitializer {
         NoammRenderPipelines.init()
 
         SpecialGuiElementRegistry.register { ItemRenderer(it.vertexConsumers()) }
+        SpecialGuiElementRegistry.register { CachedItemRenderer(it.vertexConsumers()) }
 
         EventDispatcher.init()
         DungeonListener.init()

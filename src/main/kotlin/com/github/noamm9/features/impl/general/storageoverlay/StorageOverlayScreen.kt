@@ -8,9 +8,11 @@ import com.github.noamm9.features.impl.misc.InventorySearch
 import com.github.noamm9.features.impl.misc.ScrollableTooltip
 import com.github.noamm9.mixin.IAbstractContainerScreen
 import com.github.noamm9.ui.utils.Resolution
-import com.github.noamm9.utils.ColorUtils.withAlpha
+import com.github.noamm9.utils.items.ItemUtils
+import com.github.noamm9.utils.render.FastFill
 import com.github.noamm9.utils.render.ItemRenderer
 import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.CachedItemRenderer
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
@@ -38,6 +40,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         const val SCROLL_BAR_HEIGHT = 16
         const val PLAYER_WIDTH = SLOT_SIZE * 9 + 6
         const val PLAYER_HEIGHT = SLOT_SIZE * 4 + 18
+        const val HOVER_ARGB = (50 shl 24) or 0xFFFFFF // white @ alpha 50, batched without allocating a Color
 
         var lastRenderedInnerHeight = 0
         var scroll: Float = 0f
@@ -55,6 +58,12 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     private var pageWidthCount = StorageOverlay.columnsSetting.value
     private var knobGrabbed = false
     private var hoveredOverlayItem: ItemStack? = null
+
+    // Inputs of the last init(): re-init only when one of these changes instead of every frame (init rebuilds the whole layout).
+    private var lastInitW = - 1
+    private var lastInitH = - 1
+    private var lastInitColumns = Int.MIN_VALUE
+    private var lastInitMaxHeight = Int.MIN_VALUE
 
     var containerScreen: ContainerScreen? = null
     var pendingCenterPage: StoragePage? = null
@@ -125,7 +134,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             drawPage(x, y, page, inventory, if (excluding == page) slots else null, mouseX, mouseY, originalMouseX, originalMouseY)
         }
 
-        ItemRenderer.endItemRendererBatch(this)
+        FastFill.flush(this)
+        CachedItemRenderer.flush(this)
 
         layoutedForEach(data) { x, y, _, ph, page, inventory ->
             if (y + ph < viewTop || y > viewBottom) return@layoutedForEach
@@ -141,7 +151,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
                 val slotY = (index / 9) * SLOT_SIZE + slotsY + 1
                 if (slotY + 16 < viewTop || slotY > viewBottom) continue
                 val displayStack = if (excluding == page && slots != null && index < slots.size) slots[index].item else invStacks?.get(index) ?: continue
-                if (! displayStack.isEmpty) renderItemDecorations(mc.font, displayStack, slotX, slotY)
+                if (! displayStack.isEmpty && (displayStack.count != 1 || displayStack.isBarVisible)) renderItemDecorations(mc.font, displayStack, slotX, slotY)
             }
         }
 
@@ -174,17 +184,17 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         return null
     }
 
-    private fun GuiGraphics.drawSlotGrid(x: Int, y: Int, rows: Int) {
+    private fun drawSlotGrid(x: Int, y: Int, rows: Int) {
         val w = 9 * SLOT_SIZE
         val h = rows * SLOT_SIZE
-        fill(x, y, x + w, y + h, slotCellBg)
+        FastFill.add(x, y, x + w, y + h, slotCellBg)
         for (col in 0 .. 9) {
             val lx = x + col * SLOT_SIZE
-            fill(lx, y, lx + 1, y + h, slotCellBorder)
+            FastFill.add(lx, y, lx + 1, y + h, slotCellBorder)
         }
         for (row in 0 .. rows) {
             val ly = y + row * SLOT_SIZE
-            fill(x, ly, x + w, ly + 1, slotCellBorder)
+            FastFill.add(x, ly, x + w, ly + 1, slotCellBorder)
         }
     }
 
@@ -203,9 +213,9 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             val isSlotHovered = inRect(mouseX, mouseY, sx, sy, 16, 16)
 
             if (! item.isEmpty) {
-                if (FEAT_ItemRarity.enabled) FEAT_ItemRarity.onSlotDraw(this, item, sx, sy)
+                if (FEAT_ItemRarity.enabled) FEAT_ItemRarity.drawRarity(item, sx, sy)
                 if (InventorySearch.matches(item)) {
-                    Render2D.drawRect(this, sx, sy, 16, 16, InventorySearch.color)
+                    FastFill.add(sx, sy, sx + 16, sy + 16, InventorySearch.color.rgb)
                 }
 
                 ItemRenderer.drawBatchedItemStack(this, item, sx, sy)
@@ -213,15 +223,16 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
                 if (hoveredStack == null && isSlotHovered) hoveredStack = item
             }
 
-            if (isSlotHovered) Render2D.drawRect(this, sx, sy, 16, 16, Color.white.withAlpha(50))
+            if (isSlotHovered) FastFill.add(sx, sy, sx + 16, sy + 16, HOVER_ARGB)
         }
 
+        FastFill.flush(this)
         ItemRenderer.endItemRendererBatch(this)
 
         for (i in 0 until 36) {
             val item = items[i]
             val (sx, sy) = getPlayerInvSlotPos(i)
-            if (! item.isEmpty) renderItemDecorations(mc.font, item, sx, sy)
+            if (! item.isEmpty && (item.count != 1 || item.isBarVisible)) renderItemDecorations(mc.font, item, sx, sy)
         }
 
         if (hoveredStack != null) {
@@ -274,19 +285,22 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             val isSlotHovered = inRect(mouseX, mouseY, slotX, slotY, 16, 16) && inRect(mouseX, mouseY, panelX, panelY, panelW, panelH)
 
             if (! displayStack.isEmpty) {
-                if (FEAT_ItemRarity.enabled) FEAT_ItemRarity.onSlotDraw(this, displayStack, slotX, slotY)
+                if (FEAT_ItemRarity.enabled) {
+                    val rarity = inventory?.rarities?.getOrNull(index) ?: ItemUtils.getRarity(displayStack)
+                    FEAT_ItemRarity.drawRarity(rarity, slotX, slotY)
+                }
                 if (InventorySearch.matches(displayStack)) {
-                    Render2D.drawRect(this, slotX, slotY, 16, 16, InventorySearch.color)
+                    FastFill.add(slotX, slotY, slotX + 16, slotY + 16, InventorySearch.color.rgb)
                 }
 
-                ItemRenderer.drawBatchedItemStack(this, displayStack, slotX, slotY)
+                CachedItemRenderer.add(this, displayStack, slotX, slotY)
 
                 if (isSlotHovered && hoveredStack == null) {
                     hoveredStack = displayStack
                 }
             }
 
-            if (isSlotHovered) Render2D.drawRect(this, slotX, slotY, 16, 16, Color.white.withAlpha(50))
+            if (isSlotHovered) FastFill.add(slotX, slotY, slotX + 16, slotY + 16, HOVER_ARGB)
         }
 
         if (hoveredStack != null) {
@@ -425,7 +439,14 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     fun updateBounds() {
         val screen = containerScreen ?: return
         val scale = StorageOverlay.scaleSetting.value
-        init((Resolution.width / scale).toInt(), (Resolution.height / scale).toInt())
+        val w = (Resolution.width / scale).toInt()
+        val h = (Resolution.height / scale).toInt()
+        val columns = StorageOverlay.columnsSetting.value
+        val maxHeight = StorageOverlay.maxHeightSetting.value
+        if (w != lastInitW || h != lastInitH || columns != lastInitColumns || maxHeight != lastInitMaxHeight) {
+            lastInitW = w; lastInitH = h; lastInitColumns = columns; lastInitMaxHeight = maxHeight
+            init(w, h)
+        }
         val accessor = screen as IAbstractContainerScreen
         accessor.setLeftPos(0)
         accessor.setTopPos(0)
