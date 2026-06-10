@@ -52,6 +52,7 @@ object MapConfig {
     val mapPlayerHeadColor = ColorSetting("Head Border", Color(0, 0, 0), true).section("Colors")
     val mapPlayerHeadColorClassBased = ToggleSetting("Head Border Class Base", false)
     val ownHeadHighlightColor = ColorSetting("Own Head Highlight", Color(255, 255, 0), true).showIf { highlightOwnHead.value }
+    val ownHeadHighlightThickness = SliderSetting("Own Head Highlight Thickness", 2, 1, 5, 1).showIf { highlightOwnHead.value }
     val mapPlayerNameClassColorBased = ToggleSetting("Player Names Class Base", false)
 
     val colorBlood = ColorSetting("Blood Room", Color(178, 0, 0), true)
@@ -85,7 +86,7 @@ object MapConfig {
             mapBorderColor, mapBorderWidth, dungeonMapCheckmarkStyle, centerStyle,
             hideQuestionCheckmarks, limitRoomNameSize, highlightMimicRoom,
             mapPlayerHeadColor, mapPlayerHeadColorClassBased, ownHeadHighlightColor,
-            mapPlayerNameClassColorBased,
+            ownHeadHighlightThickness, mapPlayerNameClassColorBased,
             colorBlood, colorEntrance, colorFairy, colorMiniboss, colorRoom, colorPuzzle,
             colorMimic, colorRare, colorTrap, colorUnopened, colorBloodDoor,
             colorEntranceDoor, colorRoomDoor, colorWitherDoor, colorOpenWitherDoor,

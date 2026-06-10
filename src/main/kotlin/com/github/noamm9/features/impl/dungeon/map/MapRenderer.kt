@@ -315,7 +315,10 @@ object MapRenderer: HudElement() {
         ctx.pose().scale(MapConfig.playerHeadScale.value)
 
         if (MapConfig.highlightOwnHead.value && teammate == DungeonListener.thePlayer) {
-            Render2D.drawBorder(ctx, - 9, - 9, 18, 18, MapConfig.ownHeadHighlightColor.value, 2)
+            val thickness = MapConfig.ownHeadHighlightThickness.value
+            val size = 14 + thickness * 2
+            val offset = - 7 - thickness
+            Render2D.drawBorder(ctx, offset, offset, size, size, MapConfig.ownHeadHighlightColor.value, thickness)
         }
 
         if (MapConfig.mapVanillaMarker.value && teammate == DungeonListener.thePlayer) {
