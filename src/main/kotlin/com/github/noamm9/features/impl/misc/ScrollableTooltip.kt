@@ -11,7 +11,7 @@ import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import org.lwjgl.glfw.GLFW
 
 object ScrollableTooltip: Feature("Allows you to scroll through long tooltips.") {
-    val scale by SliderSetting("Tooltip Scale", 100, 30, 150, 0.1).withDescription("how fast the tooltip scrolls")
+    val scale by SliderSetting("Tooltip Scale", 100, 30, 150, 0.1).withDescription("the size of the tooltip")
     internal val scrollSpeed by SliderSetting("Scroll Speed", 3, 1, 10, 1).withDescription("how fast the tooltip scrolls")
     internal val scaleSpeed by SliderSetting("Scale Speed", 3, 1, 10, 1).withDescription("how fast the tooltip scales")
 
