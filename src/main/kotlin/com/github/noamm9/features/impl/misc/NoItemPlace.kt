@@ -30,7 +30,8 @@ object NoItemPlace: Feature("Stops you from placing skull blocks/items.") {
             id.endsWithOneOf(
                 "_TUBA",
                 "_POWER_ORB",
-                "_POCKET_BLACK_HOLE"
+                "_POCKET_BLACK_HOLE",
+                "_FISHING_NET"
             ) -> true
 
             else -> id.equalsOneOf(
