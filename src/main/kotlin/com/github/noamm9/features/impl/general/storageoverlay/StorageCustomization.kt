@@ -39,18 +39,38 @@ object StorageCustomization {
     private fun customization(index: Int): PageCustomization = data.getOrPut(index) { PageCustomization() }
     private fun peek(index: Int): PageCustomization? = data[index]
 
-    fun nameFor(page: StoragePage): String = peek(page.index)?.name?.takeIf { it.isNotBlank() } ?: page.name
-    fun colorFor(index: Int): Color = peek(index)?.color?.let { Color(it) } ?: ClickGui.accsentColor.value
-    fun alwaysBorderFor(index: Int): Boolean = peek(index)?.alwaysBorder == true
-    fun alwaysNameFor(index: Int): Boolean = peek(index)?.alwaysName == true
+    // The getters run per page per frame; this snapshots the store lookup + name fallback + Color allocation per
+    // page, rebuilt lazily after a setter touches that page. color stays null when following the accent color so
+    // the fallback tracks accent changes live.
+    private class Resolved(val name: String, val color: Color?, val alwaysBorder: Boolean, val alwaysName: Boolean)
 
-    private fun setName(index: Int, name: String) { customization(index).name = name; save() }
-    private fun setColor(index: Int, color: Color) { customization(index).color = color.rgb and 0xFFFFFF; save() }
-    private fun setAlwaysBorder(index: Int, value: Boolean) { customization(index).alwaysBorder = value; save() }
-    private fun setAlwaysName(index: Int, value: Boolean) { customization(index).alwaysName = value; save() }
-    private fun reset(index: Int) { data.remove(index); save() }
+    private val resolved = arrayOfNulls<Resolved>(27)
 
-    fun save() = store.save()
+    private fun resolved(index: Int): Resolved = resolved[index] ?: run {
+        val c = peek(index)
+        Resolved(
+            c?.name?.takeIf { it.isNotBlank() } ?: StoragePage(index).name,
+            c?.color?.let { Color(it) },
+            c?.alwaysBorder == true,
+            c?.alwaysName == true
+        ).also { resolved[index] = it }
+    }
+
+    fun nameFor(page: StoragePage): String = resolved(page.index).name
+    fun colorFor(index: Int): Color = resolved(index).color ?: ClickGui.accsentColor.value
+    fun alwaysBorderFor(index: Int): Boolean = resolved(index).alwaysBorder
+    fun alwaysNameFor(index: Int): Boolean = resolved(index).alwaysName
+
+    private fun setName(index: Int, name: String) { customization(index).name = name; save(index) }
+    private fun setColor(index: Int, color: Color) { customization(index).color = color.rgb and 0xFFFFFF; save(index) }
+    private fun setAlwaysBorder(index: Int, value: Boolean) { customization(index).alwaysBorder = value; save(index) }
+    private fun setAlwaysName(index: Int, value: Boolean) { customization(index).alwaysName = value; save(index) }
+    private fun reset(index: Int) { data.remove(index); save(index) }
+
+    private fun save(index: Int) {
+        resolved[index] = null
+        store.save()
+    }
 
     /** Appends the customization accordion (top header -> 27 page headers -> per-page fields). */
     fun buildSettings(feature: Feature) {
