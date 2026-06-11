@@ -33,12 +33,23 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
     private var expressionResult: Double? = null
 
     val color get() = highlightColor.value
+    val searching get() = searchQuery.isNotBlank()
 
     fun matches(stack: ItemStack): Boolean {
         if (searchQuery.isBlank() || stack.isEmpty) return false
         val name = stack.hoverName.unformattedText.contains(searchQuery, ignoreCaps.value)
         val lore = searchLore.value && stack.lore.any { it.removeFormatting().contains(searchQuery, ignoreCaps.value) }
         return name || lore
+    }
+
+    /**
+     * Like [matches] but against pre-extracted text - the storage overlay prebuilds name/lore per slot once
+     * (stacks there are immutable), instead of rebuilding the strings for every visible item every frame while typing.
+     */
+    fun matches(name: String, lore: String): Boolean {
+        if (searchQuery.isBlank()) return false
+        if (name.contains(searchQuery, ignoreCaps.value)) return true
+        return searchLore.value && lore.contains(searchQuery, ignoreCaps.value)
     }
 
     private const val WIDTH = 200f

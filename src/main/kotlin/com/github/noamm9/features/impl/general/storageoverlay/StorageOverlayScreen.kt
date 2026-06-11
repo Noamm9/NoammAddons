@@ -56,6 +56,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     private val slotCellBorder = Color(55, 55, 60).rgb
     private val scrollBgColor = Color(30, 30, 35, 180)
     private val scrollKnobColor = Color(120, 120, 130)
+    private val placeholderTextColor = Color(180, 180, 180)
 
     var isExiting = false
     private var pageWidthCount = StorageOverlay.columnsSetting.value
@@ -188,20 +189,17 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         Render2D.drawRect(this, scrollBarX, knobY, SCROLL_BAR_WIDTH, SCROLL_BAR_HEIGHT, scrollKnobColor)
     }
 
-    private fun getPlayerInvSlotPos(index: Int): Pair<Int, Int> {
-        val slotsWidth = 9 * SLOT_SIZE
-        val baseX = measurements.playerX + (PLAYER_WIDTH - slotsWidth) / 2 - SLOT_SIZE / 2 + 1
+    // x/y computed separately to avoid boxing a Pair per slot per frame (~72 calls/frame across the two loops).
+    private fun playerInvSlotX(index: Int) = measurements.playerX + (PLAYER_WIDTH - 9 * SLOT_SIZE) / 2 - SLOT_SIZE / 2 + 1 + (index % 9) * SLOT_SIZE
+
+    private fun playerInvSlotY(index: Int): Int {
         val baseY = measurements.playerY + 8
-        if (index < 9) {
-            return Pair(baseX + index * SLOT_SIZE, baseY + 3 * SLOT_SIZE + 4)
-        }
-        return Pair(baseX + (index % 9) * SLOT_SIZE, baseY + (index / 9 - 1) * SLOT_SIZE)
+        return if (index < 9) baseY + 3 * SLOT_SIZE + 4 else baseY + (index / 9 - 1) * SLOT_SIZE
     }
 
     private fun getPlayerInvIndex(mouseX: Int, mouseY: Int): Int? {
         for (index in 0 until 36) {
-            val (slotX, slotY) = getPlayerInvSlotPos(index)
-            if (inRect(mouseX, mouseY, slotX, slotY, 17, 17)) return index
+            if (inRect(mouseX, mouseY, playerInvSlotX(index), playerInvSlotY(index), 17, 17)) return index
         }
         return null
     }
@@ -222,8 +220,10 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
     private fun GuiGraphics.drawPlayerInventory(mouseX: Int, mouseY: Int, originalMouseX: Int, originalMouseY: Int) {
         val items = mc.player?.inventory?.nonEquipmentItems ?: return
-        val (invX, invY) = getPlayerInvSlotPos(9)
-        val (hotX, hotY) = getPlayerInvSlotPos(0)
+        val invX = playerInvSlotX(9)
+        val invY = playerInvSlotY(9)
+        val hotX = playerInvSlotX(0)
+        val hotY = playerInvSlotY(0)
         var hoveredStack: ItemStack? = null
 
         drawSlotGrid(invX - 1, invY - 1, 3)
@@ -231,7 +231,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
         for (i in 0 until 36) {
             val item = items[i]
-            val (sx, sy) = getPlayerInvSlotPos(i)
+            val sx = playerInvSlotX(i)
+            val sy = playerInvSlotY(i)
             val isSlotHovered = inRect(mouseX, mouseY, sx, sy, 16, 16)
 
             if (! item.isEmpty) {
@@ -253,8 +254,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
         for (i in 0 until 36) {
             val item = items[i]
-            val (sx, sy) = getPlayerInvSlotPos(i)
-            if (! item.isEmpty && (item.count != 1 || item.isBarVisible)) renderItemDecorations(mc.font, item, sx, sy)
+            if (! item.isEmpty && (item.count != 1 || item.isBarVisible)) renderItemDecorations(mc.font, item, playerInvSlotX(i), playerInvSlotY(i))
         }
 
         if (hoveredStack != null) {
@@ -268,12 +268,11 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             val placeholderBorder = if (StorageCustomization.alwaysBorderFor(page.index)) StorageCustomization.colorFor(page.index) else menuBorderColor
             Render2D.drawRect(this, x, y, PAGE_WIDTH, 18, slotBgColor)
             Render2D.drawBorder(this, x, y, PAGE_WIDTH, 18, placeholderBorder)
-            Render2D.drawString(this, StorageCustomization.nameFor(page) + " - Click to load", x + 4f, y + 5f, Color(180, 180, 180))
+            Render2D.drawString(this, StorageCustomization.placeholderTextFor(page), x + 4f, y + 5f, placeholderTextColor)
             return 18
         }
         val rows = inventory?.rows ?: (slots?.size?.div(9)?.coerceIn(1, 5) ?: 3)
 
-        val name = StorageCustomization.nameFor(page)
         val isActive = slots != null
         val showBorder = isActive || StorageCustomization.alwaysBorderFor(page.index)
         val showName = isActive || StorageCustomization.alwaysNameFor(page.index)
@@ -285,7 +284,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             Render2D.drawBorder(this, x, y, PAGE_WIDTH + 1, pageHeight, pageColor, ACTIVE_PAGE_BORDER_THICKNESS)
         }
 
-        if (showName) drawString(font, Component.literal(name), x + 6, y + 3, pageColor.rgb, true)
+        if (showName) drawString(font, StorageCustomization.nameComponentFor(page), x + 6, y + 3, pageColor.rgb, true)
 
         val panelX = scrollPanelX
         val panelY = scrollPanelY
@@ -297,6 +296,9 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
         val invStacks = inventory?.stacks
         val itemCount = invStacks?.size ?: (slots?.size ?: (rows * 9))
+        // Prebuilt name/lore (cached pages only - live slots fall back to the stack path); guarded so the lazy
+        // extraction only ever runs while the search box is in use.
+        val searchTexts = if (InventorySearch.searching && slots == null) inventory?.searchTexts else null
 
         for (index in 0 until itemCount) {
             val slotX = (index % 9) * SLOT_SIZE + x + 3
@@ -311,7 +313,9 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
                     val rarity = inventory?.rarities?.getOrNull(index) ?: ItemUtils.getRarity(displayStack)
                     FEAT_ItemRarity.drawRarity(rarity, slotX, slotY)
                 }
-                if (InventorySearch.matches(displayStack)) {
+                val searchHit = searchTexts?.getOrNull(index)?.let { InventorySearch.matches(it.name, it.lore) }
+                    ?: InventorySearch.matches(displayStack)
+                if (searchHit) {
                     FastFill.add(slotX, slotY, slotX + 16, slotY + 16, InventorySearch.color.rgb)
                 }
 
@@ -489,9 +493,9 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val scaledMouseX = (Resolution.getMouseX(mouseX.toDouble()) / scale).toInt()
         val scaledMouseY = (Resolution.getMouseY(mouseY.toDouble()) / scale).toInt()
         Render2D.drawRect(context, measurements.x, measurements.y, measurements.overviewWidth, measurements.overviewHeight, menuBackgroundColor)
-        Render2D.drawBorder(context, measurements.x, measurements.y, measurements.overviewWidth, measurements.overviewHeight, Color(60, 60, 65))
+        Render2D.drawBorder(context, measurements.x, measurements.y, measurements.overviewWidth, measurements.overviewHeight, menuBorderColor)
         val activeSlot = (storageMenu as? StorageMenu.Page)?.storagePage
-        val chestSlots = screen.menu.slots.take(screen.menu.rowCount * 9).drop(9)
+        val chestSlots = screen.menu.slots.subList(9, screen.menu.rowCount * 9)
         context.drawPages(scaledMouseX, scaledMouseY, activeSlot, chestSlots, mouseX, mouseY)
         context.drawScrollBar()
         context.drawPlayerInventory(scaledMouseX, scaledMouseY, mouseX, mouseY)

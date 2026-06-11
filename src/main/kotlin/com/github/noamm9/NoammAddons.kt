@@ -8,6 +8,7 @@ import com.github.noamm9.init.AutoSessionIdStealer
 import com.github.noamm9.init.NetworkLoop
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.render.AnimatedItemRenderer
 import com.github.noamm9.utils.render.ItemRenderer
 import com.github.noamm9.utils.render.NoammRenderPipelines
 import com.github.noamm9.utils.render.CachedItemRenderer
@@ -63,6 +64,7 @@ object NoammAddons: ClientModInitializer {
 
         SpecialGuiElementRegistry.register { ItemRenderer(it.vertexConsumers()) }
         SpecialGuiElementRegistry.register { CachedItemRenderer(it.vertexConsumers()) }
+        SpecialGuiElementRegistry.register { AnimatedItemRenderer(it.vertexConsumers()) }
 
         EventDispatcher.init()
         DungeonListener.init()

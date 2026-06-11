@@ -13,6 +13,7 @@ import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.render.Render2D
 import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.network.chat.Component
 import java.awt.Color
 
 /**
@@ -42,7 +43,12 @@ object StorageCustomization {
     // The getters run per page per frame; this snapshots the store lookup + name fallback + Color allocation per
     // page, rebuilt lazily after a setter touches that page. color stays null when following the accent color so
     // the fallback tracks accent changes live.
-    private class Resolved(val name: String, val color: Color?, val alwaysBorder: Boolean, val alwaysName: Boolean)
+    private class Resolved(val name: String, val color: Color?, val alwaysBorder: Boolean, val alwaysName: Boolean) {
+        // Derived display values, cached here so the overlay doesn't rebuild a Component / concat a string per
+        // visible page per frame (the cached Component also keeps its visual-order-text layout cache warm).
+        val nameComponent: Component = Component.literal(name)
+        val placeholderText = "$name - Click to load"
+    }
 
     private val resolved = arrayOfNulls<Resolved>(27)
 
@@ -57,6 +63,8 @@ object StorageCustomization {
     }
 
     fun nameFor(page: StoragePage): String = resolved(page.index).name
+    fun nameComponentFor(page: StoragePage): Component = resolved(page.index).nameComponent
+    fun placeholderTextFor(page: StoragePage): String = resolved(page.index).placeholderText
     fun colorFor(index: Int): Color = resolved(index).color ?: ClickGui.accsentColor.value
     fun alwaysBorderFor(index: Int): Boolean = resolved(index).alwaysBorder
     fun alwaysNameFor(index: Int): Boolean = resolved(index).alwaysName

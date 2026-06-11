@@ -149,7 +149,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         if (! checkFile(file)) return
         val root = CompoundTag()
         for ((slot, inv) in storageMenuData) {
-            inv?.let { root.putString("${slot.index}_inv", it.encode()) }
+            inv?.let { root.putString("${slot.index}_inv", it.encoded) }
         }
 
         NbtIo.writeCompressed(root, file.toPath())

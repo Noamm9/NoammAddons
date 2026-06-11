@@ -1,8 +1,11 @@
 package com.github.noamm9.features.impl.general.storageoverlay
 
 import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.utils.ChatUtils.removeFormatting
+import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.items.ItemRarity
 import com.github.noamm9.utils.items.ItemUtils
+import com.github.noamm9.utils.items.ItemUtils.lore
 import net.minecraft.core.component.DataComponentPatch
 import net.minecraft.nbt.*
 import net.minecraft.world.item.ItemStack
@@ -16,7 +19,27 @@ data class NBTInventory(val stacks: List<ItemStack>) {
     /** Rarity per slot, computed once - the stacks are immutable, so [ItemUtils.getRarity] need not run every frame. */
     val rarities: List<ItemRarity> by lazy(LazyThreadSafetyMode.NONE) { stacks.map(ItemUtils::getRarity) }
 
-    fun encode(): String {
+    class SearchText(val name: String, val lore: String)
+
+    /**
+     * Pre-extracted unformatted name + lore per slot (lore lines joined - a query can't span the line separator),
+     * so search matching while typing is a plain contains instead of rebuilding these strings per item per frame.
+     * Built on first use, i.e. only if the search box is actually used while this page is visible.
+     */
+    val searchTexts: List<SearchText?> by lazy(LazyThreadSafetyMode.NONE) {
+        stacks.map { stack ->
+            if (stack.isEmpty) null
+            else SearchText(stack.hoverName.unformattedText, stack.lore.joinToString("\n") { it.removeFormatting() })
+        }
+    }
+
+    /**
+     * Memoized: the stacks are immutable, and [StorageOverlay] re-saves the whole file on every page open - without
+     * this, all 27 pages would redo codec + gzip + Base64 each time when only the freshly opened page is new.
+     */
+    val encoded: String by lazy { encode() }
+
+    private fun encode(): String {
         val registryAccess = getRegistryAccess()
         val list = ListTag()
 
