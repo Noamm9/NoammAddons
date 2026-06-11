@@ -54,8 +54,8 @@ public abstract class MixinMinecraft {
     }
 
     @Inject(method = "continueAttack", at = @At("HEAD"), cancellable = true)
-    private void preWhileAttack(boolean leftClickPressed, CallbackInfo ci) {
-        if (!leftClickPressed) return;
+    private void preWhileAttack(boolean down, CallbackInfo ci) {
+        if (!down) return;
         handleHitResult(ci, true);
     }
 

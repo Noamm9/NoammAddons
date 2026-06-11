@@ -56,8 +56,6 @@ object NoammAddons: ClientModInitializer {
         }
 
     override fun onInitializeClient() {
-        DataDownloader.downloadData()
-
         NoammRenderPipelines.init()
 
         PictureInPictureRendererRegistry.register { ItemRenderer(it.bufferSource()) }
