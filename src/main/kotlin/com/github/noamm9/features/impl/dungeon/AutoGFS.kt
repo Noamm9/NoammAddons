@@ -40,6 +40,7 @@ object AutoGFS: Feature("Automatically refills dungeon items from your sacks usi
         register<ChatMessageEvent> {
             if (! refillTwilight.value) return@register
             if (! LocationUtils.inDungeon) return@register
+            if (! LocationUtils.inKuudra) return@register
             if (! LocationUtils.inBoss) return@register
             if (LocationUtils.dungeonFloor != "M7") return@register
             val clazz = DungeonListener.thePlayer?.clazz ?: return@register
@@ -60,6 +61,7 @@ object AutoGFS: Feature("Automatically refills dungeon items from your sacks usi
 
     private fun refill() {
         if (! enabled || ! LocationUtils.inDungeon) return
+        if (! enabled || ! LocationUtils.inKuudra) return
         if (mc.screen != null || mc.player == null) return
         if (DungeonListener.thePlayer?.isDead == true) return
         val inventory = mc.player?.inventory ?: return
