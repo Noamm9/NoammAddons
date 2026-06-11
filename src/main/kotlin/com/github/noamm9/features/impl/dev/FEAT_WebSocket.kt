@@ -39,6 +39,7 @@ object FEAT_WebSocket: Feature(name = "WebSocket", toggled = true) {
         }
 
         EventBus.register<DungeonEvent.RunStatedEvent> { sendDungeonInfo() }
+        EventBus.register<DungeonEvent.RunEndedEvent> { send(mapOf("type" to "dungeon_end")) }
         EventBus.register<WorldChangeEvent> { send(mapOf("type" to "reset")) }
     }
 
