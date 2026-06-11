@@ -1,7 +1,7 @@
 package com.github.noamm9.features.impl.dungeon
 
 //#if CHEAT
-
+/*
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
@@ -87,4 +87,6 @@ object BloodESP: Feature("Highlights the blood room before dungeon start to help
         return null
     }
 }
+
+ */
 //#endif
