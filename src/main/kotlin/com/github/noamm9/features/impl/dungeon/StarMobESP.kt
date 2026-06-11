@@ -4,9 +4,9 @@ import com.github.noamm9.event.impl.CheckEntityGlowEvent
 import com.github.noamm9.event.impl.EntityUnloadEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
+import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.*
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
@@ -41,7 +41,9 @@ object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
     private val felColor by ColorSetting("Fel Color", Color.PINK, false).withDescription("The color used for fels.").showIf { espFels.value }
 
     private val starMobs = HashSet<Int>()
+    private val specialMobs = HashSet<Int>()
     private val checked = HashSet<Int>()
+    private var ticks = 0
 
     override fun init() {
         register<MainThreadPacketReceivedEvent.Post> {
@@ -65,12 +67,15 @@ object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
         register<EntityUnloadEvent> {
             if (! LocationUtils.inDungeon || inBoss) return@register
             starMobs.remove(event.entity.id)
+            specialMobs.remove(event.entity.id)
             checked.remove(event.entity.id)
         }
 
         register<WorldChangeEvent> {
             starMobs.clear()
+            specialMobs.clear()
             checked.clear()
+            ticks = 0
         }
 
         register<CheckEntityGlowEvent> {
@@ -87,6 +92,19 @@ object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
             }
         }
 
+        register<TickEvent.Start> {
+            if (renderStyle.value == 0) return@register
+            if (!LocationUtils.inDungeon || inBoss) return@register
+            if (++ ticks % 10 != 0) return@register
+
+            specialMobs.clear()
+            mc.level?.entitiesForRendering()?.forEach { entity ->
+                if (entity.id !in starMobs && getColor(entity) != null) {
+                    specialMobs.add(entity.id)
+                }
+            }
+        }
+
         register<RenderWorldEvent> {
             if (renderStyle.value == 0) return@register
             if (!LocationUtils.inDungeon || inBoss) return@register
@@ -99,8 +117,7 @@ object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
                 renderMobBox(event, entity, starMobColor.value, drawOutline, drawFill)
             }
 
-            level.entitiesForRendering().forEach { entity ->
-                if (entity.id in starMobs) return@forEach
+            specialMobs.mapNotNull(level::getEntity).forEach { entity ->
                 val color = getColor(entity) ?: return@forEach
                 renderMobBox(event, entity, color, drawOutline, drawFill)
             }
