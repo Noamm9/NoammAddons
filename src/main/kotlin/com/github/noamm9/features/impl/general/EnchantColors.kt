@@ -2,10 +2,10 @@ package com.github.noamm9.features.impl.general
 
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ColorUtils.mcColor
-import com.github.noamm9.utils.DataDownloader
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils.inSkyblock

@@ -3,13 +3,13 @@ package com.github.noamm9.features.impl.general
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.interfaces.IChatComponent
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
-import com.github.noamm9.utils.DataDownloader
 import com.github.noamm9.utils.NumbersUtils
 import net.minecraft.client.gui.screens.ChatScreen
 import net.minecraft.client.multiplayer.chat.GuiMessage

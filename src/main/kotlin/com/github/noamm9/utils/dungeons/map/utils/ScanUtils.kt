@@ -4,7 +4,7 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.EventDispatcher
 import com.github.noamm9.event.impl.WorldChangeEvent
-import com.github.noamm9.utils.DataDownloader
+import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.destructured
 import com.github.noamm9.utils.ThreadUtils

@@ -4,8 +4,8 @@ import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.utils.DataDownloader
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.DungeonListener.DualTime

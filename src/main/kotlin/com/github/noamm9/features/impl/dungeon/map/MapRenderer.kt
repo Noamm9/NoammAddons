@@ -30,11 +30,11 @@ object MapRenderer: HudElement() {
     override val toggle get() = DungeonMap.enabled && MapConfig.mapEnabled.value
     override val shouldDraw get() = LocationUtils.inDungeon && (! LocationUtils.inBoss || ! MapConfig.mapHideInBoss.value)
 
-    private val checkmarkGreen = Identifier.fromNamespaceAndPath(MOD_ID, "dungeonmap/checkmarks/green_check")
-    private val checkmarkWhite = Identifier.fromNamespaceAndPath(MOD_ID, "dungeonmap/checkmarks/white_check")
-    private val checkmarkUnknown = Identifier.fromNamespaceAndPath(MOD_ID, "dungeonmap/checkmarks/question")
-    private val checkmarkFail = Identifier.fromNamespaceAndPath(MOD_ID, "dungeonmap/checkmarks/cross")
-    private val ownPlayerMarker = Identifier.fromNamespaceAndPath(MOD_ID, "dungeonmap/marker_self")
+    private val checkmarkGreen = Identifier.fromNamespaceAndPath(MOD_ID, "textures/gui/dungeonmap/checkmarks/green_check.png")
+    private val checkmarkWhite = Identifier.fromNamespaceAndPath(MOD_ID, "textures/gui/dungeonmap/checkmarks/white_check.png")
+    private val checkmarkUnknown = Identifier.fromNamespaceAndPath(MOD_ID, "textures/gui/dungeonmap/checkmarks/question.png")
+    private val checkmarkFail = Identifier.fromNamespaceAndPath(MOD_ID, "textures/gui/dungeonmap/checkmarks/cross.png")
+    private val ownPlayerMarker = Identifier.fromNamespaceAndPath(MOD_ID, "textures/gui/dungeonmap/marker.png")
 
     override fun draw(ctx: GuiGraphicsExtractor, example: Boolean): Pair<Float, Float> {
 
@@ -314,7 +314,7 @@ object MapRenderer: HudElement() {
         ctx.pose().scale(MapConfig.playerHeadScale.value)
 
         if (MapConfig.mapVanillaMarker.value && teammate == DungeonListener.thePlayer) {
-            Render2D.drawTexture(ctx, ownPlayerMarker, - 6, - 6, 12, 12)
+            Render2D.drawTexture(ctx, ownPlayerMarker, - 6, - 6, 12, 12, MapConfig.mapVanillaMarkerColor.value)
         }
         else {
             Render2D.drawBorder(ctx, - 7, - 7, 14, 14, borderColor)

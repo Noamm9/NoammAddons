@@ -1,9 +1,10 @@
 package com.github.noamm9.features.impl.dungeon.solvers.puzzles
 
 import com.github.noamm9.event.impl.DungeonEvent
-import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.phase
-import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.renderLines
-import com.github.noamm9.utils.DataDownloader
+import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers
+import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.phase
+import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.renderLines
+import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
@@ -14,9 +15,11 @@ import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import java.awt.Color
-import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.*
 
-object CreeperBeamSolver {
+object CreeperBeamSolver: PuzzleSolver {
+    override val enabled get() = PuzzleSolvers.creeper.value
+
     private data class BeamPair(val start: BlockPos, val end: BlockPos, val color: Color = Color.WHITE)
 
     private val beamSolutions by lazy {
@@ -37,14 +40,14 @@ object CreeperBeamSolver {
     )
 
 
-    fun onStateChange(event: DungeonEvent.RoomEvent.onStateChange) {
+    override fun onStateChange(event: DungeonEvent.RoomEvent.onStateChange) {
         if (! inCreeperBeams) return
         if (event.room.name != "Creeper Beams") return
         if (event.newState != RoomState.GREEN) return
         reset()
     }
 
-    fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
+    override fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (event.room.name != "Creeper Beams") return
         inCreeperBeams = true
         rotation = 360 - event.room.rotation !! + 180
@@ -52,7 +55,7 @@ object CreeperBeamSolver {
         solve()
     }
 
-    fun onRenderWorld(ctx: RenderContext) {
+    override fun onRenderWorld(ctx: RenderContext) {
         if (! inCreeperBeams) return
         currentSolve.forEach { (start, end, color) ->
             val startBlock = WorldUtils.getBlockAt(start)
@@ -86,7 +89,7 @@ object CreeperBeamSolver {
 
     private fun isBeamBlock(block: Block?) = block.equalsOneOf(Blocks.PRISMARINE, Blocks.SEA_LANTERN)
 
-    fun reset() {
+    override fun reset() {
         inCreeperBeams = false
         currentSolve.clear()
         roomCenter = BlockPos.ZERO

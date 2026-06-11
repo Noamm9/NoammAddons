@@ -4,8 +4,8 @@ import com.github.noamm9.commands.BaseCommand
 import com.github.noamm9.commands.CommandManager
 import com.github.noamm9.commands.CommandNodeBuilder
 import com.github.noamm9.features.Feature
+import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.utils.ChatUtils
-import com.github.noamm9.utils.DataDownloader
 
 object WarpShortcuts: Feature("removes the /warp in warp commands", "Warp Shortcuts") {
     override fun init() {

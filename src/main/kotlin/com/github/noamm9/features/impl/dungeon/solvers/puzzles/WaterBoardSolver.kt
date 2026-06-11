@@ -2,9 +2,10 @@ package com.github.noamm9.features.impl.dungeon.solvers.puzzles
 
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.PlayerInteractEvent
-import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.currentClickColor
-import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.nextColor
-import com.github.noamm9.utils.DataDownloader
+import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers
+import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.currentClickColor
+import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.nextColor
+import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.utils.MathUtils.center
 import com.github.noamm9.utils.MathUtils.toPos
 import com.github.noamm9.utils.MathUtils.toVec
@@ -22,7 +23,9 @@ import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.ChestBlock
 import net.minecraft.world.phys.Vec3
 
-object WaterBoardSolver {
+object WaterBoardSolver: PuzzleSolver {
+    override val enabled get() = PuzzleSolvers.water.value
+
     private val waterSolutions by lazy {
         DataDownloader.loadJson<Map<String, Map<String, Map<String, List<Double>>>>>("waterSolutions.json")
     }
@@ -35,7 +38,7 @@ object WaterBoardSolver {
     private var rotation: Int? = null
 
 
-    fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
+    override fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (event.room.name != "Water Board") return
         if (patternId != - 1) return
 
@@ -45,7 +48,7 @@ object WaterBoardSolver {
         ThreadUtils.loop(500, { patternId != - 1 }) { solve() }
     }
 
-    fun onRenderWorld(ctx: RenderContext) {
+    override fun onRenderWorld(ctx: RenderContext) {
         if (patternId == - 1 || solution.isEmpty()) return
         val solution = solution.toMap()
 
@@ -95,7 +98,7 @@ object WaterBoardSolver {
         }
     }
 
-    fun onInteract(event: PlayerInteractEvent.RIGHT_CLICK.BLOCK) {
+    override fun onInteract(event: PlayerInteractEvent.RIGHT_CLICK.BLOCK) {
         if (patternId == - 1) return
         if (solution.isEmpty()) return
         val center = center ?: return
@@ -141,7 +144,7 @@ object WaterBoardSolver {
         }
     }
 
-    fun reset() {
+    override fun reset() {
         LEVER.entries.forEach { it.clickCount = 0 }
         patternId = - 1
         solution.clear()

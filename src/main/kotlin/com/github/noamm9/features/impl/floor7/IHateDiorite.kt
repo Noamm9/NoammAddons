@@ -4,7 +4,7 @@ package com.github.noamm9.features.impl.floor7
 
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.utils.DataDownloader
+import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils

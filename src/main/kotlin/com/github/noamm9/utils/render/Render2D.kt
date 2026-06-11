@@ -19,8 +19,8 @@ import kotlin.math.sqrt
 object Render2D {
     fun Slot.highlight(ctx: GuiGraphicsExtractor, color: Color) = drawRect(ctx, x, y, 16, 16, color)
 
-    fun drawTexture(ctx: GuiGraphicsExtractor, texture: Identifier, x: Number, y: Number, width: Number, height: Number) {
-        ctx.blitSprite(RenderPipelines.GUI_TEXTURED, texture, x.toInt(), y.toInt(), width.toInt(), height.toInt())
+    fun drawTexture(ctx: GuiGraphicsExtractor, texture: Identifier, x: Number, y: Number, width: Number, height: Number, color: Color = Color.WHITE) {
+        ctx.blit(RenderPipelines.GUI_TEXTURED, texture, x.toInt(), y.toInt(), 0f, 0f, width.toInt(), height.toInt(), width.toInt(), height.toInt(), color.rgb)
     }
 
     fun drawRect(ctx: GuiGraphicsExtractor, x: Number, y: Number, width: Number, height: Number, color: Color = Color.WHITE) {

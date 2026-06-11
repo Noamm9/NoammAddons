@@ -2,7 +2,8 @@ package com.github.noamm9.features.impl.dungeon.solvers.puzzles
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.impl.DungeonEvent
-import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.icefillColor
+import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers
+import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.icefillColor
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
@@ -15,23 +16,24 @@ import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.Vec3
 import java.awt.Color
 import java.util.*
-import java.util.concurrent.CopyOnWriteArraySet
+import java.util.concurrent.*
 
-object IceFillSolver {
+object IceFillSolver: PuzzleSolver {
+    override val enabled get() = PuzzleSolvers.icefill.value
     private var puzzles = CopyOnWriteArraySet<IceFillPuzzle>()
 
-    fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
+    override fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (event.room.name != "Ice Fill") return
         NoammAddons.scope.launch {
             solve(event.room.centerPos, 360 - event.room.rotation !!)
         }
     }
 
-    fun onRenderWorld(ctx: RenderContext) {
+    override fun onRenderWorld(ctx: RenderContext) {
         puzzles.forEach { it.draw(ctx, icefillColor.value) }
     }
 
-    fun reset() = puzzles.clear()
+    override fun reset() = puzzles.clear()
 
     private fun solve(center: BlockPos, rotation: Int) {
         val checkpoints = listOf(
