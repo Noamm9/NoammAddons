@@ -37,7 +37,7 @@ object EventDispatcher {
 
 
     fun init() {
-        WorldRenderEvents.END_MAIN.register { context ->
+        WorldRenderEvents.BEFORE_TRANSLUCENT.register { context ->
             EventBus.post(RenderWorldEvent(RenderContext.fromContext(context)))
         }
 

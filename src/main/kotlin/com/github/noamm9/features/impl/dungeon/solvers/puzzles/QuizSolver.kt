@@ -3,8 +3,7 @@ package com.github.noamm9.features.impl.dungeon.solvers.puzzles
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.DungeonEvent
-import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.answerColor
-import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolvers.quizTimer
+import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.DataDownloader
 import com.github.noamm9.utils.NumbersUtils.toFixed
@@ -19,7 +18,9 @@ import com.github.noamm9.utils.startsWithOneOf
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.core.BlockPos
 
-object QuizSolver {
+object QuizSolver: PuzzleSolver {
+    override val enabled: Boolean get() = PuzzleSolvers.quiz.value
+
     private data class TriviaAnswer(var blockPos: BlockPos, var isCorrect: Boolean)
 
     private val quizSolutions by lazy {
@@ -36,7 +37,7 @@ object QuizSolver {
     private var answerTime: Long = 0
     private var stage = 0
 
-    fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
+    override fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (event.room.name != "Quiz") return
         if (inQuiz) return
 
@@ -49,7 +50,7 @@ object QuizSolver {
         triviaOptions[2].blockPos = ScanUtils.getRealCoord(BlockPos(- 5, 70, - 9), center, rotation)
     }
 
-    fun onChat(event: ChatMessageEvent) {
+    override fun onChat(event: ChatMessageEvent) {
         if (! LocationUtils.inDungeon) return
         val message = event.unformattedText
         val trimmed = message.trim()
@@ -111,16 +112,16 @@ object QuizSolver {
         if (newAnswers != null) triviaAnswers = newAnswers
     }
 
-    fun onRenderWorld(ctx: RenderContext) {
+    override fun onRenderWorld(ctx: RenderContext) {
         if (! inQuiz || triviaAnswers == null) return
         triviaOptions.forEach { answer ->
             if (! answer.isCorrect) return@forEach
-            Render3D.renderBlock(ctx, answer.blockPos, answerColor.value, phase = true)
+            Render3D.renderBlock(ctx, answer.blockPos, PuzzleSolvers.answerColor.value, phase = true)
         }
     }
 
-    fun onRenderOverlay(ctx: GuiGraphics) {
-        if (quizTimer.value && questionsStarted && ! LocationUtils.inBoss) {
+    override fun onRenderOverlay(ctx: GuiGraphics) {
+        if (PuzzleSolvers.quizTimer.value && questionsStarted && ! LocationUtils.inBoss) {
             val ticksLeft = answerTime - DungeonListener.currentTime
             if (ticksLeft <= 0) return
             val secondsLeft = (ticksLeft / 20.0).toFixed(1)
@@ -134,7 +135,9 @@ object QuizSolver {
         }
     }
 
-    fun reset() {
+    override fun onRoomExit() {}
+
+    override fun reset() {
         inQuiz = false
         triviaOptions.forEach { it.isCorrect = false }
         triviaAnswers = null
