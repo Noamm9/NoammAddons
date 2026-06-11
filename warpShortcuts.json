@@ -1,5 +1,6 @@
 {
   "arachne": "arachne",
+  "atoll": "lotus",
   "backwater": "bayou",
   "barn": "barn",
   "base": "camp",
@@ -11,13 +12,16 @@
   "cn": "cn",
   "crypts": "crypts",
   "crystals": "crystals",
+  "ch": "crystals",
   "d": "dhub",
   "da": "da",
   "deep": "deep",
+  "deeper": "deeper",
   "desert": "desert",
   "dh": "dhub",
   "dhub": "dhub",
   "dn": "dhub",
+  "dj": "dhub",
   "drag": "drag",
   "dungeon": "dhub",
   "elizabeth": "elizabeth",
@@ -50,6 +54,7 @@
   "spider": "spider",
   "stonks": "stonks",
   "taylor": "taylor",
+  "tower": "tower",
   "tomb": "smold",
   "trapper": "trapper",
   "trevor": "trapper",
@@ -61,6 +66,4 @@
   "zombie": "crypts",
   "nuc": "nucleus",
   "nucleus": "nucleus"
-  "atoll": "lotus"
-  "tower": "tower"
 }
