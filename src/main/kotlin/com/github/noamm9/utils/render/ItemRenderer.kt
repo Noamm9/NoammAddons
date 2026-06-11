@@ -11,12 +11,17 @@ import net.minecraft.client.gui.render.state.GuiItemRenderState
 import net.minecraft.client.gui.render.state.pip.PictureInPictureRenderState
 import net.minecraft.client.renderer.LightTexture
 import net.minecraft.client.renderer.MultiBufferSource
+import net.minecraft.client.renderer.PlayerSkinRenderCache
 import net.minecraft.client.renderer.item.TrackingItemStackRenderState
 import net.minecraft.client.renderer.texture.OverlayTexture
+import net.minecraft.core.component.DataComponents
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.component.ResolvableProfile
 import org.joml.Matrix3x2f
 import org.joml.Matrix4f
+import java.util.Optional
+import java.util.concurrent.CompletableFuture
 
 class ItemRenderer(vertexConsumers: MultiBufferSource.BufferSource): PictureInPictureRenderer<ItemRenderer.ItemState>(vertexConsumers) {
     override fun textureIsReadyToBlit(itemState: ItemState) = System.nanoTime() - lastRenderAtNanos < FRAME_INTERVAL_NANOS
@@ -61,15 +66,70 @@ class ItemRenderer(vertexConsumers: MultiBufferSource.BufferSource): PictureInPi
         private class Resolved(val state: TrackingItemStackRenderState, val label: String)
         private val resolveCache = java.util.WeakHashMap<ItemStack, Resolved>()
 
+        /**
+         * Player heads need their own cache: the model bake snapshots the head's skin RenderInfo
+         * ([net.minecraft.client.renderer.special.PlayerHeadSpecialRenderer.extractArgument] calls getOrDefault),
+         * which is the default Steve until the async skin resolves, and the vanilla skin cache expires 5 minutes
+         * after last access. Caching per stack would therefore either freeze a Steve bake in, or re-trigger a
+         * (network) skin resolve for every new stack instance of an already-seen head - e.g. the live stacks the
+         * server sends when a storage page is clicked. Instead the baked state is keyed by **profile equality**
+         * (any new stack of a known head reuses the custom-skin state - Steve never shows again) and only cached
+         * once the skin future is done; until then the head re-bakes each frame so the flip is picked up immediately.
+         * The strongly-held future stays observable past the vanilla cache expiry.
+         *
+         * Profile hashCode/equals are record method-handle chains over the full PropertyMap - too hot to run per
+         * head per frame, so resolved heads are also written through to [resolveCache]: the per-frame path is then
+         * a pure identity lookup, and the profile is only hashed once per new stack instance.
+         */
+        private class HeadEntry(val future: CompletableFuture<Optional<PlayerSkinRenderCache.RenderInfo>>) {
+            var plain: Resolved? = null
+            var foil: Resolved? = null
+        }
+
+        private val headCache = HashMap<ResolvableProfile, HeadEntry>()
+
+        private fun bake(item: ItemStack): Resolved {
+            val state = TrackingItemStackRenderState()
+            mc.itemModelResolver.updateForTopItem(state, item, ItemDisplayContext.GUI, mc.level, mc.player, 0)
+            return Resolved(state, item.item.name.string)
+        }
+
+        private fun resolveHead(item: ItemStack, profile: ResolvableProfile): Resolved {
+            val entry = headCache.getOrPut(profile) { HeadEntry(mc.playerSkinRenderCache().lookup(profile)) }
+            val hasFoil = item.hasFoil()
+            (if (hasFoil) entry.foil else entry.plain)?.let {
+                resolveCache[item] = it
+                return it
+            }
+            val resolved = bake(item)
+            if (entry.future.isDone) {
+                if (hasFoil) entry.foil = resolved else entry.plain = resolved
+                resolveCache[item] = resolved
+            }
+            return resolved
+        }
+
+        // All items prepared within a pose share the same transform: snapshot it once and hand the same instance to
+        // every render state (they never mutate it) instead of allocating a Matrix3x2f per item per frame. On a pose
+        // change a fresh instance is made, so states already submitted keep the transform they were prepared with.
+        private var sharedPose = Matrix3x2f()
+
+        private fun poseOf(ctx: GuiGraphics): Matrix3x2f {
+            val p = ctx.pose()
+            val s = sharedPose
+            if (s.m00() == p.m00() && s.m01() == p.m01() && s.m10() == p.m10() && s.m11() == p.m11() && s.m20() == p.m20() && s.m21() == p.m21()) return s
+            return Matrix3x2f(p).also { sharedPose = it }
+        }
+
         /** Resolves [item]'s model (cached) and builds a GUI render state at (x, y) using the current pose/scissor, or null if empty. */
         fun prepareItem(ctx: GuiGraphics, item: ItemStack, x: Int, y: Int): GuiItemRenderState? {
             if (item.isEmpty) return null
-            val resolved = resolveCache.getOrPut(item) {
-                val state = TrackingItemStackRenderState()
-                mc.itemModelResolver.updateForTopItem(state, item, ItemDisplayContext.GUI, mc.level, mc.player, 0)
-                Resolved(state, item.item.name.string)
+            val resolved = resolveCache[item] ?: run {
+                val profile = item.get(DataComponents.PROFILE)
+                if (profile != null) resolveHead(item, profile)
+                else bake(item).also { resolveCache[item] = it }
             }
-            return GuiItemRenderState(resolved.label, Matrix3x2f(ctx.pose()), resolved.state, x, y, ctx.scissorStack.peek())
+            return GuiItemRenderState(resolved.label, poseOf(ctx), resolved.state, x, y, ctx.scissorStack.peek())
         }
 
         fun drawBatchedItemStack(ctx: GuiGraphics, item: ItemStack, x: Int, y: Int) {
