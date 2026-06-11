@@ -18,8 +18,10 @@ import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.core.component.DataComponents
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Inventory
+import net.minecraft.world.inventory.tooltip.TooltipComponent
 import net.minecraft.world.inventory.ClickType
 import net.minecraft.world.inventory.Slot
 import net.minecraft.world.item.ItemStack
@@ -41,6 +43,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         const val PLAYER_WIDTH = SLOT_SIZE * 9 + 6
         const val PLAYER_HEIGHT = SLOT_SIZE * 4 + 18
         const val HOVER_ARGB = (50 shl 24) or 0xFFFFFF // white @ alpha 50, batched without allocating a Color
+        const val TOOLTIP_REFRESH_NANOS = 500_000_000L
 
         var lastRenderedInnerHeight = 0
         var scroll: Float = 0f
@@ -68,6 +71,25 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     var containerScreen: ContainerScreen? = null
     var pendingCenterPage: StoragePage? = null
     var storageMenu: StorageMenu? = null
+
+    // The ItemStack overload of setTooltipForNextFrame recomputes getTooltipLines every frame - re-firing every
+    // mod's Fabric ItemTooltipCallback handler (price lookups etc.) for a stack that isn't changing. Cache the
+    // computed lines per hovered stack, refreshed every 500ms so dynamic lines (timers, live prices) stay current.
+    private var tooltipStack: ItemStack? = null
+    private var tooltipLines = emptyList<Component>()
+    private var tooltipImage: Optional<TooltipComponent> = Optional.empty()
+    private var tooltipComputedAtNanos = 0L
+
+    private fun GuiGraphics.setCachedTooltipForNextFrame(stack: ItemStack, x: Int, y: Int) {
+        val now = System.nanoTime()
+        if (tooltipStack !== stack || now - tooltipComputedAtNanos > TOOLTIP_REFRESH_NANOS) {
+            tooltipStack = stack
+            tooltipLines = Screen.getTooltipFromItem(mc, stack)
+            tooltipImage = stack.tooltipImage
+            tooltipComputedAtNanos = now
+        }
+        setTooltipForNextFrame(font, tooltipLines, tooltipImage, x, y, stack.get(DataComponents.TOOLTIP_STYLE))
+    }
 
     private inner class Measurements {
         val innerScrollPanelWidth = PAGE_WIDTH * pageWidthCount + (pageWidthCount - 1) * PADDING
@@ -237,7 +259,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
         if (hoveredStack != null) {
             hoveredOverlayItem = hoveredStack
-            setTooltipForNextFrame(font, hoveredStack, originalMouseX, originalMouseY)
+            setCachedTooltipForNextFrame(hoveredStack, originalMouseX, originalMouseY)
         }
     }
 
@@ -305,7 +327,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
         if (hoveredStack != null) {
             if (isActive) hoveredOverlayItem = hoveredStack
-            setTooltipForNextFrame(font, hoveredStack, originalMouseX, originalMouseY)
+            setCachedTooltipForNextFrame(hoveredStack, originalMouseX, originalMouseY)
         }
 
         return pageHeight + 6
