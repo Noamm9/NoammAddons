@@ -16,7 +16,7 @@ import org.lwjgl.glfw.GLFW
 import java.awt.Color
 import java.util.*
 
-class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = true): Setting<Color>(name, defaultValue), Savable {
+class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = true, private val onChange: ((Color) -> Unit)? = null): Setting<Color>(name, defaultValue), Savable {
     private var expanded = false
     private val openAnim = Animation(250)
     private val hoverAnim = Animation(200)
@@ -45,6 +45,7 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
         val rgb = Color.HSBtoRGB(h, s, b)
         super.value = Color(rgb).withAlpha((a * 255).toInt())
         updateHexText()
+        onChange?.invoke(value)
     }
 
     private fun updateHexText() {
@@ -170,6 +171,7 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
             a = c.alpha / 255f
 
             super.value = c
+            onChange?.invoke(c)
         }
     }
 

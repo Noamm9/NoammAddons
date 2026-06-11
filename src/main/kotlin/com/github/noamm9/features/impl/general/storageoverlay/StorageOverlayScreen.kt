@@ -3,7 +3,6 @@
 package com.github.noamm9.features.impl.general.storageoverlay
 
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.features.impl.dev.ClickGui
 import com.github.noamm9.features.impl.general.FEAT_ItemRarity
 import com.github.noamm9.features.impl.misc.InventorySearch
 import com.github.noamm9.features.impl.misc.ScrollableTooltip
@@ -49,7 +48,6 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     private val slotBgColor = Color(50, 50, 55, 200)
     private val slotCellBg = Color(30, 30, 34).rgb
     private val slotCellBorder = Color(55, 55, 60).rgb
-    private val activePageBorder get() = ClickGui.accsentColor.value
     private val scrollBgColor = Color(30, 30, 35, 180)
     private val scrollKnobColor = Color(120, 120, 130)
 
@@ -234,23 +232,27 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
     private fun GuiGraphics.drawPage(x: Int, y: Int, page: StoragePage, inventory: NBTInventory?, slots: List<Slot>?, mouseX: Int, mouseY: Int, originalMouseX: Int, originalMouseY: Int): Int {
         if (inventory == null && slots == null) {
+            val placeholderBorder = if (StorageCustomization.alwaysBorderFor(page.index)) StorageCustomization.colorFor(page.index) else menuBorderColor
             Render2D.drawRect(this, x, y, PAGE_WIDTH, 18, slotBgColor)
-            Render2D.drawBorder(this, x, y, PAGE_WIDTH, 18, menuBorderColor)
-            Render2D.drawString(this, page.name + " - Click to load", x + 4f, y + 5f, Color(180, 180, 180))
+            Render2D.drawBorder(this, x, y, PAGE_WIDTH, 18, placeholderBorder)
+            Render2D.drawString(this, StorageCustomization.nameFor(page) + " - Click to load", x + 4f, y + 5f, Color(180, 180, 180))
             return 18
         }
         val rows = inventory?.rows ?: (slots?.size?.div(9)?.coerceIn(1, 5) ?: 3)
 
-        val name = page.name
+        val name = StorageCustomization.nameFor(page)
         val isActive = slots != null
+        val showBorder = isActive || StorageCustomization.alwaysBorderFor(page.index)
+        val showName = isActive || StorageCustomization.alwaysNameFor(page.index)
+        val pageColor = StorageCustomization.colorFor(page.index)
         val slotsY = y + 5 + font.lineHeight
         val pageHeight = rows * SLOT_SIZE + 8 + font.lineHeight
 
-        if (isActive) {
-            Render2D.drawBorder(this, x, y, PAGE_WIDTH + 1, pageHeight, activePageBorder, ACTIVE_PAGE_BORDER_THICKNESS)
+        if (showBorder) {
+            Render2D.drawBorder(this, x, y, PAGE_WIDTH + 1, pageHeight, pageColor, ACTIVE_PAGE_BORDER_THICKNESS)
         }
 
-        drawString(font, Component.literal(name), x + 6, y + 3, if (isActive) activePageBorder.rgb else 0xFFFFFF, true)
+        if (showName) drawString(font, Component.literal(name), x + 6, y + 3, pageColor.rgb, true)
 
         val panelX = scrollPanelX
         val panelY = scrollPanelY

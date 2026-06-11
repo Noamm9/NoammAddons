@@ -51,6 +51,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
 
     override fun init() {
         ThreadUtils.addShutdownHook(::saveData)
+        StorageCustomization.buildSettings(this)
 
         register<ContainerFullyOpenedEvent> {
             if (! LocationUtils.inSkyblock) return@register

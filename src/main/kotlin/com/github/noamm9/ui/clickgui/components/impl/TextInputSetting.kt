@@ -18,10 +18,10 @@ import net.minecraft.client.input.MouseButtonInfo
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
-class TextInputSetting(name: String, defaultValue: String): Setting<String>(name, defaultValue), Savable {
+class TextInputSetting(name: String, defaultValue: String, private val onChange: ((String) -> Unit)? = null): Setting<String>(name, defaultValue), Savable {
     private val handler = TextInputHandler(
         textProvider = { value },
-        textSetter = { value = it }
+        textSetter = { value = it; onChange?.invoke(it) }
     )
 
     private val hoverAnim = Animation(200L)
