@@ -14,6 +14,7 @@ object NoammRenderPipelines {
     val LINES_THROUGH_WALLS: RenderPipeline = RenderPipelines.register(
         RenderPipeline.builder(RenderPipelines.LINES_SNIPPET)
             .withLocation(id("lines_through_walls"))
+            .withFragmentShader(id("core/rendertype_lines_no_fog"))
             .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
             .build()
     )
