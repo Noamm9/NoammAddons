@@ -44,6 +44,8 @@ object NoItemPlace: Feature("Stops you from placing skull blocks/items.") {
                 "JINGLE_BELLS",
                 "FIRE_FREEZE_STAFF",
                 "UMBERELLA",
+                "ETHERWARP_CONDUIT",
+                "KUUDRA_SHOP_ITEM"
             )
         }
     }
