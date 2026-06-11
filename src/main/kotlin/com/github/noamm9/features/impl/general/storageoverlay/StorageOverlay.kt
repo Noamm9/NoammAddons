@@ -15,6 +15,7 @@ import com.github.noamm9.utils.network.data.StorageData
 import kotlinx.coroutines.runBlocking
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
+import net.minecraft.core.component.DataComponents
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import net.minecraft.nbt.NbtAccounter
@@ -173,6 +174,27 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         }
 
         storageMenuData = data
+        preloadHeadSkins()
+    }
+
+    /**
+     * Eagerly kicks off the async skin load for every player-head item as soon as the storage data is available
+     * (well before the overlay is opened). Minecraft caches the downloaded skin textures on disk, so after the first
+     * session they resolve from disk - the custom heads show up (almost) immediately instead of flashing the default
+     * Steve head each restart. [net.minecraft.client.renderer.PlayerSkinRenderCache.getOrDefault] triggers the load.
+     */
+    private fun preloadHeadSkins() {
+        val data = storageMenuData
+        mc.execute {
+            val cache = mc.playerSkinRenderCache()
+            for (inv in data.values) {
+                val stacks = inv?.stacks ?: continue
+                for (stack in stacks) {
+                    if (stack.isEmpty) continue
+                    stack.get(DataComponents.PROFILE)?.let(cache::getOrDefault)
+                }
+            }
+        }
     }
 
     private fun checkFile(file: File): Boolean {
@@ -187,6 +209,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
             it.enderchest.forEach { (i, stacks) -> data[StoragePage(i)] = NBTInventory(stacks) }
             it.backpack.forEach { (i, stacks) -> data[StoragePage(i + 9)] = NBTInventory(stacks) }
             storageMenuData = data
+            preloadHeadSkins()
         }
     }
 }
