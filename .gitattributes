@@ -1,0 +1,7 @@
+*.json text eol=lf
+*.yml text eol=lf
+
+# Keep CI / git plumbing out of the branch archive: the mod downloads
+# archive/refs/heads/data.zip, and git archive honors export-ignore.
+.github export-ignore
+.gitattributes export-ignore
