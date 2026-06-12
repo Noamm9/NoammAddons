@@ -8,6 +8,10 @@ import kotlin.reflect.KProperty
 
 abstract class Setting<T>(val name: String, val defaultValue: T) {
     open var value: T = defaultValue
+        set(value) {
+            changeListener?.invoke(value)
+            field = value
+        }
 
     var x = 0
     var y = 0
@@ -15,22 +19,13 @@ abstract class Setting<T>(val name: String, val defaultValue: T) {
     var width = 0
     open val height: Int get() = 20
 
+    var headerName: String? = null
     var description: String? = null
 
     var visibility: () -> Boolean = { true }
-    val isVisible: Boolean get() = visibility.invoke()
+    var changeListener: ((T) -> Unit)? = null
 
-    var headerName: String? = null
-
-    private var changeListener: ((T) -> Unit)? = null
-
-    protected fun notifyChange() {
-        changeListener?.invoke(value)
-    }
-
-    fun reset() {
-        value = defaultValue
-    }
+    fun reset() = ::value.set(defaultValue)
 
     abstract fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int)
     abstract fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean
