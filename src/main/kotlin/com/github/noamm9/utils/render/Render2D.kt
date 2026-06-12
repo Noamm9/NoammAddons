@@ -24,10 +24,17 @@ object Render2D {
     }
 
     fun drawRect(ctx: GuiGraphicsExtractor, x: Number, y: Number, width: Number, height: Number, color: Color = Color.WHITE) {
+        // fill only takes ints, so fractional sizes are drawn by scaling a 1x1 quad - the rect covers
+        // exactly width x height in float space (integer sizes render identically to a plain fill).
+        val w = width.toFloat()
+        val h = height.toFloat()
+        if (w <= 0f || h <= 0f) return
         val pose = ctx.pose()
+        pose.pushMatrix()
         pose.translate(x.toFloat(), y.toFloat())
-        ctx.fill(0, 0, width.toInt(), height.toInt(), color.rgb)
-        pose.translate(- x.toFloat(), - y.toFloat())
+        pose.scale(w, h)
+        ctx.fill(0, 0, 1, 1, color.rgb)
+        pose.popMatrix()
     }
 
     fun drawBorder(ctx: GuiGraphicsExtractor, x: Number, y: Number, width: Number, height: Number, color: Color = Color.WHITE, thickness: Number = 1) {
