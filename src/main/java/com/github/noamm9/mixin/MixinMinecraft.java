@@ -42,17 +42,10 @@ public abstract class MixinMinecraft {
         CpsDisplay.addLeftClick();
     }
 
-    // Re-Swing only affects deliberate attack clicks (startAttack); block mining runs through
-    // continueAttack, which is left untouched so the mining swing always plays normally.
     @WrapOperation(method = "startAttack", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;swing(Lnet/minecraft/world/InteractionHand;)V"))
     private void reSwingOnAttack(LocalPlayer instance, InteractionHand hand, Operation<Void> original) {
-        if (Animations.INSTANCE.enabled) {
-            if (Animations.INSTANCE.getReSwing().getValue()) {
-                instance.swinging = false;
-                original.call(instance, hand);
-                return;
-            }
-            if (instance.swinging) return;
+        if (Animations.INSTANCE.enabled && Animations.INSTANCE.getReSwing().getValue()) {
+            instance.swinging = false;
         }
         original.call(instance, hand);
     }
