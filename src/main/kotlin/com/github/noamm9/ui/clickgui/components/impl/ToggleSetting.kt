@@ -38,6 +38,7 @@ class ToggleSetting(name: String, value: Boolean = false): Setting<Boolean>(name
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
         if (button == 0 && mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
             value = ! value
+            notifyChange()
             Style.playClickSound(1f)
             return true
         }

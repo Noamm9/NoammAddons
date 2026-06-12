@@ -45,6 +45,7 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
         val rgb = Color.HSBtoRGB(h, s, b)
         super.value = Color(rgb).withAlpha((a * 255).toInt())
         updateHexText()
+        notifyChange()
     }
 
     private fun updateHexText() {
@@ -170,6 +171,7 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
             a = c.alpha / 255f
 
             super.value = c
+            notifyChange()
         }
     }
 
