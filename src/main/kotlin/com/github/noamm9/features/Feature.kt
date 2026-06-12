@@ -126,6 +126,7 @@ open class Feature(
     protected fun <T: Setting<*>> T.withDescription(desc: String) = with(Setting.Companion) { this@withDescription.withDescription(desc) }
     protected fun <T: Setting<*>> T.showIf(condition: () -> Boolean) = with(Setting.Companion) { this@showIf.showIf(condition) }
     protected fun <T: Setting<*>> T.hideIf(condition: () -> Boolean) = with(Setting.Companion) { this@hideIf.hideIf(condition) }
+    protected fun <T, S: Setting<T>> S.onChange(listener: (T) -> Unit) = with(Setting.Companion) { this@onChange.onChange(listener) }
     protected operator fun <T, S: Setting<T>> S.provideDelegate(thisRef: Feature, prop: KProperty<*>) = with(Setting.Companion) { this@provideDelegate.provideDelegate(thisRef, prop) }
     protected operator fun <T, S: Setting<T>> S.getValue(thisRef: Feature, prop: KProperty<*>) = with(Setting.Companion) { this@getValue.getValue(thisRef, prop) }
 }
