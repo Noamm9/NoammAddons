@@ -3,7 +3,10 @@ package com.github.noamm9.mixin;
 import com.github.noamm9.event.EventBus;
 import com.github.noamm9.event.impl.PlayerInteractEvent;
 import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlay;
+import com.github.noamm9.features.impl.visual.Animations;
 import com.github.noamm9.features.impl.visual.CpsDisplay;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import net.minecraft.client.Minecraft;
@@ -11,6 +14,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
@@ -36,6 +40,21 @@ public abstract class MixinMinecraft {
     @Inject(method = "startAttack", at = @At("HEAD"))
     private void onStartAttack(CallbackInfoReturnable<Boolean> cir) {
         CpsDisplay.addLeftClick();
+    }
+
+    // Re-Swing only affects deliberate attack clicks (startAttack); block mining runs through
+    // continueAttack, which is left untouched so the mining swing always plays normally.
+    @WrapOperation(method = "startAttack", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;swing(Lnet/minecraft/world/InteractionHand;)V"))
+    private void reSwingOnAttack(LocalPlayer instance, InteractionHand hand, Operation<Void> original) {
+        if (Animations.INSTANCE.enabled) {
+            if (Animations.INSTANCE.getReSwing().getValue()) {
+                instance.swinging = false;
+                original.call(instance, hand);
+                return;
+            }
+            if (instance.swinging) return;
+        }
+        original.call(instance, hand);
     }
 
     @Inject(method = "startUseItem", at = @At("HEAD"))
