@@ -15,10 +15,12 @@ import com.github.noamm9.utils.dungeons.map.core.DoorType
 import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.handlers.*
 import com.github.noamm9.utils.dungeons.map.utils.MapUtils
+import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render3D
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket
+import net.minecraft.world.phys.Vec3
 
 @AlwaysActive
 object DungeonMap: Feature() {
@@ -79,28 +81,70 @@ object DungeonMap: Feature() {
         }
 
         register<RenderWorldEvent> {
-            if (! enabled || ! LocationUtils.inDungeon || LocationUtils.inBoss || ! MapConfig.boxWitherDoors.value) return@register
+            val boxDoors = MapConfig.boxWitherDoors.value
+            val traceDoors = MapConfig.traceWitherDoors.value
+            if (!enabled || !LocationUtils.inDungeon || LocationUtils.inBoss || (!boxDoors && !traceDoors)) return@register
 
-            val shouldHideUndiscovered = ! MapConfig.dungeonMapCheater.value || DungeonListener.dungeonStarted
-            val color = (if (DungeonListener.doorKeys > 0) MapConfig.witherDoorKeyColor.value else MapConfig.witherDoorNoKeyColor.value).withAlpha((MapConfig.witherDoorFill.value * 2.55).toInt())
+            val cheaterMap = MapConfig.dungeonMapCheater.value
+            val shouldHideUndiscovered = !cheaterMap || DungeonListener.dungeonStarted
+            val bloodRush = DungeonPathFinder.getBloodRush()
+            val currentIndex = listOfNotNull(ScanUtils.currentRoom, ScanUtils.lastKnownRoom)
+                .map { bloodRush.indexOf(it) }
+                .filter { it >= 0 }
+                .maxOrNull()
+            val nextDoor = currentIndex?.let { index ->
+                if (bloodRush.size < 2) null
+                else (index ..< bloodRush.lastIndex).firstNotNullOfOrNull { pathIndex ->
+                    DungeonInfo.dungeonList.firstNotNullOfOrNull { tile ->
+                        val door = tile as? Door ?: return@firstNotNullOfOrNull null
+                        if (door.type == DoorType.ENTRANCE || door.type == DoorType.NORMAL || door.opened) return@firstNotNullOfOrNull null
 
-            for (tile in DungeonInfo.dungeonList) {
-                if (tile !is Door) continue
-                if (tile.type == DoorType.ENTRANCE || tile.type == DoorType.NORMAL) continue
-                if (tile.opened) continue
+                        val isFairy = DungeonPathFinder.isFairy(door)
+                        if (shouldHideUndiscovered && door.state == RoomState.UNDISCOVERED && !isFairy) return@firstNotNullOfOrNull null
 
-                val isFairy = DungeonPathFinder.isFairy(tile)
+                        val rooms = DungeonPathFinder.getConnectingDoorRooms(door.arrayPos.first, door.arrayPos.second)
+                            .mapNotNull { it.uniqueRoom }
 
-                if (shouldHideUndiscovered && tile.state == RoomState.UNDISCOVERED && ! isFairy) continue
+                        door.takeIf { rooms.size == 2 && bloodRush[pathIndex] in rooms && bloodRush[pathIndex + 1] in rooms }
+                    }
+                }
+            }
 
-                Render3D.renderBox(
-                    event.ctx,
-                    tile.x + 0.5, 69.0, tile.z + 0.5,
-                    3, 4, color,
-                    outline = true,
-                    fill = true,
-                    phase = true
-                )
+            if (boxDoors) {
+                for (tile in DungeonInfo.dungeonList) {
+                    if (tile !is Door) continue
+
+                    if (cheaterMap && MapConfig.boxAllWitherDoors.value) {
+                        if ((tile.type != DoorType.WITHER && tile.type != DoorType.BLOOD) || tile.opened) continue
+                    }
+                    else {
+                        if (tile.type == DoorType.ENTRANCE || tile.type == DoorType.NORMAL) continue
+                        if (tile.opened) continue
+
+                        val isFairy = DungeonPathFinder.isFairy(tile)
+                        if (shouldHideUndiscovered && tile.state == RoomState.UNDISCOVERED && !isFairy) continue
+                    }
+
+                    val doorColor = if (tile == nextDoor && DungeonListener.doorKeys > 0) MapConfig.witherDoorKeyColor.value else MapConfig.witherDoorNoKeyColor.value
+                    Render3D.renderBox(
+                        event.ctx,
+                        tile.x + 0.5, 69.0, tile.z + 0.5,
+                        3, 4, doorColor.withAlpha((MapConfig.witherDoorFill.value * 2.55).toInt()),
+                        outline = true,
+                        fill = true,
+                        phase = true
+                    )
+                }
+            }
+
+            val currentRoom = ScanUtils.currentRoom ?: ScanUtils.lastKnownRoom
+            val inNextDoorRoom = nextDoor != null && currentRoom != null && DungeonPathFinder
+                .getConnectingDoorRooms(nextDoor.arrayPos.first, nextDoor.arrayPos.second)
+                .any { it.uniqueRoom == currentRoom }
+
+            if (traceDoors && nextDoor != null && inNextDoorRoom) {
+                val tracerColor = if (DungeonListener.doorKeys > 0) MapConfig.witherDoorKeyColor.value else MapConfig.witherDoorNoKeyColor.value
+                Render3D.renderTracer(event.ctx, Vec3(nextDoor.x + 0.5, 71.0, nextDoor.z + 0.5), tracerColor)
             }
         }
 
