@@ -24,7 +24,8 @@ object Render2D {
     }
 
     fun drawRect(ctx: GuiGraphicsExtractor, x: Number, y: Number, width: Number, height: Number, color: Color = Color.WHITE) {
-        // fill only takes ints; fractional sizes are drawn by scaling a 1x1 quad
+        // fill only takes ints, so fractional sizes are drawn by scaling a 1x1 quad - the rect covers
+        // exactly width x height in float space (integer sizes render identically to a plain fill).
         val w = width.toFloat()
         val h = height.toFloat()
         if (w <= 0f || h <= 0f) return

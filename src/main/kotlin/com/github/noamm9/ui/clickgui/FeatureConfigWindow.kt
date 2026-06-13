@@ -70,7 +70,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         Render2D.drawCenteredString(context, "§l${feature.name}", x + (width / 2f), y + 8f)
         drawCloseButton(context, closeHovered)
 
-        visibleSettings = feature.configSettings.filter { it.isVisible }
+        visibleSettings = feature.configSettings.filter { it.visibility.invoke() }
 
         contentLeft = x + windowPadding
         contentTop = y + titleBarHeight + 8f

@@ -120,7 +120,9 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         ScrollableTooltip.scaleOverride = 0f
     }
 
-    // cache the tooltip lines until the hovered stack changes instead of re-extracting them every frame
+    // Hovering re-extracts the full tooltip from the stack every frame; cache the lines until the hovered
+    // stack changes. Storage stacks are immutable NBTInventory snapshots so identity is enough; the count
+    // check covers live player-inventory stacks mutating in place.
     private var tooltipStack: ItemStack? = null
     private var tooltipCount = 0
     private var tooltipLines: List<Component> = emptyList()

@@ -3,6 +3,7 @@ package com.github.noamm9.features.impl.dungeon
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.general.PartyHelper
+import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
@@ -12,6 +13,7 @@ import com.github.noamm9.utils.dungeons.DungeonUtils
 import com.github.noamm9.utils.location.LocationUtils
 
 object AutoRequeue: Feature() {
+    private val requeueCmd by DropdownSetting("Requeue Command", 0, listOf("/joininstance", "/instancerequeue"))
     private val checkParty by ToggleSetting("Check Party", true).withDescription("Should the auto check the party state before running the command.")
     private val delay by SliderSetting("Delay", 5L, 1L, 10L, 1L).withDescription("Delay in Seconds.")
     private val feedback by ToggleSetting("Feedback", true).withDescription("Print feedback messages from auto in chat.")
@@ -35,7 +37,8 @@ object AutoRequeue: Feature() {
 
             ThreadUtils.setTimeout(delay.value * 1000) {
                 if (checkParty.value && ! PartyUtils.isLeader()) return@setTimeout feedBackMessage("You are not the party leader!")
-                ChatUtils.sendMessage("/joininstance ${masterMode}CATACOMBS_FLOOR_${floor}")
+                if (requeueCmd.value == 0) ChatUtils.sendMessage("/joininstance ${masterMode}CATACOMBS_FLOOR_${floor}")
+                else ChatUtils.sendMessage("/instancerequeue")
             }
         }
     }
