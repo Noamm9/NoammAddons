@@ -208,7 +208,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         for (i in 0 until 36) {
             val item = items[i]
             val (sx, sy) = getPlayerInvSlotPos(i)
-            val isSlotHovered = inRect(mouseX, mouseY, sx, sy, 16, 16)
+            val isSlotHovered = inRect(mouseX, mouseY, sx - 1, sy - 1, 16 + 2, 16 + 2)
 
             if (! item.isEmpty) {
                 if (FEAT_ItemRarity.enabled) FEAT_ItemRarity.onSlotDraw(this, item, sx, sy)
@@ -278,7 +278,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
             if (slotY + 16 < panelY || slotY > panelY + panelH) continue
             val displayStack = if (slots != null && index < slots.size) slots[index].item else invStacks?.get(index) ?: continue
-            val isSlotHovered = inRect(mouseX, mouseY, slotX, slotY, 16, 16) && inRect(mouseX, mouseY, panelX, panelY, panelW, panelH)
+            val isSlotHovered = inRect(mouseX, mouseY, slotX - 1, slotY - 1, 16 + 2, 16 + 2) && inRect(mouseX, mouseY, panelX, panelY, panelW, panelH)
 
             if (! displayStack.isEmpty) {
                 if (FEAT_ItemRarity.enabled) FEAT_ItemRarity.onSlotDraw(this, displayStack, slotX, slotY)
