@@ -1,8 +1,6 @@
 package com.github.noamm9.features.impl.visual
 
-import com.github.noamm9.event.impl.ChatMessageEvent
-import com.github.noamm9.event.impl.ContainerEvent
-import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.annotations.AlwaysActive
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
@@ -16,7 +14,10 @@ import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.remove
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.height
+import com.github.noamm9.utils.render.Render2D.highlight
 import com.github.noamm9.utils.render.Render2D.width
+import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
+import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import java.awt.Color
 
 @AlwaysActive
@@ -31,6 +32,7 @@ object PetDisplay: Feature("Pet Features") {
     private val chatSpawnRegex = Regex("§aYou summoned your (?<pet>.*)§a!")
     private val chatDespawnRegex = Regex("§aYou despawned your .*§a!")
 
+    private val petMenuRegex = Regex("^\\(\\d/\\d\\) Pets$")
     private val petLevelRegex = Regex(".+\\[Lvl .*]")
     private var selectedPetSlot = - 1
 
@@ -47,8 +49,8 @@ object PetDisplay: Feature("Pet Features") {
             if (! LocationUtils.inSkyblock) return@register
             event.formattedText.let {
                 if (chatDespawnRegex.matches(it)) {
-                    selectedPetSlot = - 1
                     cacheData.get().remove("pet")
+                    selectedPetSlot = - 1
                     return@register
                 }
 
@@ -60,11 +62,13 @@ object PetDisplay: Feature("Pet Features") {
         }
 
         register<ContainerFullyOpenedEvent> {
-            if (! event.title.unformattedText.startsWith("Pets")) return@register
-            for (item in event.items) for (line in item.value.lore) {
-                if (line.removeFormatting() != "Click to despawn!") continue
-                selectedPetSlot = item.key
-                cacheData.get()["pet"] = item.value.hoverName.formattedText.remove(petLevelRegex).trim()
+            selectedPetSlot = - 1
+            if (! event.title.unformattedText.matches(petMenuRegex)) return@register
+            for ((i, stack) in event.items) {
+                val lore = stack.lore
+                if (lore.getOrNull(lore.lastIndex - 2)?.removeFormatting() != "Click to despawn!") continue
+                cacheData.get()["pet"] = stack.hoverName.formattedText.remove(petLevelRegex).trim()
+                selectedPetSlot = i
                 return@register
             }
         }
@@ -72,15 +76,21 @@ object PetDisplay: Feature("Pet Features") {
         register<ContainerEvent.Render.Slot.Pre> {
             if (! enabled) return@register
             if (! activePetHighlight.value) return@register
-            if (! event.screen.title.unformattedText.startsWith("Pets")) return@register
             if (event.slot.index != selectedPetSlot) return@register
-            Render2D.drawRect(event.context, event.slot.x, event.slot.y, 16, 16, petHighlightColor.value)
+            event.slot.highlight(event.context, petHighlightColor.value)
         }
 
-        register<ContainerEvent.Open> {
+        register<PacketEvent.Sent> {
             if (! enabled) return@register
             if (! activePetHighlight.value) return@register
-            if (! event.screen.title.unformattedText.startsWith("Pets")) return@register
+            if (event.packet !is ServerboundContainerClosePacket) return@register
+            selectedPetSlot = - 1
+        }
+
+        register<MainThreadPacketReceivedEvent.Pre> {
+            if (! enabled) return@register
+            if (! activePetHighlight.value) return@register
+            if (event.packet !is ClientboundContainerClosePacket) return@register
             selectedPetSlot = - 1
         }
     }
