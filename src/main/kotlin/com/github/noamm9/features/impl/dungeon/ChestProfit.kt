@@ -45,6 +45,8 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
     private val chestsToHighlight = mutableListOf<DungeonChest>()
     private var sortedChestsCache = emptyList<DungeonChest>()
 
+    private val feather by lazy { ItemStack(Items.FEATHER) }
+
     override fun init() {
         register<WorldChangeEvent> {
             DungeonChest.entries.forEach { it.reset() }
@@ -192,7 +194,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                     pose.pushMatrix()
                     pose.scale(0.7f)
                     pose.translate((event.slot.x + 7) / 0.7f, (event.slot.y + 7) / 0.7f)
-                    Render2D.renderItem(event.context, "minecraft:item/feather", 0, 0, 16)
+                    Render2D.renderItem(event.context, feather, 0, 0)
                     pose.popMatrix()
                 }
             }
