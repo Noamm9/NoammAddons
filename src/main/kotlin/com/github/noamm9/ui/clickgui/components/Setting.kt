@@ -22,11 +22,8 @@ abstract class Setting<T>(val name: String, val defaultValue: T) {
 
     var headerName: String? = null
 
-    private var changeListener: ((T) -> Unit)? = null
-
-    protected fun notifyChange() {
-        changeListener?.invoke(value)
-    }
+    /** Persistence key, defaulting to [name]. Set it to keep a unique config key while reusing a display name. */
+    var saveKey: String? = null
 
     fun reset() {
         value = defaultValue
@@ -52,11 +49,6 @@ abstract class Setting<T>(val name: String, val defaultValue: T) {
                 return@let if (! it.endsWith('.')) "$it."
                 else it
             }
-            return this
-        }
-
-        fun <T, S: Setting<T>> S.onChange(listener: (T) -> Unit): S {
-            this.changeListener = listener
             return this
         }
 

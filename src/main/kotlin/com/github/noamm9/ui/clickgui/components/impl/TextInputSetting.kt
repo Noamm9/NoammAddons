@@ -21,7 +21,7 @@ import java.awt.Color
 class TextInputSetting(name: String, defaultValue: String): Setting<String>(name, defaultValue), Savable {
     private val handler = TextInputHandler(
         textProvider = { value },
-        textSetter = { value = it; notifyChange() }
+        textSetter = { value = it }
     )
 
     private val hoverAnim = Animation(200L)
