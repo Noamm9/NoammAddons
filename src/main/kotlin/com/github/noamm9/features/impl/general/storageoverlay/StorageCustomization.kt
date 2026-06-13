@@ -1,6 +1,5 @@
 package com.github.noamm9.features.impl.general.storageoverlay
 
-import com.github.noamm9.config.PogObject
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.dev.ClickGui
 import com.github.noamm9.ui.clickgui.components.Setting
@@ -12,75 +11,37 @@ import com.github.noamm9.ui.clickgui.components.impl.TextInputSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.render.Render2D
+import kotlinx.serialization.json.JsonPrimitive
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.chat.Component
 import java.awt.Color
 
 /**
- * Per-page (Ender Chest / Backpack) customization for [StorageOverlay]: the persisted data,
- * the global store, and the settings accordion. A `null` color means the page follows the
- * user's accent color.
- *
- * Customization is global (shared across Skyblock profiles) and persisted in its own json
- * rather than the ClickGui config (settings there are keyed by name and would collide across
- * the 27 identical page fields) - the fields use the existing settings wrapped in [StoreSetting]
- * so they are never registered with the config and write straight to this store instead.
+ * Per-page (Ender Chest / Backpack) customization for [StorageOverlay]. Each page's fields are
+ * regular Savable settings persisted through the normal config; their save keys are namespaced by
+ * page index so the 27 identical "Name" / "Border Color" / ... fields don't collide (config
+ * settings are otherwise keyed by name).
  */
-data class PageCustomization(
-    var name: String = "",
-    var color: Int? = null,
-    var alwaysBorder: Boolean = false,
-    var alwaysName: Boolean = false,
-)
-
 object StorageCustomization {
-    private val store = PogObject("storage_customization", hashMapOf<Int, PageCustomization>())
-    private val data get() = store.get()
+    private class PageSettings(
+        val name: TextInputSetting,
+        val color: ColorSetting,
+        val alwaysBorder: ToggleSetting,
+        val alwaysName: ToggleSetting,
+    )
 
-    private fun customization(index: Int): PageCustomization = data.getOrPut(index) { PageCustomization() }
-    private fun peek(index: Int): PageCustomization? = data[index]
+    private val pages = arrayOfNulls<PageSettings>(27)
 
-    // The getters run per page per frame; this snapshots the store lookup + name fallback + Color allocation per
-    // page, rebuilt lazily after a setter touches that page. color stays null when following the accent color so
-    // the fallback tracks accent changes live.
-    private class Resolved(val name: String, val color: Color?, val alwaysBorder: Boolean, val alwaysName: Boolean) {
-        // Derived display values, cached here so the overlay doesn't rebuild a Component / concat a string per
-        // visible page per frame (the cached Component also keeps its visual-order-text layout cache warm).
-        val nameComponent: Component = Component.literal(name)
-        val placeholderText = "$name - Click to load"
-    }
+    private fun displayName(page: StoragePage): String =
+        pages[page.index]?.name?.value?.takeIf { it.isNotBlank() } ?: page.name
 
-    private val resolved = arrayOfNulls<Resolved>(27)
+    fun nameFor(page: StoragePage): String = displayName(page)
+    fun nameComponentFor(page: StoragePage): Component = Component.literal(displayName(page))
+    fun placeholderTextFor(page: StoragePage): String = "${displayName(page)} - Click to load"
+    fun colorFor(index: Int): Color = pages[index]?.color?.value ?: ClickGui.accsentColor.value
+    fun alwaysBorderFor(index: Int): Boolean = pages[index]?.alwaysBorder?.value == true
+    fun alwaysNameFor(index: Int): Boolean = pages[index]?.alwaysName?.value == true
 
-    private fun resolved(index: Int): Resolved = resolved[index] ?: run {
-        val c = peek(index)
-        Resolved(
-            c?.name?.takeIf { it.isNotBlank() } ?: StoragePage(index).name,
-            c?.color?.let { Color(it) },
-            c?.alwaysBorder == true,
-            c?.alwaysName == true
-        ).also { resolved[index] = it }
-    }
-
-    fun nameFor(page: StoragePage): String = resolved(page.index).name
-    fun nameComponentFor(page: StoragePage): Component = resolved(page.index).nameComponent
-    fun placeholderTextFor(page: StoragePage): String = resolved(page.index).placeholderText
-    fun colorFor(index: Int): Color = resolved(index).color ?: ClickGui.accsentColor.value
-    fun alwaysBorderFor(index: Int): Boolean = resolved(index).alwaysBorder
-    fun alwaysNameFor(index: Int): Boolean = resolved(index).alwaysName
-
-    private fun setName(index: Int, name: String) { customization(index).name = name; save(index) }
-    private fun setColor(index: Int, color: Color) { customization(index).color = color.rgb and 0xFFFFFF; save(index) }
-    private fun setAlwaysBorder(index: Int, value: Boolean) { customization(index).alwaysBorder = value; save(index) }
-    private fun setAlwaysName(index: Int, value: Boolean) { customization(index).alwaysName = value; save(index) }
-    private fun reset(index: Int) { data.remove(index); save(index) }
-
-    private fun save(index: Int) {
-        resolved[index] = null
-        store.save()
-    }
-
-    /** Appends the customization accordion (top header -> 27 page headers -> per-page fields). */
     fun buildSettings(feature: Feature) {
         val settings = feature.configSettings
         settings.add(CategorySetting("Customization"))
@@ -93,18 +54,35 @@ object StorageCustomization {
             settings.add(header)
             val visible = { top.expanded && header.expanded }
 
-            fun field(setting: Setting<*>, desc: String) = settings.add(StoreSetting(setting).also { it.visibility = visible; it.description = desc })
+            fun <T: Setting<*>> field(setting: T, key: String, desc: String): T = setting.also {
+                it.saveKey = key
+                it.visibility = visible
+                it.description = desc
+                settings.add(it)
+            }
 
-            field(TextInputSetting("Name", peek(i)?.name ?: "") { setName(i, it) }, "Custom name for this page. Leave empty for the default.")
-            field(ColorSetting("Border Color", colorFor(i), withAlpha = false) { setColor(i, it) }, "Border color for this page. Defaults to the accent color.")
-            field(ToggleSetting("Always Show Border", alwaysBorderFor(i)) { setAlwaysBorder(i, it) }, "Draw this page's border even when it is not the open page.")
-            field(ToggleSetting("Always Show Name", alwaysNameFor(i)) { setAlwaysName(i, it) }, "Show this page's name even when it is not the open page.")
-            settings.add(ButtonSetting("Reset") { reset(i) }.also { it.visibility = visible; it.description = "Reset this page's customization to defaults." })
+            val name = field(TextInputSetting("Name", ""), "page_${i}_name",
+                "Custom name for this page. Leave empty for the default.")
+            val color = field(ColorSetting("Border Color", ClickGui.accsentColor.value, withAlpha = false), "page_${i}_color",
+                "Border color for this page. Defaults to the accent color.")
+            val alwaysBorder = field(ToggleSetting("Always Show Border", false), "page_${i}_alwaysBorder",
+                "Draw this page's border even when it is not the open page.")
+            val alwaysName = field(ToggleSetting("Always Show Name", false), "page_${i}_alwaysName",
+                "Show this page's name even when it is not the open page.")
+
+            pages[i] = PageSettings(name, color, alwaysBorder, alwaysName)
+
+            settings.add(ButtonSetting("Reset") {
+                name.value = ""
+                alwaysBorder.value = false
+                alwaysName.value = false
+                // re-run read() so the picker's internal HSB state re-syncs, not just the backing value
+                color.read(JsonPrimitive(color.defaultValue.rgb))
+            }.also { it.visibility = visible; it.description = "Reset this page's customization to defaults." })
         }
     }
 }
 
-/** A collapsible header row. Clicking toggles [expanded]; child settings hide/show via a visibility check. */
 class FoldableSetting(private val title: () -> String): Setting<Boolean>("", false) {
     var expanded = false
     private val hoverAnim = Animation(200)
@@ -127,22 +105,4 @@ class FoldableSetting(private val title: () -> String): Setting<Boolean>("", fal
         }
         return false
     }
-}
-
-/**
- * Renders/behaves exactly like the wrapped [inner] setting but is itself not Savable, and the
- * inner setting is never registered with the config - so the config never persists it (no name
- * collisions). Persistence is handled by the store via the inner setting's onChange callback.
- */
-class StoreSetting(private val inner: Setting<*>): Setting<Unit>(inner.name, Unit) {
-    override val height get() = inner.height
-
-    private fun sync() { inner.x = x; inner.y = y; inner.width = width }
-
-    override fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) { sync(); inner.draw(ctx, mouseX, mouseY) }
-    override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean { sync(); return inner.mouseClicked(mouseX, mouseY, button) }
-    override fun mouseReleased(button: Int) = inner.mouseReleased(button)
-    override fun mouseScrolled(mouseX: Int, mouseY: Int, delta: Double) = inner.mouseScrolled(mouseX, mouseY, delta)
-    override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int) = inner.keyPressed(keyCode, scanCode, modifiers)
-    override fun charTyped(codePoint: Char) = inner.charTyped(codePoint)
 }
