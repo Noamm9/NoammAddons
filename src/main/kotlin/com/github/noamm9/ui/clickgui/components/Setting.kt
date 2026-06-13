@@ -25,6 +25,9 @@ abstract class Setting<T>(val name: String, val defaultValue: T) {
     var visibility: () -> Boolean = { true }
     var changeListener: ((T) -> Unit)? = null
 
+    /** Persistence key, defaulting to [name]. Set it to keep a unique config key while reusing a display name. */
+    var saveKey: String? = null
+
     fun reset() = ::value.set(defaultValue)
 
     abstract fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int)

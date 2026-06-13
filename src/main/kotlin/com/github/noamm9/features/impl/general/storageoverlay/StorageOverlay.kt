@@ -30,9 +30,11 @@ import kotlin.jvm.optionals.getOrNull
 object StorageOverlay: Feature("Shows all storage pages in an overlay when opening storage.", toggled = true) {
     val scaleSetting by SliderSetting("Scale", 1.0f, 0.5f, 2.0f, 0.05f).withDescription("The scale of the menu")
     val columnsSetting by SliderSetting("Columns", 3, 1, 10, 1).withDescription("The number of pages to show next to each other horizontally")
-    val maxHeightSetting by SliderSetting("Max Height", 324, 80, 600, 1).withDescription("the maximum height of the entire menu")
-    val scrollSpeedSetting by SliderSetting("Scroll Speed", 10, 1, 50, 1).withDescription("how fast you scroll")
-    val retainScrollSetting by ToggleSetting("Retain Scroll", true).withDescription("Whether to it keep the scroll offset after closing the menu")
+    val maxHeightSetting by SliderSetting("Max Height", 324, 80, 600, 1).withDescription("The maximum height of the entire menu")
+    val borderThicknessSetting by SliderSetting("Border Thickness", 2f, 0.5f, 3f, 0.5f).withDescription("The thickness of the page borders")
+    val pageSpacingSetting by SliderSetting("Page Spacing", 6, 0, 20, 1).withDescription("The vertical space between page rows")
+    val scrollSpeedSetting by SliderSetting("Scroll Speed", 10, 1, 50, 1).withDescription("How fast you scroll")
+    val retainScrollSetting by ToggleSetting("Retain Scroll", true).withDescription("Whether to keep the scroll offset after closing the menu")
     val enableTooltipInStorage by ToggleSetting("Tooltip Scroll").withDescription("Whether to enable Item Tooltip Scrolling. (requires ${ScrollableTooltip.name} to be enabled)")
 
     private val storageDir by lazy { File(mc.gameDirectory, "config/${NoammAddons.MOD_NAME}/storage").also(File::mkdirs) }
@@ -54,6 +56,8 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     )
 
     override fun init() {
+        StorageCustomization.buildSettings(this)
+
         register<ContainerFullyOpenedEvent> {
             if (! LocationUtils.inSkyblock) return@register
             val screen = mc.screen as? ContainerScreen ?: return@register
@@ -88,7 +92,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         val menu = StorageMenu.get(screen)
         val overlay = oldScreen as? StorageOverlayScreen ?: active
 
-        if (currentMenu == null && menu == null) loadData()
+        if (currentMenu == null && menu == null) ThreadUtils.async(::loadData)
         currentMenu?.let(::saveContent)
         menu?.let(::saveContent)
         currentMenu = menu
@@ -170,7 +174,10 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         val file = dataFile
         if (! checkFile(file)) return
         if (storageMenuData.isNotEmpty()) return
-        if (! file.exists()) return ThreadUtils.async(::loadFromApi)
+        if (! file.exists()) {
+            loadFromApi()
+            return
+        }
         val root = NbtIo.readCompressed(file.toPath(), NbtAccounter.unlimitedHeap())
         val data = TreeMap<StoragePage, NBTInventory?>()
 

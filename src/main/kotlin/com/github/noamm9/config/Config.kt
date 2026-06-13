@@ -52,7 +52,7 @@ object Config {
                     putJsonArray("configSettings") {
                         for (setting in feature.configSettings) {
                             if (setting is Savable) {
-                                addJsonObject { put(setting.name, setting.write()) }
+                                addJsonObject { put(setting.saveKey ?: setting.name, setting.write()) }
                             }
                         }
                     }

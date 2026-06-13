@@ -13,7 +13,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
-class ToggleSetting(name: String, value: Boolean = false): Setting<Boolean>(name, value), Savable {
+class ToggleSetting(name: String, value: Boolean = false, private val onChange: ((Boolean) -> Unit)? = null): Setting<Boolean>(name, value), Savable {
     private val toggleAnim = Animation(200, if (value) 1f else 0f)
     private val hoverAnim = Animation(200, 0f)
 
@@ -38,6 +38,7 @@ class ToggleSetting(name: String, value: Boolean = false): Setting<Boolean>(name
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
         if (button == 0 && mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
             value = ! value
+            onChange?.invoke(value)
             Style.playClickSound(1f)
             return true
         }
