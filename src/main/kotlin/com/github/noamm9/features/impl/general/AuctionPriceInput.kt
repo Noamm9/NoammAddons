@@ -69,7 +69,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
 
             val (slotId, isValidName) = when (title) {
                 in guiNames -> 29 to { name: String -> name in guiNames }
-                in confirmNames -> 11 to { name: String -> name == "Confirm" }
+                in confirmNames -> 11 to { name: String -> name in confirmNames }
                 else -> return@register
             }
 
