@@ -127,7 +127,9 @@ object PartyHelper: Feature("Party commands and reformatting.") {
                 }
             }
 
-            canRun("!inv") && (cmd == "inv" || cmd == "kidnap" || cmd == "invite") -> runCommand("p invite $args", true)
+            canRun("!inv") && (cmd == "inv" || cmd == "kidnap" || cmd == "invite") -> {
+                args.firstOrNull()?.let { runCommand("p invite $it", true) }
+            }
 
             canRun("!gay") && cmd == "gay" -> {
                 val target = args.firstOrNull() ?: sender
