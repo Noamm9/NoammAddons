@@ -269,7 +269,8 @@ object Render3D {
         x: Number, y: Number, z: Number,
         color: Color = Color.WHITE,
         scale: Number = 1f,
-        phase: Boolean = false
+        phase: Boolean = false,
+        backgroundColor: Int = 0
     ) {
         val toScale = (scale.toFloat() * 0.025f)
         val matrices = Matrix4f()
@@ -295,7 +296,7 @@ object Render3D {
             matrices,
             consumer,
             textLayer,
-            0,
+            backgroundColor,
             LightCoordsUtil.FULL_BRIGHT
         )
     }
@@ -305,8 +306,9 @@ object Render3D {
         pos: Vec3,
         color: Color = Color.WHITE,
         scale: Number = 1f,
-        phase: Boolean = false
-    ) = renderString(text, pos.x, pos.y, pos.z, color, scale, phase)
+        phase: Boolean = false,
+        backgroundColor: Int = 0
+    ) = renderString(text, pos.x, pos.y, pos.z, color, scale, phase, backgroundColor)
 
     fun renderLine(ctx: RenderContext, start: Vec3, finish: Vec3, color: Color, thickness: Number = 2, phase: Boolean = false) {
         val cameraPos = ctx.camera.position()

@@ -115,6 +115,12 @@ object DungeonWaypointCommand: BaseCommand("ndw") {
                 ChatUtils.modMessage("§aAll waypoints cleared for room: $roomName")
             }
         }
+
+        literal("import") {
+            runs {
+                DungeonWaypoints.importFromClipboard()
+            }
+        }
     }
 
 
