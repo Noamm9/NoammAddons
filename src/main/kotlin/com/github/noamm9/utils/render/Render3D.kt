@@ -404,7 +404,7 @@ object Render3D {
         ctx.matrixStack.popPose()
     }
 
-    private fun addFilledBoxVertices(pose: PoseStack.Pose, buffer: VertexConsumer, x1: Double, y1: Double, z1: Double, x2: Double, y2: Double, z2: Double, r: Float, g: Float, b: Float, a: Float) {
+    fun addFilledBoxVertices(pose: PoseStack.Pose, buffer: VertexConsumer, x1: Double, y1: Double, z1: Double, x2: Double, y2: Double, z2: Double, r: Float, g: Float, b: Float, a: Float) {
         val minX = x1.toFloat()
         val minY = y1.toFloat()
         val minZ = z1.toFloat()
@@ -429,7 +429,7 @@ object Render3D {
         buffer.addVertex(pose, x4, y4, z4).setColor(r, g, b, a)
     }
 
-    private fun renderLineBox(pose: PoseStack.Pose, buffer: VertexConsumer, x1: Double, y1: Double, z1: Double, x2: Double, y2: Double, z2: Double, r: Float, g: Float, b: Float, a: Float, lineWidth: Float) {
+    fun renderLineBox(pose: PoseStack.Pose, buffer: VertexConsumer, x1: Double, y1: Double, z1: Double, x2: Double, y2: Double, z2: Double, r: Float, g: Float, b: Float, a: Float, lineWidth: Float) {
         val minX = x1.toFloat()
         val minY = y1.toFloat()
         val minZ = z1.toFloat()
