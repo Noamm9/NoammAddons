@@ -13,6 +13,14 @@ plugins {
     id("noammaddons.preprocessing")
     id("noammaddons.publishing")
     id("noammaddons.loom")
+    idea
+}
+
+idea {
+    module {
+        isDownloadSources = true
+        isDownloadJavadoc = true
+    }
 }
 
 val minecraft_version: String by project
@@ -137,6 +145,9 @@ tasks.named<Jar>("jar") {
 
 listOf("jarCheat", "jarLegit").forEach { taskName ->
     tasks.named<Jar>(taskName) {
+        // NoammAddons-<mod_version>-<minecraft_version>-<cheat|legit>.jar
+        archiveVersion.set("$mod_version-$minecraft_version")
+
         dependsOn("processIncludeJars")
         from(processedIncludeJarsDir) {
             into("META-INF/jars")
