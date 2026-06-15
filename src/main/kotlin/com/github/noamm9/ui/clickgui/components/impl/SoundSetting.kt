@@ -28,7 +28,7 @@ import kotlin.math.max
 class SoundSetting(name: String, defaultValue: SoundEvent): Setting<SoundEvent>(name, defaultValue), Savable {
     constructor(name: String, value: Holder.Reference<SoundEvent>): this(name, value.value())
 
-    companion object {
+    private companion object {
         private val prettyNames = SoundUtils.REVERSE_MAP
 
         private val allSounds by lazy {

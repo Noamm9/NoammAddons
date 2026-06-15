@@ -1,14 +1,19 @@
 package com.github.noamm9.utils.dungeons.enums
 
+import com.github.noamm9.features.impl.dev.ClassColors
+import com.github.noamm9.ui.clickgui.components.impl.ColorCodeSetting
 import java.awt.Color
 
-enum class DungeonClass(val color: Color, val code: String) {
-    Archer(Color(125, 0, 0), "§4"),
-    Berserk(Color(205, 106, 0), "§6"),
-    Healer(Color(123, 0, 123), "§5"),
-    Mage(Color(0, 185, 185), "§3"),
-    Tank(Color(0, 125, 0), "§2"),
-    Empty(Color(0, 0, 0), "§7");
+enum class DungeonClass(val setting: ColorCodeSetting) {
+    Archer(ClassColors.archCode),
+    Berserk(ClassColors.bersCode),
+    Healer(ClassColors.healCode),
+    Mage(ClassColors.mageCode),
+    Tank(ClassColors.tankCode),
+    Empty(ClassColors.emptyCode);
+
+    val color get() = Color(setting.value.color !!)
+    val code get() = setting.value.toString()
 
     companion object {
         fun fromName(name: String): DungeonClass {
