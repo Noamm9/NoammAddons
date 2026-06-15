@@ -15,7 +15,10 @@ import net.minecraft.world.level.block.Blocks
 
 object BreakerHelper: Feature("Zero Ping Dungeon Breaker") {
     private val preventBreakingSecrets by ToggleSetting("Prevent Secret Mine").withDescription("Prevents you from breaking secret blocks like chests, levers.")
+
+    //#if CHEAT
     private val zeroPing by ToggleSetting("Zero Ping").withDescription("Removes the blocks you mine instantly instead of waiting for the server to remove them.")
+    //#endif
 
     private val blacklist = setOf(
         Blocks.BARRIER, Blocks.BEDROCK, Blocks.COMMAND_BLOCK, Blocks.TNT, Blocks.CHEST, Blocks.PLAYER_HEAD,
@@ -36,6 +39,7 @@ object BreakerHelper: Feature("Zero Ping Dungeon Breaker") {
 
     @JvmStatic
     fun onHitBlock(pos: BlockPos) {
+        //#if CHEAT
         if (! enabled) return
         if (! zeroPing.value) return
         if (! LocationUtils.inDungeon) return
@@ -54,5 +58,6 @@ object BreakerHelper: Feature("Zero Ping Dungeon Breaker") {
             state.soundType.pitch * 0.8f,
             false
         )
+        //#endif
     }
 }

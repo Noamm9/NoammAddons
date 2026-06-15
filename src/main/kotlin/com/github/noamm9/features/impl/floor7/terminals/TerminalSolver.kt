@@ -27,7 +27,16 @@ import kotlin.math.floor
 object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
     val scale by SliderSetting("Custom Menu's Scale", 1f, 0.1f, 2f, 0.01f).section("General")
     val slotStyle by DropdownSetting("Slot Style", 0, listOf("Rect", "Bordered-Rect", "Button"))
-    val mode by DropdownSetting("Mode", 0, listOf("Normal", "Q-Terms"))
+
+    val solverModes = run {
+        //#if CHEAT
+        listOf("Normal", "Q-Terms")
+        //#else
+        //$listOf("Normal")
+        //#endif
+    }
+
+    val mode by DropdownSetting("Mode", 0, solverModes)
     val resyncTimeout by SliderSetting<Long>("Resync Timeout", 800, 600, 1000, 1)
 
     val backgroundColor by ColorSetting("Background Color", Color(0, 0, 0, 100)).section("Settings - UI")
