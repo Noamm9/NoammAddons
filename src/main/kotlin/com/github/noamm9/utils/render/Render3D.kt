@@ -154,6 +154,64 @@ object Render3D {
         ctx.matrixStack.popPose()
     }
 
+    fun renderBillboardedCircle(
+        ctx: RenderContext,
+        center: Vec3,
+        radius: Number,
+        color: Color,
+        thickness: Number = 2,
+        phase: Boolean = false
+    ) {
+        val camera = ctx.camera
+        val cameraPos = camera.position()
+        val segments = (radius.toDouble() * 100).toInt().coerceAtLeast(64)
+
+        ctx.matrixStack.pushPose()
+        ctx.matrixStack.translate(center.x - cameraPos.x, center.y - cameraPos.y, center.z - cameraPos.z)
+        ctx.matrixStack.mulPose(camera.rotation())
+
+        val layer = if (phase) NoammRenderLayers.FILLED_THROUGH_WALLS else NoammRenderLayers.FILLED
+        val buffer = ctx.consumers.getBuffer(layer)
+
+        val r = color.red / 255f
+        val g = color.green / 255f
+        val b = color.blue / 255f
+        val a = color.alpha / 255f
+        val matrix = ctx.matrixStack.last().pose()
+
+        val thicknessVal = thickness.toDouble() / 40.0
+        val radiusVal = radius.toDouble()
+        val innerR = (radiusVal - thicknessVal).coerceAtLeast(0.0)
+        val outerR = radiusVal + thicknessVal
+
+        val step = 2.0 * Math.PI / segments
+        for (i in 0 until segments) {
+            val c1 = cos(i * step).toFloat()
+            val s1 = sin(i * step).toFloat()
+            val c2 = cos((i + 1) * step).toFloat()
+            val s2 = sin((i + 1) * step).toFloat()
+
+            val i1x = (innerR * c1).toFloat();
+            val i1y = (innerR * s1).toFloat()
+            val o1x = (outerR * c1).toFloat();
+            val o1y = (outerR * s1).toFloat()
+            val i2x = (innerR * c2).toFloat();
+            val i2y = (innerR * s2).toFloat()
+            val o2x = (outerR * c2).toFloat();
+            val o2y = (outerR * s2).toFloat()
+
+            buffer.addVertex(matrix, i1x, i1y, 0f).setColor(r, g, b, a)
+            buffer.addVertex(matrix, o1x, o1y, 0f).setColor(r, g, b, a)
+            buffer.addVertex(matrix, o2x, o2y, 0f).setColor(r, g, b, a)
+
+            buffer.addVertex(matrix, i1x, i1y, 0f).setColor(r, g, b, a)
+            buffer.addVertex(matrix, o2x, o2y, 0f).setColor(r, g, b, a)
+            buffer.addVertex(matrix, i2x, i2y, 0f).setColor(r, g, b, a)
+        }
+
+        ctx.matrixStack.popPose()
+    }
+
     fun renderBox(
         ctx: RenderContext,
         x: Number,

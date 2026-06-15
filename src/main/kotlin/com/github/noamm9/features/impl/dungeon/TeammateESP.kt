@@ -23,7 +23,7 @@ object TeammateESP: Feature("Highlights your dungeon party.") {
             if (! LocationUtils.inDungeon) return@register
             if (event.entity !is AbstractClientPlayer) return@register
 
-            for (teammate in DungeonListener.dungeonTeammates) {
+            for (teammate in DungeonListener.dungeonTeammates.toList()) {
                 if (teammate.entity?.id != event.entity.id) continue
                 event.color = teammate.clazz.color
             }

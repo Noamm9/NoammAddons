@@ -89,7 +89,7 @@ class ItemRenderer(vertexConsumers: MultiBufferSource.BufferSource): PictureInPi
         }
 
         fun endItemRendererBatch(ctx: GuiGraphicsExtractor) {
-            if (list2d.isEmpty()) return
+            if (list2d.isEmpty() && list3d.isEmpty()) return
 
             val screenRect = ScreenRectangle(0, 0, ctx.guiWidth(), ctx.guiHeight()).transformMaxBounds(ctx.pose())
             val scissor = ctx.scissorStack.peek()

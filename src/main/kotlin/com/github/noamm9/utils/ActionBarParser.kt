@@ -21,7 +21,7 @@ object ActionBarParser {
     val DEF_REGEX = Regex("§a([\\d,]+)§a❈ Defense") // §a593§a❈ Defense
     val MANA_REGEX = Regex("§b([\\d,]+)/([\\d,]+)✎( Mana)?") // §b550/550✎ Mana§r
     val OVERFLOW_REGEX = Regex("§3([\\d,]+)ʬ") // §3100ʬ
-    val STACKS_REGEX = Regex("§6([0-9]+[ᝐ⁑Ѫ])") // §610⁑
+    val STACKS_REGEX = Regex("§6([\\d,]+)([ᝐ⁑Ѫ])") // §610⁑
     val SALVATION_REGEX = Regex("T([1-3])!")
     val MANA_USAGE_REGEX = Regex("§b-([\\d,]+) Mana \\(§6.+?§b\\)|§c§lNOT ENOUGH MANA") // §b-50 Mana (§6Speed Boost§b) , §c§lNOT ENOUGH MANA
     val SECRETS_REGEX = Regex("\\s*§7(\\d+)/(\\d+) Secrets") // §76/10 Secrets§r
@@ -35,6 +35,7 @@ object ActionBarParser {
     var overflowMana = 0
     var effectiveHP = 0
     var netherArmorStacks = 0
+    var stackSymbol = ""
     var salvation = 0
     var secrets: Int? = 0
     var maxSecrets: Int? = 0
@@ -79,6 +80,7 @@ object ActionBarParser {
 
         STACKS_REGEX.find(input)?.let { match ->
             netherArmorStacks = match.groupValues[1].remove(",").toIntOrNull() ?: netherArmorStacks
+            stackSymbol = match.groupValues[2]
         }
 
         SALVATION_REGEX.find(input)?.let { match ->

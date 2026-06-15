@@ -101,7 +101,8 @@ class TestGround {
         EventBus.register<ContainerEvent.SlotClick> {
             if (! slot) return@register
             val stack = event.screen.menu.getSlot(event.slotId).item
-            ChatUtils.modMessage(stack.skyblockId)
+            ChatUtils.modMessage("skyblockid: " + stack.skyblockId)
+            ChatUtils.modMessage("index: " + event.slotId)
         }
 
         EventBus.register<MainThreadPacketReceivedEvent.Pre> {

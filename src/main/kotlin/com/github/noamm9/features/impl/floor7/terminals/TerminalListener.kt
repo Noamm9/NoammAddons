@@ -64,8 +64,8 @@ object TerminalListener {
 
             is ClientboundContainerSetSlotPacket -> {
                 if (! inTerm || packet.containerId != lastWindowId) return
-                if (packet.slot > currentType !!.slotCount) return
                 if (packet.slot < 0) return
+                if (packet.slot > currentType !!.slotCount) return
                 currentItems[packet.slot] = packet.item
 
                 if (currentItems.size == currentType?.slotCount || currentType == TerminalType.MELODY) {
