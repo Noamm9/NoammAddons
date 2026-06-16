@@ -1,14 +1,17 @@
 package com.github.noamm9.features.impl.floor7
 
-import com.github.noamm9.event.impl.ContainerEvent
+import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
+import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.TextInputSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
-import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.location.LocationUtils
+import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
+import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
+import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.world.item.Items
 
 object MelodyAlert: Feature() {
@@ -20,19 +23,29 @@ object MelodyAlert: Feature() {
     private var currentStage = - 1
 
     override fun init() {
-        register<ContainerEvent.Open> {
+        register<MainThreadPacketReceivedEvent.Post> {
             if (msg.value.isBlank()) return@register
             if (LocationUtils.F7Phase != 3) return@register
+            val packet = event.packet as? ClientboundOpenScreenPacket ?: return@register
+            if (packet.title.unformattedText != "Click the button on time!") return@register
 
+            ChatUtils.sendPartyMessage(msg.value)
+            isMelodyOpen = true
+            currentStage = - 1
+        }
+
+        register<MainThreadPacketReceivedEvent.Post> {
+            if (! isMelodyOpen) return@register
+            if (event.packet !is ClientboundContainerClosePacket) return@register
             isMelodyOpen = false
             currentStage = - 1
+        }
 
-            ThreadUtils.scheduledTask(2) {
-                if (event.screen.title.unformattedText == "Click the button on time!") {
-                    isMelodyOpen = true
-                    ChatUtils.sendPartyMessage(msg.value)
-                }
-            }
+        register<PacketEvent.Sent> {
+            if (! isMelodyOpen) return@register
+            if (event.packet !is ServerboundContainerClosePacket) return@register
+            isMelodyOpen = false
+            currentStage = - 1
         }
 
         register<TickEvent.Start> {
