@@ -15,7 +15,7 @@ import net.minecraft.world.entity.Entity
 import java.awt.Color
 import java.util.*
 
-object Box3D: Feature("Replaces the Glow Esp with 3D boxes") {
+object Box3D: Feature("Replaces the Glow ESP with 3D boxes") {
     private val mode by DropdownSetting("Mode", 2, listOf("Outline", "Fill", "Filled Outline"))
     private val lineWidth by SliderSetting("Line Width", 2.5, 1, 10, 0.1).hideIf { mode.value == 1 }
     private val outlineOpacity by SliderSetting("Outline Opacity", 35, 0, 100, 1).hideIf { mode.value == 1 }

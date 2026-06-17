@@ -14,7 +14,7 @@ import net.minecraft.sounds.SoundEvents
 import java.awt.Color
 
 object Style {
-    val accentColor get() = ClickGui.accsentColor.value
+    val accentColor get() = ClickGui.accentColor.value
     val accentColorTrans get() = accentColor.withAlpha(120)
     val bg = Color(10, 10, 10, 100)
 
