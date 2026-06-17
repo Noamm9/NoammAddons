@@ -15,7 +15,7 @@ import com.github.noamm9.utils.ThreadUtils
 import net.minecraft.world.inventory.ContainerInput
 
 object AutoTerminal: Feature("Automatically clicks terminals for you.") {
-    private val randomDelay by ToggleSetting("Random Delay", true).section("Settings")
+    private val randomDelay by ToggleSetting("Random Delay", true).withDescription("Normal distributed by min and max").section("Settings")
 
     private val autoDelay by SliderSetting("Click Delay", 150.0, 0.0, 500.0, 10.0)
         .withDescription("Fixed delay between clicks in milliseconds.")
