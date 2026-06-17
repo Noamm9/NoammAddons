@@ -33,9 +33,9 @@ public class MixinFont {
     }
 
     @ModifyVariable(method = "width(Ljava/lang/String;)I", at = @At("HEAD"), argsOnly = true)
-    private String onWidthString(String text) {
-        if (!noammaddons$shouldReplace()) return text;
-        return TextReplacer.handleString(text);
+    private String onWidthString(String str) {
+        if (!noammaddons$shouldReplace()) return str;
+        return TextReplacer.handleString(str);
     }
 
     @ModifyVariable(method = "width(Lnet/minecraft/network/chat/FormattedText;)I", at = @At("HEAD"), argsOnly = true)

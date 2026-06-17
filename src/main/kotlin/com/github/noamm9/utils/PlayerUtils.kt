@@ -178,7 +178,7 @@ object PlayerUtils {
     }
 
 
-    private val inLeapMenu get() = mc.screen?.title?.unformattedText.equals("spirit leap", true)
+    private val inLeapMenu get() = mc.gui.screen()?.title?.unformattedText.equals("spirit leap", true)
     private var LEAP_TARGET: DungeonPlayer? = null
     suspend fun leapAction(leapTarget: DungeonPlayer) {
         if (thePlayer?.isDead == true) return

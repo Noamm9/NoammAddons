@@ -21,6 +21,7 @@ object RenderTest {
             val ctx = event.ctx
 
             Render3D.renderString(
+                event.ctx,
                 text = "§6§lRender3D Showcase\n§fTesting all utilities",
                 pos = base.add(0.0, 3.5, 0.0),
                 color = Color.WHITE,
@@ -64,7 +65,7 @@ object RenderTest {
                 lineWidth = 2.5
             )
 
-            Render3D.renderString("renderBox()", boxPos.add(0.0, 2.2, 0.0), Color.GREEN, 0.8f)
+            Render3D.renderString(event.ctx, "renderBox()", boxPos.add(0.0, 2.2, 0.0), Color.GREEN, 0.8f)
 
             val boundsPos = base.add(- 4.0, 0.0, 0.0)
             Render3D.renderBoxBounds(
@@ -83,7 +84,7 @@ object RenderTest {
                 lineWidth = 2.0
             )
 
-            Render3D.renderString("renderBoxBounds() \n§e(Phase/Through Walls)", boundsPos.add(0.0, 1.8, 0.0), Color.BLUE, 0.8f)
+            Render3D.renderString(event.ctx, "renderBoxBounds() \n§e(Phase/Through Walls)", boundsPos.add(0.0, 1.8, 0.0), Color.BLUE, 0.8f)
 
             val lineStart = base.add(0.0, 1.0, - 4.0)
             val lineEnd = base.add(0.0, 2.5, - 4.0)
@@ -95,7 +96,7 @@ object RenderTest {
                 thickness = 4,
                 phase = false
             )
-            Render3D.renderString("renderLine()", lineEnd.add(0.0, 0.3, 0.0), Color.MAGENTA, 0.8f)
+            Render3D.renderString(event.ctx, "renderLine()", lineEnd.add(0.0, 0.3, 0.0), Color.MAGENTA, 0.8f)
 
             val tracerTarget = base.add(0.0, 0.5, 4.0)
             Render3D.renderTracer(
@@ -104,7 +105,7 @@ object RenderTest {
                 color = Color.YELLOW,
                 thickness = 2.0
             )
-            Render3D.renderString("renderTracer()", tracerTarget.add(0.0, 1.0, 0.0), Color.YELLOW, 0.8f)
+            Render3D.renderString(event.ctx, "renderTracer()", tracerTarget.add(0.0, 1.0, 0.0), Color.YELLOW, 0.8f)
         }
 
         EventBus.register<NoammDebugFlagEvent.Remove> { if (event.flag == "render") pos = null }

@@ -13,12 +13,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(BlockItem.class)
 public class MixinBlockItem {
     @Inject(method = "placeBlock", at = @At("HEAD"), cancellable = true)
-    private void placeBlockHook(BlockPlaceContext context, BlockState state, CallbackInfoReturnable<Boolean> cir) {
+    private void placeBlockHook(BlockPlaceContext context, BlockState placementState, CallbackInfoReturnable<Boolean> cir) {
         if (NoItemPlace.placeHook(context)) cir.setReturnValue(true);
     }
 
     @Inject(method = "place", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getSoundType()Lnet/minecraft/world/level/block/SoundType;"), cancellable = true)
-    private void useHook(BlockPlaceContext context, CallbackInfoReturnable<InteractionResult> cir) {
-        if (NoItemPlace.placeHook(context)) cir.setReturnValue(InteractionResult.SUCCESS);
+    private void useHook(BlockPlaceContext placeContext, CallbackInfoReturnable<InteractionResult> cir) {
+        if (NoItemPlace.placeHook(placeContext)) cir.setReturnValue(InteractionResult.SUCCESS);
     }
 }

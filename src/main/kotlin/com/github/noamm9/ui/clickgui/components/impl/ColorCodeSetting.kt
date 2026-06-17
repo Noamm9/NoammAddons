@@ -4,6 +4,9 @@ import com.github.noamm9.config.Savable
 import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
+import com.github.noamm9.utils.ColorUtils.char
+import com.github.noamm9.utils.ColorUtils.color
+import com.github.noamm9.utils.ColorUtils.isColor
 import com.github.noamm9.utils.render.Render2D
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
@@ -26,7 +29,7 @@ class ColorCodeSetting(name: String, default: ChatFormatting = ChatFormatting.WH
 
     override val height get() = 20 + (openAnim.value * 48).toInt()
 
-    private fun swatchColor(format: ChatFormatting) = Color(format.color ?: 0xFFFFFF)
+    private fun swatchColor(format: ChatFormatting) = Color(format.color)
 
     private fun prettyName(format: ChatFormatting) =
         format.name.split('_').joinToString(" ") { it.lowercase().replaceFirstChar(Char::uppercase) }

@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.phys.Vec3
 import java.awt.Color
 
 object SimonSays: Feature("Simon Says Solver") {
@@ -113,7 +114,7 @@ object SimonSays: Feature("Simon Says Solver") {
                         val list = solution.toList()
                         for (pos in list) {
                             val targetTick = DungeonListener.currentTime + autoSSDelay.value
-                            PlayerUtils.rotateSmoothly(pos.west().center, autoSSDelay.value * 50L)
+                            PlayerUtils.rotateSmoothly(Vec3.atCenterOf(pos.west()), autoSSDelay.value * 50L)
                             if (list.first() == pos) PlayerUtils.rightClick()
 
                             while (DungeonListener.currentTime < targetTick) Thread.sleep(10)

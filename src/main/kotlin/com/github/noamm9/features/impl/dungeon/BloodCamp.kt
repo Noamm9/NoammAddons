@@ -161,7 +161,7 @@ object BloodCamp: Feature("Features for Blood Room.") {
 
                 Render3D.renderBoxBounds(event.ctx, endAABB, if (ServerUtils.averagePing > time * 50) boxColor.value.invert() else boxColor.value, outline = true, fill = false, phase = true)
                 Render3D.renderLine(event.ctx, entity.renderVec.add(y = 2), endVector.add(y = 2), lineColor.value, phase = true)
-                Render3D.renderString(((time - 0.8) / 20).toFixed(1), endVector.add(y = 2), scale = 2f, color = timerColor.value, phase = true)
+                Render3D.renderString(event.ctx, ((time - 0.8) / 20).toFixed(1), endVector.add(y = 2), scale = 2f, color = timerColor.value, phase = true)
             }
         }
     }

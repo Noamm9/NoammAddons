@@ -3,6 +3,7 @@ package com.github.noamm9.features.impl.general
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.NetworkLoop
+import com.github.noamm9.interfaces.IGui
 import com.github.noamm9.mixin.IAbstractSignEditScreen
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.MultiCheckboxSetting
@@ -53,7 +54,9 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
 
             if (lines[1] == "^^^^^^^^^^^^^^^" && lines[2] == "Your auction" && lines[3] == "starting bid") mc.execute {
                 // manually setting the screen so the sign gui wont close
-                mc.screen = AuctionInputScreen(sign, lines, stack).apply { init(width, height) }
+                val newScreen = AuctionInputScreen(sign, lines, stack)
+                newScreen.init(width, height)
+                (mc.gui as IGui).replaceScreen(newScreen)
             }
         }
 
@@ -74,7 +77,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             }
 
             val stack = event.screen.menu.slots.getOrNull(slotId)?.item ?: return@register
-            if (! stack.`is`(Blocks.GREEN_TERRACOTTA.asItem())) return@register
+            if (! stack.`is`(Blocks.DYED_TERRACOTTA.green().asItem())) return@register
             if (! isValidName(stack.hoverName.unformattedText)) return@register
 
             GuiUtils.clickSlot(slotId, GuiUtils.ButtonType.LEFT)

@@ -24,9 +24,9 @@ public class MixinMultiPlayerGameMode {
 
     @Inject(method = "handleContainerInput", at = @At("HEAD"), cancellable = true)
     private void onHandleSlotClick(int containerId, int slotNum, int buttonNum, ContainerInput containerInput, Player player, CallbackInfo ci) {
-        if (minecraft.screen == null) return;
-        if (!(minecraft.screen instanceof AbstractContainerScreen<?>)) return;
-        if (EventBus.post(new ContainerEvent.SlotClick(minecraft.screen, slotNum, buttonNum, containerInput))) {
+        if (minecraft.gui.screen() == null) return;
+        if (!(minecraft.gui.screen() instanceof AbstractContainerScreen<?>)) return;
+        if (EventBus.post(new ContainerEvent.SlotClick(minecraft.gui.screen(), slotNum, buttonNum, containerInput))) {
             ci.cancel();
         }
     }

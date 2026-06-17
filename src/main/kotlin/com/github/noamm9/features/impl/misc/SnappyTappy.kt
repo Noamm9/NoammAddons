@@ -15,7 +15,7 @@ object SnappyTappy: Feature("Prevents standing still when pressing opposing dire
 
     override fun init() {
         register<TickEvent.Start> {
-            if (mc.screen != null) {
+            if (mc.gui.screen() != null) {
                 if (pressTicks.isNotEmpty()) {
                     movementKeys.forEach { it.isDown = false }
                     pressTicks.clear()

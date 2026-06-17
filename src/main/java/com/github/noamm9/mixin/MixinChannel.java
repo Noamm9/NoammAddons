@@ -20,9 +20,9 @@ public class MixinChannel implements MonoAudioChannel {
     @Unique private boolean monoAudio$relative;
 
     @Inject(method = "setSelfPosition", at = @At("HEAD"), cancellable = true)
-    private void forceMonoPosition(Vec3 pos, CallbackInfo ci) {
+    private void forceMonoPosition(Vec3 newPosition, CallbackInfo ci) {
         if (!MonoAudio.INSTANCE.enabled) return;
-        monoAudio$lastPosition = pos;
+        monoAudio$lastPosition = newPosition;
         monoAudio$refreshPosition();
         ci.cancel();
     }

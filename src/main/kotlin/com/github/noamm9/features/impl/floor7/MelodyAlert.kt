@@ -50,7 +50,7 @@ object MelodyAlert: Feature() {
 
         register<TickEvent.Start> {
             if (! isMelodyOpen) return@register
-            if (mc.screen == null) {
+            if (mc.gui.screen() == null) {
                 isMelodyOpen = false
                 return@register
             }
@@ -59,7 +59,7 @@ object MelodyAlert: Feature() {
             for (i in progressSlots.indices) {
                 if (i <= currentStage) continue
 
-                if (mc.player !!.containerMenu.getSlot(progressSlots[i]).item.`is`(Items.LIME_TERRACOTTA)) {
+                if (mc.player !!.containerMenu.getSlot(progressSlots[i]).item.`is`(Items.DYED_TERRACOTTA.lime())) {
                     val progress = if (mode.value == 0) "${i + 1}/4" else "${(i + 1) * 25}%"
                     ChatUtils.sendPartyMessage("${msg.value} $progress")
                     currentStage = i

@@ -14,10 +14,10 @@ import net.minecraft.world.level.block.Blocks
 object IHateDiorite: Feature("I Hate Diorite") {
     private val positions by lazy {
         val blockStates = mapOf(
-            "GreenArray" to Blocks.GREEN_STAINED_GLASS.defaultBlockState(),
-            "YellowArray" to Blocks.YELLOW_STAINED_GLASS.defaultBlockState(),
-            "PurpleArray" to Blocks.PURPLE_STAINED_GLASS.defaultBlockState(),
-            "RedArray" to Blocks.RED_STAINED_GLASS.defaultBlockState()
+            "GreenArray" to Blocks.STAINED_GLASS.green().defaultBlockState(),
+            "YellowArray" to Blocks.STAINED_GLASS.yellow().defaultBlockState(),
+            "PurpleArray" to Blocks.STAINED_GLASS.purple().defaultBlockState(),
+            "RedArray" to Blocks.STAINED_GLASS.red().defaultBlockState()
         )
 
         buildList {

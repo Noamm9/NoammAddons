@@ -29,7 +29,7 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
     override fun init() {
         register<MouseClickEvent> {
             if (! ctrlClickToCopy.value) return@register
-            if (mc.screen !is ChatScreen) return@register
+            if (mc.gui.screen() !is ChatScreen) return@register
             if (event.button != 0) return@register
             if (event.action != GLFW.GLFW_PRESS) return@register
             if (GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_LEFT_CONTROL) != GLFW.GLFW_PRESS) return@register
@@ -69,7 +69,7 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
     }
 
     private fun getHoveredMsg(): String {
-        val chatHud = (mc.gui.chat as? IChatComponent) ?: return ""
+        val chatHud = (mc.gui.hud.chat as? IChatComponent) ?: return ""
 
         val x = chatHud.mouseXtoChatX
         val y = chatHud.mouseYtoChatY

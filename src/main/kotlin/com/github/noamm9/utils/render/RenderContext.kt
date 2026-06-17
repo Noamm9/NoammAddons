@@ -4,12 +4,12 @@ import com.github.noamm9.NoammAddons.mc
 import com.mojang.blaze3d.vertex.PoseStack
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext
 import net.minecraft.client.Camera
-import net.minecraft.client.renderer.MultiBufferSource
+import net.minecraft.client.renderer.SubmitNodeCollector
 
-data class RenderContext(val matrixStack: PoseStack, val consumers: MultiBufferSource, val camera: Camera) {
+data class RenderContext(val matrixStack: PoseStack, val collector: SubmitNodeCollector, val camera: Camera) {
     companion object {
         fun fromContext(ctx: LevelRenderContext): RenderContext {
-            return RenderContext(ctx.poseStack(), ctx.bufferSource(), mc.gameRenderer.mainCamera)
+            return RenderContext(ctx.poseStack(), ctx.submitNodeCollector(), mc.gameRenderer.mainCamera())
         }
     }
 }

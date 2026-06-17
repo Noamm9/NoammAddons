@@ -2,12 +2,8 @@ package com.github.noamm9.mixin;
 
 import com.github.noamm9.event.EventBus;
 import com.github.noamm9.event.impl.PlayerInteractEvent;
-import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlay;
 import com.github.noamm9.features.impl.visual.CpsDisplay;
-import com.llamalad7.mixinextras.sugar.Local;
-import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -27,11 +23,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Minecraft.class)
 public abstract class MixinMinecraft {
-    @Shadow @Nullable public Screen screen;
     @Shadow @Nullable public HitResult hitResult;
     @Shadow public LocalPlayer player;
     @Shadow @Nullable public ClientLevel level;
-
 
     @Inject(method = "startAttack", at = @At("HEAD"))
     private void onStartAttack(CallbackInfoReturnable<Boolean> cir) {
@@ -91,12 +85,5 @@ public abstract class MixinMinecraft {
         }
 
         if (EventBus.post(event)) ci.cancel();
-    }
-
-    @Inject(method = "setScreen", at = @At("HEAD"))
-    private void onSetScreen(Screen screen, CallbackInfo ci, @Local(argsOnly = true) LocalRef<Screen> screenRef) {
-        if (!StorageOverlay.INSTANCE.enabled) return;
-        var newScreen = StorageOverlay.onScreenChange(this.screen, screen);
-        if (newScreen != null) screenRef.set(newScreen);
     }
 }

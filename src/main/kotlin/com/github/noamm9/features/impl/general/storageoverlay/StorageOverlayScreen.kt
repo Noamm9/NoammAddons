@@ -325,7 +325,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     }
 
     private fun dispatchActivePageSlotClick(button: Int, modifiers: Int, mouseX: Double, mouseY: Double, activePage: StoragePage): Boolean {
-        val containerScreen = mc.screen as? AbstractContainerScreen<*> ?: return false
+        val containerScreen = mc.gui.screen() as? AbstractContainerScreen<*> ?: return false
         val menu = containerScreen.menu
         val chestSlots = menu.slots.take(menu.slots.size - 36).drop(9)
         if (chestSlots.isEmpty()) return false
@@ -355,7 +355,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
     private fun dispatchPlayerInventoryClick(button: Int, modifiers: Int, mouseX: Int, mouseY: Int): Boolean {
         val slotIndex = getPlayerInvIndex(mouseX, mouseY) ?: return false
-        val containerScreen = mc.screen as? AbstractContainerScreen<*> ?: return false
+        val containerScreen = mc.gui.screen() as? AbstractContainerScreen<*> ?: return false
         val targetSlot = containerScreen.menu.slots.firstOrNull { it.container is Inventory && it.containerSlot == slotIndex } ?: return false
         val player = mc.player ?: return false
         val gameMode = mc.gameMode ?: return false

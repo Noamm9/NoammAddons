@@ -121,6 +121,7 @@ object ArrowAlign: Feature("Arrow Align Solver") {
 
 
                 Render3D.renderString(
+                    event.ctx,
                     "$count",
                     pos.x, pos.y + 0.55, pos.z + 0.5,
                     color = color,

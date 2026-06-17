@@ -40,7 +40,7 @@ object DebuffHelper: Feature(description = "Automatically pulls and fires bows b
 
     override fun init() {
         register<MouseClickEvent> {
-            if (mc.screen != null) return@register
+            if (mc.gui.screen() != null) return@register
             if (event.button != 1) return@register
             holdingRC = event.action == GLFW.GLFW_PRESS
             if (holdingRC) return@register
@@ -63,7 +63,7 @@ object DebuffHelper: Feature(description = "Automatically pulls and fires bows b
         }
 
         register<TickEvent.Server> {
-            if (mc.screen != null) return@register resetCharge()
+            if (mc.gui.screen() != null) return@register resetCharge()
             if (! isCharging || ! holdingRC) return@register
             val item = mc.player?.mainHandItem ?: return@register resetCharge()
             if (! item.skyblockId.contains("LAST_BREATH")) return@register resetCharge()
@@ -89,7 +89,7 @@ object DebuffHelper: Feature(description = "Automatically pulls and fires bows b
             resetCharge()
 
             ThreadUtils.scheduledTask(2) {
-                if (holdingRC && mc.screen == null) {
+                if (holdingRC && mc.gui.screen() == null) {
                     mc.options.keyUse.isDown = true
                 }
             }

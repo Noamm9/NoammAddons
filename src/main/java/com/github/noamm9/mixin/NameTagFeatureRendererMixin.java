@@ -9,26 +9,26 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 @Mixin(NameTagFeatureRenderer.class)
 public class NameTagFeatureRendererMixin {
     @ModifyArg(
-        method = "renderTranslucent",
+        method = "prepareText",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/Font;drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLorg/joml/Matrix4fc;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)V"
+            target = "Lnet/minecraft/client/gui/Font;prepareText(Lnet/minecraft/util/FormattedCharSequence;FFIZZI)Lnet/minecraft/client/gui/Font$PreparedText;"
         ),
-        index = 8
+        index = 6
     )
-    private int modifyNametagBackground(int originalColor) {
+    private static int modifyNametagBackground(int originalColor) {
         return NameTagTweaks.INSTANCE.enabled && NameTagTweaks.getDisableNametagBackground().getValue() ? 0 : originalColor;
     }
 
     @ModifyArg(
-        method = "renderTranslucent",
+        method = "prepareText",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/Font;drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLorg/joml/Matrix4fc;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)V"
+            target = "Lnet/minecraft/client/gui/Font;prepareText(Lnet/minecraft/util/FormattedCharSequence;FFIZZI)Lnet/minecraft/client/gui/Font$PreparedText;"
         ),
         index = 4
     )
-    private boolean modifyShadowArgument(boolean original) {
+    private static boolean modifyShadowArgument(boolean original) {
         return (NameTagTweaks.INSTANCE.enabled && NameTagTweaks.getAddNameTagTextShadow().getValue()) || original;
     }
 }

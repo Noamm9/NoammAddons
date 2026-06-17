@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 @Mixin(ItemModelResolver.class)
 public class MixinItemModelResolver {
     @ModifyVariable(method = "updateForLiving", at = @At("HEAD"), argsOnly = true)
-    private ItemStack revertAxe(ItemStack original) {
-        return RevertAxes.shouldReplace(original);
+    private ItemStack revertAxe(ItemStack item) {
+        return RevertAxes.shouldReplace(item);
     }
 }

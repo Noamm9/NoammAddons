@@ -47,15 +47,15 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     fun activeFor(screen: ContainerScreen) = active?.takeIf { it.containerScreen === screen }
 
     private val emptyStorageSlotItems = listOf(
-        Blocks.RED_STAINED_GLASS_PANE.asItem(),
-        Blocks.BROWN_STAINED_GLASS_PANE.asItem(),
-        Items.GRAY_DYE
+        Blocks.STAINED_GLASS_PANE.red().asItem(),
+        Blocks.STAINED_GLASS_PANE.brown().asItem(),
+        Items.DYE.gray()
     )
 
     override fun init() {
         register<ContainerFullyOpenedEvent> {
             if (! LocationUtils.inSkyblock) return@register
-            val screen = mc.screen as? ContainerScreen ?: return@register
+            val screen = mc.gui.screen() as? ContainerScreen ?: return@register
             if (screen.menu.containerId != event.windowId) return@register
             if (screen.title.unformattedText != event.title.unformattedText) return@register
             val menu = currentMenu ?: return@register

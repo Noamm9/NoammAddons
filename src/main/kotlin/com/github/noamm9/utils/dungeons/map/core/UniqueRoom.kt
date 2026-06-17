@@ -105,7 +105,7 @@ class UniqueRoom(arrX: Int, arrY: Int, room: Room) {
 
         for (i in 0 .. 3) {
             mutablePos.set(primaryCornersX[i], y, primaryCornersZ[i])
-            if (WorldUtils.getBlockAt(mutablePos) == Blocks.BLUE_TERRACOTTA) {
+            if (WorldUtils.getBlockAt(mutablePos) == Blocks.DYED_TERRACOTTA.blue()) {
                 setRotationAndCorner(i, mutablePos)
                 return
             }
@@ -117,7 +117,7 @@ class UniqueRoom(arrX: Int, arrY: Int, room: Room) {
             val cz = tile.z + offset.second
 
             mutablePos.set(cx, y, cz)
-            if (WorldUtils.getBlockAt(mutablePos) == Blocks.BLUE_TERRACOTTA) {
+            if (WorldUtils.getBlockAt(mutablePos) == Blocks.DYED_TERRACOTTA.blue()) {
                 setRotationAndCorner(i, mutablePos)
                 return
             }

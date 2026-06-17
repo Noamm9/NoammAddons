@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(AvatarRenderer.class)
 public class PlayerRendererMixin {
     @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/Avatar;Lnet/minecraft/client/renderer/entity/state/AvatarRenderState;F)V", at = @At("TAIL"))
-    private void disableAttachedArrows(Avatar avatar, AvatarRenderState avatarRenderState, float f, CallbackInfo ci) {
-        avatarRenderState.arrowCount = 0;
+    private void disableAttachedArrows(Avatar entity, AvatarRenderState state, float partialTicks, CallbackInfo ci) {
+        state.arrowCount = 0;
     }
 }

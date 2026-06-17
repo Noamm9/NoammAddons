@@ -18,7 +18,7 @@ public abstract class MixinJei {
     @Dynamic
     @Inject(method = "registerScreenEvents", at = @At("HEAD"), cancellable = true)
     public void cancelEventsInTerm(CallbackInfo ci) {
-        var screen = mc.screen instanceof ContainerScreen ? ((ContainerScreen) mc.screen) : null;
+        var screen = mc.gui.screen() instanceof ContainerScreen ? ((ContainerScreen) mc.gui.screen()) : null;
         if (screen == null) return;
         if (TerminalListener.inTerm || StorageOverlay.activeFor(screen) != null) ci.cancel();
     }

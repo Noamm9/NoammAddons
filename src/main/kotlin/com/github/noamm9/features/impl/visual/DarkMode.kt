@@ -8,8 +8,8 @@ import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
 /**
- * @see com.github.noamm9.mixin.MixinGui.onRenderHudPre
- * @see com.github.noamm9.mixin.MixinGui.onRenderHudPost
+ * @see com.github.noamm9.mixin.MixinHud.onRenderHudPre
+ * @see com.github.noamm9.mixin.MixinHud.onRenderHudPost
  */
 object DarkMode: Feature("Darkens the screen") {
     private val opacity by SliderSetting("Opacity", 25, 1, 100, 1).withDescription("The strength of the dark tint.")

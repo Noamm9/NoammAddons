@@ -24,7 +24,7 @@ object BlockOverlay: Feature() {
     override fun init() {
         LevelRenderEvents.BEFORE_BLOCK_OUTLINE.register { context, blockOutlineContext ->
             if (! enabled) return@register true
-            if (mc.options.hideGui) return@register true
+            if (mc.gui.hud.isHidden) return@register true
             if (hideDuringEtherwarp.value && shouldHide()) return@register false
 
             Render3D.renderBlock(

@@ -1,5 +1,6 @@
 package com.github.noamm9.utils
 
+import net.minecraft.ChatFormatting
 import net.minecraft.network.chat.TextColor
 import java.awt.Color
 
@@ -38,4 +39,8 @@ object ColorUtils {
 
     val Color.mcColor get() = TextColor.fromRgb(this.rgb)
     fun Color.invert() = Color(255 - red, 255 - green, 255 - blue, alpha)
+
+    val ChatFormatting.char get() = toString()[1]
+    val ChatFormatting.isColor get() = ordinal <= ChatFormatting.WHITE.ordinal
+    val ChatFormatting.color get() = TextColor.fromLegacyFormat(this) !!.value
 }

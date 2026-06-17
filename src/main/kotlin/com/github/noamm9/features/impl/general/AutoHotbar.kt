@@ -140,7 +140,7 @@ object AutoHotbar: Feature("Automatically swaps items to specific hotbar slots u
             if (stationaryTicks < 10) return@register
             if (now < nextSwapTime) return@register
             if (ServerUtils.tps < 18f || ServerUtils.currentPing > 500) return@register
-            if (mc.screen != null) {
+            if (mc.gui.screen() != null) {
                 stationaryTicks = 0
                 nextSwapTime = now + pingDelay.value.toLong()
                 return@register

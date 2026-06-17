@@ -104,10 +104,11 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
 
             WitherDragonEnum.entries.forEach { dragon ->
                 if (dragonHealth.value && dragon.state == WitherDragonState.ALIVE) dragon.entity?.let {
-                    Render3D.renderString(formatHealth(dragon.health), it.renderVec.add(y = - 1), scale = 6f, phase = true)
+                    Render3D.renderString(event.ctx, formatHealth(dragon.health), it.renderVec.add(y = - 1), scale = 6f, phase = true)
                 }
 
                 if (dragonTimer.value && dragon.state == WitherDragonState.SPAWNING && dragon.timeToSpawn > 0) Render3D.renderString(
+                    event.ctx,
                     "&${dragon.colorCode}${dragon.name}: ${getDragonTimer(dragon.timeToSpawn)}",
                     dragon.spawnPos, scale = 6f
                 )

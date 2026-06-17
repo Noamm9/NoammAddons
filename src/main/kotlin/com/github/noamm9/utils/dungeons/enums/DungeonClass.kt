@@ -2,6 +2,7 @@ package com.github.noamm9.utils.dungeons.enums
 
 import com.github.noamm9.features.impl.dev.ClassColors
 import com.github.noamm9.ui.clickgui.components.impl.ColorCodeSetting
+import com.github.noamm9.utils.ColorUtils.color
 import java.awt.Color
 
 enum class DungeonClass(val setting: ColorCodeSetting) {
@@ -12,7 +13,7 @@ enum class DungeonClass(val setting: ColorCodeSetting) {
     Tank(ClassColors.tankCode),
     Empty(ClassColors.emptyCode);
 
-    val color get() = Color(setting.value.color !!)
+    val color get() = Color(setting.value.color)
     val code get() = setting.value.toString()
 
     companion object {

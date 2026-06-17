@@ -7,6 +7,9 @@ import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.EventListener
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.RenderOverlayEvent
+import com.github.noamm9.utils.ColorUtils.char
+import com.github.noamm9.utils.ColorUtils.color
+import com.github.noamm9.utils.ColorUtils.isColor
 import com.github.noamm9.utils.render.Render2D
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -138,8 +141,8 @@ object ChatUtils {
         sendMessage("/pc $msg")
     }
 
-    fun chat(msg: Any?) = ThreadUtils.runOnMcThread { mc.gui.chat.addClientSystemMessage(Component.literal(msg.toString().addColor())) }
-    fun chat(comp: Component) = ThreadUtils.runOnMcThread { mc.gui.chat.addClientSystemMessage(comp) }
+    fun chat(msg: Any?) = ThreadUtils.runOnMcThread { mc.gui.hud.chat.addClientSystemMessage(Component.literal(msg.toString().addColor())) }
+    fun chat(comp: Component) = ThreadUtils.runOnMcThread { mc.gui.hud.chat.addClientSystemMessage(comp) }
 
     fun String.addColor() = replace("&", "§")
 

@@ -82,7 +82,7 @@ class TestGround {
                         (if (room.rotation?.div(90) == index) Color.GREEN else Color.red).withAlpha(60)
                     )
 
-                    Render3D.renderString("$index", centerr.x + dx + 0.5, centerr.y, centerr.z + dz + 0.5, phase = true, scale = 3)
+                    Render3D.renderString(event.ctx, "$index", centerr.x + dx + 0.5, centerr.y, centerr.z + dz + 0.5, phase = true, scale = 3)
                 }
             }
         }

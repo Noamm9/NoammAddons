@@ -15,7 +15,7 @@ import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
 import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.LivingEntity
 import java.util.*
@@ -61,9 +61,9 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless shit.") {
                 }
 
                 is ClientboundAddEntityPacket -> {
-                    val isBlock = packet.type == EntityType.FALLING_BLOCK && hideFallingBlocks.value
-                    val isLightning = packet.type == EntityType.LIGHTNING_BOLT && hideLightning.value
-                    val isXp = packet.type == EntityType.EXPERIENCE_ORB && hideXpOrbs.value
+                    val isBlock = packet.type == EntityTypes.FALLING_BLOCK && hideFallingBlocks.value
+                    val isLightning = packet.type == EntityTypes.LIGHTNING_BOLT && hideLightning.value
+                    val isXp = packet.type == EntityTypes.EXPERIENCE_ORB && hideXpOrbs.value
 
                     if (isBlock || isLightning || isXp) event.isCanceled = true
                 }

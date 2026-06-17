@@ -35,7 +35,7 @@ object TabListUtils {
         val onlinePlayers = player.connection.onlinePlayers
         val sortedPlayers = onlinePlayers.sortedWith(PlayerComparator)
         val result = mutableListOf<Pair<Component, PlayerInfo>>()
-        for (info in sortedPlayers) result.add(mc.gui.tabList.getNameForDisplay(info) to info)
+        for (info in sortedPlayers) result.add(mc.gui.hud.tabList.getNameForDisplay(info) to info)
         return if (result.size > 80) result.subList(0, 80) else result
     }
 

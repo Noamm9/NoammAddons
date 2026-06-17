@@ -95,7 +95,7 @@ object AutoI4: Feature("Fully Automated I4") {
             if (! mc.player?.mainHandItem?.item.equalsOneOf(Items.BOW, Items.FISHING_ROD)) return@register
             if (event.pos !in I4Helper.devBlocks) return@register
 
-            if (event.oldBlock == Blocks.EMERALD_BLOCK && event.newBlock == Blocks.BLUE_TERRACOTTA) {
+            if (event.oldBlock == Blocks.EMERALD_BLOCK && event.newBlock == Blocks.DYED_TERRACOTTA.blue()) {
                 doneCoords.add(event.pos)
                 return@register
             }

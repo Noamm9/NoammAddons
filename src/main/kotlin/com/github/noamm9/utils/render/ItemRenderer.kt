@@ -7,7 +7,7 @@ import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.navigation.ScreenRectangle
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer
-import net.minecraft.client.renderer.MultiBufferSource
+import net.minecraft.client.renderer.SubmitNodeCollector
 import net.minecraft.client.renderer.item.TrackingItemStackRenderState
 import net.minecraft.client.renderer.state.gui.GuiItemRenderState
 import net.minecraft.client.renderer.state.gui.pip.PictureInPictureRenderState
@@ -18,7 +18,7 @@ import net.minecraft.world.item.ItemStack
 import org.joml.Matrix3x2f
 import org.joml.Matrix4f
 
-class ItemRenderer(vertexConsumers: MultiBufferSource.BufferSource): PictureInPictureRenderer<ItemRenderer.ItemState>(vertexConsumers) {
+class ItemRenderer: PictureInPictureRenderer<ItemRenderer.ItemState>() {
     override fun textureIsReadyToBlit(itemState: ItemState) = System.nanoTime() - lastRenderAtNanos < (1_000_000_000L / mc.window.refreshRate)
     override fun getTextureLabel() = NoammAddons.MOD_ID + "_" + this.javaClass.simpleName
     override fun getTranslateY(height: Int, windowScaleFactor: Int) = height / 2f
@@ -27,8 +27,7 @@ class ItemRenderer(vertexConsumers: MultiBufferSource.BufferSource): PictureInPi
     private var lastRenderAtNanos = System.nanoTime()
     private var matrix4 = Matrix4f()
 
-    override fun renderToTexture(itemState: ItemState, poseStack: PoseStack) {
-        val dispatcher = mc.gameRenderer.featureRenderDispatcher
+    override fun renderToTexture(itemState: ItemState, poseStack: PoseStack, submitNodeCollector: SubmitNodeCollector) {
         val guiScale = mc.window.guiScale
         val guiPose = PoseStack()
 
@@ -42,19 +41,17 @@ class ItemRenderer(vertexConsumers: MultiBufferSource.BufferSource): PictureInPi
             ))
             guiPose.translate((item.x() + 8.0) * guiScale, (item.y() + 8.0) * guiScale, 150.0)
             guiPose.scale(16f * guiScale, - 16f * guiScale, 16f * guiScale)
-            item.itemStackRenderState().submit(guiPose, dispatcher.submitNodeStorage, LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, 0)
+            item.itemStackRenderState().submit(guiPose, submitNodeCollector, LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, 0)
             guiPose.popPose()
         }
 
         val has3d = itemState.list3d.isNotEmpty()
-        if (has3d) mc.gameRenderer.lighting.setupFor(Lighting.Entry.ITEMS_3D)
+        if (has3d) mc.gameRenderer.lighting().setupFor(Lighting.Entry.ITEMS_3D)
         for (i in itemState.list3d.indices) renderItem(itemState.list3d[i])
-        if (has3d) dispatcher.renderAllFeatures()
 
         val has2d = itemState.list2d.isNotEmpty()
-        if (has2d) mc.gameRenderer.lighting.setupFor(Lighting.Entry.ITEMS_FLAT)
+        if (has2d) mc.gameRenderer.lighting().setupFor(Lighting.Entry.ITEMS_FLAT)
         for (i in itemState.list2d.indices) renderItem(itemState.list2d[i])
-        if (has2d) dispatcher.renderAllFeatures()
 
         lastRenderAtNanos = System.nanoTime()
     }

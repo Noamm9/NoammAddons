@@ -13,6 +13,7 @@ import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderContext
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Block
+import net.minecraft.world.phys.Vec3
 import net.minecraft.world.level.block.Blocks
 import java.awt.Color
 import java.util.concurrent.*
@@ -65,7 +66,7 @@ object CreeperBeamSolver: PuzzleSolver {
 
             Render3D.renderBlock(ctx, start, color, phase = phase.value)
             Render3D.renderBlock(ctx, end, color, phase = phase.value)
-            if (renderLines.value) Render3D.renderLine(ctx, start.center, end.center, color)
+            if (renderLines.value) Render3D.renderLine(ctx, Vec3.atCenterOf(start), Vec3.atCenterOf(end), color)
         }
     }
 

@@ -93,7 +93,7 @@ object WaterBoardSolver: PuzzleSolver {
                 }
 
                 val renderPos = mech.getPos().add(0.5, (index + mech.clickCount) * 0.5 + 1.5, 0.5)
-                Render3D.renderString(displayText, renderPos, scale = 1.35f, phase = true)
+                Render3D.renderString(ctx, displayText, renderPos, scale = 1.35f, phase = true)
             }
         }
     }

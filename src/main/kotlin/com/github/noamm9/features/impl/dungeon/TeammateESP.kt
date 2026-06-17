@@ -40,6 +40,7 @@ object TeammateESP: Feature("Highlights your dungeon party.") {
                 val scale = (distance * 0.12f).coerceAtLeast(1.0)
 
                 Render3D.renderString(
+                    event.ctx,
                     "&e[${teammate.clazz.name[0]}&e] $color${teammate.name}",
                     renderVec.x,
                     renderVec.y + entity.bbHeight + 0.7 + distance * 0.015f,

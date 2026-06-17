@@ -51,7 +51,7 @@ object FeatureManager {
         Config.load()
 
         register<RenderOverlayEvent> {
-            if (mc.screen == HudEditorScreen) return@register
+            if (mc.gui.screen() == HudEditorScreen) return@register
             val profiler = Profiler.get()
             profiler.push("$MOD_NAME-Hud")
             Resolution.refresh()

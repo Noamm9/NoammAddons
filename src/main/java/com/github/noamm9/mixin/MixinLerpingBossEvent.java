@@ -19,7 +19,7 @@ public abstract class MixinLerpingBossEvent extends BossEvent {
     }
 
     @Inject(method = "setProgress", at = @At("HEAD"))
-    private void onSetProgress(float newProgress, CallbackInfo ci) {
-        EventBus.post(new BossBarUpdateEvent(name, newProgress));
+    private void onSetProgress(float progress, CallbackInfo ci) {
+        EventBus.post(new BossBarUpdateEvent(name, progress));
     }
 }

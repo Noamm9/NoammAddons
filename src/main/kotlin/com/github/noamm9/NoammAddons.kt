@@ -50,7 +50,7 @@ object NoammAddons: ClientModInitializer {
             field = value
             if (value == null) return
             ThreadUtils.scheduledTask(1) {
-                mc.setScreen(screen)
+                mc.setScreenAndShow(value)
                 field = null
             }
         }
@@ -58,7 +58,7 @@ object NoammAddons: ClientModInitializer {
     override fun onInitializeClient() {
         NoammRenderPipelines.init()
 
-        PictureInPictureRendererRegistry.register { ItemRenderer(it.bufferSource()) }
+        PictureInPictureRendererRegistry.register { ItemRenderer() }
 
         EventDispatcher.init()
         DungeonListener.init()

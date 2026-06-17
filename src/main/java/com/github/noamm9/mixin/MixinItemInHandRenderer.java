@@ -30,12 +30,12 @@ public abstract class MixinItemInHandRenderer {
     @Shadow private float oOffHandHeight;
     @Shadow private float offHandHeight;
 
-    @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V", shift = At.Shift.AFTER))
-    private void onBeforeRenderItem(AbstractClientPlayer abstractClientPlayer, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int j, CallbackInfo ci) {
+    @Inject(method = "submitArmWithItem", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V", shift = At.Shift.AFTER))
+    private void onBeforeRenderItem(AbstractClientPlayer player, float frameInterp, float xRot, InteractionHand hand, float attack, ItemStack itemStack, float inverseArmHeight, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int lightCoords, CallbackInfo ci) {
         if (!Animations.INSTANCE.enabled) return;
         if (itemStack.isEmpty()) return;
 
-        float sign = interactionHand == InteractionHand.MAIN_HAND ? 1.0f : -1.0f;
+        float sign = hand == InteractionHand.MAIN_HAND ? 1.0f : -1.0f;
 
         poseStack.translate(
             Animations.INSTANCE.getMainHandX().getValue().floatValue() * sign,
@@ -44,9 +44,9 @@ public abstract class MixinItemInHandRenderer {
         );
     }
 
-    @ModifyVariable(method = "renderArmWithItem", at = @At("HEAD"), ordinal = 2, argsOnly = true)
-    private float modifySwingProgress(float equipProgress) {
-        if (!Animations.INSTANCE.enabled) return equipProgress;
+    @ModifyVariable(method = "submitArmWithItem", at = @At("HEAD"), ordinal = 2, argsOnly = true)
+    private float modifySwingProgress(float attack) {
+        if (!Animations.INSTANCE.enabled) return attack;
         if (Animations.INSTANCE.getDisableSwingAnimation().getValue()) {
             boolean isTerminator = ItemUtils.INSTANCE.getSkyblockId(mainHandItem).equals("TERMINATOR");
             if (Animations.INSTANCE.getTerminatorOnly().getValue()) {
@@ -54,11 +54,11 @@ public abstract class MixinItemInHandRenderer {
             } else return 1f;
         }
 
-        return equipProgress;
+        return attack;
     }
 
-    @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;I)V"))
-    private void onRenderItem(AbstractClientPlayer abstractClientPlayer, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int j, CallbackInfo ci) {
+    @Inject(method = "submitArmWithItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;I)V"))
+    private void onRenderItem(AbstractClientPlayer player, float frameInterp, float xRot, InteractionHand hand, float attack, ItemStack itemStack, float inverseArmHeight, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int lightCoords, CallbackInfo ci) {
         if (!Animations.INSTANCE.enabled) return;
 
         var s = (1.0f + Animations.INSTANCE.getMainHandItemScale().getValue().floatValue());
@@ -69,20 +69,20 @@ public abstract class MixinItemInHandRenderer {
     }
 
     @WrapOperation(method = "swingArm", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V"))
-    private void onSwingArmTranslate(PoseStack instance, float f, float g, float h, Operation<Void> original) {
+    private void onSwingArmTranslate(PoseStack instance, float xo, float yo, float zo, Operation<Void> original) {
         if (!Animations.INSTANCE.enabled) {
-            original.call(instance, f, g, h);
+            original.call(instance, xo, yo, zo);
             return;
         }
 
         float xMult = Animations.INSTANCE.getSwingX().getValue().floatValue();
         float yMult = Animations.INSTANCE.getSwingY().getValue().floatValue();
         float zMult = Animations.INSTANCE.getSwingZ().getValue().floatValue();
-        instance.translate(f * xMult, g * yMult, h * zMult);
+        instance.translate(xo * xMult, yo * yMult, zo * zMult);
     }
 
     @Inject(method = "shouldInstantlyReplaceVisibleItem", at = @At("HEAD"), cancellable = true)
-    private void onShouldSkipAnimation(ItemStack from, ItemStack to, CallbackInfoReturnable<Boolean> cir) {
+    private void onShouldSkipAnimation(ItemStack currentlyVisibleItem, ItemStack expectedItem, CallbackInfoReturnable<Boolean> cir) {
         if (Animations.INSTANCE.enabled && Animations.INSTANCE.getDisableEquip().getValue()) {
             cir.setReturnValue(true);
         }
@@ -98,8 +98,8 @@ public abstract class MixinItemInHandRenderer {
         }
     }
 
-    @ModifyVariable(method = "renderArmWithItem", at = @At("HEAD"), argsOnly = true)
-    private ItemStack revertAxe(ItemStack original) {
-        return RevertAxes.shouldReplace(original);
+    @ModifyVariable(method = "submitArmWithItem", at = @At("HEAD"), argsOnly = true)
+    private ItemStack revertAxe(ItemStack itemStack) {
+        return RevertAxes.shouldReplace(itemStack);
     }
 }

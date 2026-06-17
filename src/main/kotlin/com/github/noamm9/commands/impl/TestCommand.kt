@@ -35,7 +35,7 @@ object TestCommand: BaseCommand("test") {
 
         literal("gui") {
             runs {
-                mc.screen?.onClose()
+                mc.gui.screen()?.onClose()
                 //    NoammAddons.screen = KitchenSinkScreen()
             }
         }

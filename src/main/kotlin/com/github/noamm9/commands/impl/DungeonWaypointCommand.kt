@@ -57,7 +57,7 @@ object DungeonWaypointCommand: BaseCommand("ndw") {
                 }
 
                 val relativePos = ScanUtils.getRelativeCoord(lookingAt, roomCorner, rotation)
-                NoammAddons.mc.setScreen(DungeonWaypointScreen(roomName, lookingAt, relativePos, existing))
+                NoammAddons.mc.setScreenAndShow(DungeonWaypointScreen(roomName, lookingAt, relativePos, existing))
             }
         }
 

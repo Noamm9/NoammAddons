@@ -14,10 +14,10 @@ import static com.github.noamm9.NoammAddons.mc;
 @Mixin(ItemStack.class)
 public class MixinItemStack {
     @Inject(method = "applyAfterUseComponentSideEffects", at = @At("HEAD"), cancellable = true)
-    private void onApplyCooldown(LivingEntity user, ItemStack stack, CallbackInfoReturnable<ItemStack> cir) {
+    private void onApplyCooldown(LivingEntity user, ItemStack stackBeforeUsing, CallbackInfoReturnable<ItemStack> cir) {
         if (user == mc.player && LocationUtils.inSkyblock) {
-            if (stack.is(Items.ENDER_PEARL)) {
-                cir.setReturnValue(stack);
+            if (stackBeforeUsing.is(Items.ENDER_PEARL)) {
+                cir.setReturnValue(stackBeforeUsing);
             }
         }
     }

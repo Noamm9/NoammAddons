@@ -38,7 +38,7 @@ public class MixinClientPacketListener {
         ),
         cancellable = true
     )
-    private void onSetTime(ClientboundSetTimePacket clientboundSetTimePacket, CallbackInfo ci) {
+    private void onSetTime(ClientboundSetTimePacket packet, CallbackInfo ci) {
         if (TimeChanger.INSTANCE.enabled) {
             TimeChanger.setTime();
             ci.cancel();

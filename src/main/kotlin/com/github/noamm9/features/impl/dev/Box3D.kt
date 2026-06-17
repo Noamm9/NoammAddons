@@ -9,7 +9,8 @@ import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.render.NoammRenderLayers
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.addFilledBoxVertices
+import com.github.noamm9.utils.render.Render3D.renderLineBox
 import com.github.noamm9.utils.render.RenderHelper.renderBoundingBox
 import net.minecraft.world.entity.Entity
 import java.awt.Color
@@ -50,30 +51,35 @@ object Box3D: Feature("Replaces the Glow Esp with 3D boxes") {
 
             if (! outline && ! fill) return@register
             val stack = event.ctx.matrixStack
-            val consumers = event.ctx.consumers
+            val collector = event.ctx.collector
 
             stack.pushPose()
             stack.translate(event.ctx.camera.position().reverse())
 
-            val fillBuffer = if (fill) consumers.getBuffer(if (phase) NoammRenderLayers.FILLED_THROUGH_WALLS else NoammRenderLayers.FILLED) else null
-            val lineBuffer = if (outline) consumers.getBuffer(if (phase) NoammRenderLayers.LINES_THROUGH_WALLS else NoammRenderLayers.LINES) else null
-
             entities.forEach { (entity, color) ->
                 val aabb = entity.renderBoundingBox.inflate(0.1)
 
-                fillBuffer?.let {
-                    Render3D.addFilledBoxVertices(
-                        stack.last(), it, aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ,
-                        color.red / 255f, color.green / 255f, color.blue / 255f, fillOpacity.value / 100f
-                    )
+                if (fill) {
+                    val layer = if (phase) NoammRenderLayers.FILLED_THROUGH_WALLS else NoammRenderLayers.FILLED
+                    collector.submitCustomGeometry(stack, layer) { pose, buffer ->
+                        addFilledBoxVertices(
+                            pose, buffer,
+                            aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ,
+                            color.red / 255f, color.green / 255f, color.blue / 255f, fillOpacity.value / 100f
+                        )
+                    }
                 }
 
-                lineBuffer?.let {
-                    Render3D.renderLineBox(
-                        stack.last(), it, aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ,
-                        color.red / 255f, color.green / 255f, color.blue / 255f, outlineOpacity.value / 100f,
-                        lineWidth.value.toFloat()
-                    )
+                if (outline) {
+                    val layer = if (phase) NoammRenderLayers.LINES_THROUGH_WALLS else NoammRenderLayers.LINES
+                    collector.submitCustomGeometry(stack, layer) { pose, buffer ->
+                        renderLineBox(
+                            pose, buffer,
+                            aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ,
+                            color.red / 255f, color.green / 255f, color.blue / 255f, outlineOpacity.value / 100f,
+                            lineWidth.value.toFloat()
+                        )
+                    }
                 }
             }
 

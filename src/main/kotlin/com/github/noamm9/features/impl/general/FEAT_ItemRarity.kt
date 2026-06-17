@@ -70,7 +70,7 @@ object FEAT_ItemRarity: Feature(name = "Item Rarity", description = "Draws the r
     }
 
     /**
-     * @see com.github.noamm9.mixin.MixinGui
+     * @see com.github.noamm9.mixin.MixinHud
      */
     @JvmStatic
     fun onSlotDraw(ctx: GuiGraphicsExtractor, stack: ItemStack?, x: Int, y: Int) {

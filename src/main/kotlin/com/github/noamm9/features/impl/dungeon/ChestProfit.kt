@@ -71,8 +71,8 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
 
                     var profit = - getChestCost(lore)
 
-                    event.items.forEach { (slot, stack) ->
-                        if (stack.item == Items.GRAY_STAINED_GLASS_PANE) return@forEach
+                    event.items.forEach { (_, stack) ->
+                        if (stack.item == Items.STAINED_GLASS_PANE.gray()) return@forEach
                         val value = getItemValue(stack)
                         profit += value
                     }
@@ -84,7 +84,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                 chestName.matches(croesusChestRegex) && croesusChestsProfit.value -> {
                     for (i in 10 .. 16) {
                         val stack = event.items[i] ?: continue
-                        if (stack.item == Items.GRAY_STAINED_GLASS_PANE) continue
+                        if (stack.item == Items.STAINED_GLASS_PANE.gray()) continue
                         val chestType = DungeonChest.getFromName(stack.hoverName.unformattedText) ?: continue
                         val lore = stack.lore
                         if (lore.last() == "§aAlready opened!") continue
