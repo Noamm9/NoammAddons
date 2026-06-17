@@ -48,9 +48,13 @@ configure<LoomGradleExtensionAPI> {
             file.name.startsWith("sponge-mixin-") && file.extension == "jar"
         }?.absolutePath
 
+        val onJBR = System.getProperty("java.vendor").orEmpty().contains("JetBrains", ignoreCase = true)
+
         runs.configureEach {
-            vmArg("-XX:+AllowEnhancedClassRedefinition")
-            vmArg("-Dmixin.hotSwap=true")
+            if (onJBR) {
+                vmArg("-XX:+AllowEnhancedClassRedefinition")
+                vmArg("-Dmixin.hotSwap=true")
+            }
 
             if (mixinAgentJar != null) {
                 vmArg("-javaagent:$mixinAgentJar")

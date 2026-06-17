@@ -21,7 +21,7 @@ import com.github.noamm9.websocket.packets.C2SPacketDungeonStart
 import com.google.gson.JsonElement
 import com.google.gson.JsonParser
 
-object FEAT_WebSocket: Feature(name = "WebSocket", toggled = true) {
+object FEAT_WebSocket: Feature("Maintains the connection to the NoammAddons server and sends statistics to it.", name = "WebSocket", toggled = true) {
     override fun toggle() = Unit
 
     override fun init() {
