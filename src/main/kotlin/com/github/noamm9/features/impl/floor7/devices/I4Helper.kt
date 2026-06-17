@@ -22,9 +22,8 @@ object I4Helper: Feature(name = "I4 Helper") {
     private val showPrediction by ToggleSetting("Show Prediction", true).withDescription("Highlights the next block to shoot at.")
     private val predictionColor by ColorSetting("Prediction Color", Color.YELLOW).withDescription("Color of the prediction.")
 
-    internal val DEVICE_DONE_REGEX = Regex("^(\\w{3,16}) completed a device! \\(\\d/\\d\\)$")
-
-    internal val devBlocks = listOf(
+    val DEVICE_DONE_REGEX = Regex("^(\\w{3,16}) completed a device! \\(\\d/\\d\\)$")
+    val devBlocks = listOf(
         BlockPos(68, 130, 50), BlockPos(66, 130, 50), BlockPos(64, 130, 50),
         BlockPos(68, 128, 50), BlockPos(66, 128, 50), BlockPos(64, 128, 50),
         BlockPos(68, 126, 50), BlockPos(66, 126, 50), BlockPos(64, 126, 50)
@@ -32,8 +31,8 @@ object I4Helper: Feature(name = "I4 Helper") {
 
     private val doneCoords = mutableSetOf<BlockPos>()
     private var target: BlockPos? = null
-    internal var prediction: BlockPos? = null
     private var alerted = false
+    var prediction: BlockPos? = null
 
     private val lastPredictions = mutableMapOf<BlockPos, Int>()
     private const val MAX_PREDICTION_ATTEMPTS = 2

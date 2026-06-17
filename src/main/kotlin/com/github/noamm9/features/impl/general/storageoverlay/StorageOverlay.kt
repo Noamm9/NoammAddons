@@ -13,7 +13,6 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.network.WebUtils
 import com.github.noamm9.utils.network.data.StorageData
-import kotlinx.coroutines.runBlocking
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.nbt.CompoundTag
@@ -192,7 +191,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         return children.isEmpty() && file.delete()
     }
 
-    private fun loadFromApi() = runBlocking {
+    private suspend fun loadFromApi() {
         WebUtils.getAs<StorageData>("https://api.noamm.org/hypixel/storage/${mc.user.profileId}").onSuccess {
             val data = TreeMap<StoragePage, NBTInventory?>()
             it.enderchest.forEach { (i, stacks) -> data[StoragePage(i)] = NBTInventory(stacks) }

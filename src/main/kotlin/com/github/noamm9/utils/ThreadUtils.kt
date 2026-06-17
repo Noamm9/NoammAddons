@@ -1,81 +1,86 @@
 package com.github.noamm9.utils
 
-import com.github.noamm9.NoammAddons.MOD_NAME
 import com.github.noamm9.NoammAddons.logger
 import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.NoammAddons.scope
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.EventPriority
 import com.github.noamm9.event.impl.ShutdownEvent
 import com.github.noamm9.event.impl.TickEvent
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
 object ThreadUtils {
-    private val scheduler = Executors.newSingleThreadScheduledExecutor {
-        Thread(it, "$MOD_NAME-Scheduler").apply { isDaemon = true }
-    }
-
-    private val serverTickTasks = PriorityBlockingQueue<TickTask>()
-    private val clientTickTasks = PriorityBlockingQueue<TickTask>()
     private val shutdownTasks = ConcurrentLinkedQueue<Runnable>()
-
-    private val taskOrder = AtomicLong()
-    private val serverTickCounter = AtomicLong()
-    private val clientTickCounter = AtomicLong()
+    private val clientScheduler = TickScheduler()
+    private val serverScheduler = TickScheduler()
 
     init {
-        register<TickEvent.Start>(EventPriority.HIGHEST) { process(clientTickTasks, clientTickCounter.incrementAndGet()) }
-        register<TickEvent.Server>(EventPriority.HIGHEST) { process(serverTickTasks, serverTickCounter.incrementAndGet()) }
-        register<ShutdownEvent> { shutdownTasks.forEach { runCatching(it::run).onFailure { it.printStackTrace() } } }
+        register<TickEvent.Start>(EventPriority.HIGHEST) { clientScheduler.tick() }
+        register<TickEvent.Server>(EventPriority.HIGHEST) { serverScheduler.tick() }
+        register<ShutdownEvent> { shutdownTasks.forEach { safeRun(it) } }
     }
 
     fun runOnMcThread(block: Runnable) = if (mc.isSameThread) safeRun(block) else mc.execute { safeRun(block) }
     fun addShutdownHook(block: Runnable) = shutdownTasks.add(block)
-    fun setTimeout(delay: Number, block: Runnable) = scheduler.schedule({ safeRun(block) }, delay.toLong(), TimeUnit.MILLISECONDS)
-    fun async(block: Runnable) = scheduler.execute { safeRun(block) }
-    fun scheduledTask(ticks: Number = 0, block: Runnable) = enqueue(clientTickTasks, clientTickCounter, ticks, block)
-    fun scheduledTaskServer(ticks: Number = 0, block: Runnable) = enqueue(serverTickTasks, serverTickCounter, ticks, block)
+    fun scheduledTask(ticks: Number = 0, block: Runnable) = clientScheduler.schedule(ticks, block)
+    fun scheduledTaskServer(ticks: Number = 0, block: Runnable) = serverScheduler.schedule(ticks, block)
+
+    fun setTimeout(delayMillis: Number, block: suspend () -> Unit) {
+        scope.launch {
+            delay(delayMillis.toLong())
+            safeRun(block)
+        }
+    }
+
+    fun async(block: suspend () -> Unit) {
+        scope.launch { safeRun(block) }
+    }
 
     fun loop(delayProvider: () -> Number, stopCondition: () -> Boolean = { false }, block: suspend () -> Unit) {
-        val task = object: Runnable {
-            override fun run() {
+        scope.launch {
+            while (true) {
                 safeRun(block)
-                if (! stopCondition()) {
-                    scheduler.schedule(this, delayProvider().toLong(), TimeUnit.MILLISECONDS)
-                }
+                if (stopCondition()) break
+                delay(delayProvider().toLong())
             }
         }
-
-        scheduler.execute(task)
     }
 
-    fun loop(delay: Number, stopCondition: () -> Boolean = { false }, block: suspend () -> Unit) {
-        loop({ delay }, stopCondition, block)
-    }
+    fun loop(delayMillis: Number, stopCondition: () -> Boolean = { false }, block: suspend () -> Unit) =
+        loop({ delayMillis }, stopCondition, block)
 
-    private fun enqueue(queue: PriorityBlockingQueue<TickTask>, currentTick: AtomicLong, ticks: Number, action: Runnable) {
-        val scheduledTick = currentTick.get() + ticks.toLong().coerceAtLeast(0L) + 1L
-        queue.add(TickTask(scheduledTick, taskOrder.getAndIncrement(), action))
-    }
-
-    private fun process(queue: PriorityBlockingQueue<TickTask>, currentTick: Long) {
-        while (true) {
-            val next = queue.peek() ?: return
-            if (next.executeAtTick > currentTick) return
-            queue.poll()?.run { safeRun(action) }
-        }
-    }
 
     private fun safeRun(action: Runnable) {
         runCatching { action.run() }.onFailure { logger.error("Error in ThreadUtils task", it) }
     }
 
-    private fun safeRun(block: suspend () -> Unit) {
-        runCatching { runBlocking { block.invoke() } }.onFailure { logger.error("Error in ThreadUtils task", it) }
+    private suspend fun safeRun(block: suspend () -> Unit) {
+        runCatching { block.invoke() }.onFailure { logger.error("Error in ThreadUtils task", it) }
     }
 
-    private data class TickTask(val executeAtTick: Long, val order: Long, val action: Runnable): Comparable<TickTask> {
-        override fun compareTo(other: TickTask) = compareValuesBy(this, other, TickTask::executeAtTick, TickTask::order)
+    private class TickScheduler {
+        private val queue = PriorityBlockingQueue<TickTask>()
+        private val tickCounter = AtomicLong()
+
+        fun schedule(ticks: Number, action: Runnable) {
+            val scheduledTick = tickCounter.get() + ticks.toLong().coerceAtLeast(0L) + 1L
+            queue.add(TickTask(scheduledTick, action))
+        }
+
+        fun tick() {
+            val currentTick = tickCounter.incrementAndGet()
+            while (true) {
+                val next = queue.peek() ?: return
+                if (next.executeAtTick > currentTick) return
+                queue.poll()?.run { safeRun(action) }
+            }
+        }
+    }
+
+    private data class TickTask(val executeAtTick: Long, val action: Runnable): Comparable<TickTask> {
+        override fun compareTo(other: TickTask) = executeAtTick.compareTo(other.executeAtTick)
     }
 }
