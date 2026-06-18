@@ -20,8 +20,8 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
     private val soundEnabled by ToggleSetting("Play sound", true).withDescription("Should it play a sound when someone gets melody?")
     private val sound = createSoundSettings("Sound", SoundEvents.EXPERIENCE_ORB_PICKUP) { soundEnabled.value }
 
-    data class MelodyMessage(val name: String, val progress: Int)
     private data class MelodyState(val name: String, val progress: Int, val timestamp: Long)
+    data class MelodyMessage(val name: String, val progress: Int)
 
     private val melodyRegex = Regex("""Party > (?:\[[^]]+]\s)?(\w+):""")
     private var currentState: MelodyState? = null

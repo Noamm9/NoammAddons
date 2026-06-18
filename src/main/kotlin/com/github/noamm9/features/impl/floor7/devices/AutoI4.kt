@@ -21,7 +21,6 @@ import com.github.noamm9.utils.MathUtils.interpolateYaw
 import com.github.noamm9.utils.MathUtils.lerp
 import com.github.noamm9.utils.PlayerUtils.leapAction
 import com.github.noamm9.utils.PlayerUtils.rotate
-import com.github.noamm9.utils.ThreadUtils.setTimeout
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
@@ -49,11 +48,11 @@ object AutoI4: Feature("Fully Automated I4") {
 
     private const val STORM_DEATH_MESSAGE = "[BOSS] Storm: I should have known that I stood no chance."
     private val doneCoords = mutableSetOf<BlockPos>()
+    private var melodyLeapTargetName: String? = null
     private var lastTarget: BlockPos? = null
     private var hasChangedMask = false
     private var hasAlerted = false
     private var hasLeaped = false
-    private var melodyLeapTargetName: String? = null
     private var tickTimer = - 1
 
     override fun init() {
@@ -65,7 +64,7 @@ object AutoI4: Feature("Fully Automated I4") {
             }
 
             if (msg == STORM_DEATH_MESSAGE) {
-                setTimeout(30_000L) { tickTimer = - 1 }
+                ThreadUtils.setTimeout(30_000L) { tickTimer = - 1 }
                 tickTimer = 0
             }
             else if (msg.contains("completed a device!")) {
@@ -213,8 +212,8 @@ object AutoI4: Feature("Fully Automated I4") {
         if (hasLeaped) return
         hasLeaped = true
         tickTimer = - 1
-        val aliveTeammates = DungeonListener.dungeonTeammatesNoSelf.filterNot { it.isDead }
 
+        val aliveTeammates = DungeonListener.dungeonTeammatesNoSelf.filterNot { it.isDead }
         val preferredClass = leapPriorities[preferredLeapClass.value]
         val melodyTarget = melodyLeapTargetName?.takeIf { leapToMelody.value }?.let { name ->
             aliveTeammates.find { it.name == name }
