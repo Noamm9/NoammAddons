@@ -4,6 +4,10 @@ package com.github.noamm9.utils.render
 import net.minecraft.client.renderer.rendertype.RenderSetup
 import net.minecraft.client.renderer.rendertype.RenderType
 
+/**
+ * @see com.github.noamm9.mixin.MixinSubmitNodeCollection
+ * submits these to post terrain phase.
+ */
 object NoammRenderLayers {
     val FILLED = RenderType.create("noamm_filled", RenderSetup.builder(NoammRenderPipelines.FILLED).createRenderSetup())
     val FILLED_THROUGH_WALLS = RenderType.create("noamm_filled_through_walls", RenderSetup.builder(NoammRenderPipelines.FILLED_THROUGH_WALLS).createRenderSetup())
@@ -13,4 +17,7 @@ object NoammRenderLayers {
 
     val LINES = RenderType.create("noamm_lines", RenderSetup.builder(NoammRenderPipelines.LINES).createRenderSetup())
     val LINES_THROUGH_WALLS = RenderType.create("noamm_lines_through_walls", RenderSetup.builder(NoammRenderPipelines.LINES_THROUGH_WALLS).createRenderSetup())
+
+    @JvmField val phaseLayers = setOf(FILLED_THROUGH_WALLS, CIRCLE_FILLED_THROUGH_WALLS, LINES_THROUGH_WALLS)
+    @JvmField val afterTerrainLayers = setOf(FILLED, CIRCLE_FILLED, LINES)
 }

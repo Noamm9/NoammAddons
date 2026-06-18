@@ -37,7 +37,7 @@ object EventDispatcher {
 
 
     fun init() {
-        LevelRenderEvents.END_MAIN.register { context ->
+        LevelRenderEvents.COLLECT_SUBMITS.register { context ->
             EventBus.post(RenderWorldEvent(RenderContext.fromContext(context)))
         }
 
