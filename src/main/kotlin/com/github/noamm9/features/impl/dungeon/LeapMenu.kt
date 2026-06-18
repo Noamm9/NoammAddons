@@ -5,6 +5,11 @@ import com.github.noamm9.event.impl.CheckEntityRenderEvent
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.ScreenEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.features.impl.dungeon.map.MapConfig
+import com.github.noamm9.features.impl.dungeon.map.MapRenderer
+import com.github.noamm9.utils.dungeons.map.utils.MapUtils
+import com.github.noamm9.utils.render.RenderHelper.renderVec
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import com.github.noamm9.ui.clickgui.components.impl.*
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.*
@@ -30,6 +35,11 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
     val scale by SliderSetting("Menu Scale", 50f, 30, 100, 1).showIf { customLeapMenu.value }
     val showLastDoorOpener by ToggleSetting("Show Last Door Opener", false).showIf { customLeapMenu.value }
     val tintDeadPlayers by ToggleSetting("Tint Dead Players", true).showIf { customLeapMenu.value }
+
+    val mapLeap by ToggleSetting("Map Leap", false)
+        .withDescription("Shows the dungeon map in the leap menu (during clear) so you can click a teammate on the map to leap to them.")
+        .showIf { customLeapMenu.value }
+    val mapLeapScale by SliderSetting("Map Leap Scale", 1.5f, 0.5f, 2f, 0.1f).showIf { customLeapMenu.value && mapLeap.value }
 
     val sorting by DropdownSetting("Leap Order", 0, arrayListOf("A-Z Class", "A-Z Name", "Odin Sorting", "Custom sorting", "No Sorting"))
         .withDescription("How to sort the leap menu. /na leaporder to configure custom sorting.")
@@ -60,6 +70,10 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
     data class LeapMenuPlayer(val slotIndex: Int, val player: DungeonPlayer)
 
     val players = MutableList<LeapMenuPlayer?>(4) { null }
+    private var mapLeapHoveredIndex: Int? = null
+
+    val isMapLeapOpen: Boolean
+        get() = mapLeap.value && ! LocationUtils.inBoss && (mc.screen?.let(::inSpiritLeap) ?: false)
 
     private val playerRegex = Regex("(?:\\[.+?] )?(?<name>\\w+)")
     private var shouldHide: Long = 0
@@ -99,6 +113,11 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
 
             if (players.filterNotNull().isEmpty()) {
                 Render2D.drawCenteredString(event.context, "§4§lNo players found", Resolution.width / 2, Resolution.height / 2)
+                return@register
+            }
+
+            if (mapLeap.value && ! LocationUtils.inBoss) {
+                renderMapLeap(event.context, event.mouseX, event.mouseY)
                 return@register
             }
 
@@ -178,7 +197,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
 
         register<ContainerEvent.MouseClick> {
             if (! inSpiritLeap(event.screen)) return@register
-            val i = getHoveredIndex() ?: return@register
+            val i = (if (mapLeap.value && ! LocationUtils.inBoss) mapLeapHoveredIndex else getHoveredIndex()) ?: return@register
             event.isCanceled = true
             triggerLeap(i)
         }
@@ -284,6 +303,118 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
         mc.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1F))
         GuiUtils.clickSlot(entry.slotIndex, GuiUtils.ButtonType.LEFT)
         mc.player?.closeContainer()
+    }
+
+    private fun renderMapLeap(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
+        val sw = mc.window.guiScaledWidth.toFloat()
+        val sh = mc.window.guiScaledHeight.toFloat()
+        val mapW = 128f
+        val mapH = 128f
+
+        val boxW = (sw * 0.40f).coerceIn(110f, 220f)
+        val boxH = 42f
+        val headSize = 32
+        val padX = 10f
+        val padY = 8f
+        val gap = 8f
+        val gridW = boxW * 2 + padX
+        val gridH = boxH * 2 + padY
+
+        val maxMapH = (sh * 0.95f) - gridH - gap
+        val scale = mapLeapScale.value.toFloat()
+            .coerceAtMost(maxMapH / mapH)
+            .coerceAtMost((sw * 0.9f) / mapW)
+            .coerceAtLeast(0.5f)
+        val mapPixW = mapW * scale
+        val mapPixH = mapH * scale
+
+        val totalH = mapPixH + gap + gridH
+        val top = (sh - totalH) / 2f
+        val mapOx = (sw - mapPixW) / 2f
+        val mapOy = top
+        val gridTop = mapOy + mapPixH + gap
+        val gridLeft = (sw - gridW) / 2f
+
+        val offsets = listOf(
+            gridLeft to gridTop,
+            (gridLeft + boxW + padX) to gridTop,
+            gridLeft to (gridTop + boxH + padY),
+            (gridLeft + boxW + padX) to (gridTop + boxH + padY)
+        )
+
+        mapLeapHoveredIndex = null
+        players.forEachIndexed { i, entry ->
+            if (entry == null || entry.player.isDead) return@forEachIndexed
+            val (bx, by) = offsets[i]
+            if (mouseX >= bx && mouseX <= bx + boxW && mouseY >= by && mouseY <= by + boxH) mapLeapHoveredIndex = i
+        }
+        if (mapLeapHoveredIndex == null) players.forEachIndexed { i, entry ->
+            if (entry == null || entry.player.isDead) return@forEachIndexed
+            val (pmx, pmz) = teammateMapPos(entry.player)
+            val px = mapOx + pmx * scale
+            val py = mapOy + pmz * scale
+            val r = 7f * scale
+            if (mouseX >= px - r && mouseX <= px + r && mouseY >= py - r && mouseY <= py + r) mapLeapHoveredIndex = i
+        }
+
+        val pose = ctx.pose()
+        pose.pushMatrix()
+        pose.translate(mapOx, mapOy)
+        pose.scale(scale)
+        MapRenderer.hideExtraInfo = true
+        MapRenderer.draw(ctx, false)
+        MapRenderer.hideExtraInfo = false
+        pose.popMatrix()
+
+        mapLeapHoveredIndex?.let { idx ->
+            players[idx]?.let { entry ->
+                val (pmx, pmz) = teammateMapPos(entry.player)
+                val px = mapOx + pmx * scale
+                val py = mapOy + pmz * scale
+                val r = 7f * scale
+                Render2D.drawBorder(ctx, px - r, py - r, r * 2f, r * 2f, Color.WHITE, 2)
+            }
+        }
+
+        players.forEachIndexed { i, entry ->
+            if (entry == null) return@forEachIndexed
+            val (bx, by) = offsets[i]
+            drawLeapBox(ctx, entry, bx, by, boxW, boxH, headSize, mapLeapHoveredIndex == i)
+        }
+    }
+
+    private fun drawLeapBox(ctx: GuiGraphicsExtractor, entry: LeapMenuPlayer, x: Float, y: Float, w: Float, h: Float, headSize: Int, isHovered: Boolean) {
+        val bgColor = when {
+            showLastDoorOpener.value && DungeonListener.lastDoorOpenner == entry.player ->
+                if (isHovered) Color(33, 33, 33).brighter().brighter().brighter().brighter().brighter().brighter()
+                else Color(33, 33, 33).brighter().brighter().brighter().brighter()
+
+            tintDeadPlayers.value && entry.player.isDead -> {
+                val color = MathUtils.lerpColor(Color(33, 33, 33), Color.RED, 0.2f)
+                if (isHovered) color.brighter() else color
+            }
+
+            else -> if (isHovered) Color(33, 33, 33).brighter().brighter() else Color(33, 33, 33)
+        }
+
+        Render2D.drawFloatingRect(ctx, x, y, w, h, bgColor.withAlpha(190))
+
+        val headX = (x + 6).toInt()
+        val headY = (y + h / 2 - headSize / 2f).toInt()
+        Render2D.drawPlayerHead(ctx, headX, headY, headSize, entry.player.skin)
+        Render2D.drawBorder(ctx, headX, headY, headSize, headSize, entry.player.clazz.color)
+
+        val textX = (x + 6 + headSize + 4).toInt()
+        val textY = (y + h / 2 - mc.font.lineHeight).toInt()
+        Render2D.drawString(ctx, entry.player.name, textX, textY + 1, entry.player.clazz.color)
+        val status = if (entry.player.isDead) "§cDEAD" else entry.player.clazz.name
+        Render2D.drawString(ctx, status, textX, textY + 11, entry.player.clazz.color)
+    }
+
+    private fun teammateMapPos(player: DungeonPlayer): Pair<Float, Float> {
+        val entity = player.entity
+        return if (entity == null || ! entity.isAlive) player.mapX to player.mapZ
+        else MapUtils.coordsToMap(entity.renderVec)
     }
 
     fun odinSorting(teammates: List<DungeonPlayer>): Array<out DungeonPlayer?> {

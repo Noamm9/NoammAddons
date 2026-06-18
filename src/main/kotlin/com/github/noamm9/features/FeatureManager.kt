@@ -6,6 +6,7 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.config.Config
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.impl.RenderOverlayEvent
+import com.github.noamm9.features.impl.dungeon.LeapMenu
 import com.github.noamm9.ui.clickgui.enums.CategoryType
 import com.github.noamm9.ui.hud.HudEditorScreen
 import com.github.noamm9.ui.hud.HudElement
@@ -52,6 +53,7 @@ object FeatureManager {
 
         register<RenderOverlayEvent> {
             if (mc.screen == HudEditorScreen) return@register
+            if (LeapMenu.isMapLeapOpen) return@register
             val profiler = Profiler.get()
             profiler.push("$MOD_NAME-Hud")
             Resolution.refresh()
