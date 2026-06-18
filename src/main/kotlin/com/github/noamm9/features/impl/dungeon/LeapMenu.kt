@@ -5,11 +5,9 @@ import com.github.noamm9.event.impl.CheckEntityRenderEvent
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.ScreenEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.features.impl.dungeon.map.DungeonMap
 import com.github.noamm9.features.impl.dungeon.map.MapConfig
 import com.github.noamm9.features.impl.dungeon.map.MapRenderer
-import com.github.noamm9.utils.dungeons.map.utils.MapUtils
-import com.github.noamm9.utils.render.RenderHelper.renderVec
-import net.minecraft.client.gui.GuiGraphicsExtractor
 import com.github.noamm9.ui.clickgui.components.impl.*
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.*
@@ -19,8 +17,11 @@ import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.DungeonListener.dungeonTeammatesNoSelf
 import com.github.noamm9.utils.dungeons.DungeonPlayer
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
+import com.github.noamm9.utils.dungeons.map.utils.MapUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.RenderHelper.renderVec
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.sounds.SoundEvents
@@ -37,8 +38,8 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
     val tintDeadPlayers by ToggleSetting("Tint Dead Players", true).showIf { customLeapMenu.value }
 
     val mapLeap by ToggleSetting("Map Leap", false)
-        .withDescription("Shows the dungeon map in the leap menu (during clear) so you can click a teammate on the map to leap to them.")
-        .showIf { customLeapMenu.value }
+        .withDescription("Click a teammate on the dungeon map to leap to them.")
+        .showIf { customLeapMenu.value && DungeonMap.enabled && MapConfig.mapEnabled.value }
     val mapLeapScale by SliderSetting("Map Leap Scale", 1.5f, 0.5f, 2f, 0.1f).showIf { customLeapMenu.value && mapLeap.value }
 
     val sorting by DropdownSetting("Leap Order", 0, arrayListOf("A-Z Class", "A-Z Name", "Odin Sorting", "Custom sorting", "No Sorting"))
@@ -72,8 +73,25 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
     val players = MutableList<LeapMenuPlayer?>(4) { null }
     private var mapLeapHoveredIndex: Int? = null
 
+    private val boxBg = Color(33, 33, 33)
+    private val boxBgHover = Color(67, 67, 67)
+    private val doorOpenerBg = Color(135, 135, 135)
+    private val doorOpenerBgHover = Color(255, 255, 255)
+
+    private fun leapBoxColor(player: DungeonPlayer, isHovered: Boolean) = when {
+        showLastDoorOpener.value && DungeonListener.lastDoorOpenner == player ->
+            if (isHovered) doorOpenerBgHover else doorOpenerBg
+
+        tintDeadPlayers.value && player.isDead ->
+            MathUtils.lerpColor(boxBg, Color.RED, 0.2f).let { if (isHovered) it.brighter() else it }
+
+        else -> if (isHovered) boxBgHover else boxBg
+    }
+
+    private val mapLeapEnabled get() = customLeapMenu.value && mapLeap.value && DungeonMap.enabled && MapConfig.mapEnabled.value
+
     val isMapLeapOpen: Boolean
-        get() = mapLeap.value && ! LocationUtils.inBoss && (mc.screen?.let(::inSpiritLeap) ?: false)
+        get() = mapLeapEnabled && ! LocationUtils.inBoss && (mc.screen?.let(::inSpiritLeap) ?: false)
 
     private val playerRegex = Regex("(?:\\[.+?] )?(?<name>\\w+)")
     private var shouldHide: Long = 0
@@ -116,7 +134,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
                 return@register
             }
 
-            if (mapLeap.value && ! LocationUtils.inBoss) {
+            if (mapLeapEnabled && ! LocationUtils.inBoss) {
                 renderMapLeap(event.context, event.mouseX, event.mouseY)
                 return@register
             }
@@ -156,23 +174,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
                 val (x, y) = offsets[i]
                 val isHovered = i == hoveredIndex
 
-                val bgColor = when {
-                    showLastDoorOpener.value && DungeonListener.lastDoorOpenner == entry.player -> {
-                        if (isHovered) Color(33, 33, 33).brighter().brighter().brighter().brighter().brighter().brighter()
-                        else Color(33, 33, 33).brighter().brighter().brighter().brighter()
-                    }
-
-                    tintDeadPlayers.value && entry.player.isDead -> {
-                        val color = MathUtils.lerpColor(Color(33, 33, 33), Color.RED, 0.2f)
-                        if (isHovered) color.brighter()
-                        else color
-                    }
-
-                    else -> {
-                        if (isHovered) Color(33, 33, 33).brighter().brighter()
-                        else Color(33, 33, 33)
-                    }
-                }
+                val bgColor = leapBoxColor(entry.player, isHovered)
 
                 Render2D.drawFloatingRect(event.context, x, y, boxWidth, boxHeight, bgColor.withAlpha(190))
 
@@ -197,7 +199,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
 
         register<ContainerEvent.MouseClick> {
             if (! inSpiritLeap(event.screen)) return@register
-            val i = (if (mapLeap.value && ! LocationUtils.inBoss) mapLeapHoveredIndex else getHoveredIndex()) ?: return@register
+            val i = (if (mapLeapEnabled && ! LocationUtils.inBoss) mapLeapHoveredIndex else getHoveredIndex()) ?: return@register
             event.isCanceled = true
             triggerLeap(i)
         }
@@ -306,96 +308,74 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
     }
 
     private fun renderMapLeap(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
-        val sw = mc.window.guiScaledWidth.toFloat()
-        val sh = mc.window.guiScaledHeight.toFloat()
-        val mapW = 128f
-        val mapH = 128f
+        Resolution.refresh()
+        Resolution.push(ctx)
+
+        val sw = Resolution.width
+        val sh = Resolution.height
+        val mx = Resolution.getMouseX(mouseX).toFloat()
+        val my = Resolution.getMouseY(mouseY).toFloat()
+        val mapSize = 128f
 
         val boxW = (sw * 0.40f).coerceIn(110f, 220f)
         val boxH = 42f
         val headSize = 32
         val padX = 10f
         val padY = 8f
-        val gap = 8f
         val gridW = boxW * 2 + padX
         val gridH = boxH * 2 + padY
 
-        val maxMapH = (sh * 0.95f) - gridH - gap
         val scale = mapLeapScale.value.toFloat()
-            .coerceAtMost(maxMapH / mapH)
-            .coerceAtMost((sw * 0.9f) / mapW)
-            .coerceAtLeast(0.5f)
-        val mapPixW = mapW * scale
-        val mapPixH = mapH * scale
+        val mapPix = mapSize * scale
 
-        val totalH = mapPixH + gap + gridH
-        val top = (sh - totalH) / 2f
-        val mapOx = (sw - mapPixW) / 2f
-        val mapOy = top
-        val gridTop = mapOy + mapPixH + gap
+        val mapOx = (sw - mapPix) / 2f
+        val mapOy = (sh - (mapPix + 8f + gridH)) / 2f
+        val gridTop = mapOy + mapPix + 8f
         val gridLeft = (sw - gridW) / 2f
 
-        val offsets = listOf(
-            gridLeft to gridTop,
-            (gridLeft + boxW + padX) to gridTop,
-            gridLeft to (gridTop + boxH + padY),
-            (gridLeft + boxW + padX) to (gridTop + boxH + padY)
-        )
+        fun boxOffset(i: Int) = (gridLeft + (i % 2) * (boxW + padX)) to (gridTop + (i / 2) * (boxH + padY))
+        fun playerDot(player: DungeonPlayer): Triple<Float, Float, Float> {
+            val (pmx, pmz) = teammateMapPos(player)
+            return Triple(mapOx + pmx * scale, mapOy + pmz * scale, 7f * scale)
+        }
 
         mapLeapHoveredIndex = null
         players.forEachIndexed { i, entry ->
             if (entry == null || entry.player.isDead) return@forEachIndexed
-            val (bx, by) = offsets[i]
-            if (mouseX >= bx && mouseX <= bx + boxW && mouseY >= by && mouseY <= by + boxH) mapLeapHoveredIndex = i
+            val (bx, by) = boxOffset(i)
+            if (mx in bx..bx + boxW && my in by..by + boxH) mapLeapHoveredIndex = i
         }
         if (mapLeapHoveredIndex == null) players.forEachIndexed { i, entry ->
             if (entry == null || entry.player.isDead) return@forEachIndexed
-            val (pmx, pmz) = teammateMapPos(entry.player)
-            val px = mapOx + pmx * scale
-            val py = mapOy + pmz * scale
-            val r = 7f * scale
-            if (mouseX >= px - r && mouseX <= px + r && mouseY >= py - r && mouseY <= py + r) mapLeapHoveredIndex = i
+            val (px, py, r) = playerDot(entry.player)
+            if (mx in px - r..px + r && my in py - r..py + r) mapLeapHoveredIndex = i
         }
 
         val pose = ctx.pose()
         pose.pushMatrix()
         pose.translate(mapOx, mapOy)
         pose.scale(scale)
-        MapRenderer.hideExtraInfo = true
-        MapRenderer.draw(ctx, false)
-        MapRenderer.hideExtraInfo = false
+        MapRenderer.draw(ctx, false, false)
         pose.popMatrix()
 
         mapLeapHoveredIndex?.let { idx ->
             players[idx]?.let { entry ->
-                val (pmx, pmz) = teammateMapPos(entry.player)
-                val px = mapOx + pmx * scale
-                val py = mapOy + pmz * scale
-                val r = 7f * scale
+                val (px, py, r) = playerDot(entry.player)
                 Render2D.drawBorder(ctx, px - r, py - r, r * 2f, r * 2f, Color.WHITE, 2)
             }
         }
 
         players.forEachIndexed { i, entry ->
             if (entry == null) return@forEachIndexed
-            val (bx, by) = offsets[i]
+            val (bx, by) = boxOffset(i)
             drawLeapBox(ctx, entry, bx, by, boxW, boxH, headSize, mapLeapHoveredIndex == i)
         }
+
+        Resolution.pop(ctx)
     }
 
     private fun drawLeapBox(ctx: GuiGraphicsExtractor, entry: LeapMenuPlayer, x: Float, y: Float, w: Float, h: Float, headSize: Int, isHovered: Boolean) {
-        val bgColor = when {
-            showLastDoorOpener.value && DungeonListener.lastDoorOpenner == entry.player ->
-                if (isHovered) Color(33, 33, 33).brighter().brighter().brighter().brighter().brighter().brighter()
-                else Color(33, 33, 33).brighter().brighter().brighter().brighter()
-
-            tintDeadPlayers.value && entry.player.isDead -> {
-                val color = MathUtils.lerpColor(Color(33, 33, 33), Color.RED, 0.2f)
-                if (isHovered) color.brighter() else color
-            }
-
-            else -> if (isHovered) Color(33, 33, 33).brighter().brighter() else Color(33, 33, 33)
-        }
+        val bgColor = leapBoxColor(entry.player, isHovered)
 
         Render2D.drawFloatingRect(ctx, x, y, w, h, bgColor.withAlpha(190))
 
