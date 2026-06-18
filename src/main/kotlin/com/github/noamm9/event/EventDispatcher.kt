@@ -150,7 +150,7 @@ object EventDispatcher {
                     Blocks.LEVER -> SecretType.LEVER
                     Blocks.PLAYER_HEAD -> {
                         when ((mc.level?.getBlockEntity(pos) as? SkullBlockEntity)?.ownerProfile?.partialProfile()?.id.toString()) {
-                            DungeonUtils.WITHER_ESSENCE_ID -> SecretType.WITHER_ESSANCE
+                            DungeonUtils.WITHER_ESSENCE_ID -> SecretType.WITHER_ESSENCE
                             DungeonUtils.REDSTONE_KEY_ID -> SecretType.REDSTONE_KEY
                             else -> return@register
                         }

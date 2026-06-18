@@ -17,7 +17,7 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.decoration.ArmorStand
 import java.awt.Color
 
-object DoorKeys: Feature("ESP box & Tracer for wither doors and blood door.") {
+object DoorKeys: Feature("ESP box & Tracer for wither and blood doors.") {
     private val highlightWither by ToggleSetting("Wither Key").section("Keys")
     private val highlightBlood by ToggleSetting("Blood Key")
     private val witherColor by ColorSetting("Wither Key Color", Color.BLACK.withAlpha(60)).showIf { highlightWither.value }.section("Colors")

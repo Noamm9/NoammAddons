@@ -49,7 +49,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     private val slotBgColor = Color(50, 50, 55, 200)
     private val slotCellBg = Color(30, 30, 34).rgb
     private val slotCellBorder = Color(55, 55, 60).rgb
-    private val activePageBorder get() = ClickGui.accsentColor.value
+    private val activePageBorder get() = ClickGui.accentColor.value
     private val scrollBgColor = Color(30, 30, 35, 180)
     private val scrollKnobColor = Color(120, 120, 130)
 
