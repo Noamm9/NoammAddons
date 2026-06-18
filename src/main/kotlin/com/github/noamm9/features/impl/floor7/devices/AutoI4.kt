@@ -8,6 +8,7 @@ import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.NoammDebugFlagEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.features.impl.floor7.MelodyDisplay
 import com.github.noamm9.features.impl.floor7.devices.I4Helper.getPredictionTarget
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
@@ -42,8 +43,9 @@ object AutoI4: Feature("Fully Automated I4") {
     private val rodSetting by ToggleSetting("Auto Rod", true)
     private val maskSetting by ToggleSetting("Auto Mask", true)
     private val leapSetting by ToggleSetting("Auto Leap", true)
+    private val leapToMelody by ToggleSetting("Leap To Melody").showIf { leapSetting.value }
     private val leapPriorities = listOf(DungeonClass.Tank, DungeonClass.Mage, DungeonClass.Healer, DungeonClass.Archer)
-    private val preferredLeapClass by DropdownSetting("Leap Priority", 0, leapPriorities.map { it.name })
+    private val preferredLeapClass by DropdownSetting("Leap Priority", 0, leapPriorities.map { it.name }).showIf { leapSetting.value }
 
     private const val STORM_DEATH_MESSAGE = "[BOSS] Storm: I should have known that I stood no chance."
     private val doneCoords = mutableSetOf<BlockPos>()
@@ -51,12 +53,17 @@ object AutoI4: Feature("Fully Automated I4") {
     private var hasChangedMask = false
     private var hasAlerted = false
     private var hasLeaped = false
+    private var melodyLeapTargetName: String? = null
     private var tickTimer = - 1
 
     override fun init() {
         register<ChatMessageEvent> {
             if (! LocationUtils.inBoss || LocationUtils.dungeonFloorNumber != 7) return@register
             val msg = event.unformattedText
+            MelodyDisplay.parseMelodyMessage(msg)?.let { melody ->
+                melodyLeapTargetName = melody.name
+            }
+
             if (msg == STORM_DEATH_MESSAGE) {
                 setTimeout(30_000L) { tickTimer = - 1 }
                 tickTimer = 0
@@ -209,7 +216,12 @@ object AutoI4: Feature("Fully Automated I4") {
         val aliveTeammates = DungeonListener.dungeonTeammatesNoSelf.filterNot { it.isDead }
 
         val preferredClass = leapPriorities[preferredLeapClass.value]
-        val target = aliveTeammates.find { it.clazz == preferredClass }
+        val melodyTarget = melodyLeapTargetName?.takeIf { leapToMelody.value }?.let { name ->
+            aliveTeammates.find { it.name == name }
+        }
+
+        val target = melodyTarget
+            ?: aliveTeammates.find { it.clazz == preferredClass }
             ?: leapPriorities.firstNotNullOfOrNull { priority ->
                 aliveTeammates.find { it.clazz == priority }
             } ?: return
@@ -233,6 +245,7 @@ object AutoI4: Feature("Fully Automated I4") {
         hasChangedMask = false
         hasLeaped = false
         hasAlerted = false
+        melodyLeapTargetName = null
     }
 }
 //#endif

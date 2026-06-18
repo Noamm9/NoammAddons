@@ -20,6 +20,7 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
     private val soundEnabled by ToggleSetting("Play sound", true).withDescription("Should it play a sound when someone gets melody?")
     private val sound = createSoundSettings("Sound", SoundEvents.EXPERIENCE_ORB_PICKUP) { soundEnabled.value }
 
+    data class MelodyMessage(val name: String, val progress: Int)
     private data class MelodyState(val name: String, val progress: Int, val timestamp: Long)
 
     private val melodyRegex = Regex("""Party > (?:\[[^]]+]\s)?(\w+):""")
@@ -50,15 +51,21 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
 
         register<ChatMessageEvent> {
             if (LocationUtils.F7Phase != 3) return@register
-            val message = event.unformattedText.takeIf { it.startsWith("Party > ") } ?: return@register
-            val name = melodyRegex.find(message)?.groupValues?.get(1)?.takeUnless { it == mc.user.name } ?: return@register
-            val progress = (4 downTo 0).find { i -> message.containsOneOf("$i/4", "${i * 25}%") } ?: return@register
+            val (name, progress) = parseMelodyMessage(event.unformattedText) ?: return@register
             val color = DungeonListener.dungeonTeammates.find { it.name == name }?.clazz?.code ?: "&7"
 
             currentState = MelodyState("$color$name&r", progress, System.currentTimeMillis())
             if (soundEnabled.value) sound.play.action.invoke()
             timer.register()
         }
+    }
+
+    fun parseMelodyMessage(message: String): MelodyMessage? {
+        if (! message.startsWith("Party > ")) return null
+        val name = melodyRegex.find(message)?.groupValues?.get(1)?.takeUnless { it == mc.user.name } ?: return null
+        val progress = (4 downTo 0).find { i -> message.containsOneOf("$i/4", "${i * 25}%") } ?: return null
+
+        return MelodyMessage(name, progress)
     }
 
     private fun formatMessage(name: String, progress: Int): String {
