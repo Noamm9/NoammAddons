@@ -16,6 +16,7 @@ import net.minecraft.world.entity.Entity
 import java.awt.Color
 import java.util.*
 
+
 object Box3D: Feature("Replaces the Glow Esp with 3D boxes") {
     private val mode by DropdownSetting("Mode", 2, listOf("Outline", "Fill", "Filled Outline"))
     private val lineWidth by SliderSetting("Line Width", 2.5, 1, 10, 0.1).hideIf { mode.value == 1 }
@@ -26,7 +27,7 @@ object Box3D: Feature("Replaces the Glow Esp with 3D boxes") {
     private val phase by ToggleSetting("Phase", true)
     //#endif
 
-    private val entities = WeakHashMap<Entity, Color>()
+    private val entities = Collections.synchronizedMap<Entity, Color>(WeakHashMap())
 
     override fun init() {
         register<CheckEntityGlowEvent>(EventPriority.LOWEST) {
@@ -56,7 +57,7 @@ object Box3D: Feature("Replaces the Glow Esp with 3D boxes") {
             stack.pushPose()
             stack.translate(event.ctx.camera.position().reverse())
 
-            entities.forEach { (entity, color) ->
+            entities.toMap().forEach { (entity, color) ->
                 val aabb = entity.renderBoundingBox.inflate(0.1)
 
                 if (fill) {
