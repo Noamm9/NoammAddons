@@ -373,7 +373,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             val holdingCtrl = GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_LEFT_CONTROL) == GLFW.GLFW_PRESS
             when {
                 holdingShift && ! holdingCtrl -> ScrollableTooltip.scrollAmountX -= scroll
-                ! holdingShift && holdingCtrl -> ScrollableTooltip.scaleOverride += (verticalAmount / 10f).toFloat() * ScrollableTooltip.scaleSpeed.value.toFloat()
+                ! holdingShift && holdingCtrl -> ScrollableTooltip.applyScaleScroll(verticalAmount)
                 else -> ScrollableTooltip.scrollAmountY += scroll
             }
             return true

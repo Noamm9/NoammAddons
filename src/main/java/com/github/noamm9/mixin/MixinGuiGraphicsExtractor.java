@@ -29,7 +29,7 @@ public abstract class MixinGuiGraphicsExtractor {
         else {
             pose.pushMatrix();
             pose.translate(xo, yo);
-            pose.scale((1 * (ScrollableTooltip.INSTANCE.getScale().getValue().floatValue() / 100f)) + ScrollableTooltip.scaleOverride / 10);
+            pose.scale(ScrollableTooltip.INSTANCE.getScale().getValue().floatValue() / 100f + ScrollableTooltip.scaleOverride / 10f);
             pose.translate(ScrollableTooltip.scrollAmountX, ScrollableTooltip.scrollAmountY);
             pose.translate(-xo, -yo);
             original.call(font, lines, xo, yo, positioner, style);
