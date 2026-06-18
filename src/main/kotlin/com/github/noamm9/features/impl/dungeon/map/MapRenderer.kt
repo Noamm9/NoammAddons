@@ -36,9 +36,9 @@ object MapRenderer: HudElement() {
     private val checkmarkFail = Identifier.fromNamespaceAndPath(MOD_ID, "textures/gui/dungeonmap/checkmarks/cross.png")
     private val ownPlayerMarker = Identifier.fromNamespaceAndPath(MOD_ID, "textures/gui/dungeonmap/marker.png")
 
-    var hideExtraInfo = false
+    override fun draw(ctx: GuiGraphicsExtractor, example: Boolean): Pair<Float, Float> = draw(ctx, example, true)
 
-    override fun draw(ctx: GuiGraphicsExtractor, example: Boolean): Pair<Float, Float> {
+    fun draw(ctx: GuiGraphicsExtractor, example: Boolean, extraInfo: Boolean): Pair<Float, Float> {
 
         renderBackground(ctx)
         ctx.pose().translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat())
@@ -47,7 +47,7 @@ object MapRenderer: HudElement() {
         renderText(ctx)
         ctx.pose().translate(- MapUtils.startCorner.first.toFloat(), - MapUtils.startCorner.second.toFloat())
         renderPlayerHeads(ctx)
-        renderExtraInfo(ctx)
+        if (extraInfo) renderExtraInfo(ctx)
 
         return 128f to if (MapConfig.mapExtraInfo.value) 140f else 128f
     }
@@ -61,7 +61,6 @@ object MapRenderer: HudElement() {
     }
 
     private fun renderExtraInfo(ctx: GuiGraphicsExtractor) {
-        if (hideExtraInfo) return
         if (! MapConfig.mapExtraInfo.value) return
         if (! MapConfig.dungeonMapCheater.value && ! DungeonListener.dungeonStarted) return
 
