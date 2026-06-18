@@ -61,8 +61,7 @@ public abstract class MixinItemInHandRenderer {
 
     @Inject(method = "swingArm", at = @At("HEAD"), cancellable = true)
     private void stopSwing(float f, PoseStack poseStack, int i, HumanoidArm humanoidArm, CallbackInfo ci) {
-        if (!Animations.INSTANCE.enabled) return;
-        if (!Animations.INSTANCE.getDisableSwingAnimation().getValue()) return;
+        if (!Animations.INSTANCE.shouldDisableSwing()) return;
 
         ci.cancel();
         this.applyItemArmAttackTransform(poseStack, humanoidArm, f);
@@ -70,7 +69,7 @@ public abstract class MixinItemInHandRenderer {
 
     @ModifyExpressionValue(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;getItemSwapScale(F)F"))
     private float keepEquipScale(float original) {
-        if (Animations.INSTANCE.enabled && (Animations.INSTANCE.getDisableEquip().getValue() || Animations.INSTANCE.getDisableSwingAnimation().getValue())) return 1f;
+        if ((Animations.INSTANCE.enabled && Animations.INSTANCE.getDisableEquip().getValue()) || Animations.INSTANCE.shouldDisableSwing()) return 1f;
         return original;
     }
 

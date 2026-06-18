@@ -20,10 +20,15 @@ public abstract class MixinLivingEntity extends Entity {
     @Inject(method = "getCurrentSwingDuration", at = @At("HEAD"), cancellable = true)
     private void overrideSwingDuration(CallbackInfoReturnable<Integer> cir) {
         if (!Animations.INSTANCE.enabled) return;
-        if (!Animations.INSTANCE.getIgnoreHaste().getValue()) return;
         if (!this.is(NoammAddons.mc.player)) return;
         if (NoammAddons.mc.player.getMainHandItem().isEmpty()) return;
 
+        if (Animations.INSTANCE.getNoTermSwing().getValue() && Animations.INSTANCE.isTerminatorHeld()) {
+            cir.setReturnValue(0);
+            return;
+        }
+
+        if (!Animations.INSTANCE.getIgnoreHaste().getValue()) return;
         cir.setReturnValue(Animations.INSTANCE.getSwingSpeed().getValue());
     }
 }
