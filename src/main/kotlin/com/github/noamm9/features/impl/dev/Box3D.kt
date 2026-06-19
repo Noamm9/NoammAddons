@@ -7,8 +7,8 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.equalsOneOf
-import com.github.noamm9.utils.render.NoammRenderLayers
 import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderHelper.renderBoundingBox
 import net.minecraft.world.entity.Entity
@@ -49,35 +49,18 @@ object Box3D: Feature("Replaces the Glow ESP with 3D boxes") {
             }
 
             if (! outline && ! fill) return@register
-            val stack = event.ctx.matrixStack
-            val consumers = event.ctx.consumers
-
-            stack.pushPose()
-            stack.translate(event.ctx.camera.position().reverse())
-
-            val fillBuffer = if (fill) consumers.getBuffer(if (phase) NoammRenderLayers.FILLED_THROUGH_WALLS else NoammRenderLayers.FILLED) else null
-            val lineBuffer = if (outline) consumers.getBuffer(if (phase) NoammRenderLayers.LINES_THROUGH_WALLS else NoammRenderLayers.LINES) else null
 
             entities.forEach { (entity, color) ->
-                val aabb = entity.renderBoundingBox.inflate(0.1)
-
-                fillBuffer?.let {
-                    Render3D.addFilledBoxVertices(
-                        stack.last(), it, aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ,
-                        color.red / 255f, color.green / 255f, color.blue / 255f, fillOpacity.value / 100f
-                    )
-                }
-
-                lineBuffer?.let {
-                    Render3D.renderLineBox(
-                        stack.last(), it, aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ,
-                        color.red / 255f, color.green / 255f, color.blue / 255f, outlineOpacity.value / 100f,
-                        lineWidth.value.toFloat()
-                    )
-                }
+                Render3D.renderBoxBounds(
+                    event.ctx, entity.renderBoundingBox.inflate(0.1),
+                    color.withAlpha(outlineOpacity.value.toFloat() / 100),
+                    color.withAlpha(fillOpacity.value.toFloat() / 100),
+                    outline = outline,
+                    fill = fill,
+                    phase = phase,
+                    lineWidth = lineWidth.value
+                )
             }
-
-            stack.popPose()
 
             entities.clear()
         }
