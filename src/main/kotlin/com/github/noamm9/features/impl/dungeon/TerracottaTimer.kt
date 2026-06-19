@@ -15,7 +15,7 @@ import net.minecraft.world.level.block.FlowerPotBlock
 import net.minecraft.world.phys.Vec3
 import java.util.concurrent.*
 
-object TerracottaTimer: Feature("Displays a timer until Terracotta respawn in F6/M6") {
+object TerracottaTimer: Feature("Displays a timer until Terracottas respawn in F6/M6") {
     private var terracottaSpawns = CopyOnWriteArrayList<Pair<BlockPos, Long>>()
 
     override fun init() {

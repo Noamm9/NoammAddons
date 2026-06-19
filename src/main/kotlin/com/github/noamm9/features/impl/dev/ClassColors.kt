@@ -13,7 +13,7 @@ object ClassColors: Feature("Allows setting custom color for every dungeon class
     val bersCode by ColorCodeSetting("Berserk Code", ChatFormatting.GOLD)
     val healCode by ColorCodeSetting("Healer Code", ChatFormatting.DARK_PURPLE)
     val mageCode by ColorCodeSetting("Mage Code", ChatFormatting.DARK_AQUA)
-    val tankCode by ColorCodeSetting("Archer Code", ChatFormatting.DARK_GREEN)
+    val tankCode by ColorCodeSetting("Tank Code", ChatFormatting.DARK_GREEN)
     val emptyCode = ColorCodeSetting("Empty Code", ChatFormatting.BLACK)
 
     private val reset by ButtonSetting("Reset Colors") {

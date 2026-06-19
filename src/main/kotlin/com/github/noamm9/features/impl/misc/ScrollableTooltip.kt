@@ -48,11 +48,18 @@ object ScrollableTooltip: Feature("Allows you to scroll through long tooltips.")
                 val holdingCtrl = GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_LEFT_CONTROL) == GLFW.GLFW_PRESS
 
                 if (holdingShift && ! holdingCtrl) scrollAmountX -= scroll
-                else if (! holdingShift && holdingCtrl) scaleOverride += (verticalAmount / 10f).toFloat() * scaleSpeed.value.toFloat()
+                else if (! holdingShift && holdingCtrl) applyScaleScroll(verticalAmount)
                 else scrollAmountY += scroll
 
                 true
             }
         }
+    }
+
+    @JvmStatic
+    internal fun applyScaleScroll(verticalAmount: Double) {
+        val baseScale = scale.value.toFloat() / 100f
+        val nextScale = (baseScale + scaleOverride / 10f + (verticalAmount / 100f).toFloat() * scaleSpeed.value.toFloat()).coerceIn(0.3f, 2.0f)
+        scaleOverride = (nextScale - baseScale) * 10f
     }
 }

@@ -14,7 +14,7 @@ import net.minecraft.sounds.SoundSource
 import net.minecraft.world.level.block.Blocks
 
 object BreakerHelper: Feature("Zero Ping Dungeon Breaker") {
-    private val preventBreakingSecrets by ToggleSetting("Prevent Secret Mine").withDescription("Prevents you from breaking secret blocks like chests, levers.")
+    private val preventBreakingSecrets by ToggleSetting("Prevent Secret Mine").withDescription("Prevents you from breaking secret blocks like chests & levers.")
 
     //#if CHEAT
     private val zeroPing by ToggleSetting("Zero Ping").withDescription("Removes the blocks you mine instantly instead of waiting for the server to remove them.")

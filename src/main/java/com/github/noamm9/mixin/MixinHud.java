@@ -33,19 +33,27 @@ public abstract class MixinHud {
     @Final
     private Minecraft minecraft;
 
+    @Shadow private boolean isHidden;
     @Shadow @Nullable private Component title;
     @Shadow @Nullable private Component subtitle;
-
-
-    @Inject(method = "extractArmor", at = @At("HEAD"), cancellable = true)
-    private static void renderArmor(GuiGraphicsExtractor graphics, Player player, int yLineBase, int numHealthRows, int healthRowHeight, int xLeft, CallbackInfo ci) {
-        if (PlayerHud.getHideArmorbar().getValue()) ci.cancel();
-    }
 
     @Shadow
     public abstract Font getFont();
 
-    @Shadow private boolean isHidden;
+    @Inject(method = "extractArmor", at = @At("HEAD"), cancellable = true)
+    private static void renderArmor(GuiGraphicsExtractor graphics, Player player, int yLineBase, int numHealthRows, int healthRowHeight, int xLeft, CallbackInfo ci) {
+        if (PlayerHud.INSTANCE.enabled && PlayerHud.getHideArmorbar().getValue()) ci.cancel();
+    }
+
+    @Inject(method = "extractPlayerHealth", at = @At("HEAD"), cancellable = true)
+    public void renderPlayerHealth(GuiGraphicsExtractor graphics, CallbackInfo ci) {
+        if (PlayerHud.INSTANCE.enabled && PlayerHud.getHideHealthbar().getValue()) ci.cancel();
+    }
+
+    @Inject(method = "extractFood", at = @At("HEAD"), cancellable = true)
+    public void renderFood(GuiGraphicsExtractor graphics, Player player, int yLineBase, int xRight, CallbackInfo ci) {
+        if (PlayerHud.INSTANCE.enabled && PlayerHud.getHideFoodbar().getValue()) ci.cancel();
+    }
 
     @Inject(method = "extractTitle", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix3x2fStack;scale(FF)Lorg/joml/Matrix3x2f;", ordinal = 0, shift = At.Shift.AFTER))
     private void onScaleTitle(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
@@ -112,15 +120,6 @@ public abstract class MixinHud {
         return Component.literal(event.getMessage());
     }
 
-    @Inject(method = "extractPlayerHealth", at = @At("HEAD"), cancellable = true)
-    public void renderPlayerHealth(GuiGraphicsExtractor graphics, CallbackInfo ci) {
-        if (PlayerHud.getHideHealthbar().getValue()) ci.cancel();
-    }
-
-    @Inject(method = "extractFood", at = @At("HEAD"), cancellable = true)
-    public void renderFood(GuiGraphicsExtractor graphics, Player player, int yLineBase, int xRight, CallbackInfo ci) {
-        if (PlayerHud.getHideFoodbar().getValue()) ci.cancel();
-    }
 
     @Inject(method = "extractEffects", at = @At("HEAD"), cancellable = true)
     private void onRenderEffects(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
