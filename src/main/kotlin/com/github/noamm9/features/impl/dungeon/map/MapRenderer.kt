@@ -39,7 +39,6 @@ object MapRenderer: HudElement() {
     override fun draw(ctx: GuiGraphicsExtractor, example: Boolean): Pair<Float, Float> = draw(ctx, example, true)
 
     fun draw(ctx: GuiGraphicsExtractor, example: Boolean, extraInfo: Boolean): Pair<Float, Float> {
-
         renderBackground(ctx)
         ctx.pose().translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat())
         applyCheater()
