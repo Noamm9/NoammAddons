@@ -22,5 +22,6 @@ enum class WorldType(val tabName: String) {
     Park("The Park"),
     Rift("The Rift"),
     SpiderDen("Spider"),
+    LotusAtoll("Lotus Atoll"),
     TheBarn("The Farming Islands");
 }
