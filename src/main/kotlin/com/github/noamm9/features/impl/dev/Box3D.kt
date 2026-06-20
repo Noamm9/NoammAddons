@@ -50,7 +50,7 @@ object Box3D: Feature("Replaces the Glow ESP with 3D boxes") {
 
             if (! outline && ! fill) return@register
 
-            entities.forEach { (entity, color) ->
+            entities.toList().forEach { (entity, color) ->
                 Render3D.renderBoxBounds(
                     event.ctx, entity.renderBoundingBox.inflate(0.1),
                     color.withAlpha(outlineOpacity.value.toFloat() / 100),
