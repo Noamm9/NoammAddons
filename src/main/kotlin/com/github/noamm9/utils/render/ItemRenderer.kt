@@ -2,6 +2,7 @@ package com.github.noamm9.utils.render
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.features.impl.visual.RevertAxes
 import com.mojang.blaze3d.platform.Lighting
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -82,8 +83,9 @@ class ItemRenderer(vertexConsumers: MultiBufferSource.BufferSource): PictureInPi
 
         fun drawBatchedItemStack(ctx: GuiGraphicsExtractor, item: ItemStack, x: Int, y: Int) {
             if (item.isEmpty) return
+            val displayItem = RevertAxes.shouldReplace(item) ?: return
             val tracking = TrackingItemStackRenderState()
-            mc.itemModelResolver.updateForTopItem(tracking, item, ItemDisplayContext.GUI, mc.level, mc.player, 0)
+            mc.itemModelResolver.updateForTopItem(tracking, displayItem, ItemDisplayContext.GUI, mc.level, mc.player, 0)
             val state = GuiItemRenderState(Matrix3x2f(ctx.pose()), tracking, x, y, ctx.scissorStack.peek())
             (if (tracking.usesBlockLight()) list3d else list2d).add(state)
         }
