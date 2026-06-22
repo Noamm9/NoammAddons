@@ -7,7 +7,11 @@ import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 
 object Camera: Feature() {
-    @JvmStatic val fullBright by ToggleSetting("Full Bright")
+    @JvmField var flashFullFright = false
+
+    @JvmStatic val fullBright by ToggleSetting("Full Bright").onChange {
+        flashFullFright = true
+    }
 
     @JvmStatic val legacySneakHeight by ToggleSetting("1.8 Sneak height").withDescription("Changes the sneak height back to its 1.8 height while maintaining all vanilla behavior (visual only).").section("Camera")
     @JvmStatic val noFrontCamera by ToggleSetting("Disable Front Camera").withDescription("Removes the front camera perspective.")
