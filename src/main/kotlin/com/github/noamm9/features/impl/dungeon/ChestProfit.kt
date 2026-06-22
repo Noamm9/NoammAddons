@@ -7,23 +7,21 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.init.NetworkLoop.priceData
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.NumbersUtils
+import com.github.noamm9.utils.MathUtils.Vec3
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
-import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.location.WorldType
-import com.github.noamm9.utils.remove
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.highlight
 import com.github.noamm9.utils.render.Render2D.width
-import com.github.noamm9.utils.startsWithOneOf
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
@@ -46,12 +44,44 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
     private var sortedChestsCache = emptyList<DungeonChest>()
 
     private val feather by lazy { ItemStack(Items.FEATHER) }
+    private val npcLoc = Vec3(- 28, 119, 35)
 
     override fun init() {
         register<WorldChangeEvent> {
             DungeonChest.entries.forEach { it.reset() }
             chestsToHighlight.clear()
             sortedChestsCache = emptyList()
+        }
+
+        hudElement(
+            name = "Chest Profit",
+            enabled = { hud.value },
+            shouldDraw = {
+                val world = LocationUtils.world
+                val distance = (mc.player?.distanceToSqr(npcLoc) ?: .0) <= 150
+                ChatUtils.modMessage(mc.player?.distanceToSqr(npcLoc))
+                world == WorldType.Catacombs || (world == WorldType.DungeonHub && distance)
+            }
+        ) { ctx, example ->
+            val text = if (example) DungeonChest.example
+            else {
+                val chests = sortedChestsCache.takeIf { it.isNotEmpty() } ?: DungeonChest.entries.filter { it.openedInSequence }.sortedByDescending { it.profit }
+                if (chests.isEmpty()) return@hudElement 0f to 0f
+
+                chests.map { chest ->
+                    val colorCode = if (chest.profit < 0) "§4" else "§a"
+                    val profit = NumbersUtils.format(chest.profit)
+                    chest to "${chest.displayText}: $colorCode$profit"
+                }
+            }
+
+            var maxWidth = 0f
+            text.forEachIndexed { i, (chest, str) ->
+                Render2D.drawString(ctx, str, 0f, i * 9f, chest.color)
+                maxWidth = maxOf(maxWidth, str.width().toFloat())
+            }
+
+            maxWidth to text.size * 9f
         }
 
         register<ContainerFullyOpenedEvent> {
@@ -166,7 +196,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                     var highlightColor: Color? = null
 
                     for (line in lore) when {
-                        line == "§aNo more chests to open!" -> {
+                        line == "§5§o§aNo more chests to open!" -> {
                             if (hideRedChests.value) {
                                 event.isCanceled = true
                                 return@register
@@ -175,21 +205,22 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                             break
                         }
 
-                        line == "§cNo chests opened yet!" -> {
+                        line == "§5§o§cNo chests opened yet!" -> {
                             highlightColor = Color.GREEN
                             break
                         }
 
-                        line.startsWith("§7Opened Chest: ") -> {
+                        line.startsWith("§5§o§7Opened Chest: ") -> {
                             highlightColor = Color.YELLOW
                             break
                         }
                     }
 
+
                     highlightColor?.let { event.slot.highlight(event.context, it.withAlpha(100)) }
                 }
 
-                if (croesusKismetDisplay.value && lore[lore.size - 4] != "§5 §9Kismet Feather") {
+                if (croesusKismetDisplay.value && lore[lore.lastIndex - 3] != "§5§o §9Kismet Feather") {
                     val pose = event.context.pose()
                     pose.pushMatrix()
                     pose.scale(0.7f)
@@ -262,34 +293,6 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
     private fun getPrice(id: String): Long {
         if (id in blackList) return 0L
         return priceData[id] ?: 0L
-    }
-
-    init {
-        hudElement(
-            name = "Chest Profit",
-            enabled = { hud.value },
-            shouldDraw = { LocationUtils.world.equalsOneOf(WorldType.DungeonHub, WorldType.Catacombs) }
-        ) { ctx, example ->
-            val text = if (example) DungeonChest.example
-            else {
-                val chests = sortedChestsCache.takeIf { it.isNotEmpty() } ?: DungeonChest.entries.filter { it.openedInSequence }.sortedByDescending { it.profit }
-                if (chests.isEmpty()) return@hudElement 0f to 0f
-
-                chests.map { chest ->
-                    val colorCode = if (chest.profit < 0) "§4" else "§a"
-                    val profit = NumbersUtils.format(chest.profit)
-                    chest to "${chest.displayText}: $colorCode$profit"
-                }
-            }
-
-            var maxWidth = 0f
-            text.forEachIndexed { i, (chest, str) ->
-                Render2D.drawString(ctx, str, 0f, i * 9f, chest.color)
-                maxWidth = maxOf(maxWidth, str.width().toFloat())
-            }
-
-            maxWidth to text.size * 9f
-        }
     }
 
     enum class DungeonChest(val displayText: String, val color: Color) {
