@@ -238,16 +238,14 @@ object PlayerUtils {
                     if (LEAP_TARGET == null) return@register
 
                     ThreadUtils.scheduledTask(2) {
-                        // Capture and clear LEAP_TARGET immediately so the while-loop in leapAction unblocks regardless of whether the click succeeds.
-                        val savedTarget = LEAP_TARGET
+                        val leapTarget = LEAP_TARGET
                         LEAP_TARGET = null
 
                         LeapMenu.updateLeapMenu()
-                        LeapMenu.players.find { it?.player?.name == savedTarget?.name }?.let { target ->
-                            modMessage("Leaping To: &e[${savedTarget!!.clazz.name[0]}] &a${savedTarget.name}")
+                        LeapMenu.players.find { it?.player?.name == leapTarget?.name }?.let { target ->
+                            modMessage("Leaping To: &e[${leapTarget !!.clazz.name[0]}] &a${leapTarget.name}")
                             GuiUtils.clickSlot(target.slotIndex, GuiUtils.ButtonType.LEFT)
                         }
-                        // Always close the container, if the target wasn't found we still need to get out of the leap screen instead of leaving it stuck open.
                         mc.player?.closeContainer()
                     }
                 }
