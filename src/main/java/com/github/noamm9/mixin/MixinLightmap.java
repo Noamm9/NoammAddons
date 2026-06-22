@@ -11,14 +11,15 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 @Mixin(Lightmap.class)
-public abstract class MixinLightTexture {
+public abstract class MixinLightmap {
     @Unique private static final Vector3fc NOAMMADDONS$WHITE = new Vector3f(1f, 1f, 1f);
 
     @ModifyVariable(method = "render", at = @At("HEAD"), argsOnly = true)
     private LightmapRenderState noammaddons$fullbright(LightmapRenderState renderState) {
         if (!Camera.INSTANCE.enabled || !Camera.getFullBright().getValue()) return renderState;
 
-        renderState.needsUpdate = true;
+        renderState.needsUpdate = Camera.flashFullFright;
+        Camera.flashFullFright = false;
         renderState.skyFactor = 1f;
         renderState.blockFactor = 1f;
         renderState.nightVisionEffectIntensity = 0f;
