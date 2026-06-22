@@ -238,13 +238,15 @@ object PlayerUtils {
                     if (LEAP_TARGET == null) return@register
 
                     ThreadUtils.scheduledTask(2) {
+                        val leapTarget = LEAP_TARGET
+                        LEAP_TARGET = null
+
                         LeapMenu.updateLeapMenu()
-                        LeapMenu.players.find { it?.player?.name == LEAP_TARGET?.name }?.let { target ->
-                            modMessage("Leaping To: &e[${LEAP_TARGET !!.clazz.name[0]}] &a${LEAP_TARGET !!.name}")
+                        LeapMenu.players.find { it?.player?.name == leapTarget?.name }?.let { target ->
+                            modMessage("Leaping To: &e[${leapTarget !!.clazz.name[0]}] &a${leapTarget.name}")
                             GuiUtils.clickSlot(target.slotIndex, GuiUtils.ButtonType.LEFT)
-                            mc.player?.closeContainer()
-                            LEAP_TARGET = null
                         }
+                        mc.player?.closeContainer()
                     }
                 }
             }
