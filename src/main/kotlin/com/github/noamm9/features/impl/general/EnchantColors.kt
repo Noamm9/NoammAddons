@@ -5,6 +5,7 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ColorUtils.mcColor
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
@@ -24,7 +25,7 @@ object EnchantColors: Feature("Changes the color of enchantments in items lore."
     private val badLevelColor by ColorSetting("Bad Level Color", Color(170, 170, 170), false)
     private val boldMaxLevel by ToggleSetting("Bold Max Level", true).withDescription("Make max level bold")
 
-    private val ENCHANTMENT_PATTERN = Pattern.compile("(?<enchant>[A-Za-z][A-Za-z -]+) (?<levelNumeral>[IVXLCDM]+)(?=, |$| [\\d,]+$)")
+    private val ENCHANTMENT_PATTERN = Pattern.compile("(?<enchant>[A-Za-z][A-Za-z '\\-]+?) (?<level>[IVXLCDM]+|\\d+)(?=,\\s*|\\)|$| [\\d,]+$)")
 
     val enchantments by lazy {
         DataDownloader.loadJson<Map<String, Map<String, Map<String, Any?>>>>("enchants.json").flatMap { (type, innerMap) ->
@@ -50,7 +51,7 @@ object EnchantColors: Feature("Changes the color of enchantments in items lore."
 
             while (iterator.hasNext()) {
                 val originalComponent = iterator.next()
-                val plainText = originalComponent.string
+                val plainText = originalComponent.string.removeFormatting()
 
                 if (plainText.isEmpty() || "◆" in plainText) continue
 
@@ -68,13 +69,13 @@ object EnchantColors: Feature("Changes the color of enchantments in items lore."
                         newLine.append(plainText.substring(lastEnd, start))
                     }
 
-                    val nameKey = matcher.group("enchant").lowercase()
-                    val levelStr = matcher.group("levelNumeral")
+                    val nameKey = matcher.group("enchant").lowercase().replace("'", "")
+                    val levelStr = matcher.group("level")
 
                     val enchantData = enchantments[nameKey]
 
                     if (enchantData != null) {
-                        val level = levelStr.romanToDecimal()
+                        val level = levelStr.toIntOrNull() ?: levelStr.romanToDecimal()
                         val style = enchantData.getStyle(level)
 
                         newLine.append(Component.literal(enchantData.loreName).withStyle(style))
