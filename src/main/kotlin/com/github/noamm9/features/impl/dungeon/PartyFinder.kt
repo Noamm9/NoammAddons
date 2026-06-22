@@ -51,8 +51,9 @@ object PartyFinder: Feature() {
     private val dungeonGroupJoinRegex = Regex("^Party Finder > (\\w{1,16}) joined the dungeon group! \\((\\w+) Level (\\d+)\\)$")
     private val kickedPlayers = mutableSetOf<String>()
 
-    private val partyMembersRegex = Regex("§5 (.+)§f: §e(.+)§b \\(..(\\d+)..\\)")
-    private val levelRequiredRegex = Regex("§7Dungeon Level Required: §b(\\d+)")
+    private val partyMembersRegex = Regex("^\\s*(\\w{1,16}):?\\s+(Archer|Tank|Berserk|Healer|Mage)\\s*\\((\\d+)\\)\\s*$")
+    private val levelRequiredRegex = Regex("Dungeon Level Required:\\s*(\\d+)")
+    private val floorRegex = Regex("Floor:\\s*Floor\\s+(\\w+)")
     private val selectedClassRegex = Regex("Currently Selected: (.+)")
     private val selectDungeonClassRegex = Regex("§7View and select a dungeon class\\.")
     private val classNames = listOf("&4&lArcher", "&a&lTank", "&6&lBerserk", "&5&lHealer", "&b&lMage")
@@ -78,9 +79,10 @@ object PartyFinder: Feature() {
             val classes = mutableListOf<String>()
             var levelRequired = 0
 
-            for (line in item.lore) when {
-                line.contains("Dungeon Level Required:") && showLevelReq.value -> levelRequired = levelRequiredRegex.find(line)?.groupValues?.get(1)?.toInt() ?: 0
-                partyMembersRegex.matches(line) && showMissingOverlay.value -> classes.add(partyMembersRegex.matchEntire(line) !!.destructured.component2())
+            for (line in item.lore) {
+                val cleanLine = line.removeFormatting()
+                if (showLevelReq.value) levelRequiredRegex.find(cleanLine)?.groupValues?.get(1)?.toInt()?.let { levelRequired = it }
+                if (showMissingOverlay.value) partyMembersRegex.matchEntire(cleanLine)?.destructured?.let { classes.add(it.component2()) }
             }
 
             event.context.pose().translate(event.slot.x.toFloat(), event.slot.y.toFloat())
@@ -125,18 +127,19 @@ object PartyFinder: Feature() {
             event.lore.toList().forEachIndexed { index, comp ->
                 val line = comp.formattedText
 
-                if (line.removeFormatting().contains("Dungeon: Master Mode")) type = 'M'
-                if (line.contains("§7Floor: §bFloor ")) floor = line.split(" ").last().let { it.toIntOrNull() ?: it.romanToDecimal() }
+                val cleanLine = line.removeFormatting()
+                if (cleanLine.contains("Dungeon: Master Mode")) type = 'M'
+                floorRegex.find(cleanLine)?.groupValues?.get(1)?.let {
+                    floor = it.toIntOrNull() ?: it.romanToDecimal()
+                }
 
-                partyMembersRegex.matchEntire(line)?.destructured?.let { (pName, cName, cLvl) ->
-                    val playerName = pName.removeFormatting()
-                    val className = cName.removeFormatting()
+                partyMembersRegex.matchEntire(cleanLine)?.destructured?.let { (playerName, className, cLvl) ->
                     val level = cLvl.toInt()
                     val color = getColor(level)
 
                     val stats = if (showTooltipStats.value) getLoreStats(playerName, floor, type) else ""
 
-                    event.lore[index] = Component.literal(" $pName: §e$className $color$level $stats".addColor())
+                    event.lore[index] = Component.literal(" §b$playerName: §e$className $color$level $stats".addColor())
                     remainingClasses.remove(className)
                 }
             }
