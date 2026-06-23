@@ -124,7 +124,7 @@ object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
                 else -> true
             }
         }?.let {
-            if (getColor(it) == null) starMobs.add(it.id)
+            if (getColor(it) != null) starMobs.add(it.id)
         }
     }
 }
