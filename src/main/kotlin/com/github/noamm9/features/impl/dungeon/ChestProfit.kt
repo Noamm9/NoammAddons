@@ -59,7 +59,6 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
             shouldDraw = {
                 val world = LocationUtils.world
                 val distance = (mc.player?.distanceToSqr(npcLoc) ?: .0) <= 150
-                ChatUtils.modMessage(mc.player?.distanceToSqr(npcLoc))
                 world == WorldType.Catacombs || (world == WorldType.DungeonHub && distance)
             }
         ) { ctx, example ->
