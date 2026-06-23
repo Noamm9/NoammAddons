@@ -48,7 +48,10 @@ object SimonSays: Feature("Simon Says Solver") {
     private val showTitle by ToggleSetting("Show Title", true).showIf { alertsEnabled.value }.withDescription("Shows a title when the device fails")
 
     private val solution = ArrayList<BlockPos>()
+    private val litPositions = HashSet<BlockPos>()
     private var lastExisted = false
+    private var firstRound = false
+    private var hasRemovedSkip = false
     private var skipOver = false
     private var allObi = true
     private var lastClick = 0L
@@ -94,6 +97,7 @@ object SimonSays: Feature("Simon Says Solver") {
             val buttonsExist = WorldUtils.getBlockAt(buttonCheckPos) == Blocks.STONE_BUTTON
 
             if (buttonsExist && ! lastExisted) {
+                lastExisted = true
                 allObi = true
 
                 for (dy in 0 .. 3) for (dz in 0 .. 3) {
@@ -105,8 +109,8 @@ object SimonSays: Feature("Simon Says Solver") {
 
 
                 if (allObi) {
-                    lastExisted = true
                     skipOver = true
+                    firstRound = true
 
                     //#if CHEAT
                     if (autoSS.value && NoammAddons.debugFlags.contains("autoss")) scope.launch {
@@ -127,18 +131,29 @@ object SimonSays: Feature("Simon Says Solver") {
             if (! buttonsExist && lastExisted) {
                 lastExisted = false
                 solution.clear()
+                litPositions.clear()
+                firstRound = false
             }
 
             for (dy in 0 .. 3) for (dz in 0 .. 3) {
                 val pos = startPos.offset(0, dy, dz)
                 val block = WorldUtils.getBlockAt(pos)
-                if (block != Blocks.SEA_LANTERN || solution.contains(pos)) continue
-
-                if (solution.contains(pos)) solution.remove(pos)
+                if (block != Blocks.SEA_LANTERN) {
+                    if (firstRound) litPositions.remove(pos)
+                    continue
+                }
+                if (firstRound) {
+                    if (solution.size >= 3) continue
+                    if (litPositions.contains(pos)) continue
+                    litPositions.add(pos)
+                } else {
+                    if (solution.contains(pos)) continue
+                }
                 solution.add(pos)
 
-                if (! skipOver && ssSkip.value && solution.size == 3) {
+                if (ssSkip.value && !hasRemovedSkip && solution.size == 3) {
                     solution.removeAt(0)
+                    hasRemovedSkip = true
                 }
             }
         }
@@ -165,6 +180,7 @@ object SimonSays: Feature("Simon Says Solver") {
                 if (lastExisted) return
                 solution.clear()
                 skipOver = false
+                hasRemovedSkip = false
                 return
             }
 
@@ -178,10 +194,6 @@ object SimonSays: Feature("Simon Says Solver") {
 
             if (checkPos != expected) {
                 if (blockWrongClicks.value && ! mc.player !!.isCrouching) return event.cancel()
-
-                if (solution.size == 3 && checkPos == solution[1]) {
-                    for (i in 1 downTo 0) solution.removeAt(i)
-                }
             }
             else solution.remove(expected)
         }
@@ -247,6 +259,8 @@ object SimonSays: Feature("Simon Says Solver") {
         lastExisted = false
         skipOver = false
         solution.clear()
+        litPositions.clear()
+        firstRound = false
         allObi = true
     }
 
