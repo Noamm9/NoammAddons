@@ -17,6 +17,7 @@ enum class WitherDragonEnum(
     val boxesDimensions: AABB,
     val colorCode: Char,
     val color: Color,
+    val displayName: String,
     val xRange: ClosedRange<Double>,
     val zRange: ClosedRange<Double>,
     val skipKillTime: Long = 0,
@@ -31,12 +32,12 @@ enum class WitherDragonEnum(
     var arrowsHit: Int = 0,
     var health: Float = 1_000_000_000f
 ) {
-    Red(Vec3(27.0, 14.0, 59.0), AABB(14.5, 13.0, 45.5, 39.5, 28.0, 70.5), 'c', Color(ChatFormatting.RED.color !!), 24.0 .. 30.0, 56.0 .. 62.0, 50, BlockPos(32, 19, 59)),
-    Orange(Vec3(85.0, 14.0, 56.0), AABB(72.0, 8.0, 47.0, 102.0, 28.0, 77.0), '6', Color(ChatFormatting.GOLD.color !!), 82.0 .. 88.0, 53.0 .. 59.0, 62, BlockPos(80, 19, 56)),
-    Green(Vec3(27.0, 14.0, 94.0), AABB(7.0, 8.0, 80.0, 37.0, 28.0, 110.0), 'a', Color(ChatFormatting.GREEN.color !!), 23.0 .. 29.0, 91.0 .. 97.0, 52, BlockPos(32, 18, 94)),
-    Blue(Vec3(84.0, 14.0, 94.0), AABB(71.5, 16.0, 82.5, 96.5, 26.0, 107.5), 'b', Color(ChatFormatting.AQUA.color !!), 82.0 .. 88.0, 91.0 .. 97.0, 47, BlockPos(79, 19, 94)),
-    Purple(Vec3(56.0, 14.0, 125.0), AABB(45.5, 13.0, 113.5, 68.5, 23.0, 136.5), '5', Color(ChatFormatting.DARK_PURPLE.color !!), 53.0 .. 59.0, 122.0 .. 128.0, 38, BlockPos(56, 18, 128)),
-    None(Vec3(0.0, 0.0, 0.0), AABB(0.0, 0.0, 0.0, 0.0, 0.0, 0.0), 'f', Color.WHITE, 0.0 .. 0.0, 0.0 .. 0.0, 0, BlockPos(- 1, - 1, - 1));
+    Red(Vec3(27.0, 14.0, 59.0), AABB(14.5, 13.0, 45.5, 39.5, 28.0, 70.5), 'c', Color(ChatFormatting.RED.color !!), "Power Dragon", 24.0 .. 30.0, 56.0 .. 62.0, 50, BlockPos(32, 19, 59)),
+    Orange(Vec3(85.0, 14.0, 56.0), AABB(72.0, 8.0, 47.0, 102.0, 28.0, 77.0), '6', Color(ChatFormatting.GOLD.color !!), "Flame Dragon", 82.0 .. 88.0, 53.0 .. 59.0, 62, BlockPos(80, 19, 56)),
+    Green(Vec3(27.0, 14.0, 94.0), AABB(7.0, 8.0, 80.0, 37.0, 28.0, 110.0), 'a', Color(ChatFormatting.GREEN.color !!), "Apex Dragon", 23.0 .. 29.0, 91.0 .. 97.0, 52, BlockPos(32, 18, 94)),
+    Blue(Vec3(84.0, 14.0, 94.0), AABB(71.5, 16.0, 82.5, 96.5, 26.0, 107.5), 'b', Color(ChatFormatting.AQUA.color !!), "Ice Dragon", 82.0 .. 88.0, 91.0 .. 97.0, 47, BlockPos(79, 19, 94)),
+    Purple(Vec3(56.0, 14.0, 125.0), AABB(45.5, 13.0, 113.5, 68.5, 23.0, 136.5), '5', Color(ChatFormatting.DARK_PURPLE.color !!), "Soul Dragon", 53.0 .. 59.0, 122.0 .. 128.0, 38, BlockPos(56, 18, 128)),
+    None(Vec3(0.0, 0.0, 0.0), AABB(0.0, 0.0, 0.0, 0.0, 0.0, 0.0), 'f', Color.WHITE, "None", 0.0 .. 0.0, 0.0 .. 0.0, 0, BlockPos(- 1, - 1, - 1));
 
     fun setAlive(id: Int) {
         state = WitherDragonState.ALIVE
