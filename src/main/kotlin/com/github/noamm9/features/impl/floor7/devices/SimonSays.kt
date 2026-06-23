@@ -162,6 +162,7 @@ object SimonSays: Feature("Simon Says Solver") {
             if (LocationUtils.F7Phase != 3) return
 
             if (clickedPos.x == 110 && clickedPos.y == 121 && clickedPos.z == 91) {
+                if (lastExisted) return
                 solution.clear()
                 skipOver = false
                 return
