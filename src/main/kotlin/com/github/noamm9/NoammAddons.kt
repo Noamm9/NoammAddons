@@ -41,6 +41,15 @@ object NoammAddons: ClientModInitializer {
     @JvmField
     var isLoaded = false
 
+    @JvmField
+    var isCheat = run {
+        //#if CHEAT
+        true
+        //#else
+        //$false
+        //#endif
+    }
+
     val cacheData = PogObject("cacheData", mutableMapOf<String, Any>())
     val debugFlags = mutableSetOf<String>()
     val isDev get() = debugFlags.contains("dev")

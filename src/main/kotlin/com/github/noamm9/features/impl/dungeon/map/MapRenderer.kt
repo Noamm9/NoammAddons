@@ -1,5 +1,6 @@
 package com.github.noamm9.features.impl.dungeon.map
 
+import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.MOD_ID
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.ui.hud.HudElement
@@ -96,7 +97,7 @@ object MapRenderer: HudElement() {
 
             var color = tile.color
 
-            if (tile is Room && tile.uniqueRoom?.hasMimic == true && MapConfig.highlightMimicRoom.value) {
+            if (tile is Room && tile.uniqueRoom?.hasMimic == true && MapConfig.highlightMimicRoom.value && NoammAddons.isCheat) {
                 color = MathUtils.lerpColor(color, MapConfig.colorMimic.value, 0.2)
             }
 
