@@ -38,8 +38,15 @@ public abstract class MixinMinecraft {
         CpsDisplay.addLeftClick();
     }
 
-    @Inject(method = "startUseItem", at = @At("HEAD"))
-    private void onStartUseItem(CallbackInfo ci) {
+    @Inject(
+        method = "handleKeybinds",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/Minecraft;startUseItem()V",
+            ordinal = 0
+        )
+    )
+    private void onUseClick(CallbackInfo ci) {
         CpsDisplay.addRightClick();
     }
 
