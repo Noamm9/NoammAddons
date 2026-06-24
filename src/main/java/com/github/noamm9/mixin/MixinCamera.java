@@ -5,6 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.Holder;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
@@ -79,12 +80,19 @@ public abstract class MixinCamera {
 
     @Inject(method = "calculateFov", at = @At(value = "RETURN"), cancellable = true)
     private void calculateFovHook(float partialTicks, CallbackInfoReturnable<Float> cir) {
-        cir.setReturnValue(INSTANCE.enabled && getCustomFOV().getValue() ? getCustomFOVSlider().getValue().floatValue() : cir.getReturnValue());
-        ;
+        if (!INSTANCE.enabled || !getCustomFOV().getValue()) return;
+        float vanillaBase = Minecraft.getInstance().options.fov().get().floatValue();
+        float ratio = getCustomFOVSlider().getValue().floatValue() / vanillaBase;
+        cir.setReturnValue(cir.getReturnValue() * ratio);
     }
 
     @ModifyExpressionValue(method = "createProjectionMatrixForCulling", at = @At(value = "INVOKE", target = "Ljava/lang/Math;max(FF)F"))
     private float getMaxFov(float original) {
-        return INSTANCE.enabled && getCustomFOV().getValue() ? getCustomFOVSlider().getValue().floatValue() : original;
+        if (!INSTANCE.enabled || !getCustomFOV().getValue()) return original;
+
+        // Same ratio approach for culling matrix so it stays consistent with calculateFov.
+        float vanillaBase = Minecraft.getInstance().options.fov().get().floatValue();
+        float ratio = getCustomFOVSlider().getValue().floatValue() / vanillaBase;
+        return original * ratio;
     }
 }
