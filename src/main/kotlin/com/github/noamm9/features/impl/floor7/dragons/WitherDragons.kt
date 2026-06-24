@@ -78,7 +78,7 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
         register<EntityUnloadEvent> {
             if (LocationUtils.F7Phase != 5) return@register
             if (event.entity !is EnderDragon) return@register
-            WitherDragonEnum.entries.find { it.entityId == event.entity.id }?.setDead()
+            WitherDragonEnum.entries.find { it.entityId == event.entity.id }?.entity = null
         }
 
         register<BlockChangeEvent> {
@@ -95,6 +95,10 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
                 if (it.state == WitherDragonState.SPAWNING) {
                     it.timeToSpawn --
                     if (it.timeToSpawn <= - 20) it.setDead(true)
+                }
+
+                if (it.state == WitherDragonState.ALIVE && it.entity == null && ! DragonCheck.isAliveOnScoreboard(it)) {
+                    it.setDead()
                 }
             }
         }

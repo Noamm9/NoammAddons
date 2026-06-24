@@ -1,17 +1,37 @@
 package com.github.noamm9.features.impl.floor7.dragons
 
 import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.MathUtils.xzInAABB
 import com.github.noamm9.utils.dungeons.DungeonListener
 import net.minecraft.core.particles.ParticleTypes
+import net.minecraft.network.chat.Component
 import net.minecraft.network.protocol.game.*
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.item.Items
 import net.minecraft.world.phys.Vec3
+import net.minecraft.world.scores.DisplaySlot
+import net.minecraft.world.scores.PlayerTeam
 
 object DragonCheck {
+    fun isAliveOnScoreboard(dragon: WitherDragonEnum): Boolean {
+        val scoreboard = mc.level?.scoreboard ?: return true
+        val objective = scoreboard.getDisplayObjective(DisplaySlot.SIDEBAR) ?: return true
+
+        val scores = scoreboard.listPlayerScores(objective)
+        if (scores.isEmpty()) return true
+
+        val lines = scores.map { score ->
+            val name = score.ownerName().string
+            val team = scoreboard.getPlayersTeam(name)
+            PlayerTeam.formatNameForTeam(team, Component.literal(name)).unformattedText
+        }
+
+        return lines.any { it.contains(dragon.displayName, ignoreCase = true) }
+    }
+
     fun handleSpawnPacket(particle: ClientboundLevelParticlesPacket) {
         if (particle.particle.type != ParticleTypes.FLAME) return
         if (particle.x % 1 != 0.0) return

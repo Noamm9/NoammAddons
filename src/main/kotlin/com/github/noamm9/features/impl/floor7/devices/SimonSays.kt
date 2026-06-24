@@ -10,6 +10,8 @@ import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
+import com.github.noamm9.utils.MathUtils.add
+import com.github.noamm9.utils.MathUtils.toVec
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.WorldUtils
@@ -17,17 +19,16 @@ import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderContext
-import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.level.block.Blocks
 import java.awt.Color
+import java.util.*
 
 object SimonSays: Feature("Simon Says Solver") {
-    private val ssSkip by ToggleSetting("SS skip Compatibility").withDescription("Always assume at the start that you perfectly SS skip").section("Options")
+    private val ssSkip by ToggleSetting("SS skip Compatibility", true).withDescription("Always assume at the start that you perfectly SS skip").section("Options")
     private val blockWrongClicks by ToggleSetting("Block Wrong Clicks").withDescription("Blocks clicks if you aren't looking at the correct button. &eSneak to override.")
-
-    private val color1 by ColorSetting("First Color", Color.GREEN).withDescription("Color of the first button.").section("Colors")
+    private val color1 by ColorSetting("First Color", Color.GREEN).withDescription("Color of the first button.")
     private val color2 by ColorSetting("Second Color", Color.YELLOW).withDescription("Color of the second button.")
     private val color3 by ColorSetting("Other Color", Color.RED).withDescription("Color of the rest of the buttons.")
 
@@ -35,10 +36,6 @@ object SimonSays: Feature("Simon Says Solver") {
     private val autoStart by ToggleSetting("Auto Start", false).withDescription("Automatically starts the device when it can be started.").section("Auto")
     private val startClicks by SliderSetting("Start Clicks", 3, 1, 10, 1).withDescription("Amount of clicks to start the device.").showIf { autoStart.value }
     private val startClickDelay by SliderSetting("Start Click Delay", 3, 1, 25, 1).withDescription("Delay in ticks between each start click.").showIf { autoStart.value }
-
-    private val autoSS by ToggleSetting("Auto SS").withDescription("Automatically does the device.").showIf { NoammAddons.debugFlags.contains("autoss") }
-    private val autoSSDelay by SliderSetting("Auto SS delay", 3, 1, 10, 1)
-        .withDescription("Delay in Server ticks.").showIf { autoSS.value && NoammAddons.debugFlags.contains("autoss") }
     //#endif
 
     private val alertsEnabled by ToggleSetting("Alerts Enabled", true).section("Alerts")
@@ -47,28 +44,22 @@ object SimonSays: Feature("Simon Says Solver") {
     private val alertSound by ToggleSetting("Alert Sound", true).showIf { alertsEnabled.value }.withDescription("Plays a sound when the device fails")
     private val showTitle by ToggleSetting("Show Title", true).showIf { alertsEnabled.value }.withDescription("Shows a title when the device fails")
 
-    private val solution = ArrayList<BlockPos>()
-    private var lastExisted = false
-    private var skipOver = false
-    private var allObi = true
-    private var lastClick = 0L
-
-    private val startButton = BlockPos(110, 121, 91)
+    private val deviceRegex = Regex("(.+) (activated|completed) a (terminal|device|lever)! \\((\\d)/(\\d)\\)")
     private val startRegex = Regex("^\\[BOSS] Goldor: Who dares trespass into my domain\\?$")
+    private val obsidians = (120 .. 123).flatMap { y -> (92 .. 95).map { z -> BlockPos(111, y, z) } }
+    private val buttons = (120 .. 123).flatMap { y -> (92 .. 95).map { z -> BlockPos(110, y, z) } }
 
-    private val buttonCheckPos = BlockPos(110, 120, 92)
-    private val startPos = BlockPos(111, 120, 92)
+    private val buttonCheckPos = BlockPos(110, 120, 93)
+    private val startButton = BlockPos(110, 121, 91)
+
+    private val solution = ArrayList<SSButton>()
+    private var skipOver = false
+    private var lastClick = 0L
 
     private var thingsDone = 0
     private var ticks = 0
     private var canBreak = false
     private var wasBroken = false
-
-    private val obsidians = (120 .. 123).flatMap { y -> (92 .. 95).map { z -> BlockPos(111, y, z) } }
-    private val buttons = (120 .. 123).flatMap { y -> (92 .. 95).map { z -> BlockPos(110, y, z) } }
-
-    private val deviceRegex = Regex("(.+) (activated|completed) a (terminal|device|lever)! \\((\\d)/(\\d)\\)")
-
 
     override fun init() {
         register<WorldChangeEvent> {
@@ -89,58 +80,18 @@ object SimonSays: Feature("Simon Says Solver") {
         }
         //#endif
 
-        register<TickEvent.Start> {
-            if (LocationUtils.F7Phase != 3) return@register
-            val buttonsExist = WorldUtils.getBlockAt(buttonCheckPos) == Blocks.STONE_BUTTON
+        register<BlockChangeEvent> {
+            val pos = event.pos.immutable()
+            if (pos !in obsidians) return@register
+            if (event.newBlock != Blocks.SEA_LANTERN) return@register
+            if (ssSkip.value && solution.size == 2 && ! skipOver) solution.removeFirst()
+            solution.add(SSButton(pos))
+        }
 
-            if (buttonsExist && ! lastExisted) {
-                allObi = true
-
-                for (dy in 0 .. 3) for (dz in 0 .. 3) {
-                    val pos = startPos.offset(0, dy, dz)
-                    if (WorldUtils.getBlockAt(pos) != Blocks.OBSIDIAN) {
-                        allObi = false
-                    }
-                }
-
-
-                if (allObi) {
-                    lastExisted = true
-                    skipOver = true
-
-                    //#if CHEAT
-                    if (autoSS.value && NoammAddons.debugFlags.contains("autoss")) scope.launch {
-                        val list = solution.toList()
-                        for (pos in list) {
-                            val targetTick = DungeonListener.currentTime + autoSSDelay.value
-                            PlayerUtils.rotateSmoothly(pos.west().center, autoSSDelay.value * 50L)
-                            if (list.first() == pos) PlayerUtils.rightClick()
-
-                            while (DungeonListener.currentTime < targetTick) Thread.sleep(10)
-                            if (list.first() != pos) PlayerUtils.rightClick()
-                        }
-                    }
-                    //#endif
-                }
-            }
-
-            if (! buttonsExist && lastExisted) {
-                lastExisted = false
-                solution.clear()
-            }
-
-            for (dy in 0 .. 3) for (dz in 0 .. 3) {
-                val pos = startPos.offset(0, dy, dz)
-                val block = WorldUtils.getBlockAt(pos)
-                if (block != Blocks.SEA_LANTERN || solution.contains(pos)) continue
-
-                if (solution.contains(pos)) solution.remove(pos)
-                solution.add(pos)
-
-                if (! skipOver && ssSkip.value && solution.size == 3) {
-                    solution.removeAt(0)
-                }
-            }
+        register<BlockChangeEvent> {
+            if (event.pos != buttonCheckPos) return@register
+            if (event.newBlock != Blocks.STONE_BUTTON) return@register
+            skipOver = true
         }
 
         register<RenderWorldEvent> {
@@ -148,37 +99,33 @@ object SimonSays: Feature("Simon Says Solver") {
             if (solution.isEmpty()) return@register
 
             for (i in solution.indices) {
+                val buttonPos = solution[i].button
+                val id = solution[i].id
                 val color = when (i) {
                     0 -> color1
                     1 -> color2
                     else -> color3
                 }.value
 
-                renderSSBox(event.ctx, solution[i].west(), color)
+                renderSSBox(event.ctx, buttonPos, color)
+                if (NoammAddons.debugFlags.contains("ss")) Render3D.renderString("$id", buttonPos.toVec().add(x = 0.8, y = 0.6, z = 0.5), phase = true)
             }
         }
 
         fun handleClick(event: PlayerInteractEvent, clickedPos: BlockPos) {
             if (LocationUtils.F7Phase != 3) return
-
-            if (clickedPos.x == 110 && clickedPos.y == 121 && clickedPos.z == 91) {
-                solution.clear()
-                skipOver = false
-                return
-            }
-
+            if (clickedPos == startButton) return resetSolver()
             if (solution.isEmpty()) return
             if (WorldUtils.getBlockAt(clickedPos) != Blocks.STONE_BUTTON) return
             if (lastClick == DungeonListener.currentTime) return event.cancel()
             lastClick = DungeonListener.currentTime
 
-            val checkPos = clickedPos.east()
             val expected = solution.firstOrNull() ?: return
 
-            if (checkPos != expected) {
+            if (clickedPos != expected.button) {
                 if (blockWrongClicks.value && ! mc.player !!.isCrouching) return event.cancel()
 
-                if (solution.size == 3 && checkPos == solution[1]) {
+                if (solution.size == 3 && clickedPos == solution[1].button) {
                     for (i in 1 downTo 0) solution.removeAt(i)
                 }
             }
@@ -240,13 +187,13 @@ object SimonSays: Feature("Simon Says Solver") {
         if (sendChat.value) ChatUtils.sendCommand("pc SS Broke!")
         if (alertSound.value) mc.player?.playSound(SoundEvents.ANVIL_LAND, 5f, 0f)
         if (showTitle.value) ChatUtils.showTitle("§c§l§nSS BROKE!")
+
+        resetSolver()
     }
 
     private fun resetSolver() {
-        lastExisted = false
-        skipOver = false
         solution.clear()
-        allObi = true
+        skipOver = false
     }
 
     private fun reset() {
@@ -272,5 +219,10 @@ object SimonSays: Feature("Simon Says Solver") {
         val maxZ = cz + w
 
         Render3D.renderBoxBounds(ctx, minX, minY, minZ, cx, maxY, maxZ, color.withAlpha(178), outline = false, fill = true, phase = true)
+    }
+
+    private data class SSButton(val obsidian: BlockPos) {
+        val button = obsidian.west()
+        val id = solution.size
     }
 }
