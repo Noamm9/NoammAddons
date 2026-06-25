@@ -11,6 +11,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.json.*
+import net.minecraft.resources.Identifier
 import java.util.concurrent.*
 
 object NetworkLoop {
@@ -21,6 +22,7 @@ object NetworkLoop {
 
     @JvmField val priceData = ConcurrentHashMap<String, Long>()
     @JvmField var electionData = ElectionData.empty
+    @JvmField var idToLocation = ConcurrentHashMap<String, Identifier>()
 
     fun init() = ThreadUtils.loop(TimeUnit.MINUTES.toMillis(10)) {
         coroutineScope {
@@ -82,9 +84,11 @@ object NetworkLoop {
             val item = element.jsonObject
             val id = item["id"]?.jsonPrimitive?.content ?: continue
             val name = item["name"]?.jsonPrimitive?.content ?: continue
+            val material = item["material"]?.jsonPrimitive?.content ?: continue
 
             idToNameMap[id] = name
             nameToIdMap[name] = id
+            idToLocation[id] = Identifier.fromNamespaceAndPath("minecraft", material.lowercase())
         }
     }.onFailure { logError("Skyblock items", it) }
 
