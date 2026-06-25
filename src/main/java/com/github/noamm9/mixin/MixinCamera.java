@@ -1,18 +1,17 @@
 package com.github.noamm9.mixin;
 
-import com.github.noamm9.NoammAddons;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.Holder;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -82,18 +81,14 @@ public abstract class MixinCamera {
     @Inject(method = "calculateFov", at = @At(value = "RETURN"), cancellable = true)
     private void calculateFovHook(float partialTicks, CallbackInfoReturnable<Float> cir) {
         if (!INSTANCE.enabled || !getCustomFOV().getValue()) return;
-        cir.setReturnValue(cir.getReturnValue() * noammaddons$getFOVRatio());
+        float vanillaBase = Minecraft.getInstance().options.fov().get().floatValue();
+        float ratio = getCustomFOVSlider().getValue().floatValue() / vanillaBase;
+        cir.setReturnValue(cir.getReturnValue() * ratio);
     }
 
     @ModifyExpressionValue(method = "createProjectionMatrixForCulling", at = @At(value = "INVOKE", target = "Ljava/lang/Math;max(FF)F"))
-    private float modifyProjectionFov(float original) {
+    private float getMaxFov(float original) {
         if (!INSTANCE.enabled || !getCustomFOV().getValue()) return original;
-        return original * noammaddons$getFOVRatio();
-    }
-
-    @Unique
-    private float noammaddons$getFOVRatio() {
-        // essential zoom changes the fov directly so we divide it to get the scale amount
-        return getCustomFOVSlider().getValue().floatValue() / NoammAddons.mc.options.fov().get().floatValue();
+        return getCustomFOVSlider().getValue().floatValue();
     }
 }
