@@ -1,7 +1,6 @@
 package com.github.noamm9.features.impl.general
 
 import com.github.noamm9.event.impl.ContainerEvent
-import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.features.Feature
@@ -59,9 +58,10 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
             }
         }
 
-        register<ContainerFullyOpenedEvent> {
+        register<MainThreadPacketReceivedEvent.Post> {
             if (! pendingAutoClose) return@register
-            if (! event.title.unformattedText.matches(wardrobeMenuRegex)) return@register
+            val packet = event.packet as? ClientboundOpenScreenPacket ?: return@register
+            if (! packet.title.unformattedText.matches(wardrobeMenuRegex)) return@register
 
             pendingAutoClose = false
             mc.player?.closeContainer()
@@ -107,9 +107,8 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
     }
 
     fun closeAfterReopen() {
+        mc.player?.closeContainer()
+        ThreadUtils.setTimeout(3000) { pendingAutoClose = false }
         pendingAutoClose = true
-        ThreadUtils.setTimeout(3000) {
-            pendingAutoClose = false
-        }
     }
 }
