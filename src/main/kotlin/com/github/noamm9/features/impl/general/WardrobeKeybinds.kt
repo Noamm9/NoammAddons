@@ -25,7 +25,6 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
     private var lastClick = System.currentTimeMillis()
     private var inWardrobeMenu = false
     private var pendingAutoClose = false
-    private var pendingAutoCloseId = 0L
     private val keyMap = mapOf(
         0 to 36, 1 to 37, 2 to 38, 3 to 39, 4 to 40,
         5 to 41, 6 to 42, 7 to 43, 8 to 44
@@ -108,11 +107,8 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
     }
 
     fun closeAfterReopen() {
-        val closeId = System.currentTimeMillis()
         pendingAutoClose = true
-        pendingAutoCloseId = closeId
         ThreadUtils.setTimeout(3000) {
-            if (pendingAutoCloseId != closeId) return@setTimeout
             pendingAutoClose = false
         }
     }
