@@ -3,9 +3,9 @@ package com.github.noamm9
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
-import com.github.noamm9.features.impl.visual.PackDisabler
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
+import com.github.noamm9.utils.GsonUtils
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
@@ -13,13 +13,18 @@ import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.render.Render3D
+import com.google.gson.JsonElement
+import com.mojang.serialization.JsonOps
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
+import net.minecraft.core.component.DataComponentPatch
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.network.protocol.game.ClientboundSetTimePacket
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
+import net.minecraft.resources.RegistryOps
 import net.minecraft.world.entity.ambient.Bat
+import net.minecraft.world.item.ItemStack
 import java.awt.Color
 
 
@@ -33,7 +38,6 @@ class TestGround {
         val bat get() = NoammAddons.debugFlags.contains("bat")
         val slot get() = NoammAddons.debugFlags.contains("slot")
         val sound get() = NoammAddons.debugFlags.contains("sound")
-        val sbtp get() = NoammAddons.debugFlags.contains("sbtp")
     }
 
     init {
@@ -106,7 +110,6 @@ class TestGround {
             val stack = event.screen.menu.getSlot(event.slotId).item
             ChatUtils.modMessage("skyblockid: " + stack.skyblockId)
             ChatUtils.modMessage("index: " + event.slotId)
-            mc.keyboardHandler.clipboard = PackDisabler.toJson(stack, mc.connection !!.registryAccess())
         }
 
         EventBus.register<MainThreadPacketReceivedEvent.Pre> {
@@ -117,5 +120,12 @@ class TestGround {
             val volume = packet.volume
             ChatUtils.modMessage("name: $name, pitch: $pitch, volume: $volume")
         }
+    }
+
+    fun getNBT(itemStack: ItemStack?): String {
+        if (itemStack == null || itemStack.isEmpty) return "{}"
+        val ops = RegistryOps.create<JsonElement>(JsonOps.INSTANCE, mc.connection?.registryAccess() !!)
+        val jsonElement = DataComponentPatch.CODEC.encodeStart(ops, itemStack.componentsPatch).result().get()
+        return GsonUtils.gson.toJson(jsonElement)
     }
 }
