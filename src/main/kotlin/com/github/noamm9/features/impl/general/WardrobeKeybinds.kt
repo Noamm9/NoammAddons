@@ -19,7 +19,7 @@ import net.minecraft.world.item.Items
 import org.lwjgl.glfw.GLFW
 
 object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your keyboard.") {
-    private val wardrobeMenuRegex = Regex("^Wardrobe \\(\\d/\\d\\)$")
+    private val wardrobeMenuRegex = Regex("""^\(\d+/\d+\) Armor Sets$""")
     private var lastClick = System.currentTimeMillis()
     private var inWardrobeMenu = false
     private val keyMap = mapOf(
