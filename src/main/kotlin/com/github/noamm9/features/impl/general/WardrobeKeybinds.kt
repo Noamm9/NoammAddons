@@ -1,6 +1,7 @@
 package com.github.noamm9.features.impl.general
 
 import com.github.noamm9.event.impl.ContainerEvent
+import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.features.Feature
@@ -9,6 +10,7 @@ import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.GuiUtils
+import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.equalsOneOf
 import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
@@ -22,6 +24,8 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
     private val wardrobeMenuRegex = Regex("""^\(\d+/\d+\) Armor Sets$""")
     private var lastClick = System.currentTimeMillis()
     private var inWardrobeMenu = false
+    private var pendingAutoClose = false
+    private var pendingAutoCloseId = 0L
     private val keyMap = mapOf(
         0 to 36, 1 to 37, 2 to 38, 3 to 39, 4 to 40,
         5 to 41, 6 to 42, 7 to 43, 8 to 44
@@ -52,7 +56,16 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
         register<PacketEvent.Sent> {
             if (event.packet is ServerboundContainerClosePacket && inWardrobeMenu) {
                 inWardrobeMenu = false
+                pendingAutoClose = false
             }
+        }
+
+        register<ContainerFullyOpenedEvent> {
+            if (! pendingAutoClose) return@register
+            if (! event.title.unformattedText.matches(wardrobeMenuRegex)) return@register
+
+            pendingAutoClose = false
+            mc.player?.closeContainer()
         }
 
         register<ContainerEvent.Keyboard> {
@@ -69,7 +82,7 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
             GuiUtils.clickSlot(slot, GuiUtils.ButtonType.LEFT)
 
             lastClick = System.currentTimeMillis()
-            if (closeAfterUse.value) mc.player !!.closeContainer()
+            if (closeAfterUse.value) closeAfterReopen()
         }
 
         register<ContainerEvent.MouseClick> {
@@ -86,11 +99,21 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
             GuiUtils.clickSlot(slot, GuiUtils.ButtonType.LEFT)
 
             lastClick = System.currentTimeMillis()
-            if (closeAfterUse.value) mc.player !!.closeContainer()
+            if (closeAfterUse.value) closeAfterReopen()
         }
     }
 
     private fun isSlotEquipped(slot: Int): Boolean {
         return mc.player?.containerMenu?.slots?.get(slot)?.item?.`is`(Items.LIME_DYE) ?: false
+    }
+
+    fun closeAfterReopen() {
+        val closeId = System.currentTimeMillis()
+        pendingAutoClose = true
+        pendingAutoCloseId = closeId
+        ThreadUtils.setTimeout(3000) {
+            if (pendingAutoCloseId != closeId) return@setTimeout
+            pendingAutoClose = false
+        }
     }
 }
