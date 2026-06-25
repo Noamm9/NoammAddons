@@ -13,12 +13,21 @@ import com.github.noamm9.utils.render.Render2D.width
 
 object PlayerHud: Feature(name = "Player HUD", description = "Displays your stats as moveable HUD elements.") {
     private val elements by MultiCheckboxSetting("Elements", mutableMapOf(
-        "Health" to false, "Defense" to false, "Mana" to false,
-        "Overflow Mana" to false, "Effective HP" to false, "Speed" to false
+        "Health" to false,
+        "Defense" to false,
+        "Mana" to false,
+        "Overflow Mana" to false,
+        "Vitality" to false,
+        "Effective HP" to false,
+        "Speed" to false
     ))
 
     private val hideFromActionbar by MultiCheckboxSetting("Hide from Actionbar", mutableMapOf(
-        "Health" to false, "Defense" to false, "Mana" to false, "Overflow Mana" to false,
+        "Health" to false,
+        "Defense" to false,
+        "Mana" to false,
+        "Overflow Mana" to false,
+        "Vitality" to false,
         "Dungeon Room Secrets" to false
     ))
 
@@ -68,6 +77,16 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
         }
 
         hudElement(
+            this.name + " Vitality",
+            { elements.value["Vitality"] == true },
+            { LocationUtils.inSkyblock && ActionBarParser.isVitalityShown }
+        ) { context, example ->
+            val text = if (example) "§482/122" else "§4${ActionBarParser.currentVitality}/${ActionBarParser.maxVitality}"
+            Render2D.drawString(context, text, 0, 0)
+            return@hudElement text.width().toFloat() to text.height().toFloat()
+        }
+
+        hudElement(
             this.name + " Effective HP",
             { elements.value["Effective HP"] == true },
             { LocationUtils.inSkyblock }
@@ -95,6 +114,7 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             if (hideFromActionbar.value["Defense"] == true) result = result.replace(ActionBarParser.DEF_REGEX, "")
             if (hideFromActionbar.value["Mana"] == true) result = result.replace(ActionBarParser.MANA_REGEX, "")
             if (hideFromActionbar.value["Overflow Mana"] == true) result = result.replace(ActionBarParser.OVERFLOW_REGEX, "")
+            if (hideFromActionbar.value["Vitality"] == true) result = result.replace(ActionBarParser.VITALITY_REGEX, "")
             if (hideFromActionbar.value["Dungeon Room Secrets"] == true) result = result.replace(ActionBarParser.SECRETS_REGEX, "")
 
             event.message = result
