@@ -3,11 +3,11 @@ package com.github.noamm9
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
+import com.github.noamm9.features.impl.visual.PackDisabler
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.ThreadUtils
-import com.github.noamm9.utils.Utils.send
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
@@ -16,15 +16,12 @@ import com.github.noamm9.utils.render.Render3D
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
-import net.minecraft.core.component.DataComponents
-import net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket
-import net.minecraft.network.protocol.common.ServerboundResourcePackPacket
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.network.protocol.game.ClientboundSetTimePacket
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
-import net.minecraft.resources.Identifier
 import net.minecraft.world.entity.ambient.Bat
 import java.awt.Color
+
 
 class TestGround {
     private var lastServerTime = - 1L
@@ -36,6 +33,7 @@ class TestGround {
         val bat get() = NoammAddons.debugFlags.contains("bat")
         val slot get() = NoammAddons.debugFlags.contains("slot")
         val sound get() = NoammAddons.debugFlags.contains("sound")
+        val sbtp get() = NoammAddons.debugFlags.contains("sbtp")
     }
 
     init {
@@ -108,7 +106,7 @@ class TestGround {
             val stack = event.screen.menu.getSlot(event.slotId).item
             ChatUtils.modMessage("skyblockid: " + stack.skyblockId)
             ChatUtils.modMessage("index: " + event.slotId)
-            stack.set(DataComponents.ITEM_MODEL, Identifier.fromNamespaceAndPath("minecraft", "diamond_sword"))
+            mc.keyboardHandler.clipboard = PackDisabler.toJson(stack, mc.connection !!.registryAccess())
         }
 
         EventBus.register<MainThreadPacketReceivedEvent.Pre> {
@@ -118,13 +116,6 @@ class TestGround {
             val pitch = packet.pitch
             val volume = packet.volume
             ChatUtils.modMessage("name: $name, pitch: $pitch, volume: $volume")
-        }
-
-        EventBus.register<MainThreadPacketReceivedEvent.Pre> {
-            val p = event.packet as? ClientboundResourcePackPushPacket ?: return@register
-            ServerboundResourcePackPacket(p.id(), ServerboundResourcePackPacket.Action.ACCEPTED).send()
-            ServerboundResourcePackPacket(p.id(), ServerboundResourcePackPacket.Action.SUCCESSFULLY_LOADED).send()
-            event.cancel()
         }
     }
 }

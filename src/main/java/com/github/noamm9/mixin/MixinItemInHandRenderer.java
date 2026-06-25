@@ -1,7 +1,6 @@
 package com.github.noamm9.mixin;
 
 import com.github.noamm9.features.impl.visual.Animations;
-import com.github.noamm9.features.impl.visual.RevertAxes;
 import com.github.noamm9.utils.items.ItemUtils;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -96,10 +95,5 @@ public abstract class MixinItemInHandRenderer {
             oOffHandHeight = 1f;
             offHandHeight = 1f;
         }
-    }
-
-    @ModifyVariable(method = "renderArmWithItem", at = @At("HEAD"), argsOnly = true)
-    private ItemStack revertAxe(ItemStack original) {
-        return RevertAxes.shouldReplace(original);
     }
 }

@@ -84,7 +84,8 @@ object NetworkLoop {
             val item = element.jsonObject
             val id = item["id"]?.jsonPrimitive?.content ?: continue
             val name = item["name"]?.jsonPrimitive?.content ?: continue
-            val material = item["material"]?.jsonPrimitive?.content ?: continue
+            var material = item["material"]?.jsonPrimitive?.content ?: continue
+            if (material == "SKULL_ITEM") material = "PLAYER_HEAD"
 
             idToNameMap[id] = name
             nameToIdMap[name] = id
