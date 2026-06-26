@@ -163,7 +163,7 @@ object PlayerUtils {
     suspend fun quickSwapAction(itemID: String) {
         if (thePlayer?.isDead == true) return
 
-        ChatUtils.sendMessage("/eq")
+        ChatUtils.sendMessage("/stats")
         awaiting4EQ = itemID
         ThreadUtils.setTimeout(5000) { awaiting4EQ = "" }
 
