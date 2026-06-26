@@ -1,8 +1,10 @@
 package com.github.noamm9.utils
 
 import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.NoammAddons.scope
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
+import kotlinx.coroutines.launch
 import com.github.noamm9.features.impl.dungeon.LeapMenu
 import com.github.noamm9.mixin.IKeyMapping
 import com.github.noamm9.ui.utils.Animation.Companion.easeInOutCubic
@@ -237,15 +239,30 @@ object PlayerUtils {
                 "spirit leap" -> {
                     if (LEAP_TARGET == null) return@register
 
-                    ThreadUtils.scheduledTask(2) {
-                        val leapTarget = LEAP_TARGET
+                    scope.launch {
+                        val leapTarget = LEAP_TARGET ?: return@launch
+
+                        var target: LeapMenu.LeapMenuPlayer? = null
+                        var attempts = 0
+
+                        while (target == null && attempts < 20) {
+                            delay(50)
+                            LeapMenu.updateLeapMenu()
+                            target = LeapMenu.players.find { it?.player?.name == leapTarget.name }
+                            attempts++
+                        }
+
                         LEAP_TARGET = null
 
-                        LeapMenu.updateLeapMenu()
-                        LeapMenu.players.find { it?.player?.name == leapTarget?.name }?.let { target ->
-                            modMessage("Leaping To: &e[${leapTarget !!.clazz.name[0]}] &a${leapTarget.name}")
-                            GuiUtils.clickSlot(target.slotIndex, GuiUtils.ButtonType.LEFT)
+                        if (target == null) {
+                            modMessage("&cCouldn't find ${leapTarget.name} in leap menu after 1s, closing this damn menu! ping me! -astrld")
+                            mc.player?.closeContainer()
+                            ActionUtils.reset()
+                            return@launch
                         }
+
+                        modMessage("Leaping To: &e[${leapTarget.clazz.name[0]}] &a${leapTarget.name}")
+                        GuiUtils.clickSlot(target.slotIndex, GuiUtils.ButtonType.LEFT)
                         mc.player?.closeContainer()
                     }
                 }
