@@ -1,11 +1,7 @@
 package com.github.noamm9.utils.items
 
 import com.github.noamm9.utils.ChatUtils.formattedText
-import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.JsonUtils
-import com.github.noamm9.utils.items.ItemRarity.Companion.PET_PATTERN
-import com.github.noamm9.utils.items.ItemRarity.Companion.RARITY_PATTERN
-import com.github.noamm9.utils.items.ItemRarity.Companion.rarityCache
 import com.github.noamm9.utils.network.data.DungeonStats
 import net.minecraft.core.component.DataComponents
 import net.minecraft.world.item.ItemStack
@@ -47,26 +43,13 @@ object ItemUtils {
         return profile.partialProfile().id.toString()
     }
 
-    fun ItemStack.hasGlint() = componentsPatch.toString().contains("minecraft:enchantment_glint_override=>true")
+    fun ItemStack.hasGlint() = get(DataComponents.ENCHANTMENT_GLINT_OVERRIDE) == true
 
     fun getRarity(item: ItemStack?): ItemRarity {
         item ?: return ItemRarity.NONE
         if (item.isEmpty) return ItemRarity.NONE
-        rarityCache[item]?.let { return it }
-
-        val rarity = run {
-            val lore = item.lore.takeUnless(List<*>::isEmpty) ?: return@run ItemRarity.NONE
-
-            for (i in lore.indices) {
-                val line = lore[lore.lastIndex - i]
-                val rarityName = RARITY_PATTERN.find(line)?.groups?.get("rarity")?.value?.removeFormatting()?.substringAfter("SHINY ")
-                ItemRarity.entries.find { it.rarityName == rarityName }?.let { return@run it }
-            }
-
-            PET_PATTERN.find(item.hoverName.formattedText)?.groupValues?.getOrNull(1)?.let(ItemRarity::byBaseColor) ?: ItemRarity.NONE
-        }
-
-        rarityCache[item] = rarity
-        return rarity
+        val id = item.get(DataComponents.TOOLTIP_STYLE) ?: return ItemRarity.NONE
+        if (id.namespace != "hypixel_skyblock") return ItemRarity.NONE
+        return ItemRarity.valueOf(id.path.uppercase())
     }
 }

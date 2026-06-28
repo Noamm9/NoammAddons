@@ -110,6 +110,7 @@ class TestGround {
             val stack = event.screen.menu.getSlot(event.slotId).item
             ChatUtils.modMessage("skyblockid: " + stack.skyblockId)
             ChatUtils.modMessage("index: " + event.slotId)
+            mc.keyboardHandler.clipboard = getNBT(stack)
         }
 
         EventBus.register<MainThreadPacketReceivedEvent.Pre> {
@@ -129,3 +130,40 @@ class TestGround {
         return GsonUtils.gson.toJson(jsonElement)
     }
 }
+
+/*
+{
+  "minecraft:item_model": "hypixel_skyblock:item/slayer/enderman/weapons/terminator",
+  "minecraft:tooltip_style": "hypixel_skyblock:mythic"
+  "minecraft:custom_data": {
+    "upgrade_level": 10,
+    "enchantments": {
+      "cubism": 5,
+      "aiming": 5,
+      "toxophilite": 10,
+      "impaling": 5,
+      "piercing": 1,
+      "snipe": 4,
+      "infinite_quiver": 10,
+      "chance": 3,
+      "power": 7,
+      "dragon_hunter": 6,
+      "flame": 2,
+      "overload": 5,
+      "ultimate_reiterate": 5
+    },
+    "timestamp": 1762120237866,
+    "hot_potato_count": 15,
+    "runes": {
+      "GOLDEN": 3
+    },
+    "modifier": "spiritual",
+    "rarity_upgrades": 1,
+    "toxophilite_combat_xp": 2.1954964312038323E8,
+    "uuid": "3c934dea-1ec1-4109-a71b-f47958bc578c",
+    "id": "TERMINATOR",
+    "art_of_war_count": 1,
+    "dungeon_item": 1
+  }
+}
+ */
