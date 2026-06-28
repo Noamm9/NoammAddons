@@ -1,5 +1,6 @@
 package com.github.noamm9.mixin;
 
+import com.github.noamm9.NoammAddons;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -11,6 +12,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -79,12 +81,17 @@ public abstract class MixinCamera {
 
     @Inject(method = "calculateFov", at = @At(value = "RETURN"), cancellable = true)
     private void calculateFovHook(float partialTicks, CallbackInfoReturnable<Float> cir) {
-        cir.setReturnValue(INSTANCE.enabled && getCustomFOV().getValue() ? getCustomFOVSlider().getValue().floatValue() : cir.getReturnValue());
-        ;
+        cir.setReturnValue(INSTANCE.enabled && getCustomFOV().getValue() ? cir.getReturnValue() * noammaddons$getFOVRatio() : cir.getReturnValue());
     }
 
     @ModifyExpressionValue(method = "createProjectionMatrixForCulling", at = @At(value = "INVOKE", target = "Ljava/lang/Math;max(FF)F"))
-    private float getMaxFov(float original) {
-        return INSTANCE.enabled && getCustomFOV().getValue() ? getCustomFOVSlider().getValue().floatValue() : original;
+    private float modifyProjectionFov(float original) {
+        return INSTANCE.enabled && getCustomFOV().getValue() ? original * noammaddons$getFOVRatio() : original;
+    }
+
+    @Unique
+    private float noammaddons$getFOVRatio() {
+        // essential zoom changes the fov directly so we divide it to get the scale amount
+        return getCustomFOVSlider().getValue().floatValue() / NoammAddons.mc.options.fov().get().floatValue();
     }
 }
