@@ -1,5 +1,6 @@
 package com.github.noamm9.mixin;
 
+import com.github.noamm9.features.impl.misc.Camera;
 import com.github.noamm9.ui.notification.NotificationManager;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -13,6 +14,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(GameRenderer.class)
@@ -27,5 +29,10 @@ public class MixinGameRenderer {
     @Inject(method = "extractGui", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;extractDeferredSubtitles()V"))
     public void onExtractGui(DeltaTracker deltaTracker, boolean shouldRenderLevel, boolean resourcesLoaded, CallbackInfo ci, @Local GuiGraphicsExtractor graphics) {
         NotificationManager.render(graphics);
+    }
+
+    @ModifyVariable(method = "renderLevel", at = @At("STORE"), name = "nauseaIntensity")
+    public float zeroNauseaIntensity(float nauseaIntensity) {
+        return Camera.INSTANCE.enabled && Camera.getDisableNausea().getValue() ? 0F : nauseaIntensity;
     }
 }
