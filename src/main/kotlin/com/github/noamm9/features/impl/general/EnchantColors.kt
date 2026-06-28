@@ -48,6 +48,7 @@ object EnchantColors: Feature("Changes the color of enchantments in items lore."
             if (! inSkyblock) return@register
             if (event.stack.skyblockId.isEmpty()) return@register
             val iterator = event.lore.listIterator()
+            if (iterator.hasNext()) iterator.next() // Item name
 
             while (iterator.hasNext()) {
                 val originalComponent = iterator.next()
@@ -60,6 +61,7 @@ object EnchantColors: Feature("Changes the color of enchantments in items lore."
 
                 val newLine = Component.empty().withStyle(ChatFormatting.GRAY)
                 var lastEnd = 0
+                var foundEnchantment = false
 
                 do {
                     val start = matcher.start()
@@ -75,6 +77,7 @@ object EnchantColors: Feature("Changes the color of enchantments in items lore."
                     val enchantData = enchantments[nameKey]
 
                     if (enchantData != null) {
+                        foundEnchantment = true
                         val level = levelStr.toIntOrNull() ?: levelStr.romanToDecimal()
                         val style = enchantData.getStyle(level)
 
@@ -93,7 +96,7 @@ object EnchantColors: Feature("Changes the color of enchantments in items lore."
                     newLine.append(plainText.substring(lastEnd))
                 }
 
-                iterator.set(newLine)
+                if (foundEnchantment) iterator.set(newLine)
             }
         }
     }
