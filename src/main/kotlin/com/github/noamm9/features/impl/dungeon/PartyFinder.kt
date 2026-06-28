@@ -44,8 +44,9 @@ object PartyFinder: Feature() {
     private val autoKick by ToggleSetting("Auto Kick", false).withDescription("Automatically kick players that don't meet requirements.").section("Auto Kick")
     private val autoKickFloor by DropdownSetting("Floor", 6, listOf("F1", "F2", "F3", "F4", "F5", "F6", "F7")).showIf { autoKick.value }
     private val masterMode by ToggleSetting("Master Mode", true).showIf { autoKick.value }
+    private val timeType by DropdownSetting("Time Type", 0, listOf("S+", "S")).withDescription("Check S+ completion times or S completion times.").showIf { autoKick.value }
     private val informKicked by ToggleSetting("Inform Kicked", false).withDescription("Send a party chat message before kicking.").showIf { autoKick.value }
-    private val maximumSeconds by SliderSetting("Maximum Seconds", 400, 60, 480, 10, suffix = "s").withDescription("Maximum S+ PB time in seconds.").showIf { autoKick.value }
+    private val maximumSeconds by SliderSetting("Maximum Seconds", 400, 60, 480, 10, suffix = "s").withDescription("Maximum PB time in seconds.").showIf { autoKick.value }
     private val minimumSecrets by SliderSetting("Minimum Secrets", 0, 0, 200, 1, suffix = "k").withDescription("Minimum secrets in thousands.").showIf { autoKick.value }
 
     private val dungeonGroupJoinRegex = Regex("^Party Finder > (\\w{1,16}) joined the dungeon group! \\((\\w+) Level (\\d+)\\)$")
@@ -309,10 +310,14 @@ object PartyFinder: Feature() {
             val floor = autoKickFloor.value + 1
             val dungeonType = if (masterMode.value) dungeons.masterCatacombs else dungeons.catacombs
 
+            val useSPlus = timeType.value == 0
+            val rank = if (useSPlus) "S+" else "S"
+            val times = if (useSPlus) dungeonType.fastestTimeSPlus else dungeonType.fastestTimeS
+
             val floorPrefix = if (masterMode.value) "M" else "F"
             val pbReq = formatTime(maximumSeconds.value * 1000)
-            val pb = dungeonType.fastestTimeSPlus["$floor"]
-            if (pb == null) add("PB(No S+/$pbReq)")
+            val pb = times["$floor"]
+            if (pb == null) add("PB(No $rank/$pbReq)")
             else if (pb / 1000 > maximumSeconds.value) {
                 add("$floorPrefix$floor: PB(${formatTime(pb)}/$pbReq)")
             }

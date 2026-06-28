@@ -36,7 +36,8 @@ data class DungeonStats(
     @Serializable
     data class TierData(
         @SerialName("tier_completions") val tierCompletions: Map<String, Int>,
-        @SerialName("fastest_time_s_plus") val fastestTimeSPlus: Map<String, Long>
+        @SerialName("fastest_time_s") val fastestTimeS: Map<String, Long> = emptyMap(),
+        @SerialName("fastest_time_s_plus") val fastestTimeSPlus: Map<String, Long> = emptyMap()
     )
 
     @Serializable
