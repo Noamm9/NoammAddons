@@ -31,7 +31,7 @@ object FEAT_WebSocket: Feature(name = "WebSocket", toggled = true) {
         }
 
         register<WebSocketEvent.Payload> {
-            ChatUtils.debug("ws", "[Payload] Payload: ${event.message}")
+            ChatUtils.debug("ws", "[WS] Received payload: ${event.message}")
             val json = JsonParser.parseString(event.message).takeIf(JsonElement::isJsonObject)?.asJsonObject ?: return@register
             val type = json.get("type").asString.takeUnless(String::isBlank) ?: return@register
             val packetClass = PacketRegistry.getClass(type) ?: return@register

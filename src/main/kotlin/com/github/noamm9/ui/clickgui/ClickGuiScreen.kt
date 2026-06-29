@@ -5,6 +5,7 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.clickgui.enums.CategoryType
 import com.github.noamm9.ui.clickgui.enums.WindowClickAction
+import com.github.noamm9.ui.utils.MouseHelper
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.TextInputHandler
 import com.github.noamm9.utils.render.Render2D
@@ -230,6 +231,7 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
     private fun closeWindow(window: FeatureConfigWindow) {
         window.blur()
         configWindows.remove(window)
+        MouseHelper.resetCursor()
     }
 
     private fun closeAllFeatureWindows() {
@@ -240,9 +242,8 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
     override fun onClose() {
         closeAllFeatureWindows()
         searchHandler.listening = false
+        MouseHelper.resetCursor()
         Config.save()
         super.onClose()
     }
-
-    override fun isPauseScreen(): Boolean = false
 }

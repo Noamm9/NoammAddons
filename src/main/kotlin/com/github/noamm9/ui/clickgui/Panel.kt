@@ -67,7 +67,8 @@ class Panel(val category: CategoryType, var x: Int, var y: Int) {
                 if (currentY + buttonHeight > y + headerHeight && currentY < y + headerHeight + visibleHeight) {
                     val isHovered = mouseX >= x && mouseX <= x + width &&
                         mouseY >= currentY && mouseY <= currentY + buttonHeight &&
-                        mouseY >= y + headerHeight && mouseY <= y + headerHeight + visibleHeight
+                        mouseY >= y + headerHeight && mouseY <= y + headerHeight + visibleHeight &&
+                        ClickGuiScreen.selectedFeature == null
 
                     Render2D.drawRect(context, x, currentY, width, buttonHeight, bodyBg)
 

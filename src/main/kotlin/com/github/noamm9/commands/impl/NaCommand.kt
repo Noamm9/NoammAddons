@@ -63,7 +63,7 @@ object NaCommand: BaseCommand("na") {
         }
 
         literal("hud") {
-            runs { screen = HudEditorScreen }
+            runs { screen = HudEditorScreen() }
         }
 
         literal("ping") {

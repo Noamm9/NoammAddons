@@ -22,7 +22,7 @@ object ClickGui: Feature("A feature used to change the ClickGui configuration.",
 
     val editGuiButton by ButtonSetting("Open HUD Editor") {
         ClickGuiScreen.onClose()
-        NoammAddons.screen = HudEditorScreen
+        NoammAddons.screen = HudEditorScreen()
     }.withDescription("Opens the HUD Editor Screen where you can change you HUD elements size and position.")
 
     val resetButton by ButtonSetting("Reset Settings") {
