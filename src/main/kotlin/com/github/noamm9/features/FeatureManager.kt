@@ -49,7 +49,7 @@ object FeatureManager {
         Config.load()
 
         register<RenderOverlayEvent> {
-            if (mc.screen == HudEditorScreen) return@register
+            if (mc.screen is HudEditorScreen) return@register
 
             Resolution.refresh()
             Resolution.push(event.context)

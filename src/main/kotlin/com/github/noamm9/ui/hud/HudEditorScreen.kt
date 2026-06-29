@@ -2,6 +2,7 @@ package com.github.noamm9.ui.hud
 
 import com.github.noamm9.config.Config
 import com.github.noamm9.features.FeatureManager
+import com.github.noamm9.ui.utils.MouseHelper
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.componnents.UIButton
 import com.github.noamm9.utils.render.Render2D
@@ -9,10 +10,12 @@ import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
+import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
-object HudEditorScreen: Screen(Component.literal("HudEditor")) {
-    val enabledElements get() = FeatureManager.hudElements.filter { it.toggle }
+class HudEditorScreen: Screen(Component.literal("HudEditor")) {
+    private val huds = FeatureManager.hudElements.filter { it.toggle }
+    private var resetConfirmed = false
 
     override fun init() {
         super.init()
@@ -26,7 +29,15 @@ object HudEditorScreen: Screen(Component.literal("HudEditor")) {
             btnWidth,
             btnHeight,
             "§cReset HUD"
-        ) {
+        ) { button ->
+            if (! resetConfirmed) {
+                button.message = Component.literal("§c§lConfirm Reset?")
+                resetConfirmed = true
+                return@UIButton
+            }
+
+            resetConfirmed = false
+            button.message = Component.literal("§cReset HUD")
             FeatureManager.hudElements.forEach { element ->
                 element.x = 20f
                 element.y = 20f
@@ -43,9 +54,9 @@ object HudEditorScreen: Screen(Component.literal("HudEditor")) {
         val mY = Resolution.getMouseY(mouseY)
         val midX = Resolution.width / 2
 
-        enabledElements.forEach { it.drawEditor(graphics, mX, mY) }
+        huds.forEach { it.drawEditor(graphics, mX, mY) }
 
-        val element = enabledElements.find { it.isDragging }
+        val element = huds.find { it.isDragging }
         Render2D.drawCenteredString(graphics, element?.name.orEmpty(), midX, 10f, Color.WHITE, 1.2f)
         Render2D.drawCenteredString(graphics, "ESC to Save and Exit", midX, Resolution.height - 20f, Color.GRAY, shadow = false)
 
@@ -55,7 +66,7 @@ object HudEditorScreen: Screen(Component.literal("HudEditor")) {
     }
 
     override fun mouseScrolled(mouseX: Double, mouseY: Double, horizontal: Double, vertical: Double): Boolean {
-        enabledElements.forEach { element ->
+        huds.forEach { element ->
             if (element.isDragging) {
                 val increment = (vertical * 0.1).toFloat()
                 element.scale = (element.scale + increment).coerceIn(0.5f, 5.0f)
@@ -72,9 +83,12 @@ object HudEditorScreen: Screen(Component.literal("HudEditor")) {
         val mY = Resolution.getMouseY(mouseButtonEvent.y)
 
         if (mouseButtonEvent.button() == 0) {
-            enabledElements.forEach {
+            huds.forEach {
                 it.startDragging(mX, mY)
-                if (it.isDragging) return true
+                if (it.isDragging) {
+                    MouseHelper.setCursor(GLFW.GLFW_RESIZE_ALL_CURSOR)
+                    return true
+                }
             }
         }
 
@@ -82,11 +96,13 @@ object HudEditorScreen: Screen(Component.literal("HudEditor")) {
     }
 
     override fun mouseReleased(mouseButtonEvent: MouseButtonEvent): Boolean {
-        enabledElements.forEach { it.isDragging = false }
+        huds.forEach { it.isDragging = false }
+        MouseHelper.resetCursor()
         return super.mouseReleased(mouseButtonEvent)
     }
 
     override fun onClose() {
+        MouseHelper.resetCursor()
         Config.save()
         super.onClose()
     }
