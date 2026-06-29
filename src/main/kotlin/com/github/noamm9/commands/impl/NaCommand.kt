@@ -10,6 +10,7 @@ import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.NoammDebugFlagEvent
 import com.github.noamm9.features.impl.dungeon.LeapMenu
+import com.github.noamm9.features.impl.misc.PlayerESP
 import com.github.noamm9.ui.clickgui.ClickGuiScreen
 import com.github.noamm9.ui.hud.HudEditorScreen
 import com.github.noamm9.utils.*
@@ -41,7 +42,9 @@ object NaCommand: BaseCommand("na") {
         "/na swapmask" to "Equips either Bonzo Mask or Spirit Mask",
         "/na rodswap" to "Automatically rodswaps for you",
         "/na leap <class>" to "Automatically leaps to the selected class",
-        "/na swapto <ItemID>" to "Automatically equips the item in the EQ menu"
+        "/na swapto <ItemID>" to "Automatically equips the item in the EQ menu",
+        "/na esp <player>" to "Toggles tracers on a player in your lobby",
+        "/na esp clear" to "Removes all ESP targets"
         //#endif
     )
 
@@ -193,8 +196,30 @@ object NaCommand: BaseCommand("na") {
                 }
             }
         }
+
+        literal("esp") {
+            runs { ChatUtils.modMessage("§cUsage: §f/na esp <player>") }
+
+            literal("clear") {
+                runs {
+                    PlayerESP.clearTargets()
+                    ChatUtils.modMessage("§aCleared all ESP targets.")
+                }
+            }
+
+            argument("player", StringArgumentType.word()) {
+                suggests(lobbyPlayersSuggestion)
+                runs { ctx ->
+                    val name = StringArgumentType.getString(ctx, "player")
+                    if (PlayerESP.toggleTarget(name)) ChatUtils.modMessage("§aNow tracing §f$name§a. (${PlayerESP.targetCount} active)")
+                    else ChatUtils.modMessage("§cStopped tracing §f$name§c. (${PlayerESP.targetCount} active)")
+                }
+            }
+        }
         //#endif
     }
+
+    private val lobbyPlayersSuggestion = { TabListUtils.getTabList().mapNotNull { it.second.profile.name }.filterNot { it.isBlank() } }
 
     private val partyMembersSuggestion = { PartyUtils.members.map { it.lowercase() } }
 
