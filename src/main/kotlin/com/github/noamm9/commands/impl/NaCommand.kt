@@ -15,6 +15,7 @@ import com.github.noamm9.ui.clickgui.ClickGuiScreen
 import com.github.noamm9.ui.hud.HudEditorScreen
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.addColor
+import net.minecraft.client.player.AbstractClientPlayer
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
@@ -219,7 +220,23 @@ object NaCommand: BaseCommand("na") {
         //#endif
     }
 
-    private val lobbyPlayersSuggestion = { TabListUtils.getTabList().mapNotNull { it.second.profile.name }.filterNot { it.isBlank() } }
+    // Suggest real, loaded players only. The tab list is full of Hypixel's layout
+    // entries (e.g. "!C-g"), so filter to valid usernames and drop yourself, then skip
+    // fake entities by identity: real players are Mojang (UUID v4) accounts, while
+    // Hypixel NPCs and lobby fillers are server-spawned with non-v4 UUIDs (StarMobESP
+    // relies on the same v2 signal for fake player-mobs).
+    private val usernameRegex = Regex("\\w{1,16}")
+
+    private fun isFakePlayer(player: AbstractClientPlayer): Boolean = player.uuid.version() != 4
+
+    private val lobbyPlayersSuggestion = {
+        val self = mc.player?.gameProfile?.name
+        mc.level?.players()
+            ?.filterNot(::isFakePlayer)
+            ?.mapNotNull { it.gameProfile.name }
+            ?.filter { it != self && usernameRegex.matches(it) }
+            ?.distinct()?.sorted().orEmpty()
+    }
 
     private val partyMembersSuggestion = { PartyUtils.members.map { it.lowercase() } }
 
