@@ -46,6 +46,10 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
     private var dragOffsetX = 0f
     private var dragOffsetY = 0f
 
+    private var scrollbarDragging = false
+    private var scrollbarDragStartY = 0f
+    private var scrollbarDragStartScroll = 0f
+
     private var resizeCorner = ResizeCorner.NONE
     private var interactionStartMouseX = 0f
     private var interactionStartMouseY = 0f
@@ -53,6 +57,10 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
     private var interactionStartY = startY
     private var interactionStartWidth = startWidth
     private var interactionStartHeight = startHeight
+    private var scrollbarX = 0f
+    private var scrollbarThumbY = 0f
+    private var scrollbarThumbH = 0f
+    private var scrollbarViewportH = 0f
 
     fun render(context: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, focused: Boolean) {
         updateInteraction(mouseX.toFloat(), mouseY.toFloat())
@@ -120,8 +128,8 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
                 setting.draw(context, mouseX, mouseY)
 
                 val isHovered = mouseX >= setting.x && mouseX <= setting.x + setting.width &&
-                    mouseY >= setting.y && mouseY <= setting.y + setting.height &&
-                    isInsideContent(mouseX.toFloat(), mouseY.toFloat())
+                        mouseY >= setting.y && mouseY <= setting.y + setting.height &&
+                        isInsideContent(mouseX.toFloat(), mouseY.toFloat())
 
                 if (isHovered) {
                     TooltipManager.hover(setting.description, mouseX, mouseY)
@@ -139,6 +147,11 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
             val thumbHeight = ((viewportHeight / totalContentHeight) * viewportHeight).coerceAtLeast(18f)
             val thumbTravel = (viewportHeight - thumbHeight).coerceAtLeast(0f)
             val thumbY = contentTop + ((scrollAnim.value / maxScroll) * thumbTravel)
+
+            scrollbarX = barX
+            scrollbarThumbY = thumbY
+            scrollbarThumbH = thumbHeight
+            scrollbarViewportH = viewportHeight
 
             Render2D.drawRect(context, barX, contentTop, barWidth, viewportHeight, Color(255, 255, 255, 15))
             Render2D.drawRect(context, barX, thumbY, barWidth, thumbHeight, Style.accentColor.withAlpha(if (focused) 180 else 140))
@@ -170,6 +183,26 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
             }
         }
 
+        if (button == 0 && maxScroll > 0f) {
+            val barX = scrollbarX
+            val hitWidth = 8f
+            if (mx >= barX - 3f && mx <= barX + hitWidth && my >= contentTop && my <= contentBottom) {
+                if (my >= scrollbarThumbY && my <= scrollbarThumbY + scrollbarThumbH) {
+                    scrollbarDragging = true
+                    scrollbarDragStartY = my
+                    scrollbarDragStartScroll = scrollTarget
+                }
+                else {
+                    val thumbTravel = (scrollbarViewportH - scrollbarThumbH).coerceAtLeast(0f)
+                    if (thumbTravel > 0f) {
+                        val ratio = ((my - contentTop - scrollbarThumbH / 2f) / thumbTravel).coerceIn(0f, 1f)
+                        scrollTarget = ratio * maxScroll
+                    }
+                }
+                return WindowClickAction.CONSUMED
+            }
+        }
+
         if (isInsideContent(mx, my)) {
             visibleSettings.forEach {
                 if (it.mouseClicked(mx.toDouble(), my.toDouble(), button)) {
@@ -185,6 +218,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         if (button == 0) {
             dragging = false
             resizeCorner = ResizeCorner.NONE
+            scrollbarDragging = false
         }
 
         feature.configSettings.forEach { it.mouseReleased(button) }
@@ -245,6 +279,16 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
     }
 
     private fun updateInteraction(mouseX: Float, mouseY: Float) {
+        if (scrollbarDragging) {
+            val thumbTravel = (scrollbarViewportH - scrollbarThumbH).coerceAtLeast(0f)
+            if (thumbTravel > 0f) {
+                val delta = mouseY - scrollbarDragStartY
+                val newScroll = (scrollbarDragStartScroll + (delta / thumbTravel) * maxScroll).coerceIn(0f, maxScroll)
+                scrollTarget = newScroll
+                scrollAnim.set(newScroll)
+            }
+        }
+
         if (dragging) {
             x = (mouseX - dragOffsetX).coerceIn(0f, (Resolution.width - width).coerceAtLeast(0f))
             y = (mouseY - dragOffsetY).coerceIn(0f, (Resolution.height - height).coerceAtLeast(0f))
@@ -324,7 +368,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         val closeY = y + ((titleBarHeight - closeButtonSize) / 2f)
 
         return mouseX >= closeX && mouseX <= closeX + closeButtonSize &&
-            mouseY >= closeY && mouseY <= closeY + closeButtonSize
+                mouseY >= closeY && mouseY <= closeY + closeButtonSize
     }
 
     private fun drawCloseButton(context: GuiGraphicsExtractor, hovered: Boolean) {
