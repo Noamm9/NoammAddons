@@ -16,13 +16,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LavaFogEnvironment.class)
 public abstract class MixinLavaFogEnvironment {
-    @Unique
-    private static final WaterFogEnvironment WATER_FOG = new WaterFogEnvironment();
+    @Unique private static final WaterFogEnvironment WATER_FOG = new WaterFogEnvironment();
 
     @Inject(method = "setupFog", at = @At("HEAD"), cancellable = true)
-    private void hookSetupFog(FogData fogData, Camera camera, ClientLevel clientLevel, float f, DeltaTracker deltaTracker, CallbackInfo ci) {
+    private void hookSetupFog(FogData fog, Camera camera, ClientLevel level, float renderDistance, DeltaTracker deltaTracker, CallbackInfo ci) {
         if (!LavaToWater.INSTANCE.enabled) return;
-        WATER_FOG.setupFog(fogData, camera, clientLevel, f, deltaTracker);
+        WATER_FOG.setupFog(fog, camera, level, renderDistance, deltaTracker);
         ci.cancel();
     }
 
