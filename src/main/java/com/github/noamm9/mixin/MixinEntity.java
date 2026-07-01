@@ -13,13 +13,15 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.awt.*;
+
 //#if LEGIT
 //$import static com.github.noamm9.NoammAddons.mc;
 //#endif
 
 @Mixin(Entity.class)
 public abstract class MixinEntity {
-    @Unique private int customGlowColor = 0xFFFFFF;
+    @Unique private int customGlowColor = Color.WHITE.getRGB();
     @Unique private boolean glowForced = false;
 
     @Shadow
@@ -37,6 +39,11 @@ public abstract class MixinEntity {
 
         var event = new CheckEntityGlowEvent(entity);
         EventBus.post(event);
+
+        if (event.isCanceled()) {
+            cir.setReturnValue(false);
+            return;
+        }
 
         glowForced = event.getShouldGlow();
         customGlowColor = event.getColor().getRGB();
