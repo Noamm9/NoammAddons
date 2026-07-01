@@ -9,4 +9,7 @@ object NameTagTweaks: Feature(name = "Nametag Tweaks") {
 
     @JvmStatic
     val addNameTagTextShadow by ToggleSetting("Shadowed Nametag").withDescription("Adds a text shadow to the nametag label.")
+
+    @JvmStatic
+    val showOwnNametag by ToggleSetting("Show Own Nametag").withDescription("Renders your own nametag above your head.")
 }

@@ -1,8 +1,10 @@
 package com.github.noamm9.mixin;
 
 
+import com.github.noamm9.NoammAddons;
 import com.github.noamm9.features.impl.dev.Cosmetics;
 import com.github.noamm9.features.impl.dungeon.TeammateESP;
+import com.github.noamm9.features.impl.misc.NameTagTweaks;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.entity.player.AvatarRenderer;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
@@ -29,6 +31,9 @@ public class MixinAvatarRenderer {
     private void shouldShowName(Avatar entity, double distanceToCameraSq, CallbackInfoReturnable<Boolean> cir) {
         if (TeammateESP.shouldHideNametag(entity)) {
             cir.setReturnValue(null);
+        }
+        else if (entity == NoammAddons.mc.player && NameTagTweaks.INSTANCE.enabled && NameTagTweaks.getShowOwnNametag().getValue()) {
+            cir.setReturnValue(true);
         }
     }
 }
