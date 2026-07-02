@@ -7,6 +7,7 @@ import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.ILocalPlayer
+import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.MultiCheckboxSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.utils.*
@@ -34,19 +35,12 @@ import net.minecraft.world.phys.Vec3
 import kotlin.jvm.optionals.getOrNull
 
 object NoRotate: Feature("Prevents the server from snapping back your head when teleporting.") {
-    private val tpItems by MultiCheckboxSetting("Teleport Items", mutableMapOf(
-        Pair("Etherwarp", false),
-        Pair("Instant Transmission", false),
-        Pair("Wither Impact", false)
-    ))
+    private val detectionMethod by DropdownSetting("Detection Method", 0, listOf("Simulation", "Interaction"))
+        .withDescription("How the feature will detect a use of a teleport items. &n&lSimulation&r will check the held item and predict where the teleport packet will put you, if its correct it cancels the rotation from that packet.\n&n&lInteraction&r only checks the held item you clicked with and cancels the rotation of the next teleport packet after it")
+    private val tpItems by MultiCheckboxSetting("Teleport Items", mutableMapOf(Pair("Etherwarp", false), Pair("Instant Transmission", false), Pair("Wither Impact", false)))
+    val zeroPingCamera by MultiCheckboxSetting("Zero Ping Camera", mutableMapOf(Pair("Etherwarp", false), Pair("Instant Transmission", false), Pair("Wither Impact", false))).withDescription("Instently sets your camera at the teleport position.").showIf { detectionMethod.value == 0 }
 
-    val zeroPingCamera by MultiCheckboxSetting("Zero Ping Camera", mutableMapOf(
-        Pair("Etherwarp", false),
-        Pair("Instant Transmission", false),
-        Pair("Wither Impact", false)
-    )).withDescription("Instently sets your camera at the teleport position.")
-
-    private val resyncTimeout by SliderSetting("Resync Timeout", 500, 300, 1000, 50).showIf { zeroPingCamera.value.values.any { it } }
+    private val resyncTimeout by SliderSetting("Resync Timeout", 500, 300, 1000, 50).showIf { zeroPingCamera.value.values.any { it } && detectionMethod.value == 0 }.withDescription("time in miliseconds of how long should it take for the detected teleport to time out")
 
     val pendingTeleports = mutableListOf<TeleportPrediction>()
     private var lastWitherImpact = System.currentTimeMillis()
@@ -66,11 +60,12 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
             if (mc.player !!.isPassenger) return@register
             val tpInfo = getTeleportInfo(mc.player !!.getItemInHand(packet.hand)) ?: return@register
 
-            when (tpInfo.type) {
+            if (detectionMethod.value == 0) when (tpInfo.type) {
                 TeleportType.Etherwarp -> doZeroPingEtherwarp(tpInfo, packet.yRot, packet.xRot)
                 TeleportType.InstantTransmission -> doZeroPingInstantTransmission(tpInfo, packet.yRot, packet.xRot)
                 TeleportType.WitherImpact -> doZeroPingWitherImpact(tpInfo, packet.yRot, packet.xRot)
             }
+            else teleport(TeleportPrediction(Vec3.ZERO, tpInfo))
         }
 
         register<MainThreadPacketReceivedEvent.Pre> {
@@ -79,7 +74,7 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
             val prediction = pendingTeleports.removeFirst().position
             val change = packet.change().position()
 
-            if (change != prediction) pendingTeleports.clear()
+            if (change != prediction && prediction != Vec3.ZERO) pendingTeleports.clear()
             else {
                 val player = mc.player ?: return@register
 
@@ -114,9 +109,10 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
         val player = mc.player ?: return original.call(instance, x, y, z)
 
         val config = zeroPingCamera.value.values.toList()
-        val (x, y, z) = pendingTeleports.lastOrNull()?.takeIf { config[it.info.type.ordinal] }
-            ?.position?.add(y = player.eyeHeight)?.destructured()
-            ?: Triple(x, y, z)
+        val simulation = pendingTeleports.lastOrNull() ?: return original.call(instance, x, y, z)
+        if (simulation.position == Vec3.ZERO) return original.call(instance, x, y, z)
+        if (! config[simulation.info.type.ordinal]) return original.call(instance, x, y, z)
+        val (x, y, z) = simulation.position.add(y = player.eyeHeight).destructured()
 
         return original.call(instance, x, y, z)
     }
@@ -150,7 +146,7 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
     }
 
     private fun doZeroPingWitherImpact(tpInfo: TeleportInfo, yaw: Float? = null, pitch: Float? = null) {
-        if (System.currentTimeMillis() - lastWitherImpact <= 125) return // 8 CPS limit
+        if (System.currentTimeMillis() - lastWitherImpact <= 125) return // ~8 CPS limit
         lastWitherImpact = System.currentTimeMillis()
         doZeroPingInstantTransmission(tpInfo, yaw, pitch)
     }
@@ -168,11 +164,8 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
                 TeleportInfo(57 + tuners, TeleportType.Etherwarp)
             }
             else if (tpItems.value["Instant Transmission"] !!) TeleportInfo(8 + tuners, TeleportType.InstantTransmission) else null
-
         }
-        else if (tpItems.value["Wither Impact"] !! && nbt.getList("ability_scroll").toString().run {
-                contains("SHADOW_WARP_SCROLL") && contains("IMPLOSION_SCROLL") && contains("WITHER_SHIELD_SCROLL")
-            }) {
+        else if (tpItems.value["Wither Impact"] !! && nbt.getList("ability_scroll").toString().containsAll("SHADOW_WARP_SCROLL", "IMPLOSION_SCROLL", "WITHER_SHIELD_SCROLL")) {
             return TeleportInfo(10.0, TeleportType.WitherImpact)
         }
 
