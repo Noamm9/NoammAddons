@@ -5,6 +5,7 @@ package com.github.noamm9.features.impl.dungeon
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.location.LocationUtils
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -27,22 +28,21 @@ object SecretHitboxes: Feature("Changes the hitboxes of secret blocks to be larg
     @JvmStatic
     val mushroom by ToggleSetting("Mushroom").withDescription("Full block Mushroom hitbox.")
 
-    @Suppress("UNNECESSARY_SAFE_CALL") // mc.levelRenderer is null at game init
+    override fun init() = ClientLifecycleEvents.CLIENT_STARTED.register { disableBlockstateCulling() }
     override fun onEnable() {
         super.onEnable()
+        disableBlockstateCulling()
+        mc.levelRenderer?.allChanged()
+    }
 
-        if (FabricLoader.getInstance().isModLoaded("moreculling")) try {
-            val main = Class.forName("ca.fxco.moreculling.MoreCulling")
-            val config = main.getDeclaredField("CONFIG").get(null)
+    private fun disableBlockstateCulling() {
+        if (! FabricLoader.getInstance().isModLoaded("moreculling")) return
+        val main = Class.forName("ca.fxco.moreculling.MoreCulling")
+        val config = main.getDeclaredField("CONFIG").get(null)
 
-            val blockStateCulling = config?.javaClass?.getDeclaredField("useBlockStateCulling")
-            blockStateCulling?.isAccessible = true
-            blockStateCulling?.setBoolean(config, false)
-            mc.levelRenderer?.allChanged()
-        }
-        catch (e: Exception) {
-            e.printStackTrace()
-        }
+        val blockStateCulling = config?.javaClass?.getDeclaredField("useBlockStateCulling")
+        blockStateCulling?.isAccessible = true
+        blockStateCulling?.setBoolean(config, false)
     }
 
     @JvmStatic
