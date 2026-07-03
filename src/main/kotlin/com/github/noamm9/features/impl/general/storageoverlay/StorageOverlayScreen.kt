@@ -3,6 +3,8 @@
 package com.github.noamm9.features.impl.general.storageoverlay
 
 import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.impl.dev.ClickGui
 import com.github.noamm9.features.impl.general.FEAT_ItemRarity
 import com.github.noamm9.features.impl.misc.InventorySearch
@@ -17,6 +19,7 @@ import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.core.component.DataComponents
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.inventory.ContainerInput
@@ -122,6 +125,13 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         ScrollableTooltip.scrollAmountX = 0f
         ScrollableTooltip.scrollAmountY = 0f
         ScrollableTooltip.scaleOverride = 0f
+    }
+
+    private fun GuiGraphicsExtractor.setOverlayTooltip(stack: ItemStack, mouseX: Int, mouseY: Int) {
+        val screen = containerScreen ?: return
+        val event = ContainerEvent.Render.Tooltip(screen, this, stack, mouseX, mouseY, getTooltipFromItem(mc, stack).toMutableList())
+        if (EventBus.post(event)) return
+        setTooltipForNextFrame(font, event.lore, stack.tooltipImage, mouseX, mouseY, stack.get(DataComponents.TOOLTIP_STYLE))
     }
 
     private fun GuiGraphicsExtractor.drawPages(mouseX: Int, mouseY: Int, excluding: StoragePage?, slots: List<Slot>?, originalMouseX: Int, originalMouseY: Int) {
@@ -238,7 +248,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
         if (hoveredStack != null) {
             hoveredOverlayItem = hoveredStack
-            setTooltipForNextFrame(font, hoveredStack, originalMouseX, originalMouseY)
+            setOverlayTooltip(hoveredStack, originalMouseX, originalMouseY)
         }
     }
 
@@ -310,7 +320,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
         if (hoveredStack != null) {
             if (isActive) hoveredOverlayItem = hoveredStack
-            setTooltipForNextFrame(font, hoveredStack, originalMouseX, originalMouseY)
+            setOverlayTooltip(hoveredStack, originalMouseX, originalMouseY)
         }
 
         return pageHeight + 6

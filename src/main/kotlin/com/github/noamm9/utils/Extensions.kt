@@ -31,9 +31,9 @@ fun String.containsOneOf(vararg elements: CharSequence): Boolean = elements.any 
 fun <T> Collection<T>.containsOneOf(vararg elements: T): Boolean = elements.any { contains(it) }
 
 /**
- * Returns true if this array contains any of the specified [elements].
+ * Returns true if this string contains all the specified [elements].
  */
-fun <T> Array<T>.containsOneOf(vararg elements: T): Boolean = elements.any { contains(it) }
+fun String.containsAll(vararg elements: String): Boolean = elements.all { contains(it) }
 
 /**
  * Inserts spaces between words in a CamelCase or PascalCase string.
