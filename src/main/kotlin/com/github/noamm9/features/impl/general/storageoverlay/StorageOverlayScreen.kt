@@ -61,8 +61,11 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     private var knobGrabbed = false
     private var hoveredOverlayItem: ItemStack? = null
 
+    private var dragArmed = false
     private var dragActive = false
     private var dragType = 0
+    private var dragStartSlot: Slot? = null
+    private var dragStartModifiers = 0
     private val dragSlots = LinkedHashSet<Int>()
     private var dragPreview: DragPreview? = null
 
@@ -434,20 +437,15 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         return DragPreview(stacks, playerStacks, remaining.coerceAtLeast(0))
     }
 
-    private fun endDrag(): Boolean {
-        if (! dragActive) return false
-        dragActive = false
-        val slots = dragSlots.toList()
-        dragSlots.clear()
-        if (slots.isEmpty()) return true
-        val menu = (mc.screen as? AbstractContainerScreen<*>)?.menu ?: return true
-        val player = mc.player ?: return true
-        val gameMode = mc.gameMode ?: return true
+    private fun endDrag() {
+        if (dragSlots.isEmpty()) return
+        val menu = (mc.screen as? AbstractContainerScreen<*>)?.menu ?: return
+        val player = mc.player ?: return
+        val gameMode = mc.gameMode ?: return
         val id = menu.containerId
         gameMode.handleContainerInput(id, - 999, quickcraftMask(0, dragType), ContainerInput.QUICK_CRAFT, player)
-        for (index in slots) gameMode.handleContainerInput(id, index, quickcraftMask(1, dragType), ContainerInput.QUICK_CRAFT, player)
+        for (index in dragSlots) gameMode.handleContainerInput(id, index, quickcraftMask(1, dragType), ContainerInput.QUICK_CRAFT, player)
         gameMode.handleContainerInput(id, - 999, quickcraftMask(2, dragType), ContainerInput.QUICK_CRAFT, player)
-        return true
     }
 
     @Suppress("SameReturnValue")
@@ -483,8 +481,11 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             val slot = resolveSlotUnder(resolutionMouseX, resolutionMouseY, activePage)
             if (slot != null) {
                 if (doubled && button == 0) return dispatchPickupAll(slot)
-                dragActive = true
+                dragArmed = true
+                dragActive = false
                 dragType = button
+                dragStartSlot = slot
+                dragStartModifiers = modifiers
                 dragSlots.clear()
                 dragSlots.add(slot.index)
                 return true
@@ -515,19 +516,27 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     }
 
     fun mouseReleased(): Boolean {
-        if (endDrag()) return true
+        if (dragArmed) {
+            dragArmed = false
+            if (dragActive) endDrag()
+            else dragStartSlot?.let { dispatchSlotClick(it, dragType, dragStartModifiers) }
+            dragActive = false
+            dragSlots.clear()
+            dragStartSlot = null
+            return true
+        }
         if (! knobGrabbed) return false
         knobGrabbed = false
         return true
     }
 
     fun mouseDragged(mouseX: Double, mouseY: Double): Boolean {
-        if (dragActive) {
+        if (dragArmed) {
             val scale = StorageOverlay.scaleSetting.value
             val rx = Resolution.getMouseX(mouseX) / scale.toDouble()
             val ry = Resolution.getMouseY(mouseY) / scale.toDouble()
             val activePage = (storageMenu as? StorageMenu.Page)?.storagePage
-            resolveSlotUnder(rx, ry, activePage)?.let { dragSlots.add(it.index) }
+            resolveSlotUnder(rx, ry, activePage)?.let { if (dragSlots.add(it.index) && dragSlots.size >= 2) dragActive = true }
             return true
         }
         if (! knobGrabbed) return false
@@ -600,7 +609,9 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     fun isPointOverSlot(slot: Slot, xO: Int, yO: Int, pX: Double, pY: Double) = inRect(pX, pY, slot.x + xO, slot.y + yO, 16, 16)
     fun onContainerClose() {
         if (! StorageOverlay.retainScrollSetting.value) scroll = 0f
+        dragArmed = false
         dragActive = false
+        dragStartSlot = null
         dragSlots.clear()
         isExiting = true
     }
