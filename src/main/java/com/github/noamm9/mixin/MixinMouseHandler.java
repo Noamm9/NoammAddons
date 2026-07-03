@@ -3,9 +3,11 @@ package com.github.noamm9.mixin;
 import com.github.noamm9.event.EventBus;
 import com.github.noamm9.event.impl.MouseClickEvent;
 import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlay;
+import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
 import net.minecraft.client.input.MouseButtonInfo;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -25,8 +27,27 @@ public abstract class MixinMouseHandler {
         }
     }
 
-    @Inject(method = "grabMouse", at = @At("HEAD"), cancellable = true)
-    private void noammaddons$keepCursorBetweenStoragePages(CallbackInfo ci) {
-        if (StorageOverlay.inStorageTransition) ci.cancel();
+    @WrapWithCondition(
+        method = "grabMouse()V",
+        at = @At(
+            value = "FIELD",
+            target = "Lnet/minecraft/client/MouseHandler;xpos:D",
+            opcode = Opcodes.PUTFIELD
+        )
+    )
+    private boolean shouldSetXpos(MouseHandler instance, double value) {
+        return !StorageOverlay.inStorageTransition;
+    }
+
+    @WrapWithCondition(
+        method = "grabMouse()V",
+        at = @At(
+            value = "FIELD",
+            target = "Lnet/minecraft/client/MouseHandler;ypos:D",
+            opcode = Opcodes.PUTFIELD
+        )
+    )
+    private boolean shouldSetYpos(MouseHandler instance, double value) {
+        return !StorageOverlay.inStorageTransition;
     }
 }

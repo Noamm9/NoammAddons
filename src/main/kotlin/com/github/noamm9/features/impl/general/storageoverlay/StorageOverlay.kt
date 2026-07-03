@@ -69,6 +69,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
             overlay.isExiting = true
             active = null
             inStorageTransition = true
+            ThreadUtils.setTimeout(250) { inStorageTransition = false }
         }
 
         register<PacketEvent.Sent> {
