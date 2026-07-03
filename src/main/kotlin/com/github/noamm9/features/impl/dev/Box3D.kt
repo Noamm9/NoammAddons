@@ -2,7 +2,9 @@ package com.github.noamm9.features.impl.dev
 
 import com.github.noamm9.event.EventPriority
 import com.github.noamm9.event.impl.CheckEntityGlowEvent
+import com.github.noamm9.event.impl.EntityUnloadEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
+import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
@@ -11,10 +13,8 @@ import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderHelper.renderBoundingBox
-import net.minecraft.world.entity.Entity
 import java.awt.Color
 import java.util.*
-import java.util.concurrent.*
 
 object Box3D: Feature("Replaces the Glow ESP with 3D boxes") {
     private val mode by DropdownSetting("Mode", 2, listOf("Outline", "Fill", "Filled Outline"))
@@ -26,14 +26,17 @@ object Box3D: Feature("Replaces the Glow ESP with 3D boxes") {
     private val phase by ToggleSetting("Phase", true)
     //#endif
 
-    private val entities = ConcurrentHashMap<Entity, Color>()
+    private val entities = HashMap<Int, Color>()
 
     override fun init() {
+        register<EntityUnloadEvent> { entities.remove(event.entity.id) }
+        register<WorldChangeEvent> { entities.clear() }
+
         register<CheckEntityGlowEvent>(EventPriority.LOWEST) {
             if (! event.shouldGlow) return@register
             event.cancel()
             if (event.entity == mc.player) return@register
-            entities[event.entity] = event.color
+            entities[event.entity.id] = event.color
         }
 
         register<RenderWorldEvent> {
@@ -51,8 +54,13 @@ object Box3D: Feature("Replaces the Glow ESP with 3D boxes") {
 
             if (! outline && ! fill) return@register
 
-            entities.forEach { (entity, color) ->
-                if (entity.isRemoved) return@forEach
+            val iterator = entities.entries.iterator()
+            while (iterator.hasNext()) {
+                val (id, color) = iterator.next()
+                val entity = mc.level?.getEntity(id) ?: run {
+                    iterator.remove()
+                    continue
+                }
 
                 Render3D.renderBoxBounds(
                     event.ctx, entity.renderBoundingBox.inflate(0.1),
@@ -64,8 +72,6 @@ object Box3D: Feature("Replaces the Glow ESP with 3D boxes") {
                     lineWidth = lineWidth.value
                 )
             }
-
-            entities.clear()
         }
     }
 }
