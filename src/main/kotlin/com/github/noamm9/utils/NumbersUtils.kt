@@ -14,24 +14,6 @@ object NumbersUtils {
         this[1000000000000000L] = "p"
         this[1000000000000000000L] = "e"
     }
-    private val romanSymbols = TreeMap(
-        mapOf(
-            1000 to "M",
-            900 to "CM",
-            500 to "D",
-            400 to "CD",
-            100 to "C",
-            90 to "XC",
-            50 to "L",
-            40 to "XL",
-            10 to "X",
-            9 to "IX",
-            5 to "V",
-            4 to "IV",
-            1 to "I",
-        )
-    )
-
     @JvmStatic
     fun format(value: Number): String {
         @Suppress("NAME_SHADOWING")
@@ -48,13 +30,6 @@ object NumbersUtils {
     @JvmStatic
     fun format(value: String): String = format(value.filter { it.isDigit() }.toLong())
 
-    @JvmStatic
-    fun unformat(value: String): Long {
-        val suffix = value.filter { ! it.isDigit() }.lowercase()
-        val num = value.filter { it.isDigit() }.toLong()
-        return num * (suffixes.entries.find { it.value.lowercase() == suffix }?.key ?: 1)
-    }
-
     fun Double.toFixed(precision: Int): String {
         if (this.isNaN()) return toString()
         val scale = 10.0.pow(precision).toInt()
@@ -70,45 +45,9 @@ object NumbersUtils {
         }
     }
 
-    fun Float.toFixed(precision: Int): String {
-        val scale = 10.0.pow(precision).toInt()
-        val rounded = (this * scale).roundToInt().toFloat() / scale
-        val parts = rounded.toString().split(".")
+    fun Float.toFixed(precision: Int): String = toDouble().toFixed(precision)
 
-        return if (parts.size == 2) {
-            val decimals = parts[1].padEnd(precision, '0')
-            "${parts[0]}.$decimals"
-        }
-        else {
-            "${parts[0]}." + "0".repeat(precision)
-        }
-    }
-
-    fun String.toFixed(precision: Int): String {
-        val number = toDoubleOrNull() ?: return this
-        val scale = 10.0.pow(precision).toInt()
-        val rounded = (number * scale).roundToInt().toDouble() / scale
-        val parts = rounded.toString().split(".")
-
-        return if (parts.size == 2) {
-            val decimals = parts[1].padEnd(precision, '0')
-            "${parts[0]}.$decimals"
-        }
-        else {
-            "${parts[0]}." + "0".repeat(precision)
-        }
-    }
-
-    fun Number.addSuffix(): String {
-        val long = this.toLong()
-        if (long in 11 .. 13) return "${this}th"
-        return when (long % 10) {
-            1L -> "${this}st"
-            2L -> "${this}nd"
-            3L -> "${this}rd"
-            else -> "${this}th"
-        }
-    }
+    fun String.toFixed(precision: Int): String = toDoubleOrNull()?.toFixed(precision) ?: this
 
     fun String.romanToDecimal(): Int {
         var decimal = 0
@@ -155,13 +94,6 @@ object NumbersUtils {
         return decimal
     }
 
-    fun Int.toRoman(): String {
-        if (this <= 0) error("$this must be positive!")
-        val l = romanSymbols.floorKey(this)
-        return if (this == l) romanSymbols[this] !!
-        else romanSymbols[l] + (this - l).toRoman()
-    }
-
     operator fun Number.div(number: Number) = this.toDouble() / number.toDouble()
     operator fun Number.times(number: Number) = this.toDouble() * number.toDouble()
     operator fun Number.minus(number: Number) = this.toDouble() - number.toDouble()
@@ -189,44 +121,29 @@ object NumbersUtils {
         return value?.let { NumberFormat.getNumberInstance(Locale.US).format(it) }.orEmpty()
     }
 
+    private fun compactMultiplier(c: Char): Long? = when (c) {
+        'k' -> 1_000L
+        'm' -> 1_000_000L
+        'b' -> 1_000_000_000L
+        't' -> 1_000_000_000_000L
+        else -> null
+    }
+
     fun parseCompactNumber(value: String): Long? {
         if (value.isBlank()) return null
         val cleanValue = value.lowercase().replace(",", "").trim()
         cleanValue.toLongOrNull()?.let { return it }
-        val lastChar = cleanValue.lastOrNull() ?: return null
-        if (! lastChar.isLetter()) return null
-
-        val multiplier = when (lastChar) {
-            'k' -> 1_000L
-            'm' -> 1_000_000L
-            'b' -> 1_000_000_000L
-            't' -> 1_000_000_000_000L
-            else -> return null
-        }
-
-        val number = cleanValue.substring(0, cleanValue.length - 1).toDoubleOrNull() ?: return null
+        val multiplier = compactMultiplier(cleanValue.lastOrNull() ?: return null) ?: return null
+        val number = cleanValue.dropLast(1).toDoubleOrNull() ?: return null
         return (number * multiplier).toLong()
     }
 
     fun parseCompactNumberDouble(value: String): Double? {
         if (value.isBlank()) return null
         value.toDoubleOrNull()?.let { return it }
-
         val cleanValue = value.lowercase().replace(",", "")
-        val lastChar = cleanValue.lastOrNull() ?: return null
-
-        if (! lastChar.isLetter()) return null
-
-        val multiplier: Long = when (lastChar) {
-            'k' -> 1_000L
-            'm' -> 1_000_000L
-            'b' -> 1_000_000_000L
-            't' -> 1_000_000_000_000L
-            else -> return null
-        }
-
-        val numberPartString = cleanValue.substring(0, cleanValue.length - 1)
-
-        return (numberPartString.toDouble() * multiplier)
+        val multiplier = compactMultiplier(cleanValue.lastOrNull() ?: return null) ?: return null
+        val number = cleanValue.dropLast(1).toDoubleOrNull() ?: return null
+        return number * multiplier
     }
 }

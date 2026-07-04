@@ -2,9 +2,6 @@ package com.github.noamm9.utils.render
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.utils.ChatUtils.addColor
-import com.github.noamm9.utils.NumbersUtils.minus
-import com.github.noamm9.utils.NumbersUtils.plus
-import com.github.noamm9.utils.NumbersUtils.times
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.resources.Identifier
@@ -30,10 +27,15 @@ object Render2D {
     }
 
     fun drawBorder(ctx: GuiGraphicsExtractor, x: Number, y: Number, width: Number, height: Number, color: Color = Color.WHITE, thickness: Number = 1) {
-        drawRect(ctx, x, y, width, thickness, color)
-        drawRect(ctx, x, y + height - thickness, width, thickness, color)
-        drawRect(ctx, x, y + thickness, thickness, height - (thickness * 2), color)
-        drawRect(ctx, x + width - thickness, y + thickness, thickness, height - (thickness * 2), color)
+        val fx = x.toFloat()
+        val fy = y.toFloat()
+        val fw = width.toFloat()
+        val fh = height.toFloat()
+        val ft = thickness.toFloat()
+        drawRect(ctx, fx, fy, fw, ft, color)
+        drawRect(ctx, fx, fy + fh - ft, fw, ft, color)
+        drawRect(ctx, fx, fy + ft, ft, fh - ft * 2, color)
+        drawRect(ctx, fx + fw - ft, fy + ft, ft, fh - ft * 2, color)
     }
 
     fun drawLine(ctx: GuiGraphicsExtractor, x1: Number, y1: Number, x2: Number, y2: Number, color: Color, thickness: Number = 1) {
@@ -107,10 +109,7 @@ object Render2D {
         context.blit(RenderPipelines.GUI_TEXTURED, skin, x, y, 40f, 8f, size, size, 8, 8, 64, 64, - 1)
     }
 
-    fun String.width(): Int {
-        val lines = split('\n')
-        return lines.maxOf { mc.font.width(it.addColor()) }
-    }
+    fun String.width(): Int = addColor().lineSequence().maxOf { mc.font.width(it) }
 
     fun String.height(): Int {
         val lineCount = count { it == '\n' } + 1

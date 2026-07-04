@@ -1,13 +1,14 @@
 package com.github.noamm9.utils
 
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.utils.NumbersUtils.div
 import com.github.noamm9.utils.render.RenderHelper.renderVec
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Vec3i
 import net.minecraft.util.Mth
 import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import java.awt.Color
 import kotlin.math.*
@@ -35,19 +36,9 @@ object MathUtils {
         return sqrt(deltaX * deltaX + deltaZ * deltaZ)
     }
 
-    fun normalizeYaw(value: Float): Float {
-        var value = value
-        value %= 360.0f
-        if (value >= 180.0f) value -= 360.0f
-        if (value < - 180.0f) value += 360.0f
+    fun normalizeYaw(value: Float): Float = Mth.wrapDegrees(value)
 
-        return value
-    }
-
-    fun normalizePitch(num: Float): Float {
-        return if (num < - 90f) - 90f
-        else if (num > 90f) 90f else num
-    }
+    fun normalizePitch(num: Float): Float = num.coerceIn(- 90f, 90f)
 
     fun fixRot(rot: Rotation, lastRot: Rotation): Rotation {
         val yaw = rot.yaw
@@ -114,31 +105,9 @@ object MathUtils {
     fun Vec3(x: Number, y: Number, z: Number): Vec3 = net.minecraft.world.phys.Vec3(x.toDouble(), y.toDouble(), z.toDouble())
 
     fun raytrace(player: LocalPlayer, range: Number): BlockPos? {
-        var startVec = player.getEyePosition(1f)
-        val lookVec = player.getViewVector(1f).normalize()
-
-        val stepSize = 0.1
-        val steps = (range / stepSize).toInt()
-
-        repeat(steps) {
-            startVec = startVec.add(lookVec.scale(stepSize))
-            val pos = BlockPos.containing(startVec)
-            if (WorldUtils.getStateAt(pos).isAir) return@repeat
-            return pos
-        }
-
-        return null
+        val hit = player.pick(range.toDouble(), 1f, false)
+        return (hit as? BlockHitResult)?.takeIf { it.type == HitResult.Type.BLOCK }?.blockPos
     }
 
-    fun getLookVec(yaw: Float, pitch: Float): Vec3 {
-        val pitchRad = pitch * (Math.PI / 180.0)
-        val yawRad = - yaw * (Math.PI / 180.0)
-
-        val cosYaw = Mth.cos(yawRad)
-        val sinYaw = Mth.sin(yawRad)
-        val cosPitch = Mth.cos(pitchRad)
-        val sinPitch = Mth.sin(pitchRad)
-
-        return Vec3((sinYaw * cosPitch).toDouble(), (- sinPitch).toDouble(), (cosYaw * cosPitch).toDouble())
-    }
+    fun getLookVec(yaw: Float, pitch: Float): Vec3 = Vec3.directionFromRotation(pitch, yaw)
 }
