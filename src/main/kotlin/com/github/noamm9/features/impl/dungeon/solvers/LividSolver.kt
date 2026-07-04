@@ -4,12 +4,18 @@ import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.utils.*
+import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
+import com.github.noamm9.utils.ColorUtils
 import com.github.noamm9.utils.MathUtils.add
+import com.github.noamm9.utils.NumbersUtils
+import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.Utils.favoriteColor
+import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener.dungeonTeammates
 import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.width
 import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderHelper.renderVec
 import net.minecraft.client.player.AbstractClientPlayer
@@ -23,7 +29,9 @@ object LividSolver: Feature() {
     private val showHp by ToggleSetting("Show HP", true)
     private val tracer by ToggleSetting("Tracer", true)
     private val hideWrong by ToggleSetting("Hide Wrong")
-    private val iceSprayTimer by ToggleSetting("Ice Spray Timer")
+    private val invulnerabilityTimer by ToggleSetting("Invulnerability Timer")
+    private val iceSprayTitle by ToggleSetting("Ice Spray Title", true).showIf { invulnerabilityTimer.value }
+    private val iceSpraySound by ToggleSetting("Ice Spray Sound", true).showIf { invulnerabilityTimer.value }
     private val highlightColor by ColorSetting("Highlight Color", favoriteColor, false).section("Colors")
     private val tracerColor by ColorSetting("Tracer Color", favoriteColor, false).showIf { tracer.value }
 
@@ -42,7 +50,18 @@ object LividSolver: Feature() {
     private var currentLivid: AbstractClientPlayer? = null
     private val ceilingWoolBlock = BlockPos(5, 108, 40)
 
+    private const val ticks = 390
+    private var timer = - 1
+
     override fun init() {
+        hudElement("Livid Invulnerability Timer", enabled = { invulnerabilityTimer.value }, shouldDraw = { timer > 0 }, centered = true) { ctx, example ->
+            val displayTicks = if (example) ticks / 2 else timer
+            val color = ColorUtils.colorCodeByPercent(ticks - displayTicks, ticks, true)
+            val text = "&5Livid Invulnerability: $color${(displayTicks / 20.0).toFixed(1)}"
+            Render2D.drawCenteredString(ctx, text, 0, 0)
+            text.width().toFloat() to 9f
+        }
+
         register<CheckEntityGlowEvent> {
             if (currentLivid == event.entity) {
                 event.color = highlightColor.value
@@ -73,28 +92,33 @@ object LividSolver: Feature() {
         }
 
         register<TickEvent.Start> {
-            if (! LocationUtils.inBoss || LocationUtils.dungeonFloorNumber != 5) {
-                currentLivid = null
-                return@register
-            }
-
+            if (! LocationUtils.inBoss || LocationUtils.dungeonFloorNumber != 5) return@register
             val targetLivid = lividMap[WorldUtils.getBlockAt(ceilingWoolBlock)] ?: return@register
-            if (currentLivid?.name?.unformattedText == targetLivid && currentLivid?.isAlive == true) return@register
+            if (currentLivid?.gameProfile?.name == targetLivid && currentLivid?.isRemoved != false) return@register
             currentLivid = mc.level?.entitiesForRendering()?.asSequence()?.filterIsInstance<AbstractClientPlayer>()?.find {
-                it.name.unformattedText == targetLivid
+                it.gameProfile.name == targetLivid
             }
         }
 
-        register<WorldChangeEvent> { currentLivid = null }
-
         register<ChatMessageEvent> {
-            if (! iceSprayTimer.value) return@register
+            if (! invulnerabilityTimer.value) return@register
             if (LocationUtils.dungeonFloorNumber != 5) return@register
             if (event.unformattedText != "[BOSS] Livid: Welcome, you've arrived right on time. I am Livid, the Master of Shadows.") return@register
-            ThreadUtils.scheduledTaskServer(390) {
-                ChatUtils.showTitle("&bIce Spray Livid!")
-                mc.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_PLING, 1f))
+            timer = ticks
+        }
+
+        register<TickEvent.Server> {
+            if (timer > 0) timer --
+            if (timer == 0) {
+                if (iceSprayTitle.value) ChatUtils.showTitle("&bIce Spray Livid!")
+                if (iceSpraySound.value) mc.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_PLING, 1f))
+                timer = - 1
             }
+        }
+
+        register<WorldChangeEvent> {
+            currentLivid = null
+            timer = - 1
         }
     }
 }
