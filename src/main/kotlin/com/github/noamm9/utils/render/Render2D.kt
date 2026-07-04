@@ -2,6 +2,9 @@ package com.github.noamm9.utils.render
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.utils.ChatUtils.addColor
+import com.github.noamm9.utils.NumbersUtils.minus
+import com.github.noamm9.utils.NumbersUtils.plus
+import com.github.noamm9.utils.NumbersUtils.times
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.resources.Identifier
@@ -20,58 +23,61 @@ object Render2D {
     }
 
     fun drawRect(ctx: GuiGraphicsExtractor, x: Number, y: Number, width: Number, height: Number, color: Color = Color.WHITE) {
-        val pose = ctx.pose()
-        pose.translate(x.toFloat(), y.toFloat())
-        ctx.fill(0, 0, width.toInt(), height.toInt(), color.rgb)
-        pose.translate(- x.toFloat(), - y.toFloat())
-    }
-
-    fun drawBorder(ctx: GuiGraphicsExtractor, x: Number, y: Number, width: Number, height: Number, color: Color = Color.WHITE, thickness: Number = 1) {
         val fx = x.toFloat()
         val fy = y.toFloat()
         val fw = width.toFloat()
         val fh = height.toFloat()
-        val ft = thickness.toFloat()
-        drawRect(ctx, fx, fy, fw, ft, color)
-        drawRect(ctx, fx, fy + fh - ft, fw, ft, color)
-        drawRect(ctx, fx, fy + ft, ft, fh - ft * 2, color)
-        drawRect(ctx, fx + fw - ft, fy + ft, ft, fh - ft * 2, color)
+        val pose = ctx.pose()
+
+        pose.pushMatrix()
+        pose.translate(fx, fy)
+        pose.scale(fw, fh)
+        ctx.fill(0, 0, 1, 1, color.rgb)
+        pose.popMatrix()
+    }
+
+    fun drawBorder(ctx: GuiGraphicsExtractor, x: Number, y: Number, width: Number, height: Number, color: Color = Color.WHITE, thickness: Number = 1) {
+        drawRect(ctx, x, y, width, thickness, color)
+        drawRect(ctx, x, y + height - thickness, width, thickness, color)
+        drawRect(ctx, x, y + thickness, thickness, height - thickness * 2, color)
+        drawRect(ctx, x + width - thickness, y + thickness, thickness, height - thickness * 2, color)
     }
 
     fun drawLine(ctx: GuiGraphicsExtractor, x1: Number, y1: Number, x2: Number, y2: Number, color: Color, thickness: Number = 1) {
-        val pose = ctx.pose()
         val fx1 = x1.toFloat()
         val fy1 = y1.toFloat()
         val fx2 = x2.toFloat()
         val fy2 = y2.toFloat()
-        val iThick = thickness.toInt()
+        val ft = thickness.toFloat()
 
         val dx = fx2 - fx1
         val dy = fy2 - fy1
-        val distance = sqrt(dx * dx + dy * dy).toInt()
+        val distance = sqrt(dx * dx + dy * dy)
         val angle = atan2(dy, dx)
 
+        val pose = ctx.pose()
+        pose.pushMatrix()
         pose.translate(fx1, fy1)
         pose.rotate(angle)
+        pose.translate(0f, - ft / 2f)
+        pose.scale(distance, ft)
 
-        ctx.fill(0, 0, distance, iThick, color.rgb)
+        ctx.fill(0, 0, 1, 1, color.rgb)
 
-        pose.rotate(- angle)
-        pose.translate(- fx1, - fy1)
+        pose.popMatrix()
     }
 
-    @JvmOverloads
     fun drawString(ctx: GuiGraphicsExtractor, str: String, x: Number, y: Number, color: Color = Color.WHITE, scale: Number = 1, shadow: Boolean = true) {
         val pose = ctx.pose()
         val fx = x.toFloat()
         val fy = y.toFloat()
         val fScale = scale.toFloat()
 
+        pose.pushMatrix()
         pose.translate(fx, fy)
         if (fScale != 1f) pose.scale(fScale, fScale)
         ctx.text(mc.font, str.addColor(), 0, 0, color.rgb, shadow)
-        if (fScale != 1f) pose.scale(1f / fScale, 1f / fScale)
-        pose.translate(- fx, - fy)
+        pose.popMatrix()
     }
 
     fun drawCenteredString(ctx: GuiGraphicsExtractor, str: String, x: Number, y: Number, color: Color = Color.WHITE, scale: Number = 1, shadow: Boolean = true) {
@@ -109,12 +115,8 @@ object Render2D {
         context.blit(RenderPipelines.GUI_TEXTURED, skin, x, y, 40f, 8f, size, size, 8, 8, 64, 64, - 1)
     }
 
-    fun String.width(): Int = addColor().lineSequence().maxOf { mc.font.width(it) }
-
-    fun String.height(): Int {
-        val lineCount = count { it == '\n' } + 1
-        return mc.font.lineHeight * lineCount
-    }
+    fun String.width() = addColor().lineSequence().maxOf(mc.font::width)
+    fun String.height() = mc.font.lineHeight * (count { it == '\n' } + 1)
 
     /**
      * Draws a gradient from Color1 (Left) to Color2 (Right)
@@ -127,26 +129,28 @@ object Render2D {
         val fh = height.toFloat()
         val angle = (- Math.PI / 2).toFloat() // -90 degrees
 
+        pose.pushMatrix()
         pose.translate(fx, fy + fh)
         pose.rotate(angle)
-
-        ctx.fillGradient(0, 0, fh.toInt(), fw.toInt(), color1.rgb, color2.rgb)
-
-        pose.rotate(- angle)
-        pose.translate(- fx, - (fy + fh))
+        pose.scale(fh, fw)
+        ctx.fillGradient(0, 0, 1, 1, color1.rgb, color2.rgb)
+        pose.popMatrix()
     }
 
     /**
      * Draws a gradient from Color1 (Top) to Color2 (Bottom)
      */
     fun drawVerticalGradient(ctx: GuiGraphicsExtractor, x: Number, y: Number, width: Number, height: Number, color1: Color, color2: Color) {
+        val pose = ctx.pose()
         val fx = x.toFloat()
         val fy = y.toFloat()
-        val iw = width.toInt()
-        val ih = height.toInt()
+        val fw = width.toFloat()
+        val fh = height.toFloat()
 
-        ctx.pose().translate(fx, fy)
-        ctx.fillGradient(0, 0, iw, ih, color1.rgb, color2.rgb)
-        ctx.pose().translate(- fx, - fy)
+        pose.pushMatrix()
+        pose.translate(fx, fy)
+        pose.scale(fw, fh)
+        ctx.fillGradient(0, 0, 1, 1, color1.rgb, color2.rgb)
+        pose.popMatrix()
     }
 }

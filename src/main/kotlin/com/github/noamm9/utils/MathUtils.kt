@@ -70,7 +70,6 @@ object MathUtils {
         return Rotation(yaw.toFloat(), pitch.toFloat())
     }
 
-    @JvmStatic
     fun lerp(prev: Number, newPos: Number, partialTicks: Number): Double {
         return prev.toDouble() + (newPos.toDouble() - prev.toDouble()) * partialTicks.toDouble()
     }
@@ -80,7 +79,6 @@ object MathUtils {
         lerp(color1.green, color2.green, value).toInt(),
         lerp(color1.blue, color2.blue, value).toInt()
     )
-
 
     fun interpolateYaw(startYaw: Float, targetYaw: Float, progress: Float): Float {
         var delta = (targetYaw - startYaw) % 360
@@ -109,5 +107,5 @@ object MathUtils {
         return (hit as? BlockHitResult)?.takeIf { it.type == HitResult.Type.BLOCK }?.blockPos
     }
 
-    fun getLookVec(yaw: Float, pitch: Float): Vec3 = Vec3.directionFromRotation(pitch, yaw)
+    fun getLookVec(yaw: Float, pitch: Float) = Vec3.directionFromRotation(pitch, yaw)
 }
