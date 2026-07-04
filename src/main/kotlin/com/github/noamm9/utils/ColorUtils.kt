@@ -38,4 +38,10 @@ object ColorUtils {
 
     val Color.mcColor get() = TextColor.fromRgb(this.rgb)
     fun Color.invert() = Color(255 - red, 255 - green, 255 - blue, alpha)
+
+    fun rainbow(cycleDurationMs: Long, saturation: Float = 0.85f, brightness: Float = 1f): Color {
+        val duration = cycleDurationMs.coerceAtLeast(1L)
+        val hue = (System.currentTimeMillis() % duration).toFloat() / duration.toFloat()
+        return Color(Color.HSBtoRGB(hue, saturation, brightness))
+    }
 }
