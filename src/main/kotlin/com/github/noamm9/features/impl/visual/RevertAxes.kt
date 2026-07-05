@@ -5,6 +5,9 @@ import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 
+/**
+ * @see com.github.noamm9.mixin.MixinItemModelResolver
+ */
 object RevertAxes: Feature("Turns certain swords back into an axe") {
     private val replaceableItems = hashMapOf(
         Pair("RAGNAROCK_AXE", Items.GOLDEN_AXE),

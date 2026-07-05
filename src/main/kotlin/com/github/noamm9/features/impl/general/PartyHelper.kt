@@ -29,7 +29,7 @@ object PartyHelper: Feature("Party commands and reformatting.") {
     private val partyLeaderCheck by ToggleSetting("Leader Only", false).showIf { partyCommands.value }
     private val commands by MultiCheckboxSetting("Enabled Commands", mutableMapOf(
         "!w" to true, "!f" to true, "!m" to true, "!inv" to true,
-        "!kick" to true, "!dt" to true, "!ping" to true, "!tps" to true,
+        "!kick" to true, "!dt" to true, "!ping" to true, "!tps" to true, "!fps" to true,
         "!pt" to true, "!ai" to true, "!coords" to true, "!gay" to true
     )).showIf { partyCommands.value }
 
@@ -82,6 +82,8 @@ object PartyHelper: Feature("Party commands and reformatting.") {
         fun canRun(key: String) = commands.value[key] == true
 
         when {
+            canRun("!fps") && cmd == "fps" -> ChatUtils.sendPartyMessage("FPS: ${mc.fps}")
+
             canRun("!f") && cmd.startsWith("f") -> {
                 val floor = cmd.removePrefix("f").toIntOrNull() ?: args.getOrNull(0)?.toIntOrNull() ?: return
                 if (floor in 0 .. 7) runCommand("joininstance CATACOMBS_FLOOR_${DungeonUtils.FLOOR_NAMES[floor]}", true)

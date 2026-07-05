@@ -85,8 +85,7 @@ object Cosmetics: Feature(toggled = true) {
             state.nameTagAttachment = Vec3(pos.x, adjustedY, pos.z)
         }
     }
-
-    @JvmField
+    
     val GAME_PROFILE_KEY = RenderStateDataKey.create<GameProfile> { "${NoammAddons.MOD_ID}:game_profile" }
 
     @Serializable

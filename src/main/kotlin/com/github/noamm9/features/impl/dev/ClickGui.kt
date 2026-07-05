@@ -14,7 +14,7 @@ object ClickGui: Feature("A feature used to change the ClickGui configuration.",
     val playClickSound by ToggleSetting("Click Sound", true)
         .withDescription("Toggle for the sound that plays when you click on a setting element.")
 
-    val accentColor by ColorSetting("Accent Color", Color.CYAN, false)
+    val accentColor by ColorSetting("Accent Color", Color(99, 176, 217), false)
         .withDescription("The accent color used by the whole ClickGui.")
 
     val panelSorting by DropdownSetting("Sorting", 1, listOf("A-Z Sorting", "Width Sorting", "No Sorting"))
@@ -27,7 +27,7 @@ object ClickGui: Feature("A feature used to change the ClickGui configuration.",
 
     val resetButton by ButtonSetting("Reset Settings") {
         playClickSound.value = true
-        accentColor.value = Color.CYAN
+        accentColor.value = accentColor.defaultValue
     }.withDescription("Reverts settings back to their original values.")
 
     override fun toggle() {}
