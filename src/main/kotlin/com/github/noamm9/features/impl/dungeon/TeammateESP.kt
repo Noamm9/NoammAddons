@@ -12,8 +12,8 @@ import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.world.entity.Entity
 
 object TeammateESP: Feature("Highlights your dungeon party.") {
-    val highlight by ToggleSetting("Highlight Teammates", true)
-    val drawName by ToggleSetting("Show Teammate Name", true)
+    private val highlight by ToggleSetting("Highlight Teammates", true)
+    private val drawName by ToggleSetting("Show Teammate Name", true)
 
     private val cache = HashMap<Int, Boolean>()
 
@@ -22,6 +22,7 @@ object TeammateESP: Feature("Highlights your dungeon party.") {
             if (! highlight.value) return@register
             if (! LocationUtils.inDungeon) return@register
             if (event.entity !is AbstractClientPlayer) return@register
+            if (event.entity.uuid.version() != 4) return@register
 
             for (teammate in DungeonListener.dungeonTeammates.toList()) {
                 if (teammate.entity?.id != event.entity.id) continue
