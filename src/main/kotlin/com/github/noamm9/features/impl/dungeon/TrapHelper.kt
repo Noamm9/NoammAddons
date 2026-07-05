@@ -1,5 +1,7 @@
 package com.github.noamm9.features.impl.dungeon
 
+/*
+
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
@@ -58,3 +60,5 @@ object TrapHelper: Feature("Highlights the correct pearl block in New Trap") {
         }
     }
 }
+
+ */
