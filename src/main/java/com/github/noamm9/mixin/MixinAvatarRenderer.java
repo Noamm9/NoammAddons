@@ -26,6 +26,11 @@ public class MixinAvatarRenderer {
         Cosmetics.extractRenderStateHook(entity, state);
     }
 
+    @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/Avatar;Lnet/minecraft/client/renderer/entity/state/AvatarRenderState;F)V", at = @At("RETURN"))
+    private void forceNametagVisibility(Avatar entity, AvatarRenderState state, float partialTicks, CallbackInfo ci) {
+        if (NameTagTweaks.shouldShowNametag(entity)) state.isDiscrete = false;
+    }
+
     @Inject(method = "shouldShowName(Lnet/minecraft/world/entity/Avatar;D)Z", at = @At("HEAD"), cancellable = true)
     private void shouldShowName(Avatar entity, double distanceToCameraSq, CallbackInfoReturnable<Boolean> cir) {
         if (TeammateESP.shouldHideNametag(entity)) cir.setReturnValue(null);

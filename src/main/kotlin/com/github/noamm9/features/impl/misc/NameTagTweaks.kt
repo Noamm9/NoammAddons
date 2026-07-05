@@ -6,6 +6,9 @@ import net.minecraft.world.entity.Entity
 
 object NameTagTweaks: Feature(name = "Nametag Tweaks") {
     @JvmStatic
+    val forceNametag by ToggleSetting("Force Nametag").withDescription("Makes player nametags always visible, even while sneaking or invisible.")
+
+    @JvmStatic
     val disableNametagBackground by ToggleSetting("Hide Nametag Background").withDescription("Disable Nametag's black background.")
 
     @JvmStatic
@@ -17,8 +20,6 @@ object NameTagTweaks: Feature(name = "Nametag Tweaks") {
     @JvmStatic
     fun shouldShowNametag(entity: Entity): Boolean {
         if (! enabled) return false
-        if (! showOwnNametag.value) return false
-        if (mc.player != entity) return false
-        return true
+        return if (mc.player == entity) showOwnNametag.value else forceNametag.value
     }
 }
