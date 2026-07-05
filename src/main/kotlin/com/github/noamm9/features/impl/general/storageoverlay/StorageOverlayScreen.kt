@@ -22,6 +22,7 @@ import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Inventory
+import net.minecraft.world.inventory.AbstractContainerMenu
 import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.inventory.Slot
 import net.minecraft.world.item.ItemStack
@@ -61,13 +62,12 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     private var knobGrabbed = false
     private var hoveredOverlayItem: ItemStack? = null
 
-    private var dragArmed = false
-    private var dragActive = false
     private var dragType = 0
     private var dragStartSlot: Slot? = null
-    private var dragStartModifiers = 0
     private val dragSlots = LinkedHashSet<Int>()
     private var dragPreview: DragPreview? = null
+    private val dragArmed get() = dragStartSlot != null
+    private val dragActive get() = dragSlots.size >= 2
 
     var containerScreen: ContainerScreen? = null
     var pendingCenterPage: StoragePage? = null
@@ -96,6 +96,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     private val scrollBarY get() = measurements.y + PADDING
     private val scrollBarH get() = measurements.innerScrollPanelHeight
     private val maxScroll get() = (lastRenderedInnerHeight.toFloat() + 6 - measurements.innerScrollPanelHeight).coerceAtLeast(0f)
+    private val screenMenu get() = (mc.screen as? AbstractContainerScreen<*>)?.menu
 
     override fun init() {
         super.init()
@@ -350,8 +351,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     }
 
     private fun activePageSlotAt(mouseX: Double, mouseY: Double, activePage: StoragePage): Slot? {
-        val containerScreen = mc.screen as? AbstractContainerScreen<*> ?: return null
-        val menu = containerScreen.menu
+        val menu = screenMenu ?: return null
         val chestSlots = menu.slots.take(menu.slots.size - 36).drop(9)
         if (chestSlots.isEmpty()) return null
 
@@ -372,7 +372,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
     private fun playerSlotAt(mouseX: Int, mouseY: Int): Slot? {
         val slotIndex = getPlayerInvIndex(mouseX, mouseY) ?: return null
-        val menu = (mc.screen as? AbstractContainerScreen<*>)?.menu ?: return null
+        val menu = screenMenu ?: return null
         return menu.slots.firstOrNull { it.container is Inventory && it.containerSlot == slotIndex }
     }
 
@@ -381,46 +381,30 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         return playerSlotAt(mouseX.toInt(), mouseY.toInt())
     }
 
-    private fun dispatchSlotClick(slot: Slot, button: Int, modifiers: Int): Boolean {
-        val menu = (mc.screen as? AbstractContainerScreen<*>)?.menu ?: return false
+    private fun dispatchSlotClick(slot: Slot, button: Int, modifiers: Int, input: ContainerInput? = null): Boolean {
+        val menu = screenMenu ?: return false
         val player = mc.player ?: return false
         val gameMode = mc.gameMode ?: return false
         val shift = (modifiers and GLFW.GLFW_MOD_SHIFT) != 0
-        val clickType = if (shift) ContainerInput.QUICK_MOVE else ContainerInput.PICKUP
+        val clickType = input ?: if (shift) ContainerInput.QUICK_MOVE else ContainerInput.PICKUP
         gameMode.handleContainerInput(menu.containerId, slot.index, button, clickType, player)
         return true
     }
 
-    private fun dispatchPickupAll(slot: Slot): Boolean {
-        val menu = (mc.screen as? AbstractContainerScreen<*>)?.menu ?: return false
-        val player = mc.player ?: return false
-        val gameMode = mc.gameMode ?: return false
-        gameMode.handleContainerInput(menu.containerId, slot.index, 0, ContainerInput.PICKUP_ALL, player)
-        return true
-    }
-
-    private fun quickcraftMask(phase: Int, type: Int) = (phase and 3) or ((type and 3) shl 2)
-
     private class DragPreview(val stacks: Map<Int, ItemStack>, val playerStacks: Map<Int, ItemStack>, val carriedCount: Int)
 
-    private fun canDragInto(slot: Slot, carried: ItemStack): Boolean {
-        if (! slot.mayPlace(carried)) return false
-        val item = slot.item
-        if (item.isEmpty) return true
-        return ItemStack.isSameItemSameComponents(item, carried) && item.count < slot.getMaxStackSize(carried)
-    }
+    private fun canDragInto(slot: Slot, carried: ItemStack) = slot.mayPlace(carried) && AbstractContainerMenu.canItemQuickReplace(slot, carried, true)
 
     private fun computeDragPreview(): DragPreview? {
-        if (! dragActive || dragSlots.size < 2) return null
-        val menu = (mc.screen as? AbstractContainerScreen<*>)?.menu ?: return null
+        if (! dragActive) return null
+        val menu = screenMenu ?: return null
         val carried = menu.carried
         if (carried.isEmpty) return null
 
-        val byIndex = menu.slots.associateBy { it.index }
-        val eligible = dragSlots.mapNotNull { byIndex[it] }.filter { canDragInto(it, carried) }.take(carried.count)
+        val eligible = dragSlots.mapNotNull { menu.slots.getOrNull(it) }.filter { canDragInto(it, carried) }.take(carried.count)
         if (eligible.size < 2) return null
 
-        val base = if (dragType == 1) 1 else carried.count / eligible.size
+        val base = AbstractContainerMenu.getQuickCraftPlaceCount(eligible.size, dragType, carried)
         var remaining = carried.count
         val stacks = HashMap<Int, ItemStack>()
         val playerStacks = HashMap<Int, ItemStack>()
@@ -438,14 +422,13 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     }
 
     private fun endDrag() {
-        if (dragSlots.isEmpty()) return
-        val menu = (mc.screen as? AbstractContainerScreen<*>)?.menu ?: return
+        val menu = screenMenu ?: return
         val player = mc.player ?: return
         val gameMode = mc.gameMode ?: return
         val id = menu.containerId
-        gameMode.handleContainerInput(id, - 999, quickcraftMask(0, dragType), ContainerInput.QUICK_CRAFT, player)
-        for (index in dragSlots) gameMode.handleContainerInput(id, index, quickcraftMask(1, dragType), ContainerInput.QUICK_CRAFT, player)
-        gameMode.handleContainerInput(id, - 999, quickcraftMask(2, dragType), ContainerInput.QUICK_CRAFT, player)
+        gameMode.handleContainerInput(id, - 999, AbstractContainerMenu.getQuickcraftMask(0, dragType), ContainerInput.QUICK_CRAFT, player)
+        for (index in dragSlots) gameMode.handleContainerInput(id, index, AbstractContainerMenu.getQuickcraftMask(1, dragType), ContainerInput.QUICK_CRAFT, player)
+        gameMode.handleContainerInput(id, - 999, AbstractContainerMenu.getQuickcraftMask(2, dragType), ContainerInput.QUICK_CRAFT, player)
     }
 
     @Suppress("SameReturnValue")
@@ -476,16 +459,13 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val resolutionMouseX = Resolution.getMouseX(click.x()) / scale.toDouble()
         val resolutionMouseY = Resolution.getMouseY(click.y()) / scale.toDouble()
 
-        val carried = (mc.screen as? AbstractContainerScreen<*>)?.menu?.carried
+        val carried = screenMenu?.carried
         if (carried != null && ! carried.isEmpty && (button == 0 || button == 1)) {
             val slot = resolveSlotUnder(resolutionMouseX, resolutionMouseY, activePage)
             if (slot != null) {
-                if (doubled && button == 0) return dispatchPickupAll(slot)
-                dragArmed = true
-                dragActive = false
+                if (doubled && button == 0) return dispatchSlotClick(slot, 0, 0, ContainerInput.PICKUP_ALL)
                 dragType = button
                 dragStartSlot = slot
-                dragStartModifiers = modifiers
                 dragSlots.clear()
                 dragSlots.add(slot.index)
                 return true
@@ -517,10 +497,11 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
     fun mouseReleased(): Boolean {
         if (dragArmed) {
-            dragArmed = false
             if (dragActive) endDrag()
-            else dragStartSlot?.let { dispatchSlotClick(it, dragType, dragStartModifiers) }
-            dragActive = false
+            else dragStartSlot?.let {
+                val shift = GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS
+                dispatchSlotClick(it, dragType, if (shift) GLFW.GLFW_MOD_SHIFT else 0)
+            }
             dragSlots.clear()
             dragStartSlot = null
             return true
@@ -536,7 +517,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             val rx = Resolution.getMouseX(mouseX) / scale.toDouble()
             val ry = Resolution.getMouseY(mouseY) / scale.toDouble()
             val activePage = (storageMenu as? StorageMenu.Page)?.storagePage
-            resolveSlotUnder(rx, ry, activePage)?.let { if (dragSlots.add(it.index) && dragSlots.size >= 2) dragActive = true }
+            resolveSlotUnder(rx, ry, activePage)?.let { dragSlots.add(it.index) }
             return true
         }
         if (! knobGrabbed) return false
@@ -609,8 +590,6 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     fun isPointOverSlot(slot: Slot, xO: Int, yO: Int, pX: Double, pY: Double) = inRect(pX, pY, slot.x + xO, slot.y + yO, 16, 16)
     fun onContainerClose() {
         if (! StorageOverlay.retainScrollSetting.value) scroll = 0f
-        dragArmed = false
-        dragActive = false
         dragStartSlot = null
         dragSlots.clear()
         isExiting = true
