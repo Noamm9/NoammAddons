@@ -4,9 +4,11 @@ import com.github.noamm9.NoammAddons
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.features.impl.dev.ClickGui
+import com.github.noamm9.features.impl.general.CommandShortcuts
 import com.github.noamm9.features.impl.misc.sound.SoundManager
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.clickgui.enums.CategoryType
+import com.github.noamm9.ui.gui.CommandShortcutsScreen
 import com.github.noamm9.ui.gui.SoundManagerScreen
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.ColorUtils.withAlpha
@@ -157,6 +159,10 @@ class Panel(val category: CategoryType, var x: Int, var y: Int) {
                     if (feature is SoundManager) {
                         ClickGuiScreen.selectedFeature = null
                         NoammAddons.screen = SoundManagerScreen()
+                    }
+                    else if (feature is CommandShortcuts) {
+                        ClickGuiScreen.selectedFeature = null
+                        NoammAddons.screen = CommandShortcutsScreen()
                     }
                     else if (feature.configSettings.isNotEmpty()) ClickGuiScreen.openFeatureWindow(feature)
                     return
