@@ -44,7 +44,7 @@ object TicTacToeSolver: PuzzleSolver {
     override fun onStateChange(event: DungeonEvent.RoomEvent.onStateChange) {
         if (event.room.name != "Tic Tac Toe") return
         if (event.newState != RoomState.DISCOVERED) return
-        solveAsync()
+        solve()
     }
 
     override fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
@@ -52,16 +52,15 @@ object TicTacToeSolver: PuzzleSolver {
         inTicTacToe = true
         roomCenter = event.room.centerPos
         rotation = event.room.rotation
-        solveAsync()
+        solve()
     }
 
     override fun onPacket(event: MainThreadPacketReceivedEvent.Pre) {
         if (! inTicTacToe) return
         val packet = event.packet as? ClientboundAddEntityPacket ?: return
         if (packet.type != EntityType.ITEM_FRAME) return
-        solveAsync()
+        solve()
     }
-
 
     override fun onInteract(event: PlayerInteractEvent.RIGHT_CLICK.BLOCK) {
         if (! inTicTacToe || ! preventMissClick.value) return
@@ -81,17 +80,6 @@ object TicTacToeSolver: PuzzleSolver {
         }
     }
 
-
-    private fun solveAsync() {
-        ThreadUtils.scheduledTaskServer(3) {
-            ThreadUtils.async {
-                val center = roomCenter ?: return@async
-                scanBoard(center)
-            }
-        }
-    }
-
-
     override fun reset() {
         inTicTacToe = false
         bestMoves.clear()
@@ -101,16 +89,17 @@ object TicTacToeSolver: PuzzleSolver {
         rotation = null
     }
 
-    private fun scanBoard(center: BlockPos) {
-        val level = mc.level ?: return
+    private fun solve() = ThreadUtils.scheduledTaskServer(3) solve@{
+        val center = roomCenter ?: return@solve
+        val level = mc.level ?: return@solve
         val aabb = AABB(center.x - 9.0, 65.0, center.z - 9.0, center.x + 9.0, 73.0, center.z + 9.0)
 
         val frames = level.getEntitiesOfClass(ItemFrame::class.java, aabb).filter {
             it.item.item is MapItem && it.item.has(DataComponents.MAP_ID)
         }
 
-        if (frames.size == 8) return reset()
-        if (frames.size % 2 == 0) return
+        if (frames.size == 8) return@solve reset()
+        if (frames.size % 2 == 0) return@solve
 
         val board = CharArray(9) { UNPLAYED }
         var leftmostRow: BlockPos? = null
@@ -147,7 +136,7 @@ object TicTacToeSolver: PuzzleSolver {
             else if (byteColor == 33) board[index] = 'O' // Player
         }
 
-        if (leftmostRow == null) return
+        if (leftmostRow == null) return@solve
         bestMoves.clear(); aiPredictions.clear(); prefirePredictions.clear()
 
         val playerBestIndices = TicTacToeUtils.findBestMoves(board, 'O', 'X')
@@ -304,4 +293,3 @@ object TicTacToeSolver: PuzzleSolver {
         }
     }
 }
-
