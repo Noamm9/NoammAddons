@@ -5,7 +5,6 @@ import com.github.noamm9.features.impl.dev.Cosmetics;
 import com.github.noamm9.features.impl.dungeon.TeammateESP;
 import com.github.noamm9.features.impl.misc.NameTagTweaks;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.player.AvatarRenderer;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.world.entity.Avatar;
@@ -35,7 +34,7 @@ public class MixinAvatarRenderer {
 
     @Inject(method = "shouldShowName(Lnet/minecraft/world/entity/Avatar;D)Z", at = @At("HEAD"), cancellable = true)
     private void shouldShowName(Avatar entity, double distanceToCameraSq, CallbackInfoReturnable<Boolean> cir) {
-        if (TeammateESP.shouldHideNametag(entity)) cir.setReturnValue(null);
-        else if (NameTagTweaks.INSTANCE.enabled && NameTagTweaks.getShowOwnNametag().getValue() && Minecraft.getInstance().player == entity) cir.setReturnValue(true);
+        if (TeammateESP.shouldHideNametag(entity)) cir.setReturnValue(false);
+        else if (NameTagTweaks.shouldShowNametag(entity)) cir.setReturnValue(true);
     }
 }
