@@ -7,7 +7,7 @@ import java.awt.Color
 import java.lang.reflect.Type
 
 object GsonUtils {
-    val gson = GsonBuilder().setPrettyPrinting()
+    val gson = GsonBuilder().setPrettyPrinting().disableHtmlEscaping()
         .registerTypeAdapter(BlockPos::class.java, BlockPosAdapter)
         .registerTypeAdapter(Color::class.java, ColorAdapter)
         .create()

@@ -71,10 +71,11 @@ object UuidCache {
     }
 
     private fun cleanupExpired() {
+        val storage = storage.get()
         val now = System.currentTimeMillis()
-        val removedUuids = storage.get().uuidByName.values.removeIf { it.isExpired(now) }
-        val removedNames = storage.get().nameByUuid.values.removeIf { it.isExpired(now) }
-        if (removedUuids || removedNames) storage.save()
+        val removedUuids = storage.uuidByName.values.removeIf { it.isExpired(now) }
+        val removedNames = storage.nameByUuid.values.removeIf { it.isExpired(now) }
+        if (removedUuids || removedNames) this.storage.save()
     }
 
     private fun CachedEntry.isExpired(now: Long = System.currentTimeMillis()) = now - timestamp > EXPIRE_TIME

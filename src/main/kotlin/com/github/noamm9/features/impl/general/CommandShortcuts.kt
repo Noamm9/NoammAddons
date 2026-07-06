@@ -13,7 +13,7 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 
 @Suppress("UNCHECKED_CAST")
 object CommandShortcuts: Feature("Create your own command shortcuts") {
-    var shortcuts by PogObject("commandShortcuts", linkedMapOf<String, String>())
+    val shortcuts = PogObject("commandShortcuts", linkedMapOf<String, String>())
 
     override fun init() {
         ClientCommandRegistrationCallback.EVENT.register { _, _ -> build() }
@@ -21,7 +21,7 @@ object CommandShortcuts: Feature("Create your own command shortcuts") {
         register<PacketEvent.Sent> {
             val packet = event.packet as? IServerboundChatCommandPacket ?: return@register
             val args = packet.command.split(" ", limit = 2)
-            val replacement = shortcuts[args[0].lowercase()] ?: return@register
+            val replacement = shortcuts.get()[args[0].lowercase()] ?: return@register
             val message = if (args.size > 1) "$replacement ${args[1]}" else replacement
             packet.command = message
         }
@@ -29,7 +29,7 @@ object CommandShortcuts: Feature("Create your own command shortcuts") {
 
     fun build() {
         val dispatcher = mc.player?.connection?.commands as? CommandDispatcher<FabricClientCommandSource> ?: return
-        shortcuts.keys.forEach { key ->
+        shortcuts.get().keys.forEach { key ->
             unregisterNode(dispatcher.root, key)
             dispatcher.register(ClientCommands.literal(key))
         }

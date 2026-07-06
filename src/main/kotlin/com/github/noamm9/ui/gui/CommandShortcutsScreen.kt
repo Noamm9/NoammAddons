@@ -29,7 +29,7 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
         val replacementInput = TextInputHandler({ replacement }, { replacement = it })
     }
 
-    private val rows = CommandShortcuts.shortcuts.map { (command, replacement) -> Row(command, replacement) }.toMutableList()
+    private val rows = CommandShortcuts.shortcuts.get().map { (command, replacement) -> Row(command, replacement) }.toMutableList()
 
     private var scrollTarget = 0f
     private val scrollAnim = Animation(200L)
@@ -238,7 +238,7 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
         }
 
         NoammAddons.screen = ClickGuiScreen
-        CommandShortcuts.shortcuts = shortcuts
+        CommandShortcuts.shortcuts.set(shortcuts)
         CommandShortcuts.build()
     }
 }

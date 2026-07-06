@@ -7,55 +7,70 @@ import com.github.noamm9.utils.ThreadUtils
 import com.google.common.reflect.TypeToken
 import java.io.File
 import java.lang.reflect.Type
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.util.concurrent.*
-import kotlin.reflect.KProperty
+import java.util.concurrent.locks.*
+import kotlin.concurrent.withLock
 
-class PogObject<T: Any>(val fileName: String, @Volatile private var data: T, private val type: Type) {
-    private val dataFile = File("config/$MOD_NAME/$fileName.json").apply {
-        parentFile.mkdirs()
-    }
+class PogObject<T: Any>(val fileName: String, val defaultData: T, private val type: Type) {
+    private val dataFile = File("config/$MOD_NAME/$fileName.json")
+    @Volatile private var data = defaultData
+    private val saveLock = ReentrantLock()
 
     init {
+        dataFile.parentFile.mkdirs()
         data = loadData()
         objects.add(this)
-        save()
     }
 
     private fun loadData(): T {
-        if (! dataFile.exists()) return data
+        if (! dataFile.exists()) return defaultData
         return try {
-            val content = dataFile.readText().takeUnless(String::isNullOrBlank) ?: return data
-            if (content == "null") return data
-            GsonUtils.gson.fromJson<T>(content, type) ?: error("data is null?")
+            val raw = dataFile.readText().takeUnless(String::isBlank) ?: return defaultData
+            GsonUtils.gson.fromJson<T>(raw, type) ?: defaultData
         }
         catch (e: Exception) {
-            NoammAddons.logger.warn("PogObject: failed to load $fileName", e)
-            e.printStackTrace()
-            throw e
+            try {
+                val corruptFile = File(dataFile.parentFile, "${dataFile.name}.corrupt")
+                Files.move(dataFile.toPath(), corruptFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+                NoammAddons.logger.warn("PogObject: failed to load $fileName. the file is probably corrupted check ${corruptFile.name}", e)
+            }
+            catch (backupEx: Exception) {
+                NoammAddons.logger.error("PogObject: failed to save corrupted file $fileName", backupEx)
+            }
+
+            defaultData
         }
     }
 
-    operator fun getValue(thisRef: Any?, property: KProperty<*>) = data
-    operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
-        data = value
+    fun get() = data
+
+    fun set(newData: T) {
+        data = newData
         save()
     }
 
-    fun get(): T = data
-    fun set(newData: T) = ::data.set(newData)
-
-    @Synchronized
-    fun save() = try {
-        dataFile.writeText(GsonUtils.gson.toJson(data, type))
+    fun update(block: T.() -> Unit) {
+        synchronized(this) {
+            data.apply(block)
+        }
+        save()
     }
-    catch (e: Exception) {
-        NoammAddons.logger.warn("PogObject: failed to save $fileName", e)
-        e.printStackTrace()
-        throw e
+
+    fun save() = saveLock.withLock {
+        try {
+            val tempFile = File(dataFile.parentFile, "${dataFile.name}.tmp")
+            tempFile.writeText(GsonUtils.gson.toJson(data, type))
+            Files.move(tempFile.toPath(), dataFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+        }
+        catch (e: Exception) {
+            NoammAddons.logger.warn("PogObject: failed to save $fileName.json", e)
+        }
     }
 
     companion object {
-        private val objects = ArrayList<PogObject<*>>()
+        private val objects = CopyOnWriteArrayList<PogObject<*>>()
 
         inline operator fun <reified T: Any> invoke(fileName: String, defaultObject: T) =
             PogObject(fileName, defaultObject, object: TypeToken<T>() {}.type)
