@@ -24,9 +24,11 @@ object NetworkLoop {
     internal data class BazaarPrice(val buy: Long, val sell: Long)
     @Volatile private var lowestBinPrices = emptyMap<String, Long>()
     @Volatile private var bazaarPrices = emptyMap<String, BazaarPrice>()
+    @Volatile private var npcSellPrices = emptyMap<String, Long>()
 
     internal fun getLowestBin(itemId: String): Long? = lowestBinPrices[itemId]
     internal fun getBazaarPrice(itemId: String): BazaarPrice? = bazaarPrices[itemId]
+    internal fun getNpcSellPrice(itemId: String): Long? = npcSellPrices[itemId]
     internal fun getPrice(itemId: String): Long? = bazaarPrices[itemId]?.sell ?: lowestBinPrices[itemId]
 
     fun init() = ThreadUtils.loop(TimeUnit.MINUTES.toMillis(10)) {
@@ -89,6 +91,7 @@ object NetworkLoop {
     private suspend fun updateSkyblockItems() = runCatching {
         val data = WebUtils.getAs<JsonObject>(ITEMS_URL).getOrThrow()
         val itemsArray = data["items"]?.jsonArray ?: return@runCatching
+        val npcPrices = mutableMapOf<String, Long>()
         for (element in itemsArray) {
             val item = element.jsonObject
             val id = item["id"]?.jsonPrimitive?.content ?: continue
@@ -96,7 +99,9 @@ object NetworkLoop {
 
             idToNameMap[id] = name
             nameToIdMap[name] = id
+            item["npc_sell_price"]?.jsonPrimitive?.longOrNull?.let { npcPrices[id.replace(':', '-')] = it }
         }
+        npcSellPrices = npcPrices
     }.onFailure { logError("Skyblock items", it) }
 
     private fun logError(context: String, throwable: Throwable) {

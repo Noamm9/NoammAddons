@@ -10,6 +10,7 @@ import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.NumbersUtils.formatComma
 import com.github.noamm9.utils.items.ItemUtils.customData
 import com.github.noamm9.utils.items.ItemUtils.marketId
+import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils.inSkyblock
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
 import net.fabricmc.fabric.api.client.screen.v1.ScreenMouseEvents
@@ -23,6 +24,9 @@ import kotlin.jvm.optionals.getOrNull
 object ItemTooltip: Feature("Adds item information and controls to item tooltips") {
     private val showPrices by ToggleSetting("Item Prices").section("Item Information")
         .withDescription("Shows Bazaar and Lowest BIN prices")
+    private val showNpcSellPrice by ToggleSetting("NPC Sell Price")
+        .withDescription("Shows the price an item sells for to NPCs")
+        .showIf { showPrices.value }
     private val showItemQuality by ToggleSetting("Item Quality")
         .withDescription("Shows the base stats boost of dungeon items and their floor")
     private val scrollableTooltips by ToggleSetting("Scrollable Tooltips").section("Scrollable Tooltips")
@@ -70,17 +74,20 @@ object ItemTooltip: Feature("Adds item information and controls to item tooltips
 
             if (! showPrices.value) return@register
 
-            val itemId = event.stack.marketId.takeIf(String::isNotEmpty) ?: return@register
             val quantity = event.stack.count
 
+            val itemId = event.stack.marketId
             NetworkLoop.getBazaarPrice(itemId)?.let { price ->
                 addPriceLine(event.lore, "Bazaar Buy", price.buy, quantity)
                 addPriceLine(event.lore, "Bazaar Sell", price.sell, quantity)
-                return@register
+            } ?: NetworkLoop.getLowestBin(itemId)?.let { price ->
+                addPriceLine(event.lore, "Lowest BIN", price, quantity)
             }
 
-            NetworkLoop.getLowestBin(itemId)?.let { price ->
-                addPriceLine(event.lore, "Lowest BIN", price, quantity)
+            if (showNpcSellPrice.value) {
+                NetworkLoop.getNpcSellPrice(event.stack.skyblockId)?.let { price ->
+                    if (price > 0L) event.lore.add(Component.literal("§eNPC Sell: §6${formatComma(price)}"))
+                }
             }
         }
     }
