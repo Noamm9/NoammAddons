@@ -125,13 +125,16 @@ object ProfileUtils {
             return runCatching { getSecretsCMD() }
         }
 
-        SecretCache.getFromCache(name)?.let { return Result.success(it) }
+        SecretCache.check(name)?.let { return it }
 
         return awaitSharedRequest("SECRETS", name) {
-            SecretCache.getFromCache(name)?.let { return@awaitSharedRequest Result.success(it) }
+            SecretCache.check(name)?.let { return@awaitSharedRequest it }
             getUUIDbyName(name).mapCatching { mojangData ->
                 doApiRequest<Long>("/hypixel/secrets/${mojangData.uuid}")
-            }.onSuccess { SecretCache.addToCache(name, it) }
+            }.apply {
+                onSuccess { SecretCache.addToCache(name, it) }
+                onFailure { SecretCache.addFailedToCache(name) }
+            }
         }
     }
 
@@ -143,7 +146,10 @@ object ProfileUtils {
             ProfileCache.check(name)?.let { return@awaitSharedRequest it }
             getUUIDbyName(name).mapCatching { mojangData ->
                 doApiRequest<DungeonStats>("/hypixel/dungeonstats/${mojangData.uuid}")
-            }.onSuccess { ProfileCache.addToCache(name, it) }.onFailure { it.printStackTrace() }
+            }.apply {
+                onSuccess { ProfileCache.addToCache(name, it) }
+                onFailure { ProfileCache.addFailedToCache(name) }
+            }
         }
     }
 

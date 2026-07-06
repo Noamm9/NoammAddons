@@ -5,17 +5,17 @@ import com.github.noamm9.config.PogObject
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.utils.ThreadUtils
-import com.github.noamm9.utils.network.abstracts.AbstractCache
 import com.github.noamm9.utils.network.abstracts.CacheResult
 import com.github.noamm9.utils.network.abstracts.CachedEntry
+import com.github.noamm9.utils.network.abstracts.NetworkCache
 import com.github.noamm9.utils.network.data.MojangData
 import com.github.noamm9.utils.remove
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
 import java.util.concurrent.*
 
-object UuidCache: AbstractCache<MojangData> {
-    override var storage = PogObject("uuid_cache", ConcurrentHashMap<String, CachedEntry<MojangData>>())
-    override val EXPIRE_TIME = TimeUnit.HOURS.toMillis(1)
+object UuidCache: NetworkCache<String, MojangData> {
+    private var storage = PogObject("uuid_cache", ConcurrentHashMap<String, CachedEntry<MojangData>>())
+    private val EXPIRE_TIME = TimeUnit.HOURS.toMillis(1)
     private val nameRegex = "^\\w+$".toRegex()
 
     init {
@@ -35,35 +35,37 @@ object UuidCache: AbstractCache<MojangData> {
         }
     }
 
-    fun addToCache(data: MojangData) = addToCache("", data)
-    override fun addToCache(key: String, data: MojangData) {
-        val cleanUuid = data.uuid.remove("-").lowercase()
-        val lowerName = data.name.lowercase()
-        val entry = CachedEntry(data)
-
-        storage.get()[lowerName] = entry
-        storage.get()[cleanUuid] = entry
-    }
-
-    override fun addFailedToCache(key: String) {
-        val cleanKey = key.remove("-").lowercase()
-        val entry = CachedEntry<MojangData>(null)
-        storage.get()[cleanKey] = entry
-    }
-
     override fun get(key: String): CacheResult<MojangData> {
         val cleanKey = key.remove("-").lowercase()
-        val entry = storage.get()[cleanKey] ?: return CacheResult.NotFound()
+        val entry = storage.get()[cleanKey] ?: return CacheResult.NotFound
 
-        if (isExpired(entry)) {
+        if (System.currentTimeMillis() - entry.timestamp > EXPIRE_TIME) {
             storage.get().remove(cleanKey)
             entry.value?.let { data ->
                 storage.get().remove(data.name.lowercase())
                 storage.get().remove(data.uuid.remove("-").lowercase())
             }
-            return CacheResult.NotFound()
+            return CacheResult.NotFound
         }
 
-        return if (entry.value == null) CacheResult.Failed() else CacheResult.Success(entry.value)
+        return if (entry.value == null) CacheResult.Failed else CacheResult.Success(entry.value)
+    }
+
+    fun addToCache(data: MojangData) = addToCache("", data)
+    override fun addToCache(key: String, value: MojangData) {
+        val cleanUuid = value.uuid.remove("-").lowercase()
+        val lowerName = value.name.lowercase()
+        val entry = CachedEntry(value)
+
+        storage.get()[lowerName] = entry
+        storage.get()[cleanUuid] = entry
+    }
+
+    override fun addFailedToCache(key: String) = storage.get().set(key.remove("-").lowercase(), CachedEntry(null))
+
+    private fun cleanupExpired() {
+        val now = System.currentTimeMillis()
+        val removed = storage.get().values.removeIf { now - it.timestamp > EXPIRE_TIME }
+        if (removed) storage.save()
     }
 }
