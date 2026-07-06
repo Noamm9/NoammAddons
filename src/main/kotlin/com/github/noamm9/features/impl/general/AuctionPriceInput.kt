@@ -98,7 +98,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             if (rememberInput.value["Text"] != true) input = ""
             mode = if (rememberInput.value["Mode"] == true && mode != null) mode else InputMode.entries[defaultMode.value]
 
-            lowestBin = NetworkLoop.priceData[stack.skyblockId] ?: 0L
+            lowestBin = NetworkLoop.getLowestBin(stack.skyblockId) ?: 0L
 
             val centerX = width / 2
             val centerY = height / 2

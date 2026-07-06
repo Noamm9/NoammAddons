@@ -1,6 +1,6 @@
 package com.github.noamm9.mixin;
 
-import com.github.noamm9.features.impl.misc.ScrollableTooltip;
+import com.github.noamm9.features.impl.general.ItemTooltip;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.client.gui.Font;
@@ -21,12 +21,12 @@ public abstract class MixinGuiGraphicsExtractor {
 
     @WrapMethod(method = "tooltip")
     private void onRenderTooltipPre(Font font, List<ClientTooltipComponent> lines, int xo, int yo, ClientTooltipPositioner positioner, @org.jspecify.annotations.Nullable Identifier style, Operation<Void> original) {
-        if (!ScrollableTooltip.INSTANCE.enabled) original.call(font, lines, xo, yo, positioner, style);
+        if (!ItemTooltip.isScrollingEnabled()) original.call(font, lines, xo, yo, positioner, style);
         else {
             pose.pushMatrix();
             pose.translate(xo, yo);
-            pose.scale(ScrollableTooltip.INSTANCE.getScale().getValue().floatValue() / 100f + ScrollableTooltip.scaleOverride / 10f);
-            pose.translate(ScrollableTooltip.scrollAmountX, ScrollableTooltip.scrollAmountY);
+            pose.scale(ItemTooltip.INSTANCE.getScale().getValue().floatValue() / 100f + ItemTooltip.scaleOverride / 10f);
+            pose.translate(ItemTooltip.scrollAmountX, ItemTooltip.scrollAmountY);
             pose.translate(-xo, -yo);
             original.call(font, lines, xo, yo, positioner, style);
             pose.popMatrix();

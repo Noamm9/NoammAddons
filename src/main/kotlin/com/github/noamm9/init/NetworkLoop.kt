@@ -11,7 +11,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.json.*
-import java.util.concurrent.*
+import java.util.concurrent.TimeUnit
 
 object NetworkLoop {
     private const val ELECTION_URL = "https://api.hypixel.net/v2/resources/skyblock/election"
@@ -19,8 +19,15 @@ object NetworkLoop {
     private const val BAZAAR_URL = "https://api.hypixel.net/v2/skyblock/bazaar"
     private const val LOWESTBINS_URL = "https://lb.tricked.dev/lowestbins"
 
-    @JvmField val priceData = ConcurrentHashMap<String, Long>()
     @JvmField var electionData = ElectionData.empty
+
+    internal data class BazaarPrice(val buy: Long, val sell: Long)
+    @Volatile private var lowestBinPrices = emptyMap<String, Long>()
+    @Volatile private var bazaarPrices = emptyMap<String, BazaarPrice>()
+
+    internal fun getLowestBin(itemId: String): Long? = lowestBinPrices[itemId]
+    internal fun getBazaarPrice(itemId: String): BazaarPrice? = bazaarPrices[itemId]
+    internal fun getPrice(itemId: String): Long? = bazaarPrices[itemId]?.sell ?: lowestBinPrices[itemId]
 
     fun init() = ThreadUtils.loop(TimeUnit.MINUTES.toMillis(10)) {
         coroutineScope {
@@ -60,19 +67,23 @@ object NetworkLoop {
 
     private suspend fun updateLowestBins() = runCatching {
         val data = WebUtils.getAs<Map<String, Double>>(LOWESTBINS_URL).getOrThrow()
-        priceData.putAll(data.mapValues { it.value.toLong() })
+        lowestBinPrices = data.mapValues { it.value.toLong() }
     }.onFailure { logError("lowest bins", it) }
 
     private suspend fun updateBazaarPrices() = runCatching {
         val data = WebUtils.getAs<JsonObject>(BAZAAR_URL).getOrThrow()
-        data["products"]?.jsonObject?.forEach { (key, element) ->
+        val prices = data["products"]?.jsonObject?.map { (key, element) ->
             val product = element.jsonObject
             val productId = product["product_id"]?.jsonPrimitive?.content ?: key
-            val buyPrice = product["buy_summary"]?.jsonArray?.getOrNull(0)
+            val sellPrice = product["buy_summary"]?.jsonArray?.getOrNull(0)
+                ?.jsonObject?.get("pricePerUnit")?.jsonPrimitive?.doubleOrNull?.toLong() ?: 0L
+            val buyPrice = product["sell_summary"]?.jsonArray?.getOrNull(0)
                 ?.jsonObject?.get("pricePerUnit")?.jsonPrimitive?.doubleOrNull?.toLong() ?: 0L
 
-            priceData[productId] = buyPrice
-        }
+            productId to BazaarPrice(buyPrice, sellPrice)
+        }?.toMap().orEmpty()
+
+        bazaarPrices = prices
     }.onFailure { logError("bazaar prices", it) }
 
     private suspend fun updateSkyblockItems() = runCatching {

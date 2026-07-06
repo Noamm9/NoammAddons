@@ -8,7 +8,7 @@ import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.impl.dev.ClickGui
 import com.github.noamm9.features.impl.general.FEAT_ItemRarity
 import com.github.noamm9.features.impl.misc.InventorySearch
-import com.github.noamm9.features.impl.misc.ScrollableTooltip
+import com.github.noamm9.features.impl.general.ItemTooltip
 import com.github.noamm9.mixin.IAbstractContainerScreen
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ColorUtils.withAlpha
@@ -115,9 +115,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
     private fun resetTooltip(prev: ItemStack?) {
         if (hoveredOverlayItem === prev) return
-        ScrollableTooltip.scrollAmountX = 0f
-        ScrollableTooltip.scrollAmountY = 0f
-        ScrollableTooltip.scaleOverride = 0f
+        ItemTooltip.resetScroll()
     }
 
     private fun GuiGraphicsExtractor.setOverlayTooltip(stack: ItemStack, mouseX: Int, mouseY: Int) {
@@ -377,15 +375,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
     @Suppress("SameReturnValue")
     fun mouseScrolled(verticalAmount: Double): Boolean {
-        if (hoveredOverlayItem != null && ScrollableTooltip.enabled && StorageOverlay.enableTooltipInStorage.value) {
-            val scroll = (verticalAmount * ScrollableTooltip.scrollSpeed.value).toFloat()
-            val holdingShift = GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS
-            val holdingCtrl = GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_LEFT_CONTROL) == GLFW.GLFW_PRESS
-            when {
-                holdingShift && ! holdingCtrl -> ScrollableTooltip.scrollAmountX -= scroll
-                ! holdingShift && holdingCtrl -> ScrollableTooltip.applyScaleScroll(verticalAmount)
-                else -> ScrollableTooltip.scrollAmountY += scroll
-            }
+        if (hoveredOverlayItem != null && ItemTooltip.isScrollingEnabled() && StorageOverlay.enableTooltipInStorage.value) {
+            ItemTooltip.applyScroll(verticalAmount)
             return true
         }
 

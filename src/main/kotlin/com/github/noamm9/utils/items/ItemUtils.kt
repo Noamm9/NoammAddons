@@ -8,6 +8,7 @@ import com.github.noamm9.utils.items.ItemRarity.Companion.RARITY_PATTERN
 import com.github.noamm9.utils.items.ItemRarity.Companion.rarityCache
 import com.github.noamm9.utils.network.data.DungeonStats
 import net.minecraft.core.component.DataComponents
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.component.CustomData
 import net.minecraft.world.item.component.ItemLore
@@ -37,6 +38,35 @@ object ItemUtils {
 
             return sbItemID.orEmpty()
         }
+
+    val ItemStack.marketId get() = getMarketId(skyblockId, customData)
+
+    internal fun getMarketId(id: String, data: CompoundTag): String {
+        return when (id) {
+            "ENCHANTED_BOOK" -> {
+                val enchantments = data.getCompound("enchantments").getOrNull() ?: return ""
+                val enchantId = enchantments.keySet().singleOrNull() ?: return ""
+                val level = enchantments.getIntOr(enchantId, 0)
+                if (level > 0) "ENCHANTED_BOOK-${enchantId.uppercase()}-$level" else ""
+            }
+
+            "RUNE", "UNIQUE_RUNE" -> {
+                val runes = data.getCompound("runes").getOrNull() ?: return ""
+                val runeId = runes.keySet().singleOrNull() ?: return ""
+                val level = runes.getIntOr(runeId, 0)
+                if (level > 0) "RUNE-${runeId.uppercase()}-$level" else ""
+            }
+
+            "POTION" -> {
+                val potion = data.getString("potion").getOrNull()?.takeIf(String::isNotEmpty) ?: return ""
+                val level = data.getIntOr("potion_level", 0)
+                if (level <= 0) return ""
+                "POTION-${potion.uppercase()}-$level${if (data.getBooleanOr("enhanced", false)) "-ENHANCED" else ""}"
+            }
+
+            else -> id
+        }
+    }
 
     fun getSkullTexture(stack: ItemStack): String? {
         if (stack.isEmpty) return null
