@@ -1,3 +1,5 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
 package com.github.noamm9.ui.gui
 
 import com.github.noamm9.NoammAddons
@@ -8,6 +10,7 @@ import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.TextInputHandler
 import com.github.noamm9.utils.render.Render2D
+import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.CharacterEvent
@@ -41,12 +44,13 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
     private val addBtnW = 120f
     private val addBtnH = 20f
 
-    private val panelX get() = (Resolution.width / 2) - (panelW / 2)
-    private val panelY get() = (Resolution.height / 2) - (panelH / 2)
-    private val viewX get() = panelX + 10
-    private val viewY get() = panelY + 25
-    private val viewW get() = panelW - 20
-    private val viewH get() = panelH - 65
+    private inline val panelX get() = (Resolution.width / 2) - (panelW / 2)
+    private inline val panelY get() = (Resolution.height / 2) - (panelH / 2)
+    private inline val viewX get() = panelX + 10
+    private inline val viewY get() = panelY + 25
+    private inline val viewW get() = panelW - 20
+    private inline val viewH get() = panelH - 65
+    private inline fun deleteX(x: Float) = x + viewW - deleteWidth - 2
 
     override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
         Resolution.refresh()
@@ -70,9 +74,7 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
 
         graphics.enableScissor(viewX.toInt(), viewY.toInt(), (viewX + viewW).toInt(), (viewY + viewH).toInt())
 
-        if (rows.isEmpty()) {
-            Render2D.drawCenteredString(graphics, "§8No command shortcuts yet :(", x + panelW / 2, viewY + viewH / 2 - 4)
-        }
+        if (rows.isEmpty()) Render2D.drawCenteredString(graphics, "§8No command shortcuts yet :(", x + panelW / 2, viewY + viewH / 2 - 4)
 
         val startIndex = max(0, (- currentScroll / entryHeight).toInt())
         val endIndex = min(rows.size, startIndex + ceil(viewH / entryHeight).toInt() + 1)
@@ -118,9 +120,9 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
     }
 
     private fun drawRow(ctx: GuiGraphicsExtractor, row: Row, x: Float, y: Float, mx: Float, my: Float) {
-        drawInput(ctx, row.commandInput, row.command.isEmpty(), "/hello", mx, my)
-        Render2D.drawCenteredString(ctx, "➜", x + commandWidth + arrowWidth / 2, y + 9, Color.GRAY)
-        drawInput(ctx, row.replacementInput, row.replacement.isEmpty(), "/pc hello world", mx, my)
+        drawInput(ctx, row.commandInput, row.command.isEmpty(), "hello", mx, my)
+        Render2D.drawCenteredString(ctx, "➜", x + commandWidth + arrowWidth / 2, y + 9)
+        drawInput(ctx, row.replacementInput, row.replacement.isEmpty(), "pc hello world", mx, my)
 
         val delX = deleteX(x)
         val delHovered = mx >= delX && mx <= delX + deleteWidth && my >= y && my <= y + entryHeight
@@ -132,15 +134,9 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
         val color = if (handler.listening) Style.accentColor else Color(255, 255, 255, 30)
         Render2D.drawRect(ctx, handler.x, handler.y + handler.height - 1, handler.width, 1f, color)
 
-        if (showPlaceholder && ! handler.listening) {
-            Render2D.drawString(ctx, "§8$placeholder", handler.x + 4, handler.y + 5)
-        }
-        else {
-            handler.draw(ctx, mx, my)
-        }
+        if (showPlaceholder && ! handler.listening) Render2D.drawString(ctx, "§8$placeholder", handler.x + 4, handler.y + 5)
+        else handler.draw(ctx, mx, my)
     }
-
-    private fun deleteX(x: Float) = x + viewW - deleteWidth - 2
 
     override fun mouseClicked(event: MouseButtonEvent, isDoubleClick: Boolean): Boolean {
         val mx = Resolution.getMouseX(event.x).toFloat()
@@ -157,21 +153,20 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
 
         val inView = mx >= viewX && mx <= viewX + viewW && my >= viewY && my <= viewY + viewH
 
-        if (inView) {
-            rows.forEachIndexed { index, _ ->
-                val rowY = viewY + scrollAnim.value + (index * entryHeight)
-                val delX = deleteX(viewX)
-                if (mx >= delX && mx <= delX + deleteWidth && my >= rowY && my <= rowY + entryHeight) {
-                    rows.removeAt(index)
-                    Style.playClickSound(1f)
-                    return true
-                }
+        if (inView) rows.forEachIndexed { index, _ ->
+            val rowY = viewY + scrollAnim.value + (index * entryHeight)
+            val delX = deleteX(viewX)
+            if (mx >= delX && mx <= delX + deleteWidth && my >= rowY && my <= rowY + entryHeight) {
+                rows.removeAt(index)
+                Style.playClickSound(1f)
+                return true
             }
         }
 
         val firstVisible = max(0, (- scrollAnim.value / entryHeight).toInt())
         val lastVisible = min(rows.size, firstVisible + ceil(viewH / entryHeight).toInt() + 1)
         var consumed = false
+
         rows.forEachIndexed { index, row ->
             val canClick = inView && index in firstVisible until lastVisible
             val inputX = if (canClick) mx else - 1f
@@ -179,6 +174,7 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
             if (row.commandInput.mouseClicked(inputX, inputY, event)) consumed = true
             if (row.replacementInput.mouseClicked(inputX, inputY, event)) consumed = true
         }
+
         if (consumed) return true
 
         return super.mouseClicked(event, isDoubleClick)
@@ -200,25 +196,32 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
             scrollTarget += (v * 44).toFloat()
             scrollTarget = scrollTarget.coerceIn(- maxScroll, 0f)
         }
-        else {
-            scrollTarget = 0f
-        }
+        else scrollTarget = 0f
+
         return true
     }
 
     override fun keyPressed(keyEvent: KeyEvent): Boolean {
+        if (keyEvent.key == InputConstants.KEY_SLASH) return true
+        if (keyEvent.key == InputConstants.KEY_BACKSLASH) return true
+
         rows.forEach {
             if (it.commandInput.keyPressed(keyEvent)) return true
             if (it.replacementInput.keyPressed(keyEvent)) return true
         }
+
         if (keyEvent.key == GLFW.GLFW_KEY_ESCAPE) {
             onClose()
             return true
         }
+
         return super.keyPressed(keyEvent)
     }
 
     override fun charTyped(e: CharacterEvent): Boolean {
+        if (e.codepoint == '/'.code) return true
+        if (e.codepoint == '\\'.code) return true
+
         rows.forEach {
             if (it.commandInput.keyTyped(e)) return true
             if (it.replacementInput.keyTyped(e)) return true
@@ -229,11 +232,13 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
     override fun onClose() {
         val shortcuts = linkedMapOf<String, String>()
         rows.forEach { row ->
-            val command = row.command.trim().removePrefix("/").substringBefore(" ").lowercase()
+            val command = row.command.trim().substringBefore(" ").lowercase()
             val replacement = row.replacement.trim()
             if (command.isNotEmpty() && replacement.isNotEmpty()) shortcuts[command] = replacement
         }
-        CommandShortcuts.shortcuts = shortcuts
+
         NoammAddons.screen = ClickGuiScreen
+        CommandShortcuts.shortcuts = shortcuts
+        CommandShortcuts.build()
     }
 }
