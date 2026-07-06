@@ -47,17 +47,10 @@ object ProfileUtils {
 
     suspend fun getUUIDbyName(name: String): Result<MojangData> {
         val lowerName = name.lowercase()
-
-        UuidCache.getFromCache(lowerName)?.let {
-            if (it == "FAILED") return Result.failure(Exception("$name not found (cached)"))
-            return Result.success(MojangData(name, it))
-        }
+        UuidCache.check(lowerName)?.let { return it }
 
         return awaitSharedRequest("UUID", lowerName) {
-            UuidCache.getFromCache(lowerName)?.let {
-                if (it == "FAILED") return@awaitSharedRequest Result.failure(Exception("$name not found"))
-                return@awaitSharedRequest Result.success(MojangData(name, it))
-            }
+            UuidCache.check(lowerName, "$name not found")?.let { return@awaitSharedRequest it }
 
             for ((i, api) in nameToUuidApis.withIndex()) {
                 if (System.currentTimeMillis() < (apiCooldowns[api] ?: 0L)) continue
@@ -80,27 +73,21 @@ object ProfileUtils {
                 if (uuid.isNullOrBlank() || fetchedName.isNullOrBlank()) continue
 
                 val cleanUuid = uuid.replace("-", "")
-                UuidCache.addToCache(fetchedName, cleanUuid)
-                return@awaitSharedRequest Result.success(MojangData(fetchedName, cleanUuid))
+                val data = MojangData(fetchedName, cleanUuid)
+                UuidCache.addToCache(data)
+                return@awaitSharedRequest Result.success(data)
             }
 
-            Result.failure<MojangData>(Exception("$name not found")).also { UuidCache.addToCache(lowerName, "FAILED") }
+            Result.failure<MojangData>(Exception("$name not found")).also { UuidCache.addFailedToCache(lowerName) }
         }
     }
 
     suspend fun getNameByUUID(uuid: UUID): Result<MojangData> {
         val key = uuid.toString().replace("-", "")
-
-        UuidCache.getNameFromCache(key)?.let {
-            if (it == "FAILED") return Result.failure(Exception("UUID not found"))
-            return Result.success(MojangData(it, key))
-        }
+        UuidCache.check(key, "UUID not found")?.let { return it }
 
         return awaitSharedRequest("NAME", key) {
-            UuidCache.getNameFromCache(key)?.let {
-                if (it == "FAILED") return@awaitSharedRequest Result.failure(Exception("$key not found"))
-                return@awaitSharedRequest Result.success(MojangData(it, key))
-            }
+            UuidCache.check(key, "$key not found")?.let { return@awaitSharedRequest it }
 
             for ((i, api) in uuidToNameApis.withIndex()) {
                 if (System.currentTimeMillis() < (apiCooldowns[api] ?: 0L)) continue
@@ -117,16 +104,18 @@ object ProfileUtils {
                 }
 
                 val response = catch { JsonUtils.json.parseToJsonElement(result.getOrThrow()).jsonObject } ?: continue
-                val uuid = if (i == 0) response.getObj("data")?.getObj("player")?.getString("id") else response.getString("id") ?: key
+                val fetchedUuid = if (i == 0) response.getObj("data")?.getObj("player")?.getString("id") else response.getString("id") ?: key
                 val fetchedName = if (i == 0) response.getObj("data")?.getObj("player")?.getString("username") else response.getString("name")
 
-                if (uuid.isNullOrBlank() || fetchedName.isNullOrBlank()) continue
+                if (fetchedUuid.isNullOrBlank() || fetchedName.isNullOrBlank()) continue
 
-                UuidCache.addToCache(fetchedName, uuid)
-                return@awaitSharedRequest Result.success(MojangData(fetchedName, uuid))
+                val cleanUuid = fetchedUuid.replace("-", "")
+                val data = MojangData(fetchedName, cleanUuid)
+                UuidCache.addToCache(data)
+                return@awaitSharedRequest Result.success(data)
             }
 
-            Result.failure<MojangData>(Exception("$key not found")).also { UuidCache.addToCache("FAILED", key) }
+            Result.failure<MojangData>(Exception("$key not found")).also { UuidCache.addFailedToCache(key) }
         }
     }
 
@@ -148,10 +137,10 @@ object ProfileUtils {
 
     suspend fun getProfile(playerName: String): Result<DungeonStats> {
         val name = playerName.lowercase()
-        ProfileCache.getFromCache(name)?.let { return Result.success(it) }
+        ProfileCache.check(name)?.let { return it }
 
         return awaitSharedRequest("PROFILE", name) {
-            ProfileCache.getFromCache(name)?.let { return@awaitSharedRequest Result.success(it) }
+            ProfileCache.check(name)?.let { return@awaitSharedRequest it }
             getUUIDbyName(name).mapCatching { mojangData ->
                 doApiRequest<DungeonStats>("/hypixel/dungeonstats/${mojangData.uuid}")
             }.onSuccess { ProfileCache.addToCache(name, it) }.onFailure { it.printStackTrace() }
