@@ -69,11 +69,7 @@ object DungeonScanner {
             }
         }
 
-        if (allChunksLoaded) {
-            DungeonInfo.roomCount = DungeonInfo.dungeonList.filter { it is Room && ! it.isSeparator }.size
-            hasScanned = true
-        }
-
+        if (allChunksLoaded) hasScanned = true
         lastScanTime = System.currentTimeMillis()
         isScanning = false
     }

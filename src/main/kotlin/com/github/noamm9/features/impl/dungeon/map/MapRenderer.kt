@@ -19,12 +19,10 @@ import com.github.noamm9.utils.dungeons.map.utils.MapUtils
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
 import com.github.noamm9.utils.render.RenderHelper.renderVec
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.resources.Identifier
 import java.awt.Color
-import kotlin.math.max
 
 object MapRenderer: HudElement() {
     override val name get() = "Dungeon Map"
@@ -182,52 +180,15 @@ object MapRenderer: HudElement() {
                     val showSecrets = MapConfig.dungeonMapCheckmarkStyle.value == 3 && room.data.secrets > 0
 
                     if (MapConfig.limitRoomNameSize.value) {
-                        var maxWidth = roomSize
-                        var maxHeight = roomSize
-
-                        if (room.data.shape != "L" || room.data.shape != "1x1" || room.data.shape != "2x2") {
-                            var minX = Int.MAX_VALUE
-                            var maxX = Int.MIN_VALUE
-                            var minZ = Int.MAX_VALUE
-                            var maxZ = Int.MIN_VALUE
-
-                            for (tile in unq.tiles) {
-                                if (tile.x < minX) minX = tile.x
-                                if (tile.x > maxX) maxX = tile.x
-                                if (tile.z < minZ) minZ = tile.z
-                                if (tile.z > maxZ) maxZ = tile.z
-                            }
-
-                            val tilesWide = maxX - minX + 1
-                            val tilesTall = maxZ - minZ + 1
-
-                            maxWidth = (tilesWide * roomSize) + (max(0, tilesWide - 1) * gapSize)
-                            maxHeight = (tilesTall * roomSize) + (max(0, tilesTall - 1) * gapSize)
-                        }
-
-                        if (room.data.shape == "L") maxWidth = roomSize * 2
-                        else if (room.data.shape == "2x2") {
-                            maxWidth = roomSize * 2
-                            maxHeight = roomSize * 2
-                        }
-
-                        var maxLineW = 0f
-                        for (line in unq.cacheSplitName) {
-                            val w = line.width() * scale
-                            if (w > maxLineW) maxLineW = w
-                        }
-
-                        var totalH = unq.cacheSplitName.size * mc.font.lineHeight * scale
-
-                        if (showSecrets) {
-                            val w = "${unq.foundSecrets}/${room.data.secrets}".width() * scale
-                            if (w > maxLineW) maxLineW = w
-                            totalH += mc.font.lineHeight
-                        }
+                        unq.updateBounds(roomSize, gapSize)
+                        val secretsText = if (showSecrets) "${unq.foundSecrets}/${room.data.secrets}" else ""
+                        val maxLineW = unq.updateTextScale(1f, showSecrets, secretsText)
+                        var totalH = unq.cacheSplitName.size * mc.font.lineHeight.toFloat()
+                        if (showSecrets) totalH += mc.font.lineHeight
 
                         if (maxLineW > 0 && totalH > 0) {
-                            val sW = maxWidth / maxLineW
-                            val sH = maxHeight / totalH
+                            val sW = unq.cachedMaxWidth / maxLineW
+                            val sH = unq.cachedMaxHeight / totalH
                             scale = sW.coerceAtMost(sH).coerceIn(0.39f, MapConfig.textScale.value.toFloat())
                         }
                     }
@@ -342,7 +303,7 @@ object MapRenderer: HudElement() {
         matrices: GuiGraphicsExtractor, x: Int, y: Int, doorWidth: Int, doorway: Boolean, vertical: Boolean, color: Color,
     ) {
         val doorwayOffset = if (MapUtils.mapRoomSize == 16) 5 else 6
-        val width = if (doorway) 6 else MapUtils.mapRoomSize
+        val doorHeight = if (doorway) 6 else MapUtils.mapRoomSize
         var x1 = if (vertical) x + MapUtils.mapRoomSize else x
         var y1 = if (vertical) y else y + MapUtils.mapRoomSize
         if (doorway) if (vertical) y1 += doorwayOffset else x1 += doorwayOffset
@@ -351,8 +312,8 @@ object MapRenderer: HudElement() {
             matrices,
             x1.toDouble(),
             y1.toDouble(),
-            (if (vertical) doorWidth else width).toDouble(),
-            (if (vertical) width else doorWidth).toDouble(),
+            (if (vertical) doorWidth else doorHeight).toDouble(),
+            (if (vertical) doorHeight else doorWidth).toDouble(),
             color
         )
     }

@@ -28,12 +28,12 @@ object DungeonPathFinder {
         if (row !in 0 .. 10 || column !in 0 .. 10) return emptyList()
         val rooms = ArrayList<Room>(2)
         if (column and 1 == 0) {
-            if (row > 0) (DungeonInfo.dungeonList[(row - 1) * 11 + column] as? Room)?.let { rooms.add(it) }
-            if (row < 10) (DungeonInfo.dungeonList[(row + 1) * 11 + column] as? Room)?.let { rooms.add(it) }
+            if (row > 0) (DungeonInfo.dungeonList[(row - 1) * 11 + column] as? Room)?.let(rooms::add)
+            if (row < 10) (DungeonInfo.dungeonList[(row + 1) * 11 + column] as? Room)?.let(rooms::add)
         }
         else {
-            if (column > 0) (DungeonInfo.dungeonList[row * 11 + column - 1] as? Room)?.let { rooms.add(it) }
-            if (column < 10) (DungeonInfo.dungeonList[row * 11 + column + 1] as? Room)?.let { rooms.add(it) }
+            if (column > 0) (DungeonInfo.dungeonList[row * 11 + column - 1] as? Room)?.let(rooms::add)
+            if (column < 10) (DungeonInfo.dungeonList[row * 11 + column + 1] as? Room)?.let(rooms::add)
         }
         return rooms
     }
@@ -144,8 +144,8 @@ object DungeonPathFinder {
 
             if (r1 == null || r2 == null || r1 == r2) continue
 
-            graph.getOrPut(r1) { mutableSetOf() }.add(r2)
-            graph.getOrPut(r2) { mutableSetOf() }.add(r1)
+            graph.getOrPut(r1, ::mutableSetOf).add(r2)
+            graph.getOrPut(r2, ::mutableSetOf).add(r1)
         }
 
         splitsCache = graph

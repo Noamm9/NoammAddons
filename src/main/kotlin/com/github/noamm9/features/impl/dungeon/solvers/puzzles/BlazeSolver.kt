@@ -15,7 +15,6 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderContext
-import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.monster.Blaze
 import java.awt.Color
@@ -24,12 +23,11 @@ import java.util.concurrent.*
 object BlazeSolver: PuzzleSolver {
     override val enabled get() = PuzzleSolvers.blaze.value
     private val blazeHpRegex = Regex("^\\[Lv15].+Blaze [\\d,]+/([\\d,]+)❤$")
-    private val blazes = CopyOnWriteArrayList<Entity>()
+    private val blazes = CopyOnWriteArrayList<Blaze>()
     private val hpMap = ConcurrentHashMap<Int, Int>()
 
     private var inBlaze = false
     private var reversed = false
-
 
     override fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (! event.room.name.contains("Blaze")) return
@@ -40,10 +38,12 @@ object BlazeSolver: PuzzleSolver {
     }
 
     override fun onEntityGlow(event: CheckEntityGlowEvent) {
-        if (! inBlaze || blazes.isEmpty()) return
-        event.color = blazes.withIndex().find {
-            it.value.id == event.entity.id && it.index < blazeCount.value
-        }?.let { getBlazeColor(it.index) } ?: return
+        if (! inBlaze || hpMap.isEmpty()) return
+        if (event.entity !is Blaze) return
+        val index = blazes.indexOf(event.entity)
+        if (index == - 1) return
+        if (index > blazeCount.value) return
+        event.color = getBlazeColor(index)
     }
 
     override fun onRenderWorld(ctx: RenderContext) {

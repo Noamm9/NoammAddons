@@ -52,9 +52,8 @@ object Cosmetics: Feature(toggled = true) {
                     }
 
                     jobs.awaitAll()
-                    TextReplacer.add(customNames)
+                    TextReplacer.init(customNames)
                 }
-
             }.onFailure { cause ->
                 NoammAddons.logger.error("Failed to load cosmetic people", cause)
                 ChatUtils.modMessage("&cFailed to load cosmetic people: ${cause.message}")
@@ -85,7 +84,7 @@ object Cosmetics: Feature(toggled = true) {
             state.nameTagAttachment = Vec3(pos.x, adjustedY, pos.z)
         }
     }
-    
+
     val GAME_PROFILE_KEY = RenderStateDataKey.create<GameProfile> { "${NoammAddons.MOD_ID}:game_profile" }
 
     @Serializable

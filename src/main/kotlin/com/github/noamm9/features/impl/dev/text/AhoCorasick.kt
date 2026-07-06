@@ -2,9 +2,10 @@ package com.github.noamm9.features.impl.dev.text
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.MutableComponent
 import net.minecraft.network.chat.Style
 import net.minecraft.util.FormattedCharSequence
+import java.util.Optional
+import kotlin.collections.ArrayDeque
 
 
 /**
@@ -12,19 +13,53 @@ import net.minecraft.util.FormattedCharSequence
  * Under BSD 3-Clause License
  * https://github.com/skies-starred/library/blob/master/src/main/kotlin/xyz/aerii/library/handlers/minecraft/AbstractWords.kt
  */
-class AhoCorasick {
-    private var root = Node()
+abstract class AhoCorasick {
+    private class Node {
+        val goto = Int2ObjectOpenHashMap<Node>(4)
+        var fail: Node? = null
+        var output: Int = - 1
+    }
 
+    private var root = Node()
     private var ia = emptyArray<IntArray>()
     private var r0 = emptyArray<String>()
-    private var r1 = emptyArray<MutableComponent>()
+    private var r1 = emptyArray<Component>()
     private var r2 = emptyArray<FormattedCharSequence>()
 
-    fun isEmpty(): Boolean = ia.isEmpty()
+    var skips: String? = null
 
-    fun build(map: HashMap<String, String>, resolve: (String) -> Pair<String, MutableComponent>) {
-        root = Node()
-        if (map.isEmpty()) {
+    var map0 = HashMap<String, String>()
+        private set
+
+    var map1 = HashMap<String, Component>()
+        private set
+
+    var map2 = HashMap<String, FormattedCharSequence>()
+        private set
+
+    fun put(key: String, str: String, cmp: Component, seq: FormattedCharSequence) {
+        map0[key] = str
+        map1[key] = cmp
+        map2[key] = seq
+    }
+
+    fun put(key: String, str: String) {
+        val cmp = Component.literal(str)
+        put(key, str, cmp, cmp.visualOrderText)
+    }
+
+    fun remove(key: String) {
+        map0.remove(key)
+        map1.remove(key)
+        map2.remove(key)
+    }
+
+    fun build() {
+        val keys = map0.keys.sortedByDescending { it.length }.toTypedArray()
+        val n = keys.size
+
+        if (n == 0) {
+            root = Node()
             ia = emptyArray()
             r0 = emptyArray()
             r1 = emptyArray()
@@ -32,28 +67,28 @@ class AhoCorasick {
             return
         }
 
-        val keys = map.keys.sortedByDescending { it.length }.toTypedArray()
-        val n = keys.size
         ia = Array(n) { keys[it].codePoints().toArray() }
-        val pairs = Array(n) { resolve(map[keys[it]] !!) }
-        r0 = Array(n) { pairs[it].first }
-        r1 = Array(n) { pairs[it].second.copy() }
-        r2 = Array(n) { r1[it].visualOrderText }
+        r0 = Array(n) { map0[keys[it]] !! }
+        r1 = Array(n) { map1[keys[it]] !! }
+        r2 = Array(n) { map2[keys[it]] !! }
 
+        root = Node()
         val queue = ArrayDeque<Node>(n * 4)
 
         for (i in 0 until n) {
             val cps = ia[i]
             var cur = root
+
             for (j in cps.indices) {
-                val cp = cps[j]
-                var child = cur.goto.get(cp)
+                var child = cur.goto.get(cps[j])
                 if (child == null) {
                     child = Node()
-                    cur.goto.put(cp, child)
+                    cur.goto.put(cps[j], child)
                 }
+
                 cur = child
             }
+
             cur.output = i
         }
 
@@ -67,21 +102,16 @@ class AhoCorasick {
             val cur = queue.removeFirst()
             val fail = cur.fail !!
 
-            val curIter = cur.goto.int2ObjectEntrySet().iterator()
-            while (curIter.hasNext()) {
-                val entry = curIter.next()
+            for (entry in cur.goto.int2ObjectEntrySet()) {
                 val child = entry.value
 
-                val childFail = fail.goto.get(entry.intKey) ?: root
-                child.fail = childFail
-                if (child.output == - 1) child.output = childFail.output
+                child.fail = fail.goto.get(entry.intKey) ?: root
+                if (child.output == - 1) child.output = child.fail !!.output
 
                 queue.addLast(child)
             }
 
-            val failIter = fail.goto.int2ObjectEntrySet().iterator()
-            while (failIter.hasNext()) {
-                val entry = failIter.next()
+            for (entry in fail.goto.int2ObjectEntrySet()) {
                 cur.goto.putIfAbsent(entry.intKey, entry.value)
             }
         }
@@ -89,14 +119,15 @@ class AhoCorasick {
 
     fun replaceString(input: String): String {
         if (ia.isEmpty()) return input
+
         val len = input.length
         if (len == 0) return input
 
-        val b = IntArray(len + 16)
+        val sb = StringBuilder(len + 32)
+        val b = IntArray(len)
         var bl = 0
         var i = 0
         var state = root
-        var sb: StringBuilder? = null
 
         while (i < len) {
             val cp = input.codePointAt(i)
@@ -109,10 +140,8 @@ class AhoCorasick {
                 val idx = state.output
                 bl -= ia[idx].size
 
-                val outSb = sb ?: StringBuilder(len + 32).also { sb = it }
-                var j = 0
-                while (j < bl) outSb.appendCodePoint(b[j ++])
-                outSb.append(r0[idx])
+                for (j in 0 ..< bl) sb.appendCodePoint(b[j])
+                sb.append(r0[idx])
                 bl = 0
                 state = root
             }
@@ -120,88 +149,84 @@ class AhoCorasick {
             i += Character.charCount(cp)
         }
 
-        val tail = sb ?: return input
-        var j = 0
-        while (j < bl) tail.appendCodePoint(b[j ++])
-
-        return tail.toString()
+        for (j in 0 ..< bl) sb.appendCodePoint(b[j])
+        return sb.toString()
     }
 
     fun replaceComponent(input: Component): Component {
         if (ia.isEmpty()) return input
 
-        val charsList = ArrayList<Int>(128)
-        val stylesList = ArrayList<Style>(128)
+        var chars = IntArray(128)
+        val styles = ArrayList<Style>(128)
+        var size = 0
 
-        input.visualOrderText.accept { _, style, cp ->
-            charsList.add(cp)
-            stylesList.add(style)
-            true
-        }
+        input.visit({ style, str ->
+            for (cp in str.codePoints()) {
+                if (size >= chars.size) chars = chars.copyOf(chars.size * 2)
+                chars[size] = cp
+                styles.add(style)
+                size ++
+            }
 
-        val size = charsList.size
+            Optional.empty()
+        }, Style.EMPTY)
+
         if (size == 0) return input.copy()
 
-        val chars = IntArray(size) { charsList[it] }
-
-        val styles = stylesList.toTypedArray()
+        val skip = skips
+        val bool = skip != null
+        val result = Component.empty()
 
         val b = IntArray(size)
         val bs = arrayOfNulls<Style>(size)
+        var bl = 0
+        var i = 0
+        var state = root
 
-        fun flush(builder: MutableComponent, blLim: Int) {
+        fun flush() {
             var j = 0
-            while (j < blLim) {
-                val style = bs[j] ?: Style.EMPTY
-                val slice = StringBuilder()
-                while (j < blLim && bs[j] === style) {
-                    slice.appendCodePoint(b[j])
+            while (j < bl) {
+                val style = bs[j] !!
+                val sb = StringBuilder()
+
+                while (j < bl && bs[j] === style) {
+                    sb.appendCodePoint(b[j])
                     j ++
                 }
-                builder.append(Component.literal(slice.toString()).withStyle(style))
+
+                result.append(Component.literal(sb.toString()).withStyle(style))
             }
         }
 
-        var result: MutableComponent? = null
+        while (i < size) {
+            if (bool && styles[i].insertion == skip) {
+                flush()
+                bl = 0
+                state = root
+                result.append(Component.literal(Character.toString(chars[i])).withStyle(styles[i]))
+                i ++
+                continue
+            }
 
-        fun ensureResult(): MutableComponent {
-            val existing = result
-            if (existing != null) return existing
-            val r = Component.literal("")
-            result = r
-            return r
-        }
+            state = state.goto.get(chars[i]) ?: root
 
-        var bl = 0
-        var idx = 0
-        var state = root
-
-        while (idx < size) {
-            state = state.goto.get(chars[idx]) ?: root
-
-            b[bl] = chars[idx]
-            bs[bl] = styles[idx]
+            b[bl] = chars[i]
+            bs[bl] = styles[i]
             bl ++
 
             if (state.output >= 0) {
-                val outIdx = state.output
-                bl -= ia[outIdx].size
-                flush(ensureResult(), bl)
-
-                val baseStyle = bs[bl] ?: Style.EMPTY
-                val rep = r1[outIdx].copy()
-                if (rep.style.isEmpty) rep.withStyle(baseStyle)
-                ensureResult().append(rep)
-
+                bl -= ia[state.output].size
+                flush()
+                result.append(r1[state.output])
                 bl = 0
                 state = root
             }
-            idx ++
+
+            i ++
         }
 
-        val out = result ?: return input
-        flush(out, bl)
-        return out
+        flush()
+        return result
     }
 
     fun replaceCharSequence(input: FormattedCharSequence): FormattedCharSequence {
@@ -210,24 +235,19 @@ class AhoCorasick {
         var chars = IntArray(128)
         val styles = ArrayList<Style>(128)
         var size = 0
-        var scanState = root
-        var mightMatch = false
 
         input.accept { _, style, cp ->
             if (size >= chars.size) chars = chars.copyOf(chars.size * 2)
             chars[size] = cp
             styles.add(style)
-            scanState = scanState.goto.get(cp) ?: root
-            if (scanState.output >= 0) mightMatch = true
             size ++
             true
         }
 
         if (size == 0) return input
-        if (! mightMatch) return input
 
-        val charsFinal = chars.copyOf(size)
-        val stylesFinal = styles.toTypedArray()
+        val skip = skips
+        val bool = skip != null
 
         return FormattedCharSequence { sink ->
             val s = IntArray(size)
@@ -237,10 +257,21 @@ class AhoCorasick {
             var state = root
 
             while (i < size) {
-                state = state.goto.get(charsFinal[i]) ?: root
+                if (bool && styles[i].insertion == skip) {
+                    for (j in 0 ..< bl) sink.accept(0, bs[j] !!, s[j])
 
-                s[bl] = charsFinal[i]
-                bs[bl] = stylesFinal[i]
+                    bl = 0
+                    state = root
+
+                    sink.accept(0, styles[i], chars[i])
+                    i ++
+                    continue
+                }
+
+                state = state.goto.get(chars[i]) ?: root
+
+                s[bl] = chars[i]
+                bs[bl] = styles[i]
                 bl ++
 
                 if (state.output >= 0) {
@@ -248,11 +279,7 @@ class AhoCorasick {
                     val ml = ia[io].size
                     val ms = bl - ml
 
-                    var j = 0
-                    while (j < ms) {
-                        sink.accept(0, bs[j] !!, s[j])
-                        j ++
-                    }
+                    for (j in 0 ..< ms) sink.accept(0, bs[j] !!, s[j])
 
                     val bss = bs[ms] !!
                     r2[io].accept { _, repStyle, repCp ->
@@ -263,22 +290,13 @@ class AhoCorasick {
                     bl = 0
                     state = root
                 }
+
                 i ++
             }
 
-            var jTail = 0
-            while (jTail < bl) {
-                sink.accept(0, bs[jTail] !!, s[jTail])
-                jTail ++
-            }
+            for (j in 0 ..< bl) sink.accept(0, bs[j] !!, s[j])
 
             true
         }
-    }
-
-    private class Node {
-        val goto = Int2ObjectOpenHashMap<Node>(4)
-        var fail: Node? = null
-        var output: Int = - 1
     }
 }

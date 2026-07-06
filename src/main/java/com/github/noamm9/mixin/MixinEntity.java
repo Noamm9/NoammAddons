@@ -2,7 +2,9 @@ package com.github.noamm9.mixin;
 
 import com.github.noamm9.event.EventBus;
 import com.github.noamm9.event.impl.CheckEntityGlowEvent;
+import com.github.noamm9.features.impl.dev.Box3D;
 import com.github.noamm9.features.impl.misc.Camera;
+import com.github.noamm9.interfaces.IGlowingEntity;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,12 +22,12 @@ import java.awt.*;
 //#endif
 
 @Mixin(Entity.class)
-public abstract class MixinEntity {
-    @Unique private int customGlowColor = Color.WHITE.getRGB();
-    @Unique private boolean glowForced = false;
-
+public abstract class MixinEntity implements IGlowingEntity {
     @Shadow
     public abstract float getYRot();
+
+    @Unique private Color customGlowColor = Color.WHITE;
+    @Unique private boolean glowForced = false;
 
     @Inject(method = "isCurrentlyGlowing", at = @At("HEAD"), cancellable = true)
     private void onIsCurrentlyGlowing(CallbackInfoReturnable<Boolean> cir) {
@@ -45,15 +47,17 @@ public abstract class MixinEntity {
             return;
         }
 
-        glowForced = event.getShouldGlow();
-        customGlowColor = event.getColor().getRGB();
+        noammaddons$isGlowing(event.getShouldGlow());
+        noammaddons$glowColor(event.getColor());
 
-        if (this.glowForced) cir.setReturnValue(true);
+        if (noammaddons$isGlowing()) cir.setReturnValue(true);
     }
 
     @Inject(method = "getTeamColor", at = @At("HEAD"), cancellable = true)
     private void onGetTeamColorValue(CallbackInfoReturnable<Integer> cir) {
-        if (this.glowForced) cir.setReturnValue(this.customGlowColor);
+        if (noammaddons$isGlowing() && !Box3D.INSTANCE.enabled) {
+            cir.setReturnValue(noammaddons$glowColor().getRGB());
+        }
     }
 
     /**
@@ -67,11 +71,31 @@ public abstract class MixinEntity {
     private void fixCameraMovement(Entity passenger, CallbackInfo ci) {
         if (!Camera.INSTANCE.enabled || !Camera.getInputFix().getValue()) return;
         if (!passenger.isAlwaysTicking()) return;
-        passenger.setYBodyRot(this.getYRot());
-        float f = Mth.wrapDegrees(passenger.getYRot() - this.getYRot());
+        passenger.setYBodyRot(getYRot());
+        float f = Mth.wrapDegrees(passenger.getYRot() - getYRot());
         float g = Mth.clamp(f, -180.0F, 180.0F);
         passenger.yRotO += g - f;
         passenger.setYRot(passenger.getYRot() + g - f);
         passenger.setYHeadRot(passenger.getYRot());
+    }
+
+    @Override
+    public Color noammaddons$glowColor() {
+        return customGlowColor;
+    }
+
+    @Override
+    public void noammaddons$glowColor(Color color) {
+        customGlowColor = color;
+    }
+
+    @Override
+    public boolean noammaddons$isGlowing() {
+        return glowForced;
+    }
+
+    @Override
+    public void noammaddons$isGlowing(boolean value) {
+        glowForced = value;
     }
 }

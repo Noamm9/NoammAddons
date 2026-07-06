@@ -1,82 +1,40 @@
 package com.github.noamm9.features.impl.dev.text
 
+import com.github.noamm9.utils.catch
 import com.google.gson.JsonParser
 import com.mojang.serialization.JsonOps
-import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.ComponentSerialization
 import net.minecraft.network.chat.MutableComponent
-import net.minecraft.resources.RegistryOps
 import net.minecraft.util.FormattedCharSequence
-import java.util.regex.*
 
-object TextReplacer {
-    private val HEX_PATTERN = Pattern.compile("&#([A-Fa-f0-9]{6})")
-    private val replaceMap = mutableMapOf<String, String>()
-    private val engine = AhoCorasick()
-
-    fun add(map: Map<String, String>) {
-        replaceMap.putAll(map)
-
-        val snapshot = HashMap(replaceMap)
-        engine.build(snapshot) { raw ->
-            val parsed = parseComponent(raw)
-            val plainSource = parsed?.string ?: raw
-            val plain = applyColorCodes(plainSource)
-            val comp = parsed?.copy() ?: Component.literal(applyColorCodes(plainSource))
-            plain to comp
+object TextReplacer: AhoCorasick() {
+    private val cache = object: LinkedHashMap<String, String>(64, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, String>): Boolean {
+            return size > 1000
         }
     }
 
-    @JvmStatic
-    fun handleString(text: String): String {
-        if (text.isEmpty()) return text
-        return engine.replaceString(text)
+    fun init(map: Map<String, String>) {
+        for ((k, v) in map) {
+            val comp = parse(v) ?: continue
+            put(k, comp.string, comp, comp.visualOrderText)
+        }
+
+        build()
     }
 
-    @JvmStatic
-    fun handleComponent(component: Component): Component {
-        if (engine.isEmpty()) return component
-        return engine.replaceComponent(component)
-    }
+    @JvmStatic fun handleString(text: String) = if (text.isBlank()) text else cache.getOrPut(text) { replaceString(text) }
+    @JvmStatic fun handleComponent(component: Component) = replaceComponent(component)
+    @JvmStatic fun handleCharSequence(seq: FormattedCharSequence) = replaceCharSequence(seq)
 
-    @JvmStatic
-    fun handleCharSequence(seq: FormattedCharSequence): FormattedCharSequence {
-        if (engine.isEmpty()) return seq
-        return engine.replaceCharSequence(seq)
-    }
-
-    private fun parseComponent(json: String): MutableComponent? {
+    private fun parse(json: String): MutableComponent? {
         if (! json.trimStart().startsWith("{") && ! json.trimStart().startsWith("[")) return null
 
-        try {
+        return catch {
             val jsonElement = JsonParser.parseString(json)
-
-            val registry = Minecraft.getInstance().level?.registryAccess()
-                ?: Minecraft.getInstance().connection?.registryAccess()
-
-            val ops = if (registry != null) RegistryOps.create(JsonOps.INSTANCE, registry)
-            else JsonOps.INSTANCE
-
-            val result = ComponentSerialization.CODEC.parse(ops, jsonElement)
-
-            return result.result().orElse(null)?.copy()
+            val result = ComponentSerialization.CODEC.parse(JsonOps.INSTANCE, jsonElement)
+            result.result().orElse(null)?.copy()
         }
-        catch (_: Exception) {
-            return null
-        }
-    }
-
-    private fun applyColorCodes(text: String): String {
-        val m = HEX_PATTERN.matcher(text)
-        val buffer = StringBuffer()
-        while (m.find()) {
-            val hex = m.group(1)
-            val r = StringBuilder("§x")
-            for (c in hex) r.append("§").append(c)
-            m.appendReplacement(buffer, r.toString())
-        }
-        m.appendTail(buffer)
-        return buffer.toString().replace("&", "§")
     }
 }

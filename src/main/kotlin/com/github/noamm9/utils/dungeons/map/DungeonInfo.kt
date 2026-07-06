@@ -9,9 +9,6 @@ object DungeonInfo {
     val dungeonList = Array<Tile>(121) { Unknown(0, 0) }
     val uniqueRooms = mutableMapOf<String, UniqueRoom>()
 
-    var roomCount = 0
-
-    var trapType = ""
     var mimicRoom: UniqueRoom? = null
     var witherDoors = 0
     var cryptCount = 0
@@ -21,10 +18,8 @@ object DungeonInfo {
 
     fun reset() {
         dungeonList.fill(Unknown(0, 0))
-        roomCount = 0
         uniqueRooms.clear()
 
-        trapType = ""
         witherDoors = 0
         cryptCount = 0
         secretCount = 0
