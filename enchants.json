@@ -426,6 +426,12 @@
       "maxLevel": 2,
       "nbtName": "punch"
     },
+    "pyroclasm": {
+      "goodLevel": 5,
+      "loreName": "Pyroclasm",
+      "maxLevel": 6,
+      "nbtName": "magmarizer"
+    },
     "quantum": {
       "goodLevel": 0,
       "loreName": "Quantum",
