@@ -24,6 +24,7 @@ import com.mojang.brigadier.arguments.StringArgumentType
 import kotlinx.coroutines.launch
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands
+import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.HoverEvent
 import net.minecraft.world.item.Items
@@ -291,6 +292,10 @@ object PartyFinder: Feature() {
             completionComponents.forEach(ChatUtils::chat)
         }
 
+        ChatUtils.chat(" ")
+        ChatUtils.chat(Component.literal("  §cPress to kick $cleanName").withStyle {
+            it.withClickEvent(ClickEvent.RunCommand("/party kick $cleanName"))
+        })
         ChatUtils.chat("&a&l------------------------------------&r")
     }
 
