@@ -7,7 +7,7 @@ import com.google.common.cache.CacheBuilder
 import java.util.concurrent.*
 
 object SecretCache: NetworkCache<String, Long> {
-    private val entries = CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS).build<String, CachedEntry<Long>>()
+    private val entries = CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.MINUTES).build<String, CachedEntry<Long>>()
 
     override fun get(key: String): CacheResult<Long> {
         val entry = entries.getIfPresent(key.lowercase()) ?: return CacheResult.NotFound

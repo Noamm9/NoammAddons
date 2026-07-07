@@ -67,7 +67,7 @@ object ProfileUtils {
 
                 val response = catch { JsonUtils.json.parseToJsonElement(result.getOrThrow()).jsonObject } ?: continue
                 val uuid = if (i == 0) response.getObj("data")?.getObj("player")?.getString("id") else response.getString("id")
-                val fetchedName = if (i == 0) response.getObj("player")?.getString("username") else response.getString("name") ?: name
+                val fetchedName = if (i == 0) response.getObj("data")?.getObj("player")?.getString("username") else response.getString("name")
 
                 if (uuid.isNullOrBlank() || fetchedName.isNullOrBlank()) continue
 

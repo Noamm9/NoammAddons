@@ -17,7 +17,6 @@ import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.items.ItemRarity
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.network.ProfileUtils
-import com.github.noamm9.utils.network.abstracts.CacheResult
 import com.github.noamm9.utils.network.cache.ProfileCache
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
@@ -337,7 +336,7 @@ object PartyFinder: Feature() {
 
     private fun getLoreStats(name: String, floor: Int, type: Char): String {
         val key = name.removeFormatting().uppercase()
-        val cachedData = (ProfileCache.get(key) as? CacheResult.Success)?.data
+        val cachedData = ProfileCache.getOrNull(key)
 
         if (cachedData == null) {
             if (key !in pendingRequests && pendingRequests.size < 5) {
