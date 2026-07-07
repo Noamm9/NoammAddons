@@ -31,8 +31,7 @@ object ProfileUtils {
         "https://playerdb.co/api/player/minecraft/",
         "https://mowojang.matdoes.dev/",
         "https://api.minecraftservices.com/minecraft/profile/lookup/name/",
-        "https://api.mojang.com/users/profiles/minecraft/",
-        "https://mc-api.io/uuid/",
+        "https://api.mojang.com/users/profiles/minecraft/"
     )
 
     private val uuidToNameApis = listOf(
@@ -67,7 +66,7 @@ object ProfileUtils {
                 }
 
                 val response = catch { JsonUtils.json.parseToJsonElement(result.getOrThrow()).jsonObject } ?: continue
-                val uuid = if (i == 0) response.getObj("player")?.getString("id") else response.getString("id")
+                val uuid = if (i == 0) response.getObj("data")?.getObj("player")?.getString("id") else response.getString("id")
                 val fetchedName = if (i == 0) response.getObj("player")?.getString("username") else response.getString("name") ?: name
 
                 if (uuid.isNullOrBlank() || fetchedName.isNullOrBlank()) continue
@@ -210,7 +209,7 @@ object ProfileUtils {
         if (text.matches(regex)) {
             event.cancel()
             if (text.substringBefore(":") == mc.user.name) {
-                _totalSecrets = text.substringAfter(": ").toLong()
+                _totalSecrets = text.substringAfter(": ").toLongOrNull()
                 listener.unregister()
             }
         }
