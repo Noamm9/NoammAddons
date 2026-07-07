@@ -26,7 +26,7 @@ import kotlinx.serialization.Serializable
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.network.chat.Component
 
-object NaCommand: BaseCommand("na") {
+object NaCommand: BaseCommand("na", mutableSetOf("noamm", "noammaddons")) {
     private val commands = mapOf(
         "/na" to "Config GUI",
         "/na hud" to "HUD editor",
