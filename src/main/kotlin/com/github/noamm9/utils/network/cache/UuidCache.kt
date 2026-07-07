@@ -4,6 +4,7 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.config.PogObject
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
+import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.network.abstracts.CacheResult
 import com.github.noamm9.utils.network.abstracts.CachedEntry
@@ -31,6 +32,7 @@ object UuidCache: NetworkCache<String, MojangData> {
                 val name = profile.name.takeIf { it.length in 3 .. 16 && nameRegex.matches(it) } ?: continue
                 val uuid = profile.id.takeIf { it.version() == 4 } ?: continue
                 addToCache(MojangData(name, uuid.toString().remove("-")))
+                ChatUtils.debug("uc", "added $name to cache from packet")
             }
         }
     }
