@@ -12,18 +12,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LivingEntityRenderer.class)
 public abstract class MixinLivingEntityRenderer {
-    @Inject(method = "shouldShowName(Lnet/minecraft/world/entity/LivingEntity;D)Z", at = @At("HEAD"), cancellable = true)
-    private void hideDinnerboneNametag(LivingEntity entity, double distanceToCameraSq, CallbackInfoReturnable<Boolean> cir) {
-        if (NameTagTweaks.shouldHideDinnerbone(entity)) cir.setReturnValue(false);
-    }
+    @Inject(method = "shouldShowName(Lnet/minecraft/world/entity/LivingEntity;D)Z", at = @At("HEAD"), cancellable = true)
+    private void hideDinnerboneNametag(LivingEntity entity, double distanceToCameraSq, CallbackInfoReturnable<Boolean> cir) {
+        if (NameTagTweaks.shouldHideDinnerbone(entity)) cir.setReturnValue(false);
+    }
 
-    @ModifyExpressionValue(method = "shouldShowName(Lnet/minecraft/world/entity/LivingEntity;D)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;isDiscrete()Z"))
-    private boolean forceSneakingNametag(boolean original, LivingEntity entity) {
-        return (!NameTagTweaks.isForceNametagActive() || !(entity instanceof Player)) && original;
-    }
+    @ModifyExpressionValue(method = "shouldShowName(Lnet/minecraft/world/entity/LivingEntity;D)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;isDiscrete()Z"))
+    private boolean forceSneakingNametag(boolean original, LivingEntity entity) {
+        return (!NameTagTweaks.isForceNametagActive() || !(entity instanceof Player)) && original;
+    }
 
-    @ModifyExpressionValue(method = "shouldShowName(Lnet/minecraft/world/entity/LivingEntity;D)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;isInvisibleTo(Lnet/minecraft/world/entity/player/Player;)Z"))
-    private boolean forceInvisibleNametag(boolean original, LivingEntity entity) {
-        return (!NameTagTweaks.isForceNametagActive() || !(entity instanceof Player) || entity.getUUID().version() != 4) && original;
-    }
+    @ModifyExpressionValue(method = "shouldShowName(Lnet/minecraft/world/entity/LivingEntity;D)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;isInvisibleTo(Lnet/minecraft/world/entity/player/Player;)Z"))
+    private boolean forceInvisibleNametag(boolean original, LivingEntity entity) {
+        return (!NameTagTweaks.isForceNametagActive() || !(entity instanceof Player) || entity.getUUID().version() != 4) && original;
+    }
 }
