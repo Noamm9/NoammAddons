@@ -336,7 +336,7 @@ object PartyFinder: Feature() {
 
     private fun getLoreStats(name: String, floor: Int, type: Char): String {
         val key = name.removeFormatting().uppercase()
-        val cachedData = ProfileCache.getFromCache(key)
+        val cachedData = ProfileCache.getOrNull(key)
 
         if (cachedData == null) {
             if (key !in pendingRequests && pendingRequests.size < 5) {
