@@ -3,6 +3,7 @@ package com.github.noamm9.utils
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.features.impl.dungeon.LeapMenu
+import com.github.noamm9.features.impl.floor7.terminals.TerminalListener
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.Blessing
 import com.github.noamm9.utils.dungeons.enums.Puzzle
@@ -23,6 +24,7 @@ object DebugHUD {
         renderLocationDebug(guiGraphics)
         renderPartyDebug(guiGraphics)
         renderLeapDebug(guiGraphics)
+        renderTerminalDebug(guiGraphics)
     }
 
     private fun renderDungeonDebug(graphics: GuiGraphicsExtractor) {
@@ -212,6 +214,54 @@ object DebugHUD {
             val player = entry?.player?.name ?: "§7None"
             val clazz = entry?.player?.clazz?.name ?: ""
             draw(" §fSlot ${i + 1}: $player ($clazz)")
+        }
+    }
+
+    private fun renderTerminalDebug(graphics: GuiGraphicsExtractor) {
+        if (! NoammAddons.debugFlags.contains("terminal")) return
+
+        var y = 20
+        val x = 650
+
+        fun draw(text: String, color: Int = 0xFFFFFF) {
+            Render2D.drawString(graphics, text, x, y, color = Color(color))
+            y += 10
+        }
+
+        draw("§a§lTERMINAL DEBUGGER", 0x55FF55)
+        draw("In Terminal: ${if (TerminalListener.inTerm) "§aYES" else "§cNO"}")
+        draw("Current Type: §e${TerminalListener.currentType?.name ?: "None"}")
+        draw("Current Title: §f${TerminalListener.currentTitle.ifEmpty { "None" }}")
+        draw("Last Window ID: §b${TerminalListener.lastWindowId}")
+        draw("Interact Cooldown: §c${TerminalListener.interactCooldown}")
+        draw("Current Items Size: §d${TerminalListener.currentItems.size}")
+        draw("Initial Open Tick: §7${TerminalListener.initialOpenTick}")
+        draw("Initial Open Time: §7${TerminalListener.initialOpenTime}ms")
+
+        val isFirstClickDelayed = TerminalListener.checkFcDelay()
+        draw("FC Delayed State: ${if (isFirstClickDelayed) "§cBLOCKED" else "§aREADY"}")
+
+        y += 5
+
+        val slotCount = TerminalListener.currentType?.slotCount ?: 0
+        val cols = 9
+        val slotSize = 18
+        val spacing = 0
+        val gridStartY = y
+
+        for (slot in 0 until slotCount) {
+            val row = slot / cols
+            val col = slot % cols
+            val px = x + col * (slotSize + spacing)
+            val py = gridStartY + row * (slotSize + spacing)
+
+            graphics.fill(px, py, px + slotSize, py + slotSize, 0x5F555555)
+
+            val itemStack = TerminalListener.currentItems[slot]
+            if (itemStack != null && ! itemStack.isEmpty) {
+                graphics.item(itemStack, px + 1, py + 1)
+                graphics.itemDecorations(mc.font, itemStack, px + 1, py + 1)
+            }
         }
     }
 }
