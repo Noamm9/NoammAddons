@@ -21,7 +21,7 @@ object ActionBarParser {
     val HP_REGEX = Regex("§[c6]([\\d,]+)/([\\d,]+)[\uE010❤]")
     val DEF_REGEX = Regex("§a([\\d,]+)§a[\uE008❈] Defense")
     val MANA_REGEX = Regex("§b([\\d,]+)/([\\d,]+)[\uE003✎]( Mana)?")
-    val OVERFLOW_REGEX = Regex("§3([\\d,]+)ʬ") // §3100ʬ
+    val OVERFLOW_REGEX = Regex("§3([\\d,]+)[\uE017ʬ]") // §3100ʬ
     val VITALITY_REGEX = Regex("§4([\\d.,]+)/([\\d,.]+)♨( Vitality)?") // https://regex101.com/r/9WLBtC/2
     val STACKS_REGEX = Regex("§6([\\d,]+)([ᝐ⁑Ѫ])") // §610⁑
     val SALVATION_REGEX = Regex("T([1-3])!")
