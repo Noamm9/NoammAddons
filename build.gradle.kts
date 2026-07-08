@@ -32,6 +32,7 @@ val mod_name: String by project
 val fabric_version: String by project
 val modmenu_version: String by project
 val iris_version: String by project
+val itemlist_version: String by project
 val ktor_version: String by project
 
 version = mod_version
@@ -62,6 +63,7 @@ dependencies {
 
     runtimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
     compileOnly("maven.modrinth:iris:$iris_version")
+    compileOnly("maven.modrinth:skyblock-item-list:$itemlist_version")
     compileOnly("com.terraformersmc:modmenu:$modmenu_version")
 
     implementation("io.github.llamalad7:mixinextras-fabric:0.4.1")
