@@ -25,7 +25,6 @@ object RevertAxes: Feature("Turns certain swords back into an axe") {
         val currentModel = original.call(stack, key)
         if (! enabled) return currentModel
         if (stack.isEmpty) return currentModel
-        if (currentModel.namespace != "hypixel_skyblock") return currentModel
         val skyblockID = stack.skyblockId
 
         if (skyblockID !in replaceableItems.keys) return currentModel
