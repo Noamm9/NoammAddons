@@ -28,6 +28,12 @@
         "value": "com.github.noamm9.NoammAddons",
         "adapter": "kotlin"
       }
+    ],
+    "skyblock-item-list": [
+      {
+        "value": "com.github.noamm9.features.impl.general.storageoverlay.StorageItemListPlugin",
+        "adapter": "kotlin"
+      }
     ]
   },
   "mixins": [
