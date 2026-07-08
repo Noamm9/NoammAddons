@@ -2,6 +2,10 @@ package com.github.noamm9.features.impl.visual
 
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation
+import net.minecraft.core.component.DataComponentType
+import net.minecraft.core.component.DataComponents
+import net.minecraft.resources.Identifier
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 
@@ -17,12 +21,15 @@ object RevertAxes: Feature("Turns certain swords back into an axe") {
     )
 
     @JvmStatic
-    fun shouldReplace(original: ItemStack?): ItemStack? {
-        if (! enabled) return original
-        if (original == null) return original
-        if (original.isEmpty) return original
-        val skyblockID = original.skyblockId.takeUnless { it.isEmpty() } ?: return original
-        val replace = replaceableItems[skyblockID] ?: return original
-        return original.transmuteCopy(replace, original.count)
+    fun itemModelHook(stack: ItemStack, key: DataComponentType<*>, original: Operation<Identifier>): Identifier {
+        val currentModel = original.call(stack, key)
+        if (! enabled) return currentModel
+        if (stack.isEmpty) return currentModel
+        if (currentModel.namespace != "hypixel_skyblock") return currentModel
+        val skyblockID = stack.skyblockId
+
+        if (skyblockID !in replaceableItems.keys) return currentModel
+        val replace = replaceableItems[skyblockID] ?: return currentModel
+        return replace.components().get(DataComponents.ITEM_MODEL) !!
     }
 }

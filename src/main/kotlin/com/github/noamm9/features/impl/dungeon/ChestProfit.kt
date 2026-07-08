@@ -5,6 +5,7 @@ import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
+import com.github.noamm9.init.NetworkLoop
 import com.github.noamm9.init.NetworkLoop.priceData
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils.formattedText
@@ -15,7 +16,6 @@ import com.github.noamm9.utils.MathUtils.Vec3
 import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
 import com.github.noamm9.utils.equalsOneOf
-import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
@@ -277,7 +277,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
         val cleanName = name.removeFormatting()
         if (cleanName.startsWith("Enchanted Book (")) return enchantNameToID(name.substringAfter("(").substringBefore(")"))
         if (cleanName.contains("Shard")) return "SHARD_${cleanName.removeFormatting().uppercase().remove(" SHARD").replace(" ", "_").remove("_X1")}"
-        return ItemUtils.nameToIdMap[cleanName.remove("Shiny ")]
+        return NetworkLoop.nameToIdMap[cleanName.remove("Shiny ")]
     }
 
     private fun enchantNameToID(enchant: String): String {

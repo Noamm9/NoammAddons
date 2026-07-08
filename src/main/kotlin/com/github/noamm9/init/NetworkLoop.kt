@@ -3,8 +3,6 @@ package com.github.noamm9.init
 import com.github.noamm9.NoammAddons.logger
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ThreadUtils
-import com.github.noamm9.utils.items.ItemUtils.idToNameMap
-import com.github.noamm9.utils.items.ItemUtils.nameToIdMap
 import com.github.noamm9.utils.network.WebUtils
 import com.github.noamm9.utils.network.data.ElectionData
 import kotlinx.coroutines.async
@@ -19,8 +17,9 @@ object NetworkLoop {
     private const val BAZAAR_URL = "https://api.hypixel.net/v2/skyblock/bazaar"
     private const val LOWESTBINS_URL = "https://lb.tricked.dev/lowestbins"
 
-    @JvmField val priceData = ConcurrentHashMap<String, Long>()
-    @JvmField var electionData = ElectionData.empty
+    val priceData = ConcurrentHashMap<String, Long>()
+    val nameToIdMap = ConcurrentHashMap<String, String>()
+    var electionData = ElectionData.empty
 
     fun init() = ThreadUtils.loop(TimeUnit.MINUTES.toMillis(10)) {
         coroutineScope {
@@ -83,7 +82,6 @@ object NetworkLoop {
             val id = item["id"]?.jsonPrimitive?.content ?: continue
             val name = item["name"]?.jsonPrimitive?.content ?: continue
 
-            idToNameMap[id] = name
             nameToIdMap[name] = id
         }
     }.onFailure { logError("Skyblock items", it) }
