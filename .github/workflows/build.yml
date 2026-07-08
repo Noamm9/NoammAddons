@@ -3,6 +3,7 @@ name: Build
 on:
   pull_request:
   push:
+    branches: ["26.1.2", "26.2"]
 
 permissions:
   contents: read
