@@ -7,7 +7,6 @@ import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
  * @see com.github.noamm9.mixin.MixinAbstractRecipeBookScreen
  * @see com.github.noamm9.mixin.MixinRecipeBookComponent
  * @see com.github.noamm9.mixin.MixinItemStack
- * @see com.github.noamm9.mixin.MixinGuiGraphicsExtractor
  */
 object Tweaks: Feature("Small quality of life tweaks.") {
     @JvmStatic val hideRecipeBook by ToggleSetting("Hide Recipe Book").withDescription("Hides the recipe book button in inventory GUIs.")
