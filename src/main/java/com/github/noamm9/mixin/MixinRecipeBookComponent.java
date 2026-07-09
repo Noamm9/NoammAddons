@@ -1,6 +1,6 @@
 package com.github.noamm9.mixin;
 
-import com.github.noamm9.features.impl.misc.HideRecipeBook;
+import com.github.noamm9.features.impl.misc.Tweaks;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -15,8 +15,8 @@ public abstract class MixinRecipeBookComponent {
 
     @Inject(method = "init", at = @At("TAIL"))
     private void onInit(CallbackInfo ci) {
-        if (!HideRecipeBook.INSTANCE.enabled) return;
-        if (HideRecipeBook.getCloseRecipeBook().getValue()) {
+        if (!Tweaks.INSTANCE.enabled || !Tweaks.getHideRecipeBook().getValue()) return;
+        if (Tweaks.getCloseRecipeBook().getValue()) {
             this.setVisible(false);
         }
     }

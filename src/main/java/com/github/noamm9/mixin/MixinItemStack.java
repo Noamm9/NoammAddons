@@ -1,5 +1,6 @@
 package com.github.noamm9.mixin;
 
+import com.github.noamm9.features.impl.misc.Tweaks;
 import com.github.noamm9.utils.location.LocationUtils;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -15,7 +16,7 @@ import static com.github.noamm9.NoammAddons.mc;
 public class MixinItemStack {
     @Inject(method = "applyAfterUseComponentSideEffects", at = @At("HEAD"), cancellable = true)
     private void onApplyCooldown(LivingEntity user, ItemStack stack, CallbackInfoReturnable<ItemStack> cir) {
-        if (user == mc.player && LocationUtils.inSkyblock) {
+        if (Tweaks.INSTANCE.enabled && user == mc.player && LocationUtils.inSkyblock) {
             if (stack.is(Items.ENDER_PEARL)) {
                 cir.setReturnValue(stack);
             }
