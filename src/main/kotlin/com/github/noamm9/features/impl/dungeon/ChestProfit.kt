@@ -236,7 +236,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
 
     private fun getItemValue(stack: ItemStack): Long {
         val itemName = stack.hoverName.formattedText
-        val itemId = stack.skyblockId
+        val itemId = getIdFromName(itemName) ?: stack.skyblockId
         var value = 0L
 
         if (itemId == "ENCHANTED_BOOK") {
