@@ -16,8 +16,6 @@ public abstract class MixinRecipeBookComponent {
     @Inject(method = "init", at = @At("TAIL"))
     private void onInit(CallbackInfo ci) {
         if (!Tweaks.INSTANCE.enabled || !Tweaks.getHideRecipeBook().getValue()) return;
-        if (Tweaks.getCloseRecipeBook().getValue()) {
-            this.setVisible(false);
-        }
+        if (Tweaks.getCloseRecipeBook().getValue()) setVisible(false);
     }
 }
