@@ -5,7 +5,6 @@ import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation
 import net.minecraft.core.component.DataComponentType
 import net.minecraft.core.component.DataComponents
-import net.minecraft.resources.Identifier
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 
@@ -21,14 +20,15 @@ object RevertAxes: Feature("Turns certain swords back into an axe") {
     )
 
     @JvmStatic
-    fun itemModelHook(stack: ItemStack, key: DataComponentType<*>, original: Operation<Identifier>): Identifier {
+    fun itemModelHook(stack: ItemStack, key: DataComponentType<*>, original: Operation<Any?>): Any? {
         val currentModel = original.call(stack, key)
         if (! enabled) return currentModel
         if (stack.isEmpty) return currentModel
+        if (key != DataComponents.ITEM_MODEL) return currentModel
         val skyblockID = stack.skyblockId
 
         if (skyblockID !in replaceableItems.keys) return currentModel
         val replace = replaceableItems[skyblockID] ?: return currentModel
-        return replace.components().get(DataComponents.ITEM_MODEL) !!
+        return replace.components().get(DataComponents.ITEM_MODEL) ?: currentModel
     }
 }
