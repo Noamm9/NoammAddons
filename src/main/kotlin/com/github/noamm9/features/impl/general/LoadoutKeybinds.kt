@@ -10,8 +10,8 @@ import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.ThreadUtils
-import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.equalsOneOf
+import com.github.noamm9.utils.items.ItemUtils.lore
 import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
@@ -19,7 +19,6 @@ import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.world.item.ItemStack
 import org.lwjgl.glfw.GLFW
 
-@Suppress("unused")
 object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to your keyboard.") {
     private val loadoutMenuRegex = Regex("""^\(\d+/\d+\) Loadouts$""", RegexOption.IGNORE_CASE)
     private var lastClick = System.currentTimeMillis()
