@@ -25,7 +25,7 @@ public abstract class MixinGuiGraphicsExtractor {
         else {
             pose.pushMatrix();
             pose.translate(xo, yo);
-            pose.scale(ItemTooltip.INSTANCE.getScale().getValue().floatValue() / 100f + ItemTooltip.scaleOverride / 10f);
+            pose.scale(ItemTooltip.getTooltipScale().getValue().floatValue() / 100f + ItemTooltip.scaleOverride / 10f);
             pose.translate(ItemTooltip.scrollAmountX, ItemTooltip.scrollAmountY);
             pose.translate(-xo, -yo);
             original.call(font, lines, xo, yo, positioner, style);

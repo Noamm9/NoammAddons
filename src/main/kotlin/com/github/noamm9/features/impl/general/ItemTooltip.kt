@@ -22,24 +22,14 @@ import kotlin.jvm.optionals.getOrDefault
 import kotlin.jvm.optionals.getOrNull
 
 object ItemTooltip: Feature("Adds item information and controls to item tooltips") {
-    private val showPrices by ToggleSetting("Item Prices").section("Item Information")
-        .withDescription("Shows Bazaar and Lowest BIN prices")
-    private val showNpcSellPrice by ToggleSetting("NPC Sell Price")
-        .withDescription("Shows the price an item sells for to NPCs")
-        .showIf { showPrices.value }
-    private val showItemQuality by ToggleSetting("Item Quality")
-        .withDescription("Shows the base stats boost of dungeon items and their floor")
-    private val scrollableTooltips by ToggleSetting("Scrollable Tooltips").section("Scrollable Tooltips")
-        .withDescription("Allows item tooltips to be moved and scaled with the scroll wheel")
-    val scale by SliderSetting("Tooltip Scale", 100, 30, 150, 0.1)
-        .withDescription("The size of the tooltip")
-        .showIf { scrollableTooltips.value }
-    private val scrollSpeed by SliderSetting("Scroll Speed", 3, 1, 10, 1)
-        .withDescription("How fast the tooltip scrolls")
-        .showIf { scrollableTooltips.value }
-    private val scaleSpeed by SliderSetting("Scale Speed", 3, 1, 10, 1)
-        .withDescription("How fast the tooltip scales")
-        .showIf { scrollableTooltips.value }
+    private val showPrices by ToggleSetting("Item Prices").section("Item Information").withDescription("Shows Bazaar and Lowest BIN prices")
+    private val showNpcSellPrice by ToggleSetting("NPC Sell Price").withDescription("Shows the price an item sells for to NPCs").showIf { showPrices.value }
+    private val showItemQuality by ToggleSetting("Item Quality").withDescription("Shows the base stats boost of dungeon items and their floor")
+
+    private val scrollableTooltips by ToggleSetting("Scrollable Tooltips").section("Scrollable Tooltips").withDescription("Allows item tooltips to be moved and scaled with the scroll wheel")
+    @JvmStatic val tooltipScale by SliderSetting("Tooltip Scale", 100, 30, 150, 0.1).withDescription("The size of the tooltip").showIf { scrollableTooltips.value }
+    private val scrollSpeed by SliderSetting("Scroll Speed", 3, 1, 10, 1).withDescription("How fast the tooltip scrolls").showIf { scrollableTooltips.value }
+    private val scaleSpeed by SliderSetting("Scale Speed", 3, 1, 10, 1).withDescription("How fast the tooltip scales").showIf { scrollableTooltips.value }
 
     @JvmField var scrollAmountX = 0f
     @JvmField var scrollAmountY = 0f
@@ -75,8 +65,8 @@ object ItemTooltip: Feature("Adds item information and controls to item tooltips
             if (! showPrices.value) return@register
 
             val quantity = event.stack.count
-
             val itemId = event.stack.marketId
+
             NetworkLoop.getBazaarPrice(itemId)?.let { price ->
                 addPriceLine(event.lore, "Bazaar Buy", price.buy, quantity)
                 addPriceLine(event.lore, "Bazaar Sell", price.sell, quantity)
@@ -84,10 +74,8 @@ object ItemTooltip: Feature("Adds item information and controls to item tooltips
                 addPriceLine(event.lore, "Lowest BIN", price, quantity)
             }
 
-            if (showNpcSellPrice.value) {
-                NetworkLoop.getNpcSellPrice(event.stack.skyblockId)?.let { price ->
-                    if (price > 0L) event.lore.add(Component.literal("§eNPC Sell: §6${formatComma(price)}"))
-                }
+            if (showNpcSellPrice.value) NetworkLoop.getNpcSellPrice(event.stack.skyblockId)?.let { price ->
+                if (price > 0L) event.lore.add(Component.literal("§eNPC Sell: §6${formatComma(price)}"))
             }
         }
     }
@@ -145,20 +133,20 @@ object ItemTooltip: Feature("Adds item information and controls to item tooltips
 
         when {
             holdingShift && ! holdingCtrl -> scrollAmountX -= scroll
-            ! holdingShift && holdingCtrl -> applyScaleScroll(verticalAmount)
+            ! holdingShift && holdingCtrl -> {
+                val baseScale = tooltipScale.value.toFloat() / 100f
+                val nextScale = (baseScale + scaleOverride / 10f + (verticalAmount / 100f).toFloat() * scaleSpeed.value.toFloat()).coerceIn(0.3f, 2.0f)
+                scaleOverride = (nextScale - baseScale) * 10f
+            }
+
             else -> scrollAmountY += scroll
         }
     }
 
-    private fun isShiftDown() = GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS
-        || GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_RIGHT_SHIFT) == GLFW.GLFW_PRESS
-
-    private fun applyScaleScroll(verticalAmount: Double) {
-        val baseScale = scale.value.toFloat() / 100f
-        val nextScale = (baseScale + scaleOverride / 10f + (verticalAmount / 100f).toFloat() * scaleSpeed.value.toFloat()).coerceIn(0.3f, 2.0f)
-        scaleOverride = (nextScale - baseScale) * 10f
+    private fun isShiftDown(): Boolean {
+        val handle = mc.window.handle()
+        return GLFW.glfwGetKey(handle, GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS || GLFW.glfwGetKey(handle, GLFW.GLFW_KEY_RIGHT_SHIFT) == GLFW.GLFW_PRESS
     }
 
-    @JvmStatic
-    fun isScrollingEnabled() = enabled && scrollableTooltips.value
+    @JvmStatic fun isScrollingEnabled() = enabled && scrollableTooltips.value
 }

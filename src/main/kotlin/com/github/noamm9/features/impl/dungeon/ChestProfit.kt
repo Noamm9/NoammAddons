@@ -15,7 +15,6 @@ import com.github.noamm9.utils.MathUtils.Vec3
 import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
 import com.github.noamm9.utils.equalsOneOf
-import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
@@ -292,10 +291,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
         return "ENCHANTMENT_${enchantId}_$level"
     }
 
-    private fun getPrice(id: String): Long {
-        if (id in blackList) return 0L
-        return NetworkLoop.getPrice(id) ?: 0L
-    }
+    private fun getPrice(id: String) = if (id in blackList) 0L else NetworkLoop.getPrice(id) ?: 0L
 
     enum class DungeonChest(val displayText: String, val color: Color) {
         WOOD("Wood Chest", Color(100, 64, 1)),
