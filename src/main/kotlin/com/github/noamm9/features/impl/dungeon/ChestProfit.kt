@@ -6,7 +6,6 @@ import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.init.NetworkLoop
-import com.github.noamm9.init.NetworkLoop.priceData
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
@@ -270,7 +269,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
         val match = essenceRegex.find(text) ?: return 0L
         val type = match.groups["type"]?.value?.uppercase() ?: return 0L
         val count = match.groups["count"]?.value?.toLongOrNull() ?: 0L
-        return (priceData["ESSENCE_$type"] ?: 0L) * count
+        return (NetworkLoop.getPrice("ESSENCE_$type") ?: 0L) * count
     }
 
     private fun getIdFromName(name: String): String? {
@@ -292,10 +291,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
         return "ENCHANTMENT_${enchantId}_$level"
     }
 
-    private fun getPrice(id: String): Long {
-        if (id in blackList) return 0L
-        return priceData[id] ?: 0L
-    }
+    private fun getPrice(id: String) = if (id in blackList) 0L else NetworkLoop.getPrice(id) ?: 0L
 
     enum class DungeonChest(val displayText: String, val color: Color) {
         WOOD("Wood Chest", Color(100, 64, 1)),

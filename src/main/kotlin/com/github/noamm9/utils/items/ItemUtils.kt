@@ -34,6 +34,35 @@ object ItemUtils {
             return sbItemID.orEmpty()
         }
 
+    val ItemStack.marketId: String
+        get() {
+            val data = customData
+            return when (val id = skyblockId) {
+                "ENCHANTED_BOOK" -> {
+                    val enchantments = data.getCompound("enchantments").getOrNull() ?: return ""
+                    val enchantId = enchantments.keySet().singleOrNull() ?: return ""
+                    val level = enchantments.getIntOr(enchantId, 0)
+                    if (level > 0) "ENCHANTED_BOOK-${enchantId.uppercase()}-$level" else ""
+                }
+
+                "RUNE", "UNIQUE_RUNE" -> {
+                    val runes = data.getCompound("runes").getOrNull() ?: return ""
+                    val runeId = runes.keySet().singleOrNull() ?: return ""
+                    val level = runes.getIntOr(runeId, 0)
+                    if (level > 0) "RUNE-${runeId.uppercase()}-$level" else ""
+                }
+
+                "POTION" -> {
+                    val potion = data.getString("potion").getOrNull()?.takeIf(String::isNotEmpty) ?: return ""
+                    val level = data.getIntOr("potion_level", 0)
+                    if (level <= 0) return ""
+                    "POTION-${potion.uppercase()}-$level${if (data.getBooleanOr("enhanced", false)) "-ENHANCED" else ""}"
+                }
+
+                else -> id
+            }
+        }
+
     fun getSkullTexture(stack: ItemStack): String? {
         if (stack.isEmpty) return null
         val profile = stack.get(DataComponents.PROFILE) ?: return null
