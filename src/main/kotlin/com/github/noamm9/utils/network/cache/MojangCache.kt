@@ -14,8 +14,8 @@ import com.github.noamm9.utils.remove
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
 import java.util.concurrent.*
 
-object UuidCache: NetworkCache<String, MojangData> {
-    private var storage = PogObject("uuid_cache", ConcurrentHashMap<String, CachedEntry<MojangData>>())
+object MojangCache: NetworkCache<String, MojangData> {
+    private var storage = PogObject("mojang_cache", ConcurrentHashMap<String, CachedEntry<MojangData>>())
     private val EXPIRE_TIME = TimeUnit.HOURS.toMillis(1)
     private val nameRegex = "^\\w+$".toRegex()
 
