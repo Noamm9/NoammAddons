@@ -157,6 +157,12 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
 
                     else -> drawSlot(event.context, slotX, slotY, baseColor)
                 }
+
+                val item = TerminalListener.currentItems[slot]
+                if (NoammAddons.debugFlags.contains("terminal") && item != null) {
+                    event.context.item(item, slotX.toInt(), slotY.toInt())
+                    event.context.itemDecorations(mc.font, item, slotX.toInt(), slotY.toInt())
+                }
             }
 
             if (TerminalListener.currentType == TerminalType.MELODY) {

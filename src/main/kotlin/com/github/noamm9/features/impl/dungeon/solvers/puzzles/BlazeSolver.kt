@@ -42,7 +42,7 @@ object BlazeSolver: PuzzleSolver {
         if (event.entity !is Blaze) return
         val index = blazes.indexOf(event.entity)
         if (index == - 1) return
-        if (index > blazeCount.value) return
+        if (index >= blazeCount.value) return
         event.color = getBlazeColor(index)
     }
 
