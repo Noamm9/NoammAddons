@@ -48,7 +48,7 @@ object DungeonWaypointCommand: BaseCommand("ndw") {
                 }
 
                 val lookingAt = (hit as BlockHitResult).blockPos
-                val existing = (if (LocationUtils.inBoss) DungeonWaypoints.waypoints["B${LocationUtils.dungeonFloorNumber}"]
+                val existing = (if (LocationUtils.inBoss) DungeonWaypoints.waypoints.get()["B${LocationUtils.dungeonFloorNumber}"]
                 else DungeonWaypoints.currentRoomWaypoints)?.firstOrNull { it.pos == lookingAt }
 
                 if (existing == null) {
@@ -65,39 +65,33 @@ object DungeonWaypointCommand: BaseCommand("ndw") {
             runs {
                 val (roomName, roomCorner, rotation) = getRoomData() ?: return@runs
                 val playerPos = NoammAddons.mc.player?.position() ?: return@runs
+                val waypoints = DungeonWaypoints.waypoints.get()
 
-                val closest = (if (LocationUtils.inBoss) DungeonWaypoints.waypoints[roomName] else DungeonWaypoints.currentRoomWaypoints)?.minByOrNull {
+                val closest = (if (LocationUtils.inBoss) waypoints[roomName] else DungeonWaypoints.currentRoomWaypoints)?.minByOrNull {
                     val dx = it.pos.x + 0.5 - playerPos.x
                     val dy = it.pos.y + 0.5 - playerPos.y
                     val dz = it.pos.z + 0.5 - playerPos.z
                     dx * dx + dy * dy + dz * dz
                 }
 
-                if (closest != null) {
-                    val distSq = (closest.pos.x + 0.5 - playerPos.x).let { x ->
-                        x * x + (closest.pos.y + 0.5 - playerPos.y).let { y ->
-                            y * y + (closest.pos.z + 0.5 - playerPos.z).let { z -> z * z }
-                        }
+                if (closest == null) return@runs ChatUtils.modMessage("§cNo waypoints found in this room.")
+
+                val distSq = (closest.pos.x + 0.5 - playerPos.x).let { x ->
+                    x * x + (closest.pos.y + 0.5 - playerPos.y).let { y ->
+                        y * y + (closest.pos.z + 0.5 - playerPos.z).let { z -> z * z }
                     }
-
-                    if (distSq < 25.0) {
-                        val relativePosToRemove = ScanUtils.getRelativeCoord(closest.pos, roomCorner, rotation)
-
-                        val currentData = DungeonWaypoints.waypoints
-                        val roomList = currentData.getOrDefault(roomName, emptyList()).toMutableList()
-
-                        val removed = roomList.removeIf { it.pos == relativePosToRemove }
-
-                        if (removed) {
-                            DungeonWaypoints.waypoints[roomName] = roomList
-                            DungeonWaypoints.currentRoomWaypoints.remove(closest)
-                            ChatUtils.modMessage("§aWaypoint removed.")
-                        }
-                        else ChatUtils.modMessage("§cError syncing config.")
-                    }
-                    else ChatUtils.modMessage("§cNo waypoint found nearby (must be within 5 blocks).")
                 }
-                else ChatUtils.modMessage("§cNo waypoints found in this room.")
+
+                if (distSq >= 25.0) return@runs ChatUtils.modMessage("§cNo waypoint found nearby (must be within 5 blocks).")
+
+                val relativePosToRemove = ScanUtils.getRelativeCoord(closest.pos, roomCorner, rotation)
+                val roomList = waypoints.getOrDefault(roomName, emptyList()).toMutableList()
+                if (roomList.removeIf { it.pos == relativePosToRemove }) {
+                    waypoints[roomName] = roomList
+                    DungeonWaypoints.currentRoomWaypoints.remove(closest)
+                    ChatUtils.modMessage("§aWaypoint removed.")
+                }
+                else ChatUtils.modMessage("§cError syncing config.")
             }
         }
 
@@ -110,7 +104,7 @@ object DungeonWaypointCommand: BaseCommand("ndw") {
                     return@runs
                 }
 
-                DungeonWaypoints.waypoints.remove(roomName)
+                DungeonWaypoints.waypoints.get().remove(roomName)
                 DungeonWaypoints.currentRoomWaypoints.clear()
                 ChatUtils.modMessage("§aAll waypoints cleared for room: $roomName")
             }

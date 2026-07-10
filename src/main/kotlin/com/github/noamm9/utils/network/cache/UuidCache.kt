@@ -4,21 +4,24 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.config.PogObject
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
+import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ThreadUtils
+import com.github.noamm9.utils.network.abstracts.CacheResult
+import com.github.noamm9.utils.network.abstracts.CachedEntry
+import com.github.noamm9.utils.network.abstracts.NetworkCache
+import com.github.noamm9.utils.network.data.MojangData
 import com.github.noamm9.utils.remove
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
 import java.util.concurrent.*
 
-object UuidCache {
-    private data class CacheData(val uuidByName: ConcurrentHashMap<String, CachedEntry>, val nameByUuid: ConcurrentHashMap<String, CachedEntry>)
-
-    private var storage = PogObject("uuid_cache", CacheData(ConcurrentHashMap(), ConcurrentHashMap()))
+object UuidCache: NetworkCache<String, MojangData> {
+    private var storage = PogObject("uuid_cache", ConcurrentHashMap<String, CachedEntry<MojangData>>())
     private val EXPIRE_TIME = TimeUnit.HOURS.toMillis(1)
     private val nameRegex = "^\\w+$".toRegex()
 
     init {
         ThreadUtils.loop(TimeUnit.MINUTES.toMillis(10), block = ::cleanupExpired)
-        addToCache(mc.user.name, mc.user.profileId.toString())
+        addToCache(MojangData(mc.user.name, mc.user.profileId.toString().remove("-")))
 
         EventBus.register<MainThreadPacketReceivedEvent.Post> {
             val packet = event.packet as? ClientboundPlayerInfoUpdatePacket ?: return@register
@@ -28,55 +31,43 @@ object UuidCache {
                 val profile = entry.profile() ?: continue
                 val name = profile.name.takeIf { it.length in 3 .. 16 && nameRegex.matches(it) } ?: continue
                 val uuid = profile.id.takeIf { it.version() == 4 } ?: continue
-                addToCache(name, uuid.toString())
+                addToCache(MojangData(name, uuid.toString().remove("-")))
+                ChatUtils.debug("uc", "added $name to cache from packet")
             }
         }
     }
 
-    fun addToCache(name: String, uuid: String) {
-        val cleanUuid = uuid.remove("-")
+    override fun get(key: String): CacheResult<MojangData> {
+        val cleanKey = key.remove("-").lowercase()
+        val entry = storage.get()[cleanKey] ?: return CacheResult.NotFound
 
-        if (cleanUuid == "FAILED") storage.get().uuidByName[name.lowercase()] = CachedEntry("FAILED", System.currentTimeMillis())
-        else if (name == "FAILED") storage.get().nameByUuid[cleanUuid] = CachedEntry("FAILED", System.currentTimeMillis())
-        else {
-            storage.get().uuidByName[name.lowercase()] = CachedEntry(cleanUuid, System.currentTimeMillis())
-            storage.get().nameByUuid[cleanUuid] = CachedEntry(name, System.currentTimeMillis())
-        }
-    }
-
-    fun getFromCache(name: String): String? {
-        val lowerName = name.lowercase()
-        val entry = storage.get().uuidByName[lowerName] ?: return null
-
-        if (entry.isExpired()) {
-            storage.get().uuidByName.remove(lowerName)
-            storage.get().nameByUuid.remove(entry.value)
-            return null
+        if (System.currentTimeMillis() - entry.timestamp > EXPIRE_TIME) {
+            storage.get().remove(cleanKey)
+            entry.value?.let { data ->
+                storage.get().remove(data.name.lowercase())
+                storage.get().remove(data.uuid.remove("-").lowercase())
+            }
+            return CacheResult.NotFound
         }
 
-        return entry.value
+        return if (entry.value == null) CacheResult.Failed else CacheResult.Success(entry.value)
     }
 
-    fun getNameFromCache(uuid: String): String? {
-        val cleanUuid = uuid.remove("-")
-        val entry = storage.get().nameByUuid[cleanUuid] ?: return null
+    fun addToCache(data: MojangData) = addToCache("", data)
+    override fun addToCache(key: String, value: MojangData) {
+        val cleanUuid = value.uuid.remove("-").lowercase()
+        val lowerName = value.name.lowercase()
+        val entry = CachedEntry(value)
 
-        if (entry.isExpired()) {
-            storage.get().nameByUuid.remove(cleanUuid)
-            storage.get().uuidByName.remove(entry.value.lowercase())
-            return null
-        }
-
-        return entry.value
+        storage.get()[lowerName] = entry
+        storage.get()[cleanUuid] = entry
     }
+
+    override fun addFailedToCache(key: String) = storage.get().set(key.remove("-").lowercase(), CachedEntry(null))
 
     private fun cleanupExpired() {
         val now = System.currentTimeMillis()
-        val removedUuids = storage.get().uuidByName.values.removeIf { it.isExpired(now) }
-        val removedNames = storage.get().nameByUuid.values.removeIf { it.isExpired(now) }
-        if (removedUuids || removedNames) storage.save()
+        val removed = storage.get().values.removeIf { now - it.timestamp > EXPIRE_TIME }
+        if (removed) storage.save()
     }
-
-    private fun CachedEntry.isExpired(now: Long = System.currentTimeMillis()) = now - timestamp > EXPIRE_TIME
-    private data class CachedEntry(val value: String, val timestamp: Long)
 }

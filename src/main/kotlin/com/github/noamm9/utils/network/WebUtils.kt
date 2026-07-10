@@ -2,6 +2,7 @@ package com.github.noamm9.utils.network
 
 import com.github.noamm9.NoammAddons.MOD_NAME
 import com.github.noamm9.NoammAddons.MOD_VERSION
+import com.github.noamm9.NoammAddons.scope
 import com.github.noamm9.utils.JsonUtils
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -14,15 +15,22 @@ import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.websocket.Frame
 import io.ktor.websocket.WebSocketDeflateExtension
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import java.util.concurrent.*
 import java.util.zip.*
 
 object WebUtils {
+    private val sharedRequests = ConcurrentHashMap<String, Deferred<Result<HttpResponse>>>()
+
     val client = HttpClient(CIO) {
         install(WebSockets) {
             pingIntervalMillis = 30_000
@@ -42,11 +50,21 @@ object WebUtils {
             gzip(1.0F)
             deflate(0.9F)
         }
-
-        expectSuccess = false
     }
 
-    suspend fun get(url: String) = runCatching { client.get(url) }
+    suspend fun get(url: String): Result<HttpResponse> {
+        while (true) {
+            sharedRequests[url]?.let { return it.await() }
+
+            val deferred = scope.async(start = CoroutineStart.LAZY) { runCatching { client.get(url) } }
+            sharedRequests.putIfAbsent(url, deferred) ?: run {
+                deferred.invokeOnCompletion { sharedRequests.remove(url, deferred) }
+                deferred.start()
+                return deferred.await()
+            }
+        }
+    }
+
     suspend inline fun <reified T> getAs(url: String) = get(url).mapCatching {
         if (it.status.value !in 200 .. 299) error("HTTP ${it.status.value}-${it.status.description}: ${it.bodyAsText()}")
         it.body<T>()

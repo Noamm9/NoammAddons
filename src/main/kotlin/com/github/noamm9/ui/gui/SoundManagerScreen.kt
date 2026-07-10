@@ -130,7 +130,7 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
 
         if (draggingId == item.id) {
             val pct = ((mx - sliderX) / sliderW).coerceIn(0.0f, 1.0f)
-            SoundManager.volumes[item.id] = (pct * 2.0).toFloat()
+            SoundManager.volumes.get()[item.id] = (pct * 2.0).toFloat()
         }
 
         val vol = SoundManager.getMultiplier(item.id)
@@ -281,10 +281,7 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
         return super.charTyped(e)
     }
 
-    override fun onClose() {
-        SoundManager.volumes = SoundManager.volumes.toMutableMap()
-        NoammAddons.screen = ClickGuiScreen
-    }
+    override fun onClose() = NoammAddons::screen.set(ClickGuiScreen)
 
     private sealed class SoundItem {
         data class Header(val name: String): SoundItem()

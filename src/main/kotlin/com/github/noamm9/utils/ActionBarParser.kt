@@ -1,5 +1,6 @@
 package com.github.noamm9.utils
 
+import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.EventPriority
@@ -17,10 +18,11 @@ import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
 import kotlin.math.roundToInt
 
 object ActionBarParser {
-    val HP_REGEX = Regex("§[c6]([\\d,]+)/([\\d,]+)❤") // §c1389/1390❤ , §62181/1161❤
-    val DEF_REGEX = Regex("§a([\\d,]+)§a❈ Defense") // §a593§a❈ Defense
-    val MANA_REGEX = Regex("§b([\\d,]+)/([\\d,]+)✎( Mana)?") // §b550/550✎ Mana§r
-    val OVERFLOW_REGEX = Regex("§3([\\d,]+)ʬ") // §3100ʬ
+    val HP_REGEX = Regex("§[c6]([\\d,]+)/([\\d,]+)[\uE010❤]")
+    val DEF_REGEX = Regex("§a([\\d,]+)§a[\uE008❈] Defense")
+    val MANA_REGEX = Regex("§b([\\d,]+)/([\\d,]+)[\uE003✎]( Mana)?")
+    val OVERFLOW_REGEX = Regex("§3([\\d,]+)[\uE017ʬ]") // §3100ʬ
+    val VITALITY_REGEX = Regex("§4([\\d.,]+)/([\\d,.]+)♨( Vitality)?") // https://regex101.com/r/9WLBtC/2
     val STACKS_REGEX = Regex("§6([\\d,]+)([ᝐ⁑Ѫ])") // §610⁑
     val SALVATION_REGEX = Regex("T([1-3])!")
     val MANA_USAGE_REGEX = Regex("§b-([\\d,]+) Mana \\(§6.+?§b\\)|§c§lNOT ENOUGH MANA") // §b-50 Mana (§6Speed Boost§b) , §c§lNOT ENOUGH MANA
@@ -33,6 +35,9 @@ object ActionBarParser {
     var currentMana = 0
     var maxMana = 0
     var overflowMana = 0
+    var currentVitality = 0
+    var maxVitality = 0
+    var isVitalityShown = false
     var effectiveHP = 0
     var netherArmorStacks = 0
     var stackSymbol = ""
@@ -53,6 +58,8 @@ object ActionBarParser {
     }
 
     private fun extractStats(input: String) {
+        if (NoammAddons.debugFlags.contains("actionbar")) NoammAddons.logger.info(input)
+
         HP_REGEX.find(input)?.let { match ->
             currentHealth = match.groupValues[1].remove(",").toIntOrNull() ?: currentHealth
             maxHealth = match.groupValues[2].remove(",").toIntOrNull() ?: maxHealth
@@ -77,6 +84,12 @@ object ActionBarParser {
             val usage = match.groupValues[1].remove(",").toIntOrNull() ?: 0
             currentMana = (currentMana - usage).coerceAtLeast(0)
         }
+
+        VITALITY_REGEX.find(input)?.let { match ->
+            currentVitality = match.groupValues[1].remove(",").toDoubleOrNull()?.toInt() ?: currentVitality
+            maxVitality = match.groupValues[2].remove(",").toDoubleOrNull()?.toInt() ?: maxVitality
+            isVitalityShown = true
+        } ?: ::isVitalityShown.set(false)
 
         STACKS_REGEX.find(input)?.let { match ->
             netherArmorStacks = match.groupValues[1].remove(",").toIntOrNull() ?: netherArmorStacks

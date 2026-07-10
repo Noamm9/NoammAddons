@@ -27,7 +27,7 @@ import org.lwjgl.glfw.GLFW
 import kotlin.jvm.optionals.getOrDefault
 
 object ProtectItem: Feature("Prevents dropping or selling important items via /protectitem or keybind.") {
-    private var data by PogObject("item_protection", object {
+    private var data = PogObject("item_protection", object {
         val uuids = mutableSetOf<String>()
         val ids = mutableSetOf<String>()
     })
@@ -92,6 +92,11 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
 
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
             dispatcher.register(ClientCommands.literal("protectitem").executes {
+                if (! enabled) {
+                    ChatUtils.modMessage("&cYou need have ${this.javaClass.simpleName} enabled.")
+                    return@executes 0
+                }
+
                 val heldItem = mc.player?.inventory?.selectedItem?.takeUnless { it.isEmpty } ?: run {
                     ChatUtils.modMessage("&cYou need to be holding an item.")
                     return@executes 1
@@ -119,12 +124,12 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
 
         if (protectUUID.value) {
             val uuid = stack.itemUUID
-            if (uuid.isNotBlank() && uuid in data.uuids) return ProtectType.UUID
+            if (uuid.isNotBlank() && uuid in data.get().uuids) return ProtectType.UUID
         }
 
         if (protectID.value) {
             val id = stack.skyblockId
-            if (id.isNotBlank() && id in data.ids) return ProtectType.SkyblockID
+            if (id.isNotBlank() && id in data.get().ids) return ProtectType.SkyblockID
         }
 
         val data = stack.customData
@@ -149,6 +154,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
 
     private fun protect(stack: ItemStack) {
         val label = stack.hoverName.formattedText
+        val data = data.get()
 
         val (list, id) = when {
             stack.itemUUID.isNotBlank() -> data.uuids to stack.itemUUID

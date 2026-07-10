@@ -25,17 +25,17 @@ import java.awt.Color
 import java.util.concurrent.*
 
 object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while looking at a block") {
-    val secretWaypoints by ToggleSetting("Secret Waypoints").section("Secret Waypoints")
-    val mode by DropdownSetting("Mode", 0, listOf("Fill", "Outline", "Filled Outline"))
-    val phase by ToggleSetting("See Through Walls", true)
-    val opacity by SliderSetting("Opacity", 40, 0, 100, 1).hideIf { mode.value == 1 }
-    val lineWidth by SliderSetting("Line Width", 1.5f, 1f, 10f, 0.1f).hideIf { mode.value == 0 }
+    private val secretWaypoints by ToggleSetting("Secret Waypoints").section("Secret Waypoints")
+    private val mode by DropdownSetting("Mode", 0, listOf("Fill", "Outline", "Filled Outline"))
+    private val phase by ToggleSetting("See Through Walls", true)
+    private val opacity by SliderSetting("Opacity", 40, 0, 100, 1).hideIf { mode.value == 1 }
+    private val lineWidth by SliderSetting("Line Width", 1.5f, 1f, 10f, 0.1f).hideIf { mode.value == 0 }
 
-    val chestColor by ColorSetting("Chest Color", Color.MAGENTA, false).section("Colors")
-    val itemColor by ColorSetting("Item Color", Utils.favoriteColor, false)
-    val batColor by ColorSetting("Bat Color", Color.GREEN, false)
-    val essenceColor by ColorSetting("Essence Color", Color.BLACK, false)
-    val keyColor by ColorSetting("Redstone Key Color", Color.RED, false)
+    private val chestColor by ColorSetting("Chest Color", Color.MAGENTA, false).section("Colors")
+    private val itemColor by ColorSetting("Item Color", Utils.favoriteColor, false)
+    private val batColor by ColorSetting("Bat Color", Color.GREEN, false)
+    private val essenceColor by ColorSetting("Essence Color", Color.BLACK, false)
+    private val keyColor by ColorSetting("Redstone Key Color", Color.RED, false)
 
     data class DungeonWaypoint(val pos: BlockPos, val color: Color, val filled: Boolean, val outline: Boolean, val phase: Boolean)
     private data class SecretWaypoint(val pos: BlockPos, val type: SecretType) {
@@ -49,7 +49,7 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
         }.value
     }
 
-    val waypoints by PogObject("dungeonWaypoints", mutableMapOf<String, MutableList<DungeonWaypoint>>())
+    val waypoints = PogObject("dungeonWaypoints", mutableMapOf<String, MutableList<DungeonWaypoint>>())
     private val secretPositions by lazy { ScanUtils.roomList.associate { it.name to it.secretCoords } }
     val currentRoomWaypoints = CopyOnWriteArrayList<DungeonWaypoint>()
     private val currentSecrets = CopyOnWriteArrayList<SecretWaypoint>()
@@ -63,7 +63,7 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
             val roomRotation = 360 - (event.room.rotation ?: return@register)
             val roomCorner = event.room.corner ?: return@register
 
-            waypoints[roomName]?.map { wp ->
+            waypoints.get()[roomName]?.map { wp ->
                 wp.copy(pos = ScanUtils.getRealCoord(wp.pos, roomCorner, roomRotation))
             }?.let { currentRoomWaypoints.addAll(it) }
 
@@ -113,7 +113,7 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
         register<RenderWorldEvent> {
             val waypoints = if (LocationUtils.inBoss) {
                 currentRoomWaypoints.clear()
-                waypoints["B${LocationUtils.dungeonFloorNumber}"].orEmpty()
+                waypoints.get()["B${LocationUtils.dungeonFloorNumber}"].orEmpty()
             }
             else currentRoomWaypoints
 
@@ -151,7 +151,7 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
         val newWaypoint = DungeonWaypoint(relPos, color, filled, outline, phase)
         val absWaypoint = newWaypoint.copy(pos = absPos)
 
-        waypoints.compute(roomName) { _, list ->
+        waypoints.get().compute(roomName) { _, list ->
             val mutableList = list ?: mutableListOf()
             val replaced = mutableList.removeIf { it.pos == relPos }
             mutableList.add(newWaypoint)

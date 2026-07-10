@@ -25,13 +25,14 @@ object SlotBinding: Feature("Allows you to bind slots to hotbar slots for quick 
     private val borderColor by ColorSetting("Border Color", Color.PINK, false).showIf { showBoundSlots.value && drawBorders.value }.section("Colors")
     private val lineColor by ColorSetting("Line Color", Color.WHITE, false).showIf { showBoundSlots.value && drawLines.value }
 
-    private val binds by PogObject("slotbindings", mutableMapOf<Int, Int>())
+    private val binds = PogObject("slotbindings", mutableMapOf<Int, Int>())
     private var previousSlot: Int? = null
 
     override fun init() {
         register<ContainerEvent.MouseClick> {
             val screen = event.screen as? InventoryScreen ?: return@register
             val slotId = (screen as IAbstractContainerScreen).hoveredSlot?.index ?: return@register
+            val binds = binds.get()
 
             if (bindKey.isDown()) {
                 event.isCanceled = true
@@ -82,6 +83,7 @@ object SlotBinding: Feature("Allows you to bind slots to hotbar slots for quick 
         if (! enabled) return
         if (screen !is InventoryScreen) return
         val hoveredSlot = (screen as IAbstractContainerScreen).hoveredSlot?.index
+        val binds = binds.get()
 
         if (showBoundSlots.value) binds.forEach { (inv, hb) ->
             if (neuStyle.value && (hoveredSlot != inv && hoveredSlot != hb)) return@forEach

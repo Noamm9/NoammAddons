@@ -1,12 +1,13 @@
 package com.github.noamm9.config
 
 object PersonalBest {
-    private val pbData by PogObject("personal_bests", mutableMapOf<String, Number>())
+    private val pbData = PogObject("personal_bests", mutableMapOf<String, Number>())
 
     /**
      * @return true if this was a new Personal Best, false otherwise.
      */
     fun checkAndSetPB(key: String, value: Number, lowerIsBetter: Boolean = true): Boolean {
+        val pbData = pbData.get()
         val currentPB = pbData[key]
 
         val isNewPB = when {
@@ -21,5 +22,5 @@ object PersonalBest {
         return isNewPB.also { if (it) pbData[key] = value }
     }
 
-    fun getPB(key: String) = pbData[key]
+    fun getPB(key: String) = pbData.get()[key]
 }
