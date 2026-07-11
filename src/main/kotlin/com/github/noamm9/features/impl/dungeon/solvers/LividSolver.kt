@@ -47,8 +47,8 @@ object LividSolver: Feature() {
         Blocks.WHITE_WOOL to "Vendetta Livid"
     )
 
-    private var currentLivid: AbstractClientPlayer? = null
     private val ceilingWoolBlock = BlockPos(5, 108, 40)
+    private var lividId: Int? = null
 
     private const val ticks = 390
     private var timer = - 1
@@ -63,7 +63,7 @@ object LividSolver: Feature() {
         }
 
         register<CheckEntityGlowEvent> {
-            if (currentLivid == event.entity) {
+            if (lividId == event.entity.id) {
                 event.color = highlightColor.value
             }
         }
@@ -72,16 +72,16 @@ object LividSolver: Feature() {
             if (! hideWrong.value) return@register
             if (LocationUtils.dungeonFloorNumber != 5) return@register
             if (! LocationUtils.inBoss) return@register
-            if (currentLivid == event.entity) return@register
-            if (currentLivid?.isSleeping == true) return@register
+            if (lividId == event.entity.id) return@register
+            if (lividId.livid?.isSleeping == true) return@register
             if (dungeonTeammates.any { it.entity?.uuid == event.entity.uuid }) return@register
             if (event.entity is ArmorStand && ! event.entity.name.unformattedText.contains("Livid")) return@register
             event.isCanceled = true
         }
 
         register<RenderWorldEvent> {
-            val livid = currentLivid ?: return@register
-            if (! livid.isAlive) return@register
+            val livid = lividId.livid ?: return@register
+            if (livid.isDeadOrDying) return@register
             if (livid.isSleeping) return@register
 
             if (tracer.value) Render3D.renderTracer(event.ctx, livid.renderVec.add(y = 0.9), tracerColor.value)
@@ -94,10 +94,11 @@ object LividSolver: Feature() {
         register<TickEvent.Start> {
             if (! LocationUtils.inBoss || LocationUtils.dungeonFloorNumber != 5) return@register
             val targetLivid = lividMap[WorldUtils.getBlockAt(ceilingWoolBlock)] ?: return@register
-            if (currentLivid?.gameProfile?.name == targetLivid && currentLivid?.isRemoved != false) return@register
-            currentLivid = mc.level?.entitiesForRendering()?.asSequence()?.filterIsInstance<AbstractClientPlayer>()?.find {
+            val currentLivid = lividId.livid
+            if (currentLivid?.gameProfile?.name == targetLivid && currentLivid.isRemoved) return@register
+            lividId = mc.level?.entitiesForRendering()?.asSequence()?.filterIsInstance<AbstractClientPlayer>()?.find {
                 it.gameProfile.name == targetLivid
-            }
+            }?.id
         }
 
         register<ChatMessageEvent> {
@@ -117,8 +118,10 @@ object LividSolver: Feature() {
         }
 
         register<WorldChangeEvent> {
-            currentLivid = null
+            lividId = null
             timer = - 1
         }
     }
+
+    private val Int?.livid get() = this?.let { mc.level?.getEntity(it) as? AbstractClientPlayer }
 }
