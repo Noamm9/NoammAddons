@@ -169,15 +169,12 @@ object ProfileUtils {
     private val regex = Regex("^\\w+: \\d+$")
     private var _totalSecrets: Long? = null
     private val chatListener = EventListener.create<ChatMessageEvent> {
-        val text = event.unformattedText
+        if (event.unformattedText == "Secret Counts:") return@create event.cancel()
+        if (! event.unformattedText.matches(regex)) return@create
+        event.isCanceled = true
 
-        if (text == "Secret Counts:") return@create event.cancel()
-        if (text.matches(regex)) {
-            event.cancel()
-            if (text.substringBefore(":") == mc.user.name) {
-                _totalSecrets = text.substringAfter(": ").toLongOrNull()
-                listener.unregister()
-            }
-        }
+        if (event.unformattedText.substringBefore(":") != mc.user.name) return@create
+        _totalSecrets = event.unformattedText.substringAfter(": ").toLongOrNull()
+        ThreadUtils.scheduledTaskServer(5) { listener.unregister() }
     }
 }
