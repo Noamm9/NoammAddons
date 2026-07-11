@@ -38,7 +38,13 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
     private val closeAfterUse by ToggleSetting("Auto Close On Use")
     private val useHotbarBinds by ToggleSetting("Use Hotbar Binds")
     private val keybinds = (1 .. 12).mapIndexed { index, slot ->
-        val defaultKey = if (index < 9) InputConstants.KEY_1 + index else GLFW.GLFW_KEY_UNKNOWN
+        val defaultKey = when (index) {
+            in 0 .. 8 -> InputConstants.KEY_1 + index
+            9 -> GLFW.GLFW_KEY_0
+            10 -> GLFW.GLFW_KEY_MINUS
+            11 -> GLFW.GLFW_KEY_EQUAL
+            else -> GLFW.GLFW_KEY_UNKNOWN
+        }
         KeybindSetting("Loadout Slot $slot", defaultKey)
             .hideIf { useHotbarBinds.value }.apply(configSettings::add)
     }
