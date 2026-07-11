@@ -1,5 +1,6 @@
 package com.github.noamm9.features.impl.dungeon.solvers.puzzles
 
+import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.PlayerInteractEvent
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers
@@ -101,6 +102,7 @@ object WaterBoardSolver: PuzzleSolver {
     override fun onInteract(event: PlayerInteractEvent.RIGHT_CLICK.BLOCK) {
         if (patternId == - 1) return
         if (solution.isEmpty()) return
+        if (mc.player?.isCrouching == true) return
         val center = center ?: return
         val rotation = rotation ?: return
         val block = WorldUtils.getBlockAt(event.pos)
