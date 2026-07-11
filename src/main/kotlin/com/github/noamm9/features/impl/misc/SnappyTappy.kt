@@ -7,7 +7,6 @@ import net.minecraft.client.KeyMapping
 import net.minecraft.world.entity.player.Input
 import org.lwjgl.glfw.GLFW
 
-@Suppress("unused")
 object SnappyTappy: Feature("Prevents standing still when pressing opposing direction keys.") {
     private val pressTimes = mutableMapOf<KeyMapping, Long>()
     private val physicallyDown = mutableSetOf<KeyMapping>()

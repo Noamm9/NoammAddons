@@ -9,13 +9,7 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(KeyboardInput.class)
 public abstract class MixinKeyboardInput {
-    @ModifyExpressionValue(
-        method = "tick",
-        at = @At(
-            value = "NEW",
-            target = "(ZZZZZZZ)Lnet/minecraft/world/entity/player/Input;"
-        )
-    )
+    @ModifyExpressionValue(method = "tick", at = @At(value = "NEW", target = "(ZZZZZZZ)Lnet/minecraft/world/entity/player/Input;"))
     private Input resolveSnappyTappyInput(Input original) {
         return SnappyTappy.resolveInput(original);
     }
