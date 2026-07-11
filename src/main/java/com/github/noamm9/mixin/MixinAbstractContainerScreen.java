@@ -2,7 +2,7 @@ package com.github.noamm9.mixin;
 
 import com.github.noamm9.event.EventBus;
 import com.github.noamm9.event.impl.ContainerEvent;
-import com.github.noamm9.features.impl.misc.ScrollableTooltip;
+import com.github.noamm9.features.impl.general.ItemTooltip;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -64,8 +64,8 @@ public abstract class MixinAbstractContainerScreen extends Screen {
     }
 
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
-    public void onMouseClicked(MouseButtonEvent click, boolean doubled, CallbackInfoReturnable<Boolean> cir) {
-        if (EventBus.post(new ContainerEvent.MouseClick(this, click.x(), click.y(), click.button(), click.modifiers()))) {
+    public void onMouseClicked(MouseButtonEvent event, boolean doubleClick, CallbackInfoReturnable<Boolean> cir) {
+        if (EventBus.post(new ContainerEvent.MouseClick(this, event.x(), event.y(), event.button(), event.modifiers()))) {
             cir.setReturnValue(true);
         }
     }
@@ -78,15 +78,15 @@ public abstract class MixinAbstractContainerScreen extends Screen {
     }
 
     @Inject(method = "mouseScrolled", at = @At("TAIL"))
-    public void mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount, CallbackInfoReturnable<Boolean> cir) {
-        EventBus.post(new ContainerEvent.MouseScroll(this, mouseX, mouseY, horizontalAmount, verticalAmount));
+    public void mouseScrolled(double x, double y, double scrollX, double scrollY, CallbackInfoReturnable<Boolean> cir) {
+        EventBus.post(new ContainerEvent.MouseScroll(this, x, y, scrollX, scrollY));
     }
 
     @WrapOperation(method = "extractTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;setTooltipForNextFrame(Lnet/minecraft/client/gui/Font;Ljava/util/List;Ljava/util/Optional;IILnet/minecraft/resources/Identifier;)V"))
     private void onRenderTooltipMerged(GuiGraphicsExtractor instance, Font font, List<Component> texts, Optional<TooltipComponent> optionalImage, int xo, int yo, @org.jspecify.annotations.Nullable Identifier style, Operation<Void> original, @Local ItemStack stack) {
         if (stack == null || stack.isEmpty() || texts.isEmpty()) original.call(instance, font, texts, optionalImage, xo, yo, style);
         else {
-            ScrollableTooltip.setSlot(this.hoveredSlot.index);
+            ItemTooltip.setSlot(this.hoveredSlot.index);
 
             var event = new ContainerEvent.Render.Tooltip(this, instance, stack, xo, yo, new ArrayList<>(texts));
             if (EventBus.post(event)) return;

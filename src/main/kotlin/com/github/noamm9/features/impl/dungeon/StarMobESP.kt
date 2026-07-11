@@ -14,6 +14,7 @@ import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.location.LocationUtils.inBoss
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.ExperienceOrb
 import net.minecraft.world.entity.ambient.Bat
 import net.minecraft.world.entity.boss.wither.WitherBoss
 import net.minecraft.world.entity.decoration.ArmorStand
@@ -98,7 +99,7 @@ object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
 
         val possibleEntities = armorStand.level().getEntities(
             armorStand, armorStand.boundingBox.move(0.0, - 1.0, 0.0)
-        ) { it !is ArmorStand }
+        ) { it !is ArmorStand && it !is ExperienceOrb }
 
         possibleEntities.find {
             ! starMobs.contains(it.id) && when (it) {

@@ -42,16 +42,16 @@ object BlazeSolver: PuzzleSolver {
         if (event.entity !is Blaze) return
         val index = blazes.indexOf(event.entity)
         if (index == - 1) return
-        if (index > blazeCount.value) return
+        if (index >= blazeCount.value) return
         event.color = getBlazeColor(index)
     }
 
     override fun onRenderWorld(ctx: RenderContext) {
         if (! inBlaze || blazes.isEmpty()) return
         blazes.forEachIndexed { i, entity ->
+            if (i == 0) return@forEachIndexed
             if (i >= blazeCount.value) return@forEachIndexed
-            if (i <= 0) return@forEachIndexed
-            val prev = blazes[i - 1]
+            val prev = blazes.getOrNull(i - 1) ?: return@forEachIndexed
 
             Render3D.renderLine(
                 ctx,

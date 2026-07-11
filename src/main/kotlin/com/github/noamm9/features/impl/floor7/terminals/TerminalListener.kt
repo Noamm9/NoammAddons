@@ -16,7 +16,6 @@ import net.minecraft.network.protocol.game.*
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.item.ItemStack
 
-
 object TerminalListener {
     const val FIRST_CLICK_DELAY = 7
 
@@ -28,7 +27,7 @@ object TerminalListener {
 
     var lastWindowId = - 1
 
-    private var interactCooldown = 0
+    var interactCooldown = 0
 
     val currentItems = mutableMapOf<Int, ItemStack>()
 
