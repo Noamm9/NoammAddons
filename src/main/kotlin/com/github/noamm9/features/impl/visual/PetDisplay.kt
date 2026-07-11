@@ -35,7 +35,7 @@ object PetDisplay: Feature("Pet Features") {
     private val loadoutsPetRegex = Regex("\\[Lvl (\\d+)] (.+)$")
     private val loadoutSlots = setOf(14, 15, 16, 23, 24, 25, 32, 33, 34, 41, 42, 43)
 
-    private val petMenuRegex = Regex("^\\(\\d/\\d\\) Pets$")
+    private val petMenuRegex = Regex("^(\\(\\d/\\d\\) )?Pets$")
     private val petLevelRegex = Regex(".+\\[Lvl .*]")
     private var selectedPetSlot = - 1
 
