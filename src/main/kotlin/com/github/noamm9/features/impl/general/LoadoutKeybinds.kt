@@ -11,22 +11,24 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.equalsOneOf
+import com.github.noamm9.utils.items.ItemUtils.lore
 import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.Items
 import org.lwjgl.glfw.GLFW
 
-object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your keyboard.") {
-    private val wardrobeMenuRegex = Regex("""^\(\d+/\d+\) Armor Sets$""")
+object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to your keyboard.") {
+    private val loadoutMenuRegex = Regex("""^\(\d+/\d+\) Loadouts$""", RegexOption.IGNORE_CASE)
     private var lastClick = System.currentTimeMillis()
-    private var inWardrobeMenu = false
+    private var inLoadoutMenu = false
     private var pendingAutoClose = false
     private val keyMap = mapOf(
-        0 to 36, 1 to 37, 2 to 38, 3 to 39, 4 to 40,
-        5 to 41, 6 to 42, 7 to 43, 8 to 44
+        0 to 14, 1 to 15, 2 to 16,
+        3 to 23, 4 to 24, 5 to 25,
+        6 to 32, 7 to 33, 8 to 34,
+        9 to 41, 10 to 42, 11 to 43
     )
 
     private val hotbarKeyMap by lazy {
@@ -34,76 +36,80 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
     }
 
     private val closeAfterUse by ToggleSetting("Auto Close On Use")
-    private val preventUnequip by ToggleSetting("Prevent Unequip")
     private val useHotbarBinds by ToggleSetting("Use Hotbar Binds")
-    private val keybinds = (1 .. 9).mapIndexed { index, slot ->
-        KeybindSetting("Wardrobe Slot $slot", InputConstants.KEY_1 + index)
+    private val keybinds = (1 .. 12).mapIndexed { index, slot ->
+        val defaultKey = when (index) {
+            in 0 .. 8 -> InputConstants.KEY_1 + index
+            9 -> GLFW.GLFW_KEY_0
+            10 -> GLFW.GLFW_KEY_MINUS
+            11 -> GLFW.GLFW_KEY_EQUAL
+            else -> GLFW.GLFW_KEY_UNKNOWN
+        }
+        KeybindSetting("Loadout Slot $slot", defaultKey)
             .hideIf { useHotbarBinds.value }.apply(configSettings::add)
     }
 
     override fun init() {
         register<MainThreadPacketReceivedEvent.Pre> {
             if (event.packet is ClientboundOpenScreenPacket) {
-                inWardrobeMenu = event.packet.title.unformattedText.matches(wardrobeMenuRegex)
+                inLoadoutMenu = event.packet.title.unformattedText.matches(loadoutMenuRegex)
             }
-            else if (event.packet is ClientboundContainerClosePacket && inWardrobeMenu) {
-                inWardrobeMenu = false
+            else if (event.packet is ClientboundContainerClosePacket && inLoadoutMenu) {
+                inLoadoutMenu = false
             }
         }
 
         register<PacketEvent.Sent> {
-            if (event.packet is ServerboundContainerClosePacket && inWardrobeMenu) {
-                inWardrobeMenu = false
-                pendingAutoClose = false
-            }
+            if (event.packet !is ServerboundContainerClosePacket || ! inLoadoutMenu) return@register
+            inLoadoutMenu = false
+            pendingAutoClose = false
         }
 
         register<MainThreadPacketReceivedEvent.Post> {
             if (! pendingAutoClose) return@register
             val packet = event.packet as? ClientboundOpenScreenPacket ?: return@register
-            if (! packet.title.unformattedText.matches(wardrobeMenuRegex)) return@register
+            if (! packet.title.unformattedText.matches(loadoutMenuRegex)) return@register
 
             pendingAutoClose = false
             mc.player?.closeContainer()
         }
 
         register<ContainerEvent.Keyboard> {
-            if (! inWardrobeMenu) return@register
+            if (! inLoadoutMenu) return@register
             if (System.currentTimeMillis() - lastClick < 300) return@register
             if (event.key.equalsOneOf(GLFW.GLFW_KEY_ESCAPE, GLFW.GLFW_KEY_E)) return@register
             val index = if (useHotbarBinds.value) hotbarKeyMap[event.key] ?: return@register
             else keybinds.withIndex().find { (_, key) -> key.isDown() }?.index ?: return@register
-            val slot = keyMap[index]?.takeUnless { mc.player !!.containerMenu.getSlot(it).item == ItemStack.EMPTY } ?: return@register
             event.isCanceled = true
-
-            if (isSlotEquipped(slot) && preventUnequip.value) return@register
-
-            GuiUtils.clickSlot(slot, GuiUtils.ButtonType.LEFT)
-
-            lastClick = System.currentTimeMillis()
-            if (closeAfterUse.value) closeAfterReopen()
+            handleKeybind(index)
         }
 
         register<ContainerEvent.MouseClick> {
-            if (! inWardrobeMenu) return@register
+            if (! inLoadoutMenu) return@register
             if (System.currentTimeMillis() - lastClick < 300) return@register
             if (event.button.equalsOneOf(0, 1, 2)) return@register
             val index = if (useHotbarBinds.value) hotbarKeyMap[event.button] ?: return@register
             else keybinds.withIndex().find { (_, key) -> key.isDown() }?.index ?: return@register
-            val slot = keyMap[index]?.takeUnless { mc.player !!.containerMenu.getSlot(it).item == ItemStack.EMPTY } ?: return@register
             event.isCanceled = true
-
-            if (isSlotEquipped(slot) && preventUnequip.value) return@register
-
-            GuiUtils.clickSlot(slot, GuiUtils.ButtonType.LEFT)
-
-            lastClick = System.currentTimeMillis()
-            if (closeAfterUse.value) closeAfterReopen()
+            handleKeybind(index)
         }
     }
 
-    private fun isSlotEquipped(slot: Int): Boolean {
-        return mc.player?.containerMenu?.slots?.get(slot)?.item?.`is`(Items.LIME_DYE) ?: false
+    private fun handleKeybind(index: Int) {
+        val slot = keyMap[index]?.takeUnless { mc.player !!.containerMenu.getSlot(it).item == ItemStack.EMPTY } ?: return
+
+        if (! isSlotEquipable(slot)) return
+
+        GuiUtils.clickSlot(slot, GuiUtils.ButtonType.LEFT)
+
+        lastClick = System.currentTimeMillis()
+        if (closeAfterUse.value) closeAfterReopen()
+    }
+
+    private fun isSlotEquipable(slot: Int): Boolean {
+        return mc.player?.containerMenu?.slots?.get(slot)?.item?.lore?.any {
+            it.contains("Left-click to equip!", ignoreCase = true)
+        } ?: false
     }
 
     fun closeAfterReopen() {

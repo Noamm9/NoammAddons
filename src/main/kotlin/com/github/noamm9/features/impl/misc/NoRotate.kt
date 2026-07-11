@@ -32,17 +32,17 @@ import net.minecraft.world.entity.PositionMoveRotation
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.Vec3
+import java.util.concurrent.*
 import kotlin.jvm.optionals.getOrNull
 
 object NoRotate: Feature("Prevents the server from snapping back your head when teleporting.") {
-    private val detectionMethod by DropdownSetting("Detection Method", 0, listOf("Simulation", "Interaction"))
-        .withDescription("How the feature will detect a use of a teleport items. &n&lSimulation&r will check the held item and predict where the teleport packet will put you, if its correct it cancels the rotation from that packet.\n&n&lInteraction&r only checks the held item you clicked with and cancels the rotation of the next teleport packet after it")
+    private val detectionMethod by DropdownSetting("Detection Method", 0, listOf("Simulation", "Interaction")).withDescription("How the feature will detect a use of a teleport items. &n&lSimulation&r will check the held item and predict where the teleport packet will put you, if its correct it cancels the rotation from that packet.\n&n&lInteraction&r only checks the held item you clicked with and cancels the rotation of the next teleport packet after it")
     private val tpItems by MultiCheckboxSetting("Teleport Items", mutableMapOf(Pair("Etherwarp", false), Pair("Instant Transmission", false), Pair("Wither Impact", false)))
     val zeroPingCamera by MultiCheckboxSetting("Zero Ping Camera", mutableMapOf(Pair("Etherwarp", false), Pair("Instant Transmission", false), Pair("Wither Impact", false))).withDescription("Instently sets your camera at the teleport position.").showIf { detectionMethod.value == 0 }
 
     private val resyncTimeout by SliderSetting("Resync Timeout", 500, 300, 1000, 50).showIf { zeroPingCamera.value.values.any { it } && detectionMethod.value == 0 }.withDescription("time in miliseconds of how long should it take for the detected teleport to time out")
 
-    val pendingTeleports = mutableListOf<TeleportPrediction>()
+    val pendingTeleports = CopyOnWriteArrayList<TeleportPrediction>()
     private var lastWitherImpact = System.currentTimeMillis()
 
     override fun init() {

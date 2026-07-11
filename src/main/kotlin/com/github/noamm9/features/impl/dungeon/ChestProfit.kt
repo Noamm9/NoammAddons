@@ -5,7 +5,7 @@ import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
-import com.github.noamm9.init.NetworkLoop.priceData
+import com.github.noamm9.init.NetworkLoop
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
@@ -15,7 +15,6 @@ import com.github.noamm9.utils.MathUtils.Vec3
 import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
 import com.github.noamm9.utils.equalsOneOf
-import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
@@ -236,7 +235,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
 
     private fun getItemValue(stack: ItemStack): Long {
         val itemName = stack.hoverName.formattedText
-        val itemId = stack.skyblockId
+        val itemId = getIdFromName(itemName) ?: stack.skyblockId
         var value = 0L
 
         if (itemId == "ENCHANTED_BOOK") {
@@ -270,14 +269,14 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
         val match = essenceRegex.find(text) ?: return 0L
         val type = match.groups["type"]?.value?.uppercase() ?: return 0L
         val count = match.groups["count"]?.value?.toLongOrNull() ?: 0L
-        return (priceData["ESSENCE_$type"] ?: 0L) * count
+        return (NetworkLoop.getPrice("ESSENCE_$type") ?: 0L) * count
     }
 
     private fun getIdFromName(name: String): String? {
         val cleanName = name.removeFormatting()
         if (cleanName.startsWith("Enchanted Book (")) return enchantNameToID(name.substringAfter("(").substringBefore(")"))
         if (cleanName.contains("Shard")) return "SHARD_${cleanName.removeFormatting().uppercase().remove(" SHARD").replace(" ", "_").remove("_X1")}"
-        return ItemUtils.nameToIdMap[cleanName.remove("Shiny ")]
+        return NetworkLoop.nameToIdMap[cleanName.remove("Shiny ")]
     }
 
     private fun enchantNameToID(enchant: String): String {
@@ -292,10 +291,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
         return "ENCHANTMENT_${enchantId}_$level"
     }
 
-    private fun getPrice(id: String): Long {
-        if (id in blackList) return 0L
-        return priceData[id] ?: 0L
-    }
+    private fun getPrice(id: String) = if (id in blackList) 0L else NetworkLoop.getPrice(id) ?: 0L
 
     enum class DungeonChest(val displayText: String, val color: Color) {
         WOOD("Wood Chest", Color(100, 64, 1)),

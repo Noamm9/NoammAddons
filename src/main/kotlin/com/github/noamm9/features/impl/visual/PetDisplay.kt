@@ -18,6 +18,7 @@ import com.github.noamm9.utils.render.Render2D.highlight
 import com.github.noamm9.utils.render.Render2D.width
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
+import net.minecraft.world.inventory.ContainerInput
 import java.awt.Color
 
 @AlwaysActive
@@ -31,8 +32,10 @@ object PetDisplay: Feature("Pet Features") {
     private val chatPetRuleRegex = Regex("§cAutopet §eequipped your §7\\[Lvl .*] (?<pet>.*)§e! §a§lVIEW RULE")
     private val chatSpawnRegex = Regex("§aYou summoned your (?<pet>.*)§a!")
     private val chatDespawnRegex = Regex("§aYou despawned your .*§a!")
+    private val loadoutsPetRegex = Regex("\\[Lvl (\\d+)] (.+)$")
+    private val loadoutSlots = setOf(14, 15, 16, 23, 24, 25, 32, 33, 34, 41, 42, 43)
 
-    private val petMenuRegex = Regex("^\\(\\d/\\d\\) Pets$")
+    private val petMenuRegex = Regex("^(\\(\\d/\\d\\) )?Pets$")
     private val petLevelRegex = Regex(".+\\[Lvl .*]")
     private var selectedPetSlot = - 1
 
@@ -70,6 +73,17 @@ object PetDisplay: Feature("Pet Features") {
                 cacheData.get()["pet"] = stack.hoverName.formattedText.remove(petLevelRegex).trim()
                 selectedPetSlot = i
                 return@register
+            }
+        }
+
+        register<ContainerEvent.SlotClick> {
+            if (event.button != 0) return@register
+            if (event.clickType != ContainerInput.PICKUP) return@register
+            if (event.slotId !in loadoutSlots) return@register
+            if (! event.screen.title.unformattedText.endsWith(") Loadouts")) return@register
+            val stack = mc.player?.containerMenu?.items?.get(event.slotId) ?: return@register
+            stack.lore.find { it.startsWith("§7Pet: ") }?.let {
+                cacheData.get()["pet"] = loadoutsPetRegex.find(it)?.destructured?.component2() ?: return@let
             }
         }
 

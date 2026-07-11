@@ -11,14 +11,10 @@ import net.minecraft.core.component.DataComponents
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.component.CustomData
 import net.minecraft.world.item.component.ItemLore
-import java.util.concurrent.*
 import kotlin.jvm.optionals.getOrNull
 
 
 object ItemUtils {
-    val idToNameMap = ConcurrentHashMap<String, String>()
-    val nameToIdMap = ConcurrentHashMap<String, String>()
-
     val ItemStack.customData get() = getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag()
     val ItemStack.lore get() = getOrDefault(DataComponents.LORE, ItemLore.EMPTY).styledLines().map { it.formattedText }
     val ItemStack.itemUUID get() = customData.getString("uuid").getOrNull() ?: ""
@@ -38,6 +34,35 @@ object ItemUtils {
             return sbItemID.orEmpty()
         }
 
+    val ItemStack.marketId: String
+        get() {
+            val data = customData
+            return when (val id = skyblockId) {
+                "ENCHANTED_BOOK" -> {
+                    val enchantments = data.getCompound("enchantments").getOrNull() ?: return ""
+                    val enchantId = enchantments.keySet().singleOrNull() ?: return ""
+                    val level = enchantments.getIntOr(enchantId, 0)
+                    if (level > 0) "ENCHANTED_BOOK-${enchantId.uppercase()}-$level" else ""
+                }
+
+                "RUNE", "UNIQUE_RUNE" -> {
+                    val runes = data.getCompound("runes").getOrNull() ?: return ""
+                    val runeId = runes.keySet().singleOrNull() ?: return ""
+                    val level = runes.getIntOr(runeId, 0)
+                    if (level > 0) "RUNE-${runeId.uppercase()}-$level" else ""
+                }
+
+                "POTION" -> {
+                    val potion = data.getString("potion").getOrNull()?.takeIf(String::isNotEmpty) ?: return ""
+                    val level = data.getIntOr("potion_level", 0)
+                    if (level <= 0) return ""
+                    "POTION-${potion.uppercase()}-$level${if (data.getBooleanOr("enhanced", false)) "-ENHANCED" else ""}"
+                }
+
+                else -> id
+            }
+        }
+
     fun getSkullTexture(stack: ItemStack): String? {
         if (stack.isEmpty) return null
         val profile = stack.get(DataComponents.PROFILE) ?: return null
@@ -51,7 +76,7 @@ object ItemUtils {
         return profile.partialProfile().id.toString()
     }
 
-    fun ItemStack.hasGlint() = componentsPatch.toString().contains("minecraft:enchantment_glint_override=>true")
+    fun ItemStack.hasGlint() = get(DataComponents.ENCHANTMENT_GLINT_OVERRIDE) == true
 
     fun getRarity(item: ItemStack?): ItemRarity {
         item ?: return ItemRarity.NONE
@@ -64,7 +89,7 @@ object ItemUtils {
             for (i in lore.indices) {
                 val line = lore[lore.lastIndex - i]
                 val rarityName = RARITY_PATTERN.find(line)?.groups?.get("rarity")?.value?.removeFormatting()?.substringAfter("SHINY ")
-                ItemRarity.entries.find { it.rarityName == rarityName }?.let { return@run it }
+                ItemRarity.entries.find { it.loreName == rarityName }?.let { return@run it }
             }
 
             PET_PATTERN.find(item.hoverName.formattedText)?.groupValues?.getOrNull(1)?.let(ItemRarity::byBaseColor) ?: ItemRarity.NONE

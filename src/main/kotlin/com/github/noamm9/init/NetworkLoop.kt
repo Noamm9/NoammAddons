@@ -3,8 +3,6 @@ package com.github.noamm9.init
 import com.github.noamm9.NoammAddons.logger
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ThreadUtils
-import com.github.noamm9.utils.items.ItemUtils.idToNameMap
-import com.github.noamm9.utils.items.ItemUtils.nameToIdMap
 import com.github.noamm9.utils.network.WebUtils
 import com.github.noamm9.utils.network.data.ElectionData
 import kotlinx.coroutines.async
@@ -19,8 +17,17 @@ object NetworkLoop {
     private const val BAZAAR_URL = "https://api.hypixel.net/v2/skyblock/bazaar"
     private const val LOWESTBINS_URL = "https://lb.tricked.dev/lowestbins"
 
-    @JvmField val priceData = ConcurrentHashMap<String, Long>()
+    private val bazaarPrices = ConcurrentHashMap<String, BazaarPrice>()
+    private val lowestBinPrices = ConcurrentHashMap<String, Long>()
+    private val npcSellPrices = ConcurrentHashMap<String, Long>()
+
     @JvmField var electionData = ElectionData.empty
+    @JvmField val nameToIdMap = ConcurrentHashMap<String, String>()
+
+    fun getNpcSellPrice(itemId: String) = npcSellPrices[itemId]
+    fun getLowestBin(itemId: String) = lowestBinPrices[itemId]
+    fun getBazaarPrice(itemId: String) = bazaarPrices[itemId]
+    fun getPrice(itemId: String) = bazaarPrices[itemId]?.sell ?: lowestBinPrices[itemId]
 
     fun init() = ThreadUtils.loop(TimeUnit.MINUTES.toMillis(10)) {
         coroutineScope {
@@ -60,19 +67,19 @@ object NetworkLoop {
 
     private suspend fun updateLowestBins() = runCatching {
         val data = WebUtils.getAs<Map<String, Double>>(LOWESTBINS_URL).getOrThrow()
-        priceData.putAll(data.mapValues { it.value.toLong() })
+        lowestBinPrices.putAll(data.mapValues { it.value.toLong() })
     }.onFailure { logError("lowest bins", it) }
 
     private suspend fun updateBazaarPrices() = runCatching {
-        val data = WebUtils.getAs<JsonObject>(BAZAAR_URL).getOrThrow()
-        data["products"]?.jsonObject?.forEach { (key, element) ->
+        WebUtils.getAs<JsonObject>(BAZAAR_URL).getOrThrow()["products"]?.jsonObject?.forEach { (key, element) ->
             val product = element.jsonObject
             val productId = product["product_id"]?.jsonPrimitive?.content ?: key
-            val buyPrice = product["buy_summary"]?.jsonArray?.getOrNull(0)
-                ?.jsonObject?.get("pricePerUnit")?.jsonPrimitive?.doubleOrNull?.toLong() ?: 0L
+            val sellPrice = product["buy_summary"]?.jsonArray?.getOrNull(0)?.jsonObject?.get("pricePerUnit")?.jsonPrimitive?.doubleOrNull?.toLong() ?: 0L
+            val buyPrice = product["sell_summary"]?.jsonArray?.getOrNull(0)?.jsonObject?.get("pricePerUnit")?.jsonPrimitive?.doubleOrNull?.toLong() ?: 0L
 
-            priceData[productId] = buyPrice
+            bazaarPrices[productId] = BazaarPrice(buyPrice, sellPrice)
         }
+
     }.onFailure { logError("bazaar prices", it) }
 
     private suspend fun updateSkyblockItems() = runCatching {
@@ -82,9 +89,10 @@ object NetworkLoop {
             val item = element.jsonObject
             val id = item["id"]?.jsonPrimitive?.content ?: continue
             val name = item["name"]?.jsonPrimitive?.content ?: continue
+            val npcPrice = item["npc_sell_price"]?.jsonPrimitive?.longOrNull
 
-            idToNameMap[id] = name
             nameToIdMap[name] = id
+            npcPrice?.let { npcSellPrices[id.replace(':', '-')] = it }
         }
     }.onFailure { logError("Skyblock items", it) }
 
@@ -92,4 +100,6 @@ object NetworkLoop {
         logger.error("Error fetching $context", throwable)
         throwable.printStackTrace()
     }
+
+    data class BazaarPrice(val buy: Long, val sell: Long)
 }

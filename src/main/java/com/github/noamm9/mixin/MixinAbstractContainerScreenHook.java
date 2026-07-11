@@ -99,14 +99,14 @@ public class MixinAbstractContainerScreenHook<T extends AbstractContainerMenu> e
     @WrapOperation(method = "mouseClicked", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;mouseClicked(Lnet/minecraft/client/input/MouseButtonEvent;Z)Z"))
     public boolean onMouseClick(AbstractContainerScreen instance, MouseButtonEvent click, boolean doubled, Operation<Boolean> original) {
         StorageOverlayScreen overlay = storageOverlay();
-        if (overlay != null && overlay.mouseClicked(click)) return true;
+        if (overlay != null && overlay.onOverlayClick(click, doubled)) return true;
         return original.call(instance, click, doubled);
     }
 
     @Inject(method = "mouseDragged", at = @At("HEAD"), cancellable = true)
     public void onMouseDrag(MouseButtonEvent event, double dx, double dy, CallbackInfoReturnable<Boolean> cir) {
         StorageOverlayScreen overlay = storageOverlay();
-        if (overlay != null && overlay.mouseDragged(event.y())) cir.setReturnValue(true);
+        if (overlay != null && overlay.mouseDragged(event.x(), event.y())) cir.setReturnValue(true);
     }
 
     @Inject(method = "mouseReleased", at = @At("HEAD"), cancellable = true)

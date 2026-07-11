@@ -8,9 +8,9 @@ import com.github.noamm9.utils.JsonUtils.getObj
 import com.github.noamm9.utils.JsonUtils.getString
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.network.cache.MojangCache
 import com.github.noamm9.utils.network.cache.ProfileCache
 import com.github.noamm9.utils.network.cache.SecretCache
-import com.github.noamm9.utils.network.cache.UuidCache
 import com.github.noamm9.utils.network.data.DungeonStats
 import com.github.noamm9.utils.network.data.MojangData
 import io.ktor.client.call.body
@@ -41,7 +41,7 @@ object ProfileUtils {
 
     suspend fun getUUIDbyName(name: String): Result<MojangData> {
         val key = name.lowercase()
-        UuidCache.check(key, "$name not found")?.let { return it }
+        MojangCache.check(key, "$name not found")?.let { return it }
 
         for ((i, api) in nameToUuidApis.withIndex()) {
             if (System.currentTimeMillis() < (apiCooldowns[api] ?: 0L)) continue
@@ -65,16 +65,16 @@ object ProfileUtils {
 
             val cleanUuid = uuid.replace("-", "")
             val data = MojangData(fetchedName, cleanUuid)
-            UuidCache.addToCache(data)
+            MojangCache.addToCache(data)
             return Result.success(data)
         }
 
-        return Result.failure<MojangData>(Exception("$name not found")).also { UuidCache.addFailedToCache(key) }
+        return Result.failure<MojangData>(Exception("$name not found")).also { MojangCache.addFailedToCache(key) }
     }
 
     suspend fun getNameByUUID(uuid: UUID): Result<MojangData> {
         val key = uuid.toString().replace("-", "")
-        UuidCache.check(key, "UUID not found")?.let { return it }
+        MojangCache.check(key, "UUID not found")?.let { return it }
 
         for ((i, api) in uuidToNameApis.withIndex()) {
             if (System.currentTimeMillis() < (apiCooldowns[api] ?: 0L)) continue
@@ -98,11 +98,11 @@ object ProfileUtils {
 
             val cleanUuid = fetchedUuid.replace("-", "")
             val data = MojangData(fetchedName, cleanUuid)
-            UuidCache.addToCache(data)
+            MojangCache.addToCache(data)
             return Result.success(data)
         }
 
-        return Result.failure<MojangData>(Exception("$key not found")).also { UuidCache.addFailedToCache(key) }
+        return Result.failure<MojangData>(Exception("$key not found")).also { MojangCache.addFailedToCache(key) }
     }
 
     suspend fun getSecrets(playerName: String): Result<Long> {
@@ -169,15 +169,12 @@ object ProfileUtils {
     private val regex = Regex("^\\w+: \\d+$")
     private var _totalSecrets: Long? = null
     private val chatListener = EventListener.create<ChatMessageEvent> {
-        val text = event.unformattedText
+        if (event.unformattedText == "Secret Counts:") return@create event.cancel()
+        if (! event.unformattedText.matches(regex)) return@create
+        event.isCanceled = true
 
-        if (text == "Secret Counts:") return@create event.cancel()
-        if (text.matches(regex)) {
-            event.cancel()
-            if (text.substringBefore(":") == mc.user.name) {
-                _totalSecrets = text.substringAfter(": ").toLongOrNull()
-                listener.unregister()
-            }
-        }
+        if (event.unformattedText.substringBefore(":") != mc.user.name) return@create
+        _totalSecrets = event.unformattedText.substringAfter(": ").toLongOrNull()
+        ThreadUtils.scheduledTaskServer(5) { listener.unregister() }
     }
 }

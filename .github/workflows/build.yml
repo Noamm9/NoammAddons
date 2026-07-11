@@ -1,32 +1,53 @@
-name: build
-on: [ pull_request, push ]
+name: Build
+
+on:
+  pull_request:
+  push:
+    branches: ["26.1.2", "26.2"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
+    name: Build variants
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
     steps:
-      - name: checkout repository
-        uses: actions/checkout@v4
-      - name: validate gradle wrapper
-        uses: gradle/actions/wrapper-validation@v4
-      - name: setup jdk
-        uses: actions/setup-java@v4
+      - name: Check out repository
+        uses: actions/checkout@v7.0.0
         with:
-          java-version: '25'
-          distribution: 'microsoft'
-      - name: make gradle wrapper executable
-        run: chmod +x ./gradlew
-      - name: build legit + cheat
-        run: ./gradlew build
-      - name: capture build artifacts
-        uses: actions/upload-artifact@v4
+          persist-credentials: false
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v5.5.0
         with:
-          name: NoammAddons-jars
-          path: |
-            build/libs/*-legit.jar
-            build/libs/*-cheat.jar
-          compression-level: 0
-      - name: generate nightly download link
-        run: |
-          echo "### Nightly Download Link" >> $GITHUB_STEP_SUMMARY
-          echo "You can download the artifacts from this run here: [NoammAddons-jars.zip](https://nightly.link/${{ github.repository }}/workflows/build/${{ github.ref_name }}/NoammAddons-jars.zip)" >> $GITHUB_STEP_SUMMARY
+          java-version: "25"
+          distribution: microsoft
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6.2.0
+        with:
+          validate-wrappers: true
+
+      - name: Build legit and cheat variants
+        run: ./gradlew build --build-cache --no-daemon
+
+      - name: Upload legit JAR
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          path: build/libs/*-legit.jar
+          if-no-files-found: error
+          archive: false
+
+      - name: Upload cheat JAR
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          path: build/libs/*-cheat.jar
+          if-no-files-found: error
+          archive: false
