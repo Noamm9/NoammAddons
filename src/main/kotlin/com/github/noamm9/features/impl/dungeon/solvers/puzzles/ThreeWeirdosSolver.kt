@@ -50,7 +50,9 @@ object ThreeWeirdosSolver: PuzzleSolver {
         val chestPos = npcBlockPos.offset(BlockPos(1, 0, 0).rotate(360 - currentRoom.rotation !!))
 
         if (isSolution) {
-            mc.player?.playSound(SoundEvents.NOTE_BLOCK_PLING.value(), 2f, 1f)
+            ThreadUtils.scheduledTask {
+                mc.player?.playSound(SoundEvents.NOTE_BLOCK_PLING.value(), 2f, 1f)
+            }
             correctPos = chestPos
         }
         else {
@@ -85,8 +87,6 @@ object ThreeWeirdosSolver: PuzzleSolver {
         if (event.newState != RoomState.DISCOVERED) return
         reset()
     }
-
-    override fun onRoomExit() {}
 
     override fun reset() {
         if (removeChests.value) {
