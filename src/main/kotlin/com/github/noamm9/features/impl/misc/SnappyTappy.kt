@@ -1,57 +1,69 @@
 package com.github.noamm9.features.impl.misc
 
-import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.mojang.blaze3d.platform.InputConstants
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.minecraft.client.KeyMapping
+import net.minecraft.world.entity.player.Input
 import org.lwjgl.glfw.GLFW
 
+@Suppress("unused")
 object SnappyTappy: Feature("Prevents standing still when pressing opposing direction keys.") {
-    private val pressTicks = mutableMapOf<KeyMapping, Long>()
-    private val movementKeys by lazy {
-        listOf(mc.options.keyLeft, mc.options.keyRight, mc.options.keyUp, mc.options.keyDown)
-    }
+    private val pressTimes = mutableMapOf<KeyMapping, Long>()
+    private val physicallyDown = mutableSetOf<KeyMapping>()
 
-    override fun init() {
-        register<TickEvent.Start> {
-            if (mc.screen != null) {
-                if (pressTicks.isNotEmpty()) {
-                    movementKeys.forEach { it.isDown = false }
-                    pressTicks.clear()
-                }
-                return@register
-            }
-
-            for (key in movementKeys) {
-                if (isKeyDown(key)) {
-                    if (! pressTicks.containsKey(key)) {
-                        pressTicks[key] = System.currentTimeMillis()
-                    }
-                    key.isDown = true
-                }
-                else {
-                    pressTicks.remove(key)
-                    key.isDown = false
-                }
-            }
-
-            resolveConflict(mc.options.keyLeft, mc.options.keyRight)
-            resolveConflict(mc.options.keyUp, mc.options.keyDown)
+    @JvmStatic
+    fun resolveInput(input: Input): Input {
+        if (! enabled || mc.screen != null) {
+            physicallyDown.clear()
+            pressTimes.clear()
+            return input
         }
+
+        val left = mc.options.keyLeft
+        val right = mc.options.keyRight
+        val forward = mc.options.keyUp
+        val backward = mc.options.keyDown
+        val keys = listOf(left, right, forward, backward)
+
+        keys.forEach { key ->
+            if (isPhysicallyDown(key)) {
+                if (physicallyDown.add(key)) pressTimes[key] = System.nanoTime()
+            }
+            else {
+                physicallyDown.remove(key)
+                pressTimes.remove(key)
+            }
+        }
+
+        var resolvedForward = input.forward()
+        var resolvedBackward = input.backward()
+        var resolvedLeft = input.left()
+        var resolvedRight = input.right()
+
+        if (forward in physicallyDown && backward in physicallyDown) {
+            if (isNewer(forward, backward)) resolvedBackward = false else resolvedForward = false
+        }
+        if (left in physicallyDown && right in physicallyDown) {
+            if (isNewer(left, right)) resolvedRight = false else resolvedLeft = false
+        }
+
+        return Input(
+            resolvedForward,
+            resolvedBackward,
+            resolvedLeft,
+            resolvedRight,
+            input.jump(),
+            input.shift(),
+            input.sprint(),
+        )
     }
 
-    private fun resolveConflict(a: KeyMapping, b: KeyMapping) {
-        if (! a.isDown || ! b.isDown) return
-        val timeA = pressTicks[a] ?: 0L
-        val timeB = pressTicks[b] ?: 0L
-        if (timeA >= timeB) b.isDown = false
-        else a.isDown = false
-    }
+    private fun isNewer(a: KeyMapping, b: KeyMapping) = (pressTimes[a] ?: 0L) >= (pressTimes[b] ?: 0L)
 
-    private fun isKeyDown(key: KeyMapping): Boolean {
-        val handle = mc.window.handle()
+    private fun isPhysicallyDown(key: KeyMapping): Boolean {
         val bound = KeyMappingHelper.getBoundKeyOf(key)
+        val handle = mc.window.handle()
         return if (bound.type == InputConstants.Type.MOUSE) {
             GLFW.glfwGetMouseButton(handle, bound.value) == GLFW.GLFW_PRESS
         }
