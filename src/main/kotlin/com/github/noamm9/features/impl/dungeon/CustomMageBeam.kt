@@ -346,6 +346,6 @@ object CustomMageBeam: Feature("Renders a fully custom, animated beam whenever y
     private const val BASE_DURATION_MS = 950f
     private const val GROW_FRACTION = 0.22f
     private const val FADE_FRACTION = 0.34f
-    private const val TRIGGER_DEBOUNCE_MS = 150L
+    private const val TRIGGER_DEBOUNCE_MS = 75L
     private const val MAX_ACTIVE_BEAMS = 5
 }
