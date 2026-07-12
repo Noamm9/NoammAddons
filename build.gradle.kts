@@ -3,6 +3,7 @@ import groovy.json.JsonSlurper
 import org.gradle.jvm.tasks.Jar
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.util.*
 
 plugins {
     id("net.fabricmc.fabric-loom")
@@ -122,6 +123,15 @@ fun ProcessResources.writeNestedJarMetadata() {
     }
 }
 
+fun ProcessResources.writeBuildInfo() {
+    doLast {
+        val props = Properties()
+        props.setProperty("ci", (System.getenv("GITHUB_ACTIONS") == "true").toString())
+        props.setProperty("built_at", System.currentTimeMillis().toString())
+        destinationDir.resolve("build-info.properties").outputStream().use { props.store(it, null) }
+    }
+}
+
 tasks.named<ProcessResources>("processResources") {
     doLast {
         destinationDir.resolve("fabric.mod.json").writeWithoutNestedJarMetadata()
@@ -131,6 +141,7 @@ tasks.named<ProcessResources>("processResources") {
 listOf("processCheatResources", "processLegitResources").forEach { taskName ->
     tasks.named<ProcessResources>(taskName) {
         writeNestedJarMetadata()
+        writeBuildInfo()
     }
 }
 

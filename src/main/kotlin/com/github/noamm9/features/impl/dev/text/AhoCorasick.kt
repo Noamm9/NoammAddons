@@ -12,6 +12,7 @@ import kotlin.collections.ArrayDeque
  * Taken from Starred's library
  * Under BSD 3-Clause License
  * https://github.com/skies-starred/library/blob/master/src/main/kotlin/xyz/aerii/library/handlers/minecraft/AbstractWords.kt
+ * Modified by Noamm9
  */
 abstract class AhoCorasick {
     private class Node {
@@ -25,6 +26,10 @@ abstract class AhoCorasick {
     private var r0 = emptyArray<String>()
     private var r1 = emptyArray<Component>()
     private var r2 = emptyArray<FormattedCharSequence>()
+
+    private var overwriteStr = emptyArray<Array<String>>()
+    private var overwriteCps = emptyArray<Array<IntArray>>()
+    private val overwritesRaw = HashMap<String, MutableList<String>>()
 
     var skips: String? = null
 
@@ -52,6 +57,15 @@ abstract class AhoCorasick {
         map0.remove(key)
         map1.remove(key)
         map2.remove(key)
+        overwritesRaw.remove(key)
+    }
+
+    fun putOverwrite(key: String, unlessFollowedBy: String) {
+        overwritesRaw.getOrPut(key) { mutableListOf() }.add(unlessFollowedBy)
+    }
+
+    fun removeOverwrite(key: String, unlessFollowedBy: String) {
+        overwritesRaw[key]?.remove(unlessFollowedBy)
     }
 
     fun build() {
@@ -64,6 +78,8 @@ abstract class AhoCorasick {
             r0 = emptyArray()
             r1 = emptyArray()
             r2 = emptyArray()
+            overwriteStr = emptyArray()
+            overwriteCps = emptyArray()
             return
         }
 
@@ -71,6 +87,9 @@ abstract class AhoCorasick {
         r0 = Array(n) { map0[keys[it]] !! }
         r1 = Array(n) { map1[keys[it]] !! }
         r2 = Array(n) { map2[keys[it]] !! }
+
+        overwriteStr = Array(n) { (overwritesRaw[keys[it]] ?: emptyList()).toTypedArray() }
+        overwriteCps = Array(n) { (overwritesRaw[keys[it]] ?: emptyList()).map { s -> s.codePoints().toArray() }.toTypedArray() }
 
         root = Node()
         val queue = ArrayDeque<Node>(n * 4)
@@ -117,6 +136,34 @@ abstract class AhoCorasick {
         }
     }
 
+    private fun isBlockedInString(idx: Int, input: String, next: Int): Boolean {
+        val blockers = overwriteStr[idx]
+        if (blockers.isEmpty()) return false
+
+        for (blocker in blockers) {
+            if (input.regionMatches(next, blocker, 0, blocker.length)) return true
+        }
+
+        return false
+    }
+
+    private fun isBlockedInCodepoints(idx: Int, chars: IntArray, size: Int, next: Int): Boolean {
+        val blockers = overwriteCps[idx]
+        if (blockers.isEmpty()) return false
+
+        outer@ for (blocker in blockers) {
+            if (next + blocker.size > size) continue
+
+            for (k in blocker.indices) {
+                if (chars[next + k] != blocker[k]) continue@outer
+            }
+
+            return true
+        }
+
+        return false
+    }
+
     fun replaceString(input: String): String {
         if (ia.isEmpty()) return input
 
@@ -136,7 +183,9 @@ abstract class AhoCorasick {
             b[bl] = cp
             bl ++
 
-            if (state.output >= 0) {
+            val next = i + Character.charCount(cp)
+
+            if (state.output >= 0 && ! isBlockedInString(state.output, input, next)) {
                 val idx = state.output
                 bl -= ia[idx].size
 
@@ -146,7 +195,7 @@ abstract class AhoCorasick {
                 state = root
             }
 
-            i += Character.charCount(cp)
+            i = next
         }
 
         for (j in 0 ..< bl) sb.appendCodePoint(b[j])
@@ -214,7 +263,7 @@ abstract class AhoCorasick {
             bs[bl] = styles[i]
             bl ++
 
-            if (state.output >= 0) {
+            if (state.output >= 0 && ! isBlockedInCodepoints(state.output, chars, size, i + 1)) {
                 bl -= ia[state.output].size
                 flush()
                 result.append(r1[state.output])
@@ -274,7 +323,7 @@ abstract class AhoCorasick {
                 bs[bl] = styles[i]
                 bl ++
 
-                if (state.output >= 0) {
+                if (state.output >= 0 && ! isBlockedInCodepoints(state.output, chars, size, i + 1)) {
                     val io = state.output
                     val ml = ia[io].size
                     val ms = bl - ml
