@@ -66,11 +66,14 @@ object MapRenderer: HudElement() {
         val cryptsStr = colorCodeByPercent(ScoreCalculation.cryptsCount, 6) + "Crypts: ${ScoreCalculation.cryptsCount}"
         val scoreStr = "&eScore: ${colorizeScore(ScoreCalculation.score)}&r"
         val deathsStr = "&cDeaths: ${colorCodeByPercent(ScoreCalculation.deathCount, 4, true)}${ScoreCalculation.deathCount}&r"
-        val mimicStr = "&cM: ${if (ScoreCalculation.mimicKilled) "&a&l✔&r" else "&c&l✖&r"}"
-        val princeStr = "&eP: ${if (ScoreCalculation.princeKilled) "&a&l✔&r" else "&c&l✖&r"}"
+        val bonusStr = buildString {
+            append(if (ScoreCalculation.mimicKilled) "&aM &f| " else "&cM &f| ")
+            append(if (ScoreCalculation.princeKilled) "&aP &f| " else "&cP &f| ")
+            append(if (ScoreCalculation.batKilled) "&aB" else "&cB")
+        }
 
         val line1 = "$secretsStr    $cryptsStr"
-        val line2 = "$scoreStr   $deathsStr   $mimicStr $princeStr"
+        val line2 = "$scoreStr   $deathsStr   $bonusStr"
 
         ctx.pose().translate(width / 2f, 128f)
         Render2D.drawCenteredString(ctx, line1, 0f, - 4f, scale = 0.7f)
