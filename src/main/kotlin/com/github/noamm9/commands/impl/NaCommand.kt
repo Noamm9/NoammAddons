@@ -9,6 +9,7 @@ import com.github.noamm9.commands.CommandNodeBuilder
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.NoammDebugFlagEvent
+import com.github.noamm9.features.impl.dev.UpdateChecker
 import com.github.noamm9.features.impl.dungeon.LeapMenu
 import com.github.noamm9.ui.clickgui.ClickGuiScreen
 import com.github.noamm9.ui.hud.HudEditorScreen
@@ -31,6 +32,7 @@ object NaCommand: BaseCommand("na", mutableSetOf("noamm", "noammaddons")) {
         "/na" to "Config GUI",
         "/na hud" to "HUD editor",
         "/na discord" to "Opens the link to the Discord server",
+        "/na update" to "Checks for an update of the mod",
         "/na debug" to "Debug flags",
         "/na sim" to "Simulate chat message",
         "/na leaporder" to "Configure custom leap sorting",
@@ -64,6 +66,10 @@ object NaCommand: BaseCommand("na", mutableSetOf("noamm", "noammaddons")) {
 
         literal("hud") {
             runs { screen = HudEditorScreen() }
+        }
+
+        literal("update") {
+            runs { ThreadUtils.async { UpdateChecker.runCheck(true) } }
         }
 
         literal("ping") {
