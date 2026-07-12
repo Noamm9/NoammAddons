@@ -23,18 +23,18 @@ object UpdateChecker: Feature(
     toggled = true,
 ) {
     val checkOnStartup by ToggleSetting("Check On Startup", true).withDescription("Automatically checks for updates a few seconds after the game starts.")
-    val source by DropdownSetting("Update Source", 0, listOf("Releases", "Action Builds")).withDescription("Releases checks the latest published GitHub release. Action Builds checks the latest successful CI build, useful for testing unreleased changes.")
-    val checkNow by ButtonSetting("Check For Updates") { ThreadUtils.async { runCheck(true) } }.withDescription("Manually checks right now using the source selected above.")
-    val openLatest by ButtonSetting("Open Latest Build/Release") { openPage() }.withDescription("Opens the latest release or Actions run page in your browser.")
+    val source by DropdownSetting("Update Source", 0, listOf("Releases", "Action Builds")).withDescription("Releases checks the latest published GitHub release. Action Builds checks the latest successful CI build.")
+    val check by ButtonSetting("Check For Updates") { ThreadUtils.async { runCheck(true) } }.withDescription("Manually checks using the source selected above.")
+    val openPage by ButtonSetting("Open Latest Build/Release") { openPage() }.withDescription("Opens the latest release or Actions run page in your browser.")
 
     private const val RELEASE_URL = "https://api.noamm.org/na/data/release"
     private const val ACTION_URL = "https://api.noamm.org/na/data/action"
     private val title = "$MOD_NAME $name"
-    private var lastPageUrl: String? = null
+    private var page: String? = null
 
     override fun init() {
         ClientLifecycleEvents.CLIENT_STARTED.register {
-            if (checkOnStartup.value) ThreadUtils.setTimeout(5000) { runCheck() }
+            if (enabled && checkOnStartup.value) ThreadUtils.setTimeout(5000) { runCheck() }
         }
 
         var firstRun = true
@@ -51,6 +51,7 @@ object UpdateChecker: Feature(
     suspend fun runCheck(manual: Boolean = false) = runCatching {
         logger.info("Checking for updates...")
         if (source.value == 0) checkReleases(manual) else checkActionBuilds(manual)
+
     }.onFailure {
         logger.error("UpdateChecker: failed to check for updates", it)
         if (manual) NotificationManager.push(title, "Failed to check for updates, see logs.")
@@ -59,7 +60,7 @@ object UpdateChecker: Feature(
     private suspend fun checkReleases(manual: Boolean) {
         val release = WebUtils.getAs<Release>(RELEASE_URL).getOrThrow()
         val remoteVersion = release.tag_name
-        lastPageUrl = release.html_url
+        page = release.html_url
 
         when {
             isNewerVersion(remoteVersion, MOD_VERSION) -> NotificationManager.push(title, "NoammAddons $remoteVersion is out, you're on $MOD_VERSION.", 6000L)
@@ -70,7 +71,7 @@ object UpdateChecker: Feature(
     private suspend fun checkActionBuilds(manual: Boolean) {
         val latest = WebUtils.getAs<RunsResponse>(ACTION_URL).getOrThrow().workflow_runs.firstOrNull() ?: return
         val latestMillis = Instant.parse(latest.created_at).toEpochMilliseconds()
-        lastPageUrl = latest.html_url
+        page = latest.html_url
 
         if (latestMillis > BuildInfo.builtAt) NotificationManager.push(title, "A new Action build (${latest.head_sha.take(7)}).", 6000L)
         else if (manual) NotificationManager.push(title, "You're already running the latest Action build.")
@@ -94,12 +95,12 @@ object UpdateChecker: Feature(
         val repo = "Noamm9/NoammAddons"
         val releases = "https://github.com/$repo/releases/latest"
         val actions = "https://github.com/$repo/actions"
-        Util.getPlatform().openUri(URI(lastPageUrl ?: (if (source.value == 0) releases else actions)))
+        Util.getPlatform().openUri(URI(page ?: (if (source.value == 0) releases else actions)))
     }
 
     @Serializable private data class Release(val tag_name: String, val html_url: String)
     @Serializable private data class RunsResponse(val workflow_runs: List<Run>)
-    @Serializable private data class Run(val id: Long, val head_sha: String, val html_url: String, val created_at: String)
+    @Serializable private data class Run(val head_sha: String, val html_url: String, val created_at: String)
 
     object BuildInfo {
         val isCiBuild: Boolean
