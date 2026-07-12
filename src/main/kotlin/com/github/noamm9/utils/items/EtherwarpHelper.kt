@@ -156,15 +156,9 @@ object EtherwarpHelper {
         val state = chunk.getBlockState(pos)
         return when (state.block) {
             is SignBlock -> false
-            is AirBlock, is ButtonBlock, is SkullBlock, is WallSkullBlock, is LadderBlock,
-            is SaplingBlock, is FlowerBlock, is StemBlock, is CropBlock, is RailBlock,
-            is BubbleColumnBlock, is SnowLayerBlock, is TripWireBlock, is TripWireHookBlock,
-            is FireBlock, is TorchBlock, is FlowerPotBlock, is TallFlowerBlock, is DoublePlantBlock,
-            is BushBlock, is SeagrassBlock, is SugarCaneBlock, is LiquidBlock, is VineBlock,
-            is MushroomBlock, is TallGrassBlock, is TallDryGrassBlock, is ShortDryGrassBlock,
-            is DryVegetationBlock, is PistonHeadBlock, is WebBlock, is LeverBlock, is NetherWartBlock,
-            is NetherPortalBlock, is RedStoneWireBlock, is ComparatorBlock, is RedstoneTorchBlock,
-            is RepeaterBlock -> true
+            is ButtonBlock, is SkullBlock, is WallSkullBlock, is LadderBlock,
+            is BubbleColumnBlock, is FlowerPotBlock, is PistonHeadBlock, is LeverBlock,
+            is NetherWartBlock, is ComparatorBlock, is RedstoneTorchBlock, is RepeaterBlock -> true
 
             else -> state.getCollisionShape(level, pos, CollisionContext.empty()).isEmpty
         }

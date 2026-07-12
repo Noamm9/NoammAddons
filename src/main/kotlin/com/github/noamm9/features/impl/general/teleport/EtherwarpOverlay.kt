@@ -2,7 +2,6 @@ package com.github.noamm9.features.impl.general.teleport
 
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.*
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
@@ -19,6 +18,7 @@ object EtherwarpOverlay: Feature() {
     private val phase by ToggleSetting("Phase")
     private val lineWidth by SliderSetting("Line Width", 1.0, 1.0, 10.0, 0.1).hideIf { mode.value == 1 }
     private val showFail by ToggleSetting("Show Fail", true).withDescription("Shows the fail position of the etherwarp")
+    private val fullBlock by ToggleSetting("Full Block").withDescription("Draws the overlay as a full block")
 
     private val fillColor by ColorSetting("Fill Color", Utils.favoriteColor.withAlpha(50)).hideIf { mode.value == 0 }.section("Colors")
     private val outlineColor by ColorSetting("Outline Color", Utils.favoriteColor, false).hideIf { mode.value == 1 }
@@ -34,9 +34,18 @@ object EtherwarpOverlay: Feature() {
             val distance = EtherwarpHelper.getEtherwarpDistance(heldItem) ?: return@register
             val (valid, pos) = EtherwarpHelper.getEtherPos(player.position(), player.lookAngle, distance)
             if (! valid && ! showFail.value) return@register
+            pos ?: return@register
 
-            Render3D.renderBlock(
-                event.ctx, pos ?: return@register,
+            if (fullBlock.value) Render3D.renderBox(event.ctx,
+                pos.x + 0.5, pos.y, pos.z + 0.5, 1.0001, 1.0001,
+                if (valid) outlineColor.value else invalidOutlineColor.value,
+                if (valid) fillColor.value else invalidFillColor.value,
+                mode.value.equalsOneOf(0, 2),
+                mode.value.equalsOneOf(1, 2),
+                phase.value,
+                lineWidth.value
+            )
+            else Render3D.renderBlock(event.ctx, pos,
                 if (valid) outlineColor.value else invalidOutlineColor.value,
                 if (valid) fillColor.value else invalidFillColor.value,
                 mode.value.equalsOneOf(0, 2),
