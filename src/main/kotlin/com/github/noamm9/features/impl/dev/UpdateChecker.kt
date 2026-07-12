@@ -59,17 +59,20 @@ object UpdateChecker: Feature(
 
     private suspend fun checkReleases(manual: Boolean) {
         val release = WebUtils.getAs<Release>(RELEASE_URL).getOrThrow()
+        val releaseMillis = Instant.parse(release.created_at).toEpochMilliseconds()
         val remoteVersion = release.tag_name
         page = release.html_url
 
         when {
-            isNewerVersion(remoteVersion, MOD_VERSION) -> NotificationManager.push(title, "NoammAddons $remoteVersion is out, you're on $MOD_VERSION.", 6000L)
+            (BuildInfo.isCiBuild && releaseMillis > BuildInfo.builtAt) || isNewerVersion(remoteVersion, MOD_VERSION) ->
+                NotificationManager.push(title, "NoammAddons $remoteVersion is out, you're on $MOD_VERSION.", 6000L)
+
             manual -> NotificationManager.push(title, "You're already up to date ($MOD_VERSION).")
         }
     }
 
     private suspend fun checkActionBuilds(manual: Boolean) {
-        val latest = WebUtils.getAs<RunsResponse>(ACTION_URL).getOrThrow().workflow_runs.firstOrNull() ?: return
+        val latest = WebUtils.getAs<Action>(ACTION_URL).getOrThrow().workflow_runs.firstOrNull() ?: return
         val latestMillis = Instant.parse(latest.created_at).toEpochMilliseconds()
         page = latest.html_url
 
@@ -98,8 +101,8 @@ object UpdateChecker: Feature(
         Util.getPlatform().openUri(URI(page ?: (if (source.value == 0) releases else actions)))
     }
 
-    @Serializable private data class Release(val tag_name: String, val html_url: String)
-    @Serializable private data class RunsResponse(val workflow_runs: List<Run>)
+    @Serializable private data class Release(val tag_name: String, val html_url: String, val created_at: String)
+    @Serializable private data class Action(val workflow_runs: List<Run>)
     @Serializable private data class Run(val head_sha: String, val html_url: String, val created_at: String)
 
     object BuildInfo {

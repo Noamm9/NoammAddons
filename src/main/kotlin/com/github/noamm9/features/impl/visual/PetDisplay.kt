@@ -49,7 +49,6 @@ object PetDisplay: Feature("Pet Features") {
         }
 
         register<ChatMessageEvent> {
-            if (! LocationUtils.inSkyblock) return@register
             event.formattedText.let {
                 if (chatDespawnRegex.matches(it)) {
                     cacheData.get().remove("pet")
