@@ -185,7 +185,7 @@ object SimonSays: Feature("Simon Says Solver") {
         wasBroken = true
 
         if (sendChat.value) ChatUtils.sendCommand("pc SS Broke!")
-        if (alertSound.value) mc.player?.playSound(SoundEvents.ANVIL_LAND, 5f, 0f)
+        if (alertSound.value) ThreadUtils.scheduledTask { mc.player?.playSound(SoundEvents.ANVIL_LAND, 5f, 0f) }
         if (showTitle.value) ChatUtils.showTitle("§c§l§nSS BROKE!")
 
         resetSolver()

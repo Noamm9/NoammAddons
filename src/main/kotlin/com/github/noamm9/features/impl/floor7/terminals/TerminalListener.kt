@@ -63,26 +63,15 @@ object TerminalListener {
 
             is ClientboundContainerSetSlotPacket -> {
                 if (! inTerm || packet.containerId != lastWindowId) return
-                if (packet.slot < 0) return
-                if (packet.slot > currentType !!.slotCount) return
+                val type = currentType ?: return
+                if (packet.slot !in 0 until type.slotCount) return
                 currentItems[packet.slot] = packet.item
 
-                if (currentItems.size == currentType?.slotCount || currentType == TerminalType.MELODY) {
+                if (currentItems.size == type.slotCount || type == TerminalType.MELODY) {
                     TerminalSolver.onItemsUpdated(packet.slot, packet.item)
                     //#if CHEAT
                     if (AutoTerminal.enabled) AutoTerminal.onItemsUpdated()
                     //#endif
-                }
-            }
-
-            is ClientboundContainerSetContentPacket -> {
-                if (! inTerm || packet.containerId != lastWindowId) return
-                currentItems.clear()
-
-                packet.items.forEachIndexed { index, itemStack ->
-                    if (index < (currentType?.slotCount ?: 0)) {
-                        currentItems[index] = itemStack
-                    }
                 }
             }
 
