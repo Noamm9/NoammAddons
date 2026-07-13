@@ -32,6 +32,8 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     private val clickOrder by DropdownSetting("Click Order", 2, listOf("None", "Random", "Human", "Skizo"))
         .withDescription("Human: Logic pathing. Skizo: Chaotic/Furthest.")
 
+    val renderingMode by DropdownSetting("Rendering Mode", 0, listOf("Custom Menu", "Fake Invwalk"))
+
     private val autoMelody by ToggleSetting("Melody", true).section("Melody-AutoTerm")
     private val melodyFcDelay by ToggleSetting("First Click Delay", true).showIf { autoMelody.value }
     private val melodySkip by ToggleSetting("Melody Skip").showIf { autoMelody.value }

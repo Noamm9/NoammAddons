@@ -26,6 +26,11 @@ import kotlin.math.floor
 
 object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
     private val scale by SliderSetting("Custom Menu's Scale", 1f, 0.1f, 2f, 0.01f).section("General")
+    //#if CHEAT
+    private val fakeInvWalkEnabled get() = AutoTerminal.renderingMode.value == 1 && AutoTerminal.enabled
+    //#else
+    //$private val fakeInvWalkEnabled get() = false
+    //#endif
     private val slotStyle by DropdownSetting("Slot Style", 0, listOf("Rect", "Bordered-Rect", "Button"))
 
     val solverModes = run {
@@ -44,6 +49,11 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
     private val titleColor by ColorSetting("Title Text Color", Color.WHITE)
     private val queueColor by ColorSetting("Queue Text Color", Color.CYAN)
     private val overlayTextColor by ColorSetting("Overlay Text Color", Color.WHITE)
+    //#if CHEAT
+    private val clickProgressTextColor by ColorSetting("Click Progress Text Color", Color.WHITE).showIf { fakeInvWalkEnabled }
+    //#else
+    //$private val clickProgressTextColor = ColorSetting("Click Progress Text Color", Color.WHITE)
+    //#endif
 
     private val solutionColor by ColorSetting("Generic Solution", Color(0, 255, 0, 130)).section("Colors - Terminals").showIf {
         melody.value || numbers.value || rubix.value || colors.value || startwith.value || redgreen.value
@@ -69,6 +79,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
     val solution = mutableListOf<TerminalClick>()
     private val queue = mutableListOf<TerminalClick>()
     private var isClicked = false
+    private var total = - 1
 
     override fun onEnable() {
         super.onEnable()
@@ -125,6 +136,18 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
             )
             Render2D.drawRect(event.context, offsetX, offsetY, width, height, backgroundColor.value)
             Render2D.drawBorder(event.context, offsetX, offsetY, width, height, borderColor.value)
+
+            if (fakeInvWalkEnabled) {
+                val maxClicks = if (termType == TerminalType.MELODY) 4 else total
+                if (maxClicks > 0) {
+                    val completed = if (termType == TerminalType.MELODY) TerminalType.melodyButton ?: 0 else maxClicks - solution.size
+                    val y = offsetY + height / 2f - mc.font.lineHeight * 0.75f
+                    Render2D.drawCenteredString(event.context, "[${completed.coerceIn(0, maxClicks)}/$maxClicks]", offsetX + width / 2f, y, color = clickProgressTextColor.value, scale = 1.5f)
+                }
+                event.context.pose().popMatrix()
+                Resolution.pop(event.context)
+                return@register
+            }
 
             val baseColor = solutionColor.value
 
@@ -205,6 +228,10 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
         register<ContainerEvent.MouseClick> {
             if (! TerminalListener.inTerm) return@register
             val termType = TerminalListener.currentType ?: return@register
+            if (fakeInvWalkEnabled) {
+                event.isCanceled = true
+                return@register
+            }
             //#if CHEAT
             if (AutoTerminal.enabled && AutoTerminal.shouldAutoSolve(termType)) return@register
             //#endif
@@ -409,6 +436,8 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
                 }
             }
         }
+
+        if (total < 0 && type != TerminalType.MELODY) total = solution.size
     }
 
     fun onItemsUpdated(slot: Int = 0, item: ItemStack = ItemStack.EMPTY) {
@@ -439,10 +468,14 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
         }
     }
 
-    fun onTerminalOpen() = ::isClicked.set(false)
+    fun onTerminalOpen() {
+        if (! isClicked) total = - 1
+        isClicked = false
+    }
 
     fun onTerminalClose() {
         queue.clear()
         solution.clear()
+        isClicked = false
     }
 }
