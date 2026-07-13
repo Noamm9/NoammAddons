@@ -59,12 +59,12 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
     private val melodyIndicatorColor by ColorSetting("Melody: Indicator", Color(255, 116, 0, 130)).showIf { melody.value }
     private val melodyWrongColor by ColorSetting("Melody: Wrong", Color(255, 0, 0, 130)).showIf { melody.value }
 
-    private val melody by ToggleSetting("Melody", true).section("Toggles")
-    private val numbers by ToggleSetting("Numbers", true)
-    private val rubix by ToggleSetting("Rubix", true)
-    private val colors by ToggleSetting("Colors", true)
-    private val startwith by ToggleSetting("Start-With", true)
-    private val redgreen by ToggleSetting("Red-Green", true)
+    val melody by ToggleSetting("Melody", true).section("Toggles")
+    val numbers by ToggleSetting("Numbers", true)
+    val rubix by ToggleSetting("Rubix", true)
+    val colors by ToggleSetting("Colors", true)
+    val startwith by ToggleSetting("Start-With", true)
+    val redgreen by ToggleSetting("Red-Green", true)
 
     val solution = mutableListOf<TerminalClick>()
     private val queue = mutableListOf<TerminalClick>()

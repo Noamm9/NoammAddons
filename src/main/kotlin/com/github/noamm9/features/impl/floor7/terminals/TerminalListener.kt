@@ -67,7 +67,7 @@ object TerminalListener {
                 if (packet.slot !in 0 until type.slotCount) return
                 currentItems[packet.slot] = packet.item
 
-                if (currentItems.size == type.slotCount || type == TerminalType.MELODY) {
+                if (packet.slot == type.slotCount - 1 || type == TerminalType.MELODY) {
                     TerminalSolver.onItemsUpdated(packet.slot, packet.item)
                     //#if CHEAT
                     if (AutoTerminal.enabled) AutoTerminal.onItemsUpdated()
