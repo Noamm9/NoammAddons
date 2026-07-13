@@ -25,6 +25,7 @@ import java.awt.Color
 object PetDisplay: Feature("Pet Features") {
     private val petDisplay by ToggleSetting("Pet Display").withDescription("Draws the current active pet on screen.").section("HUD")
     private val autoPetTitles by ToggleSetting("Auto Pet Title").withDescription("Shows a title on screen when you swap pets via autopet rules.")
+    private val autoPetTitlesDungeonOnly by ToggleSetting("Dungeons Only").withDescription("Only shows autopet titles while in a dungeon.").showIf { autoPetTitles.value }
 
     private val activePetHighlight by ToggleSetting("Highlight Active pet").withDescription("highlights the active pet inside the pet menu").section("Pets Menu")
     private val petHighlightColor by ColorSetting("Highlight color", Color.CYAN).showIf { activePetHighlight.value }
@@ -58,7 +59,7 @@ object PetDisplay: Feature("Pet Features") {
 
                 val match1 = chatSpawnRegex.find(it)?.destructured?.component1()
                 val match2 = chatPetRuleRegex.find(it)?.destructured?.component1()
-                if (match2 != null && autoPetTitles.value && enabled) ChatUtils.showTitle(match2)
+                if (match2 != null && autoPetTitles.value && enabled && (! autoPetTitlesDungeonOnly.value || LocationUtils.inDungeon)) ChatUtils.showTitle(match2)
                 cacheData.get()["pet"] = match1 ?: match2 ?: return@let
             }
         }
