@@ -235,7 +235,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
 
     private fun getItemValue(stack: ItemStack): Long {
         val itemName = stack.hoverName.formattedText
-        val itemId = getIdFromName(itemName) ?: stack.skyblockId
+        val itemId = stack.skyblockId.removePrefix("STARRED_")
         var value = 0L
 
         if (itemId == "ENCHANTED_BOOK") {
@@ -276,7 +276,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
         val cleanName = name.removeFormatting()
         if (cleanName.startsWith("Enchanted Book (")) return enchantNameToID(name.substringAfter("(").substringBefore(")"))
         if (cleanName.contains("Shard")) return "SHARD_${cleanName.removeFormatting().uppercase().remove(" SHARD").replace(" ", "_").remove("_X1")}"
-        return NetworkLoop.nameToIdMap[cleanName.remove("Shiny ")]
+        return NetworkLoop.nameToIdMap[cleanName.remove("Shiny ")]?.removePrefix("STARRED_")
     }
 
     private fun enchantNameToID(enchant: String): String {
