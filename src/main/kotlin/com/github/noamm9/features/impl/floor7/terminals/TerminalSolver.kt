@@ -25,8 +25,8 @@ import kotlin.math.abs
 import kotlin.math.floor
 
 object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
-    val scale by SliderSetting("Custom Menu's Scale", 1f, 0.1f, 2f, 0.01f).section("General")
-    val slotStyle by DropdownSetting("Slot Style", 0, listOf("Rect", "Bordered-Rect", "Button"))
+    private val scale by SliderSetting("Custom Menu's Scale", 1f, 0.1f, 2f, 0.01f).section("General")
+    private val slotStyle by DropdownSetting("Slot Style", 0, listOf("Rect", "Bordered-Rect", "Button"))
 
     val solverModes = run {
         //#if CHEAT
@@ -36,28 +36,28 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
         //#endif
     }
 
-    val mode by DropdownSetting("Mode", 0, solverModes)
-    val resyncTimeout by SliderSetting<Long>("Resync Timeout", 800, 600, 1000, 1)
+    private val mode by DropdownSetting("Mode", 0, solverModes)
+    private val resyncTimeout by SliderSetting<Long>("Resync Timeout", 800, 600, 1000, 1)
 
-    val backgroundColor by ColorSetting("Background Color", Color(0, 0, 0, 100)).section("Settings - UI")
-    val borderColor by ColorSetting("Border Color", Color(255, 255, 255))
-    val titleColor by ColorSetting("Title Text Color", Color.WHITE)
-    val queueColor by ColorSetting("Queue Text Color", Color.CYAN)
-    val overlayTextColor by ColorSetting("Overlay Text Color", Color.WHITE)
+    private val backgroundColor by ColorSetting("Background Color", Color(0, 0, 0, 100)).section("Settings - UI")
+    private val borderColor by ColorSetting("Border Color", Color(255, 255, 255))
+    private val titleColor by ColorSetting("Title Text Color", Color.WHITE)
+    private val queueColor by ColorSetting("Queue Text Color", Color.CYAN)
+    private val overlayTextColor by ColorSetting("Overlay Text Color", Color.WHITE)
 
-    val solutionColor by ColorSetting("Generic Solution", Color(0, 255, 0, 130)).section("Colors - Terminals").showIf {
+    private val solutionColor by ColorSetting("Generic Solution", Color(0, 255, 0, 130)).section("Colors - Terminals").showIf {
         melody.value || numbers.value || rubix.value || colors.value || startwith.value || redgreen.value
     }
 
-    val numbersNumbers by ToggleSetting("Numbers: Show Numbers").showIf { numbers.value }
-    val numbersFirstColor by ColorSetting("Numbers: 1st Click", Color(0, 255, 0, 130)).showIf { numbers.value }
-    val numbersSecondColor by ColorSetting("Numbers: 2nd Click", Color(0, 200, 0, 130)).showIf { numbers.value }
-    val numbersThirdColor by ColorSetting("Numbers: 3rd Click", Color(0, 150, 0, 130)).showIf { numbers.value }
-    val rubixPositiveColor by ColorSetting("Rubix: Positive (+)", Color(0, 114, 255, 130)).showIf { rubix.value }
-    val rubixNegativeColor by ColorSetting("Rubix: Negative (-)", Color(205, 0, 0, 130)).showIf { rubix.value }
-    val melodyColumnColor by ColorSetting("Melody: Column", Color(255, 0, 255, 130)).showIf { melody.value }
-    val melodyIndicatorColor by ColorSetting("Melody: Indicator", Color(255, 116, 0, 130)).showIf { melody.value }
-    val melodyWrongColor by ColorSetting("Melody: Wrong", Color(255, 0, 0, 130)).showIf { melody.value }
+    private val numbersNumbers by ToggleSetting("Numbers: Show Numbers").showIf { numbers.value }
+    private val numbersFirstColor by ColorSetting("Numbers: 1st Click", Color(0, 255, 0, 130)).showIf { numbers.value }
+    private val numbersSecondColor by ColorSetting("Numbers: 2nd Click", Color(0, 200, 0, 130)).showIf { numbers.value }
+    private val numbersThirdColor by ColorSetting("Numbers: 3rd Click", Color(0, 150, 0, 130)).showIf { numbers.value }
+    private val rubixPositiveColor by ColorSetting("Rubix: Positive (+)", Color(0, 114, 255, 130)).showIf { rubix.value }
+    private val rubixNegativeColor by ColorSetting("Rubix: Negative (-)", Color(205, 0, 0, 130)).showIf { rubix.value }
+    private val melodyColumnColor by ColorSetting("Melody: Column", Color(255, 0, 255, 130)).showIf { melody.value }
+    private val melodyIndicatorColor by ColorSetting("Melody: Indicator", Color(255, 116, 0, 130)).showIf { melody.value }
+    private val melodyWrongColor by ColorSetting("Melody: Wrong", Color(255, 0, 0, 130)).showIf { melody.value }
 
     val melody by ToggleSetting("Melody", true).section("Toggles")
     val numbers by ToggleSetting("Numbers", true)
@@ -301,7 +301,6 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
             if (! TerminalListener.inTerm || initialWindowId != TerminalListener.lastWindowId) return@schedule
             if (NoammAddons.debugFlags.contains("terminal")) ChatUtils.modMessage("Resync Timeout Triggered")
 
-            TerminalType.clickedStartWithSlots.clear()
             isClicked = false
             queue.clear()
             solve()
@@ -324,13 +323,6 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
         if (NoammAddons.debugFlags.contains("terminal")) {
             ChatUtils.modMessage("Clicked $slot on ${TerminalListener.currentType?.name}")
         }
-
-        if (TerminalListener.currentType == TerminalType.STARTWITH) {
-            val item = TerminalListener.currentItems[slot]?.item
-            if (item.equalsOneOf(Items.NETHER_STAR, Items.EXPERIENCE_BOTTLE)) {
-                TerminalType.clickedStartWithSlots.add(slot)
-            }
-        }
     }
 
     fun solve(updatedSlot1: Int = 0, updatedItem1: ItemStack = ItemStack.EMPTY) {
@@ -352,7 +344,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
                 val match = TerminalType.startwithRegex.matchEntire(TerminalListener.currentTitle)
                 val letter = match?.groupValues?.get(1)?.lowercase() ?: return
 
-                currentItems.filterNot { it.key in TerminalType.clickedStartWithSlots }.forEach { (slot, item) ->
+                currentItems.forEach { (slot, item) ->
                     if (! item.hoverName.unformattedText.lowercase().startsWith(letter)) return@forEach
                     if (item.hasGlint()) return@forEach
                     solution.add(TerminalClick(slot))
