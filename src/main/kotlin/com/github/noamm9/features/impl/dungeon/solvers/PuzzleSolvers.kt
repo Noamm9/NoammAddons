@@ -29,6 +29,9 @@ object PuzzleSolvers: Feature() {
     val quiz by ToggleSetting("Enabled   ").section("Quiz Solver")
     val answerColor by ColorSetting("Answer Color", Color.CYAN.withAlpha(128)).showIf { quiz.value }
     val quizTimer by ToggleSetting("Quiz Timer", true).showIf { quiz.value }
+    val quizBlockWrongClicks by ToggleSetting("Block Wrong Clicks", true)
+        .withDescription("Prevents clicking a wrong Quiz answer. &eSneak to override.")
+        .showIf { quiz.value }
 
     val tpmaze by ToggleSetting("Enabled    ").section("Teleport Maze Solver")
     val correctTpPadColor by ColorSetting("Correct Pad Color", Color.GREEN).showIf { tpmaze.value }
