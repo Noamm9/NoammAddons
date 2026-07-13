@@ -12,12 +12,17 @@ import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.lore
+import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.width
 import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
+import net.minecraft.sounds.SoundEvents
+import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.item.ItemStack
 import org.lwjgl.glfw.GLFW
+import java.awt.Color
 
 object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to your keyboard.") {
     private val loadoutMenuRegex = Regex("""^\(\d+/\d+\) Loadouts$""", RegexOption.IGNORE_CASE)
@@ -37,6 +42,9 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
 
     private val closeAfterUse by ToggleSetting("Auto Close On Use")
     private val useHotbarBinds by ToggleSetting("Use Hotbar Binds")
+    private val showKeybinds by ToggleSetting("Show Keybinds")
+    private val equipSound by ToggleSetting("Equip Sound")
+    private val equipSoundSettings = createSoundSettings("Equip Sound Type", SoundEvents.NOTE_BLOCK_PLING.value()) { equipSound.value }
     private val keybinds = (1 .. 12).mapIndexed { index, slot ->
         val defaultKey = when (index) {
             in 0 .. 8 -> InputConstants.KEY_1 + index
@@ -92,6 +100,36 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
             else keybinds.withIndex().find { (_, key) -> key.isDown() }?.index ?: return@register
             event.isCanceled = true
             handleKeybind(index)
+        }
+
+        register<ContainerEvent.Render.Slot.Post> {
+            if (! inLoadoutMenu || ! showKeybinds.value) return@register
+            val index = keyMap.entries.find { it.value == event.slot.index }?.key ?: return@register
+            if (event.slot.item.isEmpty) return@register
+
+            val key = if (useHotbarBinds.value) {
+                (mc.options.keyHotbarSlots.getOrNull(index) as? IKeyMapping)?.key
+            }
+            else {
+                keybinds.getOrNull(index)?.let {
+                    if (it.value == InputConstants.UNKNOWN.value) return@register
+                    val type = if (it.isMouse) InputConstants.Type.MOUSE else InputConstants.Type.KEYSYM
+                    type.getOrCreate(it.value)
+                }
+            }
+            val keyName = key?.displayName?.string?.uppercase() ?: return@register
+            val scale = 0.75f
+            val x = event.slot.x + 16f - keyName.width() * scale
+            val y = event.slot.y + 16f - mc.font.lineHeight * scale
+            Render2D.drawString(event.context, keyName, x, y, Color.WHITE, scale)
+        }
+
+        register<ContainerEvent.SlotClick> {
+            if (! inLoadoutMenu || ! equipSound.value) return@register
+            if (event.button != 0 || event.clickType != ContainerInput.PICKUP) return@register
+            if (event.slotId !in keyMap.values || ! isSlotEquipable(event.slotId)) return@register
+
+            equipSoundSettings.play.action.invoke()
         }
     }
 
