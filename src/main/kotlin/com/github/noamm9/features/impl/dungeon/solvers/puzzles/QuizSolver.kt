@@ -3,6 +3,7 @@ package com.github.noamm9.features.impl.dungeon.solvers.puzzles
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.DungeonEvent
+import com.github.noamm9.event.impl.PlayerInteractEvent
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers
 import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.utils.ChatUtils
@@ -56,6 +57,9 @@ object QuizSolver: PuzzleSolver {
         val trimmed = message.trim()
 
         if (message.contains("I am Oruo the Omniscient. I have lived many lives.")) {
+            triviaOptions.forEach { it.isCorrect = false }
+            triviaAnswers = null
+            correctAnswer = null
             questionsStarted = true
             stage = 1
             answerTime = DungeonListener.currentTime + 220
@@ -110,6 +114,15 @@ object QuizSolver: PuzzleSolver {
         }
 
         if (newAnswers != null) triviaAnswers = newAnswers
+    }
+
+    override fun onInteract(event: PlayerInteractEvent.RIGHT_CLICK.BLOCK) {
+        if (! inQuiz || ! PuzzleSolvers.quizBlockWrongClicks.value) return
+        if (mc.player?.isCrouching == true) return
+
+        val clickedAnswer = triviaOptions.firstOrNull { it.blockPos.distManhattan(event.pos) <= 1 } ?: return
+        if (triviaOptions.none { it.isCorrect }) return
+        if (! clickedAnswer.isCorrect) event.cancel()
     }
 
     override fun onRenderWorld(ctx: RenderContext) {
