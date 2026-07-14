@@ -89,21 +89,13 @@ object NaCommand: BaseCommand("na", mutableSetOf("noamm", "noammaddons")) {
                 ChatUtils.modMessage("§7Flags: §f${debugFlags.joinToString(", ")}")
             }
 
-            argument("flag", StringArgumentType.word()) {
+            argument("flag", StringArgumentType.greedyString()) {
                 runs { ctx ->
-                    val flag = StringArgumentType.getString(ctx, "flag")
-                    val event: NoammDebugFlagEvent
-                    if (debugFlags.remove(flag)) {
-                        ChatUtils.modMessage("§cRemoved debug flag: §b$flag")
-                        event = NoammDebugFlagEvent.Remove(flag)
+                    StringArgumentType.getString(ctx, "flag").split(Regex("\\s+")).forEach { flag ->
+                        val added = if (debugFlags.remove(flag)) false else debugFlags.add(flag)
+                        ChatUtils.modMessage(if (added) "§aAdded debug flag: §b$flag" else "§cRemoved debug flag: §b$flag")
+                        EventBus.post(if (added) NoammDebugFlagEvent.Add(flag) else NoammDebugFlagEvent.Remove(flag))
                     }
-                    else {
-                        debugFlags.add(flag)
-                        ChatUtils.modMessage("§aAdded debug flag: §b$flag")
-                        event = NoammDebugFlagEvent.Add(flag)
-                    }
-
-                    EventBus.post(event)
                 }
             }
         }
