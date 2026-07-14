@@ -26,14 +26,16 @@ import kotlin.math.floor
 
 object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
     private val scale by SliderSetting("Custom Menu's Scale", 1f, 0.1f, 2f, 0.01f).section("General")
+
     //#if CHEAT
-    private val fakeInvWalkEnabled get() = AutoTerminal.renderingMode.value == 1 && AutoTerminal.enabled
+    private fun fakeInwalk(type: TerminalType) = AutoTerminal.renderingMode.value == 1 && AutoTerminal.enabled && AutoTerminal.shouldAutoSolve(type)
     //#else
-    //$private val fakeInvWalkEnabled get() = false
+    //$private fun fakeInwalk(type: TerminalType) = false
     //#endif
+
     private val slotStyle by DropdownSetting("Slot Style", 0, listOf("Rect", "Bordered-Rect", "Button"))
 
-    val solverModes = run {
+    private val solverModes = run {
         //#if CHEAT
         listOf("Normal", "Q-Terms")
         //#else
@@ -74,7 +76,8 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
     val solution = mutableListOf<TerminalClick>()
     private val queue = mutableListOf<TerminalClick>()
     private var isClicked = false
-    private var total = - 1
+    private var totalClicks = - 1
+    private var clicked = - 1
 
     override fun onEnable() {
         super.onEnable()
@@ -108,7 +111,8 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
             Resolution.refresh()
             Resolution.push(event.context)
 
-            val uiScale = if (fakeInvWalkEnabled) 1.5f else 3f * scale.value
+            val invWalk = fakeInwalk(termType)
+            val uiScale = (if (invWalk) 1.5f else 3f) * scale.value
             val screenWidth = Resolution.width / uiScale
             val screenHeight = Resolution.height / uiScale
             val windowSize = termType.slotCount
@@ -121,7 +125,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
             event.context.pose().pushMatrix()
             event.context.pose().scale(uiScale, uiScale)
 
-            if (! fakeInvWalkEnabled) Render2D.drawCenteredString(
+            if (! invWalk) Render2D.drawCenteredString(
                 event.context,
                 termType.name.lowercase().uppercaseFirst(),
                 offsetX + width / 2f,
@@ -129,20 +133,22 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
                 color = titleColor.value,
                 scale = 1.2f
             )
-            if (! fakeInvWalkEnabled) Render2D.drawRect(event.context, offsetX, offsetY, width, height, backgroundColor.value)
-            if (! fakeInvWalkEnabled) Render2D.drawBorder(event.context, offsetX, offsetY, width, height, borderColor.value)
+            if (! invWalk) Render2D.drawRect(event.context, offsetX, offsetY, width, height, backgroundColor.value)
+            if (! invWalk) Render2D.drawBorder(event.context, offsetX, offsetY, width, height, borderColor.value)
 
-            if (fakeInvWalkEnabled) {
-                val maxClicks = if (termType == TerminalType.MELODY) 4 else total
-                val completed = if (termType == TerminalType.MELODY) TerminalType.melodyButton ?: 0 else maxClicks - solution.size
+            if (invWalk) {
+                val maxClicks = if (termType == TerminalType.MELODY) 4 else totalClicks
+                val completed = if (termType == TerminalType.MELODY) TerminalType.melodyButton ?: 0 else clicked
                 val displayName = when (termType) {
                     TerminalType.STARTWITH -> "Starts With"
                     TerminalType.REDGREEN -> "Red Green"
                     else -> termType.name.lowercase().uppercaseFirst()
                 }
+
                 val current = TerminalType.melodyCurrent
                 val correct = TerminalType.melodyCorrect
-                val melodyProgress = if (termType != TerminalType.MELODY || current == null || correct == null) "" else (0 .. 4).joinToString("", " §7[", "§7]") {
+                val melodyProgress = if (termType != TerminalType.MELODY || current == null || correct == null) ""
+                else (0 .. 4).joinToString("", " §7[", "§7]") {
                     when (it) {
                         current -> "§a="
                         correct -> "§d="
@@ -150,8 +156,9 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
                     }
                 }
 
-                Render2D.drawCenteredString(event.context, "§3In Terminal ($displayName)", screenWidth / 2f, screenHeight / 2f + 10f)
-                if (maxClicks > 0) Render2D.drawCenteredString(event.context, "§b[${completed.coerceIn(0, maxClicks)}/$maxClicks]$melodyProgress", screenWidth / 2f, screenHeight / 2f + 20f)
+                event.context.pose().translate(screenWidth / 2f, screenHeight / 2f - 6 * uiScale)
+                Render2D.drawCenteredString(event.context, "§3In Terminal ($displayName)", 0, - 20f)
+                if (maxClicks > 0) Render2D.drawCenteredString(event.context, "§b[${completed.coerceIn(0, maxClicks)}/$maxClicks]$melodyProgress", 0, - 10f)
                 event.context.pose().popMatrix()
                 Resolution.pop(event.context)
                 return@register
@@ -236,15 +243,12 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
         register<ContainerEvent.MouseClick> {
             if (! TerminalListener.inTerm) return@register
             val termType = TerminalListener.currentType ?: return@register
-            if (fakeInvWalkEnabled) {
-                event.isCanceled = true
-                return@register
-            }
+            if (TerminalListener.checkFcDelay()) return@register
+            event.isCanceled = true
+
             //#if CHEAT
             if (AutoTerminal.enabled && AutoTerminal.shouldAutoSolve(termType)) return@register
             //#endif
-            event.isCanceled = true
-            if (TerminalListener.checkFcDelay()) return@register
 
             val uiScale = 3f * scale.value
             val mx = Resolution.getMouseX() / uiScale
@@ -445,7 +449,13 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
             }
         }
 
-        if (total < 0 && type != TerminalType.MELODY) total = solution.size
+        val clicks =
+            if (! type.equalsOneOf(TerminalType.MELODY, TerminalType.RUBIX)) solution.size
+            else if (type == TerminalType.RUBIX) solution.sumOf { abs(it.btn) }
+            else return
+
+        if (totalClicks == - 1) totalClicks = clicks
+        clicked = totalClicks - clicks
     }
 
     fun onItemsUpdated(slot: Int = 0, item: ItemStack = ItemStack.EMPTY) {
@@ -476,14 +486,12 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
         }
     }
 
-    fun onTerminalOpen() {
-        if (! isClicked) total = - 1
-        isClicked = false
-    }
+    fun onTerminalOpen() = ::isClicked.set(false)
 
     fun onTerminalClose() {
         queue.clear()
         solution.clear()
-        isClicked = false
+        totalClicks = - 1
+        clicked = - 1
     }
 }
