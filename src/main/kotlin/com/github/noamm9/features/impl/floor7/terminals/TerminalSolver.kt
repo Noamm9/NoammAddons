@@ -49,11 +49,6 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
     private val titleColor by ColorSetting("Title Text Color", Color.WHITE)
     private val queueColor by ColorSetting("Queue Text Color", Color.CYAN)
     private val overlayTextColor by ColorSetting("Overlay Text Color", Color.WHITE)
-    //#if CHEAT
-    private val clickProgressTextColor by ColorSetting("Click Progress Text Color", Color.WHITE).showIf { fakeInvWalkEnabled }
-    //#else
-    //$private val clickProgressTextColor = ColorSetting("Click Progress Text Color", Color.WHITE)
-    //#endif
 
     private val solutionColor by ColorSetting("Generic Solution", Color(0, 255, 0, 130)).section("Colors - Terminals").showIf {
         melody.value || numbers.value || rubix.value || colors.value || startwith.value || redgreen.value
@@ -113,7 +108,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
             Resolution.refresh()
             Resolution.push(event.context)
 
-            val uiScale = 3f * scale.value
+            val uiScale = if (fakeInvWalkEnabled) 1.5f else 3f * scale.value
             val screenWidth = Resolution.width / uiScale
             val screenHeight = Resolution.height / uiScale
             val windowSize = termType.slotCount
@@ -126,7 +121,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
             event.context.pose().pushMatrix()
             event.context.pose().scale(uiScale, uiScale)
 
-            Render2D.drawCenteredString(
+            if (! fakeInvWalkEnabled) Render2D.drawCenteredString(
                 event.context,
                 termType.name.lowercase().uppercaseFirst(),
                 offsetX + width / 2f,
@@ -134,16 +129,29 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
                 color = titleColor.value,
                 scale = 1.2f
             )
-            Render2D.drawRect(event.context, offsetX, offsetY, width, height, backgroundColor.value)
-            Render2D.drawBorder(event.context, offsetX, offsetY, width, height, borderColor.value)
+            if (! fakeInvWalkEnabled) Render2D.drawRect(event.context, offsetX, offsetY, width, height, backgroundColor.value)
+            if (! fakeInvWalkEnabled) Render2D.drawBorder(event.context, offsetX, offsetY, width, height, borderColor.value)
 
             if (fakeInvWalkEnabled) {
                 val maxClicks = if (termType == TerminalType.MELODY) 4 else total
-                if (maxClicks > 0) {
-                    val completed = if (termType == TerminalType.MELODY) TerminalType.melodyButton ?: 0 else maxClicks - solution.size
-                    val y = offsetY + height / 2f - mc.font.lineHeight * 0.75f
-                    Render2D.drawCenteredString(event.context, "[${completed.coerceIn(0, maxClicks)}/$maxClicks]", offsetX + width / 2f, y, color = clickProgressTextColor.value, scale = 1.5f)
+                val completed = if (termType == TerminalType.MELODY) TerminalType.melodyButton ?: 0 else maxClicks - solution.size
+                val displayName = when (termType) {
+                    TerminalType.STARTWITH -> "Starts With"
+                    TerminalType.REDGREEN -> "Red Green"
+                    else -> termType.name.lowercase().uppercaseFirst()
                 }
+                val current = TerminalType.melodyCurrent
+                val correct = TerminalType.melodyCorrect
+                val melodyProgress = if (termType != TerminalType.MELODY || current == null || correct == null) "" else (0 .. 4).joinToString("", " §7[", "§7]") {
+                    when (it) {
+                        current -> "§a="
+                        correct -> "§d="
+                        else -> "§8="
+                    }
+                }
+
+                Render2D.drawCenteredString(event.context, "§3In Terminal ($displayName)", screenWidth / 2f, screenHeight / 2f + 10f)
+                if (maxClicks > 0) Render2D.drawCenteredString(event.context, "§b[${completed.coerceIn(0, maxClicks)}/$maxClicks]$melodyProgress", screenWidth / 2f, screenHeight / 2f + 20f)
                 event.context.pose().popMatrix()
                 Resolution.pop(event.context)
                 return@register
