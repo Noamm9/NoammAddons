@@ -56,7 +56,6 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
     private val hideAfterLeap by ToggleSetting("Hide Players").withDescription("Hides players for a certain amount of time after you leap")
     private val hideTime by SliderSetting("Hide Time", 3.5, 0.5, 5.0, 0.1).showIf { hideAfterLeap.value }
 
-
     data class LeapMenuPlayer(val slotIndex: Int, val player: DungeonPlayer)
 
     val players = MutableList<LeapMenuPlayer?>(4) { null }
@@ -76,6 +75,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
     private val mapLeapEnabled get() = customLeapMenu.value && mapLeap.value && DungeonMap.enabled && MapConfig.mapEnabled.value
 
     private val playerRegex = Regex("(?:\\[.+?] )?(?<name>\\w+)")
+    private val leapRegex = Regex("""^You have teleported to (?<name>\w{1,16})!$""")
     private var shouldHide: Long = 0
 
     var customLeapOrder = listOf<String>()
@@ -83,10 +83,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
 
     override fun init() {
         register<ChatMessageEvent> {
-            val message = event.unformattedText
-            if (! message.endsWith("!")) return@register
-            if (! message.startsWith("You have teleported to ")) return@register
-            val name = message.remove("You have teleported to ", "!")
+            val name = leapRegex.matchEntire(event.unformattedText)?.groups["name"]?.value ?: return@register
 
             if (announceSpiritLeaps.value) leapMsg.value.replace("{name}", name).takeUnless { it.isBlank() }?.let {
                 ChatUtils.sendPartyMessage(it)

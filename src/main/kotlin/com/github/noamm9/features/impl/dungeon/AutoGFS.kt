@@ -5,7 +5,6 @@ package com.github.noamm9.features.impl.dungeon
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.*
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
@@ -60,7 +59,7 @@ object AutoGFS: Feature("Automatically refills dungeon items from your sacks usi
 
     private fun refill() {
         if (! enabled || ! LocationUtils.inDungeon) return
-        if (mc.screen != null || mc.player == null) return
+        if (mc.screen != null) return
         if (DungeonListener.thePlayer?.isDead == true) return
         val inventory = mc.player?.inventory ?: return
 
