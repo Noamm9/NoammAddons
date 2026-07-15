@@ -41,6 +41,9 @@ enum class TerminalType(val slotCount: Int) {
 
         val numbersSlotCounts = mutableMapOf<Int, Int>()
 
+        val clickedSlots = mutableSetOf<Int>()
+        var clickedSlot: Pair<Int, Int>? = null
+
         fun fromName(windowTitle: String): TerminalType? {
             if (colorsRegex.matches(windowTitle) && TerminalSolver.colors.value) return COLORS
             if (melodyRegex.matches(windowTitle) && TerminalSolver.melody.value) return MELODY
@@ -57,6 +60,8 @@ enum class TerminalType(val slotCount: Int) {
             melodyCurrent = null
             melodyCorrect = null
             numbersSlotCounts.clear()
+            clickedSlots.clear()
+            clickedSlot = null
         }
     }
 }
