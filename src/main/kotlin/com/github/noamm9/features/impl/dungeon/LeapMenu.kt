@@ -75,7 +75,6 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
     private val mapLeapEnabled get() = customLeapMenu.value && mapLeap.value && DungeonMap.enabled && MapConfig.mapEnabled.value
 
     private val playerRegex = Regex("(?:\\[.+?] )?(?<name>\\w+)")
-    private val leapRegex = Regex("""^You have teleported to (?<name>\w{1,16})!$""")
     private var shouldHide: Long = 0
 
     var customLeapOrder = listOf<String>()
@@ -83,7 +82,10 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
 
     override fun init() {
         register<ChatMessageEvent> {
-            val name = leapRegex.matchEntire(event.unformattedText)?.groups["name"]?.value ?: return@register
+            val message = event.unformattedText
+            if (! message.endsWith("!")) return@register
+            if (! message.startsWith("You have teleported to ")) return@register
+            val name = message.remove("You have teleported to ", "!")
 
             if (announceSpiritLeaps.value) leapMsg.value.replace("{name}", name).takeUnless { it.isBlank() }?.let {
                 ChatUtils.sendPartyMessage(it)
