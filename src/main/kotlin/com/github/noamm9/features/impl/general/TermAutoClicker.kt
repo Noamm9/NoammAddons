@@ -14,7 +14,7 @@ object TermAutoClicker: Feature(name = "Term AC", description = "Automatically u
 
     override fun init() {
         register<TickEvent.Start> {
-            if (mc.screen != null || mc.player == null) return@register
+            if (mc.screen != null) return@register
             val player = mc.player?.takeUnless { it.isUsingItem } ?: return@register
             val now = System.currentTimeMillis()
 
