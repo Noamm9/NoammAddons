@@ -45,12 +45,12 @@ enum class TerminalType(val slotCount: Int) {
         var clickedSlot: Pair<Int, Int>? = null
 
         fun fromName(windowTitle: String): TerminalType? {
-            if (colorsRegex.matches(windowTitle) && TerminalSolver.colors.value) return COLORS
-            if (melodyRegex.matches(windowTitle) && TerminalSolver.melody.value) return MELODY
-            if (numbersRegex.matches(windowTitle) && TerminalSolver.numbers.value) return NUMBERS
-            if (redgreenRegex.matches(windowTitle) && TerminalSolver.redgreen.value) return REDGREEN
-            if (rubixRegex.matches(windowTitle) && TerminalSolver.rubix.value) return RUBIX
-            if (startwithRegex.matches(windowTitle) && TerminalSolver.startwith.value) return STARTWITH
+            if (colorsRegex.matches(windowTitle)) return COLORS
+            if (melodyRegex.matches(windowTitle)) return MELODY
+            if (numbersRegex.matches(windowTitle)) return NUMBERS
+            if (redgreenRegex.matches(windowTitle)) return REDGREEN
+            if (rubixRegex.matches(windowTitle)) return RUBIX
+            if (startwithRegex.matches(windowTitle)) return STARTWITH
             return null
         }
 

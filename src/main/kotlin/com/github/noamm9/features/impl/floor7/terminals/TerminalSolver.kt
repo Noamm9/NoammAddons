@@ -104,10 +104,20 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
         Scheduler.tickListener.unregister()
     }
 
+    fun solverActive(type: TerminalType) = when (type) {
+        TerminalType.NUMBERS -> numbers.value
+        TerminalType.COLORS -> colors.value
+        TerminalType.MELODY -> melody.value
+        TerminalType.RUBIX -> rubix.value
+        TerminalType.REDGREEN -> redgreen.value
+        TerminalType.STARTWITH -> startwith.value
+    }
+
     override fun init() {
         register<ScreenEvent.PreRender> {
             if (! TerminalListener.inTerm) return@register
             val termType = TerminalListener.currentType ?: return@register
+            if (! solverActive(termType)) return@register
             event.isCanceled = true
 
             Resolution.refresh()
@@ -253,6 +263,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
         register<ContainerEvent.MouseClick> {
             if (! TerminalListener.inTerm) return@register
             val termType = TerminalListener.currentType ?: return@register
+            if (! solverActive(termType)) return@register
             if (TerminalListener.checkFcDelay()) return@register
             event.isCanceled = true
 
