@@ -4,6 +4,8 @@ import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.ScreenEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.features.impl.floor7.terminals.TerminalType.Companion.clickedSlot
+import com.github.noamm9.features.impl.floor7.terminals.TerminalType.Companion.clickedSlots
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
@@ -28,7 +30,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
     private val scale by SliderSetting("Custom Menu's Scale", 1f, 0.1f, 2f, 0.01f).section("General")
 
     //#if CHEAT
-    private fun fakeInwalk(type: TerminalType) = AutoTerminal.renderingMode.value == 1 && AutoTerminal.enabled && AutoTerminal.shouldAutoSolve(type)
+    private fun fakeInwalk(type: TerminalType) = AutoTerminal.enabled && AutoTerminal.invwalk.value && AutoTerminal.shouldAutoSolve(type)
     //#else
     //$private fun fakeInwalk(type: TerminalType) = false
     //#endif
@@ -102,17 +104,27 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
         Scheduler.tickListener.unregister()
     }
 
+    fun solverActive(type: TerminalType) = when (type) {
+        TerminalType.NUMBERS -> numbers.value
+        TerminalType.COLORS -> colors.value
+        TerminalType.MELODY -> melody.value
+        TerminalType.RUBIX -> rubix.value
+        TerminalType.REDGREEN -> redgreen.value
+        TerminalType.STARTWITH -> startwith.value
+    }
+
     override fun init() {
         register<ScreenEvent.PreRender> {
             if (! TerminalListener.inTerm) return@register
             val termType = TerminalListener.currentType ?: return@register
+            if (! solverActive(termType)) return@register
             event.isCanceled = true
 
             Resolution.refresh()
             Resolution.push(event.context)
 
             val invWalk = fakeInwalk(termType)
-            val uiScale = (if (invWalk) 1.5f else 3f) * scale.value
+            val uiScale = 3f * scale.value
             val screenWidth = Resolution.width / uiScale
             val screenHeight = Resolution.height / uiScale
             val windowSize = termType.slotCount
@@ -154,6 +166,14 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
                         correct -> "§d="
                         else -> "§8="
                     }
+                }
+
+                if (NoammAddons.debugFlags.contains("terminal")) solution.forEach { (slot, btn) ->
+                    val slotX = slot % 9 * 18 + offsetX
+                    val slotY = floor(slot / 9.0).toInt() * 18 + offsetY
+                    val item = TerminalListener.currentItems[slot] ?: return@forEach
+                    event.context.item(item, slotX.toInt(), slotY.toInt())
+                    event.context.itemDecorations(mc.font, item, slotX.toInt(), slotY.toInt())
                 }
 
                 event.context.pose().translate(screenWidth / 2f, screenHeight / 2f - 6 * uiScale)
@@ -243,9 +263,10 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
         register<ContainerEvent.MouseClick> {
             if (! TerminalListener.inTerm) return@register
             val termType = TerminalListener.currentType ?: return@register
-            if (TerminalListener.checkFcDelay()) return@register
+            if (! solverActive(termType)) return@register
             event.isCanceled = true
-
+            
+            if (TerminalListener.checkFcDelay()) return@register
             //#if CHEAT
             if (AutoTerminal.enabled && AutoTerminal.shouldAutoSolve(termType)) return@register
             //#endif
@@ -345,6 +366,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
             solve()
 
             //#if CHEAT
+            if (AutoTerminal.enabled) AutoTerminal.reset()
             if (AutoTerminal.enabled) AutoTerminal.onItemsUpdated()
             //#endif
         }
@@ -361,6 +383,10 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
 
         if (NoammAddons.debugFlags.contains("terminal")) {
             ChatUtils.modMessage("Clicked $slot on ${TerminalListener.currentType?.name}")
+        }
+
+        if (TerminalListener.currentType == TerminalType.STARTWITH) {
+            TerminalType.clickedSlot = TerminalListener.lastWindowId to slot
         }
     }
 
@@ -383,10 +409,19 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
                 val match = TerminalType.startwithRegex.matchEntire(TerminalListener.currentTitle)
                 val letter = match?.groupValues?.get(1)?.lowercase() ?: return
 
-                currentItems.forEach { (slot, item) ->
-                    if (! item.hoverName.unformattedText.lowercase().startsWith(letter)) return@forEach
-                    if (item.hasGlint()) return@forEach
-                    solution.add(TerminalClick(slot))
+                TerminalType.clickedSlot?.let { (windowId, slotId) ->
+                    if (windowId != TerminalListener.lastWindowId) {
+                        val item = currentItems[slotId]?.item
+                        if (item == Items.NETHER_STAR || item == Items.EXPERIENCE_BOTTLE) clickedSlots.add(slotId)
+                        clickedSlot = null
+                    }
+                }
+
+                currentItems.forEach { (index, item) ->
+                    if (! item.hoverName.string.startsWith(letter, true)) return@forEach
+                    if (index in clickedSlots) return@forEach
+                    if ((! item.hasGlint() || item.item == Items.NETHER_STAR || item.item == Items.EXPERIENCE_BOTTLE))
+                        solution.add(TerminalClick(index))
                 }
             }
 
