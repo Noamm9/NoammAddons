@@ -264,9 +264,9 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
             if (! TerminalListener.inTerm) return@register
             val termType = TerminalListener.currentType ?: return@register
             if (! solverActive(termType)) return@register
-            if (TerminalListener.checkFcDelay()) return@register
             event.isCanceled = true
-
+            
+            if (TerminalListener.checkFcDelay()) return@register
             //#if CHEAT
             if (AutoTerminal.enabled && AutoTerminal.shouldAutoSolve(termType)) return@register
             //#endif
