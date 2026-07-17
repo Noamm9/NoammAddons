@@ -1,7 +1,9 @@
 package com.github.noamm9.mixin;
 
 import com.github.noamm9.features.impl.misc.Tweaks;
+import com.github.noamm9.features.impl.visual.RevertMasterStars;
 import com.github.noamm9.utils.location.LocationUtils;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,6 +15,11 @@ import static com.github.noamm9.NoammAddons.mc;
 
 @Mixin(ItemStack.class)
 public class MixinItemStack {
+    @Inject(method = "getHoverName", at = @At("RETURN"), cancellable = true)
+    private void onGetHoverName(CallbackInfoReturnable<Component> cir) {
+        cir.setReturnValue(RevertMasterStars.modifyHoverName(cir.getReturnValue()));
+    }
+
     @Inject(method = "applyAfterUseComponentSideEffects", at = @At("HEAD"), cancellable = true)
     private void onApplyCooldown(LivingEntity user, ItemStack stackBeforeUsing, CallbackInfoReturnable<ItemStack> cir) {
         if (!Tweaks.INSTANCE.enabled || !Tweaks.getHideItemCooldowns().getValue()) return;
