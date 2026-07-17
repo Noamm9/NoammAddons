@@ -17,6 +17,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLevelEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents
 import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
@@ -43,6 +44,10 @@ object EventDispatcher {
         }
 
         ClientLevelEvents.AFTER_CLIENT_LEVEL_CHANGE.register { _, _ ->
+            EventBus.post(WorldChangeEvent)
+        }
+
+        ClientPlayConnectionEvents.DISCONNECT.register { _, _ ->
             EventBus.post(WorldChangeEvent)
         }
 
