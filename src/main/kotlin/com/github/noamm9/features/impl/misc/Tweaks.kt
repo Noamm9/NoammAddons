@@ -12,4 +12,5 @@ object Tweaks: Feature("Small quality of life tweaks.") {
     @JvmStatic val hideRecipeBook by ToggleSetting("Hide Recipe Book").withDescription("Hides the recipe book button in inventory GUIs.")
     @JvmStatic val closeRecipeBook by ToggleSetting("Close Recipe Book").withDescription("Also closes the recipe book screen.").showIf { hideRecipeBook.value }
     @JvmStatic val hideItemCooldowns by ToggleSetting("Hide Item Cooldowns").withDescription("Hides the hotbar cooldown overlay for items.")
+    @JvmStatic val hideOffhandInInventory by ToggleSetting("Hide Offhand In Inventory").withDescription("Hides and disables the offhand slot in the player inventory.")
 }

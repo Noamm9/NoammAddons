@@ -2,6 +2,7 @@ package com.github.noamm9.mixin;
 
 import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlay;
 import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlayScreen;
+import com.github.noamm9.features.impl.misc.Tweaks;
 import com.github.noamm9.interfaces.ICoordRememberingSlot;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -9,9 +10,11 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.ContainerScreen;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -41,6 +44,12 @@ public class MixinAbstractContainerScreenHook<T extends AbstractContainerMenu> e
         return StorageOverlay.activeFor((ContainerScreen) (Object) this);
     }
 
+    @Unique
+    private boolean shouldHideOffhandSlot(Slot slot) {
+        return Tweaks.INSTANCE.enabled && Tweaks.getHideOffhandInInventory().getValue()
+            && (Object) this instanceof InventoryScreen && slot.index == InventoryMenu.SHIELD_SLOT;
+    }
+
     @Inject(method = "init", at = @At("TAIL"))
     private void onInit(CallbackInfo ci) {
         StorageOverlayScreen overlay = storageOverlay();
@@ -60,7 +69,7 @@ public class MixinAbstractContainerScreenHook<T extends AbstractContainerMenu> e
 
     @Inject(method = "extractSlot", at = @At("HEAD"), cancellable = true)
     private void onRenderSlot(GuiGraphicsExtractor graphics, Slot slot, int mouseX, int mouseY, CallbackInfo ci) {
-        if (storageOverlay() != null && !(slot.container instanceof net.minecraft.world.entity.player.Inventory)) ci.cancel();
+        if (shouldHideOffhandSlot(slot) || (storageOverlay() != null && !(slot.container instanceof net.minecraft.world.entity.player.Inventory))) ci.cancel();
     }
 
     @Inject(method = "hasClickedOutside", at = @At("HEAD"), cancellable = true)
@@ -70,6 +79,11 @@ public class MixinAbstractContainerScreenHook<T extends AbstractContainerMenu> e
 
     @Inject(method = "isHovering(Lnet/minecraft/world/inventory/Slot;DD)Z", at = @At("HEAD"), cancellable = true)
     public void onIsHovering(Slot slot, double xm, double ym, CallbackInfoReturnable<Boolean> cir) {
+        if (shouldHideOffhandSlot(slot)) {
+            cir.setReturnValue(false);
+            return;
+        }
+
         StorageOverlayScreen overlay = storageOverlay();
         if (overlay != null) cir.setReturnValue(overlay.isPointOverSlot(slot, this.leftPos, this.topPos, xm, ym));
     }
