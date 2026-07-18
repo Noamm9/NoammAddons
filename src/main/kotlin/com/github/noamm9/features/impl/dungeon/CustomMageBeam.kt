@@ -90,7 +90,6 @@ object CustomMageBeam : Feature("Renders a fully custom, animated beam whenever 
                         recent.lastUpdateTick = tick
                         recent.updateEndpoints(playerPos)
                     } else {
-                        if (isNearSheep(point)) return@register
                         val newBeam = Beam(mutableListOf(point), tick, tick, playerPos)
                         beams.add(newBeam)
                         ThreadUtils.scheduledTaskServer(duration.value) { beams.remove(newBeam) }
@@ -132,12 +131,4 @@ object CustomMageBeam : Feature("Renders a fully custom, animated beam whenever 
         length = length, segments = segments.value.coerceIn(2, 128), smoothness = smoothness.value.coerceIn(3, BeamRenderer.MAX_SIDES),
         glow = glow.value, throughWalls = false, endpointFade = endpointFade.value, pulse = pulse.value, trail = trail.value
     )
-
-    private fun isNearSheep(point: Vec3): Boolean {
-        val level = mc.level ?: return false
-        val radiusSqr = SHEEP_EXCLUSION_RADIUS * SHEEP_EXCLUSION_RADIUS
-        return level.entitiesForRendering().any { it.type == EntityType.SHEEP && it.position().distanceToSqr(point) <= radiusSqr }
-    }
-
-    private const val SHEEP_EXCLUSION_RADIUS = 1.5
 }
