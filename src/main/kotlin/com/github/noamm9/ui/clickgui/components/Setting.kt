@@ -1,5 +1,6 @@
 package com.github.noamm9.ui.clickgui.components
 
+import com.github.noamm9.NoammAddons
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.CategorySetting
 import com.github.noamm9.ui.clickgui.components.impl.SeparatorSetting
@@ -9,7 +10,9 @@ import kotlin.reflect.KProperty
 abstract class Setting<T>(val name: String, val defaultValue: T) {
     open var value: T = defaultValue
         set(value) {
-            changeListener?.invoke(value)
+            if (NoammAddons.isLoaded) {
+                changeListener?.invoke(value)
+            }
             field = value
         }
 
