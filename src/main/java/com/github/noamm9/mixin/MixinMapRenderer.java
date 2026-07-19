@@ -12,8 +12,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(MapRenderer.class)
 public abstract class MixinMapRenderer {
-    @Inject(method = "extractRenderState", at = @At("TAIL"))
+    @Inject(method = "extractRenderState", at = @At("HEAD"), cancellable = true)
     private void applyCustomHubMap(MapId mapId, MapItemSavedData mapData, MapRenderState mapRenderState, CallbackInfo ci) {
-        CustomHubMap.applyRenderState(mapId, mapRenderState);
+        CustomHubMap.applyRenderState(mapId, mapRenderState, ci);
     }
 }
