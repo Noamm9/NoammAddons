@@ -1,6 +1,6 @@
 package com.github.noamm9.mixin;
 
-import com.github.noamm9.features.impl.visual.CustomHubMap;
+import com.github.noamm9.features.impl.visual.HubMap;
 import net.minecraft.client.renderer.MapRenderer;
 import net.minecraft.client.renderer.state.MapRenderState;
 import net.minecraft.world.level.saveddata.maps.MapId;
@@ -14,6 +14,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinMapRenderer {
     @Inject(method = "extractRenderState", at = @At("HEAD"), cancellable = true)
     private void applyCustomHubMap(MapId mapId, MapItemSavedData mapData, MapRenderState mapRenderState, CallbackInfo ci) {
-        CustomHubMap.applyRenderState(mapId, mapRenderState, ci);
+        HubMap.applyRenderState(mapId, mapRenderState, ci);
     }
 }
