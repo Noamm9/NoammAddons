@@ -20,7 +20,12 @@ public class MixinLeverBlock {
     @Inject(method = "getShape", at = @At("HEAD"), cancellable = true)
     private void modifyShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context, CallbackInfoReturnable<VoxelShape> cir) {
         if (SecretHitboxes.isValidLever(pos)) {
-            cir.setReturnValue(Shapes.block());
+            float w = SecretHitboxes.getLeverWidth().getValue();
+            float h = SecretHitboxes.getLeverHeight().getValue();
+            float l = SecretHitboxes.getLeverLength().getValue();
+            if (w > 0.0f && h > 0.0f && l > 0.0f) {
+                cir.setReturnValue(SecretHitboxes.getLeverShape(w, h, l));
+            }
         }
     }
 }

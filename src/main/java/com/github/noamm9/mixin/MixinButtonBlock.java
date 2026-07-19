@@ -19,7 +19,10 @@ public class MixinButtonBlock {
     @Inject(method = "getShape", at = @At("HEAD"), cancellable = true)
     private void modifyShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context, CallbackInfoReturnable<VoxelShape> cir) {
         if (SecretHitboxes.INSTANCE.enabled && SecretHitboxes.getButton().getValue()) {
-            cir.setReturnValue(SecretHitboxes.getButtonShape(state));
+            float size = SecretHitboxes.getButtonSize().getValue();
+            if (size > 0.0f) {
+                cir.setReturnValue(SecretHitboxes.getButtonShape(state, size));
+            }
         }
     }
 }

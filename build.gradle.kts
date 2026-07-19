@@ -63,7 +63,7 @@ dependencies {
 
     runtimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
     compileOnly("maven.modrinth:iris:$iris_version")
-    compileOnly("com.terraformersmc:modmenu:$modmenu_version")
+    compileOnly("maven.modrinth:modmenu:$modmenu_version")
 
     implementation("io.github.llamalad7:mixinextras-fabric:0.4.1")
     annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.4.1")
@@ -87,6 +87,11 @@ afterEvaluate {
     }
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(25))
+    }
+}
 tasks.withType<JavaCompile>().configureEach { options.release.set(25) }
 tasks.withType<KotlinCompile>().configureEach { compilerOptions { jvmTarget.set(JvmTarget.JVM_25) } }
 
