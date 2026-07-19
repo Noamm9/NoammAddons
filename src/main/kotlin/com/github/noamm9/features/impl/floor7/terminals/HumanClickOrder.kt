@@ -1,81 +1,47 @@
 package com.github.noamm9.features.impl.floor7.terminals
 
 import com.github.noamm9.NoammAddons.mc
-import kotlin.math.pow
-import kotlin.math.sqrt
 
 object HumanClickOrder {
-    private const val NEIGHBOR_RADIUS = 20.0
+    private const val NEIGHBOR_RADIUS_SQR = 20.0 * 20.0
 
     var lastClickedSlot: Int? = null
 
-    fun getBestClick(availableClicks: List<TerminalClick>, type: TerminalType): TerminalClick {
-        if (availableClicks.isEmpty()) throw IllegalStateException("Solution list is empty")
+    fun getBestClick(availableClicks: List<TerminalClick>, type: TerminalType) = selectClick(availableClicks, type, worst = false)
+    fun getWorstClick(availableClicks: List<TerminalClick>, type: TerminalType) = selectClick(availableClicks, type, worst = true)
 
-        val middle = type.slotCount.div(2)
-        if (lastClickedSlot == null) lastClickedSlot = middle
+    private fun selectClick(availableClicks: List<TerminalClick>, type: TerminalType, worst: Boolean): TerminalClick {
+        if (availableClicks.isEmpty()) error("Solution list is empty")
 
-        val lastSlot = lastClickedSlot ?: throw IllegalStateException("Last clicked slot is null")
+        val lastSlot = lastClickedSlot ?: (type.slotCount / 2).also(::lastClickedSlot::set)
 
-        val bestClick = availableClicks.shuffled().sortedWith(Comparator { clickA, clickB ->
-            val distA = getDistance(clickA.slotId, lastSlot)
-            val distB = getDistance(clickB.slotId, lastSlot)
+        val comparator = Comparator<TerminalClick> { clickA, clickB ->
+            val distanceComparison = getDistanceSqr(clickA.slotId, lastSlot).compareTo(getDistanceSqr(clickB.slotId, lastSlot))
+            if (distanceComparison != 0) distanceComparison
+            else countNeighbors(clickA.slotId, availableClicks).compareTo(countNeighbors(clickB.slotId, availableClicks))
+        }
 
-            if (distA == distB) {
-                val neighborsA = countNeighbors(clickA.slotId, availableClicks)
-                val neighborsB = countNeighbors(clickB.slotId, availableClicks)
-                return@Comparator neighborsA.compareTo(neighborsB)
-            }
+        val shuffled = availableClicks.shuffled()
+        val selected = if (worst) shuffled.asReversed().maxWith(comparator)
+        else shuffled.minWith(comparator)
 
-            return@Comparator distA.compareTo(distB)
-
-        }).first()
-
-        lastClickedSlot = bestClick.slotId
-
-        return bestClick
-    }
-
-    fun getWorstClick(availableClicks: List<TerminalClick>, type: TerminalType): TerminalClick {
-        if (availableClicks.isEmpty()) throw IllegalStateException("Solution list is empty")
-
-        val middle = type.slotCount.div(2)
-        if (lastClickedSlot == null) lastClickedSlot = middle
-
-        val lastSlot = lastClickedSlot ?: throw IllegalStateException("Last clicked slot is null")
-
-        val bestClick = availableClicks.shuffled().sortedWith(Comparator { clickA, clickB ->
-            val distA = getDistance(clickA.slotId, lastSlot)
-            val distB = getDistance(clickB.slotId, lastSlot)
-
-            if (distA == distB) {
-                val neighborsA = countNeighbors(clickA.slotId, availableClicks)
-                val neighborsB = countNeighbors(clickB.slotId, availableClicks)
-                return@Comparator neighborsA.compareTo(neighborsB)
-            }
-
-            return@Comparator distA.compareTo(distB)
-
-        }).last()
-
-        lastClickedSlot = bestClick.slotId
-
-        return bestClick
+        lastClickedSlot = selected.slotId
+        return selected
     }
 
     private fun countNeighbors(targetId: Int, allClicks: List<TerminalClick>): Int {
         return allClicks.count { other ->
-            other.slotId != targetId && getDistance(targetId, other.slotId) <= NEIGHBOR_RADIUS
+            other.slotId != targetId && getDistanceSqr(targetId, other.slotId) <= NEIGHBOR_RADIUS_SQR
         }
     }
 
-    private fun getDistance(id1: Int, id2: Int): Double {
+    private fun getDistanceSqr(id1: Int, id2: Int): Double {
         val pos1 = mc.player?.containerMenu?.getSlot(id1) ?: return Double.MAX_VALUE
         val pos2 = mc.player?.containerMenu?.getSlot(id2) ?: return Double.MAX_VALUE
 
         val dx = (pos1.x - pos2.x).toDouble()
         val dy = (pos1.y - pos2.y).toDouble()
 
-        return sqrt(dx.pow(2) + dy.pow(2))
+        return dx * dx + dy * dy
     }
 }

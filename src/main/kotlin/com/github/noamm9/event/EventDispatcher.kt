@@ -59,6 +59,10 @@ object EventDispatcher {
             mc.level?.let { EventBus.post(TickEvent.End) }
         }
 
+        ClientLifecycleEvents.CLIENT_STARTED.register {
+            EventBus.post(GameStartEvent)
+        }
+
         ClientLifecycleEvents.CLIENT_STOPPING.register {
             EventBus.post(ShutdownEvent)
         }
