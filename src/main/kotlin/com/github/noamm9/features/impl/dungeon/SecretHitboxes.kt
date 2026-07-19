@@ -87,8 +87,10 @@ object SecretHitboxes: Feature("Changes the hitboxes of secret blocks to be larg
         val powered = state.getValue(ButtonBlock.POWERED)
 
         val f2 = (if (powered) 1 else 2) / 16.0
-        val low = 0.5 - (size.toDouble() / 2.0)
-        val high = 0.5 + (size.toDouble() / 2.0)
+        val baseSize = 0.375
+        val lateralSize = baseSize + size.toDouble() * (1.0 - baseSize)
+        val low = 0.5 - (lateralSize / 2.0)
+        val high = 0.5 + (lateralSize / 2.0)
 
         return when (face) {
             AttachFace.CEILING -> Shapes.box(low, 1.0 - f2, low, high, 1.0, high)
@@ -106,12 +108,20 @@ object SecretHitboxes: Feature("Changes the hitboxes of secret blocks to be larg
 
     @JvmStatic
     fun getLeverShape(w: Float, h: Float, l: Float): VoxelShape {
-        val lowX = 0.5 - (w.toDouble() / 2.0)
-        val highX = 0.5 + (w.toDouble() / 2.0)
-        val lowY = 0.5 - (h.toDouble() / 2.0)
-        val highY = 0.5 + (h.toDouble() / 2.0)
-        val lowZ = 0.5 - (l.toDouble() / 2.0)
-        val highZ = 0.5 + (l.toDouble() / 2.0)
+        val baseHeight = 0.375
+        val baseWidthLength = 0.44
+
+        val effW = baseWidthLength + w.toDouble() * (1.0 - baseWidthLength)
+        val effH = baseHeight + h.toDouble() * (1.0 - baseHeight)
+        val effL = baseWidthLength + l.toDouble() * (1.0 - baseWidthLength)
+
+        val lowX = 0.5 - (effW / 2.0)
+        val highX = 0.5 + (effW / 2.0)
+        val lowY = 0.0
+        val highY = effH
+        val lowZ = 0.5 - (effL / 2.0)
+        val highZ = 0.5 + (effL / 2.0)
+
         return Shapes.box(lowX, lowY, lowZ, highX, highY, highZ)
     }
 
