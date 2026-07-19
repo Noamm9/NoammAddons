@@ -9,59 +9,35 @@ object HumanClickOrder {
 
     var lastClickedSlot: Int? = null
 
-    fun getBestClick(availableClicks: List<TerminalClick>, type: TerminalType): TerminalClick {
-        if (availableClicks.isEmpty()) throw IllegalStateException("Solution list is empty")
+    private fun selectClick(availableClicks: List<TerminalClick>, type: TerminalType, worst: Boolean): TerminalClick {
+        if (availableClicks.isEmpty()) {
+            throw IllegalStateException("Solution list is empty")
+        }
 
-        val middle = type.slotCount.div(2)
-        if (lastClickedSlot == null) lastClickedSlot = middle
+        val lastSlot = lastClickedSlot ?: (type.slotCount / 2).also {
+            lastClickedSlot = it
+        }
 
-        val lastSlot = lastClickedSlot ?: throw IllegalStateException("Last clicked slot is null")
+        val comparator = Comparator<TerminalClick> { clickA, clickB ->
+            val distanceComparison = getDistance(clickA.slotId, lastSlot).compareTo(getDistance(clickB.slotId, lastSlot))
 
-        val bestClick = availableClicks.shuffled().sortedWith(Comparator { clickA, clickB ->
-            val distA = getDistance(clickA.slotId, lastSlot)
-            val distB = getDistance(clickB.slotId, lastSlot)
-
-            if (distA == distB) {
-                val neighborsA = countNeighbors(clickA.slotId, availableClicks)
-                val neighborsB = countNeighbors(clickB.slotId, availableClicks)
-                return@Comparator neighborsA.compareTo(neighborsB)
+            if (distanceComparison != 0) {
+                distanceComparison
+            } else {
+                countNeighbors(clickA.slotId, availableClicks).compareTo(countNeighbors(clickB.slotId, availableClicks))
             }
+        }
 
-            return@Comparator distA.compareTo(distB)
+        val shuffled = availableClicks.shuffled()
+        val selected = if (worst) { shuffled.asReversed().maxWith(comparator) } else { shuffled.minWith(comparator) }
 
-        }).first()
-
-        lastClickedSlot = bestClick.slotId
-
-        return bestClick
+        lastClickedSlot = selected.slotId
+        return selected
     }
 
-    fun getWorstClick(availableClicks: List<TerminalClick>, type: TerminalType): TerminalClick {
-        if (availableClicks.isEmpty()) throw IllegalStateException("Solution list is empty")
+    fun getBestClick(availableClicks: List<TerminalClick>, type: TerminalType) = selectClick(availableClicks, type, worst = false)
 
-        val middle = type.slotCount.div(2)
-        if (lastClickedSlot == null) lastClickedSlot = middle
-
-        val lastSlot = lastClickedSlot ?: throw IllegalStateException("Last clicked slot is null")
-
-        val bestClick = availableClicks.shuffled().sortedWith(Comparator { clickA, clickB ->
-            val distA = getDistance(clickA.slotId, lastSlot)
-            val distB = getDistance(clickB.slotId, lastSlot)
-
-            if (distA == distB) {
-                val neighborsA = countNeighbors(clickA.slotId, availableClicks)
-                val neighborsB = countNeighbors(clickB.slotId, availableClicks)
-                return@Comparator neighborsA.compareTo(neighborsB)
-            }
-
-            return@Comparator distA.compareTo(distB)
-
-        }).last()
-
-        lastClickedSlot = bestClick.slotId
-
-        return bestClick
-    }
+    fun getWorstClick(availableClicks: List<TerminalClick>, type: TerminalType) = selectClick(availableClicks, type, worst = true)
 
     private fun countNeighbors(targetId: Int, allClicks: List<TerminalClick>): Int {
         return allClicks.count { other ->
