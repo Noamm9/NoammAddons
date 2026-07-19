@@ -107,7 +107,10 @@ object SecretHitboxes: Feature("Changes the hitboxes of secret blocks to be larg
     }
 
     @JvmStatic
-    fun getLeverShape(w: Float, h: Float, l: Float): VoxelShape {
+    fun getLeverShape(state: BlockState, w: Float, h: Float, l: Float): VoxelShape {
+        val face = state.getValue(FaceAttachedHorizontalDirectionalBlock.FACE)
+        val direction = state.getValue(FaceAttachedHorizontalDirectionalBlock.FACING)
+
         val baseHeight = 0.375
         val baseWidthLength = 0.44
 
@@ -115,14 +118,22 @@ object SecretHitboxes: Feature("Changes the hitboxes of secret blocks to be larg
         val effH = baseHeight + h.toDouble() * (1.0 - baseHeight)
         val effL = baseWidthLength + l.toDouble() * (1.0 - baseWidthLength)
 
-        val lowX = 0.5 - (effW / 2.0)
-        val highX = 0.5 + (effW / 2.0)
-        val lowY = 0.0
-        val highY = effH
-        val lowZ = 0.5 - (effL / 2.0)
-        val highZ = 0.5 + (effL / 2.0)
+        val lowW = 0.5 - (effW / 2.0)
+        val highW = 0.5 + (effW / 2.0)
+        val lowL = 0.5 - (effL / 2.0)
+        val highL = 0.5 + (effL / 2.0)
 
-        return Shapes.box(lowX, lowY, lowZ, highX, highY, highZ)
+        return when (face) {
+            AttachFace.CEILING -> Shapes.box(lowW, 1.0 - effH, lowL, highW, 1.0, highL)
+            AttachFace.FLOOR -> Shapes.box(lowW, 0.0, lowL, highW, effH, highL)
+            else -> when (direction) {
+                Direction.EAST -> Shapes.box(0.0, lowW, lowL, effH, highW, highL)
+                Direction.WEST -> Shapes.box(1.0 - effH, lowW, lowL, 1.0, highW, highL)
+                Direction.SOUTH -> Shapes.box(lowL, lowW, 0.0, highL, highW, effH)
+                Direction.NORTH -> Shapes.box(lowL, lowW, 1.0 - effH, highL, highW, 1.0)
+                else -> Shapes.box(lowW, 0.0, lowL, highW, effH, highL)
+            }
+        }
     }
 
     private val blackListedLevers = listOf(
