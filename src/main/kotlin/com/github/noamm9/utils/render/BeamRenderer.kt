@@ -13,7 +13,6 @@ import kotlin.math.sin
 object BeamRenderer {
     const val MAX_SIDES = 32
     private const val MAX_TUBE_SEGMENTS = 96
-
     private const val SPIRAL_TURNS = 3f
     private const val HELIX_TURNS = 4f
     private const val SPIRAL_ROT_SPEED = 5.5f
@@ -26,7 +25,6 @@ object BeamRenderer {
     private const val GLOW_DETAIL = 0.6f
     private const val MIN_SIDES = 4
     private const val MIN_SEGS = 8
-
     enum class BeamShape { STRAIGHT, CYLINDER, SPIRAL, DOUBLE_HELIX, WAVE, RIBBON, LIGHTNING }
     enum class ColorMode { STATIC, GRADIENT, RAINBOW, CHROMA }
 
@@ -41,35 +39,25 @@ object BeamRenderer {
         val segments: Int,
         val smoothness: Int,
         val glow: Boolean,
-        val throughWalls: Boolean,
         val endpointFade: Boolean,
         val pulse: Boolean,
         val trail: Boolean
     )
 
     private class RingBuffer(maxVerts: Int) {
-        private val bufA = FloatArray(maxVerts * 3)
-        private val bufB = FloatArray(maxVerts * 3)
-        private val colA = FloatArray(maxVerts * 4)
-        private val colB = FloatArray(maxVerts * 4)
-        private var useA = true
-
+        private val points = arrayOf(FloatArray(maxVerts * 3), FloatArray(maxVerts * 3))
+        private val colors = arrayOf(FloatArray(maxVerts * 4), FloatArray(maxVerts * 4))
+        private var idx = 0
         var prevPoints: FloatArray? = null; private set
         var prevColors: FloatArray? = null; private set
-
         fun reset() {
             prevPoints = null
             prevColors = null
-            useA = true
+            idx = 0
         }
 
-        fun next(): Pair<FloatArray, FloatArray> {
-            val points = if (useA) bufA else bufB
-            val colors = if (useA) colA else colB
-            useA = !useA
-            return points to colors
-        }
-
+        fun next(): Pair<FloatArray, FloatArray> =
+            (points[idx] to colors[idx]).also { idx = 1 - idx }
         fun advance(points: FloatArray, colors: FloatArray) {
             prevPoints = points
             prevColors = colors
@@ -101,7 +89,6 @@ object BeamRenderer {
         if (fadeAlpha <= 0.005f || style.opacity <= 0.005f) return
         val visibleLength = style.length * growProgress
         if (visibleLength <= 0.02f) return
-
         val dir = if (direction.lengthSqr() < 1.0E-6) Vec3(0.0, 0.0, 1.0) else direction.normalize()
         val (right, up) = buildBasis(dir)
 
@@ -109,7 +96,7 @@ object BeamRenderer {
         ctx.matrixStack.translate(ctx.camera.position().reverse())
         val pose = ctx.matrixStack.last()
 
-        val layer = if (style.throughWalls) NoammRenderLayers.FILLED_THROUGH_WALLS else NoammRenderLayers.FILLED
+        val layer = NoammRenderLayers.FILLED
         val buffer = ctx.consumers.getBuffer(layer)
 
         val ox = origin.x.toFloat()
@@ -131,6 +118,7 @@ object BeamRenderer {
         }
 
         drawShape(buffer, pose, ox, oy, oz, dir, right, up, style, animTime, visibleLength, fadeAlpha, seed, glowPass = false, radiusMult = 1f, detail = 1f)
+
         ctx.matrixStack.popPose()
     }
 
@@ -166,7 +154,6 @@ object BeamRenderer {
         val baseRadius = (style.width * 0.5f * radiusMult).coerceAtLeast(0.01f)
         val glowRadiusMult = if (glowPass) 1.6f else 1f
         val radiusAt = { t: Float -> tubeRadius(style, t, animTime, baseRadius) * glowRadiusMult }
-
         val strandCount = if (style.shape == BeamShape.DOUBLE_HELIX) 2 else 1
         for (strand in 0 until strandCount) {
             drawStrand(buffer, pose, ox, oy, oz, dir, right, up, style, animTime, visibleLength, passAlpha, amplitude, seed, strand, sides, segs, radiusAt)
@@ -182,32 +169,29 @@ object BeamRenderer {
         radiusAt: (Float) -> Float
     ) {
         fillUnitCircle(sides)
-        val dirX = dir.x.toFloat(); val dirY = dir.y.toFloat(); val dirZ = dir.z.toFloat()
-        val rightX = right.x.toFloat(); val rightY = right.y.toFloat(); val rightZ = right.z.toFloat()
-        val upX = up.x.toFloat(); val upY = up.y.toFloat(); val upZ = up.z.toFloat()
-        val quadCount = if (sides == 2) 1 else sides // ribbon single quad, not a closed loop
+        val quadCount = if (sides == 2) 1 else sides
 
         ring.reset()
         for (i in 0..segs) {
-            val t = i.toFloat() / segs.toFloat()
+            val t = i / segs.toFloat()
             val (u, v) = shapeOffset(style.shape, t, animTime, amplitude, strand, seed)
             val radius = radiusAt(t)
 
-            val cx = ox + dirX * (t * visibleLength) + rightX * u + upX * v
-            val cy = oy + dirY * (t * visibleLength) + rightY * u + upY * v
-            val cz = oz + dirZ * (t * visibleLength) + rightZ * u + upZ * v
+            val center = dir.scale((t * visibleLength).toDouble())
+                .add(right.scale(u.toDouble()))
+                .add(up.scale(v.toDouble()))
+                .add(ox.toDouble(), oy.toDouble(), oz.toDouble())
 
             val color = colorAt(style, t, animTime, alphaMult)
             val r = color.red / 255f; val g = color.green / 255f; val b = color.blue / 255f; val a = color.alpha / 255f
-
             val (points, colors) = ring.next()
             for (j in 0 until sides) {
                 val cosA = unitCircleCos[j]
                 val sinA = unitCircleSin[j]
                 val p = j * 3
-                points[p] = cx + (rightX * cosA + upX * sinA) * radius
-                points[p + 1] = cy + (rightY * cosA + upY * sinA) * radius
-                points[p + 2] = cz + (rightZ * cosA + upZ * sinA) * radius
+                points[p] = center.x.toFloat() + (right.x.toFloat() * cosA + up.x.toFloat() * sinA) * radius
+                points[p + 1] = center.y.toFloat() + (right.y.toFloat() * cosA + up.y.toFloat() * sinA) * radius
+                points[p + 2] = center.z.toFloat() + (right.z.toFloat() * cosA + up.z.toFloat() * sinA) * radius
 
                 val c = j * 4
                 colors[c] = r; colors[c + 1] = g; colors[c + 2] = b; colors[c + 3] = a
@@ -258,7 +242,6 @@ object BeamRenderer {
     private fun shapeOffset(shape: BeamShape, t: Float, animTime: Float, amplitude: Float, strand: Int, seed: Int): Pair<Float, Float> {
         return when (shape) {
             BeamShape.STRAIGHT, BeamShape.CYLINDER -> 0f to 0f
-
             BeamShape.SPIRAL -> spiralOffset(t, animTime, amplitude, SPIRAL_TURNS, 0f)
 
             BeamShape.DOUBLE_HELIX -> spiralOffset(t, animTime, amplitude * 0.75f, HELIX_TURNS, strand * PI.toFloat())
@@ -296,7 +279,6 @@ object BeamRenderer {
             val edge = 0.12f
             minOf((t / edge).coerceIn(0f, 1f), ((1f - t) / edge).coerceIn(0f, 1f))
         } else 1f
-
         val finalAlpha = (style.opacity * alphaMult * edgeFade).coerceIn(0f, 1f)
         val alphaInt = (finalAlpha * 255f).toInt().coerceIn(0, 255)
 
