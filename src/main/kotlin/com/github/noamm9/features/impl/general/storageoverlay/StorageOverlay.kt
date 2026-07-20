@@ -23,6 +23,9 @@ import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Blocks
 import java.io.File
+import java.nio.file.AtomicMoveNotSupportedException
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
@@ -162,7 +165,19 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
             inv?.let { root.putString("${slot.index}_inv", it.encode()) }
         }
 
-        NbtIo.writeCompressed(root, file.toPath())
+        val tempFile = file.toPath().resolveSibling("${file.name}.tmp")
+        try {
+            NbtIo.writeCompressed(root, tempFile)
+            try {
+                Files.move(tempFile, file.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+            }
+            catch (_: AtomicMoveNotSupportedException) {
+                Files.move(tempFile, file.toPath(), StandardCopyOption.REPLACE_EXISTING)
+            }
+        }
+        finally {
+            Files.deleteIfExists(tempFile)
+        }
     }
 
     @Synchronized
@@ -171,7 +186,15 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         if (! checkFile(file)) return
         if (storageMenuData.isNotEmpty()) return
         if (! file.exists()) return ThreadUtils.async(::loadFromApi)
-        val root = NbtIo.readCompressed(file.toPath(), NbtAccounter.unlimitedHeap())
+
+        val root = try {
+            NbtIo.readCompressed(file.toPath(), NbtAccounter.uncompressedQuota())
+        }
+        catch (e: Exception) {
+            backupCorruptedFile(file, e)
+            ThreadUtils.async(::loadFromApi)
+            return
+        }
         val data = TreeMap<StoragePage, NBTInventory?>()
 
         for (i in 0 until 27) {
@@ -179,11 +202,23 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
             if (! root.contains(invKey)) continue
 
             val slot = StoragePage(i)
-            val inventory = if (root.contains(invKey)) NBTInventory.decode(root.getString(invKey).getOrNull() ?: "") else null
+            val inventory = NBTInventory.decode(root.getString(invKey).getOrNull() ?: "")
             data[slot] = inventory
         }
 
         storageMenuData = data
+    }
+
+    private fun backupCorruptedFile(file: File, cause: Exception) {
+        val backup = File(file.parentFile, "${file.name}.corrupt")
+        try {
+            Files.move(file.toPath(), backup.toPath(), StandardCopyOption.REPLACE_EXISTING)
+            NoammAddons.logger.warn("StorageOverlay: moved corrupted storage data to ${backup.name}", cause)
+        }
+        catch (backupError: Exception) {
+            NoammAddons.logger.warn("StorageOverlay: failed to load ${file.name}; leaving the corrupted file in place", cause)
+            NoammAddons.logger.error("StorageOverlay: failed to back up corrupted storage data", backupError)
+        }
     }
 
     private fun checkFile(file: File): Boolean {
