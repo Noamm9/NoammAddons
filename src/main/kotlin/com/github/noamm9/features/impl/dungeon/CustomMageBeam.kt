@@ -42,21 +42,15 @@ object CustomMageBeam : Feature("Renders a fully custom, animated beam whenever 
     private val minPoints by SliderSetting("Min Points", 3, 2, 10, 1).withDescription("Minimum particles required before a beam is rendered.")
     private val hideSheep by ToggleSetting("Hide Sheep", true).withDescription("Prevents dungeon Sheep from spawning, so a launched sheep's beam doesn't clutter your view.").section("Trigger")
 
-    private class Beam(val points: MutableList<Vec3>, var lastUpdateTick: Long, val startTick: Long, playerPos: Vec3) {
+    private class Beam(val points: MutableList<Vec3>, var lastUpdateTick: Long, val startTick: Long) {
         lateinit var min: Vec3
         lateinit var max: Vec3
 
-        init { updateEndpoints(playerPos) }
+        init { updateEndpoints() }
 
-        fun updateEndpoints(playerPos: Vec3) {
-            min = points[0]; max = points[0]
-            var minSqr = min.distanceToSqr(playerPos)
-            var maxSqr = minSqr
-            for (p in points) {
-                val d = p.distanceToSqr(playerPos)
-                if (d < minSqr) { minSqr = d; min = p }
-                if (d > maxSqr) { maxSqr = d; max = p }
-            }
+        fun updateEndpoints() {
+            min = points.first()
+            max = points.last()
         }
 
         fun isContinuation(point: Vec3): Boolean {
@@ -76,15 +70,14 @@ object CustomMageBeam : Feature("Renders a fully custom, animated beam whenever 
                     if (packet.particle.type != ParticleTypes.FIREWORK) return@register
                     event.isCanceled = true
                     val point = Vec3(packet.x, packet.y, packet.z)
-                    val playerPos = mc.player?.position() ?: return@register
                     val recent = beams.lastOrNull()
                     val tick = DungeonListener.currentTime
                     if (recent != null && tick - recent.lastUpdateTick <= 1 && recent.isContinuation(point)) {
                         recent.points.add(point)
                         recent.lastUpdateTick = tick
-                        recent.updateEndpoints(playerPos)
+                        recent.updateEndpoints()
                     } else {
-                        val newBeam = Beam(mutableListOf(point), tick, tick, playerPos)
+                        val newBeam = Beam(mutableListOf(point), tick, tick)
                         beams.add(newBeam)
                         ThreadUtils.scheduledTaskServer(duration.value) { beams.remove(newBeam) }
                     }
@@ -118,11 +111,15 @@ object CustomMageBeam : Feature("Renders a fully custom, animated beam whenever 
     }
 
     private fun buildStyle(length: Float) = BeamRenderer.BeamStyle(
-        shape = BeamRenderer.BeamShape.entries[shapeIndex.value.coerceIn(0, BeamRenderer.BeamShape.entries.lastIndex)],
-        colorMode = BeamRenderer.ColorMode.entries[colorModeIndex.value.coerceIn(0, BeamRenderer.ColorMode.entries.lastIndex)],
-        primary = primaryColor.value, secondary = secondaryColor.value,
-        width = width.value.toFloat(), opacity = (opacityPct.value / 100f).coerceIn(0f, 1f),
-        length = length, segments = segments.value.coerceIn(2, 128), smoothness = smoothness.value.coerceIn(3, BeamRenderer.MAX_SIDES),
-        glow = glow.value, throughWalls = false, endpointFade = endpointFade.value, pulse = pulse.value, trail = trail.value
-    )
+        shape = BeamRenderer.BeamShape.entries[shapeIndex.value],
+        colorMode = BeamRenderer.ColorMode.entries[colorModeIndex.value],
+        primary = primaryColor.value,
+        secondary = secondaryColor.value,
+        width = width.value.toFloat(),
+        opacity = (opacityPct.value / 100f).coerceIn(0f, 1f),
+        length = length,
+        segments = segments.value.coerceIn(2, 128),
+        smoothness = smoothness.value.coerceIn(3, BeamRenderer.MAX_SIDES),
+        glow = glow.value,
+        endpointFade = endpointFade.value, pulse = pulse.value, trail = trail.value)
 }
