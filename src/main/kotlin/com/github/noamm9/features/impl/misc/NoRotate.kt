@@ -7,7 +7,6 @@ import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.ILocalPlayer
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.MultiCheckboxSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.utils.*
@@ -36,11 +35,9 @@ import java.util.concurrent.*
 import kotlin.jvm.optionals.getOrNull
 
 object NoRotate: Feature("Prevents the server from snapping back your head when teleporting.") {
-    private val detectionMethod by DropdownSetting("Detection Method", 0, listOf("Simulation", "Interaction")).withDescription("How the feature will detect a use of a teleport items. &n&lSimulation&r will check the held item and predict where the teleport packet will put you, if its correct it cancels the rotation from that packet.\n&n&lInteraction&r only checks the held item you clicked with and cancels the rotation of the next teleport packet after it")
     private val tpItems by MultiCheckboxSetting("Teleport Items", mutableMapOf(Pair("Etherwarp", false), Pair("Instant Transmission", false), Pair("Wither Impact", false)))
-    val zeroPingCamera by MultiCheckboxSetting("Zero Ping Camera", mutableMapOf(Pair("Etherwarp", false), Pair("Instant Transmission", false), Pair("Wither Impact", false))).withDescription("Instently sets your camera at the teleport position.").showIf { detectionMethod.value == 0 }
-
-    private val resyncTimeout by SliderSetting("Resync Timeout", 500, 300, 1000, 50).showIf { zeroPingCamera.value.values.any { it } && detectionMethod.value == 0 }.withDescription("time in miliseconds of how long should it take for the detected teleport to time out")
+    val zeroPingCamera by MultiCheckboxSetting("Zero Ping Camera", mutableMapOf(Pair("Etherwarp", false), Pair("Instant Transmission", false), Pair("Wither Impact", false))).withDescription("Instently sets your camera at the teleport position.")
+    private val resyncTimeout by SliderSetting("Resync Timeout", 500, 300, 1000, 50).showIf { zeroPingCamera.value.values.any { it } }.withDescription("time in miliseconds of how long should it take for the detected teleport to time out")
 
     val pendingTeleports = CopyOnWriteArrayList<TeleportPrediction>()
     private var lastWitherImpact = System.currentTimeMillis()
@@ -60,46 +57,41 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
             if (mc.player !!.isPassenger) return@register
             val tpInfo = getTeleportInfo(mc.player !!.getItemInHand(packet.hand)) ?: return@register
 
-            if (detectionMethod.value == 0) when (tpInfo.type) {
+            when (tpInfo.type) {
                 TeleportType.Etherwarp -> doZeroPingEtherwarp(tpInfo, packet.yRot, packet.xRot)
                 TeleportType.InstantTransmission -> doZeroPingInstantTransmission(tpInfo, packet.yRot, packet.xRot)
                 TeleportType.WitherImpact -> doZeroPingWitherImpact(tpInfo, packet.yRot, packet.xRot)
             }
-            else teleport(TeleportPrediction(Vec3.ZERO, tpInfo))
         }
 
         register<MainThreadPacketReceivedEvent.Pre> {
             val packet = event.packet as? ClientboundPlayerPositionPacket ?: return@register
             if (pendingTeleports.isEmpty()) return@register
-            val prediction = pendingTeleports.removeFirst().position
-            val change = packet.change().position()
+            val player = mc.player ?: return@register
 
-            if (change != prediction && prediction != Vec3.ZERO) pendingTeleports.clear()
-            else {
-                val player = mc.player ?: return@register
+            pendingTeleports.removeFirst()
 
-                val old = PositionMoveRotation.of(player)
-                val new = PositionMoveRotation.calculateAbsolute(old, packet.change, packet.relatives)
+            val old = PositionMoveRotation.of(player)
+            val new = PositionMoveRotation.calculateAbsolute(old, packet.change, packet.relatives)
 
-                player.setPos(new.position())
-                player.deltaMovement = new.deltaMovement()
+            player.setPos(new.position())
+            player.deltaMovement = new.deltaMovement()
 
-                val newOldPos = PositionMoveRotation.calculateAbsolute(
-                    PositionMoveRotation(player.oldPosition(), Vec3.ZERO, player.yRotO, player.xRotO), packet.change(), packet.relatives()
-                )
+            val newOldPos = PositionMoveRotation.calculateAbsolute(
+                PositionMoveRotation(player.oldPosition(), Vec3.ZERO, player.yRotO, player.xRotO), packet.change(), packet.relatives()
+            )
 
-                player.xo = newOldPos.position().x.also { player.xOld = it }
-                player.yo = newOldPos.position().y.also { player.yOld = it }
-                player.zo = newOldPos.position().z.also { player.zOld = it }
+            player.xo = newOldPos.position().x.also { player.xOld = it }
+            player.yo = newOldPos.position().y.also { player.yOld = it }
+            player.zo = newOldPos.position().z.also { player.zOld = it }
 
-                ServerboundAcceptTeleportationPacket(packet.id).send()
-                ServerboundMovePlayerPacket.PosRot(player.x, player.y, player.z, new.yRot, new.xRot, false, false).send()
+            ServerboundAcceptTeleportationPacket(packet.id).send()
+            ServerboundMovePlayerPacket.PosRot(player.x, player.y, player.z, new.yRot, new.xRot, false, false).send()
 
-                (player as ILocalPlayer).setLastYaw(new.yRot)
-                (player as ILocalPlayer).setLastPitch(new.xRot)
+            (player as ILocalPlayer).setLastYaw(new.yRot)
+            (player as ILocalPlayer).setLastPitch(new.xRot)
 
-                event.isCanceled = true
-            }
+            event.isCanceled = true
         }
     }
 
@@ -118,8 +110,8 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
     }
 
     private fun teleport(prediction: TeleportPrediction) {
+        ThreadUtils.scheduledTaskServer(resyncTimeout.value / 50) { pendingTeleports.remove(prediction) }
         pendingTeleports.add(prediction)
-        ThreadUtils.setTimeout(resyncTimeout.value) { pendingTeleports.remove(prediction) }
     }
 
     private fun doZeroPingEtherwarp(tpInfo: TeleportInfo, yaw: Float? = null, pitch: Float? = null) {

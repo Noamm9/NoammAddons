@@ -186,7 +186,8 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         if (storageMenuData.isNotEmpty()) return
         if (! file.exists()) return ThreadUtils.async(::loadFromApi)
 
-        val root = catch { NbtIo.readCompressed(file.toPath(), NbtAccounter.uncompressedQuota()) } ?: return ThreadUtils.async(::loadFromApi)
+        val root = catch { NbtIo.readCompressed(file.toPath(), NbtAccounter.uncompressedQuota()) }
+            ?: return ThreadUtils.async(::loadFromApi)
         val data = TreeMap<StoragePage, NBTInventory?>()
 
         for (i in 0 until 27) {
