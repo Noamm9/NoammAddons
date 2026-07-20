@@ -46,7 +46,7 @@ data class NBTInventory(val stacks: List<ItemStack>) {
             val bytes = Base64.decode(encoded)
 
             ByteArrayInputStream(bytes).use { bais ->
-                val root = NbtIo.readCompressed(bais, NbtAccounter.unlimitedHeap())
+                val root = NbtIo.readCompressed(bais, NbtAccounter.uncompressedQuota())
                 val list = root.getList("i").get()
 
                 val items = buildList {
