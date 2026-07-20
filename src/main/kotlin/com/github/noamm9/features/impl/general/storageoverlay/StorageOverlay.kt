@@ -10,6 +10,7 @@ import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ThreadUtils
+import com.github.noamm9.utils.catch
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.network.WebUtils
 import com.github.noamm9.utils.network.data.StorageData
@@ -156,7 +157,6 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         ThreadUtils.async(::saveData)
     }
 
-    @Synchronized
     private fun saveData() {
         val file = dataFile
         if (! checkFile(file)) return
@@ -180,21 +180,13 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         }
     }
 
-    @Synchronized
     private fun loadData() {
         val file = dataFile
         if (! checkFile(file)) return
         if (storageMenuData.isNotEmpty()) return
         if (! file.exists()) return ThreadUtils.async(::loadFromApi)
 
-        val root = try {
-            NbtIo.readCompressed(file.toPath(), NbtAccounter.uncompressedQuota())
-        }
-        catch (e: Exception) {
-            backupCorruptedFile(file, e)
-            ThreadUtils.async(::loadFromApi)
-            return
-        }
+        val root = catch { NbtIo.readCompressed(file.toPath(), NbtAccounter.uncompressedQuota()) } ?: return ThreadUtils.async(::loadFromApi)
         val data = TreeMap<StoragePage, NBTInventory?>()
 
         for (i in 0 until 27) {
@@ -207,18 +199,6 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         }
 
         storageMenuData = data
-    }
-
-    private fun backupCorruptedFile(file: File, cause: Exception) {
-        val backup = File(file.parentFile, "${file.name}.corrupt")
-        try {
-            Files.move(file.toPath(), backup.toPath(), StandardCopyOption.REPLACE_EXISTING)
-            NoammAddons.logger.warn("StorageOverlay: moved corrupted storage data to ${backup.name}", cause)
-        }
-        catch (backupError: Exception) {
-            NoammAddons.logger.warn("StorageOverlay: failed to load ${file.name}; leaving the corrupted file in place", cause)
-            NoammAddons.logger.error("StorageOverlay: failed to back up corrupted storage data", backupError)
-        }
     }
 
     private fun checkFile(file: File): Boolean {
