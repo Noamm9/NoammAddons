@@ -191,13 +191,13 @@ object Render3D {
             val c2 = cos((i + 1) * step).toFloat()
             val s2 = sin((i + 1) * step).toFloat()
 
-            val i1x = (innerR * c1).toFloat();
+            val i1x = (innerR * c1).toFloat()
             val i1y = (innerR * s1).toFloat()
-            val o1x = (outerR * c1).toFloat();
+            val o1x = (outerR * c1).toFloat()
             val o1y = (outerR * s1).toFloat()
-            val i2x = (innerR * c2).toFloat();
+            val i2x = (innerR * c2).toFloat()
             val i2y = (innerR * s2).toFloat()
-            val o2x = (outerR * c2).toFloat();
+            val o2x = (outerR * c2).toFloat()
             val o2y = (outerR * s2).toFloat()
 
             buffer.addVertex(matrix, i1x, i1y, 0f).setColor(r, g, b, a)
@@ -365,6 +365,47 @@ object Render3D {
         scale: Number = 1f,
         phase: Boolean = false
     ) = renderString(text, pos.x, pos.y, pos.z, color, scale, phase)
+
+    fun renderRainbowLine(ctx: RenderContext, start: Vec3, finish: Vec3, thickness: Number, alpha: Float) {
+        ctx.matrixStack.pushPose()
+        ctx.matrixStack.translate(ctx.camera.position().reverse())
+
+        val lines = NoammRenderLayers.LINES
+        val buffer = (ctx.consumers as MultiBufferSource.BufferSource).getBuffer(lines)
+
+        val direction = finish.subtract(start).normalize().toVector3f()
+        val timeOffset = (System.currentTimeMillis() % 100000L) / 1000f
+        val matrix = ctx.matrixStack.last()
+        val segments = 10
+
+        for (i in 0 until segments) {
+            val t0 = i / segments.toFloat()
+            val t1 = (i + 1) / segments.toFloat()
+
+            val p0 = start.lerp(finish, t0.toDouble())
+            val p1 = start.lerp(finish, t1.toDouble())
+
+            val hue0 = (t0 - timeOffset).mod(1f)
+            val hue1 = (t1 - timeOffset).mod(1f)
+
+            val rgb0 = Color.HSBtoRGB(hue0, 1f, 1f)
+            val rgb1 = Color.HSBtoRGB(hue1, 1f, 1f)
+
+            val r0 = ((rgb0 shr 16) and 0xFF) / 255f
+            val g0 = ((rgb0 shr 8) and 0xFF) / 255f
+            val b0 = (rgb0 and 0xFF) / 255f
+
+            val r1 = ((rgb1 shr 16) and 0xFF) / 255f
+            val g1 = ((rgb1 shr 8) and 0xFF) / 255f
+            val b1 = (rgb1 and 0xFF) / 255f
+
+            buffer.addVertex(matrix, p0.x.toFloat(), p0.y.toFloat(), p0.z.toFloat()).setColor(r0, g0, b0, alpha).setNormal(matrix, direction).setLineWidth(thickness.toFloat())
+            buffer.addVertex(matrix, p1.x.toFloat(), p1.y.toFloat(), p1.z.toFloat()).setColor(r1, g1, b1, alpha).setNormal(matrix, direction).setLineWidth(thickness.toFloat())
+        }
+
+        ctx.consumers.endBatch(lines)
+        ctx.matrixStack.popPose()
+    }
 
     fun renderLine(ctx: RenderContext, start: Vec3, finish: Vec3, color: Color, thickness: Number = 2, phase: Boolean = false) {
         val cameraPos = ctx.camera.position()
