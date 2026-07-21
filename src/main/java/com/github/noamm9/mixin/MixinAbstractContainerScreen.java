@@ -77,9 +77,11 @@ public abstract class MixinAbstractContainerScreen extends Screen {
         }
     }
 
-    @Inject(method = "mouseScrolled", at = @At("TAIL"))
+    @Inject(method = "mouseScrolled", at = @At("HEAD"), cancellable = true)
     public void mouseScrolled(double x, double y, double scrollX, double scrollY, CallbackInfoReturnable<Boolean> cir) {
-        EventBus.post(new ContainerEvent.MouseScroll(this, x, y, scrollX, scrollY));
+        if (EventBus.post(new ContainerEvent.MouseScroll(this, x, y, scrollX, scrollY))) {
+            cir.setReturnValue(true);
+        }
     }
 
     @WrapOperation(method = "extractTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;setTooltipForNextFrame(Lnet/minecraft/client/gui/Font;Ljava/util/List;Ljava/util/Optional;IILnet/minecraft/resources/Identifier;)V"))

@@ -31,12 +31,7 @@ class KeybindSetting(name: String, value: Int = InputConstants.UNKNOWN.value): S
 
         val bindText = when {
             listening -> "§b..."
-            value == InputConstants.UNKNOWN.value -> "§7NONE"
-            else -> {
-                val key = if (isMouse) InputConstants.Type.MOUSE.getOrCreate(value)
-                else InputConstants.Type.KEYSYM.getOrCreate(value)
-                "§7" + key.displayName.string.uppercase()
-            }
+            else -> "§7${displayName()}"
         }
         Render2D.drawString(ctx, bindText, x + width - bindText.width() - 8f, y + 6f, Color.WHITE)
     }
@@ -100,6 +95,12 @@ class KeybindSetting(name: String, value: Int = InputConstants.UNKNOWN.value): S
         if (value == InputConstants.UNKNOWN.value) return false
         return if (isMouse) GLFW.glfwGetMouseButton(mc.window.handle(), value) == GLFW.GLFW_PRESS
         else InputConstants.isKeyDown(mc.window, value)
+    }
+
+    fun displayName(): String {
+        if (value == InputConstants.UNKNOWN.value) return "NONE"
+        val type = if (isMouse) InputConstants.Type.MOUSE else InputConstants.Type.KEYSYM
+        return type.getOrCreate(value).displayName.string.uppercase()
     }
 
     private var previousState = false
