@@ -265,7 +265,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
             val termType = TerminalListener.currentType ?: return@register
             if (! solverActive(termType)) return@register
             event.isCanceled = true
-            
+
             if (TerminalListener.checkFcDelay()) return@register
             //#if CHEAT
             if (AutoTerminal.enabled && AutoTerminal.shouldAutoSolve(termType)) return@register
@@ -411,16 +411,15 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
 
                 TerminalType.clickedSlot?.let { (windowId, slotId) ->
                     if (windowId != TerminalListener.lastWindowId) {
-                        val item = currentItems[slotId]?.item
-                        if (item == Items.NETHER_STAR || item == Items.EXPERIENCE_BOTTLE) clickedSlots.add(slotId)
+                        if (currentItems[slotId]?.item in TerminalType.specialItems) clickedSlots.add(slotId)
                         clickedSlot = null
                     }
                 }
 
-                currentItems.forEach { (index, item) ->
-                    if (! item.hoverName.string.startsWith(letter, true)) return@forEach
+                currentItems.forEach { (index, stack) ->
+                    if (! stack.hoverName.string.startsWith(letter, true)) return@forEach
                     if (index in clickedSlots) return@forEach
-                    if ((! item.hasGlint() || item.item == Items.NETHER_STAR || item.item == Items.EXPERIENCE_BOTTLE))
+                    if (! stack.hasGlint() || stack.item in TerminalType.specialItems)
                         solution.add(TerminalClick(index))
                 }
             }
@@ -428,6 +427,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
             TerminalType.COLORS -> {
                 val match = TerminalType.colorsRegex.matchEntire(TerminalListener.currentTitle)
                 val extra = match?.groupValues?.get(1)?.lowercase() ?: return
+
                 fun fixName(name: String): String {
                     var fixedName = name
                     TerminalType.colorReplacements.forEach { (k, v) ->
@@ -435,6 +435,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
                     }
                     return fixedName
                 }
+
                 currentItems.filter {
                     it.value.item != Items.BLACK_STAINED_GLASS_PANE
                         && fixName(it.value.hoverName.unformattedText.lowercase()).startsWith(extra)
@@ -444,7 +445,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
 
             TerminalType.RUBIX -> {
                 val allowedSlots = listOf(12, 13, 14, 21, 22, 23, 30, 31, 32)
-                val panes = currentItems.filter { it.key in allowedSlots && TerminalType.rubixOrder.contains(it.value.item) }
+                val panes = currentItems.filter { it.key in allowedSlots && it.value.item in TerminalType.rubixOrder }
                 val costs = IntArray(5) { 0 }
                 for (i in 0 until 5) {
                     panes.forEach { (_, itemStack) ->
@@ -458,8 +459,8 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
                 }
 
                 val origin = costs.indices.minByOrNull { costs[it] } ?: 0
-                panes.forEach { (slotId, itemStack) ->
-                    val currentIdx = TerminalType.rubixOrder.indexOf(itemStack.item)
+                panes.forEach { (slotId, stack) ->
+                    val currentIdx = TerminalType.rubixOrder.indexOf(stack.item)
                     if (currentIdx != - 1 && currentIdx != origin) {
                         var diff = origin - currentIdx
                         if (diff > 2) diff -= 5

@@ -1,5 +1,7 @@
 package com.github.noamm9.features.impl.floor7.terminals
 
+import net.minecraft.core.component.DataComponents
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.world.item.Items
 
 enum class TerminalType(val slotCount: Int) {
@@ -43,6 +45,7 @@ enum class TerminalType(val slotCount: Int) {
 
         val clickedSlots = mutableSetOf<Int>()
         var clickedSlot: Pair<Int, Int>? = null
+        val specialItems = BuiltInRegistries.ITEM.filter { it.components().has(DataComponents.ENCHANTMENT_GLINT_OVERRIDE) }
 
         fun fromName(windowTitle: String): TerminalType? {
             if (colorsRegex.matches(windowTitle)) return COLORS
