@@ -4,8 +4,8 @@ import net.minecraft.network.chat.TextColor
 import java.awt.Color
 
 object ColorUtils {
-    fun Color.withAlpha(i: Int) = Color(this.red, this.green, this.blue, i.coerceIn(0, 255))
-    fun Color.withAlpha(f: Float) = Color(this.red, this.green, this.blue, (255 * f).coerceIn(0f, 255f).toInt())
+    fun Color.withAlpha(i: Int) = if (i == alpha) this else Color(red, green, blue, i.coerceIn(0, 255))
+    fun Color.withAlpha(f: Float) = withAlpha((f * 255).toInt())
     fun Color.lerp(color: Color, value: Float) = lerpColor(this, color, value)
 
     fun lerpColor(color1: Color, color2: Color, value: Number) = Color(
