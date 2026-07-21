@@ -13,7 +13,7 @@
           <option value="runClient" />
         </list>
       </option>
-      <option name="vmOptions" value="-XX:+AllowEnhancedClassRedefinition -Dmixin.hotSwap=false" />
+      <option name="vmOptions" value="-XX:+AllowEnhancedClassRedefinition -Dmixin.hotSwap=true" />
     </ExternalSystemSettings>
     <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
     <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
