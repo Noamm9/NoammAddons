@@ -4,6 +4,7 @@ import com.github.noamm9.NoammAddons.PREFIX
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
+import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.invert
@@ -32,6 +33,7 @@ import java.awt.Color
 
 object BloodCamp: Feature("Features for Blood Room.") {
     private val bloodCamp by ToggleSetting("Blood Camp Helper", true).section("Blood Camp Helper")
+    private val decimalPlaces by DropdownSetting("Decimal Places", 0, listOf("1", "2")).showIf { bloodCamp.value }.withDescription("The number of decimal places shown on blood mob timers")
     private val timerColor by ColorSetting("Timer Color", Color.WHITE).showIf { bloodCamp.value }
     private val boxColor by ColorSetting("Box Color", Color(255, 0, 255)).showIf { bloodCamp.value }
     private val lineColor by ColorSetting("Line Color", Color.CYAN).showIf { bloodCamp.value }
@@ -161,7 +163,7 @@ object BloodCamp: Feature("Features for Blood Room.") {
 
                 Render3D.renderBoxBounds(event.ctx, endAABB, if (ServerUtils.averagePing > time * 50) boxColor.value.invert() else boxColor.value, outline = true, fill = false, phase = true)
                 Render3D.renderLine(event.ctx, entity.renderVec.add(y = 2), endVector.add(y = 2), lineColor.value, phase = true)
-                Render3D.renderString(((time - 0.8) / 20).toFixed(1), endVector.add(y = 2), scale = 2f, color = timerColor.value, phase = true)
+                Render3D.renderString(((time - 0.8) / 20).toFixed(decimalPlaces.value + 1), endVector.add(y = 2), scale = 2f, color = timerColor.value, phase = true)
             }
         }
     }
