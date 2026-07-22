@@ -19,7 +19,7 @@ import kotlin.math.roundToInt
 
 object ActionBarParser {
     val HP_REGEX = Regex("§[c6]([\\d,]+)/([\\d,]+)[\uE010❤]")
-    val DEF_REGEX = Regex("""§a([\d,]+)[❈]?( Defense)?""")
+    val DEF_REGEX = Regex("""§a([\d,]+)(§a)?[❈]( Defense)?""") // https://regex101.com/r/QDZtRK/1
     val MANA_REGEX = Regex("§b([\\d,]+)/([\\d,]+)[\uE003✎]( Mana)?")
     val OVERFLOW_REGEX = Regex("§3([\\d,]+)[\uE017ʬ]") // §3100ʬ
     val VITALITY_REGEX = Regex("""§4([\d.,]+)/([\d,.]+)[♨]( Vitality)?""") // https://regex101.com/r/tLHZYG/1
