@@ -4,7 +4,6 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.utils.ChatUtils.unformattedText
-import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonUtils
 import com.github.noamm9.utils.dungeons.DungeonUtils.isSecret
@@ -30,12 +29,10 @@ import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.entity.SkullBlockEntity
 
 object EventDispatcher {
-    private var invWindowId: Int = - 1
     private var invTitle: Component? = null
-    private var invSlotCount: Int = 0
-    private val invItems = mutableMapOf<Int, ItemStack>()
-    private var invAccept = false
-    private var invFired = false
+    private var invWindowId: Int? = null
+    private var invSlotCount: Int? = 0
+    private var invItems: MutableMap<Int, ItemStack>? = null
 
 
     fun init() {
@@ -79,11 +76,10 @@ object EventDispatcher {
             EventBus.post(DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition()))
         }
 
-
-        register<PacketEvent.Received> {
+        register<MainThreadPacketReceivedEvent.Pre> {
             if (event.packet is ClientboundSystemChatPacket) {
                 if (event.packet.overlay) return@register
-                if (EventBus.post(ChatMessageEvent(event.packet.content))) { // todo post cancelable on mainthread
+                if (EventBus.post(ChatMessageEvent(event.packet.content))) {
                     event.isCanceled = true
                 }
             }
@@ -91,11 +87,9 @@ object EventDispatcher {
                 if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
                 if (event.packet.sound.value() != SoundEvents.BAT_DEATH) return@register
 
-                mc.execute {
-                    EventBus.post(DungeonEvent.SecretEvent(
-                        SecretType.BAT, BlockPos(event.packet.x.toInt(), event.packet.y.toInt(), event.packet.z.toInt())
-                    ))
-                }
+                EventBus.post(DungeonEvent.SecretEvent(
+                    SecretType.BAT, BlockPos(event.packet.x.toInt(), event.packet.y.toInt(), event.packet.z.toInt())
+                ))
             }
             else if (event.packet is ClientboundTakeItemEntityPacket) {
                 if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
@@ -103,16 +97,11 @@ object EventDispatcher {
                 if (entity.item.hoverName.unformattedText !in DungeonUtils.dungeonItemDrops) return@register
                 if (mc.player !!.distanceTo(entity) > 6) return@register
 
-                mc.execute { EventBus.post(DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition())) }
-            }
-            else if (event.packet is ClientboundContainerClosePacket) {
-                if (event.packet.containerId == invWindowId) resetInventoryState()
+                EventBus.post(DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition()))
             }
             else if (event.packet is ClientboundOpenScreenPacket) {
-                resetInventoryState()
-                invAccept = true
-                invWindowId = event.packet.containerId
-                invTitle = event.packet.title
+                resetInventory()
+
                 invSlotCount = when (event.packet.type) {
                     MenuType.GENERIC_9x1 -> 9
                     MenuType.GENERIC_9x2 -> 18
@@ -121,30 +110,33 @@ object EventDispatcher {
                     MenuType.GENERIC_9x5 -> 45
                     MenuType.GENERIC_9x6 -> 54
                     MenuType.GENERIC_3x3 -> 9
-                    MenuType.HOPPER -> 5
-                    else -> 0
+                    else -> return@register
                 }
+                invWindowId = event.packet.containerId
+                invTitle = event.packet.title
+                invItems = mutableMapOf()
             }
             else if (event.packet is ClientboundContainerSetContentPacket) {
-                if (event.packet.containerId == invWindowId) {
-                    event.packet.items.forEachIndexed { index, stack ->
-                        if (index < invSlotCount && ! stack.isEmpty) {
-                            invItems[index] = stack
-                        }
-                    }
-                    finishInventoryLoading()
+                if (event.packet.containerId != invWindowId) return@register
+                val slotCount = invSlotCount ?: return@register
+
+                event.packet.items.forEachIndexed { index, stack ->
+                    if (index !in 0 until slotCount) return@forEachIndexed
+                    invItems?.set(index, stack)
                 }
+
+                checkInvAndPost()
             }
             else if (event.packet is ClientboundContainerSetSlotPacket) {
-                if (invAccept && event.packet.containerId == invWindowId) {
-                    val slot = event.packet.slot
-                    if (slot < invSlotCount) {
-                        if (! event.packet.item.isEmpty) invItems[slot] = event.packet.item
-                    }
-                    else finishInventoryLoading()
+                if (event.packet.containerId != invWindowId) return@register
+                val slotCount = invSlotCount ?: return@register
+                if (event.packet.slot !in 0 until slotCount) return@register
 
-                    if (invItems.size >= invSlotCount) finishInventoryLoading()
-                }
+                invItems?.set(event.packet.slot, event.packet.item)
+                checkInvAndPost()
+            }
+            else if (event.packet is ClientboundContainerClosePacket) {
+                if (event.packet.containerId == invWindowId) resetInventory()
             }
         }
 
@@ -175,9 +167,7 @@ object EventDispatcher {
     }
 
     fun checkForRoomChange(currentRoom: UniqueRoom?, lastKnownRoom: UniqueRoom?) {
-        lastKnownRoom?.let {
-            EventBus.post(DungeonEvent.RoomEvent.onExit(it))
-        }
+        lastKnownRoom?.let { EventBus.post(DungeonEvent.RoomEvent.onExit(it)) }
         currentRoom?.let {
             it.highestBlock = ScanUtils.getHighestY(it.mainRoom.x, it.mainRoom.z)
             it.findRotation()
@@ -186,30 +176,21 @@ object EventDispatcher {
     }
 
 
-    private fun resetInventoryState() {
-        invWindowId = - 1
+    private fun resetInventory() {
+        invWindowId = null
         invTitle = null
-        invSlotCount = 0
-        invItems.clear()
-        invAccept = false
-        invFired = false
+        invSlotCount = null
+        invItems = null
     }
 
-    private fun finishInventoryLoading() {
-        if (! invAccept) return
-        invAccept = false
-
+    private fun checkInvAndPost() {
         val title = invTitle ?: return
-        val winId = invWindowId
-        val slotCount = invSlotCount
-        val items = HashMap(invItems)
+        val winId = invWindowId ?: return
+        val slotCount = invSlotCount ?: return
+        val items = invItems?.let(::HashMap) ?: return
+        if (items.size != slotCount) return
 
-        if (invFired) return
-        if (invWindowId != winId) return
-
-        invFired = true
-        ThreadUtils.scheduledTask {
-            EventBus.post(ContainerFullyOpenedEvent(title, winId, slotCount, items))
-        }
+        EventBus.post(ContainerFullyOpenedEvent(title, winId, slotCount, items))
+        resetInventory()
     }
 }

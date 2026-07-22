@@ -80,7 +80,7 @@ object ThreadUtils {
         }
     }
 
-    private data class TickTask(val executeAtTick: Long, val action: Runnable): Comparable<TickTask> {
+    private class TickTask(val executeAtTick: Long, val action: Runnable): Comparable<TickTask> {
         override fun compareTo(other: TickTask) = executeAtTick.compareTo(other.executeAtTick)
     }
 }
