@@ -82,7 +82,7 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             { LocationUtils.inSkyblock && ActionBarParser.isVitalityShown }
         ) { context, example ->
             val text = if (example) "§482/122" else "§4${ActionBarParser.currentVitality}/${ActionBarParser.maxVitality}"
-            Render2D.drawString(context, text, 0, 0)
+            Render2D.drawString(context, "$text&l♨", 0, 0)
             return@hudElement text.width().toFloat() to text.height().toFloat()
         }
 
