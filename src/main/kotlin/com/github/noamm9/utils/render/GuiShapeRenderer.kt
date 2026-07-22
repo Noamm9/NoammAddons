@@ -1,6 +1,5 @@
 package com.github.noamm9.utils.render
 
-import com.github.noamm9.mixin.IGuiGraphicsExtractor
 import com.mojang.blaze3d.pipeline.RenderPipeline
 import com.mojang.blaze3d.vertex.VertexConsumer
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -28,7 +27,7 @@ object GuiShapeRenderer {
             diameter
         ).transformMaxBounds(pose)
 
-        (ctx as IGuiGraphicsExtractor).guiRenderState.addGuiElement(
+        ctx.guiRenderState.addGuiElement(
             AnnularSegment(pose, centerX, centerY, innerRadius, outerRadius, startAngle, endAngle, color.rgb, bounds)
         )
     }
