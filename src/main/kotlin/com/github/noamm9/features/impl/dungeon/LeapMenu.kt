@@ -38,6 +38,9 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
     val tintDeadPlayers by ToggleSetting("Tint Dead Players", true).showIf { customLeapMenu.value }
 
     val mapLeap by ToggleSetting("Map Leap", false).withDescription("Click a teammate on the dungeon map to leap to them.").showIf { customLeapMenu.value && DungeonMap.enabled && MapConfig.mapEnabled.value }
+    val mapLeapAfterBlood by ToggleSetting("After Blood Only", false)
+        .withDescription("Use the regular leap menu until the Blood opens, then switch to Map Leap.")
+        .showIf { customLeapMenu.value && mapLeap.value }
     val mapLeapScale by SliderSetting("Map Leap Scale", 1.5f, 0.5f, 3f, 0.1f).showIf { customLeapMenu.value && mapLeap.value }
     val sorting by DropdownSetting("Leap Order", 0, arrayListOf("A-Z Class", "A-Z Name", "Odin Sorting", "Custom sorting", "No Sorting")).withDescription("How to sort the leap menu. /na leaporder to configure custom sorting.")
 
@@ -72,7 +75,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
         else -> if (isHovered) boxBgHover else boxBg
     }
 
-    private val mapLeapEnabled get() = customLeapMenu.value && mapLeap.value && DungeonMap.enabled && MapConfig.mapEnabled.value
+    private val mapLeapEnabled get() = customLeapMenu.value && mapLeap.value && DungeonMap.enabled && MapConfig.mapEnabled.value && (! mapLeapAfterBlood.value || DungeonListener.bloodOpenTime != null)
 
     private val playerRegex = Regex("(?:\\[.+?] )?(?<name>\\w+)")
     private var shouldHide: Long = 0
