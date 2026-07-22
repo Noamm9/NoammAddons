@@ -218,7 +218,7 @@ object PlayerUtils {
     init {
         register<ContainerFullyOpenedEvent> {
             when (event.title.unformattedText.lowercase().trim()) {
-                "your equipment and stats" -> {
+                "stats & equipment" -> {
                     if (awaiting4EQ.isBlank()) return@register
 
                     ThreadUtils.scheduledTask(7) {
