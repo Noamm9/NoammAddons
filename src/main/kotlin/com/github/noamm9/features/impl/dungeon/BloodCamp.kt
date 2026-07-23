@@ -4,7 +4,7 @@ import com.github.noamm9.NoammAddons.PREFIX
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
+import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.invert
@@ -29,11 +29,12 @@ import net.minecraft.world.item.Items
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import java.awt.Color
+import kotlin.math.ceil
 
 
 object BloodCamp: Feature("Features for Blood Room.") {
     private val bloodCamp by ToggleSetting("Blood Camp Helper", true).section("Blood Camp Helper")
-    private val decimalPlaces by DropdownSetting("Decimal Places", 0, listOf("1", "2")).showIf { bloodCamp.value }.withDescription("The number of decimal places shown on blood mob timers")
+    private val decimalPlaces by SliderSetting("Decimal Places", 1, 0, 2, 1).showIf { bloodCamp.value }.withDescription("The number of decimal places shown on blood mob timers")
     private val timerColor by ColorSetting("Timer Color", Color.WHITE).showIf { bloodCamp.value }
     private val boxColor by ColorSetting("Box Color", Color(255, 0, 255)).showIf { bloodCamp.value }
     private val lineColor by ColorSetting("Line Color", Color.CYAN).showIf { bloodCamp.value }
@@ -161,9 +162,13 @@ object BloodCamp: Feature("Features for Blood Room.") {
                 val time = (if (data.firstSpawn) 40 else 0) + 38 - timeTook + 0.8
                 val endAABB = AABB(1.0, 1.0, 1.0, 0.0, 0.0, 0.0).move(boxOffset.add(endVector))
 
+                var timerText = ((time - 0.8) / 20).toString()
+                timerText = if (decimalPlaces.value > 0) timerText.toFixed(decimalPlaces.value)
+                else ceil(timerText.toDouble()).toInt().toString()
+
                 Render3D.renderBoxBounds(event.ctx, endAABB, if (ServerUtils.averagePing > time * 50) boxColor.value.invert() else boxColor.value, outline = true, fill = false, phase = true)
                 Render3D.renderLine(event.ctx, entity.renderVec.add(y = 2), endVector.add(y = 2), lineColor.value, phase = true)
-                Render3D.renderString(((time - 0.8) / 20).toFixed(decimalPlaces.value + 1), endVector.add(y = 2), scale = 2f, color = timerColor.value, phase = true)
+                Render3D.renderString(timerText, endVector.add(y = 2), scale = 2f, color = timerColor.value, phase = true)
             }
         }
     }
