@@ -33,12 +33,12 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
     private var expressionResult: Double? = null
 
     val color get() = highlightColor.value
+    val isSearching get() = enabled && searchQuery.isNotBlank()
 
     fun matches(stack: ItemStack): Boolean {
         if (searchQuery.isBlank() || stack.isEmpty) return false
-        val name = stack.hoverName.unformattedText.contains(searchQuery, ignoreCaps.value)
-        val lore = searchLore.value && stack.lore.any { it.removeFormatting().contains(searchQuery, ignoreCaps.value) }
-        return name || lore
+        if (stack.hoverName.unformattedText.contains(searchQuery, ignoreCaps.value)) return true
+        return searchLore.value && stack.lore.any { it.removeFormatting().contains(searchQuery, ignoreCaps.value) }
     }
 
     private const val WIDTH = 200f
