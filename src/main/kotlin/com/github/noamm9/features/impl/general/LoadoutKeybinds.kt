@@ -107,17 +107,10 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
             val index = keyMap.entries.find { it.value == event.slot.index }?.key ?: return@register
             if (event.slot.item.isEmpty) return@register
 
-            val key = if (useHotbarBinds.value) {
-                (mc.options.keyHotbarSlots.getOrNull(index) as? IKeyMapping)?.key
-            }
-            else {
-                keybinds.getOrNull(index)?.let {
-                    if (it.value == InputConstants.UNKNOWN.value) return@register
-                    val type = if (it.isMouse) InputConstants.Type.MOUSE else InputConstants.Type.KEYSYM
-                    type.getOrCreate(it.value)
-                }
-            }
-            val keyName = key?.displayName?.string?.uppercase() ?: return@register
+            val keyName = if (! useHotbarBinds.value) keybinds.getOrNull(index)?.displayName()
+            else (mc.options.keyHotbarSlots.getOrNull(index) as? IKeyMapping)?.key?.displayName?.string?.uppercase()
+            if (keyName == null) return@register
+            
             val scale = 0.75f
             val x = event.slot.x + 16f - keyName.width() * scale
             val y = event.slot.y + 16f - mc.font.lineHeight * scale

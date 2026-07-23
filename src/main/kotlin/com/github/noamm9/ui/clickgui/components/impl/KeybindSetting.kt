@@ -13,12 +13,10 @@ import net.minecraft.client.gui.GuiGraphicsExtractor
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
-
 class KeybindSetting(name: String, value: Int = InputConstants.UNKNOWN.value): Setting<Int>(name, value), Savable {
-    var listening = false
     private val hoverAnim = Animation(200)
-
-    var scanCode = 0
+    private var listening = false
+    private var scanCode = 0
     var isMouse = false
 
     override fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
@@ -31,12 +29,7 @@ class KeybindSetting(name: String, value: Int = InputConstants.UNKNOWN.value): S
 
         val bindText = when {
             listening -> "§b..."
-            value == InputConstants.UNKNOWN.value -> "§7NONE"
-            else -> {
-                val key = if (isMouse) InputConstants.Type.MOUSE.getOrCreate(value)
-                else InputConstants.Type.KEYSYM.getOrCreate(value)
-                "§7" + key.displayName.string.uppercase()
-            }
+            else -> "§7${displayName()}"
         }
         Render2D.drawString(ctx, bindText, x + width - bindText.width() - 8f, y + 6f, Color.WHITE)
     }
@@ -96,6 +89,12 @@ class KeybindSetting(name: String, value: Int = InputConstants.UNKNOWN.value): S
         isMouse = obj["isMouse"]?.jsonPrimitive?.booleanOrNull ?: false
     }
 
+    fun displayName(): String {
+        if (value == InputConstants.UNKNOWN.value) return "NONE"
+        val type = if (isMouse) InputConstants.Type.MOUSE else InputConstants.Type.KEYSYM
+        return type.getOrCreate(value).displayName.string.uppercase()
+    }
+
     fun isDown(): Boolean {
         if (value == InputConstants.UNKNOWN.value) return false
         return if (isMouse) GLFW.glfwGetMouseButton(mc.window.handle(), value) == GLFW.GLFW_PRESS
@@ -109,4 +108,6 @@ class KeybindSetting(name: String, value: Int = InputConstants.UNKNOWN.value): S
         previousState = currentState
         return wasPressed
     }
+
+    fun matches(code: Int, mouse: Boolean) = value != InputConstants.UNKNOWN.value && isMouse == mouse && value == code
 }
