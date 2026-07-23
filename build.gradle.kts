@@ -48,7 +48,7 @@ configurations {
 
 repositories {
     maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
-    maven("https://maven.terraformersmc.com/")
+    maven("https://maven.terraformersmc.com/releases/")
     maven("https://api.modrinth.com/maven")
     maven("https://jitpack.io")
 }

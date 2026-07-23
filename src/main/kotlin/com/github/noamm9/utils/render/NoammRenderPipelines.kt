@@ -23,7 +23,7 @@ object NoammRenderPipelines {
         RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
             .withLocation(id("pipeline/circle_filled"))
             .withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR)
-            .withPrimitiveTopology(PrimitiveTopology.TRIANGLE_STRIP)
+            .withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
             .build()
     )
 
@@ -53,7 +53,7 @@ object NoammRenderPipelines {
         RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
             .withLocation(id("pipeline/circle_filled_through_walls"))
             .withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR)
-            .withPrimitiveTopology(PrimitiveTopology.TRIANGLE_STRIP)
+            .withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
             .withDepthStencilState(Optional.empty())
             .build()
     )
