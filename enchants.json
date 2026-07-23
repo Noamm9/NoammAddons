@@ -174,12 +174,6 @@
       "maxLevel": 10,
       "nbtName": "feather_falling"
     },
-    "ferocious mana": {
-      "goodLevel": 10,
-      "loreName": "Ferocious Mana",
-      "maxLevel": 10,
-      "nbtName": "ferocious_mana"
-    },
     "fire aspect": {
       "goodLevel": 2,
       "loreName": "Fire Aspect",
@@ -258,9 +252,9 @@
       "maxLevel": 7,
       "nbtName": "growth"
     },
-    "hardened mana": {
+    "hardened vitality": {
       "goodLevel": 10,
-      "loreName": "Hardened Mana",
+      "loreName": "Hardened Vitality",
       "maxLevel": 10,
       "nbtName": "hardened_mana"
     },
@@ -347,12 +341,6 @@
       "loreName": "Mana Steal",
       "maxLevel": 3,
       "nbtName": "mana_steal"
-    },
-    "mana vampire": {
-      "goodLevel": 10,
-      "loreName": "Mana Vampire",
-      "maxLevel": 10,
-      "nbtName": "mana_vampire"
     },
     "overload": {
       "goodLevel": 0,
@@ -552,9 +540,9 @@
       "maxLevel": 1,
       "nbtName": "stealth"
     },
-    "strong mana": {
+    "strong vitality": {
       "goodLevel": 10,
-      "loreName": "Strong Mana",
+      "loreName": "Strong Vitality",
       "maxLevel": 10,
       "nbtName": "strong_mana"
     },
@@ -702,6 +690,12 @@
       "maxLevel": 5,
       "nbtName": "turbo_wheat"
     },
+    "vampiric vitality": {
+      "goodLevel": 10,
+      "loreName": "Vampiric Vitality",
+      "maxLevel": 10,
+      "nbtName": "mana_vampire"
+    },
     "vampirism": {
       "goodLevel": 5,
       "loreName": "Vampirism",
@@ -719,6 +713,12 @@
       "loreName": "Vicious",
       "maxLevel": 5,
       "nbtName": "vicious"
+    },
+    "vivacious vitality": {
+      "goodLevel": 10,
+      "loreName": "Vivacious Vitality",
+      "maxLevel": 10,
+      "nbtName": "ferocious_mana"
     },
     "woodsplitter": {
       "goodLevel": 5,
