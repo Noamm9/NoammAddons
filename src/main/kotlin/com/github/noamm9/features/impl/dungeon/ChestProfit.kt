@@ -41,6 +41,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
 
     private val essenceRegex = Regex("§d(?<type>\\w+) Essence §8x(?<count>\\d+)")
     private val croesusChestRegex = Regex("^(Master )?Catacombs - Flo(or (IV|V?I{0,3}))?$")
+    private val croesusMenuRegex = Regex("^(?:\\([1-3]/3\\) )?Croesus$")
 
     private val chestsToHighlight = mutableListOf<DungeonChest>()
     private var sortedChestsCache = emptyList<DungeonChest>()
@@ -185,7 +186,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                     event.slot.highlight(event.context, color)
                 }
             }
-            else if (titleName == "Croesus") {
+            else if (titleName.matches(croesusMenuRegex)) {
                 val stack = event.slot.item
                 if (stack.item != Items.PLAYER_HEAD) return@register
 
