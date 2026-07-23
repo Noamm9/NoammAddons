@@ -48,6 +48,12 @@
       "maxLevel": 6,
       "nbtName": "blessing"
     },
+    "bug blender": {
+      "goodLevel": 0,
+      "loreName": "Bug Blender",
+      "maxLevel": 5,
+      "nbtName": "bug_blender"
+    },
     "caster": {
       "goodLevel": 5,
       "loreName": "Caster",
@@ -167,6 +173,12 @@
       "loreName": "Experience",
       "maxLevel": 5,
       "nbtName": "experience"
+    },
+    "feast": {
+      "goodLevel": 0,
+      "loreName": "Feast",
+      "maxLevel": 5,
+      "nbtName": "feast"
     },
     "feather falling": {
       "goodLevel": 5,
@@ -477,7 +489,7 @@
     "scuba": {
       "goodLevel": 0,
       "loreName": "Scuba",
-      "maxLevel": 5,
+      "maxLevel": 6,
       "nbtName": "scuba"
     },
     "sharpness": {
@@ -567,7 +579,7 @@
     "thorns": {
       "goodLevel": 3,
       "loreName": "Thorns",
-      "maxLevel": 3,
+      "maxLevel": 4,
       "nbtName": "thorns"
     },
     "thunderbolt": {
@@ -615,79 +627,79 @@
     "turbo-cacti": {
       "goodLevel": 0,
       "loreName": "Turbo-Cacti",
-      "maxLevel": 5,
+      "maxLevel": 7,
       "nbtName": "turbo_cactus"
     },
     "turbo-cane": {
       "goodLevel": 0,
       "loreName": "Turbo-Cane",
-      "maxLevel": 5,
+      "maxLevel": 7,
       "nbtName": "turbo_cane"
     },
     "turbo-carrot": {
       "goodLevel": 0,
       "loreName": "Turbo-Carrot",
-      "maxLevel": 5,
+      "maxLevel": 7,
       "nbtName": "turbo_carrot"
     },
     "turbo-cocoa": {
       "goodLevel": 0,
       "loreName": "Turbo-Cocoa",
-      "maxLevel": 5,
+      "maxLevel": 7,
       "nbtName": "turbo_coco"
     },
     "turbo-melon": {
       "goodLevel": 0,
       "loreName": "Turbo-Melon",
-      "maxLevel": 5,
+      "maxLevel": 7,
       "nbtName": "turbo_melon"
     },
     "turbo-moonflower": {
       "goodLevel": 0,
       "loreName": "Turbo-Moonflower",
-      "maxLevel": 5,
+      "maxLevel": 7,
       "nbtName": "turbo_moonflower"
     },
     "turbo-mushrooms": {
       "goodLevel": 0,
       "loreName": "Turbo-Mushrooms",
-      "maxLevel": 5,
+      "maxLevel": 7,
       "nbtName": "turbo_mushrooms"
     },
     "turbo-potato": {
       "goodLevel": 0,
       "loreName": "Turbo-Potato",
-      "maxLevel": 5,
+      "maxLevel": 7,
       "nbtName": "turbo_potato"
     },
     "turbo-pumpkin": {
       "goodLevel": 0,
       "loreName": "Turbo-Pumpkin",
-      "maxLevel": 5,
+      "maxLevel": 7,
       "nbtName": "turbo_pumpkin"
     },
     "turbo-rose": {
       "goodLevel": 0,
       "loreName": "Turbo-Rose",
-      "maxLevel": 5,
+      "maxLevel": 7,
       "nbtName": "turbo_rose"
     },
     "turbo-sunflower": {
       "goodLevel": 0,
       "loreName": "Turbo-Sunflower",
-      "maxLevel": 5,
+      "maxLevel": 7,
       "nbtName": "turbo_sunflower"
     },
     "turbo-warts": {
       "goodLevel": 0,
       "loreName": "Turbo-Warts",
-      "maxLevel": 5,
+      "maxLevel": 7,
       "nbtName": "turbo_warts"
     },
     "turbo-wheat": {
       "goodLevel": 0,
       "loreName": "Turbo-Wheat",
-      "maxLevel": 5,
+      "maxLevel": 7,
       "nbtName": "turbo_wheat"
     },
     "vampiric vitality": {
@@ -969,7 +981,7 @@
     "one for all": {
       "goodLevel": 0,
       "loreName": "One For All",
-      "maxLevel": 5,
+      "maxLevel": 1,
       "nbtName": "ultimate_one_for_all"
     },
     "refrigerate": {
@@ -995,6 +1007,12 @@
       "loreName": "Swarm",
       "maxLevel": 5,
       "nbtName": "ultimate_swarm"
+    },
+    "sunset": {
+      "goodLevel": 0,
+      "loreName": "Sunset",
+      "maxLevel": 5,
+      "nbtName": "ultimate_sunset"
     },
     "the one": {
       "goodLevel": 0,
