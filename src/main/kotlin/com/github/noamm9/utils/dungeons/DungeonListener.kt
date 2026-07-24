@@ -27,7 +27,6 @@ import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.network.protocol.game.*
 import net.minecraft.world.entity.EntityType
 
-
 object DungeonListener {
     private val tablistRegex = Regex("^\\[(\\d+)] (?:\\[\\w+] )*(\\w+) .*?\\((\\w+)(?: (\\w+))*\\)$") // https://regex101.com/r/gv7bOe/1
     private val puzzleCountRegex = Regex("§b§lPuzzles: §f\\((?<count>\\d)\\)")
