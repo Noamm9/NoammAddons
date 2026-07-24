@@ -7,6 +7,7 @@ import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.EventPriority
 import com.github.noamm9.event.impl.*
+import com.github.noamm9.mixin.IPlayerInfo
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
@@ -29,7 +30,7 @@ import net.minecraft.world.entity.EntityType
 
 
 object DungeonListener {
-    private val tablistRegex = Regex("""^\[\d+] .*\((?:(Archer|Berserk|Healer|Mage|Tank) ([CLXVI0]+)|(DEAD|EMPTY))\)$""") // https://regex101.com/r/7D78SS/2
+    private val tablistRegex = Regex("""^\[\d+] (?:\[[^]]+] )*([A-Za-z0-9_]{1,16}) .*\((\w+)(?: (\w+))?\)$""") // https://regex101.com/r/7D78SS/4
     private val puzzleCountRegex = Regex("§b§lPuzzles: §f\\((?<count>\\d)\\)")
     private val puzzleRegex = Regex(" (.+): \\[[✦✔✖].+")
     private val deathRegex = Regex("^ ☠ (?:You were|(?<username>\\w+)) (?<reason>.+?)(?: and became a ghost)?\\.$") // https://regex101.com/r/Yc3HhV/4
@@ -207,7 +208,7 @@ object DungeonListener {
         }
     }
 
-    private fun updateDungeonTeammates(tabName: String, second: PlayerInfo) {
+    private fun updateDungeonTeammates(tabName: String, tabEntry: PlayerInfo) {
         if (NoammAddons.isDev) listOf(
             DungeonPlayer("Noamm", DungeonClass.Mage, 50),
             DungeonPlayer("Noamm9", DungeonClass.Archer, 50),
@@ -228,10 +229,11 @@ object DungeonListener {
             return
         }
 
-        val name = second.profile.name
-        val (dungeonClass, clazzLevel, state) = tablistRegex.matchEntire(tabName.removeFormatting())?.takeIf { name in it.value }?.destructured ?: return
-        val clazz = dungeonClass.ifEmpty { state }
-        val skin = second.skin.body.texturePath()
+        val line = (tabEntry as IPlayerInfo).rawTabListDisplayName?.string ?: tabName.removeFormatting()
+        val (name, clazz, clazzLevel) = tablistRegex.matchEntire(line)?.destructured ?: return
+        val playerInfo = if (name == tabEntry.profile.name) tabEntry
+        else mc.connection?.getPlayerInfo(name) ?: tabEntry
+        val skin = playerInfo.skin.body.texturePath()
 
         dungeonTeammates.find { it.name == name }?.let { currentTeammate ->
             currentTeammate.clazz = if (clazz != "DEAD") DungeonClass.fromName(clazz) else currentTeammate.clazz
