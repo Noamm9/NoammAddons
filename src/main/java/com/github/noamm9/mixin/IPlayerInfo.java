@@ -7,6 +7,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(PlayerInfo.class)
 public interface IPlayerInfo {
+    // Bypasses getTabListDisplayName(), which Tiers (https://github.com/PvPTiers/Tiers) decorates, to expose the original server value
     @Accessor("tabListDisplayName")
     Component getRawTabListDisplayName();
 }
