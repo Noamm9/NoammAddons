@@ -126,7 +126,8 @@ object EventDispatcher {
 
                 for (i in event.packet.items.indices) {
                     if (i !in 0 until slotCount) continue
-                    invItems?.set(i, con.items[i])
+                    val item = con.items.getOrNull(i) ?: continue
+                    invItems?.set(i, item)
                 }
 
                 checkInvAndPost(event.packet.items.lastIndex)
@@ -136,8 +137,9 @@ object EventDispatcher {
                 val slotCount = invSlotCount ?: return@register
                 if (event.packet.slot !in 0 until slotCount) return@register
                 val con = mc.player?.containerMenu ?: return@register
+                val item = con.items.getOrNull(event.packet.slot) ?: return@register
 
-                invItems?.set(event.packet.slot, con.items[event.packet.slot])
+                invItems?.set(event.packet.slot, item)
                 checkInvAndPost(event.packet.slot)
             }
             else if (event.packet is ClientboundContainerClosePacket) {
