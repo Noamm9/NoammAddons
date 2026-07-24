@@ -29,7 +29,7 @@ import net.minecraft.world.entity.EntityType
 
 
 object DungeonListener {
-    private val tablistRegex = Regex("^\\[(\\d+)] (?:\\[\\w+] )*(\\w+) .*?\\((\\w+)(?: (\\w+))*\\)$") // https://regex101.com/r/gv7bOe/1
+    private val tablistRegex = Regex("""^\[\d+] .*\((?:(Archer|Berserk|Healer|Mage|Tank) ([CLXVI0]+)|(DEAD|EMPTY))\)$""") // https://regex101.com/r/7D78SS/2
     private val puzzleCountRegex = Regex("§b§lPuzzles: §f\\((?<count>\\d)\\)")
     private val puzzleRegex = Regex(" (.+): \\[[✦✔✖].+")
     private val deathRegex = Regex("^ ☠ (?:You were|(?<username>\\w+)) (?<reason>.+?)(?: and became a ghost)?\\.$") // https://regex101.com/r/Yc3HhV/4
@@ -228,7 +228,9 @@ object DungeonListener {
             return
         }
 
-        val (_, name, clazz, clazzLevel) = tablistRegex.find(tabName.removeFormatting())?.destructured ?: return
+        val name = second.profile.name
+        val (dungeonClass, clazzLevel, state) = tablistRegex.matchEntire(tabName.removeFormatting())?.takeIf { name in it.value }?.destructured ?: return
+        val clazz = dungeonClass.ifEmpty { state }
         val skin = second.skin.body.texturePath()
 
         dungeonTeammates.find { it.name == name }?.let { currentTeammate ->
