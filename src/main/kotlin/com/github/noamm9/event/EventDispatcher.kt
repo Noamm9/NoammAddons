@@ -99,7 +99,10 @@ object EventDispatcher {
 
                 EventBus.post(DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition()))
             }
-            else if (event.packet is ClientboundOpenScreenPacket) {
+        }
+
+        register<MainThreadPacketReceivedEvent.Post> {
+            if (event.packet is ClientboundOpenScreenPacket) {
                 resetInventory()
 
                 invSlotCount = when (event.packet.type) {
@@ -119,21 +122,23 @@ object EventDispatcher {
             else if (event.packet is ClientboundContainerSetContentPacket) {
                 if (event.packet.containerId != invWindowId) return@register
                 val slotCount = invSlotCount ?: return@register
+                val con = mc.player?.containerMenu ?: return@register
 
-                event.packet.items.forEachIndexed { index, stack ->
-                    if (index !in 0 until slotCount) return@forEachIndexed
-                    invItems?.set(index, stack)
+                for (i in event.packet.items.indices) {
+                    if (i !in 0 until slotCount) continue
+                    invItems?.set(i, con.items[i])
                 }
 
-                checkInvAndPost()
+                checkInvAndPost(event.packet.items.lastIndex)
             }
             else if (event.packet is ClientboundContainerSetSlotPacket) {
                 if (event.packet.containerId != invWindowId) return@register
                 val slotCount = invSlotCount ?: return@register
                 if (event.packet.slot !in 0 until slotCount) return@register
+                val con = mc.player?.containerMenu ?: return@register
 
-                invItems?.set(event.packet.slot, event.packet.item)
-                checkInvAndPost()
+                invItems?.set(event.packet.slot, con.items[event.packet.slot])
+                checkInvAndPost(event.packet.slot)
             }
             else if (event.packet is ClientboundContainerClosePacket) {
                 if (event.packet.containerId == invWindowId) resetInventory()
@@ -183,12 +188,12 @@ object EventDispatcher {
         invItems = null
     }
 
-    private fun checkInvAndPost() {
+    private fun checkInvAndPost(lastIndex: Int) {
         val title = invTitle ?: return
         val winId = invWindowId ?: return
         val slotCount = invSlotCount ?: return
         val items = invItems?.let(::HashMap) ?: return
-        if (items.size != slotCount) return
+        if (lastIndex != slotCount - 1) return
 
         EventBus.post(ContainerFullyOpenedEvent(title, winId, slotCount, items))
         resetInventory()
