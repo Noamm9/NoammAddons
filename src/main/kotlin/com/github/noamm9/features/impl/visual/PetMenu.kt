@@ -23,7 +23,6 @@ import com.github.noamm9.utils.render.Render2D.width
 import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
-import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.inventory.Slot
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
@@ -34,8 +33,6 @@ import kotlin.math.*
 object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel.") {
     private val menuScale by SliderSetting("Wheel Scale", 100, 70, 135, 5, "%").section("Settings")
     private val showKeyLabels by ToggleSetting("Show Key Labels", true)
-    private val clickSound by ToggleSetting("Click Sound", false)
-    private val clickSoundSettings = createSoundSettings("Click Sound Type", SoundEvents.UI_BUTTON_CLICK.value()) { clickSound.value }
 
     private val segmentColor by ColorSetting("Segment Color", Color(15, 15, 15, 200)).section("Colors")
     private val hoverColor by ColorSetting("Hover Color", Color(255, 255, 255, 30))
@@ -56,6 +53,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel.") 
     private var wheelPage = 0
     private var lastContainerId = - 1
     private var lastClickAt = 0L
+    private var tempDisabled = false
 
     override fun init() {
         register<ScreenEvent.PreRender> {
@@ -73,6 +71,21 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel.") 
 
         register<ContainerEvent.MouseClick> {
             if (! inPetMenu(event.screen)) return@register
+
+            val buttonText = "Vanilla Menu"
+            val buttonWidth = buttonText.width() + 16f
+            val buttonHeight = 18f
+            val buttonX = Resolution.width - buttonWidth - 5f
+            val buttonY = Resolution.height - buttonHeight - 5f
+
+            val rx = Resolution.getMouseX(event.mouseX)
+            val ry = Resolution.getMouseY(event.mouseY)
+            if (rx >= buttonX && rx <= buttonX + buttonWidth && ry >= buttonY && ry <= buttonY + buttonHeight) {
+                event.cancel()
+                tempDisabled = true
+                return@register
+            }
+
             event.cancel()
 
             if (handleKeybind(event.screen, event.button, mouse = true)) return@register
@@ -97,13 +110,13 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel.") 
             val pages = pageCount(petSlots(event.screen).size)
             if (pages <= 1) return@register
             wheelPage = Math.floorMod(wheelPage + if (event.verticalAmount < 0.0) 1 else - 1, pages)
-            if (clickSound.value) clickSoundSettings.play.action.invoke()
         }
 
         register<ContainerEvent.Close> {
-            if (! inPetMenu(event.screen)) return@register
+            if (! event.screen.title.unformattedText.matches(petMenuRegex)) return@register
             lastContainerId = - 1
             wheelPage = 0
+            tempDisabled = false
         }
     }
 
@@ -147,6 +160,19 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel.") 
             Color.WHITE,
             0.85f
         )
+
+        val buttonText = "Vanilla Menu"
+        val buttonWidth = buttonText.width() + 16f
+        val buttonHeight = 18f
+        val buttonX = Resolution.width - buttonWidth - 5f
+        val buttonY = Resolution.height - buttonHeight - 5f
+
+        val rx = Resolution.getMouseX(vanillaMouseX.toDouble())
+        val ry = Resolution.getMouseY(vanillaMouseY.toDouble())
+        val hoveredButton = rx >= buttonX && rx <= buttonX + buttonWidth && ry >= buttonY && ry <= buttonY + buttonHeight
+
+        Render2D.drawRect(ctx, buttonX, buttonY, buttonWidth, buttonHeight, if (hoveredButton) hoverColor.value else segmentColor.value)
+        Render2D.drawCenteredString(ctx, buttonText, buttonX + buttonWidth / 2f, buttonY + buttonHeight / 2f - 3.5f)
 
         Resolution.pop(ctx)
     }
@@ -250,7 +276,6 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel.") 
 
         lastClickAt = now
         GuiUtils.clickSlot(slotIndex, GuiUtils.ButtonType.LEFT)
-        if (clickSound.value) clickSoundSettings.play.action.invoke()
         mc.player?.closeContainer()
     }
 
@@ -284,7 +309,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel.") 
         screen.menu.slots.getOrNull(index)?.takeIf { ! it.item.isEmpty && it.item.`is`(Items.PLAYER_HEAD) }
     }
 
-    private fun inPetMenu(screen: AbstractContainerScreen<*>) = enabled && screen.title.unformattedText.matches(petMenuRegex)
+    private fun inPetMenu(screen: AbstractContainerScreen<*>) = ! tempDisabled && screen.title.unformattedText.matches(petMenuRegex)
     private fun pageCount(petCount: Int) = Math.ceilDiv(petCount, PETS_PER_WHEEL).coerceAtLeast(1)
 
     private class WheelLayout(val centerX: Float, val centerY: Float, val innerRadius: Float, val outerRadius: Float)
