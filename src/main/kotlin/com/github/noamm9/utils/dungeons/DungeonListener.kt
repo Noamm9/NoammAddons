@@ -18,6 +18,7 @@ import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.dungeons.enums.Puzzle
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.core.RoomState
+import com.github.noamm9.utils.dungeons.map.core.RoomType
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils.inDungeon
@@ -202,7 +203,7 @@ object DungeonListener {
 
         register<DungeonEvent.RoomEvent.onStateChange> {
             if (lastDoorOpenner == null) return@register
-            if (event.room.name != "Blood") return@register
+            if (event.room.data.type != RoomType.BLOOD) return@register
             if (! event.newState.equalsOneOf(RoomState.DISCOVERED, RoomState.CLEARED, RoomState.GREEN)) return@register
             lastDoorOpenner = null
         }
