@@ -20,8 +20,8 @@ import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderContext
 import net.minecraft.core.BlockPos
 import net.minecraft.sounds.SoundEvents
-import net.minecraft.world.level.block.ButtonBlock
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.ButtonBlock
 import java.awt.Color
 import java.util.*
 
@@ -206,19 +206,20 @@ object SimonSays: Feature("Simon Says Solver") {
 
     private fun renderSSBox(ctx: RenderContext, pos: BlockPos, color: Color) {
         val state = mc.level?.getBlockState(pos)
-        val depth = if (state?.block == Blocks.STONE_BUTTON && state.getValue(ButtonBlock.POWERED)) 1.0 / 16.0 else 2.0 / 16.0
+        var depth = if (state?.block == Blocks.STONE_BUTTON && state.getValue(ButtonBlock.POWERED)) 1.0 else 2.0
+        depth /= 16
 
         Render3D.renderBoxBounds(
             ctx,
-            pos.x + 1.0 - depth, pos.y + 6.0 / 16.0, pos.z + 5.0 / 16.0,
-            pos.x + 1.0, pos.y + 10.0 / 16.0, pos.z + 11.0 / 16.0,
+            pos.x + 1 - depth, pos.y + 0.375, pos.z + 0.3125,
+            pos.x + 1.0, pos.y + 0.625, pos.z + 0.6875,
             color,
             outline = false,
             phase = true
         )
     }
 
-    private data class SSButton(val obsidian: BlockPos) {
+    private class SSButton(obsidian: BlockPos) {
         val button = obsidian.west()
         val id = solution.size
     }
