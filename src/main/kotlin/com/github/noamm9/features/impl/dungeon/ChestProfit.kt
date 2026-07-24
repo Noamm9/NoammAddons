@@ -41,7 +41,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
 
     private val essenceRegex = Regex("§d(?<type>\\w+) Essence §8x(?<count>\\d+)")
     private val croesusChestRegex = Regex("^(Master )?Catacombs - Flo(or (IV|V?I{0,3}))?$")
-    private val croesusMenuRegex = Regex("^(?:\\([1-3]/3\\) )?Croesus$")
+    private val croesusMenuRegex = Regex("""^(?:\(\d/\d\) )?Croesus$""")
 
     private val chestsToHighlight = mutableListOf<DungeonChest>()
     private var sortedChestsCache = emptyList<DungeonChest>()
@@ -113,7 +113,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                     currentChest.openedInSequence = true
                 }
 
-                chestName.matches(croesusChestRegex) && croesusChestsProfit.value -> {
+                croesusChestsProfit.value && chestName.matches(croesusChestRegex) -> {
                     for (i in 10 .. 16) {
                         val stack = event.items[i] ?: continue
                         if (stack.item == Items.GRAY_STAINED_GLASS_PANE) continue
@@ -161,7 +161,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                     val text = "Profit: $color${NumbersUtils.format(it.profit)}  "
                     Render2D.drawString(event.context, text, width - text.width(), 6f)
                 } ?: run {
-                    if (croesusChestRegex.matches(titleName) && croesusChestsProfit.value) {
+                    if (croesusChestsProfit.value && croesusChestRegex.matches(titleName)) {
                         sortedChestsCache.forEachIndexed { index, chest ->
                             val color = if (chest.profit < 0) "§4" else "§a"
                             val text = "${chest.displayText}: $color${NumbersUtils.format(chest.profit)}§r"
@@ -178,7 +178,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                 }
             }
 
-            if (titleName.matches(croesusChestRegex) && croesusChestsProfit.value) {
+            if (croesusChestsProfit.value && titleName.matches(croesusChestRegex)) {
                 sortedChestsCache.take(2).forEachIndexed { index, chest ->
                     if (chest.profit < 0) return@forEachIndexed
                     if (chest.slot != event.slot.index) return@forEachIndexed
@@ -190,15 +190,15 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                 val stack = event.slot.item
                 if (stack.item != Items.PLAYER_HEAD) return@register
 
-                val name = stack.hoverName.formattedText
-                if (! name.equalsOneOf("§aThe Catacombs", "§aMaster Mode The Catacombs")) return@register
-                val lore = stack.lore
+                val name = stack.hoverName.unformattedText
+                if (! name.equalsOneOf("The Catacombs", "Master Mode The Catacombs")) return@register
+                val lore = stack.lore.map { it.removeFormatting() }
 
                 if (croesusChestHighlight.value) {
                     var highlightColor: Color? = null
 
                     for (line in lore) when {
-                        line == "§aNo more chests to open!" -> {
+                        line == "No more chests to open!" -> {
                             if (hideRedChests.value) {
                                 event.isCanceled = true
                                 return@register
@@ -207,17 +207,16 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                             break
                         }
 
-                        line == "§cNo chests opened yet!" -> {
+                        line == "No chests opened yet!" -> {
                             highlightColor = Color.GREEN
                             break
                         }
 
-                        line.startsWith("§7Opened Chest: ") -> {
+                        line.startsWith("Opened Chest: ") -> {
                             highlightColor = Color.YELLOW
                             break
                         }
                     }
-
 
                     highlightColor?.let { event.slot.highlight(event.context, it.withAlpha(100)) }
                 }
