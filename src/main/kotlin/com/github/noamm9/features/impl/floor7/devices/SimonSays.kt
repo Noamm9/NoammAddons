@@ -9,7 +9,6 @@ import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
-import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.toVec
 import com.github.noamm9.utils.PlayerUtils
@@ -22,6 +21,7 @@ import com.github.noamm9.utils.render.RenderContext
 import net.minecraft.core.BlockPos
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.ButtonBlock
 import java.awt.Color
 import java.util.*
 
@@ -205,23 +205,21 @@ object SimonSays: Feature("Simon Says Solver") {
     }
 
     private fun renderSSBox(ctx: RenderContext, pos: BlockPos, color: Color) {
-        val w = 0.4 / 2.0
-        val h = 0.26 / 2.0
+        val state = mc.level?.getBlockState(pos)
+        var depth = if (state?.block == Blocks.STONE_BUTTON && state.getValue(ButtonBlock.POWERED)) 1.0 else 2.0
+        depth /= 16
 
-        val cx = pos.x + 1.0
-        val cy = pos.y + 0.5
-        val cz = pos.z + 0.5
-
-        val minX = cx - 0.2
-        val minY = cy - h
-        val maxY = cy + h
-        val minZ = cz - w
-        val maxZ = cz + w
-
-        Render3D.renderBoxBounds(ctx, minX, minY, minZ, cx, maxY, maxZ, color.withAlpha(178), outline = false, fill = true, phase = true)
+        Render3D.renderBoxBounds(
+            ctx,
+            pos.x + 1 - depth, pos.y + 0.375, pos.z + 0.3125,
+            pos.x + 1.0, pos.y + 0.625, pos.z + 0.6875,
+            color,
+            outline = false,
+            phase = true
+        )
     }
 
-    private data class SSButton(val obsidian: BlockPos) {
+    private class SSButton(obsidian: BlockPos) {
         val button = obsidian.west()
         val id = solution.size
     }
