@@ -5,6 +5,8 @@ import com.github.noamm9.utils.ChatUtils.addColor
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
 import net.minecraft.client.gui.Font
+import net.minecraft.client.renderer.SubmitNodeCollection
+import net.minecraft.client.renderer.feature.TextFeatureRenderer
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.network.chat.Component
@@ -12,6 +14,7 @@ import net.minecraft.util.LightCoordsUtil
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.Shapes
+import org.joml.Matrix4f
 import org.joml.Vector3f
 import java.awt.Color
 import kotlin.math.cos
@@ -317,18 +320,47 @@ object Render3D {
         ctx.matrixStack.mulPose(camera.rotation())
         ctx.matrixStack.scale(toScale, - toScale, toScale)
 
-        for ((i, line) in lines.withIndex()) ctx.collector.submitText(
-            ctx.matrixStack,
-            - textRenderer.width(line) / 2f,
-            i * 9f,
-            Component.literal(line).visualOrderText,
-            true,
-            textLayer,
-            LightCoordsUtil.FULL_BRIGHT,
-            color.rgb,
-            0,
-            0
-        )
+        val textCollector = ctx.collector.order(0)
+        val textPhase = (textCollector as? SubmitNodeCollection)?.run {
+            if (phase) alwaysOnTop else afterTerrain
+        }
+
+        for ((i, line) in lines.withIndex()) {
+            val lineX = - textRenderer.width(line) / 2f
+            val lineY = i * 9f
+            val formattedLine = Component.literal(line).visualOrderText
+
+            if (textPhase != null) {
+                textPhase.submit(
+                    TextFeatureRenderer.Submit(
+                        Matrix4f(ctx.matrixStack.last().pose()),
+                        lineX,
+                        lineY,
+                        formattedLine,
+                        true,
+                        textLayer,
+                        LightCoordsUtil.FULL_BRIGHT,
+                        color.rgb,
+                        0,
+                        0
+                    )
+                )
+            }
+            else {
+                textCollector.submitText(
+                    ctx.matrixStack,
+                    lineX,
+                    lineY,
+                    formattedLine,
+                    true,
+                    textLayer,
+                    LightCoordsUtil.FULL_BRIGHT,
+                    color.rgb,
+                    0,
+                    0
+                )
+            }
+        }
 
         ctx.matrixStack.popPose()
     }
