@@ -90,8 +90,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel.") 
 
             val visiblePets = petsOnCurrentPage(petSlots(event.screen))
             val layout = wheelLayout(visiblePets.size)
-            val pet = hoveredWheelIndex(event.mouseX, event.mouseY, layout)
-                ?.let(visiblePets::getOrNull)
+            val pet = hoveredWheelIndex(event.mouseX, event.mouseY, layout)?.let(visiblePets::getOrNull)
 
             if (event.button == GLFW.GLFW_MOUSE_BUTTON_RIGHT && InputConstants.isKeyDown(mc.window, InputConstants.KEY_LSHIFT) && pet != null) {
                 val now = System.currentTimeMillis()
