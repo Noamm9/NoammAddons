@@ -12,11 +12,9 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render3D
 import com.github.noamm9.utils.render.RenderContext
 import com.github.noamm9.utils.startsWithOneOf
-import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.core.BlockPos
 
 object QuizSolver: PuzzleSolver {
@@ -37,6 +35,15 @@ object QuizSolver: PuzzleSolver {
     private var questionsStarted = false
     private var answerTime: Long = 0
     private var stage = 0
+
+    val shouldShowTimer get() = questionsStarted && ! LocationUtils.inBoss && ticksLeft > 0
+    fun timerText(example: Boolean): String {
+        val displayStage = if (example) 1 else stage
+        val secondsLeft = if (example) "10.0" else (ticksLeft / 20.0).toFixed(1)
+        return "§dQuiz §7(§f$displayStage/3§7): §b${secondsLeft}s"
+    }
+
+    private val ticksLeft get() = answerTime - DungeonListener.currentTime
 
     override fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (event.room.name != "Quiz") return
@@ -130,21 +137,6 @@ object QuizSolver: PuzzleSolver {
         triviaOptions.forEach { answer ->
             if (! answer.isCorrect) return@forEach
             Render3D.renderBlock(ctx, answer.blockPos, PuzzleSolvers.answerColor.value, phase = true)
-        }
-    }
-
-    override fun onRenderOverlay(ctx: GuiGraphicsExtractor) {
-        if (PuzzleSolvers.quizTimer.value && questionsStarted && ! LocationUtils.inBoss) {
-            val ticksLeft = answerTime - DungeonListener.currentTime
-            if (ticksLeft <= 0) return
-            val secondsLeft = (ticksLeft / 20.0).toFixed(1)
-            Render2D.drawCenteredString(
-                ctx,
-                "§dQuiz §7(§f$stage/3§7): §b${secondsLeft}s",
-                mc.window.guiScaledWidth / 2f,
-                mc.window.guiScaledHeight / 3f,
-                scale = 3f
-            )
         }
     }
 
