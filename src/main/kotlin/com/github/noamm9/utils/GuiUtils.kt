@@ -20,6 +20,14 @@ object GuiUtils {
         )
     }
 
+    fun shiftClickSlot(slotIndex: Int) {
+        val containerId = mc.player?.containerMenu?.containerId ?: return
+
+        mc.gameMode?.handleContainerInput(
+            containerId, slotIndex, ButtonType.LEFT.ordinal, ContainerInput.QUICK_MOVE, mc.player !!
+        )
+    }
+
     fun getSlotPos(screen: AbstractContainerScreen<*>, index: Int): Pair<Float, Float>? {
         val slot = screen.menu.slots.getOrNull(index) ?: return null
         val screenBase = screen as IAbstractContainerScreen
