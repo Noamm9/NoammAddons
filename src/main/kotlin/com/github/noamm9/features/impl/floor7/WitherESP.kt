@@ -13,14 +13,6 @@ import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.entity.boss.wither.WitherBoss
 import java.awt.Color
 
-/*
-     The wither from the armor set: isPowered: false, invulnerableTicks: 800
-     Maxor: isPowered: true, invulnerableTicks: 200
-     Storm: isPowered: true, invulnerableTicks: 1
-     Goldor: isPowered: true, invulnerableTicks: 0
-     Necron: isPowered: true, invulnerableTicks: 1
-     Vanquisher: isPowered: false/true, invulnerableTicks: 250
-*/
 object WitherESP: Feature("Highlights all Withers in F7.") {
     private val maxorColor by ColorSetting("Maxor", Color(88, 4, 164), false)
     private val stormColor by ColorSetting("Storm", Color(0, 208, 255), false)
@@ -36,8 +28,6 @@ object WitherESP: Feature("Highlights all Withers in F7.") {
 
     private var currentWither: WitherBoss? = null
     private var currentType = Wither.MAXOR
-
-    private fun isValidLoc() = LocationUtils.dungeonFloorNumber == 7 && LocationUtils.inBoss && LocationUtils.F7Phase != 5
 
     override fun init() {
         register<WorldChangeEvent> {
@@ -63,7 +53,9 @@ object WitherESP: Feature("Highlights all Withers in F7.") {
         register<BossBarUpdateEvent> {
             if (! isValidLoc()) return@register
             val bossName = event.name.unformattedText
-            Wither.entries.find { bossName.contains(it.name, ignoreCase = true) }?.let { currentType = it }
+            Wither.entries.find { bossName.contains(it.name, ignoreCase = true) }?.let {
+                currentType = it
+            }
         }
 
         register<CheckEntityGlowEvent> {
@@ -71,4 +63,6 @@ object WitherESP: Feature("Highlights all Withers in F7.") {
             event.color = currentType.color.value
         }
     }
+
+    private fun isValidLoc() = LocationUtils.dungeonFloorNumber == 7 && LocationUtils.inBoss && LocationUtils.F7Phase != 5
 }
