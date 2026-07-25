@@ -3,10 +3,13 @@ package com.github.noamm9.features.impl.dungeon.solvers
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolver
+import com.github.noamm9.features.impl.dungeon.solvers.puzzles.QuizSolver
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ColorUtils.withAlpha
+import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.width
 import java.awt.Color
 
 object PuzzleSolvers: Feature() {
@@ -62,9 +65,21 @@ object PuzzleSolvers: Feature() {
     override fun init() {
         val puzzles = PuzzleSolver::class.sealedSubclasses.mapNotNull { it.objectInstance }
 
+        hudElement(
+            name = "Quiz Timer",
+            enabled = { quiz.value && quizTimer.value },
+            shouldDraw = { QuizSolver.shouldShowTimer },
+            centered = true
+        ) { ctx, example ->
+            val text = QuizSolver.timerText(example)
+            Render2D.drawCenteredString(ctx, text, 0f, 0f)
+            return@hudElement text.width().toFloat() to 9f
+        }.apply {
+            scale = 3f
+        }
+
         register<DungeonEvent.RoomEvent.onStateChange> { puzzles.forEach { if (it.enabled) it.onStateChange(event) } }
         register<PlayerInteractEvent.RIGHT_CLICK.BLOCK> { puzzles.forEach { if (it.enabled) it.onInteract(event) } }
-        register<RenderOverlayEvent> { puzzles.forEach { if (it.enabled) it.onRenderOverlay(event.context) } }
         register<MainThreadPacketReceivedEvent.Pre> { puzzles.forEach { if (it.enabled) it.onPacket(event) } }
         register<DungeonEvent.RoomEvent.onEnter> { puzzles.forEach { if (it.enabled) it.onRoomEnter(event) } }
         register<RenderWorldEvent> { puzzles.forEach { if (it.enabled) it.onRenderWorld(event.ctx) } }
