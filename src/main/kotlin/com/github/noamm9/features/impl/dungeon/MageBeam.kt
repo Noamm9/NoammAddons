@@ -25,7 +25,6 @@ object MageBeam: Feature("Renders a fully custom, animated beam whenever a mage 
     private val lineWidth by SliderSetting("Line Width", 2, 1, 6, 1, "px").withDescription("Thickness of the line.")
     private val duration by SliderSetting("Duration", 40, 5, 100, 1, " ticks").withDescription("How long the beam shows.")
     private val fade by ToggleSetting("Fade").withDescription("Animates the beam slowly disappearing")
-    private val minPoints by SliderSetting("Min Points", 3, 2, 10, 1).withDescription("Minimum particles required for a beam to render.")
     private val hideSheep by ToggleSetting("Hide Sheep", true).withDescription("Prevents the Sheep from spawning.")
     private val rainbow by ToggleSetting("&dI am Skizo!!!!")
 
@@ -53,7 +52,7 @@ object MageBeam: Feature("Renders a fully custom, animated beam whenever a mage 
 
         register<RenderWorldEvent> {
             for (beam in beams) {
-                if (beam.points.size < minPoints.value) continue
+                if (beam.points.size < 6) continue
                 val alpha = if (fade.value) beam.anim.update(0f).let { beam.anim.value } else 1f
                 if (rainbow.value) Render3D.renderRainbowLine(event.ctx, beam.min, beam.max, lineWidth.value, alpha)
                 else Render3D.renderLine(event.ctx, beam.min, beam.max, color.value.withAlpha(alpha), lineWidth.value)
