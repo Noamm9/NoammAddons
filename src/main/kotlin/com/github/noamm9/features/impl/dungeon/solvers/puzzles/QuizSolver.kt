@@ -36,14 +36,12 @@ object QuizSolver: PuzzleSolver {
     private var answerTime: Long = 0
     private var stage = 0
 
-    val shouldShowTimer get() = questionsStarted && ! LocationUtils.inBoss && ticksLeft > 0
+    val shouldShowTimer get() = questionsStarted && ! LocationUtils.inBoss && answerTime - DungeonListener.currentTime > 0
     fun timerText(example: Boolean): String {
         val displayStage = if (example) 1 else stage
-        val secondsLeft = if (example) "10.0" else (ticksLeft / 20.0).toFixed(1)
+        val secondsLeft = if (example) "10.0" else ((answerTime - DungeonListener.currentTime) / 20.0).toFixed(1)
         return "§dQuiz §7(§f$displayStage/3§7): §b${secondsLeft}s"
     }
-
-    private val ticksLeft get() = answerTime - DungeonListener.currentTime
 
     override fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (event.room.name != "Quiz") return
