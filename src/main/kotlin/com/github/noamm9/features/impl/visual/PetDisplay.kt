@@ -1,5 +1,6 @@
 package com.github.noamm9.features.impl.visual
 
+import com.github.noamm9.event.EventListener
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.annotations.AlwaysActive
@@ -42,7 +43,8 @@ object PetDisplay: Feature("Pet Features") {
     private var autoPetTitleTicks = 0
 
     override fun init() {
-        hudElement("PetDisplay",
+        hudElement(
+            "PetDisplay",
             enabled = { petDisplay.value },
             shouldDraw = { LocationUtils.inSkyblock && cacheData.get()["pet"] != null }) { context, example ->
             val text = if (example) "&6Golden Dragon" else cacheData.get()["pet"].toString()
@@ -53,7 +55,7 @@ object PetDisplay: Feature("Pet Features") {
         hudElement(
             "Auto Pet Title",
             enabled = { autoPetTitles.value },
-            shouldDraw = { autoPetTitleTicks > 0 },
+            shouldDraw = { ticker.isRegistered() },
             centered = true
         ) { context, example ->
             val text = if (example) "&6Golden Dragon" else autoPetTitle
@@ -64,25 +66,23 @@ object PetDisplay: Feature("Pet Features") {
         }
 
         register<ChatMessageEvent> {
-            event.formattedText.let {
-                if (chatDespawnRegex.matches(it)) {
-                    cacheData.get().remove("pet")
-                    selectedPetSlot = - 1
-                    return@register
-                }
-
-                val match1 = chatSpawnRegex.find(it)?.destructured?.component1()
-                val match2 = chatPetRuleRegex.find(it)?.destructured?.component1()
-                if (match2 != null && autoPetTitles.value && enabled && (! autoPetTitlesDungeonOnly.value || LocationUtils.inDungeon)) {
-                    autoPetTitle = match2
-                    autoPetTitleTicks = 40
-                }
-                cacheData.get()["pet"] = match1 ?: match2 ?: return@let
+            val msg = event.formattedText
+            if (chatDespawnRegex.matches(msg)) {
+                cacheData.get().remove("pet")
+                selectedPetSlot = - 1
+                return@register
             }
-        }
 
-        register<TickEvent.Start> {
-            if (autoPetTitleTicks > 0) autoPetTitleTicks --
+            val match1 = chatSpawnRegex.find(msg)?.destructured?.component1()
+            val match2 = chatPetRuleRegex.find(msg)?.destructured?.component1()
+
+            if (match2 != null && autoPetTitles.value && enabled && (! autoPetTitlesDungeonOnly.value || LocationUtils.inDungeon)) {
+                autoPetTitle = match2
+                autoPetTitleTicks = 40
+                ticker.register()
+            }
+
+            cacheData.get()["pet"] = match1 ?: match2 ?: return@register
         }
 
         register<ContainerFullyOpenedEvent> {
@@ -128,5 +128,10 @@ object PetDisplay: Feature("Pet Features") {
             if (event.packet !is ClientboundContainerClosePacket) return@register
             selectedPetSlot = - 1
         }
+    }
+
+    private val ticker = EventListener.create<TickEvent.Start> {
+        autoPetTitleTicks --
+        if (autoPetTitleTicks <= 0) listener.unregister()
     }
 }
