@@ -91,14 +91,15 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel.") 
 
             val pets = petSlots(event.screen)
             val layout = wheelLayout()
-            val pet = hoveredWheelIndex(event.mouseX, event.mouseY, layout)
-                ?.let { pets.getOrNull(wheelPage * PETS_PER_WHEEL + it) }
+            val pet = hoveredWheelIndex(event.mouseX, event.mouseY, layout)?.let {
+                pets.getOrNull(wheelPage * PETS_PER_WHEEL + it)
+            }
 
-            if (event.button == GLFW.GLFW_MOUSE_BUTTON_RIGHT && pet != null) {
+            if (event.button == GLFW.GLFW_MOUSE_BUTTON_RIGHT && InputConstants.isKeyDown(mc.window, InputConstants.KEY_LSHIFT) && pet != null) {
                 val now = System.currentTimeMillis()
                 if (now - lastClickAt >= 300) {
                     lastClickAt = now
-                    GuiUtils.shiftClickSlot(pet.index)
+                    GuiUtils.clickSlot(pet.index, GuiUtils.ButtonType.LEFT, shift = true)
                 }
                 return@register
             }
@@ -314,10 +315,11 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel.") 
         ItemRenderer.drawBatchedItemStack(ctx, item, (x - 8f).roundToInt(), (y - 8f).roundToInt(), scale)
     }
 
-    private fun petSlots(screen: AbstractContainerScreen<*>): List<Slot> = petSlots.mapNotNull { index ->
+    private fun petSlots(screen: AbstractContainerScreen<*>) = petSlots.mapNotNull { index ->
         screen.menu.slots.getOrNull(index)?.takeIf {
-            ! it.item.isEmpty && it.item.`is`(Items.PLAYER_HEAD) &&
-                (! favouritePetsOnly.value || it.item.hoverName.unformattedText.startsWith("⭐ "))
+            val isHead = ! it.item.isEmpty && it.item.`is`(Items.PLAYER_HEAD)
+            val favorite = it.item.hoverName.unformattedText.startsWith("⭐ ")
+            isHead && if (favouritePetsOnly.value) favorite else true
         }
     }
 
