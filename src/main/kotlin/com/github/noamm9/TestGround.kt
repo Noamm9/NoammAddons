@@ -7,6 +7,7 @@ import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.GsonUtils
 import com.github.noamm9.utils.MathUtils.add
+import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
@@ -25,6 +26,7 @@ import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.resources.RegistryOps
 import net.minecraft.world.entity.ambient.Bat
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.block.entity.SkullBlockEntity
 import java.awt.Color
 
 
@@ -120,6 +122,16 @@ class TestGround {
             val pitch = packet.pitch
             val volume = packet.volume
             ChatUtils.modMessage("name: $name, pitch: $pitch, volume: $volume")
+        }
+
+        EventBus.register<NoammDebugFlagEvent.Add> {
+            if (event.flag != "skull") return@register
+            event.cancel()
+
+            val pos = PlayerUtils.getSelectionBlock() !!
+            (mc.level?.getBlockEntity(pos) as? SkullBlockEntity)?.ownerProfile?.partialProfile()?.id.toString().let {
+                ChatUtils.modMessage("skullid: $it")
+            }
         }
     }
 
