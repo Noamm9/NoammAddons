@@ -10,13 +10,16 @@ object GuiUtils {
         LEFT, RIGHT, MIDDLE;
     }
 
-    fun clickSlot(slotIndex: Int, btn: ButtonType) {
+    fun clickSlot(slotIndex: Int, btn: ButtonType, shift: Boolean = false) {
         val containerId = mc.player?.containerMenu?.containerId ?: return
 
         mc.gameMode?.handleContainerInput(
             containerId, slotIndex, btn.ordinal,
-            if (btn == ButtonType.MIDDLE) ContainerInput.CLONE
-            else ContainerInput.PICKUP, mc.player !!
+            when {
+                shift -> ContainerInput.QUICK_MOVE
+                btn == ButtonType.MIDDLE -> ContainerInput.CLONE
+                else -> ContainerInput.PICKUP
+            }, mc.player !!
         )
     }
 

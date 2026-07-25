@@ -33,6 +33,7 @@ import kotlin.math.*
 object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel.") {
     private val menuScale by SliderSetting("Wheel Scale", 100, 70, 135, 5, "%").section("Settings")
     private val showKeyLabels by ToggleSetting("Show Key Labels", true)
+    private val favouritePetsOnly by ToggleSetting("Favourite Pets Only").withDescription("Only shows pets favourited in Hypixel's Pets Menu.")
 
     private val segmentColor by ColorSetting("Segment Color", Color(15, 15, 15, 200)).section("Colors")
     private val hoverColor by ColorSetting("Hover Color", Color(255, 255, 255, 30))
@@ -88,14 +89,23 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel.") 
 
             event.cancel()
 
-            if (handleKeybind(event.screen, event.button, mouse = true)) return@register
-            if (event.button != GLFW.GLFW_MOUSE_BUTTON_LEFT) return@register
-
             val pets = petSlots(event.screen)
             val layout = wheelLayout()
-            val index = hoveredWheelIndex(event.mouseX, event.mouseY, layout) ?: return@register
-            val pet = pets.getOrNull(wheelPage * PETS_PER_WHEEL + index) ?: return@register
-            click(event.screen, pet.index)
+            val pet = hoveredWheelIndex(event.mouseX, event.mouseY, layout)?.let {
+                pets.getOrNull(wheelPage * PETS_PER_WHEEL + it)
+            }
+
+            if (event.button == GLFW.GLFW_MOUSE_BUTTON_RIGHT && InputConstants.isKeyDown(mc.window, InputConstants.KEY_LSHIFT) && pet != null) {
+                val now = System.currentTimeMillis()
+                if (now - lastClickAt >= 300) {
+                    lastClickAt = now
+                    GuiUtils.clickSlot(pet.index, GuiUtils.ButtonType.LEFT, shift = true)
+                }
+                return@register
+            }
+
+            if (handleKeybind(event.screen, event.button, mouse = true)) return@register
+            if (event.button == GLFW.GLFW_MOUSE_BUTTON_LEFT && pet != null) click(event.screen, pet.index)
         }
 
         register<ContainerEvent.Keyboard> {
@@ -305,8 +315,12 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel.") 
         ItemRenderer.drawBatchedItemStack(ctx, item, (x - 8f).roundToInt(), (y - 8f).roundToInt(), scale)
     }
 
-    private fun petSlots(screen: AbstractContainerScreen<*>): List<Slot> = petSlots.mapNotNull { index ->
-        screen.menu.slots.getOrNull(index)?.takeIf { ! it.item.isEmpty && it.item.`is`(Items.PLAYER_HEAD) }
+    private fun petSlots(screen: AbstractContainerScreen<*>) = petSlots.mapNotNull { index ->
+        screen.menu.slots.getOrNull(index)?.takeIf {
+            val isHead = ! it.item.isEmpty && it.item.`is`(Items.PLAYER_HEAD)
+            val favorite = it.item.hoverName.unformattedText.startsWith("⭐ ")
+            isHead && if (favouritePetsOnly.value) favorite else true
+        }
     }
 
     private fun inPetMenu(screen: AbstractContainerScreen<*>) = ! tempDisabled && screen.title.unformattedText.matches(petMenuRegex)
