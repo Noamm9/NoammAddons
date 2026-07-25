@@ -49,7 +49,6 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel.") 
     private val petSlots = (10 .. 43).filter { it % 9 in 1 .. 7 }
 
     private const val PETS_PER_WHEEL = 9
-    private const val SEGMENT_ANGLE = PI * 2.0 / PETS_PER_WHEEL
 
     private var wheelPage = 0
     private var lastContainerId = - 1
@@ -89,11 +88,9 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel.") 
 
             event.cancel()
 
-            val pets = petSlots(event.screen)
-            val layout = wheelLayout()
-            val pet = hoveredWheelIndex(event.mouseX, event.mouseY, layout)?.let {
-                pets.getOrNull(wheelPage * PETS_PER_WHEEL + it)
-            }
+            val visiblePets = petsOnCurrentPage(petSlots(event.screen))
+            val layout = wheelLayout(visiblePets.size)
+            val pet = hoveredWheelIndex(event.mouseX, event.mouseY, layout)?.let(visiblePets::getOrNull)
 
             if (event.button == GLFW.GLFW_MOUSE_BUTTON_RIGHT && InputConstants.isKeyDown(mc.window, InputConstants.KEY_LSHIFT) && pet != null) {
                 val now = System.currentTimeMillis()
@@ -138,19 +135,18 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel.") 
         val pages = pageCount(pets.size)
         wheelPage = wheelPage.coerceIn(0, pages - 1)
 
-        val visiblePets = pets.drop(wheelPage * PETS_PER_WHEEL).take(PETS_PER_WHEEL)
-        val layout = wheelLayout()
+        val visiblePets = petsOnCurrentPage(pets)
+        val layout = wheelLayout(visiblePets.size)
 
-        val hoveredIndex = hoveredWheelIndex(vanillaMouseX.toDouble(), vanillaMouseY.toDouble(), layout)?.takeIf { it in visiblePets.indices }
+        val hoveredIndex = hoveredWheelIndex(vanillaMouseX.toDouble(), vanillaMouseY.toDouble(), layout)
         val activePet = visiblePets.firstOrNull { slot -> slot.item.lore.any { it.removeFormatting().contains("Click to despawn!", ignoreCase = true) } }
         val selectedPet = hoveredIndex?.let(visiblePets::get) ?: activePet
 
         Render2D.drawRect(ctx, 0, 0, Resolution.width, Resolution.height, Color.BLACK.withAlpha(150))
 
-        repeat(PETS_PER_WHEEL) { index ->
-            val pet = visiblePets.getOrNull(index)
+        visiblePets.forEachIndexed { index, pet ->
             drawRingSegment(ctx, layout, index, segmentColor.value)
-            if (pet === activePet && pet != null) drawRingSegment(ctx, layout, index, ClickGui.accentColor.value)
+            if (pet === activePet) drawRingSegment(ctx, layout, index, ClickGui.accentColor.value)
             if (index == hoveredIndex) drawRingSegment(ctx, layout, index, hoverColor.value)
         }
 
@@ -188,16 +184,17 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel.") 
     }
 
     private fun drawRingSegment(ctx: GuiGraphicsExtractor, layout: WheelLayout, index: Int, color: Color) {
-        val centerAngle = - PI / 2.0 + index * SEGMENT_ANGLE
+        val centerAngle = - PI / 2.0 + index * layout.segmentAngle
         GuiShapeRenderer.drawAnnularSegment(
             ctx, layout.centerX, layout.centerY, layout.innerRadius, layout.outerRadius,
-            centerAngle - SEGMENT_ANGLE / 2.0, centerAngle + SEGMENT_ANGLE / 2.0, color
+            centerAngle - layout.segmentAngle / 2.0, centerAngle + layout.segmentAngle / 2.0, color
         )
     }
 
     private fun drawSegmentSeparators(ctx: GuiGraphicsExtractor, layout: WheelLayout) {
-        repeat(PETS_PER_WHEEL) { index ->
-            val angle = - PI / 2.0 - SEGMENT_ANGLE / 2.0 + index * SEGMENT_ANGLE
+        if (layout.segmentCount <= 1) return
+        repeat(layout.segmentCount) { index ->
+            val angle = - PI / 2.0 - layout.segmentAngle / 2.0 + index * layout.segmentAngle
             val cosAngle = cos(angle).toFloat()
             val sinAngle = sin(angle).toFloat()
             val innerX = layout.centerX + cosAngle * (layout.innerRadius - 1f)
@@ -209,7 +206,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel.") 
     }
 
     private fun drawPetInSegment(ctx: GuiGraphicsExtractor, slot: Slot, index: Int, layout: WheelLayout, hovered: Boolean) {
-        val angle = - PI / 2.0 + index * SEGMENT_ANGLE
+        val angle = - PI / 2.0 + index * layout.segmentAngle
         val cosAngle = cos(angle).toFloat()
         val sinAngle = sin(angle).toFloat()
         val itemRadius = (layout.innerRadius + layout.outerRadius) / 2f
@@ -289,7 +286,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel.") 
         mc.player?.closeContainer()
     }
 
-    private fun wheelLayout(): WheelLayout {
+    private fun wheelLayout(segmentCount: Int): WheelLayout {
         val desiredRadius = 138f * (menuScale.value / 100f)
         val maxRadius = min((Resolution.height - 96f) / 2f, (Resolution.width - 220f) / 2f).coerceAtLeast(82f)
         val outerRadius = min(desiredRadius, maxRadius)
@@ -297,17 +294,19 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel.") 
             centerX = Resolution.width / 2f,
             centerY = Resolution.height / 2f - 8f,
             innerRadius = outerRadius * 0.55f,
-            outerRadius = outerRadius
+            outerRadius = outerRadius,
+            segmentCount = segmentCount
         )
     }
 
     private fun hoveredWheelIndex(mouseX: Double, mouseY: Double, layout: WheelLayout): Int? {
+        if (layout.segmentCount == 0) return null
         val x = Resolution.getMouseX(mouseX) - layout.centerX
         val y = Resolution.getMouseY(mouseY) - layout.centerY
         if (hypot(x.toDouble(), y.toDouble()) <= layout.innerRadius) return null
         return Math.floorMod(
-            floor(((atan2(y, x) + PI / 2.0 + SEGMENT_ANGLE / 2.0) / SEGMENT_ANGLE)).toInt(),
-            PETS_PER_WHEEL
+            floor(((atan2(y, x) + PI / 2.0 + layout.segmentAngle / 2.0) / layout.segmentAngle)).toInt(),
+            layout.segmentCount
         )
     }
 
@@ -323,8 +322,17 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel.") 
         }
     }
 
+    private fun petsOnCurrentPage(pets: List<Slot>) = pets.drop(wheelPage * PETS_PER_WHEEL).take(PETS_PER_WHEEL)
     private fun inPetMenu(screen: AbstractContainerScreen<*>) = ! tempDisabled && screen.title.unformattedText.matches(petMenuRegex)
     private fun pageCount(petCount: Int) = Math.ceilDiv(petCount, PETS_PER_WHEEL).coerceAtLeast(1)
 
-    private class WheelLayout(val centerX: Float, val centerY: Float, val innerRadius: Float, val outerRadius: Float)
+    private class WheelLayout(
+        val centerX: Float,
+        val centerY: Float,
+        val innerRadius: Float,
+        val outerRadius: Float,
+        val segmentCount: Int
+    ) {
+        val segmentAngle = if (segmentCount == 0) 0.0 else PI * 2.0 / segmentCount
+    }
 }
