@@ -1,10 +1,12 @@
 package com.github.noamm9.features.impl.floor7
 
+import com.github.noamm9.event.impl.BossBarUpdateEvent
 import com.github.noamm9.event.impl.CheckEntityGlowEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
+import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
@@ -20,16 +22,28 @@ import java.awt.Color
      Vanquisher: isPowered: false/true, invulnerableTicks: 250
 */
 object WitherESP: Feature("Highlights all Withers in F7.") {
-    private val color by ColorSetting("Highlight Color", Color.WHITE, false)
+    private val maxorColor by ColorSetting("Maxor", Color(88, 4, 164), false)
+    private val stormColor by ColorSetting("Storm", Color(0, 208, 255), false)
+    private val goldorColor by ColorSetting("Goldor", Color.WHITE, false)
+    private val necronColor by ColorSetting("Necron", Color.RED, false)
 
-    var currentWither: WitherBoss? = null
-
-    private fun isValidLoc(): Boolean {
-        return LocationUtils.dungeonFloorNumber == 7 && LocationUtils.inBoss && LocationUtils.F7Phase != 5
+    private enum class Wither(val color: ColorSetting) {
+        MAXOR(maxorColor),
+        STORM(stormColor),
+        GOLDOR(goldorColor),
+        NECRON(necronColor)
     }
 
+    private var currentWither: WitherBoss? = null
+    private var currentType = Wither.MAXOR
+
+    private fun isValidLoc() = LocationUtils.dungeonFloorNumber == 7 && LocationUtils.inBoss && LocationUtils.F7Phase != 5
+
     override fun init() {
-        register<WorldChangeEvent> { currentWither = null }
+        register<WorldChangeEvent> {
+            currentWither = null
+            currentType = Wither.MAXOR
+        }
 
         register<MainThreadPacketReceivedEvent.Post> {
             if (! isValidLoc()) return@register
@@ -41,17 +55,20 @@ object WitherESP: Feature("Highlights all Withers in F7.") {
                 }
 
                 is ClientboundRemoveEntitiesPacket -> {
-                    packet.entityIds.find { currentWither?.id == it }?.let {
-                        currentWither = null
-                    }
+                    if (packet.entityIds.any { currentWither?.id == it }) currentWither = null
                 }
             }
         }
 
-        register<CheckEntityGlowEvent> {
+        register<BossBarUpdateEvent> {
             if (! isValidLoc()) return@register
-            if (event.entity != currentWither) return@register
-            event.color = color.value
+            val bossName = event.name.unformattedText
+            Wither.entries.find { bossName.contains(it.name, ignoreCase = true) }?.let { currentType = it }
+        }
+
+        register<CheckEntityGlowEvent> {
+            if (! isValidLoc() || event.entity != currentWither) return@register
+            event.color = currentType.color.value
         }
     }
 }
