@@ -192,13 +192,13 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
 
                 val name = stack.hoverName.unformattedText
                 if (! name.equalsOneOf("The Catacombs", "Master Mode The Catacombs")) return@register
-                val lore = stack.lore.map { it.removeFormatting() }
+                val lore = stack.lore
 
                 if (croesusChestHighlight.value) {
                     var highlightColor: Color? = null
 
                     for (line in lore) when {
-                        line == "No more chests to open!" -> {
+                        line == "§aNo more chests to open!" -> {
                             if (hideRedChests.value) {
                                 event.isCanceled = true
                                 return@register
@@ -207,12 +207,12 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                             break
                         }
 
-                        line == "No chests opened yet!" -> {
+                        line == "§cNo chests opened yet!" -> {
                             highlightColor = Color.GREEN
                             break
                         }
 
-                        line.startsWith("Opened Chest: ") -> {
+                        line.startsWith("§7Opened Chest: ") -> {
                             highlightColor = Color.YELLOW
                             break
                         }
