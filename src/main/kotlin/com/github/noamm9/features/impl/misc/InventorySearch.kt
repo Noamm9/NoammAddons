@@ -8,6 +8,7 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.TextInputHandler
 import com.github.noamm9.utils.ChatUtils.removeFormatting
@@ -31,6 +32,8 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
     private var searchQuery = ""
     private val searchHandler = TextInputHandler({ searchQuery }, { searchQuery = it })
     private var expressionResult: Double? = null
+    private lateinit var searchHud: HudElement
+    private var hudPositionInitialized = false
 
     val color get() = highlightColor.value
     val isSearching get() = enabled && searchQuery.isNotBlank()
@@ -45,30 +48,44 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
     private const val HEIGHT = 22f
 
     override fun init() {
+        searchHud = hudElement(
+            name = "Inventory Search",
+            shouldDraw = { false },
+            centered = true
+        ) { context, example ->
+            if (! hudPositionInitialized) {
+                if (searchHud.x == 0f && searchHud.y == 0f) {
+                    searchHud.x = Resolution.width / 2f
+                    searchHud.y = Resolution.height - 30f - HEIGHT / 2f
+                }
+                hudPositionInitialized = true
+            }
+
+            searchHandler.x = -WIDTH / 2
+            searchHandler.y = 0f
+            searchHandler.width = WIDTH
+            searchHandler.height = HEIGHT
+
+            val localMouseX = (Resolution.getMouseX() - searchHud.x) / searchHud.scale
+            val localMouseY = (Resolution.getMouseY() - searchHud.y) / searchHud.scale
+
+            Render2D.drawRect(context, -WIDTH / 2, 0f, WIDTH, HEIGHT, Color(15, 15, 15, 200))
+            val color = if (searchHandler.listening) Style.accentColor else Color(255, 255, 255, 30)
+            Render2D.drawRect(context, -WIDTH / 2, HEIGHT - 1, WIDTH, 1f, color)
+
+            if (example || searchQuery.isEmpty() && ! searchHandler.listening) Render2D.drawCenteredString(context, "§8Search...", 0f, 6f)
+            else if (expressionResult != null) searchHandler.draw(context, localMouseX, localMouseY, " = §e${NumbersUtils.formatComma(expressionResult)}")
+            else searchHandler.draw(context, localMouseX, localMouseY)
+
+            WIDTH to HEIGHT
+        }
+
         register<ScreenEvent.PostRender> {
             if (mc.screen !is AbstractContainerScreen<*>) return@register
 
             Resolution.refresh()
             Resolution.push(event.context)
-
-            val x = (Resolution.width / 2) - (WIDTH / 2)
-            val y = (Resolution.height - 30) - (HEIGHT / 2)
-            val mx = Resolution.getMouseX()
-            val my = Resolution.getMouseY()
-
-            searchHandler.x = x
-            searchHandler.y = y
-            searchHandler.width = WIDTH
-            searchHandler.height = HEIGHT
-
-            Render2D.drawRect(event.context, x, y, WIDTH, HEIGHT, Color(15, 15, 15, 200))
-            val color = if (searchHandler.listening) Style.accentColor else Color(255, 255, 255, 30)
-            Render2D.drawRect(event.context, x, y + HEIGHT - 1, WIDTH, 1f, color)
-
-            if (searchQuery.isEmpty() && ! searchHandler.listening) Render2D.drawCenteredString(event.context, "§8Search...", x + WIDTH / 2, y + 6)
-            else if (expressionResult != null) searchHandler.draw(event.context, mx.toFloat(), my.toFloat(), " = §e${NumbersUtils.formatComma(expressionResult)}")
-            else searchHandler.draw(event.context, mx.toFloat(), my.toFloat())
-
+            searchHud.renderElement(event.context, false)
             Resolution.pop(event.context)
         }
 
@@ -77,8 +94,8 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
             if (event.action == GLFW.GLFW_RELEASE) searchHandler.mouseReleased()
             if (event.action == GLFW.GLFW_PRESS) {
                 searchHandler.mouseClicked(
-                    Resolution.getMouseX().toFloat(),
-                    Resolution.getMouseY().toFloat(),
+                    (Resolution.getMouseX() - searchHud.x) / searchHud.scale,
+                    (Resolution.getMouseY() - searchHud.y) / searchHud.scale,
                     MouseButtonEvent(0.0, 0.0, MouseButtonInfo(event.button, event.action))
                 )
             }
