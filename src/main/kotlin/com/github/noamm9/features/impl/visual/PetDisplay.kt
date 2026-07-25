@@ -5,7 +5,6 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.features.annotations.AlwaysActive
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
@@ -39,6 +38,8 @@ object PetDisplay: Feature("Pet Features") {
     private val petMenuRegex = Regex("^(\\(\\d/\\d\\) )?Pets$")
     private val petLevelRegex = Regex(".+\\[Lvl .*]")
     private var selectedPetSlot = - 1
+    private var autoPetTitle = ""
+    private var autoPetTitleTicks = 0
 
     override fun init() {
         hudElement("PetDisplay",
@@ -47,6 +48,19 @@ object PetDisplay: Feature("Pet Features") {
             val text = if (example) "&6Golden Dragon" else cacheData.get()["pet"].toString()
             Render2D.drawString(context, text, 0, 0)
             return@hudElement text.width().toFloat() to text.height().toFloat()
+        }
+
+        hudElement(
+            "Auto Pet Title",
+            enabled = { autoPetTitles.value },
+            shouldDraw = { autoPetTitleTicks > 0 },
+            centered = true
+        ) { context, example ->
+            val text = if (example) "&6Golden Dragon" else autoPetTitle
+            Render2D.drawCenteredString(context, text, 0, 0)
+            return@hudElement text.width().toFloat() to text.height().toFloat()
+        }.apply {
+            scale = 2.5f
         }
 
         register<ChatMessageEvent> {
@@ -59,9 +73,16 @@ object PetDisplay: Feature("Pet Features") {
 
                 val match1 = chatSpawnRegex.find(it)?.destructured?.component1()
                 val match2 = chatPetRuleRegex.find(it)?.destructured?.component1()
-                if (match2 != null && autoPetTitles.value && enabled && (! autoPetTitlesDungeonOnly.value || LocationUtils.inDungeon)) ChatUtils.showTitle(match2)
+                if (match2 != null && autoPetTitles.value && enabled && (! autoPetTitlesDungeonOnly.value || LocationUtils.inDungeon)) {
+                    autoPetTitle = match2
+                    autoPetTitleTicks = 40
+                }
                 cacheData.get()["pet"] = match1 ?: match2 ?: return@let
             }
+        }
+
+        register<TickEvent.Start> {
+            if (autoPetTitleTicks > 0) autoPetTitleTicks --
         }
 
         register<ContainerFullyOpenedEvent> {
