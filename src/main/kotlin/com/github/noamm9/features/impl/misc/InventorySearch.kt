@@ -30,7 +30,11 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
     private val highlightColor by ColorSetting("Highlight Color", Color.RED)
 
     private var searchQuery = ""
-    private val searchHandler = TextInputHandler({ searchQuery }, { searchQuery = it })
+    private val searchHandler = TextInputHandler({ searchQuery }) {
+        expressionResult = evaluateExpression(it)
+        searchQuery = it
+    }
+
     private var expressionResult: Double? = null
 
     val color get() = highlightColor.value
@@ -98,11 +102,8 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
         register<KeyboardEvent.CharTyped> {
             if (mc.screen !is AbstractContainerScreen<*>) return@register
             if (! searchHandler.listening) return@register
-
-            if (searchHandler.keyTyped(event.charEvent)) {
-                event.isCanceled = true
-            }
-            expressionResult = evaluateExpression(searchQuery)
+            searchHandler.keyTyped(event.charEvent)
+            event.isCanceled = true
         }
 
         register<KeyboardEvent.KeyPressed> {
@@ -115,9 +116,8 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
             }
 
             if (! searchHandler.listening) return@register
-
-            if (mc.options.keyInventory.matches(event.keyEvent)) event.isCanceled = true
-            if (searchHandler.keyPressed(event.keyEvent)) event.isCanceled = true
+            searchHandler.keyPressed(event.keyEvent)
+            event.isCanceled = true
         }
 
         register<ContainerEvent.Render.Slot.Pre> {
