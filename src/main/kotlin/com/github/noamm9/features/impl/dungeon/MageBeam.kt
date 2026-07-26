@@ -28,7 +28,7 @@ object MageBeam: Feature("Renders a fully custom, animated beam whenever a mage 
     private val hideSheep by ToggleSetting("Hide Sheep", true).withDescription("Prevents the Sheep from spawning.")
     private val rainbow by ToggleSetting("&dI am Skizo!!!!")
 
-    private val beams = mutableListOf<Beam>()
+    private val beams = linkedSetOf<Beam>()
 
     override fun init() {
         register<MainThreadPacketReceivedEvent.Pre> {
@@ -69,11 +69,19 @@ object MageBeam: Feature("Renders a fully custom, animated beam whenever a mage 
 
         fun inLine(point: Vec3): Boolean {
             if (points.size < 2) return true
-            return abs(max.subtract(min).normalize().dot(point.subtract(max).normalize())) > 0.99
+
+            val onLine = abs(max.subtract(min).normalize().dot(point.subtract(max).normalize())) > 0.99
+            val distSq = point.distanceToSqr(max)
+
+            return onLine && distSq < pointSpace * pointSpace
         }
 
         companion object {
+            const val pointSpace = 0.5 // avg distance between 2 particals
+
             fun onPoint(point: Vec3, tick: Long, beam: Beam?) {
+                if (beams.any { point in it.points }) return // hypixel sends the same beam twise, thx hypixel
+
                 if (beam != null && tick - beam.updateTick <= 1 && beam.inLine(point)) {
                     beam.points.add(point)
                     beam.updateTick = tick
