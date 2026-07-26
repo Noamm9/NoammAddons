@@ -10,6 +10,7 @@ import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.clickgui.enums.CategoryType
 import com.github.noamm9.ui.gui.CommandShortcutsScreen
 import com.github.noamm9.ui.gui.SoundManagerScreen
+import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.Render2D
@@ -158,11 +159,13 @@ class Panel(val category: CategoryType, var x: Int, var y: Int) {
                 else if (button == 1) {
                     if (feature is SoundManager) {
                         ClickGuiScreen.selectedFeature = null
-                        NoammAddons.screen = SoundManagerScreen()
+                        if (feature.enabled) NoammAddons.screen = SoundManagerScreen()
+                        else NotificationManager.push(NoammAddons.MOD_NAME + " - ClickGui", "&fEnable &b${feature.name} &ffirst to open the settings!")
                     }
                     else if (feature is CommandShortcuts) {
                         ClickGuiScreen.selectedFeature = null
-                        NoammAddons.screen = CommandShortcutsScreen()
+                        if (feature.enabled) NoammAddons.screen = CommandShortcutsScreen()
+                        else NotificationManager.push(NoammAddons.MOD_NAME + " - ClickGui", "&fEnable &b${feature.name} &ffirst to open the settings!")
                     }
                     else if (feature.configSettings.isNotEmpty()) ClickGuiScreen.openFeatureWindow(feature)
                     return
