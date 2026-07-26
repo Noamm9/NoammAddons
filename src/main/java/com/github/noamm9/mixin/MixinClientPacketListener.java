@@ -2,15 +2,12 @@ package com.github.noamm9.mixin;
 
 import com.github.noamm9.event.EventBus;
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent;
-import com.github.noamm9.features.impl.misc.Tweaks;
 import com.github.noamm9.features.impl.misc.TimeChanger;
-import com.github.noamm9.utils.location.LocationUtils;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.PacketListener;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientboundCooldownPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTimePacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -41,27 +38,10 @@ public class MixinClientPacketListener {
         ),
         cancellable = true
     )
-    private void onSetTime(ClientboundSetTimePacket clientboundSetTimePacket, CallbackInfo ci) {
+    private void onSetTime(ClientboundSetTimePacket packet, CallbackInfo ci) {
         if (TimeChanger.INSTANCE.enabled) {
             TimeChanger.setTime();
             ci.cancel();
         }
-    }
-
-    @Inject(
-        method = "handleItemCooldown",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/network/protocol/PacketUtils;ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/network/PacketProcessor;)V",
-            shift = At.Shift.AFTER
-        ),
-        cancellable = true
-    )
-    private void onItemCooldown(ClientboundCooldownPacket packet, CallbackInfo ci) {
-        if (!LocationUtils.inSkyblock) return;
-        if (!Tweaks.INSTANCE.enabled || !Tweaks.getHideItemCooldowns().getValue()) return;
-        if (packet.duration() == 0) return;
-
-        ci.cancel();
     }
 }
