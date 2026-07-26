@@ -10,6 +10,7 @@ import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.TextInputHandler
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.spaceCaps
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.CharacterEvent
@@ -48,15 +49,14 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
     private var draggingScrollbar = false
     private var scrollbarDragOffset = 0f
 
-    private var selectedCategory = "All"
-    private val categories = listOf("All", "Recent", "Blocks", "Hostile Mobs", "Neutral Mobs", "Music", "Ambient", "Items", "UI", "Misc")
+    private var selectedCategory = SoundCategory.All
     private var recentSoundsVersion = - 1L
 
     private val allSounds = BuiltInRegistries.SOUND_EVENT.entrySet().map { entry ->
         val id = entry.key.identifier().toString()
-        SoundItem.Sound(id, getCleanName(id), getCategory(id), entry.value)
-    }.sortedBy(SoundItem.Sound::id)
-    private val soundsById = allSounds.associateBy(SoundItem.Sound::id)
+        Sound(id, getCleanName(id), getCategory(id), entry.value)
+    }.sortedBy(Sound::id)
+    private val soundsById = allSounds.associateBy(Sound::id)
     private val filteredItems = mutableListOf<SoundItem>()
 
     override fun init() {
@@ -75,7 +75,7 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
         val x = (Resolution.width / 2) - (w / 2)
         val y = (Resolution.height / 2) - (h / 2)
 
-        if (selectedCategory == "Recent" && recentSoundsVersion != SoundManager.recentSoundsVersion) {
+        if (selectedCategory == SoundCategory.Recent && recentSoundsVersion != SoundManager.recentSoundsVersion) {
             updateFilter(resetScroll = false)
         }
 
@@ -85,7 +85,7 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
 
         Render2D.drawCenteredString(graphics, "§lSound Manager", x + ((w + SIDEBAR_HEIGHT) / 2), y + 8)
 
-        categories.forEachIndexed { index, cat ->
+        SoundCategory.entries.forEachIndexed { index, cat ->
             val catY = y + 30 + (index * 20)
             val isHovered = mX >= x && mX <= x + SIDEBAR_HEIGHT && mY >= catY && mY <= catY + 20
             val isSelected = selectedCategory == cat
@@ -94,7 +94,7 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
             if (isHovered && ! isSelected) Render2D.drawRect(graphics, x, catY, SIDEBAR_HEIGHT, 20f, Color(255, 255, 255, 10))
 
             val color = if (isSelected) Style.accentColor else Color.GRAY
-            Render2D.drawString(graphics, cat, x + 10, catY + 6, color)
+            Render2D.drawString(graphics, cat.renderName, x + 10, catY + 6, color)
         }
 
         val viewX = x + SIDEBAR_HEIGHT + 10
@@ -128,12 +128,12 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
             val itemY = viewY + currentScroll + (i * ENTRY_HEIGHT)
 
             when (item) {
-                is SoundItem.Header -> {
+                is Header -> {
                     Render2D.drawRect(graphics, viewX, itemY, viewW, ENTRY_HEIGHT, Color(255, 255, 255, 5))
                     Render2D.drawCenteredString(graphics, "§l${item.name}", viewX + viewW / 2, itemY + 9, Style.accentColor)
                 }
 
-                    is SoundItem.Sound -> drawSoundRow(graphics, item, viewX, itemY, viewW, ENTRY_HEIGHT, mX, mY)
+                is Sound -> drawSoundRow(graphics, item, viewX, itemY, viewW, ENTRY_HEIGHT, mX, mY)
             }
         }
 
@@ -147,9 +147,7 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
             Render2D.drawRect(graphics, scrollbarX, viewY, SCROLLBAR_WIDTH, viewH, Color(255, 255, 255, if (hovered) 24 else 15))
             Render2D.drawRect(graphics, scrollbarX, thumbY, SCROLLBAR_WIDTH, thumbHeight, Style.accentColor.withAlpha(if (hovered || draggingScrollbar) 255 else 190))
         }
-        else {
-            draggingScrollbar = false
-        }
+        else draggingScrollbar = false
 
         val searchX = x + SIDEBAR_HEIGHT + (viewW / 2) - 100
         drawSearch(graphics, searchX, y + h - 30, 200f, 20f, mX, mY)
@@ -157,7 +155,7 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
         Resolution.pop(graphics)
     }
 
-    private fun drawSoundRow(ctx: GuiGraphicsExtractor, sound: SoundItem.Sound, x: Float, y: Float, w: Float, h: Float, mx: Float, my: Float) {
+    private fun drawSoundRow(ctx: GuiGraphicsExtractor, sound: Sound, x: Float, y: Float, w: Float, h: Float, mx: Float, my: Float) {
         val playX = x + w - PLAY_SOUND_WIDTH - 8f
         val sliderX = playX - SLIDER_WIDTH - 8f
 
@@ -188,23 +186,22 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
     private fun updateFilter(resetScroll: Boolean = true) {
         val query = searchQuery.lowercase()
         val sounds = when (selectedCategory) {
-            "Recent" -> SoundManager.getRecentSoundIds().mapNotNull(soundsById::get)
-            else -> allSounds.filter { selectedCategory == "All" || it.category == selectedCategory }
+            SoundCategory.Recent -> SoundManager.getRecentSoundIds().mapNotNull(soundsById::get)
+            else -> allSounds.filter { selectedCategory == SoundCategory.All || it.category == selectedCategory }
         }.filter { query.isEmpty() || it.searchText.contains(query) }
 
         filteredItems.clear()
 
-        if (selectedCategory == "Recent") {
-            if (sounds.isNotEmpty()) filteredItems.add(SoundItem.Header("Recent"))
+        if (selectedCategory == SoundCategory.Recent) {
+            if (sounds.isNotEmpty()) filteredItems.add(Header(SoundCategory.Recent.renderName))
             filteredItems.addAll(sounds)
             recentSoundsVersion = SoundManager.recentSoundsVersion
         }
-        else {
-            sounds.groupBy(SoundItem.Sound::category).toSortedMap().forEach { (category, categorySounds) ->
-                filteredItems.add(SoundItem.Header(category))
-                filteredItems.addAll(categorySounds)
-            }
+        else sounds.groupBy(Sound::category).toSortedMap().forEach { (category, categorySounds) ->
+            filteredItems.add(Header(category.renderName))
+            filteredItems.addAll(categorySounds)
         }
+
 
         if (resetScroll) {
             scrollTarget = 0f
@@ -222,17 +219,15 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
         val x = (Resolution.width / 2) - (w / 2)
         val y = (Resolution.height / 2) - (h / 2)
 
-        if (mx >= x && mx <= x + SIDEBAR_HEIGHT) {
-            categories.forEachIndexed { index, cat ->
-                val catY = y + 30 + (index * 20)
-                if (my >= catY && my <= catY + 20) {
-                    if (selectedCategory != cat) {
-                        selectedCategory = cat
-                        updateFilter()
-                        SoundManager.playPreview(SoundEvents.UI_BUTTON_CLICK.value())
-                    }
-                    return true
+        if (mx >= x && mx <= x + SIDEBAR_HEIGHT) SoundCategory.entries.forEachIndexed { index, cat ->
+            val catY = y + 30 + (index * 20)
+            if (my >= catY && my <= catY + 20) {
+                if (selectedCategory != cat) {
+                    selectedCategory = cat
+                    updateFilter()
+                    SoundManager.playPreview(SoundEvents.UI_BUTTON_CLICK.value())
                 }
+                return true
             }
         }
 
@@ -265,7 +260,7 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
             val clickedIndex = ((my - viewY - scrollAnim.value) / ENTRY_HEIGHT).toInt()
             val item = filteredItems.getOrNull(clickedIndex)
 
-            if (item is SoundItem.Sound) {
+            if (item is Sound) {
                 val itemY = viewY + scrollAnim.value + (clickedIndex * ENTRY_HEIGHT)
                 val playX = viewX + viewW - PLAY_SOUND_WIDTH - 8f
                 val sliderX = playX - SLIDER_WIDTH - 8f
@@ -291,21 +286,22 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
         SoundManager.setVolumePercent(id, (progress * 200).toInt())
     }
 
-    private fun getScrollbarThumbHeight(totalHeight: Float, viewHeight: Float) =
-        if (totalHeight <= viewHeight) viewHeight else ((viewHeight / totalHeight) * viewHeight).coerceAtLeast(28f)
+    private fun getScrollbarThumbHeight(totalHeight: Float, viewHeight: Float) = if (totalHeight <= viewHeight) viewHeight else ((viewHeight / totalHeight) * viewHeight).coerceAtLeast(28f)
 
     private fun drawSearch(ctx: GuiGraphicsExtractor, x: Float, y: Float, w: Float, h: Float, mx: Float, my: Float) {
         Render2D.drawRect(ctx, x, y, w, h, Color(15, 15, 15, 200))
         val color = if (searchHandler.listening) Style.accentColor else Color(255, 255, 255, 30)
         Render2D.drawRect(ctx, x, y + h - 1, w, 1f, color)
 
-        searchHandler.x = x; searchHandler.y = y; searchHandler.width = w; searchHandler.height = h
+        searchHandler.x = x
+        searchHandler.y = y
+        searchHandler.width = w
+        searchHandler.height = h
+
         if (searchQuery.isEmpty() && ! searchHandler.listening) {
             Render2D.drawCenteredString(ctx, "§8Search...", x + w / 2, y + 6)
         }
-        else {
-            searchHandler.draw(ctx, mx, my)
-        }
+        else searchHandler.draw(ctx, mx, my)
     }
 
     override fun mouseReleased(event: MouseButtonEvent): Boolean {
@@ -324,9 +320,8 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
             scrollTarget += (v * ENTRY_HEIGHT * 2).toFloat()
             scrollTarget = scrollTarget.coerceIn(- maxScroll, 0f)
         }
-        else {
-            scrollTarget = 0f
-        }
+        else scrollTarget = 0f
+
         return true
     }
 
@@ -346,16 +341,16 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
 
     override fun onClose() = NoammAddons::screen.set(ClickGuiScreen)
 
-    private sealed class SoundItem {
-        data class Header(val name: String): SoundItem()
-        data class Sound(
-            val id: String,
-            val cleanName: String,
-            val category: String,
-            val sound: SoundEvent,
-        ): SoundItem() {
-            val searchText = "$id $cleanName"
-        }
+    private enum class SoundCategory {
+        All, Recent, Blocks, HostileMobs, NeutralMobs, Music, Ambient, Items, UI, Misc;
+
+        val renderName = name.spaceCaps()
+    }
+
+    private sealed interface SoundItem
+    private data class Header(val name: String): SoundItem
+    private data class Sound(val id: String, val cleanName: String, val category: SoundCategory, val sound: SoundEvent): SoundItem {
+        val searchText = "$id $cleanName"
     }
 
     private fun getCleanName(id: String): String {
@@ -368,17 +363,17 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
         }.replace(".", " ").replace("_", " ")
     }
 
-    private fun getCategory(id: String): String {
+    private fun getCategory(id: String): SoundCategory {
         val path = id.removePrefix("minecraft:")
         return when {
-            path.startsWith("block") -> "Blocks"
-            path.startsWith("entity.hostile") -> "Hostile Mobs"
-            path.startsWith("entity") -> "Neutral Mobs"
-            path.startsWith("music") -> "Music"
-            path.startsWith("ambient") -> "Ambient"
-            path.startsWith("item") -> "Items"
-            path.startsWith("ui") -> "UI"
-            else -> "Misc"
+            path.startsWith("block") -> SoundCategory.Blocks
+            path.startsWith("entity.hostile") -> SoundCategory.HostileMobs
+            path.startsWith("entity") -> SoundCategory.NeutralMobs
+            path.startsWith("music") -> SoundCategory.Music
+            path.startsWith("ambient") -> SoundCategory.Ambient
+            path.startsWith("item") -> SoundCategory.Items
+            path.startsWith("ui") -> SoundCategory.UI
+            else -> SoundCategory.Misc
         }
     }
 }

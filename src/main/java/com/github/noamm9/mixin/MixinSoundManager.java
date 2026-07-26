@@ -14,10 +14,10 @@ import static com.github.noamm9.features.impl.misc.sound.SoundManager.recordPlay
 @Mixin(SoundManager.class)
 public class MixinSoundManager {
     @Inject(method = "play", at = @At("HEAD"), cancellable = true)
-    private void onPlay(SoundInstance sound, CallbackInfoReturnable<SoundEngine.PlayResult> cir) {
-        recordPlayedSound(sound);
+    private void onPlay(SoundInstance instance, CallbackInfoReturnable<SoundEngine.PlayResult> cir) {
+        recordPlayedSound(instance);
 
-        if (ArrowHitSound.onSoundPlay(sound)) {
+        if (ArrowHitSound.onSoundPlay(instance)) {
             cir.setReturnValue(SoundEngine.PlayResult.NOT_STARTED);
         }
     }
