@@ -16,7 +16,7 @@ import java.awt.Color
 import kotlin.math.abs
 import kotlin.math.round
 
-open class SliderSetting<T: Number>(
+class SliderSetting<T: Number>(
     name: String,
     value: T,
     val min: T,

@@ -2,6 +2,7 @@ package com.github.noamm9.ui.notification
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.Render2D
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -13,8 +14,10 @@ object NotificationManager {
     private var lastFrameTime = System.currentTimeMillis()
 
     fun push(title: String, message: String, duration: Long = 3000L) {
-        if (notifications.any { it.title == title && it.message == message && it.duration == duration }) return
-        mc.execute { notifications.add(Notification(title, message, duration)) }
+        val t = title.addColor()
+        val m = message.addColor()
+        if (notifications.any { it.title == t && it.message == m && it.duration == duration }) return
+        mc.execute { notifications.add(Notification(t, m, duration)) }
     }
 
     @JvmStatic
