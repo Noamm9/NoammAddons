@@ -9,10 +9,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import static com.github.noamm9.features.impl.misc.sound.SoundManager.recordPlayedSound;
+
 @Mixin(SoundManager.class)
 public class MixinSoundManager {
     @Inject(method = "play", at = @At("HEAD"), cancellable = true)
     private void onPlay(SoundInstance sound, CallbackInfoReturnable<SoundEngine.PlayResult> cir) {
+        recordPlayedSound(sound);
+
         if (ArrowHitSound.onSoundPlay(sound)) {
             cir.setReturnValue(SoundEngine.PlayResult.NOT_STARTED);
         }
