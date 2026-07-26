@@ -64,8 +64,14 @@ object UpdateChecker: Feature(
         page = release.html_url
 
         when {
-            (BuildInfo.isCiBuild && releaseMillis > BuildInfo.builtAt) || isNewerVersion(remoteVersion, MOD_VERSION) ->
-                NotificationManager.push(title, "NoammAddons $remoteVersion is out, you're on $MOD_VERSION.", 6000L)
+            (BuildInfo.isCiBuild && releaseMillis > BuildInfo.builtAt) || isNewerVersion(remoteVersion, MOD_VERSION) -> {
+                val suffix = if (BuildInfo.isCiBuild) " (old action build)" else ""
+                NotificationManager.push(
+                    title,
+                    "NoammAddons $remoteVersion is out, you're on $MOD_VERSION.$suffix",
+                    6000L
+                )
+            }
 
             manual -> NotificationManager.push(title, "You're already up to date ($MOD_VERSION).")
         }
