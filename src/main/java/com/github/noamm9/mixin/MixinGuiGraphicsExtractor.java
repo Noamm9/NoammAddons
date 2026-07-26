@@ -44,9 +44,8 @@ public abstract class MixinGuiGraphicsExtractor {
             target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;itemCooldown(Lnet/minecraft/world/item/ItemStack;II)V"
         )
     )
-    private void hideItemCooldownOverlay(GuiGraphicsExtractor instance, ItemStack stack, int x, int y, Operation<Void> original) {
-        if (!Tweaks.shouldHideItemCooldownOverlay()) {
-            original.call(instance, stack, x, y);
-        }
+    private void hideItemCooldownOverlay(GuiGraphicsExtractor instance, ItemStack itemStack, int x, int y, Operation<Void> original) {
+        if (Tweaks.shouldHideItemCooldownOverlay()) return;
+        original.call(instance, itemStack, x, y);
     }
 }
