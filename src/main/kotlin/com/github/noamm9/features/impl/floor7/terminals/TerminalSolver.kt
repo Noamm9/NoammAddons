@@ -10,6 +10,7 @@ import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.ui.gui.ICustomMenu
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
@@ -26,7 +27,7 @@ import java.awt.Color
 import kotlin.math.abs
 import kotlin.math.floor
 
-object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
+object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICustomMenu {
     private val scale by SliderSetting("Custom Menu's Scale", 1f, 0.1f, 2f, 0.01f).section("General")
 
     //#if CHEAT
@@ -530,4 +531,6 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
         totalClicks = - 1
         clicked = - 1
     }
+
+    override fun isActive() = TerminalListener.inTerm
 }

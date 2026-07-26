@@ -4,9 +4,9 @@ package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.event.impl.GameStartEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.init.ModCompatibility
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.location.LocationUtils
-import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.level.block.ButtonBlock
@@ -29,24 +29,14 @@ object SecretHitboxes: Feature("Changes the hitboxes of secret blocks to be larg
     val mushroom by ToggleSetting("Mushroom").withDescription("Full block Mushroom hitbox.")
 
     override fun init() {
-        register<GameStartEvent> { disableBlockstateCulling() }
+        register<GameStartEvent> { ModCompatibility.disableBlockstateCulling() }
     }
 
     override fun onEnable() {
         super.onEnable()
-        disableBlockstateCulling()
+        ModCompatibility.disableBlockstateCulling()
         @Suppress("UNNECESSARY_SAFE_CALL")
         mc.levelRenderer?.allChanged()
-    }
-
-    private fun disableBlockstateCulling() {
-        if (! FabricLoader.getInstance().isModLoaded("moreculling")) return
-        val main = Class.forName("ca.fxco.moreculling.MoreCulling")
-        val config = main.getDeclaredField("CONFIG").get(null)
-
-        val blockStateCulling = config?.javaClass?.getDeclaredField("useBlockStateCulling")
-        blockStateCulling?.isAccessible = true
-        blockStateCulling?.setBoolean(config, false)
     }
 
     @JvmStatic

@@ -9,6 +9,7 @@ import com.github.noamm9.features.impl.dungeon.map.DungeonMap
 import com.github.noamm9.features.impl.dungeon.map.MapConfig
 import com.github.noamm9.features.impl.dungeon.map.MapRenderer
 import com.github.noamm9.ui.clickgui.components.impl.*
+import com.github.noamm9.ui.gui.ICustomMenu
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.unformattedText
@@ -31,7 +32,7 @@ import net.minecraft.world.item.Items
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
-object LeapMenu: Feature("Custom Leap Menu and leap message") {
+object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
     val customLeapMenu by ToggleSetting("Leap Menu", false).section("Custom Menu")
     val scale by SliderSetting("Menu Scale", 50f, 30, 100, 1).showIf { customLeapMenu.value }
     val showLastDoorOpener by ToggleSetting("Show Last Door Opener", false).showIf { customLeapMenu.value }
@@ -375,4 +376,6 @@ object LeapMenu: Feature("Custom Leap Menu and leap message") {
         DungeonClass.Healer to listOf(DungeonClass.Archer, DungeonClass.Berserk, DungeonClass.Mage, DungeonClass.Tank),
         DungeonClass.Tank to listOf(DungeonClass.Archer, DungeonClass.Berserk, DungeonClass.Healer, DungeonClass.Mage)
     )
+
+    override fun isActive() = mc.screen?.let(::inSpiritLeap) ?: false
 }

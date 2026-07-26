@@ -9,6 +9,7 @@ import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.ui.gui.ICustomMenu
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
@@ -30,7 +31,7 @@ import org.lwjgl.glfw.GLFW
 import java.awt.Color
 import kotlin.math.*
 
-object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel.") {
+object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."), ICustomMenu {
     private val menuScale by SliderSetting("Wheel Scale", 100, 70, 135, 5, "%").section("Settings")
     private val showKeyLabels by ToggleSetting("Show Key Labels", true)
     private val favouritePetsOnly by ToggleSetting("Favourite Pets Only").withDescription("Only shows pets favourited in Hypixel's Pets Menu.")
@@ -325,6 +326,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel.") 
     private fun petsOnCurrentPage(pets: List<Slot>) = pets.drop(wheelPage * PETS_PER_WHEEL).take(PETS_PER_WHEEL)
     private fun inPetMenu(screen: AbstractContainerScreen<*>) = ! tempDisabled && screen.title.unformattedText.matches(petMenuRegex)
     private fun pageCount(petCount: Int) = Math.ceilDiv(petCount, PETS_PER_WHEEL).coerceAtLeast(1)
+    override fun isActive() = lastContainerId != - 1
 
     private class WheelLayout(
         val centerX: Float,
