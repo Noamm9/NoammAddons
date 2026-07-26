@@ -8,6 +8,7 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.general.ItemTooltip
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.ui.gui.ICustomMenu
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.catch
@@ -30,7 +31,7 @@ import java.nio.file.StandardCopyOption
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
-object StorageOverlay: Feature("Shows all storage pages in an overlay when opening storage.", toggled = true) {
+object StorageOverlay: Feature("Shows all storage pages in an overlay when opening storage.", toggled = true), ICustomMenu {
     val scaleSetting by SliderSetting("Scale", 1.0f, 0.5f, 2.0f, 0.05f).withDescription("The scale of the menu")
     val columnsSetting by SliderSetting("Columns", 3, 1, 10, 1).withDescription("The number of max pages to show on each row")
     val maxHeightSetting by SliderSetting("Max Height", 324, 80, 600, 1).withDescription("The maximum height of the entire menu")
@@ -50,6 +51,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
 
     @JvmStatic
     fun activeFor(screen: ContainerScreen) = active?.takeIf { it.containerScreen === screen }
+    override fun isActive() = (mc.screen as? ContainerScreen)?.let(::activeFor) != null
 
     private val emptyStorageSlotItems = listOf(
         Blocks.RED_STAINED_GLASS_PANE.asItem(),
@@ -217,4 +219,5 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
             storageMenuData = data
         }
     }
+
 }
