@@ -2,7 +2,6 @@ package com.github.noamm9.features.impl.dev
 
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.FeatureManager
-import com.github.noamm9.features.annotations.Dev
 import com.github.noamm9.ui.clickgui.components.impl.*
 import com.github.noamm9.utils.render.Render2D.height
 import com.github.noamm9.utils.render.Render2D.width
@@ -11,11 +10,8 @@ import net.minecraft.sounds.SoundEvents
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
-@Dev
 @Suppress("unused")
-object CompTest: Feature(
-    "A comprehensive test feature used to verify every UI component, animation, and tooltip logic."
-) {
+object CompTest: Feature("A test feature used to test every UI component.") {
     val customSound by SoundSetting("Click Sound", SoundEvents.UI_BUTTON_CLICK)
 
     val flight by ToggleSetting("test Toggle", false).withDescription("Enables the ability to fly around the world. Use the Flight Mode setting to change physics.")

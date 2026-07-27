@@ -122,7 +122,7 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
             if (event.button != 0 || event.clickType != ContainerInput.PICKUP) return@register
             if (event.slotId !in keyMap.values || ! isSlotEquipable(event.slotId)) return@register
 
-            equipSoundSettings.play.action.invoke()
+            equipSoundSettings.action.invoke()
         }
     }
 

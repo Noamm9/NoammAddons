@@ -57,7 +57,7 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
             val clazzName = clazz?.name?.let { "$color$it&r" } ?: "&7Unknown&r"
 
             currentState = MelodyState("$color$name&r", clazzName, progress, System.currentTimeMillis())
-            if (soundEnabled.value) sound.play.action.invoke()
+            if (soundEnabled.value) sound.action.invoke()
             timer.register()
         }
     }
