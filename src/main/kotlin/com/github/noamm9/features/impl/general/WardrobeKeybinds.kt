@@ -64,7 +64,7 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
             if (! packet.title.unformattedText.matches(wardrobeMenuRegex)) return@register
 
             pendingAutoClose = false
-            mc.player?.closeContainer()
+            player.closeContainer()
         }
 
         register<ContainerEvent.Keyboard> {
@@ -73,7 +73,7 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
             if (event.key.equalsOneOf(GLFW.GLFW_KEY_ESCAPE, GLFW.GLFW_KEY_E)) return@register
             val index = if (useHotbarBinds.value) hotbarKeyMap[event.key] ?: return@register
             else keybinds.withIndex().find { (_, key) -> key.isDown() }?.index ?: return@register
-            val slot = keyMap[index]?.takeUnless { mc.player !!.containerMenu.getSlot(it).item == ItemStack.EMPTY } ?: return@register
+            val slot = keyMap[index]?.takeUnless { player.containerMenu.getSlot(it).item == ItemStack.EMPTY } ?: return@register
             event.isCanceled = true
 
             if (isSlotEquipped(slot) && preventUnequip.value) return@register
@@ -90,7 +90,7 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
             if (event.button.equalsOneOf(0, 1, 2)) return@register
             val index = if (useHotbarBinds.value) hotbarKeyMap[event.button] ?: return@register
             else keybinds.withIndex().find { (_, key) -> key.isDown() }?.index ?: return@register
-            val slot = keyMap[index]?.takeUnless { mc.player !!.containerMenu.getSlot(it).item == ItemStack.EMPTY } ?: return@register
+            val slot = keyMap[index]?.takeUnless { player.containerMenu.getSlot(it).item == ItemStack.EMPTY } ?: return@register
             event.isCanceled = true
 
             if (isSlotEquipped(slot) && preventUnequip.value) return@register
@@ -102,12 +102,10 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
         }
     }
 
-    private fun isSlotEquipped(slot: Int): Boolean {
-        return mc.player?.containerMenu?.slots?.get(slot)?.item?.`is`(Items.LIME_DYE) ?: false
-    }
+    private fun isSlotEquipped(slot: Int) = player.containerMenu.slots[slot].item.`is`(Items.LIME_DYE)
 
     fun closeAfterReopen() {
-        mc.player?.closeContainer()
+        player.closeContainer()
         ThreadUtils.setTimeout(3000) { pendingAutoClose = false }
         pendingAutoClose = true
     }

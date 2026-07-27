@@ -27,8 +27,8 @@ object GyroHelper: Feature("Renders a circle where your gyro will be located.", 
         register<RenderWorldEvent> {
             if (! drawRing.value && ! drawBox.value) return@register
             if (boxColor.value.alpha + ringColor.value.alpha == 0) return@register
-            if (mc.player?.mainHandItem?.skyblockId != "GYROKINETIC_WAND") return@register
-            val gyroPos = MathUtils.raytrace(mc.player !!, 25) ?: return@register
+            if (player.mainHandItem.skyblockId != "GYROKINETIC_WAND") return@register
+            val gyroPos = MathUtils.raytrace(player, 25) ?: return@register
             val stateAtPos = WorldUtils.getStateAt(gyroPos)
             val stateAbove = WorldUtils.getStateAt(gyroPos.above())
 

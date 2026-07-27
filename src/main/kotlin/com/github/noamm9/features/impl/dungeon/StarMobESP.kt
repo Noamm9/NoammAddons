@@ -38,7 +38,7 @@ object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
         register<MainThreadPacketReceivedEvent.Post> {
             if (! LocationUtils.inDungeon || inBoss) return@register
             if (event.packet !is ClientboundSetEntityDataPacket) return@register
-            val entity = mc.level?.getEntity(event.packet.id) ?: return@register
+            val entity = level?.getEntity(event.packet.id) ?: return@register
             if (entity is ArmorStand) {
                 val name = entity.customName?.formattedText ?: return@register
                 if (name.endsWith("§c❤") && name.contains("✯")) {
@@ -103,7 +103,7 @@ object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
 
         possibleEntities.find {
             ! starMobs.contains(it.id) && when (it) {
-                is Player -> ! it.isInvisible && it.uuid.version() == 2 && it != mc.player
+                is Player -> ! it.isInvisible && it.uuid.version() == 2 && it != player
                 is WitherBoss -> false
                 is AbstractArrow -> false
                 else -> true

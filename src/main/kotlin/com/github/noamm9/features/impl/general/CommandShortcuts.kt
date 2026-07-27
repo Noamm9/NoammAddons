@@ -28,7 +28,7 @@ object CommandShortcuts: Feature("Create your own command shortcuts") {
     }
 
     fun build() {
-        val dispatcher = mc.player?.connection?.commands as? CommandDispatcher<FabricClientCommandSource> ?: return
+        val dispatcher = player.connection.commands as? CommandDispatcher<FabricClientCommandSource> ?: return
         shortcuts.get().keys.forEach { key ->
             unregisterNode(dispatcher.root, key)
             dispatcher.register(ClientCommands.literal(key))

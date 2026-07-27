@@ -72,7 +72,7 @@ object I4Helper: Feature(name = "I4 Helper") {
         register<MainThreadPacketReceivedEvent.Post> {
             if (LocationUtils.P3Section != 4) return@register
             val packet = event.packet as? ClientboundSetEntityDataPacket ?: return@register
-            if (mc.level?.getEntity(packet.id)?.name?.string == "Active") onComplete()
+            if (level.getEntity(packet.id)?.name?.string == "Active") onComplete()
         }
 
         register<WorldChangeEvent> {
@@ -115,8 +115,5 @@ object I4Helper: Feature(name = "I4 Helper") {
         return chosen
     }
 
-    fun isOnDev(): Boolean {
-        val playerPos = mc.player?.position() ?: return false
-        return abs(playerPos.y - 127.0) < 0.5 && playerPos.x in 62.0 .. 65.0 && playerPos.z in 34.0 .. 37.0
-    }
+    fun isOnDev() = abs(player.y - 127.0) < 0.5 && player.x in 62.0 .. 65.0 && player.z in 34.0 .. 37.0
 }

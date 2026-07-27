@@ -276,7 +276,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
     }
 
     private fun click(screen: AbstractContainerScreen<*>, slotIndex: Int) {
-        if (mc.player?.containerMenu !== screen.menu) return
+        if (player.containerMenu !== screen.menu) return
         val slot = screen.menu.slots.getOrNull(slotIndex) ?: return
         if (slot.item.isEmpty || slot.index != slotIndex) return
         val now = System.currentTimeMillis()
@@ -284,7 +284,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
 
         lastClickAt = now
         GuiUtils.clickSlot(slotIndex, GuiUtils.ButtonType.LEFT)
-        mc.player?.closeContainer()
+        player.closeContainer()
     }
 
     private fun wheelLayout(segmentCount: Int): WheelLayout {

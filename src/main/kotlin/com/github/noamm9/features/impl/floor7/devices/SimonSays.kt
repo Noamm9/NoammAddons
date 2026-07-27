@@ -137,7 +137,7 @@ object SimonSays: Feature("Simon Says Solver") {
             val expected = solution.firstOrNull() ?: return
 
             if (clickedPos != expected.button) {
-                if (blockWrongClicks.value && ! mc.player !!.isCrouching) return event.cancel()
+                if (blockWrongClicks.value && ! player.isCrouching) return event.cancel()
 
                 if (solution.size == 3 && clickedPos == solution[1].button) {
                     for (i in 1 downTo 0) solution.removeAt(i)
@@ -199,7 +199,7 @@ object SimonSays: Feature("Simon Says Solver") {
         wasBroken = true
 
         if (sendChat.value) ChatUtils.sendCommand("pc SS Broke!")
-        if (alertSound.value) ThreadUtils.scheduledTask { mc.player?.playSound(SoundEvents.ANVIL_LAND, 5f, 0f) }
+        if (alertSound.value) ThreadUtils.scheduledTask { player.playSound(SoundEvents.ANVIL_LAND, 5f, 0f) }
         if (showTitle.value) ChatUtils.showTitle("§c§l§nSS BROKE!")
 
         resetSolver()
@@ -219,8 +219,8 @@ object SimonSays: Feature("Simon Says Solver") {
     }
 
     private fun renderSSBox(ctx: RenderContext, pos: BlockPos, color: Color) {
-        val state = mc.level?.getBlockState(pos)
-        var depth = if (state?.block == Blocks.STONE_BUTTON && state.getValue(ButtonBlock.POWERED)) 1.0 else 2.0
+        val state = level.getBlockState(pos)
+        var depth = if (state.block == Blocks.STONE_BUTTON && state.getValue(ButtonBlock.POWERED)) 1.0 else 2.0
         depth /= 16
 
         Render3D.renderBoxBounds(

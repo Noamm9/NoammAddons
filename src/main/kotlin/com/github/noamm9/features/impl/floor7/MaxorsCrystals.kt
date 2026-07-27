@@ -51,8 +51,8 @@ object MaxorsCrystals: Feature("Utilities for F7 Maxor's Crystals") {
             if (packet.type != EntityType.END_CRYSTAL) return@register
             if (packet.y.toInt() != 224) return@register
 
-            val spawnPos = MathUtils.Vec3(packet.x, packet.y, packet.z)
-            val distance = MathUtils.distance2D(mc.player !!.position(), spawnPos)
+            val spawnPos = MathUtils.vec(packet.x, packet.y, packet.z)
+            val distance = MathUtils.distance2D(player.position(), spawnPos)
             if (distance >= 5) return@register
 
             val placeTime = ((System.currentTimeMillis() - pickupTime !!) / 1000.0)

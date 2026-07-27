@@ -7,8 +7,8 @@ import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.MathUtils.Vec3
 import com.github.noamm9.utils.MathUtils.add
+import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D
@@ -52,9 +52,9 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
 
     private val smoothedVelocities = ConcurrentHashMap<Int, Vec3>()
     private val fixedStackPositions = mapOf(
-        WitherDragonEnum.Green to Vec3(27f, WitherDragonEnum.Green.spawnPos.y, 90f),
-        WitherDragonEnum.Red to Vec3(28f, WitherDragonEnum.Red.spawnPos.y, 58f),
-        WitherDragonEnum.Blue to Vec3(84f, WitherDragonEnum.Blue.spawnPos.y, 97f)
+        WitherDragonEnum.Green to vec(27f, WitherDragonEnum.Green.spawnPos.y, 90f),
+        WitherDragonEnum.Red to vec(28f, WitherDragonEnum.Red.spawnPos.y, 58f),
+        WitherDragonEnum.Blue to vec(84f, WitherDragonEnum.Blue.spawnPos.y, 97f)
     )
 
     override fun init() {
@@ -124,7 +124,7 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
                     val targetPos = (fixedStackPositions[dragon] ?: dragon.spawnPos).add(0.5, 3.5, 0.5)
                     val leadPos = calculateLead(targetPos) ?: return@forEach
 
-                    val distance = mc.player !!.eyePosition.distanceTo(targetPos)
+                    val distance = player.eyePosition.distanceTo(targetPos)
                     val scaledSize = indicatorSize.value * sqrt(distance / 50.0).coerceAtLeast(0.5)
 
                     Render3D.renderBillboardedCircle(event.ctx, leadPos, scaledSize, indicatorColor.value, indicatorThickness.value, phase = true)
@@ -193,8 +193,7 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
     }
 
     private fun calculateLead(targetPos: Vec3): Vec3? {
-        val eyePos = mc.player?.eyePosition ?: return null
-        val distToTargetSq = targetPos.distanceToSqr(eyePos)
+        val distToTargetSq = targetPos.distanceToSqr(player.eyePosition)
 
         var currentArrowDist = 0.0
         var currentSpeed = 3.0

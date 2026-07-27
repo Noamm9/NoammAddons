@@ -96,7 +96,7 @@ object LividSolver: Feature() {
             val targetLivid = lividMap[WorldUtils.getBlockAt(ceilingWoolBlock)] ?: return@register
             val currentLivid = lividId.livid
             if (currentLivid?.gameProfile?.name == targetLivid && currentLivid.isRemoved) return@register
-            lividId = mc.level?.entitiesForRendering()?.asSequence()?.filterIsInstance<AbstractClientPlayer>()?.find {
+            lividId = level.entitiesForRendering().asSequence().filterIsInstance<AbstractClientPlayer>().find {
                 it.gameProfile.name == targetLivid
             }?.id
         }
@@ -123,5 +123,5 @@ object LividSolver: Feature() {
         }
     }
 
-    private val Int?.livid get() = this?.let { mc.level?.getEntity(it) as? AbstractClientPlayer }
+    private val Int?.livid get() = this?.let { level.getEntity(it) as? AbstractClientPlayer }
 }

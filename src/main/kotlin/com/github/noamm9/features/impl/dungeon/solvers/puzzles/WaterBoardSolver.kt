@@ -174,22 +174,19 @@ object WaterBoardSolver: PuzzleSolver {
         }
     }
 
-    private enum class LEVER(val offset: Vec3, var clickCount: Int = 0) {
-        QUARTZ(Vec3(5.0, 61.0, 5.0)),
-        GOLD(Vec3(5.0, 61.0, 0.0)),
-        COAL(Vec3(5.0, 61.0, - 5.0)),
-        DIAMOND(Vec3(- 5.0, 61.0, 5.0)),
-        EMERALD(Vec3(- 5.0, 61.0, 0.0)),
-        CLAY(Vec3(- 5.0, 61.0, - 5.0)),
-        WATER(Vec3(0.0, 60.0, - 10.0));
+    private enum class LEVER(val offset: BlockPos, var clickCount: Int = 0) {
+        QUARTZ(BlockPos(5, 61, 5)),
+        GOLD(BlockPos(5, 61, 0)),
+        COAL(BlockPos(5, 61, - 5)),
+        DIAMOND(BlockPos(- 5, 61, 5)),
+        EMERALD(BlockPos(- 5, 61, 0)),
+        CLAY(BlockPos(- 5, 61, - 5)),
+        WATER(BlockPos(0, 60, - 10));
 
         fun getPos(): Vec3 {
             val center = center ?: return Vec3.ZERO
             val rot = rotation ?: return Vec3.ZERO
-
-            val relBlock = BlockPos(offset.x.toInt(), offset.y.toInt(), offset.z.toInt())
-            val realBlock = ScanUtils.getRealCoord(relBlock, center, rot)
-            return realBlock.toVec()
+            return ScanUtils.getRealCoord(offset, center, rot).toVec()
         }
 
         companion object {

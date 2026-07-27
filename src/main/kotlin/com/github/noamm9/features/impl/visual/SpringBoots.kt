@@ -75,7 +75,7 @@ object SpringBoots: Feature("Shows the spring boots charge progress on screen.")
         register<MainThreadPacketReceivedEvent.Pre> {
             if (! LocationUtils.inSkyblock) return@register
             val packet = event.packet as? ClientboundSoundPacket ?: return@register
-            val player = mc.player?.takeIf { it.onGround() } ?: return@register
+            if (! player.onGround()) return@register
 
             val pitch = packet.pitch
             val id = packet.sound.value().location
@@ -100,14 +100,14 @@ object SpringBoots: Feature("Shows the spring boots charge progress on screen.")
         register<TickEvent.End> {
             if (! LocationUtils.inSkyblock) return@register
             if (currentHeight <= 0) return@register
-            val player = mc.player as? ILocalPlayer ?: return@register
+            val player = player as? ILocalPlayer ?: return@register
             if (! player.isSneakingServer || ! player.onGroundServer()) reset()
         }
 
         register<RenderWorldEvent> {
             if (! show3DBox.value) return@register
             if (currentHeight <= 0f) return@register
-            val pos = mc.player?.renderVec ?: return@register
+            val pos = player.renderVec
 
             Render3D.renderBox(
                 ctx = event.ctx,

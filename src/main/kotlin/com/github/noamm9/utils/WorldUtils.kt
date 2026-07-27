@@ -16,8 +16,8 @@ object WorldUtils {
 
     fun setBlockAt(pos: BlockPos, state: BlockState) = NoammAddons.mc.level?.setBlock(pos, state, 19)
 
-    fun isChunkLoaded(x: Int, z: Int): Boolean {
-        return NoammAddons.mc.level?.getChunk(x shr 4, z shr 4, ChunkStatus.FULL, false) != null
+    fun isChunkLoaded(x: Number, z: Number): Boolean {
+        return NoammAddons.mc.level?.getChunk(x.toInt() shr 4, z.toInt() shr 4, ChunkStatus.FULL, false) != null
     }
 
     fun getBlockEntityList(): List<BlockPos> {

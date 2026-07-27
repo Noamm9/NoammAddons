@@ -102,8 +102,7 @@ object PetDisplay: Feature("Pet Features") {
             if (event.clickType != ContainerInput.PICKUP) return@register
             if (event.slotId !in loadoutSlots) return@register
             if (! event.screen.title.unformattedText.endsWith(") Loadouts")) return@register
-            val stack = mc.player?.containerMenu?.items?.get(event.slotId) ?: return@register
-            stack.lore.find { it.startsWith("§7Pet: ") }?.let {
+            player.containerMenu.items[event.slotId].lore.find { it.startsWith("§7Pet: ") }?.let {
                 cacheData.get()["pet"] = loadoutsPetRegex.find(it)?.destructured?.component2() ?: return@let
             }
         }

@@ -43,7 +43,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
     override fun init() {
         register<ContainerEvent.SlotClick> {
             if (! enabled) return@register
-            val menu = mc.player?.containerMenu ?: return@register
+            val menu = player.containerMenu
 
             val stack = when (event.slotId) {
                 - 999 -> menu.carried
@@ -73,9 +73,8 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
             if (LocationUtils.inDungeon && DungeonListener.dungeonStarted && ! DungeonListener.dungeonEnded) return@register
             if (mc.screen != null) return@register
             if (! mc.options.keyDrop.matches(event.keyEvent)) return@register
-            val heldItem = mc.player?.inventory?.selectedItem ?: return@register
 
-            if (getProtectType(heldItem) != ProtectType.None) {
+            if (getProtectType(player.inventory.selectedItem) != ProtectType.None) {
                 if (protectNodification.value) NotificationManager.push("Action Blocked", "This item is protected!", 1500L)
                 event.isCanceled = true
             }
@@ -97,7 +96,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
                     return@executes 0
                 }
 
-                val heldItem = mc.player?.inventory?.selectedItem?.takeUnless { it.isEmpty } ?: run {
+                val heldItem = player.inventory.selectedItem.takeUnless { it.isEmpty } ?: run {
                     ChatUtils.modMessage("&cYou need to be holding an item.")
                     return@executes 1
                 }
@@ -141,8 +140,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
     }
 
     private fun isSellMenu(): Boolean {
-        val menu = mc.player?.containerMenu ?: return false
-        return menu.slots.take(54).any { slot ->
+        return player.containerMenu.slots.take(54).any { slot ->
             if (slot.item.isEmpty) return@any false
 
             val isHopper = slot.item.`is`(Items.HOPPER) && slot.item.hoverName.string.contains("Sell Item")

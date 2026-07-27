@@ -79,7 +79,7 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
             if (! packet.title.unformattedText.matches(loadoutMenuRegex)) return@register
 
             pendingAutoClose = false
-            mc.player?.closeContainer()
+            player.closeContainer()
         }
 
         register<ContainerEvent.Keyboard> {
@@ -110,7 +110,7 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
             val keyName = if (! useHotbarBinds.value) keybinds.getOrNull(index)?.displayName()
             else (mc.options.keyHotbarSlots.getOrNull(index) as? IKeyMapping)?.key?.displayName?.string?.uppercase()
             if (keyName == null) return@register
-            
+
             val scale = 0.75f
             val x = event.slot.x + 16f - keyName.width() * scale
             val y = event.slot.y + 16f - mc.font.lineHeight * scale
@@ -127,7 +127,7 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
     }
 
     private fun handleKeybind(index: Int) {
-        val slot = keyMap[index]?.takeUnless { mc.player !!.containerMenu.getSlot(it).item == ItemStack.EMPTY } ?: return
+        val slot = keyMap[index]?.takeUnless { player.containerMenu.getSlot(it).item == ItemStack.EMPTY } ?: return
 
         if (! isSlotEquipable(slot)) return
 
@@ -137,14 +137,10 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
         if (closeAfterUse.value) closeAfterReopen()
     }
 
-    private fun isSlotEquipable(slot: Int): Boolean {
-        return mc.player?.containerMenu?.slots?.get(slot)?.item?.lore?.any {
-            it.contains("Left-click to equip!", ignoreCase = true)
-        } ?: false
-    }
+    private fun isSlotEquipable(slot: Int) = player.containerMenu.slots[slot].item.lore.any { it.contains("Left-click to equip!", ignoreCase = true) }
 
     fun closeAfterReopen() {
-        mc.player?.closeContainer()
+        player.closeContainer()
         ThreadUtils.setTimeout(3000) { pendingAutoClose = false }
         pendingAutoClose = true
     }

@@ -42,8 +42,6 @@ object BlockOverlay: Feature() {
         }
     }
 
-    private fun shouldHide(): Boolean {
-        val player = mc.player ?: return false
-        return player.isCrouching && EtherwarpHelper.getEtherwarpDistance(player.mainHandItem) != null
-    }
+    private fun shouldHide() = player.isCrouching && EtherwarpHelper.getEtherwarpDistance(player.mainHandItem) != null
+
 }

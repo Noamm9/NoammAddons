@@ -31,7 +31,7 @@ object DoorKeys: Feature("ESP box & Tracer for wither and blood doors.") {
         register<MainThreadPacketReceivedEvent.Post> {
             if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
             val packet = event.packet as? ClientboundSetEntityDataPacket ?: return@register
-            val entity = mc.level?.getEntity(packet.id) as? ArmorStand ?: return@register
+            val entity = level.getEntity(packet.id) as? ArmorStand ?: return@register
 
             doorKey = Pair(entity, when (entity.customName?.unformattedText) {
                 "Wither Key" if highlightWither.value -> witherColor.value
@@ -49,7 +49,7 @@ object DoorKeys: Feature("ESP box & Tracer for wither and blood doors.") {
 
                 //#if CHEAT
                 //#else
-                //$ if (! mc.player!!.hasLineOfSight(entity)) return@register
+                //$ if (! player.hasLineOfSight(entity)) return@register
                 //#endif
 
                 Render3D.renderTracer(event.ctx, entity.renderVec.add(y = 1.7), color, 2)

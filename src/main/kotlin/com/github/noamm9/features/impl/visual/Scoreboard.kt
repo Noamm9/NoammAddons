@@ -32,7 +32,7 @@ object Scoreboard: Feature("Draws a custom scoreboard instead of the vanilla one
         override val toggle get() = Scoreboard.enabled
 
         override fun draw(ctx: GuiGraphicsExtractor, example: Boolean): Pair<Float, Float> {
-            val scoreboard = mc.level?.scoreboard ?: return 0f to 0f
+            val scoreboard = level?.scoreboard ?: return 0f to 0f
             val objective = scoreboard.getDisplayObjective(DisplaySlot.SIDEBAR) ?: return 0f to 0f
 
             if (needsUpdate) updateCache(scoreboard, objective)

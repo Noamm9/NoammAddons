@@ -171,7 +171,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     }
 
     private fun sendClickPacket(slot: Int) {
-        mc.gameMode?.handleContainerInput(TerminalListener.lastWindowId, slot, 2, ContainerInput.CLONE, mc.player !!)
+        gameMode.handleContainerInput(TerminalListener.lastWindowId, slot, 2, ContainerInput.CLONE, player)
         if (NoammAddons.debugFlags.contains("terminal")) ChatUtils.modMessage("Melody: Clicked: $slot")
     }
 

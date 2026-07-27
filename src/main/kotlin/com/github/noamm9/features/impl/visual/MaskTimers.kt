@@ -35,10 +35,10 @@ object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and mo
         val checkWorn: () -> Boolean
     ) {
         BONZO("Bonzo", "Mask", "&9", 180 * 20, 3 * 20, Regex("Your (?:.+ )?Bonzo's Mask saved your life!"), {
-            mc.player?.getItemBySlot(EquipmentSlot.HEAD)?.skyblockId?.contains("BONZO_MASK") == true
+            "BONZO_MASK" in player.getItemBySlot(EquipmentSlot.HEAD).skyblockId
         }),
         SPIRIT("Spirit", "Mask", "&f", 30 * 20, 3 * 20, Regex("Second Wind Activated! Your Spirit Mask saved your life!"), {
-            mc.player?.getItemBySlot(EquipmentSlot.HEAD)?.skyblockId?.contains("SPIRIT_MASK") == true
+            "SPIRIT_MASK" in player.getItemBySlot(EquipmentSlot.HEAD).skyblockId
         }),
         PHOENIX("Phoenix", "Pet", "&c", 60 * 20, 4 * 20, Regex("Your Phoenix Pet saved you from certain death!"), {
             (cacheData.get()["pet"] as? JsonPrimitive)?.contentOrNull.toString().contains("Phoenix")

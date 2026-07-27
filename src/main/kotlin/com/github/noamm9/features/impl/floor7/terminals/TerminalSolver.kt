@@ -374,7 +374,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
     }
 
     private fun sendClickPacket(slot: Int, btn: Int) {
-        mc.gameMode !!.handleContainerInput(
+        gameMode.handleContainerInput(
             TerminalListener.lastWindowId,
             slot,
             if (btn == 0) 2 else btn,

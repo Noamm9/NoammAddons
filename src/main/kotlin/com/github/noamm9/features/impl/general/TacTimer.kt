@@ -44,7 +44,7 @@ object TacTimer: Feature("Shows a 3 seconds timer when you use the Tactical Inse
         register<PacketEvent.Sent> {
             if (! LocationUtils.inSkyblock) return@register
             val packet = event.packet as? ServerboundUseItemPacket ?: return@register
-            val item = mc.player?.getItemInHand(packet.hand)?.takeUnless { it.isEmpty } ?: return@register
+            val item = player.getItemInHand(packet.hand).takeUnless { it.isEmpty } ?: return@register
             if (item.skyblockId != "TACTICAL_INSERTION") return@register
             lastClick = System.currentTimeMillis()
         }
@@ -57,7 +57,7 @@ object TacTimer: Feature("Shows a 3 seconds timer when you use the Tactical Inse
             if (packet.pitch != 0.74603176f) return@register
 
             ticks = 60
-            if (markBlock.value) pos = mc.player?.blockPosition()
+            if (markBlock.value) pos = player.blockPosition()
         }
 
         register<RenderWorldEvent> {

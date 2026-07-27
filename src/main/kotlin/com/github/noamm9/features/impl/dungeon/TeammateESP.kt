@@ -37,7 +37,7 @@ object TeammateESP: Feature("Highlights your dungeon party.") {
                 val entity = teammate.entity ?: continue
                 val color = teammate.clazz.code
                 val renderVec = entity.renderVec
-                val distance = renderVec.distanceTo(mc.player !!.renderVec)
+                val distance = renderVec.distanceTo(player.renderVec)
                 val scale = (distance * 0.12f).coerceAtLeast(1.0)
 
                 Render3D.renderString(

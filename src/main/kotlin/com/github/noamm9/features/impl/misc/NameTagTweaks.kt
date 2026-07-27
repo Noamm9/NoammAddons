@@ -19,7 +19,7 @@ object NameTagTweaks: Feature(name = "Nametag Tweaks") {
     fun shouldShowNametag(entity: Entity): Boolean {
         if (! enabled) return false
         if (! showOwnNametag.value) return false
-        if (mc.player != entity) return false
+        if (player != entity) return false
         return true
     }
 

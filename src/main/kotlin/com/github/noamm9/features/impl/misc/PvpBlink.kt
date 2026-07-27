@@ -41,7 +41,7 @@ object PvpBlink: Feature("Desyncs your connection to eat knockback or spoof posi
         register<PacketEvent.Received> {
             if (mc.singleplayerServer != null) return@register
             if (mode.value == 1 && event.packet is ClientboundSetEntityMotionPacket) {
-                if (event.packet.id == mc.player?.id) startBlink()
+                if (event.packet.id == player.id) startBlink()
             }
         }
 
@@ -103,9 +103,9 @@ object PvpBlink: Feature("Desyncs your connection to eat knockback or spoof posi
     }
 
     private fun startBlink() {
-        if (mc.player == null || isBlinking || isFlushing) return
-        isBlinking = true
+        if (isBlinking || isFlushing) return
         blinkStartTime = System.currentTimeMillis()
+        isBlinking = true
     }
 
     private fun stopBlink() {

@@ -1,6 +1,5 @@
 package com.github.noamm9.features
 
-import com.github.noamm9.NoammAddons
 import com.github.noamm9.config.Savable
 import com.github.noamm9.event.Event
 import com.github.noamm9.event.EventBus.EventContext
@@ -24,8 +23,8 @@ import kotlin.reflect.KProperty
 open class Feature(
     val description: String? = null,
     name: String? = null,
-    toggled: Boolean = false,
-) {
+    toggled: Boolean = false
+): Shortcuts {
     val name = name ?: this::class.simpleName.toString().spaceCaps()
     val listeners = mutableSetOf<EventListener<*>>()
 
@@ -39,10 +38,6 @@ open class Feature(
     private val alwaysActive = this::class.java.isAnnotationPresent(AlwaysActive::class.java)
 
     open val category = if (isDev) CategoryType.DEV else initCategory()
-
-    protected inline val mc get() = NoammAddons.mc
-    protected inline val scope get() = NoammAddons.scope
-    protected inline val cacheData get() = NoammAddons.cacheData
 
     fun initialize() {
         init()
@@ -118,7 +113,7 @@ open class Feature(
     private fun initCategory(): CategoryType {
         val parts = this::class.java.`package` !!.name.split(".")
         val categoryName = parts[parts.indexOf("impl") + 1].uppercase()
-        if (CategoryType.entries.none { it.name.equals(categoryName, true) }) throw Error("Category does not exist: $categoryName")
+        if (CategoryType.entries.none { it.name.equals(categoryName, true) }) error("Category does not exist: $categoryName")
         return CategoryType.valueOf(categoryName.uppercase())
     }
 
@@ -130,3 +125,4 @@ open class Feature(
     protected operator fun <T, S: Setting<T>> S.provideDelegate(thisRef: Feature, prop: KProperty<*>) = with(Setting.Companion) { this@provideDelegate.provideDelegate(thisRef, prop) }
     protected operator fun <T, S: Setting<T>> S.getValue(thisRef: Feature, prop: KProperty<*>) = with(Setting.Companion) { this@getValue.getValue(thisRef, prop) }
 }
+

@@ -70,7 +70,7 @@ object ServerUtils {
     }
 
     private fun sendPingRequest() {
-        if (isPinging || mc.player == null) return
+        if (isPinging) return
         val connection = mc.connection ?: return
 
         isPinging = true

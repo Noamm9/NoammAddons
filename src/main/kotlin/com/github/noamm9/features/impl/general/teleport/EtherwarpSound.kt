@@ -48,7 +48,6 @@ object EtherwarpSound: Feature() {
         register<PacketEvent.Sent> {
             if (! zeroPingSound.value) return@register
             if (event.packet !is ServerboundUseItemPacket) return@register
-            val player = mc.player ?: return@register
             if (! mc.options.keyShift.isDown) return@register
             if (LocationUtils.F7Phase == 3 && LocationUtils.inBoss) return@register
             if (ScanUtils.currentRoom?.data?.name.equalsOneOf("New Trap", "Old Trap", "Teleport Maze", "Boulder")) return@register

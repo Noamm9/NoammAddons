@@ -5,6 +5,7 @@ import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.icePathColor
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.icePathFirstColor
+import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils.rotate
@@ -13,7 +14,6 @@ import com.github.noamm9.utils.render.RenderContext
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.entity.monster.Silverfish
-import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import java.util.concurrent.*
 import kotlin.math.abs
@@ -60,7 +60,7 @@ object IcePathSolver: PuzzleSolver {
         var fish = silverfish
 
         if (fish == null || fish.isRemoved) {
-            val aabb = AABB(center.x - 10.0, 67.0, center.z - 10.0, center.x + 10.0, 68.0, center.z + 10.0)
+            val aabb = aabb(center.x - 10, 67, center.z - 10, center.x + 10, 68, center.z + 10)
             silverfish = mc.level?.getEntitiesOfClass(Silverfish::class.java, aabb)?.firstOrNull() ?: return
             fish = silverfish
         }

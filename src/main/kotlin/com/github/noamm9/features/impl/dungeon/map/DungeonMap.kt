@@ -38,9 +38,9 @@ object DungeonMap: Feature() {
         hudElements.add(MapRenderer)
 
         register<TickEvent.Start> {
-            if (! LocationUtils.inDungeon || mc.player == null) return@register
+            if (! LocationUtils.inDungeon) return@register
 
-            if (DungeonScanner.shouldScan && WorldUtils.isChunkLoaded(mc.player !!.x.toInt(), mc.player !!.z.toInt())) {
+            if (DungeonScanner.shouldScan && WorldUtils.isChunkLoaded(player.x, player.z)) {
                 DungeonScanner.scan()
             }
 
@@ -58,7 +58,7 @@ object DungeonMap: Feature() {
             val packet = event.packet as? ClientboundMapItemDataPacket ?: return@register
             val mapId = PlayerUtils.getHotbarSlot(8)?.get(DataComponents.MAP_ID) ?: packet.mapId
 
-            DungeonInfo.mapData = mc.level?.getMapData(mapId)
+            DungeonInfo.mapData = level.getMapData(mapId)
 
             if (! MapUtils.calibrated) MapUtils.calibrated = MapUtils.calibrateMap()
 

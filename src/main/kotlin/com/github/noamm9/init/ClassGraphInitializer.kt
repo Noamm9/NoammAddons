@@ -40,53 +40,36 @@ class ClassGraphInitializer {
 
     private fun ScanResult.registerSelfInits() {
         getClassesImplementing(ISelfInit::class.java).forEach { ci ->
-            (ci.getInstance() as? ISelfInit)?.init()
+            (ci.getInstance() as ISelfInit).init()
         }
     }
 
     private fun ScanResult.registerCustomMenus() {
         getClassesImplementing(ICustomMenu::class.java).forEach { ci ->
-            val instance = ci.getInstance() as? ICustomMenu
-            instance?.let(ModCompatibility.customMenus::add)
+            ModCompatibility.customMenus.add(ci.getInstance() as ICustomMenu)
         }
     }
 
     private fun ScanResult.registerCommands() {
-        val commands = mutableSetOf<BaseCommand>()
-
-        getSubclasses(BaseCommand::class.qualifiedName).forEach { ci ->
-            val command = ci.loadClass().getDeclaredField("INSTANCE").get(null) as? BaseCommand
-            command?.let(commands::add)
-        }
-
-        ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
-            commands.forEach { command ->
+        getSubclasses(BaseCommand::class.java).forEach { ci ->
+            val command = ci.getInstance() as BaseCommand
+            ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
                 val roots = mutableListOf(ClientCommands.literal(command.name))
                 command.aliases.forEach { roots.add(ClientCommands.literal(it)) }
                 roots.forEach { root ->
                     CommandNodeBuilder(root).apply { with(command) { build() } }
                     dispatcher.register(root)
                 }
-
-                NoammAddons.logger.debug("Registered command: /${command.name}")
             }
         }
     }
 
     private fun ScanResult.registerFeatures() {
         getSubclasses(Feature::class.java).forEach { classInfo ->
-            try {
-                val instance = classInfo.loadClass().getDeclaredField("INSTANCE").get(null) as? Feature
-
-                instance?.let { feature ->
-                    feature.initialize()
-                    hudElements.addAll(feature.hudElements)
-                    features.add(feature)
-                }
-            }
-            catch (e: Exception) {
-                NoammAddons.logger.error("Failed to load feature class: ${classInfo.name}", e)
-            }
+            val feature = classInfo.getInstance() as Feature
+            feature.initialize()
+            hudElements.addAll(feature.hudElements)
+            features.add(feature)
         }
 
         Config.load()

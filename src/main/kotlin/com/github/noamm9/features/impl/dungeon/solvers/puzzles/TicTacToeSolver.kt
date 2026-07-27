@@ -9,6 +9,7 @@ import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.color
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.prediction
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.predictionColor
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.preventMissClick
+import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.core.RoomState
@@ -24,7 +25,6 @@ import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.decoration.ItemFrame
 import net.minecraft.world.item.MapItem
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.phys.AABB
 import java.awt.Color
 import java.util.concurrent.*
 
@@ -92,7 +92,7 @@ object TicTacToeSolver: PuzzleSolver {
     private fun solve() = ThreadUtils.scheduledTaskServer(3) solve@{
         val center = roomCenter ?: return@solve
         val level = mc.level ?: return@solve
-        val aabb = AABB(center.x - 9.0, 65.0, center.z - 9.0, center.x + 9.0, 73.0, center.z + 9.0)
+        val aabb = aabb(center.x - 9, 65, center.z - 9, center.x + 9, 73, center.z + 9)
 
         val frames = level.getEntitiesOfClass(ItemFrame::class.java, aabb).filter {
             it.item.item is MapItem && it.item.has(DataComponents.MAP_ID)

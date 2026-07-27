@@ -43,8 +43,7 @@ object MageBeam: Feature("Renders a fully custom, animated beam whenever a mage 
                 is ClientboundAddEntityPacket -> {
                     if (! hideSheep.value) return@register
                     if (packet.type != EntityType.SHEEP) return@register
-                    val pos = mc.player?.position() ?: return@register
-                    if (pos.distanceToSqr(packet.x, packet.y, packet.z) > 9) return@register
+                    if (player.position().distanceToSqr(packet.x, packet.y, packet.z) > 9) return@register
                     event.isCanceled = true
                 }
             }

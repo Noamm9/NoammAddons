@@ -44,12 +44,12 @@ object Box3D: Feature("Replaces the Glow ESP with 3D boxes") {
             }
 
             if (! outline && ! fill) return@register
-            val iterator = mc.level?.entitiesForRendering()?.iterator() ?: return@register
+            val iterator = level.entitiesForRendering().iterator()
 
             while (iterator.hasNext()) {
                 val entity = iterator.next()
-                if ((entity as? IGlowingEntity)?.`noammaddons$isGlowing`() != true) continue
-                if (entity == mc.player) continue
+                if (! (entity as IGlowingEntity).`noammaddons$isGlowing`()) continue
+                if (entity == player) continue
                 val color = entity.`noammaddons$glowColor`()
 
                 Render3D.renderBoxBounds(

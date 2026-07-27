@@ -11,7 +11,7 @@ import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.MathUtils.Vec3
+import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
 import com.github.noamm9.utils.equalsOneOf
@@ -47,7 +47,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
     private var sortedChestsCache = emptyList<DungeonChest>()
 
     private val feather by lazy { ItemStack(Items.FEATHER) }
-    private val npcLoc = Vec3(- 28, 119, 35)
+    private val npcLoc = vec(- 28, 119, 35)
 
     override fun init() {
         register<WorldChangeEvent> {
@@ -61,7 +61,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
             enabled = { hud.value },
             shouldDraw = {
                 val world = LocationUtils.world
-                val distance = (mc.player?.distanceToSqr(npcLoc) ?: .0) <= 150
+                val distance = player.distanceToSqr(npcLoc) <= 150
                 world == WorldType.Catacombs || (world == WorldType.DungeonHub && distance)
             }
         ) { ctx, example ->

@@ -87,7 +87,7 @@ object F4Features: Feature(name = "F4 Features", description = "Spirit bear spaw
         register<MainThreadPacketReceivedEvent.Post> {
             if (! espSpiritBow.value || ! inM4boss) return@register
             val packet = event.packet as? ClientboundSetEquipmentPacket ?: return@register
-            val armorstand = mc.level?.getEntity(packet.entity) as? ArmorStand ?: return@register
+            val armorstand = level.getEntity(packet.entity) as? ArmorStand ?: return@register
             if (armorstand.getItemBySlot(EquipmentSlot.MAINHAND).hoverName.unformattedText != "Bow") return@register
             spiritbows.add(packet.entity)
         }

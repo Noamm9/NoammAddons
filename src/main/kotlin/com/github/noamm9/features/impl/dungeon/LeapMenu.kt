@@ -26,7 +26,6 @@ import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.sounds.SoundEvents
-import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.Items
 import org.lwjgl.glfw.GLFW
@@ -101,8 +100,8 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
         register<CheckEntityRenderEvent> {
             if (System.currentTimeMillis() > shouldHide) return@register
             if (event.entity !is Player) return@register
-            if (event.entity == mc.player) return@register
-            if (event.entity.distanceToSqr(mc.player as Entity) > 4) return@register
+            if (event.entity == player) return@register
+            if (event.entity.distanceToSqr(player) > 4) return@register
             if (dungeonTeammatesNoSelf.none { it.name == event.entity.name.unformattedText }) return@register
             event.isCanceled = true
         }
@@ -234,14 +233,13 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
         repeat(4) { players.add(null) }
 
         val loadedHeads = mutableMapOf<String, Int>()
+        val menu = player.containerMenu
 
-        mc.player?.containerMenu?.let { menu ->
-            for (i in 0 until (menu.slots.size - 36)) {
-                val stack = menu.slots[i].item
-                if (stack.isEmpty || ! stack.`is`(Items.PLAYER_HEAD)) continue
-                val headName = playerRegex.find(stack.hoverName.string)?.groups?.get("name")?.value ?: continue
-                loadedHeads[headName] = i
-            }
+        for (i in 0 until (menu.slots.size - 36)) {
+            val stack = menu.slots[i].item
+            if (stack.isEmpty || ! stack.`is`(Items.PLAYER_HEAD)) continue
+            val headName = playerRegex.find(stack.hoverName.string)?.groups?.get("name")?.value ?: continue
+            loadedHeads[headName] = i
         }
 
         val leapTeammates: List<DungeonPlayer> = when (sorting.value) {
@@ -289,7 +287,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
 
         mc.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1F))
         GuiUtils.clickSlot(entry.slotIndex, GuiUtils.ButtonType.LEFT)
-        mc.player?.closeContainer()
+        player.closeContainer()
     }
 
     private fun renderMapLeap(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
