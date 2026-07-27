@@ -8,8 +8,8 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.dungeon.map.DungeonMap
 import com.github.noamm9.features.impl.dungeon.map.MapConfig
 import com.github.noamm9.features.impl.dungeon.map.MapRenderer
+import com.github.noamm9.init.types.ICustomMenu
 import com.github.noamm9.ui.clickgui.components.impl.*
-import com.github.noamm9.ui.gui.ICustomMenu
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.unformattedText

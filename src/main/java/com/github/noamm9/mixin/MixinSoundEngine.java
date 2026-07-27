@@ -1,7 +1,7 @@
 package com.github.noamm9.mixin;
 
 import com.github.noamm9.features.impl.misc.sound.MonoAudio;
-import com.github.noamm9.interfaces.MonoAudioChannel;
+import com.github.noamm9.interfaces.IMonoAudioChannel;
 import net.minecraft.client.Camera;
 import net.minecraft.client.sounds.ChannelAccess;
 import net.minecraft.client.sounds.SoundEngine;
@@ -21,7 +21,7 @@ public class MixinSoundEngine {
         if (!MonoAudio.INSTANCE.enabled) return;
 
         channelAccess.executeOnChannels(stream ->
-            stream.forEach(channel -> ((MonoAudioChannel) channel).monoAudio$refreshPosition())
+            stream.forEach(channel -> ((IMonoAudioChannel) channel).noammaddons$refreshPosition())
         );
     }
 }

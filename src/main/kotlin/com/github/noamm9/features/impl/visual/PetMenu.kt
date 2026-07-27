@@ -4,12 +4,12 @@ import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.ScreenEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.dev.ClickGui
+import com.github.noamm9.init.types.ICustomMenu
 import com.github.noamm9.mixin.IKeyMapping
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.ui.gui.ICustomMenu
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting

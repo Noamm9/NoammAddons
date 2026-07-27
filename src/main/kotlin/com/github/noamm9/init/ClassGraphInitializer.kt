@@ -10,10 +10,12 @@ import com.github.noamm9.event.impl.RenderOverlayEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.FeatureManager.features
 import com.github.noamm9.features.FeatureManager.hudElements
+import com.github.noamm9.init.types.ICustomMenu
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.ui.hud.HudEditorScreen
 import com.github.noamm9.ui.utils.Resolution
 import io.github.classgraph.ClassGraph
+import io.github.classgraph.ClassInfo
 import io.github.classgraph.ScanResult
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands
@@ -28,6 +30,7 @@ class ClassGraphInitializer {
     fun initAll() = scan.use { scan ->
         val time = measureTimeMillis {
             scan.registerSelfInits()
+            scan.registerCustomMenus()
             scan.registerCommands()
             scan.registerFeatures()
         }
@@ -37,8 +40,14 @@ class ClassGraphInitializer {
 
     private fun ScanResult.registerSelfInits() {
         getClassesImplementing(ISelfInit::class.java).forEach { ci ->
-            val obj = ci.loadClass().getDeclaredField("INSTANCE").get(null) as? ISelfInit
-            obj?.init()
+            (ci.getInstance() as? ISelfInit)?.init()
+        }
+    }
+
+    private fun ScanResult.registerCustomMenus() {
+        getClassesImplementing(ICustomMenu::class.java).forEach { ci ->
+            val instance = ci.getInstance() as? ICustomMenu
+            instance?.let(ModCompatibility.customMenus::add)
         }
     }
 
@@ -91,4 +100,6 @@ class ClassGraphInitializer {
             Resolution.pop(event.context)
         }
     }
+
+    private fun ClassInfo.getInstance() = loadClass().getDeclaredField("INSTANCE").get(null)
 }
