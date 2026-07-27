@@ -16,6 +16,7 @@ import kotlin.math.sqrt
 
 
 object Render2D {
+    // todo fix slot being highlighted by more then 1 src
     fun Slot.highlight(ctx: GuiGraphicsExtractor, color: Color) = drawRect(ctx, x, y, 16, 16, color)
 
     fun drawTexture(ctx: GuiGraphicsExtractor, texture: Identifier, x: Number, y: Number, width: Number, height: Number, color: Color = Color.WHITE) {

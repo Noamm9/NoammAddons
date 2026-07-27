@@ -36,14 +36,13 @@ public abstract class MixinGui {
     @Shadow @Nullable private Component title;
     @Shadow @Nullable private Component subtitle;
 
-    @Shadow
-    public abstract Font getFont();
-
-
     @Inject(method = "extractArmor", at = @At("HEAD"), cancellable = true)
     private static void renderArmor(GuiGraphicsExtractor graphics, Player player, int yLineBase, int numHealthRows, int healthRowHeight, int xLeft, CallbackInfo ci) {
         if (PlayerHud.INSTANCE.enabled && PlayerHud.getHideArmorbar().getValue()) ci.cancel();
     }
+
+    @Shadow
+    public abstract Font getFont();
 
     @Inject(method = "extractPlayerHealth", at = @At("HEAD"), cancellable = true)
     public void renderPlayerHealth(GuiGraphicsExtractor graphics, CallbackInfo ci) {
@@ -83,7 +82,7 @@ public abstract class MixinGui {
     public void onRenderHud(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
         if (this.minecraft.options.hideGui) return;
         if (this.minecraft.debugEntries.isOverlayVisible()) return;
-        EventBus.post(new RenderOverlayEvent(graphics, deltaTracker));
+        EventBus.post(new RenderOverlayEvent(graphics));
 
         DebugHUD.render(graphics);
     }

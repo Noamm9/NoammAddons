@@ -5,6 +5,7 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.EventPriority
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
+import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
@@ -17,7 +18,7 @@ import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
 import kotlin.math.roundToInt
 
-object ActionBarParser {
+object ActionBarParser: ISelfInit {
     val HP_REGEX = Regex("§[c6]([\\d,]+)/([\\d,]+)[\uE010❤]")
     val DEF_REGEX = Regex("""§a([\d,]+)(§a)?[❈]( Defense)?""") // https://regex101.com/r/QDZtRK/1
     val MANA_REGEX = Regex("§b([\\d,]+)/([\\d,]+)[\uE003✎]( Mana)?")
@@ -45,7 +46,7 @@ object ActionBarParser {
     var secrets: Int? = 0
     var maxSecrets: Int? = 0
 
-    fun init() {
+    override fun init() {
         register<MainThreadPacketReceivedEvent.Post>(EventPriority.HIGHEST) {
             if (! LocationUtils.inSkyblock) return@register
             if (event.packet is ClientboundSystemChatPacket && event.packet.overlay()) {

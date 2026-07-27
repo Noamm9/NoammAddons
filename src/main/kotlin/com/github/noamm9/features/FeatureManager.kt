@@ -10,39 +10,25 @@ import com.github.noamm9.ui.hud.HudEditorScreen
 import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.render.Render2D.width
-import io.github.classgraph.ClassGraph
+import io.github.classgraph.ScanResult
 
 object FeatureManager {
     val hudElements = mutableListOf<HudElement>()
     val features = mutableSetOf<Feature>()
 
-    fun registerFeatures() {
-        val scanResult = ClassGraph()
-            .enableAllInfo()
-            .acceptPackages("com.github.noamm9")
-            .ignoreClassVisibility()
-            .overrideClassLoaders(Thread.currentThread().contextClassLoader)
-            .scan()
+    fun registerFeatures(result: ScanResult) {
+        result.getSubclasses(Feature::class.java).forEach { classInfo ->
+            try {
+                val instance = classInfo.loadClass().getDeclaredField("INSTANCE").get(null) as? Feature
 
-        scanResult.use { result ->
-            val featureClasses = result.getSubclasses("com.github.noamm9.features.Feature")
-            NoammAddons.logger.debug("ClassGraph found ${featureClasses.size} subclasses of Feature")
-
-            featureClasses.forEach { classInfo ->
-                try {
-                    val clazz = classInfo.loadClass()
-                    val instance = clazz.getDeclaredField("INSTANCE").get(null) as? Feature
-
-                    instance?.let { feature ->
-                        feature.initialize()
-                        hudElements.addAll(feature.hudElements)
-                        features.add(feature)
-                        NoammAddons.logger.info("Successfully loaded feature: ${feature::class.simpleName}")
-                    }
+                instance?.let { feature ->
+                    feature.initialize()
+                    hudElements.addAll(feature.hudElements)
+                    features.add(feature)
                 }
-                catch (e: Exception) {
-                    NoammAddons.logger.error("Failed to load feature class: ${classInfo.name}", e)
-                }
+            }
+            catch (e: Exception) {
+                NoammAddons.logger.error("Failed to load feature class: ${classInfo.name}", e)
             }
         }
 

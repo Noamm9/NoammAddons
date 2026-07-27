@@ -1,6 +1,7 @@
 package com.github.noamm9.utils.render
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.render.iris.IrisCompatibility
 import com.github.noamm9.utils.render.iris.IrisShaderType
 import com.mojang.blaze3d.pipeline.RenderPipeline
@@ -10,7 +11,7 @@ import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.resources.Identifier
 import java.util.*
 
-object NoammRenderPipelines {
+object NoammRenderPipelines: ISelfInit {
     val FILLED: RenderPipeline = RenderPipelines.register(
         RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
             .withLocation(id("pipeline/filled"))
@@ -54,7 +55,7 @@ object NoammRenderPipelines {
             .build()
     )
 
-    fun init() {
+    override fun init() {
         IrisCompatibility.registerPipeline(LINES_THROUGH_WALLS, IrisShaderType.LINES)
         IrisCompatibility.registerPipeline(FILLED_THROUGH_WALLS, IrisShaderType.BASIC)
         IrisCompatibility.registerPipeline(CIRCLE_FILLED_THROUGH_WALLS, IrisShaderType.BASIC)

@@ -3,6 +3,7 @@ package com.github.noamm9
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
+import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.GsonUtils
@@ -29,20 +30,17 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.entity.SkullBlockEntity
 import java.awt.Color
 
-
-class TestGround {
+object TestGround: ISelfInit {
     private var lastServerTime = - 1L
     private var lastRealTime = - 1L
 
-    companion object {
-        val experimental get() = NoammAddons.debugFlags.contains("tick")
-        val rotation get() = NoammAddons.debugFlags.contains("rotation")
-        val bat get() = NoammAddons.debugFlags.contains("bat")
-        val slot get() = NoammAddons.debugFlags.contains("slot")
-        val sound get() = NoammAddons.debugFlags.contains("sound")
-    }
+    val experimental get() = NoammAddons.debugFlags.contains("tick")
+    val rotation get() = NoammAddons.debugFlags.contains("rotation")
+    val bat get() = NoammAddons.debugFlags.contains("bat")
+    val slot get() = NoammAddons.debugFlags.contains("slot")
+    val sound get() = NoammAddons.debugFlags.contains("sound")
 
-    init {
+    override fun init() {
         EventBus.register<WorldChangeEvent> {
             if (experimental) {
                 lastServerTime = - 1
@@ -142,40 +140,3 @@ class TestGround {
         return GsonUtils.gson.toJson(jsonElement)
     }
 }
-
-/*
-{
-  "minecraft:item_model": "hypixel_skyblock:item/slayer/enderman/weapons/terminator",
-  "minecraft:tooltip_style": "hypixel_skyblock:mythic"
-  "minecraft:custom_data": {
-    "upgrade_level": 10,
-    "enchantments": {
-      "cubism": 5,
-      "aiming": 5,
-      "toxophilite": 10,
-      "impaling": 5,
-      "piercing": 1,
-      "snipe": 4,
-      "infinite_quiver": 10,
-      "chance": 3,
-      "power": 7,
-      "dragon_hunter": 6,
-      "flame": 2,
-      "overload": 5,
-      "ultimate_reiterate": 5
-    },
-    "timestamp": 1762120237866,
-    "hot_potato_count": 15,
-    "runes": {
-      "GOLDEN": 3
-    },
-    "modifier": "spiritual",
-    "rarity_upgrades": 1,
-    "toxophilite_combat_xp": 2.1954964312038323E8,
-    "uuid": "3c934dea-1ec1-4109-a71b-f47958bc578c",
-    "id": "TERMINATOR",
-    "art_of_war_count": 1,
-    "dungeon_item": 1
-  }
-}
- */

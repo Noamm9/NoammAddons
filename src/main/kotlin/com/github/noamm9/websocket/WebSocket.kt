@@ -26,10 +26,6 @@ object WebSocket {
     @Volatile private var session: DefaultClientWebSocketSession? = null
     private var socketJob: Job? = null
 
-    fun init() {
-        PacketRegistry.init()
-        connect()
-    }
 
     fun send(packet: Any) = worker.launch {
         val socket = session?.takeIf { it.isActive } ?: return@launch
@@ -40,7 +36,7 @@ object WebSocket {
         ChatUtils.debug("ws", "[WS] sending $json")
     }
 
-    private fun connect() {
+    fun connect() {
         if (socketJob?.isActive == true) return
 
         socketJob = worker.launch {

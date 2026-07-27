@@ -7,6 +7,7 @@ import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.EventListener
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.RenderOverlayEvent
+import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.render.Render2D
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -25,12 +26,12 @@ import java.util.concurrent.atomic.*
 import kotlin.coroutines.resume
 import kotlin.math.roundToInt
 
-object ChatUtils {
+object ChatUtils: ISelfInit {
     private val queue = ConcurrentLinkedQueue<String>()
     private val isProcessing = AtomicBoolean(false)
     @Volatile private var lastSentTime = 0L
 
-    fun init() {
+    override fun init() {
         register<PacketEvent.Sent> {
             if (event.packet !is ServerboundChatPacket &&
                 event.packet !is ServerboundChatCommandPacket &&

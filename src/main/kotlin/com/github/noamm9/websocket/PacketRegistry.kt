@@ -1,11 +1,12 @@
 package com.github.noamm9.websocket
 
+import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.websocket.packets.*
 
-object PacketRegistry {
+object PacketRegistry: ISelfInit {
     private val packets = mutableMapOf<String, Class<out WebSocketPacket>>()
 
-    fun init() {
+    override fun init() {
         register<C2SPacketDungeonStart>("dungeon_start")
         register<S2CPacketChat>("chat")
         register<S2CPacketDungeonDoor>("dungeondoor")

@@ -9,6 +9,7 @@ import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.impl.dev.FEAT_WebSocket
+import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.remove
@@ -19,7 +20,7 @@ import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket
 import net.minecraft.world.phys.AABB
 import kotlin.jvm.optionals.getOrNull
 
-object LocationUtils {
+object LocationUtils: ISelfInit {
     @JvmStatic
     val onHypixel get() = mc.player?.connection?.serverBrand()?.lowercase()?.contains("hypixel") == true
 
@@ -55,9 +56,7 @@ object LocationUtils {
 
     private val lobbyRegex = Regex("\\d\\d/\\d\\d/\\d\\d (\\w{0,6}) *")
 
-    init {
-        LocrawListener.init()
-
+    override fun init() {
         EventBus.register<MainThreadPacketReceivedEvent.Post>(EventPriority.HIGHEST) {
             if (NoammAddons.isDev) return@register setDevModeValues()
             if (! onHypixel) return@register

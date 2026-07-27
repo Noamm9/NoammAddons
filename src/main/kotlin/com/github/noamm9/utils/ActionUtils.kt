@@ -5,6 +5,7 @@ import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.KeyboardEvent
 import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ThreadUtils.scheduledTask
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -12,7 +13,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.concurrent.*
 import kotlin.coroutines.resume
 
-object ActionUtils {
+object ActionUtils: ISelfInit {
     private data class Action(val priority: Int, val blockInput: Boolean, val block: suspend () -> Unit): Comparable<Action> {
         override fun compareTo(other: Action) = other.priority.compareTo(this.priority)
     }
@@ -70,7 +71,7 @@ object ActionUtils {
         }
     }
 
-    init {
+    override fun init() {
         EventBus.register<WorldChangeEvent> { reset() }
         EventBus.register<MouseClickEvent> { if (isBlocked) event.cancel() }
         EventBus.register<KeyboardEvent.KeyPressed> { if (isBlocked) event.cancel() }

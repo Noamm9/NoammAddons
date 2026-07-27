@@ -21,10 +21,6 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 object Render3D {
-    init {
-        RenderTest.init()
-    }
-
     fun renderBlock(
         ctx: RenderContext,
         pos: BlockPos,

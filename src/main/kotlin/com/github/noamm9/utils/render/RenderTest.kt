@@ -4,14 +4,15 @@ import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.NoammDebugFlagEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
+import com.github.noamm9.init.types.ISelfInit
 import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.Vec3
 import java.awt.Color
 
-object RenderTest {
+object RenderTest: ISelfInit {
     private var pos: Vec3? = null
 
-    fun init() {
+    override fun init() {
         EventBus.register<RenderWorldEvent> {
             if ("render" !in NoammAddons.debugFlags) return@register
             val player = NoammAddons.mc.player ?: return@register

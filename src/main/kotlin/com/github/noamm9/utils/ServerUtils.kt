@@ -14,13 +14,8 @@ import kotlin.math.min
 
 object ServerUtils {
     var tps = 20f
-        private set
-
     var currentPing = 0L
-        private set
-
     var averagePing = 0L
-        private set
 
     private var lastTimePacket = 0L
     private var pingStartTime = 0L
@@ -49,8 +44,6 @@ object ServerUtils {
         }
 
         register<PacketEvent.Received>(EventPriority.HIGHEST) {
-            val packet = event.packet
-
             if (event.packet is ClientboundSetTimePacket) {
                 val now = System.currentTimeMillis()
                 if (lastTimePacket != 0L) {
@@ -59,8 +52,8 @@ object ServerUtils {
                 }
                 lastTimePacket = now
             }
-            else if (packet is ClientboundPongResponsePacket) {
-                currentPing = (Util.getMillis() - packet.time).coerceAtLeast(0)
+            else if (event.packet is ClientboundPongResponsePacket) {
+                currentPing = (Util.getMillis() - event.packet.time).coerceAtLeast(0)
                 isPinging = false
 
                 val pingLog = mc.debugOverlay.pingLogger
