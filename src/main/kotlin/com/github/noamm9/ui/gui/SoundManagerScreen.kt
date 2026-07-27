@@ -1,6 +1,5 @@
 package com.github.noamm9.ui.gui
 
-import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.features.impl.misc.sound.SoundManager
 import com.github.noamm9.ui.clickgui.ClickGuiScreen
@@ -9,6 +8,7 @@ import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.TextInputHandler
 import com.github.noamm9.utils.ColorUtils.withAlpha
+import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.spaceCaps
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -339,7 +339,7 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
         return super.charTyped(e)
     }
 
-    override fun onClose() = NoammAddons::screen.set(ClickGuiScreen)
+    override fun onClose() = GuiUtils.setScreen(ClickGuiScreen)
 
     private enum class SoundCategory {
         All, Recent, Blocks, HostileMobs, NeutralMobs, Music, Ambient, Items, UI, Misc;

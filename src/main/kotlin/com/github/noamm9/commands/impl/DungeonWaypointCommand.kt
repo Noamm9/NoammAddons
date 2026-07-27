@@ -6,6 +6,7 @@ import com.github.noamm9.commands.CommandNodeBuilder
 import com.github.noamm9.features.impl.dungeon.DungeonWaypoints
 import com.github.noamm9.ui.gui.DungeonWaypointScreen
 import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.core.BlockPos
@@ -33,7 +34,7 @@ object DungeonWaypointCommand: BaseCommand("ndw") {
 
                 val relativePos = ScanUtils.getRelativeCoord(lookingAt, roomCorner, rotation)
 
-                NoammAddons.screen = DungeonWaypointScreen(roomName, lookingAt, relativePos)
+                GuiUtils.setScreen(DungeonWaypointScreen(roomName, lookingAt, relativePos))
             }
         }
 

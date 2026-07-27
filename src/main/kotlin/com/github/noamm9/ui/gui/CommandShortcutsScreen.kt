@@ -2,13 +2,13 @@
 
 package com.github.noamm9.ui.gui
 
-import com.github.noamm9.NoammAddons
 import com.github.noamm9.features.impl.general.CommandShortcuts
 import com.github.noamm9.ui.clickgui.ClickGuiScreen
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.TextInputHandler
+import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.render.Render2D
 import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -237,7 +237,7 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
             if (command.isNotEmpty() && replacement.isNotEmpty()) shortcuts[command] = replacement
         }
 
-        NoammAddons.screen = ClickGuiScreen
+        GuiUtils.setScreen(ClickGuiScreen)
         CommandShortcuts.shortcuts.set(shortcuts)
         CommandShortcuts.build()
     }

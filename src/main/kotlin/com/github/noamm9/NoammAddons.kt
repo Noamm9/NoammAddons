@@ -3,7 +3,6 @@ package com.github.noamm9
 import com.github.noamm9.config.PogObject
 import com.github.noamm9.init.AutoSessionIdStealer
 import com.github.noamm9.init.ClassGraphInitializer
-import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.render.ItemRenderer
 import com.github.noamm9.websocket.WebSocket
 import kotlinx.coroutines.CoroutineName
@@ -15,7 +14,6 @@ import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.rendering.v1.PictureInPictureRendererRegistry
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.screens.Screen
 import org.slf4j.LoggerFactory
 
 object NoammAddons: ClientModInitializer {
@@ -42,16 +40,6 @@ object NoammAddons: ClientModInitializer {
     val cacheData = PogObject("cacheData", mutableMapOf<String, Any>())
     val debugFlags = mutableSetOf<String>()
     inline val isDev get() = "dev" in debugFlags
-
-    var screen: Screen? = null
-        set(value) {
-            field = value
-            if (value == null) return
-            ThreadUtils.scheduledTask(1) {
-                mc.setScreen(screen)
-                field = null
-            }
-        }
 
     override fun onInitializeClient() {
         PictureInPictureRendererRegistry.register { ItemRenderer(it.bufferSource()) }

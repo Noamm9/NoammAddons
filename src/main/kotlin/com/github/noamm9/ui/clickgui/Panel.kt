@@ -13,6 +13,7 @@ import com.github.noamm9.ui.gui.SoundManagerScreen
 import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.ColorUtils.withAlpha
+import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.Render2D.width
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -159,12 +160,12 @@ class Panel(val category: CategoryType, var x: Int, var y: Int) {
                 else if (button == 1) {
                     if (feature is SoundManager) {
                         ClickGuiScreen.selectedFeature = null
-                        if (feature.enabled) NoammAddons.screen = SoundManagerScreen()
+                        if (feature.enabled) GuiUtils.setScreen(SoundManagerScreen())
                         else NotificationManager.push(NoammAddons.MOD_NAME + " - ClickGui", "&fEnable &b${feature.name} &ffirst to open the settings!")
                     }
                     else if (feature is CommandShortcuts) {
                         ClickGuiScreen.selectedFeature = null
-                        if (feature.enabled) NoammAddons.screen = CommandShortcutsScreen()
+                        if (feature.enabled) GuiUtils.setScreen(CommandShortcutsScreen())
                         else NotificationManager.push(NoammAddons.MOD_NAME + " - ClickGui", "&fEnable &b${feature.name} &ffirst to open the settings!")
                     }
                     else if (feature.configSettings.isNotEmpty()) ClickGuiScreen.openFeatureWindow(feature)

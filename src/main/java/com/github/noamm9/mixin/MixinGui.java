@@ -12,7 +12,6 @@ import com.github.noamm9.utils.DebugHUD;
 import com.github.noamm9.utils.location.LocationUtils;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
@@ -40,9 +39,6 @@ public abstract class MixinGui {
     private static void renderArmor(GuiGraphicsExtractor graphics, Player player, int yLineBase, int numHealthRows, int healthRowHeight, int xLeft, CallbackInfo ci) {
         if (PlayerHud.INSTANCE.enabled && PlayerHud.getHideArmorbar().getValue()) ci.cancel();
     }
-
-    @Shadow
-    public abstract Font getFont();
 
     @Inject(method = "extractPlayerHealth", at = @At("HEAD"), cancellable = true)
     public void renderPlayerHealth(GuiGraphicsExtractor graphics, CallbackInfo ci) {
