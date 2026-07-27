@@ -38,7 +38,7 @@ object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
         register<MainThreadPacketReceivedEvent.Post> {
             if (! LocationUtils.inDungeon || inBoss) return@register
             if (event.packet !is ClientboundSetEntityDataPacket) return@register
-            val entity = level?.getEntity(event.packet.id) ?: return@register
+            val entity = level.getEntity(event.packet.id) ?: return@register
             if (entity is ArmorStand) {
                 val name = entity.customName?.formattedText ?: return@register
                 if (name.endsWith("§c❤") && name.contains("✯")) {
