@@ -77,16 +77,12 @@ object DungeonScanner {
     fun findMimicRoom(): UniqueRoom? {
         WorldUtils.getBlockEntityList()
             .filter { WorldUtils.getStateAt(it).`is`(Blocks.TRAPPED_CHEST) }
-            .groupingBy { ScanUtils.getRoomFromPos(Vec3(it.x, it.y, it.z))?.data?.name }
-            .eachCount()
-            .forEach { (roomName, trappedCount) ->
-                if (roomName == null) return@forEach
-
-                val roomEntry = DungeonInfo.uniqueRooms.entries.find {
-                    it.key == roomName && it.value.data.trappedChests < trappedCount
+            .groupBy { ScanUtils.getRoomFromPos(Vec3(it.x, it.y, it.z)) }
+            .forEach { (room, trappedChests) ->
+                if (room != null && trappedChests.size > room.data.trappedChests) {
+                    room.trappedChestPositions = trappedChests
+                    return room
                 }
-
-                if (roomEntry != null) return roomEntry.value
             }
 
         return null

@@ -19,6 +19,7 @@ import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render3D
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket
+import net.minecraft.world.level.block.Blocks
 
 @AlwaysActive
 object DungeonMap: Feature() {
@@ -79,7 +80,18 @@ object DungeonMap: Feature() {
         }
 
         register<RenderWorldEvent> {
-            if (! enabled || ! LocationUtils.inDungeon || LocationUtils.inBoss || ! MapConfig.boxWitherDoors.value) return@register
+            if (! enabled || ! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
+
+            val mimicRoom = DungeonInfo.mimicRoom
+            if (MapConfig.mimicEsp.value && ! ScoreCalculation.mimicKilled && mimicRoom != null) {
+                for (chestPos in mimicRoom.trappedChestPositions) {
+                    if (! WorldUtils.getStateAt(chestPos).`is`(Blocks.TRAPPED_CHEST)) continue
+
+                    Render3D.renderBlock(event.ctx, chestPos, MapConfig.mimicEspColor.value, phase = true)
+                }
+            }
+
+            if (! MapConfig.boxWitherDoors.value) return@register
 
             val shouldHideUndiscovered = ! MapConfig.dungeonMapCheater.value || DungeonListener.dungeonStarted
             val color = (if (DungeonListener.doorKeys > 0) MapConfig.witherDoorKeyColor.value else MapConfig.witherDoorNoKeyColor.value).withAlpha((MapConfig.witherDoorFill.value * 2.55).toInt())

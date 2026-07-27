@@ -22,6 +22,7 @@ class UniqueRoom(arrX: Int, arrY: Int, room: Room) {
     val cacheSplitName = name.split(" ")
 
     var hasMimic = false
+    var trappedChestPositions = emptyList<BlockPos>()
     var foundSecrets = 0
         set(value) {
             field = value
