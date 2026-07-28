@@ -4,7 +4,8 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.utils.render.Render2D.drawString
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 import java.util.concurrent.*
@@ -59,10 +60,10 @@ object NotificationManager {
 
             if (! isHovered && isAlive) notify.elapsedTime += delta
 
-            Render2D.drawRect(ctx, x, y, width, height, Color(20, 20, 20, 240))
-            Render2D.drawRect(ctx, x, y, width, 2f, Style.accentColor)
+            ctx.drawRect(x, y, width, height, Color(20, 20, 20, 240))
+            ctx.drawRect(x, y, width, 2f, Style.accentColor)
 
-            Render2D.drawString(ctx, "§a${notify.title}", x + 10f, y + 8f, Color.GREEN)
+            ctx.drawString("§a${notify.title}", x + 10f, y + 8f, Color.GREEN)
 
             var lineY = y + 20f
             notify.wrappedLines.forEach { line ->
@@ -72,7 +73,7 @@ object NotificationManager {
 
             val progress = (notify.elapsedTime.toFloat() / notify.duration.toFloat()).coerceIn(0f, 1f)
             val barWidth = width * (1f - progress)
-            if (isAlive) Render2D.drawRect(ctx, x, y + height - 1.5f, barWidth, 1.5f, Style.accentColor.withAlpha(200))
+            if (isAlive) ctx.drawRect(x, y + height - 1.5f, barWidth, 1.5f, Style.accentColor.withAlpha(200))
 
             currentYOffset += (height + 5f) * notify.anim.value
         }

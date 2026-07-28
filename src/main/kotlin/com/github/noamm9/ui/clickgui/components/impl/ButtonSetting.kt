@@ -4,7 +4,9 @@ import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
@@ -18,21 +20,20 @@ class ButtonSetting(name: String, val playSound: Boolean = true, val action: () 
         Style.drawBackground(ctx, x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
 
         if (hoverAnim.value > 0.01f) {
-            Render2D.drawRect(ctx, x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat(), Color(255, 255, 255, (10 * hoverAnim.value).toInt()))
+            ctx.drawRect(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat(), Color(255, 255, 255, (10 * hoverAnim.value).toInt()))
         }
 
-        Render2D.drawCenteredString(ctx, name, x + (width / 2), y + 6, Color.WHITE)
+        ctx.drawCenteredString(name, x + (width / 2), y + 6)
 
         if (hoverAnim.value > 0.01f) {
-            val textWidth = with(Render2D) { name.width() }
-
+            val textWidth = name.width()
             val maxLineWidth = (textWidth + 10).toFloat()
             val currentLineWidth = maxLineWidth * hoverAnim.value
 
             val lineX = x + (width / 2f) - (currentLineWidth / 2f)
             val lineY = y + 15.5f
 
-            Render2D.drawRect(ctx, lineX, lineY, currentLineWidth, 1f, Style.accentColor.withAlpha((200 * hoverAnim.value).toInt()))
+            ctx.drawRect(lineX, lineY, currentLineWidth, 1f, Style.accentColor.withAlpha((200 * hoverAnim.value).toInt()))
         }
     }
 

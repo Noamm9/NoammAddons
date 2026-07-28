@@ -16,7 +16,7 @@ import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.handlers.*
 import com.github.noamm9.utils.dungeons.map.utils.MapUtils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderBox
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket
 
@@ -93,13 +93,10 @@ object DungeonMap: Feature() {
 
                 if (shouldHideUndiscovered && tile.state == RoomState.UNDISCOVERED && ! isFairy) continue
 
-                Render3D.renderBox(
-                    event.ctx,
-                    tile.x + 0.5, 69.0, tile.z + 0.5,
-                    3, 4, color,
-                    outline = true,
-                    fill = true,
-                    phase = true
+                event.ctx.renderBox(
+                    tile.x + 0.5,
+                    69.0, tile.z + 0.5, 3,
+                    4, color, phase = true
                 )
             }
         }

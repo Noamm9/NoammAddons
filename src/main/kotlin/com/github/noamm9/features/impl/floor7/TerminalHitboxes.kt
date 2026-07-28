@@ -11,7 +11,7 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.Utils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderBoxBounds
 import com.github.noamm9.utils.render.RenderHelper.renderX
 import com.github.noamm9.utils.render.RenderHelper.renderY
 import com.github.noamm9.utils.render.RenderHelper.renderZ
@@ -75,10 +75,9 @@ object TerminalHitboxes: Feature("Highlights the interactable hitboxes of the te
                 val maxY = entity.renderY + hd
                 val maxZ = entity.renderZ + hw
 
-                Render3D.renderBoxBounds(
-                    event.ctx,
-                    minX, minY, minZ, maxX, maxY, maxZ,
-                    outlineColor.value,
+                event.ctx.renderBoxBounds(
+                    minX,
+                    minY, minZ, maxX, maxY, maxZ, outlineColor.value,
                     fillColor.value,
                     outline = drawOutline,
                     fill = drawFill,

@@ -5,13 +5,12 @@ import com.github.noamm9.config.Savable
 import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.RenderHelper.width
 import com.mojang.blaze3d.platform.InputConstants
 import kotlinx.serialization.json.*
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import org.lwjgl.glfw.GLFW
-import java.awt.Color
 
 class KeybindSetting(name: String, value: Int = InputConstants.UNKNOWN.value): Setting<Int>(name, value), Savable {
     private val hoverAnim = Animation(200)
@@ -31,7 +30,7 @@ class KeybindSetting(name: String, value: Int = InputConstants.UNKNOWN.value): S
             listening -> "§b..."
             else -> "§7${displayName()}"
         }
-        Render2D.drawString(ctx, bindText, x + width - bindText.width() - 8f, y + 6f, Color.WHITE)
+        ctx.drawString(bindText, x + width - bindText.width() - 8f, y + 6f)
     }
 
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {

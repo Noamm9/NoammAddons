@@ -5,7 +5,7 @@ import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.ui.utils.MouseHelper
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.componnents.UIButton
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.MouseButtonEvent
@@ -57,8 +57,8 @@ class HudEditorScreen: Screen(Component.literal("HudEditor")) {
         huds.forEach { it.drawEditor(graphics, mX, mY) }
 
         val element = huds.find { it.isDragging }
-        Render2D.drawCenteredString(graphics, element?.name.orEmpty(), midX, 10f, Color.WHITE, 1.2f)
-        Render2D.drawCenteredString(graphics, "ESC to Save and Exit", midX, Resolution.height - 20f, Color.GRAY, shadow = false)
+        graphics.drawCenteredString(element?.name.orEmpty(), midX, 10f, scale = 1.2f)
+        graphics.drawCenteredString("ESC to Save and Exit", midX, Resolution.height - 20f, Color.GRAY, shadow = false)
 
         Resolution.pop(graphics)
 

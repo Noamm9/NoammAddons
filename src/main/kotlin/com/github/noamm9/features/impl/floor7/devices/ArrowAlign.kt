@@ -11,7 +11,7 @@ import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.toVec
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderString
 import net.minecraft.core.BlockPos
 import net.minecraft.world.entity.decoration.ItemFrame
 import net.minecraft.world.item.Items
@@ -120,11 +120,10 @@ object ArrowAlign: Feature("Arrow Align Solver") {
                 else textColor.value
 
 
-                Render3D.renderString(
+                event.ctx.renderString(
                     "$count",
                     pos.x, pos.y + 0.55, pos.z + 0.5,
                     color = color,
-                    scale = 1f,
                     phase = true
                 )
             }

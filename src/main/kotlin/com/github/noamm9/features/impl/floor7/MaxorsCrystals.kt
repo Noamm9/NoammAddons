@@ -10,7 +10,7 @@ import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.world.entity.EntityType
 
@@ -68,8 +68,7 @@ object MaxorsCrystals: Feature("Utilities for F7 Maxor's Crystals") {
             val width = mc.window.guiScaledWidth
             val height = mc.window.guiScaledHeight
 
-            if (spawnTimer.value && tickTimer != null) Render2D.drawCenteredString(
-                event.context,
+            if (spawnTimer.value && tickTimer != null) event.context.drawCenteredString(
                 "&b" + ((tickTimer) !! / 20.0).toFixed(2),
                 width / 2,
                 height * 0.5 + 10,
@@ -79,7 +78,7 @@ object MaxorsCrystals: Feature("Utilities for F7 Maxor's Crystals") {
             if (! placeAlert.value) return@register
             if (LocationUtils.F7Phase != 1) return@register
             if (! PlayerUtils.getHotbarSlot(8)?.hoverName?.unformattedText.equals("energy crystal", true)) return@register
-            Render2D.drawCenteredString(event.context, "&e&l⚠ &l&bCrystal &e&l⚠", width / 2, height * 0.2, scale = 3)
+            event.context.drawCenteredString("&e&l⚠ &l&bCrystal &e&l⚠", width / 2, height * 0.2, scale = 3)
         }
 
         register<TickEvent.Server> {

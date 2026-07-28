@@ -14,10 +14,11 @@ import com.github.noamm9.utils.Utils.favoriteColor
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener.dungeonTeammates
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render3D.renderString
+import com.github.noamm9.utils.render.Render3D.renderTracer
 import com.github.noamm9.utils.render.RenderHelper.renderVec
+import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.core.BlockPos
@@ -58,7 +59,7 @@ object LividSolver: Feature() {
             val displayTicks = if (example) ticks / 2 else timer
             val color = ColorUtils.colorCodeByPercent(ticks - displayTicks, ticks, true)
             val text = "&5Livid Invulnerability: $color${(displayTicks / 20.0).toFixed(1)}"
-            Render2D.drawCenteredString(ctx, text, 0, 0)
+            ctx.drawCenteredString(text, 0, 0)
             text.width().toFloat() to 9f
         }
 
@@ -84,8 +85,8 @@ object LividSolver: Feature() {
             if (livid.isDeadOrDying) return@register
             if (livid.isSleeping) return@register
 
-            if (tracer.value) Render3D.renderTracer(event.ctx, livid.renderVec.add(y = 0.9), tracerColor.value)
-            if (showHp.value) Render3D.renderString(
+            if (tracer.value) event.ctx.renderTracer(livid.renderVec.add(y = 0.9), tracerColor.value)
+            if (showHp.value) event.ctx.renderString(
                 ColorUtils.colorCodeByPercent(livid.health, livid.maxHealth) + NumbersUtils.format(livid.health),
                 livid.renderVec.add(y = 3.0), scale = 1.5f
             )

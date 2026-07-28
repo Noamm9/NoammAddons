@@ -20,9 +20,9 @@ import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.location.WorldType
 import com.github.noamm9.utils.remove
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.highlight
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.RenderHelper.width
 import com.github.noamm9.utils.startsWithOneOf
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.world.item.ItemStack
@@ -79,7 +79,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
 
             var maxWidth = 0f
             text.forEachIndexed { i, (chest, str) ->
-                Render2D.drawString(ctx, str, 0f, i * 9f, chest.color)
+                ctx.drawString(str, 0f, i * 9f, chest.color)
                 maxWidth = maxOf(maxWidth, str.width().toFloat())
             }
 
@@ -159,15 +159,14 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                 DungeonChest.getFromName(titleName)?.let {
                     val color = if (it.profit < 0) "§4" else "§a"
                     val text = "Profit: $color${NumbersUtils.format(it.profit)}  "
-                    Render2D.drawString(event.context, text, width - text.width(), 6f)
+                    event.context.drawString(text, width - text.width(), 6f)
                 } ?: run {
                     if (croesusChestsProfit.value && croesusChestRegex.matches(titleName)) {
                         sortedChestsCache.forEachIndexed { index, chest ->
                             val color = if (chest.profit < 0) "§4" else "§a"
                             val text = "${chest.displayText}: $color${NumbersUtils.format(chest.profit)}§r"
 
-                            Render2D.drawString(
-                                event.context,
+                            event.context.drawString(
                                 text,
                                 width * 1.15f,
                                 index * 9f + height / 6f,
@@ -226,7 +225,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                     pose.pushMatrix()
                     pose.scale(0.7f)
                     pose.translate((event.slot.x + 7) / 0.7f, (event.slot.y + 7) / 0.7f)
-                    Render2D.renderItem(event.context, feather, 0, 0)
+                    event.context.item(feather, 0, 0)
                     pose.popMatrix()
                 }
             }

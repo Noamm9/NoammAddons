@@ -9,7 +9,7 @@ import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils.rotate
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderLine
 import com.github.noamm9.utils.render.RenderContext
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -89,7 +89,7 @@ object IcePathSolver: PuzzleSolver {
 
         currentSolution.forEachIndexed { index, segment ->
             val color = if (index == 0) icePathFirstColor.value else icePathColor.value
-            Render3D.renderLine(ctx, segment.start, segment.end, color, thickness = 5f)
+            ctx.renderLine(segment.start, segment.end, color, thickness = 5f)
         }
     }
 

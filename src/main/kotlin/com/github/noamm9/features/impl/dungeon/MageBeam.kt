@@ -11,7 +11,8 @@ import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderLine
+import com.github.noamm9.utils.render.Render3D.renderRainbowLine
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket
@@ -53,8 +54,8 @@ object MageBeam: Feature("Renders a fully custom, animated beam whenever a mage 
             for (beam in beams) {
                 if (beam.points.size < 6) continue
                 val alpha = if (fade.value) beam.anim.update(0f).let { beam.anim.value } else 1f
-                if (rainbow.value) Render3D.renderRainbowLine(event.ctx, beam.min, beam.max, lineWidth.value, alpha)
-                else Render3D.renderLine(event.ctx, beam.min, beam.max, color.value.withAlpha(alpha), lineWidth.value)
+                if (rainbow.value) event.ctx.renderRainbowLine(beam.min, beam.max, lineWidth.value, alpha)
+                else event.ctx.renderLine(beam.min, beam.max, color.value.withAlpha(alpha), lineWidth.value)
             }
         }
     }

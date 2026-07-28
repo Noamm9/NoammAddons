@@ -7,8 +7,8 @@ import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.network.protocol.game.ClientboundSetTimePacket
 
 object TickTimers: Feature("Shows various types of server tick timers for F7 boss fight.") {
@@ -52,7 +52,7 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
                 else -> return@hudElement 0f to 0f
             }
 
-            Render2D.drawCenteredString(ctx, textToRender, 0f, 0f)
+            ctx.drawCenteredString(textToRender, 0f, 0f)
             return@hudElement textToRender.width().toFloat() to 9F
         }
 

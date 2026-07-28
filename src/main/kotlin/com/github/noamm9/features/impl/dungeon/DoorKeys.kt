@@ -10,7 +10,8 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderBox
+import com.github.noamm9.utils.render.Render3D.renderTracer
 import com.github.noamm9.utils.render.RenderHelper.renderVec
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.entity.Entity
@@ -52,16 +53,13 @@ object DoorKeys: Feature("ESP box & Tracer for wither and blood doors.") {
                 //$ if (! player.hasLineOfSight(entity)) return@register
                 //#endif
 
-                Render3D.renderTracer(event.ctx, entity.renderVec.add(y = 1.7), color, 2)
-                Render3D.renderBox(
-                    event.ctx,
+                event.ctx.renderTracer(entity.renderVec.add(y = 1.7), color, 2)
+                event.ctx.renderBox(
                     entity.x,
                     entity.y + 1.2f,
                     entity.z,
-                    width = 0.8, height = 0.8,
-                    color,
-                    outline = true,
-                    fill = true,
+                    width = 0.8,
+                    height = 0.8, color,
                     phase = true,
                 )
             }

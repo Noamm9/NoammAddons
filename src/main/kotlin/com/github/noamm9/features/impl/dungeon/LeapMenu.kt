@@ -20,7 +20,12 @@ import com.github.noamm9.utils.dungeons.DungeonPlayer
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.dungeons.map.utils.MapUtils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawBorder
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render2D.drawFloatingRect
+import com.github.noamm9.utils.render.Render2D.drawPlayerHead
+import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.renderVec
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
@@ -114,7 +119,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
             updateLeapMenu()
 
             if (players.filterNotNull().isEmpty()) {
-                Render2D.drawCenteredString(event.context, "§4§lNo players found", Resolution.width / 2, Resolution.height / 2)
+                event.context.drawCenteredString("§4§lNo players found", Resolution.width / 2, Resolution.height / 2)
                 return@register
             }
 
@@ -160,21 +165,21 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
 
                 val bgColor = leapBoxColor(entry.player, isHovered)
 
-                Render2D.drawFloatingRect(event.context, x, y, boxWidth, boxHeight, bgColor.withAlpha(190))
+                event.context.drawFloatingRect(x, y, boxWidth, boxHeight, bgColor.withAlpha(190))
 
                 val headX = (x + 10).toInt()
                 val headY = (y + (boxHeight / 2) - headSize / 2).toInt()
 
-                Render2D.drawPlayerHead(event.context, headX, headY, headSize, entry.player.skin)
-                Render2D.drawBorder(event.context, headX, headY, headSize, headSize, entry.player.clazz.color)
+                event.context.drawPlayerHead(headX, headY, headSize, entry.player.skin)
+                event.context.drawBorder(headX, headY, headSize, headSize, entry.player.clazz.color)
 
                 val textX = (x + 10 + headSize + 5).toInt()
                 val textY = (y + boxHeight / 2 - mc.font.lineHeight).toInt()
 
-                Render2D.drawString(event.context, entry.player.name, textX, textY + 2, entry.player.clazz.color)
+                event.context.drawString(entry.player.name, textX, textY + 2, entry.player.clazz.color)
 
                 val status = if (entry.player.isDead) "§cDEAD" else entry.player.clazz.name
-                Render2D.drawString(event.context, status, textX, textY + 12, entry.player.clazz.color)
+                event.context.drawString(status, textX, textY + 12, entry.player.clazz.color)
             }
 
             pose.popMatrix()
@@ -319,7 +324,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
             if (mx in px - r .. px + r && my in py - r .. py + r) mapLeapHoveredIndex = i
         }
 
-        Render2D.drawRect(ctx, 0, 0, sw, sh, Color.BLACK.withAlpha(170))
+        ctx.drawRect(0, 0, sw, sh, Color.BLACK.withAlpha(170))
 
         val pose = ctx.pose()
         pose.pushMatrix()
@@ -331,7 +336,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
         mapLeapHoveredIndex?.let { idx ->
             players[idx]?.let { entry ->
                 val (px, py, r) = playerDot(entry.player)
-                Render2D.drawBorder(ctx, px - r, py - r, r * 2f, r * 2f, Color.WHITE, 2)
+                ctx.drawBorder(px - r, py - r, r * 2f, r * 2f, thickness = 2)
             }
         }
 

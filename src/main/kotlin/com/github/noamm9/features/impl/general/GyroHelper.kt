@@ -12,7 +12,8 @@ import com.github.noamm9.utils.MathUtils.toVec
 import com.github.noamm9.utils.Utils
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderBox
+import com.github.noamm9.utils.render.Render3D.renderCircle
 import net.minecraft.tags.BlockTags
 
 object GyroHelper: Feature("Renders a circle where your gyro will be located.", "Gyro Helper") {
@@ -34,10 +35,10 @@ object GyroHelper: Feature("Renders a circle where your gyro will be located.", 
 
             if (stateAtPos.isAir || (! stateAbove.isAir && ! stateAbove.`is`(BlockTags.WOOL_CARPETS))) return@register
 
-            if (drawBox.value) Render3D.renderBox(event.ctx, gyroPos.x + 0.5, gyroPos.y, gyroPos.z + 0.5, 1, 1, boxColor.value)
+            if (drawBox.value) event.ctx.renderBox(gyroPos.x + 0.5, gyroPos.y, gyroPos.z + 0.5, 1, 1, boxColor.value)
             if (drawRing.value) {
                 val center = gyroPos.add(0.5, 2.05, 0.5).toVec()
-                Render3D.renderCircle(event.ctx, center, 10.0, ringColor.value, lineWidth.value)
+                event.ctx.renderCircle(center, 10.0, ringColor.value, lineWidth.value)
             }
         }
     }

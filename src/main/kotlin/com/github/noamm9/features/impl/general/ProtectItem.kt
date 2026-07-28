@@ -16,7 +16,7 @@ import com.github.noamm9.utils.items.ItemUtils.itemUUID
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawString
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands
 import net.minecraft.network.chat.Component
@@ -113,7 +113,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
             if (getProtectType(stack) != ProtectType.None) {
                 val x = event.slot.x + 1
                 val y = event.slot.y + 1
-                Render2D.drawString(event.context, "§aP", x, y, scale = 0.75, shadow = true)
+                event.context.drawString("§aP", x, y, scale = 0.75)
             }
         }
     }

@@ -17,10 +17,12 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.items.ItemUtils.lore
-import com.github.noamm9.utils.render.GuiShapeRenderer
 import com.github.noamm9.utils.render.ItemRenderer
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.Render2D.drawAnnularSegment
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render2D.drawLine
+import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.utils.render.RenderHelper.width
 import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
@@ -143,7 +145,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
         val activePet = visiblePets.firstOrNull { slot -> slot.item.lore.any { it.removeFormatting().contains("Click to despawn!", ignoreCase = true) } }
         val selectedPet = hoveredIndex?.let(visiblePets::get) ?: activePet
 
-        Render2D.drawRect(ctx, 0, 0, Resolution.width, Resolution.height, Color.BLACK.withAlpha(150))
+        ctx.drawRect(0, 0, Resolution.width, Resolution.height, Color.BLACK.withAlpha(150))
 
         visiblePets.forEachIndexed { index, pet ->
             drawRingSegment(ctx, layout, index, segmentColor.value)
@@ -159,13 +161,11 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
         if (selectedPet != null) drawCenter(ctx, selectedPet, selectedPet === activePet, layout)
         ItemRenderer.endItemRendererBatch(ctx)
 
-        Render2D.drawCenteredString(
-            ctx,
+        ctx.drawCenteredString(
             "Pets ${wheelPage + 1}/$pages",
             layout.centerX,
             layout.centerY - layout.outerRadius - 19f,
-            Color.WHITE,
-            0.85f
+            scale = 0.85f
         )
 
         val buttonText = "Vanilla Menu"
@@ -178,16 +178,16 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
         val ry = Resolution.getMouseY(vanillaMouseY.toDouble())
         val hoveredButton = rx >= buttonX && rx <= buttonX + buttonWidth && ry >= buttonY && ry <= buttonY + buttonHeight
 
-        Render2D.drawRect(ctx, buttonX, buttonY, buttonWidth, buttonHeight, if (hoveredButton) hoverColor.value else segmentColor.value)
-        Render2D.drawCenteredString(ctx, buttonText, buttonX + buttonWidth / 2f, buttonY + buttonHeight / 2f - 3.5f)
+        ctx.drawRect(buttonX, buttonY, buttonWidth, buttonHeight, if (hoveredButton) hoverColor.value else segmentColor.value)
+        ctx.drawCenteredString(buttonText, buttonX + buttonWidth / 2f, buttonY + buttonHeight / 2f - 3.5f)
 
         Resolution.pop(ctx)
     }
 
     private fun drawRingSegment(ctx: GuiGraphicsExtractor, layout: WheelLayout, index: Int, color: Color) {
         val centerAngle = - PI / 2.0 + index * layout.segmentAngle
-        GuiShapeRenderer.drawAnnularSegment(
-            ctx, layout.centerX, layout.centerY, layout.innerRadius, layout.outerRadius,
+        ctx.drawAnnularSegment(
+            layout.centerX, layout.centerY, layout.innerRadius, layout.outerRadius,
             centerAngle - layout.segmentAngle / 2.0, centerAngle + layout.segmentAngle / 2.0, color
         )
     }
@@ -202,7 +202,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
             val innerY = layout.centerY + sinAngle * (layout.innerRadius - 1f)
             val outerX = layout.centerX + cosAngle * (layout.outerRadius + 1f)
             val outerY = layout.centerY + sinAngle * (layout.outerRadius + 1f)
-            Render2D.drawLine(ctx, innerX, innerY, outerX, outerY, separatorColor.value, 2f)
+            ctx.drawLine(innerX, innerY, outerX, outerY, separatorColor.value, 2f)
         }
     }
 
@@ -229,9 +229,9 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
             val keyWidth = keyName.width()
             val textScale = min(0.68f, 24f / keyWidth.coerceAtLeast(1))
             val badgeWidth = (keyWidth * textScale + 8f).coerceAtLeast(12f)
-            Render2D.drawRect(ctx, keyX - badgeWidth / 2f, keyY - 6, badgeWidth, 12, Color(15, 15, 15, 200))
-            if (hovered) Render2D.drawRect(ctx, keyX - badgeWidth / 2f, keyY - 6, badgeWidth, 12, hoverColor.value)
-            Render2D.drawCenteredString(ctx, keyName, keyX, keyY - 3.5f, Color.WHITE, textScale)
+            ctx.drawRect(keyX - badgeWidth / 2f, keyY - 6, badgeWidth, 12, Color(15, 15, 15, 200))
+            if (hovered) ctx.drawRect(keyX - badgeWidth / 2f, keyY - 6, badgeWidth, 12, hoverColor.value)
+            ctx.drawCenteredString(keyName, keyX, keyY - 3.5f, scale = textScale)
         }
     }
 
@@ -241,9 +241,8 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
         val centerIconScale = min(1.65f * 1.5f, layout.innerRadius * 0.62f / 16f)
         drawCenteredItem(ctx, selected.item, layout.centerX, layout.centerY - 14f * contentScale, centerIconScale)
 
-        fun drawText(text: String, y: Float, color: Color, maxScale: Float) = Render2D.drawCenteredString(
-            ctx, text, layout.centerX, y, color,
-            min(maxScale * contentScale, availableTextWidth / text.width().coerceAtLeast(1))
+        fun drawText(text: String, y: Float, color: Color, maxScale: Float) = ctx.drawCenteredString(
+            text, layout.centerX, y, color, min(maxScale * contentScale, availableTextWidth / text.width().coerceAtLeast(1))
         )
 
         val nameY = layout.centerY + 3f * contentScale

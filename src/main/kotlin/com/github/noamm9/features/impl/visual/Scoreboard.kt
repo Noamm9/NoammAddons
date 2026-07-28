@@ -7,7 +7,9 @@ import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.utils.render.Render2D.drawString
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.chat.Component
 import net.minecraft.network.protocol.game.*
@@ -43,17 +45,17 @@ object Scoreboard: Feature("Draws a custom scoreboard instead of the vanilla one
             val yOffset = - (boxHeight / 2)
             val padding = 8
 
-            Render2D.drawRect(ctx, xOffset, yOffset, boxWidth, boxHeight, Color(15, 15, 15, 190))
-            Render2D.drawRect(ctx, xOffset, yOffset, boxWidth, 2.0, Style.accentColor)
-            Render2D.drawRect(ctx, xOffset - 1, yOffset - 1, boxWidth + 2.0, boxHeight + 2.0, Color(255, 255, 255, 20))
+            ctx.drawRect(xOffset, yOffset, boxWidth, boxHeight, Color(15, 15, 15, 190))
+            ctx.drawRect(xOffset, yOffset, boxWidth, 2.0, Style.accentColor)
+            ctx.drawRect(xOffset - 1, yOffset - 1, boxWidth + 2.0, boxHeight + 2.0, Color(255, 255, 255, 20))
 
-            Render2D.drawCenteredString(ctx, cachedTitle, (xOffset + boxWidth / 2).toFloat(), (yOffset + padding).toFloat(), shadow = false)
+            ctx.drawCenteredString(cachedTitle, (xOffset + boxWidth / 2).toFloat(), (yOffset + padding).toFloat(), shadow = false)
 
             val startY = yOffset + padding + mc.font.lineHeight + 4
             val lineHeights = mc.font.lineHeight + 2
 
             cachedLines.forEachIndexed { index, text ->
-                Render2D.drawString(ctx, text, (xOffset + padding).toFloat(), (startY + (index * lineHeights)).toFloat())
+                ctx.drawString(text, (xOffset + padding).toFloat(), (startY + (index * lineHeights)).toFloat())
             }
 
             return cachedW to cachedH
@@ -76,9 +78,9 @@ object Scoreboard: Feature("Draws a custom scoreboard instead of the vanilla one
             val hovered = mx >= drawX && mx <= drawX + scaledW && my >= drawY && my <= drawY + scaledH
             val borderColor = if (isDragging || hovered) Style.accentColor else Color(255, 255, 255, 40)
 
-            Render2D.drawRect(ctx, drawX.toDouble(), drawY.toDouble(), scaledW.toDouble(), scaledH.toDouble(), Color(10, 10, 10, 150))
-            Render2D.drawRect(ctx, drawX.toDouble(), drawY.toDouble(), scaledW.toDouble(), 1.0, borderColor)
-            Render2D.drawRect(ctx, drawX.toDouble(), (drawY + scaledH - 1).toDouble(), scaledW.toDouble(), 1.0, borderColor)
+            ctx.drawRect(drawX.toDouble(), drawY.toDouble(), scaledW.toDouble(), scaledH.toDouble(), Color(10, 10, 10, 150))
+            ctx.drawRect(drawX.toDouble(), drawY.toDouble(), scaledW.toDouble(), 1.0, borderColor)
+            ctx.drawRect(drawX.toDouble(), (drawY + scaledH - 1).toDouble(), scaledW.toDouble(), 1.0, borderColor)
         }
     }
 

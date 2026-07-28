@@ -14,7 +14,8 @@ import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderBlock
+import com.github.noamm9.utils.render.Render3D.renderString
 import com.google.gson.JsonElement
 import com.mojang.serialization.JsonOps
 import kotlinx.coroutines.delay
@@ -83,13 +84,12 @@ object TestGround: ISelfInit {
             DungeonScanner.clayBlocksCorners.forEachIndexed { index, (dx, dz) ->
                 DungeonInfo.uniqueRooms.values.forEach { room ->
                     val centerr = BlockPos(room.mainRoom.x, room.highestBlock ?: ScanUtils.getHighestY(room.mainRoom.x, room.mainRoom.z), room.mainRoom.z)
-                    Render3D.renderBlock(
-                        event.ctx,
+                    event.ctx.renderBlock(
                         centerr.add(x = dx, z = dz),
                         (if (room.rotation?.div(90) == index) Color.GREEN else Color.red).withAlpha(60)
                     )
 
-                    Render3D.renderString("$index", centerr.x + dx + 0.5, centerr.y, centerr.z + dz + 0.5, phase = true, scale = 3)
+                    event.ctx.renderString("$index", centerr.x + dx + 0.5, centerr.y, centerr.z + dz + 0.5, scale = 3, phase = true)
                 }
             }
         }
@@ -130,6 +130,11 @@ object TestGround: ISelfInit {
             (mc.level?.getBlockEntity(pos) as? SkullBlockEntity)?.ownerProfile?.partialProfile()?.id.toString().let {
                 ChatUtils.modMessage("skullid: $it")
             }
+        }
+
+        EventBus.register<RenderOverlayEvent> {
+            if ("test" !in NoammAddons.debugFlags) return@register
+
         }
     }
 

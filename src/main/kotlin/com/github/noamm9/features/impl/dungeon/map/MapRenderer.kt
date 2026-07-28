@@ -18,7 +18,11 @@ import com.github.noamm9.utils.dungeons.map.handlers.ScoreCalculation
 import com.github.noamm9.utils.dungeons.map.utils.MapUtils
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawBorder
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render2D.drawPlayerHead
+import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.utils.render.Render2D.drawTexture
 import com.github.noamm9.utils.render.RenderHelper.renderVec
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.resources.Identifier
@@ -54,8 +58,8 @@ object MapRenderer: HudElement() {
         val width = 128
         val height = if (MapConfig.mapExtraInfo.value) 140f else 128f
 
-        Render2D.drawRect(ctx, 0, 0, width, height, MapConfig.mapBackground.value)
-        Render2D.drawBorder(ctx, 0, 0, width, height, MapConfig.mapBorderColor.value, MapConfig.mapBorderWidth.value)
+        ctx.drawRect(0, 0, width, height, MapConfig.mapBackground.value)
+        ctx.drawBorder(0, 0, width, height, MapConfig.mapBorderColor.value, MapConfig.mapBorderWidth.value)
     }
 
     private fun renderExtraInfo(ctx: GuiGraphicsExtractor) {
@@ -73,8 +77,8 @@ object MapRenderer: HudElement() {
         val line2 = "$scoreStr   $deathsStr   $mimicStr $princeStr"
 
         ctx.pose().translate(width / 2f, 128f)
-        Render2D.drawCenteredString(ctx, line1, 0f, - 4f, scale = 0.7f)
-        Render2D.drawCenteredString(ctx, line2, 0f, 2f, scale = 0.7f)
+        ctx.drawCenteredString(line1, 0f, - 4f, scale = 0.7f)
+        ctx.drawCenteredString(line2, 0f, 2f, scale = 0.7f)
     }
 
     private fun applyCheater() {
@@ -107,20 +111,18 @@ object MapRenderer: HudElement() {
 
             when {
                 xEven && yEven -> if (tile is Room) {
-                    Render2D.drawRect(
-                        ctx,
-                        xOffset, yOffset,
-                        MapUtils.mapRoomSize,
+                    ctx.drawRect(
+                        xOffset,
+                        yOffset, MapUtils.mapRoomSize,
                         MapUtils.mapRoomSize,
                         color
                     )
                 }
 
                 ! xEven && ! yEven -> {
-                    Render2D.drawRect(
-                        ctx,
-                        xOffset, yOffset,
-                        MapUtils.mapRoomSize + connectorSize,
+                    ctx.drawRect(
+                        xOffset,
+                        yOffset, MapUtils.mapRoomSize + connectorSize,
                         MapUtils.mapRoomSize + connectorSize,
                         color
                     )
@@ -199,18 +201,17 @@ object MapRenderer: HudElement() {
                     var currentY = cY - totalH / 2
 
                     for (line in unq.cacheSplitName) {
-                        Render2D.drawCenteredString(ctx, line, cX, currentY, color, scale)
+                        ctx.drawCenteredString(line, cX, currentY, color, scale)
                         currentY += totalH / totalLines
                     }
 
                     if (showSecrets) {
                         val secStr = "${unq.foundSecrets}/${room.data.secrets}"
-                        Render2D.drawCenteredString(ctx, secStr, cX, currentY, color, scale)
+                        ctx.drawCenteredString(secStr, cX, currentY, color, scale)
                     }
                 }
 
-                1 -> Render2D.drawCenteredString(
-                    ctx,
+                1 -> ctx.drawCenteredString(
                     if (room.data.secrets == 0) "0" else "${unq.foundSecrets}/${room.data.secrets}",
                     cX,
                     cY - mc.font.lineHeight / 2,
@@ -248,7 +249,7 @@ object MapRenderer: HudElement() {
             else -> return
         }
 
-        Render2D.drawTexture(ctx, checkmark, x, y, size, size)
+        ctx.drawTexture(checkmark, x, y, size, size)
     }
 
     private fun drawPlayerHead(ctx: GuiGraphicsExtractor, teammate: DungeonPlayer) {
@@ -277,11 +278,11 @@ object MapRenderer: HudElement() {
         ctx.pose().scale(MapConfig.playerHeadScale.value)
 
         if (MapConfig.mapVanillaMarker.value && teammate == DungeonListener.thePlayer) {
-            Render2D.drawTexture(ctx, ownPlayerMarker, - 6, - 6, 12, 12, MapConfig.mapVanillaMarkerColor.value)
+            ctx.drawTexture(ownPlayerMarker, - 6, - 6, 12, 12, MapConfig.mapVanillaMarkerColor.value)
         }
         else {
-            Render2D.drawBorder(ctx, - 7, - 7, 14, 14, borderColor)
-            Render2D.drawPlayerHead(ctx, - 6, - 6, 12, teammate.skin)
+            ctx.drawBorder(- 7, - 7, 14, 14, borderColor)
+            ctx.drawPlayerHead(- 6, - 6, 12, teammate.skin)
         }
 
         val heldItem = mc.player?.mainHandItem
@@ -293,7 +294,7 @@ object MapRenderer: HudElement() {
             ctx.pose().rotate(- headYaw)
             ctx.pose().translate(0f, 8f)
             ctx.pose().scale(MapConfig.playerNameScale.value)
-            Render2D.drawCenteredString(ctx, teammate.name, 0, 0, nameColor)
+            ctx.drawCenteredString(teammate.name, 0, 0, nameColor)
         }
 
         ctx.pose().popMatrix()
@@ -308,8 +309,7 @@ object MapRenderer: HudElement() {
         var y1 = if (vertical) y else y + MapUtils.mapRoomSize
         if (doorway) if (vertical) y1 += doorwayOffset else x1 += doorwayOffset
 
-        Render2D.drawRect(
-            matrices,
+        matrices.drawRect(
             x1.toDouble(),
             y1.toDouble(),
             (if (vertical) doorWidth else doorHeight).toDouble(),

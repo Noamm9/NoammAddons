@@ -8,7 +8,7 @@ import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderBlock
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.level.block.Blocks
@@ -54,12 +54,12 @@ object I4Helper: Feature(name = "I4 Helper") {
         register<RenderWorldEvent> {
             if (LocationUtils.P3Section != 4) return@register
             if (! isOnDev()) return@register reset()
-            if (target == prediction && target != null) target?.let { Render3D.renderBlock(event.ctx, it, targetColor.value) }
+            if (target == prediction && target != null) target?.let { event.ctx.renderBlock(it, targetColor.value) }
             else {
-                target?.let { Render3D.renderBlock(event.ctx, it, targetColor.value) }
-                prediction?.let { Render3D.renderBlock(event.ctx, it, predictionColor.value) }
+                target?.let { event.ctx.renderBlock(it, targetColor.value) }
+                prediction?.let { event.ctx.renderBlock(it, predictionColor.value) }
             }
-            doneCoords.forEach { Render3D.renderBlock(event.ctx, it, doneColor.value) }
+            doneCoords.forEach { event.ctx.renderBlock(it, doneColor.value) }
         }
 
         register<ChatMessageEvent> {

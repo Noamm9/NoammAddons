@@ -2,15 +2,15 @@ package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.*
+import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.impl.TextInputSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils
 import com.github.noamm9.utils.dungeons.map.handlers.ScoreCalculation
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.sounds.SoundEvents
 
@@ -48,7 +48,7 @@ object ScoreCalculator: Feature("Shows the score of the dungeon run.") {
             val text = if (demoMode) "&eScore: &a300"
             else "&eScore: " + ColorUtils.colorizeScore(ScoreCalculation.score)
 
-            Render2D.drawString(ctx, text, 0, 0)
+            ctx.drawString(text, 0, 0)
             return@hudElement text.width().toFloat() to 9f
         }
 

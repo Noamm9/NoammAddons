@@ -15,9 +15,10 @@ import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.WitherRelic
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render3D.renderBlock
+import com.github.noamm9.utils.render.Render3D.renderTracer
+import com.github.noamm9.utils.render.RenderHelper.width
 import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
@@ -105,7 +106,7 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
             val timeLeft = if (example) 25 else spawnTimerTicks - DungeonListener.currentTime
             val displayTime = (timeLeft / 20.0).toFixed(2)
             val color = DungeonListener.thePlayer?.clazz?.color ?: Color.WHITE
-            Render2D.drawCenteredString(ctx, displayTime, 0, 0, color)
+            ctx.drawCenteredString(displayTime, 0, 0, color)
             return@hudElement displayTime.width().toFloat() to 9f
         }
 
@@ -113,8 +114,8 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
             if (! relicBox.value) return@register
             if (LocationUtils.F7Phase != 5) return@register
             WitherRelic.fromName(player.inventory.getItem(8).hoverName.string)?.let {
-                Render3D.renderBlock(event.ctx, it.cauldronPos.toPos(), it.color, phase = true)
-                Render3D.renderTracer(event.ctx, it.cauldronPos.add(0.5, 0.5, 0.5), it.color)
+                event.ctx.renderBlock(it.cauldronPos.toPos(), it.color, phase = true)
+                event.ctx.renderTracer(it.cauldronPos.add(0.5, 0.5, 0.5), it.color)
             }
         }
 

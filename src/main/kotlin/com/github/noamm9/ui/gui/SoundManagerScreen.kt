@@ -9,7 +9,9 @@ import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.TextInputHandler
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.GuiUtils
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.spaceCaps
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
@@ -79,22 +81,22 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
             updateFilter(resetScroll = false)
         }
 
-        Render2D.drawRect(graphics, x, y, w, h, Color(20, 20, 20, 240))
-        Render2D.drawRect(graphics, x, y, SIDEBAR_HEIGHT, h, Color(15, 15, 15, 200))
-        Render2D.drawRect(graphics, x, y, w, 2f, Style.accentColor)
+        graphics.drawRect(x, y, w, h, Color(20, 20, 20, 240))
+        graphics.drawRect(x, y, SIDEBAR_HEIGHT, h, Color(15, 15, 15, 200))
+        graphics.drawRect(x, y, w, 2f, Style.accentColor)
 
-        Render2D.drawCenteredString(graphics, "§lSound Manager", x + ((w + SIDEBAR_HEIGHT) / 2), y + 8)
+        graphics.drawCenteredString("§lSound Manager", x + ((w + SIDEBAR_HEIGHT) / 2), y + 8)
 
         SoundCategory.entries.forEachIndexed { index, cat ->
             val catY = y + 30 + (index * 20)
             val isHovered = mX >= x && mX <= x + SIDEBAR_HEIGHT && mY >= catY && mY <= catY + 20
             val isSelected = selectedCategory == cat
 
-            if (isSelected) Render2D.drawRect(graphics, x, catY, SIDEBAR_HEIGHT, 20f, Style.accentColor.withAlpha(40))
-            if (isHovered && ! isSelected) Render2D.drawRect(graphics, x, catY, SIDEBAR_HEIGHT, 20f, Color(255, 255, 255, 10))
+            if (isSelected) graphics.drawRect(x, catY, SIDEBAR_HEIGHT, 20f, Style.accentColor.withAlpha(40))
+            if (isHovered && ! isSelected) graphics.drawRect(x, catY, SIDEBAR_HEIGHT, 20f, Color(255, 255, 255, 10))
 
             val color = if (isSelected) Style.accentColor else Color.GRAY
-            Render2D.drawString(graphics, cat.renderName, x + 10, catY + 6, color)
+            graphics.drawString(cat.renderName, x + 10, catY + 6, color)
         }
 
         val viewX = x + SIDEBAR_HEIGHT + 10
@@ -129,8 +131,8 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
 
             when (item) {
                 is Header -> {
-                    Render2D.drawRect(graphics, viewX, itemY, viewW, ENTRY_HEIGHT, Color(255, 255, 255, 5))
-                    Render2D.drawCenteredString(graphics, "§l${item.name}", viewX + viewW / 2, itemY + 9, Style.accentColor)
+                    graphics.drawRect(viewX, itemY, viewW, ENTRY_HEIGHT, Color(255, 255, 255, 5))
+                    graphics.drawCenteredString("§l${item.name}", viewX + viewW / 2, itemY + 9, Style.accentColor)
                 }
 
                 is Sound -> drawSoundRow(graphics, item, viewX, itemY, viewW, ENTRY_HEIGHT, mX, mY)
@@ -144,8 +146,8 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
             val thumbY = viewY + (- currentScroll / maxScroll) * (viewH - thumbHeight)
             val hovered = mX >= scrollbarX - 3f && mX <= scrollbarX + SCROLLBAR_WIDTH + 3f && mY >= viewY && mY <= viewY + viewH
 
-            Render2D.drawRect(graphics, scrollbarX, viewY, SCROLLBAR_WIDTH, viewH, Color(255, 255, 255, if (hovered) 24 else 15))
-            Render2D.drawRect(graphics, scrollbarX, thumbY, SCROLLBAR_WIDTH, thumbHeight, Style.accentColor.withAlpha(if (hovered || draggingScrollbar) 255 else 190))
+            graphics.drawRect(scrollbarX, viewY, SCROLLBAR_WIDTH, viewH, Color(255, 255, 255, if (hovered) 24 else 15))
+            graphics.drawRect(scrollbarX, thumbY, SCROLLBAR_WIDTH, thumbHeight, Style.accentColor.withAlpha(if (hovered || draggingScrollbar) 255 else 190))
         }
         else draggingScrollbar = false
 
@@ -166,21 +168,21 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
         val isHovered = mx >= x && mx <= x + w && my >= y && my <= y + h
         val playHovered = mx >= playX && mx <= playX + PLAY_SOUND_WIDTH && my >= y + 6f && my <= y + 21f
 
-        if (isHovered) Render2D.drawRect(ctx, x, y, w, h, Color(255, 255, 255, 15))
+        if (isHovered) ctx.drawRect(x, y, w, h, Color(255, 255, 255, 15))
 
         val maxNameWidth = (sliderX - x - 12f).toInt()
         val name = if (mc.font.width(sound.cleanName) <= maxNameWidth) sound.cleanName
         else mc.font.plainSubstrByWidth(sound.cleanName, maxNameWidth - mc.font.width("...")) + "..."
 
-        Render2D.drawString(ctx, name, x + 5f, y + 9f, Color.WHITE, shadow = true)
-        Render2D.drawRect(ctx, sliderX, y + 17f, SLIDER_WIDTH, 5f, Color(255, 255, 255, 24))
-        Render2D.drawRect(ctx, sliderX, y + 17f, SLIDER_WIDTH * progress, 5f, Style.accentColor)
-        Render2D.drawRect(ctx, sliderX + (SLIDER_WIDTH * progress) - 2f, y + 15f, 4f, 9f, Color.WHITE)
-        Render2D.drawRect(ctx, playX, y + 6f, PLAY_SOUND_WIDTH, 15f, if (playHovered) Style.accentColor.withAlpha(100) else Color(255, 255, 255, 18))
-        Render2D.drawCenteredString(ctx, "Play", playX + PLAY_SOUND_WIDTH / 2f, y + 10f, if (playHovered) Color.WHITE else Color.LIGHT_GRAY)
+        ctx.drawString(name, x + 5f, y + 9f)
+        ctx.drawRect(sliderX, y + 17f, SLIDER_WIDTH, 5f, Color(255, 255, 255, 24))
+        ctx.drawRect(sliderX, y + 17f, SLIDER_WIDTH * progress, 5f, Style.accentColor)
+        ctx.drawRect(sliderX + (SLIDER_WIDTH * progress) - 2f, y + 15f, 4f, 9f)
+        ctx.drawRect(playX, y + 6f, PLAY_SOUND_WIDTH, 15f, if (playHovered) Style.accentColor.withAlpha(100) else Color(255, 255, 255, 18))
+        ctx.drawCenteredString("Play", playX + PLAY_SOUND_WIDTH / 2f, y + 10f, if (playHovered) Color.WHITE else Color.LIGHT_GRAY)
 
         val valueText = "$volume%"
-        Render2D.drawString(ctx, valueText, sliderX + SLIDER_WIDTH - mc.font.width(valueText), y + 5f, Color.GRAY)
+        ctx.drawString(valueText, sliderX + SLIDER_WIDTH - mc.font.width(valueText), y + 5f, Color.GRAY)
     }
 
     private fun updateFilter(resetScroll: Boolean = true) {
@@ -289,9 +291,9 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
     private fun getScrollbarThumbHeight(totalHeight: Float, viewHeight: Float) = if (totalHeight <= viewHeight) viewHeight else ((viewHeight / totalHeight) * viewHeight).coerceAtLeast(28f)
 
     private fun drawSearch(ctx: GuiGraphicsExtractor, x: Float, y: Float, w: Float, h: Float, mx: Float, my: Float) {
-        Render2D.drawRect(ctx, x, y, w, h, Color(15, 15, 15, 200))
+        ctx.drawRect(x, y, w, h, Color(15, 15, 15, 200))
         val color = if (searchHandler.listening) Style.accentColor else Color(255, 255, 255, 30)
-        Render2D.drawRect(ctx, x, y + h - 1, w, 1f, color)
+        ctx.drawRect(x, y + h - 1, w, 1f, color)
 
         searchHandler.x = x
         searchHandler.y = y
@@ -299,7 +301,7 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
         searchHandler.height = h
 
         if (searchQuery.isEmpty() && ! searchHandler.listening) {
-            Render2D.drawCenteredString(ctx, "§8Search...", x + w / 2, y + 6)
+            ctx.drawCenteredString("§8Search...", x + w / 2, y + 6)
         }
         else searchHandler.draw(ctx, mx, my)
     }

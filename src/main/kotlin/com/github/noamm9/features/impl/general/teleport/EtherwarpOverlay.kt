@@ -10,7 +10,8 @@ import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.Utils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.EtherwarpHelper
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderBlock
+import com.github.noamm9.utils.render.Render3D.renderBox
 import java.awt.Color
 
 object EtherwarpOverlay: Feature() {
@@ -35,17 +36,15 @@ object EtherwarpOverlay: Feature() {
             if (! valid && ! showFail.value) return@register
             pos ?: return@register
 
-            if (fullBlock.value) Render3D.renderBox(event.ctx,
-                pos.x + 0.5, pos.y, pos.z + 0.5, 1.0001, 1.0001,
-                if (valid) outlineColor.value else invalidOutlineColor.value,
+            if (fullBlock.value) event.ctx.renderBox(pos.x + 0.5,
+                pos.y, pos.z + 0.5, 1.0001, 1.0001, if (valid) outlineColor.value else invalidOutlineColor.value,
                 if (valid) fillColor.value else invalidFillColor.value,
                 mode.value.equalsOneOf(0, 2),
                 mode.value.equalsOneOf(1, 2),
                 phase.value,
                 lineWidth.value
             )
-            else Render3D.renderBlock(event.ctx, pos,
-                if (valid) outlineColor.value else invalidOutlineColor.value,
+            else event.ctx.renderBlock(pos, if (valid) outlineColor.value else invalidOutlineColor.value,
                 if (valid) fillColor.value else invalidFillColor.value,
                 mode.value.equalsOneOf(0, 2),
                 mode.value.equalsOneOf(1, 2),

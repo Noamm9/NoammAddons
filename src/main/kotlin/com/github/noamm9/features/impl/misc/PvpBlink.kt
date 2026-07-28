@@ -10,7 +10,7 @@ import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderBox
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket
 import net.minecraft.network.protocol.game.ServerboundInteractPacket
@@ -30,10 +30,10 @@ object PvpBlink: Feature("Desyncs your connection to eat knockback or spoof posi
     private val sentQueue = ConcurrentLinkedQueue<Packet<*>>()
 
     private object ServerPlayer {
-        var x = 0.0;
-        var y = 0.0;
+        var x = 0.0
+        var y = 0.0
         var z = 0.0
-        var yaw = 0f;
+        var yaw = 0f
         var pitch = 0f
     }
 
@@ -87,7 +87,7 @@ object PvpBlink: Feature("Desyncs your connection to eat knockback or spoof posi
         register<RenderWorldEvent> {
             if (mc.singleplayerServer != null) return@register
             if (isBlinking) {
-                Render3D.renderBox(event.ctx, ServerPlayer.x, ServerPlayer.y, ServerPlayer.z, 0.6, 1.8, Color.RED.withAlpha(100))
+                event.ctx.renderBox(ServerPlayer.x, ServerPlayer.y, ServerPlayer.z, 0.6, 1.8, Color.RED.withAlpha(100))
             }
         }
 

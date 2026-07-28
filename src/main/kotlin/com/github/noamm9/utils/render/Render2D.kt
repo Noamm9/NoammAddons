@@ -5,46 +5,49 @@ import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.NumbersUtils.minus
 import com.github.noamm9.utils.NumbersUtils.plus
 import com.github.noamm9.utils.NumbersUtils.times
+import com.github.noamm9.utils.render.RenderHelper.width
+import com.mojang.blaze3d.vertex.VertexConsumer
 import net.minecraft.client.gui.GuiGraphicsExtractor
+import net.minecraft.client.gui.navigation.ScreenRectangle
+import net.minecraft.client.gui.render.TextureSetup
 import net.minecraft.client.renderer.RenderPipelines
+import net.minecraft.client.renderer.state.gui.GuiElementRenderState
 import net.minecraft.resources.Identifier
 import net.minecraft.world.inventory.Slot
-import net.minecraft.world.item.ItemStack
+import org.joml.Matrix3x2f
 import java.awt.Color
-import kotlin.math.atan2
-import kotlin.math.sqrt
+import kotlin.math.*
 
 
 object Render2D {
-    // todo fix slot being highlighted by more then 1 src
-    fun Slot.highlight(ctx: GuiGraphicsExtractor, color: Color) = drawRect(ctx, x, y, 16, 16, color)
+    // todo fix slot being highlighted by more than 1 src
+    fun Slot.highlight(ctx: GuiGraphicsExtractor, color: Color) = ctx.drawRect(x, y, 16, 16, color)
 
-    fun drawTexture(ctx: GuiGraphicsExtractor, texture: Identifier, x: Number, y: Number, width: Number, height: Number, color: Color = Color.WHITE) {
-        ctx.blit(RenderPipelines.GUI_TEXTURED, texture, x.toInt(), y.toInt(), 0f, 0f, width.toInt(), height.toInt(), width.toInt(), height.toInt(), color.rgb)
+    fun GuiGraphicsExtractor.drawTexture(texture: Identifier, x: Number, y: Number, width: Number, height: Number, color: Color = Color.WHITE) {
+        blit(RenderPipelines.GUI_TEXTURED, texture, x.toInt(), y.toInt(), 0f, 0f, width.toInt(), height.toInt(), width.toInt(), height.toInt(), color.rgb)
     }
 
-    fun drawRect(ctx: GuiGraphicsExtractor, x: Number, y: Number, width: Number, height: Number, color: Color = Color.WHITE) {
+    fun GuiGraphicsExtractor.drawRect(x: Number, y: Number, width: Number, height: Number, color: Color = Color.WHITE) {
         val fx = x.toFloat()
         val fy = y.toFloat()
         val fw = width.toFloat()
         val fh = height.toFloat()
-        val pose = ctx.pose()
 
-        pose.pushMatrix()
-        pose.translate(fx, fy)
-        pose.scale(fw, fh)
-        ctx.fill(0, 0, 1, 1, color.rgb)
-        pose.popMatrix()
+        pose().pushMatrix()
+        pose().translate(fx, fy)
+        pose().scale(fw, fh)
+        fill(0, 0, 1, 1, color.rgb)
+        pose().popMatrix()
     }
 
-    fun drawBorder(ctx: GuiGraphicsExtractor, x: Number, y: Number, width: Number, height: Number, color: Color = Color.WHITE, thickness: Number = 1) {
-        drawRect(ctx, x, y, width, thickness, color)
-        drawRect(ctx, x, y + height - thickness, width, thickness, color)
-        drawRect(ctx, x, y + thickness, thickness, height - thickness * 2, color)
-        drawRect(ctx, x + width - thickness, y + thickness, thickness, height - thickness * 2, color)
+    fun GuiGraphicsExtractor.drawBorder(x: Number, y: Number, width: Number, height: Number, color: Color = Color.WHITE, thickness: Number = 1) {
+        drawRect(x, y, width, thickness, color)
+        drawRect(x, y + height - thickness, width, thickness, color)
+        drawRect(x, y + thickness, thickness, height - thickness * 2, color)
+        drawRect(x + width - thickness, y + thickness, thickness, height - thickness * 2, color)
     }
 
-    fun drawLine(ctx: GuiGraphicsExtractor, x1: Number, y1: Number, x2: Number, y2: Number, color: Color, thickness: Number = 1) {
+    fun GuiGraphicsExtractor.drawLine(x1: Number, y1: Number, x2: Number, y2: Number, color: Color, thickness: Number = 1) {
         val fx1 = x1.toFloat()
         val fy1 = y1.toFloat()
         val fx2 = x2.toFloat()
@@ -56,46 +59,37 @@ object Render2D {
         val distance = sqrt(dx * dx + dy * dy)
         val angle = atan2(dy, dx)
 
-        val pose = ctx.pose()
-        pose.pushMatrix()
-        pose.translate(fx1, fy1)
-        pose.rotate(angle)
-        pose.translate(0f, - ft / 2f)
-        pose.scale(distance, ft)
+        pose().pushMatrix()
+        pose().translate(fx1, fy1)
+        pose().rotate(angle)
+        pose().translate(0f, - ft / 2f)
+        pose().scale(distance, ft)
 
-        ctx.fill(0, 0, 1, 1, color.rgb)
+        fill(0, 0, 1, 1, color.rgb)
 
-        pose.popMatrix()
+        pose().popMatrix()
     }
 
-    fun drawString(ctx: GuiGraphicsExtractor, str: String, x: Number, y: Number, color: Color = Color.WHITE, scale: Number = 1, shadow: Boolean = true) {
-        val pose = ctx.pose()
+    fun GuiGraphicsExtractor.drawString(str: String, x: Number, y: Number, color: Color = Color.WHITE, scale: Number = 1, shadow: Boolean = true) {
         val fx = x.toFloat()
         val fy = y.toFloat()
         val fScale = scale.toFloat()
 
-        pose.pushMatrix()
-        pose.translate(fx, fy)
-        if (fScale != 1f) pose.scale(fScale, fScale)
-        ctx.text(mc.font, str.addColor(), 0, 0, color.rgb, shadow)
-        pose.popMatrix()
+        pose().pushMatrix()
+        pose().translate(fx, fy)
+        if (fScale != 1f) pose().scale(fScale, fScale)
+        text(mc.font, str.addColor(), 0, 0, color.rgb, shadow)
+        pose().popMatrix()
     }
 
-    fun drawCenteredString(ctx: GuiGraphicsExtractor, str: String, x: Number, y: Number, color: Color = Color.WHITE, scale: Number = 1, shadow: Boolean = true) {
+    fun GuiGraphicsExtractor.drawCenteredString(str: String, x: Number, y: Number, color: Color = Color.WHITE, scale: Number = 1, shadow: Boolean = true) {
         val fScale = scale.toFloat()
-        val totalScaledWidth = with(Render2D) { str.width() } * fScale
+        val totalScaledWidth = str.width() * fScale
         val centerX = x.toFloat() - (totalScaledWidth / 2f)
-        drawString(ctx, str, centerX, y, color, scale, shadow)
+        drawString(str, centerX, y, color, scale, shadow)
     }
 
-    fun renderItem(context: GuiGraphicsExtractor, item: ItemStack, x: Number, y: Number) {
-        context.pose().pushMatrix()
-        context.pose().translate(x.toFloat(), y.toFloat())
-        context.item(item, 0, 0)
-        context.pose().popMatrix()
-    }
-
-    fun drawFloatingRect(graphics: GuiGraphicsExtractor, x: Number, y: Number, width: Number, height: Number, color: Color) {
+    fun GuiGraphicsExtractor.drawFloatingRect(x: Number, y: Number, width: Number, height: Number, color: Color) {
         val base = color.rgb
         val light = color.brighter().rgb
         val dark = color.darker().rgb
@@ -104,54 +98,90 @@ object Render2D {
         val iw = width.toInt()
         val ih = height.toInt()
 
-        graphics.fill(ix, iy, ix + 1, iy + ih, light)
-        graphics.fill(ix + 1, iy, ix + iw, iy + 1, light)
-        graphics.fill(ix + iw - 1, iy + 1, ix + iw, iy + ih, dark)
-        graphics.fill(ix + 1, iy + ih - 1, ix + iw - 1, iy + ih, dark)
-        graphics.fill(ix + 1, iy + 1, ix + iw - 1, iy + ih - 1, base)
+        fill(ix, iy, ix + 1, iy + ih, light)
+        fill(ix + 1, iy, ix + iw, iy + 1, light)
+        fill(ix + iw - 1, iy + 1, ix + iw, iy + ih, dark)
+        fill(ix + 1, iy + ih - 1, ix + iw - 1, iy + ih, dark)
+        fill(ix + 1, iy + 1, ix + iw - 1, iy + ih - 1, base)
     }
 
-    fun drawPlayerHead(context: GuiGraphicsExtractor, x: Int, y: Int, size: Int, skin: Identifier) {
-        context.blit(RenderPipelines.GUI_TEXTURED, skin, x, y, 8f, 8f, size, size, 8, 8, 64, 64, - 1)
-        context.blit(RenderPipelines.GUI_TEXTURED, skin, x, y, 40f, 8f, size, size, 8, 8, 64, 64, - 1)
+    fun GuiGraphicsExtractor.drawPlayerHead(x: Int, y: Int, size: Int, skin: Identifier) {
+        blit(RenderPipelines.GUI_TEXTURED, skin, x, y, 8f, 8f, size, size, 8, 8, 64, 64, - 1)
+        blit(RenderPipelines.GUI_TEXTURED, skin, x, y, 40f, 8f, size, size, 8, 8, 64, 64, - 1)
     }
-
-    fun String.width() = addColor().lineSequence().maxOf(mc.font::width)
-    fun String.height() = mc.font.lineHeight * (count { it == '\n' } + 1)
 
     /**
      * Draws a gradient from Color1 (Left) to Color2 (Right)
      */
-    fun drawHorizontalGradient(ctx: GuiGraphicsExtractor, x: Number, y: Number, width: Number, height: Number, color1: Color, color2: Color) {
-        val pose = ctx.pose()
+    fun GuiGraphicsExtractor.drawHorizontalGradient(x: Number, y: Number, width: Number, height: Number, color1: Color, color2: Color) {
         val fx = x.toFloat()
         val fy = y.toFloat()
         val fw = width.toFloat()
         val fh = height.toFloat()
         val angle = (- Math.PI / 2).toFloat() // -90 degrees
 
-        pose.pushMatrix()
-        pose.translate(fx, fy + fh)
-        pose.rotate(angle)
-        pose.scale(fh, fw)
-        ctx.fillGradient(0, 0, 1, 1, color1.rgb, color2.rgb)
-        pose.popMatrix()
+        pose().pushMatrix()
+        pose().translate(fx, fy + fh)
+        pose().rotate(angle)
+        pose().scale(fh, fw)
+        fillGradient(0, 0, 1, 1, color1.rgb, color2.rgb)
+        pose().popMatrix()
     }
 
     /**
      * Draws a gradient from Color1 (Top) to Color2 (Bottom)
      */
-    fun drawVerticalGradient(ctx: GuiGraphicsExtractor, x: Number, y: Number, width: Number, height: Number, color1: Color, color2: Color) {
-        val pose = ctx.pose()
+    fun GuiGraphicsExtractor.drawVerticalGradient(x: Number, y: Number, width: Number, height: Number, color1: Color, color2: Color) {
         val fx = x.toFloat()
         val fy = y.toFloat()
         val fw = width.toFloat()
         val fh = height.toFloat()
 
-        pose.pushMatrix()
-        pose.translate(fx, fy)
-        pose.scale(fw, fh)
-        ctx.fillGradient(0, 0, 1, 1, color1.rgb, color2.rgb)
-        pose.popMatrix()
+        pose().pushMatrix()
+        pose().translate(fx, fy)
+        pose().scale(fw, fh)
+        fillGradient(0, 0, 1, 1, color1.rgb, color2.rgb)
+        pose().popMatrix()
+    }
+
+    fun GuiGraphicsExtractor.drawAnnularSegment(centerX: Number, centerY: Number, innerRadius: Number, outerRadius: Number, startAngle: Number, endAngle: Number, color: Color) {
+        val fcenterX = centerX.toFloat()
+        val fcenterY = centerY.toFloat()
+        val finnerRadius = innerRadius.toFloat()
+        val fouterRadius = outerRadius.toFloat()
+        val dstartAngle = startAngle.toDouble()
+        val dendAngle = endAngle.toDouble()
+        val diameter = ceil(fouterRadius * 2f).toInt() + 2
+        val pose = Matrix3x2f(pose())
+
+        guiRenderState.addGuiElement(object: GuiElementRenderState {
+            override fun buildVertices(buffer: VertexConsumer) {
+                val steps = ceil((dendAngle - dstartAngle) * fouterRadius / 2.0).toInt().coerceAtLeast(1)
+                val step = (dendAngle - dstartAngle) / steps
+
+                repeat(steps) { index ->
+                    val angle1 = startAngle + index * step
+                    val angle2 = angle1 + step
+                    val cos1 = cos(angle1).toFloat()
+                    val sin1 = sin(angle1).toFloat()
+                    val cos2 = cos(angle2).toFloat()
+                    val sin2 = sin(angle2).toFloat()
+
+                    buffer.addVertexWith2DPose(pose, fcenterX + cos1 * fouterRadius, fcenterY + sin1 * fouterRadius).setColor(color.rgb)
+                    buffer.addVertexWith2DPose(pose, fcenterX + cos1 * finnerRadius, fcenterY + sin1 * finnerRadius).setColor(color.rgb)
+                    buffer.addVertexWith2DPose(pose, fcenterX + cos2 * finnerRadius, fcenterY + sin2 * finnerRadius).setColor(color.rgb)
+                    buffer.addVertexWith2DPose(pose, fcenterX + cos2 * fouterRadius, fcenterY + sin2 * fouterRadius).setColor(color.rgb)
+                }
+            }
+
+            override fun pipeline() = RenderPipelines.GUI
+            override fun textureSetup() = TextureSetup.noTexture()
+            override fun scissorArea() = null
+            override fun bounds() = ScreenRectangle(
+                floor(centerX - outerRadius).toInt() - 1,
+                floor(centerY - outerRadius).toInt() - 1,
+                diameter, diameter
+            ).transformMaxBounds(pose)
+        })
     }
 }

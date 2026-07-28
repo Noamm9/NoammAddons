@@ -3,8 +3,8 @@ package com.github.noamm9.features.impl.dev
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.ui.clickgui.components.impl.*
-import com.github.noamm9.utils.render.Render2D.height
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.RenderHelper.height
+import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.network.chat.Component
 import net.minecraft.sounds.SoundEvents
 import org.lwjgl.glfw.GLFW

@@ -2,7 +2,7 @@ package com.github.noamm9.features
 
 import com.github.noamm9.ui.clickgui.enums.CategoryType
 import com.github.noamm9.ui.hud.HudElement
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.RenderHelper.width
 
 object FeatureManager {
     val features = mutableSetOf<Feature>()

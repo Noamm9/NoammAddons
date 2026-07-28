@@ -12,10 +12,11 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.remove
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.height
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.highlight
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.RenderHelper.height
+import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.world.inventory.ContainerInput
@@ -48,7 +49,7 @@ object PetDisplay: Feature("Pet Features") {
             enabled = { petDisplay.value },
             shouldDraw = { LocationUtils.inSkyblock && cacheData.get()["pet"] != null }) { context, example ->
             val text = if (example) "&6Golden Dragon" else cacheData.get()["pet"].toString()
-            Render2D.drawString(context, text, 0, 0)
+            context.drawString(text, 0, 0)
             return@hudElement text.width().toFloat() to text.height().toFloat()
         }
 
@@ -59,7 +60,7 @@ object PetDisplay: Feature("Pet Features") {
             centered = true
         ) { context, example ->
             val text = if (example) "&6Golden Dragon" else autoPetTitle
-            Render2D.drawCenteredString(context, text, 0, 0)
+            context.drawCenteredString(text, 0, 0)
             return@hudElement text.width().toFloat() to text.height().toFloat()
         }.apply {
             scale = 2.5f

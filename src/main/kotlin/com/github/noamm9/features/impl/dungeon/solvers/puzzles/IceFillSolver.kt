@@ -7,7 +7,7 @@ import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.icefillColo
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderLine
 import com.github.noamm9.utils.render.RenderContext
 import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
@@ -149,11 +149,11 @@ object IceFillSolver: PuzzleSolver {
             path.forEachIndexed { index, pos ->
                 if (index > 0) {
                     val prev = path[index - 1]
-                    Render3D.renderLine(
-                        ctx,
+                    ctx.renderLine(
                         Vec3(prev.x + 0.5, prev.y + 0.01, prev.z + 0.5),
                         Vec3(pos.x + 0.5, pos.y + 0.01, pos.z + 0.5),
-                        color, thickness = 5f
+                        color,
+                        thickness = 5f
                     )
                 }
             }

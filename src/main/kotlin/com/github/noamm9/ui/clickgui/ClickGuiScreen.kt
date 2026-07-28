@@ -8,7 +8,8 @@ import com.github.noamm9.ui.clickgui.enums.WindowClickAction
 import com.github.noamm9.ui.utils.MouseHelper
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.TextInputHandler
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render2D.drawRect
 import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
@@ -72,10 +73,10 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
         val bx = (Resolution.width / 2) - (bw / 2)
         val by = Resolution.height - 40
 
-        Render2D.drawRect(context, bx, by, bw, bh, Color(15, 15, 15, 200))
+        context.drawRect(bx, by, bw, bh, Color(15, 15, 15, 200))
 
         val borderColor = if (searchHandler.listening) Style.accentColor else Color(255, 255, 255, 30)
-        Render2D.drawRect(context, bx, by + bh - 2, bw, 2f, borderColor)
+        context.drawRect(bx, by + bh - 2, bw, 2f, borderColor)
 
         searchHandler.x = bx
         searchHandler.y = by
@@ -83,7 +84,7 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
         searchHandler.height = bh
 
         if (searchQuery.isEmpty() && ! searchHandler.listening) {
-            Render2D.drawCenteredString(context, "§8Search...", Resolution.width / 2, by + 7, Color.GRAY, shadow = false)
+            context.drawCenteredString("§8Search...", Resolution.width / 2, by + 7, Color.GRAY, shadow = false)
         }
         else searchHandler.draw(context, mX, mY)
     }

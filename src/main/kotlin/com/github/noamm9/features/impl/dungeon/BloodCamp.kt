@@ -16,7 +16,9 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderBoxBounds
+import com.github.noamm9.utils.render.Render3D.renderLine
+import com.github.noamm9.utils.render.Render3D.renderString
 import com.github.noamm9.utils.render.RenderHelper.renderVec
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket
@@ -166,9 +168,9 @@ object BloodCamp: Feature("Features for Blood Room.") {
                 timerText = if (decimalPlaces.value > 0) timerText.toFixed(decimalPlaces.value)
                 else ceil(timerText.toDouble()).toInt().toString()
 
-                Render3D.renderBoxBounds(event.ctx, endAABB, if (ServerUtils.averagePing > time * 50) boxColor.value.invert() else boxColor.value, outline = true, fill = false, phase = true)
-                Render3D.renderLine(event.ctx, entity.renderVec.add(y = 2), endVector.add(y = 2), lineColor.value, phase = true)
-                Render3D.renderString(timerText, endVector.add(y = 2), scale = 2f, color = timerColor.value, phase = true)
+                event.ctx.renderBoxBounds(endAABB, if (ServerUtils.averagePing > time * 50) boxColor.value.invert() else boxColor.value, fill = false, phase = true)
+                event.ctx.renderLine(entity.renderVec.add(y = 2), endVector.add(y = 2), lineColor.value, phase = true)
+                event.ctx.renderString(timerText, endVector.add(y = 2), color = timerColor.value, scale = 2f, phase = true)
             }
         }
     }

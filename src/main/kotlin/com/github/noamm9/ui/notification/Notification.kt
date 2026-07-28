@@ -11,19 +11,4 @@ class Notification(val title: String, val message: String, val duration: Long) {
 
     val wrappedLines = mc.font.split(Component.literal(message), 150)
     val height = 22f + (wrappedLines.size * (mc.font.lineHeight + 1f)) + 4f
-
-    override fun equals(other: Any?): Boolean {
-        if (other == null) return false
-        if (other !is Notification) return false
-        if (other.title != title) return false
-        if (other.message != message) return false
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = duration.hashCode()
-        result = 31 * result + title.hashCode()
-        result = 31 * result + message.hashCode()
-        return result
-    }
 }
