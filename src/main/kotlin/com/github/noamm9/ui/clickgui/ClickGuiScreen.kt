@@ -49,7 +49,6 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
     }
 
     override fun extractRenderState(context: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
-        Resolution.refresh()
         Resolution.push(context)
         val mX = Resolution.getMouseX(mouseX.toDouble())
         val mY = Resolution.getMouseY(mouseY.toDouble())
@@ -189,8 +188,6 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
     }
 
     fun openFeatureWindow(feature: Feature, preferredX: Float? = null, preferredY: Float? = null) {
-        Resolution.refresh()
-
         configWindows.find { it.feature == feature }?.let {
             focusWindow(it)
             blurAllWindows(it)

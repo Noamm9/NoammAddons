@@ -82,7 +82,6 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
         register<ScreenEvent.PostRender> {
             if (mc.screen !is AbstractContainerScreen<*>) return@register
 
-            Resolution.refresh()
             Resolution.push(event.context)
             searchHud.renderElement(event.context, false)
             Resolution.pop(event.context)

@@ -9,7 +9,6 @@ import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.GsonUtils
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.PlayerUtils
-import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
@@ -22,11 +21,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
 import net.minecraft.core.component.DataComponentPatch
-import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.network.protocol.game.ClientboundSetTimePacket
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.resources.RegistryOps
-import net.minecraft.world.entity.ambient.Bat
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.entity.SkullBlockEntity
 import java.awt.Color
@@ -35,15 +32,14 @@ object TestGround: ISelfInit {
     private var lastServerTime = - 1L
     private var lastRealTime = - 1L
 
-    val experimental get() = NoammAddons.debugFlags.contains("tick")
+    val tick get() = NoammAddons.debugFlags.contains("tick")
     val rotation get() = NoammAddons.debugFlags.contains("rotation")
-    val bat get() = NoammAddons.debugFlags.contains("bat")
     val slot get() = NoammAddons.debugFlags.contains("slot")
     val sound get() = NoammAddons.debugFlags.contains("sound")
 
     override fun init() {
         EventBus.register<WorldChangeEvent> {
-            if (experimental) {
+            if (tick) {
                 lastServerTime = - 1
                 lastRealTime = - 1
             }
@@ -51,7 +47,7 @@ object TestGround: ISelfInit {
 
         EventBus.register<PacketEvent.Received> {
             if (event.packet is ClientboundSetTimePacket) {
-                if (! experimental) return@register
+                if (! tick) return@register
                 val newServerTime = event.packet.gameTime
                 val newRealTime = System.currentTimeMillis()
 
@@ -94,17 +90,6 @@ object TestGround: ISelfInit {
             }
         }
 
-        EventBus.register<MainThreadPacketReceivedEvent.Post> {
-            if (! bat) return@register
-            if (event.packet is ClientboundAddEntityPacket) {
-                val bat = mc.level?.getEntity(event.packet.id) as? Bat ?: return@register
-                val room = ScanUtils.getRoomFromPos(bat.position()) ?: return@register
-                ThreadUtils.scheduledTask(5) {
-                    ChatUtils.modMessage("bat hp: ${bat.maxHealth}. (${room.name})")
-                }
-            }
-        }
-
         EventBus.register<ContainerEvent.SlotClick> {
             if (! slot) return@register
             val stack = event.screen.menu.getSlot(event.slotId).item
@@ -130,11 +115,6 @@ object TestGround: ISelfInit {
             (mc.level?.getBlockEntity(pos) as? SkullBlockEntity)?.ownerProfile?.partialProfile()?.id.toString().let {
                 ChatUtils.modMessage("skullid: $it")
             }
-        }
-
-        EventBus.register<RenderOverlayEvent> {
-            if ("test" !in NoammAddons.debugFlags) return@register
-
         }
     }
 

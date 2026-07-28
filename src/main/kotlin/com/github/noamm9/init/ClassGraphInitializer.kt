@@ -77,7 +77,6 @@ class ClassGraphInitializer {
         register<RenderOverlayEvent> {
             if (mc.screen is HudEditorScreen) return@register
 
-            Resolution.refresh()
             Resolution.push(event.context)
             hudElements.forEach { if (it.shouldDraw) it.renderElement(event.context, false) }
             Resolution.pop(event.context)

@@ -102,7 +102,6 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
     override fun init() {
         super.init()
-        Resolution.refresh()
         val oldMax = maxScroll
         val scrollPct = if (oldMax > 0) scroll / oldMax else 0f
         pageWidthCount = StorageOverlay.columnsSetting.value.coerceAtMost((width - PADDING) / (PAGE_WIDTH + PADDING)).coerceAtLeast(1)
@@ -562,7 +561,6 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
     fun renderContainerOverlay(context: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
         val screen = containerScreen ?: return
-        Resolution.refresh()
         updateBounds()
         dragPreview = computeDragPreview()
         val prevHovered = hoveredOverlayItem
@@ -598,7 +596,6 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val shown = dragPreview?.let { carried.copyWithCount(it.carriedCount) } ?: carried
         if (shown.isEmpty) return true
 
-        Resolution.refresh()
         Resolution.push(context)
         val scale = StorageOverlay.scaleSetting.value
         context.pose().scale(scale)

@@ -1,5 +1,6 @@
 package com.github.noamm9.init
 
+import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.init.types.ICustomMenu
 import com.github.noamm9.utils.catch
 import net.fabricmc.loader.api.FabricLoader
@@ -18,5 +19,6 @@ object ModCompatibility {
         val blockStateCulling = config?.javaClass?.getDeclaredField("useBlockStateCulling")
         blockStateCulling?.isAccessible = true
         blockStateCulling?.setBoolean(config, false)
+        mc.levelRenderer.allChanged()
     }
 }

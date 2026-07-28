@@ -43,21 +43,14 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
     val tintDeadPlayers by ToggleSetting("Tint Dead Players", true).showIf { customLeapMenu.value }
 
     val mapLeap by ToggleSetting("Map Leap", false).withDescription("Click a teammate on the dungeon map to leap to them.").showIf { customLeapMenu.value && DungeonMap.enabled && MapConfig.mapEnabled.value }
-    val mapLeapAfterBlood by ToggleSetting("After Blood Only", false)
-        .withDescription("Use the regular leap menu until the Blood opens, then switch to Map Leap.")
-        .showIf { customLeapMenu.value && mapLeap.value }
+    val mapLeapAfterBlood by ToggleSetting("After Blood Only", false).withDescription("Use the regular leap menu until the Blood opens, then switch to Map Leap.").showIf { customLeapMenu.value && mapLeap.value }
     val mapLeapScale by SliderSetting("Map Leap Scale", 1.5f, 0.5f, 3f, 0.1f).showIf { customLeapMenu.value && mapLeap.value }
     val sorting by DropdownSetting("Leap Order", 0, arrayListOf("A-Z Class", "A-Z Name", "Odin Sorting", "Custom sorting", "No Sorting")).withDescription("How to sort the leap menu. /na leaporder to configure custom sorting.")
 
     val leapKeybinds by ToggleSetting("Leap Keybinds").showIf { customLeapMenu.value }.section("Leap Keybinds")
     val keybindMode by DropdownSetting("Mode", 0, listOf("Corners", "Class")).showIf { leapKeybinds.value }
-
-    val keybindKeys = (0 until 4).map { i ->
-        KeybindSetting("Slot ${1 + i}", GLFW.GLFW_KEY_1 + i).showIf { leapKeybinds.value && keybindMode.value == 0 }.apply(configSettings::add)
-    }
-    val classesKeys = DungeonClass.entries.dropLast(1).map {
-        KeybindSetting(it.name.lowercase().uppercaseFirst(), GLFW.GLFW_KEY_UNKNOWN).showIf { leapKeybinds.value && keybindMode.value == 1 }.apply(configSettings::add)
-    }
+    val keybindKeys = (0 until 4).map { i -> KeybindSetting("Slot ${1 + i}", GLFW.GLFW_KEY_1 + i).showIf { leapKeybinds.value && keybindMode.value == 0 }.apply(configSettings::add) }
+    val classesKeys = DungeonClass.entries.dropLast(1).map { KeybindSetting(it.name.lowercase().uppercaseFirst(), GLFW.GLFW_KEY_UNKNOWN).showIf { leapKeybinds.value && keybindMode.value == 1 }.apply(configSettings::add) }
 
     private val announceSpiritLeaps by ToggleSetting("Announce Leap", true).section("Extras")
     private val leapMsg by TextInputSetting("Leap Message", "ILY ❤ {name}").withDescription("replaces {name} with the player name").showIf { announceSpiritLeaps.value }
@@ -128,7 +121,6 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
                 return@register
             }
 
-            Resolution.refresh()
             Resolution.push(event.context)
             val userScale = (scale.value.toFloat() / 100f) * 2.0f
             val screenWidth = Resolution.width / userScale
@@ -296,7 +288,6 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
     }
 
     private fun renderMapLeap(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
-        Resolution.refresh()
         Resolution.push(ctx)
 
         val sw = Resolution.width

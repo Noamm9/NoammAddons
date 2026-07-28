@@ -67,7 +67,6 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
     }
 
     override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
-        Resolution.refresh()
         Resolution.push(graphics)
 
         val mX = Resolution.getMouseX(mouseX).toFloat()

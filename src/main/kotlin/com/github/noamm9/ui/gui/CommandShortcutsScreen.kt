@@ -55,7 +55,6 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
     private inline fun deleteX(x: Float) = x + viewW - deleteWidth - 2
 
     override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
-        Resolution.refresh()
         Resolution.push(graphics)
 
         val mX = Resolution.getMouseX(mouseX).toFloat()

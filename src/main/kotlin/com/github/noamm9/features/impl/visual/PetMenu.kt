@@ -131,7 +131,6 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
     }
 
     private fun renderWheel(ctx: GuiGraphicsExtractor, screen: AbstractContainerScreen<*>, vanillaMouseX: Int, vanillaMouseY: Int) {
-        Resolution.refresh()
         Resolution.push(ctx)
 
         val pets = petSlots(screen)

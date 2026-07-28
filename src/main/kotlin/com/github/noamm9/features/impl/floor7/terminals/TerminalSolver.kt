@@ -124,7 +124,6 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
             if (! solverActive(termType)) return@register
             event.isCanceled = true
 
-            Resolution.refresh()
             Resolution.push(event.context)
 
             val invWalk = fakeInwalk(termType)
