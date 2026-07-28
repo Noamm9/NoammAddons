@@ -39,9 +39,12 @@ object MapConfig: SettingProvider {
 
     //#if CHEAT
     val highlightMimicRoom = ToggleSetting("Highlight Mimic Room", true)
+    val mimicEsp = ToggleSetting("Mimic ESP")
     //#else
     //$val highlightMimicRoom = ToggleSetting("Highlight Mimic Room Legit", false).hideIf { true }
+    //$val mimicEsp = ToggleSetting("Mimic ESP Legit", false).hideIf { true }
     //#endif
+    val mimicEspColor = ColorSetting("Mimic ESP Color", Color(255, 0, 0, 50), true).showIf { mimicEsp.value }
 
     val mapPlayerHeadColor = ColorSetting("Head Border", Color(0, 0, 0), true).section("Colors")
     val mapVanillaMarkerColor = ColorSetting("Vanilla Head Marker", Color(0, 255, 0), true)
@@ -78,6 +81,7 @@ object MapConfig: SettingProvider {
             checkmarkSize, playerHeadScale, playerNameScale, mapBackground,
             mapBorderColor, mapBorderWidth, dungeonMapCheckmarkStyle, centerStyle,
             hideQuestionCheckmarks, limitRoomNameSize, highlightMimicRoom,
+            mimicEsp, mimicEspColor,
             mapPlayerHeadColor, mapVanillaMarkerColor, mapPlayerHeadColorClassBased,
             mapPlayerNameClassColorBased, colorBlood, colorEntrance, colorFairy,
             colorMiniboss, colorRoom, colorPuzzle, colorMimic, colorRare, colorTrap,
