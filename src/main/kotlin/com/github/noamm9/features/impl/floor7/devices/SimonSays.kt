@@ -16,7 +16,8 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderBoxBounds
+import com.github.noamm9.utils.render.Render3D.renderString
 import com.github.noamm9.utils.render.RenderContext
 import net.minecraft.core.BlockPos
 import net.minecraft.sounds.SoundEvents
@@ -121,8 +122,8 @@ object SimonSays: Feature("Simon Says Solver") {
                     else -> color3
                 }.value
 
-                renderSSBox(event.ctx, buttonPos, color)
-                if (NoammAddons.debugFlags.contains("ss")) Render3D.renderString("$id", buttonPos.toVec().add(x = 0.8, y = 0.6, z = 0.5), phase = true)
+                event.ctx.renderSSBox(buttonPos, color)
+                if (NoammAddons.debugFlags.contains("ss")) event.ctx.renderString("$id", buttonPos.toVec().add(x = 0.8, y = 0.6, z = 0.5), phase = true)
             }
         }
 
@@ -137,7 +138,7 @@ object SimonSays: Feature("Simon Says Solver") {
             val expected = solution.firstOrNull() ?: return
 
             if (clickedPos != expected.button) {
-                if (blockWrongClicks.value && ! mc.player !!.isCrouching) return event.cancel()
+                if (blockWrongClicks.value && ! player.isCrouching) return event.cancel()
 
                 if (solution.size == 3 && clickedPos == solution[1].button) {
                     for (i in 1 downTo 0) solution.removeAt(i)
@@ -199,7 +200,7 @@ object SimonSays: Feature("Simon Says Solver") {
         wasBroken = true
 
         if (sendChat.value) ChatUtils.sendCommand("pc SS Broke!")
-        if (alertSound.value) ThreadUtils.scheduledTask { mc.player?.playSound(SoundEvents.ANVIL_LAND, 5f, 0f) }
+        if (alertSound.value) ThreadUtils.scheduledTask { player.playSound(SoundEvents.ANVIL_LAND, 5f, 0f) }
         if (showTitle.value) ChatUtils.showTitle("§c§l§nSS BROKE!")
 
         resetSolver()
@@ -218,16 +219,15 @@ object SimonSays: Feature("Simon Says Solver") {
         wasBroken = false
     }
 
-    private fun renderSSBox(ctx: RenderContext, pos: BlockPos, color: Color) {
-        val state = mc.level?.getBlockState(pos)
-        var depth = if (state?.block == Blocks.STONE_BUTTON && state.getValue(ButtonBlock.POWERED)) 1.0 else 2.0
+    private fun RenderContext.renderSSBox(pos: BlockPos, color: Color) {
+        val state = level.getBlockState(pos)
+        var depth = if (state.block == Blocks.STONE_BUTTON && state.getValue(ButtonBlock.POWERED)) 1.0 else 2.0
         depth /= 16
 
-        Render3D.renderBoxBounds(
-            ctx,
-            pos.x + 1 - depth, pos.y + 0.375, pos.z + 0.3125,
-            pos.x + 1.0, pos.y + 0.625, pos.z + 0.6875,
-            color,
+        renderBoxBounds(
+            pos.x + 1 - depth,
+            pos.y + 0.375, pos.z + 0.3125, pos.x + 1.0,
+            pos.y + 0.625, pos.z + 0.6875, color,
             outline = outline.value,
             phase = phase.value
         )

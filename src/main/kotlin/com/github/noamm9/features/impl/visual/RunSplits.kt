@@ -12,8 +12,8 @@ import com.github.noamm9.utils.dungeons.DungeonListener.DualTime
 import com.github.noamm9.utils.dungeons.DungeonListener.DualTime.Companion.minus
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.RenderHelper.width
 import java.util.concurrent.*
 
 object RunSplits: Feature("A Splits HUD for Dungeons.") {
@@ -55,7 +55,7 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
 
             for (i in text.indices) {
                 val line = text[i]
-                Render2D.drawString(ctx, line, 0, currentY)
+                ctx.drawString(line, 0, currentY)
                 width = maxOf(width, line.width().toFloat())
                 currentY += 9f
             }

@@ -54,8 +54,8 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
             if (LocationUtils.dungeonFloorNumber == 7 && LocationUtils.inBoss) return@register
             if (ActionBarParser.currentMana < ActionBarParser.maxMana * 0.1) return@register
             if (ScanUtils.currentRoom?.data?.name.equalsOneOf("New Trap", "Old Trap", "Teleport Maze", "Boulder")) return@register
-            if (mc.player !!.isPassenger) return@register
-            val tpInfo = getTeleportInfo(mc.player !!.getItemInHand(packet.hand)) ?: return@register
+            if (player.isPassenger) return@register
+            val tpInfo = getTeleportInfo(player.getItemInHand(packet.hand)) ?: return@register
 
             when (tpInfo.type) {
                 TeleportType.Etherwarp -> doZeroPingEtherwarp(tpInfo, packet.yRot, packet.xRot)
@@ -67,8 +67,6 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
         register<MainThreadPacketReceivedEvent.Pre> {
             val packet = event.packet as? ClientboundPlayerPositionPacket ?: return@register
             if (pendingTeleports.isEmpty()) return@register
-            val player = mc.player ?: return@register
-
             pendingTeleports.removeFirst()
 
             val old = PositionMoveRotation.of(player)
@@ -98,7 +96,6 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
     @JvmStatic
     fun cameraHook(instance: Camera, x: Double, y: Double, z: Double, original: Operation<Void>): Void? {
         if (! enabled) return original.call(instance, x, y, z)
-        val player = mc.player ?: return original.call(instance, x, y, z)
 
         val config = zeroPingCamera.value.values.toList()
         val simulation = pendingTeleports.lastOrNull() ?: return original.call(instance, x, y, z)
@@ -115,7 +112,7 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
     }
 
     private fun doZeroPingEtherwarp(tpInfo: TeleportInfo, yaw: Float? = null, pitch: Float? = null) {
-        val player = mc.player as ILocalPlayer
+        val player = player as ILocalPlayer
 
         val playerPos = pendingTeleports.lastOrNull()?.position ?: player.let { Vec3(it.serverX, it.serverY, it.serverZ) }
         val etherPos = EtherwarpHelper.getEtherPos(playerPos, MathUtils.getLookVec(yaw ?: player.serverYaw, pitch ?: player.serverPitch), tpInfo.distance)
@@ -128,7 +125,7 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
     }
 
     private fun doZeroPingInstantTransmission(tpInfo: TeleportInfo, yaw: Float? = null, pitch: Float? = null) {
-        val player = mc.player as ILocalPlayer
+        val player = player as ILocalPlayer
 
         val playerPos = pendingTeleports.lastOrNull()?.position ?: Vec3(player.serverX, player.serverY, player.serverZ)
         val pos = InstantTransmissionHelper.predictTeleport(tpInfo.distance, playerPos, yaw ?: player.serverYaw, pitch ?: player.serverPitch) ?: return
@@ -145,7 +142,7 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
 
     private fun getTeleportInfo(stack: ItemStack?): TeleportInfo? {
         if (stack == null || stack.isEmpty) return null
-        val player = mc.player as ILocalPlayer
+        val player = player as ILocalPlayer
         val sbId = stack.skyblockId
         val nbt = stack.customData
 

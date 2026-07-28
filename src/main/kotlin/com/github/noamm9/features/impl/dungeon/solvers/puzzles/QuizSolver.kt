@@ -12,7 +12,7 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderBlock
 import com.github.noamm9.utils.render.RenderContext
 import com.github.noamm9.utils.startsWithOneOf
 import net.minecraft.core.BlockPos
@@ -134,7 +134,7 @@ object QuizSolver: PuzzleSolver {
         if (! inQuiz || triviaAnswers == null) return
         triviaOptions.forEach { answer ->
             if (! answer.isCorrect) return@forEach
-            Render3D.renderBlock(ctx, answer.blockPos, PuzzleSolvers.answerColor.value, phase = true)
+            ctx.renderBlock(answer.blockPos, PuzzleSolvers.answerColor.value, phase = true)
         }
     }
 

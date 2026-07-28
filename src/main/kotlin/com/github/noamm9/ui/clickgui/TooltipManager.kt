@@ -3,7 +3,7 @@ package com.github.noamm9.ui.clickgui
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.utils.ChatUtils.addColor
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawRect
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.chat.Component
 import java.awt.Color
@@ -47,8 +47,8 @@ object TooltipManager {
         if (tx + textWidth + (padding * 2) > logicalWidth) tx = lastMouseX - textWidth - (padding * 2) - 4f
         if (ty + textHeight + (padding * 2) > logicalHeight) ty = logicalHeight - textHeight - (padding * 2) - 4f
 
-        Render2D.drawRect(context, tx, ty, textWidth + (padding * 2f), textHeight + (padding * 2f), Color(10, 10, 10, 240))
-        Render2D.drawRect(context, tx, ty, textWidth + (padding * 2f), 1.5f, Style.accentColor)
+        context.drawRect(tx, ty, textWidth + (padding * 2f), textHeight + (padding * 2f), Color(10, 10, 10, 240))
+        context.drawRect(tx, ty, textWidth + (padding * 2f), 1.5f, Style.accentColor)
 
         var currentY = ty + padding
         lines.forEach { line ->

@@ -14,9 +14,9 @@ import com.github.noamm9.utils.Utils.send
 import com.github.noamm9.utils.dungeons.enums.SecretType
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.Render3D.renderBlock
+import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
@@ -61,7 +61,7 @@ object Secrets: Feature() {
                 "&7Secrets: ${ColorUtils.colorCodeByPercent(current, max)}$current&7/&a$max"
             }
 
-            Render2D.drawString(ctx, line, 0, 0)
+            ctx.drawString(line, 0, 0)
             return@hudElement line.width().toFloat() to 9f
         }
 
@@ -81,9 +81,8 @@ object Secrets: Feature() {
             if (clicked.isEmpty()) return@register
             clicked.removeIf { it.time + (displayTime.value * 1000) < System.currentTimeMillis() }
             clicked.takeUnless { it.isEmpty() }?.forEach {
-                Render3D.renderBlock(
-                    event.ctx, it.pos,
-                    secretClickedColor.value,
+                event.ctx.renderBlock(
+                    it.pos, secretClickedColor.value,
                     outline = mode.value.equalsOneOf(1, 2),
                     fill = mode.value.equalsOneOf(0, 2),
                     phase = phase.value

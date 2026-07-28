@@ -12,8 +12,8 @@ import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.lore
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.RenderHelper.width
 import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
@@ -22,7 +22,6 @@ import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.item.ItemStack
 import org.lwjgl.glfw.GLFW
-import java.awt.Color
 
 object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to your keyboard.") {
     private val loadoutMenuRegex = Regex("""^\(\d+/\d+\) Loadouts$""", RegexOption.IGNORE_CASE)
@@ -79,7 +78,7 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
             if (! packet.title.unformattedText.matches(loadoutMenuRegex)) return@register
 
             pendingAutoClose = false
-            mc.player?.closeContainer()
+            player.closeContainer()
         }
 
         register<ContainerEvent.Keyboard> {
@@ -110,11 +109,11 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
             val keyName = if (! useHotbarBinds.value) keybinds.getOrNull(index)?.displayName()
             else (mc.options.keyHotbarSlots.getOrNull(index) as? IKeyMapping)?.key?.displayName?.string?.uppercase()
             if (keyName == null) return@register
-            
+
             val scale = 0.75f
             val x = event.slot.x + 16f - keyName.width() * scale
             val y = event.slot.y + 16f - mc.font.lineHeight * scale
-            Render2D.drawString(event.context, keyName, x, y, Color.WHITE, scale)
+            event.context.drawString(keyName, x, y, scale = scale)
         }
 
         register<ContainerEvent.SlotClick> {
@@ -122,12 +121,12 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
             if (event.button != 0 || event.clickType != ContainerInput.PICKUP) return@register
             if (event.slotId !in keyMap.values || ! isSlotEquipable(event.slotId)) return@register
 
-            equipSoundSettings.play.action.invoke()
+            equipSoundSettings.action.invoke()
         }
     }
 
     private fun handleKeybind(index: Int) {
-        val slot = keyMap[index]?.takeUnless { mc.player !!.containerMenu.getSlot(it).item == ItemStack.EMPTY } ?: return
+        val slot = keyMap[index]?.takeUnless { player.containerMenu.getSlot(it).item == ItemStack.EMPTY } ?: return
 
         if (! isSlotEquipable(slot)) return
 
@@ -137,14 +136,10 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
         if (closeAfterUse.value) closeAfterReopen()
     }
 
-    private fun isSlotEquipable(slot: Int): Boolean {
-        return mc.player?.containerMenu?.slots?.get(slot)?.item?.lore?.any {
-            it.contains("Left-click to equip!", ignoreCase = true)
-        } ?: false
-    }
+    private fun isSlotEquipable(slot: Int) = player.containerMenu.slots[slot].item.lore.any { it.contains("Left-click to equip!", ignoreCase = true) }
 
     fun closeAfterReopen() {
-        mc.player?.closeContainer()
+        player.closeContainer()
         ThreadUtils.setTimeout(3000) { pendingAutoClose = false }
         pendingAutoClose = true
     }

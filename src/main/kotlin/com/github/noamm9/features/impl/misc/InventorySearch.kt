@@ -15,7 +15,8 @@ import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.items.ItemUtils.lore
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.highlight
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.input.MouseButtonEvent
@@ -64,11 +65,11 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
             val localMouseX = (Resolution.getMouseX() - searchHud.x) / searchHud.scale
             val localMouseY = (Resolution.getMouseY() - searchHud.y) / searchHud.scale
 
-            Render2D.drawRect(context, - WIDTH / 2, 0f, WIDTH, HEIGHT, Color(15, 15, 15, 200))
+            context.drawRect(- WIDTH / 2, 0f, WIDTH, HEIGHT, Color(15, 15, 15, 200))
             val color = if (searchHandler.listening) Style.accentColor else Color(255, 255, 255, 30)
-            Render2D.drawRect(context, - WIDTH / 2, HEIGHT - 1, WIDTH, 1f, color)
+            context.drawRect(- WIDTH / 2, HEIGHT - 1, WIDTH, 1f, color)
 
-            if (example || searchQuery.isEmpty() && ! searchHandler.listening) Render2D.drawCenteredString(context, "§8Search...", 0f, 6f)
+            if (example || searchQuery.isEmpty() && ! searchHandler.listening) context.drawCenteredString("§8Search...", 0f, 6f)
             else if (expressionResult != null) searchHandler.draw(context, localMouseX, localMouseY, " = §e${NumbersUtils.formatComma(expressionResult)}")
             else searchHandler.draw(context, localMouseX, localMouseY)
 
@@ -81,7 +82,6 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
         register<ScreenEvent.PostRender> {
             if (mc.screen !is AbstractContainerScreen<*>) return@register
 
-            Resolution.refresh()
             Resolution.push(event.context)
             searchHud.renderElement(event.context, false)
             Resolution.pop(event.context)

@@ -18,8 +18,8 @@ import com.github.noamm9.utils.items.ItemRarity
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.network.ProfileUtils
 import com.github.noamm9.utils.network.cache.ProfileCache
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.RenderHelper.width
 import com.mojang.brigadier.arguments.StringArgumentType
 import kotlinx.coroutines.launch
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
@@ -90,7 +90,7 @@ object PartyFinder: Feature() {
 
             if (levelRequired != 0) {
                 val str = "&c$levelRequired"
-                Render2D.drawString(event.context, str, 16f - str.width() * 0.6f, 0f, scale = 0.6f)
+                event.context.drawString(str, 16f - str.width() * 0.6f, 0f, scale = 0.6f)
             }
 
             if (showMissingOverlay.value) {
@@ -101,8 +101,7 @@ object PartyFinder: Feature() {
                 ).filter { it.isNotBlank() }
 
                 for ((i, line) in missing.withIndex()) {
-                    Render2D.drawString(
-                        event.context,
+                    event.context.drawString(
                         line,
                         0,
                         10f - if (i == 1) 6f else 0f,

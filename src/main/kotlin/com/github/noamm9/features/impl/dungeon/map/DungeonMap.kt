@@ -16,7 +16,7 @@ import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.handlers.*
 import com.github.noamm9.utils.dungeons.map.utils.MapUtils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderBox
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket
 
@@ -38,9 +38,9 @@ object DungeonMap: Feature() {
         hudElements.add(MapRenderer)
 
         register<TickEvent.Start> {
-            if (! LocationUtils.inDungeon || mc.player == null) return@register
+            if (! LocationUtils.inDungeon) return@register
 
-            if (DungeonScanner.shouldScan && WorldUtils.isChunkLoaded(mc.player !!.x.toInt(), mc.player !!.z.toInt())) {
+            if (DungeonScanner.shouldScan && WorldUtils.isChunkLoaded(player.x, player.z)) {
                 DungeonScanner.scan()
             }
 
@@ -58,7 +58,7 @@ object DungeonMap: Feature() {
             val packet = event.packet as? ClientboundMapItemDataPacket ?: return@register
             val mapId = PlayerUtils.getHotbarSlot(8)?.get(DataComponents.MAP_ID) ?: packet.mapId
 
-            DungeonInfo.mapData = mc.level?.getMapData(mapId)
+            DungeonInfo.mapData = level.getMapData(mapId)
 
             if (! MapUtils.calibrated) MapUtils.calibrated = MapUtils.calibrateMap()
 
@@ -93,13 +93,10 @@ object DungeonMap: Feature() {
 
                 if (shouldHideUndiscovered && tile.state == RoomState.UNDISCOVERED && ! isFairy) continue
 
-                Render3D.renderBox(
-                    event.ctx,
-                    tile.x + 0.5, 69.0, tile.z + 0.5,
-                    3, 4, color,
-                    outline = true,
-                    fill = true,
-                    phase = true
+                event.ctx.renderBox(
+                    tile.x + 0.5,
+                    69.0, tile.z + 0.5, 3,
+                    4, color, phase = true
                 )
             }
         }

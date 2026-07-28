@@ -4,6 +4,7 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
 import com.github.noamm9.features.impl.dungeon.LeapMenu
+import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.mixin.IKeyMapping
 import com.github.noamm9.ui.utils.Animation.Companion.easeInOutCubic
 import com.github.noamm9.utils.ActionUtils.waitTicks
@@ -33,7 +34,7 @@ import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
 import kotlin.math.min
 
-object PlayerUtils {
+object PlayerUtils: ISelfInit {
     fun swingArm() = with(mc.player !!) {
         if (! swinging || this.swingTime < 0) {
             swingingArm = InteractionHand.MAIN_HAND
@@ -215,7 +216,7 @@ object PlayerUtils {
         delay(100)
     }
 
-    init {
+    override fun init() {
         register<ContainerFullyOpenedEvent> {
             when (event.title.unformattedText.lowercase().trim()) {
                 "stats & equipment" -> {

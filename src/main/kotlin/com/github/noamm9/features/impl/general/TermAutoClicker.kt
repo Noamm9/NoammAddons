@@ -27,8 +27,6 @@ object TermAutoClicker: Feature(name = "Term AC", description = "Automatically u
             if (now < nextLeftClick) return@register
             if (mc.screen != null) return@register
             if (! mc.options.keyUse.isDown) return@register
-
-            val player = mc.player ?: return@register
             if (player.isUsingItem) return@register
 
             if ("ac" !in NoammAddons.debugFlags) {

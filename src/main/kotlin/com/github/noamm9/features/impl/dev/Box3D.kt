@@ -10,7 +10,7 @@ import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.equalsOneOf
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderBoxBounds
 import com.github.noamm9.utils.render.RenderHelper.renderBoundingBox
 
 object Box3D: Feature("Replaces the Glow ESP with 3D boxes") {
@@ -44,17 +44,16 @@ object Box3D: Feature("Replaces the Glow ESP with 3D boxes") {
             }
 
             if (! outline && ! fill) return@register
-            val iterator = mc.level?.entitiesForRendering()?.iterator() ?: return@register
+            val iterator = level.entitiesForRendering().iterator()
 
             while (iterator.hasNext()) {
                 val entity = iterator.next()
-                if ((entity as? IGlowingEntity)?.`noammaddons$isGlowing`() != true) continue
-                if (entity == mc.player) continue
+                if (! (entity as IGlowingEntity).`noammaddons$isGlowing`()) continue
+                if (entity == player) continue
                 val color = entity.`noammaddons$glowColor`()
 
-                Render3D.renderBoxBounds(
-                    event.ctx, entity.renderBoundingBox.inflate(0.1),
-                    color.withAlpha(outlineOpacity.value.toFloat() / 100),
+                event.ctx.renderBoxBounds(
+                    entity.renderBoundingBox.inflate(0.1), color.withAlpha(outlineOpacity.value.toFloat() / 100),
                     color.withAlpha(fillOpacity.value.toFloat() / 100),
                     outline = outline,
                     fill = fill,

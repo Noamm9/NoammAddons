@@ -7,17 +7,18 @@ import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.EventPriority
 import com.github.noamm9.event.impl.ShutdownEvent
 import com.github.noamm9.event.impl.TickEvent
+import com.github.noamm9.init.types.ISelfInit
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
-object ThreadUtils {
+object ThreadUtils: ISelfInit {
     private val shutdownTasks = ConcurrentLinkedQueue<Runnable>()
     private val clientScheduler = TickScheduler()
     private val serverScheduler = TickScheduler()
 
-    init {
+    override fun init() {
         register<TickEvent.Start>(EventPriority.HIGHEST) { clientScheduler.tick() }
         register<TickEvent.Server>(EventPriority.HIGHEST) { serverScheduler.tick() }
         register<ShutdownEvent> { shutdownTasks.forEach { safeRun(it) } }

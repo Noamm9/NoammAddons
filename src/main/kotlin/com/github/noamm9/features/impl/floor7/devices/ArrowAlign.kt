@@ -7,14 +7,14 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.toVec
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderString
 import net.minecraft.core.BlockPos
 import net.minecraft.world.entity.decoration.ItemFrame
 import net.minecraft.world.item.Items
-import net.minecraft.world.phys.AABB
 import java.awt.Color
 
 object ArrowAlign: Feature("Arrow Align Solver") {
@@ -24,9 +24,9 @@ object ArrowAlign: Feature("Arrow Align Solver") {
     private val invertSneak by ToggleSetting("Invert Sneak").showIf { blockWrongClicks.value }
 
     private val gridCorner = BlockPos(- 2, 120, 75)
-    private val gridBox = AABB(
-        gridCorner.x.toDouble(), gridCorner.y.toDouble(), gridCorner.z.toDouble(),
-        gridCorner.x + 1.0, gridCorner.y + 5.0, gridCorner.z + 5.0
+    private val gridBox = aabb(
+        gridCorner.x, gridCorner.y, gridCorner.z,
+        gridCorner.x + 1, gridCorner.y + 5, gridCorner.z + 5
     )
 
     private val clickTimestamps = mutableMapOf<Int, Long>()
@@ -38,9 +38,9 @@ object ArrowAlign: Feature("Arrow Align Solver") {
     override fun init() {
         register<TickEvent.Start> {
             if (LocationUtils.F7Phase != 3) return@register reset()
-            if (mc.player !!.distanceToSqr(gridCorner.toVec()) > 200) return@register reset()
+            if (player.distanceToSqr(gridCorner.toVec()) > 200) return@register reset()
 
-            val frames = mc.level !!.getEntitiesOfClass(ItemFrame::class.java, gridBox) { it.item.item == Items.ARROW }
+            val frames = level.getEntitiesOfClass(ItemFrame::class.java, gridBox) { it.item.item == Items.ARROW }
 
             frames.forEach { frame ->
                 val pos = frame.blockPosition()
@@ -92,7 +92,7 @@ object ArrowAlign: Feature("Arrow Align Solver") {
             if (index !in 0 .. 24) return@register
             if (frameRotations[index] == - 1) return@register
 
-            val shouldBlock = blockWrongClicks.value && (mc.player?.isCrouching == invertSneak.value)
+            val shouldBlock = blockWrongClicks.value && (player.isCrouching == invertSneak.value)
             if (! clicksRemaining.containsKey(index) && shouldBlock) {
                 event.isCanceled = true
                 return@register
@@ -120,11 +120,10 @@ object ArrowAlign: Feature("Arrow Align Solver") {
                 else textColor.value
 
 
-                Render3D.renderString(
+                event.ctx.renderString(
                     "$count",
                     pos.x, pos.y + 0.55, pos.z + 0.5,
                     color = color,
-                    scale = 1f,
                     phase = true
                 )
             }

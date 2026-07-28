@@ -2,12 +2,12 @@ package com.github.noamm9.ui.utils
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.utils.NumbersUtils.div
-import com.github.noamm9.utils.NumbersUtils.times
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
-import kotlin.math.roundToInt
+import kotlin.math.min
 
 object Resolution {
+    private const val REFERANCE_WIDTH = 960f
     private const val REFERENCE_HEIGHT = 540f
 
     var scale = 1f
@@ -19,18 +19,19 @@ object Resolution {
     var height = 540f
         private set
 
-    fun refresh() {
+    private fun refresh() {
         val window = Minecraft.getInstance().window
         val guiWidth = window.guiScaledWidth.toFloat()
         val guiHeight = window.guiScaledHeight.toFloat()
 
-        scale = guiHeight / REFERENCE_HEIGHT
+        scale = min(guiWidth / REFERANCE_WIDTH, guiHeight / REFERENCE_HEIGHT)
 
-        height = REFERENCE_HEIGHT
         width = guiWidth / scale
+        height = guiHeight / scale
     }
 
     fun push(ctx: GuiGraphicsExtractor) {
+        refresh()
         ctx.pose().pushMatrix()
         ctx.pose().scale(scale, scale)
     }
@@ -44,6 +45,4 @@ object Resolution {
 
     fun getMouseX() = (mc.mouseHandler.xpos() / mc.window.screenWidth.toDouble() * width).toInt()
     fun getMouseY() = (mc.mouseHandler.ypos() / mc.window.screenHeight.toDouble() * height).toInt()
-
-    fun toGuiScaled(value: Number) = (value * scale).roundToInt()
 }

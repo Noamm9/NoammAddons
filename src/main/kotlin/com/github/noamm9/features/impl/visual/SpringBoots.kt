@@ -14,10 +14,10 @@ import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render3D.renderBox
 import com.github.noamm9.utils.render.RenderHelper.renderVec
+import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.entity.EquipmentSlot
@@ -68,14 +68,14 @@ object SpringBoots: Feature("Shows the spring boots charge progress on screen.")
             val prefix = if (isPercent) "Charge: " else "Blocks: "
             val text = prefix + color + displayValue.toFixed(1) + suffix
 
-            Render2D.drawCenteredString(ctx, text, 0, 0)
+            ctx.drawCenteredString(text, 0, 0)
             return@hudElement text.width().toFloat() to 9f
         }
 
         register<MainThreadPacketReceivedEvent.Pre> {
             if (! LocationUtils.inSkyblock) return@register
             val packet = event.packet as? ClientboundSoundPacket ?: return@register
-            val player = mc.player?.takeIf { it.onGround() } ?: return@register
+            if (! player.onGround()) return@register
 
             val pitch = packet.pitch
             val id = packet.sound.value().location
@@ -100,17 +100,16 @@ object SpringBoots: Feature("Shows the spring boots charge progress on screen.")
         register<TickEvent.End> {
             if (! LocationUtils.inSkyblock) return@register
             if (currentHeight <= 0) return@register
-            val player = mc.player as? ILocalPlayer ?: return@register
+            val player = player as? ILocalPlayer ?: return@register
             if (! player.isSneakingServer || ! player.onGroundServer()) reset()
         }
 
         register<RenderWorldEvent> {
             if (! show3DBox.value) return@register
             if (currentHeight <= 0f) return@register
-            val pos = mc.player?.renderVec ?: return@register
+            val pos = player.renderVec
 
-            Render3D.renderBox(
-                ctx = event.ctx,
+            event.ctx.renderBox(
                 x = pos.x,
                 y = pos.y + currentHeight.toDouble(),
                 z = pos.z,

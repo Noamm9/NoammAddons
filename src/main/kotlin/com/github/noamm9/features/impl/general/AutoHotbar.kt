@@ -26,7 +26,7 @@ import com.github.noamm9.utils.ServerUtils
 import com.github.noamm9.utils.items.ItemUtils.itemUUID
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.world.inventory.ClickType
 import net.minecraft.world.item.ItemStack
 import java.io.File

@@ -12,9 +12,9 @@ import com.github.noamm9.utils.Utils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render3D.renderBlock
+import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket
@@ -37,14 +37,14 @@ object TacTimer: Feature("Shows a 3 seconds timer when you use the Tactical Inse
     override fun init() {
         hudElement("TacTimer", shouldDraw = { ticks > 0 }, centered = true) { ctx, example ->
             val text = getTimer(if (example) 60 else ticks)
-            Render2D.drawCenteredString(ctx, text, 0, 0)
+            ctx.drawCenteredString(text, 0, 0)
             text.width().toFloat() to 9f
         }
 
         register<PacketEvent.Sent> {
             if (! LocationUtils.inSkyblock) return@register
             val packet = event.packet as? ServerboundUseItemPacket ?: return@register
-            val item = mc.player?.getItemInHand(packet.hand)?.takeUnless { it.isEmpty } ?: return@register
+            val item = player.getItemInHand(packet.hand).takeUnless { it.isEmpty } ?: return@register
             if (item.skyblockId != "TACTICAL_INSERTION") return@register
             lastClick = System.currentTimeMillis()
         }
@@ -57,16 +57,15 @@ object TacTimer: Feature("Shows a 3 seconds timer when you use the Tactical Inse
             if (packet.pitch != 0.74603176f) return@register
 
             ticks = 60
-            if (markBlock.value) pos = mc.player?.blockPosition()
+            if (markBlock.value) pos = player.blockPosition()
         }
 
         register<RenderWorldEvent> {
             if (! markBlock.value) return@register
             val position = pos ?: return@register
-            Render3D.renderBlock(
-                event.ctx, position,
-                outlineColor.value, fillColor.value,
-                mode.value.equalsOneOf(0, 2),
+            event.ctx.renderBlock(
+                position, outlineColor.value,
+                fillColor.value, mode.value.equalsOneOf(0, 2),
                 mode.value.equalsOneOf(1, 2),
                 phase = true,
             )

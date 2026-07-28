@@ -7,7 +7,8 @@ import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.ui.utils.TextInputHandler
 import com.github.noamm9.utils.SoundUtils
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.utils.render.Render2D.drawString
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
@@ -71,35 +72,35 @@ class SoundSetting(name: String, defaultValue: SoundEvent): Setting<SoundEvent>(
         openAnim.update(if (expanded) 1f else 0f)
         hoverAnim.update(if (isHovered) 1f else 0f)
 
-        Render2D.drawRect(ctx, x, y, width, 20f, Style.bg)
+        ctx.drawRect(x, y, width, 20f, Style.bg)
         Style.drawHoverBar(ctx, x, y, 20f, hoverAnim.value)
         Style.drawNudgedText(ctx, name, x + 8f, y + 6f, hoverAnim.value)
 
         val valStr = "§7${prettyNames[value.location]}"
 
-        Render2D.drawString(ctx, valStr, x + width - mc.font.width(valStr) - 8f, y + 6f, Color.WHITE, 1f)
+        ctx.drawString(valStr, x + width - mc.font.width(valStr) - 8f, y + 6f, scale = 1f)
 
         if (openAnim.value > 0.01f) {
             ctx.enableScissor(x, y + 20, x + width, y + height)
 
             val contentY = y + 20f
             val totalContentHeight = (searchHeight + listMaxHeight) * openAnim.value
-            Render2D.drawRect(ctx, x + 4f, contentY, width - 8f, totalContentHeight, Color(5, 5, 5, 150))
+            ctx.drawRect(x + 4f, contentY, width - 8f, totalContentHeight, Color(5, 5, 5, 150))
 
             val searchY = contentY + 2
             val searchW = width - 16f
             val searchH = 18f
 
-            Render2D.drawRect(ctx, x + 8f, searchY, searchW, searchH, Color(30, 30, 30, 180))
+            ctx.drawRect(x + 8f, searchY, searchW, searchH, Color(30, 30, 30, 180))
             val searchFocus = if (searchHandler.listening) 1f else 0f
-            Render2D.drawRect(ctx, x + 8f, searchY + searchH - 1f, searchW * searchFocus, 1f, Style.accentColor)
+            ctx.drawRect(x + 8f, searchY + searchH - 1f, searchW * searchFocus, 1f, Style.accentColor)
 
             searchHandler.x = x + 8f
             searchHandler.y = searchY
             searchHandler.width = searchW
             searchHandler.height = searchH
 
-            if (searchQuery.isEmpty()) Render2D.drawString(ctx, "§8Search sound...", x + 12f, searchY + 5f)
+            if (searchQuery.isEmpty()) ctx.drawString("§8Search sound...", x + 12f, searchY + 5f)
             else searchHandler.draw(ctx, mouseX.toFloat(), mouseY.toFloat())
 
             val listY = searchY + searchHeight
@@ -120,10 +121,10 @@ class SoundSetting(name: String, defaultValue: SoundEvent): Setting<SoundEvent>(
 
                     val isSelected = sound == value
 
-                    if (isEntryHovered) Render2D.drawRect(ctx, x + 4f, entryY, width - 8f, entryHeight.toFloat(), Color(255, 255, 255, 20))
+                    if (isEntryHovered) ctx.drawRect(x + 4f, entryY, width - 8f, entryHeight.toFloat(), Color(255, 255, 255, 20))
                     val textColor = if (isSelected) Style.accentColor else if (isEntryHovered) Color.WHITE else Color.GRAY
 
-                    Render2D.drawString(ctx, prettyNames[sound.location] !!, x + 12f, entryY + 3f, textColor)
+                    ctx.drawString(prettyNames[sound.location] !!, x + 12f, entryY + 3f, textColor)
                 }
                 entryY += entryHeight
             }
@@ -133,7 +134,7 @@ class SoundSetting(name: String, defaultValue: SoundEvent): Setting<SoundEvent>(
             if (maxScroll > 0) {
                 val barHeight = (viewableHeight / contentHeight) * viewableHeight
                 val barY = listY + ((scrollOffset / maxScroll) * (viewableHeight - barHeight))
-                Render2D.drawRect(ctx, x + width - 6f, barY, 2f, barHeight, Style.accentColor)
+                ctx.drawRect(x + width - 6f, barY, 2f, barHeight, Style.accentColor)
             }
 
             ctx.disableScissor()

@@ -8,7 +8,7 @@ import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.location.LocationUtils.inSkyblock
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
 
 object SBKick: Feature("Shows a timer on screen for when you can rejoin Skyblock.") {
     private val sendMsg by ToggleSetting("Send Party Message")
@@ -50,8 +50,7 @@ object SBKick: Feature("Shows a timer on screen for when you can rejoin Skyblock
             }
 
             if (timeSinceKick >= 60_000) showTime = false
-            else Render2D.drawCenteredString(
-                event.context,
+            else event.context.drawCenteredString(
                 "§cLast kicked from SkyBlock §b${(timeSinceKick / 1000.0).toFixed(2)}s ago",
                 mc.window.guiScaledWidth / 2f,
                 mc.window.guiScaledHeight / 2f - 20,

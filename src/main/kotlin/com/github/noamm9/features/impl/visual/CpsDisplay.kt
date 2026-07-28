@@ -2,8 +2,8 @@ package com.github.noamm9.features.impl.visual
 
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.RenderHelper.width
 
 object CpsDisplay: Feature("Displays your left and right clicks per second.") {
     private val leftClicks = mutableListOf<Long>()
@@ -14,7 +14,7 @@ object CpsDisplay: Feature("Displays your left and right clicks per second.") {
             val l = getCps(leftClicks)
             val r = getCps(rightClicks)
             val text = "§f$l §7| §f$r §bCPS"
-            Render2D.drawString(ctx, text, 2f, 2f)
+            ctx.drawString(text, 2f, 2f)
             return@hudElement text.width().toFloat() + 4f to 12f
         }
 

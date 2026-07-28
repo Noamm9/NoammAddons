@@ -45,8 +45,9 @@ object Config {
                     put("enabled", feature.enabled)
                     putJsonArray("configSettings") {
                         for (setting in feature.configSettings) {
-                            if (setting is Savable) {
-                                addJsonObject { put(setting.name, setting.write()) }
+                            if (setting !is Savable) continue
+                            addJsonObject {
+                                put(setting.name, setting.write())
                             }
                         }
                     }

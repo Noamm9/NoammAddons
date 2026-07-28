@@ -1,6 +1,7 @@
 package com.github.noamm9.init
 
 import com.github.noamm9.NoammAddons.logger
+import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.network.WebUtils
@@ -11,7 +12,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.json.*
 import java.util.concurrent.*
 
-object NetworkLoop {
+object NetworkLoop: ISelfInit {
     private const val ELECTION_URL = "https://api.hypixel.net/v2/resources/skyblock/election"
     private const val ITEMS_URL = "https://api.hypixel.net/v2/resources/skyblock/items"
     private const val BAZAAR_URL = "https://api.hypixel.net/v2/skyblock/bazaar"
@@ -29,7 +30,7 @@ object NetworkLoop {
     fun getBazaarPrice(itemId: String) = bazaarPrices[itemId]
     fun getPrice(itemId: String) = bazaarPrices[itemId]?.sell ?: lowestBinPrices[itemId]
 
-    fun init() = ThreadUtils.loop(TimeUnit.MINUTES.toMillis(10)) {
+    override fun init() = ThreadUtils.loop(TimeUnit.MINUTES.toMillis(10)) {
         coroutineScope {
             val jobs = listOf(
                 async { updateElectionData() },

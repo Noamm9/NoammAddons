@@ -35,7 +35,7 @@ object Camera: Feature() {
         register<MainThreadPacketReceivedEvent.Pre> {
             if (! doubleSneakFix.value) return@register
             val packet = event.packet as? ClientboundSetEntityDataPacket ?: return@register
-            if (mc.player?.id != packet.id) return@register
+            if (player.id != packet.id) return@register
             packet.packedItems.removeIf { it.id == 6 }
         }
     }

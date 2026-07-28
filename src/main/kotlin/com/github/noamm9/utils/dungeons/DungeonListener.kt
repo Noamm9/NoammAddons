@@ -7,6 +7,7 @@ import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.EventPriority
 import com.github.noamm9.event.impl.*
+import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.mixin.IPlayerInfo
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
@@ -29,7 +30,7 @@ import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.network.protocol.game.*
 import net.minecraft.world.entity.EntityType
 
-object DungeonListener {
+object DungeonListener: ISelfInit {
     private val tablistRegex = Regex("""^\[\d+] (?:\[[^]]+] )*([A-Za-z0-9_]{1,16}) .*\((\w+)(?: (\w+))?\)$""") // https://regex101.com/r/7D78SS/4
     private val puzzleCountRegex = Regex("§b§lPuzzles: §f\\((?<count>\\d)\\)")
     private val puzzleRegex = Regex(" (.+): \\[[✦✔✖].+")
@@ -67,7 +68,7 @@ object DungeonListener {
     var currentTime = 0L
     var doorKeys = 0
 
-    fun init() {
+    override fun init() {
         register<MainThreadPacketReceivedEvent.Post>(EventPriority.HIGH) {
             if (! inDungeon) return@register
 

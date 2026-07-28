@@ -6,18 +6,21 @@ import com.github.noamm9.event.impl.ScreenEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.terminals.TerminalType.Companion.clickedSlot
 import com.github.noamm9.features.impl.floor7.terminals.TerminalType.Companion.clickedSlots
+import com.github.noamm9.init.types.ICustomMenu
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.ui.gui.ICustomMenu
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.hasGlint
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawBorder
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render2D.drawFloatingRect
+import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.uppercaseFirst
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.world.inventory.ContainerInput
@@ -121,7 +124,6 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
             if (! solverActive(termType)) return@register
             event.isCanceled = true
 
-            Resolution.refresh()
             Resolution.push(event.context)
 
             val invWalk = fakeInwalk(termType)
@@ -138,16 +140,15 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
             event.context.pose().pushMatrix()
             event.context.pose().scale(uiScale, uiScale)
 
-            if (! invWalk) Render2D.drawCenteredString(
-                event.context,
+            if (! invWalk) event.context.drawCenteredString(
                 termType.name.lowercase().uppercaseFirst(),
                 offsetX + width / 2f,
                 offsetY - 15f,
                 color = titleColor.value,
                 scale = 1.2f
             )
-            if (! invWalk) Render2D.drawRect(event.context, offsetX, offsetY, width, height, backgroundColor.value)
-            if (! invWalk) Render2D.drawBorder(event.context, offsetX, offsetY, width, height, borderColor.value)
+            if (! invWalk) event.context.drawRect(offsetX, offsetY, width, height, backgroundColor.value)
+            if (! invWalk) event.context.drawBorder(offsetX, offsetY, width, height, borderColor.value)
 
             if (invWalk) {
                 val maxClicks = if (termType == TerminalType.MELODY) 4 else totalClicks
@@ -178,8 +179,8 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
                 }
 
                 event.context.pose().translate(screenWidth / 2f, screenHeight / 2f - 6 * uiScale)
-                Render2D.drawCenteredString(event.context, "§3In Terminal ($displayName)", 0, - 20f)
-                if (maxClicks > 0) Render2D.drawCenteredString(event.context, "§b[${completed.coerceIn(0, maxClicks)}/$maxClicks]$melodyProgress", 0, - 10f)
+                event.context.drawCenteredString("§3In Terminal ($displayName)", 0, - 20f)
+                if (maxClicks > 0) event.context.drawCenteredString("§b[${completed.coerceIn(0, maxClicks)}/$maxClicks]$melodyProgress", 0, - 10f)
                 event.context.pose().popMatrix()
                 Resolution.pop(event.context)
                 return@register
@@ -248,8 +249,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
                 }
             }
 
-            if (mode.value == 1) Render2D.drawCenteredString(
-                event.context,
+            if (mode.value == 1) event.context.drawCenteredString(
                 "Queue: ${queue.size}",
                 offsetX + width / 2,
                 offsetY + height + 5,
@@ -323,20 +323,20 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
 
     private fun drawSlot(ctx: GuiGraphicsExtractor, x: Number, y: Number, color: Color, w: Number = 16, h: Number = 16) {
         when (slotStyle.value) {
-            0 -> Render2D.drawRect(ctx, x, y, w, h, color)
+            0 -> ctx.drawRect(x, y, w, h, color)
             1 -> {
-                Render2D.drawBorder(ctx, x, y, w, h, color)
-                Render2D.drawRect(ctx, x, y, w, h, color.withAlpha(40))
+                ctx.drawBorder(x, y, w, h, color)
+                ctx.drawRect(x, y, w, h, color.withAlpha(40))
             }
 
-            2 -> Render2D.drawFloatingRect(ctx, x, y, w, h, color.darker())
+            2 -> ctx.drawFloatingRect(x, y, w, h, color.darker())
         }
     }
 
     private fun drawCenteredText(ctx: GuiGraphicsExtractor, text: String, slotX: Number, slotY: Number) {
         val centerX = slotX.toFloat() + 8f
         val centerY = slotY.toFloat() + 8f - mc.font.lineHeight / 2
-        Render2D.drawCenteredString(ctx, text, centerX, centerY, color = overlayTextColor.value)
+        ctx.drawCenteredString(text, centerX, centerY, color = overlayTextColor.value)
     }
 
     private fun predict(click: TerminalClick) {
@@ -374,7 +374,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
     }
 
     private fun sendClickPacket(slot: Int, btn: Int) {
-        mc.gameMode !!.handleContainerInput(
+        gameMode.handleContainerInput(
             TerminalListener.lastWindowId,
             slot,
             if (btn == 0) 2 else btn,

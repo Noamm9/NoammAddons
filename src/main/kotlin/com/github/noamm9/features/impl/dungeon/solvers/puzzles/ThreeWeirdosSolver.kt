@@ -14,7 +14,7 @@ import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils.rotate
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderBlock
 import com.github.noamm9.utils.render.RenderContext
 import net.minecraft.core.BlockPos
 import net.minecraft.sounds.SoundEvents
@@ -62,11 +62,11 @@ object ThreeWeirdosSolver: PuzzleSolver {
         if (! inThreeWeirdos) return
 
         correctPos?.let { pos ->
-            Render3D.renderBlock(ctx, pos, colorCorrect.value)
+            ctx.renderBlock(pos, colorCorrect.value)
         }
 
         if (! removeChests.value) wrongPositions.forEach { pos ->
-            Render3D.renderBlock(ctx, pos, colorWrong.value)
+            ctx.renderBlock(pos, colorWrong.value)
         }
     }
 

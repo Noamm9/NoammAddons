@@ -35,8 +35,6 @@ object SecretHitboxes: Feature("Changes the hitboxes of secret blocks to be larg
     override fun onEnable() {
         super.onEnable()
         ModCompatibility.disableBlockstateCulling()
-        @Suppress("UNNECESSARY_SAFE_CALL")
-        mc.levelRenderer?.allChanged()
     }
 
     @JvmStatic

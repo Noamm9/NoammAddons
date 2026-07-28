@@ -39,7 +39,7 @@ object WitherESP: Feature("Highlights all Withers in F7.") {
             if (! isValidLoc()) return@register
             when (val packet = event.packet) {
                 is ClientboundSetEntityDataPacket -> {
-                    val entity = mc.level?.getEntity(packet.id) as? WitherBoss ?: return@register
+                    val entity = level.getEntity(packet.id) as? WitherBoss ?: return@register
                     if (entity.isInvisible || entity.invulnerableTicks == 800) return@register
                     currentWither = entity
                 }

@@ -7,6 +7,7 @@ import com.github.noamm9.features.impl.misc.Camera;
 import com.github.noamm9.interfaces.IGlowingEntity;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -23,11 +24,11 @@ import java.awt.*;
 
 @Mixin(Entity.class)
 public abstract class MixinEntity implements IGlowingEntity {
+    @Unique private Color glowColor = Color.WHITE;
+    @Unique private boolean glowForced = false;
+
     @Shadow
     public abstract float getYRot();
-
-    @Unique private Color customGlowColor = Color.WHITE;
-    @Unique private boolean glowForced = false;
 
     @Inject(method = "isCurrentlyGlowing", at = @At("HEAD"), cancellable = true)
     private void onIsCurrentlyGlowing(CallbackInfoReturnable<Boolean> cir) {
@@ -81,12 +82,12 @@ public abstract class MixinEntity implements IGlowingEntity {
 
     @Override
     public Color noammaddons$glowColor() {
-        return customGlowColor;
+        return glowColor;
     }
 
     @Override
-    public void noammaddons$glowColor(Color color) {
-        customGlowColor = color;
+    public void noammaddons$glowColor(@NonNull Color color) {
+        glowColor = color;
     }
 
     @Override

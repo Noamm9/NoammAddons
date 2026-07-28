@@ -35,7 +35,7 @@ object ArchitectDraft: Feature("Architect Draft") {
                 val match = failPattern1.find(msg) ?: failPattern2.find(msg)
                 val name = match?.groups?.get("player")?.value
                 if (name == mc.user.name) ThreadUtils.setTimeout(1500) {
-                    mc.player?.connection?.sendChat("/gfs ARCHITECT_FIRST_DRAFT 1")
+                    ChatUtils.sendCommand("/gfs ARCHITECT_FIRST_DRAFT 1")
                 }
             }
             //#endif
