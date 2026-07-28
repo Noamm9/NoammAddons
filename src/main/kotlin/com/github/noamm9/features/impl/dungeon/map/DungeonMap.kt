@@ -15,7 +15,10 @@ import com.github.noamm9.utils.dungeons.map.core.DoorType
 import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.handlers.*
 import com.github.noamm9.utils.dungeons.map.utils.MapUtils
+import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
+import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.render.Render3D.renderBlock
 import com.github.noamm9.utils.render.Render3D.renderBox
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket
@@ -23,7 +26,6 @@ import net.minecraft.world.level.block.Blocks
 
 @AlwaysActive
 object DungeonMap: Feature() {
-
     override fun init() {
         MapConfig.setup().forEach {
             it.headerName?.let { name ->
@@ -86,8 +88,12 @@ object DungeonMap: Feature() {
             if (MapConfig.mimicEsp.value && ! ScoreCalculation.mimicKilled && mimicRoom != null) {
                 for (chestPos in mimicRoom.trappedChestPositions) {
                     if (! WorldUtils.getStateAt(chestPos).`is`(Blocks.TRAPPED_CHEST)) continue
+                    val rotation = mimicRoom.rotation ?: continue
+                    val corner = mimicRoom.corner ?: continue
+                    val reletive = ScanUtils.getRelativeCoord(chestPos, corner, rotation)
+                    if (mimicRoom.data.secretCoords.chest.none { it == reletive }) continue
 
-                    Render3D.renderBlock(event.ctx, chestPos, MapConfig.mimicEspColor.value, phase = true)
+                    event.ctx.renderBlock(chestPos, MapConfig.mimicEspColor.value, phase = true)
                 }
             }
 
@@ -98,18 +104,14 @@ object DungeonMap: Feature() {
 
             for (tile in DungeonInfo.dungeonList) {
                 if (tile !is Door) continue
-                if (tile.type == DoorType.ENTRANCE || tile.type == DoorType.NORMAL) continue
                 if (tile.opened) continue
+                if (! tile.type.equalsOneOf(DoorType.BLOOD, DoorType.WITHER)) continue
 
                 val isFairy = DungeonPathFinder.isFairy(tile)
 
                 if (shouldHideUndiscovered && tile.state == RoomState.UNDISCOVERED && ! isFairy) continue
 
-                event.ctx.renderBox(
-                    tile.x + 0.5,
-                    69.0, tile.z + 0.5, 3,
-                    4, color, phase = true
-                )
+                event.ctx.renderBox(tile.x + 0.5, 69, tile.z + 0.5, 3, 4, color, phase = true)
             }
         }
 
