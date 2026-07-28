@@ -3,6 +3,7 @@ package com.github.noamm9.event
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.impl.*
+import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonUtils
@@ -28,14 +29,13 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.entity.SkullBlockEntity
 
-object EventDispatcher {
+object EventDispatcher: ISelfInit {
     private var invTitle: Component? = null
     private var invWindowId: Int? = null
     private var invSlotCount: Int? = 0
     private var invItems: MutableMap<Int, ItemStack>? = null
 
-
-    fun init() {
+    override fun init() {
         LevelRenderEvents.AFTER_TRANSLUCENT_TERRAIN.register { context ->
             EventBus.post(RenderWorldEvent(RenderContext.fromContext(context)))
         }

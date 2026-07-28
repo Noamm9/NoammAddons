@@ -4,7 +4,9 @@ import com.github.noamm9.config.Savable
 import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawBorder
+import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.utils.render.Render2D.drawString
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import net.minecraft.ChatFormatting
@@ -40,7 +42,7 @@ class ColorCodeSetting(name: String, default: ChatFormatting = ChatFormatting.WH
         Style.drawHoverBar(ctx, x.toFloat(), y.toFloat(), 20f, hoverAnim.value)
         Style.drawNudgedText(ctx, name, x + 8f, y + 6f, hoverAnim.value)
 
-        Render2D.drawRect(ctx, x + width - 18f, y + 6f, 8f, 8f, swatchColor(value))
+        ctx.drawRect(x + width - 18f, y + 6f, 8f, 8f, swatchColor(value))
 
         ctx.enableScissor(x, y, x + width, y + height)
 
@@ -60,12 +62,12 @@ class ColorCodeSetting(name: String, default: ChatFormatting = ChatFormatting.WH
                 val hov = mouseX >= cx && mouseX <= cx + cellW - 2f && mouseY >= cy && mouseY <= cy + cellH
                 if (hov) hoveredName = prettyName(format)
 
-                Render2D.drawRect(ctx, cx, cy, cellW - 2f, cellH, swatchColor(format))
-                if (format == value) Render2D.drawBorder(ctx, cx, cy, cellW - 1, cellH)
+                ctx.drawRect(cx, cy, cellW - 2f, cellH, swatchColor(format))
+                if (format == value) ctx.drawBorder(cx, cy, cellW - 1, cellH)
             }
 
             val label = hoveredName ?: prettyName(value)
-            Render2D.drawString(ctx, label, gridX, gridY + rows * (cellH + 2f) + 2f, swatchColor(value), 1f)
+            ctx.drawString(label, gridX, gridY + rows * (cellH + 2f) + 2f, swatchColor(value), 1f)
         }
 
         ctx.disableScissor()

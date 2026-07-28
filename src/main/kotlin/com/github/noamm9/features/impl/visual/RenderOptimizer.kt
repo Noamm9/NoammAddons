@@ -47,7 +47,7 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless shit.") {
             if (! LocationUtils.inSkyblock) return@register
             when (val packet = event.packet) {
                 is ClientboundSetEntityDataPacket -> {
-                    if (! hide0HealthNames.value || packet.id == mc.player?.id) return@register
+                    if (! hide0HealthNames.value || packet.id == player.id) return@register
 
                     val hasZeroHealth = packet.packedItems.any { entry ->
                         val value = (entry.value() as? Optional<*>)?.orElse(null)
@@ -55,7 +55,7 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless shit.") {
                     }
 
                     if (hasZeroHealth) {
-                        mc.level?.getEntity(packet.id)?.remove(Entity.RemovalReason.DISCARDED)
+                        level.getEntity(packet.id)?.remove(Entity.RemovalReason.DISCARDED)
                         event.isCanceled = true
                     }
                 }
@@ -90,7 +90,7 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless shit.") {
                         }
 
                         if (shouldDiscard) {
-                            mc.level?.getEntity(packet.entity)?.remove(Entity.RemovalReason.DISCARDED)
+                            level.getEntity(packet.entity)?.remove(Entity.RemovalReason.DISCARDED)
                         }
                     }
                 }

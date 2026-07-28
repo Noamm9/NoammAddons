@@ -2,9 +2,9 @@ package com.github.noamm9.features.impl.visual
 
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.height
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.RenderHelper.height
+import com.github.noamm9.utils.render.RenderHelper.width
 import java.awt.Color
 
 object FpsDisplay: Feature("Displays the game's FPS on screen.") {
@@ -13,7 +13,7 @@ object FpsDisplay: Feature("Displays the game's FPS on screen.") {
     override fun init() {
         hudElement("FpsDisplay") { ctx, _ ->
             val text = "${mc.fps} fps"
-            Render2D.drawString(ctx, text, 0, 0, color.value)
+            ctx.drawString(text, 0, 0, color.value)
             return@hudElement text.width().toFloat() to text.height().toFloat()
         }
     }

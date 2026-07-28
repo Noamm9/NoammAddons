@@ -1,19 +1,14 @@
 package com.github.noamm9.features.impl.dungeon.map
 
 import com.github.noamm9.ui.clickgui.components.Setting
-import com.github.noamm9.ui.clickgui.components.Setting.Companion.section
-import com.github.noamm9.ui.clickgui.components.Setting.Companion.showIf
+import com.github.noamm9.ui.clickgui.components.SettingProvider
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import java.awt.Color
 
-//#if LEGIT
-//$import com.github.noamm9.ui.clickgui.components.Setting.Companion.hideIf
-//#endif
-
-object MapConfig {
+object MapConfig: SettingProvider {
     val mapEnabled = ToggleSetting("Map Enabled", true).section("Map")
 
     //#if CHEAT

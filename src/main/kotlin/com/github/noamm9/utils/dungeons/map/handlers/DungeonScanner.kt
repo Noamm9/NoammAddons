@@ -1,6 +1,6 @@
 package com.github.noamm9.utils.dungeons.map.handlers
 
-import com.github.noamm9.utils.MathUtils.Vec3
+import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
@@ -77,12 +77,16 @@ object DungeonScanner {
     fun findMimicRoom(): UniqueRoom? {
         WorldUtils.getBlockEntityList()
             .filter { WorldUtils.getStateAt(it).`is`(Blocks.TRAPPED_CHEST) }
-            .groupBy { ScanUtils.getRoomFromPos(Vec3(it.x, it.y, it.z)) }
-            .forEach { (room, trappedChests) ->
-                if (room != null && trappedChests.size > room.data.trappedChests) {
-                    room.trappedChestPositions = trappedChests
-                    return room
+            .groupingBy { ScanUtils.getRoomFromPos(vec(it.x, it.y, it.z))?.data?.name }
+            .eachCount()
+            .forEach { (roomName, trappedCount) ->
+                if (roomName == null) return@forEach
+
+                val roomEntry = DungeonInfo.uniqueRooms.entries.find {
+                    it.key == roomName && it.value.data.trappedChests < trappedCount
                 }
+
+                if (roomEntry != null) return roomEntry.value
             }
 
         return null

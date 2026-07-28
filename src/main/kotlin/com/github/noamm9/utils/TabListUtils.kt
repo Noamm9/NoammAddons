@@ -3,19 +3,20 @@ package com.github.noamm9.utils
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.EventPriority
-import com.github.noamm9.event.impl.PacketEvent
+import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
+import com.github.noamm9.init.types.ISelfInit
 import com.google.common.collect.ComparisonChain
 import net.minecraft.client.multiplayer.PlayerInfo
 import net.minecraft.network.chat.Component
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
 import net.minecraft.world.level.GameType
 
-object TabListUtils {
+object TabListUtils: ISelfInit {
     private var cachedLines: List<Pair<Component, PlayerInfo>> = emptyList()
     private var listDirty = true
 
-    init {
-        EventBus.register<PacketEvent.Received>(EventPriority.HIGHEST) {
+    override fun init() {
+        EventBus.register<MainThreadPacketReceivedEvent.Post>(EventPriority.HIGHEST) {
             if (event.packet is ClientboundPlayerInfoUpdatePacket) {
                 listDirty = true
             }
@@ -41,14 +42,11 @@ object TabListUtils {
 
     private object PlayerComparator: Comparator<PlayerInfo> {
         override fun compare(o1: PlayerInfo, o2: PlayerInfo): Int {
-            val team1 = o1.team
-            val team2 = o2.team
-
-            return ComparisonChain.start()
-                .compareTrueFirst(o1.gameMode != GameType.SPECTATOR, o2.gameMode != GameType.SPECTATOR)
-                .compare(if (team1 != null) team1.name else "", if (team2 != null) team2.name else "")
-                .compare(o1.profile.name, o2.profile.name)
-                .result()
+            return ComparisonChain.start().apply {
+                compareTrueFirst(o1.gameMode != GameType.SPECTATOR, o2.gameMode != GameType.SPECTATOR)
+                compare(o1.team?.name.orEmpty(), o2.team?.name.orEmpty())
+                compare(o1.profile.name, o2.profile.name)
+            }.result()
         }
     }
 }

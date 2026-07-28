@@ -23,7 +23,6 @@ object LCEtherwarp: Feature(name = "LC Etherwarp", description = "Allows you to 
             if (event.button != 0) return@register
             if (event.action != GLFW.GLFW_PRESS) return@register
             if (mc.screen != null) return@register
-            val player = mc.player ?: return@register
             //#if CHEAT
             if (! player.isCrouching && ! autoSneak.value) return@register
             //#else

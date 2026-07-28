@@ -12,8 +12,9 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket
 import java.awt.Color
@@ -32,7 +33,7 @@ object TerminalTitles: Feature("Reformats the Terminal titles in P3.") {
 
         override fun draw(ctx: GuiGraphicsExtractor, example: Boolean): Pair<Float, Float> {
             val str = if (example) handleTitle(mc.user.name, "terminal", 6, 7) else titleStr
-            Render2D.drawCenteredString(ctx, str, 0, 0)
+            ctx.drawCenteredString(str, 0, 0)
             return str.width().toFloat() to 9f
         }
 
@@ -50,9 +51,9 @@ object TerminalTitles: Feature("Reformats the Terminal titles in P3.") {
             val hovered = mx >= drawX && mx <= drawX + scaledW && my >= drawY && my <= drawY + scaledH
             val borderColor = if (isDragging || hovered) Style.accentColor else Color(255, 255, 255, 40)
 
-            Render2D.drawRect(ctx, drawX, drawY, scaledW.toDouble(), scaledH.toDouble(), Color(10, 10, 10, 150))
-            Render2D.drawRect(ctx, drawX, drawY, scaledW.toDouble(), 1.0, borderColor)
-            Render2D.drawRect(ctx, drawX, drawY + scaledH - 1, scaledW.toDouble(), 1.0, borderColor)
+            ctx.drawRect(drawX, drawY, scaledW.toDouble(), scaledH.toDouble(), Color(10, 10, 10, 150))
+            ctx.drawRect(drawX, drawY, scaledW.toDouble(), 1.0, borderColor)
+            ctx.drawRect(drawX, drawY + scaledH - 1, scaledW.toDouble(), 1.0, borderColor)
         }
     }
 

@@ -10,8 +10,8 @@ import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.containsOneOf
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.sounds.SoundEvents
 
 object MelodyDisplay: Feature("Displays the current progress someone for melody on screen.") {
@@ -44,7 +44,7 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
                 formatMessage(state)
             }
 
-            Render2D.drawCenteredString(ctx, text, 0, 0)
+            ctx.drawCenteredString(text, 0, 0)
 
             return@hudElement text.width().toFloat() to 9f
         }
@@ -57,7 +57,7 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
             val clazzName = clazz?.name?.let { "$color$it&r" } ?: "&7Unknown&r"
 
             currentState = MelodyState("$color$name&r", clazzName, progress, System.currentTimeMillis())
-            if (soundEnabled.value) sound.play.action.invoke()
+            if (soundEnabled.value) sound.action.invoke()
             timer.register()
         }
     }

@@ -11,8 +11,8 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
 import net.minecraft.world.entity.EquipmentSlot
@@ -50,7 +50,7 @@ object F4Features: Feature(name = "F4 Features", description = "Spirit bear spaw
                 else -> "$count/${blockLocations.size}"
             }
 
-            Render2D.drawCenteredString(ctx, text, 0f, 0f, Color(255, 0, 255))
+            ctx.drawCenteredString(text, 0f, 0f, Color(255, 0, 255))
             return@hudElement text.width().toFloat() to 9f
         }
 
@@ -87,7 +87,7 @@ object F4Features: Feature(name = "F4 Features", description = "Spirit bear spaw
         register<MainThreadPacketReceivedEvent.Post> {
             if (! espSpiritBow.value || ! inM4boss) return@register
             val packet = event.packet as? ClientboundSetEquipmentPacket ?: return@register
-            val armorstand = mc.level?.getEntity(packet.entity) as? ArmorStand ?: return@register
+            val armorstand = level.getEntity(packet.entity) as? ArmorStand ?: return@register
             if (armorstand.getItemBySlot(EquipmentSlot.MAINHAND).hoverName.unformattedText != "Bow") return@register
             spiritbows.add(packet.entity)
         }

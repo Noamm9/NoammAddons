@@ -19,6 +19,7 @@ import com.github.noamm9.utils.ActionUtils.queue
 import com.github.noamm9.utils.MathUtils.calcYawPitch
 import com.github.noamm9.utils.MathUtils.interpolateYaw
 import com.github.noamm9.utils.MathUtils.lerp
+import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.PlayerUtils.leapAction
 import com.github.noamm9.utils.PlayerUtils.rotate
 import com.github.noamm9.utils.dungeons.DungeonListener
@@ -98,7 +99,7 @@ object AutoI4: Feature("Fully Automated I4") {
                 tickTimer = timer
                 return@register
             }
-            if (! mc.player?.mainHandItem?.item.equalsOneOf(Items.BOW, Items.FISHING_ROD)) return@register
+            if (! player.mainHandItem.item.equalsOneOf(Items.BOW, Items.FISHING_ROD)) return@register
             if (event.pos !in I4Helper.devBlocks) return@register
 
             if (event.oldBlock == Blocks.EMERALD_BLOCK && event.newBlock == Blocks.BLUE_TERRACOTTA) {
@@ -157,11 +158,10 @@ object AutoI4: Feature("Fully Automated I4") {
         }
 
         val targetY = 131 - 2.0 * row
-        return Vec3(targetX, targetY, 50.0)
+        return vec(targetX, targetY, 50)
     }
 
     private suspend fun shootAtBlock(pos: BlockPos) {
-        val player = mc.player ?: return
         val (yaw, pitch) = calcYawPitch(getTargetVector(pos))
         val block = suspend {
             delay(50)

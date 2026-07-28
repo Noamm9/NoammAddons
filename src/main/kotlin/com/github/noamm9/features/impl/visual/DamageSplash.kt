@@ -29,7 +29,7 @@ object DamageSplash: Feature("Reformat Skyblock's Damage Indicators.") {
         register<MainThreadPacketReceivedEvent.Pre> {
             if (! LocationUtils.inSkyblock) return@register
             if (event.packet !is ClientboundSetEntityDataPacket) return@register
-            val entity = mc.level?.getEntity(event.packet.id) as? ArmorStand ?: return@register
+            val entity = level.getEntity(event.packet.id) as? ArmorStand ?: return@register
             for (entry in event.packet.packedItems) {
                 val value = entry.value() as? Optional<Component> ?: continue
                 val content = value.getOrNull() ?: continue

@@ -18,7 +18,7 @@ import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderBlock
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Blocks
 import java.awt.Color
@@ -118,9 +118,9 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
             else currentRoomWaypoints
 
             for (wp in waypoints) {
-                Render3D.renderBlock(
-                    event.ctx, wp.pos, wp.color,
-                    outline = wp.outline, fill = wp.filled, phase = wp.phase
+                event.ctx.renderBlock(
+                    wp.pos, wp.color, outline = wp.outline,
+                    fill = wp.filled, phase = wp.phase
                 )
             }
 
@@ -130,13 +130,12 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
 
             for (wp in currentSecrets) {
                 if (wp.type == SecretType.REDSTONE_KEY && WorldUtils.getBlockAt(wp.pos) != Blocks.PLAYER_HEAD) continue
-                Render3D.renderBlock(
-                    event.ctx, wp.pos,
-                    wp.color.withAlpha((opacity.value * 2.55).toInt()),
+                event.ctx.renderBlock(
+                    wp.pos, wp.color.withAlpha((opacity.value * 2.55).toInt()),
                     mode.value.equalsOneOf(1, 2),
                     mode.value.equalsOneOf(0, 2),
-                    lineWidth = lineWidth.value,
-                    phase = phase.value
+                    phase = phase.value,
+                    lineWidth = lineWidth.value
                 )
             }
         }

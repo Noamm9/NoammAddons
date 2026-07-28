@@ -99,8 +99,7 @@ object PartyHelper: Feature("Party commands and reformatting.") {
             }
 
             canRun("!coords") && (cmd == "coords" || cmd == "cords") -> {
-                val p = mc.player ?: return
-                runCommand("pc x: ${p.blockX}, y: ${p.blockY}, z: ${p.blockZ}")
+                runCommand("pc x: ${player.blockX}, y: ${player.blockY}, z: ${player.blockZ}")
             }
 
             canRun("!dt") && (cmd == "dt" || cmd == "downtime") -> {

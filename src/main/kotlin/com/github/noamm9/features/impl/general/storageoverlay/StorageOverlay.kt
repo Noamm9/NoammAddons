@@ -6,9 +6,9 @@ import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.general.ItemTooltip
+import com.github.noamm9.init.types.ICustomMenu
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.ui.gui.ICustomMenu
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.catch

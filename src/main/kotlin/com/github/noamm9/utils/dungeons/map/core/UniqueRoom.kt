@@ -4,7 +4,7 @@ import com.github.noamm9.features.impl.dungeon.map.MapConfig
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Blocks
 import kotlin.math.max

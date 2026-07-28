@@ -14,7 +14,7 @@ import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.thirdBlazeC
 import com.github.noamm9.utils.ChatUtils.sendPartyMessage
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.MathUtils.add
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderLine
 import com.github.noamm9.utils.render.RenderContext
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.monster.Blaze
@@ -56,8 +56,7 @@ object BlazeSolver: PuzzleSolver {
             if (i >= blazeCount.value) return@forEachIndexed
             val prev = blazes.getOrNull(i - 1) ?: return@forEachIndexed
 
-            Render3D.renderLine(
-                ctx,
+            ctx.renderLine(
                 prev.position().add(y = prev.bbHeight / 2.0),
                 entity.position().add(y = entity.bbHeight / 2.0),
                 lineColor.value

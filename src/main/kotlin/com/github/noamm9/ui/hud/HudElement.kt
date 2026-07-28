@@ -1,7 +1,7 @@
 package com.github.noamm9.ui.hud
 
 import com.github.noamm9.ui.clickgui.components.Style
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawRect
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 import kotlin.reflect.jvm.jvmName
@@ -33,9 +33,9 @@ abstract class HudElement {
 
         val borderColor = if (isDragging || hovered) Style.accentColor else Color(255, 255, 255, 40)
 
-        Render2D.drawRect(ctx, x - centeredOffset, y, scaledW, scaledH, Color(10, 10, 10, 150))
-        Render2D.drawRect(ctx, x - centeredOffset, y, scaledW, 1f, borderColor)
-        Render2D.drawRect(ctx, x - centeredOffset, y + scaledH - 1f, scaledW, 1f, borderColor)
+        ctx.drawRect(x - centeredOffset, y, scaledW, scaledH, Color(10, 10, 10, 150))
+        ctx.drawRect(x - centeredOffset, y, scaledW, 1f, borderColor)
+        ctx.drawRect(x - centeredOffset, y + scaledH - 1f, scaledW, 1f, borderColor)
     }
 
     fun renderElement(ctx: GuiGraphicsExtractor, example: Boolean) {

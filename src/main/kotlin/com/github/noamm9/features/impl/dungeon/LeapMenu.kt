@@ -8,8 +8,8 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.dungeon.map.DungeonMap
 import com.github.noamm9.features.impl.dungeon.map.MapConfig
 import com.github.noamm9.features.impl.dungeon.map.MapRenderer
+import com.github.noamm9.init.types.ICustomMenu
 import com.github.noamm9.ui.clickgui.components.impl.*
-import com.github.noamm9.ui.gui.ICustomMenu
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.unformattedText
@@ -20,13 +20,17 @@ import com.github.noamm9.utils.dungeons.DungeonPlayer
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.dungeons.map.utils.MapUtils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawBorder
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render2D.drawFloatingRect
+import com.github.noamm9.utils.render.Render2D.drawPlayerHead
+import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.renderVec
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.sounds.SoundEvents
-import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.Items
 import org.lwjgl.glfw.GLFW
@@ -39,21 +43,14 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
     val tintDeadPlayers by ToggleSetting("Tint Dead Players", true).showIf { customLeapMenu.value }
 
     val mapLeap by ToggleSetting("Map Leap", false).withDescription("Click a teammate on the dungeon map to leap to them.").showIf { customLeapMenu.value && DungeonMap.enabled && MapConfig.mapEnabled.value }
-    val mapLeapAfterBlood by ToggleSetting("After Blood Only", false)
-        .withDescription("Use the regular leap menu until the Blood opens, then switch to Map Leap.")
-        .showIf { customLeapMenu.value && mapLeap.value }
+    val mapLeapAfterBlood by ToggleSetting("After Blood Only", false).withDescription("Use the regular leap menu until the Blood opens, then switch to Map Leap.").showIf { customLeapMenu.value && mapLeap.value }
     val mapLeapScale by SliderSetting("Map Leap Scale", 1.5f, 0.5f, 3f, 0.1f).showIf { customLeapMenu.value && mapLeap.value }
     val sorting by DropdownSetting("Leap Order", 0, arrayListOf("A-Z Class", "A-Z Name", "Odin Sorting", "Custom sorting", "No Sorting")).withDescription("How to sort the leap menu. /na leaporder to configure custom sorting.")
 
     val leapKeybinds by ToggleSetting("Leap Keybinds").showIf { customLeapMenu.value }.section("Leap Keybinds")
     val keybindMode by DropdownSetting("Mode", 0, listOf("Corners", "Class")).showIf { leapKeybinds.value }
-
-    val keybindKeys = (0 until 4).map { i ->
-        KeybindSetting("Slot ${1 + i}", GLFW.GLFW_KEY_1 + i).showIf { leapKeybinds.value && keybindMode.value == 0 }.apply(configSettings::add)
-    }
-    val classesKeys = DungeonClass.entries.dropLast(1).map {
-        KeybindSetting(it.name.lowercase().uppercaseFirst(), GLFW.GLFW_KEY_UNKNOWN).showIf { leapKeybinds.value && keybindMode.value == 1 }.apply(configSettings::add)
-    }
+    val keybindKeys = (0 until 4).map { i -> KeybindSetting("Slot ${1 + i}", GLFW.GLFW_KEY_1 + i).showIf { leapKeybinds.value && keybindMode.value == 0 }.apply(configSettings::add) }
+    val classesKeys = DungeonClass.entries.dropLast(1).map { KeybindSetting(it.name.lowercase().uppercaseFirst(), GLFW.GLFW_KEY_UNKNOWN).showIf { leapKeybinds.value && keybindMode.value == 1 }.apply(configSettings::add) }
 
     private val announceSpiritLeaps by ToggleSetting("Announce Leap", true).section("Extras")
     private val leapMsg by TextInputSetting("Leap Message", "ILY ❤ {name}").withDescription("replaces {name} with the player name").showIf { announceSpiritLeaps.value }
@@ -101,8 +98,8 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
         register<CheckEntityRenderEvent> {
             if (System.currentTimeMillis() > shouldHide) return@register
             if (event.entity !is Player) return@register
-            if (event.entity == mc.player) return@register
-            if (event.entity.distanceToSqr(mc.player as Entity) > 4) return@register
+            if (event.entity == player) return@register
+            if (event.entity.distanceToSqr(player) > 4) return@register
             if (dungeonTeammatesNoSelf.none { it.name == event.entity.name.unformattedText }) return@register
             event.isCanceled = true
         }
@@ -115,7 +112,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
             updateLeapMenu()
 
             if (players.filterNotNull().isEmpty()) {
-                Render2D.drawCenteredString(event.context, "§4§lNo players found", Resolution.width / 2, Resolution.height / 2)
+                event.context.drawCenteredString("§4§lNo players found", Resolution.width / 2, Resolution.height / 2)
                 return@register
             }
 
@@ -124,7 +121,6 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
                 return@register
             }
 
-            Resolution.refresh()
             Resolution.push(event.context)
             val userScale = (scale.value.toFloat() / 100f) * 2.0f
             val screenWidth = Resolution.width / userScale
@@ -161,21 +157,21 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
 
                 val bgColor = leapBoxColor(entry.player, isHovered)
 
-                Render2D.drawFloatingRect(event.context, x, y, boxWidth, boxHeight, bgColor.withAlpha(190))
+                event.context.drawFloatingRect(x, y, boxWidth, boxHeight, bgColor.withAlpha(190))
 
                 val headX = (x + 10).toInt()
                 val headY = (y + (boxHeight / 2) - headSize / 2).toInt()
 
-                Render2D.drawPlayerHead(event.context, headX, headY, headSize, entry.player.skin)
-                Render2D.drawBorder(event.context, headX, headY, headSize, headSize, entry.player.clazz.color)
+                event.context.drawPlayerHead(headX, headY, headSize, entry.player.skin)
+                event.context.drawBorder(headX, headY, headSize, headSize, entry.player.clazz.color)
 
                 val textX = (x + 10 + headSize + 5).toInt()
                 val textY = (y + boxHeight / 2 - mc.font.lineHeight).toInt()
 
-                Render2D.drawString(event.context, entry.player.name, textX, textY + 2, entry.player.clazz.color)
+                event.context.drawString(entry.player.name, textX, textY + 2, entry.player.clazz.color)
 
                 val status = if (entry.player.isDead) "§cDEAD" else entry.player.clazz.name
-                Render2D.drawString(event.context, status, textX, textY + 12, entry.player.clazz.color)
+                event.context.drawString(status, textX, textY + 12, entry.player.clazz.color)
             }
 
             pose.popMatrix()
@@ -234,14 +230,13 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
         repeat(4) { players.add(null) }
 
         val loadedHeads = mutableMapOf<String, Int>()
+        val menu = player.containerMenu
 
-        mc.player?.containerMenu?.let { menu ->
-            for (i in 0 until (menu.slots.size - 36)) {
-                val stack = menu.slots[i].item
-                if (stack.isEmpty || ! stack.`is`(Items.PLAYER_HEAD)) continue
-                val headName = playerRegex.find(stack.hoverName.string)?.groups?.get("name")?.value ?: continue
-                loadedHeads[headName] = i
-            }
+        for (i in 0 until (menu.slots.size - 36)) {
+            val stack = menu.slots[i].item
+            if (stack.isEmpty || ! stack.`is`(Items.PLAYER_HEAD)) continue
+            val headName = playerRegex.find(stack.hoverName.string)?.groups?.get("name")?.value ?: continue
+            loadedHeads[headName] = i
         }
 
         val leapTeammates: List<DungeonPlayer> = when (sorting.value) {
@@ -289,11 +284,10 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
 
         mc.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1F))
         GuiUtils.clickSlot(entry.slotIndex, GuiUtils.ButtonType.LEFT)
-        mc.player?.closeContainer()
+        player.closeContainer()
     }
 
     private fun renderMapLeap(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
-        Resolution.refresh()
         Resolution.push(ctx)
 
         val sw = Resolution.width
@@ -321,7 +315,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
             if (mx in px - r .. px + r && my in py - r .. py + r) mapLeapHoveredIndex = i
         }
 
-        Render2D.drawRect(ctx, 0, 0, sw, sh, Color.BLACK.withAlpha(170))
+        ctx.drawRect(0, 0, sw, sh, Color.BLACK.withAlpha(170))
 
         val pose = ctx.pose()
         pose.pushMatrix()
@@ -333,7 +327,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
         mapLeapHoveredIndex?.let { idx ->
             players[idx]?.let { entry ->
                 val (px, py, r) = playerDot(entry.player)
-                Render2D.drawBorder(ctx, px - r, py - r, r * 2f, r * 2f, Color.WHITE, 2)
+                ctx.drawBorder(px - r, py - r, r * 2f, r * 2f, thickness = 2)
             }
         }
 

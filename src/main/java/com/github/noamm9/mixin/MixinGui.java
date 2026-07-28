@@ -12,7 +12,6 @@ import com.github.noamm9.utils.DebugHUD;
 import com.github.noamm9.utils.location.LocationUtils;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
@@ -35,10 +34,6 @@ public abstract class MixinGui {
 
     @Shadow @Nullable private Component title;
     @Shadow @Nullable private Component subtitle;
-
-    @Shadow
-    public abstract Font getFont();
-
 
     @Inject(method = "extractArmor", at = @At("HEAD"), cancellable = true)
     private static void renderArmor(GuiGraphicsExtractor graphics, Player player, int yLineBase, int numHealthRows, int healthRowHeight, int xLeft, CallbackInfo ci) {
@@ -83,7 +78,7 @@ public abstract class MixinGui {
     public void onRenderHud(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
         if (this.minecraft.options.hideGui) return;
         if (this.minecraft.debugEntries.isOverlayVisible()) return;
-        EventBus.post(new RenderOverlayEvent(graphics, deltaTracker));
+        EventBus.post(new RenderOverlayEvent(graphics));
 
         DebugHUD.render(graphics);
     }

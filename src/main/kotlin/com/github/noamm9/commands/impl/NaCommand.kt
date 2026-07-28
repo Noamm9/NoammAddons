@@ -3,7 +3,6 @@ package com.github.noamm9.commands.impl
 import com.github.noamm9.NoammAddons.debugFlags
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.NoammAddons.scope
-import com.github.noamm9.NoammAddons.screen
 import com.github.noamm9.commands.BaseCommand
 import com.github.noamm9.commands.CommandNodeBuilder
 import com.github.noamm9.event.EventBus
@@ -48,7 +47,7 @@ object NaCommand: BaseCommand("na", mutableSetOf("noamm", "noammaddons")) {
     )
 
     override fun CommandNodeBuilder.build() {
-        runs { screen = ClickGuiScreen }
+        runs { GuiUtils.setScreen(ClickGuiScreen) }
 
         literal("help") {
             runs {
@@ -65,7 +64,7 @@ object NaCommand: BaseCommand("na", mutableSetOf("noamm", "noammaddons")) {
         }
 
         literal("hud") {
-            runs { screen = HudEditorScreen() }
+            runs { GuiUtils.setScreen(HudEditorScreen()) }
         }
 
         literal("update") {

@@ -4,7 +4,8 @@ import com.github.noamm9.config.Savable
 import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.utils.render.Render2D.drawString
 import kotlinx.serialization.json.*
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
@@ -26,21 +27,21 @@ class MultiCheckboxSetting(name: String, options: MutableMap<String, Boolean>): 
         Style.drawNudgedText(ctx, name, x + 8f, y + 6f, hoverAnim.value)
 
         val icon = if (expanded) "§7-" else "§7+"
-        Render2D.drawString(ctx, icon, x + width - 15f, y + 6f, Color.WHITE)
+        ctx.drawString(icon, x + width - 15f, y + 6f)
 
         ctx.enableScissor(x, y, x + width, y + height)
 
         if (expanded) {
             var oy = y + 20f
-            Render2D.drawRect(ctx, x + 4f, oy, width - 8f, (value.size * 16) * openAnim.value, Color(5, 5, 5, 150))
+            ctx.drawRect(x + 4f, oy, width - 8f, (value.size * 16) * openAnim.value, Color(5, 5, 5, 150))
             value.forEach { (optionName, isEnabled) ->
                 val hov = mouseX >= x + 4 && mouseX <= x + width - 4 && mouseY >= oy && mouseY <= oy + 16
 
-                if (hov) Render2D.drawRect(ctx, x + 4f, oy, width - 8f, 16f, Color(255, 255, 255, 20))
-                if (isEnabled) Render2D.drawRect(ctx, x + 4f, oy + 2f, 1.5f, 12f, Style.accentColor)
+                if (hov) ctx.drawRect(x + 4f, oy, width - 8f, 16f, Color(255, 255, 255, 20))
+                if (isEnabled) ctx.drawRect(x + 4f, oy + 2f, 1.5f, 12f, Style.accentColor)
 
                 val color = if (isEnabled) Style.accentColor else if (hov) Color.WHITE else Color.GRAY
-                Render2D.drawString(ctx, optionName, x + 12f, oy + 4f, color)
+                ctx.drawString(optionName, x + 12f, oy + 4f, color)
 
                 oy += 16
             }

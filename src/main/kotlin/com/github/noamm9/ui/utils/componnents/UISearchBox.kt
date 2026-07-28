@@ -2,7 +2,7 @@ package com.github.noamm9.ui.utils.componnents
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.ui.clickgui.components.Style
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawRect
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.EditBox
 import net.minecraft.network.chat.Component
@@ -24,10 +24,10 @@ class UISearchBox(
     override fun extractWidgetRenderState(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, partialTick: Float) {
         if (! this.isVisible) return
 
-        Render2D.drawRect(guiGraphics, x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat(), Color(15, 15, 15, 200))
+        guiGraphics.drawRect(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat(), Color(15, 15, 15, 200))
 
         val borderColor = if (this.isFocused) Style.accentColor else Color(255, 255, 255, 30)
-        Render2D.drawRect(guiGraphics, x.toFloat(), (y + height - 2).toFloat(), width.toFloat(), 2f, borderColor)
+        guiGraphics.drawRect(x.toFloat(), (y + height - 2).toFloat(), width.toFloat(), 2f, borderColor)
 
         val pose = guiGraphics.pose()
         pose.pushMatrix()

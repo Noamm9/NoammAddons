@@ -8,8 +8,8 @@ import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.RenderHelper.width
 import java.awt.Color
 
 object PuzzleSolvers: Feature() {
@@ -72,7 +72,7 @@ object PuzzleSolvers: Feature() {
             centered = true
         ) { ctx, example ->
             val text = QuizSolver.timerText(example)
-            Render2D.drawCenteredString(ctx, text, 0f, 0f)
+            ctx.drawCenteredString(text, 0f, 0f)
             return@hudElement text.width().toFloat() to 9f
         }.apply {
             scale = 3f

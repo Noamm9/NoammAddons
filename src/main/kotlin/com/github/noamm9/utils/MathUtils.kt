@@ -90,17 +90,19 @@ object MathUtils {
     }
 
     fun BlockPos.add(x: Number = 0, y: Number = 0, z: Number = 0) = this.offset(x.toInt(), y.toInt(), z.toInt())
-    fun BlockPos.toVec() = Vec3(x, y, z)
+    fun BlockPos.toVec() = vec(x, y, z)
 
     fun Vec3.toPos() = BlockPos(floor(x).toInt(), floor(y).toInt(), floor(z).toInt())
-    fun Vec3.add(x: Number = 0.0, y: Number = 0.0, z: Number = 0.0) = add(Vec3(x, y, z))
+    fun Vec3.add(x: Number = 0.0, y: Number = 0.0, z: Number = 0.0) = add(vec(x, y, z))
     fun Vec3i.destructured() = Triple(x, y, z)
     fun Vec3.destructured() = Triple(x, y, z)
-    fun Vec3.center() = add(Vec3(0.5, 0.5, 0.5))
+    fun Vec3.center() = add(vec(0.5, 0.5, 0.5))
     fun Vec3.xzInAABB(aabb: AABB) = x in aabb.minX .. aabb.maxX && z in aabb.minZ .. aabb.maxZ
 
-    @JvmName("Vec3FromNumbers")
-    fun Vec3(x: Number, y: Number, z: Number): Vec3 = net.minecraft.world.phys.Vec3(x.toDouble(), y.toDouble(), z.toDouble())
+    fun vec(x: Number, y: Number, z: Number) = Vec3(x.toDouble(), y.toDouble(), z.toDouble())
+    fun aabb(x1: Number, y1: Number, z1: Number, x2: Number, y2: Number, z2: Number): AABB {
+        return AABB(x1.toDouble(), y1.toDouble(), z1.toDouble(), x2.toDouble(), y2.toDouble(), z2.toDouble())
+    }
 
     fun raytrace(player: LocalPlayer, range: Number): BlockPos? {
         val hit = player.pick(range.toDouble(), 1f, false)

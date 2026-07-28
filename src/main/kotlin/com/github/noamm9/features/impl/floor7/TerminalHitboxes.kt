@@ -8,10 +8,10 @@ import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils.unformattedText
-import com.github.noamm9.utils.MathUtils.Vec3
+import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.Utils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderBoxBounds
 import com.github.noamm9.utils.render.RenderHelper.renderX
 import com.github.noamm9.utils.render.RenderHelper.renderY
 import com.github.noamm9.utils.render.RenderHelper.renderZ
@@ -26,10 +26,10 @@ object TerminalHitboxes: Feature("Highlights the interactable hitboxes of the te
     private val outlineColor by ColorSetting("Outline Color", Utils.favoriteColor).hideIf { mode.value == 1 }
 
     private val terminalPositions = listOf(
-        listOf(Vec3(110, 113, 73), Vec3(110, 119, 79), Vec3(90, 112, 92), Vec3(90, 122, 101)),
-        listOf(Vec3(68, 109, 122), Vec3(59, 119, 123), Vec3(47, 109, 122), Vec3(39, 108, 142), Vec3(40, 124, 123)),
-        listOf(Vec3(- 2, 109, 112), Vec3(- 2, 119, 93), Vec3(18, 123, 93), Vec3(- 2, 109, 77)),
-        listOf(Vec3(41, 109, 30), Vec3(44, 121, 30), Vec3(67, 109, 30), Vec3(72, 114, 47))
+        listOf(vec(110, 113, 73), vec(110, 119, 79), vec(90, 112, 92), vec(90, 122, 101)),
+        listOf(vec(68, 109, 122), vec(59, 119, 123), vec(47, 109, 122), vec(39, 108, 142), vec(40, 124, 123)),
+        listOf(vec(- 2, 109, 112), vec(- 2, 119, 93), vec(18, 123, 93), vec(- 2, 109, 77)),
+        listOf(vec(41, 109, 30), vec(44, 121, 30), vec(67, 109, 30), vec(72, 114, 47))
     )
 
     private val cachedTerminals = mutableMapOf<Int, MutableSet<ArmorStand>>()
@@ -40,7 +40,7 @@ object TerminalHitboxes: Feature("Highlights the interactable hitboxes of the te
         register<MainThreadPacketReceivedEvent.Post> {
             if (LocationUtils.dungeonFloorNumber != 7 || LocationUtils.F7Phase != 3) return@register
             val packet = event.packet as? ClientboundSetEntityDataPacket ?: return@register
-            val entity = mc.level?.getEntity(packet.id) as? ArmorStand ?: return@register
+            val entity = level.getEntity(packet.id) as? ArmorStand ?: return@register
             val name = entity.customName?.unformattedText
 
             if (name == "Inactive Terminal") {
@@ -75,10 +75,9 @@ object TerminalHitboxes: Feature("Highlights the interactable hitboxes of the te
                 val maxY = entity.renderY + hd
                 val maxZ = entity.renderZ + hw
 
-                Render3D.renderBoxBounds(
-                    event.ctx,
-                    minX, minY, minZ, maxX, maxY, maxZ,
-                    outlineColor.value,
+                event.ctx.renderBoxBounds(
+                    minX,
+                    minY, minZ, maxX, maxY, maxZ, outlineColor.value,
                     fillColor.value,
                     outline = drawOutline,
                     fill = drawFill,

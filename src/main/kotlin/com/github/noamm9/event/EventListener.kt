@@ -1,6 +1,5 @@
 package com.github.noamm9.event
 
-
 data class EventListener<T: Event>(
     val eventClass: Class<out Event>,
     val priority: EventPriority = EventPriority.NORMAL,

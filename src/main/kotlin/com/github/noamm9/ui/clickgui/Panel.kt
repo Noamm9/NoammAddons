@@ -13,8 +13,10 @@ import com.github.noamm9.ui.gui.SoundManagerScreen
 import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.GuiUtils
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
@@ -50,9 +52,9 @@ class Panel(val category: CategoryType, var x: Int, var y: Int) {
 
         openAnim.update(if (collapsed && features.size == filteredFeatures.size) 0f else 1f)
 
-        Render2D.drawRect(context, x, y, width, headerHeight, headerBg)
-        Render2D.drawRect(context, x, y, width, 2, Style.accentColor)
-        Render2D.drawCenteredString(context, "§l${if (category != CategoryType.FLOOR7) category.name else "Floor 7"}", x + width / 2, y + 7)
+        context.drawRect(x, y, width, headerHeight, headerBg)
+        context.drawRect(x, y, width, 2, Style.accentColor)
+        context.drawCenteredString("§l${if (category != CategoryType.FLOOR7) category.name else "Floor 7"}", x + width / 2, y + 7)
 
         if (openAnim.value > 0.01f || features.size != filteredFeatures.size) {
             val totalContentHeight = filteredFeatures.size * buttonHeight
@@ -73,18 +75,18 @@ class Panel(val category: CategoryType, var x: Int, var y: Int) {
                         mouseY >= y + headerHeight && mouseY <= y + headerHeight + visibleHeight &&
                         ClickGuiScreen.selectedFeature == null
 
-                    Render2D.drawRect(context, x, currentY, width, buttonHeight, bodyBg)
+                    context.drawRect(x, currentY, width, buttonHeight, bodyBg)
 
                     if (feature.enabled) {
-                        Render2D.drawRect(context, x, currentY, width, buttonHeight, Style.accentColor.withAlpha(100))
-                        Render2D.drawRect(context, x, currentY, 2, buttonHeight, Style.accentColor)
+                        context.drawRect(x, currentY, width, buttonHeight, Style.accentColor.withAlpha(100))
+                        context.drawRect(x, currentY, 2, buttonHeight, Style.accentColor)
                     }
 
                     if (isHovered) {
-                        Render2D.drawRect(context, x, currentY, width, buttonHeight, hoverColor)
+                        context.drawRect(x, currentY, width, buttonHeight, hoverColor)
                     }
 
-                    Render2D.drawCenteredString(context, feature.name, x + width / 2, currentY + 4)
+                    context.drawCenteredString(feature.name, x + width / 2, currentY + 4)
 
                     if (isHovered && ! ClickGuiScreen.isMouseOverConfigWindow(mouseX, mouseY)) {
                         TooltipManager.hover(feature.description, mouseX, mouseY)
@@ -98,7 +100,7 @@ class Panel(val category: CategoryType, var x: Int, var y: Int) {
                 val barHeight = (visibleHeight.toFloat() / totalContentHeight.toFloat()) * visibleHeight
                 val barY = (y + headerHeight) + ((scrollOffset / maxScroll) * (visibleHeight - barHeight))
 
-                Render2D.drawRect(context, x + width - 2, barY, 2, barHeight, Color.WHITE)
+                context.drawRect(x + width - 2, barY, 2, barHeight)
             }
         }
     }
@@ -159,12 +161,12 @@ class Panel(val category: CategoryType, var x: Int, var y: Int) {
                 else if (button == 1) {
                     if (feature is SoundManager) {
                         ClickGuiScreen.selectedFeature = null
-                        if (feature.enabled) NoammAddons.screen = SoundManagerScreen()
+                        if (feature.enabled) GuiUtils.setScreen(SoundManagerScreen())
                         else NotificationManager.push(NoammAddons.MOD_NAME + " - ClickGui", "&fEnable &b${feature.name} &ffirst to open the settings!")
                     }
                     else if (feature is CommandShortcuts) {
                         ClickGuiScreen.selectedFeature = null
-                        if (feature.enabled) NoammAddons.screen = CommandShortcutsScreen()
+                        if (feature.enabled) GuiUtils.setScreen(CommandShortcutsScreen())
                         else NotificationManager.push(NoammAddons.MOD_NAME + " - ClickGui", "&fEnable &b${feature.name} &ffirst to open the settings!")
                     }
                     else if (feature.configSettings.isNotEmpty()) ClickGuiScreen.openFeatureWindow(feature)

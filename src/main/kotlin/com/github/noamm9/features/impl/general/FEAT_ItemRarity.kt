@@ -10,7 +10,8 @@ import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.items.ItemRarity
 import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawBorder
+import com.github.noamm9.utils.render.Render2D.drawTexture
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.ItemStack
@@ -44,13 +45,13 @@ object FEAT_ItemRarity: Feature(name = "Item Rarity", description = "Draws the r
 
         when (style.value) {
             0 -> ctx.fill(x, y, x + 16, y + 16, color.rgb)
-            1 -> Render2D.drawBorder(ctx, x, y, 16, 16, color)
+            1 -> ctx.drawBorder(x, y, 16, 16, color)
             2 -> {
                 ctx.fill(x, y, x + 16, y + 16, color.rgb)
-                Render2D.drawBorder(ctx, x, y, 16, 16, rarityColor)
+                ctx.drawBorder(x, y, 16, 16, rarityColor)
             }
 
-            3 -> Render2D.drawTexture(ctx, circleTexture, x, y, 16, 16, color)
+            3 -> ctx.drawTexture(circleTexture, x, y, 16, 16, color)
         }
     }
 
