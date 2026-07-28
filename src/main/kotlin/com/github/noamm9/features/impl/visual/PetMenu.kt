@@ -244,7 +244,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
         val width = "Vanilla Menu".width() + 16f
         return ButtonBounds(
             x = Resolution.width - width - 5f,
-            y = Resolution.height - 13f,
+            y = Resolution.height - 23f,
             width = width,
             height = 18f
         )
