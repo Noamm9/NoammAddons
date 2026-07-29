@@ -11,6 +11,7 @@ import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.toVec
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
+import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.render.Render3D.renderBlock
 import com.github.noamm9.utils.render.Render3D.renderString
@@ -76,7 +77,8 @@ object TestGround: ISelfInit {
         EventBus.register<RenderWorldEvent> {
             if (! rotation) return@register
             DungeonScanner.uniqueRooms.values.forEach { room ->
-                val center = room.centerPos.above(room.highestBlock)
+                val highest = room.highestBlock ?: ScanUtils.getHighestY(room.mainRoom.x, room.mainRoom.z)
+                val center = room.centerPos.above(highest)
                 event.ctx.renderString(room.name, center.above(3).toVec(), Color.YELLOW, 6, phase = true)
                 DungeonScanner.clayBlocksCorners.forEachIndexed { index, (dx, dz) ->
                     event.ctx.renderBlock(

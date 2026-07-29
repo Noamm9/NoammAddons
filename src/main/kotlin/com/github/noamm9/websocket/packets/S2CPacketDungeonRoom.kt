@@ -10,7 +10,7 @@ class S2CPacketDungeonRoom(val name: String, val x: Int, val z: Int, val col: In
     override fun handle() {
         if (DungeonScanner.hasScanned) return
         val tile = DungeonScanner.dungeonList[row * 11 + col]
-        if (tile is Unknown || (tile as? RoomTile)?.data?.isUnknown() == true) return
+        if (tile !is Unknown && (tile as? RoomTile)?.data?.isUnknown() != true) return
         val data = ScanUtils.getRoomData(name) ?: return
 
         DungeonScanner.dungeonList[row * 11 + col] = RoomTile(x, z, data).also {

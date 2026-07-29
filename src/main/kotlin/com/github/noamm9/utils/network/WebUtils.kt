@@ -20,7 +20,6 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
-import io.ktor.websocket.Frame
 import io.ktor.websocket.WebSocketDeflateExtension
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
@@ -33,13 +32,11 @@ object WebUtils {
 
     val client = HttpClient(CIO) {
         install(WebSockets) {
-            pingIntervalMillis = 30_000
+            pingIntervalMillis = 10_000
 
             extensions {
                 install(WebSocketDeflateExtension) {
                     compressionLevel = Deflater.BEST_SPEED
-                    compressIfBiggerThan(bytes = 1024)
-                    compressIf { frame -> frame is Frame.Text }
                 }
             }
         }

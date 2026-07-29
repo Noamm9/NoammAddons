@@ -76,7 +76,7 @@ object LocationUtils: ISelfInit {
             P3Section = findP3Section()
         }
 
-        EventBus.register<WorldChangeEvent>(EventPriority.HIGHEST) { reset() }
+        EventBus.register<WorldChangeEvent>(EventPriority.HIGH) { reset() }
     }
 
     private fun reset() {

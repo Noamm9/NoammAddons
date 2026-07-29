@@ -4,11 +4,11 @@ import com.github.noamm9.features.impl.dungeon.map.MapConfig
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
+import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Blocks
 import kotlin.math.max
-import kotlin.properties.Delegates
 
 class UniqueRoom(arrX: Int, arrY: Int, roomTile: RoomTile) {
     private var topLeft = Pair(arrX, arrY)
@@ -21,7 +21,7 @@ class UniqueRoom(arrX: Int, arrY: Int, roomTile: RoomTile) {
     val cacheSplitName = name.split(" ")
 
     val centerPos = BlockPos(mainRoom.x, 0, mainRoom.z)
-    var highestBlock by Delegates.notNull<Int>()
+    var highestBlock: Int? = null
     var clayPos: BlockPos? = null
     var rotation: Int? = null
 
@@ -139,7 +139,10 @@ class UniqueRoom(arrX: Int, arrY: Int, roomTile: RoomTile) {
         if (rotation != null || clayPos != null) return
         if (mainRoom.data.type == RoomType.FAIRY) return setRotationAndCorner(0, BlockPos(mainRoom.x - 15, 0, mainRoom.z - 15))
         val roomTiles = tiles.filterNot { it.isSeparator }.takeUnless { it.size < data.shape.tileCount } ?: return
+        val highestBlock = highestBlock ?: ScanUtils.getHighestY(mainRoom.x, mainRoom.z).takeIf { it > 0 } ?: return
+
         val mutablePos = BlockPos.MutableBlockPos()
+        val h = DungeonScanner.halfRoomSize
 
         var minX = Int.MAX_VALUE
         var maxX = Int.MIN_VALUE
@@ -152,8 +155,6 @@ class UniqueRoom(arrX: Int, arrY: Int, roomTile: RoomTile) {
             if (tile.z < minZ) minZ = tile.z
             if (tile.z > maxZ) maxZ = tile.z
         }
-
-        val h = DungeonScanner.halfRoomSize
 
         val primaryCornersX = intArrayOf(minX - h, maxX + h, maxX + h, minX - h)
         val primaryCornersZ = intArrayOf(minZ - h, minZ - h, maxZ + h, maxZ + h)

@@ -1,7 +1,7 @@
 package com.github.noamm9.features.impl.dev
 
 import com.github.noamm9.NoammAddons
-import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.EventPriority
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.WebSocketEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
@@ -38,9 +38,9 @@ object FEAT_WebSocket: Feature(name = "WebSocket", toggled = true) {
             GsonUtils.gson.fromJson(json, packetClass).handle()
         }
 
-        EventBus.register<DungeonEvent.RunStatedEvent> { sendDungeonInfo() }
-        EventBus.register<DungeonEvent.RunEndedEvent> { send(mapOf("type" to "dungeon_end")) }
-        EventBus.register<WorldChangeEvent> { send(mapOf("type" to "reset")) }
+        register<DungeonEvent.RunStatedEvent> { sendDungeonInfo() }
+        register<DungeonEvent.RunEndedEvent> { send(mapOf("type" to "dungeon_end")) }
+        register<WorldChangeEvent>(EventPriority.HIGHEST) { if (LocationUtils.inDungeon) send(mapOf("type" to "reset")) }
     }
 
     fun sendDungeonInfo() = ThreadUtils.scheduledTaskServer(30) ws@{
@@ -50,6 +50,6 @@ object FEAT_WebSocket: Feature(name = "WebSocket", toggled = true) {
         val team = DungeonListener.dungeonTeammates.map { it.name }.ifEmpty { return@ws }
         val entrance = (DungeonScanner.dungeonList.find { (it as? RoomTile)?.data?.type == RoomType.ENTRANCE } as? RoomTile)?.getGridPos() ?: return@ws
 
-        send(C2SPacketDungeonStart(serverId, floor, team, entrance))
+        send(C2SPacketDungeonStart(serverId, floor, team, entrance.run { second to first }))
     }
 }
