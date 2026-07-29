@@ -10,9 +10,9 @@ import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.GsonUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
-import com.github.noamm9.utils.dungeons.map.DungeonInfo
-import com.github.noamm9.utils.dungeons.map.core.Room
+import com.github.noamm9.utils.dungeons.map.core.RoomTile
 import com.github.noamm9.utils.dungeons.map.core.RoomType
+import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.location.LocrawListener
 import com.github.noamm9.websocket.PacketRegistry
@@ -48,7 +48,7 @@ object FEAT_WebSocket: Feature(name = "WebSocket", toggled = true) {
         val serverId = LocrawListener.server.ifEmpty { LocationUtils.serverId } ?: return@ws
         val floor = LocationUtils.dungeonFloor ?: return@ws
         val team = DungeonListener.dungeonTeammates.map { it.name }.ifEmpty { return@ws }
-        val entrance = (DungeonInfo.dungeonList.find { (it as? Room)?.data?.type == RoomType.ENTRANCE } as? Room)?.getArrayPosition() ?: return@ws
+        val entrance = (DungeonScanner.dungeonList.find { (it as? RoomTile)?.data?.type == RoomType.ENTRANCE } as? RoomTile)?.getGridPos() ?: return@ws
 
         send(C2SPacketDungeonStart(serverId, floor, team, entrance))
     }

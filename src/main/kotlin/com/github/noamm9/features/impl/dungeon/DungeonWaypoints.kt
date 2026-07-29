@@ -61,7 +61,7 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
 
             val roomName = event.room.name
             val roomRotation = 360 - (event.room.rotation ?: return@register)
-            val roomCorner = event.room.corner ?: return@register
+            val roomCorner = event.room.clayPos ?: return@register
 
             waypoints.get()[roomName]?.map { wp ->
                 wp.copy(pos = ScanUtils.getRealCoord(wp.pos, roomCorner, roomRotation))

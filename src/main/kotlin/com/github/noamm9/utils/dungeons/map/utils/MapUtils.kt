@@ -1,23 +1,24 @@
 package com.github.noamm9.utils.dungeons.map.utils
 
-import com.github.noamm9.utils.dungeons.map.DungeonInfo
+import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
-import com.github.noamm9.utils.dungeons.map.handlers.HotbarMapColorParser
+import com.github.noamm9.utils.dungeons.map.handlers.HotbarMapScanner
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
-import net.minecraft.world.level.saveddata.maps.MapDecoration
+import net.minecraft.world.level.saveddata.maps.MapItemSavedData
 import net.minecraft.world.phys.Vec3
 
-object MapUtils {
-    val MapDecoration.mapX get() = (this.x + 128) shr 1
-    val MapDecoration.mapZ get() = (this.y + 128) shr 1
-    val MapDecoration.yaw get() = this.rot * 22.5f
-
+object MapUtils: ISelfInit {
     var startCorner = Pair(5, 5)
     var mapRoomSize = 16
     var coordMultiplier = 0.625
     var calibrated = false
 
+    override fun init() {
+        EventBus.register<WorldChangeEvent> { reset() }
+    }
 
     fun coordsToMap(vec: Vec3): Pair<Float, Float> {
         val x = ((vec.x - DungeonScanner.startX + 15) * coordMultiplier + startCorner.first).toFloat()
@@ -32,9 +33,10 @@ object MapUtils {
         calibrated = false
     }
 
+    fun calibrateMap(mapData: MapItemSavedData): Boolean {
+        if (calibrated) return true
 
-    fun calibrateMap(): Boolean {
-        val (start, size) = findEntranceCorner()
+        val (start, size) = findEntranceCorner(mapData)
         if (! size.equalsOneOf(16, 18)) return false
 
         mapRoomSize = size
@@ -51,16 +53,16 @@ object MapUtils {
 
         coordMultiplier = (mapRoomSize + 4.0) / DungeonScanner.roomSize
 
-        HotbarMapColorParser.calibrate()
+        HotbarMapScanner.calibrate()
         return true
     }
 
 
-    private fun findEntranceCorner(): Pair<Int, Int> {
-        var start = 0
+    private fun findEntranceCorner(mapData: MapItemSavedData): Pair<Int, Int> {
         var currLength = 0
+        var start = 0
 
-        DungeonInfo.mapData?.colors?.forEachIndexed { index, byte ->
+        mapData.colors.forEachIndexed { index, byte ->
             if (byte == 30.toByte()) {
                 if (currLength == 0) start = index
                 currLength ++

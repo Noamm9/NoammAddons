@@ -1,29 +1,57 @@
 package com.github.noamm9.utils.dungeons.map.handlers
 
+import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
+import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.mixin.IMapState
 import com.github.noamm9.utils.MathUtils
+import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.DungeonListener.dungeonTeammatesNoSelf
 import com.github.noamm9.utils.dungeons.DungeonPlayer
-import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.core.*
 import com.github.noamm9.utils.dungeons.map.utils.LegacyRegistry
-import com.github.noamm9.utils.dungeons.map.utils.MapUtils.mapX
-import com.github.noamm9.utils.dungeons.map.utils.MapUtils.mapZ
-import com.github.noamm9.utils.dungeons.map.utils.MapUtils.yaw
+import com.github.noamm9.utils.dungeons.map.utils.MapUtils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import kotlinx.coroutines.*
+import net.minecraft.core.component.DataComponents
+import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket
+import net.minecraft.world.level.saveddata.maps.MapDecoration
 import net.minecraft.world.level.saveddata.maps.MapDecorationTypes
+import net.minecraft.world.level.saveddata.maps.MapItemSavedData
 import java.util.concurrent.*
 
-object MapUpdater {
+object MapUpdater: ISelfInit {
     private val playerHeadScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    val playerJobs = ConcurrentHashMap<String, Job>()
+    private val playerJobs = ConcurrentHashMap<String, Job>()
 
-    fun updatePlayers() {
-        val mapData = DungeonInfo.mapData as? IMapState ?: return
+    override fun init() {
+        EventBus.register<WorldChangeEvent> {
+            playerJobs.forEach { it.value.cancel() }
+            playerJobs.clear()
+        }
+
+        EventBus.register<MainThreadPacketReceivedEvent.Post> {
+            if (! LocationUtils.inDungeon) return@register
+            if (! DungeonListener.dungeonStarted) return@register
+            val packet = event.packet as? ClientboundMapItemDataPacket ?: return@register
+            val mapId = PlayerUtils.getHotbarSlot(8)?.get(DataComponents.MAP_ID) ?: packet.mapId
+            val mapData = mc.level?.getMapData(mapId) ?: return@register
+
+            MapUtils.calibrated = MapUtils.calibrateMap(mapData)
+            if (MapUtils.calibrated) {
+                updateRooms(mapData)
+                updatePlayers(mapData)
+            }
+        }
+    }
+
+    fun updatePlayers(mapData: MapItemSavedData) {
+        val mapData = mapData as? IMapState ?: return
         val decorations = mapData.decorations ?: return
         val livingTeammates = dungeonTeammatesNoSelf.filter { ! it.isDead }
 
@@ -46,27 +74,11 @@ object MapUpdater {
         }
     }
 
-    fun onPlayerDeath() {
-        playerJobs.forEach { it.value.cancel() }
-        playerJobs.clear()
-    }
-
     private fun smoothUpdatePlayer(player: DungeonPlayer, targetX: Float, targetZ: Float, targetYaw: Float) {
-        if (player.mapX == 0f && player.mapZ == 0f && player.yaw == 0f) {
-            player.mapX = targetX
-            player.mapZ = targetZ
-            player.yaw = targetYaw
-            return
-        }
-
-        if (player.mapX == targetX && player.mapZ == targetZ && player.yaw == targetYaw) {
-            playerJobs.remove(player.name)?.cancel()
-            return
-        }
+        if (player.mapX == targetX && player.mapZ == targetZ && player.yaw == targetYaw) return
 
         playerHeadScope.launch {
-            val oldJob = playerJobs.put(player.name, this.coroutineContext.job)
-            oldJob?.cancelAndJoin()
+            playerJobs.put(player.name, coroutineContext.job)?.cancel()
 
             val startX = player.mapX
             val startZ = player.mapZ
@@ -86,70 +98,65 @@ object MapUpdater {
 
                 delay(10)
             }
-
-            if (isActive) {
-                player.mapX = targetX
-                player.mapZ = targetZ
-                player.yaw = targetYaw
-            }
         }
     }
 
-    fun updateRooms() {
+    fun updateRooms(mapData: MapItemSavedData) {
         if (LocationUtils.inBoss) return
         if (DungeonListener.dungeonEnded) return
         if (DungeonListener.thePlayer?.isDead == true) return
-        val mapData = DungeonInfo.mapData ?: return
-        HotbarMapColorParser.updateMap(mapData)
+        HotbarMapScanner.updateMap(mapData)
 
-        for (x in 0 .. 10) {
-            for (z in 0 .. 10) {
-                val idx = z * 11 + x
-                val room = DungeonInfo.dungeonList[idx]
-                val mapTile = HotbarMapColorParser.getTile(x, z)
+        for (x in 0 .. 10) for (z in 0 .. 10) {
+            val idx = z * 11 + x
+            val room = DungeonScanner.dungeonList[idx]
+            val mapTile = HotbarMapScanner.getTile(x, z)
 
-                if (room is Unknown) {
-                    DungeonInfo.dungeonList[idx] = mapTile
-                    DungeonPathFinder.clearCache()
-                    if (mapTile is Room) {
-                        val connected = HotbarMapColorParser.getConnected(x, z)
-                        connected.firstOrNull { it.data.name != "Unknown" }?.let {
-                            mapTile.addToUnique(z, x, it.data.name)
-                        }
-                    }
-                    continue
-                }
-
-                if (mapTile.state.ordinal < room.state.ordinal || mapTile is Room && room is Room && mapTile.data.type == RoomType.PUZZLE) {
-                    room.state = mapTile.state
-                }
-
-                if (mapTile is Room && room is Room && mapTile.data.type != room.data.type) {
-                    if (room.data.name == mapTile.data.name) room.data = mapTile.data
-                }
-
-                if (mapTile is Door && room is Door) {
-                    if (mapTile.type == DoorType.WITHER && room.type != DoorType.WITHER) {
-                        room.type = mapTile.type
+            if (room is Unknown) {
+                DungeonScanner.dungeonList[idx] = mapTile
+                DungeonTree.clearCache()
+                if (mapTile is RoomTile) {
+                    val connected = HotbarMapScanner.getConnected(x, z)
+                    connected.firstOrNull { it.data.name != "Unknown" }?.let {
+                        mapTile.addToUnique(z, x, it.data.name)
                     }
                 }
+                continue
+            }
 
-                if (room is Door && room.type.equalsOneOf(DoorType.ENTRANCE, DoorType.WITHER, DoorType.BLOOD)) {
-                    if (mapTile is Door && mapTile.type == DoorType.WITHER) room.opened = false
-                    else if (! room.opened) {
-                        if (WorldUtils.isChunkLoaded(room.x, room.z)) {
-                            if (LegacyRegistry.getLegacyId(WorldUtils.getStateAt(room.x, 69, room.z)).equalsOneOf(0, 166)) room.opened = true
+            if (mapTile.state.ordinal < room.state.ordinal || mapTile is RoomTile && room is RoomTile && mapTile.data.type == RoomType.PUZZLE) {
+                room.state = mapTile.state
+            }
+
+            if (mapTile is RoomTile && room is RoomTile && mapTile.data.type != room.data.type) {
+                if (room.data.name == mapTile.data.name) room.data = mapTile.data
+            }
+
+            if (mapTile is DoorTile && room is DoorTile) {
+                if (mapTile.type == DoorType.WITHER && room.type != DoorType.WITHER) {
+                    room.type = mapTile.type
+                }
+            }
+
+            if (room is DoorTile && room.type.equalsOneOf(DoorType.ENTRANCE, DoorType.WITHER, DoorType.BLOOD)) {
+                if (mapTile is DoorTile && mapTile.type == DoorType.WITHER) room.opened = false
+                else if (! room.opened) {
+                    if (WorldUtils.isChunkLoaded(room.x, room.z)) {
+                        if (LegacyRegistry.getLegacyId(WorldUtils.getStateAt(room.x, 69, room.z)).equalsOneOf(0, 166)) room.opened = true
+                    }
+                    else if (mapTile is DoorTile && mapTile.state == RoomState.DISCOVERED) {
+                        if (room.type == DoorType.BLOOD) {
+                            val bloodRoomTile = DungeonScanner.dungeonList.filterIsInstance<RoomTile>().find { it.data.type == RoomType.BLOOD }
+                            if (bloodRoomTile != null && bloodRoomTile.state != RoomState.UNOPENED) room.opened = true
                         }
-                        else if (mapTile is Door && mapTile.state == RoomState.DISCOVERED) {
-                            if (room.type == DoorType.BLOOD) {
-                                val bloodRoom = DungeonInfo.dungeonList.filterIsInstance<Room>().find { it.data.type == RoomType.BLOOD }
-                                if (bloodRoom != null && bloodRoom.state != RoomState.UNOPENED) room.opened = true
-                            }
-                            else room.opened = true
-                        }
+                        else room.opened = true
                     }
                 }
             }
         }
     }
+
+    private val MapDecoration.mapX get() = (this.x + 128) shr 1
+    private val MapDecoration.mapZ get() = (this.y + 128) shr 1
+    private val MapDecoration.yaw get() = this.rot * 22.5f
 }

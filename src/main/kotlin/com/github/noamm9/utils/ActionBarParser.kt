@@ -8,8 +8,8 @@ import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.dungeons.DungeonListener
-import com.github.noamm9.utils.dungeons.map.DungeonInfo
-import com.github.noamm9.utils.dungeons.map.core.Room
+import com.github.noamm9.utils.dungeons.map.core.RoomTile
+import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.websocket.WebSocket
@@ -106,13 +106,13 @@ object ActionBarParser: ISelfInit {
             maxSecrets = match.groupValues[2].remove(",").toIntOrNull() ?: maxSecrets
 
             ScanUtils.getRoomGraf(mc.player !!.position()).let { (gx, gy) ->
-                val room = DungeonInfo.dungeonList[gy * 11 + gx] as? Room ?: return
-                if (room.data.name == "Unknown") return
+                val roomTile = DungeonScanner.dungeonList[gy * 11 + gx] as? RoomTile ?: return
+                if (roomTile.data.name == "Unknown") return
 
-                if (room.uniqueRoom?.foundSecrets != secrets && room.data.secrets == maxSecrets) {
-                    room.uniqueRoom?.foundSecrets = secrets !!
+                if (roomTile.uniqueRoom?.foundSecrets != secrets && roomTile.data.secrets == maxSecrets) {
+                    roomTile.uniqueRoom?.foundSecrets = secrets !!
                     if (DungeonListener.dungeonTeammatesNoSelf.isNotEmpty()) {
-                        WebSocket.send(S2CPacketRoomSecrets(room.data.name, secrets !!))
+                        WebSocket.send(S2CPacketRoomSecrets(roomTile.data.name, secrets !!))
                     }
                 }
             }

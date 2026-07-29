@@ -5,7 +5,7 @@ import net.minecraft.core.BlockPos
 data class RoomData(
     val name: String,
     val type: RoomType,
-    val shape: String,
+    val shape: RoomShape,
     val cores: List<Int>,
     val secretDetails: SecretDetails,
     val secretCoords: SecretCoords,
@@ -30,7 +30,9 @@ data class RoomData(
         val chest: List<BlockPos> = emptyList(),
     )
 
+    fun isUnknown() = name == "Unknown" && shape == RoomShape.UNKNOWN
+
     companion object {
-        fun createUnknown(type: RoomType) = RoomData("Unknown", type, "", emptyList(), SecretDetails(), SecretCoords())
+        fun createUnknown(type: RoomType) = RoomData("Unknown", type, RoomShape.UNKNOWN, emptyList(), SecretDetails(), SecretCoords())
     }
 }

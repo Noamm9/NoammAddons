@@ -5,18 +5,16 @@ import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.features.impl.dungeon.map.MapConfig
 import com.github.noamm9.utils.dungeons.DungeonListener
-import com.github.noamm9.utils.dungeons.map.DungeonInfo
+import com.github.noamm9.utils.dungeons.map.core.RoomType.*
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
-import java.awt.Color
 import kotlin.properties.Delegates
 
-class Room(override val x: Int, override val z: Int, var data: RoomData): Tile {
-    var core = 0
-    var isSeparator = false
+class RoomTile(override val x: Int, override val z: Int, var data: RoomData): Tile {
     var uniqueRoom: UniqueRoom? = null
+    var isSeparator = false
 
-    override var state: RoomState by Delegates.observable(RoomState.UNDISCOVERED) { _, oldValue, newValue ->
+    override var state by Delegates.observable(RoomState.UNDISCOVERED) { _, oldValue, newValue ->
         if (uniqueRoom?.mainRoom != this) return@observable
         if (oldValue == newValue) return@observable
         if (data.name == "Unknown") return@observable
@@ -28,36 +26,30 @@ class Room(override val x: Int, override val z: Int, var data: RoomData): Tile {
             ScanUtils.getRoomFromPos(pos)?.data?.name == data.name
         }
 
+        if (newValue == RoomState.GREEN) uniqueRoom !!.foundSecrets = uniqueRoom !!.data.secrets
         EventBus.post(DungeonEvent.RoomEvent.onStateChange(uniqueRoom !!, oldValue, newValue, roomPlayers))
     }
 
-    override val color: Color
-        get() {
-            val color = if (state == RoomState.UNOPENED) MapConfig.colorUnopened
-            else when (data.type) {
-                RoomType.BLOOD -> MapConfig.colorBlood
-                RoomType.CHAMPION -> MapConfig.colorMiniboss
-                RoomType.ENTRANCE -> MapConfig.colorEntrance
-                RoomType.FAIRY -> MapConfig.colorFairy
-                RoomType.PUZZLE -> MapConfig.colorPuzzle
-                RoomType.RARE -> MapConfig.colorRare
-                RoomType.TRAP -> MapConfig.colorTrap
-                else -> MapConfig.colorRoom
-            }
+    override fun getColor() = when {
+        state == RoomState.UNOPENED -> MapConfig.colorUnopened
+        data.type == BLOOD -> MapConfig.colorBlood
+        data.type == FAIRY -> MapConfig.colorFairy
+        data.type == RARE -> MapConfig.colorRare
+        data.type == CHAMPION -> MapConfig.colorMiniboss
+        data.type == PUZZLE -> MapConfig.colorPuzzle
+        data.type == TRAP -> MapConfig.colorTrap
+        data.type == NORMAL -> MapConfig.colorRoom
+        data.type == ENTRANCE -> MapConfig.colorEntrance
+        else -> MapConfig.colorRoom
+    }.value
 
-            return if (MapConfig.dungeonMapCheater.value && state == RoomState.UNDISCOVERED) color.value.darker().darker() else color.value
-        }
-
-    fun getArrayPosition(): Pair<Int, Int> {
-        return Pair((x - DungeonScanner.startX) / 16, (z - DungeonScanner.startZ) / 16)
-    }
 
     fun addToUnique(row: Int, column: Int, roomName: String = data.name) {
-        val unique = DungeonInfo.uniqueRooms[roomName]
+        val unique = DungeonScanner.uniqueRooms[roomName]
 
         if (unique == null) {
             UniqueRoom(column, row, this).let {
-                DungeonInfo.uniqueRooms[data.name] = it
+                DungeonScanner.uniqueRooms[data.name] = it
                 uniqueRoom = it
             }
         }

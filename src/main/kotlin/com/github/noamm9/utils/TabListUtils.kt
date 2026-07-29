@@ -42,11 +42,11 @@ object TabListUtils: ISelfInit {
 
     private object PlayerComparator: Comparator<PlayerInfo> {
         override fun compare(o1: PlayerInfo, o2: PlayerInfo): Int {
-            return ComparisonChain.start().apply {
-                compareTrueFirst(o1.gameMode != GameType.SPECTATOR, o2.gameMode != GameType.SPECTATOR)
-                compare(o1.team?.name.orEmpty(), o2.team?.name.orEmpty())
-                compare(o1.profile.name, o2.profile.name)
-            }.result()
+            return ComparisonChain.start()
+                .compareTrueFirst(o1.gameMode != GameType.SPECTATOR, o2.gameMode != GameType.SPECTATOR)
+                .compare(o1.team?.name.orEmpty(), o2.team?.name.orEmpty())
+                .compare(o1.profile.name, o2.profile.name)
+                .result()
         }
     }
 }

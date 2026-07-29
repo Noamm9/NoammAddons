@@ -10,7 +10,7 @@ import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.DungeonListener.DualTime
 import com.github.noamm9.utils.dungeons.DungeonListener.DualTime.Companion.minus
-import com.github.noamm9.utils.dungeons.map.DungeonInfo
+import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
@@ -107,7 +107,7 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
             }
 
             val clearInfo = mutableListOf<String>()
-            if (showWitherDoors.value) clearInfo.add("§8Wither Doors: §7${DungeonInfo.witherDoors}")
+            if (showWitherDoors.value) clearInfo.add("§8Wither Doors: §7${DungeonScanner.witherDoors}")
             clearInfo.add("§4Blood Open: $bloodOpen")
             clearInfo.add("§cWatcher Clear: $watcherClear")
             clearInfo.add("§dPortal: $portalTime")

@@ -16,8 +16,8 @@ enum class DungeonClass(val setting: ColorCodeSetting) {
     val code get() = setting.value.toString()
 
     companion object {
-        fun fromName(name: String): DungeonClass {
-            return entries.find { it.name.equals(name, ignoreCase = true) } ?: Empty
-        }
+        fun fromName(name: String) = entries.find {
+            it.name.equals(name, ignoreCase = true)
+        } ?: Empty
     }
 }
