@@ -46,8 +46,8 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
         "§4Blood Open: 1:07 §7(§b1:06§7)",
         "§cWatcher Clear: 67 §7(§b66§7)",
         "§dPortal: 4.2 §7(§b4.1§7)",
-        "§aBoss Entry: 5:49 §7(§b5:47§7)",
-        "§b2oss Entry: 6:07 §7(§26:07§7)"
+        "§300 Score: 1:22 §7(§b1:22§7)",
+        "§aBoss Entry: 5:49 §7(§b5:47§7)"
     )
 
     override fun init() {
@@ -132,7 +132,7 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
             clearInfo.add("§4Blood Open: $bloodOpen")
             clearInfo.add("§cWatcher Clear: $watcherClear")
             clearInfo.add("§dPortal: $portalTime")
-            score300?.let { clearInfo.add("§2300 Score: $it") }
+            score300?.let { clearInfo.add("§e300 Score: $it") }
             clearInfo.add("§aBoss Entry: $bossEntry")
 
             if (splitLines.isNotEmpty()) {
