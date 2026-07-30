@@ -5,7 +5,7 @@ import com.github.noamm9.utils.dungeons.map.utils.MapUtils
 import net.minecraft.core.Direction
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData
 
-object HotbarMapColorParser {
+object HotbarMapScanner {
     private var centerColors: ByteArray = ByteArray(121)
     private var sideColors: ByteArray = ByteArray(121)
     private var cachedTiles: Array<Tile?> = Array(121) { null }
@@ -32,28 +32,26 @@ object HotbarMapColorParser {
     fun updateMap(mapData: MapItemSavedData) {
         cachedTiles = Array(121) { null }
 
-        for (x in 0 .. 10) {
-            for (y in 0 .. 10) {
-                val mapX = startX + x * halfTile
-                val mapY = startY + y * halfTile
+        for (x in 0 .. 10) for (y in 0 .. 10) {
+            val mapX = startX + x * halfTile
+            val mapY = startY + y * halfTile
 
-                if (mapX >= 128 || mapY >= 128) continue
+            if (mapX >= 128 || mapY >= 128) continue
 
-                centerColors[y * 11 + x] = mapData.colors[mapY * 128 + mapX]
+            centerColors[y * 11 + x] = mapData.colors[mapY * 128 + mapX]
 
-                val sideIndex = if (x % 2 == 0 && y % 2 == 0) {
-                    val topX = mapX - halfRoom
-                    val topY = mapY - halfRoom
-                    topY * 128 + topX
-                }
-                else {
-                    val horizontal = y % 2 == 1
-                    if (horizontal) mapY * 128 + mapX - 4
-                    else (mapY - 4) * 128 + mapX
-                }
-
-                sideColors[y * 11 + x] = mapData.colors.getOrNull(sideIndex) ?: 0
+            val sideIndex = if (x % 2 == 0 && y % 2 == 0) {
+                val topX = mapX - halfRoom
+                val topY = mapY - halfRoom
+                topY * 128 + topX
             }
+            else {
+                val horizontal = y % 2 == 1
+                if (horizontal) mapY * 128 + mapX - 4
+                else (mapY - 4) * 128 + mapX
+            }
+
+            sideColors[y * 11 + x] = mapData.colors.getOrNull(sideIndex) ?: 0
         }
     }
 
@@ -68,18 +66,28 @@ object HotbarMapColorParser {
         return cachedTiles[index] ?: Unknown(0, 0)
     }
 
-    fun getConnected(arrayX: Int, arrayY: Int): List<Room> {
-        val tile = getTile(arrayX, arrayY) as? Room ?: return emptyList()
-        val connected = mutableListOf<Room>()
-        val queue = ArrayDeque<Room>()
-        queue.add(tile)
+    fun getConnected(arrayX: Int, arrayY: Int): List<RoomTile> {
+        if (getTile(arrayX, arrayY) !is RoomTile) return emptyList()
+
+        val connected = mutableListOf<RoomTile>()
+        val visited = mutableSetOf(arrayX to arrayY)
+        val queue = ArrayDeque<Pair<Int, Int>>()
+        queue.add(arrayX to arrayY)
+
         while (queue.isNotEmpty()) {
-            val current = queue.removeFirst()
+            val (cx, cy) = queue.removeFirst()
+            val current = getTile(cx, cy) as? RoomTile ?: continue
             connected.add(current)
-            queue.addAll(Direction.Plane.HORIZONTAL.mapNotNull { dir ->
-                getTile(current.x + dir.stepX, current.z + dir.stepZ) as? Room
-            })
+
+            Direction.Plane.HORIZONTAL.forEach { dir ->
+                val nx = cx + dir.stepX
+                val ny = cy + dir.stepZ
+                if (nx !in 0 .. 10 || ny !in 0 .. 10) return@forEach
+                if (! visited.add(nx to ny)) return@forEach
+                queue.add(nx to ny)
+            }
         }
+
         return connected
     }
 
@@ -91,7 +99,7 @@ object HotbarMapColorParser {
 
         return if (arrayX % 2 == 0 && arrayY % 2 == 0) {
             val type = RoomType.fromMapColor(sideColor) ?: return Unknown(worldX, worldZ)
-            Room(worldX, worldZ, RoomData.createUnknown(type)).apply {
+            RoomTile(worldX, worldZ, RoomData.createUnknown(type)).apply {
                 state = when (centerColor) {
                     18 -> when (type) {
                         RoomType.BLOOD -> RoomState.DISCOVERED
@@ -115,13 +123,13 @@ object HotbarMapColorParser {
         else {
             if (sideColor == 0) {
                 val type = DoorType.fromMapColor(centerColor) ?: return Unknown(worldX, worldZ)
-                Door(worldX, worldZ, type).apply {
+                DoorTile(worldX, worldZ, type).apply {
                     state = if (centerColor == 85) RoomState.UNOPENED else RoomState.DISCOVERED
                 }
             }
             else {
                 val type = RoomType.fromMapColor(sideColor) ?: return Unknown(worldX, worldZ)
-                Room(worldX, worldZ, RoomData.createUnknown(type)).apply {
+                RoomTile(worldX, worldZ, RoomData.createUnknown(type)).apply {
                     state = RoomState.DISCOVERED
                     isSeparator = true
                 }

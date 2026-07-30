@@ -1,18 +1,18 @@
 package com.github.noamm9.utils.dungeons.map.core
 
 enum class RoomType {
-    BLOOD, CHAMPION, ENTRANCE, FAIRY, NORMAL, PUZZLE, RARE, TRAP;
+    BLOOD, FAIRY, RARE, CHAMPION, PUZZLE, TRAP, NORMAL, ENTRANCE;
 
     companion object {
-        fun fromMapColor(color: Int): RoomType? = when (color) {
+        fun fromMapColor(color: Int) = when (color) {
             18 -> BLOOD
-            74 -> CHAMPION
-            30 -> ENTRANCE
             82 -> FAIRY
-            63, 85 -> NORMAL
-            66 -> PUZZLE
             34 -> RARE
+            74 -> CHAMPION
+            66 -> PUZZLE
             62 -> TRAP
+            63, 85 -> NORMAL
+            30 -> ENTRANCE
             else -> null
         }
     }

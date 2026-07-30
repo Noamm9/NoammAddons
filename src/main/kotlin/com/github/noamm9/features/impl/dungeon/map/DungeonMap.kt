@@ -2,29 +2,22 @@ package com.github.noamm9.features.impl.dungeon.map
 
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.features.annotations.AlwaysActive
 import com.github.noamm9.ui.clickgui.components.impl.CategorySetting
 import com.github.noamm9.ui.clickgui.components.impl.SeparatorSetting
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
-import com.github.noamm9.utils.dungeons.map.DungeonInfo
-import com.github.noamm9.utils.dungeons.map.core.Door
+import com.github.noamm9.utils.dungeons.map.core.DoorTile
 import com.github.noamm9.utils.dungeons.map.core.DoorType
 import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.handlers.*
-import com.github.noamm9.utils.dungeons.map.utils.MapUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render3D.renderBlock
 import com.github.noamm9.utils.render.Render3D.renderBox
-import net.minecraft.core.component.DataComponents
-import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket
 import net.minecraft.world.level.block.Blocks
 
-@AlwaysActive
 object DungeonMap: Feature() {
     override fun init() {
         MapConfig.setup().forEach {
@@ -40,56 +33,15 @@ object DungeonMap: Feature() {
 
         hudElements.add(MapRenderer)
 
-        register<TickEvent.Start> {
-            if (! LocationUtils.inDungeon) return@register
-
-            if (DungeonScanner.shouldScan && WorldUtils.isChunkLoaded(player.x, player.z)) {
-                DungeonScanner.scan()
-            }
-
-            if (DungeonInfo.mimicRoom == null && (LocationUtils.dungeonFloorNumber ?: 0) > 5 && ! LocationUtils.inBoss && ! ScoreCalculation.mimicKilled) {
-                DungeonScanner.findMimicRoom()?.let {
-                    DungeonInfo.mimicRoom = it
-                    it.hasMimic = true
-                }
-            }
-        }
-
-        register<MainThreadPacketReceivedEvent.Post> {
-            if (! LocationUtils.inDungeon) return@register
-            ScoreCalculation.onPacket(event.packet)
-            val packet = event.packet as? ClientboundMapItemDataPacket ?: return@register
-            val mapId = PlayerUtils.getHotbarSlot(8)?.get(DataComponents.MAP_ID) ?: packet.mapId
-
-            DungeonInfo.mapData = level.getMapData(mapId)
-
-            if (! MapUtils.calibrated) MapUtils.calibrated = MapUtils.calibrateMap()
-
-            if (MapUtils.calibrated) {
-                MapUpdater.updateRooms()
-                MapUpdater.updatePlayers()
-            }
-        }
-
-        register<WorldChangeEvent> {
-            DungeonInfo.reset()
-            DungeonPathFinder.clearCache()
-            DungeonScanner.hasScanned = false
-            MapUtils.reset()
-            MapUpdater.onPlayerDeath()
-            ScoreCalculation.reset()
-            DungeonInfo.mimicRoom = null
-        }
-
         register<RenderWorldEvent> {
             if (! enabled || ! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
 
-            val mimicRoom = DungeonInfo.mimicRoom
+            val mimicRoom = DungeonScanner.mimicRoom
             if (MapConfig.mimicEsp.value && ! ScoreCalculation.mimicKilled && mimicRoom != null) {
                 for (chestPos in mimicRoom.trappedChestPositions) {
                     if (! WorldUtils.getStateAt(chestPos).`is`(Blocks.TRAPPED_CHEST)) continue
                     val rotation = mimicRoom.rotation ?: continue
-                    val corner = mimicRoom.corner ?: continue
+                    val corner = mimicRoom.clayPos ?: continue
                     val reletive = ScanUtils.getRelativeCoord(chestPos, corner, rotation)
                     if (mimicRoom.data.secretCoords.chest.none { it == reletive }) continue
 
@@ -102,36 +54,17 @@ object DungeonMap: Feature() {
             val shouldHideUndiscovered = ! MapConfig.dungeonMapCheater.value || DungeonListener.dungeonStarted
             val color = (if (DungeonListener.doorKeys > 0) MapConfig.witherDoorKeyColor.value else MapConfig.witherDoorNoKeyColor.value).withAlpha((MapConfig.witherDoorFill.value * 2.55).toInt())
 
-            for (tile in DungeonInfo.dungeonList) {
-                if (tile !is Door) continue
+            for (tile in DungeonScanner.dungeonList) {
+                if (tile !is DoorTile) continue
                 if (tile.opened) continue
                 if (! tile.type.equalsOneOf(DoorType.BLOOD, DoorType.WITHER)) continue
 
-                val isFairy = DungeonPathFinder.isFairy(tile)
+                val isFairy = DungeonTree.isFairy(tile)
 
                 if (shouldHideUndiscovered && tile.state == RoomState.UNDISCOVERED && ! isFairy) continue
 
                 event.ctx.renderBox(tile.x + 0.5, 69, tile.z + 0.5, 3, 4, color, phase = true)
             }
-        }
-
-        register<DungeonEvent.RoomEvent.onStateChange> {
-            ClearInfoUpdater.checkSplits(event.room.data, event.oldState, event.newState, event.roomPlayers)
-            if (event.newState == RoomState.GREEN) event.room.foundSecrets = event.room.data.secrets
-        }
-
-        register<DungeonEvent.PlayerDeathEvent> {
-            ClearInfoUpdater.updateDeaths(event.name, event.reason)
-            MapUpdater.onPlayerDeath()
-            ScoreCalculation.deathCount ++
-        }
-
-        register<DungeonEvent.RunStatedEvent> {
-            ClearInfoUpdater.initStartSecrets()
-        }
-
-        register<DungeonEvent.RunEndedEvent> {
-            ClearInfoUpdater.sendClearInfoMessage()
         }
     }
 }

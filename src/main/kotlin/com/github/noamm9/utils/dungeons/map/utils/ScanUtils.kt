@@ -9,9 +9,8 @@ import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.destructured
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.WorldUtils
-import com.github.noamm9.utils.dungeons.map.DungeonInfo
-import com.github.noamm9.utils.dungeons.map.core.Room
 import com.github.noamm9.utils.dungeons.map.core.RoomData
+import com.github.noamm9.utils.dungeons.map.core.RoomTile
 import com.github.noamm9.utils.dungeons.map.core.UniqueRoom
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner.startX
@@ -24,7 +23,7 @@ import net.minecraft.world.phys.Vec3
 import kotlin.math.round
 
 object ScanUtils {
-    val roomList by lazy { DataDownloader.loadJson<List<RoomData>>("rooms.json") }
+    val roomList = DataDownloader.loadJson<List<RoomData>>("rooms.json")
 
     init {
         register<WorldChangeEvent> {
@@ -66,7 +65,7 @@ object ScanUtils {
 
     fun getRoomFromPos(vec: Vec3): UniqueRoom? {
         val (gx, gz) = getRoomGraf(vec)
-        val unq = (DungeonInfo.dungeonList[gz * 11 + gx] as? Room)?.uniqueRoom
+        val unq = (DungeonScanner.dungeonList[gz * 11 + gx] as? RoomTile)?.uniqueRoom
         return unq
     }
 

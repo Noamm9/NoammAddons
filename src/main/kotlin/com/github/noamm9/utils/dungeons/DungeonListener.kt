@@ -17,9 +17,9 @@ import com.github.noamm9.utils.TabListUtils
 import com.github.noamm9.utils.dungeons.enums.Blessing
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.dungeons.enums.Puzzle
-import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.core.RoomType
+import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils.inDungeon
@@ -115,7 +115,7 @@ object DungeonListener: ISelfInit {
                 unformatted.lowercase().contains("blaze done") -> {
                     puzzles.find { it.tabName == "Higher Or Lower" }?.let { puzzle ->
                         puzzle.state = RoomState.CLEARED
-                        DungeonInfo.uniqueRooms.entries.find {
+                        DungeonScanner.uniqueRooms.entries.find {
                             it.key.contains("Blaze")
                         }?.value?.mainRoom?.state = RoomState.CLEARED
                     }
@@ -141,12 +141,12 @@ object DungeonListener: ISelfInit {
                 }
 
                 unformatted == "[BOSS] The Watcher: You have proven yourself. You may pass." -> {
-                    DungeonInfo.uniqueRooms["Blood"]?.mainRoom?.state = RoomState.GREEN
+                    DungeonScanner.uniqueRooms["Blood"]?.mainRoom?.state = RoomState.GREEN
                     watcherClearTime = DualTime(currentTime)
                 }
 
                 unformatted == "[BOSS] The Watcher: That will be enough for now." -> {
-                    DungeonInfo.uniqueRooms["Blood"]?.mainRoom?.state = RoomState.CLEARED
+                    DungeonScanner.uniqueRooms["Blood"]?.mainRoom?.state = RoomState.CLEARED
                     watcherFinishSpawnTime = currentTime
                 }
 

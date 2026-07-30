@@ -1,20 +1,25 @@
 package com.github.noamm9.utils.dungeons.map.handlers
 
-import com.github.noamm9.utils.dungeons.map.DungeonInfo
-import com.github.noamm9.utils.dungeons.map.core.Door
-import com.github.noamm9.utils.dungeons.map.core.Room
+import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.init.types.ISelfInit
+import com.github.noamm9.utils.dungeons.map.core.DoorTile
 import com.github.noamm9.utils.dungeons.map.core.RoomType
 import com.github.noamm9.utils.dungeons.map.core.UniqueRoom
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.equalsOneOf
 
 // this is awful code please dont look
-object DungeonPathFinder {
+object DungeonTree: ISelfInit {
     private var splitsCache: Map<UniqueRoom, Set<UniqueRoom>>? = null
     private var bloodRushCache: List<UniqueRoom>? = null
     private var fairyRoom: UniqueRoom? = null
     private var nextRoomAfterFairy: UniqueRoom? = null
     private var roomBeforeFairy: UniqueRoom? = null
+
+    override fun init() {
+        EventBus.register<WorldChangeEvent> { clearCache() }
+    }
 
     fun clearCache() {
         splitsCache = null
@@ -24,21 +29,7 @@ object DungeonPathFinder {
         roomBeforeFairy = null
     }
 
-    fun getConnectingDoorRooms(row: Int, column: Int): List<Room> {
-        if (row !in 0 .. 10 || column !in 0 .. 10) return emptyList()
-        val rooms = ArrayList<Room>(2)
-        if (column and 1 == 0) {
-            if (row > 0) (DungeonInfo.dungeonList[(row - 1) * 11 + column] as? Room)?.let(rooms::add)
-            if (row < 10) (DungeonInfo.dungeonList[(row + 1) * 11 + column] as? Room)?.let(rooms::add)
-        }
-        else {
-            if (column > 0) (DungeonInfo.dungeonList[row * 11 + column - 1] as? Room)?.let(rooms::add)
-            if (column < 10) (DungeonInfo.dungeonList[row * 11 + column + 1] as? Room)?.let(rooms::add)
-        }
-        return rooms
-    }
-
-    fun isFairy(door: Door): Boolean {
+    fun isFairy(door: DoorTile): Boolean {
         val currentRoom = ScanUtils.currentRoom ?: return false
         val lastRoom = ScanUtils.lastKnownRoom ?: return false
 
@@ -47,28 +38,11 @@ object DungeonPathFinder {
         val fRoom = fairyRoom ?: return false
         val prevRoom = roomBeforeFairy ?: return false
         val nextRoom = nextRoomAfterFairy ?: return false
-
         if (! prevRoom.equalsOneOf(currentRoom, lastRoom)) return false
 
-        val pos = door.arrayPos
-        val row = pos.first
-        val col = pos.second
-
-        val r1: UniqueRoom?
-        val r2: UniqueRoom?
-
-        if (col and 1 == 0) {
-            if (row !in 1 ..< 10) return false
-            r1 = (DungeonInfo.dungeonList[(row - 1) * 11 + col] as? Room)?.uniqueRoom
-            r2 = (DungeonInfo.dungeonList[(row + 1) * 11 + col] as? Room)?.uniqueRoom
-        }
-        else {
-            if (col !in 1 ..< 10) return false
-            r1 = (DungeonInfo.dungeonList[row * 11 + col - 1] as? Room)?.uniqueRoom
-            r2 = (DungeonInfo.dungeonList[row * 11 + col + 1] as? Room)?.uniqueRoom
-        }
-
-        if (r1 == null || r2 == null) return false
+        val rooms = door.roomTiles.mapNotNull { it.uniqueRoom }
+        if (rooms.size != 2) return false
+        val (r1, r2) = rooms
 
         return (r1 == fRoom && r2 == nextRoom) || (r1 == nextRoom && r2 == fRoom)
     }
@@ -123,29 +97,13 @@ object DungeonPathFinder {
         splitsCache?.let { return it }
         val graph = mutableMapOf<UniqueRoom, MutableSet<UniqueRoom>>()
 
-        for (tile in DungeonInfo.dungeonList) {
-            if (tile !is Door) continue
-            val row = tile.arrayPos.first
-            val col = tile.arrayPos.second
+        for (tile in DungeonScanner.dungeonList) {
+            if (tile !is DoorTile) continue
+            val rooms = tile.roomTiles.mapNotNull { it.uniqueRoom }
+            if (rooms.size != 2 || rooms[0] == rooms[1]) continue
 
-            val r1: UniqueRoom?
-            val r2: UniqueRoom?
-
-            if (col and 1 == 0) {
-                if (row !in 1 ..< 10) continue
-                r1 = (DungeonInfo.dungeonList[(row - 1) * 11 + col] as? Room)?.uniqueRoom
-                r2 = (DungeonInfo.dungeonList[(row + 1) * 11 + col] as? Room)?.uniqueRoom
-            }
-            else {
-                if (col !in 1 ..< 10) continue
-                r1 = (DungeonInfo.dungeonList[row * 11 + col - 1] as? Room)?.uniqueRoom
-                r2 = (DungeonInfo.dungeonList[row * 11 + col + 1] as? Room)?.uniqueRoom
-            }
-
-            if (r1 == null || r2 == null || r1 == r2) continue
-
-            graph.getOrPut(r1, ::mutableSetOf).add(r2)
-            graph.getOrPut(r2, ::mutableSetOf).add(r1)
+            graph.getOrPut(rooms[0], ::mutableSetOf).add(rooms[1])
+            graph.getOrPut(rooms[1], ::mutableSetOf).add(rooms[0])
         }
 
         splitsCache = graph
