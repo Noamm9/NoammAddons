@@ -37,14 +37,15 @@ import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
-    val customLeapMenu by ToggleSetting("Leap Menu", false).section("Custom Menu")
-    val scale by SliderSetting("Menu Scale", 50f, 30, 100, 1).showIf { customLeapMenu.value }
-    val showLastDoorOpener by ToggleSetting("Show Last Door Opener", false).showIf { customLeapMenu.value }
-    val tintDeadPlayers by ToggleSetting("Tint Dead Players", true).showIf { customLeapMenu.value }
+    private val customLeapMenu by ToggleSetting("Leap Menu", false).section("Custom Menu")
+    private val scale by SliderSetting("Menu Scale", 50f, 30, 100, 1).showIf { customLeapMenu.value }
+    private val showLastDoorOpener by ToggleSetting("Show Last Door Opener", false).showIf { customLeapMenu.value }
+    private val tintDeadPlayers by ToggleSetting("Tint Dead Players", true).showIf { customLeapMenu.value }
+    private val leftClickOnly by ToggleSetting("Left Click Only").withDescription("Prevents leaping unless clicked with left mouse button")
 
-    val mapLeap by ToggleSetting("Map Leap", false).withDescription("Click a teammate on the dungeon map to leap to them.").showIf { customLeapMenu.value && DungeonMap.enabled && MapConfig.mapEnabled.value }
-    val mapLeapAfterBlood by ToggleSetting("After Blood Only", false).withDescription("Use the regular leap menu until the Blood opens, then switch to Map Leap.").showIf { customLeapMenu.value && mapLeap.value }
-    val mapLeapScale by SliderSetting("Map Leap Scale", 1.5f, 0.5f, 3f, 0.1f).showIf { customLeapMenu.value && mapLeap.value }
+    private val mapLeap by ToggleSetting("Map Leap", false).withDescription("Click a teammate on the dungeon map to leap to them.").showIf { customLeapMenu.value && DungeonMap.enabled && MapConfig.mapEnabled.value }
+    private val mapLeapAfterBlood by ToggleSetting("After Blood Only", false).withDescription("Use the regular leap menu until the Blood opens, then switch to Map Leap.").showIf { customLeapMenu.value && mapLeap.value }
+    private val mapLeapScale by SliderSetting("Map Leap Scale", 1.5f, 0.5f, 3f, 0.1f).showIf { customLeapMenu.value && mapLeap.value }
     val sorting by DropdownSetting("Leap Order", 0, arrayListOf("A-Z Class", "A-Z Name", "Odin Sorting", "Custom sorting", "No Sorting")).withDescription("How to sort the leap menu. /na leaporder to configure custom sorting.")
 
     val leapKeybinds by ToggleSetting("Leap Keybinds").showIf { customLeapMenu.value }.section("Leap Keybinds")
@@ -59,7 +60,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
 
     data class LeapMenuPlayer(val slotIndex: Int, val player: DungeonPlayer)
 
-    val players = MutableList<LeapMenuPlayer?>(4) { null }
+    val players = Array<LeapMenuPlayer?>(4) { null }
     private var mapLeapHoveredIndex: Int? = null
 
     private val boxBg = Color(33, 33, 33)
@@ -180,6 +181,12 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
 
         register<ContainerEvent.MouseClick> {
             if (! inSpiritLeap(event.screen)) return@register
+
+            if (event.button != 0 && leftClickOnly.value) {
+                event.isCanceled = true
+                return@register
+            }
+
             val i = (if (mapLeapEnabled && ! LocationUtils.inBoss) mapLeapHoveredIndex else getHoveredIndex()) ?: return@register
             event.isCanceled = true
             triggerLeap(i)
@@ -226,8 +233,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
     }
 
     fun updateLeapMenu() {
-        players.clear()
-        repeat(4) { players.add(null) }
+        players.fill(null)
 
         val loadedHeads = mutableMapOf<String, Int>()
         val menu = player.containerMenu

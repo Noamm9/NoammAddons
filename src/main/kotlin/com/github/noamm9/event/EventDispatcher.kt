@@ -39,29 +39,14 @@ object EventDispatcher: ISelfInit {
             EventBus.post(RenderWorldEvent(RenderContext.fromContext(context)))
         }
 
-        ClientLevelEvents.AFTER_CLIENT_LEVEL_CHANGE.register { _, _ ->
-            EventBus.post(WorldChangeEvent)
-        }
+        ClientLevelEvents.AFTER_CLIENT_LEVEL_CHANGE.register { _, _ -> EventBus.post(WorldChangeEvent) }
+        ClientPlayConnectionEvents.DISCONNECT.register { _, _ -> EventBus.post(WorldChangeEvent) }
 
-        ClientPlayConnectionEvents.DISCONNECT.register { _, _ ->
-            EventBus.post(WorldChangeEvent)
-        }
+        ClientTickEvents.START_CLIENT_TICK.register { _ -> EventBus.post(TickEvent.Start) }
+        ClientTickEvents.END_CLIENT_TICK.register { _ -> EventBus.post(TickEvent.End) }
 
-        ClientTickEvents.START_CLIENT_TICK.register { mc ->
-            mc.level?.let { EventBus.post(TickEvent.Start) }
-        }
-
-        ClientTickEvents.END_CLIENT_TICK.register { mc ->
-            mc.level?.let { EventBus.post(TickEvent.End) }
-        }
-
-        ClientLifecycleEvents.CLIENT_STARTED.register {
-            EventBus.post(GameStartEvent)
-        }
-
-        ClientLifecycleEvents.CLIENT_STOPPING.register {
-            EventBus.post(ShutdownEvent)
-        }
+        ClientLifecycleEvents.CLIENT_STARTED.register { EventBus.post(GameStartEvent) }
+        ClientLifecycleEvents.CLIENT_STOPPING.register { EventBus.post(ShutdownEvent) }
 
         ClientEntityEvents.ENTITY_UNLOAD.register { entity, _ ->
             EventBus.post(EntityUnloadEvent(entity))
@@ -76,98 +61,109 @@ object EventDispatcher: ISelfInit {
         }
 
         register<MainThreadPacketReceivedEvent.Pre> {
-            if (event.packet is ClientboundSystemChatPacket) {
-                if (event.packet.overlay) return@register
-                if (EventBus.post(ChatMessageEvent(event.packet.content))) {
-                    event.isCanceled = true
+            when (val packet = event.packet) {
+                is ClientboundSystemChatPacket -> {
+                    if (packet.overlay) return@register
+                    if (EventBus.post(ChatMessageEvent(packet.content))) {
+                        event.isCanceled = true
+                    }
                 }
-            }
-            else if (event.packet is ClientboundSoundPacket) {
-                if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
-                if (event.packet.sound.value() != SoundEvents.BAT_DEATH) return@register
 
-                EventBus.post(DungeonEvent.SecretEvent(
-                    SecretType.BAT, BlockPos(event.packet.x.toInt(), event.packet.y.toInt(), event.packet.z.toInt())
-                ))
-            }
-            else if (event.packet is ClientboundTakeItemEntityPacket) {
-                if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
-                val entity = mc.level?.getEntity(event.packet.itemId) as? ItemEntity ?: return@register
-                if (entity.item.hoverName.unformattedText !in DungeonUtils.dungeonItemDrops) return@register
-                if (mc.player !!.distanceTo(entity) > 6) return@register
+                is ClientboundSoundPacket -> {
+                    if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
+                    if (packet.sound.value() != SoundEvents.BAT_DEATH) return@register
 
-                EventBus.post(DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition()))
+                    EventBus.post(DungeonEvent.SecretEvent(
+                        SecretType.BAT, BlockPos(packet.x.toInt(), packet.y.toInt(), packet.z.toInt())
+                    ))
+                }
+
+                is ClientboundTakeItemEntityPacket -> {
+                    if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
+                    val entity = mc.level?.getEntity(packet.itemId) as? ItemEntity ?: return@register
+                    if (entity.item.hoverName.unformattedText !in DungeonUtils.dungeonItemDrops) return@register
+                    if (mc.player !!.distanceTo(entity) > 6) return@register
+
+                    EventBus.post(DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition()))
+                }
             }
         }
 
         register<MainThreadPacketReceivedEvent.Post> {
-            if (event.packet is ClientboundOpenScreenPacket) {
-                resetInventory()
+            when (val packet = event.packet) {
+                is ClientboundOpenScreenPacket -> {
+                    resetInventory()
 
-                invSlotCount = when (event.packet.type) {
-                    MenuType.GENERIC_9x1 -> 9
-                    MenuType.GENERIC_9x2 -> 18
-                    MenuType.GENERIC_9x3 -> 27
-                    MenuType.GENERIC_9x4 -> 36
-                    MenuType.GENERIC_9x5 -> 45
-                    MenuType.GENERIC_9x6 -> 54
-                    MenuType.GENERIC_3x3 -> 9
-                    else -> return@register
-                }
-                invWindowId = event.packet.containerId
-                invTitle = event.packet.title
-                invItems = mutableMapOf()
-            }
-            else if (event.packet is ClientboundContainerSetContentPacket) {
-                if (event.packet.containerId != invWindowId) return@register
-                val slotCount = invSlotCount ?: return@register
-                val con = mc.player?.containerMenu ?: return@register
-
-                for (i in event.packet.items.indices) {
-                    if (i !in 0 until slotCount) continue
-                    val item = con.items.getOrNull(i) ?: continue
-                    invItems?.set(i, item)
+                    invWindowId = packet.containerId
+                    invTitle = packet.title
+                    invItems = mutableMapOf()
+                    invSlotCount = when (packet.type) {
+                        MenuType.GENERIC_9x1 -> 9
+                        MenuType.GENERIC_9x2 -> 18
+                        MenuType.GENERIC_9x3 -> 27
+                        MenuType.GENERIC_9x4 -> 36
+                        MenuType.GENERIC_9x5 -> 45
+                        MenuType.GENERIC_9x6 -> 54
+                        MenuType.GENERIC_3x3 -> 9
+                        else -> return@register
+                    }
                 }
 
-                checkInvAndPost(event.packet.items.lastIndex)
-            }
-            else if (event.packet is ClientboundContainerSetSlotPacket) {
-                if (event.packet.containerId != invWindowId) return@register
-                val slotCount = invSlotCount ?: return@register
-                if (event.packet.slot !in 0 until slotCount) return@register
-                val con = mc.player?.containerMenu ?: return@register
-                val item = con.items.getOrNull(event.packet.slot) ?: return@register
+                is ClientboundContainerSetContentPacket -> {
+                    if (packet.containerId != invWindowId) return@register
+                    val slotCount = invSlotCount ?: return@register
+                    val con = mc.player?.containerMenu ?: return@register
 
-                invItems?.set(event.packet.slot, item)
-                checkInvAndPost(event.packet.slot)
-            }
-            else if (event.packet is ClientboundContainerClosePacket) {
-                if (event.packet.containerId == invWindowId) resetInventory()
+                    for (i in packet.items.indices) {
+                        if (i !in 0 until slotCount) continue
+                        val item = con.items.getOrNull(i) ?: continue
+                        invItems?.set(i, item)
+                    }
+
+                    checkInvAndPost(packet.items.lastIndex)
+                }
+
+                is ClientboundContainerSetSlotPacket -> {
+                    if (packet.containerId != invWindowId) return@register
+                    val slotCount = invSlotCount ?: return@register
+                    if (packet.slot !in 0 until slotCount) return@register
+                    val con = mc.player?.containerMenu ?: return@register
+                    val item = con.items.getOrNull(packet.slot) ?: return@register
+
+                    invItems?.set(packet.slot, item)
+                    checkInvAndPost(packet.slot)
+                }
+
+                is ClientboundContainerClosePacket -> {
+                    if (packet.containerId == invWindowId) resetInventory()
+                }
             }
         }
 
         register<PacketEvent.Sent> {
-            if (event.packet is ServerboundUseItemOnPacket) {
-                if (! LocationUtils.inDungeon) return@register
-                val pos = event.packet.hitResult.blockPos
-                if (! isSecret(pos)) return@register
-                val block = WorldUtils.getBlockAt(pos)
+            when (val packet = event.packet) {
+                is ServerboundUseItemOnPacket -> {
+                    if (! LocationUtils.inDungeon) return@register
+                    val pos = packet.hitResult.blockPos
+                    if (! isSecret(pos)) return@register
+                    val block = WorldUtils.getBlockAt(pos)
 
-                val type = when (block) {
-                    Blocks.CHEST, Blocks.TRAPPED_CHEST -> SecretType.CHEST
-                    Blocks.LEVER -> SecretType.LEVER
-                    Blocks.PLAYER_HEAD -> {
-                        when ((mc.level?.getBlockEntity(pos) as? SkullBlockEntity)?.ownerProfile?.partialProfile()?.id.toString()) {
-                            in DungeonUtils.WITHER_ESSENCE -> SecretType.WITHER_ESSENCE
-                            in DungeonUtils.REDSTONE_KEY -> SecretType.REDSTONE_KEY
-                            else -> return@register
+                    val type = when (block) {
+                        Blocks.CHEST, Blocks.TRAPPED_CHEST -> SecretType.CHEST
+                        Blocks.LEVER -> SecretType.LEVER
+                        Blocks.PLAYER_HEAD -> {
+                            when ((mc.level?.getBlockEntity(pos) as? SkullBlockEntity)?.ownerProfile?.partialProfile()?.id.toString()) {
+                                in DungeonUtils.WITHER_ESSENCE -> SecretType.WITHER_ESSENCE
+                                in DungeonUtils.REDSTONE_KEY -> SecretType.REDSTONE_KEY
+                                else -> return@register
+                            }
                         }
+
+                        else -> return@register
                     }
 
-                    else -> return@register
+                    EventBus.post(DungeonEvent.SecretEvent(type, pos))
                 }
-
-                EventBus.post(DungeonEvent.SecretEvent(type, pos))
             }
         }
     }
