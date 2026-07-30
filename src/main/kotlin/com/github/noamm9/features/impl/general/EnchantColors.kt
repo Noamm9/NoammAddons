@@ -25,13 +25,13 @@ object EnchantColors: Feature("Changes the color of enchantments in items lore."
     private val showNumbers by ToggleSetting("Levels as Numbers").withDescription("Show levels as numbers instead of roman numerals")
     private val rainbowMaxLevel by ToggleSetting("Rainbow Max Level").withDescription("Animate max level enchants with a rainbow effect")
     private val rainbowSpeed by SliderSetting("Rainbow Speed", 1.5, 0.1, 3, 0.1).showIf { rainbowMaxLevel.value }
+    private val transitionSpeed by SliderSetting("Color Transition",15,5,30,1).withDescription("Controls how quickly colors transitions across the enchants, Lower values create slower transitions").showIf { rainbowMaxLevel.value }
     private val maxLevelColor by ColorSetting("Max Level Color", Color(255, 170, 0), false).hideIf { rainbowMaxLevel.value }
     private val highLevelColor by ColorSetting("High Level Color", Color(255, 170, 0), false)
     private val normalLevelColor by ColorSetting("Normal Level Color", Color(0, 170, 170), false)
     private val badLevelColor by ColorSetting("Bad Level Color", Color(170, 170, 170), false)
     private val boldMaxLevel by ToggleSetting("Bold Max Level", true).withDescription("Make max level bold")
 
-    private const val PIXEL_TRANSITION_MS = 20L
     private const val BASE_CYCLE_MS = 4000L
     private const val DIAGONAL_LINE_MS = 100L
 
@@ -146,7 +146,7 @@ object EnchantColors: Feature("Changes the color of enchantments in items lore."
 
         text.forEach { char ->
             val charStr = char.toString()
-            val time = speedScaledNow - (pixelPos * PIXEL_TRANSITION_MS).toLong() - diagonalOffset
+            val time = speedScaledNow - (pixelPos * transitionSpeed.value).toLong() - diagonalOffset
             val rgb = colorAt(time)
             result.append(
                 Component.literal(charStr)
