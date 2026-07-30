@@ -56,6 +56,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
     private val leapMsg by TextInputSetting("Leap Message", "ILY ❤ {name}").withDescription("replaces {name} with the player name").showIf { announceSpiritLeaps.value }
     private val hideAfterLeap by ToggleSetting("Hide Players").withDescription("Hides players for a certain amount of time after you leap")
     private val hideTime by SliderSetting("Hide Time", 3.5, 0.5, 5.0, 0.1).showIf { hideAfterLeap.value }
+    private val BlockRightClick by ToggleSetting("Block Right Click While In Menu").section("Extras")
 
     data class LeapMenuPlayer(val slotIndex: Int, val player: DungeonPlayer)
 
@@ -180,6 +181,12 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
 
         register<ContainerEvent.MouseClick> {
             if (! inSpiritLeap(event.screen)) return@register
+
+            if (event.button == 1 && BlockRightClick.value) {
+                event.isCanceled == true
+                return@register
+            }
+
             val i = (if (mapLeapEnabled && ! LocationUtils.inBoss) mapLeapHoveredIndex else getHoveredIndex()) ?: return@register
             event.isCanceled = true
             triggerLeap(i)
