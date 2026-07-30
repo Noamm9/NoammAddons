@@ -3,6 +3,7 @@ package com.github.noamm9.features.impl.visual
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
@@ -20,6 +21,7 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
     private val showWitherDoors by ToggleSetting("Show Wither Doors").withDescription("Show The Number of Wither Doors in the run")
     private val showTotalTime by ToggleSetting("Total Time").withDescription("Shows the total run time.")
     private val showTimeLost by ToggleSetting("Show Time Lost").withDescription("Shows the total time run time that was lost due to server lags.")
+    private val show300Score by ToggleSetting("Show 300 Score Time").withDescription("Shows when 300 score was reached.")
 
     private val floorSplits by lazy {
         DataDownloader.loadJson<Map<String, List<Map<String, String?>>>>("runSplits.json").mapValues {
@@ -36,13 +38,16 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
     private val runEndRegex = Regex("^\\s*☠ Defeated (.+) in 0?([\\dhms ]+?)\\s*(\\(NEW RECORD!\\))?$")
     private val currentFloorSplits = ConcurrentHashMap<String, Split>()
 
+    private var score300Timer: DualTime? = null
+
     private var currentText: List<String> = emptyList()
     private val exampleText = listOf(
         "§8Wither Doors: §72",
         "§4Blood Open: 1:07 §7(§b1:06§7)",
         "§cWatcher Clear: 67 §7(§b66§7)",
         "§dPortal: 4.2 §7(§b4.1§7)",
-        "§aBoss Entry: 5:49 §7(§b5:47§7)"
+        "§aBoss Entry: 5:49 §7(§b5:47§7)",
+        "§b2oss Entry: 6:07 §7(§26:07§7)"
     )
 
     override fun init() {
@@ -63,7 +68,16 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
             return@hudElement width to currentY
         }
 
-        register<WorldChangeEvent> { currentFloorSplits.clear() }
+        register<DungeonEvent.Score> {
+            if (event.score >= 300 && score300Timer == null) {
+                score300Timer = DualTime(DungeonListener.currentTime)
+            }
+        }
+
+        register<WorldChangeEvent> {
+            score300Timer = null
+            currentFloorSplits.clear()
+        }
 
         register<TickEvent.Start> {
             if (! LocationUtils.inDungeon) return@register
@@ -84,6 +98,13 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
             val watcherClear = when {
                 watcher != null && blood != null -> dual(watcher - blood, ::formatSecs)
                 blood != null -> dual(now - blood, ::formatSecs)
+                else -> "?"
+            }
+
+            val score300 = when {
+                !show300Score.value -> null
+                score300Timer != null -> dual(score300Timer!! - start, ::formatTime)
+                DungeonListener.dungeonStarted -> dual(now - start, ::formatTime)
                 else -> "?"
             }
 
@@ -111,6 +132,7 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
             clearInfo.add("§4Blood Open: $bloodOpen")
             clearInfo.add("§cWatcher Clear: $watcherClear")
             clearInfo.add("§dPortal: $portalTime")
+            score300?.let { clearInfo.add("§2300 Score: $it") }
             clearInfo.add("§aBoss Entry: $bossEntry")
 
             if (splitLines.isNotEmpty()) {
