@@ -42,8 +42,8 @@ object EventDispatcher: ISelfInit {
         ClientLevelEvents.AFTER_CLIENT_LEVEL_CHANGE.register { _, _ -> EventBus.post(WorldChangeEvent) }
         ClientPlayConnectionEvents.DISCONNECT.register { _, _ -> EventBus.post(WorldChangeEvent) }
 
-        ClientTickEvents.START_CLIENT_TICK.register { _ -> EventBus.post(TickEvent.Start) }
-        ClientTickEvents.END_CLIENT_TICK.register { _ -> EventBus.post(TickEvent.End) }
+        ClientTickEvents.START_CLIENT_TICK.register { mc -> mc.level?.let { EventBus.post(TickEvent.Start) } }
+        ClientTickEvents.END_CLIENT_TICK.register { mc -> mc.level?.let { EventBus.post(TickEvent.End) } }
 
         ClientLifecycleEvents.CLIENT_STARTED.register { EventBus.post(GameStartEvent) }
         ClientLifecycleEvents.CLIENT_STOPPING.register { EventBus.post(ShutdownEvent) }
