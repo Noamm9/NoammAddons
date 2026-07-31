@@ -1,15 +1,12 @@
-package com.github.noamm9.commands.impl
+package com.github.noamm9.commands
 
-import com.github.noamm9.NoammAddons.debugFlags
-import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.NoammAddons.scope
-import com.github.noamm9.commands.BaseCommand
-import com.github.noamm9.commands.CommandNodeBuilder
+import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.NoammDebugFlagEvent
 import com.github.noamm9.features.impl.dev.UpdateChecker
 import com.github.noamm9.features.impl.dungeon.LeapMenu
+import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.ui.clickgui.ClickGuiScreen
 import com.github.noamm9.ui.hud.HudEditorScreen
 import com.github.noamm9.utils.*
@@ -26,7 +23,7 @@ import kotlinx.serialization.Serializable
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.network.chat.Component
 
-object NaCommand: BaseCommand("na", mutableSetOf("noamm", "noammaddons")) {
+object NaCommand: ICommandProvider {
     private val commands = mapOf(
         "/na" to "Config GUI",
         "/na hud" to "HUD editor",
@@ -46,7 +43,8 @@ object NaCommand: BaseCommand("na", mutableSetOf("noamm", "noammaddons")) {
         //#endif
     )
 
-    override fun CommandNodeBuilder.build() {
+    override fun CommandBuilder.command() {
+        setName("na", "noamm", "noammaddons")
         runs { GuiUtils.setScreen(ClickGuiScreen) }
 
         literal("help") {
@@ -85,13 +83,13 @@ object NaCommand: BaseCommand("na", mutableSetOf("noamm", "noammaddons")) {
 
         literal("debug") {
             runs {
-                ChatUtils.modMessage("§7Flags: §f${debugFlags.joinToString(", ")}")
+                ChatUtils.modMessage("§7Flags: §f${NoammAddons.debugFlags.joinToString(", ")}")
             }
 
             argument("flag", StringArgumentType.greedyString()) {
                 runs { ctx ->
                     StringArgumentType.getString(ctx, "flag").split(Regex("\\s+")).forEach { flag ->
-                        val added = if (debugFlags.remove(flag)) false else debugFlags.add(flag)
+                        val added = if (NoammAddons.debugFlags.remove(flag)) false else NoammAddons.debugFlags.add(flag)
                         ChatUtils.modMessage(if (added) "§aAdded debug flag: §b$flag" else "§cRemoved debug flag: §b$flag")
                         EventBus.post(if (added) NoammDebugFlagEvent.Add(flag) else NoammDebugFlagEvent.Remove(flag))
                     }
@@ -114,6 +112,7 @@ object NaCommand: BaseCommand("na", mutableSetOf("noamm", "noammaddons")) {
         }
 
         literal("leaporder") {
+            val partyMembersSuggestion = { PartyUtils.members.map(String::lowercase) }
             argument("sorting", StringArgumentType.word()) {
                 suggests { listOf("name", "class") }
 
@@ -137,7 +136,6 @@ object NaCommand: BaseCommand("na", mutableSetOf("noamm", "noammaddons")) {
                     }
                 }
             }
-
         }
 
         literal("rtca") {
@@ -152,7 +150,7 @@ object NaCommand: BaseCommand("na", mutableSetOf("noamm", "noammaddons")) {
         //#if CHEAT
         literal("swapmask") {
             runs {
-                scope.launch {
+                NoammAddons.scope.launch {
                     PlayerUtils.changeMaskAction()
                 }
             }
@@ -160,7 +158,7 @@ object NaCommand: BaseCommand("na", mutableSetOf("noamm", "noammaddons")) {
 
         literal("rodswap") {
             runs {
-                scope.launch {
+                NoammAddons.scope.launch {
                     PlayerUtils.rodSwap()
                 }
             }
@@ -170,8 +168,8 @@ object NaCommand: BaseCommand("na", mutableSetOf("noamm", "noammaddons")) {
             runs { ChatUtils.modMessage("missing skyblock id argument. /na swapto <ItemID>") }
             argument("skyblock id", StringArgumentType.word()) {
                 runs {
-                    scope.launch {
-                        val inv = mc.player?.inventory?.nonEquipmentItems ?: return@launch
+                    NoammAddons.scope.launch {
+                        val inv = NoammAddons.mc.player?.inventory?.nonEquipmentItems ?: return@launch
                         val item = StringArgumentType.getString(it, "skyblock id")
                         if (inv.none { it.skyblockId == item }) return@launch ChatUtils.modMessage("$item not found in inventory")
                         PlayerUtils.quickSwapAction(item)
@@ -186,14 +184,12 @@ object NaCommand: BaseCommand("na", mutableSetOf("noamm", "noammaddons")) {
                 runs { ctx ->
                     val clazz = StringArgumentType.getString(ctx, "class")
                     val player = DungeonListener.dungeonTeammatesNoSelf.find { it.clazz.name == clazz } ?: return@runs ChatUtils.modMessage("leap target not found")
-                    scope.launch { PlayerUtils.leapAction(player) }
+                    NoammAddons.scope.launch { PlayerUtils.leapAction(player) }
                 }
             }
         }
         //#endif
     }
-
-    private val partyMembersSuggestion = { PartyUtils.members.map { it.lowercase() } }
 
     private fun setLeapOrder(ctx: CommandContext<FabricClientCommandSource>, count: Int) {
         val sortingType = StringArgumentType.getString(ctx, "sorting").lowercase()
@@ -210,7 +206,7 @@ object NaCommand: BaseCommand("na", mutableSetOf("noamm", "noammaddons")) {
         ChatUtils.modMessage("§aCustom leap order set to: §f$sortingType §awith players: §f${validPlayers.joinToString(", ")}")
     }
 
-    private fun sendRtca(name: String = mc.user.name) = scope.launch(Dispatchers.IO) {
+    private fun sendRtca(name: String = NoammAddons.mc.user.name) = NoammAddons.scope.launch(Dispatchers.IO) {
         WebUtils.getAs<RtcaData>("https://api.noamm.org/hypixel/rtca/$name").onSuccess {
             // ChatUtils.modMessage("${it.name}: ${it.runs} (${formatClassRuns(it.classes)})")
             ChatUtils.modMessage("${it.name} is ${it.runs} M7 runs away from ca50 (${formatClassRuns(it.classes)})")

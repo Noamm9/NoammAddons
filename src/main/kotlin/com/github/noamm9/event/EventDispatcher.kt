@@ -9,7 +9,6 @@ import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonUtils
 import com.github.noamm9.utils.dungeons.DungeonUtils.isSecret
 import com.github.noamm9.utils.dungeons.enums.SecretType
-import com.github.noamm9.utils.dungeons.map.core.UniqueRoom
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.RenderContext
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents
@@ -166,11 +165,6 @@ object EventDispatcher: ISelfInit {
                 }
             }
         }
-    }
-
-    fun checkForRoomChange(currentRoom: UniqueRoom?, lastKnownRoom: UniqueRoom?) {
-        lastKnownRoom?.let { EventBus.post(DungeonEvent.RoomEvent.onExit(it)) }
-        currentRoom?.let { EventBus.post(DungeonEvent.RoomEvent.onEnter(it)) }
     }
 
     private fun resetInventory() {

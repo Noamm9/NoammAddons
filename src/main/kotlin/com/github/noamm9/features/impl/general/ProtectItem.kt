@@ -1,9 +1,11 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.commands.CommandBuilder
 import com.github.noamm9.config.PogObject
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.KeyboardEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.notification.NotificationManager
@@ -17,8 +19,6 @@ import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
-import net.fabricmc.fabric.api.client.command.v2.ClientCommands
 import net.minecraft.network.chat.Component
 import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.item.ItemStack
@@ -26,7 +26,7 @@ import net.minecraft.world.item.Items
 import org.lwjgl.glfw.GLFW
 import kotlin.jvm.optionals.getOrDefault
 
-object ProtectItem: Feature("Prevents dropping or selling important items via /protectitem or keybind.") {
+object ProtectItem: Feature("Prevents dropping or selling important items via /protectitem or keybind."), ICommandProvider {
     private var data = PogObject("item_protection", object {
         val uuids = mutableSetOf<String>()
         val ids = mutableSetOf<String>()
@@ -89,24 +89,6 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
             }
         }
 
-        ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
-            dispatcher.register(ClientCommands.literal("protectitem").executes {
-                if (! enabled) {
-                    ChatUtils.modMessage("&cYou need have ${this.javaClass.simpleName} enabled.")
-                    return@executes 0
-                }
-
-                val heldItem = player.inventory.selectedItem.takeUnless { it.isEmpty } ?: run {
-                    ChatUtils.modMessage("&cYou need to be holding an item.")
-                    return@executes 1
-                }
-
-                protect(heldItem)
-
-                1
-            })
-        }
-
         register<ContainerEvent.Render.Slot.Post> {
             if (! showProtected.value) return@register
             val stack = event.slot.item.takeUnless { it.isEmpty } ?: return@register
@@ -115,6 +97,15 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
                 val y = event.slot.y + 1
                 event.context.drawString("§aP", x, y, scale = 0.75)
             }
+        }
+    }
+
+    override fun CommandBuilder.command() {
+        setName("protectitem")
+        runs {
+            val heldItem = player.mainHandItem.takeUnless { it.isEmpty }
+                ?: return@runs ChatUtils.modMessage("&cYou need to be holding an item.")
+            protect(heldItem)
         }
     }
 

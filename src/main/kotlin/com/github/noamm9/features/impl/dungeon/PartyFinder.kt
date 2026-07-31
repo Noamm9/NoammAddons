@@ -1,10 +1,12 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.commands.CommandBuilder
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
@@ -22,8 +24,6 @@ import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
 import com.mojang.brigadier.arguments.StringArgumentType
 import kotlinx.coroutines.launch
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
-import net.fabricmc.fabric.api.client.command.v2.ClientCommands
 import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.HoverEvent
@@ -31,7 +31,7 @@ import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Blocks
 import java.util.*
 
-object PartyFinder: Feature() {
+object PartyFinder: Feature(), ICommandProvider {
     private val showJoinStats by ToggleSetting("Join Stats", true).withDescription("Prints the dungeon stats of a player that joins your party.").section("Join Stats")
 
     private val showLevelReq by ToggleSetting("Show Level Req", true).withDescription("Shows the red level requirement number.").section("Menu")
@@ -185,25 +185,18 @@ object PartyFinder: Feature() {
                 if (showJoinStats.value) printPlayerStats(name)
             }
         }
+    }
 
-        ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
-            dispatcher.register(
-                ClientCommands.literal("pfs").executes {
-                    scope.launch { printPlayerStats(mc.user.name) }
-                    1
-                }.then(ClientCommands.argument("ign", StringArgumentType.word())
-                    .suggests { _, builder ->
-                        val players = TabListUtils.getTabList().mapNotNull { it.second.profile.name }.filterNot { it.matches("^![A-Z]-[a-z]$".toRegex()) }
-                        players.forEach { builder.suggest(it) }
-                        builder.buildFuture()
-                    }
-                    .executes { context ->
-                        val ign = StringArgumentType.getString(context, "ign")
-                        scope.launch { printPlayerStats(ign) }
-                        1
-                    }
-                )
-            )
+    override fun CommandBuilder.command() {
+        setName("pfs")
+        runs { scope.launch { printPlayerStats(mc.user.name) } }
+
+        argument("name", StringArgumentType.word()) {
+            suggests { TabListUtils.getTabList().mapNotNull { it.second.profile.name }.filterNot { it.matches("^![A-Z]-[a-z]$".toRegex()) } }
+            runs {
+                val ign = StringArgumentType.getString(it, "name")
+                scope.launch { printPlayerStats(ign) }
+            }
         }
     }
 

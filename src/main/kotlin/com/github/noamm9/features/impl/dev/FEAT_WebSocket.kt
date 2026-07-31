@@ -1,12 +1,15 @@
 package com.github.noamm9.features.impl.dev
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.commands.CommandBuilder
 import com.github.noamm9.event.EventPriority
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.WebSocketEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.GsonUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
@@ -18,10 +21,12 @@ import com.github.noamm9.utils.location.LocrawListener
 import com.github.noamm9.websocket.PacketRegistry
 import com.github.noamm9.websocket.WebSocket.send
 import com.github.noamm9.websocket.packets.C2SPacketDungeonStart
+import com.github.noamm9.websocket.packets.S2CPacketChat
 import com.google.gson.JsonElement
 import com.google.gson.JsonParser
+import com.mojang.brigadier.arguments.StringArgumentType
 
-object FEAT_WebSocket: Feature(name = "WebSocket", toggled = true) {
+object FEAT_WebSocket: Feature(name = "WebSocket", toggled = true), ICommandProvider {
     override fun toggle() = Unit
 
     override fun init() {
@@ -41,6 +46,29 @@ object FEAT_WebSocket: Feature(name = "WebSocket", toggled = true) {
         register<DungeonEvent.RunStatedEvent> { sendDungeonInfo() }
         register<DungeonEvent.RunEndedEvent> { send(mapOf("type" to "dungeon_end")) }
         register<WorldChangeEvent>(EventPriority.HIGHEST) { if (LocationUtils.inDungeon) send(mapOf("type" to "reset")) }
+    }
+
+    override fun CommandBuilder.command() {
+        setName("ws")
+
+        literal("users") {
+            runs {
+                send(mapOf("type" to "check_users"))
+            }
+        }
+
+        literal("chat") {
+            argument("message", StringArgumentType.greedyString()) {
+                runs {
+                    val message = StringArgumentType.getString(it, "message").addColor()
+                    send(S2CPacketChat("§d${NoammAddons.mc.user.name}: §r$message").apply(S2CPacketChat::handle))
+                }
+            }
+
+            runs {
+                ChatUtils.modMessage("/ws chat <message>")
+            }
+        }
     }
 
     fun sendDungeonInfo() = ThreadUtils.scheduledTaskServer(30) ws@{

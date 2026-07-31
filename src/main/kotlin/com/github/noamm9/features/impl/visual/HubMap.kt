@@ -31,6 +31,7 @@ import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.nio.file.Files
 import javax.imageio.ImageIO
+import kotlin.coroutines.resume
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.readBytes
 import kotlin.math.roundToInt
@@ -118,11 +119,10 @@ object HubMap: Feature("Replaces the SkyBlock Hub world map with a custom image.
     private fun bindTexture(bytes: ByteArray) = mc.execute {
         val gif = catch { GifDecoder.read(bytes) } ?: return@execute bindStaticTexture(bytes)
 
-        if (gif.frameCount == 0) return@execute
+        if (gif.frameCount == 0) return@execute print("Failed to load. GIF has 0 frames")
 
         val firstWall = bufferedToNative(gif.getFrame(0))
-        val (tiles, textures) = buildTiles(firstWall)
-        firstWall.close()
+        val (tiles, textures) = firstWall.use(::buildTiles)
 
         textures.forEachIndexed { i, t -> mc.textureManager.register(locations[i], t) }
         texturesLoaded = true
@@ -134,18 +134,21 @@ object HubMap: Feature("Replaces the SkyBlock Hub world map with a custom image.
             while (isActive) {
                 delay(maxOf(gif.getDelay(frame) * 10L, 20L))
                 frame = (frame + 1) % gif.frameCount
-                val wall = withContext(Dispatchers.IO) { bufferedToNative(gif.getFrame(frame)) }
-                mc.execute {
-                    wall.use {
-                        if (texturesLoaded) repeat(TILE_COUNT) { i ->
-                            wall.copyRect(
-                                tiles[i],
-                                i % COLUMNS * TILE_SIZE, i / COLUMNS * TILE_SIZE,
-                                0, 0, TILE_SIZE, TILE_SIZE,
-                                false, false
-                            )
-                            textures[i].upload()
+                val nextWall = withContext(Dispatchers.IO) { bufferedToNative(gif.getFrame(frame)) }
+                suspendCancellableCoroutine {
+                    mc.execute {
+                        nextWall.use {
+                            if (texturesLoaded) repeat(TILE_COUNT) { i ->
+                                nextWall.copyRect(
+                                    tiles[i],
+                                    i % COLUMNS * TILE_SIZE, i / COLUMNS * TILE_SIZE,
+                                    0, 0, TILE_SIZE, TILE_SIZE,
+                                    false, false
+                                )
+                                textures[i].upload()
+                            }
                         }
+                        it.resume(Unit)
                     }
                 } // staircase of doom.
             }
