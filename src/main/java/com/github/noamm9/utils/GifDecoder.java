@@ -124,7 +124,7 @@ public final class GifDecoder {
         // The only app extension widely used is NETSCAPE, it's got 3 data bytes
         if (subBlockSize == 3) {
             // in[i+1] should have value 01, in[i+5] should be block terminator
-            img.repetitions = in[i + 2] & 0xFF | in[i + 3] & 0xFF << 8; // Short
+            img.repetitions = in[i + 2] & 0xFF | (in[i + 3] & 0xFF) << 8; // Short
             return i + 5;
         } // Skip unknown application extensions
         while ((in[i] & 0xFF) != 0) { // While sub-block size != 0
