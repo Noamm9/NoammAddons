@@ -151,24 +151,22 @@ object PlayerUtils: ISelfInit {
     }
 
     suspend fun changeMaskAction() {
-        val maskId = mc.player?.inventory?.nonEquipmentItems?.firstNotNullOfOrNull { item ->
-            item?.skyblockId?.takeIf { id ->
-                id.containsOneOf("SPIRIT_MASK", "BONZO_MASK")
-            }
-        } ?: return modMessage("&cNo mask found in inventory!")
-
-        quickSwapAction(maskId)
+        quickSwapAction(listOf("SPIRIT_MASK", "BONZO_MASK"))
     }
 
-    private var awaiting4EQ = ""
+    private var awaiting4EQ = emptyList<String>()
     suspend fun quickSwapAction(itemID: String) {
+        quickSwapAction(listOf(itemID))
+    }
+
+    private suspend fun quickSwapAction(itemIDs: List<String>) {
         if (thePlayer?.isDead == true) return
 
         ChatUtils.sendMessage("/stats")
-        awaiting4EQ = itemID
-        ThreadUtils.setTimeout(5000) { awaiting4EQ = "" }
+        awaiting4EQ = itemIDs
+        ThreadUtils.setTimeout(5000) { awaiting4EQ = emptyList() }
 
-        while (awaiting4EQ.isNotBlank()) delay(50)
+        while (awaiting4EQ.isNotEmpty()) delay(50)
     }
 
     fun swapToSlot(slot: Int) {
@@ -220,18 +218,18 @@ object PlayerUtils: ISelfInit {
         register<ContainerFullyOpenedEvent> {
             when (event.title.unformattedText.lowercase().trim()) {
                 "stats & equipment" -> {
-                    if (awaiting4EQ.isBlank()) return@register
+                    if (awaiting4EQ.isEmpty()) return@register
 
                     ThreadUtils.scheduledTask(7) {
                         val con = mc.player?.containerMenu?.slots ?: return@scheduledTask
 
                         val item = con.filter { it.index in con.size - 36 until con.size }.find {
-                            it.item.skyblockId.contains(awaiting4EQ)
+                            slot -> awaiting4EQ.any(slot.item.skyblockId::contains)
                         } ?: return@scheduledTask
 
                         GuiUtils.clickSlot(item.index, GuiUtils.ButtonType.LEFT)
                         mc.player?.closeContainer()
-                        awaiting4EQ = ""
+                        awaiting4EQ = emptyList()
                     }
                 }
 
