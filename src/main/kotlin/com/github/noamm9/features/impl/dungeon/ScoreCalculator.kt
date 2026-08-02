@@ -53,7 +53,7 @@ object ScoreCalculator: Feature("Shows the score of the dungeon run.") {
         }
 
         register<DungeonEvent.Score> {
-            milestones.find { it.score == event.score }?.let(::triggerMilestone)
+            milestones.filter { it.score > event.oldScore && it.score <= event.score }.forEach(::triggerMilestone)
         }
     }
 
