@@ -42,6 +42,7 @@ object ScoreCalculation: ISelfInit {
     private var secretPercentage = 0.0
     private var clearedPercentage = 0
     private var completedRooms = 0
+    private var highestScore = 0
 
     var mimicKilled = false
     var princeKilled = false
@@ -71,6 +72,7 @@ object ScoreCalculation: ISelfInit {
             completedRooms = 0
             secondsElapsed = 0
             score = 0
+            highestScore = 0
         }
 
         EventBus.register<DungeonEvent.PlayerDeathEvent> { deathCount ++ }
@@ -100,9 +102,10 @@ object ScoreCalculation: ISelfInit {
                             }
                         }
 
-                        val oldScore = score
+                        val oldHighestScore = highestScore
                         recalculate()
-                        if (score > oldScore) EventBus.post(DungeonEvent.Score(oldScore, score))
+                        highestScore = maxOf(highestScore, score)
+                        if (highestScore > oldHighestScore) EventBus.post(DungeonEvent.Score(oldHighestScore, highestScore))
                     }
                 }
 
