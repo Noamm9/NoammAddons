@@ -102,7 +102,7 @@ object ScoreCalculation: ISelfInit {
 
                         val oldScore = score
                         recalculate()
-                        if (score > oldScore) EventBus.post(DungeonEvent.Score(score))
+                        if (score > oldScore) EventBus.post(DungeonEvent.Score(oldScore, score))
                     }
                 }
 
