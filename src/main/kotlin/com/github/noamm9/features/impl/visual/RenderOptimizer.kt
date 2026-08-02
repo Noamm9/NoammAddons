@@ -20,7 +20,7 @@ import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.LivingEntity
 import java.util.*
 
-object RenderOptimizer: Feature("Optimize Rendering by hiding useless shit.") {
+object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
     private val hideStar by ToggleSetting("Hide Star Mobs's Nametag")
     private val hideNonStar by ToggleSetting("Hide Non Star Mob's Nametag")
     private val hideFallingBlocks by ToggleSetting("Hide Falling Blocks")
