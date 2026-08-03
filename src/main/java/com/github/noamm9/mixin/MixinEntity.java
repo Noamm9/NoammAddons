@@ -1,7 +1,5 @@
 package com.github.noamm9.mixin;
 
-import com.github.noamm9.event.EventBus;
-import com.github.noamm9.event.impl.CheckEntityGlowEvent;
 import com.github.noamm9.features.impl.dev.Box3D;
 import com.github.noamm9.features.impl.misc.Camera;
 import com.github.noamm9.interfaces.IGlowingEntity;
@@ -18,10 +16,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.awt.*;
 
-//#if LEGIT
-//$import static com.github.noamm9.NoammAddons.mc;
-//#endif
-
 @Mixin(Entity.class)
 public abstract class MixinEntity implements IGlowingEntity {
     @Unique private Color glowColor = Color.WHITE;
@@ -29,30 +23,6 @@ public abstract class MixinEntity implements IGlowingEntity {
 
     @Shadow
     public abstract float getYRot();
-
-    @Inject(method = "isCurrentlyGlowing", at = @At("HEAD"), cancellable = true)
-    private void onIsCurrentlyGlowing(CallbackInfoReturnable<Boolean> cir) {
-        var entity = (Entity) (Object) this;
-        //#if LEGIT
-        //$var player = mc.player;
-        //$if (player == null) return;
-        //$if (!player.hasLineOfSight(entity)) return;
-        //$if (entity.isInvisibleTo(player)) return;
-        //#endif
-
-        var event = new CheckEntityGlowEvent(entity);
-        EventBus.post(event);
-
-        if (event.isCanceled()) {
-            cir.setReturnValue(false);
-            return;
-        }
-
-        noammaddons$isGlowing(event.getShouldGlow());
-        noammaddons$glowColor(event.getColor());
-
-        if (noammaddons$isGlowing()) cir.setReturnValue(true);
-    }
 
     @Inject(method = "getTeamColor", at = @At("HEAD"), cancellable = true)
     private void onGetTeamColorValue(CallbackInfoReturnable<Integer> cir) {
