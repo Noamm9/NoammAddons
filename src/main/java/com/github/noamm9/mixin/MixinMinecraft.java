@@ -1,9 +1,12 @@
 package com.github.noamm9.mixin;
 
 import com.github.noamm9.event.EventBus;
+import com.github.noamm9.event.impl.CheckEntityGlowEvent;
 import com.github.noamm9.event.impl.PlayerInteractEvent;
 import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlay;
 import com.github.noamm9.features.impl.visual.CpsDisplay;
+import com.github.noamm9.interfaces.IGlowingEntity;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import net.minecraft.client.Minecraft;
@@ -105,5 +108,27 @@ public abstract class MixinMinecraft {
         if (!StorageOverlay.INSTANCE.enabled) return;
         var newScreen = StorageOverlay.onScreenChange(this.screen, screen);
         if (newScreen != null) screenRef.set(newScreen);
+    }
+
+    // Apply our glow after other mods have changed the vanilla glow state
+    @ModifyExpressionValue(
+        method = "shouldEntityAppearGlowing",
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;isCurrentlyGlowing()Z")
+    )
+    private boolean onShouldEntityAppearGlowing(boolean original, Entity entity) {
+        //#if LEGIT
+        //$if (this.player == null) return original;
+        //$if (!this.player.hasLineOfSight(entity)) return original;
+        //$if (entity.isInvisibleTo(this.player)) return original;
+        //#endif
+
+        var event = new CheckEntityGlowEvent(entity);
+        if (EventBus.post(event)) return false;
+
+        var glow = (IGlowingEntity) entity;
+        glow.noammaddons$isGlowing(event.getShouldGlow());
+        glow.noammaddons$glowColor(event.getColor());
+
+        return original || glow.noammaddons$isGlowing();
     }
 }
