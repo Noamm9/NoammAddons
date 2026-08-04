@@ -6,7 +6,8 @@ import com.github.noamm9.features.Feature
 object AutoSprint: Feature("Automatically sprint for you.") {
     override fun init() {
         register<TickEvent.Start> {
-            if (mc.screen != null || player.isSprinting) return@register
+            if (mc.screen != null) return@register
+            if (player.isSprinting) return@register
             mc.options.keySprint.isDown = true
         }
     }
