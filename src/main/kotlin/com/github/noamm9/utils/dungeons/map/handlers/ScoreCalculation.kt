@@ -166,6 +166,18 @@ object ScoreCalculation: ISelfInit {
                     if ((LocationUtils.dungeonFloorNumber ?: 0) > 5 && ! LocationUtils.inBoss && mimicMessages.any { msg.contains(it) }) {
                         mimicKilled = true
                     }
+
+                    if (! batKilled && batMessages.any { msg.contains(it) }) {
+                        batKilled = true
+
+                        if (DungeonListener.dungeonTeammatesNoSelf.isNotEmpty()) {
+                            WebSocket.send(S2CPacketDungeonBat)
+                        }
+
+                        if (ScoreCalculator.enabled && ScoreCalculator.sendBat.value && msg == "a bat has slain. +1 bonus score") {
+                            ChatUtils.sendPartyMessage("Bat Killed")
+                        }
+                    }
                 }
             }
         }
