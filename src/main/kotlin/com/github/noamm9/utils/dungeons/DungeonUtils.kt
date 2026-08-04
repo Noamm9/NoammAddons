@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.entity.SkullBlockEntity
 object DungeonUtils {
     val FLOOR_NAMES = listOf("ENTRANCE", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN")
     val floorEnterRegex = Regex("-+\\s.+ entered.+The Catacombs, Floor [IVX]+!\\s-+")
-    val WITHER_ESSENCE = setOf("2865274b-3097-394e-8149-ec629c72d850", "e0f3e929-869e-3dca-9504-54c666ee6f23").toTypedArray()
+    val WITHER_ESSENCE = setOf("2865274b-3097-394e-8149-ec629c72d850").toTypedArray()
     val REDSTONE_KEY = setOf("fed95410-aba1-39df-9b95-1d4f361eb66e").toTypedArray()
 
     @JvmStatic
