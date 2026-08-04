@@ -191,6 +191,7 @@ object ScoreCalculation: ISelfInit {
         var bScore = cryptsCount.coerceAtMost(5)
         if (mimicKilled && currentFloorNumber > 5) bScore += 2
         if (princeKilled) bScore += 1
+        if (batKilled) bScore += 1
         if (DungeonUtils.isPaul()) bScore += 10
         val bonusScore = bScore
 
