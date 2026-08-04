@@ -139,7 +139,7 @@ class UniqueRoom(arrX: Int, arrY: Int, roomTile: RoomTile) {
         if (rotation != null || clayPos != null) return
         if (mainRoom.data.type == RoomType.FAIRY) return setRotationAndCorner(0, BlockPos(mainRoom.x - 15, 0, mainRoom.z - 15))
         val roomTiles = tiles.filterNot { it.isSeparator }.takeUnless { it.size < data.shape.tileCount } ?: return
-        val highestBlock = highestBlock ?: ScanUtils.getHighestY(mainRoom.x, mainRoom.z).takeIf { it > 0 } ?: return
+        val highestBlock = highestBlock ?: ScanUtils.getHighestY(mainRoom.x, mainRoom.z).takeIf { it > 0 }?.also(::highestBlock::set) ?: return
 
         val mutablePos = BlockPos.MutableBlockPos()
         val h = DungeonScanner.halfRoomSize
@@ -159,7 +159,7 @@ class UniqueRoom(arrX: Int, arrY: Int, roomTile: RoomTile) {
         val primaryCornersX = intArrayOf(minX - h, maxX + h, maxX + h, minX - h)
         val primaryCornersZ = intArrayOf(minZ - h, minZ - h, maxZ + h, maxZ + h)
 
-        for (i in 0 .. 3) {
+        if (data.shape != RoomShape.SL) for (i in 0 .. 3) {
             mutablePos.set(primaryCornersX[i], highestBlock, primaryCornersZ[i])
             if (WorldUtils.getBlockAt(mutablePos) == Blocks.BLUE_TERRACOTTA) {
                 setRotationAndCorner(i, mutablePos)
@@ -167,7 +167,7 @@ class UniqueRoom(arrX: Int, arrY: Int, roomTile: RoomTile) {
             }
         }
 
-        for (tile in tiles) for (i in DungeonScanner.clayBlocksCorners.indices) {
+        if (data.shape == RoomShape.SL) for (tile in roomTiles) for (i in DungeonScanner.clayBlocksCorners.indices) {
             val (offsetX, offsetY) = DungeonScanner.clayBlocksCorners[i]
             mutablePos.set(tile.x + offsetX, highestBlock, tile.z + offsetY)
             if (! WorldUtils.isChunkLoaded(mutablePos.x, mutablePos.z)) return
