@@ -12,6 +12,7 @@ object PacketRegistry: ISelfInit {
         register<S2CPacketDungeonDoor>("dungeondoor")
         register<S2CPacketDungeonMimic>("dungeonmimic")
         register<S2CPacketDungeonPrince>("dungeonprince")
+        register<S2CPacketDungeonBat>("dungeonbat")
         register<S2CPacketDungeonRoom>("dungeonroom")
         register<S2CPacketM7Dragon>("m7dragon")
         register<S2CPacketRoomSecrets>("dungeonroomsecrets")

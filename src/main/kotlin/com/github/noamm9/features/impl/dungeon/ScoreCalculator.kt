@@ -19,6 +19,7 @@ object ScoreCalculator: Feature("Shows the score of the dungeon run.") {
     private val hudElement by ToggleSetting("HUD Element")
     val sendMimic by ToggleSetting("Send Mimic Message")
     val sendPrince by ToggleSetting("Send Prince Message")
+    val sendBat by ToggleSetting("Send Bat Message")
 
     private val sendMsg270 by ToggleSetting("270 score message").section("270")
     private val msg270 by TextInputSetting("Message", "270 Score!").showIf { sendMsg270.value }

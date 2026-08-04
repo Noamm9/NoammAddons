@@ -18,6 +18,7 @@ import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.websocket.WebSocket
+import com.github.noamm9.websocket.packets.S2CPacketDungeonBat
 import com.github.noamm9.websocket.packets.S2CPacketDungeonMimic
 import com.github.noamm9.websocket.packets.S2CPacketDungeonPrince
 import net.minecraft.network.protocol.game.ClientboundEntityEventPacket
@@ -46,6 +47,7 @@ object ScoreCalculation: ISelfInit {
 
     var mimicKilled = false
     var princeKilled = false
+    var batKilled = false
     var deathCount = 0
     var foundSecrets = 0
     var cryptsCount = 0
@@ -64,6 +66,7 @@ object ScoreCalculation: ISelfInit {
             bloodDone = false
             mimicKilled = false
             princeKilled = false
+            batKilled = false
             deathCount = 0
             foundSecrets = 0
             cryptsCount = 0
@@ -163,6 +166,18 @@ object ScoreCalculation: ISelfInit {
                     if ((LocationUtils.dungeonFloorNumber ?: 0) > 5 && ! LocationUtils.inBoss && mimicMessages.any { msg.contains(it) }) {
                         mimicKilled = true
                     }
+
+                    if (! batKilled && batMessages.any { msg.contains(it) }) {
+                        batKilled = true
+
+                        if (DungeonListener.dungeonTeammatesNoSelf.isNotEmpty()) {
+                            WebSocket.send(S2CPacketDungeonBat)
+                        }
+
+                        if (ScoreCalculator.enabled && ScoreCalculator.sendBat.value && msg == "a bat has slain. +1 bonus score") {
+                            ChatUtils.sendPartyMessage("Bat Killed")
+                        }
+                    }
                 }
             }
         }
@@ -240,5 +255,11 @@ object ScoreCalculation: ISelfInit {
         "prince dead", "prince dead!", "\$skytils-dungeon-score-prince$",
         "prince killed", "prince slain", "prince killed!",
         "a prince falls. +1 bonus score"
+    )
+
+    private val batMessages = setOf(
+        "bat dead", "bat dead!", "\$skytils-dungeon-score-bat$",
+        "bat killed", "bat slain", "bat killed!",
+        "a bat has slain. +1 bonus score",
     )
 }
