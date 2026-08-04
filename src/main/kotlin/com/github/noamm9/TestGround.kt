@@ -3,46 +3,42 @@ package com.github.noamm9
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
+import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.GsonUtils
 import com.github.noamm9.utils.MathUtils.add
-import com.github.noamm9.utils.ThreadUtils
-import com.github.noamm9.utils.dungeons.map.DungeonInfo
+import com.github.noamm9.utils.MathUtils.toVec
+import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderBlock
+import com.github.noamm9.utils.render.Render3D.renderString
 import com.google.gson.JsonElement
 import com.mojang.serialization.JsonOps
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import net.minecraft.core.BlockPos
 import net.minecraft.core.component.DataComponentPatch
-import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.network.protocol.game.ClientboundSetTimePacket
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.resources.RegistryOps
-import net.minecraft.world.entity.ambient.Bat
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.block.entity.SkullBlockEntity
 import java.awt.Color
 
-
-class TestGround {
+object TestGround: ISelfInit {
     private var lastServerTime = - 1L
     private var lastRealTime = - 1L
 
-    companion object {
-        val experimental get() = NoammAddons.debugFlags.contains("tick")
-        val rotation get() = NoammAddons.debugFlags.contains("rotation")
-        val bat get() = NoammAddons.debugFlags.contains("bat")
-        val slot get() = NoammAddons.debugFlags.contains("slot")
-        val sound get() = NoammAddons.debugFlags.contains("sound")
-    }
+    val tick get() = NoammAddons.debugFlags.contains("tick")
+    val rotation get() = NoammAddons.debugFlags.contains("rotation")
+    val slot get() = NoammAddons.debugFlags.contains("slot")
+    val sound get() = NoammAddons.debugFlags.contains("sound")
 
-    init {
+    override fun init() {
         EventBus.register<WorldChangeEvent> {
-            if (experimental) {
+            if (tick) {
                 lastServerTime = - 1
                 lastRealTime = - 1
             }
@@ -50,7 +46,7 @@ class TestGround {
 
         EventBus.register<PacketEvent.Received> {
             if (event.packet is ClientboundSetTimePacket) {
-                if (! experimental) return@register
+                if (! tick) return@register
                 val newServerTime = event.packet.gameTime
                 val newRealTime = System.currentTimeMillis()
 
@@ -80,27 +76,17 @@ class TestGround {
 
         EventBus.register<RenderWorldEvent> {
             if (! rotation) return@register
-            DungeonScanner.clayBlocksCorners.forEachIndexed { index, (dx, dz) ->
-                DungeonInfo.uniqueRooms.values.forEach { room ->
-                    val centerr = BlockPos(room.mainRoom.x, room.highestBlock ?: ScanUtils.getHighestY(room.mainRoom.x, room.mainRoom.z), room.mainRoom.z)
-                    Render3D.renderBlock(
-                        event.ctx,
-                        centerr.add(x = dx, z = dz),
+            DungeonScanner.uniqueRooms.values.forEach { room ->
+                val highest = room.highestBlock ?: ScanUtils.getHighestY(room.mainRoom.x, room.mainRoom.z)
+                val center = room.centerPos.above(highest)
+                event.ctx.renderString(room.name, center.above(3).toVec(), Color.YELLOW, 6, phase = true)
+                DungeonScanner.clayBlocksCorners.forEachIndexed { index, (dx, dz) ->
+                    event.ctx.renderBlock(
+                        center.add(x = dx, z = dz),
                         (if (room.rotation?.div(90) == index) Color.GREEN else Color.red).withAlpha(60)
                     )
 
-                    Render3D.renderString("$index", centerr.x + dx + 0.5, centerr.y, centerr.z + dz + 0.5, phase = true, scale = 3)
-                }
-            }
-        }
-
-        EventBus.register<MainThreadPacketReceivedEvent.Post> {
-            if (! bat) return@register
-            if (event.packet is ClientboundAddEntityPacket) {
-                val bat = mc.level?.getEntity(event.packet.id) as? Bat ?: return@register
-                val room = ScanUtils.getRoomFromPos(bat.position()) ?: return@register
-                ThreadUtils.scheduledTask(5) {
-                    ChatUtils.modMessage("bat hp: ${bat.maxHealth}. (${room.name})")
+                    event.ctx.renderString("$index", center.x + dx + 0.5, center.y, center.z + dz + 0.5, scale = 3, phase = true)
                 }
             }
         }
@@ -121,6 +107,16 @@ class TestGround {
             val volume = packet.volume
             ChatUtils.modMessage("name: $name, pitch: $pitch, volume: $volume")
         }
+
+        EventBus.register<NoammDebugFlagEvent.Add> {
+            if (event.flag != "skull") return@register
+            event.cancel()
+
+            val pos = PlayerUtils.getSelectionBlock() !!
+            (mc.level?.getBlockEntity(pos) as? SkullBlockEntity)?.ownerProfile?.partialProfile()?.id.toString().let {
+                ChatUtils.modMessage("skullid: $it")
+            }
+        }
     }
 
     fun getNBT(itemStack: ItemStack?): String {
@@ -130,40 +126,3 @@ class TestGround {
         return GsonUtils.gson.toJson(jsonElement)
     }
 }
-
-/*
-{
-  "minecraft:item_model": "hypixel_skyblock:item/slayer/enderman/weapons/terminator",
-  "minecraft:tooltip_style": "hypixel_skyblock:mythic"
-  "minecraft:custom_data": {
-    "upgrade_level": 10,
-    "enchantments": {
-      "cubism": 5,
-      "aiming": 5,
-      "toxophilite": 10,
-      "impaling": 5,
-      "piercing": 1,
-      "snipe": 4,
-      "infinite_quiver": 10,
-      "chance": 3,
-      "power": 7,
-      "dragon_hunter": 6,
-      "flame": 2,
-      "overload": 5,
-      "ultimate_reiterate": 5
-    },
-    "timestamp": 1762120237866,
-    "hot_potato_count": 15,
-    "runes": {
-      "GOLDEN": 3
-    },
-    "modifier": "spiritual",
-    "rarity_upgrades": 1,
-    "toxophilite_combat_xp": 2.1954964312038323E8,
-    "uuid": "3c934dea-1ec1-4109-a71b-f47958bc578c",
-    "id": "TERMINATOR",
-    "art_of_war_count": 1,
-    "dungeon_item": 1
-  }
-}
- */

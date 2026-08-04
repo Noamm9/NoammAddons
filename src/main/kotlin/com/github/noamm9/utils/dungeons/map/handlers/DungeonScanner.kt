@@ -1,17 +1,31 @@
 package com.github.noamm9.utils.dungeons.map.handlers
 
-import com.github.noamm9.utils.MathUtils.Vec3
+import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.impl.TickEvent
+import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.init.types.ISelfInit
+import com.github.noamm9.utils.MathUtils.toVec
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
-import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.core.*
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
+import com.github.noamm9.utils.equalsOneOf
+import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.websocket.WebSocket
 import com.github.noamm9.websocket.packets.S2CPacketDungeonDoor
 import com.github.noamm9.websocket.packets.S2CPacketDungeonRoom
+import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Blocks
 
-object DungeonScanner {
+object DungeonScanner: ISelfInit {
+    val dungeonList = Array<Tile>(121) { Unknown(0, 0) }
+    val uniqueRooms = mutableMapOf<String, UniqueRoom>()
+    var mimicRoom: UniqueRoom? = null
+
+    var witherDoors = 0
+    var cryptCount = 0
+    var secretCount = 0
+
     const val startX = - 185
     const val startZ = - 185
 
@@ -26,70 +40,87 @@ object DungeonScanner {
     )
 
     private var lastScanTime = 0L
-    private var isScanning = false
     var hasScanned = false
 
-    val shouldScan get() = ! isScanning && ! hasScanned && System.currentTimeMillis() - lastScanTime >= 250
+    override fun init() {
+        EventBus.register<WorldChangeEvent> {
+            dungeonList.fill(Unknown(0, 0))
+            uniqueRooms.clear()
+            mimicRoom = null
+            hasScanned = false
+            witherDoors = 0
+            cryptCount = 0
+            secretCount = 0
+        }
 
-    fun scan() {
-        isScanning = true
+        EventBus.register<TickEvent.End> {
+            val floor = LocationUtils.dungeonFloorNumber ?: return@register
+            if (LocationUtils.inBoss) return@register
+
+            if (! hasScanned && System.currentTimeMillis() - lastScanTime >= 250) {
+                scan()
+            }
+
+            if (ScoreCalculation.mimicKilled) return@register
+            if (mimicRoom != null) return@register
+            if (floor < 6) return@register
+
+            findMimicRoom()
+        }
+    }
+
+    private fun scan() {
         var allChunksLoaded = true
 
-        for (x in 0 .. 10) {
-            for (z in 0 .. 10) {
-                val wX = startX + x * (roomSize shr 1)
-                val wZ = startZ + z * (roomSize shr 1)
+        for (x in 0 .. 10) for (z in 0 .. 10) {
+            val wX = startX + x * (roomSize shr 1)
+            val wZ = startZ + z * (roomSize shr 1)
 
-                if (! WorldUtils.isChunkLoaded(wX, wZ)) {
-                    allChunksLoaded = false
-                    continue
+            if (! WorldUtils.isChunkLoaded(wX, wZ)) {
+                allChunksLoaded = false
+                continue
+            }
+
+            val inGrid = dungeonList[x + z * 11]
+            if (inGrid !is Unknown && (inGrid as? RoomTile)?.data?.isUnknown() != true) continue
+            val roofHeight = ScanUtils.getHighestY(wX, wZ).takeUnless { it <= 0 } ?: continue
+
+            scanTile(wX, wZ, z, x, roofHeight)?.let { tile ->
+                dungeonList[z * 11 + x] = tile
+                DungeonTree.clearCache()
+
+                if (DungeonListener.dungeonTeammatesNoSelf.isEmpty()) return@let
+
+                if (tile is RoomTile && ! tile.data.isUnknown()) {
+                    WebSocket.send(S2CPacketDungeonRoom(tile.data.name, wX, wZ, x, z, tile.isSeparator))
                 }
 
-                val roofHeight = ScanUtils.getHighestY(wX, wZ)
-                if (roofHeight <= 0) continue
-
-                val roomInGrid = DungeonInfo.dungeonList[x + z * 11]
-                if (roomInGrid !is Unknown && (roomInGrid as? Room)?.data?.name != "Unknown") continue
-
-                scanTile(wX, wZ, z, x, roofHeight)?.let { tile ->
-                    DungeonInfo.dungeonList[z * 11 + x] = tile
-                    (tile as? Room)?.uniqueRoom?.findRotation()
-
-                    DungeonPathFinder.clearCache()
-                    if (DungeonListener.dungeonTeammatesNoSelf.isEmpty()) return@let
-
-                    if (tile is Room && tile.data.name != "Unknown") {
-                        WebSocket.send(S2CPacketDungeonRoom(tile.data.name, wX, wZ, x, z, tile.core, tile.isSeparator))
-                    }
-
-                    if (tile is Door) {
-                        WebSocket.send(S2CPacketDungeonDoor(wX, wZ, x, z, tile.type))
-                    }
+                if (tile is DoorTile) {
+                    WebSocket.send(S2CPacketDungeonDoor(wX, wZ, x, z, tile.type))
                 }
             }
         }
 
-        if (allChunksLoaded) hasScanned = true
+        uniqueRooms.values.forEach(UniqueRoom::findRotation)
         lastScanTime = System.currentTimeMillis()
-        isScanning = false
+        if (allChunksLoaded) hasScanned = true
     }
 
-    fun findMimicRoom(): UniqueRoom? {
-        WorldUtils.getBlockEntityList()
-            .filter { WorldUtils.getStateAt(it).`is`(Blocks.TRAPPED_CHEST) }
-            .groupingBy { ScanUtils.getRoomFromPos(Vec3(it.x, it.y, it.z))?.data?.name }
-            .eachCount()
-            .forEach { (roomName, trappedCount) ->
-                if (roomName == null) return@forEach
+    private fun findMimicRoom() {
+        val roomChests = mutableMapOf<UniqueRoom, MutableList<BlockPos>>()
 
-                val roomEntry = DungeonInfo.uniqueRooms.entries.find {
-                    it.key == roomName && it.value.data.trappedChests < trappedCount
-                }
+        for (pos in WorldUtils.getBlockEntityList()) {
+            if (! WorldUtils.getStateAt(pos).`is`(Blocks.TRAPPED_CHEST)) continue
 
-                if (roomEntry != null) return roomEntry.value
+            val room = ScanUtils.getRoomFromPos(pos.toVec()) ?: continue
+            val chests = roomChests.getOrPut(room) { mutableListOf() }.apply { add(pos) }
+
+            if (chests.size > room.data.trappedChests) {
+                room.trappedChestPositions = chests
+                room.hasMimic = true
+                mimicRoom = room
             }
-
-        return null
+        }
     }
 
     private fun scanTile(x: Int, z: Int, row: Int, column: Int, roofHeight: Int): Tile? {
@@ -100,8 +131,7 @@ object DungeonScanner {
             // Scanning a room
             rowEven && columnEven -> {
                 val roomCore = ScanUtils.getCore(x, z)
-                Room(x, z, ScanUtils.getRoomData(roomCore) ?: return null).apply {
-                    core = roomCore
+                RoomTile(x, z, ScanUtils.getRoomData(roomCore) ?: return null).apply {
                     addToUnique(row, column)
                     uniqueRoom?.highestBlock = roofHeight
                 }
@@ -109,9 +139,9 @@ object DungeonScanner {
 
             // Can only be the center "block" of a 2x2 room.
             ! rowEven && ! columnEven -> {
-                DungeonInfo.dungeonList[column - 1 + (row - 1) * 11].let {
-                    if (it is Room) {
-                        Room(x, z, it.data).apply {
+                dungeonList[column - 1 + (row - 1) * 11].let {
+                    if (it is RoomTile) {
+                        RoomTile(x, z, it.data).apply {
                             isSeparator = true
                             addToUnique(row, column)
                         }
@@ -121,28 +151,27 @@ object DungeonScanner {
             }
 
             // Doorway between rooms
-            (roofHeight == 74 || roofHeight == 82 || roofHeight == 73 || roofHeight == 81) -> {
-                Door(
-                    x, z,
-                    type = when (WorldUtils.getBlockAt(x, 69, z)) {
-                        Blocks.COAL_BLOCK -> {
-                            DungeonInfo.witherDoors ++
-                            DoorType.WITHER
-                        }
-
-                        Blocks.INFESTED_CHISELED_STONE_BRICKS -> DoorType.ENTRANCE
-                        Blocks.RED_TERRACOTTA -> DoorType.BLOOD
-                        else -> DoorType.NORMAL
+            roofHeight.equalsOneOf(73, 74, 81, 82) -> {
+                val type = when (WorldUtils.getBlockAt(x, 69, z)) {
+                    Blocks.COAL_BLOCK -> {
+                        witherDoors ++
+                        DoorType.WITHER
                     }
-                )
+
+                    Blocks.INFESTED_CHISELED_STONE_BRICKS -> DoorType.ENTRANCE
+                    Blocks.RED_TERRACOTTA -> DoorType.BLOOD
+                    else -> DoorType.NORMAL
+                }
+
+                DoorTile(x, z, type)
             }
 
             // Connection between large rooms
-            else -> DungeonInfo.dungeonList[if (rowEven) row * 11 + column - 1 else (row - 1) * 11 + column].let {
+            else -> dungeonList[if (rowEven) row * 11 + column - 1 else (row - 1) * 11 + column].let {
                 when {
-                    it !is Room -> null
-                    it.data.type == RoomType.ENTRANCE -> Door(x, z, DoorType.ENTRANCE)
-                    else -> Room(x, z, it.data).apply {
+                    it !is RoomTile -> null
+                    it.data.type == RoomType.ENTRANCE -> DoorTile(x, z, DoorType.ENTRANCE)
+                    else -> RoomTile(x, z, it.data).apply {
                         isSeparator = true
                         addToUnique(row, column)
                     }

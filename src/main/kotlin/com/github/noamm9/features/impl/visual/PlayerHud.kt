@@ -7,9 +7,9 @@ import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ActionBarParser
 import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.height
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.RenderHelper.height
+import com.github.noamm9.utils.render.RenderHelper.width
 
 object PlayerHud: Feature(name = "Player HUD", description = "Displays your stats as moveable HUD elements.") {
     private val elements by MultiCheckboxSetting("Elements", mutableMapOf(
@@ -42,7 +42,7 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             { LocationUtils.inSkyblock }
         ) { context, example ->
             val text = if (example) "§e3452§f/§c2452" else getHpFormatted()
-            Render2D.drawString(context, text, 0, 0)
+            context.drawString(text, 0, 0)
             return@hudElement text.width().toFloat() to text.height().toFloat()
         }
 
@@ -52,7 +52,7 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             { LocationUtils.inSkyblock }
         ) { context, example ->
             val text = if (example) "§a5001" else "§a${ActionBarParser.currentDefense}"
-            Render2D.drawString(context, text, 0, 0)
+            context.drawString(text, 0, 0)
             return@hudElement text.width().toFloat() to text.height().toFloat()
         }
 
@@ -62,7 +62,7 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             { LocationUtils.inSkyblock }
         ) { context, example ->
             val text = if (example) "§b2452/2452" else "§b${ActionBarParser.currentMana}/${ActionBarParser.maxMana}"
-            Render2D.drawString(context, text, 0, 0)
+            context.drawString(text, 0, 0)
             return@hudElement text.width().toFloat() to text.height().toFloat()
         }
 
@@ -72,7 +72,7 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             { LocationUtils.inSkyblock && ActionBarParser.overflowMana > 0 }
         ) { context, example ->
             val text = if (example) "§3600ʬ" else "§3${ActionBarParser.overflowMana}ʬ"
-            Render2D.drawString(context, text, 0, 0)
+            context.drawString(text, 0, 0)
             return@hudElement text.width().toFloat() to text.height().toFloat()
         }
 
@@ -82,7 +82,7 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             { LocationUtils.inSkyblock && ActionBarParser.isVitalityShown }
         ) { context, example ->
             val text = if (example) "§482/122" else "§4${ActionBarParser.currentVitality}/${ActionBarParser.maxVitality}"
-            Render2D.drawString(context, text, 0, 0)
+            context.drawString("$text&l♨", 0, 0)
             return@hudElement text.width().toFloat() to text.height().toFloat()
         }
 
@@ -92,7 +92,7 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             { LocationUtils.inSkyblock }
         ) { context, example ->
             val text = if (example) "§27.3m" else "§2${NumbersUtils.format(ActionBarParser.effectiveHP)}"
-            Render2D.drawString(context, text, 0, 0)
+            context.drawString(text, 0, 0)
             return@hudElement text.width().toFloat() to text.height().toFloat()
         }
 
@@ -102,7 +102,7 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             { LocationUtils.inSkyblock }
         ) { context, example ->
             val text = if (example) "§f400✦" else "§f${ActionBarParser.currentSpeed}✦"
-            Render2D.drawString(context, text, 0, 0)
+            context.drawString(text, 0, 0)
             return@hudElement text.width().toFloat() to text.height().toFloat()
         }
 

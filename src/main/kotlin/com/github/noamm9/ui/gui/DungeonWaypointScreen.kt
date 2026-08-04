@@ -4,7 +4,8 @@ import com.github.noamm9.features.impl.dungeon.DungeonWaypoints
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.componnents.UIButton
 import com.github.noamm9.utils.ChatUtils
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render2D.drawRect
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.core.BlockPos
@@ -115,15 +116,15 @@ class DungeonWaypointScreen(
         val panelX = centerX - panelWidth / 2
         val panelY = centerY - 100
 
-        Render2D.drawRect(context, panelX, panelY, panelWidth, panelHeight, bodyBg)
-        Render2D.drawRect(context, panelX, panelY, panelWidth, 25, headerBg)
+        context.drawRect(panelX, panelY, panelWidth, panelHeight, bodyBg)
+        context.drawRect(panelX, panelY, panelWidth, 25, headerBg)
 
-        Render2D.drawRect(context, panelX, panelY, panelWidth, 2, Style.accentColor)
-        Render2D.drawRect(context, panelX, panelY + panelHeight - 1, panelWidth, 1, Style.accentColor)
+        context.drawRect(panelX, panelY, panelWidth, 2, Style.accentColor)
+        context.drawRect(panelX, panelY + panelHeight - 1, panelWidth, 1, Style.accentColor)
 
-        Render2D.drawCenteredString(context, "§l${if (initialState == null) "New" else "Edit"} Waypoint", centerX, panelY + 8)
-        Render2D.drawCenteredString(context, "§b$roomName", centerX, panelY + 30)
-        Render2D.drawCenteredString(context, "§7[${absolutePos.x}, ${absolutePos.y}, ${absolutePos.z}]", centerX, panelY + 43)
+        context.drawCenteredString("§l${if (initialState == null) "New" else "Edit"} Waypoint", centerX, panelY + 8)
+        context.drawCenteredString("§b$roomName", centerX, panelY + 30)
+        context.drawCenteredString("§7[${absolutePos.x}, ${absolutePos.y}, ${absolutePos.z}]", centerX, panelY + 43)
 
         super.extractRenderState(context, mouseX, mouseY, a)
     }

@@ -5,8 +5,8 @@ import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.NumbersUtils.toFixed
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.RenderHelper.width
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.doubleOrNull
@@ -16,7 +16,7 @@ import java.awt.Color
 import kotlin.math.abs
 import kotlin.math.round
 
-open class SliderSetting<T: Number>(
+class SliderSetting<T: Number>(
     name: String,
     value: T,
     val min: T,
@@ -53,7 +53,7 @@ open class SliderSetting<T: Number>(
 
         val valStr = if (isTyping) inputBuffer else stringfy(value) + suffix
         val textColor = if (isTyping) Style.accentColor else Color(180, 180, 180)
-        Render2D.drawString(ctx, valStr, x + width - valStr.width() - 8f, y + 2f, textColor)
+        ctx.drawString(valStr, x + width - valStr.width() - 8f, y + 2f, textColor)
 
         Style.drawSlider(ctx, x + 8f, y + 14f, width - 16f, sliderAnim.value, hoverAnim.value, Style.accentColor)
     }

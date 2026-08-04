@@ -16,7 +16,7 @@ object CommandShortcuts: Feature("Create your own command shortcuts") {
     val shortcuts = PogObject("commandShortcuts", linkedMapOf<String, String>())
 
     override fun init() {
-        ClientCommandRegistrationCallback.EVENT.register { _, _ -> build() }
+        ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ -> build(dispatcher) }
 
         register<PacketEvent.Sent> {
             val packet = event.packet as? IServerboundChatCommandPacket ?: return@register
@@ -27,8 +27,7 @@ object CommandShortcuts: Feature("Create your own command shortcuts") {
         }
     }
 
-    fun build() {
-        val dispatcher = mc.player?.connection?.commands as? CommandDispatcher<FabricClientCommandSource> ?: return
+    fun build(dispatcher: CommandDispatcher<FabricClientCommandSource>) {
         shortcuts.get().keys.forEach { key ->
             unregisterNode(dispatcher.root, key)
             dispatcher.register(ClientCommands.literal(key))

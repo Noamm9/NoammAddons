@@ -6,10 +6,12 @@ import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.general.ItemTooltip
+import com.github.noamm9.init.types.ICustomMenu
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ThreadUtils
+import com.github.noamm9.utils.catch
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.network.WebUtils
 import com.github.noamm9.utils.network.data.StorageData
@@ -23,16 +25,20 @@ import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Blocks
 import java.io.File
+import java.nio.file.AtomicMoveNotSupportedException
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
-object StorageOverlay: Feature("Shows all storage pages in an overlay when opening storage.", toggled = true) {
+object StorageOverlay: Feature("Shows all storage pages in an overlay when opening storage.", toggled = true), ICustomMenu {
     val scaleSetting by SliderSetting("Scale", 1.0f, 0.5f, 2.0f, 0.05f).withDescription("The scale of the menu")
     val columnsSetting by SliderSetting("Columns", 3, 1, 10, 1).withDescription("The number of max pages to show on each row")
     val maxHeightSetting by SliderSetting("Max Height", 324, 80, 600, 1).withDescription("The maximum height of the entire menu")
     val scrollSpeedSetting by SliderSetting("Scroll Speed", 10, 1, 50, 1).withDescription("How fast you scroll")
     val retainScrollSetting by ToggleSetting("Retain Scroll", true).withDescription("Keeps the scroll offset after closing the menu")
     val enableTooltipInStorage by ToggleSetting("Tooltip Scroll").withDescription("Enables Item Tooltip Scrolling. (requires ${ItemTooltip.name} to be enabled)")
+    val hideNonMatchingPages by ToggleSetting("Hide Non-Matching Pages").withDescription("Hides storage pages without an item matching the current inventory search")
 
     private val storageDir by lazy { File(mc.gameDirectory, "config/${NoammAddons.MOD_NAME}/storage").also(File::mkdirs) }
     private val dataFile get() = File(storageDir, "${mc.user.profileId}.nbt")
@@ -45,6 +51,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
 
     @JvmStatic
     fun activeFor(screen: ContainerScreen) = active?.takeIf { it.containerScreen === screen }
+    override fun isActive() = (mc.screen as? ContainerScreen)?.let(::activeFor) != null
 
     private val emptyStorageSlotItems = listOf(
         Blocks.RED_STAINED_GLASS_PANE.asItem(),
@@ -153,7 +160,6 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         ThreadUtils.async(::saveData)
     }
 
-    @Synchronized
     private fun saveData() {
         val file = dataFile
         if (! checkFile(file)) return
@@ -162,16 +168,29 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
             inv?.let { root.putString("${slot.index}_inv", it.encode()) }
         }
 
-        NbtIo.writeCompressed(root, file.toPath())
+        val tempFile = file.toPath().resolveSibling("${file.name}.tmp")
+        try {
+            NbtIo.writeCompressed(root, tempFile)
+            try {
+                Files.move(tempFile, file.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+            }
+            catch (_: AtomicMoveNotSupportedException) {
+                Files.move(tempFile, file.toPath(), StandardCopyOption.REPLACE_EXISTING)
+            }
+        }
+        finally {
+            Files.deleteIfExists(tempFile)
+        }
     }
 
-    @Synchronized
     private fun loadData() {
         val file = dataFile
         if (! checkFile(file)) return
         if (storageMenuData.isNotEmpty()) return
         if (! file.exists()) return ThreadUtils.async(::loadFromApi)
-        val root = NbtIo.readCompressed(file.toPath(), NbtAccounter.unlimitedHeap())
+
+        val root = catch { NbtIo.readCompressed(file.toPath(), NbtAccounter.uncompressedQuota()) }
+            ?: return ThreadUtils.async(::loadFromApi)
         val data = TreeMap<StoragePage, NBTInventory?>()
 
         for (i in 0 until 27) {
@@ -179,7 +198,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
             if (! root.contains(invKey)) continue
 
             val slot = StoragePage(i)
-            val inventory = if (root.contains(invKey)) NBTInventory.decode(root.getString(invKey).getOrNull() ?: "") else null
+            val inventory = NBTInventory.decode(root.getString(invKey).getOrNull() ?: "")
             data[slot] = inventory
         }
 
@@ -200,4 +219,5 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
             storageMenuData = data
         }
     }
+
 }

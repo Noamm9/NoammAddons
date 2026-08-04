@@ -32,6 +32,8 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     private val clickOrder by DropdownSetting("Click Order", 2, listOf("None", "Random", "Human", "Skizo"))
         .withDescription("Human: Logic pathing. Skizo: Chaotic/Furthest.")
 
+    val invwalk by ToggleSetting("Fake InvWalk").withDescription("Draws the Term name and progress on screen rather then the solution")
+
     private val autoMelody by ToggleSetting("Melody", true).section("Melody-AutoTerm")
     private val melodyFcDelay by ToggleSetting("First Click Delay", true).showIf { autoMelody.value }
     private val melodySkip by ToggleSetting("Melody Skip").showIf { autoMelody.value }
@@ -169,7 +171,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     }
 
     private fun sendClickPacket(slot: Int) {
-        mc.gameMode?.handleContainerInput(TerminalListener.lastWindowId, slot, 2, ContainerInput.CLONE, mc.player !!)
+        gameMode.handleContainerInput(TerminalListener.lastWindowId, slot, 2, ContainerInput.CLONE, player)
         if (NoammAddons.debugFlags.contains("terminal")) ChatUtils.modMessage("Melody: Clicked: $slot")
     }
 

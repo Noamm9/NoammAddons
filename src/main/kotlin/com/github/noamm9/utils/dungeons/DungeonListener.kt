@@ -7,6 +7,8 @@ import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.EventPriority
 import com.github.noamm9.event.impl.*
+import com.github.noamm9.init.types.ISelfInit
+import com.github.noamm9.mixin.IPlayerInfo
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
@@ -15,8 +17,9 @@ import com.github.noamm9.utils.TabListUtils
 import com.github.noamm9.utils.dungeons.enums.Blessing
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.dungeons.enums.Puzzle
-import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.core.RoomState
+import com.github.noamm9.utils.dungeons.map.core.RoomType
+import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils.inDungeon
@@ -27,9 +30,8 @@ import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.network.protocol.game.*
 import net.minecraft.world.entity.EntityType
 
-
-object DungeonListener {
-    private val tablistRegex = Regex("^\\[(\\d+)] (?:\\[\\w+] )*(\\w+) .*?\\((\\w+)(?: (\\w+))*\\)$") // https://regex101.com/r/gv7bOe/1
+object DungeonListener: ISelfInit {
+    private val tablistRegex = Regex("""^\[\d+] (?:\[[^]]+] )*([A-Za-z0-9_]{1,16}) .*\((\w+)(?: (\w+))?\)$""") // https://regex101.com/r/7D78SS/4
     private val puzzleCountRegex = Regex("§b§lPuzzles: §f\\((?<count>\\d)\\)")
     private val puzzleRegex = Regex(" (.+): \\[[✦✔✖].+")
     private val deathRegex = Regex("^ ☠ (?:You were|(?<username>\\w+)) (?<reason>.+?)(?: and became a ghost)?\\.$") // https://regex101.com/r/Yc3HhV/4
@@ -66,7 +68,7 @@ object DungeonListener {
     var currentTime = 0L
     var doorKeys = 0
 
-    fun init() {
+    override fun init() {
         register<MainThreadPacketReceivedEvent.Post>(EventPriority.HIGH) {
             if (! inDungeon) return@register
 
@@ -113,7 +115,7 @@ object DungeonListener {
                 unformatted.lowercase().contains("blaze done") -> {
                     puzzles.find { it.tabName == "Higher Or Lower" }?.let { puzzle ->
                         puzzle.state = RoomState.CLEARED
-                        DungeonInfo.uniqueRooms.entries.find {
+                        DungeonScanner.uniqueRooms.entries.find {
                             it.key.contains("Blaze")
                         }?.value?.mainRoom?.state = RoomState.CLEARED
                     }
@@ -139,12 +141,12 @@ object DungeonListener {
                 }
 
                 unformatted == "[BOSS] The Watcher: You have proven yourself. You may pass." -> {
-                    DungeonInfo.uniqueRooms["Blood"]?.mainRoom?.state = RoomState.GREEN
+                    DungeonScanner.uniqueRooms["Blood"]?.mainRoom?.state = RoomState.GREEN
                     watcherClearTime = DualTime(currentTime)
                 }
 
                 unformatted == "[BOSS] The Watcher: That will be enough for now." -> {
-                    DungeonInfo.uniqueRooms["Blood"]?.mainRoom?.state = RoomState.CLEARED
+                    DungeonScanner.uniqueRooms["Blood"]?.mainRoom?.state = RoomState.CLEARED
                     watcherFinishSpawnTime = currentTime
                 }
 
@@ -201,13 +203,13 @@ object DungeonListener {
 
         register<DungeonEvent.RoomEvent.onStateChange> {
             if (lastDoorOpenner == null) return@register
-            if (event.room.name != "Blood") return@register
+            if (event.room.data.type != RoomType.BLOOD) return@register
             if (! event.newState.equalsOneOf(RoomState.DISCOVERED, RoomState.CLEARED, RoomState.GREEN)) return@register
             lastDoorOpenner = null
         }
     }
 
-    private fun updateDungeonTeammates(tabName: String, second: PlayerInfo) {
+    private fun updateDungeonTeammates(tabName: String, tabEntry: PlayerInfo) {
         if (NoammAddons.isDev) listOf(
             DungeonPlayer("Noamm", DungeonClass.Mage, 50),
             DungeonPlayer("Noamm9", DungeonClass.Archer, 50),
@@ -228,8 +230,11 @@ object DungeonListener {
             return
         }
 
-        val (_, name, clazz, clazzLevel) = tablistRegex.find(tabName.removeFormatting())?.destructured ?: return
-        val skin = second.skin.body.texturePath()
+        val line = (tabEntry as IPlayerInfo).rawTabListDisplayName?.string ?: tabName.removeFormatting()
+        val (name, clazz, clazzLevel) = tablistRegex.matchEntire(line)?.destructured ?: return
+        val playerInfo = if (name == tabEntry.profile.name) tabEntry
+        else mc.connection?.getPlayerInfo(name) ?: tabEntry
+        val skin = playerInfo.skin.body.texturePath()
 
         dungeonTeammates.find { it.name == name }?.let { currentTeammate ->
             currentTeammate.clazz = if (clazz != "DEAD") DungeonClass.fromName(clazz) else currentTeammate.clazz

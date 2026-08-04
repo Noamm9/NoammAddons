@@ -1,6 +1,5 @@
 package com.github.noamm9.features.impl.dungeon.solvers.puzzles
 
-import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.PlayerInteractEvent
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers
@@ -15,7 +14,9 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderLine
+import com.github.noamm9.utils.render.Render3D.renderString
+import com.github.noamm9.utils.render.Render3D.renderTracer
 import com.github.noamm9.utils.render.RenderContext
 import net.minecraft.core.BlockPos
 import net.minecraft.tags.BlockTags
@@ -59,15 +60,15 @@ object WaterBoardSolver: PuzzleSolver {
 
         val nextClick = clicks.firstOrNull()?.first ?: return
 
-        Render3D.renderTracer(ctx, nextClick.getPos().center(), currentClickColor.value, 2.5f)
+        ctx.renderTracer(nextClick.getPos().center(), currentClickColor.value, 2.5f)
 
         if (clicks.size > 1) {
             val secondClick = clicks[1].first
-            if (nextClick != secondClick) Render3D.renderLine(
-                ctx,
+            if (nextClick != secondClick) ctx.renderLine(
                 nextClick.getPos().center(),
                 secondClick.getPos().center(),
-                nextColor.value, 1.5f
+                nextColor.value,
+                1.5f
             )
         }
 
@@ -94,7 +95,7 @@ object WaterBoardSolver: PuzzleSolver {
                 }
 
                 val renderPos = mech.getPos().add(0.5, (index + mech.clickCount) * 0.5 + 1.5, 0.5)
-                Render3D.renderString(displayText, renderPos, scale = 1.35f, phase = true)
+                ctx.renderString(displayText, renderPos, scale = 1.35f, phase = true)
             }
         }
     }
@@ -102,7 +103,6 @@ object WaterBoardSolver: PuzzleSolver {
     override fun onInteract(event: PlayerInteractEvent.RIGHT_CLICK.BLOCK) {
         if (patternId == - 1) return
         if (solution.isEmpty()) return
-        if (mc.player?.isCrouching == true) return
         val center = center ?: return
         val rotation = rotation ?: return
         val block = WorldUtils.getBlockAt(event.pos)
@@ -176,22 +176,19 @@ object WaterBoardSolver: PuzzleSolver {
         }
     }
 
-    private enum class LEVER(val offset: Vec3, var clickCount: Int = 0) {
-        QUARTZ(Vec3(5.0, 61.0, 5.0)),
-        GOLD(Vec3(5.0, 61.0, 0.0)),
-        COAL(Vec3(5.0, 61.0, - 5.0)),
-        DIAMOND(Vec3(- 5.0, 61.0, 5.0)),
-        EMERALD(Vec3(- 5.0, 61.0, 0.0)),
-        CLAY(Vec3(- 5.0, 61.0, - 5.0)),
-        WATER(Vec3(0.0, 60.0, - 10.0));
+    private enum class LEVER(val offset: BlockPos, var clickCount: Int = 0) {
+        QUARTZ(BlockPos(5, 61, 5)),
+        GOLD(BlockPos(5, 61, 0)),
+        COAL(BlockPos(5, 61, - 5)),
+        DIAMOND(BlockPos(- 5, 61, 5)),
+        EMERALD(BlockPos(- 5, 61, 0)),
+        CLAY(BlockPos(- 5, 61, - 5)),
+        WATER(BlockPos(0, 60, - 10));
 
         fun getPos(): Vec3 {
             val center = center ?: return Vec3.ZERO
             val rot = rotation ?: return Vec3.ZERO
-
-            val relBlock = BlockPos(offset.x.toInt(), offset.y.toInt(), offset.z.toInt())
-            val realBlock = ScanUtils.getRealCoord(relBlock, center, rot)
-            return realBlock.toVec()
+            return ScanUtils.getRealCoord(offset, center, rot).toVec()
         }
 
         companion object {

@@ -9,7 +9,7 @@ import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.Utils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.EtherwarpHelper
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderBlock
 import com.github.noamm9.utils.render.RenderContext
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents
 
@@ -27,8 +27,7 @@ object BlockOverlay: Feature() {
             if (mc.options.hideGui) return@register true
             if (hideDuringEtherwarp.value && shouldHide()) return@register false
 
-            Render3D.renderBlock(
-                RenderContext.fromContext(context),
+            RenderContext.fromContext(context).renderBlock(
                 blockOutlineContext.pos,
                 outlineColor.value,
                 fillColor.value,
@@ -42,12 +41,6 @@ object BlockOverlay: Feature() {
         }
     }
 
-    private fun shouldHide(): Boolean {
-        if (! hideDuringEtherwarp.value) return false
-        val player = mc.player ?: return false
-        if (! player.isCrouching) return false
+    private fun shouldHide() = player.isCrouching && EtherwarpHelper.getEtherwarpDistance(player.mainHandItem) != null
 
-        val held = player.mainHandItem.takeUnless { it.isEmpty } ?: return false
-        return EtherwarpHelper.getEtherwarpDistance(held) != null
-    }
 }

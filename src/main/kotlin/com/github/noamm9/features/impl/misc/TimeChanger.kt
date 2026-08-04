@@ -8,8 +8,13 @@ import java.time.LocalTime
  * @see com.github.noamm9.mixin.MixinClientPacketListener
  */
 object TimeChanger: Feature("Changes the world time.") {
-    private val timeChangerMode by DropdownSetting("Time", 0, listOf("Day", "Noon", "Sunset", "Night", "Midnight", "Sunrise", "Real Time"))
+    private val timeChangerMode by DropdownSetting("Time", 0, listOf("Day", "Noon", "Sunset", "Night", "Midnight", "Sunrise", "Real Time")).onChange { setTime() }
     private val TIME_VALUES = longArrayOf(1000L, 6000L, 12000L, 13000L, 18000L, 23000L)
+
+    override fun onEnable() {
+        super.onEnable()
+        setTime()
+    }
 
     @JvmStatic
     fun setTime() {

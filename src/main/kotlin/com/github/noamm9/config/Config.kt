@@ -1,8 +1,8 @@
 package com.github.noamm9.config
 
 import com.github.noamm9.NoammAddons
-import com.github.noamm9.NoammAddons.logger
 import com.github.noamm9.features.FeatureManager
+import com.github.noamm9.utils.FileHandler
 import com.github.noamm9.utils.JsonUtils
 import kotlinx.serialization.json.*
 import net.fabricmc.loader.api.FabricLoader
@@ -10,16 +10,10 @@ import java.io.File
 
 object Config {
     private val configDir = FabricLoader.getInstance().configDir.resolve(NoammAddons.MOD_NAME).toFile()
-    private val configFile = File(configDir, "config.json").apply {
-        if (! configDir.exists()) configDir.mkdirs()
-        runCatching(::createNewFile).apply {
-            onSuccess { logger.info("Successfully initialized config file path") }
-            onFailure { logger.error("Error initializing config", it) }
-        }
-    }
+    private val configFile = FileHandler(File(configDir, "config.json"))
 
     fun load() {
-        val fileContent = configFile.readText().takeUnless(String::isEmpty) ?: return
+        val fileContent = configFile.read().takeUnless(String::isEmpty) ?: return
         val root = JsonUtils.json.parseToJsonElement(fileContent).jsonObject
 
         root["config"]?.jsonArray?.forEach { featureElement ->
@@ -43,7 +37,7 @@ object Config {
         }
     }
 
-    fun save() = configFile.writeText(JsonUtils.json.encodeToString(buildJsonObject {
+    fun save() = configFile.write(JsonUtils.json.encodeToString(buildJsonObject {
         putJsonArray("config") {
             for (feature in FeatureManager.features) {
                 addJsonObject {
@@ -51,8 +45,9 @@ object Config {
                     put("enabled", feature.enabled)
                     putJsonArray("configSettings") {
                         for (setting in feature.configSettings) {
-                            if (setting is Savable) {
-                                addJsonObject { put(setting.name, setting.write()) }
+                            if (setting !is Savable) continue
+                            addJsonObject {
+                                put(setting.name, setting.write())
                             }
                         }
                     }

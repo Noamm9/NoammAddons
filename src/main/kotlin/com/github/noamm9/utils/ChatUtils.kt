@@ -7,7 +7,8 @@ import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.EventListener
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.RenderOverlayEvent
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.init.types.ISelfInit
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -25,12 +26,12 @@ import java.util.concurrent.atomic.*
 import kotlin.coroutines.resume
 import kotlin.math.roundToInt
 
-object ChatUtils {
+object ChatUtils: ISelfInit {
     private val queue = ConcurrentLinkedQueue<String>()
     private val isProcessing = AtomicBoolean(false)
     @Volatile private var lastSentTime = 0L
 
-    fun init() {
+    override fun init() {
         register<PacketEvent.Sent> {
             if (event.packet !is ServerboundChatPacket &&
                 event.packet !is ServerboundChatCommandPacket &&
@@ -202,7 +203,7 @@ object ChatUtils {
         val height = mc.window.guiScaledHeight
         val y = height / 2f - (height * 0.056).roundToInt()
 
-        Render2D.drawCenteredString(event.context, title, x, y, scale = 2.5)
-        Render2D.drawCenteredString(event.context, subtitle, x, y + (height / 15.42f).roundToInt(), scale = 1.5)
+        event.context.drawCenteredString(title, x, y, scale = 2.5)
+        event.context.drawCenteredString(subtitle, x, y + (height / 15.42f).roundToInt(), scale = 1.5)
     }
 }

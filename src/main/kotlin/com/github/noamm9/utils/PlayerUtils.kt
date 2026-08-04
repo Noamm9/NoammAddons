@@ -1,9 +1,10 @@
 package com.github.noamm9.utils
 
-import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
+import com.github.noamm9.features.Shortcuts
 import com.github.noamm9.features.impl.dungeon.LeapMenu
+import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.mixin.IKeyMapping
 import com.github.noamm9.ui.utils.Animation.Companion.easeInOutCubic
 import com.github.noamm9.utils.ActionUtils.waitTicks
@@ -33,12 +34,12 @@ import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
 import kotlin.math.min
 
-object PlayerUtils {
-    fun swingArm() = with(mc.player !!) {
-        if (! swinging || this.swingTime < 0) {
-            swingingArm = InteractionHand.MAIN_HAND
-            swingTime = - 1
-            swinging = true
+object PlayerUtils: ISelfInit, Shortcuts {
+    fun swingArm() {
+        if (! player.swinging || player.swingTime < 0) {
+            player.swingingArm = InteractionHand.MAIN_HAND
+            player.swingTime = - 1
+            player.swinging = true
         }
     }
 
@@ -71,12 +72,12 @@ object PlayerUtils {
         ServerboundPlayerActionPacket(action, BlockPos.ZERO, Direction.DOWN).send()
     }
 
-    fun rotate(yaw_: Float, pitch_: Float) = mc.player?.apply {
-        var yaw = yRot + MathUtils.normalizeYaw(yaw_ - yRot)
-        var pitch = xRot + MathUtils.normalizePitch(pitch_ - xRot)
+    fun rotate(yaw_: Float, pitch_: Float) {
+        var yaw = player.yRot + MathUtils.normalizeYaw(yaw_ - player.yRot)
+        var pitch = player.xRot + MathUtils.normalizePitch(pitch_ - player.xRot)
 
         val rotations = MathUtils.Rotation(yaw, pitch)
-        val lastRotations = MathUtils.Rotation(yRot, xRot)
+        val lastRotations = MathUtils.Rotation(player.yRot, player.xRot)
 
         val fixedRotations = MathUtils.fixRot(rotations, lastRotations)
 
@@ -85,18 +86,17 @@ object PlayerUtils {
 
         pitch = MathUtils.normalizePitch(pitch)
 
-        yRot = yaw
-        xRot = pitch
+        player.yRot = yaw
+        player.xRot = pitch
 
-        yHeadRot = yRot
-        yBodyRot = yRot
+        player.yHeadRot = player.yRot
+        player.yBodyRot = player.yRot
 
-        forceSetRotation(yaw, false, pitch, false)
+        player.forceSetRotation(yaw, false, pitch, false)
     }
 
     fun getHotbarSlot(i: Int): ItemStack? {
         if (! Inventory.isHotbarSlot(i)) return null
-        val player = mc.player ?: return null
         return player.inventory.getItem(i)
     }
 
@@ -108,15 +108,11 @@ object PlayerUtils {
         }
     }
 
-    fun getArmor(): List<ItemStack> {
-        return listOf(EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST, EquipmentSlot.HEAD).map {
-            mc.player?.getItemBySlot(it) ?: ItemStack.EMPTY
-        }
-    }
+    fun getArmor() = listOf(EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST, EquipmentSlot.HEAD).map(player::getItemBySlot)
 
     suspend fun rotateSmoothly(rot: MathUtils.Rotation, time: Long, block: suspend () -> Unit = {}) {
-        val currentYaw = MathUtils.normalizeYaw(mc.player?.yRot ?: return)
-        val currentPitch = MathUtils.normalizePitch(mc.player?.xRot ?: return)
+        val currentYaw = MathUtils.normalizeYaw(player.yRot)
+        val currentPitch = MathUtils.normalizePitch(player.xRot)
         val targetYaw = MathUtils.normalizeYaw(rot.yaw)
         val targetPitch = MathUtils.normalizePitch(rot.pitch)
         val tolerance = 1f
@@ -149,65 +145,59 @@ object PlayerUtils {
         rotateSmoothly(rot, time, block)
     }
 
-    suspend fun changeMaskAction() {
-        val maskId = mc.player?.inventory?.nonEquipmentItems?.firstNotNullOfOrNull { item ->
-            item?.skyblockId?.takeIf { id ->
-                id.containsOneOf("SPIRIT_MASK", "BONZO_MASK")
-            }
-        } ?: return modMessage("&cNo mask found in inventory!")
 
-        quickSwapAction(maskId)
-    }
+    private var awaiting4EQ = emptyList<String>()
+    private val inLeapMenu get() = mc.screen?.title?.unformattedText.equals("spirit leap", true)
+    private var awaitingLeap: DungeonPlayer? = null
 
-    private var awaiting4EQ = ""
-    suspend fun quickSwapAction(itemID: String) {
+    suspend fun changeMaskAction() = quickSwapAction("SPIRIT_MASK", "BONZO_MASK")
+
+
+    suspend fun quickSwapAction(vararg itemIDs: String) {
         if (thePlayer?.isDead == true) return
 
         ChatUtils.sendMessage("/stats")
-        awaiting4EQ = itemID
-        ThreadUtils.setTimeout(5000) { awaiting4EQ = "" }
+        awaiting4EQ = itemIDs.toList()
+        ThreadUtils.setTimeout(5000) { awaiting4EQ = emptyList() }
 
-        while (awaiting4EQ.isNotBlank()) delay(50)
+        while (awaiting4EQ.isNotEmpty()) delay(50)
     }
 
     fun swapToSlot(slot: Int) {
         if (! Inventory.isHotbarSlot(slot)) return
-        if (mc.player?.inventory?.selectedSlot == slot) return
-        modMessage("swapped to hotbar Slot $slot (${mc.player?.inventory?.getSlot(slot)?.get()?.hoverName?.formattedText}&r)")
-        mc.player?.inventory?.selectedSlot = slot
+        if (player.inventory.selectedSlot == slot) return
+        modMessage("swapped to hotbar Slot $slot (${player.inventory.getSlot(slot)?.get()?.hoverName?.formattedText}&r)")
+        player.inventory.selectedSlot = slot
     }
 
-
-    private val inLeapMenu get() = mc.screen?.title?.unformattedText.equals("spirit leap", true)
-    private var LEAP_TARGET: DungeonPlayer? = null
     suspend fun leapAction(leapTarget: DungeonPlayer) {
         if (thePlayer?.isDead == true) return
         if (leapTarget.isDead) return modMessage(leapTarget.name + " is dead R.I.P!")
         val leapIndex = findHotbarSlot { it.skyblockId.contains("LEAP") } ?: return modMessage("&cNo leap found in hotbar!")
 
         if (! inLeapMenu) {
-            if (mc.player?.inventory?.selectedSlot != leapIndex) {
+            if (player.inventory.selectedSlot != leapIndex) {
                 swapToSlot(leapIndex)
                 waitTicks(2)
             }
             rightClick()
-            LEAP_TARGET = leapTarget
-            ThreadUtils.setTimeout(5000) { LEAP_TARGET = null }
+            awaitingLeap = leapTarget
+            ThreadUtils.setTimeout(5000) { awaitingLeap = null }
 
-            while (LEAP_TARGET != null) delay(50)
+            while (awaitingLeap != null) delay(50)
         }
 
         LeapMenu.updateLeapMenu()
         LeapMenu.players.find { it?.player?.name == leapTarget.name }?.let { target ->
             modMessage("Leaping To: &e[${leapTarget.clazz.name[0]}] &a${leapTarget.name}")
             GuiUtils.clickSlot(target.slotIndex, GuiUtils.ButtonType.MIDDLE)
-            mc.player?.closeContainer()
+            player.closeContainer()
         }
     }
 
     suspend fun rodSwap() {
-        val prev = mc.player?.inventory?.selectedSlot ?: return
-        val found = findHotbarSlot { it.item == Items.FISHING_ROD } ?: return
+        val found = findHotbarSlot { it.item == Items.FISHING_ROD } ?: return modMessage("&cNo Fishing Rod found in hotbar!")
+        val prev = player.inventory.selectedSlot
 
         swapToSlot(found)
         waitTicks(2, ::rightClick)
@@ -215,38 +205,40 @@ object PlayerUtils {
         delay(100)
     }
 
-    init {
+    override fun init() {
         register<ContainerFullyOpenedEvent> {
             when (event.title.unformattedText.lowercase().trim()) {
-                "your equipment and stats" -> {
-                    if (awaiting4EQ.isBlank()) return@register
+                "stats & equipment" -> {
+                    if (awaiting4EQ.isEmpty()) return@register
 
                     ThreadUtils.scheduledTask(7) {
-                        val con = mc.player?.containerMenu?.slots ?: return@scheduledTask
-
-                        val item = con.filter { it.index in con.size - 36 until con.size }.find {
-                            it.item.skyblockId.contains(awaiting4EQ)
-                        } ?: return@scheduledTask
+                        val con = player.containerMenu.slots
+                        val item = con.filter { it.index in con.size - 36 until con.size }.find { slot ->
+                            awaiting4EQ.any(slot.item.skyblockId::contains)
+                        } ?: run {
+                            player.closeContainer()
+                            return@scheduledTask modMessage("&cCould not find any of the items. ${awaiting4EQ.joinToString(", ")}")
+                        }
 
                         GuiUtils.clickSlot(item.index, GuiUtils.ButtonType.LEFT)
-                        mc.player?.closeContainer()
-                        awaiting4EQ = ""
+                        awaiting4EQ = emptyList()
+                        player.closeContainer()
                     }
                 }
 
                 "spirit leap" -> {
-                    if (LEAP_TARGET == null) return@register
+                    if (awaitingLeap == null) return@register
 
                     ThreadUtils.scheduledTask(2) {
-                        val leapTarget = LEAP_TARGET
-                        LEAP_TARGET = null
+                        val leapTarget = awaitingLeap ?: return@scheduledTask
 
                         LeapMenu.updateLeapMenu()
-                        LeapMenu.players.find { it?.player?.name == leapTarget?.name }?.let { target ->
-                            modMessage("Leaping To: &e[${leapTarget !!.clazz.name[0]}] &a${leapTarget.name}")
+                        LeapMenu.players.find { it?.player?.name == leapTarget.name }?.let { target ->
+                            modMessage("Leaping To: &e[${leapTarget.clazz.name[0]}] &a${leapTarget.name}")
                             GuiUtils.clickSlot(target.slotIndex, GuiUtils.ButtonType.LEFT)
                         }
-                        mc.player?.closeContainer()
+                        player.closeContainer()
+                        awaitingLeap = null
                     }
                 }
             }

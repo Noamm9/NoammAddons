@@ -11,9 +11,10 @@ import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.firstBlazeC
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.lineColor
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.secondBlazeColor
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.thirdBlazeColor
+import com.github.noamm9.utils.ChatUtils.sendPartyMessage
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.MathUtils.add
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderLine
 import com.github.noamm9.utils.render.RenderContext
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.monster.Blaze
@@ -25,6 +26,7 @@ object BlazeSolver: PuzzleSolver {
     private val blazeHpRegex = Regex("^\\[Lv15].+Blaze [\\d,]+/([\\d,]+)❤$")
     private val blazes = CopyOnWriteArrayList<Blaze>()
     private val hpMap = ConcurrentHashMap<Int, Int>()
+    private var lastBlazeCount = 10
 
     private var inBlaze = false
     private var reversed = false
@@ -35,6 +37,7 @@ object BlazeSolver: PuzzleSolver {
         inBlaze = true
         reversed = event.room.name.equals("Lower Blaze", true) == true
         tickListener.register()
+        lastBlazeCount = 10
     }
 
     override fun onEntityGlow(event: CheckEntityGlowEvent) {
@@ -53,8 +56,7 @@ object BlazeSolver: PuzzleSolver {
             if (i >= blazeCount.value) return@forEachIndexed
             val prev = blazes.getOrNull(i - 1) ?: return@forEachIndexed
 
-            Render3D.renderLine(
-                ctx,
+            ctx.renderLine(
                 prev.position().add(y = prev.bbHeight / 2.0),
                 entity.position().add(y = entity.bbHeight / 2.0),
                 lineColor.value
@@ -84,6 +86,13 @@ object BlazeSolver: PuzzleSolver {
 
         blazes.sortBy { hpMap[it.id] }
         if (reversed) blazes.reverse()
+
+        if (blazes.isEmpty() && lastBlazeCount == 1) {
+            sendPartyMessage("Blaze Done!")
+            lastBlazeCount = 0
+        }
+
+        lastBlazeCount = blazes.size
     }
 
     override fun reset() {

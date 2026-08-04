@@ -43,12 +43,12 @@ object BreakerHelper: Feature("Zero Ping Dungeon Breaker") {
         if (! enabled) return
         if (! zeroPing.value) return
         if (! LocationUtils.inDungeon) return
-        if (mc.player?.mainHandItem?.skyblockId != "DUNGEONBREAKER") return
+        if (player.mainHandItem.skyblockId != "DUNGEONBREAKER") return
         if (ScanUtils.currentRoom?.data?.type.equalsOneOf(RoomType.PUZZLE, RoomType.FAIRY)) return
         val state = WorldUtils.getStateAt(pos).takeUnless { it.block in blacklist || it.block == Blocks.OBSIDIAN } ?: return
 
-        mc.level?.removeBlock(pos, false)
-        mc.level?.playLocalSound(
+        level.removeBlock(pos, false)
+        level.playLocalSound(
             pos.x + 0.5,
             pos.y + 0.5,
             pos.z + 0.5,

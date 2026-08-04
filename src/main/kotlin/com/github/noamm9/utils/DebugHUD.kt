@@ -13,7 +13,7 @@ import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner.startX
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner.startZ
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawString
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
@@ -34,7 +34,7 @@ object DebugHUD {
         val x = 10
 
         fun draw(text: String, color: Int = 0xFFFFFF) {
-            Render2D.drawString(graphics, text, x, y, color = Color(color))
+            graphics.drawString(text, x, y, color = Color(color))
             y += 10
         }
 
@@ -116,7 +116,7 @@ object DebugHUD {
         val x = 180
 
         fun draw(text: String, color: Int = 0xFFFFFF) {
-            Render2D.drawString(graphics, text, x, y, color = Color(color))
+            graphics.drawString(text, x, y, color = Color(color))
             y += 10
         }
 
@@ -167,7 +167,7 @@ object DebugHUD {
         val x = 350
 
         fun draw(text: String, color: Int = 0xFFFFFF) {
-            Render2D.drawString(graphics, text, x, y, color = Color(color))
+            graphics.drawString(text, x, y, color = Color(color))
             y += 10
         }
 
@@ -200,7 +200,7 @@ object DebugHUD {
         val x = 500
 
         fun draw(text: String, color: Int = 0xFFFFFF) {
-            Render2D.drawString(graphics, text, x, y, color = Color(color))
+            graphics.drawString(text, x, y, color = Color(color))
             y += 10
         }
 
@@ -224,7 +224,7 @@ object DebugHUD {
         val x = 650
 
         fun draw(text: String, color: Int = 0xFFFFFF) {
-            Render2D.drawString(graphics, text, x, y, color = Color(color))
+            graphics.drawString(text, x, y, color = Color(color))
             y += 10
         }
 

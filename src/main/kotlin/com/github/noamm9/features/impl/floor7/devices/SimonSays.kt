@@ -9,7 +9,6 @@ import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
-import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.toVec
 import com.github.noamm9.utils.PlayerUtils
@@ -17,11 +16,13 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderBoxBounds
+import com.github.noamm9.utils.render.Render3D.renderString
 import com.github.noamm9.utils.render.RenderContext
 import net.minecraft.core.BlockPos
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.ButtonBlock
 import java.awt.Color
 import java.util.*
 
@@ -31,9 +32,12 @@ object SimonSays: Feature("Simon Says Solver") {
     private val color1 by ColorSetting("First Color", Color.GREEN).withDescription("Color of the first button.")
     private val color2 by ColorSetting("Second Color", Color.YELLOW).withDescription("Color of the second button.")
     private val color3 by ColorSetting("Other Color", Color.RED).withDescription("Color of the rest of the buttons.")
+    private val outline by ToggleSetting("Outline", false).withDescription("Renders the box with an outline.")
+    private val phase by ToggleSetting("Phase", true).withDescription("Renders the box through walls.")
 
     //#if CHEAT
-    private val autoStart by ToggleSetting("Auto Start", false).withDescription("Automatically starts the device when it can be started.").section("Auto")
+    private val triggerBot by ToggleSetting("Triggerbot", false).withDescription("Automatically clicks the correct button when you're aiming at it.").section("Auto")
+    private val autoStart by ToggleSetting("Auto Start", false).withDescription("Automatically starts the device when it can be started.")
     private val startClicks by SliderSetting("Start Clicks", 3, 1, 10, 1).withDescription("Amount of clicks to start the device.").showIf { autoStart.value }
     private val startClickDelay by SliderSetting("Start Click Delay", 3, 1, 25, 1).withDescription("Delay in ticks between each start click.").showIf { autoStart.value }
     //#endif
@@ -78,6 +82,17 @@ object SimonSays: Feature("Simon Says Solver") {
                 }
             }
         }
+
+        register<TickEvent.Start> {
+            if (! triggerBot.value) return@register
+            if (LocationUtils.F7Phase != 3) return@register
+            if (lastClick == DungeonListener.currentTime) return@register
+
+            val expected = solution.firstOrNull() ?: return@register
+            if (PlayerUtils.getSelectionBlock() != expected.button) return@register
+
+            PlayerUtils.rightClick()
+        }
         //#endif
 
         register<BlockChangeEvent> {
@@ -107,8 +122,8 @@ object SimonSays: Feature("Simon Says Solver") {
                     else -> color3
                 }.value
 
-                renderSSBox(event.ctx, buttonPos, color)
-                if (NoammAddons.debugFlags.contains("ss")) Render3D.renderString("$id", buttonPos.toVec().add(x = 0.8, y = 0.6, z = 0.5), phase = true)
+                event.ctx.renderSSBox(buttonPos, color)
+                if (NoammAddons.debugFlags.contains("ss")) event.ctx.renderString("$id", buttonPos.toVec().add(x = 0.8, y = 0.6, z = 0.5), phase = true)
             }
         }
 
@@ -123,7 +138,7 @@ object SimonSays: Feature("Simon Says Solver") {
             val expected = solution.firstOrNull() ?: return
 
             if (clickedPos != expected.button) {
-                if (blockWrongClicks.value && ! mc.player !!.isCrouching) return event.cancel()
+                if (blockWrongClicks.value && ! player.isCrouching) return event.cancel()
 
                 if (solution.size == 3 && clickedPos == solution[1].button) {
                     for (i in 1 downTo 0) solution.removeAt(i)
@@ -185,7 +200,7 @@ object SimonSays: Feature("Simon Says Solver") {
         wasBroken = true
 
         if (sendChat.value) ChatUtils.sendCommand("pc SS Broke!")
-        if (alertSound.value) mc.player?.playSound(SoundEvents.ANVIL_LAND, 5f, 0f)
+        if (alertSound.value) ThreadUtils.scheduledTask { player.playSound(SoundEvents.ANVIL_LAND, 5f, 0f) }
         if (showTitle.value) ChatUtils.showTitle("§c§l§nSS BROKE!")
 
         resetSolver()
@@ -204,24 +219,21 @@ object SimonSays: Feature("Simon Says Solver") {
         wasBroken = false
     }
 
-    private fun renderSSBox(ctx: RenderContext, pos: BlockPos, color: Color) {
-        val w = 0.4 / 2.0
-        val h = 0.26 / 2.0
+    private fun RenderContext.renderSSBox(pos: BlockPos, color: Color) {
+        val state = level.getBlockState(pos)
+        var depth = if (state.block == Blocks.STONE_BUTTON && state.getValue(ButtonBlock.POWERED)) 1.0 else 2.0
+        depth /= 16
 
-        val cx = pos.x + 1.0
-        val cy = pos.y + 0.5
-        val cz = pos.z + 0.5
-
-        val minX = cx - 0.2
-        val minY = cy - h
-        val maxY = cy + h
-        val minZ = cz - w
-        val maxZ = cz + w
-
-        Render3D.renderBoxBounds(ctx, minX, minY, minZ, cx, maxY, maxZ, color.withAlpha(178), outline = false, fill = true, phase = true)
+        renderBoxBounds(
+            pos.x + 1 - depth,
+            pos.y + 0.375, pos.z + 0.3125, pos.x + 1.0,
+            pos.y + 0.625, pos.z + 0.6875, color,
+            outline = outline.value,
+            phase = phase.value
+        )
     }
 
-    private data class SSButton(val obsidian: BlockPos) {
+    private class SSButton(obsidian: BlockPos) {
         val button = obsidian.west()
         val id = solution.size
     }

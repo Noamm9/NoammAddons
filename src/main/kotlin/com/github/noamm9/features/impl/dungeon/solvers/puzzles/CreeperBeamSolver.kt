@@ -9,7 +9,8 @@ import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.equalsOneOf
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderBlock
+import com.github.noamm9.utils.render.Render3D.renderLine
 import com.github.noamm9.utils.render.RenderContext
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Block
@@ -63,9 +64,9 @@ object CreeperBeamSolver: PuzzleSolver {
 
             if (startBlock != Blocks.SEA_LANTERN && endBlock != Blocks.SEA_LANTERN) return@forEach
 
-            Render3D.renderBlock(ctx, start, color, phase = phase.value)
-            Render3D.renderBlock(ctx, end, color, phase = phase.value)
-            if (renderLines.value) Render3D.renderLine(ctx, start.center, end.center, color)
+            ctx.renderBlock(start, color, phase = phase.value)
+            ctx.renderBlock(end, color, phase = phase.value)
+            if (renderLines.value) ctx.renderLine(start.center, end.center, color)
         }
     }
 

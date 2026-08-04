@@ -1,7 +1,7 @@
 package com.github.noamm9.features.impl.floor7.terminals
 
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.event.EventBus.register
+import com.github.noamm9.event.EventListener
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.TickEvent
@@ -31,10 +31,10 @@ object TerminalListener {
 
     val currentItems = mutableMapOf<Int, ItemStack>()
 
-    val packetReceivedListener = register<MainThreadPacketReceivedEvent.Pre> { onPacketReceived(event.packet) }.unregister()
-    val packetSentListener = register<PacketEvent.Sent> { onPacketSent(event.packet, event) }.unregister()
-    val tickListener = register<TickEvent.Server> { onTick() }.unregister()
-    val worldChangeListener = register<WorldChangeEvent> { reset() }.unregister()
+    val packetReceivedListener = EventListener.create<MainThreadPacketReceivedEvent.Post> { onPacketReceived(event.packet) }
+    val packetSentListener = EventListener.create<PacketEvent.Sent> { onPacketSent(event.packet, event) }
+    val tickListener = EventListener.create<TickEvent.Server> { onTick() }
+    val worldChangeListener = EventListener.create<WorldChangeEvent> { reset() }
 
     private fun onPacketReceived(packet: Packet<*>) {
         if (LocationUtils.F7Phase != 3) return
@@ -63,26 +63,20 @@ object TerminalListener {
 
             is ClientboundContainerSetSlotPacket -> {
                 if (! inTerm || packet.containerId != lastWindowId) return
-                if (packet.slot < 0) return
-                if (packet.slot > currentType !!.slotCount) return
-                currentItems[packet.slot] = packet.item
+                val type = currentType ?: return
+                if (packet.slot !in 0 until type.slotCount) return
+                val container = mc.player?.containerMenu ?: return
+                container.items.forEachIndexed { index, stack ->
+                    if (index !in 0 until type.slotCount) return@forEachIndexed
+                    if (stack.isEmpty) return@forEachIndexed
+                    currentItems[index] = stack
+                }
 
-                if (currentItems.size == currentType?.slotCount || currentType == TerminalType.MELODY) {
+                if (packet.slot == type.slotCount - 1 || type == TerminalType.MELODY) {
                     TerminalSolver.onItemsUpdated(packet.slot, packet.item)
                     //#if CHEAT
                     if (AutoTerminal.enabled) AutoTerminal.onItemsUpdated()
                     //#endif
-                }
-            }
-
-            is ClientboundContainerSetContentPacket -> {
-                if (! inTerm || packet.containerId != lastWindowId) return
-                currentItems.clear()
-
-                packet.items.forEachIndexed { index, itemStack ->
-                    if (index < (currentType?.slotCount ?: 0)) {
-                        currentItems[index] = itemStack
-                    }
                 }
             }
 
@@ -104,9 +98,8 @@ object TerminalListener {
 
             is ServerboundContainerClosePacket -> if (inTerm) reset()
 
-            is ServerboundInteractPacket -> {
-                @Suppress("CAST_NEVER_SUCCEEDS")
-                val entity = mc.level?.getEntity((packet as IServerboundInteractPacket).entityId) as? ArmorStand ?: return
+            is IServerboundInteractPacket -> {
+                val entity = mc.level?.getEntity(packet.entityId) as? ArmorStand ?: return
                 if (entity.displayName.unformattedText != "Inactive Terminal") return
 
                 if (interactCooldown > 0 || lastWindowId != - 1) event.isCanceled = true else interactCooldown = 15

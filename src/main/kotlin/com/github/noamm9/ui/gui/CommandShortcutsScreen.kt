@@ -2,15 +2,20 @@
 
 package com.github.noamm9.ui.gui
 
-import com.github.noamm9.NoammAddons
+import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.features.impl.general.CommandShortcuts
 import com.github.noamm9.ui.clickgui.ClickGuiScreen
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.TextInputHandler
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.GuiUtils
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.utils.render.Render2D.drawString
 import com.mojang.blaze3d.platform.InputConstants
+import com.mojang.brigadier.CommandDispatcher
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.CharacterEvent
@@ -53,7 +58,6 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
     private inline fun deleteX(x: Float) = x + viewW - deleteWidth - 2
 
     override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
-        Resolution.refresh()
         Resolution.push(graphics)
 
         val mX = Resolution.getMouseX(mouseX).toFloat()
@@ -62,9 +66,9 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
         val x = panelX
         val y = panelY
 
-        Render2D.drawRect(graphics, x, y, panelW, panelH, Color(20, 20, 20, 240))
-        Render2D.drawRect(graphics, x, y, panelW, 2f, Style.accentColor)
-        Render2D.drawCenteredString(graphics, "§lCommand Shortcuts", x + panelW / 2, y + 8)
+        graphics.drawRect(x, y, panelW, panelH, Color(20, 20, 20, 240))
+        graphics.drawRect(x, y, panelW, 2f, Style.accentColor)
+        graphics.drawCenteredString("§lCommand Shortcuts", x + panelW / 2, y + 8)
 
         val totalHeight = rows.size * entryHeight
         val maxScroll = (totalHeight - viewH).coerceAtLeast(0f)
@@ -74,7 +78,7 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
 
         graphics.enableScissor(viewX.toInt(), viewY.toInt(), (viewX + viewW).toInt(), (viewY + viewH).toInt())
 
-        if (rows.isEmpty()) Render2D.drawCenteredString(graphics, "§8No command shortcuts yet :(", x + panelW / 2, viewY + viewH / 2 - 4)
+        if (rows.isEmpty()) graphics.drawCenteredString("§8No command shortcuts yet :(", x + panelW / 2, viewY + viewH / 2 - 4)
 
         val startIndex = max(0, (- currentScroll / entryHeight).toInt())
         val endIndex = min(rows.size, startIndex + ceil(viewH / entryHeight).toInt() + 1)
@@ -91,16 +95,16 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
         if (maxScroll > 0) {
             val thumbHeight = 20f.coerceAtLeast((viewH / totalHeight) * viewH)
             val thumbY = viewY + (- currentScroll / maxScroll) * (viewH - thumbHeight)
-            Render2D.drawRect(graphics, x + panelW - 4, viewY, 2f, viewH, Color(255, 255, 255, 15))
-            Render2D.drawRect(graphics, x + panelW - 4, thumbY, 2f, thumbHeight, Style.accentColor)
+            graphics.drawRect(x + panelW - 4, viewY, 2f, viewH, Color(255, 255, 255, 15))
+            graphics.drawRect(x + panelW - 4, thumbY, 2f, thumbHeight, Style.accentColor)
         }
 
         val btnX = x + (panelW / 2) - (addBtnW / 2)
         val btnY = y + panelH - 30
         val btnHovered = mX >= btnX && mX <= btnX + addBtnW && mY >= btnY && mY <= btnY + addBtnH
-        Render2D.drawRect(graphics, btnX, btnY, addBtnW, addBtnH, if (btnHovered) Color(35, 35, 35, 240) else Color(15, 15, 15, 200))
-        Render2D.drawRect(graphics, btnX, btnY + addBtnH - 1, addBtnW, 1f, Style.accentColor)
-        Render2D.drawCenteredString(graphics, "§a+ §rAdd Shortcut", btnX + addBtnW / 2, btnY + 6)
+        graphics.drawRect(btnX, btnY, addBtnW, addBtnH, if (btnHovered) Color(35, 35, 35, 240) else Color(15, 15, 15, 200))
+        graphics.drawRect(btnX, btnY + addBtnH - 1, addBtnW, 1f, Style.accentColor)
+        graphics.drawCenteredString("§a+ §rAdd Shortcut", btnX + addBtnW / 2, btnY + 6)
 
         Resolution.pop(graphics)
     }
@@ -121,20 +125,20 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
 
     private fun drawRow(ctx: GuiGraphicsExtractor, row: Row, x: Float, y: Float, mx: Float, my: Float) {
         drawInput(ctx, row.commandInput, row.command.isEmpty(), "hello", mx, my)
-        Render2D.drawCenteredString(ctx, "➜", x + commandWidth + arrowWidth / 2, y + 9)
+        ctx.drawCenteredString("➜", x + commandWidth + arrowWidth / 2, y + 9)
         drawInput(ctx, row.replacementInput, row.replacement.isEmpty(), "pc hello world", mx, my)
 
         val delX = deleteX(x)
         val delHovered = mx >= delX && mx <= delX + deleteWidth && my >= y && my <= y + entryHeight
-        Render2D.drawCenteredString(ctx, "✕", delX + deleteWidth / 2, y + 9, if (delHovered) Color.RED else Color.GRAY)
+        ctx.drawCenteredString("✕", delX + deleteWidth / 2, y + 9, if (delHovered) Color.RED else Color.GRAY)
     }
 
     private fun drawInput(ctx: GuiGraphicsExtractor, handler: TextInputHandler, showPlaceholder: Boolean, placeholder: String, mx: Float, my: Float) {
-        Render2D.drawRect(ctx, handler.x, handler.y, handler.width, handler.height, Color(15, 15, 15, 200))
+        ctx.drawRect(handler.x, handler.y, handler.width, handler.height, Color(15, 15, 15, 200))
         val color = if (handler.listening) Style.accentColor else Color(255, 255, 255, 30)
-        Render2D.drawRect(ctx, handler.x, handler.y + handler.height - 1, handler.width, 1f, color)
+        ctx.drawRect(handler.x, handler.y + handler.height - 1, handler.width, 1f, color)
 
-        if (showPlaceholder && ! handler.listening) Render2D.drawString(ctx, "§8$placeholder", handler.x + 4, handler.y + 5)
+        if (showPlaceholder && ! handler.listening) ctx.drawString("§8$placeholder", handler.x + 4, handler.y + 5)
         else handler.draw(ctx, mx, my)
     }
 
@@ -237,8 +241,9 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
             if (command.isNotEmpty() && replacement.isNotEmpty()) shortcuts[command] = replacement
         }
 
-        NoammAddons.screen = ClickGuiScreen
+        GuiUtils.setScreen(ClickGuiScreen)
         CommandShortcuts.shortcuts.set(shortcuts)
-        CommandShortcuts.build()
+        @Suppress("UNCHECKED_CAST")
+        CommandShortcuts.build(mc.connection?.commands as CommandDispatcher<FabricClientCommandSource>)
     }
 }

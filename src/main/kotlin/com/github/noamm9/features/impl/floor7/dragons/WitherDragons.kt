@@ -7,12 +7,15 @@ import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.MathUtils.Vec3
 import com.github.noamm9.utils.MathUtils.add
+import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render3D.renderBillboardedCircle
+import com.github.noamm9.utils.render.Render3D.renderBoxBounds
+import com.github.noamm9.utils.render.Render3D.renderString
+import com.github.noamm9.utils.render.Render3D.renderTracer
 import com.github.noamm9.utils.render.RenderHelper.renderVec
 import net.minecraft.network.protocol.game.*
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon
@@ -52,9 +55,9 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
 
     private val smoothedVelocities = ConcurrentHashMap<Int, Vec3>()
     private val fixedStackPositions = mapOf(
-        WitherDragonEnum.Green to Vec3(27f, WitherDragonEnum.Green.spawnPos.y, 90f),
-        WitherDragonEnum.Red to Vec3(28f, WitherDragonEnum.Red.spawnPos.y, 58f),
-        WitherDragonEnum.Blue to Vec3(84f, WitherDragonEnum.Blue.spawnPos.y, 97f)
+        WitherDragonEnum.Green to vec(27f, WitherDragonEnum.Green.spawnPos.y, 90f),
+        WitherDragonEnum.Red to vec(28f, WitherDragonEnum.Red.spawnPos.y, 58f),
+        WitherDragonEnum.Blue to vec(84f, WitherDragonEnum.Blue.spawnPos.y, 97f)
     )
 
     override fun init() {
@@ -108,31 +111,31 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
 
             WitherDragonEnum.entries.forEach { dragon ->
                 if (dragonHealth.value && dragon.state == WitherDragonState.ALIVE) dragon.entity?.let {
-                    Render3D.renderString(formatHealth(dragon.health), it.renderVec.add(y = - 1), scale = 6f, phase = true)
+                    event.ctx.renderString(formatHealth(dragon.health), it.renderVec.add(y = - 1), scale = 6f, phase = true)
                 }
 
-                if (dragonTimer.value && dragon.state == WitherDragonState.SPAWNING && dragon.timeToSpawn > 0) Render3D.renderString(
+                if (dragonTimer.value && dragon.state == WitherDragonState.SPAWNING && dragon.timeToSpawn > 0) event.ctx.renderString(
                     "&${dragon.colorCode}${dragon.name}: ${getDragonTimer(dragon.timeToSpawn)}",
                     dragon.spawnPos, scale = 6f
                 )
 
-                if (dragonBoxes.value && dragon.state != WitherDragonState.DEAD) Render3D.renderBoxBounds(
-                    event.ctx, dragon.boxesDimensions, dragon.color.withAlpha(0.5f), outline = true, fill = false, phase = false, lineWidth = 2.0
+                if (dragonBoxes.value && dragon.state != WitherDragonState.DEAD) event.ctx.renderBoxBounds(
+                    dragon.boxesDimensions, dragon.color.withAlpha(0.5f), fill = false, lineWidth = 2.0
                 )
 
                 if (dragonArrowStack.value && dragon.state == WitherDragonState.SPAWNING) {
                     val targetPos = (fixedStackPositions[dragon] ?: dragon.spawnPos).add(0.5, 3.5, 0.5)
                     val leadPos = calculateLead(targetPos) ?: return@forEach
 
-                    val distance = mc.player !!.eyePosition.distanceTo(targetPos)
+                    val distance = player.eyePosition.distanceTo(targetPos)
                     val scaledSize = indicatorSize.value * sqrt(distance / 50.0).coerceAtLeast(0.5)
 
-                    Render3D.renderBillboardedCircle(event.ctx, leadPos, scaledSize, indicatorColor.value, indicatorThickness.value, phase = true)
+                    event.ctx.renderBillboardedCircle(leadPos, scaledSize, indicatorColor.value, indicatorThickness.value, phase = true)
                 }
             }
 
             if (dragonTracers.value && priorityDragon != WitherDragonEnum.None && priorityDragon.state == WitherDragonState.SPAWNING) {
-                Render3D.renderTracer(event.ctx, priorityDragon.spawnPos.add(0.5, 3.5, 0.5), priorityDragon.color, tracerThickness.value)
+                event.ctx.renderTracer(priorityDragon.spawnPos.add(0.5, 3.5, 0.5), priorityDragon.color, tracerThickness.value)
             }
         }
 
@@ -140,8 +143,7 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
             if (! dragonTimer.value) return@register
             priorityDragon.takeIf { it != WitherDragonEnum.None }?.let { dragon ->
                 if (dragon.state != WitherDragonState.SPAWNING || dragon.timeToSpawn <= 0) return@register
-                Render2D.drawCenteredString(
-                    event.context,
+                event.context.drawCenteredString(
                     "&${dragon.colorCode}${getDragonTimer(dragon.timeToSpawn)}",
                     mc.window.guiScaledWidth / 2f,
                     mc.window.guiScaledHeight * 0.4f,
@@ -193,8 +195,7 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
     }
 
     private fun calculateLead(targetPos: Vec3): Vec3? {
-        val eyePos = mc.player?.eyePosition ?: return null
-        val distToTargetSq = targetPos.distanceToSqr(eyePos)
+        val distToTargetSq = targetPos.distanceToSqr(player.eyePosition)
 
         var currentArrowDist = 0.0
         var currentSpeed = 3.0

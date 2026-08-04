@@ -5,20 +5,17 @@ import com.github.noamm9.config.Savable
 import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.RenderHelper.width
 import com.mojang.blaze3d.platform.InputConstants
 import kotlinx.serialization.json.*
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import org.lwjgl.glfw.GLFW
-import java.awt.Color
-
 
 class KeybindSetting(name: String, value: Int = InputConstants.UNKNOWN.value): Setting<Int>(name, value), Savable {
-    var listening = false
     private val hoverAnim = Animation(200)
-
-    var scanCode = 0
+    private var listening = false
+    private var scanCode = 0
     var isMouse = false
 
     override fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
@@ -31,14 +28,9 @@ class KeybindSetting(name: String, value: Int = InputConstants.UNKNOWN.value): S
 
         val bindText = when {
             listening -> "§b..."
-            value == InputConstants.UNKNOWN.value -> "§7NONE"
-            else -> {
-                val key = if (isMouse) InputConstants.Type.MOUSE.getOrCreate(value)
-                else InputConstants.Type.KEYSYM.getOrCreate(value)
-                "§7" + key.displayName.string.uppercase()
-            }
+            else -> "§7${displayName()}"
         }
-        Render2D.drawString(ctx, bindText, x + width - bindText.width() - 8f, y + 6f, Color.WHITE)
+        ctx.drawString(bindText, x + width - bindText.width() - 8f, y + 6f)
     }
 
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
@@ -96,6 +88,12 @@ class KeybindSetting(name: String, value: Int = InputConstants.UNKNOWN.value): S
         isMouse = obj["isMouse"]?.jsonPrimitive?.booleanOrNull ?: false
     }
 
+    fun displayName(): String {
+        if (value == InputConstants.UNKNOWN.value) return "NONE"
+        val type = if (isMouse) InputConstants.Type.MOUSE else InputConstants.Type.KEYSYM
+        return type.getOrCreate(value).displayName.string.uppercase()
+    }
+
     fun isDown(): Boolean {
         if (value == InputConstants.UNKNOWN.value) return false
         return if (isMouse) GLFW.glfwGetMouseButton(mc.window.handle(), value) == GLFW.GLFW_PRESS
@@ -109,4 +107,6 @@ class KeybindSetting(name: String, value: Int = InputConstants.UNKNOWN.value): S
         previousState = currentState
         return wasPressed
     }
+
+    fun matches(code: Int, mouse: Boolean) = value != InputConstants.UNKNOWN.value && isMouse == mouse && value == code
 }

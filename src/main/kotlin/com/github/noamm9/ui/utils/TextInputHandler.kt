@@ -2,8 +2,9 @@ package com.github.noamm9.ui.utils
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.ui.clickgui.components.Style
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
@@ -63,8 +64,7 @@ class TextInputHandler(
         previousMousePos = mouseX to mouseY
 
         context.enableScissor(x.toInt(), y.toInt(), x.toInt() + width.toInt(), y.toInt() + height.toInt())
-        if (selectionWidth != 0f) Render2D.drawRect(
-            context,
+        if (selectionWidth != 0f) context.drawRect(
             x + caretX + 4f,
             y + 5f,
             selectionWidth,
@@ -74,16 +74,16 @@ class TextInputHandler(
 
         if (listening) {
             val time = System.currentTimeMillis()
-            if (time - caretBlinkTime < 500) Render2D.drawRect(
-                context,
+            if (time - caretBlinkTime < 500) context.drawRect(
                 x + caretX + 4f - textOffset,
                 y + height / 3.4,
-                1, 9,
+                1,
+                9,
             )
             else if (time - caretBlinkTime > 1000) caretBlinkTime = time
         }
 
-        Render2D.drawString(context, text + suffix.orEmpty(), x + 4f - textOffset, y + height / 2f - 5)
+        context.drawString(text + suffix.orEmpty(), x + 4f - textOffset, y + height / 2f - 5)
 
         context.disableScissor()
     }

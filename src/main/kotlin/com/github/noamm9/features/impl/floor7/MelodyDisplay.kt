@@ -10,17 +10,17 @@ import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.containsOneOf
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.sounds.SoundEvents
 
 object MelodyDisplay: Feature("Displays the current progress someone for melody on screen.") {
-    private val melodyFormat by TextInputSetting("Format", "{name} has {progress} melody").withDescription("replaces {name} with the player name and {progress} to the melody progress. &bSupports code codes (&a &e etc..)")
+    private val melodyFormat by TextInputSetting("Format", "{name} has {progress} melody").withDescription("replaces {name}, {class} & {progress} with the player name, dungeon class and melody progress. &bSupports code codes")
     private val alertDuration by SliderSetting("Alert Duration", 2.5f, 0f, 5f, 0.1f)
     private val soundEnabled by ToggleSetting("Play sound", true).withDescription("Should it play a sound when someone gets melody?")
     private val sound = createSoundSettings("Sound", SoundEvents.EXPERIENCE_ORB_PICKUP) { soundEnabled.value }
 
-    private data class MelodyState(val name: String, val progress: Int, val timestamp: Long)
+    private data class MelodyState(val name: String, val clazz: String, val progress: Int, val timestamp: Long)
     data class MelodyMessage(val name: String, val progress: Int)
 
     private val melodyRegex = Regex("""Party > (?:\[[^]]+]\s)?(\w+):""")
@@ -38,13 +38,13 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
 
     override fun init() {
         hudElement("Melody Display", centered = true, shouldDraw = { LocationUtils.F7Phase == 3 }) { ctx, example ->
-            val text = if (example) formatMessage(mc.user.name, 1)
+            val text = if (example) formatMessage(MelodyState(mc.user.name, "&bArcher", 1, 1))
             else {
                 val state = currentState ?: return@hudElement 0f to 0f
-                formatMessage(state.name, state.progress)
+                formatMessage(state)
             }
 
-            Render2D.drawCenteredString(ctx, text, 0, 0)
+            ctx.drawCenteredString(text, 0, 0)
 
             return@hudElement text.width().toFloat() to 9f
         }
@@ -52,10 +52,12 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
         register<ChatMessageEvent> {
             if (LocationUtils.F7Phase != 3) return@register
             val (name, progress) = parseMelodyMessage(event.unformattedText) ?: return@register
-            val color = DungeonListener.dungeonTeammates.find { it.name == name }?.clazz?.code ?: "&7"
+            val clazz = DungeonListener.dungeonTeammates.find { it.name == name }?.clazz
+            val color = clazz?.code ?: "&7"
+            val clazzName = clazz?.name?.let { "$color$it&r" } ?: "&7Unknown&r"
 
-            currentState = MelodyState("$color$name&r", progress, System.currentTimeMillis())
-            if (soundEnabled.value) sound.play.action.invoke()
+            currentState = MelodyState("$color$name&r", clazzName, progress, System.currentTimeMillis())
+            if (soundEnabled.value) sound.action.invoke()
             timer.register()
         }
     }
@@ -68,9 +70,10 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
         return MelodyMessage(name, progress)
     }
 
-    private fun formatMessage(name: String, progress: Int): String {
+    private fun formatMessage(state: MelodyState): String {
         return melodyFormat.value
-            .replace("{name}", name)
-            .replace("{progress}", "$progress/4")
+            .replace("{name}", state.name)
+            .replace("{class}", state.clazz)
+            .replace("{progress}", "${state.progress}/4")
     }
 }

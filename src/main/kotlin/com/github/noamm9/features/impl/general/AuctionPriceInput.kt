@@ -13,7 +13,7 @@ import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.Utils.send
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.uppercaseFirst
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -155,7 +155,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             else if (input.isEmpty()) "§7Enter a value (e.g. 10m, 5k)"
             else "§cInvalid format"
 
-            Render2D.drawCenteredString(guiGraphics, displayText, centerX, centerY - 35)
+            guiGraphics.drawCenteredString(displayText, centerX, centerY - 35)
 
             super.extractRenderState(guiGraphics, mouseX, mouseY, a)
         }

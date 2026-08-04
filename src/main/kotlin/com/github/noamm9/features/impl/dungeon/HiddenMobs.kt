@@ -25,7 +25,7 @@ object HiddenMobs: Feature("Reveals invisible mobs in dungeons.") {
             if (! showFels.value && ! showSa.value && ! showStealthy.value) return@register
             if (! LocationUtils.inDungeon) return@register
             val packet = event.packet as? ClientboundSetEntityDataPacket ?: return@register
-            val entity = mc.level?.getEntity(packet.id)?.takeIf { it.isInvisible } ?: return@register
+            val entity = level.getEntity(packet.id)?.takeIf { it.isInvisible } ?: return@register
             val name = entity.displayName.string.trim()
 
             val isFel = entity is EnderMan && showFels.value && name == "Dinnerbone"

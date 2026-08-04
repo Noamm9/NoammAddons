@@ -1,30 +1,33 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.NoammAddons
+import com.github.noamm9.commands.CommandBuilder
 import com.github.noamm9.config.PogObject
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.ui.gui.DungeonWaypointScreen
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.Utils
-import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.enums.SecretType
 import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
-import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderBlock
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Blocks
 import java.awt.Color
 import java.util.concurrent.*
 
-object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while looking at a block") {
+private typealias RoomInfo = Triple<String, BlockPos, Int>
+
+object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while looking at a block"), ICommandProvider {
     private val secretWaypoints by ToggleSetting("Secret Waypoints").section("Secret Waypoints")
     private val mode by DropdownSetting("Mode", 0, listOf("Fill", "Outline", "Filled Outline"))
     private val phase by ToggleSetting("See Through Walls", true)
@@ -49,9 +52,8 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
         }.value
     }
 
-    val waypoints = PogObject("dungeonWaypoints", mutableMapOf<String, MutableList<DungeonWaypoint>>())
-    private val secretPositions by lazy { ScanUtils.roomList.associate { it.name to it.secretCoords } }
-    val currentRoomWaypoints = CopyOnWriteArrayList<DungeonWaypoint>()
+    private val waypoints = PogObject("dungeonWaypoints", mutableMapOf<String, MutableList<DungeonWaypoint>>())
+    private val currentRoomWaypoints = CopyOnWriteArrayList<DungeonWaypoint>()
     private val currentSecrets = CopyOnWriteArrayList<SecretWaypoint>()
 
     override fun init() {
@@ -59,9 +61,7 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
             currentRoomWaypoints.clear()
             currentSecrets.clear()
 
-            val roomName = event.room.name
-            val roomRotation = 360 - (event.room.rotation ?: return@register)
-            val roomCorner = event.room.corner ?: return@register
+            val (roomName, roomCorner, roomRotation) = getRoomData() ?: return@register
 
             waypoints.get()[roomName]?.map { wp ->
                 wp.copy(pos = ScanUtils.getRealCoord(wp.pos, roomCorner, roomRotation))
@@ -69,11 +69,11 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
 
             if (! secretWaypoints.value) return@register
             if (event.room.mainRoom.state == RoomState.GREEN) return@register
-            val coords = secretPositions[roomName] ?: return@register
+            val coords = ScanUtils.secretMap[roomName] ?: return@register
 
             val activeSecrets = buildList {
-                fun addSecrets(list: List<BlockPos>, type: SecretType) {
-                    list.forEach { add(SecretWaypoint(ScanUtils.getRealCoord(it, roomCorner, roomRotation), type)) }
+                fun addSecrets(list: List<BlockPos>, type: SecretType) = list.forEach {
+                    add(SecretWaypoint(ScanUtils.getRealCoord(it, roomCorner, roomRotation), type))
                 }
 
                 addSecrets(coords.redstoneKey, SecretType.REDSTONE_KEY)
@@ -118,9 +118,9 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
             else currentRoomWaypoints
 
             for (wp in waypoints) {
-                Render3D.renderBlock(
-                    event.ctx, wp.pos, wp.color,
-                    outline = wp.outline, fill = wp.filled, phase = wp.phase
+                event.ctx.renderBlock(
+                    wp.pos, wp.color, outline = wp.outline,
+                    fill = wp.filled, phase = wp.phase
                 )
             }
 
@@ -130,13 +130,12 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
 
             for (wp in currentSecrets) {
                 if (wp.type == SecretType.REDSTONE_KEY && WorldUtils.getBlockAt(wp.pos) != Blocks.PLAYER_HEAD) continue
-                Render3D.renderBlock(
-                    event.ctx, wp.pos,
-                    wp.color.withAlpha((opacity.value * 2.55).toInt()),
+                event.ctx.renderBlock(
+                    wp.pos, wp.color.withAlpha((opacity.value * 2.55).toInt()),
                     mode.value.equalsOneOf(1, 2),
                     mode.value.equalsOneOf(0, 2),
-                    lineWidth = lineWidth.value,
-                    phase = phase.value
+                    phase = phase.value,
+                    lineWidth = lineWidth.value
                 )
             }
         }
@@ -146,6 +145,86 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
             currentRoomWaypoints.clear()
         }
     }
+
+    override fun CommandBuilder.command() {
+        setName("ndw")
+
+        literal("add") {
+            runs {
+                val (roomName, roomCorner, rotation) = getRoomData() ?: return@runs
+                val lookingAt = PlayerUtils.getSelectionBlock() ?: return@runs ChatUtils.modMessage("§cYou must be looking at a block!")
+                if (currentRoomWaypoints.any { it.pos == lookingAt }) return@runs ChatUtils.modMessage("§cA waypoint already exists here. Use /ndw edit.")
+
+                val relativePos = ScanUtils.getRelativeCoord(lookingAt, roomCorner, rotation)
+                GuiUtils.setScreen(DungeonWaypointScreen(roomName, lookingAt, relativePos))
+            }
+        }
+
+        literal("edit") {
+            runs {
+                val (roomName, roomCorner, rotation) = getRoomData() ?: return@runs
+                val lookingAt = PlayerUtils.getSelectionBlock() ?: return@runs ChatUtils.modMessage("§cYou must be looking at a block!")
+                val existing = (if (roomName.startsWith("B")) waypoints.get()[roomName] else currentRoomWaypoints)
+                    ?.firstOrNull { it.pos == lookingAt } ?: return@runs ChatUtils.modMessage("§cNo waypoint found at that block.")
+
+                val relativePos = ScanUtils.getRelativeCoord(lookingAt, roomCorner, rotation)
+                NoammAddons.mc.setScreen(DungeonWaypointScreen(roomName, lookingAt, relativePos, existing))
+            }
+        }
+
+        literal("remove") {
+            runs {
+                val (roomName, roomCorner, rotation) = getRoomData() ?: return@runs
+                val playerPos = player.blockPosition()
+                val waypoints = waypoints.get()
+
+                val closest = (if (roomName.startsWith("B")) waypoints[roomName] else currentRoomWaypoints)?.find {
+                    it.pos.distSqr(playerPos) >= 25
+                } ?: return@runs ChatUtils.modMessage("§cNo waypoints found in this room.")
+
+                val relativePosToRemove = ScanUtils.getRelativeCoord(closest.pos, roomCorner, rotation)
+                val roomList = waypoints.getOrDefault(roomName, emptyList()).toMutableList()
+                if (roomList.removeIf { it.pos == relativePosToRemove }) {
+                    waypoints[roomName] = roomList
+                    currentRoomWaypoints.remove(closest)
+                    ChatUtils.modMessage("§aWaypoint removed.")
+                }
+                else ChatUtils.modMessage("§cError syncing config.")
+            }
+        }
+
+        literal("clear") {
+            runs {
+                val (roomName, _, _) = getRoomData() ?: return@runs
+                if (currentRoomWaypoints.isEmpty()) return@runs ChatUtils.modMessage("§cNo waypoints set for this room.")
+                waypoints.get().remove(roomName)
+                currentRoomWaypoints.clear()
+                ChatUtils.modMessage("§aAll waypoints cleared for room: $roomName")
+            }
+        }
+    }
+
+
+    private fun getRoomData(): RoomInfo? {
+        val floor = LocationUtils.dungeonFloorNumber ?: run {
+            ChatUtils.modMessage("§cYou must be in a dungeon to edit waypoints!")
+            return null
+        }
+
+        if (LocationUtils.inBoss) return RoomInfo("B$floor", BlockPos.ZERO, 0)
+
+        val currentRoom = ScanUtils.currentRoom ?: run {
+            ChatUtils.modMessage("§cYou must be in a dungeon room to edit waypoints!")
+            return null
+        }
+
+        return RoomInfo(
+            currentRoom.name,
+            currentRoom.clayPos ?: BlockPos.ZERO,
+            360 - (currentRoom.rotation ?: 0)
+        )
+    }
+
 
     fun saveWaypoint(absPos: BlockPos, relPos: BlockPos, roomName: String, color: Color, filled: Boolean, outline: Boolean, phase: Boolean) {
         val newWaypoint = DungeonWaypoint(relPos, color, filled, outline, phase)

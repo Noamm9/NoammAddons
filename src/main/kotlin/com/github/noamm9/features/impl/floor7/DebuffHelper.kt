@@ -8,13 +8,13 @@ import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.network.protocol.game.ClientboundBlockChangedAckPacket
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket
 import net.minecraft.sounds.SoundEvents
-import net.minecraft.world.phys.AABB
 import org.lwjgl.glfw.GLFW
 
 object DebuffHelper: Feature(description = "Automatically pulls and fires bows based on Server Ticks (Lag Proof).") {
@@ -22,8 +22,7 @@ object DebuffHelper: Feature(description = "Automatically pulls and fires bows b
     private val soundEnabled by ToggleSetting("Play Sound", true).withDescription("Plays a sound when fully charged.")
     private val sound = createSoundSettings("Sound", SoundEvents.EXPERIENCE_ORB_PICKUP) { soundEnabled.value }
 
-    private val defaultTicks by SliderSetting("Default Ticks", 8, 0, 20, 1).withDescription("How many ticks should the bow be charged before it shoots. &e(Set to 0 to disable)").section("Ticks")
-    private val p1Ticks by SliderSetting("P1 Ticks", 8, 0, 20, 1)
+    private val p1Ticks by SliderSetting("P1 Ticks", 8, 0, 20, 1).section("Ticks")
     private val p2Ticks by SliderSetting("P2 Ticks", 8, 0, 20, 1)
     private val p3Ticks by SliderSetting("P3 Ticks", 8, 0, 20, 1)
     private val p4Ticks by SliderSetting("P4 Ticks", 8, 0, 20, 1)
@@ -34,11 +33,17 @@ object DebuffHelper: Feature(description = "Automatically pulls and fires bows b
     private val blueTicks by SliderSetting("Blue Dragon", 8, 0, 20, 1)
 
     private var isCharging = false
-    private var ticksHeld = 0
-    private var lastSequence = - 1
     private var holdingRC = false
+    private var lastSequence = - 1
+    private var ticksHeld = 0
 
     override fun init() {
+        configSettings.filterIsInstance<SliderSetting<Int>>().forEach {
+            if (it.min == 0 && it.max == 20 && it.step == 1 && it.defaultValue == 8) {
+                it.withDescription("How many ticks should the bow be charged before it shoots. &e(Set to 0 to disable)")
+            }
+        }
+
         register<MouseClickEvent> {
             if (mc.screen != null) return@register
             if (event.button != 1) return@register
@@ -49,8 +54,7 @@ object DebuffHelper: Feature(description = "Automatically pulls and fires bows b
 
         register<PacketEvent.Sent> {
             if (event.packet !is ServerboundUseItemPacket) return@register
-            val item = mc.player?.mainHandItem ?: return@register
-            if (! item.skyblockId.contains("LAST_BREATH")) return@register
+            if (! player.mainHandItem.skyblockId.contains("LAST_BREATH")) return@register
             lastSequence = event.packet.sequence
         }
 
@@ -65,21 +69,18 @@ object DebuffHelper: Feature(description = "Automatically pulls and fires bows b
         register<TickEvent.Server> {
             if (mc.screen != null) return@register resetCharge()
             if (! isCharging || ! holdingRC) return@register
-            val item = mc.player?.mainHandItem ?: return@register resetCharge()
-            if (! item.skyblockId.contains("LAST_BREATH")) return@register resetCharge()
+            if (! player.mainHandItem.skyblockId.contains("LAST_BREATH")) return@register resetCharge()
 
             ticksHeld ++
 
             val ticks = getTicks().takeIf { it > 0 } ?: return@register
-            if (ticksHeld >= ticks) {
-                ThreadUtils.scheduledTask(0, ::fire)
-            }
+            if (ticksHeld >= ticks) ThreadUtils.scheduledTask(0, ::fire)
         }
     }
 
     private fun fire() {
         if (soundEnabled.value) {
-            sound.play.action.invoke()
+            sound.action.invoke()
         }
 
         if (! semiAuto.value) resetCharge()
@@ -103,8 +104,8 @@ object DebuffHelper: Feature(description = "Automatically pulls and fires bows b
     }
 
     private fun getTicks(): Int {
-        val player = mc.player?.position() ?: return defaultTicks.value
-        val phase = LocationUtils.F7Phase ?: return defaultTicks.value
+        val phase = LocationUtils.F7Phase ?: return 0
+        val player = player.position()
 
         return when (phase) {
             1 -> p1Ticks.value
@@ -112,15 +113,15 @@ object DebuffHelper: Feature(description = "Automatically pulls and fires bows b
             3 -> p3Ticks.value
             4 -> p4Ticks.value
             5 -> when {
-                AABB(47.0, 8.0, 113.0, 64.0, 28.0, 135.0).contains(player) -> purpleTicks.value
-                AABB(13.0, 5.0, 85.0, 40.0, 27.0, 103.0).contains(player) -> greenTicks.value
-                AABB(13.0, 4.0, 47.0, 40.0, 20.0, 68.0).contains(player) -> redTicks.value
-                AABB(72.0, 3.0, 47.0, 97.0, 31.0, 65.0).contains(player) -> orangeTicks.value
-                AABB(72.0, 3.0, 85.0, 97.0, 31.0, 107.0).contains(player) -> blueTicks.value
-                else -> defaultTicks.value
+                aabb(47, 8, 113, 64, 28, 135).contains(player) -> purpleTicks.value
+                aabb(13, 5, 85, 40, 27, 103).contains(player) -> greenTicks.value
+                aabb(13, 4, 47, 40, 20, 68).contains(player) -> redTicks.value
+                aabb(72, 3, 47, 97, 31, 65).contains(player) -> orangeTicks.value
+                aabb(72, 3, 85, 97, 31, 107).contains(player) -> blueTicks.value
+                else -> 0
             }
 
-            else -> defaultTicks.value
+            else -> 0
         }
     }
 }

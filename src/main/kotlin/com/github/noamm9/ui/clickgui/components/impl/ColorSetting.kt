@@ -7,7 +7,10 @@ import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.catch
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawHorizontalGradient
+import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.Render2D.drawVerticalGradient
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.intOrNull
@@ -66,7 +69,7 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
 
         val previewX = x + width - 18f
         if (withAlpha) drawCheckerboard(ctx, previewX, y + 6f, 8f, 8f, 2)
-        Render2D.drawRect(ctx, previewX, y + 6f, 8f, 8f, value)
+        ctx.drawRect(previewX, y + 6f, 8f, 8f, value)
 
         ctx.enableScissor(x, y, x + width, y + height)
 
@@ -86,11 +89,11 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
 
             val hexY = pickerY + pickerSize + 5f
             val hexW = width - 20f
-            Render2D.drawRect(ctx, x + 10f, hexY, hexW, 12f, Color(10, 10, 10, 200))
-            if (hexFocused) Render2D.drawRect(ctx, x + 10f, hexY + 11f, hexW, 1f, Style.accentColor)
+            ctx.drawRect(x + 10f, hexY, hexW, 12f, Color(10, 10, 10, 200))
+            if (hexFocused) ctx.drawRect(x + 10f, hexY + 11f, hexW, 1f, Style.accentColor)
 
             val cursor = if (hexFocused && (System.currentTimeMillis() / 500) % 2 == 0L) "|" else ""
-            Render2D.drawString(ctx, "Hex: §7#$hexText$cursor", x + 14f, hexY + 2f)
+            ctx.drawString("Hex: §7#$hexText$cursor", x + 14f, hexY + 2f)
         }
 
         ctx.disableScissor()
@@ -174,14 +177,14 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
     }
 
     private fun drawSVBox(ctx: GuiGraphicsExtractor, sx: Float, sy: Float, sw: Float, sh: Float) {
-        Render2D.drawRect(ctx, sx, sy, sw, sh, Color.getHSBColor(h, 1f, 1f))
-        Render2D.drawHorizontalGradient(ctx, sx, sy, sw, sh, Color.WHITE, Color(255, 255, 255, 0))
-        Render2D.drawVerticalGradient(ctx, sx, sy, sw, sh, Color(0, 0, 0, 0), Color.BLACK)
+        ctx.drawRect(sx, sy, sw, sh, Color.getHSBColor(h, 1f, 1f))
+        ctx.drawHorizontalGradient(sx, sy, sw, sh, Color.WHITE, Color(255, 255, 255, 0))
+        ctx.drawVerticalGradient(sx, sy, sw, sh, Color(0, 0, 0, 0), Color.BLACK)
 
         val ix = sx + (s * sw)
         val iy = sy + ((1f - b) * sh)
-        Render2D.drawRect(ctx, ix - 1.5f, iy - 1.5f, 3f, 3f, Color.WHITE)
-        Render2D.drawRect(ctx, ix - 0.5f, iy - 0.5f, 1f, 1f, Color.BLACK)
+        ctx.drawRect(ix - 1.5f, iy - 1.5f, 3f, 3f)
+        ctx.drawRect(ix - 0.5f, iy - 0.5f, 1f, 1f, Color.BLACK)
     }
 
     private fun drawVerticalHueBar(ctx: GuiGraphicsExtractor, hx: Float, hy: Float, hw: Float, hh: Float) {
@@ -193,10 +196,10 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
             val c2 = Color.getHSBColor((i + 1) / segments.toFloat(), 1f, 1f)
             val yStart = hy + (i * step)
             val yEnd = hy + ((i + 1) * step)
-            Render2D.drawVerticalGradient(ctx, hx, yStart, hw, (yEnd - yStart) + 0.5f, c1, c2)
+            ctx.drawVerticalGradient(hx, yStart, hw, (yEnd - yStart) + 0.5f, c1, c2)
         }
 
-        Render2D.drawRect(ctx, hx - 1f, hy + (h * hh) - 0.5f, hw + 2f, 1f, Color.WHITE)
+        ctx.drawRect(hx - 1f, hy + (h * hh) - 0.5f, hw + 2f, 1f)
     }
 
     private fun drawVerticalAlphaBar(ctx: GuiGraphicsExtractor, ax: Float, ay: Float, aw: Float, ah: Float) {
@@ -205,15 +208,15 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
         val cTop = base.withAlpha(255)
         val cBot = base.withAlpha(0)
 
-        Render2D.drawVerticalGradient(ctx, ax, ay, aw, ah, cTop, cBot)
-        Render2D.drawRect(ctx, ax - 1f, ay + ((1f - a) * ah) - 0.5f, aw + 2f, 1f, Color.WHITE)
+        ctx.drawVerticalGradient(ax, ay, aw, ah, cTop, cBot)
+        ctx.drawRect(ax - 1f, ay + ((1f - a) * ah) - 0.5f, aw + 2f, 1f)
     }
 
     private fun drawCheckerboard(ctx: GuiGraphicsExtractor, x: Float, y: Float, w: Float, h: Float, size: Int) {
         for (i in 0 until (w / size).toInt()) {
             for (j in 0 until (h / size).toInt()) {
                 val color = if ((i + j) % 2 == 0) Color(50, 50, 50, 200) else Color(30, 30, 30, 200)
-                Render2D.drawRect(ctx, x + i * size, y + j * size, size.toFloat(), size.toFloat(), color)
+                ctx.drawRect(x + i * size, y + j * size, size.toFloat(), size.toFloat(), color)
             }
         }
     }

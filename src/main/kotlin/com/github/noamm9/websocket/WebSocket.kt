@@ -4,34 +4,26 @@ import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.WebSocketEvent
+import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.GsonUtils
-import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.network.WebUtils
-import io.ktor.client.plugins.timeout
-import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.websocket.Frame
+import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.readText
 import kotlinx.coroutines.*
-import java.lang.Runnable
-import java.util.concurrent.*
 
-object WebSocket {
-    private val worker = run {
-        val threadFactory = fun(it: Runnable) = Thread(it, "${NoammAddons.MOD_NAME}-WebSocket").apply { isDaemon = true }
-        CoroutineScope(Executors.newSingleThreadExecutor(threadFactory).asCoroutineDispatcher() + SupervisorJob())
+object WebSocket: ISelfInit {
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob() + CoroutineName("${NoammAddons.MOD_NAME}-WebSocket"))
+    @Volatile private var session: WebSocketSession? = null
+    @Volatile private var connecting = false
+
+    override fun init() {
+        scope.launch { connect() }
     }
 
-    @Volatile private var session: DefaultClientWebSocketSession? = null
-    private var socketJob: Job? = null
-
-    fun init() {
-        PacketRegistry.init()
-        connect()
-    }
-
-    fun send(packet: Any) = worker.launch {
+    fun send(packet: Any) = scope.launch {
         val socket = session?.takeIf { it.isActive } ?: return@launch
         val json = GsonUtils.gson.toJsonTree(packet).asJsonObject
         val type = PacketRegistry.getType(packet)
@@ -40,34 +32,30 @@ object WebSocket {
         ChatUtils.debug("ws", "[WS] sending $json")
     }
 
-    private fun connect() {
-        if (socketJob?.isActive == true) return
+    suspend fun connect() {
+        if (connecting) return
+        connecting = true
 
-        socketJob = worker.launch {
-            try {
-                WebUtils.client.webSocket("wss://ws.noamm.org", {
-                    timeout {
-                        requestTimeoutMillis = 60_000
-                        socketTimeoutMillis = 60_000
-                    }
-                }) {
-                    mc.submit { EventBus.post(WebSocketEvent.Connect) }
-                    session = this
+        try {
+            WebUtils.client.webSocket("wss://ws.noamm.org") {
+                session = this
 
-                    for (frame in incoming) if (frame is Frame.Text) mc.submit {
-                        EventBus.post(WebSocketEvent.Payload(frame.readText()))
-                    }
+                for (frame in incoming) if (frame is Frame.Text) mc.submit {
+                    EventBus.post(WebSocketEvent.Payload(frame.readText()))
                 }
             }
-            catch (e: Exception) {
-                ChatUtils.debug("ws", "[WS] disconnected")
-                NoammAddons.logger.info("WebSocket: Disconnected", e)
-                mc.submit { EventBus.post(WebSocketEvent.Disconnect) }
-            }
-            finally {
-                session = null
-                socketJob = null
-                ThreadUtils.setTimeout(30_000, ::connect)
+        }
+        catch (e: Throwable) {
+            if (e is CancellationException) throw e
+            ChatUtils.debug("ws", "[WS] disconnected")
+            NoammAddons.logger.error("[WebSocket] error!", e)
+        }
+        finally {
+            session = null
+            connecting = false
+            scope.launch {
+                delay(60_000L)
+                connect()
             }
         }
     }

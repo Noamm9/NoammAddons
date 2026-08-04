@@ -4,7 +4,6 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventListener
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.utils.*
-import com.github.noamm9.utils.JsonUtils.getObj
 import com.github.noamm9.utils.JsonUtils.getString
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
@@ -25,25 +24,22 @@ object ProfileUtils {
     private val apiCooldowns = ConcurrentHashMap<String, Long>()
 
     private val nameToUuidApis = listOf(
-        "https://playerdb.co/api/player/minecraft/",
         "https://mowojang.matdoes.dev/",
         "https://api.minecraftservices.com/minecraft/profile/lookup/name/",
         "https://api.mojang.com/users/profiles/minecraft/"
     )
 
     private val uuidToNameApis = listOf(
-        "https://playerdb.co/api/player/minecraft/",
         "https://mowojang.matdoes.dev/",
         "https://sessionserver.mojang.com/session/minecraft/profile/",
         "https://mc-api.io/name/",
     )
 
-
     suspend fun getUUIDbyName(name: String): Result<MojangData> {
         val key = name.lowercase()
         MojangCache.check(key, "$name not found")?.let { return it }
 
-        for ((i, api) in nameToUuidApis.withIndex()) {
+        for (api in nameToUuidApis) {
             if (System.currentTimeMillis() < (apiCooldowns[api] ?: 0L)) continue
 
             val result = WebUtils.getAs<String>(api + key)
@@ -58,10 +54,8 @@ object ProfileUtils {
             }
 
             val response = catch { JsonUtils.json.parseToJsonElement(result.getOrThrow()).jsonObject } ?: continue
-            val uuid = if (i == 0) response.getObj("data")?.getObj("player")?.getString("id") else response.getString("id")
-            val fetchedName = if (i == 0) response.getObj("data")?.getObj("player")?.getString("username") else response.getString("name")
-
-            if (uuid.isNullOrBlank() || fetchedName.isNullOrBlank()) continue
+            val fetchedName = response.getString("name").takeUnless { it.isNullOrBlank() } ?: continue
+            val uuid = response.getString("id").takeUnless { it.isNullOrBlank() } ?: continue
 
             val cleanUuid = uuid.replace("-", "")
             val data = MojangData(fetchedName, cleanUuid)
@@ -76,7 +70,7 @@ object ProfileUtils {
         val key = uuid.toString().replace("-", "")
         MojangCache.check(key, "UUID not found")?.let { return it }
 
-        for ((i, api) in uuidToNameApis.withIndex()) {
+        for (api in uuidToNameApis) {
             if (System.currentTimeMillis() < (apiCooldowns[api] ?: 0L)) continue
 
             val result = WebUtils.getAs<String>(api + key)
@@ -91,10 +85,8 @@ object ProfileUtils {
             }
 
             val response = catch { JsonUtils.json.parseToJsonElement(result.getOrThrow()).jsonObject } ?: continue
-            val fetchedUuid = if (i == 0) response.getObj("data")?.getObj("player")?.getString("id") else response.getString("id") ?: key
-            val fetchedName = if (i == 0) response.getObj("data")?.getObj("player")?.getString("username") else response.getString("name")
-
-            if (fetchedUuid.isNullOrBlank() || fetchedName.isNullOrBlank()) continue
+            val fetchedUuid = response.getString("id").takeUnless { it.isNullOrBlank() } ?: continue
+            val fetchedName = response.getString("name").takeUnless { it.isNullOrBlank() } ?: continue
 
             val cleanUuid = fetchedUuid.replace("-", "")
             val data = MojangData(fetchedName, cleanUuid)

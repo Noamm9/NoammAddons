@@ -3,6 +3,7 @@ package com.github.noamm9.features.impl.dev
 import com.github.noamm9.NoammAddons.MOD_NAME
 import com.github.noamm9.NoammAddons.MOD_VERSION
 import com.github.noamm9.NoammAddons.logger
+import com.github.noamm9.event.impl.GameStartEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.ButtonSetting
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
@@ -11,7 +12,6 @@ import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.network.WebUtils
 import kotlinx.serialization.Serializable
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
 import net.minecraft.util.Util
 import java.net.URI
 import java.util.*
@@ -33,7 +33,7 @@ object UpdateChecker: Feature(
     private var page: String? = null
 
     override fun init() {
-        ClientLifecycleEvents.CLIENT_STARTED.register {
+        register<GameStartEvent> {
             if (enabled && checkOnStartup.value) ThreadUtils.setTimeout(5000) { runCheck() }
         }
 
@@ -64,8 +64,14 @@ object UpdateChecker: Feature(
         page = release.html_url
 
         when {
-            (BuildInfo.isCiBuild && releaseMillis > BuildInfo.builtAt) || isNewerVersion(remoteVersion, MOD_VERSION) ->
-                NotificationManager.push(title, "NoammAddons $remoteVersion is out, you're on $MOD_VERSION.", 6000L)
+            (BuildInfo.isCiBuild && releaseMillis > BuildInfo.builtAt) || isNewerVersion(remoteVersion, MOD_VERSION) -> {
+                val suffix = if (BuildInfo.isCiBuild) " (old action build)" else ""
+                NotificationManager.push(
+                    title,
+                    "NoammAddons $remoteVersion is out, you're on $MOD_VERSION.$suffix",
+                    6000L
+                )
+            }
 
             manual -> NotificationManager.push(title, "You're already up to date ($MOD_VERSION).")
         }

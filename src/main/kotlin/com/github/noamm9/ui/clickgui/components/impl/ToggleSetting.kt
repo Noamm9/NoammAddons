@@ -5,7 +5,7 @@ import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.ColorUtils.lerp
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawRect
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
@@ -26,13 +26,13 @@ class ToggleSetting(name: String, value: Boolean = false): Setting<Boolean>(name
         Style.drawHoverBar(ctx, x, y, height, hoverAnim.value)
         Style.drawNudgedText(ctx, name, x + 8f, y + 6f, hoverAnim.value)
 
-        val sw = 18f;
+        val sw = 18f
         val sh = 6f
-        val sx = x + width - sw - 10f;
+        val sx = x + width - sw - 10f
         val sy = y + (height / 2f) - (sh / 2f)
-        Render2D.drawRect(ctx, sx, sy, sw, sh, Color(40, 40, 40, 120).lerp(Style.accentColorTrans, toggleAnim.value))
+        ctx.drawRect(sx, sy, sw, sh, Color(40, 40, 40, 120).lerp(Style.accentColorTrans, toggleAnim.value))
         val tx = sx + (toggleAnim.value * (sw - 8f))
-        Render2D.drawRect(ctx, tx, sy - 1f, 8f, 8f, Color(160, 160, 160).lerp(Style.accentColor, toggleAnim.value))
+        ctx.drawRect(tx, sy - 1f, 8f, 8f, Color(160, 160, 160).lerp(Style.accentColor, toggleAnim.value))
     }
 
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {

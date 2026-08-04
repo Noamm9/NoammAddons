@@ -30,7 +30,7 @@ class Animation(var duration: Long = 200, initialValue: Float = 0f) {
     }
 
     companion object {
-        fun easeOutQuad(t: Double): Double = 1.0 - (1.0 - t) * (1.0 - t)
+        fun easeOutQuad(t: Double) = 1.0 - (1.0 - t) * (1.0 - t)
         fun easeInOutCubic(t: Double) = if (t < 0.5) 4 * t * t * t else (t - 1) * (2 * t - 2) * (2 * t - 2) + 1
     }
 }

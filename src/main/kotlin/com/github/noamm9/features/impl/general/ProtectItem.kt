@@ -1,9 +1,11 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.commands.CommandBuilder
 import com.github.noamm9.config.PogObject
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.KeyboardEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.notification.NotificationManager
@@ -16,9 +18,7 @@ import com.github.noamm9.utils.items.ItemUtils.itemUUID
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
-import net.fabricmc.fabric.api.client.command.v2.ClientCommands
+import com.github.noamm9.utils.render.Render2D.drawString
 import net.minecraft.network.chat.Component
 import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.item.ItemStack
@@ -26,7 +26,7 @@ import net.minecraft.world.item.Items
 import org.lwjgl.glfw.GLFW
 import kotlin.jvm.optionals.getOrDefault
 
-object ProtectItem: Feature("Prevents dropping or selling important items via /protectitem or keybind.") {
+object ProtectItem: Feature("Prevents dropping or selling important items via /protectitem or keybind."), ICommandProvider {
     private var data = PogObject("item_protection", object {
         val uuids = mutableSetOf<String>()
         val ids = mutableSetOf<String>()
@@ -43,7 +43,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
     override fun init() {
         register<ContainerEvent.SlotClick> {
             if (! enabled) return@register
-            val menu = mc.player?.containerMenu ?: return@register
+            val menu = player.containerMenu
 
             val stack = when (event.slotId) {
                 - 999 -> menu.carried
@@ -73,9 +73,8 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
             if (LocationUtils.inDungeon && DungeonListener.dungeonStarted && ! DungeonListener.dungeonEnded) return@register
             if (mc.screen != null) return@register
             if (! mc.options.keyDrop.matches(event.keyEvent)) return@register
-            val heldItem = mc.player?.inventory?.selectedItem ?: return@register
 
-            if (getProtectType(heldItem) != ProtectType.None) {
+            if (getProtectType(player.inventory.selectedItem) != ProtectType.None) {
                 if (protectNodification.value) NotificationManager.push("Action Blocked", "This item is protected!", 1500L)
                 event.isCanceled = true
             }
@@ -90,32 +89,23 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
             }
         }
 
-        ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
-            dispatcher.register(ClientCommands.literal("protectitem").executes {
-                if (! enabled) {
-                    ChatUtils.modMessage("&cYou need have ${this.javaClass.simpleName} enabled.")
-                    return@executes 0
-                }
-
-                val heldItem = mc.player?.inventory?.selectedItem?.takeUnless { it.isEmpty } ?: run {
-                    ChatUtils.modMessage("&cYou need to be holding an item.")
-                    return@executes 1
-                }
-
-                protect(heldItem)
-
-                1
-            })
-        }
-
         register<ContainerEvent.Render.Slot.Post> {
             if (! showProtected.value) return@register
             val stack = event.slot.item.takeUnless { it.isEmpty } ?: return@register
             if (getProtectType(stack) != ProtectType.None) {
                 val x = event.slot.x + 1
                 val y = event.slot.y + 1
-                Render2D.drawString(event.context, "§aP", x, y, scale = 0.75, shadow = true)
+                event.context.drawString("§aP", x, y, scale = 0.75)
             }
+        }
+    }
+
+    override fun CommandBuilder.command() {
+        setName("protectitem")
+        runs {
+            val heldItem = player.mainHandItem.takeUnless { it.isEmpty }
+                ?: return@runs ChatUtils.modMessage("&cYou need to be holding an item.")
+            protect(heldItem)
         }
     }
 
@@ -141,8 +131,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
     }
 
     private fun isSellMenu(): Boolean {
-        val menu = mc.player?.containerMenu ?: return false
-        return menu.slots.take(54).any { slot ->
+        return player.containerMenu.slots.take(54).any { slot ->
             if (slot.item.isEmpty) return@any false
 
             val isHopper = slot.item.`is`(Items.HOPPER) && slot.item.hoverName.string.contains("Sell Item")

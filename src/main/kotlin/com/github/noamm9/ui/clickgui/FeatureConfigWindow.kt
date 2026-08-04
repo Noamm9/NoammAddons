@@ -11,7 +11,9 @@ import com.github.noamm9.ui.utils.ResizeCorner
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.equalsOneOf
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawBorder
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render2D.drawRect
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
@@ -76,13 +78,13 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         val frameColor = if (focused) Color(255, 255, 255, 40) else Color(255, 255, 255, 24)
         val closeHovered = isInsideCloseButton(mx, my)
 
-        Render2D.drawRect(context, x - 2f, y - 2f, width + 4f, height + 4f, Color(0, 0, 0, 70))
-        Render2D.drawRect(context, x, y, width, height, Color(16, 16, 16, 235))
-        Render2D.drawRect(context, x, y, width, titleBarHeight, Color(24, 24, 24, 245))
-        Render2D.drawRect(context, x, y, width, 2f, Style.accentColor.withAlpha(if (focused) 255 else 180))
-        Render2D.drawBorder(context, x, y, width, height, frameColor)
+        context.drawRect(x - 2f, y - 2f, width + 4f, height + 4f, Color(0, 0, 0, 70))
+        context.drawRect(x, y, width, height, Color(16, 16, 16, 235))
+        context.drawRect(x, y, width, titleBarHeight, Color(24, 24, 24, 245))
+        context.drawRect(x, y, width, 2f, Style.accentColor.withAlpha(if (focused) 255 else 180))
+        context.drawBorder(x, y, width, height, frameColor)
 
-        Render2D.drawCenteredString(context, "§l${feature.name}", x + (width / 2f), y + 8f)
+        context.drawCenteredString("§l${feature.name}", x + (width / 2f), y + 8f)
         drawCloseButton(context, closeHovered)
 
         visibleSettings = feature.configSettings.filter { it.visibility.invoke() }
@@ -115,8 +117,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         context.enableScissor(contentLeft.toInt(), contentTop.toInt(), contentRight.toInt(), contentBottom.toInt())
 
         if (visibleSettings.isEmpty()) {
-            Render2D.drawCenteredString(
-                context,
+            context.drawCenteredString(
                 "No visible settings",
                 x + (width / 2f),
                 contentTop + (viewportHeight / 2f) - 5f,
@@ -160,8 +161,8 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
             scrollbarThumbH = thumbHeight
             scrollbarViewportH = viewportHeight
 
-            Render2D.drawRect(context, barX, contentTop, barWidth, viewportHeight, Color(255, 255, 255, 15))
-            Render2D.drawRect(context, barX, thumbY, barWidth, thumbHeight, Style.accentColor.withAlpha(if (focused) 180 else 140))
+            context.drawRect(barX, contentTop, barWidth, viewportHeight, Color(255, 255, 255, 15))
+            context.drawRect(barX, thumbY, barWidth, thumbHeight, Style.accentColor.withAlpha(if (focused) 180 else 140))
         }
     }
 
@@ -368,7 +369,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         val closeY = y + ((titleBarHeight - closeButtonSize) / 2f)
         val background = if (hovered) Color(180, 60, 60, 220) else Color(255, 255, 255, 18)
 
-        Render2D.drawRect(context, closeX, closeY, closeButtonSize, closeButtonSize, background)
-        Render2D.drawCenteredString(context, "\u00D7", closeX + (closeButtonSize / 2f), closeY + 3f)
+        context.drawRect(closeX, closeY, closeButtonSize, closeButtonSize, background)
+        context.drawCenteredString("\u00D7", closeX + (closeButtonSize / 2f), closeY + 3f)
     }
 }

@@ -5,7 +5,7 @@ import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.ui.utils.TextInputHandler
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawRect
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
@@ -40,8 +40,8 @@ class TextInputSetting(name: String, defaultValue: String): Setting<String>(name
         val bw = width - 16f
         val bh = 20f
 
-        Render2D.drawRect(ctx, bx, by, bw, bh, Color(10, 10, 10, 180))
-        Render2D.drawRect(ctx, bx, by + bh - 1f, bw * hoverAnim.value, 1f, Style.accentColor)
+        ctx.drawRect(bx, by, bw, bh, Color(10, 10, 10, 180))
+        ctx.drawRect(bx, by + bh - 1f, bw * hoverAnim.value, 1f, Style.accentColor)
 
         handler.x = bx
         handler.y = by

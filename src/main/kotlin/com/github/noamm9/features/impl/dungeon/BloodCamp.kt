@@ -4,9 +4,11 @@ import com.github.noamm9.NoammAddons.PREFIX
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
+import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.invert
+import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.ServerUtils
@@ -14,7 +16,9 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render3D.renderBoxBounds
+import com.github.noamm9.utils.render.Render3D.renderLine
+import com.github.noamm9.utils.render.Render3D.renderString
 import com.github.noamm9.utils.render.RenderHelper.renderVec
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket
@@ -25,13 +29,14 @@ import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.monster.zombie.Zombie
 import net.minecraft.world.item.Items
-import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import java.awt.Color
+import kotlin.math.ceil
 
 
 object BloodCamp: Feature("Features for Blood Room.") {
     private val bloodCamp by ToggleSetting("Blood Camp Helper", true).section("Blood Camp Helper")
+    private val decimalPlaces by SliderSetting("Decimal Places", 1, 0, 2, 1).showIf { bloodCamp.value }.withDescription("The number of decimal places shown on blood mob timers")
     private val timerColor by ColorSetting("Timer Color", Color.WHITE).showIf { bloodCamp.value }
     private val boxColor by ColorSetting("Box Color", Color(255, 0, 255)).showIf { bloodCamp.value }
     private val lineColor by ColorSetting("Line Color", Color.CYAN).showIf { bloodCamp.value }
@@ -96,7 +101,7 @@ object BloodCamp: Feature("Features for Blood Room.") {
             val itemStack = packet.slots.find { it.first == EquipmentSlot.HEAD }?.second ?: return@register
             if (itemStack.isEmpty || ! itemStack.`is`(Items.PLAYER_HEAD)) return@register
             if (ItemUtils.getSkullTexture(itemStack) !in watcherSkulls) return@register
-            watcherEntity = mc.level?.getEntity(packet.entity) as? Zombie
+            watcherEntity = level.getEntity(packet.entity) as? Zombie
         }
 
         register<MainThreadPacketReceivedEvent.Pre> {
@@ -111,7 +116,7 @@ object BloodCamp: Feature("Features for Blood Room.") {
             if (LocationUtils.inBoss) return@register
             val packet = event.packet as? ClientboundMoveEntityPacket ?: return@register
             if (packet.xa == 0.toShort() && packet.ya == 0.toShort() && packet.za == 0.toShort()) return@register
-            val entity = mc.level?.let { packet.getEntity(it) } as? ArmorStand ?: return@register
+            val entity = packet.getEntity(level) as? ArmorStand ?: return@register
             if (watcherEntity?.let { it.distanceToSqr(entity) <= 400 } != true) return@register
             val item = entity.getItemBySlot(EquipmentSlot.HEAD).takeIf { it.`is`(Items.PLAYER_HEAD) } ?: return@register
             if (ItemUtils.getSkullTexture(item) !in mobSkulls) return@register
@@ -157,11 +162,15 @@ object BloodCamp: Feature("Features for Blood Room.") {
                 val endVector = data.endVector ?: return@forEach
                 val timeTook = DungeonListener.currentTime - data.started
                 val time = (if (data.firstSpawn) 40 else 0) + 38 - timeTook + 0.8
-                val endAABB = AABB(1.0, 1.0, 1.0, 0.0, 0.0, 0.0).move(boxOffset.add(endVector))
+                val endAABB = aabb(1, 1, 1, 0, 0, 0).move(boxOffset.add(endVector))
 
-                Render3D.renderBoxBounds(event.ctx, endAABB, if (ServerUtils.averagePing > time * 50) boxColor.value.invert() else boxColor.value, outline = true, fill = false, phase = true)
-                Render3D.renderLine(event.ctx, entity.renderVec.add(y = 2), endVector.add(y = 2), lineColor.value, phase = true)
-                Render3D.renderString(((time - 0.8) / 20).toFixed(1), endVector.add(y = 2), scale = 2f, color = timerColor.value, phase = true)
+                var timerText = ((time - 0.8) / 20).toString()
+                timerText = if (decimalPlaces.value > 0) timerText.toFixed(decimalPlaces.value)
+                else ceil(timerText.toDouble()).toInt().toString()
+
+                event.ctx.renderBoxBounds(endAABB, if (ServerUtils.averagePing > time * 50) boxColor.value.invert() else boxColor.value, fill = false, phase = true)
+                event.ctx.renderLine(entity.renderVec.add(y = 2), endVector.add(y = 2), lineColor.value, phase = true)
+                event.ctx.renderString(timerText, endVector.add(y = 2), color = timerColor.value, scale = 2f, phase = true)
             }
         }
     }

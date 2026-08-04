@@ -1,19 +1,14 @@
 package com.github.noamm9.features.impl.dungeon.map
 
 import com.github.noamm9.ui.clickgui.components.Setting
-import com.github.noamm9.ui.clickgui.components.Setting.Companion.section
-import com.github.noamm9.ui.clickgui.components.Setting.Companion.showIf
+import com.github.noamm9.ui.clickgui.components.SettingProvider
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import java.awt.Color
 
-//#if LEGIT
-//$import com.github.noamm9.ui.clickgui.components.Setting.Companion.hideIf
-//#endif
-
-object MapConfig {
+object MapConfig: SettingProvider {
     val mapEnabled = ToggleSetting("Map Enabled", true).section("Map")
 
     //#if CHEAT
@@ -44,32 +39,35 @@ object MapConfig {
 
     //#if CHEAT
     val highlightMimicRoom = ToggleSetting("Highlight Mimic Room", true)
+    val mimicEsp = ToggleSetting("Mimic ESP")
     //#else
     //$val highlightMimicRoom = ToggleSetting("Highlight Mimic Room Legit", false).hideIf { true }
+    //$val mimicEsp = ToggleSetting("Mimic ESP Legit", false).hideIf { true }
     //#endif
+    val mimicEspColor = ColorSetting("Mimic ESP Color", Color(255, 0, 0, 50), true).showIf { mimicEsp.value }
 
     val mapPlayerHeadColor = ColorSetting("Head Border", Color(0, 0, 0), true).section("Colors")
     val mapVanillaMarkerColor = ColorSetting("Vanilla Head Marker", Color(0, 255, 0), true)
     val mapPlayerHeadColorClassBased = ToggleSetting("Head Border Class Base", false)
     val mapPlayerNameClassColorBased = ToggleSetting("Player Names Class Base", false)
 
-    val colorBlood = ColorSetting("Blood Room", Color(178, 0, 0), true)
-    val colorEntrance = ColorSetting("Entrance Room", Color(0, 255, 0), true)
-    val colorFairy = ColorSetting("Fairy Room", Color(227, 155, 226), true)
-    val colorMiniboss = ColorSetting("Miniboss Room", Color(255, 200, 0), true)
-    val colorRoom = ColorSetting("Normal Room", Color(121, 70, 0), true)
-    val colorPuzzle = ColorSetting("Puzzle Room", Color(123, 0, 123), true)
     val colorMimic = ColorSetting("Mimic Room", Color(255, 0, 0), true).showIf { highlightMimicRoom.value }
-    val colorRare = ColorSetting("Rare Room", Color(178, 178, 178), true)
-    val colorTrap = ColorSetting("Trap Room", Color(255, 130, 0), true)
     val colorUnopened = ColorSetting("Unopened Room", Color(65, 65, 65), true)
+    val colorBlood = ColorSetting("Blood Room", Color(178, 0, 0), true)
+    val colorFairy = ColorSetting("Fairy Room", Color(227, 155, 226), true)
+    val colorRare = ColorSetting("Rare Room", Color(178, 178, 178), true)
+    val colorMiniboss = ColorSetting("Miniboss Room", Color(255, 200, 0), true)
+    val colorPuzzle = ColorSetting("Puzzle Room", Color(123, 0, 123), true)
+    val colorTrap = ColorSetting("Trap Room", Color(255, 130, 0), true)
+    val colorRoom = ColorSetting("Normal Room", Color(121, 70, 0), true)
+    val colorEntrance = ColorSetting("Entrance Room", Color(0, 255, 0), true)
 
-    val colorBloodDoor = ColorSetting("Blood Door", colorBlood.value, true)
-    val colorEntranceDoor = ColorSetting("Entrance Door", colorEntrance.value, true)
-    val colorRoomDoor = ColorSetting("Normal Door", colorRoom.value, true)
-    val colorWitherDoor = ColorSetting("Wither Door", Color(16, 16, 16), true)
-    val colorOpenWitherDoor = ColorSetting("Opened Wither Door", colorRoom.value, true)
     val colorUnopenedDoor = ColorSetting("Unopened Door", colorUnopened.value, true)
+    val colorBloodDoor = ColorSetting("Blood Door", colorBlood.value, true)
+    val colorWitherDoor = ColorSetting("Wither Door", Color(16, 16, 16), true)
+    val colorRoomDoor = ColorSetting("Normal Door", colorRoom.value, true)
+    val colorOpenWitherDoor = ColorSetting("Opened Wither Door", colorRoom.value, true)
+    val colorEntranceDoor = ColorSetting("Entrance Door", colorEntrance.value, true)
 
     val boxWitherDoors = ToggleSetting("Box Wither Doors", true).section("Wither Door ESP")
     val witherDoorNoKeyColor = ColorSetting("No Key Color", Color(255, 0, 0), false).showIf { boxWitherDoors.value }
@@ -83,6 +81,7 @@ object MapConfig {
             checkmarkSize, playerHeadScale, playerNameScale, mapBackground,
             mapBorderColor, mapBorderWidth, dungeonMapCheckmarkStyle, centerStyle,
             hideQuestionCheckmarks, limitRoomNameSize, highlightMimicRoom,
+            mimicEsp, mimicEspColor,
             mapPlayerHeadColor, mapVanillaMarkerColor, mapPlayerHeadColorClassBased,
             mapPlayerNameClassColorBased, colorBlood, colorEntrance, colorFairy,
             colorMiniboss, colorRoom, colorPuzzle, colorMimic, colorRare, colorTrap,

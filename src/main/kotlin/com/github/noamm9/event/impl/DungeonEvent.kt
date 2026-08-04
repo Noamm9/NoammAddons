@@ -19,7 +19,7 @@ abstract class DungeonEvent: Event(false) {
 
     class PlayerDeathEvent(val name: String, val reason: String): DungeonEvent()
 
-    class Score(val score: Int): DungeonEvent()
+    class Score(val oldScore: Int, val score: Int): DungeonEvent()
     object BossEnterEvent: DungeonEvent()
     object RunStatedEvent: DungeonEvent()
     object RunEndedEvent: DungeonEvent()

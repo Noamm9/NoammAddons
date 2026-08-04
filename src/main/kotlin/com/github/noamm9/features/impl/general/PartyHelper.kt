@@ -56,7 +56,7 @@ object PartyHelper: Feature("Party commands and reformatting.") {
             if (! LocationUtils.onHypixel) return@register
 
             if (partyCommands.value) partyCommandRegex.find(event.unformattedText)?.let { match ->
-                val (name, sign, cmdAll) = match.destructured
+                val (name, _, cmdAll) = match.destructured
                 val args = cmdAll.split(" ").toMutableList()
                 val cmd = args.removeAt(0).lowercase()
                 handlePartyCommand(name, cmd, args)
@@ -99,8 +99,7 @@ object PartyHelper: Feature("Party commands and reformatting.") {
             }
 
             canRun("!coords") && (cmd == "coords" || cmd == "cords") -> {
-                val p = mc.player ?: return
-                runCommand("pc x: ${p.blockX}, y: ${p.blockY}, z: ${p.blockZ}")
+                runCommand("pc x: ${player.blockX}, y: ${player.blockY}, z: ${player.blockZ}")
             }
 
             canRun("!dt") && (cmd == "dt" || cmd == "downtime") -> {

@@ -5,7 +5,7 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.remove
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import net.minecraft.world.item.Items
 
 object CakeNumbers: Feature("Displays the year of the cake in the New Year Cake Bag.") {
@@ -16,7 +16,7 @@ object CakeNumbers: Feature("Displays the year of the cake in the New Year Cake 
             val name = event.slot.item.hoverName.unformattedText
             if ("New Year Cake (Year " !in name) return@register
             val year = name.remove("New Year Cake (Year ", ")").trim()
-            Render2D.drawCenteredString(event.context, "&b$year", event.slot.x + 8, event.slot.y + 8, scale = 0.8)
+            event.context.drawCenteredString("&b$year", event.slot.x + 8, event.slot.y + 8, scale = 0.8)
         }
     }
 }

@@ -5,10 +5,11 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.EventPriority
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
+import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.dungeons.DungeonListener
-import com.github.noamm9.utils.dungeons.map.DungeonInfo
-import com.github.noamm9.utils.dungeons.map.core.Room
+import com.github.noamm9.utils.dungeons.map.core.RoomTile
+import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.websocket.WebSocket
@@ -17,12 +18,12 @@ import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
 import kotlin.math.roundToInt
 
-object ActionBarParser {
+object ActionBarParser: ISelfInit {
     val HP_REGEX = Regex("§[c6]([\\d,]+)/([\\d,]+)[\uE010❤]")
-    val DEF_REGEX = Regex("§a([\\d,]+)§a[\uE008❈] Defense")
+    val DEF_REGEX = Regex("""§a([\d,]+)(§a)?[❈]( Defense)?""") // https://regex101.com/r/QDZtRK/1
     val MANA_REGEX = Regex("§b([\\d,]+)/([\\d,]+)[\uE003✎]( Mana)?")
     val OVERFLOW_REGEX = Regex("§3([\\d,]+)[\uE017ʬ]") // §3100ʬ
-    val VITALITY_REGEX = Regex("§4([\\d.,]+)/([\\d,.]+)♨( Vitality)?") // https://regex101.com/r/9WLBtC/2
+    val VITALITY_REGEX = Regex("""§4([\d.,]+)/([\d,.]+)[♨]( Vitality)?""") // https://regex101.com/r/tLHZYG/1
     val STACKS_REGEX = Regex("§6([\\d,]+)([ᝐ⁑Ѫ])") // §610⁑
     val SALVATION_REGEX = Regex("T([1-3])!")
     val MANA_USAGE_REGEX = Regex("§b-([\\d,]+) Mana \\(§6.+?§b\\)|§c§lNOT ENOUGH MANA") // §b-50 Mana (§6Speed Boost§b) , §c§lNOT ENOUGH MANA
@@ -45,7 +46,7 @@ object ActionBarParser {
     var secrets: Int? = 0
     var maxSecrets: Int? = 0
 
-    fun init() {
+    override fun init() {
         register<MainThreadPacketReceivedEvent.Post>(EventPriority.HIGHEST) {
             if (! LocationUtils.inSkyblock) return@register
             if (event.packet is ClientboundSystemChatPacket && event.packet.overlay()) {
@@ -105,13 +106,13 @@ object ActionBarParser {
             maxSecrets = match.groupValues[2].remove(",").toIntOrNull() ?: maxSecrets
 
             ScanUtils.getRoomGraf(mc.player !!.position()).let { (gx, gy) ->
-                val room = DungeonInfo.dungeonList[gy * 11 + gx] as? Room ?: return
-                if (room.data.name == "Unknown") return
+                val roomTile = DungeonScanner.dungeonList[gy * 11 + gx] as? RoomTile ?: return
+                if (roomTile.data.name == "Unknown") return
 
-                if (room.uniqueRoom?.foundSecrets != secrets && room.data.secrets == maxSecrets) {
-                    room.uniqueRoom?.foundSecrets = secrets !!
+                if (roomTile.uniqueRoom?.foundSecrets != secrets && roomTile.data.secrets == maxSecrets) {
+                    roomTile.uniqueRoom?.foundSecrets = secrets !!
                     if (DungeonListener.dungeonTeammatesNoSelf.isNotEmpty()) {
-                        WebSocket.send(S2CPacketRoomSecrets(room.data.name, secrets !!))
+                        WebSocket.send(S2CPacketRoomSecrets(roomTile.data.name, secrets !!))
                     }
                 }
             }
