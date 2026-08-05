@@ -213,7 +213,7 @@
     "forest pledge": {
       "goodLevel": 2,
       "loreName": "Forest Pledge",
-      "maxLevel": 5,
+      "maxLevel": 6,
       "nbtName": "forest_pledge"
     },
     "fortune": {
@@ -294,6 +294,12 @@
       "maxLevel": 10,
       "nbtName": "infinite_quiver"
     },
+    "karma": {
+      "goodLevel": 5,
+      "loreName": "Karma",
+      "maxLevel": 6,
+      "nbtName": "karma"
+    },
     "knockback": {
       "goodLevel": 2,
       "loreName": "Knockback",
@@ -371,6 +377,12 @@
       "loreName": "Pesterminator",
       "maxLevel": 6,
       "nbtName": "pesterminator"
+    },
+    "petalfall": {
+      "goodLevel": 0,
+      "loreName": "Petalfall",
+      "maxLevel": 5,
+      "nbtName": "petalfall"
     },
     "piercing": {
       "goodLevel": 1,
