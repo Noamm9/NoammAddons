@@ -53,10 +53,7 @@ object ScoreCalculation: ISelfInit {
     var cryptsCount = 0
     var secondsElapsed = 0
 
-    private val totalRooms: Int
-        get() = if (completedRooms > 0 && clearedPercentage > 0)
-            floor((completedRooms / (clearedPercentage / 100.0)) + 0.4).toInt()
-        else 36
+    private val totalRooms get() = floor((completedRooms / (clearedPercentage / 100.0)) + 0.4)
 
     var score = 0
         private set
@@ -204,8 +201,8 @@ object ScoreCalculation: ISelfInit {
         val reqSecret = requiredSecretPercentage[currentFloor] ?: 1.0
         val secretsScore = floor((secretPercentage / reqSecret) / 100.0 * 40.0).coerceIn(0.0, 40.0).toInt()
 
-        val completedRoomScore = (effectiveCompletedRooms.toDouble() / totalRooms.toDouble() * 60.0).coerceIn(0.0, 60.0).toInt()
-        val skillRooms = floor(effectiveCompletedRooms.toDouble() / totalRooms.toDouble() * 80f).coerceIn(0.0, 80.0).toInt()
+        val completedRoomScore = (effectiveCompletedRooms.toDouble() / totalRooms * 60.0).coerceIn(0.0, 60.0).toInt()
+        val skillRooms = floor(effectiveCompletedRooms.toDouble() / totalRooms * 80f).coerceIn(0.0, 80.0).toInt()
 
         val puzzlePenalty = DungeonListener.puzzles.count { ! it.state.equalsOneOf(RoomState.GREEN, RoomState.CLEARED) } * 10
         val deathPenalty = (deathCount * 2 - 1).coerceAtLeast(0)
