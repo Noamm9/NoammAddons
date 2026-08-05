@@ -1,10 +1,13 @@
 package com.github.noamm9.features.impl.general
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.commands.CommandBuilder
+import com.github.noamm9.config.PogObject
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
+import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.interfaces.IChatComponent
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.notification.NotificationManager
@@ -12,6 +15,8 @@ import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.NumbersUtils
+import com.github.noamm9.utils.catch
+import com.mojang.brigadier.arguments.StringArgumentType
 import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.screens.ChatScreen
 import net.minecraft.client.multiplayer.chat.GuiMessage
@@ -20,13 +25,53 @@ import net.minecraft.network.chat.Style
 import org.lwjgl.glfw.GLFW
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
-object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy messages.") {
+object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy messages."), ICommandProvider {
     private val ctrlClickToCopy by ToggleSetting("Ctrl Click to Copy", true).withDescription("Ctrl + Left Click a message to copy it to your clipboard.")
     private val removeUselessMessages by ToggleSetting("Remove useless messages", true).withDescription("Removes a lot of useless messages from the chat.")
 
     private val uselessMessages by lazy { DataDownloader.loadJson<List<String>>("uselessMessages.json").map(::Regex) }
+    private val customHiders = PogObject("customHiders", mutableListOf<Regex>())
+
     private val explosiveShotRegex = Regex("^Your Explosive Shot hit (\\d+) (enemy|enemies) for ([\\d,.]+) damage\\.$") // https://regex101.com/r/xsBn8E/1
     private var lastMessageBlank = false
+
+    override fun CommandBuilder.command() {
+        setName("chathider")
+        runs { ChatUtils.modMessage("&bUsage: /chathider <add|remove|list>") }
+
+        literal("add") {
+            argument("regex", StringArgumentType.greedyString()) {
+                runs {
+                    val str = StringArgumentType.getString(it, "regex")
+                    val list = customHiders.get().map(Regex::pattern)
+                    if (str in list) return@runs ChatUtils.modMessage("&cRegex is Already in the list!")
+                    val regex = catch { Regex(str) } ?: return@runs ChatUtils.modMessage("&cInvalid Regex syntax!")
+                    customHiders.get().add(regex)
+                    customHiders.save()
+                    ChatUtils.modMessage("&aSaved new Regex.")
+                }
+            }
+        }
+
+        literal("remove") {
+            argument("regex", StringArgumentType.greedyString()) {
+                suggests { customHiders.get().map(Regex::pattern) }
+                runs {
+                    val str = StringArgumentType.getString(it, "regex")
+                    val removed = customHiders.get().removeIf { it.pattern == str }
+                    ChatUtils.modMessage(if (removed) "&aRemoved Regex." else "&cNo matching regex found.")
+                    customHiders.save()
+                }
+            }
+        }
+
+        literal("list") {
+            runs {
+                ChatUtils.modMessage("customHiders:")
+                ChatUtils.chat(customHiders.get().joinToString("\n") { it.pattern })
+            }
+        }
+    }
 
     override fun init() {
         register<MouseClickEvent> {
@@ -60,7 +105,8 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
 
         if (msg.isBlank()) return if (lastMessageBlank) ci.cancel() else ::lastMessageBlank.set(true)
 
-        if (uselessMessages.any { it.matches(msg) }) return ci.cancel()
+        if (uselessMessages.any { it.matches(msg) } || customHiders.get().any { it.matches(msg) }) return ci.cancel()
+
         lastMessageBlank = false
     }
 

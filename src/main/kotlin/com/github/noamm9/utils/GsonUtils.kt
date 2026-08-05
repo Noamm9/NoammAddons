@@ -10,6 +10,7 @@ object GsonUtils {
     val gson = GsonBuilder().setPrettyPrinting().disableHtmlEscaping().apply {
         registerTypeAdapter(BlockPos::class.java, BlockPosAdapter())
         registerTypeAdapter(Color::class.java, ColorAdapter())
+        registerTypeAdapter(Regex::class.java, RegexAdapter())
     }.create()
 
     inline fun <reified T: Any> decode(json: String): T = gson.fromJson(json, object: TypeToken<T>() {}.type)
@@ -18,6 +19,11 @@ object GsonUtils {
     class ColorAdapter: JsonSerializer<Color>, JsonDeserializer<Color> {
         override fun serialize(src: Color, type: Type, ctx: JsonSerializationContext) = JsonPrimitive(src.rgb)
         override fun deserialize(json: JsonElement, type: Type, ctx: JsonDeserializationContext) = Color(json.asInt, true)
+    }
+
+    class RegexAdapter: JsonSerializer<Regex>, JsonDeserializer<Regex> {
+        override fun serialize(src: Regex, type: Type, ctx: JsonSerializationContext) = JsonPrimitive(src.pattern)
+        override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?) = Regex(json !!.asString)
     }
 
     class BlockPosAdapter: JsonSerializer<BlockPos>, JsonDeserializer<BlockPos> {
