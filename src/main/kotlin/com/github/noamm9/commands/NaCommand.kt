@@ -87,6 +87,7 @@ object NaCommand: ICommandProvider {
             }
 
             argument("flag", StringArgumentType.greedyString()) {
+                suggests { NoammAddons.availableDebugFlags }
                 runs { ctx ->
                     StringArgumentType.getString(ctx, "flag").split(Regex("\\s+")).forEach { flag ->
                         val added = if (NoammAddons.debugFlags.remove(flag)) false else NoammAddons.debugFlags.add(flag)

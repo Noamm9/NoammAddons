@@ -210,7 +210,7 @@ object DungeonListener: ISelfInit {
     }
 
     private fun updateDungeonTeammates(tabName: String, tabEntry: PlayerInfo) {
-        if (NoammAddons.isDev) listOf(
+        if ("dev" in NoammAddons.debugFlags) listOf(
             DungeonPlayer("Noamm", DungeonClass.Mage, 50),
             DungeonPlayer("Noamm9", DungeonClass.Archer, 50),
             DungeonPlayer("NoammALT", DungeonClass.Healer, 50),

@@ -1,5 +1,6 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.features.Feature
@@ -11,19 +12,20 @@ import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.NumbersUtils
+import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.screens.ChatScreen
 import net.minecraft.client.multiplayer.chat.GuiMessage
 import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.Style
 import org.lwjgl.glfw.GLFW
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
 object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy messages.") {
-    private val uselessMessages by lazy { DataDownloader.loadJson<List<String>>("uselessMessages.json").map(::Regex) }
-
     private val ctrlClickToCopy by ToggleSetting("Ctrl Click to Copy", true).withDescription("Ctrl + Left Click a message to copy it to your clipboard.")
     private val removeUselessMessages by ToggleSetting("Remove useless messages", true).withDescription("Removes a lot of useless messages from the chat.")
 
-    private val explosiveShotRegex = Regex("^Your Explosive Shot hit (\\d+) enemies for ([\\d,.]+) damage\\.$")
+    private val uselessMessages by lazy { DataDownloader.loadJson<List<String>>("uselessMessages.json").map(::Regex) }
+    private val explosiveShotRegex = Regex("^Your Explosive Shot hit (\\d+) (enemy|enemies) for ([\\d,.]+) damage\\.$") // https://regex101.com/r/xsBn8E/1
     private var lastMessageBlank = false
 
     override fun init() {
@@ -33,7 +35,7 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
             if (event.button != 0) return@register
             if (event.action != GLFW.GLFW_PRESS) return@register
             if (GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_LEFT_CONTROL) != GLFW.GLFW_PRESS) return@register
-            val message = getHoveredMsg().takeUnless { it.isBlank() } ?: return@register
+            val message = getHoveredMsg().takeUnless(String::isBlank) ?: return@register
 
             NotificationManager.push("Message copied to clipboard", message)
             mc.keyboardHandler.clipboard = message
@@ -42,7 +44,7 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
 
         register<ChatMessageEvent> {
             if (! removeUselessMessages.value) return@register
-            val (sHits, fDamage) = explosiveShotRegex.find(event.unformattedText)?.destructured ?: return@register
+            val (sHits, _, fDamage) = explosiveShotRegex.find(event.unformattedText)?.destructured ?: return@register
             val hits = sHits.toIntOrNull() ?: return@register
             val totalDamage = fDamage.replace(",", "").toDoubleOrNull() ?: return@register
             val damagePerEntity = if (hits > 0) totalDamage / hits else totalDamage
@@ -56,13 +58,7 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
         if (! removeUselessMessages.value) return
         val msg = comp.unformattedText
 
-        if (msg.isBlank()) {
-            if (lastMessageBlank) return ci.cancel()
-            else {
-                lastMessageBlank = true
-                return
-            }
-        }
+        if (msg.isBlank()) return if (lastMessageBlank) ci.cancel() else ::lastMessageBlank.set(true)
 
         if (uselessMessages.any { it.matches(msg) }) return ci.cancel()
         lastMessageBlank = false
@@ -70,15 +66,10 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
 
     private fun getHoveredMsg(): String {
         val chatHud = (mc.gui.chat as? IChatComponent) ?: return ""
+        val i = chatHud.getLineIndex().takeUnless { it < 0 || it >= chatHud.visibleMessages.size } ?: return ""
 
-        val x = chatHud.mouseXtoChatX
-        val y = chatHud.mouseYtoChatY
-        val i = chatHud.getLineIndex(x, y)
-
-        if (i < 0 || i >= chatHud.visibleMessages.size) return ""
-
-        val builder = StringBuilder()
         val lines = ArrayList<GuiMessage.Line>()
+        val builder = StringBuilder()
 
         for (j in i.toInt() + 1 until chatHud.visibleMessages.size) {
             val line = chatHud.visibleMessages[j]
@@ -93,12 +84,28 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
         }
 
         for (line in lines) {
-            line.content().accept { _, _, codePoint ->
+            var lastStyle: Style? = null
+            line.content().accept { _, style, codePoint ->
+                if (style != lastStyle) {
+                    style.color?.let { textColor ->
+                        ChatFormatting.entries.firstOrNull { it.isColor && it.color == textColor.value }?.let {
+                            builder.append("§${it.char}")
+                        }
+                    }
+
+                    if (style.isBold) builder.append("§${ChatFormatting.BOLD.char}")
+                    if (style.isItalic) builder.append("§${ChatFormatting.ITALIC.char}")
+                    if (style.isUnderlined) builder.append("§${ChatFormatting.UNDERLINE.char}")
+                    if (style.isStrikethrough) builder.append("§${ChatFormatting.STRIKETHROUGH.char}")
+                    if (style.isObfuscated) builder.append("§${ChatFormatting.OBFUSCATED.char}")
+                    lastStyle = style
+                }
                 builder.appendCodePoint(codePoint)
                 true
             }
         }
 
-        return builder.toString().removeFormatting()
+        val text = builder.toString()
+        return if ("chat" in NoammAddons.debugFlags) text else text.removeFormatting()
     }
 }

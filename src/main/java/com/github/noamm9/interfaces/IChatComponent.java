@@ -5,11 +5,7 @@ import net.minecraft.client.multiplayer.chat.GuiMessage;
 import java.util.List;
 
 public interface IChatComponent {
-    double getMouseXtoChatX();
-
-    double getMouseYtoChatY();
-
-    double getLineIndex(double x, double y);
-
     List<GuiMessage.Line> getVisibleMessages();
+
+    double getLineIndex();
 }

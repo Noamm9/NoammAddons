@@ -37,8 +37,14 @@ object NoammAddons: ClientModInitializer {
     }
 
     val cacheData = PogObject("cacheData", mutableMapOf<String, Any>())
-    val debugFlags = mutableSetOf<String>()
-    inline val isDev get() = "dev" in debugFlags
+
+    val availableDebugFlags = mutableSetOf<String>()
+    val debugFlags = object: LinkedHashSet<String>() {
+        override fun contains(o: String): Boolean {
+            availableDebugFlags.add(o)
+            return super.contains(o)
+        }
+    }
 
     override fun onInitializeClient() {
         PictureInPictureRendererRegistry.register { ItemRenderer(it.bufferSource()) }

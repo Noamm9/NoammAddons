@@ -38,7 +38,7 @@ object LocationUtils: ISelfInit {
 
     override fun init() {
         EventBus.register<MainThreadPacketReceivedEvent.Post>(EventPriority.HIGHEST) {
-            if (NoammAddons.isDev) return@register setDevModeValues()
+            if ("dev" in NoammAddons.debugFlags) return@register setDevModeValues()
             if (! onHypixel) return@register
 
             if (event.packet is ClientboundPlayerInfoUpdatePacket) {
