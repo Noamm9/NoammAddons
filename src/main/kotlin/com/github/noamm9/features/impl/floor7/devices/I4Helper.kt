@@ -2,25 +2,33 @@ package com.github.noamm9.features.impl.floor7.devices
 
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
+import com.github.noamm9.mixin.IServerboundChatCommandPacket
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
+import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
+import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.WorldUtils
+import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render3D.renderBlock
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.level.block.Blocks
 import java.awt.Color
+import java.util.concurrent.*
 import kotlin.math.abs
 
 object I4Helper: Feature(name = "I4 Helper") {
-    private val targetColor by ColorSetting("Target Color", Color.GREEN.withAlpha(127)).withDescription("Color of the target position.")
-    private val doneColor by ColorSetting("Complete Color", Color.RED).withDescription("Color of a complete position.")
-
+    private val mode by DropdownSetting("Mode", 2, listOf("Outline", "Fill", "Filled Outline"))
+    private val lineWidth by SliderSetting("Line Width", 2.5, 1, 10, 0.1).hideIf { mode.value == 1 }
+    private val phase by ToggleSetting("Phase")
     private val showPrediction by ToggleSetting("Show Prediction", true).withDescription("Highlights the next block to shoot at.")
-    private val predictionColor by ColorSetting("Prediction Color", Color.YELLOW).withDescription("Color of the prediction.")
+
+    private val targetColor by ColorSetting("Target Color", Color.GREEN.withAlpha(127)).withDescription("Color of the target position.").section("Colors")
+    private val doneColor by ColorSetting("Complete Color", Color.RED).withDescription("Color of a complete position.")
+    private val predictionColor by ColorSetting("Prediction Color", Color.YELLOW).withDescription("Color of the prediction.").showIf { showPrediction.value }
 
     val DEVICE_DONE_REGEX = Regex("^(\\w{3,16}) completed a device! \\(\\d/\\d\\)$")
     val devBlocks = listOf(
@@ -29,12 +37,12 @@ object I4Helper: Feature(name = "I4 Helper") {
         BlockPos(68, 126, 50), BlockPos(66, 126, 50), BlockPos(64, 126, 50)
     )
 
-    private val doneCoords = mutableSetOf<BlockPos>()
-    private var target: BlockPos? = null
-    private var alerted = false
-    var prediction: BlockPos? = null
+    private val doneCoords = ConcurrentHashMap.newKeySet<BlockPos>()
+    @Volatile private var target: BlockPos? = null
+    @Volatile private var alerted = false
+    @Volatile var prediction: BlockPos? = null
 
-    private val lastPredictions = mutableMapOf<BlockPos, Int>()
+    private val lastPredictions = ConcurrentHashMap<BlockPos, Int>()
     private const val MAX_PREDICTION_ATTEMPTS = 2
 
     override fun init() {
@@ -54,12 +62,23 @@ object I4Helper: Feature(name = "I4 Helper") {
         register<RenderWorldEvent> {
             if (LocationUtils.P3Section != 4) return@register
             if (! isOnDev()) return@register reset()
+
+            fun highlight(pos: BlockPos, color: Color) {
+                event.ctx.renderBlock(
+                    pos, color,
+                    mode.value.equalsOneOf(0, 2),
+                    mode.value.equalsOneOf(1, 2),
+                    phase = phase.value,
+                    lineWidth.value
+                )
+            }
+
             if (target == prediction && target != null) target?.let { event.ctx.renderBlock(it, targetColor.value) }
             else {
-                target?.let { event.ctx.renderBlock(it, targetColor.value) }
-                prediction?.let { event.ctx.renderBlock(it, predictionColor.value) }
+                target?.let { highlight(it, targetColor.value) }
+                prediction?.let { highlight(it, predictionColor.value) }
             }
-            doneCoords.forEach { event.ctx.renderBlock(it, doneColor.value) }
+            doneCoords.forEach { highlight(it, doneColor.value) }
         }
 
         register<ChatMessageEvent> {
@@ -76,6 +95,13 @@ object I4Helper: Feature(name = "I4 Helper") {
         }
 
         register<WorldChangeEvent> {
+            reset()
+            alerted = false
+        }
+
+        register<PacketEvent.Sent> {
+            val packet = event.packet as? IServerboundChatCommandPacket ?: return@register
+            if (packet.command != "start p3") return@register
             reset()
             alerted = false
         }
@@ -111,7 +137,7 @@ object I4Helper: Feature(name = "I4 Helper") {
         }
 
         val chosen = if (pairs.isNotEmpty()) pairs.random().toList().random() else candidates.random()
-        lastPredictions[chosen] = (lastPredictions[chosen] ?: 0) + 1
+        lastPredictions.merge(chosen, 1) { old, one -> old + one }
         return chosen
     }
 

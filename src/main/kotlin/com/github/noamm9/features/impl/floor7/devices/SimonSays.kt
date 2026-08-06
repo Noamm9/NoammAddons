@@ -96,11 +96,10 @@ object SimonSays: Feature("Simon Says Solver") {
         //#endif
 
         register<BlockChangeEvent> {
-            val pos = event.pos.immutable()
-            if (pos !in obsidians) return@register
+            if (event.pos !in obsidians) return@register
             if (event.newBlock != Blocks.SEA_LANTERN) return@register
             if (ssSkip.value && solution.size == 2 && ! skipOver) solution.removeFirst()
-            solution.add(SSButton(pos))
+            solution.add(SSButton(event.pos))
         }
 
         register<BlockChangeEvent> {

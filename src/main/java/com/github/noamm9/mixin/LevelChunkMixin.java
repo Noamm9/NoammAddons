@@ -18,9 +18,9 @@ public abstract class LevelChunkMixin {
 
     @Inject(method = "setBlockState", at = @At("HEAD"))
     private void onBlockChange(BlockPos pos, BlockState state, int flags, CallbackInfoReturnable<BlockState> cir) {
-        BlockState old = this.getBlockState(pos);
+        BlockState old = getBlockState(pos);
         if (old == state) return;
 
-        EventBus.post(new BlockChangeEvent(pos, state, old));
+        EventBus.post(new BlockChangeEvent(pos.immutable(), state, old));
     }
 }

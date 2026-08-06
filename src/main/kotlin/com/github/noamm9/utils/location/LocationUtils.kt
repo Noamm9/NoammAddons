@@ -93,6 +93,7 @@ object LocationUtils: ISelfInit, Shortcuts {
     }
 
     private fun setDevModeValues() {
+        if (mc.level == null || mc.player == null) return
         inSkyblock = true
         inDungeon = true
         dungeonFloor = "F7"

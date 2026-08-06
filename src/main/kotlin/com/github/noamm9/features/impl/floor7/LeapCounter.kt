@@ -29,7 +29,7 @@ object LeapCounter: Feature("Shows how many players have leaped you") {
         hudElement("LeapCounter", centered = true) { ctx, e ->
             val region = if (e) REGION.HEE2_BOX else currentSpot ?: return@hudElement 0f to 0f
             val startFormat = if (region.maxCount - region.count <= 1) "§9" else "§4"
-            val str = "$startFormat${region.count}§9/$${region.maxCount} Players Leaped"
+            val str = "$startFormat${region.count}§9/${region.maxCount} Players Leaped"
             ctx.drawCenteredString(str, 0, 0)
             str.width().toFloat() to 9f
         }

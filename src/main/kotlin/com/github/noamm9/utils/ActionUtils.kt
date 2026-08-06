@@ -19,12 +19,10 @@ object ActionUtils: ISelfInit {
     }
 
     private val actionQueue = PriorityBlockingQueue<Action>()
+    @Volatile private var isBlocked = false
     private var processingJob: Job? = null
     private var running = false
     private val lock = Any()
-
-    @Volatile private var isBlocked = false
-    @Volatile private var blockTask = 0L
 
     /**
      * @param priority The priority of the action (higher values executed first).
@@ -38,20 +36,13 @@ object ActionUtils: ISelfInit {
     }
 
     private suspend fun run() {
-        while (true) {
-            val action = synchronized(lock) {
-                actionQueue.poll() ?: run { running = false; null }
-            } ?: break
-
-            try {
-                isBlocked = action.blockInput
-                if (isBlocked) ThreadUtils.setTimeout(5000) { if (blockTask == ++ blockTask) isBlocked = false }
-                action.block()
-            }
-            finally {
-                isBlocked = false
-            }
+        while (actionQueue.isNotEmpty()) {
+            val action = synchronized(lock) { actionQueue.poll() } ?: break
+            if (action.blockInput) ThreadUtils.setTimeout(5000) { isBlocked = false }
+            isBlocked = action.blockInput
+            action.block()
         }
+        running = false
     }
 
     fun reset() = catch {
