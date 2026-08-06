@@ -20,6 +20,7 @@ import com.mojang.brigadier.arguments.StringArgumentType
 import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.screens.ChatScreen
 import net.minecraft.client.multiplayer.chat.GuiMessage
+import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Style
 import org.lwjgl.glfw.GLFW
@@ -28,6 +29,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy messages."), ICommandProvider {
     private val ctrlClickToCopy by ToggleSetting("Ctrl Click to Copy", true).withDescription("Ctrl + Left Click a message to copy it to your clipboard.")
     private val removeUselessMessages by ToggleSetting("Remove useless messages", true).withDescription("Removes a lot of useless messages from the chat.")
+
+    //#if CHEAT
+    private val autoDialogue by ToggleSetting("Auto dialogue").withDescription("Automatically continues dialogues with NPCs.")
+    //#endif
 
     private val uselessMessages by lazy { DataDownloader.loadJson<List<String>>("uselessMessages.json").map(::Regex) }
     private val customHiders = PogObject("customHiders", mutableListOf<Regex>())
@@ -95,6 +100,17 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
             val damagePerEntity = if (hits > 0) totalDamage / hits else totalDamage
             ChatUtils.modMessage("&aExplosive shot did &e${NumbersUtils.format(damagePerEntity.toLong())}&a damage per enemy.")
         }
+
+        //#if CHEAT
+        // https://github.com/jcnlk/quoi/blob/6e74cc3536aa1db91fe4a134254668a96c2ea072/src/main/kotlin/quoi/module/impl/general/chat/impl/AutoDialogue.kt#L4
+        register<ChatMessageEvent> {
+            if (! autoDialogue.value) return@register
+            if ("[BARBARIANS] [MAGES]" in event.unformattedText) return@register
+            if (! event.unformattedText.startsWith("Select an option: ")) return@register
+            val cmd = (event.component.siblings.getOrNull(0)?.style?.clickEvent as? ClickEvent.RunCommand)?.command ?: return@register
+            ChatUtils.sendCommand(cmd)
+        }
+        //#endif
     }
 
     @JvmStatic
