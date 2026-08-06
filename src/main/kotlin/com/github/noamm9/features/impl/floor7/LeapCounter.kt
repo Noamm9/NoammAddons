@@ -1,47 +1,73 @@
 package com.github.noamm9.features.impl.floor7
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
-import com.github.noamm9.event.impl.TickEvent
+import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.mixin.IClientboundMoveEntityPacket
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.MathUtils.add
+import com.github.noamm9.utils.MathUtils.vec
+import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render3D.renderBoxBounds
 import com.github.noamm9.utils.render.Render3D.renderString
 import com.github.noamm9.utils.render.RenderHelper.width
-import net.minecraft.client.multiplayer.ClientLevel
-import net.minecraft.client.player.AbstractClientPlayer
-import net.minecraft.client.player.LocalPlayer
+import net.minecraft.network.protocol.game.*
 import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.Vec3
 import java.awt.Color
 
 object LeapCounter: Feature("Shows how many players have leaped you") {
     private var currentSpot: REGION? = null
-    private var count = 0
 
     override fun init() {
         hudElement("LeapCounter", centered = true) { ctx, e ->
-            val maxCount = if (e) 4 else currentSpot?.maxCount ?: return@hudElement 0f to 0f
-            val startFormat = (if (maxCount - count <= 1) "§9" else "§4")
-            val str = "$startFormat$count§9/$maxCount Players Leaped"
+            val region = if (e) REGION.HEE2_BOX else currentSpot ?: return@hudElement 0f to 0f
+            val startFormat = if (region.maxCount - region.count <= 1) "§9" else "§4"
+            val str = "$startFormat${region.count}§9/$${region.maxCount} Players Leaped"
             ctx.drawCenteredString(str, 0, 0)
             str.width().toFloat() to 9f
         }
 
-        register<TickEvent.End> {
-            if (! LocationUtils.inBoss && LocationUtils.dungeonFloorNumber != 7) return@register
+        register<MainThreadPacketReceivedEvent.Post> {
+            if (! LocationUtils.inBoss || LocationUtils.dungeonFloorNumber != 7) return@register
+            val packet = event.packet
+            if (packet !is ClientboundSetEntityMotionPacket && packet !is ClientboundTeleportEntityPacket
+                && packet !is ClientboundAddEntityPacket && packet !is ClientboundMoveEntityPacket
+                && packet !is ClientboundEntityPositionSyncPacket
+            ) return@register
 
-            currentSpot = REGION.entries.find { it.box.contains(player.position()) } ?: run {
+            currentSpot = REGION.entries.find { it.box.contains(player.position()) && ! it.complated } ?: run {
                 currentSpot = null
-                count = 0
                 return@register
             }
 
-            currentSpot?.let { count = maxOf(count, getCount(level, player, it)) }
+            val id = when (packet) {
+                is ClientboundSetEntityMotionPacket -> packet.id
+                is ClientboundTeleportEntityPacket -> packet.id
+                is ClientboundAddEntityPacket -> packet.id
+                is ClientboundMoveEntityPacket -> (packet as IClientboundMoveEntityPacket).entityId
+                is ClientboundEntityPositionSyncPacket -> packet.id
+                else -> return@register
+            }
+
+            if (DungeonListener.dungeonTeammatesNoSelf.none { it.entity?.id == id }) return@register
+
+            val pos = when (packet) {
+                is ClientboundSetEntityMotionPacket -> level.getEntity(id)?.position()
+                is ClientboundTeleportEntityPacket -> packet.change.position
+                is ClientboundAddEntityPacket -> vec(packet.x, packet.y, packet.z)
+                is ClientboundMoveEntityPacket -> packet.getEntity(level)?.positionCodec?.decode(packet.getXa().toLong(), packet.getYa().toLong(), packet.getZa().toLong())
+                is ClientboundEntityPositionSyncPacket -> packet.values.position()
+                else -> null
+            } ?: return@register
+
+            currentSpot?.updateCounter(id, pos)
         }
 
         register<RenderWorldEvent> {
@@ -50,20 +76,35 @@ object LeapCounter: Feature("Shows how many players have leaped you") {
                 event.ctx.renderBoxBounds(it.box, Color.YELLOW.withAlpha(100))
             }
         }
+
+        register<WorldChangeEvent> { REGION.reset() }
     }
 
-    private fun getCount(world: ClientLevel, player: LocalPlayer, region: REGION): Int {
-        val entities = world.getEntities(player, region.box).filterIsInstance<AbstractClientPlayer>().map { it.id }
-        val teammates = DungeonListener.dungeonTeammatesNoSelf.mapNotNull { it.entity?.id }
-        return entities.count { it in teammates }
-    }
+    private enum class REGION(val box: AABB, val maxCount: Int, val check: (Vec3) -> Boolean) {
+        SS_BOX(aabb(106, 119, 92, 109, 121, 96), 3, { LocationUtils.findP3Section(it) == 1 }),
+        EE2_BOX(aabb(57, 108, 130, 59, 110, 132), 4, { LocationUtils.findP3Section(it) == 2 }),
+        HEE2_BOX(aabb(57, 132, 138, 62, 133, 140), 4, EE2_BOX.check),
+        EE3_BOX(aabb(1, 108, 101, 3, 110, 107), 3, { LocationUtils.findP3Section(it) == 3 }),
+        CORE_BOX(aabb(51, 114, 54, 58, 117, 49), 4, { LocationUtils.findP3Section(it) == 4 }),
+        INCORE_BOX(CORE_BOX.box.move(.0, .0, 6.0), 4, { CORE_BOX.box.contains(it) }),
+        RELIC_BOX(aabb(51.5, 3, 73.5, 57.5, 8, 79.5), 4, { LocationUtils.getPhase(it.y) == 5 });
 
-    private enum class REGION(val box: AABB, val maxCount: Int) {
-        SS_BOX(aabb(106, 119, 92, 109, 121, 96), 3),
-        EE2_BOX(aabb(57, 108, 130, 59, 110, 132), 4),
-        HEE2_BOX(aabb(57, 132, 138, 62, 133, 140), 4),
-        EE3_BOX(aabb(1, 108, 101, 3, 110, 107), 3),
-        CORE_BOX(aabb(53.5, 114, 49.5, 55.5, 116, 51.5), 4),
-        RELIC_BOX(aabb(51.5, 3, 73.5, 57.5, 8, 79.5), 4)
+        private val leapedIds = mutableSetOf<Int>()
+        var complated = false
+        val count get() = leapedIds.size
+
+        fun updateCounter(id: Int, pos: Vec3) {
+            if (id in leapedIds) return
+            if (! check(pos)) return
+            leapedIds.add(id)
+
+            if (count >= maxCount) ThreadUtils.setTimeout(1000) {
+                complated = true
+            }
+        }
+
+        companion object {
+            fun reset() = entries.forEach { it.leapedIds.clear() }
+        }
     }
 }

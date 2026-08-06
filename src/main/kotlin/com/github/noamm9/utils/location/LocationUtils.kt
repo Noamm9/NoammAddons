@@ -1,13 +1,13 @@
 package com.github.noamm9.utils.location
 
 import com.github.noamm9.NoammAddons
-import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.EventPriority
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.features.Shortcuts
 import com.github.noamm9.features.impl.dev.FEAT_WebSocket
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ChatUtils.removeFormatting
@@ -18,9 +18,10 @@ import com.github.noamm9.utils.startsWithOneOf
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
 import net.minecraft.network.protocol.game.ClientboundSetObjectivePacket
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket
+import net.minecraft.world.phys.Vec3
 import kotlin.jvm.optionals.getOrNull
 
-object LocationUtils: ISelfInit {
+object LocationUtils: ISelfInit, Shortcuts {
     @JvmStatic val onHypixel get() = mc.player?.connection?.serverBrand()?.lowercase()?.contains("hypixel") == true
 
     @JvmField var inSkyblock = false
@@ -67,13 +68,13 @@ object LocationUtils: ISelfInit {
         }
 
         EventBus.register<TickEvent.Start>(EventPriority.HIGHEST) {
-            inBoss = isInBossRoom()
+            inBoss = isInBossRoom(player.position())
             if (inBoss && DungeonListener.bossEntryTime == null) {
                 DungeonListener.bossEntryTime = DungeonListener.DualTime(DungeonListener.currentTime)
                 EventBus.post(DungeonEvent.BossEnterEvent)
             }
-            F7Phase = getPhase()
-            P3Section = findP3Section()
+            F7Phase = getPhase(player.y)
+            P3Section = findP3Section(player.position())
         }
 
         EventBus.register<WorldChangeEvent>(EventPriority.HIGH) { reset() }
@@ -96,14 +97,13 @@ object LocationUtils: ISelfInit {
         inDungeon = true
         dungeonFloor = "F7"
         dungeonFloorNumber = 7
-        F7Phase = getPhase()
-        P3Section = findP3Section()
-        inBoss = isInBossRoom()
+        F7Phase = getPhase(player.y)
+        P3Section = findP3Section(player.position())
+        inBoss = isInBossRoom(player.position())
     }
 
-    private fun getPhase(): Int? {
+    fun getPhase(y: Double): Int? {
         if (dungeonFloorNumber != 7 || ! inBoss) return null
-        val y = mc.player?.y ?: return null
 
         return when {
             y > 210 -> 1
@@ -114,12 +114,11 @@ object LocationUtils: ISelfInit {
         }
     }
 
-    private fun findP3Section(): Int? {
+    fun findP3Section(pos: Vec3): Int? {
         if (F7Phase != 3) return null
-        val playerPos = mc.player?.position() ?: return null
 
         for (i in p3Sections.indices) {
-            if (p3Sections[i].contains(playerPos)) {
+            if (p3Sections[i].contains(pos)) {
                 return i + 1
             }
         }
@@ -127,11 +126,9 @@ object LocationUtils: ISelfInit {
         return null
     }
 
-    private fun isInBossRoom(): Boolean {
-        val playerPos = mc.player?.position() ?: return false
-        val floor = dungeonFloorNumber ?: return false
-        if (floor !in 1 .. 7) return false
-        return bossRoomBounds[floor - 1].contains(playerPos)
+    fun isInBossRoom(pos: Vec3): Boolean {
+        val floor = dungeonFloorNumber?.takeIf { it in 1 .. 7 } ?: return false
+        return bossRoomBounds[floor - 1].contains(pos)
     }
 
     private val lobbyRegex = Regex("\\d\\d/\\d\\d/\\d\\d (\\w{0,6}) *")
