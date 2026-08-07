@@ -131,6 +131,6 @@ public abstract class MixinGui {
 
     @Inject(method = "extractSelectedItemName", at = @At("HEAD"), cancellable = true)
     private void onItemOverlayMessage(GuiGraphicsExtractor graphics, CallbackInfo ci) {
-        if (Tweaks.getHideHotbarTooltips().getValue()) ci.cancel();
+        if (Tweaks.INSTANCE.enabled && Tweaks.getHideHotbarTooltips().getValue()) ci.cancel();
     }
 }
