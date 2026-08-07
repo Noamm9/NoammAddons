@@ -57,9 +57,7 @@ object DungeonScanner: ISelfInit {
             val floor = LocationUtils.dungeonFloorNumber ?: return@register
             if (LocationUtils.inBoss) return@register
 
-            if (! hasScanned && System.currentTimeMillis() - lastScanTime >= 250) {
-                scan()
-            }
+            if (System.currentTimeMillis() - lastScanTime >= 250) scan()
 
             if (ScoreCalculation.mimicKilled) return@register
             if (mimicRoom != null) return@register
@@ -72,7 +70,7 @@ object DungeonScanner: ISelfInit {
     private fun scan() {
         var allChunksLoaded = true
 
-        for (x in 0 .. 10) for (z in 0 .. 10) {
+        if (! hasScanned) for (x in 0 .. 10) for (z in 0 .. 10) {
             val wX = startX + x * (roomSize shr 1)
             val wZ = startZ + z * (roomSize shr 1)
 
@@ -101,8 +99,8 @@ object DungeonScanner: ISelfInit {
             }
         }
 
-        uniqueRooms.values.forEach(UniqueRoom::findRotation)
         lastScanTime = System.currentTimeMillis()
+        uniqueRooms.values.forEach(UniqueRoom::findRotation)
         if (allChunksLoaded) hasScanned = true
     }
 

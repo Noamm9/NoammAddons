@@ -161,6 +161,7 @@ class UniqueRoom(arrX: Int, arrY: Int, roomTile: RoomTile) {
 
         if (data.shape != RoomShape.SL) for (i in 0 .. 3) {
             mutablePos.set(primaryCornersX[i], highestBlock, primaryCornersZ[i])
+            if (! WorldUtils.isChunkLoaded(mutablePos.x, mutablePos.z)) continue
             if (WorldUtils.getBlockAt(mutablePos) == Blocks.BLUE_TERRACOTTA) {
                 setRotationAndCorner(i, mutablePos)
                 return
