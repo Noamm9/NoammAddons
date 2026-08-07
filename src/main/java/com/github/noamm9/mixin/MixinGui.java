@@ -5,6 +5,7 @@ import com.github.noamm9.event.impl.ActionBarMessageEvent;
 import com.github.noamm9.event.impl.RenderOverlayEvent;
 import com.github.noamm9.features.impl.general.FEAT_ItemRarity;
 import com.github.noamm9.features.impl.misc.Camera;
+import com.github.noamm9.features.impl.misc.Tweaks;
 import com.github.noamm9.features.impl.visual.DarkMode;
 import com.github.noamm9.features.impl.visual.PlayerHud;
 import com.github.noamm9.features.impl.visual.Scoreboard;
@@ -85,7 +86,7 @@ public abstract class MixinGui {
 
     @Inject(method = "extractRenderState", at = @At(value = "HEAD"))
     public void onRenderHudPre(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
-        if (!DarkMode.getTintHud().getValue()) DarkMode.drawOverlay(graphics);
+        if (! DarkMode.getTintHud().getValue()) DarkMode.drawOverlay(graphics);
     }
 
     @Inject(method = "extractRenderState", at = @At(value = "TAIL"))
@@ -122,9 +123,14 @@ public abstract class MixinGui {
 
     @Inject(method = "extractSlot", at = @At("HEAD"))
     private void onRenderHotbarSlot(GuiGraphicsExtractor graphics, int x, int y, DeltaTracker deltaTracker, Player player, ItemStack itemStack, int seed, CallbackInfo ci) {
-        if (!FEAT_ItemRarity.INSTANCE.enabled) return;
+        if (! FEAT_ItemRarity.INSTANCE.enabled) return;
         if (FEAT_ItemRarity.getDrawOnHotbar().getValue()) {
             FEAT_ItemRarity.onSlotDraw(graphics, itemStack, x, y);
         }
+    }
+
+    @Inject(method = "extractSelectedItemName", at = @At("HEAD"), cancellable = true)
+    private void onItemOverlayMessage(GuiGraphicsExtractor graphics, CallbackInfo ci) {
+        if (Tweaks.getHideHotbarTooltips().getValue()) ci.cancel();
     }
 }
