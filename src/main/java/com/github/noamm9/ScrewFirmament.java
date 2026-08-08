@@ -11,11 +11,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Pseudo
 @Mixin(targets = "moe.nea.firmament.features.misc.ModAnnouncer", remap = false)
-public class FuckFirmament {
+public class ScrewFirmament {
     @Dynamic
     @Inject(method = "onServerJoin", at = @At("HEAD"), cancellable = true)
     private void stopFeddingEveryone(@Coerce Object event, CallbackInfo ci) {
         ci.cancel();
-        NoammAddons.logger.info("FUCK FIRMAMENT");
+        NoammAddons.logger.info("SCREW FIRMAMENT");
     }
 }
