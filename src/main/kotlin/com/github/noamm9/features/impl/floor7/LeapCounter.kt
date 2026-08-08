@@ -9,7 +9,7 @@ import com.github.noamm9.mixin.IClientboundMoveEntityPacket
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.MathUtils.add
-import com.github.noamm9.utils.MathUtils.vec
+import com.github.noamm9.utils.MathUtils.destructured
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
@@ -19,7 +19,6 @@ import com.github.noamm9.utils.render.Render3D.renderString
 import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.network.protocol.game.*
 import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.Vec3
 import java.awt.Color
 
 object LeapCounter: Feature("Shows how many players have leaped you") {
@@ -58,16 +57,16 @@ object LeapCounter: Feature("Shows how many players have leaped you") {
 
             if (DungeonListener.dungeonTeammatesNoSelf.none { it.entity?.id == id }) return@register
 
-            val pos = when (packet) {
-                is ClientboundSetEntityMotionPacket -> level.getEntity(id)?.position()
-                is ClientboundTeleportEntityPacket -> packet.change.position
-                is ClientboundAddEntityPacket -> vec(packet.x, packet.y, packet.z)
-                is ClientboundMoveEntityPacket -> packet.getEntity(level)?.positionCodec?.decode(packet.getXa().toLong(), packet.getYa().toLong(), packet.getZa().toLong())
-                is ClientboundEntityPositionSyncPacket -> packet.values.position()
+            val (x, y, z) = when (packet) {
+                is ClientboundSetEntityMotionPacket -> level.getEntity(id)?.position()?.destructured()
+                is ClientboundTeleportEntityPacket -> packet.change.position.destructured()
+                is ClientboundAddEntityPacket -> Triple(packet.x, packet.y, packet.z)
+                is ClientboundMoveEntityPacket -> packet.getEntity(level)?.positionCodec?.decode(packet.getXa().toLong(), packet.getYa().toLong(), packet.getZa().toLong())?.destructured()
+                is ClientboundEntityPositionSyncPacket -> packet.values.position().destructured()
                 else -> null
             } ?: return@register
 
-            currentSpot?.updateCounter(id, pos)
+            currentSpot?.updateCounter(id, x, y, z)
         }
 
         register<RenderWorldEvent> {
@@ -80,22 +79,22 @@ object LeapCounter: Feature("Shows how many players have leaped you") {
         register<WorldChangeEvent> { REGION.reset() }
     }
 
-    private enum class REGION(val box: AABB, val maxCount: Int, val check: (Vec3) -> Boolean) {
-        SS_BOX(aabb(106, 119, 92, 109, 121, 96), 3, { LocationUtils.findP3Section(it) == 1 }),
-        EE2_BOX(aabb(57, 108, 130, 59, 110, 132), 4, { LocationUtils.findP3Section(it) == 2 }),
+    private enum class REGION(val box: AABB, val maxCount: Int, val check: (x: Double, y: Double, z: Double) -> Boolean) {
+        SS_BOX(aabb(106, 119, 92, 109, 121, 96), 3, { x, y, z -> LocationUtils.findP3Section(x, y, z) == 1 }),
+        EE2_BOX(aabb(57, 108, 130, 59, 110, 132), 4, { x, y, z -> LocationUtils.findP3Section(x, y, z) == 2 }),
         HEE2_BOX(aabb(57, 132, 138, 62, 133, 140), 4, EE2_BOX.check),
-        EE3_BOX(aabb(1, 108, 101, 3, 110, 107), 3, { LocationUtils.findP3Section(it) == 3 }),
-        CORE_BOX(aabb(51, 114, 54, 58, 117, 49), 4, { LocationUtils.findP3Section(it) == 4 }),
-        INCORE_BOX(CORE_BOX.box.move(.0, .0, 6.0), 4, { CORE_BOX.box.contains(it) }),
-        RELIC_BOX(aabb(51.5, 3, 73.5, 57.5, 8, 79.5), 4, { LocationUtils.getPhase(it.y) == 5 });
+        EE3_BOX(aabb(1, 108, 101, 3, 110, 107), 3, { x, y, z -> LocationUtils.findP3Section(x, y, z) == 3 }),
+        CORE_BOX(aabb(51, 114, 54, 58, 117, 49), 4, { x, y, z -> LocationUtils.findP3Section(x, y, z) == 4 }),
+        INCORE_BOX(CORE_BOX.box.move(.0, .0, 6.0), 4, { x, y, z -> aabb(68, 106, 54, 42, 155, 119).contains(x, y, z) }),
+        RELIC_BOX(aabb(51.5, 3, 73.5, 57.5, 8, 79.5), 4, { _, y, _ -> LocationUtils.getPhase(y) == 5 });
 
         private val leapedIds = mutableSetOf<Int>()
         var complated = false
         val count get() = leapedIds.size
 
-        fun updateCounter(id: Int, pos: Vec3) {
+        fun updateCounter(id: Int, x: Double, y: Double, z: Double) {
             if (id in leapedIds) return
-            if (! check(pos)) return
+            if (! check(x, y, z)) return
             leapedIds.add(id)
 
             if (count >= maxCount) ThreadUtils.setTimeout(1000) {

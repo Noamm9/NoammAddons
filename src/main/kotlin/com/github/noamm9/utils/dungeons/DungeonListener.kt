@@ -214,7 +214,7 @@ object DungeonListener: ISelfInit {
             DungeonPlayer("Noamm", DungeonClass.Mage, 50),
             DungeonPlayer("Noamm9", DungeonClass.Archer, 50),
             DungeonPlayer("NoammALT", DungeonClass.Healer, 50),
-            DungeonPlayer("NoamIsSad", DungeonClass.Tank, 50),
+            DungeonPlayer("CatgirlNoamm", DungeonClass.Tank, 50),
             DungeonPlayer("BlackDragonLord", DungeonClass.Berserk, 50),
         ).let { list ->
             dungeonTeammates.clear()

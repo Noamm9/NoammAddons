@@ -5,11 +5,12 @@ import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.EventPriority
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
-import com.github.noamm9.event.impl.TickEvent
+import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Shortcuts
 import com.github.noamm9.features.impl.dev.FEAT_WebSocket
 import com.github.noamm9.init.types.ISelfInit
+import com.github.noamm9.mixin.IServerboundMovePlayerPacket
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.dungeons.DungeonListener
@@ -18,7 +19,7 @@ import com.github.noamm9.utils.startsWithOneOf
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
 import net.minecraft.network.protocol.game.ClientboundSetObjectivePacket
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket
-import net.minecraft.world.phys.Vec3
+import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket
 import kotlin.jvm.optionals.getOrNull
 
 object LocationUtils: ISelfInit, Shortcuts {
@@ -67,14 +68,18 @@ object LocationUtils: ISelfInit, Shortcuts {
             }
         }
 
-        EventBus.register<TickEvent.Start>(EventPriority.HIGHEST) {
-            inBoss = isInBossRoom(player.position())
+        EventBus.register<PacketEvent.Sent>(EventPriority.HIGH) {
+            if (event.packet !is ServerboundMovePlayerPacket) return@register
+            if (! event.packet.hasPosition()) return@register
+            val packet = event.packet as IServerboundMovePlayerPacket
+
+            inBoss = isInBossRoom(packet.x, packet.y, packet.z)
             if (inBoss && DungeonListener.bossEntryTime == null) {
                 DungeonListener.bossEntryTime = DungeonListener.DualTime(DungeonListener.currentTime)
                 EventBus.post(DungeonEvent.BossEnterEvent)
             }
-            F7Phase = getPhase(player.y)
-            P3Section = findP3Section(player.position())
+            F7Phase = getPhase(packet.y)
+            P3Section = findP3Section(packet.x, packet.y, packet.z)
         }
 
         EventBus.register<WorldChangeEvent>(EventPriority.HIGH) { reset() }
@@ -99,8 +104,8 @@ object LocationUtils: ISelfInit, Shortcuts {
         dungeonFloor = "F7"
         dungeonFloorNumber = 7
         F7Phase = getPhase(player.y)
-        P3Section = findP3Section(player.position())
-        inBoss = isInBossRoom(player.position())
+        P3Section = findP3Section(player.x, player.y, player.z)
+        inBoss = isInBossRoom(player.x, player.y, player.z)
     }
 
     fun getPhase(y: Double): Int? {
@@ -115,11 +120,11 @@ object LocationUtils: ISelfInit, Shortcuts {
         }
     }
 
-    fun findP3Section(pos: Vec3): Int? {
+    fun findP3Section(x: Double, y: Double, z: Double): Int? {
         if (F7Phase != 3) return null
 
         for (i in p3Sections.indices) {
-            if (p3Sections[i].contains(pos)) {
+            if (p3Sections[i].contains(x, y, z)) {
                 return i + 1
             }
         }
@@ -127,9 +132,9 @@ object LocationUtils: ISelfInit, Shortcuts {
         return null
     }
 
-    fun isInBossRoom(pos: Vec3): Boolean {
+    fun isInBossRoom(x: Double, y: Double, z: Double): Boolean {
         val floor = dungeonFloorNumber?.takeIf { it in 1 .. 7 } ?: return false
-        return bossRoomBounds[floor - 1].contains(pos)
+        return bossRoomBounds[floor - 1].contains(x, y, z)
     }
 
     private val lobbyRegex = Regex("\\d\\d/\\d\\d/\\d\\d (\\w{0,6}) *")
