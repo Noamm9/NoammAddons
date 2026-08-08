@@ -6,23 +6,15 @@ import org.lwjgl.system.MemoryUtil
 
 object MouseHelper {
     private val cursorCache = mutableMapOf<Int, Long>()
-    private var currentCursor: Long? = null
 
     fun setCursor(shape: Int) {
         val cursor = if (shape == GLFW.GLFW_ARROW_CURSOR) MemoryUtil.NULL
         else cursorCache.getOrPut(shape) { GLFW.glfwCreateStandardCursor(shape) }
 
-        applyCursor(cursor)
-    }
-
-    fun resetCursor() = applyCursor(MemoryUtil.NULL)
-
-    private fun applyCursor(cursor: Long) {
-        if (cursor == currentCursor) return
-
         GLFW.glfwSetCursor(NoammAddons.mc.window.handle(), cursor)
-        currentCursor = cursor
     }
+
+    fun resetCursor() = setCursor(GLFW.GLFW_ARROW_CURSOR)
 
     fun getResizeCorner(mx: Number, my: Number, x: Number, y: Number, w: Number, h: Number, m: Number = 2): ResizeCorner {
         val mx = mx.toFloat()
