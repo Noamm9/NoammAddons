@@ -2,7 +2,7 @@ package com.github.noamm9.features.impl.visual
 
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.utils.ChatUtils.formattedText
@@ -21,6 +21,8 @@ import net.minecraft.world.scores.Scoreboard as MCScoreboard
 
 object Scoreboard: Feature("Draws a custom scoreboard instead of the vanilla one.") {
     private val hideServerId by ToggleSetting("Hide Server ID").withDescription("Hides the 'm151AM' text from the scoreboard")
+    private val color by ColorSetting("Color", Color(99, 176, 217), false)
+        .withDescription("The accent color used by the scoreboard.")
 
     private var needsUpdate = true
     private val cachedLines = mutableListOf<String>()
@@ -46,7 +48,7 @@ object Scoreboard: Feature("Draws a custom scoreboard instead of the vanilla one
             val padding = 8
 
             ctx.drawRect(xOffset, yOffset, boxWidth, boxHeight, Color(15, 15, 15, 190))
-            ctx.drawRect(xOffset, yOffset, boxWidth, 2.0, Style.accentColor)
+            ctx.drawRect(xOffset, yOffset, boxWidth, 2.0, color.value)
             ctx.drawRect(xOffset - 1, yOffset - 1, boxWidth + 2.0, boxHeight + 2.0, Color(255, 255, 255, 20))
 
             ctx.drawCenteredString(cachedTitle, (xOffset + boxWidth / 2).toFloat(), (yOffset + padding).toFloat(), shadow = false)
@@ -76,7 +78,7 @@ object Scoreboard: Feature("Draws a custom scoreboard instead of the vanilla one
             val drawY = y - (scaledH / 2)
 
             val hovered = mx >= drawX && mx <= drawX + scaledW && my >= drawY && my <= drawY + scaledH
-            val borderColor = if (isDragging || hovered) Style.accentColor else Color(255, 255, 255, 40)
+            val borderColor = if (isDragging || hovered) color.value else Color(255, 255, 255, 40)
 
             ctx.drawRect(drawX.toDouble(), drawY.toDouble(), scaledW.toDouble(), scaledH.toDouble(), Color(10, 10, 10, 150))
             ctx.drawRect(drawX.toDouble(), drawY.toDouble(), scaledW.toDouble(), 1.0, borderColor)
