@@ -1,15 +1,22 @@
 package com.github.noamm9.ui.clickgui
 
+import com.github.noamm9.NoammAddons.MOD_ID
 import com.github.noamm9.config.Config
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.clickgui.enums.CategoryType
 import com.github.noamm9.ui.clickgui.enums.WindowClickAction
+import com.github.noamm9.ui.hud.HudEditorScreen
 import com.github.noamm9.ui.utils.MouseHelper
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.TextInputHandler
+import com.github.noamm9.utils.ColorUtils.withAlpha
+import com.github.noamm9.utils.GuiUtils
+import com.github.noamm9.utils.Utils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render2D.drawLine
 import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.utils.render.Render2D.drawTexture
 import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
@@ -17,14 +24,17 @@ import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
+import net.minecraft.resources.Identifier
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
-
 object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
+    private val discordTexture = Identifier.fromNamespaceAndPath(MOD_ID, "textures/gui/discord.png")
+
     private const val defaultWindowWidth = 220f
     private const val defaultWindowHeight = 260f
     private const val windowCascadeOffset = 18f
+    private const val searchbarButtonSize = 22f
 
     private val panels = mutableListOf<Panel>()
     private val configWindows = mutableListOf<FeatureConfigWindow>()
@@ -58,6 +68,9 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
 
         panels.forEach { it.render(context, mX, mY) }
         drawSearchBar(context, mX.toFloat(), mY.toFloat())
+        context.drawHudButton(mX.toFloat(), mY.toFloat())
+        context.drawDiscordButton(mX.toFloat(), mY.toFloat())
+
         configWindows.forEachIndexed { index, window ->
             window.render(context, mX, mY, index == configWindows.lastIndex)
         }
@@ -88,6 +101,79 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
         else searchHandler.draw(context, mX, mY)
     }
 
+
+    private fun GuiGraphicsExtractor.drawHudButton(mX: Float, mY: Float) {
+        val x = searchHandler.x + searchHandler.width + 6f
+        val y = searchHandler.y + (searchHandler.height - searchbarButtonSize) / 2f
+
+        val hovered = isOverHudButton(mX, mY)
+        val borderColor = if (hovered) Style.accentColor else Color(255, 255, 255, 30)
+
+        drawRect(x, y, searchbarButtonSize, searchbarButtonSize, Color(15, 15, 15, 200))
+        drawRect(x, y + searchbarButtonSize - 2f, searchbarButtonSize, 2f, borderColor)
+
+        drawFilledDiamond(x + searchbarButtonSize / 2, y + searchbarButtonSize / 2, 6f, if (hovered) Style.accentColor.withAlpha(40) else Color(255, 255, 255, 12))
+        drawHudIcon(x + searchbarButtonSize / 2, y + searchbarButtonSize / 2, if (hovered) Style.accentColor else Color.WHITE)
+    }
+
+    private fun GuiGraphicsExtractor.drawFilledDiamond(cx: Number, cy: Number, halfDiagonal: Number, color: Color) {
+        val h = halfDiagonal.toFloat()
+        val s = h * 1.4142135f
+
+        pose().pushMatrix()
+        pose().translate(cx.toFloat(), cy.toFloat())
+        pose().rotate(45f)
+        pose().scale(s, s)
+        pose().translate(- 0.5f, - 0.5f)
+        fill(0, 0, 1, 1, color.rgb)
+        pose().popMatrix()
+    }
+
+    private fun isOverHudButton(mX: Float, mY: Float): Boolean {
+        val x = searchHandler.x + searchHandler.width + 6f
+        val y = searchHandler.y + (searchHandler.height - searchbarButtonSize) / 2f
+        return mX in x .. (x + searchbarButtonSize) && mY in y .. (y + searchbarButtonSize)
+    }
+
+    private fun GuiGraphicsExtractor.drawDiscordButton(mX: Float, mY: Float) {
+        val x = searchHandler.x - 6f - searchbarButtonSize
+        val y = searchHandler.y + (searchHandler.height - searchbarButtonSize) / 2f
+
+        val hovered = isOverDiscordButton(mX, mY)
+        val borderColor = if (hovered) Style.accentColor else Color(255, 255, 255, 30)
+
+        drawRect(x, y, searchbarButtonSize, searchbarButtonSize, Color(15, 15, 15, 200))
+        drawRect(x, y + searchbarButtonSize - 2f, searchbarButtonSize, 2f, borderColor)
+
+        val iconSize = 18f
+        val ix = x + (searchbarButtonSize - iconSize) / 2f
+        val iy = y + (searchbarButtonSize - iconSize) / 2f
+        drawTexture(discordTexture, ix, iy, iconSize, iconSize)
+    }
+
+    private fun isOverDiscordButton(mX: Float, mY: Float): Boolean {
+        val x = searchHandler.x - 6f - searchbarButtonSize
+        val y = searchHandler.y + (searchHandler.height - searchbarButtonSize) / 2f
+        return mX in x .. (x + searchbarButtonSize) && mY in y .. (y + searchbarButtonSize)
+    }
+
+    private fun GuiGraphicsExtractor.drawHudIcon(cx: Number, cy: Number, color: Color) {
+        val x = cx.toFloat()
+        val y = cy.toFloat()
+
+        drawLine(x, y - 3f, x, y + 3f, color)
+        drawLine(x - 3f, y, x + 3f, y, color)
+
+        drawLine(x - 2f, y - 3f, x, y - 5f, color)
+        drawLine(x + 2f, y - 3f, x, y - 5f, color)
+        drawLine(x - 2f, y + 3f, x, y + 5f, color)
+        drawLine(x + 2f, y + 3f, x, y + 5f, color)
+        drawLine(x - 3f, y - 2f, x - 5f, y, color)
+        drawLine(x - 3f, y + 2f, x - 5f, y, color)
+        drawLine(x + 3f, y - 2f, x + 5f, y, color)
+        drawLine(x + 3f, y + 2f, x + 5f, y, color)
+    }
+
     override fun mouseClicked(mouseButtonEvent: MouseButtonEvent, bl: Boolean): Boolean {
         val mx = Resolution.getMouseX(mouseButtonEvent.x)
         val my = Resolution.getMouseY(mouseButtonEvent.y)
@@ -113,6 +199,19 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
 
             clickedPanel.mouseClicked(mx.toDouble(), my.toDouble(), button)
             searchHandler.listening = false
+            return true
+        }
+
+        if (isOverHudButton(mx.toFloat(), my.toFloat())) {
+            if (button == 0) {
+                onClose()
+                GuiUtils.setScreen(HudEditorScreen())
+            }
+            return true
+        }
+
+        if (isOverDiscordButton(mx.toFloat(), my.toFloat())) {
+            if (button == 0) Utils.openDiscordLink()
             return true
         }
 

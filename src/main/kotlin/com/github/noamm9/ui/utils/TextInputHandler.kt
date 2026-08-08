@@ -40,6 +40,7 @@ class TextInputHandler(
 
     private var selection = text.length
     private var selectionWidth = 0f
+    private var selectionStartX = 0f
     private var textOffset = 0f
     private var caretX = 0f
 
@@ -65,7 +66,7 @@ class TextInputHandler(
 
         context.enableScissor(x.toInt(), y.toInt(), x.toInt() + width.toInt(), y.toInt() + height.toInt())
         if (selectionWidth != 0f) context.drawRect(
-            x + caretX + 4f,
+            x + selectionStartX + 4f - textOffset,
             y + 5f,
             selectionWidth,
             height - 10,
@@ -292,10 +293,13 @@ class TextInputHandler(
 
     private fun updateCaretPosition() {
         if (selection != caret) {
+            selectionStartX = textWidth(text.substringSafe(0, min(selection, caret)))
             selectionWidth = textWidth(text.substringSafe(selection, caret))
-            if (selection <= caret) selectionWidth *= - 1
         }
-        else selectionWidth = 0f
+        else {
+            selectionStartX = 0f
+            selectionWidth = 0f
+        }
 
         if (caret != 0) {
             val previousX = caretX
@@ -320,6 +324,7 @@ class TextInputHandler(
     private fun clearSelection() {
         selection = caret
         selectionWidth = 0f
+        selectionStartX = 0f
     }
 
     private fun selectWord() {
