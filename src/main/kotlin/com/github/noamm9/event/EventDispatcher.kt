@@ -1,8 +1,8 @@
 package com.github.noamm9.event
 
-import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.impl.*
+import com.github.noamm9.features.Shortcuts
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.WorldUtils
@@ -27,7 +27,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.entity.SkullBlockEntity
 
-object EventDispatcher: ISelfInit {
+object EventDispatcher: ISelfInit, Shortcuts {
     private var invTitle: Component? = null
     private var invWindowId: Int? = null
     private var invSlotCount: Int? = 0
@@ -47,17 +47,7 @@ object EventDispatcher: ISelfInit {
         ClientLifecycleEvents.CLIENT_STARTED.register { EventBus.post(GameStartEvent) }
         ClientLifecycleEvents.CLIENT_STOPPING.register { EventBus.post(ShutdownEvent) }
 
-        ClientEntityEvents.ENTITY_UNLOAD.register { entity, _ ->
-            EventBus.post(EntityUnloadEvent(entity))
-
-            // for items that are in the personal deletor
-            if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
-            val entity = entity as? ItemEntity ?: return@register
-            if (entity.item.hoverName.unformattedText !in DungeonUtils.dungeonItemDrops) return@register
-            if (mc.player !!.distanceTo(entity) > 6) return@register
-
-            EventBus.post(DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition()))
-        }
+        ClientEntityEvents.ENTITY_UNLOAD.register { entity, _ -> EventBus.post(EntityUnloadEvent(entity)) }
 
         register<MainThreadPacketReceivedEvent.Pre> {
             when (val packet = event.packet) {
@@ -79,11 +69,21 @@ object EventDispatcher: ISelfInit {
 
                 is ClientboundTakeItemEntityPacket -> {
                     if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
-                    val entity = mc.level?.getEntity(packet.itemId) as? ItemEntity ?: return@register
+                    val entity = level.getEntity(packet.itemId) as? ItemEntity ?: return@register
                     if (entity.item.hoverName.unformattedText !in DungeonUtils.dungeonItemDrops) return@register
-                    if (mc.player !!.distanceTo(entity) > 6) return@register
+                    if (player.distanceToSqr(entity) > 36) return@register
 
                     EventBus.post(DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition()))
+                }
+
+                is ClientboundRemoveEntitiesPacket -> {
+                    if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
+                    event.packet.entityIds.forEach { id ->
+                        val entity = level.getEntity(id) as? ItemEntity ?: return@forEach
+                        if (entity.item.hoverName.unformattedText !in DungeonUtils.dungeonItemDrops) return@forEach
+                        if (entity.distanceToSqr(player) > 36) return@forEach
+                        EventBus.post(DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition()))
+                    }
                 }
             }
         }
@@ -111,11 +111,10 @@ object EventDispatcher: ISelfInit {
                 is ClientboundContainerSetContentPacket -> {
                     if (packet.containerId != invWindowId) return@register
                     val slotCount = invSlotCount ?: return@register
-                    val con = mc.player?.containerMenu ?: return@register
 
                     for (i in packet.items.indices) {
                         if (i !in 0 until slotCount) continue
-                        val item = con.items.getOrNull(i) ?: continue
+                        val item = player.containerMenu.items.getOrNull(i) ?: continue
                         invItems?.set(i, item)
                     }
 
@@ -126,8 +125,7 @@ object EventDispatcher: ISelfInit {
                     if (packet.containerId != invWindowId) return@register
                     val slotCount = invSlotCount ?: return@register
                     if (packet.slot !in 0 until slotCount) return@register
-                    val con = mc.player?.containerMenu ?: return@register
-                    val item = con.items.getOrNull(packet.slot) ?: return@register
+                    val item = player.containerMenu.items.getOrNull(packet.slot) ?: return@register
 
                     invItems?.set(packet.slot, item)
                     checkInvAndPost(packet.slot)
@@ -151,7 +149,7 @@ object EventDispatcher: ISelfInit {
                         Blocks.CHEST, Blocks.TRAPPED_CHEST -> SecretType.CHEST
                         Blocks.LEVER -> SecretType.LEVER
                         Blocks.PLAYER_HEAD -> {
-                            when ((mc.level?.getBlockEntity(pos) as? SkullBlockEntity)?.ownerProfile?.partialProfile()?.id.toString()) {
+                            when ((level.getBlockEntity(pos) as? SkullBlockEntity)?.ownerProfile?.partialProfile()?.id.toString()) {
                                 in DungeonUtils.WITHER_ESSENCE -> SecretType.WITHER_ESSENCE
                                 in DungeonUtils.REDSTONE_KEY -> SecretType.REDSTONE_KEY
                                 else -> return@register
@@ -178,8 +176,8 @@ object EventDispatcher: ISelfInit {
         val title = invTitle ?: return
         val winId = invWindowId ?: return
         val slotCount = invSlotCount ?: return
-        val items = invItems?.let(::HashMap) ?: return
         if (lastIndex != slotCount - 1) return
+        val items = invItems?.let(::HashMap) ?: return
 
         EventBus.post(ContainerFullyOpenedEvent(title, winId, slotCount, items))
         resetInventory()
