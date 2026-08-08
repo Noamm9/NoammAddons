@@ -45,7 +45,9 @@ enum class TerminalType(val slotCount: Int) {
 
         val clickedSlots = mutableSetOf<Int>()
         var clickedSlot: Pair<Int, Int>? = null
-        val specialItems = BuiltInRegistries.ITEM.filter { it.components().has(DataComponents.ENCHANTMENT_GLINT_OVERRIDE) }
+        val specialItems = BuiltInRegistries.ITEM.filter {
+            it.components().has(DataComponents.ENCHANTMENT_GLINT_OVERRIDE)
+        } + Items.GOLDEN_APPLE
 
         fun fromName(windowTitle: String): TerminalType? {
             if (colorsRegex.matches(windowTitle)) return COLORS
