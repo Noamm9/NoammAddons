@@ -75,6 +75,10 @@ object ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
             window.render(context, mX, mY, index == configWindows.lastIndex)
         }
 
+        val cursor = configWindows.asReversed().firstNotNullOfOrNull { it.cursorAt(mX.toFloat(), mY.toFloat()) }
+        if (cursor == null) MouseHelper.resetCursor()
+        else MouseHelper.setCursor(cursor)
+
         TooltipManager.draw(context, Resolution.width, Resolution.height)
         Resolution.pop(context)
     }
