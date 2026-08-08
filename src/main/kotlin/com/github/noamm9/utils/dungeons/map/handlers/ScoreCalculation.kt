@@ -38,6 +38,7 @@ object ScoreCalculation: ISelfInit {
     private val completedRoomsRegex = Regex(" Completed Rooms: §d(?<count>\\d+)")
     private val dungeonClearedPattern = Regex("Cleared: (?<percentage>\\d+)% \\(\\d+\\)")
     private val timeElapsedPattern = Regex(" Elapsed: (?:(?<hrs>\\d+)h )?(?:(?<min>\\d+)m )?(?:(?<sec>\\d+)s)?")
+    private val mimicCharmRegex = Regex("charm You charmed a mimic and captured \\d+ shards from it\\.")
 
     private var bloodDone = false
     private var secretPercentage = 0.0
@@ -148,31 +149,54 @@ object ScoreCalculation: ISelfInit {
                     if (packet.overlay()) return@register
                     val msg = packet.content.unformattedText.lowercase()
 
-                    if (! princeKilled && princeMessages.any { msg.contains(it) }) {
-                        princeKilled = true
+                    if (! princeKilled) {
+                        if (msg == "a prince falls. +1 bonus score") {
+                            princeKilled = true
 
-                        if (DungeonListener.dungeonTeammatesNoSelf.isNotEmpty()) {
-                            WebSocket.send(S2CPacketDungeonPrince)
+                            if (DungeonListener.dungeonTeammatesNoSelf.isNotEmpty()) {
+                                WebSocket.send(S2CPacketDungeonPrince)
+                            }
+
+                            if (ScoreCalculator.enabled && ScoreCalculator.sendPrince.value) {
+                                ChatUtils.sendPartyMessage("Prince Killed")
+                            }
                         }
-
-                        if (ScoreCalculator.enabled && ScoreCalculator.sendPrince.value && msg == "a prince falls. +1 bonus score") {
-                            ChatUtils.sendPartyMessage("Prince Killed")
+                        else if (princeMessages.any { msg.contains(it) }) {
+                            princeKilled = true
                         }
                     }
 
-                    if ((LocationUtils.dungeonFloorNumber ?: 0) > 5 && ! LocationUtils.inBoss && mimicMessages.any { msg.contains(it) }) {
-                        mimicKilled = true
+                    if (! mimicKilled && (LocationUtils.dungeonFloorNumber ?: 0) > 5 && ! LocationUtils.inBoss) {
+                        if (mimicCharmRegex.matches(msg)) {
+                            mimicKilled = true
+
+                            if (DungeonListener.dungeonTeammatesNoSelf.isNotEmpty()) {
+                                WebSocket.send(S2CPacketDungeonMimic)
+                            }
+
+                            if (ScoreCalculator.enabled && ScoreCalculator.sendMimic.value) {
+                                ChatUtils.sendPartyMessage("Mimic Killed")
+                            }
+                        }
+                        else if (mimicMessages.any { msg.contains(it) }) {
+                            mimicKilled = true
+                        }
                     }
 
                     if (! batKilled && batMessages.any { msg.contains(it) }) {
-                        batKilled = true
+                        if (msg == "a bat has been slain. +1 bonus score") {
+                            batKilled = true
 
-                        if (DungeonListener.dungeonTeammatesNoSelf.isNotEmpty()) {
-                            WebSocket.send(S2CPacketDungeonBat)
+                            if (DungeonListener.dungeonTeammatesNoSelf.isNotEmpty()) {
+                                WebSocket.send(S2CPacketDungeonBat)
+                            }
+
+                            if (ScoreCalculator.enabled && ScoreCalculator.sendBat.value) {
+                                ChatUtils.sendPartyMessage("Bat Killed")
+                            }
                         }
-
-                        if (ScoreCalculator.enabled && ScoreCalculator.sendBat.value && msg == "a bat has slain. +1 bonus score") {
-                            ChatUtils.sendPartyMessage("Bat Killed")
+                        else if (batMessages.any { msg.contains(it) }) {
+                            batKilled = true
                         }
                     }
                 }
@@ -252,12 +276,10 @@ object ScoreCalculation: ISelfInit {
     private val princeMessages = setOf(
         "prince dead", "prince dead!", "\$skytils-dungeon-score-prince$",
         "prince killed", "prince slain", "prince killed!",
-        "a prince falls. +1 bonus score"
     )
 
     private val batMessages = setOf(
         "bat dead", "bat dead!", "\$skytils-dungeon-score-bat$",
-        "bat killed", "bat slain", "bat killed!",
-        "a bat has slain. +1 bonus score",
+        "bat killed", "bat slain", "bat killed!"
     )
 }
