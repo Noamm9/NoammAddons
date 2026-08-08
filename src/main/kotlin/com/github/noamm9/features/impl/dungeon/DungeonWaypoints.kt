@@ -1,6 +1,5 @@
 package com.github.noamm9.features.impl.dungeon
 
-import com.github.noamm9.NoammAddons
 import com.github.noamm9.commands.CommandBuilder
 import com.github.noamm9.config.PogObject
 import com.github.noamm9.event.impl.DungeonEvent
@@ -53,19 +52,19 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
     }
 
     private val waypoints = PogObject("dungeonWaypoints", mutableMapOf<String, MutableList<DungeonWaypoint>>())
-    private val currentRoomWaypoints = CopyOnWriteArrayList<DungeonWaypoint>()
+    private val currentWaypoints = CopyOnWriteArrayList<DungeonWaypoint>()
     private val currentSecrets = CopyOnWriteArrayList<SecretWaypoint>()
 
     override fun init() {
         register<DungeonEvent.RoomEvent.onEnter> {
-            currentRoomWaypoints.clear()
+            currentWaypoints.clear()
             currentSecrets.clear()
 
             val (roomName, roomCorner, roomRotation) = getRoomData() ?: return@register
 
             waypoints.get()[roomName]?.map { wp ->
                 wp.copy(pos = ScanUtils.getRealCoord(wp.pos, roomCorner, roomRotation))
-            }?.let { currentRoomWaypoints.addAll(it) }
+            }?.let { currentWaypoints.addAll(it) }
 
             if (! secretWaypoints.value) return@register
             if (event.room.mainRoom.state == RoomState.GREEN) return@register
@@ -84,6 +83,14 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
             }
 
             currentSecrets.addAll(activeSecrets)
+        }
+
+        register<DungeonEvent.BossEnterEvent> {
+            currentWaypoints.clear()
+            currentSecrets.clear()
+            ThreadUtils.scheduledTask(10) {
+                currentWaypoints.addAll(waypoints.get()["B${LocationUtils.dungeonFloorNumber}"].orEmpty())
+            }
         }
 
         register<DungeonEvent.SecretEvent> {
@@ -111,18 +118,12 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
         }
 
         register<RenderWorldEvent> {
-            val waypoints = if (LocationUtils.inBoss) {
-                currentRoomWaypoints.clear()
-                waypoints.get()["B${LocationUtils.dungeonFloorNumber}"].orEmpty()
-            }
-            else currentRoomWaypoints
+            if (! LocationUtils.inDungeon) return@register
 
-            for (wp in waypoints) {
-                event.ctx.renderBlock(
-                    wp.pos, wp.color, outline = wp.outline,
-                    fill = wp.filled, phase = wp.phase
-                )
-            }
+            for (wp in currentWaypoints) event.ctx.renderBlock(
+                wp.pos, wp.color, outline = wp.outline,
+                fill = wp.filled, phase = wp.phase
+            )
 
             if (! secretWaypoints.value) return@register
             if (ScanUtils.currentRoom?.mainRoom?.state == RoomState.GREEN) return@register
@@ -142,18 +143,19 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
 
         register<WorldChangeEvent> {
             currentSecrets.clear()
-            currentRoomWaypoints.clear()
+            currentWaypoints.clear()
         }
     }
 
     override fun CommandBuilder.command() {
         setName("ndw")
+        runs { ChatUtils.modMessage("&bUsage: /ndw <add|edit|remove|clear>") }
 
         literal("add") {
             runs {
                 val (roomName, roomCorner, rotation) = getRoomData() ?: return@runs
                 val lookingAt = PlayerUtils.getSelectionBlock() ?: return@runs ChatUtils.modMessage("§cYou must be looking at a block!")
-                if (currentRoomWaypoints.any { it.pos == lookingAt }) return@runs ChatUtils.modMessage("§cA waypoint already exists here. Use /ndw edit.")
+                if (currentWaypoints.any { it.pos == lookingAt }) return@runs ChatUtils.modMessage("§cA waypoint already exists here. Use /ndw edit.")
 
                 val relativePos = ScanUtils.getRelativeCoord(lookingAt, roomCorner, rotation)
                 GuiUtils.setScreen(DungeonWaypointScreen(roomName, lookingAt, relativePos))
@@ -164,29 +166,27 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
             runs {
                 val (roomName, roomCorner, rotation) = getRoomData() ?: return@runs
                 val lookingAt = PlayerUtils.getSelectionBlock() ?: return@runs ChatUtils.modMessage("§cYou must be looking at a block!")
-                val existing = (if (roomName.startsWith("B")) waypoints.get()[roomName] else currentRoomWaypoints)
-                    ?.firstOrNull { it.pos == lookingAt } ?: return@runs ChatUtils.modMessage("§cNo waypoint found at that block.")
+                val existing = currentWaypoints.find { it.pos == lookingAt } ?: return@runs ChatUtils.modMessage("§cNo waypoint found at that block.")
 
                 val relativePos = ScanUtils.getRelativeCoord(lookingAt, roomCorner, rotation)
-                NoammAddons.mc.setScreen(DungeonWaypointScreen(roomName, lookingAt, relativePos, existing))
+                GuiUtils.setScreen(DungeonWaypointScreen(roomName, lookingAt, relativePos, existing))
             }
         }
 
         literal("remove") {
             runs {
                 val (roomName, roomCorner, rotation) = getRoomData() ?: return@runs
-                val playerPos = player.blockPosition()
+                val lookingAt = PlayerUtils.getSelectionBlock() ?: return@runs ChatUtils.modMessage("§cYou must be looking at a block!")
                 val waypoints = waypoints.get()
 
-                val closest = (if (roomName.startsWith("B")) waypoints[roomName] else currentRoomWaypoints)?.find {
-                    it.pos.distSqr(playerPos) >= 25
-                } ?: return@runs ChatUtils.modMessage("§cNo waypoints found in this room.")
+                val closest = (if (roomName.startsWith("B")) waypoints[roomName] else currentWaypoints)?.find { it.pos == lookingAt }
+                    ?: return@runs ChatUtils.modMessage("§cNo waypoints found in this room.")
 
                 val relativePosToRemove = ScanUtils.getRelativeCoord(closest.pos, roomCorner, rotation)
                 val roomList = waypoints.getOrDefault(roomName, emptyList()).toMutableList()
                 if (roomList.removeIf { it.pos == relativePosToRemove }) {
                     waypoints[roomName] = roomList
-                    currentRoomWaypoints.remove(closest)
+                    currentWaypoints.remove(closest)
                     ChatUtils.modMessage("§aWaypoint removed.")
                 }
                 else ChatUtils.modMessage("§cError syncing config.")
@@ -196,9 +196,9 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
         literal("clear") {
             runs {
                 val (roomName, _, _) = getRoomData() ?: return@runs
-                if (currentRoomWaypoints.isEmpty()) return@runs ChatUtils.modMessage("§cNo waypoints set for this room.")
+                if (currentWaypoints.isEmpty()) return@runs ChatUtils.modMessage("§cNo waypoints set for this room.")
                 waypoints.get().remove(roomName)
-                currentRoomWaypoints.clear()
+                currentWaypoints.clear()
                 ChatUtils.modMessage("§aAll waypoints cleared for room: $roomName")
             }
         }
@@ -241,7 +241,7 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
             mutableList
         }
 
-        currentRoomWaypoints.removeIf { it.pos == absPos }
-        currentRoomWaypoints.add(absWaypoint)
+        currentWaypoints.removeIf { it.pos == absPos }
+        currentWaypoints.add(absWaypoint)
     }
 }
