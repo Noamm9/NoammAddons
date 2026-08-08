@@ -127,7 +127,7 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
     }
 
     // Shunting Yard Algorithm
-    // This shit is less stable than I am
+    // This is less stable than I am
     private fun evaluateExpression(expr: String): Double? {
         if (expr.isBlank()) return null
         if (expr.none { it.isDigit() }) return null
