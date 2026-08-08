@@ -18,8 +18,10 @@ import java.awt.Color
  */
 @Suppress("UNNECESSARY_SAFE_CALL") // mc.levelRenderer is null at game init
 object LavaToWater: Feature("Replaces lava with the water texture") {
-    private val colorTint by ToggleSetting("Color Tint", false)
-    private val tintColor by ColorSetting("Tint Color", Color(63, 118, 228), false).showIf { colorTint.value }
+    @JvmStatic val colorTint by ToggleSetting("Color Tint", false)
+    @JvmStatic val tintColor by ColorSetting("Tint Color", Color(63, 118, 228), false).showIf { colorTint.value }
+    @JvmStatic val hideFog by ToggleSetting("Hide fog", true).withDescription("Removes the lava fog")
+
     override fun init() = configSettings.forEach { it.onChange { if (enabled) mc.levelRenderer?.allChanged() } }
 
     override fun toggle() {
@@ -34,12 +36,12 @@ object LavaToWater: Feature("Replaces lava with the water texture") {
         val waterModel = self.get(Fluids.WATER.defaultFluidState())
 
         if (! colorTint.value) cir.setReturnValue(waterModel)
-        else cir.setReturnValue(FluidModel(
+        else cir.returnValue = FluidModel(
             waterModel.layer(),
             waterModel.stillMaterial(),
             waterModel.flowingMaterial(),
             waterModel.overlayMaterial(),
             BlockTintSources.constant(tintColor.value.rgb, tintColor.value.rgb)
-        ))
+        )
     }
 }

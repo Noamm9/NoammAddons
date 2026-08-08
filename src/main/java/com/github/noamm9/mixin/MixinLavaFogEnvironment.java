@@ -20,14 +20,21 @@ public abstract class MixinLavaFogEnvironment {
 
     @Inject(method = "setupFog", at = @At("HEAD"), cancellable = true)
     private void hookSetupFog(FogData fog, Camera camera, ClientLevel level, float renderDistance, DeltaTracker deltaTracker, CallbackInfo ci) {
-        if (!LavaToWater.INSTANCE.enabled) return;
-        WATER_FOG.setupFog(fog, camera, level, renderDistance, deltaTracker);
+        if (! LavaToWater.INSTANCE.enabled || ! LavaToWater.getHideFog().getValue()) return;
+        fog.color.set(fog.color.x, fog.color.y, fog.color.z, 0f);
+        fog.environmentalStart = renderDistance;
+        fog.environmentalEnd = renderDistance;
         ci.cancel();
     }
 
     @Inject(method = "getBaseColor", at = @At("HEAD"), cancellable = true)
     private void hookGetBaseColor(ClientLevel level, Camera camera, int renderDistance, float partialTicks, CallbackInfoReturnable<Integer> cir) {
-        if (!LavaToWater.INSTANCE.enabled) return;
-        cir.setReturnValue(WATER_FOG.getBaseColor(level, camera, renderDistance, partialTicks));
+        if (! LavaToWater.INSTANCE.enabled) return;
+        int color;
+
+        if (LavaToWater.getColorTint().getValue()) color = LavaToWater.getTintColor().getValue().getRGB();
+        else color = WATER_FOG.getBaseColor(level, camera, renderDistance, partialTicks);
+
+        cir.setReturnValue(color);
     }
 }
