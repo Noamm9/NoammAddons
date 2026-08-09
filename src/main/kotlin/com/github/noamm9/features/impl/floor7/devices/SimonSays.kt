@@ -26,6 +26,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.ButtonBlock
+import net.minecraft.world.phys.Vec3
 import java.awt.Color
 import java.util.*
 
@@ -60,7 +61,9 @@ object SimonSays: Feature("Simon Says Solver") {
 
     private val buttonCheckPos = BlockPos(110, 120, 93)
     private val startButton = BlockPos(110, 121, 91)
+    private val deviceCenter = BlockPos(110, 121, 93).toVec().add(0.5, 0.5, 0.5)
 
+    private val lastKnownPositions = HashMap<String, Vec3>()
     private val solution = ArrayList<SSButton>()
     private var skipOver = false
     private var lastClick = 0L
@@ -80,7 +83,7 @@ object SimonSays: Feature("Simon Says Solver") {
         ) { ctx, example ->
             val displayedStage = if (example) 3 else stage
             val color = ColorUtils.colorCodeByPercent(displayedStage, 5)
-            val text = "&7Simon Says: $color$displayedStage&7/&a$5"
+            val text = "&7Simon Says: $color$displayedStage&7/&a5"
 
             ctx.drawString(text, 0, 0)
             text.width().toFloat() to 9f
@@ -89,6 +92,11 @@ object SimonSays: Feature("Simon Says Solver") {
         register<WorldChangeEvent> {
             resetSolver()
             reset()
+        }
+
+        register<TickEvent.Start> {
+            if (LocationUtils.F7Phase != 3) return@register
+            level.players().forEach { lastKnownPositions[it.gameProfile.name] = it.position() }
         }
 
         //#if CHEAT
@@ -187,10 +195,14 @@ object SimonSays: Feature("Simon Says Solver") {
                 return@register
             }
 
-            val (_, _, type, completedStr, _) = deviceRegex.find(msg)?.destructured ?: return@register
+            val (name, _, type, completedStr, _) = deviceRegex.find(msg)?.destructured ?: return@register
             val completed = completedStr.toIntOrNull() ?: 0
 
-            if (type == "device") resetSolver()
+            if (type == "device") {
+                val position = level.players().find { it.gameProfile.name == name }?.position() ?: lastKnownPositions[name]
+                if (position != null && position.distanceToSqr(deviceCenter) <= 25) resetSolver()
+            }
+
             if (! serverTickListener.isRegistered()) return@register
 
             when (type) {
@@ -252,6 +264,7 @@ object SimonSays: Feature("Simon Says Solver") {
 
     private fun reset() {
         serverTickListener.unregister()
+        lastKnownPositions.clear()
         thingsDone = 0
         ticks = 0
         canBreak = false
