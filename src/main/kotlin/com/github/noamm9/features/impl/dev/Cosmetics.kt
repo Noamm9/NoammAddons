@@ -67,6 +67,7 @@ object Cosmetics: Feature(toggled = true) {
         if (! enabled) return
         if (avatar !is AbstractClientPlayer) return
         state.setData(GAME_PROFILE_KEY, avatar.gameProfile)
+        state.setData(SNEAKING_KEY, avatar.isCrouching)
     }
 
     @JvmStatic
@@ -92,4 +93,5 @@ object Cosmetics: Feature(toggled = true) {
 
     fun cosmeticDataFor(uuid: UUID) = if (::cosmeticPeople.isInitialized) cosmeticPeople[uuid] else null
     val GAME_PROFILE_KEY = RenderStateDataKey.create<GameProfile> { "${NoammAddons.MOD_ID}:game_profile" }
+    val SNEAKING_KEY = RenderStateDataKey.create<Boolean> { "${NoammAddons.MOD_ID}:sneaking" }
 }

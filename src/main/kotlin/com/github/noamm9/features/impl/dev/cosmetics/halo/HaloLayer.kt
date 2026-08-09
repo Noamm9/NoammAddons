@@ -4,6 +4,7 @@ import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.features.impl.dev.Cosmetics
 import com.github.noamm9.features.impl.dev.Cosmetics.GAME_PROFILE_KEY
+import com.github.noamm9.features.impl.dev.Cosmetics.SNEAKING_KEY
 import com.github.noamm9.features.impl.dev.Cosmetics.showHalo
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.model.player.PlayerModel
@@ -36,7 +37,7 @@ class HaloLayer(parent: RenderLayerParent<AvatarRenderState, PlayerModel>): Rend
         if (! data.hasHalo) return
 
         val bobOffset = (sin(System.currentTimeMillis() % 2000L / 2000f * (Math.PI.toFloat() * 2f)) + 1f) / 2f * 0.08f
-        val offset = if (mc.player?.isCrouching == true) 0.5f else 0.7f
+        val offset = if (state.getData(SNEAKING_KEY) == true) 0.5f else 0.7f
 
         poseStack.pushPose()
         poseStack.translate(0f, - offset, 0f)
