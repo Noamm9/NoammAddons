@@ -183,7 +183,7 @@ object ScoreCalculation: ISelfInit {
                         }
                     }
 
-                    if (! batKilled && batMessages.any { msg.contains(it) }) {
+                    if (! batKilled) {
                         if (msg == "a bat has been slain. +1 bonus score") {
                             batKilled = true
 
