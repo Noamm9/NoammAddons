@@ -22,7 +22,7 @@ object SalvageOverlay: Feature("Highlights salvageable dungeon gear.") {
             if (stack in PlayerUtils.getArmor()) return@register
             if (stack.hoverName.string.contains("✪")) return@register
             val statBoost = stack.customData.getInt("baseStatBoostPercentage").getOrNull() ?: return@register
-            event.slot.highlight(event.context, if (statBoost == 50) base50.value else under50.value)
+            event.slot.highlight(event.context, if (statBoost == 50) base50.value else under50.value, 1)
         }
     }
 }

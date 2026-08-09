@@ -112,7 +112,7 @@ object PetDisplay: Feature("Pet Features") {
             if (! enabled) return@register
             if (! activePetHighlight.value) return@register
             if (event.slot.index != selectedPetSlot) return@register
-            event.slot.highlight(event.context, petHighlightColor.value)
+            event.slot.highlight(event.context, petHighlightColor.value, 1)
         }
 
         register<PacketEvent.Sent> {

@@ -1,6 +1,9 @@
 package com.github.noamm9.utils.render
 
 import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.event.EventBus.register
+import com.github.noamm9.event.impl.RenderOverlayEvent
+import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.NumbersUtils.minus
 import com.github.noamm9.utils.NumbersUtils.plus
@@ -19,9 +22,24 @@ import java.awt.Color
 import kotlin.math.*
 
 
-object Render2D {
-    // todo fix slot being highlighted by more than 1 src
-    fun Slot.highlight(ctx: GuiGraphicsExtractor, color: Color) = ctx.drawRect(x, y, 16, 16, color)
+object Render2D: ISelfInit {
+    private val slotHighlights = mutableMapOf<Long, Int>()
+
+    override fun init() {
+        register<RenderOverlayEvent> { slotHighlights.clear() }
+    }
+
+    fun Slot.highlight(ctx: GuiGraphicsExtractor, color: Color, priority: Int = 0) {
+        if (checkSlot(x, y, priority)) ctx.fill(x, y, x + 16, y + 16, color.rgb)
+    }
+
+    fun checkSlot(x: Int, y: Int, priority: Int): Boolean {
+        val key = (x.toLong() shl 32) or (y.toLong() and 0xFFFFFFFFL) // hash
+        val claimed = slotHighlights[key]
+        if (claimed != null && claimed >= priority) return false
+        slotHighlights[key] = priority
+        return true
+    }
 
     fun GuiGraphicsExtractor.drawTexture(texture: Identifier, x: Number, y: Number, width: Number, height: Number, color: Color = Color.WHITE) {
         blit(RenderPipelines.GUI_TEXTURED, texture, x.toInt(), y.toInt(), 0f, 0f, width.toInt(), height.toInt(), width.toInt(), height.toInt(), color.rgb)

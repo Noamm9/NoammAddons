@@ -10,13 +10,16 @@ import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.items.ItemRarity
 import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.render.Render2D.checkSlot
 import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawTexture
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.ItemStack
-import java.awt.Color
 
+/**
+ * @see com.github.noamm9.mixin.MixinGui
+ */
 object FEAT_ItemRarity: Feature(name = "Item Rarity", description = "Draws the rarity of item behind the slot.") {
     @JvmStatic val drawOnHotbar by ToggleSetting("Draw on Hotbar", true)
     private val rarityOpacity by SliderSetting("Rarity Opacity", 30f, 10f, 100f, 1f)
@@ -30,9 +33,6 @@ object FEAT_ItemRarity: Feature(name = "Item Rarity", description = "Draws the r
         }
     }
 
-    /**
-     * @see com.github.noamm9.mixin.MixinGui
-     */
     @JvmStatic
     fun onSlotDraw(ctx: GuiGraphicsExtractor, stack: ItemStack?, x: Int, y: Int) {
         if (! LocationUtils.inSkyblock) return
@@ -40,10 +40,10 @@ object FEAT_ItemRarity: Feature(name = "Item Rarity", description = "Draws the r
 
         val rarity = ItemUtils.getRarity(stack)
         if (rarity == ItemRarity.NONE) return
-        val rarityColor = if (colorStyle.value == 1) getHypixelColor(rarity) else rarity.color
+        val rarityColor = if (colorStyle.value == 1) ItemRarity.getHypixelColor(rarity) else rarity.color
         val color = rarityColor.withAlpha(rarityOpacity.value / 100)
 
-        when (style.value) {
+        if (checkSlot(x, y, - 1)) when (style.value) {
             0 -> ctx.fill(x, y, x + 16, y + 16, color.rgb)
             1 -> ctx.drawBorder(x, y, 16, 16, color)
             2 -> {
@@ -53,18 +53,5 @@ object FEAT_ItemRarity: Feature(name = "Item Rarity", description = "Draws the r
 
             3 -> ctx.drawTexture(circleTexture, x, y, 16, 16, color)
         }
-    }
-
-    private fun getHypixelColor(rarity: ItemRarity) = when (rarity) {
-        ItemRarity.COMMON -> Color(0xFFFFFF)
-        ItemRarity.UNCOMMON -> Color(0x21FF2A)
-        ItemRarity.RARE -> Color(0x459BFF)
-        ItemRarity.EPIC -> Color(0xA335EE)
-        ItemRarity.LEGENDARY -> Color(0xFFA216)
-        ItemRarity.MYTHIC -> Color(0xFF55FF)
-        ItemRarity.DIVINE, ItemRarity.SUPREME -> Color(0x55FFFF)
-        ItemRarity.ULTIMATE, ItemRarity.VERY_SPECIAL -> Color(0xD13228)
-        ItemRarity.SPECIAL -> Color(0xFF5555)
-        ItemRarity.NONE -> rarity.color
     }
 }

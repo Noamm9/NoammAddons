@@ -122,7 +122,7 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
 
         register<ContainerEvent.Render.Slot.Pre> {
             if (! matches(event.slot.item)) return@register
-            event.slot.highlight(event.context, highlightColor.value)
+            event.slot.highlight(event.context, highlightColor.value, 3)
         }
     }
 

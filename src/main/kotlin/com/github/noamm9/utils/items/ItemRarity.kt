@@ -38,5 +38,18 @@ enum class ItemRarity(val baseColor: ChatFormatting) {
         }
 
         fun byBaseColor(color: String) = entries.find { rarity -> rarity.baseColor.toString() == color }
+
+        fun getHypixelColor(rarity: ItemRarity) = when (rarity) {
+            COMMON -> Color(0xFFFFFF)
+            UNCOMMON -> Color(0x21FF2A)
+            RARE -> Color(0x459BFF)
+            EPIC -> Color(0xA335EE)
+            LEGENDARY -> Color(0xFFA216)
+            MYTHIC -> Color(0xFF55FF)
+            DIVINE, SUPREME -> Color(0x55FFFF)
+            ULTIMATE, VERY_SPECIAL -> Color(0xD13228)
+            SPECIAL -> Color(0xFF5555)
+            NONE -> rarity.color
+        }
     }
 }
