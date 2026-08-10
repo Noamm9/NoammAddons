@@ -17,6 +17,7 @@ import com.github.noamm9.utils.TabListUtils
 import com.github.noamm9.utils.dungeons.enums.Blessing
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.dungeons.enums.Puzzle
+import com.github.noamm9.utils.dungeons.map.core.DoorType
 import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.core.RoomType
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
@@ -67,6 +68,14 @@ object DungeonListener: ISelfInit {
 
     var currentTime = 0L
     var doorKeys = 0
+    private var witherDoorKeys = 0
+    private var bloodDoorKeys = 0
+
+    fun hasDoorKey(type: DoorType) = when (type) {
+        DoorType.WITHER -> witherDoorKeys > 0
+        DoorType.BLOOD -> bloodDoorKeys > 0
+        else -> false
+    }
 
     override fun init() {
         register<MainThreadPacketReceivedEvent.Post>(EventPriority.HIGH) {
@@ -127,7 +136,7 @@ object DungeonListener: ISelfInit {
                     scope.launch { EventBus.post(DungeonEvent.RunEndedEvent) }
                 }
 
-                text == "§cThe §c§lBLOOD DOOR§c has been opened!" -> doorKeys --
+                text == "§cThe §c§lBLOOD DOOR§c has been opened!" -> { updateDoorKeys(DoorType.BLOOD, - 1) }
 
                 "§c ☠" in text && "reconnected" !in unformatted -> {
                     val match = deathRegex.find(unformatted) ?: return@register
@@ -164,12 +173,18 @@ object DungeonListener: ISelfInit {
                 else -> {
                     witherDoorOpenedRegex.find(unformatted)?.destructured?.let { (name) ->
                         lastDoorOpenner = dungeonTeammates.find { it.name == name }
-                        doorKeys --
+                        updateDoorKeys(DoorType.WITHER, - 1)
                         return@register
                     }
 
                     keyPickupRegex.find(text)?.destructured?.let { (num) ->
-                        doorKeys += num.toInt()
+                        val type = when {
+                            "WITHER door" in unformatted -> DoorType.WITHER
+                            "BLOOD DOOR" in unformatted -> DoorType.BLOOD
+                            else -> null
+                        }
+                        val amount = num.toInt()
+                        updateDoorKeys(type, amount)
                         return@register
                     }
                 }
@@ -198,6 +213,8 @@ object DungeonListener: ISelfInit {
             lastDoorOpenner = null
             currentTime = 0
             doorKeys = 0
+            witherDoorKeys = 0
+            bloodDoorKeys = 0
             Blessing.reset()
         }
 
@@ -206,6 +223,15 @@ object DungeonListener: ISelfInit {
             if (event.room.data.type != RoomType.BLOOD) return@register
             if (! event.newState.equalsOneOf(RoomState.DISCOVERED, RoomState.CLEARED, RoomState.GREEN)) return@register
             lastDoorOpenner = null
+        }
+    }
+
+    private fun updateDoorKeys(type: DoorType?, amount: Int) {
+        doorKeys += amount
+        when (type) {
+            DoorType.WITHER -> witherDoorKeys = (witherDoorKeys + amount).coerceAtLeast(0)
+            DoorType.BLOOD -> bloodDoorKeys = (bloodDoorKeys + amount).coerceAtLeast(0)
+            else -> Unit
         }
     }
 
