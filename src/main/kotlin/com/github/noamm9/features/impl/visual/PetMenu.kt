@@ -128,6 +128,11 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
             wheelPage = 0
             tempDisabled = false
         }
+
+        register<ContainerEvent.Open> {
+            if (! event.screen.title.unformattedText.matches(petMenuRegex)) return@register
+            tempDisabled = false
+        }
     }
 
     private fun renderWheel(ctx: GuiGraphicsExtractor, screen: AbstractContainerScreen<*>, vanillaMouseX: Int, vanillaMouseY: Int) {
