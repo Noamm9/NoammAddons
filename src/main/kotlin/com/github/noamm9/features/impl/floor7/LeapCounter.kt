@@ -20,6 +20,7 @@ import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.network.protocol.game.*
 import net.minecraft.world.phys.AABB
 import java.awt.Color
+import kotlin.math.min
 
 object LeapCounter: Feature("Shows how many players have leaped you") {
     private var currentSpot: REGION? = null
@@ -27,8 +28,9 @@ object LeapCounter: Feature("Shows how many players have leaped you") {
     override fun init() {
         hudElement("LeapCounter", centered = true) { ctx, e ->
             val region = if (e) REGION.HEE2_BOX else currentSpot ?: return@hudElement 0f to 0f
+            val max = region.maxCount.takeIf { it > 0 } ?: return@hudElement 0f to 0f
             val startFormat = if (region.maxCount - region.count <= 1) "§9" else "§4"
-            val str = "$startFormat${region.count}§9/${region.maxCount} Players Leaped"
+            val str = "$startFormat${region.count}§9/$max Players Leaped"
             ctx.drawCenteredString(str, 0, 0)
             str.width().toFloat() to 9f
         }
@@ -41,7 +43,7 @@ object LeapCounter: Feature("Shows how many players have leaped you") {
                 && packet !is ClientboundEntityPositionSyncPacket
             ) return@register
 
-            currentSpot = REGION.entries.find { it.box.contains(player.position()) && ! it.complated } ?: run {
+            currentSpot = REGION.entries.find { it.box.contains(player.position()) && ! it.completed } ?: run {
                 currentSpot = null
                 return@register
             }
@@ -79,7 +81,7 @@ object LeapCounter: Feature("Shows how many players have leaped you") {
         register<WorldChangeEvent> { REGION.reset() }
     }
 
-    private enum class REGION(val box: AABB, val maxCount: Int, val check: (x: Double, y: Double, z: Double) -> Boolean) {
+    private enum class REGION(val box: AABB, private val _maxCount: Int, val check: (x: Double, y: Double, z: Double) -> Boolean) {
         SS_BOX(aabb(106, 119, 92, 109, 121, 96), 3, { x, y, z -> LocationUtils.findP3Section(x, y, z) == 1 }),
         EE2_BOX(aabb(57, 108, 130, 59, 110, 132), 4, { x, y, z -> LocationUtils.findP3Section(x, y, z) == 2 }),
         HEE2_BOX(aabb(57, 132, 138, 62, 133, 140), 4, EE2_BOX.check),
@@ -88,8 +90,9 @@ object LeapCounter: Feature("Shows how many players have leaped you") {
         INCORE_BOX(CORE_BOX.box.move(.0, .0, 6.0), 4, { x, y, z -> aabb(68, 106, 54, 42, 155, 119).contains(x, y, z) }),
         RELIC_BOX(aabb(51.5, 3, 73.5, 57.5, 8, 79.5), 4, { _, y, _ -> LocationUtils.getPhase(y) == 5 });
 
+        val maxCount get() = min(DungeonListener.dungeonTeammatesNoSelf.size, _maxCount)
         private val leapedIds = mutableSetOf<Int>()
-        var complated = false
+        var completed = false
         val count get() = leapedIds.size
 
         fun updateCounter(id: Int, x: Double, y: Double, z: Double) {
@@ -97,13 +100,16 @@ object LeapCounter: Feature("Shows how many players have leaped you") {
             if (! check(x, y, z)) return
             leapedIds.add(id)
 
-            if (count >= maxCount) ThreadUtils.setTimeout(1000) {
-                complated = true
+            if (leapedIds.size >= maxCount) ThreadUtils.setTimeout(1000) {
+                completed = true
             }
         }
 
         companion object {
-            fun reset() = entries.forEach { it.leapedIds.clear() }
+            fun reset() = entries.forEach {
+                it.leapedIds.clear()
+                it.completed = false
+            }
         }
     }
 }
