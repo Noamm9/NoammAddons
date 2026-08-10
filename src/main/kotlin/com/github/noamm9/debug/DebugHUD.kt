@@ -1,16 +1,14 @@
-package com.github.noamm9.utils
+package com.github.noamm9.debug
 
 import com.github.noamm9.NoammAddons
-import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.features.impl.dungeon.LeapMenu
 import com.github.noamm9.features.impl.floor7.terminals.TerminalListener
+import com.github.noamm9.utils.PartyUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.Blessing
 import com.github.noamm9.utils.dungeons.enums.Puzzle
 import com.github.noamm9.utils.dungeons.map.core.RoomState
-import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner.roomSize
-import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner.startX
-import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner.startZ
+import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
@@ -99,10 +97,10 @@ object DebugHUD {
         if (! foundBlessing) draw(" §7No blessings active")
 
         draw("CORE: ${
-            mc.player?.position()?.let {
+            NoammAddons.mc.player?.position()?.let {
                 ScanUtils.getRoomGraf(it).let {
-                    val x = startX + it.first * (roomSize shr 1)
-                    val y = startZ + it.second * (roomSize shr 1)
+                    val x = DungeonScanner.startX + it.first * (DungeonScanner.roomSize shr 1)
+                    val y = DungeonScanner.startZ + it.second * (DungeonScanner.roomSize shr 1)
                     ScanUtils.getCore(x, y)
                 }
             }
@@ -176,7 +174,7 @@ object DebugHUD {
         draw("Is Leader: ${if (PartyUtils.isLeader()) "§aYES" else "§cNO"}")
 
         val leaderName = PartyUtils.partyLeader
-        val selfName = mc.player?.gameProfile?.name
+        val selfName = NoammAddons.mc.player?.gameProfile?.name
         draw("Party Leader: ${leaderName?.let { "§f$it" } ?: "§7None"}")
 
         y += 5
@@ -260,7 +258,7 @@ object DebugHUD {
             val itemStack = TerminalListener.currentItems[slot]
             if (itemStack != null && ! itemStack.isEmpty) {
                 graphics.item(itemStack, px + 1, py + 1)
-                graphics.itemDecorations(mc.font, itemStack, px + 1, py + 1)
+                graphics.itemDecorations(NoammAddons.mc.font, itemStack, px + 1, py + 1)
             }
         }
     }

@@ -1,4 +1,4 @@
-package com.github.noamm9.utils.render
+package com.github.noamm9.debug
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.EventBus
