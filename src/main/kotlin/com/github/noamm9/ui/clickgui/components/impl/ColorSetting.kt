@@ -51,7 +51,7 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
     }
 
     private fun updateHexText() {
-        hexText = if (withAlpha) String.format(Locale.US, "%02x%02x%02x%02x", value.alpha, value.red, value.green, value.blue)
+        hexText = if (withAlpha) String.format(Locale.US, "%02x%02x%02x%02x", value.red, value.green, value.blue, value.alpha)
         else String.format(Locale.US, "%02x%02x%02x", value.red, value.green, value.blue)
         hexText = hexText.uppercase()
     }
@@ -163,8 +163,13 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
         val req = if (withAlpha) 8 else 6
         if (hexText.length == req) catch {
             val longVal = hexText.toLong(16)
-            val c = if (withAlpha) Color((longVal and 0xFFFFFFFFL).toInt(), true)
-            else Color((longVal and 0xFFFFFFL).toInt())
+            val c = if (withAlpha) {
+                val r = ((longVal shr 24) and 0xFF).toInt()
+                val g = ((longVal shr 16) and 0xFF).toInt()
+                val b = ((longVal shr 8) and 0xFF).toInt()
+                val a = (longVal and 0xFF).toInt()
+                Color(r, g, b, a)
+            } else Color((longVal and 0xFFFFFFL).toInt())
 
             val hsb = Color.RGBtoHSB(c.red, c.green, c.blue, null)
             h = hsb[0]
