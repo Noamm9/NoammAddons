@@ -31,11 +31,7 @@ object CommandShortcuts: Feature("Create your own command shortcuts") {
     fun build(dispatcher: CommandDispatcher<FabricClientCommandSource>) {
         shortcuts.get().keys.forEach { key ->
             unregisterNode(dispatcher.root, key)
-            dispatcher.register(
-                ClientCommands.literal(key).then(
-                    ClientCommands.argument("arguments", StringArgumentType.greedyString())
-                )
-            )
+            dispatcher.register(ClientCommands.literal(key).then(ClientCommands.argument("arguments", StringArgumentType.greedyString())))
         }
     }
 
