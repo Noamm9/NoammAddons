@@ -1,11 +1,13 @@
 package com.github.noamm9.utils.dungeons.map.core
 
 import com.github.noamm9.features.impl.dungeon.map.MapConfig
+import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner.dungeonList
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonTree
 
 class DoorTile(override val x: Int, override val z: Int, var type: DoorType): Tile {
     override var state = RoomState.UNDISCOVERED
+    val aabb = aabb(x - 1, 69, z - 1, x + 2, 73, z + 2)
     var opened = false
 
     override fun getColor() = when {

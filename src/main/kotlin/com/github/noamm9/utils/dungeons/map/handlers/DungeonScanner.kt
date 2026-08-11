@@ -1,6 +1,7 @@
 package com.github.noamm9.utils.dungeons.map.handlers
 
 import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.init.types.ISelfInit
@@ -85,7 +86,7 @@ object DungeonScanner: ISelfInit {
 
             scanTile(wX, wZ, z, x, roofHeight)?.let { tile ->
                 dungeonList[z * 11 + x] = tile
-                DungeonTree.clearCache()
+                EventBus.post(DungeonEvent.TileScannedEvent(tile))
 
                 if (DungeonListener.dungeonTeammatesNoSelf.isEmpty()) return@let
 
@@ -150,17 +151,9 @@ object DungeonScanner: ISelfInit {
 
             // Doorway between rooms
             roofHeight.equalsOneOf(73, 74, 81, 82) -> {
-                val type = when (WorldUtils.getBlockAt(x, 69, z)) {
-                    Blocks.COAL_BLOCK -> {
-                        witherDoors ++
-                        DoorType.WITHER
-                    }
-
-                    Blocks.INFESTED_CHISELED_STONE_BRICKS -> DoorType.ENTRANCE
-                    Blocks.RED_TERRACOTTA -> DoorType.BLOOD
-                    else -> DoorType.NORMAL
-                }
-
+                val doorBlock = WorldUtils.getBlockAt(x, 69, z)
+                val type = DoorType.entries.find { it.source == doorBlock } ?: DoorType.NORMAL
+                if (type == DoorType.WITHER) witherDoors ++
                 DoorTile(x, z, type)
             }
 

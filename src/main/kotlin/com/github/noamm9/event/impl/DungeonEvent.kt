@@ -4,6 +4,7 @@ import com.github.noamm9.event.Event
 import com.github.noamm9.utils.dungeons.DungeonPlayer
 import com.github.noamm9.utils.dungeons.enums.SecretType
 import com.github.noamm9.utils.dungeons.map.core.RoomState
+import com.github.noamm9.utils.dungeons.map.core.Tile
 import com.github.noamm9.utils.dungeons.map.core.UniqueRoom
 import net.minecraft.core.BlockPos
 
@@ -14,6 +15,8 @@ abstract class DungeonEvent: Event(false) {
 
         class onStateChange(room: UniqueRoom, val oldState: RoomState, val newState: RoomState, val roomPlayers: List<DungeonPlayer>): RoomEvent(room)
     }
+
+    class TileScannedEvent(val tile: Tile): DungeonEvent()
 
     class SecretEvent(val type: SecretType, val pos: BlockPos): DungeonEvent()
 
