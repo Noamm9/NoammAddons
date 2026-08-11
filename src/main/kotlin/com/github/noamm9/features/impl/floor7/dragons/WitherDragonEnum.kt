@@ -32,7 +32,8 @@ enum class WitherDragonEnum(
     var sprayedTime: Long? = null,
     var spawnedTime: Long = 0,
     var arrowsHit: Int = 0,
-    var health: Float = 1_000_000_000f
+    var health: Float = 1_000_000_000f,
+    var offScoreboardTicks: Int = 0
 ) {
     Red(vec(27, 14, 59), aabb(14.5, 13, 45.5, 39.5, 28, 70.5), 'c', Color(ChatFormatting.RED.color !!), "Power Dragon", 24.0 .. 30.0, 56.0 .. 62.0, 50, BlockPos(32, 19, 59)),
     Orange(vec(85, 14, 56), aabb(72, 8, 47, 102, 28, 77), '6', Color(ChatFormatting.GOLD.color !!), "Flame Dragon", 82.0 .. 88.0, 53.0 .. 59.0, 62, BlockPos(80, 19, 56)),
@@ -51,6 +52,7 @@ enum class WitherDragonEnum(
         spawnedTime = DungeonListener.currentTime
         sprayedTime = null
         arrowsHit = 0
+        offScoreboardTicks = 0
 
         if (DungeonListener.dungeonTeammatesNoSelf.isNotEmpty()) {
             WebSocket.send(S2CPacketM7Dragon(S2CPacketM7Dragon.DragonEvent.SPAWN, this))
@@ -81,11 +83,14 @@ enum class WitherDragonEnum(
     }
 
     fun updateEntity(id: Int, hard: Boolean = false) {
-        if (! hard) entity = (mc.level?.getEntity(id) as? EnderDragon) ?: return
-        else {
+        if (hard) {
             entityId = id
             state = WitherDragonState.ALIVE
         }
+        else {
+            entity = (mc.level?.getEntity(id) as? EnderDragon) ?: return
+        }
+        offScoreboardTicks = 0
     }
 
     companion object {
@@ -101,6 +106,7 @@ enum class WitherDragonEnum(
                 it.sprayedTime = null
                 it.spawnedTime = 0
                 it.health = 1_000_000_000f
+                it.offScoreboardTicks = 0
             }
             dragonSpawnCount = 0
         }
