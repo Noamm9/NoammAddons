@@ -2,108 +2,85 @@ package com.github.noamm9.features.impl.dungeon
 
 //#if CHEAT
 
+import com.github.noamm9.event.impl.DungeonEvent
+import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
+import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.WorldUtils
-import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.core.DoorTile
 import com.github.noamm9.utils.dungeons.map.core.DoorType
-import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
+import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.core.BlockPos
+import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket
+import net.minecraft.util.Mth.floor
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockState
 
 object IHateDoors: Feature("Replaces Wither and Blood doors with stained glass.") {
-    private val glassOptions = Glass.entries.map(Glass::displayName)
-    private val stainedGlassBlocks = Glass.entries.mapTo(mutableSetOf(), Glass::block)
+    private val glassEntrance by ToggleSetting("Glass Entrance Door").section("Doors")
+    private val glassWither by ToggleSetting("Glass Wither Door")
+    private val glassBlood by ToggleSetting("Glass Blood Door")
 
-    private val witherGlass by DropdownSetting("Wither Door Glass", Glass.BLACK.ordinal, glassOptions).section("Wither Door")
-    private val witherKeyGlass by DropdownSetting("Wither Key Glass", Glass.LIME.ordinal, glassOptions).withDescription("Glass color after a Wither Key has been picked up.")
+    private val entranceGlass by DropdownSetting("Entrance Door Glass", Glass.WHITE.ordinal, Glass.options).section("Glass Color").showIf { glassEntrance.value }
+    private val witherGlass by DropdownSetting("Wither Door Glass", Glass.BLACK.ordinal, Glass.options).showIf { glassWither.value }
+    private val witherKeyGlass by DropdownSetting("Wither Key Glass", Glass.LIME.ordinal, Glass.options).showIf { glassWither.value }.withDescription("Glass color after a Wither Key has been picked up.")
+    private val bloodGlass by DropdownSetting("Blood Door Glass", Glass.RED.ordinal, Glass.options).showIf { glassBlood.value }
+    private val bloodKeyGlass by DropdownSetting("Blood Key Glass", Glass.LIME.ordinal, Glass.options).showIf { glassBlood.value }.withDescription("Glass color after a Blood Key has been picked up.")
 
-    private val bloodGlass by DropdownSetting("Blood Door Glass", Glass.RED.ordinal, glassOptions).section("Blood Door")
-    private val bloodKeyGlass by DropdownSetting("Blood Key Glass", Glass.LIME.ordinal, glassOptions).withDescription("Glass color after a Blood Key has been picked up.")
-
-    private val replacedBlocks = mutableMapOf<BlockPos, ReplacedDoorBlock>()
-    private val cursor = BlockPos.MutableBlockPos()
+    private val doors = mutableMapOf<DoorTile, Iterable<BlockPos>>()
 
     override fun init() {
-        register<WorldChangeEvent> { replacedBlocks.clear() }
-
+        register<WorldChangeEvent> { doors.clear() }
         register<TickEvent.Start> {
             if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
-
-            updateBlocks()
-
-            for (tile in DungeonScanner.dungeonList) {
-                if (tile !is DoorTile) continue
-                val sourceBlock = tile.type.sourceBlock ?: continue
-                val glassState = tile.type.glassState ?: continue
-
-                for (x in (tile.x - 1) .. (tile.x + 1)) {
-                    for (y in 69 until 73) {
-                        for (z in (tile.z - 1) .. (tile.z + 1)) {
-                            cursor.set(x, y, z)
-                            val state = WorldUtils.getStateAt(cursor)
-                            if (! state.`is`(sourceBlock)) continue
-
-                            replacedBlocks.putIfAbsent(cursor.immutable(), ReplacedDoorBlock(state, tile.type))
-                            WorldUtils.setBlockAt(cursor, glassState)
-                        }
-                    }
-                }
+            doors.forEach { (tile, blocks) ->
+                val glassState = tile.type.getGlass() ?: return@forEach
+                val currentBlock = WorldUtils.getBlockAt(tile.x, 69, tile.z)
+                if (currentBlock.equalsOneOf(Blocks.AIR, Blocks.BARRIER)) return@forEach
+                if (tile.type.source == glassState.block) return@forEach
+                for (pos in blocks) WorldUtils.setBlockAt(pos, glassState)
             }
         }
-    }
 
-    override fun onDisable() {
-        super.onDisable()
+        register<DungeonEvent.TileScannedEvent> {
+            val door = event.tile as? DoorTile ?: return@register
+            val glassState = door.type.getGlass() ?: return@register
 
-        for ((pos, replacedBlock) in replacedBlocks) {
-            if (WorldUtils.getBlockAt(pos) !in stainedGlassBlocks) continue
-            WorldUtils.setBlockAt(pos, replacedBlock.originalState)
+            doors[door] = BlockPos.betweenClosed(
+                floor(door.aabb.minX), floor(door.aabb.minY), floor(door.aabb.minZ),
+                floor(door.aabb.maxX) - 1, floor(door.aabb.maxY) - 1, floor(door.aabb.maxZ) - 1
+            ).also { for (pos in it) WorldUtils.setBlockAt(pos, glassState) }
         }
-        replacedBlocks.clear()
-    }
 
-    private fun updateBlocks() {
-        val iterator = replacedBlocks.iterator()
-        while (iterator.hasNext()) {
-            val (pos, replacedBlock) = iterator.next()
-            val glassState = replacedBlock.type.glassState ?: continue
-            val currentBlock = WorldUtils.getBlockAt(pos)
-
-            if (currentBlock != replacedBlock.originalState.block && currentBlock !in stainedGlassBlocks) {
-                iterator.remove()
-                continue
-            }
-
-            if (currentBlock != glassState.block) WorldUtils.setBlockAt(pos, glassState)
+        register<MainThreadPacketReceivedEvent.Pre> {
+            if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
+            val packet = event.packet as? ClientboundBlockUpdatePacket ?: return@register
+            if (packet.blockState.block.equalsOneOf(Blocks.BARRIER, Blocks.AIR)) return@register
+            val door = doors.entries.find { it.value.any { pos -> pos == packet.pos } }?.key ?: return@register
+            if (packet.blockState.block != door.type.source) return@register
+            WorldUtils.setBlockAt(packet.pos, door.type.getGlass() ?: return@register)
+            event.isCanceled = true
         }
     }
 
-    private val DoorType.sourceBlock: Block?
-        get() = when (this) {
-            DoorType.WITHER -> Blocks.COAL_BLOCK
-            DoorType.BLOOD -> Blocks.RED_TERRACOTTA
+    fun DoorType.getGlass(): BlockState? {
+        val glassIndex = when (this) {
+            DoorType.ENTRANCE -> if (glassEntrance.value) entranceGlass else null
+            DoorType.WITHER -> if (! glassWither.value) null else if (keys > 0) witherKeyGlass else witherGlass
+            DoorType.BLOOD -> if (! glassBlood.value) null else if (keys > 0) bloodKeyGlass else bloodGlass
             else -> null
-        }
+        }?.value ?: return null
 
-    private val DoorType.glassState: BlockState?
-        get() = when (this) {
-            DoorType.WITHER -> (if (DungeonListener.hasDoorKey(this)) witherKeyGlass else witherGlass).glassState
-            DoorType.BLOOD -> (if (DungeonListener.hasDoorKey(this)) bloodKeyGlass else bloodGlass).glassState
-            else -> null
-        }
+        return Glass.entries[glassIndex].state
+    }
 
-    private val DropdownSetting.glassState get() = Glass.entries[value].state
-
-    private data class ReplacedDoorBlock(val originalState: BlockState, val type: DoorType)
-
-    private enum class Glass(val displayName: String, val block: Block) {
+    private enum class Glass(val displayName: String, block: Block) {
+        DEFAULT("Default", Blocks.GLASS),
         WHITE("White", Blocks.WHITE_STAINED_GLASS),
         ORANGE("Orange", Blocks.ORANGE_STAINED_GLASS),
         MAGENTA("Magenta", Blocks.MAGENTA_STAINED_GLASS),
@@ -121,7 +98,11 @@ object IHateDoors: Feature("Replaces Wither and Blood doors with stained glass."
         RED("Red", Blocks.RED_STAINED_GLASS),
         BLACK("Black", Blocks.BLACK_STAINED_GLASS);
 
-        val state: BlockState = block.defaultBlockState()
+        val state = block.defaultBlockState()
+
+        companion object {
+            val options = Glass.entries.map(Glass::displayName)
+        }
     }
 }
 //#endif
