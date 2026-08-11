@@ -4,7 +4,6 @@ import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.CategorySetting
 import com.github.noamm9.ui.clickgui.components.impl.SeparatorSetting
-import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.core.DoorTile
@@ -49,19 +48,18 @@ object DungeonMap: Feature() {
                 }
             }
 
-            if (! MapConfig.boxWitherDoors.value) return@register
+            if (! MapConfig.boxDoors.value) return@register
             val shouldHideUndiscovered = ! MapConfig.dungeonMapCheater.value || DungeonListener.dungeonStarted
 
             for (tile in DungeonScanner.dungeonList) {
                 if (tile !is DoorTile || tile.opened) continue
                 if (! tile.type.equalsOneOf(DoorType.BLOOD, DoorType.WITHER)) continue
                 if (shouldHideUndiscovered && tile.state == RoomState.UNDISCOVERED && ! DungeonTree.isFairy(tile)) continue
-                val color = (if (tile.type.keys > 0) MapConfig.witherDoorKeyColor else MapConfig.witherDoorNoKeyColor).value
                 event.ctx.renderBoxBounds(
                     tile.aabb,
-                    color.withAlpha((MapConfig.witherDoorFill.value * 2.55).toInt()),
-                    outline = MapConfig.boxWitherDoorsMode.value.equalsOneOf(0, 2),
-                    fill = MapConfig.boxWitherDoorsMode.value.equalsOneOf(1, 2),
+                    (if (tile.type.keys > 0) MapConfig.doorKeyColor else MapConfig.doorNoKeyColor).value,
+                    outline = MapConfig.boxDoorsMode.value.equalsOneOf(0, 2),
+                    fill = MapConfig.boxDoorsMode.value.equalsOneOf(1, 2),
                     phase = true
                 )
             }

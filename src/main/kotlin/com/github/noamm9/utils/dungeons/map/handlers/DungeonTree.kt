@@ -10,7 +10,6 @@ import com.github.noamm9.utils.dungeons.map.core.UniqueRoom
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.equalsOneOf
 
-// this is awful code please dont look
 object DungeonTree: ISelfInit {
     private var splitsCache: Map<UniqueRoom, Set<UniqueRoom>>? = null
     private var bloodRushCache: List<UniqueRoom>? = null
@@ -49,8 +48,7 @@ object DungeonTree: ISelfInit {
         return (r1 == fRoom && r2 == nextRoom) || (r1 == nextRoom && r2 == fRoom)
     }
 
-    fun getBloodRush(): List<UniqueRoom> {
-        bloodRushCache?.let { return it }
+    fun getBloodRush(): List<UniqueRoom> = bloodRushCache ?: run {
         val graph = getSplits()
         val start = graph.keys.find { it.data.type == RoomType.ENTRANCE } ?: return emptyList()
         val target = graph.keys.find { it.data.type == RoomType.BLOOD } ?: return emptyList()
@@ -95,20 +93,18 @@ object DungeonTree: ISelfInit {
         return reversedPath
     }
 
-    private fun getSplits(): Map<UniqueRoom, Set<UniqueRoom>> {
-        splitsCache?.let { return it }
+    private fun getSplits(): Map<UniqueRoom, Set<UniqueRoom>> = splitsCache ?: run {
         val graph = mutableMapOf<UniqueRoom, MutableSet<UniqueRoom>>()
 
         for (tile in DungeonScanner.dungeonList) {
-            if (tile !is DoorTile) continue
-            val rooms = tile.roomTiles.mapNotNull { it.uniqueRoom }
+            val door = tile as? DoorTile ?: continue
+            val rooms = door.roomTiles.mapNotNull { it.uniqueRoom }
             if (rooms.size != 2 || rooms[0] == rooms[1]) continue
 
             graph.getOrPut(rooms[0], ::mutableSetOf).add(rooms[1])
             graph.getOrPut(rooms[1], ::mutableSetOf).add(rooms[0])
         }
 
-        splitsCache = graph
-        return graph
+        return graph.also(::splitsCache::set)
     }
 }

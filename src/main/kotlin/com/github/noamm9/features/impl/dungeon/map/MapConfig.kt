@@ -6,6 +6,7 @@ import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.utils.ColorUtils.withAlpha
 import java.awt.Color
 
 object MapConfig: SettingProvider {
@@ -70,11 +71,10 @@ object MapConfig: SettingProvider {
     val colorOpenWitherDoor = ColorSetting("Opened Wither Door", colorRoom.value, true)
     val colorEntranceDoor = ColorSetting("Entrance Door", colorEntrance.value, true)
 
-    val boxWitherDoors = ToggleSetting("Box Wither Doors", true).section("Wither Door ESP")
-    val boxWitherDoorsMode = DropdownSetting("Highlight Mode", 2, listOf("Outline", "Fill", "Filled Outline"))
-    val witherDoorNoKeyColor = ColorSetting("No Key Color", Color(255, 0, 0), false).showIf { boxWitherDoors.value }
-    val witherDoorKeyColor = ColorSetting("Has Key Color", Color(0, 255, 0), false).showIf { boxWitherDoors.value }
-    val witherDoorFill = SliderSetting("Door Fill Opacity", 40, 0, 100, 1).showIf { boxWitherDoors.value }
+    val boxDoors = ToggleSetting("Box Wither Doors", true).section("Door ESP")
+    val boxDoorsMode = DropdownSetting("Highlight Mode", 2, listOf("Outline", "Fill", "Filled Outline"))
+    val doorNoKeyColor = ColorSetting("No Key Color", Color.RED.withAlpha(100)).showIf { boxDoors.value }
+    val doorKeyColor = ColorSetting("Has Key Color", Color.GREEN.withAlpha(100)).showIf { boxDoors.value }
 
     fun setup(): Array<Setting<*>> {
         return arrayOf(
@@ -88,8 +88,8 @@ object MapConfig: SettingProvider {
             mapPlayerNameClassColorBased, colorBlood, colorEntrance, colorFairy,
             colorMiniboss, colorRoom, colorPuzzle, colorMimic, colorRare, colorTrap,
             colorUnopened, colorBloodDoor, colorEntranceDoor, colorRoomDoor,
-            colorWitherDoor, colorOpenWitherDoor, colorUnopenedDoor, boxWitherDoors,
-            boxWitherDoorsMode, witherDoorNoKeyColor, witherDoorKeyColor, witherDoorFill
+            colorWitherDoor, colorOpenWitherDoor, colorUnopenedDoor, boxDoors,
+            boxDoorsMode, doorNoKeyColor, doorKeyColor
         )
     }
 }
