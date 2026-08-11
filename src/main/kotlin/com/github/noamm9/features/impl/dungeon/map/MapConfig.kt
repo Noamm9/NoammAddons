@@ -40,6 +40,7 @@ object MapConfig: SettingProvider {
     //#if CHEAT
     val highlightMimicRoom = ToggleSetting("Highlight Mimic Room", true)
     val mimicEsp = ToggleSetting("Mimic ESP")
+
     //#else
     //$val highlightMimicRoom = ToggleSetting("Highlight Mimic Room Legit", false).hideIf { true }
     //$val mimicEsp = ToggleSetting("Mimic ESP Legit", false).hideIf { true }
@@ -70,6 +71,7 @@ object MapConfig: SettingProvider {
     val colorEntranceDoor = ColorSetting("Entrance Door", colorEntrance.value, true)
 
     val boxWitherDoors = ToggleSetting("Box Wither Doors", true).section("Wither Door ESP")
+    val boxWitherDoorsMode = DropdownSetting("Highlight Mode", 2, listOf("Outline", "Fill", "Filled Outline"))
     val witherDoorNoKeyColor = ColorSetting("No Key Color", Color(255, 0, 0), false).showIf { boxWitherDoors.value }
     val witherDoorKeyColor = ColorSetting("Has Key Color", Color(0, 255, 0), false).showIf { boxWitherDoors.value }
     val witherDoorFill = SliderSetting("Door Fill Opacity", 40, 0, 100, 1).showIf { boxWitherDoors.value }
@@ -87,7 +89,7 @@ object MapConfig: SettingProvider {
             colorMiniboss, colorRoom, colorPuzzle, colorMimic, colorRare, colorTrap,
             colorUnopened, colorBloodDoor, colorEntranceDoor, colorRoomDoor,
             colorWitherDoor, colorOpenWitherDoor, colorUnopenedDoor, boxWitherDoors,
-            witherDoorNoKeyColor, witherDoorKeyColor, witherDoorFill
+            boxWitherDoorsMode, witherDoorNoKeyColor, witherDoorKeyColor, witherDoorFill
         )
     }
 }

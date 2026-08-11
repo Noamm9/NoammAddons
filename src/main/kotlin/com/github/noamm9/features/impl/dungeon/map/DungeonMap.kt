@@ -15,7 +15,7 @@ import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render3D.renderBlock
-import com.github.noamm9.utils.render.Render3D.renderBox
+import com.github.noamm9.utils.render.Render3D.renderBoxBounds
 import net.minecraft.world.level.block.Blocks
 
 object DungeonMap: Feature() {
@@ -55,9 +55,15 @@ object DungeonMap: Feature() {
             for (tile in DungeonScanner.dungeonList) {
                 if (tile !is DoorTile || tile.opened) continue
                 if (! tile.type.equalsOneOf(DoorType.BLOOD, DoorType.WITHER)) continue
-                event.ctx.renderBox(tile.x + 0.5, 69, tile.z + 0.5, 3, 4, color, phase = true)
                 if (shouldHideUndiscovered && tile.state == RoomState.UNDISCOVERED && ! DungeonTree.isFairy(tile)) continue
                 val color = (if (tile.type.keys > 0) MapConfig.witherDoorKeyColor else MapConfig.witherDoorNoKeyColor).value
+                event.ctx.renderBoxBounds(
+                    tile.aabb,
+                    color.withAlpha((MapConfig.witherDoorFill.value * 2.55).toInt()),
+                    outline = MapConfig.boxWitherDoorsMode.value.equalsOneOf(0, 2),
+                    fill = MapConfig.boxWitherDoorsMode.value.equalsOneOf(1, 2),
+                    phase = true
+                )
             }
         }
     }
