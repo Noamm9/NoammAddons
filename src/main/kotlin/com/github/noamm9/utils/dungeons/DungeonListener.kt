@@ -17,6 +17,7 @@ import com.github.noamm9.utils.TabListUtils
 import com.github.noamm9.utils.dungeons.enums.Blessing
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.dungeons.enums.Puzzle
+import com.github.noamm9.utils.dungeons.map.core.DoorType
 import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.core.RoomType
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
@@ -66,7 +67,6 @@ object DungeonListener: ISelfInit {
     var lastDoorOpenner: DungeonPlayer? = null
 
     var currentTime = 0L
-    var doorKeys = 0
 
     override fun init() {
         register<MainThreadPacketReceivedEvent.Post>(EventPriority.HIGH) {
@@ -127,7 +127,7 @@ object DungeonListener: ISelfInit {
                     scope.launch { EventBus.post(DungeonEvent.RunEndedEvent) }
                 }
 
-                text == "§cThe §c§lBLOOD DOOR§c has been opened!" -> doorKeys --
+                text == "§cThe §c§lBLOOD DOOR§c has been opened!" -> DoorType.BLOOD.keys --
 
                 "§c ☠" in text && "reconnected" !in unformatted -> {
                     val match = deathRegex.find(unformatted) ?: return@register
@@ -164,12 +164,19 @@ object DungeonListener: ISelfInit {
                 else -> {
                     witherDoorOpenedRegex.find(unformatted)?.destructured?.let { (name) ->
                         lastDoorOpenner = dungeonTeammates.find { it.name == name }
-                        doorKeys --
+                        DoorType.WITHER.keys --
                         return@register
                     }
 
                     keyPickupRegex.find(text)?.destructured?.let { (num) ->
-                        doorKeys += num.toInt()
+                        val type = when {
+                            "WITHER door" in unformatted -> DoorType.WITHER
+                            "BLOOD DOOR" in unformatted -> DoorType.BLOOD
+                            else -> null
+                        } ?: return@register
+
+                        val amount = num.toInt()
+                        type.keys += amount
                         return@register
                     }
                 }
@@ -197,7 +204,7 @@ object DungeonListener: ISelfInit {
             dungeonEndTime = null
             lastDoorOpenner = null
             currentTime = 0
-            doorKeys = 0
+            DoorType.reset()
             Blessing.reset()
         }
 

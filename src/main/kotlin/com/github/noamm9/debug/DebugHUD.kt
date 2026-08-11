@@ -7,6 +7,7 @@ import com.github.noamm9.utils.PartyUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.Blessing
 import com.github.noamm9.utils.dungeons.enums.Puzzle
+import com.github.noamm9.utils.dungeons.map.core.DoorType
 import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
@@ -40,7 +41,7 @@ object DebugHUD {
         draw("Dungeon Started: ${if (DungeonListener.dungeonStarted) "§aYES" else "§cNO"}")
         draw("Dungeon Ended: ${if (DungeonListener.dungeonEnded) "§aYES" else "§cNO"}")
         draw("Current Tick: §7${DungeonListener.currentTime} §8(${DungeonListener.currentTime / 20}s)")
-        draw("Door Keys: §e${DungeonListener.doorKeys}")
+        draw("Door Keys: §e${DoorType.entries.sumOf { it.keys }}")
         draw("Last Opener: §d${DungeonListener.lastDoorOpenner?.name ?: "None"}")
 
         y += 5
