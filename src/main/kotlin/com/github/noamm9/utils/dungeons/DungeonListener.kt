@@ -67,15 +67,6 @@ object DungeonListener: ISelfInit {
     var lastDoorOpenner: DungeonPlayer? = null
 
     var currentTime = 0L
-    var doorKeys = 0
-    private var witherDoorKeys = 0
-    private var bloodDoorKeys = 0
-
-    fun hasDoorKey(type: DoorType) = when (type) {
-        DoorType.WITHER -> witherDoorKeys > 0
-        DoorType.BLOOD -> bloodDoorKeys > 0
-        else -> false
-    }
 
     override fun init() {
         register<MainThreadPacketReceivedEvent.Post>(EventPriority.HIGH) {
@@ -136,7 +127,7 @@ object DungeonListener: ISelfInit {
                     scope.launch { EventBus.post(DungeonEvent.RunEndedEvent) }
                 }
 
-                text == "§cThe §c§lBLOOD DOOR§c has been opened!" -> { updateDoorKeys(DoorType.BLOOD, - 1) }
+                text == "§cThe §c§lBLOOD DOOR§c has been opened!" -> DoorType.BLOOD.keys --
 
                 "§c ☠" in text && "reconnected" !in unformatted -> {
                     val match = deathRegex.find(unformatted) ?: return@register
@@ -173,7 +164,7 @@ object DungeonListener: ISelfInit {
                 else -> {
                     witherDoorOpenedRegex.find(unformatted)?.destructured?.let { (name) ->
                         lastDoorOpenner = dungeonTeammates.find { it.name == name }
-                        updateDoorKeys(DoorType.WITHER, - 1)
+                        DoorType.WITHER.keys --
                         return@register
                     }
 
@@ -182,9 +173,10 @@ object DungeonListener: ISelfInit {
                             "WITHER door" in unformatted -> DoorType.WITHER
                             "BLOOD DOOR" in unformatted -> DoorType.BLOOD
                             else -> null
-                        }
+                        } ?: return@register
+
                         val amount = num.toInt()
-                        updateDoorKeys(type, amount)
+                        type.keys += amount
                         return@register
                     }
                 }
@@ -212,9 +204,7 @@ object DungeonListener: ISelfInit {
             dungeonEndTime = null
             lastDoorOpenner = null
             currentTime = 0
-            doorKeys = 0
-            witherDoorKeys = 0
-            bloodDoorKeys = 0
+            DoorType.reset()
             Blessing.reset()
         }
 
@@ -223,15 +213,6 @@ object DungeonListener: ISelfInit {
             if (event.room.data.type != RoomType.BLOOD) return@register
             if (! event.newState.equalsOneOf(RoomState.DISCOVERED, RoomState.CLEARED, RoomState.GREEN)) return@register
             lastDoorOpenner = null
-        }
-    }
-
-    private fun updateDoorKeys(type: DoorType?, amount: Int) {
-        doorKeys += amount
-        when (type) {
-            DoorType.WITHER -> witherDoorKeys = (witherDoorKeys + amount).coerceAtLeast(0)
-            DoorType.BLOOD -> bloodDoorKeys = (bloodDoorKeys + amount).coerceAtLeast(0)
-            else -> Unit
         }
     }
 

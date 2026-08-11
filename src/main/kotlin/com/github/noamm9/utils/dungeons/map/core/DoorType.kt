@@ -4,6 +4,8 @@ enum class DoorType {
     BLOOD, WITHER, NORMAL, ENTRANCE;
 
     companion object {
+        fun reset() = entries.forEach { it.keys = 0 }
+
         fun fromMapColor(color: Int) = when (color) {
             18 -> BLOOD
             30 -> ENTRANCE

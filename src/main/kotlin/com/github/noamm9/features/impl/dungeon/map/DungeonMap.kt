@@ -50,20 +50,14 @@ object DungeonMap: Feature() {
             }
 
             if (! MapConfig.boxWitherDoors.value) return@register
-
             val shouldHideUndiscovered = ! MapConfig.dungeonMapCheater.value || DungeonListener.dungeonStarted
-            val color = (if (DungeonListener.doorKeys > 0) MapConfig.witherDoorKeyColor.value else MapConfig.witherDoorNoKeyColor.value).withAlpha((MapConfig.witherDoorFill.value * 2.55).toInt())
 
             for (tile in DungeonScanner.dungeonList) {
-                if (tile !is DoorTile) continue
-                if (tile.opened) continue
+                if (tile !is DoorTile || tile.opened) continue
                 if (! tile.type.equalsOneOf(DoorType.BLOOD, DoorType.WITHER)) continue
-
-                val isFairy = DungeonTree.isFairy(tile)
-
-                if (shouldHideUndiscovered && tile.state == RoomState.UNDISCOVERED && ! isFairy) continue
-
                 event.ctx.renderBox(tile.x + 0.5, 69, tile.z + 0.5, 3, 4, color, phase = true)
+                if (shouldHideUndiscovered && tile.state == RoomState.UNDISCOVERED && ! DungeonTree.isFairy(tile)) continue
+                val color = (if (tile.type.keys > 0) MapConfig.witherDoorKeyColor else MapConfig.witherDoorNoKeyColor).value
             }
         }
     }
