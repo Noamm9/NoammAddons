@@ -1,6 +1,6 @@
-package com.github.noamm9
+package com.github.noamm9.debug
 
-import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.init.types.ISelfInit
@@ -96,7 +96,7 @@ object TestGround: ISelfInit {
             val stack = event.screen.menu.getSlot(event.slotId).item
             ChatUtils.modMessage("skyblockid: " + stack.skyblockId)
             ChatUtils.modMessage("index: " + event.slotId)
-            mc.keyboardHandler.clipboard = getNBT(stack)
+            NoammAddons.mc.keyboardHandler.clipboard = getNBT(stack)
         }
 
         EventBus.register<MainThreadPacketReceivedEvent.Pre> {
@@ -113,7 +113,7 @@ object TestGround: ISelfInit {
             event.cancel()
 
             val pos = PlayerUtils.getSelectionBlock() !!
-            (mc.level?.getBlockEntity(pos) as? SkullBlockEntity)?.ownerProfile?.partialProfile()?.id.toString().let {
+            (NoammAddons.mc.level?.getBlockEntity(pos) as? SkullBlockEntity)?.ownerProfile?.partialProfile()?.id.toString().let {
                 ChatUtils.modMessage("skullid: $it")
             }
         }
@@ -121,7 +121,7 @@ object TestGround: ISelfInit {
 
     fun getNBT(itemStack: ItemStack?): String {
         if (itemStack == null || itemStack.isEmpty) return "{}"
-        val ops = RegistryOps.create<JsonElement>(JsonOps.INSTANCE, mc.connection?.registryAccess() !!)
+        val ops = RegistryOps.create<JsonElement>(JsonOps.INSTANCE, NoammAddons.mc.connection?.registryAccess() !!)
         val jsonElement = DataComponentPatch.CODEC.encodeStart(ops, itemStack.componentsPatch).result().get()
         return GsonUtils.gson.toJson(jsonElement)
     }

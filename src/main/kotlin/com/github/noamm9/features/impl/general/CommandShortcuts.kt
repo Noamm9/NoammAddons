@@ -6,6 +6,7 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.ICommandNode
 import com.github.noamm9.mixin.IServerboundChatCommandPacket
 import com.mojang.brigadier.CommandDispatcher
+import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.tree.RootCommandNode
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands
@@ -30,7 +31,7 @@ object CommandShortcuts: Feature("Create your own command shortcuts") {
     fun build(dispatcher: CommandDispatcher<FabricClientCommandSource>) {
         shortcuts.get().keys.forEach { key ->
             unregisterNode(dispatcher.root, key)
-            dispatcher.register(ClientCommands.literal(key))
+            dispatcher.register(ClientCommands.literal(key).then(ClientCommands.argument("arguments", StringArgumentType.greedyString())))
         }
     }
 

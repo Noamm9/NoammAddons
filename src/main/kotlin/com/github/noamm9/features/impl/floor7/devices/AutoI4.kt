@@ -27,6 +27,7 @@ import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
@@ -156,15 +157,11 @@ object AutoI4: Feature("Fully Automated I4") {
         if (watchdogJob?.isActive == true) return
         if (rotationTime.value <= 0) return
         watchdogJob = scope.launch {
-            while (I4Helper.isOnDev()) {
+            while (isActive && I4Helper.isOnDev()) {
                 delay(100)
 
                 val target = activeEmerald.get() ?: continue
-                if (WorldUtils.getBlockAt(target) != Blocks.EMERALD_BLOCK) {
-                    ChatUtils.chat("target is not an emerald")
-                    continue
-                }
-
+                if (WorldUtils.getBlockAt(target) != Blocks.EMERALD_BLOCK) continue
                 if (DungeonListener.currentTime - lastAttemptTime.get() < 20) continue
 
                 val attempt = retryCount.incrementAndGet()
@@ -174,8 +171,7 @@ object AutoI4: Feature("Fully Automated I4") {
                 }
 
                 lastAttemptTime.set(DungeonListener.currentTime)
-                ChatUtils.chat("stull shooting")
-                queue(2, true) { shootAtBlock(target) }
+                queue(2) { shootAtBlock(target) }
             }
         }
 
@@ -212,9 +208,10 @@ object AutoI4: Feature("Fully Automated I4") {
 
     private suspend fun shootAtBlock(pos: BlockPos) {
         val (yaw, pitch) = calcYawPitch(getTargetVector(pos))
-        val block = suspend block@{
-            delay(50)
-            PlayerUtils.rightClick()
+        val block = {
+            ThreadUtils.scheduledTask {
+                PlayerUtils.rightClick()
+            }
         }
 
         getEmerald(lastTarget, pos)?.let { newer ->

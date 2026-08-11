@@ -6,6 +6,7 @@ import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.vec
@@ -53,6 +54,8 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
 
     var priorityDragon = WitherDragonEnum.None
 
+    private const val scoreboardGraceTicks = 40 // how long the dragon needs to be off scoreboard for it to count as dead
+
     private val smoothedVelocities = ConcurrentHashMap<Int, Vec3>()
     private val fixedStackPositions = mapOf(
         WitherDragonEnum.Green to vec(27f, WitherDragonEnum.Green.spawnPos.y, 90f),
@@ -81,7 +84,12 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
         register<EntityUnloadEvent> {
             if (LocationUtils.F7Phase != 5) return@register
             if (event.entity !is EnderDragon) return@register
-            WitherDragonEnum.entries.find { it.entityId == event.entity.id }?.entity = null
+            val dragon = WitherDragonEnum.entries.find { it.entityId == event.entity.id } ?: return@register
+            if (dragon.state != WitherDragonState.ALIVE) return@register
+            ChatUtils.debug("dragon", "${dragon.displayName} unloaded with ${formatHealth(dragon.health)} health")
+
+            dragon.entity = null
+            dragon.offScoreboardTicks = 0
         }
 
         register<BlockChangeEvent> {
@@ -94,14 +102,16 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
         }
 
         register<TickEvent.Server> {
-            WitherDragonEnum.entries.forEach {
-                if (it.state == WitherDragonState.SPAWNING) {
-                    it.timeToSpawn --
-                    if (it.timeToSpawn <= - 20) it.setDead(true)
+            WitherDragonEnum.entries.forEach { dragon ->
+                if (dragon.state == WitherDragonState.SPAWNING) {
+                    dragon.timeToSpawn --
+                    if (dragon.timeToSpawn <= - 20) dragon.setDead(true)
                 }
 
-                if (it.state == WitherDragonState.ALIVE && it.entity == null && ! DragonCheck.isAliveOnScoreboard(it)) {
-                    it.setDead()
+                if (dragon.state == WitherDragonState.ALIVE && dragon.entity == null) {
+                    if (DragonCheck.isAliveOnScoreboard(dragon)) dragon.offScoreboardTicks = 0
+                    else if (dragon.offScoreboardTicks < scoreboardGraceTicks) dragon.offScoreboardTicks ++
+                    else dragon.setDead().also { ChatUtils.debug("dragon", "${dragon.displayName} set to dead by scoreboard") }
                 }
             }
         }

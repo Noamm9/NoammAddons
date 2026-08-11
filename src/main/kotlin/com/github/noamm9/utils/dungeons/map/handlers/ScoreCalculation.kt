@@ -38,7 +38,7 @@ object ScoreCalculation: ISelfInit {
     private val completedRoomsRegex = Regex(" Completed Rooms: §d(?<count>\\d+)")
     private val dungeonClearedPattern = Regex("Cleared: (?<percentage>\\d+)% \\(\\d+\\)")
     private val timeElapsedPattern = Regex(" Elapsed: (?:(?<hrs>\\d+)h )?(?:(?<min>\\d+)m )?(?:(?<sec>\\d+)s)?")
-    private val mimicCharmRegex = Regex("charm You charmed a mimic and captured \\d+ shards from it\\.")
+    private val mimicCharmRegex = Regex("charm you charmed a mimic and captured \\d+ shards from it\\.")
 
     private var bloodDone = false
     private var secretPercentage = 0.0
@@ -167,7 +167,7 @@ object ScoreCalculation: ISelfInit {
                     }
 
                     if (! mimicKilled && (LocationUtils.dungeonFloorNumber ?: 0) > 5 && ! LocationUtils.inBoss) {
-                        if (mimicCharmRegex.matches(msg)) {
+                        if (mimicCharmRegex.matches(msg) || msg == "charm you charmed a mimic and captured its shard.") {
                             mimicKilled = true
 
                             if (DungeonListener.dungeonTeammatesNoSelf.isNotEmpty()) {
