@@ -10,6 +10,7 @@ import com.github.noamm9.event.impl.RenderOverlayEvent
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import net.minecraft.ChatFormatting
@@ -27,7 +28,7 @@ import kotlin.coroutines.resume
 import kotlin.math.roundToInt
 
 object ChatUtils: ISelfInit {
-    private val queue = ConcurrentLinkedQueue<String>()
+    private val queue = ConcurrentLinkedQueue<Pair<String, Long>>()
     private val isProcessing = AtomicBoolean(false)
     @Volatile private var lastSentTime = 0L
 
@@ -44,42 +45,39 @@ object ChatUtils: ISelfInit {
 
     private fun process() {
         if (! isProcessing.compareAndSet(false, true)) return
-
         scope.launch {
-            try {
-                while (queue.isNotEmpty()) {
-                    val str = queue.poll()?.removeFormatting() ?: break
+            while (isActive && queue.isNotEmpty()) {
+                var (str, time) = queue.poll() ?: break
+                str = str.removeFormatting()
 
-                    val waitTime = 300L - (System.currentTimeMillis() - lastSentTime)
-                    if (waitTime > 0) delay(waitTime)
+                val waitTime = time - (System.currentTimeMillis() - lastSentTime)
+                if (waitTime > 0) delay(waitTime)
 
-                    suspendCancellableCoroutine { cont ->
-                        mc.execute {
-                            val conn = mc.player?.connection
-                            if (conn != null) {
-                                if (str.startsWith("/")) conn.sendCommand(str.removePrefix("/"))
-                                else conn.sendChat(str)
-                            }
-                            lastSentTime = System.currentTimeMillis()
-                            cont.resume(Unit)
+                suspendCancellableCoroutine { cont ->
+                    mc.execute {
+                        val conn = mc.player?.connection
+                        if (conn != null) {
+                            if (str.startsWith("/")) conn.sendCommand(str.removePrefix("/"))
+                            else conn.sendChat(str)
                         }
+                        lastSentTime = System.currentTimeMillis()
+                        cont.resume(Unit)
                     }
                 }
             }
-            finally {
-                isProcessing.set(false)
-                if (queue.isNotEmpty()) process()
-            }
+        }.invokeOnCompletion {
+            isProcessing.set(false)
+            if (queue.isNotEmpty()) process()
         }
     }
 
-    fun sendMessage(message: String) {
-        queue.add(message)
+    fun sendMessage(message: String, ms: Long = 300L) {
+        queue.add(message to ms)
         process()
     }
 
-    fun sendCommand(command: String) {
-        queue.add("/" + command.removePrefix("/"))
+    fun sendCommand(command: String, ms: Long = 300L) {
+        queue.add("/" + command.removePrefix("/") to ms)
         process()
     }
 
@@ -198,7 +196,7 @@ object ChatUtils: ISelfInit {
         ChatUtils.chat(if (prefix) Component.literal(NoammAddons.PREFIX + " ").append(mainComponent) else mainComponent)
     }
 
-    val titleRenderer = EventListener.create<RenderOverlayEvent> {
+    private val titleRenderer = EventListener.create<RenderOverlayEvent> {
         val x = mc.window.guiScaledWidth / 2f
         val height = mc.window.guiScaledHeight
         val y = height / 2f - (height * 0.056).roundToInt()
