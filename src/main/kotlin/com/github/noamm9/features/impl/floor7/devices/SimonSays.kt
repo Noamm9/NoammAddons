@@ -8,13 +8,10 @@ import com.github.noamm9.ui.clickgui.components.*
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.utils.ChatUtils
-import com.github.noamm9.utils.ColorUtils
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.toVec
-import com.github.noamm9.utils.PlayerUtils
-import com.github.noamm9.utils.ThreadUtils
-import com.github.noamm9.utils.WorldUtils
+import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
@@ -126,7 +123,10 @@ object SimonSays: Feature("Simon Says Solver") {
         register<BlockChangeEvent> {
             if (event.pos !in obsidians) return@register
             if (event.newBlock != Blocks.SEA_LANTERN) return@register
-            if (ssSkip.value && solution.size == 2 && ! skipOver) solution.removeFirst()
+            if (ssSkip.value && solution.size == 2 && ! skipOver) {
+                solution.removeFirst()
+                sequenceLength --
+            }
             solution.add(SSButton(event.pos))
             sequenceLength = (sequenceLength + 1).coerceAtMost(5)
         }
