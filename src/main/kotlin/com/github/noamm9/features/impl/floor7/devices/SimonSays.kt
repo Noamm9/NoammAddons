@@ -58,7 +58,7 @@ object SimonSays: Feature("Simon Says Solver") {
 
     private val buttonCheckPos = BlockPos(110, 120, 93)
     private val startButton = BlockPos(110, 121, 91)
-    private val deviceCenter = BlockPos(110, 121, 93).toVec().add(0.5, 0.5, 0.5)
+    private val deviceCenter = vec(110.5, 121.5, 93.5)
 
     private val lastKnownPositions = HashMap<String, Vec3>()
     private val solution = ArrayList<SSButton>()
@@ -111,7 +111,7 @@ object SimonSays: Feature("Simon Says Solver") {
         register<TickEvent.Start> {
             if (! triggerBot.value) return@register
             if (LocationUtils.F7Phase != 3) return@register
-            if (lastClick == DungeonListener.currentTime) return@register
+            if (lastClick + 1 >= DungeonListener.currentTime) return@register
 
             val expected = solution.firstOrNull() ?: return@register
             if (PlayerUtils.getSelectionBlock() != expected.button) return@register
@@ -241,18 +241,18 @@ object SimonSays: Feature("Simon Says Solver") {
         wasBroken = true
 
         if (alertsEnabled.value) {
-            if (sendChat.value) ChatUtils.sendCommand("pc SS Broke!")
             if (alertSound.value) ThreadUtils.scheduledTask { player.playSound(SoundEvents.ANVIL_LAND, 5f, 0f) }
             if (showTitle.value) ChatUtils.showTitle("§c§l§nSS BROKE!")
+            if (sendChat.value) ChatUtils.sendCommand("pc SS Broke!")
         }
 
         resetSolver()
     }
 
     override fun onDisable() {
+        super.onDisable()
         resetSolver()
         reset()
-        super.onDisable()
     }
 
     private fun resetSolver() {
