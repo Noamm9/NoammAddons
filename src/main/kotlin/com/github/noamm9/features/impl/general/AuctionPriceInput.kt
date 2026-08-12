@@ -180,7 +180,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
         }
 
         private fun recalculateValue() {
-            val textValue = NumbersUtils.parseCompactNumber(input)
+            val textValue = NumbersUtils.parseCompactNumber(input.replace(',', '.'))
 
             if (textValue == null) {
                 parsedValue = null
