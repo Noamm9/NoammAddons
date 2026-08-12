@@ -71,10 +71,10 @@ object MapConfig: SettingProvider {
     val colorOpenWitherDoor = ColorSetting("Opened Wither Door", colorRoom.value, true)
     val colorEntranceDoor = ColorSetting("Entrance Door", colorEntrance.value, true)
 
-    val boxDoors = ToggleSetting("Box Wither Doors", true).section("Door ESP")
+    val boxDoors = ToggleSetting("Box Wither Doors").section("Door ESP")
     val boxDoorsMode = DropdownSetting("Highlight Mode", 2, listOf("Outline", "Fill", "Filled Outline"))
-    val doorNoKeyColor = ColorSetting("No Key Color", Color.RED.withAlpha(100)).showIf { boxDoors.value }
-    val doorKeyColor = ColorSetting("Has Key Color", Color.GREEN.withAlpha(100)).showIf { boxDoors.value }
+    val doorNoKeyColor = ColorSetting("No Key Color ", Color.RED.withAlpha(100)).showIf { boxDoors.value }
+    val doorKeyColor = ColorSetting("Has Key Color ", Color.GREEN.withAlpha(100)).showIf { boxDoors.value }
 
     fun setup(): Array<Setting<*>> {
         return arrayOf(
