@@ -130,8 +130,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
         }
 
         register<ContainerEvent.Open> {
-            if (! event.screen.title.unformattedText.matches(petMenuRegex)) return@register
-            tempDisabled = false
+            if (! event.screen.title.unformattedText.matches(petMenuRegex)) tempDisabled = false
         }
     }
 
