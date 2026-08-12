@@ -12,6 +12,7 @@ import com.github.noamm9.utils.*
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.toVec
 import com.github.noamm9.utils.MathUtils.vec
+import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
@@ -71,6 +72,8 @@ object SimonSays: Feature("Simon Says Solver") {
     private var ticks = 0
     private var canBreak = false
     private var wasBroken = false
+
+    private var startTick = 0L
 
     override fun init() {
         hudElement(
@@ -192,6 +195,7 @@ object SimonSays: Feature("Simon Says Solver") {
                 resetSolver()
                 reset()
                 serverTickListener.register()
+                startTick = DungeonListener.currentTime
                 return@register
             }
 
@@ -200,7 +204,11 @@ object SimonSays: Feature("Simon Says Solver") {
 
             if (type == "device") {
                 val position = level.players().find { it.gameProfile.name == name }?.position() ?: lastKnownPositions[name]
-                if (position != null && position.distanceToSqr(deviceCenter) <= 25) resetSolver()
+                if (position != null && position.distanceToSqr(deviceCenter) <= 25) {
+                    resetSolver()
+                    val time = (DungeonListener.currentTime - startTick) / 20.0
+                    ChatUtils.modMessage("&bSimon Says Took §e${time.toFixed(2)}s&b to complate!")
+                }
             }
 
             if (! serverTickListener.isRegistered()) return@register
@@ -269,6 +277,7 @@ object SimonSays: Feature("Simon Says Solver") {
         ticks = 0
         canBreak = false
         wasBroken = false
+        startTick = 0L
     }
 
     private fun RenderContext.renderSSBox(pos: BlockPos, color: Color) {
