@@ -52,7 +52,7 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
             val packet = event.packet as? ServerboundUseItemPacket ?: return@register
             if (LocationUtils.world.equalsOneOf(WorldType.Home, WorldType.Garden)) return@register
             if (LocationUtils.dungeonFloorNumber == 7 && LocationUtils.inBoss) return@register
-            if (ActionBarParser.currentMana < ActionBarParser.maxMana * 0.1) return@register
+            if (ActionBarParser.currentMana + ActionBarParser.overflowMana < ActionBarParser.maxMana * 0.1) return@register
             if (ScanUtils.currentRoom?.data?.name.equalsOneOf("New Trap", "Old Trap", "Teleport Maze", "Boulder")) return@register
             if (player.isPassenger) return@register
             val tpInfo = getTeleportInfo(player.getItemInHand(packet.hand)) ?: return@register
