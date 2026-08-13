@@ -401,15 +401,18 @@ class TextInputHandler(
     }
 
     private fun String.substringSafe(from: Int, to: Int): String {
-        val f = min(from, to).coerceAtLeast(0)
-        val t = max(to, from)
-        if (t > length) return substring(f)
+        val f = min(from, to).coerceIn(0, length)
+        val t = max(to, from).coerceIn(0, length)
+        if (t <= f) return ""
         return substring(f, t)
     }
 
-    private fun String.removeRangeSafe(from: Int, to: Int): String =
-        removeRange(min(from, to), max(to, from))
+    private fun String.removeRangeSafe(from: Int, to: Int): String {
+        val f = min(from, to).coerceIn(0, length)
+        val t = max(to, from).coerceIn(0, length)
+        if (f >= t) return this
+        return removeRange(f, t)
+    }
 
-    private fun String.dropAt(at: Int, amount: Int): String =
-        removeRangeSafe(at, at + amount)
+    private fun String.dropAt(at: Int, amount: Int) = removeRangeSafe(at, at + amount)
 }
