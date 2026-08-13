@@ -4,10 +4,11 @@ import com.github.noamm9.NoammAddons
 import org.lwjgl.glfw.GLFW
 
 object MouseHelper {
-    fun setCursor(cursor: Int) {
-        val window = NoammAddons.mc.window.handle()
-        val cursor = GLFW.glfwCreateStandardCursor(cursor)
-        GLFW.glfwSetCursor(window, cursor)
+    private val cursorCache = mutableMapOf<Int, Long>()
+
+    fun setCursor(shape: Int) {
+        val cursor = cursorCache.getOrPut(shape) { GLFW.glfwCreateStandardCursor(shape) }
+        GLFW.glfwSetCursor(NoammAddons.mc.window.handle(), cursor)
     }
 
     fun resetCursor() = setCursor(GLFW.GLFW_ARROW_CURSOR)

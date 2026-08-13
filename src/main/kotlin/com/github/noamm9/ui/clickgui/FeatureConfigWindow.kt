@@ -1,6 +1,5 @@
 package com.github.noamm9.ui.clickgui
 
-import com.github.noamm9.NoammAddons
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
@@ -15,7 +14,6 @@ import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
 import net.minecraft.client.gui.GuiGraphicsExtractor
-import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, startWidth: Float, startHeight: Float) {
@@ -70,7 +68,6 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
     fun render(context: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, focused: Boolean) {
         val mx = mouseX.toFloat()
         val my = mouseY.toFloat()
-        if (! dragging) MouseHelper.setCursor(getResizeCorner(mx, my).cursor)
 
         updateInteraction(mx, my)
         clampToScreen()
@@ -276,6 +273,12 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height
     }
 
+    fun cursorAt(mouseX: Float, mouseY: Float) = when {
+        resizeCorner != ResizeCorner.NONE -> resizeCorner.cursor
+        contains(mouseX, mouseY) -> getResizeCorner(mouseX, mouseY).cursor
+        else -> null
+    }
+
     fun clampToScreen() {
         val maxWidth = Resolution.width.coerceAtLeast(minWidth)
         val maxHeight = Resolution.height.coerceAtLeast(minHeight)
@@ -300,7 +303,6 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         if (dragging) {
             x = (mouseX - dragOffsetX).coerceIn(0f, (Resolution.width - width).coerceAtLeast(0f))
             y = (mouseY - dragOffsetY).coerceIn(0f, (Resolution.height - height).coerceAtLeast(0f))
-            GLFW.glfwSetCursor(NoammAddons.mc.window.handle(), GLFW.glfwCreateStandardCursor(GLFW.GLFW_RESIZE_ALL_CURSOR))
             return
         }
 
