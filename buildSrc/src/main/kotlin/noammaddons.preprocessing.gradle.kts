@@ -1,3 +1,5 @@
+val projectVersion = project.property("mod_version") as String
+
 val preprocessLegit = registerPreprocessTask("legit")
 val preprocessCheat = registerPreprocessTask("cheat")
 
@@ -11,7 +13,7 @@ tasks.named<ProcessResources>("processResources") {
     }
 
     filesMatching("fabric.mod.json") {
-        expand(mapOf("version" to project.version))
+        expand(mapOf("version" to projectVersion))
     }
 }
 
@@ -29,7 +31,7 @@ fun registerVariantResources(variantName: String, preprocessTask: TaskProvider<T
         }
 
         filesMatching("fabric.mod.json") {
-            expand(mapOf("version" to project.version))
+            expand(mapOf("version" to projectVersion))
         }
     }
     else tasks.named<ProcessResources>(taskName) {
@@ -42,7 +44,7 @@ fun registerVariantResources(variantName: String, preprocessTask: TaskProvider<T
         }
 
         filesMatching("fabric.mod.json") {
-            expand(mapOf("version" to project.version))
+            expand(mapOf("version" to projectVersion))
         }
     }
 }

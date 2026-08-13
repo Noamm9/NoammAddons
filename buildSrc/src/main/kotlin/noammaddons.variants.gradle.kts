@@ -7,7 +7,7 @@ plugins {
     kotlin("jvm")
 }
 
-val mod_name: String by project
+val mod_name: String = project.property("mod_name") as String
 
 val libsDir = layout.buildDirectory.dir("libs")
 val softwareComponentFactory = project.serviceOf<SoftwareComponentFactory>()

@@ -10,8 +10,8 @@ configure<LoomGradleExtensionAPI> {
         val clientRun = named("client")
         val serverRun = named("server")
 
-        clientRun.configure { ideConfigGenerated(false) }
-        serverRun.configure { ideConfigGenerated(false) }
+        clientRun.configure { generateRunConfig.set(false) }
+        serverRun.configure { generateRunConfig.set(false) }
 
         val sourceSets = the<SourceSetContainer>()
         val mainSourceSet = sourceSets.named("main").get()
@@ -20,26 +20,26 @@ configure<LoomGradleExtensionAPI> {
 
         maybeCreate("cheatClient").apply {
             inherit(clientRun.get())
-            name("Cheat Client")
-            runDir("run/")
-            source(mainSourceSet)
-            ideConfigGenerated(false)
+            displayName.set("Cheat Client")
+            runDirectory.set(file("run/"))
+            sourceSet.set(mainSourceSet.name)
+            generateRunConfig.set(false)
         }
 
         maybeCreate("cheatClientPreprocessed").apply {
             inherit(clientRun.get())
-            name("Cheat Client (Preprocessed)")
-            runDir("run/")
-            source(cheatSourceSet)
-            ideConfigGenerated(false)
+            displayName.set("Cheat Client (Preprocessed)")
+            runDirectory.set(file("run/"))
+            sourceSet.set(cheatSourceSet.name)
+            generateRunConfig.set(false)
         }
 
         maybeCreate("legitClientPreprocessed").apply {
             inherit(clientRun.get())
-            name("Legit Client (Preprocessed)")
-            runDir("run/")
-            source(legitSourceSet)
-            ideConfigGenerated(false)
+            displayName.set("Legit Client (Preprocessed)")
+            runDirectory.set(file("run/"))
+            sourceSet.set(legitSourceSet.name)
+            generateRunConfig.set(false)
         }
     }
 
@@ -49,11 +49,11 @@ configure<LoomGradleExtensionAPI> {
         }?.absolutePath
 
         runs.configureEach {
-            vmArg("-XX:+AllowEnhancedClassRedefinition")
-            vmArg("-Dmixin.hotSwap=true")
+            jvmArguments.add("-XX:+AllowEnhancedClassRedefinition")
+            jvmArguments.add("-Dmixin.hotSwap=true")
 
             if (mixinAgentJar != null) {
-                vmArg("-javaagent:$mixinAgentJar")
+                jvmArguments.add("-javaagent:$mixinAgentJar")
             }
         }
     }
