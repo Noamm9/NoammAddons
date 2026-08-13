@@ -2,7 +2,6 @@ package com.github.noamm9.ui.hud
 
 import com.github.noamm9.config.Config
 import com.github.noamm9.features.FeatureManager
-import com.github.noamm9.ui.utils.MouseHelper
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.componnents.UIButton
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
@@ -10,8 +9,6 @@ import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
-import org.lwjgl.glfw.GLFW
-import java.awt.Color
 
 class HudEditorScreen: Screen(Component.literal("HudEditor")) {
     private val huds = FeatureManager.hudElements.filter { it.toggle }
@@ -53,11 +50,10 @@ class HudEditorScreen: Screen(Component.literal("HudEditor")) {
         val mY = Resolution.getMouseY(mouseY)
         val midX = Resolution.width / 2
 
-        huds.forEach { it.drawEditor(graphics, mX, mY) }
+        for (hud in huds) hud.drawEditor(graphics, mX, mY)
 
         val element = huds.find { it.isDragging }
         graphics.drawCenteredString(element?.name.orEmpty(), midX, 10f, scale = 1.2f)
-        graphics.drawCenteredString("ESC to Save and Exit", midX, Resolution.height - 20f, Color.GRAY, shadow = false)
 
         Resolution.pop(graphics)
 
@@ -65,13 +61,12 @@ class HudEditorScreen: Screen(Component.literal("HudEditor")) {
     }
 
     override fun mouseScrolled(mouseX: Double, mouseY: Double, horizontal: Double, vertical: Double): Boolean {
-        huds.forEach { element ->
-            if (element.isDragging) {
-                val increment = (vertical * 0.1).toFloat()
-                element.scale = (element.scale + increment).coerceIn(0.5f, 5.0f)
-                return true
-            }
+        for (hud in huds) if (hud.isDragging) {
+            val increment = (vertical * 0.1).toFloat()
+            hud.scale = (hud.scale + increment).coerceIn(0.5f, 5.0f)
+            return true
         }
+
         return super.mouseScrolled(mouseX, mouseY, horizontal, vertical)
     }
 
@@ -81,27 +76,20 @@ class HudEditorScreen: Screen(Component.literal("HudEditor")) {
         val mX = Resolution.getMouseX(mouseButtonEvent.x)
         val mY = Resolution.getMouseY(mouseButtonEvent.y)
 
-        if (mouseButtonEvent.button() == 0) {
-            huds.forEach {
-                it.startDragging(mX, mY)
-                if (it.isDragging) {
-                    MouseHelper.setCursor(GLFW.GLFW_RESIZE_ALL_CURSOR)
-                    return true
-                }
-            }
+        if (mouseButtonEvent.button() == 0) huds.forEach {
+            it.startDragging(mX, mY)
+            if (it.isDragging) return true
         }
 
         return false
     }
 
     override fun mouseReleased(mouseButtonEvent: MouseButtonEvent): Boolean {
-        huds.forEach { it.isDragging = false }
-        MouseHelper.resetCursor()
+        for (hud in huds) hud.isDragging = false
         return super.mouseReleased(mouseButtonEvent)
     }
 
     override fun onClose() {
-        MouseHelper.resetCursor()
         Config.save()
         super.onClose()
     }

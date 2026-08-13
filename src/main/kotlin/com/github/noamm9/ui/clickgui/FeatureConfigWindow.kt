@@ -14,7 +14,6 @@ import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
 import net.minecraft.client.gui.GuiGraphicsExtractor
-import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, startWidth: Float, startHeight: Float) {
@@ -274,8 +273,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height
     }
 
-    fun cursorAt(mouseX: Float, mouseY: Float): Int? = when {
-        dragging -> GLFW.GLFW_RESIZE_ALL_CURSOR
+    fun cursorAt(mouseX: Float, mouseY: Float) = when {
         resizeCorner != ResizeCorner.NONE -> resizeCorner.cursor
         contains(mouseX, mouseY) -> getResizeCorner(mouseX, mouseY).cursor
         else -> null
