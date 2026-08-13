@@ -5,7 +5,7 @@ package com.github.noamm9.features.impl.general
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.MOD_NAME
-import com.github.noamm9.event.EventPriority
+import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent

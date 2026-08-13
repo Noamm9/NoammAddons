@@ -4,7 +4,7 @@ package com.github.noamm9.features.impl.general
 
 //#if CHEAT
 
-import com.github.noamm9.event.EventPriority
+import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.event.impl.PlayerInteractEvent
 import com.github.noamm9.features.Feature
 import net.minecraft.world.item.Items

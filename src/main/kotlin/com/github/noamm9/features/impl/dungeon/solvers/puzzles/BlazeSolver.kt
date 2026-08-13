@@ -1,7 +1,7 @@
 package com.github.noamm9.features.impl.dungeon.solvers.puzzles
 
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.event.EventListener
+import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.CheckEntityGlowEvent
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.TickEvent
@@ -64,7 +64,7 @@ object BlazeSolver: PuzzleSolver {
         }
     }
 
-    private val tickListener = EventListener.create<TickEvent.Start> {
+    private val tickListener = EventBus.listener<TickEvent.Start> {
         blazes.clear()
         hpMap.clear()
 

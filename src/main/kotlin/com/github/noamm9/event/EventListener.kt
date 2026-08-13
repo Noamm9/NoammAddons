@@ -1,28 +1,26 @@
 package com.github.noamm9.event
 
-data class EventListener<T: Event>(
-    val eventClass: Class<out Event>,
-    val priority: EventPriority = EventPriority.NORMAL,
-    val callback: EventBus.EventContext<T>.() -> Unit
-) {
-    fun isRegistered() = EventBus.listeners[eventClass]?.contains(this) == true
+import com.github.noamm9.event.priority.EventPriority
 
-    fun unregister(): EventListener<T> {
-        EventBus.unregister(this)
-        return this
-    }
+class EventListener<T: Event>(
+    val eventClass: Class<out Event>,
+    val priority: EventPriority,
+    val receiveCancelled: Boolean = false,
+    val callback: EventContext<T>.() -> Unit
+) {
+    @Volatile var isActive = false
 
     fun register(): EventListener<T> {
-        EventBus.register(this)
+        if (isActive) return this
+        isActive = true
+        EventBus._registerListener(this)
         return this
     }
 
-    companion object {
-        inline fun <reified T: Event> create(
-            priority: EventPriority = EventPriority.NORMAL,
-            noinline callback: EventBus.EventContext<T>.() -> Unit
-        ): EventListener<T> {
-            return EventListener(T::class.java, priority, callback)
-        }
+    fun unregister(): EventListener<T> {
+        if (! isActive) return this
+        isActive = false
+        EventBus._unregisterListener(this)
+        return this
     }
 }

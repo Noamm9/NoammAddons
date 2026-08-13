@@ -2,7 +2,7 @@ package com.github.noamm9.utils
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus.register
-import com.github.noamm9.event.EventPriority
+import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.init.types.ISelfInit

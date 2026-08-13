@@ -1,6 +1,6 @@
 package com.github.noamm9.features.impl.dev
 
-import com.github.noamm9.event.EventPriority
+import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.event.impl.CheckEntityGlowEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.features.Feature

@@ -1,6 +1,6 @@
 package com.github.noamm9.features.impl.visual
 
-import com.github.noamm9.event.EventListener
+import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.annotations.AlwaysActive
@@ -56,7 +56,7 @@ object PetDisplay: Feature("Pet Features") {
         hudElement(
             "Auto Pet Title",
             enabled = { autoPetTitles.value },
-            shouldDraw = { ticker.isRegistered() },
+            shouldDraw = { ticker.isActive },
             centered = true
         ) { context, example ->
             val text = if (example) "&6Golden Dragon" else autoPetTitle
@@ -130,7 +130,7 @@ object PetDisplay: Feature("Pet Features") {
         }
     }
 
-    private val ticker = EventListener.create<TickEvent.Start> {
+    private val ticker = EventBus.listener<TickEvent.Start> {
         autoPetTitleTicks --
         if (autoPetTitleTicks <= 0) listener.unregister()
     }

@@ -1,7 +1,7 @@
 package com.github.noamm9.features.impl.floor7.devices
 
 import com.github.noamm9.NoammAddons
-import com.github.noamm9.event.EventListener
+import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.*
@@ -211,7 +211,7 @@ object SimonSays: Feature("Simon Says Solver") {
                 }
             }
 
-            if (! serverTickListener.isRegistered()) return@register
+            if (! serverTickListener.isActive) return@register
 
             when (type) {
                 "terminal", "lever" -> thingsDone ++
@@ -224,7 +224,7 @@ object SimonSays: Feature("Simon Says Solver") {
         }
     }
 
-    val serverTickListener = EventListener.create<TickEvent.Server> {
+    val serverTickListener = EventBus.listener<TickEvent.Server> {
         ticks --
 
         if (obsidians.any { WorldUtils.getBlockAt(it) != Blocks.OBSIDIAN }) {
@@ -239,11 +239,11 @@ object SimonSays: Feature("Simon Says Solver") {
                 }
             }
 
-            return@create
+            return@listener
         }
 
-        if (ticks > 0 || ! canBreak) return@create
-        if (! buttons.all { pos -> WorldUtils.getBlockAt(pos) == Blocks.AIR }) return@create
+        if (ticks > 0 || ! canBreak) return@listener
+        if (! buttons.all { pos -> WorldUtils.getBlockAt(pos) == Blocks.AIR }) return@listener
 
         canBreak = false
         wasBroken = true

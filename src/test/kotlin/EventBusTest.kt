@@ -1,7 +1,6 @@
 import com.github.noamm9.event.Event
 import com.github.noamm9.event.EventBus
-import com.github.noamm9.event.EventListener
-import com.github.noamm9.event.EventPriority
+import com.github.noamm9.event.priority.EventPriority
 import kotlin.system.exitProcess
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -75,7 +74,7 @@ object EventBusTest {
             receivedEvent = event
         }
 
-        assertTrue(listener.isRegistered(), "Listener should be registered")
+        assertTrue(listener.isActive, "Listener should be registered")
 
         val eventInstance = TestEvent()
         val canceled = EventBus.post(eventInstance)
@@ -88,21 +87,11 @@ object EventBusTest {
     fun testPriorityOrdering() {
         val executionOrder = mutableListOf<EventPriority>()
 
-        EventBus.register<TestEvent>(EventPriority.LOW) {
-            executionOrder.add(EventPriority.LOW)
-        }
-        EventBus.register<TestEvent>(EventPriority.HIGHEST) {
-            executionOrder.add(EventPriority.HIGHEST)
-        }
-        EventBus.register<TestEvent>(EventPriority.LOWEST) {
-            executionOrder.add(EventPriority.LOWEST)
-        }
-        EventBus.register<TestEvent>(EventPriority.NORMAL) {
-            executionOrder.add(EventPriority.NORMAL)
-        }
-        EventBus.register<TestEvent>(EventPriority.HIGH) {
-            executionOrder.add(EventPriority.HIGH)
-        }
+        EventBus.register<TestEvent>(EventPriority.LOW) { executionOrder.add(EventPriority.LOW) }
+        EventBus.register<TestEvent>(EventPriority.HIGHEST) { executionOrder.add(EventPriority.HIGHEST) }
+        EventBus.register<TestEvent>(EventPriority.LOWEST) { executionOrder.add(EventPriority.LOWEST) }
+        EventBus.register<TestEvent>(EventPriority.NORMAL) { executionOrder.add(EventPriority.NORMAL) }
+        EventBus.register<TestEvent>(EventPriority.HIGH) { executionOrder.add(EventPriority.HIGH) }
 
         EventBus.post(TestEvent())
 
@@ -111,13 +100,13 @@ object EventBusTest {
             EventPriority.HIGH,
             EventPriority.NORMAL,
             EventPriority.LOW,
-            EventPriority.LOWEST
-        )
+            EventPriority.LOWEST)
         assertEquals(expectedOrder, executionOrder, "Callbacks should be executed in priority order (Highest to Lowest)")
     }
 
     fun testCancellation() {
         var secondListenerCalled = false
+        var callled = false
 
         EventBus.register<TestEvent>(EventPriority.HIGH) {
             event.cancel()
@@ -125,13 +114,18 @@ object EventBusTest {
 
         EventBus.register<TestEvent>(EventPriority.NORMAL) {
             secondListenerCalled = true
+        }
+
+        EventBus.register<TestEvent>(EventPriority.NORMAL, receiveCancelled = true) {
+            callled = true
             assertTrue(event.isCanceled, "Event should be marked as canceled in subsequent listener")
         }
 
         val eventInstance = TestEvent(cancelable = true)
         val isCanceledResult = EventBus.post(eventInstance)
 
-        assertTrue(secondListenerCalled, "Subsequent listener should still be called even if event is canceled")
+        assertTrue(callled, "receiveCancelled Listener called on cancelled event")
+        assertFalse(secondListenerCalled, "Subsequent listener should not be called even if event is canceled")
         assertTrue(eventInstance.isCanceled, "Event instance should be canceled")
         assertTrue(isCanceledResult, "EventBus.post should return true for a canceled event")
     }
@@ -147,7 +141,7 @@ object EventBusTest {
         assertEquals(1, callCount, "Listener should be called once")
 
         listener.unregister()
-        assertFalse(listener.isRegistered(), "Listener should no longer be registered")
+        assertFalse(listener.isActive, "Listener should no longer be registered")
 
         EventBus.post(TestEvent())
         assertEquals(1, callCount, "Listener should not be called after unregistering")
@@ -156,12 +150,12 @@ object EventBusTest {
     fun testDeduplication() {
         var callCount = 0
 
-        val listener = EventListener.create<TestEvent> {
+        val listener = EventBus.listener<TestEvent> {
             callCount ++
         }
-        
-        EventBus.register(listener)
-        EventBus.register(listener)
+
+        listener.register()
+        listener.register()
 
         val listenersList = EventBus.listeners[TestEvent::class.java]
         assertNotNull(listenersList, "Listeners list should not be null")

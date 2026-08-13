@@ -3,8 +3,8 @@ package com.github.noamm9.utils
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.NoammAddons.scope
+import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.EventBus.register
-import com.github.noamm9.event.EventListener
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.RenderOverlayEvent
 import com.github.noamm9.init.types.ISelfInit
@@ -196,7 +196,7 @@ object ChatUtils: ISelfInit {
         ChatUtils.chat(if (prefix) Component.literal(NoammAddons.PREFIX + " ").append(mainComponent) else mainComponent)
     }
 
-    private val titleRenderer = EventListener.create<RenderOverlayEvent> {
+    private val titleRenderer = EventBus.listener<RenderOverlayEvent> {
         val x = mc.window.guiScaledWidth / 2f
         val height = mc.window.guiScaledHeight
         val y = height / 2f - (height * 0.056).roundToInt()

@@ -1,6 +1,6 @@
 package com.github.noamm9.features.impl.floor7
 
-import com.github.noamm9.event.EventListener
+import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
@@ -98,7 +98,7 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
                     val number = text.toIntOrNull() ?: return@register
                     event.isCanceled = true
 
-                    if (! timerRenderer.isRegistered() && (number == 4 || number == 6)) {
+                    if (! timerRenderer.isActive && (number == 4 || number == 6)) {
                         timerTime = DungeonListener.currentTime + (number * 1.35 * 20.0).toLong()
                         timerRenderer.register()
                     }
@@ -128,14 +128,14 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
         }
     }
 
-    private val timerRenderer = EventListener.create<RenderOverlayEvent> {
-        if (! enabled) return@create
+    private val timerRenderer = EventBus.listener<RenderOverlayEvent> {
+        if (! enabled) return@listener
         val timeLeft = (timerTime - DungeonListener.currentTime) / 20.0
 
         if (timeLeft <= 0) {
             this.listener.unregister()
             showTitle("&aStorm's Lightning Ended!")
-            return@create
+            return@listener
         }
 
         val width = mc.window.guiScaledWidth

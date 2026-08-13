@@ -5,7 +5,7 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.NoammAddons.scope
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.EventBus.register
-import com.github.noamm9.event.EventPriority
+import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.mixin.IPlayerInfo

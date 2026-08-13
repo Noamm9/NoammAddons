@@ -1,10 +1,10 @@
 package com.github.noamm9.features
 
-import com.github.noamm9.config.Savable
 import com.github.noamm9.event.Event
-import com.github.noamm9.event.EventBus.EventContext
+import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.EventContext
 import com.github.noamm9.event.EventListener
-import com.github.noamm9.event.EventPriority
+import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.features.annotations.AlwaysActive
 import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.SettingProvider
@@ -47,8 +47,12 @@ open class Feature(
         else onDisable()
     }
 
-    protected inline fun <reified T: Event> register(priority: EventPriority = EventPriority.NORMAL, noinline block: EventContext<T>.() -> Unit): EventListener<T> {
-        val listener = EventListener.create<T>(priority, block)
+    protected inline fun <reified T: Event> register(
+        priority: EventPriority = EventPriority.NORMAL,
+        receiveCancelled: Boolean = false,
+        noinline block: EventContext<T>.() -> Unit
+    ): EventListener<T> {
+        val listener = EventBus.listener<T>(priority, receiveCancelled, block)
         listeners.add(listener)
         return listener
     }
@@ -69,7 +73,7 @@ open class Feature(
         }.also(hudElements::add)
     }
 
-    fun getSettingByName(key: String?) = configSettings.find { it.name == key && it is Savable }
+    fun getSettingByName(key: String?) = configSettings.find { it.name == key }
 
     private fun initCategory(): CategoryType {
         val parts = this::class.java.`package` !!.name.split(".")

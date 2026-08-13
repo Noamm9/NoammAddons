@@ -1,7 +1,7 @@
 package com.github.noamm9.features.impl.floor7.terminals
 
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.event.EventListener
+import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.TickEvent
@@ -31,10 +31,10 @@ object TerminalListener {
 
     val currentItems = mutableMapOf<Int, ItemStack>()
 
-    val packetReceivedListener = EventListener.create<MainThreadPacketReceivedEvent.Post> { onPacketReceived(event.packet) }
-    val packetSentListener = EventListener.create<PacketEvent.Sent> { onPacketSent(event.packet, event) }
-    val tickListener = EventListener.create<TickEvent.Server> { onTick() }
-    val worldChangeListener = EventListener.create<WorldChangeEvent> { reset() }
+    val packetReceivedListener = EventBus.listener<MainThreadPacketReceivedEvent.Post> { onPacketReceived(event.packet) }
+    val packetSentListener = EventBus.listener<PacketEvent.Sent> { onPacketSent(event.packet, event) }
+    val tickListener = EventBus.listener<TickEvent.Server> { onTick() }
+    val worldChangeListener = EventBus.listener<WorldChangeEvent> { reset() }
 
     private fun onPacketReceived(packet: Packet<*>) {
         if (LocationUtils.F7Phase != 3) return

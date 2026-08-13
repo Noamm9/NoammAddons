@@ -23,7 +23,7 @@ public abstract class KeyboardMixin {
     }
 
     @Inject(method = "charTyped", at = @At("HEAD"), cancellable = true)
-    private void onChar(long window, CharacterEvent event, CallbackInfo ci) {
+    private void onChar(long handle, CharacterEvent event, CallbackInfo ci) {
         if (EventBus.post(new KeyboardEvent.CharTyped(event))) {
             ci.cancel();
         }

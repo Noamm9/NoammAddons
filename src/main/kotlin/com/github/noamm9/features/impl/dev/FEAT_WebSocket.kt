@@ -2,7 +2,7 @@ package com.github.noamm9.features.impl.dev
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.commands.CommandBuilder
-import com.github.noamm9.event.EventPriority
+import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.WebSocketEvent
 import com.github.noamm9.event.impl.WorldChangeEvent

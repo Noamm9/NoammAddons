@@ -1,7 +1,7 @@
 package com.github.noamm9.utils.network
 
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.event.EventListener
+import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.JsonUtils.getString
@@ -154,18 +154,18 @@ object ProfileUtils {
         chatListener.register()
         ChatUtils.sendCommand("/secretcount")
         ThreadUtils.setTimeout(5000) { chatListener.unregister() }
-        while (chatListener.isRegistered()) delay(50)
+        while (chatListener.isActive) delay(50)
         return _totalSecrets ?: error("No secrets found")
     }
 
     private val regex = Regex("^\\w+: \\d+$")
     private var _totalSecrets: Long? = null
-    private val chatListener = EventListener.create<ChatMessageEvent> {
-        if (event.unformattedText == "Secret Counts:") return@create event.cancel()
-        if (! event.unformattedText.matches(regex)) return@create
+    private val chatListener = EventBus.listener<ChatMessageEvent> {
+        if (event.unformattedText == "Secret Counts:") return@listener event.cancel()
+        if (! event.unformattedText.matches(regex)) return@listener
         event.isCanceled = true
 
-        if (event.unformattedText.substringBefore(":") != mc.user.name) return@create
+        if (event.unformattedText.substringBefore(":") != mc.user.name) return@listener
         _totalSecrets = event.unformattedText.substringAfter(": ").toLongOrNull()
         ThreadUtils.scheduledTaskServer(5) { listener.unregister() }
     }

@@ -2,7 +2,7 @@ package com.github.noamm9.utils
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.EventBus
-import com.github.noamm9.event.EventPriority
+import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.init.types.ISelfInit
 import net.minecraft.network.chat.Component

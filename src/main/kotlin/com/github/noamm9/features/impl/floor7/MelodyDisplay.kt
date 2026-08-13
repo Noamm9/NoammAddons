@@ -1,6 +1,6 @@
 package com.github.noamm9.features.impl.floor7
 
-import com.github.noamm9.event.EventListener
+import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
@@ -26,8 +26,8 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
     private val melodyRegex = Regex("""Party > (?:\[[^]]+]\s)?(\w+):""")
     private var currentState: MelodyState? = null
 
-    private val timer = EventListener.create<TickEvent.Start> {
-        val state = currentState ?: return@create
+    private val timer = EventBus.listener<TickEvent.Start> {
+        val state = currentState ?: return@listener
         val durationMillis = (alertDuration.value * 1000).toLong()
 
         if (System.currentTimeMillis() - state.timestamp > durationMillis) {
