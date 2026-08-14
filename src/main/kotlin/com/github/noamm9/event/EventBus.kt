@@ -5,36 +5,34 @@ import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.event.priority.PriorityComparator
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.remove
+import com.github.noamm9.utils.startsWithOneOf
+import net.minecraft.network.chat.Component
 import java.util.concurrent.*
 
 object EventBus {
     val listeners = ConcurrentHashMap<Class<out Event>, List<EventListener<*>>>()
     private val exceptionHandler: (Exception, EventListener<*>, Event) -> Unit = { exception, listener, event ->
-        val eventName = event.javaClass.name.remove("com.github.noamm9.event.impl.")
-        val stack = Thread.currentThread().stackTrace
+        val packageName = Event::class.java.`package`.name
+        val eventName = event.javaClass.name.remove("$packageName.impl.")
+        var fileName = "Unknown File"
+        var line = "line: -1 (unknown)"
 
-        var stackInfo = ""
-        for (i in 3 until stack.size) {
-            val element = stack[i]
-            val className = element.className
-
-            if (className.startsWith("com.github.noamm9.event") ||
-                className.startsWith("java.lang") || className.startsWith("kotlin.") ||
-                className.contains("EventBus")
-            ) continue
-
-            val fileName = element.fileName ?: "Unknown File"
-            val lineNumber = element.lineNumber
-            val methodName = element.methodName
-
-            stackInfo = "$fileName:$lineNumber ($methodName)"
-
+        for (element in exception.stackTrace) {
+            if (element.className.startsWithOneOf(packageName, "java.lang", "kotlin.")) continue
+            fileName = element.fileName ?: "Unknown File"
+            line = "line ${element.lineNumber} (${element.methodName})"
             break
         }
 
-        val msg = "EventBus Error at $eventName $stackInfo"
         NoammAddons.logger.error("EventBus error", exception)
-        ChatUtils.modMessage(msg)
+        ChatUtils.chat(Component.empty().apply {
+            append("§c----------------------------------------\n")
+            append("§c>> Uncaught Exception in EventBus <<\n")
+            append("§c   Event: §f${eventName}§r\n")
+            append("§c   File: $fileName: §e$line§r\n")
+            append("§c   Error: §f${exception.message}\n")
+            append("§c----------------------------------------")
+        })
     }
 
     fun _registerListener(listener: EventListener<*>) {
