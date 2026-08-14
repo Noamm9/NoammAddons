@@ -5,6 +5,7 @@ import com.github.noamm9.event.impl.KeyboardEvent
 import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.event.impl.ScreenEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlay
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
@@ -19,6 +20,7 @@ import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.highlight
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
+import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.client.input.MouseButtonInfo
 import net.minecraft.world.item.ItemStack
@@ -28,6 +30,7 @@ import java.awt.Color
 object InventorySearch: Feature("Lets you search in inventory and support math") {
     private val ignoreCaps by ToggleSetting("Ignore Caps", true)
     private val searchLore by ToggleSetting("Search Lore", true)
+    private val storageOverlayOnly by ToggleSetting("Storage Overlay Only").withDescription("Only shows the search bar in the Storage Overlay")
     private val highlightColor by ColorSetting("Highlight Color", Color.RED)
 
     private var searchQuery = ""
@@ -50,6 +53,11 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
     private lateinit var searchHud: HudElement
     private const val WIDTH = 200f
     private const val HEIGHT = 22f
+
+    private fun shouldShowSearchBar(): Boolean {
+        val screen = mc.screen as? AbstractContainerScreen<*> ?: return false
+        return ! storageOverlayOnly.value || screen is ContainerScreen && StorageOverlay.activeFor(screen) != null
+    }
 
     override fun init() {
         searchHud = hudElement(
@@ -80,7 +88,7 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
         }
 
         register<ScreenEvent.PostRender> {
-            if (mc.screen !is AbstractContainerScreen<*>) return@register
+            if (! shouldShowSearchBar()) return@register
 
             Resolution.push(event.context)
             searchHud.renderElement(event.context, false)
@@ -88,7 +96,7 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
         }
 
         register<MouseClickEvent> {
-            if (mc.screen !is AbstractContainerScreen<*>) return@register
+            if (! shouldShowSearchBar()) return@register
             if (event.action == GLFW.GLFW_RELEASE) searchHandler.mouseReleased()
             if (event.action != GLFW.GLFW_PRESS) return@register
 
@@ -100,14 +108,14 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
         }
 
         register<KeyboardEvent.CharTyped> {
-            if (mc.screen !is AbstractContainerScreen<*>) return@register
+            if (! shouldShowSearchBar()) return@register
             if (! searchHandler.listening) return@register
             searchHandler.keyTyped(event.charEvent)
             event.isCanceled = true
         }
 
         register<KeyboardEvent.KeyPressed> {
-            if (mc.screen !is AbstractContainerScreen<*>) return@register
+            if (! shouldShowSearchBar()) return@register
 
             if (event.keyEvent.key == GLFW.GLFW_KEY_F && event.keyEvent.hasControlDown()) {
                 searchHandler.listening = ! searchHandler.listening
