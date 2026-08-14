@@ -1,5 +1,6 @@
 package com.github.noamm9.features
 
+import com.github.noamm9.config.Savable
 import com.github.noamm9.event.Event
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.EventContext
@@ -73,7 +74,7 @@ open class Feature(
         }.also(hudElements::add)
     }
 
-    fun getSettingByName(key: String?) = configSettings.find { it.name == key }
+    fun getSettingByName(key: String?) = configSettings.find { it.name == key && it is Savable }
 
     private fun initCategory(): CategoryType {
         val parts = this::class.java.`package` !!.name.split(".")
