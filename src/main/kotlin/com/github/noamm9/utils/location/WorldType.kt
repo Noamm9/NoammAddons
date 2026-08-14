@@ -11,7 +11,7 @@ enum class WorldType(val tabName: String) {
     DwarvenMines("Dwarven Mines"),
     End("The End"),
     Galatea("Galatea"),
-    Garden("Garden"),
+    Garden("Moonglade Marsh"),
     GoldMine("Gold Mine"),
     Home("Private Island"),
     Hub("Hub"),
