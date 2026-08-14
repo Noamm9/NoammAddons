@@ -24,8 +24,8 @@ object ActionBarParser: ISelfInit {
     val MANA_REGEX = Regex("§b([\\d,]+)/([\\d,]+)[\uE003✎]( Mana)?")
     val OVERFLOW_REGEX = Regex("§3([\\d,]+)[\uE017ʬ]") // §3100ʬ
     val VITALITY_REGEX = Regex("""§4([\d.,]+)/([\d,.]+)[♨]( Vitality)?""") // https://regex101.com/r/tLHZYG/1
-    val STACKS_REGEX = Regex("§6([\\d,]+)([ᝐ⁑Ѫ])") // §610⁑
-    val SALVATION_REGEX = Regex("T([1-3])!")
+    val STACKS_REGEX = Regex("(?:§6|§6§l)([\\d,]+)([ᝐ⁑҉Ѫ⚶])(?:§r)?")
+    val SALVATION_REGEX = Regex("(?:§6|§a§l)?T([12]|3!)(?:§r)?")
     val MANA_USAGE_REGEX = Regex("§b-([\\d,]+) Mana \\(§6.+?§b\\)|§c§lNOT ENOUGH MANA") // §b-50 Mana (§6Speed Boost§b) , §c§lNOT ENOUGH MANA
     val SECRETS_REGEX = Regex("\\s*§7(\\d+)/(\\d+) Secrets") // §76/10 Secrets§r
 
@@ -98,7 +98,7 @@ object ActionBarParser: ISelfInit {
         }
 
         SALVATION_REGEX.find(input)?.let { match ->
-            salvation = match.groupValues[1].remove(",").toIntOrNull() ?: salvation
+            salvation = match.groupValues[1].trimEnd('!').toIntOrNull() ?: salvation
         }
 
         SECRETS_REGEX.takeIf { LocationUtils.inDungeon }?.find(input)?.let { match ->
