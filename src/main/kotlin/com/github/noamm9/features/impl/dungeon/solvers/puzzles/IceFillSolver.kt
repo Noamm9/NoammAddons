@@ -109,9 +109,9 @@ object IceFillSolver: PuzzleSolver {
             Direction.Plane.HORIZONTAL.filter { pos.relative(it) in spaces }
         }
 
+        private val NO_WALL_PENALTY = 5
         private val DOUBLE_TURN_PENALTY = 2
-        private val NO_WALL_PENALTY = 3
-        private val TURN_PENALTY = 2
+        private val TURN_PENALTY = 1
 
         private fun dirBetween(a: BlockPos, b: BlockPos) = when {
             b.x > a.x -> Direction.EAST
@@ -122,12 +122,23 @@ object IceFillSolver: PuzzleSolver {
 
         private fun isBackedByWall(pos: BlockPos, dir: Direction) = pos.relative(dir) !in spaces
 
-        fun solve(): IceFillPuzzle {
-            if (start !in spaces || end !in spaces) return this
-            val fallback = findPath() ?: return this
-            val optimized = findOptimalPath(pathCost(fallback))
-            path = (optimized ?: fallback).toMutableList()
-            return this
+        private fun remainingConnected(current: BlockPos, visited: Set<BlockPos>): Boolean {
+            val remaining = spaces.size - visited.size + 1
+            if (remaining <= 1) return true
+
+            val seen = HashSet<BlockPos>(remaining)
+            val stack = ArrayDeque<BlockPos>()
+            stack.add(current)
+            seen.add(current)
+
+            while (stack.isNotEmpty()) {
+                val cur = stack.removeLast()
+                for (dir in graph[cur] ?: emptyList()) {
+                    val n = cur.relative(dir)
+                    if ((n == current || n !in visited) && seen.add(n)) stack.add(n)
+                }
+            }
+            return seen.size == remaining
         }
 
         private fun pathCost(fullPath: List<BlockPos>): Int {
@@ -149,50 +160,25 @@ object IceFillSolver: PuzzleSolver {
             return total
         }
 
-        private fun findPath(): List<BlockPos>? {
-            val visited = mutableSetOf(start)
-            val tempPath = ArrayList<BlockPos>(spaces.size).apply { add(start) }
-
-            fun dfs(current: BlockPos): Boolean {
-                if (visited.size == spaces.size) return current == end
-                if (current == end) return false
-
-                val next = (graph[current] ?: emptyList())
-                    .map { current.relative(it) }
-                    .filter { it !in visited }
-                    .sortedBy { pos -> (graph[pos] ?: emptyList()).count { pos.relative(it) !in visited } }
-
-                for (n in next) {
-                    visited.add(n)
-                    tempPath.add(n)
-                    if (dfs(n)) return true
-                    tempPath.removeAt(tempPath.size - 1)
-                    visited.remove(n)
-                }
-                return false
-            }
-
-            return if (dfs(start)) tempPath.toList() else null
-        }
-
-        private fun findOptimalPath(startingBestCost: Int): List<BlockPos>? {
-            var bestCost = startingBestCost
+        private fun search(stopAtFirst: Boolean, costBound: Int): List<BlockPos>? {
+            var bestCost = costBound
             var bestPath: List<BlockPos>? = null
 
             val visited = mutableSetOf(start)
             val tempPath = ArrayList<BlockPos>(spaces.size).apply { add(start) }
 
-            fun dfs(current: BlockPos, lastDir: Direction?, lastWasTurn: Boolean, cost: Int) {
-                if (cost >= bestCost) return
+            fun dfs(current: BlockPos, lastDir: Direction?, lastWasTurn: Boolean, cost: Int): Boolean {
+                if (cost >= bestCost) return false
 
                 if (visited.size == spaces.size) {
                     if (current == end) {
                         bestCost = cost
                         bestPath = tempPath.toList()
+                        return stopAtFirst
                     }
-                    return
+                    return false
                 }
-                if (current == end) return
+                if (current == end) return false
 
                 val candidates = (graph[current] ?: emptyList())
                     .map { it to current.relative(it) }
@@ -218,15 +204,36 @@ object IceFillSolver: PuzzleSolver {
                     visited.add(nextPos)
                     tempPath.add(nextPos)
 
-                    dfs(nextPos, dir, turned, stepCost)
+                    val stop = remainingConnected(nextPos, visited) && dfs(nextPos, dir, turned, stepCost)
 
                     tempPath.removeAt(tempPath.size - 1)
                     visited.remove(nextPos)
+
+                    if (stop) return true
                 }
+                return false
             }
 
             dfs(start, null, false, 0)
             return bestPath
+        }
+
+        fun solve(): IceFillPuzzle {
+            if (start !in spaces || end !in spaces) return this
+            if ("ice" in NoammAddons.debugFlags) {
+                fun BlockPos.string() = "(x:$x, z:$z)"
+                ChatUtils.debug("ice", "spaces=${spaces.joinToString(",") { it.string() }} start=${start.string()} end=${end.string()}")
+            }
+
+            val fallback = search(stopAtFirst = true, costBound = Int.MAX_VALUE) ?: return this
+
+            val optimized = search(
+                stopAtFirst = false,
+                costBound = pathCost(fallback),
+            )
+
+            path = (optimized ?: fallback).toMutableList()
+            return this
         }
 
         fun draw(ctx: RenderContext) = path.forEachIndexed { index, pos ->
