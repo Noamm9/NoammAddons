@@ -28,7 +28,9 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
         "Mana" to false,
         "Overflow Mana" to false,
         "Vitality" to false,
-        "Dungeon Room Secrets" to false
+        "Dungeon Room Secrets" to false,
+        "Armor Stacks" to false,
+        "Terminator Stacks" to false
     ))
 
     @JvmStatic val hideFoodbar by ToggleSetting("Hide Food bar").withDescription("Hides the food bar.").section("Extras")
@@ -116,6 +118,8 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             if (hideFromActionbar.value["Overflow Mana"] == true) result = result.replace(ActionBarParser.OVERFLOW_REGEX, "")
             if (hideFromActionbar.value["Vitality"] == true) result = result.replace(ActionBarParser.VITALITY_REGEX, "")
             if (hideFromActionbar.value["Dungeon Room Secrets"] == true) result = result.replace(ActionBarParser.SECRETS_REGEX, "")
+            if (hideFromActionbar.value["Armor Stacks"] == true) result = result.replace(ActionBarParser.STACKS_REGEX, "")
+            if (hideFromActionbar.value["Terminator Stacks"] == true) result = result.replace(ActionBarParser.SALVATION_REGEX, "")
 
             event.message = result
         }
