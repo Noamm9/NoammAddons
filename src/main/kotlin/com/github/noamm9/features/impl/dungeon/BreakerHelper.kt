@@ -13,7 +13,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.level.block.Blocks
 
-object BreakerHelper: Feature("Zero Ping Dungeon Breaker") {
+object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
     private val preventBreakingSecrets by ToggleSetting("Prevent Secret Mine").withDescription("Prevents you from breaking secret blocks like chests & levers.")
 
     //#if CHEAT
