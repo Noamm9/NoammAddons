@@ -49,7 +49,8 @@ object DungeonMap: Feature() {
             }
 
             if (! MapConfig.boxDoors.value) return@register
-            val shouldHideUndiscovered = ! MapConfig.dungeonMapCheater.value || DungeonListener.dungeonStarted
+            val shouldHideUndiscovered = ! MapConfig.dungeonMapCheater.value ||
+                (DungeonListener.dungeonStarted && ! MapConfig.highlightAllDoors.value)
 
             for (tile in DungeonScanner.dungeonList) {
                 if (tile !is DoorTile || tile.opened) continue
