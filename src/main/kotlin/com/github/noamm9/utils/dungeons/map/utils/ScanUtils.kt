@@ -55,8 +55,11 @@ object ScanUtils: ISelfInit, ICommandProvider, Shortcuts {
     override fun CommandBuilder.command() {
         setName("relative")
         runs {
-            val room = currentRoom ?: return@runs
-            ChatUtils.chat(getRelativeCoord(PlayerUtils.getSelectionBlock() !!, room.clayPos !!, room.rotation !!))
+            val look = PlayerUtils.getSelectionBlock() !!
+            val room = currentRoom !!
+            getRelativeCoord(look, room.clayPos !!, room.rotation !!).let {
+                ChatUtils.modMessage("relative: $it")
+            }
         }
     }
 

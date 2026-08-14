@@ -46,10 +46,7 @@ object Secrets: Feature() {
         repeat(5) { mc.soundManager.play(SimpleSoundInstance.forUI(sound.value, pitch.value, volume.value)) }
     }.withDescription("Click to test the current sound configuration.").showIf { secretSound.value }
 
-
-    private data class ClickedSecret(val pos: BlockPos, val time: Long)
-
-    private val clicked = CopyOnWriteArraySet<ClickedSecret>()
+    private val clicked = ConcurrentHashMap<BlockPos, Long>()
     private var lastPlayed = System.currentTimeMillis()
 
     override fun init() {
@@ -69,6 +66,7 @@ object Secrets: Feature() {
         register<MainThreadPacketReceivedEvent.Pre> {
             if (! closeChest.value) return@register
             if (! LocationUtils.inDungeon) return@register
+            if (LocationUtils.inBoss) return@register
             val packet = event.packet as? ClientboundOpenScreenPacket ?: return@register
             if (! packet.type.equalsOneOf(MenuType.GENERIC_9x3, MenuType.GENERIC_9x6)) return@register
             if (! packet.title.unformattedText.equalsOneOf("Chest", "Large Chest")) return@register
@@ -79,14 +77,17 @@ object Secrets: Feature() {
 
         register<RenderWorldEvent> {
             if (clicked.isEmpty()) return@register
-            clicked.removeIf { it.time + (displayTime.value * 1000) < System.currentTimeMillis() }
-            clicked.takeUnless { it.isEmpty() }?.forEach {
-                event.ctx.renderBlock(
-                    it.pos, secretClickedColor.value,
-                    outline = mode.value.equalsOneOf(1, 2),
-                    fill = mode.value.equalsOneOf(0, 2),
-                    phase = phase.value
-                )
+
+            val outline = mode.value.equalsOneOf(1, 2)
+            val fill = mode.value.equalsOneOf(0, 2)
+
+            for ((pos, time) in clicked) {
+                if (time + (displayTime.value * 1000) < System.currentTimeMillis()) {
+                    clicked.remove(pos)
+                    continue
+                }
+
+                event.ctx.renderBlock(pos, secretClickedColor.value, outline, fill, phase.value)
             }
         }
 
@@ -94,13 +95,13 @@ object Secrets: Feature() {
             if (secretSound.value) {
                 if (event.type == SecretType.ITEM && System.currentTimeMillis() - lastPlayed < 2000) return@register
                 if (event.type == SecretType.CHEST) lastPlayed = System.currentTimeMillis()
-                if (clicked.any { it.pos == event.pos }) return@register
+                if (clicked.containsKey(event.pos)) return@register
                 playSound.action.invoke()
             }
 
             if (secretClicked.value) {
-                if (clicked.any { it.pos == event.pos }) return@register
-                clicked.add(ClickedSecret(event.pos, System.currentTimeMillis()))
+                if (clicked.containsKey(event.pos)) return@register
+                clicked[event.pos] = System.currentTimeMillis()
             }
         }
     }
