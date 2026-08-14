@@ -72,6 +72,9 @@ object MapConfig: SettingProvider {
     val colorEntranceDoor = ColorSetting("Entrance Door", colorEntrance.value, true)
 
     val boxDoors = ToggleSetting("Box Wither Doors").section("Door ESP")
+    val highlightAllDoors = ToggleSetting("Highlight All Doors")
+        .withDescription("Highlights every unopened door instead of only the next door after the run starts.")
+        .showIf { boxDoors.value && dungeonMapCheater.value }
     val boxDoorsMode = DropdownSetting("Highlight Mode", 2, listOf("Outline", "Fill", "Filled Outline"))
     val doorNoKeyColor = ColorSetting("No Key Color ", Color.RED.withAlpha(100)).showIf { boxDoors.value }
     val doorKeyColor = ColorSetting("Has Key Color ", Color.GREEN.withAlpha(100)).showIf { boxDoors.value }
@@ -89,7 +92,7 @@ object MapConfig: SettingProvider {
             colorMiniboss, colorRoom, colorPuzzle, colorMimic, colorRare, colorTrap,
             colorUnopened, colorBloodDoor, colorEntranceDoor, colorRoomDoor,
             colorWitherDoor, colorOpenWitherDoor, colorUnopenedDoor, boxDoors,
-            boxDoorsMode, doorNoKeyColor, doorKeyColor
+            highlightAllDoors, boxDoorsMode, doorNoKeyColor, doorKeyColor
         )
     }
 }
