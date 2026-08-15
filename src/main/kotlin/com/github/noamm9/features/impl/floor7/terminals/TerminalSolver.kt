@@ -7,17 +7,14 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.terminals.TerminalType.Companion.clickedSlot
 import com.github.noamm9.features.impl.floor7.terminals.TerminalType.Companion.clickedSlots
 import com.github.noamm9.init.types.ICustomMenu
-import com.github.noamm9.ui.clickgui.components.impl.ButtonSetting
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.SoundSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.hasGlint
 import com.github.noamm9.utils.render.Render2D.drawBorder
@@ -26,7 +23,6 @@ import com.github.noamm9.utils.render.Render2D.drawFloatingRect
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.uppercaseFirst
 import net.minecraft.client.gui.GuiGraphicsExtractor
-import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.item.ItemStack
@@ -58,14 +54,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
     private val resyncTimeout by SliderSetting<Long>("Resync Timeout", 800, 600, 1000, 1)
 
     private val soundsEnabled by ToggleSetting("Enable Sounds", true).section("Sounds")
-    private val clickSound by SoundSetting("Click Sound", SoundEvents.NOTE_BLOCK_PLING).showIf { soundsEnabled.value }
-    private val clickSoundPitch by SliderSetting("Pitch", 1f, 0f, 2f, 0.1f).showIf { soundsEnabled.value }
-    private val clickSoundVolume by SliderSetting("Volume", 1f, 0f, 1f, 0.1f).showIf { soundsEnabled.value }
-    private val testClickSound by ButtonSetting("Play Sound", false) {
-        ThreadUtils.runOnMcThread {
-            repeat(5) { mc.soundManager.play(SimpleSoundInstance.forUI(clickSound.value, clickSoundPitch.value, clickSoundVolume.value)) }
-        }
-    }.showIf { soundsEnabled.value }
+    private val clickSound = createSoundSettings("Click Sound", SoundEvents.NOTE_BLOCK_PLING.value()) { soundsEnabled.value }
 
     private val backgroundColor by ColorSetting("Background Color", Color(0, 0, 0, 100)).section("Settings - UI")
     private val borderColor by ColorSetting("Border Color", Color(255, 255, 255))
@@ -397,9 +386,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
             mc.player !!
         )
 
-        if (soundsEnabled.value) ThreadUtils.runOnMcThread {
-            repeat(5) { mc.soundManager.play(SimpleSoundInstance.forUI(clickSound.value, clickSoundPitch.value, clickSoundVolume.value)) }
-        }
+        if (soundsEnabled.value) clickSound.action.invoke()
 
         if (NoammAddons.debugFlags.contains("terminal")) {
             ChatUtils.modMessage("Clicked $slot on ${TerminalListener.currentType?.name}")
