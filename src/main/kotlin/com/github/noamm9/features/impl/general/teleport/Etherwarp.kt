@@ -118,9 +118,9 @@ object Etherwarp: Feature("Etherwarp overlay, sound, and left-click activation."
             if (event.action != GLFW.GLFW_PRESS) return@register
             if (mc.screen != null) return@register
             //#if CHEAT
-            if (! player.isCrouching && ! autoSneak.value) return@register
+            if (! player.isSteppingCarefully && ! autoSneak.value) return@register
             //#else
-            //$if (! player.isCrouching) return@register
+            //$if (! player.isSteppingCarefully) return@register
             //#endif
             if (EtherwarpHelper.getEtherwarpDistance(player.mainHandItem) == null) return@register
 
