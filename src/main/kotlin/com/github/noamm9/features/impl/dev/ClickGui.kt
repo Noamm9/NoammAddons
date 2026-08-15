@@ -1,13 +1,17 @@
 package com.github.noamm9.features.impl.dev
 
+import com.github.noamm9.event.impl.KeyboardEvent
+import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.ClickGuiScreen
 import com.github.noamm9.ui.clickgui.components.impl.ButtonSetting
 import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
+import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.hud.HudEditorScreen
 import com.github.noamm9.utils.GuiUtils
+import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 object ClickGui: Feature("A feature used to change the ClickGui configuration.", toggled = true) {
@@ -25,10 +29,30 @@ object ClickGui: Feature("A feature used to change the ClickGui configuration.",
         GuiUtils.setScreen(HudEditorScreen())
     }.withDescription("Opens the HUD Editor Screen where you can change you HUD elements size and position.")
 
+    private val openKeybind by KeybindSetting("Open Keybind")
+
     val resetButton by ButtonSetting("Reset Settings") {
         playClickSound.value = true
         accentColor.value = accentColor.defaultValue
     }.withDescription("Reverts settings back to their original values.")
+
+    override fun init() {
+        register<KeyboardEvent.KeyPressed> {
+            if (mc.screen != null || event.action != GLFW.GLFW_PRESS) return@register
+            if (! openKeybind.matches(event.keyEvent.key, mouse = false)) return@register
+
+            GuiUtils.setScreen(ClickGuiScreen())
+            event.isCanceled = true
+        }
+
+        register<MouseClickEvent> {
+            if (mc.screen != null || event.action != GLFW.GLFW_PRESS) return@register
+            if (! openKeybind.matches(event.button, mouse = true)) return@register
+
+            GuiUtils.setScreen(ClickGuiScreen())
+            event.isCanceled = true
+        }
+    }
 
     override fun toggle() {}
 }
