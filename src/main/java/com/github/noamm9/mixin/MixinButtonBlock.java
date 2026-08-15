@@ -2,7 +2,7 @@ package com.github.noamm9.mixin;
 
 //#if CHEAT
 
-import com.github.noamm9.features.impl.dungeon.SecretHitboxes;
+import com.github.noamm9.features.impl.dungeon.Secrets;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.ButtonBlock;
@@ -18,8 +18,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class MixinButtonBlock {
     @Inject(method = "getShape", at = @At("HEAD"), cancellable = true)
     private void modifyShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context, CallbackInfoReturnable<VoxelShape> cir) {
-        if (SecretHitboxes.INSTANCE.enabled && SecretHitboxes.getButton().getValue()) {
-            cir.setReturnValue(SecretHitboxes.getButtonShape(state));
+        if (Secrets.INSTANCE.enabled && Secrets.getButton().getValue()) {
+            cir.setReturnValue(Secrets.getButtonShape(state));
         }
     }
 }
