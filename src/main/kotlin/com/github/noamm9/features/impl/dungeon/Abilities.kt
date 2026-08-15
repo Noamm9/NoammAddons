@@ -22,10 +22,8 @@ object Abilities: Feature(
     //$"Allows you to use dungeon class abilities with keybinds."
     //#endif
 ) {
-    private val classUltimate by ToggleSetting("Class Ultimate").section("Keybinds")
-    private val ultKeybind by KeybindSetting("Ultimate Keybind").showIf { classUltimate.value }
-    private val classAbility by ToggleSetting("Class Ability")
-    private val abilityKeybind by KeybindSetting("Ability Keybind").showIf { classAbility.value }
+    private val ultKeybind by KeybindSetting("Ultimate Keybind").section("Keybinds")
+    private val abilityKeybind by KeybindSetting("Ability Keybind")
 
     //#if CHEAT
     private val autoUlt by ToggleSetting("Auto Use Ultimate").section("Auto Ultimate")
@@ -62,14 +60,16 @@ object Abilities: Feature(
             if (event.action != GLFW.GLFW_PRESS) return@register
             if (mc.screen != null) return@register
 
-            if (classUltimate.value && ultKeybind.isPressed()) {
+            if (ultKeybind.isPressed()) {
+                PlayerUtils.useDungeonClassAbility(true)
                 event.isCanceled = true
-                return@register PlayerUtils.useDungeonClassAbility(true)
+                return@register
             }
 
-            if (classAbility.value && abilityKeybind.isPressed()) {
+            if (abilityKeybind.isPressed()) {
+                PlayerUtils.useDungeonClassAbility(false)
                 event.isCanceled = true
-                return@register PlayerUtils.useDungeonClassAbility(false)
+                return@register
             }
         }
 
