@@ -2,7 +2,6 @@ package com.github.noamm9.features.impl.floor7.terminals
 
 //#if CHEAT
 
-import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.terminals.TerminalListener.FIRST_CLICK_DELAY
@@ -19,7 +18,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
 
     private val autoDelay by SliderSetting("Click Delay", 150.0, 0.0, 500.0, 10.0)
         .withDescription("Fixed delay between clicks in milliseconds.")
-        .showIf { ! randomDelay.value }
+        .hideIf { randomDelay.value }
 
     private val minRandomDelay by SliderSetting("Min Random Delay", 50.0, 0.0, 500.0, 10.0)
         .withDescription("The minimum possible delay")
@@ -49,26 +48,15 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     private var lastClickTime = 0L
     private var lastClickedSlot: Int? = null
 
-
     override fun onEnable() {
         super.onEnable()
-        TerminalListener.packetReceivedListener.register()
-        TerminalListener.packetSentListener.register()
-        TerminalListener.tickListener.register()
-        TerminalListener.worldChangeListener.register()
-        Scheduler.tickListener.register()
-        Scheduler.timeListener.register()
+        TerminalListener.registerSharedListeners()
     }
 
     override fun onDisable() {
         super.onDisable()
         if (TerminalSolver.enabled) return
-        TerminalListener.packetReceivedListener.unregister()
-        TerminalListener.packetSentListener.unregister()
-        TerminalListener.tickListener.unregister()
-        TerminalListener.worldChangeListener.unregister()
-        Scheduler.timeListener.unregister()
-        Scheduler.tickListener.unregister()
+        TerminalListener.unregisterSharedListeners()
     }
 
     override fun init() {
@@ -172,7 +160,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
 
     private fun sendClickPacket(slot: Int) {
         gameMode.handleContainerInput(TerminalListener.lastWindowId, slot, 2, ContainerInput.CLONE, player)
-        if (NoammAddons.debugFlags.contains("terminal")) ChatUtils.modMessage("Melody: Clicked: $slot")
+        ChatUtils.debug("terminal", "Melody: Clicked: $slot")
     }
 
     fun reset() {

@@ -226,7 +226,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
 
     private fun inSpiritLeap(screen: Screen): Boolean {
         val title = screen.title.string.lowercase()
-        return (title.contains("spirit leap") || title.contains("teleport to player"))
+        return (title.containsOneOf("spirit leap", "teleport to player"))
             && LocationUtils.inDungeon
             && customLeapMenu.value
             && enabled

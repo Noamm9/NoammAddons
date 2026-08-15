@@ -7,6 +7,7 @@ import com.github.noamm9.ui.clickgui.components.impl.TextInputSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils
+import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.dungeons.map.handlers.ScoreCalculation
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
@@ -62,30 +63,11 @@ object ScoreCalculator: Feature("Shows the score of the dungeon run.") {
         if (m.sendMessage.value) ChatUtils.sendPartyMessage(m.message.value)
         if (m.sendTitle.value) ChatUtils.showTitle(m.title.value)
 
-        val timeStr = ScoreCalculation.secondsElapsed.formatTime()
+        val timeStr = NumbersUtils.formatTime(ScoreCalculation.secondsElapsed * 1000).ifEmpty { "0s" }
         val floorColor = if (LocationUtils.isMasterMode) "&c" else "&a"
         val floorName = LocationUtils.dungeonFloor ?: "?"
 
         ChatUtils.modMessage("&e${m.score}&a score reached in &6$timeStr &f|| $floorColor$floorName.")
-        playSuccessSound()
-    }
-
-    private fun playSuccessSound() {
-        val sound = SimpleSoundInstance.forUI(SoundEvents.EXPERIENCE_ORB_PICKUP, 0F)
-        mc.soundManager.play(sound)
-        mc.soundManager.play(sound)
-    }
-
-    private fun Int.formatTime(): String {
-        if (this <= 0) return "0s"
-        val h = this / 3600
-        val m = (this % 3600) / 60
-        val s = this % 60
-
-        return buildString {
-            if (h > 0) append("${h}h ")
-            if (m > 0) append("${m}m ")
-            if (s > 0 || isEmpty()) append("${s}s")
-        }.trim()
+        repeat(2) { mc.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.EXPERIENCE_ORB_PICKUP, 0f)) }
     }
 }

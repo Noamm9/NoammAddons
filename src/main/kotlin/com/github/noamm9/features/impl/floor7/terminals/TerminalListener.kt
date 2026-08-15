@@ -36,6 +36,16 @@ object TerminalListener {
     val tickListener = EventBus.listener<TickEvent.Server> { onTick() }
     val worldChangeListener = EventBus.listener<WorldChangeEvent> { reset() }
 
+    private val sharedListeners
+        get() = listOf(
+            packetReceivedListener,
+            packetSentListener,
+            tickListener,
+            worldChangeListener,
+            Scheduler.tickListener,
+            Scheduler.timeListener,
+        )
+
     private fun onPacketReceived(packet: Packet<*>) {
         if (LocationUtils.F7Phase != 3) return
         when (packet) {
@@ -119,6 +129,10 @@ object TerminalListener {
         return DungeonListener.currentTime - initialOpenTick < delay ||
             System.currentTimeMillis() - initialOpenTime < (delay * 50)
     }
+
+    fun registerSharedListeners() = sharedListeners.forEach { it.register() }
+
+    fun unregisterSharedListeners() = sharedListeners.forEach { it.unregister() }
 
     private fun reset() {
         inTerm = false

@@ -2,7 +2,6 @@ package com.github.noamm9.features.impl.dungeon.solvers.puzzles
 
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.utils.render.RenderContext
-import net.minecraft.client.gui.GuiGraphicsExtractor
 
 sealed interface PuzzleSolver {
     val enabled: Boolean
@@ -16,6 +15,5 @@ sealed interface PuzzleSolver {
     fun onChat(event: ChatMessageEvent) {}
     fun onEntityGlow(event: CheckEntityGlowEvent) {}
     fun onRenderWorld(ctx: RenderContext) {}
-    fun onRenderOverlay(ctx: GuiGraphicsExtractor) {}
     fun onInteract(event: PlayerInteractEvent.RIGHT_CLICK.BLOCK) {}
 }

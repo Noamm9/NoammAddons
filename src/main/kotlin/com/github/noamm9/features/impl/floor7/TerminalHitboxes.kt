@@ -12,9 +12,7 @@ import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.Utils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render3D.renderBoxBounds
-import com.github.noamm9.utils.render.RenderHelper.renderX
-import com.github.noamm9.utils.render.RenderHelper.renderY
-import com.github.noamm9.utils.render.RenderHelper.renderZ
+import com.github.noamm9.utils.render.RenderHelper.renderBoundingBox
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.entity.decoration.ArmorStand
 import java.awt.Color
@@ -65,19 +63,9 @@ object TerminalHitboxes: Feature("Highlights the interactable hitboxes of the te
             val drawOutline = mode.value == 0 || mode.value == 2
 
             for (entity in terminalsToRender) {
-                val hw = entity.bbWidth / 2.0
-                val hd = entity.bbHeight.toDouble()
-
-                val minX = entity.renderX - hw
-                val minY = entity.renderY
-                val minZ = entity.renderZ - hw
-                val maxX = entity.renderX + hw
-                val maxY = entity.renderY + hd
-                val maxZ = entity.renderZ + hw
-
                 event.ctx.renderBoxBounds(
-                    minX,
-                    minY, minZ, maxX, maxY, maxZ, outlineColor.value,
+                    entity.renderBoundingBox,
+                    outlineColor.value,
                     fillColor.value,
                     outline = drawOutline,
                     fill = drawFill,

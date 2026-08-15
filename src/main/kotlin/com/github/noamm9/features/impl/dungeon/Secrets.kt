@@ -19,7 +19,6 @@ import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render3D.renderBlock
 import com.github.noamm9.utils.render.RenderHelper.width
-import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
@@ -52,12 +51,7 @@ object Secrets: Feature() {
     private val phase by ToggleSetting("See Through Walls").withDescription("If enabled, the highlight will be visible through other blocks.").showIf { secretClicked.value }
 
     private val secretSound by ToggleSetting("Secret Sound").withDescription("Plays a sound effect when a secret is clicked/found.").section("Secret Sound")
-    private val sound by SoundSetting("Sound", SoundEvents.EXPERIENCE_ORB_PICKUP).withDescription("The internal Minecraft sound key to play.").showIf { secretSound.value }
-    private val volume by SliderSetting("Volume", 0.5f, 0f, 1f, 0.1f).withDescription("The loudness of the sound.").showIf { secretSound.value }
-    private val pitch by SliderSetting("Pitch", 1f, 0f, 2f, 0.1f).withDescription("The pitch/frequency of the sound.").showIf { secretSound.value }
-    private val playSound by ButtonSetting("Test Sound", false) {
-        repeat(5) { mc.soundManager.play(SimpleSoundInstance.forUI(sound.value, pitch.value, volume.value)) }
-    }.withDescription("Click to test the current sound configuration.").showIf { secretSound.value }
+    private val playSound = createSoundSettings("Sound", SoundEvents.EXPERIENCE_ORB_PICKUP) { secretSound.value }
 
     private val clicked = ConcurrentHashMap<BlockPos, Long>()
     private var lastPlayed = System.currentTimeMillis()

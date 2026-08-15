@@ -19,7 +19,7 @@ object ClickOrderTest {
         val finalPath = LinkedList<Int>()
 
         while (remaining.isNotEmpty()) {
-            val bestNextClick = HumanClickOrder.getBestClick(remaining, type)
+            val bestNextClick = HumanClickOrder.getBestClick(remaining)
             finalPath.add(bestNextClick.slotId)
             remaining.remove(bestNextClick)
         }
@@ -93,7 +93,7 @@ object ClickOrderTest {
             TerminalType.REDGREEN -> 3
         }
 
-        fun getBestClick(availableClicks: List<TerminalClick>, type: TerminalType): TerminalClick {
+        fun getBestClick(availableClicks: List<TerminalClick>): TerminalClick {
             if (availableClicks.isEmpty()) throw IllegalStateException("Solution list is empty")
 
             val bestClick = availableClicks.shuffled().minByOrNull { click ->

@@ -15,6 +15,7 @@ import com.github.noamm9.utils.ServerUtils
 import com.github.noamm9.utils.dungeons.DungeonUtils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.startsWithOneOf
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
@@ -94,34 +95,34 @@ object PartyHelper: Feature("Party commands and reformatting.") {
                 if (floor in 1 .. 7) runCommand("joininstance MASTER_CATACOMBS_FLOOR_${DungeonUtils.FLOOR_NAMES[floor]}", true)
             }
 
-            canRun("!pt") && (cmd == "pt" || cmd == "ptme") -> {
+            canRun("!pt") && cmd.equalsOneOf("pt", "ptme") -> {
                 if (sender != mc.user.name) runCommand("p transfer $sender", true)
             }
 
-            canRun("!coords") && (cmd == "coords" || cmd == "cords") -> {
+            canRun("!coords") && cmd.equalsOneOf("coords", "cords") -> {
                 runCommand("pc x: ${player.blockX}, y: ${player.blockY}, z: ${player.blockZ}")
             }
 
-            canRun("!dt") && (cmd == "dt" || cmd == "downtime") -> {
+            canRun("!dt") && cmd.equalsOneOf("dt", "downtime") -> {
                 downtimeList[sender] = args.joinToString(" ").ifBlank { "No reason" }
             }
 
-            canRun("!w") && (cmd == "warp" || cmd == "w") -> runCommand("p warp", true)
+            canRun("!w") && cmd.equalsOneOf("warp", "w") -> runCommand("p warp", true)
 
-            canRun("!ai") && (cmd == "ai" || cmd == "allinvite") -> runCommand("p settings allinvite", true)
+            canRun("!ai") && cmd.equalsOneOf("ai", "allinvite") -> runCommand("p settings allinvite", true)
 
             canRun("!ping") && cmd == "ping" -> ChatUtils.sendPartyMessage("Ping: ${ServerUtils.currentPing}ms")
 
             canRun("!tps") && cmd == "tps" -> ChatUtils.sendPartyMessage("TPS: ${ServerUtils.tps.toFixed(1)}")
 
-            canRun("!kick") && (cmd == "kick" || cmd == "k") -> {
+            canRun("!kick") && cmd.equalsOneOf("kick", "k") -> {
                 if (args.isEmpty()) return
                 PartyUtils.members.find { it.contains(args[0], true) }?.let {
                     runCommand("p kick $it", true)
                 }
             }
 
-            canRun("!inv") && (cmd == "inv" || cmd == "kidnap" || cmd == "invite") -> {
+            canRun("!inv") && cmd.equalsOneOf("inv", "kidnap", "invite") -> {
                 args.firstOrNull()?.let { runCommand("p invite $it", true) }
             }
 
@@ -145,9 +146,7 @@ object PartyHelper: Feature("Party commands and reformatting.") {
                 event.isCanceled = true
             }
 
-            unformatted.startsWith("Party Leader: ") ||
-                unformatted.startsWith("Party Moderators: ") ||
-                unformatted.startsWith("Party Members: ") -> {
+            unformatted.startsWithOneOf("Party Leader: ", "Party Moderators: ", "Party Members: ") -> {
                 val type = when {
                     unformatted.startsWith("Party Leader") -> PartyMemberType.LEADER
                     unformatted.startsWith("Party Moderators") -> PartyMemberType.MODERATOR
