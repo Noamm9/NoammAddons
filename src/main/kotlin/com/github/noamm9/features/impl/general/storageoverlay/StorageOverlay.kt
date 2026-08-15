@@ -31,7 +31,7 @@ import java.nio.file.StandardCopyOption
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
-object StorageOverlay: Feature("Shows all storage pages in an overlay when opening storage.", toggled = true), ICustomMenu {
+object StorageOverlay: Feature("Shows all storage pages in an overlay when opening storage."), ICustomMenu {
     val scaleSetting by SliderSetting("Scale", 1.0f, 0.5f, 2.0f, 0.05f).withDescription("The scale of the menu")
     val columnsSetting by SliderSetting("Columns", 3, 1, 10, 1).withDescription("The number of max pages to show on each row")
     val maxHeightSetting by SliderSetting("Max Height", 324, 80, 600, 1).withDescription("The maximum height of the entire menu")

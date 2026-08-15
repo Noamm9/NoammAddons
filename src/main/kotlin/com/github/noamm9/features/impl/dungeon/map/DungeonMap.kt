@@ -2,8 +2,6 @@ package com.github.noamm9.features.impl.dungeon.map
 
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.CategorySetting
-import com.github.noamm9.ui.clickgui.components.impl.SeparatorSetting
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.core.DoorTile
@@ -19,17 +17,7 @@ import net.minecraft.world.level.block.Blocks
 
 object DungeonMap: Feature() {
     override fun init() {
-        MapConfig.setup().forEach {
-            it.headerName?.let { name ->
-                if (configSettings.isNotEmpty()) {
-                    configSettings.add(SeparatorSetting())
-                }
-                configSettings.add(CategorySetting(name))
-            }
-
-            configSettings.add(it)
-        }
-
+        configSettings.addAll(MapConfig.configSettings)
         hudElements.add(MapRenderer)
 
         register<RenderWorldEvent> {

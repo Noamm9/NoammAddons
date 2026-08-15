@@ -1,6 +1,6 @@
 package com.github.noamm9.ui.clickgui.components
 
-import com.github.noamm9.features.Feature
+import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.ui.clickgui.components.impl.*
 import com.github.noamm9.utils.ThreadUtils
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
@@ -8,7 +8,9 @@ import net.minecraft.sounds.SoundEvent
 import kotlin.reflect.KProperty
 
 interface SettingProvider {
-    fun Feature.createSoundSettings(name: String, sound: SoundEvent, showIf: () -> Boolean = { true }): ButtonSetting {
+    val configSettings: MutableSet<Setting<*>>
+
+    fun createSoundSettings(name: String, sound: SoundEvent, showIf: () -> Boolean = { true }): ButtonSetting {
         val sound = SoundSetting(name, sound).withDescription("The internal Minecraft sound key to play.").showIf(showIf)
         val volume = SliderSetting("Volume", 0.5f, 0f, 1f, 0.1f).withDescription("The loudness of the sound.").showIf(showIf)
         val pitch = SliderSetting("Pitch", 1f, 0f, 2f, 0.1f).withDescription("The pitch/frequency of the sound.").showIf(showIf)
@@ -24,7 +26,7 @@ interface SettingProvider {
         return play
     }
 
-    operator fun <T, S: Setting<T>> S.provideDelegate(thisRef: Feature, prop: KProperty<*>): S {
+    operator fun <T, S: Setting<T>> S.provideDelegate(thisRef: SettingProvider, prop: KProperty<*>): S {
         this.headerName?.let { name ->
             if (thisRef.configSettings.isNotEmpty()) {
                 thisRef.configSettings.add(SeparatorSetting().also { it.visibility = this.visibility })
@@ -38,7 +40,7 @@ interface SettingProvider {
         return this
     }
 
-    operator fun <T, S: Setting<T>> S.getValue(thisRef: Feature, prop: KProperty<*>): S {
+    operator fun <T, S: Setting<T>> S.getValue(thisRef: SettingProvider, prop: KProperty<*>): S {
         return this
     }
 

@@ -24,8 +24,8 @@ open class Feature(
     open val category = initCategory()
     @JvmField var enabled = toggled
 
+    override val configSettings = mutableSetOf<Setting<*>>()
     val listeners = mutableSetOf<EventListener<*>>()
-    val configSettings = mutableSetOf<Setting<*>>()
     val hudElements = mutableSetOf<HudElement>()
 
 
