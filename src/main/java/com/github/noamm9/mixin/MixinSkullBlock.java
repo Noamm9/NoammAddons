@@ -2,7 +2,7 @@ package com.github.noamm9.mixin;
 
 //#if CHEAT
 
-import com.github.noamm9.features.impl.dungeon.SecretHitboxes;
+import com.github.noamm9.features.impl.dungeon.Secrets;
 import com.github.noamm9.utils.dungeons.DungeonUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
@@ -32,7 +32,7 @@ abstract class MixinSkullBlock extends AbstractSkullBlock {
 
     @Inject(method = "getShape", at = @At("HEAD"), cancellable = true)
     private void modifyShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context, CallbackInfoReturnable<VoxelShape> cir) {
-        if (SecretHitboxes.INSTANCE.enabled && SecretHitboxes.getSkull().getValue() && DungeonUtils.isSecret(pos)) {
+        if (Secrets.INSTANCE.enabled && Secrets.getSkull().getValue() && DungeonUtils.isSecret(pos)) {
             cir.setReturnValue(Shapes.block());
         }
     }

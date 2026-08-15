@@ -1,9 +1,11 @@
 package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.event.impl.DungeonEvent
+import com.github.noamm9.event.impl.GameStartEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.init.ModCompatibility
 import com.github.noamm9.ui.clickgui.components.impl.*
 import com.github.noamm9.utils.ActionBarParser
 import com.github.noamm9.utils.ChatUtils.unformattedText
@@ -19,10 +21,17 @@ import com.github.noamm9.utils.render.Render3D.renderBlock
 import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.inventory.MenuType
+import net.minecraft.world.level.block.ButtonBlock
+import net.minecraft.world.level.block.FaceAttachedHorizontalDirectionalBlock
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.properties.AttachFace
+import net.minecraft.world.phys.shapes.Shapes
+import net.minecraft.world.phys.shapes.VoxelShape
 import java.util.concurrent.*
 
 object Secrets: Feature() {
@@ -30,6 +39,10 @@ object Secrets: Feature() {
 
     //#if CHEAT
     private val closeChest by ToggleSetting("Close Chest").section("Auto").withDescription("Automatically closes the secret chest for you.")
+    private val lever by ToggleSetting("Lever").withDescription("Full block Lever hitbox.").section("Secret Hitboxes")
+    @JvmStatic val button by ToggleSetting("Button").withDescription("Full block button hitbox.")
+    @JvmStatic val skull by ToggleSetting("Skulls").withDescription("Full block Skull hitbox.")
+    @JvmStatic val mushroom by ToggleSetting("Mushroom").withDescription("Full block Mushroom hitbox.")
     //#endif
 
     private val secretClicked by ToggleSetting("Highlight Clicked Secret").withDescription("Highlights the block of a secret when you interact with it.").section("Secret Clicked")
@@ -73,6 +86,8 @@ object Secrets: Feature() {
             ServerboundContainerClosePacket(packet.containerId).send()
             event.isCanceled = true
         }
+
+        register<GameStartEvent> { ModCompatibility.disableBlockstateCulling() }
         //#endif
 
         register<RenderWorldEvent> {
@@ -105,4 +120,48 @@ object Secrets: Feature() {
             }
         }
     }
+
+    //#if CHEAT
+    override fun onEnable() {
+        super.onEnable()
+        ModCompatibility.disableBlockstateCulling()
+    }
+
+    @JvmStatic
+    fun getButtonShape(state: BlockState): VoxelShape {
+        val face = state.getValue(FaceAttachedHorizontalDirectionalBlock.FACE)
+        val direction = state.getValue(FaceAttachedHorizontalDirectionalBlock.FACING)
+        val powered = state.getValue(ButtonBlock.POWERED)
+
+        val f2 = (if (powered) 1 else 2) / 16.0
+        return when (face) {
+            AttachFace.CEILING -> Shapes.box(0.0, 1.0 - f2, 0.0, 1.0, 1.0, 1.0)
+            AttachFace.FLOOR -> Shapes.box(0.0, 0.0, 0.0, 1.0, 0.0 + f2, 1.0)
+            else -> when (direction) {
+                Direction.EAST -> Shapes.box(0.0, 0.0, 0.0, f2, 1.0, 1.0)
+                Direction.WEST -> Shapes.box(1.0 - f2, 0.0, 0.0, 1.0, 1.0, 1.0)
+                Direction.SOUTH -> Shapes.box(0.0, 0.0, 0.0, 1.0, 1.0, f2)
+                Direction.NORTH -> Shapes.box(0.0, 0.0, 1.0 - f2, 1.0, 1.0, 1.0)
+                Direction.UP -> Shapes.box(0.0, 0.0, 0.0, 1.0, 0.0 + f2, 1.0)
+                Direction.DOWN -> Shapes.box(0.0, 1.0 - f2, 0.0, 1.0, 1.0, 1.0)
+            }
+        }
+    }
+
+    private val blackListedLevers = listOf(
+        BlockPos(61, 136, 142), BlockPos(60, 136, 142), BlockPos(59, 136, 142),
+        BlockPos(62, 135, 142), BlockPos(61, 135, 142), BlockPos(59, 135, 142),
+        BlockPos(58, 135, 142), BlockPos(62, 134, 142), BlockPos(61, 134, 142),
+        BlockPos(59, 134, 142), BlockPos(58, 134, 142), BlockPos(61, 133, 142),
+        BlockPos(60, 133, 142), BlockPos(59, 133, 142)
+    )
+
+    @JvmStatic
+    fun isValidLever(pos: BlockPos): Boolean {
+        if (! enabled) return false
+        if (! lever.value) return false
+        if (pos in blackListedLevers && LocationUtils.dungeonFloorNumber == 7) return false
+        return true
+    }
+    //#endif
 }
