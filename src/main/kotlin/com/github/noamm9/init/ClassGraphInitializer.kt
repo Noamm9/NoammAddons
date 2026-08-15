@@ -67,8 +67,7 @@ class ClassGraphInitializer {
 
     private fun ScanResult.registerFeatures() {
         getSubclasses(Feature::class.java).forEach { classInfo ->
-            val feature = classInfo.getInstance<Feature>()
-            feature.initialize()
+            val feature = classInfo.getInstance<Feature>().apply(Feature::initialize)
             FeatureManager.hudElements.addAll(feature.hudElements)
             FeatureManager.features.add(feature)
         }

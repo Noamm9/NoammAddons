@@ -241,7 +241,7 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
             if (command.isNotEmpty() && replacement.isNotEmpty()) shortcuts[command] = replacement
         }
 
-        GuiUtils.setScreen(ClickGuiScreen)
+        GuiUtils.setScreen(ClickGuiScreen())
         CommandShortcuts.shortcuts.set(shortcuts)
         @Suppress("UNCHECKED_CAST")
         CommandShortcuts.build(mc.connection?.commands as CommandDispatcher<FabricClientCommandSource>)

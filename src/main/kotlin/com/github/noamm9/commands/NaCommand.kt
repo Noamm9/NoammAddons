@@ -45,7 +45,7 @@ object NaCommand: ICommandProvider {
 
     override fun CommandBuilder.command() {
         setName("na", "noamm", "noammaddons")
-        runs { GuiUtils.setScreen(ClickGuiScreen) }
+        runs { GuiUtils.setScreen(ClickGuiScreen()) }
 
         literal("help") {
             runs {

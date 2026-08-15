@@ -20,20 +20,21 @@ import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
-class Panel(val category: CategoryType, var x: Int, var y: Int) {
+class Panel(val category: CategoryType, var x: Int, var y: Int, private val screen: ClickGuiScreen) {
+    companion object {
+        const val WIDTH = 110
+        const val HEADER_HEIGHT = 22
+        const val BUTTON_HEIGHT = 16
+        const val MAX_DISPLAY_HEIGHT = 350
+    }
+
     private val features = FeatureManager.getFeaturesByCategory(category)
 
     private val openAnim = Animation(150)
     var collapsed = false
 
-    private val width = 110
-    private val headerHeight = 22
-    private val buttonHeight = 16
-
-    private val maxDisplayHeight = 350
     private var scrollOffset = 0f
-
-    private var dragging = false
+    var dragging = false
     private var dragX = 0
     private var dragY = 0
 
@@ -48,68 +49,68 @@ class Panel(val category: CategoryType, var x: Int, var y: Int) {
         }
 
         val filteredFeatures = getSorting()
-        if (filteredFeatures.isEmpty() && ClickGuiScreen.searchQuery.isNotEmpty()) return
+        if (filteredFeatures.isEmpty() && screen.searchQuery.isNotEmpty()) return
 
         openAnim.update(if (collapsed && features.size == filteredFeatures.size) 0f else 1f)
 
-        context.drawRect(x, y, width, headerHeight, headerBg)
-        context.drawRect(x, y, width, 2, Style.accentColor)
-        context.drawCenteredString("§l${if (category != CategoryType.FLOOR7) category.name else "Floor 7"}", x + width / 2, y + 7)
+        context.drawRect(x, y, WIDTH, HEADER_HEIGHT, headerBg)
+        context.drawRect(x, y, WIDTH, 2, Style.accentColor)
+        context.drawCenteredString("§l${if (category != CategoryType.FLOOR7) category.name else "Floor 7"}", x + WIDTH / 2, y + 7)
 
         if (openAnim.value > 0.01f || features.size != filteredFeatures.size) {
-            val totalContentHeight = filteredFeatures.size * buttonHeight
-            val visibleHeight = totalContentHeight.coerceAtMost(maxDisplayHeight)
+            val totalContentHeight = filteredFeatures.size * BUTTON_HEIGHT
+            val visibleHeight = totalContentHeight.coerceAtMost(MAX_DISPLAY_HEIGHT)
             val currentScissorHeight = (visibleHeight * openAnim.value).toInt()
             val maxScroll = (totalContentHeight - visibleHeight).coerceAtLeast(0)
             if (scrollOffset > maxScroll) scrollOffset = maxScroll.toFloat()
             if (scrollOffset < 0) scrollOffset = 0f
 
-            var currentY = y + headerHeight - scrollOffset.toInt()
+            var currentY = y + HEADER_HEIGHT - scrollOffset.toInt()
 
-            context.enableScissor(x, y + headerHeight, x + width, y + headerHeight + currentScissorHeight)
+            context.enableScissor(x, y + HEADER_HEIGHT, x + WIDTH, y + HEADER_HEIGHT + currentScissorHeight)
 
             filteredFeatures.forEach { feature ->
-                if (currentY + buttonHeight > y + headerHeight && currentY < y + headerHeight + visibleHeight) {
-                    val isHovered = mouseX >= x && mouseX <= x + width &&
-                        mouseY >= currentY && mouseY <= currentY + buttonHeight &&
-                        mouseY >= y + headerHeight && mouseY <= y + headerHeight + visibleHeight &&
-                        ClickGuiScreen.selectedFeature == null
+                if (currentY + BUTTON_HEIGHT > y + HEADER_HEIGHT && currentY < y + HEADER_HEIGHT + visibleHeight) {
+                    val isHovered = mouseX >= x && mouseX <= x + WIDTH &&
+                        mouseY >= currentY && mouseY <= currentY + BUTTON_HEIGHT &&
+                        mouseY >= y + HEADER_HEIGHT && mouseY <= y + HEADER_HEIGHT + visibleHeight &&
+                        screen.selectedFeature == null
 
-                    context.drawRect(x, currentY, width, buttonHeight, bodyBg)
+                    context.drawRect(x, currentY, WIDTH, BUTTON_HEIGHT, bodyBg)
 
                     if (feature.enabled) {
-                        context.drawRect(x, currentY, width, buttonHeight, Style.accentColor.withAlpha(100))
-                        context.drawRect(x, currentY, 2, buttonHeight, Style.accentColor)
+                        context.drawRect(x, currentY, WIDTH, BUTTON_HEIGHT, Style.accentColor.withAlpha(100))
+                        context.drawRect(x, currentY, 2, BUTTON_HEIGHT, Style.accentColor)
                     }
 
                     if (isHovered) {
-                        context.drawRect(x, currentY, width, buttonHeight, hoverColor)
+                        context.drawRect(x, currentY, WIDTH, BUTTON_HEIGHT, hoverColor)
                     }
 
-                    context.drawCenteredString(feature.name, x + width / 2, currentY + 4)
+                    context.drawCenteredString(feature.name, x + WIDTH / 2, currentY + 4)
 
-                    if (isHovered && ! ClickGuiScreen.isMouseOverConfigWindow(mouseX, mouseY)) {
+                    if (isHovered && ! screen.isMouseOverConfigWindow(mouseX, mouseY)) {
                         TooltipManager.hover(feature.description, mouseX, mouseY)
                     }
                 }
-                currentY += buttonHeight
+                currentY += BUTTON_HEIGHT
             }
             context.disableScissor()
 
             if (maxScroll > 0 && ! collapsed) {
                 val barHeight = (visibleHeight.toFloat() / totalContentHeight.toFloat()) * visibleHeight
-                val barY = (y + headerHeight) + ((scrollOffset / maxScroll) * (visibleHeight - barHeight))
+                val barY = (y + HEADER_HEIGHT) + ((scrollOffset / maxScroll) * (visibleHeight - barHeight))
 
-                context.drawRect(x + width - 2, barY, 2, barHeight)
+                context.drawRect(x + WIDTH - 2, barY, 2, barHeight)
             }
         }
     }
 
     fun handleScroll(delta: Double) {
         if (collapsed) return
-        val filteredFeatures = features.filter { it.name.contains(ClickGuiScreen.searchQuery, ignoreCase = true) }
-        val totalContentHeight = filteredFeatures.size * buttonHeight
-        val visibleHeight = totalContentHeight.coerceAtMost(maxDisplayHeight)
+        val filteredFeatures = features.filter { it.name.contains(screen.searchQuery, ignoreCase = true) }
+        val totalContentHeight = filteredFeatures.size * BUTTON_HEIGHT
+        val visibleHeight = totalContentHeight.coerceAtMost(MAX_DISPLAY_HEIGHT)
 
         if (totalContentHeight <= visibleHeight) return
 
@@ -118,14 +119,14 @@ class Panel(val category: CategoryType, var x: Int, var y: Int) {
 
     fun isMouseOver(mx: Int, my: Int): Boolean {
         val filteredFeatures = getSorting()
-        val totalContentHeight = filteredFeatures.size * buttonHeight
-        val visibleHeight = totalContentHeight.coerceAtMost(maxDisplayHeight)
+        val totalContentHeight = filteredFeatures.size * BUTTON_HEIGHT
+        val visibleHeight = totalContentHeight.coerceAtMost(MAX_DISPLAY_HEIGHT)
 
-        return mx >= x && mx <= x + width && my >= y && my <= y + headerHeight + visibleHeight
+        return mx >= x && mx <= x + WIDTH && my >= y && my <= y + HEADER_HEIGHT + visibleHeight
     }
 
     fun isMouseOverHeader(mx: Double, my: Double): Boolean {
-        return mx >= x && mx <= x + width && my >= y && my <= y + headerHeight
+        return mx >= x && mx <= x + WIDTH && my >= y && my <= y + HEADER_HEIGHT
     }
 
     fun mouseClicked(mouseX: Double, mouseY: Double, button: Int) {
@@ -145,35 +146,35 @@ class Panel(val category: CategoryType, var x: Int, var y: Int) {
         val filteredFeatures = getSorting()
         if (collapsed && features.size == filteredFeatures.size) return
 
-        val totalContentHeight = filteredFeatures.size * buttonHeight
-        val visibleHeight = totalContentHeight.coerceAtMost(maxDisplayHeight)
+        val totalContentHeight = filteredFeatures.size * BUTTON_HEIGHT
+        val visibleHeight = totalContentHeight.coerceAtMost(MAX_DISPLAY_HEIGHT)
 
-        if (mouseY < y + headerHeight || mouseY > y + headerHeight + visibleHeight) return
+        if (mouseY < y + HEADER_HEIGHT || mouseY > y + HEADER_HEIGHT + visibleHeight) return
 
-        var currentY = y + headerHeight - scrollOffset.toInt()
+        var currentY = y + HEADER_HEIGHT - scrollOffset.toInt()
 
         filteredFeatures.forEach { feature ->
-            if (mouseX >= x && mouseX <= x + width && mouseY >= currentY && mouseY <= currentY + buttonHeight) {
+            if (mouseX >= x && mouseX <= x + WIDTH && mouseY >= currentY && mouseY <= currentY + BUTTON_HEIGHT) {
                 if (button == 0) {
                     feature.toggle()
                     return
                 }
                 else if (button == 1) {
                     if (feature is SoundManager) {
-                        ClickGuiScreen.selectedFeature = null
+                        screen.selectedFeature = null
                         if (feature.enabled) GuiUtils.setScreen(SoundManagerScreen())
                         else NotificationManager.push(NoammAddons.MOD_NAME + " - ClickGui", "&fEnable &b${feature.name} &ffirst to open the settings!")
                     }
                     else if (feature is CommandShortcuts) {
-                        ClickGuiScreen.selectedFeature = null
+                        screen.selectedFeature = null
                         if (feature.enabled) GuiUtils.setScreen(CommandShortcutsScreen())
                         else NotificationManager.push(NoammAddons.MOD_NAME + " - ClickGui", "&fEnable &b${feature.name} &ffirst to open the settings!")
                     }
-                    else if (feature.configSettings.isNotEmpty()) ClickGuiScreen.openFeatureWindow(feature)
+                    else if (feature.configSettings.isNotEmpty()) screen.openFeatureWindow(feature)
                     return
                 }
             }
-            currentY += buttonHeight
+            currentY += BUTTON_HEIGHT
         }
     }
 
@@ -182,7 +183,10 @@ class Panel(val category: CategoryType, var x: Int, var y: Int) {
     }
 
     private fun getSorting(): List<Feature> {
-        val base = features.filter { it.name.contains(ClickGuiScreen.searchQuery, ignoreCase = true) }
+        val base = features.filter {
+            it.name.contains(screen.searchQuery, ignoreCase = true)
+                || it.configSettings.any { it.visibility() && it.name.contains(screen.searchQuery, ignoreCase = true) }
+        }
 
         return when (ClickGui.panelSorting.value) {
             0 -> base.sortedBy { it.name }

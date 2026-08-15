@@ -45,7 +45,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
     private var contentRight = startX + startWidth - windowPadding
     private var contentBottom = startY + startHeight - bottomPadding
 
-    private var dragging = false
+    var dragging = false
     private var dragOffsetX = 0f
     private var dragOffsetY = 0f
 
@@ -174,13 +174,11 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         if (button == 0) {
             val hoveredHandle = getResizeCorner(mx, my)
             if (hoveredHandle != ResizeCorner.NONE) {
-                blur()
                 beginResize(hoveredHandle, mx, my)
                 return WindowClickAction.CONSUMED
             }
 
             if (mx >= x && mx <= x + width && my >= y && my <= y + titleBarHeight) {
-                blur()
                 dragging = true
                 dragOffsetX = mx - x
                 dragOffsetY = my - y
@@ -262,11 +260,6 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
             }
         }
         return false
-    }
-
-    fun blur() {
-        resizeCorner = ResizeCorner.NONE
-        dragging = false
     }
 
     fun contains(mouseX: Float, mouseY: Float): Boolean {

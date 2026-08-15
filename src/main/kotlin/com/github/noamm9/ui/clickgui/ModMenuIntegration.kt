@@ -9,6 +9,6 @@ import com.terraformersmc.modmenu.api.ModMenuApi
 @Suppress("unused")
 class ModMenuIntegration: ModMenuApi {
     override fun getModConfigScreenFactory(): ConfigScreenFactory<*> {
-        return ConfigScreenFactory { ClickGuiScreen }
+        return ConfigScreenFactory { ClickGuiScreen() }
     }
 }

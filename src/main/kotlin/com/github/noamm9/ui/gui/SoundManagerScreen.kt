@@ -340,7 +340,7 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
         return super.charTyped(e)
     }
 
-    override fun onClose() = GuiUtils.setScreen(ClickGuiScreen)
+    override fun onClose() = GuiUtils.setScreen(ClickGuiScreen())
 
     private enum class SoundCategory {
         All, Recent, Blocks, HostileMobs, NeutralMobs, Music, Ambient, Items, UI, Misc;

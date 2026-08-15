@@ -57,7 +57,7 @@ object AutoHotbar: Feature("Automatically swaps items to specific hotbar slots u
     private val pingDelay by SliderSetting("Stop Delay", 200, 0, 500, 5).withDescription("how much time to wait after you are not moving.")
     private val showTitles by ToggleSetting("HUD Info", true).withDescription("Shows the currnt auto swap progress on screen")
     private val openGuiBtn by ButtonSetting("Open Config") {
-        ClickGuiScreen.selectedFeature = null
+        ClickGuiScreen.current?.selectedFeature = null
         NoammAddons.screen = AutoHotbarScreen()
     }.withDescription("Opens the GUI to visually map your inventory to hotbar slots.")
 

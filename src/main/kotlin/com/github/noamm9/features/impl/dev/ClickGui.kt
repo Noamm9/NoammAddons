@@ -21,7 +21,7 @@ object ClickGui: Feature("A feature used to change the ClickGui configuration.",
         .withDescription("The order of the features in the panels.")
 
     val editGuiButton by ButtonSetting("Open HUD Editor") {
-        ClickGuiScreen.onClose()
+        ClickGuiScreen.INSTANCE?.onClose()
         GuiUtils.setScreen(HudEditorScreen())
     }.withDescription("Opens the HUD Editor Screen where you can change you HUD elements size and position.")
 
