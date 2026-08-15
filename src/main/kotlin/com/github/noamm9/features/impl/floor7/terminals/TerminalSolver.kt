@@ -2,6 +2,7 @@ package com.github.noamm9.features.impl.floor7.terminals
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.impl.ContainerEvent
+import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.ScreenEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.terminals.TerminalType.Companion.clickedSlot
@@ -23,6 +24,8 @@ import com.github.noamm9.utils.render.Render2D.drawFloatingRect
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.uppercaseFirst
 import net.minecraft.client.gui.GuiGraphicsExtractor
+import net.minecraft.network.protocol.game.ClientboundSoundPacket
+import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
@@ -51,6 +54,9 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
 
     private val mode by DropdownSetting("Mode", 0, solverModes)
     private val resyncTimeout by SliderSetting<Long>("Resync Timeout", 800, 600, 1000, 1)
+
+    private val soundsEnabled by ToggleSetting("Terminal Sounds", true).section("Sounds")
+    private val clickSound = createSoundSettings("Click Sound", SoundEvents.NOTE_BLOCK_PLING.value()) { soundsEnabled.value }
 
     private val backgroundColor by ColorSetting("Background Color", Color(0, 0, 0, 100)).section("Settings - UI")
     private val borderColor by ColorSetting("Border Color", Color(255, 255, 255))
@@ -84,6 +90,8 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
     private var isClicked = false
     private var totalClicks = - 1
     private var clicked = - 1
+
+    private var replaceSound = false
 
     override fun onEnable() {
         super.onEnable()
@@ -319,6 +327,24 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
 
             if (mode.value == 0) click(click) else if (isClicked) queue.add(click) else click(click)
         }
+
+        register<MainThreadPacketReceivedEvent.Pre> {
+            if (! TerminalListener.inTerm) return@register
+            if (! soundsEnabled.value) return@register
+            if (! replaceSound) return@register
+            val packet = event.packet as? ClientboundSoundPacket ?: return@register
+            if (packet.sound.value() != SoundEvents.NOTE_BLOCK_PLING.value()) return@register
+            if (packet.volume != 8f || packet.pitch != 4.047619f) return@register
+            clickSound.action.invoke()
+            event.isCanceled = true
+            replaceSound = false
+        }
+
+        register<ContainerEvent.SlotClick> {
+            if (! TerminalListener.inTerm) return@register
+            if (! soundsEnabled.value) return@register
+            replaceSound = true
+        }
     }
 
     private fun drawSlot(ctx: GuiGraphicsExtractor, x: Number, y: Number, color: Color, w: Number = 16, h: Number = 16) {
@@ -530,6 +556,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
         solution.clear()
         totalClicks = - 1
         clicked = - 1
+        replaceSound = false
     }
 
     override fun isActive() = TerminalListener.inTerm
