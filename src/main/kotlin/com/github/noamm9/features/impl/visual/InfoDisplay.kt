@@ -13,10 +13,7 @@ import java.awt.Color
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
-object InfoDisplay: Feature(
-    name = "Info Display",
-    description = "Displays the system time, clicks per second, FPS, and TPS on screen."
-) {
+object InfoDisplay: Feature("Displays the system time, clicks per second, FPS, and TPS on screen.") {
     private val clockDisplay by ToggleSetting("Clock Display").section("Clock")
     private val seconds by ToggleSetting("Show Seconds").showIf { clockDisplay.value }
     private val clockColor by ColorSetting("Clock Color", Color(255, 134, 0), false).showIf { clockDisplay.value }
