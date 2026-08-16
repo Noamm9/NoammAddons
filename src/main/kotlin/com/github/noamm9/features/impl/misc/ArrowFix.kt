@@ -20,7 +20,6 @@ object ArrowFix: Feature("Disables Bow Pullback on Shortbows.") {
         val id = item.skyblockId
         if (id in bowCache) return true
         if (id in notBowCache) return false
-        if (! item.has(DataComponents.LORE)) return false
         val lore = item.get(DataComponents.LORE)?.lines() ?: return false
 
         for (i in (lore.size - 3) downTo 0) {

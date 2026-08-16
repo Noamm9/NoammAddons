@@ -95,12 +95,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
 
     override fun onEnable() {
         super.onEnable()
-        TerminalListener.packetReceivedListener.register()
-        TerminalListener.packetSentListener.register()
-        TerminalListener.tickListener.register()
-        TerminalListener.worldChangeListener.register()
-        Scheduler.tickListener.register()
-        Scheduler.timeListener.register()
+        TerminalListener.register()
     }
 
     override fun onDisable() {
@@ -108,12 +103,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
         //#if CHEAT
         if (AutoTerminal.enabled) return
         //#endif
-        TerminalListener.packetReceivedListener.unregister()
-        TerminalListener.packetSentListener.unregister()
-        TerminalListener.tickListener.unregister()
-        TerminalListener.worldChangeListener.unregister()
-        Scheduler.timeListener.unregister()
-        Scheduler.tickListener.unregister()
+        TerminalListener.unregister()
     }
 
     fun solverActive(type: TerminalType) = when (type) {
@@ -178,7 +168,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
                     }
                 }
 
-                if (NoammAddons.debugFlags.contains("terminal")) solution.forEach { (slot, btn) ->
+                if ("terminal" in NoammAddons.debugFlags) solution.forEach { (slot, _) ->
                     val slotX = slot % 9 * 18 + offsetX
                     val slotY = floor(slot / 9.0).toInt() * 18 + offsetY
                     val item = TerminalListener.currentItems[slot] ?: return@forEach
@@ -227,7 +217,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
                 }
 
                 val item = TerminalListener.currentItems[slot]
-                if (NoammAddons.debugFlags.contains("terminal") && item != null) {
+                if (item != null && "terminal" in NoammAddons.debugFlags) {
                     event.context.item(item, slotX.toInt(), slotY.toInt())
                     event.context.itemDecorations(mc.font, item, slotX.toInt(), slotY.toInt())
                 }
@@ -386,7 +376,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
         val initialWindowId = TerminalListener.lastWindowId
         Scheduler.schedule(resyncTimeout.value.toInt(), resyncTimeout.value.toInt() / 50) {
             if (! TerminalListener.inTerm || initialWindowId != TerminalListener.lastWindowId) return@schedule
-            if (NoammAddons.debugFlags.contains("terminal")) ChatUtils.modMessage("Resync Timeout Triggered")
+            ChatUtils.debug("terminal", "Resync Timeout Triggered")
 
             isClicked = false
             queue.clear()
@@ -408,9 +398,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
             mc.player !!
         )
 
-        if (NoammAddons.debugFlags.contains("terminal")) {
-            ChatUtils.modMessage("Clicked $slot on ${TerminalListener.currentType?.name}")
-        }
+        ChatUtils.debug("terminal", "Clicked $slot on ${TerminalListener.currentType?.name}")
 
         if (TerminalListener.currentType == TerminalType.STARTWITH) {
             TerminalType.clickedSlot = TerminalListener.lastWindowId to slot

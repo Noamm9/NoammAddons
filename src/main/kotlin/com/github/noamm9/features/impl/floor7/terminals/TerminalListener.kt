@@ -2,6 +2,7 @@ package com.github.noamm9.features.impl.floor7.terminals
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.EventListener
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.TickEvent
@@ -31,10 +32,19 @@ object TerminalListener {
 
     val currentItems = mutableMapOf<Int, ItemStack>()
 
-    val packetReceivedListener = EventBus.listener<MainThreadPacketReceivedEvent.Post> { onPacketReceived(event.packet) }
-    val packetSentListener = EventBus.listener<PacketEvent.Sent> { onPacketSent(event.packet, event) }
-    val tickListener = EventBus.listener<TickEvent.Server> { onTick() }
-    val worldChangeListener = EventBus.listener<WorldChangeEvent> { reset() }
+    private val packetReceivedListener = EventBus.listener<MainThreadPacketReceivedEvent.Post> { onPacketReceived(event.packet) }
+    private val packetSentListener = EventBus.listener<PacketEvent.Sent> { onPacketSent(event.packet, event) }
+    private val tickListener = EventBus.listener<TickEvent.Server> { onTick() }
+    private val worldChangeListener = EventBus.listener<WorldChangeEvent> { reset() }
+
+    private val sharedListeners = listOf(
+        packetReceivedListener,
+        packetSentListener,
+        tickListener,
+        worldChangeListener,
+        Scheduler.tickListener,
+        Scheduler.timeListener,
+    )
 
     private fun onPacketReceived(packet: Packet<*>) {
         if (LocationUtils.F7Phase != 3) return
@@ -119,6 +129,9 @@ object TerminalListener {
         return DungeonListener.currentTime - initialOpenTick < delay ||
             System.currentTimeMillis() - initialOpenTime < (delay * 50)
     }
+
+    fun register() = sharedListeners.forEach(EventListener<*>::register)
+    fun unregister() = sharedListeners.forEach(EventListener<*>::unregister)
 
     private fun reset() {
         inTerm = false

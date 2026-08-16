@@ -103,7 +103,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
 
                     var profit = - getChestCost(lore)
 
-                    event.items.forEach { (slot, stack) ->
+                    event.items.forEach { (_, stack) ->
                         if (stack.item == Items.GRAY_STAINED_GLASS_PANE) return@forEach
                         val value = getItemValue(stack)
                         profit += value

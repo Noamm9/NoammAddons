@@ -107,7 +107,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
 
         register<ScreenEvent.PreRender> {
             if (! customLeapMenu.value) return@register
-            if (! inSpiritLeap(event.screen)) return@register
+            if (! event.screen.isLeapMenu()) return@register
             event.isCanceled = true
 
             updateLeapMenu()
@@ -180,7 +180,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
         }
 
         register<ContainerEvent.MouseClick> {
-            if (! inSpiritLeap(event.screen)) return@register
+            if (! event.screen.isLeapMenu()) return@register
 
             if (event.button != 0 && leftClickOnly.value) {
                 event.isCanceled = true
@@ -193,7 +193,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
         }
 
         register<ContainerEvent.Keyboard> {
-            if (! leapKeybinds.value || ! inSpiritLeap(event.screen)) return@register
+            if (! leapKeybinds.value || ! event.screen.isLeapMenu()) return@register
 
             val index = when (keybindMode.value) {
                 0 -> keybindKeys.indexOfFirst { it.value == event.key }
@@ -222,14 +222,6 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
             mx > cx && my > cy -> 3
             else -> null
         }
-    }
-
-    private fun inSpiritLeap(screen: Screen): Boolean {
-        val title = screen.title.string.lowercase()
-        return (title.contains("spirit leap") || title.contains("teleport to player"))
-            && LocationUtils.inDungeon
-            && customLeapMenu.value
-            && enabled
     }
 
     fun updateLeapMenu() {
@@ -377,5 +369,6 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
         DungeonClass.Tank to listOf(DungeonClass.Archer, DungeonClass.Berserk, DungeonClass.Healer, DungeonClass.Mage)
     )
 
-    override fun isActive() = mc.screen?.let(::inSpiritLeap) ?: false
+    override fun isActive() = mc.screen?.isLeapMenu() ?: false
+    private fun Screen.isLeapMenu() = enabled && customLeapMenu.value && LocationUtils.inDungeon && title.string.lowercase().containsOneOf("spirit leap", "teleport to player")
 }
