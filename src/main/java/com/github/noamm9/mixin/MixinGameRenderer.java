@@ -28,7 +28,7 @@ public class MixinGameRenderer {
 
     @Inject(method = "extractGui", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;extractDeferredSubtitles()V"))
     public void onExtractGui(DeltaTracker deltaTracker, boolean shouldRenderLevel, boolean resourcesLoaded, CallbackInfo ci, @Local GuiGraphicsExtractor graphics) {
-        NotificationManager.render(graphics);
+        if (minecraft.screen == null) NotificationManager.render(graphics);
     }
 
     @ModifyVariable(method = "renderLevel", at = @At("STORE"), name = "nauseaIntensity")

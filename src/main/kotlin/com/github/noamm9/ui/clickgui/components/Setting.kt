@@ -4,6 +4,11 @@ import com.github.noamm9.NoammAddons
 import net.minecraft.client.gui.GuiGraphicsExtractor
 
 abstract class Setting<T>(val name: String, val defaultValue: T) {
+    private var _jsonName = name
+
+    fun jsonName() = _jsonName
+    fun jsonName(str: String) = ::_jsonName.set(str).let { this }
+
     open var value: T = defaultValue
         set(value) {
             if (NoammAddons.isLoaded) {

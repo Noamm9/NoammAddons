@@ -1,16 +1,22 @@
 package com.github.noamm9.ui.notification
 
 import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.impl.ScreenEvent
+import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.ColorUtils.withAlpha
+import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import net.minecraft.client.gui.GuiGraphicsExtractor
+import net.minecraft.network.chat.Component
 import java.awt.Color
 import java.util.concurrent.*
 
-object NotificationManager {
+object NotificationManager: ISelfInit {
     private val notifications = CopyOnWriteArrayList<Notification>()
     private var lastFrameTime = System.currentTimeMillis()
 
@@ -18,18 +24,35 @@ object NotificationManager {
         val t = title.addColor()
         val m = message.addColor()
         if (notifications.any { it.title == t && it.message == m && it.duration == duration }) return
-        mc.execute { notifications.add(Notification(t, m, duration)) }
+        ThreadUtils.runOnMcThread { notifications.add(Notification(t, m, duration)) }
+    }
+
+    override fun init() {
+        EventBus.register<ScreenEvent.PostRender> {
+            val window = mc.window
+            val ctx = event.context
+            
+            val activeScale = window.screenWidth.toFloat() / ctx.guiWidth().toFloat()
+            val normalScale = window.calculateScale(mc.options.guiScale().get(), mc.isEnforceUnicode).toFloat()
+            val correction = normalScale / activeScale
+
+            ctx.pose().pushMatrix()
+            ctx.pose().scale(correction)
+            render(ctx, ctx.guiWidth() / correction, ctx.guiHeight() / correction)
+            ctx.pose().popMatrix()
+        }
     }
 
     @JvmStatic
-    fun render(ctx: GuiGraphicsExtractor) {
+    @JvmOverloads
+    fun render(ctx: GuiGraphicsExtractor, w: Float? = null, h: Float? = null) {
         val now = System.currentTimeMillis()
         val delta = now - lastFrameTime
         lastFrameTime = now
         if (notifications.isEmpty()) return
 
-        val screenW = mc.window.guiScaledWidth
-        val screenH = mc.window.guiScaledHeight
+        val screenW = w ?: ctx.guiWidth().toFloat()
+        val screenH = h ?: ctx.guiHeight().toFloat()
 
         val mX = mc.mouseHandler.getScaledXPos(mc.window).toInt()
         val mY = mc.mouseHandler.getScaledYPos(mc.window).toInt()
@@ -77,5 +100,14 @@ object NotificationManager {
 
             currentYOffset += (height + 5f) * notify.anim.value
         }
+    }
+
+    private class Notification(val title: String, val message: String, val duration: Long) {
+        val anim = Animation(350L)
+        var elapsedTime = 0L
+        var isDead = false
+
+        val wrappedLines by lazy { mc.font.split(Component.literal(message), 150) }
+        val height by lazy { 22f + (wrappedLines.size * (mc.font.lineHeight + 1f)) + 4f }
     }
 }

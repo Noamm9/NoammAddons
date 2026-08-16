@@ -47,7 +47,7 @@ object Config {
                         for (setting in feature.configSettings) {
                             if (setting !is Savable) continue
                             addJsonObject {
-                                put(setting.name, setting.write())
+                                put(setting.jsonName(), setting.write())
                             }
                         }
                     }

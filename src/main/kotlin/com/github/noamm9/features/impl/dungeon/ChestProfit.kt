@@ -6,7 +6,9 @@ import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.init.NetworkLoop
+import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
@@ -31,11 +33,12 @@ import java.awt.Color
 
 object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
     private val hud by ToggleSetting("HUD Display", true).section("General")
+    private val rerollValue by SliderSetting("Reroll Value", 5, 0, 100, 1, "M").withDescription("Prevents you from rerolling a chest if its profit is &b&lbigger&r then the &avalue in milions&r.\n\n&eoverride by pressing CTRL&r.\nset to 0 to disable")
     private val includeEssence by ToggleSetting("Includes Essence", true)
     private val croesusChestsProfit by ToggleSetting("Croesus Chests Profit", true).section("Croesus")
     private val croesusChestHighlight by ToggleSetting("Highlight Croesus Chests", true)
     private val hideRedChests by ToggleSetting("Hide Opened Chests", true)
-    private val croesusKismetDisplay by ToggleSetting("Highlight Rerolled Chests", true)
+    private val croesusKismetDisplay by ToggleSetting("Mark Rerolled Chests", true).jsonName("Highlight Rerolled Chests")
 
     private val blackList by lazy { DataDownloader.loadJson<List<String>>("blacklistDrops.json") }
 
@@ -229,6 +232,20 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                     pose.popMatrix()
                 }
             }
+        }
+
+        register<ContainerEvent.SlotClick> {
+            if (event.slotId != 50) return@register
+            if (event.screen !is ContainerScreen) return@register
+            if (mc.hasControlDown()) return@register
+            if (! LocationUtils.world.equalsOneOf(WorldType.DungeonHub, WorldType.Catacombs)) return@register
+            val chest = DungeonChest.getFromName(event.screen.title.unformattedText) ?: return@register
+            if (chest.profit <= rerollValue.value) return@register
+            val lastLine = player.containerMenu.getSlot(50).item.lore.last().removeFormatting()
+            if (lastLine == "You already rerolled a chest!") return@register
+            if (lastLine != "Click to reroll this chest!") return@register
+            event.isCanceled = true
+            NotificationManager.push("Blocked Rerolling Chest", "Its profit dumass.\nPress CTRL to override")
         }
     }
 
