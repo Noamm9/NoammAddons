@@ -3,14 +3,19 @@ package com.github.noamm9.features.impl.floor7
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
+import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
+import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
+import com.github.noamm9.utils.ColorUtils
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.location.LocationUtils.F7Phase
 import com.github.noamm9.utils.location.LocationUtils.dungeonFloorNumber
 import com.github.noamm9.utils.location.LocationUtils.inBoss
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket
@@ -20,9 +25,17 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
     private val crystalTitles by ToggleSetting("Crystal Titles")
     private val witherTitles by ToggleSetting("Wither Titles")
     private val lightningTimer by ToggleSetting("Lightning Timer")
+    private val terminalTitles by ToggleSetting("Terminal Titles").withDescription("Reformats terminal, device, lever, and gate subtitles during phase 3")
+
+    private val terminalTitleDuration by SliderSetting("Duration", 2.5, 0.5, 6, 0.5).withDescription("Duration of the terminal title in seconds").showIf { terminalTitles.value }
+    private val terminalTitleMode by DropdownSetting("Mode", 0, listOf("Name + Term + Progress", "Term + Progress", "Progress")).withDescription("Controls which information appears in terminal titles").showIf { terminalTitles.value }
+    private val terminalTitleBracket by DropdownSetting("Bracket Type", 0, listOf("()", "[]", "<>", "{}")).withDescription("Changes the brackets around terminal progress").showIf { terminalTitles.value }
+    private val terminalPhaseDone by ToggleSetting("Phase Done").withDescription("Renders Phase Done instead of 7/7 or 8/8").showIf { terminalTitles.value }
+    private val terminalGateTitles by ToggleSetting("Gate Titles").withDescription("Also reformats gate-related subtitles").showIf { terminalTitles.value }
 
     private val crystalRegex = Regex("^(\\d)/(\\d) Energy Crystals are now active!$")
     private val enragedRegex = Regex("^⚠ (\\w+) is enraged! ⚠$")
+    private val terminalRegex = Regex("(.+) (?:activated|completed) a (terminal|device|lever)! \\((\\d)/(\\d)\\)")
 
     private var timerTime = 0L
     private var maxorDead = false
@@ -30,8 +43,16 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
     private var necronDead = false
     private var goldorStart = false
     private var necronStart = false
+    private var terminalTitle = ""
+    private var terminalTitleTimer = 0
 
     override fun init() {
+        hudElement("Terminal Titles", { terminalTitles.value }, { terminalTitle.isNotBlank() }, centered = true) { ctx, example ->
+            val str = if (example) formatTerminalTitle(mc.user.name, "terminal", 6, 7) else terminalTitle
+            ctx.drawCenteredString(str, 0, 0)
+            return@hudElement str.width().toFloat() to 9f
+        }
+
         register<WorldChangeEvent> {
             maxorDead = false
             goldorDead = false
@@ -88,13 +109,15 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
                         showTitle("$color$text")
                         event.isCanceled = true
                     }
+
+                    if (terminalTitles.value && F7Phase == 3 && handleTerminalTitle(text)) {
+                        event.isCanceled = true
+                    }
                 }
 
                 is ClientboundSetTitleTextPacket -> {
                     if (! lightningTimer.value) return@register
-
-                    val text = packet.text.unformattedText
-                    if (text.isBlank()) return@register
+                    val text = packet.text.unformattedText.takeUnless(String::isBlank) ?: return@register
                     val number = text.toIntOrNull() ?: return@register
                     event.isCanceled = true
 
@@ -147,8 +170,69 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
             height / 2f - height / 13f,
             scale = 3f
         )
-    }.unregister()
+    }
 
+    private val terminalTitleTickListener = EventBus.listener<TickEvent.Start> {
+        if (! enabled) return@listener
+        if (terminalTitleTimer <= 0) {
+            listener.unregister()
+            terminalTitle = ""
+        }
+
+        terminalTitleTimer -= 50
+    }
+
+    private fun handleTerminalTitle(title: String): Boolean {
+        if (terminalGateTitles.value) when (title) {
+            "The gate has been destroyed!" -> {
+                showTerminalTitle("&cGate Destroyed!")
+                return true
+            }
+
+            "The gate will open in 5 seconds!" -> {
+                showTerminalTitle("&c&lGATE!")
+                return true
+            }
+        }
+
+        val (name, type, min, max) = terminalRegex.find(title)?.destructured ?: return false
+        showTerminalTitle(formatTerminalTitle(name, type, min.toInt(), max.toInt()))
+        return true
+    }
+
+    private fun showTerminalTitle(title: String) {
+        terminalTitle = title
+        terminalTitleTimer = terminalTitleDuration.value.toInt() * 1000
+        terminalTitleTickListener.register()
+    }
+
+    private fun formatTerminalTitle(name: String, type: String, min: Int, max: Int): String {
+        val color = ColorUtils.colorCodeByPercent(min, max)
+        if (terminalPhaseDone.value && min == max) return "&a&lPhase Done!"
+        val brackets = when (terminalTitleBracket.value) {
+            0 -> listOf("(", ")")
+            1 -> listOf("[", "]")
+            2 -> listOf("<", ">")
+            3 -> listOf("{", "}")
+            else -> listOf("", "")
+        }
+
+        val formattedType = when (type) {
+            "terminal" -> "&5Terminal"
+            "device" -> "&bDevice"
+            "lever" -> "&cLever"
+            else -> ""
+        }
+
+        val formattedName = (DungeonListener.dungeonTeammates.find { it.name == name }?.clazz?.code ?: "&7") + name
+
+        return when (terminalTitleMode.value) {
+            0 -> "$formattedName $formattedType &f${brackets[0]}$color$min&8/&a$max&f${brackets[1]}"
+            1 -> "$formattedType &f${brackets[0]}$color$min&f/&a$max&f${brackets[1]}"
+            2 -> "&f${brackets[0]}$color$min&f/&a$max&f${brackets[1]}"
+            else -> ""
+        }
+    }
 
     private fun showTitle(subtitle: String) {
         ChatUtils.showTitle(subtitle = subtitle)
