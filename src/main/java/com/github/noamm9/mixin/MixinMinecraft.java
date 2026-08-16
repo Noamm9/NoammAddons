@@ -4,7 +4,7 @@ import com.github.noamm9.event.EventBus;
 import com.github.noamm9.event.impl.CheckEntityGlowEvent;
 import com.github.noamm9.event.impl.PlayerInteractEvent;
 import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlay;
-import com.github.noamm9.features.impl.visual.CpsDisplay;
+import com.github.noamm9.features.impl.visual.InfoDisplay;
 import com.github.noamm9.interfaces.IGlowingEntity;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -38,7 +38,7 @@ public abstract class MixinMinecraft {
 
     @Inject(method = "startAttack", at = @At("HEAD"))
     private void onStartAttack(CallbackInfoReturnable<Boolean> cir) {
-        CpsDisplay.addLeftClick();
+        InfoDisplay.addLeftClick();
     }
 
     @Inject(
@@ -50,7 +50,7 @@ public abstract class MixinMinecraft {
         )
     )
     private void onUseClick(CallbackInfo ci) {
-        CpsDisplay.addRightClick();
+        InfoDisplay.addRightClick();
     }
 
     @Inject(method = "startUseItem", at = @At("HEAD"), cancellable = true)
