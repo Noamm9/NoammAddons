@@ -35,7 +35,7 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
         "§4Blood Open: 1:07 §7(§b1:06§7)",
         "§cWatcher Clear: 67 §7(§b66§7)",
         "§dPortal: 4.2 §7(§b4.1§7)",
-        "§300 Score: 1:22 §7(§b1:22§7)",
+        "§e300 Score: 1:22 §7(§b1:22§7)",
         "§aBoss Entry: 5:49 §7(§b5:47§7)"
     )
 
