@@ -1,7 +1,6 @@
 package com.github.noamm9.utils.items
 
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.mixin.ILocalPlayer
 import com.github.noamm9.utils.MathUtils
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.Level
@@ -17,27 +16,21 @@ import kotlin.math.round
 
 object InstantTransmissionHelper {
     private const val EYE_HEIGHT = 1.62
-    private const val SNEAK_OFFSET = 0.08
 
     fun predictTeleport(distance: Double, startPos: Vec3, yaw: Float, pitch: Float): Vec3? {
-        val player = mc.player ?: return null
         val level = mc.level ?: return null
-
-        val eyeHeight = EYE_HEIGHT - if ((player as ILocalPlayer).isSneakingServer) SNEAK_OFFSET else .0
-        val start = Vec3(startPos.x, startPos.y + eyeHeight, startPos.z)
-        val direction = MathUtils.getLookVec(yaw, pitch)
-
-        val teleportVector = raycast(distance, direction, start, level) ?: return null
+        val start = Vec3(startPos.x, startPos.y + EYE_HEIGHT, startPos.z)
+        val teleportVector = raycast(distance, MathUtils.getLookVec(yaw, pitch), start, level) ?: return null
 
         val predictedEnd = start.add(teleportVector)
         val offsetVec = Vec3(
             predictedEnd.x - roundToCenter(predictedEnd.x),
-            predictedEnd.y - (ceil(predictedEnd.y) + eyeHeight - 1),
+            predictedEnd.y - (ceil(predictedEnd.y) + EYE_HEIGHT - 1),
             predictedEnd.z - roundToCenter(predictedEnd.z)
         )
+        
         val finalEyePos = predictedEnd.subtract(offsetVec)
-
-        return Vec3(finalEyePos.x, finalEyePos.y - eyeHeight, finalEyePos.z)
+        return Vec3(finalEyePos.x, finalEyePos.y - EYE_HEIGHT, finalEyePos.z)
     }
 
     private fun raycast(distance: Double, direction: Vec3, startPos: Vec3, level: Level): Vec3? {

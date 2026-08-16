@@ -4,12 +4,14 @@ package com.github.noamm9.features.impl.misc
 
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.PacketEvent
+import com.github.noamm9.event.impl.PlayerInteractEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.ILocalPlayer
 import com.github.noamm9.ui.clickgui.components.impl.MultiCheckboxSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.utils.*
+import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.destructured
 import com.github.noamm9.utils.Utils.send
@@ -27,8 +29,15 @@ import net.minecraft.network.protocol.game.ServerboundAcceptTeleportationPacket
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket
 import net.minecraft.tags.BlockTags
+import net.minecraft.util.Mth
+import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.PositionMoveRotation
+import net.minecraft.world.entity.decoration.ArmorStand
+import net.minecraft.world.entity.projectile.ProjectileUtil
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.ShovelItem
+import net.minecraft.world.level.ClipContext
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.Vec3
 import java.util.concurrent.*
 import kotlin.jvm.optionals.getOrNull
@@ -40,27 +49,35 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
 
     val pendingTeleports = CopyOnWriteArrayList<TeleportPrediction>()
     private var lastWitherImpact = System.currentTimeMillis()
+    private var lastShovelTillTime = 0L
+
+    private val TILLABLE_BLOCKS = setOf(
+        Blocks.GRASS_BLOCK, Blocks.DIRT, Blocks.COARSE_DIRT,
+        Blocks.PODZOL, Blocks.MYCELIUM, Blocks.MOSS_BLOCK,
+        Blocks.ROOTED_DIRT,
+    )
 
     override fun init() {
         register<WorldChangeEvent> {
             pendingTeleports.clear()
             lastWitherImpact = System.currentTimeMillis()
+            lastShovelTillTime = 0
+        }
+
+        register<PlayerInteractEvent.RIGHT_CLICK.BLOCK> {
+            val stack = event.item ?: return@register
+            if (stack.item !is ShovelItem) return@register
+            if (WorldUtils.getStateAt(event.pos).block !in TILLABLE_BLOCKS) return@register
+            val tpInfo = getTeleportInfo(stack) ?: return@register
+            lastShovelTillTime = System.currentTimeMillis()
+            attemptTeleport(tpInfo)
         }
 
         register<PacketEvent.Sent> {
             val packet = event.packet as? ServerboundUseItemPacket ?: return@register
-            if (LocationUtils.world.equalsOneOf(WorldType.Home, WorldType.Garden)) return@register
-            if (LocationUtils.dungeonFloorNumber == 7 && LocationUtils.inBoss) return@register
-            if (ActionBarParser.currentMana + ActionBarParser.overflowMana < ActionBarParser.maxMana * 0.1) return@register
-            if (ScanUtils.currentRoom?.data?.name.equalsOneOf("New Trap", "Old Trap", "Teleport Maze", "Boulder")) return@register
-            if (player.isPassenger) return@register
             val tpInfo = getTeleportInfo(player.getItemInHand(packet.hand)) ?: return@register
-
-            when (tpInfo.type) {
-                TeleportType.Etherwarp -> doZeroPingEtherwarp(tpInfo, packet.yRot, packet.xRot)
-                TeleportType.InstantTransmission -> doZeroPingInstantTransmission(tpInfo, packet.yRot, packet.xRot)
-                TeleportType.WitherImpact -> doZeroPingWitherImpact(tpInfo, packet.yRot, packet.xRot)
-            }
+            if (System.currentTimeMillis() - lastShovelTillTime < 100) return@register
+            attemptTeleport(tpInfo, packet.yRot, packet.xRot)
         }
 
         register<MainThreadPacketReceivedEvent.Pre> {
@@ -89,6 +106,25 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
             (player as ILocalPlayer).setLastPitch(new.xRot)
 
             event.isCanceled = true
+        }
+    }
+
+    private fun attemptTeleport(tpInfo: TeleportInfo, yaw: Float? = null, pitch: Float? = null) {
+        if (LocationUtils.world.equalsOneOf(WorldType.Home, WorldType.Garden)) return
+        if (LocationUtils.dungeonFloorNumber == 7 && LocationUtils.inBoss) return
+        if (ActionBarParser.currentMana + ActionBarParser.overflowMana < ActionBarParser.maxMana * 0.1) return
+        if (ScanUtils.currentRoom?.data?.name.equalsOneOf("New Trap", "Old Trap", "Teleport Maze", "Boulder")) return
+        if (player.isPassenger) return
+
+        val localPlayer = player as ILocalPlayer
+        val startPos = player.position().add(y = player.eyeHeight)
+        val look = MathUtils.getLookVec(yaw ?: localPlayer.serverYaw, pitch ?: localPlayer.serverPitch)
+        if (isTargetingNPC(player, startPos, look)) return
+
+        when (tpInfo.type) {
+            TeleportType.Etherwarp -> doZeroPingEtherwarp(tpInfo, yaw, pitch)
+            TeleportType.InstantTransmission -> doZeroPingInstantTransmission(tpInfo, yaw, pitch)
+            TeleportType.WitherImpact -> doZeroPingWitherImpact(tpInfo, yaw, pitch)
         }
     }
 
@@ -136,6 +172,29 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
         if (System.currentTimeMillis() - lastWitherImpact <= 125) return // ~8 CPS limit
         lastWitherImpact = System.currentTimeMillis()
         doZeroPingInstantTransmission(tpInfo, yaw, pitch)
+    }
+
+    private fun isTargetingNPC(player: Entity, startPos: Vec3, look: Vec3): Boolean {
+        val maxDistance = 4.0
+        val endPos = startPos.add(look.scale(maxDistance))
+
+        val context = ClipContext(startPos, endPos, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player)
+        val blockHitDistance = player.level().clip(context).location.distanceTo(startPos)
+
+        val searchBox = player.boundingBox.expandTowards(look.scale(maxDistance)).inflate(1.0)
+        val entityHit = ProjectileUtil.getEntityHitResult(
+            player, startPos, endPos, searchBox,
+            { entity -> ! entity.isSpectator && entity != player },
+            Mth.square(blockHitDistance)
+        ) ?: return false
+
+        val target = entityHit.entity.takeUnless { it.customName?.unformattedText == "CLICK" } ?: return true
+
+        val possibleEntities = player.level().getEntities(
+            target, target.boundingBox.move(0.0, - 1.0, 0.0)
+        ) { it is ArmorStand }
+
+        return possibleEntities.any { it.customName?.unformattedText == "CLICK" }
     }
 
     private fun getTeleportInfo(stack: ItemStack?): TeleportInfo? {
