@@ -28,12 +28,19 @@ interface SettingProvider {
 
     operator fun <T, S: Setting<T>> S.provideDelegate(thisRef: SettingProvider, prop: KProperty<*>): S {
         this.headerName?.let { name ->
-            if (thisRef.configSettings.isNotEmpty()) {
-                thisRef.configSettings.add(SeparatorSetting().also { it.visibility = this.visibility })
+            val category = CategorySetting(name)
+            val sectionVisibility = {
+                thisRef.configSettings.asSequence()
+                    .dropWhile { it !== category }
+                    .drop(1)
+                    .takeWhile { it !is SeparatorSetting && it !is CategorySetting }
+                    .any { it.visibility() }
             }
-            thisRef.configSettings.add(CategorySetting(name).also {
-                it.visibility = this.visibility
-            })
+
+            if (thisRef.configSettings.isNotEmpty()) {
+                thisRef.configSettings.add(SeparatorSetting().also { it.visibility = sectionVisibility })
+            }
+            thisRef.configSettings.add(category.also { it.visibility = sectionVisibility })
         }
 
         thisRef.configSettings.add(this)
