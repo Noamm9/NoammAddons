@@ -28,7 +28,7 @@ object InstantTransmissionHelper {
             predictedEnd.y - (ceil(predictedEnd.y) + EYE_HEIGHT - 1),
             predictedEnd.z - roundToCenter(predictedEnd.z)
         )
-        
+
         val finalEyePos = predictedEnd.subtract(offsetVec)
         return Vec3(finalEyePos.x, finalEyePos.y - EYE_HEIGHT, finalEyePos.z)
     }
