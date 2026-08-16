@@ -5,24 +5,25 @@ import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.*
+import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
+import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
+import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
+import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.MathUtils.toVec
-import com.github.noamm9.utils.PlayerUtils
-import com.github.noamm9.utils.Utils
-import com.github.noamm9.utils.WorldUtils
-import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
-import com.github.noamm9.utils.equalsOneOf
+import com.github.noamm9.utils.PlayerUtils.isSneakingServer
+import com.github.noamm9.utils.PlayerUtils.serverPitch
+import com.github.noamm9.utils.PlayerUtils.serverYaw
 import com.github.noamm9.utils.items.EtherwarpHelper
-import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.items.TeleportUtils
 import com.github.noamm9.utils.render.Render3D.renderBlock
 import com.github.noamm9.utils.render.Render3D.renderBox
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
+import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket
 import net.minecraft.sounds.SoundEvents
-import net.minecraft.world.level.block.Blocks
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
@@ -52,16 +53,10 @@ object Etherwarp: Feature("Etherwarp overlay, sound, and left-click activation."
     private val autoSneakDelay by SliderSetting("Auto Sneak Delay", 50, 50, 150, 1).showIf { leftClick.value && autoSneak.value }
     //#endif
 
-    private val interactable = listOf(
-        Blocks.CHEST, Blocks.TRAPPED_CHEST, Blocks.ENDER_CHEST, Blocks.HOPPER,
-        Blocks.CAULDRON, Blocks.LEVER, Blocks.STONE_BUTTON, Blocks.OAK_BUTTON,
-        Blocks.OAK_TRAPDOOR, Blocks.IRON_TRAPDOOR
-    )
-
     override fun init() {
         register<RenderWorldEvent> {
             if (! overlay.value) return@register
-            if (! player.isSteppingCarefully) return@register
+            if (! player.isSneakingServer) return@register
             val heldItem = player.mainHandItem.takeUnless { it.isEmpty } ?: return@register
             val distance = EtherwarpHelper.getEtherwarpDistance(heldItem) ?: return@register
             val (valid, pos) = EtherwarpHelper.getEtherPos(player.position(), player.lookAngle, distance)
@@ -97,19 +92,23 @@ object Etherwarp: Feature("Etherwarp overlay, sound, and left-click activation."
 
         register<PacketEvent.Sent> {
             if (! etherwarpSound.value || ! zeroPingSound.value) return@register
-            if (event.packet !is ServerboundUseItemPacket) return@register
-            if (! mc.options.keyShift.isDown) return@register
-            if (LocationUtils.F7Phase == 3 && LocationUtils.inBoss) return@register
-            if (ScanUtils.currentRoom?.data?.name.equalsOneOf("New Trap", "Old Trap", "Teleport Maze", "Boulder")) return@register
-            PlayerUtils.getSelectionBlock()?.let { if (WorldUtils.getBlockAt(it) in interactable) return@register }
+            val packet = event.packet as? ServerboundUseItemOnPacket ?: return@register
+            if (! player.isSneakingServer) return@register
+            if (WorldUtils.getBlockAt(packet.hitResult.blockPos) !in TeleportUtils.TILLABLE_BLOCKS) return@register
             val dist = EtherwarpHelper.getEtherwarpDistance(player.mainHandItem) ?: return@register
-
             val (succeeded, pos) = EtherwarpHelper.getEtherPos(player.position(), player.lookAngle, dist)
             if (! succeeded || pos == null) return@register
+            if (TeleportUtils.canTeleport(player.serverYaw, player.serverPitch)) playSound.action.invoke()
+        }
 
-            if (ScanUtils.getRoomFromPos(pos.toVec())?.data?.name.equalsOneOf("Teleport Maze", "Boulder")) return@register
-
-            playSound.action.invoke()
+        register<PacketEvent.Sent> {
+            if (! etherwarpSound.value || ! zeroPingSound.value) return@register
+            val packet = event.packet as? ServerboundUseItemPacket ?: return@register
+            if (! player.isSneakingServer) return@register
+            val dist = EtherwarpHelper.getEtherwarpDistance(player.mainHandItem) ?: return@register
+            val (succeeded, pos) = EtherwarpHelper.getEtherPos(player.position(), player.lookAngle, dist)
+            if (! succeeded || pos == null) return@register
+            if (TeleportUtils.canTeleport(packet.yRot, packet.xRot)) playSound.action.invoke()
         }
 
         register<MouseClickEvent> {
@@ -118,9 +117,9 @@ object Etherwarp: Feature("Etherwarp overlay, sound, and left-click activation."
             if (event.action != GLFW.GLFW_PRESS) return@register
             if (mc.screen != null) return@register
             //#if CHEAT
-            if (! player.isSteppingCarefully && ! autoSneak.value) return@register
+            if (! player.isSneakingServer && ! autoSneak.value) return@register
             //#else
-            //$if (! player.isSteppingCarefully) return@register
+            //$if (! player.isSneakingServer) return@register
             //#endif
             if (EtherwarpHelper.getEtherwarpDistance(player.mainHandItem) == null) return@register
 

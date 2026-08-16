@@ -6,6 +6,7 @@ import com.github.noamm9.features.Shortcuts
 import com.github.noamm9.features.impl.dungeon.LeapMenu
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.mixin.IKeyMapping
+import com.github.noamm9.mixin.ILocalPlayer
 import com.github.noamm9.ui.utils.Animation.Companion.easeInOutCubic
 import com.github.noamm9.utils.ActionUtils.waitTicks
 import com.github.noamm9.utils.ChatUtils.formattedText
@@ -18,6 +19,7 @@ import com.github.noamm9.utils.dungeons.DungeonListener.thePlayer
 import com.github.noamm9.utils.dungeons.DungeonPlayer
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import kotlinx.coroutines.delay
+import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket
@@ -35,6 +37,10 @@ import kotlin.math.abs
 import kotlin.math.min
 
 object PlayerUtils: ISelfInit, Shortcuts {
+    val LocalPlayer.isSneakingServer get() = (this as ILocalPlayer).isSneakingServer
+    val LocalPlayer.serverYaw get() = (this as ILocalPlayer).serverYaw
+    val LocalPlayer.serverPitch get() = (this as ILocalPlayer).serverPitch
+
     fun swingArm() {
         if (! player.swinging || player.swingTime < 0) {
             player.swingingArm = InteractionHand.MAIN_HAND

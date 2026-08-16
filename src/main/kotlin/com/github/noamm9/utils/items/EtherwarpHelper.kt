@@ -51,9 +51,8 @@ object EtherwarpHelper {
         val noRotate = com.github.noamm9.features.impl.misc.NoRotate
         if (! noRotate.enabled) return fallback
         val pendingTeleport = noRotate.pendingTeleports.lastOrNull() ?: return fallback
-        if (pendingTeleport.position == Vec3.ZERO) return fallback
         val config = noRotate.zeroPingCamera.value.values.toList()
-        if (! config[pendingTeleport.info.type.ordinal]) return fallback
+        if (! config[pendingTeleport.info.type]) return fallback
         return pendingTeleport.position
         //#else
         //$return fallback
