@@ -13,7 +13,7 @@ import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import java.util.*
 
-object TermAutoClicker: Feature(name = "Term AC", description = "Automatically uses Salvation ability when holding right click.") {
+object TermAutoClicker: Feature(name = "Term AC", description = "Automatically uses Salvation ability when holding right click.", toggleKeybind = true) {
     private val cps by SliderSetting("Clicks Per Second", 5.0, 5.0, 10.0, 1.0).withDescription("How many times per second the autoclicker should click.")
 
     private var baseCpsDrift = cps.value
@@ -29,9 +29,7 @@ object TermAutoClicker: Feature(name = "Term AC", description = "Automatically u
             if (! mc.options.keyUse.isDown) return@register
             if (player.isUsingItem) return@register
 
-            if ("ac" !in NoammAddons.debugFlags) {
-                if (player.mainHandItem.skyblockId != "TERMINATOR") return@register
-            }
+            if ("ac" !in NoammAddons.debugFlags && player.mainHandItem.skyblockId != "TERMINATOR") return@register
 
             if (! LocationUtils.inBoss) PlayerUtils.getSelectionBlock()?.let { pos ->
                 if (DungeonUtils.isSecret(pos)) return@register

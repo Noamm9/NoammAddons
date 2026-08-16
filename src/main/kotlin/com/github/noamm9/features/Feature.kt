@@ -5,31 +5,40 @@ import com.github.noamm9.event.Event
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.EventContext
 import com.github.noamm9.event.EventListener
+import com.github.noamm9.event.impl.KeyboardEvent
+import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.features.annotations.AlwaysActive
 import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.SettingProvider
+import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
 import com.github.noamm9.ui.clickgui.enums.CategoryType
 import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.utils.spaceCaps
 import net.minecraft.client.gui.GuiGraphicsExtractor
+import org.lwjgl.glfw.GLFW
 
 open class Feature(
     val description: String? = null,
     name: String? = null,
-    toggled: Boolean = false
+    toggled: Boolean = false,
+    toggleKeybind: Boolean = false,
 ): Shortcuts, SettingProvider {
     private val alwaysActive = this::class.java.isAnnotationPresent(AlwaysActive::class.java)
     val name = name ?: this::class.simpleName.toString().spaceCaps()
     open val category = initCategory()
     @JvmField var enabled = toggled
+    open val toggleKeybindSetting: KeybindSetting? = if (toggleKeybind) KeybindSetting("Toggle") else null
 
     override val configSettings = mutableSetOf<Setting<*>>()
     val listeners = mutableSetOf<EventListener<*>>()
     val hudElements = mutableSetOf<HudElement>()
 
-
     fun initialize() {
+        toggleKeybindSetting?.let {
+            configSettings.add(it)
+            registerToggleKeybind(it)
+        }
         init()
 
         if (enabled || alwaysActive) onEnable() else onDisable()
@@ -81,5 +90,21 @@ open class Feature(
         val categoryName = parts[parts.indexOf("impl") + 1].uppercase()
         if (CategoryType.entries.none { it.name.equals(categoryName, true) }) error("Category does not exist: $categoryName")
         return CategoryType.valueOf(categoryName.uppercase())
+    }
+
+    private fun registerToggleKeybind(bind: KeybindSetting) {
+        EventBus.register<KeyboardEvent.KeyPressed> {
+            if (mc.screen != null || event.action != GLFW.GLFW_PRESS) return@register
+            if (! bind.matches(event.keyEvent.key, false)) return@register
+
+            this@Feature.toggle()
+        }
+
+        EventBus.register<MouseClickEvent> {
+            if (mc.screen != null || event.action != GLFW.GLFW_PRESS) return@register
+            if (! bind.matches(event.button, true)) return@register
+
+            this@Feature.toggle()
+        }
     }
 }
