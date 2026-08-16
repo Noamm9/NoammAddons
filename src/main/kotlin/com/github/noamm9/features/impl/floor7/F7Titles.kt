@@ -3,54 +3,35 @@ package com.github.noamm9.features.impl.floor7
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.dungeons.DungeonListener
-import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.location.LocationUtils.F7Phase
 import com.github.noamm9.utils.location.LocationUtils.dungeonFloorNumber
 import com.github.noamm9.utils.location.LocationUtils.inBoss
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
-import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.RenderHelper.width
-import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket
 import net.minecraft.sounds.SoundEvents
-import java.awt.Color
 
 object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7 boss fight.") {
     private val crystalTitles by ToggleSetting("Crystal Titles")
     private val witherTitles by ToggleSetting("Wither Titles")
     private val lightningTimer by ToggleSetting("Lightning Timer")
-    private val terminalTitles by ToggleSetting("Terminal Titles")
-        .withDescription("Reformats terminal, device, lever, and gate subtitles during phase 3")
-        .onChange { terminalTitlesEnabled ->
-            if (enabled && terminalTitlesEnabled) terminalTitleTickListener.register()
-            else terminalTitleTickListener.unregister()
-        }
-    private val terminalTitleDuration by SliderSetting("Duration", 2.5, 0.5, 6, 0.5)
-        .withDescription("Duration of the terminal title in seconds")
-        .showIf { terminalTitles.value }
-    private val terminalTitleMode by DropdownSetting("Mode", 0, listOf("Name + Term + Progress", "Term + Progress", "Progress"))
-        .withDescription("Controls which information appears in terminal titles")
-        .showIf { terminalTitles.value }
-    private val terminalTitleBracket by DropdownSetting("Bracket Type", 0, listOf("()", "[]", "<>", "{}"))
-        .withDescription("Changes the brackets around terminal progress")
-        .showIf { terminalTitles.value }
-    private val terminalPhaseDone by ToggleSetting("Phase Done")
-        .withDescription("Renders Phase Done instead of 7/7 or 8/8")
-        .showIf { terminalTitles.value }
-    private val terminalGateTitles by ToggleSetting("Gate Titles")
-        .withDescription("Also reformats gate-related subtitles")
-        .showIf { terminalTitles.value }
+    private val terminalTitles by ToggleSetting("Terminal Titles").withDescription("Reformats terminal, device, lever, and gate subtitles during phase 3")
+
+    private val terminalTitleDuration by SliderSetting("Duration", 2.5, 0.5, 6, 0.5).withDescription("Duration of the terminal title in seconds").showIf { terminalTitles.value }
+    private val terminalTitleMode by DropdownSetting("Mode", 0, listOf("Name + Term + Progress", "Term + Progress", "Progress")).withDescription("Controls which information appears in terminal titles").showIf { terminalTitles.value }
+    private val terminalTitleBracket by DropdownSetting("Bracket Type", 0, listOf("()", "[]", "<>", "{}")).withDescription("Changes the brackets around terminal progress").showIf { terminalTitles.value }
+    private val terminalPhaseDone by ToggleSetting("Phase Done").withDescription("Renders Phase Done instead of 7/7 or 8/8").showIf { terminalTitles.value }
+    private val terminalGateTitles by ToggleSetting("Gate Titles").withDescription("Also reformats gate-related subtitles").showIf { terminalTitles.value }
 
     private val crystalRegex = Regex("^(\\d)/(\\d) Energy Crystals are now active!$")
     private val enragedRegex = Regex("^⚠ (\\w+) is enraged! ⚠$")
@@ -65,39 +46,12 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
     private var terminalTitle = ""
     private var terminalTitleTimer = 0
 
-    private val terminalTitleHud = object: HudElement() {
-        override val name = "Terminal Titles"
-        override val toggle get() = enabled && terminalTitles.value
-        override val shouldDraw get() = terminalTitle.isNotBlank()
-
-        override fun draw(ctx: GuiGraphicsExtractor, example: Boolean): Pair<Float, Float> {
+    override fun init() {
+        hudElement("Terminal Titles", { terminalTitles.value }, { terminalTitle.isNotBlank() }, centered = true) { ctx, example ->
             val str = if (example) formatTerminalTitle(mc.user.name, "terminal", 6, 7) else terminalTitle
             ctx.drawCenteredString(str, 0, 0)
-            return str.width().toFloat() to 9f
+            return@hudElement str.width().toFloat() to 9f
         }
-
-        override fun isHovered(mx: Int, my: Int): Boolean {
-            val halfWidth = width * scale / 2
-            return mx >= x - halfWidth && mx <= x + halfWidth && my >= y && my <= y + (height * scale)
-        }
-
-        override fun drawBackground(ctx: GuiGraphicsExtractor, mx: Int, my: Int) {
-            val scaledW = width * scale
-            val scaledH = height * scale
-            val drawX = x - scaledW / 2
-            val drawY = y
-
-            val hovered = mx >= drawX && mx <= drawX + scaledW && my >= drawY && my <= drawY + scaledH
-            val borderColor = if (isDragging || hovered) Style.accentColor else Color(255, 255, 255, 40)
-
-            ctx.drawRect(drawX, drawY, scaledW.toDouble(), scaledH.toDouble(), Color(10, 10, 10, 150))
-            ctx.drawRect(drawX, drawY, scaledW.toDouble(), 1.0, borderColor)
-            ctx.drawRect(drawX, drawY + scaledH - 1, scaledW.toDouble(), 1.0, borderColor)
-        }
-    }
-
-    override fun init() {
-        hudElements.add(terminalTitleHud)
 
         register<WorldChangeEvent> {
             maxorDead = false
@@ -156,16 +110,14 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
                         event.isCanceled = true
                     }
 
-                    if (terminalTitles.value && LocationUtils.inDungeon && LocationUtils.F7Phase == 3 && handleTerminalTitle(text)) {
+                    if (terminalTitles.value && F7Phase == 3 && handleTerminalTitle(text)) {
                         event.isCanceled = true
                     }
                 }
 
                 is ClientboundSetTitleTextPacket -> {
                     if (! lightningTimer.value) return@register
-
-                    val text = packet.text.unformattedText
-                    if (text.isBlank()) return@register
+                    val text = packet.text.unformattedText.takeUnless(String::isBlank) ?: return@register
                     val number = text.toIntOrNull() ?: return@register
                     event.isCanceled = true
 
@@ -199,11 +151,6 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
         }
     }
 
-    override fun onEnable() {
-        super.onEnable()
-        if (! terminalTitles.value) terminalTitleTickListener.unregister()
-    }
-
     private val timerRenderer = EventBus.listener<RenderOverlayEvent> {
         if (! enabled) return@listener
         val timeLeft = (timerTime - DungeonListener.currentTime) / 20.0
@@ -223,11 +170,12 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
             height / 2f - height / 13f,
             scale = 3f
         )
-    }.unregister()
+    }
 
-    private val terminalTitleTickListener = register<TickEvent.Start> {
+    private val terminalTitleTickListener = EventBus.listener<TickEvent.Start> {
+        if (! enabled) return@listener
         if (terminalTitleTimer <= 0) {
-            this.listener.unregister()
+            listener.unregister()
             terminalTitle = ""
         }
 
