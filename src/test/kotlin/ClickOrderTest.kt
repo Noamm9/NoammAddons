@@ -32,10 +32,6 @@ object ClickOrderTest {
         println("=========== INVENTORY VISUALIZATION ==========")
         println("Type: $type")
         println(" ...  = Empty Slot")
-        println("[ 0 ] = 1st Click")
-        println("[ 1 ] = 2nd Click")
-        println("[ 9 ] = 10th Click")
-        println("---------------------------------------------")
 
         val slotToOrderMap = path.withIndex().associate { it.value to it.index }
 

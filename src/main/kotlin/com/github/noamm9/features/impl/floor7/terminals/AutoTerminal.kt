@@ -50,13 +50,13 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
 
     override fun onEnable() {
         super.onEnable()
-        TerminalListener.registerSharedListeners()
+        TerminalListener.register()
     }
 
     override fun onDisable() {
         super.onDisable()
         if (TerminalSolver.enabled) return
-        TerminalListener.unregisterSharedListeners()
+        TerminalListener.unregister()
     }
 
     override fun init() {

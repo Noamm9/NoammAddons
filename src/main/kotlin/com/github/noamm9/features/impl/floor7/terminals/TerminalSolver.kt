@@ -95,7 +95,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
 
     override fun onEnable() {
         super.onEnable()
-        TerminalListener.registerSharedListeners()
+        TerminalListener.register()
     }
 
     override fun onDisable() {
@@ -103,7 +103,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
         //#if CHEAT
         if (AutoTerminal.enabled) return
         //#endif
-        TerminalListener.unregisterSharedListeners()
+        TerminalListener.unregister()
     }
 
     fun solverActive(type: TerminalType) = when (type) {
@@ -168,7 +168,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
                     }
                 }
 
-                if (NoammAddons.debugFlags.contains("terminal")) solution.forEach { (slot, _) ->
+                if ("terminal" in NoammAddons.debugFlags) solution.forEach { (slot, _) ->
                     val slotX = slot % 9 * 18 + offsetX
                     val slotY = floor(slot / 9.0).toInt() * 18 + offsetY
                     val item = TerminalListener.currentItems[slot] ?: return@forEach
@@ -217,7 +217,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
                 }
 
                 val item = TerminalListener.currentItems[slot]
-                if (NoammAddons.debugFlags.contains("terminal") && item != null) {
+                if (item != null && "terminal" in NoammAddons.debugFlags) {
                     event.context.item(item, slotX.toInt(), slotY.toInt())
                     event.context.itemDecorations(mc.font, item, slotX.toInt(), slotY.toInt())
                 }
@@ -398,9 +398,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
             mc.player !!
         )
 
-        if (NoammAddons.debugFlags.contains("terminal")) {
-            ChatUtils.modMessage("Clicked $slot on ${TerminalListener.currentType?.name}")
-        }
+        ChatUtils.debug("terminal", "Clicked $slot on ${TerminalListener.currentType?.name}")
 
         if (TerminalListener.currentType == TerminalType.STARTWITH) {
             TerminalType.clickedSlot = TerminalListener.lastWindowId to slot
