@@ -41,7 +41,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     val hideNonMatchingPages by ToggleSetting("Hide Non-Matching Pages").withDescription("Hides storage pages without an item matching the current inventory search")
 
     private val storageDir by lazy { File(mc.gameDirectory, "config/${NoammAddons.MOD_NAME}/storage").also(File::mkdirs) }
-    private val dataFile get() = File(storageDir, "${mc.user.profileId}.nbt")
+    private val dataFile get() = File(storageDir, "${mc.user.profileId}.nbt").also { it.createNewFile() }
     @Volatile var storageMenuData: SortedMap<StoragePage, NBTInventory?> = TreeMap()
 
     private var currentMenu: StorageMenu? = null
