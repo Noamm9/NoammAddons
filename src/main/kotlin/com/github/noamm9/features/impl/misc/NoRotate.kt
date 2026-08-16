@@ -29,7 +29,6 @@ import net.minecraft.network.protocol.game.ServerboundUseItemPacket
 import net.minecraft.tags.BlockTags
 import net.minecraft.world.entity.PositionMoveRotation
 import net.minecraft.world.item.ItemStack
-import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.Vec3
 import java.util.concurrent.*
 import kotlin.jvm.optionals.getOrNull
@@ -130,8 +129,7 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
         val playerPos = pendingTeleports.lastOrNull()?.position ?: Vec3(player.serverX, player.serverY, player.serverZ)
         val pos = InstantTransmissionHelper.predictTeleport(tpInfo.distance, playerPos, yaw ?: player.serverYaw, pitch ?: player.serverPitch) ?: return
         if (ScanUtils.getRoomFromPos(pos)?.data?.name.equalsOneOf("Teleport Maze", "Boulder")) return
-        val prediction = if (WorldUtils.getBlockAt(pos.add(0.5, - 1, 0.5)) == Blocks.AIR) pos.add(y = - 1) else pos
-        teleport(TeleportPrediction(prediction, tpInfo))
+        teleport(TeleportPrediction(pos, tpInfo))
     }
 
     private fun doZeroPingWitherImpact(tpInfo: TeleportInfo, yaw: Float? = null, pitch: Float? = null) {
