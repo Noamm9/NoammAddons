@@ -46,7 +46,7 @@ object ScoreCalculator: Feature("Shows the score of the dungeon run.") {
     }
 
     override fun init() {
-        hudElement("ScoreCalculator", enabled = { LocationUtils.inDungeon }, shouldDraw = { hudElement.value }) { ctx, demoMode ->
+        hudElement("ScoreCalculator", enabled = { hudElement.value }, shouldDraw = { LocationUtils.inDungeon }) { ctx, demoMode ->
             val text = if (demoMode) "&eScore: &a300"
             else "&eScore: " + ColorUtils.colorizeScore(ScoreCalculation.score)
 

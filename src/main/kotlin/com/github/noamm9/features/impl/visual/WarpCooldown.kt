@@ -14,7 +14,7 @@ object WarpCooldown: Feature("Displays on screen how long until you can start an
     private var onCd = false
 
     override fun init() {
-        hudElement("WarpCooldown", { onCd }) { ctx, example ->
+        hudElement("WarpCooldown", shouldDraw = ::onCd::get) { ctx, example ->
             val remaining = (30 - (System.currentTimeMillis() - startTime) / 1000.0).roundToInt()
             if (remaining < 0) onCd = false
             val text = "&bWarp Cooldown: &f${if (example) 30 else remaining}s"
