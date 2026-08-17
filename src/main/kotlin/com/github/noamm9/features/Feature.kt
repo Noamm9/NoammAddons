@@ -74,7 +74,7 @@ open class Feature(
         }.also(hudElements::add)
     }
 
-    fun getSettingByName(key: String?) = configSettings.find { it.name == key && it is Savable }
+    fun getSettingByName(key: String?) = configSettings.find { it.jsonName() == key && it is Savable }
 
     private fun initCategory(): CategoryType {
         val parts = this::class.java.`package` !!.name.split(".")
