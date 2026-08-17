@@ -95,9 +95,9 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
 
         register<ContainerEvent.MouseClick> {
             if (! inLoadoutMenu) return@register
-            if (event.button.equalsOneOf(0, 1, 2)) return@register
+            if (event.button.equalsOneOf(GLFW.GLFW_MOUSE_BUTTON_LEFT, GLFW.GLFW_MOUSE_BUTTON_RIGHT)) return@register
             val index = if (useHotbarBinds.value) hotbarKeyMap[event.button] ?: return@register
-            else keybinds.withIndex().find { (_, key) -> key.isDown() }?.index ?: return@register
+            else keybinds.indexOfFirst { it.matches(event.button, mouse = true) }.takeUnless { it == - 1 } ?: return@register
             event.isCanceled = true
             queueKeybind(index)
         }
