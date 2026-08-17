@@ -42,8 +42,6 @@ object TerminalListener {
         packetSentListener,
         tickListener,
         worldChangeListener,
-        Scheduler.tickListener,
-        Scheduler.timeListener,
     )
 
     private fun onPacketReceived(packet: Packet<*>) {

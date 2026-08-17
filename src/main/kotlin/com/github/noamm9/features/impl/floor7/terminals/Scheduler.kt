@@ -3,9 +3,10 @@ package com.github.noamm9.features.impl.floor7.terminals
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.TickEvent
+import com.github.noamm9.init.types.ISelfInit
 import java.util.concurrent.*
 
-object Scheduler {
+object Scheduler: ISelfInit {
     private var currentTicks = 0L
 
     private class Task(val targetMs: Long, val targetTicks: Long, val action: Runnable) {
@@ -27,17 +28,22 @@ object Scheduler {
         ))
     }
 
-    val tickListener = EventBus.listener<TickEvent.Server> {
+    private val tickListener = EventBus.listener<TickEvent.Server> {
         currentTicks ++
         process { task ->
             task.ticksPassed = currentTicks >= task.targetTicks
         }
     }
 
-    val timeListener = EventBus.listener<RenderWorldEvent> {
+    private val timeListener = EventBus.listener<RenderWorldEvent> {
         process { task ->
             task.msPassed = System.currentTimeMillis() >= task.targetMs
         }
+    }
+
+    override fun init() {
+        tickListener.register()
+        timeListener.register()
     }
 
     private inline fun process(updateState: (Task) -> Unit) {
