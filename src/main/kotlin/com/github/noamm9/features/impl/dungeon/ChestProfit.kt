@@ -240,7 +240,9 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
             if (mc.hasControlDown()) return@register
             if (! LocationUtils.world.equalsOneOf(WorldType.DungeonHub, WorldType.Catacombs)) return@register
             val chest = DungeonChest.getFromName(event.screen.title.unformattedText) ?: return@register
-            if (chest.profit <= rerollValue.value) return@register
+            if (rerollValue.value == 0) return@register
+            val formatedProfit = rerollValue.value * 1000000L
+            if (chest.profit <= formatedProfit) return@register
             val lastLine = player.containerMenu.getSlot(50).item.lore.last().removeFormatting()
             if (lastLine == "You already rerolled a chest!") return@register
             if (lastLine != "Click to reroll this chest!") return@register
