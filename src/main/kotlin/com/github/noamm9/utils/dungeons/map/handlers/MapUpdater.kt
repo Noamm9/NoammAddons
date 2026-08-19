@@ -37,13 +37,13 @@ object MapUpdater: ISelfInit {
 
         EventBus.register<MainThreadPacketReceivedEvent.Post> {
             if (! LocationUtils.inDungeon) return@register
-            if (! DungeonListener.dungeonStarted) return@register
             val packet = event.packet as? ClientboundMapItemDataPacket ?: return@register
             val mapId = PlayerUtils.getHotbarSlot(8)?.get(DataComponents.MAP_ID) ?: packet.mapId
             val mapData = mc.level?.getMapData(mapId) ?: return@register
 
             MapUtils.calibrated = MapUtils.calibrateMap(mapData)
             if (MapUtils.calibrated) {
+                DungeonListener.dungeonStarted = true
                 updateRooms(mapData)
                 updatePlayers(mapData)
             }
