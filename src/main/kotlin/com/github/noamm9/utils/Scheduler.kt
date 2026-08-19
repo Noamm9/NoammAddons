@@ -1,25 +1,19 @@
-package com.github.noamm9.features.impl.floor7.terminals
+package com.github.noamm9.utils
 
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.TickEvent
+import com.github.noamm9.init.types.ISelfInit
 import java.util.concurrent.*
 
-object Scheduler {
-    private var currentTicks = 0L
-
-    private class Task(val targetMs: Long, val targetTicks: Long, val action: Runnable) {
-        @Volatile var msPassed = false
-        @Volatile var ticksPassed = false
-        @Volatile var executed = false
-    }
-
+object Scheduler: ISelfInit {
     private val tasks = CopyOnWriteArrayList<Task>()
+    private var currentTicks = 0L
 
     /**
      * Schedules a task to run only after both [msDelay] and [tickDelay] have passed.
      */
-    fun schedule(msDelay: Int, tickDelay: Int, action: Runnable) {
+    fun schedule(msDelay: Int, tickDelay: Int = msDelay / 50, action: Runnable) {
         tasks.add(Task(
             System.currentTimeMillis() + msDelay,
             currentTicks + tickDelay,
@@ -27,16 +21,18 @@ object Scheduler {
         ))
     }
 
-    val tickListener = EventBus.listener<TickEvent.Server> {
-        currentTicks ++
-        process { task ->
-            task.ticksPassed = currentTicks >= task.targetTicks
+    override fun init() {
+        EventBus.register<TickEvent.Server> {
+            currentTicks ++
+            process { task ->
+                task.ticksPassed = currentTicks >= task.targetTicks
+            }
         }
-    }
 
-    val timeListener = EventBus.listener<RenderWorldEvent> {
-        process { task ->
-            task.msPassed = System.currentTimeMillis() >= task.targetMs
+        EventBus.register<RenderWorldEvent> {
+            process { task ->
+                task.msPassed = System.currentTimeMillis() >= task.targetMs
+            }
         }
     }
 
@@ -56,5 +52,11 @@ object Scheduler {
                 }
             }
         }
+    }
+
+    private class Task(val targetMs: Long, val targetTicks: Long, val action: Runnable) {
+        @Volatile var msPassed = false
+        @Volatile var ticksPassed = false
+        @Volatile var executed = false
     }
 }

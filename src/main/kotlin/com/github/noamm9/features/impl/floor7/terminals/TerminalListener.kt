@@ -41,9 +41,7 @@ object TerminalListener {
         packetReceivedListener,
         packetSentListener,
         tickListener,
-        worldChangeListener,
-        Scheduler.tickListener,
-        Scheduler.timeListener,
+        worldChangeListener
     )
 
     private fun onPacketReceived(packet: Packet<*>) {
@@ -63,7 +61,7 @@ object TerminalListener {
                     lastWindowId = packet.containerId
                     currentItems.clear()
 
-                    TerminalSolver.onTerminalOpen()
+                    TerminalSolver.onTerminalUpdate()
                     //#if CHEAT
                     AutoTerminal.reset()
                     //#endif

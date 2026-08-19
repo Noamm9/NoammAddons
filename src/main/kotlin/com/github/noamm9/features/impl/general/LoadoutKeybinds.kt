@@ -75,7 +75,7 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
             val index = if (useHotbarBinds.value) hotbarKeyMap[event.key] ?: return@register
             else keybinds.indexOfFirst(KeybindSetting::isDown).takeUnless { it == - 1 } ?: return@register
             event.isCanceled = true
-            handleKeybind(index)
+            click(index)
         }
 
         register<ContainerEvent.MouseClick> {
@@ -85,11 +85,11 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
             val index = if (useHotbarBinds.value) hotbarKeyMap[event.button] ?: return@register
             else keybinds.indexOfFirst { it.matches(event.button, mouse = true) }.takeUnless { it == - 1 } ?: return@register
             event.isCanceled = true
-            handleKeybind(index)
+            click(index)
         }
     }
 
-    private fun handleKeybind(index: Int) {
+    private fun click(index: Int) {
         val slot = slots[index].takeIf(::isSlotEquipable) ?: return
         GuiUtils.clickSlot(slot, GuiUtils.ButtonType.LEFT)
 
