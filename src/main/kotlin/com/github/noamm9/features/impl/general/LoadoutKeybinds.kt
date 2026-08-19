@@ -3,13 +3,11 @@ package com.github.noamm9.features.impl.general
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.PacketEvent
-import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.IKeyMapping
 import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils.unformattedText
-import com.github.noamm9.utils.FCScheduler
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.equalsOneOf
@@ -34,7 +32,7 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
     }
 
     private val loadoutMenuRegex = Regex("""^\(\d+/\d+\) Loadouts$""")
-    private val fcScheduler = FCScheduler()
+    private var lastClick = System.currentTimeMillis()
     private var inLoadoutMenu = false
     private var pendingAutoClose = false
     private val slots = listOf(
@@ -48,30 +46,16 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
         mc.options.keyHotbarSlots.withIndex().associate { (i, key) -> (key as IKeyMapping).key.value to i }
     }
 
-    override fun onDisable() {
-        super.onDisable()
-        reset()
-    }
-
     override fun init() {
-        register<WorldChangeEvent> { reset() }
-
         register<MainThreadPacketReceivedEvent.Pre> {
-            if (event.packet is ClientboundOpenScreenPacket) {
-                inLoadoutMenu = event.packet.title.unformattedText.matches(loadoutMenuRegex)
-                if (inLoadoutMenu) fcScheduler.start() else fcScheduler.cancel()
-            }
-            else if (event.packet is ClientboundContainerClosePacket && inLoadoutMenu) {
-                inLoadoutMenu = false
-                fcScheduler.cancel()
-            }
+            if (event.packet is ClientboundOpenScreenPacket) inLoadoutMenu = event.packet.title.unformattedText.matches(loadoutMenuRegex)
+            else if (event.packet is ClientboundContainerClosePacket && inLoadoutMenu) inLoadoutMenu = false
         }
 
         register<PacketEvent.Sent> {
             if (! inLoadoutMenu) return@register
             if (event.packet !is ServerboundContainerClosePacket) return@register
             inLoadoutMenu = false
-            fcScheduler.cancel()
             pendingAutoClose = false
         }
 
@@ -86,32 +70,30 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
 
         register<ContainerEvent.Keyboard> {
             if (! inLoadoutMenu) return@register
+            if (System.currentTimeMillis() - lastClick < 300) return@register
             if (event.key.equalsOneOf(GLFW.GLFW_KEY_ESCAPE, GLFW.GLFW_KEY_E)) return@register
             val index = if (useHotbarBinds.value) hotbarKeyMap[event.key] ?: return@register
             else keybinds.indexOfFirst(KeybindSetting::isDown).takeUnless { it == - 1 } ?: return@register
             event.isCanceled = true
-            queueKeybind(index)
+            click(index)
         }
 
         register<ContainerEvent.MouseClick> {
             if (! inLoadoutMenu) return@register
+            if (System.currentTimeMillis() - lastClick < 300) return@register
             if (event.button.equalsOneOf(GLFW.GLFW_MOUSE_BUTTON_LEFT, GLFW.GLFW_MOUSE_BUTTON_RIGHT)) return@register
             val index = if (useHotbarBinds.value) hotbarKeyMap[event.button] ?: return@register
             else keybinds.indexOfFirst { it.matches(event.button, mouse = true) }.takeUnless { it == - 1 } ?: return@register
             event.isCanceled = true
-            queueKeybind(index)
+            click(index)
         }
     }
 
-    private fun queueKeybind(index: Int) {
-        if (! isSlotEquipable(slots[index])) return
-        fcScheduler.runOrQueue { if (enabled && inLoadoutMenu) handleKeybind(index) }
-    }
-
-    private fun handleKeybind(index: Int) {
+    private fun click(index: Int) {
         val slot = slots[index].takeIf(::isSlotEquipable) ?: return
         GuiUtils.clickSlot(slot, GuiUtils.ButtonType.LEFT)
 
+        lastClick = System.currentTimeMillis()
         if (closeAfterUse.value) {
             player.closeContainer()
             ThreadUtils.setTimeout(3000) { pendingAutoClose = false }
@@ -120,10 +102,4 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
     }
 
     private fun isSlotEquipable(slot: Int) = player.containerMenu.getSlot(slot).item.lore.any { it.contains("Left-click to equip!") }
-
-    private fun reset() {
-        inLoadoutMenu = false
-        pendingAutoClose = false
-        fcScheduler.cancel()
-    }
 }
