@@ -16,6 +16,7 @@ import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
+import com.github.noamm9.utils.Scheduler
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.hasGlint
 import com.github.noamm9.utils.render.Render2D.drawBorder
@@ -61,7 +62,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
     private val backgroundColor by ColorSetting("Background Color", Color(0, 0, 0, 100)).section("Settings - UI")
     private val borderColor by ColorSetting("Border Color", Color(255, 255, 255))
     private val titleColor by ColorSetting("Title Text Color", Color.WHITE)
-    private val queueColor by ColorSetting("Queue Text Color", Color.CYAN)
+    private val queueColor by ColorSetting("Queue Text Color", Color.CYAN).showIf { NoammAddons.isCheat }
     private val overlayTextColor by ColorSetting("Overlay Text Color", Color.WHITE)
 
     private val solutionColor by ColorSetting("Generic Solution", Color(0, 255, 0, 130)).section("Colors - Terminals").showIf {
@@ -85,8 +86,10 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
     val startwith by ToggleSetting("Start-With", true)
     val redgreen by ToggleSetting("Red-Green", true)
 
+    private val fcScheduler = FCScheduler(TerminalListener.FIRST_CLICK_DELAY)
     val solution = mutableListOf<TerminalClick>()
     private val queue = mutableListOf<TerminalClick>()
+    private var fcScheduled = false
     private var isClicked = false
     private var totalClicks = - 1
     private var clicked = - 1
@@ -247,7 +250,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
                 }
             }
 
-            if (mode.value == 1) event.context.drawCenteredString(
+            if (mode.value == 1 && NoammAddons.isCheat) event.context.drawCenteredString(
                 "Queue: ${queue.size}",
                 offsetX + width / 2,
                 offsetY + height + 5,
@@ -264,8 +267,6 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
             val termType = TerminalListener.currentType ?: return@register
             if (! solverActive(termType)) return@register
             event.isCanceled = true
-
-            if (TerminalListener.checkFcDelay()) return@register
             //#if CHEAT
             if (AutoTerminal.enabled && AutoTerminal.shouldAutoSolve(termType)) return@register
             //#endif
@@ -291,6 +292,12 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
             val slot = slotX + slotY * 9
             if (slot >= windowSize) return@register
 
+            if (termType == TerminalType.MELODY) {
+                if (TerminalListener.checkFcDelay()) return@register
+                if (slot.equalsOneOf(16, 25, 34, 43)) sendClickPacket(slot, 0)
+                return@register
+            }
+
             val click = when (termType) {
                 TerminalType.NUMBERS -> solution.firstOrNull()?.takeIf { it.slotId == slot }
 
@@ -303,11 +310,6 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
                         TerminalClick(slot, if (it > 0) 0 else 1)
                     }
                 }
-
-                TerminalType.MELODY -> {
-                    if (slot.equalsOneOf(16, 25, 34, 43)) sendClickPacket(slot, 0)
-                    return@register
-                }
             }
 
             if (click == null) return@register
@@ -315,7 +317,21 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
 
             predict(click)
 
-            if (mode.value == 0) click(click) else if (isClicked) queue.add(click) else click(click)
+            val execute = {
+                if (mode.value == 0) click(click)
+                else if (isClicked) queue.add(click)
+                else click(click)
+            }
+
+            if (! TerminalListener.checkFcDelay()) execute()
+            else if (mode.value == 0) return@register
+            else {
+                if (fcScheduled) queue.add(click)
+                else {
+                    fcScheduled = true
+                    fcScheduler.runOrQueue { if (TerminalListener.inTerm) execute() }
+                }
+            }
         }
 
         register<MainThreadPacketReceivedEvent.Pre> {
@@ -537,9 +553,14 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
         }
     }
 
-    fun onTerminalOpen() = ::isClicked.set(false)
+    fun onTerminalUpdate() {
+        isClicked = false
+        fcScheduled = false
+        fcScheduler.start()
+    }
 
     fun onTerminalClose() {
+        fcScheduler.cancel()
         queue.clear()
         solution.clear()
         totalClicks = - 1
