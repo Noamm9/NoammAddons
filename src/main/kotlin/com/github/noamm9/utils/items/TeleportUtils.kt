@@ -4,7 +4,6 @@ import com.github.noamm9.features.Shortcuts
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.MathUtils.add
-import com.github.noamm9.utils.PlayerUtils.isSneakingServer
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.items.ItemUtils.customData
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
@@ -51,7 +50,7 @@ object TeleportUtils: Shortcuts {
         if (sbId.equalsOneOf("ASPECT_OF_THE_VOID", "ASPECT_OF_THE_END")) {
             val tuners = nbt.getByte("tuned_transmission").getOrNull()?.toDouble() ?: .0
 
-            return if (player.isSneakingServer && nbt.getByte("ethermerge").orElse(0) == 1.toByte()) {
+            return if (mc.options.keyShift.isDown && nbt.getByte("ethermerge").orElse(0) == 1.toByte()) {
                 Info(57 + tuners, Etherwarp)
             }
             else Info(8 + tuners, InstantTransmission)

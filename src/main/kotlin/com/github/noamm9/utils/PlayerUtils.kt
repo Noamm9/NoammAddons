@@ -37,7 +37,6 @@ import kotlin.math.abs
 import kotlin.math.min
 
 object PlayerUtils: ISelfInit, Shortcuts {
-    val LocalPlayer.isSneakingServer get() = (this as ILocalPlayer).isSneakingServer
     val LocalPlayer.serverYaw get() = (this as ILocalPlayer).serverYaw
     val LocalPlayer.serverPitch get() = (this as ILocalPlayer).serverPitch
 

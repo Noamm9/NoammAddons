@@ -11,7 +11,6 @@ import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.PlayerUtils.isSneakingServer
 import com.github.noamm9.utils.PlayerUtils.serverPitch
 import com.github.noamm9.utils.PlayerUtils.serverYaw
 import com.github.noamm9.utils.items.EtherwarpHelper
@@ -56,7 +55,7 @@ object Etherwarp: Feature("Etherwarp overlay, sound, and left-click activation."
     override fun init() {
         register<RenderWorldEvent> {
             if (! overlay.value) return@register
-            if (! player.isSneakingServer) return@register
+            if (! mc.options.keyShift.isDown) return@register
             val heldItem = player.mainHandItem.takeUnless { it.isEmpty } ?: return@register
             val distance = EtherwarpHelper.getEtherwarpDistance(heldItem) ?: return@register
             val (valid, pos) = EtherwarpHelper.getEtherPos(player.position(), player.lookAngle, distance)
@@ -93,7 +92,7 @@ object Etherwarp: Feature("Etherwarp overlay, sound, and left-click activation."
         register<PacketEvent.Sent> {
             if (! etherwarpSound.value || ! zeroPingSound.value) return@register
             val packet = event.packet as? ServerboundUseItemOnPacket ?: return@register
-            if (! player.isSneakingServer) return@register
+            if (! mc.options.keyShift.isDown) return@register
             if (WorldUtils.getBlockAt(packet.hitResult.blockPos) !in TeleportUtils.TILLABLE_BLOCKS) return@register
             val dist = EtherwarpHelper.getEtherwarpDistance(player.mainHandItem) ?: return@register
             val (succeeded, pos) = EtherwarpHelper.getEtherPos(player.position(), player.lookAngle, dist)
@@ -104,7 +103,7 @@ object Etherwarp: Feature("Etherwarp overlay, sound, and left-click activation."
         register<PacketEvent.Sent> {
             if (! etherwarpSound.value || ! zeroPingSound.value) return@register
             val packet = event.packet as? ServerboundUseItemPacket ?: return@register
-            if (! player.isSneakingServer) return@register
+            if (! mc.options.keyShift.isDown) return@register
             val dist = EtherwarpHelper.getEtherwarpDistance(player.mainHandItem) ?: return@register
             val (succeeded, pos) = EtherwarpHelper.getEtherPos(player.position(), player.lookAngle, dist)
             if (! succeeded || pos == null) return@register
@@ -117,9 +116,9 @@ object Etherwarp: Feature("Etherwarp overlay, sound, and left-click activation."
             if (event.action != GLFW.GLFW_PRESS) return@register
             if (mc.screen != null) return@register
             //#if CHEAT
-            if (! player.isSneakingServer && ! autoSneak.value) return@register
+            if (! mc.options.keyShift.isDown && ! autoSneak.value) return@register
             //#else
-            //$if (! player.isSneakingServer) return@register
+            //$if (! mc.options.keyShift.isDown) return@register
             //#endif
             if (EtherwarpHelper.getEtherwarpDistance(player.mainHandItem) == null) return@register
 
