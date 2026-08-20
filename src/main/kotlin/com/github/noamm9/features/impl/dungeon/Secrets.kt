@@ -23,18 +23,17 @@ import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.world.Render3D.renderBlock
 import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.inventory.MenuType
+import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.ButtonBlock
 import net.minecraft.world.level.block.FaceAttachedHorizontalDirectionalBlock
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.level.block.state.properties.AttachFace
 import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
-import java.util.concurrent.*
+import java.util.concurrent.ConcurrentHashMap
 
 object Secrets: Feature() {
     private val hudDisplay by ToggleSetting("Secret HUD", true).withDescription("Displays the current room's secrets on screen.").section("HUD")
@@ -42,7 +41,8 @@ object Secrets: Feature() {
     //#if CHEAT
     private val closeChest by ToggleSetting("Close Chest").section("Auto").withDescription("Automatically closes the secret chest for you.")
     private val lever by ToggleSetting("Lever").withDescription("Full block Lever hitbox.").section("Secret Hitboxes")
-    @JvmStatic val button by ToggleSetting("Button").withDescription("Full block button hitbox.")
+    @JvmStatic val button by ToggleSetting("Button").withDescription("Expand button hitbox.")
+    val buttonSize by SliderSetting("Button Hitbox Size", 1.0, 6.0 / 16.0, 1.0, 0.01).showIf { button.value }
     @JvmStatic val skull by ToggleSetting("Skulls").withDescription("Full block Skull hitbox.")
     @JvmStatic val mushroom by ToggleSetting("Mushroom").withDescription("Full block Mushroom hitbox.")
     //#endif
@@ -129,20 +129,8 @@ object Secrets: Feature() {
         val face = state.getValue(FaceAttachedHorizontalDirectionalBlock.FACE)
         val direction = state.getValue(FaceAttachedHorizontalDirectionalBlock.FACING)
         val powered = state.getValue(ButtonBlock.POWERED)
-
-        val f2 = (if (powered) 1 else 2) / 16.0
-        return when (face) {
-            AttachFace.CEILING -> Shapes.box(0.0, 1.0 - f2, 0.0, 1.0, 1.0, 1.0)
-            AttachFace.FLOOR -> Shapes.box(0.0, 0.0, 0.0, 1.0, 0.0 + f2, 1.0)
-            else -> when (direction) {
-                Direction.EAST -> Shapes.box(0.0, 0.0, 0.0, f2, 1.0, 1.0)
-                Direction.WEST -> Shapes.box(1.0 - f2, 0.0, 0.0, 1.0, 1.0, 1.0)
-                Direction.SOUTH -> Shapes.box(0.0, 0.0, 0.0, 1.0, 1.0, f2)
-                Direction.NORTH -> Shapes.box(0.0, 0.0, 1.0 - f2, 1.0, 1.0, 1.0)
-                Direction.UP -> Shapes.box(0.0, 0.0, 0.0, 1.0, 0.0 + f2, 1.0)
-                Direction.DOWN -> Shapes.box(0.0, 1.0 - f2, 0.0, 1.0, 1.0, 1.0)
-            }
-        }
+        val base = Block.boxZ(buttonSize.value * 16.0, 16.0 - if (powered) 1 else 2, 16.0)
+        return Shapes.rotateAttachFace(base)[face]?.get(direction)!!
     }
 
     private val blackListedLevers = listOf(
