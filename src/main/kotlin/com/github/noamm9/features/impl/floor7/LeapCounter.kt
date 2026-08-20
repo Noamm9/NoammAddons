@@ -6,6 +6,9 @@ import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.IClientboundMoveEntityPacket
+import com.github.noamm9.ui.clickgui.components.impl.TextInputSetting
+import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.MathUtils.add
@@ -18,12 +21,16 @@ import com.github.noamm9.utils.render.Render3D.renderBoxBounds
 import com.github.noamm9.utils.render.Render3D.renderString
 import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.network.protocol.game.*
+import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.phys.AABB
 import java.awt.Color
 import kotlin.math.min
 
 object LeapCounter: Feature("Shows how many players have leaped you") {
     private var currentSpot: REGION? = null
+    private val alertComplete by ToggleSetting("Alert Complete", true)
+    private val completeText by TextInputSetting("Complete Text", "&aEveryone Leaped!").showIf { alertComplete.value }
+    private val completeSound = createSoundSettings("Complete Sound", SoundEvents.EXPERIENCE_ORB_PICKUP) { alertComplete.value }
 
     override fun init() {
         hudElement("LeapCounter", centered = true) { ctx, e ->
@@ -99,6 +106,11 @@ object LeapCounter: Feature("Shows how many players have leaped you") {
             if (id in leapedIds) return
             if (! check(x, y, z)) return
             leapedIds.add(id)
+
+            if (leapedIds.size == maxCount && alertComplete.value) {
+                ChatUtils.showTitle(completeText.value)
+                completeSound.action.invoke()
+            }
 
             if (leapedIds.size >= maxCount) ThreadUtils.setTimeout(1000) {
                 completed = true
