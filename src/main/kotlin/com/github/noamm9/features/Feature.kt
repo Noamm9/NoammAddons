@@ -7,6 +7,7 @@ import com.github.noamm9.event.EventContext
 import com.github.noamm9.event.EventListener
 import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.features.annotations.AlwaysActive
+import com.github.noamm9.init.RemoteFeatures
 import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.SettingProvider
 import com.github.noamm9.ui.clickgui.enums.CategoryType
@@ -23,6 +24,7 @@ open class Feature(
     val name = name ?: this::class.simpleName.toString().spaceCaps()
     open val category = initCategory()
     @JvmField var enabled = toggled
+    val remotelyDisabled get() = RemoteFeatures.isDisabled(this::class.java.simpleName)
 
     override val configSettings = mutableSetOf<Setting<*>>()
     val listeners = mutableSetOf<EventListener<*>>()
@@ -31,6 +33,11 @@ open class Feature(
 
     fun initialize() {
         init()
+
+        if (remotelyDisabled) {
+            enabled = false
+            return
+        }
 
         if (enabled || alwaysActive) onEnable() else onDisable()
     }
@@ -43,6 +50,8 @@ open class Feature(
     }
 
     open fun toggle() {
+        if (remotelyDisabled) return
+
         enabled = ! enabled
         if (enabled || alwaysActive) onEnable()
         else onDisable()

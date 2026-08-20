@@ -6,6 +6,7 @@ import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.impl.dungeon.ScoreCalculator
+import com.github.noamm9.init.RemoteFeatures
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.formattedText
@@ -39,16 +40,19 @@ object ScoreCalculation: ISelfInit {
     private val dungeonClearedPattern = Regex("Cleared: (?<percentage>\\d+)% \\(\\d+\\)")
     private val timeElapsedPattern = Regex(" Elapsed: (?:(?<hrs>\\d+)h )?(?:(?<min>\\d+)m )?(?:(?<sec>\\d+)s)?")
     private val mimicCharmRegex = Regex("charm you charmed a mimic and captured \\d+ shards from it\\.")
+    private val partyChatRegex = Regex("^party > (?:\\[[^]]+] )?(?<name>\\w+): (?<message>.+)$")
 
     private var bloodDone = false
     private var secretPercentage = 0.0
     private var clearedPercentage = 0
     private var completedRooms = 0
     private var highestScore = 0
+    private val batKillers = mutableSetOf<String>()
 
     var mimicKilled = false
     var princeKilled = false
     var batKilled = false
+    var batsKilled = 0
     var deathCount = 0
     var foundSecrets = 0
     var cryptsCount = 0
@@ -65,6 +69,8 @@ object ScoreCalculation: ISelfInit {
             mimicKilled = false
             princeKilled = false
             batKilled = false
+            batsKilled = 0
+            batKillers.clear()
             deathCount = 0
             foundSecrets = 0
             cryptsCount = 0
@@ -183,9 +189,10 @@ object ScoreCalculation: ISelfInit {
                         }
                     }
 
-                    if (! batKilled) {
-                        if (msg == "a bat has been slain. +1 bonus score") {
-                            batKilled = true
+                    if (msg == "a bat has been slain. +1 bonus score") {
+                        batKilled = true
+                        if (batKillers.add(mc.user.name.lowercase())) {
+                            addBatKill()
 
                             if (DungeonListener.dungeonTeammatesNoSelf.isNotEmpty()) {
                                 WebSocket.send(S2CPacketDungeonBat)
@@ -195,13 +202,24 @@ object ScoreCalculation: ISelfInit {
                                 ChatUtils.sendPartyMessage("Bat Killed")
                             }
                         }
-                        else if (batMessages.any { msg.contains(it) }) {
-                            batKilled = true
-                        }
+                    }
+                    else partyChatRegex.matchEntire(msg)?.let { match ->
+                        val sender = match.groups["name"]?.value ?: return@let
+                        val message = match.groups["message"]?.value ?: return@let
+                        if (sender.equals(mc.user.name, true)) return@let
+                        if (batMessages.none(message::contains)) return@let
+
+                        batKilled = true
+                        if (batKillers.add(sender.lowercase())) addBatKill()
                     }
                 }
             }
         }
+    }
+
+    private fun addBatKill() {
+        val maxBats = RemoteFeatures.getFeature("ScoreCalculator")["maxBats"]?.asInt?.coerceAtLeast(0) ?: 0
+        batsKilled = (batsKilled + 1).coerceAtMost(maxBats)
     }
 
     private fun recalculate() {
@@ -212,7 +230,7 @@ object ScoreCalculation: ISelfInit {
         var bScore = cryptsCount.coerceAtMost(5)
         if (mimicKilled && currentFloorNumber > 5) bScore += 2
         if (princeKilled) bScore += 1
-        if (batKilled) bScore += 1
+        bScore += batsKilled
         if (DungeonUtils.isPaul()) bScore += 10
         val bonusScore = bScore
 
