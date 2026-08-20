@@ -32,8 +32,7 @@ object LeapCounter: Feature("Shows how many players have leaped you") {
     private val completeText by TextInputSetting("Complete Text", "&aEveryone Leaped!").showIf { alertComplete.value }
     private val completeSound = createSoundSettings("Complete Sound", SoundEvents.EXPERIENCE_ORB_PICKUP) { alertComplete.value }
 
-
-  override fun init() {
+    override fun init() {
         hudElement("LeapCounter", centered = true) { ctx, e ->
             val region = if (e) REGION.HEE2_BOX else currentSpot ?: return@hudElement 0f to 0f
             val max = region.maxCount.takeIf { it > 0 } ?: return@hudElement 0f to 0f
@@ -109,9 +108,10 @@ object LeapCounter: Feature("Shows how many players have leaped you") {
             leapedIds.add(id)
 
             if (leapedIds.size == maxCount && alertComplete.value) {
-                completeSound.action.invoke()
                 ChatUtils.showTitle(completeText.value)
+                completeSound.action.invoke()
             }
+
             if (leapedIds.size >= maxCount) ThreadUtils.setTimeout(1000) {
                 completed = true
             }

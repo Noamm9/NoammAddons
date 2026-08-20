@@ -12,32 +12,26 @@ import net.minecraft.world.level.block.state.properties.DoorHingeSide
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf
 
 object DoorFix: Feature("Fixes the door rotations for s3", toggled = true) {
-  var cachedDoorPositions = mutableListOf<BlockPos>()
-  val doorState = Blocks.IRON_DOOR.defaultBlockState()
-    .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.EAST)
-    .setValue(BlockStateProperties.DOUBLE_BLOCK_HALF, DoubleBlockHalf.LOWER)
-    .setValue(BlockStateProperties.DOOR_HINGE, DoorHingeSide.LEFT)
-    .setValue(BlockStateProperties.OPEN, false)
-
-  override fun init() {
-    register<TickEvent.End> {
-      if (LocationUtils.P3Section != 3) return@register
-      val states = getDoorPositions()
-      states.forEach {
-        WorldUtils.setBlockAt(it, doorState)
-      }
+    override fun toggle() = Unit
+    override fun init() {
+        register<TickEvent.End> {
+            if (LocationUtils.P3Section == 3) doorPositions.forEach {
+                if (WorldUtils.getBlockAt(it) != Blocks.AIR) WorldUtils.setBlockAt(it, doorState)
+            }
+        }
     }
-  }
 
-  fun getDoorPositions(): List<BlockPos> {
-    if (cachedDoorPositions.isNotEmpty()) return cachedDoorPositions
-    for (i in 0..6) {
-      if (i != 1) cachedDoorPositions.add(BlockPos(1, 112 + i * 4, 104))
-      if (i < 6) cachedDoorPositions.add(BlockPos(1, 113 + i * 4, 86))
-      cachedDoorPositions.add(BlockPos(1, 112 + i * 4, 68))
+    val doorPositions = buildList {
+        for (i in 0 .. 6) {
+            if (i != 1) add(BlockPos(1, 112 + i * 4, 104))
+            if (i < 6) add(BlockPos(1, 113 + i * 4, 86))
+            add(BlockPos(1, 112 + i * 4, 68))
+        }
     }
-    return cachedDoorPositions
-  }
 
-
+    val doorState = Blocks.IRON_DOOR.defaultBlockState()
+        .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.EAST)
+        .setValue(BlockStateProperties.DOUBLE_BLOCK_HALF, DoubleBlockHalf.LOWER)
+        .setValue(BlockStateProperties.DOOR_HINGE, DoorHingeSide.LEFT)
+        .setValue(BlockStateProperties.OPEN, false)
 }
