@@ -9,7 +9,7 @@ abstract class ConfigHolder<T>(val name: String, val defaultValue: T) {
     var visibility: () -> Boolean = { true }
     var changeListener: ((T) -> Unit)? = null
 
-    open var value: T = defaultValue
+    var value: T = defaultValue
         set(value) {
             field = value
             if (NoammAddons.isLoaded) {
