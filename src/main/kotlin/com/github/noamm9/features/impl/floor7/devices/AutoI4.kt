@@ -91,7 +91,7 @@ object AutoI4: Feature("Fully Automated I4") {
             if (! I4Helper.isOnDev()) return@register
 
             when (timer) {
-                307 if leapSetting.value -> queue(4, true, ::saveLeap)
+                307 if leapSetting.value -> queue(4, false, ::saveLeap)
                 244 if maskSetting.value && ! hasChangedMask -> queue(3, true, PlayerUtils::changeMaskAction)
                 174 if rodSetting.value -> queue(2, true, PlayerUtils::rodSwap)
                 174 if maskSetting.value -> {
@@ -286,7 +286,7 @@ object AutoI4: Feature("Fully Automated I4") {
         if (hasAlerted) return
         hasAlerted = true
         tickTimer.set(- 1)
-        queue(4, true, ::saveLeap)
+        queue(4, false, ::saveLeap)
     }
 
     fun reset() {

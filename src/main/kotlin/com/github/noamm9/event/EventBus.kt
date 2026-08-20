@@ -11,7 +11,7 @@ import java.util.concurrent.*
 
 object EventBus {
     val listeners = ConcurrentHashMap<Class<out Event>, List<EventListener<*>>>()
-    private val exceptionHandler: (Exception, EventListener<*>, Event) -> Unit = { exception, listener, event ->
+    private val exceptionHandler: (Exception, Event) -> Unit = { exception, event ->
         val packageName = Event::class.java.`package`.name
         val eventName = event.javaClass.name.remove("$packageName.impl.")
         var fileName = "Unknown File"
@@ -61,7 +61,7 @@ object EventBus {
             typedListener.callback.invoke(currentContext)
         }
         catch (exception: Exception) {
-            exceptionHandler.invoke(exception, listener, event)
+            exceptionHandler.invoke(exception, event)
         }
 
         return event.isCanceled

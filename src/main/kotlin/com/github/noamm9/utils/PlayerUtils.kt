@@ -213,38 +213,30 @@ object PlayerUtils: ISelfInit, Shortcuts {
     override fun init() {
         register<ContainerFullyOpenedEvent> {
             when (event.title.unformattedText.lowercase().trim()) {
-                "stats & equipment" -> {
-                    if (awaiting4EQ.isEmpty()) return@register
-
-                    ThreadUtils.scheduledTask(7) {
-                        val con = player.containerMenu.slots
-                        val item = con.filter { it.index in con.size - 36 until con.size }.find { slot ->
-                            awaiting4EQ.any(slot.item.skyblockId::contains)
-                        } ?: run {
-                            player.closeContainer()
-                            return@scheduledTask modMessage("&cCould not find any of the items. ${awaiting4EQ.joinToString(", ")}")
-                        }
-
-                        GuiUtils.clickSlot(item.index, GuiUtils.ButtonType.LEFT)
-                        awaiting4EQ = emptyList()
+                "stats & equipment" if awaiting4EQ.isNotEmpty() -> Scheduler.schedule(7) {
+                    val con = player.containerMenu.slots
+                    val item = con.filter { it.index in con.size - 36 until con.size }.find { slot ->
+                        awaiting4EQ.any(slot.item.skyblockId::contains)
+                    } ?: run {
                         player.closeContainer()
+                        return@schedule modMessage("&cCould not find any of the items. ${awaiting4EQ.joinToString(", ")}")
                     }
+
+                    GuiUtils.clickSlot(item.index, GuiUtils.ButtonType.LEFT)
+                    awaiting4EQ = emptyList()
+                    player.closeContainer()
                 }
 
-                "spirit leap" -> {
-                    if (awaitingLeap == null) return@register
+                "spirit leap" if awaitingLeap != null -> Scheduler.schedule(2) {
+                    val leapTarget = awaitingLeap ?: return@schedule
 
-                    ThreadUtils.scheduledTask(2) {
-                        val leapTarget = awaitingLeap ?: return@scheduledTask
-
-                        LeapMenu.updateLeapMenu()
-                        LeapMenu.players.find { it?.player?.name == leapTarget.name }?.let { target ->
-                            modMessage("Leaping To: &e[${leapTarget.clazz.name[0]}] &a${leapTarget.name}")
-                            GuiUtils.clickSlot(target.slotIndex, GuiUtils.ButtonType.LEFT)
-                        }
-                        player.closeContainer()
-                        awaitingLeap = null
+                    LeapMenu.updateLeapMenu()
+                    LeapMenu.players.find { it?.player?.name == leapTarget.name }?.let { target ->
+                        modMessage("Leaping To: &e[${leapTarget.clazz.name[0]}] &a${leapTarget.name}")
+                        GuiUtils.clickSlot(target.slotIndex, GuiUtils.ButtonType.LEFT)
                     }
+                    player.closeContainer()
+                    awaitingLeap = null
                 }
             }
         }
