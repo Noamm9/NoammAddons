@@ -1,50 +1,27 @@
 package com.github.noamm9.ui.clickgui.components.impl
 
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.config.Savable
+import com.github.noamm9.config.types.SoundConfig
 import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.ui.utils.TextInputHandler
-import com.github.noamm9.utils.SoundUtils
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.jsonPrimitive
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.client.input.MouseButtonInfo
-import net.minecraft.core.Holder
-import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.resources.Identifier
 import net.minecraft.sounds.SoundEvent
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
 import kotlin.math.max
 
-class SoundSetting(name: String, defaultValue: SoundEvent): Setting<SoundEvent>(name, defaultValue), Savable {
-    constructor(name: String, value: Holder.Reference<SoundEvent>): this(name, value.value())
+class SoundSetting(config: SoundConfig): Setting<SoundEvent>(config) {
+    private inline val cfg get() = config as SoundConfig
 
-    private companion object {
-        private val prettyNames = SoundUtils.REVERSE_MAP
-
-        private val allSounds by lazy {
-            BuiltInRegistries.SOUND_EVENT.entrySet()
-                .filter { it.key.identifier() in prettyNames.keys }
-                .map { it.value }
-                .sortedBy { prettyNames[it.location] }
-        }
-
-        private fun getSound(loc: Identifier): Holder.Reference<SoundEvent>? {
-            return BuiltInRegistries.SOUND_EVENT.get(loc).orElse(null)
-        }
-    }
-
-    private var filteredSounds = allSounds
+    private var filteredSounds = SoundConfig.allSounds
     private var searchQuery = ""
 
     private val searchHandler = TextInputHandler(
@@ -76,7 +53,7 @@ class SoundSetting(name: String, defaultValue: SoundEvent): Setting<SoundEvent>(
         Style.drawHoverBar(ctx, x, y, 20f, hoverAnim.value)
         Style.drawNudgedText(ctx, name, x + 8f, y + 6f, hoverAnim.value)
 
-        val valStr = "§7${prettyNames[value.location]}"
+        val valStr = "§7${cfg.prettyName(value)}"
 
         ctx.drawString(valStr, x + width - mc.font.width(valStr) - 8f, y + 6f, scale = 1f)
 
@@ -124,7 +101,7 @@ class SoundSetting(name: String, defaultValue: SoundEvent): Setting<SoundEvent>(
                     if (isEntryHovered) ctx.drawRect(x + 4f, entryY, width - 8f, entryHeight.toFloat(), Color(255, 255, 255, 20))
                     val textColor = if (isSelected) Style.accentColor else if (isEntryHovered) Color.WHITE else Color.GRAY
 
-                    ctx.drawString(prettyNames[sound.location] !!, x + 12f, entryY + 3f, textColor)
+                    ctx.drawString(cfg.prettyName(sound) !!, x + 12f, entryY + 3f, textColor)
                 }
                 entryY += entryHeight
             }
@@ -160,7 +137,7 @@ class SoundSetting(name: String, defaultValue: SoundEvent): Setting<SoundEvent>(
                 if (index in filteredSounds.indices) {
                     val sound = filteredSounds[index]
                     if (button == 0) {
-                        value = getSound(sound.location()) !!.value()
+                        value = SoundConfig.getSound(sound.location()) !!.value()
                         Style.playClickSound(1f)
                         expanded = false
                     }
@@ -202,20 +179,12 @@ class SoundSetting(name: String, defaultValue: SoundEvent): Setting<SoundEvent>(
     }
 
     private fun updateFilter() {
-        filteredSounds = if (searchQuery.isBlank()) allSounds
-        else allSounds.filter { prettyNames[it.location()] !!.contains(searchQuery, ignoreCase = true) }
+        filteredSounds = if (searchQuery.isBlank()) SoundConfig.allSounds
+        else SoundConfig.allSounds.filter { cfg.prettyName(it) !!.contains(searchQuery, ignoreCase = true) }
         scrollOffset = 0f
     }
 
     private fun isMouseOver(mx: Double, my: Double): Boolean {
         return mx >= x && mx <= x + width && my >= y && my <= y + height
-    }
-
-    override fun write() = JsonPrimitive(value.location().toString())
-    override fun read(element: JsonElement?) {
-        val str = element?.jsonPrimitive?.contentOrNull ?: return
-        val loc = Identifier.tryParse(str) ?: return
-        val sound = getSound(loc) ?: return
-        value = sound.value()
     }
 }

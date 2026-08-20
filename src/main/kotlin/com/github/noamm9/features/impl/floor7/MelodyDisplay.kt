@@ -4,9 +4,9 @@ import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.TextInputSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.NumberConfig
+import com.github.noamm9.config.types.StringConfig
+import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.containsOneOf
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
@@ -15,9 +15,9 @@ import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.sounds.SoundEvents
 
 object MelodyDisplay: Feature("Displays the current progress someone for melody on screen.") {
-    private val melodyFormat by TextInputSetting("Format", "{name} has {progress} melody").withDescription("replaces {name}, {class} & {progress} with the player name, dungeon class and melody progress. &bSupports code codes")
-    private val alertDuration by SliderSetting("Alert Duration", 2.5f, 0f, 5f, 0.1f)
-    private val soundEnabled by ToggleSetting("Play sound", true).withDescription("Should it play a sound when someone gets melody?")
+    private val melodyFormat by StringConfig("Format", "{name} has {progress} melody").withDescription("replaces {name}, {class} & {progress} with the player name, dungeon class and melody progress. &bSupports code codes")
+    private val alertDuration by NumberConfig("Alert Duration", 2.5f, 0f, 5f, 0.1f)
+    private val soundEnabled by BooleanConfig("Play sound", true).withDescription("Should it play a sound when someone gets melody?")
     private val sound = createSoundSettings("Sound", SoundEvents.EXPERIENCE_ORB_PICKUP) { soundEnabled.value }
 
     private data class MelodyState(val name: String, val clazz: String, val progress: Int, val timestamp: Long)

@@ -2,8 +2,8 @@ package com.github.noamm9.features.impl.dungeon.solvers
 
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.ColorConfig
+import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils
@@ -27,14 +27,14 @@ import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.level.block.Blocks
 
 object LividSolver: Feature() {
-    private val showHp by ToggleSetting("Show HP", true)
-    private val tracer by ToggleSetting("Tracer", true)
-    private val hideWrong by ToggleSetting("Hide Wrong")
-    private val invulnerabilityTimer by ToggleSetting("Invulnerability Timer")
-    private val iceSprayTitle by ToggleSetting("Ice Spray Title", true).showIf { invulnerabilityTimer.value }
-    private val iceSpraySound by ToggleSetting("Ice Spray Sound", true).showIf { invulnerabilityTimer.value }
-    private val highlightColor by ColorSetting("Highlight Color", favoriteColor, false).section("Colors")
-    private val tracerColor by ColorSetting("Tracer Color", favoriteColor, false).showIf { tracer.value }
+    private val showHp by BooleanConfig("Show HP", true)
+    private val tracer by BooleanConfig("Tracer", true)
+    private val hideWrong by BooleanConfig("Hide Wrong")
+    private val invulnerabilityTimer by BooleanConfig("Invulnerability Timer")
+    private val iceSprayTitle by BooleanConfig("Ice Spray Title", true).showIf { invulnerabilityTimer.value }
+    private val iceSpraySound by BooleanConfig("Ice Spray Sound", true).showIf { invulnerabilityTimer.value }
+    private val highlightColor by ColorConfig("Highlight Color", favoriteColor, false).section("Colors")
+    private val tracerColor by ColorConfig("Tracer Color", favoriteColor, false).showIf { tracer.value }
 
     private val lividMap = mapOf(
         Blocks.GREEN_WOOL to "Frog Livid",

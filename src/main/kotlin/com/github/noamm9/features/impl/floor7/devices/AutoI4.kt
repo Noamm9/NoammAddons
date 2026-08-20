@@ -10,9 +10,9 @@ import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.MelodyDisplay
 import com.github.noamm9.features.impl.floor7.devices.I4Helper.getPredictionTarget
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.ChoiceConfig
+import com.github.noamm9.config.types.NumberConfig
+import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.ui.utils.Animation.Companion.easeInOutCubic
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ActionUtils.queue
@@ -41,15 +41,15 @@ import kotlin.math.abs
 import kotlin.math.min
 
 object AutoI4: Feature("Fully Automated I4") {
-    private val rotationTime by SliderSetting<Long>("Rotation Time", 170, 0, 250, 1).withDescription("Time (ms) to interpolate rotations when aiming at dev block targets. &eSet to 0 to disable the auto rotation.")
-    private val predictSetting by ToggleSetting("Predictions", true).withDescription("Enables prediction logic to aim at the next target block.")
+    private val rotationTime by NumberConfig<Long>("Rotation Time", 170, 0, 250, 1).withDescription("Time (ms) to interpolate rotations when aiming at dev block targets. &eSet to 0 to disable the auto rotation.")
+    private val predictSetting by BooleanConfig("Predictions", true).withDescription("Enables prediction logic to aim at the next target block.")
 
-    private val rodSetting by ToggleSetting("Auto Rod", true)
-    private val maskSetting by ToggleSetting("Auto Mask", true)
-    private val leapSetting by ToggleSetting("Auto Leap", true)
-    private val leapToMelody by ToggleSetting("Leap To Melody").showIf { leapSetting.value }
+    private val rodSetting by BooleanConfig("Auto Rod", true)
+    private val maskSetting by BooleanConfig("Auto Mask", true)
+    private val leapSetting by BooleanConfig("Auto Leap", true)
+    private val leapToMelody by BooleanConfig("Leap To Melody").showIf { leapSetting.value }
     private val leapPriorities = listOf(DungeonClass.Tank, DungeonClass.Mage, DungeonClass.Healer, DungeonClass.Archer)
-    private val preferredLeapClass by DropdownSetting("Leap Priority", 0, leapPriorities.map { it.name }).showIf { leapSetting.value }
+    private val preferredLeapClass by ChoiceConfig("Leap Priority", 0, leapPriorities.map { it.name }).showIf { leapSetting.value }
 
     private const val STORM_DEATH_MESSAGE = "[BOSS] Storm: I should have known that I stood no chance."
 

@@ -3,7 +3,7 @@ package com.github.noamm9.features.impl.dungeon
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ThreadUtils
@@ -19,9 +19,9 @@ import net.minecraft.sounds.SoundEvents
 import kotlin.math.roundToInt
 
 object Ragnarock: Feature("Ragnarock alerts") {
-    private val alertCancelled by ToggleSetting("Alert Cancelled", true)
-    private val strengthGainedMessage by ToggleSetting("Strength Gained", true)
-    private val m7Alert by ToggleSetting("M7 Dragon Alert")
+    private val alertCancelled by BooleanConfig("Alert Cancelled", true)
+    private val strengthGainedMessage by BooleanConfig("Strength Gained", true)
+    private val m7Alert by BooleanConfig("M7 Dragon Alert")
 
     private const val m7RagMessage = "[BOSS] Wither King: I no longer wish to fight, but I know that will not stop you."
     private val cancelRegex = Regex("Ragnarock was cancelled due to (?:being hit|taking damage)!")

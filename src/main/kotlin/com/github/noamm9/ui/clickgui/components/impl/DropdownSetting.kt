@@ -1,24 +1,23 @@
 package com.github.noamm9.ui.clickgui.components.impl
 
-import com.github.noamm9.config.Savable
+import com.github.noamm9.config.types.ChoiceConfig
 import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.intOrNull
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
-class DropdownSetting(name: String, value: Int = 0, val options: List<String>): Setting<Int>(name, value), Savable {
+class DropdownSetting(config: ChoiceConfig): Setting<Int>(config) {
+    private inline val cfg get() = config as ChoiceConfig
+
     private var expanded = false
     private val openAnim = Animation(250)
     private val hoverAnim = Animation(200)
 
-    override val height get() = 20 + (openAnim.value * (options.size * 16)).toInt()
+    override val height get() = 20 + (openAnim.value * (cfg.options.size * 16)).toInt()
 
     override fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
         val isHovered = mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + 20
@@ -29,15 +28,15 @@ class DropdownSetting(name: String, value: Int = 0, val options: List<String>): 
         Style.drawHoverBar(ctx, x, y, 20f, hoverAnim.value)
         Style.drawNudgedText(ctx, name, x + 8f, y + 6f, hoverAnim.value)
 
-        val valStr = "§7${options[value]}"
+        val valStr = "§7${cfg.options[value]}"
         ctx.drawString(valStr, x + width - valStr.width() - 8f, y + 6f, scale = 1f)
 
         ctx.enableScissor(x, y, x + width, y + height)
 
         if (expanded) {
             var oy = y + 20f
-            ctx.drawRect(x + 4f, oy, width - 8f, (options.size * 16) * openAnim.value, Color(5, 5, 5, 150))
-            options.forEachIndexed { index, opt ->
+            ctx.drawRect(x + 4f, oy, width - 8f, (cfg.options.size * 16) * openAnim.value, Color(5, 5, 5, 150))
+            cfg.options.forEachIndexed { index, opt ->
                 val hov = mouseX >= x + 4 && mouseX <= x + width - 4 && mouseY >= oy && mouseY <= oy + 16
                 if (hov) ctx.drawRect(x + 4f, oy, width - 8f, 16f, Color(255, 255, 255, 20))
                 if (index == value) ctx.drawRect(x + 4f, oy + 2f, 1.5f, 12f, Style.accentColor)
@@ -62,7 +61,7 @@ class DropdownSetting(name: String, value: Int = 0, val options: List<String>): 
 
         if (expanded && mouseX >= x && mouseX <= x + width && mouseY >= y + 20 && mouseY <= y + height) {
             var optionY = y + 20
-            options.forEachIndexed { index, option ->
+            cfg.options.forEachIndexed { index, _ ->
                 if (mouseX >= x && mouseX <= x + width && mouseY >= optionY && mouseY <= optionY + 16) {
                     value = index
                     Style.playClickSound(1f)
@@ -75,12 +74,5 @@ class DropdownSetting(name: String, value: Int = 0, val options: List<String>): 
 
         if (expanded) expanded = false
         return false
-    }
-
-    override fun write() = JsonPrimitive(value)
-    override fun read(element: JsonElement?) {
-        (element as? JsonPrimitive)?.intOrNull?.let {
-            value = it.coerceIn(0, options.lastIndex)
-        }
     }
 }

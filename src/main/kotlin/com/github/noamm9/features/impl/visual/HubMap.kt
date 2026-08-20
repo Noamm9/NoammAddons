@@ -3,9 +3,9 @@ package com.github.noamm9.features.impl.visual
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.impl.GameStartEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ButtonSetting
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.TextInputSetting
+import com.github.noamm9.config.types.ActionConfig
+import com.github.noamm9.config.types.ChoiceConfig
+import com.github.noamm9.config.types.StringConfig
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.GifDecoder
 import com.github.noamm9.utils.catch
@@ -43,10 +43,10 @@ import kotlin.math.roundToInt
  * Mem leaking of Shrek movie GIF was not fun xd
  */
 object HubMap: Feature("Replaces the SkyBlock Hub world map with a custom image.") {
-    private val image by DropdownSetting("Image", 0, listOf("Default", "URL"))
-    private val fitMode by DropdownSetting("Image Fit Mode", 0, listOf("Crop", "Fit"))
-    private val imageUrl by TextInputSetting("Image URL", "").withDescription("Direct link to an image/gif. Preferred resolution: ${COLUMNS * TILE_SIZE}x${ROWS * TILE_SIZE} (${COLUMNS}:${ROWS} aspect ratio).").showIf { image.value == 1 }
-    private val reloadImage by ButtonSetting("Reload Image") { reload(force = true) }
+    private val image by ChoiceConfig("Image", 0, listOf("Default", "URL"))
+    private val fitMode by ChoiceConfig("Image Fit Mode", 0, listOf("Crop", "Fit"))
+    private val imageUrl by StringConfig("Image URL", "").withDescription("Direct link to an image/gif. Preferred resolution: ${COLUMNS * TILE_SIZE}x${ROWS * TILE_SIZE} (${COLUMNS}:${ROWS} aspect ratio).").showIf { image.value == 1 }
+    private val reloadImage by ActionConfig("Reload Image") { reload(force = true) }
 
     private val cacheDir by lazy { FabricLoader.getInstance().configDir.resolve(NoammAddons.MOD_NAME).resolve("hub-map") }
     private val locations = Array(TILE_COUNT) { Identifier.fromNamespaceAndPath(NoammAddons.MOD_ID, "hub_map/$it") }

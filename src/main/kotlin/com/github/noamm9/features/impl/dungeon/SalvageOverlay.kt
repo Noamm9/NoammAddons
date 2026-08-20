@@ -2,7 +2,7 @@ package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
+import com.github.noamm9.config.types.ColorConfig
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.items.ItemUtils.customData
@@ -12,8 +12,8 @@ import java.awt.Color
 import kotlin.jvm.optionals.getOrNull
 
 object SalvageOverlay: Feature("Highlights salvageable dungeon gear.") {
-    private val under50 by ColorSetting("Highlight Color", Color.cyan.withAlpha(160))
-    private val base50 by ColorSetting("50% stats Color", Color.RED.withAlpha(160))
+    private val under50 by ColorConfig("Highlight Color", Color.cyan.withAlpha(160))
+    private val base50 by ColorConfig("50% stats Color", Color.RED.withAlpha(160))
 
     override fun init() {
         register<ContainerEvent.Render.Slot.Pre> {

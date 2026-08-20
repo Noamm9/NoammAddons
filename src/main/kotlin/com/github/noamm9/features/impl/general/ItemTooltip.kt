@@ -5,8 +5,8 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlay
 import com.github.noamm9.init.NetworkLoop
 import com.github.noamm9.mixin.IAbstractContainerScreen
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.NumberConfig
+import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.NumbersUtils.formatComma
 import com.github.noamm9.utils.items.ItemUtils.customData
 import com.github.noamm9.utils.items.ItemUtils.marketId
@@ -22,14 +22,14 @@ import kotlin.jvm.optionals.getOrDefault
 import kotlin.jvm.optionals.getOrNull
 
 object ItemTooltip: Feature("Adds item information and controls to item tooltips") {
-    private val showPrices by ToggleSetting("Item Prices").section("Item Information").withDescription("Shows Bazaar and Lowest BIN prices")
-    private val showNpcSellPrice by ToggleSetting("NPC Sell Price").withDescription("Shows the price an item sells for to NPCs").showIf { showPrices.value }
-    private val showItemQuality by ToggleSetting("Item Quality").withDescription("Shows the base stats boost of dungeon items and their floor")
+    private val showPrices by BooleanConfig("Item Prices").section("Item Information").withDescription("Shows Bazaar and Lowest BIN prices")
+    private val showNpcSellPrice by BooleanConfig("NPC Sell Price").withDescription("Shows the price an item sells for to NPCs").showIf { showPrices.value }
+    private val showItemQuality by BooleanConfig("Item Quality").withDescription("Shows the base stats boost of dungeon items and their floor")
 
-    private val scrollableTooltips by ToggleSetting("Scrollable Tooltips").section("Scrollable Tooltips").withDescription("Allows item tooltips to be moved and scaled with the scroll wheel")
-    @JvmStatic val tooltipScale by SliderSetting("Tooltip Scale", 100, 30, 150, 0.1).withDescription("The size of the tooltip").showIf { scrollableTooltips.value }
-    private val scrollSpeed by SliderSetting("Scroll Speed", 3, 1, 10, 1).withDescription("How fast the tooltip scrolls").showIf { scrollableTooltips.value }
-    private val scaleSpeed by SliderSetting("Scale Speed", 3, 1, 10, 1).withDescription("How fast the tooltip scales").showIf { scrollableTooltips.value }
+    private val scrollableTooltips by BooleanConfig("Scrollable Tooltips").section("Scrollable Tooltips").withDescription("Allows item tooltips to be moved and scaled with the scroll wheel")
+    @JvmStatic val tooltipScale by NumberConfig("Tooltip Scale", 100, 30, 150, 0.1).withDescription("The size of the tooltip").showIf { scrollableTooltips.value }
+    private val scrollSpeed by NumberConfig("Scroll Speed", 3, 1, 10, 1).withDescription("How fast the tooltip scrolls").showIf { scrollableTooltips.value }
+    private val scaleSpeed by NumberConfig("Scale Speed", 3, 1, 10, 1).withDescription("How fast the tooltip scales").showIf { scrollableTooltips.value }
 
     @JvmField var scrollAmountX = 0f
     @JvmField var scrollAmountY = 0f

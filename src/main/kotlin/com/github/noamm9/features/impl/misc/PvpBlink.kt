@@ -6,9 +6,9 @@ import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
+import com.github.noamm9.config.types.ChoiceConfig
+import com.github.noamm9.config.types.KeybindConfig
+import com.github.noamm9.config.types.NumberConfig
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.Render3D.renderBox
 import net.minecraft.network.protocol.Packet
@@ -20,9 +20,9 @@ import java.awt.Color
 import java.util.concurrent.*
 
 object PvpBlink: Feature("Desyncs your connection to eat knockback or spoof position.") {
-    private val mode by DropdownSetting("Mode", 0, listOf("Manual", "Auto", "Pulse")).withDescription("Manual: Hold key. Auto: On Velocity. Pulse: Every 0.3s.")
-    private val blinkDuration by SliderSetting("Blink Duration", 300.0, 50.0, 1000.0, 50.0).withDescription("How long to desync (ms).")
-    private val key by KeybindSetting("Blink Key", GLFW.GLFW_KEY_P).hideIf { mode.value == 1 }
+    private val mode by ChoiceConfig("Mode", 0, listOf("Manual", "Auto", "Pulse")).withDescription("Manual: Hold key. Auto: On Velocity. Pulse: Every 0.3s.")
+    private val blinkDuration by NumberConfig("Blink Duration", 300.0, 50.0, 1000.0, 50.0).withDescription("How long to desync (ms).")
+    private val key by KeybindConfig("Blink Key", GLFW.GLFW_KEY_P).hideIf { mode.value == 1 }
 
     private var isBlinking = false
     private var isFlushing = false

@@ -1,15 +1,14 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.config.types.BooleanConfig
+import com.github.noamm9.config.types.ColorConfig
+import com.github.noamm9.config.types.NumberConfig
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.mcColor
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
-import com.github.noamm9.utils.NumbersUtils.times
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils.inSkyblock
 import com.github.noamm9.utils.remove
@@ -22,16 +21,16 @@ import java.awt.Color
 import java.util.regex.*
 
 object EnchantColors: Feature("Changes the color of enchantments in items lore.") {
-    private val showNumbers by ToggleSetting("Levels as Numbers").withDescription("Show levels as numbers instead of roman numerals")
-    private val boldMaxLevel by ToggleSetting("Bold Max Level", true).withDescription("Make max level bold")
-    private val rainbowMaxLevel by ToggleSetting("Rainbow Max Level").withDescription("Animate max level enchants with a rainbow effect")
-    private val rainbowSpeed by SliderSetting("Rainbow Speed", 1.0, 0.1, 3, 0.1).showIf { rainbowMaxLevel.value }
-    private val rainbowSaturation by SliderSetting("Rainbow Saturation", 1.0, 0.0, 1.0, 0.05).showIf { rainbowMaxLevel.value }
+    private val showNumbers by BooleanConfig("Levels as Numbers").withDescription("Show levels as numbers instead of roman numerals")
+    private val boldMaxLevel by BooleanConfig("Bold Max Level", true).withDescription("Make max level bold")
+    private val rainbowMaxLevel by BooleanConfig("Rainbow Max Level").withDescription("Animate max level enchants with a rainbow effect")
+    private val rainbowSpeed by NumberConfig("Rainbow Speed", 1.0, 0.1, 3.0, 0.1).showIf { rainbowMaxLevel.value }
+    private val rainbowSaturation by NumberConfig("Rainbow Saturation", 1.0, 0.0, 1.0, 0.05).showIf { rainbowMaxLevel.value }
 
-    private val maxLevelColor by ColorSetting("Max Level Color", Color(255, 170, 0), false).hideIf { rainbowMaxLevel.value }.section("Colors")
-    private val highLevelColor by ColorSetting("High Level Color", Color(255, 170, 0), false)
-    private val normalLevelColor by ColorSetting("Normal Level Color", Color(0, 170, 170), false)
-    private val badLevelColor by ColorSetting("Bad Level Color", Color(170, 170, 170), false)
+    private val maxLevelColor by ColorConfig("Max Level Color", Color(255, 170, 0), false).hideIf { rainbowMaxLevel.value }.section("Colors")
+    private val highLevelColor by ColorConfig("High Level Color", Color(255, 170, 0), false)
+    private val normalLevelColor by ColorConfig("Normal Level Color", Color(0, 170, 170), false)
+    private val badLevelColor by ColorConfig("Bad Level Color", Color(170, 170, 170), false)
 
     private val ENCHANTMENT_PATTERN = Pattern.compile("(?<enchant>[A-Za-z][A-Za-z '\\-]+?) (?<level>[IVXLCDM]+|\\d+)(?=,\\s*|\\)|$| [\\d,]+$)")
 

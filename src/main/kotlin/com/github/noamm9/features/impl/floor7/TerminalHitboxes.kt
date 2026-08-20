@@ -4,9 +4,9 @@ import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.ColorConfig
+import com.github.noamm9.config.types.ChoiceConfig
+import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.Utils
@@ -18,10 +18,10 @@ import net.minecraft.world.entity.decoration.ArmorStand
 import java.awt.Color
 
 object TerminalHitboxes: Feature("Highlights the interactable hitboxes of the terminals in F7/M7") {
-    private val mode by DropdownSetting("Mode", 1, listOf("Outline", "Fill", "Filled Outline"))
-    private val phase by ToggleSetting("Phase", false)
-    private val fillColor by ColorSetting("Fill Color", Color.orange).hideIf { mode.value == 0 }
-    private val outlineColor by ColorSetting("Outline Color", Utils.favoriteColor).hideIf { mode.value == 1 }
+    private val mode by ChoiceConfig("Mode", 1, listOf("Outline", "Fill", "Filled Outline"))
+    private val phase by BooleanConfig("Phase", false)
+    private val fillColor by ColorConfig("Fill Color", Color.orange).hideIf { mode.value == 0 }
+    private val outlineColor by ColorConfig("Outline Color", Utils.favoriteColor).hideIf { mode.value == 1 }
 
     private val terminalPositions = listOf(
         listOf(vec(110, 113, 73), vec(110, 119, 79), vec(90, 112, 92), vec(90, 122, 101)),

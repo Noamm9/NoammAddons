@@ -5,9 +5,9 @@ import com.github.noamm9.NoammAddons.MOD_VERSION
 import com.github.noamm9.NoammAddons.logger
 import com.github.noamm9.event.impl.GameStartEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ButtonSetting
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.ActionConfig
+import com.github.noamm9.config.types.BooleanConfig
+import com.github.noamm9.config.types.ChoiceConfig
 import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.network.WebUtils
@@ -22,10 +22,10 @@ object UpdateChecker: Feature(
     "Checks GitHub for new releases or Action builds of the mod.\n&c&lDOES NOT AUTO UPDATE",
     toggled = true,
 ) {
-    val checkOnStartup by ToggleSetting("Check On Startup", true).withDescription("Automatically checks for updates a few seconds after the game starts.")
-    val source by DropdownSetting("Update Source", 0, listOf("Releases", "Action Builds")).withDescription("Releases checks the latest published GitHub release. Action Builds checks the latest successful CI build.")
-    val check by ButtonSetting("Check For Updates") { ThreadUtils.async { runCheck(true) } }.withDescription("Manually checks using the source selected above.")
-    val openPage by ButtonSetting("Open Latest Build/Release") { openPage() }.withDescription("Opens the latest release or Actions run page in your browser.")
+    val checkOnStartup by BooleanConfig("Check On Startup", true).withDescription("Automatically checks for updates a few seconds after the game starts.")
+    val source by ChoiceConfig("Update Source", 0, listOf("Releases", "Action Builds")).withDescription("Releases checks the latest published GitHub release. Action Builds checks the latest successful CI build.")
+    val check by ActionConfig("Check For Updates") { ThreadUtils.async { runCheck(true) } }.withDescription("Manually checks using the source selected above.")
+    val openPage by ActionConfig("Open Latest Build/Release") { openPage() }.withDescription("Opens the latest release or Actions run page in your browser.")
 
     private const val RELEASE_URL = "https://api.noamm.org/na/data/release"
     private const val ACTION_URL = "https://api.noamm.org/na/data/action"

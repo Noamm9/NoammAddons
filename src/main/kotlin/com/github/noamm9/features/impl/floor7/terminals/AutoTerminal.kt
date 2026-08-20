@@ -5,9 +5,9 @@ package com.github.noamm9.features.impl.floor7.terminals
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.terminals.TerminalListener.FIRST_CLICK_DELAY
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.ChoiceConfig
+import com.github.noamm9.config.types.NumberConfig
+import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.Scheduler
@@ -15,24 +15,24 @@ import com.github.noamm9.utils.ThreadUtils
 import net.minecraft.world.inventory.ContainerInput
 
 object AutoTerminal: Feature("Automatically clicks terminals for you.") {
-    private val randomDelay by ToggleSetting("Random Delay", true).withDescription("Normal distributed by min and max").section("Settings")
-    private val autoDelay by SliderSetting("Click Delay", 150.0, 0.0, 500.0, 10.0).withDescription("Fixed delay between clicks in milliseconds.").hideIf { randomDelay.value }
-    private val minRandomDelay by SliderSetting("Min Random Delay", 50.0, 0.0, 500.0, 10.0).withDescription("The minimum possible delay").showIf { randomDelay.value }
-    private val maxRandomDelay by SliderSetting("Max Random Delay", 150.0, 0.0, 500.0, 10.0).withDescription("The maximum possible delay").showIf { randomDelay.value }
-    private val clickOrder by DropdownSetting("Click Order", 2, listOf("None", "Random", "Human", "Skizo")).withDescription("Human: Logic pathing. Skizo: Chaotic/Furthest.")
-    val invwalk by ToggleSetting("Fake InvWalk").withDescription("Draws the Term name and progress on screen rather then the solution")
+    private val randomDelay by BooleanConfig("Random Delay", true).withDescription("Normal distributed by min and max").section("Settings")
+    private val autoDelay by NumberConfig("Click Delay", 150.0, 0.0, 500.0, 10.0).withDescription("Fixed delay between clicks in milliseconds.").hideIf { randomDelay.value }
+    private val minRandomDelay by NumberConfig("Min Random Delay", 50.0, 0.0, 500.0, 10.0).withDescription("The minimum possible delay").showIf { randomDelay.value }
+    private val maxRandomDelay by NumberConfig("Max Random Delay", 150.0, 0.0, 500.0, 10.0).withDescription("The maximum possible delay").showIf { randomDelay.value }
+    private val clickOrder by ChoiceConfig("Click Order", 2, listOf("None", "Random", "Human", "Skizo")).withDescription("Human: Logic pathing. Skizo: Chaotic/Furthest.")
+    val invwalk by BooleanConfig("Fake InvWalk").withDescription("Draws the Term name and progress on screen rather then the solution")
 
-    private val autoMelody by ToggleSetting("Melody", true).section("Melody-AutoTerm")
-    private val melodyFcDelay by ToggleSetting("First Click Delay", true).showIf { autoMelody.value }
-    private val melodySkip by ToggleSetting("Melody Skip").showIf { autoMelody.value }
-    private val melodySkipMode by DropdownSetting("Skip Mode", 0, listOf("Edges", "All")).showIf { autoMelody.value && melodySkip.value }
-    private val melodySkipFirstRow by ToggleSetting("&cSkip First Row").showIf { autoMelody.value && melodySkip.value }
+    private val autoMelody by BooleanConfig("Melody", true).section("Melody-AutoTerm")
+    private val melodyFcDelay by BooleanConfig("First Click Delay", true).showIf { autoMelody.value }
+    private val melodySkip by BooleanConfig("Melody Skip").showIf { autoMelody.value }
+    private val melodySkipMode by ChoiceConfig("Skip Mode", 0, listOf("Edges", "All")).showIf { autoMelody.value && melodySkip.value }
+    private val melodySkipFirstRow by BooleanConfig("&cSkip First Row").showIf { autoMelody.value && melodySkip.value }
 
-    private val autoNumbers by ToggleSetting("Numbers", true).section("Terminals")
-    private val autoColors by ToggleSetting("Colors", true)
-    private val autoRubix by ToggleSetting("Rubix", true)
-    private val autoRedGreen by ToggleSetting("Red-Green", true)
-    private val autoStartWith by ToggleSetting("Start-With", true)
+    private val autoNumbers by BooleanConfig("Numbers", true).section("Terminals")
+    private val autoColors by BooleanConfig("Colors", true)
+    private val autoRubix by BooleanConfig("Rubix", true)
+    private val autoRedGreen by BooleanConfig("Red-Green", true)
+    private val autoStartWith by BooleanConfig("Start-With", true)
 
     private var lastClickTime = 0L
     private var lastClickedSlot: Int? = null

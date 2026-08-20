@@ -2,7 +2,10 @@ package com.github.noamm9.ui.clickgui
 
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.Setting
+import com.github.noamm9.ui.clickgui.components.SettingFactory
 import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.components.impl.CategorySetting
+import com.github.noamm9.ui.clickgui.components.impl.SeparatorSetting
 import com.github.noamm9.ui.clickgui.enums.WindowClickAction
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.ui.utils.MouseHelper
@@ -39,6 +42,23 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
     private val scrollAnim = Animation(200L)
     private var scrollTarget = 0f
     private var maxScroll = 0f
+
+    val settings = buildList {
+        val widgets = feature.configSettings.mapNotNull(SettingFactory::toSetting)
+        var lastSection: String? = null
+
+        for (widget in widgets) {
+            val section = widget.config.section
+            if (section != null && section != lastSection) {
+                val sectionSettings = widgets.dropWhile { it !== widget }.takeWhile { it.config.section == section }
+                val sectionVisibility = { sectionSettings.any { it.config.visibility() } }
+                if (isNotEmpty()) add(SeparatorSetting().also { it.visibility = sectionVisibility })
+                add(CategorySetting(section).also { it.visibility = sectionVisibility })
+                lastSection = section
+            }
+            add(widget)
+        }
+    }
 
     private var contentLeft = startX + windowPadding
     private var contentTop = startY + titleBarHeight + 8f
@@ -84,7 +104,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         context.drawCenteredString("§l${feature.name}", x + (width / 2f), y + 8f)
         drawCloseButton(context, closeHovered)
 
-        visibleSettings = feature.configSettings.filter { it.visibility.invoke() }
+        visibleSettings = settings.filter { it.visibility.invoke() }
 
         contentLeft = x + windowPadding
         contentTop = y + titleBarHeight + 8f
@@ -137,7 +157,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
                     isInsideContent(mouseX.toFloat(), mouseY.toFloat())
 
                 if (isHovered) {
-                    TooltipManager.hover(setting.description, mouseX, mouseY)
+                    TooltipManager.hover(setting.config.description, mouseX, mouseY)
                 }
 
                 currentY += setting.height + settingSpacing
@@ -224,7 +244,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
             scrollbarDragging = false
         }
 
-        feature.configSettings.forEach { it.mouseReleased(button) }
+        visibleSettings.forEach { it.mouseReleased(button) }
     }
 
     fun mouseScrolled(mouseX: Int, mouseY: Int, delta: Double): Boolean {

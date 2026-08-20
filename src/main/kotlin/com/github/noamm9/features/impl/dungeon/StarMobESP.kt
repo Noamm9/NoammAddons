@@ -5,8 +5,8 @@ import com.github.noamm9.event.impl.EntityUnloadEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.BooleanConfig
+import com.github.noamm9.config.types.ColorConfig
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.equalsOneOf
@@ -24,12 +24,12 @@ import net.minecraft.world.entity.projectile.arrow.AbstractArrow
 import java.awt.Color
 
 object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
-    private val espBats by ToggleSetting("Highlight Bats", true).withDescription("Highlights Bats in Dungeons.")
-    private val espFels by ToggleSetting("Highlight Fels", false).withDescription("Highlights Fels, even when they are invisible.")
+    private val espBats by BooleanConfig("Highlight Bats", true).withDescription("Highlights Bats in Dungeons.")
+    private val espFels by BooleanConfig("Highlight Fels", false).withDescription("Highlights Fels, even when they are invisible.")
 
-    private val starMobColor by ColorSetting("Star Mob Color", Color.YELLOW, false).section("General Colors").withDescription("Default color for all Starred mobs.")
-    private val batColor by ColorSetting("Bat Color", Color.GREEN, false).withDescription("The color used for highlighted bats.").showIf { espBats.value }
-    private val felColor by ColorSetting("Fel Color", Color.PINK, false).withDescription("The color used for fels.").showIf { espFels.value }
+    private val starMobColor by ColorConfig("Star Mob Color", Color.YELLOW, false).section("General Colors").withDescription("Default color for all Starred mobs.")
+    private val batColor by ColorConfig("Bat Color", Color.GREEN, false).withDescription("The color used for highlighted bats.").showIf { espBats.value }
+    private val felColor by ColorConfig("Fel Color", Color.PINK, false).withDescription("The color used for fels.").showIf { espFels.value }
 
     private val starMobs = HashSet<Int>()
     private val checked = HashSet<Int>()

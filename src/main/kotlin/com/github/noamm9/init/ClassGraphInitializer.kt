@@ -5,7 +5,7 @@ package com.github.noamm9.init
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.commands.CommandBuilder
-import com.github.noamm9.config.Config
+import com.github.noamm9.config.ConfigManager
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.impl.RenderOverlayEvent
 import com.github.noamm9.features.Feature
@@ -72,7 +72,7 @@ class ClassGraphInitializer {
             FeatureManager.features.add(feature)
         }
 
-        Config.load()
+        ConfigManager.load()
 
         register<RenderOverlayEvent> {
             if (mc.screen is HudEditorScreen) return@register

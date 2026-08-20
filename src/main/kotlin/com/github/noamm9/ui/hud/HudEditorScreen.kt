@@ -1,6 +1,6 @@
 package com.github.noamm9.ui.hud
 
-import com.github.noamm9.config.Config
+import com.github.noamm9.config.ConfigManager
 import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.componnents.UIButton
@@ -90,7 +90,7 @@ class HudEditorScreen: Screen(Component.literal("HudEditor")) {
     }
 
     override fun onClose() {
-        Config.save()
+        ConfigManager.save()
         super.onClose()
     }
 }

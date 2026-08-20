@@ -4,8 +4,8 @@ import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.MultiCheckboxSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.MultiChoiceConfig
+import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.NumbersUtils.toFixed
@@ -26,15 +26,15 @@ import net.minecraft.sounds.SoundEvents
 import kotlin.math.roundToInt
 
 object PartyHelper: Feature("Party commands and reformatting.") {
-    private val partyCommands by ToggleSetting("Party Commands", true).section("Party Commands")
-    private val partyLeaderCheck by ToggleSetting("Leader Only", false).showIf { partyCommands.value }
-    private val commands by MultiCheckboxSetting("Enabled Commands", mutableMapOf(
+    private val partyCommands by BooleanConfig("Party Commands", true).section("Party Commands")
+    private val partyLeaderCheck by BooleanConfig("Leader Only", false).showIf { partyCommands.value }
+    private val commands by MultiChoiceConfig("Enabled Commands", mutableMapOf(
         "!w" to true, "!f" to true, "!m" to true, "!inv" to true,
         "!kick" to true, "!dt" to true, "!ping" to true, "!tps" to true, "!fps" to true,
         "!pt" to true, "!ai" to true, "!coords" to true, "!gay" to true
     )).showIf { partyCommands.value }
 
-    private val partyAddons by ToggleSetting("Reformat Party List", true).section("Party Addons")
+    private val partyAddons by BooleanConfig("Reformat Party List", true).section("Party Addons")
 
     private val party = mutableListOf<PartyMember>()
     val downtimeList = mutableMapOf<String, String>()

@@ -3,10 +3,10 @@ package com.github.noamm9.features.impl.floor7.devices
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.IServerboundChatCommandPacket
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.ColorConfig
+import com.github.noamm9.config.types.ChoiceConfig
+import com.github.noamm9.config.types.NumberConfig
+import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.WorldUtils
@@ -21,14 +21,14 @@ import java.util.concurrent.*
 import kotlin.math.abs
 
 object I4Helper: Feature(name = "I4 Helper") {
-    private val mode by DropdownSetting("Mode", 2, listOf("Outline", "Fill", "Filled Outline"))
-    private val lineWidth by SliderSetting("Line Width", 2.5, 1, 10, 0.1).hideIf { mode.value == 1 }
-    private val phase by ToggleSetting("Phase")
-    private val showPrediction by ToggleSetting("Show Prediction", true).withDescription("Highlights the next block to shoot at.")
+    private val mode by ChoiceConfig("Mode", 2, listOf("Outline", "Fill", "Filled Outline"))
+    private val lineWidth by NumberConfig("Line Width", 2.5, 1, 10, 0.1).hideIf { mode.value == 1 }
+    private val phase by BooleanConfig("Phase")
+    private val showPrediction by BooleanConfig("Show Prediction", true).withDescription("Highlights the next block to shoot at.")
 
-    private val targetColor by ColorSetting("Target Color", Color.GREEN.withAlpha(127)).withDescription("Color of the target position.").section("Colors")
-    private val doneColor by ColorSetting("Complete Color", Color.RED).withDescription("Color of a complete position.")
-    private val predictionColor by ColorSetting("Prediction Color", Color.YELLOW).withDescription("Color of the prediction.").showIf { showPrediction.value }
+    private val targetColor by ColorConfig("Target Color", Color.GREEN.withAlpha(127)).withDescription("Color of the target position.").section("Colors")
+    private val doneColor by ColorConfig("Complete Color", Color.RED).withDescription("Color of a complete position.")
+    private val predictionColor by ColorConfig("Prediction Color", Color.YELLOW).withDescription("Color of the prediction.").showIf { showPrediction.value }
 
     val DEVICE_DONE_REGEX = Regex("^(\\w{3,16}) completed a device! \\(\\d/\\d\\)$")
     val devBlocks = listOf(

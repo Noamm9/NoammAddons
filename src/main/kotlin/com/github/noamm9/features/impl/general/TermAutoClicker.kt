@@ -5,7 +5,7 @@ package com.github.noamm9.features.impl.general
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
+import com.github.noamm9.config.types.NumberConfig
 import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.dungeons.DungeonUtils
@@ -14,7 +14,7 @@ import com.github.noamm9.utils.location.LocationUtils
 import java.util.*
 
 object TermAutoClicker: Feature(name = "Term AC", description = "Automatically uses Salvation ability when holding right click.") {
-    private val cps by SliderSetting("Clicks Per Second", 5.0, 5.0, 10.0, 1.0).withDescription("How many times per second the autoclicker should click.")
+    private val cps by NumberConfig("Clicks Per Second", 5.0, 5.0, 10.0, 1.0).withDescription("How many times per second the autoclicker should click.")
 
     private var baseCpsDrift = cps.value
     private var lastDriftTime = 0L

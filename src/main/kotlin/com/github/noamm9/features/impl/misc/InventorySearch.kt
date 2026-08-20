@@ -6,8 +6,8 @@ import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.event.impl.ScreenEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.Style
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.ColorConfig
+import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.TextInputHandler
@@ -26,9 +26,9 @@ import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 object InventorySearch: Feature("Lets you search in inventory and support math") {
-    private val ignoreCaps by ToggleSetting("Ignore Caps", true)
-    private val searchLore by ToggleSetting("Search Lore", true)
-    private val highlightColor by ColorSetting("Highlight Color", Color.RED)
+    private val ignoreCaps by BooleanConfig("Ignore Caps", true)
+    private val searchLore by BooleanConfig("Search Lore", true)
+    private val highlightColor by ColorConfig("Highlight Color", Color.RED)
 
     private var searchQuery = ""
     private val searchHandler = TextInputHandler({ searchQuery }) {

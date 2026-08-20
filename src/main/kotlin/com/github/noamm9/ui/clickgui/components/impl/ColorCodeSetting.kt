@@ -1,23 +1,17 @@
 package com.github.noamm9.ui.clickgui.components.impl
 
-import com.github.noamm9.config.Savable
+import com.github.noamm9.config.types.ColorCodeConfig
 import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonPrimitive
 import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
-class ColorCodeSetting(name: String, default: ChatFormatting = ChatFormatting.WHITE): Setting<ChatFormatting>(name, default), Savable {
-    private companion object {
-        val COLORS = ChatFormatting.entries.filter { it.isColor }
-    }
-
+class ColorCodeSetting(config: ColorCodeConfig): Setting<ChatFormatting>(config) {
     private var expanded = false
     private val openAnim = Animation(250)
     private val hoverAnim = Animation(200)
@@ -53,7 +47,7 @@ class ColorCodeSetting(name: String, default: ChatFormatting = ChatFormatting.WH
             val gridY = y + 24f
             var hoveredName: String? = null
 
-            COLORS.forEachIndexed { index, format ->
+            ColorCodeConfig.COLORS.forEachIndexed { index, format ->
                 val col = index % cols
                 val row = index / cols
                 val cx = gridX + col * cellW
@@ -88,7 +82,7 @@ class ColorCodeSetting(name: String, default: ChatFormatting = ChatFormatting.WH
             val cellW = gridW / cols
             val gridY = y + 24f
 
-            COLORS.forEachIndexed { index, format ->
+            ColorCodeConfig.COLORS.forEachIndexed { index, format ->
                 val col = index % cols
                 val row = index / cols
                 val cx = gridX + col * cellW
@@ -106,12 +100,5 @@ class ColorCodeSetting(name: String, default: ChatFormatting = ChatFormatting.WH
         }
 
         return false
-    }
-
-    override fun write() = JsonPrimitive(value.char.toString())
-    override fun read(element: JsonElement?) {
-        (element as? JsonPrimitive)?.content?.firstOrNull()?.let { char ->
-            COLORS.firstOrNull { it.char == char }?.let { value = it }
-        }
     }
 }

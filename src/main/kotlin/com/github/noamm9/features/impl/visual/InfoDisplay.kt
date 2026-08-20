@@ -2,8 +2,8 @@ package com.github.noamm9.features.impl.visual
 
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.BooleanConfig
+import com.github.noamm9.config.types.ColorConfig
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.ServerUtils
 import com.github.noamm9.utils.render.Render2D.drawString
@@ -14,17 +14,17 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 object InfoDisplay: Feature("Displays the system time, clicks per second, FPS, and TPS on screen.") {
-    private val clockDisplay by ToggleSetting("Clock Display").section("Clock")
-    private val seconds by ToggleSetting("Show Seconds").showIf { clockDisplay.value }
-    private val clockColor by ColorSetting("Clock Color", Color(255, 134, 0), false).showIf { clockDisplay.value }
+    private val clockDisplay by BooleanConfig("Clock Display").section("Clock")
+    private val seconds by BooleanConfig("Show Seconds").showIf { clockDisplay.value }
+    private val clockColor by ColorConfig("Clock Color", Color(255, 134, 0), false).showIf { clockDisplay.value }
 
-    private val cpsDisplay by ToggleSetting("CPS Display").section("CPS")
+    private val cpsDisplay by BooleanConfig("CPS Display").section("CPS")
 
-    private val fpsDisplay by ToggleSetting("FPS Display").section("FPS")
-    private val fpsColor by ColorSetting("FPS Color", Color(230, 114, 230), false).showIf { fpsDisplay.value }
+    private val fpsDisplay by BooleanConfig("FPS Display").section("FPS")
+    private val fpsColor by ColorConfig("FPS Color", Color(230, 114, 230), false).showIf { fpsDisplay.value }
 
-    private val tpsDisplay by ToggleSetting("TPS Display").section("TPS")
-    private val tpsColor by ColorSetting("TPS Color", Color(0, 114, 255), false).showIf { tpsDisplay.value }
+    private val tpsDisplay by BooleanConfig("TPS Display").section("TPS")
+    private val tpsColor by ColorConfig("TPS Color", Color(0, 114, 255), false).showIf { tpsDisplay.value }
 
     private val leftClicks = mutableListOf<Long>()
     private val rightClicks = mutableListOf<Long>()

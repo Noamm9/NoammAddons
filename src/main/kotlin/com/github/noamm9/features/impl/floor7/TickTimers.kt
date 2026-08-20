@@ -2,8 +2,8 @@ package com.github.noamm9.features.impl.floor7
 
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.ChoiceConfig
+import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
@@ -12,21 +12,21 @@ import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.network.protocol.game.ClientboundSetTimePacket
 
 object TickTimers: Feature("Shows various types of server tick timers for F7 boss fight.") {
-    private val showPrefix by ToggleSetting("Prefix", true).section("Settings")
-    private val showSuffix by ToggleSetting("Suffix", true)
-    private val format by DropdownSetting("Format", 0, listOf("Seconds", "Ticks"))
+    private val showPrefix by BooleanConfig("Prefix", true).section("Settings")
+    private val showSuffix by BooleanConfig("Suffix", true)
+    private val format by ChoiceConfig("Format", 0, listOf("Seconds", "Ticks"))
 
-    private val deathTickTimer by ToggleSetting("0s Death Tick").section("clear")
-    private val secretTickTimer by ToggleSetting("Secret Tick")
+    private val deathTickTimer by BooleanConfig("0s Death Tick").section("clear")
+    private val secretTickTimer by BooleanConfig("Secret Tick")
 
-    private val p1 by ToggleSetting("Maxor Start").section("F7")
-    private val p2 by ToggleSetting("Storm Start")
-    private val p3 by ToggleSetting("Goldor Start")
-    private val p4 by ToggleSetting("Necron Start")
+    private val p1 by BooleanConfig("Maxor Start").section("F7")
+    private val p2 by BooleanConfig("Storm Start")
+    private val p3 by BooleanConfig("Goldor Start")
+    private val p4 by BooleanConfig("Necron Start")
 
-    private val goldorDeathTickTimer by ToggleSetting("Goldor Death Ticks")
-    private val padTimer by ToggleSetting("Storm Pad Timer")
-    private val pyTimer by ToggleSetting("Storm PY Timer")
+    private val goldorDeathTickTimer by BooleanConfig("Goldor Death Ticks")
+    private val padTimer by BooleanConfig("Storm Pad Timer")
+    private val pyTimer by BooleanConfig("Storm PY Timer")
 
     private var startTickTime = - 1
     private var goldorTickTime = - 1

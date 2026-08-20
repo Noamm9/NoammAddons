@@ -7,10 +7,10 @@ import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.types.ICommandProvider
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.ColorConfig
+import com.github.noamm9.config.types.ChoiceConfig
+import com.github.noamm9.config.types.NumberConfig
+import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.ui.gui.DungeonWaypointScreen
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ColorUtils.withAlpha
@@ -27,17 +27,17 @@ import java.util.concurrent.*
 private typealias RoomInfo = Triple<String, BlockPos, Int>
 
 object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while looking at a block"), ICommandProvider {
-    private val secretWaypoints by ToggleSetting("Secret Waypoints").section("Secret Waypoints")
-    private val mode by DropdownSetting("Mode", 0, listOf("Fill", "Outline", "Filled Outline"))
-    private val phase by ToggleSetting("See Through Walls", true)
-    private val opacity by SliderSetting("Opacity", 40, 0, 100, 1).hideIf { mode.value == 1 }
-    private val lineWidth by SliderSetting("Line Width", 1.5f, 1f, 10f, 0.1f).hideIf { mode.value == 0 }
+    private val secretWaypoints by BooleanConfig("Secret Waypoints").section("Secret Waypoints")
+    private val mode by ChoiceConfig("Mode", 0, listOf("Fill", "Outline", "Filled Outline"))
+    private val phase by BooleanConfig("See Through Walls", true)
+    private val opacity by NumberConfig("Opacity", 40, 0, 100, 1).hideIf { mode.value == 1 }
+    private val lineWidth by NumberConfig("Line Width", 1.5f, 1f, 10f, 0.1f).hideIf { mode.value == 0 }
 
-    private val chestColor by ColorSetting("Chest Color", Color.MAGENTA, false).section("Colors")
-    private val itemColor by ColorSetting("Item Color", Utils.favoriteColor, false)
-    private val batColor by ColorSetting("Bat Color", Color.GREEN, false)
-    private val essenceColor by ColorSetting("Essence Color", Color.BLACK, false)
-    private val keyColor by ColorSetting("Redstone Key Color", Color.RED, false)
+    private val chestColor by ColorConfig("Chest Color", Color.MAGENTA, false).section("Colors")
+    private val itemColor by ColorConfig("Item Color", Utils.favoriteColor, false)
+    private val batColor by ColorConfig("Bat Color", Color.GREEN, false)
+    private val essenceColor by ColorConfig("Essence Color", Color.BLACK, false)
+    private val keyColor by ColorConfig("Redstone Key Color", Color.RED, false)
 
     data class DungeonWaypoint(val pos: BlockPos, val color: Color, val filled: Boolean, val outline: Boolean, val phase: Boolean)
     private data class SecretWaypoint(val pos: BlockPos, val type: SecretType) {

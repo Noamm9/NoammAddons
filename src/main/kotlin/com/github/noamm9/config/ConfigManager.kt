@@ -22,7 +22,7 @@ object ConfigManager {
         val originalVersion = root.get("version")?.asInt ?: 0
 
         val migrated = ConfigMigrator.migrate(root, originalVersion)
-        if (migrated.get("version")?.asInt != VERSION) error("[ConfigManager] unsupported config version $originalVersion, saved backup to config-old-$originalVersion.json")
+        if (migrated.get("version")?.asInt != VERSION) error("[ConfigManager] unsupported config version $originalVersion")
 
         if (originalVersion != VERSION) {
             configFile.write(GsonUtils.gson.toJson(migrated))

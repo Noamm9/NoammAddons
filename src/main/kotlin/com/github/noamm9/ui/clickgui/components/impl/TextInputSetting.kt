@@ -1,15 +1,11 @@
 package com.github.noamm9.ui.clickgui.components.impl
 
-import com.github.noamm9.config.Savable
+import com.github.noamm9.config.types.StringConfig
 import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.ui.utils.TextInputHandler
 import com.github.noamm9.utils.render.Render2D.drawRect
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.jsonPrimitive
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
@@ -18,7 +14,7 @@ import net.minecraft.client.input.MouseButtonInfo
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
-class TextInputSetting(name: String, defaultValue: String): Setting<String>(name, defaultValue), Savable {
+class TextInputSetting(config: StringConfig): Setting<String>(config) {
     private val handler = TextInputHandler(
         textProvider = { value },
         textSetter = { value = it }
@@ -68,10 +64,5 @@ class TextInputSetting(name: String, defaultValue: String): Setting<String>(name
     override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
         val event = KeyEvent(keyCode, scanCode, modifiers)
         return handler.keyPressed(event)
-    }
-
-    override fun write() = JsonPrimitive(value)
-    override fun read(element: JsonElement?) {
-        value = element?.jsonPrimitive?.contentOrNull ?: return
     }
 }

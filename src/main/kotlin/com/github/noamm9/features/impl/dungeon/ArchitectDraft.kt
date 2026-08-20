@@ -2,7 +2,7 @@ package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.map.core.RoomType
@@ -10,10 +10,10 @@ import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
 
 object ArchitectDraft: Feature("Architect Draft") {
-    private val sayDraft by ToggleSetting("Announce Draft", true)
+    private val sayDraft by BooleanConfig("Announce Draft", true)
 
     //#if CHEAT
-    private val autoDraft by ToggleSetting("Auto Draft", true)
+    private val autoDraft by BooleanConfig("Auto Draft", true)
     //#endif
 
     private val resetPattern = Regex("^You used the Architect's First Draft to reset (.+)!$")

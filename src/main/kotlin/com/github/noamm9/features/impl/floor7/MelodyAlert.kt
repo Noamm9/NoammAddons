@@ -4,8 +4,8 @@ import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.TextInputSetting
+import com.github.noamm9.config.types.ChoiceConfig
+import com.github.noamm9.config.types.StringConfig
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.location.LocationUtils
@@ -15,8 +15,8 @@ import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.world.item.Items
 
 object MelodyAlert: Feature() {
-    private val msg by TextInputSetting("Melody Message", "I ❤ Melody")
-    private val mode by DropdownSetting("Progress Mode", 0, listOf("1/4", "25%"))
+    private val msg by StringConfig("Melody Message", "I ❤ Melody")
+    private val mode by ChoiceConfig("Progress Mode", 0, listOf("1/4", "25%"))
 
     private val progressSlots = intArrayOf(25, 34, 43)
     private var isMelodyOpen = false

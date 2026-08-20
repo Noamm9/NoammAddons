@@ -2,10 +2,10 @@ package com.github.noamm9.features.impl.floor7.dragons
 
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.ChoiceConfig
+import com.github.noamm9.config.types.ColorConfig
+import com.github.noamm9.config.types.NumberConfig
+import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.add
@@ -27,30 +27,30 @@ import java.util.concurrent.*
 import kotlin.math.sqrt
 
 object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and alerts") {
-    private val dragonTimer by ToggleSetting("Dragon Timer ", true).section("Dragon Timer")
-    private val dragonTimerStyle by DropdownSetting("Timer Style", 0, listOf("Milliseconds", "Seconds", "Ticks")).showIf { dragonTimer.value }
-    private val showSymbol by ToggleSetting("Timer Symbol", true).showIf { dragonTimer.value }
+    private val dragonTimer by BooleanConfig("Dragon Timer ", true).section("Dragon Timer")
+    private val dragonTimerStyle by ChoiceConfig("Timer Style", 0, listOf("Milliseconds", "Seconds", "Ticks")).showIf { dragonTimer.value }
+    private val showSymbol by BooleanConfig("Timer Symbol", true).showIf { dragonTimer.value }
 
-    private val dragonArrowStack by ToggleSetting("Arrow Stack Indicator", true).section("Arrow Stack").withDescription("Shows the optimal arrow stack aim position")
-    private val indicatorColor by ColorSetting("Indicator Color", Color.CYAN)
-    private val indicatorSize by SliderSetting("Indicator Size", 2.0f, 0.1f, 5.0f, 0.1f)
-    private val indicatorThickness by SliderSetting("Indicator Thickness", 3.0f, 1.0f, 10.0f, 0.5f)
+    private val dragonArrowStack by BooleanConfig("Arrow Stack Indicator", true).section("Arrow Stack").withDescription("Shows the optimal arrow stack aim position")
+    private val indicatorColor by ColorConfig("Indicator Color", Color.CYAN)
+    private val indicatorSize by NumberConfig("Indicator Size", 2.0f, 0.1f, 5.0f, 0.1f)
+    private val indicatorThickness by NumberConfig("Indicator Thickness", 3.0f, 1.0f, 10.0f, 0.5f)
 
-    private val dragonBoxes by ToggleSetting("Dragon Skip Box ", true).section("Dragon Visuals")
-    private val dragonHealth by ToggleSetting("Dragon Health", true)
-    private val highlightDragons by ToggleSetting("Highlight Dragons")
-    private val dragonTracers by ToggleSetting("Dragon Tracer", false)
-    private val tracerThickness by SliderSetting("Tracer Width", 2f, 1f, 5f, 0.1f).showIf { dragonTracers.value }
+    private val dragonBoxes by BooleanConfig("Dragon Skip Box ", true).section("Dragon Visuals")
+    private val dragonHealth by BooleanConfig("Dragon Health", true)
+    private val highlightDragons by BooleanConfig("Highlight Dragons")
+    private val dragonTracers by BooleanConfig("Dragon Tracer", false)
+    private val tracerThickness by NumberConfig("Tracer Width", 2f, 1f, 5f, 0.1f).showIf { dragonTracers.value }
 
-    val sendTime by ToggleSetting("Send Dragon Time Alive", true).section("Dragon Alerts")
-    val sendSpray by ToggleSetting("Send Ice Sprayed", true)
-    val sendArrowHit by ToggleSetting("Send Arrows Hit", true)
+    val sendTime by BooleanConfig("Send Dragon Time Alive", true).section("Dragon Alerts")
+    val sendSpray by BooleanConfig("Send Ice Sprayed", true)
+    val sendArrowHit by BooleanConfig("Send Arrows Hit", true)
 
-    val dragonPriorityToggle by ToggleSetting("Dragon Priority", false).section("Dragon Priority")
-    val normalPower by SliderSetting("Normal Power", 0f, 0f, 32f, 0.5f).showIf { dragonPriorityToggle.value }
-    val easyPower by SliderSetting("Easy Power", 0f, 0f, 32f, 0.5f).showIf { dragonPriorityToggle.value }
-    val soloDebuff by DropdownSetting("Purple Solo Debuff", 0, listOf("Tank", "Healer")).showIf { dragonPriorityToggle.value }
-    val soloDebuffOnAll by ToggleSetting("Solo Debuff on All Splits", true).showIf { dragonPriorityToggle.value }
+    val dragonPriorityToggle by BooleanConfig("Dragon Priority", false).section("Dragon Priority")
+    val normalPower by NumberConfig("Normal Power", 0f, 0f, 32f, 0.5f).showIf { dragonPriorityToggle.value }
+    val easyPower by NumberConfig("Easy Power", 0f, 0f, 32f, 0.5f).showIf { dragonPriorityToggle.value }
+    val soloDebuff by ChoiceConfig("Purple Solo Debuff", 0, listOf("Tank", "Healer")).showIf { dragonPriorityToggle.value }
+    val soloDebuffOnAll by BooleanConfig("Solo Debuff on All Splits", true).showIf { dragonPriorityToggle.value }
 
     var priorityDragon = WitherDragonEnum.None
 

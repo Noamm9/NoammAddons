@@ -6,10 +6,10 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.dev.ClickGui
 import com.github.noamm9.init.types.ICustomMenu
 import com.github.noamm9.mixin.IKeyMapping
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.ColorConfig
+import com.github.noamm9.config.types.KeybindConfig
+import com.github.noamm9.config.types.NumberConfig
+import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
@@ -34,17 +34,17 @@ import java.awt.Color
 import kotlin.math.*
 
 object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."), ICustomMenu {
-    private val menuScale by SliderSetting("Wheel Scale", 100, 70, 135, 5, "%").section("Settings")
-    private val showKeyLabels by ToggleSetting("Show Key Labels", true)
-    private val favouritePetsOnly by ToggleSetting("Favourite Pets Only").withDescription("Only shows pets favourited in Hypixel's Pets Menu.")
+    private val menuScale by NumberConfig("Wheel Scale", 100, 70, 135, 5, "%").section("Settings")
+    private val showKeyLabels by BooleanConfig("Show Key Labels", true)
+    private val favouritePetsOnly by BooleanConfig("Favourite Pets Only").withDescription("Only shows pets favourited in Hypixel's Pets Menu.")
 
-    private val segmentColor by ColorSetting("Segment Color", Color(15, 15, 15, 200)).section("Colors")
-    private val hoverColor by ColorSetting("Hover Color", Color(255, 255, 255, 30))
-    private val separatorColor by ColorSetting("Separator Color", Color(255, 255, 255, 40))
+    private val segmentColor by ColorConfig("Segment Color", Color(15, 15, 15, 200)).section("Colors")
+    private val hoverColor by ColorConfig("Hover Color", Color(255, 255, 255, 30))
+    private val separatorColor by ColorConfig("Separator Color", Color(255, 255, 255, 40))
 
-    private val useHotbarBinds by ToggleSetting("Use Hotbar Binds").section("Keybinds")
+    private val useHotbarBinds by BooleanConfig("Use Hotbar Binds").section("Keybinds")
     private val keybinds = (1 .. PETS_PER_WHEEL).mapIndexed { index, slot ->
-        KeybindSetting("Pet Slot $slot", InputConstants.KEY_1 + index)
+        KeybindConfig("Pet Slot $slot", InputConstants.KEY_1 + index)
             .hideIf { useHotbarBinds.value }.apply(configSettings::add)
     }
 

@@ -8,10 +8,10 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.terminals.TerminalType.Companion.clickedSlot
 import com.github.noamm9.features.impl.floor7.terminals.TerminalType.Companion.clickedSlots
 import com.github.noamm9.init.types.ICustomMenu
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.ColorConfig
+import com.github.noamm9.config.types.ChoiceConfig
+import com.github.noamm9.config.types.NumberConfig
+import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
@@ -35,7 +35,7 @@ import kotlin.math.abs
 import kotlin.math.floor
 
 object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICustomMenu {
-    private val scale by SliderSetting("Custom Menu's Scale", 1f, 0.1f, 2f, 0.01f).section("General")
+    private val scale by NumberConfig("Custom Menu's Scale", 1f, 0.1f, 2f, 0.01f).section("General")
 
     //#if CHEAT
     private fun fakeInwalk(type: TerminalType) = AutoTerminal.enabled && AutoTerminal.invwalk.value && AutoTerminal.shouldAutoSolve(type)
@@ -43,7 +43,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
     //$private fun fakeInwalk(type: TerminalType) = false
     //#endif
 
-    private val slotStyle by DropdownSetting("Slot Style", 0, listOf("Rect", "Bordered-Rect", "Button"))
+    private val slotStyle by ChoiceConfig("Slot Style", 0, listOf("Rect", "Bordered-Rect", "Button"))
 
     private val solverModes = run {
         //#if CHEAT
@@ -53,38 +53,38 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
         //#endif
     }
 
-    private val mode by DropdownSetting("Mode", 0, solverModes)
-    private val resyncTimeout by SliderSetting<Long>("Resync Timeout", 800, 600, 1000, 1)
+    private val mode by ChoiceConfig("Mode", 0, solverModes)
+    private val resyncTimeout by NumberConfig<Long>("Resync Timeout", 800, 600, 1000, 1)
 
-    private val soundsEnabled by ToggleSetting("Terminal Sounds", true).section("Sounds")
+    private val soundsEnabled by BooleanConfig("Terminal Sounds", true).section("Sounds")
     private val clickSound = createSoundSettings("Click Sound", SoundEvents.NOTE_BLOCK_PLING.value()) { soundsEnabled.value }
 
-    private val backgroundColor by ColorSetting("Background Color", Color(0, 0, 0, 100)).section("Settings - UI")
-    private val borderColor by ColorSetting("Border Color", Color(255, 255, 255))
-    private val titleColor by ColorSetting("Title Text Color", Color.WHITE)
-    private val queueColor by ColorSetting("Queue Text Color", Color.CYAN).showIf { NoammAddons.isCheat }
-    private val overlayTextColor by ColorSetting("Overlay Text Color", Color.WHITE)
+    private val backgroundColor by ColorConfig("Background Color", Color(0, 0, 0, 100)).section("Settings - UI")
+    private val borderColor by ColorConfig("Border Color", Color(255, 255, 255))
+    private val titleColor by ColorConfig("Title Text Color", Color.WHITE)
+    private val queueColor by ColorConfig("Queue Text Color", Color.CYAN).showIf { NoammAddons.isCheat }
+    private val overlayTextColor by ColorConfig("Overlay Text Color", Color.WHITE)
 
-    private val solutionColor by ColorSetting("Generic Solution", Color(0, 255, 0, 130)).section("Colors - Terminals").showIf {
+    private val solutionColor by ColorConfig("Generic Solution", Color(0, 255, 0, 130)).section("Colors - Terminals").showIf {
         melody.value || numbers.value || rubix.value || colors.value || startwith.value || redgreen.value
     }
 
-    private val numbersNumbers by ToggleSetting("Numbers: Show Numbers").showIf { numbers.value }
-    private val numbersFirstColor by ColorSetting("Numbers: 1st Click", Color(0, 255, 0, 130)).showIf { numbers.value }
-    private val numbersSecondColor by ColorSetting("Numbers: 2nd Click", Color(0, 200, 0, 130)).showIf { numbers.value }
-    private val numbersThirdColor by ColorSetting("Numbers: 3rd Click", Color(0, 150, 0, 130)).showIf { numbers.value }
-    private val rubixPositiveColor by ColorSetting("Rubix: Positive (+)", Color(0, 114, 255, 130)).showIf { rubix.value }
-    private val rubixNegativeColor by ColorSetting("Rubix: Negative (-)", Color(205, 0, 0, 130)).showIf { rubix.value }
-    private val melodyColumnColor by ColorSetting("Melody: Column", Color(255, 0, 255, 130)).showIf { melody.value }
-    private val melodyIndicatorColor by ColorSetting("Melody: Indicator", Color(255, 116, 0, 130)).showIf { melody.value }
-    private val melodyWrongColor by ColorSetting("Melody: Wrong", Color(255, 0, 0, 130)).showIf { melody.value }
+    private val numbersNumbers by BooleanConfig("Numbers: Show Numbers").showIf { numbers.value }
+    private val numbersFirstColor by ColorConfig("Numbers: 1st Click", Color(0, 255, 0, 130)).showIf { numbers.value }
+    private val numbersSecondColor by ColorConfig("Numbers: 2nd Click", Color(0, 200, 0, 130)).showIf { numbers.value }
+    private val numbersThirdColor by ColorConfig("Numbers: 3rd Click", Color(0, 150, 0, 130)).showIf { numbers.value }
+    private val rubixPositiveColor by ColorConfig("Rubix: Positive (+)", Color(0, 114, 255, 130)).showIf { rubix.value }
+    private val rubixNegativeColor by ColorConfig("Rubix: Negative (-)", Color(205, 0, 0, 130)).showIf { rubix.value }
+    private val melodyColumnColor by ColorConfig("Melody: Column", Color(255, 0, 255, 130)).showIf { melody.value }
+    private val melodyIndicatorColor by ColorConfig("Melody: Indicator", Color(255, 116, 0, 130)).showIf { melody.value }
+    private val melodyWrongColor by ColorConfig("Melody: Wrong", Color(255, 0, 0, 130)).showIf { melody.value }
 
-    val melody by ToggleSetting("Melody", true).section("Toggles")
-    val numbers by ToggleSetting("Numbers", true)
-    val rubix by ToggleSetting("Rubix", true)
-    val colors by ToggleSetting("Colors", true)
-    val startwith by ToggleSetting("Start-With", true)
-    val redgreen by ToggleSetting("Red-Green", true)
+    val melody by BooleanConfig("Melody", true).section("Toggles")
+    val numbers by BooleanConfig("Numbers", true)
+    val rubix by BooleanConfig("Rubix", true)
+    val colors by BooleanConfig("Colors", true)
+    val startwith by BooleanConfig("Start-With", true)
+    val redgreen by BooleanConfig("Red-Green", true)
 
     private val fcScheduler = FCScheduler(TerminalListener.FIRST_CLICK_DELAY)
     val solution = mutableListOf<TerminalClick>()

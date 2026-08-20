@@ -1,14 +1,14 @@
 package com.github.noamm9.features
 
+import com.github.noamm9.config.ConfigHolder
 import com.github.noamm9.config.Savable
+import com.github.noamm9.config.SettingProvider
 import com.github.noamm9.event.Event
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.EventContext
 import com.github.noamm9.event.EventListener
 import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.features.annotations.AlwaysActive
-import com.github.noamm9.ui.clickgui.components.Setting
-import com.github.noamm9.ui.clickgui.components.SettingProvider
 import com.github.noamm9.ui.clickgui.enums.CategoryType
 import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.utils.spaceCaps
@@ -24,7 +24,7 @@ open class Feature(
     open val category = initCategory()
     @JvmField var enabled = toggled
 
-    override val configSettings = mutableSetOf<Setting<*>>()
+    override val configSettings = mutableSetOf<ConfigHolder<*>>()
     val listeners = mutableSetOf<EventListener<*>>()
     val hudElements = mutableSetOf<HudElement>()
 
@@ -74,7 +74,7 @@ open class Feature(
         }.also(hudElements::add)
     }
 
-    fun getSettingByName(key: String?) = configSettings.find { it.jsonName() == key && it is Savable }
+    fun getSettingByName(key: String?) = configSettings.find { it.jsonName == key && it is Savable }
 
     private fun initCategory(): CategoryType {
         val parts = this::class.java.`package` !!.name.split(".")

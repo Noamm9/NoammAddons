@@ -25,7 +25,7 @@ import net.minecraft.network.chat.Component
 
 object NaCommand: ICommandProvider {
     private val commands = mapOf(
-        "/na" to "Config GUI",
+        "/na" to "ConfigManager GUI",
         "/na hud" to "HUD editor",
         "/na discord" to "Opens the link to the Discord server",
         "/na update" to "Checks for an update of the mod",

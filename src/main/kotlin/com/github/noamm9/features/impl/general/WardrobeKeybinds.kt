@@ -5,8 +5,8 @@ import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.IKeyMapping
-import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.KeybindConfig
+import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.ThreadUtils
@@ -20,11 +20,11 @@ import net.minecraft.world.item.Items
 import org.lwjgl.glfw.GLFW
 
 object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your keyboard.") {
-    private val closeAfterUse by ToggleSetting("Auto Close On Use")
-    private val preventUnequip by ToggleSetting("Prevent Unequip")
-    private val useHotbarBinds by ToggleSetting("Use Hotbar Binds")
+    private val closeAfterUse by BooleanConfig("Auto Close On Use")
+    private val preventUnequip by BooleanConfig("Prevent Unequip")
+    private val useHotbarBinds by BooleanConfig("Use Hotbar Binds")
     private val keybinds = (1 .. 9).mapIndexed { index, slot ->
-        KeybindSetting("Wardrobe Slot $slot", InputConstants.KEY_1 + index)
+        KeybindConfig("Wardrobe Slot $slot", InputConstants.KEY_1 + index)
             .hideIf { useHotbarBinds.value }.apply(configSettings::add)
     }
 

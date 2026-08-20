@@ -2,7 +2,7 @@ package com.github.noamm9.features.impl.visual
 
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.NumbersUtils
@@ -16,10 +16,10 @@ import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
 object DamageSplash: Feature("Reformat Skyblock's Damage Indicators.") {
-    private val hideDamage by ToggleSetting("Hide Damage Nametag").withDescription("Hides all damage indicators.")
-    private val uppercase by ToggleSetting("Uppercase Formatting").withDescription("Changes the damage number to uppercase.").hideIf { hideDamage.value }
-    private val disableinClear by ToggleSetting("Hide in Clear").withDescription("Hides all damage indicators in dungeon clear.").hideIf { hideDamage.value }
-    private val disableinBoss by ToggleSetting("Hide in Boss").withDescription("Hides all damage indicators in dungeon boss room.").hideIf { hideDamage.value }
+    private val hideDamage by BooleanConfig("Hide Damage Nametag").withDescription("Hides all damage indicators.")
+    private val uppercase by BooleanConfig("Uppercase Formatting").withDescription("Changes the damage number to uppercase.").hideIf { hideDamage.value }
+    private val disableinClear by BooleanConfig("Hide in Clear").withDescription("Hides all damage indicators in dungeon clear.").hideIf { hideDamage.value }
+    private val disableinBoss by BooleanConfig("Hide in Boss").withDescription("Hides all damage indicators in dungeon boss room.").hideIf { hideDamage.value }
 
     private val damageRegex = Regex("[✧✯]?(\\d{1,3}(?:,\\d{3})*[⚔+✧❤♞☄✷ﬗ✯]*)")
     private val colors = listOf("§6", "§c", "§e", "§f")

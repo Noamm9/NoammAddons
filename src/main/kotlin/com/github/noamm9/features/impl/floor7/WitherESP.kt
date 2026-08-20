@@ -5,7 +5,7 @@ import com.github.noamm9.event.impl.CheckEntityGlowEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
+import com.github.noamm9.config.types.ColorConfig
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket
@@ -14,12 +14,12 @@ import net.minecraft.world.entity.boss.wither.WitherBoss
 import java.awt.Color
 
 object WitherESP: Feature("Highlights all Withers in F7.") {
-    private val maxorColor by ColorSetting("Maxor", Color(88, 4, 164), false)
-    private val stormColor by ColorSetting("Storm", Color(0, 208, 255), false)
-    private val goldorColor by ColorSetting("Goldor", Color.WHITE, false)
-    private val necronColor by ColorSetting("Necron", Color.RED, false)
+    private val maxorColor by ColorConfig("Maxor", Color(88, 4, 164), false)
+    private val stormColor by ColorConfig("Storm", Color(0, 208, 255), false)
+    private val goldorColor by ColorConfig("Goldor", Color.WHITE, false)
+    private val necronColor by ColorConfig("Necron", Color.RED, false)
 
-    private enum class Wither(val color: ColorSetting) {
+    private enum class Wither(val color: ColorConfig) {
         MAXOR(maxorColor),
         STORM(stormColor),
         GOLDOR(goldorColor),
