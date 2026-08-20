@@ -1,7 +1,7 @@
 {
   "version": 1,
   "disabled": [],
-  "ScoreCalculator": {
+  "ScoreCalculation": {
     "maxBats": 5
   }
 }
