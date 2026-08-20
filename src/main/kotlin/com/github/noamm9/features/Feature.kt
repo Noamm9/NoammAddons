@@ -12,6 +12,7 @@ import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.SettingProvider
 import com.github.noamm9.ui.clickgui.enums.CategoryType
 import com.github.noamm9.ui.hud.HudElement
+import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.spaceCaps
 import net.minecraft.client.gui.GuiGraphicsExtractor
 
@@ -20,11 +21,12 @@ open class Feature(
     name: String? = null,
     toggled: Boolean = false
 ): Shortcuts, SettingProvider {
-    private val alwaysActive = this::class.java.isAnnotationPresent(AlwaysActive::class.java)
     val name = name ?: this::class.simpleName.toString().spaceCaps()
     open val category = initCategory()
     @JvmField var enabled = toggled
-    val remotelyDisabled get() = RemoteFeatures.isDisabled(this::class.java.simpleName)
+
+    private val alwaysActive = this::class.java.isAnnotationPresent(AlwaysActive::class.java)
+    private val remotelyDisabled get() = RemoteFeatures.isDisabled(this::class.java.simpleName)
 
     override val configSettings = mutableSetOf<Setting<*>>()
     val listeners = mutableSetOf<EventListener<*>>()
@@ -50,7 +52,7 @@ open class Feature(
     }
 
     open fun toggle() {
-        if (remotelyDisabled) return
+        if (remotelyDisabled) return NotificationManager.push("Config GUI", "&b$name&f is temporarly disabled.")
 
         enabled = ! enabled
         if (enabled || alwaysActive) onEnable()

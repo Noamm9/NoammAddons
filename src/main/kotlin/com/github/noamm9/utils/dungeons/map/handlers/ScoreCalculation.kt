@@ -41,6 +41,7 @@ object ScoreCalculation: ISelfInit {
     private val timeElapsedPattern = Regex(" Elapsed: (?:(?<hrs>\\d+)h )?(?:(?<min>\\d+)m )?(?:(?<sec>\\d+)s)?")
     private val mimicCharmRegex = Regex("charm you charmed a mimic and captured \\d+ shards from it\\.")
     private val partyChatRegex = Regex("^party > (?:\\[[^]]+] )?(?<name>\\w+): (?<message>.+)$")
+    private val maxBats = RemoteFeatures.getFeature(ScoreCalculation::class.simpleName)["maxBats"]?.asInt ?: 1
 
     private var bloodDone = false
     private var secretPercentage = 0.0
@@ -52,7 +53,6 @@ object ScoreCalculation: ISelfInit {
     var mimicKilled = false
     var princeKilled = false
     var batKilled = false
-    var batsKilled = 0
     var deathCount = 0
     var foundSecrets = 0
     var cryptsCount = 0
@@ -69,7 +69,6 @@ object ScoreCalculation: ISelfInit {
             mimicKilled = false
             princeKilled = false
             batKilled = false
-            batsKilled = 0
             batKillers.clear()
             deathCount = 0
             foundSecrets = 0
@@ -189,10 +188,9 @@ object ScoreCalculation: ISelfInit {
                         }
                     }
 
-                    if (msg == "a bat has been slain. +1 bonus score") {
-                        batKilled = true
+                    if (msg == "a bat has been slain. +1 bonus score" && batKillers.size < maxBats) {
                         if (batKillers.add(mc.user.name.lowercase())) {
-                            addBatKill()
+                            batKilled = true
 
                             if (DungeonListener.dungeonTeammatesNoSelf.isNotEmpty()) {
                                 WebSocket.send(S2CPacketDungeonBat)
@@ -204,22 +202,17 @@ object ScoreCalculation: ISelfInit {
                         }
                     }
                     else partyChatRegex.matchEntire(msg)?.let { match ->
+                        if (batKillers.size >= maxBats) return@let
                         val sender = match.groups["name"]?.value ?: return@let
                         val message = match.groups["message"]?.value ?: return@let
                         if (sender.equals(mc.user.name, true)) return@let
                         if (batMessages.none(message::contains)) return@let
-
                         batKilled = true
-                        if (batKillers.add(sender.lowercase())) addBatKill()
+                        batKillers.add(sender.lowercase())
                     }
                 }
             }
         }
-    }
-
-    private fun addBatKill() {
-        val maxBats = RemoteFeatures.getFeature("ScoreCalculator")["maxBats"]?.asInt?.coerceAtLeast(0) ?: 0
-        batsKilled = (batsKilled + 1).coerceAtMost(maxBats)
     }
 
     private fun recalculate() {
@@ -230,7 +223,7 @@ object ScoreCalculation: ISelfInit {
         var bScore = cryptsCount.coerceAtMost(5)
         if (mimicKilled && currentFloorNumber > 5) bScore += 2
         if (princeKilled) bScore += 1
-        bScore += batsKilled
+        bScore += batKillers.size
         if (DungeonUtils.isPaul()) bScore += 10
         val bonusScore = bScore
 
