@@ -14,7 +14,6 @@ interface SettingProvider {
 
     fun getSettingByName(key: String?) = configSettings.find { it.jsonName == key && it is Savable }
 
-
     fun createSoundSettings(name: String, sound: SoundEvent, showIf: () -> Boolean = { true }): ActionConfig {
         val sound = SoundConfig(name, sound).withDescription("The internal Minecraft sound key to play.").showIf(showIf)
         val volume = NumberConfig("Volume", 0.5f, 0f, 1f, 0.1f).withDescription("The loudness of the sound.").showIf(showIf)

@@ -11,10 +11,10 @@ abstract class ConfigHolder<T>(val name: String, val defaultValue: T) {
 
     open var value: T = defaultValue
         set(value) {
+            field = value
             if (NoammAddons.isLoaded) {
                 changeListener?.invoke(value)
             }
-            field = value
         }
 
     fun reset() = ::value.set(defaultValue)
