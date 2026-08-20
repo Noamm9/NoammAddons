@@ -154,7 +154,7 @@ object EtherwarpHelper {
         val level = mc.level ?: return true
         val state = chunk.getBlockState(pos)
         return when (state.block) {
-            is SignBlock -> false
+            is SignBlock, is BannerBlock -> false
             is ButtonBlock, is SkullBlock, is WallSkullBlock, is LadderBlock,
             is BubbleColumnBlock, is FlowerPotBlock, is PistonHeadBlock, is LeverBlock,
             is NetherWartBlock, is ComparatorBlock, is RedstoneTorchBlock, is RepeaterBlock -> true
