@@ -1,8 +1,8 @@
 package com.github.noamm9.ui.clickgui.components.impl
 
 import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.components.Widget
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
@@ -11,7 +11,7 @@ import org.lwjgl.glfw.GLFW
 import java.awt.Color
 import kotlin.math.abs
 
-class SliderWidget<T: Number>(config: SliderSetting<T>): Setting<T>(config) {
+class SliderWidget<T: Number>(config: SliderSetting<T>): Widget<T>(config) {
     private inline val cfg get() = config as SliderSetting<T>
 
     private var dragging = false

@@ -1,14 +1,14 @@
 package com.github.noamm9.ui.clickgui.components.impl
 
 import com.github.noamm9.config.types.UnitSetting
-import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.components.Widget
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
-class CategoryWidget(name: String): Setting<Unit>(UnitSetting(name)) {
+class CategoryWidget(name: String): Widget<Unit>(UnitSetting(name)) {
     override val height = 22
 
     override fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {

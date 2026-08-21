@@ -1,15 +1,15 @@
 package com.github.noamm9.ui.clickgui.components.impl
 
 import com.github.noamm9.config.types.ToggleSetting
-import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.components.Widget
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.ColorUtils.lerp
 import com.github.noamm9.utils.render.Render2D.drawRect
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
-class ToggleWidget(config: ToggleSetting): Setting<Boolean>(config) {
+class ToggleWidget(config: ToggleSetting): Widget<Boolean>(config) {
     private val toggleAnim = Animation(200, if (config.value) 1f else 0f)
     private val hoverAnim = Animation(200, 0f)
 

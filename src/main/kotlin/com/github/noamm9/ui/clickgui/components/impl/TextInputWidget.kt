@@ -1,8 +1,8 @@
 package com.github.noamm9.ui.clickgui.components.impl
 
 import com.github.noamm9.config.types.TextInputSetting
-import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.components.Widget
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.ui.utils.TextInputHandler
 import com.github.noamm9.utils.render.Render2D.drawRect
@@ -14,7 +14,7 @@ import net.minecraft.client.input.MouseButtonInfo
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
-class TextInputWidget(config: TextInputSetting): Setting<String>(config) {
+class TextInputWidget(config: TextInputSetting): Widget<String>(config) {
     private val handler = TextInputHandler(
         textProvider = { value },
         textSetter = { value = it }

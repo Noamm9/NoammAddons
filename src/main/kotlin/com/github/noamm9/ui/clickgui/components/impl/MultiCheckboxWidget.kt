@@ -1,15 +1,15 @@
 package com.github.noamm9.ui.clickgui.components.impl
 
 import com.github.noamm9.config.types.MultiCheckboxSetting
-import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.components.Widget
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
-class MultiCheckboxWidget(config: MultiCheckboxSetting): Setting<MutableMap<String, Boolean>>(config) {
+class MultiCheckboxWidget(config: MultiCheckboxSetting): Widget<MutableMap<String, Boolean>>(config) {
     private var expanded = false
     private val openAnim = Animation(250)
     private val hoverAnim = Animation(200)

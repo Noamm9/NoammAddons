@@ -2,8 +2,8 @@ package com.github.noamm9.ui.clickgui.components.impl
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.config.types.SoundSetting
-import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.components.Widget
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.ui.utils.TextInputHandler
 import com.github.noamm9.utils.render.Render2D.drawRect
@@ -18,7 +18,7 @@ import org.lwjgl.glfw.GLFW
 import java.awt.Color
 import kotlin.math.max
 
-class SoundWidget(config: SoundSetting): Setting<SoundEvent>(config) {
+class SoundWidget(config: SoundSetting): Widget<SoundEvent>(config) {
     private inline val cfg get() = config as SoundSetting
 
     private var filteredSounds = SoundSetting.allSounds

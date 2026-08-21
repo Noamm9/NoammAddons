@@ -3,9 +3,8 @@ package com.github.noamm9.ui.clickgui.components
 import com.github.noamm9.config.ConfigHolder
 import net.minecraft.client.gui.GuiGraphicsExtractor
 
-abstract class Setting<T>(val config: ConfigHolder<T>)/*: Renderable, GuiEventListener*/ {
+abstract class Widget<T>(val config: ConfigHolder<T>) {
     val name get() = config.name
-    val defaultValue get() = config.defaultValue
 
     open var value: T
         get() = config.value
@@ -18,14 +17,6 @@ abstract class Setting<T>(val config: ConfigHolder<T>)/*: Renderable, GuiEventLi
 
     var width = 0
     open val height: Int get() = 20
-
-    var visibility: () -> Boolean
-        get() = config.visibility
-        set(value) {
-            config.visibility = value
-        }
-
-    fun reset() = config.reset()
 
     abstract fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int)
     abstract fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean

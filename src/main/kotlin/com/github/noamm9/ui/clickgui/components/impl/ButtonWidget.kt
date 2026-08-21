@@ -1,8 +1,8 @@
 package com.github.noamm9.ui.clickgui.components.impl
 
 import com.github.noamm9.config.types.ButtonSetting
-import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.components.Widget
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
@@ -11,7 +11,7 @@ import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
-class ButtonWidget(config: ButtonSetting): Setting<Unit>(config) {
+class ButtonWidget(config: ButtonSetting): Widget<Unit>(config) {
     private inline val cfg get() = config as ButtonSetting
 
     private val hoverAnim = Animation(200)

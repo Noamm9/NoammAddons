@@ -1,8 +1,8 @@
 package com.github.noamm9.ui.clickgui.components.impl
 
 import com.github.noamm9.config.types.ColorCodeSetting
-import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.components.Widget
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawRect
@@ -11,7 +11,7 @@ import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
-class ColorCodeWidget(config: ColorCodeSetting): Setting<ChatFormatting>(config) {
+class ColorCodeWidget(config: ColorCodeSetting): Widget<ChatFormatting>(config) {
     private var expanded = false
     private val openAnim = Animation(250)
     private val hoverAnim = Animation(200)

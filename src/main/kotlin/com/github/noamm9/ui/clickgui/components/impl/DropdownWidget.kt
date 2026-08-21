@@ -1,8 +1,8 @@
 package com.github.noamm9.ui.clickgui.components.impl
 
 import com.github.noamm9.config.types.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.components.Widget
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
@@ -10,7 +10,7 @@ import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
-class DropdownWidget(config: DropdownSetting): Setting<Int>(config) {
+class DropdownWidget(config: DropdownSetting): Widget<Int>(config) {
     private inline val cfg get() = config as DropdownSetting
 
     private var expanded = false

@@ -1,8 +1,8 @@
 package com.github.noamm9.ui.clickgui
 
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.components.Widget
 import com.github.noamm9.ui.clickgui.components.WidgetFactory
 import com.github.noamm9.ui.clickgui.components.impl.CategoryWidget
 import com.github.noamm9.ui.clickgui.components.impl.SeparatorWidget
@@ -38,7 +38,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
     private var width = startWidth
     private var height = startHeight
 
-    private var visibleSettings = emptyList<Setting<*>>()
+    private var visibleWidgets = emptyList<Widget<*>>()
     private val scrollAnim = Animation(200L)
     private var scrollTarget = 0f
     private var maxScroll = 0f
@@ -52,8 +52,8 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
             if (section != null && section != lastSection) {
                 val sectionSettings = widgets.dropWhile { it !== widget }.takeWhile { it.config.section == section }
                 val sectionVisibility = { sectionSettings.any { it.config.visibility() } }
-                if (isNotEmpty()) add(SeparatorWidget().also { it.visibility = sectionVisibility })
-                add(CategoryWidget(section).also { it.visibility = sectionVisibility })
+                if (isNotEmpty()) add(SeparatorWidget().also { it.config.visibility = sectionVisibility })
+                add(CategoryWidget(section).also { it.config.visibility = sectionVisibility })
                 lastSection = section
             }
             add(widget)
@@ -104,7 +104,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         context.drawCenteredString("§l${feature.name}", x + (width / 2f), y + 8f)
         drawCloseButton(context, closeHovered)
 
-        visibleSettings = settings.filter { it.visibility.invoke() }
+        visibleWidgets = settings.filter { it.config.visibility.invoke() }
 
         contentLeft = x + windowPadding
         contentTop = y + titleBarHeight + 8f
@@ -113,11 +113,11 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
 
         val viewportWidth = (contentRight - contentLeft).coerceAtLeast(120f)
         val viewportHeight = (contentBottom - contentTop).coerceAtLeast(40f)
-        val totalContentHeight = if (visibleSettings.isEmpty()) {
+        val totalContentHeight = if (visibleWidgets.isEmpty()) {
             0f
         }
         else {
-            visibleSettings.sumOf { it.height }.toFloat() + ((visibleSettings.size - 1) * settingSpacing)
+            visibleWidgets.sumOf { it.height }.toFloat() + ((visibleWidgets.size - 1) * settingSpacing)
         }
 
         maxScroll = (totalContentHeight - viewportHeight).coerceAtLeast(0f)
@@ -133,7 +133,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
 
         context.enableScissor(contentLeft.toInt(), contentTop.toInt(), contentRight.toInt(), contentBottom.toInt())
 
-        if (visibleSettings.isEmpty()) {
+        if (visibleWidgets.isEmpty()) {
             context.drawCenteredString(
                 "No visible settings",
                 x + (width / 2f),
@@ -145,7 +145,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         else {
             var currentY = contentTop - scrollAnim.value
 
-            visibleSettings.forEach { setting ->
+            visibleWidgets.forEach { setting ->
                 setting.x = contentLeft.toInt()
                 setting.y = currentY.toInt()
                 setting.width = settingWidth
@@ -227,7 +227,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         }
 
         if (isInsideContent(mx, my)) {
-            visibleSettings.forEach {
+            visibleWidgets.forEach {
                 if (it.mouseClicked(mx.toDouble(), my.toDouble(), button)) {
                     return WindowClickAction.CONSUMED
                 }
@@ -244,11 +244,11 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
             scrollbarDragging = false
         }
 
-        visibleSettings.forEach { it.mouseReleased(button) }
+        visibleWidgets.forEach { it.mouseReleased(button) }
     }
 
     fun mouseScrolled(mouseX: Int, mouseY: Int, delta: Double): Boolean {
-        visibleSettings.forEach {
+        visibleWidgets.forEach {
             if (it.mouseScrolled(mouseX, mouseY, delta)) {
                 return true
             }
@@ -265,7 +265,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
     }
 
     fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
-        visibleSettings.forEach {
+        visibleWidgets.forEach {
             if (it.keyPressed(keyCode, scanCode, modifiers)) {
                 return true
             }
@@ -274,7 +274,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
     }
 
     fun charTyped(codePoint: Char): Boolean {
-        visibleSettings.forEach {
+        visibleWidgets.forEach {
             if (it.charTyped(codePoint)) {
                 return true
             }
