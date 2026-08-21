@@ -12,19 +12,17 @@ import java.awt.Color
  * @see com.github.noamm9.mixin.MixinGui.onRenderHudPost
  */
 object DarkMode: Feature("Darkens the screen") {
-    private val opacity by SliderSetting("Opacity", 25, 1, 100, 1).withDescription("The strength of the dark tint.")
+    private val opacity by SliderSetting("Opacity", 25, 1, 80, 1, "%").withDescription("The strength of the dark tint.")
 
     @JvmStatic
     val tintHud by ToggleSetting("Tint HUD").withDescription("Should the dark tint also apply to HUD elements?")
 
     @JvmStatic
     fun drawOverlay(ctx: GuiGraphicsExtractor) {
-        if (! enabled) return
-        val window = mc.window
-        ctx.fill(
+        if (enabled) ctx.fill(
             0, 0,
-            window.guiScaledWidth,
-            window.guiScaledHeight,
+            mc.window.guiScaledWidth,
+            mc.window.guiScaledHeight,
             Color.BLACK.withAlpha(opacity.value / 100f).rgb
         )
     }
