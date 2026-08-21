@@ -1,20 +1,16 @@
 package com.github.noamm9.ui.clickgui.components.impl
 
-import com.github.noamm9.config.Savable
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.ColorUtils.lerp
 import com.github.noamm9.utils.render.Render2D.drawRect
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.booleanOrNull
-import kotlinx.serialization.json.jsonPrimitive
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
-class ToggleSetting(name: String, value: Boolean = false): Setting<Boolean>(name, value), Savable {
-    private val toggleAnim = Animation(200, if (value) 1f else 0f)
+class ToggleWidget(config: ToggleSetting): Setting<Boolean>(config) {
+    private val toggleAnim = Animation(200, if (config.value) 1f else 0f)
     private val hoverAnim = Animation(200, 0f)
 
     override fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
@@ -42,10 +38,5 @@ class ToggleSetting(name: String, value: Boolean = false): Setting<Boolean>(name
             return true
         }
         return false
-    }
-
-    override fun write() = JsonPrimitive(value)
-    override fun read(element: JsonElement?) {
-        value = element?.jsonPrimitive?.booleanOrNull ?: return
     }
 }

@@ -2,6 +2,9 @@ package com.github.noamm9.features.impl.floor7.devices
 
 //#if CHEAT
 
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.BlockChangeEvent
 import com.github.noamm9.event.impl.ChatMessageEvent
@@ -10,9 +13,6 @@ import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.MelodyDisplay
 import com.github.noamm9.features.impl.floor7.devices.I4Helper.getPredictionTarget
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.utils.Animation.Companion.easeInOutCubic
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ActionUtils.queue

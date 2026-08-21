@@ -2,10 +2,10 @@ package com.github.noamm9.features.impl.dungeon
 
 //#if CHEAT
 
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket

@@ -3,9 +3,9 @@ package com.github.noamm9.features.impl.general
 //#if CHEAT
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.dungeons.DungeonUtils

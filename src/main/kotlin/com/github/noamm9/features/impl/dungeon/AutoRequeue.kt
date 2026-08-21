@@ -1,11 +1,11 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.general.PartyHelper
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.PartyUtils
 import com.github.noamm9.utils.ThreadUtils

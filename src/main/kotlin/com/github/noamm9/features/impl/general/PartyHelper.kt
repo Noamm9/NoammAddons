@@ -1,21 +1,17 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.config.types.MultiCheckboxSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.MultiCheckboxSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.NumbersUtils.toFixed
-import com.github.noamm9.utils.PartyUtils
 import com.github.noamm9.utils.PartyUtils.isLeader
-import com.github.noamm9.utils.ServerUtils
 import com.github.noamm9.utils.dungeons.DungeonUtils
-import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.startsWithOneOf
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component

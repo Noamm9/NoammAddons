@@ -1,12 +1,12 @@
 package com.github.noamm9.features.impl.general
 
 import com.github.noamm9.config.PogObject
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.KeybindSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.IAbstractContainerScreen
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawLine

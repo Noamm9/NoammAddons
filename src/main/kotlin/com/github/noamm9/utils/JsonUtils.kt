@@ -11,8 +11,10 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.modules.SerializersModule
+import com.google.gson.GsonBuilder
 import net.minecraft.core.BlockPos
 import java.awt.Color
+import java.io.File
 
 object JsonUtils {
     val json = Json {
@@ -23,6 +25,14 @@ object JsonUtils {
             contextual(BlockPos::class, BlockPosSerializer)
         }
     }
+
+    val gsonBuilder = GsonBuilder().setPrettyPrinting().disableHtmlEscaping().apply {
+        registerTypeAdapter(BlockPos::class.java, GsonUtils.BlockPosAdapter())
+        registerTypeAdapter(Color::class.java, GsonUtils.ColorAdapter())
+        registerTypeAdapter(Regex::class.java, GsonUtils.RegexAdapter())
+    }
+
+    fun toJson(file: File, obj: Any) = FileHandler(file).write(gsonBuilder.create().toJson(obj))
 
     fun JsonObject.getObj(key: String) = this[key]?.jsonObject
     fun JsonObject.getString(key: String) = this[key]?.jsonPrimitive?.content

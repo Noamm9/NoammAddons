@@ -1,13 +1,13 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.init.NetworkLoop
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting

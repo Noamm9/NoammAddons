@@ -1,12 +1,12 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.config.types.KeybindSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.IKeyMapping
-import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.ThreadUtils

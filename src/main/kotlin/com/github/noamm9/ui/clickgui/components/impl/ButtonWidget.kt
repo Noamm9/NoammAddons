@@ -1,5 +1,6 @@
 package com.github.noamm9.ui.clickgui.components.impl
 
+import com.github.noamm9.config.types.ButtonSetting
 import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
@@ -10,7 +11,9 @@ import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
-class ButtonSetting(name: String, val playSound: Boolean = true, val action: () -> Unit): Setting<Unit>(name, Unit) {
+class ButtonWidget(config: ButtonSetting): Setting<Unit>(config) {
+    private inline val cfg get() = config as ButtonSetting
+
     private val hoverAnim = Animation(200)
 
     override fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
@@ -39,8 +42,8 @@ class ButtonSetting(name: String, val playSound: Boolean = true, val action: () 
 
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
         if (button == 0 && mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
-            if (playSound) Style.playClickSound(1f)
-            action.invoke()
+            if (cfg.playSound) Style.playClickSound(1f)
+            cfg.action.invoke()
             return true
         }
         return false

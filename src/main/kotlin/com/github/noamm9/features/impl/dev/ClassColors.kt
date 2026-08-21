@@ -1,10 +1,10 @@
 package com.github.noamm9.features.impl.dev
 
+import com.github.noamm9.config.ConfigHolder
+import com.github.noamm9.config.types.ButtonSetting
+import com.github.noamm9.config.types.ColorCodeSetting
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.annotations.AlwaysActive
-import com.github.noamm9.ui.clickgui.components.Setting
-import com.github.noamm9.ui.clickgui.components.impl.ButtonSetting
-import com.github.noamm9.ui.clickgui.components.impl.ColorCodeSetting
 import net.minecraft.ChatFormatting
 
 @AlwaysActive
@@ -17,8 +17,8 @@ object ClassColors: Feature("Allows setting custom color for every dungeon class
     val emptyCode = ColorCodeSetting("Empty Code", ChatFormatting.BLACK)
 
     private val reset by ButtonSetting("Reset Colors") {
-        configSettings.forEach(Setting<*>::reset)
+        configSettings.forEach(ConfigHolder<*>::reset)
     }
 
-    override fun toggle() {}
+    override fun toggle() = Unit
 }

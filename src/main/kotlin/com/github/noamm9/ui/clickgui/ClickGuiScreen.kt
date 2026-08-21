@@ -1,7 +1,7 @@
 package com.github.noamm9.ui.clickgui
 
 import com.github.noamm9.NoammAddons.MOD_ID
-import com.github.noamm9.config.Config
+import com.github.noamm9.config.ConfigManager
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.clickgui.enums.CategoryType
@@ -311,7 +311,7 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
         configWindows.clear()
         searchHandler.listening = false
         MouseHelper.resetCursor()
-        Config.save()
+        ConfigManager.save()
         super.onClose()
     }
 }

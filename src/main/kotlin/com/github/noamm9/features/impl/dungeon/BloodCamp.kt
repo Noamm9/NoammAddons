@@ -1,11 +1,11 @@
 package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.NoammAddons.PREFIX
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.invert
 import com.github.noamm9.utils.MathUtils.aabb

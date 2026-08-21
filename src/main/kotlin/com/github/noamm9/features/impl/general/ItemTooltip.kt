@@ -1,12 +1,12 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlay
 import com.github.noamm9.init.NetworkLoop
 import com.github.noamm9.mixin.IAbstractContainerScreen
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.NumbersUtils.formatComma
 import com.github.noamm9.utils.items.ItemUtils.customData
 import com.github.noamm9.utils.items.ItemUtils.marketId

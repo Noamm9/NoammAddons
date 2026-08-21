@@ -1,20 +1,16 @@
 package com.github.noamm9.ui.clickgui.components
 
-import com.github.noamm9.NoammAddons
+import com.github.noamm9.config.ConfigHolder
 import net.minecraft.client.gui.GuiGraphicsExtractor
 
-abstract class Setting<T>(val name: String, val defaultValue: T) {
-    private var _jsonName = name
+abstract class Setting<T>(val config: ConfigHolder<T>)/*: Renderable, GuiEventListener*/ {
+    val name get() = config.name
+    val defaultValue get() = config.defaultValue
 
-    fun jsonName() = _jsonName
-    fun jsonName(str: String) = ::_jsonName.set(str).let { this }
-
-    open var value: T = defaultValue
+    open var value: T
+        get() = config.value
         set(value) {
-            if (NoammAddons.isLoaded) {
-                changeListener?.invoke(value)
-            }
-            field = value
+            config.value = value
         }
 
     var x = 0
@@ -23,13 +19,13 @@ abstract class Setting<T>(val name: String, val defaultValue: T) {
     var width = 0
     open val height: Int get() = 20
 
-    var headerName: String? = null
-    var description: String? = null
+    var visibility: () -> Boolean
+        get() = config.visibility
+        set(value) {
+            config.visibility = value
+        }
 
-    var visibility: () -> Boolean = { true }
-    var changeListener: ((T) -> Unit)? = null
-
-    fun reset() = ::value.set(defaultValue)
+    fun reset() = config.reset()
 
     abstract fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int)
     abstract fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean

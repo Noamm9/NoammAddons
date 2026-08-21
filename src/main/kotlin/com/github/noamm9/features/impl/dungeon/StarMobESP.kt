@@ -1,12 +1,12 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.CheckEntityGlowEvent
 import com.github.noamm9.event.impl.EntityUnloadEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.equalsOneOf

@@ -3,11 +3,11 @@ package com.github.noamm9.features.impl.dev
 import com.github.noamm9.NoammAddons.MOD_NAME
 import com.github.noamm9.NoammAddons.MOD_VERSION
 import com.github.noamm9.NoammAddons.logger
+import com.github.noamm9.config.types.ButtonSetting
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.GameStartEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ButtonSetting
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.network.WebUtils

@@ -3,13 +3,13 @@ package com.github.noamm9.features.impl.general
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.commands.CommandBuilder
 import com.github.noamm9.config.PogObject
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.interfaces.IChatComponent
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.removeFormatting

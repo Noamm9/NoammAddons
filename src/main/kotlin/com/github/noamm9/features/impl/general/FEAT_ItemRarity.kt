@@ -1,11 +1,11 @@
 package com.github.noamm9.features.impl.general
 
 import com.github.noamm9.NoammAddons.MOD_ID
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.items.ItemRarity
 import com.github.noamm9.utils.items.ItemUtils

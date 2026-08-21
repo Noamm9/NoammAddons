@@ -1,16 +1,15 @@
 package com.github.noamm9.ui.clickgui.components.impl
 
-import com.github.noamm9.config.Savable
+import com.github.noamm9.config.types.MultiCheckboxSetting
 import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
-import kotlinx.serialization.json.*
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
-class MultiCheckboxSetting(name: String, options: MutableMap<String, Boolean>): Setting<MutableMap<String, Boolean>>(name, options), Savable {
+class MultiCheckboxWidget(config: MultiCheckboxSetting): Setting<MutableMap<String, Boolean>>(config) {
     private var expanded = false
     private val openAnim = Animation(250)
     private val hoverAnim = Animation(200)
@@ -74,15 +73,5 @@ class MultiCheckboxSetting(name: String, options: MutableMap<String, Boolean>): 
         }
 
         return false
-    }
-
-    override fun write() = buildJsonObject {
-        value.forEach { (k, v) -> put(k, v) }
-    }
-
-    override fun read(element: JsonElement?) {
-        element?.jsonObject?.forEach { (k, v) ->
-            value[k] = v.jsonPrimitive.booleanOrNull ?: return@forEach
-        }
     }
 }

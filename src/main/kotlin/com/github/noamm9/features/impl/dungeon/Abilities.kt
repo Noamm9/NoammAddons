@@ -1,19 +1,16 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.types.KeybindSetting
+import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.KeyboardEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
 import org.lwjgl.glfw.GLFW
-
-//#if CHEAT
-import com.github.noamm9.event.impl.ChatMessageEvent
-import com.github.noamm9.utils.ChatUtils
-import com.github.noamm9.utils.dungeons.enums.DungeonClass
-//#endif
 
 object Abilities: Feature(
     //#if CHEAT

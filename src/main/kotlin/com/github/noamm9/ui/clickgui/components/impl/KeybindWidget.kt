@@ -1,22 +1,20 @@
 package com.github.noamm9.ui.clickgui.components.impl
 
-import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.config.Savable
+import com.github.noamm9.config.types.KeybindSetting
 import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
 import com.mojang.blaze3d.platform.InputConstants
-import kotlinx.serialization.json.*
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import org.lwjgl.glfw.GLFW
 
-class KeybindSetting(name: String, value: Int = InputConstants.UNKNOWN.value): Setting<Int>(name, value), Savable {
+class KeybindWidget(config: KeybindSetting): Setting<Int>(config) {
+    private inline val cfg get() = config as KeybindSetting
+
     private val hoverAnim = Animation(200)
     private var listening = false
-    private var scanCode = 0
-    var isMouse = false
 
     override fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
         val isHovered = mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height
@@ -28,7 +26,7 @@ class KeybindSetting(name: String, value: Int = InputConstants.UNKNOWN.value): S
 
         val bindText = when {
             listening -> "§b..."
-            else -> "§7${displayName()}"
+            else -> "§7${cfg.displayName()}"
         }
         ctx.drawString(bindText, x + width - bindText.width() - 8f, y + 6f)
     }
@@ -38,8 +36,8 @@ class KeybindSetting(name: String, value: Int = InputConstants.UNKNOWN.value): S
 
         if (listening) {
             this.value = button
-            this.isMouse = true
-            this.scanCode = 0
+            cfg.isMouse = true
+            cfg.scanCode = 0
             this.listening = false
             Style.playClickSound(1f)
             return true
@@ -62,12 +60,12 @@ class KeybindSetting(name: String, value: Int = InputConstants.UNKNOWN.value): S
 
             if (keyCode == GLFW.GLFW_KEY_BACKSPACE) {
                 value = InputConstants.UNKNOWN.value
-                isMouse = false
+                cfg.isMouse = false
             }
             else {
                 this.value = keyCode
-                this.scanCode = scanCode
-                this.isMouse = false
+                cfg.scanCode = scanCode
+                cfg.isMouse = false
             }
             listening = false
             return true
@@ -75,38 +73,11 @@ class KeybindSetting(name: String, value: Int = InputConstants.UNKNOWN.value): S
         return false
     }
 
-    override fun write() = buildJsonObject {
-        put("key", value)
-        put("scan", scanCode)
-        put("isMouse", isMouse)
-    }
+    fun displayName(): String = cfg.displayName()
 
-    override fun read(element: JsonElement?) {
-        val obj = element?.jsonObject ?: return
-        value = obj["key"]?.jsonPrimitive?.intOrNull ?: return
-        scanCode = obj["scan"]?.jsonPrimitive?.intOrNull ?: return
-        isMouse = obj["isMouse"]?.jsonPrimitive?.booleanOrNull ?: false
-    }
+    fun isDown(): Boolean = cfg.isDown()
 
-    fun displayName(): String {
-        if (value == InputConstants.UNKNOWN.value) return "NONE"
-        val type = if (isMouse) InputConstants.Type.MOUSE else InputConstants.Type.KEYSYM
-        return type.getOrCreate(value).displayName.string.uppercase()
-    }
+    fun isPressed(): Boolean = cfg.isPressed()
 
-    fun isDown(): Boolean {
-        if (value == InputConstants.UNKNOWN.value) return false
-        return if (isMouse) GLFW.glfwGetMouseButton(mc.window.handle(), value) == GLFW.GLFW_PRESS
-        else InputConstants.isKeyDown(mc.window, value)
-    }
-
-    private var previousState = false
-    fun isPressed(): Boolean {
-        val currentState = isDown()
-        val wasPressed = ! previousState && currentState
-        previousState = currentState
-        return wasPressed
-    }
-
-    fun matches(code: Int, mouse: Boolean) = value != InputConstants.UNKNOWN.value && isMouse == mouse && value == code
+    fun matches(code: Int, mouse: Boolean) = cfg.matches(code, mouse)
 }

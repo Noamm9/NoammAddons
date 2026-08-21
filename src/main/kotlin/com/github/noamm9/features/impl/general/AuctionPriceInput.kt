@@ -1,11 +1,11 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.MultiCheckboxSetting
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.NetworkLoop
 import com.github.noamm9.mixin.IAbstractSignEditScreen
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.MultiCheckboxSetting
 import com.github.noamm9.ui.utils.componnents.UIButton
 import com.github.noamm9.ui.utils.componnents.UISearchBox
 import com.github.noamm9.utils.ChatUtils.unformattedText

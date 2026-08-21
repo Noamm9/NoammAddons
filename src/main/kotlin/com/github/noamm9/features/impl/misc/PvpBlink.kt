@@ -2,13 +2,13 @@ package com.github.noamm9.features.impl.misc
 
 //#if CHEAT
 
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.KeybindSetting
+import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.Render3D.renderBox
 import net.minecraft.network.protocol.Packet

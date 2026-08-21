@@ -1,16 +1,16 @@
 package com.github.noamm9.features.impl.dungeon.map
 
-import com.github.noamm9.ui.clickgui.components.Setting
-import com.github.noamm9.ui.clickgui.components.SettingProvider
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.ConfigHolder
+import com.github.noamm9.config.SettingProvider
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import java.awt.Color
 
 object MapConfig: SettingProvider {
-    override val configSettings = mutableSetOf<Setting<*>>()
+    override val configSettings = mutableSetOf<ConfigHolder<*>>()
 
     val mapEnabled by ToggleSetting("Map Enabled", true).section("Map")
 

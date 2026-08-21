@@ -1,12 +1,15 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.GameStartEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.ModCompatibility
-import com.github.noamm9.ui.clickgui.components.impl.*
 import com.github.noamm9.utils.ActionBarParser
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils

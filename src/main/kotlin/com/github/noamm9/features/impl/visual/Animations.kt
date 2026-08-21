@@ -1,10 +1,10 @@
 package com.github.noamm9.features.impl.visual
 
+import com.github.noamm9.config.ConfigHolder
+import com.github.noamm9.config.types.ButtonSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.Setting
-import com.github.noamm9.ui.clickgui.components.impl.ButtonSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 
 object Animations: Feature("Allows you to modify your hand view-model") {
     @JvmStatic val mainHandItemScale by SliderSetting("Item Scale", 0.0, - 1.5f, 1.5f, 0.05f).withDescription("0 is normal size. -0.5 is half size. 1 is double size.")
@@ -30,7 +30,7 @@ object Animations: Feature("Allows you to modify your hand view-model") {
     @JvmStatic val ignoreHaste by ToggleSetting("Ignore Haste").withDescription("Ignores the haste speed boost.").hideIf { disableSwingAnimation.value && ! terminatorOnly.value }
 
     private val reset by ButtonSetting("Reset") {
-        configSettings.forEach(Setting<*>::reset)
+        configSettings.forEach(ConfigHolder<*>::reset)
     }
 }
 

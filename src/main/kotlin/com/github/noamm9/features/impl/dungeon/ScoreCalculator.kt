@@ -1,10 +1,10 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.ConfigHolder
+import com.github.noamm9.config.types.TextInputSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.Setting
-import com.github.noamm9.ui.clickgui.components.impl.TextInputSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils
 import com.github.noamm9.utils.NumbersUtils
@@ -34,8 +34,8 @@ object ScoreCalculator: Feature("Shows the score of the dungeon run.") {
 
     private data class Milestone(
         val score: Int, val sendMessage: ToggleSetting,
-        val message: Setting<String>, val sendTitle: ToggleSetting,
-        val title: Setting<String>
+        val message: ConfigHolder<String>, val sendTitle: ToggleSetting,
+        val title: ConfigHolder<String>
     )
 
     private val milestones by lazy {

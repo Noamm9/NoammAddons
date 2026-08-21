@@ -1,13 +1,13 @@
 package com.github.noamm9.features.impl.visual
 
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.ILocalPlayer
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ColorUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.NumbersUtils.toFixed

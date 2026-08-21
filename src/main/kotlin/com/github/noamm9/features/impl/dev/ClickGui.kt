@@ -1,10 +1,10 @@
 package com.github.noamm9.features.impl.dev
 
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.KeyboardEvent
 import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.ClickGuiScreen
-import com.github.noamm9.ui.clickgui.components.impl.*
 import com.github.noamm9.ui.hud.HudEditorScreen
 import com.github.noamm9.utils.GuiUtils
 import org.lwjgl.glfw.GLFW
@@ -24,7 +24,7 @@ object ClickGui: Feature("A feature used to change the ClickGui configuration.",
 
     val resetButton by ButtonSetting("Reset Settings") {
         playClickSound.value = true
-        accentColor.value = accentColor.defaultValue
+        accentColor.reset()
     }.withDescription("Reverts settings back to their original values.")
 
     override fun init() {

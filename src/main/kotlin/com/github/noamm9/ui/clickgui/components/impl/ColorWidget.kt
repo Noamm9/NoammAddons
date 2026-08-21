@@ -1,7 +1,7 @@
 package com.github.noamm9.ui.clickgui.components.impl
 
 import com.github.noamm9.NoammAddons
-import com.github.noamm9.config.Savable
+import com.github.noamm9.config.types.ColorSetting
 import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
@@ -11,15 +11,16 @@ import com.github.noamm9.utils.render.Render2D.drawHorizontalGradient
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.drawVerticalGradient
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.intOrNull
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
 import java.util.*
 
-class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = true): Setting<Color>(name, defaultValue), Savable {
+class ColorWidget(config: ColorSetting): Setting<Color>(config) {
+    private inline val cfg get() = config as ColorSetting
+
+    override val height get() = 20 + (openAnim.value * 115).toInt()
+
     private var expanded = false
     private val openAnim = Animation(250)
     private val hoverAnim = Animation(200)
@@ -28,6 +29,8 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
     private var s: Float = 0f
     private var b: Float = 0f
     private var a: Float = 1f
+
+    private var lastSynced = config.value
 
     private var draggingSV = false
     private var draggingHue = false
@@ -38,27 +41,33 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
     private var hexText = ""
 
     init {
+        syncFromValue()
+    }
+
+    private fun syncFromValue() {
         val hsb = Color.RGBtoHSB(value.red, value.green, value.blue, null)
         h = hsb[0]; s = hsb[1]; b = hsb[2]
         a = value.alpha / 255f
         updateHexText()
+        lastSynced = value
     }
 
     private fun updateColorFromHSB() {
         val rgb = Color.HSBtoRGB(h, s, b)
         super.value = Color(rgb).withAlpha((a * 255).toInt())
+        lastSynced = value
         updateHexText()
     }
 
     private fun updateHexText() {
-        hexText = if (withAlpha) String.format(Locale.US, "%02x%02x%02x%02x", value.red, value.green, value.blue, value.alpha)
+        hexText = if (cfg.withAlpha) String.format(Locale.US, "%02x%02x%02x%02x", value.red, value.green, value.blue, value.alpha)
         else String.format(Locale.US, "%02x%02x%02x", value.red, value.green, value.blue)
         hexText = hexText.uppercase()
     }
 
-    override val height get() = 20 + (openAnim.value * 115).toInt()
-
     override fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
+        if (value != lastSynced) syncFromValue()
+
         val isHovered = mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + 20
         openAnim.update(if (expanded) 1f else 0f)
         hoverAnim.update(if (isHovered) 1f else 0f)
@@ -68,7 +77,7 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
         Style.drawNudgedText(ctx, name, x + 8f, y + 6f, hoverAnim.value)
 
         val previewX = x + width - 18f
-        if (withAlpha) drawCheckerboard(ctx, previewX, y + 6f, 8f, 8f, 2)
+        if (cfg.withAlpha) drawCheckerboard(ctx, previewX, y + 6f, 8f, 8f, 2)
         ctx.drawRect(previewX, y + 6f, 8f, 8f, value)
 
         ctx.enableScissor(x, y, x + width, y + height)
@@ -79,7 +88,7 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
             handleInputs(mouseX, mouseY, pickerY, pickerSize)
 
             var currentX = x + 10f
-            if (withAlpha) {
+            if (cfg.withAlpha) {
                 drawVerticalAlphaBar(ctx, currentX, pickerY, 10f, pickerSize)
                 currentX += 15f
             }
@@ -111,14 +120,14 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
 
         var currentX = x + 10f
         val aX = currentX
-        if (withAlpha) currentX += 15f
+        if (cfg.withAlpha) currentX += 15f
         val hX = currentX
         currentX += 15f
         val svX = currentX
         val svW = (x + width - 10f) - svX
 
         if (! draggingSV && ! draggingHue && ! draggingAlpha) {
-            draggingAlpha = withAlpha && mx >= aX && mx <= aX + 10 && my >= py && my <= py + ps
+            draggingAlpha = cfg.withAlpha && mx >= aX && mx <= aX + 10 && my >= py && my <= py + ps
             draggingHue = mx >= hX && mx <= hX + 10 && my >= py && my <= py + ps
             draggingSV = mx >= svX && mx <= svX + svW && my >= py && my <= py + ps
         }
@@ -138,7 +147,7 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
     override fun charTyped(codePoint: Char): Boolean {
         if (expanded && hexFocused) {
             val codePoint = codePoint.lowercase()
-            if (validHexChars.contains(codePoint) && hexText.length < (if (withAlpha) 8 else 6)) {
+            if (validHexChars.contains(codePoint) && hexText.length < (if (cfg.withAlpha) 8 else 6)) {
                 hexText += codePoint.uppercase()
                 tryUpdateFromHex()
             }
@@ -160,16 +169,17 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
     }
 
     private fun tryUpdateFromHex() {
-        val req = if (withAlpha) 8 else 6
+        val req = if (cfg.withAlpha) 8 else 6
         if (hexText.length == req) catch {
             val longVal = hexText.toLong(16)
-            val c = if (withAlpha) {
+            val c = if (cfg.withAlpha) {
                 val r = ((longVal shr 24) and 0xFF).toInt()
                 val g = ((longVal shr 16) and 0xFF).toInt()
                 val b = ((longVal shr 8) and 0xFF).toInt()
                 val a = (longVal and 0xFF).toInt()
                 Color(r, g, b, a)
-            } else Color((longVal and 0xFFFFFFL).toInt())
+            }
+            else Color((longVal and 0xFFFFFFL).toInt())
 
             val hsb = Color.RGBtoHSB(c.red, c.green, c.blue, null)
             h = hsb[0]
@@ -178,6 +188,7 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
             a = c.alpha / 255f
 
             super.value = c
+            lastSynced = c
         }
     }
 
@@ -239,15 +250,5 @@ class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = t
             if (hexFocused) return true
         }
         return false
-    }
-
-    override fun write() = JsonPrimitive(value.rgb)
-    override fun read(element: JsonElement?) {
-        (element as? JsonPrimitive)?.intOrNull?.let {
-            super.value = Color(it, true)
-            val hsb = Color.RGBtoHSB(value.red, value.green, value.blue, null)
-            h = hsb[0]; s = hsb[1]; b = hsb[2]; a = value.alpha / 255f
-            updateHexText()
-        }
     }
 }

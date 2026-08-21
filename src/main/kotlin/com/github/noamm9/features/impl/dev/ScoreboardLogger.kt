@@ -2,12 +2,12 @@ package com.github.noamm9.features.impl.dev
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.logger
+import com.github.noamm9.config.types.ButtonSetting
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ButtonSetting
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ThreadUtils

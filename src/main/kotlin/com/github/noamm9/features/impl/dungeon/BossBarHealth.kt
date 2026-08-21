@@ -1,8 +1,8 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.ILerpingBossEvent
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.location.LocationUtils
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation
