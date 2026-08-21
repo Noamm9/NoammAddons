@@ -17,7 +17,7 @@ object MapConfig: SettingProvider {
     //#if CHEAT
     val dungeonMapCheater by ToggleSetting("Cheater Map", false)
     //#else
-    //$val dungeonMapCheater by BooleanConfig("Legit", false).hideIf { true }
+    //$val dungeonMapCheater by ToggleSetting("Legit", false).hideIf { true }
     //#endif
 
     val mapExtraInfo by ToggleSetting("Show Extra Info Under Map", false)
@@ -45,8 +45,8 @@ object MapConfig: SettingProvider {
     val mimicEsp by ToggleSetting("Mimic ESP")
 
     //#else
-    //$val highlightMimicRoom by BooleanConfig("Highlight Mimic Room Legit", false).hideIf { true }
-    //$val mimicEsp by BooleanConfig("Mimic ESP Legit", false).hideIf { true }
+    //$val highlightMimicRoom by ToggleSetting("Highlight Mimic Room Legit", false).hideIf { true }
+    //$val mimicEsp by ToggleSetting("Mimic ESP Legit", false).hideIf { true }
     //#endif
     val mimicEspColor by ColorSetting("Mimic ESP Color", Color(255, 0, 0, 50), true).showIf { mimicEsp.value }
 

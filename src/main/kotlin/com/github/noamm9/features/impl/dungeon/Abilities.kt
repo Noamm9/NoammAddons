@@ -1,6 +1,5 @@
 package com.github.noamm9.features.impl.dungeon
 
-//#if CHEAT
 import com.github.noamm9.config.types.KeybindSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ChatMessageEvent
@@ -12,8 +11,6 @@ import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
 import org.lwjgl.glfw.GLFW
-
-//#endif
 
 object Abilities: Feature(
     //#if CHEAT
