@@ -1,9 +1,9 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.CheckEntityGlowEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render3D.renderString
@@ -12,8 +12,8 @@ import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.world.entity.Entity
 
 object TeammateESP: Feature("Highlights your dungeon party.") {
-    private val highlight by BooleanConfig("Highlight Teammates", true)
-    private val drawName by BooleanConfig("Show Teammate Name", true)
+    private val highlight by ToggleSetting("Highlight Teammates", true)
+    private val drawName by ToggleSetting("Show Teammate Name", true)
 
     private val cache = HashMap<Int, Boolean>()
 

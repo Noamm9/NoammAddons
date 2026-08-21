@@ -1,10 +1,10 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.config.types.ColorConfig
-import com.github.noamm9.config.types.NumberConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.MathUtils.add
@@ -17,12 +17,12 @@ import com.github.noamm9.utils.render.Render3D.renderCircle
 import net.minecraft.tags.BlockTags
 
 object GyroHelper: Feature("Renders a circle where your gyro will be located.", "Gyro Helper") {
-    private val drawBox by BooleanConfig("Draw Box", true).withDescription("Draws a box in the middle of the Gyrokinetic Wand sucking range").section("Render")
-    private val drawRing by BooleanConfig("Draw Sucking Range", true).withDescription("Draws the sucking range of the Gyrokinetic Wand")
-    private val lineWidth by NumberConfig("Ring Width", 2, 1, 10, 1).withDescription("Controls the thickness of the ring")
+    private val drawBox by ToggleSetting("Draw Box", true).withDescription("Draws a box in the middle of the Gyrokinetic Wand sucking range").section("Render")
+    private val drawRing by ToggleSetting("Draw Sucking Range", true).withDescription("Draws the sucking range of the Gyrokinetic Wand")
+    private val lineWidth by SliderSetting("Ring Width", 2, 1, 10, 1).withDescription("Controls the thickness of the ring")
 
-    private val boxColor by ColorConfig("Box Color", Utils.favoriteColor.withAlpha(0.3f)).section("Color")
-    private val ringColor by ColorConfig("Ring Color", Utils.favoriteColor)
+    private val boxColor by ColorSetting("Box Color", Utils.favoriteColor.withAlpha(0.3f)).section("Color")
+    private val ringColor by ColorSetting("Ring Color", Utils.favoriteColor)
 
     override fun init() {
         register<RenderWorldEvent> {

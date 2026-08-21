@@ -1,12 +1,12 @@
 package com.github.noamm9.features.impl.visual
 
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.DungeonListener.DualTime
@@ -18,10 +18,10 @@ import com.github.noamm9.utils.render.RenderHelper.width
 import java.util.concurrent.*
 
 object RunSplits: Feature("A Splits HUD for Dungeons.") {
-    private val showWitherDoors by BooleanConfig("Show Wither Doors").withDescription("Show The Number of Wither Doors in the run")
-    private val showTotalTime by BooleanConfig("Total Time").withDescription("Shows the total run time.")
-    private val showTimeLost by BooleanConfig("Show Time Lost").withDescription("Shows the total time run time that was lost due to server lags.")
-    private val show300Score by BooleanConfig("Show 300 Score Time").withDescription("Shows when 300 score was reached.")
+    private val showWitherDoors by ToggleSetting("Show Wither Doors").withDescription("Show The Number of Wither Doors in the run")
+    private val showTotalTime by ToggleSetting("Total Time").withDescription("Shows the total run time.")
+    private val showTimeLost by ToggleSetting("Show Time Lost").withDescription("Shows the total time run time that was lost due to server lags.")
+    private val show300Score by ToggleSetting("Show 300 Score Time").withDescription("Shows when 300 score was reached.")
 
     private val floorSplits = DataDownloader.loadJson<Map<String, List<DialogueEntry>>>("runSplits.json")
     private val runEndRegex = Regex("^\\s*☠ Defeated (.+) in 0?([\\dhms ]+?)\\s*(\\(NEW RECORD!\\))?$")

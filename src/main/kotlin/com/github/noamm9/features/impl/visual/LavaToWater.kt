@@ -1,8 +1,8 @@
 package com.github.noamm9.features.impl.visual
 
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.features.Feature
-import com.github.noamm9.config.types.ColorConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.equalsOneOf
 import net.minecraft.client.color.block.BlockTintSources
 import net.minecraft.client.renderer.block.FluidModel
@@ -18,9 +18,9 @@ import java.awt.Color
  */
 @Suppress("UNNECESSARY_SAFE_CALL") // mc.levelRenderer is null at game init
 object LavaToWater: Feature("Replaces lava with the water texture") {
-    @JvmStatic val colorTint by BooleanConfig("Color Tint", false)
-    @JvmStatic val tintColor by ColorConfig("Tint Color", Color(63, 118, 228), false).showIf { colorTint.value }
-    @JvmStatic val hideFog by BooleanConfig("Hide fog", true).withDescription("Removes the lava fog")
+    @JvmStatic val colorTint by ToggleSetting("Color Tint", false)
+    @JvmStatic val tintColor by ColorSetting("Tint Color", Color(63, 118, 228), false).showIf { colorTint.value }
+    @JvmStatic val hideFog by ToggleSetting("Hide fog", true).withDescription("Removes the lava fog")
 
     override fun init() = configSettings.forEach { it.onChange { if (enabled) mc.levelRenderer?.allChanged() } }
 

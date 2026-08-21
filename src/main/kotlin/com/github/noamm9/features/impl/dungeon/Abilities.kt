@@ -1,18 +1,18 @@
 package com.github.noamm9.features.impl.dungeon
 
-import com.github.noamm9.config.types.BooleanConfig
+//#if CHEAT
+import com.github.noamm9.config.types.KeybindSetting
+import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.KeyboardEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.config.types.KeybindConfig
+import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
 import org.lwjgl.glfw.GLFW
 
-//#if CHEAT
-import com.github.noamm9.event.impl.ChatMessageEvent
-import com.github.noamm9.utils.ChatUtils
-import com.github.noamm9.utils.dungeons.enums.DungeonClass
 //#endif
 
 object Abilities: Feature(
@@ -22,11 +22,11 @@ object Abilities: Feature(
     //$"Allows you to use dungeon class abilities with keybinds."
     //#endif
 ) {
-    private val ultKeybind by KeybindConfig("Ultimate Keybind").section("Keybinds")
-    private val abilityKeybind by KeybindConfig("Ability Keybind")
+    private val ultKeybind by KeybindSetting("Ultimate Keybind").section("Keybinds")
+    private val abilityKeybind by KeybindSetting("Ability Keybind")
 
     //#if CHEAT
-    private val autoUlt by BooleanConfig("Auto Use Ultimate").section("Auto Ultimate")
+    private val autoUlt by ToggleSetting("Auto Use Ultimate").section("Auto Ultimate")
 
     private class UltMessage(val msg: String, val classes: List<DungeonClass>, val floor: Int)
 

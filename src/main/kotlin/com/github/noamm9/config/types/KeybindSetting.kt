@@ -8,7 +8,7 @@ import com.google.gson.JsonElement
 import com.mojang.blaze3d.platform.InputConstants
 import org.lwjgl.glfw.GLFW
 
-class KeybindConfig(
+class KeybindSetting(
     name: String,
     defaultValue: Int = InputConstants.UNKNOWN.value
 ): ConfigHolder<Int>(name, defaultValue), Savable {

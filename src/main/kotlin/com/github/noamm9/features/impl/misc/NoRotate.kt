@@ -2,13 +2,13 @@ package com.github.noamm9.features.impl.misc
 
 //#if CHEAT
 
+import com.github.noamm9.config.types.MultiCheckboxSetting
+import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.ILocalPlayer
-import com.github.noamm9.config.types.MultiChoiceConfig
-import com.github.noamm9.config.types.NumberConfig
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.destructured
@@ -31,9 +31,9 @@ import net.minecraft.world.phys.Vec3
 import java.util.concurrent.*
 
 object NoRotate: Feature("Prevents the server from snapping back your head when teleporting.") {
-    private val tpItems by MultiChoiceConfig("Teleport Items", mutableMapOf(Pair("Etherwarp", false), Pair("Instant Transmission", false), Pair("Wither Impact", false)))
-    val zeroPingCamera by MultiChoiceConfig("Zero Ping Camera", mutableMapOf(Pair("Etherwarp", false), Pair("Instant Transmission", false), Pair("Wither Impact", false))).withDescription("Instently sets your camera at the teleport position.")
-    private val resyncTimeout by NumberConfig("Resync Timeout", 500, 300, 1000, 50).showIf { zeroPingCamera.value.values.any { it } }.withDescription("time in miliseconds of how long should it take for the detected teleport to time out")
+    private val tpItems by MultiCheckboxSetting("Teleport Items", mutableMapOf(Pair("Etherwarp", false), Pair("Instant Transmission", false), Pair("Wither Impact", false)))
+    val zeroPingCamera by MultiCheckboxSetting("Zero Ping Camera", mutableMapOf(Pair("Etherwarp", false), Pair("Instant Transmission", false), Pair("Wither Impact", false))).withDescription("Instently sets your camera at the teleport position.")
+    private val resyncTimeout by SliderSetting("Resync Timeout", 500, 300, 1000, 50).showIf { zeroPingCamera.value.values.any { it } }.withDescription("time in miliseconds of how long should it take for the detected teleport to time out")
 
     val pendingTeleports = CopyOnWriteArrayList<TeleportUtils.Prediction>()
     private var lastWitherImpact = System.currentTimeMillis()

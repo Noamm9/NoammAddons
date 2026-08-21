@@ -6,7 +6,7 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
 import java.awt.Color
 
-class ColorConfig(name: String, defaultValue: Color, val withAlpha: Boolean = true): ConfigHolder<Color>(name, defaultValue), Savable {
+class ColorSetting(name: String, defaultValue: Color, val withAlpha: Boolean = true): ConfigHolder<Color>(name, defaultValue), Savable {
     override fun write() = JsonPrimitive(value.rgb)
     override fun read(element: JsonElement) {
         val rgb = element.asInt

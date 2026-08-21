@@ -1,8 +1,8 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.PlayerInteractEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.core.RoomType
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
@@ -14,10 +14,10 @@ import net.minecraft.sounds.SoundSource
 import net.minecraft.world.level.block.Blocks
 
 object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
-    private val preventBreakingSecrets by BooleanConfig("Prevent Secret Mine").withDescription("Prevents you from breaking secret blocks like chests & levers.")
+    private val preventBreakingSecrets by ToggleSetting("Prevent Secret Mine").withDescription("Prevents you from breaking secret blocks like chests & levers.")
 
     //#if CHEAT
-    private val zeroPing by BooleanConfig("Zero Ping").withDescription("Removes the blocks you mine instantly instead of waiting for the server to remove them.")
+    private val zeroPing by ToggleSetting("Zero Ping").withDescription("Removes the blocks you mine instantly instead of waiting for the server to remove them.")
     //#endif
 
     private val blacklist = setOf(

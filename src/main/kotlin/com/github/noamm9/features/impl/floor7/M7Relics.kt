@@ -1,10 +1,10 @@
 package com.github.noamm9.features.impl.floor7
 
 import com.github.noamm9.config.PersonalBest
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.config.types.NumberConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.MathUtils.center
@@ -28,14 +28,14 @@ import net.minecraft.world.phys.Vec3
 import java.awt.Color
 
 object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics features") {
-    private val relicBox by BooleanConfig("Box Relics").withDescription("Draws a box on where the relics are spawning and the cauldron you need to place.")
-    private val relicSpawnTimer by BooleanConfig("Spawn Timer").withDescription("Shows on screen when the relic will spawn.")
-    private val relicTimer by BooleanConfig("Place Timer").withDescription("Sends in chat the time it took to place the relic after you picked it up.")
+    private val relicBox by ToggleSetting("Box Relics").withDescription("Draws a box on where the relics are spawning and the cauldron you need to place.")
+    private val relicSpawnTimer by ToggleSetting("Spawn Timer").withDescription("Shows on screen when the relic will spawn.")
+    private val relicTimer by ToggleSetting("Place Timer").withDescription("Sends in chat the time it took to place the relic after you picked it up.")
 
     //#if CHEAT
-    private val relicLook by BooleanConfig("Relic Look").withDescription("Automatically rotate to the relic cauldron after you pick it up.")
-    private val relicLookTime by NumberConfig("Relic Look Time", 150L, 10, 300, 1).showIf { relicLook.value }.withDescription("How fast should the auto rotate (in milliseconds)")
-    private val blockWrongRelic by BooleanConfig("Block Wrong Relic").withDescription("Prevents you from placing your relic at the wrong cauldron.")
+    private val relicLook by ToggleSetting("Relic Look").withDescription("Automatically rotate to the relic cauldron after you pick it up.")
+    private val relicLookTime by SliderSetting("Relic Look Time", 150L, 10, 300, 1).showIf { relicLook.value }.withDescription("How fast should the auto rotate (in milliseconds)")
+    private val blockWrongRelic by ToggleSetting("Block Wrong Relic").withDescription("Prevents you from placing your relic at the wrong cauldron.")
     //#endif
 
     private val relicPickUpRegex = Regex("^(\\w{3,16}) picked the Corrupted (\\w{3,6}) Relic!$")

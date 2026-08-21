@@ -1,7 +1,7 @@
 package com.github.noamm9.ui.clickgui.components.impl
 
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.config.types.SoundConfig
+import com.github.noamm9.config.types.SoundSetting
 import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
@@ -18,10 +18,10 @@ import org.lwjgl.glfw.GLFW
 import java.awt.Color
 import kotlin.math.max
 
-class SoundSetting(config: SoundConfig): Setting<SoundEvent>(config) {
-    private inline val cfg get() = config as SoundConfig
+class SoundWidget(config: SoundSetting): Setting<SoundEvent>(config) {
+    private inline val cfg get() = config as SoundSetting
 
-    private var filteredSounds = SoundConfig.allSounds
+    private var filteredSounds = SoundSetting.allSounds
     private var searchQuery = ""
 
     private val searchHandler = TextInputHandler(
@@ -137,7 +137,7 @@ class SoundSetting(config: SoundConfig): Setting<SoundEvent>(config) {
                 if (index in filteredSounds.indices) {
                     val sound = filteredSounds[index]
                     if (button == 0) {
-                        value = SoundConfig.getSound(sound.location()) !!.value()
+                        value = SoundSetting.getSound(sound.location()) !!.value()
                         Style.playClickSound(1f)
                         expanded = false
                     }
@@ -179,8 +179,8 @@ class SoundSetting(config: SoundConfig): Setting<SoundEvent>(config) {
     }
 
     private fun updateFilter() {
-        filteredSounds = if (searchQuery.isBlank()) SoundConfig.allSounds
-        else SoundConfig.allSounds.filter { cfg.prettyName(it) !!.contains(searchQuery, ignoreCase = true) }
+        filteredSounds = if (searchQuery.isBlank()) SoundSetting.allSounds
+        else SoundSetting.allSounds.filter { cfg.prettyName(it) !!.contains(searchQuery, ignoreCase = true) }
         scrollOffset = 0f
     }
 

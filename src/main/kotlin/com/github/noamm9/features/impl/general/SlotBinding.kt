@@ -1,12 +1,12 @@
 package com.github.noamm9.features.impl.general
 
 import com.github.noamm9.config.PogObject
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.KeybindSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.IAbstractContainerScreen
-import com.github.noamm9.config.types.ColorConfig
-import com.github.noamm9.config.types.KeybindConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawLine
@@ -18,13 +18,13 @@ import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 object SlotBinding: Feature("Allows you to bind slots to hotbar slots for quick item swaps.") {
-    private val bindKey by KeybindConfig("Binding key", GLFW.GLFW_KEY_R).section("Keybind").withDescription("Hold this key and click a hotbar slot and an inventory slot to link them.")
-    private val showBoundSlots by BooleanConfig("Show Bound Slots", true).section("Rendering")
-    private val neuStyle by BooleanConfig("Hover Only", false).withDescription("Only shows bound slots when hovering over a them.").showIf { showBoundSlots.value }
-    private val drawBorders by BooleanConfig("Draw Border", true).showIf { showBoundSlots.value }
-    private val drawLines by BooleanConfig("Draw Line", true).showIf { showBoundSlots.value }
-    private val borderColor by ColorConfig("Border Color", Color.PINK, false).showIf { showBoundSlots.value && drawBorders.value }.section("Colors")
-    private val lineColor by ColorConfig("Line Color", Color.WHITE, false).showIf { showBoundSlots.value && drawLines.value }
+    private val bindKey by KeybindSetting("Binding key", GLFW.GLFW_KEY_R).section("Keybind").withDescription("Hold this key and click a hotbar slot and an inventory slot to link them.")
+    private val showBoundSlots by ToggleSetting("Show Bound Slots", true).section("Rendering")
+    private val neuStyle by ToggleSetting("Hover Only", false).withDescription("Only shows bound slots when hovering over a them.").showIf { showBoundSlots.value }
+    private val drawBorders by ToggleSetting("Draw Border", true).showIf { showBoundSlots.value }
+    private val drawLines by ToggleSetting("Draw Line", true).showIf { showBoundSlots.value }
+    private val borderColor by ColorSetting("Border Color", Color.PINK, false).showIf { showBoundSlots.value && drawBorders.value }.section("Colors")
+    private val lineColor by ColorSetting("Line Color", Color.WHITE, false).showIf { showBoundSlots.value && drawLines.value }
 
     private val binds = PogObject("slotbindings", mutableMapOf<Int, Int>())
     private var previousSlot: Int? = null

@@ -1,12 +1,12 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.config.types.KeybindSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.IKeyMapping
-import com.github.noamm9.config.types.KeybindConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.ThreadUtils
@@ -19,10 +19,10 @@ import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import org.lwjgl.glfw.GLFW
 
 object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to your keyboard.") {
-    private val closeAfterUse by BooleanConfig("Auto Close On Use")
-    private val useHotbarBinds by BooleanConfig("Use Hotbar Binds")
+    private val closeAfterUse by ToggleSetting("Auto Close On Use")
+    private val useHotbarBinds by ToggleSetting("Use Hotbar Binds")
     private val keybinds = (1 .. 12).mapIndexed { index, slot ->
-        KeybindConfig("Loadout Slot $slot", when (index) {
+        KeybindSetting("Loadout Slot $slot", when (index) {
             in 0 .. 8 -> InputConstants.KEY_1 + index
             9 -> GLFW.GLFW_KEY_0
             10 -> GLFW.GLFW_KEY_MINUS
@@ -73,7 +73,7 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
             if (System.currentTimeMillis() - lastClick < 300) return@register
             if (event.key.equalsOneOf(GLFW.GLFW_KEY_ESCAPE, GLFW.GLFW_KEY_E)) return@register
             val index = if (useHotbarBinds.value) hotbarKeyMap[event.key] ?: return@register
-            else keybinds.indexOfFirst(KeybindConfig::isDown).takeUnless { it == - 1 } ?: return@register
+            else keybinds.indexOfFirst(KeybindSetting::isDown).takeUnless { it == - 1 } ?: return@register
             event.isCanceled = true
             click(index)
         }

@@ -1,9 +1,9 @@
 package com.github.noamm9.features.impl.visual
 
+import com.github.noamm9.config.types.MultiCheckboxSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ActionBarMessageEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.config.types.MultiChoiceConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ActionBarParser
 import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.location.LocationUtils
@@ -12,7 +12,7 @@ import com.github.noamm9.utils.render.RenderHelper.height
 import com.github.noamm9.utils.render.RenderHelper.width
 
 object PlayerHud: Feature(name = "Player HUD", description = "Displays your stats as moveable HUD elements.") {
-    private val elements by MultiChoiceConfig("Elements", mutableMapOf(
+    private val elements by MultiCheckboxSetting("Elements", mutableMapOf(
         "Health" to false,
         "Defense" to false,
         "Mana" to false,
@@ -22,7 +22,7 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
         "Speed" to false
     ))
 
-    private val hideFromActionbar by MultiChoiceConfig("Hide from Actionbar", mutableMapOf(
+    private val hideFromActionbar by MultiCheckboxSetting("Hide from Actionbar", mutableMapOf(
         "Health" to false,
         "Defense" to false,
         "Mana" to false,
@@ -33,9 +33,9 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
         "Terminator Stacks" to false
     ))
 
-    @JvmStatic val hideFoodbar by BooleanConfig("Hide Food bar").withDescription("Hides the food bar.").section("Extras")
-    @JvmStatic val hideHealthbar by BooleanConfig("Hide Health bar").withDescription("Hides the health bar.")
-    @JvmStatic val hideArmorbar by BooleanConfig("Hide Armor bar").withDescription("Hides the defense bar.").hideIf { hideHealthbar.value }
+    @JvmStatic val hideFoodbar by ToggleSetting("Hide Food bar").withDescription("Hides the food bar.").section("Extras")
+    @JvmStatic val hideHealthbar by ToggleSetting("Hide Health bar").withDescription("Hides the health bar.")
+    @JvmStatic val hideArmorbar by ToggleSetting("Hide Armor bar").withDescription("Hides the defense bar.").hideIf { hideHealthbar.value }
 
     override fun init() {
         hudElement(

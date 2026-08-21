@@ -1,16 +1,15 @@
 package com.github.noamm9.features.impl.dungeon
 
-import com.github.noamm9.config.types.BooleanConfig
-import com.github.noamm9.config.types.ChoiceConfig
-import com.github.noamm9.config.types.ColorConfig
-import com.github.noamm9.config.types.NumberConfig
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.GameStartEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.ModCompatibility
-import com.github.noamm9.config.types.*
 import com.github.noamm9.utils.ActionBarParser
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils
@@ -38,23 +37,23 @@ import net.minecraft.world.phys.shapes.VoxelShape
 import java.util.concurrent.*
 
 object Secrets: Feature() {
-    private val hudDisplay by BooleanConfig("Secret HUD", true).withDescription("Displays the current room's secrets on screen.").section("HUD")
+    private val hudDisplay by ToggleSetting("Secret HUD", true).withDescription("Displays the current room's secrets on screen.").section("HUD")
 
     //#if CHEAT
-    private val closeChest by BooleanConfig("Close Chest").section("Auto").withDescription("Automatically closes the secret chest for you.")
-    private val lever by BooleanConfig("Lever").withDescription("Full block Lever hitbox.").section("Secret Hitboxes")
-    @JvmStatic val button by BooleanConfig("Button").withDescription("Full block button hitbox.")
-    @JvmStatic val skull by BooleanConfig("Skulls").withDescription("Full block Skull hitbox.")
-    @JvmStatic val mushroom by BooleanConfig("Mushroom").withDescription("Full block Mushroom hitbox.")
+    private val closeChest by ToggleSetting("Close Chest").section("Auto").withDescription("Automatically closes the secret chest for you.")
+    private val lever by ToggleSetting("Lever").withDescription("Full block Lever hitbox.").section("Secret Hitboxes")
+    @JvmStatic val button by ToggleSetting("Button").withDescription("Full block button hitbox.")
+    @JvmStatic val skull by ToggleSetting("Skulls").withDescription("Full block Skull hitbox.")
+    @JvmStatic val mushroom by ToggleSetting("Mushroom").withDescription("Full block Mushroom hitbox.")
     //#endif
 
-    private val secretClicked by BooleanConfig("Highlight Clicked Secret").withDescription("Highlights the block of a secret when you interact with it.").section("Secret Clicked")
-    private val displayTime by NumberConfig("Highlight Time", 2.0, 0.5, 5.0, 0.1).withDescription("How long (in seconds) the highlight box remains visible.").showIf { secretClicked.value }
-    private val secretClickedColor by ColorConfig("Highlight Color", Utils.favoriteColor.withAlpha(50)).withDescription("The color of the secret highlight box.").showIf { secretClicked.value }
-    private val mode by ChoiceConfig("Render Mode", 2, listOf("Fill", "Outline", "Filled Outline")).withDescription("Choose how the box is rendered.").showIf { secretClicked.value }
-    private val phase by BooleanConfig("See Through Walls").withDescription("If enabled, the highlight will be visible through other blocks.").showIf { secretClicked.value }
+    private val secretClicked by ToggleSetting("Highlight Clicked Secret").withDescription("Highlights the block of a secret when you interact with it.").section("Secret Clicked")
+    private val displayTime by SliderSetting("Highlight Time", 2.0, 0.5, 5.0, 0.1).withDescription("How long (in seconds) the highlight box remains visible.").showIf { secretClicked.value }
+    private val secretClickedColor by ColorSetting("Highlight Color", Utils.favoriteColor.withAlpha(50)).withDescription("The color of the secret highlight box.").showIf { secretClicked.value }
+    private val mode by DropdownSetting("Render Mode", 2, listOf("Fill", "Outline", "Filled Outline")).withDescription("Choose how the box is rendered.").showIf { secretClicked.value }
+    private val phase by ToggleSetting("See Through Walls").withDescription("If enabled, the highlight will be visible through other blocks.").showIf { secretClicked.value }
 
-    private val secretSound by BooleanConfig("Secret Sound").withDescription("Plays a sound effect when a secret is clicked/found.").section("Secret Sound")
+    private val secretSound by ToggleSetting("Secret Sound").withDescription("Plays a sound effect when a secret is clicked/found.").section("Secret Sound")
     private val playSound = createSoundSettings("Sound", SoundEvents.EXPERIENCE_ORB_PICKUP) { secretSound.value }
 
     private val clicked = ConcurrentHashMap<BlockPos, Long>()

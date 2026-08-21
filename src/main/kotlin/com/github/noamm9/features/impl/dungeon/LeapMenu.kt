@@ -1,8 +1,6 @@
 package com.github.noamm9.features.impl.dungeon
 
-import com.github.noamm9.config.types.BooleanConfig
-import com.github.noamm9.config.types.ChoiceConfig
-import com.github.noamm9.config.types.NumberConfig
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.CheckEntityRenderEvent
 import com.github.noamm9.event.impl.ContainerEvent
@@ -12,7 +10,6 @@ import com.github.noamm9.features.impl.dungeon.map.DungeonMap
 import com.github.noamm9.features.impl.dungeon.map.MapConfig
 import com.github.noamm9.features.impl.dungeon.map.MapRenderer
 import com.github.noamm9.init.types.ICustomMenu
-import com.github.noamm9.config.types.*
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.unformattedText
@@ -40,26 +37,26 @@ import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
-    private val customLeapMenu by BooleanConfig("Leap Menu", false).section("Custom Menu")
-    private val scale by NumberConfig("Menu Scale", 50f, 30, 100, 1).showIf { customLeapMenu.value }
-    private val showLastDoorOpener by BooleanConfig("Show Last Door Opener", false).showIf { customLeapMenu.value }
-    private val tintDeadPlayers by BooleanConfig("Tint Dead Players", true).showIf { customLeapMenu.value }
-    private val leftClickOnly by BooleanConfig("Left Click Only").withDescription("Prevents leaping unless clicked with left mouse button")
+    private val customLeapMenu by ToggleSetting("Leap Menu", false).section("Custom Menu")
+    private val scale by SliderSetting("Menu Scale", 50f, 30, 100, 1).showIf { customLeapMenu.value }
+    private val showLastDoorOpener by ToggleSetting("Show Last Door Opener", false).showIf { customLeapMenu.value }
+    private val tintDeadPlayers by ToggleSetting("Tint Dead Players", true).showIf { customLeapMenu.value }
+    private val leftClickOnly by ToggleSetting("Left Click Only").withDescription("Prevents leaping unless clicked with left mouse button")
 
-    private val mapLeap by BooleanConfig("Map Leap", false).withDescription("Click a teammate on the dungeon map to leap to them.").showIf { customLeapMenu.value && DungeonMap.enabled && MapConfig.mapEnabled.value }
-    private val mapLeapAfterBlood by BooleanConfig("After Blood Only", false).withDescription("Use the regular leap menu until the Blood opens, then switch to Map Leap.").showIf { customLeapMenu.value && mapLeap.value }
-    private val mapLeapScale by NumberConfig("Map Leap Scale", 1.5f, 0.5f, 3f, 0.1f).showIf { customLeapMenu.value && mapLeap.value }
-    val sorting by ChoiceConfig("Leap Order", 0, arrayListOf("A-Z Class", "A-Z Name", "Odin Sorting", "Custom sorting", "No Sorting")).withDescription("How to sort the leap menu. /na leaporder to configure custom sorting.")
+    private val mapLeap by ToggleSetting("Map Leap", false).withDescription("Click a teammate on the dungeon map to leap to them.").showIf { customLeapMenu.value && DungeonMap.enabled && MapConfig.mapEnabled.value }
+    private val mapLeapAfterBlood by ToggleSetting("After Blood Only", false).withDescription("Use the regular leap menu until the Blood opens, then switch to Map Leap.").showIf { customLeapMenu.value && mapLeap.value }
+    private val mapLeapScale by SliderSetting("Map Leap Scale", 1.5f, 0.5f, 3f, 0.1f).showIf { customLeapMenu.value && mapLeap.value }
+    val sorting by DropdownSetting("Leap Order", 0, arrayListOf("A-Z Class", "A-Z Name", "Odin Sorting", "Custom sorting", "No Sorting")).withDescription("How to sort the leap menu. /na leaporder to configure custom sorting.")
 
-    val leapKeybinds by BooleanConfig("Leap Keybinds").showIf { customLeapMenu.value }.section("Leap Keybinds")
-    val keybindMode by ChoiceConfig("Mode", 0, listOf("Corners", "Class")).showIf { leapKeybinds.value }
-    val keybindKeys = (0 until 4).map { i -> KeybindConfig("Slot ${1 + i}", GLFW.GLFW_KEY_1 + i).showIf { leapKeybinds.value && keybindMode.value == 0 }.apply(configSettings::add) }
-    val classesKeys = DungeonClass.entries.dropLast(1).map { KeybindConfig(it.name.lowercase().uppercaseFirst(), GLFW.GLFW_KEY_UNKNOWN).showIf { leapKeybinds.value && keybindMode.value == 1 }.apply(configSettings::add) }
+    val leapKeybinds by ToggleSetting("Leap Keybinds").showIf { customLeapMenu.value }.section("Leap Keybinds")
+    val keybindMode by DropdownSetting("Mode", 0, listOf("Corners", "Class")).showIf { leapKeybinds.value }
+    val keybindKeys = (0 until 4).map { i -> KeybindSetting("Slot ${1 + i}", GLFW.GLFW_KEY_1 + i).showIf { leapKeybinds.value && keybindMode.value == 0 }.apply(configSettings::add) }
+    val classesKeys = DungeonClass.entries.dropLast(1).map { KeybindSetting(it.name.lowercase().uppercaseFirst(), GLFW.GLFW_KEY_UNKNOWN).showIf { leapKeybinds.value && keybindMode.value == 1 }.apply(configSettings::add) }
 
-    private val announceSpiritLeaps by BooleanConfig("Announce Leap", true).section("Extras")
-    private val leapMsg by StringConfig("Leap Message", "ILY ❤ {name}").withDescription("replaces {name} with the player name").showIf { announceSpiritLeaps.value }
-    private val hideAfterLeap by BooleanConfig("Hide Players").withDescription("Hides players for a certain amount of time after you leap")
-    private val hideTime by NumberConfig("Hide Time", 3.5, 0.5, 5.0, 0.1).showIf { hideAfterLeap.value }
+    private val announceSpiritLeaps by ToggleSetting("Announce Leap", true).section("Extras")
+    private val leapMsg by TextInputSetting("Leap Message", "ILY ❤ {name}").withDescription("replaces {name} with the player name").showIf { announceSpiritLeaps.value }
+    private val hideAfterLeap by ToggleSetting("Hide Players").withDescription("Hides players for a certain amount of time after you leap")
+    private val hideTime by SliderSetting("Hide Time", 3.5, 0.5, 5.0, 0.1).showIf { hideAfterLeap.value }
 
     data class LeapMenuPlayer(val slotIndex: Int, val player: DungeonPlayer)
 

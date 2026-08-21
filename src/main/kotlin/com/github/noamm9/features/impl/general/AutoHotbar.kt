@@ -15,7 +15,7 @@ import com.github.noamm9.ui.clickgui.ClickGuiScreen
 import com.github.noamm9.ui.clickgui.components.getValue
 import com.github.noamm9.config.types.ActionConfig
 import com.github.noamm9.config.types.NumberConfig
-import com.github.noamm9.config.types.BooleanConfig
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.ui.clickgui.components.section
 import com.github.noamm9.ui.clickgui.components.withDescription
@@ -55,7 +55,7 @@ object AutoHotbar: Feature("Automatically swaps items to specific hotbar slots u
     private val swapDelay by NumberConfig("Base Delay", 100, 0, 500, 5).withDescription("How much time to wait between slot swapping").section("Timing (ms)")
     private val jitter by NumberConfig("Random Delay", 50, 0, 100, 1).withDescription("Random Delay to add on top of the Base Delay")
     private val pingDelay by NumberConfig("Stop Delay", 200, 0, 500, 5).withDescription("how much time to wait after you are not moving.")
-    private val showTitles by BooleanConfig("HUD Info", true).withDescription("Shows the currnt auto swap progress on screen")
+    private val showTitles by ToggleSetting("HUD Info", true).withDescription("Shows the currnt auto swap progress on screen")
     private val openGuiBtn by ActionConfig("Open ConfigManager") {
         ClickGuiScreen.current?.selectedFeature = null
         NoammAddons.screen = AutoHotbarScreen()

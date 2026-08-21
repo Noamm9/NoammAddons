@@ -1,11 +1,11 @@
 package com.github.noamm9.features.impl.dev
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.config.types.ButtonSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.dev.cosmetics.CosmeticData
 import com.github.noamm9.features.impl.dev.text.TextReplacer
-import com.github.noamm9.config.types.ActionConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.MathUtils.vec
@@ -24,10 +24,10 @@ import java.util.concurrent.*
 import kotlin.math.abs
 
 object Cosmetics: Feature(toggled = true) {
-    val customNames by BooleanConfig("Show Custom Names", true)
-    val customSizes by BooleanConfig("Show Custom Sizes", true)
-    val showHalo by BooleanConfig("Show Halos", true)
-    val reload by ActionConfig("Reload Cosmetics") {
+    val customNames by ToggleSetting("Show Custom Names", true)
+    val customSizes by ToggleSetting("Show Custom Sizes", true)
+    val showHalo by ToggleSetting("Show Halos", true)
+    val reload by ButtonSetting("Reload Cosmetics") {
         if (System.currentTimeMillis() - lastReload >= 15_000) init()
         else NotificationManager.push("Cosmetics", "Please wait another ${NumbersUtils.formatTime(150_000 - (System.currentTimeMillis() - lastReload))} before reloading again.")
     }

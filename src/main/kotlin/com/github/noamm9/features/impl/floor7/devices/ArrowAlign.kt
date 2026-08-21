@@ -1,12 +1,12 @@
 package com.github.noamm9.features.impl.floor7.devices
 
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.PlayerInteractEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.config.types.ColorConfig
-import com.github.noamm9.config.types.ChoiceConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.toVec
@@ -18,10 +18,10 @@ import net.minecraft.world.item.Items
 import java.awt.Color
 
 object ArrowAlign: Feature("Arrow Align Solver") {
-    private val colorStyle by ChoiceConfig("Color Style", 0, listOf("Dynamic", "Custom")).withDescription("Dynamic: Colors the text based on the clicks needed.")
-    private val textColor by ColorConfig("Text Color", Color.WHITE, false).showIf { colorStyle.value == 1 }
-    private val blockWrongClicks by BooleanConfig("Block Wrong Clicks").withDescription("Sneak to disable.")
-    private val invertSneak by BooleanConfig("Invert Sneak").showIf { blockWrongClicks.value }
+    private val colorStyle by DropdownSetting("Color Style", 0, listOf("Dynamic", "Custom")).withDescription("Dynamic: Colors the text based on the clicks needed.")
+    private val textColor by ColorSetting("Text Color", Color.WHITE, false).showIf { colorStyle.value == 1 }
+    private val blockWrongClicks by ToggleSetting("Block Wrong Clicks").withDescription("Sneak to disable.")
+    private val invertSneak by ToggleSetting("Invert Sneak").showIf { blockWrongClicks.value }
 
     private val gridCorner = BlockPos(- 2, 120, 75)
     private val gridBox = aabb(

@@ -6,7 +6,7 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
 import net.minecraft.ChatFormatting
 
-class ColorCodeConfig(name: String, defaultValue: ChatFormatting = ChatFormatting.WHITE): ConfigHolder<ChatFormatting>(name, defaultValue), Savable {
+class ColorCodeSetting(name: String, defaultValue: ChatFormatting = ChatFormatting.WHITE): ConfigHolder<ChatFormatting>(name, defaultValue), Savable {
     companion object {
         val COLORS = ChatFormatting.entries.filter { it.isColor }
     }

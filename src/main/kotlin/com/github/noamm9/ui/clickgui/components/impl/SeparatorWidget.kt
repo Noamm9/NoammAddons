@@ -1,12 +1,12 @@
 package com.github.noamm9.ui.clickgui.components.impl
 
-import com.github.noamm9.config.types.VoidConfig
+import com.github.noamm9.config.types.UnitSetting
 import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.utils.render.Render2D.drawRect
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
-class SeparatorSetting(name: String = ""): Setting<Unit>(VoidConfig(name)) {
+class SeparatorWidget(name: String = ""): Setting<Unit>(UnitSetting(name)) {
     override val height = 10
     override fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
         ctx.drawRect(x + 10f, y + 5f, width - 20f, 0.5f, Color(255, 255, 255, 30))

@@ -1,11 +1,11 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.config.types.ColorConfig
-import com.github.noamm9.config.types.NumberConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.ThreadUtils
@@ -22,12 +22,12 @@ import java.awt.Color
 import kotlin.math.abs
 
 object MageBeam: Feature("Renders a fully custom, animated beam whenever a mage casts their beam ability.") {
-    private val color by ColorConfig("Primary Color", Color.WHITE, false).withDescription("The color of the beam line")
-    private val lineWidth by NumberConfig("Line Width", 2, 1, 6, 1, "px").withDescription("Thickness of the line.")
-    private val duration by NumberConfig("Duration", 40, 5, 100, 1, " ticks").withDescription("How long the beam shows.")
-    private val fade by BooleanConfig("Fade").withDescription("Animates the beam slowly disappearing")
-    private val hideSheep by BooleanConfig("Hide Sheep", true).withDescription("Prevents the Sheep from spawning.")
-    private val rainbow by BooleanConfig("&dI am Skizo!!!!")
+    private val color by ColorSetting("Primary Color", Color.WHITE, false).withDescription("The color of the beam line")
+    private val lineWidth by SliderSetting("Line Width", 2, 1, 6, 1, "px").withDescription("Thickness of the line.")
+    private val duration by SliderSetting("Duration", 40, 5, 100, 1, " ticks").withDescription("How long the beam shows.")
+    private val fade by ToggleSetting("Fade").withDescription("Animates the beam slowly disappearing")
+    private val hideSheep by ToggleSetting("Hide Sheep", true).withDescription("Prevents the Sheep from spawning.")
+    private val rainbow by ToggleSetting("&dI am Skizo!!!!")
 
     private val beams = linkedSetOf<Beam>()
 

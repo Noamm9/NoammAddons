@@ -1,14 +1,14 @@
 package com.github.noamm9.features.impl.general.teleport
 
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.config.types.ColorConfig
-import com.github.noamm9.config.types.ChoiceConfig
-import com.github.noamm9.config.types.NumberConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.PlayerUtils.serverPitch
@@ -27,29 +27,29 @@ import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 object Etherwarp: Feature("Etherwarp overlay, sound, and left-click activation.") {
-    private val overlay by BooleanConfig("Etherwarp Overlay").section("Overlay")
-    private val mode by ChoiceConfig("Mode", 0, listOf("Outline", "Fill", "Filled Outline")).showIf { overlay.value }
-    private val phase by BooleanConfig("Phase").showIf { overlay.value }
-    private val lineWidth by NumberConfig("Line Width", 1.0, 1.0, 10.0, 0.1).showIf { overlay.value && mode.value != 1 }
-    private val showFail by BooleanConfig("Show Fail", true).withDescription("Shows the fail position of the etherwarp").showIf { overlay.value }
-    private val fullBlock by BooleanConfig("Full Block").withDescription("Draws the overlay as a full block").showIf { overlay.value }
+    private val overlay by ToggleSetting("Etherwarp Overlay").section("Overlay")
+    private val mode by DropdownSetting("Mode", 0, listOf("Outline", "Fill", "Filled Outline")).showIf { overlay.value }
+    private val phase by ToggleSetting("Phase").showIf { overlay.value }
+    private val lineWidth by SliderSetting("Line Width", 1.0, 1.0, 10.0, 0.1).showIf { overlay.value && mode.value != 1 }
+    private val showFail by ToggleSetting("Show Fail", true).withDescription("Shows the fail position of the etherwarp").showIf { overlay.value }
+    private val fullBlock by ToggleSetting("Full Block").withDescription("Draws the overlay as a full block").showIf { overlay.value }
 
-    private val fillColor by ColorConfig("Fill Color", Utils.favoriteColor.withAlpha(50)).showIf { overlay.value && mode.value != 0 }.section("Colors")
-    private val outlineColor by ColorConfig("Outline Color", Utils.favoriteColor, false).showIf { overlay.value && mode.value != 1 }
+    private val fillColor by ColorSetting("Fill Color", Utils.favoriteColor.withAlpha(50)).showIf { overlay.value && mode.value != 0 }.section("Colors")
+    private val outlineColor by ColorSetting("Outline Color", Utils.favoriteColor, false).showIf { overlay.value && mode.value != 1 }
 
-    private val invalidFillColor by ColorConfig("Invalid Fill Color ", Color.RED.withAlpha(50)).showIf { overlay.value && mode.value != 0 && showFail.value }
-    private val invalidOutlineColor by ColorConfig("Invalid Outline Color ", Color.RED, false).showIf { overlay.value && mode.value != 1 && showFail.value }
+    private val invalidFillColor by ColorSetting("Invalid Fill Color ", Color.RED.withAlpha(50)).showIf { overlay.value && mode.value != 0 && showFail.value }
+    private val invalidOutlineColor by ColorSetting("Invalid Outline Color ", Color.RED, false).showIf { overlay.value && mode.value != 1 && showFail.value }
 
-    private val etherwarpSound by BooleanConfig("Etherwarp Sound").section("Sound")
-    private val zeroPingSound by BooleanConfig("Zero-Ping Sound").withDescription("Plays the Etherwarp sound client-side instead of waiting for the server to send the sound packet").showIf { etherwarpSound.value }
+    private val etherwarpSound by ToggleSetting("Etherwarp Sound").section("Sound")
+    private val zeroPingSound by ToggleSetting("Zero-Ping Sound").withDescription("Plays the Etherwarp sound client-side instead of waiting for the server to send the sound packet").showIf { etherwarpSound.value }
     private val playSound = createSoundSettings("Sound", SoundEvents.EXPERIENCE_ORB_PICKUP) { etherwarpSound.value }
 
-    private val leftClick by BooleanConfig("Left-Click Etherwarp").section("Left Click")
-    private val swingHandToggle by BooleanConfig("Swing Hand", true).showIf { leftClick.value }
+    private val leftClick by ToggleSetting("Left-Click Etherwarp").section("Left Click")
+    private val swingHandToggle by ToggleSetting("Swing Hand", true).showIf { leftClick.value }
 
     //#if CHEAT
-    private val autoSneak by BooleanConfig("Auto Sneak", false).showIf { leftClick.value }
-    private val autoSneakDelay by NumberConfig("Auto Sneak Delay", 50, 50, 150, 1).showIf { leftClick.value && autoSneak.value }
+    private val autoSneak by ToggleSetting("Auto Sneak", false).showIf { leftClick.value }
+    private val autoSneakDelay by SliderSetting("Auto Sneak Delay", 50, 50, 150, 1).showIf { leftClick.value && autoSneak.value }
     //#endif
 
     override fun init() {

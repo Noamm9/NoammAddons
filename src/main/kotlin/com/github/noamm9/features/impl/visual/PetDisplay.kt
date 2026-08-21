@@ -1,11 +1,11 @@
 package com.github.noamm9.features.impl.visual
 
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.annotations.AlwaysActive
-import com.github.noamm9.config.types.ColorConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
@@ -24,12 +24,12 @@ import java.awt.Color
 
 @AlwaysActive
 object PetDisplay: Feature("Pet Features") {
-    private val petDisplay by BooleanConfig("Pet Display").withDescription("Draws the current active pet on screen.").section("HUD")
-    private val autoPetTitles by BooleanConfig("Auto Pet Title").withDescription("Shows a title on screen when you swap pets via autopet rules.")
-    private val autoPetTitlesDungeonOnly by BooleanConfig("Dungeons Only").withDescription("Only shows autopet titles while in a dungeon.").showIf { autoPetTitles.value }
+    private val petDisplay by ToggleSetting("Pet Display").withDescription("Draws the current active pet on screen.").section("HUD")
+    private val autoPetTitles by ToggleSetting("Auto Pet Title").withDescription("Shows a title on screen when you swap pets via autopet rules.")
+    private val autoPetTitlesDungeonOnly by ToggleSetting("Dungeons Only").withDescription("Only shows autopet titles while in a dungeon.").showIf { autoPetTitles.value }
 
-    private val activePetHighlight by BooleanConfig("Highlight Active pet").withDescription("highlights the active pet inside the pet menu").section("Pets Menu")
-    private val petHighlightColor by ColorConfig("Highlight color", Color.CYAN).showIf { activePetHighlight.value }
+    private val activePetHighlight by ToggleSetting("Highlight Active pet").withDescription("highlights the active pet inside the pet menu").section("Pets Menu")
+    private val petHighlightColor by ColorSetting("Highlight color", Color.CYAN).showIf { activePetHighlight.value }
 
     private val chatPetRuleRegex = Regex("§cAutopet §eequipped your §7\\[Lvl .*] (?<pet>.*)§e! §a§lVIEW RULE")
     private val chatSpawnRegex = Regex("§aYou summoned your (?<pet>.*)§a!")

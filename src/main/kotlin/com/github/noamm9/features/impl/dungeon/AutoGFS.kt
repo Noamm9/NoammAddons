@@ -2,11 +2,11 @@ package com.github.noamm9.features.impl.dungeon
 
 //#if CHEAT
 
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.config.types.NumberConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
@@ -16,18 +16,18 @@ import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 
 object AutoGFS: Feature("Automatically refills dungeon items from your sacks using /gfs while in dungeons.") {
-    private val delay by NumberConfig("Check Delay", 20.0, 5.0, 60.0, 1.0, "s").withDescription("How often to check for refills.")
+    private val delay by SliderSetting("Check Delay", 20.0, 5.0, 60.0, 1.0, "s").withDescription("How often to check for refills.")
 
-    private val refillPearl by BooleanConfig("Refill Pearl")
-    private val refillTNT by BooleanConfig("Refill TNT")
-    private val refillJerry by BooleanConfig("Refill Jerry")
-    private val refillLeaps by BooleanConfig("Refill Leaps")
-    private val refillTwilight by BooleanConfig("Refill Twilight")
+    private val refillPearl by ToggleSetting("Refill Pearl")
+    private val refillTNT by ToggleSetting("Refill TNT")
+    private val refillJerry by ToggleSetting("Refill Jerry")
+    private val refillLeaps by ToggleSetting("Refill Leaps")
+    private val refillTwilight by ToggleSetting("Refill Twilight")
 
-    private val pyTwilight by BooleanConfig("Refill after lightning", true).section("Twilight").showIf { refillTwilight.value }
-    private val coreTwilight by BooleanConfig("Refill in Core").showIf { refillTwilight.value }
-    private val p5Twilight by BooleanConfig("Refill after M7 relics", true).showIf { refillTwilight.value }
-    private val twilightAmount by NumberConfig("Twilight Amount", 8, 4, 8, 1).withDescription("The amount of Twilight you want the auto to pull out of sacks").showIf { (p5Twilight.value || pyTwilight.value) && refillTwilight.value }
+    private val pyTwilight by ToggleSetting("Refill after lightning", true).section("Twilight").showIf { refillTwilight.value }
+    private val coreTwilight by ToggleSetting("Refill in Core").showIf { refillTwilight.value }
+    private val p5Twilight by ToggleSetting("Refill after M7 relics", true).showIf { refillTwilight.value }
+    private val twilightAmount by SliderSetting("Twilight Amount", 8, 4, 8, 1).withDescription("The amount of Twilight you want the auto to pull out of sacks").showIf { (p5Twilight.value || pyTwilight.value) && refillTwilight.value }
 
     private val p5Message = Regex("^\\[BOSS] Wither King: I no longer wish to fight, but I know that will not stop you\\.$")
     private val pyMessage1 = Regex("^\\[BOSS] Storm: (ENERGY HEED MY CALL|THUNDER LET ME BE YOUR CATALYST)!$")

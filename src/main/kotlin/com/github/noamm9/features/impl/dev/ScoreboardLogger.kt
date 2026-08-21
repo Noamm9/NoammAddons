@@ -2,12 +2,12 @@ package com.github.noamm9.features.impl.dev
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.logger
+import com.github.noamm9.config.types.ButtonSetting
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.config.types.ActionConfig
-import com.github.noamm9.config.types.ChoiceConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ThreadUtils
@@ -25,10 +25,10 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 object ScoreboardLogger: Feature("Logs every scoreboard text update to a file.") {
-    private val onlyDungeons by BooleanConfig("Only In Dungeons", true).withDescription("Only logs while inside a dungeon.")
-    private val withFormatting by BooleanConfig("With formatting").withDescription("With Color code formatting.")
-    private val logMode by ChoiceConfig("Log Mode", 0, listOf("Changed Lines", "Full Snapshot")).withDescription("Changed Lines only logs lines that update, Full Snapshot logs the whole scoreboard on every change.")
-    private val openFolder by ActionConfig("Open Logs Folder") {
+    private val onlyDungeons by ToggleSetting("Only In Dungeons", true).withDescription("Only logs while inside a dungeon.")
+    private val withFormatting by ToggleSetting("With formatting").withDescription("With Color code formatting.")
+    private val logMode by DropdownSetting("Log Mode", 0, listOf("Changed Lines", "Full Snapshot")).withDescription("Changed Lines only logs lines that update, Full Snapshot logs the whole scoreboard on every change.")
+    private val openFolder by ButtonSetting("Open Logs Folder") {
         logDir.mkdirs()
         Util.getPlatform().openUri(logDir.toURI())
     }.withDescription("Opens the folder where scoreboard logs are saved.")

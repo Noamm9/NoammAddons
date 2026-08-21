@@ -1,9 +1,9 @@
 package com.github.noamm9.features.impl.visual
 
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.Style
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.location.LocationUtils
@@ -20,7 +20,7 @@ import java.awt.Color
 import net.minecraft.world.scores.Scoreboard as MCScoreboard
 
 object Scoreboard: Feature("Draws a custom scoreboard instead of the vanilla one.") {
-    private val hideServerId by BooleanConfig("Hide Server ID").withDescription("Hides the 'm151AM' text from the scoreboard")
+    private val hideServerId by ToggleSetting("Hide Server ID").withDescription("Hides the 'm151AM' text from the scoreboard")
 
     private var needsUpdate = true
     private val cachedLines = mutableListOf<String>()

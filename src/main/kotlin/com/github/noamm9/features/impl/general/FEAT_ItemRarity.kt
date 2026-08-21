@@ -1,11 +1,11 @@
 package com.github.noamm9.features.impl.general
 
 import com.github.noamm9.NoammAddons.MOD_ID
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.config.types.ChoiceConfig
-import com.github.noamm9.config.types.NumberConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.items.ItemRarity
 import com.github.noamm9.utils.items.ItemUtils
@@ -21,10 +21,10 @@ import net.minecraft.world.item.ItemStack
  * @see com.github.noamm9.mixin.MixinGui
  */
 object FEAT_ItemRarity: Feature(name = "Item Rarity", description = "Draws the rarity of item behind the slot.") {
-    @JvmStatic val drawOnHotbar by BooleanConfig("Draw on Hotbar", true)
-    private val rarityOpacity by NumberConfig("Rarity Opacity", 30f, 10f, 100f, 1f)
-    private val style by ChoiceConfig("Rarity Style", 0, listOf("Filled", "Outline", "Filled Outline", "Circle"))
-    private val colorStyle by ChoiceConfig("Color Style", 0, listOf("Default", "Hypixel"))
+    @JvmStatic val drawOnHotbar by ToggleSetting("Draw on Hotbar", true)
+    private val rarityOpacity by SliderSetting("Rarity Opacity", 30f, 10f, 100f, 1f)
+    private val style by DropdownSetting("Rarity Style", 0, listOf("Filled", "Outline", "Filled Outline", "Circle"))
+    private val colorStyle by DropdownSetting("Color Style", 0, listOf("Default", "Hypixel"))
     private val circleTexture = Identifier.fromNamespaceAndPath(MOD_ID, "textures/gui/circle.png")
 
     override fun init() {

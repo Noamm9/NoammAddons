@@ -1,10 +1,10 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.config.types.ChoiceConfig
-import com.github.noamm9.config.types.ColorConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ColorUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.NumbersUtils.toFixed
@@ -21,14 +21,14 @@ import net.minecraft.network.protocol.game.ServerboundUseItemPacket
 import net.minecraft.sounds.SoundEvents
 
 object TacTimer: Feature("Shows a 3 seconds timer when you use the Tactical Insertion ability") {
-    private val reverseTimer by BooleanConfig("Reverse Timer").withDescription("Flips the Timer to count up instead of down").section("Timer")
-    private val prefix by BooleanConfig("Tac Prefix", true).withDescription("Adds \"Tac:\" prefix to the timer")
-    private val suffix by BooleanConfig("Timer Suffix").withDescription("Adds \"s\" suffix to the timer")
+    private val reverseTimer by ToggleSetting("Reverse Timer").withDescription("Flips the Timer to count up instead of down").section("Timer")
+    private val prefix by ToggleSetting("Tac Prefix", true).withDescription("Adds \"Tac:\" prefix to the timer")
+    private val suffix by ToggleSetting("Timer Suffix").withDescription("Adds \"s\" suffix to the timer")
 
-    private val markBlock by BooleanConfig("Start Waypoint").withDescription("Shows a waypoint at the start block of the Tactical Insertion ability").section("Waypoint")
-    private val mode by ChoiceConfig("Mode", 2, listOf("Outline", "Fill", "Filled Outline")).showIf { markBlock.value }
-    private val fillColor by ColorConfig("Fill Color", Utils.favoriteColor.withAlpha(50)).hideIf { ! markBlock.value || mode.value == 0 }
-    private val outlineColor by ColorConfig("Outline Color", Utils.favoriteColor, false).hideIf { ! markBlock.value || mode.value == 1 }
+    private val markBlock by ToggleSetting("Start Waypoint").withDescription("Shows a waypoint at the start block of the Tactical Insertion ability").section("Waypoint")
+    private val mode by DropdownSetting("Mode", 2, listOf("Outline", "Fill", "Filled Outline")).showIf { markBlock.value }
+    private val fillColor by ColorSetting("Fill Color", Utils.favoriteColor.withAlpha(50)).hideIf { ! markBlock.value || mode.value == 0 }
+    private val outlineColor by ColorSetting("Outline Color", Utils.favoriteColor, false).hideIf { ! markBlock.value || mode.value == 1 }
 
     private var lastClick = System.currentTimeMillis()
     private var pos: BlockPos? = null

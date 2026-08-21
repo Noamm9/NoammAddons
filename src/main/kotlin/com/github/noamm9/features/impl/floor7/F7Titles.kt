@@ -1,11 +1,11 @@
 package com.github.noamm9.features.impl.floor7
 
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.config.types.ChoiceConfig
-import com.github.noamm9.config.types.NumberConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils
@@ -22,16 +22,16 @@ import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket
 import net.minecraft.sounds.SoundEvents
 
 object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7 boss fight.") {
-    private val crystalTitles by BooleanConfig("Crystal Titles")
-    private val witherTitles by BooleanConfig("Wither Titles")
-    private val lightningTimer by BooleanConfig("Lightning Timer")
-    private val terminalTitles by BooleanConfig("Terminal Titles").withDescription("Reformats terminal, device, lever, and gate subtitles during phase 3")
+    private val crystalTitles by ToggleSetting("Crystal Titles")
+    private val witherTitles by ToggleSetting("Wither Titles")
+    private val lightningTimer by ToggleSetting("Lightning Timer")
+    private val terminalTitles by ToggleSetting("Terminal Titles").withDescription("Reformats terminal, device, lever, and gate subtitles during phase 3")
 
-    private val terminalTitleDuration by NumberConfig("Duration", 2.5, 0.5, 6, 0.5).withDescription("Duration of the terminal title in seconds").showIf { terminalTitles.value }
-    private val terminalTitleMode by ChoiceConfig("Mode", 0, listOf("Name + Term + Progress", "Term + Progress", "Progress")).withDescription("Controls which information appears in terminal titles").showIf { terminalTitles.value }
-    private val terminalTitleBracket by ChoiceConfig("Bracket Type", 0, listOf("()", "[]", "<>", "{}")).withDescription("Changes the brackets around terminal progress").showIf { terminalTitles.value }
-    private val terminalPhaseDone by BooleanConfig("Phase Done").withDescription("Renders Phase Done instead of 7/7 or 8/8").showIf { terminalTitles.value }
-    private val terminalGateTitles by BooleanConfig("Gate Titles").withDescription("Also reformats gate-related subtitles").showIf { terminalTitles.value }
+    private val terminalTitleDuration by SliderSetting("Duration", 2.5, 0.5, 6, 0.5).withDescription("Duration of the terminal title in seconds").showIf { terminalTitles.value }
+    private val terminalTitleMode by DropdownSetting("Mode", 0, listOf("Name + Term + Progress", "Term + Progress", "Progress")).withDescription("Controls which information appears in terminal titles").showIf { terminalTitles.value }
+    private val terminalTitleBracket by DropdownSetting("Bracket Type", 0, listOf("()", "[]", "<>", "{}")).withDescription("Changes the brackets around terminal progress").showIf { terminalTitles.value }
+    private val terminalPhaseDone by ToggleSetting("Phase Done").withDescription("Renders Phase Done instead of 7/7 or 8/8").showIf { terminalTitles.value }
+    private val terminalGateTitles by ToggleSetting("Gate Titles").withDescription("Also reformats gate-related subtitles").showIf { terminalTitles.value }
 
     private val crystalRegex = Regex("^(\\d)/(\\d) Energy Crystals are now active!$")
     private val enragedRegex = Regex("^⚠ (\\w+) is enraged! ⚠$")

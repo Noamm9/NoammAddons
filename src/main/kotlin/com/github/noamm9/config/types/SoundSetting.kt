@@ -10,7 +10,7 @@ import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.Identifier
 import net.minecraft.sounds.SoundEvent
 
-class SoundConfig(name: String, defaultValue: SoundEvent): ConfigHolder<SoundEvent>(name, defaultValue), Savable {
+class SoundSetting(name: String, defaultValue: SoundEvent): ConfigHolder<SoundEvent>(name, defaultValue), Savable {
     constructor(name: String, value: Holder.Reference<SoundEvent>): this(name, value.value())
 
     companion object {

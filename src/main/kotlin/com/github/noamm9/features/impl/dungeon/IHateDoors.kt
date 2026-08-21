@@ -2,13 +2,13 @@ package com.github.noamm9.features.impl.dungeon
 
 //#if CHEAT
 
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.config.types.ChoiceConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.core.DoorTile
 import com.github.noamm9.utils.dungeons.map.core.DoorType
@@ -22,13 +22,13 @@ import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockState
 
 object IHateDoors: Feature("Replaces Wither and Blood doors with stained glass.") {
-    private val glassEntrance by BooleanConfig("Glass Entrance Door").section("Doors")
-    private val glassWither by BooleanConfig("Glass Wither Door")
-    private val glassBlood by BooleanConfig("Glass Blood Door")
+    private val glassEntrance by ToggleSetting("Glass Entrance Door").section("Doors")
+    private val glassWither by ToggleSetting("Glass Wither Door")
+    private val glassBlood by ToggleSetting("Glass Blood Door")
 
-    private val entranceGlass by ChoiceConfig("Entrance Door Glass", Glass.WHITE.ordinal, Glass.options).section("Glass Color").showIf { glassEntrance.value }
-    private val witherGlass by ChoiceConfig("Wither Door Glass", Glass.BLACK.ordinal, Glass.options).showIf { glassWither.value }
-    private val bloodGlass by ChoiceConfig("Blood Door Glass", Glass.RED.ordinal, Glass.options).showIf { glassBlood.value }
+    private val entranceGlass by DropdownSetting("Entrance Door Glass", Glass.WHITE.ordinal, Glass.options).section("Glass Color").showIf { glassEntrance.value }
+    private val witherGlass by DropdownSetting("Wither Door Glass", Glass.BLACK.ordinal, Glass.options).showIf { glassWither.value }
+    private val bloodGlass by DropdownSetting("Blood Door Glass", Glass.RED.ordinal, Glass.options).showIf { glassBlood.value }
 
     private val doors = mutableMapOf<DoorTile, Iterable<BlockPos>>()
 

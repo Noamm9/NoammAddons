@@ -1,13 +1,13 @@
 package com.github.noamm9.features.impl.visual
 
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.ILocalPlayer
-import com.github.noamm9.config.types.ColorConfig
-import com.github.noamm9.config.types.ChoiceConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ColorUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.NumbersUtils.toFixed
@@ -24,13 +24,13 @@ import net.minecraft.world.entity.EquipmentSlot
 import java.awt.Color
 
 object SpringBoots: Feature("Shows the spring boots charge progress on screen.") {
-    private val show2DHud by BooleanConfig("Show in HUD", true).section("HUD")
-    private val drawMode by ChoiceConfig("Draw Mode", 0, listOf("Percentage", "Blocks")).showIf { show2DHud.value }
+    private val show2DHud by ToggleSetting("Show in HUD", true).section("HUD")
+    private val drawMode by DropdownSetting("Draw Mode", 0, listOf("Percentage", "Blocks")).showIf { show2DHud.value }
 
-    private val show3DBox by BooleanConfig("Draw Box", true).section("Box")
-    private val renderMode by ChoiceConfig("Render Mode", 1, listOf("Fill", "Outline", "Filled Outline")).showIf { show3DBox.value }
-    private val boxColor by ColorConfig("Box Color", Color.GREEN, false).showIf { show3DBox.value }
-    private val boxPhase by BooleanConfig("See Through Walls", true).showIf { show3DBox.value }
+    private val show3DBox by ToggleSetting("Draw Box", true).section("Box")
+    private val renderMode by DropdownSetting("Render Mode", 1, listOf("Fill", "Outline", "Filled Outline")).showIf { show3DBox.value }
+    private val boxColor by ColorSetting("Box Color", Color.GREEN, false).showIf { show3DBox.value }
+    private val boxPhase by ToggleSetting("See Through Walls", true).showIf { show3DBox.value }
 
     private val highPitches = floatArrayOf(0.82539684f, 0.8888889f, 0.93650794f, 1.0476191f, 1.1746032f, 1.3174603f, 1.7777778f)
     private val resetPitches = floatArrayOf(0.0952381f, 1.6984127f)

@@ -1,6 +1,6 @@
 package com.github.noamm9.ui.clickgui.components.impl
 
-import com.github.noamm9.config.types.ColorCodeConfig
+import com.github.noamm9.config.types.ColorCodeSetting
 import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
@@ -11,7 +11,7 @@ import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
-class ColorCodeSetting(config: ColorCodeConfig): Setting<ChatFormatting>(config) {
+class ColorCodeWidget(config: ColorCodeSetting): Setting<ChatFormatting>(config) {
     private var expanded = false
     private val openAnim = Animation(250)
     private val hoverAnim = Animation(200)
@@ -47,7 +47,7 @@ class ColorCodeSetting(config: ColorCodeConfig): Setting<ChatFormatting>(config)
             val gridY = y + 24f
             var hoveredName: String? = null
 
-            ColorCodeConfig.COLORS.forEachIndexed { index, format ->
+            ColorCodeSetting.COLORS.forEachIndexed { index, format ->
                 val col = index % cols
                 val row = index / cols
                 val cx = gridX + col * cellW
@@ -82,7 +82,7 @@ class ColorCodeSetting(config: ColorCodeConfig): Setting<ChatFormatting>(config)
             val cellW = gridW / cols
             val gridY = y + 24f
 
-            ColorCodeConfig.COLORS.forEachIndexed { index, format ->
+            ColorCodeSetting.COLORS.forEachIndexed { index, format ->
                 val col = index % cols
                 val row = index / cols
                 val cx = gridX + col * cellW

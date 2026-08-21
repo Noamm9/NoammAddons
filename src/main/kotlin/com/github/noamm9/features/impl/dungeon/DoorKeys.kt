@@ -1,11 +1,11 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.config.types.ColorConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.add
@@ -19,10 +19,10 @@ import net.minecraft.world.entity.decoration.ArmorStand
 import java.awt.Color
 
 object DoorKeys: Feature("ESP box & Tracer for wither and blood doors.") {
-    private val highlightWither by BooleanConfig("Wither Key").section("Keys")
-    private val highlightBlood by BooleanConfig("Blood Key")
-    private val witherColor by ColorConfig("Wither Key Color", Color.BLACK.withAlpha(60)).showIf { highlightWither.value }.section("Colors")
-    private val bloodColor by ColorConfig("Blood Key Color", Color.RED.withAlpha(60)).showIf { highlightBlood.value }
+    private val highlightWither by ToggleSetting("Wither Key").section("Keys")
+    private val highlightBlood by ToggleSetting("Blood Key")
+    private val witherColor by ColorSetting("Wither Key Color", Color.BLACK.withAlpha(60)).showIf { highlightWither.value }.section("Colors")
+    private val bloodColor by ColorSetting("Blood Key Color", Color.RED.withAlpha(60)).showIf { highlightBlood.value }
 
     private var doorKey: Pair<Entity, Color>? = null
 

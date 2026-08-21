@@ -1,9 +1,9 @@
 package com.github.noamm9.features.impl.visual
 
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.CheckEntityRenderEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils
@@ -21,17 +21,17 @@ import net.minecraft.world.entity.LivingEntity
 import java.util.*
 
 object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
-    private val hideStar by BooleanConfig("Hide Star Mobs's Nametag")
-    private val hideNonStar by BooleanConfig("Hide Non Star Mob's Nametag")
-    private val hideFallingBlocks by BooleanConfig("Hide Falling Blocks")
-    private val hideLightning by BooleanConfig("Hide Lightning Bolts")
-    private val hideSoulWeaver by BooleanConfig("Hide Soul Weaver")
-    private val hide0HealthNames by BooleanConfig("Hide 0 Health")
-    private val hideDeadMobs by BooleanConfig("Hide Dead Mobs")
-    private val hideXpOrbs by BooleanConfig("Hide XP Orbs")
-    private val removeTentacles by BooleanConfig("Hide P5 Tentacles")
-    private val hideP5p by BooleanConfig("Hide P5 Particles")
-    val hideFireOnEntities by BooleanConfig("Hide Fire On Entities")
+    private val hideStar by ToggleSetting("Hide Star Mobs's Nametag")
+    private val hideNonStar by ToggleSetting("Hide Non Star Mob's Nametag")
+    private val hideFallingBlocks by ToggleSetting("Hide Falling Blocks")
+    private val hideLightning by ToggleSetting("Hide Lightning Bolts")
+    private val hideSoulWeaver by ToggleSetting("Hide Soul Weaver")
+    private val hide0HealthNames by ToggleSetting("Hide 0 Health")
+    private val hideDeadMobs by ToggleSetting("Hide Dead Mobs")
+    private val hideXpOrbs by ToggleSetting("Hide XP Orbs")
+    private val removeTentacles by ToggleSetting("Hide P5 Tentacles")
+    private val hideP5p by ToggleSetting("Hide P5 Particles")
+    val hideFireOnEntities by ToggleSetting("Hide Fire On Entities")
 
     private val healthMatches = arrayOf(Regex("^§.\\[§.Lv\\d+§.] §.+ (?:§.)+0§f/.+§c❤$"), Regex("^.+ (?:§.)+0§c❤$"))
 

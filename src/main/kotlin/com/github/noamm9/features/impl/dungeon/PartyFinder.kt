@@ -1,15 +1,15 @@
 package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.commands.CommandBuilder
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.types.ICommandProvider
-import com.github.noamm9.config.types.ChoiceConfig
-import com.github.noamm9.config.types.NumberConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.ChatUtils.formattedText
@@ -32,22 +32,22 @@ import net.minecraft.world.level.block.Blocks
 import java.util.*
 
 object PartyFinder: Feature(), ICommandProvider {
-    private val showJoinStats by BooleanConfig("Join Stats", true).withDescription("Prints the dungeon stats of a player that joins your party.").section("Join Stats")
+    private val showJoinStats by ToggleSetting("Join Stats", true).withDescription("Prints the dungeon stats of a player that joins your party.").section("Join Stats")
 
-    private val showLevelReq by BooleanConfig("Show Level Req", true).withDescription("Shows the red level requirement number.").section("Menu")
-    private val showMissingOverlay by BooleanConfig("Show Missing Classes", true).withDescription("Shows missing classes on the head.")
+    private val showLevelReq by ToggleSetting("Show Level Req", true).withDescription("Shows the red level requirement number.").section("Menu")
+    private val showMissingOverlay by ToggleSetting("Show Missing Classes", true).withDescription("Shows missing classes on the head.")
 
-    private val showTooltipStats by BooleanConfig("Show Stats", true).withDescription("Shows player stats (Cata/Secrets/PB) in tooltip.").section("Tooltip")
-    private val showSecrets by BooleanConfig("Show Secrets", true).withDescription("Shows Total Secrets and Average.").showIf { showTooltipStats.value }
-    private val showPB by BooleanConfig("Show PB", true).withDescription("Shows Personal Best for the current floor.").showIf { showTooltipStats.value }
-    private val showMissingTooltip by BooleanConfig("Show Missing List", true).withDescription("Shows the list of missing classes at the bottom of the tooltip.")
+    private val showTooltipStats by ToggleSetting("Show Stats", true).withDescription("Shows player stats (Cata/Secrets/PB) in tooltip.").section("Tooltip")
+    private val showSecrets by ToggleSetting("Show Secrets", true).withDescription("Shows Total Secrets and Average.").showIf { showTooltipStats.value }
+    private val showPB by ToggleSetting("Show PB", true).withDescription("Shows Personal Best for the current floor.").showIf { showTooltipStats.value }
+    private val showMissingTooltip by ToggleSetting("Show Missing List", true).withDescription("Shows the list of missing classes at the bottom of the tooltip.")
 
-    private val autoKick by BooleanConfig("Auto Kick", false).withDescription("Automatically kick players that don't meet requirements.").section("Auto Kick")
-    private val autoKickFloor by ChoiceConfig("Floor", 6, listOf("F1", "F2", "F3", "F4", "F5", "F6", "F7")).showIf { autoKick.value }
-    private val masterMode by BooleanConfig("Master Mode", true).showIf { autoKick.value }
-    private val informKicked by BooleanConfig("Inform Kicked", false).withDescription("Send a party chat message before kicking.").showIf { autoKick.value }
-    private val maximumSeconds by NumberConfig("Maximum Seconds", 400, 60, 480, 10, suffix = "s").withDescription("Maximum S+ PB time in seconds.").showIf { autoKick.value }
-    private val minimumSecrets by NumberConfig("Minimum Secrets", 0, 0, 200, 1, suffix = "k").withDescription("Minimum secrets in thousands.").showIf { autoKick.value }
+    private val autoKick by ToggleSetting("Auto Kick", false).withDescription("Automatically kick players that don't meet requirements.").section("Auto Kick")
+    private val autoKickFloor by DropdownSetting("Floor", 6, listOf("F1", "F2", "F3", "F4", "F5", "F6", "F7")).showIf { autoKick.value }
+    private val masterMode by ToggleSetting("Master Mode", true).showIf { autoKick.value }
+    private val informKicked by ToggleSetting("Inform Kicked", false).withDescription("Send a party chat message before kicking.").showIf { autoKick.value }
+    private val maximumSeconds by SliderSetting("Maximum Seconds", 400, 60, 480, 10, suffix = "s").withDescription("Maximum S+ PB time in seconds.").showIf { autoKick.value }
+    private val minimumSecrets by SliderSetting("Minimum Secrets", 0, 0, 200, 1, suffix = "k").withDescription("Minimum secrets in thousands.").showIf { autoKick.value }
 
     private val dungeonGroupJoinRegex = Regex("^Party Finder > (\\w{1,16}) joined the dungeon group! \\((\\w+) Level (\\d+)\\)$")
     private val kickedPlayers = mutableSetOf<String>()

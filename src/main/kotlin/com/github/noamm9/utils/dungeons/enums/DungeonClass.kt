@@ -1,10 +1,10 @@
 package com.github.noamm9.utils.dungeons.enums
 
-import com.github.noamm9.config.types.ColorCodeConfig
+import com.github.noamm9.config.types.ColorCodeSetting
 import com.github.noamm9.features.impl.dev.ClassColors
 import java.awt.Color
 
-enum class DungeonClass(val setting: ColorCodeConfig) {
+enum class DungeonClass(val setting: ColorCodeSetting) {
     Archer(ClassColors.archCode),
     Berserk(ClassColors.bersCode),
     Healer(ClassColors.healCode),

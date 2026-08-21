@@ -3,13 +3,13 @@ package com.github.noamm9.features.impl.general
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.commands.CommandBuilder
 import com.github.noamm9.config.PogObject
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.interfaces.IChatComponent
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.removeFormatting
@@ -27,11 +27,11 @@ import org.lwjgl.glfw.GLFW
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
 object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy messages."), ICommandProvider {
-    private val ctrlClickToCopy by BooleanConfig("Ctrl Click to Copy", true).withDescription("Ctrl + Left Click a message to copy it to your clipboard.")
-    private val removeUselessMessages by BooleanConfig("Remove useless messages", true).withDescription("Removes a lot of useless messages from the chat.")
+    private val ctrlClickToCopy by ToggleSetting("Ctrl Click to Copy", true).withDescription("Ctrl + Left Click a message to copy it to your clipboard.")
+    private val removeUselessMessages by ToggleSetting("Remove useless messages", true).withDescription("Removes a lot of useless messages from the chat.")
 
     //#if CHEAT
-    private val autoDialogue by BooleanConfig("Auto dialogue").withDescription("Automatically continues dialogues with NPCs.")
+    private val autoDialogue by ToggleSetting("Auto dialogue").withDescription("Automatically continues dialogues with NPCs.")
     //#endif
 
     private val uselessMessages by lazy { DataDownloader.loadJson<List<String>>("uselessMessages.json").map(::Regex) }

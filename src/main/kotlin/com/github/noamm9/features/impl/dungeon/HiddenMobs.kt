@@ -2,10 +2,10 @@ package com.github.noamm9.features.impl.dungeon
 
 //#if CHEAT
 
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
@@ -16,9 +16,9 @@ import net.minecraft.world.entity.monster.Giant
 object HiddenMobs: Feature("Reveals invisible mobs in dungeons.") {
     private val watcherMobs by lazy { DataDownloader.loadJson<List<String>>("watcherMobsNames.json") }
 
-    private val showFels by BooleanConfig("Show Fels")
-    private val showSa by BooleanConfig("Show Shadow Assassins")
-    private val showStealthy by BooleanConfig("Show Stealthy")
+    private val showFels by ToggleSetting("Show Fels")
+    private val showSa by ToggleSetting("Show Shadow Assassins")
+    private val showStealthy by ToggleSetting("Show Stealthy")
 
     override fun init() {
         register<MainThreadPacketReceivedEvent.Post> {

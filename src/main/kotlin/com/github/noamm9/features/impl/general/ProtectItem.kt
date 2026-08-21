@@ -2,12 +2,12 @@ package com.github.noamm9.features.impl.general
 
 import com.github.noamm9.commands.CommandBuilder
 import com.github.noamm9.config.PogObject
+import com.github.noamm9.config.types.KeybindSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.KeyboardEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.types.ICommandProvider
-import com.github.noamm9.config.types.KeybindConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.formattedText
@@ -32,13 +32,13 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
         val ids = mutableSetOf<String>()
     })
 
-    private val protectNodification by BooleanConfig("Protect Notification", true).withDescription("Shows a notification on the bottom right side of the screen when the feature saved your item")
-    private val protectBind by KeybindConfig("Protect Key", GLFW.GLFW_KEY_L).section("Keybind").withDescription("Press while hovering an item in an inventory to protect/unprotect it via UUID.")
-    private val showProtected by BooleanConfig("Show Protected Items").withDescription("Shows protected items in container GUIs with a small indicator.")
-    private val protectUUID by BooleanConfig("Protect UUID", true)
-    private val protectID by BooleanConfig("Protect Skyblock ID", true)
-    private val protectStarred by BooleanConfig("Protect Starred", true)
-    private val protectRarity by BooleanConfig("Protect Recombobulated", true)
+    private val protectNodification by ToggleSetting("Protect Notification", true).withDescription("Shows a notification on the bottom right side of the screen when the feature saved your item")
+    private val protectBind by KeybindSetting("Protect Key", GLFW.GLFW_KEY_L).section("Keybind").withDescription("Press while hovering an item in an inventory to protect/unprotect it via UUID.")
+    private val showProtected by ToggleSetting("Show Protected Items").withDescription("Shows protected items in container GUIs with a small indicator.")
+    private val protectUUID by ToggleSetting("Protect UUID", true)
+    private val protectID by ToggleSetting("Protect Skyblock ID", true)
+    private val protectStarred by ToggleSetting("Protect Starred", true)
+    private val protectRarity by ToggleSetting("Protect Recombobulated", true)
 
     override fun init() {
         register<ContainerEvent.SlotClick> {

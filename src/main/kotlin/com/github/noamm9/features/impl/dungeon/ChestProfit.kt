@@ -1,13 +1,13 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.init.NetworkLoop
-import com.github.noamm9.config.types.BooleanConfig
-import com.github.noamm9.config.types.NumberConfig
 import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
@@ -32,13 +32,13 @@ import net.minecraft.world.item.Items
 import java.awt.Color
 
 object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
-    private val hud by BooleanConfig("HUD Display", true).section("General")
-    private val rerollValue by NumberConfig("Reroll Value", 5, 0, 100, 1, "M").withDescription("Prevents you from rerolling a chest if its profit is &b&lbigger&r then the &avalue in milions&r.\n\n&eoverride by pressing CTRL&r.\nset to 0 to disable")
-    private val includeEssence by BooleanConfig("Includes Essence", true)
-    private val croesusChestsProfit by BooleanConfig("Croesus Chests Profit", true).section("Croesus")
-    private val croesusChestHighlight by BooleanConfig("Highlight Croesus Chests", true)
-    private val hideRedChests by BooleanConfig("Hide Opened Chests", true)
-    private val croesusKismetDisplay by BooleanConfig("Mark Rerolled Chests", true).jsonName("Highlight Rerolled Chests")
+    private val hud by ToggleSetting("HUD Display", true).section("General")
+    private val rerollValue by SliderSetting("Reroll Value", 5, 0, 100, 1, "M").withDescription("Prevents you from rerolling a chest if its profit is &b&lbigger&r then the &avalue in milions&r.\n\n&eoverride by pressing CTRL&r.\nset to 0 to disable")
+    private val includeEssence by ToggleSetting("Includes Essence", true)
+    private val croesusChestsProfit by ToggleSetting("Croesus Chests Profit", true).section("Croesus")
+    private val croesusChestHighlight by ToggleSetting("Highlight Croesus Chests", true)
+    private val hideRedChests by ToggleSetting("Hide Opened Chests", true)
+    private val croesusKismetDisplay by ToggleSetting("Mark Rerolled Chests", true).jsonName("Highlight Rerolled Chests")
 
     private val blackList by lazy { DataDownloader.loadJson<List<String>>("blacklistDrops.json") }
 

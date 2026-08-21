@@ -1,12 +1,12 @@
 package com.github.noamm9.features.impl.visual
 
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.RenderOverlayEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.config.types.ChoiceConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
@@ -19,12 +19,12 @@ import kotlinx.serialization.json.contentOrNull
 import net.minecraft.world.entity.EquipmentSlot
 
 object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and more") {
-    private val onlyInDungeon by BooleanConfig("Dungeons Only")
-    private val maskTimerStyle by ChoiceConfig("Style", 0, listOf("NoammAddons", "Zyryon"))
+    private val onlyInDungeon by ToggleSetting("Dungeons Only")
+    private val maskTimerStyle by DropdownSetting("Style", 0, listOf("NoammAddons", "Zyryon"))
 
-    private val invulnerabilityTimers by BooleanConfig("Invulnerability Timers")
-    private val procNotification by BooleanConfig("Proc Notification")
-    private val readyNotification by BooleanConfig("Ready Notification")
+    private val invulnerabilityTimers by ToggleSetting("Invulnerability Timers")
+    private val procNotification by ToggleSetting("Proc Notification")
+    private val readyNotification by ToggleSetting("Ready Notification")
 
     private enum class Mask(
         val displayName: String,

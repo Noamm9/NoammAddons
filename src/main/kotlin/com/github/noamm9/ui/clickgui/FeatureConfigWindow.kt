@@ -2,10 +2,10 @@ package com.github.noamm9.ui.clickgui
 
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.Setting
-import com.github.noamm9.ui.clickgui.components.SettingFactory
 import com.github.noamm9.ui.clickgui.components.Style
-import com.github.noamm9.ui.clickgui.components.impl.CategorySetting
-import com.github.noamm9.ui.clickgui.components.impl.SeparatorSetting
+import com.github.noamm9.ui.clickgui.components.WidgetFactory
+import com.github.noamm9.ui.clickgui.components.impl.CategoryWidget
+import com.github.noamm9.ui.clickgui.components.impl.SeparatorWidget
 import com.github.noamm9.ui.clickgui.enums.WindowClickAction
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.ui.utils.MouseHelper
@@ -44,7 +44,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
     private var maxScroll = 0f
 
     val settings = buildList {
-        val widgets = feature.configSettings.mapNotNull(SettingFactory::toSetting)
+        val widgets = feature.configSettings.mapNotNull(WidgetFactory::fromSetting)
         var lastSection: String? = null
 
         for (widget in widgets) {
@@ -52,8 +52,8 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
             if (section != null && section != lastSection) {
                 val sectionSettings = widgets.dropWhile { it !== widget }.takeWhile { it.config.section == section }
                 val sectionVisibility = { sectionSettings.any { it.config.visibility() } }
-                if (isNotEmpty()) add(SeparatorSetting().also { it.visibility = sectionVisibility })
-                add(CategorySetting(section).also { it.visibility = sectionVisibility })
+                if (isNotEmpty()) add(SeparatorWidget().also { it.visibility = sectionVisibility })
+                add(CategoryWidget(section).also { it.visibility = sectionVisibility })
                 lastSection = section
             }
             add(widget)

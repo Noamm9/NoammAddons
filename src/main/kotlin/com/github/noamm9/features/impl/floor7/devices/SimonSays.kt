@@ -1,13 +1,13 @@
 package com.github.noamm9.features.impl.floor7.devices
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.*
-import com.github.noamm9.config.types.ColorConfig
-import com.github.noamm9.config.types.NumberConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.toVec
@@ -29,28 +29,28 @@ import java.awt.Color
 import java.util.*
 
 object SimonSays: Feature("Simon Says Solver") {
-    private val progressDisplay by BooleanConfig("Progress Display").withDescription("Displays the current Simon Says stage.").section("HUD")
+    private val progressDisplay by ToggleSetting("Progress Display").withDescription("Displays the current Simon Says stage.").section("HUD")
 
-    private val ssSkip by BooleanConfig("SS skip Compatibility", true).withDescription("Always assume at the start that you perfectly SS skip").section("Options")
-    private val blockWrongClicks by BooleanConfig("Block Wrong Clicks").withDescription("Blocks clicks if you aren't looking at the correct button. &eSneak to override.")
-    private val color1 by ColorConfig("First Color", Color.GREEN).withDescription("Color of the first button.")
-    private val color2 by ColorConfig("Second Color", Color.YELLOW).withDescription("Color of the second button.")
-    private val color3 by ColorConfig("Other Color", Color.RED).withDescription("Color of the rest of the buttons.")
-    private val outline by BooleanConfig("Outline", false).withDescription("Renders the box with an outline.")
-    private val phase by BooleanConfig("Phase", true).withDescription("Renders the box through walls.")
+    private val ssSkip by ToggleSetting("SS skip Compatibility", true).withDescription("Always assume at the start that you perfectly SS skip").section("Options")
+    private val blockWrongClicks by ToggleSetting("Block Wrong Clicks").withDescription("Blocks clicks if you aren't looking at the correct button. &eSneak to override.")
+    private val color1 by ColorSetting("First Color", Color.GREEN).withDescription("Color of the first button.")
+    private val color2 by ColorSetting("Second Color", Color.YELLOW).withDescription("Color of the second button.")
+    private val color3 by ColorSetting("Other Color", Color.RED).withDescription("Color of the rest of the buttons.")
+    private val outline by ToggleSetting("Outline", false).withDescription("Renders the box with an outline.")
+    private val phase by ToggleSetting("Phase", true).withDescription("Renders the box through walls.")
 
     //#if CHEAT
-    private val triggerBot by BooleanConfig("Triggerbot", false).withDescription("Automatically clicks the correct button when you're aiming at it.").section("Auto")
-    private val autoStart by BooleanConfig("Auto Start", false).withDescription("Automatically starts the device when it can be started.")
-    private val startClicks by NumberConfig("Start Clicks", 3, 1, 10, 1).withDescription("Amount of clicks to start the device.").showIf { autoStart.value }
-    private val startClickDelay by NumberConfig("Start Click Delay", 3, 1, 25, 1).withDescription("Delay in ticks between each start click.").showIf { autoStart.value }
+    private val triggerBot by ToggleSetting("Triggerbot", false).withDescription("Automatically clicks the correct button when you're aiming at it.").section("Auto")
+    private val autoStart by ToggleSetting("Auto Start", false).withDescription("Automatically starts the device when it can be started.")
+    private val startClicks by SliderSetting("Start Clicks", 3, 1, 10, 1).withDescription("Amount of clicks to start the device.").showIf { autoStart.value }
+    private val startClickDelay by SliderSetting("Start Click Delay", 3, 1, 25, 1).withDescription("Delay in ticks between each start click.").showIf { autoStart.value }
     //#endif
 
-    private val alertsEnabled by BooleanConfig("Alerts Enabled", true).section("Alerts")
-    private val sendChat by BooleanConfig("SS Break Alert", true).showIf { alertsEnabled.value }.withDescription("Sends in party chat when the device got reset")
-    private val sendRestartChat by BooleanConfig("Send Restart Chat", true).showIf { alertsEnabled.value }.withDescription("Sends a message in party chat when you restart the device")
-    private val alertSound by BooleanConfig("Alert Sound", true).showIf { alertsEnabled.value }.withDescription("Plays a sound when the device fails")
-    private val showTitle by BooleanConfig("Show Title", true).showIf { alertsEnabled.value }.withDescription("Shows a title when the device fails")
+    private val alertsEnabled by ToggleSetting("Alerts Enabled", true).section("Alerts")
+    private val sendChat by ToggleSetting("SS Break Alert", true).showIf { alertsEnabled.value }.withDescription("Sends in party chat when the device got reset")
+    private val sendRestartChat by ToggleSetting("Send Restart Chat", true).showIf { alertsEnabled.value }.withDescription("Sends a message in party chat when you restart the device")
+    private val alertSound by ToggleSetting("Alert Sound", true).showIf { alertsEnabled.value }.withDescription("Plays a sound when the device fails")
+    private val showTitle by ToggleSetting("Show Title", true).showIf { alertsEnabled.value }.withDescription("Shows a title when the device fails")
 
     private val deviceRegex = Regex("(.+) (activated|completed) a (terminal|device|lever)! \\((\\d)/(\\d)\\)")
     private val startRegex = Regex("^\\[BOSS] Goldor: Who dares trespass into my domain\\?$")

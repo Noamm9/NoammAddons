@@ -2,12 +2,12 @@ package com.github.noamm9.features.impl.floor7
 
 //#if CHEAT
 
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.config.types.NumberConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
@@ -18,19 +18,19 @@ import net.minecraft.sounds.SoundEvents
 import org.lwjgl.glfw.GLFW
 
 object DebuffHelper: Feature(description = "Automatically pulls and fires bows based on Server Ticks (Lag Proof).") {
-    private val semiAuto by BooleanConfig("Semi-Auto", true).withDescription("Automatically releases and re-draws the bow.").section("Options")
-    private val soundEnabled by BooleanConfig("Play Sound", true).withDescription("Plays a sound when fully charged.")
+    private val semiAuto by ToggleSetting("Semi-Auto", true).withDescription("Automatically releases and re-draws the bow.").section("Options")
+    private val soundEnabled by ToggleSetting("Play Sound", true).withDescription("Plays a sound when fully charged.")
     private val sound = createSoundSettings("Sound", SoundEvents.EXPERIENCE_ORB_PICKUP) { soundEnabled.value }
 
-    private val p1Ticks by NumberConfig("P1 Ticks", 8, 0, 20, 1).section("Ticks")
-    private val p2Ticks by NumberConfig("P2 Ticks", 8, 0, 20, 1)
-    private val p3Ticks by NumberConfig("P3 Ticks", 8, 0, 20, 1)
-    private val p4Ticks by NumberConfig("P4 Ticks", 8, 0, 20, 1)
-    private val purpleTicks by NumberConfig("Purple Dragon", 8, 0, 20, 1)
-    private val greenTicks by NumberConfig("Green Dragon", 8, 0, 20, 1)
-    private val redTicks by NumberConfig("Red Dragon", 8, 0, 20, 1)
-    private val orangeTicks by NumberConfig("Orange Dragon", 8, 0, 20, 1)
-    private val blueTicks by NumberConfig("Blue Dragon", 8, 0, 20, 1)
+    private val p1Ticks by SliderSetting("P1 Ticks", 8, 0, 20, 1).section("Ticks")
+    private val p2Ticks by SliderSetting("P2 Ticks", 8, 0, 20, 1)
+    private val p3Ticks by SliderSetting("P3 Ticks", 8, 0, 20, 1)
+    private val p4Ticks by SliderSetting("P4 Ticks", 8, 0, 20, 1)
+    private val purpleTicks by SliderSetting("Purple Dragon", 8, 0, 20, 1)
+    private val greenTicks by SliderSetting("Green Dragon", 8, 0, 20, 1)
+    private val redTicks by SliderSetting("Red Dragon", 8, 0, 20, 1)
+    private val orangeTicks by SliderSetting("Orange Dragon", 8, 0, 20, 1)
+    private val blueTicks by SliderSetting("Blue Dragon", 8, 0, 20, 1)
 
     private var isCharging = false
     private var holdingRC = false
@@ -38,7 +38,7 @@ object DebuffHelper: Feature(description = "Automatically pulls and fires bows b
     private var ticksHeld = 0
 
     override fun init() {
-        configSettings.filterIsInstance<NumberConfig<Int>>().forEach {
+        configSettings.filterIsInstance<SliderSetting<Int>>().forEach {
             if (it.min == 0 && it.max == 20 && it.step == 1 && it.defaultValue == 8) {
                 it.withDescription("How many ticks should the bow be charged before it shoots. &e(Set to 0 to disable)")
             }

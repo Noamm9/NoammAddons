@@ -1,8 +1,8 @@
 package com.github.noamm9.features.impl.floor7
 
 import com.github.noamm9.NoammAddons
-import com.github.noamm9.config.types.BooleanConfig
-import com.github.noamm9.config.types.StringConfig
+import com.github.noamm9.config.types.TextInputSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
@@ -27,8 +27,8 @@ import java.awt.Color
 import kotlin.math.min
 
 object LeapCounter: Feature("Shows how many players have leaped you") {
-    private val alertComplete by BooleanConfig("Alert Complete", true)
-    private val completeText by StringConfig("Complete Text", "&aEveryone Leaped!").showIf { alertComplete.value }
+    private val alertComplete by ToggleSetting("Alert Complete", true)
+    private val completeText by TextInputSetting("Complete Text", "&aEveryone Leaped!").showIf { alertComplete.value }
     private val completeSound = createSoundSettings("Complete Sound", SoundEvents.EXPERIENCE_ORB_PICKUP) { alertComplete.value }
     private var currentSpot: REGION? = null
 

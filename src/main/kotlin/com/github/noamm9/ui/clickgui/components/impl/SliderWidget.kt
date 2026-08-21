@@ -1,6 +1,6 @@
 package com.github.noamm9.ui.clickgui.components.impl
 
-import com.github.noamm9.config.types.NumberConfig
+import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.ui.clickgui.components.Setting
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
@@ -11,8 +11,8 @@ import org.lwjgl.glfw.GLFW
 import java.awt.Color
 import kotlin.math.abs
 
-class SliderSetting<T: Number>(config: NumberConfig<T>): Setting<T>(config) {
-    private inline val cfg get() = config as NumberConfig<T>
+class SliderWidget<T: Number>(config: SliderSetting<T>): Setting<T>(config) {
+    private inline val cfg get() = config as SliderSetting<T>
 
     private var dragging = false
     private var isTyping = false

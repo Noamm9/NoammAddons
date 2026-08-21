@@ -5,7 +5,7 @@ import com.github.noamm9.config.Savable
 import com.github.noamm9.utils.GsonUtils.jsonObject
 import com.google.gson.JsonElement
 
-class MultiChoiceConfig(name: String, defaultValue: MutableMap<String, Boolean>): ConfigHolder<MutableMap<String, Boolean>>(name, defaultValue), Savable {
+class MultiCheckboxSetting(name: String, defaultValue: MutableMap<String, Boolean>): ConfigHolder<MutableMap<String, Boolean>>(name, defaultValue), Savable {
     override fun write() = jsonObject { value.forEach { (k, v) -> addProperty(k, v) } }
     override fun read(element: JsonElement) = element.asJsonObject.let { obj ->
         obj.entrySet().forEach { (k, v) -> if (v.isJsonPrimitive) value[k] = v.asBoolean }

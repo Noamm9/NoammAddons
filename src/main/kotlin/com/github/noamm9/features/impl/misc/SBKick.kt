@@ -1,9 +1,9 @@
 package com.github.noamm9.features.impl.misc
 
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.RenderOverlayEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.NumbersUtils.toFixed
@@ -11,7 +11,7 @@ import com.github.noamm9.utils.location.LocationUtils.inSkyblock
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 
 object SBKick: Feature("Shows a timer on screen for when you can rejoin Skyblock.") {
-    private val sendMsg by BooleanConfig("Send Party Message")
+    private val sendMsg by ToggleSetting("Send Party Message")
 
     private var showTime = false
     private var lastKickTime = System.currentTimeMillis()

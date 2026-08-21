@@ -7,7 +7,7 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
 import kotlin.math.round
 
-class NumberConfig<T: Number>(
+class SliderSetting<T: Number>(
     name: String,
     defaultValue: T,
     val min: T,

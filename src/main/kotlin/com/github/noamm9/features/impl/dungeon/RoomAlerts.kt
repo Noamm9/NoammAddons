@@ -1,8 +1,8 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.core.RoomState
@@ -12,8 +12,8 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.sounds.SoundEvents
 
 object RoomAlerts: Feature("Alerts when certain stuff happens in your current room") {
-    private val clear by BooleanConfig("Cleared", true)
-    private val secrets by BooleanConfig("Secrets Done", true)
+    private val clear by ToggleSetting("Cleared", true)
+    private val secrets by ToggleSetting("Secrets Done", true)
 
     override fun init() {
         register<DungeonEvent.RoomEvent.onStateChange> {

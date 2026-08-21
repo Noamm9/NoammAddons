@@ -1,11 +1,11 @@
 package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.NoammAddons.PREFIX
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.config.types.ColorConfig
-import com.github.noamm9.config.types.NumberConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.invert
 import com.github.noamm9.utils.MathUtils.aabb
@@ -35,15 +35,15 @@ import kotlin.math.ceil
 
 
 object BloodCamp: Feature("Features for Blood Room.") {
-    private val bloodCamp by BooleanConfig("Blood Camp Helper", true).section("Blood Camp Helper")
-    private val decimalPlaces by NumberConfig("Decimal Places", 1, 0, 2, 1).showIf { bloodCamp.value }.withDescription("The number of decimal places shown on blood mob timers")
-    private val timerColor by ColorConfig("Timer Color", Color.WHITE).showIf { bloodCamp.value }
-    private val boxColor by ColorConfig("Box Color", Color(255, 0, 255)).showIf { bloodCamp.value }
-    private val lineColor by ColorConfig("Line Color", Color.CYAN).showIf { bloodCamp.value }
+    private val bloodCamp by ToggleSetting("Blood Camp Helper", true).section("Blood Camp Helper")
+    private val decimalPlaces by SliderSetting("Decimal Places", 1, 0, 2, 1).showIf { bloodCamp.value }.withDescription("The number of decimal places shown on blood mob timers")
+    private val timerColor by ColorSetting("Timer Color", Color.WHITE).showIf { bloodCamp.value }
+    private val boxColor by ColorSetting("Box Color", Color(255, 0, 255)).showIf { bloodCamp.value }
+    private val lineColor by ColorSetting("Line Color", Color.CYAN).showIf { bloodCamp.value }
 
-    private val killTitle by BooleanConfig("Kill Title").section("Alerts").withDescription("Displays a Title when the blood mobs are ready to be killed. &bNOTE: Not always accurate, you will get better move times by learning when to kill the mobs yourself.")
-    private val speedAlert by BooleanConfig("Speed Alert").withDescription("Shows a title for the Watcher speed. (slow, normal, fast)")
-    private val partySpeedAlert by BooleanConfig("Send Speed Alert").withDescription("Sends in party chat the Watcher speed.").showIf { speedAlert.value }
+    private val killTitle by ToggleSetting("Kill Title").section("Alerts").withDescription("Displays a Title when the blood mobs are ready to be killed. &bNOTE: Not always accurate, you will get better move times by learning when to kill the mobs yourself.")
+    private val speedAlert by ToggleSetting("Speed Alert").withDescription("Shows a title for the Watcher speed. (slow, normal, fast)")
+    private val partySpeedAlert by ToggleSetting("Send Speed Alert").withDescription("Sends in party chat the Watcher speed.").showIf { speedAlert.value }
 
     private val bloodMobs = HashMap<ArmorStand, BloodEntity>()
     private var watcherEntity: Zombie? = null

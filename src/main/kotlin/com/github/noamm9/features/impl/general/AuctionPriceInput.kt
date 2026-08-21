@@ -1,11 +1,11 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.MultiCheckboxSetting
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.NetworkLoop
 import com.github.noamm9.mixin.IAbstractSignEditScreen
-import com.github.noamm9.config.types.ChoiceConfig
-import com.github.noamm9.config.types.MultiChoiceConfig
 import com.github.noamm9.ui.utils.componnents.UIButton
 import com.github.noamm9.ui.utils.componnents.UISearchBox
 import com.github.noamm9.utils.ChatUtils.unformattedText
@@ -31,8 +31,8 @@ import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox and undercut mode.") {
-    private val defaultMode by ChoiceConfig("Default mode", 0, listOf("Normal", "Undercut")).withDescription("The default input mode that will be used when you open the menu")
-    private val rememberInput by MultiChoiceConfig("Remember Input", mutableMapOf("Text" to false, "Mode" to false)).withDescription("Toggles for settings on the input menu that should be restored after reopening it")
+    private val defaultMode by DropdownSetting("Default mode", 0, listOf("Normal", "Undercut")).withDescription("The default input mode that will be used when you open the menu")
+    private val rememberInput by MultiCheckboxSetting("Remember Input", mutableMapOf("Text" to false, "Mode" to false)).withDescription("Toggles for settings on the input menu that should be restored after reopening it")
 
     private val guiNames = setOf("Create BIN Auction", "Create Auction")
     private val confirmNames = setOf("Confirm BIN Auction", "Confirm Auction")

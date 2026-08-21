@@ -1,10 +1,10 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.ConfigHolder
+import com.github.noamm9.config.types.TextInputSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.config.ConfigHolder
-import com.github.noamm9.config.types.StringConfig
-import com.github.noamm9.config.types.BooleanConfig
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils
 import com.github.noamm9.utils.NumbersUtils
@@ -16,25 +16,25 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.sounds.SoundEvents
 
 object ScoreCalculator: Feature("Shows the score of the dungeon run.") {
-    val forcePaul by BooleanConfig("Force Paul")
-    private val hudElement by BooleanConfig("HUD Element")
-    val sendMimic by BooleanConfig("Send Mimic Message")
-    val sendPrince by BooleanConfig("Send Prince Message")
-    val sendBat by BooleanConfig("Send Bat Message")
+    val forcePaul by ToggleSetting("Force Paul")
+    private val hudElement by ToggleSetting("HUD Element")
+    val sendMimic by ToggleSetting("Send Mimic Message")
+    val sendPrince by ToggleSetting("Send Prince Message")
+    val sendBat by ToggleSetting("Send Bat Message")
 
-    private val sendMsg270 by BooleanConfig("270 score message").section("270")
-    private val msg270 by StringConfig("Message", "270 Score!").showIf { sendMsg270.value }
-    private val title270 by BooleanConfig("270 score Title")
-    private val titleMsg270 by StringConfig("Title Message", "&e270 Score!").showIf { title270.value }
+    private val sendMsg270 by ToggleSetting("270 score message").section("270")
+    private val msg270 by TextInputSetting("Message", "270 Score!").showIf { sendMsg270.value }
+    private val title270 by ToggleSetting("270 score Title")
+    private val titleMsg270 by TextInputSetting("Title Message", "&e270 Score!").showIf { title270.value }
 
-    private val sendMsg300 by BooleanConfig("300 score message").section("300")
-    private val msg300 by StringConfig("Message ", "300 Score!").showIf { sendMsg300.value }
-    private val title300 by BooleanConfig("300 score Title")
-    private val titleMsg300 by StringConfig("Title Message ", "&c300 Score!").showIf { title300.value }
+    private val sendMsg300 by ToggleSetting("300 score message").section("300")
+    private val msg300 by TextInputSetting("Message ", "300 Score!").showIf { sendMsg300.value }
+    private val title300 by ToggleSetting("300 score Title")
+    private val titleMsg300 by TextInputSetting("Title Message ", "&c300 Score!").showIf { title300.value }
 
     private data class Milestone(
-        val score: Int, val sendMessage: BooleanConfig,
-        val message: ConfigHolder<String>, val sendTitle: BooleanConfig,
+        val score: Int, val sendMessage: ToggleSetting,
+        val message: ConfigHolder<String>, val sendTitle: ToggleSetting,
         val title: ConfigHolder<String>
     )
 
