@@ -12,11 +12,11 @@ import org.spongepowered.asm.mixin.injection.At;
 public class MixinAnvilScreen {
     @WrapOperation(method = "slotChanged", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/chat/Component;getString()Ljava/lang/String;"))
     public String slotChanged$getString(Component instance, Operation<String> original) {
-        return ModHider.getString(instance);
+        return ModHider.getStringAndReport(instance);
     }
 
     @WrapOperation(method = "onNameChanged", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/chat/Component;getString()Ljava/lang/String;"))
     public String onNameChanged$getString(Component instance, Operation<String> original) {
-        return ModHider.getString(instance);
+        return ModHider.getStringAndReport(instance);
     }
 }
