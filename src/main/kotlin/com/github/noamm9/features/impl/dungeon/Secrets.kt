@@ -38,7 +38,7 @@ object Secrets: Feature() {
 
     //#if CHEAT
     private val closeChest by ToggleSetting("Close Chest").section("Auto").withDescription("Automatically closes the secret chest for you.")
-    private val lever by ToggleSetting("Lever").withDescription("Full block Lever hitbox.").section("Secret Hitboxes")
+    private val lever by ToggleSetting("Lever").withDescription("Full block Lever hitbox.").section("Secret Full Blocks ")
     @JvmStatic val button by ToggleSetting("Button").withDescription("Full block button hitbox.")
     @JvmStatic val skull by ToggleSetting("Skulls").withDescription("Full block Skull hitbox.")
     @JvmStatic val mushroom by ToggleSetting("Mushroom").withDescription("Full block Mushroom hitbox.")
