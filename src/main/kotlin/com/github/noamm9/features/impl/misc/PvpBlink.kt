@@ -12,6 +12,7 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.world.Render3D.renderBox
 import gg.essential.universal.UKeyboard
+import gg.essential.universal.wrappers.UPlayer
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket
 import net.minecraft.network.protocol.game.ServerboundInteractPacket
@@ -40,6 +41,7 @@ object PvpBlink: Feature("Desyncs your connection to eat knockback or spoof posi
     override fun init() {
         register<PacketEvent.Received> {
             if (mc.singleplayerServer != null) return@register
+            if (! UPlayer.hasPlayer()) return@register
             if (mode.value == 1 && event.packet is ClientboundSetEntityMotionPacket) {
                 if (event.packet.id == player.id) startBlink()
             }
