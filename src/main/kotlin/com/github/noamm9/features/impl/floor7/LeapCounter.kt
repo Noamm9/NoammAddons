@@ -17,9 +17,9 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.RenderHelper.width
 import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
 import com.github.noamm9.utils.render.world.Render3D.renderString
-import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.network.protocol.game.*
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.phys.AABB
@@ -35,7 +35,7 @@ object LeapCounter: Feature("Shows how many players have leaped you") {
     override fun init() {
         hudElement("LeapCounter", centered = true) { ctx, e ->
             val region = if (e) REGION.HEE2_BOX else currentSpot ?: return@hudElement 0f to 0f
-            val max = region.maxCount.takeIf { it > 0 } ?: return@hudElement 0f to 0f
+            val max = if (e) region._maxCount else region.maxCount.takeIf { it > 0 } ?: return@hudElement 0f to 0f
             val startFormat = if (region.maxCount - region.count <= 1) "§9" else "§4"
             val str = "$startFormat${region.count}§9/$max Players Leaped"
             ctx.drawCenteredString(str, 0, 0)
@@ -88,7 +88,7 @@ object LeapCounter: Feature("Shows how many players have leaped you") {
         register<WorldChangeEvent> { REGION.reset() }
     }
 
-    private enum class REGION(val box: AABB, private val _maxCount: Int, val check: (x: Double, y: Double, z: Double) -> Boolean) {
+    private enum class REGION(val box: AABB, val _maxCount: Int, val check: (x: Double, y: Double, z: Double) -> Boolean) {
         SS_BOX(aabb(106, 119, 92, 109, 121, 96), 3, { x, y, z -> LocationUtils.findP3Section(x, y, z) == 1 }),
         EE2_BOX(aabb(57, 108, 130, 59, 110, 132), 4, { x, y, z -> LocationUtils.findP3Section(x, y, z) == 2 }),
         HEE2_BOX(aabb(57, 132, 138, 62, 133, 140), 4, EE2_BOX.check),
