@@ -12,7 +12,7 @@ import com.github.noamm9.utils.dungeons.map.handlers.ScoreCalculation
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
-import net.minecraft.client.resources.sounds.SimpleSoundInstance
+import gg.essential.universal.USound
 import net.minecraft.sounds.SoundEvents
 
 object ScoreCalculator: Feature("Shows the score of the dungeon run.") {
@@ -68,6 +68,6 @@ object ScoreCalculator: Feature("Shows the score of the dungeon run.") {
         val floorName = LocationUtils.dungeonFloor ?: "?"
 
         ChatUtils.modMessage("&e${m.score}&a score reached in &6$timeStr &f|| $floorColor$floorName.")
-        repeat(2) { mc.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.EXPERIENCE_ORB_PICKUP, 0f)) }
+        repeat(2) { USound.playSoundStatic(SoundEvents.EXPERIENCE_ORB_PICKUP, 0.25f, 0f) }
     }
 }

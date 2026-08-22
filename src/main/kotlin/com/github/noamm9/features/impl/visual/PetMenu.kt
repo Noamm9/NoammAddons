@@ -23,7 +23,7 @@ import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawLine
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.RenderHelper.width
-import com.mojang.blaze3d.platform.InputConstants
+import gg.essential.universal.UKeyboard
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.world.inventory.Slot
@@ -44,7 +44,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
 
     private val useHotbarBinds by ToggleSetting("Use Hotbar Binds").section("Keybinds")
     private val keybinds = (1 .. PETS_PER_WHEEL).mapIndexed { index, slot ->
-        KeybindSetting("Pet Slot $slot", InputConstants.KEY_1 + index)
+        KeybindSetting("Pet Slot $slot", UKeyboard.KEY_1 + index)
             .hideIf { useHotbarBinds.value }.apply(configSettings::add)
     }
 
@@ -95,7 +95,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
             val layout = wheelLayout(visiblePets.size)
             val pet = hoveredWheelIndex(event.mouseX, event.mouseY, layout)?.let(visiblePets::getOrNull)
 
-            if (event.button == GLFW.GLFW_MOUSE_BUTTON_RIGHT && InputConstants.isKeyDown(mc.window, InputConstants.KEY_LSHIFT) && pet != null) {
+            if (event.button == GLFW.GLFW_MOUSE_BUTTON_RIGHT && UKeyboard.isKeyDown(UKeyboard.KEY_LSHIFT) && pet != null) {
                 val now = System.currentTimeMillis()
                 if (now - lastClickAt >= 300) {
                     lastClickAt = now

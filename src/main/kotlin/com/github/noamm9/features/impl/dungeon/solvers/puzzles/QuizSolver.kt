@@ -12,8 +12,8 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D.renderBlock
-import com.github.noamm9.utils.render.RenderContext
+import com.github.noamm9.utils.render.world.Render3D.renderBlock
+import com.github.noamm9.utils.render.world.RenderContext
 import com.github.noamm9.utils.startsWithOneOf
 import net.minecraft.core.BlockPos
 

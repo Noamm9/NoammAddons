@@ -1,6 +1,5 @@
 package com.github.noamm9.ui.clickgui.components
 
-import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.features.impl.dev.ClickGui
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils
@@ -9,8 +8,8 @@ import com.github.noamm9.utils.NumbersUtils.minus
 import com.github.noamm9.utils.NumbersUtils.plus
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
+import gg.essential.universal.USound
 import net.minecraft.client.gui.GuiGraphicsExtractor
-import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.sounds.SoundEvents
 import java.awt.Color
 
@@ -46,6 +45,6 @@ object Style {
 
     fun playClickSound(pitch: Float) {
         if (! ClickGui.playClickSound.value) return
-        mc.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, pitch))
+        USound.playSoundStatic(SoundEvents.UI_BUTTON_CLICK, 0.25f, pitch)
     }
 }

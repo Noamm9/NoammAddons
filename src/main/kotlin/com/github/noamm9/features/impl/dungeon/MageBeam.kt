@@ -11,8 +11,8 @@ import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D.renderLine
-import com.github.noamm9.utils.render.Render3D.renderRainbowLine
+import com.github.noamm9.utils.render.world.Render3D.renderLine
+import com.github.noamm9.utils.render.world.Render3D.renderRainbowLine
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket

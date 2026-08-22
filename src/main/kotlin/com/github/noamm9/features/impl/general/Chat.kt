@@ -17,7 +17,9 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.catch
 import com.mojang.brigadier.arguments.StringArgumentType
-import net.minecraft.ChatFormatting
+import gg.essential.universal.ChatColor
+import gg.essential.universal.UKeyboard
+import gg.essential.universal.UMinecraft
 import net.minecraft.client.gui.screens.ChatScreen
 import net.minecraft.client.multiplayer.chat.GuiMessage
 import net.minecraft.network.chat.ClickEvent
@@ -81,10 +83,10 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
     override fun init() {
         register<MouseClickEvent> {
             if (! ctrlClickToCopy.value) return@register
-            if (mc.screen !is ChatScreen) return@register
+            if (UMinecraft.currentScreenObj !is ChatScreen) return@register
             if (event.button != 0) return@register
             if (event.action != GLFW.GLFW_PRESS) return@register
-            if (GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_LEFT_CONTROL) != GLFW.GLFW_PRESS) return@register
+            if (GLFW.glfwGetKey(mc.window.handle(), UKeyboard.KEY_LCONTROL) != GLFW.GLFW_PRESS) return@register
             val message = getHoveredMsg().takeUnless(String::isBlank) ?: return@register
 
             NotificationManager.push("Message copied to clipboard", message)
@@ -127,7 +129,7 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
     }
 
     private fun getHoveredMsg(): String {
-        val chatHud = (mc.gui.chat as? IChatComponent) ?: return ""
+        val chatHud = (UMinecraft.getChatGUI() as? IChatComponent) ?: return ""
         val i = chatHud.getLineIndex().takeUnless { it < 0 || it >= chatHud.visibleMessages.size } ?: return ""
 
         val lines = ArrayList<GuiMessage.Line>()
@@ -150,16 +152,16 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
             line.content().accept { _, style, codePoint ->
                 if (style != lastStyle) {
                     style.color?.let { textColor ->
-                        ChatFormatting.entries.firstOrNull { it.isColor && it.color == textColor.value }?.let {
+                        ChatColor.entries.firstOrNull { it.isColor() && it.color?.rgb == textColor.value }?.let {
                             builder.append("§${it.char}")
                         }
                     }
 
-                    if (style.isBold) builder.append("§${ChatFormatting.BOLD.char}")
-                    if (style.isItalic) builder.append("§${ChatFormatting.ITALIC.char}")
-                    if (style.isUnderlined) builder.append("§${ChatFormatting.UNDERLINE.char}")
-                    if (style.isStrikethrough) builder.append("§${ChatFormatting.STRIKETHROUGH.char}")
-                    if (style.isObfuscated) builder.append("§${ChatFormatting.OBFUSCATED.char}")
+                    if (style.isBold) builder.append("§${ChatColor.BOLD.char}")
+                    if (style.isItalic) builder.append("§${ChatColor.ITALIC.char}")
+                    if (style.isUnderlined) builder.append("§${ChatColor.UNDERLINE.char}")
+                    if (style.isStrikethrough) builder.append("§${ChatColor.STRIKETHROUGH.char}")
+                    if (style.isObfuscated) builder.append("§${ChatColor.MAGIC.char}")
                     lastStyle = style
                 }
                 builder.appendCodePoint(codePoint)

@@ -12,6 +12,7 @@ import com.github.noamm9.utils.items.ItemUtils.customData
 import com.github.noamm9.utils.items.ItemUtils.marketId
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils.inSkyblock
+import gg.essential.universal.UKeyboard
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
 import net.fabricmc.fabric.api.client.screen.v1.ScreenMouseEvents
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
@@ -128,8 +129,8 @@ object ItemTooltip: Feature("Adds item information and controls to item tooltips
         if (! scrollableTooltips.value) return
         val scroll = (verticalAmount * scrollSpeed.value).toFloat()
         val holdingShift = isShiftDown()
-        val holdingCtrl = GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_LEFT_CONTROL) == GLFW.GLFW_PRESS
-            || GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_RIGHT_CONTROL) == GLFW.GLFW_PRESS
+        val holdingCtrl = GLFW.glfwGetKey(mc.window.handle(), UKeyboard.KEY_LCONTROL) == GLFW.GLFW_PRESS
+            || GLFW.glfwGetKey(mc.window.handle(), UKeyboard.KEY_RCONTROL) == GLFW.GLFW_PRESS
 
         when {
             holdingShift && ! holdingCtrl -> scrollAmountX -= scroll
@@ -145,7 +146,7 @@ object ItemTooltip: Feature("Adds item information and controls to item tooltips
 
     private fun isShiftDown(): Boolean {
         val handle = mc.window.handle()
-        return GLFW.glfwGetKey(handle, GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS || GLFW.glfwGetKey(handle, GLFW.GLFW_KEY_RIGHT_SHIFT) == GLFW.GLFW_PRESS
+        return GLFW.glfwGetKey(handle, UKeyboard.KEY_LSHIFT) == GLFW.GLFW_PRESS || GLFW.glfwGetKey(handle, UKeyboard.KEY_RSHIFT) == GLFW.GLFW_PRESS
     }
 
     @JvmStatic fun isScrollingEnabled() = enabled && scrollableTooltips.value

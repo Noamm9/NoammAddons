@@ -20,7 +20,7 @@ import com.github.noamm9.utils.dungeons.enums.SecretType
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
-import com.github.noamm9.utils.render.Render3D.renderBlock
+import com.github.noamm9.utils.render.world.Render3D.renderBlock
 import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction

@@ -4,7 +4,8 @@ import com.github.noamm9.config.PogObject
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.gui.SoundManagerScreen
-import net.minecraft.client.resources.sounds.SimpleSoundInstance
+import gg.essential.universal.UMinecraft
+import gg.essential.universal.USound
 import net.minecraft.client.resources.sounds.SoundInstance
 import net.minecraft.resources.Identifier
 import net.minecraft.sounds.SoundEvent
@@ -14,7 +15,6 @@ import kotlin.math.roundToInt
 object SoundManager: Feature("Adjust volumes for every sound in the game") {
     private val volumes = PogObject("noammaddons_sounds", mutableMapOf<String, Float>())
     private val recentSounds = Collections.synchronizedSet<Identifier>(mutableSetOf())
-    private var previewSound: SoundInstance? = null
     @Volatile var recentSoundsVersion = 0L
 
     override fun init() {
@@ -28,7 +28,7 @@ object SoundManager: Feature("Adjust volumes for every sound in the game") {
 
     @JvmStatic
     fun recordPlayedSound(sound: SoundInstance) {
-        if (mc.screen is SoundManagerScreen) return
+        if (UMinecraft.currentScreenObj is SoundManagerScreen) return
         recentSounds.add(sound.identifier)
 
         if (recentSounds.size > 100) recentSounds.remove(recentSounds.first())
@@ -38,10 +38,7 @@ object SoundManager: Feature("Adjust volumes for every sound in the game") {
     fun getVolumePercent(id: String) = (volumes.get().getOrDefault(id, 1f) * 100f).roundToInt()
     fun setVolumePercent(id: String, percent: Int) = volumes.get().set(id, normalizePercent(percent) / 100f)
     fun playPreview(sound: SoundEvent) {
-        val i = SimpleSoundInstance.forUI(sound, 1f)
-        previewSound = i
-        mc.soundManager.play(i)
-        previewSound = null
+        USound.playSoundStatic(sound, 0.25f, 1f)
     }
 
     fun getRecentSoundIds() = recentSounds.map(Identifier::toString).asReversed()

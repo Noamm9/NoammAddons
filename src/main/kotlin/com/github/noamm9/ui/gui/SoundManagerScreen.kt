@@ -13,6 +13,8 @@ import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.spaceCaps
+import gg.essential.universal.UKeyboard
+import gg.essential.universal.UGraphics
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.CharacterEvent
@@ -170,8 +172,8 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
         if (isHovered) ctx.drawRect(x, y, w, h, Color(255, 255, 255, 15))
 
         val maxNameWidth = (sliderX - x - 12f).toInt()
-        val name = if (mc.font.width(sound.cleanName) <= maxNameWidth) sound.cleanName
-        else mc.font.plainSubstrByWidth(sound.cleanName, maxNameWidth - mc.font.width("...")) + "..."
+        val name = if (UGraphics.getStringWidth(sound.cleanName) <= maxNameWidth) sound.cleanName
+        else mc.font.plainSubstrByWidth(sound.cleanName, maxNameWidth - UGraphics.getStringWidth("...")) + "..."
 
         ctx.drawString(name, x + 5f, y + 9f)
         ctx.drawRect(sliderX, y + 17f, SLIDER_WIDTH, 5f, Color(255, 255, 255, 24))
@@ -181,7 +183,7 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
         ctx.drawCenteredString("Play", playX + PLAY_SOUND_WIDTH / 2f, y + 10f, if (playHovered) Color.WHITE else Color.LIGHT_GRAY)
 
         val valueText = "$volume%"
-        ctx.drawString(valueText, sliderX + SLIDER_WIDTH - mc.font.width(valueText), y + 5f, Color.GRAY)
+        ctx.drawString(valueText, sliderX + SLIDER_WIDTH - UGraphics.getStringWidth(valueText), y + 5f, Color.GRAY)
     }
 
     private fun updateFilter(resetScroll: Boolean = true) {
@@ -328,7 +330,7 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
 
     override fun keyPressed(keyEvent: KeyEvent): Boolean {
         if (searchHandler.keyPressed(keyEvent)) return true
-        if (keyEvent.key == GLFW.GLFW_KEY_ESCAPE) {
+        if (keyEvent.key == UKeyboard.KEY_ESCAPE) {
             onClose()
             return true
         }

@@ -10,8 +10,8 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D.renderBox
-import com.github.noamm9.utils.render.Render3D.renderTracer
+import com.github.noamm9.utils.render.world.Render3D.renderBox
+import com.github.noamm9.utils.render.world.Render3D.renderTracer
 import com.github.noamm9.utils.render.RenderHelper.renderVec
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.entity.Entity

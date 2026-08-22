@@ -11,8 +11,8 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.network.WebUtils
+import gg.essential.universal.UDesktop
 import kotlinx.serialization.Serializable
-import net.minecraft.util.Util
 import java.net.URI
 import java.util.*
 import java.util.concurrent.*
@@ -104,7 +104,7 @@ object UpdateChecker: Feature(
         val repo = "Noamm9/NoammAddons"
         val releases = "https://github.com/$repo/releases/latest"
         val actions = "https://github.com/$repo/actions"
-        Util.getPlatform().openUri(URI(page ?: (if (source.value == 0) releases else actions)))
+        UDesktop.browse(URI(page ?: (if (source.value == 0) releases else actions)))
     }
 
     @Serializable private data class Release(val tag_name: String, val html_url: String, val created_at: String)

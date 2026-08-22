@@ -6,11 +6,12 @@ import com.github.noamm9.config.Savable
 import com.github.noamm9.utils.GsonUtils.jsonObject
 import com.google.gson.JsonElement
 import com.mojang.blaze3d.platform.InputConstants
+import gg.essential.universal.UKeyboard
 import org.lwjgl.glfw.GLFW
 
 class KeybindSetting(
     name: String,
-    defaultValue: Int = InputConstants.UNKNOWN.value
+    defaultValue: Int = UKeyboard.KEY_NONE
 ): ConfigHolder<Int>(name, defaultValue), Savable {
     var scanCode = 0
     var isMouse = false
@@ -18,15 +19,15 @@ class KeybindSetting(
     private var previousState = false
 
     fun displayName(): String {
-        if (value == InputConstants.UNKNOWN.value) return "NONE"
+        if (value == UKeyboard.KEY_NONE) return "NONE"
         val type = if (isMouse) InputConstants.Type.MOUSE else InputConstants.Type.KEYSYM
         return type.getOrCreate(value).displayName.string.uppercase()
     }
 
     fun isDown(): Boolean {
-        if (value == InputConstants.UNKNOWN.value) return false
-        return if (isMouse) GLFW.glfwGetMouseButton(mc.window.handle(), value) == GLFW.GLFW_PRESS
-        else InputConstants.isKeyDown(mc.window, value)
+        if (value == UKeyboard.KEY_NONE) return false
+        if (isMouse) return GLFW.glfwGetMouseButton(mc.window.handle(), value) == GLFW.GLFW_PRESS
+        return UKeyboard.isKeyDown(value)
     }
 
     fun isPressed(): Boolean {
@@ -36,7 +37,7 @@ class KeybindSetting(
         return wasPressed
     }
 
-    fun matches(code: Int, mouse: Boolean) = value != InputConstants.UNKNOWN.value && isMouse == mouse && value == code
+    fun matches(code: Int, mouse: Boolean) = value != UKeyboard.KEY_NONE && isMouse == mouse && value == code
 
     override fun write() = jsonObject {
         addProperty("key", value)

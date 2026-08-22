@@ -9,11 +9,14 @@ import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.RenderOverlayEvent
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import gg.essential.universal.ChatColor
+import gg.essential.universal.UChat
+import gg.essential.universal.UResolution
+import gg.essential.universal.wrappers.UPlayer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import net.minecraft.ChatFormatting
 import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.HoverEvent
@@ -55,10 +58,10 @@ object ChatUtils: ISelfInit {
 
                 suspendCancellableCoroutine { cont ->
                     mc.execute {
-                        val conn = mc.player?.connection
-                        if (conn != null) {
-                            if (str.startsWith("/")) conn.sendCommand(str.removePrefix("/"))
-                            else conn.sendChat(str)
+                        val player = UPlayer.getPlayer()
+                        if (player != null) {
+                            if (str.startsWith("/")) player.connection.sendCommand(str.removePrefix("/"))
+                            else UChat.say(str)
                         }
                         lastSentTime = System.currentTimeMillis()
                         cont.resume(Unit)
@@ -137,8 +140,8 @@ object ChatUtils: ISelfInit {
         sendMessage("/pc $msg")
     }
 
-    fun chat(msg: Any?) = ThreadUtils.runOnMcThread { mc.gui.chat.addClientSystemMessage(Component.literal(msg.toString().addColor())) }
-    fun chat(comp: Component) = ThreadUtils.runOnMcThread { mc.gui.chat.addClientSystemMessage(comp) }
+    fun chat(msg: Any?) = mc.execute { UChat.chat(msg.toString().addColor()) }
+    fun chat(comp: Component) = mc.execute { UChat.chat(comp) }
 
     fun String.addColor() = replace("&", "§")
 
@@ -149,8 +152,8 @@ object ChatUtils: ISelfInit {
 
         comp.visit({ style, string ->
             style.color?.let { textColor ->
-                val colorMatch = ChatFormatting.entries.firstOrNull {
-                    it.isColor && it.color == textColor.value
+                val colorMatch = ChatColor.entries.firstOrNull {
+                    it.isColor() && it.color?.rgb == textColor.value
                 }
 
                 if (colorMatch != null) {
@@ -158,11 +161,11 @@ object ChatUtils: ISelfInit {
                 }
             }
 
-            if (style.isBold) sb.append("§${ChatFormatting.BOLD.char}")
-            if (style.isItalic) sb.append("§${ChatFormatting.ITALIC.char}")
-            if (style.isUnderlined) sb.append("§${ChatFormatting.UNDERLINE.char}")
-            if (style.isStrikethrough) sb.append("§${ChatFormatting.STRIKETHROUGH.char}")
-            if (style.isObfuscated) sb.append("§${ChatFormatting.OBFUSCATED.char}")
+            if (style.isBold) sb.append("§${ChatColor.BOLD.char}")
+            if (style.isItalic) sb.append("§${ChatColor.ITALIC.char}")
+            if (style.isUnderlined) sb.append("§${ChatColor.UNDERLINE.char}")
+            if (style.isStrikethrough) sb.append("§${ChatColor.STRIKETHROUGH.char}")
+            if (style.isObfuscated) sb.append("§${ChatColor.MAGIC.char}")
 
             sb.append(string)
 
@@ -197,8 +200,8 @@ object ChatUtils: ISelfInit {
     }
 
     private val titleRenderer = EventBus.listener<RenderOverlayEvent> {
-        val x = mc.window.guiScaledWidth / 2f
-        val height = mc.window.guiScaledHeight
+        val x = UResolution.scaledWidth / 2f
+        val height = UResolution.scaledHeight
         val y = height / 2f - (height * 0.056).roundToInt()
 
         event.context.drawCenteredString(title, x, y, scale = 2.5)

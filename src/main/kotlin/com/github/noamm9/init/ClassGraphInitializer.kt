@@ -3,7 +3,6 @@
 package com.github.noamm9.init
 
 import com.github.noamm9.NoammAddons
-import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.commands.CommandBuilder
 import com.github.noamm9.config.ConfigManager
 import com.github.noamm9.event.EventBus.register
@@ -16,6 +15,7 @@ import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.ui.hud.HudEditorScreen
 import com.github.noamm9.ui.utils.Resolution
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
+import gg.essential.universal.UMinecraft
 import io.github.classgraph.ClassGraph
 import io.github.classgraph.ClassInfo
 import io.github.classgraph.ScanResult
@@ -75,7 +75,7 @@ class ClassGraphInitializer {
         ConfigManager.load()
 
         register<RenderOverlayEvent> {
-            if (mc.screen is HudEditorScreen) return@register
+            if (UMinecraft.currentScreenObj is HudEditorScreen) return@register
 
             Resolution.push(event.context)
             FeatureManager.hudElements.forEach { if (it.shouldDraw) it.renderElement(event.context, false) }

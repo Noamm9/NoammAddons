@@ -1,11 +1,10 @@
 package com.github.noamm9.config
 
-import com.github.noamm9.NoammAddons
+import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.config.types.ButtonSetting
 import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.config.types.SoundSetting
-import com.github.noamm9.utils.ThreadUtils
-import net.minecraft.client.resources.sounds.SimpleSoundInstance
+import gg.essential.universal.USound
 import net.minecraft.sounds.SoundEvent
 import kotlin.reflect.KProperty
 
@@ -19,7 +18,7 @@ interface SettingProvider {
         val volume = SliderSetting("Volume", 0.5f, 0f, 1f, 0.1f).withDescription("The loudness of the sound.").showIf(showIf)
         val pitch = SliderSetting("Pitch", 1f, 0f, 2f, 0.1f).withDescription("The pitch/frequency of the sound.").showIf(showIf)
         val play = ButtonSetting("Play Sound", false) {
-            ThreadUtils.runOnMcThread { repeat(5) { NoammAddons.mc.soundManager.play(SimpleSoundInstance.forUI(sound.value, pitch.value, volume.value)) } }
+            mc.execute { repeat(5) { USound.playSoundStatic(sound.value, volume.value, pitch.value) } }
         }.withDescription("Click to test the current sound configuration.").showIf(showIf)
 
         configSettings.add(sound)

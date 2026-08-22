@@ -19,11 +19,12 @@ import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
+import gg.essential.universal.UKeyboard
+import gg.essential.universal.UMinecraft
 import net.minecraft.network.chat.Component
 import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
-import org.lwjgl.glfw.GLFW
 import kotlin.jvm.optionals.getOrDefault
 
 object ProtectItem: Feature("Prevents dropping or selling important items via /protectitem or keybind."), ICommandProvider {
@@ -33,7 +34,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
     })
 
     private val protectNodification by ToggleSetting("Protect Notification", true).withDescription("Shows a notification on the bottom right side of the screen when the feature saved your item")
-    private val protectBind by KeybindSetting("Protect Key", GLFW.GLFW_KEY_L).section("Keybind").withDescription("Press while hovering an item in an inventory to protect/unprotect it via UUID.")
+    private val protectBind by KeybindSetting("Protect Key", UKeyboard.KEY_L).section("Keybind").withDescription("Press while hovering an item in an inventory to protect/unprotect it via UUID.")
     private val showProtected by ToggleSetting("Show Protected Items").withDescription("Shows protected items in container GUIs with a small indicator.")
     private val protectUUID by ToggleSetting("Protect UUID", true)
     private val protectID by ToggleSetting("Protect Skyblock ID", true)
@@ -71,7 +72,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
 
         register<KeyboardEvent.KeyPressed> {
             if (LocationUtils.inDungeon && DungeonListener.dungeonStarted && ! DungeonListener.dungeonEnded) return@register
-            if (mc.screen != null) return@register
+            if (UMinecraft.currentScreenObj != null) return@register
             if (! mc.options.keyDrop.matches(event.keyEvent)) return@register
 
             if (getProtectType(player.inventory.selectedItem) != ProtectType.None) {

@@ -1,25 +1,25 @@
 package com.github.noamm9.utils.items
 
-import net.minecraft.ChatFormatting
+import gg.essential.universal.ChatColor
 import net.minecraft.world.item.ItemStack
 import java.awt.Color
 import java.util.*
 
-enum class ItemRarity(val baseColor: ChatFormatting) {
-    NONE(ChatFormatting.GRAY),
-    COMMON(ChatFormatting.WHITE),
-    UNCOMMON(ChatFormatting.GREEN),
-    RARE(ChatFormatting.BLUE),
-    EPIC(ChatFormatting.DARK_PURPLE),
-    LEGENDARY(ChatFormatting.GOLD),
-    MYTHIC(ChatFormatting.LIGHT_PURPLE),
-    DIVINE(ChatFormatting.AQUA),
-    SUPREME(ChatFormatting.DARK_RED),
-    ULTIMATE(ChatFormatting.DARK_RED),
-    SPECIAL(ChatFormatting.RED),
-    VERY_SPECIAL(ChatFormatting.RED);
+enum class ItemRarity(val baseColor: ChatColor) {
+    NONE(ChatColor.GRAY),
+    COMMON(ChatColor.WHITE),
+    UNCOMMON(ChatColor.GREEN),
+    RARE(ChatColor.BLUE),
+    EPIC(ChatColor.DARK_PURPLE),
+    LEGENDARY(ChatColor.GOLD),
+    MYTHIC(ChatColor.LIGHT_PURPLE),
+    DIVINE(ChatColor.AQUA),
+    SUPREME(ChatColor.DARK_RED),
+    ULTIMATE(ChatColor.DARK_RED),
+    SPECIAL(ChatColor.RED),
+    VERY_SPECIAL(ChatColor.RED);
 
-    val color = Color(baseColor.color !!)
+    val color = baseColor.color !!
     val loreName by lazy { name.replace("_", " ").uppercase() }
 
     companion object {

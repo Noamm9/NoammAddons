@@ -2,6 +2,7 @@ package com.github.noamm9.features.impl.misc
 
 import com.github.noamm9.features.Feature
 import com.mojang.blaze3d.platform.InputConstants
+import gg.essential.universal.UMinecraft
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.minecraft.client.KeyMapping
 import net.minecraft.world.entity.player.Input
@@ -13,7 +14,7 @@ object SnappyTappy: Feature("Prevents standing still when pressing opposing dire
 
     @JvmStatic
     fun resolveInput(input: Input): Input {
-        if (! enabled || mc.screen != null) {
+        if (! enabled || UMinecraft.currentScreenObj != null) {
             physicallyDown.clear()
             pressTimes.clear()
             return input

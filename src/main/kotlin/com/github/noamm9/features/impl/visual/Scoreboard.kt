@@ -10,6 +10,8 @@ import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
+import gg.essential.universal.UGraphics
+import gg.essential.universal.UMinecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.chat.Component
 import net.minecraft.network.protocol.game.*
@@ -34,7 +36,7 @@ object Scoreboard: Feature("Draws a custom scoreboard instead of the vanilla one
         override val toggle get() = Scoreboard.enabled
 
         override fun draw(ctx: GuiGraphicsExtractor, example: Boolean): Pair<Float, Float> {
-            val objective = level.scoreboard.getDisplayObjective(DisplaySlot.SIDEBAR) ?: return 0f to 0f
+            val objective = UMinecraft.getWorld()?.scoreboard?.getDisplayObjective(DisplaySlot.SIDEBAR) ?: return 0f to 0f
 
             if (needsUpdate) updateCache(level.scoreboard, objective)
             if (cachedLines.isEmpty()) return 0f to 0f
@@ -51,8 +53,8 @@ object Scoreboard: Feature("Draws a custom scoreboard instead of the vanilla one
 
             ctx.drawCenteredString(cachedTitle, (xOffset + boxWidth / 2).toFloat(), (yOffset + padding).toFloat(), shadow = false)
 
-            val startY = yOffset + padding + mc.font.lineHeight + 4
-            val lineHeights = mc.font.lineHeight + 2
+            val startY = yOffset + padding + UGraphics.getFontHeight() + 4
+            val lineHeights = UGraphics.getFontHeight() + 2
 
             cachedLines.forEachIndexed { index, text ->
                 ctx.drawString(text, (xOffset + padding).toFloat(), (startY + (index * lineHeights)).toFloat())

@@ -11,6 +11,7 @@ import com.github.noamm9.utils.render.Render2D.drawHorizontalGradient
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.drawVerticalGradient
+import gg.essential.universal.UKeyboard
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
@@ -158,11 +159,11 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
 
     override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
         if (expanded && hexFocused) {
-            if (keyCode == GLFW.GLFW_KEY_BACKSPACE && hexText.isNotEmpty()) {
+            if (keyCode == UKeyboard.KEY_BACKSPACE && hexText.isNotEmpty()) {
                 hexText = hexText.dropLast(1)
                 tryUpdateFromHex()
             }
-            if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_ESCAPE) hexFocused = false
+            if (keyCode == UKeyboard.KEY_ENTER || keyCode == UKeyboard.KEY_ESCAPE) hexFocused = false
             return true
         }
         return false

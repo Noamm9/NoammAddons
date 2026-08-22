@@ -14,7 +14,7 @@ import com.github.noamm9.utils.Utils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.world.Render3D
 import net.minecraft.core.BlockPos
 
 object TrapHelper: Feature("Highlights the correct pearl block in New Trap") {

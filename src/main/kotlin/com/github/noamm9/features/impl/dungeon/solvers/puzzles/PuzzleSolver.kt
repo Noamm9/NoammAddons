@@ -1,7 +1,7 @@
 package com.github.noamm9.features.impl.dungeon.solvers.puzzles
 
 import com.github.noamm9.event.impl.*
-import com.github.noamm9.utils.render.RenderContext
+import com.github.noamm9.utils.render.world.RenderContext
 
 sealed interface PuzzleSolver {
     val enabled: Boolean

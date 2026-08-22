@@ -16,8 +16,8 @@ import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.WitherRelic
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
-import com.github.noamm9.utils.render.Render3D.renderBlock
-import com.github.noamm9.utils.render.Render3D.renderTracer
+import com.github.noamm9.utils.render.world.Render3D.renderBlock
+import com.github.noamm9.utils.render.world.Render3D.renderTracer
 import com.github.noamm9.utils.render.RenderHelper.width
 import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos

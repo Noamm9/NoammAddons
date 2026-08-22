@@ -14,8 +14,8 @@ import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils.rotate
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D.renderBlock
-import com.github.noamm9.utils.render.RenderContext
+import com.github.noamm9.utils.render.world.Render3D.renderBlock
+import com.github.noamm9.utils.render.world.RenderContext
 import net.minecraft.core.BlockPos
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.entity.decoration.ArmorStand

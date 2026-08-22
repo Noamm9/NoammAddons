@@ -6,7 +6,7 @@ import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D.renderString
+import com.github.noamm9.utils.render.world.Render3D.renderString
 import com.github.noamm9.utils.render.RenderHelper.renderVec
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.world.entity.Entity

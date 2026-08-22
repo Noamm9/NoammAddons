@@ -27,13 +27,11 @@ import com.github.noamm9.utils.render.Render2D.drawPlayerHead
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.renderVec
+import gg.essential.universal.*
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
-import net.minecraft.client.resources.sounds.SimpleSoundInstance
-import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.Items
-import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
@@ -50,8 +48,8 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
 
     val leapKeybinds by ToggleSetting("Leap Keybinds").showIf { customLeapMenu.value }.section("Leap Keybinds")
     val keybindMode by DropdownSetting("Mode", 0, listOf("Corners", "Class")).showIf { leapKeybinds.value }
-    val keybindKeys = (0 until 4).map { i -> KeybindSetting("Slot ${1 + i}", GLFW.GLFW_KEY_1 + i).showIf { leapKeybinds.value && keybindMode.value == 0 }.apply(configSettings::add) }
-    val classesKeys = DungeonClass.entries.dropLast(1).map { KeybindSetting(it.name.lowercase().uppercaseFirst(), GLFW.GLFW_KEY_UNKNOWN).showIf { leapKeybinds.value && keybindMode.value == 1 }.apply(configSettings::add) }
+    val keybindKeys = (0 until 4).map { i -> KeybindSetting("Slot ${1 + i}", UKeyboard.KEY_1 + i).showIf { leapKeybinds.value && keybindMode.value == 0 }.apply(configSettings::add) }
+    val classesKeys = DungeonClass.entries.dropLast(1).map { KeybindSetting(it.name.lowercase().uppercaseFirst(), UKeyboard.KEY_NONE).showIf { leapKeybinds.value && keybindMode.value == 1 }.apply(configSettings::add) }
 
     private val announceSpiritLeaps by ToggleSetting("Announce Leap", true).section("Extras")
     private val leapMsg by TextInputSetting("Leap Message", "ILY ❤ {name}").withDescription("replaces {name} with the player name").showIf { announceSpiritLeaps.value }
@@ -167,7 +165,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
                 event.context.drawBorder(headX, headY, headSize, headSize, entry.player.clazz.color)
 
                 val textX = (x + 10 + headSize + 5).toInt()
-                val textY = (y + boxHeight / 2 - mc.font.lineHeight).toInt()
+                val textY = (y + boxHeight / 2 - UGraphics.getFontHeight()).toInt()
 
                 event.context.drawString(entry.player.name, textX, textY + 2, entry.player.clazz.color)
 
@@ -212,8 +210,8 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
     private fun getHoveredIndex(): Int? {
         val cx = mc.window.width / 2
         val cy = mc.window.height / 2
-        val mx = mc.mouseHandler.xpos()
-        val my = mc.mouseHandler.ypos()
+        val mx = UMouse.Raw.x
+        val my = UMouse.Raw.y
 
         return when {
             mx < cx && my < cy -> 0
@@ -280,7 +278,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
         val entry = players.getOrNull(index) ?: return
         if (entry.player.isDead) return ChatUtils.modMessage("§3LeapMenu >> §c${entry.player.name} is dead!")
 
-        mc.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1F))
+        USound.playButtonPress()
         GuiUtils.clickSlot(entry.slotIndex, GuiUtils.ButtonType.LEFT)
         player.closeContainer()
     }
@@ -369,6 +367,6 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
         DungeonClass.Tank to listOf(DungeonClass.Archer, DungeonClass.Berserk, DungeonClass.Healer, DungeonClass.Mage)
     )
 
-    override fun isActive() = mc.screen?.isLeapMenu() ?: false
+    override fun isActive() = (UMinecraft.currentScreenObj as? Screen)?.isLeapMenu() ?: false
     private fun Screen.isLeapMenu() = enabled && customLeapMenu.value && LocationUtils.inDungeon && title.string.lowercase().containsOneOf("spirit leap", "teleport to player")
 }

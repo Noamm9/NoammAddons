@@ -9,8 +9,9 @@ import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.Utils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.EtherwarpHelper
-import com.github.noamm9.utils.render.Render3D.renderBlock
-import com.github.noamm9.utils.render.RenderContext
+import com.github.noamm9.utils.render.world.Render3D.renderBlock
+import com.github.noamm9.utils.render.world.RenderContext
+import gg.essential.universal.UMinecraft
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents
 
 object BlockOverlay: Feature() {
@@ -24,10 +25,10 @@ object BlockOverlay: Feature() {
     override fun init() {
         LevelRenderEvents.BEFORE_BLOCK_OUTLINE.register { context, blockOutlineContext ->
             if (! enabled) return@register true
-            if (mc.options.hideGui) return@register true
+            if (UMinecraft.getSettings().hideGui) return@register true
             if (hideDuringEtherwarp.value && shouldHide()) return@register false
 
-            RenderContext.fromContext(context).renderBlock(
+            RenderContext(context).renderBlock(
                 blockOutlineContext.pos,
                 outlineColor.value,
                 fillColor.value,
