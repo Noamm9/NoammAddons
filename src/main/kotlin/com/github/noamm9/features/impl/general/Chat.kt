@@ -153,15 +153,15 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
                 if (style != lastStyle) {
                     style.color?.let { textColor ->
                         ChatFormatting.entries.firstOrNull { it.isColor && it.color == textColor.value }?.let {
-                            builder.append("§${it.char}")
+                            builder.append(it)
                         }
                     }
 
-                    if (style.isBold) builder.append("§${ChatFormatting.BOLD.char}")
-                    if (style.isItalic) builder.append("§${ChatFormatting.ITALIC.char}")
-                    if (style.isUnderlined) builder.append("§${ChatFormatting.UNDERLINE.char}")
-                    if (style.isStrikethrough) builder.append("§${ChatFormatting.STRIKETHROUGH.char}")
-                    if (style.isObfuscated) builder.append("§${ChatFormatting.OBFUSCATED.char}")
+                    if (style.isBold) builder.append(ChatFormatting.BOLD)
+                    if (style.isItalic) builder.append(ChatFormatting.ITALIC)
+                    if (style.isUnderlined) builder.append(ChatFormatting.UNDERLINE)
+                    if (style.isStrikethrough) builder.append(ChatFormatting.STRIKETHROUGH)
+                    if (style.isObfuscated) builder.append(ChatFormatting.OBFUSCATED)
                     lastStyle = style
                 }
                 builder.appendCodePoint(codePoint)

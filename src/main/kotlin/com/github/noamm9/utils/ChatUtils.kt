@@ -11,12 +11,12 @@ import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import gg.essential.universal.UChat
 import gg.essential.universal.UResolution
+import gg.essential.universal.utils.toFormattedString
 import gg.essential.universal.wrappers.UPlayer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import net.minecraft.ChatFormatting
 import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.HoverEvent
@@ -24,7 +24,6 @@ import net.minecraft.network.chat.Style
 import net.minecraft.network.protocol.game.ServerboundChatCommandPacket
 import net.minecraft.network.protocol.game.ServerboundChatCommandSignedPacket
 import net.minecraft.network.protocol.game.ServerboundChatPacket
-import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.resume
@@ -146,34 +145,7 @@ object ChatUtils: ISelfInit {
     fun String.addColor() = replace("&", "§")
 
     val Component.unformattedText get() = string.removeFormatting()
-    val Component.formattedText get() = formatted(this)
-    private val formatted = fun(comp: Component): String {
-        val sb = StringBuilder()
-
-        comp.visit({ style, string ->
-            style.color?.let { textColor ->
-                val colorMatch = ChatFormatting.entries.firstOrNull {
-                    it.isColor && it.color == textColor.value
-                }
-
-                if (colorMatch != null) {
-                    sb.append("§${colorMatch.char}")
-                }
-            }
-
-            if (style.isBold) sb.append("§${ChatFormatting.BOLD.char}")
-            if (style.isItalic) sb.append("§${ChatFormatting.ITALIC.char}")
-            if (style.isUnderlined) sb.append("§${ChatFormatting.UNDERLINE.char}")
-            if (style.isStrikethrough) sb.append("§${ChatFormatting.STRIKETHROUGH.char}")
-            if (style.isObfuscated) sb.append("§${ChatFormatting.OBFUSCATED.char}")
-
-            sb.append(string)
-
-            Optional.empty<String>()
-        }, Style.EMPTY)
-
-        return sb.toString()
-    }
+    val Component.formattedText get() = toFormattedString()
 
     private var title = ""
     private var subtitle = ""
