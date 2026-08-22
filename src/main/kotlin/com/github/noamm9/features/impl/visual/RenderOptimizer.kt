@@ -5,6 +5,7 @@ import com.github.noamm9.event.impl.CheckEntityRenderEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ChatUtils.formattedText
+import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.location.LocationUtils
@@ -18,6 +19,7 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.entity.decoration.ArmorStand
 import java.util.*
 
 object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
@@ -26,6 +28,7 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
     private val hideFallingBlocks by ToggleSetting("Hide Falling Blocks")
     private val hideLightning by ToggleSetting("Hide Lightning Bolts")
     private val hideSoulWeaver by ToggleSetting("Hide Soul Weaver")
+    private val hideHealerOrbs by ToggleSetting("Hide Healer Orbs").withDescription("Hides healer support orbs in dungeons.")
     private val hide0HealthNames by ToggleSetting("Hide 0 Health")
     private val hideDeadMobs by ToggleSetting("Hide Dead Mobs")
     private val hideXpOrbs by ToggleSetting("Hide XP Orbs")
@@ -41,6 +44,11 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
 
     private const val TENTACLE_TEXTURE = "ewogICJ0aW1lc3RhbXAiIDogMTcxOTg1NzI3NzI0OSwKICAicHJvZmlsZUlkIiA6ICIxODA1Y2E2MmM0ZDI0M2NiOWQxYmY4YmM5N2E1YjgyNCIsCiAgInByb2ZpbGVOYW1lIiA6ICJSdWxsZWQiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzdkODM2NzQ5MjZiODk3MTRlNmI1YTU1NDcwNTAxYzA0YjA2NmRkODdiZjZjMzM1Y2RkYzZlNjBhMWExYTVmNSIKICAgIH0KICB9Cn0="
     private const val SOUL_WEAVER_TEXTURE = "eyJ0aW1lc3RhbXAiOjE1NTk1ODAzNjI1NTMsInByb2ZpbGVJZCI6ImU3NmYwZDlhZjc4MjQyYzM5NDY2ZDY3MjE3MzBmNDUzIiwicHJvZmlsZU5hbWUiOiJLbGxscmFoIiwic2lnbmF0dXJlUmVxdWlyZWQiOnRydWUsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8yZjI0ZWQ2ODc1MzA0ZmE0YTFmMGM3ODViMmNiNmE2YTcyNTYzZTlmM2UyNGVhNTVlMTgxNzg0NTIxMTlhYTY2In19fQ=="
+    private const val ABILITY_ORB_TEXTURE = "ewogICJ0aW1lc3RhbXAiIDogMTYzODUyNDAzODE5OCwKICAicHJvZmlsZUlkIiA6ICIzOWEzOTMzZWE4MjU0OGU3ODQwNzQ1YzBjNGY3MjU2ZCIsCiAgInByb2ZpbGVOYW1lIiA6ICJkZW1pbmVjcmFmdGVybG9sIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzVlZTRiYjQ4MjFkMGY1ZWQ4NjVjMjEwOTBhODBiNWVlN2Q1MjI2ODQ3NmVlMjVkMzg5NzEwZjdjYzlmMTEwZDYiCiAgICB9CiAgfQp9"
+    private const val SUPPORT_ORB_TEXTURE = "ewogICJ0aW1lc3RhbXAiIDogMTYwNTM1NjUyNzQzOSwKICAicHJvZmlsZUlkIiA6ICJhYTZhNDA5NjU4YTk0MDIwYmU3OGQwN2JkMzVlNTg5MyIsCiAgInByb2ZpbGVOYW1lIiA6ICJiejE0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzE1NzhiNGFmM2ZkZDkxNTFiODUwYjEzYzY3YzQ1ODAyMjRjN2Y2MDA1MjcxM2YyZDE1MWY3YzE1ZGMwZDdiMzQiCiAgICB9CiAgfQp9"
+    private const val DAMAGE_ORB_TEXTURE = "ewogICJ0aW1lc3RhbXAiIDogMTYwNDY4NDIxNTAyMCwKICAicHJvZmlsZUlkIiA6ICI3NzI3ZDM1NjY5Zjk0MTUxODAyM2Q2MmM2ODE3NTkxOCIsCiAgInByb2ZpbGVOYW1lIiA6ICJsaWJyYXJ5ZnJlYWsiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYWI4NmRhMmUyNDNjMDVkYzA4OThiMGNjNWQzZTY0ODc3MTczMTc3ZTBhMjM5NDQyNWNlYzEwMDI1OWNiNDUyNiIKICAgIH0KICB9Cn0="
+    private val HEALER_ORB_NAMES = listOf("ABILITY DAMAGE", "DAMAGE", "DEFENSE")
+    private val HEALER_ORB_TEXTURES = setOf(ABILITY_ORB_TEXTURE, SUPPORT_ORB_TEXTURE, DAMAGE_ORB_TEXTURE)
 
     override fun init() {
         register<MainThreadPacketReceivedEvent.Pre> {
@@ -106,6 +114,16 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
             }
 
             if (! LocationUtils.inDungeon) return@register
+
+            if (hideHealerOrbs.value && event.entity is ArmorStand) {
+                val name = event.entity.name.unformattedText
+                val texture = ItemUtils.getSkullTexture(event.entity.getItemBySlot(EquipmentSlot.HEAD))
+                if (HEALER_ORB_NAMES.any(name::startsWith) || texture in HEALER_ORB_TEXTURES) {
+                    event.isCanceled = true
+                    return@register
+                }
+            }
+
             val name = event.entity.customName ?: return@register
             val info = entityNameCache.getOrPut(event.entity) {
                 val formatted = name.formattedText
