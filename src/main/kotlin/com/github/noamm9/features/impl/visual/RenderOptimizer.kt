@@ -19,6 +19,7 @@ import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.LivingEntity
 import java.util.*
 
@@ -82,6 +83,7 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
                     if (! LocationUtils.inDungeon) return@register
 
                     packet.slots.forEach {
+                        if (it.first != EquipmentSlot.HEAD) return@register
                         val texture = ItemUtils.getSkullTexture(it.second) ?: return@forEach
 
                         val shouldDiscard = run {
