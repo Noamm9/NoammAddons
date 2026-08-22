@@ -33,6 +33,7 @@ val mod_name = project.property("mod_name") as String
 val fabric_version = project.property("fabric_version") as String
 val modmenu_version = project.property("modmenu_version") as String
 val ktor_version = project.property("ktor_version") as String
+val iris_version = project.property("iris_version") as String
 val universalcraft_version = project.property("universalcraft_version") as String
 
 version = mod_version
@@ -51,6 +52,7 @@ repositories {
     maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
     maven("https://repo.essential.gg/repository/maven-public")
     maven("https://maven.terraformersmc.com/releases/")
+    maven("https://api.modrinth.com/maven")
     maven("https://jitpack.io")
 }
 
@@ -62,6 +64,7 @@ dependencies {
     implementation("net.fabricmc:fabric-language-kotlin:$fabric_kotlin_version")
 
     runtimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
+    compileOnly("maven.modrinth:iris:$iris_version")
     compileOnly("com.terraformersmc:modmenu:$modmenu_version")
 
     compileOnly("io.github.llamalad7:mixinextras-fabric:0.5.4")

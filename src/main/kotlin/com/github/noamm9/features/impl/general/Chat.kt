@@ -17,9 +17,9 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.catch
 import com.mojang.brigadier.arguments.StringArgumentType
-import gg.essential.universal.ChatColor
 import gg.essential.universal.UKeyboard
 import gg.essential.universal.UMinecraft
+import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.screens.ChatScreen
 import net.minecraft.client.multiplayer.chat.GuiMessage
 import net.minecraft.network.chat.ClickEvent
@@ -152,16 +152,16 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
             line.content().accept { _, style, codePoint ->
                 if (style != lastStyle) {
                     style.color?.let { textColor ->
-                        ChatColor.entries.firstOrNull { it.isColor() && it.color?.rgb == textColor.value }?.let {
+                        ChatFormatting.entries.firstOrNull { it.isColor && it.color == textColor.value }?.let {
                             builder.append("§${it.char}")
                         }
                     }
 
-                    if (style.isBold) builder.append("§${ChatColor.BOLD.char}")
-                    if (style.isItalic) builder.append("§${ChatColor.ITALIC.char}")
-                    if (style.isUnderlined) builder.append("§${ChatColor.UNDERLINE.char}")
-                    if (style.isStrikethrough) builder.append("§${ChatColor.STRIKETHROUGH.char}")
-                    if (style.isObfuscated) builder.append("§${ChatColor.MAGIC.char}")
+                    if (style.isBold) builder.append("§${ChatFormatting.BOLD.char}")
+                    if (style.isItalic) builder.append("§${ChatFormatting.ITALIC.char}")
+                    if (style.isUnderlined) builder.append("§${ChatFormatting.UNDERLINE.char}")
+                    if (style.isStrikethrough) builder.append("§${ChatFormatting.STRIKETHROUGH.char}")
+                    if (style.isObfuscated) builder.append("§${ChatFormatting.OBFUSCATED.char}")
                     lastStyle = style
                 }
                 builder.appendCodePoint(codePoint)

@@ -9,7 +9,6 @@ import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.RenderOverlayEvent
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
-import gg.essential.universal.ChatColor
 import gg.essential.universal.UChat
 import gg.essential.universal.UResolution
 import gg.essential.universal.wrappers.UPlayer
@@ -17,6 +16,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import net.minecraft.ChatFormatting
 import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.HoverEvent
@@ -152,8 +152,8 @@ object ChatUtils: ISelfInit {
 
         comp.visit({ style, string ->
             style.color?.let { textColor ->
-                val colorMatch = ChatColor.entries.firstOrNull {
-                    it.isColor() && it.color?.rgb == textColor.value
+                val colorMatch = ChatFormatting.entries.firstOrNull {
+                    it.isColor && it.color == textColor.value
                 }
 
                 if (colorMatch != null) {
@@ -161,11 +161,11 @@ object ChatUtils: ISelfInit {
                 }
             }
 
-            if (style.isBold) sb.append("§${ChatColor.BOLD.char}")
-            if (style.isItalic) sb.append("§${ChatColor.ITALIC.char}")
-            if (style.isUnderlined) sb.append("§${ChatColor.UNDERLINE.char}")
-            if (style.isStrikethrough) sb.append("§${ChatColor.STRIKETHROUGH.char}")
-            if (style.isObfuscated) sb.append("§${ChatColor.MAGIC.char}")
+            if (style.isBold) sb.append("§${ChatFormatting.BOLD.char}")
+            if (style.isItalic) sb.append("§${ChatFormatting.ITALIC.char}")
+            if (style.isUnderlined) sb.append("§${ChatFormatting.UNDERLINE.char}")
+            if (style.isStrikethrough) sb.append("§${ChatFormatting.STRIKETHROUGH.char}")
+            if (style.isObfuscated) sb.append("§${ChatFormatting.OBFUSCATED.char}")
 
             sb.append(string)
 
