@@ -6,9 +6,8 @@ import com.github.noamm9.ui.clickgui.components.Widget
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
-import com.mojang.blaze3d.platform.InputConstants
+import gg.essential.universal.UKeyboard
 import net.minecraft.client.gui.GuiGraphicsExtractor
-import org.lwjgl.glfw.GLFW
 
 class KeybindWidget(config: KeybindSetting): Widget<Int>(config) {
     private inline val cfg get() = config as KeybindSetting
@@ -53,13 +52,13 @@ class KeybindWidget(config: KeybindSetting): Widget<Int>(config) {
 
     override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
         if (listening) {
-            if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+            if (keyCode == UKeyboard.KEY_ESCAPE) {
                 listening = false
                 return true
             }
 
-            if (keyCode == GLFW.GLFW_KEY_BACKSPACE) {
-                value = InputConstants.UNKNOWN.value
+            if (keyCode == UKeyboard.KEY_BACKSPACE) {
+                value = UKeyboard.KEY_NONE
                 cfg.isMouse = false
             }
             else {
@@ -72,12 +71,4 @@ class KeybindWidget(config: KeybindSetting): Widget<Int>(config) {
         }
         return false
     }
-
-    fun displayName(): String = cfg.displayName()
-
-    fun isDown(): Boolean = cfg.isDown()
-
-    fun isPressed(): Boolean = cfg.isPressed()
-
-    fun matches(code: Int, mouse: Boolean) = cfg.matches(code, mouse)
 }

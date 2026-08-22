@@ -10,6 +10,9 @@ import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.RenderHelper.width
+import gg.essential.universal.UGraphics
+import gg.essential.universal.UMinecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.chat.Component
 import net.minecraft.network.protocol.game.*
@@ -34,7 +37,7 @@ object Scoreboard: Feature("Draws a custom scoreboard instead of the vanilla one
         override val toggle get() = Scoreboard.enabled
 
         override fun draw(ctx: GuiGraphicsExtractor, example: Boolean): Pair<Float, Float> {
-            val objective = level.scoreboard.getDisplayObjective(DisplaySlot.SIDEBAR) ?: return 0f to 0f
+            val objective = UMinecraft.getWorld()?.scoreboard?.getDisplayObjective(DisplaySlot.SIDEBAR) ?: return 0f to 0f
 
             if (needsUpdate) updateCache(level.scoreboard, objective)
             if (cachedLines.isEmpty()) return 0f to 0f
@@ -51,8 +54,8 @@ object Scoreboard: Feature("Draws a custom scoreboard instead of the vanilla one
 
             ctx.drawCenteredString(cachedTitle, (xOffset + boxWidth / 2).toFloat(), (yOffset + padding).toFloat(), shadow = false)
 
-            val startY = yOffset + padding + mc.font.lineHeight + 4
-            val lineHeights = mc.font.lineHeight + 2
+            val startY = yOffset + padding + UGraphics.getFontHeight() + 4
+            val lineHeights = UGraphics.getFontHeight() + 2
 
             cachedLines.forEachIndexed { index, text ->
                 ctx.drawString(text, (xOffset + padding).toFloat(), (startY + (index * lineHeights)).toFloat())
@@ -113,8 +116,7 @@ object Scoreboard: Feature("Draws a custom scoreboard instead of the vanilla one
             return
         }
 
-        val font = mc.font
-        var maxW = font.width(cachedTitle).toFloat()
+        var maxW = cachedTitle.width().toFloat()
 
         scores.forEachIndexed { index, score ->
             val name = score.ownerName().string
@@ -126,13 +128,13 @@ object Scoreboard: Feature("Draws a custom scoreboard instead of the vanilla one
             }
 
             cachedLines.add(line)
-            maxW = maxOf(maxW, font.width(line).toFloat())
+            maxW = maxOf(maxW, line.width().toFloat())
         }
 
         val padding = 8f
-        val lineHeights = font.lineHeight + 2
+        val lineHeight = UGraphics.getFontHeight()
         cachedW = maxW + (padding * 2)
-        cachedH = (cachedLines.size * lineHeights) + font.lineHeight + (padding * 2f)
+        cachedH = (cachedLines.size * (lineHeight + 2)) + lineHeight + (padding * 2f)
         needsUpdate = false
     }
 }

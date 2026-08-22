@@ -2,10 +2,11 @@ package com.github.noamm9.ui.clickgui
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.ui.clickgui.components.Style
-import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.utils.render.RenderHelper.width
+import com.github.noamm9.utils.render.RenderHelper.wrap
+import gg.essential.universal.UGraphics
 import net.minecraft.client.gui.GuiGraphicsExtractor
-import net.minecraft.network.chat.Component
 import java.awt.Color
 import kotlin.math.abs
 
@@ -15,7 +16,7 @@ object TooltipManager {
 
     private var lastMouseX = 0
     private var lastMouseY = 0
-    private const val displayDelay = 600L
+    private const val displayDelay = 500L
 
     fun reset() {
         hoveredText = null
@@ -36,10 +37,10 @@ object TooltipManager {
         val text = hoveredText ?: return
         if (System.currentTimeMillis() - displayStartTime < displayDelay) return
 
-        val lines = mc.font.split(Component.literal(text.addColor()), 150)
+        val lines = text.wrap(150)
         val padding = 6
-        val textWidth = lines.maxOfOrNull { mc.font.width(it) } ?: return
-        val textHeight = lines.size * (mc.font.lineHeight + 2)
+        val textWidth = lines.maxOf { it.width() }
+        val textHeight = lines.size * (UGraphics.getFontHeight() + 2)
 
         var tx = lastMouseX + 12f
         var ty = lastMouseY + 12f
@@ -47,7 +48,7 @@ object TooltipManager {
         if (tx + textWidth + (padding * 2) > logicalWidth) tx = lastMouseX - textWidth - (padding * 2) - 4f
         if (ty + textHeight + (padding * 2) > logicalHeight) ty = logicalHeight - textHeight - (padding * 2) - 4f
 
-        context.drawRect(tx, ty, textWidth + (padding * 2f), textHeight + (padding * 2f), Color(10, 10, 10, 240))
+        context.drawRect(tx, ty, textWidth + (padding * 2f), textHeight + (padding * 1.5f), Color(10, 10, 10, 240))
         context.drawRect(tx, ty, textWidth + (padding * 2f), 1.5f, Style.accentColor)
 
         var currentY = ty + padding

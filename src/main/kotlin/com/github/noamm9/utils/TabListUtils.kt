@@ -2,8 +2,8 @@ package com.github.noamm9.utils
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus
-import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
+import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.init.types.ISelfInit
 import com.google.common.collect.ComparisonChain
 import net.minecraft.client.multiplayer.PlayerInfo
@@ -36,7 +36,9 @@ object TabListUtils: ISelfInit {
         val onlinePlayers = player.connection.onlinePlayers
         val sortedPlayers = onlinePlayers.sortedWith(PlayerComparator)
         val result = mutableListOf<Pair<Component, PlayerInfo>>()
-        for (info in sortedPlayers) result.add(mc.gui.tabList.getNameForDisplay(info) to info)
+        for (info in sortedPlayers) result.add(
+
+            mc.gui.tabList.getNameForDisplay(info) to info)
         return if (result.size > 80) result.subList(0, 80) else result
     }
 

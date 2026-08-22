@@ -10,6 +10,7 @@ import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
+import gg.essential.universal.UMinecraft
 import org.lwjgl.glfw.GLFW
 
 object Abilities: Feature(
@@ -55,7 +56,7 @@ object Abilities: Feature(
         register<KeyboardEvent.KeyPressed> {
             if (! LocationUtils.inDungeon || ! DungeonListener.dungeonStarted) return@register
             if (event.action != GLFW.GLFW_PRESS) return@register
-            if (mc.screen != null) return@register
+            if (UMinecraft.currentScreenObj != null) return@register
 
             if (ultKeybind.isPressed()) {
                 PlayerUtils.useDungeonClassAbility(true)

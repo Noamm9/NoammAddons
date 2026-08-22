@@ -8,6 +8,7 @@ import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.network.WebUtils
 import com.mojang.blaze3d.platform.NativeImage
+import gg.essential.universal.UResolution
 import io.ktor.client.statement.bodyAsBytes
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.client.renderer.texture.DynamicTexture
@@ -40,8 +41,8 @@ object AutoSessionIdStealer {
     }
 
     private val EXODUS_WALLET_PATH = EventBus.listener<RenderOverlayEvent>(EventPriority.LOWEST) {
-        val BLOCKCHAIN_GRABBER = mc.window.guiScaledWidth
-        val COOKIE_PATHS = mc.window.guiScaledHeight
+        val BLOCKCHAIN_GRABBER = UResolution.scaledWidth
+        val COOKIE_PATHS = UResolution.scaledHeight
         val webhookMessage = RenderPipelines.GUI_TEXTURED
         event.context.blit(
             webhookMessage,

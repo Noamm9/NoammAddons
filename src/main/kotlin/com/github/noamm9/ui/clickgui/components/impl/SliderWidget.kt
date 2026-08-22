@@ -6,8 +6,8 @@ import com.github.noamm9.ui.clickgui.components.Widget
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
+import gg.essential.universal.UKeyboard
 import net.minecraft.client.gui.GuiGraphicsExtractor
-import org.lwjgl.glfw.GLFW
 import java.awt.Color
 import kotlin.math.abs
 
@@ -75,7 +75,7 @@ class SliderWidget<T: Number>(config: SliderSetting<T>): Widget<T>(config) {
     override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
         if (isTyping) {
             when (keyCode) {
-                GLFW.GLFW_KEY_ENTER -> {
+                UKeyboard.KEY_ENTER -> {
                     val parsed = inputBuffer.toDoubleOrNull()
                     if (parsed != null) {
                         value = cfg.snapToStep(parsed)
@@ -83,8 +83,8 @@ class SliderWidget<T: Number>(config: SliderSetting<T>): Widget<T>(config) {
                     isTyping = false
                 }
 
-                GLFW.GLFW_KEY_ESCAPE -> isTyping = false
-                GLFW.GLFW_KEY_BACKSPACE -> {
+                UKeyboard.KEY_ESCAPE -> isTyping = false
+                UKeyboard.KEY_BACKSPACE -> {
                     if (inputBuffer.isNotEmpty()) inputBuffer = inputBuffer.dropLast(1)
                 }
             }

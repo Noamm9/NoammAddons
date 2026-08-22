@@ -4,11 +4,11 @@ import com.github.noamm9.config.ConfigHolder
 import com.github.noamm9.config.Savable
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
-import net.minecraft.ChatFormatting
+import gg.essential.universal.ChatColor
 
-class ColorCodeSetting(name: String, defaultValue: ChatFormatting = ChatFormatting.WHITE): ConfigHolder<ChatFormatting>(name, defaultValue), Savable {
+class ColorCodeSetting(name: String, defaultValue: ChatColor = ChatColor.WHITE): ConfigHolder<ChatColor>(name, defaultValue), Savable {
     companion object {
-        val COLORS = ChatFormatting.entries.filter { it.isColor }
+        val COLORS = ChatColor.entries.filter { it.isColor() }
     }
 
     override fun write() = JsonPrimitive(value.char.toString())

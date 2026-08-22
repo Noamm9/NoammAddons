@@ -7,11 +7,10 @@ import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
-import net.minecraft.ChatFormatting
+import gg.essential.universal.ChatColor
 import net.minecraft.client.gui.GuiGraphicsExtractor
-import java.awt.Color
 
-class ColorCodeWidget(config: ColorCodeSetting): Widget<ChatFormatting>(config) {
+class ColorCodeWidget(config: ColorCodeSetting): Widget<ChatColor>(config) {
     private var expanded = false
     private val openAnim = Animation(250)
     private val hoverAnim = Animation(200)
@@ -22,10 +21,8 @@ class ColorCodeWidget(config: ColorCodeSetting): Widget<ChatFormatting>(config) 
 
     override val height get() = 20 + (openAnim.value * 48).toInt()
 
-    private fun swatchColor(format: ChatFormatting) = Color(format.color ?: 0xFFFFFF)
-
-    private fun prettyName(format: ChatFormatting) =
-        format.name.split('_').joinToString(" ") { it.lowercase().replaceFirstChar(Char::uppercase) }
+    private fun swatchColor(format: ChatColor) = format.color ?: ChatColor.WHITE.color !!
+    private fun prettyName(format: ChatColor) = format.name.split('_').joinToString(" ") { it.lowercase().replaceFirstChar(Char::uppercase) }
 
     override fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
         val isHovered = mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + 20

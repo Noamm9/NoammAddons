@@ -1,4 +1,4 @@
-package com.github.noamm9.utils.render.iris
+package com.github.noamm9.utils.render.world.iris
 
 import com.github.noamm9.init.ModCompatibility
 import com.mojang.blaze3d.pipeline.RenderPipeline

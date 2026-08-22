@@ -32,8 +32,9 @@ val maven_group = project.property("maven_group") as String
 val mod_name = project.property("mod_name") as String
 val fabric_version = project.property("fabric_version") as String
 val modmenu_version = project.property("modmenu_version") as String
-val iris_version = project.property("iris_version") as String
 val ktor_version = project.property("ktor_version") as String
+val iris_version = project.property("iris_version") as String
+val universalcraft_version = project.property("universalcraft_version") as String
 
 version = mod_version
 group = maven_group
@@ -49,6 +50,7 @@ configurations {
 
 repositories {
     maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
+    maven("https://repo.essential.gg/repository/maven-public")
     maven("https://maven.terraformersmc.com/releases/")
     maven("https://api.modrinth.com/maven")
     maven("https://jitpack.io")
@@ -70,6 +72,7 @@ dependencies {
 
     bundled("io.github.classgraph:classgraph:4.8.191")
     bundled("com.github.Noamm9:datafixer:d60875927e")
+    bundled("gg.essential:universalcraft-26.1-fabric:$universalcraft_version")
     bundled("io.ktor:ktor-client-cio:$ktor_version")
     bundled("io.ktor:ktor-client-content-negotiation-jvm:$ktor_version")
     bundled("io.ktor:ktor-client-encoding:$ktor_version")

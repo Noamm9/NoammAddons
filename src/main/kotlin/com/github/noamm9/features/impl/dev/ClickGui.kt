@@ -7,6 +7,7 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.ClickGuiScreen
 import com.github.noamm9.ui.hud.HudEditorScreen
 import com.github.noamm9.utils.GuiUtils
+import gg.essential.universal.UMinecraft
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
@@ -29,7 +30,7 @@ object ClickGui: Feature("A feature used to change the ClickGui configuration.",
 
     override fun init() {
         register<KeyboardEvent.KeyPressed> {
-            if (mc.screen != null || event.action != GLFW.GLFW_PRESS) return@register
+            if (UMinecraft.currentScreenObj != null || event.action != GLFW.GLFW_PRESS) return@register
             if (! openKeybind.matches(event.keyEvent.key, mouse = false)) return@register
 
             GuiUtils.setScreen(ClickGuiScreen())
@@ -37,7 +38,7 @@ object ClickGui: Feature("A feature used to change the ClickGui configuration.",
         }
 
         register<MouseClickEvent> {
-            if (mc.screen != null || event.action != GLFW.GLFW_PRESS) return@register
+            if (UMinecraft.currentScreenObj != null || event.action != GLFW.GLFW_PRESS) return@register
             if (! openKeybind.matches(event.button, mouse = true)) return@register
 
             GuiUtils.setScreen(ClickGuiScreen())

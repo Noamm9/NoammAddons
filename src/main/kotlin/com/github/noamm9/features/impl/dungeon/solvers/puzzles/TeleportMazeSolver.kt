@@ -8,8 +8,8 @@ import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.correctTpPa
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.wrongTpPadColor
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
-import com.github.noamm9.utils.render.Render3D.renderBlock
-import com.github.noamm9.utils.render.RenderContext
+import com.github.noamm9.utils.render.world.Render3D.renderBlock
+import com.github.noamm9.utils.render.world.RenderContext
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket
 import net.minecraft.world.level.block.Blocks

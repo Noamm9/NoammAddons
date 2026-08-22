@@ -24,6 +24,7 @@ import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawFloatingRect
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.uppercaseFirst
+import gg.essential.universal.UGraphics
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.sounds.SoundEvents
@@ -367,7 +368,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
 
     private fun drawCenteredText(ctx: GuiGraphicsExtractor, text: String, slotX: Number, slotY: Number) {
         val centerX = slotX.toFloat() + 8f
-        val centerY = slotY.toFloat() + 8f - mc.font.lineHeight / 2
+        val centerY = slotY.toFloat() + 8f - UGraphics.getFontHeight() / 2
         ctx.drawCenteredString(text, centerX, centerY, color = overlayTextColor.value)
     }
 

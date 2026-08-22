@@ -1,8 +1,8 @@
 package com.github.noamm9.ui.utils
 
-import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.utils.NumbersUtils.div
-import net.minecraft.client.Minecraft
+import gg.essential.universal.UResolution
+import gg.essential.universal.UMouse
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import kotlin.math.min
 
@@ -20,9 +20,8 @@ object Resolution {
         private set
 
     private fun refresh() {
-        val window = Minecraft.getInstance().window
-        val guiWidth = window.guiScaledWidth.toFloat()
-        val guiHeight = window.guiScaledHeight.toFloat()
+        val guiWidth = UResolution.scaledWidth.toFloat()
+        val guiHeight = UResolution.scaledHeight.toFloat()
 
         scale = min(guiWidth / REFERANCE_WIDTH, guiHeight / REFERENCE_HEIGHT)
 
@@ -43,6 +42,6 @@ object Resolution {
     fun getMouseX(vanillaX: Number) = (vanillaX / scale).toInt()
     fun getMouseY(vanillaY: Number) = (vanillaY / scale).toInt()
 
-    fun getMouseX() = (mc.mouseHandler.xpos() / mc.window.screenWidth.toDouble() * width).toInt()
-    fun getMouseY() = (mc.mouseHandler.ypos() / mc.window.screenHeight.toDouble() * height).toInt()
+    fun getMouseX() = (UMouse.Raw.x / UResolution.windowWidth * width).toInt()
+    fun getMouseY() = (UMouse.Raw.y / UResolution.windowHeight * height).toInt()
 }

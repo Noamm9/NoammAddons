@@ -11,8 +11,8 @@ import com.github.noamm9.utils.dungeons.map.handlers.*
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D.renderBlock
-import com.github.noamm9.utils.render.Render3D.renderBoxBounds
+import com.github.noamm9.utils.render.world.Render3D.renderBlock
+import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
 import net.minecraft.world.level.block.Blocks
 
 object DungeonMap: Feature() {

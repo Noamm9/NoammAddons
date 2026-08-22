@@ -17,8 +17,8 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
-import com.github.noamm9.utils.render.Render3D.renderBoxBounds
-import com.github.noamm9.utils.render.Render3D.renderString
+import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
+import com.github.noamm9.utils.render.world.Render3D.renderString
 import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.network.protocol.game.*
 import net.minecraft.sounds.SoundEvents

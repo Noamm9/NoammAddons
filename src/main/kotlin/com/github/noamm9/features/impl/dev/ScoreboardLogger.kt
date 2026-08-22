@@ -14,8 +14,8 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.location.LocationUtils
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.network.chat.Component
+import gg.essential.universal.UDesktop
 import net.minecraft.network.protocol.game.*
-import net.minecraft.util.Util
 import net.minecraft.world.scores.DisplaySlot
 import net.minecraft.world.scores.PlayerTeam
 import java.io.BufferedWriter
@@ -30,7 +30,7 @@ object ScoreboardLogger: Feature("Logs every scoreboard text update to a file.")
     private val logMode by DropdownSetting("Log Mode", 0, listOf("Changed Lines", "Full Snapshot")).withDescription("Changed Lines only logs lines that update, Full Snapshot logs the whole scoreboard on every change.")
     private val openFolder by ButtonSetting("Open Logs Folder") {
         logDir.mkdirs()
-        Util.getPlatform().openUri(logDir.toURI())
+        UDesktop.browse(logDir.toURI())
     }.withDescription("Opens the folder where scoreboard logs are saved.")
 
     private val logDir = FabricLoader.getInstance().configDir.resolve(NoammAddons.MOD_NAME).resolve("logs").toFile()

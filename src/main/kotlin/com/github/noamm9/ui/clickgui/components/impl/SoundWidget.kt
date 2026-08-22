@@ -1,6 +1,5 @@
 package com.github.noamm9.ui.clickgui.components.impl
 
-import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.config.types.SoundSetting
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.clickgui.components.Widget
@@ -8,6 +7,7 @@ import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.ui.utils.TextInputHandler
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
@@ -55,7 +55,7 @@ class SoundWidget(config: SoundSetting): Widget<SoundEvent>(config) {
 
         val valStr = "§7${cfg.prettyName(value)}"
 
-        ctx.drawString(valStr, x + width - mc.font.width(valStr) - 8f, y + 6f, scale = 1f)
+        ctx.drawString(valStr, x + width - valStr.width() - 8f, y + 6f, scale = 1f)
 
         if (openAnim.value > 0.01f) {
             ctx.enableScissor(x, y + 20, x + width, y + height)

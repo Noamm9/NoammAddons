@@ -8,7 +8,7 @@ import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D.renderBoxBounds
+import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.AABB

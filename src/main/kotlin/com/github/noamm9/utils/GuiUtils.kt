@@ -2,6 +2,7 @@ package com.github.noamm9.utils
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.mixin.IAbstractContainerScreen
+import gg.essential.universal.UMinecraft
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.world.inventory.ContainerInput
@@ -10,8 +11,8 @@ object GuiUtils {
     enum class ButtonType {
         LEFT, RIGHT, MIDDLE;
     }
-    
-    fun setScreen(screen: Screen?) = ThreadUtils.scheduledTask(1) { mc.setScreen(screen) }
+
+    fun setScreen(screen: Screen?) = mc.execute { UMinecraft.currentScreenObj = screen }
 
     fun clickSlot(slotIndex: Int, btn: ButtonType, shift: Boolean = false) {
         val containerId = mc.player?.containerMenu?.containerId ?: return

@@ -12,7 +12,7 @@ import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.PartyUtils.isLeader
 import com.github.noamm9.utils.dungeons.DungeonUtils
 import com.github.noamm9.utils.location.LocationUtils
-import net.minecraft.client.resources.sounds.SimpleSoundInstance
+import gg.essential.universal.USound
 import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.HoverEvent
@@ -69,7 +69,7 @@ object PartyHelper: Feature("Party commands and reformatting.") {
             if (downtimeList.isEmpty()) return@register
             val names = downtimeList.keys.joinToString(", ")
             ChatUtils.showTitle("&cDowntime!", "Players needing DT: $names")
-            mc.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_PLING.value(), 1f))
+            USound.playSoundStatic(SoundEvents.NOTE_BLOCK_PLING, 0.25f, 1f)
             ChatUtils.sendPartyMessage("Players needing DT: $names")
             downtimeList.clear()
         }

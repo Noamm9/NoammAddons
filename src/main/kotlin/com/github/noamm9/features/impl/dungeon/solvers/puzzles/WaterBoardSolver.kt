@@ -14,10 +14,10 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
-import com.github.noamm9.utils.render.Render3D.renderLine
-import com.github.noamm9.utils.render.Render3D.renderString
-import com.github.noamm9.utils.render.Render3D.renderTracer
-import com.github.noamm9.utils.render.RenderContext
+import com.github.noamm9.utils.render.world.Render3D.renderLine
+import com.github.noamm9.utils.render.world.Render3D.renderString
+import com.github.noamm9.utils.render.world.Render3D.renderTracer
+import com.github.noamm9.utils.render.world.RenderContext
 import net.minecraft.core.BlockPos
 import net.minecraft.tags.BlockTags
 import net.minecraft.world.level.block.Block
