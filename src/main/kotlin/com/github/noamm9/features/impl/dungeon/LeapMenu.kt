@@ -208,8 +208,8 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
     }
 
     private fun getHoveredIndex(): Int? {
-        val cx = mc.window.width / 2
-        val cy = mc.window.height / 2
+        val cx = UResolution.windowWidth / 2
+        val cy = UResolution.windowHeight / 2
         val mx = UMouse.Raw.x
         val my = UMouse.Raw.y
 

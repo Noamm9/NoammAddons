@@ -18,7 +18,6 @@ import net.fabricmc.fabric.api.client.screen.v1.ScreenMouseEvents
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.network.chat.Component
-import org.lwjgl.glfw.GLFW
 import kotlin.jvm.optionals.getOrDefault
 import kotlin.jvm.optionals.getOrNull
 
@@ -129,8 +128,7 @@ object ItemTooltip: Feature("Adds item information and controls to item tooltips
         if (! scrollableTooltips.value) return
         val scroll = (verticalAmount * scrollSpeed.value).toFloat()
         val holdingShift = isShiftDown()
-        val holdingCtrl = GLFW.glfwGetKey(mc.window.handle(), UKeyboard.KEY_LCONTROL) == GLFW.GLFW_PRESS
-            || GLFW.glfwGetKey(mc.window.handle(), UKeyboard.KEY_RCONTROL) == GLFW.GLFW_PRESS
+        val holdingCtrl = UKeyboard.isCtrlKeyDown()
 
         when {
             holdingShift && ! holdingCtrl -> scrollAmountX -= scroll
@@ -144,10 +142,7 @@ object ItemTooltip: Feature("Adds item information and controls to item tooltips
         }
     }
 
-    private fun isShiftDown(): Boolean {
-        val handle = mc.window.handle()
-        return GLFW.glfwGetKey(handle, UKeyboard.KEY_LSHIFT) == GLFW.GLFW_PRESS || GLFW.glfwGetKey(handle, UKeyboard.KEY_RSHIFT) == GLFW.GLFW_PRESS
-    }
+    private fun isShiftDown(): Boolean = UKeyboard.isShiftKeyDown()
 
     @JvmStatic fun isScrollingEnabled() = enabled && scrollableTooltips.value
 }

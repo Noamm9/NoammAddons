@@ -522,8 +522,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         if (dragArmed) {
             if (dragActive) endDrag()
             else dragStartSlot?.let {
-                val shift = GLFW.glfwGetKey(mc.window.handle(), UKeyboard.KEY_LSHIFT) == GLFW.GLFW_PRESS
-                dispatchSlotClick(it, dragType, if (shift) GLFW.GLFW_MOD_SHIFT else 0)
+                dispatchSlotClick(it, dragType, if (UKeyboard.isShiftKeyDown()) GLFW.GLFW_MOD_SHIFT else 0)
             }
             dragSlots.clear()
             dragStartSlot = null

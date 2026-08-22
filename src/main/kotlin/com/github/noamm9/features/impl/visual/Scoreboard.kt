@@ -10,6 +10,7 @@ import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.RenderHelper.width
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UMinecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -115,8 +116,7 @@ object Scoreboard: Feature("Draws a custom scoreboard instead of the vanilla one
             return
         }
 
-        val font = mc.font
-        var maxW = font.width(cachedTitle).toFloat()
+        var maxW = cachedTitle.width().toFloat()
 
         scores.forEachIndexed { index, score ->
             val name = score.ownerName().string
@@ -128,13 +128,13 @@ object Scoreboard: Feature("Draws a custom scoreboard instead of the vanilla one
             }
 
             cachedLines.add(line)
-            maxW = maxOf(maxW, font.width(line).toFloat())
+            maxW = maxOf(maxW, line.width().toFloat())
         }
 
         val padding = 8f
-        val lineHeights = font.lineHeight + 2
+        val lineHeight = UGraphics.getFontHeight()
         cachedW = maxW + (padding * 2)
-        cachedH = (cachedLines.size * lineHeights) + font.lineHeight + (padding * 2f)
+        cachedH = (cachedLines.size * (lineHeight + 2)) + lineHeight + (padding * 2f)
         needsUpdate = false
     }
 }

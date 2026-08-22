@@ -4,6 +4,7 @@ import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
 import com.mojang.blaze3d.platform.Lighting
 import com.mojang.blaze3d.vertex.PoseStack
+import gg.essential.universal.UResolution
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.navigation.ScreenRectangle
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer
@@ -29,7 +30,7 @@ class ItemRenderer(vertexConsumers: MultiBufferSource.BufferSource): PictureInPi
 
     override fun renderToTexture(itemState: ItemState, poseStack: PoseStack) {
         val dispatcher = mc.gameRenderer.featureRenderDispatcher
-        val guiScale = mc.window.guiScale
+        val guiScale = UResolution.scaleFactor.toFloat()
         val guiPose = PoseStack()
 
         fun renderItem(batchedItem: BatchedItem) {

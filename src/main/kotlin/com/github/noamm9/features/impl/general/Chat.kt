@@ -86,7 +86,7 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
             if (UMinecraft.currentScreenObj !is ChatScreen) return@register
             if (event.button != 0) return@register
             if (event.action != GLFW.GLFW_PRESS) return@register
-            if (GLFW.glfwGetKey(mc.window.handle(), UKeyboard.KEY_LCONTROL) != GLFW.GLFW_PRESS) return@register
+            if (! UKeyboard.isCtrlKeyDown()) return@register
             val message = getHoveredMsg().takeUnless(String::isBlank) ?: return@register
 
             NotificationManager.push("Message copied to clipboard", message)

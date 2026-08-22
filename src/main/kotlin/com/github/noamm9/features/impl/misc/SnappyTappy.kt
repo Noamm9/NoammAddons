@@ -1,12 +1,11 @@
 package com.github.noamm9.features.impl.misc
 
 import com.github.noamm9.features.Feature
-import com.mojang.blaze3d.platform.InputConstants
+import gg.essential.universal.UKeyboard
 import gg.essential.universal.UMinecraft
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.minecraft.client.KeyMapping
 import net.minecraft.world.entity.player.Input
-import org.lwjgl.glfw.GLFW
 
 object SnappyTappy: Feature("Prevents standing still when pressing opposing direction keys.") {
     private val pressTimes = mutableMapOf<KeyMapping, Long>()
@@ -60,13 +59,5 @@ object SnappyTappy: Feature("Prevents standing still when pressing opposing dire
     }
 
     private fun isNewer(a: KeyMapping, b: KeyMapping) = (pressTimes[a] ?: 0L) >= (pressTimes[b] ?: 0L)
-
-    private fun isPhysicallyDown(key: KeyMapping): Boolean {
-        val bound = KeyMappingHelper.getBoundKeyOf(key)
-        val handle = mc.window.handle()
-        return if (bound.type == InputConstants.Type.MOUSE) {
-            GLFW.glfwGetMouseButton(handle, bound.value) == GLFW.GLFW_PRESS
-        }
-        else GLFW.glfwGetKey(handle, bound.value) == GLFW.GLFW_PRESS
-    }
+    private fun isPhysicallyDown(key: KeyMapping) = UKeyboard.isKeyDown(KeyMappingHelper.getBoundKeyOf(key).value)
 }

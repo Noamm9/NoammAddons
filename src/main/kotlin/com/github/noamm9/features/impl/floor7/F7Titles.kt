@@ -16,6 +16,7 @@ import com.github.noamm9.utils.location.LocationUtils.dungeonFloorNumber
 import com.github.noamm9.utils.location.LocationUtils.inBoss
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.RenderHelper.width
+import gg.essential.universal.UResolution
 import gg.essential.universal.USound
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket
@@ -161,8 +162,8 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
             return@listener
         }
 
-        val width = mc.window.guiScaledWidth
-        val height = mc.window.guiScaledHeight
+        val width = UResolution.scaledWidth
+        val height = UResolution.scaledHeight
 
         event.context.drawCenteredString(
             "&l&c${timeLeft.toFixed(1)}",

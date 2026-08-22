@@ -18,6 +18,7 @@ import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
 import com.github.noamm9.utils.render.world.Render3D.renderString
 import com.github.noamm9.utils.render.world.Render3D.renderTracer
 import com.github.noamm9.utils.render.RenderHelper.renderVec
+import gg.essential.universal.UResolution
 import net.minecraft.network.protocol.game.*
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon
 import net.minecraft.world.level.block.Blocks
@@ -155,8 +156,8 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
                 if (dragon.state != WitherDragonState.SPAWNING || dragon.timeToSpawn <= 0) return@register
                 event.context.drawCenteredString(
                     "&${dragon.colorCode}${getDragonTimer(dragon.timeToSpawn)}",
-                    mc.window.guiScaledWidth / 2f,
-                    mc.window.guiScaledHeight * 0.4f,
+                    UResolution.scaledWidth / 2f,
+                    UResolution.scaledHeight * 0.4f,
                     scale = 3f,
                 )
             }

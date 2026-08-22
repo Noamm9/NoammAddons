@@ -19,4 +19,18 @@ object RenderHelper {
 
     fun String.width() = addColor().lineSequence().maxOf(UGraphics::getStringWidth)
     fun String.height() = UGraphics.getFontHeight() * (count { it == '\n' } + 1)
+    fun String.wrap(maxWidth: Int) = buildList {
+        for (raw in addColor().lineSequence()) {
+            var line = ""
+            for (word in raw.split(" ")) {
+                val candidate = if (line.isEmpty()) word else "$line $word"
+                if (candidate.width() > maxWidth && line.isNotEmpty()) {
+                    add(line)
+                    line = word
+                }
+                else line = candidate
+            }
+            add(line)
+        }
+    }
 }

@@ -27,6 +27,7 @@ import com.github.noamm9.utils.items.ItemUtils.itemUUID
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.RenderHelper.width
+import gg.essential.universal.UMinecraft
 import net.minecraft.world.inventory.ClickType
 import net.minecraft.world.item.ItemStack
 import java.io.File
@@ -140,7 +141,7 @@ object AutoHotbar: Feature("Automatically swaps items to specific hotbar slots u
             if (stationaryTicks < 10) return@register
             if (now < nextSwapTime) return@register
             if (ServerUtils.tps < 18f || ServerUtils.currentPing > 500) return@register
-            if (mc.screen != null) {
+            if (UMinecraft.currentScreenObj != null) {
                 stationaryTicks = 0
                 nextSwapTime = now + pingDelay.value.toLong()
                 return@register

@@ -1,6 +1,5 @@
 package com.github.noamm9.ui.clickgui.components.impl
 
-import com.github.noamm9.NoammAddons
 import com.github.noamm9.config.types.ColorSetting
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.clickgui.components.Widget
@@ -13,7 +12,6 @@ import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.drawVerticalGradient
 import gg.essential.universal.UKeyboard
 import net.minecraft.client.gui.GuiGraphicsExtractor
-import org.lwjgl.glfw.GLFW
 import java.awt.Color
 import java.util.*
 
@@ -111,8 +109,7 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
 
     private fun handleInputs(mx: Int, my: Int, py: Float, ps: Float) {
         if (hexFocused) return
-        val lmb = GLFW.glfwGetMouseButton(NoammAddons.mc.window.handle(), 0) == 1
-        if (! lmb) {
+        if (! UKeyboard.isKeyDown(0)) {
             draggingSV = false
             draggingHue = false
             draggingAlpha = false
