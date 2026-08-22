@@ -31,6 +31,7 @@ object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
         register<PlayerInteractEvent.LEFT_CLICK.BLOCK> {
             if (! preventBreakingSecrets.value) return@register
             if (! LocationUtils.inDungeon) return@register
+            if (LocationUtils.inBoss) return@register
             if (event.item?.skyblockId != "DUNGEONBREAKER") return@register
             if (WorldUtils.getBlockAt(event.pos) !in blacklist) return@register
             event.isCanceled = true
