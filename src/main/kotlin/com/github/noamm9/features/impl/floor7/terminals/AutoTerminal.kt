@@ -70,7 +70,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
 
             if (buttonRow == 3) return@register
             if (! melodySkip.value) return@register
-            if (! melodySkipFirstRow.value && buttonRow == 0) return@register
+            if (! melodySkipFirstRow.value && buttonRow == 0 && current != 4) return@register
             if (! (melodySkipMode.value == 1 || (melodySkipMode.value == 0 && (current == 0 || current == 4)))) return@register
 
             val windowId = TerminalListener.lastWindowId
