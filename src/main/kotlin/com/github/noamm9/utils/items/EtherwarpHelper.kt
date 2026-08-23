@@ -146,8 +146,7 @@ object EtherwarpHelper {
             is SkullBlock, is WallSkullBlock,
             is ComparatorBlock, is RepeaterBlock,
             is FlowerPotBlock,
-            is LadderBlock,
-            is VineBlock -> true
+            is LadderBlock -> true
             else -> false
         }
     }
