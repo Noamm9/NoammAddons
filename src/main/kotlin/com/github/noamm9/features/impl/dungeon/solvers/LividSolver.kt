@@ -1,9 +1,9 @@
 package com.github.noamm9.features.impl.dungeon.solvers
 
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils
@@ -15,12 +15,12 @@ import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener.dungeonTeammates
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
-import com.github.noamm9.utils.render.Render3D.renderString
-import com.github.noamm9.utils.render.Render3D.renderTracer
+import com.github.noamm9.utils.render.world.Render3D.renderString
+import com.github.noamm9.utils.render.world.Render3D.renderTracer
 import com.github.noamm9.utils.render.RenderHelper.renderVec
 import com.github.noamm9.utils.render.RenderHelper.width
+import gg.essential.universal.USound
 import net.minecraft.client.player.AbstractClientPlayer
-import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.core.BlockPos
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.entity.decoration.ArmorStand
@@ -113,7 +113,7 @@ object LividSolver: Feature() {
             if (timer > 0) timer --
             if (timer == 0) {
                 if (iceSprayTitle.value) ChatUtils.showTitle("&bIce Spray Livid!")
-                if (iceSpraySound.value) mc.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_PLING, 1f))
+                if (iceSpraySound.value) USound.playSoundStatic(SoundEvents.NOTE_BLOCK_PLING, 0.25f, 1f)
                 timer = - 1
             }
         }

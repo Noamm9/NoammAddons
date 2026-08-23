@@ -1,30 +1,29 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.config.types.KeybindSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.IKeyMapping
-import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.equalsOneOf
-import com.mojang.blaze3d.platform.InputConstants
+import gg.essential.universal.UKeyboard
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
-import org.lwjgl.glfw.GLFW
 
 object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your keyboard.") {
     private val closeAfterUse by ToggleSetting("Auto Close On Use")
     private val preventUnequip by ToggleSetting("Prevent Unequip")
     private val useHotbarBinds by ToggleSetting("Use Hotbar Binds")
     private val keybinds = (1 .. 9).mapIndexed { index, slot ->
-        KeybindSetting("Wardrobe Slot $slot", InputConstants.KEY_1 + index)
+        KeybindSetting("Wardrobe Slot $slot", UKeyboard.KEY_1 + index)
             .hideIf { useHotbarBinds.value }.apply(configSettings::add)
     }
 
@@ -67,7 +66,7 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
         register<ContainerEvent.Keyboard> {
             if (! inWardrobeMenu) return@register
             if (System.currentTimeMillis() - lastClick < 300) return@register
-            if (event.key.equalsOneOf(GLFW.GLFW_KEY_ESCAPE, GLFW.GLFW_KEY_E)) return@register
+            if (event.key.equalsOneOf(UKeyboard.KEY_ESCAPE, UKeyboard.KEY_E)) return@register
             val index = if (useHotbarBinds.value) hotbarKeyMap[event.key] ?: return@register
             else keybinds.withIndex().find { (_, key) -> key.isDown() }?.index ?: return@register
             val slot = keyMap.getOrNull(index)?.takeUnless { player.containerMenu.getSlot(it).item == ItemStack.EMPTY } ?: return@register

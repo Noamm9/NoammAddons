@@ -1,13 +1,13 @@
 package com.github.noamm9.features.impl.floor7.devices
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.*
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.toVec
@@ -16,9 +16,9 @@ import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
-import com.github.noamm9.utils.render.Render3D.renderBoxBounds
-import com.github.noamm9.utils.render.Render3D.renderString
-import com.github.noamm9.utils.render.RenderContext
+import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
+import com.github.noamm9.utils.render.world.Render3D.renderString
+import com.github.noamm9.utils.render.world.RenderContext
 import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.core.BlockPos
 import net.minecraft.sounds.SoundEvents

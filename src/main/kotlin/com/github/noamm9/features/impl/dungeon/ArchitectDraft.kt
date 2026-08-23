@@ -1,8 +1,8 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.map.core.RoomType

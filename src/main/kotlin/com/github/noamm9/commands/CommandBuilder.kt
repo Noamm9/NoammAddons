@@ -15,6 +15,7 @@ class CommandBuilder {
     private var executor: ((CommandContext<FabricClientCommandSource>) -> Unit)? = null
     private val children = mutableListOf<CommandBuilder>()
     private var requirement: (() -> Boolean)? = null
+    private var descriptionText: String? = null
 
     private var argumentType: ArgumentType<*>? = null
     private var argumentName: String? = null
@@ -25,6 +26,7 @@ class CommandBuilder {
     fun setName(vararg names: String) = ::names.set(names)
     fun runs(block: (CommandContext<FabricClientCommandSource>) -> Unit) = ::executor.set(block)
     fun suggests(strings: () -> Iterable<String>) = ::suggestionLambda.set(strings)
+    fun description(text: String) = ::descriptionText.set(text)
 
     fun literal(name: String, block: CommandBuilder.() -> Unit) = children.add(CommandBuilder().apply literal@{
         this@literal.literalName = name
@@ -40,6 +42,23 @@ class CommandBuilder {
     fun build(): List<ArgumentBuilder<FabricClientCommandSource, *>> {
         if (! ::names.isInitialized) error("Command name must be initialized using setName(...)")
         return names.map { ClientCommands.literal(it).also(::setup) }
+    }
+
+    fun helpEntries(): List<HelpEntry> {
+        if (! ::names.isInitialized) return emptyList()
+        return buildList {
+            descriptionText?.let { add(HelpEntry(names.first(), it)) }
+            children.forEach { it.collect(names.first(), this) }
+        }
+    }
+
+    data class HelpEntry(val usage: String, val description: String)
+
+    private fun collect(prefix: String, out: MutableList<HelpEntry>) {
+        val segment = literalName ?: argumentName?.let { "<$it>" } ?: return
+        val path = "$prefix $segment"
+        descriptionText?.let { out.add(HelpEntry(path, it)) }
+        children.forEach { it.collect(path, out) }
     }
 
     private fun setup(target: ArgumentBuilder<FabricClientCommandSource, *>) {

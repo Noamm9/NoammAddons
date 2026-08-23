@@ -1,8 +1,8 @@
 package com.github.noamm9.features.impl.visual
 
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.equalsOneOf
 import net.minecraft.client.color.block.BlockTintSources
 import net.minecraft.client.renderer.block.FluidModel

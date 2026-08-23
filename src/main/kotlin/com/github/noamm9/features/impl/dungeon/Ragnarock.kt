@@ -1,9 +1,9 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ThreadUtils
@@ -13,7 +13,7 @@ import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
-import net.minecraft.client.resources.sounds.SimpleSoundInstance
+import gg.essential.universal.USound
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.sounds.SoundEvents
 import kotlin.math.roundToInt
@@ -51,12 +51,12 @@ object Ragnarock: Feature("Ragnarock alerts") {
                 if (DungeonListener.thePlayer?.clazz.equalsOneOf(DungeonClass.Tank, DungeonClass.Healer)) return@register
                 ChatUtils.showTitle("rag")
                 for ((delay, pitch) in sounds) ThreadUtils.setTimeout(delay) {
-                    mc.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_PLING, pitch))
+                    USound.playSoundStatic(SoundEvents.NOTE_BLOCK_PLING, 0.25f, pitch)
                 }
             }
             else if (alertCancelled.value && event.unformattedText.matches(cancelRegex)) {
                 ChatUtils.showTitle(subtitle = "&cRagnarock Cancelled")
-                mc.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_PLING, 1f))
+                USound.playSoundStatic(SoundEvents.NOTE_BLOCK_PLING, 0.25f, 1f)
             }
         }
     }

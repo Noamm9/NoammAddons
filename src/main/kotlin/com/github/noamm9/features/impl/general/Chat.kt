@@ -3,13 +3,13 @@ package com.github.noamm9.features.impl.general
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.commands.CommandBuilder
 import com.github.noamm9.config.PogObject
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.interfaces.IChatComponent
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.removeFormatting
@@ -17,6 +17,8 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.catch
 import com.mojang.brigadier.arguments.StringArgumentType
+import gg.essential.universal.UKeyboard
+import gg.essential.universal.UMinecraft
 import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.screens.ChatScreen
 import net.minecraft.client.multiplayer.chat.GuiMessage
@@ -81,10 +83,10 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
     override fun init() {
         register<MouseClickEvent> {
             if (! ctrlClickToCopy.value) return@register
-            if (mc.screen !is ChatScreen) return@register
+            if (UMinecraft.currentScreenObj !is ChatScreen) return@register
             if (event.button != 0) return@register
             if (event.action != GLFW.GLFW_PRESS) return@register
-            if (GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_LEFT_CONTROL) != GLFW.GLFW_PRESS) return@register
+            if (! UKeyboard.isCtrlKeyDown()) return@register
             val message = getHoveredMsg().takeUnless(String::isBlank) ?: return@register
 
             NotificationManager.push("Message copied to clipboard", message)
@@ -127,7 +129,7 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
     }
 
     private fun getHoveredMsg(): String {
-        val chatHud = (mc.gui.chat as? IChatComponent) ?: return ""
+        val chatHud = (UMinecraft.getChatGUI() as? IChatComponent) ?: return ""
         val i = chatHud.getLineIndex().takeUnless { it < 0 || it >= chatHud.visibleMessages.size } ?: return ""
 
         val lines = ArrayList<GuiMessage.Line>()
@@ -151,15 +153,15 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
                 if (style != lastStyle) {
                     style.color?.let { textColor ->
                         ChatFormatting.entries.firstOrNull { it.isColor && it.color == textColor.value }?.let {
-                            builder.append("§${it.char}")
+                            builder.append(it)
                         }
                     }
 
-                    if (style.isBold) builder.append("§${ChatFormatting.BOLD.char}")
-                    if (style.isItalic) builder.append("§${ChatFormatting.ITALIC.char}")
-                    if (style.isUnderlined) builder.append("§${ChatFormatting.UNDERLINE.char}")
-                    if (style.isStrikethrough) builder.append("§${ChatFormatting.STRIKETHROUGH.char}")
-                    if (style.isObfuscated) builder.append("§${ChatFormatting.OBFUSCATED.char}")
+                    if (style.isBold) builder.append(ChatFormatting.BOLD)
+                    if (style.isItalic) builder.append(ChatFormatting.ITALIC)
+                    if (style.isUnderlined) builder.append(ChatFormatting.UNDERLINE)
+                    if (style.isStrikethrough) builder.append(ChatFormatting.STRIKETHROUGH)
+                    if (style.isObfuscated) builder.append(ChatFormatting.OBFUSCATED)
                     lastStyle = style
                 }
                 builder.appendCodePoint(codePoint)

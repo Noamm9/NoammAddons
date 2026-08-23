@@ -2,11 +2,11 @@ package com.github.noamm9.features.impl.dungeon
 
 //#if CHEAT
 
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
@@ -14,6 +14,7 @@ import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
+import gg.essential.universal.UMinecraft
 
 object AutoGFS: Feature("Automatically refills dungeon items from your sacks using /gfs while in dungeons.") {
     private val delay by SliderSetting("Check Delay", 20.0, 5.0, 60.0, 1.0, "s").withDescription("How often to check for refills.")
@@ -58,7 +59,7 @@ object AutoGFS: Feature("Automatically refills dungeon items from your sacks usi
 
     private fun refill() {
         if (! enabled || ! LocationUtils.inDungeon) return
-        if (mc.screen != null) return
+        if (UMinecraft.currentScreenObj != null) return
         if (DungeonListener.thePlayer?.isDead == true) return
 
         var pearlCount = 0

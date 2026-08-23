@@ -2,16 +2,17 @@ package com.github.noamm9.features.impl.floor7
 
 //#if CHEAT
 
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
+import gg.essential.universal.UMinecraft
 import net.minecraft.network.protocol.game.ClientboundBlockChangedAckPacket
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket
 import net.minecraft.sounds.SoundEvents
@@ -45,7 +46,7 @@ object DebuffHelper: Feature(description = "Automatically pulls and fires bows b
         }
 
         register<MouseClickEvent> {
-            if (mc.screen != null) return@register
+            if (UMinecraft.currentScreenObj != null) return@register
             if (event.button != 1) return@register
             holdingRC = event.action == GLFW.GLFW_PRESS
             if (holdingRC) return@register
@@ -67,7 +68,7 @@ object DebuffHelper: Feature(description = "Automatically pulls and fires bows b
         }
 
         register<TickEvent.Server> {
-            if (mc.screen != null) return@register resetCharge()
+            if (UMinecraft.currentScreenObj != null) return@register resetCharge()
             if (! isCharging || ! holdingRC) return@register
             if (! player.mainHandItem.skyblockId.contains("LAST_BREATH")) return@register resetCharge()
 
@@ -90,7 +91,7 @@ object DebuffHelper: Feature(description = "Automatically pulls and fires bows b
             resetCharge()
 
             ThreadUtils.scheduledTask(2) {
-                if (holdingRC && mc.screen == null) {
+                if (holdingRC && UMinecraft.currentScreenObj == null) {
                     mc.options.keyUse.isDown = true
                 }
             }

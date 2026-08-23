@@ -1,16 +1,17 @@
 package com.github.noamm9.features
 
-import com.github.noamm9.config.Savable
+import com.github.noamm9.config.ConfigHolder
+import com.github.noamm9.config.SettingProvider
 import com.github.noamm9.event.Event
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.EventContext
 import com.github.noamm9.event.EventListener
 import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.features.annotations.AlwaysActive
-import com.github.noamm9.ui.clickgui.components.Setting
-import com.github.noamm9.ui.clickgui.components.SettingProvider
+import com.github.noamm9.init.RemoteFeatures
 import com.github.noamm9.ui.clickgui.enums.CategoryType
 import com.github.noamm9.ui.hud.HudElement
+import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.spaceCaps
 import net.minecraft.client.gui.GuiGraphicsExtractor
 
@@ -19,18 +20,25 @@ open class Feature(
     name: String? = null,
     toggled: Boolean = false
 ): Shortcuts, SettingProvider {
-    private val alwaysActive = this::class.java.isAnnotationPresent(AlwaysActive::class.java)
     val name = name ?: this::class.simpleName.toString().spaceCaps()
     open val category = initCategory()
     @JvmField var enabled = toggled
 
-    override val configSettings = mutableSetOf<Setting<*>>()
+    private val alwaysActive = this::class.java.isAnnotationPresent(AlwaysActive::class.java)
+    private val remotelyDisabled get() = RemoteFeatures.isDisabled(this::class.java.simpleName)
+
+    override val configSettings = mutableSetOf<ConfigHolder<*>>()
     val listeners = mutableSetOf<EventListener<*>>()
     val hudElements = mutableSetOf<HudElement>()
 
 
     fun initialize() {
         init()
+
+        if (remotelyDisabled) {
+            enabled = false
+            return
+        }
 
         if (enabled || alwaysActive) onEnable() else onDisable()
     }
@@ -43,6 +51,8 @@ open class Feature(
     }
 
     open fun toggle() {
+        if (remotelyDisabled) return NotificationManager.push("Config GUI", "&b$name&f is temporarly disabled.")
+
         enabled = ! enabled
         if (enabled || alwaysActive) onEnable()
         else onDisable()
@@ -73,8 +83,6 @@ open class Feature(
             override val centered = centered
         }.also(hudElements::add)
     }
-
-    fun getSettingByName(key: String?) = configSettings.find { it.jsonName() == key && it is Savable }
 
     private fun initCategory(): CategoryType {
         val parts = this::class.java.`package` !!.name.split(".")

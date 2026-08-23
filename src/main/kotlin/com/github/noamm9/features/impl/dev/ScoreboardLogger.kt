@@ -2,20 +2,20 @@ package com.github.noamm9.features.impl.dev
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.logger
+import com.github.noamm9.config.types.ButtonSetting
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ButtonSetting
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.location.LocationUtils
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.network.chat.Component
+import gg.essential.universal.UDesktop
 import net.minecraft.network.protocol.game.*
-import net.minecraft.util.Util
 import net.minecraft.world.scores.DisplaySlot
 import net.minecraft.world.scores.PlayerTeam
 import java.io.BufferedWriter
@@ -30,7 +30,7 @@ object ScoreboardLogger: Feature("Logs every scoreboard text update to a file.")
     private val logMode by DropdownSetting("Log Mode", 0, listOf("Changed Lines", "Full Snapshot")).withDescription("Changed Lines only logs lines that update, Full Snapshot logs the whole scoreboard on every change.")
     private val openFolder by ButtonSetting("Open Logs Folder") {
         logDir.mkdirs()
-        Util.getPlatform().openUri(logDir.toURI())
+        UDesktop.browse(logDir.toURI())
     }.withDescription("Opens the folder where scoreboard logs are saved.")
 
     private val logDir = FabricLoader.getInstance().configDir.resolve(NoammAddons.MOD_NAME).resolve("logs").toFile()

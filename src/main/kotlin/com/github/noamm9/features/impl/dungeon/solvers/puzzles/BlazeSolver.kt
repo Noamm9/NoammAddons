@@ -14,8 +14,8 @@ import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.thirdBlazeC
 import com.github.noamm9.utils.ChatUtils.sendPartyMessage
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.MathUtils.add
-import com.github.noamm9.utils.render.Render3D.renderLine
-import com.github.noamm9.utils.render.RenderContext
+import com.github.noamm9.utils.render.world.Render3D.renderLine
+import com.github.noamm9.utils.render.world.RenderContext
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.monster.Blaze
 import java.awt.Color

@@ -1,6 +1,10 @@
 package com.github.noamm9.features.impl.floor7.terminals
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.ScreenEvent
@@ -8,10 +12,6 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.terminals.TerminalType.Companion.clickedSlot
 import com.github.noamm9.features.impl.floor7.terminals.TerminalType.Companion.clickedSlots
 import com.github.noamm9.init.types.ICustomMenu
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
@@ -24,6 +24,7 @@ import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawFloatingRect
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.uppercaseFirst
+import gg.essential.universal.UGraphics
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.sounds.SoundEvents
@@ -367,7 +368,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
 
     private fun drawCenteredText(ctx: GuiGraphicsExtractor, text: String, slotX: Number, slotY: Number) {
         val centerX = slotX.toFloat() + 8f
-        val centerY = slotY.toFloat() + 8f - mc.font.lineHeight / 2
+        val centerY = slotY.toFloat() + 8f - UGraphics.getFontHeight() / 2
         ctx.drawCenteredString(text, centerX, centerY, color = overlayTextColor.value)
     }
 

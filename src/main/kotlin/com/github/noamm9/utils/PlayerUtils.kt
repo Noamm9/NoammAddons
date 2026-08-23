@@ -18,7 +18,9 @@ import com.github.noamm9.utils.Utils.send
 import com.github.noamm9.utils.dungeons.DungeonListener.thePlayer
 import com.github.noamm9.utils.dungeons.DungeonPlayer
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
+import gg.essential.universal.UMinecraft
 import kotlinx.coroutines.delay
+import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -152,7 +154,7 @@ object PlayerUtils: ISelfInit, Shortcuts {
 
 
     private var awaiting4EQ = emptyList<String>()
-    private val inLeapMenu get() = mc.screen?.title?.unformattedText.equals("spirit leap", true)
+    private val inLeapMenu get() = (UMinecraft.currentScreenObj as? Screen)?.title?.unformattedText.equals("spirit leap", true)
     private var awaitingLeap: DungeonPlayer? = null
 
     suspend fun changeMaskAction() = quickSwapAction("SPIRIT_MASK", "BONZO_MASK")

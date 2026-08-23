@@ -8,9 +8,10 @@ import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
+import gg.essential.universal.UGraphics
+import gg.essential.universal.UMouse
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.chat.Component
 import java.awt.Color
@@ -24,14 +25,14 @@ object NotificationManager: ISelfInit {
         val t = title.addColor()
         val m = message.addColor()
         if (notifications.any { it.title == t && it.message == m && it.duration == duration }) return
-        ThreadUtils.runOnMcThread { notifications.add(Notification(t, m, duration)) }
+        mc.execute { notifications.add(Notification(t, m, duration)) }
     }
 
     override fun init() {
         EventBus.register<ScreenEvent.PostRender> {
             val window = mc.window
             val ctx = event.context
-            
+
             val activeScale = window.screenWidth.toFloat() / ctx.guiWidth().toFloat()
             val normalScale = window.calculateScale(mc.options.guiScale().get(), mc.isEnforceUnicode).toFloat()
             val correction = normalScale / activeScale
@@ -54,8 +55,8 @@ object NotificationManager: ISelfInit {
         val screenW = w ?: ctx.guiWidth().toFloat()
         val screenH = h ?: ctx.guiHeight().toFloat()
 
-        val mX = mc.mouseHandler.getScaledXPos(mc.window).toInt()
-        val mY = mc.mouseHandler.getScaledYPos(mc.window).toInt()
+        val mX = UMouse.Scaled.x.toInt()
+        val mY = UMouse.Scaled.y.toInt()
 
         var currentYOffset = 0f
 
@@ -91,7 +92,7 @@ object NotificationManager: ISelfInit {
             var lineY = y + 20f
             notify.wrappedLines.forEach { line ->
                 ctx.text(mc.font, line, (x + 10f).toInt(), lineY.toInt(), Color.GRAY.rgb, true)
-                lineY += mc.font.lineHeight + 1f
+                lineY += UGraphics.getFontHeight() + 1f
             }
 
             val progress = (notify.elapsedTime.toFloat() / notify.duration.toFloat()).coerceIn(0f, 1f)
@@ -108,6 +109,6 @@ object NotificationManager: ISelfInit {
         var isDead = false
 
         val wrappedLines by lazy { mc.font.split(Component.literal(message), 150) }
-        val height by lazy { 22f + (wrappedLines.size * (mc.font.lineHeight + 1f)) + 4f }
+        val height by lazy { 22f + (wrappedLines.size * (UGraphics.getFontHeight() + 1f)) + 4f }
     }
 }

@@ -1,9 +1,9 @@
 package com.github.noamm9.features.impl.floor7
 
 import com.github.noamm9.config.PersonalBest
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.MathUtils
@@ -11,6 +11,7 @@ import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import gg.essential.universal.UResolution
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.world.entity.EntityType
 
@@ -65,8 +66,8 @@ object MaxorsCrystals: Feature("Utilities for F7 Maxor's Crystals") {
         }
 
         register<RenderOverlayEvent> {
-            val width = mc.window.guiScaledWidth
-            val height = mc.window.guiScaledHeight
+            val width = UResolution.scaledWidth
+            val height = UResolution.scaledHeight
 
             if (spawnTimer.value && tickTimer != null) event.context.drawCenteredString(
                 "&b" + ((tickTimer) !! / 20.0).toFixed(2),

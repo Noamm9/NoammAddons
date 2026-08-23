@@ -1,11 +1,11 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.MultiCheckboxSetting
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.NetworkLoop
 import com.github.noamm9.mixin.IAbstractSignEditScreen
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.MultiCheckboxSetting
 import com.github.noamm9.ui.utils.componnents.UIButton
 import com.github.noamm9.ui.utils.componnents.UISearchBox
 import com.github.noamm9.utils.ChatUtils.unformattedText
@@ -15,6 +15,7 @@ import com.github.noamm9.utils.Utils.send
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.uppercaseFirst
+import gg.essential.universal.UKeyboard
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
@@ -27,7 +28,6 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.component.ItemLore
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.entity.SignBlockEntity
-import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox and undercut mode.") {
@@ -64,7 +64,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
         }
 
         register<ContainerEvent.Keyboard> {
-            if (event.key != GLFW.GLFW_KEY_ENTER && event.key != GLFW.GLFW_KEY_KP_ENTER) return@register
+            if (event.key != UKeyboard.KEY_ENTER && event.key != UKeyboard.KEY_NUMPADENTER) return@register
             val title = event.screen.title.unformattedText
 
             val (slotId, isValidName) = when (title) {
@@ -161,7 +161,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
         }
 
         override fun keyPressed(event: KeyEvent): Boolean {
-            if (event.key() == GLFW.GLFW_KEY_ENTER || event.key() == GLFW.GLFW_KEY_KP_ENTER) {
+            if (event.key() == UKeyboard.KEY_ENTER || event.key() == UKeyboard.KEY_NUMPADENTER) {
                 finish()
                 return true
             }

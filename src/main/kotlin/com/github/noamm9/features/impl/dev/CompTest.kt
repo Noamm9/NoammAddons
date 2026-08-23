@@ -1,13 +1,13 @@
 package com.github.noamm9.features.impl.dev
 
+import com.github.noamm9.config.types.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.FeatureManager
-import com.github.noamm9.ui.clickgui.components.impl.*
 import com.github.noamm9.utils.render.RenderHelper.height
 import com.github.noamm9.utils.render.RenderHelper.width
+import gg.essential.universal.UKeyboard
 import net.minecraft.network.chat.Component
 import net.minecraft.sounds.SoundEvents
-import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 @Suppress("unused")
@@ -16,10 +16,7 @@ object CompTest: Feature("A test feature used to test every UI component.") {
 
     val flight by ToggleSetting("test Toggle", false).withDescription("Enables the ability to fly around the world. Use the Flight Mode setting to change physics.")
 
-    val sep1 by SeparatorSetting()
-    val cat1 by CategorySetting("test category")
-
-    val speed by SliderSetting("test slider", 1.0, 0.1, 5.0, 0.1).withDescription("Multiplies your movement speed. Higher values may trigger anti-cheat flags on some servers.")
+    val speed by SliderSetting("test slider", 1.0, 0.1, 5.0, 0.1).withDescription("Multiplies your movement speed. Higher values may trigger anti-cheat flags on some servers.").section("test category")
 
     val mode by DropdownSetting("test dropdown", 0, listOf("Vanilla", "Motion", "Creative", "Hypixel", "Old-AAC")).withDescription("Changes the bypass logic for flight. 'Vanilla' is safest for singleplayer, 'Motion' is better for servers.")
 
@@ -31,14 +28,11 @@ object CompTest: Feature("A test feature used to test every UI component.") {
         "Animals" to false
     )).withDescription("Select which types of entities the combat and visual modules should focus on.")
 
-    val sep2 by SeparatorSetting()
-    val cat2 by CategorySetting("test category 2")
-
-    val espColor by ColorSetting("test Color", Color(85, 255, 255)).withDescription("The primary color used for all ESP highlighting and ClickGUI accents.")
+    val espColor by ColorSetting("test Color", Color(85, 255, 255)).withDescription("The primary color used for all ESP highlighting and ClickGUI accents.").section("test category 2")
 
     val secondaryColor by ColorSetting("Secondary", Color.MAGENTA).withDescription("A secondary color used for gradients and specialized UI elements.")
 
-    val panicBind by KeybindSetting("test Keybind", GLFW.GLFW_KEY_P).withDescription("Pressing this key will instantly disable every active module in the mod.")
+    val panicBind by KeybindSetting("test Keybind", UKeyboard.KEY_P).withDescription("Pressing this key will instantly disable every active module in the mod.")
 
     val customName by TextInputSetting("test text", "Player123").withDescription("The custom name displayed above your head or used in chat-based modules.")
 
@@ -53,6 +47,6 @@ object CompTest: Feature("A test feature used to test every UI component.") {
     }
 
     override fun onEnable() {
-        player.sendSystemMessage(Component.literal("§6[Debug] §fTest Feature Enabled"))
+        mc.player?.sendSystemMessage(Component.literal("§6[Debug] §fTest Feature Enabled"))
     }
 }

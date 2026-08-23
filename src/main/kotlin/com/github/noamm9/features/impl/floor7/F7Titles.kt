@@ -1,11 +1,11 @@
 package com.github.noamm9.features.impl.floor7
 
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils
@@ -16,7 +16,8 @@ import com.github.noamm9.utils.location.LocationUtils.dungeonFloorNumber
 import com.github.noamm9.utils.location.LocationUtils.inBoss
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.RenderHelper.width
-import net.minecraft.client.resources.sounds.SimpleSoundInstance
+import gg.essential.universal.UResolution
+import gg.essential.universal.USound
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket
 import net.minecraft.sounds.SoundEvents
@@ -99,7 +100,7 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
                     enragedRegex.find(text)?.destructured?.component1()?.let { boss ->
                         val color = when (boss) {
                             "Storm" -> {
-                                mc.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_PLING, 1f))
+                                USound.playSoundStatic(SoundEvents.NOTE_BLOCK_PLING, 0.25f, 1f)
                                 "&b"
                             }
 
@@ -161,8 +162,8 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
             return@listener
         }
 
-        val width = mc.window.guiScaledWidth
-        val height = mc.window.guiScaledHeight
+        val width = UResolution.scaledWidth
+        val height = UResolution.scaledHeight
 
         event.context.drawCenteredString(
             "&l&c${timeLeft.toFixed(1)}",
@@ -236,7 +237,7 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
 
     private fun showTitle(subtitle: String) {
         ChatUtils.showTitle(subtitle = subtitle)
-        mc.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_PLING, 1f))
+        USound.playSoundStatic(SoundEvents.NOTE_BLOCK_PLING, 0.25f, 1f)
     }
 
     private fun formatProgress(current: Int, max: Int): String {

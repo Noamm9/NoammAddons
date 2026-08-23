@@ -6,21 +6,21 @@ import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.ColorConfig
+import com.github.noamm9.config.types.ChoiceConfig
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.Utils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.world.Render3D
 import net.minecraft.core.BlockPos
 
 object TrapHelper: Feature("Highlights the correct pearl block in New Trap") {
-    private val mode by DropdownSetting("Mode", 2, listOf("Outline", "Fill", "Filled Outline"))
-    private val fillColor by ColorSetting("Fill Color", Utils.favoriteColor.withAlpha(50)).hideIf { mode.value == 0 }
-    private val outlineColor by ColorSetting("Outline Color", Utils.favoriteColor, false).hideIf { mode.value == 1 }
+    private val mode by ChoiceConfig("Mode", 2, listOf("Outline", "Fill", "Filled Outline"))
+    private val fillColor by ColorConfig("Fill Color", Utils.favoriteColor.withAlpha(50)).hideIf { mode.value == 0 }
+    private val outlineColor by ColorConfig("Outline Color", Utils.favoriteColor, false).hideIf { mode.value == 1 }
     private val phase by ToggleSetting("Phase")
 
     private var highlightPos: BlockPos? = null

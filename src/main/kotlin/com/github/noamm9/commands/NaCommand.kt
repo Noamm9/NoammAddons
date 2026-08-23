@@ -24,64 +24,54 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.network.chat.Component
 
 object NaCommand: ICommandProvider {
-    private val commands = mapOf(
-        "/na" to "Config GUI",
-        "/na hud" to "HUD editor",
-        "/na discord" to "Opens the link to the Discord server",
-        "/na update" to "Checks for an update of the mod",
-        "/na debug" to "Debug flags",
-        "/na sim" to "Simulate chat message",
-        "/na leaporder" to "Configure custom leap sorting",
-        "/na ping" to "Shows your ping in chat",
-        "/na tps" to "Shows the server's tps in chat",
-        "/na rtca" to "Shows the runs needed for each class to hit class average 50",
-        //#if CHEAT
-        "/na swapmask" to "Equips either Bonzo Mask or Spirit Mask",
-        "/na rodswap" to "Automatically rodswaps for you",
-        "/na leap <class>" to "Automatically leaps to the selected class",
-        "/na swapto <ItemID>" to "Automatically equips the item in the EQ menu"
-        //#endif
-    )
-
     override fun CommandBuilder.command() {
         setName("na", "noamm", "noammaddons")
+        description("opens the Config GUI")
         runs { GuiUtils.setScreen(ClickGuiScreen()) }
 
         literal("help") {
             runs {
-                val helpMenu = StringBuilder("§6§lNoammAddons§r\n")
-                commands.forEach { (cmd, desc) -> helpMenu.append("§e$cmd §7- $desc\n") }
+                val helpMenu = StringBuilder()
+                this@command.helpEntries().forEach { (usage, desc) ->
+                    helpMenu.append("§e/$usage §7- $desc\n")
+                }
                 ChatUtils.chat(helpMenu.toString().trim())
             }
         }
 
         literal("discord") {
+            description("Opens the link to the Discord server")
             runs {
                 Utils.openDiscordLink()
             }
         }
 
         literal("hud") {
+            description("HUD editor")
             runs { GuiUtils.setScreen(HudEditorScreen()) }
         }
 
         literal("update") {
+            description("Checks for an update of the mod")
             runs { ThreadUtils.async { UpdateChecker.runCheck(true) } }
         }
 
         literal("ping") {
+            description("Shows your ping in chat")
             runs {
                 ChatUtils.modMessage("§aPing: §f${ServerUtils.averagePing}ms")
             }
         }
 
         literal("tps") {
+            description("Shows the server's tps in chat")
             runs {
                 ChatUtils.modMessage("§aTPS: §f${ServerUtils.tps}")
             }
         }
 
         literal("debug") {
+            description("Debug flags")
             runs {
                 ChatUtils.modMessage("§7Flags: §f${NoammAddons.debugFlags.joinToString(", ")}")
             }
@@ -104,6 +94,7 @@ object NaCommand: ICommandProvider {
             }
 
             argument("message", StringArgumentType.greedyString()) {
+                description("Simulate chat message")
                 runs { ctx ->
                     val msg = StringArgumentType.getString(ctx, "message").addColor()
                     ChatUtils.modMessage(msg)
@@ -113,6 +104,7 @@ object NaCommand: ICommandProvider {
         }
 
         literal("leaporder") {
+            description("Configure custom leap sorting")
             val partyMembersSuggestion = { PartyUtils.members.map(String::lowercase) }
             argument("sorting", StringArgumentType.word()) {
                 suggests { listOf("name", "class") }
@@ -140,6 +132,7 @@ object NaCommand: ICommandProvider {
         }
 
         literal("rtca") {
+            description("Shows the runs needed for each class to hit class average 50")
             runs { sendRtca() }
             argument("name", StringArgumentType.word()) {
                 runs {
@@ -150,6 +143,7 @@ object NaCommand: ICommandProvider {
 
         //#if CHEAT
         literal("swapmask") {
+            description("Equips either Bonzo Mask or Spirit Mask")
             runs {
                 NoammAddons.scope.launch {
                     PlayerUtils.changeMaskAction()
@@ -158,6 +152,7 @@ object NaCommand: ICommandProvider {
         }
 
         literal("rodswap") {
+            description("Automatically rodswaps for you")
             runs {
                 NoammAddons.scope.launch {
                     PlayerUtils.rodSwap()
@@ -168,6 +163,7 @@ object NaCommand: ICommandProvider {
         literal("swapto") {
             runs { ChatUtils.modMessage("missing skyblock id argument. /na swapto <ItemID>") }
             argument("skyblock id", StringArgumentType.word()) {
+                description("Automatically equips the item in the EQ menu")
                 runs {
                     NoammAddons.scope.launch {
                         val inv = NoammAddons.mc.player?.inventory?.nonEquipmentItems ?: return@launch
@@ -182,6 +178,7 @@ object NaCommand: ICommandProvider {
         literal("leap") {
             argument("class", StringArgumentType.word()) {
                 suggests { DungeonClass.entries.filterNot { it == DungeonClass.Empty }.map { it.name } }
+                description("Automatically leaps to the selected class")
                 runs { ctx ->
                     val clazz = StringArgumentType.getString(ctx, "class")
                     val player = DungeonListener.dungeonTeammatesNoSelf.find { it.clazz.name == clazz } ?: return@runs ChatUtils.modMessage("leap target not found")

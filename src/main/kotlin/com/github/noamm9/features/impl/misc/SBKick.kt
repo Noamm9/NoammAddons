@@ -1,14 +1,15 @@
 package com.github.noamm9.features.impl.misc
 
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.RenderOverlayEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.location.LocationUtils.inSkyblock
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import gg.essential.universal.UResolution
 
 object SBKick: Feature("Shows a timer on screen for when you can rejoin Skyblock.") {
     private val sendMsg by ToggleSetting("Send Party Message")
@@ -52,8 +53,8 @@ object SBKick: Feature("Shows a timer on screen for when you can rejoin Skyblock
             if (timeSinceKick >= 60_000) showTime = false
             else event.context.drawCenteredString(
                 "§cLast kicked from SkyBlock §b${(timeSinceKick / 1000.0).toFixed(2)}s ago",
-                mc.window.guiScaledWidth / 2f,
-                mc.window.guiScaledHeight / 2f - 20,
+                UResolution.scaledWidth / 2f,
+                UResolution.scaledHeight / 2f - 20,
                 scale = 1.5f
             )
         }

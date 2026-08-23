@@ -1,11 +1,11 @@
 package com.github.noamm9.features.impl.floor7.dragons
 
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.add
@@ -13,11 +13,12 @@ import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
-import com.github.noamm9.utils.render.Render3D.renderBillboardedCircle
-import com.github.noamm9.utils.render.Render3D.renderBoxBounds
-import com.github.noamm9.utils.render.Render3D.renderString
-import com.github.noamm9.utils.render.Render3D.renderTracer
+import com.github.noamm9.utils.render.world.Render3D.renderBillboardedCircle
+import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
+import com.github.noamm9.utils.render.world.Render3D.renderString
+import com.github.noamm9.utils.render.world.Render3D.renderTracer
 import com.github.noamm9.utils.render.RenderHelper.renderVec
+import gg.essential.universal.UResolution
 import net.minecraft.network.protocol.game.*
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon
 import net.minecraft.world.level.block.Blocks
@@ -155,8 +156,8 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
                 if (dragon.state != WitherDragonState.SPAWNING || dragon.timeToSpawn <= 0) return@register
                 event.context.drawCenteredString(
                     "&${dragon.colorCode}${getDragonTimer(dragon.timeToSpawn)}",
-                    mc.window.guiScaledWidth / 2f,
-                    mc.window.guiScaledHeight * 0.4f,
+                    UResolution.scaledWidth / 2f,
+                    UResolution.scaledHeight * 0.4f,
                     scale = 3f,
                 )
             }

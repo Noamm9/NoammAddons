@@ -1,8 +1,8 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.PlayerInteractEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.core.RoomType
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
@@ -31,6 +31,7 @@ object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
         register<PlayerInteractEvent.LEFT_CLICK.BLOCK> {
             if (! preventBreakingSecrets.value) return@register
             if (! LocationUtils.inDungeon) return@register
+            if (LocationUtils.inBoss) return@register
             if (event.item?.skyblockId != "DUNGEONBREAKER") return@register
             if (WorldUtils.getBlockAt(event.pos) !in blacklist) return@register
             event.isCanceled = true

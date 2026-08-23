@@ -1,19 +1,17 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.types.KeybindSetting
+import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.KeyboardEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
-import com.github.noamm9.utils.location.LocationUtils
-import org.lwjgl.glfw.GLFW
-
-//#if CHEAT
-import com.github.noamm9.event.impl.ChatMessageEvent
-import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
-//#endif
+import com.github.noamm9.utils.location.LocationUtils
+import gg.essential.universal.UMinecraft
+import org.lwjgl.glfw.GLFW
 
 object Abilities: Feature(
     //#if CHEAT
@@ -58,7 +56,7 @@ object Abilities: Feature(
         register<KeyboardEvent.KeyPressed> {
             if (! LocationUtils.inDungeon || ! DungeonListener.dungeonStarted) return@register
             if (event.action != GLFW.GLFW_PRESS) return@register
-            if (mc.screen != null) return@register
+            if (UMinecraft.currentScreenObj != null) return@register
 
             if (ultKeybind.isPressed()) {
                 PlayerUtils.useDungeonClassAbility(true)

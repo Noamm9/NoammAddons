@@ -2,12 +2,12 @@ package com.github.noamm9.features.impl.floor7.terminals
 
 //#if CHEAT
 
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.terminals.TerminalListener.FIRST_CLICK_DELAY
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.Scheduler
@@ -70,7 +70,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
 
             if (buttonRow == 3) return@register
             if (! melodySkip.value) return@register
-            if (! melodySkipFirstRow.value && buttonRow == 0) return@register
+            if (! melodySkipFirstRow.value && buttonRow == 0 && current != 4) return@register
             if (! (melodySkipMode.value == 1 || (melodySkipMode.value == 0 && (current == 0 || current == 4)))) return@register
 
             val windowId = TerminalListener.lastWindowId

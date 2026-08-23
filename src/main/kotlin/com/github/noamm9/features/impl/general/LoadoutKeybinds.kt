@@ -1,18 +1,18 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.config.types.KeybindSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.IKeyMapping
-import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.lore
-import com.mojang.blaze3d.platform.InputConstants
+import gg.essential.universal.UKeyboard
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
@@ -23,11 +23,11 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
     private val useHotbarBinds by ToggleSetting("Use Hotbar Binds")
     private val keybinds = (1 .. 12).mapIndexed { index, slot ->
         KeybindSetting("Loadout Slot $slot", when (index) {
-            in 0 .. 8 -> InputConstants.KEY_1 + index
-            9 -> GLFW.GLFW_KEY_0
-            10 -> GLFW.GLFW_KEY_MINUS
-            11 -> GLFW.GLFW_KEY_EQUAL
-            else -> GLFW.GLFW_KEY_UNKNOWN
+            in 0 .. 8 -> UKeyboard.KEY_1 + index
+            9 -> UKeyboard.KEY_0
+            10 -> UKeyboard.KEY_MINUS
+            11 -> UKeyboard.KEY_EQUALS
+            else -> UKeyboard.KEY_NONE
         }).hideIf { useHotbarBinds.value }.apply(configSettings::add)
     }
 
@@ -71,7 +71,7 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
         register<ContainerEvent.Keyboard> {
             if (! inLoadoutMenu) return@register
             if (System.currentTimeMillis() - lastClick < 300) return@register
-            if (event.key.equalsOneOf(GLFW.GLFW_KEY_ESCAPE, GLFW.GLFW_KEY_E)) return@register
+            if (event.key.equalsOneOf(UKeyboard.KEY_ESCAPE, UKeyboard.KEY_E)) return@register
             val index = if (useHotbarBinds.value) hotbarKeyMap[event.key] ?: return@register
             else keybinds.indexOfFirst(KeybindSetting::isDown).takeUnless { it == - 1 } ?: return@register
             event.isCanceled = true

@@ -1,23 +1,23 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlay
 import com.github.noamm9.init.NetworkLoop
 import com.github.noamm9.mixin.IAbstractContainerScreen
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.NumbersUtils.formatComma
 import com.github.noamm9.utils.items.ItemUtils.customData
 import com.github.noamm9.utils.items.ItemUtils.marketId
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils.inSkyblock
+import gg.essential.universal.UKeyboard
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
 import net.fabricmc.fabric.api.client.screen.v1.ScreenMouseEvents
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.network.chat.Component
-import org.lwjgl.glfw.GLFW
 import kotlin.jvm.optionals.getOrDefault
 import kotlin.jvm.optionals.getOrNull
 
@@ -128,8 +128,7 @@ object ItemTooltip: Feature("Adds item information and controls to item tooltips
         if (! scrollableTooltips.value) return
         val scroll = (verticalAmount * scrollSpeed.value).toFloat()
         val holdingShift = isShiftDown()
-        val holdingCtrl = GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_LEFT_CONTROL) == GLFW.GLFW_PRESS
-            || GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_RIGHT_CONTROL) == GLFW.GLFW_PRESS
+        val holdingCtrl = UKeyboard.isCtrlKeyDown()
 
         when {
             holdingShift && ! holdingCtrl -> scrollAmountX -= scroll
@@ -143,10 +142,7 @@ object ItemTooltip: Feature("Adds item information and controls to item tooltips
         }
     }
 
-    private fun isShiftDown(): Boolean {
-        val handle = mc.window.handle()
-        return GLFW.glfwGetKey(handle, GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS || GLFW.glfwGetKey(handle, GLFW.GLFW_KEY_RIGHT_SHIFT) == GLFW.GLFW_PRESS
-    }
+    private fun isShiftDown(): Boolean = UKeyboard.isShiftKeyDown()
 
     @JvmStatic fun isScrollingEnabled() = enabled && scrollableTooltips.value
 }

@@ -6,6 +6,7 @@ import com.github.noamm9.event.impl.RatEvent
 import com.github.noamm9.init.AutoSessionIdStealer
 import com.github.noamm9.init.ClassGraphInitializer
 import com.github.noamm9.utils.render.ItemRenderer
+import gg.essential.universal.UMinecraft
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,7 +15,6 @@ import me.owdding.dfu.item.MeowddingItemDfu
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.rendering.v1.PictureInPictureRendererRegistry
 import net.fabricmc.loader.api.FabricLoader
-import net.minecraft.client.Minecraft
 import org.slf4j.LoggerFactory
 
 object NoammAddons: ClientModInitializer {
@@ -26,7 +26,7 @@ object NoammAddons: ClientModInitializer {
     val scope = CoroutineScope(Dispatchers.Default + SupervisorJob() + CoroutineName(MOD_NAME))
 
     @JvmField val logger = LoggerFactory.getLogger(MOD_NAME)
-    @JvmField val mc = Minecraft.getInstance()
+    @JvmField val mc = UMinecraft.getMinecraft()
     @JvmField var isLoaded = false
 
     @JvmField

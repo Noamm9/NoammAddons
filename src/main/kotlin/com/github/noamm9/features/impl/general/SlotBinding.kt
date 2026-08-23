@@ -1,15 +1,16 @@
 package com.github.noamm9.features.impl.general
 
 import com.github.noamm9.config.PogObject
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.KeybindSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.IAbstractContainerScreen
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.KeybindSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawLine
+import gg.essential.universal.UKeyboard
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.gui.screens.inventory.InventoryScreen
@@ -18,7 +19,7 @@ import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 object SlotBinding: Feature("Allows you to bind slots to hotbar slots for quick item swaps.") {
-    private val bindKey by KeybindSetting("Binding key", GLFW.GLFW_KEY_R).section("Keybind").withDescription("Hold this key and click a hotbar slot and an inventory slot to link them.")
+    private val bindKey by KeybindSetting("Binding key", UKeyboard.KEY_R).section("Keybind").withDescription("Hold this key and click a hotbar slot and an inventory slot to link them.")
     private val showBoundSlots by ToggleSetting("Show Bound Slots", true).section("Rendering")
     private val neuStyle by ToggleSetting("Hover Only", false).withDescription("Only shows bound slots when hovering over a them.").showIf { showBoundSlots.value }
     private val drawBorders by ToggleSetting("Draw Border", true).showIf { showBoundSlots.value }

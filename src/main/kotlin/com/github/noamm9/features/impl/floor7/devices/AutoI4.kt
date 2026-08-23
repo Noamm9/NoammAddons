@@ -2,6 +2,9 @@ package com.github.noamm9.features.impl.floor7.devices
 
 //#if CHEAT
 
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.BlockChangeEvent
 import com.github.noamm9.event.impl.ChatMessageEvent
@@ -10,12 +13,10 @@ import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.MelodyDisplay
 import com.github.noamm9.features.impl.floor7.devices.I4Helper.getPredictionTarget
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.ui.utils.Animation.Companion.easeInOutCubic
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ActionUtils.queue
+import com.github.noamm9.utils.ActionUtils.waitTicks
 import com.github.noamm9.utils.MathUtils.calcYawPitch
 import com.github.noamm9.utils.MathUtils.interpolateYaw
 import com.github.noamm9.utils.MathUtils.lerp
@@ -25,10 +26,7 @@ import com.github.noamm9.utils.PlayerUtils.rotate
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
 import net.minecraft.world.item.Items
@@ -41,7 +39,7 @@ import kotlin.math.abs
 import kotlin.math.min
 
 object AutoI4: Feature("Fully Automated I4") {
-    private val rotationTime by SliderSetting<Long>("Rotation Time", 170, 0, 250, 1).withDescription("Time (ms) to interpolate rotations when aiming at dev block targets. &eSet to 0 to disable the auto rotation.")
+    private val rotationTime by SliderSetting("Rotation Time", 170, 0, 250, 1).withDescription("Time (ms) to interpolate rotations when aiming at dev block targets. &eSet to 0 to disable the auto rotation.").hideIf { predictSetting.value }
     private val predictSetting by ToggleSetting("Predictions", true).withDescription("Enables prediction logic to aim at the next target block.")
 
     private val rodSetting by ToggleSetting("Auto Rod", true)
@@ -56,14 +54,12 @@ object AutoI4: Feature("Fully Automated I4") {
     private val doneCoords = ConcurrentHashMap.newKeySet<BlockPos>()
     private val tickTimer = AtomicInteger(- 1)
     @Volatile private var melodyLeapTargetName: String? = null
-    @Volatile private var lastTarget: BlockPos? = null
     @Volatile private var hasChangedMask = false
     @Volatile private var hasAlerted = false
     @Volatile private var hasLeaped = false
 
     private val activeEmerald = AtomicReference<BlockPos?>(null)
     private val lastAttemptTime = AtomicLong(0L)
-    private val retryCount = AtomicInteger(0)
     @Volatile private var watchdogJob: Job? = null
 
     override fun init() {
@@ -115,7 +111,6 @@ object AutoI4: Feature("Fully Automated I4") {
                 doneCoords.add(event.pos)
                 if (activeEmerald.get() == event.pos) {
                     activeEmerald.set(null)
-                    retryCount.set(0)
                 }
                 return@register
             }
@@ -124,18 +119,14 @@ object AutoI4: Feature("Fully Automated I4") {
             if (event.newBlock != Blocks.EMERALD_BLOCK) return@register
 
             activeEmerald.set(event.pos)
-            retryCount.set(0)
             lastAttemptTime.set(DungeonListener.currentTime)
             checkStall()
 
             if (rotationTime.value > 0) queue(1) {
                 shootAtBlock(event.pos)
-                lastTarget = event.pos
 
                 if (predictSetting.value) {
-                    val next = getPredictionTarget(event.pos, doneCoords) ?: return@queue
-                    if (next in doneCoords) return@queue
-                    if (getEmerald(event.pos, next) != null) return@queue
+                    val next = I4Helper.prediction ?: getPredictionTarget(event.pos, doneCoords) ?: return@queue
                     shootAtBlock(next)
                 }
             }
@@ -164,12 +155,6 @@ object AutoI4: Feature("Fully Automated I4") {
                 if (WorldUtils.getBlockAt(target) != Blocks.EMERALD_BLOCK) continue
                 if (DungeonListener.currentTime - lastAttemptTime.get() < 20) continue
 
-                val attempt = retryCount.incrementAndGet()
-                if (attempt > 3) {
-                    if (attempt == 4) ChatUtils.showTitle("&cI4 Stuck!", "&eShoot the block manually")
-                    continue
-                }
-
                 lastAttemptTime.set(DungeonListener.currentTime)
                 queue(2) { shootAtBlock(target) }
             }
@@ -181,6 +166,7 @@ object AutoI4: Feature("Fully Automated I4") {
     private fun getEmerald(vararg exclude: BlockPos?) = I4Helper.devBlocks.find {
         if (it in exclude) return@find false
         if (it in doneCoords) return@find false
+        if (it == activeEmerald.get()) return@find false
         WorldUtils.getBlockAt(it) == Blocks.EMERALD_BLOCK
     }
 
@@ -208,16 +194,13 @@ object AutoI4: Feature("Fully Automated I4") {
 
     private suspend fun shootAtBlock(pos: BlockPos) {
         val (yaw, pitch) = calcYawPitch(getTargetVector(pos))
-        val block = {
-            ThreadUtils.scheduledTask {
-                PlayerUtils.rightClick()
-            }
+        val block = suspend {
+            waitTicks()
+            PlayerUtils.rightClick()
         }
 
-        getEmerald(lastTarget, pos)?.let { newer ->
-            doneCoords.add(pos)
+        getEmerald(pos)?.let { newer ->
             activeEmerald.set(newer)
-            retryCount.set(0)
             lastAttemptTime.set(DungeonListener.currentTime)
             return shootAtBlock(newer)
         }
@@ -231,13 +214,12 @@ object AutoI4: Feature("Fully Automated I4") {
         if (abs(currentYaw - targetYaw) <= tolerance && abs(currentPitch - targetPitch) <= tolerance) return block()
 
         val startTime = System.currentTimeMillis()
-        val duration = rotationTime.value.toDouble() * (0.9 + Math.random() * 0.2)
+        val duration = (if (predictSetting.value) 170 else rotationTime.value).toDouble()
         while (true) {
-            val newerDuring = getEmerald(lastTarget, pos)
+            val newerDuring = getEmerald(pos)
             if (newerDuring != null) {
                 doneCoords.add(pos)
                 activeEmerald.set(newerDuring)
-                retryCount.set(0)
                 lastAttemptTime.set(DungeonListener.currentTime)
                 return shootAtBlock(newerDuring)
             }
@@ -292,13 +274,12 @@ object AutoI4: Feature("Fully Automated I4") {
     fun reset() {
         tickTimer.set(- 1)
         doneCoords.clear()
-        lastTarget = null
         hasChangedMask = false
         hasLeaped = false
         hasAlerted = false
         melodyLeapTargetName = null
         activeEmerald.set(null)
-        retryCount.set(0)
+        lastAttemptTime.set(0)
         watchdogJob?.cancel()
         watchdogJob = null
     }

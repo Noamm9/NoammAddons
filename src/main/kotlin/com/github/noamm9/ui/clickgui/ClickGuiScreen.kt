@@ -1,7 +1,7 @@
 package com.github.noamm9.ui.clickgui
 
 import com.github.noamm9.NoammAddons.MOD_ID
-import com.github.noamm9.config.Config
+import com.github.noamm9.config.ConfigManager
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.Style
 import com.github.noamm9.ui.clickgui.enums.CategoryType
@@ -18,7 +18,7 @@ import com.github.noamm9.utils.render.Render2D.drawLine
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawTexture
 import com.github.noamm9.utils.render.Render2D.drawVerticalGradient
-import com.mojang.blaze3d.platform.InputConstants
+import gg.essential.universal.UKeyboard
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.CharacterEvent
@@ -26,7 +26,6 @@ import net.minecraft.client.input.KeyEvent
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
-import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
@@ -250,14 +249,14 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
     override fun keyPressed(keyEvent: KeyEvent): Boolean {
         configWindows.lastOrNull()?.let { window ->
             if (window.keyPressed(keyEvent.key, keyEvent.scancode, keyEvent.modifiers)) return true
-            if (keyEvent.key == InputConstants.KEY_ESCAPE) {
+            if (keyEvent.key == UKeyboard.KEY_ESCAPE) {
                 configWindows.remove(window)
                 return true
             }
         }
 
         if (searchHandler.keyPressed(keyEvent)) return true
-        if (keyEvent.hasControlDown() && keyEvent.input() == GLFW.GLFW_KEY_F) {
+        if (keyEvent.hasControlDown() && keyEvent.input() == UKeyboard.KEY_F) {
             searchHandler.listening = ! searchHandler.listening
             return true
         }
@@ -311,7 +310,7 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
         configWindows.clear()
         searchHandler.listening = false
         MouseHelper.resetCursor()
-        Config.save()
+        ConfigManager.save()
         super.onClose()
     }
 }

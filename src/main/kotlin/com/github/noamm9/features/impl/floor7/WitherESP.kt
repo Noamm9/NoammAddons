@@ -1,11 +1,11 @@
 package com.github.noamm9.features.impl.floor7
 
+import com.github.noamm9.config.types.ColorSetting
 import com.github.noamm9.event.impl.BossBarUpdateEvent
 import com.github.noamm9.event.impl.CheckEntityGlowEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket

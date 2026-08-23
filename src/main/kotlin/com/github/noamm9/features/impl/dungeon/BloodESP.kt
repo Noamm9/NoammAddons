@@ -7,16 +7,16 @@ import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.*
-import com.github.noamm9.ui.clickgui.components.impl.CategorySetting
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.CategoryWidget
+import com.github.noamm9.config.types.ColorConfig
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.utils.MathUtils.Vec3
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.DungeonInfo
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.world.Render3D
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Blocks
 import java.awt.Color
@@ -24,9 +24,9 @@ import java.awt.Color
 object BloodESP: Feature("Highlights the blood room before dungeon start to help you with 0s Bloodrush.") {
     private val box by ToggleSetting("Room Box", true).withDescription("Draws a box around the Blood room.").section("Options")
     private val tracer by ToggleSetting("Door Tracer", true).withDescription("Draws a tracer to the Blood room's door.")
-    private val s by CategorySetting("Colors").showIf { tracer.value || box.value }
-    private val roomColor by ColorSetting("Room Color", Color.RED, false).showIf { box.value }.withDescription("The color of the Blood room ESP.")
-    private val tracerColor by ColorSetting("Tracer Color", Color.RED, false).showIf { tracer.value }.withDescription("The color of the Blood room door tracer.")
+    private val s by CategoryWidget("Colors").showIf { tracer.value || box.value }
+    private val roomColor by ColorConfig("Room Color", Color.RED, false).showIf { box.value }.withDescription("The color of the Blood room ESP.")
+    private val tracerColor by ColorConfig("Tracer Color", Color.RED, false).showIf { tracer.value }.withDescription("The color of the Blood room door tracer.")
 
     private var bloodData: Pair<BlockPos, Int>? = null
 

@@ -3,14 +3,15 @@ package com.github.noamm9.features.impl.general
 //#if CHEAT
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
 import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.dungeons.DungeonUtils
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
+import gg.essential.universal.UMinecraft
 import java.util.*
 
 object TermAutoClicker: Feature(name = "Term AC", description = "Automatically uses Salvation ability when holding right click.") {
@@ -25,7 +26,7 @@ object TermAutoClicker: Feature(name = "Term AC", description = "Automatically u
         register<TickEvent.Start> {
             val now = System.currentTimeMillis()
             if (now < nextLeftClick) return@register
-            if (mc.screen != null) return@register
+            if (UMinecraft.currentScreenObj != null) return@register
             if (! mc.options.keyUse.isDown) return@register
             if (player.isUsingItem) return@register
 

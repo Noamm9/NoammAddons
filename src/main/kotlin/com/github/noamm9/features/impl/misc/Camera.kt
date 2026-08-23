@@ -1,9 +1,9 @@
 package com.github.noamm9.features.impl.misc
 
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 
 object Camera: Feature() {

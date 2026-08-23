@@ -1,16 +1,16 @@
 package com.github.noamm9.features.impl.dev
 
-import com.github.noamm9.event.priority.EventPriority
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.CheckEntityGlowEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
+import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.features.Feature
 import com.github.noamm9.interfaces.IGlowingEntity
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.equalsOneOf
-import com.github.noamm9.utils.render.Render3D.renderBoxBounds
+import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
 import com.github.noamm9.utils.render.RenderHelper.renderBoundingBox
 
 object Box3D: Feature("Replaces the Glow ESP with 3D boxes") {

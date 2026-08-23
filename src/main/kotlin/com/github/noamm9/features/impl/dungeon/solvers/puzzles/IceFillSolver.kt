@@ -7,8 +7,8 @@ import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.icefillColo
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
-import com.github.noamm9.utils.render.Render3D.renderLine
-import com.github.noamm9.utils.render.RenderContext
+import com.github.noamm9.utils.render.world.Render3D.renderLine
+import com.github.noamm9.utils.render.world.RenderContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

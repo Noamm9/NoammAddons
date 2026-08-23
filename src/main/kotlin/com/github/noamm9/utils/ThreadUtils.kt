@@ -1,12 +1,11 @@
 package com.github.noamm9.utils
 
 import com.github.noamm9.NoammAddons.logger
-import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.NoammAddons.scope
 import com.github.noamm9.event.EventBus.register
-import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.event.impl.ShutdownEvent
 import com.github.noamm9.event.impl.TickEvent
+import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.init.types.ISelfInit
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -24,7 +23,6 @@ object ThreadUtils: ISelfInit {
         register<ShutdownEvent> { shutdownTasks.forEach { safeRun(it) } }
     }
 
-    fun runOnMcThread(block: Runnable) = if (mc.isSameThread) safeRun(block) else mc.execute { safeRun(block) }
     fun addShutdownHook(block: Runnable) = shutdownTasks.add(block)
     fun scheduledTask(ticks: Number = 0, block: Runnable) = clientScheduler.schedule(ticks, block)
     fun scheduledTaskServer(ticks: Number = 0, block: Runnable) = serverScheduler.schedule(ticks, block)

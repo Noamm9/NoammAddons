@@ -1,11 +1,11 @@
 package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.NoammAddons.PREFIX
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.invert
 import com.github.noamm9.utils.MathUtils.aabb
@@ -16,11 +16,11 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D.renderBoxBounds
-import com.github.noamm9.utils.render.Render3D.renderLine
-import com.github.noamm9.utils.render.Render3D.renderString
+import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
+import com.github.noamm9.utils.render.world.Render3D.renderLine
+import com.github.noamm9.utils.render.world.Render3D.renderString
 import com.github.noamm9.utils.render.RenderHelper.renderVec
-import net.minecraft.client.resources.sounds.SimpleSoundInstance
+import gg.essential.universal.USound
 import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
@@ -89,7 +89,7 @@ object BloodCamp: Feature("Features for Blood Room.") {
             val sound = if (seconds < 22) SoundEvents.TRIDENT_THUNDER.value() else if (seconds < 25) SoundEvents.WARDEN_DEATH else SoundEvents.VILLAGER_DEATH
 
             mc.execute {
-                repeat(5) { mc.soundManager.play(SimpleSoundInstance.forUI(sound, 1f)) }
+                repeat(5) { USound.playSoundStatic(sound, 0.25f, 1f) }
                 if (partySpeedAlert.value) ChatUtils.sendPartyMessage("$PREFIX $title")
                 ChatUtils.showTitle(title)
             }

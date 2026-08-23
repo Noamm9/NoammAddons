@@ -13,9 +13,9 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.IKeyMapping
 import com.github.noamm9.ui.clickgui.ClickGuiScreen
 import com.github.noamm9.ui.clickgui.components.getValue
-import com.github.noamm9.ui.clickgui.components.impl.ButtonSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.config.types.ActionConfig
+import com.github.noamm9.config.types.NumberConfig
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.provideDelegate
 import com.github.noamm9.ui.clickgui.components.section
 import com.github.noamm9.ui.clickgui.components.withDescription
@@ -27,6 +27,7 @@ import com.github.noamm9.utils.items.ItemUtils.itemUUID
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.render.Render2D
 import com.github.noamm9.utils.render.RenderHelper.width
+import gg.essential.universal.UMinecraft
 import net.minecraft.world.inventory.ClickType
 import net.minecraft.world.item.ItemStack
 import java.io.File
@@ -52,11 +53,11 @@ object AutoHotbar: Feature("Automatically swaps items to specific hotbar slots u
         if (enabled) disabledTriggers.remove(trigger) else disabledTriggers.add(trigger)
     }
 
-    private val swapDelay by SliderSetting("Base Delay", 100, 0, 500, 5).withDescription("How much time to wait between slot swapping").section("Timing (ms)")
-    private val jitter by SliderSetting("Random Delay", 50, 0, 100, 1).withDescription("Random Delay to add on top of the Base Delay")
-    private val pingDelay by SliderSetting("Stop Delay", 200, 0, 500, 5).withDescription("how much time to wait after you are not moving.")
+    private val swapDelay by NumberConfig("Base Delay", 100, 0, 500, 5).withDescription("How much time to wait between slot swapping").section("Timing (ms)")
+    private val jitter by NumberConfig("Random Delay", 50, 0, 100, 1).withDescription("Random Delay to add on top of the Base Delay")
+    private val pingDelay by NumberConfig("Stop Delay", 200, 0, 500, 5).withDescription("how much time to wait after you are not moving.")
     private val showTitles by ToggleSetting("HUD Info", true).withDescription("Shows the currnt auto swap progress on screen")
-    private val openGuiBtn by ButtonSetting("Open Config") {
+    private val openGuiBtn by ActionConfig("Open ConfigManager") {
         ClickGuiScreen.current?.selectedFeature = null
         NoammAddons.screen = AutoHotbarScreen()
     }.withDescription("Opens the GUI to visually map your inventory to hotbar slots.")
@@ -140,7 +141,7 @@ object AutoHotbar: Feature("Automatically swaps items to specific hotbar slots u
             if (stationaryTicks < 10) return@register
             if (now < nextSwapTime) return@register
             if (ServerUtils.tps < 18f || ServerUtils.currentPing > 500) return@register
-            if (mc.screen != null) {
+            if (UMinecraft.currentScreenObj != null) {
                 stationaryTicks = 0
                 nextSwapTime = now + pingDelay.value.toLong()
                 return@register

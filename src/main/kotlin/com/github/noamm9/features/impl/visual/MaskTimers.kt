@@ -1,12 +1,12 @@
 package com.github.noamm9.features.impl.visual
 
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.RenderOverlayEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
@@ -14,6 +14,7 @@ import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
+import gg.essential.universal.UResolution
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import net.minecraft.world.entity.EquipmentSlot
@@ -132,8 +133,8 @@ object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and mo
             val str = "${active.color}${active.displayName}: $color${(active.invulnLeft / 20.0).toFixed(1)}"
 
             event.context.drawCenteredString(
-                str, mc.window.guiScaledWidth / 2f,
-                mc.window.guiScaledHeight / 3f,
+                str, UResolution.scaledWidth / 2f,
+                UResolution.scaledHeight / 3f,
                 scale = 1.5f
             )
         }

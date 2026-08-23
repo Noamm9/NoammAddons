@@ -1,20 +1,22 @@
 package com.github.noamm9.features.impl.general.storageoverlay
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.general.ItemTooltip
 import com.github.noamm9.init.types.ICustomMenu
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.catch
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.network.WebUtils
 import com.github.noamm9.utils.network.data.StorageData
+import gg.essential.universal.UMinecraft
+import gg.essential.universal.wrappers.UPlayer
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.nbt.CompoundTag
@@ -41,7 +43,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     val hideNonMatchingPages by ToggleSetting("Hide Non-Matching Pages").withDescription("Hides storage pages without an item matching the current inventory search")
 
     private val storageDir by lazy { File(mc.gameDirectory, "config/${NoammAddons.MOD_NAME}/storage").also(File::mkdirs) }
-    private val dataFile get() = File(storageDir, "${mc.user.profileId}.nbt").also { it.createNewFile() }
+    private val dataFile get() = File(storageDir, "${UPlayer.getUUID()}.nbt").also { it.createNewFile() }
     @Volatile var storageMenuData: SortedMap<StoragePage, NBTInventory?> = TreeMap()
 
     private var currentMenu: StorageMenu? = null
@@ -51,7 +53,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
 
     @JvmStatic
     fun activeFor(screen: ContainerScreen) = active?.takeIf { it.containerScreen === screen }
-    override fun isActive() = (mc.screen as? ContainerScreen)?.let(::activeFor) != null
+    override fun isActive() = (UMinecraft.currentScreenObj as? ContainerScreen)?.let(::activeFor) != null
 
     private val emptyStorageSlotItems = listOf(
         Blocks.RED_STAINED_GLASS_PANE.asItem(),
@@ -62,7 +64,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     override fun init() {
         register<ContainerFullyOpenedEvent> {
             if (! LocationUtils.inSkyblock) return@register
-            val screen = mc.screen as? ContainerScreen ?: return@register
+            val screen = UMinecraft.currentScreenObj as? ContainerScreen ?: return@register
             if (screen.menu.containerId != event.windowId) return@register
             if (screen.title.unformattedText != event.title.unformattedText) return@register
             val menu = currentMenu ?: return@register
@@ -212,7 +214,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     }
 
     private suspend fun loadFromApi() {
-        WebUtils.getAs<StorageData>("https://api.noamm.org/hypixel/storage/${mc.user.profileId}").onSuccess {
+        WebUtils.getAs<StorageData>("https://api.noamm.org/hypixel/storage/${UPlayer.getUUID()}").onSuccess {
             val data = TreeMap<StoragePage, NBTInventory?>()
             it.enderchest.forEach { (i, stacks) -> data[StoragePage(i)] = NBTInventory(stacks) }
             it.backpack.forEach { (i, stacks) -> data[StoragePage(i + 9)] = NBTInventory(stacks) }
