@@ -20,8 +20,8 @@ import com.github.noamm9.utils.dungeons.enums.SecretType
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
-import com.github.noamm9.utils.render.world.Render3D.renderBlock
 import com.github.noamm9.utils.render.RenderHelper.width
+import com.github.noamm9.utils.render.world.Render3D.renderBlock
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
@@ -40,7 +40,8 @@ object Secrets: Feature() {
 
     //#if CHEAT
     private val closeChest by ToggleSetting("Close Chest").section("Auto").withDescription("Automatically closes the secret chest for you.")
-    private val lever by ToggleSetting("Lever").withDescription("Full block Lever hitbox.").section("Secret Hitboxes")
+    private val lever by ToggleSetting("Lever").withDescription("Expand block Lever hitbox.").section("Secret Hitboxes")
+    val leverSize by SliderSetting("Lever Hitbox Size", 1.0, 8.0 / 16.0, 1.0, 0.01).showIf { button.value }
     @JvmStatic val button by ToggleSetting("Button").withDescription("Expand button hitbox.")
     val buttonSize by SliderSetting("Button Hitbox Size", 1.0, 6.0 / 16.0, 1.0, 0.01).showIf { button.value }
     @JvmStatic val skull by ToggleSetting("Skulls").withDescription("Full block Skull hitbox.")
@@ -127,10 +128,18 @@ object Secrets: Feature() {
     @JvmStatic
     fun getButtonShape(state: BlockState): VoxelShape {
         val face = state.getValue(FaceAttachedHorizontalDirectionalBlock.FACE)
-        val direction = state.getValue(FaceAttachedHorizontalDirectionalBlock.FACING)
+        val facing = state.getValue(FaceAttachedHorizontalDirectionalBlock.FACING)
         val powered = state.getValue(ButtonBlock.POWERED)
         val base = Block.boxZ(buttonSize.value * 16.0, 16.0 - if (powered) 1 else 2, 16.0)
-        return Shapes.rotateAttachFace(base)[face]?.get(direction)!!
+        return Shapes.rotateAttachFace(base)[face]?.get(facing)!!
+    }
+
+    @JvmStatic
+    fun getLeverShape(state: BlockState): VoxelShape {
+        val face = state.getValue(FaceAttachedHorizontalDirectionalBlock.FACE)
+        val facing = state.getValue(FaceAttachedHorizontalDirectionalBlock.FACING)
+        val base = Block.boxZ(leverSize.value * 16.0, leverSize.value * 16.0, 16.0 - leverSize.value * 16.0, 16.0)
+        return Shapes.rotateAttachFace(base)[face]?.get(facing)!!
     }
 
     private val blackListedLevers = listOf(
