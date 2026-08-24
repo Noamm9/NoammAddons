@@ -268,6 +268,7 @@ object SimonSays: Feature("Simon Says Solver") {
         skipOver = false
         sequenceLength = 0
         stage = 0
+        lastClick = 0
     }
 
     private fun reset() {
