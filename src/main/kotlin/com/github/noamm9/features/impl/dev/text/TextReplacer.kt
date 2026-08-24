@@ -16,6 +16,8 @@ object TextReplacer: AhoCorasick() {
         }
     }
 
+    @JvmField var tooltip = false
+
     fun init(map: Map<String, String>) {
         for ((k, v) in map) {
             val comp = parse(v) ?: continue
