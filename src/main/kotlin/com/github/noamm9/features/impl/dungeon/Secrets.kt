@@ -33,7 +33,7 @@ import net.minecraft.world.level.block.FaceAttachedHorizontalDirectionalBlock
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.*
 
 object Secrets: Feature() {
     private val hudDisplay by ToggleSetting("Secret HUD", true).withDescription("Displays the current room's secrets on screen.").section("HUD")
@@ -41,9 +41,9 @@ object Secrets: Feature() {
     //#if CHEAT
     private val closeChest by ToggleSetting("Close Chest").section("Auto").withDescription("Automatically closes the secret chest for you.")
     private val lever by ToggleSetting("Lever").withDescription("Expand block Lever hitbox.").section("Secret Hitboxes")
-    val leverSize by SliderSetting("Lever Hitbox Size", 1.0, 8.0 / 16.0, 1.0, 0.01).showIf { button.value }
+    private val leverSize by SliderSetting("Lever Hitbox Size", 1.0, 8.0 / 16.0, 1.0, 0.01).showIf { button.value }
     @JvmStatic val button by ToggleSetting("Button").withDescription("Expand button hitbox.")
-    val buttonSize by SliderSetting("Button Hitbox Size", 1.0, 6.0 / 16.0, 1.0, 0.01).showIf { button.value }
+    private val buttonSize by SliderSetting("Button Hitbox Size", 1.0, 6.0 / 16.0, 1.0, 0.01).showIf { button.value }
     @JvmStatic val skull by ToggleSetting("Skulls").withDescription("Full block Skull hitbox.")
     @JvmStatic val mushroom by ToggleSetting("Mushroom").withDescription("Full block Mushroom hitbox.")
     //#endif
@@ -131,7 +131,7 @@ object Secrets: Feature() {
         val facing = state.getValue(FaceAttachedHorizontalDirectionalBlock.FACING)
         val powered = state.getValue(ButtonBlock.POWERED)
         val base = Block.boxZ(buttonSize.value * 16.0, 16.0 - if (powered) 1 else 2, 16.0)
-        return Shapes.rotateAttachFace(base)[face]?.get(facing)!!
+        return Shapes.rotateAttachFace(base)[face]?.get(facing) !!
     }
 
     @JvmStatic
@@ -139,14 +139,16 @@ object Secrets: Feature() {
         val face = state.getValue(FaceAttachedHorizontalDirectionalBlock.FACE)
         val facing = state.getValue(FaceAttachedHorizontalDirectionalBlock.FACING)
         val base = Block.boxZ(leverSize.value * 16.0, leverSize.value * 16.0, 16.0 - leverSize.value * 16.0, 16.0)
-        return Shapes.rotateAttachFace(base)[face]?.get(facing)!!
+        return Shapes.rotateAttachFace(base)[face]?.get(facing) !!
     }
 
     private val blackListedLevers = listOf(
-        BlockPos(61, 136, 142), BlockPos(60, 136, 142), BlockPos(59, 136, 142),
-        BlockPos(62, 135, 142), BlockPos(61, 135, 142), BlockPos(59, 135, 142),
-        BlockPos(58, 135, 142), BlockPos(62, 134, 142), BlockPos(61, 134, 142),
-        BlockPos(59, 134, 142), BlockPos(58, 134, 142), BlockPos(61, 133, 142),
+        BlockPos(61, 136, 142), BlockPos(60, 136, 142),
+        BlockPos(59, 136, 142), BlockPos(62, 135, 142),
+        BlockPos(61, 135, 142), BlockPos(59, 135, 142),
+        BlockPos(58, 135, 142), BlockPos(62, 134, 142),
+        BlockPos(61, 134, 142), BlockPos(59, 134, 142),
+        BlockPos(58, 134, 142), BlockPos(61, 133, 142),
         BlockPos(60, 133, 142), BlockPos(59, 133, 142)
     )
 
