@@ -3,7 +3,9 @@ package com.github.noamm9.ui.clickgui
 import com.github.noamm9.NoammAddons.MOD_ID
 import com.github.noamm9.config.ConfigManager
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.components.CategoryPanel
+import com.github.noamm9.ui.clickgui.components.FeatureConfigWindow
+import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.clickgui.enums.CategoryType
 import com.github.noamm9.ui.clickgui.enums.WindowClickAction
 import com.github.noamm9.ui.hud.HudEditorScreen
@@ -29,18 +31,15 @@ import net.minecraft.resources.Identifier
 import java.awt.Color
 
 class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
-    companion object {
-        var INSTANCE: ClickGuiScreen? = null
-
-        private const val defaultWindowWidth = 220f
-        private const val defaultWindowHeight = 260f
-        private const val windowCascadeOffset = 18f
-        private const val searchbarButtonSize = 22f
+    private companion object {
+        const val defaultWindowWidth = 220f
+        const val defaultWindowHeight = 260f
+        const val windowCascadeOffset = 18f
+        const val searchbarButtonSize = 22f
     }
 
     private val discordTexture = Identifier.fromNamespaceAndPath(MOD_ID, "textures/gui/discord.png")
-
-    private val panels = mutableListOf<Panel>()
+    private val categoryPanels = mutableListOf<CategoryPanel>()
     private val configWindows = mutableListOf<FeatureConfigWindow>()
     var searchQuery = ""
 
@@ -49,17 +48,9 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
         textSetter = { searchQuery = it }
     )
 
-    var selectedFeature: Feature?
-        get() = configWindows.lastOrNull()?.feature
-        set(value) {
-            if (value == null) configWindows.clear()
-            else openFeatureWindow(value)
-        }
-
     init {
-        INSTANCE = this
         CategoryType.entries.forEachIndexed { index, category ->
-            panels.add(Panel(category, 20 + (index * 120), 20, this))
+            categoryPanels.add(CategoryPanel(category, 20 + (index * 120), 20, this))
         }
     }
 
@@ -67,15 +58,14 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
         val mX = Resolution.getMouseX(mouseX.toDouble())
         val mY = Resolution.getMouseY(mouseY.toDouble())
         Resolution.push(context)
-        TooltipManager.reset()
 
         context.drawVerticalGradient(0, 0, Resolution.width, Resolution.height, Color(0, 0, 0, 100), Color(0, 0, 0, 150))
         context.drawSearchBar(mX.toFloat(), mY.toFloat())
         context.drawHudButton(mX.toFloat(), mY.toFloat())
         context.drawDiscordButton(mX.toFloat(), mY.toFloat())
 
-        val draggingPanel = panels.find { it.dragging }
-        panels.forEach { if (it != draggingPanel) it.render(context, mX, mY) }
+        val draggingPanel = categoryPanels.find { it.dragging }
+        categoryPanels.forEach { if (it != draggingPanel) it.render(context, mX, mY) }
         draggingPanel?.render(context, mX, mY)
 
         configWindows.forEachIndexed { index, window -> window.render(context, mX, mY, index == configWindows.lastIndex) }
@@ -179,7 +169,7 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
             return true
         }
 
-        panels.find { it.isMouseOverHeader(mx.toDouble(), my.toDouble()) }?.let { clickedPanel ->
+        categoryPanels.find { it.isMouseOverHeader(mx.toDouble(), my.toDouble()) }?.let { clickedPanel ->
             clickedPanel.mouseClicked(mx.toDouble(), my.toDouble(), button)
             searchHandler.listening = false
             return true
@@ -200,7 +190,7 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
 
         if (searchHandler.mouseClicked(mx.toFloat(), my.toFloat(), mouseButtonEvent)) return true
 
-        panels.asReversed().find { it.isMouseOver(mx, my) }?.let { panel ->
+        categoryPanels.asReversed().find { it.isMouseOver(mx, my) }?.let { panel ->
             panel.mouseClicked(mx.toDouble(), my.toDouble(), button)
             return true
         }
@@ -213,7 +203,7 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
 
         searchHandler.mouseReleased()
         configWindows.forEach { it.mouseReleased(button) }
-        panels.forEach { it.mouseReleased(button) }
+        categoryPanels.forEach { it.mouseReleased(button) }
         return super.mouseReleased(mouseButtonEvent)
     }
 
@@ -227,7 +217,7 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
             return true
         }
 
-        panels.asReversed().find { it.isMouseOver(mx, my) }?.let { panel ->
+        categoryPanels.asReversed().find { it.isMouseOver(mx, my) }?.let { panel ->
             panel.handleScroll(vertical)
             return true
         }
@@ -306,7 +296,6 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
     }
 
     override fun onClose() {
-        INSTANCE = null
         configWindows.clear()
         searchHandler.listening = false
         MouseHelper.resetCursor()

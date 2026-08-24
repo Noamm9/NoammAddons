@@ -1,8 +1,8 @@
-package com.github.noamm9.ui.clickgui.components
+package com.github.noamm9.ui.clickgui.components.settings
 
 import com.github.noamm9.config.ConfigHolder
 import com.github.noamm9.config.types.*
-import com.github.noamm9.ui.clickgui.components.impl.*
+import com.github.noamm9.ui.clickgui.components.settings.impl.*
 
 object WidgetFactory {
     fun fromSetting(configHolder: ConfigHolder<*>) = when (configHolder) {
@@ -15,7 +15,7 @@ object WidgetFactory {
         is TextInputSetting -> TextInputWidget(configHolder)
         is SoundSetting -> SoundWidget(configHolder)
         is ButtonSetting -> ButtonWidget(configHolder)
-        is SliderSetting<*> -> @Suppress("UNCHECKED_CAST") SliderWidget(configHolder as SliderSetting<Number>)
+        is SliderSetting -> SliderWidget(configHolder)
         is UnitSetting -> null
         else -> error("Unknown config holder type: ${this::class.qualifiedName}")
     }

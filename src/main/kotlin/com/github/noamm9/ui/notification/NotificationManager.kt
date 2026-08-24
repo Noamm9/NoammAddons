@@ -4,7 +4,7 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ScreenEvent
 import com.github.noamm9.init.types.ISelfInit
-import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.ColorUtils.withAlpha

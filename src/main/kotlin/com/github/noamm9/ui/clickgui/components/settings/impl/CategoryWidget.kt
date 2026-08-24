@@ -1,8 +1,8 @@
-package com.github.noamm9.ui.clickgui.components.impl
+package com.github.noamm9.ui.clickgui.components.settings.impl
 
 import com.github.noamm9.config.types.UnitSetting
-import com.github.noamm9.ui.clickgui.components.Style
-import com.github.noamm9.ui.clickgui.components.Widget
+import com.github.noamm9.ui.clickgui.components.settings.Style
+import com.github.noamm9.ui.clickgui.components.settings.Widget
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
 import net.minecraft.client.gui.GuiGraphicsExtractor

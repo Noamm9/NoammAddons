@@ -1,11 +1,12 @@
-package com.github.noamm9.ui.clickgui.components.impl
+package com.github.noamm9.ui.clickgui.components.settings.impl
 
 import com.github.noamm9.config.types.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.Style
-import com.github.noamm9.ui.clickgui.components.Widget
+import com.github.noamm9.ui.clickgui.components.settings.Style
+import com.github.noamm9.ui.clickgui.components.settings.Widget
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.Render2D.scissor
 import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
@@ -24,14 +25,14 @@ class DropdownWidget(config: DropdownSetting): Widget<Int>(config) {
         openAnim.update(if (expanded) 1f else 0f)
         hoverAnim.update(if (isHovered) 1f else 0f)
 
-        ctx.drawRect(x, y, width, 20f, Style.bg)
+        ctx.drawRect(x, y, width, 20f, Style.settingBackgroundColor)
         Style.drawHoverBar(ctx, x, y, 20f, hoverAnim.value)
         Style.drawNudgedText(ctx, name, x + 8f, y + 6f, hoverAnim.value)
 
         val valStr = "§7${cfg.options[value]}"
         ctx.drawString(valStr, x + width - valStr.width() - 8f, y + 6f, scale = 1f)
 
-        ctx.enableScissor(x, y, x + width, y + height)
+        ctx.scissor(x, y, width, height)
 
         if (expanded) {
             var oy = y + 20f

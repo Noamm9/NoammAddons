@@ -1,8 +1,8 @@
-package com.github.noamm9.ui.clickgui.components.impl
+package com.github.noamm9.ui.clickgui.components.settings.impl
 
 import com.github.noamm9.config.types.ColorSetting
-import com.github.noamm9.ui.clickgui.components.Style
-import com.github.noamm9.ui.clickgui.components.Widget
+import com.github.noamm9.ui.clickgui.components.settings.Style
+import com.github.noamm9.ui.clickgui.components.settings.Widget
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.catch
@@ -10,6 +10,7 @@ import com.github.noamm9.utils.render.Render2D.drawHorizontalGradient
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.drawVerticalGradient
+import com.github.noamm9.utils.render.Render2D.scissor
 import gg.essential.universal.UKeyboard
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
@@ -79,7 +80,7 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
         if (cfg.withAlpha) drawCheckerboard(ctx, previewX, y + 6f, 8f, 8f, 2)
         ctx.drawRect(previewX, y + 6f, 8f, 8f, value)
 
-        ctx.enableScissor(x, y, x + width, y + height)
+        ctx.scissor(x, y, width, height)
 
         if (expanded) {
             val pickerY = y + 25f

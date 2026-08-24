@@ -1,12 +1,13 @@
-package com.github.noamm9.ui.clickgui.components.impl
+package com.github.noamm9.ui.clickgui.components.settings.impl
 
 import com.github.noamm9.config.types.SoundSetting
-import com.github.noamm9.ui.clickgui.components.Style
-import com.github.noamm9.ui.clickgui.components.Widget
+import com.github.noamm9.ui.clickgui.components.settings.Style
+import com.github.noamm9.ui.clickgui.components.settings.Widget
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.ui.utils.TextInputHandler
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.Render2D.scissor
 import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.input.CharacterEvent
@@ -49,7 +50,7 @@ class SoundWidget(config: SoundSetting): Widget<SoundEvent>(config) {
         openAnim.update(if (expanded) 1f else 0f)
         hoverAnim.update(if (isHovered) 1f else 0f)
 
-        ctx.drawRect(x, y, width, 20f, Style.bg)
+        ctx.drawRect(x, y, width, 20f, Style.settingBackgroundColor)
         Style.drawHoverBar(ctx, x, y, 20f, hoverAnim.value)
         Style.drawNudgedText(ctx, name, x + 8f, y + 6f, hoverAnim.value)
 
@@ -58,7 +59,7 @@ class SoundWidget(config: SoundSetting): Widget<SoundEvent>(config) {
         ctx.drawString(valStr, x + width - valStr.width() - 8f, y + 6f, scale = 1f)
 
         if (openAnim.value > 0.01f) {
-            ctx.enableScissor(x, y + 20, x + width, y + height)
+            ctx.scissor(x, y + 20, width, height)
 
             val contentY = y + 20f
             val totalContentHeight = (searchHeight + listMaxHeight) * openAnim.value
@@ -87,7 +88,7 @@ class SoundWidget(config: SoundSetting): Widget<SoundEvent>(config) {
             val maxScroll = max(0f, contentHeight - viewableHeight)
             scrollOffset = scrollOffset.coerceIn(0f, maxScroll)
 
-            ctx.enableScissor(x, listY.toInt(), x + width, (listY + viewableHeight).toInt())
+            ctx.scissor(x, listY, width, viewableHeight)
 
             var entryY = listY - scrollOffset
 

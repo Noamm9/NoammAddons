@@ -1,11 +1,12 @@
-package com.github.noamm9.ui.clickgui
+package com.github.noamm9.ui.clickgui.components
 
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.Style
-import com.github.noamm9.ui.clickgui.components.Widget
-import com.github.noamm9.ui.clickgui.components.WidgetFactory
-import com.github.noamm9.ui.clickgui.components.impl.CategoryWidget
-import com.github.noamm9.ui.clickgui.components.impl.SeparatorWidget
+import com.github.noamm9.ui.clickgui.TooltipManager
+import com.github.noamm9.ui.clickgui.components.settings.Style
+import com.github.noamm9.ui.clickgui.components.settings.Widget
+import com.github.noamm9.ui.clickgui.components.settings.WidgetFactory
+import com.github.noamm9.ui.clickgui.components.settings.impl.CategoryWidget
+import com.github.noamm9.ui.clickgui.components.settings.impl.SeparatorWidget
 import com.github.noamm9.ui.clickgui.enums.WindowClickAction
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.ui.utils.MouseHelper
@@ -85,6 +86,9 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
     private var interactionStartWidth = startWidth
     private var interactionStartHeight = startHeight
 
+    private var highlightedWidget: Widget<*>? = null
+    private var highlightStart = 0L
+
     fun render(context: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, focused: Boolean) {
         val mx = mouseX.toFloat()
         val my = mouseY.toFloat()
@@ -113,12 +117,9 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
 
         val viewportWidth = (contentRight - contentLeft).coerceAtLeast(120f)
         val viewportHeight = (contentBottom - contentTop).coerceAtLeast(40f)
-        val totalContentHeight = if (visibleWidgets.isEmpty()) {
-            0f
-        }
-        else {
-            visibleWidgets.sumOf { it.height }.toFloat() + ((visibleWidgets.size - 1) * settingSpacing)
-        }
+        val totalContentHeight = if (visibleWidgets.isEmpty()) 0f
+        else visibleWidgets.sumOf { it.height }.toFloat() + ((visibleWidgets.size - 1) * settingSpacing)
+
 
         maxScroll = (totalContentHeight - viewportHeight).coerceAtLeast(0f)
         scrollTarget = scrollTarget.coerceIn(0f, maxScroll)
@@ -133,34 +134,32 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
 
         context.enableScissor(contentLeft.toInt(), contentTop.toInt(), contentRight.toInt(), contentBottom.toInt())
 
-        if (visibleWidgets.isEmpty()) {
-            context.drawCenteredString(
-                "No visible settings",
-                x + (width / 2f),
-                contentTop + (viewportHeight / 2f) - 5f,
-                Color.GRAY,
-                shadow = false
-            )
+        var currentY = contentTop - scrollAnim.value
+
+        visibleWidgets.forEach { setting ->
+            setting.x = contentLeft.toInt()
+            setting.y = currentY.toInt()
+            setting.width = settingWidth
+
+            setting.draw(context, mouseX, mouseY)
+
+            val isHovered = mouseX >= setting.x && mouseX <= setting.x + setting.width &&
+                mouseY >= setting.y && mouseY <= setting.y + setting.height &&
+                isInsideContent(mouseX.toFloat(), mouseY.toFloat())
+
+            if (isHovered) {
+                TooltipManager.hover(setting.config.description, mouseX, mouseY)
+            }
+
+            currentY += setting.height + settingSpacing
         }
-        else {
-            var currentY = contentTop - scrollAnim.value
 
-            visibleWidgets.forEach { setting ->
-                setting.x = contentLeft.toInt()
-                setting.y = currentY.toInt()
-                setting.width = settingWidth
-
-                setting.draw(context, mouseX, mouseY)
-
-                val isHovered = mouseX >= setting.x && mouseX <= setting.x + setting.width &&
-                    mouseY >= setting.y && mouseY <= setting.y + setting.height &&
-                    isInsideContent(mouseX.toFloat(), mouseY.toFloat())
-
-                if (isHovered) {
-                    TooltipManager.hover(setting.config.description, mouseX, mouseY)
-                }
-
-                currentY += setting.height + settingSpacing
+        highlightedWidget?.let { widget ->
+            val age = System.currentTimeMillis() - highlightStart
+            if (age > 1200) highlightedWidget = null
+            else if (age > 0) {
+                val alpha = (255 * (1f - age / 1200f)).toInt()
+                context.drawBorder(widget.x, widget.y, widget.width, widget.height, Style.accentColor.withAlpha(alpha))
             }
         }
 
@@ -284,6 +283,18 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
 
     fun contains(mouseX: Float, mouseY: Float): Boolean {
         return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height
+    }
+
+    fun scrollToWidget(settingName: String) {
+        val visible = settings.filter { it.config.visibility.invoke() }
+        val widget = visible.firstOrNull { it.config.name.equals(settingName, ignoreCase = true) } ?: return
+
+        val index = visible.indexOf(widget)
+        val offset = visible.take(index).sumOf { it.height } + (index * settingSpacing)
+
+        scrollTarget = (offset - 40f).coerceAtLeast(0f)
+        highlightedWidget = widget
+        highlightStart = System.currentTimeMillis() + 150
     }
 
     fun cursorAt(mouseX: Float, mouseY: Float) = when {

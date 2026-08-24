@@ -1,6 +1,6 @@
 package com.github.noamm9.ui.hud
 
-import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.utils.render.Render2D.drawRect
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color

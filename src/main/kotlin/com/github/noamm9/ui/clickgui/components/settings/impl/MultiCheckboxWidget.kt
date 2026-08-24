@@ -1,11 +1,12 @@
-package com.github.noamm9.ui.clickgui.components.impl
+package com.github.noamm9.ui.clickgui.components.settings.impl
 
 import com.github.noamm9.config.types.MultiCheckboxSetting
-import com.github.noamm9.ui.clickgui.components.Style
-import com.github.noamm9.ui.clickgui.components.Widget
+import com.github.noamm9.ui.clickgui.components.settings.Style
+import com.github.noamm9.ui.clickgui.components.settings.Widget
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.Render2D.scissor
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
@@ -28,7 +29,7 @@ class MultiCheckboxWidget(config: MultiCheckboxSetting): Widget<MutableMap<Strin
         val icon = if (expanded) "§7-" else "§7+"
         ctx.drawString(icon, x + width - 15f, y + 6f)
 
-        ctx.enableScissor(x, y, x + width, y + height)
+        ctx.scissor(x, y, width, height)
 
         if (expanded) {
             var oy = y + 20f

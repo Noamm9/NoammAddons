@@ -1,12 +1,13 @@
-package com.github.noamm9.ui.clickgui.components.impl
+package com.github.noamm9.ui.clickgui.components.settings.impl
 
 import com.github.noamm9.config.types.ColorCodeSetting
-import com.github.noamm9.ui.clickgui.components.Style
-import com.github.noamm9.ui.clickgui.components.Widget
+import com.github.noamm9.ui.clickgui.components.settings.Style
+import com.github.noamm9.ui.clickgui.components.settings.Widget
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.Render2D.scissor
 import gg.essential.universal.ChatColor
 import net.minecraft.client.gui.GuiGraphicsExtractor
 
@@ -35,7 +36,7 @@ class ColorCodeWidget(config: ColorCodeSetting): Widget<ChatColor>(config) {
 
         ctx.drawRect(x + width - 18f, y + 6f, 8f, 8f, swatchColor(value))
 
-        ctx.enableScissor(x, y, x + width, y + height)
+        ctx.scissor(x, y, width, height)
 
         if (expanded) {
             val gridX = x + 10f

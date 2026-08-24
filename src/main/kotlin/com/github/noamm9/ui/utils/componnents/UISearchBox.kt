@@ -1,7 +1,7 @@
 package com.github.noamm9.ui.utils.componnents
 
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.utils.render.Render2D.drawRect
 import gg.essential.universal.UGraphics
 import net.minecraft.client.gui.GuiGraphicsExtractor

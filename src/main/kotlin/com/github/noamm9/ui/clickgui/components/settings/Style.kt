@@ -1,4 +1,4 @@
-package com.github.noamm9.ui.clickgui.components
+package com.github.noamm9.ui.clickgui.components.settings
 
 import com.github.noamm9.features.impl.dev.ClickGui
 import com.github.noamm9.utils.ColorUtils.withAlpha
@@ -16,10 +16,11 @@ import java.awt.Color
 object Style {
     val accentColor get() = ClickGui.accentColor.value
     val accentColorTrans get() = accentColor.withAlpha(120)
-    val bg = Color(10, 10, 10, 100)
+    val settingBackgroundColor = Color(10, 10, 10, 100)
+    val sliderBackgroundColor = Color(40, 40, 40, 200)
 
     fun drawBackground(ctx: GuiGraphicsExtractor, x: Number, y: Number, w: Number, h: Number) {
-        ctx.drawRect(x, y, w, h, bg)
+        ctx.drawRect(x, y, w, h, settingBackgroundColor)
     }
 
     fun drawHoverBar(ctx: GuiGraphicsExtractor, x: Number, y: Number, height: Number, anim: Float) {
@@ -38,13 +39,10 @@ object Style {
         val barColor = MathUtils.lerpColor(color.withAlpha(180), color, hoverAnim)
         val kSize = 4f
         val h = 2.5f
-        ctx.drawRect(x, y, w, h, Color(40, 40, 40, 200))
+        ctx.drawRect(x, y, w, h, sliderBackgroundColor)
         ctx.drawRect(x, y, w * progress, h, barColor)
         ctx.drawRect(x + (w * progress) - (kSize / 2f), y + (h / 2f) - (kSize / 2f), kSize, kSize)
     }
 
-    fun playClickSound(pitch: Float) {
-        if (! ClickGui.playClickSound.value) return
-        USound.playSoundStatic(SoundEvents.UI_BUTTON_CLICK, 0.25f, pitch)
-    }
+    fun playClickSound(pitch: Float) = USound.playSoundStatic(SoundEvents.UI_BUTTON_CLICK, 0.25f, pitch)
 }

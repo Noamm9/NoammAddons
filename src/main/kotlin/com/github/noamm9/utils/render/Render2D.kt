@@ -45,6 +45,10 @@ object Render2D: ISelfInit {
         blit(RenderPipelines.GUI_TEXTURED, texture, x.toInt(), y.toInt(), 0f, 0f, width.toInt(), height.toInt(), width.toInt(), height.toInt(), color.rgb)
     }
 
+    fun GuiGraphicsExtractor.scissor(x: Number, y: Number, width: Number, height: Number) {
+        enableScissor(x.toInt(), y.toInt(), x.toInt() + width.toInt(), y.toInt() + height.toInt())
+    }
+
     fun GuiGraphicsExtractor.drawRect(x: Number, y: Number, width: Number, height: Number, color: Color = Color.WHITE) {
         val fx = x.toFloat()
         val fy = y.toFloat()

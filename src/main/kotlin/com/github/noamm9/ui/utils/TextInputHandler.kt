@@ -1,9 +1,10 @@
 package com.github.noamm9.ui.utils
 
 import com.github.noamm9.NoammAddons
-import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.Render2D.scissor
 import com.github.noamm9.utils.render.RenderHelper.width
 import gg.essential.universal.UKeyboard
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -64,7 +65,7 @@ class TextInputHandler(
         if (previousMousePos != mouseX to mouseY) mouseDragged(mouseX)
         previousMousePos = mouseX to mouseY
 
-        context.enableScissor(x.toInt(), y.toInt(), x.toInt() + width.toInt(), y.toInt() + height.toInt())
+        context.scissor(x, y, width, height)
         if (selectionWidth != 0f) context.drawRect(
             x + selectionStartX + 4f - textOffset,
             y + 5f,

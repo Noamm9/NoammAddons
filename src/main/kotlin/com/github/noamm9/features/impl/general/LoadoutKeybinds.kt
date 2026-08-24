@@ -16,6 +16,7 @@ import gg.essential.universal.UKeyboard
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
+import net.minecraft.world.inventory.Slot
 import org.lwjgl.glfw.GLFW
 
 object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to your keyboard.") {
@@ -64,8 +65,8 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
             val packet = event.packet as? ClientboundOpenScreenPacket ?: return@register
             if (! packet.title.unformattedText.matches(loadoutMenuRegex)) return@register
 
-            pendingAutoClose = false
             player.closeContainer()
+            pendingAutoClose = false
         }
 
         register<ContainerEvent.Keyboard> {
@@ -101,5 +102,5 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
         }
     }
 
-    private fun isSlotEquipable(slot: Int) = player.containerMenu.getSlot(slot).item.lore.any { it.contains("Left-click to equip!") }
+    private fun isSlotEquipable(slot: Int) = player.containerMenu.getSlot(slot).takeIf(Slot::hasItem)?.item?.lore?.any { it.contains("Left-click to equip!") } ?: false
 }

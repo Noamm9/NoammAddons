@@ -7,7 +7,7 @@ import com.github.noamm9.event.impl.KeyboardEvent
 import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.event.impl.ScreenEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.TextInputHandler
@@ -129,23 +129,31 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
     }
 
     // Shunting Yard Algorithm
-    // This shit is less stable than I am
     private fun evaluateExpression(expr: String): Double? {
         if (expr.isBlank()) return null
         if (expr.none { it.isDigit() }) return null
 
         val operators = mapOf(
-            "+" to 1,
-            "-" to 1,
-            "*" to 2,
-            "x" to 2,
-            "/" to 2
+            "+" to (1 to false),
+            "-" to (1 to false),
+            "*" to (2 to false),
+            "x" to (2 to false),
+            "/" to (2 to false),
+            "u-" to (3 to true) // unary minus
         )
 
         val tokens = mutableListOf<String>()
         var i = 0
 
         while (i < expr.length) when {
+            expr[i].isWhitespace() -> i ++
+
+            (expr[i] == '+' || expr[i] == '-') &&
+                (tokens.isEmpty() || tokens.last() == "(" || tokens.last() in operators) -> {
+                if (expr[i] == '-') tokens.add("u-")
+                i ++
+            }
+
             expr[i].isDigit() || expr[i] == '.' -> {
                 val start = i
                 while (i < expr.length && (expr[i].isDigit() || expr[i] == '.')) i ++
@@ -157,8 +165,6 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
                 tokens.add(expr[i].toString())
                 i ++
             }
-
-            expr[i].isWhitespace() -> i ++
 
             else -> return null
         }
@@ -179,7 +185,11 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
                 }
 
                 token in operators -> {
-                    while (stack.isNotEmpty() && stack.first() in operators && operators[token] !! <= operators[stack.first()] !!) {
+                    val (currentPrec, currentRightAssoc) = operators[token] !!
+                    while (stack.isNotEmpty() && stack.first() in operators) {
+                        val (topPrec, _) = operators[stack.first()] !!
+                        val shouldPop = topPrec > currentPrec || (topPrec == currentPrec && ! currentRightAssoc)
+                        if (! shouldPop) break
                         output.add(stack.removeFirst())
                     }
                     stack.addFirst(token)
@@ -190,7 +200,7 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
         }
 
         while (stack.isNotEmpty()) {
-            if (stack.first() in listOf("(", ")")) return null
+            if (stack.first() == "(" || stack.first() == ")") return null
             output.add(stack.removeFirst())
         }
 
@@ -199,26 +209,35 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
         for (token in output) {
             val num = NumbersUtils.parseCompactNumberDouble(token)
 
-            if (num != null) evalStack.addFirst(num)
-            else if (token in operators) {
-                if (evalStack.size < 2) return null
+            when {
+                num != null -> evalStack.addFirst(num)
 
-                val b = evalStack.removeFirst()
-                val a = evalStack.removeFirst()
-
-                val res = when (token) {
-                    "+" -> a + b
-                    "-" -> a - b
-                    "*", "x" -> a * b
-                    "/" -> a / b
-                    else -> return null
+                token == "u-" -> {
+                    if (evalStack.isEmpty()) return null
+                    evalStack.addFirst(- evalStack.removeFirst())
                 }
-                evalStack.addFirst(res)
 
+                token in operators -> {
+                    if (evalStack.size < 2) return null
+
+                    val b = evalStack.removeFirst()
+                    val a = evalStack.removeFirst()
+
+                    val res = when (token) {
+                        "+" -> a + b
+                        "-" -> a - b
+                        "*", "x" -> a * b
+                        "/" -> if (b == 0.0) return null else a / b
+                        else -> return null
+                    }
+                    evalStack.addFirst(res)
+                }
+
+                else -> return null
             }
-            else return null
         }
 
-        return if (evalStack.size == 1) evalStack.first() else null
+        val result = evalStack.singleOrNull() ?: return null
+        return result.takeIf { it.isFinite() }
     }
 }

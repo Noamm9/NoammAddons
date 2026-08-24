@@ -3,7 +3,7 @@ package com.github.noamm9.features.impl.visual
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.location.LocationUtils

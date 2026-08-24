@@ -1,12 +1,15 @@
-package com.github.noamm9.ui.clickgui
+package com.github.noamm9.ui.clickgui.components
 
-import com.github.noamm9.NoammAddons
+import com.github.noamm9.NoammAddons.MOD_NAME
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.features.impl.dev.ClickGui
 import com.github.noamm9.features.impl.general.CommandShortcuts
 import com.github.noamm9.features.impl.misc.sound.SoundManager
-import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.ClickGuiScreen
+import com.github.noamm9.ui.clickgui.SuggestionManager
+import com.github.noamm9.ui.clickgui.TooltipManager
+import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.clickgui.enums.CategoryType
 import com.github.noamm9.ui.gui.CommandShortcutsScreen
 import com.github.noamm9.ui.gui.SoundManagerScreen
@@ -16,16 +19,21 @@ import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.utils.render.Render2D.scissor
 import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
-class Panel(val category: CategoryType, var x: Int, var y: Int, private val screen: ClickGuiScreen) {
-    companion object {
+class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private val screen: ClickGuiScreen) {
+    private companion object {
         const val WIDTH = 110
         const val HEADER_HEIGHT = 22
         const val BUTTON_HEIGHT = 16
         const val MAX_DISPLAY_HEIGHT = 350
+
+        private val headerBg = Color(20, 20, 20, 230)
+        private val bodyBg = Color(15, 15, 15, 180)
+        private val hoverColor = Color(255, 255, 255, 30)
     }
 
     private val features = FeatureManager.getFeaturesByCategory(category)
@@ -37,10 +45,6 @@ class Panel(val category: CategoryType, var x: Int, var y: Int, private val scre
     var dragging = false
     private var dragX = 0
     private var dragY = 0
-
-    private val headerBg = Color(20, 20, 20, 230)
-    private val bodyBg = Color(15, 15, 15, 180)
-    private val hoverColor = Color(255, 255, 255, 30)
 
     fun render(context: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
         if (dragging) {
@@ -67,14 +71,13 @@ class Panel(val category: CategoryType, var x: Int, var y: Int, private val scre
 
             var currentY = y + HEADER_HEIGHT - scrollOffset.toInt()
 
-            context.enableScissor(x, y + HEADER_HEIGHT, x + WIDTH, y + HEADER_HEIGHT + currentScissorHeight)
+            context.scissor(x, y + HEADER_HEIGHT, WIDTH, currentScissorHeight)
 
             filteredFeatures.forEach { feature ->
                 if (currentY + BUTTON_HEIGHT > y + HEADER_HEIGHT && currentY < y + HEADER_HEIGHT + visibleHeight) {
                     val isHovered = mouseX >= x && mouseX <= x + WIDTH &&
                         mouseY >= currentY && mouseY <= currentY + BUTTON_HEIGHT &&
-                        mouseY >= y + HEADER_HEIGHT && mouseY <= y + HEADER_HEIGHT + visibleHeight &&
-                        screen.selectedFeature == null
+                        mouseY >= y + HEADER_HEIGHT && mouseY <= y + HEADER_HEIGHT + visibleHeight
 
                     context.drawRect(x, currentY, WIDTH, BUTTON_HEIGHT, bodyBg)
 
@@ -160,17 +163,7 @@ class Panel(val category: CategoryType, var x: Int, var y: Int, private val scre
                     return
                 }
                 else if (button == 1) {
-                    if (feature is SoundManager) {
-                        screen.selectedFeature = null
-                        if (feature.enabled) GuiUtils.setScreen(SoundManagerScreen())
-                        else NotificationManager.push(NoammAddons.MOD_NAME + " - ClickGui", "&fEnable &b${feature.name} &ffirst to open the settings!")
-                    }
-                    else if (feature is CommandShortcuts) {
-                        screen.selectedFeature = null
-                        if (feature.enabled) GuiUtils.setScreen(CommandShortcutsScreen())
-                        else NotificationManager.push(NoammAddons.MOD_NAME + " - ClickGui", "&fEnable &b${feature.name} &ffirst to open the settings!")
-                    }
-                    else if (feature.configSettings.isNotEmpty()) screen.openFeatureWindow(feature)
+                    openFeature(feature)
                     return
                 }
             }
@@ -182,16 +175,23 @@ class Panel(val category: CategoryType, var x: Int, var y: Int, private val scre
         if (button == 0) dragging = false
     }
 
-    private fun getSorting(): List<Feature> {
-        val base = features.filter {
-            it.name.contains(screen.searchQuery, ignoreCase = true)
-                || it.configSettings.any { it.visibility() && it.name.contains(screen.searchQuery, ignoreCase = true) }
-        }
+    private fun getSorting(): Collection<Feature> {
+        val suggestions = if (screen.searchQuery.isBlank()) features
+        else SuggestionManager.getSuggestions(screen.searchQuery, features)
 
         return when (ClickGui.panelSorting.value) {
-            0 -> base.sortedBy { it.name }
-            1 -> base.sortedByDescending { it.name.width() }
-            else -> base
+            0 -> suggestions.sortedBy { it.name }
+            1 -> suggestions.sortedByDescending { it.name.width() }
+            else -> suggestions
         }
+    }
+
+    fun openFeature(feature: Feature) {
+        if (feature is SoundManager || feature is CommandShortcuts) {
+            val screen = if (feature is SoundManager) SoundManagerScreen() else CommandShortcutsScreen()
+            if (feature.enabled) GuiUtils.setScreen(screen)
+            else NotificationManager.push("$MOD_NAME - ClickGui", "&fEnable &b${feature.name} &ffirst to open the settings!")
+        }
+        else if (feature.configSettings.isNotEmpty()) screen.openFeatureWindow(feature)
     }
 }

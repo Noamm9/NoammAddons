@@ -5,7 +5,7 @@ package com.github.noamm9.ui.gui
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.features.impl.general.CommandShortcuts
 import com.github.noamm9.ui.clickgui.ClickGuiScreen
-import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.TextInputHandler
@@ -13,8 +13,9 @@ import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
-import gg.essential.universal.UKeyboard
+import com.github.noamm9.utils.render.Render2D.scissor
 import com.mojang.brigadier.CommandDispatcher
+import gg.essential.universal.UKeyboard
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
@@ -75,7 +76,7 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
         scrollAnim.update(scrollTarget)
         val currentScroll = scrollAnim.value
 
-        graphics.enableScissor(viewX.toInt(), viewY.toInt(), (viewX + viewW).toInt(), (viewY + viewH).toInt())
+        graphics.scissor(viewX, viewY, viewW, viewH)
 
         if (rows.isEmpty()) graphics.drawCenteredString("§8No command shortcuts yet :(", x + panelW / 2, viewY + viewH / 2 - 4)
 

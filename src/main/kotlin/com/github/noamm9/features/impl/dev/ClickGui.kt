@@ -1,6 +1,9 @@
 package com.github.noamm9.features.impl.dev
 
-import com.github.noamm9.config.types.*
+import com.github.noamm9.config.types.ButtonSetting
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.KeybindSetting
 import com.github.noamm9.event.impl.KeyboardEvent
 import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.features.Feature
@@ -12,19 +15,15 @@ import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 object ClickGui: Feature("A feature used to change the ClickGui configuration.", toggled = true) {
-    val playClickSound by ToggleSetting("Click Sound", true).withDescription("Toggle for the sound that plays when you click on a setting element.")
+    private val openKeybind by KeybindSetting("Open Keybind")
     val accentColor by ColorSetting("Accent Color", Color(99, 176, 217), false).withDescription("The accent color used by the whole ClickGui.")
     val panelSorting by DropdownSetting("Sorting", 1, listOf("A-Z Sorting", "Width Sorting", "No Sorting")).withDescription("The order of the features in the panels.")
 
     val editGuiButton by ButtonSetting("Open HUD Editor") {
-        ClickGuiScreen.INSTANCE?.onClose()
         GuiUtils.setScreen(HudEditorScreen())
     }.withDescription("Opens the HUD Editor Screen where you can change you HUD elements size and position.")
 
-    private val openKeybind by KeybindSetting("Open Keybind")
-
     val resetButton by ButtonSetting("Reset Settings") {
-        playClickSound.value = true
         accentColor.reset()
     }.withDescription("Reverts settings back to their original values.")
 

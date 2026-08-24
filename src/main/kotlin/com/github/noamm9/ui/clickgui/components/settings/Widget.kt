@@ -1,4 +1,4 @@
-package com.github.noamm9.ui.clickgui.components
+package com.github.noamm9.ui.clickgui.components.settings
 
 import com.github.noamm9.config.ConfigHolder
 import net.minecraft.client.gui.GuiGraphicsExtractor

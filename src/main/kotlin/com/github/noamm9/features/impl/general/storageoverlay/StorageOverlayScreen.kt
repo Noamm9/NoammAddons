@@ -16,6 +16,7 @@ import com.github.noamm9.utils.render.ItemRenderer
 import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.Render2D.scissor
 import gg.essential.universal.UKeyboard
 import gg.essential.universal.UMinecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -140,7 +141,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     }
 
     private fun GuiGraphicsExtractor.drawPages(data: SortedMap<StoragePage, NBTInventory?>, mouseX: Int, mouseY: Int, excluding: StoragePage?, slots: List<Slot>?, originalMouseX: Int, originalMouseY: Int) {
-        enableScissor(scrollPanelX, scrollPanelY, scrollPanelX + scrollPanelW + ACTIVE_PAGE_BORDER_THICKNESS, scrollPanelY + scrollPanelH)
+        scissor(scrollPanelX, scrollPanelY, scrollPanelW + ACTIVE_PAGE_BORDER_THICKNESS, scrollPanelH)
         val viewTop = scrollPanelY
         val viewBottom = scrollPanelY + scrollPanelH
         layoutedForEach(data) { x, y, _, ph, page, inventory ->
@@ -153,7 +154,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     }
 
     private fun GuiGraphicsExtractor.drawPagesDecorations(data: SortedMap<StoragePage, NBTInventory?>, excluding: StoragePage?, slots: List<Slot>?) {
-        enableScissor(scrollPanelX, scrollPanelY, scrollPanelX + scrollPanelW + ACTIVE_PAGE_BORDER_THICKNESS, scrollPanelY + scrollPanelH)
+        scissor(scrollPanelX, scrollPanelY, scrollPanelW + ACTIVE_PAGE_BORDER_THICKNESS, scrollPanelH)
         val viewTop = scrollPanelY
         val viewBottom = scrollPanelY + scrollPanelH
         layoutedForEach(data) { x, y, _, ph, page, inventory ->
