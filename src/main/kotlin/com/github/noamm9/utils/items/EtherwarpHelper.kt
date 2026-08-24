@@ -155,7 +155,7 @@ object EtherwarpHelper {
         val level = mc.level ?: return true
         val state = chunk.getBlockState(pos)
         return when (state.block) {
-            is SignBlock, is BannerBlock, is TripWireHookBlock,
+            is SignBlock, is BannerBlock, is WallBannerBlock,  is TripWireHookBlock,
             is PressurePlateBlock, is WeightedPressurePlateBlock -> false
 
             is ButtonBlock, is SkullBlock, is WallSkullBlock, is LadderBlock,
@@ -168,7 +168,7 @@ object EtherwarpHelper {
 
     private fun hasNoRealHitbox(state: BlockState) =
         when (state.block) {
-            is SignBlock, is BannerBlock, is TripWireHookBlock,
+            is SignBlock, is BannerBlock, is WallBannerBlock, is TripWireHookBlock,
             is PressurePlateBlock, is WeightedPressurePlateBlock -> true
             else -> false
         }
