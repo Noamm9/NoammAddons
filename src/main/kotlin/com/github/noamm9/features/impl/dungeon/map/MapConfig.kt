@@ -51,7 +51,7 @@ object MapConfig: SettingProvider {
     val mimicEspColor by ColorSetting("Mimic ESP Color", Color(255, 0, 0, 50), true).showIf { mimicEsp.value }
 
     val mapPlayerHeadColor by ColorSetting("Head Border", Color(0, 0, 0), true).section("Colors")
-    val mapVanillaMarkerColor by ColorSetting("Vanilla Head Marker", Color(0, 255, 0), true)
+    val mapVanillaMarkerColor by ColorSetting("Vanilla Head Marker", Color(0, 255, 0), true).jsonName("Vanilla Head Marker Color")
     val mapPlayerHeadColorClassBased by ToggleSetting("Head Border Class Base", false)
     val mapPlayerNameClassColorBased by ToggleSetting("Player Names Class Base", false)
 
