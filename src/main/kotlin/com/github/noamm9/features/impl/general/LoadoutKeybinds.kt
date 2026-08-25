@@ -20,6 +20,7 @@ import net.minecraft.world.inventory.Slot
 import org.lwjgl.glfw.GLFW
 
 object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to your keyboard.") {
+    private val blockBarrierClick by ToggleSetting("Block Barrier Click")
     private val closeAfterUse by ToggleSetting("Auto Close On Use")
     private val useHotbarBinds by ToggleSetting("Use Hotbar Binds")
     private val keybinds = (1 .. 12).mapIndexed { index, slot ->
@@ -87,6 +88,13 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
             else keybinds.indexOfFirst { it.matches(event.button, mouse = true) }.takeUnless { it == - 1 } ?: return@register
             event.isCanceled = true
             click(index)
+        }
+
+        register<ContainerEvent.SlotClick> {
+            if (! blockBarrierClick.value) return@register
+            if (! inLoadoutMenu) return@register
+            if (event.slotId != 49) return@register
+            event.isCanceled = true
         }
     }
 
