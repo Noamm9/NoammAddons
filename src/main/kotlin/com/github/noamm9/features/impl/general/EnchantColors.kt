@@ -80,6 +80,7 @@ object EnchantColors: Feature("Changes the color of enchantments in items lore."
         if (! matcher.find()) return null
 
         val segments = ArrayList<Segment>()
+        var foundEnchant = false
         var lastEnd = 0
 
         do {
@@ -94,6 +95,7 @@ object EnchantColors: Feature("Changes the color of enchantments in items lore."
             val levelStr = matcher.group("level")
 
             if (enchant != null) {
+                foundEnchant = true
                 val level = levelStr.toIntOrNull() ?: levelStr.romanToDecimal()
                 val displayLevel = if (showNumbers.value) level.toString() else levelStr
                 segments.add(Segment("${enchant.loreName} $displayLevel", enchant, level, displayLevel))
@@ -105,6 +107,7 @@ object EnchantColors: Feature("Changes the color of enchantments in items lore."
 
         if (lastEnd < plainText.length) segments.add(Segment(plainText.substring(lastEnd), null, 0, ""))
 
+        if (! foundEnchant) return null
         return segments.ifEmpty { null }
     }
 
