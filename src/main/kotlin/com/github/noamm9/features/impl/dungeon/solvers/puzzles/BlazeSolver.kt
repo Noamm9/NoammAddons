@@ -23,7 +23,7 @@ import java.util.concurrent.*
 
 object BlazeSolver: PuzzleSolver {
     override val enabled get() = PuzzleSolvers.blaze.value
-    private val blazeHpRegex = Regex("^\\[Lv15].+Blaze [\\d,]+/([\\d,]+)❤$")
+    private val blazeHpRegex = Regex("""^\[Lv\d+].+Blaze [\d,]+/([\d,]+)❤$""")
     private val blazes = CopyOnWriteArrayList<Blaze>()
     private val hpMap = ConcurrentHashMap<Int, Int>()
     private var lastBlazeCount = 10
