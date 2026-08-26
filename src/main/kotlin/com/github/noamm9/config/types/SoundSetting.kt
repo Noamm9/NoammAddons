@@ -14,13 +14,8 @@ class SoundSetting(name: String, defaultValue: SoundEvent): ConfigHolder<SoundEv
     constructor(name: String, value: Holder.Reference<SoundEvent>): this(name, value.value())
 
     companion object {
-        private val prettyNames = SoundUtils.REVERSE_MAP
-
         val allSounds by lazy {
-            BuiltInRegistries.SOUND_EVENT.entrySet()
-                .filter { it.key.identifier() in prettyNames.keys }
-                .map { it.value }
-                .sortedBy { prettyNames[it.location] }
+            BuiltInRegistries.SOUND_EVENT.sortedByDescending { SoundUtils.MAP[it.location] }
         }
 
         fun getSound(loc: Identifier): Holder.Reference<SoundEvent>? {
@@ -28,12 +23,12 @@ class SoundSetting(name: String, defaultValue: SoundEvent): ConfigHolder<SoundEv
         }
     }
 
-    override fun write() = JsonPrimitive(value.location().toString())
+    override fun write() = JsonPrimitive(value.location.toString())
     override fun read(element: JsonElement) {
         val loc = Identifier.tryParse(element.asString) ?: error("Could not parse Identifier: $element")
         val sound = getSound(loc) ?: error("Could not find a sound for Identifier: $element")
         value = sound.value()
     }
 
-    fun prettyName(sound: SoundEvent) = prettyNames[sound.location]
+    fun prettyName(sound: SoundEvent) = SoundUtils.MAP[sound.location]
 }
