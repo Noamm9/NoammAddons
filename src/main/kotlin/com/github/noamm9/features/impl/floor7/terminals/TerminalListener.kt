@@ -13,12 +13,12 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
-import gg.essential.universal.UChat
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.world.entity.decoration.ArmorStand
+import net.minecraft.world.inventory.AbstractContainerMenu
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 
@@ -68,19 +68,13 @@ object TerminalListener: ISelfInit {
                     val handler = currentHandler ?: return@register
                     if (packet.slot !in 0 until handler.slotCount) return@register
                     if (packet.item.`is`(Items.BLACK_STAINED_GLASS_PANE)) return@register
-                    if (handler is RubixTerminal && packet.item.item == currentItems[packet.slot]?.item) {
-                        return@register
-                    }
+                    if (handler is RubixTerminal) return@register
 
-                    container.items.subList(0, handler.slotCount).forEachIndexed { index, stack ->
-                        currentItems[index] = stack
-                    }
-
-                    handler.solve(currentItems, currentTitle, packet.slot, packet.item)
+                    handler.sync(container, packet.slot, packet.item)
 
                     if (handler !is MelodyTerminal) for (slot in clickedSlots) handler.predict(slot)
                     EventBus.post(TerminalEvent.SlotUpdate(handler, packet))
-                    UChat.chat("slot updated: ${packet.slot}")
+                    ChatUtils.debug("terminal", "slot updated: ${packet.slot}")
                 }
 
                 is ClientboundContainerClosePacket -> if (inTerm) ThreadUtils.scheduledTask(1, ::reset)
@@ -118,13 +112,10 @@ object TerminalListener: ISelfInit {
             val click = lastClick ?: return@register
             val handler = currentHandler ?: return@register
             val container = mc.player?.containerMenu ?: return@register
-            if (System.currentTimeMillis() - click < 800) return@register
+            if (System.currentTimeMillis() - click < TerminalSolver.breakTimeout.value) return@register
             ChatUtils.debug("terminal", "TERMINAL BROKE!!!!!!!")
 
-            container.items.subList(0, handler.slotCount).forEachIndexed { index, stack ->
-                currentItems[index] = stack
-            }
-            handler.solve(currentItems, currentTitle, 0, ItemStack.EMPTY)
+            handler.sync(container)
 
             clickedSlots.clear()
             lastClick = System.currentTimeMillis()
@@ -141,6 +132,16 @@ object TerminalListener: ISelfInit {
             System.currentTimeMillis() - initialOpenTime < (delay * 50)
     }
 
+    private fun Terminal.sync(container: AbstractContainerMenu, slotId: Int = 0, stack: ItemStack = ItemStack.EMPTY) {
+        container.items.subList(0, slotCount).forEachIndexed { index, stack ->
+            currentItems[index] = stack
+        }
+
+        solve(currentItems, currentTitle, slotId, stack)
+
+        EventBus.post(TerminalEvent.Break(this))
+    }
+
     private fun reset() {
         inTerm = false
         currentHandler = null
@@ -149,6 +150,9 @@ object TerminalListener: ISelfInit {
         clickedSlots.clear()
         lastWindowId = - 1
         lastClick = null
+        initialOpenTick = 0
+        initialOpenTime = 0
+
         Terminal.all.forEach(Terminal::reset)
         EventBus.post(TerminalEvent.Close)
     }

@@ -11,7 +11,6 @@ import com.github.noamm9.event.impl.ScreenEvent
 import com.github.noamm9.event.impl.TerminalEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.terminals.impl.*
-import com.github.noamm9.features.impl.visual.InfoDisplay
 import com.github.noamm9.init.types.ICustomMenu
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ColorUtils.isVisable
@@ -41,7 +40,10 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
     private val clickSound = createSoundSettings("Click Sound", SoundEvents.NOTE_BLOCK_PLING.value()) { soundsEnabled.value }
 
     private val scale by SliderSetting("Custom Menu's Scale", 1f, 0.1f, 2f, 0.01f).section("Settings - UI")
+    private val slotGap by SliderSetting("Slot Gap", 0f, 0f, 8f, 0.5f, "px")
+    private val padding by SliderSetting("Padding", 2f, 0f, 12f, 0.5f, "px")
     private val slotStyle by DropdownSetting("Slot Style", 0, listOf("Rect", "Bordered-Rect", "Button"))
+    val breakTimeout by SliderSetting("Break Timeout", 500, 300, 800, 50, "ms").withDescription("How long should the solver wait for a click to be confirmed by hypixel")
     private val backgroundColor by ColorSetting("Background Color", Color(0, 0, 0, 100))
     private val borderColor by ColorSetting("Border Color", Color(255, 255, 255))
     private val titleColor by ColorSetting("Title Text Color", Color.WHITE)
@@ -84,10 +86,12 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
             val screenWidth = Resolution.width / uiScale
             val screenHeight = Resolution.height / uiScale
             val (gridWidth, gridHeight) = handler.gridSize
+            val gap = slotGap.value
+            val pad = padding.value
             val slotSize = 16f
 
-            val width = gridWidth * slotSize
-            val height = gridHeight * slotSize
+            val width = gridWidth * slotSize + (gridWidth - 1) * gap
+            val height = gridHeight * slotSize + (gridHeight - 1) * gap
             val offsetX = screenWidth / 2f - width / 2f
             val offsetY = screenHeight / 2f - height / 2f
             val mx = (Resolution.getMouseX() / uiScale) - offsetX
@@ -97,25 +101,28 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
             event.context.pose().scale(uiScale, uiScale)
             event.context.pose().translate(offsetX, offsetY)
 
-            if (titleColor.value.isVisable()) event.context.drawCenteredString(handler.displayName, width / 2f, - 15f, color = titleColor.value, scale = 1.2f)
-            if (backgroundColor.value.isVisable()) event.context.drawRect(- 2, - 2, width + 4, height + 4, backgroundColor.value)
-            if (borderColor.value.isVisable()) event.context.drawBorder(- 2, - 2, width + 4, height + 4, borderColor.value)
+            if (titleColor.value.isVisable()) event.context.drawCenteredString(handler.displayName, width / 2f, - 15f - pad, color = titleColor.value, scale = 1.2f)
+            if (backgroundColor.value.isVisable()) event.context.drawRect(- pad, - pad, width + pad * 2, height + pad * 2, backgroundColor.value)
+            if (borderColor.value.isVisable()) event.context.drawBorder(- pad, - pad, width + pad * 2, height + pad * 2, borderColor.value)
 
             val solutionSlots = handler.solution.map { it.slotId }
             val minCol = cachedMinCol ?: if (solutionSlots.isEmpty()) 0 else solutionSlots.minOf { it % 9 }.also { cachedMinCol = it }
             val minRow = cachedMinRow ?: if (solutionSlots.isEmpty()) 0 else solutionSlots.minOf { it / 9 }.also { cachedMinRow = it }
 
             fun slotPos(slot: Int): Pair<Float, Float> {
-                val x = (slot % 9 - minCol) * slotSize
-                val y = (slot / 9 - minRow) * slotSize
+                val col = slot % 9 - minCol
+                val row = slot / 9 - minRow
+                val x = col * (slotSize + gap)
+                val y = row * (slotSize + gap)
                 return x to y
             }
 
             hoveredSlot = run {
                 if (mx < 0 || my < 0 || mx > width && my > height) return@run null
 
-                val col = (mx / slotSize).toInt() + minCol
-                val row = (my / slotSize).toInt() + minRow
+                val cell = slotSize + gap
+                val col = (mx / cell).toInt() + minCol
+                val row = (my / cell).toInt() + minRow
 
                 return@run row * 9 + col
             }
@@ -166,6 +173,8 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
         }
     }
 
+    fun spanFor(count: Int) = count * 16f + (count - 1) * slotGap.value
+
     fun drawSlot(ctx: GuiGraphicsExtractor, x: Number, y: Number, color: Color, w: Number = 16, h: Number = 16) {
         when (slotStyle.value) {
             0 -> ctx.drawRect(x, y, w, h, color)
@@ -188,8 +197,6 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
         if (TerminalListener.checkFcDelay()) return
         val slot = hoveredSlot ?: return
         val click = getClickForSlot(slot) ?: return
-
-        InfoDisplay.addLeftClick()
 
         predict(click)
         click.send()

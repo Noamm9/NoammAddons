@@ -27,7 +27,8 @@ data class TerminalClick(val slotId: Int, val btn: Int = 0) {
         ).send()
 
         ChatUtils.debug("terminal", "Clicked $slotId on ${TerminalListener.currentHandler?.displayName}")
-        
+
         TerminalListener.clickedSlots.add(this)
+        TerminalListener.currentHandler?.onSlotClick(slotId)
     }
 }

@@ -20,6 +20,7 @@ sealed class Terminal {
     private var totalClicks = - 1
 
     protected abstract fun onSlotUpdate(items: Map<Int, ItemStack>, title: String, updatedSlot: Int, updatedItem: ItemStack): Boolean
+    open fun onSlotClick(slot: Int) = Unit
 
     fun solve(items: Map<Int, ItemStack>, title: String, updatedSlot: Int, updatedItem: ItemStack): Boolean {
         solution.clear()

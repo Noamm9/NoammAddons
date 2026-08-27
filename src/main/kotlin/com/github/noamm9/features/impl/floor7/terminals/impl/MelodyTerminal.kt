@@ -58,8 +58,10 @@ object MelodyTerminal: Terminal() {
 
         val correctColumnPos = getSlotPos(correctColumn)
         val currentColumnPos = getSlotPos(button * 9 + currentColumn)
+        val columnHeight = TerminalSolver.spanFor(gridSize.second)
+        val slotSize = 16f
 
-        TerminalSolver.drawSlot(ctx, correctColumnPos.first, correctColumnPos.second, TerminalSolver.columnColor.value, 16, gridSize.second * 16)
+        TerminalSolver.drawSlot(ctx, correctColumnPos.first, correctColumnPos.second, TerminalSolver.columnColor.value, slotSize, columnHeight)
         TerminalSolver.drawSlot(ctx, currentColumnPos.first, currentColumnPos.second, TerminalSolver.indicatorColor.value)
 
         for (i in 0 until gridSize.second) {
@@ -67,7 +69,7 @@ object MelodyTerminal: Terminal() {
             val color = if (i == button) baseColor else TerminalSolver.wrongColor.value
             TerminalSolver.drawSlot(ctx, x, y, color)
 
-            if (mx in x .. x + 16f && my in y .. y + 16f) hoveredSlot.set(i)
+            if (mx in x .. x + slotSize && my in y .. y + slotSize) hoveredSlot.set(i)
         }
     }
 
