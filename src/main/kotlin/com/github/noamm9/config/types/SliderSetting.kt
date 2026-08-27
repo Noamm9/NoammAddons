@@ -20,14 +20,6 @@ class SliderSetting<T: Number>(
         value = snapToStep(element.asDouble)
     }
 
-    fun getPercent(valueIn: T): Float {
-        val current = valueIn.toDouble()
-        val minD = min.toDouble()
-        val maxD = max.toDouble()
-        if (maxD - minD == 0.0) return 0f
-        return ((current - minD) / (maxD - minD)).toFloat()
-    }
-
     fun snapToStep(rawDouble: Double): T {
         val minD = min.toDouble()
         val maxD = max.toDouble()
@@ -54,14 +46,20 @@ class SliderSetting<T: Number>(
         }
     }
 
-    private fun Number.convertToType(): T {
-        @Suppress("UNCHECKED_CAST")
-        return when (min) {
-            is Int -> toInt() as T
-            is Long -> toLong() as T
-            is Float -> toFloat() as T
-            is Double -> toDouble() as T
-            else -> this as T
-        }
+    fun getPercent(valueIn: T): Float {
+        val current = valueIn.toDouble()
+        val minD = min.toDouble()
+        val maxD = max.toDouble()
+        if (maxD - minD == 0.0) return 0f
+        return ((current - minD) / (maxD - minD)).toFloat()
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun Number.convertToType() = when (min) {
+        is Int -> toInt() as T
+        is Long -> toLong() as T
+        is Float -> toFloat() as T
+        is Double -> toDouble() as T
+        else -> this as T
     }
 }

@@ -7,6 +7,7 @@ object ColorUtils {
     fun Color.withAlpha(i: Int) = if (i == alpha) this else Color(red, green, blue, i.coerceIn(0, 255))
     fun Color.withAlpha(f: Float) = withAlpha((f * 255).toInt())
     fun Color.lerp(color: Color, value: Float) = lerpColor(this, color, value)
+    fun Color.isVisable() = alpha > 0
 
     fun lerpColor(color1: Color, color2: Color, value: Number) = Color(
         MathUtils.lerp(color1.red, color2.red, value).toInt(),
