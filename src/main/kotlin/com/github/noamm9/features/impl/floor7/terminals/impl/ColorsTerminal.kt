@@ -1,6 +1,5 @@
 package com.github.noamm9.features.impl.floor7.terminals.impl
 
-import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.features.impl.floor7.terminals.TerminalClick
 import com.github.noamm9.utils.items.ItemUtils.hasGlint
 import net.minecraft.world.item.DyeColor
@@ -8,7 +7,6 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 
 object ColorsTerminal: Terminal() {
-    override val enabled = ToggleSetting("Colors", true).section("Toggles")
     override val titleRegex = Regex("^Select all the ([\\w ]+) items!$")
     override val displayName = "Colors"
     override val gridSize = 7 to 4

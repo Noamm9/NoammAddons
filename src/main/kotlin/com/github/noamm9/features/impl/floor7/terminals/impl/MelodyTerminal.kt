@@ -1,7 +1,5 @@
 package com.github.noamm9.features.impl.floor7.terminals.impl
 
-import com.github.noamm9.config.types.ColorSetting
-import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.features.impl.floor7.terminals.TerminalClick
 import com.github.noamm9.features.impl.floor7.terminals.TerminalSolver
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -12,17 +10,12 @@ import kotlin.math.floor
 import kotlin.reflect.KMutableProperty0
 
 object MelodyTerminal: Terminal() {
-    override val enabled = ToggleSetting("Melody", true)
     override val titleRegex = Regex("^Click the button on time!$")
     override val displayName = "Melody"
     override val gridSize = 6 to 3
     override val slotCount = 54
 
     override val trackProgress = false
-
-    private val columnColor by ColorSetting("Melody: Column", Color(255, 0, 255, 130)).section("Melody").showIf { enabled.value }
-    private val indicatorColor by ColorSetting("Melody: Indicator", Color(255, 116, 0, 130)).showIf { enabled.value }
-    private val wrongColor by ColorSetting("Melody: Wrong", Color(255, 0, 0, 130)).showIf { enabled.value }
 
     val claySlots = listOf(16, 25, 34)
     var buttonRow: Int? = null
@@ -62,16 +55,16 @@ object MelodyTerminal: Terminal() {
         val correctColumn = correct ?: return
         val currentColumn = current ?: return
         val button = buttonRow ?: return
-        
+
         val correctColumnPos = getSlotPos(correctColumn)
         val currentColumnPos = getSlotPos(button * 9 + currentColumn)
 
-        TerminalSolver.drawSlot(ctx, correctColumnPos.first, correctColumnPos.second, columnColor.value, 16, gridSize.second * 16)
-        TerminalSolver.drawSlot(ctx, currentColumnPos.first, currentColumnPos.second, indicatorColor.value)
+        TerminalSolver.drawSlot(ctx, correctColumnPos.first, correctColumnPos.second, TerminalSolver.columnColor.value, 16, gridSize.second * 16)
+        TerminalSolver.drawSlot(ctx, currentColumnPos.first, currentColumnPos.second, TerminalSolver.indicatorColor.value)
 
         for (i in 0 until gridSize.second) {
             val (x, y) = getSlotPos(0 * 9 + gridSize.first + i * 9 - 1)
-            val color = if (i == button) baseColor else wrongColor.value
+            val color = if (i == button) baseColor else TerminalSolver.wrongColor.value
             TerminalSolver.drawSlot(ctx, x, y, color)
 
             if (mx in x .. x + 16f && my in y .. y + 16f) hoveredSlot.set(i)

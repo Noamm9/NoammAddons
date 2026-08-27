@@ -1,8 +1,5 @@
 package com.github.noamm9.features.impl.floor7.terminals.impl
 
-import com.github.noamm9.config.ConfigHolder
-import com.github.noamm9.config.SettingProvider
-import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.features.impl.floor7.terminals.TerminalClick
 import com.github.noamm9.features.impl.floor7.terminals.TerminalSolver
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -10,10 +7,8 @@ import net.minecraft.world.item.ItemStack
 import java.awt.Color
 import kotlin.reflect.KMutableProperty0
 
-sealed class Terminal: SettingProvider {
-    override val configSettings = mutableSetOf<ConfigHolder<*>>()
 
-    abstract val enabled: ToggleSetting
+sealed class Terminal {
     abstract val titleRegex: Regex
     abstract val slotCount: Int
     abstract val gridSize: Pair<Int, Int>
@@ -34,7 +29,7 @@ sealed class Terminal: SettingProvider {
         return true
     }
 
-    open fun getClickForSlot(slot: Int): TerminalClick? = solution.find { it.slotId == slot }
+    open fun getClickForSlot(slot: Int) = solution.find { it.slotId == slot }
 
     open fun predict(click: TerminalClick) {
         solution.remove(click)

@@ -10,7 +10,7 @@ import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.ScreenEvent
 import com.github.noamm9.event.impl.TerminalEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.features.impl.floor7.terminals.impl.Terminal
+import com.github.noamm9.features.impl.floor7.terminals.impl.*
 import com.github.noamm9.features.impl.visual.InfoDisplay
 import com.github.noamm9.init.types.ICustomMenu
 import com.github.noamm9.ui.utils.Resolution
@@ -30,25 +30,35 @@ import net.minecraft.sounds.SoundEvents
 import java.awt.Color
 
 object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICustomMenu {
-    private val scale by SliderSetting("Custom Menu's Scale", 1f, 0.1f, 2f, 0.01f).section("General")
-
-    //#if CHEAT
-    private fun fakeInwalk(type: Terminal) = AutoTerminal.enabled && AutoTerminal.invwalk.value && AutoTerminal.shouldAutoSolve(type)
-    //#else
-    //$private fun fakeInwalk(type: Terminal) = false
-    //#endif
-
-    private val slotStyle by DropdownSetting("Slot Style", 0, listOf("Rect", "Bordered-Rect", "Button"))
+    private val redGreenTerm by ToggleSetting("Red-Green", true).section("Toggles")
+    private val colorsTerm by ToggleSetting("Colors", true)
+    private val startsWithTerm by ToggleSetting("Start-With", true)
+    private val rubixTerm by ToggleSetting("Rubix", true)
+    private val numbersTerm by ToggleSetting("Numbers", true)
+    private val melodyTerm by ToggleSetting("Melody", true)
 
     private val soundsEnabled by ToggleSetting("Terminal Sounds", true).section("Sounds")
     private val clickSound = createSoundSettings("Click Sound", SoundEvents.NOTE_BLOCK_PLING.value()) { soundsEnabled.value }
 
-    private val backgroundColor by ColorSetting("Background Color", Color(0, 0, 0, 100)).section("Settings - UI")
+    private val scale by SliderSetting("Custom Menu's Scale", 1f, 0.1f, 2f, 0.01f).section("Settings - UI")
+    private val slotStyle by DropdownSetting("Slot Style", 0, listOf("Rect", "Bordered-Rect", "Button"))
+    private val backgroundColor by ColorSetting("Background Color", Color(0, 0, 0, 100))
     private val borderColor by ColorSetting("Border Color", Color(255, 255, 255))
     private val titleColor by ColorSetting("Title Text Color", Color.WHITE)
     private val overlayTextColor by ColorSetting("Overlay Text Color", Color.WHITE)
+    private val solutionColor by ColorSetting("Solution Color", Color(0, 255, 0, 130))
 
-    private val solutionColor by ColorSetting("Generic Solution", Color(0, 255, 0, 130)).section("Colors - Terminals")
+    val positiveColor by ColorSetting("Rubix: Positive (+)", Color(0, 114, 255, 130)).section("Rubix").showIf { rubixTerm.value }
+    val negativeColor by ColorSetting("Rubix: Negative (-)", Color(205, 0, 0, 130)).showIf { rubixTerm.value }
+
+    val showNumbers by ToggleSetting("Show Numbers").section("Numbers").showIf { numbersTerm.value }
+    val firstColor by ColorSetting("1st Click Color", Color(0, 255, 0, 130)).showIf { numbersTerm.value }
+    val secondColor by ColorSetting("2nd Click Color", Color(255, 255, 120, 130)).showIf { numbersTerm.value }
+    val thirdColor by ColorSetting("3rd Click Color", Color(200, 0, 0, 130)).showIf { numbersTerm.value }
+
+    val columnColor by ColorSetting("Melody: Column", Color(255, 0, 255, 130)).section("Melody").showIf { melodyTerm.value }
+    val indicatorColor by ColorSetting("Melody: Indicator", Color(255, 116, 0, 130)).showIf { melodyTerm.value }
+    val wrongColor by ColorSetting("Melody: Wrong", Color(255, 0, 0, 130)).showIf { melodyTerm.value }
 
     private var cachedMinCol: Int? = null
     private var cachedMinRow: Int? = null
@@ -56,9 +66,6 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
     private var hoveredSlot: Int? = null
 
     override fun init() {
-        for (term in Terminal.all) configSettings.add(term.enabled)
-        for (term in Terminal.all) configSettings.addAll(term.configSettings)
-
         register<TerminalEvent.Open> {
             cachedMinCol = null
             cachedMinRow = null
@@ -68,8 +75,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
         register<ScreenEvent.PreRender> {
             if (! TerminalListener.inTerm) return@register
             val handler = TerminalListener.currentHandler ?: return@register
-            if (! handler.enabled.value) return@register
-            if (fakeInwalk(handler)) return@register
+            if (! handler.enabled()) return@register
             event.isCanceled = true
 
             Resolution.push(event.context)
@@ -135,7 +141,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
 
         register<ContainerEvent.MouseClick> {
             val handler = TerminalListener.currentHandler ?: return@register
-            if (! handler.enabled.value) return@register
+            if (! handler.enabled()) return@register
             event.isCanceled = true
             handler.click()
         }
@@ -143,7 +149,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
         register<ContainerEvent.Keyboard> {
             if (event.key.equalsOneOf(KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value, UKeyboard.KEY_ESCAPE)) return@register
             val handler = TerminalListener.currentHandler ?: return@register
-            if (! handler.enabled.value) return@register
+            if (! handler.enabled()) return@register
             event.isCanceled = true
             if (event.key != KeyMappingHelper.getBoundKeyOf(mc.options.keyDrop).value) return@register
             handler.click()
@@ -187,6 +193,15 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
 
         predict(click)
         click.send()
+    }
+
+    private fun Terminal.enabled() = when (this) {
+        is NumberTerminal -> numbersTerm.value
+        is ColorsTerminal -> colorsTerm.value
+        is MelodyTerminal -> melodyTerm.value
+        is RubixTerminal -> rubixTerm.value
+        is RedGreenTerminal -> redGreenTerm.value
+        is StartWithTerminal -> startsWithTerm.value
     }
 
     override fun isActive() = TerminalListener.inTerm

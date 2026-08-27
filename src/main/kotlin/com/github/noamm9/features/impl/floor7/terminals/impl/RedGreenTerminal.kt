@@ -1,12 +1,10 @@
 package com.github.noamm9.features.impl.floor7.terminals.impl
 
-import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.features.impl.floor7.terminals.TerminalClick
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 
 object RedGreenTerminal: Terminal() {
-    override val enabled = ToggleSetting("Red-Green", true)
     override val titleRegex = Regex("^Correct all the panes!$")
     override val displayName = "Red Green"
     override val gridSize = 5 to 3

@@ -4,6 +4,7 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.impl.floor7.terminals.impl.MelodyTerminal
+import com.github.noamm9.features.impl.floor7.terminals.impl.RubixTerminal
 import com.github.noamm9.features.impl.floor7.terminals.impl.Terminal
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.mixin.IServerboundInteractPacket
@@ -67,6 +68,9 @@ object TerminalListener: ISelfInit {
                     val handler = currentHandler ?: return@register
                     if (packet.slot !in 0 until handler.slotCount) return@register
                     if (packet.item.`is`(Items.BLACK_STAINED_GLASS_PANE)) return@register
+                    if (handler is RubixTerminal && packet.item.item == currentItems[packet.slot]?.item) {
+                        return@register
+                    }
 
                     container.items.subList(0, handler.slotCount).forEachIndexed { index, stack ->
                         currentItems[index] = stack
@@ -84,7 +88,6 @@ object TerminalListener: ISelfInit {
         }
 
         EventBus.register<PacketEvent.Sent> {
-            if (LocationUtils.F7Phase != 3) return@register
             when (event.packet) {
                 is ServerboundContainerClickPacket -> {
                     if (! inTerm) return@register
@@ -110,7 +113,6 @@ object TerminalListener: ISelfInit {
         }
 
         EventBus.register<TickEvent.Server> {
-            if (LocationUtils.F7Phase != 3) return@register
             if (interactCooldown > 0) interactCooldown --
 
             val click = lastClick ?: return@register
@@ -118,7 +120,7 @@ object TerminalListener: ISelfInit {
             val container = mc.player?.containerMenu ?: return@register
             if (System.currentTimeMillis() - click < 800) return@register
             ChatUtils.debug("terminal", "TERMINAL BROKE!!!!!!!")
-            
+
             container.items.subList(0, handler.slotCount).forEachIndexed { index, stack ->
                 currentItems[index] = stack
             }

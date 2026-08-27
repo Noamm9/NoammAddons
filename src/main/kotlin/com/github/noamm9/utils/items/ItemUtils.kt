@@ -76,8 +76,8 @@ object ItemUtils {
         return profile.partialProfile().id.toString()
     }
 
-    fun ItemStack.hasGlint() = get(DataComponents.ENCHANTMENT_GLINT_OVERRIDE) == true
-
+    fun ItemStack.hasGlint() = componentsPatch.get(components, DataComponents.ENCHANTMENT_GLINT_OVERRIDE) == true
+    
     fun getRarity(item: ItemStack?): ItemRarity {
         item ?: return ItemRarity.NONE
         if (item.isEmpty) return ItemRarity.NONE

@@ -6,6 +6,7 @@ import com.github.noamm9.config.types.DropdownSetting
 import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ContainerEvent
+import com.github.noamm9.event.impl.ScreenEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.features.Feature
@@ -48,7 +49,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
             "AutoTerminal - FakeInvWalk",
             centered = true,
             enabled = { invwalk.value },
-            shouldDraw = { TerminalListener.currentHandler?.let(::shouldAutoSolve) == true }
+            shouldDraw = { TerminalListener.currentHandler?.enabled() == true }
         ) { ctx, e ->
             val handler = if (e) NumberTerminal else TerminalListener.currentHandler !!
             val maxClicks = handler.maxClicks()
@@ -95,13 +96,19 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
 
         register<ContainerEvent.MouseClick>(EventPriority.HIGH) {
             val handler = TerminalListener.currentHandler ?: return@register
-            if (shouldAutoSolve(handler)) event.isCanceled = true
+            if (handler.enabled()) event.isCanceled = true
         }
 
         register<ContainerEvent.Keyboard>(EventPriority.HIGH) {
             if (event.key.equalsOneOf(KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value, UKeyboard.KEY_ESCAPE)) return@register
             val handler = TerminalListener.currentHandler ?: return@register
-            if (shouldAutoSolve(handler)) event.isCanceled = true
+            if (handler.enabled()) event.isCanceled = true
+        }
+
+        register<ScreenEvent.PreRender>(EventPriority.HIGH) {
+            if (! invwalk.value) return@register
+            val handler = TerminalListener.currentHandler ?: return@register
+            if (handler.enabled()) event.isCanceled = true
         }
     }
 
@@ -141,7 +148,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
         }
     }
 
-    fun shouldAutoSolve(type: Terminal) = when (type) {
+    fun Terminal.enabled() = when (this) {
         is NumberTerminal -> autoNumbers.value
         is ColorsTerminal -> autoColors.value
         is MelodyTerminal -> autoMelody.value

@@ -1,7 +1,5 @@
 package com.github.noamm9.features.impl.floor7.terminals.impl
 
-import com.github.noamm9.config.types.ColorSetting
-import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.features.impl.floor7.terminals.TerminalClick
 import com.github.noamm9.features.impl.floor7.terminals.TerminalSolver
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -11,14 +9,10 @@ import java.awt.Color
 import kotlin.math.abs
 
 object RubixTerminal: Terminal() {
-    override val enabled = ToggleSetting("Rubix", true)
     override val titleRegex = Regex("^Change all to same color!$")
     override val displayName = "Rubix"
     override val gridSize = 3 to 3
     override val slotCount = 45
-
-    private val positiveColor by ColorSetting("Rubix: Positive (+)", Color(0, 114, 255, 130)).section("Rubix").showIf { enabled.value }
-    private val negativeColor by ColorSetting("Rubix: Negative (-)", Color(205, 0, 0, 130)).showIf { enabled.value }
 
     private val rubixOrder = listOf(
         Items.RED_STAINED_GLASS_PANE,
@@ -73,7 +67,7 @@ object RubixTerminal: Terminal() {
     }
 
     override fun renderSlot(ctx: GuiGraphicsExtractor, x: Number, y: Number, index: Int, click: TerminalClick, baseColor: Color) {
-        val color = if (click.btn > 0) positiveColor.value else negativeColor.value
+        val color = if (click.btn > 0) TerminalSolver.positiveColor.value else TerminalSolver.negativeColor.value
         TerminalSolver.drawSlot(ctx, x, y, color)
         TerminalSolver.drawCenteredText(ctx, "${click.btn}", x, y)
     }
