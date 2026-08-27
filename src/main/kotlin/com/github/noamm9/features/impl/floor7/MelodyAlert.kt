@@ -17,9 +17,9 @@ import net.minecraft.world.item.Items
 
 object MelodyAlert: Feature() {
     private val msg by TextInputSetting("Melody Message", "I ❤ Melody")
-    private val mode by DropdownSetting("Progress Mode", 0, listOf("1/4", "25%"))
+    private val mode by DropdownSetting("Progress Mode", 0, listOf("1/3", "33%"))
 
-    private val progressSlots = intArrayOf(25, 34, 43)
+    private val progressSlots = intArrayOf(25, 34)
     private var isMelodyOpen = false
     private var currentStage = - 1
 
@@ -61,7 +61,7 @@ object MelodyAlert: Feature() {
                 if (i <= currentStage) continue
 
                 if (player.containerMenu.getSlot(progressSlots[i]).item.`is`(Items.LIME_TERRACOTTA)) {
-                    val progress = if (mode.value == 0) "${i + 1}/4" else "${(i + 1) * 25}%"
+                    val progress = if (mode.value == 0) "${i + 1}/3" else "${(i + 1) * 33}%"
                     ChatUtils.sendPartyMessage("${msg.value} $progress")
                     currentStage = i
                 }
