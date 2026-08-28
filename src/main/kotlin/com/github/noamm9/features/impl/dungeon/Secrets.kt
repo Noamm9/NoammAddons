@@ -115,14 +115,14 @@ object Secrets: Feature() {
             event.isCanceled = true
         }
 
-        register<GameStartEvent> { ModCompatibility.disableBlockstateCulling() }
+        register<GameStartEvent> { if (lever.value || button.value) ModCompatibility.disableBlockstateCulling() }
         //#endif
     }
 
     //#if CHEAT
     override fun onEnable() {
         super.onEnable()
-        ModCompatibility.disableBlockstateCulling()
+        if (lever.value || button.value) ModCompatibility.disableBlockstateCulling()
     }
 
     @JvmStatic
