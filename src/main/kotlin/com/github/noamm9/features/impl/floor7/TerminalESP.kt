@@ -11,13 +11,13 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.Utils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
 import com.github.noamm9.utils.render.RenderHelper.renderBoundingBox
+import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.entity.decoration.ArmorStand
 import java.awt.Color
 
-object TerminalHitboxes: Feature("Highlights the interactable hitboxes of the terminals in F7/M7") {
+object TerminalESP: Feature("Highlights the interactable hitboxes of the terminals in F7/M7") {
     private val mode by DropdownSetting("Mode", 1, listOf("Outline", "Fill", "Filled Outline"))
     private val phase by ToggleSetting("Phase", false)
     private val fillColor by ColorSetting("Fill Color", Color.orange).hideIf { mode.value == 0 }

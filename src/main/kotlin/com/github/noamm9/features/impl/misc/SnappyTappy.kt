@@ -1,5 +1,7 @@
 package com.github.noamm9.features.impl.misc
 
+//#if CHEAT
+
 import com.github.noamm9.features.Feature
 import gg.essential.universal.UKeyboard
 import gg.essential.universal.UMinecraft
@@ -61,3 +63,4 @@ object SnappyTappy: Feature("Prevents standing still when pressing opposing dire
     private fun isNewer(a: KeyMapping, b: KeyMapping) = (pressTimes[a] ?: 0L) >= (pressTimes[b] ?: 0L)
     private fun isPhysicallyDown(key: KeyMapping) = UKeyboard.isKeyDown(KeyMappingHelper.getBoundKeyOf(key).value)
 }
+//#endif

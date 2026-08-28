@@ -73,21 +73,6 @@ object Secrets: Feature() {
             return@hudElement line.width().toFloat() to 9f
         }
 
-        //#if CHEAT
-        register<MainThreadPacketReceivedEvent.Pre> {
-            if (! closeChest.value) return@register
-            if (! LocationUtils.inDungeon) return@register
-            if (LocationUtils.inBoss) return@register
-            val packet = event.packet as? ClientboundOpenScreenPacket ?: return@register
-            if (! packet.type.equalsOneOf(MenuType.GENERIC_9x3, MenuType.GENERIC_9x6)) return@register
-            if (! packet.title.unformattedText.equalsOneOf("Chest", "Large Chest")) return@register
-            ServerboundContainerClosePacket(packet.containerId).send()
-            event.isCanceled = true
-        }
-
-        register<GameStartEvent> { ModCompatibility.disableBlockstateCulling() }
-        //#endif
-
         register<RenderWorldEvent> {
             if (clicked.isEmpty()) return@register
 
@@ -117,6 +102,21 @@ object Secrets: Feature() {
                 clicked[event.pos] = System.currentTimeMillis()
             }
         }
+
+        //#if CHEAT
+        register<MainThreadPacketReceivedEvent.Pre> {
+            if (! closeChest.value) return@register
+            if (! LocationUtils.inDungeon) return@register
+            if (LocationUtils.inBoss) return@register
+            val packet = event.packet as? ClientboundOpenScreenPacket ?: return@register
+            if (! packet.type.equalsOneOf(MenuType.GENERIC_9x3, MenuType.GENERIC_9x6)) return@register
+            if (! packet.title.unformattedText.equalsOneOf("Chest", "Large Chest")) return@register
+            ServerboundContainerClosePacket(packet.containerId).send()
+            event.isCanceled = true
+        }
+
+        register<GameStartEvent> { ModCompatibility.disableBlockstateCulling() }
+        //#endif
     }
 
     //#if CHEAT

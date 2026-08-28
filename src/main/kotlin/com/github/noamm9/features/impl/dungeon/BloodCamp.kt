@@ -16,10 +16,10 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.render.RenderHelper.renderVec
 import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
 import com.github.noamm9.utils.render.world.Render3D.renderLine
 import com.github.noamm9.utils.render.world.Render3D.renderString
-import com.github.noamm9.utils.render.RenderHelper.renderVec
 import gg.essential.universal.USound
 import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket
@@ -32,7 +32,6 @@ import net.minecraft.world.item.Items
 import net.minecraft.world.phys.Vec3
 import java.awt.Color
 import kotlin.math.ceil
-
 
 object BloodCamp: Feature("Features for Blood Room.") {
     private val bloodCamp by ToggleSetting("Blood Camp Helper", true).section("Blood Camp Helper")
