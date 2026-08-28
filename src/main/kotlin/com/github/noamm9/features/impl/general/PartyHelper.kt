@@ -46,7 +46,7 @@ object PartyHelper: Feature("Party commands and reformatting."), ICommandProvide
     private val partyCommandRegex = Regex("^Party > (?:\\[[^]]+] )?([^:]+): ([!?.\\-@#`/])(.+)$")
 
     override fun CommandBuilder.command() {
-        setName("partyblacklist", "pbl")
+        setName("partycommandsblacklist", "pcbl")
         description("Manages the party command blacklist")
         runs { showBlacklist() }
 
