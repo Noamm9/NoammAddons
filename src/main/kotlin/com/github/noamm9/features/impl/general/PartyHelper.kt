@@ -1,17 +1,21 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.commands.CommandBuilder
+import com.github.noamm9.config.PogObject
 import com.github.noamm9.config.types.MultiCheckboxSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.PartyUtils.isLeader
 import com.github.noamm9.utils.dungeons.DungeonUtils
 import com.github.noamm9.utils.location.LocationUtils
+import com.mojang.brigadier.arguments.StringArgumentType
 import gg.essential.universal.USound
 import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
@@ -21,7 +25,7 @@ import net.minecraft.network.protocol.game.ServerboundChatCommandPacket
 import net.minecraft.sounds.SoundEvents
 import kotlin.math.roundToInt
 
-object PartyHelper: Feature("Party commands and reformatting.") {
+object PartyHelper: Feature("Party commands and reformatting."), ICommandProvider {
     private val partyCommands by ToggleSetting("Party Commands", true).section("Party Commands")
     private val partyLeaderCheck by ToggleSetting("Leader Only", false).showIf { partyCommands.value }
     private val commands by MultiCheckboxSetting("Enabled Commands", mutableMapOf(
@@ -32,6 +36,7 @@ object PartyHelper: Feature("Party commands and reformatting.") {
 
     private val partyAddons by ToggleSetting("Reformat Party List", true).section("Party Addons")
 
+    private val playerBlacklist = PogObject("party_command_blacklist", mutableSetOf<String>())
     private val party = mutableListOf<PartyMember>()
     val downtimeList = mutableMapOf<String, String>()
     private var awaitingDelimiter = 0
@@ -39,6 +44,48 @@ object PartyHelper: Feature("Party commands and reformatting.") {
     private val partyStartPattern = Regex("^Party Members \\((\\d+)\\)$")
     private val playerPattern = Regex("(?<rank>.*?)(?<name>\\w+) ?§(?<status>[ac]) ?● ?")
     private val partyCommandRegex = Regex("^Party > (?:\\[[^]]+] )?([^:]+): ([!?.\\-@#`/])(.+)$")
+
+    override fun CommandBuilder.command() {
+        setName("partycommandsblacklist", "pcbl")
+        description("Manages the party command blacklist")
+        runs { showBlacklist() }
+
+        literal("add") {
+            argument("player", StringArgumentType.word()) {
+                suggests { PartyUtils.members.filterNot(::isBlacklisted) }
+                runs {
+                    val name = StringArgumentType.getString(it, "player")
+                    val added = playerBlacklist.get().add(name.lowercase())
+                    if (added) playerBlacklist.save()
+                    ChatUtils.modMessage(if (added) "&aAdded &b$name &ato the party command blacklist." else "&e$name is already blacklisted.")
+                }
+            }
+        }
+
+        literal("remove") {
+            argument("player", StringArgumentType.word()) {
+                suggests { playerBlacklist.get().sorted() }
+                runs {
+                    val name = StringArgumentType.getString(it, "player")
+                    val removed = playerBlacklist.get().remove(name.lowercase())
+                    if (removed) playerBlacklist.save()
+                    ChatUtils.modMessage(if (removed) "&aRemoved &b$name &afrom the party command blacklist." else "&e$name is not blacklisted.")
+                }
+            }
+        }
+
+        literal("list") {
+            runs { showBlacklist() }
+        }
+
+        literal("clear") {
+            runs {
+                playerBlacklist.get().clear()
+                playerBlacklist.save()
+                ChatUtils.modMessage("&aCleared the party command blacklist.")
+            }
+        }
+    }
 
     override fun init() {
         register<PacketEvent.Sent> {
@@ -76,6 +123,8 @@ object PartyHelper: Feature("Party commands and reformatting.") {
     }
 
     private fun handlePartyCommand(sender: String, cmd: String, args: List<String>) {
+        if (isBlacklisted(sender)) return
+
         fun canRun(key: String) = commands.value[key] == true
 
         when {
@@ -128,6 +177,13 @@ object PartyHelper: Feature("Party commands and reformatting.") {
                 runCommand("pc $target is $gayPercentage% gay.")
             }
         }
+    }
+
+    private fun isBlacklisted(name: String) = name.lowercase() in playerBlacklist.get()
+
+    private fun showBlacklist() {
+        val names = playerBlacklist.get().sorted()
+        ChatUtils.modMessage(if (names.isEmpty()) "&eThe party command blacklist is empty." else "&aParty command blacklist: &f${names.joinToString(", ")}")
     }
 
     private fun handlePartyListParsing(event: ChatMessageEvent) {
