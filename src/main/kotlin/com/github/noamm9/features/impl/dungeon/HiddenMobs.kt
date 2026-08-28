@@ -16,9 +16,9 @@ import net.minecraft.world.entity.monster.Giant
 object HiddenMobs: Feature("Reveals invisible mobs in dungeons.") {
     private val watcherMobs by lazy { DataDownloader.loadJson<List<String>>("watcherMobsNames.json") }
 
-    private val showFels by ToggleSetting("Show Fels")
-    private val showSa by ToggleSetting("Show Shadow Assassins")
-    private val showStealthy by ToggleSetting("Show Stealthy")
+    private val showFels by ToggleSetting("Show Fels", true)
+    private val showSa by ToggleSetting("Show Shadow Assassins", true)
+    private val showStealthy by ToggleSetting("Show Stealthy", true)
 
     override fun init() {
         register<MainThreadPacketReceivedEvent.Post> {

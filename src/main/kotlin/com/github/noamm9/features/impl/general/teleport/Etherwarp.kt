@@ -5,7 +5,9 @@ import com.github.noamm9.config.types.DropdownSetting
 import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
+//#if CHEAT
 import com.github.noamm9.event.impl.MouseClickEvent
+//#endif
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.features.Feature
@@ -17,17 +19,21 @@ import com.github.noamm9.utils.items.EtherwarpHelper
 import com.github.noamm9.utils.items.TeleportUtils
 import com.github.noamm9.utils.render.world.Render3D.renderBlock
 import com.github.noamm9.utils.render.world.Render3D.renderBox
+//#if CHEAT
 import gg.essential.universal.UMinecraft
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+//#endif
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket
 import net.minecraft.sounds.SoundEvents
+//#if CHEAT
 import org.lwjgl.glfw.GLFW
+//#endif
 import java.awt.Color
 
-object Etherwarp: Feature("Etherwarp overlay, sound, and left-click activation.") {
+object Etherwarp: Feature("Etherwarp overlay and sound.") {
     private val overlay by ToggleSetting("Etherwarp Overlay").section("Overlay")
     private val mode by DropdownSetting("Mode", 0, listOf("Outline", "Fill", "Filled Outline")).showIf { overlay.value }
     private val phase by ToggleSetting("Phase").showIf { overlay.value }
@@ -45,10 +51,9 @@ object Etherwarp: Feature("Etherwarp overlay, sound, and left-click activation."
     private val zeroPingSound by ToggleSetting("Zero-Ping Sound").withDescription("Plays the Etherwarp sound client-side instead of waiting for the server to send the sound packet").showIf { etherwarpSound.value }
     private val playSound = createSoundSettings("Sound", SoundEvents.EXPERIENCE_ORB_PICKUP) { etherwarpSound.value }
 
+    //#if CHEAT
     private val leftClick by ToggleSetting("Left-Click Etherwarp").section("Left Click")
     private val swingHandToggle by ToggleSetting("Swing Hand", true).showIf { leftClick.value }
-
-    //#if CHEAT
     private val autoSneak by ToggleSetting("Auto Sneak", false).showIf { leftClick.value }
     private val autoSneakDelay by SliderSetting("Auto Sneak Delay", 50, 50, 150, 1).showIf { leftClick.value && autoSneak.value }
     //#endif
@@ -111,21 +116,17 @@ object Etherwarp: Feature("Etherwarp overlay, sound, and left-click activation."
             if (TeleportUtils.canTeleport(packet.yRot, packet.xRot)) playSound.action.invoke()
         }
 
+        //#if CHEAT
         register<MouseClickEvent> {
             if (! leftClick.value) return@register
             if (event.button != 0) return@register
             if (event.action != GLFW.GLFW_PRESS) return@register
             if (UMinecraft.currentScreenObj != null) return@register
-            //#if CHEAT
             if (! mc.options.keyShift.isDown && ! autoSneak.value) return@register
-            //#else
-            //$if (! mc.options.keyShift.isDown) return@register
-            //#endif
             if (EtherwarpHelper.getEtherwarpDistance(player.mainHandItem) == null) return@register
 
             event.isCanceled = true
 
-            //#if CHEAT
             if (! player.isCrouching && autoSneak.value) scope.launch {
                 val wait = autoSneakDelay.value.toLong() / 2
                 PlayerUtils.toggleSneak(true)
@@ -141,10 +142,7 @@ object Etherwarp: Feature("Etherwarp overlay, sound, and left-click activation."
                 PlayerUtils.rightClick()
                 if (swingHandToggle.value) PlayerUtils.swingArm()
             }
-            //#else
-            //$PlayerUtils.rightClick()
-            //$if (swingHandToggle.value) PlayerUtils.swingArm()
-            //#endif
         }
+        //#endif
     }
 }
