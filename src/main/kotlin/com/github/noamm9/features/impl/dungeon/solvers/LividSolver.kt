@@ -15,10 +15,10 @@ import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener.dungeonTeammates
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
-import com.github.noamm9.utils.render.world.Render3D.renderString
-import com.github.noamm9.utils.render.world.Render3D.renderTracer
 import com.github.noamm9.utils.render.RenderHelper.renderVec
 import com.github.noamm9.utils.render.RenderHelper.width
+import com.github.noamm9.utils.render.world.Render3D.renderString
+import com.github.noamm9.utils.render.world.Render3D.renderTracer
 import gg.essential.universal.USound
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.core.BlockPos
@@ -51,7 +51,7 @@ object LividSolver: Feature() {
     private val ceilingWoolBlock = BlockPos(5, 108, 40)
     private var lividId: Int? = null
 
-    private const val ticks = 390
+    private const val ticks = 350
     private var timer = - 1
 
     override fun init() {
