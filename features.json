@@ -3,5 +3,8 @@
   "disabled": [],
   "ScoreCalculation": {
     "maxBats": 5
+  },
+  "SimonSays": {
+    "maxClicks": 5
   }
 }
