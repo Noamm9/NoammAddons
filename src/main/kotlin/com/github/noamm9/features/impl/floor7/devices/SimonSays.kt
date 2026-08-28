@@ -3,10 +3,12 @@ package com.github.noamm9.features.impl.floor7.devices
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.config.types.ColorSetting
 import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.TextInputSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
+import com.github.noamm9.init.RemoteFeatures
 import com.github.noamm9.ui.clickgui.components.*
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.MathUtils.add
@@ -29,7 +31,10 @@ import java.awt.Color
 import java.util.*
 
 object SimonSays: Feature("Simon Says Solver") {
+    private val maxStage = RemoteFeatures.getFeature(SimonSays::class.simpleName)["maxClicks"]?.asInt ?: 5
+
     private val progressDisplay by ToggleSetting("Progress Display").withDescription("Displays the current Simon Says stage.").section("HUD")
+    private val progressFormat by TextInputSetting("Progress Format", "&7SS: {stage}/&a{maxStage}").withDescription("Replaces {stage} and {maxStage} with the current and maximum Simon Says stage. Supports color codes.").showIf { progressDisplay.value }
 
     private val ssSkip by ToggleSetting("SS skip Compatibility", true).withDescription("Always assume at the start that you perfectly SS skip").section("Options")
     private val blockWrongClicks by ToggleSetting("Block Wrong Clicks").withDescription("Blocks clicks if you aren't looking at the correct button. &eSneak to override.")
@@ -82,8 +87,8 @@ object SimonSays: Feature("Simon Says Solver") {
             shouldDraw = { LocationUtils.F7Phase == 3 && stage > 0 }
         ) { ctx, example ->
             val displayedStage = if (example) 3 else stage
-            val color = ColorUtils.colorCodeByPercent(displayedStage, 5)
-            val text = "&7Simon Says: $color$displayedStage&7/&a5"
+            val color = ColorUtils.colorCodeByPercent(displayedStage, maxStage)
+            val text = progressFormat.value.replace("{stage}", "$color$displayedStage&7").replace("{maxStage}", maxStage.toString())
 
             ctx.drawString(text, 0, 0)
             text.width().toFloat() to 9f
@@ -131,7 +136,7 @@ object SimonSays: Feature("Simon Says Solver") {
                 sequenceLength --
             }
             solution.add(SSButton(event.pos))
-            sequenceLength = (sequenceLength + 1).coerceAtMost(5)
+            sequenceLength = (sequenceLength + 1).coerceAtMost(maxStage)
         }
 
         register<BlockChangeEvent> {
