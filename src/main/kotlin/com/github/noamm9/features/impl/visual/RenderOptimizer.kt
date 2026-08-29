@@ -21,6 +21,7 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.entity.decoration.ArmorStand
 import java.util.*
 
 object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
@@ -37,7 +38,8 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
     private val hideP5p by ToggleSetting("Hide P5 Particles").withDescription("Hide all Particles in M7 P5 except the relevent ones")
     val hideFireOnEntities by ToggleSetting("Hide Fire On Entities").withDescription("Hides the fire texture on burning mobs")
 
-    private val healthMatches = listOf(Regex("^§.\\[§.Lv\\d+§.] §.+ (?:§.)+0§f/.+§c❤$"), Regex("^.+ (?:§.)+0§c❤$"))
+    private val health0Regex = Regex("""\[Lv\d+] .+ 0/.+❤""")
+    private val hiddenEntities = Collections.newSetFromMap<Entity>(WeakHashMap())
     private val entityNameCache = WeakHashMap<Entity, EntityNameInfo>()
 
     override fun init() {
@@ -51,12 +53,7 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
                         (entry.value() as? Optional<*>)?.orElse(null) as? Component
                     }?.formattedText ?: return@register
 
-                    val shouldDiscard = run {
-                        val a = hide0HealthNames.value && healthMatches.any { it.matches(name) }
-                        val b = hideHealerOrbs.value && name.removeFormatting().startsWithOneOf("DEFENSE", "ABILITY DAMAGE")
-
-                        return@run a || b
-                    }
+                    val shouldDiscard = hideHealerOrbs.value && name.removeFormatting().startsWithOneOf("DEFENSE", "ABILITY DAMAGE")
 
                     if (shouldDiscard) {
                         level.getEntity(packet.id)?.remove(Entity.RemovalReason.DISCARDED)
@@ -103,8 +100,15 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
         }
 
         register<CheckEntityRenderEvent> {
-            if (hideDeadMobs.value) {
-                if (! event.entity.isAlive || ((event.entity as? LivingEntity)?.health ?: 1f) <= 0) {
+            if (hideDeadMobs.value && (! event.entity.isAlive || ((event.entity as? LivingEntity)?.health ?: 1f) <= 0)) {
+                event.isCanceled = true
+                return@register
+            }
+
+            val customName = event.entity.customName ?: return@register
+            if (hide0HealthNames.value && LocationUtils.inSkyblock && event.entity is ArmorStand) {
+                if (event.entity in hiddenEntities || customName.string == "0" || health0Regex.matches(customName.string)) {
+                    hiddenEntities.add(event.entity)
                     event.isCanceled = true
                     return@register
                 }
@@ -112,9 +116,8 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
 
             if (! LocationUtils.inDungeon) return@register
 
-            val name = event.entity.customName ?: return@register
             val info = entityNameCache.getOrPut(event.entity) {
-                val formatted = name.formattedText
+                val formatted = customName.formattedText
                 EntityNameInfo(formatted.contains("✯"), formatted.endsWith("§c❤"))
             }
 
