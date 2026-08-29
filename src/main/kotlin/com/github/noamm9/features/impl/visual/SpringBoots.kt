@@ -100,7 +100,7 @@ object SpringBoots: Feature("Shows the spring boots charge progress on screen.")
         register<TickEvent.End> {
             if (! LocationUtils.inSkyblock) return@register
             if (currentHeight <= 0) return@register
-            val player = player as? ILocalPlayer ?: return@register
+            val player = player as ILocalPlayer
             if (! player.isSneakingServer || ! player.onGroundServer()) reset()
         }
 

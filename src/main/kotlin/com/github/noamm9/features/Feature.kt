@@ -31,7 +31,6 @@ open class Feature(
     val listeners = mutableSetOf<EventListener<*>>()
     val hudElements = mutableSetOf<HudElement>()
 
-
     fun initialize() {
         init()
 
