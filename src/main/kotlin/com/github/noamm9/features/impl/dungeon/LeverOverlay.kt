@@ -3,7 +3,9 @@ package com.github.noamm9.features.impl.dungeon
 import com.github.noamm9.config.types.ColorSetting
 import com.github.noamm9.config.types.DropdownSetting
 import com.github.noamm9.config.types.SliderSetting
+//#if CHEAT
 import com.github.noamm9.config.types.ToggleSetting
+//#endif
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
@@ -21,11 +23,13 @@ object LeverOverlay: Feature(description = "Highlights lever hitboxes") {
     private val fillColor by ColorSetting("Fill Color", Utils.favoriteColor.withAlpha(50)).hideIf { mode.value == 0 }
     private val outlineColor by ColorSetting("Outline Color", Utils.favoriteColor, false).hideIf { mode.value == 1 }
     private val lineWidth by SliderSetting("Line Width", 2.5, 1, 10, 0.1).hideIf { mode.value == 1 }
+    //#if CHEAT
     private val phase by ToggleSetting("See Through Walls")
+    //#endif
 
     private val nearbyLevers = mutableSetOf<BlockPos>()
     private var tickCounter = 0
-    private const val RADIUS = 16
+    private const val RADIUS = 32
 
     override fun init() {
         register<TickEvent.End> {
@@ -50,7 +54,19 @@ object LeverOverlay: Feature(description = "Highlights lever hitboxes") {
             val outline = mode.value.equalsOneOf(0, 2)
             val fill = mode.value.equalsOneOf(1, 2)
 
-            for (pos in nearbyLevers) event.ctx.renderBlock(pos, outlineColor.value, fillColor.value, outline, fill, phase.value, lineWidth.value)
+            for (pos in nearbyLevers) event.ctx.renderBlock(
+                pos,
+                outlineColor.value,
+                fillColor.value,
+                outline,
+                fill,
+                //#if CHEAT
+                phase.value,
+                //#else
+                //$false,
+                //#endif
+                lineWidth.value
+            )
         }
     }
 }
