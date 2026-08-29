@@ -30,16 +30,17 @@ import java.util.IdentityHashMap
 import kotlin.math.round
 
 object ScanUtils: ISelfInit, ICommandProvider, Shortcuts {
-    private const val CORE_HEIGHT = 129
     private val ignoredCoreBlocks = setOf(
         "minecraft:chest", "minecraft:trapped_chest",
         "minecraft:piston_head", "minecraft:moving_piston",
         "minecraft:water", "minecraft:lava",
         "minecraft:fire", "minecraft:soul_fire",
     )
-    private val coreTokenCache = IdentityHashMap<Block, String>()
+    private val coreTokenCache = IdentityHashMap<Block, Int>()
 
     val roomList = DataDownloader.loadJson<List<RoomData>>("rooms-modern.json")
+    private val roomsByCore = roomList.flatMap { room -> room.cores.map { it to room } }.toMap()
+    private val roomsByName = roomList.associateBy(RoomData::name)
     val secretMap = roomList.associate { it.name to it.secretCoords }
     var currentRoom: UniqueRoom? = null
     var lastKnownRoom: UniqueRoom? = null
@@ -74,8 +75,8 @@ object ScanUtils: ISelfInit, ICommandProvider, Shortcuts {
         }
     }
 
-    fun getRoomData(hash: Int) = roomList.find { hash in it.cores }
-    fun getRoomData(name: String) = roomList.find { it.name == name }
+    fun getRoomData(hash: Int) = roomsByCore[hash]
+    fun getRoomData(name: String) = roomsByName[name]
 
     fun getRoomGraf(pos: Vec3): Pair<Int, Int> {
         val roomIndexX = round((pos.x - startX) / DungeonScanner.roomSize).toInt()
@@ -92,36 +93,18 @@ object ScanUtils: ISelfInit, ICommandProvider, Shortcuts {
     }
 
     fun getCore(x: Int, z: Int): Int {
-        val blocks = ArrayList<String>(CORE_HEIGHT)
         val pos = BlockPos.MutableBlockPos(x, 0, z)
+        var hash = 1
 
         for (y in 140 downTo 12) {
             val block = WorldUtils.getStateAt(pos.setY(y)).block
-            blocks += coreTokenCache.getOrPut(block) {
+            val tokenHash = coreTokenCache.getOrPut(block) {
                 val name = BuiltInRegistries.BLOCK.getKey(block).toString()
-                if (name in ignoredCoreBlocks || name.endsWith("_planks")) "minecraft:air" else name
+                (if (name in ignoredCoreBlocks || name.endsWith("_planks")) "minecraft:air" else name).hashCode()
             }
+            hash = hash * 31 + tokenHash
         }
-        return murmur3(blocks)
-    }
-
-    private fun murmur3(blocks: List<String>): Int {
-        var h = 0x9747b28c.toInt()
-        for ((index, block) in blocks.withIndex()) {
-            var k = block.hashCode() xor (index * 0x1b873593)
-            k *= 0xcc9e2d51.toInt()
-            k = (k shl 15) or (k ushr 17)
-            k *= 0x1b873593
-            h = h xor k
-            h = (h shl 13) or (h ushr 19)
-            h = h * 5 + 0xe6546b64.toInt()
-        }
-        h = h xor (blocks.size * 4)
-        h = h xor (h ushr 16)
-        h *= 0x85ebca6b.toInt()
-        h = h xor (h ushr 13)
-        h *= 0xc2b2ae35.toInt()
-        return h xor (h ushr 16)
+        return hash
     }
 
     fun getHighestY(x: Int, z: Int): Int {
