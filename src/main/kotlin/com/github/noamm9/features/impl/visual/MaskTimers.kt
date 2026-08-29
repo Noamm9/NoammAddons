@@ -1,18 +1,20 @@
 package com.github.noamm9.features.impl.visual
 
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.RenderOverlayEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.RenderHelper.width
+import gg.essential.universal.UResolution
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import net.minecraft.world.entity.EquipmentSlot
@@ -35,10 +37,10 @@ object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and mo
         val checkWorn: () -> Boolean
     ) {
         BONZO("Bonzo", "Mask", "&9", 180 * 20, 3 * 20, Regex("Your (?:.+ )?Bonzo's Mask saved your life!"), {
-            mc.player?.getItemBySlot(EquipmentSlot.HEAD)?.skyblockId?.contains("BONZO_MASK") == true
+            "BONZO_MASK" in player.getItemBySlot(EquipmentSlot.HEAD).skyblockId
         }),
         SPIRIT("Spirit", "Mask", "&f", 30 * 20, 3 * 20, Regex("Second Wind Activated! Your Spirit Mask saved your life!"), {
-            mc.player?.getItemBySlot(EquipmentSlot.HEAD)?.skyblockId?.contains("SPIRIT_MASK") == true
+            "SPIRIT_MASK" in player.getItemBySlot(EquipmentSlot.HEAD).skyblockId
         }),
         PHOENIX("Phoenix", "Pet", "&c", 60 * 20, 4 * 20, Regex("Your Phoenix Pet saved you from certain death!"), {
             (cacheData.get()["pet"] as? JsonPrimitive)?.contentOrNull.toString().contains("Phoenix")
@@ -80,7 +82,7 @@ object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and mo
                     else "${mask.color}${mask.displayName} $arrow &aReady"
                 }
 
-                Render2D.drawString(context, text, 0, yOffset.toInt())
+                context.drawString(text, 0, yOffset.toInt())
                 maxWidth = maxOf(maxWidth, text.width().toFloat())
                 yOffset += 10f
             }
@@ -130,10 +132,9 @@ object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and mo
             val color = if (active.invulnLeft < 20) "&c" else "&a"
             val str = "${active.color}${active.displayName}: $color${(active.invulnLeft / 20.0).toFixed(1)}"
 
-            Render2D.drawCenteredString(
-                event.context, str,
-                mc.window.guiScaledWidth / 2f,
-                mc.window.guiScaledHeight / 3f,
+            event.context.drawCenteredString(
+                str, UResolution.scaledWidth / 2f,
+                UResolution.scaledHeight / 3f,
                 scale = 1.5f
             )
         }

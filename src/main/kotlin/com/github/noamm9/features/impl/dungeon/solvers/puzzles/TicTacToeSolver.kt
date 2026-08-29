@@ -9,22 +9,22 @@ import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.color
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.prediction
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.predictionColor
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.preventMissClick
+import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D
-import com.github.noamm9.utils.render.RenderContext
+import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
+import com.github.noamm9.utils.render.world.RenderContext
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
-import net.minecraft.world.entity.EntityTypes
+import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.decoration.ItemFrame
 import net.minecraft.world.item.MapItem
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.phys.AABB
 import java.awt.Color
 import java.util.concurrent.*
 
@@ -39,12 +39,10 @@ object TicTacToeSolver: PuzzleSolver {
     private var aiPredictions = CopyOnWriteArrayList<BlockPos>()
     private var prefirePredictions = CopyOnWriteArrayList<BlockPos>()
 
-    private const val UNPLAYED = '\u0000'
-
     override fun onStateChange(event: DungeonEvent.RoomEvent.onStateChange) {
         if (event.room.name != "Tic Tac Toe") return
         if (event.newState != RoomState.DISCOVERED) return
-        solveAsync()
+        solve()
     }
 
     override fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
@@ -52,16 +50,15 @@ object TicTacToeSolver: PuzzleSolver {
         inTicTacToe = true
         roomCenter = event.room.centerPos
         rotation = event.room.rotation
-        solveAsync()
+        solve()
     }
 
     override fun onPacket(event: MainThreadPacketReceivedEvent.Pre) {
         if (! inTicTacToe) return
         val packet = event.packet as? ClientboundAddEntityPacket ?: return
-        if (packet.type != EntityTypes.ITEM_FRAME) return
-        solveAsync()
+        if (packet.type != EntityType.ITEM_FRAME) return
+        solve()
     }
-
 
     override fun onInteract(event: PlayerInteractEvent.RIGHT_CLICK.BLOCK) {
         if (! inTicTacToe || ! preventMissClick.value) return
@@ -73,24 +70,13 @@ object TicTacToeSolver: PuzzleSolver {
     override fun onRenderWorld(ctx: RenderContext) {
         if (! inTicTacToe) return
 
-        bestMoves.forEach { renderTTTBox(ctx, it, color.value) }
+        bestMoves.forEach { ctx.renderTTTBox(it, color.value) }
 
         if (prediction.value) {
-            aiPredictions.forEach { renderTTTBox(ctx, it, Color.RED) }
-            prefirePredictions.forEach { renderTTTBox(ctx, it, predictionColor.value) }
+            aiPredictions.forEach { ctx.renderTTTBox(it, Color.RED) }
+            prefirePredictions.forEach { ctx.renderTTTBox(it, predictionColor.value) }
         }
     }
-
-
-    private fun solveAsync() {
-        ThreadUtils.scheduledTaskServer(3) {
-            ThreadUtils.async {
-                val center = roomCenter ?: return@async
-                scanBoard(center)
-            }
-        }
-    }
-
 
     override fun reset() {
         inTicTacToe = false
@@ -101,18 +87,19 @@ object TicTacToeSolver: PuzzleSolver {
         rotation = null
     }
 
-    private fun scanBoard(center: BlockPos) {
-        val level = mc.level ?: return
-        val aabb = AABB(center.x - 9.0, 65.0, center.z - 9.0, center.x + 9.0, 73.0, center.z + 9.0)
+    private fun solve() = ThreadUtils.scheduledTaskServer(3) solve@{
+        val center = roomCenter ?: return@solve
+        val level = mc.level ?: return@solve
+        val aabb = aabb(center.x - 9, 65, center.z - 9, center.x + 9, 73, center.z + 9)
 
         val frames = level.getEntitiesOfClass(ItemFrame::class.java, aabb).filter {
             it.item.item is MapItem && it.item.has(DataComponents.MAP_ID)
         }
 
-        if (frames.size == 8) return reset()
-        if (frames.size % 2 == 0) return
+        if (frames.size == 8) return@solve reset()
+        if (frames.size % 2 == 0) return@solve
 
-        val board = CharArray(9) { UNPLAYED }
+        val board = CharArray(9) { TicTacToeUtils.UNPLAYED }
         var leftmostRow: BlockPos? = null
         var facing = 'X'
         var sign = 1
@@ -147,7 +134,7 @@ object TicTacToeSolver: PuzzleSolver {
             else if (byteColor == 33) board[index] = 'O' // Player
         }
 
-        if (leftmostRow == null) return
+        if (leftmostRow == null) return@solve
         bestMoves.clear(); aiPredictions.clear(); prefirePredictions.clear()
 
         val playerBestIndices = TicTacToeUtils.findBestMoves(board, 'O', 'X')
@@ -183,7 +170,7 @@ object TicTacToeSolver: PuzzleSolver {
         return BlockPos(drawX, drawY, drawZ)
     }
 
-    private fun renderTTTBox(ctx: RenderContext, pos: BlockPos, color: Color) {
+    private fun RenderContext.renderTTTBox(pos: BlockPos, color: Color) {
         val rotation = rotation ?: return
         if (WorldUtils.getBlockAt(pos) != Blocks.STONE_BUTTON) return
 
@@ -234,30 +221,32 @@ object TicTacToeSolver: PuzzleSolver {
             else -> return
         }
 
-        Render3D.renderBoxBounds(ctx, minX, minY, minZ, maxX, maxY, maxZ, color, fill = true, outline = false)
+        renderBoxBounds(minX, minY, minZ, maxX, maxY, maxZ, color, outline = false)
     }
 
     /**
      * Minimax algorithm for Tic-tac-toe
      * based off https://gnoht.com/til/ttt-with-minimax/
+     * Player = 'O' (Maximizer), AI = 'X' (Minimizer)
      */
     private object TicTacToeUtils {
-        // Player = 'O' (Maximizer), AI = 'X' (Minimizer)
+        const val UNPLAYED = '\u0000'
 
         private val WIN_SETS = arrayOf(
-            intArrayOf(0, 1, 2), intArrayOf(3, 4, 5), intArrayOf(6, 7, 8),
-            intArrayOf(0, 3, 6), intArrayOf(1, 4, 7), intArrayOf(2, 5, 8),
+            intArrayOf(0, 1, 2), intArrayOf(3, 4, 5),
+            intArrayOf(6, 7, 8), intArrayOf(0, 3, 6),
+            intArrayOf(1, 4, 7), intArrayOf(2, 5, 8),
             intArrayOf(0, 4, 8), intArrayOf(6, 4, 2)
         )
 
         fun isWon(p: CharArray): Boolean {
             for (ws in WIN_SETS) {
-                if (p[ws[0]] != '\u0000' && p[ws[0]] == p[ws[1]] && p[ws[0]] == p[ws[2]]) return true
+                if (p[ws[0]] != UNPLAYED && p[ws[0]] == p[ws[1]] && p[ws[0]] == p[ws[2]]) return true
             }
             return false
         }
 
-        private fun getAvailableMoves(p: CharArray) = p.indices.filter { p[it] == '\u0000' }
+        private fun getAvailableMoves(p: CharArray) = p.indices.filter { p[it] == UNPLAYED }
 
         fun findBestMoves(board: CharArray, player: Char, opponent: Char): List<Int> {
             val moves = getAvailableMoves(board)
@@ -304,4 +293,3 @@ object TicTacToeSolver: PuzzleSolver {
         }
     }
 }
-

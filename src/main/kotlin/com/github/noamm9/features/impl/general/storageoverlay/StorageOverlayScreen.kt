@@ -3,22 +3,31 @@
 package com.github.noamm9.features.impl.general.storageoverlay
 
 import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.impl.dev.ClickGui
 import com.github.noamm9.features.impl.general.FEAT_ItemRarity
+import com.github.noamm9.features.impl.general.ItemTooltip
 import com.github.noamm9.features.impl.misc.InventorySearch
-import com.github.noamm9.features.impl.misc.ScrollableTooltip
 import com.github.noamm9.mixin.IAbstractContainerScreen
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.ItemRenderer
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawBorder
+import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.Render2D.scissor
+import gg.essential.universal.UKeyboard
+import gg.essential.universal.UMinecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.core.component.DataComponents
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Inventory
+import net.minecraft.world.inventory.AbstractContainerMenu
 import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.inventory.Slot
 import net.minecraft.world.item.ItemStack
@@ -58,6 +67,13 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     private var knobGrabbed = false
     private var hoveredOverlayItem: ItemStack? = null
 
+    private var dragType = 0
+    private var dragStartSlot: Slot? = null
+    private val dragSlots = LinkedHashSet<Int>()
+    private var dragPreview: DragPreview? = null
+    private val dragArmed get() = dragStartSlot != null
+    private val dragActive get() = dragSlots.size >= 2
+
     var containerScreen: ContainerScreen? = null
     var pendingCenterPage: StoragePage? = null
     var storageMenu: StorageMenu? = null
@@ -74,6 +90,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     }
 
     private var measurements = Measurements()
+    private var measurementsValid = false
 
     private val scrollPanelX get() = measurements.x + PADDING
     private val scrollPanelY get() = measurements.y + PADDING
@@ -84,20 +101,21 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     private val scrollBarY get() = measurements.y + PADDING
     private val scrollBarH get() = measurements.innerScrollPanelHeight
     private val maxScroll get() = (lastRenderedInnerHeight.toFloat() + 6 - measurements.innerScrollPanelHeight).coerceAtLeast(0f)
+    private val screenMenu get() = (UMinecraft.currentScreenObj as? AbstractContainerScreen<*>)?.menu
 
     override fun init() {
         super.init()
-        Resolution.refresh()
         val oldMax = maxScroll
         val scrollPct = if (oldMax > 0) scroll / oldMax else 0f
         pageWidthCount = StorageOverlay.columnsSetting.value.coerceAtMost((width - PADDING) / (PAGE_WIDTH + PADDING)).coerceAtLeast(1)
         measurements = Measurements()
         val newMax = maxScroll
-        scroll = (scrollPct * newMax).coerceAtMost(newMax).coerceAtLeast(0f)
+        scroll = (if (measurementsValid) scrollPct * newMax else scroll).coerceIn(0f, newMax)
+        measurementsValid = true
     }
 
-    private fun centerOnPage(target: StoragePage) {
-        val rows = StorageOverlay.storageMenuData.entries.chunked(pageWidthCount)
+    private fun centerOnPage(target: StoragePage, data: SortedMap<StoragePage, NBTInventory?>) {
+        val rows = data.entries.chunked(pageWidthCount)
         var y = 0
         var center = - 1f
         for (row in rows) {
@@ -112,14 +130,18 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
     private fun resetTooltip(prev: ItemStack?) {
         if (hoveredOverlayItem === prev) return
-        ScrollableTooltip.scrollAmountX = 0f
-        ScrollableTooltip.scrollAmountY = 0f
-        ScrollableTooltip.scaleOverride = 0f
+        ItemTooltip.resetScroll()
     }
 
-    private fun GuiGraphicsExtractor.drawPages(mouseX: Int, mouseY: Int, excluding: StoragePage?, slots: List<Slot>?, originalMouseX: Int, originalMouseY: Int) {
-        enableScissor(scrollPanelX, scrollPanelY, scrollPanelX + scrollPanelW + ACTIVE_PAGE_BORDER_THICKNESS, scrollPanelY + scrollPanelH)
-        val data = StorageOverlay.storageMenuData
+    private fun GuiGraphicsExtractor.setOverlayTooltip(stack: ItemStack, mouseX: Int, mouseY: Int) {
+        val screen = containerScreen ?: return
+        val event = ContainerEvent.Render.Tooltip(screen, this, stack, mouseX, mouseY, getTooltipFromItem(mc, stack).toMutableList())
+        if (EventBus.post(event)) return
+        setTooltipForNextFrame(font, event.lore, stack.tooltipImage, mouseX, mouseY, stack.get(DataComponents.TOOLTIP_STYLE))
+    }
+
+    private fun GuiGraphicsExtractor.drawPages(data: SortedMap<StoragePage, NBTInventory?>, mouseX: Int, mouseY: Int, excluding: StoragePage?, slots: List<Slot>?, originalMouseX: Int, originalMouseY: Int) {
+        scissor(scrollPanelX, scrollPanelY, scrollPanelW + ACTIVE_PAGE_BORDER_THICKNESS, scrollPanelH)
         val viewTop = scrollPanelY
         val viewBottom = scrollPanelY + scrollPanelH
         layoutedForEach(data) { x, y, _, ph, page, inventory ->
@@ -131,9 +153,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         disableScissor()
     }
 
-    private fun GuiGraphicsExtractor.drawPagesDecorations(excluding: StoragePage?, slots: List<Slot>?) {
-        enableScissor(scrollPanelX, scrollPanelY, scrollPanelX + scrollPanelW + ACTIVE_PAGE_BORDER_THICKNESS, scrollPanelY + scrollPanelH)
-        val data = StorageOverlay.storageMenuData
+    private fun GuiGraphicsExtractor.drawPagesDecorations(data: SortedMap<StoragePage, NBTInventory?>, excluding: StoragePage?, slots: List<Slot>?) {
+        scissor(scrollPanelX, scrollPanelY, scrollPanelW + ACTIVE_PAGE_BORDER_THICKNESS, scrollPanelH)
         val viewTop = scrollPanelY
         val viewBottom = scrollPanelY + scrollPanelH
         layoutedForEach(data) { x, y, _, ph, page, inventory ->
@@ -149,19 +170,21 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
                 val slotX = (index % 9) * SLOT_SIZE + x + 3
                 val slotY = (index / 9) * SLOT_SIZE + slotsY + 1
                 if (slotY + 16 < viewTop || slotY > viewBottom) continue
-                val displayStack = if (excluding == page && slots != null && index < slots.size) slots[index].item else invStacks?.get(index) ?: continue
-                if (! displayStack.isEmpty) itemDecorations(mc.font, displayStack, slotX, slotY)
+                val menuSlot = if (excluding == page && slots != null && index < slots.size) slots[index] else null
+                val displayStack = menuSlot?.item ?: invStacks?.get(index) ?: continue
+                val deco = menuSlot?.let { dragPreview?.stacks?.get(it.index) } ?: displayStack
+                if (! deco.isEmpty) itemDecorations(mc.font, deco, slotX, slotY)
             }
         }
         disableScissor()
     }
 
     private fun GuiGraphicsExtractor.drawScrollBar() {
-        Render2D.drawRect(this, scrollBarX, scrollBarY, SCROLL_BAR_WIDTH, scrollBarH, scrollBgColor)
+        this.drawRect(scrollBarX, scrollBarY, SCROLL_BAR_WIDTH, scrollBarH, scrollBgColor)
         val maxScroll = maxScroll
         val percentage = if (maxScroll > 0) scroll / maxScroll else 0f
         val knobY = scrollBarY + (percentage * (scrollBarH - SCROLL_BAR_HEIGHT)).toInt()
-        Render2D.drawRect(this, scrollBarX, knobY, SCROLL_BAR_WIDTH, SCROLL_BAR_HEIGHT, scrollKnobColor)
+        this.drawRect(scrollBarX, knobY, SCROLL_BAR_WIDTH, SCROLL_BAR_HEIGHT, scrollKnobColor)
     }
 
     private fun getPlayerInvSlotPos(index: Int): Pair<Int, Int> {
@@ -207,45 +230,46 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
         for (i in 0 until 36) {
             val item = items[i]
+            val renderStack = dragPreview?.playerStacks?.get(i) ?: item
             val (sx, sy) = getPlayerInvSlotPos(i)
             val isSlotHovered = inRect(mouseX, mouseY, sx - 1, sy - 1, 16 + 2, 16 + 2)
 
-            if (! item.isEmpty) {
-                if (FEAT_ItemRarity.enabled) FEAT_ItemRarity.onSlotDraw(this, item, sx, sy)
-                if (InventorySearch.matches(item)) {
-                    Render2D.drawRect(this, sx, sy, 16, 16, InventorySearch.color)
+            if (! renderStack.isEmpty) {
+                if (FEAT_ItemRarity.enabled) FEAT_ItemRarity.onSlotDraw(this, renderStack, sx, sy)
+                if (InventorySearch.matches(renderStack)) {
+                    this.drawRect(sx, sy, 16, 16, InventorySearch.color)
                 }
 
-                ItemRenderer.drawBatchedItemStack(this, item, sx, sy)
+                ItemRenderer.drawBatchedItemStack(this, renderStack, sx, sy)
 
-                if (hoveredStack == null && isSlotHovered) hoveredStack = item
+                if (hoveredStack == null && isSlotHovered && ! item.isEmpty) hoveredStack = item
             }
 
-            if (isSlotHovered) Render2D.drawRect(this, sx, sy, 16, 16, Color.white.withAlpha(50))
+            if (isSlotHovered) this.drawRect(sx, sy, 16, 16, Color.white.withAlpha(50))
         }
 
         ItemRenderer.endItemRendererBatch(this)
 
         if (hoveredStack != null) {
             hoveredOverlayItem = hoveredStack
-            setTooltipForNextFrame(font, hoveredStack, originalMouseX, originalMouseY)
+            setOverlayTooltip(hoveredStack, originalMouseX, originalMouseY)
         }
     }
 
     private fun GuiGraphicsExtractor.drawPlayerInventoryDecorations() {
         val items = mc.player?.inventory?.nonEquipmentItems ?: return
         for (i in 0 until 36) {
-            val item = items[i]
+            val deco = dragPreview?.playerStacks?.get(i) ?: items[i]
             val (sx, sy) = getPlayerInvSlotPos(i)
-            if (! item.isEmpty) itemDecorations(mc.font, item, sx, sy)
+            if (! deco.isEmpty) itemDecorations(mc.font, deco, sx, sy)
         }
     }
 
     private fun GuiGraphicsExtractor.drawPage(x: Int, y: Int, page: StoragePage, inventory: NBTInventory?, slots: List<Slot>?, mouseX: Int, mouseY: Int, originalMouseX: Int, originalMouseY: Int): Int {
         if (inventory == null && slots == null) {
-            Render2D.drawRect(this, x, y, PAGE_WIDTH, 18, slotBgColor)
-            Render2D.drawBorder(this, x, y, PAGE_WIDTH, 18, menuBorderColor)
-            Render2D.drawString(this, page.name + " - Click to load", x + 4f, y + 5f, Color(180, 180, 180))
+            this.drawRect(x, y, PAGE_WIDTH, 18, slotBgColor)
+            this.drawBorder(x, y, PAGE_WIDTH, 18, menuBorderColor)
+            this.drawString(page.name + " - Click to load", x + 4f, y + 5f, Color(180, 180, 180))
             return 18
         }
         val rows = inventory?.rows ?: (slots?.size?.div(9)?.coerceIn(1, 5) ?: 3)
@@ -256,7 +280,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val pageHeight = rows * SLOT_SIZE + 8 + font.lineHeight
 
         if (isActive) {
-            Render2D.drawBorder(this, x, y, PAGE_WIDTH + 1, pageHeight, activePageBorder, ACTIVE_PAGE_BORDER_THICKNESS)
+            this.drawBorder(x, y, PAGE_WIDTH + 1, pageHeight, activePageBorder, ACTIVE_PAGE_BORDER_THICKNESS)
         }
 
         text(font, Component.literal(name), x + 6, y + 3, if (isActive) activePageBorder.rgb else 0xFFFFFF, true)
@@ -277,31 +301,63 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             val slotY = (index / 9) * SLOT_SIZE + slotsY + 1
 
             if (slotY + 16 < panelY || slotY > panelY + panelH) continue
-            val displayStack = if (slots != null && index < slots.size) slots[index].item else invStacks?.get(index) ?: continue
+            val menuSlot = if (slots != null && index < slots.size) slots[index] else null
+            val displayStack = menuSlot?.item ?: invStacks?.get(index) ?: continue
+            val renderStack = menuSlot?.let { dragPreview?.stacks?.get(it.index) } ?: displayStack
             val isSlotHovered = inRect(mouseX, mouseY, slotX - 1, slotY - 1, 16 + 2, 16 + 2) && inRect(mouseX, mouseY, panelX, panelY, panelW, panelH)
 
-            if (! displayStack.isEmpty) {
-                if (FEAT_ItemRarity.enabled) FEAT_ItemRarity.onSlotDraw(this, displayStack, slotX, slotY)
-                if (InventorySearch.matches(displayStack)) {
-                    Render2D.drawRect(this, slotX, slotY, 16, 16, InventorySearch.color)
+            if (! renderStack.isEmpty) {
+                if (FEAT_ItemRarity.enabled) FEAT_ItemRarity.onSlotDraw(this, renderStack, slotX, slotY)
+                if (InventorySearch.matches(renderStack)) {
+                    this.drawRect(slotX, slotY, 16, 16, InventorySearch.color)
                 }
 
-                ItemRenderer.drawBatchedItemStack(this, displayStack, slotX, slotY)
+                ItemRenderer.drawBatchedItemStack(this, renderStack, slotX, slotY)
 
-                if (isSlotHovered && hoveredStack == null) {
+                if (isSlotHovered && hoveredStack == null && ! displayStack.isEmpty) {
                     hoveredStack = displayStack
                 }
             }
 
-            if (isSlotHovered) Render2D.drawRect(this, slotX, slotY, 16, 16, Color.white.withAlpha(50))
+            if (isSlotHovered) this.drawRect(slotX, slotY, 16, 16, Color.white.withAlpha(50))
         }
 
         if (hoveredStack != null) {
             if (isActive) hoveredOverlayItem = hoveredStack
-            setTooltipForNextFrame(font, hoveredStack, originalMouseX, originalMouseY)
+            setOverlayTooltip(hoveredStack, originalMouseX, originalMouseY)
         }
 
         return pageHeight + 6
+    }
+
+    private val shouldFilterPages get() = StorageOverlay.hideNonMatchingPages.value && InventorySearch.isSearching
+
+    private fun visibleStorageData(activePage: StoragePage? = (storageMenu as? StorageMenu.Page)?.storagePage, activeSlots: List<Slot>? = null): SortedMap<StoragePage, NBTInventory?> {
+        val data = StorageOverlay.storageMenuData
+        if (! shouldFilterPages) return data
+        val currentSlots = activeSlots ?: containerScreen?.menu?.let { menu ->
+            menu.slots.subList(9, menu.rowCount * 9)
+        }
+
+        return TreeMap<StoragePage, NBTInventory?>().apply {
+            for ((page, inventory) in data) {
+                val hasMatch = if (page == activePage && currentSlots != null) {
+                    currentSlots.any { InventorySearch.matches(it.item) }
+                }
+                else {
+                    inventory?.stacks?.any(InventorySearch::matches) == true
+                }
+
+                if (hasMatch) this[page] = inventory
+            }
+        }
+    }
+
+    private fun updateLayoutHeight(data: SortedMap<StoragePage, NBTInventory?>) {
+        lastRenderedInnerHeight = data.entries
+            .chunked(pageWidthCount)
+            .sumOf { row -> row.maxOf { (_, inventory) -> inventory?.let { it.rows * SLOT_SIZE + 6 + font.lineHeight } ?: 18 } }
+        scroll = scroll.coerceIn(0f, maxScroll)
     }
 
     private inline fun layoutedForEach(data: SortedMap<StoragePage, NBTInventory?>, func: (x: Int, y: Int, pageWidth: Int, pageHeight: Int, page: StoragePage, inventory: NBTInventory?) -> Unit) {
@@ -324,14 +380,13 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         lastRenderedInnerHeight = maxHeight + yOffset + scroll.toInt()
     }
 
-    private fun dispatchActivePageSlotClick(button: Int, modifiers: Int, mouseX: Double, mouseY: Double, activePage: StoragePage): Boolean {
-        val containerScreen = mc.gui.screen() as? AbstractContainerScreen<*> ?: return false
-        val menu = containerScreen.menu
-        val chestSlots = menu.slots.take(menu.slots.size - 36).drop(9)
-        if (chestSlots.isEmpty()) return false
+    private fun activePageSlotAt(mouseX: Double, mouseY: Double, activePage: StoragePage, data: SortedMap<StoragePage, NBTInventory?>): Slot? {
+        val menu = screenMenu ?: return null
+        val chestEnd = menu.slots.size - 36
+        if (chestEnd <= 9) return null
+        val chestSlots = menu.slots.subList(9, chestEnd)
 
         var hit = - 1
-        val data = StorageOverlay.storageMenuData
         layoutedForEach(data) { x, y, _, _, page, inventory ->
             if (page != activePage) return@layoutedForEach
             val inv = inventory ?: return@layoutedForEach
@@ -343,39 +398,74 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             val row = ((mouseY - gridY) / SLOT_SIZE).toInt().coerceIn(0, rows - 1)
             hit = row * 9 + col
         }
-        if (hit < 0 || hit >= chestSlots.size) return false
+        return chestSlots.getOrNull(hit)
+    }
+
+    private fun playerSlotAt(mouseX: Int, mouseY: Int): Slot? {
+        val slotIndex = getPlayerInvIndex(mouseX, mouseY) ?: return null
+        val menu = screenMenu ?: return null
+        return menu.slots.firstOrNull { it.container is Inventory && it.containerSlot == slotIndex }
+    }
+
+    private fun resolveSlotUnder(mouseX: Double, mouseY: Double, activePage: StoragePage?): Slot? {
+        if (activePage != null) activePageSlotAt(mouseX, mouseY, activePage, visibleStorageData())?.let { return it }
+        return playerSlotAt(mouseX.toInt(), mouseY.toInt())
+    }
+
+    private fun dispatchSlotClick(slot: Slot, button: Int, modifiers: Int, input: ContainerInput? = null): Boolean {
+        val menu = screenMenu ?: return false
         val player = mc.player ?: return false
         val gameMode = mc.gameMode ?: return false
-        val targetSlot = chestSlots[hit]
         val shift = (modifiers and GLFW.GLFW_MOD_SHIFT) != 0
-        val clickType = if (shift) ContainerInput.QUICK_MOVE else ContainerInput.PICKUP
-        gameMode.handleContainerInput(menu.containerId, targetSlot.index, button, clickType, player)
+        val clickType = input ?: if (shift) ContainerInput.QUICK_MOVE else ContainerInput.PICKUP
+        gameMode.handleContainerInput(menu.containerId, slot.index, button, clickType, player)
         return true
     }
 
-    private fun dispatchPlayerInventoryClick(button: Int, modifiers: Int, mouseX: Int, mouseY: Int): Boolean {
-        val slotIndex = getPlayerInvIndex(mouseX, mouseY) ?: return false
-        val containerScreen = mc.gui.screen() as? AbstractContainerScreen<*> ?: return false
-        val targetSlot = containerScreen.menu.slots.firstOrNull { it.container is Inventory && it.containerSlot == slotIndex } ?: return false
-        val player = mc.player ?: return false
-        val gameMode = mc.gameMode ?: return false
-        val shift = (modifiers and GLFW.GLFW_MOD_SHIFT) != 0
-        val clickType = if (shift) ContainerInput.QUICK_MOVE else ContainerInput.PICKUP
-        gameMode.handleContainerInput(containerScreen.menu.containerId, targetSlot.index, button, clickType, player)
-        return true
+    private class DragPreview(val stacks: Map<Int, ItemStack>, val playerStacks: Map<Int, ItemStack>, val carriedCount: Int)
+
+    private fun canDragInto(slot: Slot, carried: ItemStack) = slot.mayPlace(carried) && AbstractContainerMenu.canItemQuickReplace(slot, carried, true)
+
+    private fun computeDragPreview(): DragPreview? {
+        if (! dragActive) return null
+        val menu = screenMenu ?: return null
+        val carried = menu.carried
+        if (carried.isEmpty) return null
+
+        val eligible = dragSlots.mapNotNull { menu.slots.getOrNull(it) }.filter { canDragInto(it, carried) }.take(carried.count)
+        if (eligible.size < 2) return null
+
+        val base = AbstractContainerMenu.getQuickCraftPlaceCount(eligible.size, dragType, carried)
+        var remaining = carried.count
+        val stacks = HashMap<Int, ItemStack>()
+        val playerStacks = HashMap<Int, ItemStack>()
+        for (slot in eligible) {
+            val existing = slot.item
+            val existingCount = if (existing.isEmpty) 0 else existing.count
+            val max = minOf(carried.maxStackSize, slot.getMaxStackSize(carried))
+            val amount = (existingCount + base).coerceAtMost(max)
+            remaining -= amount - existingCount
+            val ghost = carried.copyWithCount(amount)
+            stacks[slot.index] = ghost
+            if (slot.container is Inventory) playerStacks[slot.containerSlot] = ghost
+        }
+        return DragPreview(stacks, playerStacks, remaining.coerceAtLeast(0))
+    }
+
+    private fun endDrag() {
+        val menu = screenMenu ?: return
+        val player = mc.player ?: return
+        val gameMode = mc.gameMode ?: return
+        val id = menu.containerId
+        gameMode.handleContainerInput(id, - 999, AbstractContainerMenu.getQuickcraftMask(0, dragType), ContainerInput.QUICK_CRAFT, player)
+        for (index in dragSlots) gameMode.handleContainerInput(id, index, AbstractContainerMenu.getQuickcraftMask(1, dragType), ContainerInput.QUICK_CRAFT, player)
+        gameMode.handleContainerInput(id, - 999, AbstractContainerMenu.getQuickcraftMask(2, dragType), ContainerInput.QUICK_CRAFT, player)
     }
 
     @Suppress("SameReturnValue")
     fun mouseScrolled(verticalAmount: Double): Boolean {
-        if (hoveredOverlayItem != null && ScrollableTooltip.enabled && StorageOverlay.enableTooltipInStorage.value) {
-            val scroll = (verticalAmount * ScrollableTooltip.scrollSpeed.value).toFloat()
-            val holdingShift = GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS
-            val holdingCtrl = GLFW.glfwGetKey(mc.window.handle(), GLFW.GLFW_KEY_LEFT_CONTROL) == GLFW.GLFW_PRESS
-            when {
-                holdingShift && ! holdingCtrl -> ScrollableTooltip.scrollAmountX -= scroll
-                ! holdingShift && holdingCtrl -> ScrollableTooltip.applyScaleScroll(verticalAmount)
-                else -> ScrollableTooltip.scrollAmountY += scroll
-            }
+        if (hoveredOverlayItem != null && ItemTooltip.isScrollingEnabled() && StorageOverlay.enableTooltipInStorage.value) {
+            ItemTooltip.applyScroll(verticalAmount)
             return true
         }
 
@@ -384,7 +474,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         return true
     }
 
-    fun mouseClicked(click: MouseButtonEvent): Boolean {
+    fun onOverlayClick(click: MouseButtonEvent, doubled: Boolean): Boolean {
         val activePage = (storageMenu as? StorageMenu.Page)?.storagePage
         val button = click.button()
         val modifiers = click.modifiers()
@@ -393,9 +483,22 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val resolutionMouseX = Resolution.getMouseX(click.x()) / scale.toDouble()
         val resolutionMouseY = Resolution.getMouseY(click.y()) / scale.toDouble()
 
+        val carried = screenMenu?.carried
+        if (carried != null && ! carried.isEmpty && (button == 0 || button == 1)) {
+            val slot = resolveSlotUnder(resolutionMouseX, resolutionMouseY, activePage)
+            if (slot != null) {
+                if (doubled && button == 0) return dispatchSlotClick(slot, 0, 0, ContainerInput.PICKUP_ALL)
+                dragType = button
+                dragStartSlot = slot
+                dragSlots.clear()
+                dragSlots.add(slot.index)
+                return true
+            }
+        }
+
         if (inRect(resolutionMouseX, resolutionMouseY, scrollPanelX, scrollPanelY, scrollPanelW, scrollPanelH)) {
-            val data = StorageOverlay.storageMenuData
-            if (activePage != null && dispatchActivePageSlotClick(button, modifiers, resolutionMouseX, resolutionMouseY, activePage)) return true
+            val data = visibleStorageData()
+            if (activePage != null) activePageSlotAt(resolutionMouseX, resolutionMouseY, activePage, data)?.let { return dispatchSlotClick(it, button, modifiers) }
             layoutedForEach(data) { x, y, pw, ph, page, _ ->
                 if (inRect(resolutionMouseX, resolutionMouseY, x, y, pw, ph) && activePage != page && button == 0) {
                     page.open()
@@ -412,16 +515,34 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             return true
         }
 
-        return dispatchPlayerInventoryClick(button, modifiers, resolutionMouseX.toInt(), resolutionMouseY.toInt())
+        val playerSlot = playerSlotAt(resolutionMouseX.toInt(), resolutionMouseY.toInt()) ?: return false
+        return dispatchSlotClick(playerSlot, button, modifiers)
     }
 
     fun mouseReleased(): Boolean {
+        if (dragArmed) {
+            if (dragActive) endDrag()
+            else dragStartSlot?.let {
+                dispatchSlotClick(it, dragType, if (UKeyboard.isShiftKeyDown()) GLFW.GLFW_MOD_SHIFT else 0)
+            }
+            dragSlots.clear()
+            dragStartSlot = null
+            return true
+        }
         if (! knobGrabbed) return false
         knobGrabbed = false
         return true
     }
 
-    fun mouseDragged(mouseY: Double): Boolean {
+    fun mouseDragged(mouseX: Double, mouseY: Double): Boolean {
+        if (dragArmed) {
+            val scale = StorageOverlay.scaleSetting.value
+            val rx = Resolution.getMouseX(mouseX) / scale.toDouble()
+            val ry = Resolution.getMouseY(mouseY) / scale.toDouble()
+            val activePage = (storageMenu as? StorageMenu.Page)?.storagePage
+            resolveSlotUnder(rx, ry, activePage)?.let { dragSlots.add(it.index) }
+            return true
+        }
         if (! knobGrabbed) return false
         val scale = StorageOverlay.scaleSetting.value
         val percentage = ((Resolution.getMouseY(mouseY) / scale - scrollBarY) / scrollBarH.toDouble()).coerceIn(0.0, 1.0)
@@ -442,9 +563,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
     fun renderContainerOverlay(context: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
         val screen = containerScreen ?: return
-        Resolution.refresh()
         updateBounds()
-        pendingCenterPage?.let(::centerOnPage)
+        dragPreview = computeDragPreview()
         val prevHovered = hoveredOverlayItem
         hoveredOverlayItem = null
         Resolution.push(context)
@@ -452,16 +572,19 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         context.pose().scale(scale)
         val scaledMouseX = (Resolution.getMouseX(mouseX.toDouble()) / scale).toInt()
         val scaledMouseY = (Resolution.getMouseY(mouseY.toDouble()) / scale).toInt()
-        Render2D.drawRect(context, measurements.x, measurements.y, measurements.overviewWidth, measurements.overviewHeight, menuBackgroundColor)
-        Render2D.drawBorder(context, measurements.x, measurements.y, measurements.overviewWidth, measurements.overviewHeight, Color(60, 60, 65))
+        context.drawRect(measurements.x, measurements.y, measurements.overviewWidth, measurements.overviewHeight, menuBackgroundColor)
+        context.drawBorder(measurements.x, measurements.y, measurements.overviewWidth, measurements.overviewHeight, Color(60, 60, 65))
         val activeSlot = (storageMenu as? StorageMenu.Page)?.storagePage
-        val chestSlots = screen.menu.slots.take(screen.menu.rowCount * 9).drop(9)
+        val chestSlots = screen.menu.slots.subList(9, screen.menu.rowCount * 9)
+        val data = visibleStorageData(activeSlot, chestSlots)
+        if (shouldFilterPages) updateLayoutHeight(data)
+        pendingCenterPage?.let { centerOnPage(it, data) }
 
-        context.drawPages(scaledMouseX, scaledMouseY, activeSlot, chestSlots, mouseX, mouseY)
+        context.drawPages(data, scaledMouseX, scaledMouseY, activeSlot, chestSlots, mouseX, mouseY)
         context.drawScrollBar()
         context.drawPlayerInventory(scaledMouseX, scaledMouseY, mouseX, mouseY)
 
-        context.drawPagesDecorations(activeSlot, chestSlots)
+        context.drawPagesDecorations(data, activeSlot, chestSlots)
         context.drawPlayerInventoryDecorations()
 
         Resolution.pop(context)
@@ -472,16 +595,17 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val screen = containerScreen ?: return false
         val carried = screen.menu.carried
         if (carried.isEmpty) return true
+        val shown = dragPreview?.let { carried.copyWithCount(it.carriedCount) } ?: carried
+        if (shown.isEmpty) return true
 
-        Resolution.refresh()
         Resolution.push(context)
         val scale = StorageOverlay.scaleSetting.value
         context.pose().scale(scale)
         val scaledMouseX = (Resolution.getMouseX(mouseX.toDouble()) / scale).toInt() - 8
         val scaledMouseY = (Resolution.getMouseY(mouseY.toDouble()) / scale).toInt() - 8
-        ItemRenderer.drawBatchedItemStack(context, carried, scaledMouseX, scaledMouseY)
+        ItemRenderer.drawBatchedItemStack(context, shown, scaledMouseX, scaledMouseY)
         ItemRenderer.endItemRendererBatch(context)
-        context.itemDecorations(screen.font, carried, scaledMouseX, scaledMouseY)
+        context.itemDecorations(screen.font, shown, scaledMouseX, scaledMouseY)
         Resolution.pop(context)
         return true
     }
@@ -489,6 +613,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     fun isPointOverSlot(slot: Slot, xO: Int, yO: Int, pX: Double, pY: Double) = inRect(pX, pY, slot.x + xO, slot.y + yO, 16, 16)
     fun onContainerClose() {
         if (! StorageOverlay.retainScrollSetting.value) scroll = 0f
+        dragStartSlot = null
+        dragSlots.clear()
         isExiting = true
     }
 }

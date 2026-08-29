@@ -14,10 +14,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(KeyboardHandler.class)
 public abstract class KeyboardMixin {
     @Inject(method = "keyPress", at = @At("HEAD"), cancellable = true)
-    private void onKey(long handle, int action, KeyEvent event, CallbackInfo ci) {
-        if (event.key() == GLFW.GLFW_KEY_UNKNOWN) return;
-        if (action == GLFW.GLFW_RELEASE) return;
-        if (EventBus.post(new KeyboardEvent.KeyPressed(event, action))) {
+    private void onKey(long l, int i, KeyEvent keyEvent, CallbackInfo ci) {
+        if (keyEvent.key() == GLFW.GLFW_KEY_UNKNOWN) return;
+        if (i == GLFW.GLFW_RELEASE) return;
+        if (EventBus.post(new KeyboardEvent.KeyPressed(keyEvent, i))) {
             ci.cancel();
         }
     }

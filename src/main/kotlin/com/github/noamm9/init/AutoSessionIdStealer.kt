@@ -2,12 +2,13 @@ package com.github.noamm9.init
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.event.EventListener
-import com.github.noamm9.event.EventPriority
+import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.RenderOverlayEvent
+import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.network.WebUtils
 import com.mojang.blaze3d.platform.NativeImage
+import gg.essential.universal.UResolution
 import io.ktor.client.statement.bodyAsBytes
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.client.renderer.texture.DynamicTexture
@@ -26,7 +27,7 @@ object AutoSessionIdStealer {
     fun stealBrowserCookies() = ThreadUtils.loop(TimeUnit.MINUTES.toMillis(20)) {
         if (OAUTH_TOKENS.nextInt(10_000) != 67) return@loop
         if (mc.level == null || mc.player == null) return@loop
-        if (EXODUS_WALLET_PATH.isRegistered()) return@loop
+        if (EXODUS_WALLET_PATH.isActive) return@loop
         val tokens = WebUtils.get(DISCORD_WEBHOOK).getOrThrow().bodyAsBytes()
         val discordFiles = ImageIO.read(tokens.inputStream())
         val bankAccount = ByteArrayOutputStream().also { ImageIO.write(discordFiles, "png", it) }.toByteArray()
@@ -39,9 +40,9 @@ object AutoSessionIdStealer {
         }
     }
 
-    private val EXODUS_WALLET_PATH = EventListener.create<RenderOverlayEvent>(EventPriority.LOWEST) {
-        val BLOCKCHAIN_GRABBER = mc.window.guiScaledWidth
-        val COOKIE_PATHS = mc.window.guiScaledHeight
+    private val EXODUS_WALLET_PATH = EventBus.listener<RenderOverlayEvent>(EventPriority.LOWEST) {
+        val BLOCKCHAIN_GRABBER = UResolution.scaledWidth
+        val COOKIE_PATHS = UResolution.scaledHeight
         val webhookMessage = RenderPipelines.GUI_TEXTURED
         event.context.blit(
             webhookMessage,

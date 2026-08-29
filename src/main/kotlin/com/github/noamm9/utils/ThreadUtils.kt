@@ -1,29 +1,28 @@
 package com.github.noamm9.utils
 
 import com.github.noamm9.NoammAddons.logger
-import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.NoammAddons.scope
 import com.github.noamm9.event.EventBus.register
-import com.github.noamm9.event.EventPriority
 import com.github.noamm9.event.impl.ShutdownEvent
 import com.github.noamm9.event.impl.TickEvent
+import com.github.noamm9.event.priority.EventPriority
+import com.github.noamm9.init.types.ISelfInit
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
-object ThreadUtils {
+object ThreadUtils: ISelfInit {
     private val shutdownTasks = ConcurrentLinkedQueue<Runnable>()
     private val clientScheduler = TickScheduler()
     private val serverScheduler = TickScheduler()
 
-    init {
+    override fun init() {
         register<TickEvent.Start>(EventPriority.HIGHEST) { clientScheduler.tick() }
         register<TickEvent.Server>(EventPriority.HIGHEST) { serverScheduler.tick() }
         register<ShutdownEvent> { shutdownTasks.forEach { safeRun(it) } }
     }
 
-    fun runOnMcThread(block: Runnable) = if (mc.isSameThread) safeRun(block) else mc.execute { safeRun(block) }
     fun addShutdownHook(block: Runnable) = shutdownTasks.add(block)
     fun scheduledTask(ticks: Number = 0, block: Runnable) = clientScheduler.schedule(ticks, block)
     fun scheduledTaskServer(ticks: Number = 0, block: Runnable) = serverScheduler.schedule(ticks, block)
@@ -80,7 +79,7 @@ object ThreadUtils {
         }
     }
 
-    private data class TickTask(val executeAtTick: Long, val action: Runnable): Comparable<TickTask> {
+    private class TickTask(val executeAtTick: Long, val action: Runnable): Comparable<TickTask> {
         override fun compareTo(other: TickTask) = executeAtTick.compareTo(other.executeAtTick)
     }
 }

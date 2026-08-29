@@ -9,8 +9,9 @@ import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.showAll
 import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
-import com.github.noamm9.utils.render.Render3D
-import com.github.noamm9.utils.render.RenderContext
+import com.github.noamm9.utils.render.world.Render3D.renderBlock
+import com.github.noamm9.utils.render.world.Render3D.renderBox
+import com.github.noamm9.utils.render.world.RenderContext
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.ButtonBlock
 import net.minecraft.world.level.block.ChestBlock
@@ -82,17 +83,14 @@ object BoulderSolver: PuzzleSolver {
     }
 
     private fun renderBox(ctx: RenderContext, box: BoulderBox) {
-        Render3D.renderBox(
-            ctx,
-            box.box.x + 0.5, box.box.y - 1.0, box.box.z + 0.5,
-            3.0, 3.0,
-            boxColor.value,
-            outline = true,
-            fill = true,
+        ctx.renderBox(
+            box.box.x + 0.5,
+            box.box.y - 1.0, box.box.z + 0.5, 3.0,
+            3.0, boxColor.value,
             phase = true
         )
 
-        Render3D.renderBlock(ctx, box.click, clickColor.value, phase = true)
+        ctx.renderBlock(box.click, clickColor.value, phase = true)
     }
 
     override fun reset() {

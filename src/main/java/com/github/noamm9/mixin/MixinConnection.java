@@ -1,7 +1,7 @@
 package com.github.noamm9.mixin;
 
 import com.github.noamm9.NoammAddons;
-import com.github.noamm9.TestGround;
+import com.github.noamm9.debug.TestGround;
 import com.github.noamm9.event.EventBus;
 import com.github.noamm9.event.impl.PacketEvent;
 import com.github.noamm9.event.impl.TickEvent;
@@ -28,7 +28,7 @@ public class MixinConnection {
     @Inject(method = "channelRead0(Lio/netty/channel/ChannelHandlerContext;Lnet/minecraft/network/protocol/Packet;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/Connection;genericsFtw(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;)V"), cancellable = true)
     private void channelRead0(ChannelHandlerContext ctx, Packet<?> packet, CallbackInfo ci) {
         if (packet instanceof ClientboundPingPacket pingPacket && pingPacket.getId() != 0) {
-            if (!TestGround.Companion.getExperimental()) {
+            if (! TestGround.INSTANCE.getTick()) {
                 NoammAddons.mc.execute(() -> EventBus.post(TickEvent.Server.INSTANCE));
             }
         }

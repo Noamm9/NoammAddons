@@ -1,19 +1,24 @@
 package com.github.noamm9.features.impl.misc
 
+import com.github.noamm9.NoammAddons
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.event.impl.GameStartEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 
 object Camera: Feature() {
-    @JvmStatic val fullBright by ToggleSetting("Full Bright")
+    @JvmField var flashFullFright = false
 
-    @JvmStatic val legacySneakHeight by ToggleSetting("1.8 Sneak height").withDescription("Changes the sneak height back to its 1.8 height while maintaining all vanilla behavior (visual only).").section("Camera")
-    @JvmStatic val noFrontCamera by ToggleSetting("Disable Front Camera").withDescription("Removes the front camera perspective.")
-    @JvmStatic val noCameraClip by ToggleSetting("Camera Clip").withDescription("Allows your camera to clip in walls.")
-    @JvmStatic val customCameraDistance by ToggleSetting("Custom Camera Distance").withDescription("Sets the distance of the camera from your player.")
-    @JvmStatic val cameraDistance by SliderSetting("Camera Distance", 4, 1, 10, 0.1).withDescription("The distance of the camera from the player.").showIf { customCameraDistance.value }
+    @JvmStatic val fullBright by ToggleSetting("Full Bright").onChange {
+        flashFullFright = true
+    }
+
+    @JvmStatic val noFrontCamera by ToggleSetting("Disable Front Camera").withDescription("Removes the front camera perspective.").section("Camera")
+    @JvmStatic val noCameraClip by ToggleSetting("Camera Clip").withDescription("Allows your camera to clip in walls.").showIf { NoammAddons.isCheat }
+    @JvmStatic val customCameraDistance by ToggleSetting("Custom Camera Distance").withDescription("Sets the distance of the camera from your player.").showIf { NoammAddons.isCheat }
+    @JvmStatic val cameraDistance by SliderSetting("Camera Distance", 4, 1, 10, 0.1).withDescription("The distance of the camera from the player.").showIf { customCameraDistance.value && NoammAddons.isCheat }
     private val doubleSneakFix by ToggleSetting("Double Sneak Fix").withDescription("Prevents the server from setting your sneak state")
     @JvmStatic val inputFix by ToggleSetting("Riding Input Delay Fix").withDescription("Fixes high mouse input delay when riding an entity. (MC-206540)")
 
@@ -29,10 +34,16 @@ object Camera: Feature() {
     @JvmStatic val customFOVSlider by SliderSetting("FOV", 110, 30, 179, 1).hideIf { ! customFOV.value }
 
     override fun init() {
+        register<GameStartEvent> {
+            if (NoammAddons.isCheat) return@register
+            noCameraClip.value = false
+            customCameraDistance.value = false
+        }
+
         register<MainThreadPacketReceivedEvent.Pre> {
             if (! doubleSneakFix.value) return@register
             val packet = event.packet as? ClientboundSetEntityDataPacket ?: return@register
-            if (mc.player?.id != packet.id) return@register
+            if (player.id != packet.id) return@register
             packet.packedItems.removeIf { it.id == 6 }
         }
     }

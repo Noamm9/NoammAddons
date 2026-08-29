@@ -1,8 +1,8 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.map.core.RoomType
@@ -35,7 +35,7 @@ object ArchitectDraft: Feature("Architect Draft") {
                 val match = failPattern1.find(msg) ?: failPattern2.find(msg)
                 val name = match?.groups?.get("player")?.value
                 if (name == mc.user.name) ThreadUtils.setTimeout(1500) {
-                    mc.player?.connection?.sendChat("/gfs ARCHITECT_FIRST_DRAFT 1")
+                    ChatUtils.sendCommand("/gfs ARCHITECT_FIRST_DRAFT 1")
                 }
             }
             //#endif

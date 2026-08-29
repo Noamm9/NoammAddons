@@ -2,35 +2,25 @@ package com.github.noamm9.features.impl.floor7.terminals
 
 //#if CHEAT
 
-import com.github.noamm9.NoammAddons
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.terminals.TerminalListener.FIRST_CLICK_DELAY
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.MathUtils
+import com.github.noamm9.utils.Scheduler
 import com.github.noamm9.utils.ThreadUtils
 import net.minecraft.world.inventory.ContainerInput
 
 object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     private val randomDelay by ToggleSetting("Random Delay", true).withDescription("Normal distributed by min and max").section("Settings")
-
-    private val autoDelay by SliderSetting("Click Delay", 150.0, 0.0, 500.0, 10.0)
-        .withDescription("Fixed delay between clicks in milliseconds.")
-        .showIf { ! randomDelay.value }
-
-    private val minRandomDelay by SliderSetting("Min Random Delay", 50.0, 0.0, 500.0, 10.0)
-        .withDescription("The minimum possible delay")
-        .showIf { randomDelay.value }
-
-    private val maxRandomDelay by SliderSetting("Max Random Delay", 150.0, 0.0, 500.0, 10.0)
-        .withDescription("The maximum possible delay")
-        .showIf { randomDelay.value }
-
-    private val clickOrder by DropdownSetting("Click Order", 2, listOf("None", "Random", "Human", "Skizo"))
-        .withDescription("Human: Logic pathing. Skizo: Chaotic/Furthest.")
+    private val autoDelay by SliderSetting("Click Delay", 150.0, 0.0, 500.0, 10.0).withDescription("Fixed delay between clicks in milliseconds.").hideIf { randomDelay.value }
+    private val minRandomDelay by SliderSetting("Min Random Delay", 50.0, 0.0, 500.0, 10.0).withDescription("The minimum possible delay").showIf { randomDelay.value }
+    private val maxRandomDelay by SliderSetting("Max Random Delay", 150.0, 0.0, 500.0, 10.0).withDescription("The maximum possible delay").showIf { randomDelay.value }
+    private val clickOrder by DropdownSetting("Click Order", 2, listOf("None", "Random", "Human", "Skizo")).withDescription("Human: Logic pathing. Skizo: Chaotic/Furthest.")
+    val invwalk by ToggleSetting("Fake InvWalk").withDescription("Draws the Term name and progress on screen rather then the solution")
 
     private val autoMelody by ToggleSetting("Melody", true).section("Melody-AutoTerm")
     private val melodyFcDelay by ToggleSetting("First Click Delay", true).showIf { autoMelody.value }
@@ -47,26 +37,15 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     private var lastClickTime = 0L
     private var lastClickedSlot: Int? = null
 
-
     override fun onEnable() {
         super.onEnable()
-        TerminalListener.packetReceivedListener.register()
-        TerminalListener.packetSentListener.register()
-        TerminalListener.tickListener.register()
-        TerminalListener.worldChangeListener.register()
-        Scheduler.tickListener.register()
-        Scheduler.timeListener.register()
+        TerminalListener.register()
     }
 
     override fun onDisable() {
         super.onDisable()
         if (TerminalSolver.enabled) return
-        TerminalListener.packetReceivedListener.unregister()
-        TerminalListener.packetSentListener.unregister()
-        TerminalListener.tickListener.unregister()
-        TerminalListener.worldChangeListener.unregister()
-        Scheduler.timeListener.unregister()
-        Scheduler.tickListener.unregister()
+        TerminalListener.unregister()
     }
 
     override fun init() {
@@ -91,7 +70,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
 
             if (buttonRow == 3) return@register
             if (! melodySkip.value) return@register
-            if (! melodySkipFirstRow.value && buttonRow == 0) return@register
+            if (! melodySkipFirstRow.value && buttonRow == 0 && current != 4) return@register
             if (! (melodySkipMode.value == 1 || (melodySkipMode.value == 0 && (current == 0 || current == 4)))) return@register
 
             val windowId = TerminalListener.lastWindowId
@@ -169,8 +148,8 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     }
 
     private fun sendClickPacket(slot: Int) {
-        mc.gameMode?.handleContainerInput(TerminalListener.lastWindowId, slot, 2, ContainerInput.CLONE, mc.player !!)
-        if (NoammAddons.debugFlags.contains("terminal")) ChatUtils.modMessage("Melody: Clicked: $slot")
+        gameMode.handleContainerInput(TerminalListener.lastWindowId, slot, 2, ContainerInput.CLONE, player)
+        ChatUtils.debug("terminal", "Melody: Clicked: $slot")
     }
 
     fun reset() {

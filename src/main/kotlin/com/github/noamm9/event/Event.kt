@@ -1,21 +1,15 @@
 package com.github.noamm9.event
 
 import com.github.noamm9.NoammAddons
-import com.github.noamm9.event.impl.MouseClickEvent
-import com.github.noamm9.event.impl.PlayerInteractEvent
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.remove
 
 abstract class Event(val cancelable: Boolean = false) {
-    var cancellationSource: String? = null
-        private set
-
+    @Volatile
     open var isCanceled = false
         set(value) {
-            if (! cancelable) return
-            if (value && ! field && NoammAddons.debugFlags.contains("cancel")) {
-                captureSource()
-            }
+            if (! cancelable && value) throw RuntimeException("tried to cancel an uncancelable event")
+            if (value && ! field && "cancel" in NoammAddons.debugFlags) captureSource()
             field = value
         }
 
@@ -41,11 +35,8 @@ abstract class Event(val cancelable: Boolean = false) {
             val lineNumber = element.lineNumber
             val methodName = element.methodName
 
-            cancellationSource = "$fileName:$lineNumber ($methodName)"
-
-            if (this is PlayerInteractEvent || this is MouseClickEvent) {
-                ChatUtils.modMessage("§c$eventName canceled by: §e$cancellationSource")
-            }
+            val caller = "$fileName:$lineNumber ($methodName)"
+            ChatUtils.modMessage("§c$eventName canceled by: §e$caller")
 
             break
         }

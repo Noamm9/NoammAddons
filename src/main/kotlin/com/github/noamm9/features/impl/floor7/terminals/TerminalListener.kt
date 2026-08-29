@@ -1,7 +1,8 @@
 package com.github.noamm9.features.impl.floor7.terminals
 
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.event.EventBus.register
+import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.EventListener
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.TickEvent
@@ -16,7 +17,6 @@ import net.minecraft.network.protocol.game.*
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.item.ItemStack
 
-
 object TerminalListener {
     const val FIRST_CLICK_DELAY = 7
 
@@ -28,14 +28,21 @@ object TerminalListener {
 
     var lastWindowId = - 1
 
-    private var interactCooldown = 0
+    var interactCooldown = 0
 
     val currentItems = mutableMapOf<Int, ItemStack>()
 
-    val packetReceivedListener = register<MainThreadPacketReceivedEvent.Pre> { onPacketReceived(event.packet) }.unregister()
-    val packetSentListener = register<PacketEvent.Sent> { onPacketSent(event.packet, event) }.unregister()
-    val tickListener = register<TickEvent.Server> { onTick() }.unregister()
-    val worldChangeListener = register<WorldChangeEvent> { reset() }.unregister()
+    private val packetReceivedListener = EventBus.listener<MainThreadPacketReceivedEvent.Post> { onPacketReceived(event.packet) }
+    private val packetSentListener = EventBus.listener<PacketEvent.Sent> { onPacketSent(event.packet, event) }
+    private val tickListener = EventBus.listener<TickEvent.Server> { onTick() }
+    private val worldChangeListener = EventBus.listener<WorldChangeEvent> { reset() }
+
+    private val sharedListeners = listOf(
+        packetReceivedListener,
+        packetSentListener,
+        tickListener,
+        worldChangeListener
+    )
 
     private fun onPacketReceived(packet: Packet<*>) {
         if (LocationUtils.F7Phase != 3) return
@@ -54,7 +61,7 @@ object TerminalListener {
                     lastWindowId = packet.containerId
                     currentItems.clear()
 
-                    TerminalSolver.onTerminalOpen()
+                    TerminalSolver.onTerminalUpdate()
                     //#if CHEAT
                     AutoTerminal.reset()
                     //#endif
@@ -64,26 +71,20 @@ object TerminalListener {
 
             is ClientboundContainerSetSlotPacket -> {
                 if (! inTerm || packet.containerId != lastWindowId) return
-                if (packet.slot < 0) return
-                if (packet.slot > currentType !!.slotCount) return
-                currentItems[packet.slot] = packet.item
+                val type = currentType ?: return
+                if (packet.slot !in 0 until type.slotCount) return
+                val container = mc.player?.containerMenu ?: return
+                container.items.forEachIndexed { index, stack ->
+                    if (index !in 0 until type.slotCount) return@forEachIndexed
+                    if (stack.isEmpty) return@forEachIndexed
+                    currentItems[index] = stack
+                }
 
-                if (currentItems.size == currentType?.slotCount || currentType == TerminalType.MELODY) {
+                if (packet.slot == type.slotCount - 1 || type == TerminalType.MELODY) {
                     TerminalSolver.onItemsUpdated(packet.slot, packet.item)
                     //#if CHEAT
                     if (AutoTerminal.enabled) AutoTerminal.onItemsUpdated()
                     //#endif
-                }
-            }
-
-            is ClientboundContainerSetContentPacket -> {
-                if (! inTerm || packet.containerId != lastWindowId) return
-                currentItems.clear()
-
-                packet.items.forEachIndexed { index, itemStack ->
-                    if (index < (currentType?.slotCount ?: 0)) {
-                        currentItems[index] = itemStack
-                    }
                 }
             }
 
@@ -105,9 +106,8 @@ object TerminalListener {
 
             is ServerboundContainerClosePacket -> if (inTerm) reset()
 
-            is ServerboundInteractPacket -> {
-                @Suppress("CAST_NEVER_SUCCEEDS")
-                val entity = mc.level?.getEntity((packet as IServerboundInteractPacket).entityId) as? ArmorStand ?: return
+            is IServerboundInteractPacket -> {
+                val entity = mc.level?.getEntity(packet.entityId) as? ArmorStand ?: return
                 if (entity.displayName.unformattedText != "Inactive Terminal") return
 
                 if (interactCooldown > 0 || lastWindowId != - 1) event.isCanceled = true else interactCooldown = 15
@@ -127,6 +127,9 @@ object TerminalListener {
         return DungeonListener.currentTime - initialOpenTick < delay ||
             System.currentTimeMillis() - initialOpenTime < (delay * 50)
     }
+
+    fun register() = sharedListeners.forEach(EventListener<*>::register)
+    fun unregister() = sharedListeners.forEach(EventListener<*>::unregister)
 
     private fun reset() {
         inTerm = false

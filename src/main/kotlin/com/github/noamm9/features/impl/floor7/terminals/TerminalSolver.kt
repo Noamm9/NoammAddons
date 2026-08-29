@@ -1,22 +1,33 @@
 package com.github.noamm9.features.impl.floor7.terminals
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ContainerEvent
+import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.ScreenEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.features.impl.floor7.terminals.TerminalType.Companion.clickedSlot
+import com.github.noamm9.features.impl.floor7.terminals.TerminalType.Companion.clickedSlots
+import com.github.noamm9.init.types.ICustomMenu
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
+import com.github.noamm9.utils.Scheduler
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.hasGlint
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawBorder
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render2D.drawFloatingRect
+import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.uppercaseFirst
+import gg.essential.universal.UGraphics
 import net.minecraft.client.gui.GuiGraphicsExtractor
+import net.minecraft.network.protocol.game.ClientboundSoundPacket
+import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
@@ -24,11 +35,18 @@ import java.awt.Color
 import kotlin.math.abs
 import kotlin.math.floor
 
-object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
-    val scale by SliderSetting("Custom Menu's Scale", 1f, 0.1f, 2f, 0.01f).section("General")
-    val slotStyle by DropdownSetting("Slot Style", 0, listOf("Rect", "Bordered-Rect", "Button"))
+object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICustomMenu {
+    private val scale by SliderSetting("Custom Menu's Scale", 1f, 0.1f, 2f, 0.01f).section("General")
 
-    val solverModes = run {
+    //#if CHEAT
+    private fun fakeInwalk(type: TerminalType) = AutoTerminal.enabled && AutoTerminal.invwalk.value && AutoTerminal.shouldAutoSolve(type)
+    //#else
+    //$private fun fakeInwalk(type: TerminalType) = false
+    //#endif
+
+    private val slotStyle by DropdownSetting("Slot Style", 0, listOf("Rect", "Bordered-Rect", "Button"))
+
+    private val solverModes = run {
         //#if CHEAT
         listOf("Normal", "Q-Terms")
         //#else
@@ -36,28 +54,31 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
         //#endif
     }
 
-    val mode by DropdownSetting("Mode", 0, solverModes)
-    val resyncTimeout by SliderSetting<Long>("Resync Timeout", 800, 600, 1000, 1)
+    private val mode by DropdownSetting("Mode", 0, solverModes)
+    private val resyncTimeout by SliderSetting<Long>("Resync Timeout", 800, 600, 1000, 1)
 
-    val backgroundColor by ColorSetting("Background Color", Color(0, 0, 0, 100)).section("Settings - UI")
-    val borderColor by ColorSetting("Border Color", Color(255, 255, 255))
-    val titleColor by ColorSetting("Title Text Color", Color.WHITE)
-    val queueColor by ColorSetting("Queue Text Color", Color.CYAN)
-    val overlayTextColor by ColorSetting("Overlay Text Color", Color.WHITE)
+    private val soundsEnabled by ToggleSetting("Terminal Sounds", true).section("Sounds")
+    private val clickSound = createSoundSettings("Click Sound", SoundEvents.NOTE_BLOCK_PLING.value()) { soundsEnabled.value }
 
-    val solutionColor by ColorSetting("Generic Solution", Color(0, 255, 0, 130)).section("Colors - Terminals").showIf {
+    private val backgroundColor by ColorSetting("Background Color", Color(0, 0, 0, 100)).section("Settings - UI")
+    private val borderColor by ColorSetting("Border Color", Color(255, 255, 255))
+    private val titleColor by ColorSetting("Title Text Color", Color.WHITE)
+    private val queueColor by ColorSetting("Queue Text Color", Color.CYAN).showIf { NoammAddons.isCheat }
+    private val overlayTextColor by ColorSetting("Overlay Text Color", Color.WHITE)
+
+    private val solutionColor by ColorSetting("Generic Solution", Color(0, 255, 0, 130)).section("Colors - Terminals").showIf {
         melody.value || numbers.value || rubix.value || colors.value || startwith.value || redgreen.value
     }
 
-    val numbersNumbers by ToggleSetting("Numbers: Show Numbers").showIf { numbers.value }
-    val numbersFirstColor by ColorSetting("Numbers: 1st Click", Color(0, 255, 0, 130)).showIf { numbers.value }
-    val numbersSecondColor by ColorSetting("Numbers: 2nd Click", Color(0, 200, 0, 130)).showIf { numbers.value }
-    val numbersThirdColor by ColorSetting("Numbers: 3rd Click", Color(0, 150, 0, 130)).showIf { numbers.value }
-    val rubixPositiveColor by ColorSetting("Rubix: Positive (+)", Color(0, 114, 255, 130)).showIf { rubix.value }
-    val rubixNegativeColor by ColorSetting("Rubix: Negative (-)", Color(205, 0, 0, 130)).showIf { rubix.value }
-    val melodyColumnColor by ColorSetting("Melody: Column", Color(255, 0, 255, 130)).showIf { melody.value }
-    val melodyIndicatorColor by ColorSetting("Melody: Indicator", Color(255, 116, 0, 130)).showIf { melody.value }
-    val melodyWrongColor by ColorSetting("Melody: Wrong", Color(255, 0, 0, 130)).showIf { melody.value }
+    private val numbersNumbers by ToggleSetting("Numbers: Show Numbers").showIf { numbers.value }
+    private val numbersFirstColor by ColorSetting("Numbers: 1st Click", Color(0, 255, 0, 130)).showIf { numbers.value }
+    private val numbersSecondColor by ColorSetting("Numbers: 2nd Click", Color(0, 200, 0, 130)).showIf { numbers.value }
+    private val numbersThirdColor by ColorSetting("Numbers: 3rd Click", Color(0, 150, 0, 130)).showIf { numbers.value }
+    private val rubixPositiveColor by ColorSetting("Rubix: Positive (+)", Color(0, 114, 255, 130)).showIf { rubix.value }
+    private val rubixNegativeColor by ColorSetting("Rubix: Negative (-)", Color(205, 0, 0, 130)).showIf { rubix.value }
+    private val melodyColumnColor by ColorSetting("Melody: Column", Color(255, 0, 255, 130)).showIf { melody.value }
+    private val melodyIndicatorColor by ColorSetting("Melody: Indicator", Color(255, 116, 0, 130)).showIf { melody.value }
+    private val melodyWrongColor by ColorSetting("Melody: Wrong", Color(255, 0, 0, 130)).showIf { melody.value }
 
     val melody by ToggleSetting("Melody", true).section("Toggles")
     val numbers by ToggleSetting("Numbers", true)
@@ -66,18 +87,19 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
     val startwith by ToggleSetting("Start-With", true)
     val redgreen by ToggleSetting("Red-Green", true)
 
+    private val fcScheduler = FCScheduler(TerminalListener.FIRST_CLICK_DELAY)
     val solution = mutableListOf<TerminalClick>()
     private val queue = mutableListOf<TerminalClick>()
+    private var fcScheduled = false
     private var isClicked = false
+    private var totalClicks = - 1
+    private var clicked = - 1
+
+    private var replaceSound = false
 
     override fun onEnable() {
         super.onEnable()
-        TerminalListener.packetReceivedListener.register()
-        TerminalListener.packetSentListener.register()
-        TerminalListener.tickListener.register()
-        TerminalListener.worldChangeListener.register()
-        Scheduler.tickListener.register()
-        Scheduler.timeListener.register()
+        TerminalListener.register()
     }
 
     override fun onDisable() {
@@ -85,23 +107,28 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
         //#if CHEAT
         if (AutoTerminal.enabled) return
         //#endif
-        TerminalListener.packetReceivedListener.unregister()
-        TerminalListener.packetSentListener.unregister()
-        TerminalListener.tickListener.unregister()
-        TerminalListener.worldChangeListener.unregister()
-        Scheduler.timeListener.unregister()
-        Scheduler.tickListener.unregister()
+        TerminalListener.unregister()
+    }
+
+    fun solverActive(type: TerminalType) = when (type) {
+        TerminalType.NUMBERS -> numbers.value
+        TerminalType.COLORS -> colors.value
+        TerminalType.MELODY -> melody.value
+        TerminalType.RUBIX -> rubix.value
+        TerminalType.REDGREEN -> redgreen.value
+        TerminalType.STARTWITH -> startwith.value
     }
 
     override fun init() {
         register<ScreenEvent.PreRender> {
             if (! TerminalListener.inTerm) return@register
             val termType = TerminalListener.currentType ?: return@register
+            if (! solverActive(termType)) return@register
             event.isCanceled = true
 
-            Resolution.refresh()
             Resolution.push(event.context)
 
+            val invWalk = fakeInwalk(termType)
             val uiScale = 3f * scale.value
             val screenWidth = Resolution.width / uiScale
             val screenHeight = Resolution.height / uiScale
@@ -115,16 +142,51 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
             event.context.pose().pushMatrix()
             event.context.pose().scale(uiScale, uiScale)
 
-            Render2D.drawCenteredString(
-                event.context,
+            if (! invWalk) event.context.drawCenteredString(
                 termType.name.lowercase().uppercaseFirst(),
                 offsetX + width / 2f,
                 offsetY - 15f,
                 color = titleColor.value,
                 scale = 1.2f
             )
-            Render2D.drawRect(event.context, offsetX, offsetY, width, height, backgroundColor.value)
-            Render2D.drawBorder(event.context, offsetX, offsetY, width, height, borderColor.value)
+            if (! invWalk) event.context.drawRect(offsetX, offsetY, width, height, backgroundColor.value)
+            if (! invWalk) event.context.drawBorder(offsetX, offsetY, width, height, borderColor.value)
+
+            if (invWalk) {
+                val maxClicks = if (termType == TerminalType.MELODY) 4 else totalClicks
+                val completed = if (termType == TerminalType.MELODY) TerminalType.melodyButton ?: 0 else clicked
+                val displayName = when (termType) {
+                    TerminalType.STARTWITH -> "Starts With"
+                    TerminalType.REDGREEN -> "Red Green"
+                    else -> termType.name.lowercase().uppercaseFirst()
+                }
+
+                val current = TerminalType.melodyCurrent
+                val correct = TerminalType.melodyCorrect
+                val melodyProgress = if (termType != TerminalType.MELODY || current == null || correct == null) ""
+                else (0 .. 4).joinToString("", " §7[", "§7]") {
+                    when (it) {
+                        current -> "§a="
+                        correct -> "§d="
+                        else -> "§8="
+                    }
+                }
+
+                if ("terminal" in NoammAddons.debugFlags) solution.forEach { (slot, _) ->
+                    val slotX = slot % 9 * 18 + offsetX
+                    val slotY = floor(slot / 9.0).toInt() * 18 + offsetY
+                    val item = TerminalListener.currentItems[slot] ?: return@forEach
+                    event.context.item(item, slotX.toInt(), slotY.toInt())
+                    event.context.itemDecorations(mc.font, item, slotX.toInt(), slotY.toInt())
+                }
+
+                event.context.pose().translate(screenWidth / 2f, screenHeight / 2f - 6 * uiScale)
+                event.context.drawCenteredString("§3In Terminal ($displayName)", 0, - 20f)
+                if (maxClicks > 0) event.context.drawCenteredString("§b[${completed.coerceIn(0, maxClicks)}/$maxClicks]$melodyProgress", 0, - 10f)
+                event.context.pose().popMatrix()
+                Resolution.pop(event.context)
+                return@register
+            }
 
             val baseColor = solutionColor.value
 
@@ -157,6 +219,12 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
 
                     else -> drawSlot(event.context, slotX, slotY, baseColor)
                 }
+
+                val item = TerminalListener.currentItems[slot]
+                if (item != null && "terminal" in NoammAddons.debugFlags) {
+                    event.context.item(item, slotX.toInt(), slotY.toInt())
+                    event.context.itemDecorations(mc.font, item, slotX.toInt(), slotY.toInt())
+                }
             }
 
             if (TerminalListener.currentType == TerminalType.MELODY) {
@@ -183,8 +251,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
                 }
             }
 
-            if (mode.value == 1) Render2D.drawCenteredString(
-                event.context,
+            if (mode.value == 1 && NoammAddons.isCheat) event.context.drawCenteredString(
                 "Queue: ${queue.size}",
                 offsetX + width / 2,
                 offsetY + height + 5,
@@ -199,11 +266,11 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
         register<ContainerEvent.MouseClick> {
             if (! TerminalListener.inTerm) return@register
             val termType = TerminalListener.currentType ?: return@register
+            if (! solverActive(termType)) return@register
+            event.isCanceled = true
             //#if CHEAT
             if (AutoTerminal.enabled && AutoTerminal.shouldAutoSolve(termType)) return@register
             //#endif
-            event.isCanceled = true
-            if (TerminalListener.checkFcDelay()) return@register
 
             val uiScale = 3f * scale.value
             val mx = Resolution.getMouseX() / uiScale
@@ -226,6 +293,12 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
             val slot = slotX + slotY * 9
             if (slot >= windowSize) return@register
 
+            if (termType == TerminalType.MELODY) {
+                if (TerminalListener.checkFcDelay()) return@register
+                if (slot.equalsOneOf(16, 25, 34, 43)) sendClickPacket(slot, 0)
+                return@register
+            }
+
             val click = when (termType) {
                 TerminalType.NUMBERS -> solution.firstOrNull()?.takeIf { it.slotId == slot }
 
@@ -238,11 +311,6 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
                         TerminalClick(slot, if (it > 0) 0 else 1)
                     }
                 }
-
-                TerminalType.MELODY -> {
-                    if (slot.equalsOneOf(16, 25, 34, 43)) sendClickPacket(slot, 0)
-                    return@register
-                }
             }
 
             if (click == null) return@register
@@ -250,26 +318,58 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
 
             predict(click)
 
-            if (mode.value == 0) click(click) else if (isClicked) queue.add(click) else click(click)
+            val execute = {
+                if (mode.value == 0) click(click)
+                else if (isClicked) queue.add(click)
+                else click(click)
+            }
+
+            if (! TerminalListener.checkFcDelay()) execute()
+            else if (mode.value == 0) return@register
+            else {
+                if (fcScheduled) queue.add(click)
+                else {
+                    fcScheduled = true
+                    fcScheduler.runOrQueue { if (TerminalListener.inTerm) execute() }
+                }
+            }
+        }
+
+        register<MainThreadPacketReceivedEvent.Pre> {
+            if (! TerminalListener.inTerm) return@register
+            if (! soundsEnabled.value) return@register
+            if (! replaceSound) return@register
+            val packet = event.packet as? ClientboundSoundPacket ?: return@register
+            if (packet.sound.value() != SoundEvents.NOTE_BLOCK_PLING.value()) return@register
+            if (packet.volume != 8f || packet.pitch != 4.047619f) return@register
+            clickSound.action.invoke()
+            event.isCanceled = true
+            replaceSound = false
+        }
+
+        register<ContainerEvent.SlotClick> {
+            if (! TerminalListener.inTerm) return@register
+            if (! soundsEnabled.value) return@register
+            replaceSound = true
         }
     }
 
     private fun drawSlot(ctx: GuiGraphicsExtractor, x: Number, y: Number, color: Color, w: Number = 16, h: Number = 16) {
         when (slotStyle.value) {
-            0 -> Render2D.drawRect(ctx, x, y, w, h, color)
+            0 -> ctx.drawRect(x, y, w, h, color)
             1 -> {
-                Render2D.drawBorder(ctx, x, y, w, h, color)
-                Render2D.drawRect(ctx, x, y, w, h, color.withAlpha(40))
+                ctx.drawBorder(x, y, w, h, color)
+                ctx.drawRect(x, y, w, h, color.withAlpha(40))
             }
 
-            2 -> Render2D.drawFloatingRect(ctx, x, y, w, h, color.darker())
+            2 -> ctx.drawFloatingRect(x, y, w, h, color.darker())
         }
     }
 
     private fun drawCenteredText(ctx: GuiGraphicsExtractor, text: String, slotX: Number, slotY: Number) {
         val centerX = slotX.toFloat() + 8f
-        val centerY = slotY.toFloat() + 8f - mc.font.lineHeight / 2
-        Render2D.drawCenteredString(ctx, text, centerX, centerY, color = overlayTextColor.value)
+        val centerY = slotY.toFloat() + 8f - UGraphics.getFontHeight() / 2
+        ctx.drawCenteredString(text, centerX, centerY, color = overlayTextColor.value)
     }
 
     private fun predict(click: TerminalClick) {
@@ -293,21 +393,21 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
         val initialWindowId = TerminalListener.lastWindowId
         Scheduler.schedule(resyncTimeout.value.toInt(), resyncTimeout.value.toInt() / 50) {
             if (! TerminalListener.inTerm || initialWindowId != TerminalListener.lastWindowId) return@schedule
-            if (NoammAddons.debugFlags.contains("terminal")) ChatUtils.modMessage("Resync Timeout Triggered")
+            ChatUtils.debug("terminal", "Resync Timeout Triggered")
 
-            TerminalType.clickedStartWithSlots.clear()
             isClicked = false
             queue.clear()
             solve()
 
             //#if CHEAT
+            if (AutoTerminal.enabled) AutoTerminal.reset()
             if (AutoTerminal.enabled) AutoTerminal.onItemsUpdated()
             //#endif
         }
     }
 
     private fun sendClickPacket(slot: Int, btn: Int) {
-        mc.gameMode !!.handleContainerInput(
+        gameMode.handleContainerInput(
             TerminalListener.lastWindowId,
             slot,
             if (btn == 0) 2 else btn,
@@ -315,15 +415,10 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
             mc.player !!
         )
 
-        if (NoammAddons.debugFlags.contains("terminal")) {
-            ChatUtils.modMessage("Clicked $slot on ${TerminalListener.currentType?.name}")
-        }
+        ChatUtils.debug("terminal", "Clicked $slot on ${TerminalListener.currentType?.name}")
 
         if (TerminalListener.currentType == TerminalType.STARTWITH) {
-            val item = TerminalListener.currentItems[slot]?.item
-            if (item.equalsOneOf(Items.NETHER_STAR, Items.EXPERIENCE_BOTTLE)) {
-                TerminalType.clickedStartWithSlots.add(slot)
-            }
+            TerminalType.clickedSlot = TerminalListener.lastWindowId to slot
         }
     }
 
@@ -333,29 +428,38 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
         solution.clear()
 
         when (type) {
-            TerminalType.NUMBERS -> currentItems.filter { it.value.item == Items.STAINED_GLASS_PANE.red() }
+            TerminalType.NUMBERS -> currentItems.filter { it.value.item == Items.RED_STAINED_GLASS_PANE }
                 .toList().sortedBy { it.second.count }.forEach {
                     TerminalType.numbersSlotCounts[it.first] = it.second.count
                     solution.add(TerminalClick(it.first))
                 }
 
-            TerminalType.REDGREEN -> currentItems.filter { it.value.item == Items.STAINED_GLASS_PANE.red() }
+            TerminalType.REDGREEN -> currentItems.filter { it.value.item == Items.RED_STAINED_GLASS_PANE }
                 .forEach { solution.add(TerminalClick(it.key)) }
 
             TerminalType.STARTWITH -> {
                 val match = TerminalType.startwithRegex.matchEntire(TerminalListener.currentTitle)
                 val letter = match?.groupValues?.get(1)?.lowercase() ?: return
 
-                currentItems.filterNot { it.key in TerminalType.clickedStartWithSlots }.forEach { (slot, item) ->
-                    if (! item.hoverName.unformattedText.lowercase().startsWith(letter)) return@forEach
-                    if (item.hasGlint()) return@forEach
-                    solution.add(TerminalClick(slot))
+                TerminalType.clickedSlot?.let { (windowId, slotId) ->
+                    if (windowId != TerminalListener.lastWindowId) {
+                        if (currentItems[slotId]?.item in TerminalType.specialItems) clickedSlots.add(slotId)
+                        clickedSlot = null
+                    }
+                }
+
+                currentItems.forEach { (index, stack) ->
+                    if (! stack.hoverName.string.startsWith(letter, true)) return@forEach
+                    if (index in clickedSlots) return@forEach
+                    if (! stack.hasGlint() || stack.item in TerminalType.specialItems)
+                        solution.add(TerminalClick(index))
                 }
             }
 
             TerminalType.COLORS -> {
                 val match = TerminalType.colorsRegex.matchEntire(TerminalListener.currentTitle)
                 val extra = match?.groupValues?.get(1)?.lowercase() ?: return
+
                 fun fixName(name: String): String {
                     var fixedName = name
                     TerminalType.colorReplacements.forEach { (k, v) ->
@@ -363,8 +467,9 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
                     }
                     return fixedName
                 }
+
                 currentItems.filter {
-                    it.value.item != Items.STAINED_GLASS_PANE.black()
+                    it.value.item != Items.BLACK_STAINED_GLASS_PANE
                         && fixName(it.value.hoverName.unformattedText.lowercase()).startsWith(extra)
                         && ! it.value.hasGlint()
                 }.map { it.key }.forEach { solution.add(TerminalClick(it)) }
@@ -372,7 +477,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
 
             TerminalType.RUBIX -> {
                 val allowedSlots = listOf(12, 13, 14, 21, 22, 23, 30, 31, 32)
-                val panes = currentItems.filter { it.key in allowedSlots && TerminalType.rubixOrder.contains(it.value.item) }
+                val panes = currentItems.filter { it.key in allowedSlots && it.value.item in TerminalType.rubixOrder }
                 val costs = IntArray(5) { 0 }
                 for (i in 0 until 5) {
                     panes.forEach { (_, itemStack) ->
@@ -386,8 +491,8 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
                 }
 
                 val origin = costs.indices.minByOrNull { costs[it] } ?: 0
-                panes.forEach { (slotId, itemStack) ->
-                    val currentIdx = TerminalType.rubixOrder.indexOf(itemStack.item)
+                panes.forEach { (slotId, stack) ->
+                    val currentIdx = TerminalType.rubixOrder.indexOf(stack.item)
                     if (currentIdx != - 1 && currentIdx != origin) {
                         var diff = origin - currentIdx
                         if (diff > 2) diff -= 5
@@ -398,8 +503,8 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
             }
 
             TerminalType.MELODY -> {
-                if (updatedItem1.item == Items.STAINED_GLASS_PANE.lime()) {
-                    val correct = currentItems.entries.find { it.value.item == Items.STAINED_GLASS_PANE.magenta() }?.key?.minus(1)
+                if (updatedItem1.item == Items.LIME_STAINED_GLASS_PANE) {
+                    val correct = currentItems.entries.find { it.value.item == Items.MAGENTA_STAINED_GLASS_PANE }?.key?.minus(1)
                     val button = floor((updatedSlot1 / 9).toDouble()) - 1
                     val current = updatedSlot1 % 9 - 1
                     if (correct != null) TerminalType.melodyCorrect = correct
@@ -411,6 +516,14 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
                 }
             }
         }
+
+        val clicks =
+            if (! type.equalsOneOf(TerminalType.MELODY, TerminalType.RUBIX)) solution.size
+            else if (type == TerminalType.RUBIX) solution.sumOf { abs(it.btn) }
+            else return
+
+        if (totalClicks == - 1) totalClicks = clicks
+        clicked = totalClicks - clicks
     }
 
     fun onItemsUpdated(slot: Int = 0, item: ItemStack = ItemStack.EMPTY) {
@@ -441,10 +554,20 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals.") {
         }
     }
 
-    fun onTerminalOpen() = ::isClicked.set(false)
+    fun onTerminalUpdate() {
+        isClicked = false
+        fcScheduled = false
+        fcScheduler.start()
+    }
 
     fun onTerminalClose() {
+        fcScheduler.cancel()
         queue.clear()
         solution.clear()
+        totalClicks = - 1
+        clicked = - 1
+        replaceSound = false
     }
+
+    override fun isActive() = TerminalListener.inTerm
 }

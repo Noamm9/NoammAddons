@@ -9,14 +9,13 @@ import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.colorCorrec
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.colorWrong
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.removeChests
 import com.github.noamm9.utils.ChatUtils.unformattedText
-import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils.rotate
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D
-import com.github.noamm9.utils.render.RenderContext
+import com.github.noamm9.utils.render.world.Render3D.renderBlock
+import com.github.noamm9.utils.render.world.RenderContext
 import net.minecraft.core.BlockPos
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.entity.decoration.ArmorStand
@@ -54,9 +53,7 @@ object ThreeWeirdosSolver: PuzzleSolver {
             correctPos = chestPos
         }
         else {
-            if (removeChests.value) ThreadUtils.scheduledTask {
-                WorldUtils.setBlockAt(chestPos, Blocks.AIR.defaultBlockState())
-            }
+            if (removeChests.value) WorldUtils.setBlockAt(chestPos, Blocks.AIR.defaultBlockState())
             wrongPositions.add(chestPos)
         }
     }
@@ -65,11 +62,11 @@ object ThreeWeirdosSolver: PuzzleSolver {
         if (! inThreeWeirdos) return
 
         correctPos?.let { pos ->
-            Render3D.renderBlock(ctx, pos, colorCorrect.value)
+            ctx.renderBlock(pos, colorCorrect.value)
         }
 
         if (! removeChests.value) wrongPositions.forEach { pos ->
-            Render3D.renderBlock(ctx, pos, colorWrong.value)
+            ctx.renderBlock(pos, colorWrong.value)
         }
     }
 
@@ -85,8 +82,6 @@ object ThreeWeirdosSolver: PuzzleSolver {
         if (event.newState != RoomState.DISCOVERED) return
         reset()
     }
-
-    override fun onRoomExit() {}
 
     override fun reset() {
         if (removeChests.value) {

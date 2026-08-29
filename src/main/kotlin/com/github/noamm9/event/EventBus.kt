@@ -1,58 +1,81 @@
-@file:Suppress("UNCHECKED_CAST")
-
 package com.github.noamm9.event
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.event.priority.EventPriority
+import com.github.noamm9.event.priority.PriorityComparator
 import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.remove
+import com.github.noamm9.utils.startsWithOneOf
+import net.minecraft.network.chat.Component
 import java.util.concurrent.*
 
 object EventBus {
-    class EventContext<T: Event>(val event: T, var listener: EventListener<T>)
-
     val listeners = ConcurrentHashMap<Class<out Event>, List<EventListener<*>>>()
+    private val exceptionHandler: (Exception, Event) -> Unit = { exception, event ->
+        val packageName = Event::class.java.`package`.name
+        val eventName = event.javaClass.name.remove("$packageName.impl.")
+        var fileName = "Unknown File"
+        var line = "line: -1 (unknown)"
 
-    @JvmStatic
-    fun post(event: Event): Boolean {
-        val handlers = listeners[event.javaClass] ?: return event.cancelable && event.isCanceled
-        var context: EventContext<Event>? = null
-
-        for (i in handlers.indices) {
-            val handler = handlers[i]
-            try {
-                val typedHandler = handler as EventListener<Event>
-                val currentContext = context ?: EventContext(event, typedHandler).also { context = it }
-                currentContext.listener = typedHandler
-                typedHandler.callback.invoke(currentContext)
-            }
-            catch (e: Exception) {
-                val stacktrace = e.stackTrace.joinToString("\n")
-                NoammAddons.logger.error("EventBus Error in ${event.javaClass.name}", e)
-                ChatUtils.clickableChat("EventBus Error: class ${event.javaClass.name}. message: ${e.message}", true, copy = stacktrace, hover = stacktrace)
-            }
+        for (element in exception.stackTrace) {
+            if (element.className.startsWithOneOf(packageName, "java.lang", "kotlin.")) continue
+            fileName = element.fileName ?: "Unknown File"
+            line = "line ${element.lineNumber} (${element.methodName})"
+            break
         }
 
-        return event.cancelable && event.isCanceled
+        NoammAddons.logger.error("EventBus error", exception)
+        ChatUtils.chat(Component.empty().apply {
+            append("§c----------------------------------------\n")
+            append("§c>> Uncaught Exception in EventBus <<\n")
+            append("§c   Event: §f${eventName}§r\n")
+            append("§c   File: $fileName: §e$line§r\n")
+            append("§c   Error: §f${exception.message}\n")
+            append("§c----------------------------------------")
+        })
+    }
+
+    fun _registerListener(listener: EventListener<*>) {
+        listeners.compute(listener.eventClass) { _, old ->
+            (old.orEmpty() + listener).sortedWith(PriorityComparator)
+        }
+    }
+
+    fun _unregisterListener(listener: EventListener<*>) {
+        listeners.compute(listener.eventClass) { _, old ->
+            old?.filter { it !== listener }?.takeIf(Collection<*>::isNotEmpty)
+        }
     }
 
     @JvmStatic
+    fun <T: Event> post(event: T): Boolean {
+        val eventListeners = listeners[event.javaClass] ?: return event.isCanceled
+        var context: EventContext<T>? = null
+
+        @Suppress("UNCHECKED_CAST")
+        for (listener in eventListeners) try {
+            val typedListener = listener as EventListener<T>
+            if (event.isCanceled && ! typedListener.receiveCancelled) continue
+            val currentContext = context ?: EventContext(event, typedListener).also { context = it }
+            currentContext.listener = typedListener
+            typedListener.callback.invoke(currentContext)
+        }
+        catch (exception: Exception) {
+            exceptionHandler.invoke(exception, event)
+        }
+
+        return event.isCanceled
+    }
+
+    inline fun <reified T: Event> listener(
+        priority: EventPriority = EventPriority.NORMAL,
+        receiveCancelled: Boolean = false,
+        noinline callback: EventContext<T>.() -> Unit
+    ) = EventListener(T::class.java, priority, receiveCancelled, callback)
+
     inline fun <reified T: Event> register(
         priority: EventPriority = EventPriority.NORMAL,
-        noinline block: EventContext<T>.() -> Unit
-    ): EventListener<T> {
-        return EventListener(T::class.java, priority, block).register()
-    }
-
-    fun unregister(listener: EventListener<*>) = synchronized(listeners) {
-        val oldListeners = listeners[listener.eventClass] ?: return@synchronized
-        val newListeners = oldListeners.filter { it !== listener }
-
-        if (newListeners.isEmpty()) listeners.remove(listener.eventClass)
-        else listeners[listener.eventClass] = newListeners
-    }
-
-    fun register(listener: EventListener<*>) = synchronized(listeners) {
-        val oldListeners = listeners[listener.eventClass] ?: emptyList()
-        if (oldListeners.contains(listener)) return@synchronized
-        listeners[listener.eventClass] = (oldListeners + listener).sortedBy { it.priority.ordinal }
-    }
+        receiveCancelled: Boolean = false,
+        noinline callback: EventContext<T>.() -> Unit
+    ) = listener<T>(priority, receiveCancelled, callback).register()
 }

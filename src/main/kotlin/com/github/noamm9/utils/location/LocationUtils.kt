@@ -1,65 +1,46 @@
 package com.github.noamm9.utils.location
 
 import com.github.noamm9.NoammAddons
-import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus
-import com.github.noamm9.event.EventPriority
+import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
-import com.github.noamm9.event.impl.TickEvent
+import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.features.Shortcuts
 import com.github.noamm9.features.impl.dev.FEAT_WebSocket
+import com.github.noamm9.init.types.ISelfInit
+import com.github.noamm9.mixin.IServerboundMovePlayerPacket
 import com.github.noamm9.utils.ChatUtils.removeFormatting
+import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.remove
 import com.github.noamm9.utils.startsWithOneOf
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
 import net.minecraft.network.protocol.game.ClientboundSetObjectivePacket
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket
-import net.minecraft.world.phys.AABB
+import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket
 import kotlin.jvm.optionals.getOrNull
 
-object LocationUtils {
-    @JvmStatic
-    val onHypixel get() = mc.player?.connection?.serverBrand()?.lowercase()?.contains("hypixel") == true
+object LocationUtils: ISelfInit, Shortcuts {
+    @JvmStatic val onHypixel get() = mc.player?.connection?.serverBrand()?.lowercase()?.contains("hypixel") == true
 
-    @JvmField
-    var inSkyblock = false
+    @JvmField var inSkyblock = false
+    @JvmField var world: WorldType? = null
+    @JvmField var serverId: String? = null
 
-    @JvmField
-    var world: WorldType? = null
+    @JvmField var inDungeon = false
+    @JvmField var dungeonFloor: String? = null
+    @JvmField var dungeonFloorNumber: Int? = null
+    @JvmStatic val isMasterMode get() = dungeonFloor?.startsWith("M") == true
 
-    @JvmField
-    var inDungeon = false
+    @JvmField var inBoss = false
+    @JvmField var P3Section: Int? = null
+    @JvmField var F7Phase: Int? = null
 
-    @JvmField
-    var dungeonFloor: String? = null
-
-    @JvmField
-    var dungeonFloorNumber: Int? = null
-
-    @JvmStatic
-    val isMasterMode get() = dungeonFloor?.startsWith("M") == true
-
-    @JvmField
-    var inBoss = false
-
-    @JvmField
-    var P3Section: Int? = null
-
-    @JvmField
-    var F7Phase: Int? = null
-
-    @JvmField
-    var serverId: String? = null
-
-    private val lobbyRegex = Regex("\\d\\d/\\d\\d/\\d\\d (\\w{0,6}) *")
-
-    init {
-        LocrawListener.init()
-
+    override fun init() {
         EventBus.register<MainThreadPacketReceivedEvent.Post>(EventPriority.HIGHEST) {
-            if (NoammAddons.isDev) return@register setDevModeValues()
+            if ("dev" in NoammAddons.debugFlags) return@register setDevModeValues()
             if (! onHypixel) return@register
 
             if (event.packet is ClientboundPlayerInfoUpdatePacket) {
@@ -87,17 +68,21 @@ object LocationUtils {
             }
         }
 
-        EventBus.register<TickEvent.Start>(EventPriority.HIGHEST) {
-            inBoss = isInBossRoom()
+        EventBus.register<PacketEvent.Sent>(EventPriority.HIGH) {
+            if (event.packet !is ServerboundMovePlayerPacket) return@register
+            if (! event.packet.hasPosition()) return@register
+            val packet = event.packet as IServerboundMovePlayerPacket
+
+            inBoss = isInBossRoom(packet.x, packet.y, packet.z)
             if (inBoss && DungeonListener.bossEntryTime == null) {
                 DungeonListener.bossEntryTime = DungeonListener.DualTime(DungeonListener.currentTime)
                 EventBus.post(DungeonEvent.BossEnterEvent)
             }
-            F7Phase = getPhase()
-            P3Section = findP3Section()
+            F7Phase = getPhase(packet.y)
+            P3Section = findP3Section(packet.x, packet.y, packet.z)
         }
 
-        EventBus.register<WorldChangeEvent>(EventPriority.HIGHEST) { reset() }
+        EventBus.register<WorldChangeEvent>(EventPriority.HIGH) { reset() }
     }
 
     private fun reset() {
@@ -113,18 +98,18 @@ object LocationUtils {
     }
 
     private fun setDevModeValues() {
+        if (mc.level == null || mc.player == null) return
         inSkyblock = true
         inDungeon = true
         dungeonFloor = "F7"
         dungeonFloorNumber = 7
-        F7Phase = getPhase()
-        P3Section = findP3Section()
-        inBoss = isInBossRoom()
+        F7Phase = getPhase(player.y)
+        P3Section = findP3Section(player.x, player.y, player.z)
+        inBoss = isInBossRoom(player.x, player.y, player.z)
     }
 
-    private fun getPhase(): Int? {
+    fun getPhase(y: Double): Int? {
         if (dungeonFloorNumber != 7 || ! inBoss) return null
-        val y = mc.player?.y ?: return null
 
         return when {
             y > 210 -> 1
@@ -135,19 +120,11 @@ object LocationUtils {
         }
     }
 
-    private val p3Sections = arrayOf(
-        AABB(90.0, 158.0, 123.0, 111.0, 105.0, 32.0),
-        AABB(16.0, 158.0, 122.0, 111.0, 105.0, 143.0),
-        AABB(19.0, 158.0, 48.0, - 3.0, 106.0, 142.0),
-        AABB(91.0, 158.0, 50.0, - 3.0, 106.0, 30.0)
-    )
-
-    private fun findP3Section(): Int? {
+    fun findP3Section(x: Double, y: Double, z: Double): Int? {
         if (F7Phase != 3) return null
-        val playerPos = mc.player?.position() ?: return null
 
         for (i in p3Sections.indices) {
-            if (p3Sections[i].contains(playerPos)) {
+            if (p3Sections[i].contains(x, y, z)) {
                 return i + 1
             }
         }
@@ -155,20 +132,27 @@ object LocationUtils {
         return null
     }
 
-    private val bossRoomBounds = arrayOf(
-        AABB(- 14.0, 55.0, 49.0, - 72.0, 146.0, - 40.0),
-        AABB(- 40.0, 99.0, - 40.0, 24.0, 54.0, 59.0),
-        AABB(- 40.0, 118.0, - 40.0, 42.0, 64.0, 37.0),
-        AABB(- 40.0, 112.0, - 40.0, 50.0, 53.0, 47.0),
-        AABB(- 40.0, 112.0, - 8.0, 50.0, 53.0, 118.0),
-        AABB(- 40.0, 51.0, - 8.0, 22.0, 110.0, 134.0),
-        AABB(- 8.0, 0.0, - 8.0, 134.0, 254.0, 147.0)
+    fun isInBossRoom(x: Double, y: Double, z: Double): Boolean {
+        val floor = dungeonFloorNumber?.takeIf { it in 1 .. 7 } ?: return false
+        return bossRoomBounds[floor - 1].contains(x, y, z)
+    }
+
+    private val lobbyRegex = Regex("\\d\\d/\\d\\d/\\d\\d (\\w{0,6}) *")
+
+    private val p3Sections = arrayOf(
+        aabb(90, 158, 123, 111, 105, 32),
+        aabb(16, 158, 122, 111, 105, 143),
+        aabb(19, 158, 48, - 3, 106, 142),
+        aabb(91, 158, 50, - 3, 106, 30)
     )
 
-    private fun isInBossRoom(): Boolean {
-        val playerPos = mc.player?.position() ?: return false
-        val floor = dungeonFloorNumber ?: return false
-        if (floor !in 1 .. 7) return false
-        return bossRoomBounds[floor - 1].contains(playerPos)
-    }
+    private val bossRoomBounds = arrayOf(
+        aabb(- 14, 55, 49, - 72, 146, - 40),
+        aabb(- 40, 99, - 40, 24, 54, 59),
+        aabb(- 40, 118, - 40, 42, 64, 37),
+        aabb(- 40, 112, - 40, 50, 53, 47),
+        aabb(- 40, 112, - 8, 50, 53, 118),
+        aabb(- 40, 51, - 8, 22, 110, 134),
+        aabb(- 8, 0, - 8, 134, 254, 147)
+    )
 }

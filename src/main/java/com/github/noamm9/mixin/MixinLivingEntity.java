@@ -25,10 +25,10 @@ public abstract class MixinLivingEntity extends Entity {
     }
 
     @Shadow
-    public abstract boolean hasEffect(Holder<MobEffect> effect);
+    public abstract boolean hasEffect(Holder<MobEffect> holder);
 
     @Shadow
-    public abstract @Nullable MobEffectInstance getEffect(Holder<MobEffect> effect);
+    public abstract @Nullable MobEffectInstance getEffect(Holder<MobEffect> holder);
 
     @Inject(method = "getCurrentSwingDuration", at = @At("HEAD"), cancellable = true)
     private void adjustSwingLength(CallbackInfoReturnable<Integer> cir) {

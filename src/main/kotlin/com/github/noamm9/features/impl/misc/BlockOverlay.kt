@@ -1,16 +1,17 @@
 package com.github.noamm9.features.impl.misc
 
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.Utils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.EtherwarpHelper
-import com.github.noamm9.utils.render.Render3D
-import com.github.noamm9.utils.render.RenderContext
+import com.github.noamm9.utils.render.world.Render3D.renderBlock
+import com.github.noamm9.utils.render.world.RenderContext
+import gg.essential.universal.UMinecraft
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents
 
 object BlockOverlay: Feature() {
@@ -24,11 +25,10 @@ object BlockOverlay: Feature() {
     override fun init() {
         LevelRenderEvents.BEFORE_BLOCK_OUTLINE.register { context, blockOutlineContext ->
             if (! enabled) return@register true
-            if (mc.gui.hud.isHidden) return@register true
+            if (UMinecraft.getSettings().hideGui) return@register true
             if (hideDuringEtherwarp.value && shouldHide()) return@register false
 
-            Render3D.renderBlock(
-                RenderContext.fromContext(context),
+            RenderContext(context).renderBlock(
                 blockOutlineContext.pos,
                 outlineColor.value,
                 fillColor.value,
@@ -42,12 +42,6 @@ object BlockOverlay: Feature() {
         }
     }
 
-    private fun shouldHide(): Boolean {
-        if (! hideDuringEtherwarp.value) return false
-        val player = mc.player ?: return false
-        if (! player.isCrouching) return false
+    private fun shouldHide() = player.isCrouching && EtherwarpHelper.getEtherwarpDistance(player.mainHandItem) != null
 
-        val held = player.mainHandItem.takeUnless { it.isEmpty } ?: return false
-        return EtherwarpHelper.getEtherwarpDistance(held) != null
-    }
 }

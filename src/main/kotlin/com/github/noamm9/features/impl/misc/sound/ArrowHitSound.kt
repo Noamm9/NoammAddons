@@ -15,7 +15,7 @@ object ArrowHitSound: Feature() {
     fun onSoundPlay(soundInstance: SoundInstance): Boolean {
         if (! enabled) return false
         if (soundInstance.identifier != SoundEvents.ARROW_HIT_PLAYER.location) return false
-        soundConfig.play.action()
+        soundConfig.action.invoke()
         return true
     }
 }

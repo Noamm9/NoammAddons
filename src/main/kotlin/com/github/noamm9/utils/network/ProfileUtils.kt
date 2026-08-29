@@ -1,24 +1,19 @@
 package com.github.noamm9.utils.network
 
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.NoammAddons.scope
-import com.github.noamm9.event.EventListener
+import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.utils.*
-import com.github.noamm9.utils.JsonUtils.getObj
 import com.github.noamm9.utils.JsonUtils.getString
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.network.cache.MojangCache
 import com.github.noamm9.utils.network.cache.ProfileCache
 import com.github.noamm9.utils.network.cache.SecretCache
-import com.github.noamm9.utils.network.cache.UuidCache
 import com.github.noamm9.utils.network.data.DungeonStats
 import com.github.noamm9.utils.network.data.MojangData
 import io.ktor.client.call.body
 import io.ktor.client.statement.bodyAsText
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.jsonObject
 import java.util.*
@@ -26,108 +21,80 @@ import java.util.concurrent.*
 
 object ProfileUtils {
     private const val BASE_URL = "https://api.noamm.org"
+    private val apiCooldowns = ConcurrentHashMap<String, Long>()
 
     private val nameToUuidApis = listOf(
-        "https://playerdb.co/api/player/minecraft/",
         "https://mowojang.matdoes.dev/",
         "https://api.minecraftservices.com/minecraft/profile/lookup/name/",
-        "https://api.mojang.com/users/profiles/minecraft/",
-        "https://mc-api.io/uuid/",
+        "https://api.mojang.com/users/profiles/minecraft/"
     )
 
     private val uuidToNameApis = listOf(
-        "https://playerdb.co/api/player/minecraft/",
         "https://mowojang.matdoes.dev/",
         "https://sessionserver.mojang.com/session/minecraft/profile/",
         "https://mc-api.io/name/",
     )
 
-    private val sharedRequests = ConcurrentHashMap<String, Deferred<*>>()
-    private val apiCooldowns = ConcurrentHashMap<String, Long>()
-
     suspend fun getUUIDbyName(name: String): Result<MojangData> {
-        val lowerName = name.lowercase()
+        val key = name.lowercase()
+        MojangCache.check(key, "$name not found")?.let { return it }
 
-        UuidCache.getFromCache(lowerName)?.let {
-            if (it == "FAILED") return Result.failure(Exception("$name not found (cached)"))
-            return Result.success(MojangData(name, it))
-        }
+        for (api in nameToUuidApis) {
+            if (System.currentTimeMillis() < (apiCooldowns[api] ?: 0L)) continue
 
-        return awaitSharedRequest("UUID", lowerName) {
-            UuidCache.getFromCache(lowerName)?.let {
-                if (it == "FAILED") return@awaitSharedRequest Result.failure(Exception("$name not found"))
-                return@awaitSharedRequest Result.success(MojangData(name, it))
-            }
-
-            for ((i, api) in nameToUuidApis.withIndex()) {
-                if (System.currentTimeMillis() < (apiCooldowns[api] ?: 0L)) continue
-
-                val result = WebUtils.getAs<String>(api + lowerName)
-                if (result.isFailure) {
-                    val msg = result.exceptionOrNull()?.message ?: ""
-                    if (msg.contains("429")) {
-                        apiCooldowns[api] = System.currentTimeMillis() + (5 * 60 * 1000)
-                        continue
-                    }
-                    if (msg.containsOneOf("404", "204")) break
+            val result = WebUtils.getAs<String>(api + key)
+            if (result.isFailure) {
+                val msg = result.exceptionOrNull()?.message ?: ""
+                if (msg.contains("429")) {
+                    apiCooldowns[api] = System.currentTimeMillis() + (5 * 60 * 1000)
                     continue
                 }
-
-                val response = catch { JsonUtils.json.parseToJsonElement(result.getOrThrow()).jsonObject } ?: continue
-                val uuid = if (i == 0) response.getObj("player")?.getString("id") else response.getString("id")
-                val fetchedName = if (i == 0) response.getObj("player")?.getString("username") else response.getString("name") ?: name
-
-                if (uuid.isNullOrBlank() || fetchedName.isNullOrBlank()) continue
-
-                val cleanUuid = uuid.replace("-", "")
-                UuidCache.addToCache(fetchedName, cleanUuid)
-                return@awaitSharedRequest Result.success(MojangData(fetchedName, cleanUuid))
+                if (msg.containsOneOf("404", "204")) break
+                continue
             }
 
-            Result.failure<MojangData>(Exception("$name not found")).also { UuidCache.addToCache(lowerName, "FAILED") }
+            val response = catch { JsonUtils.json.parseToJsonElement(result.getOrThrow()).jsonObject } ?: continue
+            val fetchedName = response.getString("name").takeUnless { it.isNullOrBlank() } ?: continue
+            val uuid = response.getString("id").takeUnless { it.isNullOrBlank() } ?: continue
+
+            val cleanUuid = uuid.replace("-", "")
+            val data = MojangData(fetchedName, cleanUuid)
+            MojangCache.addToCache(data)
+            return Result.success(data)
         }
+
+        return Result.failure<MojangData>(Exception("$name not found")).also { MojangCache.addFailedToCache(key) }
     }
 
     suspend fun getNameByUUID(uuid: UUID): Result<MojangData> {
         val key = uuid.toString().replace("-", "")
+        MojangCache.check(key, "UUID not found")?.let { return it }
 
-        UuidCache.getNameFromCache(key)?.let {
-            if (it == "FAILED") return Result.failure(Exception("UUID not found"))
-            return Result.success(MojangData(it, key))
-        }
+        for (api in uuidToNameApis) {
+            if (System.currentTimeMillis() < (apiCooldowns[api] ?: 0L)) continue
 
-        return awaitSharedRequest("NAME", key) {
-            UuidCache.getNameFromCache(key)?.let {
-                if (it == "FAILED") return@awaitSharedRequest Result.failure(Exception("$key not found"))
-                return@awaitSharedRequest Result.success(MojangData(it, key))
-            }
-
-            for ((i, api) in uuidToNameApis.withIndex()) {
-                if (System.currentTimeMillis() < (apiCooldowns[api] ?: 0L)) continue
-
-                val result = WebUtils.getAs<String>(api + key)
-                if (result.isFailure) {
-                    val msg = result.exceptionOrNull()?.message ?: ""
-                    if (msg.contains("429")) {
-                        apiCooldowns[api] = System.currentTimeMillis() + (5 * 60 * 1000)
-                        continue
-                    }
-                    if (msg.containsOneOf("404", "204")) break
+            val result = WebUtils.getAs<String>(api + key)
+            if (result.isFailure) {
+                val msg = result.exceptionOrNull()?.message ?: ""
+                if (msg.contains("429")) {
+                    apiCooldowns[api] = System.currentTimeMillis() + (5 * 60 * 1000)
                     continue
                 }
-
-                val response = catch { JsonUtils.json.parseToJsonElement(result.getOrThrow()).jsonObject } ?: continue
-                val uuid = if (i == 0) response.getObj("data")?.getObj("player")?.getString("id") else response.getString("id") ?: key
-                val fetchedName = if (i == 0) response.getObj("data")?.getObj("player")?.getString("username") else response.getString("name")
-
-                if (uuid.isNullOrBlank() || fetchedName.isNullOrBlank()) continue
-
-                UuidCache.addToCache(fetchedName, uuid)
-                return@awaitSharedRequest Result.success(MojangData(fetchedName, uuid))
+                if (msg.containsOneOf("404", "204")) break
+                continue
             }
 
-            Result.failure<MojangData>(Exception("$key not found")).also { UuidCache.addToCache("FAILED", key) }
+            val response = catch { JsonUtils.json.parseToJsonElement(result.getOrThrow()).jsonObject } ?: continue
+            val fetchedUuid = response.getString("id").takeUnless { it.isNullOrBlank() } ?: continue
+            val fetchedName = response.getString("name").takeUnless { it.isNullOrBlank() } ?: continue
+
+            val cleanUuid = fetchedUuid.replace("-", "")
+            val data = MojangData(fetchedName, cleanUuid)
+            MojangCache.addToCache(data)
+            return Result.success(data)
         }
+
+        return Result.failure<MojangData>(Exception("$key not found")).also { MojangCache.addFailedToCache(key) }
     }
 
     suspend fun getSecrets(playerName: String): Result<Long> {
@@ -136,40 +103,25 @@ object ProfileUtils {
             return runCatching { getSecretsCMD() }
         }
 
-        SecretCache.getFromCache(name)?.let { return Result.success(it) }
+        SecretCache.check(name)?.let { return it }
 
-        return awaitSharedRequest("SECRETS", name) {
-            SecretCache.getFromCache(name)?.let { return@awaitSharedRequest Result.success(it) }
-            getUUIDbyName(name).mapCatching { mojangData ->
-                doApiRequest<Long>("/hypixel/secrets/${mojangData.uuid}")
-            }.onSuccess { SecretCache.addToCache(name, it) }
+        return getUUIDbyName(name).mapCatching { mojangData ->
+            doApiRequest<Long>("/hypixel/secrets/${mojangData.uuid}")
+        }.apply {
+            onSuccess { SecretCache.addToCache(name, it) }
+            onFailure { SecretCache.addFailedToCache(name) }
         }
     }
 
     suspend fun getProfile(playerName: String): Result<DungeonStats> {
         val name = playerName.lowercase()
-        ProfileCache.getFromCache(name)?.let { return Result.success(it) }
+        ProfileCache.check(name)?.let { return it }
 
-        return awaitSharedRequest("PROFILE", name) {
-            ProfileCache.getFromCache(name)?.let { return@awaitSharedRequest Result.success(it) }
-            getUUIDbyName(name).mapCatching { mojangData ->
-                doApiRequest<DungeonStats>("/hypixel/dungeonstats/${mojangData.uuid}")
-            }.onSuccess { ProfileCache.addToCache(name, it) }.onFailure { it.printStackTrace() }
-        }
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private suspend fun <T> awaitSharedRequest(type: String, name: String, request: suspend () -> Result<T>): Result<T> {
-        val key = "$type:${name.lowercase()}"
-
-        while (true) {
-            sharedRequests[key]?.let { return it.await() as Result<T> }
-            val deferred = scope.async(start = CoroutineStart.LAZY) { request() }
-            sharedRequests.putIfAbsent(key, deferred) ?: run {
-                deferred.invokeOnCompletion { sharedRequests.remove(key, deferred) }
-                deferred.start()
-                return deferred.await()
-            }
+        return getUUIDbyName(name).mapCatching { mojangData ->
+            doApiRequest<DungeonStats>("/hypixel/dungeonstats/${mojangData.uuid}")
+        }.apply {
+            onSuccess { ProfileCache.addToCache(name, it) }
+            onFailure { ProfileCache.addFailedToCache(name) }
         }
     }
 
@@ -202,22 +154,19 @@ object ProfileUtils {
         chatListener.register()
         ChatUtils.sendCommand("/secretcount")
         ThreadUtils.setTimeout(5000) { chatListener.unregister() }
-        while (chatListener.isRegistered()) delay(50)
+        while (chatListener.isActive) delay(50)
         return _totalSecrets ?: error("No secrets found")
     }
 
     private val regex = Regex("^\\w+: \\d+$")
     private var _totalSecrets: Long? = null
-    private val chatListener = EventListener.create<ChatMessageEvent> {
-        val text = event.unformattedText
+    private val chatListener = EventBus.listener<ChatMessageEvent> {
+        if (event.unformattedText == "Secret Counts:") return@listener event.cancel()
+        if (! event.unformattedText.matches(regex)) return@listener
+        event.isCanceled = true
 
-        if (text == "Secret Counts:") return@create event.cancel()
-        if (text.matches(regex)) {
-            event.cancel()
-            if (text.substringBefore(":") == mc.user.name) {
-                _totalSecrets = text.substringAfter(": ").toLong()
-                listener.unregister()
-            }
-        }
+        if (event.unformattedText.substringBefore(":") != mc.user.name) return@listener
+        _totalSecrets = event.unformattedText.substringAfter(": ").toLongOrNull()
+        ThreadUtils.scheduledTaskServer(5) { listener.unregister() }
     }
 }

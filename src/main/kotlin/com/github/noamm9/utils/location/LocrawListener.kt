@@ -3,15 +3,16 @@ package com.github.noamm9.utils.location
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.init.types.ISelfInit
 import com.google.gson.JsonParser
 
-object LocrawListener {
+object LocrawListener: ISelfInit {
     var server = ""
     var gameType = ""
     var location = ""
     var map = ""
 
-    fun init() {
+    override fun init() {
         EventBus.register<ChatMessageEvent> {
             if (! LocationUtils.onHypixel) return@register
             parseLocRaw(event.unformattedText)

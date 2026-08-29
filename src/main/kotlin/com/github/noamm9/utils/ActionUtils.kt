@@ -5,6 +5,7 @@ import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.KeyboardEvent
 import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ThreadUtils.scheduledTask
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -12,18 +13,16 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.concurrent.*
 import kotlin.coroutines.resume
 
-object ActionUtils {
+object ActionUtils: ISelfInit {
     private data class Action(val priority: Int, val blockInput: Boolean, val block: suspend () -> Unit): Comparable<Action> {
         override fun compareTo(other: Action) = other.priority.compareTo(this.priority)
     }
 
     private val actionQueue = PriorityBlockingQueue<Action>()
+    @Volatile private var isBlocked = false
     private var processingJob: Job? = null
     private var running = false
     private val lock = Any()
-
-    @Volatile private var isBlocked = false
-    @Volatile private var blockTask = 0L
 
     /**
      * @param priority The priority of the action (higher values executed first).
@@ -37,20 +36,13 @@ object ActionUtils {
     }
 
     private suspend fun run() {
-        while (true) {
-            val action = synchronized(lock) {
-                actionQueue.poll() ?: run { running = false; null }
-            } ?: break
-
-            try {
-                isBlocked = action.blockInput
-                if (isBlocked) ThreadUtils.setTimeout(5000) { if (blockTask == ++ blockTask) isBlocked = false }
-                action.block()
-            }
-            finally {
-                isBlocked = false
-            }
+        while (actionQueue.isNotEmpty()) {
+            val action = synchronized(lock) { actionQueue.poll() } ?: break
+            if (action.blockInput) ThreadUtils.setTimeout(5000) { isBlocked = false }
+            isBlocked = action.blockInput
+            action.block()
         }
+        running = false
     }
 
     fun reset() = catch {
@@ -70,7 +62,7 @@ object ActionUtils {
         }
     }
 
-    init {
+    override fun init() {
         EventBus.register<WorldChangeEvent> { reset() }
         EventBus.register<MouseClickEvent> { if (isBlocked) event.cancel() }
         EventBus.register<KeyboardEvent.KeyPressed> { if (isBlocked) event.cancel() }

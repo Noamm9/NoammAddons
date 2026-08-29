@@ -1,13 +1,18 @@
 package com.github.noamm9.features.impl.visual
 
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.Style
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.RenderHelper.width
+import gg.essential.universal.UGraphics
+import gg.essential.universal.UMinecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.chat.Component
 import net.minecraft.network.protocol.game.*
@@ -32,10 +37,9 @@ object Scoreboard: Feature("Draws a custom scoreboard instead of the vanilla one
         override val toggle get() = Scoreboard.enabled
 
         override fun draw(ctx: GuiGraphicsExtractor, example: Boolean): Pair<Float, Float> {
-            val scoreboard = mc.level?.scoreboard ?: return 0f to 0f
-            val objective = scoreboard.getDisplayObjective(DisplaySlot.SIDEBAR) ?: return 0f to 0f
+            val objective = UMinecraft.getWorld()?.scoreboard?.getDisplayObjective(DisplaySlot.SIDEBAR) ?: return 0f to 0f
 
-            if (needsUpdate) updateCache(scoreboard, objective)
+            if (needsUpdate) updateCache(level.scoreboard, objective)
             if (cachedLines.isEmpty()) return 0f to 0f
 
             val boxWidth = cachedW.toDouble()
@@ -44,17 +48,17 @@ object Scoreboard: Feature("Draws a custom scoreboard instead of the vanilla one
             val yOffset = - (boxHeight / 2)
             val padding = 8
 
-            Render2D.drawRect(ctx, xOffset, yOffset, boxWidth, boxHeight, Color(15, 15, 15, 190))
-            Render2D.drawRect(ctx, xOffset, yOffset, boxWidth, 2.0, Style.accentColor)
-            Render2D.drawRect(ctx, xOffset - 1, yOffset - 1, boxWidth + 2.0, boxHeight + 2.0, Color(255, 255, 255, 20))
+            ctx.drawRect(xOffset, yOffset, boxWidth, boxHeight, Color(15, 15, 15, 190))
+            ctx.drawRect(xOffset, yOffset, boxWidth, 2.0, Style.accentColor)
+            ctx.drawRect(xOffset - 1, yOffset - 1, boxWidth + 2.0, boxHeight + 2.0, Color(255, 255, 255, 20))
 
-            Render2D.drawCenteredString(ctx, cachedTitle, (xOffset + boxWidth / 2).toFloat(), (yOffset + padding).toFloat(), shadow = false)
+            ctx.drawCenteredString(cachedTitle, (xOffset + boxWidth / 2).toFloat(), (yOffset + padding).toFloat(), shadow = false)
 
-            val startY = yOffset + padding + mc.font.lineHeight + 4
-            val lineHeights = mc.font.lineHeight + 2
+            val startY = yOffset + padding + UGraphics.getFontHeight() + 4
+            val lineHeights = UGraphics.getFontHeight() + 2
 
             cachedLines.forEachIndexed { index, text ->
-                Render2D.drawString(ctx, text, (xOffset + padding).toFloat(), (startY + (index * lineHeights)).toFloat())
+                ctx.drawString(text, (xOffset + padding).toFloat(), (startY + (index * lineHeights)).toFloat())
             }
 
             return cachedW to cachedH
@@ -77,9 +81,9 @@ object Scoreboard: Feature("Draws a custom scoreboard instead of the vanilla one
             val hovered = mx >= drawX && mx <= drawX + scaledW && my >= drawY && my <= drawY + scaledH
             val borderColor = if (isDragging || hovered) Style.accentColor else Color(255, 255, 255, 40)
 
-            Render2D.drawRect(ctx, drawX.toDouble(), drawY.toDouble(), scaledW.toDouble(), scaledH.toDouble(), Color(10, 10, 10, 150))
-            Render2D.drawRect(ctx, drawX.toDouble(), drawY.toDouble(), scaledW.toDouble(), 1.0, borderColor)
-            Render2D.drawRect(ctx, drawX.toDouble(), (drawY + scaledH - 1).toDouble(), scaledW.toDouble(), 1.0, borderColor)
+            ctx.drawRect(drawX.toDouble(), drawY.toDouble(), scaledW.toDouble(), scaledH.toDouble(), Color(10, 10, 10, 150))
+            ctx.drawRect(drawX.toDouble(), drawY.toDouble(), scaledW.toDouble(), 1.0, borderColor)
+            ctx.drawRect(drawX.toDouble(), (drawY + scaledH - 1).toDouble(), scaledW.toDouble(), 1.0, borderColor)
         }
     }
 
@@ -112,8 +116,7 @@ object Scoreboard: Feature("Draws a custom scoreboard instead of the vanilla one
             return
         }
 
-        val font = mc.font
-        var maxW = font.width(cachedTitle).toFloat()
+        var maxW = cachedTitle.width().toFloat()
 
         scores.forEachIndexed { index, score ->
             val name = score.ownerName().string
@@ -125,13 +128,13 @@ object Scoreboard: Feature("Draws a custom scoreboard instead of the vanilla one
             }
 
             cachedLines.add(line)
-            maxW = maxOf(maxW, font.width(line).toFloat())
+            maxW = maxOf(maxW, line.width().toFloat())
         }
 
         val padding = 8f
-        val lineHeights = font.lineHeight + 2
+        val lineHeight = UGraphics.getFontHeight()
         cachedW = maxW + (padding * 2)
-        cachedH = (cachedLines.size * lineHeights) + font.lineHeight + (padding * 2f)
+        cachedH = (cachedLines.size * (lineHeight + 2)) + lineHeight + (padding * 2f)
         needsUpdate = false
     }
 }

@@ -1,10 +1,10 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.MathUtils.add
@@ -12,7 +12,8 @@ import com.github.noamm9.utils.MathUtils.toVec
 import com.github.noamm9.utils.Utils
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.world.Render3D.renderBox
+import com.github.noamm9.utils.render.world.Render3D.renderCircle
 import net.minecraft.tags.BlockTags
 
 object GyroHelper: Feature("Renders a circle where your gyro will be located.", "Gyro Helper") {
@@ -27,17 +28,17 @@ object GyroHelper: Feature("Renders a circle where your gyro will be located.", 
         register<RenderWorldEvent> {
             if (! drawRing.value && ! drawBox.value) return@register
             if (boxColor.value.alpha + ringColor.value.alpha == 0) return@register
-            if (mc.player?.mainHandItem?.skyblockId != "GYROKINETIC_WAND") return@register
-            val gyroPos = MathUtils.raytrace(mc.player !!, 25) ?: return@register
+            if (player.mainHandItem.skyblockId != "GYROKINETIC_WAND") return@register
+            val gyroPos = MathUtils.raytrace(player, 25) ?: return@register
             val stateAtPos = WorldUtils.getStateAt(gyroPos)
             val stateAbove = WorldUtils.getStateAt(gyroPos.above())
 
             if (stateAtPos.isAir || (! stateAbove.isAir && ! stateAbove.`is`(BlockTags.WOOL_CARPETS))) return@register
 
-            if (drawBox.value) Render3D.renderBox(event.ctx, gyroPos.x + 0.5, gyroPos.y, gyroPos.z + 0.5, 1, 1, boxColor.value)
+            if (drawBox.value) event.ctx.renderBox(gyroPos.x + 0.5, gyroPos.y, gyroPos.z + 0.5, 1, 1, boxColor.value)
             if (drawRing.value) {
                 val center = gyroPos.add(0.5, 2.05, 0.5).toVec()
-                Render3D.renderCircle(event.ctx, center, 10.0, ringColor.value, lineWidth.value)
+                event.ctx.renderCircle(center, 10.0, ringColor.value, lineWidth.value)
             }
         }
     }

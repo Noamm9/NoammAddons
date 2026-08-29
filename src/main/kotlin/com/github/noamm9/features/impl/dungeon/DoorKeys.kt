@@ -1,16 +1,17 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.world.Render3D.renderBox
+import com.github.noamm9.utils.render.world.Render3D.renderTracer
 import com.github.noamm9.utils.render.RenderHelper.renderVec
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.entity.Entity
@@ -31,7 +32,7 @@ object DoorKeys: Feature("ESP box & Tracer for wither and blood doors.") {
         register<MainThreadPacketReceivedEvent.Post> {
             if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
             val packet = event.packet as? ClientboundSetEntityDataPacket ?: return@register
-            val entity = mc.level?.getEntity(packet.id) as? ArmorStand ?: return@register
+            val entity = level.getEntity(packet.id) as? ArmorStand ?: return@register
 
             doorKey = Pair(entity, when (entity.customName?.unformattedText) {
                 "Wither Key" if highlightWither.value -> witherColor.value
@@ -49,19 +50,16 @@ object DoorKeys: Feature("ESP box & Tracer for wither and blood doors.") {
 
                 //#if CHEAT
                 //#else
-                //$ if (! mc.player!!.hasLineOfSight(entity)) return@register
+                //$ if (! player.hasLineOfSight(entity)) return@register
                 //#endif
 
-                Render3D.renderTracer(event.ctx, entity.renderVec.add(y = 1.7), color, 2)
-                Render3D.renderBox(
-                    event.ctx,
+                event.ctx.renderTracer(entity.renderVec.add(y = 1.7), color, 2)
+                event.ctx.renderBox(
                     entity.x,
                     entity.y + 1.2f,
                     entity.z,
-                    width = 0.8, height = 0.8,
-                    color,
-                    outline = true,
-                    fill = true,
+                    width = 0.8,
+                    height = 0.8, color,
                     phase = true,
                 )
             }

@@ -1,8 +1,11 @@
 package com.github.noamm9.utils.dungeons.map.handlers
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.features.impl.dungeon.map.DungeonMap
 import com.github.noamm9.features.impl.dungeon.map.MapConfig
+import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.dungeons.DungeonListener
@@ -17,8 +20,15 @@ import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.HoverEvent
 import net.minecraft.network.chat.MutableComponent
 
-object ClearInfoUpdater {
+object ClearInfoUpdater: ISelfInit {
     private val componentSeparator = createComponent(" &f|&r ")
+
+    override fun init() {
+        EventBus.register<DungeonEvent.RunStatedEvent> { initStartSecrets() }
+        EventBus.register<DungeonEvent.PlayerDeathEvent> { updateDeaths(event.name, event.reason) }
+        EventBus.register<DungeonEvent.RoomEvent.onStateChange> { checkSplits(event.room.data, event.oldState, event.newState, event.roomPlayers) }
+        EventBus.register<DungeonEvent.RunEndedEvent> { sendClearInfoMessage() }
+    }
 
     fun checkSplits(room: RoomData, oldState: RoomState, newState: RoomState, players: List<DungeonPlayer>) {
         if (! DungeonMap.enabled) return

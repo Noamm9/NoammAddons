@@ -1,17 +1,18 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.ConfigHolder
+import com.github.noamm9.config.types.TextInputSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.*
-import com.github.noamm9.ui.clickgui.components.impl.TextInputSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils
+import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.dungeons.map.handlers.ScoreCalculation
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
-import net.minecraft.client.resources.sounds.SimpleSoundInstance
+import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.RenderHelper.width
+import gg.essential.universal.USound
 import net.minecraft.sounds.SoundEvents
 
 object ScoreCalculator: Feature("Shows the score of the dungeon run.") {
@@ -19,6 +20,7 @@ object ScoreCalculator: Feature("Shows the score of the dungeon run.") {
     private val hudElement by ToggleSetting("HUD Element")
     val sendMimic by ToggleSetting("Send Mimic Message")
     val sendPrince by ToggleSetting("Send Prince Message")
+    val sendBat by ToggleSetting("Send Bat Message")
 
     private val sendMsg270 by ToggleSetting("270 score message").section("270")
     private val msg270 by TextInputSetting("Message", "270 Score!").showIf { sendMsg270.value }
@@ -32,8 +34,8 @@ object ScoreCalculator: Feature("Shows the score of the dungeon run.") {
 
     private data class Milestone(
         val score: Int, val sendMessage: ToggleSetting,
-        val message: Setting<String>, val sendTitle: ToggleSetting,
-        val title: Setting<String>
+        val message: ConfigHolder<String>, val sendTitle: ToggleSetting,
+        val title: ConfigHolder<String>
     )
 
     private val milestones by lazy {
@@ -44,16 +46,16 @@ object ScoreCalculator: Feature("Shows the score of the dungeon run.") {
     }
 
     override fun init() {
-        hudElement("ScoreCalculator", enabled = { LocationUtils.inDungeon }, shouldDraw = { hudElement.value }) { ctx, demoMode ->
+        hudElement("ScoreCalculator", enabled = { hudElement.value }, shouldDraw = { LocationUtils.inDungeon }) { ctx, demoMode ->
             val text = if (demoMode) "&eScore: &a300"
             else "&eScore: " + ColorUtils.colorizeScore(ScoreCalculation.score)
 
-            Render2D.drawString(ctx, text, 0, 0)
+            ctx.drawString(text, 0, 0)
             return@hudElement text.width().toFloat() to 9f
         }
 
         register<DungeonEvent.Score> {
-            milestones.find { it.score == event.score }?.let(::triggerMilestone)
+            milestones.filter { it.score > event.oldScore && it.score <= event.score }.forEach(::triggerMilestone)
         }
     }
 
@@ -61,30 +63,11 @@ object ScoreCalculator: Feature("Shows the score of the dungeon run.") {
         if (m.sendMessage.value) ChatUtils.sendPartyMessage(m.message.value)
         if (m.sendTitle.value) ChatUtils.showTitle(m.title.value)
 
-        val timeStr = ScoreCalculation.secondsElapsed.formatTime()
+        val timeStr = NumbersUtils.formatTime(ScoreCalculation.secondsElapsed * 1000).ifEmpty { "0s" }
         val floorColor = if (LocationUtils.isMasterMode) "&c" else "&a"
         val floorName = LocationUtils.dungeonFloor ?: "?"
 
         ChatUtils.modMessage("&e${m.score}&a score reached in &6$timeStr &f|| $floorColor$floorName.")
-        playSuccessSound()
-    }
-
-    private fun playSuccessSound() {
-        val sound = SimpleSoundInstance.forUI(SoundEvents.EXPERIENCE_ORB_PICKUP, 0F)
-        mc.soundManager.play(sound)
-        mc.soundManager.play(sound)
-    }
-
-    private fun Int.formatTime(): String {
-        if (this <= 0) return "0s"
-        val h = this / 3600
-        val m = (this % 3600) / 60
-        val s = this % 60
-
-        return buildString {
-            if (h > 0) append("${h}h ")
-            if (m > 0) append("${m}m ")
-            if (s > 0 || isEmpty()) append("${s}s")
-        }.trim()
+        repeat(2) { USound.playSoundStatic(SoundEvents.EXPERIENCE_ORB_PICKUP, 0.25f, 0f) }
     }
 }

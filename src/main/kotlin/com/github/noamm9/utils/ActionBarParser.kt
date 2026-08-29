@@ -1,13 +1,15 @@
 package com.github.noamm9.utils
 
+import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus.register
-import com.github.noamm9.event.EventPriority
+import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
+import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.dungeons.DungeonListener
-import com.github.noamm9.utils.dungeons.map.DungeonInfo
-import com.github.noamm9.utils.dungeons.map.core.Room
+import com.github.noamm9.utils.dungeons.map.core.RoomTile
+import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.websocket.WebSocket
@@ -16,13 +18,14 @@ import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
 import kotlin.math.roundToInt
 
-object ActionBarParser {
-    val HP_REGEX = Regex("§[c6]([\\d,]+)/([\\d,]+)❤") // §c1389/1390❤ , §62181/1161❤
-    val DEF_REGEX = Regex("§a([\\d,]+)§a❈ Defense") // §a593§a❈ Defense
-    val MANA_REGEX = Regex("§b([\\d,]+)/([\\d,]+)✎( Mana)?") // §b550/550✎ Mana§r
-    val OVERFLOW_REGEX = Regex("§3([\\d,]+)ʬ") // §3100ʬ
-    val STACKS_REGEX = Regex("§6([\\d,]+)([ᝐ⁑Ѫ])") // §610⁑
-    val SALVATION_REGEX = Regex("T([1-3])!")
+object ActionBarParser: ISelfInit {
+    val HP_REGEX = Regex("§[c6]([\\d,]+)/([\\d,]+)[\uE010❤]")
+    val DEF_REGEX = Regex("""§a([\d,]+)(§a)?[❈]( Defense)?""") // https://regex101.com/r/QDZtRK/1
+    val MANA_REGEX = Regex("§b([\\d,]+)/([\\d,]+)[\uE003✎]( Mana)?")
+    val OVERFLOW_REGEX = Regex("§3([\\d,]+)[\uE017ʬ]") // §3100ʬ
+    val VITALITY_REGEX = Regex("""§4([\d.,]+)/([\d,.]+)[♨]( Vitality)?""") // https://regex101.com/r/tLHZYG/1
+    val STACKS_REGEX = Regex("(?:§6|§6§l)([\\d,]+)([ᝐ⁑҉Ѫ⚶])(?:§r)?")
+    val SALVATION_REGEX = Regex("(?:§6|§a§l)?T([12]|3!)(?:§r)?")
     val MANA_USAGE_REGEX = Regex("§b-([\\d,]+) Mana \\(§6.+?§b\\)|§c§lNOT ENOUGH MANA") // §b-50 Mana (§6Speed Boost§b) , §c§lNOT ENOUGH MANA
     val SECRETS_REGEX = Regex("\\s*§7(\\d+)/(\\d+) Secrets") // §76/10 Secrets§r
 
@@ -33,6 +36,9 @@ object ActionBarParser {
     var currentMana = 0
     var maxMana = 0
     var overflowMana = 0
+    var currentVitality = 0
+    var maxVitality = 0
+    var isVitalityShown = false
     var effectiveHP = 0
     var netherArmorStacks = 0
     var stackSymbol = ""
@@ -40,7 +46,7 @@ object ActionBarParser {
     var secrets: Int? = 0
     var maxSecrets: Int? = 0
 
-    fun init() {
+    override fun init() {
         register<MainThreadPacketReceivedEvent.Post>(EventPriority.HIGHEST) {
             if (! LocationUtils.inSkyblock) return@register
             if (event.packet is ClientboundSystemChatPacket && event.packet.overlay()) {
@@ -53,6 +59,8 @@ object ActionBarParser {
     }
 
     private fun extractStats(input: String) {
+        if (NoammAddons.debugFlags.contains("actionbar")) NoammAddons.logger.info(input)
+
         HP_REGEX.find(input)?.let { match ->
             currentHealth = match.groupValues[1].remove(",").toIntOrNull() ?: currentHealth
             maxHealth = match.groupValues[2].remove(",").toIntOrNull() ?: maxHealth
@@ -78,13 +86,19 @@ object ActionBarParser {
             currentMana = (currentMana - usage).coerceAtLeast(0)
         }
 
+        VITALITY_REGEX.find(input)?.let { match ->
+            currentVitality = match.groupValues[1].remove(",").toDoubleOrNull()?.toInt() ?: currentVitality
+            maxVitality = match.groupValues[2].remove(",").toDoubleOrNull()?.toInt() ?: maxVitality
+            isVitalityShown = true
+        } ?: ::isVitalityShown.set(false)
+
         STACKS_REGEX.find(input)?.let { match ->
             netherArmorStacks = match.groupValues[1].remove(",").toIntOrNull() ?: netherArmorStacks
             stackSymbol = match.groupValues[2]
         }
 
         SALVATION_REGEX.find(input)?.let { match ->
-            salvation = match.groupValues[1].remove(",").toIntOrNull() ?: salvation
+            salvation = match.groupValues[1].trimEnd('!').toIntOrNull() ?: salvation
         }
 
         SECRETS_REGEX.takeIf { LocationUtils.inDungeon }?.find(input)?.let { match ->
@@ -92,13 +106,13 @@ object ActionBarParser {
             maxSecrets = match.groupValues[2].remove(",").toIntOrNull() ?: maxSecrets
 
             ScanUtils.getRoomGraf(mc.player !!.position()).let { (gx, gy) ->
-                val room = DungeonInfo.dungeonList[gy * 11 + gx] as? Room ?: return
-                if (room.data.name == "Unknown") return
+                val roomTile = DungeonScanner.dungeonList[gy * 11 + gx] as? RoomTile ?: return
+                if (roomTile.data.name == "Unknown") return
 
-                if (room.uniqueRoom?.foundSecrets != secrets && room.data.secrets == maxSecrets) {
-                    room.uniqueRoom?.foundSecrets = secrets !!
+                if (roomTile.uniqueRoom?.foundSecrets != secrets && roomTile.data.secrets == maxSecrets) {
+                    roomTile.uniqueRoom?.foundSecrets = secrets !!
                     if (DungeonListener.dungeonTeammatesNoSelf.isNotEmpty()) {
-                        WebSocket.send(S2CPacketRoomSecrets(room.data.name, secrets !!))
+                        WebSocket.send(S2CPacketRoomSecrets(roomTile.data.name, secrets !!))
                     }
                 }
             }

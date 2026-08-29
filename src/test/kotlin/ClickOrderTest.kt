@@ -19,7 +19,7 @@ object ClickOrderTest {
         val finalPath = LinkedList<Int>()
 
         while (remaining.isNotEmpty()) {
-            val bestNextClick = HumanClickOrder.getBestClick(remaining, type)
+            val bestNextClick = HumanClickOrder.getBestClick(remaining)
             finalPath.add(bestNextClick.slotId)
             remaining.remove(bestNextClick)
         }
@@ -32,10 +32,6 @@ object ClickOrderTest {
         println("=========== INVENTORY VISUALIZATION ==========")
         println("Type: $type")
         println(" ...  = Empty Slot")
-        println("[ 0 ] = 1st Click")
-        println("[ 1 ] = 2nd Click")
-        println("[ 9 ] = 10th Click")
-        println("---------------------------------------------")
 
         val slotToOrderMap = path.withIndex().associate { it.value to it.index }
 
@@ -93,7 +89,7 @@ object ClickOrderTest {
             TerminalType.REDGREEN -> 3
         }
 
-        fun getBestClick(availableClicks: List<TerminalClick>, type: TerminalType): TerminalClick {
+        fun getBestClick(availableClicks: List<TerminalClick>): TerminalClick {
             if (availableClicks.isEmpty()) throw IllegalStateException("Solution list is empty")
 
             val bestClick = availableClicks.shuffled().minByOrNull { click ->

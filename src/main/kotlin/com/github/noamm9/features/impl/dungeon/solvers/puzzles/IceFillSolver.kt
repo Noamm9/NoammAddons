@@ -7,16 +7,18 @@ import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.icefillColo
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
-import com.github.noamm9.utils.render.Render3D
-import com.github.noamm9.utils.render.RenderContext
+import com.github.noamm9.utils.render.world.Render3D.renderLine
+import com.github.noamm9.utils.render.world.RenderContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.Vec3
-import java.awt.Color
 import java.util.*
 import java.util.concurrent.*
+import kotlin.system.measureTimeMillis
 
 object IceFillSolver: PuzzleSolver {
     override val enabled get() = PuzzleSolvers.icefill.value
@@ -25,17 +27,15 @@ object IceFillSolver: PuzzleSolver {
     override fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
         if (event.room.name != "Ice Fill") return
         NoammAddons.scope.launch {
-            solve(event.room.centerPos, 360 - event.room.rotation !!)
+            val time = measureTimeMillis { solve(event.room.centerPos, 360 - event.room.rotation !!) }
+            ChatUtils.modMessage("&bIce Fill took ${time}ms to solve")
         }
     }
 
-    override fun onRenderWorld(ctx: RenderContext) {
-        puzzles.forEach { it.draw(ctx, icefillColor.value) }
-    }
-
+    override fun onRenderWorld(ctx: RenderContext) = puzzles.forEach { it.draw(ctx) }
     override fun reset() = puzzles.clear()
 
-    private fun solve(center: BlockPos, rotation: Int) {
+    private suspend fun solve(center: BlockPos, rotation: Int) = withContext(Dispatchers.Default) {
         val checkpoints = listOf(
             ScanUtils.getRealCoord(BlockPos(0, 69, - 8), center, rotation),
             ScanUtils.getRealCoord(BlockPos(0, 70, - 3), center, rotation),
@@ -57,7 +57,7 @@ object IceFillSolver: PuzzleSolver {
             allIceBlocks.add(pos.above())
         }
 
-        if (allIceBlocks.isEmpty()) return
+        if (allIceBlocks.isEmpty()) return@withContext
 
         val clusters = mutableListOf<MutableSet<BlockPos>>()
         val visited = mutableSetOf<BlockPos>()
@@ -90,7 +90,7 @@ object IceFillSolver: PuzzleSolver {
         for ((i, cluster) in clusters.withIndex()) {
             if (i >= 3) break
 
-            val spaces = cluster.toList()
+            val spaces = cluster.toHashSet()
             val start = spaces.minBy { it.distSqr(checkpoints[i]) }
             val end = spaces.minBy { it.distSqr(checkpoints[i + 1]) }
 
@@ -101,62 +101,150 @@ object IceFillSolver: PuzzleSolver {
         }
     }
 
-    private class IceFillPuzzle(val spaces: List<BlockPos>, val start: BlockPos, val end: BlockPos) {
+    private class IceFillPuzzle(val spaces: HashSet<BlockPos>, val start: BlockPos, val end: BlockPos) {
         var path = mutableListOf<BlockPos>()
+            private set
 
         private val graph = spaces.associateWith { pos ->
-            Direction.Plane.HORIZONTAL.map { pos.relative(it) }.filter { it in spaces }
+            Direction.Plane.HORIZONTAL.filter { pos.relative(it) in spaces }
+        }
+
+        private val NO_WALL_PENALTY = 5
+        private val DOUBLE_TURN_PENALTY = 2
+        private val TURN_PENALTY = 1
+
+        private fun dirBetween(a: BlockPos, b: BlockPos) = when {
+            b.x > a.x -> Direction.EAST
+            b.x < a.x -> Direction.WEST
+            b.z > a.z -> Direction.SOUTH
+            else -> Direction.NORTH
+        }
+
+        private fun isBackedByWall(pos: BlockPos, dir: Direction) = pos.relative(dir) !in spaces
+
+        private fun remainingConnected(current: BlockPos, visited: Set<BlockPos>): Boolean {
+            val remaining = spaces.size - visited.size + 1
+            if (remaining <= 1) return true
+
+            val seen = HashSet<BlockPos>(remaining)
+            val stack = ArrayDeque<BlockPos>()
+            stack.add(current)
+            seen.add(current)
+
+            while (stack.isNotEmpty()) {
+                val cur = stack.removeLast()
+                for (dir in graph[cur] ?: emptyList()) {
+                    val n = cur.relative(dir)
+                    if ((n == current || n !in visited) && seen.add(n)) stack.add(n)
+                }
+            }
+            return seen.size == remaining
+        }
+
+        private fun pathCost(fullPath: List<BlockPos>): Int {
+            if (fullPath.size < 3) return 0
+            var total = 0
+            var prevDir: Direction? = null
+            var prevWasTurn = false
+            for (i in 1 until fullPath.size) {
+                val dir = dirBetween(fullPath[i - 1], fullPath[i])
+                if (prevDir != null && dir != prevDir) {
+                    total += TURN_PENALTY
+                    if (! isBackedByWall(fullPath[i - 1], prevDir)) total += NO_WALL_PENALTY
+                    if (prevWasTurn) total += DOUBLE_TURN_PENALTY
+                    prevWasTurn = true
+                }
+                else prevWasTurn = false
+                prevDir = dir
+            }
+            return total
+        }
+
+        private fun search(stopAtFirst: Boolean, costBound: Int): List<BlockPos>? {
+            var bestCost = costBound
+            var bestPath: List<BlockPos>? = null
+
+            val visited = mutableSetOf(start)
+            val tempPath = ArrayList<BlockPos>(spaces.size).apply { add(start) }
+
+            fun dfs(current: BlockPos, lastDir: Direction?, lastWasTurn: Boolean, cost: Int): Boolean {
+                if (cost >= bestCost) return false
+
+                if (visited.size == spaces.size) {
+                    if (current == end) {
+                        bestCost = cost
+                        bestPath = tempPath.toList()
+                        return stopAtFirst
+                    }
+                    return false
+                }
+                if (current == end) return false
+
+                val candidates = (graph[current] ?: emptyList())
+                    .map { it to current.relative(it) }
+                    .filter { (_, pos) -> pos !in visited }
+                    .sortedWith(
+                        compareBy(
+                            { (_, pos) -> (graph[pos] ?: emptyList()).count { pos.relative(it) !in visited } },
+                            { (dir, _) -> if (dir == lastDir) 0 else 1 }
+                        )
+                    )
+
+                for ((dir, nextPos) in candidates) {
+                    var stepCost = cost
+                    var turned = false
+                    if (lastDir != null && dir != lastDir) {
+                        turned = true
+                        stepCost += TURN_PENALTY
+                        if (! isBackedByWall(current, lastDir)) stepCost += NO_WALL_PENALTY
+                        if (lastWasTurn) stepCost += DOUBLE_TURN_PENALTY
+                    }
+                    if (stepCost >= bestCost) continue
+
+                    visited.add(nextPos)
+                    tempPath.add(nextPos)
+
+                    val stop = remainingConnected(nextPos, visited) && dfs(nextPos, dir, turned, stepCost)
+
+                    tempPath.removeAt(tempPath.size - 1)
+                    visited.remove(nextPos)
+
+                    if (stop) return true
+                }
+                return false
+            }
+
+            dfs(start, null, false, 0)
+            return bestPath
         }
 
         fun solve(): IceFillPuzzle {
             if (start !in spaces || end !in spaces) return this
+            if ("ice" in NoammAddons.debugFlags) {
+                fun BlockPos.string() = "(x:$x, z:$z)"
+                ChatUtils.debug("ice", "spaces=${spaces.joinToString(",") { it.string() }} start=${start.string()} end=${end.string()}")
+            }
 
-            val visited = mutableSetOf<BlockPos>()
-            visited.add(start)
+            val fallback = search(stopAtFirst = true, costBound = Int.MAX_VALUE) ?: return this
 
-            val tempPath = ArrayList<BlockPos>(spaces.size)
-            tempPath.add(start)
+            val optimized = search(
+                stopAtFirst = false,
+                costBound = pathCost(fallback),
+            )
 
-            if (dfs(start, visited, tempPath)) path = tempPath
+            path = (optimized ?: fallback).toMutableList()
             return this
         }
 
-        private fun dfs(current: BlockPos, visited: MutableSet<BlockPos>, currentPath: MutableList<BlockPos>): Boolean {
-            if (visited.size == spaces.size) return current == end
-            if (current == end) return false
-
-            val neighbors = graph[current] ?: return false
-            val sortedNeighbors = neighbors.filter { it !in visited }.sortedBy { neighbor ->
-                (graph[neighbor] ?: emptyList()).count { it !in visited }
-            }
-
-            for (next in sortedNeighbors) {
-                visited.add(next)
-                currentPath.add(next)
-
-                if (dfs(next, visited, currentPath)) return true
-
-                currentPath.removeAt(currentPath.size - 1)
-                visited.remove(next)
-            }
-
-            return false
-        }
-
-        fun draw(ctx: RenderContext, color: Color) {
-            if (path.isEmpty()) return
-
-            path.forEachIndexed { index, pos ->
-                if (index > 0) {
-                    val prev = path[index - 1]
-                    Render3D.renderLine(
-                        ctx,
-                        Vec3(prev.x + 0.5, prev.y + 0.01, prev.z + 0.5),
-                        Vec3(pos.x + 0.5, pos.y + 0.01, pos.z + 0.5),
-                        color, thickness = 5f
-                    )
-                }
-            }
+        fun draw(ctx: RenderContext) = path.forEachIndexed { index, pos ->
+            if (index == 0) return@forEachIndexed
+            val prev = path[index - 1]
+            ctx.renderLine(
+                Vec3(prev.x + 0.5, prev.y + 0.01, prev.z + 0.5),
+                Vec3(pos.x + 0.5, pos.y + 0.01, pos.z + 0.5),
+                icefillColor.value,
+                thickness = 5f
+            )
         }
     }
 }

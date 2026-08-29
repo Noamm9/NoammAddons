@@ -1,18 +1,18 @@
 package com.github.noamm9.ui.hud
 
-import com.github.noamm9.config.Config
+import com.github.noamm9.config.ConfigManager
 import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.componnents.UIButton
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
-import java.awt.Color
 
-object HudEditorScreen: Screen(Component.literal("HudEditor")) {
-    val enabledElements get() = FeatureManager.hudElements.filter { it.toggle }
+class HudEditorScreen: Screen(Component.literal("HudEditor")) {
+    private val huds = FeatureManager.hudElements.filter { it.toggle }
+    private var resetConfirmed = false
 
     override fun init() {
         super.init()
@@ -26,7 +26,15 @@ object HudEditorScreen: Screen(Component.literal("HudEditor")) {
             btnWidth,
             btnHeight,
             "§cReset HUD"
-        ) {
+        ) { button ->
+            if (! resetConfirmed) {
+                button.message = Component.literal("§c§lConfirm Reset?")
+                resetConfirmed = true
+                return@UIButton
+            }
+
+            resetConfirmed = false
+            button.message = Component.literal("§cReset HUD")
             FeatureManager.hudElements.forEach { element ->
                 element.x = 20f
                 element.y = 20f
@@ -36,18 +44,16 @@ object HudEditorScreen: Screen(Component.literal("HudEditor")) {
     }
 
     override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
-        Resolution.refresh()
         Resolution.push(graphics)
 
         val mX = Resolution.getMouseX(mouseX)
         val mY = Resolution.getMouseY(mouseY)
         val midX = Resolution.width / 2
 
-        enabledElements.forEach { it.drawEditor(graphics, mX, mY) }
+        for (hud in huds) hud.drawEditor(graphics, mX, mY)
 
-        val element = enabledElements.find { it.isDragging }
-        Render2D.drawCenteredString(graphics, element?.name.orEmpty(), midX, 10f, Color.WHITE, 1.2f)
-        Render2D.drawCenteredString(graphics, "ESC to Save and Exit", midX, Resolution.height - 20f, Color.GRAY, shadow = false)
+        val element = huds.find { it.isDragging }
+        graphics.drawCenteredString(element?.name.orEmpty(), midX, 10f, scale = 1.2f)
 
         Resolution.pop(graphics)
 
@@ -55,13 +61,12 @@ object HudEditorScreen: Screen(Component.literal("HudEditor")) {
     }
 
     override fun mouseScrolled(mouseX: Double, mouseY: Double, horizontal: Double, vertical: Double): Boolean {
-        enabledElements.forEach { element ->
-            if (element.isDragging) {
-                val increment = (vertical * 0.1).toFloat()
-                element.scale = (element.scale + increment).coerceIn(0.5f, 5.0f)
-                return true
-            }
+        for (hud in huds) if (hud.isDragging) {
+            val increment = (vertical * 0.1).toFloat()
+            hud.scale = (hud.scale + increment).coerceIn(0.5f, 5.0f)
+            return true
         }
+
         return super.mouseScrolled(mouseX, mouseY, horizontal, vertical)
     }
 
@@ -71,23 +76,21 @@ object HudEditorScreen: Screen(Component.literal("HudEditor")) {
         val mX = Resolution.getMouseX(mouseButtonEvent.x)
         val mY = Resolution.getMouseY(mouseButtonEvent.y)
 
-        if (mouseButtonEvent.button() == 0) {
-            enabledElements.forEach {
-                it.startDragging(mX, mY)
-                if (it.isDragging) return true
-            }
+        if (mouseButtonEvent.button() == 0) huds.forEach {
+            it.startDragging(mX, mY)
+            if (it.isDragging) return true
         }
 
         return false
     }
 
     override fun mouseReleased(mouseButtonEvent: MouseButtonEvent): Boolean {
-        enabledElements.forEach { it.isDragging = false }
+        for (hud in huds) hud.isDragging = false
         return super.mouseReleased(mouseButtonEvent)
     }
 
     override fun onClose() {
-        Config.save()
+        ConfigManager.save()
         super.onClose()
     }
 }

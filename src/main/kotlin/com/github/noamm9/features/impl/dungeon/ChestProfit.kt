@@ -1,28 +1,30 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
-import com.github.noamm9.init.NetworkLoop.priceData
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.init.NetworkLoop
+import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
+import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
 import com.github.noamm9.utils.equalsOneOf
-import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.location.WorldType
 import com.github.noamm9.utils.remove
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.highlight
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.RenderHelper.width
 import com.github.noamm9.utils.startsWithOneOf
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.world.item.ItemStack
@@ -31,27 +33,60 @@ import java.awt.Color
 
 object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
     private val hud by ToggleSetting("HUD Display", true).section("General")
+    private val rerollValue by SliderSetting("Reroll Value", 5, 0, 100, 1, "M").withDescription("Prevents you from rerolling a chest if its profit is &b&lbigger&r then the &avalue in milions&r.\n\n&eoverride by pressing CTRL&r.\nset to 0 to disable")
     private val includeEssence by ToggleSetting("Includes Essence", true)
     private val croesusChestsProfit by ToggleSetting("Croesus Chests Profit", true).section("Croesus")
     private val croesusChestHighlight by ToggleSetting("Highlight Croesus Chests", true)
     private val hideRedChests by ToggleSetting("Hide Opened Chests", true)
-    private val croesusKismetDisplay by ToggleSetting("Highlight Rerolled Chests", true)
+    private val croesusKismetDisplay by ToggleSetting("Mark Rerolled Chests", true).jsonName("Highlight Rerolled Chests")
 
     private val blackList by lazy { DataDownloader.loadJson<List<String>>("blacklistDrops.json") }
 
     private val essenceRegex = Regex("§d(?<type>\\w+) Essence §8x(?<count>\\d+)")
     private val croesusChestRegex = Regex("^(Master )?Catacombs - Flo(or (IV|V?I{0,3}))?$")
+    private val croesusMenuRegex = Regex("""^(?:\(\d/\d\) )?Croesus$""")
 
     private val chestsToHighlight = mutableListOf<DungeonChest>()
     private var sortedChestsCache = emptyList<DungeonChest>()
 
     private val feather by lazy { ItemStack(Items.FEATHER) }
+    private val npcLoc = vec(- 28, 119, 35)
 
     override fun init() {
         register<WorldChangeEvent> {
             DungeonChest.entries.forEach { it.reset() }
             chestsToHighlight.clear()
             sortedChestsCache = emptyList()
+        }
+
+        hudElement(
+            name = "Chest Profit",
+            enabled = { hud.value },
+            shouldDraw = {
+                val world = LocationUtils.world
+                val distance = player.distanceToSqr(npcLoc) <= 150
+                world == WorldType.Catacombs || (world == WorldType.DungeonHub && distance)
+            }
+        ) { ctx, example ->
+            val text = if (example) DungeonChest.example
+            else {
+                val chests = sortedChestsCache.takeIf { it.isNotEmpty() } ?: DungeonChest.entries.filter { it.openedInSequence }.sortedByDescending { it.profit }
+                if (chests.isEmpty()) return@hudElement 0f to 0f
+
+                chests.map { chest ->
+                    val colorCode = if (chest.profit < 0) "§4" else "§a"
+                    val profit = NumbersUtils.format(chest.profit)
+                    chest to "${chest.displayText}: $colorCode$profit"
+                }
+            }
+
+            var maxWidth = 0f
+            text.forEachIndexed { i, (chest, str) ->
+                ctx.drawString(str, 0f, i * 9f, chest.color)
+                maxWidth = maxOf(maxWidth, str.width().toFloat())
+            }
+
+            maxWidth to text.size * 9f
         }
 
         register<ContainerFullyOpenedEvent> {
@@ -72,7 +107,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                     var profit = - getChestCost(lore)
 
                     event.items.forEach { (_, stack) ->
-                        if (stack.item == Items.STAINED_GLASS_PANE.gray()) return@forEach
+                        if (stack.item == Items.GRAY_STAINED_GLASS_PANE) return@forEach
                         val value = getItemValue(stack)
                         profit += value
                     }
@@ -81,10 +116,10 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                     currentChest.openedInSequence = true
                 }
 
-                chestName.matches(croesusChestRegex) && croesusChestsProfit.value -> {
+                croesusChestsProfit.value && chestName.matches(croesusChestRegex) -> {
                     for (i in 10 .. 16) {
                         val stack = event.items[i] ?: continue
-                        if (stack.item == Items.STAINED_GLASS_PANE.gray()) continue
+                        if (stack.item == Items.GRAY_STAINED_GLASS_PANE) continue
                         val chestType = DungeonChest.getFromName(stack.hoverName.unformattedText) ?: continue
                         val lore = stack.lore
                         if (lore.last() == "§aAlready opened!") continue
@@ -127,15 +162,14 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                 DungeonChest.getFromName(titleName)?.let {
                     val color = if (it.profit < 0) "§4" else "§a"
                     val text = "Profit: $color${NumbersUtils.format(it.profit)}  "
-                    Render2D.drawString(event.context, text, width - text.width(), 6f)
+                    event.context.drawString(text, width - text.width(), 6f)
                 } ?: run {
-                    if (croesusChestRegex.matches(titleName) && croesusChestsProfit.value) {
+                    if (croesusChestsProfit.value && croesusChestRegex.matches(titleName)) {
                         sortedChestsCache.forEachIndexed { index, chest ->
                             val color = if (chest.profit < 0) "§4" else "§a"
                             val text = "${chest.displayText}: $color${NumbersUtils.format(chest.profit)}§r"
 
-                            Render2D.drawString(
-                                event.context,
+                            event.context.drawString(
                                 text,
                                 width * 1.15f,
                                 index * 9f + height / 6f,
@@ -146,7 +180,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                 }
             }
 
-            if (titleName.matches(croesusChestRegex) && croesusChestsProfit.value) {
+            if (croesusChestsProfit.value && titleName.matches(croesusChestRegex)) {
                 sortedChestsCache.take(2).forEachIndexed { index, chest ->
                     if (chest.profit < 0) return@forEachIndexed
                     if (chest.slot != event.slot.index) return@forEachIndexed
@@ -154,12 +188,12 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                     event.slot.highlight(event.context, color)
                 }
             }
-            else if (titleName == "Croesus") {
+            else if (titleName.matches(croesusMenuRegex)) {
                 val stack = event.slot.item
                 if (stack.item != Items.PLAYER_HEAD) return@register
 
-                val name = stack.hoverName.formattedText
-                if (! name.equalsOneOf("§aThe Catacombs", "§aMaster Mode The Catacombs")) return@register
+                val name = stack.hoverName.unformattedText
+                if (! name.equalsOneOf("The Catacombs", "Master Mode The Catacombs")) return@register
                 val lore = stack.lore
 
                 if (croesusChestHighlight.value) {
@@ -189,21 +223,36 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                     highlightColor?.let { event.slot.highlight(event.context, it.withAlpha(100)) }
                 }
 
-                if (croesusKismetDisplay.value && lore[lore.size - 4] != "§5 §9Kismet Feather") {
+                if (croesusKismetDisplay.value && lore[lore.lastIndex - 3] != "§5 §9Kismet Feather") {
                     val pose = event.context.pose()
                     pose.pushMatrix()
                     pose.scale(0.7f)
                     pose.translate((event.slot.x + 7) / 0.7f, (event.slot.y + 7) / 0.7f)
-                    Render2D.renderItem(event.context, feather, 0, 0)
+                    event.context.item(feather, 0, 0)
                     pose.popMatrix()
                 }
             }
+        }
+
+        register<ContainerEvent.SlotClick> {
+            if (rerollValue.value == 0) return@register
+            if (event.slotId != 50) return@register
+            if (event.screen !is ContainerScreen) return@register
+            if (mc.hasControlDown()) return@register
+            if (! LocationUtils.world.equalsOneOf(WorldType.DungeonHub, WorldType.Catacombs)) return@register
+            val chest = DungeonChest.getFromName(event.screen.title.unformattedText) ?: return@register
+            if (chest.profit <= rerollValue.value * 1_000_000L) return@register
+            val lastLine = player.containerMenu.getSlot(50).item.lore.last().removeFormatting()
+            if (lastLine == "You already rerolled a chest!") return@register
+            if (lastLine != "Click to reroll this chest!") return@register
+            event.isCanceled = true
+            NotificationManager.push("Blocked Rerolling Chest", "Its profit dumass.\nPress CTRL to override")
         }
     }
 
     private fun getItemValue(stack: ItemStack): Long {
         val itemName = stack.hoverName.formattedText
-        val itemId = stack.skyblockId
+        val itemId = stack.skyblockId.removePrefix("STARRED_")
         var value = 0L
 
         if (itemId == "ENCHANTED_BOOK") {
@@ -237,14 +286,14 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
         val match = essenceRegex.find(text) ?: return 0L
         val type = match.groups["type"]?.value?.uppercase() ?: return 0L
         val count = match.groups["count"]?.value?.toLongOrNull() ?: 0L
-        return (priceData["ESSENCE_$type"] ?: 0L) * count
+        return (NetworkLoop.getPrice("ESSENCE_$type") ?: 0L) * count
     }
 
     private fun getIdFromName(name: String): String? {
         val cleanName = name.removeFormatting()
         if (cleanName.startsWith("Enchanted Book (")) return enchantNameToID(name.substringAfter("(").substringBefore(")"))
         if (cleanName.contains("Shard")) return "SHARD_${cleanName.removeFormatting().uppercase().remove(" SHARD").replace(" ", "_").remove("_X1")}"
-        return ItemUtils.nameToIdMap[cleanName.remove("Shiny ")]
+        return NetworkLoop.nameToIdMap[cleanName.remove("Shiny ")]?.removePrefix("STARRED_")
     }
 
     private fun enchantNameToID(enchant: String): String {
@@ -259,38 +308,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
         return "ENCHANTMENT_${enchantId}_$level"
     }
 
-    private fun getPrice(id: String): Long {
-        if (id in blackList) return 0L
-        return priceData[id] ?: 0L
-    }
-
-    init {
-        hudElement(
-            name = "Chest Profit",
-            enabled = { hud.value },
-            shouldDraw = { LocationUtils.world.equalsOneOf(WorldType.DungeonHub, WorldType.Catacombs) }
-        ) { ctx, example ->
-            val text = if (example) DungeonChest.example
-            else {
-                val chests = sortedChestsCache.takeIf { it.isNotEmpty() } ?: DungeonChest.entries.filter { it.openedInSequence }.sortedByDescending { it.profit }
-                if (chests.isEmpty()) return@hudElement 0f to 0f
-
-                chests.map { chest ->
-                    val colorCode = if (chest.profit < 0) "§4" else "§a"
-                    val profit = NumbersUtils.format(chest.profit)
-                    chest to "${chest.displayText}: $colorCode$profit"
-                }
-            }
-
-            var maxWidth = 0f
-            text.forEachIndexed { i, (chest, str) ->
-                Render2D.drawString(ctx, str, 0f, i * 9f, chest.color)
-                maxWidth = maxOf(maxWidth, str.width().toFloat())
-            }
-
-            maxWidth to text.size * 9f
-        }
-    }
+    private fun getPrice(id: String) = if (id in blackList) 0L else NetworkLoop.getPrice(id) ?: 0L
 
     enum class DungeonChest(val displayText: String, val color: Color) {
         WOOD("Wood Chest", Color(100, 64, 1)),

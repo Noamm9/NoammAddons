@@ -1,13 +1,15 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.commands.CommandBuilder
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.ChatUtils.formattedText
@@ -18,19 +20,18 @@ import com.github.noamm9.utils.items.ItemRarity
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.network.ProfileUtils
 import com.github.noamm9.utils.network.cache.ProfileCache
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.RenderHelper.width
 import com.mojang.brigadier.arguments.StringArgumentType
 import kotlinx.coroutines.launch
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
-import net.fabricmc.fabric.api.client.command.v2.ClientCommands
+import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.HoverEvent
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Blocks
 import java.util.*
 
-object PartyFinder: Feature() {
+object PartyFinder: Feature(), ICommandProvider {
     private val showJoinStats by ToggleSetting("Join Stats", true).withDescription("Prints the dungeon stats of a player that joins your party.").section("Join Stats")
 
     private val showLevelReq by ToggleSetting("Show Level Req", true).withDescription("Shows the red level requirement number.").section("Menu")
@@ -51,8 +52,9 @@ object PartyFinder: Feature() {
     private val dungeonGroupJoinRegex = Regex("^Party Finder > (\\w{1,16}) joined the dungeon group! \\((\\w+) Level (\\d+)\\)$")
     private val kickedPlayers = mutableSetOf<String>()
 
-    private val partyMembersRegex = Regex("§5 (.+)§f: §e(.+)§b \\(..(\\d+)..\\)")
-    private val levelRequiredRegex = Regex("§7Dungeon Level Required: §b(\\d+)")
+    private val partyMembersRegex = Regex("^\\s*(\\w{1,16}):?\\s+(Archer|Tank|Berserk|Healer|Mage)\\s*\\((\\d+)\\)\\s*$")
+    private val levelRequiredRegex = Regex("Dungeon Level Required:\\s*(\\d+)")
+    private val floorRegex = Regex("Floor:\\s*Floor\\s+(\\w+)")
     private val selectedClassRegex = Regex("Currently Selected: (.+)")
     private val selectDungeonClassRegex = Regex("§7View and select a dungeon class\\.")
     private val classNames = listOf("&4&lArcher", "&a&lTank", "&6&lBerserk", "&5&lHealer", "&b&lMage")
@@ -78,16 +80,17 @@ object PartyFinder: Feature() {
             val classes = mutableListOf<String>()
             var levelRequired = 0
 
-            for (line in item.lore) when {
-                line.contains("Dungeon Level Required:") && showLevelReq.value -> levelRequired = levelRequiredRegex.find(line)?.groupValues?.get(1)?.toInt() ?: 0
-                partyMembersRegex.matches(line) && showMissingOverlay.value -> classes.add(partyMembersRegex.matchEntire(line) !!.destructured.component2())
+            for (line in item.lore) {
+                val cleanLine = line.removeFormatting()
+                if (showLevelReq.value) levelRequiredRegex.find(cleanLine)?.groupValues?.get(1)?.toInt()?.let { levelRequired = it }
+                if (showMissingOverlay.value) partyMembersRegex.matchEntire(cleanLine)?.destructured?.let { classes.add(it.component2()) }
             }
 
             event.context.pose().translate(event.slot.x.toFloat(), event.slot.y.toFloat())
 
             if (levelRequired != 0) {
                 val str = "&c$levelRequired"
-                Render2D.drawString(event.context, str, 16f - str.width() * 0.6f, 0f, scale = 0.6f)
+                event.context.drawString(str, 16f - str.width() * 0.6f, 0f, scale = 0.6f)
             }
 
             if (showMissingOverlay.value) {
@@ -98,8 +101,7 @@ object PartyFinder: Feature() {
                 ).filter { it.isNotBlank() }
 
                 for ((i, line) in missing.withIndex()) {
-                    Render2D.drawString(
-                        event.context,
+                    event.context.drawString(
                         line,
                         0,
                         10f - if (i == 1) 6f else 0f,
@@ -125,18 +127,19 @@ object PartyFinder: Feature() {
             event.lore.toList().forEachIndexed { index, comp ->
                 val line = comp.formattedText
 
-                if (line.removeFormatting().contains("Dungeon: Master Mode")) type = 'M'
-                if (line.contains("§7Floor: §bFloor ")) floor = line.split(" ").last().let { it.toIntOrNull() ?: it.romanToDecimal() }
+                val cleanLine = line.removeFormatting()
+                if (cleanLine.contains("Dungeon: Master Mode")) type = 'M'
+                floorRegex.find(cleanLine)?.groupValues?.get(1)?.let {
+                    floor = it.toIntOrNull() ?: it.romanToDecimal()
+                }
 
-                partyMembersRegex.matchEntire(line)?.destructured?.let { (pName, cName, cLvl) ->
-                    val playerName = pName.removeFormatting()
-                    val className = cName.removeFormatting()
+                partyMembersRegex.matchEntire(cleanLine)?.destructured?.let { (playerName, className, cLvl) ->
                     val level = cLvl.toInt()
                     val color = getColor(level)
 
                     val stats = if (showTooltipStats.value) getLoreStats(playerName, floor, type) else ""
 
-                    event.lore[index] = Component.literal(" $pName: §e$className $color$level $stats".addColor())
+                    event.lore[index] = Component.literal(" §b$playerName: §e$className $color$level $stats".addColor())
                     remainingClasses.remove(className)
                 }
             }
@@ -182,25 +185,18 @@ object PartyFinder: Feature() {
                 if (showJoinStats.value) printPlayerStats(name)
             }
         }
+    }
 
-        ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
-            dispatcher.register(
-                ClientCommands.literal("pfs").executes {
-                    scope.launch { printPlayerStats(mc.user.name) }
-                    1
-                }.then(ClientCommands.argument("ign", StringArgumentType.word())
-                    .suggests { _, builder ->
-                        val players = TabListUtils.getTabList().mapNotNull { it.second.profile.name }.filterNot { it.matches("^![A-Z]-[a-z]$".toRegex()) }
-                        players.forEach { builder.suggest(it) }
-                        builder.buildFuture()
-                    }
-                    .executes { context ->
-                        val ign = StringArgumentType.getString(context, "ign")
-                        scope.launch { printPlayerStats(ign) }
-                        1
-                    }
-                )
-            )
+    override fun CommandBuilder.command() {
+        setName("pfs")
+        runs { scope.launch { printPlayerStats(mc.user.name) } }
+
+        argument("name", StringArgumentType.word()) {
+            suggests { TabListUtils.getTabList().mapNotNull { it.second.profile.name }.filterNot { it.matches("^![A-Z]-[a-z]$".toRegex()) } }
+            runs {
+                val ign = StringArgumentType.getString(it, "name")
+                scope.launch { printPlayerStats(ign) }
+            }
         }
     }
 
@@ -288,6 +284,10 @@ object PartyFinder: Feature() {
             completionComponents.forEach(ChatUtils::chat)
         }
 
+        ChatUtils.chat(" ")
+        ChatUtils.chat(Component.literal("  §cPress to kick $cleanName").withStyle {
+            it.withClickEvent(ClickEvent.RunCommand("/party kick $cleanName"))
+        })
         ChatUtils.chat("&a&l------------------------------------&r")
     }
 
@@ -333,7 +333,7 @@ object PartyFinder: Feature() {
 
     private fun getLoreStats(name: String, floor: Int, type: Char): String {
         val key = name.removeFormatting().uppercase()
-        val cachedData = ProfileCache.getFromCache(key)
+        val cachedData = ProfileCache.getOrNull(key)
 
         if (cachedData == null) {
             if (key !in pendingRequests && pendingRequests.size < 5) {

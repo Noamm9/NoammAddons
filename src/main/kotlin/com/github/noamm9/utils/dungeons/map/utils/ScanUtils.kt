@@ -1,17 +1,21 @@
 package com.github.noamm9.utils.dungeons.map.utils
 
-import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.event.EventBus.register
-import com.github.noamm9.event.EventDispatcher
+import com.github.noamm9.commands.CommandBuilder
+import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.impl.DungeonEvent
+import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.features.Shortcuts
 import com.github.noamm9.init.DataDownloader
+import com.github.noamm9.init.types.ICommandProvider
+import com.github.noamm9.init.types.ISelfInit
+import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.destructured
-import com.github.noamm9.utils.ThreadUtils
+import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.WorldUtils
-import com.github.noamm9.utils.dungeons.map.DungeonInfo
-import com.github.noamm9.utils.dungeons.map.core.Room
 import com.github.noamm9.utils.dungeons.map.core.RoomData
+import com.github.noamm9.utils.dungeons.map.core.RoomTile
 import com.github.noamm9.utils.dungeons.map.core.UniqueRoom
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner.startX
@@ -23,35 +27,41 @@ import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.Vec3
 import kotlin.math.round
 
-object ScanUtils {
-    val roomList by lazy { DataDownloader.loadJson<List<RoomData>>("rooms.json") }
+object ScanUtils: ISelfInit, ICommandProvider, Shortcuts {
+    val roomList = DataDownloader.loadJson<List<RoomData>>("rooms.json")
+    val secretMap = roomList.associate { it.name to it.secretCoords }
+    var currentRoom: UniqueRoom? = null
+    var lastKnownRoom: UniqueRoom? = null
 
-    init {
-        register<WorldChangeEvent> {
+    override fun init() {
+        EventBus.register<WorldChangeEvent> {
             currentRoom = null
             lastKnownRoom = null
         }
 
-        ThreadUtils.loop(250) {
-            if (! inDungeon) return@loop
-            ThreadUtils.scheduledTask {
+        EventBus.register<TickEvent.End> {
+            if (! inDungeon) return@register
+            val room = getRoomFromPos(player.position())
+            if (currentRoom == room) return@register
 
-                val room = getRoomFromPos(mc.player?.position() ?: return@scheduledTask)
-                if (currentRoom == room) return@scheduledTask
+            lastKnownRoom = currentRoom
+            currentRoom = room
 
-                lastKnownRoom = currentRoom
-                currentRoom = room
-
-                EventDispatcher.checkForRoomChange(currentRoom, lastKnownRoom)
-            }
+            lastKnownRoom?.let { EventBus.post(DungeonEvent.RoomEvent.onExit(it)) }
+            currentRoom?.let { EventBus.post(DungeonEvent.RoomEvent.onEnter(it)) }
         }
     }
 
-    @JvmField
-    var currentRoom: UniqueRoom? = null
-
-    @JvmField
-    var lastKnownRoom: UniqueRoom? = null
+    override fun CommandBuilder.command() {
+        setName("relative")
+        runs {
+            val look = PlayerUtils.getSelectionBlock() !!
+            val room = currentRoom !!
+            getRelativeCoord(look, room.clayPos !!, room.rotation !!).let {
+                ChatUtils.modMessage("relative: $it")
+            }
+        }
+    }
 
     fun getRoomData(hash: Int) = roomList.find { hash in it.cores }
     fun getRoomData(name: String) = roomList.find { it.name == name }
@@ -66,7 +76,7 @@ object ScanUtils {
 
     fun getRoomFromPos(vec: Vec3): UniqueRoom? {
         val (gx, gz) = getRoomGraf(vec)
-        val unq = (DungeonInfo.dungeonList[gz * 11 + gx] as? Room)?.uniqueRoom
+        val unq = (DungeonScanner.dungeonList[gz * 11 + gx] as? RoomTile)?.uniqueRoom
         return unq
     }
 

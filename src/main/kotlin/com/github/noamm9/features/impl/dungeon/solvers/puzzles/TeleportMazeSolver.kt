@@ -8,8 +8,8 @@ import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.correctTpPa
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.wrongTpPadColor
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
-import com.github.noamm9.utils.render.Render3D
-import com.github.noamm9.utils.render.RenderContext
+import com.github.noamm9.utils.render.world.Render3D.renderBlock
+import com.github.noamm9.utils.render.world.RenderContext
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket
 import net.minecraft.world.level.block.Blocks
@@ -43,12 +43,12 @@ object TeleportMazeSolver: PuzzleSolver {
         val top = orderedPads?.takeIf { it.size >= 2 }?.take(2)
 
         if (top != null && top[0].totalAngle != top[1].totalAngle) {
-            Render3D.renderBlock(ctx, top[0].pos, correctTpPadColor.value, phase = true)
+            ctx.renderBlock(top[0].pos, correctTpPadColor.value, phase = true)
         }
 
         for (cell in c) for (pad in cell.pads) {
             if (! pad.blacklisted) continue
-            Render3D.renderBlock(ctx, pad.pos, wrongTpPadColor.value)
+            ctx.renderBlock(pad.pos, wrongTpPadColor.value)
         }
     }
 

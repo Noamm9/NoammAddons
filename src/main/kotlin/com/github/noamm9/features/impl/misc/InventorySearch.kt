@@ -1,21 +1,25 @@
 package com.github.noamm9.features.impl.misc
 
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.KeyboardEvent
 import com.github.noamm9.event.impl.MouseClickEvent
 import com.github.noamm9.event.impl.ScreenEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.Style
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
+import com.github.noamm9.ui.clickgui.components.settings.Style
+import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.TextInputHandler
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.items.ItemUtils.lore
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.highlight
+import gg.essential.universal.UKeyboard
+import gg.essential.universal.UMinecraft
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.client.input.MouseButtonInfo
@@ -24,115 +28,132 @@ import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 object InventorySearch: Feature("Lets you search in inventory and support math") {
-    private val ignoreCaps by ToggleSetting("Ignore Caps")
-    private val searchLore by ToggleSetting("Search Lore")
+    private val ignoreCaps by ToggleSetting("Ignore Caps", true)
+    private val searchLore by ToggleSetting("Search Lore", true)
     private val highlightColor by ColorSetting("Highlight Color", Color.RED)
 
     private var searchQuery = ""
-    private val searchHandler = TextInputHandler({ searchQuery }, { searchQuery = it })
+    private val searchHandler = TextInputHandler({ searchQuery }) {
+        expressionResult = evaluateExpression(it)
+        searchQuery = it
+    }
+
     private var expressionResult: Double? = null
 
     val color get() = highlightColor.value
+    val isSearching get() = enabled && searchQuery.isNotBlank()
 
     fun matches(stack: ItemStack): Boolean {
         if (searchQuery.isBlank() || stack.isEmpty) return false
-        val name = stack.hoverName.unformattedText.contains(searchQuery, ignoreCaps.value)
-        val lore = searchLore.value && stack.lore.any { it.removeFormatting().contains(searchQuery, ignoreCaps.value) }
-        return name || lore
+        if (stack.hoverName.unformattedText.contains(searchQuery, ignoreCaps.value)) return true
+        return searchLore.value && stack.lore.any { it.removeFormatting().contains(searchQuery, ignoreCaps.value) }
     }
 
+    private lateinit var searchHud: HudElement
     private const val WIDTH = 200f
     private const val HEIGHT = 22f
 
     override fun init() {
-        register<ScreenEvent.PostRender> {
-            if (mc.gui.screen() !is AbstractContainerScreen<*>) return@register
-
-            Resolution.refresh()
-            Resolution.push(event.context)
-
-            val x = (Resolution.width / 2) - (WIDTH / 2)
-            val y = (Resolution.height - 30) - (HEIGHT / 2)
-            val mx = Resolution.getMouseX()
-            val my = Resolution.getMouseY()
-
-            searchHandler.x = x
-            searchHandler.y = y
+        searchHud = hudElement(
+            name = "Inventory Search",
+            shouldDraw = { false },
+            centered = true
+        ) { context, example ->
+            searchHandler.x = - WIDTH / 2
+            searchHandler.y = 0f
             searchHandler.width = WIDTH
             searchHandler.height = HEIGHT
 
-            Render2D.drawRect(event.context, x, y, WIDTH, HEIGHT, Color(15, 15, 15, 200))
+            val localMouseX = (Resolution.getMouseX() - searchHud.x) / searchHud.scale
+            val localMouseY = (Resolution.getMouseY() - searchHud.y) / searchHud.scale
+
+            context.drawRect(- WIDTH / 2, 0f, WIDTH, HEIGHT, Color(15, 15, 15, 200))
             val color = if (searchHandler.listening) Style.accentColor else Color(255, 255, 255, 30)
-            Render2D.drawRect(event.context, x, y + HEIGHT - 1, WIDTH, 1f, color)
+            context.drawRect(- WIDTH / 2, HEIGHT - 1, WIDTH, 1f, color)
 
-            if (searchQuery.isEmpty() && ! searchHandler.listening) Render2D.drawCenteredString(event.context, "§8Search...", x + WIDTH / 2, y + 6)
-            else if (expressionResult != null) searchHandler.draw(event.context, mx.toFloat(), my.toFloat(), " = §e${NumbersUtils.formatComma(expressionResult)}")
-            else searchHandler.draw(event.context, mx.toFloat(), my.toFloat())
+            if (example || searchQuery.isEmpty() && ! searchHandler.listening) context.drawCenteredString("§8Search...", 0f, 6f)
+            else if (expressionResult != null) searchHandler.draw(context, localMouseX, localMouseY, " = §e${NumbersUtils.formatComma(expressionResult)}")
+            else searchHandler.draw(context, localMouseX, localMouseY)
 
+            WIDTH to HEIGHT
+        }.apply {
+            x = Resolution.width / 2f
+            y = Resolution.height - 30f - HEIGHT / 2f
+        }
+
+        register<ScreenEvent.PostRender> {
+            if (UMinecraft.currentScreenObj !is AbstractContainerScreen<*>) return@register
+
+            Resolution.push(event.context)
+            searchHud.renderElement(event.context, false)
             Resolution.pop(event.context)
         }
 
         register<MouseClickEvent> {
-            if (mc.gui.screen() !is AbstractContainerScreen<*>) return@register
+            if (UMinecraft.currentScreenObj !is AbstractContainerScreen<*>) return@register
             if (event.action == GLFW.GLFW_RELEASE) searchHandler.mouseReleased()
-            if (event.action == GLFW.GLFW_PRESS) {
-                searchHandler.mouseClicked(
-                    Resolution.getMouseX().toFloat(),
-                    Resolution.getMouseY().toFloat(),
-                    MouseButtonEvent(0.0, 0.0, MouseButtonInfo(event.button, event.action))
-                )
-            }
+            if (event.action != GLFW.GLFW_PRESS) return@register
+
+            val x = (Resolution.getMouseX() - searchHud.x) / searchHud.scale
+            val y = (Resolution.getMouseY() - searchHud.y) / searchHud.scale
+            val mbe = MouseButtonEvent(0.0, 0.0, MouseButtonInfo(event.button, event.action))
+
+            if (searchHandler.mouseClicked(x, y, mbe)) event.isCanceled = true
         }
 
         register<KeyboardEvent.CharTyped> {
-            if (mc.gui.screen() !is AbstractContainerScreen<*>) return@register
+            if (UMinecraft.currentScreenObj !is AbstractContainerScreen<*>) return@register
             if (! searchHandler.listening) return@register
-
             searchHandler.keyTyped(event.charEvent)
-            expressionResult = evaluateExpression(searchQuery)
+            event.isCanceled = true
         }
 
         register<KeyboardEvent.KeyPressed> {
-            if (mc.gui.screen() !is AbstractContainerScreen<*>) return@register
+            if (UMinecraft.currentScreenObj !is AbstractContainerScreen<*>) return@register
 
-            if (event.keyEvent.key == GLFW.GLFW_KEY_F && event.keyEvent.hasControlDown()) {
+            if (event.keyEvent.key == UKeyboard.KEY_F && event.keyEvent.hasControlDown()) {
                 searchHandler.listening = ! searchHandler.listening
                 event.isCanceled = true
                 return@register
             }
 
             if (! searchHandler.listening) return@register
-
-            if (mc.options.keyInventory.matches(event.keyEvent)) {
-                event.isCanceled = true
-            }
-
             searchHandler.keyPressed(event.keyEvent)
+            event.isCanceled = true
         }
 
         register<ContainerEvent.Render.Slot.Pre> {
-            if (matches(event.slot.item)) event.slot.highlight(event.context, highlightColor.value)
+            if (! matches(event.slot.item)) return@register
+            event.slot.highlight(event.context, highlightColor.value, 3)
         }
     }
 
     // Shunting Yard Algorithm
-    // This shit is less stable than I am
     private fun evaluateExpression(expr: String): Double? {
         if (expr.isBlank()) return null
         if (expr.none { it.isDigit() }) return null
 
         val operators = mapOf(
-            "+" to 1,
-            "-" to 1,
-            "*" to 2,
-            "x" to 2,
-            "/" to 2
+            "+" to (1 to false),
+            "-" to (1 to false),
+            "*" to (2 to false),
+            "x" to (2 to false),
+            "/" to (2 to false),
+            "u-" to (3 to true) // unary minus
         )
 
         val tokens = mutableListOf<String>()
         var i = 0
 
         while (i < expr.length) when {
+            expr[i].isWhitespace() -> i ++
+
+            (expr[i] == '+' || expr[i] == '-') &&
+                (tokens.isEmpty() || tokens.last() == "(" || tokens.last() in operators) -> {
+                if (expr[i] == '-') tokens.add("u-")
+                i ++
+            }
+
             expr[i].isDigit() || expr[i] == '.' -> {
                 val start = i
                 while (i < expr.length && (expr[i].isDigit() || expr[i] == '.')) i ++
@@ -144,8 +165,6 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
                 tokens.add(expr[i].toString())
                 i ++
             }
-
-            expr[i].isWhitespace() -> i ++
 
             else -> return null
         }
@@ -166,7 +185,11 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
                 }
 
                 token in operators -> {
-                    while (stack.isNotEmpty() && stack.first() in operators && operators[token] !! <= operators[stack.first()] !!) {
+                    val (currentPrec, currentRightAssoc) = operators[token] !!
+                    while (stack.isNotEmpty() && stack.first() in operators) {
+                        val (topPrec, _) = operators[stack.first()] !!
+                        val shouldPop = topPrec > currentPrec || (topPrec == currentPrec && ! currentRightAssoc)
+                        if (! shouldPop) break
                         output.add(stack.removeFirst())
                     }
                     stack.addFirst(token)
@@ -177,7 +200,7 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
         }
 
         while (stack.isNotEmpty()) {
-            if (stack.first() in listOf("(", ")")) return null
+            if (stack.first() == "(" || stack.first() == ")") return null
             output.add(stack.removeFirst())
         }
 
@@ -186,26 +209,35 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
         for (token in output) {
             val num = NumbersUtils.parseCompactNumberDouble(token)
 
-            if (num != null) evalStack.addFirst(num)
-            else if (token in operators) {
-                if (evalStack.size < 2) return null
+            when {
+                num != null -> evalStack.addFirst(num)
 
-                val b = evalStack.removeFirst()
-                val a = evalStack.removeFirst()
-
-                val res = when (token) {
-                    "+" -> a + b
-                    "-" -> a - b
-                    "*", "x" -> a * b
-                    "/" -> a / b
-                    else -> return null
+                token == "u-" -> {
+                    if (evalStack.isEmpty()) return null
+                    evalStack.addFirst(- evalStack.removeFirst())
                 }
-                evalStack.addFirst(res)
 
+                token in operators -> {
+                    if (evalStack.size < 2) return null
+
+                    val b = evalStack.removeFirst()
+                    val a = evalStack.removeFirst()
+
+                    val res = when (token) {
+                        "+" -> a + b
+                        "-" -> a - b
+                        "*", "x" -> a * b
+                        "/" -> if (b == 0.0) return null else a / b
+                        else -> return null
+                    }
+                    evalStack.addFirst(res)
+                }
+
+                else -> return null
             }
-            else return null
         }
 
-        return if (evalStack.size == 1) evalStack.first() else null
+        val result = evalStack.singleOrNull() ?: return null
+        return result.takeIf { it.isFinite() }
     }
 }

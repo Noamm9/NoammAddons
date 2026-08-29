@@ -1,21 +1,22 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.commands.CommandBuilder
+import com.github.noamm9.config.PogObject
+import com.github.noamm9.config.types.MultiCheckboxSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.MultiCheckboxSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
-import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.init.types.ICommandProvider
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.NumbersUtils.toFixed
-import com.github.noamm9.utils.PartyUtils
 import com.github.noamm9.utils.PartyUtils.isLeader
-import com.github.noamm9.utils.ServerUtils
 import com.github.noamm9.utils.dungeons.DungeonUtils
-import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
-import net.minecraft.client.resources.sounds.SimpleSoundInstance
+import com.mojang.brigadier.arguments.StringArgumentType
+import gg.essential.universal.USound
 import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.HoverEvent
@@ -24,17 +25,18 @@ import net.minecraft.network.protocol.game.ServerboundChatCommandPacket
 import net.minecraft.sounds.SoundEvents
 import kotlin.math.roundToInt
 
-object PartyHelper: Feature("Party commands and reformatting.") {
+object PartyHelper: Feature("Party commands and reformatting."), ICommandProvider {
     private val partyCommands by ToggleSetting("Party Commands", true).section("Party Commands")
     private val partyLeaderCheck by ToggleSetting("Leader Only", false).showIf { partyCommands.value }
     private val commands by MultiCheckboxSetting("Enabled Commands", mutableMapOf(
         "!w" to true, "!f" to true, "!m" to true, "!inv" to true,
-        "!kick" to true, "!dt" to true, "!ping" to true, "!tps" to true,
+        "!kick" to true, "!dt" to true, "!ping" to true, "!tps" to true, "!fps" to true,
         "!pt" to true, "!ai" to true, "!coords" to true, "!gay" to true
     )).showIf { partyCommands.value }
 
     private val partyAddons by ToggleSetting("Reformat Party List", true).section("Party Addons")
 
+    private val playerBlacklist = PogObject("party_command_blacklist", mutableSetOf<String>())
     private val party = mutableListOf<PartyMember>()
     val downtimeList = mutableMapOf<String, String>()
     private var awaitingDelimiter = 0
@@ -42,6 +44,48 @@ object PartyHelper: Feature("Party commands and reformatting.") {
     private val partyStartPattern = Regex("^Party Members \\((\\d+)\\)$")
     private val playerPattern = Regex("(?<rank>.*?)(?<name>\\w+) ?§(?<status>[ac]) ?● ?")
     private val partyCommandRegex = Regex("^Party > (?:\\[[^]]+] )?([^:]+): ([!?.\\-@#`/])(.+)$")
+
+    override fun CommandBuilder.command() {
+        setName("partycommandsblacklist", "pcbl")
+        description("Manages the party command blacklist")
+        runs { showBlacklist() }
+
+        literal("add") {
+            argument("player", StringArgumentType.word()) {
+                suggests { PartyUtils.members.filterNot(::isBlacklisted) }
+                runs {
+                    val name = StringArgumentType.getString(it, "player")
+                    val added = playerBlacklist.get().add(name.lowercase())
+                    if (added) playerBlacklist.save()
+                    ChatUtils.modMessage(if (added) "&aAdded &b$name &ato the party command blacklist." else "&e$name is already blacklisted.")
+                }
+            }
+        }
+
+        literal("remove") {
+            argument("player", StringArgumentType.word()) {
+                suggests { playerBlacklist.get().sorted() }
+                runs {
+                    val name = StringArgumentType.getString(it, "player")
+                    val removed = playerBlacklist.get().remove(name.lowercase())
+                    if (removed) playerBlacklist.save()
+                    ChatUtils.modMessage(if (removed) "&aRemoved &b$name &afrom the party command blacklist." else "&e$name is not blacklisted.")
+                }
+            }
+        }
+
+        literal("list") {
+            runs { showBlacklist() }
+        }
+
+        literal("clear") {
+            runs {
+                playerBlacklist.get().clear()
+                playerBlacklist.save()
+                ChatUtils.modMessage("&aCleared the party command blacklist.")
+            }
+        }
+    }
 
     override fun init() {
         register<PacketEvent.Sent> {
@@ -56,7 +100,7 @@ object PartyHelper: Feature("Party commands and reformatting.") {
             if (! LocationUtils.onHypixel) return@register
 
             if (partyCommands.value) partyCommandRegex.find(event.unformattedText)?.let { match ->
-                val (name, sign, cmdAll) = match.destructured
+                val (name, _, cmdAll) = match.destructured
                 val args = cmdAll.split(" ").toMutableList()
                 val cmd = args.removeAt(0).lowercase()
                 handlePartyCommand(name, cmd, args)
@@ -72,16 +116,20 @@ object PartyHelper: Feature("Party commands and reformatting.") {
             if (downtimeList.isEmpty()) return@register
             val names = downtimeList.keys.joinToString(", ")
             ChatUtils.showTitle("&cDowntime!", "Players needing DT: $names")
-            mc.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_PLING.value(), 1f))
+            USound.playSoundStatic(SoundEvents.NOTE_BLOCK_PLING, 0.25f, 1f)
             ChatUtils.sendPartyMessage("Players needing DT: $names")
             downtimeList.clear()
         }
     }
 
     private fun handlePartyCommand(sender: String, cmd: String, args: List<String>) {
+        if (isBlacklisted(sender)) return
+
         fun canRun(key: String) = commands.value[key] == true
 
         when {
+            canRun("!fps") && cmd == "fps" -> ChatUtils.sendPartyMessage("FPS: ${mc.fps}")
+
             canRun("!f") && cmd.startsWith("f") -> {
                 val floor = cmd.removePrefix("f").toIntOrNull() ?: args.getOrNull(0)?.toIntOrNull() ?: return
                 if (floor in 0 .. 7) runCommand("joininstance CATACOMBS_FLOOR_${DungeonUtils.FLOOR_NAMES[floor]}", true)
@@ -92,35 +140,34 @@ object PartyHelper: Feature("Party commands and reformatting.") {
                 if (floor in 1 .. 7) runCommand("joininstance MASTER_CATACOMBS_FLOOR_${DungeonUtils.FLOOR_NAMES[floor]}", true)
             }
 
-            canRun("!pt") && (cmd == "pt" || cmd == "ptme") -> {
+            canRun("!pt") && cmd.equalsOneOf("pt", "ptme") -> {
                 if (sender != mc.user.name) runCommand("p transfer $sender", true)
             }
 
-            canRun("!coords") && (cmd == "coords" || cmd == "cords") -> {
-                val p = mc.player ?: return
-                runCommand("pc x: ${p.blockX}, y: ${p.blockY}, z: ${p.blockZ}")
+            canRun("!coords") && cmd.equalsOneOf("coords", "cords") -> {
+                runCommand("pc x: ${player.blockX}, y: ${player.blockY}, z: ${player.blockZ}")
             }
 
-            canRun("!dt") && (cmd == "dt" || cmd == "downtime") -> {
+            canRun("!dt") && cmd.equalsOneOf("dt", "downtime") -> {
                 downtimeList[sender] = args.joinToString(" ").ifBlank { "No reason" }
             }
 
-            canRun("!w") && (cmd == "warp" || cmd == "w") -> runCommand("p warp", true)
+            canRun("!w") && cmd.equalsOneOf("warp", "w") -> runCommand("p warp", true)
 
-            canRun("!ai") && (cmd == "ai" || cmd == "allinvite") -> runCommand("p settings allinvite", true)
+            canRun("!ai") && cmd.equalsOneOf("ai", "allinvite") -> runCommand("p settings allinvite", true)
 
             canRun("!ping") && cmd == "ping" -> ChatUtils.sendPartyMessage("Ping: ${ServerUtils.currentPing}ms")
 
             canRun("!tps") && cmd == "tps" -> ChatUtils.sendPartyMessage("TPS: ${ServerUtils.tps.toFixed(1)}")
 
-            canRun("!kick") && (cmd == "kick" || cmd == "k") -> {
+            canRun("!kick") && cmd.equalsOneOf("kick", "k") -> {
                 if (args.isEmpty()) return
                 PartyUtils.members.find { it.contains(args[0], true) }?.let {
                     runCommand("p kick $it", true)
                 }
             }
 
-            canRun("!inv") && (cmd == "inv" || cmd == "kidnap" || cmd == "invite") -> {
+            canRun("!inv") && cmd.equalsOneOf("inv", "kidnap", "invite") -> {
                 args.firstOrNull()?.let { runCommand("p invite $it", true) }
             }
 
@@ -130,6 +177,13 @@ object PartyHelper: Feature("Party commands and reformatting.") {
                 runCommand("pc $target is $gayPercentage% gay.")
             }
         }
+    }
+
+    private fun isBlacklisted(name: String) = name.lowercase() in playerBlacklist.get()
+
+    private fun showBlacklist() {
+        val names = playerBlacklist.get().sorted()
+        ChatUtils.modMessage(if (names.isEmpty()) "&eThe party command blacklist is empty." else "&aParty command blacklist: &f${names.joinToString(", ")}")
     }
 
     private fun handlePartyListParsing(event: ChatMessageEvent) {
@@ -144,9 +198,7 @@ object PartyHelper: Feature("Party commands and reformatting.") {
                 event.isCanceled = true
             }
 
-            unformatted.startsWith("Party Leader: ") ||
-                unformatted.startsWith("Party Moderators: ") ||
-                unformatted.startsWith("Party Members: ") -> {
+            unformatted.startsWithOneOf("Party Leader: ", "Party Moderators: ", "Party Members: ") -> {
                 val type = when {
                     unformatted.startsWith("Party Leader") -> PartyMemberType.LEADER
                     unformatted.startsWith("Party Moderators") -> PartyMemberType.MODERATOR

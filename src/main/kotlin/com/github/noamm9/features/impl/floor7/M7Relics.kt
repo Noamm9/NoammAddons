@@ -1,22 +1,24 @@
 package com.github.noamm9.features.impl.floor7
 
 import com.github.noamm9.config.PersonalBest
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.MathUtils.center
 import com.github.noamm9.utils.MathUtils.toPos
+import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.WitherRelic
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.width
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.RenderHelper.width
+import com.github.noamm9.utils.render.world.Render3D.renderBlock
+import com.github.noamm9.utils.render.world.Render3D.renderTracer
 import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
@@ -51,6 +53,14 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
     )
 
     override fun init() {
+        hudElement("Relic Spawn Timer", { relicSpawnTimer.value }, { (spawnTimerTicks - DungeonListener.currentTime) > 0 }, centered = true) { ctx, example ->
+            val timeLeft = if (example) 25 else spawnTimerTicks - DungeonListener.currentTime
+            val displayTime = (timeLeft / 20.0).toFixed(2)
+            val color = DungeonListener.thePlayer?.clazz?.color ?: Color.WHITE
+            ctx.drawCenteredString(displayTime, 0, 0, color)
+            return@hudElement displayTime.width().toFloat() to 9f
+        }
+
         register<WorldChangeEvent> {
             spawnTimerTicks = 0
             relicTimes.clear()
@@ -77,44 +87,12 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
             }
         }
 
-        //#if CHEAT
-        fun onInteract(event: PlayerInteractEvent, pos: BlockPos) {
-            if (! blockWrongRelic.value || LocationUtils.F7Phase != 5) return
-            val item = event.item?.hoverName?.string ?: return
-            val relic = WitherRelic.fromName(item) ?: return
-            if (pos.x == relic.cauldronPos.x.toInt() && pos.z == relic.cauldronPos.z.toInt()) return
-            event.cancel()
-        }
-
-        register<PlayerInteractEvent.LEFT_CLICK.BLOCK> { onInteract(event, event.pos) }
-        register<PlayerInteractEvent.RIGHT_CLICK.BLOCK> { onInteract(event, event.pos) }
-
-        register<MainThreadPacketReceivedEvent.Post> {
-            if (! relicLook.value || LocationUtils.F7Phase != 5) return@register
-            if (event.packet !is ClientboundContainerSetSlotPacket) return@register
-            val item = PlayerUtils.getHotbarSlot(8)?.hoverName ?: return@register
-            val relic = WitherRelic.fromName(item.unformattedText) ?: return@register
-            if (relic == WitherRelic.RED || relic == WitherRelic.ORANGE) scope.launch {
-                PlayerUtils.rotateSmoothly(relic.cauldronPos.center(), relicLookTime.value)
-            }
-        }
-        //#endif
-
-        hudElement("Relic Spawn Timer", { relicSpawnTimer.value }, { (spawnTimerTicks - DungeonListener.currentTime) > 0 }, centered = true) { ctx, example ->
-            val timeLeft = if (example) 25 else spawnTimerTicks - DungeonListener.currentTime
-            val displayTime = (timeLeft / 20.0).toFixed(2)
-            val color = DungeonListener.thePlayer?.clazz?.color ?: Color.WHITE
-            Render2D.drawCenteredString(ctx, displayTime, 0, 0, color)
-            return@hudElement displayTime.width().toFloat() to 9f
-        }
-
         register<RenderWorldEvent> {
             if (! relicBox.value) return@register
             if (LocationUtils.F7Phase != 5) return@register
-            val heldItem = mc.player?.inventory?.getItem(8)?.hoverName?.string ?: return@register
-            WitherRelic.fromName(heldItem)?.let {
-                Render3D.renderBlock(event.ctx, it.cauldronPos.toPos(), it.color, phase = true)
-                Render3D.renderTracer(event.ctx, it.cauldronPos.add(0.5, 0.5, 0.5), it.color)
+            WitherRelic.fromName(player.inventory.getItem(8).hoverName.string)?.let {
+                event.ctx.renderBlock(it.cauldronPos.toPos(), it.color, phase = true)
+                event.ctx.renderTracer(it.cauldronPos.add(0.5, 0.5, 0.5), it.color)
             }
         }
 
@@ -122,7 +100,7 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
             if (! relicTimer.value || LocationUtils.F7Phase != 5 || relicTimes.isEmpty()) return@register
             val activeRelics = relicTimes.filter { ! it.isPlaced }.takeUnless { it.isEmpty() } ?: return@register
 
-            val relicStands = mc.level !!.entitiesForRendering().filterIsInstance<ArmorStand>().filter {
+            val relicStands = level.entitiesForRendering().filterIsInstance<ArmorStand>().filter {
                 it.getItemBySlot(EquipmentSlot.HEAD).hoverName.string.contains("Relic")
             }
 
@@ -148,11 +126,34 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
                 relicTimes.clear()
             }
         }
+
+        //#if CHEAT
+        fun onInteract(event: PlayerInteractEvent, pos: BlockPos) {
+            if (! blockWrongRelic.value || LocationUtils.F7Phase != 5) return
+            val item = event.item?.hoverName?.string ?: return
+            val relic = WitherRelic.fromName(item) ?: return
+            if (pos.x == relic.cauldronPos.x.toInt() && pos.z == relic.cauldronPos.z.toInt()) return
+            event.cancel()
+        }
+
+        register<PlayerInteractEvent.LEFT_CLICK.BLOCK> { onInteract(event, event.pos) }
+        register<PlayerInteractEvent.RIGHT_CLICK.BLOCK> { onInteract(event, event.pos) }
+
+        register<MainThreadPacketReceivedEvent.Post> {
+            if (! relicLook.value || LocationUtils.F7Phase != 5) return@register
+            if (event.packet !is ClientboundContainerSetSlotPacket) return@register
+            val item = PlayerUtils.getHotbarSlot(8)?.hoverName ?: return@register
+            val relic = WitherRelic.fromName(item.unformattedText) ?: return@register
+            if (relic == WitherRelic.RED || relic == WitherRelic.ORANGE) scope.launch {
+                PlayerUtils.rotateSmoothly(relic.cauldronPos.center(), relicLookTime.value)
+            }
+        }
+        //#endif
     }
 
     private fun isEntityAtCauldron(pos: Vec3, relic: WitherRelic): Boolean {
-        val relicVec2 = Vec3(relic.coords.first.toDouble(), 0.0, relic.coords.second.toDouble())
-        val entityVec2 = Vec3(pos.x, 0.0, pos.z)
+        val relicVec2 = vec(relic.coords.first, 0, relic.coords.second)
+        val entityVec2 = vec(pos.x, 0, pos.z)
         return entityVec2.distanceTo(relicVec2) < 1.5
     }
 }

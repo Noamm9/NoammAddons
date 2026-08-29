@@ -1,8 +1,8 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.types.ColorSetting
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.items.ItemUtils.customData
@@ -22,7 +22,7 @@ object SalvageOverlay: Feature("Highlights salvageable dungeon gear.") {
             if (stack in PlayerUtils.getArmor()) return@register
             if (stack.hoverName.string.contains("✪")) return@register
             val statBoost = stack.customData.getInt("baseStatBoostPercentage").getOrNull() ?: return@register
-            event.slot.highlight(event.context, if (statBoost == 50) base50.value else under50.value)
+            event.slot.highlight(event.context, if (statBoost == 50) base50.value else under50.value, 1)
         }
     }
 }

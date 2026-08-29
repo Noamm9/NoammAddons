@@ -1,15 +1,15 @@
 package com.github.noamm9.features.impl.visual
 
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.SliderSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.height
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.RenderHelper.height
+import com.github.noamm9.utils.render.RenderHelper.width
 import java.awt.Color
 
 object FreezeDisplay: Feature("Shows how long the server froze after a chosen threshold.") {
@@ -24,7 +24,7 @@ object FreezeDisplay: Feature("Shows how long the server froze after a chosen th
             val diff = System.currentTimeMillis() - lastPacketTime
             val text = if (example) "567ms" else "${diff}ms"
 
-            Render2D.drawCenteredString(ctx, text, 0, 0, color.value)
+            ctx.drawCenteredString(text, 0, 0, color.value)
             return@hudElement text.width().toFloat() to text.height().toFloat()
         }
 

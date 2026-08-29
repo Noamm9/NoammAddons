@@ -19,25 +19,43 @@ import static com.github.noamm9.NoammAddons.mc;
 
 @Mixin(ChatComponent.class)
 public abstract class MixinChatComponent implements IChatComponent {
-
     @Shadow @Final private List<GuiMessage.Line> trimmedMessages;
-
     @Shadow private int chatScrollbarPos;
 
-    @Shadow
-    public abstract boolean isChatFocused();
+    @Shadow public abstract boolean isChatFocused();
+    @Shadow protected abstract int getWidth();
+    @Shadow protected abstract double getScale();
+    @Shadow public abstract int getLinesPerPage();
+    @Shadow protected abstract int getLineHeight();
 
-    @Shadow
-    protected abstract int getWidth();
+    @Inject(method = "addServerSystemMessage", at = @At("HEAD"), cancellable = true)
+    private void clearMessages(Component message, CallbackInfo ci) {
+        Chat.addMassageHook(message, ci);
+    }
 
-    @Shadow
-    protected abstract double getScale();
+    @Override
+    public List<GuiMessage.Line> getVisibleMessages() {
+        return this.trimmedMessages;
+    }
 
-    @Shadow
-    public abstract int getLinesPerPage();
+    @Override
+    public double getLineIndex() {
+        if (! isChatFocused()) return - 1;
+        var mx = screenToChatX(mc.mouseHandler.getScaledXPos(mc.getWindow()));
+        var my = screenToChatY(mc.mouseHandler.getScaledYPos(mc.getWindow()));
+        var maxX = Math.floor(getWidth() / getScale());
 
-    @Shadow
-    protected abstract int getLineHeight();
+        if (mx < - 4.0) return - 1;
+        if (mx > maxX) return - 1;
+
+        var maxLines = Math.min(getLinesPerPage(), trimmedMessages.size());
+        if (my >= 0 && my < maxLines) {
+            int index = (int) Math.floor(my + chatScrollbarPos);
+            if (index >= 0 && index < trimmedMessages.size()) return index;
+        }
+
+        return - 1;
+    }
 
     @Unique
     private double screenToChatX(double x) {
@@ -49,47 +67,5 @@ public abstract class MixinChatComponent implements IChatComponent {
         double scaledHeight = mc.getWindow().getGuiScaledHeight();
         double yFromBottom = scaledHeight - y - 40.0;
         return yFromBottom / (getScale() * getLineHeight());
-    }
-
-    @Unique
-    private int getMessageLineIndexAt(double x, double y) {
-        if (!isChatFocused()) return -1;
-        if (x < -4.0) return -1;
-
-        double maxX = Math.floor(getWidth() / getScale());
-        if (x > maxX) return -1;
-
-        int maxLines = Math.min(getLinesPerPage(), trimmedMessages.size());
-        if (y >= 0 && y < maxLines) {
-            int index = (int) Math.floor(y + chatScrollbarPos);
-            if (index >= 0 && index < trimmedMessages.size()) return index;
-        }
-
-        return -1;
-    }
-
-    @Override
-    public double getMouseXtoChatX() {
-        return screenToChatX(mc.mouseHandler.getScaledXPos(mc.getWindow()));
-    }
-
-    @Override
-    public double getMouseYtoChatY() {
-        return screenToChatY(mc.mouseHandler.getScaledYPos(mc.getWindow()));
-    }
-
-    @Override
-    public double getLineIndex(double x, double y) {
-        return getMessageLineIndexAt(x, y);
-    }
-
-    @Override
-    public List<GuiMessage.Line> getVisibleMessages() {
-        return this.trimmedMessages;
-    }
-
-    @Inject(method = "addServerSystemMessage", at = @At("HEAD"), cancellable = true)
-    private void clearMessages(Component message, CallbackInfo ci) {
-        Chat.addMassageHook(message, ci);
     }
 }

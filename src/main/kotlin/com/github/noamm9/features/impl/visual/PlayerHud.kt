@@ -1,25 +1,36 @@
 package com.github.noamm9.features.impl.visual
 
+import com.github.noamm9.config.types.MultiCheckboxSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ActionBarMessageEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.MultiCheckboxSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ActionBarParser
 import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D
-import com.github.noamm9.utils.render.Render2D.height
-import com.github.noamm9.utils.render.Render2D.width
+import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.RenderHelper.height
+import com.github.noamm9.utils.render.RenderHelper.width
 
 object PlayerHud: Feature(name = "Player HUD", description = "Displays your stats as moveable HUD elements.") {
     private val elements by MultiCheckboxSetting("Elements", mutableMapOf(
-        "Health" to false, "Defense" to false, "Mana" to false,
-        "Overflow Mana" to false, "Effective HP" to false, "Speed" to false
+        "Health" to false,
+        "Defense" to false,
+        "Mana" to false,
+        "Overflow Mana" to false,
+        "Vitality" to false,
+        "Effective HP" to false,
+        "Speed" to false
     ))
 
     private val hideFromActionbar by MultiCheckboxSetting("Hide from Actionbar", mutableMapOf(
-        "Health" to false, "Defense" to false, "Mana" to false, "Overflow Mana" to false,
-        "Dungeon Room Secrets" to false
+        "Health" to false,
+        "Defense" to false,
+        "Mana" to false,
+        "Overflow Mana" to false,
+        "Vitality" to false,
+        "Dungeon Room Secrets" to false,
+        "Armor Stacks" to false,
+        "Terminator Stacks" to false
     ))
 
     @JvmStatic val hideFoodbar by ToggleSetting("Hide Food bar").withDescription("Hides the food bar.").section("Extras")
@@ -33,7 +44,7 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             { LocationUtils.inSkyblock }
         ) { context, example ->
             val text = if (example) "§e3452§f/§c2452" else getHpFormatted()
-            Render2D.drawString(context, text, 0, 0)
+            context.drawString(text, 0, 0)
             return@hudElement text.width().toFloat() to text.height().toFloat()
         }
 
@@ -43,7 +54,7 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             { LocationUtils.inSkyblock }
         ) { context, example ->
             val text = if (example) "§a5001" else "§a${ActionBarParser.currentDefense}"
-            Render2D.drawString(context, text, 0, 0)
+            context.drawString(text, 0, 0)
             return@hudElement text.width().toFloat() to text.height().toFloat()
         }
 
@@ -53,7 +64,7 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             { LocationUtils.inSkyblock }
         ) { context, example ->
             val text = if (example) "§b2452/2452" else "§b${ActionBarParser.currentMana}/${ActionBarParser.maxMana}"
-            Render2D.drawString(context, text, 0, 0)
+            context.drawString(text, 0, 0)
             return@hudElement text.width().toFloat() to text.height().toFloat()
         }
 
@@ -63,7 +74,17 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             { LocationUtils.inSkyblock && ActionBarParser.overflowMana > 0 }
         ) { context, example ->
             val text = if (example) "§3600ʬ" else "§3${ActionBarParser.overflowMana}ʬ"
-            Render2D.drawString(context, text, 0, 0)
+            context.drawString(text, 0, 0)
+            return@hudElement text.width().toFloat() to text.height().toFloat()
+        }
+
+        hudElement(
+            this.name + " Vitality",
+            { elements.value["Vitality"] == true },
+            { LocationUtils.inSkyblock && ActionBarParser.isVitalityShown }
+        ) { context, example ->
+            val text = if (example) "§482/122" else "§4${ActionBarParser.currentVitality}/${ActionBarParser.maxVitality}"
+            context.drawString("$text&l♨", 0, 0)
             return@hudElement text.width().toFloat() to text.height().toFloat()
         }
 
@@ -73,7 +94,7 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             { LocationUtils.inSkyblock }
         ) { context, example ->
             val text = if (example) "§27.3m" else "§2${NumbersUtils.format(ActionBarParser.effectiveHP)}"
-            Render2D.drawString(context, text, 0, 0)
+            context.drawString(text, 0, 0)
             return@hudElement text.width().toFloat() to text.height().toFloat()
         }
 
@@ -83,7 +104,7 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             { LocationUtils.inSkyblock }
         ) { context, example ->
             val text = if (example) "§f400✦" else "§f${ActionBarParser.currentSpeed}✦"
-            Render2D.drawString(context, text, 0, 0)
+            context.drawString(text, 0, 0)
             return@hudElement text.width().toFloat() to text.height().toFloat()
         }
 
@@ -95,7 +116,10 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             if (hideFromActionbar.value["Defense"] == true) result = result.replace(ActionBarParser.DEF_REGEX, "")
             if (hideFromActionbar.value["Mana"] == true) result = result.replace(ActionBarParser.MANA_REGEX, "")
             if (hideFromActionbar.value["Overflow Mana"] == true) result = result.replace(ActionBarParser.OVERFLOW_REGEX, "")
+            if (hideFromActionbar.value["Vitality"] == true) result = result.replace(ActionBarParser.VITALITY_REGEX, "")
             if (hideFromActionbar.value["Dungeon Room Secrets"] == true) result = result.replace(ActionBarParser.SECRETS_REGEX, "")
+            if (hideFromActionbar.value["Armor Stacks"] == true) result = result.replace(ActionBarParser.STACKS_REGEX, "")
+            if (hideFromActionbar.value["Terminator Stacks"] == true) result = result.replace(ActionBarParser.SALVATION_REGEX, "")
 
             event.message = result
         }

@@ -1,8 +1,8 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.PlayerInteractEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.core.RoomType
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
@@ -13,7 +13,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.level.block.Blocks
 
-object BreakerHelper: Feature("Zero Ping Dungeon Breaker") {
+object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
     private val preventBreakingSecrets by ToggleSetting("Prevent Secret Mine").withDescription("Prevents you from breaking secret blocks like chests & levers.")
 
     //#if CHEAT
@@ -31,6 +31,7 @@ object BreakerHelper: Feature("Zero Ping Dungeon Breaker") {
         register<PlayerInteractEvent.LEFT_CLICK.BLOCK> {
             if (! preventBreakingSecrets.value) return@register
             if (! LocationUtils.inDungeon) return@register
+            if (LocationUtils.inBoss) return@register
             if (event.item?.skyblockId != "DUNGEONBREAKER") return@register
             if (WorldUtils.getBlockAt(event.pos) !in blacklist) return@register
             event.isCanceled = true
@@ -43,12 +44,12 @@ object BreakerHelper: Feature("Zero Ping Dungeon Breaker") {
         if (! enabled) return
         if (! zeroPing.value) return
         if (! LocationUtils.inDungeon) return
-        if (mc.player?.mainHandItem?.skyblockId != "DUNGEONBREAKER") return
+        if (player.mainHandItem.skyblockId != "DUNGEONBREAKER") return
         if (ScanUtils.currentRoom?.data?.type.equalsOneOf(RoomType.PUZZLE, RoomType.FAIRY)) return
         val state = WorldUtils.getStateAt(pos).takeUnless { it.block in blacklist || it.block == Blocks.OBSIDIAN } ?: return
 
-        mc.level?.removeBlock(pos, false)
-        mc.level?.playLocalSound(
+        level.removeBlock(pos, false)
+        level.playLocalSound(
             pos.x + 0.5,
             pos.y + 0.5,
             pos.z + 0.5,

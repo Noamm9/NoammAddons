@@ -10,6 +10,7 @@ import net.minecraft.core.Direction
 import net.minecraft.core.SectionPos
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.*
+import net.minecraft.world.level.block.piston.PistonHeadBlock
 import net.minecraft.world.level.chunk.LevelChunk
 import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.CollisionContext
@@ -51,7 +52,7 @@ object EtherwarpHelper {
         if (! noRotate.enabled) return fallback
         val pendingTeleport = noRotate.pendingTeleports.lastOrNull() ?: return fallback
         val config = noRotate.zeroPingCamera.value.values.toList()
-        if (! config[pendingTeleport.info.type.ordinal]) return fallback
+        if (! config[pendingTeleport.info.type]) return fallback
         return pendingTeleport.position
         //#else
         //$return fallback
@@ -153,9 +154,11 @@ object EtherwarpHelper {
         val level = mc.level ?: return true
         val state = chunk.getBlockState(pos)
         return when (state.block) {
-            is FlowerPotBlock -> true
-            is LadderBlock -> true
             is SignBlock -> false
+            is ButtonBlock, is SkullBlock, is WallSkullBlock, is LadderBlock,
+            is BubbleColumnBlock, is FlowerPotBlock, is PistonHeadBlock, is LeverBlock,
+            is NetherWartBlock, is ComparatorBlock, is RedstoneTorchBlock, is RepeaterBlock -> true
+
             else -> state.getCollisionShape(level, pos, CollisionContext.empty()).isEmpty
         }
     }

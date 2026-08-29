@@ -4,40 +4,41 @@ package com.github.noamm9.features.impl.floor7
 
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.utils.WorldUtils
-import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.state.BlockState
 
-object IHateDiorite: Feature("I Hate Diorite") {
-    private val positions by lazy {
-        val blockStates = mapOf(
-            "GreenArray" to Blocks.STAINED_GLASS.green().defaultBlockState(),
-            "YellowArray" to Blocks.STAINED_GLASS.yellow().defaultBlockState(),
-            "PurpleArray" to Blocks.STAINED_GLASS.purple().defaultBlockState(),
-            "RedArray" to Blocks.STAINED_GLASS.red().defaultBlockState()
-        )
+object IHateDiorite: Feature("Replaces the pillars in P2 with glass") {
+    private val pillars = arrayOf(
+        Pillar(BlockPos(46, 169, 41), Blocks.LIME_STAINED_GLASS.defaultBlockState()),
+        Pillar(BlockPos(46, 169, 65), Blocks.YELLOW_STAINED_GLASS.defaultBlockState()),
+        Pillar(BlockPos(100, 169, 65), Blocks.PURPLE_STAINED_GLASS.defaultBlockState()),
+        Pillar(BlockPos(100, 169, 41), Blocks.RED_STAINED_GLASS.defaultBlockState())
+    )
 
-        buildList {
-            DataDownloader.loadJson<Map<String, List<Map<String, Double>>>>("iHateDioriteBlocks.json").forEach { (key, coords) ->
-                coords.forEach { add(BlockPos(it["x"] !!.toInt(), it["y"] !!.toInt(), it["z"] !!.toInt()) to (blockStates[key] ?: return@forEach)) }
-            }
-        }
-    }
-
-    private val cursor = BlockPos.MutableBlockPos()
+    private val DIORITE_BLOCKS = setOf(Blocks.DIORITE, Blocks.POLISHED_DIORITE)
 
     override fun init() {
         register<TickEvent.Start> {
             if (LocationUtils.F7Phase != 2) return@register
-            for ((basePos, glassState) in positions) for (yOffset in 0 .. 37) {
-                cursor.set(basePos.x, basePos.y + yOffset, basePos.z)
-                if (WorldUtils.getBlockAt(cursor).equalsOneOf(Blocks.DIORITE, Blocks.POLISHED_DIORITE)) {
-                    WorldUtils.setBlockAt(cursor, glassState)
-                }
+            for (pillar in pillars) for (pos in pillar.area) {
+                if (WorldUtils.getBlockAt(pos) !in DIORITE_BLOCKS) continue
+                WorldUtils.setBlockAt(pos, pillar.glass)
             }
+        }
+    }
+
+    private class Pillar(pos: BlockPos, val glass: BlockState) {
+        val area = BlockPos.betweenClosed(
+            pos.offset(- RADIUS, 0, - RADIUS),
+            pos.offset(RADIUS, HEIGHT, RADIUS)
+        )
+
+        private companion object {
+            const val RADIUS = 3
+            const val HEIGHT = 37
         }
     }
 }

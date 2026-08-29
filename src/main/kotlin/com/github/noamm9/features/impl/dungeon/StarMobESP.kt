@@ -1,27 +1,26 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.CheckEntityGlowEvent
 import com.github.noamm9.event.impl.EntityUnloadEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.ui.clickgui.components.impl.ColorSetting
-import com.github.noamm9.ui.clickgui.components.impl.ToggleSetting
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
-import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.location.LocationUtils.dungeonFloorNumber
 import com.github.noamm9.utils.location.LocationUtils.inBoss
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.EquipmentSlot
+import net.minecraft.world.entity.ExperienceOrb
 import net.minecraft.world.entity.ambient.Bat
 import net.minecraft.world.entity.boss.wither.WitherBoss
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.monster.EnderMan
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow
 import java.awt.Color
 
 object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
@@ -39,7 +38,7 @@ object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
         register<MainThreadPacketReceivedEvent.Post> {
             if (! LocationUtils.inDungeon || inBoss) return@register
             if (event.packet !is ClientboundSetEntityDataPacket) return@register
-            val entity = mc.level?.getEntity(event.packet.id) ?: return@register
+            val entity = level.getEntity(event.packet.id) ?: return@register
             if (entity is ArmorStand) {
                 val name = entity.customName?.formattedText ?: return@register
                 if (name.endsWith("§c❤") && name.contains("✯")) {
@@ -81,22 +80,7 @@ object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
 
     private fun getColor(entity: Entity): Color? {
         if (entity is Bat) return if (espBats.value && ! entity.isInvisible && ! entity.isPassenger) batColor.value else null
-        if (entity is EnderMan) return if (espFels.value && entity.name.unformattedText == "Dinnerbone") felColor.value else null
-        if (entity is Player) {
-            val name = entity.name.unformattedText.takeUnless { it.isBlank() } ?: return null
-            if (name.contains("Shadow Assassin")) return starMobColor.value
-
-            if (dungeonFloorNumber != 4 && ! inBoss) {
-                val bootsName = entity.getItemBySlot(EquipmentSlot.FEET).takeUnless { it.isEmpty }?.hoverName?.unformattedText ?: return null
-
-                return when (name) {
-                    "Lost Adventurer" -> starMobColor.value
-                    "Diamond Guy" -> if ("Perfect Boots" in bootsName) starMobColor.value else null
-                    else -> null
-                }
-            }
-        }
-
+        if (entity is EnderMan) return if (espFels.value && entity.customName?.string == "Dinnerbone") felColor.value else null
         return null
     }
 
@@ -115,16 +99,17 @@ object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
 
         val possibleEntities = armorStand.level().getEntities(
             armorStand, armorStand.boundingBox.move(0.0, - 1.0, 0.0)
-        ) { it !is ArmorStand }
+        ) { it !is ArmorStand && it !is ExperienceOrb }
 
         possibleEntities.find {
             ! starMobs.contains(it.id) && when (it) {
-                is Player -> ! it.isInvisible && it.uuid.version() == 2 && it != mc.player
+                is Player -> ! it.isInvisible && it.uuid.version() == 2 && it != player
                 is WitherBoss -> false
+                is AbstractArrow -> false
                 else -> true
             }
         }?.let {
-            if (getColor(it) == null) starMobs.add(it.id)
+            starMobs.add(it.id)
         }
     }
 }

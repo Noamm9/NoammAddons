@@ -1,5 +1,7 @@
 package com.github.noamm9.features.impl.floor7.terminals
 
+import net.minecraft.core.component.DataComponents
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.world.item.Items
 
 enum class TerminalType(val slotCount: Int) {
@@ -14,14 +16,12 @@ enum class TerminalType(val slotCount: Int) {
         val startwithRegex = Regex("^What starts with: '(\\w)'\\?$")
 
         val rubixOrder = listOf(
-            Items.STAINED_GLASS_PANE.red(),
-            Items.STAINED_GLASS_PANE.orange(),
-            Items.STAINED_GLASS_PANE.yellow(),
-            Items.STAINED_GLASS_PANE.green(),
-            Items.STAINED_GLASS_PANE.blue(),
+            Items.RED_STAINED_GLASS_PANE,
+            Items.ORANGE_STAINED_GLASS_PANE,
+            Items.YELLOW_STAINED_GLASS_PANE,
+            Items.GREEN_STAINED_GLASS_PANE,
+            Items.BLUE_STAINED_GLASS_PANE,
         )
-
-        val clickedStartWithSlots = mutableSetOf<Int>()
 
         val colorReplacements = mapOf(
             Regex("^light gray") to "silver",
@@ -43,13 +43,19 @@ enum class TerminalType(val slotCount: Int) {
 
         val numbersSlotCounts = mutableMapOf<Int, Int>()
 
+        val clickedSlots = mutableSetOf<Int>()
+        var clickedSlot: Pair<Int, Int>? = null
+        val specialItems = BuiltInRegistries.ITEM.filter {
+            it.components().has(DataComponents.ENCHANTMENT_GLINT_OVERRIDE)
+        } + Items.GOLDEN_APPLE
+
         fun fromName(windowTitle: String): TerminalType? {
-            if (colorsRegex.matches(windowTitle) && TerminalSolver.colors.value) return COLORS
-            if (melodyRegex.matches(windowTitle) && TerminalSolver.melody.value) return MELODY
-            if (numbersRegex.matches(windowTitle) && TerminalSolver.numbers.value) return NUMBERS
-            if (redgreenRegex.matches(windowTitle) && TerminalSolver.redgreen.value) return REDGREEN
-            if (rubixRegex.matches(windowTitle) && TerminalSolver.rubix.value) return RUBIX
-            if (startwithRegex.matches(windowTitle) && TerminalSolver.startwith.value) return STARTWITH
+            if (colorsRegex.matches(windowTitle)) return COLORS
+            if (melodyRegex.matches(windowTitle)) return MELODY
+            if (numbersRegex.matches(windowTitle)) return NUMBERS
+            if (redgreenRegex.matches(windowTitle)) return REDGREEN
+            if (rubixRegex.matches(windowTitle)) return RUBIX
+            if (startwithRegex.matches(windowTitle)) return STARTWITH
             return null
         }
 
@@ -59,7 +65,8 @@ enum class TerminalType(val slotCount: Int) {
             melodyCurrent = null
             melodyCorrect = null
             numbersSlotCounts.clear()
-            clickedStartWithSlots.clear()
+            clickedSlots.clear()
+            clickedSlot = null
         }
     }
 }

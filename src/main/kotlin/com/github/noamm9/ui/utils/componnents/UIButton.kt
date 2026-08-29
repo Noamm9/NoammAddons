@@ -1,9 +1,9 @@
 package com.github.noamm9.ui.utils.componnents
 
-import com.github.noamm9.ui.clickgui.components.Style
+import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.utils.ChatUtils.addColor
-import com.github.noamm9.utils.render.Render2D
-import net.minecraft.client.Minecraft
+import com.github.noamm9.utils.render.Render2D.drawRect
+import gg.essential.universal.UMinecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.Button
 import net.minecraft.client.sounds.SoundManager
@@ -24,19 +24,19 @@ class UIButton(
 
     override fun extractContents(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
         val bgColor = if (isHovered) Color(45, 45, 45, 220) else Color(30, 30, 30, 200)
-        Render2D.drawRect(graphics, x, y, width, height, bgColor)
+        graphics.drawRect(x, y, width, height, bgColor)
 
         val stateColor = colorProvider?.invoke() ?: overrideColor
         val borderColor = stateColor ?: Color(60, 60, 60)
         val textColor = if (isHovered) Style.accentColor else stateColor ?: Color.WHITE
 
-        Render2D.drawRect(graphics, x, y, width, 1, borderColor)
-        Render2D.drawRect(graphics, x, y + height - 1, width, 1, borderColor)
-        Render2D.drawRect(graphics, x, y, 1, height, borderColor)
-        Render2D.drawRect(graphics, x + width - 1, y, 1, height, borderColor)
+        graphics.drawRect(x, y, width, 1, borderColor)
+        graphics.drawRect(x, y + height - 1, width, 1, borderColor)
+        graphics.drawRect(x, y, 1, height, borderColor)
+        graphics.drawRect(x + width - 1, y, 1, height, borderColor)
 
         graphics.centeredText(
-            Minecraft.getInstance().font,
+            UMinecraft.getFontRenderer(),
             message,
             x + width / 2,
             y + (height - 8) / 2,

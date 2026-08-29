@@ -9,7 +9,7 @@ import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render3D
+import com.github.noamm9.utils.render.world.Render3D.renderString
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.FlowerPotBlock
 import net.minecraft.world.phys.Vec3
@@ -41,7 +41,7 @@ object TerracottaTimer: Feature("Displays a timer until Terracottas respawn in F
         register<RenderWorldEvent> {
             terracottaSpawns.ifEmpty { return@register }.forEach { (pos, time) ->
                 val timeLeft = (time - DungeonListener.currentTime) / 20.0
-                Render3D.renderString(event.ctx, timeLeft.toFixed(1), Vec3.atCenterOf(pos), phase = true, scale = 1.35)
+                event.ctx.renderString(timeLeft.toFixed(1), Vec3(pos).add(0.5, 0.5, 0.5), scale = 1.35, phase = true)
             }
         }
     }

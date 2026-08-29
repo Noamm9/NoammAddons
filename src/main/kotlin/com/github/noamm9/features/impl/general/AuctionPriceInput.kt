@@ -1,12 +1,11 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.MultiCheckboxSetting
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.NetworkLoop
-import com.github.noamm9.interfaces.IGui
 import com.github.noamm9.mixin.IAbstractSignEditScreen
-import com.github.noamm9.ui.clickgui.components.impl.DropdownSetting
-import com.github.noamm9.ui.clickgui.components.impl.MultiCheckboxSetting
 import com.github.noamm9.ui.utils.componnents.UIButton
 import com.github.noamm9.ui.utils.componnents.UISearchBox
 import com.github.noamm9.utils.ChatUtils.unformattedText
@@ -14,8 +13,9 @@ import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.Utils.send
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
-import com.github.noamm9.utils.render.Render2D
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.uppercaseFirst
+import gg.essential.universal.UKeyboard
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
@@ -28,7 +28,6 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.component.ItemLore
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.entity.SignBlockEntity
-import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox and undercut mode.") {
@@ -54,9 +53,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
 
             if (lines[1] == "^^^^^^^^^^^^^^^" && lines[2] == "Your auction" && lines[3] == "starting bid") mc.execute {
                 // manually setting the screen so the sign gui wont close
-                val newScreen = AuctionInputScreen(sign, lines, stack)
-                newScreen.init(width, height)
-                (mc.gui as IGui).replaceScreen(newScreen)
+                mc.screen = AuctionInputScreen(sign, lines, stack).apply { init(width, height) }
             }
         }
 
@@ -67,7 +64,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
         }
 
         register<ContainerEvent.Keyboard> {
-            if (event.key != GLFW.GLFW_KEY_ENTER && event.key != GLFW.GLFW_KEY_KP_ENTER) return@register
+            if (event.key != UKeyboard.KEY_ENTER && event.key != UKeyboard.KEY_NUMPADENTER) return@register
             val title = event.screen.title.unformattedText
 
             val (slotId, isValidName) = when (title) {
@@ -77,7 +74,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             }
 
             val stack = event.screen.menu.slots.getOrNull(slotId)?.item ?: return@register
-            if (! stack.`is`(Blocks.DYED_TERRACOTTA.green().asItem())) return@register
+            if (! stack.`is`(Blocks.GREEN_TERRACOTTA.asItem())) return@register
             if (! isValidName(stack.hoverName.unformattedText)) return@register
 
             GuiUtils.clickSlot(slotId, GuiUtils.ButtonType.LEFT)
@@ -101,7 +98,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             if (rememberInput.value["Text"] != true) input = ""
             mode = if (rememberInput.value["Mode"] == true && mode != null) mode else InputMode.entries[defaultMode.value]
 
-            lowestBin = NetworkLoop.priceData[stack.skyblockId] ?: 0L
+            lowestBin = NetworkLoop.getLowestBin(stack.skyblockId) ?: 0L
 
             val centerX = width / 2
             val centerY = height / 2
@@ -158,13 +155,13 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             else if (input.isEmpty()) "§7Enter a value (e.g. 10m, 5k)"
             else "§cInvalid format"
 
-            Render2D.drawCenteredString(guiGraphics, displayText, centerX, centerY - 35)
+            guiGraphics.drawCenteredString(displayText, centerX, centerY - 35)
 
             super.extractRenderState(guiGraphics, mouseX, mouseY, a)
         }
 
         override fun keyPressed(event: KeyEvent): Boolean {
-            if (event.key() == GLFW.GLFW_KEY_ENTER || event.key() == GLFW.GLFW_KEY_KP_ENTER) {
+            if (event.key() == UKeyboard.KEY_ENTER || event.key() == UKeyboard.KEY_NUMPADENTER) {
                 finish()
                 return true
             }
@@ -183,7 +180,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
         }
 
         private fun recalculateValue() {
-            val textValue = NumbersUtils.parseCompactNumber(input)
+            val textValue = NumbersUtils.parseCompactNumber(input.replace(',', '.'))
 
             if (textValue == null) {
                 parsedValue = null
