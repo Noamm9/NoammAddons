@@ -67,7 +67,7 @@ object MapRenderer: HudElement() {
         if (! MapConfig.mapExtraInfo.value) return
         if (! MapConfig.dungeonMapCheater.value && ! DungeonListener.dungeonStarted) return
 
-        val secretsStr = "&6Secrets: &b${ScoreCalculation.foundSecrets}&f/&e${DungeonScanner.secretCount}"
+        val secretsStr = "&6Secrets: &b${ScoreCalculation.foundSecrets}&f/&b${ScoreCalculation.secretsUntil300}&f/&e${DungeonScanner.secretCount}"
         val cryptsStr = colorCodeByPercent(ScoreCalculation.cryptsCount, 6) + "Crypts: ${ScoreCalculation.cryptsCount}"
         val scoreStr = "&eScore: ${colorizeScore(ScoreCalculation.score)}&r"
         val deathsStr = "&cDeaths: ${colorCodeByPercent(ScoreCalculation.deathCount, 4, true)}${ScoreCalculation.deathCount}&r"

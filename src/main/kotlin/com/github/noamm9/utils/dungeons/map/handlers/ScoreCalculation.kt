@@ -30,6 +30,7 @@ import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
 import net.minecraft.world.entity.monster.zombie.Zombie
 import kotlin.jvm.optionals.getOrNull
+import kotlin.math.ceil
 import kotlin.math.floor
 
 object ScoreCalculation: ISelfInit {
@@ -49,6 +50,7 @@ object ScoreCalculation: ISelfInit {
     private var completedRooms = 0
     private var highestScore = 0
     private val batKillers = mutableSetOf<String>()
+    private var secretsScore = 0
 
     var mimicKilled = false
     var princeKilled = false
@@ -59,6 +61,23 @@ object ScoreCalculation: ISelfInit {
     var secondsElapsed = 0
 
     private val totalRooms get() = floor((completedRooms / (clearedPercentage / 100.0)) + 0.4)
+
+    val secretsUntil300: Int
+        get() {
+            if (score >= 300) return 0
+            val otherScore = score - secretsScore
+            if (otherScore + 40 < 300) return DungeonScanner.secretCount
+
+            val neededSecrets = run {
+                val total = DungeonScanner.secretCount
+                val required = requiredSecretPercentage[LocationUtils.dungeonFloor] ?: 1.0
+                return@run if (required <= 0.0) total else ceil(total * required).toInt()
+            }
+
+            val requiredSecretsScore = (300 - otherScore).coerceAtMost(40)
+            val requiredFound = ceil(requiredSecretsScore / 40.0 * neededSecrets).toInt()
+            return (requiredFound - foundSecrets).coerceAtLeast(0)
+        }
 
     var score = 0
         private set
@@ -234,7 +253,7 @@ object ScoreCalculation: ISelfInit {
         val effectiveCompletedRooms = completedRooms + (if (! bloodDone) 1 else 0) + (if (! LocationUtils.inBoss) 1 else 0)
 
         val reqSecret = requiredSecretPercentage[currentFloor] ?: 1.0
-        val secretsScore = floor((secretPercentage / reqSecret) / 100.0 * 40.0).coerceIn(0.0, 40.0).toInt()
+        secretsScore = floor((secretPercentage / reqSecret) / 100.0 * 40.0).coerceIn(0.0, 40.0).toInt()
 
         val completedRoomScore = (effectiveCompletedRooms.toDouble() / totalRooms * 60.0).coerceIn(0.0, 60.0).toInt()
         val skillRooms = floor(effectiveCompletedRooms.toDouble() / totalRooms * 80f).coerceIn(0.0, 80.0).toInt()
