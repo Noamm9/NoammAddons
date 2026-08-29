@@ -51,12 +51,7 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
                         (entry.value() as? Optional<*>)?.orElse(null) as? Component
                     }?.formattedText ?: return@register
 
-                    val shouldDiscard = run {
-                        val a = hide0HealthNames.value && healthMatches.any { it.matches(name) }
-                        val b = hideHealerOrbs.value && name.removeFormatting().startsWithOneOf("DEFENSE", "ABILITY DAMAGE")
-
-                        return@run a || b
-                    }
+                    val shouldDiscard = hideHealerOrbs.value && name.removeFormatting().startsWithOneOf("DEFENSE", "ABILITY DAMAGE")
 
                     if (shouldDiscard) {
                         level.getEntity(packet.id)?.remove(Entity.RemovalReason.DISCARDED)
@@ -103,6 +98,14 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
         }
 
         register<CheckEntityRenderEvent> {
+            if (hide0HealthNames.value && LocationUtils.inSkyblock) {
+                val name = event.entity.customName?.formattedText
+                if (name != null && healthMatches.any { it.matches(name) }) {
+                    event.isCanceled = true
+                    return@register
+                }
+            }
+
             if (hideDeadMobs.value) {
                 if (! event.entity.isAlive || ((event.entity as? LivingEntity)?.health ?: 1f) <= 0) {
                     event.isCanceled = true
