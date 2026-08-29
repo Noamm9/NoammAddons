@@ -11,7 +11,9 @@ import com.github.noamm9.event.impl.TerminalEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.features.Feature
+import com.github.noamm9.features.impl.floor7.terminals.TerminalListener.FIRST_CLICK_DELAY
 import com.github.noamm9.features.impl.floor7.terminals.impl.*
+import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
@@ -20,10 +22,10 @@ import gg.essential.universal.UKeyboard
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 
 object AutoTerminal: Feature("Automatically clicks terminals for you.") {
-    private val randomDelay by ToggleSetting("Random Delay", true).withDescription("Normal distributed by min and max").section("Settings")
-    private val autoDelay by SliderSetting("Click Delay", 150.0, 0.0, 500.0, 10.0).withDescription("Fixed delay between clicks in milliseconds.").hideIf { randomDelay.value }
-    private val minRandomDelay by SliderSetting("Min Random Delay", 50.0, 0.0, 500.0, 10.0).withDescription("The minimum possible delay").showIf { randomDelay.value }
-    private val maxRandomDelay by SliderSetting("Max Random Delay", 150.0, 0.0, 500.0, 10.0).withDescription("The maximum possible delay").showIf { randomDelay.value }
+    private val randomDelay by ToggleSetting("Random Delay", true).withDescription("Normal distributed by min and max").section("Settings").jsonName("randomDelay")
+    private val autoDelay by SliderSetting("Click Delay", 150.0, 0.0, 500.0, 1.0).withDescription("Fixed delay between clicks in milliseconds.").hideIf { randomDelay.value }.jsonName("autoDelay")
+    private val minRandomDelay by SliderSetting("Min Random Delay", 120.0, 0.0, 500.0, 1.0).withDescription("The minimum possible delay").showIf { randomDelay.value }.jsonName("minRandomDelay")
+    private val maxRandomDelay by SliderSetting("Max Random Delay", 150.0, 0.0, 500.0, 1.0).withDescription("The maximum possible delay").showIf { randomDelay.value }.jsonName("maxRandomDelay")
     private val clickOrder by DropdownSetting("Click Order", 2, listOf("None", "Random", "Human", "Skizo")).withDescription("Human: Logic pathing. Skizo: Chaotic/Furthest.")
     val invwalk by ToggleSetting("Fake InvWalk").withDescription("Draws the Term name and progress on screen rather then the solution")
 
@@ -99,7 +101,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
             if (! handler.enabled()) return@register
             if (handler.solution.isEmpty()) return@register
             if (TerminalListener.checkFcDelay()) return@register
-            if (System.currentTimeMillis() - lastClickTime < autoDelay.value) return@register
+            if (System.currentTimeMillis() - lastClickTime < getDelay()) return@register
             lastClickTime = System.currentTimeMillis()
 
             handler.autoClick()
@@ -146,7 +148,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
         finalClick.send()
     }
 
-    fun Terminal.enabled() = when (this) {
+    private fun Terminal.enabled() = when (this) {
         is NumberTerminal -> autoNumbers.value
         is ColorsTerminal -> autoColors.value
         is MelodyTerminal -> autoMelody.value
@@ -154,6 +156,17 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
         is RedGreenTerminal -> autoRedGreen.value
         is StartWithTerminal -> autoStartWith.value
     }
+
+    private fun getDelay() = when {
+        TerminalListener.checkFcDelay() -> FIRST_CLICK_DELAY * 50
+        randomDelay.value -> {
+            val min = minRandomDelay.value.toInt().coerceAtLeast(0)
+            val max = maxRandomDelay.value.toInt().coerceAtLeast(0)
+            if (min == max) min else MathUtils.gaussianRandom(minOf(min, max), maxOf(min, max))
+        }
+
+        else -> autoDelay.value.toInt()
+    }.coerceAtLeast(0)
 
     private fun clickSlot(slot: Int) = TerminalClick(slot).send()
 }
