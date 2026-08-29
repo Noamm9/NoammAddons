@@ -4,7 +4,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -189467436
+      -908785306
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -30,7 +30,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      1720493248
+      210009410
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -62,9 +62,9 @@
     "type": "NORMAL",
     "shape": "L",
     "cores": [
-      -1993968634,
-      -686544707,
-      95384120
+      -1230813553,
+      -1116465566,
+      -285908150
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -124,7 +124,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      2005574152
+      -1349104152
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -162,8 +162,8 @@
     "type": "NORMAL",
     "shape": "1x2",
     "cores": [
-      -1589696114,
-      1369936982
+      -741722455,
+      1757689836
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -206,7 +206,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      617753987
+      1194574494
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -238,10 +238,10 @@
     "type": "NORMAL",
     "shape": "2x2",
     "cores": [
-      -1143646000,
-      -900837785,
-      989530230,
-      1643751494
+      -1865594161,
+      -1683145422,
+      -465811149,
+      1399983432
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -301,8 +301,8 @@
     "type": "NORMAL",
     "shape": "1x2",
     "cores": [
-      -1866383067,
-      -819000212
+      -1342459693,
+      -386977037
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -351,7 +351,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -829946666
+      1831472082
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -383,7 +383,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -845235683
+      684935287
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -415,7 +415,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -1497848630
+      -1057803170
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -453,7 +453,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      1276571223
+      -1968568837
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -490,7 +490,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -1610099977
+      734311611
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -533,7 +533,7 @@
     "type": "BLOOD",
     "shape": "1x1",
     "cores": [
-      -2070203514
+      1101694270
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -559,7 +559,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -576694586
+      -264469755
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -591,7 +591,7 @@
     "type": "PUZZLE",
     "shape": "1x1",
     "cores": [
-      -432154318
+      -8678012
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -617,8 +617,8 @@
     "type": "NORMAL",
     "shape": "1x2",
     "cores": [
-      -2145191044,
-      -1655191435
+      -588804693,
+      1343698864
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -678,10 +678,10 @@
     "type": "NORMAL",
     "shape": "2x2",
     "cores": [
-      -1596575525,
-      -1529102610,
-      -33543522,
-      815637413
+      -486251341,
+      -294484758,
+      522064030,
+      589505750
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -733,7 +733,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      1582010167
+      -887559365
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -765,7 +765,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      2081821679
+      1281321464
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -803,7 +803,7 @@
     "type": "RARE",
     "shape": "1x1",
     "cores": [
-      332196586
+      -1309306805
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -835,10 +835,10 @@
     "type": "NORMAL",
     "shape": "2x2",
     "cores": [
-      -2093707109,
-      -565846269,
-      1126602425,
-      1914032837
+      -636535137,
+      -305705204,
+      -149729804,
+      571845322
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -907,9 +907,9 @@
     "type": "NORMAL",
     "shape": "1x3",
     "cores": [
-      -1584333256,
-      339833740,
-      1327346003
+      -1909798849,
+      231904745,
+      723977722
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -968,7 +968,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      2024320219
+      1989942319
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1000,7 +1000,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -2139449309
+      -830238291
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1037,9 +1037,9 @@
     "type": "NORMAL",
     "shape": "L",
     "cores": [
-      -1775390601,
-      1042321629,
-      1514402964
+      -1429631793,
+      -616261475,
+      1238987523
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1092,7 +1092,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -1721425606
+      930781692
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1129,7 +1129,7 @@
     "type": "PUZZLE",
     "shape": "1x1",
     "cores": [
-      503805225
+      -618556840
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1155,8 +1155,8 @@
     "type": "NORMAL",
     "shape": "1x2",
     "cores": [
-      -684578176,
-      1810911662
+      -2030383130,
+      -1675076399
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1209,9 +1209,9 @@
     "type": "NORMAL",
     "shape": "1x3",
     "cores": [
-      -1876614627,
-      -470957642,
-      854650705
+      -1761703303,
+      -1323774364,
+      -1134675319
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1265,8 +1265,8 @@
     "type": "CHAMPION",
     "shape": "1x1",
     "cores": [
-      965872700,
-      1971824191
+      -25987248,
+      1514834876
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1292,9 +1292,9 @@
     "type": "NORMAL",
     "shape": "1x3",
     "cores": [
-      -2064067066,
-      -1888518813,
-      -1694824714
+      -37667136,
+      640267027,
+      1930216162
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1342,9 +1342,9 @@
     "type": "NORMAL",
     "shape": "L",
     "cores": [
-      -1064701984,
-      -1046379999,
-      -920158771
+      -1793508908,
+      8084074,
+      39204679
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1393,7 +1393,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -1545684372
+      -1486570983
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1430,7 +1430,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      258200673
+      -235572980
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1468,8 +1468,8 @@
     "type": "NORMAL",
     "shape": "1x2",
     "cores": [
-      251160818,
-      1186691916
+      258264469,
+      2143491230
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1522,7 +1522,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      1056549125
+      1266939433
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1566,7 +1566,7 @@
     "type": "CHAMPION",
     "shape": "1x1",
     "cores": [
-      -419533433
+      -1204346393
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1592,7 +1592,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      682941484
+      -358295654
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1629,7 +1629,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      1053296283
+      -1065327109
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1673,7 +1673,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -61577676
+      1968195729
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1705,7 +1705,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      1151198372
+      102410693
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1743,9 +1743,9 @@
     "type": "ENTRANCE",
     "shape": "1x1",
     "cores": [
-      -1965426531,
-      101613217,
-      356315063
+      -1452219815,
+      -1051941859,
+      1449111477
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1771,7 +1771,7 @@
     "type": "FAIRY",
     "shape": "1x1",
     "cores": [
-      955447194
+      -1720566878
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1797,10 +1797,10 @@
     "type": "NORMAL",
     "shape": "2x2",
     "cores": [
-      -814203326,
-      306321883,
-      1411809147,
-      1775943806
+      -1902869377,
+      -598466852,
+      -470873000,
+      -169137281
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1864,8 +1864,8 @@
     "type": "NORMAL",
     "shape": "1x2",
     "cores": [
-      276963280,
-      1827857432
+      -2078743018,
+      -1549787332
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1897,7 +1897,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      1226479525
+      -174873230
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1940,8 +1940,8 @@
     "type": "NORMAL",
     "shape": "1x2",
     "cores": [
-      454204909,
-      1798615862
+      -192586594,
+      1423607869
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -1990,7 +1990,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      763969533
+      -314294275
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -2028,8 +2028,8 @@
     "type": "NORMAL",
     "shape": "1x2",
     "cores": [
-      -1516192780,
-      1529365055
+      363148517,
+      456480171
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -2072,9 +2072,9 @@
     "type": "NORMAL",
     "shape": "1x3",
     "cores": [
-      350166078,
-      872563007,
-      1571399648
+      -1783111190,
+      1815412561,
+      1835089633
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -2134,7 +2134,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      1153516366
+      1213248380
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -2160,10 +2160,10 @@
     "type": "NORMAL",
     "shape": "1x4",
     "cores": [
-      -2039473587,
-      -1553817575,
-      -1475723564,
-      901673433
+      -816622189,
+      -763990153,
+      -405534403,
+      26028391
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -2205,7 +2205,7 @@
     "type": "PUZZLE",
     "shape": "1x1",
     "cores": [
-      1639169737
+      1178660791
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -2237,8 +2237,8 @@
     "type": "PUZZLE",
     "shape": "1x1",
     "cores": [
-      942256632,
-      1313310696
+      -1525020541,
+      -816535587
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -2264,7 +2264,7 @@
     "type": "PUZZLE",
     "shape": "1x1",
     "cores": [
-      90635943
+      1864182118
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -2290,7 +2290,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -1599778870
+      1186219299
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -2322,7 +2322,7 @@
     "type": "CHAMPION",
     "shape": "1x1",
     "cores": [
-      733471936
+      602572602
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -2348,7 +2348,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      1208549173
+      1632908512
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -2391,7 +2391,7 @@
     "type": "RARE",
     "shape": "1x1",
     "cores": [
-      251673135
+      2093006133
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -2417,9 +2417,9 @@
     "type": "NORMAL",
     "shape": "L",
     "cores": [
-      -1561355400,
-      -263626884,
-      174627553
+      -1577476925,
+      -1086248985,
+      -838526535
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -2478,9 +2478,9 @@
     "type": "NORMAL",
     "shape": "L",
     "cores": [
-      -2063401613,
-      -985541809,
-      92459402
+      -1549242697,
+      -666697558,
+      1788731974
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -2548,7 +2548,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -815629602
+      1720939944
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -2580,7 +2580,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -505985748
+      -630088779
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -2612,7 +2612,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      2036355818
+      1483451937
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -2659,7 +2659,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -1702809280
+      2020384798
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -2696,7 +2696,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -1075375439
+      -904833636
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -2738,7 +2738,7 @@
     "type": "PUZZLE",
     "shape": "1x1",
     "cores": [
-      -992703594
+      -1431256201
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -2770,8 +2770,8 @@
     "type": "NORMAL",
     "shape": "1x2",
     "cores": [
-      -290267309,
-      1311215701
+      -1315461059,
+      844972532
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -2820,9 +2820,9 @@
     "type": "NORMAL",
     "shape": "L",
     "cores": [
-      -1505327950,
-      -863885997,
-      915602906
+      -1497503669,
+      577032090,
+      1579240396
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -2876,9 +2876,9 @@
     "type": "NORMAL",
     "shape": "L",
     "cores": [
-      -921907342,
-      8296523,
-      1697136810
+      -1219297344,
+      -633799181,
+      1690123383
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -2941,10 +2941,10 @@
     "type": "NORMAL",
     "shape": "2x2",
     "cores": [
-      -2025278821,
-      595883307,
-      629141928,
-      1284874964
+      -27801351,
+      592524582,
+      717679253,
+      1421914730
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -3022,7 +3022,7 @@
     "type": "RARE",
     "shape": "1x1",
     "cores": [
-      -660933267
+      1921641236
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -3071,7 +3071,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -1836473683
+      554127442
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -3103,9 +3103,9 @@
     "type": "NORMAL",
     "shape": "1x4",
     "cores": [
-      -275378601,
-      255265504,
-      727097092
+      -1988103182,
+      757634350,
+      1867739625
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -3153,7 +3153,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -497146931
+      48947853
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -3185,7 +3185,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -909384200
+      -729431791
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -3217,10 +3217,10 @@
     "type": "NORMAL",
     "shape": "2x2",
     "cores": [
-      -2044434389,
-      -2002996674,
-      355432784,
-      1556445545
+      -1049232881,
+      233142657,
+      1509125364,
+      1770634084
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -3273,7 +3273,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -46370484
+      -1269671057
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -3305,7 +3305,7 @@
     "type": "TRAP",
     "shape": "1x1",
     "cores": [
-      1668681272
+      -781847572
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -3348,7 +3348,7 @@
     "type": "TRAP",
     "shape": "1x1",
     "cores": [
-      -69178513
+      -308526876
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -3396,7 +3396,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -492882750
+      -232809514
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -3440,7 +3440,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -601440561
+      171205583
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -3478,7 +3478,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -154562590
+      1627461367
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -3516,8 +3516,8 @@
     "type": "NORMAL",
     "shape": "1x2",
     "cores": [
-      -123950797,
-      384007940
+      9412100,
+      1888663036
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -3571,7 +3571,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -51127776
+      1236720714
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -3609,10 +3609,10 @@
     "type": "NORMAL",
     "shape": "1x4",
     "cores": [
-      -1747527563,
-      503945996,
-      607771921,
-      1090225010
+      -1354071401,
+      -1189656711,
+      -1175692016,
+      2064702151
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -3676,9 +3676,9 @@
     "type": "NORMAL",
     "shape": "L",
     "cores": [
-      -1449444940,
-      590976791,
-      1189339278
+      -1798084378,
+      109899688,
+      329968965
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -3738,10 +3738,10 @@
     "type": "NORMAL",
     "shape": "1x4",
     "cores": [
-      -1872463123,
-      190682925,
-      842645088,
-      1355419266
+      -224005853,
+      796165433,
+      909511427,
+      1480345683
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -3795,8 +3795,8 @@
     "type": "NORMAL",
     "shape": "1x2",
     "cores": [
-      -1634324671,
-      357354520
+      -1146061776,
+      1911917207
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -3854,7 +3854,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      79441141
+      -1214313979
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -3886,8 +3886,8 @@
     "type": "NORMAL",
     "shape": "1x2",
     "cores": [
-      -1714937238,
-      358579567
+      -236754038,
+      78225299
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -3941,7 +3941,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -230744313
+      -264070664
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -3978,10 +3978,10 @@
     "type": "NORMAL",
     "shape": "1x4",
     "cores": [
-      -489263425,
-      749997400,
-      1015280672,
-      1674853551
+      -1586992772,
+      -1192988056,
+      -972090916,
+      -505093203
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -4045,7 +4045,7 @@
     "type": "PUZZLE",
     "shape": "1x1",
     "cores": [
-      -1915863376
+      991237175
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -4071,7 +4071,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -1710705006
+      623287415
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -4118,7 +4118,7 @@
     "type": "RARE",
     "shape": "1x1",
     "cores": [
-      954812276
+      -234980640
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -4161,10 +4161,10 @@
     "type": "NORMAL",
     "shape": "2x2",
     "cores": [
-      -2064024667,
-      -1919558970,
-      704502243,
-      1177895576
+      -806278032,
+      150625221,
+      193773124,
+      223450952
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -4239,7 +4239,7 @@
     "type": "RARE",
     "shape": "1x1",
     "cores": [
-      -1219458494
+      1228629724
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -4265,7 +4265,7 @@
     "type": "RARE",
     "shape": "1x1",
     "cores": [
-      -1473338402
+      -596158595
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -4291,9 +4291,9 @@
     "type": "NORMAL",
     "shape": "1x3",
     "cores": [
-      -1385645774,
-      107654423,
-      1513999927
+      -2118745061,
+      -2073594416,
+      1464980944
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -4342,7 +4342,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      982495536
+      2070858477
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -4385,8 +4385,8 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -1387704473,
-      1280356746
+      -1180637346,
+      -834755106
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -4429,7 +4429,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      923864307
+      -801262244
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -4478,8 +4478,8 @@
     "type": "NORMAL",
     "shape": "1x2",
     "cores": [
-      -1781954390,
-      -1203513973
+      -2001441952,
+      786991322
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -4522,7 +4522,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -1148595206
+      -1993262508
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -4565,7 +4565,7 @@
     "type": "RARE",
     "shape": "1x1",
     "cores": [
-      1008967158
+      989889664
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -4597,7 +4597,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      646949762
+      1716340738
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -4641,7 +4641,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -1526977308
+      1860644899
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -4679,7 +4679,7 @@
     "type": "CHAMPION",
     "shape": "1x1",
     "cores": [
-      -625222987
+      355785589
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -4705,7 +4705,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -665020262
+      1842443601
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -4737,8 +4737,8 @@
     "type": "NORMAL",
     "shape": "1x2",
     "cores": [
-      1091823330,
-      1094833256
+      -1216180592,
+      1607088225
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -4775,7 +4775,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -73011929
+      -823537042
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -4812,9 +4812,9 @@
     "type": "NORMAL",
     "shape": "1x3",
     "cores": [
-      -1871834420,
-      440759010,
-      884786436
+      -1954168867,
+      -1819052109,
+      -351881297
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -4869,7 +4869,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      587548921
+      -1811101709
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -4901,7 +4901,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -1833727259
+      -1450149144
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -4939,7 +4939,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      246392247
+      1761586871
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -4977,9 +4977,9 @@
     "type": "NORMAL",
     "shape": "L",
     "cores": [
-      -1603868001,
-      370061839,
-      1589643065
+      -1624253038,
+      -1341649876,
+      1670774675
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -5053,7 +5053,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      163265086
+      -1083197066
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -5097,7 +5097,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -354762940
+      938812781
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -5141,10 +5141,10 @@
     "type": "NORMAL",
     "shape": "2x2",
     "cores": [
-      -1899926287,
-      -1488933831,
-      -970492819,
-      589095824
+      -1931723512,
+      -74341280,
+      913916077,
+      1534204736
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -5192,7 +5192,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -1906944960
+      1514581307
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -5224,7 +5224,7 @@
     "type": "RARE",
     "shape": "1x1",
     "cores": [
-      544516590
+      922862418
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -5261,10 +5261,10 @@
     "type": "NORMAL",
     "shape": "2x2",
     "cores": [
-      -2122206511,
-      -1458158258,
-      -362738061,
-      560550184
+      -779973985,
+      -321718586,
+      471138640,
+      999009820
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -5323,7 +5323,7 @@
     "type": "PUZZLE",
     "shape": "1x1",
     "cores": [
-      -2013641393
+      502079918
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -5349,7 +5349,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      1864890951
+      -1715021377
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -5393,7 +5393,7 @@
     "type": "RARE",
     "shape": "1x1",
     "cores": [
-      -104717193
+      2000549842
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -5419,7 +5419,7 @@
     "type": "PUZZLE",
     "shape": "1x1",
     "cores": [
-      -2093374358
+      1122480948
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -5445,8 +5445,8 @@
     "type": "PUZZLE",
     "shape": "1x1",
     "cores": [
-      323781632,
-      1982071218
+      -2104583716,
+      896022625
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -5478,7 +5478,7 @@
     "type": "RARE",
     "shape": "1x1",
     "cores": [
-      -1257963897
+      374185231
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -5504,7 +5504,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -470974521
+      1749667131
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -5530,7 +5530,7 @@
     "type": "RARE",
     "shape": "1x1",
     "cores": [
-      -569725359
+      1545097143
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -5562,7 +5562,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -347362071
+      -1162066940
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -5600,7 +5600,7 @@
     "type": "PUZZLE",
     "shape": "1x1",
     "cores": [
-      -609838610
+      -1116148047
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -5626,10 +5626,10 @@
     "type": "NORMAL",
     "shape": "1x4",
     "cores": [
-      -1806834056,
-      -1295977364,
-      -1226214312,
-      1890475537
+      -878771139,
+      -127699847,
+      576760887,
+      1439536726
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -5698,9 +5698,9 @@
     "type": "NORMAL",
     "shape": "L",
     "cores": [
-      -1095672738,
-      95982542,
-      797083791
+      -1414030083,
+      155140117,
+      1937669620
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -5764,9 +5764,9 @@
     "type": "NORMAL",
     "shape": "L",
     "cores": [
-      -965466999,
-      -391912070,
-      1042346921
+      -1203202506,
+      566342905,
+      972242039
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -5814,9 +5814,9 @@
     "type": "NORMAL",
     "shape": "1x3",
     "cores": [
-      232341470,
-      1249437959,
-      2088936173
+      862384566,
+      1289976083,
+      1654519461
     ],
     "secretDetails": {
       "redstoneKey": 0,
@@ -5865,7 +5865,7 @@
     "type": "NORMAL",
     "shape": "1x1",
     "cores": [
-      -326048087
+      -1902338045
     ],
     "secretDetails": {
       "redstoneKey": 0,
