@@ -28,8 +28,6 @@ object SuggestionManager {
         }
 
         if (settingContainsMatch) return 3
-
-        if (feature.category.name.normalize().contains(cleanQuery)) return 4
         if (feature.description?.normalize()?.contains(cleanQuery) == true) return 5
 
         return null
