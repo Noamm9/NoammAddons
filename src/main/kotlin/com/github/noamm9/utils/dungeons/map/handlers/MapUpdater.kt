@@ -13,7 +13,6 @@ import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.DungeonListener.dungeonTeammatesNoSelf
 import com.github.noamm9.utils.dungeons.DungeonPlayer
 import com.github.noamm9.utils.dungeons.map.core.*
-import com.github.noamm9.utils.dungeons.map.utils.LegacyRegistry
 import com.github.noamm9.utils.dungeons.map.utils.MapUtils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
@@ -23,6 +22,7 @@ import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket
 import net.minecraft.world.level.saveddata.maps.MapDecoration
 import net.minecraft.world.level.saveddata.maps.MapDecorationTypes
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData
+import net.minecraft.world.level.block.Blocks
 import java.util.concurrent.*
 
 object MapUpdater: ISelfInit {
@@ -142,7 +142,8 @@ object MapUpdater: ISelfInit {
                 if (mapTile is DoorTile && mapTile.type == DoorType.WITHER) room.opened = false
                 else if (! room.opened) {
                     if (WorldUtils.isChunkLoaded(room.x, room.z)) {
-                        if (LegacyRegistry.getLegacyId(WorldUtils.getStateAt(room.x, 69, room.z)).equalsOneOf(0, 166)) room.opened = true
+                        val state = WorldUtils.getStateAt(room.x, 69, room.z)
+                        if (state.isAir || state.`is`(Blocks.BARRIER)) room.opened = true
                     }
                     else if (mapTile is DoorTile && mapTile.state == RoomState.DISCOVERED) {
                         if (room.type == DoorType.BLOOD) {

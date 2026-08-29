@@ -20,15 +20,26 @@ import com.github.noamm9.utils.dungeons.map.core.UniqueRoom
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner.startX
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner.startZ
-import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils.inDungeon
 import net.minecraft.core.BlockPos
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.Vec3
+import java.util.IdentityHashMap
 import kotlin.math.round
 
 object ScanUtils: ISelfInit, ICommandProvider, Shortcuts {
-    val roomList = DataDownloader.loadJson<List<RoomData>>("rooms.json")
+    private const val CORE_HEIGHT = 129
+    private val ignoredCoreBlocks = setOf(
+        "minecraft:chest", "minecraft:trapped_chest",
+        "minecraft:piston_head", "minecraft:moving_piston",
+        "minecraft:water", "minecraft:lava",
+        "minecraft:fire", "minecraft:soul_fire",
+    )
+    private val coreTokenCache = IdentityHashMap<Block, String>()
+
+    val roomList = DataDownloader.loadJson<List<RoomData>>("rooms-modern.json")
     val secretMap = roomList.associate { it.name to it.secretCoords }
     var currentRoom: UniqueRoom? = null
     var lastKnownRoom: UniqueRoom? = null
@@ -81,15 +92,36 @@ object ScanUtils: ISelfInit, ICommandProvider, Shortcuts {
     }
 
     fun getCore(x: Int, z: Int): Int {
-        val sb = StringBuilder(150)
+        val blocks = ArrayList<String>(CORE_HEIGHT)
         val pos = BlockPos.MutableBlockPos(x, 0, z)
 
         for (y in 140 downTo 12) {
-            val id = LegacyRegistry.getLegacyId(WorldUtils.getStateAt(pos.setY(y)))
-            if (id.equalsOneOf(5, 54, 146)) continue
-            sb.append(id)
+            val block = WorldUtils.getStateAt(pos.setY(y)).block
+            blocks += coreTokenCache.getOrPut(block) {
+                val name = BuiltInRegistries.BLOCK.getKey(block).toString()
+                if (name in ignoredCoreBlocks || name.endsWith("_planks")) "minecraft:air" else name
+            }
         }
-        return sb.toString().hashCode()
+        return murmur3(blocks)
+    }
+
+    private fun murmur3(blocks: List<String>): Int {
+        var h = 0x9747b28c.toInt()
+        for ((index, block) in blocks.withIndex()) {
+            var k = block.hashCode() xor (index * 0x1b873593)
+            k *= 0xcc9e2d51.toInt()
+            k = (k shl 15) or (k ushr 17)
+            k *= 0x1b873593
+            h = h xor k
+            h = (h shl 13) or (h ushr 19)
+            h = h * 5 + 0xe6546b64.toInt()
+        }
+        h = h xor (blocks.size * 4)
+        h = h xor (h ushr 16)
+        h *= 0x85ebca6b.toInt()
+        h = h xor (h ushr 13)
+        h *= 0xc2b2ae35.toInt()
+        return h xor (h ushr 16)
     }
 
     fun getHighestY(x: Int, z: Int): Int {
