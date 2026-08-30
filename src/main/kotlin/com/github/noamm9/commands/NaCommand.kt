@@ -1,6 +1,8 @@
 package com.github.noamm9.commands
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.config.Config
+import com.github.noamm9.config.Config.configDir
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.NoammDebugFlagEvent
@@ -22,6 +24,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.network.chat.Component
+import java.io.File
 
 object NaCommand: ICommandProvider {
     override fun CommandBuilder.command() {
@@ -141,6 +144,22 @@ object NaCommand: ICommandProvider {
             }
         }
 
+        literal("config") {
+            literal("load") {
+                argument("config", StringArgumentType.string()) {
+                    suggests { getConfigs().keys }
+                    runs {
+                        loadConfig(it)
+                    }
+                }
+            }
+            literal("create") {
+                argument("config", StringArgumentType.string()) {
+                    runs { createConfig(it) }
+                }
+            }
+        }
+
         //#if CHEAT
         literal("swapmask") {
             description("Equips either Bonzo Mask or Spirit Mask")
@@ -218,6 +237,30 @@ object NaCommand: ICommandProvider {
         return runs.filterValues { it > 0 }.entries.joinToString(" | ") { (name, runs) ->
             "${name.take(4).uppercaseFirst()} $runs"
         }
+    }
+
+    private fun loadConfig(ctx: CommandContext<FabricClientCommandSource>) {
+        val configName = StringArgumentType.getString(ctx, "config")
+        val configFile = getConfigs()[configName] ?: return ChatUtils.modMessage("&cNo config found with the name \"${configName}\"")
+        if (!configFile.exists()) return // useless I think
+        Config.configFile = FileHandler(configFile)
+        Config.load()
+        ChatUtils.modMessage("&aSuccessfully loaded config \"$configName\".")
+    }
+
+
+    private fun createConfig(ctx: CommandContext<FabricClientCommandSource>) {
+        val configName = StringArgumentType.getString(ctx, "config").removeSuffix(".json")
+        if (configName in getConfigs().keys) return ChatUtils.modMessage("&cThere is already a config named \"${configName}\".")
+        val configFile = File(Config.configsDir, "$configName.json")
+        Config.configFile = FileHandler(configFile)
+        Config.clear()
+        Config.save()
+        ChatUtils.modMessage("&aSuccessfully created config \"$configName\".")
+    }
+
+    private fun getConfigs(): Map<String, File> {
+        return (if (Config.configsDir.exists()) Config.configsDir.listFiles().associateBy { it.nameWithoutExtension } else emptyMap()) + ("default" to File(configDir, "config.json")) // im unsure wether the exists check is needed
     }
 
     @Serializable
