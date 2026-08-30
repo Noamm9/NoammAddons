@@ -11,6 +11,7 @@ import net.minecraft.core.SectionPos
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.*
 import net.minecraft.world.level.block.piston.PistonHeadBlock
+import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.chunk.LevelChunk
 import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.CollisionContext
@@ -134,18 +135,18 @@ object EtherwarpHelper {
         val clearanceBaseY = pos.y + max(1, ceil(collisionTop).toInt())
 
         val feetPos = BlockPos(pos.x, clearanceBaseY, pos.z)
-        if (! isPassable(feetPos, chunk) || isBlocksFeet(feetPos, chunk)) return false
+        if (blocksClearance(feetPos, chunk) || isBlocksFeet(feetPos, chunk)) return false
 
         val headPos = BlockPos(pos.x, clearanceBaseY + 1, pos.z)
-        return ! (! isPassable(headPos, chunk) || isBlocksFeet(headPos, chunk))
+        return ! (blocksClearance(headPos, chunk) || isBlocksFeet(headPos, chunk))
     }
 
     private fun isBlocksFeet(pos: BlockPos, chunk: LevelChunk): Boolean {
         return when (chunk.getBlockState(pos).block) {
-            is SkullBlock, is WallSkullBlock -> true
-            is FlowerPotBlock -> true
+            is SkullBlock, is WallSkullBlock,
+            is ComparatorBlock, is RepeaterBlock,
+            is FlowerPotBlock,
             is LadderBlock -> true
-            is VineBlock -> true
             else -> false
         }
     }
@@ -154,12 +155,27 @@ object EtherwarpHelper {
         val level = mc.level ?: return true
         val state = chunk.getBlockState(pos)
         return when (state.block) {
-            is SignBlock -> false
+            is SignBlock, is BannerBlock, is WallBannerBlock,  is TripWireHookBlock,
+            is PressurePlateBlock, is WeightedPressurePlateBlock -> false
+
             is ButtonBlock, is SkullBlock, is WallSkullBlock, is LadderBlock,
             is BubbleColumnBlock, is FlowerPotBlock, is PistonHeadBlock, is LeverBlock,
             is NetherWartBlock, is ComparatorBlock, is RedstoneTorchBlock, is RepeaterBlock -> true
 
             else -> state.getCollisionShape(level, pos, CollisionContext.empty()).isEmpty
         }
+    }
+
+    private fun hasNoRealHitbox(state: BlockState) =
+        when (state.block) {
+            is SignBlock, is BannerBlock, is WallBannerBlock, is TripWireHookBlock,
+            is PressurePlateBlock, is WeightedPressurePlateBlock -> true
+            else -> false
+        }
+
+    private fun blocksClearance(pos: BlockPos, chunk: LevelChunk): Boolean {
+        val state = chunk.getBlockState(pos)
+        if (hasNoRealHitbox(state)) return false
+        return ! isPassable(pos, chunk)
     }
 }
