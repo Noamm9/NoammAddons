@@ -2,21 +2,15 @@ package com.github.noamm9.utils.dungeons.map.utils
 
 import com.github.noamm9.commands.CommandBuilder
 import com.github.noamm9.event.EventBus
-import com.github.noamm9.event.impl.DungeonEvent
-import com.github.noamm9.event.impl.TickEvent
-import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Shortcuts
 import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.init.types.ISelfInit
-import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.destructured
-import com.github.noamm9.utils.PlayerUtils
-import com.github.noamm9.utils.WorldUtils
-import com.github.noamm9.utils.dungeons.map.core.RoomData
-import com.github.noamm9.utils.dungeons.map.core.RoomTile
-import com.github.noamm9.utils.dungeons.map.core.UniqueRoom
+import com.github.noamm9.utils.dungeons.map.core.*
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner.startX
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner.startZ
@@ -26,22 +20,23 @@ import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.Vec3
-import java.util.IdentityHashMap
+import java.util.*
 import kotlin.math.round
 
 object ScanUtils: ISelfInit, ICommandProvider, Shortcuts {
+    private val roomList = DataDownloader.loadJson<List<RoomData>>("rooms-modern.json")
+    private val roomsByCore = roomList.flatMap { room -> room.cores.map { it to room } }.toMap()
+    private val roomsByName = roomList.associateBy(RoomData::name)
+    private val coreTokenCache = IdentityHashMap<Block, Int>()
+    val secretMap = roomList.associate { it.name to it.secretCoords }
+
     private val ignoredCoreBlocks = setOf(
         "minecraft:chest", "minecraft:trapped_chest",
         "minecraft:piston_head", "minecraft:moving_piston",
         "minecraft:water", "minecraft:lava",
         "minecraft:fire", "minecraft:soul_fire",
     )
-    private val coreTokenCache = IdentityHashMap<Block, Int>()
 
-    val roomList = DataDownloader.loadJson<List<RoomData>>("rooms-modern.json")
-    private val roomsByCore = roomList.flatMap { room -> room.cores.map { it to room } }.toMap()
-    private val roomsByName = roomList.associateBy(RoomData::name)
-    val secretMap = roomList.associate { it.name to it.secretCoords }
     var currentRoom: UniqueRoom? = null
     var lastKnownRoom: UniqueRoom? = null
 
