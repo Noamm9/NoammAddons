@@ -37,15 +37,15 @@ object LividSolver: Feature() {
     private val tracerColor by ColorSetting("Tracer Color", favoriteColor, false).showIf { tracer.value }
 
     private val lividMap = mapOf(
-        Blocks.GREEN_WOOL to "Frog Livid",
-        Blocks.PURPLE_WOOL to "Purple Livid",
-        Blocks.GRAY_WOOL to "Doctor Livid",
-        Blocks.BLUE_WOOL to "Scream Livid",
-        Blocks.LIME_WOOL to "Smile Livid",
-        Blocks.RED_WOOL to "Hockey Livid",
-        Blocks.MAGENTA_WOOL to "Crossed Livid",
-        Blocks.YELLOW_WOOL to "Arcade Livid",
-        Blocks.WHITE_WOOL to "Vendetta Livid"
+        Blocks.WOOL.green() to "Frog Livid",
+        Blocks.WOOL.purple() to "Purple Livid",
+        Blocks.WOOL.gray() to "Doctor Livid",
+        Blocks.WOOL.blue() to "Scream Livid",
+        Blocks.WOOL.lime() to "Smile Livid",
+        Blocks.WOOL.red() to "Hockey Livid",
+        Blocks.WOOL.magenta() to "Crossed Livid",
+        Blocks.WOOL.yellow() to "Arcade Livid",
+        Blocks.WOOL.white() to "Vendetta Livid"
     )
 
     private val ceilingWoolBlock = BlockPos(5, 108, 40)

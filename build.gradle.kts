@@ -33,6 +33,7 @@ val fabric_version: String by project
 val modmenu_version: String by project
 val iris_version: String by project
 val ktor_version: String by project
+val universalcraft_version: String by project
 
 version = mod_version
 group = maven_group
@@ -48,6 +49,7 @@ configurations {
 
 repositories {
     maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
+    maven("https://repo.essential.gg/repository/maven-public")
     maven("https://maven.terraformersmc.com/")
     maven("https://api.modrinth.com/maven")
     maven("https://jitpack.io")
@@ -66,6 +68,8 @@ dependencies {
 
     implementation("io.github.llamalad7:mixinextras-fabric:0.4.1")
     annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.4.1")
+
+    bundled("gg.essential:universalcraft-26.2-fabric:$universalcraft_version")
 
     bundled("io.github.classgraph:classgraph:4.8.174")
     bundled("com.github.Noamm9:datafixer:d60875927e")

@@ -16,11 +16,11 @@ enum class TerminalType(val slotCount: Int) {
         val startwithRegex = Regex("^What starts with: '(\\w)'\\?$")
 
         val rubixOrder = listOf(
-            Items.RED_STAINED_GLASS_PANE,
-            Items.ORANGE_STAINED_GLASS_PANE,
-            Items.YELLOW_STAINED_GLASS_PANE,
-            Items.GREEN_STAINED_GLASS_PANE,
-            Items.BLUE_STAINED_GLASS_PANE,
+            Items.STAINED_GLASS_PANE.red(),
+            Items.STAINED_GLASS_PANE.orange(),
+            Items.STAINED_GLASS_PANE.yellow(),
+            Items.STAINED_GLASS_PANE.green(),
+            Items.STAINED_GLASS_PANE.blue(),
         )
 
         val colorReplacements = mapOf(

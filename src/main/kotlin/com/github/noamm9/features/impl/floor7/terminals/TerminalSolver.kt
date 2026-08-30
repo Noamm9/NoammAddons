@@ -428,13 +428,13 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
         solution.clear()
 
         when (type) {
-            TerminalType.NUMBERS -> currentItems.filter { it.value.item == Items.RED_STAINED_GLASS_PANE }
+            TerminalType.NUMBERS -> currentItems.filter { it.value.item == Items.STAINED_GLASS_PANE.red() }
                 .toList().sortedBy { it.second.count }.forEach {
                     TerminalType.numbersSlotCounts[it.first] = it.second.count
                     solution.add(TerminalClick(it.first))
                 }
 
-            TerminalType.REDGREEN -> currentItems.filter { it.value.item == Items.RED_STAINED_GLASS_PANE }
+            TerminalType.REDGREEN -> currentItems.filter { it.value.item == Items.STAINED_GLASS_PANE.red() }
                 .forEach { solution.add(TerminalClick(it.key)) }
 
             TerminalType.STARTWITH -> {
@@ -469,7 +469,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
                 }
 
                 currentItems.filter {
-                    it.value.item != Items.BLACK_STAINED_GLASS_PANE
+                    it.value.item != Items.STAINED_GLASS_PANE.black()
                         && fixName(it.value.hoverName.unformattedText.lowercase()).startsWith(extra)
                         && ! it.value.hasGlint()
                 }.map { it.key }.forEach { solution.add(TerminalClick(it)) }
@@ -503,8 +503,8 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
             }
 
             TerminalType.MELODY -> {
-                if (updatedItem1.item == Items.LIME_STAINED_GLASS_PANE) {
-                    val correct = currentItems.entries.find { it.value.item == Items.MAGENTA_STAINED_GLASS_PANE }?.key?.minus(1)
+                if (updatedItem1.item == Items.STAINED_GLASS_PANE.lime()) {
+                    val correct = currentItems.entries.find { it.value.item == Items.STAINED_GLASS_PANE.magenta() }?.key?.minus(1)
                     val button = floor((updatedSlot1 / 9).toDouble()) - 1
                     val current = updatedSlot1 % 9 - 1
                     if (correct != null) TerminalType.melodyCorrect = correct

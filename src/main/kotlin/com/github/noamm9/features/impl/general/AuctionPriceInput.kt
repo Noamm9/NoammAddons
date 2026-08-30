@@ -74,7 +74,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             }
 
             val stack = event.screen.menu.slots.getOrNull(slotId)?.item ?: return@register
-            if (! stack.`is`(Blocks.GREEN_TERRACOTTA.asItem())) return@register
+            if (! stack.`is`(Blocks.DYED_TERRACOTTA.green().asItem())) return@register
             if (! isValidName(stack.hoverName.unformattedText)) return@register
 
             GuiUtils.clickSlot(slotId, GuiUtils.ButtonType.LEFT)

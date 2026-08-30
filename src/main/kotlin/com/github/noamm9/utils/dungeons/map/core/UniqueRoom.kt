@@ -162,7 +162,7 @@ class UniqueRoom(arrX: Int, arrY: Int, roomTile: RoomTile) {
         if (data.shape != RoomShape.SL) for (i in 0 .. 3) {
             mutablePos.set(primaryCornersX[i], highestBlock, primaryCornersZ[i])
             if (! WorldUtils.isChunkLoaded(mutablePos.x, mutablePos.z)) continue
-            if (WorldUtils.getBlockAt(mutablePos) == Blocks.BLUE_TERRACOTTA) {
+            if (WorldUtils.getBlockAt(mutablePos) == Blocks.DYED_TERRACOTTA.blue()) {
                 setRotationAndCorner(i, mutablePos)
                 return
             }
@@ -172,7 +172,7 @@ class UniqueRoom(arrX: Int, arrY: Int, roomTile: RoomTile) {
             val (offsetX, offsetY) = DungeonScanner.clayBlocksCorners[i]
             mutablePos.set(tile.x + offsetX, highestBlock, tile.z + offsetY)
             if (! WorldUtils.isChunkLoaded(mutablePos.x, mutablePos.z)) return
-            if (WorldUtils.getBlockAt(mutablePos) == Blocks.BLUE_TERRACOTTA) {
+            if (WorldUtils.getBlockAt(mutablePos) == Blocks.DYED_TERRACOTTA.blue()) {
                 setRotationAndCorner(i, mutablePos)
                 return
             }

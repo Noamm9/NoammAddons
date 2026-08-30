@@ -112,7 +112,7 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
         }
     }
 
-    private fun isSlotEquipped(slot: Int) = player.containerMenu.slots[slot].item.`is`(Items.LIME_DYE)
+    private fun isSlotEquipped(slot: Int) = player.containerMenu.slots[slot].item.`is`(Items.DYE.lime())
 
     //#if CHEAT
     fun closeAfterReopen() {

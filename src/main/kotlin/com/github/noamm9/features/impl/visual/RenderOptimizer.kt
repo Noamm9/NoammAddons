@@ -65,9 +65,9 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
                 }
 
                 is ClientboundAddEntityPacket -> {
-                    val isBlock = packet.type == EntityType.FALLING_BLOCK && hideFallingBlocks.value
-                    val isLightning = packet.type == EntityType.LIGHTNING_BOLT && hideLightning.value
-                    val isXp = packet.type == EntityType.EXPERIENCE_ORB && hideXpOrbs.value
+                    val isBlock = packet.type == net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getValue(net.minecraft.resources.Identifier.withDefaultNamespace("falling_block")) && hideFallingBlocks.value
+                    val isLightning = packet.type == net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getValue(net.minecraft.resources.Identifier.withDefaultNamespace("lightning_bolt")) && hideLightning.value
+                    val isXp = packet.type == net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getValue(net.minecraft.resources.Identifier.withDefaultNamespace("experience_orb")) && hideXpOrbs.value
 
                     if (isBlock || isLightning || isXp) event.isCanceled = true
                 }

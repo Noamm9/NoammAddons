@@ -12,10 +12,10 @@ import net.minecraft.world.level.block.state.BlockState
 
 object IHateDiorite: Feature("Replaces the pillars in P2 with glass") {
     private val pillars = arrayOf(
-        Pillar(BlockPos(46, 169, 41), Blocks.LIME_STAINED_GLASS.defaultBlockState()),
-        Pillar(BlockPos(46, 169, 65), Blocks.YELLOW_STAINED_GLASS.defaultBlockState()),
-        Pillar(BlockPos(100, 169, 65), Blocks.PURPLE_STAINED_GLASS.defaultBlockState()),
-        Pillar(BlockPos(100, 169, 41), Blocks.RED_STAINED_GLASS.defaultBlockState())
+        Pillar(BlockPos(46, 169, 41), Blocks.STAINED_GLASS.lime().defaultBlockState()),
+        Pillar(BlockPos(46, 169, 65), Blocks.STAINED_GLASS.yellow().defaultBlockState()),
+        Pillar(BlockPos(100, 169, 65), Blocks.STAINED_GLASS.purple().defaultBlockState()),
+        Pillar(BlockPos(100, 169, 41), Blocks.STAINED_GLASS.red().defaultBlockState())
     )
 
     private val DIORITE_BLOCKS = setOf(Blocks.DIORITE, Blocks.POLISHED_DIORITE)
