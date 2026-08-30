@@ -120,10 +120,10 @@ object TrevorHelper: Feature("Helper features for Trevor the Trapper on the Farm
             }
 
             if (stripped == "Return to the Trapper soon to get a new animal to hunt!") {
-                reset()
                 if (autoCall.value) ThreadUtils.scheduledTaskServer(cooldown - (callOff.value * 20)) {
                     ChatUtils.sendCommand("call trevor")
                 }
+                reset()
             }
 
             if (! autoAccept.value) return@register
