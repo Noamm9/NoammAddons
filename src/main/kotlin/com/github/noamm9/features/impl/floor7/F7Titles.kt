@@ -1,8 +1,6 @@
 package com.github.noamm9.features.impl.floor7
 
-import com.github.noamm9.config.types.DropdownSetting
-import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
@@ -51,7 +49,7 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
         hudElement("Terminal Titles", { terminalTitles.value }, { terminalTitle.isNotBlank() }, centered = true) { ctx, example ->
             val str = if (example) formatTerminalTitle(mc.user.name, "terminal", 6, 7) else terminalTitle
             ctx.drawCenteredString(str, 0, 0)
-            return@hudElement str.width().toFloat() to 9f
+            return@hudElement str.width() to 9f
         }
 
         register<WorldChangeEvent> {

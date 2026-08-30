@@ -58,7 +58,7 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
             val displayTime = (timeLeft / 20.0).toFixed(2)
             val color = DungeonListener.thePlayer?.clazz?.color ?: Color.WHITE
             ctx.drawCenteredString(displayTime, 0, 0, color)
-            return@hudElement displayTime.width().toFloat() to 9f
+            return@hudElement displayTime.width() to 9f
         }
 
         register<WorldChangeEvent> {

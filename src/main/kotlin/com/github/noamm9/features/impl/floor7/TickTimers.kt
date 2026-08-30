@@ -53,7 +53,7 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
             }
 
             ctx.drawCenteredString(textToRender, 0f, 0f)
-            return@hudElement textToRender.width().toFloat() to 9F
+            return@hudElement textToRender.width() to 9f
         }
 
         register<WorldChangeEvent> { reset() }

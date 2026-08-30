@@ -1,10 +1,7 @@
 package com.github.noamm9.features.impl.visual
 
 import com.github.noamm9.config.types.ToggleSetting
-import com.github.noamm9.event.impl.ChatMessageEvent
-import com.github.noamm9.event.impl.DungeonEvent
-import com.github.noamm9.event.impl.TickEvent
-import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.utils.NumbersUtils.toFixed
@@ -44,14 +41,14 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
             val text = if (example) exampleText else currentText
             if (text.isEmpty()) return@hudElement 0f to 0f
 
-            var currentY = 0f
-            var width = 0f
+            var currentY = 0
+            var width = 0
 
             for (i in text.indices) {
                 val line = text[i]
                 ctx.drawString(line, 0, currentY)
-                width = maxOf(width, line.width().toFloat())
-                currentY += 9f
+                width = maxOf(width, line.width())
+                currentY += 9
             }
 
             return@hudElement width to currentY

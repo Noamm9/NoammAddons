@@ -5,7 +5,6 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.dungeons.DungeonUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
-import com.github.noamm9.utils.render.RenderHelper.height
 import com.github.noamm9.utils.render.RenderHelper.width
 import kotlin.math.roundToInt
 
@@ -19,7 +18,7 @@ object WarpCooldown: Feature("Displays on screen how long until you can start an
             if (remaining < 0) onCd = false
             val text = "&bWarp Cooldown: &f${if (example) 30 else remaining}s"
             ctx.drawString(text, 0, 0)
-            return@hudElement text.width().toFloat() to text.height().toFloat()
+            return@hudElement text.width() to 9
         }
 
         register<ChatMessageEvent> {

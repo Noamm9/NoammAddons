@@ -1,11 +1,7 @@
 package com.github.noamm9.features.impl.visual
 
-import com.github.noamm9.config.types.ColorSetting
-import com.github.noamm9.config.types.DropdownSetting
-import com.github.noamm9.config.types.ToggleSetting
-import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
-import com.github.noamm9.event.impl.RenderWorldEvent
-import com.github.noamm9.event.impl.TickEvent
+import com.github.noamm9.config.types.*
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.ILocalPlayer
 import com.github.noamm9.utils.ColorUtils
@@ -15,9 +11,9 @@ import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
-import com.github.noamm9.utils.render.world.Render3D.renderBox
 import com.github.noamm9.utils.render.RenderHelper.renderVec
 import com.github.noamm9.utils.render.RenderHelper.width
+import com.github.noamm9.utils.render.world.Render3D.renderBox
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.entity.EquipmentSlot
@@ -69,7 +65,7 @@ object SpringBoots: Feature("Shows the spring boots charge progress on screen.")
             val text = prefix + color + displayValue.toFixed(1) + suffix
 
             ctx.drawCenteredString(text, 0, 0)
-            return@hudElement text.width().toFloat() to 9f
+            return@hudElement text.width() to 9f
         }
 
         register<MainThreadPacketReceivedEvent.Pre> {

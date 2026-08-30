@@ -50,7 +50,7 @@ object PetDisplay: Feature("Pet Features") {
             shouldDraw = { LocationUtils.inSkyblock && cacheData.get()["pet"] != null }) { context, example ->
             val text = if (example) "&6Golden Dragon" else cacheData.get()["pet"].toString()
             context.drawString(text, 0, 0)
-            return@hudElement text.width().toFloat() to text.height().toFloat()
+            return@hudElement text.width() to text.height()
         }
 
         hudElement(
@@ -61,7 +61,7 @@ object PetDisplay: Feature("Pet Features") {
         ) { context, example ->
             val text = if (example) "&6Golden Dragon" else autoPetTitle
             context.drawCenteredString(text, 0, 0)
-            return@hudElement text.width().toFloat() to text.height().toFloat()
+            return@hudElement text.width() to text.height()
         }.apply {
             scale = 2.5f
         }

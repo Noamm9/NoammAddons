@@ -1,8 +1,6 @@
 package com.github.noamm9.features.impl.visual
 
-import com.github.noamm9.config.types.ColorSetting
-import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
@@ -25,7 +23,7 @@ object FreezeDisplay: Feature("Shows how long the server froze after a chosen th
             val text = if (example) "567ms" else "${diff}ms"
 
             ctx.drawCenteredString(text, 0, 0, color.value)
-            return@hudElement text.width().toFloat() to text.height().toFloat()
+            return@hudElement text.width() to text.height()
         }
 
         register<WorldChangeEvent> { lastPacketTime = System.currentTimeMillis() }

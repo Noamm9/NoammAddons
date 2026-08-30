@@ -7,7 +7,6 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.ServerUtils
 import com.github.noamm9.utils.render.Render2D.drawString
-import com.github.noamm9.utils.render.RenderHelper.height
 import com.github.noamm9.utils.render.RenderHelper.width
 import java.awt.Color
 import java.time.LocalTime
@@ -33,7 +32,7 @@ object InfoDisplay: Feature("Displays the system time, clicks per second, FPS, a
         hudElement("ClockDisplay", { clockDisplay.value }) { ctx, _ ->
             val text = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm${if (seconds.value) ":ss" else ""}"))
             ctx.drawString(text, 0, 0, clockColor.value)
-            return@hudElement text.width().toFloat() to 9f
+            return@hudElement text.width() to 12
         }
 
         hudElement("CPS Display", { cpsDisplay.value }) { ctx, _ ->
@@ -41,19 +40,19 @@ object InfoDisplay: Feature("Displays the system time, clicks per second, FPS, a
             val r = getCps(rightClicks)
             val text = "§f$l §7| §f$r §bCPS"
             ctx.drawString(text, 2f, 2f)
-            return@hudElement text.width().toFloat() + 4f to 12f
+            return@hudElement text.width() + 4f to 12
         }
 
         hudElement("FpsDisplay", { fpsDisplay.value }) { ctx, _ ->
             val text = "${mc.fps} fps"
             ctx.drawString(text, 0, 0, fpsColor.value)
-            return@hudElement text.width().toFloat() to text.height().toFloat()
+            return@hudElement text.width() to 12
         }
 
         hudElement("TpsDisplay", { tpsDisplay.value }) { ctx, example ->
             val text = "TPS: &f${if (example) 20 else ServerUtils.tps.toFixed(1)}"
             ctx.drawString(text, 0, 0, tpsColor.value)
-            return@hudElement text.width().toFloat() to text.height().toFloat()
+            return@hudElement text.width() to 12
         }
 
         register<WorldChangeEvent> {

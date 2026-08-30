@@ -4,6 +4,7 @@ import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.utils.render.Render2D.drawRect
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
+import kotlin.math.roundToInt
 import kotlin.reflect.jvm.jvmName
 
 abstract class HudElement {
@@ -23,7 +24,7 @@ abstract class HudElement {
     private var dragX = 0f
     private var dragY = 0f
 
-    abstract fun draw(ctx: GuiGraphicsExtractor, example: Boolean): Pair<Float, Float>
+    abstract fun draw(ctx: GuiGraphicsExtractor, example: Boolean): Pair<Number, Number>
 
     open fun drawBackground(ctx: GuiGraphicsExtractor, mx: Int, my: Int) {
         val scaledW = width * scale
@@ -46,19 +47,23 @@ abstract class HudElement {
         ctx.pose().scale(scale, scale)
 
         draw(ctx, example).run {
-            width = first
-            height = second
+            width = first.toFloat()
+            height = second.toFloat()
         }
 
         ctx.pose().popMatrix()
     }
 
-    fun drawEditor(ctx: GuiGraphicsExtractor, mx: Int, my: Int) {
+    fun drawEditor(ctx: GuiGraphicsExtractor, mx: Int, my: Int, gridSize: Int = 0) {
         if (! toggle) return
 
         if (isDragging) {
             x = mx - dragX
             y = my - dragY
+            if (gridSize > 0) {
+                x = (x / gridSize).roundToInt() * gridSize.toFloat()
+                y = (y / gridSize).roundToInt() * gridSize.toFloat()
+            }
         }
 
         drawBackground(ctx, mx, my)

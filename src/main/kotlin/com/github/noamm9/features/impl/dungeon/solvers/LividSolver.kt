@@ -4,21 +4,18 @@ import com.github.noamm9.config.types.ColorSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.unformattedText
-import com.github.noamm9.utils.ColorUtils
 import com.github.noamm9.utils.MathUtils.add
-import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.Utils.favoriteColor
-import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener.dungeonTeammates
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
-import com.github.noamm9.utils.render.world.Render3D.renderString
-import com.github.noamm9.utils.render.world.Render3D.renderTracer
 import com.github.noamm9.utils.render.RenderHelper.renderVec
 import com.github.noamm9.utils.render.RenderHelper.width
+import com.github.noamm9.utils.render.world.Render3D.renderString
+import com.github.noamm9.utils.render.world.Render3D.renderTracer
 import gg.essential.universal.USound
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.core.BlockPos
@@ -60,7 +57,7 @@ object LividSolver: Feature() {
             val color = ColorUtils.colorCodeByPercent(ticks - displayTicks, ticks, true)
             val text = "&5Livid Invulnerability: $color${(displayTicks / 20.0).toFixed(1)}"
             ctx.drawCenteredString(text, 0, 0)
-            text.width().toFloat() to 9f
+            text.width() to 9f
         }
 
         register<CheckEntityGlowEvent> {

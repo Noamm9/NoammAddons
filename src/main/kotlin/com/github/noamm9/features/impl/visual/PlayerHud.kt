@@ -45,7 +45,7 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
         ) { context, example ->
             val text = if (example) "§e3452§f/§c2452" else getHpFormatted()
             context.drawString(text, 0, 0)
-            return@hudElement text.width().toFloat() to text.height().toFloat()
+            return@hudElement text.width() to text.height()
         }
 
         hudElement(
@@ -55,7 +55,7 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
         ) { context, example ->
             val text = if (example) "§a5001" else "§a${ActionBarParser.currentDefense}"
             context.drawString(text, 0, 0)
-            return@hudElement text.width().toFloat() to text.height().toFloat()
+            return@hudElement text.width() to text.height()
         }
 
         hudElement(
@@ -65,7 +65,7 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
         ) { context, example ->
             val text = if (example) "§b2452/2452" else "§b${ActionBarParser.currentMana}/${ActionBarParser.maxMana}"
             context.drawString(text, 0, 0)
-            return@hudElement text.width().toFloat() to text.height().toFloat()
+            return@hudElement text.width() to text.height()
         }
 
         hudElement(
@@ -75,7 +75,7 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
         ) { context, example ->
             val text = if (example) "§3600ʬ" else "§3${ActionBarParser.overflowMana}ʬ"
             context.drawString(text, 0, 0)
-            return@hudElement text.width().toFloat() to text.height().toFloat()
+            return@hudElement text.width() to text.height()
         }
 
         hudElement(
@@ -85,7 +85,7 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
         ) { context, example ->
             val text = if (example) "§482/122" else "§4${ActionBarParser.currentVitality}/${ActionBarParser.maxVitality}"
             context.drawString("$text&l♨", 0, 0)
-            return@hudElement text.width().toFloat() to text.height().toFloat()
+            return@hudElement text.width() to text.height()
         }
 
         hudElement(
@@ -95,7 +95,7 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
         ) { context, example ->
             val text = if (example) "§27.3m" else "§2${NumbersUtils.format(ActionBarParser.effectiveHP)}"
             context.drawString(text, 0, 0)
-            return@hudElement text.width().toFloat() to text.height().toFloat()
+            return@hudElement text.width() to text.height()
         }
 
         hudElement(
@@ -105,7 +105,7 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
         ) { context, example ->
             val text = if (example) "§f400✦" else "§f${ActionBarParser.currentSpeed}✦"
             context.drawString(text, 0, 0)
-            return@hudElement text.width().toFloat() to text.height().toFloat()
+            return@hudElement text.width() to text.height()
         }
 
         register<ActionBarMessageEvent> {

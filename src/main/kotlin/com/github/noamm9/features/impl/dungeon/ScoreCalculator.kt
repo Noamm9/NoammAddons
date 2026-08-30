@@ -5,9 +5,7 @@ import com.github.noamm9.config.types.TextInputSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.utils.ChatUtils
-import com.github.noamm9.utils.ColorUtils
-import com.github.noamm9.utils.NumbersUtils
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.dungeons.map.handlers.ScoreCalculation
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
@@ -51,7 +49,7 @@ object ScoreCalculator: Feature("Shows the score of the dungeon run.") {
             else "&eScore: " + ColorUtils.colorizeScore(ScoreCalculation.score)
 
             ctx.drawString(text, 0, 0)
-            return@hudElement text.width().toFloat() to 9f
+            return@hudElement text.width() to 9f
         }
 
         register<DungeonEvent.Score> {

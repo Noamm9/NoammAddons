@@ -43,7 +43,7 @@ object CompTest: Feature("A test feature used to test every UI component.") {
     val testHud = hudElement("testHud") { context, _ ->
         val str = "testHud: FPS=${mc.fps}"
         context.text(mc.font, str, 0, 0, Color.white.rgb, true)
-        return@hudElement str.width().toFloat() to str.height().toFloat()
+        return@hudElement str.width() to str.height()
     }
 
     override fun onEnable() {

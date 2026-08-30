@@ -1,8 +1,6 @@
 package com.github.noamm9.features.impl.floor7
 
-import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.config.types.TextInputSetting
-import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.TickEvent
@@ -46,7 +44,7 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
 
             ctx.drawCenteredString(text, 0, 0)
 
-            return@hudElement text.width().toFloat() to 9f
+            return@hudElement text.width() to 9f
         }
 
         register<ChatMessageEvent> {

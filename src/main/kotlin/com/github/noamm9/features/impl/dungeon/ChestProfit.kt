@@ -2,30 +2,25 @@ package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.config.types.ToggleSetting
-import com.github.noamm9.event.impl.ContainerEvent
-import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
-import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.init.NetworkLoop
 import com.github.noamm9.ui.notification.NotificationManager
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.vec
-import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
-import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.location.WorldType
-import com.github.noamm9.utils.remove
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.highlight
 import com.github.noamm9.utils.render.RenderHelper.width
-import com.github.noamm9.utils.startsWithOneOf
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
@@ -80,10 +75,10 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                 }
             }
 
-            var maxWidth = 0f
+            var maxWidth = 0
             text.forEachIndexed { i, (chest, str) ->
                 ctx.drawString(str, 0f, i * 9f, chest.color)
-                maxWidth = maxOf(maxWidth, str.width().toFloat())
+                maxWidth = maxOf(maxWidth, str.width())
             }
 
             maxWidth to text.size * 9f

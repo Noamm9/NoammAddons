@@ -2,10 +2,7 @@ package com.github.noamm9.features.impl.visual
 
 import com.github.noamm9.config.types.DropdownSetting
 import com.github.noamm9.config.types.ToggleSetting
-import com.github.noamm9.event.impl.ChatMessageEvent
-import com.github.noamm9.event.impl.RenderOverlayEvent
-import com.github.noamm9.event.impl.TickEvent
-import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.NumbersUtils.toFixed
@@ -64,8 +61,8 @@ object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and mo
         hudElement("Mask Timers") { context, example ->
             if (onlyInDungeon.value && ! LocationUtils.inDungeon && ! example) return@hudElement 0f to 0f
 
-            var maxWidth = 0f
-            var yOffset = 0f
+            var maxWidth = 0
+            var yOffset = 0
 
             Mask.entries.forEach { mask ->
                 val cd = if (example) mask.cooldownTicks / 2 else mask.cdLeft
@@ -82,10 +79,11 @@ object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and mo
                     else "${mask.color}${mask.displayName} $arrow &aReady"
                 }
 
-                context.drawString(text, 0, yOffset.toInt())
-                maxWidth = maxOf(maxWidth, text.width().toFloat())
-                yOffset += 10f
+                context.drawString(text, 0, yOffset)
+                maxWidth = maxOf(maxWidth, text.width())
+                yOffset += 10
             }
+            
             maxWidth to yOffset
         }
 

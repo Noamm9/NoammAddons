@@ -2,10 +2,7 @@ package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.config.types.ColorSetting
 import com.github.noamm9.config.types.ToggleSetting
-import com.github.noamm9.event.impl.BlockChangeEvent
-import com.github.noamm9.event.impl.CheckEntityGlowEvent
-import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
-import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.NumbersUtils.toFixed
@@ -51,7 +48,7 @@ object F4Features: Feature(name = "F4 Features", description = "Spirit bear spaw
             }
 
             ctx.drawCenteredString(text, 0f, 0f, Color(255, 0, 255))
-            return@hudElement text.width().toFloat() to 9f
+            return@hudElement text.width() to 9f
         }
 
         register<CheckEntityGlowEvent> {

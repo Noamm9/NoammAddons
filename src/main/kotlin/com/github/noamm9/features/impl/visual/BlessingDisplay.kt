@@ -31,8 +31,8 @@ object BlessingDisplay: Feature("Displays the current active blessings in the du
 
     override fun init() {
         hudElement("BlessingDisplay") { context, example ->
-            var maxWidth = 0f
-            var currentY = 0f
+            var maxWidth = 0
+            var currentY = 0
 
             Blessing.entries.forEach { blessing ->
                 val (enabled, color) = getBlessingConfig(blessing)
@@ -42,10 +42,10 @@ object BlessingDisplay: Feature("Displays the current active blessings in the du
 
                 val text = "${blessing.displayString} §f$value"
 
-                context.drawString(text, 0, currentY.toInt(), color)
+                context.drawString(text, 0, currentY, color)
 
-                maxWidth = maxOf(maxWidth, text.width().toFloat())
-                currentY += 9f
+                maxWidth = maxOf(maxWidth, text.width())
+                currentY += 9
             }
 
             return@hudElement maxWidth to currentY

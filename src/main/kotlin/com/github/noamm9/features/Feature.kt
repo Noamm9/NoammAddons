@@ -2,10 +2,7 @@ package com.github.noamm9.features
 
 import com.github.noamm9.config.ConfigHolder
 import com.github.noamm9.config.SettingProvider
-import com.github.noamm9.event.Event
-import com.github.noamm9.event.EventBus
-import com.github.noamm9.event.EventContext
-import com.github.noamm9.event.EventListener
+import com.github.noamm9.event.*
 import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.features.annotations.AlwaysActive
 import com.github.noamm9.init.RemoteFeatures
@@ -72,13 +69,13 @@ open class Feature(
         enabled: () -> Boolean = { true },
         shouldDraw: () -> Boolean = { true },
         centered: Boolean = false,
-        render: (GuiGraphicsExtractor, Boolean) -> Pair<Float, Float>,
+        render: (GuiGraphicsExtractor, Boolean) -> Pair<Number, Number>,
     ): HudElement {
         return object: HudElement() {
             override val name = name
             override val toggle: Boolean get() = this@Feature.enabled && enabled.invoke()
             override val shouldDraw: Boolean get() = shouldDraw.invoke()
-            override fun draw(ctx: GuiGraphicsExtractor, example: Boolean): Pair<Float, Float> = render(ctx, example)
+            override fun draw(ctx: GuiGraphicsExtractor, example: Boolean): Pair<Number, Number> = render(ctx, example)
             override val centered = centered
         }.also(hudElements::add)
     }
