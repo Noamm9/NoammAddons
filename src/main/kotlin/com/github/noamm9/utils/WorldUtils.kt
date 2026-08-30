@@ -1,6 +1,7 @@
 package com.github.noamm9.utils
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.init.ModCompatibility
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockState
@@ -8,14 +9,6 @@ import net.minecraft.world.level.chunk.status.ChunkStatus
 import net.minecraft.world.phys.Vec3
 
 object WorldUtils {
-    private val bobbyManagesWorlds by lazy {
-        runCatching {
-            val bobby = Class.forName("de.johni0702.minecraft.bobby.Bobby").getMethod("getInstance").invoke(null)
-            val config = bobby.javaClass.getMethod("getConfig").invoke(bobby)
-            config.javaClass.getMethod("isDynamicMultiWorld").invoke(config) as Boolean
-        }.getOrDefault(false)
-    }
-
     fun getStateAt(pos: BlockPos) = getLoadedChunk(pos.x shr 4, pos.z shr 4)?.getBlockState(pos) ?: Blocks.AIR.defaultBlockState()
     fun getStateAt(x: Int, y: Int, z: Int) = this.getStateAt(BlockPos(x, y, z))
     fun getBlockAt(pos: BlockPos) = getStateAt(pos).block
@@ -24,9 +17,7 @@ object WorldUtils {
 
     fun setBlockAt(pos: BlockPos, state: BlockState) = NoammAddons.mc.level?.setBlock(pos, state, 19)
 
-    fun isChunkLoaded(x: Number, z: Number): Boolean {
-        return getLoadedChunk(x.toInt() shr 4, z.toInt() shr 4) != null
-    }
+    fun isChunkLoaded(x: Number, z: Number) = getLoadedChunk(x.toInt() shr 4, z.toInt() shr 4) != null
 
     fun getBlockEntityList(): List<BlockPos> {
         val player = NoammAddons.mc.player ?: return emptyList()
@@ -46,5 +37,5 @@ object WorldUtils {
 
     private fun getLoadedChunk(chunkX: Int, chunkZ: Int) = NoammAddons.mc.level
         ?.getChunk(chunkX, chunkZ, ChunkStatus.FULL, false)
-        ?.takeUnless { it.javaClass.name == "de.johni0702.minecraft.bobby.FakeChunk" && ! bobbyManagesWorlds }
+        ?.takeUnless { it.javaClass.name == "de.johni0702.minecraft.bobby.FakeChunk" && ! ModCompatibility.bobbyManagesWorlds }
 }
