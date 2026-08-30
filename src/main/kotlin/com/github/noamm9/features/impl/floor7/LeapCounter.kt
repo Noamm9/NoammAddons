@@ -85,7 +85,10 @@ object LeapCounter: Feature("Shows how many players have leaped you") {
             }
         }
 
-        register<WorldChangeEvent> { REGION.reset() }
+        register<WorldChangeEvent> {
+            REGION.reset()
+            currentSpot = null
+        }
     }
 
     private enum class REGION(val box: AABB, val _maxCount: Int, val check: (x: Double, y: Double, z: Double) -> Boolean) {
