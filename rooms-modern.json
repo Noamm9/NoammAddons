@@ -5891,5 +5891,37 @@
     "reviveStones": 0,
     "secrets": 1,
     "crypts": 1
+  },
+  {
+    "name": "Rare Carpets",
+    "type": "RARE",
+    "shape": "1x1",
+    "cores": [
+      -1400526026
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 15,
+          "y": 29,
+          "z": 15
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 3
   }
 ]
