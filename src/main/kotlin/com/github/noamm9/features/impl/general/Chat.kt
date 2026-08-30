@@ -34,7 +34,7 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
     private val removeUselessMessages by ToggleSetting("Remove useless messages", true).withDescription("Removes a lot of useless messages from the chat.")
 
     private val chatSearch by ToggleSetting("Chat Search", true)
-        .withDescription("Adds /chatsearch <query> to filter the chat down to the messages that match a query.")
+        .withDescription("Press Ctrl + F while the chat is open to search it, only the matching messages stay visible. Also adds /chatsearch <query>.")
     private val searchCaseSensitive by ToggleSetting("Case Sensitive Search")
         .withDescription("Makes chat searches match the exact casing of the query.").showIf { chatSearch.value }
     private val searchRegex by ToggleSetting("Regex Search")
@@ -95,6 +95,7 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
 
     override fun onDisable() {
         super.onDisable()
+        searchBarOpen = false
         clearSearch(silent = true)
     }
 
@@ -134,9 +135,51 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
     }
 
     private var searchMatcher: ((String) -> Boolean)? = null
+    private var searchBarOpen = false
     private val modPrefix = NoammAddons.PREFIX.removeFormatting()
 
+    /** Amount of stored messages the active search matches, `-1` when no search is active. */
+    private var searchMatches = - 1
+
+    private var searchQuery = ""
+
     internal val searchAvailable get() = enabled && chatSearch.value
+
+    @JvmStatic fun isSearchAvailable() = searchAvailable
+    @JvmStatic fun isSearchBarOpen() = searchBarOpen
+    @JvmStatic fun getSearchQuery() = searchQuery
+
+    /** Status text drawn on the right side of the search bar. */
+    @JvmStatic
+    fun searchStatus(): String {
+        if (searchQuery.isBlank()) return ""
+        if (searchMatcher == null) return "§cinvalid regex"
+        return "§7$searchMatches match${if (searchMatches == 1) "" else "es"}"
+    }
+
+    /** Ctrl + F, returns whether the bar ended up open. */
+    @JvmStatic
+    fun toggleSearchBar(): Boolean {
+        searchBarOpen = ! searchBarOpen
+        if (! searchBarOpen) setSearch("")
+        return searchBarOpen
+    }
+
+    @JvmStatic
+    fun closeSearchBar() {
+        if (! searchBarOpen) return
+        searchBarOpen = false
+        setSearch("")
+    }
+
+    /** Applies [query] to the chat without printing anything, used by the search bar. */
+    @JvmStatic
+    fun setSearch(query: String) {
+        searchQuery = query
+        searchMatcher = if (query.isBlank()) null else buildMatcher(query)
+        searchMatches = countMatches()
+        chatHud()?.refreshChat()
+    }
 
     /** Called by [com.github.noamm9.mixin.MixinChatComponent] for every message about to be displayed. */
     @JvmStatic
@@ -152,6 +195,7 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
     @JvmStatic
     fun onChatCleared() {
         searchMatcher = null
+        searchMatches = - 1
     }
 
     /** Called by [com.github.noamm9.mixin.MixinChatComponent] to raise the vanilla 100 message cap. */
@@ -161,16 +205,13 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
         return maxOf(vanilla, chatHistorySize.value)
     }
 
+    /** /chatsearch, same filter as the search bar but with chat feedback. */
     internal fun search(query: String) {
         if (! searchAvailable) return ChatUtils.modMessage("&cThe &bChat Search &coption is disabled.")
-        val chatHud = chatHud() ?: return ChatUtils.modMessage("&cChat is not available right now.")
-        val matcher = buildMatcher(query) ?: return ChatUtils.modMessage("&cInvalid Regex syntax!")
+        if (buildMatcher(query) == null) return ChatUtils.modMessage("&cInvalid Regex syntax!")
 
-        searchMatcher = matcher
-        val matches = chatHud.allMessages.count { matcher(it.content().unformattedText) }
-        chatHud.refreshChat()
-
-        ChatUtils.modMessage("&aFound &e$matches&a message${if (matches == 1) "" else "s"} matching &e$query&a. &7(/chatsearch to clear)")
+        setSearch(query)
+        ChatUtils.modMessage("&aFound &e$searchMatches&a message${if (searchMatches == 1) "" else "s"} matching &e$query&a. &7(/chatsearch to clear)")
     }
 
     internal fun clearSearch(silent: Boolean = false) {
@@ -179,9 +220,13 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
             return
         }
 
-        searchMatcher = null
-        chatHud()?.refreshChat()
+        setSearch("")
         if (! silent) ChatUtils.modMessage("&aCleared the chat search.")
+    }
+
+    private fun countMatches(): Int {
+        val matcher = searchMatcher ?: return - 1
+        return chatHud()?.allMessages?.count { matcher(it.content().unformattedText) } ?: - 1
     }
 
     private fun buildMatcher(query: String): ((String) -> Boolean)? {
