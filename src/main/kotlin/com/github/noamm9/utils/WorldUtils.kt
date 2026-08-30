@@ -8,6 +8,14 @@ import net.minecraft.world.level.chunk.status.ChunkStatus
 import net.minecraft.world.phys.Vec3
 
 object WorldUtils {
+    private val bobbyManagesWorlds by lazy {
+        runCatching {
+            val bobby = Class.forName("de.johni0702.minecraft.bobby.Bobby").getMethod("getInstance").invoke(null)
+            val config = bobby.javaClass.getMethod("getConfig").invoke(bobby)
+            config.javaClass.getMethod("isDynamicMultiWorld").invoke(config) as Boolean
+        }.getOrDefault(false)
+    }
+
     fun getStateAt(pos: BlockPos) = getLoadedChunk(pos.x shr 4, pos.z shr 4)?.getBlockState(pos) ?: Blocks.AIR.defaultBlockState()
     fun getStateAt(x: Int, y: Int, z: Int) = this.getStateAt(BlockPos(x, y, z))
     fun getBlockAt(pos: BlockPos) = getStateAt(pos).block
@@ -38,5 +46,5 @@ object WorldUtils {
 
     private fun getLoadedChunk(chunkX: Int, chunkZ: Int) = NoammAddons.mc.level
         ?.getChunk(chunkX, chunkZ, ChunkStatus.FULL, false)
-        ?.takeUnless { it.javaClass.name == "de.johni0702.minecraft.bobby.FakeChunk" }
+        ?.takeUnless { it.javaClass.name == "de.johni0702.minecraft.bobby.FakeChunk" && ! bobbyManagesWorlds }
 }
