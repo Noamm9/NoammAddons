@@ -19,6 +19,6 @@ object ModCompatibility {
         val blockStateCulling = config?.javaClass?.getDeclaredField("useBlockStateCulling")
         blockStateCulling?.isAccessible = true
         blockStateCulling?.setBoolean(config, false)
-        mc.levelRenderer.allChanged()
+        mc.levelRenderer.resetLevelRenderData()
     }
 }

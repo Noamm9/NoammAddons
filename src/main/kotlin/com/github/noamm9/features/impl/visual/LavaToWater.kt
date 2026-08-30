@@ -22,11 +22,11 @@ object LavaToWater: Feature("Replaces lava with the water texture") {
     @JvmStatic val tintColor by ColorSetting("Tint Color", Color(63, 118, 228), false).showIf { colorTint.value }
     @JvmStatic val hideFog by ToggleSetting("Hide fog", true).withDescription("Removes the lava fog")
 
-    override fun init() = configSettings.forEach { it.onChange { if (enabled) mc.levelRenderer?.allChanged() } }
+    override fun init() = configSettings.forEach { it.onChange { if (enabled) mc.levelRenderer?.resetLevelRenderData() } }
 
     override fun toggle() {
         super.toggle()
-        mc.levelRenderer?.allChanged()
+        mc.levelRenderer?.resetLevelRenderData()
     }
 
     @JvmStatic

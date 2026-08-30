@@ -91,6 +91,8 @@ object MathUtils {
 
     fun BlockPos.add(x: Number = 0, y: Number = 0, z: Number = 0) = this.offset(x.toInt(), y.toInt(), z.toInt())
     fun BlockPos.toVec() = vec(x, y, z)
+    // MC 26.2 removed BlockPos.center; re-add as extension (center of the block as a Vec3).
+    val BlockPos.center get() = Vec3(x.toDouble() + 0.5, y.toDouble() + 0.5, z.toDouble() + 0.5)
 
     fun Vec3.toPos() = BlockPos(floor(x).toInt(), floor(y).toInt(), floor(z).toInt())
     fun Vec3.add(x: Number = 0.0, y: Number = 0.0, z: Number = 0.0) = add(vec(x, y, z))

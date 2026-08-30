@@ -5,16 +5,21 @@ import com.github.noamm9.event.EventBus;
 import com.github.noamm9.event.impl.ActionBarMessageEvent;
 import com.github.noamm9.event.impl.RenderOverlayEvent;
 import com.github.noamm9.features.impl.general.FEAT_ItemRarity;
+import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlay;
 import com.github.noamm9.features.impl.misc.Camera;
 import com.github.noamm9.features.impl.misc.Tweaks;
 import com.github.noamm9.features.impl.visual.DarkMode;
 import com.github.noamm9.features.impl.visual.PlayerHud;
 import com.github.noamm9.features.impl.visual.Scoreboard;
+import com.github.noamm9.ui.notification.NotificationManager;
 import com.github.noamm9.utils.location.LocationUtils;
+import com.llamalad7.mixinextras.sugar.Local;
+import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -35,6 +40,14 @@ public abstract class MixinGui {
 
     @Shadow @Nullable private Component title;
     @Shadow @Nullable private Component subtitle;
+    @Shadow @Nullable private Screen screen;
+
+    @Inject(method = "setScreen", at = @At("HEAD"))
+    private void onSetScreen(Screen screen, CallbackInfo ci, @Local(argsOnly = true) LocalRef<Screen> screenRef) {
+        if (!StorageOverlay.INSTANCE.enabled) return;
+        var newScreen = StorageOverlay.onScreenChange(this.screen, screen);
+        if (newScreen != null) screenRef.set(newScreen);
+    }
 
     @Inject(method = "extractArmor", at = @At("HEAD"), cancellable = true)
     private static void renderArmor(GuiGraphicsExtractor graphics, Player player, int yLineBase, int numHealthRows, int healthRowHeight, int xLeft, CallbackInfo ci) {
@@ -77,7 +90,7 @@ public abstract class MixinGui {
 
     @Inject(method = "extractRenderState", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;extractSleepOverlay(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/DeltaTracker;)V"))
     public void onRenderHud(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
-        if (this.minecraft.options.hideGui) return;
+        NotificationManager.render(graphics);
         if (this.minecraft.debugEntries.isOverlayVisible()) return;
         EventBus.post(new RenderOverlayEvent(graphics));
 

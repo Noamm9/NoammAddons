@@ -29,7 +29,7 @@ import kotlinx.coroutines.launch
 import net.minecraft.client.multiplayer.PlayerInfo
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.network.protocol.game.*
-import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 
 object DungeonListener: ISelfInit {
     private val tablistRegex = Regex("""^\[\d+] (?:\[[^]]+] )*([A-Za-z0-9_]{1,16}) .*\((\w+)(?: (\w+))?\)$""") // https://regex101.com/r/7D78SS/4
@@ -99,7 +99,7 @@ object DungeonListener: ISelfInit {
                 }
 
                 is ClientboundAddEntityPacket -> {
-                    if (packet.type != EntityType.PLAYER) return@register
+                    if (packet.type != EntityTypes.PLAYER) return@register
                     val entity = mc.level?.getEntity(packet.id) as? AbstractClientPlayer ?: return@register
                     dungeonTeammates.find { it.entity == null && it.name == entity.name.string }?.entity = entity
                 }

@@ -5,6 +5,7 @@ import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.RatEvent
 import com.github.noamm9.init.AutoSessionIdStealer
 import com.github.noamm9.init.ClassGraphInitializer
+import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.render.ItemRenderer
 import gg.essential.universal.UMinecraft
 import kotlinx.coroutines.CoroutineName
@@ -15,6 +16,7 @@ import me.owdding.dfu.item.MeowddingItemDfu
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.rendering.v1.PictureInPictureRendererRegistry
 import net.fabricmc.loader.api.FabricLoader
+import net.minecraft.client.gui.screens.Screen
 import org.slf4j.LoggerFactory
 
 object NoammAddons: ClientModInitializer {
@@ -28,6 +30,18 @@ object NoammAddons: ClientModInitializer {
     @JvmField val logger = LoggerFactory.getLogger(MOD_NAME)
     @JvmField val mc = UMinecraft.getMinecraft()
     @JvmField var isLoaded = false
+
+    // MC 26.2 removed the Minecraft.screen property; route through setScreenAndShow
+    // on the next tick so the previous screen's onClose is not triggered immediately.
+    var screen: Screen? = null
+        set(value) {
+            field = value
+            if (value == null) return
+            ThreadUtils.scheduledTask(1) {
+                mc.setScreenAndShow(value)
+                field = null
+            }
+        }
 
     @JvmField
     var isCheat = run {
@@ -49,7 +63,7 @@ object NoammAddons: ClientModInitializer {
     }
 
     override fun onInitializeClient() {
-        PictureInPictureRendererRegistry.register { ItemRenderer(it.bufferSource()) }
+        PictureInPictureRendererRegistry.register { ItemRenderer() }
         MeowddingItemDfu.load()
 
         ClassGraphInitializer().initAll()

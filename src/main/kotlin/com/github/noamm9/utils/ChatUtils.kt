@@ -18,6 +18,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import net.minecraft.ChatFormatting
 import net.minecraft.network.chat.ClickEvent
+import com.github.noamm9.utils.ColorUtils.char
+import com.github.noamm9.utils.ColorUtils.color
+import com.github.noamm9.utils.ColorUtils.isColor
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.HoverEvent
 import net.minecraft.network.chat.Style

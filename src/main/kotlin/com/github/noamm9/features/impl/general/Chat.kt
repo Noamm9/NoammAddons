@@ -16,6 +16,9 @@ import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.catch
+import com.github.noamm9.utils.ColorUtils.char
+import com.github.noamm9.utils.ColorUtils.color
+import com.github.noamm9.utils.ColorUtils.isColor
 import com.mojang.brigadier.arguments.StringArgumentType
 import gg.essential.universal.UKeyboard
 import gg.essential.universal.UMinecraft
