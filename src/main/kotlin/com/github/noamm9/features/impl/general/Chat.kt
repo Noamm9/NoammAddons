@@ -3,6 +3,7 @@ package com.github.noamm9.features.impl.general
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.commands.CommandBuilder
 import com.github.noamm9.config.PogObject
+import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.MouseClickEvent
@@ -31,6 +32,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy messages."), ICommandProvider {
     private val ctrlClickToCopy by ToggleSetting("Ctrl Click to Copy", true).withDescription("Ctrl + Left Click a message to copy it to your clipboard.")
     private val removeUselessMessages by ToggleSetting("Remove useless messages", true).withDescription("Removes a lot of useless messages from the chat.")
+
+    private val chatSearch by ToggleSetting("Chat Search", true)
+        .withDescription("Adds /chatsearch <query> to filter the chat down to the messages that match a query.")
+    private val searchCaseSensitive by ToggleSetting("Case Sensitive Search")
+        .withDescription("Makes chat searches match the exact casing of the query.").showIf { chatSearch.value }
+    private val searchRegex by ToggleSetting("Regex Search")
+        .withDescription("Treats the search query as a Regex instead of plain text.").showIf { chatSearch.value }
+
+    private val infiniteChatHistory by ToggleSetting("Infinite Chat History")
+        .withDescription("Keeps way more than the vanilla 100 messages in the chat so you can scroll back through old messages.")
+    private val chatHistorySize by SliderSetting("Chat History Size", 1000, 100, 20000, 100)
+        .withDescription("How many messages to keep when Infinite Chat History is on.").showIf { infiniteChatHistory.value }
 
     //#if CHEAT
     private val autoDialogue by ToggleSetting("Auto dialogue").withDescription("Automatically continues dialogues with NPCs.")
@@ -80,6 +93,11 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
         }
     }
 
+    override fun onDisable() {
+        super.onDisable()
+        clearSearch(silent = true)
+    }
+
     override fun init() {
         register<MouseClickEvent> {
             if (! ctrlClickToCopy.value) return@register
@@ -114,6 +132,70 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
         }
         //#endif
     }
+
+    private var searchMatcher: ((String) -> Boolean)? = null
+    private val modPrefix = NoammAddons.PREFIX.removeFormatting()
+
+    internal val searchAvailable get() = enabled && chatSearch.value
+
+    /** Called by [com.github.noamm9.mixin.MixinChatComponent] for every message about to be displayed. */
+    @JvmStatic
+    fun isHiddenBySearch(message: GuiMessage): Boolean {
+        if (! searchAvailable) return false
+        val matcher = searchMatcher ?: return false
+        val text = message.content().unformattedText
+        if (text.startsWith(modPrefix)) return false
+        return ! matcher(text)
+    }
+
+    /** Called by [com.github.noamm9.mixin.MixinChatComponent] whenever the chat gets wiped. */
+    @JvmStatic
+    fun onChatCleared() {
+        searchMatcher = null
+    }
+
+    /** Called by [com.github.noamm9.mixin.MixinChatComponent] to raise the vanilla 100 message cap. */
+    @JvmStatic
+    fun maxChatHistory(vanilla: Int): Int {
+        if (! enabled || ! infiniteChatHistory.value) return vanilla
+        return maxOf(vanilla, chatHistorySize.value)
+    }
+
+    internal fun search(query: String) {
+        if (! searchAvailable) return ChatUtils.modMessage("&cThe &bChat Search &coption is disabled.")
+        val chatHud = chatHud() ?: return ChatUtils.modMessage("&cChat is not available right now.")
+        val matcher = buildMatcher(query) ?: return ChatUtils.modMessage("&cInvalid Regex syntax!")
+
+        searchMatcher = matcher
+        val matches = chatHud.allMessages.count { matcher(it.content().unformattedText) }
+        chatHud.refreshChat()
+
+        ChatUtils.modMessage("&aFound &e$matches&a message${if (matches == 1) "" else "s"} matching &e$query&a. &7(/chatsearch to clear)")
+    }
+
+    internal fun clearSearch(silent: Boolean = false) {
+        if (searchMatcher == null) {
+            if (! silent) ChatUtils.modMessage("&cThere is no active chat search.")
+            return
+        }
+
+        searchMatcher = null
+        chatHud()?.refreshChat()
+        if (! silent) ChatUtils.modMessage("&aCleared the chat search.")
+    }
+
+    private fun buildMatcher(query: String): ((String) -> Boolean)? {
+        if (searchRegex.value) {
+            val options = if (searchCaseSensitive.value) emptySet() else setOf(RegexOption.IGNORE_CASE)
+            val regex = catch { Regex(query, options) } ?: return null
+            return { regex.containsMatchIn(it) }
+        }
+
+        val needle = if (searchCaseSensitive.value) query else query.lowercase()
+        return { (if (searchCaseSensitive.value) it else it.lowercase()).contains(needle) }
+    }
+
+    private fun chatHud() = UMinecraft.getChatGUI() as? IChatComponent
 
     @JvmStatic
     fun addMassageHook(comp: Component, ci: CallbackInfo) {
@@ -171,5 +253,17 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
 
         val text = builder.toString()
         return if ("chat" in NoammAddons.debugFlags) text else text.removeFormatting()
+    }
+}
+
+object ChatSearch: ICommandProvider {
+    override fun CommandBuilder.command() {
+        setName("chatsearch")
+        description("Filters the chat to messages matching a query, run without a query to clear it")
+        runs { Chat.clearSearch() }
+
+        argument("query", StringArgumentType.greedyString()) {
+            runs { Chat.search(StringArgumentType.getString(it, "query")) }
+        }
     }
 }

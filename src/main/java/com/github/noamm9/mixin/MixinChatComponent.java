@@ -10,7 +10,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyConstant;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
@@ -20,17 +22,54 @@ import static com.github.noamm9.NoammAddons.mc;
 @Mixin(ChatComponent.class)
 public abstract class MixinChatComponent implements IChatComponent {
     @Shadow @Final private List<GuiMessage.Line> trimmedMessages;
+    @Shadow @Final private List<GuiMessage> allMessages;
     @Shadow private int chatScrollbarPos;
 
     @Shadow public abstract boolean isChatFocused();
+    @Shadow public abstract void resetChatScroll();
     @Shadow protected abstract int getWidth();
     @Shadow protected abstract double getScale();
     @Shadow public abstract int getLinesPerPage();
     @Shadow protected abstract int getLineHeight();
 
+    @Shadow private void refreshTrimmedMessages() {
+        throw new AssertionError();
+    }
+
     @Inject(method = "addServerSystemMessage", at = @At("HEAD"), cancellable = true)
     private void clearMessages(Component message, CallbackInfo ci) {
         Chat.addMassageHook(message, ci);
+    }
+
+    @Inject(method = "addMessageToDisplayQueue", at = @At("HEAD"), cancellable = true)
+    private void chatSearchHook(GuiMessage message, CallbackInfo ci) {
+        if (Chat.isHiddenBySearch(message)) ci.cancel();
+    }
+
+    @Inject(method = "clearMessages", at = @At("HEAD"))
+    private void chatClearedHook(boolean clearHistory, CallbackInfo ci) {
+        Chat.onChatCleared();
+    }
+
+    @ModifyConstant(method = "addMessageToQueue", constant = @Constant(intValue = 100))
+    private int modifyMaxHistory(int constant) {
+        return Chat.maxChatHistory(constant);
+    }
+
+    @ModifyConstant(method = "addMessageToDisplayQueue", constant = @Constant(intValue = 100))
+    private int modifyMaxTrimmedHistory(int constant) {
+        return Chat.maxChatHistory(constant);
+    }
+
+    @Override
+    public List<GuiMessage> getAllMessages() {
+        return this.allMessages;
+    }
+
+    @Override
+    public void refreshChat() {
+        resetChatScroll();
+        refreshTrimmedMessages();
     }
 
     @Override
