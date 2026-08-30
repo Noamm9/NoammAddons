@@ -10,7 +10,7 @@ import kotlin.collections.ArrayDeque
 
 /**
  * Taken from Starred's library
- * Under BSD 3-Clause License https://github.com/skies-starred/Nebulune/blob/master/LICENSE
+ * Under BSD 3-Clause License https://github.com/skies-starred/library/blob/master/LICENSE
  * https://github.com/skies-starred/library/blob/master/src/main/kotlin/xyz/aerii/library/handlers/minecraft/AbstractWords.kt
  * Modified by Noamm9
  */
