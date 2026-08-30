@@ -1,0 +1,5895 @@
+[
+  {
+    "name": "Admin",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -908785306
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 0,
+    "crypts": 34
+  },
+  {
+    "name": "Criss Cross",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      210009410
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 15,
+          "y": 66,
+          "z": 6
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 6
+  },
+  {
+    "name": "Altar",
+    "type": "NORMAL",
+    "shape": "L",
+    "cores": [
+      -1230813553,
+      -1116465566,
+      -285908150
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 1,
+      "item": 1,
+      "chest": 3
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 17,
+          "y": 93,
+          "z": 27
+        }
+      ],
+      "bat": [
+        {
+          "x": 36,
+          "y": 55,
+          "z": 35
+        }
+      ],
+      "item": [
+        {
+          "x": 14,
+          "y": 71,
+          "z": 48
+        }
+      ],
+      "chest": [
+        {
+          "x": 51,
+          "y": 88,
+          "z": 45
+        },
+        {
+          "x": 19,
+          "y": 83,
+          "z": 43
+        },
+        {
+          "x": 11,
+          "y": 44,
+          "z": 39
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 6,
+    "crypts": 3
+  },
+  {
+    "name": "Andesite",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -1349104152
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 0,
+      "item": 1,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 6,
+          "y": 69,
+          "z": 22
+        }
+      ],
+      "bat": [],
+      "item": [
+        {
+          "x": 1,
+          "y": 69,
+          "z": 28
+        }
+      ],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 2,
+    "crypts": 0
+  },
+  {
+    "name": "Archway",
+    "type": "NORMAL",
+    "shape": "1x2",
+    "cores": [
+      -741722455,
+      1757689836
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 2,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [
+        {
+          "x": 10,
+          "y": 85,
+          "z": 27
+        },
+        {
+          "x": 54,
+          "y": 89,
+          "z": 12
+        }
+      ],
+      "chest": [
+        {
+          "x": 1,
+          "y": 70,
+          "z": 2
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 3,
+    "crypts": 4
+  },
+  {
+    "name": "Arrow Trap",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      1194574494
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 14,
+          "y": 69,
+          "z": 4
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 1
+  },
+  {
+    "name": "Atlas",
+    "type": "NORMAL",
+    "shape": "2x2",
+    "cores": [
+      -1865594161,
+      -1683145422,
+      -465811149,
+      1399983432
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 1,
+      "item": 1,
+      "chest": 3
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 38,
+          "y": 78,
+          "z": 4
+        }
+      ],
+      "bat": [
+        {
+          "x": 5,
+          "y": 72,
+          "z": 57
+        }
+      ],
+      "item": [
+        {
+          "x": 55,
+          "y": 76,
+          "z": 28
+        }
+      ],
+      "chest": [
+        {
+          "x": 36,
+          "y": 57,
+          "z": 15
+        },
+        {
+          "x": 31,
+          "y": 78,
+          "z": 52
+        },
+        {
+          "x": 11,
+          "y": 82,
+          "z": 31
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 6,
+    "crypts": 5
+  },
+  {
+    "name": "Balcony",
+    "type": "NORMAL",
+    "shape": "1x2",
+    "cores": [
+      -1342459693,
+      -386977037
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 1,
+      "chest": 2
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 4,
+          "y": 60,
+          "z": 25
+        }
+      ],
+      "item": [
+        {
+          "x": 14,
+          "y": 51,
+          "z": 7
+        }
+      ],
+      "chest": [
+        {
+          "x": 27,
+          "y": 69,
+          "z": 15
+        },
+        {
+          "x": 20,
+          "y": 42,
+          "z": 28
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 4,
+    "crypts": 0
+  },
+  {
+    "name": "Banners",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      1831472082
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 27,
+          "y": 72,
+          "z": 15
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 1
+  },
+  {
+    "name": "Basement",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      684935287
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 0,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 5,
+          "y": 66,
+          "z": 25
+        }
+      ],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 0
+  },
+  {
+    "name": "Beams",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -1057803170
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 1,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [
+        {
+          "x": 8,
+          "y": 92,
+          "z": 24
+        }
+      ],
+      "chest": [
+        {
+          "x": 7,
+          "y": 81,
+          "z": 2
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 2,
+    "crypts": 2
+  },
+  {
+    "name": "Big Red Flag",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -1968568837
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 2,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [
+        {
+          "x": 26,
+          "y": 75,
+          "z": 25
+        },
+        {
+          "x": 20,
+          "y": 75,
+          "z": 23
+        }
+      ],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 2,
+    "crypts": 1
+  },
+  {
+    "name": "Black Flag",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      734311611
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 1,
+      "chest": 2
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [
+        {
+          "x": 22,
+          "y": 59,
+          "z": 27
+        }
+      ],
+      "chest": [
+        {
+          "x": 27,
+          "y": 80,
+          "z": 3
+        },
+        {
+          "x": 28,
+          "y": 80,
+          "z": 25
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 3,
+    "crypts": 1
+  },
+  {
+    "name": "Blood",
+    "type": "BLOOD",
+    "shape": "1x1",
+    "cores": [
+      1101694270
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 0,
+    "crypts": 0
+  },
+  {
+    "name": "Blue Skulls",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -264469755
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 1,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [
+        {
+          "x": 27,
+          "y": 77,
+          "z": 29
+        }
+      ],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 4
+  },
+  {
+    "name": "Boulder",
+    "type": "PUZZLE",
+    "shape": "1x1",
+    "cores": [
+      -8678012
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 0,
+    "crypts": 0
+  },
+  {
+    "name": "Bridges",
+    "type": "NORMAL",
+    "shape": "1x2",
+    "cores": [
+      -588804693,
+      1343698864
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 2,
+      "bat": 1,
+      "item": 1,
+      "chest": 2
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 53,
+          "y": 53,
+          "z": 13
+        },
+        {
+          "x": 53,
+          "y": 52,
+          "z": 17
+        }
+      ],
+      "bat": [
+        {
+          "x": 48,
+          "y": 97,
+          "z": 2
+        }
+      ],
+      "item": [
+        {
+          "x": 55,
+          "y": 81,
+          "z": 17
+        }
+      ],
+      "chest": [
+        {
+          "x": 41,
+          "y": 52,
+          "z": 21
+        },
+        {
+          "x": 3,
+          "y": 82,
+          "z": 15
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 6,
+    "crypts": 6
+  },
+  {
+    "name": "Buttons",
+    "type": "NORMAL",
+    "shape": "2x2",
+    "cores": [
+      -486251341,
+      -294484758,
+      522064030,
+      589505750
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 5
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 57,
+          "y": 69,
+          "z": 60
+        },
+        {
+          "x": 31,
+          "y": 73,
+          "z": 13
+        },
+        {
+          "x": 2,
+          "y": 81,
+          "z": 50
+        },
+        {
+          "x": 53,
+          "y": 55,
+          "z": 31
+        },
+        {
+          "x": 56,
+          "y": 81,
+          "z": 2
+        }
+      ]
+    },
+    "trappedChests": 1,
+    "reviveStones": 0,
+    "secrets": 5,
+    "crypts": 21
+  },
+  {
+    "name": "Cage",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -887559365
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 12,
+          "y": 72,
+          "z": 20
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 0
+  },
+  {
+    "name": "Cages",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      1281321464
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 1,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [
+        {
+          "x": 28,
+          "y": 98,
+          "z": 5
+        }
+      ],
+      "chest": [
+        {
+          "x": 7,
+          "y": 58,
+          "z": 11
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 2,
+    "crypts": 0
+  },
+  {
+    "name": "Carpets",
+    "type": "RARE",
+    "shape": "1x1",
+    "cores": [
+      -1309306805
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 15,
+          "y": 85,
+          "z": 15
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 3
+  },
+  {
+    "name": "Cathedral",
+    "type": "NORMAL",
+    "shape": "2x2",
+    "cores": [
+      -636535137,
+      -305705204,
+      -149729804,
+      571845322
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 2,
+      "item": 3,
+      "chest": 3
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 59,
+          "y": 86,
+          "z": 3
+        },
+        {
+          "x": 37,
+          "y": 74,
+          "z": 15
+        }
+      ],
+      "item": [
+        {
+          "x": 49,
+          "y": 59,
+          "z": 23
+        },
+        {
+          "x": 33,
+          "y": 93,
+          "z": 47
+        },
+        {
+          "x": 20,
+          "y": 90,
+          "z": 44
+        }
+      ],
+      "chest": [
+        {
+          "x": 19,
+          "y": 60,
+          "z": 7
+        },
+        {
+          "x": 28,
+          "y": 82,
+          "z": 3
+        },
+        {
+          "x": 38,
+          "y": 59,
+          "z": 36
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 8,
+    "crypts": 5
+  },
+  {
+    "name": "Catwalk",
+    "type": "NORMAL",
+    "shape": "1x3",
+    "cores": [
+      -1909798849,
+      231904745,
+      723977722
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 0,
+      "item": 1,
+      "chest": 4
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 80,
+          "y": 50,
+          "z": 8
+        }
+      ],
+      "bat": [],
+      "item": [
+        {
+          "x": 80,
+          "y": 50,
+          "z": 6
+        }
+      ],
+      "chest": [
+        {
+          "x": 24,
+          "y": 63,
+          "z": 27
+        },
+        {
+          "x": 24,
+          "y": 50,
+          "z": 15
+        },
+        {
+          "x": 89,
+          "y": 49,
+          "z": 18
+        },
+        {
+          "x": 84,
+          "y": 63,
+          "z": 14
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 6,
+    "crypts": 5
+  },
+  {
+    "name": "Cell",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      1989942319
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 1,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [
+        {
+          "x": 10,
+          "y": 69,
+          "z": 22
+        }
+      ],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 0
+  },
+  {
+    "name": "Chains",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -830238291
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 2
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 27,
+          "y": 69,
+          "z": 10
+        },
+        {
+          "x": 17,
+          "y": 86,
+          "z": 14
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 2,
+    "crypts": 0
+  },
+  {
+    "name": "Chambers",
+    "type": "NORMAL",
+    "shape": "L",
+    "cores": [
+      -1429631793,
+      -616261475,
+      1238987523
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 0,
+      "chest": 4
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 33,
+          "y": 84,
+          "z": 57
+        }
+      ],
+      "item": [],
+      "chest": [
+        {
+          "x": 53,
+          "y": 57,
+          "z": 47
+        },
+        {
+          "x": 4,
+          "y": 69,
+          "z": 57
+        },
+        {
+          "x": 7,
+          "y": 69,
+          "z": 40
+        },
+        {
+          "x": 15,
+          "y": 83,
+          "z": 2
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 5,
+    "crypts": 6
+  },
+  {
+    "name": "Cobble Wall Pillar",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      930781692
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 2
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 28,
+          "y": 60,
+          "z": 12
+        },
+        {
+          "x": 12,
+          "y": 61,
+          "z": 17
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 2,
+    "crypts": 1
+  },
+  {
+    "name": "Creeper Beams",
+    "type": "PUZZLE",
+    "shape": "1x1",
+    "cores": [
+      -618556840
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 0,
+    "crypts": 0
+  },
+  {
+    "name": "Crypt",
+    "type": "NORMAL",
+    "shape": "1x2",
+    "cores": [
+      -2030383130,
+      -1675076399
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 1,
+      "chest": 4
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [
+        {
+          "x": 46,
+          "y": 88,
+          "z": 16
+        }
+      ],
+      "chest": [
+        {
+          "x": 13,
+          "y": 60,
+          "z": 15
+        },
+        {
+          "x": 44,
+          "y": 86,
+          "z": 26
+        },
+        {
+          "x": 2,
+          "y": 81,
+          "z": 16
+        },
+        {
+          "x": 19,
+          "y": 89,
+          "z": 2
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 5,
+    "crypts": 2
+  },
+  {
+    "name": "Deathmite",
+    "type": "NORMAL",
+    "shape": "1x3",
+    "cores": [
+      -1761703303,
+      -1323774364,
+      -1134675319
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 1,
+      "chest": 4
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 83,
+          "y": 98,
+          "z": 26
+        }
+      ],
+      "item": [
+        {
+          "x": 88,
+          "y": 69,
+          "z": 6
+        }
+      ],
+      "chest": [
+        {
+          "x": 12,
+          "y": 69,
+          "z": 15
+        },
+        {
+          "x": 83,
+          "y": 92,
+          "z": 27
+        },
+        {
+          "x": 67,
+          "y": 82,
+          "z": 15
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 6,
+    "crypts": 4
+  },
+  {
+    "name": "Default",
+    "type": "CHAMPION",
+    "shape": "1x1",
+    "cores": [
+      -25987248,
+      1514834876
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 0,
+    "crypts": 0
+  },
+  {
+    "name": "Diagonal",
+    "type": "NORMAL",
+    "shape": "1x3",
+    "cores": [
+      -37667136,
+      640267027,
+      1930216162
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 0,
+      "chest": 3
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 32,
+          "y": 72,
+          "z": 5
+        }
+      ],
+      "item": [],
+      "chest": [
+        {
+          "x": 90,
+          "y": 77,
+          "z": 14
+        },
+        {
+          "x": 69,
+          "y": 60,
+          "z": 29
+        },
+        {
+          "x": 11,
+          "y": 60,
+          "z": 9
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 4,
+    "crypts": 3
+  },
+  {
+    "name": "Dino Site",
+    "type": "NORMAL",
+    "shape": "L",
+    "cores": [
+      -1793508908,
+      8084074,
+      39204679
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 1,
+      "chest": 2
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 9,
+          "y": 48,
+          "z": 34
+        }
+      ],
+      "item": [
+        {
+          "x": 47,
+          "y": 57,
+          "z": 36
+        }
+      ],
+      "chest": [
+        {
+          "x": 54,
+          "y": 52,
+          "z": 51
+        },
+        {
+          "x": 24,
+          "y": 92,
+          "z": 29
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 4,
+    "crypts": 4
+  },
+  {
+    "name": "Dip",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -1486570983
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 2
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 18,
+          "y": 78,
+          "z": 16
+        },
+        {
+          "x": 2,
+          "y": 78,
+          "z": 24
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 2,
+    "crypts": 3
+  },
+  {
+    "name": "Dome",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -235572980
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 25,
+          "y": 75,
+          "z": 22
+        }
+      ],
+      "item": [],
+      "chest": [
+        {
+          "x": 26,
+          "y": 78,
+          "z": 27
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 2,
+    "crypts": 2
+  },
+  {
+    "name": "Doors",
+    "type": "NORMAL",
+    "shape": "1x2",
+    "cores": [
+      258264469,
+      2143491230
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 0,
+      "chest": 4
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 46,
+          "y": 65,
+          "z": 15
+        }
+      ],
+      "item": [],
+      "chest": [
+        {
+          "x": 5,
+          "y": 87,
+          "z": 28
+        },
+        {
+          "x": 31,
+          "y": 51,
+          "z": 17
+        },
+        {
+          "x": 8,
+          "y": 58,
+          "z": 17
+        },
+        {
+          "x": 8,
+          "y": 58,
+          "z": 13
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 5,
+    "crypts": 7
+  },
+  {
+    "name": "Double Diamond",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      1266939433
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 0,
+      "item": 1,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 6,
+          "y": 69,
+          "z": 6
+        }
+      ],
+      "bat": [],
+      "item": [
+        {
+          "x": 24,
+          "y": 65,
+          "z": 22
+        }
+      ],
+      "chest": [
+        {
+          "x": 11,
+          "y": 82,
+          "z": 19
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 3,
+    "crypts": 0
+  },
+  {
+    "name": "Dragon",
+    "type": "CHAMPION",
+    "shape": "1x1",
+    "cores": [
+      -1204346393
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 0,
+    "crypts": 0
+  },
+  {
+    "name": "Drop",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -358295654
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 2
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 5,
+          "y": 59,
+          "z": 15
+        },
+        {
+          "x": 25,
+          "y": 77,
+          "z": 2
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 2,
+    "crypts": 6
+  },
+  {
+    "name": "Dueces",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -1065327109
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 1,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 8,
+          "y": 74,
+          "z": 7
+        }
+      ],
+      "item": [
+        {
+          "x": 10,
+          "y": 70,
+          "z": 6
+        }
+      ],
+      "chest": [
+        {
+          "x": 2,
+          "y": 78,
+          "z": 15
+        }
+      ]
+    },
+    "trappedChests": 1,
+    "reviveStones": 0,
+    "secrets": 3,
+    "crypts": 6
+  },
+  {
+    "name": "Duncan",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      1968195729
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 1,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [
+        {
+          "x": 13,
+          "y": 89,
+          "z": 8
+        }
+      ],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 0
+  },
+  {
+    "name": "End",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      102410693
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 6,
+          "y": 63,
+          "z": 2
+        }
+      ],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 15,
+          "y": 69,
+          "z": 6
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 2,
+    "crypts": 1
+  },
+  {
+    "name": "Entrance",
+    "type": "ENTRANCE",
+    "shape": "1x1",
+    "cores": [
+      -1452219815,
+      -1051941859,
+      1449111477
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 0,
+    "crypts": 0
+  },
+  {
+    "name": "Fairy",
+    "type": "FAIRY",
+    "shape": "1x1",
+    "cores": [
+      -1720566878
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 0,
+    "crypts": 0
+  },
+  {
+    "name": "Flags",
+    "type": "NORMAL",
+    "shape": "2x2",
+    "cores": [
+      -1902869377,
+      -598466852,
+      -470873000,
+      -169137281
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 1,
+      "chest": 5
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 52,
+          "y": 77,
+          "z": 38
+        }
+      ],
+      "item": [
+        {
+          "x": 53,
+          "y": 69,
+          "z": 23
+        }
+      ],
+      "chest": [
+        {
+          "x": 37,
+          "y": 67,
+          "z": 58
+        },
+        {
+          "x": 11,
+          "y": 97,
+          "z": 7
+        },
+        {
+          "x": 14,
+          "y": 108,
+          "z": 27
+        },
+        {
+          "x": 14,
+          "y": 108,
+          "z": 41
+        },
+        {
+          "x": 59,
+          "y": 87,
+          "z": 41
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 7,
+    "crypts": 8
+  },
+  {
+    "name": "Gold",
+    "type": "NORMAL",
+    "shape": "1x2",
+    "cores": [
+      -2078743018,
+      -1549787332
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 0,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 14,
+          "y": 69,
+          "z": 13
+        }
+      ],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 0
+  },
+  {
+    "name": "Golden Oasis",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -174873230
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 2
+    },
+    "secretCoords": {
+      "redstoneKey": [
+        {
+          "x": 12,
+          "y": 71,
+          "z": 8
+        }
+      ],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 12,
+          "y": 63,
+          "z": 23
+        },
+        {
+          "x": 13,
+          "y": 63,
+          "z": 25
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 1
+  },
+  {
+    "name": "Grand Library",
+    "type": "NORMAL",
+    "shape": "1x2",
+    "cores": [
+      -192586594,
+      1423607869
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 0,
+      "item": 1,
+      "chest": 2
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 6,
+          "y": 80,
+          "z": 3
+        }
+      ],
+      "bat": [],
+      "item": [
+        {
+          "x": 28,
+          "y": 57,
+          "z": 18
+        }
+      ],
+      "chest": [
+        {
+          "x": 23,
+          "y": 93,
+          "z": 2
+        },
+        {
+          "x": 31,
+          "y": 58,
+          "z": 15
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 4,
+    "crypts": 2
+  },
+  {
+    "name": "Granite",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -314294275
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 0,
+      "item": 1,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 13,
+          "y": 61,
+          "z": 29
+        }
+      ],
+      "bat": [],
+      "item": [
+        {
+          "x": 14,
+          "y": 60,
+          "z": 24
+        }
+      ],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 2,
+    "crypts": 0
+  },
+  {
+    "name": "Grass Ruin",
+    "type": "NORMAL",
+    "shape": "1x2",
+    "cores": [
+      363148517,
+      456480171
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 0,
+      "item": 0,
+      "chest": 2
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 48,
+          "y": 81,
+          "z": 24
+        }
+      ],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 3,
+          "y": 55,
+          "z": 14
+        },
+        {
+          "x": 11,
+          "y": 107,
+          "z": 10
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 3,
+    "crypts": 4
+  },
+  {
+    "name": "Gravel",
+    "type": "NORMAL",
+    "shape": "1x3",
+    "cores": [
+      -1783111190,
+      1815412561,
+      1835089633
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 2,
+      "bat": 1,
+      "item": 2,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 92,
+          "y": 69,
+          "z": 3
+        },
+        {
+          "x": 66,
+          "y": 87,
+          "z": 14
+        }
+      ],
+      "bat": [
+        {
+          "x": 37,
+          "y": 91,
+          "z": 14
+        }
+      ],
+      "item": [
+        {
+          "x": 87,
+          "y": 69,
+          "z": 8
+        },
+        {
+          "x": 67,
+          "y": 87,
+          "z": 12
+        }
+      ],
+      "chest": [
+        {
+          "x": 35,
+          "y": 69,
+          "z": 11
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 6,
+    "crypts": 2
+  },
+  {
+    "name": "Hall",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      1213248380
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 0,
+    "crypts": 0
+  },
+  {
+    "name": "Hallway",
+    "type": "NORMAL",
+    "shape": "1x4",
+    "cores": [
+      -816622189,
+      -763990153,
+      -405534403,
+      26028391
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 3
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 28,
+          "y": 69,
+          "z": 3
+        },
+        {
+          "x": 54,
+          "y": 69,
+          "z": 5
+        },
+        {
+          "x": 85,
+          "y": 85,
+          "z": 6
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 3,
+    "crypts": 1
+  },
+  {
+    "name": "Higher Blaze",
+    "type": "PUZZLE",
+    "shape": "1x1",
+    "cores": [
+      1178660791
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 2,
+          "y": 118,
+          "z": 27
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 0
+  },
+  {
+    "name": "Ice Fill",
+    "type": "PUZZLE",
+    "shape": "1x1",
+    "cores": [
+      -1525020541,
+      -816535587
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 0,
+    "crypts": 0
+  },
+  {
+    "name": "Ice Path",
+    "type": "PUZZLE",
+    "shape": "1x1",
+    "cores": [
+      1864182118
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 0,
+    "crypts": 0
+  },
+  {
+    "name": "Jumping Skulls",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      1186219299
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 26,
+          "y": 62,
+          "z": 23
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 0
+  },
+  {
+    "name": "King Midas",
+    "type": "CHAMPION",
+    "shape": "1x1",
+    "cores": [
+      602572602
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 0,
+    "crypts": 1
+  },
+  {
+    "name": "Knight",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      1632908512
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 0,
+      "chest": 2
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 6,
+          "y": 76,
+          "z": 23
+        }
+      ],
+      "item": [],
+      "chest": [
+        {
+          "x": 24,
+          "y": 69,
+          "z": 29
+        },
+        {
+          "x": 25,
+          "y": 69,
+          "z": 29
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 3,
+    "crypts": 0
+  },
+  {
+    "name": "Lava Pit",
+    "type": "RARE",
+    "shape": "1x1",
+    "cores": [
+      2093006133
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 1,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 3,
+    "crypts": 0
+  },
+  {
+    "name": "Lava Ravine",
+    "type": "NORMAL",
+    "shape": "L",
+    "cores": [
+      -1577476925,
+      -1086248985,
+      -838526535
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 1,
+      "chest": 4
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 12,
+          "y": 64,
+          "z": 33
+        }
+      ],
+      "item": [
+        {
+          "x": 16,
+          "y": 51,
+          "z": 32
+        }
+      ],
+      "chest": [
+        {
+          "x": 29,
+          "y": 88,
+          "z": 9
+        },
+        {
+          "x": 29,
+          "y": 88,
+          "z": 7
+        },
+        {
+          "x": 58,
+          "y": 86,
+          "z": 47
+        },
+        {
+          "x": 23,
+          "y": 67,
+          "z": 57
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 6,
+    "crypts": 4
+  },
+  {
+    "name": "Layers",
+    "type": "NORMAL",
+    "shape": "L",
+    "cores": [
+      -1549242697,
+      -666697558,
+      1788731974
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 4,
+      "chest": 4
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [
+        {
+          "x": 25,
+          "y": 70,
+          "z": 28
+        },
+        {
+          "x": 35,
+          "y": 59,
+          "z": 51
+        },
+        {
+          "x": 47,
+          "y": 79,
+          "z": 34
+        },
+        {
+          "x": 7,
+          "y": 96,
+          "z": 56
+        }
+      ],
+      "chest": [
+        {
+          "x": 5,
+          "y": 69,
+          "z": 2
+        },
+        {
+          "x": 13,
+          "y": 69,
+          "z": 26
+        },
+        {
+          "x": 47,
+          "y": 69,
+          "z": 47
+        },
+        {
+          "x": 54,
+          "y": 78,
+          "z": 56
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 8,
+    "crypts": 0
+  },
+  {
+    "name": "Leaves",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      1720939944
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 14,
+          "y": 81,
+          "z": 27
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 1
+  },
+  {
+    "name": "Locked Away",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -630088779
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 26,
+          "y": 75,
+          "z": 29
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 1
+  },
+  {
+    "name": "Logs",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      1483451937
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 4
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 1,
+          "y": 70,
+          "z": 23
+        },
+        {
+          "x": 1,
+          "y": 70,
+          "z": 24
+        },
+        {
+          "x": 9,
+          "y": 78,
+          "z": 23
+        },
+        {
+          "x": 9,
+          "y": 78,
+          "z": 24
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 4,
+    "crypts": 0
+  },
+  {
+    "name": "Long Hall",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      2020384798
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 3
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 18,
+          "y": 62,
+          "z": 23
+        },
+        {
+          "x": 28,
+          "y": 82,
+          "z": 15
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 3,
+    "crypts": 3
+  },
+  {
+    "name": "Lots Of Floors",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -904833636
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 3
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 25,
+          "y": 84,
+          "z": 7
+        },
+        {
+          "x": 5,
+          "y": 69,
+          "z": 28
+        },
+        {
+          "x": 1,
+          "y": 76,
+          "z": 5
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 3,
+    "crypts": 1
+  },
+  {
+    "name": "Lower Blaze",
+    "type": "PUZZLE",
+    "shape": "1x1",
+    "cores": [
+      -1431256201
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 2,
+          "y": 68,
+          "z": 27
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 0
+  },
+  {
+    "name": "Mage",
+    "type": "NORMAL",
+    "shape": "1x2",
+    "cores": [
+      -1315461059,
+      844972532
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 1,
+      "item": 0,
+      "chest": 2
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 58,
+          "y": 82,
+          "z": 5
+        }
+      ],
+      "bat": [
+        {
+          "x": 57,
+          "y": 83,
+          "z": 7
+        }
+      ],
+      "item": [],
+      "chest": [
+        {
+          "x": 16,
+          "y": 70,
+          "z": 17
+        },
+        {
+          "x": 42,
+          "y": 62,
+          "z": 15
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 4,
+    "crypts": 0
+  },
+  {
+    "name": "Market",
+    "type": "NORMAL",
+    "shape": "L",
+    "cores": [
+      -1497503669,
+      577032090,
+      1579240396
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 1,
+      "item": 0,
+      "chest": 3
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 7,
+          "y": 59,
+          "z": 44
+        }
+      ],
+      "bat": [
+        {
+          "x": 12,
+          "y": 62,
+          "z": 47
+        }
+      ],
+      "item": [],
+      "chest": [
+        {
+          "x": 16,
+          "y": 86,
+          "z": 56
+        },
+        {
+          "x": 32,
+          "y": 61,
+          "z": 48
+        },
+        {
+          "x": 46,
+          "y": 79,
+          "z": 48
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 5,
+    "crypts": 4
+  },
+  {
+    "name": "Melon",
+    "type": "NORMAL",
+    "shape": "L",
+    "cores": [
+      -1219297344,
+      -633799181,
+      1690123383
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 0,
+      "chest": 6
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 7,
+          "y": 76,
+          "z": 27
+        }
+      ],
+      "item": [],
+      "chest": [
+        {
+          "x": 59,
+          "y": 69,
+          "z": 58
+        },
+        {
+          "x": 41,
+          "y": 85,
+          "z": 56
+        },
+        {
+          "x": 33,
+          "y": 80,
+          "z": 53
+        },
+        {
+          "x": 15,
+          "y": 69,
+          "z": 35
+        },
+        {
+          "x": 26,
+          "y": 79,
+          "z": 1
+        },
+        {
+          "x": 5,
+          "y": 82,
+          "z": 4
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 7,
+    "crypts": 4
+  },
+  {
+    "name": "Mines",
+    "type": "NORMAL",
+    "shape": "2x2",
+    "cores": [
+      -27801351,
+      592524582,
+      717679253,
+      1421914730
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 3,
+      "chest": 7
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [
+        {
+          "x": 1,
+          "y": 89,
+          "z": 57
+        },
+        {
+          "x": 53,
+          "y": 48,
+          "z": 8
+        },
+        {
+          "x": 4,
+          "y": 54,
+          "z": 56
+        }
+      ],
+      "chest": [
+        {
+          "x": 9,
+          "y": 82,
+          "z": 21
+        },
+        {
+          "x": 41,
+          "y": 80,
+          "z": 12
+        },
+        {
+          "x": 9,
+          "y": 108,
+          "z": 17
+        },
+        {
+          "x": 9,
+          "y": 109,
+          "z": 30
+        },
+        {
+          "x": 31,
+          "y": 99,
+          "z": 58
+        },
+        {
+          "x": 56,
+          "y": 78,
+          "z": 58
+        },
+        {
+          "x": 60,
+          "y": 43,
+          "z": 50
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 10,
+    "crypts": 11
+  },
+  {
+    "name": "Trinity",
+    "type": "RARE",
+    "shape": "1x1",
+    "cores": [
+      1921641236
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 2,
+      "item": 1,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 2,
+          "y": 94,
+          "z": 26
+        },
+        {
+          "x": 8,
+          "y": 87,
+          "z": 18
+        }
+      ],
+      "item": [
+        {
+          "x": 7,
+          "y": 74,
+          "z": 27
+        }
+      ],
+      "chest": [
+        {
+          "x": 14,
+          "y": 75,
+          "z": 27
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 4,
+    "crypts": 3
+  },
+  {
+    "name": "Mirror",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      554127442
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 3,
+          "y": 55,
+          "z": 17
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 0
+  },
+  {
+    "name": "Mossy",
+    "type": "NORMAL",
+    "shape": "1x4",
+    "cores": [
+      -1988103182,
+      757634350,
+      1867739625
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 0,
+      "chest": 3
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 72,
+          "y": 87,
+          "z": 11
+        }
+      ],
+      "item": [],
+      "chest": [
+        {
+          "x": 2,
+          "y": 69,
+          "z": 4
+        },
+        {
+          "x": 63,
+          "y": 95,
+          "z": 15
+        },
+        {
+          "x": 47,
+          "y": 89,
+          "z": 4
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 4,
+    "crypts": 2
+  },
+  {
+    "name": "Multicolored",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      48947853
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 25,
+          "y": 70,
+          "z": 4
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 0
+  },
+  {
+    "name": "Mural",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -729431791
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 26,
+          "y": 83,
+          "z": 7
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 0
+  },
+  {
+    "name": "Museum",
+    "type": "NORMAL",
+    "shape": "2x2",
+    "cores": [
+      -1049232881,
+      233142657,
+      1509125364,
+      1770634084
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 0,
+      "item": 0,
+      "chest": 4
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 42,
+          "y": 93,
+          "z": 53
+        }
+      ],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 31,
+          "y": 70,
+          "z": 60
+        },
+        {
+          "x": 34,
+          "y": 83,
+          "z": 11
+        },
+        {
+          "x": 31,
+          "y": 70,
+          "z": 9
+        },
+        {
+          "x": 48,
+          "y": 62,
+          "z": 6
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 5,
+    "crypts": 4
+  },
+  {
+    "name": "Mushroom",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -1269671057
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 16,
+          "y": 80,
+          "z": 17
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 0
+  },
+  {
+    "name": "New Trap",
+    "type": "TRAP",
+    "shape": "1x1",
+    "cores": [
+      -781847572
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 0,
+      "chest": 2
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 21,
+          "y": 92,
+          "z": 21
+        }
+      ],
+      "item": [],
+      "chest": [
+        {
+          "x": 26,
+          "y": 90,
+          "z": 14
+        },
+        {
+          "x": 5,
+          "y": 67,
+          "z": 12
+        }
+      ]
+    },
+    "trappedChests": 1,
+    "reviveStones": 0,
+    "secrets": 3,
+    "crypts": 1
+  },
+  {
+    "name": "Old Trap",
+    "type": "TRAP",
+    "shape": "1x1",
+    "cores": [
+      -308526876
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 0,
+      "chest": 3
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 22,
+          "y": 90,
+          "z": 9
+        }
+      ],
+      "item": [],
+      "chest": [
+        {
+          "x": 26,
+          "y": 83,
+          "z": 4
+        },
+        {
+          "x": 23,
+          "y": 90,
+          "z": 17
+        },
+        {
+          "x": 4,
+          "y": 71,
+          "z": 9
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 4,
+    "crypts": 2
+  },
+  {
+    "name": "Overgrown",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -232809514
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 0,
+      "item": 1,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 5,
+          "y": 87,
+          "z": 19
+        }
+      ],
+      "bat": [],
+      "item": [
+        {
+          "x": 4,
+          "y": 70,
+          "z": 2
+        }
+      ],
+      "chest": [
+        {
+          "x": 6,
+          "y": 79,
+          "z": 15
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 3,
+    "crypts": 0
+  },
+  {
+    "name": "Overgrown Chains",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      171205583
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 1,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [
+        {
+          "x": 3,
+          "y": 81,
+          "z": 3
+        }
+      ],
+      "chest": [
+        {
+          "x": 26,
+          "y": 86,
+          "z": 20
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 2,
+    "crypts": 1
+  },
+  {
+    "name": "Painting",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      1627461367
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 0,
+      "item": 1,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 6,
+          "y": 80,
+          "z": 21
+        }
+      ],
+      "bat": [],
+      "item": [
+        {
+          "x": 24,
+          "y": 69,
+          "z": 21
+        }
+      ],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 2,
+    "crypts": 0
+  },
+  {
+    "name": "Pedestal",
+    "type": "NORMAL",
+    "shape": "1x2",
+    "cores": [
+      9412100,
+      1888663036
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 0,
+      "item": 1,
+      "chest": 3
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 53,
+          "y": 61,
+          "z": 22
+        }
+      ],
+      "bat": [],
+      "item": [
+        {
+          "x": 50,
+          "y": 61,
+          "z": 18
+        }
+      ],
+      "chest": [
+        {
+          "x": 31,
+          "y": 70,
+          "z": 15
+        },
+        {
+          "x": 7,
+          "y": 94,
+          "z": 21
+        },
+        {
+          "x": 32,
+          "y": 60,
+          "z": 23
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 5,
+    "crypts": 1
+  },
+  {
+    "name": "Perch",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      1236720714
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 1,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [
+        {
+          "x": 20,
+          "y": 76,
+          "z": 20
+        }
+      ],
+      "chest": [
+        {
+          "x": 15,
+          "y": 74,
+          "z": 1
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 2,
+    "crypts": 1
+  },
+  {
+    "name": "Pipes",
+    "type": "NORMAL",
+    "shape": "1x4",
+    "cores": [
+      -1354071401,
+      -1189656711,
+      -1175692016,
+      2064702151
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 1,
+      "chest": 5
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 122,
+          "y": 57,
+          "z": 19
+        }
+      ],
+      "item": [
+        {
+          "x": 49,
+          "y": 32,
+          "z": 6
+        }
+      ],
+      "chest": [
+        {
+          "x": 107,
+          "y": 45,
+          "z": 15
+        },
+        {
+          "x": 63,
+          "y": 55,
+          "z": 26
+        },
+        {
+          "x": 119,
+          "y": 54,
+          "z": 5
+        },
+        {
+          "x": 7,
+          "y": 42,
+          "z": 3
+        },
+        {
+          "x": 117,
+          "y": 62,
+          "z": 26
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 7,
+    "crypts": 9
+  },
+  {
+    "name": "Pirate",
+    "type": "NORMAL",
+    "shape": "L",
+    "cores": [
+      -1798084378,
+      109899688,
+      329968965
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 1,
+      "item": 1,
+      "chest": 3
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 19,
+          "y": 60,
+          "z": 4
+        }
+      ],
+      "bat": [
+        {
+          "x": 15,
+          "y": 63,
+          "z": 45
+        }
+      ],
+      "item": [
+        {
+          "x": 4,
+          "y": 60,
+          "z": 58
+        }
+      ],
+      "chest": [
+        {
+          "x": 17,
+          "y": 83,
+          "z": 60
+        },
+        {
+          "x": 46,
+          "y": 84,
+          "z": 57
+        },
+        {
+          "x": 15,
+          "y": 60,
+          "z": 46
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 6,
+    "crypts": 2
+  },
+  {
+    "name": "Pit",
+    "type": "NORMAL",
+    "shape": "1x4",
+    "cores": [
+      -224005853,
+      796165433,
+      909511427,
+      1480345683
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 1,
+      "chest": 3
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 9,
+          "y": 78,
+          "z": 27
+        }
+      ],
+      "item": [
+        {
+          "x": 3,
+          "y": 76,
+          "z": 26
+        }
+      ],
+      "chest": [
+        {
+          "x": 113,
+          "y": 92,
+          "z": 28
+        },
+        {
+          "x": 7,
+          "y": 65,
+          "z": 7
+        },
+        {
+          "x": 20,
+          "y": 91,
+          "z": 9
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 5,
+    "crypts": 4
+  },
+  {
+    "name": "Pressure Plates",
+    "type": "NORMAL",
+    "shape": "1x2",
+    "cores": [
+      -1146061776,
+      1911917207
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 2,
+      "chest": 4
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [
+        {
+          "x": 4,
+          "y": 70,
+          "z": 23
+        },
+        {
+          "x": 57,
+          "y": 69,
+          "z": 7
+        }
+      ],
+      "chest": [
+        {
+          "x": 20,
+          "y": 70,
+          "z": 15
+        },
+        {
+          "x": 23,
+          "y": 59,
+          "z": 7
+        },
+        {
+          "x": 59,
+          "y": 94,
+          "z": 15
+        },
+        {
+          "x": 60,
+          "y": 94,
+          "z": 7
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 6,
+    "crypts": 6
+  },
+  {
+    "name": "Prison Cell",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -1214313979
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 10,
+          "y": 76,
+          "z": 23
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 1
+  },
+  {
+    "name": "Purple Flags",
+    "type": "NORMAL",
+    "shape": "1x2",
+    "cores": [
+      -236754038,
+      78225299
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 0,
+      "item": 1,
+      "chest": 3
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 6,
+          "y": 57,
+          "z": 28
+        }
+      ],
+      "bat": [],
+      "item": [
+        {
+          "x": 27,
+          "y": 49,
+          "z": 28
+        }
+      ],
+      "chest": [
+        {
+          "x": 32,
+          "y": 67,
+          "z": 7
+        },
+        {
+          "x": 39,
+          "y": 49,
+          "z": 29
+        },
+        {
+          "x": 59,
+          "y": 49,
+          "z": 24
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 5,
+    "crypts": 7
+  },
+  {
+    "name": "Quad Lava",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -264070664
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 2
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 5,
+          "y": 70,
+          "z": 25
+        },
+        {
+          "x": 19,
+          "y": 60,
+          "z": 10
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 2,
+    "crypts": 0
+  },
+  {
+    "name": "Quartz Knight",
+    "type": "NORMAL",
+    "shape": "1x4",
+    "cores": [
+      -1586992772,
+      -1192988056,
+      -972090916,
+      -505093203
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 2,
+      "chest": 4
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 29,
+          "y": 61,
+          "z": 17
+        }
+      ],
+      "item": [
+        {
+          "x": 66,
+          "y": 84,
+          "z": 5
+        },
+        {
+          "x": 95,
+          "y": 79,
+          "z": 26
+        }
+      ],
+      "chest": [
+        {
+          "x": 6,
+          "y": 63,
+          "z": 27
+        },
+        {
+          "x": 21,
+          "y": 89,
+          "z": 24
+        },
+        {
+          "x": 111,
+          "y": 88,
+          "z": 2
+        },
+        {
+          "x": 18,
+          "y": 90,
+          "z": 24
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 7,
+    "crypts": 9
+  },
+  {
+    "name": "Quiz",
+    "type": "PUZZLE",
+    "shape": "1x1",
+    "cores": [
+      991237175
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 0,
+    "crypts": 0
+  },
+  {
+    "name": "Raccoon",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      623287415
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 4
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 6,
+          "y": 77,
+          "z": 24
+        },
+        {
+          "x": 27,
+          "y": 69,
+          "z": 24
+        },
+        {
+          "x": 21,
+          "y": 69,
+          "z": 24
+        },
+        {
+          "x": 26,
+          "y": 84,
+          "z": 8
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 4,
+    "crypts": 2
+  },
+  {
+    "name": "Rail Track",
+    "type": "RARE",
+    "shape": "1x1",
+    "cores": [
+      -234980640
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 2,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 20,
+          "y": 72,
+          "z": 10
+        },
+        {
+          "x": 6,
+          "y": 82,
+          "z": 21
+        }
+      ],
+      "item": [],
+      "chest": [
+        {
+          "x": 28,
+          "y": 63,
+          "z": 7
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 3,
+    "crypts": 3
+  },
+  {
+    "name": "Rails",
+    "type": "NORMAL",
+    "shape": "2x2",
+    "cores": [
+      -806278032,
+      150625221,
+      193773124,
+      223450952
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 3,
+      "bat": 1,
+      "item": 1,
+      "chest": 4
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 25,
+          "y": 70,
+          "z": 28
+        },
+        {
+          "x": 6,
+          "y": 49,
+          "z": 10
+        },
+        {
+          "x": 3,
+          "y": 49,
+          "z": 10
+        }
+      ],
+      "bat": [
+        {
+          "x": 56,
+          "y": 51,
+          "z": 11
+        }
+      ],
+      "item": [
+        {
+          "x": 27,
+          "y": 70,
+          "z": 29
+        }
+      ],
+      "chest": [
+        {
+          "x": 8,
+          "y": 49,
+          "z": 60
+        },
+        {
+          "x": 30,
+          "y": 64,
+          "z": 29
+        },
+        {
+          "x": 30,
+          "y": 72,
+          "z": 34
+        },
+        {
+          "x": 56,
+          "y": 66,
+          "z": 6
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 9,
+    "crypts": 1
+  },
+  {
+    "name": "Rare Overgrown",
+    "type": "RARE",
+    "shape": "1x1",
+    "cores": [
+      1228629724
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 3,
+    "crypts": 0
+  },
+  {
+    "name": "Rare Pillars",
+    "type": "RARE",
+    "shape": "1x1",
+    "cores": [
+      -596158595
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 0
+  },
+  {
+    "name": "Red Blue",
+    "type": "NORMAL",
+    "shape": "1x3",
+    "cores": [
+      -2118745061,
+      -2073594416,
+      1464980944
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 0,
+      "item": 1,
+      "chest": 2
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 79,
+          "y": 83,
+          "z": 15
+        }
+      ],
+      "bat": [],
+      "item": [
+        {
+          "x": 60,
+          "y": 86,
+          "z": 22
+        }
+      ],
+      "chest": [
+        {
+          "x": 57,
+          "y": 70,
+          "z": 5
+        },
+        {
+          "x": 39,
+          "y": 90,
+          "z": 26
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 4,
+    "crypts": 1
+  },
+  {
+    "name": "Red Green",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      2070858477
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 2,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [
+        {
+          "x": 13,
+          "y": 77,
+          "z": 28
+        },
+        {
+          "x": 1,
+          "y": 61,
+          "z": 15
+        }
+      ],
+      "chest": [
+        {
+          "x": 29,
+          "y": 75,
+          "z": 15
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 3,
+    "crypts": 2
+  },
+  {
+    "name": "Redstone Crypt",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -1180637346,
+      -834755106
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 2
+    },
+    "secretCoords": {
+      "redstoneKey": [
+        {
+          "x": 4,
+          "y": 71,
+          "z": 4
+        }
+      ],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 9,
+          "y": 69,
+          "z": 3
+        },
+        {
+          "x": 29,
+          "y": 70,
+          "z": 15
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 3,
+    "crypts": 0
+  },
+  {
+    "name": "Redstone Key",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -801262244
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 1,
+      "chest": 2
+    },
+    "secretCoords": {
+      "redstoneKey": [
+        {
+          "x": 19,
+          "y": 66,
+          "z": 7
+        },
+        {
+          "x": 10,
+          "y": 70,
+          "z": 26
+        }
+      ],
+      "wither": [],
+      "bat": [],
+      "item": [
+        {
+          "x": 26,
+          "y": 69,
+          "z": 5
+        }
+      ],
+      "chest": [
+        {
+          "x": 28,
+          "y": 62,
+          "z": 23
+        }
+      ]
+    },
+    "trappedChests": 1,
+    "reviveStones": 0,
+    "secrets": 3,
+    "crypts": 4
+  },
+  {
+    "name": "Redstone Warrior",
+    "type": "NORMAL",
+    "shape": "1x2",
+    "cores": [
+      -2001441952,
+      786991322
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 1,
+      "chest": 2
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [
+        {
+          "x": 58,
+          "y": 78,
+          "z": 29
+        }
+      ],
+      "chest": [
+        {
+          "x": 24,
+          "y": 58,
+          "z": 15
+        },
+        {
+          "x": 30,
+          "y": 83,
+          "z": 27
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 3,
+    "crypts": 4
+  },
+  {
+    "name": "Ritual",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -1993262508
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 0,
+      "chest": 2
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 15,
+          "y": 86,
+          "z": 25
+        }
+      ],
+      "item": [],
+      "chest": [
+        {
+          "x": 15,
+          "y": 80,
+          "z": 3
+        },
+        {
+          "x": 27,
+          "y": 69,
+          "z": 2
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 3,
+    "crypts": 1
+  },
+  {
+    "name": "Sand Dragon",
+    "type": "RARE",
+    "shape": "1x1",
+    "cores": [
+      989889664
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 15,
+          "y": 86,
+          "z": 26
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 1
+  },
+  {
+    "name": "Sarcophagus",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      1716340738
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 1,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 18,
+          "y": 68,
+          "z": 27
+        }
+      ],
+      "bat": [
+        {
+          "x": 21,
+          "y": 70,
+          "z": 26
+        }
+      ],
+      "item": [],
+      "chest": [
+        {
+          "x": 15,
+          "y": 69,
+          "z": 4
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 3,
+    "crypts": 1
+  },
+  {
+    "name": "Scaffolding",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      1860644899
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 1,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [
+        {
+          "x": 18,
+          "y": 82,
+          "z": 8
+        }
+      ],
+      "chest": [
+        {
+          "x": 5,
+          "y": 82,
+          "z": 28
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 2,
+    "crypts": 0
+  },
+  {
+    "name": "Shadow Assassin",
+    "type": "CHAMPION",
+    "shape": "1x1",
+    "cores": [
+      355785589
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 0,
+    "crypts": 2
+  },
+  {
+    "name": "Silver Sword",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      1842443601
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 18,
+          "y": 69,
+          "z": 13
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 0
+  },
+  {
+    "name": "Skull",
+    "type": "NORMAL",
+    "shape": "1x2",
+    "cores": [
+      -1216180592,
+      1607088225
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 2
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 2,
+          "y": 88,
+          "z": 15
+        },
+        {
+          "x": 52,
+          "y": 91,
+          "z": 7
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 2,
+    "crypts": 0
+  },
+  {
+    "name": "Slabs",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -823537042
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 2
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 22,
+          "y": 85,
+          "z": 3
+        },
+        {
+          "x": 23,
+          "y": 85,
+          "z": 3
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 2,
+    "crypts": 2
+  },
+  {
+    "name": "Slime",
+    "type": "NORMAL",
+    "shape": "1x3",
+    "cores": [
+      -1954168867,
+      -1819052109,
+      -351881297
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 1,
+      "item": 2,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 20,
+          "y": 86,
+          "z": 15
+        }
+      ],
+      "bat": [
+        {
+          "x": 14,
+          "y": 52,
+          "z": 14
+        }
+      ],
+      "item": [
+        {
+          "x": 3,
+          "y": 86,
+          "z": 10
+        },
+        {
+          "x": 90,
+          "y": 57,
+          "z": 15
+        }
+      ],
+      "chest": [
+        {
+          "x": 29,
+          "y": 87,
+          "z": 14
+        }
+      ]
+    },
+    "trappedChests": 1,
+    "reviveStones": 0,
+    "secrets": 5,
+    "crypts": 1
+  },
+  {
+    "name": "Sloth",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -1811101709
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 1,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [
+        {
+          "x": 8,
+          "y": 69,
+          "z": 22
+        }
+      ],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 1
+  },
+  {
+    "name": "Small Stairs",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -1450149144
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 1,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [
+        {
+          "x": 24,
+          "y": 63,
+          "z": 3
+        }
+      ],
+      "chest": [
+        {
+          "x": 3,
+          "y": 82,
+          "z": 6
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 2,
+    "crypts": 1
+  },
+  {
+    "name": "Small Waterfall",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      1761586871
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 1,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 6,
+          "y": 77,
+          "z": 26
+        }
+      ],
+      "bat": [
+        {
+          "x": 3,
+          "y": 82,
+          "z": 22
+        }
+      ],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 2,
+    "crypts": 5
+  },
+  {
+    "name": "Spider",
+    "type": "NORMAL",
+    "shape": "L",
+    "cores": [
+      -1624253038,
+      -1341649876,
+      1670774675
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 2,
+      "chest": 6
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 55,
+          "y": 86,
+          "z": 35
+        }
+      ],
+      "item": [
+        {
+          "x": 26,
+          "y": 91,
+          "z": 39
+        },
+        {
+          "x": 24,
+          "y": 92,
+          "z": 34
+        }
+      ],
+      "chest": [
+        {
+          "x": 28,
+          "y": 50,
+          "z": 4
+        },
+        {
+          "x": 22,
+          "y": 28,
+          "z": 40
+        },
+        {
+          "x": 49,
+          "y": 84,
+          "z": 36
+        },
+        {
+          "x": 10,
+          "y": 83,
+          "z": 56
+        },
+        {
+          "x": 15,
+          "y": 92,
+          "z": 31
+        },
+        {
+          "x": 27,
+          "y": 84,
+          "z": 32
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 9,
+    "crypts": 3
+  },
+  {
+    "name": "Spikes",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -1083197066
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 1,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 1,
+          "y": 53,
+          "z": 8
+        }
+      ],
+      "bat": [
+        {
+          "x": 2,
+          "y": 54,
+          "z": 7
+        }
+      ],
+      "item": [],
+      "chest": [
+        {
+          "x": 4,
+          "y": 91,
+          "z": 11
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 3,
+    "crypts": 2
+  },
+  {
+    "name": "Staircase",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      938812781
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 0,
+      "item": 1,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 22,
+          "y": 75,
+          "z": 2
+        }
+      ],
+      "bat": [],
+      "item": [
+        {
+          "x": 12,
+          "y": 78,
+          "z": 26
+        }
+      ],
+      "chest": [
+        {
+          "x": 28,
+          "y": 66,
+          "z": 3
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 3,
+    "crypts": 2
+  },
+  {
+    "name": "Stairs",
+    "type": "NORMAL",
+    "shape": "2x2",
+    "cores": [
+      -1931723512,
+      -74341280,
+      913916077,
+      1534204736
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 1,
+      "chest": 3
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [
+        {
+          "x": 37,
+          "y": 86,
+          "z": 36
+        }
+      ],
+      "chest": [
+        {
+          "x": 44,
+          "y": 88,
+          "z": 28
+        },
+        {
+          "x": 31,
+          "y": 88,
+          "z": 22
+        },
+        {
+          "x": 8,
+          "y": 70,
+          "z": 9
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 4,
+    "crypts": 1
+  },
+  {
+    "name": "Steps",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      1514581307
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 14,
+          "y": 75,
+          "z": 7
+        }
+      ],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 1
+  },
+  {
+    "name": "Stone Window",
+    "type": "RARE",
+    "shape": "1x1",
+    "cores": [
+      922862418
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 2,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 2,
+          "y": 72,
+          "z": 16
+        },
+        {
+          "x": 24,
+          "y": 80,
+          "z": 8
+        }
+      ],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 2,
+    "crypts": 1
+  },
+  {
+    "name": "Supertall",
+    "type": "NORMAL",
+    "shape": "2x2",
+    "cores": [
+      -779973985,
+      -321718586,
+      471138640,
+      999009820
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 2,
+      "item": 1,
+      "chest": 3
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 2,
+          "y": 72,
+          "z": 2
+        },
+        {
+          "x": 53,
+          "y": 112,
+          "z": 8
+        }
+      ],
+      "item": [
+        {
+          "x": 31,
+          "y": 102,
+          "z": 53
+        }
+      ],
+      "chest": [
+        {
+          "x": 36,
+          "y": 142,
+          "z": 51
+        },
+        {
+          "x": 31,
+          "y": 142,
+          "z": 56
+        },
+        {
+          "x": 26,
+          "y": 142,
+          "z": 51
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 6,
+    "crypts": 6
+  },
+  {
+    "name": "Teleport Maze",
+    "type": "PUZZLE",
+    "shape": "1x1",
+    "cores": [
+      502079918
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 0,
+    "crypts": 0
+  },
+  {
+    "name": "Temple",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -1715021377
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 1,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 2,
+          "y": 65,
+          "z": 25
+        }
+      ],
+      "item": [
+        {
+          "x": 20,
+          "y": 78,
+          "z": 28
+        }
+      ],
+      "chest": [
+        {
+          "x": 16,
+          "y": 54,
+          "z": 15
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 3,
+    "crypts": 0
+  },
+  {
+    "name": "Three Floors",
+    "type": "RARE",
+    "shape": "1x1",
+    "cores": [
+      2000549842
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 0
+  },
+  {
+    "name": "Three Weirdos",
+    "type": "PUZZLE",
+    "shape": "1x1",
+    "cores": [
+      1122480948
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 0,
+    "crypts": 0
+  },
+  {
+    "name": "Tic Tac Toe",
+    "type": "PUZZLE",
+    "shape": "1x1",
+    "cores": [
+      -2104583716,
+      896022625
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 9,
+          "y": 69,
+          "z": 25
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 0
+  },
+  {
+    "name": "Tombstone",
+    "type": "RARE",
+    "shape": "1x1",
+    "cores": [
+      374185231
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 2,
+    "crypts": 0
+  },
+  {
+    "name": "Tomioka",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      1749667131
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 0,
+    "crypts": 0
+  },
+  {
+    "name": "Vinny 8 Ball",
+    "type": "RARE",
+    "shape": "1x1",
+    "cores": [
+      1545097143
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 26,
+          "y": 69,
+          "z": 17
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 0
+  },
+  {
+    "name": "Water",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -1162066940
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 17,
+          "y": 67,
+          "z": 4
+        }
+      ],
+      "item": [],
+      "chest": [
+        {
+          "x": 2,
+          "y": 69,
+          "z": 5
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 2,
+    "crypts": 0
+  },
+  {
+    "name": "Water Board",
+    "type": "PUZZLE",
+    "shape": "1x1",
+    "cores": [
+      -1116148047
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 0
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": []
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 0,
+    "crypts": 0
+  },
+  {
+    "name": "Waterfall",
+    "type": "NORMAL",
+    "shape": "1x4",
+    "cores": [
+      -878771139,
+      -127699847,
+      576760887,
+      1439536726
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 2,
+      "item": 1,
+      "chest": 5
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 70,
+          "y": 61,
+          "z": 3
+        },
+        {
+          "x": 88,
+          "y": 46,
+          "z": 27
+        }
+      ],
+      "item": [
+        {
+          "x": 8,
+          "y": 44,
+          "z": 28
+        }
+      ],
+      "chest": [
+        {
+          "x": 34,
+          "y": 84,
+          "z": 23
+        },
+        {
+          "x": 121,
+          "y": 81,
+          "z": 15
+        },
+        {
+          "x": 82,
+          "y": 78,
+          "z": 3
+        },
+        {
+          "x": 42,
+          "y": 82,
+          "z": 21
+        },
+        {
+          "x": 53,
+          "y": 44,
+          "z": 27
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 8,
+    "crypts": 3
+  },
+  {
+    "name": "Well",
+    "type": "NORMAL",
+    "shape": "L",
+    "cores": [
+      -1414030083,
+      155140117,
+      1937669620
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 2,
+      "bat": 0,
+      "item": 2,
+      "chest": 3
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 2,
+          "y": 95,
+          "z": 59
+        },
+        {
+          "x": 7,
+          "y": 95,
+          "z": 56
+        }
+      ],
+      "bat": [],
+      "item": [
+        {
+          "x": 14,
+          "y": 57,
+          "z": 15
+        },
+        {
+          "x": 59,
+          "y": 91,
+          "z": 35
+        }
+      ],
+      "chest": [
+        {
+          "x": 11,
+          "y": 88,
+          "z": 50
+        },
+        {
+          "x": 18,
+          "y": 91,
+          "z": 25
+        },
+        {
+          "x": 60,
+          "y": 89,
+          "z": 47
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 7,
+    "crypts": 5
+  },
+  {
+    "name": "Withermancer",
+    "type": "NORMAL",
+    "shape": "L",
+    "cores": [
+      -1203202506,
+      566342905,
+      972242039
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 1,
+      "bat": 0,
+      "item": 0,
+      "chest": 3
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [
+        {
+          "x": 1,
+          "y": 111,
+          "z": 15
+        }
+      ],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 59,
+          "y": 55,
+          "z": 45
+        },
+        {
+          "x": 15,
+          "y": 104,
+          "z": 20
+        },
+        {
+          "x": 29,
+          "y": 111,
+          "z": 15
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 4,
+    "crypts": 6
+  },
+  {
+    "name": "Wizard",
+    "type": "NORMAL",
+    "shape": "1x3",
+    "cores": [
+      862384566,
+      1289976083,
+      1654519461
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 1,
+      "item": 1,
+      "chest": 2
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [
+        {
+          "x": 25,
+          "y": 53,
+          "z": 12
+        }
+      ],
+      "item": [
+        {
+          "x": 3,
+          "y": 76,
+          "z": 21
+        }
+      ],
+      "chest": [
+        {
+          "x": 17,
+          "y": 92,
+          "z": 26
+        },
+        {
+          "x": 90,
+          "y": 89,
+          "z": 24
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 4,
+    "crypts": 8
+  },
+  {
+    "name": "Zodd",
+    "type": "NORMAL",
+    "shape": "1x1",
+    "cores": [
+      -1902338045
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 7,
+          "y": 70,
+          "z": 3
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 1
+  }
+]
