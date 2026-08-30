@@ -1,9 +1,6 @@
 package com.github.noamm9.features.impl.visual
 
-import com.github.noamm9.config.types.ColorSetting
-import com.github.noamm9.config.types.KeybindSetting
-import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.ScreenEvent
 import com.github.noamm9.features.Feature
@@ -290,6 +287,8 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
 
         lastClickAt = now
         GuiUtils.clickSlot(slotIndex, GuiUtils.ButtonType.LEFT)
+        // might seem like a cheat but hypixel already closes the menu as soon as u send a click
+        // so this is basically just zero-ping to close the menu faster. rather then waiting for hypixel to close it
         player.closeContainer()
     }
 

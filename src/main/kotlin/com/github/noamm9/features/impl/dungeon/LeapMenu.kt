@@ -1,14 +1,9 @@
 package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.config.types.*
-import com.github.noamm9.event.impl.ChatMessageEvent
-import com.github.noamm9.event.impl.CheckEntityRenderEvent
-import com.github.noamm9.event.impl.ContainerEvent
-import com.github.noamm9.event.impl.ScreenEvent
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.features.impl.dungeon.map.DungeonMap
-import com.github.noamm9.features.impl.dungeon.map.MapConfig
-import com.github.noamm9.features.impl.dungeon.map.MapRenderer
+import com.github.noamm9.features.impl.dungeon.map.*
 import com.github.noamm9.init.types.ICustomMenu
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.*
@@ -280,6 +275,8 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
 
         USound.playButtonPress()
         GuiUtils.clickSlot(entry.slotIndex, GuiUtils.ButtonType.LEFT)
+        // might seem like a cheat but hypixel already closes the menu as soon as u send a click
+        // so this is basically just zero-ping to close the menu faster. rather then waiting for hypixel to close it
         player.closeContainer()
     }
 

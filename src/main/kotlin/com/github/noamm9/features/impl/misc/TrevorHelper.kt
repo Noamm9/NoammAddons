@@ -30,6 +30,12 @@ import net.minecraft.world.entity.animal.rabbit.Rabbit
 import net.minecraft.world.entity.animal.sheep.Sheep
 import java.awt.Color
 
+/**
+ * Based off Nebulune by Starred
+ * under BSD-3 Clause license https://github.com/skies-starred/Nebulune/blob/master/LICENSE
+ * @link https://github.com/skies-starred/Nebulune/blob/master/src/main/kotlin/foo/starred/nebulune/modules/impl/general/TrevorHelper.kt
+ * Modified
+ */
 object TrevorHelper: Feature("Helper features for Trevor the Trapper on the Farming Islands.") {
     private val hud by ToggleSetting("Cooldown Timer").section("HUD")
 
