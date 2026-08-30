@@ -26,14 +26,8 @@ object SBKick: Feature("Shows a timer on screen for when you can rejoin Skyblock
                     showTime = true
                 }
 
+                "A kick occurred in your connection, so you were put in the SkyBlock lobby!",
                 "You were kicked while joining that server!" -> {
-                    if (showTime) return@register
-                    if (sendMsg.value) ChatUtils.sendPartyMessage("You were kicked while joining that server!")
-                    lastKickTime = System.currentTimeMillis()
-                    showTime = true
-                }
-
-                "A kick occurred in your connection, so you were put in the SkyBlock lobby!" -> {
                     if (showTime) return@register
                     if (sendMsg.value) ChatUtils.sendPartyMessage("You were kicked while joining that server!")
                     lastKickTime = System.currentTimeMillis()
