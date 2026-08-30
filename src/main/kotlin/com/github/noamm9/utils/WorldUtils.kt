@@ -1,6 +1,7 @@
 package com.github.noamm9.utils
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.init.ModCompatibility
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockState
@@ -16,9 +17,7 @@ object WorldUtils {
 
     fun setBlockAt(pos: BlockPos, state: BlockState) = NoammAddons.mc.level?.setBlock(pos, state, 19)
 
-    fun isChunkLoaded(x: Number, z: Number): Boolean {
-        return getLoadedChunk(x.toInt() shr 4, z.toInt() shr 4) != null
-    }
+    fun isChunkLoaded(x: Number, z: Number) = getLoadedChunk(x.toInt() shr 4, z.toInt() shr 4) != null
 
     fun getBlockEntityList(): List<BlockPos> {
         val player = NoammAddons.mc.player ?: return emptyList()
@@ -38,5 +37,5 @@ object WorldUtils {
 
     private fun getLoadedChunk(chunkX: Int, chunkZ: Int) = NoammAddons.mc.level
         ?.getChunk(chunkX, chunkZ, ChunkStatus.FULL, false)
-        ?.takeUnless { it.javaClass.name == "de.johni0702.minecraft.bobby.FakeChunk" }
+        ?.takeUnless { it.javaClass.name == ModCompatibility.bobby_chunk && ! ModCompatibility.bobbyManagesWorlds }
 }

@@ -21,4 +21,14 @@ object ModCompatibility {
         blockStateCulling?.setBoolean(config, false)
         mc.levelRenderer.allChanged()
     }
+
+    const val bobby_chunk = "de.johni0702.minecraft.bobby.FakeChunk"
+    val bobbyManagesWorlds by lazy {
+        runCatching {
+            if (! isModLoaded("bobby")) return@runCatching false
+            val bobby = Class.forName("de.johni0702.minecraft.bobby.Bobby").getMethod("getInstance").invoke(null)
+            val config = bobby.javaClass.getMethod("getConfig").invoke(bobby)
+            config.javaClass.getMethod("isDynamicMultiWorld").invoke(config) as Boolean
+        }.getOrDefault(false)
+    }
 }
