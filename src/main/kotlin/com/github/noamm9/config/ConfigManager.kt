@@ -2,6 +2,7 @@ package com.github.noamm9.config
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.features.FeatureManager
+import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.FileHandler
 import com.github.noamm9.utils.GsonUtils
 import com.github.noamm9.utils.GsonUtils.jsonArray
@@ -24,6 +25,15 @@ object ConfigManager {
 
     fun getConfigs(): Map<String, File> {
         return (if (configsDir.exists()) configsDir.listFiles().associateBy { it.nameWithoutExtension } else emptyMap()) + ("default" to File(configDir, "config.json")) // im unsure wether the exists check is needed
+    }
+
+    fun changeConfig(configName: String) {
+        val newConfigFile = getConfigs()[configName] ?: return ChatUtils.modMessage("&cNo config named \"$configName\" was found.")
+        if (!newConfigFile.exists()) return ChatUtils.modMessage("&cNo config file found for \"$configName\".")
+        configFile = FileHandler(newConfigFile)
+        selectedConfig.set(configName)
+        load()
+        ChatUtils.modMessage("&aSuccessfully loaded config \"$configName\".")
     }
 
     fun clear() {

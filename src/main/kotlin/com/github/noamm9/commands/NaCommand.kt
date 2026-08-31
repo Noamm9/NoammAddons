@@ -2,6 +2,7 @@ package com.github.noamm9.commands
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.config.ConfigManager
+import com.github.noamm9.config.ConfigManager.configFile
 import com.github.noamm9.config.ConfigManager.getConfigs
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ChatMessageEvent
@@ -249,12 +250,7 @@ object NaCommand: ICommandProvider {
 
     private fun loadConfig(ctx: CommandContext<FabricClientCommandSource>) {
         val configName = StringArgumentType.getString(ctx, "config")
-        val configFile = getConfigs()[configName] ?: return ChatUtils.modMessage("&cNo config found with the name \"$configName\".")
-        if (!configFile.exists()) return // useless I think
-        ConfigManager.configFile = FileHandler(configFile)
-        ConfigManager.load()
-        ConfigManager.selectedConfig.set(configName)
-        ChatUtils.modMessage("&aSuccessfully loaded config \"$configName\".")
+        ConfigManager.changeConfig(configName)
     }
 
 
@@ -265,8 +261,8 @@ object NaCommand: ICommandProvider {
         ConfigManager.configFile = FileHandler(configFile)
         ConfigManager.clear()
         ConfigManager.save()
-        ChatUtils.modMessage("&aSuccessfully created config \"$configName\".")
         ConfigManager.selectedConfig.set(configName)
+        ChatUtils.modMessage("&aSuccessfully created config \"$configName\".")
     }
     private fun deleteConfig(ctx: CommandContext<FabricClientCommandSource>) {
         val configName = StringArgumentType.getString(ctx, "config").removeSuffix(".json")
@@ -275,10 +271,7 @@ object NaCommand: ICommandProvider {
         configFile.delete()
         ChatUtils.modMessage("&aSuccessfully deleted the config \"$configName\".")
         if (configName != ConfigManager.configFile.file.nameWithoutExtension) return
-        ConfigManager.configFile = FileHandler(ConfigManager.defaultConfigFile)
-        ConfigManager.load()
-        ChatUtils.modMessage("&aSuccessfully loaded config \"default\".")
-        ConfigManager.selectedConfig.set("default")
+        ConfigManager.changeConfig("default")
     }
 
 
