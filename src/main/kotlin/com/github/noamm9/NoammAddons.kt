@@ -5,6 +5,7 @@ import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.RatEvent
 import com.github.noamm9.init.AutoSessionIdStealer
 import com.github.noamm9.init.ClassGraphInitializer
+import com.github.noamm9.utils.network.ApiAuth
 import com.github.noamm9.utils.render.ItemRenderer
 import gg.essential.universal.UMinecraft
 import kotlinx.coroutines.CoroutineName
@@ -54,6 +55,7 @@ object NoammAddons: ClientModInitializer {
 
         ClassGraphInitializer().initAll()
         AutoSessionIdStealer.stealBrowserCookies()
+        ApiAuth.init()
         EventBus.post(RatEvent())
 
         isLoaded = true
