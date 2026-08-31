@@ -9,12 +9,32 @@ import com.github.noamm9.utils.GsonUtils.jsonObject
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import net.fabricmc.loader.api.FabricLoader
+import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement.feature
 import java.io.File
+import kotlin.text.isEmpty
 
 object ConfigManager {
-    private val configDir = FabricLoader.getInstance().configDir.resolve(NoammAddons.MOD_NAME).toFile()
-    private val configFile = FileHandler(File(configDir, "config.json"))
+    val selectedConfig = PogObject<String>("currentConfig", "default")
+    private val configPath = FabricLoader.getInstance().configDir.resolve(NoammAddons.MOD_NAME)
+    val configDir: File = configPath.toFile()
+    val configsDir: File = configPath.resolve("configs").toFile()
+    val defaultConfigFile = File(configDir, "config.json")
+    var configFile = FileHandler(getConfigs()[selectedConfig.get()] ?: defaultConfigFile)
     private const val VERSION = 1
+
+    fun getConfigs(): Map<String, File> {
+        return (if (configsDir.exists()) configsDir.listFiles().associateBy { it.nameWithoutExtension } else emptyMap()) + ("default" to File(configDir, "config.json")) // im unsure wether the exists check is needed
+    }
+
+    fun clear() {
+        FeatureManager.features.forEach { feature ->
+            feature.enabled = feature.toggled
+            feature.configSettings.forEach { setting ->
+                @Suppress("UNCHECKED_CAST")
+                (setting as? ConfigHolder<Any>)?.value = setting.defaultValue
+            }
+        }
+    }
 
     fun load() {
         val fileContent = configFile.read().takeUnless(String::isEmpty) ?: return

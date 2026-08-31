@@ -1,8 +1,8 @@
 package com.github.noamm9.commands
 
 import com.github.noamm9.NoammAddons
-import com.github.noamm9.config.Config
-import com.github.noamm9.config.Config.configDir
+import com.github.noamm9.config.ConfigManager
+import com.github.noamm9.config.ConfigManager.getConfigs
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.NoammDebugFlagEvent
@@ -158,6 +158,14 @@ object NaCommand: ICommandProvider {
                     runs { createConfig(it) }
                 }
             }
+            literal("delete") {
+                argument("config", StringArgumentType.string()) {
+                    suggests { getConfigs().keys }
+                    runs {
+                        deleteConfig(it)
+                    }
+                }
+            }
         }
 
         //#if CHEAT
@@ -241,27 +249,38 @@ object NaCommand: ICommandProvider {
 
     private fun loadConfig(ctx: CommandContext<FabricClientCommandSource>) {
         val configName = StringArgumentType.getString(ctx, "config")
-        val configFile = getConfigs()[configName] ?: return ChatUtils.modMessage("&cNo config found with the name \"${configName}\"")
+        val configFile = getConfigs()[configName] ?: return ChatUtils.modMessage("&cNo config found with the name \"$configName\".")
         if (!configFile.exists()) return // useless I think
-        Config.configFile = FileHandler(configFile)
-        Config.load()
+        ConfigManager.configFile = FileHandler(configFile)
+        ConfigManager.load()
+        ConfigManager.selectedConfig.set(configName)
         ChatUtils.modMessage("&aSuccessfully loaded config \"$configName\".")
     }
 
 
     private fun createConfig(ctx: CommandContext<FabricClientCommandSource>) {
         val configName = StringArgumentType.getString(ctx, "config").removeSuffix(".json")
-        if (configName in getConfigs().keys) return ChatUtils.modMessage("&cThere is already a config named \"${configName}\".")
-        val configFile = File(Config.configsDir, "$configName.json")
-        Config.configFile = FileHandler(configFile)
-        Config.clear()
-        Config.save()
+        if (configName in getConfigs().keys) return ChatUtils.modMessage("&cThere is already a config named \"$configName\".")
+        val configFile = File(ConfigManager.configsDir, "$configName.json")
+        ConfigManager.configFile = FileHandler(configFile)
+        ConfigManager.clear()
+        ConfigManager.save()
         ChatUtils.modMessage("&aSuccessfully created config \"$configName\".")
+        ConfigManager.selectedConfig.set(configName)
+    }
+    private fun deleteConfig(ctx: CommandContext<FabricClientCommandSource>) {
+        val configName = StringArgumentType.getString(ctx, "config").removeSuffix(".json")
+        if (configName == "default") return ChatUtils.modMessage("&cYou cannot delete the default config.")
+        val configFile = getConfigs()[configName] ?: return ChatUtils.modMessage("&cNo config found with the name \"$configName\".")
+        configFile.delete()
+        ChatUtils.modMessage("&aSuccessfully deleted the config \"$configName\".")
+        if (configName != ConfigManager.configFile.file.nameWithoutExtension) return
+        ConfigManager.configFile = FileHandler(ConfigManager.defaultConfigFile)
+        ConfigManager.load()
+        ChatUtils.modMessage("&aSuccessfully loaded config \"default\".")
+        ConfigManager.selectedConfig.set("default")
     }
 
-    private fun getConfigs(): Map<String, File> {
-        return (if (Config.configsDir.exists()) Config.configsDir.listFiles().associateBy { it.nameWithoutExtension } else emptyMap()) + ("default" to File(configDir, "config.json")) // im unsure wether the exists check is needed
-    }
 
     @Serializable
     private data class RtcaData(val name: String, val runs: Int, val classes: Map<String, Int>)
