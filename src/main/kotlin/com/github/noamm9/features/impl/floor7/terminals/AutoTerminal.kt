@@ -23,9 +23,9 @@ import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 
 object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     private val randomDelay by ToggleSetting("Random Delay", true).withDescription("Normal distributed by min and max").section("Settings").jsonName("randomDelay")
-    private val autoDelay by SliderSetting("Click Delay", 150.0, 0.0, 500.0, 1.0).withDescription("Fixed delay between clicks in milliseconds.").hideIf { randomDelay.value }.jsonName("autoDelay")
-    private val minRandomDelay by SliderSetting("Min Random Delay", 120.0, 0.0, 500.0, 1.0).withDescription("The minimum possible delay").showIf { randomDelay.value }.jsonName("minRandomDelay")
-    private val maxRandomDelay by SliderSetting("Max Random Delay", 150.0, 0.0, 500.0, 1.0).withDescription("The maximum possible delay").showIf { randomDelay.value }.jsonName("maxRandomDelay")
+    private val autoDelay by SliderSetting("Click Delay", 150.0, 100.0, 500.0, 1.0).withDescription("Fixed delay between clicks in milliseconds.").hideIf { randomDelay.value }.jsonName("autoDelay")
+    private val minRandomDelay by SliderSetting("Min Random Delay", 120.0, 80.0, 500.0, 1.0).withDescription("The minimum possible delay").showIf { randomDelay.value }.jsonName("minRandomDelay")
+    private val maxRandomDelay by SliderSetting("Max Random Delay", 150.0, 120.0, 500.0, 1.0).withDescription("The maximum possible delay").showIf { randomDelay.value }.jsonName("maxRandomDelay")
     private val clickOrder by DropdownSetting("Click Order", 2, listOf("None", "Random", "Human", "Skizo")).withDescription("Human: Logic pathing. Skizo: Chaotic/Furthest.")
     val invwalk by ToggleSetting("Fake InvWalk").withDescription("Draws the Term name and progress on screen rather then the solution")
 
