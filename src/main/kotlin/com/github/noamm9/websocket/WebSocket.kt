@@ -13,6 +13,7 @@ import com.github.noamm9.utils.GsonUtils
 import com.github.noamm9.utils.network.ApiAuth
 import com.github.noamm9.utils.network.WebUtils
 import io.ktor.client.plugins.websocket.webSocket
+import io.ktor.client.request.parameter
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 
@@ -23,12 +24,15 @@ object WebSocket: ISelfInit {
 
     override fun init() {
         register<GameStartEvent> {
-            scope.launch { connect() }
+            scope.launch {
+                delay(5000)
+                connect()
+            }
         }
     }
 
     fun send(packet: Any) = scope.launch {
-        val socket = session?.takeIf { it.isActive } ?: return@launch
+        val socket = session?.takeIf(WebSocketSession::isActive) ?: return@launch
         val json = GsonUtils.gson.toJsonTree(packet).asJsonObject
         val type = PacketRegistry.getType(packet)
         if (type != null) json.addProperty("type", type)
@@ -42,7 +46,10 @@ object WebSocket: ISelfInit {
 
         try {
             val token = ApiAuth.token ?: return logger.info("[Websocket] no auth token yet, waiting for auth")
-            WebUtils.client.webSocket("wss://ws.noamm.org?token=$token?name=${mc.user.name}") {
+            WebUtils.client.webSocket("wss://ws.noamm.org", {
+                parameter("name", mc.user.name)
+                parameter("token", token)
+            }) {
                 session = this
 
                 for (frame in incoming) if (frame is Frame.Text) mc.submit {
