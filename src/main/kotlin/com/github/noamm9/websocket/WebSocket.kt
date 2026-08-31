@@ -42,7 +42,7 @@ object WebSocket: ISelfInit {
 
         try {
             val token = ApiAuth.token ?: return logger.info("[Websocket] no auth token yet, waiting for auth")
-            WebUtils.client.webSocket("wss://ws.noamm.org?token=$token") {
+            WebUtils.client.webSocket("wss://ws.noamm.org?token=$token?name=${mc.user.name}") {
                 session = this
 
                 for (frame in incoming) if (frame is Frame.Text) mc.submit {
