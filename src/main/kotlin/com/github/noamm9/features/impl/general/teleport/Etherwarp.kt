@@ -16,6 +16,7 @@ import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.PlayerUtils.serverPitch
 import com.github.noamm9.utils.PlayerUtils.serverYaw
 import com.github.noamm9.utils.items.EtherwarpHelper
+import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.items.TeleportUtils
 import com.github.noamm9.utils.render.world.Render3D.renderBlock
 import com.github.noamm9.utils.render.world.Render3D.renderBox
@@ -61,8 +62,8 @@ object Etherwarp: Feature("Etherwarp overlay and sound.") {
     override fun init() {
         register<RenderWorldEvent> {
             if (! overlay.value) return@register
-            if (! mc.options.keyShift.isDown) return@register
             val heldItem = player.mainHandItem.takeUnless { it.isEmpty } ?: return@register
+            if (! mc.options.keyShift.isDown && heldItem.skyblockId != "ETHERWARP_CONDUIT") return@register
             val distance = EtherwarpHelper.getEtherwarpDistance(heldItem) ?: return@register
             val (valid, pos) = EtherwarpHelper.getEtherPos(player.position(), player.lookAngle, distance)
             if (! valid && ! showFail.value) return@register
