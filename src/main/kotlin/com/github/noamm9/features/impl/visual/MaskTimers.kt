@@ -5,7 +5,9 @@ import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.NumbersUtils.toFixed
+import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
@@ -15,6 +17,7 @@ import gg.essential.universal.UResolution
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import net.minecraft.world.entity.EquipmentSlot
+import kotlin.math.roundToInt
 
 object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and more") {
     private val onlyInDungeon by ToggleSetting("Dungeons Only")
@@ -116,7 +119,13 @@ object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and mo
             val msg = event.unformattedText
             Mask.entries.forEach { mask ->
                 if (mask.regex.matches(msg)) {
-                    mask.cdLeft = mask.cooldownTicks
+                    mask.cdLeft = if (mask == Mask.BONZO) {
+                        player.getItemBySlot(EquipmentSlot.HEAD).lore.firstNotNullOfOrNull { line ->
+                            Regex("^Cooldown: ([\\d.]+)s$").matchEntire(line.removeFormatting().trim())
+                                ?.groupValues?.get(1)?.toDoubleOrNull()
+                        }?.let { (it * 20).roundToInt() } ?: mask.cooldownTicks
+                    }
+                    else mask.cooldownTicks
                     if (invulnerabilityTimers.value) mask.invulnLeft = mask.invulnTicks
                     if (procNotification.value) ChatUtils.showTitle("${mask.color}${mask.displayName} Procced!")
                 }
