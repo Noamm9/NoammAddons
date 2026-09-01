@@ -82,7 +82,6 @@ object AutoGFS: Feature("Automatically refills dungeon items from your sacks usi
 
     private fun checkAndRefill(current: Int, max: Int, gfsName: String, toggle: Boolean) {
         if (! toggle) return
-        if (current == 0) return
         val needed = max - current
         if (needed >= 4) gfs(gfsName, needed)
     }
