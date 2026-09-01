@@ -12,13 +12,12 @@ import kotlinx.coroutines.*
 import me.owdding.dfu.item.MeowddingItemDfu
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.rendering.v1.PictureInPictureRendererRegistry
-import net.fabricmc.loader.api.FabricLoader
 import org.slf4j.LoggerFactory
 
 object NoammAddons: ClientModInitializer {
-    const val MOD_ID = "noammaddons"
-    val MOD_NAME by lazy { FabricLoader.getInstance().getModContainer(MOD_ID).get().metadata.name }
-    val MOD_VERSION by lazy { FabricLoader.getInstance().getModContainer(MOD_ID).get().metadata.version.friendlyString }
+    const val MOD_ID = "@MOD_ID@"
+    const val MOD_NAME = "@MOD_NAME@"
+    const val MOD_VERSION = "@MOD_VERSION@"
     const val PREFIX = "§6§l[§b§lN§d§lA§6§l]§r"
 
     val scope = CoroutineScope(Dispatchers.Default + SupervisorJob() + CoroutineName(MOD_NAME))

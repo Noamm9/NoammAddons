@@ -1,15 +1,19 @@
 val projectVersion = project.property("mod_version") as String
+val modId = project.property("mod_id") as String
 
 val preprocessLegit = registerPreprocessTask("legit")
 val preprocessCheat = registerPreprocessTask("cheat")
+val preprocessMain = registerPreprocessMainTask()
 
 tasks.named<ProcessResources>("processResources") {
     inputs.property("version", project.version)
+    val modId = findProperty("mod_id").toString()
+
     dependsOn(preprocessLegit)
-    exclude("fabric.mod.json5", "noammaddons.mixins.json5")
+    exclude("fabric.mod.json5", "$modId.mixins.json5")
 
     from(layout.buildDirectory.dir("preprocessed/legit/resources")) {
-        include("fabric.mod.json", "noammaddons.mixins.json")
+        include("fabric.mod.json", "$modId.mixins.json")
     }
 
     filesMatching("fabric.mod.json") {
@@ -24,10 +28,10 @@ fun registerVariantResources(variantName: String, preprocessTask: TaskProvider<T
     if (tasks.findByName(taskName) == null) tasks.register<ProcessResources>(taskName) {
         inputs.property("version", project.version)
         dependsOn(preprocessTask)
-        exclude("fabric.mod.json5", "noammaddons.mixins.json5")
+        exclude("fabric.mod.json5", "$modId.mixins.json5")
 
         from(layout.buildDirectory.dir("preprocessed/$variantName/resources")) {
-            include("fabric.mod.json", "noammaddons.mixins.json")
+            include("fabric.mod.json", "$modId.mixins.json")
         }
 
         filesMatching("fabric.mod.json") {
@@ -37,10 +41,10 @@ fun registerVariantResources(variantName: String, preprocessTask: TaskProvider<T
     else tasks.named<ProcessResources>(taskName) {
         inputs.property("version", project.version)
         dependsOn(preprocessTask)
-        exclude("fabric.mod.json5", "noammaddons.mixins.json5")
+        exclude("fabric.mod.json5", "$modId.mixins.json5")
 
         from(layout.buildDirectory.dir("preprocessed/$variantName/resources")) {
-            include("fabric.mod.json", "noammaddons.mixins.json")
+            include("fabric.mod.json", "$modId.mixins.json")
         }
 
         filesMatching("fabric.mod.json") {

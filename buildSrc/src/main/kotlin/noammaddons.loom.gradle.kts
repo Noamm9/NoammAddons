@@ -5,7 +5,8 @@ plugins {
 }
 
 configure<LoomGradleExtensionAPI> {
-    accessWidenerPath.set(file("src/main/resources/noammaddons.accesswidener"))
+    accessWidenerPath.set(file("src/main/resources/${findProperty("mod_id")}.accesswidener"))
+
     runs {
         val clientRun = named("client")
         val serverRun = named("server")

@@ -1,13 +1,24 @@
-import org.gradle.api.GradleException
-import org.gradle.api.Project
-import org.gradle.api.Task
+import org.gradle.api.*
 import org.gradle.api.tasks.TaskProvider
 import java.io.File
+import java.util.*
 
 private val directiveRegex = "^//\\s*".toRegex()
+private val placeholderRegex = Regex("@(\\w+)@")
 private const val marker = "//$"
 
 private data class StackFrame(val outerInclude: Boolean, val branchWasTrue: Boolean)
+
+private fun Project.loadGradleProperties(): Map<String, String> {
+    val props = Properties().apply { file("gradle.properties").inputStream().use(::load) }
+    return props.mapKeys { it.key as String }.mapValues { it.value as String }
+}
+
+private fun replaceProperties(content: String, properties: Map<String, String>): String {
+    return placeholderRegex.replace(content) { match ->
+        properties[match.groupValues[1].lowercase()] ?: match.value
+    }
+}
 
 private fun processDirectives(sourceFile: File, variantName: String, stripLineComments: Boolean = false): List<String> {
     val isCheat = variantName == "cheat"
@@ -55,14 +66,17 @@ private fun processDirectives(sourceFile: File, variantName: String, stripLineCo
     return output
 }
 
-fun Project.preprocessSources(variantName: String, outRoot: File) {
+private fun Project.preprocessSources(variantName: String, outRoot: File) {
+    val properties = loadGradleProperties()
+
     fun processTree(inputRoot: File, outputRoot: File) {
         if (! inputRoot.exists()) return
 
         fileTree(inputRoot).matching { include("**/*.kt", "**/*.java") }.files.forEach { sourceFile ->
             val outFile = File(outputRoot, inputRoot.toPath().relativize(sourceFile.toPath()).toString())
             outFile.parentFile.mkdirs()
-            outFile.writeText(processDirectives(sourceFile, variantName).joinToString(System.lineSeparator()))
+            val content = processDirectives(sourceFile, variantName).joinToString(System.lineSeparator())
+            outFile.writeText(replaceProperties(content, properties))
         }
     }
 
@@ -70,9 +84,29 @@ fun Project.preprocessSources(variantName: String, outRoot: File) {
     processTree(file("src/main/java"), File(outRoot, "java"))
 }
 
-fun Project.preprocessResources(variantName: String, outRoot: File) {
+private fun Project.replaceSourceProperties(outRoot: File) {
+    val properties = loadGradleProperties()
+
+    fun processTree(inputRoot: File, outputRoot: File) {
+        if (! inputRoot.exists()) return
+
+        fileTree(inputRoot).matching { include("**/*.kt", "**/*.java") }.files.forEach { sourceFile ->
+            val outFile = File(outputRoot, inputRoot.toPath().relativize(sourceFile.toPath()).toString())
+            outFile.parentFile.mkdirs()
+            outFile.writeText(replaceProperties(sourceFile.readText(), properties))
+        }
+    }
+
+    processTree(file("src/main/kotlin"), File(outRoot, "kotlin"))
+    processTree(file("src/main/java"), File(outRoot, "java"))
+}
+
+private fun Project.preprocessResources(variantName: String, outRoot: File) {
     val resourcesIn = file("src/main/resources")
     if (! resourcesIn.exists()) return
+
+    val properties = loadGradleProperties()
+    val modId = findProperty("mod_id")
 
     fun preprocessFile(srcName: String, outName: String, expandVersion: Boolean) {
         val srcFile = File(resourcesIn, srcName)
@@ -81,11 +115,12 @@ fun Project.preprocessResources(variantName: String, outRoot: File) {
         val outFile = File(outRoot, outName).also { it.parentFile.mkdirs() }
         var content = processDirectives(srcFile, variantName, stripLineComments = true).joinToString(System.lineSeparator())
         if (expandVersion) content = content.replace("\${version}", project.version.toString())
+        content = replaceProperties(content, properties)
         outFile.writeText(content)
     }
 
     preprocessFile("fabric.mod.json5", "fabric.mod.json", expandVersion = true)
-    preprocessFile("noammaddons.mixins.json5", "noammaddons.mixins.json", expandVersion = false)
+    preprocessFile("$modId.mixins.json5", "$modId.mixins.json", expandVersion = false)
 }
 
 fun Project.registerPreprocessTask(variantName: String): TaskProvider<Task> {
@@ -97,7 +132,7 @@ fun Project.registerPreprocessTask(variantName: String): TaskProvider<Task> {
         inputs.dir("src/main/kotlin")
         inputs.dir("src/main/java")
         inputs.file("src/main/resources/fabric.mod.json5")
-        inputs.file("src/main/resources/noammaddons.mixins.json5")
+        inputs.file("src/main/resources/${findProperty("mod_id")}.mixins.json5")
         outputs.dir(outRoot)
         outputs.dir(resourcesOut)
 
@@ -105,6 +140,21 @@ fun Project.registerPreprocessTask(variantName: String): TaskProvider<Task> {
         doLast {
             preprocessSources(variantName, outRoot.get().asFile)
             preprocessResources(variantName, resourcesOut.get().asFile)
+        }
+    }
+}
+
+fun Project.registerPreprocessMainTask(): TaskProvider<Task> {
+    return tasks.register("preprocessMain") {
+        val outRoot = layout.buildDirectory.dir("preprocessed/main")
+
+        inputs.dir("src/main/kotlin")
+        inputs.dir("src/main/java")
+        outputs.dir(outRoot)
+
+        doFirst { delete(outRoot.get().asFile) }
+        doLast {
+            replaceSourceProperties(outRoot.get().asFile)
         }
     }
 }
