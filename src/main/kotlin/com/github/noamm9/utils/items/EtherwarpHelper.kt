@@ -31,9 +31,9 @@ object EtherwarpHelper {
     }
 
     fun getEtherwarpDistance(stack: ItemStack): Double? {
-        if (stack.skyblockId.equalsOneOf("ASPECT_OF_THE_VOID", "ASPECT_OF_THE_END")) {
+        if (stack.skyblockId.equalsOneOf("ASPECT_OF_THE_VOID", "ASPECT_OF_THE_END", "ETHERWARP_CONDUIT")) {
             val nbt = stack.customData
-            if (nbt.getByte("ethermerge").orElse(0) != 1.toByte()) return null
+            if (stack.skyblockId != "ETHERWARP_CONDUIT" && nbt.getByte("ethermerge").orElse(0) != 1.toByte()) return null
             val tuners = nbt.getByte("tuned_transmission").getOrDefault(0).toInt()
             return 57.0 + tuners
         }
