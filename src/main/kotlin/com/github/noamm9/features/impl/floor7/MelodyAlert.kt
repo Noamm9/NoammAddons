@@ -57,7 +57,8 @@ object MelodyAlert: Feature() {
                 if (i <= currentStage) continue
 
                 if (player.containerMenu.getSlot(progressSlots[i]).item.`is`(Items.LIME_TERRACOTTA)) {
-                    val progress = if (mode.value == 0) "${i + 1}/3" else "${(i + 1) * 33}%"
+                    //val progress = if (mode.value == 0) "${i + 1}/3" else "${(i + 1) * 33}%" todo
+                    val progress = if (mode.value == 0) "${i + 1}/4" else "${(i + 1) * 25}%"
                     ChatUtils.sendPartyMessage("${msg.value} $progress")
                     currentStage = i
                 }

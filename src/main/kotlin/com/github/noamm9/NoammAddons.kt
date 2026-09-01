@@ -8,10 +8,7 @@ import com.github.noamm9.init.ClassGraphInitializer
 import com.github.noamm9.utils.network.ApiAuth
 import com.github.noamm9.utils.render.ItemRenderer
 import gg.essential.universal.UMinecraft
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.*
 import me.owdding.dfu.item.MeowddingItemDfu
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.rendering.v1.PictureInPictureRendererRegistry

@@ -35,7 +35,7 @@ object MelodyTerminal: Terminal() {
 
     override fun getClickForSlot(slot: Int) = claySlots.getOrNull(slot)?.let(::TerminalClick)
 
-    override fun maxClicks() = 3
+    override fun maxClicks() = gridSize.second
     override fun completedClicks() = buttonRow ?: 0
 
     override fun progressSuffix(): String {

@@ -8,6 +8,7 @@ import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.terminals.TerminalListener.FIRST_CLICK_DELAY
 import com.github.noamm9.features.impl.floor7.terminals.impl.*
+import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.RenderHelper.width
@@ -55,6 +56,10 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
             if (maxClicks != null && maxClicks > 0) ctx.drawCenteredString(progress, 0, - 10f)
 
             maxOf(title.width(), progress.width()).toFloat() to 20f
+        }.apply {
+            x = Resolution.width / 2
+            y = Resolution.height / 2 - Resolution.height / 10
+            scale = 3f
         }
 
         register<TickEvent.Server> {
