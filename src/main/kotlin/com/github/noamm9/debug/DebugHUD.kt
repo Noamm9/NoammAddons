@@ -229,7 +229,7 @@ object DebugHUD {
 
         draw("§a§lTERMINAL DEBUGGER", 0x55FF55)
         draw("In Terminal: ${if (TerminalListener.inTerm) "§aYES" else "§cNO"}")
-        draw("Current Type: §e${TerminalListener.currentType?.name ?: "None"}")
+        draw("Current Type: §e${TerminalListener.currentHandler?.displayName ?: "None"}")
         draw("Current Title: §f${TerminalListener.currentTitle.ifEmpty { "None" }}")
         draw("Last Window ID: §b${TerminalListener.lastWindowId}")
         draw("Interact Cooldown: §c${TerminalListener.interactCooldown}")
@@ -242,7 +242,7 @@ object DebugHUD {
 
         y += 5
 
-        val slotCount = TerminalListener.currentType?.slotCount ?: 0
+        val slotCount = TerminalListener.currentHandler?.slotCount ?: 0
         val cols = 9
         val slotSize = 18
         val spacing = 0

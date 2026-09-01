@@ -1,27 +1,31 @@
 package com.github.noamm9.features.impl.floor7.terminals
 
 import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.impl.TerminalEvent
+import com.github.noamm9.features.impl.floor7.terminals.impl.Terminal
+import com.github.noamm9.init.types.ISelfInit
 
-object HumanClickOrder {
+object HumanClickOrder: ISelfInit {
     private const val NEIGHBOR_RADIUS_SQR = 20.0 * 20.0
 
     var lastClickedSlot: Int? = null
 
-    fun getBestClick(availableClicks: List<TerminalClick>, type: TerminalType) = selectClick(availableClicks, type, worst = false)
-    fun getWorstClick(availableClicks: List<TerminalClick>, type: TerminalType) = selectClick(availableClicks, type, worst = true)
+    fun getBestClick(handler: Terminal) = selectClick(handler, worst = false)
+    fun getWorstClick(handler: Terminal) = selectClick(handler, worst = true)
 
-    private fun selectClick(availableClicks: List<TerminalClick>, type: TerminalType, worst: Boolean): TerminalClick {
-        if (availableClicks.isEmpty()) error("Solution list is empty")
+    private fun selectClick(handler: Terminal, worst: Boolean): TerminalClick {
+        if (handler.solution.isEmpty()) error("Solution list is empty")
 
-        val lastSlot = lastClickedSlot ?: (type.slotCount / 2).also(::lastClickedSlot::set)
+        val lastSlot = lastClickedSlot ?: (handler.slotCount / 2).also(::lastClickedSlot::set)
 
         val comparator = Comparator<TerminalClick> { clickA, clickB ->
             val distanceComparison = getDistanceSqr(clickA.slotId, lastSlot).compareTo(getDistanceSqr(clickB.slotId, lastSlot))
             if (distanceComparison != 0) distanceComparison
-            else countNeighbors(clickA.slotId, availableClicks).compareTo(countNeighbors(clickB.slotId, availableClicks))
+            else countNeighbors(clickA.slotId, handler.solution).compareTo(countNeighbors(clickB.slotId, handler.solution))
         }
 
-        val shuffled = availableClicks.shuffled()
+        val shuffled = handler.solution.shuffled()
         val selected = if (worst) shuffled.asReversed().maxWith(comparator)
         else shuffled.minWith(comparator)
 
@@ -43,5 +47,9 @@ object HumanClickOrder {
         val dy = (pos1.y - pos2.y).toDouble()
 
         return dx * dx + dy * dy
+    }
+
+    override fun init() {
+        EventBus.register<TerminalEvent.Close> { lastClickedSlot = null }
     }
 }

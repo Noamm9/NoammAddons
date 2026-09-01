@@ -48,7 +48,7 @@ object LividSolver: Feature() {
     private val ceilingWoolBlock = BlockPos(5, 108, 40)
     private var lividId: Int? = null
 
-    private const val ticks = 390
+    private const val ticks = 350
     private var timer = - 1
 
     override fun init() {

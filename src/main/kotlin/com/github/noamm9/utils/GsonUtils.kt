@@ -5,12 +5,15 @@ import com.google.gson.*
 import net.minecraft.core.BlockPos
 import java.awt.Color
 import java.lang.reflect.Type
+import java.util.*
+import kotlin.jvm.optionals.getOrNull
 
 object GsonUtils {
     val gson = GsonBuilder().setPrettyPrinting().disableHtmlEscaping().apply {
         registerTypeAdapter(BlockPos::class.java, BlockPosAdapter())
         registerTypeAdapter(Color::class.java, ColorAdapter())
         registerTypeAdapter(Regex::class.java, RegexAdapter())
+        registerTypeAdapter(Optional::class.java, OptionalAdapter())
     }.create()
 
     inline fun <reified T: Any> decode(json: String): T = gson.fromJson(json, object: TypeToken<T>() {}.type)
@@ -38,6 +41,13 @@ object GsonUtils {
 
         override fun deserialize(json: JsonElement, type: Type, ctx: JsonDeserializationContext) = json.asJsonObject.run {
             BlockPos(get("x").asInt, get("y").asInt, get("z").asInt)
+        }
+    }
+
+    class OptionalAdapter: JsonSerializer<Optional<*>>, JsonDeserializer<Optional<*>> {
+        override fun serialize(src: Optional<*>, type: Type, ctx: JsonSerializationContext) = JsonPrimitive(src.getOrNull().toString())
+        override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): Optional<*> {
+            return Optional.ofNullable(json?.asString)
         }
     }
 }

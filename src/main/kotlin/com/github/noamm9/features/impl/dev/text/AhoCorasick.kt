@@ -257,7 +257,7 @@ abstract class AhoCorasick {
                 continue
             }
 
-            state = state.goto.get(chars[i]) ?: root
+            state = state.goto.getOrElse(chars[i]) { null } ?: root
 
             b[bl] = chars[i]
             bs[bl] = styles[i]

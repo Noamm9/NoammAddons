@@ -2,24 +2,20 @@ package com.github.noamm9.features.impl.floor7
 
 import com.github.noamm9.config.types.DropdownSetting
 import com.github.noamm9.config.types.TextInputSetting
-import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
-import com.github.noamm9.event.impl.PacketEvent
-import com.github.noamm9.event.impl.TickEvent
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.location.LocationUtils
 import gg.essential.universal.UMinecraft
-import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
-import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
-import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
+import net.minecraft.network.protocol.game.*
 import net.minecraft.world.item.Items
 
 object MelodyAlert: Feature() {
     private val msg by TextInputSetting("Melody Message", "I ❤ Melody")
-    private val mode by DropdownSetting("Progress Mode", 0, listOf("1/4", "25%"))
+    private val mode by DropdownSetting("Progress Mode", 0, listOf("1/3", "33%"))
 
-    private val progressSlots = intArrayOf(25, 34, 43)
+    private val progressSlots = intArrayOf(25, 34, 43) // todo remove 43
     private var isMelodyOpen = false
     private var currentStage = - 1
 
@@ -61,7 +57,7 @@ object MelodyAlert: Feature() {
                 if (i <= currentStage) continue
 
                 if (player.containerMenu.getSlot(progressSlots[i]).item.`is`(Items.LIME_TERRACOTTA)) {
-                    val progress = if (mode.value == 0) "${i + 1}/4" else "${(i + 1) * 25}%"
+                    val progress = if (mode.value == 0) "${i + 1}/3" else "${(i + 1) * 33}%"
                     ChatUtils.sendPartyMessage("${msg.value} $progress")
                     currentStage = i
                 }
