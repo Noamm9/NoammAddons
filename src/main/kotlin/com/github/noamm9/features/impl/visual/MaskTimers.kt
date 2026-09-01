@@ -5,7 +5,9 @@ import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.NumbersUtils.toFixed
+import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
@@ -15,6 +17,7 @@ import gg.essential.universal.UResolution
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import net.minecraft.world.entity.EquipmentSlot
+import kotlin.math.roundToInt
 
 object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and more") {
     private val onlyInDungeon by ToggleSetting("Dungeons Only")
@@ -24,38 +27,7 @@ object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and mo
     private val procNotification by ToggleSetting("Proc Notification")
     private val readyNotification by ToggleSetting("Ready Notification")
 
-    private enum class Mask(
-        val displayName: String,
-        val suffix: String,
-        val color: String,
-        val cooldownTicks: Int,
-        val invulnTicks: Int,
-        val regex: Regex,
-        val checkWorn: () -> Boolean
-    ) {
-        BONZO("Bonzo", "Mask", "&9", 180 * 20, 3 * 20, Regex("Your (?:.+ )?Bonzo's Mask saved your life!"), {
-            "BONZO_MASK" in player.getItemBySlot(EquipmentSlot.HEAD).skyblockId
-        }),
-        SPIRIT("Spirit", "Mask", "&f", 30 * 20, 3 * 20, Regex("Second Wind Activated! Your Spirit Mask saved your life!"), {
-            "SPIRIT_MASK" in player.getItemBySlot(EquipmentSlot.HEAD).skyblockId
-        }),
-        PHOENIX("Phoenix", "Pet", "&c", 60 * 20, 4 * 20, Regex("Your Phoenix Pet saved you from certain death!"), {
-            (cacheData.get()["pet"] as? JsonPrimitive)?.contentOrNull.toString().contains("Phoenix")
-        });
-
-        var cdLeft = 0
-        var invulnLeft = 0
-        var isWorn = false
-        var notifiedReady = true
-
-        fun reset() {
-            cdLeft = 0
-            invulnLeft = 0
-            isWorn = false
-            notifiedReady = true
-        }
-    }
-
+    private val loreCdRegex = Regex("^Cooldown: ([\\d.]+)s$")
 
     override fun init() {
         hudElement("Mask Timers") { context, example ->
@@ -83,7 +55,7 @@ object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and mo
                 maxWidth = maxOf(maxWidth, text.width())
                 yOffset += 10
             }
-            
+
             maxWidth to yOffset
         }
 
@@ -115,11 +87,15 @@ object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and mo
             if (! LocationUtils.inSkyblock || (onlyInDungeon.value && ! LocationUtils.inDungeon)) return@register
             val msg = event.unformattedText
             Mask.entries.forEach { mask ->
-                if (mask.regex.matches(msg)) {
-                    mask.cdLeft = mask.cooldownTicks
-                    if (invulnerabilityTimers.value) mask.invulnLeft = mask.invulnTicks
-                    if (procNotification.value) ChatUtils.showTitle("${mask.color}${mask.displayName} Procced!")
-                }
+                if (! mask.regex.matches(msg)) return@forEach
+
+                mask.cdLeft = if (mask == Mask.BONZO) player.getItemBySlot(EquipmentSlot.HEAD).lore.firstNotNullOfOrNull { line ->
+                    loreCdRegex.matchEntire(line.removeFormatting().trim())?.groupValues?.get(1)?.toDoubleOrNull()
+                }?.let { (it * 20).roundToInt() } ?: mask.cooldownTicks
+                else mask.cooldownTicks
+
+                if (invulnerabilityTimers.value) mask.invulnLeft = mask.invulnTicks
+                if (procNotification.value) ChatUtils.showTitle("${mask.color}${mask.displayName} Procced!")
             }
         }
 
@@ -138,5 +114,37 @@ object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and mo
         }
 
         register<WorldChangeEvent> { Mask.entries.forEach(Mask::reset) }
+    }
+
+    private enum class Mask(
+        val displayName: String,
+        val suffix: String,
+        val color: String,
+        val cooldownTicks: Int,
+        val invulnTicks: Int,
+        val regex: Regex,
+        val checkWorn: () -> Boolean
+    ) {
+        BONZO("Bonzo", "Mask", "&9", 180 * 20, 3 * 20, Regex("Your (?:.+ )?Bonzo's Mask saved your life!"), {
+            "BONZO_MASK" in player.getItemBySlot(EquipmentSlot.HEAD).skyblockId
+        }),
+        SPIRIT("Spirit", "Mask", "&f", 30 * 20, 3 * 20, Regex("Second Wind Activated! Your Spirit Mask saved your life!"), {
+            "SPIRIT_MASK" in player.getItemBySlot(EquipmentSlot.HEAD).skyblockId
+        }),
+        PHOENIX("Phoenix", "Pet", "&c", 60 * 20, 4 * 20, Regex("Your Phoenix Pet saved you from certain death!"), {
+            (cacheData.get()["pet"] as? JsonPrimitive)?.contentOrNull.toString().contains("Phoenix")
+        });
+
+        var cdLeft = 0
+        var invulnLeft = 0
+        var isWorn = false
+        var notifiedReady = true
+
+        fun reset() {
+            cdLeft = 0
+            invulnLeft = 0
+            isWorn = false
+            notifiedReady = true
+        }
     }
 }
