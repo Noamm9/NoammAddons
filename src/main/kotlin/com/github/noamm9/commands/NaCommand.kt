@@ -69,6 +69,14 @@ object NaCommand: ICommandProvider {
             }
         }
 
+        refillCommand("ep", "ENDER_PEARL", "ender_pearl", 16)
+        refillCommand("ij", "INFLATABLE_JERRY", "inflatable_jerry", 64)
+        refillCommand("sl", "SPIRIT_LEAP", "spirit_leap", 16)
+        refillCommand("sb", "SUPERBOOM_TNT", "superboom_tnt", 64)
+        refillCommand("dd", "DUNGEON_DECOY", "dungeon_decoy", 64)
+        refillCommand("tap", "TOXIC_ARROW_POISON", "toxic_arrow_poison", 64)
+        refillCommand("twap", "TWILIGHT_ARROW_POISON", "twilight_arrow_poison", 64)
+
         literal("debug") {
             description("Debug flags")
             runs {
@@ -201,6 +209,20 @@ object NaCommand: ICommandProvider {
         LeapMenu.customLeapOrder = validPlayers
         LeapMenu.customLeapType = sortingType
         ChatUtils.modMessage("§aCustom leap order set to: §f$sortingType §awith players: §f${validPlayers.joinToString(", ")}")
+    }
+
+    private fun CommandBuilder.refillCommand(name: String, itemId: String, sackName: String, defaultAmount: Int) {
+        literal(name) {
+            description("Refills ${sackName.replace('_', ' ')} from sacks")
+            runs { refill(itemId, sackName, defaultAmount) }
+        }
+    }
+
+    private fun refill(itemId: String, sackName: String, amount: Int) {
+        val inventory = NoammAddons.mc.player?.inventory ?: return
+        val currentAmount = inventory.sumOf { stack -> if (stack.skyblockId == itemId) stack.count else 0 }
+        val missingAmount = amount - currentAmount
+        if (missingAmount > 0) ChatUtils.sendCommand("gfs $sackName $missingAmount")
     }
 
     private fun sendRtca(name: String = NoammAddons.mc.user.name) = NoammAddons.scope.launch(Dispatchers.IO) {
