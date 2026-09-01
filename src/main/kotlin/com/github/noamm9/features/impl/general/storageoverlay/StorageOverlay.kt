@@ -13,8 +13,7 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.catch
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.network.WebUtils
-import com.github.noamm9.utils.network.data.StorageData
+import com.github.noamm9.utils.network.NoammAPI
 import gg.essential.universal.UMinecraft
 import gg.essential.universal.wrappers.UPlayer
 import net.minecraft.client.gui.screens.Screen
@@ -214,7 +213,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     }
 
     private suspend fun loadFromApi() {
-        WebUtils.getAs<StorageData>("https://api.noamm.org/hypixel/storage/${UPlayer.getUUID()}").onSuccess {
+        NoammAPI.getStorage(UPlayer.getUUID().toString()).onSuccess {
             val data = TreeMap<StoragePage, NBTInventory?>()
             it.enderchest.forEach { (i, stacks) -> data[StoragePage(i)] = NBTInventory(stacks) }
             it.backpack.forEach { (i, stacks) -> data[StoragePage(i + 9)] = NBTInventory(stacks) }

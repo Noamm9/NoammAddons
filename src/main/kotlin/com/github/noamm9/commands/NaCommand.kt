@@ -233,12 +233,10 @@ object NaCommand: ICommandProvider {
     }
 
     private fun sendRtca(name: String = NoammAddons.mc.user.name) = NoammAddons.scope.launch(Dispatchers.IO) {
-        WebUtils.getAs<RtcaData>("https://api.noamm.org/hypixel/rtca/$name").onSuccess {
-            // ChatUtils.modMessage("${it.name}: ${it.runs} (${formatClassRuns(it.classes)})")
+        NoammAPI.getRtca(name).onSuccess {
             ChatUtils.modMessage("${it.name} is ${it.runs} M7 runs away from ca50 (${formatClassRuns(it.classes)})")
         }.onFailure {
             ChatUtils.modMessage("An error occurred meow! (${it.message})")
-            it.printStackTrace()
         }
     }
 
