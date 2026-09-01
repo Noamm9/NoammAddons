@@ -7,20 +7,15 @@ import com.github.noamm9.utils.*
 import com.github.noamm9.utils.JsonUtils.getString
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.network.cache.MojangCache
-import com.github.noamm9.utils.network.cache.ProfileCache
-import com.github.noamm9.utils.network.cache.SecretCache
+import com.github.noamm9.utils.network.cache.*
 import com.github.noamm9.utils.network.data.DungeonStats
 import com.github.noamm9.utils.network.data.MojangData
-import io.ktor.client.call.body
-import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.jsonObject
 import java.util.*
 import java.util.concurrent.*
 
 object ProfileUtils {
-    private const val BASE_URL = "https://api.noamm.org"
     private val apiCooldowns = ConcurrentHashMap<String, Long>()
 
     private val nameToUuidApis = listOf(
@@ -106,7 +101,7 @@ object ProfileUtils {
         SecretCache.check(name)?.let { return it }
 
         return getUUIDbyName(name).mapCatching { mojangData ->
-            doApiRequest<Long>("/hypixel/secrets/${mojangData.uuid}")
+            NoammAPI.getSecrets(mojangData.uuid).getOrThrow()
         }.apply {
             onSuccess { SecretCache.addToCache(name, it) }
             onFailure { SecretCache.addFailedToCache(name) }
@@ -118,31 +113,11 @@ object ProfileUtils {
         ProfileCache.check(name)?.let { return it }
 
         return getUUIDbyName(name).mapCatching { mojangData ->
-            doApiRequest<DungeonStats>("/hypixel/dungeonstats/${mojangData.uuid}")
+            NoammAPI.getDungeonStats(mojangData.uuid).getOrThrow()
         }.apply {
             onSuccess { ProfileCache.addToCache(name, it) }
             onFailure { ProfileCache.addFailedToCache(name) }
         }
-    }
-
-    private suspend inline fun <reified T> doApiRequest(path: String): T {
-        val now = System.currentTimeMillis()
-        if (now < (apiCooldowns["noamm"] ?: 0L)) throw IllegalStateException("API global cooldown")
-        if (now < (apiCooldowns[path] ?: 0L)) throw IllegalStateException("Path negative cached")
-
-        val res = WebUtils.get("$BASE_URL$path").getOrThrow()
-        val code = res.status.value
-
-        if (code !in 200 .. 299) {
-            when (code) {
-                429 -> apiCooldowns["noamm"] = now + 60_000
-                404, 500, 502, 503, 403 -> apiCooldowns[path] = now + 300_000
-            }
-
-            throw Error("HTTP ${res.status}: ${res.bodyAsText()}")
-        }
-
-        return res.body()
     }
 
     // usuaslly i dont like running commands in the background

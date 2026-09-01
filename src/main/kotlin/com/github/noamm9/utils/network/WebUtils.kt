@@ -12,18 +12,14 @@ import io.ktor.client.plugins.UserAgent
 import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.websocket.WebSockets
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
+import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.websocket.WebSocketDeflateExtension
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import java.util.concurrent.*
 import java.util.zip.*
 
@@ -49,11 +45,11 @@ object WebUtils {
         }
     }
 
-    suspend fun get(url: String): Result<HttpResponse> {
+    suspend fun get(url: String, block: HttpRequestBuilder.() -> Unit = {}): Result<HttpResponse> {
         while (true) {
             sharedRequests[url]?.let { return it.await() }
 
-            val deferred = scope.async(start = CoroutineStart.LAZY) { runCatching { client.get(url) } }
+            val deferred = scope.async(start = CoroutineStart.LAZY) { runCatching { client.get(url, block) } }
             sharedRequests.putIfAbsent(url, deferred) ?: run {
                 deferred.invokeOnCompletion { sharedRequests.remove(url, deferred) }
                 deferred.start()
@@ -63,14 +59,7 @@ object WebUtils {
     }
 
     suspend inline fun <reified T> getAs(url: String) = get(url).mapCatching {
-        if (it.status.value !in 200 .. 299) error("HTTP ${it.status.value}-${it.status.description}: ${it.bodyAsText()}")
+        if (! it.status.isSuccess()) error("HTTP ${it.status.value}-${it.status.description}: ${it.bodyAsText()}")
         it.body<T>()
-    }
-
-    suspend fun post(url: String, body: Any) = runCatching {
-        client.post(url) {
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }
     }
 }

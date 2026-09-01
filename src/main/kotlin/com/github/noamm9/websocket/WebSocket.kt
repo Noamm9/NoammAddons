@@ -1,17 +1,20 @@
 package com.github.noamm9.websocket
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.NoammAddons.logger
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.EventBus.register
+import com.github.noamm9.event.impl.GameStartEvent
 import com.github.noamm9.event.impl.WebSocketEvent
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.GsonUtils
+import com.github.noamm9.utils.network.ApiAuth
 import com.github.noamm9.utils.network.WebUtils
 import io.ktor.client.plugins.websocket.webSocket
-import io.ktor.websocket.Frame
-import io.ktor.websocket.WebSocketSession
-import io.ktor.websocket.readText
+import io.ktor.client.request.parameter
+import io.ktor.websocket.*
 import kotlinx.coroutines.*
 
 object WebSocket: ISelfInit {
@@ -20,11 +23,16 @@ object WebSocket: ISelfInit {
     @Volatile private var connecting = false
 
     override fun init() {
-        scope.launch { connect() }
+        register<GameStartEvent> {
+            scope.launch {
+                delay(5000)
+                connect()
+            }
+        }
     }
 
     fun send(packet: Any) = scope.launch {
-        val socket = session?.takeIf { it.isActive } ?: return@launch
+        val socket = session?.takeIf(WebSocketSession::isActive) ?: return@launch
         val json = GsonUtils.gson.toJsonTree(packet).asJsonObject
         val type = PacketRegistry.getType(packet)
         if (type != null) json.addProperty("type", type)
@@ -37,7 +45,11 @@ object WebSocket: ISelfInit {
         connecting = true
 
         try {
-            WebUtils.client.webSocket("wss://ws.noamm.org") {
+            val token = ApiAuth.token ?: return logger.info("[Websocket] no auth token yet, waiting for auth")
+            WebUtils.client.webSocket("wss://ws.noamm.org", {
+                parameter("name", mc.user.name)
+                parameter("token", token)
+            }) {
                 session = this
 
                 for (frame in incoming) if (frame is Frame.Text) mc.submit {
@@ -47,8 +59,7 @@ object WebSocket: ISelfInit {
         }
         catch (e: Throwable) {
             if (e is CancellationException) throw e
-            ChatUtils.debug("ws", "[WS] disconnected")
-            NoammAddons.logger.error("[WebSocket] error!", e)
+            ChatUtils.modMessage("[WebSocket] error: ${e.message}")
         }
         finally {
             session = null
