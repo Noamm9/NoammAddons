@@ -10,7 +10,7 @@ import java.awt.Color
 object NumberTerminal: Terminal() {
     override val titleRegex = Regex("^Click in order!$")
     override val displayName = "Numbers"
-    override val gridSize = 5 to 2
+    override val gridSize = 7 to 2 // todo change back to 5x2
     override val slotCount = 36
 
     private val slotCounts = mutableMapOf<Int, Int>()

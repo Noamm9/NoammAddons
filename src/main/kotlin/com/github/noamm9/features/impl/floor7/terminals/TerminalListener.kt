@@ -3,9 +3,7 @@ package com.github.noamm9.features.impl.floor7.terminals
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
-import com.github.noamm9.features.impl.floor7.terminals.impl.MelodyTerminal
-import com.github.noamm9.features.impl.floor7.terminals.impl.RubixTerminal
-import com.github.noamm9.features.impl.floor7.terminals.impl.Terminal
+import com.github.noamm9.features.impl.floor7.terminals.impl.*
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.mixin.IServerboundInteractPacket
 import com.github.noamm9.utils.ChatUtils
@@ -13,10 +11,7 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
-import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
-import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
-import net.minecraft.network.protocol.game.ServerboundContainerClickPacket
-import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
+import net.minecraft.network.protocol.game.*
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.inventory.AbstractContainerMenu
 import net.minecraft.world.item.ItemStack
@@ -133,7 +128,7 @@ object TerminalListener: ISelfInit {
     }
 
     private fun Terminal.sync(container: AbstractContainerMenu, slotId: Int = 0, stack: ItemStack = ItemStack.EMPTY) {
-        container.items.subList(0, slotCount).forEachIndexed { index, stack ->
+        container.items.toList().subList(0, slotCount).forEachIndexed { index, stack ->
             currentItems[index] = stack
         }
 

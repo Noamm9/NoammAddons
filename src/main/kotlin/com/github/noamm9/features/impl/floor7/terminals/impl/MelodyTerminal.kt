@@ -12,12 +12,12 @@ import kotlin.reflect.KMutableProperty0
 object MelodyTerminal: Terminal() {
     override val titleRegex = Regex("^Click the button on time!$")
     override val displayName = "Melody"
-    override val gridSize = 6 to 3
+    override val gridSize = 6 to 4 // todo change back to 6x3
     override val slotCount = 54
 
     override val trackProgress = false
 
-    val claySlots = listOf(16, 25, 34)
+    val claySlots = listOf(16, 25, 34, 43) // todo remove 43
     var buttonRow: Int? = null
     var current: Int? = null
     var correct: Int? = null

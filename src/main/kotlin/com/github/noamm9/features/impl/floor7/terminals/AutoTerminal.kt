@@ -2,20 +2,13 @@ package com.github.noamm9.features.impl.floor7.terminals
 
 //#if CHEAT
 
-import com.github.noamm9.config.types.DropdownSetting
-import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.config.types.ToggleSetting
-import com.github.noamm9.event.impl.ContainerEvent
-import com.github.noamm9.event.impl.ScreenEvent
-import com.github.noamm9.event.impl.TerminalEvent
-import com.github.noamm9.event.impl.TickEvent
+import com.github.noamm9.config.types.*
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.terminals.TerminalListener.FIRST_CLICK_DELAY
 import com.github.noamm9.features.impl.floor7.terminals.impl.*
-import com.github.noamm9.utils.MathUtils
-import com.github.noamm9.utils.ThreadUtils
-import com.github.noamm9.utils.equalsOneOf
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.RenderHelper.width
 import gg.essential.universal.UKeyboard
@@ -27,7 +20,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     private val minRandomDelay by SliderSetting("Min Random Delay", 120.0, 80.0, 500.0, 1.0).withDescription("The minimum possible delay").showIf { randomDelay.value }.jsonName("minRandomDelay")
     private val maxRandomDelay by SliderSetting("Max Random Delay", 150.0, 120.0, 500.0, 1.0).withDescription("The maximum possible delay").showIf { randomDelay.value }.jsonName("maxRandomDelay")
     private val clickOrder by DropdownSetting("Click Order", 2, listOf("None", "Random", "Human", "Skizo")).withDescription("Human: Logic pathing. Skizo: Chaotic/Furthest.")
-    val invwalk by ToggleSetting("Fake InvWalk").withDescription("Draws the Term name and progress on screen rather then the solution")
+    private val invwalk by ToggleSetting("Fake InvWalk").withDescription("Draws the Term name and progress on screen rather then the solution")
 
     private val autoMelody by ToggleSetting("Melody", true).section("Melody-AutoTerm")
     private val melodyFcDelay by ToggleSetting("First Click Delay", true).showIf { autoMelody.value }
