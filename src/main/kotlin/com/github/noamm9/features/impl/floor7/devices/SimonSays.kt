@@ -1,10 +1,7 @@
 package com.github.noamm9.features.impl.floor7.devices
 
 import com.github.noamm9.NoammAddons
-import com.github.noamm9.config.types.ColorSetting
-import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.config.types.TextInputSetting
-import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
@@ -119,7 +116,7 @@ object SimonSays: Feature("Simon Says Solver") {
         register<TickEvent.Start> {
             if (! triggerBot.value) return@register
             if (LocationUtils.F7Phase != 3) return@register
-            if (lastClick + 1 >= DungeonListener.currentTime) return@register
+            if (lastClick + 2 >= DungeonListener.currentTime) return@register
 
             val expected = solution.firstOrNull() ?: return@register
             if (PlayerUtils.getSelectionBlock() != expected.button) return@register
