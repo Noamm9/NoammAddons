@@ -19,7 +19,7 @@ import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 object SlotBinding: Feature("Allows you to bind slots to hotbar slots for quick item swaps.") {
-    private val bindKey by KeybindSetting("Binding key", UKeyboard.KEY_R).section("Keybind").withDescription("Hold this key and click a hotbar slot and an inventory slot to link them.")
+    private val bindKey by KeybindSetting("Binding key", UKeyboard.KEY_R).section("Keybind").withDescription("Press while hovering a hotbar slot and an inventory slot to link them.")
     private val showBoundSlots by ToggleSetting("Show Bound Slots", true).section("Rendering")
     private val neuStyle by ToggleSetting("Hover Only", false).withDescription("Only shows bound slots when hovering over a them.").showIf { showBoundSlots.value }
     private val drawBorders by ToggleSetting("Draw Border", true).showIf { showBoundSlots.value }
@@ -31,40 +31,26 @@ object SlotBinding: Feature("Allows you to bind slots to hotbar slots for quick 
     private var previousSlot: Int? = null
 
     override fun init() {
+        register<ContainerEvent.Keyboard> {
+            val screen = event.screen as? InventoryScreen ?: return@register
+            if (! bindKey.matches(event.key, mouse = false)) return@register
+            val slotId = (screen as IAbstractContainerScreen).hoveredSlot?.index ?: return@register
+
+            event.isCanceled = true
+            bindSlot(slotId)
+        }
+
         register<ContainerEvent.MouseClick> {
             val screen = event.screen as? InventoryScreen ?: return@register
             val slotId = (screen as IAbstractContainerScreen).hoveredSlot?.index ?: return@register
-            val binds = binds.get()
 
-            if (bindKey.isDown()) {
+            if (bindKey.matches(event.button, mouse = true)) {
                 event.isCanceled = true
-
-                val currentPrev = previousSlot
-                if (currentPrev != null) {
-                    previousSlot = null
-                    if (currentPrev == slotId) return@register
-
-                    val firstIsHb = currentPrev in 36 .. 44
-                    val secondIsHb = slotId in 36 .. 44
-
-                    if (firstIsHb != secondIsHb) {
-                        val inv = if (firstIsHb) slotId else currentPrev
-                        val hb = if (firstIsHb) currentPrev else slotId
-                        binds[inv] = hb
-                    }
-                }
-                else {
-                    val existingBind = binds[slotId] ?: binds.entries.find { it.value == slotId }?.key
-                    if (existingBind != null) {
-                        if (slotId in binds) binds.remove(slotId)
-                        else binds.entries.removeIf { it.value == slotId }
-                    }
-                    else previousSlot = slotId
-                }
-
+                bindSlot(slotId)
                 return@register
             }
 
+            val binds = binds.get()
             val isShiftDown = (event.modifiers and GLFW.GLFW_MOD_SHIFT) != 0
             if (! isShiftDown || event.button != 0) return@register
 
@@ -78,6 +64,33 @@ object SlotBinding: Feature("Allows you to bind slots to hotbar slots for quick 
         }
 
         register<ContainerEvent.Close> { previousSlot = null }
+    }
+
+    private fun bindSlot(slotId: Int) {
+        val binds = binds.get()
+        val currentPrev = previousSlot
+
+        if (currentPrev != null) {
+            previousSlot = null
+            if (currentPrev == slotId) return
+
+            val firstIsHb = currentPrev in 36 .. 44
+            val secondIsHb = slotId in 36 .. 44
+
+            if (firstIsHb != secondIsHb) {
+                val inv = if (firstIsHb) slotId else currentPrev
+                val hb = if (firstIsHb) currentPrev else slotId
+                binds[inv] = hb
+            }
+        }
+        else {
+            val existingBind = binds[slotId] ?: binds.entries.find { it.value == slotId }?.key
+            if (existingBind != null) {
+                if (slotId in binds) binds.remove(slotId)
+                else binds.entries.removeIf { it.value == slotId }
+            }
+            else previousSlot = slotId
+        }
     }
 
     @JvmStatic
