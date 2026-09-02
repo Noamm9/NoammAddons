@@ -11,6 +11,7 @@ import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class FriendListM7PBTest {
     @Test
@@ -187,6 +188,7 @@ class FriendListM7PBTest {
 
         assertEquals(hover, nameStyle.hoverEvent)
         assertEquals(click, nameStyle.clickEvent)
+        assertTrue(formatted.formattedText.contains("§bEden240"))
     }
 
     @Test

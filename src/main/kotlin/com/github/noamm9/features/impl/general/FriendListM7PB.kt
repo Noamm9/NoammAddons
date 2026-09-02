@@ -247,7 +247,8 @@ object FriendListM7PB: Feature(
             if (overlapStart < overlapEnd) {
                 val rawStart = rawIndexAtVisibleOffset(text, overlapStart - segmentStart)
                 val rawEnd = rawIndexAtVisibleOffset(text, overlapEnd - segmentStart)
-                output.append(Component.literal(text.substring(rawStart, rawEnd)).setStyle(transformStyle(style)))
+                val formatting = legacyFormattingCode.findAll(text.substring(0, rawStart)).joinToString("") { it.value }
+                output.append(Component.literal(formatting + text.substring(rawStart, rawEnd)).setStyle(transformStyle(style)))
             }
 
             visibleOffset = segmentEnd
@@ -288,4 +289,5 @@ object FriendListM7PB: Feature(
 
     private const val M7_FLOOR = "7"
     private const val MAX_CONCURRENT_LOOKUPS = 4
+    private val legacyFormattingCode = Regex("[§&][0-9a-fk-or]", RegexOption.IGNORE_CASE)
 }
