@@ -1,13 +1,8 @@
 package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.commands.CommandBuilder
-import com.github.noamm9.config.types.DropdownSetting
-import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.config.types.ToggleSetting
-import com.github.noamm9.event.impl.ChatMessageEvent
-import com.github.noamm9.event.impl.ContainerEvent
-import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
-import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.config.types.*
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.utils.*
@@ -24,9 +19,9 @@ import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
 import com.mojang.brigadier.arguments.StringArgumentType
 import kotlinx.coroutines.launch
-import net.minecraft.network.chat.ClickEvent
-import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.HoverEvent
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
+import net.minecraft.network.chat.*
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Blocks
 import java.util.*
@@ -61,7 +56,8 @@ object PartyFinder: Feature(), ICommandProvider {
     private var selectedClass: String? = null
     private var inPartyFinder = false
 
-    private val pendingRequests = Collections.synchronizedSet(HashSet<String>())
+    private val fetchSemaphore = Semaphore(5)
+    private val pendingFetches = Collections.synchronizedSet(HashSet<String>())
 
     private val headSlots = setOf(
         10, 11, 12, 13, 14, 15, 16,
@@ -319,6 +315,7 @@ object PartyFinder: Feature(), ICommandProvider {
             }
         }.ifEmpty { return }
 
+        ThreadUtils.setTimeout(60 * 1000) { kickedPlayers.remove(name) }
         kickedPlayers.add(name)
 
         if (informKicked.value) {
@@ -333,43 +330,43 @@ object PartyFinder: Feature(), ICommandProvider {
 
     private fun getLoreStats(name: String, floor: Int, type: Char): String {
         val key = name.removeFormatting().uppercase()
-        val cachedData = ProfileCache.getOrNull(key)
+        val cached = ProfileCache.check(key)
 
-        if (cachedData == null) {
-            if (key !in pendingRequests && pendingRequests.size < 5) {
-                pendingRequests.add(key)
+        when {
+            cached?.isFailure == true -> return "§c(Failed)"
 
-                scope.launch {
-                    try {
-                        ProfileUtils.getProfile(key).getOrThrow()
+            cached?.isSuccess == true -> {
+                val data = cached.getOrThrow()
+                return buildString {
+                    append("§b(§6${data.cataLevel}§b)§r")
+
+                    if (showSecrets.value) {
+                        append(" §8[§a${data.dungeons.secrets}§8/§b${data.secretAverage.toFixed(2)}§8]§r")
                     }
-                    catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                    finally {
-                        pendingRequests.remove(key)
+
+                    if (showPB.value) {
+                        val pbObj = if (type == 'F') data.dungeons.catacombs else data.dungeons.masterCatacombs
+                        val pb = pbObj.fastestTimeSPlus["$floor"]?.let(::formatTime) ?: "N/A"
+                        append(" §8[§9$pb§8]§r")
                     }
                 }
             }
 
-            return "§7(Loading...)"
-        }
-
-        val dungeons = cachedData.dungeons
-
-        return buildString {
-            append("§b(§6${cachedData.cataLevel}§b)§r")
-
-            if (showSecrets.value) {
-                append(" §8[§a${dungeons.secrets}§8/§b${cachedData.secretAverage.toFixed(2)}§8]§r")
-            }
-
-            if (showPB.value) {
-                val pbObj = if (type == 'F') dungeons.catacombs else dungeons.masterCatacombs
-                val pb = pbObj.fastestTimeSPlus["$floor"]?.let(::formatTime) ?: "N/A"
-                append(" §8[§9$pb§8]§r")
+            cached == null -> {
+                if (key !in pendingFetches) {
+                    pendingFetches.add(key)
+                    scope.launch {
+                        fetchSemaphore.withPermit {
+                            ProfileUtils.getProfile(key)
+                            pendingFetches.remove(key)
+                        }
+                    }
+                }
+                return "§7(Loading...)"
             }
         }
+
+        return ""
     }
 
     private fun getColor(level: Int) = when {
