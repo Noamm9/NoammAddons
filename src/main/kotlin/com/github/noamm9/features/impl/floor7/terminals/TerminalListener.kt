@@ -37,6 +37,8 @@ object TerminalListener: ISelfInit {
         EventBus.register<ContainerFullyOpenedEvent> {
             if (LocationUtils.F7Phase != 3) return@register
             val handler = Terminal.fromTitle(event.title.string) ?: return@register reset()
+            if (inTerm) reset()
+
             inTerm = true
             initialOpenTick = DungeonListener.currentTime
             initialOpenTime = System.currentTimeMillis()
