@@ -104,7 +104,10 @@ object ProfileUtils {
             NoammAPI.getSecrets(mojangData.uuid).getOrThrow()
         }.apply {
             onSuccess { SecretCache.addToCache(name, it) }
-            onFailure { SecretCache.addFailedToCache(name) }
+            onFailure { error ->
+                if (error is NoammAPI.NoammAPIException) return@onFailure
+                SecretCache.addFailedToCache(name)
+            }
         }
     }
 
@@ -116,7 +119,10 @@ object ProfileUtils {
             NoammAPI.getDungeonStats(mojangData.uuid).getOrThrow()
         }.apply {
             onSuccess { ProfileCache.addToCache(name, it) }
-            onFailure { ProfileCache.addFailedToCache(name) }
+            onFailure { error ->
+                if (error is NoammAPI.NoammAPIException) return@onFailure
+                ProfileCache.addFailedToCache(name)
+            }
         }
     }
 
