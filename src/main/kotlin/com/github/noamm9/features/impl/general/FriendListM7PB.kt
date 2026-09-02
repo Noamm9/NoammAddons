@@ -1,20 +1,21 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.config.types.ToggleSetting
-import com.github.noamm9.utils.ChatUtils
-import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.network.ProfileUtils
+import gg.essential.universal.UChat
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents
 import net.minecraft.ChatFormatting
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
@@ -111,35 +112,33 @@ object FriendListM7PB: Feature(
     }
 
     private fun formatFriendLine(original: Component, name: String, personalBest: PersonalBest, shortenLocations: Boolean): Component {
-        val rawText = original.formattedText
-        val visibleText = rawText.removeFormatting()
+        val visibleText = original.unformattedText
         val nameStart = findName(visibleText, name)
         if (nameStart == - 1) return original.copy().append(personalBestComponent(personalBest))
 
-        val nameEndRaw = rawIndexAtVisibleOffset(rawText, nameStart + name.length)
+        val nameEnd = nameStart + name.length
         val locationMatch = masterModeLocation.find(visibleText).takeIf { shortenLocations }
         val result = Component.empty()
 
-        result.append(Component.literal(rawText.substring(0, nameEndRaw)))
+        appendStyledRange(original, 0, nameStart, result)
+        appendStyledRange(original, nameStart, nameEnd, result)
         result.append(personalBestComponent(personalBest))
 
         if (locationMatch == null) {
-            result.append(Component.literal(rawText.substring(nameEndRaw)))
+            appendStyledRange(original, nameEnd, visibleText.length, result)
             return result
         }
 
         val floor = locationMatch.groups["floor"]?.value?.romanToDecimal()?.takeIf { it > 0 }
         if (floor == null) {
-            result.append(Component.literal(rawText.substring(nameEndRaw)))
+            appendStyledRange(original, nameEnd, visibleText.length, result)
             return result
         }
 
-        val locationStartRaw = rawIndexAtVisibleOffset(rawText, locationMatch.range.first)
-        val locationEndRaw = rawIndexAtVisibleOffset(rawText, locationMatch.range.last + 1)
-        result.append(Component.literal(rawText.substring(nameEndRaw, locationStartRaw)))
+        appendStyledRange(original, nameEnd, locationMatch.range.first, result)
         result.append(Component.literal(" is in SkyBlock - ").withStyle(ChatFormatting.YELLOW))
         result.append(Component.literal("In MM$floor").withStyle(ChatFormatting.RED))
-        result.append(Component.literal(rawText.substring(locationEndRaw)))
+        appendStyledRange(original, locationMatch.range.last + 1, visibleText.length, result)
         return result
     }
 
@@ -161,12 +160,31 @@ object FriendListM7PB: Feature(
 
     private fun showLines(lines: List<Component>) {
         if (lines.isEmpty()) return
+        val output = joinLines(lines)
+
+        mc.execute {
+            if (! ClientReceiveMessageEvents.ALLOW_GAME.invoker().allowReceiveGameMessage(output, false)) {
+                ClientReceiveMessageEvents.GAME_CANCELED.invoker().onReceiveGameMessageCanceled(output, false)
+                return@execute
+            }
+
+            val modified = ClientReceiveMessageEvents.MODIFY_GAME.invoker().modifyReceivedGameMessage(output, false)
+            UChat.chat(modified)
+            ClientReceiveMessageEvents.GAME.invoker().onReceiveGameMessage(modified, false)
+        }
+    }
+
+    internal fun joinLines(lines: List<Component>): MutableComponent {
         val output = Component.empty()
         lines.forEachIndexed { index, line ->
-            output.append(line)
+            val root = line.copy()
+            val siblings = root.siblings.toList()
+            root.siblings.clear()
+            if (root.string.isNotEmpty()) output.append(root)
+            siblings.forEach(output::append)
             if (index != lines.lastIndex) output.append("\n")
         }
-        ChatUtils.chat(output)
+        return output
     }
 
     internal fun extractFriend(text: String): FriendEntry? {
@@ -209,12 +227,40 @@ object FriendListM7PB: Feature(
         return - 1
     }
 
-    private fun rawIndexAtVisibleOffset(rawText: String, visibleOffset: Int): Int {
+    private fun appendStyledRange(
+        component: Component,
+        start: Int,
+        end: Int,
+        output: MutableComponent,
+        transformStyle: (Style) -> Style = { it }
+    ) {
+        if (start >= end) return
+        var visibleOffset = 0
+
+        component.visit({ style, text ->
+            val visible = text.removeFormatting()
+            val segmentStart = visibleOffset
+            val segmentEnd = segmentStart + visible.length
+            val overlapStart = maxOf(start, segmentStart)
+            val overlapEnd = minOf(end, segmentEnd)
+
+            if (overlapStart < overlapEnd) {
+                val rawStart = rawIndexAtVisibleOffset(text, overlapStart - segmentStart)
+                val rawEnd = rawIndexAtVisibleOffset(text, overlapEnd - segmentStart)
+                output.append(Component.literal(text.substring(rawStart, rawEnd)).setStyle(transformStyle(style)))
+            }
+
+            visibleOffset = segmentEnd
+            Optional.empty<String>()
+        }, Style.EMPTY)
+    }
+
+    private fun rawIndexAtVisibleOffset(text: String, visibleOffset: Int): Int {
         var rawIndex = 0
         var visibleIndex = 0
 
-        while (rawIndex < rawText.length) {
-            if ((rawText[rawIndex] == '§' || rawText[rawIndex] == '&') && rawIndex + 1 < rawText.length) {
+        while (rawIndex < text.length) {
+            if ((text[rawIndex] == '§' || text[rawIndex] == '&') && rawIndex + 1 < text.length) {
                 rawIndex += 2
                 continue
             }
@@ -223,7 +269,7 @@ object FriendListM7PB: Feature(
             rawIndex ++
         }
 
-        return rawText.length
+        return text.length
     }
 
     internal fun formatFriendLine(original: Component, name: String, milliseconds: Long, shortenLocations: Boolean = true): Component {

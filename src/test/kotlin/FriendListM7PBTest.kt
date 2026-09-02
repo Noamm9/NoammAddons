@@ -1,8 +1,13 @@
 import com.github.noamm9.features.impl.general.FriendListM7PB
 import com.github.noamm9.utils.ChatUtils.formattedText
+import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import net.minecraft.ChatFormatting
+import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.HoverEvent
+import net.minecraft.network.chat.Style
+import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -164,4 +169,43 @@ class FriendListM7PBTest {
             formatted
         )
     }
+
+    @Test
+    fun `preserves name hover and click events`() {
+        val hover = HoverEvent.ShowText(Component.literal("Friends for a month and 2 days"))
+        val click = ClickEvent.RunCommand("/socialoptions Eden240")
+        val original = Component.empty()
+            .append(Component.literal("§bEden240").withStyle { it.withHoverEvent(hover).withClickEvent(click) })
+            .append(Component.literal(" §eis in SkyBlock - Hub"))
+
+        val formatted = FriendListM7PB.formatFriendLine(original, "Eden240", 301_000)
+        var nameStyle = Style.EMPTY
+        formatted.visit({ style, text ->
+            if (text.removeFormatting().contains("Eden240")) nameStyle = style
+            Optional.empty<Unit>()
+        }, Style.EMPTY)
+
+        assertEquals(hover, nameStyle.hoverEvent)
+        assertEquals(click, nameStyle.clickEvent)
+    }
+
+    @Test
+    fun `keeps clickable names as direct siblings for chat modifiers`() {
+        val hover = HoverEvent.ShowText(Component.literal("Friends for a month and 2 days\nClick to open social options"))
+        val click = ClickEvent.RunCommand("/socialoptions Eden240")
+        val original = Component.empty()
+            .append(Component.literal("§bEden240").withStyle { it.withHoverEvent(hover).withClickEvent(click) })
+            .append(Component.literal(" §eis in SkyBlock - Hub"))
+        val line = FriendListM7PB.formatFriendLine(original, "Eden240", 301_000)
+
+        val output = FriendListM7PB.joinLines(listOf(line))
+        val pvVisibleName = output.siblings.firstOrNull { component ->
+            val command = (component.style.clickEvent as? ClickEvent.RunCommand)?.command
+            command?.startsWith("/socialoptions ") == true || command?.startsWith("/viewprofile ") == true
+        }
+
+        assertEquals("Eden240", pvVisibleName?.unformattedText)
+        assertEquals(hover, pvVisibleName?.style?.hoverEvent)
+    }
+
 }
