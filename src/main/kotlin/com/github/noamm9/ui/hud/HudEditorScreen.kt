@@ -108,7 +108,11 @@ class HudEditorScreen: Screen(Component.literal("HudEditor")) {
     }
 
     override fun mouseScrolled(mouseX: Double, mouseY: Double, horizontal: Double, vertical: Double): Boolean {
-        for (hud in huds) if (hud.isDragging) {
+        val mX = Resolution.getMouseX(mouseX)
+        val mY = Resolution.getMouseY(mouseY)
+        val hud = huds.find { it.isDragging } ?: huds.find { it.isHovered(mX, mY) }
+
+        if (hud != null) {
             val increment = (vertical * 0.1).toFloat()
             hud.scale = (hud.scale + increment).coerceIn(0.5f, 5.0f)
             return true
