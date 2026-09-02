@@ -27,9 +27,8 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
     private val terminalTitles by ToggleSetting("Terminal Titles").withDescription("Reformats terminal, device, lever, and gate subtitles during phase 3")
 
     private val terminalTitleDuration by SliderSetting("Duration", 2.5, 0.5, 6, 0.5).withDescription("Duration of the terminal title in seconds").showIf { terminalTitles.value }
-    private val terminalTitleMode by DropdownSetting("Mode", 0, listOf("Name + Term + Progress", "Term + Progress", "Progress")).withDescription("Controls which information appears in terminal titles").showIf { terminalTitles.value }
-    private val terminalTitleBracket by DropdownSetting("Bracket Type", 0, listOf("()", "[]", "<>", "{}")).withDescription("Changes the brackets around terminal progress").showIf { terminalTitles.value }
-    private val terminalPhaseDone by ToggleSetting("Phase Done").withDescription("Renders Phase Done instead of 7/7 or 8/8").showIf { terminalTitles.value }
+    private val terminalTitleFormat by TextInputSetting("Format", "{name} {type} &f({progress}&f)").withDescription("Replaces {name}, {class}, {type}, and {progress} with the player name, dungeon class, terminal type, and phase progress. &bSupports color codes").showIf { terminalTitles.value }
+    private val terminalPhaseDone by ToggleSetting("Phase Done").withDescription("Renders Phase Done instead of the completed progress").showIf { terminalTitles.value }
     private val terminalGateTitles by ToggleSetting("Gate Titles").withDescription("Also reformats gate-related subtitles").showIf { terminalTitles.value }
 
     private val crystalRegex = Regex("^(\\d)/(\\d) Energy Crystals are now active!$")
@@ -206,15 +205,7 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
     }
 
     private fun formatTerminalTitle(name: String, type: String, min: Int, max: Int): String {
-        val color = ColorUtils.colorCodeByPercent(min, max)
         if (terminalPhaseDone.value && min == max) return "&a&lPhase Done!"
-        val brackets = when (terminalTitleBracket.value) {
-            0 -> listOf("(", ")")
-            1 -> listOf("[", "]")
-            2 -> listOf("<", ">")
-            3 -> listOf("{", "}")
-            else -> listOf("", "")
-        }
 
         val formattedType = when (type) {
             "terminal" -> "&5Terminal"
@@ -223,14 +214,17 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
             else -> ""
         }
 
-        val formattedName = (DungeonListener.dungeonTeammates.find { it.name == name }?.clazz?.code ?: "&7") + name
+        val clazz = DungeonListener.dungeonTeammates.find { it.name == name }?.clazz
+        val classColor = clazz?.code ?: "&7"
+        val formattedName = "$classColor$name&r"
+        val formattedClass = clazz?.name?.let { "$classColor$it&r" } ?: "&7Unknown&r"
+        val formattedProgress = "${ColorUtils.colorCodeByPercent(min, max)}$min&8/&a$max"
 
-        return when (terminalTitleMode.value) {
-            0 -> "$formattedName $formattedType &f${brackets[0]}$color$min&8/&a$max&f${brackets[1]}"
-            1 -> "$formattedType &f${brackets[0]}$color$min&f/&a$max&f${brackets[1]}"
-            2 -> "&f${brackets[0]}$color$min&f/&a$max&f${brackets[1]}"
-            else -> ""
-        }
+        return terminalTitleFormat.value
+            .replace("{name}", formattedName)
+            .replace("{class}", formattedClass)
+            .replace("{type}", formattedType)
+            .replace("{progress}", formattedProgress)
     }
 
     private fun showTitle(subtitle: String) {
