@@ -130,7 +130,8 @@ object TerminalListener: ISelfInit {
     }
 
     private fun Terminal.sync(container: AbstractContainerMenu, slotId: Int = 0, stack: ItemStack = ItemStack.EMPTY) {
-        container.items.toList().subList(0, slotCount).forEachIndexed { index, stack ->
+        val items = container.items
+        items.subList(0, minOf(items.size, slotCount)).forEachIndexed { index, stack ->
             currentItems[index] = stack
         }
 
