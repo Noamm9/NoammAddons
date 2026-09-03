@@ -8,6 +8,7 @@ import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.KeyboardEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.types.ICommandProvider
+import com.github.noamm9.mixin.IAbstractContainerScreen
 import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.formattedText
@@ -21,6 +22,7 @@ import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
 import gg.essential.universal.UKeyboard
 import gg.essential.universal.UMinecraft
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.network.chat.Component
 import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.item.ItemStack
@@ -63,11 +65,18 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
                     event.isCanceled = true
                 }
             }
+        }
 
-            if (protectBind.isDown()) {
-                event.isCanceled = true
-                protect(stack)
-            }
+        register<ContainerEvent.Keyboard> {
+            if (! protectBind.matches(event.key, mouse = false)) return@register
+            if (! protectHoveredItem(event.screen)) return@register
+            event.isCanceled = true
+        }
+
+        register<ContainerEvent.MouseClick> {
+            if (! protectBind.matches(event.button, mouse = true)) return@register
+            if (! protectHoveredItem(event.screen)) return@register
+            event.isCanceled = true
         }
 
         register<KeyboardEvent.KeyPressed> {
@@ -140,6 +149,12 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
 
             isHopper || hasBuyback
         }
+    }
+
+    private fun protectHoveredItem(screen: AbstractContainerScreen<*>): Boolean {
+        val stack = (screen as IAbstractContainerScreen).hoveredSlot?.item?.takeUnless { it.isEmpty } ?: return false
+        protect(stack)
+        return true
     }
 
     private fun protect(stack: ItemStack) {
