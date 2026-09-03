@@ -44,6 +44,7 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
 
     override fun CommandBuilder.command() {
         setName("chathider")
+        requires("Enable the Chat module to use /chathider.") { enabled }
         runs { ChatUtils.modMessage("&bUsage: /chathider <add|remove|list>") }
 
         literal("add") {
