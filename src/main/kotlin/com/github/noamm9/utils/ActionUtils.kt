@@ -38,9 +38,13 @@ object ActionUtils: ISelfInit {
     private suspend fun run() {
         while (actionQueue.isNotEmpty()) {
             val action = synchronized(lock) { actionQueue.poll() } ?: break
-            if (action.blockInput) ThreadUtils.setTimeout(5000) { isBlocked = false }
             isBlocked = action.blockInput
-            action.block()
+            if (action.blockInput) ThreadUtils.setTimeout(5000) { isBlocked = false }
+            try {
+                action.block()
+            } finally {
+                isBlocked = false
+            }
         }
         running = false
     }

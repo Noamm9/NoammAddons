@@ -229,8 +229,9 @@ object PlayerUtils: ISelfInit, Shortcuts {
                     player.closeContainer()
                 }
 
-                "spirit leap" if awaitingLeap != null -> Scheduler.schedule(2) {
+                "spirit leap" if awaitingLeap != null -> Scheduler.schedule(100) {
                     val leapTarget = awaitingLeap ?: return@schedule
+                    awaitingLeap = null
 
                     LeapMenu.updateLeapMenu()
                     LeapMenu.players.find { it?.player?.name == leapTarget.name }?.let { target ->
@@ -238,7 +239,6 @@ object PlayerUtils: ISelfInit, Shortcuts {
                         GuiUtils.clickSlot(target.slotIndex, GuiUtils.ButtonType.LEFT)
                     }
                     player.closeContainer()
-                    awaitingLeap = null
                 }
             }
         }
