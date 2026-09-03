@@ -5,6 +5,7 @@ import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.componnents.UIButton
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render2D.drawLine
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.MouseButtonEvent
@@ -80,6 +81,9 @@ class HudEditorScreen: Screen(Component.literal("HudEditor")) {
             ctx.fill(0, y, w, y + 1, gridColor)
             y += gridSize
         }
+
+        ctx.drawLine(0, h / 2, w, h / 2, Color.WHITE)
+        ctx.drawLine(w / 2, 0, w / 2, h, Color.WHITE)
     }
 
     override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
@@ -130,8 +134,6 @@ class HudEditorScreen: Screen(Component.literal("HudEditor")) {
     }
 
     override fun mouseClicked(mouseButtonEvent: MouseButtonEvent, bl: Boolean): Boolean {
-        if (super.mouseClicked(mouseButtonEvent, bl)) return true
-
         val mX = Resolution.getMouseX(mouseButtonEvent.x)
         val mY = Resolution.getMouseY(mouseButtonEvent.y)
 
@@ -140,7 +142,7 @@ class HudEditorScreen: Screen(Component.literal("HudEditor")) {
             if (it.isDragging) return true
         }
 
-        return false
+        return super.mouseClicked(mouseButtonEvent, bl)
     }
 
     override fun mouseReleased(mouseButtonEvent: MouseButtonEvent): Boolean {
