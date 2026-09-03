@@ -7,6 +7,7 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.NoammAddons.scope
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.impl.GameStartEvent
+import com.github.noamm9.mixin.IMinecraft
 import com.github.noamm9.utils.GsonUtils.decode
 import com.github.noamm9.utils.GsonUtils.encode
 import com.github.noamm9.utils.ThreadUtils.setTimeout
@@ -37,7 +38,7 @@ object ApiAuth {
 
     private suspend fun updateToken() {
         try {
-            val playerKeypairOpt = mc.profileKeyPairManager.prepareKeyPair().await()
+            val playerKeypairOpt = (mc as IMinecraft).keyPair.prepareKeyPair().await()
 
             if (! playerKeypairOpt.isPresent) {
                 logger.warn("[ApiAuth] No profile key pair available, retrying in 5 minutes")
