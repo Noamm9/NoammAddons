@@ -11,20 +11,16 @@ import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.interfaces.IChatComponent
 import com.github.noamm9.ui.notification.NotificationManager
-import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
-import com.github.noamm9.utils.NumbersUtils
-import com.github.noamm9.utils.catch
 import com.mojang.brigadier.arguments.StringArgumentType
 import gg.essential.universal.UKeyboard
 import gg.essential.universal.UMinecraft
 import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.screens.ChatScreen
 import net.minecraft.client.multiplayer.chat.GuiMessage
-import net.minecraft.network.chat.ClickEvent
-import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.Style
+import net.minecraft.network.chat.*
 import org.lwjgl.glfw.GLFW
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
@@ -44,6 +40,7 @@ object Chat: Feature("Useful tweaks for the chat such as Ctrl + Click to copy me
 
     override fun CommandBuilder.command() {
         setName("chathider")
+        requires("Enable the $name Feature to use /chathider.") { enabled }
         runs { ChatUtils.modMessage("&bUsage: /chathider <add|remove|list>") }
 
         literal("add") {

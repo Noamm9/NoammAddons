@@ -1,10 +1,12 @@
 package com.github.noamm9.commands
 
 import com.mojang.brigadier.Command
+import com.mojang.brigadier.LiteralMessage
 import com.mojang.brigadier.arguments.ArgumentType
 import com.mojang.brigadier.builder.ArgumentBuilder
 import com.mojang.brigadier.builder.RequiredArgumentBuilder
 import com.mojang.brigadier.context.CommandContext
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType
 import com.mojang.brigadier.suggestion.SuggestionProvider
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
@@ -14,7 +16,7 @@ class CommandBuilder {
     private lateinit var names: Array<out String>
     private var executor: ((CommandContext<FabricClientCommandSource>) -> Unit)? = null
     private val children = mutableListOf<CommandBuilder>()
-    private var requirement: (() -> Boolean)? = null
+    private val requirements = mutableListOf<() -> Unit>()
     private var descriptionText: String? = null
 
     private var argumentType: ArgumentType<*>? = null
@@ -24,6 +26,11 @@ class CommandBuilder {
     private var suggestionLambda: (() -> Iterable<String>)? = null
 
     fun setName(vararg names: String) = ::names.set(names)
+
+    fun requires(message: String, predicate: () -> Boolean) = requirements.add {
+        if (! predicate()) throw SimpleCommandExceptionType(LiteralMessage(message)).create()
+    }
+
     fun runs(block: (CommandContext<FabricClientCommandSource>) -> Unit) = ::executor.set(block)
     fun suggests(strings: () -> Iterable<String>) = ::suggestionLambda.set(strings)
     fun description(text: String) = ::descriptionText.set(text)
@@ -61,16 +68,14 @@ class CommandBuilder {
         children.forEach { it.collect(path, out) }
     }
 
-    private fun setup(target: ArgumentBuilder<FabricClientCommandSource, *>) {
+    private fun setup(target: ArgumentBuilder<FabricClientCommandSource, *>, inheritedRequirements: List<() -> Unit> = emptyList()) {
+        val checks = inheritedRequirements + requirements
         executor?.let { exec ->
             target.executes { context ->
+                checks.forEach { it() }
                 exec(context)
                 Command.SINGLE_SUCCESS
             }
-        }
-
-        requirement?.let { req ->
-            target.requires { req() }
         }
 
         val reqTarget = target as? RequiredArgumentBuilder<FabricClientCommandSource, *>
@@ -88,7 +93,7 @@ class CommandBuilder {
             else if (child.argumentName != null && child.argumentType != null) ClientCommands.argument(child.argumentName !!, child.argumentType !!)
             else return@forEach
 
-            child.setup(childBuilder)
+            child.setup(childBuilder, checks)
             target.then(childBuilder)
         }
     }
