@@ -32,9 +32,7 @@ import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
-import net.minecraft.world.phys.BlockHitResult
-import net.minecraft.world.phys.HitResult
-import net.minecraft.world.phys.Vec3
+import net.minecraft.world.phys.*
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -158,8 +156,6 @@ object PlayerUtils: ISelfInit, Shortcuts {
     private var awaitingLeap: DungeonPlayer? = null
 
     suspend fun changeMaskAction() = quickSwapAction("SPIRIT_MASK", "BONZO_MASK")
-
-
     suspend fun quickSwapAction(vararg itemIDs: String) {
         if (thePlayer?.isDead == true) return
 
@@ -205,17 +201,20 @@ object PlayerUtils: ISelfInit, Shortcuts {
     suspend fun rodSwap() {
         val found = findHotbarSlot { it.item == Items.FISHING_ROD } ?: return modMessage("&cNo Fishing Rod found in hotbar!")
         val prev = player.inventory.selectedSlot
+        val hold = mc.options.keyUse.isDown
 
         swapToSlot(found)
         waitTicks(2, ::rightClick)
         waitTicks(2) { swapToSlot(prev) }
         delay(100)
+
+        mc.options.keyUse.isDown = hold
     }
 
     override fun init() {
         register<ContainerFullyOpenedEvent> {
             when (event.title.unformattedText.lowercase().trim()) {
-                "stats & equipment" if awaiting4EQ.isNotEmpty() -> Scheduler.schedule(7) {
+                "stats & equipment" if awaiting4EQ.isNotEmpty() -> Scheduler.schedule(350) {
                     val con = player.containerMenu.slots
                     val item = con.filter { it.index in con.size - 36 until con.size }.find { slot ->
                         awaiting4EQ.any(slot.item.skyblockId::contains)
@@ -229,8 +228,9 @@ object PlayerUtils: ISelfInit, Shortcuts {
                     player.closeContainer()
                 }
 
-                "spirit leap" if awaitingLeap != null -> Scheduler.schedule(2) {
+                "spirit leap" if awaitingLeap != null -> Scheduler.schedule(100) {
                     val leapTarget = awaitingLeap ?: return@schedule
+                    awaitingLeap = null
 
                     LeapMenu.updateLeapMenu()
                     LeapMenu.players.find { it?.player?.name == leapTarget.name }?.let { target ->
@@ -238,7 +238,6 @@ object PlayerUtils: ISelfInit, Shortcuts {
                         GuiUtils.clickSlot(target.slotIndex, GuiUtils.ButtonType.LEFT)
                     }
                     player.closeContainer()
-                    awaitingLeap = null
                 }
             }
         }
