@@ -3,9 +3,7 @@ package com.github.noamm9.features.impl.general.storageoverlay
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.config.types.ToggleSetting
-import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
-import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
-import com.github.noamm9.event.impl.PacketEvent
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.general.ItemTooltip
 import com.github.noamm9.init.types.ICustomMenu
@@ -16,19 +14,17 @@ import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.network.NoammAPI
 import gg.essential.universal.UMinecraft
 import gg.essential.universal.wrappers.UPlayer
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
-import net.minecraft.nbt.CompoundTag
-import net.minecraft.nbt.NbtAccounter
-import net.minecraft.nbt.NbtIo
+import net.minecraft.nbt.*
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Blocks
 import java.io.File
-import java.nio.file.AtomicMoveNotSupportedException
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
+import java.nio.file.*
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
@@ -41,9 +37,11 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     val enableTooltipInStorage by ToggleSetting("Tooltip Scroll").withDescription("Enables Item Tooltip Scrolling. (requires ${ItemTooltip.name} to be enabled)")
     val hideNonMatchingPages by ToggleSetting("Hide Non-Matching Pages").withDescription("Hides storage pages without an item matching the current inventory search")
 
-    private val storageDir by lazy { File(mc.gameDirectory, "config/${NoammAddons.MOD_NAME}/storage").also(File::mkdirs) }
-    private val dataFile get() = File(storageDir, "${UPlayer.getUUID()}.nbt").also { it.createNewFile() }
+    private val storageDir = File(mc.gameDirectory, "config/${NoammAddons.MOD_NAME}/storage").also(File::mkdirs)
+    private val dataFile get() = File(storageDir, "${UPlayer.getUUID()}.nbt")
     @Volatile var storageMenuData: SortedMap<StoragePage, NBTInventory?> = TreeMap()
+    private val saveMutex = Mutex()
+    private var loaded = false
 
     private var currentMenu: StorageMenu? = null
     private var active: StorageOverlayScreen? = null
@@ -161,15 +159,16 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         ThreadUtils.async(::saveData)
     }
 
-    private fun saveData() {
+    private suspend fun saveData() = saveMutex.withLock {
+        Files.createDirectories(storageDir.toPath())
         val file = dataFile
-        if (! checkFile(file)) return
         val root = CompoundTag()
-        for ((slot, inv) in storageMenuData) {
-            inv?.let { root.putString("${slot.index}_inv", it.encode()) }
+
+        for ((slot, inv) in storageMenuData) inv?.let {
+            root.putString("${slot.index}_inv", it.encode())
         }
 
-        val tempFile = file.toPath().resolveSibling("${file.name}.tmp")
+        val tempFile = file.toPath().resolveSibling("${file.name}.${UUID.randomUUID()}.tmp")
         try {
             NbtIo.writeCompressed(root, tempFile)
             try {
@@ -185,13 +184,11 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     }
 
     private fun loadData() {
-        val file = dataFile
-        if (! checkFile(file)) return
         if (storageMenuData.isNotEmpty()) return
-        if (! file.exists()) return ThreadUtils.async(::loadFromApi)
-
+        val file = dataFile.takeIf(File::exists) ?: return ThreadUtils.async(::loadFromApi)
         val root = catch { NbtIo.readCompressed(file.toPath(), NbtAccounter.uncompressedQuota()) }
             ?: return ThreadUtils.async(::loadFromApi)
+
         val data = TreeMap<StoragePage, NBTInventory?>()
 
         for (i in 0 until 27) {
@@ -206,18 +203,15 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         storageMenuData = data
     }
 
-    private fun checkFile(file: File): Boolean {
-        if (! file.isDirectory) return true
-        val children = file.listFiles().orEmpty()
-        return children.isEmpty() && file.delete()
-    }
-
     private suspend fun loadFromApi() {
+        if (loaded) return
+        loaded = true
         NoammAPI.getStorage(UPlayer.getUUID().toString()).onSuccess {
             val data = TreeMap<StoragePage, NBTInventory?>()
             it.enderchest.forEach { (i, stacks) -> data[StoragePage(i)] = NBTInventory(stacks) }
             it.backpack.forEach { (i, stacks) -> data[StoragePage(i + 9)] = NBTInventory(stacks) }
             storageMenuData = data
+            ThreadUtils.async(::saveData)
         }
     }
 
