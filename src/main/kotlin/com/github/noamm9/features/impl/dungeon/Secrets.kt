@@ -26,6 +26,7 @@ import java.util.concurrent.*
 
 object Secrets: Feature() {
     private val hudDisplay by ToggleSetting("Secret HUD", true).withDescription("Displays the current room's secrets on screen.").section("HUD")
+    private val hudPrefix by TextInputSetting("HUD Prefix", "Secrets:").withDescription("The text before the secret count of the room")
 
     //#if CHEAT
     private val closeChest by ToggleSetting("Close Chest").section("Auto").withDescription("Automatically closes the secret chest for you.")
@@ -55,7 +56,9 @@ object Secrets: Feature() {
             else {
                 val max = ActionBarParser.maxSecrets ?: return@hudElement 0f to 0f
                 val current = ActionBarParser.secrets ?: return@hudElement 0f to 0f
-                "&7Secrets: ${ColorUtils.colorCodeByPercent(current, max)}$current&7/&a$max"
+                val prefix = if (hudPrefix.value.isBlank()) "" else "&7${hudPrefix.value} "
+
+                "$prefix${ColorUtils.colorCodeByPercent(current, max)}$current&7/&a$max"
             }
 
             ctx.drawString(line, 0, 0)
