@@ -2,14 +2,11 @@ package com.github.noamm9.utils
 
 import com.github.noamm9.NoammAddons.scope
 import com.github.noamm9.event.EventBus
-import com.github.noamm9.event.impl.KeyboardEvent
-import com.github.noamm9.event.impl.MouseClickEvent
-import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ThreadUtils.scheduledTask
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.*
+import java.lang.Runnable
 import java.util.concurrent.*
 import kotlin.coroutines.resume
 
@@ -31,20 +28,17 @@ object ActionUtils: ISelfInit {
     fun queue(priority: Int = 0, blockInput: Boolean = false, block: suspend () -> Unit) = synchronized(lock) {
         actionQueue.add(Action(priority, blockInput, block))
         if (running) return@synchronized
-        running = true
         processingJob = scope.launch { run() }
     }
 
     private suspend fun run() {
+        running = true
         while (actionQueue.isNotEmpty()) {
             val action = synchronized(lock) { actionQueue.poll() } ?: break
-            isBlocked = action.blockInput
             if (action.blockInput) ThreadUtils.setTimeout(5000) { isBlocked = false }
-            try {
-                action.block()
-            } finally {
-                isBlocked = false
-            }
+            isBlocked = action.blockInput
+            catch { action.block() }
+            isBlocked = false
         }
         running = false
     }
