@@ -15,7 +15,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor
 open class Feature(
     val description: String? = null,
     name: String? = null,
-    val toggled: Boolean = false
+    toggled: Boolean = false
 ): Shortcuts, SettingProvider {
     val name = name ?: this::class.simpleName.toString().spaceCaps()
     open val category = initCategory()

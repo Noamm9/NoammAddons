@@ -2,8 +2,6 @@ package com.github.noamm9.commands
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.config.ConfigManager
-import com.github.noamm9.config.ConfigManager.configFile
-import com.github.noamm9.config.ConfigManager.getConfigs
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.NoammDebugFlagEvent
@@ -17,15 +15,13 @@ import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
-import com.github.noamm9.utils.network.WebUtils
+import com.github.noamm9.utils.network.NoammAPI
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.context.CommandContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.network.chat.Component
-import java.io.File
 
 object NaCommand: ICommandProvider {
     override fun CommandBuilder.command() {
@@ -148,22 +144,27 @@ object NaCommand: ICommandProvider {
         literal("config") {
             literal("load") {
                 argument("config", StringArgumentType.string()) {
-                    suggests { getConfigs().keys }
+                    suggests { ConfigManager.getConfigs().keys }
                     runs {
-                        loadConfig(it)
+                        val configName = StringArgumentType.getString(it, "config")
+                        ConfigManager.changeConfig(configName)
                     }
                 }
             }
             literal("create") {
                 argument("config", StringArgumentType.string()) {
-                    runs { createConfig(it) }
+                    runs {
+                        val configName = StringArgumentType.getString(it, "config").removeSuffix(".json")
+                        ConfigManager.createConfig(configName)
+                    }
                 }
             }
             literal("delete") {
                 argument("config", StringArgumentType.string()) {
-                    suggests { getConfigs().keys }
+                    suggests { ConfigManager.getConfigs().keys }
                     runs {
-                        deleteConfig(it)
+                        val configName = StringArgumentType.getString(it, "config").removeSuffix(".json")
+                        ConfigManager.deleteConfig(configName)
                     }
                 }
             }
@@ -245,34 +246,4 @@ object NaCommand: ICommandProvider {
             "${name.take(4).uppercaseFirst()} $runs"
         }
     }
-
-    private fun loadConfig(ctx: CommandContext<FabricClientCommandSource>) {
-        val configName = StringArgumentType.getString(ctx, "config")
-        ConfigManager.changeConfig(configName)
-    }
-
-
-    private fun createConfig(ctx: CommandContext<FabricClientCommandSource>) {
-        val configName = StringArgumentType.getString(ctx, "config").removeSuffix(".json")
-        if (configName in getConfigs().keys) return ChatUtils.modMessage("&cThere is already a config named \"$configName\".")
-        val configFile = File(ConfigManager.configsDir, "$configName.json")
-        ConfigManager.configFile = FileHandler(configFile)
-        ConfigManager.clear()
-        ConfigManager.save()
-        ConfigManager.selectedConfig.set(configName)
-        ChatUtils.modMessage("&aSuccessfully created config \"$configName\".")
-    }
-    private fun deleteConfig(ctx: CommandContext<FabricClientCommandSource>) {
-        val configName = StringArgumentType.getString(ctx, "config").removeSuffix(".json")
-        if (configName == "default") return ChatUtils.modMessage("&cYou cannot delete the default config.")
-        val configFile = getConfigs()[configName] ?: return ChatUtils.modMessage("&cNo config found with the name \"$configName\".")
-        configFile.delete()
-        ChatUtils.modMessage("&aSuccessfully deleted the config \"$configName\".")
-        if (configName != ConfigManager.configFile.file.nameWithoutExtension) return
-        ConfigManager.changeConfig("default")
-    }
-
-
-    @Serializable
-    private data class RtcaData(val name: String, val runs: Int, val classes: Map<String, Int>)
 }
