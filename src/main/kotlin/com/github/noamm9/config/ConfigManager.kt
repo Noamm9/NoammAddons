@@ -2,8 +2,7 @@ package com.github.noamm9.config
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.features.FeatureManager
-import com.github.noamm9.utils.FileHandler
-import com.github.noamm9.utils.GsonUtils
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.GsonUtils.jsonArray
 import com.github.noamm9.utils.GsonUtils.jsonObject
 import com.google.gson.JsonObject
@@ -12,9 +11,55 @@ import net.fabricmc.loader.api.FabricLoader
 import java.io.File
 
 object ConfigManager {
-    private val configDir = FabricLoader.getInstance().configDir.resolve(NoammAddons.MOD_NAME).toFile()
-    private val configFile = FileHandler(File(configDir, "config.json"))
+    private val configPath = FabricLoader.getInstance().configDir.resolve(NoammAddons.MOD_NAME)
+    private val configsDir = configPath.resolve("configs").toFile()
+    private val defaultConfigFile = File(configPath.toFile(), "config.json")
+    private val selectedConfig = PogObject<String>("currentConfig", "default")
+    private var configFile = FileHandler(getConfigs()[selectedConfig.get()] ?: defaultConfigFile)
     private const val VERSION = 1
+
+    fun getConfigs(): Map<String, File> {
+        val named = configsDir.listFiles()?.associateBy { it.nameWithoutExtension } ?: emptyMap()
+        return named + ("default" to defaultConfigFile)
+    }
+
+    fun createConfig(configName: String): Boolean {
+        if (configName in getConfigs().keys) {
+            ChatUtils.modMessage("&cThere is already a config named \"$configName\".")
+            return false
+        }
+        configsDir.mkdirs()
+        val newFile = File(configsDir, "$configName.json")
+        configFile.file.copyTo(newFile)
+        configFile = FileHandler(newFile)
+        selectedConfig.set(configName)
+        ChatUtils.modMessage("&aSuccessfully created config \"$configName\".")
+        return true
+    }
+
+    fun changeConfig(configName: String) {
+        val newConfigFile = getConfigs()[configName] ?: return ChatUtils.modMessage("&cNo config named \"$configName\" was found.")
+        if (! newConfigFile.exists()) return ChatUtils.modMessage("&cNo config file found for \"$configName\".")
+        configFile = FileHandler(newConfigFile)
+        selectedConfig.set(configName)
+        load()
+        ChatUtils.modMessage("&aSuccessfully loaded config \"$configName\".")
+    }
+
+    fun deleteConfig(configName: String): Boolean {
+        if (configName == "default") {
+            ChatUtils.modMessage("&cYou cannot delete the default config.")
+            return false
+        }
+        val file = getConfigs()[configName] ?: run {
+            ChatUtils.modMessage("&cNo config found with the name \"$configName\".")
+            return false
+        }
+        file.delete()
+        ChatUtils.modMessage("&aSuccessfully deleted the config \"$configName\".")
+        if (configName == selectedConfig.get()) changeConfig("default")
+        return true
+    }
 
     fun load() {
         val fileContent = configFile.read().takeUnless(String::isEmpty) ?: return

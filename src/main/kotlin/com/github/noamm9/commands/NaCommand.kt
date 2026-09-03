@@ -1,6 +1,7 @@
 package com.github.noamm9.commands
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.config.ConfigManager
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.NoammDebugFlagEvent
@@ -144,6 +145,35 @@ object NaCommand: ICommandProvider {
             argument("name", StringArgumentType.word()) {
                 runs {
                     sendRtca(StringArgumentType.getString(it, "name"))
+                }
+            }
+        }
+
+        literal("config") {
+            literal("load") {
+                argument("config", StringArgumentType.string()) {
+                    suggests { ConfigManager.getConfigs().keys }
+                    runs {
+                        val configName = StringArgumentType.getString(it, "config")
+                        ConfigManager.changeConfig(configName)
+                    }
+                }
+            }
+            literal("create") {
+                argument("config", StringArgumentType.string()) {
+                    runs {
+                        val configName = StringArgumentType.getString(it, "config").removeSuffix(".json")
+                        ConfigManager.createConfig(configName)
+                    }
+                }
+            }
+            literal("delete") {
+                argument("config", StringArgumentType.string()) {
+                    suggests { ConfigManager.getConfigs().keys }
+                    runs {
+                        val configName = StringArgumentType.getString(it, "config").removeSuffix(".json")
+                        ConfigManager.deleteConfig(configName)
+                    }
                 }
             }
         }
