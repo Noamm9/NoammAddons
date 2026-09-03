@@ -1,6 +1,6 @@
 package com.github.noamm9.mixin;
 
-import com.github.noamm9.features.impl.general.Chat;
+import com.github.noamm9.features.impl.general.ChatFeatures;
 import com.github.noamm9.interfaces.IChatComponent;
 import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.client.multiplayer.chat.GuiMessage;
@@ -30,7 +30,7 @@ public abstract class MixinChatComponent implements IChatComponent {
 
     @Inject(method = "addServerSystemMessage", at = @At("HEAD"), cancellable = true)
     private void clearMessages(Component message, CallbackInfo ci) {
-        Chat.addMassageHook(message, ci);
+        ChatFeatures.addMassageHook(message, ci);
     }
 
     @Override

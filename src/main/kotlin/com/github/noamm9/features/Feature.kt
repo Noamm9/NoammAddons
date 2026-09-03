@@ -15,11 +15,13 @@ import net.minecraft.client.gui.GuiGraphicsExtractor
 open class Feature(
     val description: String? = null,
     name: String? = null,
-    toggled: Boolean = false
+    toggled: Boolean = false,
+    jsonName: String? = null,
 ): Shortcuts, SettingProvider {
     val name = name ?: this::class.simpleName.toString().spaceCaps()
-    open val category = initCategory()
+    val jsonName = jsonName ?: this.name
     @JvmField var enabled = toggled
+    open val category = initCategory()
 
     private val alwaysActive = this::class.java.isAnnotationPresent(AlwaysActive::class.java)
     private val remotelyDisabled get() = RemoteFeatures.isDisabled(this::class.java.simpleName)

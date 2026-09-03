@@ -9,7 +9,7 @@ object FeatureManager {
     val hudElements = mutableListOf<HudElement>()
 
     fun getFeaturesByCategory(category: CategoryType) = features.filter { it.category == category }
-    fun getFeatureByName(name: String) = features.find { it.name == name }
+    fun getFeatureByName(name: String) = features.find { it.jsonName == name }
     fun getHudByName(name: String) = hudElements.find { it.name == name }
 
     fun createFeatureList() = buildString {

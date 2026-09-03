@@ -81,7 +81,7 @@ object ConfigManager {
         addProperty("version", VERSION)
         add("config", jsonArray {
             for (feature in FeatureManager.features) add(jsonObject {
-                addProperty("name", feature.name)
+                addProperty("name", feature.jsonName)
                 addProperty("enabled", feature.enabled)
                 add("configSettings", jsonObject {
                     for (setting in feature.configSettings) {
