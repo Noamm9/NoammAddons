@@ -1,9 +1,8 @@
 package com.github.noamm9.utils.dungeons.map.handlers
 
+import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.EventBus
-import com.github.noamm9.event.impl.DungeonEvent
-import com.github.noamm9.event.impl.TickEvent
-import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.MathUtils.toVec
 import com.github.noamm9.utils.WorldUtils
@@ -64,7 +63,7 @@ object DungeonScanner: ISelfInit {
             if (mimicRoom != null) return@register
             if (floor < 6) return@register
 
-            findMimicRoom()
+            if (NoammAddons.isCheat) findMimicRoom()
         }
     }
 

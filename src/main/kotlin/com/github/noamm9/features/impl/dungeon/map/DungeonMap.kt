@@ -4,9 +4,7 @@ import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
-import com.github.noamm9.utils.dungeons.map.core.DoorTile
-import com.github.noamm9.utils.dungeons.map.core.DoorType
-import com.github.noamm9.utils.dungeons.map.core.RoomState
+import com.github.noamm9.utils.dungeons.map.core.*
 import com.github.noamm9.utils.dungeons.map.handlers.*
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.equalsOneOf
@@ -23,6 +21,7 @@ object DungeonMap: Feature() {
         register<RenderWorldEvent> {
             if (! enabled || ! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
 
+            //#if CHEAT
             val mimicRoom = DungeonScanner.mimicRoom
             if (MapConfig.mimicEsp.value && ! ScoreCalculation.mimicKilled && mimicRoom != null) {
                 for (chestPos in mimicRoom.trappedChestPositions) {
@@ -35,6 +34,7 @@ object DungeonMap: Feature() {
                     event.ctx.renderBlock(chestPos, MapConfig.mimicEspColor.value, phase = true)
                 }
             }
+            //#endif
 
             if (! MapConfig.boxDoors.value) return@register
             val shouldHideUndiscovered = ! MapConfig.dungeonMapCheater.value ||
