@@ -2,10 +2,7 @@ package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.config.types.ColorSetting
 import com.github.noamm9.config.types.ToggleSetting
-import com.github.noamm9.event.impl.CheckEntityGlowEvent
-import com.github.noamm9.event.impl.EntityUnloadEvent
-import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
-import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
@@ -28,7 +25,7 @@ object StarMobESP: Feature(
     //#if LEGIT
     //$name = "Star Mob Highlight",
     //#endif
-    jsonName = "Star Mob ESP",
+    jsonName = "Star Mob ESP"
 ) {
     private val espBats by ToggleSetting("Highlight Bats", true).withDescription("Highlights Bats in Dungeons.")
     private val espFels by ToggleSetting("Highlight Fels", false).withDescription("Highlights Fels, even when they are invisible.")

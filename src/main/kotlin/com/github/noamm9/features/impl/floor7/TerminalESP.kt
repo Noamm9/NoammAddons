@@ -1,11 +1,7 @@
 package com.github.noamm9.features.impl.floor7
 
-import com.github.noamm9.config.types.ColorSetting
-import com.github.noamm9.config.types.DropdownSetting
-import com.github.noamm9.config.types.ToggleSetting
-import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
-import com.github.noamm9.event.impl.RenderWorldEvent
-import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.config.types.*
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.MathUtils.vec
@@ -22,7 +18,7 @@ object TerminalESP: Feature(
     //#if LEGIT
     //$name = "Terminal Highlight",
     //#endif
-    jsonName = "Terminal ESP",
+    jsonName = "Terminal ESP"
 ) {
     private val mode by DropdownSetting("Mode", 1, listOf("Outline", "Fill", "Filled Outline"))
     private val phase by ToggleSetting("Phase", false)
