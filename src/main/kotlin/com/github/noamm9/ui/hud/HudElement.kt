@@ -9,16 +9,23 @@ import kotlin.reflect.jvm.jvmName
 
 abstract class HudElement {
     open val name = this::class.simpleName ?: this::class.jvmName
+
     abstract val toggle: Boolean
     open val shouldDraw = true
     open val centered = false
+
+    var x = defaultX
+    var y = defaultY
+    var scale = defaultScale
+
     var width = 0f
     var height = 0f
 
-    open var x = 0f
-    open var y = 0f
-
-    var scale = 1f
+    var defaults: HudElement.() -> Unit = {
+        x = defaultX
+        y = defaultY
+        scale = defaultScale
+    }
 
     var isDragging = false
     private var dragX = 0f
@@ -83,5 +90,11 @@ abstract class HudElement {
             dragX = mx - x
             dragY = my - y
         }
+    }
+
+    companion object {
+        const val defaultX = 20f
+        const val defaultY = 20f
+        const val defaultScale = 1f
     }
 }

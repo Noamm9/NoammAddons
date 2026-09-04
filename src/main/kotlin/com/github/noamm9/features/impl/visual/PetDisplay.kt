@@ -62,7 +62,7 @@ object PetDisplay: Feature("Pet Features") {
             val text = if (example) "&6Golden Dragon" else autoPetTitle
             context.drawCenteredString(text, 0, 0)
             return@hudElement text.width() to text.height()
-        }.apply {
+        } defaults {
             scale = 2.5f
         }
 
