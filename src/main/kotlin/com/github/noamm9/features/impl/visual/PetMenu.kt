@@ -14,6 +14,7 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.items.ItemUtils.lore
+import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.ItemRenderer
 import com.github.noamm9.utils.render.Render2D.drawAnnularSegment
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
@@ -35,6 +36,8 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
     private val menuScale by SliderSetting("Wheel Scale", 100, 70, 135, 5, "%").section("Settings")
     private val showKeyLabels by ToggleSetting("Show Key Labels", true)
     private val favouritePetsOnly by ToggleSetting("Favourite Pets Only").withDescription("Only shows pets favourited in Hypixel's Pets Menu.")
+
+    private val showInDungeonOnly by ToggleSetting("Show Only In Dungeons").withDescription("Custom pet menu will appear only while in dungeon.")
 
     private val segmentColor by ColorSetting("Segment Color", Color(15, 15, 15, 200)).section("Colors")
     private val hoverColor by ColorSetting("Hover Color", Color(255, 255, 255, 30))
@@ -60,6 +63,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
         register<ScreenEvent.PreRender> {
             val screen = event.screen as? AbstractContainerScreen<*> ?: return@register
             if (! inPetMenu(screen)) return@register
+            if (showInDungeonOnly.value && !LocationUtils.inDungeon) return@register
             event.cancel()
 
             if (screen.menu.containerId != lastContainerId) {
@@ -287,8 +291,8 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
 
         lastClickAt = now
         GuiUtils.clickSlot(slotIndex, GuiUtils.ButtonType.LEFT)
-        // might seem like a cheat but hypixel already closes the menu as soon as u send a click
-        // so this is basically just zero-ping to close the menu faster. rather then waiting for hypixel to close it
+// might seem like a cheat but hypixel already closes the menu as soon as u send a click
+// so this is basically just zero-ping to close the menu faster. rather then waiting for hypixel to close it
         player.closeContainer()
     }
 
