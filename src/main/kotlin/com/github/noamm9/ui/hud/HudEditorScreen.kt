@@ -13,7 +13,7 @@ import net.minecraft.network.chat.Component
 import java.awt.Color
 
 class HudEditorScreen: Screen(Component.literal("HudEditor")) {
-    private val huds = FeatureManager.hudElements.filter { it.toggle }
+    private val huds = FeatureManager.hudElements.filter(HudElement::toggle)
     private var resetConfirmed = false
     private var gridEnabled = false
     private var gridSize = 10
@@ -51,10 +51,8 @@ class HudEditorScreen: Screen(Component.literal("HudEditor")) {
             }
             resetConfirmed = false
             button.message = Component.literal("§cReset")
-            FeatureManager.hudElements.forEach { element ->
-                element.x = 20f
-                element.y = 20f
-                element.scale = 1f
+            FeatureManager.hudElements.forEach {
+                it.defaults.invoke(it)
             }
         })
     }

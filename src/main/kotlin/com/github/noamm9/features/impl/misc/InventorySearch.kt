@@ -2,10 +2,7 @@ package com.github.noamm9.features.impl.misc
 
 import com.github.noamm9.config.types.ColorSetting
 import com.github.noamm9.config.types.ToggleSetting
-import com.github.noamm9.event.impl.ContainerEvent
-import com.github.noamm9.event.impl.KeyboardEvent
-import com.github.noamm9.event.impl.MouseClickEvent
-import com.github.noamm9.event.impl.ScreenEvent
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.hud.HudElement
@@ -76,7 +73,7 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
             else searchHandler.draw(context, localMouseX, localMouseY)
 
             WIDTH to HEIGHT
-        }.apply {
+        } defaults {
             x = Resolution.width / 2f
             y = Resolution.height - 30f - HEIGHT / 2f
         }

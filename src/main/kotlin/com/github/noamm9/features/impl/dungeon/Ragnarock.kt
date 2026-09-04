@@ -3,20 +3,17 @@ package com.github.noamm9.features.impl.dungeon
 import com.github.noamm9.config.types.TextInputSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.EventBus
-import com.github.noamm9.event.impl.ChatMessageEvent
-import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
-import com.github.noamm9.event.impl.TickEvent
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.ui.utils.Resolution
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.removeFormatting
-import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
-import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
 import gg.essential.universal.USound
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
@@ -24,10 +21,10 @@ import net.minecraft.sounds.SoundEvents
 import kotlin.math.roundToInt
 
 object Ragnarock: Feature("Ragnarock alerts") {
-    private val alertCancelled by ToggleSetting("Alert Cancelled", true)
-    private val strengthGainedMessage by ToggleSetting("Strength Gained", true)
-    private val m7Alert by ToggleSetting("M7 Dragon Alert")
-    private val m7AlertText by TextInputSetting("M7 Alert Text", "rag").showIf { m7Alert.value }
+    private val alertCancelled by ToggleSetting("Alert Cancelled", true).withDescription("plays a sound when the Ragnarock is cancelled")
+    private val strengthGainedMessage by ToggleSetting("Strength Gained", true).withDescription("Prints in chat how much strength you gained from the Ragnarock")
+    private val m7Alert by ToggleSetting("M7 Dragon Alert").withDescription("Shows on screen when to use Ragnarock in M7-P5")
+    private val m7AlertText by TextInputSetting("M7 Alert Text", "rag").showIf { m7Alert.value }.withDescription("The text that shows on screen. Supports color codes")
 
     private const val m7RagMessage = "[BOSS] Wither King: I no longer wish to fight, but I know that will not stop you."
     private val cancelRegex = Regex("Ragnarock was cancelled due to (?:being hit|taking damage)!")
@@ -48,8 +45,12 @@ object Ragnarock: Feature("Ragnarock alerts") {
             shouldDraw = { ticker.isActive },
         ) { ctx, _ ->
             val text = m7AlertText.value
-            ctx.drawCenteredString(text, 0, 0)
+            ctx.drawString(text, 0, 0)
             return@hudElement text.width() to 9f
+        } defaults {
+            x = Resolution.width / 2f
+            y = Resolution.height.let { it / 2f - (it * 0.056f) }
+            scale = 2f
         }
 
         register<MainThreadPacketReceivedEvent.Pre> {
