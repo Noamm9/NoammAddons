@@ -1,8 +1,11 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.config.types.TextInputSetting
 import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
+import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.removeFormatting
@@ -13,6 +16,8 @@ import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.RenderHelper.width
 import gg.essential.universal.USound
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.sounds.SoundEvents
@@ -22,6 +27,7 @@ object Ragnarock: Feature("Ragnarock alerts") {
     private val alertCancelled by ToggleSetting("Alert Cancelled", true)
     private val strengthGainedMessage by ToggleSetting("Strength Gained", true)
     private val m7Alert by ToggleSetting("M7 Dragon Alert")
+    private val m7AlertText by TextInputSetting("M7 Alert Text", "rag").showIf { m7Alert.value }
 
     private const val m7RagMessage = "[BOSS] Wither King: I no longer wish to fight, but I know that will not stop you."
     private val cancelRegex = Regex("Ragnarock was cancelled due to (?:being hit|taking damage)!")
@@ -33,7 +39,19 @@ object Ragnarock: Feature("Ragnarock alerts") {
         780L to 1.89f
     )
 
+    private var m7AlertTicks = 0
+
     override fun init() {
+        hudElement(
+            "Ragnarock Alert",
+            enabled = { m7Alert.value },
+            shouldDraw = { ticker.isActive },
+        ) { ctx, _ ->
+            val text = m7AlertText.value
+            ctx.drawCenteredString(text, 0, 0)
+            return@hudElement text.width() to 9f
+        }
+
         register<MainThreadPacketReceivedEvent.Pre> {
             if (! strengthGainedMessage.value) return@register
             val packet = event.packet as? ClientboundSoundPacket ?: return@register
@@ -49,7 +67,8 @@ object Ragnarock: Feature("Ragnarock alerts") {
         register<ChatMessageEvent> {
             if (m7Alert.value && LocationUtils.F7Phase == 5 && event.unformattedText == m7RagMessage) {
                 if (DungeonListener.thePlayer?.clazz.equalsOneOf(DungeonClass.Tank, DungeonClass.Healer)) return@register
-                ChatUtils.showTitle("rag")
+                m7AlertTicks = 40
+                ticker.register()
                 for ((delay, pitch) in sounds) ThreadUtils.setTimeout(delay) {
                     USound.playSoundStatic(SoundEvents.NOTE_BLOCK_PLING, 0.25f, pitch)
                 }
@@ -59,5 +78,10 @@ object Ragnarock: Feature("Ragnarock alerts") {
                 USound.playSoundStatic(SoundEvents.NOTE_BLOCK_PLING, 0.25f, 1f)
             }
         }
+    }
+
+    private val ticker = EventBus.listener<TickEvent.Start> {
+        m7AlertTicks --
+        if (m7AlertTicks <= 0) listener.unregister()
     }
 }
