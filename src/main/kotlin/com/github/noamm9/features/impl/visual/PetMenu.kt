@@ -1,5 +1,6 @@
 package com.github.noamm9.features.impl.visual
 
+import com.github.noamm9.NoammAddons
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.ScreenEvent
@@ -55,6 +56,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
     private var lastContainerId = - 1
     private var lastClickAt = 0L
     private var tempDisabled = false
+    private var clicked = false
 
     override fun init() {
         register<ScreenEvent.PreRender> {
@@ -108,6 +110,11 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
 
         register<ContainerEvent.Keyboard> {
             if (! inPetMenu(event.screen)) return@register
+            if (clicked) {
+                clicked = false
+                player.closeContainer()
+            }
+
             if (handleKeybind(event.screen, event.key, mouse = false)) event.cancel()
         }
 
@@ -125,6 +132,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
             lastContainerId = - 1
             wheelPage = 0
             tempDisabled = false
+            clicked = false
         }
 
         register<ContainerEvent.Open> {
@@ -287,9 +295,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
 
         lastClickAt = now
         GuiUtils.clickSlot(slotIndex, GuiUtils.ButtonType.LEFT)
-        // might seem like a cheat but hypixel already closes the menu as soon as u send a click
-        // so this is basically just zero-ping to close the menu faster. rather then waiting for hypixel to close it
-        player.closeContainer()
+        if (NoammAddons.isCheat) player.closeContainer() else clicked = true
     }
 
     private fun wheelLayout(segmentCount: Int): WheelLayout {

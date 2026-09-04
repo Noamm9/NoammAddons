@@ -12,10 +12,7 @@ import com.github.noamm9.utils.dungeons.enums.SecretType
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.world.RenderBatcher
 import com.github.noamm9.utils.render.world.RenderContext
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLevelEvents
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.*
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents
 import net.minecraft.core.BlockPos
@@ -35,10 +32,8 @@ object EventDispatcher: ISelfInit, Shortcuts {
     private var invItems: MutableMap<Int, ItemStack>? = null
 
     override fun init() {
-        LevelRenderEvents.COLLECT_SUBMITS.register { context ->
-            EventBus.post(RenderWorldEvent(RenderContext(context)))
-        }
-        LevelRenderEvents.AFTER_TRANSLUCENT_TERRAIN.register { context -> RenderBatcher.flush() }
+        LevelRenderEvents.COLLECT_SUBMITS.register { context -> EventBus.post(RenderWorldEvent(RenderContext(context))) }
+        LevelRenderEvents.AFTER_TRANSLUCENT_TERRAIN.register { _ -> RenderBatcher.flush() }
 
         ClientLevelEvents.AFTER_CLIENT_LEVEL_CHANGE.register { _, _ -> EventBus.post(WorldChangeEvent) }
         ClientPlayConnectionEvents.DISCONNECT.register { _, _ -> EventBus.post(WorldChangeEvent) }
