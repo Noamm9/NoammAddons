@@ -13,7 +13,13 @@ import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.entity.boss.wither.WitherBoss
 import java.awt.Color
 
-object WitherESP: Feature("Highlights all Withers in F7.") {
+object WitherESP: Feature(
+    "Highlights all Withers in F7.",
+    //#if LEGIT
+    //$name = "Wither Highlight",
+    //#endif
+    jsonName = "Wither ESP",
+) {
     private val maxorColor by ColorSetting("Maxor", Color(88, 4, 164), false)
     private val stormColor by ColorSetting("Storm", Color(0, 208, 255), false)
     private val goldorColor by ColorSetting("Goldor", Color.WHITE, false)

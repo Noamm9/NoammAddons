@@ -23,7 +23,13 @@ import net.minecraft.world.entity.player.Player
 import net.minecraft.world.entity.projectile.arrow.AbstractArrow
 import java.awt.Color
 
-object StarMobESP: Feature("Highlights all starred mobs in a dungeon.") {
+object StarMobESP: Feature(
+    "Highlights all starred mobs in a dungeon.",
+    //#if LEGIT
+    //$name = "Star Mob Highlight",
+    //#endif
+    jsonName = "Star Mob ESP",
+) {
     private val espBats by ToggleSetting("Highlight Bats", true).withDescription("Highlights Bats in Dungeons.")
     private val espFels by ToggleSetting("Highlight Fels", false).withDescription("Highlights Fels, even when they are invisible.")
 

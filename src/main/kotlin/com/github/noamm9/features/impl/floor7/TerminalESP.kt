@@ -17,7 +17,13 @@ import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.entity.decoration.ArmorStand
 import java.awt.Color
 
-object TerminalESP: Feature("Highlights the interactable hitboxes of the terminals in F7/M7") {
+object TerminalESP: Feature(
+    "Highlights the interactable hitboxes of the terminals in F7/M7",
+    //#if LEGIT
+    //$name = "Terminal Highlight",
+    //#endif
+    jsonName = "Terminal ESP",
+) {
     private val mode by DropdownSetting("Mode", 1, listOf("Outline", "Fill", "Filled Outline"))
     private val phase by ToggleSetting("Phase", false)
     private val fillColor by ColorSetting("Fill Color", Color.orange).hideIf { mode.value == 0 }

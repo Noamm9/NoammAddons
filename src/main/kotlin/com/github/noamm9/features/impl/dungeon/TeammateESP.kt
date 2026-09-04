@@ -11,7 +11,13 @@ import com.github.noamm9.utils.render.RenderHelper.renderVec
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.world.entity.Entity
 
-object TeammateESP: Feature("Highlights your dungeon party.") {
+object TeammateESP: Feature(
+    "Highlights your dungeon party.",
+    //#if LEGIT
+    //$name = "Teammate Highlight",
+    //#endif
+    jsonName = "Teammate ESP",
+) {
     private val highlight by ToggleSetting("Highlight Teammates", true)
     private val drawName by ToggleSetting("Show Teammate Name", true)
 
