@@ -1,6 +1,5 @@
 package com.github.noamm9.features.impl.dungeon.map
 
-import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.MOD_ID
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.ui.hud.HudElement
@@ -109,9 +108,11 @@ object MapRenderer: HudElement() {
                 color = color.darker().darker()
             }
 
-            if (tile is RoomTile && tile.uniqueRoom?.hasMimic == true && MapConfig.highlightMimicRoom.value && NoammAddons.isCheat) {
+            //#if CHEAT
+            if (tile is RoomTile && tile.uniqueRoom?.hasMimic == true && MapConfig.highlightMimicRoom.value) {
                 color = MathUtils.lerpColor(color, MapConfig.colorMimic.value, 0.2)
             }
+            //#endif
 
             val xOffset = (x shr 1) * (MapUtils.mapRoomSize + connectorSize)
             val yOffset = (y shr 1) * (MapUtils.mapRoomSize + connectorSize)

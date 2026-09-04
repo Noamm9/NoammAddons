@@ -10,15 +10,11 @@ import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.DungeonPlayer
-import com.github.noamm9.utils.dungeons.map.core.RoomData
-import com.github.noamm9.utils.dungeons.map.core.RoomState
-import com.github.noamm9.utils.dungeons.map.core.RoomType
+import com.github.noamm9.utils.dungeons.map.core.*
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.network.ProfileUtils
 import kotlinx.coroutines.*
-import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.HoverEvent
-import net.minecraft.network.chat.MutableComponent
+import net.minecraft.network.chat.*
 
 object ClearInfoUpdater: ISelfInit {
     private val componentSeparator = createComponent(" &f|&r ")
@@ -78,7 +74,7 @@ object ClearInfoUpdater: ISelfInit {
                 val playerFormatted = "${teammate.clazz.code}${teammate.name}"
                 val foundSecrets = secretsAfterRun - before
 
-                val baseComp = createComponent("${NoammAddons.PREFIX} $playerFormatted&f:&r ")
+                val baseComp = NoammAddons.PREFIX.copy().append(Component.literal(" $playerFormatted&f:&r ".addColor()))
                 val (solo, stacked) = teammate.clearedRooms
                 val deaths = teammate.deaths
 

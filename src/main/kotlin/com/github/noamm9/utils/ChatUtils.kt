@@ -12,18 +12,10 @@ import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import gg.essential.universal.UChat
 import gg.essential.universal.UResolution
 import gg.essential.universal.wrappers.UPlayer
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.*
 import net.minecraft.ChatFormatting
-import net.minecraft.network.chat.ClickEvent
-import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.HoverEvent
-import net.minecraft.network.chat.Style
-import net.minecraft.network.protocol.game.ServerboundChatCommandPacket
-import net.minecraft.network.protocol.game.ServerboundChatCommandSignedPacket
-import net.minecraft.network.protocol.game.ServerboundChatPacket
+import net.minecraft.network.chat.*
+import net.minecraft.network.protocol.game.*
 import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
@@ -129,7 +121,7 @@ object ChatUtils: ISelfInit {
         return if (outPos == len) this else String(out, 0, outPos)
     }
 
-    fun modMessage(msg: Any?) = chat("${NoammAddons.PREFIX} $msg")
+    fun modMessage(msg: Any?) = chat(NoammAddons.PREFIX.copy().append(Component.literal(" $msg".addColor())))
 
     fun debug(flag: String, msg: Any?) {
         if (NoammAddons.debugFlags.contains(flag)) modMessage(msg)
@@ -196,7 +188,7 @@ object ChatUtils: ISelfInit {
 
         mainComponent.style = style
 
-        ChatUtils.chat(if (prefix) Component.literal(NoammAddons.PREFIX + " ").append(mainComponent) else mainComponent)
+        ChatUtils.chat(if (prefix) NoammAddons.PREFIX.copy().append(" ").append(mainComponent) else mainComponent)
     }
 
     private val titleRenderer = EventBus.listener<RenderOverlayEvent> {

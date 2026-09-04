@@ -1,18 +1,13 @@
 package com.github.noamm9.features.impl.dungeon
 
-import com.github.noamm9.NoammAddons.PREFIX
-import com.github.noamm9.config.types.ColorSetting
-import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ColorUtils.invert
 import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.NumbersUtils.toFixed
-import com.github.noamm9.utils.ServerUtils
-import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.location.LocationUtils
@@ -21,9 +16,7 @@ import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
 import com.github.noamm9.utils.render.world.Render3D.renderLine
 import com.github.noamm9.utils.render.world.Render3D.renderString
 import gg.essential.universal.USound
-import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket
-import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket
-import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
+import net.minecraft.network.protocol.game.*
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
@@ -89,7 +82,7 @@ object BloodCamp: Feature("Features for Blood Room.") {
 
             mc.execute {
                 repeat(5) { USound.playSoundStatic(sound, 0.25f, 1f) }
-                if (partySpeedAlert.value) ChatUtils.sendPartyMessage("$PREFIX $title")
+                if (partySpeedAlert.value) ChatUtils.sendPartyMessage(title)
                 ChatUtils.showTitle(title)
             }
         }

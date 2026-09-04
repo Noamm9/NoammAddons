@@ -6,6 +6,10 @@ import com.github.noamm9.config.types.*
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import java.awt.Color
 
+//#if LEGIT
+//$import java.util.*
+//#endif
+
 object MapConfig: SettingProvider {
     override val configSettings = mutableSetOf<ConfigHolder<*>>()
 
