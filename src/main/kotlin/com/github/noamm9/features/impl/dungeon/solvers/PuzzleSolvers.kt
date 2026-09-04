@@ -1,8 +1,6 @@
 package com.github.noamm9.features.impl.dungeon.solvers
 
-import com.github.noamm9.config.types.ColorSetting
-import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolver
@@ -74,7 +72,7 @@ object PuzzleSolvers: Feature() {
             val text = QuizSolver.timerText(example)
             ctx.drawCenteredString(text, 0f, 0f)
             return@hudElement text.width().toFloat() to 9f
-        }.apply {
+        }.defaults {
             scale = 3f
         }
 

@@ -8,6 +8,7 @@ import com.github.noamm9.features.annotations.AlwaysActive
 import com.github.noamm9.init.RemoteFeatures
 import com.github.noamm9.ui.clickgui.enums.CategoryType
 import com.github.noamm9.ui.hud.HudElement
+import com.github.noamm9.ui.hud.HudProvider
 import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.spaceCaps
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -17,7 +18,7 @@ open class Feature(
     name: String? = null,
     toggled: Boolean = false,
     jsonName: String? = null,
-): Shortcuts, SettingProvider {
+): Shortcuts, SettingProvider, HudProvider {
     val name = name ?: this::class.simpleName.toString().spaceCaps()
     val jsonName = jsonName ?: this.name
     @JvmField var enabled = toggled
@@ -28,7 +29,7 @@ open class Feature(
 
     override val configSettings = mutableSetOf<ConfigHolder<*>>()
     val listeners = mutableSetOf<EventListener<*>>()
-    val hudElements = mutableSetOf<HudElement>()
+    override val hudElements = mutableSetOf<HudElement>()
 
     fun initialize() {
         init()
@@ -71,16 +72,14 @@ open class Feature(
         enabled: () -> Boolean = { true },
         shouldDraw: () -> Boolean = { true },
         centered: Boolean = false,
-        render: (GuiGraphicsExtractor, Boolean) -> Pair<Number, Number>,
-    ): HudElement {
-        return object: HudElement() {
-            override val name = name
-            override val toggle: Boolean get() = this@Feature.enabled && enabled.invoke()
-            override val shouldDraw: Boolean get() = shouldDraw.invoke()
-            override fun draw(ctx: GuiGraphicsExtractor, example: Boolean): Pair<Number, Number> = render(ctx, example)
-            override val centered = centered
-        }.also(hudElements::add)
-    }
+        render: (GuiGraphicsExtractor, Boolean) -> Pair<Number, Number>
+    ) = object: HudElement() {
+        override val name = name
+        override val centered = centered
+        override val toggle get() = this@Feature.enabled && enabled.invoke()
+        override val shouldDraw get() = shouldDraw.invoke()
+        override fun draw(ctx: GuiGraphicsExtractor, example: Boolean) = render(ctx, example)
+    }.also(hudElements::add)
 
     private fun initCategory(): CategoryType {
         val parts = this::class.java.`package` !!.name.split(".")

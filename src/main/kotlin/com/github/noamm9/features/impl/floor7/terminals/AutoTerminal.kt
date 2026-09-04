@@ -46,8 +46,8 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
             shouldDraw = { TerminalListener.currentHandler?.enabled() == true }
         ) { ctx, e ->
             val handler = if (e) NumberTerminal else TerminalListener.currentHandler !!
-            val maxClicks = handler.maxClicks()
-            val completed = handler.completedClicks()
+            val maxClicks = if (e) NumberTerminal.gridSize.run { first * second } else handler.maxClicks()
+            val completed = if (e) 4 else handler.completedClicks()
 
             val title = "§3In Terminal (${handler.displayName})"
             val progress = "§b[${completed.coerceIn(0, maxClicks)}/$maxClicks]${handler.progressSuffix()}"
@@ -56,7 +56,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
             if (maxClicks != null && maxClicks > 0) ctx.drawCenteredString(progress, 0, - 10f)
 
             maxOf(title.width(), progress.width()).toFloat() to 20f
-        }.apply {
+        } defaults {
             x = Resolution.width / 2
             y = Resolution.height / 2 - Resolution.height / 10
             scale = 3f
