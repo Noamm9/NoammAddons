@@ -1,10 +1,7 @@
 package com.github.noamm9.features.impl.floor7
 
 import com.github.noamm9.config.types.ColorSetting
-import com.github.noamm9.event.impl.BossBarUpdateEvent
-import com.github.noamm9.event.impl.CheckEntityGlowEvent
-import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
-import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.location.LocationUtils
@@ -13,7 +10,13 @@ import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.entity.boss.wither.WitherBoss
 import java.awt.Color
 
-object WitherESP: Feature("Highlights all Withers in F7.") {
+object WitherESP: Feature(
+    "Highlights all Withers in F7.",
+    //#if LEGIT
+    //$name = "Wither Highlight",
+    //#endif
+    jsonName = "Wither ESP"
+) {
     private val maxorColor by ColorSetting("Maxor", Color(88, 4, 164), false)
     private val stormColor by ColorSetting("Storm", Color(0, 208, 255), false)
     private val goldorColor by ColorSetting("Goldor", Color.WHITE, false)
