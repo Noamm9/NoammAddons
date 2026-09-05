@@ -93,6 +93,12 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
             if (buttonRow < 2) ThreadUtils.scheduledTask(2) { if (check()) clickSlot(actualSlot + 18) }
         }
 
+        register<TerminalEvent.SlotUpdate> {
+            if (! autoMelody.value) return@register
+            if (event.handler !is MelodyTerminal) return@register
+            lastClickedSlot = null
+        }
+
         register<TickEvent.Server> {
             val handler = TerminalListener.currentHandler ?: return@register
             if (handler is MelodyTerminal) return@register
