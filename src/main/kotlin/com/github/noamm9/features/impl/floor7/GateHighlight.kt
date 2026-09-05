@@ -1,16 +1,11 @@
 package com.github.noamm9.features.impl.floor7
 
-import com.github.noamm9.config.types.ColorSetting
-import com.github.noamm9.config.types.DropdownSetting
-import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.aabb
-import com.github.noamm9.utils.Utils
-import com.github.noamm9.utils.WorldUtils
-import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
 import net.minecraft.core.BlockPos
@@ -40,8 +35,8 @@ object GateHighlight: Feature("Highlights Gate as long as its not destroyed") {
                 gate.box,
                 outlineColor.value,
                 fillColor.value,
-                mode.value.equalsOneOf(1, 2),
                 mode.value.equalsOneOf(0, 2),
+                mode.value.equalsOneOf(1, 2),
                 phase.value,
                 lineWidth.value
             )
