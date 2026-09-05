@@ -82,7 +82,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
             lastClickTime = System.currentTimeMillis()
             lastClickedSlot = actualSlot
 
-            if (buttonRow == 2) return@register
+            if (buttonRow == 3) return@register // todo change back to 2
             if (! melodySkip.value) return@register
             if (! melodySkipFirstRow.value && buttonRow == 0 && current != 4) return@register
             if (! (melodySkipMode.value == 1 || (melodySkipMode.value == 0 && (current == 0 || current == 4)))) return@register
@@ -91,6 +91,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
             val check = { TerminalListener.inTerm && TerminalListener.currentHandler is MelodyTerminal && windowId == TerminalListener.lastWindowId }
             if (buttonRow < 3) ThreadUtils.scheduledTask(1) { if (check()) clickSlot(actualSlot + 9) }
             if (buttonRow < 2) ThreadUtils.scheduledTask(2) { if (check()) clickSlot(actualSlot + 18) }
+            if (buttonRow < 1) ThreadUtils.scheduledTask(3) { if (check()) clickSlot(actualSlot + 27) } // todo remove when mel 3
         }
 
         register<TerminalEvent.SlotUpdate> {
