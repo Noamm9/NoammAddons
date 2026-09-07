@@ -7,7 +7,6 @@ import net.minecraft.util.FormattedCharSequence
 import java.util.Optional
 import kotlin.collections.ArrayDeque
 
-
 /**
  * Taken from Starred's library
  * Under BSD 3-Clause License https://github.com/skies-starred/library/blob/master/LICENSE
@@ -19,17 +18,15 @@ abstract class AhoCorasick {
         val goto = Int2ObjectOpenHashMap<Node>(4)
         var fail: Node? = null
         var output: Int = - 1
+        var depth: Int = 0
     }
 
     private var root = Node()
+    private var rootAscii = arrayOfNulls<Node>(128)
     private var ia = emptyArray<IntArray>()
     private var r0 = emptyArray<String>()
     private var r1 = emptyArray<Component>()
     private var r2 = emptyArray<FormattedCharSequence>()
-
-    private var overwriteStr = emptyArray<Array<String>>()
-    private var overwriteCps = emptyArray<Array<IntArray>>()
-    private val overwritesRaw = HashMap<String, MutableList<String>>()
 
     var skips: String? = null
 
@@ -42,30 +39,32 @@ abstract class AhoCorasick {
     var map2 = HashMap<String, FormattedCharSequence>()
         private set
 
+    private var scChars = IntArray(128)
+    private var scStyles = arrayOfNulls<Style>(128)
+    private var scB = IntArray(128)
+    private var scBs = arrayOfNulls<Style>(128)
+    private var scStyleList = ArrayList<Style>(128)
+
+    private fun ensureScratch(minSize: Int) {
+        if (scChars.size >= minSize) return
+        var newSize = scChars.size
+        while (newSize < minSize) newSize *= 2
+        scChars = scChars.copyOf(newSize)
+        scStyles = scStyles.copyOf(newSize)
+        scB = scB.copyOf(newSize)
+        scBs = scBs.copyOf(newSize)
+    }
+
     fun put(key: String, str: String, cmp: Component, seq: FormattedCharSequence) {
         map0[key] = str
         map1[key] = cmp
         map2[key] = seq
     }
 
-    fun put(key: String, str: String) {
-        val cmp = Component.literal(str)
-        put(key, str, cmp, cmp.visualOrderText)
-    }
-
     fun remove(key: String) {
         map0.remove(key)
         map1.remove(key)
         map2.remove(key)
-        overwritesRaw.remove(key)
-    }
-
-    fun putOverwrite(key: String, unlessFollowedBy: String) {
-        overwritesRaw.getOrPut(key) { mutableListOf() }.add(unlessFollowedBy)
-    }
-
-    fun removeOverwrite(key: String, unlessFollowedBy: String) {
-        overwritesRaw[key]?.remove(unlessFollowedBy)
     }
 
     fun build() {
@@ -74,12 +73,11 @@ abstract class AhoCorasick {
 
         if (n == 0) {
             root = Node()
+            rootAscii = arrayOfNulls(128)
             ia = emptyArray()
             r0 = emptyArray()
             r1 = emptyArray()
             r2 = emptyArray()
-            overwriteStr = emptyArray()
-            overwriteCps = emptyArray()
             return
         }
 
@@ -87,9 +85,6 @@ abstract class AhoCorasick {
         r0 = Array(n) { map0[keys[it]] !! }
         r1 = Array(n) { map1[keys[it]] !! }
         r2 = Array(n) { map2[keys[it]] !! }
-
-        overwriteStr = Array(n) { (overwritesRaw[keys[it]] ?: emptyList()).toTypedArray() }
-        overwriteCps = Array(n) { (overwritesRaw[keys[it]] ?: emptyList()).map { s -> s.codePoints().toArray() }.toTypedArray() }
 
         root = Node()
         val queue = ArrayDeque<Node>(n * 4)
@@ -102,6 +97,7 @@ abstract class AhoCorasick {
                 var child = cur.goto.get(cps[j])
                 if (child == null) {
                     child = Node()
+                    child.depth = cur.depth + 1
                     cur.goto.put(cps[j], child)
                 }
 
@@ -134,34 +130,29 @@ abstract class AhoCorasick {
                 cur.goto.putIfAbsent(entry.intKey, entry.value)
             }
         }
+
+        rootAscii = arrayOfNulls(128)
+        for (cp in 0 until 128) rootAscii[cp] = root.goto.get(cp)
     }
 
-    private fun isBlockedInString(idx: Int, input: String, next: Int): Boolean {
-        val blockers = overwriteStr[idx]
-        if (blockers.isEmpty()) return false
+    private fun rootGoto(cp: Int): Node? = if (cp < 128) rootAscii[cp] else root.goto.get(cp)
 
-        for (blocker in blockers) {
-            if (input.regionMatches(next, blocker, 0, blocker.length)) return true
-        }
-
-        return false
+    private fun isWordCp(cp: Int): Boolean {
+        if (cp == - 1) return false
+        if (cp < 128) return cp == '_'.code || (cp in '0'.code .. '9'.code) || (cp in 'a'.code .. 'z'.code) || (cp in 'A'.code .. 'Z'.code)
+        return Character.isLetterOrDigit(cp)
     }
 
-    private fun isBlockedInCodepoints(idx: Int, chars: IntArray, size: Int, next: Int): Boolean {
-        val blockers = overwriteCps[idx]
-        if (blockers.isEmpty()) return false
+    private fun isValidStringMatch(input: String, start: Int, end: Int): Boolean {
+        if (start > 0 && isWordCp(input.codePointBefore(start))) return false
+        if (end < input.length && isWordCp(input.codePointAt(end))) return false
+        return true
+    }
 
-        outer@ for (blocker in blockers) {
-            if (next + blocker.size > size) continue
-
-            for (k in blocker.indices) {
-                if (chars[next + k] != blocker[k]) continue@outer
-            }
-
-            return true
-        }
-
-        return false
+    private fun isValidArrayMatch(chars: IntArray, size: Int, start: Int, end: Int): Boolean {
+        if (start > 0 && isWordCp(chars[start - 1])) return false
+        if (end < size && isWordCp(chars[end])) return false
+        return true
     }
 
     fun replaceString(input: String): String {
@@ -171,47 +162,96 @@ abstract class AhoCorasick {
         if (len == 0) return input
 
         val sb = StringBuilder(len + 32)
-        val b = IntArray(len)
+        ensureScratch(len)
+        val b = scB
         var bl = 0
         var i = 0
         var state = root
+        var runStart = 0
+
+        var matchIdx = - 1
+        var matchBl = - 1
+        var matchPos = - 1
 
         while (i < len) {
             val cp = input.codePointAt(i)
-            state = state.goto.get(cp) ?: root
+            val charLen = Character.charCount(cp)
 
-            b[bl] = cp
-            bl ++
+            if (state === root) {
+                val next = rootGoto(cp)
+                if (next == null) {
+                    sb.appendCodePoint(cp)
+                    i += charLen
+                    continue
+                }
 
-            val next = i + Character.charCount(cp)
+                runStart = i
+                b[0] = cp
+                bl = 1
+                state = next
+                i += charLen
 
-            if (state.output >= 0 && ! isBlockedInString(state.output, input, next)) {
-                val idx = state.output
-                bl -= ia[idx].size
+                if (state.output >= 0 && isValidStringMatch(input, runStart, i)) {
+                    matchIdx = state.output; matchBl = bl; matchPos = i
+                }
 
-                for (j in 0 ..< bl) sb.appendCodePoint(b[j])
-                sb.append(r0[idx])
-                bl = 0
-                state = root
+                continue
             }
 
-            i = next
+            val next = state.goto.get(cp) ?: root
+            val genuine = next.depth == state.depth + 1
+
+            if (genuine) {
+                b[bl] = cp; bl ++
+                state = next
+                i += charLen
+
+                if (state.output >= 0 && isValidStringMatch(input, runStart, i)) {
+                    matchIdx = state.output; matchBl = bl; matchPos = i
+                }
+
+                continue
+            }
+
+            if (matchIdx >= 0) {
+                val litLen = matchBl - ia[matchIdx].size
+                for (j in 0 ..< litLen) sb.appendCodePoint(b[j])
+                sb.append(r0[matchIdx])
+                i = matchPos
+            }
+            else for (j in 0 ..< bl) sb.appendCodePoint(b[j])
+
+            bl = 0
+            state = root
+            matchIdx = - 1; matchBl = - 1; matchPos = - 1
         }
 
-        for (j in 0 ..< bl) sb.appendCodePoint(b[j])
+        if (matchIdx >= 0) {
+            val litLen = matchBl - ia[matchIdx].size
+            for (j in 0 ..< litLen) sb.appendCodePoint(b[j])
+            sb.append(r0[matchIdx])
+            for (j in matchBl ..< bl) sb.appendCodePoint(b[j])
+        }
+        else for (j in 0 ..< bl) sb.appendCodePoint(b[j])
+
         return sb.toString()
     }
 
     fun replaceComponent(input: Component): Component {
         if (ia.isEmpty()) return input
 
-        var chars = IntArray(128)
-        val styles = ArrayList<Style>(128)
+        ensureScratch(128)
+        var chars = scChars
+        scStyleList.clear()
+        val styles = scStyleList
         var size = 0
 
         input.visit({ style, str ->
             for (cp in str.codePoints()) {
-                if (size >= chars.size) chars = chars.copyOf(chars.size * 2)
+                if (size >= chars.size) {
+                    ensureScratch(chars.size * 2)
+                    chars = scChars
+                }
                 chars[size] = cp
                 styles.add(style)
                 size ++
@@ -222,23 +262,31 @@ abstract class AhoCorasick {
 
         if (size == 0) return input.copy()
 
+        ensureScratch(size)
+        val b = scB
+        val bs = scBs
+
         val skip = skips
         val bool = skip != null
         val result = Component.empty()
 
-        val b = IntArray(size)
-        val bs = arrayOfNulls<Style>(size)
         var bl = 0
         var i = 0
         var state = root
+        var runStart = 0
 
-        fun flush() {
-            var j = 0
-            while (j < bl) {
+        var matchIdx = - 1
+        var matchBl = - 1
+        var matchPos = - 1
+
+        fun flushLiteral(count: Int, offset: Int = 0) {
+            var j = offset
+            val end = offset + count
+            while (j < end) {
                 val style = bs[j] !!
                 val sb = StringBuilder()
 
-                while (j < bl && bs[j] === style) {
+                while (j < end && bs[j] === style) {
                     sb.appendCodePoint(b[j])
                     j ++
                 }
@@ -247,46 +295,97 @@ abstract class AhoCorasick {
             }
         }
 
+        fun commitOrFlushAll() {
+            if (matchIdx >= 0) {
+                val litLen = matchBl - ia[matchIdx].size
+                flushLiteral(litLen)
+                result.append(r1[matchIdx])
+                flushLiteral(bl - matchBl, matchBl)
+            }
+            else flushLiteral(bl)
+        }
+
         while (i < size) {
             if (bool && styles[i].insertion == skip) {
-                flush()
-                bl = 0
-                state = root
+                commitOrFlushAll()
+                bl = 0; state = root
+                matchIdx = - 1; matchBl = - 1; matchPos = - 1
+
                 result.append(Component.literal(Character.toString(chars[i])).withStyle(styles[i]))
                 i ++
                 continue
             }
 
-            state = state.goto.getOrElse(chars[i]) { null } ?: root
+            val cp = chars[i]
 
-            b[bl] = chars[i]
-            bs[bl] = styles[i]
-            bl ++
+            if (state === root) {
+                val next = rootGoto(cp)
+                if (next == null) {
+                    b[0] = cp; bs[0] = styles[i]
+                    flushLiteral(1)
+                    i ++
+                    continue
+                }
 
-            if (state.output >= 0 && ! isBlockedInCodepoints(state.output, chars, size, i + 1)) {
-                bl -= ia[state.output].size
-                flush()
-                result.append(r1[state.output])
-                bl = 0
-                state = root
+                runStart = i
+                b[0] = cp; bs[0] = styles[i]
+                bl = 1
+                state = next
+                i ++
+
+                if (state.output >= 0 && isValidArrayMatch(chars, size, runStart, i)) {
+                    matchIdx = state.output; matchBl = bl; matchPos = i
+                }
+
+                continue
             }
 
-            i ++
+            val next = state.goto.getOrElse(cp) { null } ?: root
+            val genuine = next.depth == state.depth + 1
+
+            if (genuine) {
+                b[bl] = cp; bs[bl] = styles[i]; bl ++
+                state = next
+                i ++
+
+                if (state.output >= 0 && isValidArrayMatch(chars, size, runStart, i)) {
+                    matchIdx = state.output; matchBl = bl; matchPos = i
+                }
+
+                continue
+            }
+
+            if (matchIdx >= 0) {
+                val litLen = matchBl - ia[matchIdx].size
+                flushLiteral(litLen)
+                result.append(r1[matchIdx])
+                i = matchPos
+            }
+            else flushLiteral(bl)
+
+            bl = 0
+            state = root
+            matchIdx = - 1; matchBl = - 1; matchPos = - 1
         }
 
-        flush()
+        commitOrFlushAll()
         return result
     }
 
     fun replaceCharSequence(input: FormattedCharSequence): FormattedCharSequence {
         if (ia.isEmpty()) return input
 
-        var chars = IntArray(128)
-        val styles = ArrayList<Style>(128)
+        ensureScratch(128)
+        var chars = scChars
+        scStyleList.clear()
+        val styles = scStyleList
         var size = 0
 
         input.accept { _, style, cp ->
-            if (size >= chars.size) chars = chars.copyOf(chars.size * 2)
+            if (size >= chars.size) {
+                ensureScratch(chars.size * 2)
+                chars = scChars
+            }
             chars[size] = cp
             styles.add(style)
             size ++
@@ -295,56 +394,110 @@ abstract class AhoCorasick {
 
         if (size == 0) return input
 
+        val chSnapshot = chars.copyOf(size)
+        val stSnapshot = arrayOfNulls<Style>(size)
+        for (k in 0 until size) stSnapshot[k] = styles[k]
+
         val skip = skips
         val bool = skip != null
 
         return FormattedCharSequence { sink ->
-            val s = IntArray(size)
+            val b = IntArray(size)
             val bs = arrayOfNulls<Style>(size)
             var bl = 0
             var i = 0
             var state = root
+            var runStart = 0
+
+            var matchIdx = - 1
+            var matchBl = - 1
+            var matchPos = - 1
+
+            fun emitLiteral(count: Int, offset: Int = 0) {
+                for (j in offset ..< offset + count) sink.accept(0, bs[j] !!, b[j])
+            }
+
+            fun emitMatch(idx: Int) {
+                val bss = bs[matchBl - ia[idx].size] !!
+                r2[idx].accept { _, repStyle, repCp ->
+                    sink.accept(0, repStyle.applyTo(bss), repCp)
+                    true
+                }
+            }
+
+            fun commitOrFlushAll() {
+                if (matchIdx >= 0) {
+                    val litLen = matchBl - ia[matchIdx].size
+                    emitLiteral(litLen)
+                    emitMatch(matchIdx)
+                    emitLiteral(bl - matchBl, matchBl)
+                }
+                else emitLiteral(bl)
+            }
 
             while (i < size) {
-                if (bool && styles[i].insertion == skip) {
-                    for (j in 0 ..< bl) sink.accept(0, bs[j] !!, s[j])
+                if (bool && stSnapshot[i] !!.insertion == skip) {
+                    commitOrFlushAll()
+                    bl = 0; state = root
+                    matchIdx = - 1; matchBl = - 1; matchPos = - 1
 
-                    bl = 0
-                    state = root
-
-                    sink.accept(0, styles[i], chars[i])
+                    sink.accept(0, stSnapshot[i] !!, chSnapshot[i])
                     i ++
                     continue
                 }
 
-                state = state.goto.get(chars[i]) ?: root
+                val cp = chSnapshot[i]
 
-                s[bl] = chars[i]
-                bs[bl] = styles[i]
-                bl ++
-
-                if (state.output >= 0 && ! isBlockedInCodepoints(state.output, chars, size, i + 1)) {
-                    val io = state.output
-                    val ml = ia[io].size
-                    val ms = bl - ml
-
-                    for (j in 0 ..< ms) sink.accept(0, bs[j] !!, s[j])
-
-                    val bss = bs[ms] !!
-                    r2[io].accept { _, repStyle, repCp ->
-                        sink.accept(0, repStyle.applyTo(bss), repCp)
-                        true
+                if (state === root) {
+                    val next = rootGoto(cp)
+                    if (next == null) {
+                        sink.accept(0, stSnapshot[i] !!, cp)
+                        i ++
+                        continue
                     }
 
-                    bl = 0
-                    state = root
+                    runStart = i
+                    b[0] = cp; bs[0] = stSnapshot[i]
+                    bl = 1
+                    state = next
+                    i ++
+
+                    if (state.output >= 0 && isValidArrayMatch(chSnapshot, size, runStart, i)) {
+                        matchIdx = state.output; matchBl = bl; matchPos = i
+                    }
+
+                    continue
                 }
 
-                i ++
+                val next = state.goto.get(cp) ?: root
+                val genuine = next.depth == state.depth + 1
+
+                if (genuine) {
+                    b[bl] = cp; bs[bl] = stSnapshot[i]; bl ++
+                    state = next
+                    i ++
+
+                    if (state.output >= 0 && isValidArrayMatch(chSnapshot, size, runStart, i)) {
+                        matchIdx = state.output; matchBl = bl; matchPos = i
+                    }
+
+                    continue
+                }
+
+                if (matchIdx >= 0) {
+                    val litLen = matchBl - ia[matchIdx].size
+                    emitLiteral(litLen)
+                    emitMatch(matchIdx)
+                    i = matchPos
+                }
+                else emitLiteral(bl)
+
+                bl = 0
+                state = root
+                matchIdx = - 1; matchBl = - 1; matchPos = - 1
             }
 
-            for (j in 0 ..< bl) sink.accept(0, bs[j] !!, s[j])
-
+            commitOrFlushAll()
             true
         }
     }
