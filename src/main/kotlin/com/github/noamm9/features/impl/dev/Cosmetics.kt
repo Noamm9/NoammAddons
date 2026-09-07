@@ -24,7 +24,9 @@ import java.util.concurrent.*
 import kotlin.math.abs
 
 object Cosmetics: Feature(toggled = true) {
-    val customNames by ToggleSetting("Show Custom Names", true)
+    @JvmStatic val customNames by ToggleSetting("Show Custom Names", true)
+    @JvmStatic val loreNames by ToggleSetting("Show Name in Lore", true).showIf { customNames.value }
+
     val customSizes by ToggleSetting("Show Custom Sizes", true)
     val showHalo by ToggleSetting("Show Halos", true)
     val reload by ButtonSetting("Reload Cosmetics") {
@@ -89,6 +91,8 @@ object Cosmetics: Feature(toggled = true) {
 
             state.nameTagAttachment = vec(pos.x, (pos.y + 0.15) * scaleY + offset, pos.z)
         }
+
+        //   if (customNames.value && data.hasCustomName && state.nameTag != null) state.nameTag = TextReplacer.handleComponent(state.nameTag !!)
     }
 
     fun cosmeticDataFor(uuid: UUID) = if (::cosmeticPeople.isInitialized) cosmeticPeople[uuid] else null
