@@ -58,7 +58,6 @@ object RenderBatcher {
                 0,
                 LightCoordsUtil.FULL_BRIGHT
             )
-            consumers.endBatch()
         }
 
         for (batchData in pendingFills) {
