@@ -9,7 +9,6 @@ import com.github.noamm9.ui.clickgui.components.*
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.toVec
-import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
@@ -41,7 +40,7 @@ object SimonSays: Feature("Simon Says Solver") {
     private val phase by ToggleSetting("Phase", true).withDescription("Renders the box through walls.")
 
     private val buttonNumbers by ToggleSetting("Button Numbers", false).withDescription("Displays numbers for the current sequence.")
-    private val numberColor by ColorSetting("Number Color", Color.WHITE).withDescription("Color of the button numbers.").showIf { buttonNumbers.value }
+    private val numberColor by ColorSetting("Number Color", Color.WHITE, false).withDescription("Color of the button numbers.").showIf { buttonNumbers.value }
 
     //#if CHEAT
     private val triggerBot by ToggleSetting("Triggerbot", false).withDescription("Automatically clicks the correct button when you're aiming at it.").section("Auto")
@@ -63,7 +62,7 @@ object SimonSays: Feature("Simon Says Solver") {
 
     private val buttonCheckPos = BlockPos(110, 120, 93)
     private val startButton = BlockPos(110, 121, 91)
-    private val deviceCenter = vec(110.5, 121.5, 93.5)
+    private val deviceCenter = Vec3(110.5, 121.5, 93.5)
 
     private val lastKnownPositions = HashMap<String, Vec3>()
     private val solution = ArrayList<SSButton>()
@@ -135,8 +134,8 @@ object SimonSays: Feature("Simon Says Solver") {
                 solution.forEachIndexed { index, button -> button.number = index + 1 }
                 sequenceLength --
             }
-            solution.add(SSButton(event.pos))
-            sequenceLength = (sequenceLength + 1).coerceAtMost(maxStage)
+            if (solution.none { it.obsidian == event.pos }) solution.add(SSButton(event.pos))
+            sequenceLength = (solution.size).coerceAtMost(maxStage)
         }
 
         register<BlockChangeEvent> {
@@ -145,10 +144,10 @@ object SimonSays: Feature("Simon Says Solver") {
                 sequenceLength = 0
                 return@register
             }
-            if (event.newBlock != Blocks.STONE_BUTTON) return@register
 
+            if (event.newBlock != Blocks.STONE_BUTTON) return@register
+            stage = maxOf(stage, sequenceLength)
             skipOver = true
-            if (sequenceLength > 0) stage = maxOf(stage, sequenceLength)
         }
 
         register<RenderWorldEvent> {
@@ -264,7 +263,7 @@ object SimonSays: Feature("Simon Says Solver") {
             if (sendChat.value) ChatUtils.sendCommand("pc SS Broke!")
         }
 
-        resetSolver()
+        if (buttonCheckPos.distSqr(player.blockPosition()) > 25) resetSolver()
     }
 
     override fun onDisable() {
@@ -305,8 +304,8 @@ object SimonSays: Feature("Simon Says Solver") {
         )
     }
 
-    private class SSButton(obsidian: BlockPos) {
+    private class SSButton(val obsidian: BlockPos) {
         val button = obsidian.west()
-        var number: Int = (solution.lastOrNull()?.number ?: 0) + 1
+        var number = solution.size + 1
     }
 }
