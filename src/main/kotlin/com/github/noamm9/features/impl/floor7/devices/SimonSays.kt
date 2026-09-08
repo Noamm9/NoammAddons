@@ -1,6 +1,5 @@
 package com.github.noamm9.features.impl.floor7.devices
 
-import com.github.noamm9.NoammAddons
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
@@ -40,6 +39,9 @@ object SimonSays: Feature("Simon Says Solver") {
     private val color3 by ColorSetting("Other Color", Color.RED).withDescription("Color of the rest of the buttons.")
     private val outline by ToggleSetting("Outline", false).withDescription("Renders the box with an outline.")
     private val phase by ToggleSetting("Phase", true).withDescription("Renders the box through walls.")
+
+    private val buttonNumbers by ToggleSetting("Button Numbers", false).withDescription("Displays numbers for the current sequence.")
+    private val numberColor by ColorSetting("Number Color", Color.WHITE).withDescription("Color of the button numbers.").showIf { buttonNumbers.value }
 
     //#if CHEAT
     private val triggerBot by ToggleSetting("Triggerbot", false).withDescription("Automatically clicks the correct button when you're aiming at it.").section("Auto")
@@ -130,6 +132,7 @@ object SimonSays: Feature("Simon Says Solver") {
             if (event.newBlock != Blocks.SEA_LANTERN) return@register
             if (ssSkip.value && solution.size == 2 && ! skipOver) {
                 solution.removeFirst()
+                solution.forEachIndexed { index, button -> button.number = index + 1 }
                 sequenceLength --
             }
             solution.add(SSButton(event.pos))
@@ -154,7 +157,6 @@ object SimonSays: Feature("Simon Says Solver") {
 
             for (i in solution.indices) {
                 val buttonPos = solution[i].button
-                val id = solution[i].id
                 val color = when (i) {
                     0 -> color1
                     1 -> color2
@@ -162,7 +164,13 @@ object SimonSays: Feature("Simon Says Solver") {
                 }.value
 
                 event.ctx.renderSSBox(buttonPos, color)
-                if (NoammAddons.debugFlags.contains("ss")) event.ctx.renderString("$id", buttonPos.toVec().add(x = 0.8, y = 0.6, z = 0.5), phase = true)
+            }
+
+            if (buttonNumbers.value) {
+                for ((buttonPos, steps) in solution.groupBy { it.button }) {
+                    val numbers = steps.joinToString(", ") { "${it.number}" }
+                    event.ctx.renderString(numbers, buttonPos.toVec().add(x = 0.8, y = 0.6, z = 0.5), numberColor.value, phase = phase.value)
+                }
             }
         }
 
@@ -299,6 +307,6 @@ object SimonSays: Feature("Simon Says Solver") {
 
     private class SSButton(obsidian: BlockPos) {
         val button = obsidian.west()
-        val id = solution.size
+        var number: Int = (solution.lastOrNull()?.number ?: 0) + 1
     }
 }
