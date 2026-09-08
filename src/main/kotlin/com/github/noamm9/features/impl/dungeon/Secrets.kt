@@ -31,7 +31,7 @@ object Secrets: Feature() {
     //#if CHEAT
     private val closeChest by ToggleSetting("Close Chest").section("Auto").withDescription("Automatically closes the secret chest for you.")
     private val lever by ToggleSetting("Lever").withDescription("Expand block Lever hitbox.").section("Secret Hitboxes")
-    private val leverSize by SliderSetting("Lever Hitbox Size", 1.0, 8.0 / 16.0, 1.0, 0.01).showIf { button.value }
+    private val leverSize by SliderSetting("Lever Hitbox Size", 1.0, 8.0 / 16.0, 1.0, 0.01).showIf { lever.value }
     @JvmStatic val button by ToggleSetting("Button").withDescription("Expand button hitbox.")
     private val buttonSize by SliderSetting("Button Hitbox Size", 1.0, 6.0 / 16.0, 1.0, 0.01).showIf { button.value }
     @JvmStatic val skull by ToggleSetting("Skulls").withDescription("Full block Skull hitbox.")
