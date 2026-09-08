@@ -33,7 +33,7 @@ object EventDispatcher: ISelfInit, Shortcuts {
 
     override fun init() {
         LevelRenderEvents.COLLECT_SUBMITS.register { context -> EventBus.post(RenderWorldEvent(RenderContext(context))) }
-        LevelRenderEvents.AFTER_TRANSLUCENT_TERRAIN.register { _ -> RenderBatcher.flush() }
+        LevelRenderEvents.AFTER_TRANSLUCENT_TERRAIN.register { context -> RenderBatcher.flush(context) }
 
         ClientLevelEvents.AFTER_CLIENT_LEVEL_CHANGE.register { _, _ -> EventBus.post(WorldChangeEvent) }
         ClientPlayConnectionEvents.DISCONNECT.register { _, _ -> EventBus.post(WorldChangeEvent) }

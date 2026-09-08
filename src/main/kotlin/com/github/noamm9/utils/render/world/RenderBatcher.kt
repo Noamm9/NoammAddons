@@ -1,18 +1,12 @@
 package com.github.noamm9.utils.render.world
 
-import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.utils.render.world.batches.FilledBatch
-import com.github.noamm9.utils.render.world.batches.LineBatch
-import com.github.noamm9.utils.render.world.batches.TextRenderState
+import com.github.noamm9.utils.render.world.batches.*
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import com.mojang.blaze3d.vertex.Tesselator
-import gg.essential.universal.UGraphics
-import gg.essential.universal.UMatrixStack
-import gg.essential.universal.UMinecraft
+import gg.essential.universal.*
 import gg.essential.universal.render.URenderPipeline
-import gg.essential.universal.vertex.UBufferBuilder
-import gg.essential.universal.vertex.UBuiltBuffer
-import gg.essential.universal.vertex.UVertexConsumer
+import gg.essential.universal.vertex.*
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext
 import net.minecraft.client.gui.Font
 import net.minecraft.util.LightCoordsUtil
 import org.joml.Matrix4f
@@ -37,30 +31,23 @@ object RenderBatcher {
         texts.add(TextRenderState(Matrix4f(matrix), text, xOff, yOff, argb, seeThrough))
     }
 
-    internal fun flush() {
+    internal fun flush(context: LevelRenderContext) {
         if (filledBatches.isEmpty() && lineBatches.isEmpty() && texts.isEmpty()) return
 
-        val pendingFills = filledBatches.values.toList().also { filledBatches.clear() }
-        val pendingLines = lineBatches.values.toList().also { lineBatches.clear() }
-        val pendingTexts = texts.toList().also { texts.clear() }
+        for (text in texts) UMinecraft.getFontRenderer().drawInBatch(
+            text.text,
+            text.xOff,
+            text.yOff,
+            text.argb,
+            true,
+            text.matrix,
+            context.bufferSource(),
+            if (text.seeThrough) Font.DisplayMode.SEE_THROUGH else Font.DisplayMode.NORMAL,
+            0,
+            LightCoordsUtil.FULL_BRIGHT
+        )
 
-        if (pendingTexts.isNotEmpty()) {
-            val consumers = mc.renderBuffers().bufferSource()
-            for (text in pendingTexts) UMinecraft.getFontRenderer().drawInBatch(
-                text.text,
-                text.xOff,
-                text.yOff,
-                text.argb,
-                true,
-                text.matrix,
-                consumers,
-                if (text.seeThrough) Font.DisplayMode.SEE_THROUGH else Font.DisplayMode.NORMAL,
-                0,
-                LightCoordsUtil.FULL_BRIGHT
-            )
-        }
-
-        for (batchData in pendingFills) {
+        for (batchData in filledBatches.values) {
             val builder = UBufferBuilder.create(batchData.mode, UGraphics.CommonVertexFormats.POSITION_COLOR)
 
             for (state in batchData.data) {
@@ -72,9 +59,8 @@ object RenderBatcher {
             builder.build()?.drawAndClose(batchData.pipeline) { noScissor() }
         }
 
-        for (batchData in pendingLines) {
-            val mcBuffer = Tesselator.getInstance().begin(UGraphics.DrawMode.LINES.mcMode,
-                DefaultVertexFormat.POSITION_COLOR_NORMAL_LINE_WIDTH)
+        for (batchData in lineBatches.values) {
+            val mcBuffer = Tesselator.getInstance().begin(UGraphics.DrawMode.LINES.mcMode, DefaultVertexFormat.POSITION_COLOR_NORMAL_LINE_WIDTH)
             val uc = UVertexConsumer.of(mcBuffer)
 
             for (state in batchData.data) {
@@ -87,6 +73,10 @@ object RenderBatcher {
 
             mcBuffer.build()?.let(UBuiltBuffer::wrap)?.drawAndClose(batchData.pipeline) { noScissor() }
         }
+
+        filledBatches.clear()
+        lineBatches.clear()
+        texts.clear()
     }
 
     private fun filledBatch(pipeline: URenderPipeline, mode: UGraphics.DrawMode) = filledBatches.getOrPut(pipeline) { FilledBatch(pipeline, mode) }
