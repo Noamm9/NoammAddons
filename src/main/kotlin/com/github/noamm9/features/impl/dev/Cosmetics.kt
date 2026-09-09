@@ -60,6 +60,8 @@ object Cosmetics: Feature(toggled = true) {
             }.onFailure { cause ->
                 NoammAddons.logger.error("Failed to load cosmetic people", cause)
                 ChatUtils.modMessage("&cFailed to load cosmetic people: ${cause.message}")
+            }.onSuccess {
+                NoammAddons.logger.info("loaded all ${cosmeticPeople.size} cosmetic people")
             }
         }
     }

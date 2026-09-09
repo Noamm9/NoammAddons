@@ -47,6 +47,7 @@ object TeleportUtils: Shortcuts {
         val sbId = stack.skyblockId
         val nbt = stack.customData
 
+        if (sbId == "ETHERWARP_CONDUIT") return EtherwarpHelper.getEtherwarpDistance(stack)?.let { Info(it, Etherwarp) }
         if (sbId.equalsOneOf("ASPECT_OF_THE_VOID", "ASPECT_OF_THE_END")) {
             val tuners = nbt.getByte("tuned_transmission").getOrNull()?.toDouble() ?: .0
 
