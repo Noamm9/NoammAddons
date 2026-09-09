@@ -3,6 +3,7 @@ package com.github.noamm9.mixin;
 
 import com.github.noamm9.features.impl.dev.Cosmetics;
 import com.github.noamm9.features.impl.dev.cosmetics.halo.HaloLayer;
+import com.github.noamm9.features.impl.dev.cosmetics.wings.DragonWingsLayer;
 import com.github.noamm9.features.impl.dungeon.TeammateESP;
 import com.github.noamm9.features.impl.misc.NameTagTweaks;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -27,6 +28,7 @@ public class MixinAvatarRenderer {
         var self = (RenderLayerParent<AvatarRenderState, PlayerModel>) (Object) this;
 
         iSelf.noamm$addLayer(new HaloLayer(self));
+        iSelf.noamm$addLayer(new DragonWingsLayer(self));
     }
 
     @Inject(method = "scale(Lnet/minecraft/client/renderer/entity/state/AvatarRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;)V", at = @At("HEAD"))
