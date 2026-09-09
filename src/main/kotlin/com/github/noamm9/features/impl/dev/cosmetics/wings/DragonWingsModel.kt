@@ -3,13 +3,9 @@ package com.github.noamm9.features.impl.dev.cosmetics.wings
 import net.minecraft.client.model.EntityModel
 import net.minecraft.client.model.geom.ModelPart
 import net.minecraft.client.model.geom.PartPose
-import net.minecraft.client.model.geom.builders.CubeListBuilder
-import net.minecraft.client.model.geom.builders.LayerDefinition
-import net.minecraft.client.model.geom.builders.MeshDefinition
+import net.minecraft.client.model.geom.builders.*
 import net.minecraft.client.renderer.entity.state.AvatarRenderState
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.sin
+import kotlin.math.*
 
 class DragonWingsModel(root: ModelPart): EntityModel<AvatarRenderState>(root) {
     private val rightWing = root.getChild("right_wing")
@@ -33,21 +29,21 @@ class DragonWingsModel(root: ModelPart): EntityModel<AvatarRenderState>(root) {
     companion object {
         fun create(): DragonWingsModel {
             val mesh = MeshDefinition()
-            for (left in listOf(false, true)) {
-                val boxX = if (left) 0f else - 56f
+            for (side in listOf(false, true)) {
+                val boxX = if (side) 0f else - 56f
                 val wing = mesh.root.addOrReplaceChild(
-                    if (left) "left_wing" else "right_wing",
-                    CubeListBuilder.create().mirror(left)
+                    if (side) "left_wing" else "right_wing",
+                    CubeListBuilder.create().mirror(side)
                         .texOffs(112, 88).addBox(boxX, - 4f, - 4f, 56f, 8f, 8f)
                         .texOffs(- 56, 88).addBox(boxX, 0f, 2f, 56f, 0f, 56f),
-                    PartPose.offset(if (left) 12f else - 12f, 5f, 2f)
+                    PartPose.offset(if (side) 12f else - 12f, 5f, 2f)
                 )
                 wing.addOrReplaceChild(
                     "tip",
-                    CubeListBuilder.create().mirror(left)
+                    CubeListBuilder.create().mirror(side)
                         .texOffs(112, 136).addBox(boxX, - 2f, - 2f, 56f, 4f, 4f)
                         .texOffs(- 56, 144).addBox(boxX, 0f, 2f, 56f, 0f, 56f),
-                    PartPose.offset(if (left) 56f else - 56f, 0f, 0f)
+                    PartPose.offset(if (side) 56f else - 56f, 0f, 0f)
                 )
             }
             return DragonWingsModel(LayerDefinition.create(mesh, 256, 256).bakeRoot())
