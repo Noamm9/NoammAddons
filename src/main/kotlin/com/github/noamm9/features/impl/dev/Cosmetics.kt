@@ -29,6 +29,7 @@ object Cosmetics: Feature(toggled = true) {
 
     val customSizes by ToggleSetting("Show Custom Sizes", true)
     val showHalo by ToggleSetting("Show Halos", true)
+    val showDragonWings by ToggleSetting("Show Dragon Wings", true)
     val reload by ButtonSetting("Reload Cosmetics") {
         if (System.currentTimeMillis() - lastReload >= 15_000) init()
         else NotificationManager.push("Cosmetics", "Please wait another ${NumbersUtils.formatTime(150_000 - (System.currentTimeMillis() - lastReload))} before reloading again.")
@@ -93,8 +94,6 @@ object Cosmetics: Feature(toggled = true) {
 
             state.nameTagAttachment = vec(pos.x, (pos.y + 0.15) * scaleY + offset, pos.z)
         }
-
-        //   if (customNames.value && data.hasCustomName && state.nameTag != null) state.nameTag = TextReplacer.handleComponent(state.nameTag !!)
     }
 
     fun cosmeticDataFor(uuid: UUID) = if (::cosmeticPeople.isInitialized) cosmeticPeople[uuid] else null
