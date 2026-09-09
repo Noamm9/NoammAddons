@@ -2,12 +2,9 @@ package com.github.noamm9.init
 
 import com.github.noamm9.utils.GsonUtils
 import org.slf4j.LoggerFactory
-import java.io.BufferedReader
-import java.io.File
+import java.io.*
 import java.net.URI
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.StandardCopyOption
+import java.nio.file.*
 import java.util.zip.*
 import javax.net.ssl.HttpsURLConnection
 import kotlin.io.path.*
@@ -64,6 +61,7 @@ object DataDownloader {
     }
 
     private fun unzip(zipFilePath: Path) = ZipInputStream(zipFilePath.inputStream()).use { zis ->
+        val root = modDataPath.toAbsolutePath().normalize()
         var rootDirName: String? = null
 
         while (true) {
@@ -72,7 +70,9 @@ object DataDownloader {
             if (rootDirName == null) rootDirName = entry.name.substringBefore('/') + "/"
 
             val entryName = entry.name.removePrefix(rootDirName).ifEmpty { continue }
-            val targetPath = modDataPath.resolve(entryName)
+            val targetPath = root.resolve(entryName).normalize()
+
+            if (! targetPath.startsWith(root)) throw IOException("Blocked path traversal entry: ${entry.name}")
 
             if (entry.isDirectory) targetPath.createDirectories()
             else {
