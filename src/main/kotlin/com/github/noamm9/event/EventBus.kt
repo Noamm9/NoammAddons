@@ -3,14 +3,12 @@ package com.github.noamm9.event
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.event.priority.PriorityComparator
-import com.github.noamm9.utils.ChatUtils
-import com.github.noamm9.utils.remove
-import com.github.noamm9.utils.startsWithOneOf
+import com.github.noamm9.utils.*
 import net.minecraft.network.chat.Component
 import java.util.concurrent.*
 
 object EventBus {
-    val listeners = ConcurrentHashMap<Class<out Event>, List<EventListener<*>>>()
+    val listeners = ConcurrentHashMap<Class<out Event>, Array<EventListener<*>>>()
     private val exceptionHandler: (Exception, Event) -> Unit = { exception, event ->
         val packageName = Event::class.java.`package`.name
         val eventName = event.javaClass.name.remove("$packageName.impl.")
@@ -37,13 +35,13 @@ object EventBus {
 
     fun _registerListener(listener: EventListener<*>) {
         listeners.compute(listener.eventClass) { _, old ->
-            (old.orEmpty() + listener).sortedWith(PriorityComparator)
+            (old?.toList().orEmpty() + listener).sortedWith(PriorityComparator).toTypedArray()
         }
     }
 
     fun _unregisterListener(listener: EventListener<*>) {
         listeners.compute(listener.eventClass) { _, old ->
-            old?.filter { it !== listener }?.takeIf(Collection<*>::isNotEmpty)
+            old?.filter { it !== listener }?.takeIf(Collection<*>::isNotEmpty)?.toTypedArray()
         }
     }
 
@@ -53,8 +51,8 @@ object EventBus {
         var context: EventContext<T>? = null
 
         @Suppress("UNCHECKED_CAST")
-        for (listener in eventListeners) try {
-            val typedListener = listener as EventListener<T>
+        for (i in eventListeners.indices) try {
+            val typedListener = eventListeners[i] as EventListener<T>
             if (event.isCanceled && ! typedListener.receiveCancelled) continue
             val currentContext = context ?: EventContext(event, typedListener).also { context = it }
             currentContext.listener = typedListener

@@ -1,10 +1,12 @@
 package com.github.noamm9.features.impl.dev.text
 
+import com.google.common.cache.CacheBuilder
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import net.minecraft.locale.Language
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Style
 import net.minecraft.util.FormattedCharSequence
+import java.util.concurrent.*
 
 /**
  * Taken from Starred's library
@@ -25,6 +27,11 @@ abstract class AhoCorasick {
     private var r1Seq = arrayOfNulls<FormattedCharSequence>(0)
     private var root = Node()
     private var skips: String? = null
+    private var firstChars = emptySet<Int>()
+    private val replaceCache = CacheBuilder.newBuilder()
+        .maximumSize(512)
+        .expireAfterAccess(1, TimeUnit.MINUTES)
+        .build<Int, FormattedCharSequence>()
 
 
     fun build() {
@@ -35,12 +42,16 @@ abstract class AhoCorasick {
             root = Node()
             ia = emptyArray()
             r1 = emptyArray()
+            firstChars = emptySet()
+            replaceCache.invalidateAll()
             return
         }
 
         ia = Array(n) { keys[it].codePoints().toArray() }
         r1 = Array(n) { map[keys[it]] !! }
         r1Seq = arrayOfNulls(n)
+        firstChars = ia.map { it[0] }.toHashSet()
+        replaceCache.invalidateAll()
 
         root = Node()
         val queue = ArrayDeque<Node>(n * 4)
@@ -103,6 +114,23 @@ abstract class AhoCorasick {
         }
 
         if (size == 0) return input
+
+        var contentHash = 17
+        for (i in 0 until size) {
+            contentHash = 31 * contentHash + chars[i]
+            contentHash = 31 * contentHash + System.identityHashCode(styles[i])
+        }
+        val cached = replaceCache.getIfPresent(contentHash)
+        if (cached != null) return cached
+
+        var hasFirstChar = false
+        for (i in 0 until size) {
+            if (chars[i] in firstChars) {
+                hasFirstChar = true
+                break
+            }
+        }
+        if (! hasFirstChar) return input
 
         val skip = skips
         val bool = skip != null
@@ -218,7 +246,9 @@ abstract class AhoCorasick {
         if (pendingOutput != - 1) commitPending(true)
 
         flush()
-        return FormattedCharSequence.composite(parts)
+        val result = FormattedCharSequence.composite(parts)
+        replaceCache.put(contentHash, result)
+        return result
     }
 
     private fun isNameChar(cp: Int) = (cp in 'a'.code .. 'z'.code) || (cp in '0'.code .. '9'.code) || cp == '_'.code

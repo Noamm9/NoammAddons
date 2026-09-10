@@ -13,14 +13,8 @@ import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.startsWithOneOf
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.network.chat.Component
-import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
-import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket
-import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
-import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.EntityType
-import net.minecraft.world.entity.EquipmentSlot
-import net.minecraft.world.entity.LivingEntity
+import net.minecraft.network.protocol.game.*
+import net.minecraft.world.entity.*
 import net.minecraft.world.entity.decoration.ArmorStand
 import java.util.*
 
@@ -42,6 +36,7 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
     private val health0Regex = Regex("""\[Lv\d+] .+ 0/.+❤""")
     private val hiddenEntities = Collections.newSetFromMap<Entity>(WeakHashMap())
     private val entityNameCache = WeakHashMap<Entity, EntityNameInfo>()
+    private val componentNameStringCache = WeakHashMap<Entity, String>()
 
     override fun init() {
         register<MainThreadPacketReceivedEvent.Pre> {
@@ -49,6 +44,8 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
             when (val packet = event.packet) {
                 is ClientboundSetEntityDataPacket -> {
                     if (packet.id == player.id) return@register
+
+                    level.getEntity(packet.id)?.let(componentNameStringCache::remove)
 
                     val name = packet.packedItems.firstNotNullOfOrNull { entry ->
                         (entry.value() as? Optional<*>)?.orElse(null) as? Component
@@ -108,7 +105,8 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
 
             val customName = event.entity.customName ?: return@register
             if (hide0HealthNames.value && LocationUtils.inSkyblock && event.entity is ArmorStand) {
-                if (event.entity in hiddenEntities || customName.string == "0" || health0Regex.matches(customName.string)) {
+                val nameStr = componentNameStringCache.getOrPut(event.entity) { customName.string }
+                if (event.entity in hiddenEntities || nameStr == "0" || health0Regex.matches(nameStr)) {
                     hiddenEntities.add(event.entity)
                     event.isCanceled = true
                     return@register
