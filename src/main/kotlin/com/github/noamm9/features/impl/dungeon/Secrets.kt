@@ -52,7 +52,7 @@ object Secrets: Feature() {
 
     override fun init() {
         hudElement("Secret Hud", { hudDisplay.value }, { LocationUtils.inDungeon && ! LocationUtils.inBoss }) { ctx, example ->
-            val line = if (example) "&7Secrets: &c3&7/&a7"
+            val line = if (example) "${if (hudPrefix.value.isBlank()) "" else "&7${hudPrefix.value} "}&c3&7/&a7"
             else {
                 val max = ActionBarParser.maxSecrets ?: return@hudElement 0f to 0f
                 val current = ActionBarParser.secrets ?: return@hudElement 0f to 0f
