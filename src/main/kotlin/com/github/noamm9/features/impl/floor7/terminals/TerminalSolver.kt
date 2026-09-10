@@ -1,14 +1,8 @@
 package com.github.noamm9.features.impl.floor7.terminals
 
 import com.github.noamm9.NoammAddons
-import com.github.noamm9.config.types.ColorSetting
-import com.github.noamm9.config.types.DropdownSetting
-import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.config.types.ToggleSetting
-import com.github.noamm9.event.impl.ContainerEvent
-import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
-import com.github.noamm9.event.impl.ScreenEvent
-import com.github.noamm9.event.impl.TerminalEvent
+import com.github.noamm9.config.types.*
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.terminals.impl.*
 import com.github.noamm9.init.types.ICustomMenu
@@ -29,6 +23,8 @@ import net.minecraft.sounds.SoundEvents
 import java.awt.Color
 
 object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICustomMenu {
+    val fcDelay by SliderSetting("FC delay, (In server ticks)", 7, 0, 8, 1).hideIf { true }
+
     private val redGreenTerm by ToggleSetting("Red-Green", true).section("Toggles")
     private val colorsTerm by ToggleSetting("Colors", true)
     private val startsWithTerm by ToggleSetting("Start-With", true)
@@ -163,8 +159,8 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
         }
 
         register<MainThreadPacketReceivedEvent.Pre> {
-            if (! TerminalListener.inTerm) return@register
             if (! soundsEnabled.value) return@register
+            if (! TerminalListener.inTerm) return@register
             val packet = event.packet as? ClientboundSoundPacket ?: return@register
             if (packet.sound.value() != SoundEvents.NOTE_BLOCK_PLING.value()) return@register
             if (packet.volume != 8f || packet.pitch != 4.047619f) return@register

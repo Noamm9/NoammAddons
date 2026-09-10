@@ -17,7 +17,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 
 object TerminalListener: ISelfInit {
-    const val FIRST_CLICK_DELAY = 7
+    inline val FIRST_CLICK_DELAY get() = TerminalSolver.fcDelay.value
     var interactCooldown = 0
 
     @JvmField var inTerm = false

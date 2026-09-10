@@ -5,23 +5,17 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.NoammAddons.scope
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.EventBus.register
-import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.event.impl.*
+import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.mixin.IPlayerInfo
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
-import com.github.noamm9.utils.PlayerUtils
-import com.github.noamm9.utils.TabListUtils
-import com.github.noamm9.utils.dungeons.enums.Blessing
-import com.github.noamm9.utils.dungeons.enums.DungeonClass
-import com.github.noamm9.utils.dungeons.enums.Puzzle
-import com.github.noamm9.utils.dungeons.map.core.DoorType
-import com.github.noamm9.utils.dungeons.map.core.RoomState
-import com.github.noamm9.utils.dungeons.map.core.RoomType
+import com.github.noamm9.utils.dungeons.enums.*
+import com.github.noamm9.utils.dungeons.map.core.*
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
-import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils.inDungeon
 import kotlinx.coroutines.delay
@@ -30,6 +24,7 @@ import net.minecraft.client.multiplayer.PlayerInfo
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.network.protocol.game.*
 import net.minecraft.world.entity.EntityType
+import java.util.concurrent.*
 
 object DungeonListener: ISelfInit {
     private val tablistRegex = Regex("""^\[\d+] (?:\[[^]]+] )*([A-Za-z0-9_]{1,16}) .*\((\w+)(?: (\w+))?\)$""") // https://regex101.com/r/7D78SS/4
@@ -41,7 +36,7 @@ object DungeonListener: ISelfInit {
     private val watcherMessageRegex = Regex("^\\[BOSS] The Watcher: .+$")
     private val runEndRegex = Regex("^\\s*(Master Mode)? ?(?:The)? Catacombs - (Floor (.{1,3})|Entrance)$") // https://regex101.com/r/W4UjWQ/3
 
-    var dungeonTeammates = mutableListOf<DungeonPlayer>()
+    val dungeonTeammates = CopyOnWriteArrayList<DungeonPlayer>()
     var dungeonTeammatesNoSelf = listOf<DungeonPlayer>()
     var thePlayer: DungeonPlayer? = null
 
@@ -190,8 +185,8 @@ object DungeonListener: ISelfInit {
 
         register<WorldChangeEvent>(EventPriority.HIGHEST) {
             dungeonStarted = false
-            dungeonTeammates = mutableListOf()
-            dungeonTeammatesNoSelf = mutableListOf()
+            dungeonTeammates.clear()
+            dungeonTeammatesNoSelf = emptyList()
             thePlayer = null
             maxPuzzleCount = 0
             puzzles.clear()

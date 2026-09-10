@@ -30,7 +30,7 @@ object TeammateESP: Feature(
             if (event.entity !is AbstractClientPlayer) return@register
             if (event.entity.uuid.version() != 4) return@register
 
-            for (teammate in DungeonListener.dungeonTeammates.toList()) {
+            for (teammate in DungeonListener.dungeonTeammates) {
                 if (teammate.entity?.id != event.entity.id) continue
                 event.color = teammate.clazz.color
             }
