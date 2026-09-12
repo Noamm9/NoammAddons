@@ -6,6 +6,7 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolver
 import com.github.noamm9.features.impl.dungeon.solvers.puzzles.QuizSolver
 import com.github.noamm9.utils.ColorUtils.withAlpha
+import com.github.noamm9.utils.location.LocationUtils.inBoss
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.RenderHelper.width
 import java.awt.Color
@@ -72,19 +73,20 @@ object PuzzleSolvers: Feature() {
             val text = QuizSolver.timerText(example)
             ctx.drawCenteredString(text, 0f, 0f)
             return@hudElement text.width().toFloat() to 9f
-        }.defaults {
+        } defaults {
             scale = 3f
         }
 
         register<DungeonEvent.RoomEvent.onStateChange> { puzzles.forEach { if (it.enabled) it.onStateChange(event) } }
         register<PlayerInteractEvent.RIGHT_CLICK.BLOCK> { puzzles.forEach { if (it.enabled) it.onInteract(event) } }
         register<MainThreadPacketReceivedEvent.Pre> { puzzles.forEach { if (it.enabled) it.onPacket(event) } }
-        register<DungeonEvent.RoomEvent.onEnter> { puzzles.forEach { if (it.enabled) it.onRoomEnter(event) } }
+        register<DungeonEvent.RoomEvent.onEnter> { puzzles.forEach { if (it.enabled && ! inBoss) it.onRoomEnter(event) } }
         register<RenderWorldEvent> { puzzles.forEach { if (it.enabled) it.onRenderWorld(event.ctx) } }
         register<CheckEntityGlowEvent> { puzzles.forEach { if (it.enabled) it.onEntityGlow(event) } }
         register<DungeonEvent.RoomEvent.onExit> { puzzles.forEach { if (it.enabled) it.onRoomExit() } }
         register<ChatMessageEvent> { puzzles.forEach { if (it.enabled) it.onChat(event) } }
         register<TickEvent.Server> { puzzles.forEach { if (it.enabled) it.onTick() } }
         register<WorldChangeEvent> { puzzles.forEach { if (it.enabled) it.reset() } }
+        register<DungeonEvent.BossEnterEvent> { puzzles.forEach { if (it.enabled) it.reset() } }
     }
 }
