@@ -27,7 +27,7 @@ public abstract class MixinGuiGraphicsExtractor {
 
     @WrapMethod(method = "tooltip")
     private void onRenderTooltipPre(Font font, List<ClientTooltipComponent> lines, int xo, int yo, ClientTooltipPositioner positioner, @org.jspecify.annotations.Nullable Identifier style, Operation<Void> original) {
-        if (Cosmetics.INSTANCE.enabled && Cosmetics.getCustomNames().getValue() && Cosmetics.getLoreNames().getValue()) TextReplacer.drawingTooltip = true;
+        if (Cosmetics.INSTANCE.enabled && Cosmetics.getCustomNames().getValue() && ! Cosmetics.getLoreNames().getValue()) TextReplacer.drawingTooltip = true;
         if (! ItemTooltip.isScrollingEnabled()) original.call(font, lines, xo, yo, positioner, style);
         else {
             pose.pushMatrix();
