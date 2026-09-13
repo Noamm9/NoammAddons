@@ -2,13 +2,8 @@ package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.commands.CommandBuilder
 import com.github.noamm9.config.PogObject
-import com.github.noamm9.config.types.ColorSetting
-import com.github.noamm9.config.types.DropdownSetting
-import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.config.types.ToggleSetting
-import com.github.noamm9.event.impl.DungeonEvent
-import com.github.noamm9.event.impl.RenderWorldEvent
-import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.config.types.*
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.ui.gui.DungeonWaypointScreen
@@ -149,6 +144,7 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
 
     override fun CommandBuilder.command() {
         setName("ndw")
+        requires("Enable the $name Feature to use /ndw.") { enabled }
         runs { ChatUtils.modMessage("&bUsage: /ndw <add|edit|remove|clear>") }
 
         literal("add") {
@@ -179,14 +175,14 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
                 val lookingAt = PlayerUtils.getSelectionBlock() ?: return@runs ChatUtils.modMessage("§cYou must be looking at a block!")
                 val waypoints = waypoints.get()
 
-                val closest = (if (roomName.startsWith("B")) waypoints[roomName] else currentWaypoints)?.find { it.pos == lookingAt }
+                val closest = (if (LocationUtils.inBoss) waypoints[roomName] else currentWaypoints)?.find { it.pos == lookingAt }
                     ?: return@runs ChatUtils.modMessage("§cNo waypoints found in this room.")
 
                 val relativePosToRemove = ScanUtils.getRelativeCoord(closest.pos, roomCorner, rotation)
                 val roomList = waypoints.getOrDefault(roomName, emptyList()).toMutableList()
                 if (roomList.removeIf { it.pos == relativePosToRemove }) {
                     waypoints[roomName] = roomList
-                    currentWaypoints.remove(closest)
+                    currentWaypoints.removeIf { it.pos == closest.pos }
                     ChatUtils.modMessage("§aWaypoint removed.")
                 }
                 else ChatUtils.modMessage("§cError syncing config.")
