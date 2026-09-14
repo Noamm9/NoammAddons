@@ -6,15 +6,14 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.ICommandNode
 import com.github.noamm9.mixin.IServerboundChatCommandPacket
 import com.mojang.brigadier.CommandDispatcher
-import com.mojang.brigadier.arguments.StringArgumentType
-import com.mojang.brigadier.tree.RootCommandNode
+import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
-import net.fabricmc.fabric.api.client.command.v2.ClientCommands
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 
-@Suppress("UNCHECKED_CAST")
 object CommandShortcuts: Feature("Create your own command shortcuts") {
     val shortcuts = PogObject("commandShortcuts", linkedMapOf<String, String>())
+    private var currentDispatcher: CommandDispatcher<FabricClientCommandSource>? = null
+    private var registeredShortcuts = setOf<String>()
 
     override fun init() {
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ -> build(dispatcher) }
@@ -29,16 +28,29 @@ object CommandShortcuts: Feature("Create your own command shortcuts") {
     }
 
     fun build(dispatcher: CommandDispatcher<FabricClientCommandSource>) {
-        shortcuts.get().keys.forEach { key ->
-            unregisterNode(dispatcher.root, key)
-            dispatcher.register(ClientCommands.literal(key).then(ClientCommands.argument("arguments", StringArgumentType.greedyString())))
+        currentDispatcher = dispatcher
+        val currentKeys = shortcuts.get().keys
+        removeShortcuts(registeredShortcuts - currentKeys, dispatcher)
+        injectShortcuts(currentKeys, dispatcher)
+        registeredShortcuts = currentKeys
+    }
+
+    fun injectShortcuts(shortcutKeys: Set<String>, dispatcher: CommandDispatcher<FabricClientCommandSource>) {
+        for (shortcut in shortcutKeys) {
+            val parts = shortcut.split(" ")
+            var node = dispatcher.root.getChild(parts[0]) ?: LiteralArgumentBuilder.literal<FabricClientCommandSource>(parts[0]).build().also(dispatcher.root::addChild)
+            for (part in parts.drop(1)) node = node.getChild(part) ?: LiteralArgumentBuilder.literal<FabricClientCommandSource>(part).build().also(node::addChild)
         }
     }
 
-    private fun unregisterNode(root: RootCommandNode<FabricClientCommandSource>, key: String) {
-        val node = root as ICommandNode
-        node.children.remove(key)
-        node.literals.remove(key)
-        node.arguments.remove(key)
+    fun removeShortcuts(remove: Set<String>, dispatcher: CommandDispatcher<FabricClientCommandSource>) {
+        for (shortcut in remove) {
+            val parts = shortcut.split(" ")
+            val parent = if (parts.size == 1) dispatcher.root
+            else dispatcher.findNode(parts.dropLast(1)) ?: continue
+            val accessor = parent as ICommandNode
+            accessor.children.remove(parts.last())
+            accessor.literals.remove(parts.last())
+        }
     }
 }
