@@ -2,7 +2,7 @@ package com.github.noamm9.config.migrators
 
 import com.github.noamm9.config.ConfigMigrator
 import com.github.noamm9.init.types.ISelfInit
-import com.github.noamm9.utils.GsonUtils.jsonObject
+import com.github.noamm9.utils.GsonUtils.gsonObject
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 
@@ -10,7 +10,7 @@ object ConfigMigratorV0ToV1: ConfigMigrator(0, 1), ISelfInit {
     override fun init() = register(this)
 
     override fun migrate(root: JsonObject): JsonObject {
-        val newRoot = jsonObject { addProperty("version", 1) }
+        val newRoot = gsonObject { addProperty("version", 1) }
         val config = JsonArray()
 
         root.getAsJsonArray("config")?.forEach { featureElement ->

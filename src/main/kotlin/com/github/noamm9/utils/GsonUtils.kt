@@ -19,8 +19,8 @@ object GsonUtils {
     inline fun <reified T: Any> decode(json: String): T = gson.fromJson(json, object: TypeToken<T>() {}.type)
     fun encode(obj: Any) = gson.toJson(obj)
 
-    inline fun jsonObject(block: JsonObject.() -> Unit) = JsonObject().apply(block)
-    inline fun jsonArray(block: JsonArray.() -> Unit) = JsonArray().apply(block)
+    inline fun gsonObject(block: JsonObject.() -> Unit) = JsonObject().apply(block)
+    inline fun gsonArray(block: JsonArray.() -> Unit) = JsonArray().apply(block)
 
     class ColorAdapter: JsonSerializer<Color>, JsonDeserializer<Color> {
         override fun serialize(src: Color, type: Type, ctx: JsonSerializationContext) = JsonPrimitive(src.rgb)

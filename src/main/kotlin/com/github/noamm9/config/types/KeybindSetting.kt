@@ -2,7 +2,7 @@ package com.github.noamm9.config.types
 
 import com.github.noamm9.config.ConfigHolder
 import com.github.noamm9.config.Savable
-import com.github.noamm9.utils.GsonUtils.jsonObject
+import com.github.noamm9.utils.GsonUtils.gsonObject
 import com.google.gson.JsonElement
 import com.mojang.blaze3d.platform.InputConstants
 import gg.essential.universal.UKeyboard
@@ -36,7 +36,7 @@ class KeybindSetting(
 
     fun matches(code: Int, mouse: Boolean) = value != UKeyboard.KEY_NONE && isMouse == mouse && value == code
 
-    override fun write() = jsonObject {
+    override fun write() = gsonObject {
         addProperty("key", value)
         addProperty("scan", scanCode)
         addProperty("isMouse", isMouse)

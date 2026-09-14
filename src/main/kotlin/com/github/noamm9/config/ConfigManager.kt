@@ -3,8 +3,8 @@ package com.github.noamm9.config
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.utils.*
-import com.github.noamm9.utils.GsonUtils.jsonArray
-import com.github.noamm9.utils.GsonUtils.jsonObject
+import com.github.noamm9.utils.GsonUtils.gsonArray
+import com.github.noamm9.utils.GsonUtils.gsonObject
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import net.fabricmc.loader.api.FabricLoader
@@ -77,13 +77,13 @@ object ConfigManager {
         read(migrated)
     }
 
-    fun save() = configFile.write(GsonUtils.gson.toJson(jsonObject {
+    fun save() = configFile.write(GsonUtils.gson.toJson(gsonObject {
         addProperty("version", VERSION)
-        add("config", jsonArray {
-            for (feature in FeatureManager.features) add(jsonObject {
+        add("config", gsonArray {
+            for (feature in FeatureManager.features) add(gsonObject {
                 addProperty("name", feature.jsonName)
                 addProperty("enabled", feature.enabled)
-                add("configSettings", jsonObject {
+                add("configSettings", gsonObject {
                     for (setting in feature.configSettings) {
                         if (setting !is Savable) continue
                         add(setting.jsonName, setting.write())
@@ -91,8 +91,8 @@ object ConfigManager {
                 })
             })
         })
-        add("hud", jsonArray {
-            for (hud in FeatureManager.hudElements) add(jsonObject {
+        add("hud", gsonArray {
+            for (hud in FeatureManager.hudElements) add(gsonObject {
                 addProperty("name", hud.name)
                 addProperty("x", hud.x)
                 addProperty("y", hud.y)
