@@ -67,10 +67,10 @@ dependencies {
     compileOnly("maven.modrinth:iris:$iris_version")
     compileOnly("com.terraformersmc:modmenu:$modmenu_version")
 
-    compileOnly("io.github.llamalad7:mixinextras-fabric:0.5.4")
-    annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.5.4")
+    compileOnly("io.github.llamalad7:mixinextras-fabric:0.5.5")
+    annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.5.5")
 
-    bundled("io.github.classgraph:classgraph:4.8.191")
+    bundled("io.github.classgraph:classgraph:4.8.195")
     bundled("com.github.Noamm9:datafixer:d60875927e")
     bundled("gg.essential:universalcraft-26.1-fabric:$universalcraft_version") {
         exclude(group = "net.fabricmc", module = "fabric-loader")
