@@ -127,9 +127,9 @@ object ProfileUtils {
         }
     }
 
-    // usuaslly i dont like running commands in the background
-    // but this one seems to behave exacly like /locraw.
-    // meaning it does not effect the message spam cooldown
+    // usually I don't like running commands in the background
+    // but this one seems to behave exactly like /locraw.
+    // meaning it does not affect the message spam cooldown
     private suspend fun getSecretsCMD(): Long {
         if (! LocationUtils.inSkyblock) error("Not in Skyblock")
         _totalSecrets = null

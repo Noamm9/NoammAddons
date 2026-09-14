@@ -216,7 +216,7 @@ object SimonSays: Feature("Simon Says Solver") {
                 if (position != null && position.distanceToSqr(deviceCenter) <= 25) {
                     resetSolver()
                     val time = (DungeonListener.currentTime - startTick) / 20.0
-                    ChatUtils.modMessage("&bSimon Says Took §e${time.toFixed(2)}s&b to complate!")
+                    ChatUtils.modMessage("&bSimon Says Took §e${time.toFixed(2)}s&b to complete!")
                 }
             }
 

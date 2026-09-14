@@ -42,7 +42,7 @@ object DebugHUD {
         draw("Dungeon Ended: ${if (DungeonListener.dungeonEnded) "§aYES" else "§cNO"}")
         draw("Current Tick: §7${DungeonListener.currentTime} §8(${DungeonListener.currentTime / 20}s)")
         draw("Door Keys: §e${DoorType.entries.sumOf { it.keys }}")
-        draw("Last Opener: §d${DungeonListener.lastDoorOpenner?.name ?: "None"}")
+        draw("Last Opener: §d${DungeonListener.lastDoorOpener?.name ?: "None"}")
 
         y += 5
 

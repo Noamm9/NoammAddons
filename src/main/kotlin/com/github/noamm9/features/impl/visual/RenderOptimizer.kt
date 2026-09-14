@@ -30,7 +30,7 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
     private val hideDeadMobs by ToggleSetting("Hide Dead Mobs").withDescription("Hides the mobs death animation.")
     private val hideXpOrbs by ToggleSetting("Hide XP Orbs")
     private val removeTentacles by ToggleSetting("Hide P5 Tentacles").withDescription("Hides the Wither King Tentacles")
-    private val hideP5p by ToggleSetting("Hide P5 Particles").withDescription("Hide all Particles in M7 P5 except the relevent ones")
+    private val hideP5p by ToggleSetting("Hide P5 Particles").withDescription("Hide all Particles in M7 P5 except the relevant ones")
     val hideFireOnEntities by ToggleSetting("Hide Fire On Entities").withDescription("Hides the fire texture on burning mobs")
 
     private val health0Regex = Regex("""\[Lv\d+] .+ 0/.+❤""")

@@ -67,7 +67,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
     private val doorOpenerBgHover = Color.WHITE
 
     private fun leapBoxColor(player: DungeonPlayer, isHovered: Boolean) = when {
-        showLastDoorOpener.value && DungeonListener.lastDoorOpenner == player -> if (isHovered) doorOpenerBgHover else doorOpenerBg
+        showLastDoorOpener.value && DungeonListener.lastDoorOpener == player -> if (isHovered) doorOpenerBgHover else doorOpenerBg
         tintDeadPlayers.value && player.isDead -> boxBg.lerp(Color.RED, 0.2f).let { if (isHovered) it.brighter() else it }
         else -> if (isHovered) boxBgHover else boxBg
     }
