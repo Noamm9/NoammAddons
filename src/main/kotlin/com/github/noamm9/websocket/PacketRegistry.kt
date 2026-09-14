@@ -14,7 +14,6 @@ object PacketRegistry: ISelfInit {
         register<S2CPacketDungeonPrince>("dungeonprince")
         register<S2CPacketDungeonBat>("dungeonbat")
         register<S2CPacketDungeonRoom>("dungeonroom")
-        register<S2CPacketM7Dragon>("m7dragon")
         register<S2CPacketRoomSecrets>("dungeonroomsecrets")
         register<S2CPacketSocketInfo>("socket_info")
     }

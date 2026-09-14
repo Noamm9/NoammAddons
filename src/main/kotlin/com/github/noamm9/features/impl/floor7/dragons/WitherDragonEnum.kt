@@ -5,8 +5,6 @@ import com.github.noamm9.utils.ChatUtils.modMessage
 import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.dungeons.DungeonListener
-import com.github.noamm9.websocket.WebSocket
-import com.github.noamm9.websocket.packets.S2CPacketM7Dragon
 import gg.essential.universal.ChatColor
 import net.minecraft.core.BlockPos
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon
@@ -53,10 +51,6 @@ enum class WitherDragonEnum(
         sprayedTime = null
         arrowsHit = 0
         offScoreboardTicks = 0
-
-        if (DungeonListener.dungeonTeammatesNoSelf.isNotEmpty()) {
-            WebSocket.send(S2CPacketM7Dragon(S2CPacketM7Dragon.DragonEvent.SPAWN, this))
-        }
     }
 
     fun setDead(silent: Boolean = false) {
@@ -76,10 +70,6 @@ enum class WitherDragonEnum(
         }
 
         if (WitherDragons.priorityDragon == this) WitherDragons.priorityDragon = None
-
-        if (DungeonListener.dungeonTeammatesNoSelf.isNotEmpty()) {
-            WebSocket.send(S2CPacketM7Dragon(S2CPacketM7Dragon.DragonEvent.DEATH, this))
-        }
     }
 
     fun updateEntity(id: Int, hard: Boolean = false) {

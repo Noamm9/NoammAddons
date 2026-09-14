@@ -10,6 +10,7 @@ import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.network.cache.*
 import com.github.noamm9.utils.network.data.DungeonStats
 import com.github.noamm9.utils.network.data.MojangData
+import com.github.noamm9.websocket.WebSocket
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.jsonObject
 import java.util.*
@@ -148,6 +149,7 @@ object ProfileUtils {
 
         if (event.unformattedText.substringBefore(":") != mc.user.name) return@listener
         _totalSecrets = event.unformattedText.substringAfter(": ").toLongOrNull()
+        WebSocket.send(mapOf("type" to "secretcount", "secrets" to _totalSecrets))
         ThreadUtils.scheduledTaskServer(5) { listener.unregister() }
     }
 }

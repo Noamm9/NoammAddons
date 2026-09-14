@@ -41,7 +41,7 @@ object ApiAuth: ISelfInit {
             val playerKeypairOpt = (mc as IMinecraft).keyPair.prepareKeyPair().await()
 
             if (! playerKeypairOpt.isPresent) {
-                logger.warn("[ApiAuth] No profile key pair available, retrying in 5 minutes")
+                logger.warn("[ApiAuth] No profile key pair available, retrying in 5 minutes. ")
                 setTimeout(5 * 60 * 1000L) { updateToken() }
                 return
             }
