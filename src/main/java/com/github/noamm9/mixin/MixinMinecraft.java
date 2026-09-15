@@ -9,8 +9,12 @@ import com.github.noamm9.interfaces.IGlowingEntity;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
+import com.mojang.authlib.minecraft.UserApiService;
+import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.User;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.main.GameConfig;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -20,6 +24,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -30,12 +36,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Minecraft.class)
 public abstract class MixinMinecraft {
+    @Shadow @Final private static Logger LOGGER;
     @Shadow @Nullable public Screen screen;
     @Shadow @Nullable public HitResult hitResult;
     @Shadow public LocalPlayer player;
     @Shadow @Nullable public ClientLevel level;
-
-
+    @Shadow @Final private User user;
     @Inject(method = "startAttack", at = @At("HEAD"))
     private void onStartAttack(CallbackInfoReturnable<Boolean> cir) {
         InfoDisplay.addLeftClick();
@@ -65,7 +71,7 @@ public abstract class MixinMinecraft {
 
     @Inject(method = "continueAttack", at = @At("HEAD"), cancellable = true)
     private void preWhileAttack(boolean down, CallbackInfo ci) {
-        if (!down) return;
+        if (! down) return;
         handleHitResult(ci, true);
     }
 
@@ -105,7 +111,7 @@ public abstract class MixinMinecraft {
 
     @Inject(method = "setScreen", at = @At("HEAD"))
     private void onSetScreen(Screen screen, CallbackInfo ci, @Local(argsOnly = true) LocalRef<Screen> screenRef) {
-        if (!StorageOverlay.INSTANCE.enabled) return;
+        if (! StorageOverlay.INSTANCE.enabled) return;
         var newScreen = StorageOverlay.onScreenChange(this.screen, screen);
         if (newScreen != null) screenRef.set(newScreen);
     }
@@ -130,5 +136,13 @@ public abstract class MixinMinecraft {
         glow.noammaddons$glowColor(event.getColor());
 
         return original || glow.noammaddons$isGlowing();
+    }
+
+    @SuppressWarnings("ConstantValue")
+    @Inject(method = "createUserApiService", at = @At("HEAD"), cancellable = true)
+    private void onCreateUserApiService(YggdrasilAuthenticationService authService, GameConfig config, CallbackInfoReturnable<UserApiService> cir) {
+        String token = user.getAccessToken();
+        if (token == null || token.equals("0") || token.equals("FabricMC")) return;
+        cir.setReturnValue(authService.createUserApiService(token));
     }
 }

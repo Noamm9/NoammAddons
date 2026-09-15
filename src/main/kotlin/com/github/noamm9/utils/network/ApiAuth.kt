@@ -7,6 +7,7 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.impl.GameStartEvent
 import com.github.noamm9.init.types.ISelfInit
+import com.github.noamm9.interfaces.IAccountProfileKeyPairManager
 import com.github.noamm9.mixin.IMinecraft
 import com.github.noamm9.utils.GsonUtils.decode
 import com.github.noamm9.utils.GsonUtils.encode
@@ -18,12 +19,16 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.future.await
+import kotlinx.coroutines.withContext
+import net.minecraft.world.entity.player.ProfileKeyPair
 import java.nio.ByteBuffer
 import java.security.PrivateKey
 import java.security.Signature
 import java.util.*
 import kotlin.io.encoding.Base64
+import kotlin.jvm.optionals.getOrNull
 
 object ApiAuth: ISelfInit {
     private const val AUTH_URL = "$BASE_URL/hypixel/auth"
@@ -36,63 +41,62 @@ object ApiAuth: ISelfInit {
         }
     }
 
-    private suspend fun updateToken() {
-        try {
-            val playerKeypairOpt = (mc as IMinecraft).keyPair.prepareKeyPair().await()
-
-            if (! playerKeypairOpt.isPresent) {
-                logger.warn("[ApiAuth] No profile key pair available, retrying in 5 minutes. ")
-                setTimeout(5 * 60 * 1000L) { updateToken() }
-                return
-            }
-
-            val playerKeyPair = playerKeypairOpt.get()
-            val publicKeyData = playerKeyPair.publicKey().data()
-            if (publicKeyData.hasExpired()) {
-                logger.warn("[ApiAuth] Profile key pair has expired, please restart the game")
-                setTimeout(5 * 60 * 1000L) { updateToken() }
-                return
-            }
-
-            val publicKey = Base64.encode(publicKeyData.key().encoded)
-            val publicKeySignature = publicKeyData.keySignature()
-            val expiresAt = publicKeyData.expiresAt().toEpochMilli()
-            val uuid = mc.user.profileId
-
-            val signedData = signRandomData(playerKeyPair.privateKey()) ?: run {
-                logger.error("[ApiAuth] Failed to sign random data, retrying in 5 minutes")
-                setTimeout(5 * 60 * 1000L) { updateToken() }
-                return
-            }
-
-            val request = TokenRequest(
-                KeyPairInfo(uuid.toString(), publicKey, Base64.encode(publicKeySignature), expiresAt),
-                signedData, MOD_ID, "@MINECRAFT_VERSION@", MOD_VERSION
-            )
-
-            val response = client.post(AUTH_URL) {
-                contentType(ContentType.Application.Json)
-                setBody(encode(request))
-            }
-
-            if (! response.status.isSuccess()) {
-                val error = response.bodyAsText()
-                logger.error("[ApiAuth] Auth failed (${response.status}): $error, retrying in 15 minutes")
-                setTimeout(15 * 60 * 1000L) { updateToken() }
-                return
-            }
-
-            val tokenResponse = decode<TokenResponse>(response.bodyAsText())
-            tokenInfo = tokenResponse
-
-            val refreshAtMillis = (tokenResponse.expiresAt - tokenResponse.issuedAt) - 5 * 60 * 1000
-            logger.info("[ApiAuth] Successfully authenticated, refreshing in ${refreshAtMillis / 1000}s")
-            setTimeout(refreshAtMillis) { updateToken() }
+    private suspend fun updateToken(): Unit = try {
+        val resolved = getProfileKeyPair() ?: return run {
+            logger.error("[ApiAuth] No key pair available.")
+            setTimeout(5 * 60 * 1000L, ::updateToken)
         }
-        catch (e: Exception) {
-            logger.error("[ApiAuth] Unexpected error during auth, retrying in 15 minutes", e)
-            setTimeout(15 * 60 * 1000L) { updateToken() }
+
+        val signedData = signRandomData(resolved.privateKey) ?: return run {
+            logger.error("[ApiAuth] Failed to sign random data, retrying in 5 minutes")
+            setTimeout(5 * 60 * 1000L, ::updateToken)
         }
+
+        val request = TokenRequest(
+            KeyPairInfo(
+                mc.user.profileId.toString(),
+                Base64.encode(resolved.publicKey.data.key.encoded),
+                Base64.encode(resolved.publicKey.data.keySignature),
+                resolved.publicKey.data.expiresAt.toEpochMilli()
+            ),
+            signedData, MOD_ID, "@MINECRAFT_VERSION@", MOD_VERSION
+        )
+
+        val response = client.post(AUTH_URL) {
+            contentType(ContentType.Application.Json)
+            setBody(encode(request))
+        }
+
+        if (! response.status.isSuccess()) return run {
+            val error = response.bodyAsText()
+            logger.error("[ApiAuth] Auth failed (${response.status}): $error, retrying in 15 minutes")
+            setTimeout(15 * 60 * 1000L, ::updateToken)
+        }
+
+        val tokenResponse = decode<TokenResponse>(response.bodyAsText()).also { tokenInfo = it }
+        val refreshAtMillis = (tokenResponse.expiresAt - tokenResponse.issuedAt) - 5 * 60 * 1000
+
+        logger.info("[ApiAuth] Successfully authenticated, refreshing in ${refreshAtMillis / 1000}s")
+        setTimeout(refreshAtMillis, ::updateToken)
+    }
+    catch (e: Exception) {
+        logger.error("[ApiAuth] Unexpected error during auth, retrying in 15 minutes", e)
+        setTimeout(15 * 60 * 1000L, ::updateToken)
+    }
+
+    private suspend fun getProfileKeyPair(): ProfileKeyPair? = withContext(Dispatchers.IO) {
+        val profileKeyManager = (mc as IMinecraft).keyPair
+        val playerKeypairOpt = profileKeyManager.prepareKeyPair().await()
+
+        if (playerKeypairOpt.isPresent) {
+            val data = playerKeypairOpt.get().publicKey().data()
+            if (! data.hasExpired()) return@withContext playerKeypairOpt.get()
+
+            logger.warn("[ApiAuth] Vanilla key pair present but expired, falling back to direct Mojang fetch")
+        }
+        else logger.warn("[ApiAuth] Vanilla returned no key pair, falling back to direct Mojang fetch")
+
+        return@withContext (profileKeyManager as? IAccountProfileKeyPairManager)?.fetchKeyPair()?.getOrNull()
     }
 
     private fun signRandomData(privateKey: PrivateKey): SignedData? {
