@@ -63,6 +63,7 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
         register<WorldChangeEvent> {
             currentFloorSplits.clear()
             score300Timer = null
+            currentText = emptyList()
         }
 
         register<TickEvent.Start> {
@@ -163,8 +164,11 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
 
     private data class Split(var start: DualTime? = null, var end: DualTime? = null)
     private data class DialogueEntry(val name: String, val start: String? = null, val end: String? = null) {
-        fun startMatches(msg: String) = start == msg || start?.toRegex()?.matches(msg) == true
-        fun endMatches(msg: String) = end == msg || end?.toRegex()?.matches(msg) == true
+        @Transient private val startRegex = start?.toRegex()
+        @Transient private val endRegex = end?.toRegex()
+
+        fun startMatches(msg: String) = start == msg || startRegex?.matches(msg) == true
+        fun endMatches(msg: String) = end == msg || endRegex?.matches(msg) == true
     }
 
     private fun dual(diff: DualTime, fmt: (Long) -> String) = "${fmt(diff.real / 50)} §7(§b${fmt(diff.ticks)}§7)"
