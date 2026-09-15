@@ -33,7 +33,7 @@ object ProfileUtils {
 
     suspend fun getUUIDbyName(name: String): Result<MojangData> {
         val key = name.lowercase()
-        MojangCache.check(key, "$name not found")?.let { return it }
+        MojangCache.check(key)?.let { return it }
 
         for (api in nameToUuidApis) {
             if (System.currentTimeMillis() < (apiCooldowns[api] ?: 0L)) continue
@@ -64,7 +64,7 @@ object ProfileUtils {
 
     suspend fun getNameByUUID(uuid: UUID): Result<MojangData> {
         val key = uuid.toString().replace("-", "")
-        MojangCache.check(key, "UUID not found")?.let { return it }
+        MojangCache.check(key)?.let { return it }
 
         for (api in uuidToNameApis) {
             if (System.currentTimeMillis() < (apiCooldowns[api] ?: 0L)) continue
