@@ -11,6 +11,7 @@ import net.fabricmc.loader.api.FabricLoader
 import java.io.File
 
 object ConfigManager {
+    private val configRegex = Regex("^[A-Za-z0-9_-]{1,32}$")
     private val configPath = FabricLoader.getInstance().configDir.resolve(NoammAddons.MOD_NAME)
     private val configsDir = configPath.resolve("configs").toFile()
     private val defaultConfigFile = File(configPath.toFile(), "config.json")
@@ -19,17 +20,29 @@ object ConfigManager {
     private const val VERSION = 1
 
     fun getConfigs(): Map<String, File> {
-        val named = configsDir.listFiles()?.associateBy { it.nameWithoutExtension } ?: emptyMap()
+        val named = configsDir.listFiles()
+            ?.filter { it.name.endsWith(".json") && configRegex.matches(it.nameWithoutExtension) }
+            ?.associateBy { it.nameWithoutExtension } ?: emptyMap()
         return named + ("default" to defaultConfigFile)
     }
 
     fun createConfig(configName: String): Boolean {
+        val newFile = run {
+            if (! configRegex.matches(configName)) return@run null
+            val file = File(configsDir, "$configName.json").canonicalFile
+            if (file.parentFile != configsDir.canonicalFile) return@run null
+            return@run file
+        } ?: run {
+            ChatUtils.modMessage("&cInvalid config name \"$configName\". Use 1-32 characters: A-Z, 0-9, _ or -.")
+            return false
+        }
+
         if (configName in getConfigs().keys) {
             ChatUtils.modMessage("&cThere is already a config named \"$configName\".")
             return false
         }
+
         configsDir.mkdirs()
-        val newFile = File(configsDir, "$configName.json")
         configFile.file.copyTo(newFile)
         configFile = FileHandler(newFile)
         selectedConfig.set(configName)
@@ -38,6 +51,7 @@ object ConfigManager {
     }
 
     fun changeConfig(configName: String) {
+        if (! configRegex.matches(configName)) return ChatUtils.modMessage("&cInvalid config name \"$configName\".")
         val newConfigFile = getConfigs()[configName] ?: return ChatUtils.modMessage("&cNo config named \"$configName\" was found.")
         if (! newConfigFile.exists()) return ChatUtils.modMessage("&cNo config file found for \"$configName\".")
         configFile = FileHandler(newConfigFile)
@@ -51,10 +65,17 @@ object ConfigManager {
             ChatUtils.modMessage("&cYou cannot delete the default config.")
             return false
         }
+
+        if (! configRegex.matches(configName)) {
+            ChatUtils.modMessage("&cInvalid config name \"$configName\".")
+            return false
+        }
+
         val file = getConfigs()[configName] ?: run {
             ChatUtils.modMessage("&cNo config found with the name \"$configName\".")
             return false
         }
+
         file.delete()
         ChatUtils.modMessage("&aSuccessfully deleted the config \"$configName\".")
         if (configName == selectedConfig.get()) changeConfig("default")
