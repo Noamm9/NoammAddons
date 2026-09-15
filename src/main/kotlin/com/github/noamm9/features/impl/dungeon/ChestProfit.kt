@@ -290,7 +290,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
             if (lastLine == "You already rerolled a chest!") return@register
             if (lastLine != "Click to reroll this chest!") return@register
             event.isCanceled = true
-            NotificationManager.push("Blocked Rerolling Chest", "Its profit dumass.\nPress CTRL to override")
+            NotificationManager.push("Blocked Rerolling Chest", "Its profit dumbass.\nPress CTRL to override")
         }
     }
 

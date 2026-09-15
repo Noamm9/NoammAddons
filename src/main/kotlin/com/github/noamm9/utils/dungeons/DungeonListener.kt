@@ -59,7 +59,7 @@ object DungeonListener: ISelfInit {
     var bossEntryTime: DualTime? = null
     var dungeonEndTime: Long? = null
 
-    var lastDoorOpenner: DungeonPlayer? = null
+    var lastDoorOpener: DungeonPlayer? = null
 
     var currentTime = 0L
 
@@ -158,7 +158,7 @@ object DungeonListener: ISelfInit {
 
                 else -> {
                     witherDoorOpenedRegex.find(unformatted)?.destructured?.let { (name) ->
-                        lastDoorOpenner = dungeonTeammates.find { it.name == name }
+                        lastDoorOpener = dungeonTeammates.find { it.name == name }
                         DoorType.WITHER.keys --
                         return@register
                     }
@@ -197,17 +197,17 @@ object DungeonListener: ISelfInit {
             watcherFinishSpawnTime = null
             bossEntryTime = null
             dungeonEndTime = null
-            lastDoorOpenner = null
+            lastDoorOpener = null
             currentTime = 0
             DoorType.reset()
             Blessing.reset()
         }
 
         register<DungeonEvent.RoomEvent.onStateChange> {
-            if (lastDoorOpenner == null) return@register
+            if (lastDoorOpener == null) return@register
             if (event.room.data.type != RoomType.BLOOD) return@register
             if (! event.newState.equalsOneOf(RoomState.DISCOVERED, RoomState.CLEARED, RoomState.GREEN)) return@register
-            lastDoorOpenner = null
+            lastDoorOpener = null
         }
     }
 

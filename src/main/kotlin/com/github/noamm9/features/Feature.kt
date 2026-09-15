@@ -50,7 +50,7 @@ open class Feature(
     }
 
     open fun toggle() {
-        if (remotelyDisabled) return NotificationManager.push("Config GUI", "&b$name&f is temporarly disabled.")
+        if (remotelyDisabled) return NotificationManager.push("Config GUI", "&b$name&f is temporarily disabled.")
 
         enabled = ! enabled
         if (enabled || alwaysActive) onEnable()

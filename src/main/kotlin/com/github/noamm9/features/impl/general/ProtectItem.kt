@@ -35,7 +35,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
         val ids = mutableSetOf<String>()
     })
 
-    private val protectNodification by ToggleSetting("Protect Notification", true).withDescription("Shows a notification on the bottom right side of the screen when the feature saved your item")
+    private val protectNotification by ToggleSetting("Protect Notification", true).withDescription("Shows a notification on the bottom right side of the screen when the feature saved your item")
     private val protectBind by KeybindSetting("Protect Key", UKeyboard.KEY_L).section("Keybind").withDescription("Press while hovering an item in an inventory to protect/unprotect it via UUID.")
     private val showProtected by ToggleSetting("Show Protected Items").withDescription("Shows protected items in container GUIs with a small indicator.")
     private val protectUUID by ToggleSetting("Protect UUID", true)
@@ -61,7 +61,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
 
             if (isThrowing || isSelling) {
                 if (getProtectType(stack) != ProtectType.None) {
-                    if (protectNodification.value) NotificationManager.push("Action Blocked", "This item is protected!", 1500L)
+                    if (protectNotification.value) NotificationManager.push("Action Blocked", "This item is protected!", 1500L)
                     event.isCanceled = true
                 }
             }
@@ -85,7 +85,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
             if (! mc.options.keyDrop.matches(event.keyEvent)) return@register
 
             if (getProtectType(player.inventory.selectedItem) != ProtectType.None) {
-                if (protectNodification.value) NotificationManager.push("Action Blocked", "This item is protected!", 1500L)
+                if (protectNotification.value) NotificationManager.push("Action Blocked", "This item is protected!", 1500L)
                 event.isCanceled = true
             }
         }
