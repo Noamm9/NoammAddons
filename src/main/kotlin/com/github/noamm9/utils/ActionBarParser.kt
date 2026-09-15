@@ -3,8 +3,8 @@ package com.github.noamm9.utils
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus.register
-import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
+import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.dungeons.DungeonListener
@@ -70,7 +70,7 @@ object ActionBarParser: ISelfInit {
             currentDefense = match.groupValues[1].remove(",").toIntOrNull() ?: currentDefense
         }
 
-        effectiveHP = (currentHealth * (1 + currentDefense / 100))
+        effectiveHP = (currentHealth * (1 + currentDefense / 100f)).toInt()
 
         MANA_REGEX.find(input)?.let { match ->
             currentMana = match.groupValues[1].remove(",").toIntOrNull() ?: currentMana
