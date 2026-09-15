@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
 
-import static com.github.noamm9.NoammAddons.mc;
+import com.github.noamm9.NoammAddons;
 
 @Mixin(ChatComponent.class)
 public abstract class MixinChatComponent implements IChatComponent {
@@ -41,8 +41,8 @@ public abstract class MixinChatComponent implements IChatComponent {
     @Override
     public double getLineIndex() {
         if (! isChatFocused()) return - 1;
-        var mx = screenToChatX(mc.mouseHandler.getScaledXPos(mc.getWindow()));
-        var my = screenToChatY(mc.mouseHandler.getScaledYPos(mc.getWindow()));
+        var mx = screenToChatX(NoammAddons.getMc().mouseHandler.getScaledXPos(NoammAddons.getMc().getWindow()));
+        var my = screenToChatY(NoammAddons.getMc().mouseHandler.getScaledYPos(NoammAddons.getMc().getWindow()));
         var maxX = Math.floor(getWidth() / getScale());
 
         if (mx < - 4.0) return - 1;
@@ -64,7 +64,7 @@ public abstract class MixinChatComponent implements IChatComponent {
 
     @Unique
     private double screenToChatY(double y) {
-        double scaledHeight = mc.getWindow().getGuiScaledHeight();
+        double scaledHeight = NoammAddons.getMc().getWindow().getGuiScaledHeight();
         double yFromBottom = scaledHeight - y - 40.0;
         return yFromBottom / (getScale() * getLineHeight());
     }

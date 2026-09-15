@@ -19,6 +19,7 @@ import static com.github.noamm9.features.impl.misc.Camera.*;
 
 @Mixin(Camera.class)
 public abstract class MixinCamera {
+    //#if CHEAT
     @Redirect(method = "alignWithEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getAttributeValue(Lnet/minecraft/core/Holder;)D"))
     private double setCameraDistance(LivingEntity instance, Holder<Attribute> attribute) {
         if (INSTANCE.enabled && getCustomCameraDistance().getValue()) {
@@ -28,12 +29,10 @@ public abstract class MixinCamera {
         return instance.getAttributeValue(attribute);
     }
 
-    //#if CHEAT
     @WrapOperation(method = "alignWithEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setPosition(DDD)V"))
     private void overrideCameraPos(Camera instance, double x, double y, double z, Operation<Void> original) {
         com.github.noamm9.features.impl.misc.NoRotate.cameraHook(instance, x, y, z, original);
     }
-    //#endif
 
     @Inject(method = "getMaxZoom", at = @At("HEAD"), cancellable = true)
     private void onGetMaxZoom(float cameraDist, CallbackInfoReturnable<Float> cir) {
@@ -41,6 +40,7 @@ public abstract class MixinCamera {
             cir.setReturnValue(cameraDist);
         }
     }
+    //#endif
 
     @Inject(method = "calculateFov", at = @At(value = "RETURN"), cancellable = true)
     private void calculateFovHook(float partialTicks, CallbackInfoReturnable<Float> cir) {
@@ -55,6 +55,6 @@ public abstract class MixinCamera {
     @Unique
     private float noammaddons$getFOVRatio() {
         // essential zoom changes the fov directly so we divide it to get the scale amount
-        return getCustomFOVSlider().getValue().floatValue() / NoammAddons.mc.options.fov().get().floatValue();
+        return getCustomFOVSlider().getValue().floatValue() / NoammAddons.getMc().options.fov().get().floatValue();
     }
 }

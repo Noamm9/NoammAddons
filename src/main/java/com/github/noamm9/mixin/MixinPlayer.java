@@ -1,5 +1,6 @@
 package com.github.noamm9.mixin;
 
+import com.github.noamm9.NoammAddons;
 import com.github.noamm9.features.impl.misc.ArrowFix;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -11,8 +12,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static com.github.noamm9.NoammAddons.mc;
-
 @Mixin(Player.class)
 public abstract class MixinPlayer extends LivingEntity {
     protected MixinPlayer(EntityType<? extends LivingEntity> entityType, Level level) {
@@ -22,7 +21,7 @@ public abstract class MixinPlayer extends LivingEntity {
     @Inject(method = "tick", at = @At("HEAD"))
     private void fixPullBack(CallbackInfo ci) {
         if (!ArrowFix.INSTANCE.enabled) return;
-        if ((Player) (Object) this != mc.player) return;
+        if ((Player) (Object) this != NoammAddons.getMc().player) return;
         if (ArrowFix.isShortbow(useItem)) {
             useItem = ItemStack.EMPTY;
             useItemRemaining = 0;

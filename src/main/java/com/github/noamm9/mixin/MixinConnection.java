@@ -29,7 +29,7 @@ public class MixinConnection {
     private void channelRead0(ChannelHandlerContext ctx, Packet<?> packet, CallbackInfo ci) {
         if (packet instanceof ClientboundPingPacket pingPacket && pingPacket.getId() != 0) {
             if (! TestGround.INSTANCE.getTick()) {
-                NoammAddons.mc.execute(() -> EventBus.post(TickEvent.Server.INSTANCE));
+                NoammAddons.getMc().execute(() -> EventBus.post(TickEvent.Server.INSTANCE));
             }
         }
 

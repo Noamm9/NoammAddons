@@ -34,7 +34,7 @@ object NoammAddons: ClientModInitializer {
     val scope = CoroutineScope(Dispatchers.Default + SupervisorJob() + CoroutineName(MOD_NAME))
 
     @JvmField val logger = LoggerFactory.getLogger(MOD_NAME)
-    @JvmField val mc = UMinecraft.getMinecraft()
+    @JvmStatic val mc by lazy { UMinecraft.getMinecraft() }
     @JvmField var isLoaded = false
 
     @JvmField

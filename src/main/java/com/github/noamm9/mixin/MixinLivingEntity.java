@@ -24,28 +24,24 @@ public abstract class MixinLivingEntity extends Entity {
         super(entityType, level);
     }
 
-    @Shadow
-    public abstract boolean hasEffect(Holder<MobEffect> holder);
-
-    @Shadow
-    public abstract @Nullable MobEffectInstance getEffect(Holder<MobEffect> holder);
+    @Shadow public abstract boolean hasEffect(Holder<MobEffect> effect);
+    @Shadow public abstract @Nullable MobEffectInstance getEffect(Holder<MobEffect> effect);
 
     @Inject(method = "getCurrentSwingDuration", at = @At("HEAD"), cancellable = true)
     private void adjustSwingLength(CallbackInfoReturnable<Integer> cir) {
-        if (!Animations.INSTANCE.enabled) return;
-        if (!this.is(NoammAddons.mc.player)) return;
-        if (NoammAddons.mc.player.getMainHandItem() == ItemStack.EMPTY) return;
+        if (! Animations.INSTANCE.enabled) return;
+        if (! this.is(NoammAddons.getMc().player)) return;
+        if (NoammAddons.getMc().player.getMainHandItem() == ItemStack.EMPTY) return;
 
         int length;
 
-        if (Animations.INSTANCE.getIgnoreHaste().getValue()) length = 6;
+        if (Animations.getIgnoreHaste().getValue()) length = 6;
         else if (this.hasEffect(MobEffects.HASTE)) length = 6 - (1 + this.getEffect(MobEffects.HASTE).getAmplifier());
-        else if (this.hasEffect(MobEffects.MINING_FATIGUE))
-            length = 6 + (1 + this.getEffect(MobEffects.MINING_FATIGUE).getAmplifier()) * 2;
+        else if (this.hasEffect(MobEffects.MINING_FATIGUE)) length = 6 + (1 + this.getEffect(MobEffects.MINING_FATIGUE).getAmplifier()) * 2;
         else length = 6;
 
-        double speedMod = Animations.INSTANCE.getSwingSpeed().getValue().doubleValue();
-        int finalLength = (int) (length * Math.exp(-(speedMod)));
+        double speedMod = Animations.getSwingSpeed().getValue().doubleValue();
+        int finalLength = (int) (length * Math.exp(- (speedMod)));
 
         cir.setReturnValue(Math.max(finalLength, 1));
     }
