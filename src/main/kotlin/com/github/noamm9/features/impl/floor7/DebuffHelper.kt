@@ -4,9 +4,7 @@ package com.github.noamm9.features.impl.floor7
 
 import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.config.types.ToggleSetting
-import com.github.noamm9.event.impl.MouseClickEvent
-import com.github.noamm9.event.impl.PacketEvent
-import com.github.noamm9.event.impl.TickEvent
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.ThreadUtils
@@ -114,7 +112,7 @@ object DebuffHelper: Feature(description = "Automatically pulls and fires bows b
             3 -> p3Ticks.value
             4 -> p4Ticks.value
             5 -> when {
-                aabb(47, 8, 113, 64, 28, 135).contains(player) -> purpleTicks.value
+                aabb(45, 6, 111, 66, 30, 137).contains(player) -> purpleTicks.value
                 aabb(13, 5, 85, 40, 27, 103).contains(player) -> greenTicks.value
                 aabb(13, 4, 47, 40, 20, 68).contains(player) -> redTicks.value
                 aabb(72, 3, 47, 97, 31, 65).contains(player) -> orangeTicks.value
