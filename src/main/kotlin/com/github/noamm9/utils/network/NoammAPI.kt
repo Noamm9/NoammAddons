@@ -17,7 +17,8 @@ object NoammAPI {
     suspend fun getStorage(uuid: String) = apiRequest<StorageData>("/hypixel/storage/$uuid")
 
     private suspend inline fun <reified T> apiRequest(path: String): Result<T> {
-        val result = WebUtils.get("$BASE_URL$path") { ApiAuth.token?.let { header("Authorization", "Bearer $it") } }
+        if (ApiAuth.token == null) return Result.failure(NoammAPIException.Unauthorized("auth token is null"))
+        val result = WebUtils.get("$BASE_URL$path") { header("Authorization", "Bearer ${ApiAuth.token}") }
         if (result.isFailure) return Result.failure(result.exceptionOrNull() !!)
 
         val res = result.getOrThrow()
@@ -25,6 +26,8 @@ object NoammAPI {
             val exception = when (res.status) {
                 HttpStatusCode.TooManyRequests -> NoammAPIException.RateLimited()
                 HttpStatusCode.BadGateway -> NoammAPIException.ApiUnavailable()
+                HttpStatusCode.Unauthorized -> NoammAPIException.Unauthorized(res.bodyAsText())
+                HttpStatusCode.Forbidden -> NoammAPIException.Forbidden(res.bodyAsText())
                 else -> IOException("HTTP ${res.status.value}: ${res.bodyAsText()}")
             }
 
@@ -37,5 +40,7 @@ object NoammAPI {
     sealed class NoammAPIException(message: String): Exception(message) {
         class RateLimited: NoammAPIException("Hypixel API rate limit reached, try again later")
         class ApiUnavailable(message: String = "API is currently unavailable"): NoammAPIException(message)
+        class Unauthorized(message: String): NoammAPIException(message)
+        class Forbidden(message: String): NoammAPIException(message)
     }
 }
