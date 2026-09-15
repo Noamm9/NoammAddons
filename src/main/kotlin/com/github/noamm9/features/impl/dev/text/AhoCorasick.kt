@@ -451,7 +451,7 @@ abstract class AhoCorasick {
         }
     }
 
-    private fun isNameChar(cp: Int) = (cp in 'a'.code .. 'z'.code) || (cp in '0'.code .. '9'.code) || cp == '_'.code
+    private fun isNameChar(cp: Int) = (cp in 'a'.code .. 'z'.code) || (cp in 'A'.code .. 'Z'.code) || (cp in '0'.code .. '9'.code) || cp == '_'.code
     private fun findColor(chars: IntArray, startAbs: Int): Int {
         var idx = startAbs - 1
         while (idx >= 1 && chars[idx - 1] == 0x00A7) idx -= 2 // '§'
