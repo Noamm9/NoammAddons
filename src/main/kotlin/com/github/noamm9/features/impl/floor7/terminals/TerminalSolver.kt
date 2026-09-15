@@ -19,6 +19,7 @@ import gg.essential.universal.UKeyboard
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
+import net.minecraft.network.protocol.game.ServerboundContainerClickPacket
 import net.minecraft.sounds.SoundEvents
 import java.awt.Color
 
@@ -58,9 +59,10 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
     val indicatorColor by ColorSetting("Melody: Indicator", Color(255, 116, 0, 130)).showIf { melodyTerm.value }
     val wrongColor by ColorSetting("Melody: Wrong", Color(255, 0, 0, 130)).showIf { melodyTerm.value }
 
+    private val p3sim get() = mc.connection?.serverData?.ip?.contains("p3sim", ignoreCase = true) == true
+
     private var cachedMinCol: Int? = null
     private var cachedMinRow: Int? = null
-
     private var hoveredSlot: Int? = null
 
     override fun init() {
@@ -162,10 +164,23 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
             if (! soundsEnabled.value) return@register
             if (! TerminalListener.inTerm) return@register
             val packet = event.packet as? ClientboundSoundPacket ?: return@register
-            if (packet.sound.value() != SoundEvents.NOTE_BLOCK_PLING.value()) return@register
-            if (packet.volume != 8f || packet.pitch != 4.047619f) return@register
-            clickSound.action.invoke()
+            if (p3sim) {
+                if (packet.sound.value() != SoundEvents.EXPERIENCE_ORB_PICKUP) return@register
+                if (packet.volume != 1f || packet.pitch != 1f) return@register
+            }
+            else {
+                if (packet.sound.value() != SoundEvents.NOTE_BLOCK_PLING.value()) return@register
+                if (packet.volume != 8f || packet.pitch != 4.047619f) return@register
+            }
+
             event.isCanceled = true
+        }
+
+        register<PacketEvent.Sent> {
+            if (! soundsEnabled.value) return@register
+            if (! TerminalListener.inTerm) return@register
+            if (event.packet !is ServerboundContainerClickPacket) return@register
+            clickSound.action.invoke()
         }
     }
 
