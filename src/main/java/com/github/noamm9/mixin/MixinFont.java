@@ -16,7 +16,8 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 public class MixinFont {
     @Unique
     private static boolean noammaddons$shouldReplace() {
-        return NoammAddons.isLoaded && Cosmetics.INSTANCE.enabled && Cosmetics.getCustomNames().getValue() && ! TextReplacer.drawingTooltip;
+        return NoammAddons.isLoaded && Cosmetics.INSTANCE.enabled && Cosmetics.getCustomNames().getValue()
+            && TextReplacer.ready && ! TextReplacer.drawingTooltip;
     }
 
     @ModifyVariable(method = "prepareText(Lnet/minecraft/util/FormattedCharSequence;FFIZZI)Lnet/minecraft/client/gui/Font$PreparedText;", at = @At("HEAD"), argsOnly = true)

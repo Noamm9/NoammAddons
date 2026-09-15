@@ -8,9 +8,12 @@ import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.ComponentSerialization
 
 object TextReplacer: AhoCorasick() {
+    @JvmField @Volatile var ready = false
     @JvmField var drawingTooltip = false
 
     fun init(names: Map<String, String>) {
+        clear()
+
         for ((k, v) in names) {
             val parced = parse(v) ?: continue
             put(k, parced.string, parced, parced.visualOrderText)
@@ -20,6 +23,7 @@ object TextReplacer: AhoCorasick() {
         put(MOD_NAME, mod.string, mod, mod.visualOrderText)
 
         build()
+        ready = true
     }
 
     private fun parse(json: String): Component? {

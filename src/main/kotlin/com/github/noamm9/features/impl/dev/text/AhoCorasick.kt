@@ -41,11 +41,17 @@ abstract class AhoCorasick {
         map2.remove(key)
     }
 
-    fun build() {
+    fun clear() {
+        map0.clear()
+        map1.clear()
+        map2.clear()
+
         stringCache.clear()
         componentCache.clear()
         sequenceCache.clear()
+    }
 
+    fun build() {
         val keys = map0.keys.sortedByDescending { it.length }.toTypedArray()
         val n = keys.size
 

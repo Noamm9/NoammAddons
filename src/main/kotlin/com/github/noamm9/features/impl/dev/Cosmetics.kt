@@ -44,6 +44,7 @@ object Cosmetics: Feature(toggled = true) {
             lastReload = System.currentTimeMillis()
             NoammAddons.logger.info("fetching cosmeticPeople")
             WebUtils.getAs<Map<String, CosmeticData>>("https://api.noamm.org/cosmeticPeople.json").onSuccess { data ->
+                TextReplacer.ready = false
                 cosmeticPeople = data.mapKeys { UUID.fromString(it.key) }
                 coroutineScope {
                     val customNames = HashMap<String, String>()
