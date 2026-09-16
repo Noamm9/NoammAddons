@@ -1,17 +1,13 @@
 package com.github.noamm9.ui.utils
 
 import com.github.noamm9.NoammAddons
-import org.lwjgl.glfw.GLFW
+import com.mojang.blaze3d.platform.cursor.CursorType
+import com.mojang.blaze3d.platform.cursor.CursorTypes
 
 object MouseHelper {
-    private val cursorCache = mutableMapOf<Int, Long>()
+    fun setCursor(shape: CursorType) = NoammAddons.mc.window.selectCursor(shape)
 
-    fun setCursor(shape: Int) {
-        val cursor = cursorCache.getOrPut(shape) { GLFW.glfwCreateStandardCursor(shape) }
-        GLFW.glfwSetCursor(NoammAddons.mc.window.handle(), cursor)
-    }
-
-    fun resetCursor() = setCursor(GLFW.GLFW_ARROW_CURSOR)
+    fun resetCursor() = setCursor(CursorTypes.ARROW)
 
     fun getResizeCorner(mx: Number, my: Number, x: Number, y: Number, w: Number, h: Number, m: Number = 2): ResizeCorner {
         val mx = mx.toFloat()

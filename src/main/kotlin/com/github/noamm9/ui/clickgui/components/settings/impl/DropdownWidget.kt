@@ -1,5 +1,7 @@
 package com.github.noamm9.ui.clickgui.components.settings.impl
 
+import com.mojang.blaze3d.platform.InputConstants
+
 import com.github.noamm9.config.types.DropdownSetting
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.clickgui.components.settings.Widget
@@ -53,7 +55,7 @@ class DropdownWidget(config: DropdownSetting): Widget<Int>(config) {
 
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
         if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + 20) {
-            if (button == 0) {
+            if (button == InputConstants.MOUSE_BUTTON_LEFT) {
                 expanded = ! expanded
                 Style.playClickSound(1f)
                 return true

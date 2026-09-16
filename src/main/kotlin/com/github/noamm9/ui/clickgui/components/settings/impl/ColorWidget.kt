@@ -1,5 +1,6 @@
 package com.github.noamm9.ui.clickgui.components.settings.impl
 
+import com.mojang.blaze3d.platform.InputConstants
 import com.github.noamm9.config.types.ColorSetting
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.clickgui.components.settings.Widget
@@ -11,7 +12,6 @@ import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.drawVerticalGradient
 import com.github.noamm9.utils.render.Render2D.scissor
-import gg.essential.universal.UKeyboard
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 import java.util.*
@@ -38,6 +38,11 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
 
     private val validHexChars = "0123456789ABCDEFabcdef"
     private var hexFocused = false
+        set(value) {
+            if (field == value) return
+            field = value
+            com.github.noamm9.NoammAddons.mc.textInputManager().onTextInputFocusChange(this, value)
+        }
     private var hexText = ""
 
     init {
@@ -110,7 +115,7 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
 
     private fun handleInputs(mx: Int, my: Int, py: Float, ps: Float) {
         if (hexFocused) return
-        if (! UKeyboard.isKeyDown(0)) {
+        if (! com.github.noamm9.NoammAddons.mc.mouseHandler.isLeftPressed) {
             draggingSV = false
             draggingHue = false
             draggingAlpha = false
@@ -157,11 +162,11 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
 
     override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
         if (expanded && hexFocused) {
-            if (keyCode == UKeyboard.KEY_BACKSPACE && hexText.isNotEmpty()) {
+            if (keyCode == InputConstants.KEY_BACKSPACE && hexText.isNotEmpty()) {
                 hexText = hexText.dropLast(1)
                 tryUpdateFromHex()
             }
-            if (keyCode == UKeyboard.KEY_ENTER || keyCode == UKeyboard.KEY_ESCAPE) hexFocused = false
+            if (keyCode == InputConstants.KEY_RETURN || keyCode == InputConstants.KEY_ESCAPE) hexFocused = false
             return true
         }
         return false
@@ -236,10 +241,15 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
         }
     }
 
+    override fun clearFocus() {
+        hexFocused = false
+    }
+
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
         if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + 20) {
-            if (button == 0) {
+            if (button == InputConstants.MOUSE_BUTTON_LEFT) {
                 expanded = ! expanded
+                if (! expanded) clearFocus()
                 return true
             }
         }

@@ -7,13 +7,11 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-import java.util.function.Function;
-import java.util.stream.Stream;
 
 @Mixin(AbstractSignEditScreen.class)
 public abstract class MixinAbstractSignEditScreen {
-    @Redirect(method = "<init>(Lnet/minecraft/world/level/block/entity/SignBlockEntity;ZZLnet/minecraft/network/chat/Component;)V", at = @At(value = "INVOKE", target = "Ljava/util/stream/Stream;map(Ljava/util/function/Function;)Ljava/util/stream/Stream;"))
-    public Stream<String> init(Stream<Component> instance, Function<Component, String> function) {
-        return instance.map(ModHider::getString);
+    @Redirect(method = "<init>(Lnet/minecraft/world/level/block/entity/SignBlockEntity;Lnet/minecraft/world/level/block/entity/SignTextSlot;ZLnet/minecraft/network/chat/Component;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/chat/Component;getString()Ljava/lang/String;"))
+    private String getSignText(Component component) {
+        return ModHider.getString(component);
     }
 }

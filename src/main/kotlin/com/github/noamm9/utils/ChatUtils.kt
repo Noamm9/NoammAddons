@@ -1,5 +1,6 @@
 package com.github.noamm9.utils
 
+import net.minecraft.network.chat.TextColor
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.NoammAddons.scope
@@ -145,11 +146,11 @@ object ChatUtils: ISelfInit {
         comp.visit({ style, string ->
             style.color?.let { textColor ->
                 val colorMatch = ChatFormatting.entries.firstOrNull {
-                    it.isColor && it.color == textColor.value
+                    TextColor.fromLegacyFormat(it)?.value == textColor.value
                 }
 
                 if (colorMatch != null) {
-                    sb.append("§${colorMatch.char}")
+                    sb.append(colorMatch)
                 }
             }
 

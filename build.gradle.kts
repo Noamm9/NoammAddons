@@ -72,7 +72,7 @@ dependencies {
 
     bundled("io.github.classgraph:classgraph:4.8.195")
     bundled("com.github.Noamm9:datafixer:d60875927e")
-    bundled("gg.essential:universalcraft-26.1-fabric:$universalcraft_version") {
+    bundled("gg.essential:universalcraft-26.3-fabric:$universalcraft_version") {
         exclude(group = "net.fabricmc", module = "fabric-loader")
     }
     bundled("io.ktor:ktor-client-cio:$ktor_version")

@@ -2,7 +2,10 @@ package com.github.noamm9.utils.render.world
 
 import com.github.noamm9.utils.render.world.batches.*
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
-import com.mojang.blaze3d.vertex.Tesselator
+import com.mojang.blaze3d.vertex.BufferBuilder
+import com.mojang.blaze3d.vertex.ByteBufferBuilder
+import com.mojang.blaze3d.vertex.PoseStack
+import net.minecraft.network.chat.Component
 import gg.essential.universal.*
 import gg.essential.universal.render.URenderPipeline
 import gg.essential.universal.vertex.*
@@ -13,6 +16,7 @@ import org.joml.Matrix4f
 import org.joml.Vector3f
 
 object RenderBatcher {
+    private val lineBuffer = ByteBufferBuilder(64 * 1024)
     private val filledBatches = mutableMapOf<URenderPipeline, FilledBatch>()
     private val lineBatches = mutableMapOf<URenderPipeline, LineBatch>()
     private val texts = ArrayList<TextRenderState>()
@@ -31,21 +35,21 @@ object RenderBatcher {
         texts.add(TextRenderState(Matrix4f(matrix), text, xOff, yOff, argb, seeThrough))
     }
 
-    internal fun flush(context: LevelRenderContext) {
-        if (filledBatches.isEmpty() && lineBatches.isEmpty() && texts.isEmpty()) return
+    internal fun submitText(context: LevelRenderContext) {
+        for (text in texts) {
+            val pose = PoseStack()
+            pose.mulPose(text.matrix)
+            context.submitNodeCollector().submitText(
+                pose, text.xOff, text.yOff, Component.literal(text.text).visualOrderText, true,
+                if (text.seeThrough) Font.DisplayMode.SEE_THROUGH else Font.DisplayMode.NORMAL,
+                LightCoordsUtil.FULL_BRIGHT, text.argb, 0, 0
+            )
+        }
+        texts.clear()
+    }
 
-        for (text in texts) UMinecraft.getFontRenderer().drawInBatch(
-            text.text,
-            text.xOff,
-            text.yOff,
-            text.argb,
-            true,
-            text.matrix,
-            context.bufferSource(),
-            if (text.seeThrough) Font.DisplayMode.SEE_THROUGH else Font.DisplayMode.NORMAL,
-            0,
-            LightCoordsUtil.FULL_BRIGHT
-        )
+    internal fun flush() {
+        if (filledBatches.isEmpty() && lineBatches.isEmpty()) return
 
         for (batchData in filledBatches.values) {
             val builder = UBufferBuilder.create(batchData.mode, UGraphics.CommonVertexFormats.POSITION_COLOR)
@@ -60,7 +64,7 @@ object RenderBatcher {
         }
 
         for (batchData in lineBatches.values) {
-            val mcBuffer = Tesselator.getInstance().begin(UGraphics.DrawMode.LINES.mcMode, DefaultVertexFormat.POSITION_COLOR_NORMAL_LINE_WIDTH)
+            val mcBuffer = BufferBuilder(lineBuffer, UGraphics.DrawMode.LINES.mcMode, DefaultVertexFormat.POSITION_COLOR_NORMAL_LINE_WIDTH)
             val uc = UVertexConsumer.of(mcBuffer)
 
             for (state in batchData.data) {
@@ -78,6 +82,8 @@ object RenderBatcher {
         lineBatches.clear()
         texts.clear()
     }
+
+    internal fun close() = lineBuffer.close()
 
     private fun filledBatch(pipeline: URenderPipeline, mode: UGraphics.DrawMode) = filledBatches.getOrPut(pipeline) { FilledBatch(pipeline, mode) }
 }

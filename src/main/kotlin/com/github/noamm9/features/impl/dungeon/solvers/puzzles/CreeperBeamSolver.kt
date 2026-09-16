@@ -12,6 +12,7 @@ import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.render.world.Render3D.renderBlock
 import com.github.noamm9.utils.render.world.Render3D.renderLine
 import com.github.noamm9.utils.render.world.RenderContext
+import net.minecraft.world.phys.Vec3
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
@@ -66,7 +67,7 @@ object CreeperBeamSolver: PuzzleSolver {
 
             ctx.renderBlock(start, color, phase = phase.value)
             ctx.renderBlock(end, color, phase = phase.value)
-            if (renderLines.value) ctx.renderLine(start.center, end.center, color)
+            if (renderLines.value) ctx.renderLine(Vec3.atCenterOf(start), Vec3.atCenterOf(end), color)
         }
     }
 

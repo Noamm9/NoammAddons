@@ -28,11 +28,14 @@ public abstract class MixinLavaFogEnvironment {
     }
 
     @Inject(method = "getBaseColor", at = @At("HEAD"), cancellable = true)
-    private void hookGetBaseColor(ClientLevel level, Camera camera, int renderDistance, float partialTicks, CallbackInfoReturnable<Integer> cir) {
+    private void hookGetBaseColor(ClientLevel level, Camera camera, int renderDistance, float partialTicks, CallbackInfoReturnable<org.joml.Vector3fc> cir) {
         if (! LavaToWater.INSTANCE.enabled) return;
-        int color;
+        org.joml.Vector3fc color;
 
-        if (LavaToWater.getColorTint().getValue()) color = LavaToWater.getTintColor().getValue().getRGB();
+        if (LavaToWater.getColorTint().getValue()) {
+            var tint = LavaToWater.getTintColor().getValue();
+            color = new org.joml.Vector3f(tint.getRed() / 255f, tint.getGreen() / 255f, tint.getBlue() / 255f);
+        }
         else color = WATER_FOG.getBaseColor(level, camera, renderDistance, partialTicks);
 
         cir.setReturnValue(color);

@@ -127,7 +127,7 @@ object Render3D {
 
         matrixStack.pushPose()
         matrixStack.translate(center.x - cameraPos.x, center.y - cameraPos.y, center.z - cameraPos.z)
-        matrixStack.mulPose(camera.orientation)
+        matrixStack.rotate(camera.orientation)
         val pose = uMatrixStack()
         val buffer = RenderBatcher.filledBatch(phase)
 
@@ -266,7 +266,7 @@ object Render3D {
 
         matrixStack.pushPose()
         matrixStack.translate(dx, dy, dz)
-        matrixStack.mulPose(camera.orientation)
+        matrixStack.rotate(camera.orientation)
         matrixStack.scale(toScale, - toScale, toScale)
 
         val matrix = Matrix4f(matrixStack.last().pose())

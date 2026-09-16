@@ -31,7 +31,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu
 import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.inventory.Slot
 import net.minecraft.world.item.ItemStack
-import org.lwjgl.glfw.GLFW
+import com.mojang.blaze3d.platform.InputConstants
 import java.awt.Color
 import java.util.*
 
@@ -149,7 +149,6 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             drawPage(x, y, page, inventory, if (excluding == page) slots else null, mouseX, mouseY, originalMouseX, originalMouseY)
         }
 
-        ItemRenderer.endItemRendererBatch(this)
         disableScissor()
     }
 
@@ -248,7 +247,6 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             if (isSlotHovered) this.drawRect(sx, sy, 16, 16, Color.white.withAlpha(50))
         }
 
-        ItemRenderer.endItemRendererBatch(this)
 
         if (hoveredStack != null) {
             hoveredOverlayItem = hoveredStack
@@ -416,7 +414,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val menu = screenMenu ?: return false
         val player = mc.player ?: return false
         val gameMode = mc.gameMode ?: return false
-        val shift = (modifiers and GLFW.GLFW_MOD_SHIFT) != 0
+        val shift = (modifiers and InputConstants.MOD_SHIFT) != 0
         val clickType = input ?: if (shift) ContainerInput.QUICK_MOVE else ContainerInput.PICKUP
         gameMode.handleContainerInput(menu.containerId, slot.index, button, clickType, player)
         return true
@@ -476,7 +474,12 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
     fun onOverlayClick(click: MouseButtonEvent, doubled: Boolean): Boolean {
         val activePage = (storageMenu as? StorageMenu.Page)?.storagePage
-        val button = click.button()
+        val button = when (click.button()) {
+            InputConstants.MOUSE_BUTTON_LEFT -> 0
+            InputConstants.MOUSE_BUTTON_RIGHT -> 1
+            InputConstants.MOUSE_BUTTON_MIDDLE -> 2
+            else -> return false
+        }
         val modifiers = click.modifiers()
 
         val scale = StorageOverlay.scaleSetting.value
@@ -523,7 +526,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         if (dragArmed) {
             if (dragActive) endDrag()
             else dragStartSlot?.let {
-                dispatchSlotClick(it, dragType, if (UKeyboard.isShiftKeyDown()) GLFW.GLFW_MOD_SHIFT else 0)
+                dispatchSlotClick(it, dragType, if (UKeyboard.isShiftKeyDown()) InputConstants.MOD_SHIFT else 0)
             }
             dragSlots.clear()
             dragStartSlot = null
@@ -604,7 +607,6 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val scaledMouseX = (Resolution.getMouseX(mouseX.toDouble()) / scale).toInt() - 8
         val scaledMouseY = (Resolution.getMouseY(mouseY.toDouble()) / scale).toInt() - 8
         ItemRenderer.drawBatchedItemStack(context, shown, scaledMouseX, scaledMouseY)
-        ItemRenderer.endItemRendererBatch(context)
         context.itemDecorations(screen.font, shown, scaledMouseX, scaledMouseY)
         Resolution.pop(context)
         return true

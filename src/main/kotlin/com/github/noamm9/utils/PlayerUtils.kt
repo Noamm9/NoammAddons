@@ -41,10 +41,8 @@ object PlayerUtils: ISelfInit, Shortcuts {
     val LocalPlayer.serverPitch get() = (this as ILocalPlayer).serverPitch
 
     fun swingArm() {
-        if (! player.swinging || player.swingTime < 0) {
-            player.swingingArm = InteractionHand.MAIN_HAND
-            player.swingTime = - 1
-            player.swinging = true
+        if (! player.isSwinging) {
+            player.swing(InteractionHand.MAIN_HAND, net.minecraft.world.item.component.SwingAnimation.DEFAULT, false)
         }
     }
 

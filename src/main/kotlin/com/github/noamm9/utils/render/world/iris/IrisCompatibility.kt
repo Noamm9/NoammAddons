@@ -1,7 +1,7 @@
 package com.github.noamm9.utils.render.world.iris
 
 import com.github.noamm9.init.ModCompatibility
-import com.mojang.blaze3d.pipeline.RenderPipeline
+import com.mojang.renderpearl.api.pipeline.RenderPipeline
 import net.irisshaders.iris.api.v0.IrisApi
 import net.irisshaders.iris.api.v0.IrisProgram
 
