@@ -2,14 +2,9 @@ package com.github.noamm9.features.impl.floor7.devices
 
 //#if CHEAT
 
-import com.github.noamm9.config.types.DropdownSetting
-import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.EventBus
-import com.github.noamm9.event.impl.BlockChangeEvent
-import com.github.noamm9.event.impl.ChatMessageEvent
-import com.github.noamm9.event.impl.NoammDebugFlagEvent
-import com.github.noamm9.event.impl.TickEvent
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.MelodyDisplay
 import com.github.noamm9.features.impl.floor7.devices.I4Helper.getPredictionTarget
@@ -39,14 +34,16 @@ import kotlin.math.abs
 import kotlin.math.min
 
 object AutoI4: Feature("Fully Automated I4") {
-    private val rotationTime by SliderSetting("Rotation Time", 170, 0, 250, 1).withDescription("Time (ms) to interpolate rotations when aiming at dev block targets. &eSet to 0 to disable the auto rotation.").hideIf { predictSetting.value }
+    private val rotationTime by SliderSetting("Rotation Time", 170, 0, 250, 1).withDescription("Time (ms) to interpolate rotations when aiming at dev block targets. &eSet to 0 to disable the auto rotation.").section("Shooting")
     private val predictSetting by ToggleSetting("Predictions", true).withDescription("Enables prediction logic to aim at the next target block.")
 
-    private val rodSetting by ToggleSetting("Auto Rod", true)
+    private val rodSetting by ToggleSetting("Auto Rod", true).section("Actions")
     private val maskSetting by ToggleSetting("Auto Mask", true)
     private val leapSetting by ToggleSetting("Auto Leap", true)
-    private val leapToMelody by ToggleSetting("Leap To Melody").showIf { leapSetting.value }
+    private val leapToMelody by ToggleSetting("Leap To Melody").showIf { leapSetting.value }.withDescription("AutoLeaps to however has melody terminal open. overwrites the 'Leap Priority' option")
     private val leapPriorities = listOf(DungeonClass.Tank, DungeonClass.Mage, DungeonClass.Healer, DungeonClass.Archer)
+
+    private val swapOrder by DropdownSetting("Swap Order", 0, listOf("Rod First", "Mask First")).showIf { rodSetting.value && maskSetting.value }
     private val preferredLeapClass by DropdownSetting("Leap Priority", 0, leapPriorities.map { it.name }).showIf { leapSetting.value }
 
     private const val STORM_DEATH_MESSAGE = "[BOSS] Storm: I should have known that I stood no chance."
@@ -55,6 +52,7 @@ object AutoI4: Feature("Fully Automated I4") {
     private val tickTimer = AtomicInteger(- 1)
     @Volatile private var melodyLeapTargetName: String? = null
     @Volatile private var hasChangedMask = false
+    @Volatile private var hasRodSwapped = false
     @Volatile private var hasAlerted = false
     @Volatile private var hasLeaped = false
 
@@ -87,12 +85,62 @@ object AutoI4: Feature("Fully Automated I4") {
             if (! I4Helper.isOnDev()) return@register
 
             when (timer) {
-                307 if leapSetting.value -> queue(4, false, ::saveLeap)
-                244 if maskSetting.value && ! hasChangedMask -> queue(3, true, PlayerUtils::changeMaskAction)
-                174 if rodSetting.value -> queue(2, true, PlayerUtils::rodSwap)
-                174 if maskSetting.value -> {
-                    hasChangedMask = true
-                    queue(3, true, PlayerUtils::changeMaskAction)
+                307 if leapSetting.value -> {
+                    ChatUtils.debug("i4", "saveLeap")
+                    queue(4, false, ::saveLeap)
+                }
+
+                244 -> {
+                    if (rodSetting.value && maskSetting.value) {
+                        if (swapOrder.value == 0 && ! hasChangedMask) {
+                            hasChangedMask = true
+                            ChatUtils.debug("i4", "changeMaskAction")
+                            queue(3, true, PlayerUtils::changeMaskAction)
+                        }
+                        else if (! hasRodSwapped) {
+                            hasRodSwapped = true
+                            queue(2, true, PlayerUtils::rodSwap)
+                            ChatUtils.debug("i4", "rodSwap")
+                        }
+                    }
+                    else if (maskSetting.value && ! hasChangedMask) {
+                        hasChangedMask = true
+                        ChatUtils.debug("i4", "changeMaskAction")
+                        queue(3, true, PlayerUtils::changeMaskAction)
+                    }
+                    else if (rodSetting.value && ! hasRodSwapped) {
+                        hasRodSwapped = true
+                        queue(2, true, PlayerUtils::rodSwap)
+                        ChatUtils.debug("i4", "rodSwap")
+                    }
+                }
+
+                174 -> {
+                    if (rodSetting.value && maskSetting.value) {
+                        if (swapOrder.value == 0) {
+                            if (! hasRodSwapped) {
+                                hasRodSwapped = true
+                                queue(2, true, PlayerUtils::rodSwap)
+                                ChatUtils.debug("i4", "rodSwap")
+                            }
+                        }
+                        else {
+                            hasChangedMask = true
+                            ChatUtils.debug("i4", "changeMaskAction")
+                            queue(3, true, PlayerUtils::changeMaskAction)
+                        }
+
+                    }
+                    else if (rodSetting.value && ! hasRodSwapped) {
+                        hasRodSwapped = true
+                        queue(2, true, PlayerUtils::rodSwap)
+                        ChatUtils.debug("i4", "rodSwap")
+                    }
+                    else if (maskSetting.value) {
+                        hasChangedMask = true
+                        queue(3, true, PlayerUtils::changeMaskAction)
+                        ChatUtils.debug("i4", "changeMaskAction")
+                    }
                 }
             }
         }
@@ -214,7 +262,7 @@ object AutoI4: Feature("Fully Automated I4") {
         if (abs(currentYaw - targetYaw) <= tolerance && abs(currentPitch - targetPitch) <= tolerance) return block()
 
         val startTime = System.currentTimeMillis()
-        val duration = (if (predictSetting.value) 170 else rotationTime.value).toDouble()
+        val duration = rotationTime.value.toDouble()
         while (true) {
             val newerDuring = getEmerald(pos)
             if (newerDuring != null) {
@@ -275,6 +323,7 @@ object AutoI4: Feature("Fully Automated I4") {
         tickTimer.set(- 1)
         doneCoords.clear()
         hasChangedMask = false
+        hasRodSwapped = false
         hasLeaped = false
         hasAlerted = false
         melodyLeapTargetName = null
