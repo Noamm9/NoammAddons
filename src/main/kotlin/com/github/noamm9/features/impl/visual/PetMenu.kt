@@ -2,8 +2,7 @@ package com.github.noamm9.features.impl.visual
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.config.types.*
-import com.github.noamm9.event.impl.ContainerEvent
-import com.github.noamm9.event.impl.ScreenEvent
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.dev.ClickGui
 import com.github.noamm9.init.types.ICustomMenu
@@ -25,6 +24,7 @@ import com.mojang.blaze3d.platform.InputConstants
 import gg.essential.universal.UKeyboard
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
+import net.minecraft.network.protocol.game.*
 import net.minecraft.world.inventory.Slot
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
@@ -47,7 +47,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
             .hideIf { useHotbarBinds.value }.apply(configSettings::add)
     }
 
-    private val petMenuRegex = Regex("^(?:\\(\\d+/\\d+\\) )?Pets(?: \\(\\d+/\\d+\\))?$", RegexOption.IGNORE_CASE)
+    private val petMenuRegex = Regex("^(?:\\(\\d+/\\d+\\) )?Pets(?: \\(\\d+/\\d+\\))?$")
     private val petSlots = (10 .. 43).filter { it % 9 in 1 .. 7 }
 
     private const val PETS_PER_WHEEL = 9
@@ -59,21 +59,41 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
     private var clicked = false
 
     override fun init() {
-        register<ScreenEvent.PreRender> {
-            val screen = event.screen as? AbstractContainerScreen<*> ?: return@register
-            if (! inPetMenu(screen)) return@register
-            event.cancel()
-
-            if (screen.menu.containerId != lastContainerId) {
-                lastContainerId = screen.menu.containerId
+        register<MainThreadPacketReceivedEvent.Pre> {
+            if (event.packet is ClientboundOpenScreenPacket) {
+                if (! event.packet.title.unformattedText.matches(petMenuRegex)) return@register
+                val currentTittle = mc.screen?.title?.unformattedText.orEmpty()
+                if (currentTittle.startsWith("Loadout") || currentTittle.endsWith("Loadouts")) return@register
+                lastContainerId = event.packet.containerId
                 wheelPage = 0
             }
+            else if (event.packet is ClientboundContainerClosePacket && lastContainerId != - 1) {
+                lastContainerId = - 1
+                wheelPage = 0
+                tempDisabled = false
+                clicked = false
+            }
+        }
+
+        register<PacketEvent.Sent> {
+            if (event.packet is ServerboundContainerClosePacket && lastContainerId != - 1) {
+                lastContainerId = - 1
+                wheelPage = 0
+                tempDisabled = false
+                clicked = false
+            }
+        }
+
+        register<ScreenEvent.PreRender> {
+            val screen = event.screen as? AbstractContainerScreen<*> ?: return@register
+            if (! isActive()) return@register
+            event.isCanceled = true
 
             renderWheel(event.context, screen, event.mouseX, event.mouseY)
         }
 
         register<ContainerEvent.MouseClick> {
-            if (! inPetMenu(event.screen)) return@register
+            if (! isActive()) return@register
 
             val buttonText = "Vanilla Menu"
             val buttonWidth = buttonText.width() + 16f
@@ -109,7 +129,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
         }
 
         register<ContainerEvent.Keyboard> {
-            if (! inPetMenu(event.screen)) return@register
+            if (! isActive()) return@register
             if (clicked) {
                 clicked = false
                 player.closeContainer()
@@ -119,7 +139,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
         }
 
         register<ContainerEvent.MouseScroll> {
-            if (! inPetMenu(event.screen) || event.verticalAmount == 0.0) return@register
+            if (! isActive() || event.verticalAmount == 0.0) return@register
             event.cancel()
 
             val pages = pageCount(petSlots(event.screen).size)
@@ -133,10 +153,6 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
             wheelPage = 0
             tempDisabled = false
             clicked = false
-        }
-
-        register<ContainerEvent.Open> {
-            if (! event.screen.title.unformattedText.matches(petMenuRegex)) tempDisabled = false
         }
     }
 
@@ -335,9 +351,8 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
     }
 
     private fun petsOnCurrentPage(pets: List<Slot>) = pets.drop(wheelPage * PETS_PER_WHEEL).take(PETS_PER_WHEEL)
-    private fun inPetMenu(screen: AbstractContainerScreen<*>) = ! tempDisabled && screen.title.unformattedText.matches(petMenuRegex)
     private fun pageCount(petCount: Int) = Math.ceilDiv(petCount, PETS_PER_WHEEL).coerceAtLeast(1)
-    override fun isActive() = lastContainerId != - 1
+    override fun isActive() = ! tempDisabled && lastContainerId != - 1
 
     private class WheelLayout(
         val centerX: Float,
