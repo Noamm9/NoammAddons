@@ -263,7 +263,7 @@ object SimonSays: Feature("Simon Says Solver") {
             if (sendChat.value) ChatUtils.sendCommand("pc SS Broke!")
         }
 
-        if (buttonCheckPos.distSqr(player.blockPosition()) > 25) resetSolver()
+        resetSolver()
     }
 
     override fun onDisable() {
