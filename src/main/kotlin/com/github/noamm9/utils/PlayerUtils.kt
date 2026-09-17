@@ -198,8 +198,10 @@ object PlayerUtils: ISelfInit, Shortcuts {
         }
     }
 
+    private val rodSwapBlacklist = setOf("SOUL_WHIP", "FLAMING_FLAY", "GRAPPLING_HOOK")
+
     suspend fun rodSwap() {
-        val found = findHotbarSlot { it.item == Items.FISHING_ROD } ?: return modMessage("&cNo Fishing Rod found in hotbar!")
+        val found = findHotbarSlot { it.item == Items.FISHING_ROD && it.skyblockId !in rodSwapBlacklist } ?: return modMessage("&cNo Fishing Rod found in hotbar!")
         val prev = player.inventory.selectedSlot
         val hold = mc.options.keyUse.isDown
 
