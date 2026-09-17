@@ -124,7 +124,7 @@ class DungeonWaypointScreen(
         val switchX = x + TOGGLE_WIDTH - 34
         val switchY = y + (TOGGLE_HEIGHT - 14) / 2
         val anim = toggle.switchAnim.value
-        graphics.drawRect(switchX, switchY, 34f, 14f, Style.accentColor.lerp(Color(45, 45, 45, 200), anim).withAlpha(200))
+        graphics.drawRect(switchX, switchY, 34f, 14f, Color(45, 45, 45, 200).lerp(Style.accentColor, anim).withAlpha(200))
         graphics.drawRect(switchX + 2 + anim * 20, switchY + 2, 10f, 10f, Color.WHITE)
     }
 
