@@ -34,7 +34,6 @@ object EventDispatcher: ISelfInit, Shortcuts {
     override fun init() {
         LevelRenderEvents.COLLECT_SUBMITS.register { context ->
             EventBus.post(RenderWorldEvent(RenderContext(context)))
-            RenderBatcher.submitText(context)
         }
         LevelRenderEvents.END_MAIN.register { RenderBatcher.flush() }
         ClientLifecycleEvents.CLIENT_STOPPING.register { RenderBatcher.close() }

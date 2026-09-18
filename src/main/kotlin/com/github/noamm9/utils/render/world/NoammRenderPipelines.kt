@@ -4,13 +4,12 @@ import com.github.noamm9.NoammAddons
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.render.world.iris.IrisCompatibility
 import com.github.noamm9.utils.render.world.iris.IrisShaderType
-import com.mojang.renderpearl.api.pipeline.ColorTargetState
-import com.mojang.renderpearl.api.pipeline.BlendFunction
-import com.mojang.renderpearl.api.pipeline.RenderPipeline
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
-import com.mojang.renderpearl.api.pipeline.PrimitiveTopology
+import com.mojang.renderpearl.api.pipeline.*
 import gg.essential.universal.render.URenderPipeline
 import net.minecraft.client.renderer.RenderPipelines
+import net.minecraft.client.renderer.rendertype.RenderSetup
+import net.minecraft.client.renderer.rendertype.RenderType
 import net.minecraft.resources.Identifier
 import java.util.*
 
@@ -63,6 +62,17 @@ object NoammRenderPipelines: ISelfInit {
             withDepthStencilState(Optional.empty())
         }.build()
     )
+
+    @Suppress("unused") // todo
+    object Types {
+        val DEBUG_CIRCLE_FILLED = RenderType.create("NOAMM_DEBUG_CIRCLE_FILLED", RenderSetup.builder(MC_CIRCLE_FILLED_THROUGH_WALLS).createRenderSetup())
+        val DEBUG_FILLED = RenderType.create("NOAMM_DEBUG_FILLED", RenderSetup.builder(MC_FILLED_THROUGH_WALLS).createRenderSetup())
+        val DEBUG_LINES = RenderType.create("NOAMM_DEBUG_LINES", RenderSetup.builder(MC_LINES_THROUGH_WALLS).createRenderSetup())
+
+        val CIRCLE_FILLED = RenderType.create("NOAMM_CIRCLE_FILLED", RenderSetup.builder(MC_CIRCLE_FILLED).createRenderSetup())
+        val FILLED = RenderType.create("NOAMM_FILLED", RenderSetup.builder(MC_FILLED).createRenderSetup())
+        val LINES = RenderType.create("NOAMM_LINES", RenderSetup.builder(MC_LINES).createRenderSetup())
+    }
 
     val FILLED = URenderPipeline.wrap(MC_FILLED)
     val FILLED_THROUGH_WALLS = URenderPipeline.wrap(MC_FILLED_THROUGH_WALLS)

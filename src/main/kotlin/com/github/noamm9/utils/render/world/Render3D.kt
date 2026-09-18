@@ -4,13 +4,15 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.NumbersUtils.times
 import com.github.noamm9.utils.render.RenderHelper.width
+import net.minecraft.client.gui.Font
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.network.chat.Component
+import net.minecraft.util.LightCoordsUtil
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.Shapes
-import org.joml.Matrix4f
 import java.awt.Color
 import kotlin.math.cos
 import kotlin.math.sin
@@ -269,9 +271,11 @@ object Render3D {
         matrixStack.rotate(camera.orientation)
         matrixStack.scale(toScale, - toScale, toScale)
 
-        val matrix = Matrix4f(matrixStack.last().pose())
-        for ((i, line) in text.addColor().lineSequence().withIndex())
-            RenderBatcher.addText(matrix, line, - line.width() / 2f, i * 9f, color.rgb, phase)
+        for ((i, line) in text.addColor().lineSequence().withIndex()) collector.submitText(
+            matrixStack, - line.width() / 2f, i * 9f, Component.literal(line).visualOrderText, true,
+            if (phase) Font.DisplayMode.SEE_THROUGH else Font.DisplayMode.NORMAL,
+            LightCoordsUtil.FULL_BRIGHT, color.rgb, 0, 0
+        )
 
         matrixStack.popPose()
     }
