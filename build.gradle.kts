@@ -71,7 +71,7 @@ dependencies {
     annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.5.5")
 
     bundled("io.github.classgraph:classgraph:4.8.195")
-    bundled("com.github.Noamm9:datafixer:d60875927e")
+    bundled("com.github.Noamm9:DataFixer:26.3-SNAPSHOT")
     bundled("gg.essential:universalcraft-26.3-fabric:$universalcraft_version") {
         exclude(group = "net.fabricmc", module = "fabric-loader")
     }
