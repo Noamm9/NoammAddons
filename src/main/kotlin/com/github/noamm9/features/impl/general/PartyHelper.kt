@@ -26,7 +26,7 @@ object PartyHelper: Feature("Party commands and reformatting."), ICommandProvide
     private val commands by MultiCheckboxSetting("Enabled Commands", mutableMapOf(
         "!w" to true, "!f" to true, "!m" to true, "!inv" to true,
         "!kick" to true, "!dt" to true, "!ping" to true, "!tps" to true, "!fps" to true,
-        "!pt" to true, "!ai" to true, "!coords" to true, "!gay" to true
+        "!pt" to true, "!ai" to true, "!coords" to true, "!gay" to true, "!femboy" to true
     )).showIf { partyCommands.value }
 
     private val partyAddons by ToggleSetting("Reformat Party List", true).section("Party Addons")
@@ -123,14 +123,14 @@ object PartyHelper: Feature("Party commands and reformatting."), ICommandProvide
         when {
             commands["!fps"] && cmd == "fps" -> ChatUtils.sendPartyMessage("FPS: ${mc.fps}")
 
-            commands["!f"] && cmd.startsWith("f") -> {
+            commands["!f"] && cmd.matches(Regex("^f\\d*$")) -> {
                 val floor = cmd.removePrefix("f").toIntOrNull() ?: args.getOrNull(0)?.toIntOrNull() ?: return
                 if (floor in 0 .. 7) runCommand("joininstance CATACOMBS_FLOOR_${DungeonUtils.FLOOR_NAMES[floor]}", true)
             }
 
-            commands["!m"] && cmd.startsWith("m") -> {
+            commands["!f"] && cmd.matches(Regex("^m\\d*$")) -> {
                 val floor = cmd.removePrefix("m").toIntOrNull() ?: args.getOrNull(0)?.toIntOrNull() ?: return
-                if (floor in 1 .. 7) runCommand("joininstance MASTER_CATACOMBS_FLOOR_${DungeonUtils.FLOOR_NAMES[floor]}", true)
+                if (floor in 0 .. 7) runCommand("joininstance CATACOMBS_FLOOR_${DungeonUtils.FLOOR_NAMES[floor]}", true)
             }
 
             commands["!pt"] && cmd.equalsOneOf("pt", "ptme") -> {
@@ -168,6 +168,12 @@ object PartyHelper: Feature("Party commands and reformatting."), ICommandProvide
                 val target = args.firstOrNull() ?: sender
                 val gayPercentage = (Math.random() * 100).roundToInt().coerceIn(0, 100)
                 runCommand("pc $target is $gayPercentage% gay.")
+            }
+
+            commands["!femboy"] && cmd == "femboy" -> {
+                val target = args.firstOrNull() ?: sender
+                val femboyPercentage = (Math.random() * 100).roundToInt().coerceIn(0, 100)
+                runCommand("pc $target is $femboyPercentage% femboy.")
             }
         }
     }
