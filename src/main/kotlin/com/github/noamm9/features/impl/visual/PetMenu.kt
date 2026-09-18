@@ -20,13 +20,13 @@ import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawLine
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.RenderHelper.width
+import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.network.protocol.game.*
 import net.minecraft.world.inventory.Slot
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
-import com.mojang.blaze3d.platform.InputConstants
 import java.awt.Color
 import kotlin.math.*
 
@@ -182,6 +182,8 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
             drawPetInSegment(ctx, pet, index, layout, index == hoveredIndex)
         }
         if (selectedPet != null) drawCenter(ctx, selectedPet, selectedPet === activePet, layout)
+
+        ItemRenderer.endItemRendererBatch(ctx)
 
         ctx.drawCenteredString(
             "Pets ${wheelPage + 1}/$pages",
