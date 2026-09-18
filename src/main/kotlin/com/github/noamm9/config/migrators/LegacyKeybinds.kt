@@ -1,6 +1,23 @@
 package com.github.noamm9.config.migrators
 
-internal object LegacyKeybinds {
+/**
+ * Used to convert old GLFW keybinds to SDL
+ * @author jcnlk
+ * @see com.github.noamm9.config.types.KeybindSetting
+ */
+object LegacyKeybinds {
+    fun from(key: Int, isMouse: Boolean) = if (isMouse) mouse(key) else keyboard(key)
+
+    fun keyboard(key: Int): Int = keyboard[key] ?: 0
+
+    fun mouse(button: Int): Int = when (button) {
+        0 -> 1
+        1 -> 3
+        2 -> 2
+        in 3 .. 7 -> button + 1
+        else -> 0
+    }
+
     private val keyboard = mapOf(
         32 to 44,
         39 to 52,
@@ -120,14 +137,4 @@ internal object LegacyKeybinds {
         347 to 231,
         348 to 118,
     )
-
-    fun keyboard(key: Int): Int = keyboard[key] ?: 0
-
-    fun mouse(button: Int): Int = when (button) {
-        0 -> 1
-        1 -> 3
-        2 -> 2
-        in 3..7 -> button + 1
-        else -> 0
-    }
 }

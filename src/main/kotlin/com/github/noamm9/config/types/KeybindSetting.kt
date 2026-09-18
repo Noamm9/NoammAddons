@@ -2,10 +2,10 @@ package com.github.noamm9.config.types
 
 import com.github.noamm9.config.ConfigHolder
 import com.github.noamm9.config.Savable
+import com.github.noamm9.config.migrators.LegacyKeybinds
 import com.github.noamm9.utils.GsonUtils.gsonObject
 import com.google.gson.JsonElement
 import com.mojang.blaze3d.platform.InputConstants
-import com.github.noamm9.config.migrators.LegacyKeybinds
 import org.lwjgl.sdl.SDLMouse
 
 class KeybindSetting(
@@ -39,7 +39,7 @@ class KeybindSetting(
     fun matches(code: Int, mouse: Boolean) = value != InputConstants.UNKNOWN.value && isMouse == mouse && value == code
 
     override fun write() = gsonObject {
-        addProperty("inputSystem", "sdl_scancode")
+        addProperty("inputSystem", "SDL")
         addProperty("key", value)
         addProperty("scan", scanCode)
         addProperty("isMouse", isMouse)
@@ -49,8 +49,8 @@ class KeybindSetting(
         value = obj.get("key").asInt
         scanCode = obj.get("scan").asInt
         isMouse = obj.get("isMouse").asBoolean
-        if (obj.get("inputSystem")?.asString != "sdl_scancode") {
-            value = if (isMouse) LegacyKeybinds.mouse(value) else LegacyKeybinds.keyboard(value)
+        if (obj.get("inputSystem")?.asString != "SDL") {
+            value = LegacyKeybinds.from(value, isMouse)
             scanCode = 0
         }
     }
