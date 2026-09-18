@@ -54,30 +54,19 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
         }
 
         register<MainThreadPacketReceivedEvent.Pre> {
-            val packet = event.packet as? ClientboundPlayerPositionPacket ?: return@register
             if (pendingTeleports.isEmpty()) return@register
+            val packet = event.packet as? ClientboundPlayerPositionPacket ?: return@register
             pendingTeleports.removeFirst()
 
-            val old = PositionMoveRotation.of(player)
-            val new = PositionMoveRotation.calculateAbsolute(old, packet.change, packet.relatives)
+            val currentValues = PositionMoveRotation.of(player)
+            val newValues = PositionMoveRotation.calculateAbsolute(currentValues, packet.change, packet.relatives)
 
-            player.setPos(new.position())
-            player.deltaMovement = new.deltaMovement()
-
-            val newOldPos = PositionMoveRotation.calculateAbsolute(
-                PositionMoveRotation(player.oldPosition(), Vec3.ZERO, player.yRotO, player.xRotO), packet.change(), packet.relatives()
-            )
-
-            player.xo = newOldPos.position().x.also { player.xOld = it }
-            player.yo = newOldPos.position().y.also { player.yOld = it }
-            player.zo = newOldPos.position().z.also { player.zOld = it }
-
-            ServerboundAcceptTeleportationPacket(packet.id, player.x, player.y, player.z, new.yRot, new.xRot).send()
-            ServerboundMovePlayerPacket.PosRot(player.x, player.y, player.z, new.yRot, new.xRot, false, false).send()
-
-            (player as ILocalPlayer).setLastYaw(new.yRot)
-            (player as ILocalPlayer).setLastPitch(new.xRot)
-
+            player.setPos(newValues.position())
+            player.deltaMovement = newValues.deltaMovement()
+            val currentInterpolationValues = PositionMoveRotation(player.oldPosition(), Vec3.ZERO, player.yRotO, player.xRotO)
+            val interpolationValues = PositionMoveRotation.calculateAbsolute(currentInterpolationValues, packet.change, packet.relatives)
+            player.setOldPosAndRot(interpolationValues.position(), interpolationValues.yRot(), interpolationValues.xRot())
+            ServerboundAcceptTeleportationPacket(packet.id, player.x, player.y, player.z, newValues.yRot, newValues.xRot).send()
             event.isCanceled = true
         }
     }
