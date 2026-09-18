@@ -130,7 +130,7 @@ object PartyHelper: Feature("Party commands and reformatting."), ICommandProvide
 
             commands["!f"] && cmd.matches(Regex("^m\\d*$")) -> {
                 val floor = cmd.removePrefix("m").toIntOrNull() ?: args.getOrNull(0)?.toIntOrNull() ?: return
-                if (floor in 0 .. 7) runCommand("joininstance CATACOMBS_FLOOR_${DungeonUtils.FLOOR_NAMES[floor]}", true)
+                if (floor in 0 .. 7) runCommand("joininstance MASTER_CATACOMBS_FLOOR_${DungeonUtils.FLOOR_NAMES[floor]}", true)
             }
 
             commands["!pt"] && cmd.equalsOneOf("pt", "ptme") -> {
