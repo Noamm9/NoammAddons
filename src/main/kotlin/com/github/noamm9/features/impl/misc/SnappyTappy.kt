@@ -1,9 +1,9 @@
 package com.github.noamm9.features.impl.misc
 
-import com.mojang.blaze3d.platform.InputConstants
 //#if CHEAT
 
 import com.github.noamm9.features.Feature
+import com.mojang.blaze3d.platform.InputConstants
 import gg.essential.universal.UMinecraft
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.minecraft.client.KeyMapping

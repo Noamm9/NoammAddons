@@ -1,16 +1,14 @@
 package com.github.noamm9.ui.utils
 
-import com.mojang.blaze3d.platform.InputConstants
-import com.github.noamm9.NoammAddons
+import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.scissor
 import com.github.noamm9.utils.render.RenderHelper.width
+import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
-import net.minecraft.client.input.CharacterEvent
-import net.minecraft.client.input.KeyEvent
-import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.client.input.*
 import net.minecraft.util.StringUtil
 import kotlin.math.max
 import kotlin.math.min
@@ -51,7 +49,7 @@ class TextInputHandler(
         set(value) {
             if (field == value) return
             field = value
-            com.github.noamm9.NoammAddons.mc.textInputManager().onTextInputFocusChange(this, value)
+            mc.textInputManager().onTextInputFocusChange(this, value)
         }
     private var dragging = false
     private var clickCount = 1
@@ -202,13 +200,13 @@ class TextInputHandler(
                 if (input.hasControlDown() && ! input.hasShiftDown()) {
                     when (input.key) {
                         InputConstants.KEY_V -> {
-                            insert(NoammAddons.mc.keyboardHandler.clipboard)
+                            insert(mc.keyboardHandler.clipboard)
                             true
                         }
 
                         InputConstants.KEY_C -> {
                             if (caret != selection) {
-                                NoammAddons.mc.keyboardHandler.clipboard = text.substringSafe(caret, selection)
+                                mc.keyboardHandler.clipboard = text.substringSafe(caret, selection)
                                 true
                             }
                             else false
@@ -216,7 +214,7 @@ class TextInputHandler(
 
                         InputConstants.KEY_X -> {
                             if (caret != selection) {
-                                NoammAddons.mc.keyboardHandler.clipboard = text.substringSafe(caret, selection)
+                                mc.keyboardHandler.clipboard = text.substringSafe(caret, selection)
                                 deleteSelection()
                                 true
                             }

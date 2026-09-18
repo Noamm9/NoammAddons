@@ -1,6 +1,6 @@
 package com.github.noamm9.ui.clickgui.components.settings.impl
 
-import com.mojang.blaze3d.platform.InputConstants
+import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.config.types.ColorSetting
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.clickgui.components.settings.Widget
@@ -12,6 +12,7 @@ import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.drawVerticalGradient
 import com.github.noamm9.utils.render.Render2D.scissor
+import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 import java.util.*
@@ -41,7 +42,7 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
         set(value) {
             if (field == value) return
             field = value
-            com.github.noamm9.NoammAddons.mc.textInputManager().onTextInputFocusChange(this, value)
+            mc.textInputManager().onTextInputFocusChange(this, value)
         }
     private var hexText = ""
 
@@ -115,7 +116,7 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
 
     private fun handleInputs(mx: Int, my: Int, py: Float, ps: Float) {
         if (hexFocused) return
-        if (! com.github.noamm9.NoammAddons.mc.mouseHandler.isLeftPressed) {
+        if (! mc.mouseHandler.isLeftPressed) {
             draggingSV = false
             draggingHue = false
             draggingAlpha = false
