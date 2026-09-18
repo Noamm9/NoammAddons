@@ -4,14 +4,13 @@ package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.utils.ChatUtils
-import com.github.noamm9.utils.ThreadUtils
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
-import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import gg.essential.universal.UMinecraft
@@ -34,8 +33,16 @@ object AutoGFS: Feature("Automatically refills dungeon items from your sacks usi
     private val pyMessage1 = Regex("^\\[BOSS] Storm: (ENERGY HEED MY CALL|THUNDER LET ME BE YOUR CATALYST)!$")
     private var pyHappened = false
 
+    private val sackEmptyMessage = Regex("^You have no (.+) in your Sacks!$")
+    private val emptySacks = mutableSetOf<String>()
+    private var refillCursor = 0
+
     override fun init() {
-        register<WorldChangeEvent> { pyHappened = false }
+        register<WorldChangeEvent> {
+            pyHappened = false
+            emptySacks.clear()
+        }
+
         ThreadUtils.loop({ delay.value * 1000 }) { refill() }
 
         register<ChatMessageEvent> {
@@ -57,6 +64,12 @@ object AutoGFS: Feature("Automatically refills dungeon items from your sacks usi
         }
     }
 
+    private val chatListener = EventBus.listener<ChatMessageEvent> {
+        val item = sackEmptyMessage.matchEntire(event.unformattedText)?.groupValues?.get(1) ?: return@listener
+        emptySacks.add(item.lowercase().replace(" ", "_"))
+        listener.unregister()
+    }
+
     private fun refill() {
         if (! enabled || ! LocationUtils.inDungeon) return
         if (UMinecraft.currentScreenObj != null) return
@@ -67,26 +80,32 @@ object AutoGFS: Feature("Automatically refills dungeon items from your sacks usi
         var tntCount = 0
         var leapCount = 0
 
-        for (stack in player.inventory) when (stack.skyblockId) {
+        for (stack in player.inventory.nonEquipmentItems) when (stack.skyblockId) {
             "ENDER_PEARL" -> pearlCount += stack.count
             "INFLATABLE_JERRY" -> jerryCount += stack.count
             "SUPERBOOM_TNT" -> tntCount += stack.count
             "SPIRIT_LEAP" -> leapCount += stack.count
         }
 
-        checkAndRefill(pearlCount, 16, "ender_pearl", refillPearl.value)
-        checkAndRefill(jerryCount, 64, "inflatable_jerry", refillJerry.value)
-        checkAndRefill(tntCount, 64, "superboom_tnt", refillTNT.value)
-        checkAndRefill(leapCount, 16, "spirit_leap", refillLeaps.value)
+        val pending = listOf(
+            RefillEntry(pearlCount, 16, "ender_pearl", refillPearl.value),
+            RefillEntry(jerryCount, 64, "inflatable_jerry", refillJerry.value),
+            RefillEntry(tntCount, 64, "superboom_tnt", refillTNT.value),
+            RefillEntry(leapCount, 16, "spirit_leap", refillLeaps.value),
+        ).filter { it.enabled && it.current > 0 && it.max - it.current >= 4 && it.gfsName !in emptySacks }
+
+        if (pending.isEmpty()) return
+        val target = pending[refillCursor % pending.size]
+        refillCursor ++
+        gfs(target.gfsName, target.max - target.current)
     }
 
-    private fun checkAndRefill(current: Int, max: Int, gfsName: String, toggle: Boolean) {
-        if (! toggle) return
-        if (current == 0) return
-        val needed = max - current
-        if (needed >= 4) gfs(gfsName, needed)
+    private fun gfs(id: String, count: Int) {
+        ChatUtils.sendCommand("gfs $id $count", 3000)
+        ThreadUtils.setTimeout(5000) { chatListener.unregister() }
+        chatListener.register()
     }
 
-    private fun gfs(id: String, count: Int) = ChatUtils.sendCommand("gfs $id $count", 3000)
+    private data class RefillEntry(val current: Int, val max: Int, val gfsName: String, val enabled: Boolean)
 }
 //#endif

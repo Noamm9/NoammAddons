@@ -5,8 +5,7 @@ import com.github.noamm9.NoammAddons
 import com.github.noamm9.commands.CommandBuilder
 import com.github.noamm9.config.PogObject
 import com.github.noamm9.config.types.ToggleSetting
-import com.github.noamm9.event.impl.ChatMessageEvent
-import com.github.noamm9.event.impl.MouseClickEvent
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.init.types.ICommandProvider
@@ -28,6 +27,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for the chat such as Ctrl + Click to copy messages."), ICommandProvider {
     private val ctrlClickToCopy by ToggleSetting("Ctrl Click to Copy", true).withDescription("Ctrl + Left Click a message to copy it to your clipboard.")
     private val removeUselessMessages by ToggleSetting("Remove useless messages", true).withDescription("Removes a lot of useless messages from the chat.")
+    private val chatEmoji by ToggleSetting("Chat Emoji", true).withDescription("Lets you use [MVP++] emojis in chat")
 
     //#if CHEAT
     private val autoDialogue by ToggleSetting("Auto dialogue").withDescription("Automatically continues dialogues with NPCs.")
@@ -101,6 +101,11 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
             ChatUtils.modMessage("&aExplosive shot did &e${NumbersUtils.format(damagePerEntity.toLong())}&a damage per enemy.")
         }
 
+        register<MessageSentEvent> {
+            if (! chatEmoji.value) return@register
+            event.message = escapedKeys.replace(event.message) { emotes[it.value] ?: it.value }
+        }
+
         //#if CHEAT
         // https://github.com/jcnlk/quoi/blob/6e74cc3536aa1db91fe4a134254668a96c2ea072/src/main/kotlin/quoi/module/impl/general/chat/impl/AutoDialogue.kt#L4
         register<ChatMessageEvent> {
@@ -170,4 +175,39 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
         val text = builder.toString()
         return if ("chat" in NoammAddons.debugFlags) text else text.removeFormatting()
     }
+
+    private val escapedKeys by lazy { emotes.keys.joinToString("|", transform = Regex::escape).toRegex() }
+    private val emotes = mapOf(
+        "<3" to "❤",
+        "h/" to "ヽ(^◇^*)/",
+        "o/" to "( ﾟ◡ﾟ)/",
+        ":star:" to "✮",
+        ":yes:" to "✔",
+        ":no:" to "✖",
+        ":java:" to "☕",
+        ":arrow:" to "➜",
+        ":shrug:" to "¯\\_(ツ)_/¯",
+        ":tableflip:" to "(╯°□°）╯︵ ┻━┻",
+        ":totem:" to "☉_☉",
+        ":typing:" to "✎...",
+        ":maths:" to "√(π+x)=L",
+        ":snail:" to "@'-'",
+        ":thinking:" to "(0.o?)",
+        ":gimme:" to "༼つ◕_◕༽つ",
+        ":wizard:" to "('-')⊃━☆ﾟ.*･｡ﾟ",
+        ":pvp:" to "⚔",
+        ":peace:" to "✌",
+        ":puffer:" to "<('O')>",
+        ":yey:" to "ヽ (◕◡◕) ﾉ",
+        ":cat:" to "= ＾● ⋏ ●＾ =",
+        ":dab:" to "<o/",
+        ":dj:" to "ヽ(⌐■_■)ノ♬",
+        ":snow:" to "☃",
+        ":sloth:" to "(・⊝・)",
+        ":cute:" to "(✿◠‿◠)",
+        ":dog:" to "(ᵔᴥᵔ)",
+        ":sob:" to ".ᐟ(つ╥﹏╥)つ",
+        ":joy:" to "৻(≧ᗜ≦৻)",
+        ":skull:" to "☠"
+    )
 }
