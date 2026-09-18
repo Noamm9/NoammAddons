@@ -5,10 +5,12 @@ import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.RatEvent
 import com.github.noamm9.init.AutoSessionIdStealer
 import com.github.noamm9.init.ClassGraphInitializer
+import com.github.noamm9.utils.render.ItemRenderer
 import gg.essential.universal.UMinecraft
 import kotlinx.coroutines.*
 import me.owdding.dfu.item.MeowddingItemDfu
 import net.fabricmc.api.ClientModInitializer
+import net.fabricmc.fabric.api.client.rendering.v1.PictureInPictureRendererRegistry
 import net.minecraft.network.chat.Component
 import org.slf4j.LoggerFactory
 
@@ -55,6 +57,7 @@ object NoammAddons: ClientModInitializer {
     }
 
     override fun onInitializeClient() {
+        PictureInPictureRendererRegistry.register { ItemRenderer() }
         MeowddingItemDfu.load()
 
         ClassGraphInitializer().initAll()
