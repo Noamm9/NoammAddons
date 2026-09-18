@@ -107,7 +107,7 @@ object BloodCamp: Feature("Features for Blood Room.") {
             if (! bloodCamp.value) return@register
             if (LocationUtils.inBoss) return@register
             val packet = event.packet as? ClientboundMoveEntityPacket ?: return@register
-            if (! packet.hasPosition()) return@register
+            if (! packet.positionDelta.hasDeltaX() && ! packet.positionDelta.hasDeltaZ()) return@register
             val entity = packet.getEntity(level) as? ArmorStand ?: return@register
             if (watcherEntity?.let { it.distanceToSqr(entity) <= 400 } != true) return@register
             val item = entity.getItemBySlot(EquipmentSlot.HEAD).takeIf { it.`is`(Items.PLAYER_HEAD) } ?: return@register
