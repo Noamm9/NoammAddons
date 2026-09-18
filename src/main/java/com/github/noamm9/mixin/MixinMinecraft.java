@@ -6,6 +6,8 @@ import com.github.noamm9.event.impl.PlayerInteractEvent;
 import com.github.noamm9.features.impl.visual.InfoDisplay;
 import com.github.noamm9.interfaces.IGlowingEntity;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.authlib.minecraft.UserApiService;
 import com.mojang.authlib.services.MinecraftServicesDiscoveryService;
 import net.minecraft.client.Minecraft;
@@ -35,6 +37,7 @@ public abstract class MixinMinecraft {
     @Shadow public LocalPlayer player;
     @Shadow @Nullable public ClientLevel level;
     @Shadow @Final private User user;
+    @Shadow public abstract User getUser();
     @Inject(method = "startAttack", at = @At("HEAD"))
     private void onStartAttack(CallbackInfoReturnable<Boolean> cir) {
         InfoDisplay.addLeftClick();
@@ -125,10 +128,10 @@ public abstract class MixinMinecraft {
     }
 
     @SuppressWarnings("ConstantValue")
-    @Inject(method = "createUserApiService", at = @At("HEAD"), cancellable = true)
-    private static void onCreateUserApiService(MinecraftServicesDiscoveryService authService, GameConfig config, CallbackInfoReturnable<UserApiService> cir) {
-        String token = config.user.user.getAccessToken();
-        if (token == null || token.equals("0") || token.equals("FabricMC")) return;
-        cir.setReturnValue(authService.createUserApiService(token));
+    @WrapOperation(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;createUserApiService(Lcom/mojang/authlib/services/MinecraftServicesDiscoveryService;Lnet/minecraft/client/main/GameConfig;)Lcom/mojang/authlib/minecraft/UserApiService;"))
+    private UserApiService onCreateUserApiService(MinecraftServicesDiscoveryService discoveryService, GameConfig config, Operation<UserApiService> original) {
+        String token = user.getAccessToken();
+        if (token == null || token.equals("0") || token.equals("FabricMC")) return original.call(discoveryService, config);
+        return discoveryService.createUserApiService(token);
     }
 }
