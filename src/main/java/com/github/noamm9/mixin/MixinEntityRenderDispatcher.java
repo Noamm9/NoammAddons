@@ -29,7 +29,7 @@ public class MixinEntityRenderDispatcher {
 
     @WrapOperation(method = "submit", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/SubmitNodeCollector;submitFlame(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/entity/state/EntityRenderState;Lorg/joml/Quaternionf;)V"))
     public void redirectDisplayFireAnimation(SubmitNodeCollector instance, PoseStack poseStack, EntityRenderState entityRenderState, Quaternionf quaternionf, Operation<Void> original) {
-        if (RenderOptimizer.INSTANCE.enabled && RenderOptimizer.INSTANCE.getHideFireOnEntities().getValue()) return;
+        if (RenderOptimizer.INSTANCE.enabled && RenderOptimizer.getHideFireOnEntities().getValue()) return;
         original.call(instance, poseStack, entityRenderState, quaternionf);
     }
 }

@@ -5,17 +5,17 @@ import com.github.noamm9.event.impl.CheckEntityRenderEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.dungeon.StarMobESP
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
-import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.startsWithOneOf
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.network.chat.Component
 import net.minecraft.network.protocol.game.*
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.decoration.ArmorStand
+import net.minecraft.world.item.ItemStack
 import java.util.*
 
 object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
@@ -29,9 +29,10 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
     private val hide0HealthNames by ToggleSetting("Hide 0 Health").withDescription("Hide 0 Health nametags")
     private val hideDeadMobs by ToggleSetting("Hide Dead Mobs").withDescription("Hides the mobs death animation.")
     private val hideXpOrbs by ToggleSetting("Hide XP Orbs")
+    private val hideTalismanCoins by ToggleSetting("Hide Talisman Coins").withDescription("Hides coins dropped by the Talisman of Coins and its upgrades.")
     private val removeTentacles by ToggleSetting("Hide P5 Tentacles").withDescription("Hides the Wither King Tentacles")
     private val hideP5p by ToggleSetting("Hide P5 Particles").withDescription("Hide all Particles in M7 P5 except the relevant ones")
-    val hideFireOnEntities by ToggleSetting("Hide Fire On Entities").withDescription("Hides the fire texture on burning mobs")
+    @JvmStatic val hideFireOnEntities by ToggleSetting("Hide Fire On Entities").withDescription("Hides the fire texture on burning mobs")
 
     private val health0Regex = Regex("""\[Lv\d+] .+ 0/.+❤""")
     private val hiddenEntities = Collections.newSetFromMap<Entity>(WeakHashMap())
@@ -44,8 +45,20 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
             when (val packet = event.packet) {
                 is ClientboundSetEntityDataPacket -> {
                     if (packet.id == player.id) return@register
+                    val entity = level.getEntity(packet.id)
+                    if (entity != null && entity in hiddenEntities) return@register
 
-                    level.getEntity(packet.id)?.let(componentNameStringCache::remove)
+                    entity?.let(componentNameStringCache::remove)
+
+                    if (hideTalismanCoins.value) {
+                        val itemStack = packet.packedItems.firstNotNullOfOrNull { entry -> entry.value() as? ItemStack }
+                        if (itemStack != null && ItemUtils.getSkullTexture(itemStack) in COIN_TEXTURES) {
+                            hiddenEntities.add(entity)
+                            entity?.remove(Entity.RemovalReason.DISCARDED)
+                            event.isCanceled = true
+                            return@register
+                        }
+                    }
 
                     val name = packet.packedItems.firstNotNullOfOrNull { entry ->
                         (entry.value() as? Optional<*>)?.orElse(null) as? Component
@@ -54,7 +67,8 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
                     val shouldDiscard = hideHealerOrbs.value && name.removeFormatting().startsWithOneOf("DEFENSE", "ABILITY DAMAGE")
 
                     if (shouldDiscard) {
-                        level.getEntity(packet.id)?.remove(Entity.RemovalReason.DISCARDED)
+                        hiddenEntities.add(entity)
+                        entity?.remove(Entity.RemovalReason.DISCARDED)
                         event.isCanceled = true
                     }
                 }
@@ -129,6 +143,13 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
     }
 
     private data class EntityNameInfo(val isStarred: Boolean, val isHealthTag: Boolean)
+
+    private val COIN_TEXTURES = setOf(
+        "ewogICJ0aW1lc3RhbXAiIDogMTcxOTYwMDMwOTQ4MywKICAicHJvZmlsZUlkIiA6ICI1OTgyOWY1ZGY3MmM0ZmFlOTBmOGVhYmM0MjFjMzJkYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJQZXBwZXJEcmlua2VyIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzE2YjkwZjRmYTNlYzEwNmJmZWYyMWYzYjc1ZjU0MWExOGU0NzU3Njc0ZjdkNTgyNTBmYTdlNzQ5NTJmMDg3ZGMiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ==",
+        "eyJ0aW1lc3RhbXAiOjE1NjAwMzYyODI5MTcsInByb2ZpbGVJZCI6ImU3NmYwZDlhZjc4MjQyYzM5NDY2ZDY3MjE3MzBmNDUzIiwicHJvZmlsZU5hbWUiOiJLbGxscmFoIiwic2lnbmF0dXJlUmVxdWlyZWQiOnRydWUsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9jZGVlNjIxZWI4MmIwZGFiNDE2NjMzMGQxZGEwMjdiYTJhYzEzMjQ2YTRjMWU3ZDUxNzRmNjA1ZmRkZjEwYTEwIn19fQ==",
+        "ewogICJ0aW1lc3RhbXAiIDogMTcxOTg2ODk5MTUyNCwKICAicHJvZmlsZUlkIiA6ICIxMTM1Njg1ZTk3ZGE0ZjYyYTliNDQ3MzA0NGFiZjQ0MSIsCiAgInByb2ZpbGVOYW1lIiA6ICJNYXJpb1dsZXMiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2NiY2NlMjJhZjU1OWVkNmJhNjAzODg0NWRiMzhjY2JjYTJlNjJiNzdiODdhMjZhMDY2NTcxMDljZTBlZmJhNiIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9",
+        "ewogICJ0aW1lc3RhbXAiIDogMTU5ODg0NzA4MjYxMywKICAicHJvZmlsZUlkIiA6ICI0MWQzYWJjMmQ3NDk0MDBjOTA5MGQ1NDM0ZDAzODMxYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJNZWdha2xvb24iLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzQwZDZlMzYyYmM3ZWVlNGY5MTFkYmQwNDQ2MzA3ZTc0NThkMTA1MGQwOWFlZTUzOGViY2IwMjczY2Y3NTc0MiIKICAgIH0KICB9Cn0=",
+    )
 
     private const val TENTACLE_TEXTURE = "ewogICJ0aW1lc3RhbXAiIDogMTcxOTg1NzI3NzI0OSwKICAicHJvZmlsZUlkIiA6ICIxODA1Y2E2MmM0ZDI0M2NiOWQxYmY4YmM5N2E1YjgyNCIsCiAgInByb2ZpbGVOYW1lIiA6ICJSdWxsZWQiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzdkODM2NzQ5MjZiODk3MTRlNmI1YTU1NDcwNTAxYzA0YjA2NmRkODdiZjZjMzM1Y2RkYzZlNjBhMWExYTVmNSIKICAgIH0KICB9Cn0="
     private const val HEALER_FAIRY_TEXTURE = "ewogICJ0aW1lc3RhbXAiIDogMTcxOTQ2MzA5MTA0NywKICAicHJvZmlsZUlkIiA6ICIyNjRkYzBlYjVlZGI0ZmI3OTgxNWIyZGY1NGY0OTgyNCIsCiAgInByb2ZpbGVOYW1lIiA6ICJxdWludHVwbGV0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzJlZWRjZmZjNmExMWEzODM0YTI4ODQ5Y2MzMTZhZjdhMjc1MmEzNzZkNTM2Y2Y4NDAzOWNmNzkxMDhiMTY3YWUiCiAgICB9CiAgfQp9"
