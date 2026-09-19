@@ -3,17 +3,15 @@ package com.github.noamm9.mixin;
 import com.github.noamm9.event.EventBus;
 import com.github.noamm9.event.impl.CheckEntityGlowEvent;
 import com.github.noamm9.event.impl.PlayerInteractEvent;
-import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlay;
 import com.github.noamm9.features.impl.visual.InfoDisplay;
 import com.github.noamm9.interfaces.IGlowingEntity;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import com.llamalad7.mixinextras.sugar.Local;
-import com.llamalad7.mixinextras.sugar.ref.LocalRef;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.authlib.minecraft.UserApiService;
-import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
+import com.mojang.authlib.services.MinecraftServicesDiscoveryService;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.User;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.main.GameConfig;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
@@ -35,11 +33,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Minecraft.class)
 public abstract class MixinMinecraft {
-    @Shadow @Nullable public Screen screen;
     @Shadow @Nullable public HitResult hitResult;
     @Shadow public LocalPlayer player;
     @Shadow @Nullable public ClientLevel level;
     @Shadow @Final private User user;
+    @Shadow public abstract User getUser();
     @Inject(method = "startAttack", at = @At("HEAD"))
     private void onStartAttack(CallbackInfoReturnable<Boolean> cir) {
         InfoDisplay.addLeftClick();
@@ -107,13 +105,6 @@ public abstract class MixinMinecraft {
         if (EventBus.post(event)) ci.cancel();
     }
 
-    @Inject(method = "setScreen", at = @At("HEAD"))
-    private void onSetScreen(Screen screen, CallbackInfo ci, @Local(argsOnly = true) LocalRef<Screen> screenRef) {
-        if (! StorageOverlay.INSTANCE.enabled) return;
-        var newScreen = StorageOverlay.onScreenChange(this.screen, screen);
-        if (newScreen != null) screenRef.set(newScreen);
-    }
-
     // Apply our glow after other mods have changed the vanilla glow state
     @ModifyExpressionValue(
         method = "shouldEntityAppearGlowing",
@@ -137,10 +128,10 @@ public abstract class MixinMinecraft {
     }
 
     @SuppressWarnings("ConstantValue")
-    @Inject(method = "createUserApiService", at = @At("HEAD"), cancellable = true)
-    private void onCreateUserApiService(YggdrasilAuthenticationService authService, GameConfig config, CallbackInfoReturnable<UserApiService> cir) {
+    @WrapOperation(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;createUserApiService(Lcom/mojang/authlib/services/MinecraftServicesDiscoveryService;Lnet/minecraft/client/main/GameConfig;)Lcom/mojang/authlib/minecraft/UserApiService;"))
+    private UserApiService onCreateUserApiService(MinecraftServicesDiscoveryService discoveryService, GameConfig config, Operation<UserApiService> original) {
         String token = user.getAccessToken();
-        if (token == null || token.equals("0") || token.equals("FabricMC")) return;
-        cir.setReturnValue(authService.createUserApiService(token));
+        if (token == null || token.equals("0") || token.equals("FabricMC")) return original.call(discoveryService, config);
+        return discoveryService.createUserApiService(token);
     }
 }

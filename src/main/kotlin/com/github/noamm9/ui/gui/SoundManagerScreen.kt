@@ -15,7 +15,6 @@ import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.scissor
 import com.github.noamm9.utils.spaceCaps
 import gg.essential.universal.UGraphics
-import gg.essential.universal.UKeyboard
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.CharacterEvent
@@ -25,7 +24,7 @@ import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.network.chat.Component
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundEvents
-import org.lwjgl.glfw.GLFW
+import com.mojang.blaze3d.platform.InputConstants
 import java.awt.Color
 import kotlin.math.ceil
 import kotlin.math.max
@@ -214,7 +213,7 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
     }
 
     override fun mouseClicked(event: MouseButtonEvent, isDoubleClick: Boolean): Boolean {
-        if (event.button() != GLFW.GLFW_MOUSE_BUTTON_LEFT) return super.mouseClicked(event, isDoubleClick)
+        if (event.button() != InputConstants.MOUSE_BUTTON_LEFT) return super.mouseClicked(event, isDoubleClick)
 
         val mx = Resolution.getMouseX(event.x).toFloat()
         val my = Resolution.getMouseY(event.y).toFloat()
@@ -331,7 +330,7 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
 
     override fun keyPressed(keyEvent: KeyEvent): Boolean {
         if (searchHandler.keyPressed(keyEvent)) return true
-        if (keyEvent.key == UKeyboard.KEY_ESCAPE) {
+        if (keyEvent.key == InputConstants.KEY_ESCAPE) {
             onClose()
             return true
         }

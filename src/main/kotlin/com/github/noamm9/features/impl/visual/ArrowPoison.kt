@@ -57,8 +57,8 @@ object ArrowPoison: Feature("Shows on screen the amount of poison arrows you hav
     }
 
     private enum class PoisonArrow(val previewItem: Lazy<ItemStack>, val sbid: String, val color: Color) {
-        TWILIGHT(lazy { Items.PURPLE_DYE.defaultInstance }, "TWILIGHT_ARROW_POISON", Color.MAGENTA),
-        TOXIC(lazy { Items.LIME_DYE.defaultInstance }, "TOXIC_ARROW_POISON", Color.GREEN);
+        TWILIGHT(lazy { Items.DYE.purple().defaultInstance }, "TWILIGHT_ARROW_POISON", Color.MAGENTA),
+        TOXIC(lazy { Items.DYE.lime().defaultInstance }, "TOXIC_ARROW_POISON", Color.GREEN);
 
         val displayName = name.lowercase().uppercaseFirst()
         var count = 0

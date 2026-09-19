@@ -15,11 +15,11 @@ object RubixTerminal: Terminal() {
     override val slotCount = 45
 
     private val rubixOrder = listOf(
-        Items.RED_STAINED_GLASS_PANE,
-        Items.ORANGE_STAINED_GLASS_PANE,
-        Items.YELLOW_STAINED_GLASS_PANE,
-        Items.GREEN_STAINED_GLASS_PANE,
-        Items.BLUE_STAINED_GLASS_PANE,
+        Items.STAINED_GLASS_PANE.red(),
+        Items.STAINED_GLASS_PANE.orange(),
+        Items.STAINED_GLASS_PANE.yellow(),
+        Items.STAINED_GLASS_PANE.green(),
+        Items.STAINED_GLASS_PANE.blue(),
     )
 
     private val allowedSlots = listOf(12, 13, 14, 21, 22, 23, 30, 31, 32)

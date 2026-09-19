@@ -1,5 +1,6 @@
 package com.github.noamm9.features.impl.general
 
+import com.mojang.blaze3d.platform.InputConstants
 import com.github.noamm9.config.types.KeybindSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ContainerEvent
@@ -13,7 +14,6 @@ import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.ThreadUtils
 //#endif
 import com.github.noamm9.utils.equalsOneOf
-import gg.essential.universal.UKeyboard
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
@@ -27,7 +27,7 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
     private val preventUnequip by ToggleSetting("Prevent Unequip")
     private val useHotbarBinds by ToggleSetting("Use Hotbar Binds")
     private val keybinds = (1 .. 9).mapIndexed { index, slot ->
-        KeybindSetting("Wardrobe Slot $slot", UKeyboard.KEY_1 + index)
+        KeybindSetting("Wardrobe Slot $slot", InputConstants.KEY_1 + index)
             .hideIf { useHotbarBinds.value }.apply(configSettings::add)
     }
 
@@ -76,7 +76,7 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
         register<ContainerEvent.Keyboard> {
             if (! inWardrobeMenu) return@register
             if (System.currentTimeMillis() - lastClick < 300) return@register
-            if (event.key.equalsOneOf(UKeyboard.KEY_ESCAPE, UKeyboard.KEY_E)) return@register
+            if (event.key.equalsOneOf(InputConstants.KEY_ESCAPE, InputConstants.KEY_E)) return@register
             val index = if (useHotbarBinds.value) hotbarKeyMap[event.key] ?: return@register
             else keybinds.withIndex().find { (_, key) -> key.isDown() }?.index ?: return@register
             val slot = keyMap.getOrNull(index)?.takeUnless { player.containerMenu.getSlot(it).item == ItemStack.EMPTY } ?: return@register
@@ -95,7 +95,7 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
         register<ContainerEvent.MouseClick> {
             if (! inWardrobeMenu) return@register
             if (System.currentTimeMillis() - lastClick < 300) return@register
-            if (event.button.equalsOneOf(0, 1, 2)) return@register
+            if (event.button.equalsOneOf(InputConstants.MOUSE_BUTTON_LEFT, InputConstants.MOUSE_BUTTON_RIGHT, InputConstants.MOUSE_BUTTON_MIDDLE)) return@register
             val index = if (useHotbarBinds.value) hotbarKeyMap[event.button] ?: return@register
             else keybinds.withIndex().find { (_, key) -> key.isDown() }?.index ?: return@register
             val slot = keyMap.getOrNull(index)?.takeUnless { player.containerMenu.getSlot(it).item == ItemStack.EMPTY } ?: return@register
@@ -112,7 +112,7 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
         }
     }
 
-    private fun isSlotEquipped(slot: Int) = player.containerMenu.slots[slot].item.`is`(Items.LIME_DYE)
+    private fun isSlotEquipped(slot: Int) = player.containerMenu.slots[slot].item.`is`(Items.DYE.lime())
 
     //#if CHEAT
     fun closeAfterReopen() {

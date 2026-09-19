@@ -1,5 +1,7 @@
 package com.github.noamm9.ui.hud
 
+import com.mojang.blaze3d.platform.InputConstants
+
 import com.github.noamm9.config.ConfigManager
 import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.ui.utils.Resolution
@@ -138,7 +140,7 @@ class HudEditorScreen: Screen(Component.literal("HudEditor")) {
         val mX = Resolution.getMouseX(mouseButtonEvent.x)
         val mY = Resolution.getMouseY(mouseButtonEvent.y)
 
-        if (mouseButtonEvent.button() == 0) huds.forEach {
+        if (mouseButtonEvent.button() == InputConstants.MOUSE_BUTTON_LEFT) huds.forEach {
             it.startDragging(mX, mY)
             if (it.isDragging) return true
         }

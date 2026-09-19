@@ -1,12 +1,8 @@
 package com.github.noamm9.mixin;
 
 import com.github.noamm9.features.impl.misc.Camera;
-import com.github.noamm9.ui.notification.NotificationManager;
-import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import org.spongepowered.asm.mixin.Final;
@@ -24,11 +20,6 @@ public class MixinGameRenderer {
     @Inject(method = "bobHurt", at = @At("HEAD"), cancellable = true)
     public void onBobHurt(CameraRenderState cameraState, PoseStack poseStack, CallbackInfo ci) {
         if (minecraft.options.damageTiltStrength().get() == 0) ci.cancel();
-    }
-
-    @Inject(method = "extractGui", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;extractDeferredSubtitles()V"))
-    public void onExtractGui(DeltaTracker deltaTracker, boolean shouldRenderLevel, boolean resourcesLoaded, CallbackInfo ci, @Local GuiGraphicsExtractor graphics) {
-        if (minecraft.screen == null) NotificationManager.render(graphics);
     }
 
     @ModifyVariable(method = "renderLevel", at = @At("STORE"), name = "nauseaIntensity")

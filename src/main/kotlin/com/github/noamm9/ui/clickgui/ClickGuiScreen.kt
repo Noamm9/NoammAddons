@@ -1,5 +1,6 @@
 package com.github.noamm9.ui.clickgui
 
+import com.mojang.blaze3d.platform.InputConstants
 import com.github.noamm9.NoammAddons.MOD_ID
 import com.github.noamm9.config.ConfigManager
 import com.github.noamm9.features.Feature
@@ -20,7 +21,6 @@ import com.github.noamm9.utils.render.Render2D.drawLine
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawTexture
 import com.github.noamm9.utils.render.Render2D.drawVerticalGradient
-import gg.essential.universal.UKeyboard
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.CharacterEvent
@@ -163,7 +163,10 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
             searchHandler.listening = false
 
             when (window.mouseClicked(mx, my, button)) {
-                WindowClickAction.CLOSE -> configWindows.remove(window)
+                WindowClickAction.CLOSE -> {
+                    window.clearFocus()
+                    configWindows.remove(window)
+                }
                 WindowClickAction.CONSUMED -> {}
             }
             return true
@@ -176,7 +179,7 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
         }
 
         if (isOverHudButton(mx.toFloat(), my.toFloat())) {
-            if (button == 0) {
+            if (button == InputConstants.MOUSE_BUTTON_LEFT) {
                 onClose()
                 GuiUtils.setScreen(HudEditorScreen())
             }
@@ -184,7 +187,7 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
         }
 
         if (isOverDiscordButton(mx.toFloat(), my.toFloat())) {
-            if (button == 0) Utils.openDiscordLink()
+            if (button == InputConstants.MOUSE_BUTTON_LEFT) Utils.openDiscordLink()
             return true
         }
 
@@ -238,15 +241,16 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
 
     override fun keyPressed(keyEvent: KeyEvent): Boolean {
         configWindows.lastOrNull()?.let { window ->
-            if (window.keyPressed(keyEvent.key, keyEvent.scancode, keyEvent.modifiers)) return true
-            if (keyEvent.key == UKeyboard.KEY_ESCAPE) {
+            if (window.keyPressed(keyEvent.key, keyEvent.keycode, keyEvent.modifiers)) return true
+            if (keyEvent.key == InputConstants.KEY_ESCAPE) {
+                window.clearFocus()
                 configWindows.remove(window)
                 return true
             }
         }
 
         if (searchHandler.keyPressed(keyEvent)) return true
-        if (keyEvent.hasControlDown() && keyEvent.input() == UKeyboard.KEY_F) {
+        if (keyEvent.hasControlDown() && keyEvent.input() == InputConstants.KEY_F) {
             searchHandler.listening = ! searchHandler.listening
             return true
         }
@@ -291,11 +295,13 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
     }
 
     private fun focusWindow(window: FeatureConfigWindow) {
+        configWindows.filter { it != window }.forEach { it.clearFocus() }
         configWindows.remove(window)
         configWindows.add(window)
     }
 
     override fun onClose() {
+        configWindows.forEach { it.clearFocus() }
         configWindows.clear()
         searchHandler.listening = false
         MouseHelper.resetCursor()

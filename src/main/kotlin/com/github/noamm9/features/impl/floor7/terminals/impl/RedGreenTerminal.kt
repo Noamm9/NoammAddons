@@ -11,7 +11,7 @@ object RedGreenTerminal: Terminal() {
     override val slotCount = 45
 
     override fun onSlotUpdate(items: Map<Int, ItemStack>, title: String, updatedSlot: Int, updatedItem: ItemStack): Boolean {
-        items.filter { it.value.item == Items.RED_STAINED_GLASS_PANE }
+        items.filter { it.value.item == Items.STAINED_GLASS_PANE.red() }
             .forEach { solution.add(TerminalClick(it.key)) }
 
         return true

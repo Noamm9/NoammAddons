@@ -7,6 +7,8 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.fog.FogData;
 import net.minecraft.client.renderer.fog.environment.LavaFogEnvironment;
 import net.minecraft.client.renderer.fog.environment.WaterFogEnvironment;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -28,12 +30,14 @@ public abstract class MixinLavaFogEnvironment {
     }
 
     @Inject(method = "getBaseColor", at = @At("HEAD"), cancellable = true)
-    private void hookGetBaseColor(ClientLevel level, Camera camera, int renderDistance, float partialTicks, CallbackInfoReturnable<Integer> cir) {
+    private void hookGetBaseColor(ClientLevel level, Camera camera, int renderDistance, float partialTicks, CallbackInfoReturnable<Vector3fc> cir) {
         if (! LavaToWater.INSTANCE.enabled) return;
-        int color;
+        Vector3fc color;
 
-        if (LavaToWater.getColorTint().getValue()) color = LavaToWater.getTintColor().getValue().getRGB();
-        else color = WATER_FOG.getBaseColor(level, camera, renderDistance, partialTicks);
+        if (LavaToWater.getColorTint().getValue()) {
+            var tint = LavaToWater.getTintColor().getValue();
+            color = new Vector3f(tint.getRed() / 255f, tint.getGreen() / 255f, tint.getBlue() / 255f);
+        } else color = WATER_FOG.getBaseColor(level, camera, renderDistance, partialTicks);
 
         cir.setReturnValue(color);
     }

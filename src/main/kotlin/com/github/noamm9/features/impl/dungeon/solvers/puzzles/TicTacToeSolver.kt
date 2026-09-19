@@ -1,5 +1,6 @@
 package com.github.noamm9.features.impl.dungeon.solvers.puzzles
 
+import net.minecraft.world.entity.EntityTypes
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
@@ -21,7 +22,6 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
-import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.decoration.ItemFrame
 import net.minecraft.world.item.MapItem
 import net.minecraft.world.level.block.Blocks
@@ -56,7 +56,7 @@ object TicTacToeSolver: PuzzleSolver {
     override fun onPacket(event: MainThreadPacketReceivedEvent.Pre) {
         if (! inTicTacToe) return
         val packet = event.packet as? ClientboundAddEntityPacket ?: return
-        if (packet.type != EntityType.ITEM_FRAME) return
+        if (packet.type != EntityTypes.ITEM_FRAME) return
         solve()
     }
 

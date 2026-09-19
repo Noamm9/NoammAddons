@@ -4,7 +4,7 @@ import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 
 enum class DoorType(val source: Block) {
-    BLOOD(Blocks.RED_TERRACOTTA),
+    BLOOD(Blocks.DYED_TERRACOTTA.red()),
     WITHER(Blocks.COAL_BLOCK),
     NORMAL(Blocks.AIR),
     ENTRANCE(Blocks.INFESTED_CHISELED_STONE_BRICKS);

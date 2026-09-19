@@ -1,10 +1,13 @@
 package com.github.noamm9.features.impl.general
 
+import com.mojang.blaze3d.platform.InputConstants
 import com.github.noamm9.config.types.DropdownSetting
 import com.github.noamm9.config.types.MultiCheckboxSetting
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.NetworkLoop
+import com.github.noamm9.mixin.IGui
+import net.minecraft.world.level.block.entity.SignTextSlot
 import com.github.noamm9.mixin.IAbstractSignEditScreen
 import com.github.noamm9.ui.utils.componnents.UIButton
 import com.github.noamm9.ui.utils.componnents.UISearchBox
@@ -13,7 +16,6 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.Utils.send
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
-import gg.essential.universal.UKeyboard
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
@@ -47,11 +49,11 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             if (screen !is AbstractSignEditScreen) return@register
             val stack = item ?: return@register
             val sign = (screen as IAbstractSignEditScreen).getSign() ?: return@register
-            val lines = Array(4) { i -> sign.frontText.getMessage(i, false).string }
+            val lines = Array(4) { i -> sign.getText(SignTextSlot.FRONT).getMessages(false)[i].string }
 
             if (lines[1] == "^^^^^^^^^^^^^^^" && lines[2] == "Your auction" && lines[3] == "starting bid") mc.execute {
                 // manually setting the screen so the sign gui wont close
-                mc.screen = AuctionInputScreen(sign, lines, stack).apply { init(width, height) }
+                (mc.gui as IGui).setScreenDirect(AuctionInputScreen(sign, lines, stack).apply { init(width, height) })
             }
         }
 
@@ -62,7 +64,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
         }
 
         register<ContainerEvent.Keyboard> {
-            if (event.key != UKeyboard.KEY_ENTER && event.key != UKeyboard.KEY_NUMPADENTER) return@register
+            if (event.key != InputConstants.KEY_RETURN && event.key != InputConstants.KEY_NUMPADENTER) return@register
             val title = event.screen.title.unformattedText
 
             val (slotId, isValidName) = when (title) {
@@ -72,7 +74,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             }
 
             val stack = event.screen.menu.slots.getOrNull(slotId)?.item ?: return@register
-            if (! stack.`is`(Blocks.GREEN_TERRACOTTA.asItem())) return@register
+            if (! stack.`is`(Blocks.DYED_TERRACOTTA.green().asItem())) return@register
             if (! isValidName(stack.hoverName.unformattedText)) return@register
 
             GuiUtils.clickSlot(slotId, GuiUtils.ButtonType.LEFT)
@@ -159,7 +161,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
         }
 
         override fun keyPressed(event: KeyEvent): Boolean {
-            if (event.key() == UKeyboard.KEY_ENTER || event.key() == UKeyboard.KEY_NUMPADENTER) {
+            if (event.key() == InputConstants.KEY_RETURN || event.key() == InputConstants.KEY_NUMPADENTER) {
                 finish()
                 return true
             }
@@ -170,8 +172,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             val finalLine0 = parsedValue?.toString() ?: input
 
             ServerboundSignUpdatePacket(
-                sign.blockPos, true, finalLine0,
-                originalText[1], originalText[2], originalText[3]
+                sign.blockPos, listOf(finalLine0, originalText[1], originalText[2], originalText[3]), SignTextSlot.FRONT
             ).send()
 
             onClose()
