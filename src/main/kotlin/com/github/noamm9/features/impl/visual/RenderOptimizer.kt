@@ -5,18 +5,17 @@ import com.github.noamm9.event.impl.CheckEntityRenderEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.dungeon.StarMobESP
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
-import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.startsWithOneOf
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.network.chat.Component
 import net.minecraft.network.protocol.game.*
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.decoration.ArmorStand
-import net.minecraft.world.entity.item.ItemEntity
+import net.minecraft.world.item.ItemStack
 import java.util.*
 
 object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
@@ -33,7 +32,7 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
     private val hideTalismanCoins by ToggleSetting("Hide Talisman Coins").withDescription("Hides coins dropped by the Talisman of Coins and its upgrades.")
     private val removeTentacles by ToggleSetting("Hide P5 Tentacles").withDescription("Hides the Wither King Tentacles")
     private val hideP5p by ToggleSetting("Hide P5 Particles").withDescription("Hide all Particles in M7 P5 except the relevant ones")
-    val hideFireOnEntities by ToggleSetting("Hide Fire On Entities").withDescription("Hides the fire texture on burning mobs")
+    @JvmStatic val hideFireOnEntities by ToggleSetting("Hide Fire On Entities").withDescription("Hides the fire texture on burning mobs")
 
     private val health0Regex = Regex("""\[Lv\d+] .+ 0/.+❤""")
     private val hiddenEntities = Collections.newSetFromMap<Entity>(WeakHashMap())
@@ -46,8 +45,20 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
             when (val packet = event.packet) {
                 is ClientboundSetEntityDataPacket -> {
                     if (packet.id == player.id) return@register
+                    val entity = level.getEntity(packet.id)
+                    if (entity != null && entity in hiddenEntities) return@register
 
-                    level.getEntity(packet.id)?.let(componentNameStringCache::remove)
+                    entity?.let(componentNameStringCache::remove)
+
+                    if (hideTalismanCoins.value) {
+                        val itemStack = packet.packedItems.firstNotNullOfOrNull { entry -> entry.value() as? ItemStack }
+                        if (itemStack != null && ItemUtils.getSkullTexture(itemStack) in COIN_TEXTURES) {
+                            hiddenEntities.add(entity)
+                            entity?.remove(Entity.RemovalReason.DISCARDED)
+                            event.isCanceled = true
+                            return@register
+                        }
+                    }
 
                     val name = packet.packedItems.firstNotNullOfOrNull { entry ->
                         (entry.value() as? Optional<*>)?.orElse(null) as? Component
@@ -56,7 +67,8 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
                     val shouldDiscard = hideHealerOrbs.value && name.removeFormatting().startsWithOneOf("DEFENSE", "ABILITY DAMAGE")
 
                     if (shouldDiscard) {
-                        level.getEntity(packet.id)?.remove(Entity.RemovalReason.DISCARDED)
+                        hiddenEntities.add(entity)
+                        entity?.remove(Entity.RemovalReason.DISCARDED)
                         event.isCanceled = true
                     }
                 }
@@ -100,11 +112,6 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
         }
 
         register<CheckEntityRenderEvent> {
-            if (hideTalismanCoins.value && LocationUtils.inSkyblock && event.entity is ItemEntity && ItemUtils.getSkullTexture(event.entity.item) in COIN_TEXTURES) {
-                event.isCanceled = true
-                return@register
-            }
-
             if (hideDeadMobs.value && (! event.entity.isAlive || ((event.entity as? LivingEntity)?.health ?: 1f) <= 0)) {
                 event.isCanceled = true
                 return@register
