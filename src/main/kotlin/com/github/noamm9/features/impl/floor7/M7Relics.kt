@@ -24,6 +24,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
+import net.minecraft.world.phys.EntityHitResult
 import net.minecraft.world.phys.Vec3
 import java.awt.Color
 
@@ -36,6 +37,8 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
     private val relicLook by ToggleSetting("Relic Look").withDescription("Automatically rotate to the relic cauldron after you pick it up.")
     private val relicLookTime by SliderSetting("Relic Look Time", 150L, 10, 300, 1).showIf { relicLook.value }.withDescription("How fast should the auto rotate (in milliseconds)")
     private val blockWrongRelic by ToggleSetting("Block Wrong Relic").withDescription("Prevents you from placing your relic at the wrong cauldron.")
+    private val relicTriggerbot by ToggleSetting("Relic Triggerbot").withDescription("Automatically picks up the relic when you're aiming at it.")
+    private var lastRelicClick = 0L
     //#endif
 
     private val relicPickUpRegex = Regex("^(\\w{3,16}) picked the Corrupted (\\w{3,6}) Relic!$")
@@ -64,6 +67,9 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
         register<WorldChangeEvent> {
             spawnTimerTicks = 0
             relicTimes.clear()
+            //#if CHEAT
+            lastRelicClick = 0L
+            //#endif
         }
 
         register<ChatMessageEvent> {
@@ -128,6 +134,23 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
         }
 
         //#if CHEAT
+        register<TickEvent.Start> {
+            if (! relicTriggerbot.value || LocationUtils.F7Phase != 5) return@register
+            if (mc.screen != null) return@register
+            val now = System.currentTimeMillis()
+            if (now - lastRelicClick < 200) return@register
+            if (player.inventory.getItem(8).hoverName.string.contains("Relic")) return@register
+
+            val hit = mc.hitResult as? EntityHitResult ?: return@register
+            val armorStand = hit.entity as? ArmorStand ?: return@register
+            if (! armorStand.getItemBySlot(EquipmentSlot.HEAD).hoverName.string.contains("Relic")) return@register
+            if (armorStand.position().distanceTo(player.position()) >= 3) return@register
+            if (WitherRelic.entries.any { isEntityAtCauldron(armorStand.position(), it) }) return@register
+
+            PlayerUtils.rightClick()
+            lastRelicClick = now
+        }
+
         fun onInteract(event: PlayerInteractEvent, pos: BlockPos) {
             if (! blockWrongRelic.value || LocationUtils.F7Phase != 5) return
             val item = event.item?.hoverName?.string ?: return
