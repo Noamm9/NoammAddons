@@ -37,9 +37,10 @@ object MapConfig: SettingProvider {
     val mapBorderWidth by SliderSetting("Border Thickness", 1, 1, 5, 1)
 
     val dungeonMapCheckmarkStyle by DropdownSetting("Checkmark Style", 0, listOf("Checkmarks", "Secrets", "Room Name", "Room Name + Secrets", "Secrets + Puzzle Name")).section("Rooms")
-    val centerStyle by ToggleSetting("Center Checkmark", true)
+    val centerStyle by ToggleSetting("Center Checkmark/Text", true).jsonName("Center Checkmark")
+    val hideBloodroomOvelay by ToggleSetting("Hide text/checkmark of Blood room", false)
     val hideQuestionCheckmarks by ToggleSetting("Hide Unknown Room Checkmark", false).showIf { dungeonMapCheckmarkStyle.value == 0 }
-    val limitRoomNameSize by ToggleSetting("Limit Room Name Size", true).showIf { dungeonMapCheckmarkStyle.value in 2..4 }
+    val limitRoomNameSize by ToggleSetting("Limit Room Name Size", true).showIf { dungeonMapCheckmarkStyle.value in 2 .. 4 }
 
     //#if CHEAT
     val mimicEsp by ToggleSetting("Mimic ESP")

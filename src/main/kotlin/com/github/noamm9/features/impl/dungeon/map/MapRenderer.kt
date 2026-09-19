@@ -167,7 +167,8 @@ object MapRenderer: HudElement() {
             val roomTile = unq.mainRoom
 
             if (unq.data.isUnknown()) return@forEach
-            if (unq.data.type == RoomType.ENTRANCE) return@forEach
+            if (unq.data.type.equalsOneOf(RoomType.ENTRANCE, RoomType.FAIRY)) return@forEach
+            if (MapConfig.hideBloodroomOvelay.value && unq.data.type == RoomType.BLOOD) return@forEach
             if (! MapConfig.dungeonMapCheater.value && roomTile.state.equalsOneOf(RoomState.UNDISCOVERED, RoomState.UNOPENED)) return@forEach
 
             val checkPos = unq.getCheckmarkPosition()
@@ -182,7 +183,7 @@ object MapRenderer: HudElement() {
             }
 
             val checkmarkStyle = when (MapConfig.dungeonMapCheckmarkStyle.value) {
-                4 -> if (roomTile.data.type == RoomType.PUZZLE) 2 else 1
+                4 -> if (roomTile.data.type == RoomType.PUZZLE || roomTile.data.secrets == 0) 2 else 1
                 else -> MapConfig.dungeonMapCheckmarkStyle.value
             }
 
