@@ -116,26 +116,13 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
 
     private fun handleInputs(mx: Int, my: Int, py: Float, ps: Float) {
         if (hexFocused) return
-        if (! mc.mouseHandler.isLeftPressed) {
-            draggingSV = false
-            draggingHue = false
-            draggingAlpha = false
-            return
-        }
+        if (! draggingSV && ! draggingHue && ! draggingAlpha) return
 
         var currentX = x + 10f
-        val aX = currentX
         if (cfg.withAlpha) currentX += 15f
-        val hX = currentX
         currentX += 15f
         val svX = currentX
         val svW = (x + width - 10f) - svX
-
-        if (! draggingSV && ! draggingHue && ! draggingAlpha) {
-            draggingAlpha = cfg.withAlpha && mx >= aX && mx <= aX + 10 && my >= py && my <= py + ps
-            draggingHue = mx >= hX && mx <= hX + 10 && my >= py && my <= py + ps
-            draggingSV = mx >= svX && mx <= svX + svW && my >= py && my <= py + ps
-        }
 
         if (draggingAlpha) a = (1f - (my - py) / ps).coerceIn(0f, 1f)
         if (draggingHue) h = ((my - py) / ps).coerceIn(0f, 1f)
@@ -143,10 +130,7 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
             s = ((mx - svX) / svW).coerceIn(0f, 1f)
             b = (1f - (my - py) / ps).coerceIn(0f, 1f)
         }
-
-        if (draggingSV || draggingHue || draggingAlpha) {
-            updateColorFromHSB()
-        }
+        updateColorFromHSB()
     }
 
     override fun charTyped(codePoint: Char): Boolean {
@@ -254,11 +238,36 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
                 return true
             }
         }
-        if (expanded) {
+        if (expanded && button == InputConstants.MOUSE_BUTTON_LEFT) {
+            val py = y + 25f
+            val ps = 80f
+            var currentX = x + 10f
+            val aX = currentX
+            if (cfg.withAlpha) currentX += 15f
+            val hX = currentX
+            currentX += 15f
+            val svX = currentX
+            val svW = (x + width - 10f) - svX
+
+            draggingAlpha = cfg.withAlpha && mouseX >= aX && mouseX <= aX + 10 && mouseY >= py && mouseY <= py + ps
+            draggingHue = mouseX >= hX && mouseX <= hX + 10 && mouseY >= py && mouseY <= py + ps
+            draggingSV = mouseX >= svX && mouseX <= svX + svW && mouseY >= py && mouseY <= py + ps
+            if (draggingAlpha || draggingHue || draggingSV) {
+                hexFocused = false
+                return true
+            }
             val hexY = y + 25f + 80f + 5f
             hexFocused = mouseX >= x + 10 && mouseX <= x + width - 10 && mouseY >= hexY && mouseY <= hexY + 12
             if (hexFocused) return true
         }
         return false
+    }
+
+    override fun mouseReleased(button: Int) {
+        if (button == InputConstants.MOUSE_BUTTON_LEFT) {
+            draggingSV = false
+            draggingHue = false
+            draggingAlpha = false
+        }
     }
 }
