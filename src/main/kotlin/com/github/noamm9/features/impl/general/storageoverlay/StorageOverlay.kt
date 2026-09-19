@@ -80,8 +80,16 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
 
         register<PacketEvent.Sent> {
             if (event.packet !is ServerboundContainerClosePacket) return@register
-            if (active == null) return@register
-            currentMenu?.let(::saveContent)
+            val overlay = active ?: return@register
+            mc.execute {
+                if (active !== overlay) return@execute
+                currentMenu?.let(::saveContent)
+                overlay.isExiting = true
+                active = null
+                if (UMinecraft.currentScreenObj === overlay.containerScreen) mc.setScreen(null)
+                overlay.containerScreen = null
+                overlay.storageMenu = null
+            }
         }
     }
 
@@ -105,7 +113,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
             active = null
         }
 
-        if (newScreen == null && overlay != null && ! overlay.isExiting) return overlay
+        if (newScreen == null && overlay != null && ! overlay.isExiting && overlay.containerScreen != null) return overlay
         if (screen == null) return null
         if (overlay?.isExiting == true) return null
         val currentMenu = currentMenu ?: return null

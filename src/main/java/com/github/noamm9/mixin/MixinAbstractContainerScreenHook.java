@@ -37,7 +37,7 @@ public class MixinAbstractContainerScreenHook<T extends AbstractContainerMenu> e
     @Unique
     @SuppressWarnings("ConstantValue")
     private StorageOverlayScreen storageOverlay() {
-        if (!((Object) this instanceof ContainerScreen)) return null;
+        if (! ((Object) this instanceof ContainerScreen)) return null;
         return StorageOverlay.activeFor((ContainerScreen) (Object) this);
     }
 
@@ -60,7 +60,7 @@ public class MixinAbstractContainerScreenHook<T extends AbstractContainerMenu> e
 
     @Inject(method = "extractSlot", at = @At("HEAD"), cancellable = true)
     private void onRenderSlot(GuiGraphicsExtractor graphics, Slot slot, int mouseX, int mouseY, CallbackInfo ci) {
-        if (storageOverlay() != null && !(slot.container instanceof net.minecraft.world.entity.player.Inventory)) ci.cancel();
+        if (storageOverlay() != null && ! (slot.container instanceof net.minecraft.world.entity.player.Inventory)) ci.cancel();
     }
 
     @Inject(method = "hasClickedOutside", at = @At("HEAD"), cancellable = true)
@@ -79,9 +79,9 @@ public class MixinAbstractContainerScreenHook<T extends AbstractContainerMenu> e
         StorageOverlayScreen overlay = storageOverlay();
         if (overlay != null) {
             for (Slot slot : menu.slots) {
-                if (!hasRememberedSlots) ((ICoordRememberingSlot) slot).noammaddons_rememberCoords();
-                ((ICoordRememberingSlot) slot).noammaddons_setX(-100000);
-                ((ICoordRememberingSlot) slot).noammaddons_setY(-100000);
+                if (! hasRememberedSlots) ((ICoordRememberingSlot) slot).noammaddons_rememberCoords();
+                ((ICoordRememberingSlot) slot).noammaddons_setX(- 100000);
+                ((ICoordRememberingSlot) slot).noammaddons_setY(- 100000);
             }
             hasRememberedSlots = true;
         } else if (hasRememberedSlots) {

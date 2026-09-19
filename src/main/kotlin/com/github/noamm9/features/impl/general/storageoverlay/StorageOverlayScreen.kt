@@ -27,9 +27,7 @@ import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Inventory
-import net.minecraft.world.inventory.AbstractContainerMenu
-import net.minecraft.world.inventory.ContainerInput
-import net.minecraft.world.inventory.Slot
+import net.minecraft.world.inventory.*
 import net.minecraft.world.item.ItemStack
 import org.lwjgl.glfw.GLFW
 import java.awt.Color

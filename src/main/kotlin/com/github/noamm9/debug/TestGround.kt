@@ -1,15 +1,15 @@
 package com.github.noamm9.debug
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.commands.CommandBuilder
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
+import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.init.types.ISelfInit
-import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.GsonUtils
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.toVec
-import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
@@ -27,7 +27,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.entity.SkullBlockEntity
 import java.awt.Color
 
-object TestGround: ISelfInit {
+object TestGround: ISelfInit, ICommandProvider {
     private var lastServerTime = - 1L
     private var lastRealTime = - 1L
 
@@ -35,6 +35,14 @@ object TestGround: ISelfInit {
     val rotation get() = NoammAddons.debugFlags.contains("rotation")
     val slot get() = NoammAddons.debugFlags.contains("slot")
     val sound get() = NoammAddons.debugFlags.contains("sound")
+
+    override fun CommandBuilder.command() {
+        setName("test")
+
+        runs {
+            ChatUtils.chat("we are not testing")
+        }
+    }
 
     override fun init() {
         EventBus.register<WorldChangeEvent> {
