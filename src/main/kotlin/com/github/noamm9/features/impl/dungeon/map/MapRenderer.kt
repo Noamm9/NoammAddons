@@ -167,7 +167,8 @@ object MapRenderer: HudElement() {
             val roomTile = unq.mainRoom
 
             if (unq.data.isUnknown()) return@forEach
-            if (unq.data.type == RoomType.ENTRANCE) return@forEach
+            if (unq.data.type.equalsOneOf(RoomType.ENTRANCE, RoomType.FAIRY)) return@forEach
+            if (MapConfig.hideBloodroomOvelay.value && unq.data.type == RoomType.BLOOD) return@forEach
             if (! MapConfig.dungeonMapCheater.value && roomTile.state.equalsOneOf(RoomState.UNDISCOVERED, RoomState.UNOPENED)) return@forEach
 
             val checkPos = unq.getCheckmarkPosition()
@@ -181,10 +182,15 @@ object MapRenderer: HudElement() {
                 else -> Color(170, 170, 170)
             }
 
-            when (MapConfig.dungeonMapCheckmarkStyle.value) {
+            val checkmarkStyle = when (MapConfig.dungeonMapCheckmarkStyle.value) {
+                4 -> if (roomTile.data.type == RoomType.PUZZLE || roomTile.data.secrets == 0) 2 else 1
+                else -> MapConfig.dungeonMapCheckmarkStyle.value
+            }
+
+            when (checkmarkStyle) {
                 2, 3 -> {
                     var scale = MapConfig.textScale.value.toFloat()
-                    val showSecrets = MapConfig.dungeonMapCheckmarkStyle.value == 3 && roomTile.data.secrets > 0
+                    val showSecrets = checkmarkStyle == 3 && roomTile.data.secrets > 0
 
                     if (MapConfig.limitRoomNameSize.value) {
                         unq.updateBounds(roomSize, gapSize)

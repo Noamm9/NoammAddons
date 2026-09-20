@@ -13,7 +13,7 @@ import net.minecraft.world.item.Items
 
 object MelodyAlert: Feature() {
     private val msg by TextInputSetting("Melody Message", "I ❤ Melody")
-    private val mode by DropdownSetting("Progress Mode", 0, listOf("1/3", "33%"))
+    private val mode by DropdownSetting("Progress Mode", 0, listOf("1/4", "25%")) // listOf("1/3", "33%") todo
 
     private val progressSlots = intArrayOf(25, 34, 43) // todo remove 43
     private var isMelodyOpen = false

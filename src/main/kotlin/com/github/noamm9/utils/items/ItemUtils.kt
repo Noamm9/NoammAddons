@@ -64,14 +64,9 @@ object ItemUtils {
                 return "POTION-${potion.uppercase()}-$level${if (customData.getBooleanOr("enhanced", false)) "-ENHANCED" else ""}"
             }
 
-            if (sbItemID == null) {
-                val lore = lore
-
-                if (name.contains(" Shard ") || lore.lastOrNull()?.substringBefore("(")?.endsWith(" SHARD ") == true) {
-                    val cleanName = name.removeFormatting().uppercase().remove(" SHARD").replace(" ", "_").remove("_X1")
-                    return "SHARD_$cleanName"
-                }
-
+            if ((sbItemID == null || sbItemID == "ATTRIBUTE_SHARD") && name.endsWith(" Shard")) {
+                val cleanName = name.removeFormatting().uppercase().remove(" SHARD").replace(" ", "_").remove("_X1")
+                return "SHARD_$cleanName"
             }
 
             return sbItemID.orEmpty()
