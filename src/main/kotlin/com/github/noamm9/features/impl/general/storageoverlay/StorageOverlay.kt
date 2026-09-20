@@ -86,7 +86,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
                 currentMenu?.let(::saveContent)
                 overlay.isExiting = true
                 active = null
-                if (UMinecraft.currentScreenObj === overlay.containerScreen) mc.setScreen(null)
+                if (mc.gui.screen() === overlay.containerScreen) mc.gui.setScreen(null)
                 overlay.containerScreen = null
                 overlay.storageMenu = null
             }
