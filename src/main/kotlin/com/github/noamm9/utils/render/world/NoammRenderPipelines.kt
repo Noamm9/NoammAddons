@@ -6,7 +6,6 @@ import com.github.noamm9.utils.render.world.iris.IrisCompatibility
 import com.github.noamm9.utils.render.world.iris.IrisShaderType
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import com.mojang.renderpearl.api.pipeline.*
-import gg.essential.universal.render.URenderPipeline
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.client.renderer.rendertype.RenderSetup
 import net.minecraft.client.renderer.rendertype.RenderType
@@ -63,7 +62,6 @@ object NoammRenderPipelines: ISelfInit {
         }.build()
     )
 
-    @Suppress("unused") // todo
     object Types {
         val DEBUG_CIRCLE_FILLED = RenderType.create("NOAMM_DEBUG_CIRCLE_FILLED", RenderSetup.builder(MC_CIRCLE_FILLED_THROUGH_WALLS).createRenderSetup())
         val DEBUG_FILLED = RenderType.create("NOAMM_DEBUG_FILLED", RenderSetup.builder(MC_FILLED_THROUGH_WALLS).createRenderSetup())
@@ -74,15 +72,6 @@ object NoammRenderPipelines: ISelfInit {
         val LINES = RenderType.create("NOAMM_LINES", RenderSetup.builder(MC_LINES).createRenderSetup())
     }
 
-    val FILLED = URenderPipeline.wrap(MC_FILLED)
-    val FILLED_THROUGH_WALLS = URenderPipeline.wrap(MC_FILLED_THROUGH_WALLS)
-
-    val CIRCLE_FILLED = URenderPipeline.wrap(MC_CIRCLE_FILLED)
-    val CIRCLE_FILLED_THROUGH_WALLS = URenderPipeline.wrap(MC_CIRCLE_FILLED_THROUGH_WALLS)
-
-    val LINES = URenderPipeline.wrap(MC_LINES)
-    val LINES_THROUGH_WALLS = URenderPipeline.wrap(MC_LINES_THROUGH_WALLS)
-
     override fun init() {
         IrisCompatibility.registerPipeline(MC_FILLED, IrisShaderType.LINES)
         IrisCompatibility.registerPipeline(MC_FILLED_THROUGH_WALLS, IrisShaderType.BASIC)
@@ -92,6 +81,8 @@ object NoammRenderPipelines: ISelfInit {
 
         IrisCompatibility.registerPipeline(MC_LINES, IrisShaderType.LINES)
         IrisCompatibility.registerPipeline(MC_LINES_THROUGH_WALLS, IrisShaderType.LINES)
+
+        Types.toString()
     }
 
     private fun id(path: String) = Identifier.fromNamespaceAndPath(NoammAddons.MOD_ID, path)
