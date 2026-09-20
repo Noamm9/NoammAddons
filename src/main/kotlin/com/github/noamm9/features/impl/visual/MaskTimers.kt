@@ -26,6 +26,7 @@ object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and mo
     private val invulnerabilityTimers by ToggleSetting("Invulnerability Timers")
     private val procNotification by ToggleSetting("Proc Notification")
     private val readyNotification by ToggleSetting("Ready Notification")
+    private val partyChatOnPop by ToggleSetting("Party Chat on Pop").withDescription("Sends a party message when a mask procs")
 
     private val loreCdRegex = Regex("^Cooldown: ([\\d.]+)s$")
 
@@ -96,6 +97,7 @@ object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and mo
 
                 if (invulnerabilityTimers.value) mask.invulnLeft = mask.invulnTicks
                 if (procNotification.value) ChatUtils.showTitle("${mask.color}${mask.displayName} Procced!")
+                if (partyChatOnPop.value) ChatUtils.sendPartyMessage("Popped ${mask.displayName} ${mask.suffix}!")
             }
         }
 
