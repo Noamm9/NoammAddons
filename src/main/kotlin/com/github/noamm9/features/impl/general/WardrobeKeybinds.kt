@@ -1,28 +1,24 @@
 package com.github.noamm9.features.impl.general
 
-import com.mojang.blaze3d.platform.InputConstants
+//#if CHEAT
+//#endif
 import com.github.noamm9.config.types.KeybindSetting
 import com.github.noamm9.config.types.ToggleSetting
-import com.github.noamm9.event.impl.ContainerEvent
-import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
-import com.github.noamm9.event.impl.PacketEvent
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.IKeyMapping
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.unformattedText
-import com.github.noamm9.utils.GuiUtils
-//#if CHEAT
-import com.github.noamm9.utils.ThreadUtils
-//#endif
-import com.github.noamm9.utils.equalsOneOf
-import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
-import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
-import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
+import com.mojang.blaze3d.platform.InputConstants
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
+import net.minecraft.network.protocol.game.*
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 
 object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your keyboard.") {
     //#if CHEAT
     private val closeAfterUse by ToggleSetting("Auto Close On Use")
+
     //#endif
     private val preventUnequip by ToggleSetting("Prevent Unequip")
     private val useHotbarBinds by ToggleSetting("Use Hotbar Binds")
@@ -34,8 +30,10 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
     private val wardrobeMenuRegex = Regex("""^\(\d+/\d+\) Armor Sets$""")
     private var lastClick = System.currentTimeMillis()
     private var inWardrobeMenu = false
+
     //#if CHEAT
     private var pendingAutoClose = false
+
     //#endif
     private val keyMap = listOf(36, 37, 38, 39, 40, 41, 42, 43, 44)
 
@@ -76,7 +74,7 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
         register<ContainerEvent.Keyboard> {
             if (! inWardrobeMenu) return@register
             if (System.currentTimeMillis() - lastClick < 300) return@register
-            if (event.key.equalsOneOf(InputConstants.KEY_ESCAPE, InputConstants.KEY_E)) return@register
+            if (event.key.equalsOneOf(InputConstants.KEY_ESCAPE, KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value)) return@register
             val index = if (useHotbarBinds.value) hotbarKeyMap[event.key] ?: return@register
             else keybinds.withIndex().find { (_, key) -> key.isDown() }?.index ?: return@register
             val slot = keyMap.getOrNull(index)?.takeUnless { player.containerMenu.getSlot(it).item == ItemStack.EMPTY } ?: return@register
