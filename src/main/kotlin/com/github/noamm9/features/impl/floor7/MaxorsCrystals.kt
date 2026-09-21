@@ -1,5 +1,6 @@
 package com.github.noamm9.features.impl.floor7
 
+import net.minecraft.world.entity.EntityTypes
 import com.github.noamm9.config.PersonalBest
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
@@ -13,7 +14,6 @@ import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import gg.essential.universal.UResolution
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
-import net.minecraft.world.entity.EntityType
 
 object MaxorsCrystals: Feature("Utilities for F7 Maxor's Crystals") {
     private val spawnTimer by ToggleSetting("Spawn Timer").withDescription("Shows on screen a Tick Timer on screen for when the crystals with respawn")
@@ -49,7 +49,7 @@ object MaxorsCrystals: Feature("Utilities for F7 Maxor's Crystals") {
             if (! placeTimer.value) return@register
             if (pickupTime == null) return@register
             val packet = event.packet as? ClientboundAddEntityPacket ?: return@register
-            if (packet.type != EntityType.END_CRYSTAL) return@register
+            if (packet.type != EntityTypes.END_CRYSTAL) return@register
             if (packet.y.toInt() != 224) return@register
 
             val spawnPos = MathUtils.vec(packet.x, packet.y, packet.z)

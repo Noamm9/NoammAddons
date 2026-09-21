@@ -1,5 +1,7 @@
 package com.github.noamm9.ui.clickgui.components
 
+import com.mojang.blaze3d.platform.InputConstants
+
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.TooltipManager
 import com.github.noamm9.ui.clickgui.components.settings.Style
@@ -186,11 +188,11 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         val mx = mouseX.toFloat()
         val my = mouseY.toFloat()
 
-        if (button == 0 && isInsideCloseButton(mx, my)) {
+        if (button == InputConstants.MOUSE_BUTTON_LEFT && isInsideCloseButton(mx, my)) {
             return WindowClickAction.CLOSE
         }
 
-        if (button == 0) {
+        if (button == InputConstants.MOUSE_BUTTON_LEFT) {
             val hoveredHandle = getResizeCorner(mx, my)
             if (hoveredHandle != ResizeCorner.NONE) {
                 beginResize(hoveredHandle, mx, my)
@@ -205,7 +207,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
             }
         }
 
-        if (button == 0 && maxScroll > 0f) {
+        if (button == InputConstants.MOUSE_BUTTON_LEFT && maxScroll > 0f) {
             val barX = scrollbarX
             val hitWidth = 8f
             if (mx >= barX - 3f && mx <= barX + hitWidth && my >= contentTop && my <= contentBottom) {
@@ -236,8 +238,10 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         return WindowClickAction.CONSUMED
     }
 
+    fun clearFocus() = settings.forEach { it.clearFocus() }
+
     fun mouseReleased(button: Int) {
-        if (button == 0) {
+        if (button == InputConstants.MOUSE_BUTTON_LEFT) {
             dragging = false
             resizeCorner = ResizeCorner.NONE
             scrollbarDragging = false

@@ -1,12 +1,12 @@
 package com.github.noamm9.ui.clickgui.components.settings.impl
 
+import com.mojang.blaze3d.platform.InputConstants
 import com.github.noamm9.config.types.KeybindSetting
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.clickgui.components.settings.Widget
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
-import gg.essential.universal.UKeyboard
 import net.minecraft.client.gui.GuiGraphicsExtractor
 
 class KeybindWidget(config: KeybindSetting): Widget<Int>(config) {
@@ -52,13 +52,13 @@ class KeybindWidget(config: KeybindSetting): Widget<Int>(config) {
 
     override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
         if (listening) {
-            if (keyCode == UKeyboard.KEY_ESCAPE) {
+            if (keyCode == InputConstants.KEY_ESCAPE) {
                 listening = false
                 return true
             }
 
-            if (keyCode == UKeyboard.KEY_BACKSPACE) {
-                value = UKeyboard.KEY_NONE
+            if (keyCode == InputConstants.KEY_BACKSPACE) {
+                value = InputConstants.UNKNOWN.value
                 cfg.isMouse = false
             }
             else {

@@ -1,5 +1,7 @@
 package com.github.noamm9.ui.clickgui.components.settings.impl
 
+import com.mojang.blaze3d.platform.InputConstants
+
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.clickgui.components.settings.Widget
@@ -32,7 +34,7 @@ class ToggleWidget(config: ToggleSetting): Widget<Boolean>(config) {
     }
 
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
-        if (button == 0 && mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
+        if (button == InputConstants.MOUSE_BUTTON_LEFT && mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
             value = ! value
             Style.playClickSound(1f)
             return true

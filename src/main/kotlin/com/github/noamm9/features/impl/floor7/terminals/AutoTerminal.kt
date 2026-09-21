@@ -1,5 +1,6 @@
 package com.github.noamm9.features.impl.floor7.terminals
 
+import com.mojang.blaze3d.platform.InputConstants
 //#if CHEAT
 
 import com.github.noamm9.config.types.*
@@ -12,7 +13,6 @@ import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.RenderHelper.width
-import gg.essential.universal.UKeyboard
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 
 object AutoTerminal: Feature("Automatically clicks terminals for you.") {
@@ -118,7 +118,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
         }
 
         register<ContainerEvent.Keyboard>(EventPriority.HIGH) {
-            if (event.key.equalsOneOf(KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value, UKeyboard.KEY_ESCAPE)) return@register
+            if (event.key.equalsOneOf(KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value, InputConstants.KEY_ESCAPE)) return@register
             val handler = TerminalListener.currentHandler ?: return@register
             if (handler.enabled()) event.isCanceled = true
         }

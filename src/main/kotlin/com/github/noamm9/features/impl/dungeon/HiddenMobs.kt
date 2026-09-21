@@ -10,7 +10,7 @@ import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.entity.EquipmentSlot
-import net.minecraft.world.entity.monster.EnderMan
+import net.minecraft.world.entity.monster.Enderman
 import net.minecraft.world.entity.monster.Giant
 
 object HiddenMobs: Feature("Reveals invisible mobs in dungeons.") {
@@ -28,7 +28,7 @@ object HiddenMobs: Feature("Reveals invisible mobs in dungeons.") {
             val entity = level.getEntity(packet.id)?.takeIf { it.isInvisible } ?: return@register
             val name = entity.displayName.string.trim()
 
-            val isFel = entity is EnderMan && showFels.value && name == "Dinnerbone"
+            val isFel = entity is Enderman && showFels.value && name == "Dinnerbone"
             val isSA = entity is AbstractClientPlayer && showSa.value && name.contains("Shadow Assassin")
             val isWatcherMob = entity is AbstractClientPlayer && showStealthy.value && watcherMobs.any { name == it }
             val isGiant = entity is Giant && showStealthy.value && ! entity.getItemBySlot(EquipmentSlot.FEET).isEmpty

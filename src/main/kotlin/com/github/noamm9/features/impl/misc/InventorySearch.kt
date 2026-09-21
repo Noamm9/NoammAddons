@@ -15,13 +15,12 @@ import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.highlight
-import gg.essential.universal.UKeyboard
 import gg.essential.universal.UMinecraft
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.client.input.MouseButtonInfo
 import net.minecraft.world.item.ItemStack
-import org.lwjgl.glfw.GLFW
+import com.mojang.blaze3d.platform.InputConstants
 import java.awt.Color
 
 object InventorySearch: Feature("Lets you search in inventory and support math") {
@@ -88,8 +87,8 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
 
         register<MouseClickEvent> {
             if (UMinecraft.currentScreenObj !is AbstractContainerScreen<*>) return@register
-            if (event.action == GLFW.GLFW_RELEASE) searchHandler.mouseReleased()
-            if (event.action != GLFW.GLFW_PRESS) return@register
+            if (event.action == InputConstants.RELEASE) searchHandler.mouseReleased()
+            if (event.action != InputConstants.PRESS) return@register
 
             val x = (Resolution.getMouseX() - searchHud.x) / searchHud.scale
             val y = (Resolution.getMouseY() - searchHud.y) / searchHud.scale
@@ -108,7 +107,7 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
         register<KeyboardEvent.KeyPressed> {
             if (UMinecraft.currentScreenObj !is AbstractContainerScreen<*>) return@register
 
-            if (event.keyEvent.key == UKeyboard.KEY_F && event.keyEvent.hasControlDown()) {
+            if (event.keyEvent.key == InputConstants.KEY_F && event.keyEvent.hasControlDown()) {
                 searchHandler.listening = ! searchHandler.listening
                 event.isCanceled = true
                 return@register

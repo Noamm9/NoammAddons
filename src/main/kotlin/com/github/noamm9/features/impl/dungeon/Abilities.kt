@@ -11,7 +11,7 @@ import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
 import gg.essential.universal.UMinecraft
-import org.lwjgl.glfw.GLFW
+import com.mojang.blaze3d.platform.InputConstants
 
 object Abilities: Feature(
     //#if CHEAT
@@ -55,7 +55,7 @@ object Abilities: Feature(
     override fun init() {
         register<KeyboardEvent.KeyPressed> {
             if (! LocationUtils.inDungeon || ! DungeonListener.dungeonStarted) return@register
-            if (event.action != GLFW.GLFW_PRESS) return@register
+            if (event.action != InputConstants.PRESS) return@register
             if (UMinecraft.currentScreenObj != null) return@register
 
             if (ultKeybind.isPressed()) {

@@ -79,22 +79,22 @@ object IHateDoors: Feature("Replaces Wither and Blood doors with stained glass."
 
     private enum class Glass(val displayName: String, block: Block) {
         DEFAULT("Default", Blocks.GLASS),
-        WHITE("White", Blocks.WHITE_STAINED_GLASS),
-        BLACK("Black", Blocks.BLACK_STAINED_GLASS),
-        CYAN("Cyan", Blocks.CYAN_STAINED_GLASS),
-        LIGHT_BLUE("Light Blue", Blocks.LIGHT_BLUE_STAINED_GLASS),
-        RED("Red", Blocks.RED_STAINED_GLASS),
-        PINK("Pink", Blocks.PINK_STAINED_GLASS),
-        ORANGE("Orange", Blocks.ORANGE_STAINED_GLASS),
-        MAGENTA("Magenta", Blocks.MAGENTA_STAINED_GLASS),
-        YELLOW("Yellow", Blocks.YELLOW_STAINED_GLASS),
-        LIME("Lime", Blocks.LIME_STAINED_GLASS),
-        GRAY("Gray", Blocks.GRAY_STAINED_GLASS),
-        LIGHT_GRAY("Light Gray", Blocks.LIGHT_GRAY_STAINED_GLASS),
-        PURPLE("Purple", Blocks.PURPLE_STAINED_GLASS),
-        BLUE("Blue", Blocks.BLUE_STAINED_GLASS),
-        BROWN("Brown", Blocks.BROWN_STAINED_GLASS),
-        GREEN("Green", Blocks.GREEN_STAINED_GLASS);
+        WHITE("White", Blocks.STAINED_GLASS.white()),
+        BLACK("Black", Blocks.STAINED_GLASS.black()),
+        CYAN("Cyan", Blocks.STAINED_GLASS.cyan()),
+        LIGHT_BLUE("Light Blue", Blocks.STAINED_GLASS.lightBlue()),
+        RED("Red", Blocks.STAINED_GLASS.red()),
+        PINK("Pink", Blocks.STAINED_GLASS.pink()),
+        ORANGE("Orange", Blocks.STAINED_GLASS.orange()),
+        MAGENTA("Magenta", Blocks.STAINED_GLASS.magenta()),
+        YELLOW("Yellow", Blocks.STAINED_GLASS.yellow()),
+        LIME("Lime", Blocks.STAINED_GLASS.lime()),
+        GRAY("Gray", Blocks.STAINED_GLASS.gray()),
+        LIGHT_GRAY("Light Gray", Blocks.STAINED_GLASS.lightGray()),
+        PURPLE("Purple", Blocks.STAINED_GLASS.purple()),
+        BLUE("Blue", Blocks.STAINED_GLASS.blue()),
+        BROWN("Brown", Blocks.STAINED_GLASS.brown()),
+        GREEN("Green", Blocks.STAINED_GLASS.green());
 
         val state = block.defaultBlockState()
 

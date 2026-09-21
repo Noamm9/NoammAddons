@@ -53,9 +53,9 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     override fun isActive() = (UMinecraft.currentScreenObj as? ContainerScreen)?.let(::activeFor) != null
 
     private val emptyStorageSlotItems = listOf(
-        Blocks.RED_STAINED_GLASS_PANE.asItem(),
-        Blocks.BROWN_STAINED_GLASS_PANE.asItem(),
-        Items.GRAY_DYE
+        Blocks.STAINED_GLASS_PANE.red().asItem(),
+        Blocks.STAINED_GLASS_PANE.brown().asItem(),
+        Items.DYE.gray()
     )
 
     override fun init() {
@@ -86,7 +86,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
                 currentMenu?.let(::saveContent)
                 overlay.isExiting = true
                 active = null
-                if (UMinecraft.currentScreenObj === overlay.containerScreen) mc.setScreen(null)
+                if (mc.gui.screen() === overlay.containerScreen) mc.gui.setScreen(null)
                 overlay.containerScreen = null
                 overlay.storageMenu = null
             }

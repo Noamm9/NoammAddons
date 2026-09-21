@@ -11,7 +11,6 @@ import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.client.input.MouseButtonInfo
-import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 class TextInputWidget(config: TextInputSetting): Widget<String>(config) {
@@ -47,8 +46,12 @@ class TextInputWidget(config: TextInputSetting): Widget<String>(config) {
         handler.draw(ctx, mouseX.toFloat(), mouseY.toFloat())
     }
 
+    override fun clearFocus() {
+        handler.resetState()
+    }
+
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
-        val event = MouseButtonEvent(mouseX, mouseY, MouseButtonInfo(button, GLFW.GLFW_PRESS))
+        val event = MouseButtonEvent(mouseX, mouseY, MouseButtonInfo(button, 0))
         return handler.mouseClicked(mouseX.toFloat(), mouseY.toFloat(), event)
     }
 

@@ -2,25 +2,16 @@ package com.github.noamm9.features.impl.general
 
 import com.github.noamm9.config.types.KeybindSetting
 import com.github.noamm9.config.types.ToggleSetting
-import com.github.noamm9.event.impl.ContainerEvent
-import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
-import com.github.noamm9.event.impl.PacketEvent
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.IKeyMapping
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.unformattedText
-import com.github.noamm9.utils.GuiUtils
-//#if CHEAT
-import com.github.noamm9.utils.ThreadUtils
-//#endif
-import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.lore
-import gg.essential.universal.UKeyboard
+import com.mojang.blaze3d.platform.InputConstants
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
-import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
-import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
-import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
+import net.minecraft.network.protocol.game.*
 import net.minecraft.world.inventory.Slot
-import org.lwjgl.glfw.GLFW
 
 object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to your keyboard.") {
     private val blockBarrierClick by ToggleSetting("Block Barrier Click")
@@ -30,11 +21,11 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
     private val useHotbarBinds by ToggleSetting("Use Hotbar Binds")
     private val keybinds = (1 .. 12).mapIndexed { index, slot ->
         KeybindSetting("Loadout Slot $slot", when (index) {
-            in 0 .. 8 -> UKeyboard.KEY_1 + index
-            9 -> UKeyboard.KEY_0
-            10 -> UKeyboard.KEY_MINUS
-            11 -> UKeyboard.KEY_EQUALS
-            else -> UKeyboard.KEY_NONE
+            in 0 .. 8 -> InputConstants.KEY_1 + index
+            9 -> InputConstants.KEY_0
+            10 -> InputConstants.KEY_MINUS
+            11 -> InputConstants.KEY_EQUALS
+            else -> InputConstants.UNKNOWN.value
         }).hideIf { useHotbarBinds.value }.apply(configSettings::add)
     }
 
@@ -84,7 +75,7 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
         register<ContainerEvent.Keyboard> {
             if (! inLoadoutMenu) return@register
             if (System.currentTimeMillis() - lastClick < 300) return@register
-            if (event.key.equalsOneOf(UKeyboard.KEY_ESCAPE, KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value)) return@register
+            if (event.key.equalsOneOf(InputConstants.KEY_ESCAPE, KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value)) return@register
             val index = if (useHotbarBinds.value) hotbarKeyMap[event.key] ?: return@register
             else keybinds.indexOfFirst(KeybindSetting::isDown).takeUnless { it == - 1 } ?: return@register
             event.isCanceled = true
@@ -94,7 +85,7 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
         register<ContainerEvent.MouseClick> {
             if (! inLoadoutMenu) return@register
             if (System.currentTimeMillis() - lastClick < 300) return@register
-            if (event.button.equalsOneOf(GLFW.GLFW_MOUSE_BUTTON_LEFT, GLFW.GLFW_MOUSE_BUTTON_RIGHT)) return@register
+            if (event.button.equalsOneOf(InputConstants.MOUSE_BUTTON_LEFT, InputConstants.MOUSE_BUTTON_RIGHT)) return@register
             val index = if (useHotbarBinds.value) hotbarKeyMap[event.button] ?: return@register
             else keybinds.indexOfFirst { it.matches(event.button, mouse = true) }.takeUnless { it == - 1 } ?: return@register
             event.isCanceled = true

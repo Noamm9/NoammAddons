@@ -1,34 +1,20 @@
 package com.github.noamm9.mixin;
 
 import com.github.noamm9.features.impl.misc.NameTagTweaks;
-import net.minecraft.client.renderer.feature.NameTagFeatureRenderer;
+import net.minecraft.client.renderer.SubmitNodeCollection;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
-@Mixin(NameTagFeatureRenderer.class)
+@Mixin(SubmitNodeCollection.class)
 public class NameTagFeatureRendererMixin {
-    @ModifyArg(
-        method = "renderTranslucent",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/Font;drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLorg/joml/Matrix4fc;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)V"
-        ),
-        index = 8
-    )
-    private int modifyNametagBackground(int originalColor) {
+    @ModifyArg(method = "nameTag", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/feature/TextFeatureRenderer$Content$Text;<init>(FFLnet/minecraft/util/FormattedCharSequence;ZIII)V"), index = 5)
+    private static int modifyNametagBackground(int originalColor) {
         return NameTagTweaks.INSTANCE.enabled && NameTagTweaks.getDisableNametagBackground().getValue() ? 0 : originalColor;
     }
 
-    @ModifyArg(
-        method = "renderTranslucent",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/Font;drawInBatch(Lnet/minecraft/network/chat/Component;FFIZLorg/joml/Matrix4fc;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;II)V"
-        ),
-        index = 4
-    )
-    private boolean modifyShadowArgument(boolean original) {
+    @ModifyArg(method = "nameTag", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/feature/TextFeatureRenderer$Content$Text;<init>(FFLnet/minecraft/util/FormattedCharSequence;ZIII)V"), index = 3)
+    private static boolean modifyShadowArgument(boolean original) {
         return (NameTagTweaks.INSTANCE.enabled && NameTagTweaks.getAddNameTagTextShadow().getValue()) || original;
     }
 }

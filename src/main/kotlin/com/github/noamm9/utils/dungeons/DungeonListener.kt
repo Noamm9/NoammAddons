@@ -1,5 +1,6 @@
 package com.github.noamm9.utils.dungeons
 
+import net.minecraft.world.entity.EntityTypes
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.NoammAddons.scope
@@ -23,7 +24,6 @@ import kotlinx.coroutines.launch
 import net.minecraft.client.multiplayer.PlayerInfo
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.network.protocol.game.*
-import net.minecraft.world.entity.EntityType
 import java.util.concurrent.*
 
 object DungeonListener: ISelfInit {
@@ -94,7 +94,7 @@ object DungeonListener: ISelfInit {
                 }
 
                 is ClientboundAddEntityPacket -> {
-                    if (packet.type != EntityType.PLAYER) return@register
+                    if (packet.type != EntityTypes.PLAYER) return@register
                     val entity = mc.level?.getEntity(packet.id) as? AbstractClientPlayer ?: return@register
                     dungeonTeammates.find { it.entity == null && it.name == entity.name.string }?.entity = entity
                 }

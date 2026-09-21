@@ -3,14 +3,14 @@ package com.github.noamm9.utils.render.world.batches
 import com.github.noamm9.utils.render.world.RenderBatcher.tmpDir
 import com.github.noamm9.utils.render.world.RenderBatcher.tmpVec
 import gg.essential.universal.UMatrixStack
-import gg.essential.universal.render.URenderPipeline
+import net.minecraft.client.renderer.rendertype.RenderType
 import kotlin.math.sqrt
 
-class LineBatch(val pipeline: URenderPipeline) {
+class LineBatch(val type: RenderType) {
 
     @JvmRecord
     data class LineRenderState(
-        val x: Double, val y: Double, val z: Double,
+        val x: Float, val y: Float, val z: Float,
         val r: Float, val g: Float, val b: Float, val a: Float,
         val nx: Float, val ny: Float, val nz: Float, val lineWidth: Float
     )
@@ -46,7 +46,7 @@ class LineBatch(val pipeline: URenderPipeline) {
         pose.peek().normal.transform(tmpDir.set(nx, ny, nz))
 
         data.add(LineRenderState(
-            tmpVec.x.toDouble(), tmpVec.y.toDouble(), tmpVec.z.toDouble(),
+            tmpVec.x, tmpVec.y, tmpVec.z,
             r, g, b, a,
             tmpDir.x, tmpDir.y, tmpDir.z,
             lineWidth

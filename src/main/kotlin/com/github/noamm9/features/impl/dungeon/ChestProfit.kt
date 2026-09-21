@@ -109,7 +109,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                     val debugEntry = mutableListOf<Triple<String, String, Long>>()
 
                     event.items.forEach { (_, stack) ->
-                        if (stack.item == Items.BLACK_STAINED_GLASS_PANE) return@forEach
+                        if (stack.item == Items.STAINED_GLASS_PANE.black()) return@forEach
                         val value = getItemValue(stack)
                         profit += value
                         if (isDebugEnabled) {
@@ -141,7 +141,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                 croesusChestsProfit.value && chestName.matches(croesusChestRegex) -> {
                     for (i in 10 .. 16) {
                         val stack = event.items[i] ?: continue
-                        if (stack.item == Items.GRAY_STAINED_GLASS_PANE) continue
+                        if (stack.item == Items.STAINED_GLASS_PANE.gray()) continue
                         val chestType = DungeonChest.getFromName(stack.hoverName.unformattedText) ?: continue
                         val lore = stack.lore
                         if (lore.last() == "§aAlready opened!") continue

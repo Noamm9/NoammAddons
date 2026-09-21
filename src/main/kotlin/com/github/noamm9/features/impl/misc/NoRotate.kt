@@ -72,8 +72,7 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
             player.yo = newOldPos.position().y.also { player.yOld = it }
             player.zo = newOldPos.position().z.also { player.zOld = it }
 
-            ServerboundAcceptTeleportationPacket(packet.id).send()
-            ServerboundMovePlayerPacket.PosRot(player.x, player.y, player.z, new.yRot, new.xRot, false, false).send()
+            ServerboundAcceptTeleportationPacket(packet.id, player.x, player.y, player.z, new.yRot, new.xRot).send()
 
             (player as ILocalPlayer).setLastYaw(new.yRot)
             (player as ILocalPlayer).setLastPitch(new.xRot)

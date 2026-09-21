@@ -63,7 +63,7 @@ object TerminalListener: ISelfInit {
                     val container = mc.player?.containerMenu ?: return@register
                     val handler = currentHandler ?: return@register
                     if (packet.slot !in 0 until handler.slotCount) return@register
-                    if (packet.item.`is`(Items.BLACK_STAINED_GLASS_PANE)) return@register
+                    if (packet.item.`is`(Items.STAINED_GLASS_PANE.black())) return@register
                     if (handler is RubixTerminal) return@register
 
                     handler.sync(container, packet.slot, packet.item)
