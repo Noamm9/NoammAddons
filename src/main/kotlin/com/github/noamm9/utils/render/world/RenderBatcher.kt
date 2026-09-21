@@ -10,6 +10,7 @@ import org.joml.Vector3f
 object RenderBatcher {
     private val filledBatches = mutableMapOf<RenderType, FilledBatch>()
     private val lineBatches = mutableMapOf<RenderType, LineBatch>()
+    private val poseStack = PoseStack()
 
     val tmpVec = Vector3f()
     val tmpDir = Vector3f()
@@ -29,9 +30,8 @@ object RenderBatcher {
         return lineBatches.getOrPut(type) { LineBatch(type) }
     }
 
-    internal fun flush(collector: SubmitNodeCollector) {
+    fun flush(collector: SubmitNodeCollector) {
         if (filledBatches.isEmpty() && lineBatches.isEmpty()) return
-        val poseStack = PoseStack()
 
         for (batchData in filledBatches.values) collector.submitCustomGeometry(poseStack, batchData.type) { _, consumer ->
             for (state in batchData.data) {
