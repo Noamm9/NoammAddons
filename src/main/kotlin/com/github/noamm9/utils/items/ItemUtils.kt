@@ -23,9 +23,9 @@ object ItemUtils {
     val ItemStack.skyblockId: String
         get() {
             if (isEmpty) return ""
+            val name = hoverName.unformattedText
             val customData = customData
             var sbItemID: String? = null
-            val name = hoverName.unformattedText
 
             if (customData.contains("id")) sbItemID = customData.getString("id").getOrNull()?.replace(":", "-")
 
@@ -64,7 +64,7 @@ object ItemUtils {
                 return "POTION-${potion.uppercase()}-$level${if (customData.getBooleanOr("enhanced", false)) "-ENHANCED" else ""}"
             }
 
-            if ((sbItemID == null || sbItemID == "ATTRIBUTE_SHARD") && name.endsWith(" Shard")) {
+            if ((sbItemID == null || sbItemID == "ATTRIBUTE_SHARD") && (name.contains(" Shard ") || name.endsWith(" Shard"))) {
                 val cleanName = name.removeFormatting().uppercase().remove(" SHARD").replace(" ", "_").remove("_X1")
                 return "SHARD_$cleanName"
             }
@@ -77,12 +77,6 @@ object ItemUtils {
         val profile = stack.get(DataComponents.PROFILE) ?: return null
         val properties = profile.partialProfile().properties
         return properties["textures"].firstOrNull()?.value
-    }
-
-    fun getSkullId(stack: ItemStack): String? {
-        if (stack.isEmpty) return null
-        val profile = stack.get(DataComponents.PROFILE) ?: return null
-        return profile.partialProfile().id.toString()
     }
 
     fun ItemStack.hasGlint() = get(DataComponents.ENCHANTMENT_GLINT_OVERRIDE) == true
