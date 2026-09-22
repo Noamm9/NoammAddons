@@ -2,8 +2,11 @@ package com.github.noamm9.features.impl.dev
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.commands.CommandBuilder
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.priority.EventPriority
+import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.DungeonEvent
+import com.github.noamm9.event.impl.MessageSentEvent
 import com.github.noamm9.event.impl.WebSocketEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
@@ -27,6 +30,11 @@ import com.google.gson.JsonParser
 import com.mojang.brigadier.arguments.StringArgumentType
 
 object FEAT_WebSocket: Feature(name = "WebSocket", toggled = true), ICommandProvider {
+    private val mutedPartyChat by ToggleSetting("Muted Party Chat", true).withDescription("Sends party messages through the WebSocket when Hypixel chat is muted during a dungeon.")
+    private val partyChatPrefixes = listOf("pc ", "party chat ", "p chat ")
+    private var pendingChatMessage: String? = null
+    private var pendingChatMessageAt = 0L
+
     override fun toggle() = Unit
 
     override fun init() {
@@ -45,7 +53,27 @@ object FEAT_WebSocket: Feature(name = "WebSocket", toggled = true), ICommandProv
 
         register<DungeonEvent.RunStatedEvent> { sendDungeonInfo() }
         register<DungeonEvent.RunEndedEvent> { send(mapOf("type" to "dungeon_end")) }
-        register<WorldChangeEvent>(EventPriority.HIGHEST) { if (LocationUtils.inDungeon) send(mapOf("type" to "reset")) }
+        register<WorldChangeEvent>(EventPriority.HIGHEST) {
+            pendingChatMessage = null
+            if (LocationUtils.inDungeon) send(mapOf("type" to "reset"))
+        }
+        register<MessageSentEvent>(EventPriority.LOWEST) {
+            if (! mutedPartyChat.value || ! LocationUtils.inDungeon) return@register
+            pendingChatMessage = event.message
+            pendingChatMessageAt = System.currentTimeMillis()
+        }
+        register<ChatMessageEvent> {
+            if (! mutedPartyChat.value) return@register
+            if (! event.unformattedText.startsWith("You are currently muted")) return@register
+            if (! LocationUtils.inDungeon) return@register
+
+            val pending = pendingChatMessage?.takeIf { System.currentTimeMillis() - pendingChatMessageAt < 5000L } ?: return@register
+            pendingChatMessage = null
+            event.isCanceled = true
+            val prefix = partyChatPrefixes.find { pending.startsWith(it, ignoreCase = true) }
+            val message = if (prefix == null) pending else pending.drop(prefix.length)
+            sendChat(message)
+        }
     }
 
     override fun CommandBuilder.command() {
@@ -60,8 +88,7 @@ object FEAT_WebSocket: Feature(name = "WebSocket", toggled = true), ICommandProv
         literal("chat") {
             argument("message", StringArgumentType.greedyString()) {
                 runs {
-                    val message = StringArgumentType.getString(it, "message").addColor()
-                    send(S2CPacketChat("§d${NoammAddons.mc.user.name}: §r$message").apply(S2CPacketChat::handle))
+                    sendChat(StringArgumentType.getString(it, "message"))
                 }
             }
 
@@ -69,6 +96,11 @@ object FEAT_WebSocket: Feature(name = "WebSocket", toggled = true), ICommandProv
                 ChatUtils.modMessage("/ws chat <message>")
             }
         }
+    }
+
+    private fun sendChat(message: String) {
+        val packet = S2CPacketChat("§d${NoammAddons.mc.user.name}: §r${message.addColor()}")
+        send(packet.apply(S2CPacketChat::handle))
     }
 
     fun sendDungeonInfo() = ThreadUtils.scheduledTaskServer(30) ws@{
