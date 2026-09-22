@@ -1,20 +1,15 @@
 package com.github.noamm9.features.impl.dungeon.solvers.puzzles
 
-import net.minecraft.world.entity.EntityTypes
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.event.impl.DungeonEvent
-import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
-import com.github.noamm9.event.impl.PlayerInteractEvent
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.color
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.prediction
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.predictionColor
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.preventMissClick
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.MathUtils.aabb
-import com.github.noamm9.utils.ThreadUtils
-import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.core.RoomState
-import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
 import com.github.noamm9.utils.render.world.RenderContext
@@ -22,6 +17,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
+import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.entity.decoration.ItemFrame
 import net.minecraft.world.item.MapItem
 import net.minecraft.world.level.block.Blocks
@@ -36,8 +32,8 @@ object TicTacToeSolver: PuzzleSolver {
     private var rotation: Int? = null
 
     private var bestMoves = CopyOnWriteArrayList<BlockPos>()
-    private var aiPredictions = CopyOnWriteArrayList<BlockPos>()
-    private var prefirePredictions = CopyOnWriteArrayList<BlockPos>()
+    private var badMoves = CopyOnWriteArrayList<BlockPos>()
+    private var prefireMoves = CopyOnWriteArrayList<BlockPos>()
 
     override fun onStateChange(event: DungeonEvent.RoomEvent.onStateChange) {
         if (event.room.name != "Tic Tac Toe") return
@@ -69,20 +65,23 @@ object TicTacToeSolver: PuzzleSolver {
 
     override fun onRenderWorld(ctx: RenderContext) {
         if (! inTicTacToe) return
+        val boxes = mutableMapOf<Long, Pair<BlockPos, Color>>()
 
-        bestMoves.forEach { ctx.renderTTTBox(it, color.value) }
+        bestMoves.forEach { boxes[it.asLong()] = it to color.value }
 
         if (prediction.value) {
-            aiPredictions.forEach { ctx.renderTTTBox(it, Color.RED) }
-            prefirePredictions.forEach { ctx.renderTTTBox(it, predictionColor.value) }
+            badMoves.forEach { boxes[it.asLong()] = it to Color.RED }
+            prefireMoves.forEach { boxes[it.asLong()] = it to predictionColor.value }
         }
+
+        boxes.values.forEach { (pos, boxColor) -> ctx.renderTTTBox(pos, boxColor) }
     }
 
     override fun reset() {
         inTicTacToe = false
         bestMoves.clear()
-        prefirePredictions.clear()
-        aiPredictions.clear()
+        prefireMoves.clear()
+        badMoves.clear()
         roomCenter = null
         rotation = null
     }
@@ -135,7 +134,7 @@ object TicTacToeSolver: PuzzleSolver {
         }
 
         if (leftmostRow == null) return@solve
-        bestMoves.clear(); aiPredictions.clear(); prefirePredictions.clear()
+        bestMoves.clear(); badMoves.clear(); prefireMoves.clear()
 
         val playerBestIndices = TicTacToeUtils.findBestMoves(board, 'O', 'X')
         playerBestIndices.forEach { bestMoves.add(indexToPos(it, leftmostRow, facing, sign)) }
@@ -146,19 +145,19 @@ object TicTacToeSolver: PuzzleSolver {
 
             val aiResponses = TicTacToeUtils.findBestMoves(simBoard, 'X', 'O')
             aiResponses.forEach { aiIdx ->
-                aiPredictions.add(indexToPos(aiIdx, leftmostRow, facing, sign))
+                badMoves.add(indexToPos(aiIdx, leftmostRow, facing, sign))
 
                 val prefireBoard = simBoard.copyOf().apply { this[aiIdx] = 'X' }
                 if (! TicTacToeUtils.isWon(prefireBoard)) {
                     TicTacToeUtils.findBestMoves(prefireBoard, 'O', 'X').forEach { preIdx ->
                         val pos = indexToPos(preIdx, leftmostRow, facing, sign)
-                        if (pos !in prefirePredictions) prefirePredictions.add(pos)
+                        if (pos !in prefireMoves) prefireMoves.add(pos)
                     }
                 }
             }
         }
 
-        if (prefirePredictions.size == 7) prefirePredictions.clear()
+        if (prefireMoves.size == 7) prefireMoves.clear()
     }
 
     private fun indexToPos(index: Int, leftmostRow: BlockPos, facing: Char, sign: Int): BlockPos {
