@@ -16,6 +16,7 @@ import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
 import com.github.noamm9.utils.items.ItemRarity
+import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
@@ -324,7 +325,6 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
     private fun getIdFromName(name: String): String? {
         val cleanName = name.removeFormatting()
         if (cleanName.startsWith("Enchanted Book (")) return enchantNameToID(name.substringAfter("(").substringBefore(")"))
-        if (cleanName.contains("Shard")) return "SHARD_${cleanName.uppercase().remove(" SHARD").replace(" ", "_").remove("_X1")}"
         if (cleanName.startsWith("[Lvl 1] ")) {
             val nameSection = name.substringAfter("] ")
             val rarity = ItemRarity.entries.find { it.baseColor.char == nameSection.getOrNull(1) }
@@ -332,7 +332,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
             return "PET-$petName-$rarity"
         }
 
-        return NetworkLoop.nameToIdMap[cleanName.remove("Shiny ")]?.removePrefix("STARRED_")
+        return NetworkLoop.nameToIdMap[cleanName.remove("Shiny ")]?.removePrefix("STARRED_") ?: ItemUtils.getShardIdFromName(cleanName).takeIf { NetworkLoop.getBazaarPrice(it) != null }
     }
 
     private fun enchantNameToID(enchant: String): String {
