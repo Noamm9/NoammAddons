@@ -15,7 +15,6 @@ import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket
 import net.minecraft.world.item.ItemStack
 
-@Suppress("unused")
 object BlazeDaggerHUD: Feature("Blaze Slayer Dagger Attunement Helper") {
     private val hideWarning by ToggleSetting("Hide Attunement Warning", true).withDescription("Hides the \"Strike using the ... attunement\" chat spam and the Hellion Shield hit-reduction message.")
     private val topDagger by DropdownSetting("Top Line Dagger", 0, Dagger.entries.map { it.displayName }).withDescription("Which dagger family's attunement is shown on the top HUD line.")
