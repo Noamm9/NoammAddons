@@ -16,17 +16,17 @@ object RenderBatcher {
     val tmpDir = Vector3f()
 
     fun filledBatch(phase: Boolean): FilledBatch {
-        val type = if (phase) NoammRenderPipelines.Types.DEBUG_FILLED else NoammRenderPipelines.Types.FILLED
+        val type = if (phase) NoammRenderTypes.DEBUG_FILLED else NoammRenderTypes.FILLED
         return filledBatches.getOrPut(type) { FilledBatch(type) }
     }
 
     fun circleBatch(phase: Boolean): FilledBatch {
-        val type = if (phase) NoammRenderPipelines.Types.DEBUG_CIRCLE_FILLED else NoammRenderPipelines.Types.CIRCLE_FILLED
+        val type = if (phase) NoammRenderTypes.DEBUG_CIRCLE_FILLED else NoammRenderTypes.CIRCLE_FILLED
         return filledBatches.getOrPut(type) { FilledBatch(type) }
     }
 
     fun lineBatch(phase: Boolean): LineBatch {
-        val type = if (phase) NoammRenderPipelines.Types.DEBUG_LINES else NoammRenderPipelines.Types.LINES
+        val type = if (phase) NoammRenderTypes.DEBUG_LINES else NoammRenderTypes.LINES
         return lineBatches.getOrPut(type) { LineBatch(type) }
     }
 
