@@ -16,6 +16,25 @@ import net.minecraft.world.item.component.ItemLore
 import kotlin.jvm.optionals.getOrNull
 
 object ItemUtils {
+    private val shardIdOverrides = mapOf(
+        "BOGGED" to "SHARD_SEA_ARCHER",
+        "LOTUSFISH" to "SHARD_LOTUS_FISH",
+        "INKLING" to "SHARD_NIGHT_SQUID",
+        "LOCH_EMPEROR" to "SHARD_SEA_EMPEROR",
+        "INFERNO_DEMONLORD" to "SHARD_BURNINGSOUL",
+        "END_STONE_PROTECTOR" to "SHARD_ENDSTONE_PROTECTOR",
+        "CINDERBAT" to "SHARD_CINDER_BAT",
+        "BEETLE" to "SHARD_CROPEETLE",
+        "ABYSSAL_LANTERNFISH" to "SHARD_ABYSSAL_LANTERN",
+        "SEASHINE" to "SHARD_SEA_SHINE",
+        "WITHER_SPECTRE" to "SHARD_WITHER_SPECTER",
+        "FIELD_MOUSE" to "SHARD_PEST",
+        "ZEALOT_BRUISER" to "SHARD_BRUISER",
+        "STRIDERSURFER" to "SHARD_STRIDER_SURFER",
+        "EARTHWORM" to "SHARD_TERMITE",
+        "FLIPFLOPPER" to "SHARD_FLIP_FLOPPER"
+    )
+
     val ItemStack.customData get() = getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag()
     val ItemStack.lore get() = getOrDefault(DataComponents.LORE, ItemLore.EMPTY).styledLines().map { it.formattedText }
     val ItemStack.itemUUID get() = customData.getString("uuid").getOrNull() ?: ""

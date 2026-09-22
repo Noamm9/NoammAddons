@@ -332,7 +332,8 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
             return "PET-$petName-$rarity"
         }
 
-        return NetworkLoop.nameToIdMap[cleanName.remove("Shiny ")]?.removePrefix("STARRED_") ?: ItemUtils.getShardIdFromName(cleanName).takeIf { NetworkLoop.getBazaarPrice(it) != null }
+        return NetworkLoop.nameToIdMap[cleanName.remove("Shiny ")]?.removePrefix("STARRED_")
+            ?: ItemUtils.getShardIdFromName(cleanName).takeIf { NetworkLoop.getBazaarPrice(it) != null }
     }
 
     private fun enchantNameToID(enchant: String): String {
