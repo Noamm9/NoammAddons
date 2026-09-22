@@ -64,7 +64,7 @@ object ItemUtils {
                 return "POTION-${potion.uppercase()}-$level${if (customData.getBooleanOr("enhanced", false)) "-ENHANCED" else ""}"
             }
 
-            if ((sbItemID == null || sbItemID == "ATTRIBUTE_SHARD") && (name.contains(" Shard ") || name.endsWith(" Shard"))) {
+            if ((sbItemID == null || sbItemID == "ATTRIBUTE_SHARD") || (name.contains(" Shard ") || name.endsWith(" Shard"))) {
                 val cleanName = name.removeFormatting().uppercase().remove(" SHARD").replace(" ", "_").remove("_X1")
                 return "SHARD_$cleanName"
             }
