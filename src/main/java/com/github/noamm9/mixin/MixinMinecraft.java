@@ -33,6 +33,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+//#if LEGIT
+//$import com.github.noamm9.utils.render.LegitEntityVisibility;
+//#endif
+
 @Mixin(Minecraft.class)
 public abstract class MixinMinecraft {
     @Shadow @Nullable public Screen screen;
@@ -121,9 +125,11 @@ public abstract class MixinMinecraft {
     )
     private boolean onShouldEntityAppearGlowing(boolean original, Entity entity) {
         //#if LEGIT
-        //$if (this.player == null) return original;
-        //$if (!this.player.hasLineOfSight(entity)) return original;
-        //$if (entity.isInvisibleTo(this.player)) return original;
+        //$ if (this.player ==null) return original;
+        //$ if (!LegitEntityVisibility.isVisible(this.player, entity)) {
+        //$ ((IGlowingEntity) entity).noammaddons$isGlowing(false);
+        //$ return original;
+        //$}
         //#endif
 
         var event = new CheckEntityGlowEvent(entity);
