@@ -14,6 +14,7 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.catch
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.network.NoammAPI
+import com.google.common.reflect.TypeToken
 import gg.essential.universal.UMinecraft
 import gg.essential.universal.wrappers.UPlayer
 import kotlinx.coroutines.sync.Mutex
@@ -39,7 +40,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     val enableTooltipInStorage by ToggleSetting("Tooltip Scroll").withDescription("Enables Item Tooltip Scrolling. (requires ${ItemTooltip.name} to be enabled)")
     val hideNonMatchingPages by ToggleSetting("Hide Non-Matching Pages").withDescription("Hides storage pages without an item matching the current inventory search")
     val alwaysShowCustomNames by ToggleSetting("Always Show Custom Names", true).jsonName("Show Custom Names").withDescription("Shows custom titles on inactive pages. When disabled, only the open page has a title. Default titles are only shown on the open page")
-    val storageNames by MapSetting<Int, String>("Custom Names")
+    val storageNames by MapSetting<Int, String>("Custom Names", emptyMap(), object: TypeToken<MutableMap<Int, String>>() {}.type)
 
     private val storageDir = File(mc.gameDirectory, "config/${NoammAddons.MOD_NAME}/storage").also(File::mkdirs)
     private val dataFile get() = File(storageDir, "${UPlayer.getUUID()}.nbt")

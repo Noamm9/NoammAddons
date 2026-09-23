@@ -373,10 +373,10 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val input = nameInput ?: return
         val page = editingPage ?: return
         val names = StorageOverlay.storageNames
-        val updated = if (input.value.isBlank() || input.value.trim() == page.defaultName) names.value - page.index
-        else names.value + (page.index to input.value)
-        if (updated != names.value) {
-            names.value = updated
+        val updated = input.value.takeUnless { it.isBlank() || it.trim() == page.defaultName }
+        if (updated != names[page.index]) {
+            if (updated == null) names.value.remove(page.index)
+            else names[page.index] = updated
             ConfigManager.save()
         }
         stopEditingName()
