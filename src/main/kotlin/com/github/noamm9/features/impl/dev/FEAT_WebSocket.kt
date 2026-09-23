@@ -3,18 +3,12 @@ package com.github.noamm9.features.impl.dev
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.commands.CommandBuilder
 import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.event.priority.EventPriority
-import com.github.noamm9.event.impl.ChatMessageEvent
-import com.github.noamm9.event.impl.DungeonEvent
-import com.github.noamm9.event.impl.MessageSentEvent
-import com.github.noamm9.event.impl.WebSocketEvent
-import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.types.ICommandProvider
-import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.addColor
-import com.github.noamm9.utils.GsonUtils
-import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.core.RoomTile
 import com.github.noamm9.utils.dungeons.map.core.RoomType
@@ -32,8 +26,7 @@ import com.mojang.brigadier.arguments.StringArgumentType
 object FEAT_WebSocket: Feature(name = "WebSocket", toggled = true), ICommandProvider {
     private val mutedPartyChat by ToggleSetting("Muted Party Chat", true).withDescription("Sends party messages through the WebSocket when Hypixel chat is muted during a dungeon.")
     private val partyChatPrefixes = listOf("pc ", "party chat ", "p chat ")
-    private var pendingChatMessage: String? = null
-    private var pendingChatMessageAt = 0L
+    @Volatile private var pendingChatMessage: String? = null
 
     override fun toggle() = Unit
 
@@ -53,26 +46,24 @@ object FEAT_WebSocket: Feature(name = "WebSocket", toggled = true), ICommandProv
 
         register<DungeonEvent.RunStatedEvent> { sendDungeonInfo() }
         register<DungeonEvent.RunEndedEvent> { send(mapOf("type" to "dungeon_end")) }
-        register<WorldChangeEvent>(EventPriority.HIGHEST) {
-            pendingChatMessage = null
-            if (LocationUtils.inDungeon) send(mapOf("type" to "reset"))
-        }
+        register<WorldChangeEvent>(EventPriority.HIGHEST) { if (LocationUtils.inDungeon) send(mapOf("type" to "reset")) }
+
         register<MessageSentEvent>(EventPriority.LOWEST) {
             if (! mutedPartyChat.value || ! LocationUtils.inDungeon) return@register
+            ThreadUtils.setTimeout(5000) { if (pendingChatMessage == event.message) pendingChatMessage = null }
             pendingChatMessage = event.message
-            pendingChatMessageAt = System.currentTimeMillis()
         }
+
         register<ChatMessageEvent> {
             if (! mutedPartyChat.value) return@register
             if (! event.unformattedText.startsWith("You are currently muted")) return@register
             if (! LocationUtils.inDungeon) return@register
-
-            val pending = pendingChatMessage?.takeIf { System.currentTimeMillis() - pendingChatMessageAt < 5000L } ?: return@register
-            pendingChatMessage = null
+            val pending = pendingChatMessage ?: return@register
             event.isCanceled = true
+            pendingChatMessage = null
+
             val prefix = partyChatPrefixes.find { pending.startsWith(it, ignoreCase = true) }
-            val message = if (prefix == null) pending else pending.drop(prefix.length)
-            sendChat(message)
+            sendChat(if (prefix == null) pending else pending.drop(prefix.length))
         }
     }
 
