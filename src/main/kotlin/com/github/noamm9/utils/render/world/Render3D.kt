@@ -162,9 +162,6 @@ object Render3D {
             buffer.vertex(pose, i1x, i1y, 0f, r, g, b, a)
             buffer.vertex(pose, o1x, o1y, 0f, r, g, b, a)
             buffer.vertex(pose, o2x, o2y, 0f, r, g, b, a)
-
-            buffer.vertex(pose, i1x, i1y, 0f, r, g, b, a)
-            buffer.vertex(pose, o2x, o2y, 0f, r, g, b, a)
             buffer.vertex(pose, i2x, i2y, 0f, r, g, b, a)
         }
 

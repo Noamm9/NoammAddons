@@ -5,6 +5,7 @@ import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.NoammDebugFlagEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.init.types.ISelfInit
+import com.github.noamm9.utils.render.world.Render3D.renderBillboardedCircle
 import com.github.noamm9.utils.render.world.Render3D.renderBlock
 import com.github.noamm9.utils.render.world.Render3D.renderBox
 import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
@@ -32,6 +33,10 @@ object RenderTest: ISelfInit {
                 text = "§6§lRender3D Showcase\n§fTesting all utilities",
                 pos = base.add(0.0, 3.5, 0.0),
                 scale = 1.2f
+            )
+
+            event.ctx.renderBillboardedCircle(
+                base.add(0.0, 5.5, 0.0), 1, Color.RED
             )
 
             ctx.renderBlock(

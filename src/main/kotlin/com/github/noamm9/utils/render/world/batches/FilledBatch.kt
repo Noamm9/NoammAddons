@@ -41,8 +41,6 @@ data class FilledBatch(val type: RenderType) {
         vertex(pose, x1, y1, z1, r, g, b, a)
         vertex(pose, x2, y2, z2, r, g, b, a)
         vertex(pose, x3, y3, z3, r, g, b, a)
-        vertex(pose, x1, y1, z1, r, g, b, a)
-        vertex(pose, x3, y3, z3, r, g, b, a)
         vertex(pose, x4, y4, z4, r, g, b, a)
     }
 }
