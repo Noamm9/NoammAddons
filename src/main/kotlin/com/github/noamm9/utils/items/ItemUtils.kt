@@ -74,16 +74,9 @@ object ItemUtils {
             return sbItemID.orEmpty()
         }
 
-    fun isShard(displayName: String, lore: List<String>) =
-        " Shard " in displayName || displayName.endsWith(" Shard") || lore.lastOrNull()?.removeFormatting()?.substringBefore('(')?.trimEnd()?.endsWith(" SHARD") == true
-
-    private val shardCountSuffix = Regex(" X\\d+$")
-
+    fun isShard(displayName: String, lore: List<String>) = " Shard " in displayName || displayName.endsWith(" Shard") || lore.lastOrNull()?.removeFormatting()?.substringBefore('(')?.trimEnd()?.endsWith(" SHARD") == true
     fun getShardIdFromName(displayName: String): String {
-        val name = displayName.removeFormatting().uppercase()
-            .replace(shardCountSuffix, "")
-            .removeSuffix(" SHARD")
-            .replace(" ", "_")
+        val name = displayName.removeFormatting().uppercase().remove(shardCountSuffix).removeSuffix(" SHARD").replace(" ", "_")
         return shardIdOverrides[name] ?: "SHARD_$name"
     }
 
@@ -117,7 +110,7 @@ object ItemUtils {
         return rarity
     }
 
-
+    private val shardCountSuffix = Regex(" X\\d+$")
     private val shardIdOverrides = mapOf(
         "BOGGED" to "SHARD_SEA_ARCHER",
         "LOTUSFISH" to "SHARD_LOTUS_FISH",
