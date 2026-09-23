@@ -35,6 +35,12 @@ object ItemUtils {
             }
 
             if (sbItemID == "ENCHANTED_BOOK") {
+                customData.getCompound("enchantments").getOrNull()?.let { enchantments ->
+                    val enchantId = enchantments.keySet().singleOrNull()
+                    val level = enchantId?.let { enchantments.getIntOr(it, 0) } ?: 0
+                    if (enchantId != null && level > 0) return "ENCHANTMENT_${enchantId.uppercase()}_$level"
+                }
+
                 val lore = lore
                 val bookName = lore[0].takeIf { it != "§8Combinable in Anvil" } ?: lore[2]
                 val enchantName = bookName.substringBeforeLast(" ")
@@ -63,18 +69,14 @@ object ItemUtils {
                 return "POTION-${potion.uppercase()}-$level${if (customData.getBooleanOr("enhanced", false)) "-ENHANCED" else ""}"
             }
 
-            if (sbItemID == "ATTRIBUTE_SHARD" || (sbItemID == null && (name.contains(" Shard ") || name.endsWith(" Shard")))) {
-                return getShardIdFromName(name)
-            }
+            if (sbItemID == "ATTRIBUTE_SHARD" || (sbItemID == null && isShard(name, lore))) return getShardIdFromName(name)
 
             return sbItemID.orEmpty()
         }
 
+    fun isShard(displayName: String, lore: List<String>) = " Shard " in displayName || displayName.endsWith(" Shard") || lore.lastOrNull()?.removeFormatting()?.substringBefore('(')?.trimEnd()?.endsWith(" SHARD") == true
     fun getShardIdFromName(displayName: String): String {
-        val name = displayName.removeFormatting().uppercase()
-            .removeSuffix(" X1")
-            .removeSuffix(" SHARD")
-            .replace(" ", "_")
+        val name = displayName.removeFormatting().uppercase().remove(shardCountSuffix).removeSuffix(" SHARD").replace(" ", "_")
         return shardIdOverrides[name] ?: "SHARD_$name"
     }
 
@@ -108,7 +110,7 @@ object ItemUtils {
         return rarity
     }
 
-
+    private val shardCountSuffix = Regex(" X\\d+$")
     private val shardIdOverrides = mapOf(
         "BOGGED" to "SHARD_SEA_ARCHER",
         "LOTUSFISH" to "SHARD_LOTUS_FISH",
