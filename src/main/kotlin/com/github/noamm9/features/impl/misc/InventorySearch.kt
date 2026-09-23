@@ -41,7 +41,7 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
     val isSearching get() = enabled && searchQuery.isNotBlank()
 
     fun matches(stack: ItemStack): Boolean {
-        if (searchQuery.isBlank() || stack.isEmpty) return false
+        if (! enabled || searchQuery.isBlank() || stack.isEmpty) return false
         if (stack.hoverName.unformattedText.contains(searchQuery, ignoreCaps.value)) return true
         return searchLore.value && stack.lore.any { it.removeFormatting().contains(searchQuery, ignoreCaps.value) }
     }
