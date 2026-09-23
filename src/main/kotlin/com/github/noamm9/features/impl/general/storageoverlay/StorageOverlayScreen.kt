@@ -3,6 +3,7 @@
 package com.github.noamm9.features.impl.general.storageoverlay
 
 import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.config.ConfigManager
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.impl.dev.ClickGui
@@ -11,6 +12,7 @@ import com.github.noamm9.features.impl.general.ItemTooltip
 import com.github.noamm9.features.impl.misc.InventorySearch
 import com.github.noamm9.mixin.IAbstractContainerScreen
 import com.github.noamm9.ui.utils.Resolution
+import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.ItemRenderer
 import com.github.noamm9.utils.render.Render2D.drawBorder
@@ -21,10 +23,13 @@ import com.mojang.blaze3d.platform.InputConstants
 import gg.essential.universal.UKeyboard
 import gg.essential.universal.UMinecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
+import net.minecraft.client.gui.components.EditBox
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.client.input.CharacterEvent
+import net.minecraft.client.input.KeyEvent
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Inventory
@@ -64,6 +69,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     private var pageWidthCount = StorageOverlay.columnsSetting.value
     private var knobGrabbed = false
     private var hoveredOverlayItem: ItemStack? = null
+    private var editingPage: StoragePage? = null
+    private var nameInput: EditBox? = null
 
     private var dragType = 0
     private var dragStartSlot: Slot? = null
@@ -264,10 +271,14 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     }
 
     private fun GuiGraphicsExtractor.drawPage(x: Int, y: Int, page: StoragePage, inventory: NBTInventory?, slots: List<Slot>?, mouseX: Int, mouseY: Int, originalMouseX: Int, originalMouseY: Int): Int {
+        val showName = slots != null || (StorageOverlay.alwaysShowCustomNames.value && page.customName != null)
         if (inventory == null && slots == null) {
             this.drawRect(x, y, PAGE_WIDTH, 18, slotBgColor)
             this.drawBorder(x, y, PAGE_WIDTH, 18, menuBorderColor)
-            this.drawString(page.name + " - Click to load", x + 4f, y + 5f, Color(180, 180, 180))
+            if (! drawNameInput(x, y, page, mouseX, mouseY)) {
+                val label = if (showName) page.name + " &7- Click to load" else "Click to load"
+                text(font, font.plainSubstrByWidth(label.addColor(), PAGE_WIDTH - 8), x + 4, y + 5, Color(180, 180, 180).rgb, true)
+            }
             return 18
         }
         val rows = inventory?.rows ?: (slots?.size?.div(9)?.coerceIn(1, 5) ?: 3)
@@ -281,7 +292,9 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             this.drawBorder(x, y, PAGE_WIDTH + 1, pageHeight, activePageBorder, ACTIVE_PAGE_BORDER_THICKNESS)
         }
 
-        text(font, Component.literal(name), x + 6, y + 3, if (isActive) activePageBorder.rgb else 0xFFFFFF, true)
+        if (showName && ! drawNameInput(x, y, page, mouseX, mouseY)) {
+            text(font, font.plainSubstrByWidth(name.addColor(), PAGE_WIDTH - 12), x + 6, y + 3, if (isActive) activePageBorder.rgb else Color.WHITE.rgb, true)
+        }
 
         val panelX = scrollPanelX
         val panelY = scrollPanelY
@@ -326,6 +339,63 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         }
 
         return pageHeight + 6
+    }
+
+    private fun GuiGraphicsExtractor.drawNameInput(x: Int, y: Int, page: StoragePage, mouseX: Int, mouseY: Int): Boolean {
+        if (editingPage != page) return false
+        val input = nameInput ?: return false
+        input.x = x + 4
+        input.y = y + 3
+        drawRect(x + 2, y + 1, PAGE_WIDTH - 4, font.lineHeight + 4, menuBackgroundColor)
+        drawRect(x + 2, y + font.lineHeight + 4, PAGE_WIDTH - 4, 1, activePageBorder)
+        input.extractWidgetRenderState(this, mouseX, mouseY, 0f)
+        return true
+    }
+
+    private fun editName(page: StoragePage, x: Int, y: Int) {
+        editingPage = page
+        nameInput = EditBox(font, x + 4, y + 3, PAGE_WIDTH - 8, font.lineHeight + 2, Component.literal("Storage name")).apply {
+            setBordered(false)
+            setMaxLength(128)
+            value = page.name.replace('§', '&')
+            isFocused = true
+            setCanLoseFocus(false)
+            moveCursorToEnd(false)
+        }
+    }
+
+    private fun stopEditingName() {
+        editingPage = null
+        nameInput = null
+    }
+
+    fun saveEditingName() {
+        val input = nameInput ?: return
+        val page = editingPage ?: return
+        val names = StorageOverlay.storageNames
+        val updated = input.value.takeUnless { it.isBlank() || it.trim() == page.defaultName }
+        if (updated != names[page.index]) {
+            if (updated == null) names.value.remove(page.index)
+            else names[page.index] = updated
+            ConfigManager.save()
+        }
+        stopEditingName()
+    }
+
+    fun onNameKeyPressed(event: KeyEvent): Boolean {
+        val input = nameInput ?: return false
+        when (event.key) {
+            GLFW.GLFW_KEY_ESCAPE -> stopEditingName()
+            GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> saveEditingName()
+            else -> input.keyPressed(event)
+        }
+        return true
+    }
+
+    fun onNameCharTyped(event: CharacterEvent): Boolean {
+        val input = nameInput ?: return false
+        input.charTyped(event)
+        return true
     }
 
     private val shouldFilterPages get() = StorageOverlay.hideNonMatchingPages.value && InventorySearch.isSearching
@@ -488,6 +558,26 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val resolutionMouseX = Resolution.getMouseX(click.x()) / scale.toDouble()
         val resolutionMouseY = Resolution.getMouseY(click.y()) / scale.toDouble()
 
+        nameInput?.let { input ->
+            if (inRect(resolutionMouseX, resolutionMouseY, input.x, input.y, input.width, input.height)) {
+                input.onClick(MouseButtonEvent(resolutionMouseX, resolutionMouseY, click.buttonInfo()), doubled)
+                return true
+            }
+            saveEditingName()
+        }
+
+        if (button == 0 && screenMenu?.carried?.isEmpty != false && ! dragArmed &&
+            inRect(resolutionMouseX, resolutionMouseY, scrollPanelX, scrollPanelY, scrollPanelW, scrollPanelH)) {
+            layoutedForEach(visibleStorageData()) { x, y, _, _, page, _ ->
+                if (page != activePage) return@layoutedForEach
+                val titleWidth = (font.width(page.name.addColor()) + 12).coerceAtMost(PAGE_WIDTH)
+                if (inRect(resolutionMouseX, resolutionMouseY, x, y, titleWidth, font.lineHeight + 5)) {
+                    editName(page, x, y)
+                    return true
+                }
+            }
+        }
+
         val carried = screenMenu?.carried
         if (carried != null && ! carried.isEmpty && (button == 0 || button == 1)) {
             val slot = resolveSlotUnder(resolutionMouseX, resolutionMouseY, activePage)
@@ -624,6 +714,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     }
 
     fun onContainerClose() {
+        saveEditingName()
         if (! StorageOverlay.retainScrollSetting.value) scroll = 0f
         dragStartSlot = null
         dragSlots.clear()
