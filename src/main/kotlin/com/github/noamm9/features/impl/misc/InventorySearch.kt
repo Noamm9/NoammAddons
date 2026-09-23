@@ -27,23 +27,13 @@ import java.awt.Color
 object InventorySearch: Feature("Lets you search in inventory and support math") {
     private val ignoreCaps by ToggleSetting("Ignore Caps", true)
     private val searchLore by ToggleSetting("Search Lore", true)
-    private val highlightColor by ColorSetting("Highlight Color", Color.RED)
+    val highlightColor by ColorSetting("Highlight Color", Color.RED)
 
     private var searchQuery = ""
+    private var expressionResult: Double? = null
     private val searchHandler = TextInputHandler({ searchQuery }) {
         expressionResult = evaluateExpression(it)
         searchQuery = it
-    }
-
-    private var expressionResult: Double? = null
-
-    val color get() = highlightColor.value
-    val isSearching get() = enabled && searchQuery.isNotBlank()
-
-    fun matches(stack: ItemStack): Boolean {
-        if (searchQuery.isBlank() || stack.isEmpty) return false
-        if (stack.hoverName.unformattedText.contains(searchQuery, ignoreCaps.value)) return true
-        return searchLore.value && stack.lore.any { it.removeFormatting().contains(searchQuery, ignoreCaps.value) }
     }
 
     private lateinit var searchHud: HudElement
@@ -51,11 +41,7 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
     private const val HEIGHT = 22f
 
     override fun init() {
-        searchHud = hudElement(
-            name = "Inventory Search",
-            shouldDraw = { false },
-            centered = true
-        ) { context, example ->
+        searchHud = hudElement(shouldDraw = { false }, centered = true) { context, example ->
             searchHandler.x = - WIDTH / 2
             searchHandler.y = 0f
             searchHandler.width = WIDTH
@@ -123,6 +109,20 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
             if (! matches(event.slot.item)) return@register
             event.slot.highlight(event.context, highlightColor.value, 3)
         }
+    }
+
+    override fun onDisable() {
+        super.onDisable()
+        expressionResult = null
+        searchQuery = ""
+    }
+
+    val isSearching get() = enabled && searchQuery.isNotBlank()
+
+    fun matches(stack: ItemStack): Boolean {
+        if (! enabled || searchQuery.isBlank() || stack.isEmpty) return false
+        if (stack.hoverName.unformattedText.contains(searchQuery, ignoreCaps.value)) return true
+        return searchLore.value && stack.lore.any { it.removeFormatting().contains(searchQuery, ignoreCaps.value) }
     }
 
     // Shunting Yard Algorithm

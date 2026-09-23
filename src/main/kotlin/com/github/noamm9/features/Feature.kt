@@ -68,7 +68,7 @@ open class Feature(
     }
 
     fun hudElement(
-        name: String,
+        name: String = this@Feature.name,
         enabled: () -> Boolean = { true },
         shouldDraw: () -> Boolean = { true },
         centered: Boolean = false,
