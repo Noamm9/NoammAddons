@@ -622,6 +622,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val activePage = (storageMenu as? StorageMenu.Page)?.storagePage
         return resolveSlotUnder(x, y, activePage) === slot
     }
+
     fun onContainerClose() {
         if (! StorageOverlay.retainScrollSetting.value) scroll = 0f
         dragStartSlot = null
