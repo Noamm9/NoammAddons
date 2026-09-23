@@ -406,7 +406,9 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     }
 
     private fun resolveSlotUnder(mouseX: Double, mouseY: Double, activePage: StoragePage?): Slot? {
-        if (activePage != null) activePageSlotAt(mouseX, mouseY, activePage, visibleStorageData())?.let { return it }
+        if (activePage != null && inRect(mouseX, mouseY, scrollPanelX, scrollPanelY, scrollPanelW, scrollPanelH)) {
+            activePageSlotAt(mouseX, mouseY, activePage, visibleStorageData())?.let { return it }
+        }
         return playerSlotAt(mouseX.toInt(), mouseY.toInt())
     }
 
@@ -608,7 +610,13 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         return true
     }
 
-    fun isPointOverSlot(slot: Slot, xO: Int, yO: Int, pX: Double, pY: Double) = inRect(pX, pY, slot.x + xO, slot.y + yO, 16, 16)
+    fun isPointOverSlot(slot: Slot, mouseX: Double, mouseY: Double): Boolean {
+        val scale = StorageOverlay.scaleSetting.value
+        val x = Resolution.getMouseX(mouseX) / scale.toDouble()
+        val y = Resolution.getMouseY(mouseY) / scale.toDouble()
+        val activePage = (storageMenu as? StorageMenu.Page)?.storagePage
+        return resolveSlotUnder(x, y, activePage) === slot
+    }
     fun onContainerClose() {
         if (! StorageOverlay.retainScrollSetting.value) scroll = 0f
         dragStartSlot = null
