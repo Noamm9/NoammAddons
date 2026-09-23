@@ -111,13 +111,17 @@ public class MixinAbstractContainerScreenHook<T extends AbstractContainerMenu> e
     @Inject(method = "mouseDragged", at = @At("HEAD"), cancellable = true)
     public void onMouseDrag(MouseButtonEvent event, double dx, double dy, CallbackInfoReturnable<Boolean> cir) {
         StorageOverlayScreen overlay = storageOverlay();
-        if (overlay != null && overlay.mouseDragged(event.x(), event.y())) cir.setReturnValue(true);
+        if (overlay == null) return;
+        overlay.mouseDragged(event.x(), event.y());
+        cir.setReturnValue(true);
     }
 
     @Inject(method = "mouseReleased", at = @At("HEAD"), cancellable = true)
     public void onMouseRelease(MouseButtonEvent event, CallbackInfoReturnable<Boolean> cir) {
         StorageOverlayScreen overlay = storageOverlay();
-        if (overlay != null && overlay.mouseReleased()) cir.setReturnValue(true);
+        if (overlay == null) return;
+        overlay.mouseReleased();
+        cir.setReturnValue(true);
     }
 
     @Inject(method = "mouseScrolled", at = @At("HEAD"), cancellable = true)
