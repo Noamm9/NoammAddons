@@ -24,9 +24,18 @@ object NetworkLoop: ISelfInit {
     @JvmField val nameToIdMap = ConcurrentHashMap<String, String>()
 
     fun getNpcSellPrice(itemId: String) = npcSellPrices[itemId]
-    fun getLowestBin(itemId: String) = lowestBinPrices[itemId]
+    fun getLowestBin(itemId: String) = lowestBinPrices[itemId] ?: lowestBinPrices[toLowestBinId(itemId)]
     fun getBazaarPrice(itemId: String) = bazaarPrices[itemId]
-    fun getPrice(itemId: String) = bazaarPrices[itemId]?.sell ?: lowestBinPrices[itemId]
+    fun getPrice(itemId: String) = bazaarPrices[itemId]?.sell ?: getLowestBin(itemId)
+
+    fun toLowestBinId(itemId: String): String {
+        if (! itemId.startsWith("ENCHANTMENT_")) return itemId
+        val levelSeparator = itemId.lastIndexOf('_')
+        if (levelSeparator < "ENCHANTMENT_".length || levelSeparator == itemId.lastIndex) return itemId
+        val level = itemId.substring(levelSeparator + 1)
+        if (level.toIntOrNull() == null) return itemId
+        return "ENCHANTED_BOOK-${itemId.substring("ENCHANTMENT_".length, levelSeparator)}-$level"
+    }
 
     override fun init() = ThreadUtils.loop(TimeUnit.MINUTES.toMillis(10)) {
         coroutineScope {
