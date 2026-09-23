@@ -8,6 +8,7 @@ import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlay
 import com.github.noamm9.init.NetworkLoop
 import com.github.noamm9.mixin.IAbstractContainerScreen
 import com.github.noamm9.utils.NumbersUtils.formatComma
+import com.github.noamm9.utils.endsWithOneOf
 import com.github.noamm9.utils.items.ItemUtils.customData
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils.inSkyblock
@@ -63,8 +64,20 @@ object ItemTooltip: Feature("Adds item information and controls to item tooltips
 
             if (! showPrices.value) return@register
 
-            val quantity = event.stack.count
             val itemId = event.stack.skyblockId
+            val quantity = if (! itemId.startsWith("SHARD_")) event.stack.count
+            else {
+                var count: Int? = null
+
+                for (i in event.lore.indices) {
+                    val line = event.lore[i].string
+                    if (! line.startsWith("Owned: ") || ! line.endsWithOneOf(" Shards", " Shard")) continue
+                    count = line.substringAfter(": ").substringBefore(" ").toIntOrNull()
+                    break
+                }
+
+                count
+            } ?: return@register
 
             NetworkLoop.getBazaarPrice(itemId)?.let { price ->
                 addPriceLine(event.lore, "Bazaar Buy", price.buy, quantity)
