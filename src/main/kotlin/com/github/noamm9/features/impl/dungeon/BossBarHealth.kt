@@ -15,6 +15,7 @@ object BossBarHealth: Feature(name = "Bossbar Health", description = "Shows the 
     private val theWatcher by ToggleSetting("The Watcher", true)
     private val f4Thorn by ToggleSetting("Thorn", true)
     private val f7Withers by ToggleSetting("F7 Withers", true)
+    @JvmStatic val hideBossBar by ToggleSetting("Hide BossBar").withDescription("hides only the healthbar")
 
     @JvmStatic
     fun onRender(instance: LerpingBossEvent, original: Operation<Component>): Component? {
