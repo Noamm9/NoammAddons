@@ -18,7 +18,7 @@ object NoammRenderTypes: ISelfInit {
         RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET).apply {
             withLocation(id("pipeline/filled"))
             withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR)
-            withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
+            withPrimitiveTopology(PrimitiveTopology.QUADS)
             withCull(true)
         }.build()
     )
@@ -27,7 +27,7 @@ object NoammRenderTypes: ISelfInit {
         RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET).apply {
             withLocation(id("pipeline/filled_through_walls"))
             withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR)
-            withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
+            withPrimitiveTopology(PrimitiveTopology.QUADS)
             withCull(true)
             withDepthStencilState(Optional.empty())
         }.build()
@@ -37,7 +37,7 @@ object NoammRenderTypes: ISelfInit {
         RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET).apply {
             withLocation(id("pipeline/circle_filled"))
             withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR)
-            withPrimitiveTopology(PrimitiveTopology.TRIANGLE_STRIP)
+            withPrimitiveTopology(PrimitiveTopology.QUADS)
             withCull(true)
         }.build()
     )
@@ -46,7 +46,7 @@ object NoammRenderTypes: ISelfInit {
         RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET).apply {
             withLocation(id("pipeline/circle_filled_through_walls"))
             withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR)
-            withPrimitiveTopology(PrimitiveTopology.TRIANGLE_STRIP)
+            withPrimitiveTopology(PrimitiveTopology.QUADS)
             withCull(true)
             withDepthStencilState(Optional.empty())
         }.build()
@@ -72,7 +72,7 @@ object NoammRenderTypes: ISelfInit {
             "noammaddons_filled_through_walls",
             RenderPipeline.builder(RenderPipelines.OIT_DEBUG_FILLED_SNIPPET).apply {
                 withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR)
-                withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
+                withPrimitiveTopology(PrimitiveTopology.QUADS)
                 withCull(true)
             }
         ).withoutDepthTest().build()
@@ -83,7 +83,7 @@ object NoammRenderTypes: ISelfInit {
             "noammaddons_circle_filled_through_walls",
             RenderPipeline.builder(RenderPipelines.OIT_DEBUG_FILLED_SNIPPET).apply {
                 withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR)
-                withPrimitiveTopology(PrimitiveTopology.TRIANGLE_STRIP)
+                withPrimitiveTopology(PrimitiveTopology.QUADS)
                 withCull(true)
             }
         ).withoutDepthTest().build()
@@ -98,11 +98,11 @@ object NoammRenderTypes: ISelfInit {
 
     val DEBUG_CIRCLE_FILLED = RenderType.create("NOAMM_DEBUG_CIRCLE_FILLED", RenderSetup.builder(MC_CIRCLE_FILLED_THROUGH_WALLS).setOitPipelines(OIT_CIRCLE_FILLED_THROUGH_WALLS).sortOnUpload().createRenderSetup())
     val DEBUG_FILLED = RenderType.create("NOAMM_DEBUG_FILLED", RenderSetup.builder(MC_FILLED_THROUGH_WALLS).setOitPipelines(OIT_FILLED_THROUGH_WALLS).sortOnUpload().createRenderSetup())
-    val DEBUG_LINES = RenderType.create("NOAMM_DEBUG_LINES", RenderSetup.builder(MC_LINES_THROUGH_WALLS).setOitPipelines(OIT_LINES_THROUGH_WALLS).sortOnUpload().createRenderSetup())
+    val DEBUG_LINES = RenderType.create("NOAMM_DEBUG_LINES", RenderSetup.builder(MC_LINES_THROUGH_WALLS).setOitPipelines(OIT_LINES_THROUGH_WALLS).createRenderSetup())
 
     val CIRCLE_FILLED = RenderType.create("NOAMM_CIRCLE_FILLED", RenderSetup.builder(MC_CIRCLE_FILLED).setOitPipelines(RenderPipelines.OIT_DEBUG_FILLED_BOX).sortOnUpload().createRenderSetup())
     val FILLED = RenderType.create("NOAMM_FILLED", RenderSetup.builder(MC_FILLED).setOitPipelines(RenderPipelines.OIT_DEBUG_FILLED_BOX).sortOnUpload().createRenderSetup())
-    val LINES = RenderType.create("NOAMM_LINES", RenderSetup.builder(MC_LINES).setOitPipelines(RenderPipelines.OIT_LINES_TRANSLUCENT).sortOnUpload().createRenderSetup())
+    val LINES = RenderType.create("NOAMM_LINES", RenderSetup.builder(MC_LINES).setOitPipelines(RenderPipelines.OIT_LINES_TRANSLUCENT).createRenderSetup())
 
     override fun init() {
         IrisCompatibility.registerPipeline(MC_FILLED, IrisShaderType.LINES)
