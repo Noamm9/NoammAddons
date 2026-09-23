@@ -13,7 +13,7 @@ object WidgetFactory {
         is ColorCodeSetting -> ColorCodeWidget(configHolder)
         is KeybindSetting -> KeybindWidget(configHolder)
         is TextInputSetting -> TextInputWidget(configHolder)
-        is StorageNamesSetting -> null
+        is MapSetting<*, *> -> null
         is SoundSetting -> SoundWidget(configHolder)
         is ButtonSetting -> ButtonWidget(configHolder)
         is SliderSetting -> SliderWidget(configHolder)

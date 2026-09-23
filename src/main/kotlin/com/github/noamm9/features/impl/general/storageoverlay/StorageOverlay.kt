@@ -1,8 +1,8 @@
 package com.github.noamm9.features.impl.general.storageoverlay
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.config.types.MapSetting
 import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.config.types.StorageNamesSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.event.priority.EventPriority
@@ -39,7 +39,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     val enableTooltipInStorage by ToggleSetting("Tooltip Scroll").withDescription("Enables Item Tooltip Scrolling. (requires ${ItemTooltip.name} to be enabled)")
     val hideNonMatchingPages by ToggleSetting("Hide Non-Matching Pages").withDescription("Hides storage pages without an item matching the current inventory search")
     val alwaysShowCustomNames by ToggleSetting("Always Show Custom Names", true).jsonName("Show Custom Names").withDescription("Shows custom titles on inactive pages. When disabled, only the open page has a title. Default titles are only shown on the open page")
-    val storageNames by StorageNamesSetting("Storage Names")
+    val storageNames by MapSetting<Int, String>("Custom Names")
 
     private val storageDir = File(mc.gameDirectory, "config/${NoammAddons.MOD_NAME}/storage").also(File::mkdirs)
     private val dataFile get() = File(storageDir, "${UPlayer.getUUID()}.nbt")
@@ -54,7 +54,6 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
 
     @JvmStatic
     fun activeFor(screen: ContainerScreen) = active?.takeIf { it.containerScreen === screen }
-    fun shouldShowCustomName(page: StoragePage) = alwaysShowCustomNames.value || (currentMenu as? StorageMenu.Page)?.storagePage == page
     override fun isActive() = (UMinecraft.currentScreenObj as? ContainerScreen)?.let(::activeFor) != null
 
     private val emptyStorageSlotItems = listOf(

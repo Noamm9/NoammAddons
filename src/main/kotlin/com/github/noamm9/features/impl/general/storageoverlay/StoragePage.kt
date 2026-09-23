@@ -6,9 +6,8 @@ data class StoragePage(val index: Int): Comparable<StoragePage> {
     val isEnderChest = index < 9
     val isBackPack = ! isEnderChest
     val defaultName = if (isEnderChest) "Ender Chest #${index + 1}" else "Backpack #${index - 9 + 1}"
-    val customName get() = StorageOverlay.storageNames.value[index]?.name?.takeUnless { it.isBlank() || it.trim() == defaultName }
-    val name get() = if (StorageOverlay.shouldShowCustomName(this)) customName ?: defaultName else defaultName
-    val color get() = if (StorageOverlay.shouldShowCustomName(this)) StorageOverlay.storageNames.value[index]?.color else null
+    val customName get() = StorageOverlay.storageNames.value[index]?.takeUnless { it.isBlank() || it.trim() == defaultName }
+    val name get() = customName ?: defaultName
 
     fun open() = ChatUtils.sendCommand(if (isBackPack) "backpack ${index - 9 + 1}" else "enderchest ${index + 1}")
     override fun compareTo(other: StoragePage) = this.index - other.index

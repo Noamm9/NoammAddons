@@ -4,7 +4,6 @@ package com.github.noamm9.features.impl.general.storageoverlay
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.config.ConfigManager
-import com.github.noamm9.config.types.StorageName
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.impl.dev.ClickGui
@@ -278,7 +277,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             this.drawBorder(x, y, PAGE_WIDTH, 18, menuBorderColor)
             if (! drawNameInput(x, y, page, mouseX, mouseY)) {
                 val label = if (showName) page.name + " &7- Click to load" else "Click to load"
-                text(font, font.plainSubstrByWidth(label.addColor(), PAGE_WIDTH - 8), x + 4, y + 5, (page.color ?: Color(180, 180, 180)).rgb, true)
+                text(font, font.plainSubstrByWidth(label.addColor(), PAGE_WIDTH - 8), x + 4, y + 5, Color(180, 180, 180).rgb, true)
             }
             return 18
         }
@@ -294,7 +293,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         }
 
         if (showName && ! drawNameInput(x, y, page, mouseX, mouseY)) {
-            text(font, font.plainSubstrByWidth(name.addColor(), PAGE_WIDTH - 12), x + 6, y + 3, page.color?.rgb ?: if (isActive) activePageBorder.rgb else Color.WHITE.rgb, true)
+            text(font, font.plainSubstrByWidth(name.addColor(), PAGE_WIDTH - 12), x + 6, y + 3, if (isActive) activePageBorder.rgb else Color.WHITE.rgb, true)
         }
 
         val panelX = scrollPanelX
@@ -358,7 +357,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         nameInput = EditBox(font, x + 4, y + 3, PAGE_WIDTH - 8, font.lineHeight + 2, Component.literal("Storage name")).apply {
             setBordered(false)
             setMaxLength(128)
-            value = (page.customName ?: page.defaultName).replace('§', '&')
+            value = page.name.replace('§', '&')
             isFocused = true
             setCanLoseFocus(false)
             moveCursorToEnd(false)
@@ -375,7 +374,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val page = editingPage ?: return
         val names = StorageOverlay.storageNames
         val updated = if (input.value.isBlank() || input.value.trim() == page.defaultName) names.value - page.index
-        else names.value + (page.index to StorageName(input.value, names.value[page.index]?.color))
+        else names.value + (page.index to input.value)
         if (updated != names.value) {
             names.value = updated
             ConfigManager.save()
