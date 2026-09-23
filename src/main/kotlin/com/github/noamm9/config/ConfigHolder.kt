@@ -17,5 +17,5 @@ abstract class ConfigHolder<T>(val name: String, val defaultValue: T) {
             }
         }
 
-    fun reset() = ::value.set(defaultValue)
+    open fun reset() = ::value.set(defaultValue)
 }

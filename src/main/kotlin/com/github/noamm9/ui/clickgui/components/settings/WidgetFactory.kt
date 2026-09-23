@@ -17,6 +17,8 @@ object WidgetFactory {
         is ButtonSetting -> ButtonWidget(configHolder)
         is SliderSetting -> SliderWidget(configHolder)
         is UnitSetting -> null
+        is MapSetting<*, *> -> null
+        is ListSetting<*> -> null
         else -> error("Unknown config holder type: ${this::class.qualifiedName}")
     }
 }
