@@ -235,7 +235,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             if (! renderStack.isEmpty) {
                 if (FEAT_ItemRarity.enabled) FEAT_ItemRarity.onSlotDraw(this, renderStack, sx, sy)
                 if (InventorySearch.matches(renderStack)) {
-                    this.drawRect(sx, sy, 16, 16, InventorySearch.color)
+                    this.drawRect(sx, sy, 16, 16, InventorySearch.highlightColor.value)
                 }
 
                 ItemRenderer.drawBatchedItemStack(this, renderStack, sx, sy)
@@ -307,7 +307,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             if (! renderStack.isEmpty) {
                 if (FEAT_ItemRarity.enabled) FEAT_ItemRarity.onSlotDraw(this, renderStack, slotX, slotY)
                 if (InventorySearch.matches(renderStack)) {
-                    this.drawRect(slotX, slotY, 16, 16, InventorySearch.color)
+                    this.drawRect(slotX, slotY, 16, 16, InventorySearch.highlightColor.value)
                 }
 
                 ItemRenderer.drawBatchedItemStack(this, renderStack, slotX, slotY)
