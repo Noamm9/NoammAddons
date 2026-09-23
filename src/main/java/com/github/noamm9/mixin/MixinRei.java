@@ -1,12 +1,9 @@
 package com.github.noamm9.mixin;
 
+import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlay;
 import com.github.noamm9.init.ModCompatibility;
-import net.minecraft.client.input.CharacterEvent;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
-import org.spongepowered.asm.mixin.Dynamic;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Pseudo;
+import net.minecraft.client.input.*;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -41,13 +38,13 @@ public abstract class MixinRei {
     @Dynamic
     @Inject(method = "keyPressed(Lnet/minecraft/client/input/KeyEvent;)Z", at = @At("HEAD"), cancellable = true)
     public void cancelKeyPress(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
-        if (ModCompatibility.isCustomMenuActive()) cir.setReturnValue(false);
+        if (ModCompatibility.isCustomMenuActive() && ! StorageOverlay.INSTANCE.isActive()) cir.setReturnValue(false);
     }
 
     @Dynamic
     @Inject(method = "keyReleased(Lnet/minecraft/client/input/KeyEvent;)Z", at = @At("HEAD"), cancellable = true)
     public void cancelKeyRelease(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
-        if (ModCompatibility.isCustomMenuActive()) cir.setReturnValue(false);
+        if (ModCompatibility.isCustomMenuActive() && ! StorageOverlay.INSTANCE.isActive()) cir.setReturnValue(false);
     }
 
     @Dynamic
