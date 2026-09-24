@@ -17,7 +17,6 @@ import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.ItemRenderer
 import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawRect
-import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.scissor
 import gg.essential.universal.UKeyboard
 import gg.essential.universal.UMinecraft
@@ -26,9 +25,7 @@ import net.minecraft.client.gui.components.EditBox
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
-import net.minecraft.client.input.MouseButtonEvent
-import net.minecraft.client.input.CharacterEvent
-import net.minecraft.client.input.KeyEvent
+import net.minecraft.client.input.*
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Inventory
@@ -562,7 +559,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         }
 
         if (button == 0 && screenMenu?.carried?.isEmpty != false && ! dragArmed &&
-            inRect(resolutionMouseX, resolutionMouseY, scrollPanelX, scrollPanelY, scrollPanelW, scrollPanelH)) {
+            inRect(resolutionMouseX, resolutionMouseY, scrollPanelX, scrollPanelY, scrollPanelW, scrollPanelH)
+        ) {
             layoutedForEach(visibleStorageData()) { x, y, _, _, page, _ ->
                 if (page != activePage) return@layoutedForEach
                 val titleWidth = (font.width(page.name.addColor()) + 12).coerceAtMost(PAGE_WIDTH)
