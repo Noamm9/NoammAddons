@@ -5,7 +5,9 @@ import com.github.noamm9.utils.ChatUtils
 data class StoragePage(val index: Int): Comparable<StoragePage> {
     val isEnderChest = index < 9
     val isBackPack = ! isEnderChest
-    val name = if (isEnderChest) "Ender Chest #${index + 1}" else "Backpack #${index - 9 + 1}"
+    val defaultName = if (isEnderChest) "Ender Chest #${index + 1}" else "Backpack #${index - 9 + 1}"
+    val customName get() = StorageOverlay.storageNames[index]?.takeUnless { it.isBlank() || it == defaultName }
+    val name get() = customName ?: defaultName
 
     fun open() = ChatUtils.sendCommand(if (isBackPack) "backpack ${index - 9 + 1}" else "enderchest ${index + 1}")
     override fun compareTo(other: StoragePage) = this.index - other.index

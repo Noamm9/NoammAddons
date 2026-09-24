@@ -1,9 +1,9 @@
 package com.github.noamm9.features.impl.general.storageoverlay
 
 import com.github.noamm9.NoammAddons
-import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
+import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.general.ItemTooltip
 import com.github.noamm9.init.types.ICustomMenu
@@ -36,6 +36,8 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     val retainScrollSetting by ToggleSetting("Retain Scroll", true).withDescription("Keeps the scroll offset after closing the menu")
     val enableTooltipInStorage by ToggleSetting("Tooltip Scroll").withDescription("Enables Item Tooltip Scrolling. (requires ${ItemTooltip.name} to be enabled)")
     val hideNonMatchingPages by ToggleSetting("Hide Non-Matching Pages").withDescription("Hides storage pages without an item matching the current inventory search")
+    val alwaysShowCustomNames by ToggleSetting("Always Show Custom Names", true).jsonName("Show Custom Names").withDescription("Shows custom titles on inactive pages. When disabled, only the open page has a title. Default titles are only shown on the open page")
+    val storageNames by MapSetting<Int, String>("Custom Names")
 
     private val storageDir = File(mc.gameDirectory, "config/${NoammAddons.MOD_NAME}/storage").also(File::mkdirs)
     private val dataFile get() = File(storageDir, "${UPlayer.getUUID()}.nbt")
@@ -59,6 +61,16 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     )
 
     override fun init() {
+        register<KeyboardEvent.KeyPressed>(EventPriority.HIGHEST) {
+            val screen = UMinecraft.currentScreenObj as? ContainerScreen ?: return@register
+            if (activeFor(screen)?.onNameKeyPressed(event.keyEvent) == true) event.isCanceled = true
+        }
+
+        register<KeyboardEvent.CharTyped>(EventPriority.HIGHEST) {
+            val screen = UMinecraft.currentScreenObj as? ContainerScreen ?: return@register
+            if (activeFor(screen)?.onNameCharTyped(event.charEvent) == true) event.isCanceled = true
+        }
+
         register<ContainerFullyOpenedEvent> {
             if (! LocationUtils.inSkyblock) return@register
             val screen = UMinecraft.currentScreenObj as? ContainerScreen ?: return@register
@@ -71,6 +83,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         register<MainThreadPacketReceivedEvent.Pre> {
             if (event.packet !is ClientboundContainerClosePacket) return@register
             val overlay = active ?: return@register
+            overlay.saveEditingName()
             currentMenu?.let(::saveContent)
             overlay.isExiting = true
             active = null
@@ -83,6 +96,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
             val overlay = active ?: return@register
             mc.execute {
                 if (active !== overlay) return@execute
+                overlay.saveEditingName()
                 currentMenu?.let(::saveContent)
                 overlay.isExiting = true
                 active = null
@@ -101,6 +115,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
         val screen = newScreen as? ContainerScreen
         val menu = StorageMenu.get(screen)
         val overlay = oldScreen as? StorageOverlayScreen ?: active
+        if (oldScreen !== newScreen) overlay?.saveEditingName()
 
         if (currentMenu == null && menu == null) loadData()
         currentMenu?.let(::saveContent)
