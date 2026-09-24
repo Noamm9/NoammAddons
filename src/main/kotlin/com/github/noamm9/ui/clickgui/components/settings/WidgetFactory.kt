@@ -19,6 +19,6 @@ object WidgetFactory {
         is UnitSetting -> null
         is MapSetting<*, *> -> null
         is ListSetting<*> -> null
-        else -> error("Unknown config holder type: ${this::class.qualifiedName}")
+        else -> error("Unknown config holder type: ${configHolder::class.qualifiedName}")
     }
 }

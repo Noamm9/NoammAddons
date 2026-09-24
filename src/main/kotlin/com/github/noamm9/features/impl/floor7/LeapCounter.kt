@@ -110,7 +110,7 @@ object LeapCounter: Feature("Shows how many players have leaped you") {
 
             if (leapedIds.size == maxCount && alertComplete.value) {
                 ChatUtils.showTitle(completeText.value)
-                completeSound.action.invoke()
+                completeSound.invoke()
             }
 
             if (leapedIds.size >= maxCount) ThreadUtils.setTimeout(1000) {

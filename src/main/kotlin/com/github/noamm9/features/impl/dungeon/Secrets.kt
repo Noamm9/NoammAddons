@@ -86,7 +86,7 @@ object Secrets: Feature() {
                 if (event.type == SecretType.ITEM && System.currentTimeMillis() - lastPlayed < 2000) return@register
                 if (event.type == SecretType.CHEST) lastPlayed = System.currentTimeMillis()
                 if (clicked.containsKey(event.pos)) return@register
-                playSound.action.invoke()
+                playSound()
             }
 
             if (secretClicked.value) {

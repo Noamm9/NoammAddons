@@ -79,7 +79,7 @@ object DebuffHelper: Feature(description = "Automatically pulls and fires bows b
 
     private fun fire() {
         if (soundEnabled.value) {
-            sound.action.invoke()
+            sound()
         }
 
         if (! semiAuto.value) resetCharge()

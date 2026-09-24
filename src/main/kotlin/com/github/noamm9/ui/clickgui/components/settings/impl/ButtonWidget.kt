@@ -42,8 +42,8 @@ class ButtonWidget(config: ButtonSetting): Widget<Unit>(config) {
 
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
         if (button == 0 && mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
-            if (cfg.playSound) Style.playClickSound(1f)
-            cfg.action.invoke()
+            if (cfg.clickSound) Style.playClickSound(1f)
+            cfg.invoke()
             return true
         }
         return false
