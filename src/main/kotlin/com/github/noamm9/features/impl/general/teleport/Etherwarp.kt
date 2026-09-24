@@ -79,7 +79,7 @@ object Etherwarp: Feature("Etherwarp overlay and sound.") {
             if (packet.pitch != 0.53968257f) return@register
             event.isCanceled = true
 
-            if (! zeroPingSound.value) playSound.action.invoke()
+            if (! zeroPingSound.value) playSound.invoke()
         }
 
         register<PacketEvent.Sent> {
@@ -90,7 +90,7 @@ object Etherwarp: Feature("Etherwarp overlay and sound.") {
             val dist = EtherwarpHelper.getEtherwarpDistance(player.mainHandItem) ?: return@register
             val (succeeded, pos) = EtherwarpHelper.getEtherPos(player.position(), player.lookAngle, dist)
             if (! succeeded || pos == null) return@register
-            if (TeleportUtils.canTeleport(player.serverYaw, player.serverPitch)) playSound.action.invoke()
+            if (TeleportUtils.canTeleport(player.serverYaw, player.serverPitch)) playSound.invoke()
         }
 
         register<PacketEvent.Sent> {
@@ -100,7 +100,7 @@ object Etherwarp: Feature("Etherwarp overlay and sound.") {
             val dist = EtherwarpHelper.getEtherwarpDistance(player.mainHandItem) ?: return@register
             val (succeeded, pos) = EtherwarpHelper.getEtherPos(player.position(), player.lookAngle, dist)
             if (! succeeded || pos == null) return@register
-            if (TeleportUtils.canTeleport(packet.yRot, packet.xRot)) playSound.action.invoke()
+            if (TeleportUtils.canTeleport(packet.yRot, packet.xRot)) playSound.invoke()
         }
 
         //#if CHEAT

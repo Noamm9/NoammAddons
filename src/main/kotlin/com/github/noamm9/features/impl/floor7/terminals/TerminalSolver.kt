@@ -180,7 +180,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
             if (! soundsEnabled.value) return@register
             if (! TerminalListener.inTerm) return@register
             if (event.packet !is ServerboundContainerClickPacket) return@register
-            clickSound.action.invoke()
+            clickSound.invoke()
         }
     }
 
