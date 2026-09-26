@@ -9,7 +9,8 @@ data class CosmeticData(
     val sizeY: Float = 1f,
     val sizeZ: Float = 1f,
     val halo: Int? = null,
-    val dragonWings: Float? = null
+    val dragonWings: Float? = null,
+    val badges: List<String> = emptyList()
 ) {
     val hasCustomName: Boolean get() = name.isNotEmpty()
     val hasCustomSize: Boolean get() = sizeX != 1f || sizeY != 1f || sizeZ != 1f

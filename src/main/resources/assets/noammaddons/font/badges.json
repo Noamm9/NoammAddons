@@ -1,0 +1,15 @@
+{
+  "providers": [
+    {
+      "type": "space",
+      "advances": {"\ue004": 1.0}
+    },
+    {
+      "type": "bitmap",
+      "file": "noammaddons:font/badges.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\ue000\ue001\ue002\ue003"]
+    }
+  ]
+}

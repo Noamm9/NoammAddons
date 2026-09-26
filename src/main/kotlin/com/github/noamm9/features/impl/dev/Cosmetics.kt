@@ -4,6 +4,7 @@ import com.github.noamm9.NoammAddons
 import com.github.noamm9.config.types.ButtonSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.features.Feature
+import com.github.noamm9.features.impl.dev.cosmetics.BadgeText
 import com.github.noamm9.features.impl.dev.cosmetics.CosmeticData
 import com.github.noamm9.features.impl.dev.text.TextReplacer
 import com.github.noamm9.ui.notification.NotificationManager
@@ -25,6 +26,7 @@ import kotlin.math.abs
 
 object Cosmetics: Feature(toggled = true) {
     @JvmStatic val customNames by ToggleSetting("Show Custom Names", true)
+    @JvmStatic val showBadges by ToggleSetting("Show Badges", true)
     @JvmStatic val loreNames by ToggleSetting("Show Name in Lore", true).showIf { customNames.value }
 
     val customSizes by ToggleSetting("Show Custom Sizes", true)
@@ -46,6 +48,8 @@ object Cosmetics: Feature(toggled = true) {
             WebUtils.getAs<Map<String, CosmeticData>>("https://api.noamm.org/cosmeticPeople.json").onSuccess { data ->
                 TextReplacer.ready = false
                 cosmeticPeople = data.mapKeys { UUID.fromString(it.key) }
+                BadgeText.init(cosmeticPeople)
+
                 coroutineScope {
                     val customNames = HashMap<String, String>()
                     val jobs = cosmeticPeople.filter { it.value.hasCustomName }.map { (uuid, cosmetic) ->
