@@ -16,4 +16,5 @@ data class CosmeticData(
     val hasCustomSize: Boolean get() = sizeX != 1f || sizeY != 1f || sizeZ != 1f
     val hasHalo: Boolean get() = halo != null
     val hasDragonWings: Boolean get() = dragonWings != null
+    val hasBadge: Boolean get() = badges.isNotEmpty()
 }

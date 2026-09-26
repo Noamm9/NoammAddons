@@ -1,6 +1,6 @@
 package com.github.noamm9.mixin;
 
-import com.github.noamm9.features.impl.dev.cosmetics.BadgeText;
+import com.github.noamm9.features.impl.dev.cosmetics.badges.BadgeText;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.client.gui.components.PlayerTabOverlay;

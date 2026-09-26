@@ -2,7 +2,7 @@ package com.github.noamm9.mixin;
 
 
 import com.github.noamm9.features.impl.dev.Cosmetics;
-import com.github.noamm9.features.impl.dev.cosmetics.BadgeText;
+import com.github.noamm9.features.impl.dev.cosmetics.badges.BadgeText;
 import com.github.noamm9.features.impl.dev.cosmetics.halo.HaloLayer;
 import com.github.noamm9.features.impl.dev.cosmetics.wings.DragonWingsLayer;
 import com.github.noamm9.features.impl.dungeon.TeammateESP;
