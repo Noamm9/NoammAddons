@@ -51,4 +51,22 @@ class MapSettingTest {
         assertTrue(called)
         assertEquals("Second", setting[0])
     }
+
+    @Test
+    fun `round-trips integer keys through read`() {
+        val setting = MapSetting("Names", mutableMapOf(0 to "&aFarming", 26 to "Tools"))
+        val json = setting.write()
+        val restored = MapSetting<Int, String>("Names")
+        restored.read(json)
+        assertEquals("&aFarming", restored[0])
+        assertEquals("Tools", restored[26])
+    }
+
+    @Test
+    fun `round-trips nested values through read`() {
+        val setting = MapSetting("Groups", mutableMapOf("slots" to listOf(1, 3, 5)))
+        val restored = MapSetting<String, List<Int>>("Groups")
+        restored.read(setting.write())
+        assertEquals(listOf(1, 3, 5), restored["slots"])
+    }
 }
