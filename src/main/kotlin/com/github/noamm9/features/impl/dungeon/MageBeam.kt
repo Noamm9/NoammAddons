@@ -25,6 +25,7 @@ object MageBeam: Feature("Renders a fully custom, animated beam whenever a mage 
     private val color by ColorSetting("Primary Color", Color.WHITE, false).withDescription("The color of the beam line")
     private val lineWidth by SliderSetting("Line Width", 2, 1, 6, 1, "px").withDescription("Thickness of the line.")
     private val duration by SliderSetting("Duration", 40, 5, 100, 1, " ticks").withDescription("How long the beam shows.")
+    private val beamCancel by ToggleSetting("Cancel Mage Beam").withDescription("cancel only mage beam particles")
     private val fade by ToggleSetting("Fade").withDescription("Animates the beam slowly disappearing")
     private val hideSheep by ToggleSetting("Hide Sheep", true).withDescription("Prevents the Sheep from spawning.")
     private val rainbow by ToggleSetting("&dI am Skizo!!!!")
@@ -37,8 +38,9 @@ object MageBeam: Feature("Renders a fully custom, animated beam whenever a mage 
             when (val packet = event.packet) {
                 is ClientboundLevelParticlesPacket -> {
                     if (packet.particle.type != ParticleTypes.FIREWORK) return@register
-                    Beam.onPoint(Vec3(packet.x, packet.y, packet.z), DungeonListener.currentTime, beams.lastOrNull())
                     event.isCanceled = true
+                    if (beamCancel.value) return@register
+                    Beam.onPoint(Vec3(packet.x, packet.y, packet.z), DungeonListener.currentTime, beams.lastOrNull())
                 }
 
                 is ClientboundAddEntityPacket -> {
