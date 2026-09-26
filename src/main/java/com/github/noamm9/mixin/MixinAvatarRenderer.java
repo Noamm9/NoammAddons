@@ -2,12 +2,14 @@ package com.github.noamm9.mixin;
 
 
 import com.github.noamm9.features.impl.dev.Cosmetics;
+import com.github.noamm9.features.impl.dev.cosmetics.BadgeText;
 import com.github.noamm9.features.impl.dev.cosmetics.halo.HaloLayer;
 import com.github.noamm9.features.impl.dev.cosmetics.wings.DragonWingsLayer;
 import com.github.noamm9.features.impl.dungeon.TeammateESP;
 import com.github.noamm9.features.impl.misc.NameTagTweaks;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.model.player.PlayerModel;
+import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.player.AvatarRenderer;
@@ -39,6 +41,13 @@ public class MixinAvatarRenderer {
     @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/Avatar;Lnet/minecraft/client/renderer/entity/state/AvatarRenderState;F)V", at = @At("HEAD"))
     private void extractRenderState(Avatar entity, AvatarRenderState state, float partialTicks, CallbackInfo ci) {
         Cosmetics.extractRenderStateHook(entity, state);
+    }
+
+    @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/Avatar;Lnet/minecraft/client/renderer/entity/state/AvatarRenderState;F)V", at = @At("TAIL"))
+    private void decorateNameTag(Avatar entity, AvatarRenderState state, float partialTicks, CallbackInfo ci) {
+        if (entity instanceof AbstractClientPlayer && state.nameTag != null) {
+            state.nameTag = BadgeText.decorate(state.nameTag, entity.getUUID());
+        }
     }
 
     @Inject(method = "shouldShowName(Lnet/minecraft/world/entity/Avatar;D)Z", at = @At("HEAD"), cancellable = true)
