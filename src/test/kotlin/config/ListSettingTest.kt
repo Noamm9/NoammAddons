@@ -56,4 +56,12 @@ class ListSettingTest {
         assertTrue(called)
         assertEquals("Second", setting[0])
     }
+
+    @Test
+    fun `round-trips integer values through read`() {
+        val setting = ListSetting("Groups", mutableListOf(1, 3, 5))
+        val restored = ListSetting<Int>("Groups")
+        restored.read(setting.write())
+        assertEquals(listOf(1, 3, 5), restored.value)
+    }
 }
