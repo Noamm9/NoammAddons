@@ -22,6 +22,7 @@ import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
 import gg.essential.universal.UMinecraft
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.network.chat.Component
 import net.minecraft.world.inventory.ContainerInput
@@ -100,13 +101,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
         }
 
         register<ContainerEvent.Render.Slot.Post> {
-            if (! showProtected.value) return@register
-            val stack = event.slot.item.takeUnless { it.isEmpty } ?: return@register
-            if (getProtectType(stack) != ProtectType.None) {
-                val x = event.slot.x + 1
-                val y = event.slot.y + 1
-                event.context.drawString("§aP", x, y, scale = 0.75)
-            }
+            onSlotDraw(event.context, event.slot.item, event.slot.x, event.slot.y)
         }
     }
 
@@ -148,6 +143,13 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
             val hasBuyback = slot.item.lore.any { it.contains("Click to buyback") }
 
             isHopper || hasBuyback
+        }
+    }
+
+    fun onSlotDraw(context: GuiGraphicsExtractor, stack: ItemStack, x: Int, y: Int) {
+        if (! enabled || ! showProtected.value || stack.isEmpty) return
+        if (getProtectType(stack) != ProtectType.None) {
+            context.drawString("§aP", x + 1, y + 1, scale = 0.75)
         }
     }
 

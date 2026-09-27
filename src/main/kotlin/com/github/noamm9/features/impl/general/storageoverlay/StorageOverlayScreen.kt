@@ -9,6 +9,8 @@ import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.impl.dev.ClickGui
 import com.github.noamm9.features.impl.general.FEAT_ItemRarity
 import com.github.noamm9.features.impl.general.ItemTooltip
+import com.github.noamm9.features.impl.general.ItemOverlays
+import com.github.noamm9.features.impl.general.ProtectItem
 import com.github.noamm9.features.impl.misc.InventorySearch
 import com.github.noamm9.mixin.IAbstractContainerScreen
 import com.github.noamm9.ui.utils.Resolution
@@ -177,6 +179,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
                 val displayStack = menuSlot?.item ?: invStacks?.get(index) ?: continue
                 val deco = menuSlot?.let { dragPreview?.stacks?.get(it.index) } ?: displayStack
                 if (! deco.isEmpty) itemDecorations(mc.font, deco, slotX, slotY)
+                ItemOverlays.onSlotDraw(this, displayStack, slotX, slotY)
+                ProtectItem.onSlotDraw(this, displayStack, slotX, slotY)
             }
         }
         disableScissor()
@@ -265,6 +269,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             val deco = dragPreview?.playerStacks?.get(i) ?: items[i]
             val (sx, sy) = getPlayerInvSlotPos(i)
             if (! deco.isEmpty) itemDecorations(mc.font, deco, sx, sy)
+            ItemOverlays.onSlotDraw(this, items[i], sx, sy)
+            ProtectItem.onSlotDraw(this, items[i], sx, sy)
         }
     }
 
