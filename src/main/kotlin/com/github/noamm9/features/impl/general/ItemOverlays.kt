@@ -12,6 +12,8 @@ import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
 import com.github.noamm9.utils.uppercaseFirst
+import net.minecraft.client.gui.GuiGraphicsExtractor
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import kotlin.jvm.optionals.getOrDefault
 
@@ -22,21 +24,22 @@ object ItemOverlays: Feature("Display info about various items.") {
 
     override fun init() {
         register<ContainerEvent.Render.Slot.Post> {
-            if (! cakeNumbers.value) return@register
-            if (! LocationUtils.inSkyblock) return@register
-            if (! event.slot.item.`is`(Items.CAKE)) return@register
-            val name = event.slot.item.hoverName.unformattedText
-            if ("New Year Cake (Year " !in name) return@register
-            val year = name.remove("New Year Cake (Year ", ")").trim()
-            event.context.drawCenteredString("&b$year", event.slot.x + 8, event.slot.y + 8, scale = 0.8)
+            onSlotDraw(event.context, event.slot.item, event.slot.x, event.slot.y)
+        }
+    }
+
+    fun onSlotDraw(context: GuiGraphicsExtractor, stack: ItemStack, x: Int, y: Int) {
+        if (! enabled || ! LocationUtils.inSkyblock) return
+        if (cakeNumbers.value && stack.`is`(Items.CAKE)) {
+            val name = stack.hoverName.unformattedText
+            if ("New Year Cake (Year " in name) {
+                val year = name.remove("New Year Cake (Year ", ")").trim()
+                context.drawCenteredString("&b$year", x + 8, y + 8, scale = 0.8)
+            }
         }
 
-        register<ContainerEvent.Render.Slot.Post> {
-            if (! enchantedBookAbbreviation.value && ! enchantedBookLevel.value) return@register
-            if (! LocationUtils.inSkyblock) return@register
-            if (! event.slot.item.`is`(Items.ENCHANTED_BOOK)) return@register
-            if (! event.slot.item.skyblockId.startsWith("ENCHANTMENT_")) return@register
-            event.slot.item.customData.getCompoundOrEmpty("enchantments").takeIf { it.keySet().size == 1 }?.let { enchantments ->
+        if ((enchantedBookAbbreviation.value || enchantedBookLevel.value) && stack.`is`(Items.ENCHANTED_BOOK) && stack.skyblockId.startsWith("ENCHANTMENT_")) {
+            stack.customData.getCompoundOrEmpty("enchantments").takeIf { it.keySet().size == 1 }?.let { enchantments ->
                 val name = enchantments.keySet().first()
                 val level = enchantments.getInt(name).getOrDefault("").toString()
                 var scale = 0.8
@@ -50,8 +53,8 @@ object ItemOverlays: Feature("Display info about various items.") {
                     else parts[0].take(3).uppercaseFirst() + "."
                 }
 
-                if (enchantedBookAbbreviation.value) event.context.drawString(prefix, event.slot.x, event.slot.y, scale = scale)
-                if (enchantedBookLevel.value && level.isNotEmpty()) event.context.drawString(level, event.slot.x + 17 - level.width(), event.slot.y + 9)
+                if (enchantedBookAbbreviation.value) context.drawString(prefix, x, y, scale = scale)
+                if (enchantedBookLevel.value && level.isNotEmpty()) context.drawString(level, x + 17 - level.width(), y + 9)
             }
         }
     }
