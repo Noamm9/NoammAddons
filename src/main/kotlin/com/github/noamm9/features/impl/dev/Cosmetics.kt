@@ -5,6 +5,7 @@ import com.github.noamm9.config.types.ButtonSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.dev.cosmetics.CosmeticData
+import com.github.noamm9.features.impl.dev.cosmetics.badges.BadgeManager
 import com.github.noamm9.features.impl.dev.cosmetics.badges.BadgeText
 import com.github.noamm9.features.impl.dev.text.TextReplacer
 import com.github.noamm9.ui.notification.NotificationManager
@@ -45,6 +46,8 @@ object Cosmetics: Feature(toggled = true) {
         scope.launch(Dispatchers.IO) {
             lastReload = System.currentTimeMillis()
             NoammAddons.logger.info("fetching cosmeticPeople")
+
+            launch { BadgeManager.load() }
             WebUtils.getAs<Map<String, CosmeticData>>("https://api.noamm.org/cosmeticPeople.json").onSuccess { data ->
                 TextReplacer.ready = false
                 cosmeticPeople = data.mapKeys { UUID.fromString(it.key) }
