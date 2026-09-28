@@ -2,13 +2,14 @@ package com.github.noamm9.features.impl.general
 
 //#if CHEAT
 
-import com.github.noamm9.NoammAddons
 import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.dungeons.DungeonUtils
+import com.github.noamm9.utils.items.ItemUtils.customData
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import gg.essential.universal.UMinecraft
@@ -16,6 +17,7 @@ import java.util.*
 
 object TermAutoClicker: Feature(name = "Term AC", description = "Automatically uses Salvation ability when holding right click.") {
     private val cps by SliderSetting("Clicks Per Second", 5.0, 5.0, 10.0, 1.0).withDescription("How many times per second the autoclicker should click.")
+    private val rendTerm by ToggleSetting("Disable With Rend", true).withDescription("Disables the AutoClicker if the Terminator has any level of Rend ultimate enchant")
 
     private var baseCpsDrift = cps.value
     private var lastDriftTime = 0L
@@ -29,11 +31,8 @@ object TermAutoClicker: Feature(name = "Term AC", description = "Automatically u
             if (UMinecraft.currentScreenObj != null) return@register
             if (! mc.options.keyUse.isDown) return@register
             if (player.isUsingItem) return@register
-
-            if ("ac" !in NoammAddons.debugFlags) {
-                if (player.mainHandItem.skyblockId != "TERMINATOR") return@register
-            }
-
+            if (player.mainHandItem.skyblockId != "TERMINATOR") return@register
+            if (rendTerm.value && "ultimate_rend" in player.mainHandItem.customData.getCompoundOrEmpty("enchantments").keySet()) return@register
             if (! LocationUtils.inBoss) PlayerUtils.getSelectionBlock()?.let { pos ->
                 if (DungeonUtils.isSecret(pos)) return@register
             }
