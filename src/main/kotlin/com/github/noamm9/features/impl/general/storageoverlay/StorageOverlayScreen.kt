@@ -19,7 +19,6 @@ import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.ItemRenderer
 import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawRect
-import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.scissor
 import com.mojang.blaze3d.platform.InputConstants
 import gg.essential.universal.UKeyboard
@@ -281,7 +280,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             this.drawBorder(x, y, PAGE_WIDTH, 18, menuBorderColor)
             if (! drawNameInput(x, y, page, mouseX, mouseY)) {
                 val label = if (showName) page.name + " &7- Click to load" else "Click to load"
-                drawString(label.addColor(), x + 4, y + 5, Color(180, 180, 180))
+                text(font, font.plainSubstrByWidth(label.addColor(), PAGE_WIDTH - 8), x + 4, y + 5, Color(180, 180, 180).rgb, true)
             }
             return 18
         }
@@ -297,7 +296,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         }
 
         if (showName && ! drawNameInput(x, y, page, mouseX, mouseY)) {
-            drawString(name, x + 6, y + 3, if (isActive) activePageBorder else Color.WHITE)
+            text(font, font.plainSubstrByWidth(name.addColor(), PAGE_WIDTH - 12), x + 6, y + 3, if (isActive) activePageBorder.rgb else Color.WHITE.rgb, true)
         }
 
         val panelX = scrollPanelX
@@ -359,9 +358,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     private fun editName(page: StoragePage, x: Int, y: Int) {
         editingPage = page
         nameInput = EditBox(font, x + 4, y + 3, PAGE_WIDTH - 8, font.lineHeight + 2, Component.literal("Storage name")).apply {
-            @Suppress("UsePropertyAccessSyntax")
+            setBordered(false)
             setMaxLength(128)
-            isBordered = false
             value = page.name.replace('§', '&')
             isFocused = true
             setCanLoseFocus(false)
@@ -390,8 +388,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     fun onNameKeyPressed(event: KeyEvent): Boolean {
         val input = nameInput ?: return false
         when (event.key) {
-            InputConstants.KEY_ESCAPE -> stopEditingName()
-            InputConstants.KEY_RETURN, InputConstants.KEYCODE_NUMPADENTER -> saveEditingName()
+            GLFW.GLFW_KEY_ESCAPE -> stopEditingName()
+            GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> saveEditingName()
             else -> input.keyPressed(event)
         }
         return true
