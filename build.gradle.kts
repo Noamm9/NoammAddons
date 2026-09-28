@@ -35,6 +35,8 @@ val modmenu_version = project.property("modmenu_version") as String
 val ktor_version = project.property("ktor_version") as String
 val iris_version = project.property("iris_version") as String
 val universalcraft_version = project.property("universalcraft_version") as String
+val datafixer_version = project.property("datafixer_version") as String
+val datafixerCapability = "me.owdding:item-data-fixer-$minecraft_version"
 
 version = mod_version
 group = maven_group
@@ -54,6 +56,9 @@ repositories {
     maven("https://maven.terraformersmc.com/releases/")
     maven("https://api.modrinth.com/maven")
     maven("https://jitpack.io")
+    maven("https://maven.teamresourceful.com/repository/thatgravyboat/") {
+        content { includeGroup("me.owdding") }
+    }
 }
 
 dependencies {
@@ -71,8 +76,11 @@ dependencies {
     annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.5.5")
 
     bundled("io.github.classgraph:classgraph:4.8.195")
-    bundled("com.github.Noamm9:DataFixer:26.3-SNAPSHOT")
-    bundled("gg.essential:universalcraft-26.3-fabric:$universalcraft_version") {
+    // Upstream meowdding item-data-fixer publishes one variant per Minecraft version, selected by capability.
+    bundled("me.owdding:item-data-fixer:$datafixer_version") {
+        capabilities { requireCapability(datafixerCapability) }
+    }
+    bundled("gg.essential:universalcraft-26.2-fabric:$universalcraft_version") {
         exclude(group = "net.fabricmc", module = "fabric-loader")
     }
     bundled("io.ktor:ktor-client-cio:$ktor_version")
@@ -86,7 +94,10 @@ dependencies {
 afterEvaluate {
     bundled.resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
         artifact.moduleVersion.id.let { id ->
-            dependencies.add("include", "${id.group}:${id.name}:${id.version}")
+            val include = dependencies.add("include", "${id.group}:${id.name}:${id.version}") as ModuleDependency
+            if ("${id.group}:${id.name}" == "me.owdding:item-data-fixer") {
+                include.capabilities { requireCapability(datafixerCapability) }
+            }
         }
     }
 }

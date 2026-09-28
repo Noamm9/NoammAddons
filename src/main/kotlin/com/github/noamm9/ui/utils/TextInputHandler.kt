@@ -49,7 +49,7 @@ class TextInputHandler(
         set(value) {
             if (field == value) return
             field = value
-            mc.textInputManager().onTextInputFocusChange(this, value)
+            mc.textInputManager().onTextInputFocusChange(value)
         }
     private var dragging = false
     private var clickCount = 1

@@ -388,8 +388,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     fun onNameKeyPressed(event: KeyEvent): Boolean {
         val input = nameInput ?: return false
         when (event.key) {
-            GLFW.GLFW_KEY_ESCAPE -> stopEditingName()
-            GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> saveEditingName()
+            InputConstants.KEY_ESCAPE -> stopEditingName()
+            InputConstants.KEY_RETURN, InputConstants.KEY_NUMPADENTER -> saveEditingName()
             else -> input.keyPressed(event)
         }
         return true

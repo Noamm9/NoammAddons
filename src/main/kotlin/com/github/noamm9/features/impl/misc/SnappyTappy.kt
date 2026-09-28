@@ -61,6 +61,6 @@ object SnappyTappy: Feature("Prevents standing still when pressing opposing dire
     }
 
     private fun isNewer(a: KeyMapping, b: KeyMapping) = (pressTimes[a] ?: 0L) >= (pressTimes[b] ?: 0L)
-    private fun isPhysicallyDown(key: KeyMapping) = InputConstants.isKeyDown(KeyMappingHelper.getBoundKeyOf(key).value)
+    private fun isPhysicallyDown(key: KeyMapping) = InputConstants.isKeyDown(mc.window, KeyMappingHelper.getBoundKeyOf(key).value)
 }
 //#endif

@@ -241,7 +241,7 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
 
     override fun keyPressed(keyEvent: KeyEvent): Boolean {
         configWindows.lastOrNull()?.let { window ->
-            if (window.keyPressed(keyEvent.key, keyEvent.keycode, keyEvent.modifiers)) return true
+            if (window.keyPressed(keyEvent.key, keyEvent.scancode, keyEvent.modifiers)) return true
             if (keyEvent.key == InputConstants.KEY_ESCAPE) {
                 window.clearFocus()
                 configWindows.remove(window)

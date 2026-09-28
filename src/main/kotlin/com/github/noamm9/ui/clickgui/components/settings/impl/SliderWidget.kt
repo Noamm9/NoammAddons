@@ -20,7 +20,7 @@ class SliderWidget<T: Number>(config: SliderSetting<T>): Widget<T>(config) {
         set(value) {
             if (field == value) return
             field = value
-            mc.textInputManager().onTextInputFocusChange(this, value)
+            mc.textInputManager().onTextInputFocusChange(value)
         }
     private var inputBuffer = ""
 

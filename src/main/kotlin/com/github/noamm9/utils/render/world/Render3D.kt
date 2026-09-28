@@ -129,7 +129,7 @@ object Render3D {
 
         matrixStack.pushPose()
         matrixStack.translate(center.x - cameraPos.x, center.y - cameraPos.y, center.z - cameraPos.z)
-        matrixStack.rotate(camera.orientation)
+        matrixStack.mulPose(camera.orientation)
         val pose = uMatrixStack()
         val buffer = RenderBatcher.filledBatch(phase)
 
@@ -265,7 +265,7 @@ object Render3D {
 
         matrixStack.pushPose()
         matrixStack.translate(dx, dy, dz)
-        matrixStack.rotate(camera.orientation)
+        matrixStack.mulPose(camera.orientation)
         matrixStack.scale(toScale, - toScale, toScale)
 
         for ((i, line) in text.addColor().lineSequence().withIndex()) collector.submitText(
