@@ -113,7 +113,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
             val layout = wheelLayout(visiblePets.size)
             val pet = hoveredWheelIndex(event.mouseX, event.mouseY, layout)?.let(visiblePets::getOrNull)
 
-            if (event.button == InputConstants.MOUSE_BUTTON_RIGHT && InputConstants.isKeyDown(InputConstants.KEY_LSHIFT) && pet != null) {
+            if (event.button == InputConstants.MOUSE_BUTTON_RIGHT && InputConstants.isKeyDown(mc.window, InputConstants.KEY_LSHIFT) && pet != null) {
                 val now = System.currentTimeMillis()
                 if (now - lastClickAt >= 300) {
                     lastClickAt = now
@@ -285,7 +285,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
 
     private fun handleKeybind(screen: AbstractContainerScreen<*>, code: Int, mouse: Boolean): Boolean {
         val index = if (useHotbarBinds.value) {
-            val type = if (mouse) InputConstants.Type.MOUSE else InputConstants.Type.KEYBOARD
+            val type = if (mouse) InputConstants.Type.MOUSE else InputConstants.Type.KEYSYM
             mc.options.keyHotbarSlots.take(PETS_PER_WHEEL).withIndex().find {
                 (it.value as IKeyMapping).key.let { key -> key.type == type && key.value == code }
             }?.index ?: - 1

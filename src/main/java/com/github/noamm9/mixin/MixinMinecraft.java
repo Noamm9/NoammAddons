@@ -9,7 +9,7 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.authlib.minecraft.UserApiService;
-import com.mojang.authlib.services.MinecraftServicesDiscoveryService;
+import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.User;
 import net.minecraft.client.main.GameConfig;
@@ -134,10 +134,10 @@ public abstract class MixinMinecraft {
     }
 
     @SuppressWarnings("ConstantValue")
-    @WrapOperation(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;createUserApiService(Lcom/mojang/authlib/services/MinecraftServicesDiscoveryService;Lnet/minecraft/client/main/GameConfig;)Lcom/mojang/authlib/minecraft/UserApiService;"))
-    private UserApiService onCreateUserApiService(MinecraftServicesDiscoveryService discoveryService, GameConfig config, Operation<UserApiService> original) {
+    @WrapOperation(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;createUserApiService(Lcom/mojang/authlib/yggdrasil/YggdrasilAuthenticationService;Lnet/minecraft/client/main/GameConfig;)Lcom/mojang/authlib/minecraft/UserApiService;"))
+    private UserApiService onCreateUserApiService(YggdrasilAuthenticationService authService, GameConfig config, Operation<UserApiService> original) {
         String token = user.getAccessToken();
-        if (token == null || token.equals("0") || token.equals("FabricMC")) return original.call(discoveryService, config);
-        return discoveryService.createUserApiService(token);
+        if (token == null || token.equals("0") || token.equals("FabricMC")) return original.call(authService, config);
+        return authService.createUserApiService(token);
     }
 }

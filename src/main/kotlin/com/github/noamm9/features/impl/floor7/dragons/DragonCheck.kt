@@ -32,8 +32,8 @@ object DragonCheck {
         if (particle.z % 1 != 0.0) return
         if (particle.count != 20) return
         if (particle.y != 19.0) return
-        if (particle.xMaxSpeed != 0f || particle.yMaxSpeed != 0f || particle.zMaxSpeed != 0f) return
-        if (! particle.overrideLimiter) return
+        if (particle.maxSpeed != 0f) return
+        if (! particle.isOverrideLimiter) return
         if (particle.xDist != 2f) return
         if (particle.yDist != 3f) return
         if (particle.zDist != 2f) return

@@ -42,7 +42,7 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
         set(value) {
             if (field == value) return
             field = value
-            mc.textInputManager().onTextInputFocusChange(this, value)
+            mc.textInputManager().onTextInputFocusChange(value)
         }
     private var hexText = ""
 
