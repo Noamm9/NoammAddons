@@ -40,7 +40,6 @@ object NoammRenderTypes: ISelfInit {
             withLocation(id("pipeline/circle_filled"))
             withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR)
             withPrimitiveTopology(PrimitiveTopology.QUADS)
-            withCull(true)
         }.build()
     )
 
@@ -49,7 +48,6 @@ object NoammRenderTypes: ISelfInit {
             withLocation(id("pipeline/circle_filled_through_walls"))
             withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR)
             withPrimitiveTopology(PrimitiveTopology.QUADS)
-            withCull(true)
             withDepthStencilState(Optional.empty())
         }.build()
     )
