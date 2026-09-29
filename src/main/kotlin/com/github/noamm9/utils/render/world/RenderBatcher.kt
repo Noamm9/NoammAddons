@@ -1,6 +1,7 @@
 package com.github.noamm9.utils.render.world
 
-import com.github.noamm9.utils.render.world.batches.*
+//? if <26.2 {
+/*import com.github.noamm9.utils.render.world.batches.*
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import com.mojang.blaze3d.vertex.Tesselator
 import gg.essential.universal.*
@@ -9,18 +10,32 @@ import gg.essential.universal.vertex.*
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext
 import net.minecraft.client.gui.Font
 import net.minecraft.util.LightCoordsUtil
-import org.joml.Matrix4f
+import org.joml.Matrix4f*/
+//? } else {
+import com.github.noamm9.utils.render.world.batches.FilledBatch
+import com.github.noamm9.utils.render.world.batches.LineBatch
+import com.mojang.blaze3d.vertex.PoseStack
+import net.minecraft.client.renderer.SubmitNodeCollector
+import net.minecraft.client.renderer.rendertype.RenderType
+//? }
 import org.joml.Vector3f
 
 object RenderBatcher {
-    private val filledBatches = mutableMapOf<URenderPipeline, FilledBatch>()
+    //? if <26.2 {
+    /*private val filledBatches = mutableMapOf<URenderPipeline, FilledBatch>()
     private val lineBatches = mutableMapOf<URenderPipeline, LineBatch>()
-    private val texts = ArrayList<TextRenderState>()
+    private val texts = ArrayList<TextRenderState>()*/
+    //? } else {
+    private val filledBatches = mutableMapOf<RenderType, FilledBatch>()
+    private val lineBatches = mutableMapOf<RenderType, LineBatch>()
+    private val poseStack = PoseStack()
+    //? }
 
     val tmpVec = Vector3f()
     val tmpDir = Vector3f()
 
-    fun filledBatch(phase: Boolean) = filledBatch(if (phase) NoammRenderPipelines.FILLED_THROUGH_WALLS else NoammRenderPipelines.FILLED, UGraphics.DrawMode.TRIANGLES)
+    //? if <26.2 {
+    /*fun filledBatch(phase: Boolean) = filledBatch(if (phase) NoammRenderPipelines.FILLED_THROUGH_WALLS else NoammRenderPipelines.FILLED, UGraphics.DrawMode.TRIANGLES)
     fun circleBatch(phase: Boolean) = filledBatch(if (phase) NoammRenderPipelines.CIRCLE_FILLED_THROUGH_WALLS else NoammRenderPipelines.CIRCLE_FILLED, UGraphics.DrawMode.TRIANGLE_STRIP)
     fun lineBatch(phase: Boolean): LineBatch {
         val pipeline = if (phase) NoammRenderPipelines.LINES_THROUGH_WALLS else NoammRenderPipelines.LINES
@@ -79,5 +94,44 @@ object RenderBatcher {
         texts.clear()
     }
 
-    private fun filledBatch(pipeline: URenderPipeline, mode: UGraphics.DrawMode) = filledBatches.getOrPut(pipeline) { FilledBatch(pipeline, mode) }
+    private fun filledBatch(pipeline: URenderPipeline, mode: UGraphics.DrawMode) = filledBatches.getOrPut(pipeline) { FilledBatch(pipeline, mode) }*/
+    //? } else {
+    fun filledBatch(phase: Boolean): FilledBatch {
+        val type = if (phase) NoammRenderTypes.DEBUG_FILLED else NoammRenderTypes.FILLED
+        return filledBatches.getOrPut(type) { FilledBatch(type) }
+    }
+
+    fun circleBatch(phase: Boolean): FilledBatch {
+        val type = if (phase) NoammRenderTypes.DEBUG_CIRCLE_FILLED else NoammRenderTypes.CIRCLE_FILLED
+        return filledBatches.getOrPut(type) { FilledBatch(type) }
+    }
+
+    fun lineBatch(phase: Boolean): LineBatch {
+        val type = if (phase) NoammRenderTypes.DEBUG_LINES else NoammRenderTypes.LINES
+        return lineBatches.getOrPut(type) { LineBatch(type) }
+    }
+
+    fun flush(collector: SubmitNodeCollector) {
+        if (filledBatches.isEmpty() && lineBatches.isEmpty()) return
+
+        for (batchData in filledBatches.values) collector.submitCustomGeometry(poseStack, batchData.type) { _, consumer ->
+            for (state in batchData.data) {
+                consumer.addVertex(state.x, state.y, state.z)
+                consumer.setColor(state.r, state.g, state.b, state.a)
+            }
+        }
+
+        for (batchData in lineBatches.values) collector.submitCustomGeometry(poseStack, batchData.type) { _, consumer ->
+            for (state in batchData.data) {
+                consumer.addVertex(state.x, state.y, state.z)
+                consumer.setColor(state.r, state.g, state.b, state.a)
+                consumer.setNormal(state.nx, state.ny, state.nz)
+                consumer.setLineWidth(state.lineWidth)
+            }
+        }
+
+        filledBatches.clear()
+        lineBatches.clear()
+    }
+    //? }
 }

@@ -11,19 +11,23 @@ import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
 import gg.essential.universal.UMinecraft
-import org.lwjgl.glfw.GLFW
+//? if <26.2 {
+/*import org.lwjgl.glfw.GLFW*/
+//? } else {
+import com.mojang.blaze3d.platform.InputConstants
+//? }
 
 object Abilities: Feature(
-    //#if CHEAT
+    //? if cheat {
     "Allows you to use dungeon class abilities with keybinds and automatically trigger ultimates when needed."
-    //#else
-    //$"Allows you to use dungeon class abilities with keybinds."
-    //#endif
+    //? } else {
+    /*"Allows you to use dungeon class abilities with keybinds."*/
+    //? }
 ) {
     private val ultKeybind by KeybindSetting("Ultimate Keybind").section("Keybinds")
     private val abilityKeybind by KeybindSetting("Ability Keybind")
 
-    //#if CHEAT
+    //? if cheat {
     private val autoUlt by ToggleSetting("Auto Use Ultimate").section("Auto Ultimate")
 
     private class UltMessage(val msg: String, val classes: List<DungeonClass>, val floor: Int)
@@ -50,12 +54,16 @@ object Abilities: Feature(
             floor = 5
         )
     )
-    //#endif
+    //? }
 
     override fun init() {
         register<KeyboardEvent.KeyPressed> {
             if (! LocationUtils.inDungeon || ! DungeonListener.dungeonStarted) return@register
-            if (event.action != GLFW.GLFW_PRESS) return@register
+            //? if <26.2 {
+            /*if (event.action != GLFW.GLFW_PRESS) return@register*/
+            //? } else {
+            if (event.action != InputConstants.PRESS) return@register
+            //? }
             if (UMinecraft.currentScreenObj != null) return@register
 
             if (ultKeybind.isPressed()) {
@@ -71,7 +79,7 @@ object Abilities: Feature(
             }
         }
 
-        //#if CHEAT
+        //? if cheat {
         register<ChatMessageEvent> {
             if (! autoUlt.value || ! LocationUtils.inBoss) return@register
             val msg = event.unformattedText
@@ -83,6 +91,6 @@ object Abilities: Feature(
             PlayerUtils.useDungeonClassAbility(true)
             ChatUtils.modMessage("Used Ultimate!")
         }
-        //#endif
+        //? }
     }
 }

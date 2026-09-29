@@ -1,11 +1,16 @@
 package com.github.noamm9.features.impl.dev
 
+//? if >=26.2 {
+import com.mojang.blaze3d.platform.InputConstants
+//? }
 import com.github.noamm9.config.types.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.utils.render.RenderHelper.height
 import com.github.noamm9.utils.render.RenderHelper.width
-import gg.essential.universal.UKeyboard
+//? if <26.2 {
+/*import gg.essential.universal.UKeyboard*/
+//? }
 import net.minecraft.network.chat.Component
 import net.minecraft.sounds.SoundEvents
 import java.awt.Color
@@ -32,7 +37,11 @@ object CompTest: Feature("A test feature used to test every UI component.") {
 
     val secondaryColor by ColorSetting("Secondary", Color.MAGENTA).withDescription("A secondary color used for gradients and specialized UI elements.")
 
-    val panicBind by KeybindSetting("test Keybind", UKeyboard.KEY_P).withDescription("Pressing this key will instantly disable every active module in the mod.")
+    //? if <26.2 {
+    /*val panicBind by KeybindSetting("test Keybind", UKeyboard.KEY_P).withDescription("Pressing this key will instantly disable every active module in the mod.")*/
+    //? } else {
+    val panicBind by KeybindSetting("test Keybind", InputConstants.KEY_P).withDescription("Pressing this key will instantly disable every active module in the mod.")
+    //? }
 
     val customName by TextInputSetting("test text", "Player123").withDescription("The custom name displayed above your head or used in chat-based modules.")
 

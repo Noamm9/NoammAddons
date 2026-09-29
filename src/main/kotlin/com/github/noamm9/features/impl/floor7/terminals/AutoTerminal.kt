@@ -1,6 +1,9 @@
 package com.github.noamm9.features.impl.floor7.terminals
 
-//#if CHEAT
+//? if >=26.2 {
+import com.mojang.blaze3d.platform.InputConstants
+//? }
+//? if cheat {
 
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
@@ -12,7 +15,9 @@ import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.RenderHelper.width
-import gg.essential.universal.UKeyboard
+//? if <26.2 {
+/*import gg.essential.universal.UKeyboard*/
+//? }
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 
 object AutoTerminal: Feature("Automatically clicks terminals for you.") {
@@ -118,7 +123,11 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
         }
 
         register<ContainerEvent.Keyboard>(EventPriority.HIGH) {
-            if (event.key.equalsOneOf(KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value, UKeyboard.KEY_ESCAPE)) return@register
+            //? if <26.2 {
+            /*if (event.key.equalsOneOf(KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value, UKeyboard.KEY_ESCAPE)) return@register*/
+            //? } else {
+            if (event.key.equalsOneOf(KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value, InputConstants.KEY_ESCAPE)) return@register
+            //? }
             val handler = TerminalListener.currentHandler ?: return@register
             if (handler.enabled()) event.isCanceled = true
         }
@@ -175,4 +184,4 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
 
     private fun clickSlot(slot: Int) = TerminalClick(slot).send()
 }
-//#endif
+//? }

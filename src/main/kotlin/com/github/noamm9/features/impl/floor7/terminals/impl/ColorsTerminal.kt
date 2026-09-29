@@ -29,7 +29,11 @@ object ColorsTerminal: Terminal() {
             ?: return false
 
         for ((slot, stack) in items) {
-            if (stack.item == Items.BLACK_STAINED_GLASS_PANE) continue
+            //? if <26.2 {
+            /*if (stack.item == Items.BLACK_STAINED_GLASS_PANE) continue*/
+            //? } else {
+            if (stack.item == Items.STAINED_GLASS_PANE.black()) continue
+            //? }
             if (stack.hasGlint()) continue
             if (color.getValidPrefixes().any(stack.hoverName.string.lowercase()::startsWith)) {
                 solution.add(TerminalClick(slot))

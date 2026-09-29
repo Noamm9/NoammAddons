@@ -178,7 +178,7 @@ object NaCommand: ICommandProvider {
             }
         }
 
-        //#if CHEAT
+        //? if cheat {
         literal("swapmask") {
             description("Equips either Bonzo Mask or Spirit Mask")
             runs {
@@ -223,7 +223,7 @@ object NaCommand: ICommandProvider {
                 }
             }
         }
-        //#endif
+        //? }
     }
 
     private fun setLeapOrder(ctx: CommandContext<FabricClientCommandSource>, count: Int) {

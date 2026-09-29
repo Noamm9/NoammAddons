@@ -1,5 +1,8 @@
 package com.github.noamm9.features.impl.visual
 
+//? if >=26.2 {
+import net.minecraft.world.entity.EntityTypes
+//? }
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.CheckEntityRenderEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
@@ -74,9 +77,15 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
                 }
 
                 is ClientboundAddEntityPacket -> {
-                    val isBlock = packet.type == EntityType.FALLING_BLOCK && hideFallingBlocks.value
+                    //? if <26.2 {
+                    /*val isBlock = packet.type == EntityType.FALLING_BLOCK && hideFallingBlocks.value
                     val isLightning = packet.type == EntityType.LIGHTNING_BOLT && hideLightning.value
-                    val isXp = packet.type == EntityType.EXPERIENCE_ORB && hideXpOrbs.value
+                    val isXp = packet.type == EntityType.EXPERIENCE_ORB && hideXpOrbs.value*/
+                    //? } else {
+                    val isBlock = packet.type == EntityTypes.FALLING_BLOCK && hideFallingBlocks.value
+                    val isLightning = packet.type == EntityTypes.LIGHTNING_BOLT && hideLightning.value
+                    val isXp = packet.type == EntityTypes.EXPERIENCE_ORB && hideXpOrbs.value
+                    //? }
 
                     if (isBlock || isLightning || isXp) event.isCanceled = true
                 }

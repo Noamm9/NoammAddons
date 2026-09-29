@@ -6,20 +6,20 @@ import com.github.noamm9.config.types.*
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import java.awt.Color
 
-//#if LEGIT
-//$import java.util.*
-//#endif
+//? if !cheat {
+/*import java.util.**/
+//? }
 
 object MapConfig: SettingProvider {
     override val configSettings = mutableSetOf<ConfigHolder<*>>()
 
     val mapEnabled by ToggleSetting("Map Enabled", true).section("Map")
 
-    //#if CHEAT
+    //? if cheat {
     val dungeonMapCheater by ToggleSetting("Cheater Map", false)
-    //#else
-    //$val dungeonMapCheater by ToggleSetting("Legit", false).hideIf { true }.jsonName(UUID.randomUUID().toString())
-    //#endif
+    //? } else {
+    /*val dungeonMapCheater by ToggleSetting("Legit", false).hideIf { true }.jsonName(UUID.randomUUID().toString())*/
+    //? }
 
     val mapExtraInfo by ToggleSetting("Show Extra Info Under Map", false)
     val mapHideInBoss by ToggleSetting("Hide In Boss", false)
@@ -42,20 +42,20 @@ object MapConfig: SettingProvider {
     val hideQuestionCheckmarks by ToggleSetting("Hide Unknown Room Checkmark", false).showIf { dungeonMapCheckmarkStyle.value == 0 }
     val limitRoomNameSize by ToggleSetting("Limit Room Name Size", true).showIf { dungeonMapCheckmarkStyle.value in 2 .. 4 }
 
-    //#if CHEAT
+    //? if cheat {
     val mimicEsp by ToggleSetting("Mimic ESP")
     val mimicEspColor by ColorSetting("Mimic ESP Color", Color(255, 0, 0, 50), true).showIf { mimicEsp.value }
     val highlightMimicRoom by ToggleSetting("Highlight Mimic Room", true)
-    //#endif
+    //? }
 
     val mapPlayerHeadColor by ColorSetting("Head Border", Color(0, 0, 0), true).section("Colors")
     val mapVanillaMarkerColor by ColorSetting("Vanilla Head Marker", Color(0, 255, 0), true).jsonName("Vanilla Head Marker Color")
     val mapPlayerHeadColorClassBased by ToggleSetting("Head Border Class Base", false)
     val mapPlayerNameClassColorBased by ToggleSetting("Player Names Class Base", false)
 
-    //#if CHEAT
+    //? if cheat {
     val colorMimic by ColorSetting("Mimic Room", Color(255, 0, 0), true).showIf { highlightMimicRoom.value }
-    //#endif
+    //? }
 
     val colorUnopened by ColorSetting("Unopened Room", Color(65, 65, 65), true)
     val colorBlood by ColorSetting("Blood Room", Color(178, 0, 0), true)

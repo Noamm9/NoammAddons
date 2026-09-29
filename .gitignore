@@ -34,11 +34,12 @@ run/
 
 # java
 
-hs_err_*.log
-replay_*.log
 *.hprof
 *.jfr
 
 .kotlin/
 *.salive
 /logs
+*.log
+/versions/*/config
+/versions/*/run

@@ -11,13 +11,16 @@ import kotlinx.coroutines.*
 import me.owdding.dfu.item.MeowddingItemDfu
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.rendering.v1.PictureInPictureRendererRegistry
+import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.network.chat.Component
 import org.slf4j.LoggerFactory
 
 object NoammAddons: ClientModInitializer {
-    const val MOD_ID = "@MOD_ID@"
-    const val MOD_NAME = "@MOD_NAME@"
-    const val MOD_VERSION = "@MOD_VERSION@"
+    const val MOD_ID = "noammaddons"
+    const val MOD_NAME = "NoammAddons"
+    val MOD_VERSION: String by lazy {
+        FabricLoader.getInstance().getModContainer(MOD_ID).orElseThrow().metadata.version.friendlyString
+    }
     val PREFIX by lazy {
         if (isCheat) Component.literal("§6§l[§b§lN§d§lA§6§l]§r")
         else Component.empty().apply {
@@ -39,11 +42,11 @@ object NoammAddons: ClientModInitializer {
 
     @JvmField
     var isCheat = run {
-        //#if CHEAT
+        //? if cheat {
         true
-        //#else
-        //$false
-        //#endif
+        //? } else {
+        /*false*/
+        //? }
     }
 
     val cacheData = PogObject("cacheData", mutableMapOf<String, Any>())
@@ -57,7 +60,11 @@ object NoammAddons: ClientModInitializer {
     }
 
     override fun onInitializeClient() {
-        PictureInPictureRendererRegistry.register { ItemRenderer(it.bufferSource()) }
+        //? if <26.2 {
+        /*PictureInPictureRendererRegistry.register { ItemRenderer(it.bufferSource()) }*/
+        //? } else {
+        PictureInPictureRendererRegistry.register { ItemRenderer() }
+        //? }
         MeowddingItemDfu.load()
 
         ClassGraphInitializer().initAll()

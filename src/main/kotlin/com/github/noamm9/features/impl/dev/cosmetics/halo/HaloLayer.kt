@@ -46,7 +46,11 @@ class HaloLayer(parent: RenderLayerParent<AvatarRenderState, PlayerModel>): Rend
             haloModel, state, poseStack,
             RenderTypes.entitySolid(whiteTexture),
             LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, data.halo ?: Color.YELLOW.rgb,
-            null, 0, null
+            //? if <26.3 {
+            /*null, 0, null*/
+            //? } else {
+            null, 0
+            //? }
         )
         poseStack.popPose()
     }

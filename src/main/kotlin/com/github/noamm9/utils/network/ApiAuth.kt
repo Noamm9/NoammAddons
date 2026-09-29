@@ -59,7 +59,13 @@ object ApiAuth: ISelfInit {
                 Base64.encode(resolved.publicKey.data.keySignature),
                 resolved.publicKey.data.expiresAt.toEpochMilli()
             ),
-            signedData, MOD_ID, "@MINECRAFT_VERSION@", MOD_VERSION
+            //? if <26.2 {
+            /*signedData, MOD_ID, "26.1.2", MOD_VERSION*/
+            //? } else if <26.3 {
+            /*signedData, MOD_ID, "26.2", MOD_VERSION*/
+            //? } else {
+            signedData, MOD_ID, "26.3", MOD_VERSION
+            //? }
         )
 
         val response = client.post(AUTH_URL) {

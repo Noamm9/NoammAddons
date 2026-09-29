@@ -18,9 +18,9 @@ import java.awt.Color
 
 object TerminalESP: Feature(
     "Highlights the interactable hitboxes of the terminals in F7/M7",
-    //#if LEGIT
-    //$name = "Terminal Highlight",
-    //#endif
+    //? if !cheat {
+    /*name = "Terminal Highlight",*/
+    //? }
     jsonName = "Terminal ESP"
 ) {
     private val mode by DropdownSetting("Mode", 1, listOf("Outline", "Fill", "Filled Outline"))

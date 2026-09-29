@@ -1,14 +1,23 @@
 package com.github.noamm9.mixin;
 
 import com.github.noamm9.features.impl.misc.NameTagTweaks;
-import net.minecraft.client.renderer.feature.NameTagFeatureRenderer;
+//? if <26.3 {
+/*import net.minecraft.client.renderer.feature.NameTagFeatureRenderer;*/
+//? } else {
+import net.minecraft.client.renderer.SubmitNodeCollection;
+//? }
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
-@Mixin(NameTagFeatureRenderer.class)
+//? if <26.3 {
+/*@Mixin(NameTagFeatureRenderer.class)*/
+//? } else {
+@Mixin(SubmitNodeCollection.class)
+//? }
 public class NameTagFeatureRendererMixin {
-    @ModifyArg(
+    //? if <26.2 {
+    /*@ModifyArg(
         method = "renderTranslucent",
         at = @At(
             value = "INVOKE",
@@ -16,11 +25,26 @@ public class NameTagFeatureRendererMixin {
         ),
         index = 8
     )
-    private int modifyNametagBackground(int originalColor) {
+    private int modifyNametagBackground(int originalColor) {*/
+    //? } else if <26.3 {
+    /*@ModifyArg(
+        method = "prepareText",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/gui/Font;prepareText(Lnet/minecraft/util/FormattedCharSequence;FFIZZI)Lnet/minecraft/client/gui/Font$PreparedText;"
+        ),
+        index = 6
+    )
+    private static int modifyNametagBackground(int originalColor) {*/
+    //? } else {
+    @ModifyArg(method = "nameTag", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/feature/TextFeatureRenderer$Content$Text;<init>(FFLnet/minecraft/util/FormattedCharSequence;ZIII)V"), index = 5)
+    private static int modifyNametagBackground(int originalColor) {
+    //? }
         return NameTagTweaks.INSTANCE.enabled && NameTagTweaks.getDisableNametagBackground().getValue() ? 0 : originalColor;
     }
 
-    @ModifyArg(
+    //? if <26.2 {
+    /*@ModifyArg(
         method = "renderTranslucent",
         at = @At(
             value = "INVOKE",
@@ -28,7 +52,21 @@ public class NameTagFeatureRendererMixin {
         ),
         index = 4
     )
-    private boolean modifyShadowArgument(boolean original) {
+    private boolean modifyShadowArgument(boolean original) {*/
+    //? } else if <26.3 {
+    /*@ModifyArg(
+        method = "prepareText",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/gui/Font;prepareText(Lnet/minecraft/util/FormattedCharSequence;FFIZZI)Lnet/minecraft/client/gui/Font$PreparedText;"
+        ),
+        index = 4
+    )
+    private static boolean modifyShadowArgument(boolean original) {*/
+    //? } else {
+    @ModifyArg(method = "nameTag", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/feature/TextFeatureRenderer$Content$Text;<init>(FFLnet/minecraft/util/FormattedCharSequence;ZIII)V"), index = 3)
+    private static boolean modifyShadowArgument(boolean original) {
+    //? }
         return (NameTagTweaks.INSTANCE.enabled && NameTagTweaks.getAddNameTagTextShadow().getValue()) || original;
     }
 }

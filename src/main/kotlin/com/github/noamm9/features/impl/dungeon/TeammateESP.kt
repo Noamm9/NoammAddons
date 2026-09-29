@@ -13,9 +13,9 @@ import net.minecraft.world.entity.Entity
 
 object TeammateESP: Feature(
     "Highlights your dungeon party.",
-    //#if LEGIT
-    //$name = "Teammate Highlight",
-    //#endif
+    //? if !cheat {
+    /*name = "Teammate Highlight",*/
+    //? }
     jsonName = "Teammate ESP"
 ) {
     private val highlight by ToggleSetting("Highlight Teammates", true)

@@ -1,6 +1,6 @@
 package com.github.noamm9.mixin;
 
-//#if CHEAT
+//? if cheat {
 
 import com.github.noamm9.features.impl.dungeon.Secrets;
 import com.github.noamm9.utils.dungeons.DungeonUtils;
@@ -12,20 +12,26 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.jetbrains.annotations.NotNull;
-import org.spongepowered.asm.mixin.Final;
+//? if <26.3 {
+/*import org.jetbrains.annotations.NotNull;
+import org.spongepowered.asm.mixin.Final;*/
+//? }
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+//? if <26.3 {
+/*import org.spongepowered.asm.mixin.Shadow;*/
+//? }
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(SkullBlock.class)
 abstract class MixinSkullBlock extends AbstractSkullBlock {
-    @Shadow @Final private static VoxelShape SHAPE_PIGLIN;
+    //? if <26.3 {
+    /*@Shadow @Final private static VoxelShape SHAPE_PIGLIN;
 
     @Shadow @Final private static VoxelShape SHAPE;
-
+    */
+    //? }
     public MixinSkullBlock(SkullBlock.Type type, Properties properties) {
         super(type, properties);
     }
@@ -36,10 +42,12 @@ abstract class MixinSkullBlock extends AbstractSkullBlock {
             cir.setReturnValue(Shapes.block());
         }
     }
-
+    //? if <26.3 {
+    /*
     @Override
     public @NotNull VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return this.getType() == SkullBlock.Types.PIGLIN ? SHAPE_PIGLIN : SHAPE;
-    }
+    }*/
+    //? }
 }
-//#endif
+//? }

@@ -1,5 +1,8 @@
 package com.github.noamm9.features.impl.dungeon
 
+//? if >=26.2 {
+import com.mojang.blaze3d.platform.InputConstants
+//? }
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
@@ -47,8 +50,13 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
 
     private val leapKeybinds by ToggleSetting("Leap Keybinds").showIf { customLeapMenu.value }.section("Leap Keybinds")
     private val keybindMode by DropdownSetting("Mode", 0, listOf("Corners", "Class")).showIf { leapKeybinds.value }
-    private val keybindKeys = (0 until 4).map { i -> KeybindSetting("Slot ${1 + i}", UKeyboard.KEY_1 + i).showIf { leapKeybinds.value && keybindMode.value == 0 }.apply(configSettings::add) }
-    private val classesKeys = DungeonClass.entries.dropLast(1).map { KeybindSetting(it.name.lowercase().uppercaseFirst(), UKeyboard.KEY_NONE).showIf { leapKeybinds.value && keybindMode.value == 1 }.apply(configSettings::add) }
+    //? if <26.2 {
+    /*private val keybindKeys = (0 until 4).map { i -> KeybindSetting("Slot ${1 + i}", UKeyboard.KEY_1 + i).showIf { leapKeybinds.value && keybindMode.value == 0 }.apply(configSettings::add) }
+    private val classesKeys = DungeonClass.entries.dropLast(1).map { KeybindSetting(it.name.lowercase().uppercaseFirst(), UKeyboard.KEY_NONE).showIf { leapKeybinds.value && keybindMode.value == 1 }.apply(configSettings::add) }*/
+    //? } else {
+    private val keybindKeys = (0 until 4).map { i -> KeybindSetting("Slot ${1 + i}", InputConstants.KEY_1 + i).showIf { leapKeybinds.value && keybindMode.value == 0 }.apply(configSettings::add) }
+    private val classesKeys = DungeonClass.entries.dropLast(1).map { KeybindSetting(it.name.lowercase().uppercaseFirst(), InputConstants.UNKNOWN.value).showIf { leapKeybinds.value && keybindMode.value == 1 }.apply(configSettings::add) }
+    //? }
 
     private val announceSpiritLeaps by ToggleSetting("Announce Leap", true).section("Extras")
     private val leapMsg by TextInputSetting("Leap Message", "ILY ❤ {name}").withDescription("replaces {name} with the player name").showIf { announceSpiritLeaps.value }
@@ -180,7 +188,11 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
         register<ContainerEvent.MouseClick> {
             if (! event.screen.isLeapMenu()) return@register
 
-            if (event.button != 0 && leftClickOnly.value) {
+            //? if <26.2 {
+            /*if (event.button != 0 && leftClickOnly.value) {*/
+            //? } else {
+            if (event.button != InputConstants.MOUSE_BUTTON_LEFT && leftClickOnly.value) {
+            //? }
                 event.isCanceled = true
                 return@register
             }

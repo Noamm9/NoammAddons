@@ -1,6 +1,6 @@
 package com.github.noamm9.features.impl.dungeon
 
-//#if CHEAT
+//? if cheat {
 
 import com.github.noamm9.config.types.DropdownSetting
 import com.github.noamm9.config.types.ToggleSetting
@@ -79,7 +79,8 @@ object IHateDoors: Feature("Replaces Wither and Blood doors with stained glass."
 
     private enum class Glass(val displayName: String, block: Block) {
         DEFAULT("Default", Blocks.GLASS),
-        WHITE("White", Blocks.WHITE_STAINED_GLASS),
+        //? if <26.2 {
+        /*WHITE("White", Blocks.WHITE_STAINED_GLASS),
         BLACK("Black", Blocks.BLACK_STAINED_GLASS),
         CYAN("Cyan", Blocks.CYAN_STAINED_GLASS),
         LIGHT_BLUE("Light Blue", Blocks.LIGHT_BLUE_STAINED_GLASS),
@@ -94,7 +95,25 @@ object IHateDoors: Feature("Replaces Wither and Blood doors with stained glass."
         PURPLE("Purple", Blocks.PURPLE_STAINED_GLASS),
         BLUE("Blue", Blocks.BLUE_STAINED_GLASS),
         BROWN("Brown", Blocks.BROWN_STAINED_GLASS),
-        GREEN("Green", Blocks.GREEN_STAINED_GLASS);
+        GREEN("Green", Blocks.GREEN_STAINED_GLASS);*/
+        //? } else {
+        WHITE("White", Blocks.STAINED_GLASS.white()),
+        BLACK("Black", Blocks.STAINED_GLASS.black()),
+        CYAN("Cyan", Blocks.STAINED_GLASS.cyan()),
+        LIGHT_BLUE("Light Blue", Blocks.STAINED_GLASS.lightBlue()),
+        RED("Red", Blocks.STAINED_GLASS.red()),
+        PINK("Pink", Blocks.STAINED_GLASS.pink()),
+        ORANGE("Orange", Blocks.STAINED_GLASS.orange()),
+        MAGENTA("Magenta", Blocks.STAINED_GLASS.magenta()),
+        YELLOW("Yellow", Blocks.STAINED_GLASS.yellow()),
+        LIME("Lime", Blocks.STAINED_GLASS.lime()),
+        GRAY("Gray", Blocks.STAINED_GLASS.gray()),
+        LIGHT_GRAY("Light Gray", Blocks.STAINED_GLASS.lightGray()),
+        PURPLE("Purple", Blocks.STAINED_GLASS.purple()),
+        BLUE("Blue", Blocks.STAINED_GLASS.blue()),
+        BROWN("Brown", Blocks.STAINED_GLASS.brown()),
+        GREEN("Green", Blocks.STAINED_GLASS.green());
+        //? }
 
         val state = block.defaultBlockState()
 
@@ -103,4 +122,4 @@ object IHateDoors: Feature("Replaces Wither and Blood doors with stained glass."
         }
     }
 }
-//#endif
+//? }

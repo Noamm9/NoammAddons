@@ -1,6 +1,6 @@
 package com.github.noamm9.features.impl.floor7.devices
 
-//#if CHEAT
+//? if cheat {
 
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.EventBus
@@ -155,7 +155,11 @@ object AutoI4: Feature("Fully Automated I4") {
             }
 
             if (event.pos !in I4Helper.devBlocks) return@register
-            if (event.oldBlock == Blocks.EMERALD_BLOCK && event.newBlock == Blocks.BLUE_TERRACOTTA) {
+            //? if <26.2 {
+            /*if (event.oldBlock == Blocks.EMERALD_BLOCK && event.newBlock == Blocks.BLUE_TERRACOTTA) {*/
+            //? } else {
+            if (event.oldBlock == Blocks.EMERALD_BLOCK && event.newBlock == Blocks.DYED_TERRACOTTA.blue()) {
+            //? }
                 doneCoords.add(event.pos)
                 if (activeEmerald.get() == event.pos) {
                     activeEmerald.set(null)
@@ -333,4 +337,4 @@ object AutoI4: Feature("Fully Automated I4") {
         watchdogJob = null
     }
 }
-//#endif
+//? }

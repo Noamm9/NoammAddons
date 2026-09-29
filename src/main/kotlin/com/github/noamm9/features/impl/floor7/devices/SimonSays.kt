@@ -42,12 +42,12 @@ object SimonSays: Feature("Simon Says Solver") {
     private val buttonNumbers by ToggleSetting("Button Numbers", false).withDescription("Displays numbers for the current sequence.")
     private val numberColor by ColorSetting("Number Color", Color.WHITE, false).withDescription("Color of the button numbers.").showIf { buttonNumbers.value }
 
-    //#if CHEAT
+    //? if cheat {
     private val triggerBot by ToggleSetting("Triggerbot", false).withDescription("Automatically clicks the correct button when you're aiming at it.").section("Auto")
     private val autoStart by ToggleSetting("Auto Start", false).withDescription("Automatically starts the device when it can be started.")
     private val startClicks by SliderSetting("Start Clicks", 3, 1, 10, 1).withDescription("Amount of clicks to start the device.").showIf { autoStart.value }
     private val startClickDelay by SliderSetting("Start Click Delay", 3, 1, 25, 1).withDescription("Delay in ticks between each start click.").showIf { autoStart.value }
-    //#endif
+    //? }
 
     private val alertsEnabled by ToggleSetting("Alerts Enabled", true).section("Alerts")
     private val sendChat by ToggleSetting("SS Break Alert", true).showIf { alertsEnabled.value }.withDescription("Sends in party chat when the device got reset")
@@ -102,7 +102,7 @@ object SimonSays: Feature("Simon Says Solver") {
             level.players().forEach { lastKnownPositions[it.gameProfile.name] = it.position() }
         }
 
-        //#if CHEAT
+        //? if cheat {
         register<ChatMessageEvent> {
             if (! autoStart.value) return@register
             if (LocationUtils.F7Phase != 3) return@register
@@ -124,7 +124,7 @@ object SimonSays: Feature("Simon Says Solver") {
 
             PlayerUtils.rightClick()
         }
-        //#endif
+        //? }
 
         register<BlockChangeEvent> {
             if (event.pos !in obsidians) return@register

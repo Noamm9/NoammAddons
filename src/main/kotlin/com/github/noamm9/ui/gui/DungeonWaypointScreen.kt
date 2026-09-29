@@ -16,7 +16,11 @@ import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
-import org.lwjgl.glfw.GLFW
+//? if <26.2 {
+/*import org.lwjgl.glfw.GLFW*/
+//? } else {
+import com.mojang.blaze3d.platform.InputConstants
+//? }
 import java.awt.Color
 
 class DungeonWaypointScreen(
@@ -172,7 +176,11 @@ class DungeonWaypointScreen(
     }
 
     override fun mouseClicked(event: MouseButtonEvent, isDoubleClick: Boolean): Boolean {
-        if (event.button() != GLFW.GLFW_MOUSE_BUTTON_LEFT) return super.mouseClicked(event, isDoubleClick)
+        //? if <26.2 {
+        /*if (event.button() != GLFW.GLFW_MOUSE_BUTTON_LEFT) return super.mouseClicked(event, isDoubleClick)*/
+        //? } else {
+        if (event.button() != InputConstants.MOUSE_BUTTON_LEFT) return super.mouseClicked(event, isDoubleClick)
+        //? }
 
         val mx = Resolution.getMouseX(event.x).toFloat()
         val my = Resolution.getMouseY(event.y).toFloat()

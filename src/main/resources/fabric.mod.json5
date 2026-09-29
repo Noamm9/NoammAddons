@@ -3,11 +3,7 @@
   "id": "noammaddons",
   "version": "${version}",
   "name": "NoammAddons",
-  //#if CHEAT
-  "description": "26.1.2 port of the greatest skyblock mod ever made! Version: Cheat",
-  //#else
-  //$"description": "26.1.2 port of the greatest skyblock mod ever made! Version: Legit",
-  //#endif
+  "description": "NoammAddons",
   "authors": [
     "Noamm"
   ],
@@ -35,8 +31,16 @@
   ],
   "accessWidener": "noammaddons.accesswidener",
   "depends": {
-    "fabricloader": ">=0.17.3",
-    "minecraft": "26.1.2",
+    //? if <26.2 {
+    /*"fabricloader": ">=0.17.3",
+    "minecraft": "26.1.2",*/
+    //? } else if <26.3 {
+    /*"fabricloader": ">=0.19.5",
+    "minecraft": "26.2",*/
+    //? } else {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "26.3",
+    //? }
     "java": ">=25",
     "fabric-api": "*",
     "fabric-language-kotlin": "*"

@@ -28,7 +28,7 @@ object Secrets: Feature() {
     private val hudDisplay by ToggleSetting("Secret HUD", true).withDescription("Displays the current room's secrets on screen.").section("HUD")
     private val hudPrefix by TextInputSetting("HUD Prefix", "Secrets:").withDescription("The text before the secret count of the room")
 
-    //#if CHEAT
+    //? if cheat {
     private val closeChest by ToggleSetting("Close Chest").section("Auto").withDescription("Automatically closes the secret chest for you.")
     private val lever by ToggleSetting("Lever").withDescription("Expand block Lever hitbox.").section("Secret Hitboxes")
     private val leverSize by SliderSetting("Lever Hitbox Size", 1.0, 8.0 / 16.0, 1.0, 0.01).showIf { lever.value }
@@ -36,7 +36,7 @@ object Secrets: Feature() {
     private val buttonSize by SliderSetting("Button Hitbox Size", 1.0, 6.0 / 16.0, 1.0, 0.01).showIf { button.value }
     @JvmStatic val skull by ToggleSetting("Skulls").withDescription("Full block Skull hitbox.")
     @JvmStatic val mushroom by ToggleSetting("Mushroom").withDescription("Full block Mushroom hitbox.")
-    //#endif
+    //? }
 
     private val secretClicked by ToggleSetting("Highlight Clicked Secret").withDescription("Highlights the block of a secret when you interact with it.").section("Secret Clicked")
     private val displayTime by SliderSetting("Highlight Time", 2.0, 0.5, 5.0, 0.1).withDescription("How long (in seconds) the highlight box remains visible.").showIf { secretClicked.value }
@@ -95,7 +95,7 @@ object Secrets: Feature() {
             }
         }
 
-        //#if CHEAT
+        //? if cheat {
         register<MainThreadPacketReceivedEvent.Pre> {
             if (! closeChest.value) return@register
             if (! LocationUtils.inDungeon) return@register
@@ -108,10 +108,10 @@ object Secrets: Feature() {
         }
 
         register<GameStartEvent> { if (lever.value || button.value) ModCompatibility.disableBlockstateCulling() }
-        //#endif
+        //? }
     }
 
-    //#if CHEAT
+    //? if cheat {
     override fun onEnable() {
         super.onEnable()
         if (lever.value || button.value) ModCompatibility.disableBlockstateCulling()
@@ -151,5 +151,5 @@ object Secrets: Feature() {
         if (pos in blackListedLevers && LocationUtils.dungeonFloorNumber == 7) return false
         return true
     }
-    //#endif
+    //? }
 }

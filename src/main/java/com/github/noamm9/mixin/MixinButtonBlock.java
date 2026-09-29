@@ -1,6 +1,6 @@
 package com.github.noamm9.mixin;
 
-//#if CHEAT
+//? if cheat {
 
 import com.github.noamm9.features.impl.dungeon.Secrets;
 import net.minecraft.core.BlockPos;
@@ -23,4 +23,4 @@ public class MixinButtonBlock {
         }
     }
 }
-//#endif
+//? }

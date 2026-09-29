@@ -10,10 +10,10 @@ import org.spongepowered.asm.mixin.injection.At;
 public abstract class MixinKeyboardInput {
     @ModifyExpressionValue(method = "tick", at = @At(value = "NEW", target = "(ZZZZZZZ)Lnet/minecraft/world/entity/player/Input;"))
     private Input resolveSnappyTappyInput(Input original) {
-        //#if CHEAT
+        //? if cheat {
         return com.github.noamm9.features.impl.misc.SnappyTappy.resolveInput(original);
-        //#else
-        //$return original;
-        //#endif
+        //? } else {
+        /*return original;*/
+        //? }
     }
 }

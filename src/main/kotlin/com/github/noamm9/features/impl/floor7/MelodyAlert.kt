@@ -56,7 +56,11 @@ object MelodyAlert: Feature() {
             for (i in progressSlots.indices) {
                 if (i <= currentStage) continue
 
-                if (player.containerMenu.getSlot(progressSlots[i]).item.`is`(Items.LIME_TERRACOTTA)) {
+                //? if <26.2 {
+                /*if (player.containerMenu.getSlot(progressSlots[i]).item.`is`(Items.LIME_TERRACOTTA)) {*/
+                //? } else {
+                if (player.containerMenu.getSlot(progressSlots[i]).item.`is`(Items.DYED_TERRACOTTA.lime())) {
+                //? }
                     //val progress = if (mode.value == 0) "${i + 1}/3" else "${(i + 1) * 33}%" todo
                     val progress = if (mode.value == 0) "${i + 1}/4" else "${(i + 1) * 25}%"
                     ChatUtils.sendPartyMessage("${msg.value} $progress")

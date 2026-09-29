@@ -1,4 +1,8 @@
 package com.github.noamm9.ui.clickgui.components
+//? if >=26.2 {
+
+import com.mojang.blaze3d.platform.InputConstants
+//? }
 
 import com.github.noamm9.NoammAddons.MOD_NAME
 import com.github.noamm9.features.Feature
@@ -134,12 +138,20 @@ class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private 
 
     fun mouseClicked(mouseX: Double, mouseY: Double, button: Int) {
         if (isMouseOverHeader(mouseX, mouseY)) {
-            if (button == 0) {
+            //? if <26.2 {
+            /*if (button == 0) {*/
+            //? } else {
+            if (button == InputConstants.MOUSE_BUTTON_LEFT) {
+            //? }
                 dragging = true
                 dragX = (mouseX - x).toInt()
                 dragY = (mouseY - y).toInt()
             }
-            else if (button == 1) {
+            //? if <26.2 {
+            /*else if (button == 1) {*/
+            //? } else {
+            else if (button == InputConstants.MOUSE_BUTTON_RIGHT) {
+            //? }
                 collapsed = ! collapsed
                 Style.playClickSound(if (collapsed) 0.8f else 1.1f)
             }
@@ -158,11 +170,19 @@ class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private 
 
         filteredFeatures.forEach { feature ->
             if (mouseX >= x && mouseX <= x + WIDTH && mouseY >= currentY && mouseY <= currentY + BUTTON_HEIGHT) {
-                if (button == 0) {
+                //? if <26.2 {
+                /*if (button == 0) {*/
+                //? } else {
+                if (button == InputConstants.MOUSE_BUTTON_LEFT) {
+                //? }
                     feature.toggle()
                     return
                 }
-                else if (button == 1) {
+                //? if <26.2 {
+                /*else if (button == 1) {*/
+                //? } else {
+                else if (button == InputConstants.MOUSE_BUTTON_RIGHT) {
+                //? }
                     openFeature(feature)
                     return
                 }
@@ -172,7 +192,11 @@ class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private 
     }
 
     fun mouseReleased(button: Int) {
-        if (button == 0) dragging = false
+        //? if <26.2 {
+        /*if (button == 0) dragging = false*/
+        //? } else {
+        if (button == InputConstants.MOUSE_BUTTON_LEFT) dragging = false
+        //? }
     }
 
     private fun getSorting(): Collection<Feature> {

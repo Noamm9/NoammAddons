@@ -1,12 +1,19 @@
 package com.github.noamm9.ui.clickgui.components.settings.impl
 
+//? if >=26.2 {
+import com.github.noamm9.NoammAddons.mc
+//? }
 import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.clickgui.components.settings.Widget
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
-import gg.essential.universal.UKeyboard
+//? if <26.2 {
+/*import gg.essential.universal.UKeyboard*/
+//? } else {
+import com.mojang.blaze3d.platform.InputConstants
+//? }
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 import kotlin.math.abs
@@ -16,6 +23,20 @@ class SliderWidget<T: Number>(config: SliderSetting<T>): Widget<T>(config) {
 
     private var dragging = false
     private var isTyping = false
+        //? if <26.2 {
+        //? } else if <26.3 {
+        /*set(value) {
+            if (field == value) return
+            field = value
+            mc.textInputManager().onTextInputFocusChange(value)
+        }*/
+        //? } else {
+        set(value) {
+            if (field == value) return
+            field = value
+            mc.textInputManager().onTextInputFocusChange(this, value)
+        }
+        //? }
     private var inputBuffer = ""
 
     private val hoverAnim = Animation(200)
@@ -48,8 +69,18 @@ class SliderWidget<T: Number>(config: SliderSetting<T>): Widget<T>(config) {
         Style.drawSlider(ctx, x + 8f, y + 14f, width - 16f, sliderAnim.value, Style.accentColor)
     }
 
+    //? if >=26.2 {
+    override fun clearFocus() {
+        isTyping = false
+    }
+
+    //? }
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
-        if (button == 0 && mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
+        //? if <26.2 {
+        /*if (button == 0 && mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {*/
+        //? } else {
+        if (button == InputConstants.MOUSE_BUTTON_LEFT && mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
+        //? }
             val valStrWidth = cfg.stringfy(value).width()
             val textX = x + width - valStrWidth - 8f
 
@@ -75,7 +106,11 @@ class SliderWidget<T: Number>(config: SliderSetting<T>): Widget<T>(config) {
     override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
         if (isTyping) {
             when (keyCode) {
-                UKeyboard.KEY_ENTER -> {
+                //? if <26.2 {
+                /*UKeyboard.KEY_ENTER -> {*/
+                //? } else {
+                InputConstants.KEY_RETURN -> {
+                //? }
                     val parsed = inputBuffer.toDoubleOrNull()
                     if (parsed != null) {
                         value = cfg.snapToStep(parsed)
@@ -83,8 +118,13 @@ class SliderWidget<T: Number>(config: SliderSetting<T>): Widget<T>(config) {
                     isTyping = false
                 }
 
-                UKeyboard.KEY_ESCAPE -> isTyping = false
-                UKeyboard.KEY_BACKSPACE -> {
+                //? if <26.2 {
+                /*UKeyboard.KEY_ESCAPE -> isTyping = false
+                UKeyboard.KEY_BACKSPACE -> {*/
+                //? } else {
+                InputConstants.KEY_ESCAPE -> isTyping = false
+                InputConstants.KEY_BACKSPACE -> {
+                //? }
                     if (inputBuffer.isNotEmpty()) inputBuffer = inputBuffer.dropLast(1)
                 }
             }

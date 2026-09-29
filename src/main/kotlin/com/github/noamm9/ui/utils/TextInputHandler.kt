@@ -1,16 +1,28 @@
 package com.github.noamm9.ui.utils
 
-import com.github.noamm9.NoammAddons
+//? if <26.2 {
+/*import com.github.noamm9.NoammAddons*/
+//? } else {
+import com.github.noamm9.NoammAddons.mc
+//? }
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.scissor
 import com.github.noamm9.utils.render.RenderHelper.width
-import gg.essential.universal.UKeyboard
+//? if <26.2 {
+/*import gg.essential.universal.UKeyboard*/
+//? } else {
+import com.mojang.blaze3d.platform.InputConstants
+//? }
 import net.minecraft.client.gui.GuiGraphicsExtractor
-import net.minecraft.client.input.CharacterEvent
+//? if <26.2 {
+/*import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
-import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.client.input.MouseButtonEvent*/
+//? } else {
+import net.minecraft.client.input.*
+//? }
 import net.minecraft.util.StringUtil
 import kotlin.math.max
 import kotlin.math.min
@@ -48,6 +60,20 @@ class TextInputHandler(
     private var caretBlinkTime = System.currentTimeMillis()
     private var lastClickTime = 0L
     var listening = false
+        //? if <26.2 {
+        //? } else if <26.3 {
+        /*set(value) {
+            if (field == value) return
+            field = value
+            mc.textInputManager().onTextInputFocusChange(value)
+        }*/
+        //? } else {
+        set(value) {
+            if (field == value) return
+            field = value
+            mc.textInputManager().onTextInputFocusChange(this, value)
+        }
+        //? }
     private var dragging = false
     private var clickCount = 1
 
@@ -95,7 +121,11 @@ class TextInputHandler(
             resetState()
             return false
         }
-        if (click.button() != 0) return false
+        //? if <26.2 {
+        /*if (click.button() != 0) return false*/
+        //? } else {
+        if (click.button() != InputConstants.MOUSE_BUTTON_LEFT) return false
+        //? }
 
         listening = true
         dragging = true
@@ -128,7 +158,11 @@ class TextInputHandler(
     fun keyPressed(input: KeyEvent): Boolean {
         if (! listening) return false
         val returnValue = when (input.key) {
-            UKeyboard.KEY_BACKSPACE -> {
+            //? if <26.2 {
+            /*UKeyboard.KEY_BACKSPACE -> {*/
+            //? } else {
+            InputConstants.KEY_BACKSPACE -> {
+            //? }
                 if (selection != caret) deleteSelection()
                 else if (input.hasControlDown()) {
                     val previousSpace = getPreviousSpace()
@@ -143,7 +177,11 @@ class TextInputHandler(
                 selection != caret || input.hasControlDown() || caret != 0
             }
 
-            UKeyboard.KEY_DELETE -> {
+            //? if <26.2 {
+            /*UKeyboard.KEY_DELETE -> {*/
+            //? } else {
+            InputConstants.KEY_DELETE -> {
+            //? }
                 if (selection != caret) deleteSelection()
                 else if (input.hasControlDown()) {
                     val nextSpace = getNextSpace()
@@ -158,7 +196,11 @@ class TextInputHandler(
                 selection != caret || input.hasControlDown() || caret != text.length
             }
 
-            UKeyboard.KEY_RIGHT -> {
+            //? if <26.2 {
+            /*UKeyboard.KEY_RIGHT -> {*/
+            //? } else {
+            InputConstants.KEY_RIGHT -> {
+            //? }
                 if (caret != text.length) {
                     caret = if (input.hasControlDown()) getNextSpace() else caret + 1
                     if (! input.hasShiftDown()) selection = caret
@@ -167,7 +209,11 @@ class TextInputHandler(
                 else false
             }
 
-            UKeyboard.KEY_LEFT -> {
+            //? if <26.2 {
+            /*UKeyboard.KEY_LEFT -> {*/
+            //? } else {
+            InputConstants.KEY_LEFT -> {
+            //? }
                 if (caret != 0) {
                     caret = if (input.hasControlDown()) getPreviousSpace() else caret - 1
                     if (! input.hasShiftDown()) selection = caret
@@ -176,19 +222,31 @@ class TextInputHandler(
                 else false
             }
 
-            UKeyboard.KEY_HOME -> {
+            //? if <26.2 {
+            /*UKeyboard.KEY_HOME -> {*/
+            //? } else {
+            InputConstants.KEY_HOME -> {
+            //? }
                 caret = 0
                 if (! input.hasShiftDown()) selection = caret
                 true
             }
 
-            UKeyboard.KEY_END -> {
+            //? if <26.2 {
+            /*UKeyboard.KEY_END -> {*/
+            //? } else {
+            InputConstants.KEY_END -> {
+            //? }
                 caret = text.length
                 if (! input.hasShiftDown()) selection = caret
                 true
             }
 
-            UKeyboard.KEY_ESCAPE, UKeyboard.KEY_ENTER -> {
+            //? if <26.2 {
+            /*UKeyboard.KEY_ESCAPE, UKeyboard.KEY_ENTER -> {*/
+            //? } else {
+            InputConstants.KEY_ESCAPE, InputConstants.KEY_RETURN -> {
+            //? }
                 listening = false
                 true
             }
@@ -196,45 +254,82 @@ class TextInputHandler(
             else -> {
                 if (input.hasControlDown() && ! input.hasShiftDown()) {
                     when (input.key) {
-                        UKeyboard.KEY_V -> {
-                            insert(NoammAddons.mc.keyboardHandler.clipboard)
+                        //? if <26.2 {
+                        /*UKeyboard.KEY_V -> {
+                            insert(NoammAddons.mc.keyboardHandler.clipboard)*/
+                        //? } else {
+                        InputConstants.KEY_V -> {
+                            insert(mc.keyboardHandler.clipboard)
+                        //? }
                             true
                         }
 
-                        UKeyboard.KEY_C -> {
+                        //? if <26.2 {
+                        /*UKeyboard.KEY_C -> {*/
+                        //? } else {
+                        InputConstants.KEY_C -> {
+                        //? }
                             if (caret != selection) {
-                                NoammAddons.mc.keyboardHandler.clipboard = text.substringSafe(caret, selection)
+                                //? if <26.2 {
+                                /*NoammAddons.mc.keyboardHandler.clipboard = text.substringSafe(caret, selection)*/
+                                //? } else {
+                                mc.keyboardHandler.clipboard = text.substringSafe(caret, selection)
+                                //? }
                                 true
                             }
                             else false
                         }
 
-                        UKeyboard.KEY_X -> {
+                        //? if <26.2 {
+                        /*UKeyboard.KEY_X -> {*/
+                        //? } else {
+                        InputConstants.KEY_X -> {
+                        //? }
                             if (caret != selection) {
-                                NoammAddons.mc.keyboardHandler.clipboard = text.substringSafe(caret, selection)
+                                //? if <26.2 {
+                                /*NoammAddons.mc.keyboardHandler.clipboard = text.substringSafe(caret, selection)*/
+                                //? } else {
+                                mc.keyboardHandler.clipboard = text.substringSafe(caret, selection)
+                                //? }
                                 deleteSelection()
                                 true
                             }
                             else false
                         }
 
-                        UKeyboard.KEY_A -> {
+                        //? if <26.2 {
+                        /*UKeyboard.KEY_A -> {*/
+                        //? } else {
+                        InputConstants.KEY_A -> {
+                        //? }
                             selection = 0
                             caret = text.length
                             true
                         }
 
-                        UKeyboard.KEY_W -> {
+                        //? if <26.2 {
+                        /*UKeyboard.KEY_W -> {*/
+                        //? } else {
+                        InputConstants.KEY_W -> {
+                        //? }
                             selectWord()
                             true
                         }
 
-                        UKeyboard.KEY_Z -> {
+                        //? if <26.2 {
+                        /*UKeyboard.KEY_Z -> {*/
+                        //? } else {
+                        InputConstants.KEY_Z -> {
+                        //? }
                             undo()
                             true
                         }
 
-                        UKeyboard.KEY_Y -> {
+                        //? if <26.2 {
+                        /*UKeyboard.KEY_Y -> {*/
+                        //? } else {
+                        InputConstants.KEY_Y -> {
+                        //? }
                             redo()
                             true
                         }

@@ -21,7 +21,7 @@ object DungeonMap: Feature() {
         register<RenderWorldEvent> {
             if (! enabled || ! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
 
-            //#if CHEAT
+            //? if cheat {
             val mimicRoom = DungeonScanner.mimicRoom
             if (MapConfig.mimicEsp.value && ! ScoreCalculation.mimicKilled && mimicRoom != null) {
                 for (chestPos in mimicRoom.trappedChestPositions) {
@@ -34,7 +34,7 @@ object DungeonMap: Feature() {
                     event.ctx.renderBlock(chestPos, MapConfig.mimicEspColor.value, phase = true)
                 }
             }
-            //#endif
+            //? }
 
             if (! MapConfig.boxDoors.value) return@register
             val shouldHideUndiscovered = ! MapConfig.dungeonMapCheater.value ||

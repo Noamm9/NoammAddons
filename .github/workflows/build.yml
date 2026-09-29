@@ -5,16 +5,17 @@ on:
     paths: &build-paths
       - ".gitattributes"
       - ".github/workflows/build.yml"
-      - "buildSrc/**"
       - "gradle/**"
       - "src/**"
+      - "versions/**/gradle.properties"
       - "build.gradle.kts"
       - "gradle.properties"
       - "gradlew"
       - "LICENSE"
       - "settings.gradle.kts"
+      - "stonecutter.gradle.kts"
   push:
-    branches: ["26.1.2", "26.2"]
+    branches: ["main"]
     paths: *build-paths
 
 permissions:
@@ -37,14 +38,15 @@ jobs:
           persist-credentials: false
           show-progress: false
           sparse-checkout: |
-            /buildSrc/
             /gradle/
             /src/
+            /versions/
             /build.gradle.kts
             /gradle.properties
             /gradlew
             /LICENSE
             /settings.gradle.kts
+            /stonecutter.gradle.kts
           sparse-checkout-cone-mode: false
 
       - name: Set up JDK 25
@@ -59,19 +61,47 @@ jobs:
         with:
           cache-read-only: ${{ github.event_name == 'pull_request' }}
 
-      - name: Build legit and cheat variants
-        run: ./gradlew build --build-cache
+      - name: Build all variants
+        run: ./gradlew build --build-cache --max-workers=2
 
-      - name: Upload legit JAR
+      - name: Upload 26.1.2 cheat JAR
         uses: actions/upload-artifact@v7.0.1
         with:
-          path: build/libs/*-legit.jar
+          path: versions/26.1.2-cheat/build/libs/*-cheat.jar
           if-no-files-found: error
           archive: false
 
-      - name: Upload cheat JAR
+      - name: Upload 26.1.2 legit JAR
         uses: actions/upload-artifact@v7.0.1
         with:
-          path: build/libs/*-cheat.jar
+          path: versions/26.1.2-legit/build/libs/*-legit.jar
+          if-no-files-found: error
+          archive: false
+
+      - name: Upload 26.2 cheat JAR
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          path: versions/26.2-cheat/build/libs/*-cheat.jar
+          if-no-files-found: error
+          archive: false
+
+      - name: Upload 26.2 legit JAR
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          path: versions/26.2-legit/build/libs/*-legit.jar
+          if-no-files-found: error
+          archive: false
+
+      - name: Upload 26.3 cheat JAR
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          path: versions/26.3-cheat/build/libs/*-cheat.jar
+          if-no-files-found: error
+          archive: false
+
+      - name: Upload 26.3 legit JAR
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          path: versions/26.3-legit/build/libs/*-legit.jar
           if-no-files-found: error
           archive: false

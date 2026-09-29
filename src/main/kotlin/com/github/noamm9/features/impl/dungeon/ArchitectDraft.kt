@@ -12,9 +12,9 @@ import com.github.noamm9.utils.location.LocationUtils
 object ArchitectDraft: Feature("Architect Draft") {
     private val sayDraft by ToggleSetting("Announce Draft", true)
 
-    //#if CHEAT
+    //? if cheat {
     private val autoDraft by ToggleSetting("Auto Draft", true)
-    //#endif
+    //? }
 
     private val resetPattern = Regex("^You used the Architect's First Draft to reset (.+)!$")
     private val failPattern1 = Regex("^PUZZLE FAIL! (?<player>\\w{1,16}) .+$")
@@ -30,7 +30,7 @@ object ArchitectDraft: Feature("Architect Draft") {
                 ChatUtils.sendPartyMessage("Used Draft to Reset $puzzleName")
             }
 
-            //#if CHEAT
+            //? if cheat {
             if (autoDraft.value) {
                 val match = failPattern1.find(msg) ?: failPattern2.find(msg)
                 val name = match?.groups?.get("player")?.value
@@ -38,7 +38,7 @@ object ArchitectDraft: Feature("Architect Draft") {
                     ChatUtils.sendCommand("/gfs ARCHITECT_FIRST_DRAFT 1")
                 }
             }
-            //#endif
+            //? }
         }
     }
 }

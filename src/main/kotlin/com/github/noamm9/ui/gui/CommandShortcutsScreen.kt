@@ -1,6 +1,10 @@
 @file:Suppress("NOTHING_TO_INLINE")
 
 package com.github.noamm9.ui.gui
+//? if >=26.2 {
+
+import com.mojang.blaze3d.platform.InputConstants
+//? }
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.features.impl.general.CommandShortcuts
@@ -15,7 +19,9 @@ import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.scissor
 import com.mojang.brigadier.CommandDispatcher
-import gg.essential.universal.UKeyboard
+//? if <26.2 {
+/*import gg.essential.universal.UKeyboard*/
+//? }
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
@@ -206,15 +212,24 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
     }
 
     override fun keyPressed(keyEvent: KeyEvent): Boolean {
-        if (keyEvent.key == UKeyboard.KEY_SLASH) return true
-        if (keyEvent.key == UKeyboard.KEY_BACKSLASH) return true
+        //? if <26.2 {
+        /*if (keyEvent.key == UKeyboard.KEY_SLASH) return true
+        if (keyEvent.key == UKeyboard.KEY_BACKSLASH) return true*/
+        //? } else {
+        if (keyEvent.key == InputConstants.KEY_SLASH) return true
+        if (keyEvent.key == InputConstants.KEY_BACKSLASH) return true
+        //? }
 
         rows.forEach {
             if (it.commandInput.keyPressed(keyEvent)) return true
             if (it.replacementInput.keyPressed(keyEvent)) return true
         }
 
-        if (keyEvent.key == UKeyboard.KEY_ESCAPE) {
+        //? if <26.2 {
+        /*if (keyEvent.key == UKeyboard.KEY_ESCAPE) {*/
+        //? } else {
+        if (keyEvent.key == InputConstants.KEY_ESCAPE) {
+        //? }
             onClose()
             return true
         }

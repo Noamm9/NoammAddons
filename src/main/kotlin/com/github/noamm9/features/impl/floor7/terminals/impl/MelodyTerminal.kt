@@ -23,9 +23,17 @@ object MelodyTerminal: Terminal() {
     var correct: Int? = null
 
     override fun onSlotUpdate(items: Map<Int, ItemStack>, title: String, updatedSlot: Int, updatedItem: ItemStack): Boolean {
-        if (updatedItem.item != Items.LIME_STAINED_GLASS_PANE) return true
+        //? if <26.2 {
+        /*if (updatedItem.item != Items.LIME_STAINED_GLASS_PANE) return true*/
+        //? } else {
+        if (updatedItem.item != Items.STAINED_GLASS_PANE.lime()) return true
+        //? }
 
-        val newCorrect = items.entries.find { it.value.item == Items.MAGENTA_STAINED_GLASS_PANE }?.key?.minus(1)
+        //? if <26.2 {
+        /*val newCorrect = items.entries.find { it.value.item == Items.MAGENTA_STAINED_GLASS_PANE }?.key?.minus(1)*/
+        //? } else {
+        val newCorrect = items.entries.find { it.value.item == Items.STAINED_GLASS_PANE.magenta() }?.key?.minus(1)
+        //? }
         buttonRow = (floor(updatedSlot / 9.0) - 1).toInt()
         current = updatedSlot % 9 - 1
         if (newCorrect != null) correct = newCorrect

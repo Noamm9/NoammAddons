@@ -109,11 +109,11 @@ object MapRenderer: HudElement() {
                 color = color.darker().darker()
             }
 
-            //#if CHEAT
+            //? if cheat {
             if (tile is RoomTile && tile.uniqueRoom?.hasMimic == true && MapConfig.highlightMimicRoom.value) {
                 color = color.lerp(MapConfig.colorMimic.value, 0.2)
             }
-            //#endif
+            //? }
 
             val xOffset = (x shr 1) * (MapUtils.mapRoomSize + connectorSize)
             val yOffset = (y shr 1) * (MapUtils.mapRoomSize + connectorSize)

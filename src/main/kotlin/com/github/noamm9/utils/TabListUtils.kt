@@ -38,7 +38,11 @@ object TabListUtils: ISelfInit {
         val result = mutableListOf<Pair<Component, PlayerInfo>>()
         for (info in sortedPlayers) result.add(
 
-            mc.gui.tabList.getNameForDisplay(info) to info)
+            //? if <26.2 {
+            /*mc.gui.tabList.getNameForDisplay(info) to info)*/
+            //? } else {
+            mc.gui.hud.tabList.getNameForDisplay(info) to info)
+            //? }
         return if (result.size > 80) result.subList(0, 80) else result
     }
 

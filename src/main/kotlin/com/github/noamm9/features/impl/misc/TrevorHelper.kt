@@ -1,6 +1,6 @@
 package com.github.noamm9.features.impl.misc
 
-//#if CHEAT
+//? if cheat {
 
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
@@ -191,4 +191,4 @@ object TrevorHelper: Feature("Helper features for Trevor the Trapper on the Farm
         }
     }
 }
-//#endif
+//? }

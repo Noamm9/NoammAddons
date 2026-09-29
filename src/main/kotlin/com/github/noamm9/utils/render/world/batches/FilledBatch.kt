@@ -1,14 +1,28 @@
 package com.github.noamm9.utils.render.world.batches
 
 import com.github.noamm9.utils.render.world.RenderBatcher.tmpVec
-import gg.essential.universal.UGraphics
+//? if <26.2 {
+/*import gg.essential.universal.UGraphics*/
+//? }
 import gg.essential.universal.UMatrixStack
-import gg.essential.universal.render.URenderPipeline
+//? if <26.2 {
+/*import gg.essential.universal.render.URenderPipeline*/
+//? } else {
+import net.minecraft.client.renderer.rendertype.RenderType
+//? }
 
-data class FilledBatch(val pipeline: URenderPipeline, val mode: UGraphics.DrawMode) {
+//? if <26.2 {
+/*data class FilledBatch(val pipeline: URenderPipeline, val mode: UGraphics.DrawMode) {*/
+//? } else {
+data class FilledBatch(val type: RenderType) {
+//? }
     @JvmRecord
     data class FilledRenderState(
-        val x: Double, val y: Double, val z: Double,
+        //? if <26.2 {
+        /*val x: Double, val y: Double, val z: Double,*/
+        //? } else {
+        val x: Float, val y: Float, val z: Float,
+        //? }
         val r: Float, val g: Float, val b: Float, val a: Float,
     )
 
@@ -33,7 +47,11 @@ data class FilledBatch(val pipeline: URenderPipeline, val mode: UGraphics.DrawMo
     fun vertex(pose: UMatrixStack, x: Float, y: Float, z: Float, r: Float, g: Float, b: Float, a: Float) {
         pose.peek().model.transformPosition(x, y, z, tmpVec)
         data.add(FilledRenderState(
-            tmpVec.x.toDouble(), tmpVec.y.toDouble(), tmpVec.z.toDouble(),
+            //? if <26.2 {
+            /*tmpVec.x.toDouble(), tmpVec.y.toDouble(), tmpVec.z.toDouble(),*/
+            //? } else {
+            tmpVec.x, tmpVec.y, tmpVec.z,
+            //? }
             r, g, b, a
         ))
     }
@@ -42,8 +60,10 @@ data class FilledBatch(val pipeline: URenderPipeline, val mode: UGraphics.DrawMo
         vertex(pose, x1, y1, z1, r, g, b, a)
         vertex(pose, x2, y2, z2, r, g, b, a)
         vertex(pose, x3, y3, z3, r, g, b, a)
-        vertex(pose, x1, y1, z1, r, g, b, a)
-        vertex(pose, x3, y3, z3, r, g, b, a)
+        //? if <26.2 {
+        /*vertex(pose, x1, y1, z1, r, g, b, a)
+        vertex(pose, x3, y3, z3, r, g, b, a)*/
+        //? }
         vertex(pose, x4, y4, z4, r, g, b, a)
     }
 }

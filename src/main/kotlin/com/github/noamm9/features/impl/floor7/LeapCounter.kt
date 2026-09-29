@@ -68,8 +68,16 @@ object LeapCounter: Feature("Shows how many players have leaped you") {
                 is ClientboundSetEntityMotionPacket -> level.getEntity(id)?.position()?.destructured()
                 is ClientboundTeleportEntityPacket -> packet.change.position.destructured()
                 is ClientboundAddEntityPacket -> Triple(packet.x, packet.y, packet.z)
-                is ClientboundMoveEntityPacket -> packet.getEntity(level)?.positionCodec?.decode(packet.getXa().toLong(), packet.getYa().toLong(), packet.getZa().toLong())?.destructured()
-                is ClientboundEntityPositionSyncPacket -> packet.values.position().destructured()
+                //? if <26.2 {
+                /*is ClientboundMoveEntityPacket -> packet.getEntity(level)?.positionCodec?.decode(packet.getXa().toLong(), packet.getYa().toLong(), packet.getZa().toLong())?.destructured()
+                is ClientboundEntityPositionSyncPacket -> packet.values.position().destructured()*/
+                //? } else if <26.3 {
+                /*is ClientboundMoveEntityPacket -> packet.getEntity(level)?.positionCodec?.decode(packet.xa.toLong(), packet.ya.toLong(), packet.za.toLong())?.destructured()
+                is ClientboundEntityPositionSyncPacket -> packet.values.position().destructured()*/
+                //? } else {
+                is ClientboundMoveEntityPacket -> packet.getEntity(level)?.positionCodec?.let { packet.positionDelta.decode(it).endPosition() }?.destructured()
+                is ClientboundEntityPositionSyncPacket -> packet.position.endPosition().destructured()
+                //? }
                 else -> null
             } ?: return@register
 

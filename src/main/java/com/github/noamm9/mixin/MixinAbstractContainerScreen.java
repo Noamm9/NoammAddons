@@ -79,7 +79,11 @@ public abstract class MixinAbstractContainerScreen extends Screen {
 
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
     public void onKeyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
-        if (EventBus.post(new ContainerEvent.Keyboard(this, event.key(), (char) event.input(), event.scancode(), event.modifiers()))) {
+        //? if <26.3 {
+        /*if (EventBus.post(new ContainerEvent.Keyboard(this, event.key(), (char) event.input(), event.scancode(), event.modifiers()))) {*/
+        //? } else {
+        if (EventBus.post(new ContainerEvent.Keyboard(this, event.key(), (char) event.input(), event.keycode(), event.modifiers()))) {
+        //? }
             cir.setReturnValue(true);
         }
     }
@@ -91,16 +95,26 @@ public abstract class MixinAbstractContainerScreen extends Screen {
         }
     }
 
-    @WrapOperation(method = "extractTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;setTooltipForNextFrame(Lnet/minecraft/client/gui/Font;Ljava/util/List;Ljava/util/Optional;IILnet/minecraft/resources/Identifier;)V"))
+    //? if <26.3 {
+    /*@WrapOperation(method = "extractTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;setTooltipForNextFrame(Lnet/minecraft/client/gui/Font;Ljava/util/List;Ljava/util/Optional;IILnet/minecraft/resources/Identifier;)V"))
     private void onRenderTooltipMerged(GuiGraphicsExtractor instance, Font font, List<Component> texts, Optional<TooltipComponent> optionalImage, int xo, int yo, @org.jspecify.annotations.Nullable Identifier style, Operation<Void> original, @Local ItemStack item) {
-        if (item == null || item.isEmpty() || texts.isEmpty()) original.call(instance, font, texts, optionalImage, xo, yo, style);
+        if (item == null || item.isEmpty() || texts.isEmpty()) original.call(instance, font, texts, optionalImage, xo, yo, style);*/
+    //? } else {
+    @WrapOperation(method = "extractTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;setTooltipForNextFrame(Lnet/minecraft/client/gui/Font;Ljava/util/List;Ljava/util/Optional;IILnet/minecraft/resources/Identifier;Z)V"))
+    private void onRenderTooltipMerged(GuiGraphicsExtractor instance, Font font, List<Component> texts, Optional<TooltipComponent> optionalImage, int xo, int yo, @org.jspecify.annotations.Nullable Identifier style, boolean extraSpaceAfterFirstLine, Operation<Void> original, @Local ItemStack item) {
+        if (item == null || item.isEmpty() || texts.isEmpty()) original.call(instance, font, texts, optionalImage, xo, yo, style, extraSpaceAfterFirstLine);
+    //? }
         else {
             ItemTooltip.setSlot(this.hoveredSlot.index);
 
             var event = new ContainerEvent.Render.Tooltip(this, instance, item, xo, yo, new ArrayList<>(texts));
             if (EventBus.post(event)) return;
 
-            original.call(instance, font, event.getLore(), optionalImage, xo, yo, style);
+            //? if <26.3 {
+            /*original.call(instance, font, event.getLore(), optionalImage, xo, yo, style);*/
+            //? } else {
+            original.call(instance, font, event.getLore(), optionalImage, xo, yo, style, extraSpaceAfterFirstLine);
+            //? }
         }
     }
 }
