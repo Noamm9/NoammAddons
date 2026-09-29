@@ -69,7 +69,8 @@ object NoammRenderTypes: ISelfInit {
         }.build()
     )
 
-    // 26.2 has no OIT pipeline sets, so the render types use the plain pipelines only.
+    // 26.2 has no OIT pipeline sets, so the render types use the plain pipelines only and
+    // MixinSubmitNodeCollection routes them into phases drawn after translucent terrain.
     val DEBUG_CIRCLE_FILLED = RenderType.create("NOAMM_DEBUG_CIRCLE_FILLED", RenderSetup.builder(MC_CIRCLE_FILLED_THROUGH_WALLS).sortOnUpload().createRenderSetup())
     val DEBUG_FILLED = RenderType.create("NOAMM_DEBUG_FILLED", RenderSetup.builder(MC_FILLED_THROUGH_WALLS).sortOnUpload().createRenderSetup())
     val DEBUG_LINES = RenderType.create("NOAMM_DEBUG_LINES", RenderSetup.builder(MC_LINES_THROUGH_WALLS).createRenderSetup())
@@ -77,6 +78,9 @@ object NoammRenderTypes: ISelfInit {
     val CIRCLE_FILLED = RenderType.create("NOAMM_CIRCLE_FILLED", RenderSetup.builder(MC_CIRCLE_FILLED).sortOnUpload().createRenderSetup())
     val FILLED = RenderType.create("NOAMM_FILLED", RenderSetup.builder(MC_FILLED).sortOnUpload().createRenderSetup())
     val LINES = RenderType.create("NOAMM_LINES", RenderSetup.builder(MC_LINES).createRenderSetup())
+
+    @JvmField val alwaysOnTopTypes = setOf(DEBUG_FILLED, DEBUG_CIRCLE_FILLED, DEBUG_LINES)
+    @JvmField val afterTerrainTypes = setOf(FILLED, CIRCLE_FILLED, LINES)
 
     override fun init() {
         IrisCompatibility.registerPipeline(MC_FILLED, IrisShaderType.LINES)
