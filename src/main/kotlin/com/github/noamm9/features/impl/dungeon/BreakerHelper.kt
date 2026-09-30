@@ -37,8 +37,7 @@ object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
             if (event.item?.skyblockId != "DUNGEONBREAKER") return@register
             val block = WorldUtils.getBlockAt(event.pos)
             if (block !in blacklist) return@register
-            if (block is SkullBlock
-                && (mc.level?.getBlockEntity(event.pos) as? SkullBlockEntity)?.ownerProfile?.partialProfile()?.id.toString().equalsOneOf(*REDSTONE_KEY)) return@register
+            if (block is SkullBlock && (level.getBlockEntity(event.pos) as? SkullBlockEntity)?.ownerProfile?.partialProfile()?.id.toString().equalsOneOf(*REDSTONE_KEY)) return@register
             event.isCanceled = true
         }
     }
