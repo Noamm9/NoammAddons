@@ -1,5 +1,5 @@
 //? if >=26.3 {
-package com.github.noamm9.config.migrators
+/*package com.github.noamm9.config.migrators
 
 /**
  * Used to convert old GLFW keybinds to SDL
@@ -139,4 +139,4 @@ object LegacyKeybinds {
         348 to 118,
     )
 }
-//? }
+*///? }

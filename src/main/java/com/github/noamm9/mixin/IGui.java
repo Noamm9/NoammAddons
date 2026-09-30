@@ -1,5 +1,5 @@
 //? if >=26.2 {
-package com.github.noamm9.mixin;
+/*package com.github.noamm9.mixin;
 
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.screens.Screen;
@@ -11,4 +11,4 @@ public interface IGui {
     @Accessor("screen")
     void setScreenDirect(Screen screen);
 }
-//? }
+*///? }

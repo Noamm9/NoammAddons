@@ -1,26 +1,18 @@
 package com.github.noamm9.ui.clickgui.components
-//? if >=26.2 {
-
-import com.mojang.blaze3d.platform.InputConstants
-//? }
 
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.TooltipManager
-import com.github.noamm9.ui.clickgui.components.settings.Style
-import com.github.noamm9.ui.clickgui.components.settings.Widget
-import com.github.noamm9.ui.clickgui.components.settings.WidgetFactory
+import com.github.noamm9.ui.clickgui.components.settings.*
 import com.github.noamm9.ui.clickgui.components.settings.impl.CategoryWidget
 import com.github.noamm9.ui.clickgui.components.settings.impl.SeparatorWidget
 import com.github.noamm9.ui.clickgui.enums.WindowClickAction
-import com.github.noamm9.ui.utils.Animation
-import com.github.noamm9.ui.utils.MouseHelper
-import com.github.noamm9.ui.utils.ResizeCorner
-import com.github.noamm9.ui.utils.Resolution
+import com.github.noamm9.ui.utils.*
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
+import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
@@ -190,19 +182,11 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         val mx = mouseX.toFloat()
         val my = mouseY.toFloat()
 
-        //? if <26.2 {
-        /*if (button == 0 && isInsideCloseButton(mx, my)) {
-        *///? } else {
         if (button == InputConstants.MOUSE_BUTTON_LEFT && isInsideCloseButton(mx, my)) {
-        //? }
             return WindowClickAction.CLOSE
         }
 
-        //? if <26.2 {
-        /*if (button == 0) {
-        *///? } else {
         if (button == InputConstants.MOUSE_BUTTON_LEFT) {
-        //? }
             val hoveredHandle = getResizeCorner(mx, my)
             if (hoveredHandle != ResizeCorner.NONE) {
                 beginResize(hoveredHandle, mx, my)
@@ -217,11 +201,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
             }
         }
 
-        //? if <26.2 {
-        /*if (button == 0 && maxScroll > 0f) {
-        *///? } else {
         if (button == InputConstants.MOUSE_BUTTON_LEFT && maxScroll > 0f) {
-        //? }
             val barX = scrollbarX
             val hitWidth = 8f
             if (mx >= barX - 3f && mx <= barX + hitWidth && my >= contentTop && my <= contentBottom) {
@@ -252,16 +232,11 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         return WindowClickAction.CONSUMED
     }
 
-    //? if >=26.2 {
-    fun clearFocus() = settings.forEach { it.clearFocus() }
+    //? if >=26.2
+    //fun clearFocus() = settings.forEach { it.clearFocus() }
 
-    //? }
     fun mouseReleased(button: Int) {
-        //? if <26.2 {
-        /*if (button == 0) {
-        *///? } else {
         if (button == InputConstants.MOUSE_BUTTON_LEFT) {
-        //? }
             dragging = false
             resizeCorner = ResizeCorner.NONE
             scrollbarDragging = false

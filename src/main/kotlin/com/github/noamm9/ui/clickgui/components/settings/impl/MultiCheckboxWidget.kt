@@ -1,8 +1,4 @@
 package com.github.noamm9.ui.clickgui.components.settings.impl
-//? if >=26.2 {
-
-import com.mojang.blaze3d.platform.InputConstants
-//? }
 
 import com.github.noamm9.config.types.MultiCheckboxSetting
 import com.github.noamm9.ui.clickgui.components.settings.Style
@@ -11,6 +7,7 @@ import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.scissor
+import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
@@ -56,11 +53,7 @@ class MultiCheckboxWidget(config: MultiCheckboxSetting): Widget<MutableMap<Strin
 
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
         if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + 20) {
-            //? if <26.2 {
-            /*if (button == 0) {
-            *///? } else {
             if (button == InputConstants.MOUSE_BUTTON_LEFT) {
-            //? }
                 expanded = ! expanded
                 Style.playClickSound(1f)
                 return true
@@ -71,11 +64,7 @@ class MultiCheckboxWidget(config: MultiCheckboxSetting): Widget<MutableMap<Strin
             var currentOy = y + 20
             value.keys.toList().forEach { optionKey ->
                 if (mouseX >= x && mouseX <= x + width && mouseY >= currentOy && mouseY <= currentOy + 16) {
-                    //? if <26.2 {
-                    /*if (button == 0) {
-                    *///? } else {
                     if (button == InputConstants.MOUSE_BUTTON_LEFT) {
-                    //? }
                         value[optionKey] = ! (value[optionKey] ?: false)
                         Style.playClickSound(if (value[optionKey] == true) 1.1f else 0.9f)
                         return true

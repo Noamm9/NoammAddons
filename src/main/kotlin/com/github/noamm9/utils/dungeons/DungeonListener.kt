@@ -24,7 +24,7 @@ import net.minecraft.client.multiplayer.PlayerInfo
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.network.protocol.game.*
 //~ if >= 26.2 '.EntityType' -> '.EntityTypes'
-import net.minecraft.world.entity.EntityTypes
+import net.minecraft.world.entity.EntityType
 import java.util.concurrent.*
 
 object DungeonListener: ISelfInit {
@@ -96,7 +96,7 @@ object DungeonListener: ISelfInit {
 
                 is ClientboundAddEntityPacket -> {
                     //~ if >= 26.2 'EntityType' -> 'EntityTypes'
-                    if (packet.type != EntityTypes.PLAYER) return@register
+                    if (packet.type != EntityType.PLAYER) return@register
                     val entity = mc.level?.getEntity(packet.id) as? AbstractClientPlayer ?: return@register
                     dungeonTeammates.find { it.entity == null && it.name == entity.name.string }?.entity = entity
                 }

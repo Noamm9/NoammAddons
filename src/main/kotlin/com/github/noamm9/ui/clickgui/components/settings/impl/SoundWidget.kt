@@ -9,17 +9,10 @@ import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.scissor
 import com.github.noamm9.utils.render.RenderHelper.width
-import net.minecraft.client.gui.GuiGraphicsExtractor
-import net.minecraft.client.input.CharacterEvent
-import net.minecraft.client.input.KeyEvent
-import net.minecraft.client.input.MouseButtonEvent
-import net.minecraft.client.input.MouseButtonInfo
-import net.minecraft.sounds.SoundEvent
-//? if <26.2 {
-/*import org.lwjgl.glfw.GLFW
-*///? } else {
 import com.mojang.blaze3d.platform.InputConstants
-//? }
+import net.minecraft.client.gui.GuiGraphicsExtractor
+import net.minecraft.client.input.*
+import net.minecraft.sounds.SoundEvent
 import java.awt.Color
 import kotlin.math.max
 
@@ -131,11 +124,7 @@ class SoundWidget(config: SoundSetting): Widget<SoundEvent>(config) {
         }
 
         if (expanded) {
-            //? if <26.2 {
-            /*val event = MouseButtonEvent(mouseX, mouseY, MouseButtonInfo(button, GLFW.GLFW_PRESS))
-            *///? } else {
-            val event = MouseButtonEvent(mouseX, mouseY, MouseButtonInfo(button, 0))
-            //? }
+            val event = MouseButtonEvent(mouseX, mouseY, MouseButtonInfo(button, InputConstants.PRESS))
             if (searchHandler.mouseClicked(mouseX.toFloat(), mouseY.toFloat(), event)) return true
 
             val listY = y + 20 + searchHeight
@@ -145,11 +134,7 @@ class SoundWidget(config: SoundSetting): Widget<SoundEvent>(config) {
 
                 if (index in filteredSounds.indices) {
                     val sound = filteredSounds[index]
-                    //? if <26.2 {
-                    /*if (button == 0) {
-                    *///? } else {
                     if (button == InputConstants.MOUSE_BUTTON_LEFT) {
-                    //? }
                         value = SoundSetting.getSound(sound.location()) !!.value()
                         Style.playClickSound(1f)
                         expanded = false

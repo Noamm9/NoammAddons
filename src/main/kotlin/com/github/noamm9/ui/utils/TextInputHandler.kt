@@ -47,13 +47,13 @@ class TextInputHandler(
 
     var listening = false
         //? if >=26.2 {
-        set(value) {
+        /*set(value) {
             if (field == value) return
             field = value
             //~ if 26.2 '(this, value)' -> '(value)'
             mc.textInputManager().onTextInputFocusChange(this, value)
         }
-    //? }
+    *///? }
 
     private var dragging = false
     private var clickCount = 1

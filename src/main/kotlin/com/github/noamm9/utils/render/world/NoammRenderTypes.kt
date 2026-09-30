@@ -9,7 +9,7 @@ import com.github.noamm9.utils.render.world.iris.IrisShaderType
 import com.mojang.blaze3d.PrimitiveTopology
 import com.mojang.blaze3d.pipeline.BlendFunction
 import com.mojang.blaze3d.pipeline.ColorTargetState
-import com.mojang.renderpearl.api.pipeline.RenderPipeline
+import com.mojang.blaze3d.pipeline.RenderPipeline
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.client.renderer.rendertype.RenderSetup
@@ -96,7 +96,7 @@ object NoammRenderTypes: ISelfInit {
     private fun id(path: String) = Identifier.fromNamespaceAndPath(NoammAddons.MOD_ID, path)
 }*/
 //? } else {
-package com.github.noamm9.utils.render.world
+/*package com.github.noamm9.utils.render.world
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.init.types.ISelfInit
@@ -215,4 +215,4 @@ object NoammRenderTypes: ISelfInit {
 
     private fun id(path: String) = Identifier.fromNamespaceAndPath(NoammAddons.MOD_ID, path)
 }
-//? }
+*///? }

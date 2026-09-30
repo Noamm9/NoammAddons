@@ -21,10 +21,9 @@ abstract class Widget<T>(val config: ConfigHolder<T>) {
     abstract fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int)
     abstract fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean
 
-    //? if >=26.2 {
-    open fun clearFocus() {}
+    //? if >=26.2
+    //open fun clearFocus() {}
 
-    //? }
     open fun mouseReleased(button: Int) {}
     open fun mouseScrolled(mouseX: Int, mouseY: Int, delta: Double) = false
 

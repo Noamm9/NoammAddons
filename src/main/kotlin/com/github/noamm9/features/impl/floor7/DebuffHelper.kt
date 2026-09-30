@@ -15,10 +15,10 @@ import net.minecraft.network.protocol.game.ClientboundBlockChangedAckPacket
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket
 import net.minecraft.sounds.SoundEvents
 //? if <26.2 {
-/*import org.lwjgl.glfw.GLFW
-*///? } else {
-import com.mojang.blaze3d.platform.InputConstants
-//? }
+import org.lwjgl.glfw.GLFW
+//? } else {
+/*import com.mojang.blaze3d.platform.InputConstants
+*///? }
 
 object DebuffHelper: Feature(description = "Automatically pulls and fires bows based on Server Ticks (Lag Proof).") {
     private val semiAuto by ToggleSetting("Semi-Auto", true).withDescription("Automatically releases and re-draws the bow.").section("Options")
@@ -50,12 +50,12 @@ object DebuffHelper: Feature(description = "Automatically pulls and fires bows b
         register<MouseClickEvent> {
             if (UMinecraft.currentScreenObj != null) return@register
             //? if <26.2 {
-            /*if (event.button != 1) return@register
+            if (event.button != 1) return@register
             holdingRC = event.action == GLFW.GLFW_PRESS
-            *///? } else {
-            if (event.button != InputConstants.MOUSE_BUTTON_RIGHT) return@register
+            //? } else {
+            /*if (event.button != InputConstants.MOUSE_BUTTON_RIGHT) return@register
             holdingRC = event.action == InputConstants.PRESS
-            //? }
+            *///? }
             if (holdingRC) return@register
             resetCharge()
         }

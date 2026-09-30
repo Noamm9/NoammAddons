@@ -6,8 +6,8 @@ import com.github.noamm9.event.impl.NoammDebugFlagEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.init.types.ISelfInit
 //? if >=26.2 {
-import com.github.noamm9.utils.render.world.Render3D.renderBillboardedCircle
-//? }
+/*import com.github.noamm9.utils.render.world.Render3D.renderBillboardedCircle
+*///? }
 import com.github.noamm9.utils.render.world.Render3D.renderBlock
 import com.github.noamm9.utils.render.world.Render3D.renderBox
 import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
@@ -36,11 +36,11 @@ object RenderTest: ISelfInit {
                 pos = base.add(0.0, 3.5, 0.0),
                 scale = 1.2f
             //? if >=26.2 {
-            )
+            /*)
 
             event.ctx.renderBillboardedCircle(
                 base.add(0.0, 5.5, 0.0), 1, Color.RED
-            //? }
+            *///? }
             )
 
             ctx.renderBlock(

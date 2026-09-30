@@ -27,16 +27,16 @@ public abstract class MixinGuiGraphicsExtractor {
 
     @WrapMethod(method = "tooltip")
     //? if <26.3 {
-    /*private void onRenderTooltipPre(Font font, List<ClientTooltipComponent> lines, int xo, int yo, ClientTooltipPositioner positioner, @org.jspecify.annotations.Nullable Identifier style, Operation<Void> original) {
-    *///? } else {
-    private void onRenderTooltipPre(Font font, List<ClientTooltipComponent> lines, int xo, int yo, ClientTooltipPositioner positioner, @org.jspecify.annotations.Nullable Identifier style, boolean extraSpaceAfterFirstLine, Operation<Void> original) {
-    //? }
+    private void onRenderTooltipPre(Font font, List<ClientTooltipComponent> lines, int xo, int yo, ClientTooltipPositioner positioner, @org.jspecify.annotations.Nullable Identifier style, Operation<Void> original) {
+    //? } else {
+    /*private void onRenderTooltipPre(Font font, List<ClientTooltipComponent> lines, int xo, int yo, ClientTooltipPositioner positioner, @org.jspecify.annotations.Nullable Identifier style, boolean extraSpaceAfterFirstLine, Operation<Void> original) {
+    *///? }
         if (Cosmetics.INSTANCE.enabled && Cosmetics.getCustomNames().getValue() && ! Cosmetics.getLoreNames().getValue()) TextReplacer.drawingTooltip = true;
         //? if <26.3 {
-        /*if (! ItemTooltip.isScrollingEnabled()) original.call(font, lines, xo, yo, positioner, style);
-        *///? } else {
-        if (! ItemTooltip.isScrollingEnabled()) original.call(font, lines, xo, yo, positioner, style, extraSpaceAfterFirstLine);
-        //? }
+        if (! ItemTooltip.isScrollingEnabled()) original.call(font, lines, xo, yo, positioner, style);
+        //? } else {
+        /*if (! ItemTooltip.isScrollingEnabled()) original.call(font, lines, xo, yo, positioner, style, extraSpaceAfterFirstLine);
+        *///? }
         else {
             pose.pushMatrix();
             pose.translate(xo, yo);
@@ -44,10 +44,10 @@ public abstract class MixinGuiGraphicsExtractor {
             pose.translate(ItemTooltip.scrollAmountX, ItemTooltip.scrollAmountY);
             pose.translate(- xo, - yo);
             //? if <26.3 {
-            /*original.call(font, lines, xo, yo, positioner, style);
-            *///? } else {
-            original.call(font, lines, xo, yo, positioner, style, extraSpaceAfterFirstLine);
-            //? }
+            original.call(font, lines, xo, yo, positioner, style);
+            //? } else {
+            /*original.call(font, lines, xo, yo, positioner, style, extraSpaceAfterFirstLine);
+            *///? }
             pose.popMatrix();
         }
 

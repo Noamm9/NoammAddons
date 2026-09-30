@@ -108,28 +108,28 @@ object BloodCamp: Feature("Features for Blood Room.") {
             if (LocationUtils.inBoss) return@register
             val packet = event.packet as? ClientboundMoveEntityPacket ?: return@register
             //? if <26.2 {
-            /*if (packet.xa == 0.toShort() && packet.ya == 0.toShort() && packet.za == 0.toShort()) return@register
-            *///? } else if <26.3 {
+            if (packet.xa == 0.toShort() && packet.ya == 0.toShort() && packet.za == 0.toShort()) return@register
+            //? } else if <26.3 {
             /*if (packet.xa == 0.toShort() && packet.za == 0.toShort()) return@register*/
             //? } else {
-            if (! packet.positionDelta.hasDeltaX() && ! packet.positionDelta.hasDeltaZ()) return@register
-            //? }
+            /*if (! packet.positionDelta.hasDeltaX() && ! packet.positionDelta.hasDeltaZ()) return@register
+            *///? }
             val entity = packet.getEntity(level) as? ArmorStand ?: return@register
             if (watcherEntity?.let { it.distanceToSqr(entity) <= 400 } != true) return@register
             val item = entity.getItemBySlot(EquipmentSlot.HEAD).takeIf { it.`is`(Items.PLAYER_HEAD) } ?: return@register
             if (ItemUtils.getSkullTexture(item) !in mobSkulls) return@register
 
             //? if <26.2 {
-            /*val packetVec = Vec3(
+            val packetVec = Vec3(
                 entity.x + (packet.xa / 4096),
                 entity.y + (packet.ya / 4096),
                 entity.z + (packet.za / 4096)
             )
-            *///? } else if <26.3 {
+            //? } else if <26.3 {
             /*val packetVec = entity.positionCodec.decode(packet.xa.toLong(), packet.ya.toLong(), packet.za.toLong())*/
             //? } else {
-            val packetVec = packet.positionDelta.decode(entity.positionCodec).endPosition()
-            //? }
+            /*val packetVec = packet.positionDelta.decode(entity.positionCodec).endPosition()
+            *///? }
 
             val data = bloodMobs.getOrPut(entity) {
                 BloodEntity(packetVec, DungeonListener.currentTime, firstSpawns)

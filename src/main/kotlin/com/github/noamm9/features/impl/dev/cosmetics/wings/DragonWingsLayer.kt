@@ -27,10 +27,10 @@ class DragonWingsLayer(parent: RenderLayerParent<AvatarRenderState, PlayerModel>
         poseStack.translate(0f, 0.09f, 0.15f)
         poseStack.scale(scale, scale, scale)
         //? if <26.3 {
-        /*collector.submitModel(wingsModel, state, poseStack, renderType, light, OverlayTexture.NO_OVERLAY, state.outlineColor, null)
-        *///? } else {
-        collector.submitModel(wingsModel, state, poseStack, renderType, light, OverlayTexture.NO_OVERLAY, state.outlineColor)
-        //? }
+        collector.submitModel(wingsModel, state, poseStack, renderType, light, OverlayTexture.NO_OVERLAY, state.outlineColor, null)
+        //? } else {
+        /*collector.submitModel(wingsModel, state, poseStack, renderType, light, OverlayTexture.NO_OVERLAY, state.outlineColor)
+        *///? }
         poseStack.popPose()
     }
 }

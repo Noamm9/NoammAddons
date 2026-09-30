@@ -8,9 +8,9 @@ import net.minecraft.client.renderer.fog.FogData;
 import net.minecraft.client.renderer.fog.environment.LavaFogEnvironment;
 import net.minecraft.client.renderer.fog.environment.WaterFogEnvironment;
 //? if >=26.3 {
-import org.joml.Vector3f;
+/*import org.joml.Vector3f;
 import org.joml.Vector3fc;
-//? }
+*///? }
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -33,26 +33,26 @@ public abstract class MixinLavaFogEnvironment {
 
     @Inject(method = "getBaseColor", at = @At("HEAD"), cancellable = true)
     //? if <26.3 {
-    /*private void hookGetBaseColor(ClientLevel level, Camera camera, int renderDistance, float partialTicks, CallbackInfoReturnable<Integer> cir) {
-    *///? } else {
-    private void hookGetBaseColor(ClientLevel level, Camera camera, int renderDistance, float partialTicks, CallbackInfoReturnable<Vector3fc> cir) {
-    //? }
+    private void hookGetBaseColor(ClientLevel level, Camera camera, int renderDistance, float partialTicks, CallbackInfoReturnable<Integer> cir) {
+    //? } else {
+    /*private void hookGetBaseColor(ClientLevel level, Camera camera, int renderDistance, float partialTicks, CallbackInfoReturnable<Vector3fc> cir) {
+    *///? }
         if (! LavaToWater.INSTANCE.enabled) return;
         //? if <26.3 {
-        /*int color;
-        *///? } else {
-        Vector3fc color;
-        //? }
+        int color;
+        //? } else {
+        /*Vector3fc color;
+        *///? }
 
         //? if <26.3 {
-        /*if (LavaToWater.getColorTint().getValue()) color = LavaToWater.getTintColor().getValue().getRGB();
+        if (LavaToWater.getColorTint().getValue()) color = LavaToWater.getTintColor().getValue().getRGB();
         else color = WATER_FOG.getBaseColor(level, camera, renderDistance, partialTicks);
-        *///? } else {
-        if (LavaToWater.getColorTint().getValue()) {
+        //? } else {
+        /*if (LavaToWater.getColorTint().getValue()) {
             var tint = LavaToWater.getTintColor().getValue();
             color = new Vector3f(tint.getRed() / 255f, tint.getGreen() / 255f, tint.getBlue() / 255f);
         } else color = WATER_FOG.getBaseColor(level, camera, renderDistance, partialTicks);
-        //? }
+        *///? }
 
         cir.setReturnValue(color);
     }

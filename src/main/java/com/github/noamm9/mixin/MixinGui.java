@@ -14,10 +14,10 @@ import com.github.noamm9.utils.location.LocationUtils;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 //? if <26.2 {
-/*import net.minecraft.client.gui.Gui;
-*///? } else {
-import net.minecraft.client.gui.Hud;
-//? }
+import net.minecraft.client.gui.Gui;
+//? } else {
+/*import net.minecraft.client.gui.Hud;
+*///? }
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
@@ -32,10 +32,10 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 //? if <26.2 {
-/*@Mixin(Gui.class)
-*///? } else {
-@Mixin(Hud.class)
-//? }
+@Mixin(Gui.class)
+//? } else {
+/*@Mixin(Hud.class)
+*///? }
 public abstract class MixinGui {
     @Shadow
     @Final
@@ -84,16 +84,16 @@ public abstract class MixinGui {
     }
 
     //? if <26.2 {
-    /*@Inject(method = "extractRenderState", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;extractSleepOverlay(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/DeltaTracker;)V"))
-    *///? } else {
-    @Inject(method = "extractRenderState", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Hud;extractSleepOverlay(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/DeltaTracker;)V"))
-    //? }
+    @Inject(method = "extractRenderState", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;extractSleepOverlay(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/DeltaTracker;)V"))
+    //? } else {
+    /*@Inject(method = "extractRenderState", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Hud;extractSleepOverlay(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/DeltaTracker;)V"))
+    *///? }
     public void onRenderHud(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
         //? if <26.2 {
-        /*if (this.minecraft.options.hideGui) return;
-        *///? } else {
-        if (((Hud) (Object) this).isHidden()) return;
-        //? }
+        if (this.minecraft.options.hideGui) return;
+        //? } else {
+        /*if (((Hud) (Object) this).isHidden()) return;
+        *///? }
         if (this.minecraft.debugEntries.isOverlayVisible()) return;
         EventBus.post(new RenderOverlayEvent(graphics));
 

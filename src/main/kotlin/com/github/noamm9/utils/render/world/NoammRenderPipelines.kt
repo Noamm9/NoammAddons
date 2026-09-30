@@ -1,11 +1,11 @@
 //? if <26.2 {
-/*package com.github.noamm9.utils.render.world
+package com.github.noamm9.utils.render.world
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.render.world.iris.IrisCompatibility
 import com.github.noamm9.utils.render.world.iris.IrisShaderType
-import com.mojang.renderpearl.api.pipeline.RenderPipeline
+import com.mojang.blaze3d.pipeline.RenderPipeline
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import com.mojang.blaze3d.vertex.VertexFormat
 import gg.essential.universal.render.URenderPipeline
@@ -79,4 +79,4 @@ object NoammRenderPipelines: ISelfInit {
 
     private fun id(path: String) = Identifier.fromNamespaceAndPath(NoammAddons.MOD_ID, path)
 }
-*///? }
+//? }

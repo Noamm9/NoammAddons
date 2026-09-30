@@ -1,7 +1,7 @@
 package com.github.noamm9.utils.render.world.batches
 
 //? if <26.2 {
-/*import org.joml.Matrix4f
+import org.joml.Matrix4f
 
 class TextRenderState(
     val matrix: Matrix4f,
@@ -11,4 +11,4 @@ class TextRenderState(
     val argb: Int,
     val seeThrough: Boolean
 )
-*///? }
+//? }

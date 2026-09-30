@@ -22,8 +22,8 @@ import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.RenderHelper.width
 import com.mojang.blaze3d.platform.InputConstants
 //? if <26.2 {
-/*import gg.essential.universal.UKeyboard
-*///? }
+import gg.essential.universal.UKeyboard
+//? }
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.network.protocol.game.*
@@ -31,8 +31,8 @@ import net.minecraft.world.inventory.Slot
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 //? if <26.2 {
-/*import org.lwjgl.glfw.GLFW
-*///? }
+import org.lwjgl.glfw.GLFW
+//? }
 import java.awt.Color
 import kotlin.math.*
 
@@ -47,11 +47,8 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
 
     private val useHotbarBinds by ToggleSetting("Use Hotbar Binds").section("Keybinds")
     private val keybinds = (1 .. PETS_PER_WHEEL).mapIndexed { index, slot ->
-        //? if <26.2 {
-        /*KeybindSetting("Pet Slot $slot", UKeyboard.KEY_1 + index)
-        *///? } else {
-        KeybindSetting("Pet Slot $slot", InputConstants.KEY_1 + index)
-        //? }
+        //$ if <26.2 'KeybindSetting("Pet Slot $slot", UKeyboard.KEY_1 + index)' else 'KeybindSetting("Pet Slot $slot", InputConstants.KEY_1 + index)'
+        KeybindSetting("Pet Slot $slot", UKeyboard.KEY_1 + index)
             .hideIf { useHotbarBinds.value }.apply(configSettings::add)
     }
 
@@ -71,10 +68,10 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
             if (event.packet is ClientboundOpenScreenPacket) {
                 if (! event.packet.title.unformattedText.matches(petMenuRegex)) return@register
                 //? if <26.2 {
-                /*val currentTittle = mc.screen?.title?.unformattedText.orEmpty()
-                *///? } else {
-                val currentTittle = mc.gui.screen()?.title?.unformattedText.orEmpty()
-                //? }
+                val currentTittle = mc.screen?.title?.unformattedText.orEmpty()
+                //? } else {
+                /*val currentTittle = mc.gui.screen()?.title?.unformattedText.orEmpty()
+                *///? }
                 if (currentTittle.startsWith("Loadout") || currentTittle.endsWith("Loadouts")) return@register
                 lastContainerId = event.packet.containerId
                 wheelPage = 0
@@ -128,12 +125,12 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
             val pet = hoveredWheelIndex(event.mouseX, event.mouseY, layout)?.let(visiblePets::getOrNull)
 
             //? if <26.2 {
-            /*if (event.button == GLFW.GLFW_MOUSE_BUTTON_RIGHT && UKeyboard.isKeyDown(UKeyboard.KEY_LSHIFT) && pet != null) {
-            *///? } else if <26.3 {
+            if (event.button == GLFW.GLFW_MOUSE_BUTTON_RIGHT && UKeyboard.isKeyDown(UKeyboard.KEY_LSHIFT) && pet != null) {
+            //? } else if <26.3 {
             /*if (event.button == InputConstants.MOUSE_BUTTON_RIGHT && InputConstants.isKeyDown(mc.window, InputConstants.KEY_LSHIFT) && pet != null) {*/
             //? } else {
-            if (event.button == InputConstants.MOUSE_BUTTON_RIGHT && InputConstants.isKeyDown(InputConstants.KEY_LSHIFT) && pet != null) {
-            //? }
+            /*if (event.button == InputConstants.MOUSE_BUTTON_RIGHT && InputConstants.isKeyDown(InputConstants.KEY_LSHIFT) && pet != null) {
+            *///? }
                 val now = System.currentTimeMillis()
                 if (now - lastClickAt >= 300) {
                     lastClickAt = now
@@ -143,11 +140,8 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
             }
 
             if (handleKeybind(event.screen, event.button, mouse = true)) return@register
-            //? if <26.2 {
-            /*if (event.button == GLFW.GLFW_MOUSE_BUTTON_LEFT && pet != null) click(event.screen, pet.index)
-            *///? } else {
-            if (event.button == InputConstants.MOUSE_BUTTON_LEFT && pet != null) click(event.screen, pet.index)
-            //? }
+            //$ if <26.2 'if (event.button == GLFW.GLFW_MOUSE_BUTTON_LEFT && pet != null) click(event.screen, pet.index)' else 'if (event.button == InputConstants.MOUSE_BUTTON_LEFT && pet != null) click(event.screen, pet.index)'
+            if (event.button == GLFW.GLFW_MOUSE_BUTTON_LEFT && pet != null) click(event.screen, pet.index)
         }
 
         register<ContainerEvent.Keyboard> {
@@ -312,10 +306,10 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
     private fun handleKeybind(screen: AbstractContainerScreen<*>, code: Int, mouse: Boolean): Boolean {
         val index = if (useHotbarBinds.value) {
             //? if <26.3 {
-            /*val type = if (mouse) InputConstants.Type.MOUSE else InputConstants.Type.KEYSYM
-            *///? } else {
-            val type = if (mouse) InputConstants.Type.MOUSE else InputConstants.Type.KEYBOARD
-            //? }
+            val type = if (mouse) InputConstants.Type.MOUSE else InputConstants.Type.KEYSYM
+            //? } else {
+            /*val type = if (mouse) InputConstants.Type.MOUSE else InputConstants.Type.KEYBOARD
+            *///? }
             mc.options.keyHotbarSlots.take(PETS_PER_WHEEL).withIndex().find {
                 (it.value as IKeyMapping).key.let { key -> key.type == type && key.value == code }
             }?.index ?: - 1

@@ -137,10 +137,10 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
         register<TickEvent.Start> {
             if (! relicTriggerbot.value || LocationUtils.F7Phase != 5) return@register
             //? if <26.2 {
-            /*if (mc.screen != null) return@register
-            *///? } else {
-            if (mc.gui.screen() != null) return@register
-            //? }
+            if (mc.screen != null) return@register
+            //? } else {
+            /*if (mc.gui.screen() != null) return@register
+            *///? }
             val now = System.currentTimeMillis()
             if (now - lastRelicClick < 200) return@register
             if (player.inventory.getItem(8).hoverName.string.contains("Relic")) return@register

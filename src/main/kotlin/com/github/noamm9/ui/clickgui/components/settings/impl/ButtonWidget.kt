@@ -1,8 +1,8 @@
 package com.github.noamm9.ui.clickgui.components.settings.impl
 //? if >=26.2 {
 
-import com.mojang.blaze3d.platform.InputConstants
-//? }
+/*import com.mojang.blaze3d.platform.InputConstants
+*///? }
 
 import com.github.noamm9.config.types.ButtonSetting
 import com.github.noamm9.ui.clickgui.components.settings.Style
@@ -45,11 +45,8 @@ class ButtonWidget(config: ButtonSetting): Widget<Unit>(config) {
     }
 
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
-        //? if <26.2 {
-        /*if (button == 0 && mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
-        *///? } else {
-        if (button == InputConstants.MOUSE_BUTTON_LEFT && mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
-        //? }
+        //$ if <26.2 'if (button == 0 && mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {' else 'if (button == InputConstants.MOUSE_BUTTON_LEFT && mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {'
+        if (button == 0 && mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
             if (cfg.clickSound) Style.playClickSound(1f)
             cfg.invoke()
             return true

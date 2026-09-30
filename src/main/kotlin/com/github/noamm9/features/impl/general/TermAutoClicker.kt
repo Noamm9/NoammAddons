@@ -3,20 +3,20 @@ package com.github.noamm9.features.impl.general
 //? if cheat {
 
 //? if >=26.2 {
-import com.github.noamm9.NoammAddons
-//? }
+/*import com.github.noamm9.NoammAddons
+*///? }
 import com.github.noamm9.config.types.SliderSetting
 //? if <26.2 {
-/*import com.github.noamm9.config.types.ToggleSetting
-*///? }
+import com.github.noamm9.config.types.ToggleSetting
+//? }
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.dungeons.DungeonUtils
 //? if <26.2 {
-/*import com.github.noamm9.utils.items.ItemUtils.customData
-*///? }
+import com.github.noamm9.utils.items.ItemUtils.customData
+//? }
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import gg.essential.universal.UMinecraft
@@ -25,8 +25,8 @@ import java.util.*
 object TermAutoClicker: Feature(name = "Term AC", description = "Automatically uses Salvation ability when holding right click.") {
     private val cps by SliderSetting("Clicks Per Second", 5.0, 5.0, 10.0, 1.0).withDescription("How many times per second the autoclicker should click.")
     //? if <26.2 {
-    /*private val rendTerm by ToggleSetting("Disable With Rend", true).withDescription("Disables the AutoClicker if the Terminator has any level of Rend ultimate enchant")
-    *///? }
+    private val rendTerm by ToggleSetting("Disable With Rend", true).withDescription("Disables the AutoClicker if the Terminator has any level of Rend ultimate enchant")
+    //? }
 
     private var baseCpsDrift = cps.value
     private var lastDriftTime = 0L
@@ -41,15 +41,15 @@ object TermAutoClicker: Feature(name = "Term AC", description = "Automatically u
             if (! mc.options.keyUse.isDown) return@register
             if (player.isUsingItem) return@register
             //? if <26.2 {
-            /*if (player.mainHandItem.skyblockId != "TERMINATOR") return@register
+            if (player.mainHandItem.skyblockId != "TERMINATOR") return@register
             if (rendTerm.value && "ultimate_rend" in player.mainHandItem.customData.getCompoundOrEmpty("enchantments").keySet()) return@register
-            *///? } else {
+            //? } else {
 
-            if ("ac" !in NoammAddons.debugFlags) {
+            /*if ("ac" !in NoammAddons.debugFlags) {
                 if (player.mainHandItem.skyblockId != "TERMINATOR") return@register
             }
 
-            //? }
+            *///? }
             if (! LocationUtils.inBoss) PlayerUtils.getSelectionBlock()?.let { pos ->
                 if (DungeonUtils.isSecret(pos)) return@register
             }

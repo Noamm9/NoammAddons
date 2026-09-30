@@ -1,8 +1,8 @@
 package com.github.noamm9.features.impl.dungeon
 
 //? if >=26.2 {
-import net.minecraft.world.entity.EntityTypes
-//? }
+/*import net.minecraft.world.entity.EntityTypes
+*///? }
 import com.github.noamm9.config.types.ColorSetting
 import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.config.types.ToggleSetting
@@ -20,8 +20,8 @@ import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket
 //? if <26.2 {
-/*import net.minecraft.world.entity.EntityType
-*///? }
+import net.minecraft.world.entity.EntityType
+//? }
 import net.minecraft.world.phys.Vec3
 import java.awt.Color
 import kotlin.math.abs
@@ -48,7 +48,7 @@ object MageBeam: Feature("Renders a fully custom, animated beam whenever a mage 
 
                 is ClientboundAddEntityPacket -> {
                     if (! hideSheep.value) return@register
-                    if (packet.type != EntityTypes.SHEEP) return@register
+                    if (packet.type != EntityType.SHEEP) return@register
                     if (player.position().distanceToSqr(packet.x, packet.y, packet.z) > 9) return@register
                     event.isCanceled = true
                 }

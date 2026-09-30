@@ -2,7 +2,7 @@ plugins {
     id("dev.kikugie.stonecutter")
 }
 
-stonecutter active "26.3-cheat"
+stonecutter active "26.1.2-cheat"
 
 stonecutter parameters {
     val dyeColors = mapOf(

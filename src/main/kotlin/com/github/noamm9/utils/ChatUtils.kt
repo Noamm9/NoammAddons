@@ -146,9 +146,9 @@ object ChatUtils: ISelfInit {
             style.color?.let { textColor ->
                 val colorMatch = ChatFormatting.entries.firstOrNull {
                     //~ if <26.2 'TextColor.fromLegacyFormat(it)?.value' -> 'it.isColor && it.color'
-                    TextColor.fromLegacyFormat(it)?.value == textColor.value
+                    it.isColor && it.color == textColor.value
                     //~ if >=26.2 '}?.char' -> '}'
-                }
+                }?.char
 
                 if (colorMatch != null) sb.append("§$colorMatch")
             }

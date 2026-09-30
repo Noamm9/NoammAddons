@@ -18,7 +18,7 @@ object NoammAddons: ClientModInitializer {
     const val MOD_NAME = /*$ mod_name*/ "NoammAddons"
     const val MOD_ID = /*$ mod_id*/ "noammaddons"
     const val MOD_VERSION = /*$ mod_version*/ "1.2.9"
-    const val MC_VERSION = /*$ mc_version*/ "26.3"
+    const val MC_VERSION = /*$ mc_version*/ "26.1.2"
 
     //~ if cheat 'false' -> 'true'
     const val isCheat = true
@@ -54,7 +54,7 @@ object NoammAddons: ClientModInitializer {
 
     override fun onInitializeClient() {
         //~ if <26.2 'ItemRenderer()' -> 'ItemRenderer(it.bufferSource())'
-        PictureInPictureRendererRegistry.register { ItemRenderer() }
+        PictureInPictureRendererRegistry.register { ItemRenderer(it.bufferSource()) }
         MeowddingItemDfu.load()
 
         ClassGraphInitializer().initAll()

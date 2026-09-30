@@ -1,5 +1,5 @@
 //? if >=26.2 {
-package com.github.noamm9.mixin;
+/*package com.github.noamm9.mixin;
 
 import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlay;
 import com.github.noamm9.ui.notification.NotificationManager;
@@ -30,4 +30,4 @@ public abstract class MixinGuiScreen {
         if (screen == null) NotificationManager.render(graphics);
     }
 }
-//? }
+*///? }
