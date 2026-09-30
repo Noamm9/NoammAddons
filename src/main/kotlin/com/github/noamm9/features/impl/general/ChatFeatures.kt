@@ -24,8 +24,8 @@ import net.minecraft.client.gui.screens.ChatScreen
 import net.minecraft.client.multiplayer.chat.GuiMessage
 import net.minecraft.network.chat.*
 //? if <26.2 {
-/*import org.lwjgl.glfw.GLFW*/
-//? } else {
+/*import org.lwjgl.glfw.GLFW
+*///? } else {
 import com.mojang.blaze3d.platform.InputConstants
 //? }
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
@@ -90,8 +90,8 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
             if (UMinecraft.currentScreenObj !is ChatScreen) return@register
             //? if <26.2 {
             /*if (event.button != 0) return@register
-            if (event.action != GLFW.GLFW_PRESS) return@register*/
-            //? } else {
+            if (event.action != GLFW.GLFW_PRESS) return@register
+            *///? } else {
             if (event.button != InputConstants.MOUSE_BUTTON_LEFT) return@register
             if (event.action != InputConstants.PRESS) return@register
             //? }
@@ -167,8 +167,8 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
                 if (style != lastStyle) {
                     style.color?.let { textColor ->
                         //? if <26.2 {
-                        /*ChatFormatting.entries.firstOrNull { it.isColor && it.color == textColor.value }?.let {*/
-                        //? } else {
+                        /*ChatFormatting.entries.firstOrNull { it.isColor && it.color == textColor.value }?.let {
+                        *///? } else {
                         ChatFormatting.entries.firstOrNull { TextColor.fromLegacyFormat(it)?.value == textColor.value }?.let {
                         //? }
                             builder.append(it)

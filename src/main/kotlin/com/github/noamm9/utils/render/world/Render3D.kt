@@ -4,9 +4,8 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.NumbersUtils.times
 import com.github.noamm9.utils.render.RenderHelper.width
-//? if >=26.2 {
+//? if >=26.2
 import net.minecraft.client.gui.Font
-//? }
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 //? if >=26.2 {
@@ -17,9 +16,8 @@ import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.Shapes
-//? if <26.2 {
-/*import org.joml.Matrix4f*/
-//? }
+//? if <26.2
+//import org.joml.Matrix4f
 import java.awt.Color
 import kotlin.math.cos
 import kotlin.math.sin
@@ -136,11 +134,8 @@ object Render3D {
 
         matrixStack.pushPose()
         matrixStack.translate(center.x - cameraPos.x, center.y - cameraPos.y, center.z - cameraPos.z)
-        //? if <26.3 {
-        /*matrixStack.mulPose(camera.orientation)*/
-        //? } else {
+        //~ if >26.2 '.mulPose' -> '.rotate'
         matrixStack.rotate(camera.orientation)
-        //? }
         val pose = uMatrixStack()
         val buffer = RenderBatcher.filledBatch(phase)
 
@@ -176,8 +171,8 @@ object Render3D {
             /*buffer.vertex(pose, o2x, o2y, 0f, r, g, b, a)
 
             buffer.vertex(pose, i1x, i1y, 0f, r, g, b, a)
-            buffer.vertex(pose, o2x, o2y, 0f, r, g, b, a)*/
-            //? } else {
+            buffer.vertex(pose, o2x, o2y, 0f, r, g, b, a)
+             *///? } else {
             buffer.vertex(pose, o2x, o2y, 0f, r, g, b, a)
             //? }
             buffer.vertex(pose, i2x, i2y, 0f, r, g, b, a)
@@ -283,18 +278,15 @@ object Render3D {
 
         matrixStack.pushPose()
         matrixStack.translate(dx, dy, dz)
-        //? if <26.3 {
-        /*matrixStack.mulPose(camera.orientation)*/
-        //? } else {
+        //~ if >26.2 '.mulPose' -> '.rotate'
         matrixStack.rotate(camera.orientation)
-        //? }
         matrixStack.scale(toScale, - toScale, toScale)
 
         //? if <26.2 {
         /*val matrix = Matrix4f(matrixStack.last().pose())
         for ((i, line) in text.addColor().lineSequence().withIndex())
-            RenderBatcher.addText(matrix, line, - line.width() / 2f, i * 9f, color.rgb, phase)*/
-        //? } else {
+            RenderBatcher.addText(matrix, line, - line.width() / 2f, i * 9f, color.rgb, phase)
+         *///? } else {
         for ((i, line) in text.addColor().lineSequence().withIndex()) collector.submitText(
             matrixStack, - line.width() / 2f, i * 9f, Component.literal(line).visualOrderText, true,
             if (phase) Font.DisplayMode.SEE_THROUGH else Font.DisplayMode.NORMAL,

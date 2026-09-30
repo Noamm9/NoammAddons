@@ -16,16 +16,16 @@ import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.highlight
 //? if <26.2 {
-/*import gg.essential.universal.UKeyboard*/
-//? }
+/*import gg.essential.universal.UKeyboard
+*///? }
 import gg.essential.universal.UMinecraft
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.client.input.MouseButtonInfo
 import net.minecraft.world.item.ItemStack
 //? if <26.2 {
-/*import org.lwjgl.glfw.GLFW*/
-//? } else {
+/*import org.lwjgl.glfw.GLFW
+*///? } else {
 import com.mojang.blaze3d.platform.InputConstants
 //? }
 import java.awt.Color
@@ -82,8 +82,8 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
             if (UMinecraft.currentScreenObj !is AbstractContainerScreen<*>) return@register
             //? if <26.2 {
             /*if (event.action == GLFW.GLFW_RELEASE) searchHandler.mouseReleased()
-            if (event.action != GLFW.GLFW_PRESS) return@register*/
-            //? } else {
+            if (event.action != GLFW.GLFW_PRESS) return@register
+            *///? } else {
             if (event.action == InputConstants.RELEASE) searchHandler.mouseReleased()
             if (event.action != InputConstants.PRESS) return@register
             //? }
@@ -106,8 +106,8 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
             if (UMinecraft.currentScreenObj !is AbstractContainerScreen<*>) return@register
 
             //? if <26.2 {
-            /*if (event.keyEvent.key == UKeyboard.KEY_F && event.keyEvent.hasControlDown()) {*/
-            //? } else {
+            /*if (event.keyEvent.key == UKeyboard.KEY_F && event.keyEvent.hasControlDown()) {
+            *///? } else {
             if (event.keyEvent.key == InputConstants.KEY_F && event.keyEvent.hasControlDown()) {
             //? }
                 searchHandler.listening = ! searchHandler.listening

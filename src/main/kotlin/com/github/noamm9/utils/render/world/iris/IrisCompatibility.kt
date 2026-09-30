@@ -1,11 +1,7 @@
 package com.github.noamm9.utils.render.world.iris
 
 import com.github.noamm9.init.ModCompatibility
-//? if <26.3 {
-/*import com.mojang.blaze3d.pipeline.RenderPipeline*/
-//? } else {
 import com.mojang.renderpearl.api.pipeline.RenderPipeline
-//? }
 import net.irisshaders.iris.api.v0.IrisApi
 import net.irisshaders.iris.api.v0.IrisProgram
 

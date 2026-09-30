@@ -1,8 +1,6 @@
 package com.github.noamm9.ui.clickgui.components.settings.impl
 
-//? if >=26.2 {
 import com.github.noamm9.NoammAddons.mc
-//? }
 import com.github.noamm9.config.types.ColorSetting
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.clickgui.components.settings.Widget
@@ -14,11 +12,10 @@ import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.drawVerticalGradient
 import com.github.noamm9.utils.render.Render2D.scissor
-//? if <26.2 {
-/*import gg.essential.universal.UKeyboard*/
-//? } else {
 import com.mojang.blaze3d.platform.InputConstants
-//? }
+//? if <26.2 {
+/*import gg.essential.universal.UKeyboard
+*///? }
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 import java.util.*
@@ -58,7 +55,8 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
             field = value
             mc.textInputManager().onTextInputFocusChange(this, value)
         }
-        //? }
+
+    //? }
     private var hexText = ""
 
     init {
@@ -137,30 +135,30 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
             draggingHue = false
             draggingAlpha = false
             return
-        }*/
-        //? } else {
+        }
+        */ //? } else {
         if (! draggingSV && ! draggingHue && ! draggingAlpha) return
         //? }
 
         var currentX = x + 10f
         //? if <26.2 {
-        /*val aX = currentX*/
-        //? }
+        /*val aX = currentX
+        */ //? }
         if (cfg.withAlpha) currentX += 15f
         //? if <26.2 {
-        /*val hX = currentX*/
-        //? }
+        /*val hX = currentX
+        */ //? }
         currentX += 15f
         val svX = currentX
         val svW = (x + width - 10f) - svX
         //? if <26.2 {
-        /*
-        if (! draggingSV && ! draggingHue && ! draggingAlpha) {
+
+        /*if (! draggingSV && ! draggingHue && ! draggingAlpha) {
             draggingAlpha = cfg.withAlpha && mx >= aX && mx <= aX + 10 && my >= py && my <= py + ps
             draggingHue = mx >= hX && mx <= hX + 10 && my >= py && my <= py + ps
             draggingSV = mx >= svX && mx <= svX + svW && my >= py && my <= py + ps
-        }*/
-        //? }
+        }
+        */ //? }
 
         if (draggingAlpha) a = (1f - (my - py) / ps).coerceIn(0f, 1f)
         if (draggingHue) h = ((my - py) / ps).coerceIn(0f, 1f)
@@ -169,11 +167,11 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
             b = (1f - (my - py) / ps).coerceIn(0f, 1f)
         }
         //? if <26.2 {
-        /*
-        if (draggingSV || draggingHue || draggingAlpha) {
+
+        /*if (draggingSV || draggingHue || draggingAlpha) {
             updateColorFromHSB()
-        }*/
-        //? } else {
+        }
+        */ //? } else {
         updateColorFromHSB()
         //? }
     }
@@ -192,19 +190,11 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
 
     override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
         if (expanded && hexFocused) {
-            //? if <26.2 {
-            /*if (keyCode == UKeyboard.KEY_BACKSPACE && hexText.isNotEmpty()) {*/
-            //? } else {
             if (keyCode == InputConstants.KEY_BACKSPACE && hexText.isNotEmpty()) {
-            //? }
                 hexText = hexText.dropLast(1)
                 tryUpdateFromHex()
             }
-            //? if <26.2 {
-            /*if (keyCode == UKeyboard.KEY_ENTER || keyCode == UKeyboard.KEY_ESCAPE) hexFocused = false*/
-            //? } else {
             if (keyCode == InputConstants.KEY_RETURN || keyCode == InputConstants.KEY_ESCAPE) hexFocused = false
-            //? }
             return true
         }
         return false
@@ -283,25 +273,21 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
     override fun clearFocus() {
         hexFocused = false
     }
-
     //? }
+
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
         if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + 20) {
-            //? if <26.2 {
-            /*if (button == 0) {*/
-            //? } else {
             if (button == InputConstants.MOUSE_BUTTON_LEFT) {
-            //? }
                 expanded = ! expanded
-                //? if >=26.2 {
+                //? if >=26.2
                 if (! expanded) clearFocus()
-                //? }
+
                 return true
             }
         }
         //? if <26.2 {
-        /*if (expanded) {*/
-        //? } else {
+        /*if (expanded) {
+            */ //? } else {
         if (expanded && button == InputConstants.MOUSE_BUTTON_LEFT) {
             val py = y + 25f
             val ps = 80f
@@ -320,15 +306,15 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
                 hexFocused = false
                 return true
             }
-        //? }
+            //? }
             val hexY = y + 25f + 80f + 5f
             hexFocused = mouseX >= x + 10 && mouseX <= x + width - 10 && mouseY >= hexY && mouseY <= hexY + 12
             if (hexFocused) return true
         }
         return false
     }
-    //? if >=26.2 {
 
+    //? if >=26.2 {
     override fun mouseReleased(button: Int) {
         if (button == InputConstants.MOUSE_BUTTON_LEFT) {
             draggingSV = false

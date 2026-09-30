@@ -14,8 +14,8 @@ import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.network.protocol.game.*
 import net.minecraft.sounds.SoundEvents
 //? if <26.2 {
-/*import net.minecraft.world.entity.EntityType*/
-//? }
+/*import net.minecraft.world.entity.EntityType
+*///? }
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.item.Items
 import net.minecraft.world.phys.Vec3
@@ -39,8 +39,8 @@ object DragonCheck {
         if (particle.y != 19.0) return
         //? if <26.3 {
         /*if (particle.maxSpeed != 0f) return
-        if (! particle.isOverrideLimiter) return*/
-        //? } else {
+        if (! particle.isOverrideLimiter) return
+        *///? } else {
         if (particle.xMaxSpeed != 0f || particle.yMaxSpeed != 0f || particle.zMaxSpeed != 0f) return
         if (! particle.overrideLimiter) return
         //? }
@@ -80,11 +80,7 @@ object DragonCheck {
     }
 
     fun dragonSpawn(packet: ClientboundAddEntityPacket) {
-        //? if <26.2 {
-        /*if (packet.type != EntityType.ENDER_DRAGON) return*/
-        //? } else {
         if (packet.type != EntityTypes.ENDER_DRAGON) return
-        //? }
         val spawnVec = Vec3(packet.x, packet.y, packet.z)
         val newId = packet.id
 

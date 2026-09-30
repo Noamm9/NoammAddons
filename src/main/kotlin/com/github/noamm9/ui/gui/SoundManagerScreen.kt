@@ -4,9 +4,7 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.features.impl.misc.sound.SoundManager
 import com.github.noamm9.ui.clickgui.ClickGuiScreen
 import com.github.noamm9.ui.clickgui.components.settings.Style
-import com.github.noamm9.ui.utils.Animation
-import com.github.noamm9.ui.utils.Resolution
-import com.github.noamm9.ui.utils.TextInputHandler
+import com.github.noamm9.ui.utils.*
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
@@ -14,28 +12,17 @@ import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.scissor
 import com.github.noamm9.utils.spaceCaps
+import com.mojang.blaze3d.platform.InputConstants
 import gg.essential.universal.UGraphics
-//? if <26.2 {
-/*import gg.essential.universal.UKeyboard*/
-//? }
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
-import net.minecraft.client.input.CharacterEvent
-import net.minecraft.client.input.KeyEvent
-import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.client.input.*
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.network.chat.Component
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundEvents
-//? if <26.2 {
-/*import org.lwjgl.glfw.GLFW*/
-//? } else {
-import com.mojang.blaze3d.platform.InputConstants
-//? }
 import java.awt.Color
-import kotlin.math.ceil
-import kotlin.math.max
-import kotlin.math.min
+import kotlin.math.*
 
 class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
     private companion object {
@@ -220,11 +207,7 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
     }
 
     override fun mouseClicked(event: MouseButtonEvent, isDoubleClick: Boolean): Boolean {
-        //? if <26.2 {
-        /*if (event.button() != GLFW.GLFW_MOUSE_BUTTON_LEFT) return super.mouseClicked(event, isDoubleClick)*/
-        //? } else {
         if (event.button() != InputConstants.MOUSE_BUTTON_LEFT) return super.mouseClicked(event, isDoubleClick)
-        //? }
 
         val mx = Resolution.getMouseX(event.x).toFloat()
         val my = Resolution.getMouseY(event.y).toFloat()
@@ -341,11 +324,7 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
 
     override fun keyPressed(keyEvent: KeyEvent): Boolean {
         if (searchHandler.keyPressed(keyEvent)) return true
-        //? if <26.2 {
-        /*if (keyEvent.key == UKeyboard.KEY_ESCAPE) {*/
-        //? } else {
         if (keyEvent.key == InputConstants.KEY_ESCAPE) {
-        //? }
             onClose()
             return true
         }

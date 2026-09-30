@@ -15,8 +15,8 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.world.Render3D.renderBox
 //? if <26.2 {
-/*import gg.essential.universal.UKeyboard*/
-//? }
+/*import gg.essential.universal.UKeyboard
+*///? }
 import gg.essential.universal.wrappers.UPlayer
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket
@@ -29,8 +29,8 @@ object PvpBlink: Feature("Desyncs your connection to eat knockback or spoof posi
     private val mode by DropdownSetting("Mode", 0, listOf("Manual", "Auto", "Pulse")).withDescription("Manual: Hold key. Auto: On Velocity. Pulse: Every 0.3s.")
     private val blinkDuration by SliderSetting("Blink Duration", 300.0, 50.0, 1000.0, 50.0).withDescription("How long to desync (ms).")
     //? if <26.2 {
-    /*private val key by KeybindSetting("Blink Key", UKeyboard.KEY_P).hideIf { mode.value == 1 }*/
-    //? } else {
+    /*private val key by KeybindSetting("Blink Key", UKeyboard.KEY_P).hideIf { mode.value == 1 }
+    *///? } else {
     private val key by KeybindSetting("Blink Key", InputConstants.KEY_P).hideIf { mode.value == 1 }
     //? }
 

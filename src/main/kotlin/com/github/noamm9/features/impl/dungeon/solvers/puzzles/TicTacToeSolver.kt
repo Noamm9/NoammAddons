@@ -4,8 +4,8 @@ import com.github.noamm9.NoammAddons.mc
 //? if <26.2 {
 /*import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
-import com.github.noamm9.event.impl.PlayerInteractEvent*/
-//? } else {
+import com.github.noamm9.event.impl.PlayerInteractEvent
+*///? } else {
 import com.github.noamm9.event.impl.*
 //? }
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers
@@ -19,12 +19,12 @@ import com.github.noamm9.utils.*
 import com.github.noamm9.utils.MathUtils.aabb
 //? if <26.2 {
 /*import com.github.noamm9.utils.ThreadUtils
-import com.github.noamm9.utils.WorldUtils*/
-//? }
+import com.github.noamm9.utils.WorldUtils
+*///? }
 import com.github.noamm9.utils.dungeons.map.core.RoomState
 //? if <26.2 {
-/*import com.github.noamm9.utils.equalsOneOf*/
-//? }
+/*import com.github.noamm9.utils.equalsOneOf
+*///? }
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
 import com.github.noamm9.utils.render.world.RenderContext
@@ -33,8 +33,8 @@ import net.minecraft.core.Direction
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 //? if <26.2 {
-/*import net.minecraft.world.entity.EntityType*/
-//? } else {
+/*import net.minecraft.world.entity.EntityType
+*///? } else {
 import net.minecraft.world.entity.EntityTypes
 //? }
 import net.minecraft.world.entity.decoration.ItemFrame
@@ -53,8 +53,8 @@ object TicTacToeSolver: PuzzleSolver {
     private var bestMoves = CopyOnWriteArrayList<BlockPos>()
     //? if <26.2 {
     /*private var aiPredictions = CopyOnWriteArrayList<BlockPos>()
-    private var prefirePredictions = CopyOnWriteArrayList<BlockPos>()*/
-    //? } else {
+    private var prefirePredictions = CopyOnWriteArrayList<BlockPos>()
+    *///? } else {
     private var badMoves = CopyOnWriteArrayList<BlockPos>()
     private var prefireMoves = CopyOnWriteArrayList<BlockPos>()
     //? }
@@ -76,11 +76,7 @@ object TicTacToeSolver: PuzzleSolver {
     override fun onPacket(event: MainThreadPacketReceivedEvent.Pre) {
         if (! inTicTacToe) return
         val packet = event.packet as? ClientboundAddEntityPacket ?: return
-        //? if <26.2 {
-        /*if (packet.type != EntityType.ITEM_FRAME) return*/
-        //? } else {
         if (packet.type != EntityTypes.ITEM_FRAME) return
-        //? }
         solve()
     }
 
@@ -98,16 +94,16 @@ object TicTacToeSolver: PuzzleSolver {
         //? }
 
         //? if <26.2 {
-        /*bestMoves.forEach { ctx.renderTTTBox(it, color.value) }*/
-        //? } else {
+        /*bestMoves.forEach { ctx.renderTTTBox(it, color.value) }
+        *///? } else {
         bestMoves.forEach { boxes[it.asLong()] = it to color.value }
         //? }
 
         if (prediction.value) {
             //? if <26.2 {
             /*aiPredictions.forEach { ctx.renderTTTBox(it, Color.RED) }
-            prefirePredictions.forEach { ctx.renderTTTBox(it, predictionColor.value) }*/
-            //? } else {
+            prefirePredictions.forEach { ctx.renderTTTBox(it, predictionColor.value) }
+            *///? } else {
             badMoves.forEach { boxes[it.asLong()] = it to Color.RED }
             prefireMoves.forEach { boxes[it.asLong()] = it to predictionColor.value }
             //? }
@@ -123,8 +119,8 @@ object TicTacToeSolver: PuzzleSolver {
         bestMoves.clear()
         //? if <26.2 {
         /*prefirePredictions.clear()
-        aiPredictions.clear()*/
-        //? } else {
+        aiPredictions.clear()
+        *///? } else {
         prefireMoves.clear()
         badMoves.clear()
         //? }
@@ -181,8 +177,8 @@ object TicTacToeSolver: PuzzleSolver {
 
         if (leftmostRow == null) return@solve
         //? if <26.2 {
-        /*bestMoves.clear(); aiPredictions.clear(); prefirePredictions.clear()*/
-        //? } else {
+        /*bestMoves.clear(); aiPredictions.clear(); prefirePredictions.clear()
+        *///? } else {
         bestMoves.clear(); badMoves.clear(); prefireMoves.clear()
         //? }
 
@@ -196,8 +192,8 @@ object TicTacToeSolver: PuzzleSolver {
             val aiResponses = TicTacToeUtils.findBestMoves(simBoard, 'X', 'O')
             aiResponses.forEach { aiIdx ->
                 //? if <26.2 {
-                /*aiPredictions.add(indexToPos(aiIdx, leftmostRow, facing, sign))*/
-                //? } else {
+                /*aiPredictions.add(indexToPos(aiIdx, leftmostRow, facing, sign))
+                *///? } else {
                 badMoves.add(indexToPos(aiIdx, leftmostRow, facing, sign))
                 //? }
 
@@ -206,8 +202,8 @@ object TicTacToeSolver: PuzzleSolver {
                     TicTacToeUtils.findBestMoves(prefireBoard, 'O', 'X').forEach { preIdx ->
                         val pos = indexToPos(preIdx, leftmostRow, facing, sign)
                         //? if <26.2 {
-                        /*if (pos !in prefirePredictions) prefirePredictions.add(pos)*/
-                        //? } else {
+                        /*if (pos !in prefirePredictions) prefirePredictions.add(pos)
+                        *///? } else {
                         if (pos !in prefireMoves) prefireMoves.add(pos)
                         //? }
                     }
@@ -216,8 +212,8 @@ object TicTacToeSolver: PuzzleSolver {
         }
 
         //? if <26.2 {
-        /*if (prefirePredictions.size == 7) prefirePredictions.clear()*/
-        //? } else {
+        /*if (prefirePredictions.size == 7) prefirePredictions.clear()
+        *///? } else {
         if (prefireMoves.size == 7) prefireMoves.clear()
         //? }
     }

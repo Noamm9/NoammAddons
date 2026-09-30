@@ -70,8 +70,8 @@ object LeapCounter: Feature("Shows how many players have leaped you") {
                 is ClientboundAddEntityPacket -> Triple(packet.x, packet.y, packet.z)
                 //? if <26.2 {
                 /*is ClientboundMoveEntityPacket -> packet.getEntity(level)?.positionCodec?.decode(packet.getXa().toLong(), packet.getYa().toLong(), packet.getZa().toLong())?.destructured()
-                is ClientboundEntityPositionSyncPacket -> packet.values.position().destructured()*/
-                //? } else if <26.3 {
+                is ClientboundEntityPositionSyncPacket -> packet.values.position().destructured()
+                *///? } else if <26.3 {
                 /*is ClientboundMoveEntityPacket -> packet.getEntity(level)?.positionCodec?.decode(packet.xa.toLong(), packet.ya.toLong(), packet.za.toLong())?.destructured()
                 is ClientboundEntityPositionSyncPacket -> packet.values.position().destructured()*/
                 //? } else {

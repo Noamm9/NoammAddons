@@ -17,8 +17,8 @@ import net.minecraft.world.entity.decoration.ArmorStand
 import java.awt.Color
 
 //? if !cheat {
-/*import com.github.noamm9.utils.render.LegitEntityVisibility*/
-//? }
+/*import com.github.noamm9.utils.render.LegitEntityVisibility
+*///? }
 
 object DoorKeys: Feature("ESP box & Tracer for wither and blood doors.") {
     private val highlightWither by ToggleSetting("Wither Key").section("Keys")
@@ -51,8 +51,8 @@ object DoorKeys: Feature("ESP box & Tracer for wither and blood doors.") {
                 }
 
                 //? if !cheat {
-                /* if (! LegitEntityVisibility.isVisible(player, entity)) return@register*/
-                //? }
+                 /*if (! LegitEntityVisibility.isVisible(player, entity)) return@register
+                *///? }
 
                 event.ctx.renderTracer(entity.renderVec.add(y = 1.7), color, 2)
                 event.ctx.renderBox(

@@ -24,8 +24,8 @@ import com.github.noamm9.utils.Utils.send
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 //? if <26.2 {
-/*import gg.essential.universal.UKeyboard*/
-//? }
+/*import gg.essential.universal.UKeyboard
+*///? }
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
@@ -60,16 +60,16 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             val stack = item ?: return@register
             val sign = (screen as IAbstractSignEditScreen).getSign() ?: return@register
             //? if <26.3 {
-            /*val lines = Array(4) { i -> sign.frontText.getMessage(i, false).string }*/
-            //? } else {
+            /*val lines = Array(4) { i -> sign.frontText.getMessage(i, false).string }
+            *///? } else {
             val lines = Array(4) { i -> sign.getText(SignTextSlot.FRONT).getMessages(false)[i].string }
             //? }
 
             if (lines[1] == "^^^^^^^^^^^^^^^" && lines[2] == "Your auction" && lines[3] == "starting bid") mc.execute {
                 // manually setting the screen so the sign gui wont close
                 //? if <26.2 {
-                /*mc.screen = AuctionInputScreen(sign, lines, stack).apply { init(width, height) }*/
-                //? } else {
+                /*mc.screen = AuctionInputScreen(sign, lines, stack).apply { init(width, height) }
+                *///? } else {
                 (mc.gui as IGui).setScreenDirect(AuctionInputScreen(sign, lines, stack).apply { init(width, height) })
                 //? }
             }
@@ -83,8 +83,8 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
 
         register<ContainerEvent.Keyboard> {
             //? if <26.2 {
-            /*if (event.key != UKeyboard.KEY_ENTER && event.key != UKeyboard.KEY_NUMPADENTER) return@register*/
-            //? } else {
+            /*if (event.key != UKeyboard.KEY_ENTER && event.key != UKeyboard.KEY_NUMPADENTER) return@register
+            *///? } else {
             if (event.key != InputConstants.KEY_RETURN && event.key != InputConstants.KEY_NUMPADENTER) return@register
             //? }
             val title = event.screen.title.unformattedText
@@ -96,11 +96,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             }
 
             val stack = event.screen.menu.slots.getOrNull(slotId)?.item ?: return@register
-            //? if <26.2 {
-            /*if (! stack.`is`(Blocks.GREEN_TERRACOTTA.asItem())) return@register*/
-            //? } else {
             if (! stack.`is`(Blocks.DYED_TERRACOTTA.green().asItem())) return@register
-            //? }
             if (! isValidName(stack.hoverName.unformattedText)) return@register
 
             GuiUtils.clickSlot(slotId, GuiUtils.ButtonType.LEFT)
@@ -188,8 +184,8 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
 
         override fun keyPressed(event: KeyEvent): Boolean {
             //? if <26.2 {
-            /*if (event.key() == UKeyboard.KEY_ENTER || event.key() == UKeyboard.KEY_NUMPADENTER) {*/
-            //? } else {
+            /*if (event.key() == UKeyboard.KEY_ENTER || event.key() == UKeyboard.KEY_NUMPADENTER) {
+            *///? } else {
             if (event.key() == InputConstants.KEY_RETURN || event.key() == InputConstants.KEY_NUMPADENTER) {
             //? }
                 finish()
@@ -204,8 +200,8 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             ServerboundSignUpdatePacket(
                 //? if <26.3 {
                 /*sign.blockPos, true, finalLine0,
-                originalText[1], originalText[2], originalText[3]*/
-                //? } else {
+                originalText[1], originalText[2], originalText[3]
+                *///? } else {
                 sign.blockPos, listOf(finalLine0, originalText[1], originalText[2], originalText[3]), SignTextSlot.FRONT
                 //? }
             ).send()

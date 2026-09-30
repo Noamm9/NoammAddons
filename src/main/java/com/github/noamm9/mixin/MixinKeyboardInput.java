@@ -13,7 +13,7 @@ public abstract class MixinKeyboardInput {
         //? if cheat {
         return com.github.noamm9.features.impl.misc.SnappyTappy.resolveInput(original);
         //? } else {
-        /*return original;*/
-        //? }
+        /*return original;
+        *///? }
     }
 }

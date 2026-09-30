@@ -19,11 +19,7 @@ object ModCompatibility {
         val blockStateCulling = config?.javaClass?.getDeclaredField("useBlockStateCulling")
         blockStateCulling?.isAccessible = true
         blockStateCulling?.setBoolean(config, false)
-        //? if <26.2 {
-        /*mc.levelRenderer.allChanged()*/
-        //? } else {
         mc.levelExtractor.allChanged()
-        //? }
     }
 
     const val bobby_chunk = "de.johni0702.minecraft.bobby.FakeChunk"

@@ -191,16 +191,16 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         val my = mouseY.toFloat()
 
         //? if <26.2 {
-        /*if (button == 0 && isInsideCloseButton(mx, my)) {*/
-        //? } else {
+        /*if (button == 0 && isInsideCloseButton(mx, my)) {
+        *///? } else {
         if (button == InputConstants.MOUSE_BUTTON_LEFT && isInsideCloseButton(mx, my)) {
         //? }
             return WindowClickAction.CLOSE
         }
 
         //? if <26.2 {
-        /*if (button == 0) {*/
-        //? } else {
+        /*if (button == 0) {
+        *///? } else {
         if (button == InputConstants.MOUSE_BUTTON_LEFT) {
         //? }
             val hoveredHandle = getResizeCorner(mx, my)
@@ -218,8 +218,8 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         }
 
         //? if <26.2 {
-        /*if (button == 0 && maxScroll > 0f) {*/
-        //? } else {
+        /*if (button == 0 && maxScroll > 0f) {
+        *///? } else {
         if (button == InputConstants.MOUSE_BUTTON_LEFT && maxScroll > 0f) {
         //? }
             val barX = scrollbarX
@@ -258,8 +258,8 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
     //? }
     fun mouseReleased(button: Int) {
         //? if <26.2 {
-        /*if (button == 0) {*/
-        //? } else {
+        /*if (button == 0) {
+        *///? } else {
         if (button == InputConstants.MOUSE_BUTTON_LEFT) {
         //? }
             dragging = false

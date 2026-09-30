@@ -3,16 +3,16 @@ package com.github.noamm9.mixin;
 import com.github.noamm9.features.impl.misc.Camera;
 //? if <26.2 {
 /*import com.github.noamm9.ui.notification.NotificationManager;
-import com.llamalad7.mixinextras.sugar.Local;*/
-//? }
+import com.llamalad7.mixinextras.sugar.Local;
+*///? }
 import com.mojang.blaze3d.vertex.PoseStack;
 //? if <26.2 {
-/*import net.minecraft.client.DeltaTracker;*/
-//? }
+/*import net.minecraft.client.DeltaTracker;
+*///? }
 import net.minecraft.client.Minecraft;
 //? if <26.2 {
-/*import net.minecraft.client.gui.GuiGraphicsExtractor;*/
-//? }
+/*import net.minecraft.client.gui.GuiGraphicsExtractor;
+*///? }
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import org.spongepowered.asm.mixin.Final;
@@ -37,8 +37,8 @@ public class MixinGameRenderer {
     public void onExtractGui(DeltaTracker deltaTracker, boolean shouldRenderLevel, boolean resourcesLoaded, CallbackInfo ci, @Local GuiGraphicsExtractor graphics) {
         if (minecraft.screen == null) NotificationManager.render(graphics);
     }
-    */
-    //? }
+    
+    *///? }
     @ModifyVariable(method = "renderLevel", at = @At("STORE"), name = "nauseaIntensity")
     public float zeroNauseaIntensity(float nauseaIntensity) {
         return Camera.INSTANCE.enabled && Camera.getDisableNausea().getValue() ? 0F : nauseaIntensity;

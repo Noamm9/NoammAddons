@@ -34,7 +34,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 //? if >=26.3 {
 import net.minecraft.world.item.component.SwingAnimation
-//? }
+ //? }
 import net.minecraft.world.phys.*
 import kotlin.math.abs
 import kotlin.math.min
@@ -49,10 +49,10 @@ object PlayerUtils: ISelfInit, Shortcuts {
             player.swingingArm = InteractionHand.MAIN_HAND
             player.swingTime = - 1
             player.swinging = true
-        }*/
-        //? } else {
+        }
+        *///? } else {
         player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, false)
-        //? }
+         //? }
     }
 
     fun toggleSneak(bl: Boolean) {

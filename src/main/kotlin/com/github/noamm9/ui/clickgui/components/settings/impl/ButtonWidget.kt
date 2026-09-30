@@ -46,8 +46,8 @@ class ButtonWidget(config: ButtonSetting): Widget<Unit>(config) {
 
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
         //? if <26.2 {
-        /*if (button == 0 && mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {*/
-        //? } else {
+        /*if (button == 0 && mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
+        *///? } else {
         if (button == InputConstants.MOUSE_BUTTON_LEFT && mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
         //? }
             if (cfg.clickSound) Style.playClickSound(1f)

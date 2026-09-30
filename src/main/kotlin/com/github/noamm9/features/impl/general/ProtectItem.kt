@@ -24,8 +24,8 @@ import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
 //? if <26.2 {
-/*import gg.essential.universal.UKeyboard*/
-//? }
+/*import gg.essential.universal.UKeyboard
+*///? }
 import gg.essential.universal.UMinecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
@@ -43,8 +43,8 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
 
     private val protectNotification by ToggleSetting("Protect Notification", true).withDescription("Shows a notification on the bottom right side of the screen when the feature saved your item")
     //? if <26.2 {
-    /*private val protectBind by KeybindSetting("Protect Key", UKeyboard.KEY_L).section("Keybind").withDescription("Press while hovering an item in an inventory to protect/unprotect it via UUID.")*/
-    //? } else {
+    /*private val protectBind by KeybindSetting("Protect Key", UKeyboard.KEY_L).section("Keybind").withDescription("Press while hovering an item in an inventory to protect/unprotect it via UUID.")
+    *///? } else {
     private val protectBind by KeybindSetting("Protect Key", InputConstants.KEY_L).section("Keybind").withDescription("Press while hovering an item in an inventory to protect/unprotect it via UUID.")
     //? }
     private val showProtected by ToggleSetting("Show Protected Items").withDescription("Shows protected items in container GUIs with a small indicator.")

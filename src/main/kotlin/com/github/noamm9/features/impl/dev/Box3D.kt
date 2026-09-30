@@ -39,8 +39,8 @@ object Box3D: Feature("Replaces the Glow ESP with 3D boxes") {
                 //? if cheat {
                 phase.value
                 //? } else {
-                /*false*/
-                //? }
+                /*false
+                *///? }
             }
 
             if (! outline && ! fill) return@register

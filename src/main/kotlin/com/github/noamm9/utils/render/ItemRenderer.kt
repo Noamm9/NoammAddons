@@ -8,11 +8,8 @@ import gg.essential.universal.UResolution
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.navigation.ScreenRectangle
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer
-//? if <26.2 {
-/*import net.minecraft.client.renderer.MultiBufferSource*/
-//? } else {
+//~ if <26.2 'SubmitNodeCollector' -> 'MultiBufferSource'
 import net.minecraft.client.renderer.SubmitNodeCollector
-//? }
 import net.minecraft.client.renderer.item.TrackingItemStackRenderState
 import net.minecraft.client.renderer.state.gui.GuiItemRenderState
 import net.minecraft.client.renderer.state.gui.pip.PictureInPictureRenderState
@@ -23,13 +20,10 @@ import net.minecraft.world.item.ItemStack
 import org.joml.Matrix3x2f
 import org.joml.Matrix4f
 
-//? if <26.2 {
-/*class ItemRenderer(vertexConsumers: MultiBufferSource.BufferSource): PictureInPictureRenderer<ItemRenderer.ItemState>(vertexConsumers) {
-    override fun textureIsReadyToBlit(itemState: ItemState) = System.nanoTime() - lastRenderAtNanos < (1_000_000_000L / mc.window.refreshRate)*/
-//? } else {
+//~ if >=26.2 'ItemRenderer(vertexConsumers: MultiBufferSource.BufferSource): PictureInPictureRenderer<ItemRenderer.ItemState>(vertexConsumers)' -> 'ItemRenderer: PictureInPictureRenderer<ItemRenderer.ItemState>()'
 class ItemRenderer: PictureInPictureRenderer<ItemRenderer.ItemState>() {
+    //~ if >=26.2 'mc.window.refreshRate' -> '144'
     override fun textureIsReadyToBlit(itemState: ItemState) = System.nanoTime() - lastRenderAtNanos < (1_000_000_000L / 144)
-//? }
     override fun getTextureLabel() = NoammAddons.MOD_ID + "_" + this.javaClass.simpleName
     override fun getTranslateY(height: Int, windowScaleFactor: Int) = height / 2f
     override fun getRenderStateClass() = ItemState::class.java
@@ -37,12 +31,10 @@ class ItemRenderer: PictureInPictureRenderer<ItemRenderer.ItemState>() {
     private var lastRenderAtNanos = System.nanoTime()
     private var matrix4 = Matrix4f()
 
-    //? if <26.2 {
-    /*override fun renderToTexture(itemState: ItemState, poseStack: PoseStack) {
-        val dispatcher = mc.gameRenderer.featureRenderDispatcher*/
-    //? } else {
+    //~ if <26.2 'poseStack: PoseStack, submitNodeCollector: SubmitNodeCollector)' -> 'poseStack: PoseStack)'
     override fun renderToTexture(itemState: ItemState, poseStack: PoseStack, submitNodeCollector: SubmitNodeCollector) {
-    //? }
+        //? if <26.2
+        //val dispatcher = mc.gameRenderer.featureRenderDispatcher
         val guiScale = UResolution.scaleFactor.toFloat()
         val guiPose = PoseStack()
 
@@ -57,35 +49,25 @@ class ItemRenderer: PictureInPictureRenderer<ItemRenderer.ItemState>() {
             ))
             guiPose.translate((item.x() + 8.0) * guiScale, (item.y() + 8.0) * guiScale, 150.0)
             guiPose.scale(16f * guiScale * batchedItem.scale, - 16f * guiScale * batchedItem.scale, 16f * guiScale * batchedItem.scale)
-            //? if <26.2 {
-            /*item.itemStackRenderState().submit(guiPose, dispatcher.submitNodeStorage, LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, 0)*/
-            //? } else {
+            //~ if <26.2 'submitNodeCollector' -> 'dispatcher.submitNodeStorage'
             item.itemStackRenderState().submit(guiPose, submitNodeCollector, LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, 0)
-            //? }
             guiPose.popPose()
         }
 
         val has3d = itemState.list3d.isNotEmpty()
-        //? if <26.2 {
-        /*if (has3d) mc.gameRenderer.lighting.setupFor(Lighting.Entry.ITEMS_3D)*/
-        //? } else {
-        if (has3d) mc.gameRenderer.lighting().setupFor(Lighting.Entry.ITEMS_3D)
-        //? }
-        for (i in itemState.list3d.indices) renderItem(itemState.list3d[i])
-        //? if <26.2 {
-        /*if (has3d) dispatcher.renderAllFeatures()*/
-        //? }
-
         val has2d = itemState.list2d.isNotEmpty()
-        //? if <26.2 {
-        /*if (has2d) mc.gameRenderer.lighting.setupFor(Lighting.Entry.ITEMS_FLAT)*/
-        //? } else {
+
+        //~ if <26.2 'lighting()' -> 'lighting'
+        if (has3d) mc.gameRenderer.lighting().setupFor(Lighting.Entry.ITEMS_3D)
+        for (i in itemState.list3d.indices) renderItem(itemState.list3d[i])
+        //? if <26.2
+        //if (has3d) dispatcher.renderAllFeatures()
+
+        //~ if <26.2 'lighting()' -> 'lighting'
         if (has2d) mc.gameRenderer.lighting().setupFor(Lighting.Entry.ITEMS_FLAT)
-        //? }
         for (i in itemState.list2d.indices) renderItem(itemState.list2d[i])
-        //? if <26.2 {
-        /*if (has2d) dispatcher.renderAllFeatures()*/
-        //? }
+        //? if <26.2
+        //if (has2d) dispatcher.renderAllFeatures()
 
         lastRenderAtNanos = System.nanoTime()
     }
@@ -127,7 +109,7 @@ class ItemRenderer: PictureInPictureRenderer<ItemRenderer.ItemState>() {
             val bounds = scissor?.intersection(screenRect) ?: screenRect
 
             ctx.guiRenderState.addPicturesInPictureState(ItemState(ctx.guiWidth(), ctx.guiHeight(), scissor, bounds, list2d.toList(), list3d.toList()))
-            list2d.clear(); list3d.clear();
+            list2d.clear(); list3d.clear()
         }
     }
 

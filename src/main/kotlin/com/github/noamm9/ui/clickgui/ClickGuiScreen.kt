@@ -24,8 +24,8 @@ import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawTexture
 import com.github.noamm9.utils.render.Render2D.drawVerticalGradient
 //? if <26.2 {
-/*import gg.essential.universal.UKeyboard*/
-//? }
+/*import gg.essential.universal.UKeyboard
+*///? }
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.CharacterEvent
@@ -169,8 +169,8 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
 
             when (window.mouseClicked(mx, my, button)) {
                 //? if <26.2 {
-                /*WindowClickAction.CLOSE -> configWindows.remove(window)*/
-                //? } else {
+                /*WindowClickAction.CLOSE -> configWindows.remove(window)
+                *///? } else {
                 WindowClickAction.CLOSE -> {
                     window.clearFocus()
                     configWindows.remove(window)
@@ -189,8 +189,8 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
 
         if (isOverHudButton(mx.toFloat(), my.toFloat())) {
             //? if <26.2 {
-            /*if (button == 0) {*/
-            //? } else {
+            /*if (button == 0) {
+            *///? } else {
             if (button == InputConstants.MOUSE_BUTTON_LEFT) {
             //? }
                 onClose()
@@ -201,8 +201,8 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
 
         if (isOverDiscordButton(mx.toFloat(), my.toFloat())) {
             //? if <26.2 {
-            /*if (button == 0) Utils.openDiscordLink()*/
-            //? } else {
+            /*if (button == 0) Utils.openDiscordLink()
+            *///? } else {
             if (button == InputConstants.MOUSE_BUTTON_LEFT) Utils.openDiscordLink()
             //? }
             return true
@@ -260,8 +260,8 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
         configWindows.lastOrNull()?.let { window ->
             //? if <26.2 {
             /*if (window.keyPressed(keyEvent.key, keyEvent.scancode, keyEvent.modifiers)) return true
-            if (keyEvent.key == UKeyboard.KEY_ESCAPE) {*/
-            //? } else if <26.3 {
+            if (keyEvent.key == UKeyboard.KEY_ESCAPE) {
+            *///? } else if <26.3 {
             /*if (window.keyPressed(keyEvent.key, keyEvent.scancode, keyEvent.modifiers)) return true
             if (keyEvent.key == InputConstants.KEY_ESCAPE) {
                 window.clearFocus()*/
@@ -277,8 +277,8 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
 
         if (searchHandler.keyPressed(keyEvent)) return true
         //? if <26.2 {
-        /*if (keyEvent.hasControlDown() && keyEvent.input() == UKeyboard.KEY_F) {*/
-        //? } else {
+        /*if (keyEvent.hasControlDown() && keyEvent.input() == UKeyboard.KEY_F) {
+        *///? } else {
         if (keyEvent.hasControlDown() && keyEvent.input() == InputConstants.KEY_F) {
         //? }
             searchHandler.listening = ! searchHandler.listening

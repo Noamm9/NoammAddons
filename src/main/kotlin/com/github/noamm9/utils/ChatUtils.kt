@@ -1,8 +1,5 @@
 package com.github.noamm9.utils
 
-//? if >=26.2 {
-import net.minecraft.network.chat.TextColor
-//? }
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.NoammAddons.scope
@@ -148,20 +145,12 @@ object ChatUtils: ISelfInit {
         comp.visit({ style, string ->
             style.color?.let { textColor ->
                 val colorMatch = ChatFormatting.entries.firstOrNull {
-                    //? if <26.2 {
-                    /*it.isColor && it.color == textColor.value*/
-                    //? } else {
+                    //~ if <26.2 'TextColor.fromLegacyFormat(it)?.value' -> 'it.isColor && it.color'
                     TextColor.fromLegacyFormat(it)?.value == textColor.value
-                    //? }
+                    //~ if >=26.2 '}?.char' -> '}'
                 }
 
-                if (colorMatch != null) {
-                    //? if <26.2 {
-                    /*sb.append("§${colorMatch.char}")*/
-                    //? } else {
-                    sb.append(colorMatch)
-                    //? }
-                }
+                if (colorMatch != null) sb.append("§$colorMatch")
             }
 
             if (style.isBold) sb.append(ChatFormatting.BOLD)

@@ -5,8 +5,8 @@ import com.github.noamm9.config.types.ToggleSetting
 //? if <26.2 {
 /*import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
-import com.github.noamm9.event.impl.PacketEvent*/
-//? } else {
+import com.github.noamm9.event.impl.PacketEvent
+*///? } else {
 import com.github.noamm9.event.impl.*
 //? }
 import com.github.noamm9.features.Feature
@@ -20,26 +20,26 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 //? if cheat {
 import com.github.noamm9.utils.ThreadUtils
 //? }
-import com.github.noamm9.utils.equalsOneOf*/
-//? }
+import com.github.noamm9.utils.equalsOneOf
+*///? }
 import com.github.noamm9.utils.items.ItemUtils.lore
 //? if <26.2 {
-/*import gg.essential.universal.UKeyboard*/
-//? } else {
+/*import gg.essential.universal.UKeyboard
+*///? } else {
 import com.mojang.blaze3d.platform.InputConstants
 //? }
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 //? if <26.2 {
 /*import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
-import net.minecraft.network.protocol.game.ServerboundContainerClosePacket*/
-//? } else {
+import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
+*///? } else {
 import net.minecraft.network.protocol.game.*
 //? }
 import net.minecraft.world.inventory.Slot
 //? if <26.2 {
-/*import org.lwjgl.glfw.GLFW*/
-//? }
+/*import org.lwjgl.glfw.GLFW
+*///? }
 
 object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to your keyboard.") {
     private val blockBarrierClick by ToggleSetting("Block Barrier Click")
@@ -54,8 +54,8 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
             9 -> UKeyboard.KEY_0
             10 -> UKeyboard.KEY_MINUS
             11 -> UKeyboard.KEY_EQUALS
-            else -> UKeyboard.KEY_NONE*/
-            //? } else {
+            else -> UKeyboard.KEY_NONE
+            *///? } else {
             in 0 .. 8 -> InputConstants.KEY_1 + index
             9 -> InputConstants.KEY_0
             10 -> InputConstants.KEY_MINUS
@@ -112,8 +112,8 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
             if (! inLoadoutMenu) return@register
             if (System.currentTimeMillis() - lastClick < 300) return@register
             //? if <26.2 {
-            /*if (event.key.equalsOneOf(UKeyboard.KEY_ESCAPE, KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value)) return@register*/
-            //? } else {
+            /*if (event.key.equalsOneOf(UKeyboard.KEY_ESCAPE, KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value)) return@register
+            *///? } else {
             if (event.key.equalsOneOf(InputConstants.KEY_ESCAPE, KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value)) return@register
             //? }
             val index = if (useHotbarBinds.value) hotbarKeyMap[event.key] ?: return@register
@@ -126,8 +126,8 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
             if (! inLoadoutMenu) return@register
             if (System.currentTimeMillis() - lastClick < 300) return@register
             //? if <26.2 {
-            /*if (event.button.equalsOneOf(GLFW.GLFW_MOUSE_BUTTON_LEFT, GLFW.GLFW_MOUSE_BUTTON_RIGHT)) return@register*/
-            //? } else {
+            /*if (event.button.equalsOneOf(GLFW.GLFW_MOUSE_BUTTON_LEFT, GLFW.GLFW_MOUSE_BUTTON_RIGHT)) return@register
+            *///? } else {
             if (event.button.equalsOneOf(InputConstants.MOUSE_BUTTON_LEFT, InputConstants.MOUSE_BUTTON_RIGHT)) return@register
             //? }
             val index = if (useHotbarBinds.value) hotbarKeyMap[event.button] ?: return@register

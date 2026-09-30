@@ -1,8 +1,4 @@
 package com.github.noamm9.ui.hud
-//? if >=26.2 {
-
-import com.mojang.blaze3d.platform.InputConstants
-//? }
 
 import com.github.noamm9.config.ConfigManager
 import com.github.noamm9.features.FeatureManager
@@ -10,6 +6,7 @@ import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.ui.utils.componnents.UIButton
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawLine
+import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.MouseButtonEvent
@@ -142,11 +139,7 @@ class HudEditorScreen: Screen(Component.literal("HudEditor")) {
         val mX = Resolution.getMouseX(mouseButtonEvent.x)
         val mY = Resolution.getMouseY(mouseButtonEvent.y)
 
-        //? if <26.2 {
-        /*if (mouseButtonEvent.button() == 0) huds.forEach {*/
-        //? } else {
         if (mouseButtonEvent.button() == InputConstants.MOUSE_BUTTON_LEFT) huds.forEach {
-        //? }
             it.startDragging(mX, mY)
             if (it.isDragging) return true
         }

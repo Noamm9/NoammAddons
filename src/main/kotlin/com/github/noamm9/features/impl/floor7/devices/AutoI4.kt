@@ -155,11 +155,7 @@ object AutoI4: Feature("Fully Automated I4") {
             }
 
             if (event.pos !in I4Helper.devBlocks) return@register
-            //? if <26.2 {
-            /*if (event.oldBlock == Blocks.EMERALD_BLOCK && event.newBlock == Blocks.BLUE_TERRACOTTA) {*/
-            //? } else {
             if (event.oldBlock == Blocks.EMERALD_BLOCK && event.newBlock == Blocks.DYED_TERRACOTTA.blue()) {
-            //? }
                 doneCoords.add(event.pos)
                 if (activeEmerald.get() == event.pos) {
                     activeEmerald.set(null)

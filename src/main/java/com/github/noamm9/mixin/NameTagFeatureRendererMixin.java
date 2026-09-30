@@ -2,8 +2,8 @@ package com.github.noamm9.mixin;
 
 import com.github.noamm9.features.impl.misc.NameTagTweaks;
 //? if <26.3 {
-/*import net.minecraft.client.renderer.feature.NameTagFeatureRenderer;*/
-//? } else {
+/*import net.minecraft.client.renderer.feature.NameTagFeatureRenderer;
+*///? } else {
 import net.minecraft.client.renderer.SubmitNodeCollection;
 //? }
 import org.spongepowered.asm.mixin.Mixin;
@@ -11,8 +11,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
 //? if <26.3 {
-/*@Mixin(NameTagFeatureRenderer.class)*/
-//? } else {
+/*@Mixin(NameTagFeatureRenderer.class)
+*///? } else {
 @Mixin(SubmitNodeCollection.class)
 //? }
 public class NameTagFeatureRendererMixin {
@@ -25,8 +25,8 @@ public class NameTagFeatureRendererMixin {
         ),
         index = 8
     )
-    private int modifyNametagBackground(int originalColor) {*/
-    //? } else if <26.3 {
+    private int modifyNametagBackground(int originalColor) {
+    *///? } else if <26.3 {
     /*@ModifyArg(
         method = "prepareText",
         at = @At(
@@ -52,8 +52,8 @@ public class NameTagFeatureRendererMixin {
         ),
         index = 4
     )
-    private boolean modifyShadowArgument(boolean original) {*/
-    //? } else if <26.3 {
+    private boolean modifyShadowArgument(boolean original) {
+    *///? } else if <26.3 {
     /*@ModifyArg(
         method = "prepareText",
         at = @At(

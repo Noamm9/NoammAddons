@@ -11,23 +11,23 @@ import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawLine
 //? if <26.2 {
-/*import gg.essential.universal.UKeyboard*/
-//? }
+/*import gg.essential.universal.UKeyboard
+*///? }
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.gui.screens.inventory.InventoryScreen
 import net.minecraft.world.inventory.ContainerInput
 //? if <26.2 {
-/*import org.lwjgl.glfw.GLFW*/
-//? } else {
+/*import org.lwjgl.glfw.GLFW
+*///? } else {
 import com.mojang.blaze3d.platform.InputConstants
 //? }
 import java.awt.Color
 
 object SlotBinding: Feature("Allows you to bind slots to hotbar slots for quick item swaps.") {
     //? if <26.2 {
-    /*private val bindKey by KeybindSetting("Binding key", UKeyboard.KEY_R).section("Keybind").withDescription("Press while hovering a hotbar slot and an inventory slot to link them.")*/
-    //? } else {
+    /*private val bindKey by KeybindSetting("Binding key", UKeyboard.KEY_R).section("Keybind").withDescription("Press while hovering a hotbar slot and an inventory slot to link them.")
+    *///? } else {
     private val bindKey by KeybindSetting("Binding key", InputConstants.KEY_R).section("Keybind").withDescription("Press while hovering a hotbar slot and an inventory slot to link them.")
     //? }
     private val showBoundSlots by ToggleSetting("Show Bound Slots", true).section("Rendering")
@@ -63,8 +63,8 @@ object SlotBinding: Feature("Allows you to bind slots to hotbar slots for quick 
             val binds = binds.get()
             //? if <26.2 {
             /*val isShiftDown = (event.modifiers and GLFW.GLFW_MOD_SHIFT) != 0
-            if (! isShiftDown || event.button != 0) return@register*/
-            //? } else {
+            if (! isShiftDown || event.button != 0) return@register
+            *///? } else {
             val isShiftDown = (event.modifiers and InputConstants.MOD_SHIFT) != 0
             if (! isShiftDown || event.button != InputConstants.MOUSE_BUTTON_LEFT) return@register
             //? }

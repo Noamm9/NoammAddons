@@ -52,9 +52,9 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
     private val keybindMode by DropdownSetting("Mode", 0, listOf("Corners", "Class")).showIf { leapKeybinds.value }
     //? if <26.2 {
     /*private val keybindKeys = (0 until 4).map { i -> KeybindSetting("Slot ${1 + i}", UKeyboard.KEY_1 + i).showIf { leapKeybinds.value && keybindMode.value == 0 }.apply(configSettings::add) }
-    private val classesKeys = DungeonClass.entries.dropLast(1).map { KeybindSetting(it.name.lowercase().uppercaseFirst(), UKeyboard.KEY_NONE).showIf { leapKeybinds.value && keybindMode.value == 1 }.apply(configSettings::add) }*/
-    //? } else {
-    private val keybindKeys = (0 until 4).map { i -> KeybindSetting("Slot ${1 + i}", InputConstants.KEY_1 + i).showIf { leapKeybinds.value && keybindMode.value == 0 }.apply(configSettings::add) }
+    private val classesKeys = DungeonClass.entries.dropLast(1).map { KeybindSetting(it.name.lowercase().uppercaseFirst(), UKeyboard.KEY_NONE).showIf { leapKeybinds.value && keybindMode.value == 1 }.apply(configSettings::add) }
+    *///? } else {
+    private val keybindKeys = (0 until 4).map { i -> KeybindSetting("Slot ${1 + i}", UKeyboard.KEY_1 + i).showIf { leapKeybinds.value && keybindMode.value == 0 }.apply(configSettings::add) }
     private val classesKeys = DungeonClass.entries.dropLast(1).map { KeybindSetting(it.name.lowercase().uppercaseFirst(), InputConstants.UNKNOWN.value).showIf { leapKeybinds.value && keybindMode.value == 1 }.apply(configSettings::add) }
     //? }
 
@@ -189,8 +189,8 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
             if (! event.screen.isLeapMenu()) return@register
 
             //? if <26.2 {
-            /*if (event.button != 0 && leftClickOnly.value) {*/
-            //? } else {
+            /*if (event.button != 0 && leftClickOnly.value) {
+            *///? } else {
             if (event.button != InputConstants.MOUSE_BUTTON_LEFT && leftClickOnly.value) {
             //? }
                 event.isCanceled = true

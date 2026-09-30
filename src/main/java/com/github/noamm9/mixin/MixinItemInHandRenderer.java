@@ -9,8 +9,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 //? if <26.3 {
 /*import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.client.renderer.ItemInHandRenderer;*/
-//? } else {
+import net.minecraft.client.renderer.ItemInHandRenderer;
+*///? } else {
 import net.minecraft.client.renderer.state.level.PlayerRenderState;
 import net.minecraft.client.renderer.state.level.FirstPersonHandsAndItemsRenderState;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -20,23 +20,23 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 //? if <26.3 {
-/*import org.joml.Quaternionfc;*/
-//? }
+/*import org.joml.Quaternionfc;
+*///? }
 import org.spongepowered.asm.mixin.Mixin;
 //? if <26.3 {
-/*import org.spongepowered.asm.mixin.Shadow;*/
-//? }
+/*import org.spongepowered.asm.mixin.Shadow;
+*///? }
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 //? if <26.3 {
-/*import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;*/
-//? }
+/*import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+*///? }
 
 //? if <26.3 {
-/*@Mixin(ItemInHandRenderer.class)*/
-//? } else {
+/*@Mixin(ItemInHandRenderer.class)
+*///? } else {
 @Mixin(FirstPersonHandsAndItemsRenderer.class)
 //? }
 public abstract class MixinItemInHandRenderer {
@@ -50,8 +50,8 @@ public abstract class MixinItemInHandRenderer {
     @Shadow private float offHandHeight;
 
     @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V", shift = At.Shift.AFTER))
-    private void onBeforeRenderItem(AbstractClientPlayer player, float f, float g, InteractionHand hand, float attack, ItemStack itemStack, float inverseArmHeight, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int lightCoords, CallbackInfo ci) {*/
-    //? } else if <26.3 {
+    private void onBeforeRenderItem(AbstractClientPlayer player, float f, float g, InteractionHand hand, float attack, ItemStack itemStack, float inverseArmHeight, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int lightCoords, CallbackInfo ci) {
+    *///? } else if <26.3 {
     /*@Shadow private ItemStack mainHandItem;
 
     @Shadow private float oMainHandHeight;
@@ -80,8 +80,8 @@ public abstract class MixinItemInHandRenderer {
 
     //? if <26.2 {
     /*@ModifyVariable(method = "renderArmWithItem", at = @At("HEAD"), ordinal = 2, argsOnly = true)
-    private float modifySwingProgress(float attack) {*/
-    //? } else if <26.3 {
+    private float modifySwingProgress(float attack) {
+    *///? } else if <26.3 {
     /*@ModifyVariable(method = "submitArmWithItem", at = @At("HEAD"), ordinal = 2, argsOnly = true)
     private float modifySwingProgress(float attack) {*/
     //? } else {
@@ -91,8 +91,8 @@ public abstract class MixinItemInHandRenderer {
         if (!Animations.INSTANCE.enabled) return attack;
         if (Animations.getDisableSwingAnimation().getValue()) {
             //? if <26.3 {
-            /*boolean isTerminator = ItemUtils.INSTANCE.getSkyblockId(mainHandItem).equals("TERMINATOR");*/
-            //? } else {
+            /*boolean isTerminator = ItemUtils.INSTANCE.getSkyblockId(mainHandItem).equals("TERMINATOR");
+            *///? } else {
             boolean isTerminator = ItemUtils.INSTANCE.getSkyblockId(state.mainHandItem).equals("TERMINATOR");
             //? }
             if (Animations.getTerminatorOnly().getValue()) {
@@ -105,8 +105,8 @@ public abstract class MixinItemInHandRenderer {
 
     //? if <26.2 {
     /*@Inject(method = "renderArmWithItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;I)V"))
-    private void onRenderItem(AbstractClientPlayer player, float frameInterp, float xRot, InteractionHand hand, float attack, ItemStack itemStack, float inverseArmHeight, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int lightCoords, CallbackInfo ci) {*/
-    //? } else if <26.3 {
+    private void onRenderItem(AbstractClientPlayer player, float frameInterp, float xRot, InteractionHand hand, float attack, ItemStack itemStack, float inverseArmHeight, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int lightCoords, CallbackInfo ci) {
+    *///? } else if <26.3 {
     /*@Inject(method = "submitArmWithItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;I)V"))
     private void onRenderItem(AbstractClientPlayer player, float frameInterp, float xRot, InteractionHand hand, float attack, ItemStack itemStack, float inverseArmHeight, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int lightCoords, CallbackInfo ci) {*/
     //? } else {
@@ -119,8 +119,8 @@ public abstract class MixinItemInHandRenderer {
         //? if <26.3 {
         /*poseStack.mulPose(Axis.XP.rotationDegrees(Animations.getMainHandPositiveX().getValue().floatValue()));
         poseStack.mulPose(Axis.YP.rotationDegrees(Animations.getMainHandPositiveY().getValue().floatValue()));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(Animations.getMainHandPositiveZ().getValue().floatValue()));*/
-        //? } else {
+        poseStack.mulPose(Axis.ZP.rotationDegrees(Animations.getMainHandPositiveZ().getValue().floatValue()));
+        *///? } else {
         poseStack.rotate(Axis.XP.rotationDegrees(Animations.getMainHandPositiveX().getValue().floatValue()));
         poseStack.rotate(Axis.YP.rotationDegrees(Animations.getMainHandPositiveY().getValue().floatValue()));
         poseStack.rotate(Axis.ZP.rotationDegrees(Animations.getMainHandPositiveZ().getValue().floatValue()));
@@ -160,8 +160,8 @@ public abstract class MixinItemInHandRenderer {
     }
 
     @WrapWithCondition(method = "renderHandsWithItems", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;mulPose(Lorg/joml/Quaternionfc;)V"))
-    private boolean disableHandMove(PoseStack instance, Quaternionfc by) {*/
-    //? } else if <26.3 {
+    private boolean disableHandMove(PoseStack instance, Quaternionfc by) {
+    *///? } else if <26.3 {
     /*@Inject(method = "shouldInstantlyReplaceVisibleItem", at = @At("HEAD"), cancellable = true)
     private void onShouldSkipAnimation(ItemStack currentlyVisibleItem, ItemStack expectedItem, CallbackInfoReturnable<Boolean> cir) {
         if (Animations.INSTANCE.enabled && Animations.getDisableEquip().getValue()) {

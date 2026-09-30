@@ -12,8 +12,8 @@ import com.github.noamm9.utils.GsonUtils.gsonObject
 import com.google.gson.JsonElement
 import com.mojang.blaze3d.platform.InputConstants
 //? if <26.2 {
-/*import gg.essential.universal.UKeyboard*/
-//? } else if <26.3 {
+/*import gg.essential.universal.UKeyboard
+*///? } else if <26.3 {
 /*import org.lwjgl.glfw.GLFW*/
 //? } else {
 import org.lwjgl.sdl.SDLMouse
@@ -22,8 +22,8 @@ import org.lwjgl.sdl.SDLMouse
 class KeybindSetting(
     name: String,
     //? if <26.2 {
-    /*defaultValue: Int = UKeyboard.KEY_NONE*/
-    //? } else {
+    /*defaultValue: Int = UKeyboard.KEY_NONE
+    *///? } else {
     defaultValue: Int = InputConstants.UNKNOWN.value
     //? }
 ): ConfigHolder<Int>(name, defaultValue), Savable {
@@ -35,8 +35,8 @@ class KeybindSetting(
     fun displayName(): String {
         //? if <26.2 {
         /*if (value == UKeyboard.KEY_NONE) return "NONE"
-        val type = if (isMouse) InputConstants.Type.MOUSE else InputConstants.Type.KEYSYM*/
-        //? } else if <26.3 {
+        val type = if (isMouse) InputConstants.Type.MOUSE else InputConstants.Type.KEYSYM
+        *///? } else if <26.3 {
         /*if (value == InputConstants.UNKNOWN.value) return "NONE"
         val type = if (isMouse) InputConstants.Type.MOUSE else InputConstants.Type.KEYSYM*/
         //? } else {
@@ -49,8 +49,8 @@ class KeybindSetting(
     fun isDown(): Boolean {
         //? if <26.2 {
         /*if (value == UKeyboard.KEY_NONE) return false
-        return UKeyboard.isKeyDown(value)*/
-        //? } else if <26.3 {
+        return UKeyboard.isKeyDown(value)
+        *///? } else if <26.3 {
         /*if (value == InputConstants.UNKNOWN.value) return false
         return if (isMouse) GLFW.glfwGetMouseButton(mc.window.handle(), value) == GLFW.GLFW_PRESS
         else InputConstants.isKeyDown(mc.window, value)*/
@@ -69,8 +69,8 @@ class KeybindSetting(
     }
 
     //? if <26.2 {
-    /*fun matches(code: Int, mouse: Boolean) = value != UKeyboard.KEY_NONE && isMouse == mouse && value == code*/
-    //? } else {
+    /*fun matches(code: Int, mouse: Boolean) = value != UKeyboard.KEY_NONE && isMouse == mouse && value == code
+    *///? } else {
     fun matches(code: Int, mouse: Boolean) = value != InputConstants.UNKNOWN.value && isMouse == mouse && value == code
     //? }
 

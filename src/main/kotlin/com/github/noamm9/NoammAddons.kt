@@ -11,16 +11,18 @@ import kotlinx.coroutines.*
 import me.owdding.dfu.item.MeowddingItemDfu
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.rendering.v1.PictureInPictureRendererRegistry
-import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.network.chat.Component
 import org.slf4j.LoggerFactory
 
 object NoammAddons: ClientModInitializer {
-    const val MOD_ID = "noammaddons"
-    const val MOD_NAME = "NoammAddons"
-    val MOD_VERSION: String by lazy {
-        FabricLoader.getInstance().getModContainer(MOD_ID).orElseThrow().metadata.version.friendlyString
-    }
+    const val MOD_NAME = /*$ mod_name*/ "NoammAddons"
+    const val MOD_ID = /*$ mod_id*/ "noammaddons"
+    const val MOD_VERSION = /*$ mod_version*/ "1.2.9"
+    const val MC_VERSION = /*$ mc_version*/ "26.3"
+
+    //~ if cheat 'false' -> 'true'
+    const val isCheat = true
+
     val PREFIX by lazy {
         if (isCheat) Component.literal("§6§l[§b§lN§d§lA§6§l]§r")
         else Component.empty().apply {
@@ -40,15 +42,6 @@ object NoammAddons: ClientModInitializer {
     @JvmStatic val mc by lazy { UMinecraft.getMinecraft() }
     @JvmField var isLoaded = false
 
-    @JvmField
-    var isCheat = run {
-        //? if cheat {
-        true
-        //? } else {
-        /*false*/
-        //? }
-    }
-
     val cacheData = PogObject("cacheData", mutableMapOf<String, Any>())
 
     val availableDebugFlags = mutableSetOf<String>()
@@ -60,11 +53,8 @@ object NoammAddons: ClientModInitializer {
     }
 
     override fun onInitializeClient() {
-        //? if <26.2 {
-        /*PictureInPictureRendererRegistry.register { ItemRenderer(it.bufferSource()) }*/
-        //? } else {
+        //~ if <26.2 'ItemRenderer()' -> 'ItemRenderer(it.bufferSource())'
         PictureInPictureRendererRegistry.register { ItemRenderer() }
-        //? }
         MeowddingItemDfu.load()
 
         ClassGraphInitializer().initAll()
@@ -73,7 +63,7 @@ object NoammAddons: ClientModInitializer {
 
         isLoaded = true
 
-        EventBus.register<RatEvent>() {
+        EventBus.register<RatEvent> {
             listener.unregister()
             event.cancel()
         }

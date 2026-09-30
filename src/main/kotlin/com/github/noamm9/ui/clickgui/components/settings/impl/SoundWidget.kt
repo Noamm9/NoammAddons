@@ -16,8 +16,8 @@ import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.client.input.MouseButtonInfo
 import net.minecraft.sounds.SoundEvent
 //? if <26.2 {
-/*import org.lwjgl.glfw.GLFW*/
-//? } else {
+/*import org.lwjgl.glfw.GLFW
+*///? } else {
 import com.mojang.blaze3d.platform.InputConstants
 //? }
 import java.awt.Color
@@ -132,8 +132,8 @@ class SoundWidget(config: SoundSetting): Widget<SoundEvent>(config) {
 
         if (expanded) {
             //? if <26.2 {
-            /*val event = MouseButtonEvent(mouseX, mouseY, MouseButtonInfo(button, GLFW.GLFW_PRESS))*/
-            //? } else {
+            /*val event = MouseButtonEvent(mouseX, mouseY, MouseButtonInfo(button, GLFW.GLFW_PRESS))
+            *///? } else {
             val event = MouseButtonEvent(mouseX, mouseY, MouseButtonInfo(button, 0))
             //? }
             if (searchHandler.mouseClicked(mouseX.toFloat(), mouseY.toFloat(), event)) return true
@@ -146,8 +146,8 @@ class SoundWidget(config: SoundSetting): Widget<SoundEvent>(config) {
                 if (index in filteredSounds.indices) {
                     val sound = filteredSounds[index]
                     //? if <26.2 {
-                    /*if (button == 0) {*/
-                    //? } else {
+                    /*if (button == 0) {
+                    *///? } else {
                     if (button == InputConstants.MOUSE_BUTTON_LEFT) {
                     //? }
                         value = SoundSetting.getSound(sound.location()) !!.value()

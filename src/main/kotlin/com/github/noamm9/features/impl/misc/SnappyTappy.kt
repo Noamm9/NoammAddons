@@ -4,8 +4,8 @@ package com.github.noamm9.features.impl.misc
 
 import com.github.noamm9.features.Feature
 //? if <26.2 {
-/*import gg.essential.universal.UKeyboard*/
-//? } else {
+/*import gg.essential.universal.UKeyboard
+*///? } else {
 import com.mojang.blaze3d.platform.InputConstants
 //? }
 import gg.essential.universal.UMinecraft
@@ -66,8 +66,8 @@ object SnappyTappy: Feature("Prevents standing still when pressing opposing dire
 
     private fun isNewer(a: KeyMapping, b: KeyMapping) = (pressTimes[a] ?: 0L) >= (pressTimes[b] ?: 0L)
     //? if <26.2 {
-    /*private fun isPhysicallyDown(key: KeyMapping) = UKeyboard.isKeyDown(KeyMappingHelper.getBoundKeyOf(key).value)*/
-    //? } else if <26.3 {
+    /*private fun isPhysicallyDown(key: KeyMapping) = UKeyboard.isKeyDown(KeyMappingHelper.getBoundKeyOf(key).value)
+    *///? } else if <26.3 {
     /*private fun isPhysicallyDown(key: KeyMapping) = InputConstants.isKeyDown(mc.window, KeyMappingHelper.getBoundKeyOf(key).value)*/
     //? } else {
     private fun isPhysicallyDown(key: KeyMapping) = InputConstants.isKeyDown(KeyMappingHelper.getBoundKeyOf(key).value)

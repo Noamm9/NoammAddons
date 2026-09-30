@@ -40,8 +40,8 @@ import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.inventory.*
 import net.minecraft.world.item.ItemStack
 //? if <26.2 {
-/*import org.lwjgl.glfw.GLFW*/
-//? }
+/*import org.lwjgl.glfw.GLFW
+*///? }
 import java.awt.Color
 import java.util.*
 
@@ -289,8 +289,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             if (! drawNameInput(x, y, page, mouseX, mouseY)) {
                 val label = if (showName) page.name + " &7- Click to load" else "Click to load"
                 //? if <26.3 {
-                /*text(font, font.plainSubstrByWidth(label.addColor(), PAGE_WIDTH - 8), x + 4, y + 5, Color(180, 180, 180).rgb, true)*/
-                //? } else {
+                /*text(font, font.plainSubstrByWidth(label.addColor(), PAGE_WIDTH - 8), x + 4, y + 5, Color(180, 180, 180).rgb, true)
+                *///? } else {
                 drawString(label.addColor(), x + 4, y + 5, Color(180, 180, 180))
                 //? }
             }
@@ -309,8 +309,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
         if (showName && ! drawNameInput(x, y, page, mouseX, mouseY)) {
             //? if <26.3 {
-            /*text(font, font.plainSubstrByWidth(name.addColor(), PAGE_WIDTH - 12), x + 6, y + 3, if (isActive) activePageBorder.rgb else Color.WHITE.rgb, true)*/
-            //? } else {
+            /*text(font, font.plainSubstrByWidth(name.addColor(), PAGE_WIDTH - 12), x + 6, y + 3, if (isActive) activePageBorder.rgb else Color.WHITE.rgb, true)
+            *///? } else {
             drawString(name, x + 6, y + 3, if (isActive) activePageBorder else Color.WHITE)
             //? }
         }
@@ -375,8 +375,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         editingPage = page
         nameInput = EditBox(font, x + 4, y + 3, PAGE_WIDTH - 8, font.lineHeight + 2, Component.literal("Storage name")).apply {
             //? if <26.3 {
-            /*setBordered(false)*/
-            //? } else {
+            /*setBordered(false)
+            *///? } else {
             @Suppress("UsePropertyAccessSyntax")
             //? }
             setMaxLength(128)
@@ -413,13 +413,13 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         when (event.key) {
             //? if <26.2 {
             /*GLFW.GLFW_KEY_ESCAPE -> stopEditingName()
-            GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> saveEditingName()*/
-            //? } else if <26.3 {
-            /*InputConstants.KEY_ESCAPE -> stopEditingName()
-            InputConstants.KEY_RETURN, InputConstants.KEY_NUMPADENTER -> saveEditingName()*/
+            GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> saveEditingName()
+            *///? } else if <26.3 {
+            /*UKeyboard.KEY_ESCAPE -> stopEditingName()
+            UKeyboard.KEY_ENTER, UKeyboard.KEY_NUMPADENTER -> saveEditingName()*/
             //? } else {
-            InputConstants.KEY_ESCAPE -> stopEditingName()
-            InputConstants.KEY_RETURN, InputConstants.KEYCODE_NUMPADENTER -> saveEditingName()
+            UKeyboard.KEY_ESCAPE -> stopEditingName()
+            UKeyboard.KEY_ENTER, InputConstants.KEYCODE_NUMPADENTER -> saveEditingName()
             //? }
             else -> input.keyPressed(event)
         }
@@ -521,8 +521,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val player = mc.player ?: return false
         val gameMode = mc.gameMode ?: return false
         //? if <26.2 {
-        /*val shift = (modifiers and GLFW.GLFW_MOD_SHIFT) != 0*/
-        //? } else {
+        /*val shift = (modifiers and GLFW.GLFW_MOD_SHIFT) != 0
+        *///? } else {
         val shift = (modifiers and InputConstants.MOD_SHIFT) != 0
         //? }
         val clickType = input ?: if (shift) ContainerInput.QUICK_MOVE else ContainerInput.PICKUP
@@ -585,8 +585,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     fun onOverlayClick(click: MouseButtonEvent, doubled: Boolean): Boolean {
         val activePage = (storageMenu as? StorageMenu.Page)?.storagePage
         //? if <26.2 {
-        /*val button = click.button()*/
-        //? } else {
+        /*val button = click.button()
+        *///? } else {
         val button = when (click.button()) {
             InputConstants.MOUSE_BUTTON_LEFT -> 0
             InputConstants.MOUSE_BUTTON_RIGHT -> 1
@@ -662,8 +662,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             if (dragActive) endDrag()
             else dragStartSlot?.let {
                 //? if <26.2 {
-                /*dispatchSlotClick(it, dragType, if (UKeyboard.isShiftKeyDown()) GLFW.GLFW_MOD_SHIFT else 0)*/
-                //? } else {
+                /*dispatchSlotClick(it, dragType, if (UKeyboard.isShiftKeyDown()) GLFW.GLFW_MOD_SHIFT else 0)
+                *///? } else {
                 dispatchSlotClick(it, dragType, if (UKeyboard.isShiftKeyDown()) InputConstants.MOD_SHIFT else 0)
                 //? }
             }

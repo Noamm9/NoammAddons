@@ -16,8 +16,8 @@ import com.github.noamm9.utils.*
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.RenderHelper.width
 //? if <26.2 {
-/*import gg.essential.universal.UKeyboard*/
-//? }
+/*import gg.essential.universal.UKeyboard
+*///? }
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 
 object AutoTerminal: Feature("Automatically clicks terminals for you.") {
@@ -124,8 +124,8 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
 
         register<ContainerEvent.Keyboard>(EventPriority.HIGH) {
             //? if <26.2 {
-            /*if (event.key.equalsOneOf(KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value, UKeyboard.KEY_ESCAPE)) return@register*/
-            //? } else {
+            /*if (event.key.equalsOneOf(KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value, UKeyboard.KEY_ESCAPE)) return@register
+            *///? } else {
             if (event.key.equalsOneOf(KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value, InputConstants.KEY_ESCAPE)) return@register
             //? }
             val handler = TerminalListener.currentHandler ?: return@register

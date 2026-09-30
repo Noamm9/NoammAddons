@@ -18,8 +18,8 @@ import kotlinx.coroutines.launch
 import net.minecraft.network.protocol.game.*
 import net.minecraft.sounds.SoundEvents
 //? if <26.2 {
-/*import org.lwjgl.glfw.GLFW*/
-//? } else {
+/*import org.lwjgl.glfw.GLFW
+*///? } else {
 import com.mojang.blaze3d.platform.InputConstants
 //? }
 import java.awt.Color
@@ -112,8 +112,8 @@ object Etherwarp: Feature("Etherwarp overlay and sound.") {
             if (! leftClick.value) return@register
             //? if <26.2 {
             /*if (event.button != 0) return@register
-            if (event.action != GLFW.GLFW_PRESS) return@register*/
-            //? } else {
+            if (event.action != GLFW.GLFW_PRESS) return@register
+            *///? } else {
             if (event.button != InputConstants.MOUSE_BUTTON_LEFT) return@register
             if (event.action != InputConstants.PRESS) return@register
             //? }

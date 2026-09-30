@@ -26,8 +26,8 @@ public class MixinMultiPlayerGameMode {
         //? if <26.2 {
         /*if (minecraft.screen == null) return;
         if (! (minecraft.screen instanceof AbstractContainerScreen<?>)) return;
-        if (EventBus.post(new ContainerEvent.SlotClick(minecraft.screen, slotNum, buttonNum, containerInput))) {*/
-        //? } else {
+        if (EventBus.post(new ContainerEvent.SlotClick(minecraft.screen, slotNum, buttonNum, containerInput))) {
+        *///? } else {
         if (minecraft.gui.screen() == null) return;
         if (! (minecraft.gui.screen() instanceof AbstractContainerScreen<?>)) return;
         if (EventBus.post(new ContainerEvent.SlotClick(minecraft.gui.screen(), slotNum, buttonNum, containerInput))) {

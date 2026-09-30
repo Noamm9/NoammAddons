@@ -16,11 +16,7 @@ object NumberTerminal: Terminal() {
     private val slotCounts = mutableMapOf<Int, Int>()
 
     override fun onSlotUpdate(items: Map<Int, ItemStack>, title: String, updatedSlot: Int, updatedItem: ItemStack): Boolean {
-        //? if <26.2 {
-        /*items.filter { it.value.item == Items.RED_STAINED_GLASS_PANE }*/
-        //? } else {
         items.filter { it.value.item == Items.STAINED_GLASS_PANE.red() }
-        //? }
             .toList().sortedBy { it.second.count }
             .forEach { (slot, stack) ->
                 slotCounts[slot] = stack.count

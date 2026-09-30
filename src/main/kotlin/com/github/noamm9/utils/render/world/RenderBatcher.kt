@@ -1,7 +1,9 @@
 package com.github.noamm9.utils.render.world
 
+import com.github.noamm9.utils.render.world.batches.FilledBatch
+import com.github.noamm9.utils.render.world.batches.LineBatch
 //? if <26.2 {
-/*import com.github.noamm9.utils.render.world.batches.*
+/*import com.github.noamm9.utils.render.world.batches.TextRenderState
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import com.mojang.blaze3d.vertex.Tesselator
 import gg.essential.universal.*
@@ -10,10 +12,8 @@ import gg.essential.universal.vertex.*
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext
 import net.minecraft.client.gui.Font
 import net.minecraft.util.LightCoordsUtil
-import org.joml.Matrix4f*/
-//? } else {
-import com.github.noamm9.utils.render.world.batches.FilledBatch
-import com.github.noamm9.utils.render.world.batches.LineBatch
+import org.joml.Matrix4f
+ *///? } else {
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.renderer.SubmitNodeCollector
 import net.minecraft.client.renderer.rendertype.RenderType
@@ -21,15 +21,17 @@ import net.minecraft.client.renderer.rendertype.RenderType
 import org.joml.Vector3f
 
 object RenderBatcher {
-    //? if <26.2 {
-    /*private val filledBatches = mutableMapOf<URenderPipeline, FilledBatch>()
-    private val lineBatches = mutableMapOf<URenderPipeline, LineBatch>()
-    private val texts = ArrayList<TextRenderState>()*/
-    //? } else {
+    //~ if >=26.2 'URenderPipeline' -> 'RenderType'
     private val filledBatches = mutableMapOf<RenderType, FilledBatch>()
+
+    //~ if >=26.2 'URenderPipeline' -> 'RenderType'
     private val lineBatches = mutableMapOf<RenderType, LineBatch>()
+
+    //? if <26.2
+    //private val texts = ArrayList<TextRenderState>()
+
+    //? if >=26.2
     private val poseStack = PoseStack()
-    //? }
 
     val tmpVec = Vector3f()
     val tmpDir = Vector3f()
@@ -94,8 +96,8 @@ object RenderBatcher {
         texts.clear()
     }
 
-    private fun filledBatch(pipeline: URenderPipeline, mode: UGraphics.DrawMode) = filledBatches.getOrPut(pipeline) { FilledBatch(pipeline, mode) }*/
-    //? } else {
+    private fun filledBatch(pipeline: URenderPipeline, mode: UGraphics.DrawMode) = filledBatches.getOrPut(pipeline) { FilledBatch(pipeline, mode) }
+     *///? } else {
     fun filledBatch(phase: Boolean): FilledBatch {
         val type = if (phase) NoammRenderTypes.DEBUG_FILLED else NoammRenderTypes.FILLED
         return filledBatches.getOrPut(type) { FilledBatch(type) }

@@ -74,8 +74,8 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
 
             //? if <26.3 {
             /*ServerboundAcceptTeleportationPacket(packet.id).send()
-            ServerboundMovePlayerPacket.PosRot(player.x, player.y, player.z, new.yRot, new.xRot, false, false).send()*/
-            //? } else {
+            ServerboundMovePlayerPacket.PosRot(player.x, player.y, player.z, new.yRot, new.xRot, false, false).send()
+            *///? } else {
             ServerboundAcceptTeleportationPacket(packet.id, player.x, player.y, player.z, new.yRot, new.xRot).send()
             //? }
 

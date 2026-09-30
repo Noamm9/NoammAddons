@@ -33,21 +33,21 @@ public abstract class MixinLavaFogEnvironment {
 
     @Inject(method = "getBaseColor", at = @At("HEAD"), cancellable = true)
     //? if <26.3 {
-    /*private void hookGetBaseColor(ClientLevel level, Camera camera, int renderDistance, float partialTicks, CallbackInfoReturnable<Integer> cir) {*/
-    //? } else {
+    /*private void hookGetBaseColor(ClientLevel level, Camera camera, int renderDistance, float partialTicks, CallbackInfoReturnable<Integer> cir) {
+    *///? } else {
     private void hookGetBaseColor(ClientLevel level, Camera camera, int renderDistance, float partialTicks, CallbackInfoReturnable<Vector3fc> cir) {
     //? }
         if (! LavaToWater.INSTANCE.enabled) return;
         //? if <26.3 {
-        /*int color;*/
-        //? } else {
+        /*int color;
+        *///? } else {
         Vector3fc color;
         //? }
 
         //? if <26.3 {
         /*if (LavaToWater.getColorTint().getValue()) color = LavaToWater.getTintColor().getValue().getRGB();
-        else color = WATER_FOG.getBaseColor(level, camera, renderDistance, partialTicks);*/
-        //? } else {
+        else color = WATER_FOG.getBaseColor(level, camera, renderDistance, partialTicks);
+        *///? } else {
         if (LavaToWater.getColorTint().getValue()) {
             var tint = LavaToWater.getTintColor().getValue();
             color = new Vector3f(tint.getRed() / 255f, tint.getGreen() / 255f, tint.getBlue() / 255f);

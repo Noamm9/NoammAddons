@@ -7,8 +7,8 @@ import com.github.noamm9.utils.ColorUtils.withAlpha
 import java.awt.Color
 
 //? if !cheat {
-/*import java.util.**/
-//? }
+/*import java.util.*
+*///? }
 
 object MapConfig: SettingProvider {
     override val configSettings = mutableSetOf<ConfigHolder<*>>()
@@ -18,8 +18,8 @@ object MapConfig: SettingProvider {
     //? if cheat {
     val dungeonMapCheater by ToggleSetting("Cheater Map", false)
     //? } else {
-    /*val dungeonMapCheater by ToggleSetting("Legit", false).hideIf { true }.jsonName(UUID.randomUUID().toString())*/
-    //? }
+    /*val dungeonMapCheater by ToggleSetting("Legit", false).hideIf { true }.jsonName(UUID.randomUUID().toString())
+    *///? }
 
     val mapExtraInfo by ToggleSetting("Show Extra Info Under Map", false)
     val mapHideInBoss by ToggleSetting("Hide In Boss", false)

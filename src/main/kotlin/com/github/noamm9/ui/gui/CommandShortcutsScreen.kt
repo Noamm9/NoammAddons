@@ -1,38 +1,26 @@
 @file:Suppress("NOTHING_TO_INLINE")
 
 package com.github.noamm9.ui.gui
-//? if >=26.2 {
-
-import com.mojang.blaze3d.platform.InputConstants
-//? }
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.features.impl.general.CommandShortcuts
 import com.github.noamm9.ui.clickgui.ClickGuiScreen
 import com.github.noamm9.ui.clickgui.components.settings.Style
-import com.github.noamm9.ui.utils.Animation
-import com.github.noamm9.ui.utils.Resolution
-import com.github.noamm9.ui.utils.TextInputHandler
+import com.github.noamm9.ui.utils.*
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.scissor
+import com.mojang.blaze3d.platform.InputConstants
 import com.mojang.brigadier.CommandDispatcher
-//? if <26.2 {
-/*import gg.essential.universal.UKeyboard*/
-//? }
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
-import net.minecraft.client.input.CharacterEvent
-import net.minecraft.client.input.KeyEvent
-import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.client.input.*
 import net.minecraft.network.chat.Component
 import java.awt.Color
-import kotlin.math.ceil
-import kotlin.math.max
-import kotlin.math.min
+import kotlin.math.*
 
 class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
     private class Row(var command: String, var replacement: String) {
@@ -212,24 +200,15 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
     }
 
     override fun keyPressed(keyEvent: KeyEvent): Boolean {
-        //? if <26.2 {
-        /*if (keyEvent.key == UKeyboard.KEY_SLASH) return true
-        if (keyEvent.key == UKeyboard.KEY_BACKSLASH) return true*/
-        //? } else {
         if (keyEvent.key == InputConstants.KEY_SLASH) return true
         if (keyEvent.key == InputConstants.KEY_BACKSLASH) return true
-        //? }
 
         rows.forEach {
             if (it.commandInput.keyPressed(keyEvent)) return true
             if (it.replacementInput.keyPressed(keyEvent)) return true
         }
 
-        //? if <26.2 {
-        /*if (keyEvent.key == UKeyboard.KEY_ESCAPE) {*/
-        //? } else {
         if (keyEvent.key == InputConstants.KEY_ESCAPE) {
-        //? }
             onClose()
             return true
         }

@@ -57,8 +57,8 @@ class MultiCheckboxWidget(config: MultiCheckboxSetting): Widget<MutableMap<Strin
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
         if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + 20) {
             //? if <26.2 {
-            /*if (button == 0) {*/
-            //? } else {
+            /*if (button == 0) {
+            *///? } else {
             if (button == InputConstants.MOUSE_BUTTON_LEFT) {
             //? }
                 expanded = ! expanded
@@ -72,8 +72,8 @@ class MultiCheckboxWidget(config: MultiCheckboxSetting): Widget<MutableMap<Strin
             value.keys.toList().forEach { optionKey ->
                 if (mouseX >= x && mouseX <= x + width && mouseY >= currentOy && mouseY <= currentOy + 16) {
                     //? if <26.2 {
-                    /*if (button == 0) {*/
-                    //? } else {
+                    /*if (button == 0) {
+                    *///? } else {
                     if (button == InputConstants.MOUSE_BUTTON_LEFT) {
                     //? }
                         value[optionKey] = ! (value[optionKey] ?: false)

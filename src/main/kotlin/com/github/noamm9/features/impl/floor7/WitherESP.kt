@@ -13,8 +13,8 @@ import java.awt.Color
 object WitherESP: Feature(
     "Highlights all Withers in F7.",
     //? if !cheat {
-    /*name = "Wither Highlight",*/
-    //? }
+    /*name = "Wither Highlight",
+    *///? }
     jsonName = "Wither ESP"
 ) {
     private val maxorColor by ColorSetting("Maxor", Color(88, 4, 164), false)

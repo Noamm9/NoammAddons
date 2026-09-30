@@ -139,8 +139,8 @@ class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private 
     fun mouseClicked(mouseX: Double, mouseY: Double, button: Int) {
         if (isMouseOverHeader(mouseX, mouseY)) {
             //? if <26.2 {
-            /*if (button == 0) {*/
-            //? } else {
+            /*if (button == 0) {
+            *///? } else {
             if (button == InputConstants.MOUSE_BUTTON_LEFT) {
             //? }
                 dragging = true
@@ -148,8 +148,8 @@ class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private 
                 dragY = (mouseY - y).toInt()
             }
             //? if <26.2 {
-            /*else if (button == 1) {*/
-            //? } else {
+            /*else if (button == 1) {
+            *///? } else {
             else if (button == InputConstants.MOUSE_BUTTON_RIGHT) {
             //? }
                 collapsed = ! collapsed
@@ -171,16 +171,16 @@ class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private 
         filteredFeatures.forEach { feature ->
             if (mouseX >= x && mouseX <= x + WIDTH && mouseY >= currentY && mouseY <= currentY + BUTTON_HEIGHT) {
                 //? if <26.2 {
-                /*if (button == 0) {*/
-                //? } else {
+                /*if (button == 0) {
+                *///? } else {
                 if (button == InputConstants.MOUSE_BUTTON_LEFT) {
                 //? }
                     feature.toggle()
                     return
                 }
                 //? if <26.2 {
-                /*else if (button == 1) {*/
-                //? } else {
+                /*else if (button == 1) {
+                *///? } else {
                 else if (button == InputConstants.MOUSE_BUTTON_RIGHT) {
                 //? }
                     openFeature(feature)
@@ -193,8 +193,8 @@ class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private 
 
     fun mouseReleased(button: Int) {
         //? if <26.2 {
-        /*if (button == 0) dragging = false*/
-        //? } else {
+        /*if (button == 0) dragging = false
+        *///? } else {
         if (button == InputConstants.MOUSE_BUTTON_LEFT) dragging = false
         //? }
     }

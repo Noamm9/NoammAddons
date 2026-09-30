@@ -16,8 +16,8 @@ import net.minecraft.world.entity.ambient.Bat
 import net.minecraft.world.entity.boss.wither.WitherBoss
 import net.minecraft.world.entity.decoration.ArmorStand
 //? if <26.3 {
-/*import net.minecraft.world.entity.monster.EnderMan*/
-//? } else {
+/*import net.minecraft.world.entity.monster.Enderman
+*///? } else {
 import net.minecraft.world.entity.monster.Enderman
 //? }
 import net.minecraft.world.entity.player.Player
@@ -27,8 +27,8 @@ import java.awt.Color
 object StarMobESP: Feature(
     "Highlights all starred mobs in a dungeon.",
     //? if !cheat {
-    /*name = "Star Mob Highlight",*/
-    //? }
+    /*name = "Star Mob Highlight",
+    *///? }
     jsonName = "Star Mob ESP"
 ) {
     private val espBats by ToggleSetting("Highlight Bats", true).withDescription("Highlights Bats in Dungeons.")
@@ -87,11 +87,7 @@ object StarMobESP: Feature(
 
     private fun getColor(entity: Entity): Color? {
         if (entity is Bat) return if (espBats.value && ! entity.isInvisible && ! entity.isPassenger) batColor.value else null
-        //? if <26.3 {
-        /*if (entity is EnderMan) return if (espFels.value && entity.customName?.string == "Dinnerbone") felColor.value else null*/
-        //? } else {
         if (entity is Enderman) return if (espFels.value && entity.customName?.string == "Dinnerbone") felColor.value else null
-        //? }
         return null
     }
 

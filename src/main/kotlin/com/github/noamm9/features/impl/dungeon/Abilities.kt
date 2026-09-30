@@ -12,8 +12,8 @@ import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
 import gg.essential.universal.UMinecraft
 //? if <26.2 {
-/*import org.lwjgl.glfw.GLFW*/
-//? } else {
+/*import org.lwjgl.glfw.GLFW
+*///? } else {
 import com.mojang.blaze3d.platform.InputConstants
 //? }
 
@@ -21,8 +21,8 @@ object Abilities: Feature(
     //? if cheat {
     "Allows you to use dungeon class abilities with keybinds and automatically trigger ultimates when needed."
     //? } else {
-    /*"Allows you to use dungeon class abilities with keybinds."*/
-    //? }
+    /*"Allows you to use dungeon class abilities with keybinds."
+    *///? }
 ) {
     private val ultKeybind by KeybindSetting("Ultimate Keybind").section("Keybinds")
     private val abilityKeybind by KeybindSetting("Ability Keybind")
@@ -60,8 +60,8 @@ object Abilities: Feature(
         register<KeyboardEvent.KeyPressed> {
             if (! LocationUtils.inDungeon || ! DungeonListener.dungeonStarted) return@register
             //? if <26.2 {
-            /*if (event.action != GLFW.GLFW_PRESS) return@register*/
-            //? } else {
+            /*if (event.action != GLFW.GLFW_PRESS) return@register
+            *///? } else {
             if (event.action != InputConstants.PRESS) return@register
             //? }
             if (UMinecraft.currentScreenObj != null) return@register

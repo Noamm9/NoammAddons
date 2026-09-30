@@ -1,11 +1,9 @@
-import groovy.json.JsonOutput
-import groovy.json.JsonParserType
-import groovy.json.JsonSlurper
+import groovy.json.*
 import net.fabricmc.loom.api.LoomGradleExtensionAPI
 import org.gradle.jvm.tasks.Jar
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.util.Properties
+import java.util.*
 
 plugins {
     id("net.fabricmc.fabric-loom")
@@ -20,7 +18,7 @@ val modVersion = property("mod_version") as String
 val modName = property("mod_name") as String
 val modId = property("mod_id") as String
 val flavor = sc.current.project.substringAfterLast('-')
-val datafixerCapability = "me.owdding:item-data-fixer-$minecraftVersion"
+val datafixerCapability = "me.owdding:item-data-fixer-${if (minecraftVersion == "26.1.2") "26.1" else minecraftVersion}"
 
 version = modVersion
 group = property("maven_group") as String
@@ -44,7 +42,6 @@ repositories {
     maven("https://repo.essential.gg/repository/maven-public")
     maven("https://maven.terraformersmc.com/releases/")
     maven("https://api.modrinth.com/maven")
-    maven("https://jitpack.io")
     maven("https://maven.teamresourceful.com/repository/thatgravyboat/") {
         content { includeGroup("me.owdding") }
     }
@@ -63,17 +60,15 @@ dependencies {
     annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.5.5")
 
     bundled("io.github.classgraph:classgraph:4.8.195")
-    if (minecraftVersion == "26.2") {
-        bundled("me.owdding:item-data-fixer:${property("datafixer_version")}") {
-            capabilities { requireCapability(datafixerCapability) }
-        }
-    } else {
-        bundled("com.github.Noamm9:datafixer:d60875927e")
+    bundled("me.owdding:item-data-fixer:${property("datafixer_version")}") {
+        capabilities { requireCapability(datafixerCapability) }
     }
+
     val universalcraftTarget = if (minecraftVersion == "26.1.2") "26.1" else minecraftVersion
     bundled("gg.essential:universalcraft-$universalcraftTarget-fabric:${property("universalcraft_version")}") {
         exclude(group = "net.fabricmc", module = "fabric-loader")
     }
+
     val ktorVersion = property("ktor_version")
     bundled("io.ktor:ktor-client-cio:$ktorVersion")
     bundled("io.ktor:ktor-client-content-negotiation-jvm:$ktorVersion")
@@ -110,25 +105,31 @@ tasks.withType<KotlinCompile>().configureEach { compilerOptions { jvmTarget.set(
 
 tasks.named<ProcessResources>("processResources") {
     dependsOn("processIncludeJars")
-    inputs.property("modVersion", modVersion)
     inputs.dir(processedIncludeJarsDir)
+
+    val properties = mapOf(
+        "fabric_loader" to project.property("loader_version"),
+        "mc_version" to minecraftVersion,
+        "mod_version" to modVersion,
+        "mod_name" to modName,
+        "mod_id" to modId,
+        "mod_description" to "$minecraftVersion port of the greatest skyblock mod ever made! Version: ${flavor.replaceFirstChar { it.uppercase() }}",
+    ).mapValues { it.value.toString() }
+
     doLast {
-        for (name in listOf("fabric.mod", "$modId.mixins")) {
-            val source = destinationDir.resolve("$name.json5")
-            val content = source.readText().replace("\${version}", modVersion)
-            val json = JsonSlurper().setType(JsonParserType.LAX).parseText(content) as Map<*, *>
-            val result = json.toMutableMap()
-            if (name == "fabric.mod") {
-                result["description"] = "$minecraftVersion port of the greatest skyblock mod ever made! Version: ${flavor.replaceFirstChar { it.uppercase() }}"
-                result["jars"] = processedIncludeJarsDir.get().asFile.listFiles()
-                    ?.filter { it.isFile && it.extension == "jar" }
-                    ?.sortedBy { it.name }
-                    ?.map { mapOf("file" to "META-INF/jars/${it.name}") }
-                    .orEmpty()
-            }
-            destinationDir.resolve("$name.json").writeText(JsonOutput.prettyPrint(JsonOutput.toJson(result)))
-            source.delete()
-        }
+        val modJson = "fabric.mod.json"
+        val file = destinationDir.resolve(modJson)
+        var content = file.readText()
+        properties.forEach { (k, v) -> content = content.replace("\${$k}", v) }
+        file.delete()
+
+        val result = (JsonSlurper().setType(JsonParserType.LAX).parseText(content) as Map<*, *>).toMutableMap()
+        result["jars"] = processedIncludeJarsDir.get().asFile.listFiles()
+            ?.filter { it.isFile && it.extension == "jar" }?.sortedBy { it.name }
+            ?.map { mapOf("file" to "META-INF/jars/${it.name}") }.orEmpty()
+
+        destinationDir.resolve(modJson).writeText(JsonOutput.prettyPrint(JsonOutput.toJson(result)))
+
         val props = Properties()
         props.setProperty("ci", (System.getenv("GITHUB_ACTIONS") == "true").toString())
         props.setProperty("built_at", System.currentTimeMillis().toString())

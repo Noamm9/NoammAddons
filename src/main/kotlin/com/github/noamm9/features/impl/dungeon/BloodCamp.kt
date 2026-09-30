@@ -108,8 +108,8 @@ object BloodCamp: Feature("Features for Blood Room.") {
             if (LocationUtils.inBoss) return@register
             val packet = event.packet as? ClientboundMoveEntityPacket ?: return@register
             //? if <26.2 {
-            /*if (packet.xa == 0.toShort() && packet.ya == 0.toShort() && packet.za == 0.toShort()) return@register*/
-            //? } else if <26.3 {
+            /*if (packet.xa == 0.toShort() && packet.ya == 0.toShort() && packet.za == 0.toShort()) return@register
+            *///? } else if <26.3 {
             /*if (packet.xa == 0.toShort() && packet.za == 0.toShort()) return@register*/
             //? } else {
             if (! packet.positionDelta.hasDeltaX() && ! packet.positionDelta.hasDeltaZ()) return@register
@@ -124,8 +124,8 @@ object BloodCamp: Feature("Features for Blood Room.") {
                 entity.x + (packet.xa / 4096),
                 entity.y + (packet.ya / 4096),
                 entity.z + (packet.za / 4096)
-            )*/
-            //? } else if <26.3 {
+            )
+            *///? } else if <26.3 {
             /*val packetVec = entity.positionCodec.decode(packet.xa.toLong(), packet.ya.toLong(), packet.za.toLong())*/
             //? } else {
             val packetVec = packet.positionDelta.decode(entity.positionCodec).endPosition()

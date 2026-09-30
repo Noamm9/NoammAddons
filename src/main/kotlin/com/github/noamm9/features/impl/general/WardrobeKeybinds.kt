@@ -9,8 +9,8 @@ import com.github.noamm9.config.types.ToggleSetting
 //? if <26.2 {
 /*import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
-import com.github.noamm9.event.impl.PacketEvent*/
-//? } else {
+import com.github.noamm9.event.impl.PacketEvent
+*///? } else {
 import com.github.noamm9.event.impl.*
 //? }
 import com.github.noamm9.features.Feature
@@ -25,16 +25,16 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ThreadUtils
 //? }
 import com.github.noamm9.utils.equalsOneOf
-import gg.essential.universal.UKeyboard*/
-//? } else {
+import gg.essential.universal.UKeyboard
+*///? } else {
 import com.mojang.blaze3d.platform.InputConstants
 //? }
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 //? if <26.2 {
 /*import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
-import net.minecraft.network.protocol.game.ServerboundContainerClosePacket*/
-//? } else {
+import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
+*///? } else {
 import net.minecraft.network.protocol.game.*
 //? }
 import net.minecraft.world.item.ItemStack
@@ -51,8 +51,8 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
     private val useHotbarBinds by ToggleSetting("Use Hotbar Binds")
     private val keybinds = (1 .. 9).mapIndexed { index, slot ->
         //? if <26.2 {
-        /*KeybindSetting("Wardrobe Slot $slot", UKeyboard.KEY_1 + index)*/
-        //? } else {
+        /*KeybindSetting("Wardrobe Slot $slot", UKeyboard.KEY_1 + index)
+        *///? } else {
         KeybindSetting("Wardrobe Slot $slot", InputConstants.KEY_1 + index)
         //? }
             .hideIf { useHotbarBinds.value }.apply(configSettings::add)
@@ -110,8 +110,8 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
             if (! inWardrobeMenu) return@register
             if (System.currentTimeMillis() - lastClick < 300) return@register
             //? if <26.2 {
-            /*if (event.key.equalsOneOf(UKeyboard.KEY_ESCAPE, KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value)) return@register*/
-            //? } else {
+            /*if (event.key.equalsOneOf(UKeyboard.KEY_ESCAPE, KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value)) return@register
+            *///? } else {
             if (event.key.equalsOneOf(InputConstants.KEY_ESCAPE, KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value)) return@register
             //? }
             val index = if (useHotbarBinds.value) hotbarKeyMap[event.key] ?: return@register
@@ -133,8 +133,8 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
             if (! inWardrobeMenu) return@register
             if (System.currentTimeMillis() - lastClick < 300) return@register
             //? if <26.2 {
-            /*if (event.button.equalsOneOf(0, 1, 2)) return@register*/
-            //? } else {
+            /*if (event.button.equalsOneOf(0, 1, 2)) return@register
+            *///? } else {
             if (event.button.equalsOneOf(InputConstants.MOUSE_BUTTON_LEFT, InputConstants.MOUSE_BUTTON_RIGHT, InputConstants.MOUSE_BUTTON_MIDDLE)) return@register
             //? }
             val index = if (useHotbarBinds.value) hotbarKeyMap[event.button] ?: return@register
@@ -153,11 +153,7 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
         }
     }
 
-    //? if <26.2 {
-    /*private fun isSlotEquipped(slot: Int) = player.containerMenu.slots[slot].item.`is`(Items.LIME_DYE)*/
-    //? } else {
     private fun isSlotEquipped(slot: Int) = player.containerMenu.slots[slot].item.`is`(Items.DYE.lime())
-    //? }
 
     //? if cheat {
     fun closeAfterReopen() {

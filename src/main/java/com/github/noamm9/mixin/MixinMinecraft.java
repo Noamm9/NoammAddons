@@ -4,29 +4,29 @@ import com.github.noamm9.event.EventBus;
 import com.github.noamm9.event.impl.CheckEntityGlowEvent;
 import com.github.noamm9.event.impl.PlayerInteractEvent;
 //? if <26.2 {
-/*import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlay;*/
-//? }
+/*import com.github.noamm9.features.impl.general.storageoverlay.StorageOverlay;
+*///? }
 import com.github.noamm9.features.impl.visual.InfoDisplay;
 import com.github.noamm9.interfaces.IGlowingEntity;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 //? if <26.2 {
 /*import com.llamalad7.mixinextras.sugar.Local;
-import com.llamalad7.mixinextras.sugar.ref.LocalRef;*/
-//? } else {
+import com.llamalad7.mixinextras.sugar.ref.LocalRef;
+*///? } else {
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 //? }
 import com.mojang.authlib.minecraft.UserApiService;
 //? if <26.3 {
-/*import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;*/
-//? } else {
+/*import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
+*///? } else {
 import com.mojang.authlib.services.MinecraftServicesDiscoveryService;
 //? }
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.User;
 //? if <26.2 {
-/*import net.minecraft.client.gui.screens.Screen;*/
-//? }
+/*import net.minecraft.client.gui.screens.Screen;
+*///? }
 import net.minecraft.client.main.GameConfig;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
@@ -47,14 +47,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 //? if !cheat {
-/*import com.github.noamm9.utils.render.LegitEntityVisibility;*/
-//? }
+/*import com.github.noamm9.utils.render.LegitEntityVisibility;
+*///? }
 
 @Mixin(Minecraft.class)
 public abstract class MixinMinecraft {
     //? if <26.2 {
-    /*@Shadow @Nullable public Screen screen;*/
-    //? }
+    /*@Shadow @Nullable public Screen screen;
+    *///? }
     @Shadow @Nullable public HitResult hitResult;
     @Shadow public LocalPlayer player;
     @Shadow @Nullable public ClientLevel level;
@@ -136,8 +136,8 @@ public abstract class MixinMinecraft {
         var newScreen = StorageOverlay.onScreenChange(this.screen, screen);
         if (newScreen != null) screenRef.set(newScreen);
     }
-    */
-    //? }
+    
+    *///? }
     // Apply our glow after other mods have changed the vanilla glow state
     @ModifyExpressionValue(
         method = "shouldEntityAppearGlowing",
@@ -145,12 +145,12 @@ public abstract class MixinMinecraft {
     )
     private boolean onShouldEntityAppearGlowing(boolean original, Entity entity) {
         //? if !cheat {
-        /* if (this.player ==null) return original;*/
-        /* if (!LegitEntityVisibility.isVisible(this.player, entity)) {*/
-        /* ((IGlowingEntity) entity).noammaddons$isGlowing(false);*/
-        /* return original;*/
-        /*}*/
-        //? }
+         /*if (this.player ==null) return original;
+         if (!LegitEntityVisibility.isVisible(this.player, entity)) {
+         ((IGlowingEntity) entity).noammaddons$isGlowing(false);
+         return original;
+        }
+        *///? }
 
         var event = new CheckEntityGlowEvent(entity);
         if (EventBus.post(event)) return false;
@@ -165,8 +165,8 @@ public abstract class MixinMinecraft {
     @SuppressWarnings("ConstantValue")
     //? if <26.2 {
     /*@Inject(method = "createUserApiService", at = @At("HEAD"), cancellable = true)
-    private void onCreateUserApiService(YggdrasilAuthenticationService authService, GameConfig config, CallbackInfoReturnable<UserApiService> cir) {*/
-    //? } else if <26.3 {
+    private void onCreateUserApiService(YggdrasilAuthenticationService authService, GameConfig config, CallbackInfoReturnable<UserApiService> cir) {
+    *///? } else if <26.3 {
     /*@WrapOperation(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;createUserApiService(Lcom/mojang/authlib/yggdrasil/YggdrasilAuthenticationService;Lnet/minecraft/client/main/GameConfig;)Lcom/mojang/authlib/minecraft/UserApiService;"))
     private UserApiService onCreateUserApiService(YggdrasilAuthenticationService authService, GameConfig config, Operation<UserApiService> original) {*/
     //? } else {
@@ -176,8 +176,8 @@ public abstract class MixinMinecraft {
         String token = user.getAccessToken();
         //? if <26.2 {
         /*if (token == null || token.equals("0") || token.equals("FabricMC")) return;
-        cir.setReturnValue(authService.createUserApiService(token));*/
-        //? } else if <26.3 {
+        cir.setReturnValue(authService.createUserApiService(token));
+        *///? } else if <26.3 {
         /*if (token == null || token.equals("0") || token.equals("FabricMC")) return original.call(authService, config);
         return authService.createUserApiService(token);*/
         //? } else {

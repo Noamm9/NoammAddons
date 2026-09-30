@@ -28,8 +28,8 @@ public abstract class MixinLivingEntity extends Entity {
     @Shadow public abstract @Nullable MobEffectInstance getEffect(Holder<MobEffect> effect);
 
     //? if <26.3 {
-    /*@Inject(method = "getCurrentSwingDuration", at = @At("HEAD"), cancellable = true)*/
-    //? } else {
+    /*@Inject(method = "getCurrentSwingDuration", at = @At("HEAD"), cancellable = true)
+    *///? } else {
     @Inject(method = "getModifiedSwingDuration", at = @At("HEAD"), cancellable = true)
     //? }
     private void adjustSwingLength(CallbackInfoReturnable<Integer> cir) {
