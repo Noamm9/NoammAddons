@@ -1,5 +1,8 @@
 package com.github.noamm9.features.impl.general
 
+//? if >=26.2 {
+/*import net.minecraft.network.chat.TextColor
+*///? }
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.commands.CommandBuilder
 import com.github.noamm9.config.PogObject
@@ -20,7 +23,11 @@ import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.screens.ChatScreen
 import net.minecraft.client.multiplayer.chat.GuiMessage
 import net.minecraft.network.chat.*
+//? if <26.2 {
 import org.lwjgl.glfw.GLFW
+//? } else {
+/*import com.mojang.blaze3d.platform.InputConstants
+*///? }
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
 object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for the chat such as Ctrl + Click to copy messages."), ICommandProvider {
@@ -28,9 +35,9 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
     private val removeUselessMessages by ToggleSetting("Remove useless messages", true).withDescription("Removes a lot of useless messages from the chat.")
     private val chatEmoji by ToggleSetting("Chat Emoji", true).withDescription("Lets you use [MVP++] emojis in chat")
 
-    //#if CHEAT
+    //? if cheat {
     private val autoDialogue by ToggleSetting("Auto dialogue").withDescription("Automatically continues dialogues with NPCs.")
-    //#endif
+    //? }
 
     private val uselessMessages by lazy { DataDownloader.loadJson<List<String>>("uselessMessages.json").map(::Regex) }
     private val customHiders = PogObject("customHiders", mutableListOf<Regex>())
@@ -81,8 +88,13 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
         register<MouseClickEvent> {
             if (! ctrlClickToCopy.value) return@register
             if (UMinecraft.currentScreenObj !is ChatScreen) return@register
+            //? if <26.2 {
             if (event.button != 0) return@register
             if (event.action != GLFW.GLFW_PRESS) return@register
+            //? } else {
+            /*if (event.button != InputConstants.MOUSE_BUTTON_LEFT) return@register
+            if (event.action != InputConstants.PRESS) return@register
+            *///? }
             if (! UKeyboard.isCtrlKeyDown()) return@register
             val message = getHoveredMsg().takeUnless(String::isBlank) ?: return@register
 
@@ -105,7 +117,7 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
             event.message = escapedKeys.replace(event.message) { emotes[it.value] ?: it.value }
         }
 
-        //#if CHEAT
+        //? if cheat {
         // https://github.com/jcnlk/quoi/blob/6e74cc3536aa1db91fe4a134254668a96c2ea072/src/main/kotlin/quoi/module/impl/general/chat/impl/AutoDialogue.kt#L4
         register<ChatMessageEvent> {
             if (! autoDialogue.value) return@register
@@ -114,7 +126,7 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
             val cmd = (event.component.siblings.getOrNull(0)?.style?.clickEvent as? ClickEvent.RunCommand)?.command ?: return@register
             ChatUtils.sendCommand(cmd)
         }
-        //#endif
+        //? }
     }
 
     @JvmStatic
@@ -154,7 +166,11 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
             line.content().accept { _, style, codePoint ->
                 if (style != lastStyle) {
                     style.color?.let { textColor ->
+                        //? if <26.2 {
                         ChatFormatting.entries.firstOrNull { it.isColor && it.color == textColor.value }?.let {
+                        //? } else {
+                        /*ChatFormatting.entries.firstOrNull { TextColor.fromLegacyFormat(it)?.value == textColor.value }?.let {
+                        *///? }
                             builder.append(it)
                         }
                     }

@@ -11,7 +11,7 @@ import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.drawVerticalGradient
 import com.github.noamm9.utils.render.Render2D.scissor
-import gg.essential.universal.UKeyboard
+import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 import java.util.*
@@ -38,6 +38,15 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
 
     private val validHexChars = "0123456789ABCDEFabcdef"
     private var hexFocused = false
+    //? if >=26.2 {
+    /*set(value) {
+        if (field == value) return
+        field = value
+        //~ if 26.2 '(this, value)' -> '(value)'
+        mc.textInputManager().onTextInputFocusChange(this, value)
+    }
+    */ //? }
+
     private var hexText = ""
 
     init {
@@ -110,26 +119,36 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
 
     private fun handleInputs(mx: Int, my: Int, py: Float, ps: Float) {
         if (hexFocused) return
+        //? if <26.2 {
         if (! UKeyboard.isKeyDown(0)) {
             draggingSV = false
             draggingHue = false
             draggingAlpha = false
             return
         }
+        //? } else {
+        /*if (! draggingSV && ! draggingHue && ! draggingAlpha) return
+        */ //? }
 
         var currentX = x + 10f
+        //? if <26.2 {
         val aX = currentX
+        //? }
         if (cfg.withAlpha) currentX += 15f
+        //? if <26.2 {
         val hX = currentX
+        //? }
         currentX += 15f
         val svX = currentX
         val svW = (x + width - 10f) - svX
+        //? if <26.2 {
 
         if (! draggingSV && ! draggingHue && ! draggingAlpha) {
             draggingAlpha = cfg.withAlpha && mx >= aX && mx <= aX + 10 && my >= py && my <= py + ps
             draggingHue = mx >= hX && mx <= hX + 10 && my >= py && my <= py + ps
             draggingSV = mx >= svX && mx <= svX + svW && my >= py && my <= py + ps
         }
+        //? }
 
         if (draggingAlpha) a = (1f - (my - py) / ps).coerceIn(0f, 1f)
         if (draggingHue) h = ((my - py) / ps).coerceIn(0f, 1f)
@@ -137,10 +156,14 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
             s = ((mx - svX) / svW).coerceIn(0f, 1f)
             b = (1f - (my - py) / ps).coerceIn(0f, 1f)
         }
+        //? if <26.2 {
 
         if (draggingSV || draggingHue || draggingAlpha) {
             updateColorFromHSB()
         }
+        //? } else {
+        /*updateColorFromHSB()
+        */ //? }
     }
 
     override fun charTyped(codePoint: Char): Boolean {
@@ -157,11 +180,11 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
 
     override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
         if (expanded && hexFocused) {
-            if (keyCode == UKeyboard.KEY_BACKSPACE && hexText.isNotEmpty()) {
+            if (keyCode == InputConstants.KEY_BACKSPACE && hexText.isNotEmpty()) {
                 hexText = hexText.dropLast(1)
                 tryUpdateFromHex()
             }
-            if (keyCode == UKeyboard.KEY_ENTER || keyCode == UKeyboard.KEY_ESCAPE) hexFocused = false
+            if (keyCode == InputConstants.KEY_RETURN || keyCode == InputConstants.KEY_ESCAPE) hexFocused = false
             return true
         }
         return false
@@ -236,18 +259,56 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
         }
     }
 
+    //? if >=26.2 {
+    /*override fun clearFocus() {
+        hexFocused = false
+    }
+    */ //? }
+
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
         if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + 20) {
-            if (button == 0) {
+            if (button == InputConstants.MOUSE_BUTTON_LEFT) {
                 expanded = ! expanded
+                //? if >=26.2
+                //if (! expanded) clearFocus()
+
                 return true
             }
         }
+        //? if <26.2 {
         if (expanded) {
+            //? } else {
+            /*if (expanded && button == InputConstants.MOUSE_BUTTON_LEFT) {
+                val py = y + 25f
+                val ps = 80f
+                var currentX = x + 10f
+                val aX = currentX
+                if (cfg.withAlpha) currentX += 15f
+                val hX = currentX
+                currentX += 15f
+                val svX = currentX
+                val svW = (x + width - 10f) - svX
+
+                draggingAlpha = cfg.withAlpha && mouseX >= aX && mouseX <= aX + 10 && mouseY >= py && mouseY <= py + ps
+                draggingHue = mouseX >= hX && mouseX <= hX + 10 && mouseY >= py && mouseY <= py + ps
+                draggingSV = mouseX >= svX && mouseX <= svX + svW && mouseY >= py && mouseY <= py + ps
+                if (draggingAlpha || draggingHue || draggingSV) {
+                    hexFocused = false
+                    return true
+                }
+                */ //? }
             val hexY = y + 25f + 80f + 5f
             hexFocused = mouseX >= x + 10 && mouseX <= x + width - 10 && mouseY >= hexY && mouseY <= hexY + 12
             if (hexFocused) return true
         }
         return false
+    }
+
+    override fun mouseReleased(button: Int) {
+        if (button == InputConstants.MOUSE_BUTTON_LEFT) {
+            draggingSV = false
+            draggingHue = false
+            draggingAlpha = false
+        }
     }
 }

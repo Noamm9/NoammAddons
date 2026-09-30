@@ -17,7 +17,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.minecraft.network.protocol.game.*
 import net.minecraft.sounds.SoundEvents
+//? if <26.2 {
 import org.lwjgl.glfw.GLFW
+//? } else {
+/*import com.mojang.blaze3d.platform.InputConstants
+*///? }
 import java.awt.Color
 
 object Etherwarp: Feature("Etherwarp overlay and sound.") {
@@ -38,12 +42,12 @@ object Etherwarp: Feature("Etherwarp overlay and sound.") {
     private val zeroPingSound by ToggleSetting("Zero-Ping Sound").withDescription("Plays the Etherwarp sound client-side instead of waiting for the server to send the sound packet").showIf { etherwarpSound.value }
     private val playSound = createSoundSettings("Sound", SoundEvents.EXPERIENCE_ORB_PICKUP) { etherwarpSound.value }
 
-    //#if CHEAT
+    //? if cheat {
     private val leftClick by ToggleSetting("Left-Click Etherwarp").section("Left Click")
     private val swingHandToggle by ToggleSetting("Swing Hand", true).showIf { leftClick.value }
     private val autoSneak by ToggleSetting("Auto Sneak", false).showIf { leftClick.value }
     private val autoSneakDelay by SliderSetting("Auto Sneak Delay", 50, 50, 150, 1).showIf { leftClick.value && autoSneak.value }
-    //#endif
+    //? }
 
     override fun init() {
         register<RenderWorldEvent> {
@@ -103,10 +107,12 @@ object Etherwarp: Feature("Etherwarp overlay and sound.") {
             if (TeleportUtils.canTeleport(packet.yRot, packet.xRot)) playSound.invoke()
         }
 
-        //#if CHEAT
+        //? if cheat {
         register<MouseClickEvent> {
             if (! leftClick.value) return@register
+            //$ if <26.2 'if (event.button != 0) return@register' else 'if (event.button != InputConstants.MOUSE_BUTTON_LEFT) return@register'
             if (event.button != 0) return@register
+            //$ if <26.2 'if (event.action != GLFW.GLFW_PRESS) return@register' else 'if (event.action != InputConstants.PRESS) return@register'
             if (event.action != GLFW.GLFW_PRESS) return@register
             if (UMinecraft.currentScreenObj != null) return@register
             if (! mc.options.keyShift.isDown && ! autoSneak.value) return@register
@@ -130,6 +136,6 @@ object Etherwarp: Feature("Etherwarp overlay and sound.") {
                 if (swingHandToggle.value) PlayerUtils.swingArm()
             }
         }
-        //#endif
+        //? }
     }
 }

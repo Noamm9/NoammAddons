@@ -1,10 +1,20 @@
 package com.github.noamm9.features.impl.general
 
+//? if >=26.2 {
+/*import com.mojang.blaze3d.platform.InputConstants
+*///? }
 import com.github.noamm9.config.types.DropdownSetting
 import com.github.noamm9.config.types.MultiCheckboxSetting
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.NetworkLoop
+//? if <26.2 {
+//? } else if <26.3 {
+/*import com.github.noamm9.mixin.IGui*/
+//? } else {
+/*import com.github.noamm9.mixin.IGui
+import net.minecraft.world.level.block.entity.SignTextSlot
+*///? }
 import com.github.noamm9.mixin.IAbstractSignEditScreen
 import com.github.noamm9.ui.utils.componnents.UIButton
 import com.github.noamm9.ui.utils.componnents.UISearchBox
@@ -13,7 +23,9 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.Utils.send
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
+//? if <26.2 {
 import gg.essential.universal.UKeyboard
+//? }
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
@@ -47,11 +59,19 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             if (screen !is AbstractSignEditScreen) return@register
             val stack = item ?: return@register
             val sign = (screen as IAbstractSignEditScreen).getSign() ?: return@register
+            //? if <26.3 {
             val lines = Array(4) { i -> sign.frontText.getMessage(i, false).string }
+            //? } else {
+            /*val lines = Array(4) { i -> sign.getText(SignTextSlot.FRONT).getMessages(false)[i].string }
+            *///? }
 
             if (lines[1] == "^^^^^^^^^^^^^^^" && lines[2] == "Your auction" && lines[3] == "starting bid") mc.execute {
                 // manually setting the screen so the sign gui wont close
+                //? if <26.2 {
                 mc.screen = AuctionInputScreen(sign, lines, stack).apply { init(width, height) }
+                //? } else {
+                /*(mc.gui as IGui).setScreenDirect(AuctionInputScreen(sign, lines, stack).apply { init(width, height) })
+                *///? }
             }
         }
 
@@ -62,6 +82,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
         }
 
         register<ContainerEvent.Keyboard> {
+            //$ if <26.2 'if (event.key != UKeyboard.KEY_ENTER && event.key != UKeyboard.KEY_NUMPADENTER) return@register' else 'if (event.key != InputConstants.KEY_RETURN && event.key != InputConstants.KEY_NUMPADENTER) return@register'
             if (event.key != UKeyboard.KEY_ENTER && event.key != UKeyboard.KEY_NUMPADENTER) return@register
             val title = event.screen.title.unformattedText
 
@@ -159,6 +180,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
         }
 
         override fun keyPressed(event: KeyEvent): Boolean {
+            //$ if <26.2 'if (event.key() == UKeyboard.KEY_ENTER || event.key() == UKeyboard.KEY_NUMPADENTER) {' else 'if (event.key() == InputConstants.KEY_RETURN || event.key() == InputConstants.KEY_NUMPADENTER) {'
             if (event.key() == UKeyboard.KEY_ENTER || event.key() == UKeyboard.KEY_NUMPADENTER) {
                 finish()
                 return true
@@ -170,8 +192,12 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             val finalLine0 = parsedValue?.toString() ?: input
 
             ServerboundSignUpdatePacket(
+                //? if <26.3 {
                 sign.blockPos, true, finalLine0,
                 originalText[1], originalText[2], originalText[3]
+                //? } else {
+                /*sign.blockPos, listOf(finalLine0, originalText[1], originalText[2], originalText[3]), SignTextSlot.FRONT
+                *///? }
             ).send()
 
             onClose()

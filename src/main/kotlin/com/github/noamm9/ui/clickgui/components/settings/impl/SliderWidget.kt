@@ -6,7 +6,7 @@ import com.github.noamm9.ui.clickgui.components.settings.Widget
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
-import gg.essential.universal.UKeyboard
+import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 import kotlin.math.abs
@@ -14,9 +14,18 @@ import kotlin.math.abs
 class SliderWidget<T: Number>(config: SliderSetting<T>): Widget<T>(config) {
     private inline val cfg get() = config as SliderSetting<T>
 
+    private var inputBuffer = ""
     private var dragging = false
     private var isTyping = false
-    private var inputBuffer = ""
+
+    //? if >=26.2 {
+    /*set(value) {
+        if (field == value) return
+        field = value
+        //~ if 26.2 '(this, value)' -> '(value)'
+        com.github.noamm9.NoammAddons.mc.textInputManager().onTextInputFocusChange(this, value)
+    }
+    */ //? }
 
     private val hoverAnim = Animation(200)
     private val sliderAnim = Animation(250, cfg.getPercent(config.value))
@@ -48,8 +57,14 @@ class SliderWidget<T: Number>(config: SliderSetting<T>): Widget<T>(config) {
         Style.drawSlider(ctx, x + 8f, y + 14f, width - 16f, sliderAnim.value, Style.accentColor)
     }
 
+    //? if >=26.2 {
+    /*override fun clearFocus() {
+        isTyping = false
+    }
+     */ //? }
+
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
-        if (button == 0 && mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
+        if (button == InputConstants.MOUSE_BUTTON_LEFT && mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
             val valStrWidth = cfg.stringfy(value).width()
             val textX = x + width - valStrWidth - 8f
 
@@ -73,24 +88,20 @@ class SliderWidget<T: Number>(config: SliderSetting<T>): Widget<T>(config) {
     }
 
     override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
-        if (isTyping) {
-            when (keyCode) {
-                UKeyboard.KEY_ENTER -> {
-                    val parsed = inputBuffer.toDoubleOrNull()
-                    if (parsed != null) {
-                        value = cfg.snapToStep(parsed)
-                    }
-                    isTyping = false
-                }
+        if (! isTyping) return false
 
-                UKeyboard.KEY_ESCAPE -> isTyping = false
-                UKeyboard.KEY_BACKSPACE -> {
-                    if (inputBuffer.isNotEmpty()) inputBuffer = inputBuffer.dropLast(1)
-                }
+        when (keyCode) {
+            InputConstants.KEY_RETURN -> {
+                val parsed = inputBuffer.toDoubleOrNull()
+                if (parsed != null) value = cfg.snapToStep(parsed)
+                isTyping = false
             }
-            return true
+
+            InputConstants.KEY_ESCAPE -> isTyping = false
+            InputConstants.KEY_BACKSPACE -> if (inputBuffer.isNotEmpty()) inputBuffer = inputBuffer.dropLast(1)
         }
-        return false
+
+        return true
     }
 
     override fun charTyped(codePoint: Char): Boolean {

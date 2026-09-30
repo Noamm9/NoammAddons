@@ -27,7 +27,11 @@ public abstract class MixinLivingEntity extends Entity {
     @Shadow public abstract boolean hasEffect(Holder<MobEffect> effect);
     @Shadow public abstract @Nullable MobEffectInstance getEffect(Holder<MobEffect> effect);
 
+    //? if <26.3 {
     @Inject(method = "getCurrentSwingDuration", at = @At("HEAD"), cancellable = true)
+    //? } else {
+    /*@Inject(method = "getModifiedSwingDuration", at = @At("HEAD"), cancellable = true)
+    *///? }
     private void adjustSwingLength(CallbackInfoReturnable<Integer> cir) {
         if (! Animations.INSTANCE.enabled) return;
         if (! this.is(NoammAddons.getMc().player)) return;

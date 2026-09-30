@@ -15,7 +15,11 @@ import com.github.noamm9.utils.location.WorldType
 import com.github.noamm9.utils.network.WebUtils
 import com.mojang.blaze3d.platform.NativeImage
 import com.mojang.blaze3d.systems.RenderSystem
+//? if <26.3 {
 import com.mojang.blaze3d.textures.FilterMode
+//? } else {
+/*import com.mojang.renderpearl.api.textures.FilterMode
+*///? }
 import io.ktor.client.statement.readRawBytes
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.*

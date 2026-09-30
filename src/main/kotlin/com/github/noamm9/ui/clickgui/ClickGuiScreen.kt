@@ -9,9 +9,7 @@ import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.clickgui.enums.CategoryType
 import com.github.noamm9.ui.clickgui.enums.WindowClickAction
 import com.github.noamm9.ui.hud.HudEditorScreen
-import com.github.noamm9.ui.utils.MouseHelper
-import com.github.noamm9.ui.utils.Resolution
-import com.github.noamm9.ui.utils.TextInputHandler
+import com.github.noamm9.ui.utils.*
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.Utils
@@ -20,12 +18,10 @@ import com.github.noamm9.utils.render.Render2D.drawLine
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawTexture
 import com.github.noamm9.utils.render.Render2D.drawVerticalGradient
-import gg.essential.universal.UKeyboard
+import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
-import net.minecraft.client.input.CharacterEvent
-import net.minecraft.client.input.KeyEvent
-import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.client.input.*
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
 import java.awt.Color
@@ -163,7 +159,12 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
             searchHandler.listening = false
 
             when (window.mouseClicked(mx, my, button)) {
-                WindowClickAction.CLOSE -> configWindows.remove(window)
+                WindowClickAction.CLOSE -> {
+                    //? if >= 26.2
+                    //window.clearFocus()
+                    configWindows.remove(window)
+                }
+
                 WindowClickAction.CONSUMED -> {}
             }
             return true
@@ -176,7 +177,7 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
         }
 
         if (isOverHudButton(mx.toFloat(), my.toFloat())) {
-            if (button == 0) {
+            if (button == InputConstants.MOUSE_BUTTON_LEFT) {
                 onClose()
                 GuiUtils.setScreen(HudEditorScreen())
             }
@@ -184,7 +185,7 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
         }
 
         if (isOverDiscordButton(mx.toFloat(), my.toFloat())) {
-            if (button == 0) Utils.openDiscordLink()
+            if (button == InputConstants.MOUSE_BUTTON_LEFT) Utils.openDiscordLink()
             return true
         }
 
@@ -238,15 +239,18 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
 
     override fun keyPressed(keyEvent: KeyEvent): Boolean {
         configWindows.lastOrNull()?.let { window ->
+            //~ if >=26.3 'keyEvent.scancode' -> 'keyEvent.keycode'
             if (window.keyPressed(keyEvent.key, keyEvent.scancode, keyEvent.modifiers)) return true
-            if (keyEvent.key == UKeyboard.KEY_ESCAPE) {
+            if (keyEvent.key == InputConstants.KEY_ESCAPE) {
+                //? if >= 26.2
+                //window.clearFocus()
                 configWindows.remove(window)
                 return true
             }
         }
 
         if (searchHandler.keyPressed(keyEvent)) return true
-        if (keyEvent.hasControlDown() && keyEvent.input() == UKeyboard.KEY_F) {
+        if (keyEvent.hasControlDown() && keyEvent.input() == InputConstants.KEY_F) {
             searchHandler.listening = ! searchHandler.listening
             return true
         }
@@ -291,11 +295,15 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
     }
 
     private fun focusWindow(window: FeatureConfigWindow) {
+        //? if >=26.2
+        //configWindows.filter { it != window }.forEach { it.clearFocus() }
         configWindows.remove(window)
         configWindows.add(window)
     }
 
     override fun onClose() {
+        //? if >=26.2
+        //configWindows.forEach { it.clearFocus() }
         configWindows.clear()
         searchHandler.listening = false
         MouseHelper.resetCursor()

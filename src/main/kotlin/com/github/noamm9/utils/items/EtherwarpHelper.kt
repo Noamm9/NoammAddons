@@ -5,9 +5,7 @@ import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.customData
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.core.SectionPos
+import net.minecraft.core.*
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.*
 import net.minecraft.world.level.block.piston.PistonHeadBlock
@@ -48,16 +46,16 @@ object EtherwarpHelper {
     }
 
     private fun getZeroPingCameraPos(fallback: Vec3): Vec3 {
-        //#if CHEAT
+        //? if cheat {
         val noRotate = com.github.noamm9.features.impl.misc.NoRotate
         if (! noRotate.enabled) return fallback
         val pendingTeleport = noRotate.pendingTeleports.lastOrNull() ?: return fallback
         val config = noRotate.zeroPingCamera.value.values.toList()
         if (! config[pendingTeleport.info.type]) return fallback
         return pendingTeleport.position
-        //#else
-        //$return fallback
-        //#endif
+         //? } else {
+        /*return fallback
+        *///? }
     }
 
     private fun traverseVoxels(start: Vec3, end: Vec3): EtherPos {
@@ -147,6 +145,7 @@ object EtherwarpHelper {
             is ComparatorBlock, is RepeaterBlock,
             is FlowerPotBlock,
             is LadderBlock -> true
+
             else -> false
         }
     }
@@ -155,7 +154,7 @@ object EtherwarpHelper {
         val level = mc.level ?: return true
         val state = chunk.getBlockState(pos)
         return when (state.block) {
-            is SignBlock, is BannerBlock, is WallBannerBlock,  is TripWireHookBlock,
+            is SignBlock, is BannerBlock, is WallBannerBlock, is TripWireHookBlock,
             is PressurePlateBlock, is WeightedPressurePlateBlock -> false
 
             is ButtonBlock, is SkullBlock, is WallSkullBlock, is LadderBlock,
@@ -170,6 +169,7 @@ object EtherwarpHelper {
         when (state.block) {
             is SignBlock, is BannerBlock, is WallBannerBlock, is TripWireHookBlock,
             is PressurePlateBlock, is WeightedPressurePlateBlock -> true
+
             else -> false
         }
 

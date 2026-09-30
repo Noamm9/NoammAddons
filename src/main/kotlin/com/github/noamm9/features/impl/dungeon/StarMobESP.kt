@@ -15,16 +15,19 @@ import net.minecraft.world.entity.ExperienceOrb
 import net.minecraft.world.entity.ambient.Bat
 import net.minecraft.world.entity.boss.wither.WitherBoss
 import net.minecraft.world.entity.decoration.ArmorStand
+//? if <26.3 {
 import net.minecraft.world.entity.monster.EnderMan
+ //? } else {
+/*import net.minecraft.world.entity.monster.EnderMan
+*///? }
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.entity.projectile.arrow.AbstractArrow
 import java.awt.Color
 
 object StarMobESP: Feature(
-    "Highlights all starred mobs in a dungeon.",
-    //#if LEGIT
-    //$name = "Star Mob Highlight",
-    //#endif
+    //? if !cheat
+    //name = "Star Mob Highlight",
+    description = "Highlights all starred mobs in a dungeon.",
     jsonName = "Star Mob ESP"
 ) {
     private val espBats by ToggleSetting("Highlight Bats", true).withDescription("Highlights Bats in Dungeons.")

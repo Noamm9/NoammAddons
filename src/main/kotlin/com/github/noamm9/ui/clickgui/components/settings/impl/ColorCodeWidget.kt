@@ -1,4 +1,8 @@
 package com.github.noamm9.ui.clickgui.components.settings.impl
+//? if >=26.2 {
+
+/*import com.mojang.blaze3d.platform.InputConstants
+*///? }
 
 import com.github.noamm9.config.types.ColorCodeSetting
 import com.github.noamm9.ui.clickgui.components.settings.Style
@@ -67,6 +71,7 @@ class ColorCodeWidget(config: ColorCodeSetting): Widget<ChatColor>(config) {
 
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
         if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + 20) {
+            //$ if <26.2 'if (button == 0) {' else 'if (button == InputConstants.MOUSE_BUTTON_LEFT) {'
             if (button == 0) {
                 expanded = ! expanded
                 Style.playClickSound(1f)

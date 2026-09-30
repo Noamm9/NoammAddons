@@ -1,6 +1,6 @@
 package com.github.noamm9.features.impl.floor7
 
-//#if CHEAT
+//? if cheat {
 
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
@@ -42,4 +42,4 @@ object IHateDiorite: Feature("Replaces the pillars in P2 with glass") {
         }
     }
 }
-//#endif
+//? }

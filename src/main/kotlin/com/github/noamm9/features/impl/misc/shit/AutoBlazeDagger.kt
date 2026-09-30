@@ -1,6 +1,6 @@
 package com.github.noamm9.features.impl.misc.shit
 
-//#if CHEAT
+//? if cheat {
 
 import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.event.impl.*
@@ -80,4 +80,4 @@ object AutoBlazeDagger: Feature("Automatically swaps to the correct dagger for b
         }
     }
 }
-//#endif
+//? }

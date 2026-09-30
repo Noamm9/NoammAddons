@@ -1,5 +1,8 @@
 package com.github.noamm9.features.impl.visual
 
+//? if >=26.2 {
+/*import net.minecraft.world.entity.EntityTypes
+*///? }
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.CheckEntityRenderEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent

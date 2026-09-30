@@ -1,6 +1,6 @@
 package com.github.noamm9.features.impl.dungeon
 
-//#if CHEAT
+//? if cheat {
 
 import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.config.types.ToggleSetting
@@ -108,4 +108,4 @@ object AutoGFS: Feature("Automatically refills dungeon items from your sacks usi
 
     private data class RefillEntry(val current: Int, val max: Int, val gfsName: String, val enabled: Boolean)
 }
-//#endif
+//? }

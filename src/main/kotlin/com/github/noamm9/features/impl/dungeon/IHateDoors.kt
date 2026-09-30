@@ -1,6 +1,6 @@
 package com.github.noamm9.features.impl.dungeon
 
-//#if CHEAT
+//? if cheat {
 
 import com.github.noamm9.config.types.DropdownSetting
 import com.github.noamm9.config.types.ToggleSetting
@@ -103,4 +103,4 @@ object IHateDoors: Feature("Replaces Wither and Blood doors with stained glass."
         }
     }
 }
-//#endif
+//? }

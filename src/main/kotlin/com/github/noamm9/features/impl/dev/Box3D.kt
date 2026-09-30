@@ -19,9 +19,9 @@ object Box3D: Feature("Replaces the Glow ESP with 3D boxes") {
     private val outlineOpacity by SliderSetting("Outline Opacity", 35, 0, 100, 1).hideIf { mode.value == 1 }
     private val fillOpacity by SliderSetting("Fill Opacity", 35, 0, 100, 1).hideIf { mode.value == 0 }
 
-    //#if CHEAT
+    //? if cheat {
     private val phase by ToggleSetting("Phase", true)
-    //#endif
+    //? }
 
     override fun init() {
         register<CheckEntityGlowEvent>(EventPriority.LOWEST) {
@@ -36,11 +36,11 @@ object Box3D: Feature("Replaces the Glow ESP with 3D boxes") {
             val outline = mode.value.equalsOneOf(0, 2)
             val fill = mode.value.equalsOneOf(1, 2)
             val phase = run {
-                //#if CHEAT
+                //? if cheat {
                 phase.value
-                //#else
-                //$false
-                //#endif
+                //? } else {
+                /*false
+                *///? }
             }
 
             if (! outline && ! fill) return@register

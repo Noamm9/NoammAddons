@@ -1,6 +1,6 @@
 package com.github.noamm9.features.impl.dungeon
 
-//#if CHEAT
+//? if cheat {
 
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.PlayerInteractEvent
@@ -59,4 +59,4 @@ object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
         )
     }
 }
-//#endif
+//? }

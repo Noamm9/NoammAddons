@@ -11,7 +11,9 @@ import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.EtherwarpHelper
 import com.github.noamm9.utils.render.world.Render3D.renderBlock
 import com.github.noamm9.utils.render.world.RenderContext
+//? if <26.2 {
 import gg.essential.universal.UMinecraft
+//? }
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents
 
 object BlockOverlay: Feature() {
@@ -25,7 +27,11 @@ object BlockOverlay: Feature() {
     override fun init() {
         LevelRenderEvents.BEFORE_BLOCK_OUTLINE.register { context, blockOutlineContext ->
             if (! enabled) return@register true
+            //? if <26.2 {
             if (UMinecraft.getSettings().hideGui) return@register true
+            //? } else {
+            /*if (mc.gui.hud.isHidden) return@register true
+            *///? }
             if (hideDuringEtherwarp.value && shouldHide()) return@register false
 
             RenderContext(context).renderBlock(

@@ -1,6 +1,6 @@
 package com.github.noamm9.features.impl.misc
 
-//#if CHEAT
+//? if cheat {
 
 import com.github.noamm9.config.types.MultiCheckboxSetting
 import com.github.noamm9.config.types.SliderSetting
@@ -72,8 +72,12 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
             player.yo = newOldPos.position().y.also { player.yOld = it }
             player.zo = newOldPos.position().z.also { player.zOld = it }
 
+            //? if <26.3 {
             ServerboundAcceptTeleportationPacket(packet.id).send()
             ServerboundMovePlayerPacket.PosRot(player.x, player.y, player.z, new.yRot, new.xRot, false, false).send()
+            //? } else {
+            /*ServerboundAcceptTeleportationPacket(packet.id, player.x, player.y, player.z, new.yRot, new.xRot).send()
+            *///? }
 
             (player as ILocalPlayer).setLastYaw(new.yRot)
             (player as ILocalPlayer).setLastPitch(new.xRot)
@@ -146,4 +150,4 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
         }
     }
 }
-//#endif
+//? }

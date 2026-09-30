@@ -1,5 +1,8 @@
 package com.github.noamm9.features.impl.dungeon
 
+//? if >=26.2 {
+/*import net.minecraft.world.entity.EntityTypes
+*///? }
 import com.github.noamm9.config.types.ColorSetting
 import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.config.types.ToggleSetting
@@ -16,7 +19,9 @@ import com.github.noamm9.utils.render.world.Render3D.renderRainbowLine
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket
+//? if <26.2 {
 import net.minecraft.world.entity.EntityType
+//? }
 import net.minecraft.world.phys.Vec3
 import java.awt.Color
 import kotlin.math.abs

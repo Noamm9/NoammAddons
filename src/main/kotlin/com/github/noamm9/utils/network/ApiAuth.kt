@@ -1,5 +1,6 @@
 package com.github.noamm9.utils.network
 
+import com.github.noamm9.NoammAddons.MC_VERSION
 import com.github.noamm9.NoammAddons.MOD_ID
 import com.github.noamm9.NoammAddons.MOD_VERSION
 import com.github.noamm9.NoammAddons.logger
@@ -59,7 +60,7 @@ object ApiAuth: ISelfInit {
                 Base64.encode(resolved.publicKey.data.keySignature),
                 resolved.publicKey.data.expiresAt.toEpochMilli()
             ),
-            signedData, MOD_ID, "@MINECRAFT_VERSION@", MOD_VERSION
+            signedData, MOD_ID, MC_VERSION, MOD_VERSION
         )
 
         val response = client.post(AUTH_URL) {

@@ -19,7 +19,7 @@ import static com.github.noamm9.features.impl.misc.Camera.*;
 
 @Mixin(Camera.class)
 public abstract class MixinCamera {
-    //#if CHEAT
+    //? if cheat {
     @Redirect(method = "alignWithEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getAttributeValue(Lnet/minecraft/core/Holder;)D"))
     private double setCameraDistance(LivingEntity instance, Holder<Attribute> attribute) {
         if (INSTANCE.enabled && getCustomCameraDistance().getValue()) {
@@ -40,7 +40,7 @@ public abstract class MixinCamera {
             cir.setReturnValue(cameraDist);
         }
     }
-    //#endif
+    //? }
 
     @Inject(method = "calculateFov", at = @At(value = "RETURN"), cancellable = true)
     private void calculateFovHook(float partialTicks, CallbackInfoReturnable<Float> cir) {

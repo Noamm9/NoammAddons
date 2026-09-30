@@ -32,6 +32,9 @@ import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
+//? if >=26.3 {
+/*import net.minecraft.world.item.component.SwingAnimation
+ *///? }
 import net.minecraft.world.phys.*
 import kotlin.math.abs
 import kotlin.math.min
@@ -41,11 +44,15 @@ object PlayerUtils: ISelfInit, Shortcuts {
     val LocalPlayer.serverPitch get() = (this as ILocalPlayer).serverPitch
 
     fun swingArm() {
+        //? if <26.3 {
         if (! player.swinging || player.swingTime < 0) {
             player.swingingArm = InteractionHand.MAIN_HAND
             player.swingTime = - 1
             player.swinging = true
         }
+        //? } else {
+        /*player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, false)
+         *///? }
     }
 
     fun toggleSneak(bl: Boolean) {

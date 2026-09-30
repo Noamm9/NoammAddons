@@ -15,9 +15,14 @@ import net.minecraft.network.chat.Component
 import org.slf4j.LoggerFactory
 
 object NoammAddons: ClientModInitializer {
-    const val MOD_ID = "@MOD_ID@"
-    const val MOD_NAME = "@MOD_NAME@"
-    const val MOD_VERSION = "@MOD_VERSION@"
+    const val MOD_NAME = /*$ mod_name*/ "NoammAddons"
+    const val MOD_ID = /*$ mod_id*/ "noammaddons"
+    const val MOD_VERSION = /*$ mod_version*/ "1.2.9"
+    const val MC_VERSION = /*$ mc_version*/ "26.1.2"
+
+    //~ if cheat 'false' -> 'true'
+    const val isCheat = true
+
     val PREFIX by lazy {
         if (isCheat) Component.literal("§6§l[§b§lN§d§lA§6§l]§r")
         else Component.empty().apply {
@@ -37,15 +42,6 @@ object NoammAddons: ClientModInitializer {
     @JvmStatic val mc by lazy { UMinecraft.getMinecraft() }
     @JvmField var isLoaded = false
 
-    @JvmField
-    var isCheat = run {
-        //#if CHEAT
-        true
-        //#else
-        //$false
-        //#endif
-    }
-
     val cacheData = PogObject("cacheData", mutableMapOf<String, Any>())
 
     val availableDebugFlags = mutableSetOf<String>()
@@ -57,6 +53,7 @@ object NoammAddons: ClientModInitializer {
     }
 
     override fun onInitializeClient() {
+        //~ if <26.2 'ItemRenderer()' -> 'ItemRenderer(it.bufferSource())'
         PictureInPictureRendererRegistry.register { ItemRenderer(it.bufferSource()) }
         MeowddingItemDfu.load()
 
@@ -66,7 +63,7 @@ object NoammAddons: ClientModInitializer {
 
         isLoaded = true
 
-        EventBus.register<RatEvent>() {
+        EventBus.register<RatEvent> {
             listener.unregister()
             event.cancel()
         }

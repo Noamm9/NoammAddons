@@ -1,6 +1,6 @@
 package com.github.noamm9.features.impl.dungeon
 
-//#if CHEAT
+//? if cheat {
 
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
@@ -10,7 +10,11 @@ import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.entity.EquipmentSlot
+//? if <26.3 {
 import net.minecraft.world.entity.monster.EnderMan
+//? } else {
+/*import net.minecraft.world.entity.monster.EnderMan
+*///? }
 import net.minecraft.world.entity.monster.Giant
 
 object HiddenMobs: Feature("Reveals invisible mobs in dungeons.") {
@@ -37,4 +41,4 @@ object HiddenMobs: Feature("Reveals invisible mobs in dungeons.") {
         }
     }
 }
-//#endif
+//? }

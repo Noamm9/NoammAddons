@@ -1,13 +1,19 @@
 package com.github.noamm9.utils.render.world.batches
 
 import com.github.noamm9.utils.render.world.RenderBatcher.tmpVec
-import gg.essential.universal.UGraphics
 import gg.essential.universal.UMatrixStack
+
+//~ if <26.2 'net.minecraft.client.renderer.rendertype.RenderType' -> 'gg.essential.universal.render.URenderPipeline'
 import gg.essential.universal.render.URenderPipeline
 
+//? if <26.2
+import gg.essential.universal.UGraphics
+
+//~ if <26.2 '(val type: RenderType)' -> '(val pipeline: URenderPipeline, val mode: UGraphics.DrawMode)'
 data class FilledBatch(val pipeline: URenderPipeline, val mode: UGraphics.DrawMode) {
     @JvmRecord
     data class FilledRenderState(
+        //~ if <26.2 'val x: Float, val y: Float, val z: Float' -> 'val x: Double, val y: Double, val z: Double'
         val x: Double, val y: Double, val z: Double,
         val r: Float, val g: Float, val b: Float, val a: Float,
     )
@@ -33,6 +39,7 @@ data class FilledBatch(val pipeline: URenderPipeline, val mode: UGraphics.DrawMo
     fun vertex(pose: UMatrixStack, x: Float, y: Float, z: Float, r: Float, g: Float, b: Float, a: Float) {
         pose.peek().model.transformPosition(x, y, z, tmpVec)
         data.add(FilledRenderState(
+            //~ if <26.2 'tmpVec.x, tmpVec.y, tmpVec.z' -> 'tmpVec.x.toDouble(), tmpVec.y.toDouble(), tmpVec.z.toDouble()'
             tmpVec.x.toDouble(), tmpVec.y.toDouble(), tmpVec.z.toDouble(),
             r, g, b, a
         ))
@@ -42,8 +49,10 @@ data class FilledBatch(val pipeline: URenderPipeline, val mode: UGraphics.DrawMo
         vertex(pose, x1, y1, z1, r, g, b, a)
         vertex(pose, x2, y2, z2, r, g, b, a)
         vertex(pose, x3, y3, z3, r, g, b, a)
+        //? if <26.2 {
         vertex(pose, x1, y1, z1, r, g, b, a)
         vertex(pose, x3, y3, z3, r, g, b, a)
+         //? }
         vertex(pose, x4, y4, z4, r, g, b, a)
     }
 }

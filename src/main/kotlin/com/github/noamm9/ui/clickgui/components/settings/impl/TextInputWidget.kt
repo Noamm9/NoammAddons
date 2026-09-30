@@ -6,12 +6,9 @@ import com.github.noamm9.ui.clickgui.components.settings.Widget
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.ui.utils.TextInputHandler
 import com.github.noamm9.utils.render.Render2D.drawRect
+import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
-import net.minecraft.client.input.CharacterEvent
-import net.minecraft.client.input.KeyEvent
-import net.minecraft.client.input.MouseButtonEvent
-import net.minecraft.client.input.MouseButtonInfo
-import org.lwjgl.glfw.GLFW
+import net.minecraft.client.input.*
 import java.awt.Color
 
 class TextInputWidget(config: TextInputSetting): Widget<String>(config) {
@@ -47,8 +44,14 @@ class TextInputWidget(config: TextInputSetting): Widget<String>(config) {
         handler.draw(ctx, mouseX.toFloat(), mouseY.toFloat())
     }
 
+    //? if >=26.2 {
+    /*override fun clearFocus() {
+        handler.resetState()
+    }
+    */ //? }
+
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
-        val event = MouseButtonEvent(mouseX, mouseY, MouseButtonInfo(button, GLFW.GLFW_PRESS))
+        val event = MouseButtonEvent(mouseX, mouseY, MouseButtonInfo(button, InputConstants.PRESS))
         return handler.mouseClicked(mouseX.toFloat(), mouseY.toFloat(), event)
     }
 

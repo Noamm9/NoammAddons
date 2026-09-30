@@ -2,22 +2,22 @@ version: 2
 updates:
   - package-ecosystem: "gradle"
     directory: "/"
-    target-branch: "26.1.2"
+    target-branch: "main"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
     groups:
-      gradle-26-1-2:
+      gradle:
         patterns:
           - "*"
 
   - package-ecosystem: "github-actions"
     directory: "/"
-    target-branch: "26.1.2"
+    target-branch: "main"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
     groups:
-      actions-26-1-2:
+      actions:
         patterns:
           - "*"

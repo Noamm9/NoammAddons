@@ -23,17 +23,23 @@ public class MixinMultiPlayerGameMode {
 
     @Inject(method = "handleContainerInput", at = @At("HEAD"), cancellable = true)
     private void onHandleSlotClick(int containerId, int slotNum, int buttonNum, ContainerInput containerInput, Player player, CallbackInfo ci) {
+        //? if <26.2 {
         if (minecraft.screen == null) return;
         if (! (minecraft.screen instanceof AbstractContainerScreen<?>)) return;
         if (EventBus.post(new ContainerEvent.SlotClick(minecraft.screen, slotNum, buttonNum, containerInput))) {
+        //? } else {
+        /*if (minecraft.gui.screen() == null) return;
+        if (! (minecraft.gui.screen() instanceof AbstractContainerScreen<?>)) return;
+        if (EventBus.post(new ContainerEvent.SlotClick(minecraft.gui.screen(), slotNum, buttonNum, containerInput))) {
+        *///? }
             ci.cancel();
         }
     }
 
-    //#if CHEAT
+    //? if cheat {
     @Inject(method = "startDestroyBlock", at = @At("HEAD"))
     private void onBlockHit(BlockPos pos, Direction direction, CallbackInfoReturnable<Boolean> cir) {
         com.github.noamm9.features.impl.dungeon.BreakerHelper.onHitBlock(pos);
     }
-    //#endif
+    //? }
 }

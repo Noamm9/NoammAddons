@@ -1,3 +1,4 @@
+//? if <26.2 {
 package com.github.noamm9.utils.render.world
 
 import com.github.noamm9.NoammAddons
@@ -78,3 +79,4 @@ object NoammRenderPipelines: ISelfInit {
 
     private fun id(path: String) = Identifier.fromNamespaceAndPath(NoammAddons.MOD_ID, path)
 }
+//? }

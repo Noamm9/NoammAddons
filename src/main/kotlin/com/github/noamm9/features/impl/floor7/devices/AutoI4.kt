@@ -1,6 +1,6 @@
 package com.github.noamm9.features.impl.floor7.devices
 
-//#if CHEAT
+//? if cheat {
 
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.EventBus
@@ -333,4 +333,4 @@ object AutoI4: Feature("Fully Automated I4") {
         watchdogJob = null
     }
 }
-//#endif
+//? }

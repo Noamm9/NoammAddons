@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="NoammAddons [build]" type="GradleRunConfiguration" factoryName="Gradle">
+  <configuration default="false" name="NoammAddons [26.3 Cheat Client]" type="GradleRunConfiguration" factoryName="Gradle">
     <ExternalSystemSettings>
       <option name="executionName" />
       <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -10,10 +10,10 @@
       </option>
       <option name="taskNames">
         <list>
-          <option value="build" />
+          <option value=":26.3-cheat:runClient" />
         </list>
       </option>
-      <option name="vmOptions" />
+      <option name="vmOptions" value="-XX:+AllowEnhancedClassRedefinition" />
     </ExternalSystemSettings>
     <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
     <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>

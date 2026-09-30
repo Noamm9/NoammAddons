@@ -14,8 +14,8 @@ import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawFloatingRect
 import com.github.noamm9.utils.render.Render2D.drawRect
+import com.mojang.blaze3d.platform.InputConstants
 import gg.essential.universal.UGraphics
-import gg.essential.universal.UKeyboard
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
@@ -152,7 +152,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
         }
 
         register<ContainerEvent.Keyboard> {
-            if (event.key.equalsOneOf(KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value, UKeyboard.KEY_ESCAPE)) return@register
+            if (event.key.equalsOneOf(KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value, InputConstants.KEY_ESCAPE)) return@register
             val handler = TerminalListener.currentHandler ?: return@register
             if (! handler.enabled()) return@register
             event.isCanceled = true

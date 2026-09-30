@@ -6,9 +6,7 @@ import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.features.impl.dev.ClickGui
 import com.github.noamm9.features.impl.general.CommandShortcuts
 import com.github.noamm9.features.impl.misc.sound.SoundManager
-import com.github.noamm9.ui.clickgui.ClickGuiScreen
-import com.github.noamm9.ui.clickgui.SuggestionManager
-import com.github.noamm9.ui.clickgui.TooltipManager
+import com.github.noamm9.ui.clickgui.*
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.clickgui.enums.CategoryType
 import com.github.noamm9.ui.gui.CommandShortcutsScreen
@@ -21,6 +19,7 @@ import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.scissor
 import com.github.noamm9.utils.render.RenderHelper.width
+import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
@@ -134,12 +133,13 @@ class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private 
 
     fun mouseClicked(mouseX: Double, mouseY: Double, button: Int) {
         if (isMouseOverHeader(mouseX, mouseY)) {
-            if (button == 0) {
+
+            if (button == InputConstants.MOUSE_BUTTON_LEFT) {
                 dragging = true
                 dragX = (mouseX - x).toInt()
                 dragY = (mouseY - y).toInt()
             }
-            else if (button == 1) {
+            else if (button == InputConstants.MOUSE_BUTTON_RIGHT) {
                 collapsed = ! collapsed
                 Style.playClickSound(if (collapsed) 0.8f else 1.1f)
             }
@@ -158,11 +158,11 @@ class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private 
 
         filteredFeatures.forEach { feature ->
             if (mouseX >= x && mouseX <= x + WIDTH && mouseY >= currentY && mouseY <= currentY + BUTTON_HEIGHT) {
-                if (button == 0) {
+                if (button == InputConstants.MOUSE_BUTTON_LEFT) {
                     feature.toggle()
                     return
                 }
-                else if (button == 1) {
+                else if (button == InputConstants.MOUSE_BUTTON_RIGHT) {
                     openFeature(feature)
                     return
                 }
@@ -172,7 +172,7 @@ class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private 
     }
 
     fun mouseReleased(button: Int) {
-        if (button == 0) dragging = false
+        if (button == InputConstants.MOUSE_BUTTON_LEFT) dragging = false
     }
 
     private fun getSorting(): Collection<Feature> {
