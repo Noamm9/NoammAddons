@@ -6,6 +6,7 @@ import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.PlayerInteractEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.WorldUtils
+import com.github.noamm9.utils.dungeons.DungeonUtils.REDSTONE_KEY
 import com.github.noamm9.utils.dungeons.map.core.RoomType
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.equalsOneOf
@@ -14,6 +15,8 @@ import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.core.BlockPos
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.SkullBlock
+import net.minecraft.world.level.block.entity.SkullBlockEntity
 
 object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
     private val preventBreakingSecrets by ToggleSetting("Prevent Secret Mine").withDescription("Prevents you from breaking secret blocks like chests & levers.")
@@ -32,7 +35,9 @@ object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
             if (! LocationUtils.inDungeon) return@register
             if (LocationUtils.inBoss) return@register
             if (event.item?.skyblockId != "DUNGEONBREAKER") return@register
-            if (WorldUtils.getBlockAt(event.pos) !in blacklist) return@register
+            val block = WorldUtils.getBlockAt(event.pos)
+            if (block !in blacklist) return@register
+            if (block is SkullBlock && (level.getBlockEntity(event.pos) as? SkullBlockEntity)?.ownerProfile?.partialProfile()?.id.toString().equalsOneOf(*REDSTONE_KEY)) return@register
             event.isCanceled = true
         }
     }
