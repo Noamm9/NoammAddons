@@ -34,7 +34,7 @@ object DungeonListener: ISelfInit {
     private val keyPickupRegex = Regex("^§e§lRIGHT CLICK §7on §7.+?§7 to open it\\. This key can only be used to open §a(?<num>\\d+)§7 door!$")
     private val witherDoorOpenedRegex = Regex("^(?:\\[.+?] )?(?<name>\\w+) opened a WITHER door!$")
     private val watcherMessageRegex = Regex("^\\[BOSS] The Watcher: .+$")
-    private val runEndRegex = Regex("^\\s*(Master Mode)? ?(?:The)? Catacombs - (Floor (.{1,3})|Entrance)$") // https://regex101.com/r/W4UjWQ/3
+    val runEndRegex = Regex("^\\s*(Master Mode)? ?(?:The)? Catacombs - (Floor (.{1,3})|Entrance)$") // https://regex101.com/r/W4UjWQ/3
 
     val dungeonTeammates = CopyOnWriteArrayList<DungeonPlayer>()
     var dungeonTeammatesNoSelf = listOf<DungeonPlayer>()

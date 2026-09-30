@@ -7,6 +7,7 @@ import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.init.NetworkLoop
+import com.github.noamm9.mixin.IAbstractContainerScreen
 import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.formattedText
@@ -15,6 +16,7 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
+import com.github.noamm9.utils.dungeons.CroesusRunTracker
 import com.github.noamm9.utils.items.ItemRarity
 import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.items.ItemUtils.lore
@@ -26,6 +28,7 @@ import com.github.noamm9.utils.render.Render2D.highlight
 import com.github.noamm9.utils.render.RenderHelper.width
 import gg.essential.universal.UChat
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
+import net.minecraft.network.chat.Component
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import java.awt.Color
@@ -38,12 +41,15 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
     private val croesusChestHighlight by ToggleSetting("Highlight Croesus Chests", true)
     private val hideRedChests by ToggleSetting("Hide Opened Chests", true)
     private val croesusKismetDisplay by ToggleSetting("Mark Rerolled Chests", true).jsonName("Highlight Rerolled Chests")
+    private val showRunGrade by ToggleSetting("Show Run Grade", true).withDescription("Shows if each Croesus run was &6S+&r or &eS&r, and marks S+ runs that still have a Kismet Feather reroll available in &6&lbold&r.\n\nOnly runs finished with the mod loaded are known.")
+    private val onlyRerollSPlus by ToggleSetting("Only Reroll S+ Runs").withDescription("Prevents you from rerolling a chest if the run was &cnot &6S+&r.\n\n&eoverride by pressing CTRL&r.\nruns with an unknown grade are never blocked")
 
     private val blackList by lazy { DataDownloader.loadJson<List<String>>("blacklistDrops.json") }
 
     private val essenceRegex = Regex("§d(?<type>\\w+) Essence §8x(?<count>\\d+)")
     private val croesusChestRegex = Regex("^(Master )?Catacombs - Flo(or (IV|V?I{0,3}))?$")
-    private val croesusMenuRegex = Regex("""^(?:\(\d/\d\) )?Croesus$""")
+    private val croesusMenuRegex = Regex("""^(?:\(\d+/\d+\) )?Croesus$""")
+    private val croesusChestFloorRegex = Regex("^(Master )?Catacombs - Floor ([IV]+)$")
 
     private val chestsToHighlight = mutableListOf<DungeonChest>()
     private var sortedChestsCache = emptyList<DungeonChest>()
@@ -206,10 +212,15 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
 
                 DungeonChest.getFromName(titleName)?.let {
                     val color = if (it.profit < 0) "§4" else "§a"
-                    val text = "Profit: $color${NumbersUtils.format(it.profit)}  "
+                    val grade = activeRun(titleName)?.let(::gradeText)?.let { grade -> "$grade §8| §r" }.orEmpty()
+                    val text = "${grade}Profit: $color${NumbersUtils.format(it.profit)}  "
                     event.context.drawString(text, width - text.width(), 6f)
                 } ?: run {
                     if (croesusChestsProfit.value && croesusChestRegex.matches(titleName)) {
+                        activeRun(titleName)?.let(::gradeText)?.let { grade ->
+                            event.context.drawString("§7Run: $grade", width * 1.15f, height / 6f - 11f)
+                        }
+
                         sortedChestsCache.forEachIndexed { index, chest ->
                             val color = if (chest.profit < 0) "§4" else "§a"
                             val text = "${chest.displayText}: $color${NumbersUtils.format(chest.profit)}§r"
@@ -280,19 +291,75 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
         }
 
         register<ContainerEvent.SlotClick> {
-            if (rerollValue.value == 0) return@register
+            if (rerollValue.value == 0 && ! onlyRerollSPlus.value) return@register
             if (event.slotId != 50) return@register
             if (event.screen !is ContainerScreen) return@register
             if (mc.hasControlDown()) return@register
             if (! LocationUtils.world.equalsOneOf(WorldType.DungeonHub, WorldType.Catacombs)) return@register
             val chest = DungeonChest.getFromName(event.screen.title.unformattedText) ?: return@register
-            if (chest.profit <= rerollValue.value * 1_000_000L) return@register
-            val lastLine = player.containerMenu.getSlot(50).item.lore.last().removeFormatting()
-            if (lastLine == "You already rerolled a chest!") return@register
+            val lastLine = player.containerMenu.getSlot(50).item.lore.lastOrNull()?.removeFormatting()
             if (lastLine != "Click to reroll this chest!") return@register
+
+            if (rerollValue.value != 0 && chest.profit > rerollValue.value * 1_000_000L) {
+                event.isCanceled = true
+                NotificationManager.push("Blocked Rerolling Chest", "Its profit dumbass.\nPress CTRL to override")
+                return@register
+            }
+
+            val grade = activeRun(null)?.grade ?: return@register
+            if (! onlyRerollSPlus.value || grade == "S+") return@register
             event.isCanceled = true
-            NotificationManager.push("Blocked Rerolling Chest", "Its profit dumbass.\nPress CTRL to override")
+            NotificationManager.push("Blocked Rerolling Chest", "This run was only ${CroesusRunTracker.gradeColor(grade)}$grade§r, not S+.\nPress CTRL to override")
         }
+
+        register<ContainerEvent.Render.Slot.Post> {
+            if (! showRunGrade.value) return@register
+            if (event.screen !is ContainerScreen) return@register
+            if (! event.screen.title.unformattedText.matches(croesusMenuRegex)) return@register
+            val run = CroesusRunTracker.getCroesusRun(event.slot.index) ?: return@register
+            val text = gradeText(run) ?: return@register
+
+            val pose = event.context.pose()
+            pose.pushMatrix()
+            pose.translate(event.slot.x.toFloat(), event.slot.y.toFloat())
+            event.context.drawString(if (run.worthReroll) text.replaceFirst(CroesusRunTracker.gradeColor(run.grade), "${CroesusRunTracker.gradeColor(run.grade)}§l") else text, 0f, 0f, scale = 0.75f)
+            pose.popMatrix()
+        }
+
+        register<ContainerEvent.Render.Tooltip> {
+            if (! showRunGrade.value) return@register
+            if (event.screen !is ContainerScreen) return@register
+            if (! event.screen.title.unformattedText.matches(croesusMenuRegex)) return@register
+            val slot = (event.screen as IAbstractContainerScreen).hoveredSlot ?: return@register
+            if (! event.stack.hoverName.unformattedText.equalsOneOf("The Catacombs", "Master Mode The Catacombs")) return@register
+            val run = CroesusRunTracker.getCroesusRun(slot.index)
+
+            event.lore.add(Component.literal(""))
+            event.lore.add(Component.literal("§7Run Grade: " + (run?.let(::gradeText)?.let { grade -> grade + run.score?.let { " §8($it)" }.orEmpty() } ?: "§8Unknown")))
+            run?.expiresAt?.let { expiresAt ->
+                val left = expiresAt - System.currentTimeMillis()
+                val color = if (left < 6 * 60 * 60 * 1000L) "§c" else "§e"
+                val time = if (left > 0) NumbersUtils.formatTime(left - left % 60_000).ifEmpty { "<1m" } else "now"
+                event.lore.add(Component.literal("§7Expires in: $color$time"))
+            }
+            if (run?.estimated == true) event.lore.add(Component.literal("§8Estimated from the score calculator"))
+            if (run?.worthReroll == true) event.lore.add(Component.literal("§a✔ Worth a Kismet Feather reroll"))
+        }
+    }
+
+    /** The run whose chests are open, null if unknown or if the chest menu belongs to a different floor than the tracked run. */
+    private fun activeRun(title: String?): CroesusRunTracker.RunInfo? {
+        val run = CroesusRunTracker.getActiveChestRun() ?: return null
+        val floorMatch = title?.let(croesusChestFloorRegex::matchEntire) ?: return run
+        val (master, roman) = floorMatch.destructured
+        val floor = (if (master.isNotEmpty()) "M" else "F") + roman.romanToDecimal()
+        return run.takeIf { it.floor == null || it.floor == floor }
+    }
+
+    private fun gradeText(run: CroesusRunTracker.RunInfo): String? {
+        val grade = run.grade ?: return null
+        val estimated = if (run.estimated) "§7?" else ""
+        return "${CroesusRunTracker.gradeColor(grade)}$grade$estimated"
     }
 
     private fun getItemValue(stack: ItemStack): Long {
