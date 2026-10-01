@@ -9,6 +9,8 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.IServerboundChatCommandPacket
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
+import com.github.noamm9.utils.MathUtils.toPos
+import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
@@ -16,6 +18,7 @@ import com.github.noamm9.utils.render.world.Render3D.renderBlock
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.phys.Vec3
 import java.awt.Color
 import java.util.concurrent.*
 import kotlin.math.abs
@@ -25,6 +28,7 @@ object I4Helper: Feature(name = "I4 Helper") {
     private val lineWidth by SliderSetting("Line Width", 2.5, 1, 10, 0.1).hideIf { mode.value == 1 }
     private val phase by ToggleSetting("Phase")
     private val showPrediction by ToggleSetting("Show Prediction", true).withDescription("Highlights the next block to shoot at.")
+    private val highlightPosition by DropdownSetting("Highlight Position", 1, listOf("Blocks", "Panes")).withDescription("Whether to draw the highlight onto the stained glass or on the terracotta blocks.")
 
     private val targetColor by ColorSetting("Target Color", Color.GREEN.withAlpha(127)).withDescription("Color of the target position.").section("Colors")
     private val doneColor by ColorSetting("Complete Color", Color.RED).withDescription("Color of a complete position.")
@@ -38,7 +42,8 @@ object I4Helper: Feature(name = "I4 Helper") {
     )
 
     private val doneCoords = ConcurrentHashMap.newKeySet<BlockPos>()
-    @Volatile private var target: BlockPos? = null
+    @Volatile private var targetPos: Vec3? = null
+    @Volatile private var predictionPos: Vec3? = null
     @Volatile private var alerted = false
     @Volatile var prediction: BlockPos? = null
 
@@ -53,10 +58,16 @@ object I4Helper: Feature(name = "I4 Helper") {
             if (event.oldBlock == Blocks.EMERALD_BLOCK && event.newBlock == Blocks.BLUE_TERRACOTTA) doneCoords.add(event.pos)
             else if (event.newBlock != Blocks.EMERALD_BLOCK) return@register
 
-            target = event.pos
+            targetPos = getRenderPos(event.pos)
 
-            if (! showPrediction.value) return@register
+            if (!showPrediction.value) {
+                prediction = null
+                predictionPos = null
+                return@register
+            }
+
             prediction = getPredictionTarget(event.pos, doneCoords)
+            predictionPos = prediction?.let(::getRenderPos)
         }
 
         register<RenderWorldEvent> {
@@ -73,12 +84,11 @@ object I4Helper: Feature(name = "I4 Helper") {
                 )
             }
 
-            if (target == prediction && target != null) target?.let { event.ctx.renderBlock(it, targetColor.value) }
-            else {
-                target?.let { highlight(it, targetColor.value) }
-                prediction?.let { highlight(it, predictionColor.value) }
-            }
+            highlight(targetPos?.toPos() ?: return@register, targetColor.value)
             doneCoords.forEach { highlight(it, doneColor.value) }
+            predictionPos
+                ?.takeIf { showPrediction.value && it != targetPos }
+                ?.let { highlight(it.toPos(), predictionColor.value) }
         }
 
         register<ChatMessageEvent> {
@@ -109,7 +119,8 @@ object I4Helper: Feature(name = "I4 Helper") {
 
     private fun reset() {
         doneCoords.clear()
-        target = null
+        targetPos = null
+        predictionPos = null
         prediction = null
         lastPredictions.clear()
     }
@@ -119,6 +130,36 @@ object I4Helper: Feature(name = "I4 Helper") {
         alerted = true
         val remaining = devBlocks.size - doneCoords.size
         ChatUtils.showTitle("&aCompleted Device!", if (remaining < 9) "&ePredicted: $remaining/9" else "")
+    }
+
+    private fun getRenderPos(pos: BlockPos): Vec3 {
+        return if (highlightPosition.value == 1) {
+            getTargetVector(pos, doneCoords, addOffset = false)
+        } else {
+            Vec3.atCenterOf(pos)
+        }
+    }
+
+    fun getTargetVector(pos: BlockPos, doneCoords: Collection<BlockPos>, addOffset: Boolean = true): Vec3 {
+        val i = devBlocks.indexOf(pos).coerceAtLeast(0)
+        val col = i % 3
+        val row = i / 3
+
+        val isLeftDone = (col < 2) && (devBlocks[i + 1] in doneCoords)
+        val isRightDone = (col > 0) && (devBlocks[i - 1] in doneCoords)
+
+        val targetX = when (col) {
+            0 -> 67.5
+            2 -> 65.5
+            else -> when {
+                isRightDone && ! isLeftDone -> 65.5
+                isLeftDone && ! isRightDone -> 67.5
+                else -> if (Math.random() < 0.5) 65.5 else 67.5
+            }
+        }
+
+        val targetY = (if (addOffset) 131.0 else 130.0) - 2.0 * row
+        return vec(targetX, targetY, 50)
     }
 
     fun getPredictionTarget(lastHitPos: BlockPos, doneCoords: Collection<BlockPos>): BlockPos? {
