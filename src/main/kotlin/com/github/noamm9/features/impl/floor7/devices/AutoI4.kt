@@ -2,12 +2,18 @@ package com.github.noamm9.features.impl.floor7.devices
 
 //#if CHEAT
 
-import com.github.noamm9.config.types.*
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.EventBus
-import com.github.noamm9.event.impl.*
+import com.github.noamm9.event.impl.BlockChangeEvent
+import com.github.noamm9.event.impl.ChatMessageEvent
+import com.github.noamm9.event.impl.NoammDebugFlagEvent
+import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.MelodyDisplay
 import com.github.noamm9.features.impl.floor7.devices.I4Helper.getPredictionTarget
+import com.github.noamm9.features.impl.floor7.devices.I4Helper.getTargetVector
 import com.github.noamm9.ui.utils.Animation.Companion.easeInOutCubic
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ActionUtils.queue
@@ -15,21 +21,23 @@ import com.github.noamm9.utils.ActionUtils.waitTicks
 import com.github.noamm9.utils.MathUtils.calcYawPitch
 import com.github.noamm9.utils.MathUtils.interpolateYaw
 import com.github.noamm9.utils.MathUtils.lerp
-import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.PlayerUtils.leapAction
 import com.github.noamm9.utils.PlayerUtils.rotate
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.phys.Vec3
-import java.util.*
-import java.util.concurrent.*
-import java.util.concurrent.atomic.*
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -171,11 +179,11 @@ object AutoI4: Feature("Fully Automated I4") {
             checkStall()
 
             if (rotationTime.value > 0) queue(1) {
-                shootAtBlock(event.pos)
+                shootAtBlock(event.pos, doneCoords)
 
                 if (predictSetting.value) {
                     val next = I4Helper.prediction ?: getPredictionTarget(event.pos, doneCoords) ?: return@queue
-                    shootAtBlock(next)
+                    shootAtBlock(next, doneCoords)
                 }
             }
         }
@@ -204,7 +212,7 @@ object AutoI4: Feature("Fully Automated I4") {
                 if (DungeonListener.currentTime - lastAttemptTime.get() < 20) continue
 
                 lastAttemptTime.set(DungeonListener.currentTime)
-                queue(2) { shootAtBlock(target) }
+                queue(2) { shootAtBlock(target, doneCoords) }
             }
         }
 
@@ -218,30 +226,8 @@ object AutoI4: Feature("Fully Automated I4") {
         WorldUtils.getBlockAt(it) == Blocks.EMERALD_BLOCK
     }
 
-    private fun getTargetVector(pos: BlockPos): Vec3 {
-        val i = I4Helper.devBlocks.indexOf(pos).coerceAtLeast(0)
-        val col = i % 3
-        val row = i / 3
-
-        val isLeftDone = (col < 2) && (I4Helper.devBlocks[i + 1] in doneCoords)
-        val isRightDone = (col > 0) && (I4Helper.devBlocks[i - 1] in doneCoords)
-
-        val targetX = when (col) {
-            0 -> 67.5
-            2 -> 65.5
-            else -> when {
-                isRightDone && ! isLeftDone -> 65.5
-                isLeftDone && ! isRightDone -> 67.5
-                else -> if (Math.random() < 0.5) 65.5 else 67.5
-            }
-        }
-
-        val targetY = 131 - 2.0 * row
-        return vec(targetX, targetY, 50)
-    }
-
-    private suspend fun shootAtBlock(pos: BlockPos) {
-        val (yaw, pitch) = calcYawPitch(getTargetVector(pos))
+    private suspend fun shootAtBlock(pos: BlockPos, doneCoords: MutableSet<BlockPos>) {
+        val (yaw, pitch) = calcYawPitch(getTargetVector(pos, doneCoords))
         val block = suspend {
             waitTicks()
             PlayerUtils.rightClick()
@@ -250,7 +236,7 @@ object AutoI4: Feature("Fully Automated I4") {
         getEmerald(pos)?.let { newer ->
             activeEmerald.set(newer)
             lastAttemptTime.set(DungeonListener.currentTime)
-            return shootAtBlock(newer)
+            return shootAtBlock(newer, doneCoords)
         }
 
         val currentYaw = MathUtils.normalizeYaw(player.yRot)
@@ -269,7 +255,7 @@ object AutoI4: Feature("Fully Automated I4") {
                 doneCoords.add(pos)
                 activeEmerald.set(newerDuring)
                 lastAttemptTime.set(DungeonListener.currentTime)
-                return shootAtBlock(newerDuring)
+                return shootAtBlock(newerDuring, doneCoords)
             }
 
             val elapsed = System.currentTimeMillis() - startTime
