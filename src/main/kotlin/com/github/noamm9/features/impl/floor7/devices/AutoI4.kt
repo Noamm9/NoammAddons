@@ -3,7 +3,6 @@ package com.github.noamm9.features.impl.floor7.devices
 //#if CHEAT
 
 import com.github.noamm9.config.types.*
-import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.MelodyDisplay
@@ -21,7 +20,6 @@ import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
 import kotlinx.coroutines.*
 import net.minecraft.core.BlockPos
-import net.minecraft.network.chat.Component
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Blocks
 import java.util.concurrent.*
@@ -42,7 +40,7 @@ object AutoI4: Feature("Fully Automated I4") {
     private val swapOrder by DropdownSetting("Swap Order", 0, listOf("Rod First", "Mask First")).showIf { rodSetting.value && maskSetting.value }
     private val preferredLeapClass by DropdownSetting("Leap Priority", 0, leapPriorities.map { it.name }).showIf { leapSetting.value }
 
-    private const val STORM_DEATH_MESSAGE = "[BOSS] Storm: I should have known that I stood no chance."
+    private const val GOLDER_START_MESSAGE = "[BOSS] Goldor: Who dares trespass into my domain?"
 
     private val doneCoords = ConcurrentHashMap.newKeySet<BlockPos>()
     private val tickTimer = AtomicInteger(- 1)
@@ -64,7 +62,7 @@ object AutoI4: Feature("Fully Automated I4") {
                 melodyLeapTargetName = melody.name
             }
 
-            if (msg == STORM_DEATH_MESSAGE) {
+            if (msg == GOLDER_START_MESSAGE) {
                 ThreadUtils.setTimeout(30_000L) { tickTimer.set(- 1) }
                 tickTimer.set(0)
             }
@@ -81,12 +79,12 @@ object AutoI4: Feature("Fully Automated I4") {
             if (! I4Helper.isOnDev()) return@register
 
             when (timer) {
-                307 if leapSetting.value -> {
+                203 if leapSetting.value -> {
                     ChatUtils.debug("i4", "saveLeap")
                     queue(4, false, ::saveLeap)
                 }
 
-                244 -> {
+                140 -> {
                     if (rodSetting.value && maskSetting.value) {
                         if (swapOrder.value == 0 && ! hasChangedMask) {
                             hasChangedMask = true
@@ -111,7 +109,7 @@ object AutoI4: Feature("Fully Automated I4") {
                     }
                 }
 
-                174 -> {
+                70 -> {
                     if (rodSetting.value && maskSetting.value) {
                         if (swapOrder.value == 0) {
                             if (! hasRodSwapped) {
@@ -173,17 +171,6 @@ object AutoI4: Feature("Fully Automated I4") {
                     val next = I4Helper.prediction ?: I4Helper.getPredictionTarget(event.pos, doneCoords) ?: return@queue
                     shootAtBlock(next)
                 }
-            }
-        }
-
-        register<NoammDebugFlagEvent.Add> {
-            if (event.flag != "autoi4") return@register
-            event.cancel()
-
-            scope.launch {
-                EventBus.post(ChatMessageEvent(Component.literal(STORM_DEATH_MESSAGE)))
-                repeat(104) { EventBus.post(TickEvent.Server) }
-                ChatUtils.sendCommand("/start p3")
             }
         }
     }
