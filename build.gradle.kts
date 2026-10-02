@@ -51,11 +51,18 @@ configurations {
 }
 
 repositories {
-    maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
-    maven("https://repo.essential.gg/repository/maven-public")
-    maven("https://maven.terraformersmc.com/releases/")
-    maven("https://api.modrinth.com/maven")
-    maven("https://jitpack.io")
+    maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1") {
+        content { includeGroup("me.djtheredstoner") }
+    }
+    maven("https://repo.essential.gg/repository/maven-public") {
+        content { includeGroup("gg.essential") }
+    }
+    maven("https://maven.terraformersmc.com/releases/") {
+        content { includeGroup("com.terraformersmc") }
+    }
+    maven("https://api.modrinth.com/maven") {
+        content { includeGroup("maven.modrinth") }
+    }
     maven("https://maven.teamresourceful.com/repository/thatgravyboat/") {
         content { includeGroup("me.owdding") }
     }
