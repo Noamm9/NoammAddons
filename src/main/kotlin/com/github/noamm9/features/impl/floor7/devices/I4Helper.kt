@@ -1,18 +1,14 @@
 package com.github.noamm9.features.impl.floor7.devices
 
-import com.github.noamm9.config.types.ColorSetting
-import com.github.noamm9.config.types.DropdownSetting
-import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
+import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.IServerboundChatCommandPacket
-import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.toPos
 import com.github.noamm9.utils.MathUtils.vec
-import com.github.noamm9.utils.WorldUtils
-import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.world.Render3D.renderBlock
 import net.minecraft.core.BlockPos
@@ -28,7 +24,7 @@ object I4Helper: Feature(name = "I4 Helper") {
     private val lineWidth by SliderSetting("Line Width", 2.5, 1, 10, 0.1).hideIf { mode.value == 1 }
     private val phase by ToggleSetting("Phase")
     private val showPrediction by ToggleSetting("Show Prediction", true).withDescription("Highlights the next block to shoot at.")
-    private val highlightPosition by DropdownSetting("Highlight Position", 1, listOf("Blocks", "Panes")).withDescription("Whether to draw the highlight onto the stained glass or on the terracotta blocks.")
+    private val highlightPosition by DropdownSetting("Highlight Position", 0, listOf("Blocks", "Panes")).withDescription("Whether to draw the highlight onto the stained glass or on the terracotta blocks.")
 
     private val targetColor by ColorSetting("Target Color", Color.GREEN.withAlpha(127)).withDescription("Color of the target position.").section("Colors")
     private val doneColor by ColorSetting("Complete Color", Color.RED).withDescription("Color of a complete position.")
@@ -42,32 +38,46 @@ object I4Helper: Feature(name = "I4 Helper") {
     )
 
     private val doneCoords = ConcurrentHashMap.newKeySet<BlockPos>()
-    @Volatile private var targetPos: Vec3? = null
-    @Volatile private var predictionPos: Vec3? = null
     @Volatile private var alerted = false
+
+    @Volatile var target: BlockPos? = null
+    @Volatile var targetAim: Vec3? = null
+
     @Volatile var prediction: BlockPos? = null
+    @Volatile var predictionAim: Vec3? = null
 
     private val lastPredictions = ConcurrentHashMap<BlockPos, Int>()
-    private const val MAX_PREDICTION_ATTEMPTS = 2
+    private const val MAX_ATTEMPTS = 2
+    private const val MAX_REROLLS = 3
 
     override fun init() {
-        register<BlockChangeEvent> {
+        register<BlockChangeEvent>(EventPriority.HIGH) {
             if (LocationUtils.P3Section != 4) return@register
             if (event.pos !in devBlocks) return@register
 
             if (event.oldBlock == Blocks.EMERALD_BLOCK && event.newBlock == Blocks.BLUE_TERRACOTTA) doneCoords.add(event.pos)
             else if (event.newBlock != Blocks.EMERALD_BLOCK) return@register
 
-            targetPos = getRenderPos(event.pos)
+            target = event.pos
+            targetAim = getTargetVector(event.pos, doneCoords)
 
-            if (!showPrediction.value) {
+            if (! showPrediction.value) {
                 prediction = null
-                predictionPos = null
+                predictionAim = null
                 return@register
             }
 
             prediction = getPredictionTarget(event.pos, doneCoords)
-            predictionPos = prediction?.let(::getRenderPos)
+            predictionAim = prediction?.let { getTargetVector(it, doneCoords) }
+
+            val excluded = mutableSetOf<BlockPos>()
+            var rerolls = 0
+            while (prediction != null && predictionAim == targetAim && rerolls < MAX_REROLLS) {
+                prediction?.let(excluded::add)
+                prediction = getPredictionTarget(event.pos, doneCoords, excluded)
+                predictionAim = prediction?.let { getTargetVector(it, doneCoords) }
+                rerolls ++
+            }
         }
 
         register<RenderWorldEvent> {
@@ -84,11 +94,11 @@ object I4Helper: Feature(name = "I4 Helper") {
                 )
             }
 
-            highlight(targetPos?.toPos() ?: return@register, targetColor.value)
+            highlight(getRenderPos(target ?: return@register), targetColor.value)
             doneCoords.forEach { highlight(it, doneColor.value) }
-            predictionPos
-                ?.takeIf { showPrediction.value && it != targetPos }
-                ?.let { highlight(it.toPos(), predictionColor.value) }
+            if (showPrediction.value && prediction != target) prediction?.let {
+                highlight(getRenderPos(it), predictionColor.value)
+            }
         }
 
         register<ChatMessageEvent> {
@@ -119,9 +129,10 @@ object I4Helper: Feature(name = "I4 Helper") {
 
     private fun reset() {
         doneCoords.clear()
-        targetPos = null
-        predictionPos = null
+        target = null
         prediction = null
+        targetAim = null
+        predictionAim = null
         lastPredictions.clear()
     }
 
@@ -132,15 +143,13 @@ object I4Helper: Feature(name = "I4 Helper") {
         ChatUtils.showTitle("&aCompleted Device!", if (remaining < 9) "&ePredicted: $remaining/9" else "")
     }
 
-    private fun getRenderPos(pos: BlockPos): Vec3 {
-        return if (highlightPosition.value == 1) {
-            getTargetVector(pos, doneCoords, addOffset = false)
-        } else {
-            Vec3.atCenterOf(pos)
-        }
+    private fun getRenderPos(pos: BlockPos): BlockPos {
+        return if (highlightPosition.value == 0) pos
+        else if (pos == target) targetAim !!.toPos().below()
+        else predictionAim !!.toPos().below()
     }
 
-    fun getTargetVector(pos: BlockPos, doneCoords: Collection<BlockPos>, addOffset: Boolean = true): Vec3 {
+    fun getTargetVector(pos: BlockPos, doneCoords: Collection<BlockPos>): Vec3 {
         val i = devBlocks.indexOf(pos).coerceAtLeast(0)
         val col = i % 3
         val row = i / 3
@@ -158,13 +167,13 @@ object I4Helper: Feature(name = "I4 Helper") {
             }
         }
 
-        val targetY = (if (addOffset) 131.0 else 130.0) - 2.0 * row
+        val targetY = 131 - 2 * row
         return vec(targetX, targetY, 50)
     }
 
-    fun getPredictionTarget(lastHitPos: BlockPos, doneCoords: Collection<BlockPos>): BlockPos? {
-        val allValid = devBlocks.filter { it !in doneCoords && it != lastHitPos && WorldUtils.getBlockAt(it) == Blocks.BLUE_TERRACOTTA }.ifEmpty { return null }
-        val candidates = allValid.filter { (lastPredictions[it] ?: 0) < MAX_PREDICTION_ATTEMPTS }.ifEmpty { allValid }
+    fun getPredictionTarget(lastHitPos: BlockPos, doneCoords: Collection<BlockPos>, exclude: Collection<BlockPos> = emptySet()): BlockPos? {
+        val allValid = devBlocks.filter { it !in doneCoords && it != lastHitPos && it !in exclude && WorldUtils.getBlockAt(it) == Blocks.BLUE_TERRACOTTA }.ifEmpty { return null }
+        val candidates = allValid.filter { (lastPredictions[it] ?: 0) < MAX_ATTEMPTS }.ifEmpty { allValid }
 
         val pairs = candidates.shuffled().groupBy { it.y }.flatMap { (_, blocks) ->
             val sorted = blocks.sortedBy { it.x }
