@@ -2,18 +2,11 @@ package com.github.noamm9.features.impl.floor7.devices
 
 //#if CHEAT
 
-import com.github.noamm9.config.types.DropdownSetting
-import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.EventBus
-import com.github.noamm9.event.impl.BlockChangeEvent
-import com.github.noamm9.event.impl.ChatMessageEvent
-import com.github.noamm9.event.impl.NoammDebugFlagEvent
-import com.github.noamm9.event.impl.TickEvent
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.MelodyDisplay
-import com.github.noamm9.features.impl.floor7.devices.I4Helper.getPredictionTarget
-import com.github.noamm9.features.impl.floor7.devices.I4Helper.getTargetVector
 import com.github.noamm9.ui.utils.Animation.Companion.easeInOutCubic
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ActionUtils.queue
@@ -26,18 +19,13 @@ import com.github.noamm9.utils.PlayerUtils.rotate
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Blocks
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.*
+import java.util.concurrent.atomic.*
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -179,11 +167,11 @@ object AutoI4: Feature("Fully Automated I4") {
             checkStall()
 
             if (rotationTime.value > 0) queue(1) {
-                shootAtBlock(event.pos, doneCoords)
+                shootAtBlock(event.pos)
 
                 if (predictSetting.value) {
-                    val next = I4Helper.prediction ?: getPredictionTarget(event.pos, doneCoords) ?: return@queue
-                    shootAtBlock(next, doneCoords)
+                    val next = I4Helper.prediction ?: I4Helper.getPredictionTarget(event.pos, doneCoords) ?: return@queue
+                    shootAtBlock(next)
                 }
             }
         }
@@ -212,7 +200,7 @@ object AutoI4: Feature("Fully Automated I4") {
                 if (DungeonListener.currentTime - lastAttemptTime.get() < 20) continue
 
                 lastAttemptTime.set(DungeonListener.currentTime)
-                queue(2) { shootAtBlock(target, doneCoords) }
+                queue(2) { shootAtBlock(target) }
             }
         }
 
@@ -226,8 +214,13 @@ object AutoI4: Feature("Fully Automated I4") {
         WorldUtils.getBlockAt(it) == Blocks.EMERALD_BLOCK
     }
 
-    private suspend fun shootAtBlock(pos: BlockPos, doneCoords: MutableSet<BlockPos>) {
-        val (yaw, pitch) = calcYawPitch(getTargetVector(pos, doneCoords))
+    private suspend fun shootAtBlock(pos: BlockPos) {
+        val (yaw, pitch) = calcYawPitch(when (pos) {
+            I4Helper.prediction -> I4Helper.predictionAim !!
+            I4Helper.target -> I4Helper.targetAim !!
+            else -> I4Helper.getTargetVector(pos, doneCoords)
+        })
+
         val block = suspend {
             waitTicks()
             PlayerUtils.rightClick()
@@ -236,7 +229,7 @@ object AutoI4: Feature("Fully Automated I4") {
         getEmerald(pos)?.let { newer ->
             activeEmerald.set(newer)
             lastAttemptTime.set(DungeonListener.currentTime)
-            return shootAtBlock(newer, doneCoords)
+            return shootAtBlock(newer)
         }
 
         val currentYaw = MathUtils.normalizeYaw(player.yRot)
@@ -255,7 +248,7 @@ object AutoI4: Feature("Fully Automated I4") {
                 doneCoords.add(pos)
                 activeEmerald.set(newerDuring)
                 lastAttemptTime.set(DungeonListener.currentTime)
-                return shootAtBlock(newerDuring, doneCoords)
+                return shootAtBlock(newerDuring)
             }
 
             val elapsed = System.currentTimeMillis() - startTime
