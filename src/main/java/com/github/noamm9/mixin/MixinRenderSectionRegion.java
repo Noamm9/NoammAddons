@@ -17,5 +17,4 @@ public abstract class MixinRenderSectionRegion {
         return IHateDoors.getRenderState(pos.getX(), pos.getY(), pos.getZ(), original);
     }
 }
-
 //#endif

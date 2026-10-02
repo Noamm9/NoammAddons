@@ -17,5 +17,4 @@ public abstract class MixinSodiumLevelSlice {
         return IHateDoors.getRenderState(x, y, z, original);
     }
 }
-
 //#endif
