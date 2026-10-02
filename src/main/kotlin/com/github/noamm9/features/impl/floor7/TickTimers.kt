@@ -5,25 +5,16 @@ import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.NumbersUtils.toFixed
-import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.RenderHelper.width
-import net.minecraft.network.protocol.game.ClientboundSetTimePacket
 
 object TickTimers: Feature("Shows various types of server tick timers for F7 boss fight.") {
     private val showPrefix by ToggleSetting("Prefix", true).section("Settings")
     private val showSuffix by ToggleSetting("Suffix", true)
     private val format by DropdownSetting("Format", 0, listOf("Seconds", "Ticks"))
 
-    private val deathTickTimer by ToggleSetting("0s Death Tick").section("clear")
-    private val secretTickTimer by ToggleSetting("Secret Tick")
-
-    private val p1 by ToggleSetting("Maxor Start").section("F7")
-    private val p2 by ToggleSetting("Storm Start")
-    private val p3 by ToggleSetting("Goldor Start")
-    private val p4 by ToggleSetting("Necron Start")
-
+    private val maxor by ToggleSetting("Maxor Start").section("F7")
     private val goldorDeathTickTimer by ToggleSetting("Goldor Death Ticks")
     private val padTimer by ToggleSetting("Storm Pad Timer")
     private val pyTimer by ToggleSetting("Storm PY Timer")
@@ -35,10 +26,6 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
     private var stormActive = false
     private var pyTriggered = false
 
-    private var deathTickTime = - 1
-    private var secretTickTime = - 1
-    private var dungeonStartTime = 0L
-
     override fun init() {
         hudElement(
             "Tick Timers",
@@ -47,12 +34,10 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
         ) { ctx, example ->
             val textToRender = if (example) "§aStart: 150"
             else when {
-                startTickTime != - 1 -> formatTimer(startTickTime, 150, "§aStart:")
+                startTickTime != - 1 -> formatTimer(startTickTime, 83, "§aStart:")
                 goldorTickTime != - 1 -> formatTimer(goldorTickTime, 60, "§7Goldor:")
                 pyTickTime != - 1 -> formatTimer(pyTickTime, 75, "§5PY:")
                 padTickTime != - 1 -> formatTimer(padTickTime, 20, "§bPad:")
-                deathTickTime != - 1 -> formatTimer(deathTickTime, 40, "§cDeath:")
-                secretTickTime != - 1 -> formatTimer(secretTickTime, 20, "§dSecret:")
                 else -> return@hudElement 0f to 0f
             }
 
@@ -61,23 +46,19 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
         }
 
         register<WorldChangeEvent> { reset() }
-        register<DungeonEvent.RunStatedEvent> { dungeonStartTime = System.currentTimeMillis() }
 
         register<ChatMessageEvent> {
             when (event.unformattedText) {
-                "[BOSS] Maxor: WELL! WELL! WELL! LOOK WHO'S HERE!" -> if (p1.value) startTickTime = 167
-
-                "[BOSS] Maxor: I'M TOO YOUNG TO DIE AGAIN!" -> if (p2.value) startTickTime = 120
+                "[BOSS] Maxor: WELL! WELL! WELL! LOOK WHO'S HERE!" -> if (maxor.value) startTickTime = 83
 
                 "[BOSS] Storm: ENERGY HEED MY CALL!", "[BOSS] Storm: THUNDER LET ME BE YOUR CATALYST!" -> {
                     if (pyTimer.value && ! pyTriggered) {
                         pyTriggered = true
-                        pyTickTime = 75
+                        pyTickTime = 62
                     }
                 }
 
                 "[BOSS] Storm: I should have known that I stood no chance." -> {
-                    if (p3.value) startTickTime = 104
                     if (pyTriggered) {
                         pyTriggered = false
                         pyTickTime = - 1
@@ -92,8 +73,6 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
                     if (goldorDeathTickTimer.value) goldorTickTime = 60
                 }
 
-                "[BOSS] Necron: I'm afraid, your journey ends now." -> if (p4.value) startTickTime = 60
-
                 "The Core entrance is opening!" -> goldorTickTime = - 1
 
                 "[BOSS] Storm: Pathetic Maxor, just like expected." -> {
@@ -101,26 +80,6 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
                         padTickTime = 20
                         stormActive = true
                     }
-                }
-            }
-        }
-
-        register<MainThreadPacketReceivedEvent.Pre> {
-            if (! LocationUtils.inDungeon) return@register
-            if (event.packet !is ClientboundSetTimePacket) return@register
-
-            val timeSinceStart = System.currentTimeMillis() - dungeonStartTime
-            val shouldCheckDeath = deathTickTimer.value && (timeSinceStart < 6000 || ! DungeonListener.dungeonStarted)
-
-            if (shouldCheckDeath) deathTickTime = 40 - (event.packet.gameTime % 40).toInt()
-            else if (! LocationUtils.inBoss) {
-                if (secretTickTimer.value) {
-                    secretTickTime = 20 - (event.packet.gameTime % 20).toInt()
-                    deathTickTime = - 1
-                }
-                else {
-                    secretTickTime = - 1
-                    deathTickTime = - 1
                 }
             }
         }
@@ -139,16 +98,6 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
                 goldorTickTime --
                 if (goldorTickTime == 0) goldorTickTime = 60
             }
-
-            if (deathTickTimer.value && deathTickTime >= 0) {
-                deathTickTime --
-                if (deathTickTime == 0) deathTickTime = 40
-            }
-
-            if (secretTickTimer.value && secretTickTime >= 0) {
-                secretTickTime --
-                if (secretTickTime == 0 && ! LocationUtils.inBoss) secretTickTime = 20
-            }
         }
     }
 
@@ -159,9 +108,6 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
         stormActive = false
         pyTickTime = - 1
         pyTriggered = false
-        deathTickTime = - 1
-        secretTickTime = - 1
-        dungeonStartTime = 0L
     }
 
     private fun formatTimer(time: Int, max: Int, prefixText: String): String {
