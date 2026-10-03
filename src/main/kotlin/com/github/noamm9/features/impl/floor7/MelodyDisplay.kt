@@ -11,6 +11,8 @@ import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.sounds.SoundEvents
+import kotlin.math.ceil
+import kotlin.math.roundToInt
 
 object MelodyDisplay: Feature("Displays the current progress someone for melody on screen.") {
     private val melodyFormat by TextInputSetting("Format", "{name} has {progress} melody").withDescription("replaces {name}, {class} & {progress} with the player name, dungeon class and melody progress. &bSupports code codes")
@@ -63,7 +65,12 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
     fun parseMelodyMessage(message: String): MelodyMessage? {
         if (! message.startsWith("Party > ")) return null
         val name = melodyRegex.find(message)?.groupValues?.get(1)?.takeUnless { it == mc.user.name } ?: return null
-        val progress = (4 downTo 0).find { i -> message.containsOneOf("$i/4", "${i * 25}%") } ?: return null
+        val progress = (3 downTo 0).find { i ->
+            message.containsOneOf(
+                "$i/4", "${i * 25}%",
+                "$i/3", "${ceil(i * 33.33).roundToInt()}%", "${i * 33}%"
+            )
+        } ?: return null
 
         return MelodyMessage(name, progress)
     }
@@ -72,6 +79,6 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
         return melodyFormat.value
             .replace("{name}", state.name)
             .replace("{class}", state.clazz)
-            .replace("{progress}", "${state.progress}/4")
+            .replace("{progress}", "${state.progress}/3")
     }
 }
