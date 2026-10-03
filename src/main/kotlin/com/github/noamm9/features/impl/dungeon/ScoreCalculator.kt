@@ -16,9 +16,9 @@ import net.minecraft.sounds.SoundEvents
 object ScoreCalculator: Feature("Shows the score of the dungeon run.") {
     val forcePaul by ToggleSetting("Force Paul")
     private val hudElement by ToggleSetting("HUD Element")
-    val sendMimic by ToggleSetting("Send Mimic Message")
-    val sendPrince by ToggleSetting("Send Prince Message")
-    val sendBat by ToggleSetting("Send Bat Message")
+    val sendMimic by ToggleSetting("Send Mimic Message", true)
+    val sendPrince by ToggleSetting("Send Prince Message", true)
+    val sendBat by ToggleSetting("Send Bat Message", true)
 
     private val sendMsg270 by ToggleSetting("270 score message").section("270")
     private val msg270 by TextInputSetting("Message", "270 Score!").showIf { sendMsg270.value }
