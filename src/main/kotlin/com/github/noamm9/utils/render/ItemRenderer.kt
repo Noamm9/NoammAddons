@@ -8,7 +8,7 @@ import gg.essential.universal.UResolution
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.navigation.ScreenRectangle
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer
-import net.minecraft.client.renderer.SubmitNodeCollector
+import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.item.TrackingItemStackRenderState
 import net.minecraft.client.renderer.state.gui.GuiItemRenderState
 import net.minecraft.client.renderer.state.gui.pip.PictureInPictureRenderState
@@ -28,8 +28,9 @@ class ItemRenderer: PictureInPictureRenderer<ItemRenderer.ItemState>() {
     private var lastRenderAtNanos = System.nanoTime()
     private var matrix4 = Matrix4f()
 
-    override fun renderToTexture(itemState: ItemState, poseStack: PoseStack, submitNodeCollector: SubmitNodeCollector) {
-        val guiScale = UResolution.scaleFactor.toFloat()
+    override fun renderToTexture(itemState: ItemState, poseStack: PoseStack) {
+        val dispatcher = mc.gameRenderer.featureRenderDispatcher
+        val guiScale = mc.window.guiScale
         val guiPose = PoseStack()
 
         fun renderItem(batchedItem: BatchedItem) {
