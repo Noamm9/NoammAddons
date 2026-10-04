@@ -30,13 +30,21 @@ object BlazeDaggerHUD: Feature("Blaze Slayer Dagger Attunement Helper") {
     private val attunementWarningRegex = Regex("§cStrike using the §r.+ §r§cattunement on your dagger!")
 
     override fun init() {
-        hudElement(name = "Dagger Attunement Top", shouldDraw = { topText.isNotEmpty() }, centered = true) { context, isExample ->
+        hudElement(
+            name = "Dagger Attunement Top",
+            shouldDraw = { topText.isNotEmpty() },
+            centered = { true }
+        ) { context, isExample ->
             val text = if (isExample) "§7[§eAuric§7] §bCrystal" else topText
             context.drawCenteredString(text, 0, 0)
             return@hudElement text.width().toFloat() to text.height().toFloat()
         }
 
-        hudElement(name = "Dagger Attunement Bottom", shouldDraw = { bottomText.isNotEmpty() }, centered = true) { context, isExample ->
+        hudElement(
+            name = "Dagger Attunement Bottom",
+            shouldDraw = { bottomText.isNotEmpty() },
+            centered = { true }
+        ) { context, isExample ->
             val text = if (isExample) "§8Ashen §7[§fSPIRIT§7]" else bottomText
             context.drawCenteredString(text, 0, 0)
             return@hudElement text.width().toFloat() to text.height().toFloat()

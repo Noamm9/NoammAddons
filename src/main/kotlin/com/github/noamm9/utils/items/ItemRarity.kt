@@ -51,5 +51,7 @@ enum class ItemRarity(val baseColor: ChatColor) {
             SPECIAL -> Color(0xFF5555)
             NONE -> rarity.color
         }
+
+        fun fromName(name: String?) = entries.firstOrNull { it != NONE && it.name.equals(name, ignoreCase = true) } ?: NONE
     }
 }
