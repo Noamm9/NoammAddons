@@ -39,7 +39,7 @@ object IHateDoors: Feature("Visually replaces dungeon doors with glass.") {
         register<DungeonEvent.TileScannedEvent> {
             if (event.tile !is DoorTile) return@register
             val aabb = event.tile.aabb
-            mc.levelRenderer.setBlocksDirty(
+            mc.levelExtractor.setBlocksDirty(
                 aabb.minX.toInt(),
                 aabb.minY.toInt(),
                 aabb.minZ.toInt(),
@@ -81,7 +81,7 @@ object IHateDoors: Feature("Visually replaces dungeon doors with glass.") {
             for (pos in BlockPos.betweenClosed(x - 1, 69, z - 1, x + 1, 72, z + 1)) {
                 val block = WorldUtils.getBlockAt(pos)
                 if (previous[block] == next[block]) continue
-                mc.levelRenderer.setBlocksDirty(x - 1, 69, z - 1, x + 1, 72, z + 1)
+                mc.levelExtractor.setBlocksDirty(x - 1, 69, z - 1, x + 1, 72, z + 1)
                 break
             }
         }

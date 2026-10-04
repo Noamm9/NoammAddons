@@ -41,7 +41,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     override fun init() {
         hudElement(
             "AutoTerminal - FakeInvWalk",
-            centered = true,
+            centered = { true },
             enabled = { invwalk.value },
             shouldDraw = { TerminalListener.currentHandler?.enabled() == true }
         ) { ctx, e ->

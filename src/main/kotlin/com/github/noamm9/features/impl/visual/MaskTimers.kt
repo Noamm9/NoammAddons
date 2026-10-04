@@ -7,6 +7,7 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.NumbersUtils.toFixed
+import com.github.noamm9.utils.PetUtils
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
@@ -14,8 +15,6 @@ import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
 import gg.essential.universal.UResolution
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.contentOrNull
 import net.minecraft.world.entity.EquipmentSlot
 import kotlin.math.roundToInt
 
@@ -134,7 +133,7 @@ object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and mo
             "SPIRIT_MASK" in player.getItemBySlot(EquipmentSlot.HEAD).skyblockId
         }),
         PHOENIX("Phoenix", "Pet", "&c", 60 * 20, 4 * 20, Regex("Your Phoenix Pet saved you from certain death!"), {
-            (cacheData.get()["pet"] as? JsonPrimitive)?.contentOrNull.toString().contains("Phoenix")
+            PetUtils.currentPet?.formattedName.toString().contains("Phoenix")
         });
 
         var cdLeft = 0
