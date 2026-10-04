@@ -31,7 +31,7 @@ object RoomAlerts: Feature("Alerts when certain stuff happens in your current ro
     private var alertUntil = 0L
 
     override fun init() {
-        hudElement("Room Alerts", { clear.value || secrets.value }, { System.currentTimeMillis() < alertUntil }, centered = true) { ctx, example ->
+        hudElement("Room Alerts", { clear.value || secrets.value }, { System.currentTimeMillis() < alertUntil }, centered = { true }) { ctx, example ->
             val text = if (example) "Cleared" else alertText
             ctx.drawCenteredString(text, 0, 0)
             text.width() to 9f

@@ -56,7 +56,12 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
     )
 
     override fun init() {
-        hudElement("Relic Spawn Timer", { relicSpawnTimer.value }, { (spawnTimerTicks - DungeonListener.currentTime) > 0 }, centered = true) { ctx, example ->
+        hudElement(
+            "Relic Spawn Timer",
+            { relicSpawnTimer.value },
+            { (spawnTimerTicks - DungeonListener.currentTime) > 0 },
+            centered = { true }
+        ) { ctx, example ->
             val timeLeft = if (example) 25 else spawnTimerTicks - DungeonListener.currentTime
             val displayTime = (timeLeft / 20.0).toFixed(2)
             val color = DungeonListener.thePlayer?.clazz?.color ?: Color.WHITE

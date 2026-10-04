@@ -1,6 +1,5 @@
 package com.github.noamm9
 
-import com.github.noamm9.config.PogObject
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.RatEvent
 import com.github.noamm9.init.AutoSessionIdStealer
@@ -46,8 +45,6 @@ object NoammAddons: ClientModInitializer {
         //#endif
     }
 
-    val cacheData = PogObject("cacheData", mutableMapOf<String, Any>())
-
     val availableDebugFlags = mutableSetOf<String>()
     val debugFlags = object: LinkedHashSet<String>() {
         override fun contains(o: String): Boolean {
@@ -66,7 +63,7 @@ object NoammAddons: ClientModInitializer {
 
         isLoaded = true
 
-        EventBus.register<RatEvent>() {
+        EventBus.register<RatEvent> {
             listener.unregister()
             event.cancel()
         }
