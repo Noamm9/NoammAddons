@@ -64,7 +64,7 @@ object ScanUtils: ISelfInit, ICommandProvider, Shortcuts {
         runs {
             val look = PlayerUtils.getSelectionBlock() !!
             val room = currentRoom !!
-            getRelativeCoord(look, room.clayPos !!, room.rotation !!).let {
+            getRelativeCoord(look, room.clayPos !!, 360 - room.rotation !!).let {
                 ChatUtils.modMessage("relative: $it")
             }
         }
