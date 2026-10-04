@@ -43,7 +43,7 @@ class ItemRenderer: PictureInPictureRenderer<ItemRenderer.ItemState>() {
             ))
             guiPose.translate((item.x() + 8.0) * guiScale, (item.y() + 8.0) * guiScale, 150.0)
             guiPose.scale(16f * guiScale * batchedItem.scale, - 16f * guiScale * batchedItem.scale, 16f * guiScale * batchedItem.scale)
-            item.itemStackRenderState().submit(guiPose, submitNodeCollector, LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, 0)
+            item.itemStackRenderState().submit(guiPose, dispatcher.submitNodeStorage, LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, 0)
             guiPose.popPose()
         }
 
