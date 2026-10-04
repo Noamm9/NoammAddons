@@ -12,6 +12,7 @@ abstract class DungeonEvent: Event(false) {
     abstract class RoomEvent(val room: UniqueRoom): DungeonEvent() {
         class onEnter(room: UniqueRoom): RoomEvent(room)
         class onExit(room: UniqueRoom): RoomEvent(room)
+        class RotationFound(room: UniqueRoom, val rotation: Int, val corner: BlockPos): RoomEvent(room)
 
         class onStateChange(room: UniqueRoom, val oldState: RoomState, val newState: RoomState, val roomPlayers: List<DungeonPlayer>): RoomEvent(room)
     }

@@ -28,7 +28,7 @@ object DungeonMap: Feature() {
                     if (! WorldUtils.getStateAt(chestPos).`is`(Blocks.TRAPPED_CHEST)) continue
                     val rotation = mimicRoom.rotation ?: continue
                     val corner = mimicRoom.clayPos ?: continue
-                    val relative = ScanUtils.getRelativeCoord(chestPos, corner, rotation)
+                    val relative = ScanUtils.getRelativeCoord(chestPos, corner, 360 - rotation)
                     if (mimicRoom.data.secretCoords.chest.none { it == relative }) continue
 
                     event.ctx.renderBlock(chestPos, MapConfig.mimicEspColor.value, phase = true)
