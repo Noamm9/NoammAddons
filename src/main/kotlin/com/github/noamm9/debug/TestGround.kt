@@ -7,6 +7,7 @@ import com.github.noamm9.event.impl.*
 import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.*
+import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.toVec
@@ -104,6 +105,7 @@ object TestGround: ISelfInit, ICommandProvider {
             val stack = event.screen.menu.getSlot(event.slotId).item
             ChatUtils.modMessage("skyblockid: " + stack.skyblockId)
             ChatUtils.modMessage("index: " + event.slotId)
+            NoammAddons.logger.info(stack.hoverName.formattedText)
             NoammAddons.mc.keyboardHandler.clipboard = getNBT(stack)
         }
 

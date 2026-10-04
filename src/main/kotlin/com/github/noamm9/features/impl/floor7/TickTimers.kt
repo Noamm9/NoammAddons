@@ -40,7 +40,11 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
     private var dungeonStartTime = 0L
 
     override fun init() {
-        hudElement("Tick Timers", shouldDraw = { LocationUtils.inDungeon }, centered = true) { ctx, example ->
+        hudElement(
+            "Tick Timers",
+            shouldDraw = { LocationUtils.inDungeon },
+            centered = { true }
+        ) { ctx, example ->
             val textToRender = if (example) "§aStart: 150"
             else when {
                 startTickTime != - 1 -> formatTimer(startTickTime, 150, "§aStart:")

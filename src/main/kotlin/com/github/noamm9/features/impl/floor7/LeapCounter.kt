@@ -31,7 +31,10 @@ object LeapCounter: Feature("Shows how many players have leaped you") {
     private var currentSpot: REGION? = null
 
     override fun init() {
-        hudElement("LeapCounter", centered = true) { ctx, e ->
+        hudElement(
+            "LeapCounter",
+            centered = { true }
+        ) { ctx, e ->
             val region = if (e) REGION.HEE2_BOX else currentSpot ?: return@hudElement 0f to 0f
             val max = if (e) region._maxCount else region.maxCount.takeIf { it > 0 } ?: return@hudElement 0f to 0f
             val startFormat = if (region.maxCount - region.count <= 1) "§9" else "§4"

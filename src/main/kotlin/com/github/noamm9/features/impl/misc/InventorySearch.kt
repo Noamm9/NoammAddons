@@ -40,7 +40,10 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
     private const val HEIGHT = 22f
 
     override fun init() {
-        searchHud = hudElement(shouldDraw = { false }, centered = true) { context, example ->
+        searchHud = hudElement(
+            shouldDraw = { false },
+            centered = { true }
+        ) { context, example ->
             searchHandler.x = - WIDTH / 2
             searchHandler.y = 0f
             searchHandler.width = WIDTH
