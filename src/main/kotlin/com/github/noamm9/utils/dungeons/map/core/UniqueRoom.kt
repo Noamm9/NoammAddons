@@ -1,13 +1,17 @@
 package com.github.noamm9.utils.dungeons.map.core
 
+import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.features.impl.dungeon.map.MapConfig
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.WorldUtils
+import com.github.noamm9.utils.dungeons.enums.SecretType
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Blocks
+import java.util.concurrent.*
 import kotlin.math.max
 
 class UniqueRoom(arrX: Int, arrY: Int, roomTile: RoomTile) {
@@ -32,6 +36,8 @@ class UniqueRoom(arrX: Int, arrY: Int, roomTile: RoomTile) {
             field = value
             cachedTextMaxWidth = - 1f
         }
+
+    val secretCoords = ConcurrentHashMap<SecretType, CopyOnWriteArrayList<BlockPos>>()
 
     init {
         DungeonScanner.cryptCount += roomTile.data.crypts
@@ -182,6 +188,21 @@ class UniqueRoom(arrX: Int, arrY: Int, roomTile: RoomTile) {
     private fun setRotationAndCorner(index: Int, pos: BlockPos) {
         clayPos = BlockPos(pos.x, 0, pos.z)
         rotation = index * 90
+
+        if (data.secrets > 0) {
+            fun addSecrets(list: List<BlockPos>, type: SecretType) = list.forEach {
+                val realPos = ScanUtils.getRealCoord(it, clayPos !!, 360 - rotation !!)
+                secretCoords.getOrPut(type, ::CopyOnWriteArrayList).add(realPos)
+            }
+
+            addSecrets(data.secretCoords.redstoneKey, SecretType.REDSTONE_KEY)
+            addSecrets(data.secretCoords.wither, SecretType.WITHER_ESSENCE)
+            addSecrets(data.secretCoords.bat, SecretType.BAT)
+            addSecrets(data.secretCoords.item, SecretType.ITEM)
+            addSecrets(data.secretCoords.chest, SecretType.CHEST)
+        }
+
+        EventBus.post(DungeonEvent.RoomEvent.RotationFound(this, rotation !!, clayPos !!))
 
         ChatUtils.debug("rotation", "$name: rotation=$rotation")
     }
