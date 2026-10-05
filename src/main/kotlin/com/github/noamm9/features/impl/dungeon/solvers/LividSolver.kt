@@ -52,7 +52,12 @@ object LividSolver: Feature() {
     private var timer = - 1
 
     override fun init() {
-        hudElement("Livid Invulnerability Timer", enabled = { invulnerabilityTimer.value }, shouldDraw = { timer > 0 }, centered = true) { ctx, example ->
+        hudElement(
+            "Livid Invulnerability Timer",
+            enabled = { invulnerabilityTimer.value },
+            shouldDraw = { timer > 0 },
+            centered = { true }
+        ) { ctx, example ->
             val displayTicks = if (example) ticks / 2 else timer
             val color = ColorUtils.colorCodeByPercent(ticks - displayTicks, ticks, true)
             val text = "&5Livid Invulnerability: $color${(displayTicks / 20.0).toFixed(1)}"

@@ -16,7 +16,7 @@ object SalvageOverlay: Feature("Highlights salvageable dungeon gear.") {
     private val under50 by ColorSetting("Highlight Color", Color.CYAN.withAlpha(160))
     private val base50 by ColorSetting("50% stats Color", Color.RED.withAlpha(160))
 
-    private val blacklist = setOf("ICE_SPRAY_WAND")
+    private val blacklist = setOf("ICE_SPRAY_WAND", "STARRED_ICE_SPRAY_WAND")
 
     override fun init() {
         register<ContainerEvent.Render.Slot.Pre> {

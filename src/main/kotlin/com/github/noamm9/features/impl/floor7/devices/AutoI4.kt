@@ -6,7 +6,6 @@ import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.MelodyDisplay
-import com.github.noamm9.features.impl.floor7.devices.I4Helper.getPredictionTarget
 import com.github.noamm9.ui.utils.Animation.Companion.easeInOutCubic
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ActionUtils.queue
@@ -14,7 +13,6 @@ import com.github.noamm9.utils.ActionUtils.waitTicks
 import com.github.noamm9.utils.MathUtils.calcYawPitch
 import com.github.noamm9.utils.MathUtils.interpolateYaw
 import com.github.noamm9.utils.MathUtils.lerp
-import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.PlayerUtils.leapAction
 import com.github.noamm9.utils.PlayerUtils.rotate
 import com.github.noamm9.utils.dungeons.DungeonListener
@@ -24,8 +22,6 @@ import kotlinx.coroutines.*
 import net.minecraft.core.BlockPos
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.phys.Vec3
-import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.math.abs
@@ -172,7 +168,7 @@ object AutoI4: Feature("Fully Automated I4") {
                 shootAtBlock(event.pos)
 
                 if (predictSetting.value) {
-                    val next = I4Helper.prediction ?: getPredictionTarget(event.pos, doneCoords) ?: return@queue
+                    val next = I4Helper.prediction ?: I4Helper.getPredictionTarget(event.pos, doneCoords) ?: return@queue
                     shootAtBlock(next)
                 }
             }
@@ -205,30 +201,13 @@ object AutoI4: Feature("Fully Automated I4") {
         WorldUtils.getBlockAt(it) == Blocks.EMERALD_BLOCK
     }
 
-    private fun getTargetVector(pos: BlockPos): Vec3 {
-        val i = I4Helper.devBlocks.indexOf(pos).coerceAtLeast(0)
-        val col = i % 3
-        val row = i / 3
-
-        val isLeftDone = (col < 2) && (I4Helper.devBlocks[i + 1] in doneCoords)
-        val isRightDone = (col > 0) && (I4Helper.devBlocks[i - 1] in doneCoords)
-
-        val targetX = when (col) {
-            0 -> 67.5
-            2 -> 65.5
-            else -> when {
-                isRightDone && ! isLeftDone -> 65.5
-                isLeftDone && ! isRightDone -> 67.5
-                else -> if (Math.random() < 0.5) 65.5 else 67.5
-            }
-        }
-
-        val targetY = 131 - 2.0 * row
-        return vec(targetX, targetY, 50)
-    }
-
     private suspend fun shootAtBlock(pos: BlockPos) {
-        val (yaw, pitch) = calcYawPitch(getTargetVector(pos))
+        val (yaw, pitch) = calcYawPitch(when (pos) {
+            I4Helper.prediction -> I4Helper.predictionAim !!
+            I4Helper.target -> I4Helper.targetAim !!
+            else -> I4Helper.getTargetVector(pos, doneCoords)
+        })
+
         val block = suspend {
             waitTicks()
             PlayerUtils.rightClick()

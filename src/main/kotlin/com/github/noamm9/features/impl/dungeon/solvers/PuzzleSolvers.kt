@@ -3,9 +3,7 @@ package com.github.noamm9.features.impl.dungeon.solvers
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.features.impl.dungeon.solvers.puzzles.BlazeSolver
-import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolver
-import com.github.noamm9.features.impl.dungeon.solvers.puzzles.QuizSolver
+import com.github.noamm9.features.impl.dungeon.solvers.puzzles.*
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.location.LocationUtils.inBoss
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
@@ -69,7 +67,7 @@ object PuzzleSolvers: Feature() {
             name = "Quiz Timer",
             enabled = { quiz.value && quizTimer.value },
             shouldDraw = { QuizSolver.shouldShowTimer },
-            centered = true
+            centered = { true }
         ) { ctx, example ->
             val text = QuizSolver.timerText(example)
             ctx.drawCenteredString(text, 0f, 0f)

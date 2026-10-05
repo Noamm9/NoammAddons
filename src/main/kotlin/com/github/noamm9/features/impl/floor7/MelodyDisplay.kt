@@ -37,7 +37,11 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
     }
 
     override fun init() {
-        hudElement("Melody Display", centered = true, shouldDraw = { LocationUtils.F7Phase == 3 }) { ctx, example ->
+        hudElement(
+            "Melody Display",
+            shouldDraw = { LocationUtils.F7Phase == 3 },
+            centered = { true }
+        ) { ctx, example ->
             val text = if (example) formatMessage(MelodyState(mc.user.name, "&bArcher", 1, 1))
             else {
                 val state = currentState ?: return@hudElement 0f to 0f
