@@ -15,9 +15,7 @@ import com.github.noamm9.utils.render.RenderHelper.renderVec
 import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
 import com.github.noamm9.utils.render.world.Render3D.renderLine
 import com.github.noamm9.utils.render.world.Render3D.renderString
-import gg.essential.universal.USound
 import net.minecraft.network.protocol.game.*
-import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.monster.zombie.Zombie
@@ -34,8 +32,6 @@ object BloodCamp: Feature("Features for Blood Room.") {
     private val lineColor by ColorSetting("Line Color", Color.CYAN).showIf { bloodCamp.value }
 
     private val killTitle by ToggleSetting("Kill Title").section("Alerts").withDescription("Displays a Title when the blood mobs are ready to be killed. &bNOTE: Not always accurate, you will get better move times by learning when to kill the mobs yourself.")
-    private val speedAlert by ToggleSetting("Speed Alert").withDescription("Shows a title for the Watcher speed. (slow, normal, fast)")
-    private val partySpeedAlert by ToggleSetting("Send Speed Alert").withDescription("Sends in party chat the Watcher speed.").showIf { speedAlert.value }
 
     private val bloodMobs = HashMap<ArmorStand, BloodEntity>()
     private var watcherEntity: Zombie? = null
@@ -55,35 +51,13 @@ object BloodCamp: Feature("Features for Blood Room.") {
         register<ChatMessageEvent> {
             if (LocationUtils.inBoss) return@register
             if (event.unformattedText != "[BOSS] The Watcher: Let's see how you can handle this.") return@register
-            val startTime = DungeonListener.bloodOpenTime?.ticks ?: return@register
-            val seconds = (DungeonListener.currentTime - startTime) / 20
             firstSpawns = false
+        }
 
-            if (killTitle.value) {
-                val moveTicks = when (seconds) {
-                    in 31 ..< 34 -> 36
-                    in 28 ..< 31 -> 33
-                    in 25 ..< 28 -> 30
-                    in 22 ..< 25 -> 27
-                    in 1 ..< 22 -> 24
-                    else -> seconds + 3
-                }
-
-                val moveSeconds = moveTicks / 20f
-                ChatUtils.modMessage("Watcher will move in ${moveSeconds.toFixed(2)}s.")
-                ThreadUtils.scheduledTaskServer(moveTicks) {
-                    ChatUtils.showTitle("&c&lKill Mobs")
-                }
-            }
-
-            if (! speedAlert.value) return@register
-            val title = if (seconds < 22) "&4&lFAST WATCHER" else if (seconds < 25) "&cNormal Watcher" else "&8Slow Watcher"
-            val sound = if (seconds < 22) SoundEvents.TRIDENT_THUNDER.value() else if (seconds < 25) SoundEvents.WARDEN_DEATH else SoundEvents.VILLAGER_DEATH
-
-            mc.execute {
-                repeat(5) { USound.playSoundStatic(sound, 0.25f, 1f) }
-                if (partySpeedAlert.value) ChatUtils.sendPartyMessage(title)
-                ChatUtils.showTitle(title)
+        register<DungeonEvent.BloodOpenEvent> {
+            if (! killTitle.value) return@register
+            ThreadUtils.scheduledTaskServer(400) {
+                ChatUtils.showTitle("&c&lKill Mobs")
             }
         }
 
