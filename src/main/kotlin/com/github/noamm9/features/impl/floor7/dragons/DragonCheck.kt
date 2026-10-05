@@ -1,12 +1,10 @@
 package com.github.noamm9.features.impl.floor7.dragons
 
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.MathUtils.xzInAABB
-import com.github.noamm9.utils.ScoreboardUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
-import com.github.noamm9.utils.remove
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.network.protocol.game.*
 import net.minecraft.sounds.SoundEvents
@@ -38,23 +36,18 @@ object DragonCheck {
         if (particle.yDist != 3f) return
         if (particle.zDist != 2f) return
 
-        val dragons = mutableListOf<WitherDragonEnum>()
+        var best: WitherDragonEnum? = null
 
-        WitherDragonEnum.entries.forEach { dragon ->
-            if (dragon.state == WitherDragonState.SPAWNING) {
-                dragons.add(dragon)
-                return@forEach
-            }
-
-            if (particle.x in dragon.xRange && particle.z in dragon.zRange) {
+        for (dragon in WitherDragonEnum.entries) {
+            if (dragon.state != WitherDragonState.SPAWNING) {
+                if (particle.x !in dragon.xRange || particle.z !in dragon.zRange) continue
                 dragon.state = WitherDragonState.SPAWNING
-                dragons.add(dragon)
             }
+
+            if (best == null || dragon.timeToSpawn < best.timeToSpawn) best = dragon
         }
 
-        if (dragons.isNotEmpty()) {
-            WitherDragons.priorityDragon = DragonPriority.findPriority(dragons)
-        }
+        if (best != null) WitherDragons.priorityDragon = best
     }
 
     fun dragonUpdate(packet: ClientboundSetEntityDataPacket) {
@@ -94,10 +87,10 @@ object DragonCheck {
 
     fun trackArrows(packet: ClientboundSoundPacket) {
         if (packet.sound.value() != SoundEvents.ARROW_HIT_PLAYER) return
-        WitherDragons.priorityDragon.takeUnless { it == WitherDragonEnum.None }?.let {
-            if (it.state == WitherDragonState.ALIVE && DungeonListener.currentTime - it.spawnedTime <= it.skipKillTime) {
-                it.arrowsHit ++
-            }
+        val priorityDragon = WitherDragons.priorityDragon ?: return
+        if (priorityDragon.state != WitherDragonState.ALIVE) return
+        if (DungeonListener.currentTime - priorityDragon.spawnedTime <= priorityDragon.skipKillTime) {
+            priorityDragon.arrowsHit ++
         }
     }
 }
