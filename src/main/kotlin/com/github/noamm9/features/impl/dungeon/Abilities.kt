@@ -1,12 +1,14 @@
 package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.config.types.KeybindSetting
+import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.KeyboardEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.PlayerUtils
+import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
@@ -20,11 +22,13 @@ object Abilities: Feature(
     //$"Allows you to use dungeon class abilities with keybinds."
     //#endif
 ) {
+
     private val ultKeybind by KeybindSetting("Ultimate Keybind").section("Keybinds")
     private val abilityKeybind by KeybindSetting("Ability Keybind")
 
     //#if CHEAT
     private val autoUlt by ToggleSetting("Auto Use Ultimate").section("Auto Ultimate")
+    private val autoUltDelay by SliderSetting(name = "Auto Use Ultimate delay", defaultValue = 0,min = 0, max = 10, step = 1, suffix = "s").showIf { autoUlt.value }
 
     private class UltMessage(val msg: String, val classes: List<DungeonClass>, val floor: Int)
 
@@ -74,14 +78,18 @@ object Abilities: Feature(
         //#if CHEAT
         register<ChatMessageEvent> {
             if (! autoUlt.value || ! LocationUtils.inBoss) return@register
+
             val msg = event.unformattedText
             val matchingMessage = ultMessages.find {
                 it.msg == msg && it.floor == LocationUtils.dungeonFloorNumber
             } ?: return@register
 
             if (DungeonListener.thePlayer?.clazz !in matchingMessage.classes) return@register
-            PlayerUtils.useDungeonClassAbility(true)
-            ChatUtils.modMessage("Used Ultimate!")
+
+            ThreadUtils.setTimeout(autoUltDelay.value * 1000){
+                PlayerUtils.useDungeonClassAbility(true)
+                ChatUtils.modMessage("Used Ultimate!")
+            }
         }
         //#endif
     }
