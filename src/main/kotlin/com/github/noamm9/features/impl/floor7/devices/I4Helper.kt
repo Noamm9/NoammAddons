@@ -55,7 +55,7 @@ object I4Helper: Feature(name = "I4 Helper") {
             if (LocationUtils.P3Section != 4) return@register
             if (event.pos !in devBlocks) return@register
 
-            if (event.oldBlock == Blocks.EMERALD_BLOCK && event.newBlock == Blocks.DYED_TERRACOTTA.blue()) doneCoords.add(event.pos)
+            if (event.oldBlock == Blocks.EMERALD_BLOCK && event.newBlock == Blocks.BLUE_TERRACOTTA) doneCoords.add(event.pos)
             else if (event.newBlock != Blocks.EMERALD_BLOCK) return@register
 
             target = event.pos
@@ -172,7 +172,7 @@ object I4Helper: Feature(name = "I4 Helper") {
     }
 
     fun getPredictionTarget(lastHitPos: BlockPos, doneCoords: Collection<BlockPos>, exclude: Collection<BlockPos> = emptySet()): BlockPos? {
-        val allValid = devBlocks.filter { it !in doneCoords && it != lastHitPos && it !in exclude && WorldUtils.getBlockAt(it) == Blocks.DYED_TERRACOTTA.blue() }.ifEmpty { return null }
+        val allValid = devBlocks.filter { it !in doneCoords && it != lastHitPos && it !in exclude && WorldUtils.getBlockAt(it) == Blocks.BLUE_TERRACOTTA }.ifEmpty { return null }
         val candidates = allValid.filter { (lastPredictions[it] ?: 0) < MAX_ATTEMPTS }.ifEmpty { allValid }
 
         val pairs = candidates.shuffled().groupBy { it.y }.flatMap { (_, blocks) ->

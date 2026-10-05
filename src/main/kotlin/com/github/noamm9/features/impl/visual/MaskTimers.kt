@@ -133,7 +133,7 @@ object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and mo
             "SPIRIT_MASK" in player.getItemBySlot(EquipmentSlot.HEAD).skyblockId
         }),
         PHOENIX("Phoenix", "Pet", "&c", 60 * 20, 4 * 20, Regex("Your Phoenix Pet saved you from certain death!"), {
-            PetUtils.currentPet?.name.toString().contains("Phoenix")
+            PetUtils.currentPet?.formattedName.toString().contains("Phoenix")
         });
 
         var cdLeft = 0

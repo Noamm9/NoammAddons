@@ -52,7 +52,11 @@ object PetDisplay: Feature("Pet Features") {
             }
 
             val lines = listOfNotNull(
-                if (petInfo["Pet Name"]) pet.formattedName(withLevel = petInfo["Pet Level"]) else null,
+                if (petInfo["Pet Name"]) {
+                    val prefix = if (petInfo["Pet Level"]) "&7[Lvl ${pet.level}] " else ""
+                    prefix + pet.formattedName
+                }
+                else null,
                 if (petInfo["Pet Item"]) pet.heldItem?.let { "&6Item: &5$it" } else null
             )
 
@@ -88,7 +92,7 @@ object PetDisplay: Feature("Pet Features") {
 
         register<PetEvent.Change> {
             if (event.cause != PetEvent.Cause.AUTOPET) return@register
-            val msg = event.pet?.name ?: return@register
+            val msg = event.pet?.formattedName ?: return@register
 
             if (autoPetTitles.value && (! autoPetTitlesDungeonOnly.value || LocationUtils.inDungeon)) {
                 autoPetTitle = msg
@@ -131,11 +135,11 @@ object PetDisplay: Feature("Pet Features") {
 
     private val examplePet by lazy {
         PetUtils.Pet(
-            name = "Golden Dragon",
-            level = 200,
+            formattedName = "&6Golden Dragon",
             rarity = ItemRarity.LEGENDARY,
             heldItem = "HEPHAESTUS_REMEDIES",
-            headSkin = "ewogICJ0aW1lc3RhbXAiIDogMTYyMDM1MDA5ODgyNiwKICAicHJvZmlsZUlkIiA6ICJiNWRkZTVmODJlYjM0OTkzYmMwN2Q0MGFiNWY2ODYyMyIsCiAgInByb2ZpbGVOYW1lIiA6ICJsdXhlbWFuIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzJlOWY5YjFmYzAxNDE2NmNiNDZhMDkzZTUzNDliMmJmNmVkZDIwMWI2ODBkNjJlNDhkYmYzYWY5YjA0NTkxMTYiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ",
+            level = 200,
+            skin = "ewogICJ0aW1lc3RhbXAiIDogMTYyMDM1MDA5ODgyNiwKICAicHJvZmlsZUlkIiA6ICJiNWRkZTVmODJlYjM0OTkzYmMwN2Q0MGFiNWY2ODYyMyIsCiAgInByb2ZpbGVOYW1lIiA6ICJsdXhlbWFuIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzJlOWY5YjFmYzAxNDE2NmNiNDZhMDkzZTUzNDliMmJmNmVkZDIwMWI2ODBkNjJlNDhkYmYzYWY5YjA0NTkxMTYiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ"
         )
     }
 }
