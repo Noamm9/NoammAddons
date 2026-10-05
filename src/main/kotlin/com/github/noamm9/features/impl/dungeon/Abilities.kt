@@ -1,19 +1,15 @@
 package com.github.noamm9.features.impl.dungeon
 
-import com.github.noamm9.config.types.KeybindSetting
-import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.KeyboardEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.utils.ChatUtils
-import com.github.noamm9.utils.PlayerUtils
-import com.github.noamm9.utils.ThreadUtils
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
-import gg.essential.universal.UMinecraft
 import com.mojang.blaze3d.platform.InputConstants
+import gg.essential.universal.UMinecraft
 
 object Abilities: Feature(
     //#if CHEAT
@@ -28,7 +24,7 @@ object Abilities: Feature(
 
     //#if CHEAT
     private val autoUlt by ToggleSetting("Auto Use Ultimate").section("Auto Ultimate")
-    private val autoUltDelay by SliderSetting(name = "Auto Use Ultimate delay", defaultValue = 0,min = 0, max = 10, step = 1, suffix = "s").showIf { autoUlt.value }
+    private val autoUltDelay by SliderSetting(name = "Auto delay", 0, 0, 100, 1, suffix = "ticks").showIf { autoUlt.value }
 
     private class UltMessage(val msg: String, val classes: List<DungeonClass>, val floor: Int)
 
@@ -39,7 +35,7 @@ object Abilities: Feature(
             floor = 7
         ),
         UltMessage(
-            msg = "[BOSS] Goldor: You have done it, you destroyed the factory…",
+            msg = "[BOSS] Goldor: You have done it, you destroyed the factory...",
             classes = listOf(DungeonClass.Healer, DungeonClass.Tank),
             floor = 7
         ),
@@ -86,7 +82,7 @@ object Abilities: Feature(
 
             if (DungeonListener.thePlayer?.clazz !in matchingMessage.classes) return@register
 
-            ThreadUtils.setTimeout(autoUltDelay.value * 1000){
+            ThreadUtils.scheduledTaskServer(autoUltDelay.value) {
                 PlayerUtils.useDungeonClassAbility(true)
                 ChatUtils.modMessage("Used Ultimate!")
             }
