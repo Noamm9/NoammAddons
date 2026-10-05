@@ -177,7 +177,7 @@ object PetUtils: ISelfInit {
         }
 
         return Pet(
-            name = formattedName?.removeFormatting() ?: return null,
+            name = formattedName?.removeFormatting()?.remove("⭐", "✦")?.trim() ?: return null,
             level = displayMatch?.groupValues?.getOrNull(1)?.toIntOrNull(),
             rarity = rarity,
             uuid = tag.getString("uuid").getOrNull() ?: catch { petInfo.get("uuid").asString },
