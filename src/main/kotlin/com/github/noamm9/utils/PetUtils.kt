@@ -40,12 +40,12 @@ object PetUtils: ISelfInit {
     private val loadoutSlots = setOf(14, 15, 16, 23, 24, 25, 32, 33, 34, 41, 42, 43)
 
     private val petCache = PogObject("petCache", PetCache())
-    private val knownPets get() = petCache.get().known
     private var clickedPet: Pet? = null
 
     private val headCache = ConcurrentHashMap<String, ItemStack>()
     private val steveHead by lazy { ItemStack(Items.PLAYER_HEAD) }
 
+    val knownPets get() = petCache.get().known
     var currentPet: Pet?
         private set(value) = petCache.get()::active.set(value).also { petCache.save() }
         get() = petCache.get().active
@@ -59,8 +59,8 @@ object PetUtils: ISelfInit {
                     val rarity = event.component.petRarity(name)
                     clickedPet
                         ?.takeIf { it.matches(name) }
-                        ?.merge(Pet(name, rarity = rarity))
-                        ?: resolvePet(name, rarity = rarity, skin = clickedPet?.skin)
+                        ?.merge(Pet(name.removeFormatting(), rarity = rarity))
+                        ?: resolvePet(name, rarity = rarity)
                 }
                 else null
 
@@ -69,9 +69,14 @@ object PetUtils: ISelfInit {
                 return@register
             }
 
-            autopetPattern.matchEntire(event.formattedText)?.destructured?.let { (level, name) ->
+            autopetPattern.matchEntire(event.formattedText)?.destructured?.let { (level, nameStr) ->
+                val level = level.toIntOrNull()
+                val name = nameStr.remove(Pet.levelRegex).removePrefix("§8")
+                val hasCustomSkin = nameStr.contains("✦")
+                val rarity = ItemRarity.byBaseColor(name.take(2))
+
                 clickedPet = null
-                changePet(resolvePet(name, level.toIntOrNull(), event.component.petRarity(name)), PetEvent.Cause.AUTOPET)
+                changePet(resolvePet(name, level, rarity, hasCustomSkin), PetEvent.Cause.AUTOPET)
                 return@register
             }
 
@@ -92,6 +97,8 @@ object PetUtils: ISelfInit {
                     cachePet(pet)
                     found ++
 
+                    ChatUtils.debug("pet", pet.name)
+
                     if (equipped == null && stack.lore.any { it.removeFormatting().contains("Click to despawn!", ignoreCase = true) }) {
                         equipped = pet
                     }
@@ -107,7 +114,7 @@ object PetUtils: ISelfInit {
 
                     when {
                         current == null -> changePet(equipped, PetEvent.Cause.MENU)
-                        current.uuid == null && current.matches(equipped.formattedName) -> updatePet(current.merge(equipped))
+                        current.uuid == null && current.matches(equipped.name) -> updatePet(current.merge(equipped))
                         current.uuid != equipped.uuid -> changePet(equipped, PetEvent.Cause.MENU)
                         else -> updatePet(current.merge(equipped))
                     }
@@ -122,7 +129,6 @@ object PetUtils: ISelfInit {
             if (event.clickType != ContainerInput.PICKUP) return@register
             if (event.slotId !in 10 .. 43 || event.slotId % 9 !in 1 .. 7) return@register
             if (! petMenuPattern.matches(event.screen.title.unformattedText)) return@register
-
             clickedPet = mc.player?.containerMenu?.items?.getOrNull(event.slotId)?.pet()
         }
 
@@ -133,10 +139,14 @@ object PetUtils: ISelfInit {
             if (! event.screen.title.unformattedText.endsWith(") Loadouts")) return@register
             mc.player?.containerMenu?.items[event.slotId]?.lore?.find { it.startsWith("§7Pet: ") }?.let {
                 val match = loadoutsPetRegex.find(it)?.destructured ?: return@let
-                val level = match.component1()
-                val name = match.component2()
+                val level = match.component1().toIntOrNull()
+                var name = match.component2()
+                val hasCustomSkin = name.contains("✦")
+                name = name.remove(Pet.levelRegex).removePrefix("§8")
+                val rarity = ItemRarity.byBaseColor(name.take(2))
+
                 clickedPet = null
-                changePet(resolvePet(name, level.toIntOrNull(), ItemRarity.byBaseColor(name.take(2))), PetEvent.Cause.MENU)
+                changePet(resolvePet(name, level, rarity, hasCustomSkin), PetEvent.Cause.MENU)
             }
         }
 
@@ -151,7 +161,8 @@ object PetUtils: ISelfInit {
         val petInfo = catch { GsonUtils.gson.fromJson(rawPetInfo, JsonObject::class.java) } ?: return null
 
         val rarity = ItemRarity.fromName(catch { petInfo.get("tier").asString }).takeUnless { it == ItemRarity.NONE }
-        val displayMatch = petItemNamePattern.matchEntire(hoverName.formattedText)
+        val itemName = hoverName.formattedText
+        val displayMatch = petItemNamePattern.matchEntire(itemName)
 
         var formattedName = displayMatch?.groupValues?.getOrNull(2)?.trim()?.takeIf(String::isNotEmpty)
         if (formattedName == null) formattedName = run {
@@ -166,25 +177,33 @@ object PetUtils: ISelfInit {
         }
 
         return Pet(
-            formattedName = formattedName ?: return null,
+            name = formattedName?.removeFormatting() ?: return null,
             level = displayMatch?.groupValues?.getOrNull(1)?.toIntOrNull(),
             rarity = rarity,
             uuid = tag.getString("uuid").getOrNull() ?: catch { petInfo.get("uuid").asString },
             heldItem = heldItem,
-            skin = getSkullTexture(this),
+            headSkin = getSkullTexture(this),
+            hasCustomSkin = catch { petInfo.get("skin").asString?.takeUnless { it.isBlank() || it == "null" || it == "NONE" } } != null,
+            customSkinRarity = run {
+                val i = itemName.indexOf('✦').takeUnless { it == - 1 } ?: return@run null
+                val code = "§" + itemName.substring(i - 3).take(3).trim().substringAfter("§")
+                ItemRarity.byBaseColor(code)
+            }
         )
     }
 
-    private fun resolvePet(name: String, level: Int? = null, rarity: ItemRarity? = null, skin: String? = null): Pet {
-        val base = knownPets.values.singleOrNull { it.matches(name, rarity) }
+    private fun resolvePet(name: String, level: Int? = null, rarity: ItemRarity? = null, hasCustomSkin: Boolean = false): Pet {
+        val base = knownPets.values.find { it.matches(name, rarity, hasCustomSkin) }
 
         return Pet(
-            formattedName = base?.formattedName ?: name,
+            name = (base?.name ?: name).removeFormatting(),
             level = level ?: base?.level,
             rarity = rarity ?: base?.rarity,
             uuid = base?.uuid,
             heldItem = base?.heldItem,
-            skin = base?.skin ?: skin
+            headSkin = base?.headSkin,
+            hasCustomSkin = base?.hasCustomSkin ?: hasCustomSkin,
+            customSkinRarity = base?.customSkinRarity,
         )
     }
 
@@ -211,24 +230,20 @@ object PetUtils: ISelfInit {
     }
 
     private fun cachePet(pet: Pet) {
-        val uuid = pet.uuid
-
-        if (uuid == null) {
-            ChatUtils.debug("pet", "not caching ${pet.formattedName}, missing uuid")
-            return
-        }
-
+        val uuid = pet.uuid ?: return
         knownPets[uuid] = knownPets[uuid]?.merge(pet) ?: pet
         petCache.save()
     }
 
     private fun Pet.merge(other: Pet) = Pet(
-        formattedName = other.formattedName,
+        name = other.name.removeFormatting(),
         level = other.level ?: level,
         rarity = other.rarity ?: rarity,
         uuid = other.uuid ?: uuid,
         heldItem = other.heldItem ?: heldItem,
-        skin = other.skin ?: skin,
+        headSkin = other.headSkin ?: headSkin,
+        hasCustomSkin = other.hasCustomSkin || hasCustomSkin,
+        customSkinRarity = other.customSkinRarity ?: customSkinRarity,
     )
 
     private fun Component.petRarity(name: String): ItemRarity? {
@@ -245,37 +260,52 @@ object PetUtils: ISelfInit {
     private data class PetCache(var active: Pet? = null, val known: ConcurrentHashMap<String, Pet> = ConcurrentHashMap())
 
     data class Pet(
-        val formattedName: String,
+        val name: String,
         val level: Int? = null,
         val rarity: ItemRarity? = null,
         val uuid: String? = null,
         val heldItem: String? = null,
-        val skin: String? = null
+        val headSkin: String? = null,
+        val hasCustomSkin: Boolean = false,
+        val customSkinRarity: ItemRarity? = null,
     ) {
-        fun matches(name: String, rarity: ItemRarity? = null) = normalizeName(formattedName) == normalizeName(name) && rarity.equalsOneOf(null, this.rarity)
+        fun formattedName(withLevel: Boolean) = buildString {
+            if (withLevel && level != null) append("§7[Lvl $level] ")
+            if (rarity != null) append(rarity.baseColor.toString())
+            append(name)
+            if (hasCustomSkin) append(" ${customSkinRarity?.baseColor.toString()}✦")
+        }
+
+        fun matches(name: String, rarity: ItemRarity? = null, hasCustomSkin: Boolean = false): Boolean {
+            val withName = normalizeName(this.name) == normalizeName(name)
+            val withRarity = rarity == null || rarity == this.rarity
+            val withSkin = if (hasCustomSkin) this.hasCustomSkin else true
+
+            return withName && withRarity && withSkin
+        }
 
         fun head(): ItemStack {
-            val skin = skin ?: return steveHead
+            val skin = headSkin ?: return steveHead
 
             return headCache.getOrPut(skin) {
                 ItemStack(Items.PLAYER_HEAD).apply {
                     val properties = PropertyMap(ImmutableMultimap.of("textures", Property("textures", skin)))
-                    val profile = GameProfile(UUID.nameUUIDFromBytes("$MOD_ID:$formattedName".toByteArray()), this::class.simpleName, properties)
+                    val profile = GameProfile(UUID.nameUUIDFromBytes("$MOD_ID:$name".toByteArray()), this::class.simpleName, properties)
                     set(DataComponents.PROFILE, ResolvableProfile.createResolved(profile))
                 }
             }
         }
 
         companion object {
-            private val levelRegex = Regex("""^\[Lvl\s+\d+]\s*""")
+            val levelRegex = Regex("""\[.+]\s*""")
 
-            fun cleanName(name: String) = name
-                .removeFormatting()
-                .remove("⭐", "✦")
+            fun cleanName(str: String) = str
+                .removeFormatting().trim()
                 .remove(levelRegex)
+                .remove("⭐", "✦")
                 .trim()
 
-            fun normalizeName(name: String) = cleanName(name).lowercase()
+            fun normalizeName(str: String) = cleanName(str).lowercase()
         }
     }
 }
