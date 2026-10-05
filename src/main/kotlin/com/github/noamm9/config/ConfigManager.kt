@@ -2,6 +2,7 @@ package com.github.noamm9.config
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.features.FeatureManager
+import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.GsonUtils.gsonArray
 import com.github.noamm9.utils.GsonUtils.gsonObject
@@ -9,8 +10,9 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import net.fabricmc.loader.api.FabricLoader
 import java.io.File
+import java.util.concurrent.*
 
-object ConfigManager {
+object ConfigManager: ISelfInit {
     private val configRegex = Regex("^[A-Za-z0-9_-]{1,32}$")
     private val configPath = FabricLoader.getInstance().configDir.resolve(NoammAddons.MOD_NAME)
     private val configsDir = configPath.resolve("configs").toFile()
@@ -18,6 +20,13 @@ object ConfigManager {
     private val selectedConfig = PogObject<String>("currentConfig", "default")
     private var configFile = FileHandler(getConfigs()[selectedConfig.get()] ?: defaultConfigFile)
     private const val VERSION = 1
+
+    override fun init() {
+        ThreadUtils.addShutdownHook(::save)
+        ThreadUtils.setTimeout(TimeUnit.MINUTES.toMillis(5)) {
+            ThreadUtils.loop(TimeUnit.MINUTES.toMillis(5), block = ::save)
+        }
+    }
 
     fun getConfigs(): Map<String, File> {
         val named = configsDir.listFiles()

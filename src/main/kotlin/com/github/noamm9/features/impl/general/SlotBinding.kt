@@ -1,9 +1,6 @@
 package com.github.noamm9.features.impl.general
 
-import com.github.noamm9.config.PogObject
-import com.github.noamm9.config.types.ColorSetting
-import com.github.noamm9.config.types.KeybindSetting
-import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.IAbstractContainerScreen
@@ -26,8 +23,8 @@ object SlotBinding: Feature("Allows you to bind slots to hotbar slots for quick 
     private val drawLines by ToggleSetting("Draw Line", true).showIf { showBoundSlots.value }
     private val borderColor by ColorSetting("Border Color", Color.PINK, false).showIf { showBoundSlots.value && drawBorders.value }.section("Colors")
     private val lineColor by ColorSetting("Line Color", Color.WHITE, false).showIf { showBoundSlots.value && drawLines.value }
+    private val binds by MapSetting<Int, Int>("bindings")
 
-    private val binds = PogObject("slotbindings", mutableMapOf<Int, Int>())
     private var previousSlot: Int? = null
 
     override fun init() {
@@ -50,7 +47,6 @@ object SlotBinding: Feature("Allows you to bind slots to hotbar slots for quick 
                 return@register
             }
 
-            val binds = binds.get()
             val isShiftDown = (event.modifiers and GLFW.GLFW_MOD_SHIFT) != 0
             if (! isShiftDown || event.button != 0) return@register
 
@@ -67,7 +63,6 @@ object SlotBinding: Feature("Allows you to bind slots to hotbar slots for quick 
     }
 
     private fun bindSlot(slotId: Int) {
-        val binds = binds.get()
         val currentPrev = previousSlot
 
         if (currentPrev != null) {
@@ -98,9 +93,8 @@ object SlotBinding: Feature("Allows you to bind slots to hotbar slots for quick 
         if (! enabled) return
         if (screen !is InventoryScreen) return
         val hoveredSlot = (screen as IAbstractContainerScreen).hoveredSlot?.index
-        val binds = binds.get()
 
-        if (showBoundSlots.value) binds.forEach { (inv, hb) ->
+        if (showBoundSlots.value) binds.entries.forEach { (inv, hb) ->
             if (neuStyle.value && (hoveredSlot != inv && hoveredSlot != hb)) return@forEach
 
             val p1 = GuiUtils.getSlotPos(screen, inv) ?: return@forEach
