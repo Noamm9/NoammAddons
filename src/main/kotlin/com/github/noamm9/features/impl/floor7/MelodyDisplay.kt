@@ -70,7 +70,7 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
         if (! message.startsWith("Party > ")) return null
         val name = melodyRegex.find(message)?.groupValues?.get(1)?.takeUnless { it == mc.user.name } ?: return null
         val progress = (3 downTo 0).find { i ->
-            message.endsWith(")") && 
+            ! message.endsWith(")") &&
             message.containsOneOf(
                 "$i/4", "${i * 25}%",
                 "$i/3", "${ceil(i * 33.33).roundToInt()}%", "${i * 33}%"
