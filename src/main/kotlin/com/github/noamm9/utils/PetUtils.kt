@@ -52,8 +52,6 @@ object PetUtils: ISelfInit {
 
     override fun init() {
         EventBus.register<ChatMessageEvent> {
-            if (! LocationUtils.inSkyblock) return@register
-
             summonPattern.matchEntire(event.formattedText)?.destructured?.let { (action, name) ->
                 val pet = if (action == "summoned") {
                     val rarity = event.component.petRarity(name)
@@ -173,7 +171,7 @@ object PetUtils: ISelfInit {
 
         val heldItem = catch {
             val sbid = petInfo.get("heldItem").asString?.takeUnless { it.isBlank() || it == "null" || it == "NONE" }
-            sbid?.lowercase()?.split("_")?.joinToString(" ") { it.uppercaseFirst() }
+            sbid?.lowercase()?.split("_")?.joinToString(" ") { it.uppercaseFirst() }?.removePrefix("Pet Item")?.trim()
         }
 
         return Pet(
