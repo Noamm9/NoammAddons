@@ -37,7 +37,7 @@ object DoorESP: Feature(
 
     private val mode by DropdownSetting("Mode", 0, listOf("Outline", "Fill", "Filled Outline")).section("Options")
     private val lineWidth by SliderSetting("Line Width", 2.5, 1, 10, 0.1).hideIf { mode.value == 1 }
-    private val phase by ToggleSetting("Phase").withDescription("Toggles phase for ${roomName.name}, ${roomSecrets.name} aswell")
+    private val phase by ToggleSetting("Phase", true).withDescription("Toggles phase for ${roomName.name}, ${roomSecrets.name} aswell")
 
     override fun init() {
         register<RenderWorldEvent> {
