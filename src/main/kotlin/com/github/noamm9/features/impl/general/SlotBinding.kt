@@ -7,12 +7,12 @@ import com.github.noamm9.mixin.IAbstractContainerScreen
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawLine
+import com.mojang.blaze3d.platform.InputConstants
 import gg.essential.universal.UKeyboard
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.gui.screens.inventory.InventoryScreen
 import net.minecraft.world.inventory.ContainerInput
-import org.lwjgl.glfw.GLFW
 import java.awt.Color
 
 object SlotBinding: Feature("Allows you to bind slots to hotbar slots for quick item swaps.") {
@@ -47,9 +47,7 @@ object SlotBinding: Feature("Allows you to bind slots to hotbar slots for quick 
                 return@register
             }
 
-            val isShiftDown = (event.modifiers and GLFW.GLFW_MOD_SHIFT) != 0
-            if (! isShiftDown || event.button != 0) return@register
-
+            if (! mc.hasShiftDown() || event.button != InputConstants.MOUSE_BUTTON_LEFT) return@register
             val boundPartner = binds[slotId] ?: binds.entries.find { it.value == slotId }?.key ?: return@register
             event.isCanceled = true
 
