@@ -88,11 +88,14 @@ object PetDisplay: Feature("Pet Features") {
 
         register<PetEvent.Change> {
             if (event.cause != PetEvent.Cause.AUTOPET) return@register
-            val msg = event.pet?.name ?: return@register
+            val pet = event.pet ?: return@register
 
             if (autoPetTitles.value && (! autoPetTitlesDungeonOnly.value || LocationUtils.inDungeon)) {
-                autoPetTitle = msg
                 autoPetTitleUntil = System.currentTimeMillis() + 2000L
+                autoPetTitle = buildString {
+                    append(pet.rarity?.baseColor?.toString() ?: "§f")
+                    append(pet.name)
+                }
             }
         }
 
