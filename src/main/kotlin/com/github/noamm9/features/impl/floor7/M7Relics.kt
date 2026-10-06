@@ -15,8 +15,8 @@ import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.WitherRelic
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D.drawCenteredString
-import com.github.noamm9.utils.render.RenderHelper.width
+import com.github.noamm9.utils.location.LocationUtils.dungeonFloor
+import com.github.noamm9.utils.location.LocationUtils.inBoss
 import com.github.noamm9.utils.render.world.Render3D.renderBlock
 import com.github.noamm9.utils.render.world.Render3D.renderTracer
 import kotlinx.coroutines.launch
@@ -26,11 +26,9 @@ import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.phys.EntityHitResult
 import net.minecraft.world.phys.Vec3
-import java.awt.Color
 
 object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics features") {
     private val relicBox by ToggleSetting("Box Relics").withDescription("Draws a box on where the relics are spawning and the cauldron you need to place.")
-    private val relicSpawnTimer by ToggleSetting("Spawn Timer").withDescription("Shows on screen when the relic will spawn.")
     private val relicTimer by ToggleSetting("Place Timer").withDescription("Sends in chat the time it took to place the relic after you picked it up.")
 
     //#if CHEAT
@@ -56,45 +54,31 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
     )
 
     override fun init() {
-        hudElement(
-            "Relic Spawn Timer",
-            { relicSpawnTimer.value },
-            { (spawnTimerTicks - DungeonListener.currentTime) > 0 },
-            centered = { true }
-        ) { ctx, example ->
-            val timeLeft = if (example) 25 else spawnTimerTicks - DungeonListener.currentTime
-            val displayTime = (timeLeft / 20.0).toFixed(2)
-            val color = DungeonListener.thePlayer?.clazz?.color ?: Color.WHITE
-            ctx.drawCenteredString(displayTime, 0, 0, color)
-            return@hudElement displayTime.width() to 9f
-        }
-
         register<WorldChangeEvent> {
+            p5StartTime = 0L
             spawnTimerTicks = 0
             relicTimes.clear()
             //#if CHEAT
             lastRelicClick = 0L
             //#endif
         }
+        
+        register<BossBarUpdateEvent> {
+            if (dungeonFloor != "M7" || ! inBoss) return@register
+            val name = event.name.unformattedText.lowercase()
+            if (name.contains("wither king") && p5StartTime == 0L) {
+                p5StartTime = DungeonListener.currentTime
+            }
+        }
 
         register<ChatMessageEvent> {
-            if (! LocationUtils.inDungeon || ! LocationUtils.inBoss || LocationUtils.dungeonFloor != "M7") return@register
-            val msg = event.unformattedText
+            if (! relicTimer.value) return@register
+            if (dungeonFloor != "M7") return@register
+            if (! inBoss) return@register
 
-            when {
-                msg == "[BOSS] Necron: All this, for nothing..." -> {
-                    p5StartTime = DungeonListener.currentTime
-                    if (relicSpawnTimer.value) {
-                        spawnTimerTicks = DungeonListener.currentTime + 42
-                    }
-                }
-
-                relicTimer.value -> {
-                    relicPickUpRegex.find(msg)?.destructured?.let { (player, relicType) ->
-                        val relic = WitherRelic.fromName("Corrupted $relicType Relic") ?: return@register
-                        relicTimes.add(RelicEntry(relic, player, System.currentTimeMillis()))
-                    }
-                }
+            relicPickUpRegex.find(event.unformattedText)?.destructured?.let { (player, relicType) ->
+                val relic = WitherRelic.fromName("Corrupted $relicType Relic") ?: return@register
+                relicTimes.add(RelicEntry(relic, player, System.currentTimeMillis()))
             }
         }
 
