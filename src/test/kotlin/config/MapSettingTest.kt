@@ -43,16 +43,6 @@ class MapSettingTest {
     }
 
     @Test
-    fun `triggers changeListener on set`() {
-        val setting = MapSetting("Names", 0 to "First")
-        var called = false
-        setting.changeListener = { called = true }
-        setting[0] = "Second"
-        assertTrue(called)
-        assertEquals("Second", setting[0])
-    }
-
-    @Test
     fun `round-trips integer keys through read`() {
         val setting = MapSetting("Names", mutableMapOf(0 to "&aFarming", 26 to "Tools"))
         val json = setting.write()

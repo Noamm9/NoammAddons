@@ -7,7 +7,6 @@ import java.io.File
 import java.lang.reflect.Type
 import java.util.concurrent.*
 
-@Deprecated("use MapSetting/ListSetting if possible")
 class PogObject<T>(fileName: String, val defaultData: T, private val type: Type) {
     private val fileHandler = FileHandler(File("config/$MOD_NAME/$fileName.json"))
     @Volatile private var data = run {
