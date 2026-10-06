@@ -91,11 +91,11 @@ object PetDisplay: Feature("Pet Features") {
             val pet = event.pet ?: return@register
 
             if (autoPetTitles.value && (! autoPetTitlesDungeonOnly.value || LocationUtils.inDungeon)) {
+                autoPetTitleUntil = System.currentTimeMillis() + 2000L
                 autoPetTitle = buildString {
                     append(pet.rarity?.baseColor?.toString() ?: "§f")
                     append(pet.name)
                 }
-                autoPetTitleUntil = System.currentTimeMillis() + 2000L
             }
         }
 
