@@ -3,7 +3,6 @@ package com.github.noamm9.features.impl.dungeon.map
 import com.github.noamm9.config.ConfigHolder
 import com.github.noamm9.config.SettingProvider
 import com.github.noamm9.config.types.*
-import com.github.noamm9.utils.ColorUtils.withAlpha
 import java.awt.Color
 
 //#if LEGIT
@@ -73,12 +72,4 @@ object MapConfig: SettingProvider {
     val colorRoomDoor by ColorSetting("Normal Door", colorRoom.value, true)
     val colorOpenWitherDoor by ColorSetting("Opened Wither Door", colorRoom.value, true)
     val colorEntranceDoor by ColorSetting("Entrance Door", colorEntrance.value, true)
-
-    val boxDoors by ToggleSetting("Box Wither Doors").section("Door ESP")
-    val highlightAllDoors by ToggleSetting("Highlight All Doors")
-        .withDescription("Highlights every unopened door instead of only the next door after the run starts.")
-        .showIf { boxDoors.value && dungeonMapCheater.value }
-    val boxDoorsMode by DropdownSetting("Highlight Mode", 2, listOf("Outline", "Fill", "Filled Outline"))
-    val doorNoKeyColor by ColorSetting("No Key Color ", Color.RED.withAlpha(100)).showIf { boxDoors.value }
-    val doorKeyColor by ColorSetting("Has Key Color ", Color.GREEN.withAlpha(100)).showIf { boxDoors.value }
 }
