@@ -99,7 +99,7 @@ object LeapCounter: Feature("Shows how many players have leaped you") {
         EE3_BOX(aabb(1, 108, 101, 3, 110, 107), 3, { x, y, z -> LocationUtils.findP3Section(x, y, z) == 3 }),
         CORE_BOX(aabb(51, 114, 54, 58, 117, 49), 4, { x, y, z -> LocationUtils.findP3Section(x, y, z) == 4 }),
         INCORE_BOX(CORE_BOX.box.move(.0, .0, 6.0), 4, { x, y, z -> aabb(68, 106, 54, 42, 155, 119).contains(x, y, z) }),
-        RELIC_BOX(aabb(51.5, 3, 73.5, 57.5, 8, 79.5), 4, { _, y, _ -> LocationUtils.getPhase(y) == 5 });
+        RELIC_BOX(aabb(46.5, 3, 68.5, 62.5, 8, 84.5), 4, { _, y, _ -> LocationUtils.getPhase(y) == 5 });
 
         val maxCount get() = min(DungeonListener.dungeonTeammatesNoSelf.size, _maxCount)
         private val leapedIds = mutableSetOf<Int>()
