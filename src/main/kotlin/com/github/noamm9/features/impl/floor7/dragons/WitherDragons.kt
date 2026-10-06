@@ -44,6 +44,10 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
     val sendSpray by ToggleSetting("Send Ice Sprayed", true)
     val sendArrowHit by ToggleSetting("Send Arrows Hit", true)
 
+    val dragPrio by ToggleSetting("Dragon Priority").jsonName("drag prio").section("Dragon Priority")
+    val soloPriority by DropdownSetting("Solo Priority", 0, listOf("Healer", "Tank")).showIf { dragPrio.value }
+    val firstDragonOnly by ToggleSetting("First Dragon Only", true).showIf { dragPrio.value }
+
     var priorityDragon: WitherDragonEnum? = null
 
     private const val scoreboardGraceTicks = 40 // how long the dragon needs to be off scoreboard for it to count as dead

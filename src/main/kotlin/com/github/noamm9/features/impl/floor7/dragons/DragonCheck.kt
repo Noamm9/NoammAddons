@@ -2,10 +2,12 @@ package com.github.noamm9.features.impl.floor7.dragons
 
 import net.minecraft.world.entity.EntityTypes
 import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.features.impl.floor7.dragons.WitherDragonEnum.Companion.dragonSpawnCount
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.MathUtils.xzInAABB
 import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.network.protocol.game.*
 import net.minecraft.sounds.SoundEvents
@@ -37,6 +39,7 @@ object DragonCheck {
         if (particle.zDist != 2f) return
 
         var best: WitherDragonEnum? = null
+        var worse: WitherDragonEnum? = null
 
         for (dragon in WitherDragonEnum.entries) {
             if (dragon.state != WitherDragonState.SPAWNING) {
@@ -45,9 +48,20 @@ object DragonCheck {
             }
 
             if (best == null || dragon.timeToSpawn < best.timeToSpawn) best = dragon
+            if (worse == null || dragon.timeToSpawn > best.timeToSpawn) worse = dragon
         }
 
-        if (best != null) WitherDragons.priorityDragon = best
+        if (WitherDragons.dragPrio.value) {
+            if (WitherDragons.firstDragonOnly.value && dragonSpawnCount >= 2) {
+                if (best != null) WitherDragons.priorityDragon = best
+                return
+            }
+
+            val prioClass = if (WitherDragons.soloPriority.value == 0) DungeonClass.Healer else DungeonClass.Tank
+            if (DungeonListener.thePlayer?.clazz == prioClass && worse != null) WitherDragons.priorityDragon = worse
+            else if (best != null) WitherDragons.priorityDragon = best
+        }
+        else if (best != null) WitherDragons.priorityDragon = best
     }
 
     fun dragonUpdate(packet: ClientboundSetEntityDataPacket) {
