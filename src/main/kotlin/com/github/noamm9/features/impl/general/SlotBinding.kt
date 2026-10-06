@@ -8,7 +8,6 @@ import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawLine
 import com.mojang.blaze3d.platform.InputConstants
-import gg.essential.universal.UKeyboard
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.gui.screens.inventory.InventoryScreen
@@ -16,7 +15,7 @@ import net.minecraft.world.inventory.ContainerInput
 import java.awt.Color
 
 object SlotBinding: Feature("Allows you to bind slots to hotbar slots for quick item swaps.") {
-    private val bindKey by KeybindSetting("Binding key", UKeyboard.KEY_R).section("Keybind").withDescription("Press while hovering a hotbar slot and an inventory slot to link them.")
+    private val bindKey by KeybindSetting("Binding key", InputConstants.KEY_R).section("Keybind").withDescription("Press while hovering a hotbar slot and an inventory slot to link them.")
     private val showBoundSlots by ToggleSetting("Show Bound Slots", true).section("Rendering")
     private val neuStyle by ToggleSetting("Hover Only", false).withDescription("Only shows bound slots when hovering over a them.").showIf { showBoundSlots.value }
     private val drawBorders by ToggleSetting("Draw Border", true).showIf { showBoundSlots.value }
