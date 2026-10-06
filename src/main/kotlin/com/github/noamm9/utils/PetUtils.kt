@@ -1,5 +1,6 @@
 package com.github.noamm9.utils
 
+import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.MOD_ID
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.config.PogObject
@@ -39,7 +40,7 @@ object PetUtils: ISelfInit {
     private val loadoutsPetRegex = Regex("\\[Lvl (\\d+)] (.+)$")
     private val loadoutSlots = setOf(14, 15, 16, 23, 24, 25, 32, 33, 34, 41, 42, 43)
 
-    private val petCache = PogObject("petCache", PetCache())
+    private val petCache = PogObject("petCache", PetCache(1))
     private var clickedPet: Pet? = null
 
     private val headCache = ConcurrentHashMap<String, ItemStack>()
@@ -51,6 +52,14 @@ object PetUtils: ISelfInit {
         get() = petCache.get().active
 
     override fun init() {
+        val reset = fun() {
+            petCache.set(PetCache(1))
+            petCache.save()
+            NoammAddons.logger.info("petcache.json was reset.")
+        }
+
+        catch { if (petCache.get().version != 1) reset() } ?: reset()
+
         EventBus.register<ChatMessageEvent> {
             summonPattern.matchEntire(event.formattedText)?.destructured?.let { (action, name) ->
                 val pet = if (action == "summoned") {
@@ -255,7 +264,11 @@ object PetUtils: ISelfInit {
         return ItemRarity.byBaseColor(color)
     }
 
-    private data class PetCache(var active: Pet? = null, val known: ConcurrentHashMap<String, Pet> = ConcurrentHashMap())
+    private data class PetCache(
+        val version: Int,
+        var active: Pet? = null,
+        val known: ConcurrentHashMap<String, Pet> = ConcurrentHashMap()
+    )
 
     data class Pet(
         val name: String,
