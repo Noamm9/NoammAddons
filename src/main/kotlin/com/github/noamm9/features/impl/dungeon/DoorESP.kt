@@ -57,9 +57,9 @@ object DoorESP: Feature(
 
                 val color = if (tile.type.equalsOneOf(DoorType.BLOOD, DoorType.WITHER) && ! tile.opened && DungeonListener.bloodOpenTime == null) {
                     brDoor = true
-                    if (brDoors.value) (if (tile.type.keys > 0) doorKeyColor else doorNoKeyColor).value else return@register
+                    if (brDoors.value) (if (tile.type.keys > 0) doorKeyColor else doorNoKeyColor).value else continue
                 }
-                else if (normalDoors.value) normalDoorColor.value else return@register
+                else if (normalDoors.value) normalDoorColor.value else continue
 
                 event.ctx.renderBoxBounds(
                     tile.aabb, color,
