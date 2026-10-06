@@ -28,7 +28,6 @@ object ScanUtils: ISelfInit, ICommandProvider, Shortcuts {
     private val roomsByCore = roomList.flatMap { room -> room.cores.map { it to room } }.toMap()
     private val roomsByName = roomList.associateBy(RoomData::name)
     private val coreTokenCache = IdentityHashMap<Block, Int>()
-    val secretMap = roomList.associate { it.name to it.secretCoords }
 
     private val ignoredCoreBlocks = setOf(
         "minecraft:chest", "minecraft:trapped_chest",

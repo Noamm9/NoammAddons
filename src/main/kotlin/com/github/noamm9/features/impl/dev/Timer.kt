@@ -9,7 +9,7 @@ import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import net.minecraft.network.protocol.game.*
-import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 
 object Timer: Feature(), ICommandProvider {
     private var ticks = 0
@@ -37,7 +37,7 @@ object Timer: Feature(), ICommandProvider {
         }
 
         register<MainThreadPacketReceivedEvent.Pre> {
-            if (event.packet is ClientboundAddEntityPacket && event.packet.type == EntityType.WITHER_SKELETON) end()
+            if (event.packet is ClientboundAddEntityPacket && event.packet.type == EntityTypes.WITHER_SKELETON) end()
             if (event.packet is ClientboundRemoveEntitiesPacket && event.packet.entityIds.contains(player.vehicle?.id ?: 67)) end()
             if (event.packet is ClientboundSetPassengersPacket) {
                 val a = player.vehicle?.id ?: return@register
