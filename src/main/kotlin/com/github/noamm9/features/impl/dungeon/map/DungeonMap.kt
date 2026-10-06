@@ -1,16 +1,14 @@
 package com.github.noamm9.features.impl.dungeon.map
 
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.utils.WorldUtils
-import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.*
+import com.github.noamm9.utils.dungeons.enums.SecretType
 import com.github.noamm9.utils.dungeons.map.core.*
 import com.github.noamm9.utils.dungeons.map.handlers.*
-import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
-import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.world.Render3D.renderBlock
-import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
 import net.minecraft.world.level.block.Blocks
 
 object DungeonMap: Feature() {
@@ -18,40 +16,19 @@ object DungeonMap: Feature() {
         configSettings.addAll(MapConfig.configSettings)
         hudElements.add(MapRenderer)
 
+        //#if CHEAT
         register<RenderWorldEvent> {
-            if (! enabled || ! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
+            if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
 
-            //#if CHEAT
             val mimicRoom = DungeonScanner.mimicRoom
             if (MapConfig.mimicEsp.value && ! ScoreCalculation.mimicKilled && mimicRoom != null) {
                 for (chestPos in mimicRoom.trappedChestPositions) {
                     if (! WorldUtils.getStateAt(chestPos).`is`(Blocks.TRAPPED_CHEST)) continue
-                    val rotation = mimicRoom.rotation ?: continue
-                    val corner = mimicRoom.clayPos ?: continue
-                    val relative = ScanUtils.getRelativeCoord(chestPos, corner, 360 - rotation)
-                    if (mimicRoom.data.secretCoords.chest.none { it == relative }) continue
-
+                    if (mimicRoom.secretCoords[SecretType.CHEST]?.any { it == chestPos } != true) continue
                     event.ctx.renderBlock(chestPos, MapConfig.mimicEspColor.value, phase = true)
                 }
             }
-            //#endif
-
-            if (! MapConfig.boxDoors.value) return@register
-            val shouldHideUndiscovered = ! MapConfig.dungeonMapCheater.value ||
-                (DungeonListener.dungeonStarted && ! MapConfig.highlightAllDoors.value)
-
-            for (tile in DungeonScanner.dungeonList) {
-                if (tile !is DoorTile || tile.opened) continue
-                if (! tile.type.equalsOneOf(DoorType.BLOOD, DoorType.WITHER)) continue
-                if (shouldHideUndiscovered && tile.state == RoomState.UNDISCOVERED && ! DungeonTree.isFairy(tile)) continue
-                event.ctx.renderBoxBounds(
-                    tile.aabb,
-                    (if (tile.type.keys > 0) MapConfig.doorKeyColor else MapConfig.doorNoKeyColor).value,
-                    outline = MapConfig.boxDoorsMode.value.equalsOneOf(0, 2),
-                    fill = MapConfig.boxDoorsMode.value.equalsOneOf(1, 2),
-                    phase = true
-                )
-            }
         }
+        //#endif
     }
 }

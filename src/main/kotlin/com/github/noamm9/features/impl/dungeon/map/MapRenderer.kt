@@ -110,7 +110,7 @@ object MapRenderer: HudElement() {
             }
 
             //#if CHEAT
-            if (tile is RoomTile && tile.uniqueRoom?.hasMimic == true && MapConfig.highlightMimicRoom.value) {
+            if (MapConfig.dungeonMapCheater.value && MapConfig.highlightMimicRoom.value && tile is RoomTile && tile.uniqueRoom?.hasMimic == true) {
                 color = color.lerp(MapConfig.colorMimic.value, 0.2)
             }
             //#endif
