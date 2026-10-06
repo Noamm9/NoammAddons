@@ -272,7 +272,7 @@ object PetUtils: ISelfInit {
         fun formattedName(withLevel: Boolean) = buildString {
             if (withLevel && level != null) append("§7[Lvl $level] ")
             if (rarity != null) append(rarity.baseColor.toString())
-            append(name)
+            append(cleanName(name))
             if (hasCustomSkin) append(" ${customSkinRarity?.baseColor.toString()}✦")
         }
 
