@@ -12,10 +12,9 @@ import kotlin.io.path.*
 object DataDownloader {
     private const val DOWNLOAD_URL = "https://api.noamm.org/na/data/download"
     private const val HASH_URL = "https://api.noamm.org/na/data/version"
-    private const val MOD_NAME = "NoammAddons"
-    private val LOGGER = LoggerFactory.getLogger("$MOD_NAME-DataDownloader")
+    private val LOGGER = LoggerFactory.getLogger("@MOD_NAME@-${this.javaClass.simpleName}")
 
-    val modDataPath = File("config/$MOD_NAME/data").toPath().also {
+    val modDataPath = File("config/@MOD_NAME@/data").toPath().also {
         if (! it.exists()) it.createDirectories()
     }
 
@@ -26,7 +25,7 @@ object DataDownloader {
         LOGGER.info("Checking for remote data updates...")
 
         val connection = URI.create(HASH_URL).toURL().openConnection() as HttpsURLConnection
-        connection.setRequestProperty("User-Agent", "NoammAddons-DataDownloader")
+        connection.setRequestProperty("User-Agent", LOGGER.name)
 
         val remoteHash = connection.inputStream.bufferedReader().use(BufferedReader::readText)
         val localHash = if (versionFile.exists()) versionFile.readText().trim() else null
@@ -41,7 +40,7 @@ object DataDownloader {
     private fun update(versionFile: Path, newHash: String) = runCatching {
         val tempZipFile = Files.createTempFile("data-download-", ".zip")
         val connection = URI.create(DOWNLOAD_URL).toURL().openConnection() as HttpsURLConnection
-        connection.setRequestProperty("User-Agent", "NoammAddons-DataDownloader")
+        connection.setRequestProperty("User-Agent", LOGGER.name)
 
         connection.inputStream.use { input ->
             Files.copy(input, tempZipFile, StandardCopyOption.REPLACE_EXISTING)
@@ -57,7 +56,7 @@ object DataDownloader {
 
         LOGGER.info("Data update successful.")
     }.onFailure {
-        LOGGER.error("Error while updating $MOD_NAME-data", it)
+        LOGGER.error("Error while updating @MOD_NAME@-data", it)
     }
 
     private fun unzip(zipFilePath: Path) = ZipInputStream(zipFilePath.inputStream()).use { zis ->
