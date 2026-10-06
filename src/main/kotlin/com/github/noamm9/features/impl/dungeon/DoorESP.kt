@@ -27,13 +27,15 @@ object DoorESP: Feature(
     jsonName = "Door ESP",
     description = "Highlights every door in the dungeon run during clear."
 ) {
+    private val brDoors by ToggleSetting("Blood rush doors")
+    private val normalDoors by ToggleSetting("Normal doors")
+    private val normalDoorColor by ColorSetting("Normal Door", Color.WHITE.withAlpha(50)).showIf { normalDoors.value }
+    private val doorNoKeyColor by ColorSetting("No Key Color ", Color.RED.withAlpha(50)).showIf { brDoors.value }
+    private val doorKeyColor by ColorSetting("Has Key Color ", Color.GREEN.withAlpha(50)).showIf { brDoors.value }
     private val roomName by ToggleSetting("Room Name").withDescription("shows the name of the room the door leads to").section("Extra")
     private val roomSecrets by ToggleSetting("Room Secrets").withDescription("shows the secrets of room the doors leads to")
 
-    private val doorNoKeyColor by ColorSetting("No Key Color ", Color.RED.withAlpha(50)).section("Options")
-    private val doorKeyColor by ColorSetting("Has Key Color ", Color.GREEN.withAlpha(50))
-    private val normalDoorColor by ColorSetting("Normal Door", Color.WHITE.withAlpha(50))
-    private val mode by DropdownSetting("Mode", 0, listOf("Outline", "Fill", "Filled Outline"))
+    private val mode by DropdownSetting("Mode", 0, listOf("Outline", "Fill", "Filled Outline")).section("Options")
     private val lineWidth by SliderSetting("Line Width", 2.5, 1, 10, 0.1).hideIf { mode.value == 1 }
     private val phase by ToggleSetting("Phase").withDescription("Toggles phase for ${roomName.name}, ${roomSecrets.name} aswell")
 
@@ -55,9 +57,9 @@ object DoorESP: Feature(
 
                 val color = if (tile.type.equalsOneOf(DoorType.BLOOD, DoorType.WITHER) && ! tile.opened && DungeonListener.bloodOpenTime == null) {
                     brDoor = true
-                    (if (tile.type.keys > 0) doorKeyColor else doorNoKeyColor).value
+                    if (brDoors.value) (if (tile.type.keys > 0) doorKeyColor else doorNoKeyColor).value else return@register
                 }
-                else normalDoorColor.value
+                else if (normalDoors.value) normalDoorColor.value else return@register
 
                 event.ctx.renderBoxBounds(
                     tile.aabb, color,
