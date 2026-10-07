@@ -1,5 +1,6 @@
 package com.github.noamm9.utils
 
+import com.github.noamm9.utils.dungeons.map.core.RoomData
 import com.google.common.reflect.TypeToken
 import com.google.gson.*
 import net.minecraft.core.BlockPos
@@ -14,6 +15,8 @@ object GsonUtils {
         registerTypeAdapter(Color::class.java, ColorAdapter())
         registerTypeAdapter(Regex::class.java, RegexAdapter())
         registerTypeAdapter(Optional::class.java, OptionalAdapter())
+        registerTypeAdapter(RoomData::class.java, RoomData.Companion.Deserializer())
+        registerTypeAdapter(RoomData.SecretCoords::class.java, RoomData.Companion.SecretCoordsDeserializer())
     }.create()
 
     inline fun <reified T: Any> decode(json: String): T = gson.fromJson(json, object: TypeToken<T>() {}.type)
