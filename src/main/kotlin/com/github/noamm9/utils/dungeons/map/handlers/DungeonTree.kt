@@ -1,7 +1,6 @@
 package com.github.noamm9.utils.dungeons.map.handlers
 
 import com.github.noamm9.event.EventBus
-import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.dungeons.map.core.DoorTile
@@ -19,7 +18,6 @@ object DungeonTree: ISelfInit {
 
     override fun init() {
         EventBus.register<WorldChangeEvent> { clearCache() }
-        EventBus.register<DungeonEvent.TileScannedEvent> { clearCache() }
     }
 
     fun clearCache() {
