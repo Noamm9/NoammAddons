@@ -58,7 +58,10 @@ object PetUtils: ISelfInit {
             NoammAddons.logger.info("petcache.json was reset.")
         }
 
-        catch { if (petCache.get().version != 1) reset() } ?: reset()
+        catch {
+            val cache = petCache.get()
+            if (cache.version != 1 || ! cache.isValid()) reset()
+        } ?: reset()
 
         EventBus.register<ChatMessageEvent> {
             summonPattern.matchEntire(event.formattedText)?.destructured?.let { (action, name) ->
@@ -268,7 +271,10 @@ object PetUtils: ISelfInit {
         val version: Int,
         var active: Pet? = null,
         val known: ConcurrentHashMap<String, Pet> = ConcurrentHashMap()
-    )
+    ) {
+        @Suppress("SENSELESS_COMPARISON")
+        fun isValid() = (known.values + active).filterNotNull().all { it.name != null }
+    }
 
     data class Pet(
         val name: String,
