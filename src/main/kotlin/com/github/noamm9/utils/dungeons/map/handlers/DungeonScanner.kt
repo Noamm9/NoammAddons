@@ -87,7 +87,6 @@ object DungeonScanner: ISelfInit {
 
             scanTile(wX, wZ, z, x, roofHeight)?.let { tile ->
                 setTile(z * 11 + x, tile)
-                EventBus.post(DungeonEvent.TileScannedEvent(tile))
 
                 if (DungeonListener.dungeonTeammatesNoSelf.isEmpty()) return@let
 
@@ -111,6 +110,7 @@ object DungeonScanner: ISelfInit {
         dungeonList[index] = tile
         if (tile is DoorTile) doorTiles.add(tile)
         DungeonTree.clearCache()
+        EventBus.post(DungeonEvent.TileScannedEvent(tile))
     }
 
     private fun findMimicRoom() {
