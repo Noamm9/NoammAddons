@@ -108,8 +108,7 @@ object MapUpdater: ISelfInit {
             val mapTile = HotbarMapScanner.getTile(x, z)
 
             if (room is Unknown) {
-                DungeonScanner.dungeonList[idx] = mapTile
-                DungeonTree.clearCache()
+                DungeonScanner.setTile(idx, mapTile)
                 if (mapTile is RoomTile) {
                     val connected = HotbarMapScanner.getConnected(x, z)
                     connected.firstOrNull { it.data.name != "Unknown" }?.let {
