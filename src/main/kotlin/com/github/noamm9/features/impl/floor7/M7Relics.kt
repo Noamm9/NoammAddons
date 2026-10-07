@@ -62,13 +62,9 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
             lastRelicClick = 0L
             //#endif
         }
-        
-        register<BossBarUpdateEvent> {
-            if (dungeonFloor != "M7" || ! inBoss) return@register
-            val name = event.name.unformattedText.lowercase()
-            if (name.contains("wither king") && p5StartTime == 0L) {
-                p5StartTime = DungeonListener.currentTime
-            }
+
+        register<DungeonEvent.WitherKingStartEvent> {
+            p5StartTime = DungeonListener.currentTime
         }
 
         register<ChatMessageEvent> {

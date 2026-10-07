@@ -8,8 +8,8 @@ import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
-import net.minecraft.network.protocol.game.*
-import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EquipmentSlot
+import net.minecraft.world.entity.decoration.ArmorStand
 
 object Timer: Feature(), ICommandProvider {
     private var ticks = 0
@@ -28,23 +28,17 @@ object Timer: Feature(), ICommandProvider {
             event.context.drawCenteredString(ticks.toString(), Resolution.width / 2, Resolution.height / 3, scale = 2.5f)
         }
 
-        register<ChatMessageEvent> {
-            if (event.unformattedText == "[BOSS] Maxor: WELL! WELL! WELL! LOOK WHO'S HERE!") start("Maxor") // 83
-            if (event.unformattedText == "[BOSS] Maxor: I'M TOO YOUNG TO DIE AGAIN!") start("Storm") // 28
-            if (event.unformattedText == "[BOSS] Storm: I should have known that I stood no chance.") start("Goldor") // Timer ticks: 17
-            if (event.unformattedText == "[BOSS] Goldor: Who dares trespass into my domain?") end() // Timer ticks: 17
-            if (event.unformattedText == "[BOSS] Necron: You went further than any human before, congratulations.") start("Necron") // 60
-        }
+        register<DungeonEvent.NecronDeathEvent> { start("Relics") }
 
-        register<MainThreadPacketReceivedEvent.Pre> {
-            if (event.packet is ClientboundAddEntityPacket && event.packet.type == EntityType.WITHER_SKELETON) end()
-            if (event.packet is ClientboundRemoveEntitiesPacket && event.packet.entityIds.contains(player.vehicle?.id ?: 67)) end()
-            if (event.packet is ClientboundSetPassengersPacket) {
-                val a = player.vehicle?.id ?: return@register
-                if (event.packet.passengers.contains(player.id)) return@register
-                if (event.packet.vehicle == a) end()
+        register<TickEvent.Start> {
+            if (! ticker.isActive) return@register
+
+            val relicStands = level.entitiesForRendering().filterIsInstance<ArmorStand>().any {
+                it.getItemBySlot(EquipmentSlot.HEAD).hoverName.string.contains("Relic")
             }
 
+            if (relicStands) end()
+            // necron// 54t // 59t // 63t // 50t 51
         }
     }
 
