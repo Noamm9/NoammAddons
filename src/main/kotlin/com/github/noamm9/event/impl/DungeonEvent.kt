@@ -23,6 +23,8 @@ abstract class DungeonEvent: Event(false) {
 
     class Score(val oldScore: Int, val score: Int): DungeonEvent()
 
+    object NecronDeathEvent: DungeonEvent()
+    object WitherKingStartEvent: DungeonEvent()
     object BloodOpenEvent: DungeonEvent()
     object BossEnterEvent: DungeonEvent()
     object RunStatedEvent: DungeonEvent()
