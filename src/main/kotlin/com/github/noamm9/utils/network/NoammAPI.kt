@@ -1,5 +1,7 @@
 package com.github.noamm9.utils.network
 
+import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.network.data.*
 import io.ktor.client.call.body
 import io.ktor.client.request.header
@@ -10,6 +12,7 @@ import kotlinx.io.IOException
 
 object NoammAPI {
     const val BASE_URL = "https://api.noamm.org"
+    @Volatile private var sessionExpired = false
 
     suspend fun getDungeonStats(uuid: String) = apiRequest<DungeonStats>("/hypixel/dungeonstats/$uuid")
     suspend fun getSecrets(uuid: String) = apiRequest<Long>("/hypixel/secrets/$uuid")
@@ -17,7 +20,15 @@ object NoammAPI {
     suspend fun getStorage(uuid: String) = apiRequest<StorageData>("/hypixel/storage/$uuid")
 
     private suspend inline fun <reified T> apiRequest(path: String): Result<T> {
-        if (ApiAuth.token == null) return Result.failure(NoammAPIException.Unauthorized("auth token is null"))
+        if (ApiAuth.token == null) {
+            if (ApiAuth.keyPairUnavailable && ! sessionExpired) {
+                ThreadUtils.scheduledTask(6000) { sessionExpired = false }
+                ChatUtils.modMessage("§cFailed to authenticate with Mojang, your session is probably expired. §fRestart your game to fix it.")
+                sessionExpired = true
+            }
+            return Result.failure(NoammAPIException.Unauthorized("auth token is null"))
+        }
+
         val result = WebUtils.get("$BASE_URL$path") { header("Authorization", "Bearer ${ApiAuth.token}") }
         if (result.isFailure) return Result.failure(result.exceptionOrNull() !!)
 
