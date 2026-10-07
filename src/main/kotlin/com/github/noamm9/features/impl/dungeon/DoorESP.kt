@@ -5,13 +5,14 @@ import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.dungeon.map.DungeonMap
 import com.github.noamm9.features.impl.dungeon.map.MapConfig
-import com.github.noamm9.utils.*
+import com.github.noamm9.utils.ColorUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.core.*
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonTree
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
+import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.RenderHelper.width
 import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
@@ -30,8 +31,8 @@ object DoorESP: Feature(
     private val highlightAllDoors by ToggleSetting("Highlight All Doors")
         .withDescription("Highlights every unopened door instead of only the next door after the run starts.")
         .showIf { brDoors.value && MapConfig.dungeonMapCheater.value }
-
     private val normalDoors by ToggleSetting("Normal doors")
+
     private val normalDoorColor by ColorSetting("Normal Door", Color.WHITE.withAlpha(50)).showIf { normalDoors.value }.section("Colors")
     private val doorNoKeyColor by ColorSetting("No Key Color ", Color.RED.withAlpha(50)).showIf { brDoors.value }
     private val doorKeyColor by ColorSetting("Has Key Color ", Color.GREEN.withAlpha(50)).showIf { brDoors.value }
