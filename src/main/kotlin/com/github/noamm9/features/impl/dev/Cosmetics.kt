@@ -9,14 +9,14 @@ import com.github.noamm9.features.impl.dev.cosmetics.badges.BadgeManager
 import com.github.noamm9.features.impl.dev.cosmetics.badges.BadgeText
 import com.github.noamm9.features.impl.dev.text.TextReplacer
 import com.github.noamm9.ui.notification.NotificationManager
-import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.MathUtils.vec
-import com.github.noamm9.utils.NumbersUtils
 import com.github.noamm9.utils.network.ProfileUtils
 import com.github.noamm9.utils.network.WebUtils
 import com.mojang.authlib.GameProfile
 import com.mojang.blaze3d.vertex.PoseStack
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import net.fabricmc.fabric.api.client.rendering.v1.RenderStateDataKey
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.client.renderer.entity.state.AvatarRenderState
@@ -24,6 +24,8 @@ import net.minecraft.world.entity.Avatar
 import java.util.*
 import java.util.concurrent.*
 import kotlin.math.abs
+import kotlin.uuid.Uuid
+import kotlin.uuid.toJavaUuid
 
 object Cosmetics: Feature(toggled = true) {
     @JvmStatic val customNames by ToggleSetting("Show Custom Names", true)
@@ -39,7 +41,6 @@ object Cosmetics: Feature(toggled = true) {
     }
 
     private lateinit var cosmeticPeople: Map<UUID, CosmeticData>
-    private val profileNames = ConcurrentHashMap<UUID, String>()
     private var lastReload = System.currentTimeMillis()
 
     override fun init() {
@@ -53,19 +54,17 @@ object Cosmetics: Feature(toggled = true) {
                 cosmeticPeople = data.mapKeys { UUID.fromString(it.key) }
                 BadgeText.init(cosmeticPeople)
 
-                coroutineScope {
-                    val customNames = HashMap<String, String>()
-                    val jobs = cosmeticPeople.filter { it.value.hasCustomName }.map { (uuid, cosmetic) ->
-                        async {
-                            val resolvedName = profileNames[uuid] ?: ProfileUtils.getNameByUUID(uuid).map { it.name }.getOrNull() ?: return@async
-                            profileNames[uuid] = resolvedName
-                            customNames[resolvedName] = cosmetic.name
-                        }
-                    }
+                val uuids = cosmeticPeople.filter { it.value.hasCustomName }.map { it.key }
+                val mojangData = ProfileUtils.getMojangBatched(uuids).getOrThrow()
+                val customNames = ConcurrentHashMap<String, String>()
 
-                    jobs.awaitAll()
-                    TextReplacer.init(customNames)
+                for (mojang in mojangData) {
+                    val uuid = Uuid.parseHex(mojang.uuid.remove("-")).toJavaUuid()
+                    customNames[mojang.name] = cosmeticPeople[uuid] !!.name
                 }
+
+                TextReplacer.init(customNames)
+                NoammAddons.logger.info("mojangData: ${mojangData.size}, uuids: ${uuids.size}")
             }.onFailure { cause ->
                 NoammAddons.logger.error("Failed to load cosmetic people", cause)
                 ChatUtils.modMessage("&cFailed to load cosmetic people: ${cause.message}")

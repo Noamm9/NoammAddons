@@ -3,94 +3,62 @@ package com.github.noamm9.utils.network
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ChatMessageEvent
-import com.github.noamm9.utils.*
-import com.github.noamm9.utils.JsonUtils.getString
+import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.network.cache.*
 import com.github.noamm9.utils.network.data.DungeonStats
 import com.github.noamm9.utils.network.data.MojangData
 import com.github.noamm9.websocket.WebSocket
+import io.ktor.client.call.body
+import io.ktor.client.request.*
+import io.ktor.http.HttpHeaders
+import io.ktor.http.isSuccess
 import kotlinx.coroutines.delay
-import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonArray
+import java.io.IOException
 import java.util.*
-import java.util.concurrent.*
 
 object ProfileUtils {
-    private val apiCooldowns = ConcurrentHashMap<String, Long>()
-
-    private val nameToUuidApis = listOf(
-        "https://mowojang.matdoes.dev/",
-        "https://api.minecraftservices.com/minecraft/profile/lookup/name/",
-        "https://api.mojang.com/users/profiles/minecraft/"
-    )
-
-    private val uuidToNameApis = listOf(
-        "https://mowojang.matdoes.dev/",
-        "https://sessionserver.mojang.com/session/minecraft/profile/",
-        "https://mc-api.io/name/",
-    )
+    private const val mowojang = "https://mowojang.matdoes.dev/"
 
     suspend fun getUUIDbyName(name: String): Result<MojangData> {
         val key = name.lowercase()
         MojangCache.check(key)?.let { return it }
 
-        for (api in nameToUuidApis) {
-            if (System.currentTimeMillis() < (apiCooldowns[api] ?: 0L)) continue
-
-            val result = WebUtils.getAs<String>(api + key)
-            if (result.isFailure) {
-                val msg = result.exceptionOrNull()?.message ?: ""
-                if (msg.contains("429")) {
-                    apiCooldowns[api] = System.currentTimeMillis() + (5 * 60 * 1000)
-                    continue
-                }
-                if (msg.containsOneOf("404", "204")) break
-                continue
-            }
-
-            val response = catch { JsonUtils.json.parseToJsonElement(result.getOrThrow()).jsonObject } ?: continue
-            val fetchedName = response.getString("name").takeUnless { it.isNullOrBlank() } ?: continue
-            val uuid = response.getString("id").takeUnless { it.isNullOrBlank() } ?: continue
-
-            val cleanUuid = uuid.replace("-", "")
-            val data = MojangData(fetchedName, cleanUuid)
-            MojangCache.addToCache(data)
-            return Result.success(data)
+        val result = WebUtils.get(mowojang + key).mapCatching { response ->
+            if (! response.status.isSuccess() || response.status.value == 204) throw IOException("$name not found")
+            val mojangData = response.body<MojangData>()
+            MojangCache.addToCache(mojangData)
+            return@mapCatching mojangData
         }
 
-        return Result.failure<MojangData>(Exception("$name not found")).also { MojangCache.addFailedToCache(key) }
+        if (result.isFailure) MojangCache.addFailedToCache(key)
+        return result
     }
 
-    suspend fun getNameByUUID(uuid: UUID): Result<MojangData> {
-        val key = uuid.toString().replace("-", "")
-        MojangCache.check(key)?.let { return it }
+    suspend fun getMojangBatched(uuids: Collection<UUID>): Result<List<MojangData>> = runCatching {
+        val cached = uuids.map { it to MojangCache.getOrNull(it.toString()) }
 
-        for (api in uuidToNameApis) {
-            if (System.currentTimeMillis() < (apiCooldowns[api] ?: 0L)) continue
+        val (hits, misses) = cached.partition { it.second != null }
+        val data = hits.mapNotNull { it.second }
+        if (misses.isEmpty()) return Result.success(data)
 
-            val result = WebUtils.getAs<String>(api + key)
-            if (result.isFailure) {
-                val msg = result.exceptionOrNull()?.message ?: ""
-                if (msg.contains("429")) {
-                    apiCooldowns[api] = System.currentTimeMillis() + (5 * 60 * 1000)
-                    continue
-                }
-                if (msg.containsOneOf("404", "204")) break
-                continue
+        val missingData = run {
+            val response = WebUtils.client.post(mowojang) {
+                header(HttpHeaders.ContentType, "application/json")
+                setBody(buildJsonArray { misses.forEach { add(it.first.toString()) } })
             }
 
-            val response = catch { JsonUtils.json.parseToJsonElement(result.getOrThrow()).jsonObject } ?: continue
-            val fetchedUuid = response.getString("id").takeUnless { it.isNullOrBlank() } ?: continue
-            val fetchedName = response.getString("name").takeUnless { it.isNullOrBlank() } ?: continue
+            if (! response.status.isSuccess() || response.status.value == 204) return@run null
+            val result = response.body<List<MojangData>>()
+            for (r in result) MojangCache.addToCache(r)
+            return@run result
+        }.orEmpty()
 
-            val cleanUuid = fetchedUuid.replace("-", "")
-            val data = MojangData(fetchedName, cleanUuid)
-            MojangCache.addToCache(data)
-            return Result.success(data)
-        }
-
-        return Result.failure<MojangData>(Exception("$key not found")).also { MojangCache.addFailedToCache(key) }
+        return Result.success(data + missingData)
     }
 
     suspend fun getSecrets(playerName: String): Result<Long> {
