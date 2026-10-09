@@ -19,24 +19,25 @@ import net.minecraft.world.level.block.SkullBlock
 import net.minecraft.world.level.block.entity.SkullBlockEntity
 
 object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
-    private val preventBreakingSecrets by ToggleSetting("Prevent Secret Mine").withDescription("Prevents you from breaking secret blocks like chests & levers.")
+    private val preventMine by ToggleSetting("Prevent Mine").jsonName("Prevent Secret Mine").withDescription("Prevents you from breaking blocks that cant be broken.")
     private val zeroPing by ToggleSetting("Zero Ping").withDescription("Removes the blocks you mine instantly instead of waiting for the server to remove them.")
 
     private val blacklist = setOf(
         Blocks.BARRIER, Blocks.BEDROCK, Blocks.COMMAND_BLOCK, Blocks.TNT, Blocks.CHEST, Blocks.PLAYER_HEAD,
         Blocks.PLAYER_WALL_HEAD, Blocks.TRAPPED_CHEST, Blocks.END_PORTAL_FRAME, Blocks.END_PORTAL, Blocks.STICKY_PISTON,
         Blocks.PISTON_HEAD, Blocks.PISTON, Blocks.MOVING_PISTON, Blocks.LEVER, Blocks.STONE_BUTTON,
-        Blocks.SKELETON_SKULL, Blocks.SKELETON_WALL_SKULL, Blocks.WITHER_SKELETON_SKULL, Blocks.WITHER_SKELETON_WALL_SKULL
+        Blocks.SKELETON_SKULL, Blocks.SKELETON_WALL_SKULL, Blocks.WITHER_SKELETON_SKULL, Blocks.WITHER_SKELETON_WALL_SKULL,
+        Blocks.DISPENSER, Blocks.HOPPER, Blocks.DROPPER
     )
 
     override fun init() {
         register<PlayerInteractEvent.LEFT_CLICK.BLOCK> {
-            if (! preventBreakingSecrets.value) return@register
+            if (! preventMine.value) return@register
             if (! LocationUtils.inDungeon) return@register
-            if (LocationUtils.inBoss) return@register
             if (event.item?.skyblockId != "DUNGEONBREAKER") return@register
             val block = WorldUtils.getBlockAt(event.pos)
             if (block !in blacklist) return@register
+            if (LocationUtils.inBoss && block.equalsOneOf(Blocks.LEVER, Blocks.STONE_BUTTON)) return@register
             if (block is SkullBlock && (level.getBlockEntity(event.pos) as? SkullBlockEntity)?.ownerProfile?.partialProfile()?.id.toString().equalsOneOf(*REDSTONE_KEY)) return@register
             event.isCanceled = true
         }
