@@ -2,11 +2,8 @@ package com.github.noamm9.utils.location
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.event.priority.EventPriority
-import com.github.noamm9.event.impl.DungeonEvent
-import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
-import com.github.noamm9.event.impl.PacketEvent
-import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Shortcuts
 import com.github.noamm9.features.impl.dev.FEAT_WebSocket
 import com.github.noamm9.init.types.ISelfInit
@@ -16,10 +13,7 @@ import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.remove
 import com.github.noamm9.utils.startsWithOneOf
-import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
-import net.minecraft.network.protocol.game.ClientboundSetObjectivePacket
-import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket
-import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket
+import net.minecraft.network.protocol.game.*
 import kotlin.jvm.optionals.getOrNull
 
 object LocationUtils: ISelfInit, Shortcuts {
@@ -101,7 +95,7 @@ object LocationUtils: ISelfInit, Shortcuts {
         if (mc.level == null || mc.player == null) return
         inSkyblock = true
         inDungeon = true
-        dungeonFloor = "F7"
+        dungeonFloor = "M7"
         dungeonFloorNumber = 7
         F7Phase = getPhase(player.y)
         P3Section = findP3Section(player.x, player.y, player.z)
