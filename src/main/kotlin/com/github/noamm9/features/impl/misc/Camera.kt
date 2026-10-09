@@ -43,6 +43,19 @@ object Camera: Feature() {
     @JvmStatic val customFOV by ToggleSetting("Custom FOV").section("Custom FOV")
     @JvmStatic val customFOVSlider by SliderSetting("FOV", 110, 30, 179, 1).hideIf { ! customFOV.value }
 
+    @JvmStatic val viewBobbing by ToggleSetting("View Bobbing", true).withDescription("Overrides the vanilla View Bobbing option.").section("View Bobbing")
+    private val disableCameraBobbing by ToggleSetting("Disable Camera Bobbing").withDescription("Stops the camera from bobbing while walking.").hideIf { ! viewBobbing.value }
+    private val cameraBobbing by SliderSetting("Camera Bobbing", 1.0, 0.0, 2.0, 0.05).hideIf { ! viewBobbing.value || disableCameraBobbing.value }
+    private val disableHandBobbing by ToggleSetting("Disable Hand Bobbing").withDescription("Stops your hand from bobbing while walking.").hideIf { ! viewBobbing.value }
+    private val handBobbing by SliderSetting("Hand Bobbing", 1.0, 0.0, 2.0, 0.05).hideIf { ! viewBobbing.value || disableHandBobbing.value }
+
+    @JvmStatic
+    fun getBobScale(hand: Boolean): Float = when {
+        ! enabled -> 1f
+        hand -> if (disableHandBobbing.value) 0f else handBobbing.value.toFloat()
+        else -> if (disableCameraBobbing.value) 0f else cameraBobbing.value.toFloat()
+    }
+
     override fun init() {
         //#if LEGIT
         register<GameStartEvent> {
