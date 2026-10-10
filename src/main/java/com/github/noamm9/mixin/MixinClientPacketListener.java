@@ -3,13 +3,17 @@ package com.github.noamm9.mixin;
 import com.github.noamm9.event.EventBus;
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent;
 import com.github.noamm9.event.impl.MessageSentEvent;
+import com.github.noamm9.features.impl.general.CommandShortcuts;
 import com.github.noamm9.features.impl.misc.TimeChanger;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.PacketListener;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientboundCommandsPacket;
+import net.minecraft.network.protocol.game.ClientboundCommandSuggestionsPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTimePacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -47,6 +51,18 @@ public class MixinClientPacketListener {
         }
     }
 
+    @WrapMethod(method = "handleCommands")
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private void onHandleCommands(ClientboundCommandsPacket packet, Operation<Void> original) {
+        original.call(packet);
+        CommandShortcuts.INSTANCE.build((CommandDispatcher) ((ClientPacketListener) (Object) this).getCommands());
+    }
+
+    @WrapMethod(method = "handleCommandSuggestions")
+    private void onHandleCommandSuggestions(ClientboundCommandSuggestionsPacket packet, Operation<Void> original) {
+        original.call(CommandShortcuts.INSTANCE.restoreSuggestionPacket(packet));
+    }
+
     @WrapMethod(method = "sendChat")
     private void onSendChat(String content, Operation<Void> original) {
         var event = new MessageSentEvent(content);
@@ -58,6 +74,6 @@ public class MixinClientPacketListener {
     private void onSendCommand(String command, Operation<Void> original) {
         var event = new MessageSentEvent(command);
         if (EventBus.post(event)) return;
-        original.call(event.getMessage());
+        original.call(CommandShortcuts.INSTANCE.rewriteCommand(event.getMessage()));
     }
 }
