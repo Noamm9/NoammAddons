@@ -1,28 +1,35 @@
 package com.github.noamm9.features.impl.general
 
 import com.github.noamm9.config.PogObject
+import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.ICommandNode
 import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.tree.CommandNode
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
+import net.fabricmc.fabric.api.client.command.v2.ClientCommands
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.network.protocol.game.ClientboundCommandSuggestionsPacket
 import net.minecraft.network.protocol.game.ServerboundCommandSuggestionPacket
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 object CommandShortcuts: Feature("Create your own command shortcuts") {
     val shortcuts = PogObject("commandShortcuts", linkedMapOf<String, String>())
-    private var currentDispatcher: CommandDispatcher<FabricClientCommandSource>? = null
-    private var registeredShortcuts = emptySet<String>()
+    private val registeredShortcuts = WeakHashMap<CommandDispatcher<FabricClientCommandSource>, Set<String>>()
     private val pendingSuggestionRewrites = ConcurrentHashMap<Int, Int>()
 
     override fun init() {
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ -> build(dispatcher) }
+
+        register<WorldChangeEvent> { pendingSuggestionRewrites.clear() }
     }
 
-    fun rewriteCommand(command: String) = if (enabled) findRewrite(command)?.rewritten ?: command else command
+    fun rewriteCommand(command: String): String {
+        if (! enabled) return command
+        return findRewrite(command)?.rewritten ?: command
+    }
 
     fun rewriteSuggestionPacket(packet: ServerboundCommandSuggestionPacket): ServerboundCommandSuggestionPacket {
         if (! enabled) return packet
@@ -41,13 +48,17 @@ object CommandShortcuts: Feature("Create your own command shortcuts") {
         )
     }
 
+    fun rebuild() {
+        ClientCommands.getActiveDispatcher()?.let(::build)
+        @Suppress("UNCHECKED_CAST")
+        (mc.connection?.commands as? CommandDispatcher<FabricClientCommandSource>)?.let(::build)
+    }
+
     fun build(dispatcher: CommandDispatcher<FabricClientCommandSource>) {
-        if (currentDispatcher !== dispatcher) registeredShortcuts = emptySet()
-        currentDispatcher = dispatcher
         val currentShortcuts = shortcuts.get().toMap()
-        removeShortcuts(registeredShortcuts - currentShortcuts.keys, dispatcher)
+        removeShortcuts(registeredShortcuts[dispatcher].orEmpty() - currentShortcuts.keys, dispatcher)
         injectShortcuts(currentShortcuts, dispatcher)
-        registeredShortcuts = currentShortcuts.keys
+        registeredShortcuts[dispatcher] = currentShortcuts.keys
     }
 
     private fun injectShortcuts(shortcuts: Map<String, String>, dispatcher: CommandDispatcher<FabricClientCommandSource>) {
@@ -66,12 +77,12 @@ object CommandShortcuts: Feature("Create your own command shortcuts") {
 
             val target = findTarget(dispatcher, replacement)
             val shortcutBuilder = LiteralArgumentBuilder.literal<FabricClientCommandSource>(name)
-            if (target != null) shortcutBuilder.redirect(target)
+            if (target != null) shortcutBuilder.executes(target.command).redirect(target)
             parent.addChild(shortcutBuilder.build())
         }
     }
 
-    fun removeShortcuts(remove: Set<String>, dispatcher: CommandDispatcher<FabricClientCommandSource>) {
+    private fun removeShortcuts(remove: Set<String>, dispatcher: CommandDispatcher<FabricClientCommandSource>) {
         for (shortcut in remove) {
             val parts = commandParts(shortcut)
             if (parts.isEmpty()) continue
@@ -89,11 +100,9 @@ object CommandShortcuts: Feature("Create your own command shortcuts") {
     }
 
     private fun findTarget(dispatcher: CommandDispatcher<FabricClientCommandSource>, replacement: String): CommandNode<FabricClientCommandSource>? {
-        var node: CommandNode<FabricClientCommandSource> = dispatcher.root
-        for (part in commandParts(replacement)) {
-            node = node.getChild(part) ?: return node.takeIf { it !== dispatcher.root }
-        }
-        return node.takeIf { it !== dispatcher.root }
+        val parts = commandParts(replacement)
+        if (parts.isEmpty()) return null
+        return dispatcher.findNode(parts)
     }
 
     private fun findRewrite(command: String): CommandRewrite? {
