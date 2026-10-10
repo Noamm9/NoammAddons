@@ -23,10 +23,12 @@ object NoammAPI {
         if (ApiAuth.token == null) {
             if (ApiAuth.keyPairUnavailable && ! sessionExpired) {
                 ThreadUtils.scheduledTask(6000) { sessionExpired = false }
-                ChatUtils.modMessage("§cFailed to authenticate with Mojang, your session is probably expired. §fRestart your game to fix it.")
+                ThreadUtils.scheduledTask(10) {
+                    ChatUtils.modMessage("§cFailed to authenticate with Mojang, your session is probably expired. §fRestart your game to fix it.")
+                }
                 sessionExpired = true
             }
-            return Result.failure(NoammAPIException.Unauthorized("auth token is null"))
+            return Result.failure(NoammAPIException.Unauthorized("auth token is null. your session is probably expired. Restart your game to fix it."))
         }
 
         val result = WebUtils.get("$BASE_URL$path") { header("Authorization", "Bearer ${ApiAuth.token}") }

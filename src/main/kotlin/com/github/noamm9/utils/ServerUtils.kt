@@ -2,10 +2,8 @@ package com.github.noamm9.utils
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.event.priority.EventPriority
-import com.github.noamm9.event.impl.PacketEvent
-import com.github.noamm9.event.impl.TickEvent
-import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.init.types.ISelfInit
 import net.minecraft.network.protocol.game.ClientboundSetTimePacket
 import net.minecraft.network.protocol.ping.ClientboundPongResponsePacket
@@ -25,9 +23,6 @@ object ServerUtils: ISelfInit {
 
     override fun init() {
         EventBus.register<WorldChangeEvent>(EventPriority.HIGHEST) {
-            tps = 20f
-            currentPing = 0
-            averagePing = 0
             lastTimePacket = 0L
             isPinging = false
         }
