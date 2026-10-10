@@ -11,8 +11,7 @@ import com.github.noamm9.features.impl.dev.text.TextReplacer
 import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.MathUtils.vec
-import com.github.noamm9.utils.network.ProfileUtils
-import com.github.noamm9.utils.network.WebUtils
+import com.github.noamm9.utils.network.*
 import com.mojang.authlib.GameProfile
 import com.mojang.blaze3d.vertex.PoseStack
 import kotlinx.coroutines.Dispatchers
@@ -49,7 +48,7 @@ object Cosmetics: Feature(toggled = true) {
             NoammAddons.logger.info("fetching cosmeticPeople")
 
             launch { BadgeManager.load() }
-            WebUtils.getAs<Map<String, CosmeticData>>("https://api.noamm.org/cosmeticPeople.json").onSuccess { data ->
+            WebUtils.getAs<Map<String, CosmeticData>>("${NoammAPI.URL}/cosmeticPeople.json").onSuccess { data ->
                 TextReplacer.ready = false
                 cosmeticPeople = data.mapKeys { UUID.fromString(it.key) }
                 BadgeText.init(cosmeticPeople)

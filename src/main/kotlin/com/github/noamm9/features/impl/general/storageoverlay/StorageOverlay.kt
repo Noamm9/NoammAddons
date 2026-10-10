@@ -235,6 +235,8 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
             it.backpack.forEach { (i, stacks) -> data[StoragePage(i + 9)] = NBTInventory(stacks) }
             storageMenuData = data
             ThreadUtils.async(::saveData)
+        }.onFailure {
+            if (it is NoammAPI.NoammAPIException) loaded = false
         }
     }
 

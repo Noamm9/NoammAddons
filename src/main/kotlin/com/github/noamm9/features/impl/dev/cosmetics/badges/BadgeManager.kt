@@ -3,6 +3,7 @@ package com.github.noamm9.features.impl.dev.cosmetics.badges
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.utils.catch
+import com.github.noamm9.utils.network.NoammAPI
 import com.github.noamm9.utils.network.WebUtils
 import com.mojang.blaze3d.platform.NativeImage
 import kotlinx.serialization.Serializable
@@ -10,7 +11,7 @@ import java.nio.file.Files
 import kotlin.io.encoding.Base64
 
 object BadgeManager {
-    const val URL = "https://api.noamm.org/badges.json"
+    const val URL = "${NoammAPI.URL}/badges.json"
     @Volatile private var chars = emptyMap<String, Char>()
     fun charOf(id: String) = chars[id]
     const val SEPARATOR = '\uE100'
