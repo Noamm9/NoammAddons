@@ -128,6 +128,8 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
             if (handler.enabled()) event.isCanceled = true
         }
 
+        register<TerminalEvent.Break> { lastClickedSlot = null }
+
         register<TerminalEvent.Close> {
             lastClickedSlot = null
             lastClickTime = 0L
