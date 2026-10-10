@@ -40,7 +40,8 @@ object PetUtils: ISelfInit {
     private val loadoutsPetRegex = Regex("\\[Lvl (\\d+)] (.+)$")
     private val loadoutSlots = setOf(14, 15, 16, 23, 24, 25, 32, 33, 34, 41, 42, 43)
 
-    private val petCache = PogObject("petCache", PetCache(1))
+    private const val cache_version = 1
+    private val petCache = PogObject("petsCache", PetCache(cache_version))
     private var clickedPet: Pet? = null
 
     private val headCache = ConcurrentHashMap<String, ItemStack>()
@@ -53,14 +54,14 @@ object PetUtils: ISelfInit {
 
     override fun init() {
         val reset = fun() {
-            petCache.set(PetCache(1))
+            petCache.set(PetCache(cache_version))
             petCache.save()
             NoammAddons.logger.info("petcache.json was reset.")
         }
 
         catch {
             val cache = petCache.get()
-            if (cache.version != 1 || ! cache.isValid()) reset()
+            if (cache.version != cache_version || ! cache.isValid()) reset()
         } ?: reset()
 
         EventBus.register<ChatMessageEvent> {
