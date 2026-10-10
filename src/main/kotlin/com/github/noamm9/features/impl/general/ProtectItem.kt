@@ -56,15 +56,14 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
             }
 
             if (stack.isEmpty) return@register
+            val type = getProtectType(stack).takeUnless { it == ProtectType.None } ?: return@register
 
             val isThrowing = event.clickType == ContainerInput.THROW || event.slotId == - 999
             val isSelling = isSellMenu() && event.slotId in menu.slots.indices
 
-            if (isThrowing || isSelling) {
-                if (getProtectType(stack) != ProtectType.None) {
-                    if (protectNotification.value) NotificationManager.push("Action Blocked", "This item is protected!", 1500L)
-                    event.isCanceled = true
-                }
+            if (isThrowing || isSelling || type == ProtectType.HypixelBullshit) {
+                if (protectNotification.value) NotificationManager.push("Action Blocked", "This item is protected!", 1500L)
+                event.isCanceled = true
             }
         }
 
@@ -131,6 +130,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
         val name = stack.hoverName.unformattedText
         if (protectStarred.value && (data.getInt("upgrade_level").getOrDefault(0) > 0 || name.contains("✪"))) return ProtectType.Starred
         if (protectRarity.value && data.getInt("rarity_upgrades").getOrDefault(0) > 0) return ProtectType.RarityUpgraded
+        if (data.getStringOr("quiver_arrow", "false").toBoolean()) return ProtectType.HypixelBullshit
 
         return ProtectType.None
     }
@@ -148,7 +148,8 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
 
     fun onSlotDraw(context: GuiGraphicsExtractor, stack: ItemStack, x: Int, y: Int) {
         if (! enabled || ! showProtected.value || stack.isEmpty) return
-        if (getProtectType(stack) != ProtectType.None) {
+        val type = getProtectType(stack)
+        if (type != ProtectType.None && type != ProtectType.HypixelBullshit) {
             context.drawString("§aP", x + 1, y + 1, scale = 0.75)
         }
     }
@@ -176,5 +177,5 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
         }
     }
 
-    private enum class ProtectType { UUID, SkyblockID, Starred, RarityUpgraded, None }
+    private enum class ProtectType { UUID, SkyblockID, Starred, RarityUpgraded, None, HypixelBullshit }
 }
