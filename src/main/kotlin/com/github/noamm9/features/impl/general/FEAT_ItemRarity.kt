@@ -1,9 +1,7 @@
 package com.github.noamm9.features.impl.general
 
 import com.github.noamm9.NoammAddons.MOD_ID
-import com.github.noamm9.config.types.DropdownSetting
-import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ColorUtils.withAlpha
@@ -36,7 +34,7 @@ object FEAT_ItemRarity: Feature(name = "Item Rarity", description = "Draws the r
     @JvmStatic
     fun onSlotDraw(ctx: GuiGraphicsExtractor, stack: ItemStack?, x: Int, y: Int) {
         if (! LocationUtils.inSkyblock) return
-        if (stack == null) return
+        if (stack == null || stack.isEmpty) return
 
         val rarity = ItemUtils.getRarity(stack)
         if (rarity == ItemRarity.NONE) return
