@@ -55,7 +55,6 @@ object ClearInfoUpdater: ISelfInit {
                     }.onFailure {
                         teammate.secretsBeforeRun = 0
                         ChatUtils.modMessage("Failed to get secrets for &b${teammate.name}&r. &cError: ${it.message}")
-                        it.printStackTrace()
                     }
                 }
             }
