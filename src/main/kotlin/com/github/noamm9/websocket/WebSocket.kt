@@ -31,6 +31,8 @@ object WebSocket: ISelfInit {
         }
     }
 
+    fun isConnected() = session?.isActive == true
+
     fun send(packet: Any) = scope.launch {
         val socket = session?.takeIf(WebSocketSession::isActive) ?: return@launch
         val json = GsonUtils.gson.toJsonTree(packet).asJsonObject
@@ -59,7 +61,7 @@ object WebSocket: ISelfInit {
         }
         catch (e: Throwable) {
             if (e is CancellationException) throw e
-            ChatUtils.modMessage("[WebSocket] error: ${e.message}")
+            logger.info("[WebSocket] error: ${e.message}")
         }
         finally {
             session = null

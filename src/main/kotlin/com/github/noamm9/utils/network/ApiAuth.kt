@@ -13,7 +13,6 @@ import com.github.noamm9.utils.GsonUtils.decode
 import com.github.noamm9.utils.GsonUtils.encode
 import com.github.noamm9.utils.ThreadUtils.async
 import com.github.noamm9.utils.ThreadUtils.setTimeout
-import com.github.noamm9.utils.network.NoammAPI.BASE_URL
 import com.github.noamm9.utils.network.WebUtils.client
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -31,7 +30,7 @@ import kotlin.io.encoding.Base64
 import kotlin.jvm.optionals.getOrNull
 
 object ApiAuth: ISelfInit {
-    private const val AUTH_URL = "$BASE_URL/hypixel/auth"
+    private const val AUTH_URL = "${NoammAPI.URL}/hypixel/auth"
     @Volatile private var tokenInfo: TokenResponse? = null
     @Volatile var keyPairUnavailable = false
         private set
