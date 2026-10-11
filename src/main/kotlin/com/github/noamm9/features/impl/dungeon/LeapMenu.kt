@@ -51,7 +51,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
     private val classesKeys = DungeonClass.entries.dropLast(1).map { KeybindSetting(it.name.lowercase().uppercaseFirst(), UKeyboard.KEY_NONE).showIf { leapKeybinds.value && keybindMode.value == 1 }.apply(configSettings::add) }
 
     private val announceSpiritLeaps by ToggleSetting("Announce Leap", true).section("Extras")
-    private val leapMsg by TextInputSetting("Leap Message", "ILY ❤ {name}").withDescription("replaces {name} with the player name").showIf { announceSpiritLeaps.value }
+    private val leapMsg by TextInputSetting("Leap Message", "Leaping to {name}").withDescription("replaces {name} with the player name").showIf { announceSpiritLeaps.value }
     private val hideAfterLeap by ToggleSetting("Hide Players").withDescription("Hides players for a certain amount of time after you leap")
     private val hideTime by SliderSetting("Hide Time", 3.5, 0.5, 5.0, 0.1).showIf { hideAfterLeap.value }
 
