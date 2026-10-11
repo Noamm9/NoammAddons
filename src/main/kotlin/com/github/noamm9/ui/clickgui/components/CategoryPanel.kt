@@ -113,7 +113,7 @@ class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private 
 
     fun handleScroll(delta: Double) {
         if (collapsed) return
-        val filteredFeatures = features.filter { it.name.contains(screen.searchQuery, ignoreCase = true) }
+        val filteredFeatures = getSorting()
         val totalContentHeight = filteredFeatures.size * BUTTON_HEIGHT
         val visibleHeight = totalContentHeight.coerceAtMost(MAX_DISPLAY_HEIGHT)
 
