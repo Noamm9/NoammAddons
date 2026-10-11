@@ -49,7 +49,7 @@ object PetUtils: ISelfInit {
 
     val knownPets get() = petCache.get().known
     var currentPet: Pet?
-        private set(value) = petCache.get()::active.set(value).also { petCache.save() }
+        private set(value) = petCache.get()::active.set(value)
         get() = petCache.get().active
 
     override fun init() {
@@ -226,7 +226,6 @@ object PetUtils: ISelfInit {
 
     private fun updatePet(pet: Pet) {
         if (currentPet == pet) return
-
         currentPet = pet
         cachePet(pet)
     }
@@ -243,7 +242,6 @@ object PetUtils: ISelfInit {
     private fun cachePet(pet: Pet) {
         val uuid = pet.uuid ?: return
         knownPets[uuid] = knownPets[uuid]?.merge(pet) ?: pet
-        petCache.save()
     }
 
     private fun Pet.merge(other: Pet) = Pet(
