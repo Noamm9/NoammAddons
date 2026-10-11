@@ -42,7 +42,7 @@ object MelodyTerminal: Terminal() {
         val currentColumn = current ?: return ""
         val correctColumn = correct ?: return ""
 
-        return (0 .. gridSize.second).joinToString("", " §7[", "§7]") {
+        return (0 until (gridSize.first - 1)).joinToString("", " §7[", "§7]") {
             when (it) {
                 currentColumn -> "§a="
                 correctColumn -> "§d="
