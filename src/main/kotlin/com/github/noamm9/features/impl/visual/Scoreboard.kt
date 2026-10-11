@@ -7,6 +7,7 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.utils.ChatUtils.formattedText
+import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
@@ -17,9 +18,7 @@ import gg.essential.universal.UMinecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.chat.Component
 import net.minecraft.network.protocol.game.*
-import net.minecraft.world.scores.DisplaySlot
-import net.minecraft.world.scores.Objective
-import net.minecraft.world.scores.PlayerTeam
+import net.minecraft.world.scores.*
 import java.awt.Color
 import net.minecraft.world.scores.Scoreboard as MCScoreboard
 
@@ -53,7 +52,7 @@ object Scoreboard: Feature("Draws a custom scoreboard instead of the vanilla one
 
             ctx.drawRect(xOffset, yOffset, boxWidth, boxHeight, Color(15, 15, 15, backgroundAlpha))
             ctx.drawRect(xOffset, yOffset, boxWidth, 2.0, Style.accentColor)
-            ctx.drawRect(xOffset - 1, yOffset - 1, boxWidth + 2.0, boxHeight + 2.0, Color(255, 255, 255, backgroundAlpha * 20 / 190))
+            ctx.drawRect(xOffset - 1, yOffset - 1, boxWidth + 2.0, boxHeight + 2.0, Color.WHITE.withAlpha(backgroundAlpha * 20 / 190))
 
             ctx.drawCenteredString(cachedTitle, (xOffset + boxWidth / 2).toFloat(), (yOffset + padding).toFloat(), shadow = false)
 
