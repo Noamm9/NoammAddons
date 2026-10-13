@@ -66,16 +66,16 @@ object MapRenderer: HudElement() {
         if (! MapConfig.dungeonMapCheater.value && ! DungeonListener.dungeonStarted) return
 
         val secretsStr = "&6Secrets: &b${ScoreCalculation.foundSecrets}&f/&b${ScoreCalculation.secretsUntil300}&f/&e${DungeonScanner.secretCount}"
-        val cryptsStr = colorCodeByPercent(ScoreCalculation.cryptsCount, 6) + "Crypts: ${ScoreCalculation.cryptsCount}"
+        val cryptsStr = colorCodeByPercent(ScoreCalculation.cryptsCount, 6) + "C${ScoreCalculation.cryptsCount}"
+        val batsStr = (if (ScoreCalculation.batCount > 0) "&aB" else "&cB") + ScoreCalculation.batCount
         val scoreStr = "&eScore: ${colorizeScore(ScoreCalculation.score)}&r"
         val deathsStr = "&cDeaths: ${colorCodeByPercent(ScoreCalculation.deathCount, 4, true)}${ScoreCalculation.deathCount}&r"
         val bonusStr = buildString {
             append(if (ScoreCalculation.mimicKilled) "&aM &f| " else "&cM &f| ")
-            append(if (ScoreCalculation.princeKilled) "&aP &f| " else "&cP &f| ")
-            append(if (ScoreCalculation.batKilled) "&aB" else "&cB")
+            append(if (ScoreCalculation.princeKilled) "&aP" else "&cP")
         }
 
-        val line1 = "$secretsStr    $cryptsStr"
+        val line1 = "$secretsStr    $cryptsStr &f| $batsStr"
         val line2 = "$scoreStr   $deathsStr   $bonusStr"
 
         ctx.pose().translate(width / 2f, 128f)
