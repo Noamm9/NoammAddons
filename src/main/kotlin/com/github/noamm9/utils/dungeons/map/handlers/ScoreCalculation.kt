@@ -60,6 +60,8 @@ object ScoreCalculation: ISelfInit {
     var cryptsCount = 0
     var secondsElapsed = 0
 
+    val batCount get() = batKillers.size
+
     private val totalRooms get() = floor((completedRooms / (clearedPercentage / 100.0)) + 0.4)
 
     val secretsUntil300: Int
