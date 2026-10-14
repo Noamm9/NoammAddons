@@ -77,7 +77,7 @@ object ItemTooltip: Feature("Adds item information and controls to item tooltips
                 }
 
                 count
-            } ?: return@register
+            } ?: event.stack.count
 
             NetworkLoop.getBazaarPrice(itemId)?.let { price ->
                 addPriceLine(event.lore, "Bazaar Buy", price.buy, quantity)
