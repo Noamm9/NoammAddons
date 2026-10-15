@@ -13,6 +13,7 @@ import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
+import com.github.noamm9.utils.Utils.send
 import com.mojang.brigadier.arguments.StringArgumentType
 import gg.essential.universal.UKeyboard
 import gg.essential.universal.UMinecraft
@@ -115,15 +116,15 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
             if (! autoDialogue.value) return@register
             if ("[BARBARIANS] [MAGES]" in event.unformattedText) return@register
             if (! event.unformattedText.startsWith("Select an option: ")) return@register
+
             fun firstOption(c: Component): ClickEvent? = (c.style.clickEvent as? ClickEvent.RunCommand
                 ?: c.style.clickEvent as? ClickEvent.Custom)
                 ?: c.siblings.firstNotNullOfOrNull { firstOption(it) }
+
             when (val option = firstOption(event.component)) {
                 is ClickEvent.RunCommand -> ChatUtils.sendCommand(option.command)
-                is ClickEvent.Custom -> UMinecraft.getMinecraft().connection?.send(
-                    ServerboundCustomClickActionPacket(option.id, option.payload)
-                )
-                else -> {}
+                is ClickEvent.Custom -> ServerboundCustomClickActionPacket(option.id, option.payload).send()
+                else -> return@register
             }
         }
         //#endif
