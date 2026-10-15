@@ -114,9 +114,16 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
             if (! autoDialogue.value) return@register
             if ("[BARBARIANS] [MAGES]" in event.unformattedText) return@register
             if (! event.unformattedText.startsWith("Select an option: ")) return@register
-            val cmd = (event.component.siblings.getOrNull(0)?.style?.clickEvent as? ClickEvent.RunCommand)?.command ?: return@register
-            ChatUtils.sendCommand(cmd)
-        }
+            fun firstOption(c: Component): ClickEvent? = (c.style.clickEvent as? ClickEvent.RunCommand
+                ?: c.style.clickEvent as? ClickEvent.Custom)
+                ?: c.siblings.firstNotNullOfOrNull { firstOption(it) }
+            when (val option = firstOption(event.component)) {
+                is ClickEvent.RunCommand -> ChatUtils.sendCommand(option.command)
+                is ClickEvent.Custom -> UMinecraft.getMinecraft().connection?.send(
+                    net.minecraft.network.protocol.common.ServerboundCustomClickActionPacket(option.id, option.payload)
+                )
+                else -> {}
+            }
         //#endif
     }
 
