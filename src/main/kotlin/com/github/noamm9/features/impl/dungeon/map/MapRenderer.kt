@@ -314,8 +314,9 @@ object MapRenderer: HudElement() {
     private fun drawRoomConnector(
         matrices: GuiGraphicsExtractor, x: Int, y: Int, doorWidth: Int, doorway: Boolean, vertical: Boolean, color: Color,
     ) {
-        val doorwayOffset = if (MapUtils.mapRoomSize == 16) 5 else 6
-        val doorHeight = if (doorway) 6 else MapUtils.mapRoomSize
+        val doorHeightSize = MapConfig.doorHeightSize.value
+        val doorwayOffset = (MapUtils.mapRoomSize - doorHeightSize) / 2
+        val doorHeight = if (doorway) doorHeightSize else MapUtils.mapRoomSize
         var x1 = if (vertical) x + MapUtils.mapRoomSize else x
         var y1 = if (vertical) y else y + MapUtils.mapRoomSize
         if (doorway) if (vertical) y1 += doorwayOffset else x1 += doorwayOffset
