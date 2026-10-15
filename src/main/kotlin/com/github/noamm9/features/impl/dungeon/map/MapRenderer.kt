@@ -25,7 +25,6 @@ import com.github.noamm9.utils.render.RenderHelper.renderVec
 import gg.essential.universal.UGraphics
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.resources.Identifier
-import net.minecraft.world.level.block.state.properties.DoorHingeSide
 import java.awt.Color
 
 object MapRenderer: HudElement() {
@@ -331,3 +330,4 @@ object MapRenderer: HudElement() {
         )
     }
 }
+    
