@@ -1,14 +1,11 @@
 package com.github.noamm9.features.impl.dungeon
 
-import com.github.noamm9.config.types.DropdownSetting
-import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.DungeonEvent
+import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.general.PartyHelper
-import com.github.noamm9.utils.ChatUtils
-import com.github.noamm9.utils.PartyUtils
-import com.github.noamm9.utils.ThreadUtils
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.dungeons.DungeonUtils
 import com.github.noamm9.utils.location.LocationUtils
 
@@ -28,15 +25,15 @@ object AutoRequeue: Feature() {
     }
 
     override fun init() {
-        register<DungeonEvent.RunEndedEvent> {
+        register<DungeonEvent.RunEndedEvent>(priority = EventPriority.HIGHEST) {
             if (checkParty.value) {
                 if (! PartyUtils.isInParty) return@register feedBackMessage("Not in a party!")
                 if (PartyUtils.members.size != 5) return@register feedBackMessage("Not enough players in party!")
-                if (PartyHelper.downtimeList.isNotEmpty()) return@register feedBackMessage("There are players in downtime!")
             }
+            if (PartyHelper.downtimeList.isNotEmpty()) return@register feedBackMessage("There are players in downtime!")
 
-            ThreadUtils.setTimeout(delay.value * 1000) {
-                if (checkParty.value && ! PartyUtils.isLeader()) return@setTimeout feedBackMessage("You are not the party leader!")
+            ThreadUtils.scheduledTask(delay.value * 20) {
+                if (checkParty.value && ! PartyUtils.isLeader()) return@scheduledTask feedBackMessage("You are not the party leader!")
                 if (requeueCmd.value == 0) ChatUtils.sendMessage("/joininstance ${masterMode}CATACOMBS_FLOOR_${floor}")
                 else ChatUtils.sendMessage("/instancerequeue")
             }
