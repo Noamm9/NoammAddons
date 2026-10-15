@@ -28,7 +28,7 @@ object MapConfig: SettingProvider {
     val mapVanillaMarker by ToggleSetting("Vanilla Head Marker", false)
 
     val textScale by SliderSetting("Map Text Scale", 1f, 0.4f, 1.5f, 0.1).section("Size")
-    val doorHeightSize by SliderSetting(name ="Door Width", 6,6,10,2)
+    val doorHeightSize by SliderSetting("Door Width", 6, 6, 10, 1)
     val checkmarkSize by SliderSetting("Map Checkmark Scale", 1f, 0.3f, 1.5f, 0.1f)
     val playerHeadScale by SliderSetting("Player Heads Scale", 1f, 0.3f, 1.5f, 0.1f)
     val playerNameScale by SliderSetting("Player Name Scale", 0.5f, 0.3f, 1.5f, 0.1f)
