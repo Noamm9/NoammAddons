@@ -17,6 +17,8 @@ import com.github.noamm9.utils.dungeons.enums.WitherRelic
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.location.LocationUtils.dungeonFloor
 import com.github.noamm9.utils.location.LocationUtils.inBoss
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.RenderHelper.width
 import com.github.noamm9.utils.render.world.Render3D.renderBlock
 import com.github.noamm9.utils.render.world.Render3D.renderTracer
 import kotlinx.coroutines.launch
@@ -26,9 +28,11 @@ import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.phys.EntityHitResult
 import net.minecraft.world.phys.Vec3
+import java.awt.Color
 
 object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics features") {
     private val relicBox by ToggleSetting("Box Relics").withDescription("Draws a box on where the relics are spawning and the cauldron you need to place.")
+    private val relicSpawnTimer by ToggleSetting("Spawn Timer").withDescription("Shows on screen when the relic will spawn.")
     private val relicTimer by ToggleSetting("Place Timer").withDescription("Sends in chat the time it took to place the relic after you picked it up.")
 
     //#if CHEAT
@@ -63,8 +67,22 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
             //#endif
         }
 
-        register<DungeonEvent.WitherKingStartEvent> {
+        hudElement(
+            "Relic Spawn Timer",
+            { relicSpawnTimer.value },
+            { (spawnTimerTicks - DungeonListener.currentTime) > 0 },
+            centered = { true }
+        ) { ctx, example ->
+            val timeLeft = if (example) 25 else spawnTimerTicks - DungeonListener.currentTime
+            val displayTime = (timeLeft / 20.0).toFixed(2)
+            val color = DungeonListener.thePlayer?.clazz?.color ?: Color.WHITE
+            ctx.drawCenteredString(displayTime, 0, 0, color)
+            return@hudElement displayTime.width() to 9f
+        }
+
+        register<DungeonEvent.NecronDeathEvent> {
             p5StartTime = DungeonListener.currentTime
+            if (relicSpawnTimer.value) spawnTimerTicks = DungeonListener.currentTime + 61
         }
 
         register<ChatMessageEvent> {
