@@ -20,6 +20,7 @@ import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.screens.ChatScreen
 import net.minecraft.client.multiplayer.chat.GuiMessage
 import net.minecraft.network.chat.*
+import net.minecraft.network.protocol.common.ServerboundCustomClickActionPacket
 import org.lwjgl.glfw.GLFW
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
@@ -119,7 +120,7 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
             when (val option = firstOption(event.component)) {
                 is ClickEvent.RunCommand -> ChatUtils.sendCommand(option.command)
                 is ClickEvent.Custom -> UMinecraft.getMinecraft().connection?.send(
-                    net.minecraft.network.protocol.common.ServerboundCustomClickActionPacket(option.id, option.payload)
+                    ServerboundCustomClickActionPacket(option.id, option.payload)
                 )
                 else -> {}
             }
