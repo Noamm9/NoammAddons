@@ -86,8 +86,8 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
         register<MouseClickEvent> {
             if (! ctrlClickToCopy.value) return@register
             if (UMinecraft.currentScreenObj !is ChatScreen) return@register
-            if (event.button != InputConstants.MOUSE_BUTTON_LEFT) return@register
-            if (event.action != InputConstants.PRESS) return@register
+            if (event.button != 0) return@register
+            if (event.action != GLFW.GLFW_PRESS) return@register
             if (! UKeyboard.isCtrlKeyDown()) return@register
             val message = getHoveredMsg().takeUnless(String::isBlank) ?: return@register
 
@@ -167,7 +167,7 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
             line.content().accept { _, style, codePoint ->
                 if (style != lastStyle) {
                     style.color?.let { textColor ->
-                        ChatFormatting.entries.firstOrNull { TextColor.fromLegacyFormat(it)?.value == textColor.value }?.let {
+                        ChatFormatting.entries.firstOrNull { it.isColor && it.color == textColor.value }?.let {
                             builder.append(it)
                         }
                     }
