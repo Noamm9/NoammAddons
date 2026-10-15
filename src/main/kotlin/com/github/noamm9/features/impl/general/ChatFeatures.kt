@@ -124,6 +124,7 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
                 )
                 else -> {}
             }
+        }
         //#endif
     }
 
