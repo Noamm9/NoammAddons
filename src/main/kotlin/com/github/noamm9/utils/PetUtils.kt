@@ -92,8 +92,6 @@ object PetUtils: ISelfInit {
                     lore.siblings.getOrNull(i + 1)?.string?.trim()
                 }
 
-                ChatUtils.chat(petItem)
-
                 clickedPet = null
                 changePet(resolvePet(name, level, rarity, hasCustomSkin, petItem), PetEvent.Cause.AUTOPET)
                 return@register
