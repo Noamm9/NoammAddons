@@ -22,6 +22,7 @@ import com.mojang.authlib.properties.Property
 import com.mojang.authlib.properties.PropertyMap
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.HoverEvent
 import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
@@ -85,9 +86,16 @@ object PetUtils: ISelfInit {
                 val name = nameStr.remove(Pet.levelRegex).removePrefix("§8")
                 val hasCustomSkin = nameStr.contains("✦")
                 val rarity = ItemRarity.byBaseColor(name.take(2))
+                val petItem = run {
+                    val lore = (event.component.style.hoverEvent as? HoverEvent.ShowText)?.value ?: return@run null
+                    val i = lore.siblings.indexOfFirst { it.string == "Held Item: " }.takeIf { it != - 1 } ?: return@run null
+                    lore.siblings.getOrNull(i + 1)?.string?.trim()
+                }
+
+                ChatUtils.chat(petItem)
 
                 clickedPet = null
-                changePet(resolvePet(name, level, rarity, hasCustomSkin), PetEvent.Cause.AUTOPET)
+                changePet(resolvePet(name, level, rarity, hasCustomSkin, petItem), PetEvent.Cause.AUTOPET)
                 return@register
             }
 
@@ -203,15 +211,15 @@ object PetUtils: ISelfInit {
         )
     }
 
-    private fun resolvePet(name: String, level: Int? = null, rarity: ItemRarity? = null, hasCustomSkin: Boolean = false): Pet {
-        val base = knownPets.values.find { it.matches(name, rarity, hasCustomSkin) }
+    private fun resolvePet(name: String, level: Int? = null, rarity: ItemRarity? = null, hasCustomSkin: Boolean = false, heldItem: String? = null): Pet {
+        val base = knownPets.values.find { it.matches(name, rarity, hasCustomSkin, heldItem) }
 
         return Pet(
             name = (base?.name ?: name).removeFormatting(),
             level = level ?: base?.level,
             rarity = rarity ?: base?.rarity,
             uuid = base?.uuid,
-            heldItem = base?.heldItem,
+            heldItem = heldItem ?: base?.heldItem,
             headSkin = base?.headSkin,
             hasCustomSkin = base?.hasCustomSkin ?: hasCustomSkin,
             customSkinRarity = base?.customSkinRarity,
@@ -292,12 +300,13 @@ object PetUtils: ISelfInit {
             if (hasCustomSkin) append(" ${customSkinRarity?.baseColor.toString()}✦")
         }
 
-        fun matches(name: String, rarity: ItemRarity? = null, hasCustomSkin: Boolean = false): Boolean {
+        fun matches(name: String, rarity: ItemRarity? = null, hasCustomSkin: Boolean = false, heldItem: String? = null): Boolean {
             val withName = normalizeName(this.name) == normalizeName(name)
             val withRarity = rarity == null || rarity == this.rarity
             val withSkin = if (hasCustomSkin) this.hasCustomSkin else true
+            val withItem = heldItem == null || heldItem.equals(this.heldItem, ignoreCase = true)
 
-            return withName && withRarity && withSkin
+            return withName && withRarity && withSkin && withItem
         }
 
         fun head(): ItemStack {
