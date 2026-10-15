@@ -182,9 +182,13 @@ object MapRenderer: HudElement() {
                 else -> Color(170, 170, 170)
             }
 
-            val checkmarkStyle = when (MapConfig.dungeonMapCheckmarkStyle.value) {
+            val checkmarkStyle = if (MapConfig.checkmarkOnDone.value && roomTile.state == RoomState.GREEN) {
+                0 //checkmark mode
+            } else when (MapConfig.dungeonMapCheckmarkStyle.value) {
+
                 4 -> if (roomTile.data.type == RoomType.PUZZLE || roomTile.data.secrets == 0) 2 else 1
                 else -> MapConfig.dungeonMapCheckmarkStyle.value
+
             }
 
             when (checkmarkStyle) {
