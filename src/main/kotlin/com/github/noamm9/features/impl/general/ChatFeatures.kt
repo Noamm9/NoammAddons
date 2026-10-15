@@ -1,6 +1,5 @@
 package com.github.noamm9.features.impl.general
 
-import net.minecraft.network.chat.TextColor
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.commands.CommandBuilder
 import com.github.noamm9.config.PogObject
@@ -22,6 +21,8 @@ import net.minecraft.client.gui.screens.ChatScreen
 import net.minecraft.client.multiplayer.chat.GuiMessage
 import net.minecraft.network.chat.*
 import com.mojang.blaze3d.platform.InputConstants
+import net.minecraft.network.protocol.common.ServerboundCustomClickActionPacket
+import org.lwjgl.glfw.GLFW
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
 object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for the chat such as Ctrl + Click to copy messages."), ICommandProvider {
@@ -120,7 +121,7 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
             when (val option = firstOption(event.component)) {
                 is ClickEvent.RunCommand -> ChatUtils.sendCommand(option.command)
                 is ClickEvent.Custom -> UMinecraft.getMinecraft().connection?.send(
-                    net.minecraft.network.protocol.common.ServerboundCustomClickActionPacket(option.id, option.payload)
+                    ServerboundCustomClickActionPacket(option.id, option.payload)
                 )
                 else -> {}
             }
