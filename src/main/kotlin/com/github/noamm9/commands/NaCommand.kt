@@ -238,6 +238,7 @@ object NaCommand: ICommandProvider {
 
         LeapMenu.customLeapOrder = validPlayers
         LeapMenu.customLeapType = sortingType
+        ConfigManager.save()
         ChatUtils.modMessage("§aCustom leap order set to: §f$sortingType §awith players: §f${validPlayers.joinToString(", ")}")
     }
 
