@@ -81,10 +81,15 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
 
     var customLeapOrder: List<String>
         get() = customLeapOrderSetting.value
-        set(value) { customLeapOrderSetting.value = value.toMutableList() }
+        set(value) {
+            customLeapOrderSetting.value = value.toMutableList()
+        }
+
     var customLeapType: String
         get() = customLeapTypeSetting.value
-        set(value) { customLeapTypeSetting.value = value }
+        set(value) {
+            customLeapTypeSetting.value = value
+        }
 
     override fun init() {
         register<ChatMessageEvent> {

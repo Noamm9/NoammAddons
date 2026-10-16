@@ -1,5 +1,6 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.config.ConfigManager
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
@@ -86,6 +87,8 @@ object SlotBinding: Feature("Allows you to bind slots to hotbar slots for quick 
             }
             else previousSlot = slotId
         }
+
+        ConfigManager.save()
     }
 
     @JvmStatic
