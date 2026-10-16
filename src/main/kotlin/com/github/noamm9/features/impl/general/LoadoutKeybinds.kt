@@ -1,32 +1,27 @@
 package com.github.noamm9.features.impl.general
 
-import com.github.noamm9.config.types.KeybindSetting
-import com.github.noamm9.config.types.ToggleSetting
-import com.github.noamm9.event.impl.ContainerEvent
-import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
-import com.github.noamm9.event.impl.PacketEvent
+import com.github.noamm9.config.types.*
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.IKeyMapping
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.unformattedText
-import com.github.noamm9.utils.GuiUtils
-//#if CHEAT
-import com.github.noamm9.utils.ThreadUtils
-//#endif
-import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.lore
 import gg.essential.universal.UKeyboard
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
-import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
-import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
-import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
+import net.minecraft.network.protocol.game.*
 import net.minecraft.world.inventory.Slot
 import org.lwjgl.glfw.GLFW
 
-object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to your keyboard.") {
+object LoadoutKeybinds: Feature("Allows you to bind loadout slots to your keyboard/mouse.") {
     private val blockBarrierClick by ToggleSetting("Block Barrier Click")
+
     //#if CHEAT
     private val closeAfterUse by ToggleSetting("Auto Close On Use")
+    private val keepOpenSlots by MultiCheckboxSetting("Keep Open On", (1 .. 12).associate { "Slot $it" to false }.toMutableMap())
+        .withDescription("Loadout slots that won't auto close the menu").showIf { closeAfterUse.value }
     //#endif
+    
     private val useHotbarBinds by ToggleSetting("Use Hotbar Binds")
     private val keybinds = (1 .. 12).mapIndexed { index, slot ->
         KeybindSetting("Loadout Slot $slot", when (index) {
@@ -41,9 +36,11 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
     private val loadoutMenuRegex = Regex("""^\(\d+/\d+\) Loadouts$""")
     private var lastClick = System.currentTimeMillis()
     private var inLoadoutMenu = false
+
     //#if CHEAT
     private var pendingAutoClose = false
     //#endif
+
     private val slots = listOf(
         14, 15, 16,
         23, 24, 25,
@@ -115,7 +112,7 @@ object LoadoutKeybinds: Feature("Allows you to bind SkyBlock loadout slots to yo
 
         lastClick = System.currentTimeMillis()
         //#if CHEAT
-        if (closeAfterUse.value) {
+        if (closeAfterUse.value && ! keepOpenSlots["Slot ${index + 1}"]) {
             player.closeContainer()
             ThreadUtils.setTimeout(3000) { pendingAutoClose = false }
             pendingAutoClose = true
