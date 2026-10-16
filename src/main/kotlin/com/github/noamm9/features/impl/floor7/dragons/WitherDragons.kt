@@ -3,6 +3,7 @@ package com.github.noamm9.features.impl.floor7.dragons
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
+import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.add
@@ -11,11 +12,11 @@ import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.RenderHelper.renderVec
+import com.github.noamm9.utils.render.RenderHelper.width
 import com.github.noamm9.utils.render.world.Render3D.renderBillboardedCircle
 import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
 import com.github.noamm9.utils.render.world.Render3D.renderString
 import com.github.noamm9.utils.render.world.Render3D.renderTracer
-import gg.essential.universal.UResolution
 import net.minecraft.network.protocol.game.*
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon
 import net.minecraft.world.level.block.Blocks
@@ -146,17 +147,20 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
             }
         }
 
-        register<RenderOverlayEvent> {
-            if (! dragonTimer.value) return@register
-            priorityDragon?.let { dragon ->
-                if (dragon.state != WitherDragonState.SPAWNING || dragon.timeToSpawn <= 0) return@register
-                event.context.drawCenteredString(
-                    "&${dragon.colorCode}${getDragonTimer(dragon.timeToSpawn)}",
-                    UResolution.scaledWidth / 2f,
-                    UResolution.scaledHeight * 0.4f,
-                    scale = 3f,
-                )
-            }
+        hudElement(
+            "Dragon Spawn Timer",
+            { dragonTimer.value },
+            { priorityDragon?.let { it.state == WitherDragonState.SPAWNING && it.timeToSpawn > 0 } == true },
+            centered = { true }
+        ) { ctx, example ->
+            val text = if (example) "&5${getDragonTimer(100)}"
+            else priorityDragon?.let { "&${it.colorCode}${getDragonTimer(it.timeToSpawn)}" }.orEmpty()
+            ctx.drawCenteredString(text, 0, 0)
+            text.width() to 9f
+        } defaults {
+            x = Resolution.width / 2f
+            y = Resolution.height * 0.4f
+            scale = 3f
         }
 
         register<CheckEntityGlowEvent> {
