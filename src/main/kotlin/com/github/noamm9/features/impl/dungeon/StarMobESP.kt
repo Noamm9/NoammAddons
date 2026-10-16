@@ -28,11 +28,10 @@ object StarMobESP: Feature(
     jsonName = "Star Mob ESP"
 ) {
     private val espBats by ToggleSetting("Highlight Bats", true).withDescription("Highlights Bats in Dungeons.")
-    private val espFels by ToggleSetting("Highlight Fels", false).withDescription("Highlights Fels, even when they are invisible.")
 
     private val starMobColor by ColorSetting("Star Mob Color", Color.YELLOW, false).section("General Colors").withDescription("Default color for all Starred mobs.")
+    private val felColor by ColorSetting("Fel Color", Color.PINK, false).withDescription("The color used for fels.")
     private val batColor by ColorSetting("Bat Color", Color.GREEN, false).withDescription("The color used for highlighted bats.").showIf { espBats.value }
-    private val felColor by ColorSetting("Fel Color", Color.PINK, false).withDescription("The color used for fels.").showIf { espFels.value }
 
     private val starMobs = HashSet<Int>()
     private val checked = HashSet<Int>()
@@ -71,20 +70,17 @@ object StarMobESP: Feature(
             if (! LocationUtils.inDungeon || inBoss) return@register
 
             if (event.entity.id in starMobs) {
-                event.color = starMobColor.value
+                val color = if (event.entity is EnderMan/* && event.entity.customName?.string == "Dinnerbone"*/) felColor.value
+                else starMobColor.value
+
+                event.color = color
                 return@register
             }
 
-            getColor(event.entity)?.let {
-                event.color = it
+            if (espBats.value && event.entity is Bat && ! event.entity.isInvisible && ! event.entity.isPassenger) {
+                event.color = batColor.value
             }
         }
-    }
-
-    private fun getColor(entity: Entity): Color? {
-        if (entity is Bat) return if (espBats.value && ! entity.isInvisible && ! entity.isPassenger) batColor.value else null
-        if (entity is EnderMan) return if (espFels.value && entity.customName?.string == "Dinnerbone") felColor.value else null
-        return null
     }
 
     private fun checkStarMob(armorStand: Entity, name: String) {
