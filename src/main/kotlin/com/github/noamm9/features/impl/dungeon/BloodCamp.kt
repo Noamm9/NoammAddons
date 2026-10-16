@@ -11,7 +11,9 @@ import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.RenderHelper.renderVec
+import com.github.noamm9.utils.render.RenderHelper.width
 import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
 import com.github.noamm9.utils.render.world.Render3D.renderLine
 import com.github.noamm9.utils.render.world.Render3D.renderString
@@ -31,11 +33,13 @@ object BloodCamp: Feature("Features for Blood Room.") {
     private val boxColor by ColorSetting("Box Color", Color(255, 0, 255)).showIf { bloodCamp.value }
     private val lineColor by ColorSetting("Line Color", Color.CYAN).showIf { bloodCamp.value }
 
-    private val killTitle by ToggleSetting("Kill Title").section("Alerts").withDescription("Displays a Title when the blood mobs are ready to be killed. &bNOTE: Not always accurate, you will get better move times by learning when to kill the mobs yourself.")
+    private val killTimer by ToggleSetting("Move Timer").withDescription("Displays a HUD counting down to when the blood mobs are ready to be killed.").section("Alerts")
+    private val killTitle by ToggleSetting("Kill Title").withDescription("Displays a Title when the blood mobs are ready to be killed. &bNOTE: Not always accurate, you will get better move times by learning when to kill the mobs yourself.")
 
     private val bloodMobs = HashMap<ArmorStand, BloodEntity>()
     private var watcherEntity: Zombie? = null
     private var firstSpawns = true
+    private var killTimerEnd = 0L
 
     private data class BloodEntity(
         var startVec: Vec3,
@@ -48,6 +52,18 @@ object BloodCamp: Feature("Features for Blood Room.") {
     )
 
     override fun init() {
+        hudElement(
+            "BloodCamp-MoveTimer",
+            killTimer::value,
+            { killTimerEnd - DungeonListener.currentTime > 0 },
+            centered = { true }
+        ) { ctx, example ->
+            val timeLeft = if (example) 420 else killTimerEnd - DungeonListener.currentTime
+            val text = (timeLeft / 20.0).toFixed(2)
+            ctx.drawCenteredString(text, 0, 0, Color.RED)
+            return@hudElement text.width() to 9f
+        }
+
         register<ChatMessageEvent> {
             if (LocationUtils.inBoss) return@register
             if (event.unformattedText != "[BOSS] The Watcher: Let's see how you can handle this.") return@register
@@ -55,8 +71,9 @@ object BloodCamp: Feature("Features for Blood Room.") {
         }
 
         register<DungeonEvent.BloodOpenEvent> {
-            if (! killTitle.value) return@register
-            ThreadUtils.scheduledTaskServer(400) {
+            val moveTicks = moveTimes[LocationUtils.dungeonFloorNumber !!]
+            if (killTimer.value) killTimerEnd = DungeonListener.currentTime + moveTicks
+            if (killTitle.value) ThreadUtils.scheduledTaskServer(moveTicks) {
                 ChatUtils.showTitle("&c&lKill Mobs")
             }
         }
@@ -117,6 +134,7 @@ object BloodCamp: Feature("Features for Blood Room.") {
             bloodMobs.clear()
             watcherEntity = null
             firstSpawns = true
+            killTimerEnd = 0L
         }
 
         register<RenderWorldEvent> {
@@ -140,6 +158,8 @@ object BloodCamp: Feature("Features for Blood Room.") {
             }
         }
     }
+
+    private val moveTimes = intArrayOf(480, 600, 500, 500, 500, 470, 470, 420)
 
     private val watcherSkulls = setOf(
         "ewogICJ0aW1lc3RhbXAiIDogMTY5NzMwOTQxNzI1NiwKICAicHJvZmlsZUlkIiA6ICJjYjYxY2U5ODc4ZWI0NDljODA5MzliNWYxNTkwMzE1MiIsCiAgInByb2ZpbGVOYW1lIiA6ICJWb2lkZWRUcmFzaDUxODUiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTY2MmI2ZmI0YjhiNTg2ZGM0Y2RmODAzYjA0NDRkOWI0MWQyNDVjZGY2NjhkYWIzOGZhNmMwNjRhZmU4ZTQ2MSIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9",
