@@ -51,7 +51,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         for (widget in widgets) {
             val section = widget.config.section
             if (section != null && section != lastSection) {
-                val sectionSettings = widgets.dropWhile { it !== widget }.takeWhile { it.config.section == section }
+                val sectionSettings = widgets.dropWhile { it !== widget }.takeWhile { it === widget || it.config.section == null }
                 val sectionVisibility = { sectionSettings.any { it.config.visibility() } }
                 if (isNotEmpty()) add(SeparatorWidget().also { it.config.visibility = sectionVisibility })
                 add(CategoryWidget(section).also { it.config.visibility = sectionVisibility })

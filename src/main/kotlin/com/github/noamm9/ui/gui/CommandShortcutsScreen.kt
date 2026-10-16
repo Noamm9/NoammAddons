@@ -14,9 +14,7 @@ import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.scissor
-import com.mojang.brigadier.CommandDispatcher
 import gg.essential.universal.UKeyboard
-import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.CharacterEvent
@@ -243,7 +241,6 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
 
         GuiUtils.setScreen(ClickGuiScreen())
         CommandShortcuts.shortcuts.set(shortcuts)
-        @Suppress("UNCHECKED_CAST")
-        CommandShortcuts.build(mc.connection?.commands as CommandDispatcher<FabricClientCommandSource>)
+        CommandShortcuts.rebuild()
     }
 }

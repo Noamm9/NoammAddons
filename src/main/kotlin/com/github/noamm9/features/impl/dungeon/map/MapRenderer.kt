@@ -66,16 +66,16 @@ object MapRenderer: HudElement() {
         if (! MapConfig.dungeonMapCheater.value && ! DungeonListener.dungeonStarted) return
 
         val secretsStr = "&6Secrets: &b${ScoreCalculation.foundSecrets}&f/&b${ScoreCalculation.secretsUntil300}&f/&e${DungeonScanner.secretCount}"
-        val cryptsStr = colorCodeByPercent(ScoreCalculation.cryptsCount, 6) + "Crypts: ${ScoreCalculation.cryptsCount}"
+        val cryptsStr = colorCodeByPercent(ScoreCalculation.cryptsCount, 6) + "C${ScoreCalculation.cryptsCount}"
+        val batsStr = (if (ScoreCalculation.batCount > 0) "&aB" else "&cB") + ScoreCalculation.batCount
         val scoreStr = "&eScore: ${colorizeScore(ScoreCalculation.score)}&r"
         val deathsStr = "&cDeaths: ${colorCodeByPercent(ScoreCalculation.deathCount, 4, true)}${ScoreCalculation.deathCount}&r"
         val bonusStr = buildString {
             append(if (ScoreCalculation.mimicKilled) "&aM &f| " else "&cM &f| ")
-            append(if (ScoreCalculation.princeKilled) "&aP &f| " else "&cP &f| ")
-            append(if (ScoreCalculation.batKilled) "&aB" else "&cB")
+            append(if (ScoreCalculation.princeKilled) "&aP" else "&cP")
         }
 
-        val line1 = "$secretsStr    $cryptsStr"
+        val line1 = "$secretsStr    $cryptsStr &f| $batsStr"
         val line2 = "$scoreStr   $deathsStr   $bonusStr"
 
         ctx.pose().translate(width / 2f, 128f)
@@ -110,7 +110,7 @@ object MapRenderer: HudElement() {
             }
 
             //#if CHEAT
-            if (tile is RoomTile && tile.uniqueRoom?.hasMimic == true && MapConfig.highlightMimicRoom.value) {
+            if (MapConfig.dungeonMapCheater.value && MapConfig.highlightMimicRoom.value && tile is RoomTile && tile.uniqueRoom?.hasMimic == true) {
                 color = color.lerp(MapConfig.colorMimic.value, 0.2)
             }
             //#endif
@@ -318,8 +318,9 @@ object MapRenderer: HudElement() {
     private fun drawRoomConnector(
         matrices: GuiGraphicsExtractor, x: Int, y: Int, doorWidth: Int, doorway: Boolean, vertical: Boolean, color: Color,
     ) {
-        val doorwayOffset = if (MapUtils.mapRoomSize == 16) 5 else 6
-        val doorHeight = if (doorway) 6 else MapUtils.mapRoomSize
+        val doorHeightSize = MapConfig.doorHeightSize.value
+        val doorwayOffset = (MapUtils.mapRoomSize - doorHeightSize) / 2
+        val doorHeight = if (doorway) doorHeightSize else MapUtils.mapRoomSize
         var x1 = if (vertical) x + MapUtils.mapRoomSize else x
         var y1 = if (vertical) y else y + MapUtils.mapRoomSize
         if (doorway) if (vertical) y1 += doorwayOffset else x1 += doorwayOffset

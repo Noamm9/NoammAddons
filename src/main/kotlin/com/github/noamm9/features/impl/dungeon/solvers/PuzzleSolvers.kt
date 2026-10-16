@@ -3,8 +3,7 @@ package com.github.noamm9.features.impl.dungeon.solvers
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.features.impl.dungeon.solvers.puzzles.PuzzleSolver
-import com.github.noamm9.features.impl.dungeon.solvers.puzzles.QuizSolver
+import com.github.noamm9.features.impl.dungeon.solvers.puzzles.*
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.location.LocationUtils.inBoss
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
@@ -68,7 +67,7 @@ object PuzzleSolvers: Feature() {
             name = "Quiz Timer",
             enabled = { quiz.value && quizTimer.value },
             shouldDraw = { QuizSolver.shouldShowTimer },
-            centered = true
+            centered = { true }
         ) { ctx, example ->
             val text = QuizSolver.timerText(example)
             ctx.drawCenteredString(text, 0f, 0f)
@@ -82,7 +81,7 @@ object PuzzleSolvers: Feature() {
         register<MainThreadPacketReceivedEvent.Pre> { puzzles.forEach { if (it.enabled) it.onPacket(event) } }
         register<DungeonEvent.RoomEvent.onEnter> { puzzles.forEach { if (it.enabled && ! inBoss) it.onRoomEnter(event) } }
         register<RenderWorldEvent> { puzzles.forEach { if (it.enabled) it.onRenderWorld(event.ctx) } }
-        register<CheckEntityGlowEvent> { puzzles.forEach { if (it.enabled) it.onEntityGlow(event) } }
+        register<CheckEntityGlowEvent> { if (BlazeSolver.enabled) BlazeSolver.onEntityGlow(event) }
         register<DungeonEvent.RoomEvent.onExit> { puzzles.forEach { if (it.enabled) it.onRoomExit() } }
         register<ChatMessageEvent> { puzzles.forEach { if (it.enabled) it.onChat(event) } }
         register<TickEvent.Server> { puzzles.forEach { if (it.enabled) it.onTick() } }

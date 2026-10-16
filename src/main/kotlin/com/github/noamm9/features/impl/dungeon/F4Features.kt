@@ -39,7 +39,12 @@ object F4Features: Feature(name = "F4 Features", description = "Spirit bear spaw
 
 
     override fun init() {
-        hudElement("Spirit Bear", { spiritBearHud.value }, { inM4boss && ! DungeonListener.dungeonEnded }, centered = true) { ctx, example ->
+        hudElement(
+            "Spirit Bear",
+            { spiritBearHud.value },
+            { inM4boss && ! DungeonListener.dungeonEnded },
+            centered = { true }
+        ) { ctx, example ->
             val time = timer - DungeonListener.currentTime
             val text = if (example) "4.25"
             else when {

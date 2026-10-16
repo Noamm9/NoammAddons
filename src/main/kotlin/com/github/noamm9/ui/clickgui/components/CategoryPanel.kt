@@ -6,9 +6,7 @@ import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.features.impl.dev.ClickGui
 import com.github.noamm9.features.impl.general.CommandShortcuts
 import com.github.noamm9.features.impl.misc.sound.SoundManager
-import com.github.noamm9.ui.clickgui.ClickGuiScreen
-import com.github.noamm9.ui.clickgui.SuggestionManager
-import com.github.noamm9.ui.clickgui.TooltipManager
+import com.github.noamm9.ui.clickgui.*
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.clickgui.enums.CategoryType
 import com.github.noamm9.ui.gui.CommandShortcutsScreen
@@ -37,6 +35,9 @@ class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private 
     }
 
     private val features = FeatureManager.getFeaturesByCategory(category)
+    private var sorted: Collection<Feature> = emptyList()
+    private var cq: String? = null
+    private var lc = - 1
 
     private val openAnim = Animation(150)
     var collapsed = false
@@ -111,7 +112,7 @@ class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private 
 
     fun handleScroll(delta: Double) {
         if (collapsed) return
-        val filteredFeatures = features.filter { it.name.contains(screen.searchQuery, ignoreCase = true) }
+        val filteredFeatures = getSorting()
         val totalContentHeight = filteredFeatures.size * BUTTON_HEIGHT
         val visibleHeight = totalContentHeight.coerceAtMost(MAX_DISPLAY_HEIGHT)
 
@@ -176,14 +177,19 @@ class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private 
     }
 
     private fun getSorting(): Collection<Feature> {
+        if (screen.searchQuery == cq && ClickGui.panelSorting.value == lc) return sorted
+
         val suggestions = if (screen.searchQuery.isBlank()) features
         else SuggestionManager.getSuggestions(screen.searchQuery, features)
 
-        return when (ClickGui.panelSorting.value) {
+        cq = screen.searchQuery
+        lc = ClickGui.panelSorting.value
+        sorted = when (ClickGui.panelSorting.value) {
             0 -> suggestions.sortedBy { it.name }
             1 -> suggestions.sortedByDescending { it.name.width() }
             else -> suggestions
         }
+        return sorted
     }
 
     fun openFeature(feature: Feature) {

@@ -13,7 +13,6 @@ import com.github.noamm9.utils.GsonUtils.decode
 import com.github.noamm9.utils.GsonUtils.encode
 import com.github.noamm9.utils.ThreadUtils.async
 import com.github.noamm9.utils.ThreadUtils.setTimeout
-import com.github.noamm9.utils.network.NoammAPI.BASE_URL
 import com.github.noamm9.utils.network.WebUtils.client
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -31,9 +30,12 @@ import kotlin.io.encoding.Base64
 import kotlin.jvm.optionals.getOrNull
 
 object ApiAuth: ISelfInit {
-    private const val AUTH_URL = "$BASE_URL/hypixel/auth"
+    private const val AUTH_URL = "${NoammAPI.URL}/hypixel/auth"
     @Volatile private var tokenInfo: TokenResponse? = null
-    val token get() = tokenInfo?.token
+    @Volatile var keyPairUnavailable = false
+        private set
+
+    internal val token get() = tokenInfo?.token
 
     override fun init() {
         register<GameStartEvent> {
@@ -44,8 +46,11 @@ object ApiAuth: ISelfInit {
     private suspend fun updateToken(): Unit = try {
         val resolved = getProfileKeyPair() ?: return run {
             logger.error("[ApiAuth] No key pair available.")
+            keyPairUnavailable = true
             setTimeout(5 * 60 * 1000L, ::updateToken)
         }
+
+        keyPairUnavailable = false
 
         val signedData = signRandomData(resolved.privateKey) ?: return run {
             logger.error("[ApiAuth] Failed to sign random data, retrying in 5 minutes")

@@ -71,7 +71,7 @@ open class Feature(
         name: String = this@Feature.jsonName,
         enabled: () -> Boolean = { true },
         shouldDraw: () -> Boolean = { true },
-        centered: Boolean = false,
+        centered: () -> Boolean = { false },
         render: (GuiGraphicsExtractor, Boolean) -> Pair<Number, Number>
     ) = object: HudElement() {
         override val name = name

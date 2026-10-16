@@ -28,7 +28,6 @@ object ScanUtils: ISelfInit, ICommandProvider, Shortcuts {
     private val roomsByCore = roomList.flatMap { room -> room.cores.map { it to room } }.toMap()
     private val roomsByName = roomList.associateBy(RoomData::name)
     private val coreTokenCache = IdentityHashMap<Block, Int>()
-    val secretMap = roomList.associate { it.name to it.secretCoords }
 
     private val ignoredCoreBlocks = setOf(
         "minecraft:chest", "minecraft:trapped_chest",
@@ -64,7 +63,7 @@ object ScanUtils: ISelfInit, ICommandProvider, Shortcuts {
         runs {
             val look = PlayerUtils.getSelectionBlock() !!
             val room = currentRoom !!
-            getRelativeCoord(look, room.clayPos !!, room.rotation !!).let {
+            getRelativeCoord(look, room.clayPos !!, 360 - room.rotation !!).let {
                 ChatUtils.modMessage("relative: $it")
             }
         }

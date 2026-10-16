@@ -13,6 +13,7 @@ import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
+import com.github.noamm9.utils.Utils.send
 import com.mojang.brigadier.arguments.StringArgumentType
 import gg.essential.universal.UKeyboard
 import gg.essential.universal.UMinecraft
@@ -20,6 +21,7 @@ import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.screens.ChatScreen
 import net.minecraft.client.multiplayer.chat.GuiMessage
 import net.minecraft.network.chat.*
+import net.minecraft.network.protocol.common.ServerboundCustomClickActionPacket
 import org.lwjgl.glfw.GLFW
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
@@ -39,40 +41,42 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
     private var lastMessageBlank = false
 
     override fun CommandBuilder.command() {
-        setName("chathider")
-        requires("Enable the $name Feature to use /chathider.") { enabled }
-        runs { ChatUtils.modMessage("&bUsage: /chathider <add|remove|list>") }
+        setName("na")
+        literal("chathider") {
+            requires("Enable the $name Feature to use /na chathider.") { enabled }
+            runs { ChatUtils.modMessage("&bUsage: /na chathider <add|remove|list>") }
 
-        literal("add") {
-            argument("regex", StringArgumentType.greedyString()) {
-                runs {
-                    val str = StringArgumentType.getString(it, "regex")
-                    val list = customHiders.get().map(Regex::pattern)
-                    if (str in list) return@runs ChatUtils.modMessage("&cRegex is Already in the list!")
-                    val regex = catch { Regex(str) } ?: return@runs ChatUtils.modMessage("&cInvalid Regex syntax!")
-                    customHiders.get().add(regex)
-                    customHiders.save()
-                    ChatUtils.modMessage("&aSaved new Regex.")
+            literal("add") {
+                argument("regex", StringArgumentType.greedyString()) {
+                    runs {
+                        val str = StringArgumentType.getString(it, "regex")
+                        val list = customHiders.get().map(Regex::pattern)
+                        if (str in list) return@runs ChatUtils.modMessage("&cRegex is Already in the list!")
+                        val regex = catch { Regex(str) } ?: return@runs ChatUtils.modMessage("&cInvalid Regex syntax!")
+                        customHiders.get().add(regex)
+                        customHiders.save()
+                        ChatUtils.modMessage("&aSaved new Regex.")
+                    }
                 }
             }
-        }
 
-        literal("remove") {
-            argument("regex", StringArgumentType.greedyString()) {
-                suggests { customHiders.get().map(Regex::pattern) }
-                runs {
-                    val str = StringArgumentType.getString(it, "regex")
-                    val removed = customHiders.get().removeIf { it.pattern == str }
-                    ChatUtils.modMessage(if (removed) "&aRemoved Regex." else "&cNo matching regex found.")
-                    customHiders.save()
+            literal("remove") {
+                argument("regex", StringArgumentType.greedyString()) {
+                    suggests { customHiders.get().map(Regex::pattern) }
+                    runs {
+                        val str = StringArgumentType.getString(it, "regex")
+                        val removed = customHiders.get().removeIf { it.pattern == str }
+                        ChatUtils.modMessage(if (removed) "&aRemoved Regex." else "&cNo matching regex found.")
+                        customHiders.save()
+                    }
                 }
             }
-        }
 
-        literal("list") {
-            runs {
-                ChatUtils.modMessage("customHiders:")
-                ChatUtils.chat(customHiders.get().joinToString("\n") { it.pattern })
+            literal("list") {
+                runs {
+                    ChatUtils.modMessage("customHiders:")
+                    ChatUtils.chat(customHiders.get().joinToString("\n") { it.pattern })
+                }
             }
         }
     }
@@ -111,8 +115,16 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
             if (! autoDialogue.value) return@register
             if ("[BARBARIANS] [MAGES]" in event.unformattedText) return@register
             if (! event.unformattedText.startsWith("Select an option: ")) return@register
-            val cmd = (event.component.siblings.getOrNull(0)?.style?.clickEvent as? ClickEvent.RunCommand)?.command ?: return@register
-            ChatUtils.sendCommand(cmd)
+
+            fun firstOption(c: Component): ClickEvent? = (c.style.clickEvent as? ClickEvent.RunCommand
+                ?: c.style.clickEvent as? ClickEvent.Custom)
+                ?: c.siblings.firstNotNullOfOrNull { firstOption(it) }
+
+            when (val option = firstOption(event.component)) {
+                is ClickEvent.RunCommand -> ChatUtils.sendCommand(option.command)
+                is ClickEvent.Custom -> ServerboundCustomClickActionPacket(option.id, option.payload).send()
+                else -> return@register
+            }
         }
         //#endif
     }

@@ -3,11 +3,9 @@ package com.github.noamm9.features.impl.floor7.devices
 //#if CHEAT
 
 import com.github.noamm9.config.types.*
-import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.MelodyDisplay
-import com.github.noamm9.features.impl.floor7.devices.I4Helper.getPredictionTarget
 import com.github.noamm9.ui.utils.Animation.Companion.easeInOutCubic
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ActionUtils.queue
@@ -15,7 +13,6 @@ import com.github.noamm9.utils.ActionUtils.waitTicks
 import com.github.noamm9.utils.MathUtils.calcYawPitch
 import com.github.noamm9.utils.MathUtils.interpolateYaw
 import com.github.noamm9.utils.MathUtils.lerp
-import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.PlayerUtils.leapAction
 import com.github.noamm9.utils.PlayerUtils.rotate
 import com.github.noamm9.utils.dungeons.DungeonListener
@@ -23,11 +20,8 @@ import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
 import kotlinx.coroutines.*
 import net.minecraft.core.BlockPos
-import net.minecraft.network.chat.Component
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.phys.Vec3
-import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.math.abs
@@ -46,7 +40,7 @@ object AutoI4: Feature("Fully Automated I4") {
     private val swapOrder by DropdownSetting("Swap Order", 0, listOf("Rod First", "Mask First")).showIf { rodSetting.value && maskSetting.value }
     private val preferredLeapClass by DropdownSetting("Leap Priority", 0, leapPriorities.map { it.name }).showIf { leapSetting.value }
 
-    private const val STORM_DEATH_MESSAGE = "[BOSS] Storm: I should have known that I stood no chance."
+    private const val GOLDER_START_MESSAGE = "[BOSS] Goldor: Who dares trespass into my domain?"
 
     private val doneCoords = ConcurrentHashMap.newKeySet<BlockPos>()
     private val tickTimer = AtomicInteger(- 1)
@@ -68,7 +62,7 @@ object AutoI4: Feature("Fully Automated I4") {
                 melodyLeapTargetName = melody.name
             }
 
-            if (msg == STORM_DEATH_MESSAGE) {
+            if (msg == GOLDER_START_MESSAGE) {
                 ThreadUtils.setTimeout(30_000L) { tickTimer.set(- 1) }
                 tickTimer.set(0)
             }
@@ -85,12 +79,12 @@ object AutoI4: Feature("Fully Automated I4") {
             if (! I4Helper.isOnDev()) return@register
 
             when (timer) {
-                307 if leapSetting.value -> {
+                203 if leapSetting.value -> {
                     ChatUtils.debug("i4", "saveLeap")
                     queue(4, false, ::saveLeap)
                 }
 
-                244 -> {
+                140 -> {
                     if (rodSetting.value && maskSetting.value) {
                         if (swapOrder.value == 0 && ! hasChangedMask) {
                             hasChangedMask = true
@@ -115,7 +109,7 @@ object AutoI4: Feature("Fully Automated I4") {
                     }
                 }
 
-                174 -> {
+                70 -> {
                     if (rodSetting.value && maskSetting.value) {
                         if (swapOrder.value == 0) {
                             if (! hasRodSwapped) {
@@ -174,20 +168,9 @@ object AutoI4: Feature("Fully Automated I4") {
                 shootAtBlock(event.pos)
 
                 if (predictSetting.value) {
-                    val next = I4Helper.prediction ?: getPredictionTarget(event.pos, doneCoords) ?: return@queue
+                    val next = I4Helper.prediction ?: I4Helper.getPredictionTarget(event.pos, doneCoords) ?: return@queue
                     shootAtBlock(next)
                 }
-            }
-        }
-
-        register<NoammDebugFlagEvent.Add> {
-            if (event.flag != "autoi4") return@register
-            event.cancel()
-
-            scope.launch {
-                EventBus.post(ChatMessageEvent(Component.literal(STORM_DEATH_MESSAGE)))
-                repeat(104) { EventBus.post(TickEvent.Server) }
-                ChatUtils.sendCommand("/start p3")
             }
         }
     }
@@ -218,30 +201,13 @@ object AutoI4: Feature("Fully Automated I4") {
         WorldUtils.getBlockAt(it) == Blocks.EMERALD_BLOCK
     }
 
-    private fun getTargetVector(pos: BlockPos): Vec3 {
-        val i = I4Helper.devBlocks.indexOf(pos).coerceAtLeast(0)
-        val col = i % 3
-        val row = i / 3
-
-        val isLeftDone = (col < 2) && (I4Helper.devBlocks[i + 1] in doneCoords)
-        val isRightDone = (col > 0) && (I4Helper.devBlocks[i - 1] in doneCoords)
-
-        val targetX = when (col) {
-            0 -> 67.5
-            2 -> 65.5
-            else -> when {
-                isRightDone && ! isLeftDone -> 65.5
-                isLeftDone && ! isRightDone -> 67.5
-                else -> if (Math.random() < 0.5) 65.5 else 67.5
-            }
-        }
-
-        val targetY = 131 - 2.0 * row
-        return vec(targetX, targetY, 50)
-    }
-
     private suspend fun shootAtBlock(pos: BlockPos) {
-        val (yaw, pitch) = calcYawPitch(getTargetVector(pos))
+        val (yaw, pitch) = calcYawPitch(when (pos) {
+            I4Helper.prediction -> I4Helper.predictionAim !!
+            I4Helper.target -> I4Helper.targetAim !!
+            else -> I4Helper.getTargetVector(pos, doneCoords)
+        })
+
         val block = suspend {
             waitTicks()
             PlayerUtils.rightClick()

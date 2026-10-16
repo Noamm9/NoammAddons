@@ -12,7 +12,7 @@ abstract class HudElement {
 
     abstract val toggle: Boolean
     open val shouldDraw = true
-    open val centered = false
+    open val centered: () -> Boolean = { false }
 
     var x = defaultX
     var y = defaultY
@@ -36,7 +36,7 @@ abstract class HudElement {
     open fun drawBackground(ctx: GuiGraphicsExtractor, mx: Int, my: Int) {
         val scaledW = width * scale
         val scaledH = height * scale
-        val centeredOffset = if (centered) scaledW / 2f else 0f
+        val centeredOffset = if (centered()) scaledW / 2f else 0f
         val hovered = mx >= x - centeredOffset && mx <= x - centeredOffset + scaledW && my >= y && my <= y + scaledH
 
         val borderColor = if (isDragging || hovered) Style.accentColor else Color(255, 255, 255, 40)
@@ -80,7 +80,7 @@ abstract class HudElement {
     open fun isHovered(mx: Int, my: Int): Boolean {
         val scaledW = width * scale
         val scaledH = height * scale
-        val centeredOffset = (if (centered) scaledW / 2 else 0).toInt()
+        val centeredOffset = (if (centered()) scaledW / 2 else 0).toInt()
         return mx >= x - centeredOffset && mx <= x - centeredOffset + scaledW && my >= y && my <= y + scaledH
     }
 

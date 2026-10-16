@@ -1,20 +1,16 @@
 package com.github.noamm9.features.impl.general
 
-import com.github.noamm9.config.types.ColorSetting
-import com.github.noamm9.config.types.DropdownSetting
-import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.utils.ColorUtils
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.NumbersUtils.toFixed
-import com.github.noamm9.utils.Utils
-import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
-import com.github.noamm9.utils.render.world.Render3D.renderBlock
 import com.github.noamm9.utils.render.RenderHelper.width
+import com.github.noamm9.utils.render.world.Render3D.renderBlock
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket
@@ -35,7 +31,11 @@ object TacTimer: Feature("Shows a 3 seconds timer when you use the Tactical Inse
     private var ticks = 0
 
     override fun init() {
-        hudElement("TacTimer", shouldDraw = { ticks > 0 }, centered = true) { ctx, example ->
+        hudElement(
+            "TacTimer",
+            shouldDraw = { ticks > 0 },
+            centered = { true }
+        ) { ctx, example ->
             val text = getTimer(if (example) 60 else ticks)
             ctx.drawCenteredString(text, 0, 0)
             text.width().toFloat() to 9f

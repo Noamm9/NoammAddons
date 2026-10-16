@@ -38,7 +38,7 @@ object BossBarHealth: Feature(name = "Bossbar Health", description = "Shows the 
         val isMaster = LocationUtils.isMasterMode
 
         return when (name) {
-            "The Watcher" if theWatcher.value -> 12F + (LocationUtils.dungeonFloorNumber?.toFloat() ?: 0F)
+            "The Watcher" if theWatcher.value -> 8F + (LocationUtils.dungeonFloorNumber?.toFloat() ?: 0F)
             "Thorn" if f4Thorn.value -> if (isMaster) 6F else 4F
             "Maxor" if f7Withers.value -> if (isMaster) 800_000_000F else 100_000_000F
             "Storm" if f7Withers.value -> if (isMaster) 1_000_000_000F else 400_000_000F

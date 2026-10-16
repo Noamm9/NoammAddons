@@ -4,7 +4,6 @@ import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
 import com.mojang.blaze3d.platform.Lighting
 import com.mojang.blaze3d.vertex.PoseStack
-import gg.essential.universal.UResolution
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.navigation.ScreenRectangle
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer
@@ -30,17 +29,18 @@ class ItemRenderer(vertexConsumers: MultiBufferSource.BufferSource): PictureInPi
 
     override fun renderToTexture(itemState: ItemState, poseStack: PoseStack) {
         val dispatcher = mc.gameRenderer.featureRenderDispatcher
-        val guiScale = UResolution.scaleFactor.toFloat()
+        val guiScale = mc.window.guiScale
         val guiPose = PoseStack()
 
         fun renderItem(batchedItem: BatchedItem) {
             val item = batchedItem.state
+            val pose = item.pose()
             guiPose.pushPose()
             guiPose.last().pose().mul(matrix4.set(
-                item.pose().m00(), item.pose().m10(), 0f, 0f,
-                item.pose().m01(), item.pose().m11(), 0f, 0f,
+                pose.m00(), pose.m01(), 0f, 0f,
+                pose.m10(), pose.m11(), 0f, 0f,
                 0f, 0f, 1f, 0f,
-                item.pose().m20(), item.pose().m21(), 0f, 1f
+                pose.m20() * guiScale, pose.m21() * guiScale, 0f, 1f
             ))
             guiPose.translate((item.x() + 8.0) * guiScale, (item.y() + 8.0) * guiScale, 150.0)
             guiPose.scale(16f * guiScale * batchedItem.scale, - 16f * guiScale * batchedItem.scale, 16f * guiScale * batchedItem.scale)
@@ -93,12 +93,12 @@ class ItemRenderer(vertexConsumers: MultiBufferSource.BufferSource): PictureInPi
         fun endItemRendererBatch(ctx: GuiGraphicsExtractor) {
             if (list2d.isEmpty() && list3d.isEmpty()) return
 
-            val screenRect = ScreenRectangle(0, 0, ctx.guiWidth(), ctx.guiHeight()).transformMaxBounds(ctx.pose())
+            val screenRect = ScreenRectangle(0, 0, ctx.guiWidth(), ctx.guiHeight())
             val scissor = ctx.scissorStack.peek()
             val bounds = scissor?.intersection(screenRect) ?: screenRect
 
             ctx.guiRenderState.addPicturesInPictureState(ItemState(ctx.guiWidth(), ctx.guiHeight(), scissor, bounds, list2d.toList(), list3d.toList()))
-            list2d.clear(); list3d.clear();
+            list2d.clear(); list3d.clear()
         }
     }
 

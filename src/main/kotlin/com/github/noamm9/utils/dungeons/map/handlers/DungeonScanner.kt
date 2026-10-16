@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.Blocks
 
 object DungeonScanner: ISelfInit {
     val dungeonList = Array<Tile>(121) { Unknown(0, 0) }
+    val doorTiles = mutableListOf<DoorTile>()
     val uniqueRooms = mutableMapOf<String, UniqueRoom>()
     var mimicRoom: UniqueRoom? = null
 
@@ -45,6 +46,7 @@ object DungeonScanner: ISelfInit {
     override fun init() {
         EventBus.register<WorldChangeEvent> {
             dungeonList.fill(Unknown(0, 0))
+            doorTiles.clear()
             uniqueRooms.clear()
             mimicRoom = null
             hasScanned = false
@@ -84,8 +86,7 @@ object DungeonScanner: ISelfInit {
             val roofHeight = ScanUtils.getHighestY(wX, wZ).takeUnless { it <= 0 } ?: continue
 
             scanTile(wX, wZ, z, x, roofHeight)?.let { tile ->
-                dungeonList[z * 11 + x] = tile
-                EventBus.post(DungeonEvent.TileScannedEvent(tile))
+                setTile(z * 11 + x, tile)
 
                 if (DungeonListener.dungeonTeammatesNoSelf.isEmpty()) return@let
 
@@ -102,6 +103,14 @@ object DungeonScanner: ISelfInit {
         lastScanTime = System.currentTimeMillis()
         uniqueRooms.values.forEach(UniqueRoom::findRotation)
         if (allChunksLoaded) hasScanned = true
+    }
+
+    fun setTile(index: Int, tile: Tile) {
+        (dungeonList[index] as? DoorTile)?.let(doorTiles::remove)
+        dungeonList[index] = tile
+        if (tile is DoorTile) doorTiles.add(tile)
+        DungeonTree.clearCache()
+        EventBus.post(DungeonEvent.TileScannedEvent(tile))
     }
 
     private fun findMimicRoom() {

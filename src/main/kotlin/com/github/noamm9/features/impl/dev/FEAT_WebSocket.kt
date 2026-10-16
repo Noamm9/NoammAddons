@@ -16,6 +16,7 @@ import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.location.LocrawListener
 import com.github.noamm9.websocket.PacketRegistry
+import com.github.noamm9.websocket.WebSocket
 import com.github.noamm9.websocket.WebSocket.send
 import com.github.noamm9.websocket.packets.C2SPacketDungeonStart
 import com.github.noamm9.websocket.packets.S2CPacketChat
@@ -49,6 +50,7 @@ object FEAT_WebSocket: Feature(name = "WebSocket", toggled = true), ICommandProv
         register<WorldChangeEvent>(EventPriority.HIGHEST) { if (LocationUtils.inDungeon) send(mapOf("type" to "reset")) }
 
         register<MessageSentEvent>(EventPriority.LOWEST) {
+            if (! WebSocket.isConnected()) return@register
             if (! mutedPartyChat.value || ! LocationUtils.inDungeon) return@register
             ThreadUtils.setTimeout(5000) { if (pendingChatMessage == event.message) pendingChatMessage = null }
             pendingChatMessage = event.message

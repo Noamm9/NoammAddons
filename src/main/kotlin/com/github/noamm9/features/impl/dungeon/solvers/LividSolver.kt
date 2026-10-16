@@ -48,11 +48,16 @@ object LividSolver: Feature() {
     private val ceilingWoolBlock = BlockPos(5, 108, 40)
     private var lividId: Int? = null
 
-    private const val ticks = 390// todo: change to 350
+    private const val ticks = 340
     private var timer = - 1
 
     override fun init() {
-        hudElement("Livid Invulnerability Timer", enabled = { invulnerabilityTimer.value }, shouldDraw = { timer > 0 }, centered = true) { ctx, example ->
+        hudElement(
+            "Livid Invulnerability Timer",
+            enabled = { invulnerabilityTimer.value },
+            shouldDraw = { timer > 0 },
+            centered = { true }
+        ) { ctx, example ->
             val displayTicks = if (example) ticks / 2 else timer
             val color = ColorUtils.colorCodeByPercent(ticks - displayTicks, ticks, true)
             val text = "&5Livid Invulnerability: $color${(displayTicks / 20.0).toFixed(1)}"
@@ -80,8 +85,6 @@ object LividSolver: Feature() {
         register<RenderWorldEvent> {
             val livid = lividId.livid ?: return@register
             if (livid.isDeadOrDying) return@register
-            if (livid.isSleeping) return@register
-
             if (tracer.value) event.ctx.renderTracer(livid.renderVec.add(y = 0.9), tracerColor.value)
             if (showHp.value) event.ctx.renderString(
                 ColorUtils.colorCodeByPercent(livid.health, livid.maxHealth) + NumbersUtils.format(livid.health),

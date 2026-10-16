@@ -40,7 +40,7 @@ object BlazeSolver: PuzzleSolver {
         lastBlazeCount = 10
     }
 
-    override fun onEntityGlow(event: CheckEntityGlowEvent) {
+    fun onEntityGlow(event: CheckEntityGlowEvent) {
         if (! inBlaze || hpMap.isEmpty()) return
         if (event.entity !is Blaze) return
         val index = blazes.indexOf(event.entity)

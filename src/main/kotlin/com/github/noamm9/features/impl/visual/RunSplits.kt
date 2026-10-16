@@ -1,6 +1,7 @@
 package com.github.noamm9.features.impl.visual
 
 import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
@@ -12,6 +13,7 @@ import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
+import net.minecraft.network.chat.Component
 
 object RunSplits: Feature("A Splits HUD for Dungeons.") {
     private val showWitherDoors by ToggleSetting("Show Wither Doors").withDescription("Show The Number of Wither Doors in the run")
@@ -158,6 +160,10 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
 
                 if (split.start != null || split.end != null) currentFloorSplits[entry.name] = split
             }
+        }
+
+        register<DungeonEvent.NecronDeathEvent> {
+            EventBus.post(ChatMessageEvent(Component.literal("STUPID HOTFIX XD XD 67 (:")))
         }
     }
 

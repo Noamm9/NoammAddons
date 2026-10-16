@@ -13,7 +13,6 @@ sealed interface PuzzleSolver {
     fun onTick() {}
     fun onPacket(event: MainThreadPacketReceivedEvent.Pre) {}
     fun onChat(event: ChatMessageEvent) {}
-    fun onEntityGlow(event: CheckEntityGlowEvent) {}
     fun onRenderWorld(ctx: RenderContext) {}
     fun onInteract(event: PlayerInteractEvent.RIGHT_CLICK.BLOCK) {}
 }

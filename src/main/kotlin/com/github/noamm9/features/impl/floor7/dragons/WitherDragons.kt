@@ -1,9 +1,6 @@
 package com.github.noamm9.features.impl.floor7.dragons
 
-import com.github.noamm9.config.types.ColorSetting
-import com.github.noamm9.config.types.DropdownSetting
-import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ChatUtils
@@ -13,11 +10,11 @@ import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.github.noamm9.utils.render.RenderHelper.renderVec
 import com.github.noamm9.utils.render.world.Render3D.renderBillboardedCircle
 import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
 import com.github.noamm9.utils.render.world.Render3D.renderString
 import com.github.noamm9.utils.render.world.Render3D.renderTracer
-import com.github.noamm9.utils.render.RenderHelper.renderVec
 import gg.essential.universal.UResolution
 import net.minecraft.network.protocol.game.*
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon
@@ -47,13 +44,11 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
     val sendSpray by ToggleSetting("Send Ice Sprayed", true)
     val sendArrowHit by ToggleSetting("Send Arrows Hit", true)
 
-    val dragonPriorityToggle by ToggleSetting("Dragon Priority", false).section("Dragon Priority")
-    val normalPower by SliderSetting("Normal Power", 0f, 0f, 32f, 0.5f).showIf { dragonPriorityToggle.value }
-    val easyPower by SliderSetting("Easy Power", 0f, 0f, 32f, 0.5f).showIf { dragonPriorityToggle.value }
-    val soloDebuff by DropdownSetting("Purple Solo Debuff", 0, listOf("Tank", "Healer")).showIf { dragonPriorityToggle.value }
-    val soloDebuffOnAll by ToggleSetting("Solo Debuff on All Splits", true).showIf { dragonPriorityToggle.value }
+    val dragPrio by ToggleSetting("Dragon Priority").jsonName("drag prio").section("Dragon Priority")
+    val soloPriority by DropdownSetting("Solo Priority", 0, listOf("Healer", "Tank")).showIf { dragPrio.value }
+    val firstDragonOnly by ToggleSetting("First Dragon Only", true).showIf { dragPrio.value }
 
-    var priorityDragon = WitherDragonEnum.None
+    var priorityDragon: WitherDragonEnum? = null
 
     private const val scoreboardGraceTicks = 40 // how long the dragon needs to be off scoreboard for it to count as dead
 
@@ -66,7 +61,7 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
 
     override fun init() {
         register<WorldChangeEvent> {
-            priorityDragon = WitherDragonEnum.None
+            priorityDragon = null
             WitherDragonEnum.reset()
             smoothedVelocities.clear()
         }
@@ -145,14 +140,15 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
                 }
             }
 
-            if (dragonTracers.value && priorityDragon != WitherDragonEnum.None && priorityDragon.state == WitherDragonState.SPAWNING) {
+            val priorityDragon = priorityDragon ?: return@register
+            if (dragonTracers.value && priorityDragon.state == WitherDragonState.SPAWNING) {
                 event.ctx.renderTracer(priorityDragon.spawnPos.add(0.5, 3.5, 0.5), priorityDragon.color, tracerThickness.value)
             }
         }
 
         register<RenderOverlayEvent> {
             if (! dragonTimer.value) return@register
-            priorityDragon.takeIf { it != WitherDragonEnum.None }?.let { dragon ->
+            priorityDragon?.let { dragon ->
                 if (dragon.state != WitherDragonState.SPAWNING || dragon.timeToSpawn <= 0) return@register
                 event.context.drawCenteredString(
                     "&${dragon.colorCode}${getDragonTimer(dragon.timeToSpawn)}",

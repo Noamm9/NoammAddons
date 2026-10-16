@@ -45,7 +45,12 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
     private var terminalTitleTimer = 0
 
     override fun init() {
-        hudElement("Terminal Titles", { terminalTitles.value }, { terminalTitle.isNotBlank() }, centered = true) { ctx, example ->
+        hudElement(
+            "Terminal Titles",
+            { terminalTitles.value },
+            { terminalTitle.isNotBlank() },
+            centered = { true }
+        ) { ctx, example ->
             val str = if (example) formatTerminalTitle(mc.user.name, "terminal", 6, 7) else terminalTitle
             ctx.drawCenteredString(str, 0, 0)
             return@hudElement str.width() to 9f

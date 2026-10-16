@@ -7,9 +7,7 @@ import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.level.block.state.properties.BlockStateProperties
-import net.minecraft.world.level.block.state.properties.DoorHingeSide
-import net.minecraft.world.level.block.state.properties.DoubleBlockHalf
+import net.minecraft.world.level.block.state.properties.*
 
 object DoorFix: Feature("Fixes the door rotations for s3", toggled = true) {
     override fun toggle() = Unit

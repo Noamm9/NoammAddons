@@ -54,7 +54,7 @@ object SpringBoots: Feature("Shows the spring boots charge progress on screen.")
             name = "Spring Boots HUD",
             enabled = { show2DHud.value },
             shouldDraw = { currentHeight > 0 },
-            centered = true
+            centered = { true }
         ) { ctx, example ->
             val isPercent = drawMode.value == 0
             val h = if (example) 33.0f else currentHeight

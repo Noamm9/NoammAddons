@@ -3,14 +3,10 @@
 package com.github.noamm9.features.impl.general.storageoverlay
 
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.config.ConfigManager
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.impl.dev.ClickGui
-import com.github.noamm9.features.impl.general.FEAT_ItemRarity
-import com.github.noamm9.features.impl.general.ItemTooltip
-import com.github.noamm9.features.impl.general.ItemOverlays
-import com.github.noamm9.features.impl.general.ProtectItem
+import com.github.noamm9.features.impl.general.*
 import com.github.noamm9.features.impl.misc.InventorySearch
 import com.github.noamm9.mixin.IAbstractContainerScreen
 import com.github.noamm9.ui.utils.Resolution
@@ -378,9 +374,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val names = StorageOverlay.storageNames
         val updated = input.value.takeUnless { it.isBlank() || it.trim() == page.defaultName }
         if (updated != names[page.index]) {
-            if (updated == null) names.value.remove(page.index)
+            if (updated == null) names.remove(page.index)
             else names[page.index] = updated
-            ConfigManager.save()
         }
         stopEditingName()
     }

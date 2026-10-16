@@ -147,6 +147,7 @@ object DungeonListener: ISelfInit {
 
                 watcherMessageRegex.matches(unformatted) && bloodOpenTime == null -> {
                     bloodOpenTime = DualTime(currentTime)
+                    EventBus.post(DungeonEvent.BloodOpenEvent)
                 }
 
                 unformatted == "[NPC] Mort: Here, I found this map when I first entered the dungeon." -> scope.launch {
