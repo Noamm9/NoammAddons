@@ -32,8 +32,13 @@ object DoorESP: Feature(
         .withDescription("Highlights every unopened door instead of only the next door after the run starts.")
         .showIf { brDoors.value && MapConfig.dungeonMapCheater.value }
     private val normalDoors by ToggleSetting("Normal doors")
+    private val useMapRoomColors by ToggleSetting("Use Map Room Colors")
+        .withDescription("Colors normal doors using the dungeon map color of the room they lead to.")
+        .showIf { normalDoors.value }
 
-    private val normalDoorColor by ColorSetting("Normal Door", Color.WHITE.withAlpha(50)).showIf { normalDoors.value }.section("Colors")
+    private val normalDoorColor by ColorSetting("Normal Door", Color.WHITE.withAlpha(50))
+        .withDescription("Sets the normal door color and the opacity used with map room colors.")
+        .showIf { normalDoors.value }.section("Colors")
     private val doorNoKeyColor by ColorSetting("No Key Color ", Color.RED.withAlpha(50)).showIf { brDoors.value }
     private val doorKeyColor by ColorSetting("Has Key Color ", Color.GREEN.withAlpha(50)).showIf { brDoors.value }
     private val roomName by ToggleSetting("Room Name").withDescription("shows the name of the room the door leads to").section("Extra")
@@ -94,13 +99,16 @@ object DoorESP: Feature(
                 if (! normalDoors.value || currentRoom == null) continue
                 if (hideUndiscovered && tile.state == RoomState.UNDISCOVERED && ! DungeonTree.isFairy(tile)) continue
 
-                val tiles = tile.roomTiles.mapNotNull(RoomTile::uniqueRoom)
-                if (currentRoom !in tiles) continue
+                val tiles = tile.roomTiles
+                if (tiles.none { it.uniqueRoom == currentRoom }) continue
                 if (tile.type.equalsOneOf(DoorType.BLOOD, DoorType.WITHER) && tile !in passedDoors) continue
+
+                val nextRoomTile = tiles.find { it.uniqueRoom != currentRoom }
+                val color = if (useMapRoomColors.value) nextRoomTile?.getColor()?.withAlpha(normalDoorColor.value.alpha) else null
 
                 event.ctx.renderBoxBounds(
                     tile.aabb,
-                    normalDoorColor.value,
+                    color ?: normalDoorColor.value,
                     outline = outline,
                     fill = fill,
                     phase = phase.value,
@@ -108,7 +116,7 @@ object DoorESP: Feature(
                 )
 
                 if (! showText) continue
-                val nextRoom = tiles.find { it != currentRoom } ?: continue
+                val nextRoom = nextRoomTile?.uniqueRoom ?: continue
 
                 var width = 0
                 val text = buildString {
