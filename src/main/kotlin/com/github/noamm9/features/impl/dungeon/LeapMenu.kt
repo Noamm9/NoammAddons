@@ -44,6 +44,8 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
     private val mapLeapAfterBlood by ToggleSetting("After Blood Only", false).withDescription("Use the regular leap menu until the Blood opens, then switch to Map Leap.").showIf { customLeapMenu.value && mapLeap.value }
     private val mapLeapScale by SliderSetting("Map Leap Scale", 1.5f, 0.5f, 3f, 0.1f).showIf { customLeapMenu.value && mapLeap.value }
     val sorting by DropdownSetting("Leap Order", 0, arrayListOf("A-Z Class", "A-Z Name", "Odin Sorting", "Custom sorting", "No Sorting")).withDescription("How to sort the leap menu. /na leaporder to configure custom sorting.")
+    private val customLeapOrderSetting by ListSetting<String>("Custom Leap Order").showIf { false }
+    private val customLeapTypeSetting by TextInputSetting("Custom Leap Type", "name").showIf { false }
 
     private val leapKeybinds by ToggleSetting("Leap Keybinds").showIf { customLeapMenu.value }.section("Leap Keybinds")
     private val keybindMode by DropdownSetting("Mode", 0, listOf("Corners", "Class")).showIf { leapKeybinds.value }
@@ -77,8 +79,17 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
     private val playerRegex = Regex("(?:\\[.+?] )?(?<name>\\w+)")
     private var shouldHide: Long = 0
 
-    var customLeapOrder = listOf<String>()
-    var customLeapType = "name"
+    var customLeapOrder: List<String>
+        get() = customLeapOrderSetting.value
+        set(value) {
+            customLeapOrderSetting.value = value.toMutableList()
+        }
+
+    var customLeapType: String
+        get() = customLeapTypeSetting.value
+        set(value) {
+            customLeapTypeSetting.value = value
+        }
 
     override fun init() {
         register<ChatMessageEvent> {
