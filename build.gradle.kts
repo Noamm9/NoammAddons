@@ -75,7 +75,7 @@ dependencies {
     compileOnly("io.github.llamalad7:mixinextras-fabric:0.5.5")
     annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.5.5")
 
-    bundled("io.github.classgraph:classgraph:4.8.195")
+    bundled("io.github.classgraph:classgraph:6.0.0")
     // Upstream meowdding item-data-fixer publishes one variant per Minecraft version, selected by capability.
     bundled("me.owdding:item-data-fixer:$datafixer_version") {
         capabilities { requireCapability(datafixerCapability) }

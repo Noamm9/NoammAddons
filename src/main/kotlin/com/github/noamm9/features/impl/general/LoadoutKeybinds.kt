@@ -11,7 +11,6 @@ import com.mojang.blaze3d.platform.InputConstants
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.minecraft.network.protocol.game.*
 import net.minecraft.world.inventory.Slot
-import org.lwjgl.glfw.GLFW
 
 object LoadoutKeybinds: Feature("Allows you to bind loadout slots to your keyboard/mouse.") {
     private val blockBarrierClick by ToggleSetting("Block Barrier Click")
