@@ -173,7 +173,9 @@ object PlayerUtils: ISelfInit, Shortcuts {
     suspend fun leapAction(leapTarget: DungeonPlayer) {
         if (thePlayer?.isDead == true) return
         if (leapTarget.isDead) return modMessage(leapTarget.name + " is dead R.I.P!")
-        val leapIndex = findHotbarSlot { it.skyblockId.contains("LEAP") } ?: return modMessage("&cNo leap found in hotbar!")
+        val leapIndex = findHotbarSlot { it.skyblockId == "INFINITE_SPIRIT_LEAP" } ?: findHotbarSlot {
+            it.skyblockId == "SPIRIT_LEAP"
+        } ?: return modMessage("&cNo leap found in hotbar!")
 
         if (! inLeapMenu) {
             if (player.inventory.selectedSlot != leapIndex) {
