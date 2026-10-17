@@ -14,9 +14,10 @@ import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.WitherRelic
-import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.location.LocationUtils.F7Phase
 import com.github.noamm9.utils.location.LocationUtils.dungeonFloor
 import com.github.noamm9.utils.location.LocationUtils.inBoss
+import com.github.noamm9.utils.location.LocationUtils.isMasterMode
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.RenderHelper.width
 import com.github.noamm9.utils.render.world.Render3D.renderBlock
@@ -81,6 +82,7 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
         }
 
         register<DungeonEvent.NecronDeathEvent> {
+            if (! isMasterMode) return@register
             p5StartTime = DungeonListener.currentTime
             if (relicSpawnTimer.value) spawnTimerTicks = DungeonListener.currentTime + 61
         }
@@ -98,7 +100,7 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
 
         register<RenderWorldEvent> {
             if (! relicBox.value) return@register
-            if (LocationUtils.F7Phase != 5) return@register
+            if (F7Phase != 5) return@register
             WitherRelic.fromName(player.inventory.getItem(8).hoverName.string)?.let {
                 event.ctx.renderBlock(it.cauldronPos.toPos(), it.color, phase = true)
                 event.ctx.renderTracer(it.cauldronPos.add(0.5, 0.5, 0.5), it.color)
@@ -106,7 +108,7 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
         }
 
         register<TickEvent.Start> {
-            if (! relicTimer.value || LocationUtils.F7Phase != 5 || relicTimes.isEmpty()) return@register
+            if (! relicTimer.value || F7Phase != 5 || relicTimes.isEmpty()) return@register
             val activeRelics = relicTimes.filter { ! it.isPlaced }.takeUnless { it.isEmpty() } ?: return@register
 
             val relicStands = level.entitiesForRendering().filterIsInstance<ArmorStand>().filter {
@@ -138,7 +140,7 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
 
         //#if CHEAT
         register<TickEvent.Start> {
-            if (! relicTriggerbot.value || LocationUtils.F7Phase != 5) return@register
+            if (! relicTriggerbot.value || F7Phase != 5) return@register
             if (mc.gui.screen() != null) return@register
             val now = System.currentTimeMillis()
             if (now - lastRelicClick < 200) return@register
@@ -155,7 +157,7 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
         }
 
         fun onInteract(event: PlayerInteractEvent, pos: BlockPos) {
-            if (! blockWrongRelic.value || LocationUtils.F7Phase != 5) return
+            if (! blockWrongRelic.value || F7Phase != 5) return
             val item = event.item?.hoverName?.string ?: return
             val relic = WitherRelic.fromName(item) ?: return
             if (pos.x == relic.cauldronPos.x.toInt() && pos.z == relic.cauldronPos.z.toInt()) return
@@ -166,7 +168,7 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
         register<PlayerInteractEvent.RIGHT_CLICK.BLOCK> { onInteract(event, event.pos) }
 
         register<MainThreadPacketReceivedEvent.Post> {
-            if (! relicLook.value || LocationUtils.F7Phase != 5) return@register
+            if (! relicLook.value || F7Phase != 5) return@register
             if (event.packet !is ClientboundContainerSetSlotPacket) return@register
             val item = PlayerUtils.getHotbarSlot(8)?.hoverName ?: return@register
             val relic = WitherRelic.fromName(item.unformattedText) ?: return@register
