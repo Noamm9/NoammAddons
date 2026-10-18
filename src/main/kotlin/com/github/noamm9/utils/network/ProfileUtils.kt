@@ -64,7 +64,7 @@ object ProfileUtils {
     suspend fun getSecrets(playerName: String): Result<Long> {
         val name = playerName.lowercase()
         if (name == mc.user.name.lowercase() && DungeonListener.thePlayer?.isDead == false) {
-            return runCatching { getSecretsCMD() }
+            return getSecretsCMD()
         }
 
         SecretCache.check(name)?.let { return it }
@@ -98,14 +98,16 @@ object ProfileUtils {
     // usually I don't like running commands in the background
     // but this one seems to behave exactly like /locraw.
     // meaning it does not affect the message spam cooldown
-    private suspend fun getSecretsCMD(): Long {
-        if (! LocationUtils.inSkyblock) error("Not in Skyblock")
+    suspend fun getSecretsCMD(): Result<Long> {
+        if (! LocationUtils.inSkyblock) return Result.failure(Exception("Not in Skyblock"))
         _totalSecrets = null
         chatListener.register()
         ChatUtils.sendCommand("/secretcount")
         ThreadUtils.setTimeout(5000) { chatListener.unregister() }
         while (chatListener.isActive) delay(50)
-        return _totalSecrets ?: error("No secrets found")
+        val secrets = _totalSecrets ?: return Result.failure(Exception("Secrets count command timed out"))
+        SecretCache.addToCache(mc.user.name.lowercase(), secrets)
+        return Result.success(secrets)
     }
 
     private val regex = Regex("^\\w+: \\d+$")

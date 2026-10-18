@@ -45,11 +45,18 @@ object ClearInfoUpdater: ISelfInit {
     }
 
     fun initStartSecrets() = NoammAddons.scope.launch(Dispatchers.IO) {
+        val ownSecrets = ProfileUtils.getSecretsCMD()
+
         if (! DungeonMap.enabled) return@launch
         if (! MapConfig.printPlayersClearInfo.value) return@launch
         coroutineScope {
             val jobs = DungeonListener.dungeonTeammates.map { teammate ->
                 async {
+                    if (teammate == DungeonListener.thePlayer) {
+                        teammate.secretsBeforeRun = ownSecrets.getOrDefault(0)
+                        return@async
+                    }
+
                     ProfileUtils.getSecrets(teammate.name).onSuccess {
                         teammate.secretsBeforeRun = it
                     }.onFailure {
@@ -64,12 +71,20 @@ object ClearInfoUpdater: ISelfInit {
     }
 
     fun sendClearInfoMessage() = NoammAddons.scope.launch(Dispatchers.IO) {
+        val ownSecrets = ProfileUtils.getSecretsCMD()
+
         if (! DungeonMap.enabled) return@launch
         if (! MapConfig.printPlayersClearInfo.value) return@launch
         val msgList = DungeonListener.dungeonTeammates.map { teammate ->
             async {
                 val before = teammate.secretsBeforeRun
-                val secretsAfterRun = if (before != 0L) ProfileUtils.getSecrets(teammate.name).getOrDefault(before) else 0L
+
+                val secretsAfterRun = if (before == 0L) 0L
+                else run {
+                    if (teammate == DungeonListener.thePlayer) ownSecrets.getOrDefault(before)
+                    else ProfileUtils.getSecrets(teammate.name).getOrDefault(before)
+                }
+
                 val playerFormatted = "${teammate.clazz.code}${teammate.name}"
                 val foundSecrets = secretsAfterRun - before
 
