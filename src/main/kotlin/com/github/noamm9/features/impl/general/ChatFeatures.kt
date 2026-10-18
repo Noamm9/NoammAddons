@@ -14,6 +14,7 @@ import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.Utils.send
+import com.mojang.blaze3d.platform.InputConstants
 import com.mojang.brigadier.arguments.StringArgumentType
 import gg.essential.universal.UKeyboard
 import gg.essential.universal.UMinecraft
@@ -21,9 +22,7 @@ import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.screens.ChatScreen
 import net.minecraft.client.multiplayer.chat.GuiMessage
 import net.minecraft.network.chat.*
-import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.network.protocol.common.ServerboundCustomClickActionPacket
-import org.lwjgl.glfw.GLFW
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
 object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for the chat such as Ctrl + Click to copy messages."), ICommandProvider {
@@ -86,8 +85,8 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
         register<MouseClickEvent> {
             if (! ctrlClickToCopy.value) return@register
             if (UMinecraft.currentScreenObj !is ChatScreen) return@register
-            if (event.button != 0) return@register
-            if (event.action != GLFW.GLFW_PRESS) return@register
+            if (event.button != InputConstants.MOUSE_BUTTON_LEFT) return@register
+            if (event.action != InputConstants.PRESS) return@register
             if (! UKeyboard.isCtrlKeyDown()) return@register
             val message = getHoveredMsg().takeUnless(String::isBlank) ?: return@register
 
@@ -167,7 +166,7 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
             line.content().accept { _, style, codePoint ->
                 if (style != lastStyle) {
                     style.color?.let { textColor ->
-                        ChatFormatting.entries.firstOrNull { it.isColor && it.color == textColor.value }?.let {
+                        ChatFormatting.entries.firstOrNull { TextColor.fromLegacyFormat(it)?.value == textColor.value }?.let {
                             builder.append(it)
                         }
                     }
