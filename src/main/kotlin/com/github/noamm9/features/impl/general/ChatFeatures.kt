@@ -21,7 +21,6 @@ import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.screens.ChatScreen
 import net.minecraft.client.multiplayer.chat.GuiMessage
 import net.minecraft.network.chat.*
-import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.network.protocol.common.ServerboundCustomClickActionPacket
 import org.lwjgl.glfw.GLFW
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
@@ -167,7 +166,7 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
             line.content().accept { _, style, codePoint ->
                 if (style != lastStyle) {
                     style.color?.let { textColor ->
-                        ChatFormatting.entries.firstOrNull { it.isColor && it.color == textColor.value }?.let {
+                        ChatFormatting.entries.firstOrNull { TextColor.fromLegacyFormat(it)?.value == textColor.value }?.let {
                             builder.append(it)
                         }
                     }
