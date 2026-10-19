@@ -24,8 +24,6 @@ import net.minecraft.sounds.SoundEvents
 import java.awt.Color
 
 object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICustomMenu {
-    val fcDelay by SliderSetting("FC delay, (In server ticks)", 7, 0, 8, 1)
-
     private val redGreenTerm by ToggleSetting("Red-Green", true).section("Toggles")
     private val colorsTerm by ToggleSetting("Colors", true)
     private val startsWithTerm by ToggleSetting("Start-With", true)
@@ -36,10 +34,11 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
     private val soundsEnabled by ToggleSetting("Terminal Sounds", true).section("Sounds")
     private val clickSound = createSoundSettings("Click Sound", SoundEvents.NOTE_BLOCK_PLING.value()) { soundsEnabled.value }
 
-    private val scale by SliderSetting("Custom Menu's Scale", 1f, 0.1f, 2f, 0.01f).section("Settings - UI")
+    private val scale by SliderSetting("Custom Menu's Scale", 1f, 0.1f, 2f, 0.01f).section("Settings")
     private val slotGap by SliderSetting("Slot Gap", 0f, 0f, 8f, 0.5f, "px")
     private val padding by SliderSetting("Padding", 2f, 0f, 12f, 0.5f, "px")
     private val slotStyle by DropdownSetting("Slot Style", 0, listOf("Rect", "Bordered-Rect", "Button"))
+    val fcDelay by SliderSetting("First Click delay", 7, 0, 8, 1, "t").withDescription("The delay in &nServer Ticks&r for how long a terminal will block clicks when you open it")
     val breakTimeout by SliderSetting("Break Timeout", 500, 300, 800, 50, "ms").withDescription("How long should the solver wait for a click to be confirmed by hypixel")
     private val backgroundColor by ColorSetting("Background Color", Color(0, 0, 0, 100))
     private val borderColor by ColorSetting("Border Color", Color(255, 255, 255))
