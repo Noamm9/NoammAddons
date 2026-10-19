@@ -4,10 +4,8 @@ import com.github.noamm9.config.ConfigHolder
 import com.github.noamm9.config.types.ButtonSetting
 import com.github.noamm9.config.types.ColorCodeSetting
 import com.github.noamm9.features.Feature
-import com.github.noamm9.features.annotations.AlwaysActive
 import gg.essential.universal.ChatColor
 
-@AlwaysActive
 object ClassColors: Feature("Allows setting custom color for every dungeon class", toggled = true) {
     val archCode by ColorCodeSetting("Archer Code", ChatColor.DARK_RED).section("Colors")
     val bersCode by ColorCodeSetting("Berserk Code", ChatColor.GOLD)
