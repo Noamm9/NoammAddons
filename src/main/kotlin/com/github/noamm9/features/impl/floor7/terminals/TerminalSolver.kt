@@ -24,7 +24,7 @@ import net.minecraft.sounds.SoundEvents
 import java.awt.Color
 
 object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICustomMenu {
-    val fcDelay by SliderSetting("FC delay, (In server ticks)", 7, 0, 8, 1).hideIf { true }
+    val fcDelay by SliderSetting("FC delay, (In server ticks)", 7, 0, 8, 1)
 
     private val redGreenTerm by ToggleSetting("Red-Green", true).section("Toggles")
     private val colorsTerm by ToggleSetting("Colors", true)
