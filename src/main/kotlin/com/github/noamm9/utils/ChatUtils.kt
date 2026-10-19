@@ -130,6 +130,7 @@ object ChatUtils: ISelfInit {
 
     fun sendPartyMessage(msg: Any?) {
         if (! PartyUtils.isInParty) return
+        if (PartyUtils.partySize <= 1) return
         sendMessage("/pc $msg")
     }
 
