@@ -1,11 +1,13 @@
 package com.github.noamm9.config.types
 
+import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.config.ConfigHolder
 import com.github.noamm9.config.Savable
 import com.github.noamm9.utils.GsonUtils.gsonObject
 import com.google.gson.JsonElement
 import com.mojang.blaze3d.platform.InputConstants
 import gg.essential.universal.UKeyboard
+import org.lwjgl.glfw.GLFW
 
 class KeybindSetting(
     name: String,
@@ -24,6 +26,7 @@ class KeybindSetting(
 
     fun isDown(): Boolean {
         if (value == UKeyboard.KEY_NONE) return false
+        if (isMouse) return GLFW.glfwGetMouseButton(mc.window.handle(), value) == GLFW.GLFW_PRESS
         return UKeyboard.isKeyDown(value)
     }
 
