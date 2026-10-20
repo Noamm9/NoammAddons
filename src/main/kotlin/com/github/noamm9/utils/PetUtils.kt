@@ -38,9 +38,6 @@ object PetUtils: ISelfInit {
     private val petMenuPattern = Regex("""^(?:\(\d+/\d+\) )?Pets(?: \(\d+/\d+\))?$""")
     private val petItemNamePattern = Regex("""^(?:(?:§[0-9a-fk-or])?⭐\s*)?(?:§[0-9a-f])?\[Lvl\s+(\d+)](?: §8\[.*?])?\s+(.+)""")
     private val colorCodePattern = Regex("§[0-9a-f]")
-    private val loadoutsPetRegex = Regex("\\[Lvl (\\d+)] (.+)$")
-    private val loadoutSlots = setOf(14, 15, 16, 23, 24, 25, 32, 33, 34, 41, 42, 43)
-
     private const val cache_version = 1
     private val petCache = PogObject("petsCache", PetCache(cache_version))
     private var clickedPet: Pet? = null
@@ -149,24 +146,10 @@ object PetUtils: ISelfInit {
             clickedPet = mc.player?.containerMenu?.items?.getOrNull(event.slotId)?.pet()
         }
 
-        EventBus.register<ContainerEvent.SlotClick> {
-            if (event.button != 0) return@register
-            if (event.clickType != ContainerInput.PICKUP) return@register
-            if (event.slotId !in loadoutSlots) return@register
-            if (! event.screen.title.unformattedText.endsWith(") Loadouts")) return@register
-            mc.player?.containerMenu?.items[event.slotId]?.lore?.find { it.startsWith("§7Pet: ") }?.let {
-                val match = loadoutsPetRegex.find(it)?.destructured ?: return@let
-                val level = match.component1().toIntOrNull()
-                var name = match.component2()
-                val hasCustomSkin = name.contains("✦")
-                name = name.remove(Pet.levelRegex).removePrefix("§8")
-                val rarity = ItemRarity.byBaseColor(name.take(2))
-
-                clickedPet = null
-                changePet(resolvePet(name, level, rarity, hasCustomSkin), PetEvent.Cause.MENU)
-            }
+        LoadoutPets.init { pet ->
+            clickedPet = null
+            changePet(pet, PetEvent.Cause.MENU)
         }
-
         EventBus.register<WorldChangeEvent> { clickedPet = null }
     }
 
