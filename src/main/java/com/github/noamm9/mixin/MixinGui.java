@@ -4,12 +4,10 @@ import com.github.noamm9.debug.DebugHUD;
 import com.github.noamm9.event.EventBus;
 import com.github.noamm9.event.impl.ActionBarMessageEvent;
 import com.github.noamm9.event.impl.RenderOverlayEvent;
-import com.github.noamm9.features.impl.general.FEAT_ItemRarity;
+import com.github.noamm9.features.impl.general.ItemRarityFeature;
 import com.github.noamm9.features.impl.misc.Camera;
 import com.github.noamm9.features.impl.misc.Tweaks;
-import com.github.noamm9.features.impl.visual.DarkMode;
-import com.github.noamm9.features.impl.visual.PlayerHud;
-import com.github.noamm9.features.impl.visual.Scoreboard;
+import com.github.noamm9.features.impl.visual.*;
 import com.github.noamm9.utils.location.LocationUtils;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -19,12 +17,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Hud.class)
@@ -123,9 +117,9 @@ public abstract class MixinGui {
 
     @Inject(method = "extractSlot", at = @At("HEAD"))
     private void onRenderHotbarSlot(GuiGraphicsExtractor graphics, int x, int y, DeltaTracker deltaTracker, Player player, ItemStack itemStack, int seed, CallbackInfo ci) {
-        if (! FEAT_ItemRarity.INSTANCE.enabled) return;
-        if (FEAT_ItemRarity.getDrawOnHotbar().getValue()) {
-            FEAT_ItemRarity.onSlotDraw(graphics, itemStack, x, y);
+        if (! ItemRarityFeature.INSTANCE.enabled) return;
+        if (ItemRarityFeature.getDrawOnHotbar().getValue()) {
+            ItemRarityFeature.onSlotDraw(graphics, itemStack, x, y);
         }
     }
 

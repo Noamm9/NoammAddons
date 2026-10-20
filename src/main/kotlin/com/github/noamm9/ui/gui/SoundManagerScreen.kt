@@ -4,8 +4,8 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.features.impl.misc.sound.SoundManager
 import com.github.noamm9.ui.clickgui.ClickGuiScreen
 import com.github.noamm9.ui.clickgui.components.settings.Style
-import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.ui.utils.Resolution
+import com.github.noamm9.ui.utils.ScrollState
 import com.github.noamm9.ui.utils.TextInputHandler
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.GuiUtils
@@ -47,11 +47,8 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
         updateFilter()
     })
 
-    private var scrollTarget = 0f
-    private val scrollAnim = Animation(200L)
+    private val scroll = ScrollState(minThumbHeight = 28f)
     private var draggingId: String? = null
-    private var draggingScrollbar = false
-    private var scrollbarDragOffset = 0f
 
     private var selectedCategory = SoundCategory.All
     private var recentSoundsVersion = - 1L
@@ -104,31 +101,20 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
         val viewY = y + 26
         val viewW = w - SIDEBAR_HEIGHT - 34
         val viewH = h - 70
-        val totalHeight = filteredItems.size * ENTRY_HEIGHT
-        val maxScroll = (totalHeight - viewH).coerceAtLeast(0f)
-        val thumbHeight = getScrollbarThumbHeight(totalHeight, viewH)
 
-        scrollTarget = scrollTarget.coerceIn(- maxScroll, 0f)
+        scroll.update(filteredItems.size * ENTRY_HEIGHT, viewH)
+        scroll.mouseDragged(mY)
 
-        if (draggingScrollbar && maxScroll > 0f) {
-            val ratio = ((mY - viewY - scrollbarDragOffset) / (viewH - thumbHeight)).coerceIn(0f, 1f)
-            scrollTarget = - ratio * maxScroll
-            scrollAnim.set(scrollTarget)
-        }
-        else {
-            scrollAnim.update(scrollTarget)
-        }
-
-        val currentScroll = scrollAnim.value.coerceIn(- maxScroll, 0f)
+        val currentScroll = scroll.value
 
         graphics.scissor(viewX, viewY, viewW, viewH)
 
-        val startIndex = max(0, (- currentScroll / ENTRY_HEIGHT).toInt())
+        val startIndex = max(0, (currentScroll / ENTRY_HEIGHT).toInt())
         val endIndex = min(filteredItems.size, startIndex + ceil(viewH / ENTRY_HEIGHT.toDouble()).toInt() + 1)
 
         for (i in startIndex until endIndex) {
             val item = filteredItems[i]
-            val itemY = viewY + currentScroll + (i * ENTRY_HEIGHT)
+            val itemY = viewY - currentScroll + (i * ENTRY_HEIGHT)
 
             when (item) {
                 is Header -> {
@@ -142,15 +128,7 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
 
         graphics.disableScissor()
 
-        if (maxScroll > 0f) {
-            val scrollbarX = x + w - 18f
-            val thumbY = viewY + (- currentScroll / maxScroll) * (viewH - thumbHeight)
-            val hovered = mX >= scrollbarX - 3f && mX <= scrollbarX + SCROLLBAR_WIDTH + 3f && mY >= viewY && mY <= viewY + viewH
-
-            graphics.drawRect(scrollbarX, viewY, SCROLLBAR_WIDTH, viewH, Color(255, 255, 255, if (hovered) 24 else 15))
-            graphics.drawRect(scrollbarX, thumbY, SCROLLBAR_WIDTH, thumbHeight, Style.accentColor.withAlpha(if (hovered || draggingScrollbar) 255 else 190))
-        }
-        else draggingScrollbar = false
+        scroll.drawScrollbar(graphics, x + w - 18f, viewY, SCROLLBAR_WIDTH, viewH, mX, mY)
 
         val searchX = x + SIDEBAR_HEIGHT + (viewW / 2) - 100
         drawSearch(graphics, searchX, y + h - 30, 200f, 20f, mX, mY)
@@ -206,10 +184,7 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
         }
 
 
-        if (resetScroll) {
-            scrollTarget = 0f
-            scrollAnim.set(0f)
-        }
+        if (resetScroll) scroll.reset()
     }
 
     override fun mouseClicked(event: MouseButtonEvent, isDoubleClick: Boolean): Boolean {
@@ -240,31 +215,15 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
         val viewY = y + 26
         val viewW = w - SIDEBAR_HEIGHT - 34
         val viewH = h - 70
-        val totalHeight = filteredItems.size * ENTRY_HEIGHT
-        val maxScroll = (totalHeight - viewH).coerceAtLeast(0f)
-        val scrollbarX = x + w - 18f
 
-        if (maxScroll > 0f && mx >= scrollbarX - 3f && mx <= scrollbarX + SCROLLBAR_WIDTH + 3f && my >= viewY && my <= viewY + viewH) {
-            val thumbHeight = getScrollbarThumbHeight(totalHeight, viewH)
-            val thumbY = viewY + (- scrollAnim.value.coerceIn(- maxScroll, 0f) / maxScroll) * (viewH - thumbHeight)
-
-            scrollbarDragOffset = if (my in thumbY .. thumbY + thumbHeight) my - thumbY else thumbHeight / 2f
-            if (my !in thumbY .. thumbY + thumbHeight) {
-                val ratio = ((my - viewY - scrollbarDragOffset) / (viewH - thumbHeight)).coerceIn(0f, 1f)
-                scrollTarget = - ratio * maxScroll
-                scrollAnim.set(scrollTarget)
-            }
-
-            draggingScrollbar = true
-            return true
-        }
+        if (scroll.mouseClicked(mx, my)) return true
 
         if (mx > viewX && mx < viewX + viewW && my > viewY && my < viewY + viewH) {
-            val clickedIndex = ((my - viewY - scrollAnim.value) / ENTRY_HEIGHT).toInt()
+            val clickedIndex = ((my - viewY + scroll.value) / ENTRY_HEIGHT).toInt()
             val item = filteredItems.getOrNull(clickedIndex)
 
             if (item is Sound) {
-                val itemY = viewY + scrollAnim.value + (clickedIndex * ENTRY_HEIGHT)
+                val itemY = viewY - scroll.value + (clickedIndex * ENTRY_HEIGHT)
                 val playX = viewX + viewW - PLAY_SOUND_WIDTH - 8f
                 val sliderX = playX - SLIDER_WIDTH - 8f
 
@@ -289,8 +248,6 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
         SoundManager.setVolumePercent(id, (progress * 200).toInt())
     }
 
-    private fun getScrollbarThumbHeight(totalHeight: Float, viewHeight: Float) = if (totalHeight <= viewHeight) viewHeight else ((viewHeight / totalHeight) * viewHeight).coerceAtLeast(28f)
-
     private fun drawSearch(ctx: GuiGraphicsExtractor, x: Float, y: Float, w: Float, h: Float, mx: Float, my: Float) {
         ctx.drawRect(x, y, w, h, Color(15, 15, 15, 200))
         val color = if (searchHandler.listening) Style.accentColor else Color(255, 255, 255, 30)
@@ -309,22 +266,13 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
 
     override fun mouseReleased(event: MouseButtonEvent): Boolean {
         draggingId = null
-        draggingScrollbar = false
+        scroll.mouseReleased()
         searchHandler.mouseReleased()
         return super.mouseReleased(event)
     }
 
     override fun mouseScrolled(mx: Double, my: Double, h: Double, v: Double): Boolean {
-        val viewH = WINDOW_HEIGHT - 70f
-        val totalHeight = filteredItems.size * ENTRY_HEIGHT
-        val maxScroll = (totalHeight - viewH).coerceAtLeast(0f)
-
-        if (maxScroll > 0) {
-            scrollTarget += (v * ENTRY_HEIGHT * 2).toFloat()
-            scrollTarget = scrollTarget.coerceIn(- maxScroll, 0f)
-        }
-        else scrollTarget = 0f
-
+        scroll.scroll((v * ENTRY_HEIGHT * 2).toFloat())
         return true
     }
 

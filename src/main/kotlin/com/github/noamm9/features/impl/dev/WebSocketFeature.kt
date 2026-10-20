@@ -24,7 +24,7 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonParser
 import com.mojang.brigadier.arguments.StringArgumentType
 
-object FEAT_WebSocket: Feature(name = "WebSocket", toggled = true), ICommandProvider {
+object WebSocketFeature: Feature(name = "WebSocket", toggled = true), ICommandProvider {
     private val mutedPartyChat by ToggleSetting("Muted Party Chat", true).withDescription("Sends party messages through the WebSocket when Hypixel chat is muted during a dungeon.")
     private val partyChatPrefixes = listOf("pc ", "party chat ", "p chat ")
     @Volatile private var pendingChatMessage: String? = null

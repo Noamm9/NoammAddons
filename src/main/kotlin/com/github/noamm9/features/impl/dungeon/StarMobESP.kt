@@ -33,6 +33,7 @@ object StarMobESP: Feature(
     private val felColor by ColorSetting("Fel Color", Color.PINK, false).withDescription("The color used for fels.")
     private val batColor by ColorSetting("Bat Color", Color.GREEN, false).withDescription("The color used for highlighted bats.").showIf { espBats.value }
 
+    private val batHealths = setOf(100f, 200f, 400f, 800f)
     private val starMobs = HashSet<Int>()
     private val checked = HashSet<Int>()
 
@@ -77,9 +78,10 @@ object StarMobESP: Feature(
                 return@register
             }
 
-            if (espBats.value && event.entity is Bat && ! event.entity.isInvisible && ! event.entity.isPassenger) {
-                event.color = batColor.value
-            }
+            if (! espBats.value) return@register
+            if (event.entity !is Bat) return@register
+            if (event.entity.maxHealth !in batHealths) return@register
+            event.color = batColor.value
         }
     }
 

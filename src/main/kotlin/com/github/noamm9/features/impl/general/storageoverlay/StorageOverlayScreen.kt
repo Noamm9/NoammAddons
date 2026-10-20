@@ -10,6 +10,7 @@ import com.github.noamm9.features.impl.general.*
 import com.github.noamm9.features.impl.misc.InventorySearch
 import com.github.noamm9.mixin.IAbstractContainerScreen
 import com.github.noamm9.ui.utils.Resolution
+import com.github.noamm9.ui.utils.ScrollState
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.ItemRenderer
@@ -49,7 +50,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         const val PLAYER_HEIGHT = SLOT_SIZE * 4 + 18
 
         var lastRenderedInnerHeight = 0
-        var scroll: Float = 0f
+        val scroll = ScrollState(duration = 100, fixedThumbHeight = SCROLL_BAR_HEIGHT.toFloat())
     }
 
     private val menuBackgroundColor = Color(24, 24, 27)
@@ -63,7 +64,6 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
     var isExiting = false
     private var pageWidthCount = StorageOverlay.columnsSetting.value
-    private var knobGrabbed = false
     private var hoveredOverlayItem: ItemStack? = null
     private var editingPage: StoragePage? = null
     private var nameInput: EditBox? = null
@@ -107,11 +107,12 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     override fun init() {
         super.init()
         val oldMax = maxScroll
-        val scrollPct = if (oldMax > 0) scroll / oldMax else 0f
+        val scrollPct = if (oldMax > 0) scroll.target / oldMax else 0f
         pageWidthCount = StorageOverlay.columnsSetting.value.coerceAtMost((width - PADDING) / (PAGE_WIDTH + PADDING)).coerceAtLeast(1)
         measurements = Measurements()
         val newMax = maxScroll
-        scroll = (if (measurementsValid) scrollPct * newMax else scroll).coerceIn(0f, newMax)
+        updateScroll()
+        if (measurementsValid && newMax != oldMax) scroll.scrollTo(scrollPct * newMax, true)
         measurementsValid = true
     }
 
@@ -125,7 +126,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             y += rowH
         }
         if (center < 0) return
-        scroll = center.coerceIn(0f, (y + 6f - scrollPanelH).coerceAtLeast(0f))
+        scroll.scrollTo(center.coerceIn(0f, (y + 6f - scrollPanelH).coerceAtLeast(0f)), true)
         pendingCenterPage = null
     }
 
@@ -182,13 +183,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         disableScissor()
     }
 
-    private fun GuiGraphicsExtractor.drawScrollBar() {
-        this.drawRect(scrollBarX, scrollBarY, SCROLL_BAR_WIDTH, scrollBarH, scrollBgColor)
-        val maxScroll = maxScroll
-        val percentage = if (maxScroll > 0) scroll / maxScroll else 0f
-        val knobY = scrollBarY + (percentage * (scrollBarH - SCROLL_BAR_HEIGHT)).toInt()
-        this.drawRect(scrollBarX, knobY, SCROLL_BAR_WIDTH, SCROLL_BAR_HEIGHT, scrollKnobColor)
-    }
+    private fun updateScroll() = scroll.update(lastRenderedInnerHeight + 6f, scrollPanelH.toFloat())
 
     private fun getPlayerInvSlotPos(index: Int): Pair<Int, Int> {
         val slotsWidth = 9 * SLOT_SIZE
@@ -238,7 +233,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             val isSlotHovered = inRect(mouseX, mouseY, sx - 1, sy - 1, 16 + 2, 16 + 2)
 
             if (! renderStack.isEmpty) {
-                if (FEAT_ItemRarity.enabled) FEAT_ItemRarity.onSlotDraw(this, renderStack, sx, sy)
+                if (ItemRarityFeature.enabled) ItemRarityFeature.onSlotDraw(this, renderStack, sx, sy)
                 if (InventorySearch.matches(renderStack)) {
                     this.drawRect(sx, sy, 16, 16, InventorySearch.highlightColor.value)
                 }
@@ -318,7 +313,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             val isSlotHovered = inRect(mouseX, mouseY, slotX - 1, slotY - 1, 16 + 2, 16 + 2) && inRect(mouseX, mouseY, panelX, panelY, panelW, panelH)
 
             if (! renderStack.isEmpty) {
-                if (FEAT_ItemRarity.enabled) FEAT_ItemRarity.onSlotDraw(this, renderStack, slotX, slotY)
+                if (ItemRarityFeature.enabled) ItemRarityFeature.onSlotDraw(this, renderStack, slotX, slotY)
                 if (InventorySearch.matches(renderStack)) {
                     this.drawRect(slotX, slotY, 16, 16, InventorySearch.highlightColor.value)
                 }
@@ -425,11 +420,11 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         lastRenderedInnerHeight = data.entries
             .chunked(pageWidthCount)
             .sumOf { row -> row.maxOf { (_, inventory) -> inventory?.let { it.rows * SLOT_SIZE + 6 + font.lineHeight } ?: 18 } }
-        scroll = scroll.coerceIn(0f, maxScroll)
+        updateScroll()
     }
 
     private inline fun layoutedForEach(data: SortedMap<StoragePage, NBTInventory?>, func: (x: Int, y: Int, pageWidth: Int, pageHeight: Int, page: StoragePage, inventory: NBTInventory?) -> Unit) {
-        var yOffset = - scroll.toInt()
+        var yOffset = - scroll.value.toInt()
         var xOffset = 0
         var maxHeight = 0
         for ((page, inventory) in data.entries) {
@@ -445,7 +440,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
                 maxHeight = 0
             }
         }
-        lastRenderedInnerHeight = maxHeight + yOffset + scroll.toInt()
+        lastRenderedInnerHeight = maxHeight + yOffset + scroll.value.toInt()
     }
 
     private fun activePageSlotAt(mouseX: Double, mouseY: Double, activePage: StoragePage, data: SortedMap<StoragePage, NBTInventory?>): Slot? {
@@ -539,8 +534,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             return true
         }
 
-        val speed = verticalAmount * StorageOverlay.scrollSpeedSetting.value * - 1
-        scroll = (scroll + speed.toFloat()).coerceAtMost(maxScroll).coerceAtLeast(0f)
+        scroll.scroll((verticalAmount * StorageOverlay.scrollSpeedSetting.value).toFloat())
         return true
     }
 
@@ -604,12 +598,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             return false
         }
 
-        if (inRect(resolutionMouseX, resolutionMouseY, scrollBarX, scrollBarY, SCROLL_BAR_WIDTH, scrollBarH)) {
-            val percentage = ((resolutionMouseY - scrollBarY) / scrollBarH.toDouble()).coerceIn(0.0, 1.0)
-            scroll = (maxScroll * percentage).toFloat()
-            knobGrabbed = true
-            return true
-        }
+        if (button == 0 && scroll.mouseClicked(resolutionMouseX.toFloat(), resolutionMouseY.toFloat())) return true
 
         val playerSlot = playerSlotAt(resolutionMouseX.toInt(), resolutionMouseY.toInt()) ?: return false
         return dispatchSlotClick(playerSlot, button, modifiers)
@@ -625,8 +614,8 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             dragStartSlot = null
             return true
         }
-        if (! knobGrabbed) return false
-        knobGrabbed = false
+        if (! scroll.dragging) return false
+        scroll.mouseReleased()
         return true
     }
 
@@ -639,10 +628,9 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
             resolveSlotUnder(rx, ry, activePage)?.let { dragSlots.add(it.index) }
             return true
         }
-        if (! knobGrabbed) return false
+        if (! scroll.dragging) return false
         val scale = StorageOverlay.scaleSetting.value
-        val percentage = ((Resolution.getMouseY(mouseY) / scale - scrollBarY) / scrollBarH.toDouble()).coerceIn(0.0, 1.0)
-        scroll = (maxScroll * percentage).toFloat()
+        scroll.mouseDragged(Resolution.getMouseY(mouseY) / scale)
         return true
     }
 
@@ -675,9 +663,10 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val data = visibleStorageData(activeSlot, chestSlots)
         if (shouldFilterPages) updateLayoutHeight(data)
         pendingCenterPage?.let { centerOnPage(it, data) }
+        updateScroll()
 
         context.drawPages(data, scaledMouseX, scaledMouseY, activeSlot, chestSlots, mouseX, mouseY)
-        context.drawScrollBar()
+        scroll.drawScrollbar(context, scrollBarX.toFloat(), scrollBarY.toFloat(), SCROLL_BAR_WIDTH.toFloat(), scrollBarH.toFloat(), scaledMouseX.toFloat(), scaledMouseY.toFloat(), scrollBgColor, scrollKnobColor)
         context.drawPlayerInventory(scaledMouseX, scaledMouseY, mouseX, mouseY)
 
         context.drawPagesDecorations(data, activeSlot, chestSlots)
@@ -716,7 +705,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
 
     fun onContainerClose() {
         saveEditingName()
-        if (! StorageOverlay.retainScrollSetting.value) scroll = 0f
+        if (! StorageOverlay.retainScrollSetting.value) scroll.reset()
         dragStartSlot = null
         dragSlots.clear()
         isExiting = true

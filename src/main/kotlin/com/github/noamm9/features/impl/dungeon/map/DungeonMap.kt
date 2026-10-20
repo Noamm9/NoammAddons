@@ -21,7 +21,7 @@ object DungeonMap: Feature() {
             if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
 
             val mimicRoom = DungeonScanner.mimicRoom
-            if (MapConfig.mimicEsp.value && ! ScoreCalculation.mimicKilled && mimicRoom != null) {
+            if (MapConfig.mimicEsp.value && ! ScoreTracker.mimicKilled && mimicRoom != null) {
                 for (chestPos in mimicRoom.trappedChestPositions) {
                     if (! WorldUtils.getStateAt(chestPos).`is`(Blocks.TRAPPED_CHEST)) continue
                     if (mimicRoom.secretCoords[SecretType.CHEST]?.any { it == chestPos } != true) continue

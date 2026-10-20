@@ -10,10 +10,10 @@ import com.github.noamm9.ui.clickgui.components.settings.WidgetFactory
 import com.github.noamm9.ui.clickgui.components.settings.impl.CategoryWidget
 import com.github.noamm9.ui.clickgui.components.settings.impl.SeparatorWidget
 import com.github.noamm9.ui.clickgui.enums.WindowClickAction
-import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.ui.utils.MouseHelper
 import com.github.noamm9.ui.utils.ResizeCorner
 import com.github.noamm9.ui.utils.Resolution
+import com.github.noamm9.ui.utils.ScrollState
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.render.Render2D.drawBorder
@@ -42,9 +42,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
     private var height = startHeight
 
     private var visibleWidgets = emptyList<Widget<*>>()
-    private val scrollAnim = Animation(200L)
-    private var scrollTarget = 0f
-    private var maxScroll = 0f
+    private val scroll = ScrollState(minThumbHeight = 18f)
 
     val settings = buildList {
         val widgets = feature.configSettings.mapNotNull(WidgetFactory::fromSetting)
@@ -71,14 +69,6 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
     var dragging = false
     private var dragOffsetX = 0f
     private var dragOffsetY = 0f
-
-    private var scrollbarDragging = false
-    private var scrollbarDragStartY = 0f
-    private var scrollbarDragStartScroll = 0f
-    private var scrollbarX = 0f
-    private var scrollbarThumbY = 0f
-    private var scrollbarThumbH = 0f
-    private var scrollbarViewportH = 0f
 
     private var resizeCorner = ResizeCorner.NONE
     private var interactionStartMouseX = 0f
@@ -122,21 +112,14 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         val totalContentHeight = if (visibleWidgets.isEmpty()) 0f
         else visibleWidgets.sumOf { it.height }.toFloat() + ((visibleWidgets.size - 1) * settingSpacing)
 
+        scroll.update(totalContentHeight, viewportHeight)
 
-        maxScroll = (totalContentHeight - viewportHeight).coerceAtLeast(0f)
-        scrollTarget = scrollTarget.coerceIn(0f, maxScroll)
-        scrollAnim.update(scrollTarget)
-
-        if (scrollAnim.value > maxScroll) {
-            scrollAnim.set(maxScroll)
-        }
-
-        val scrollbarReserve = if (maxScroll > 0f) 6f else 0f
+        val scrollbarReserve = if (scroll.canScroll) 6f else 0f
         val settingWidth = (viewportWidth - scrollbarReserve).toInt().coerceAtLeast(120)
 
         context.enableScissor(contentLeft.toInt(), contentTop.toInt(), contentRight.toInt(), contentBottom.toInt())
 
-        var currentY = contentTop - scrollAnim.value
+        var currentY = contentTop - scroll.value
 
         visibleWidgets.forEach { setting ->
             setting.x = contentLeft.toInt()
@@ -167,21 +150,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
 
         context.disableScissor()
 
-        if (maxScroll > 0f && totalContentHeight > 0f) {
-            val barWidth = 2f
-            val barX = contentRight - barWidth
-            val thumbHeight = ((viewportHeight / totalContentHeight) * viewportHeight).coerceAtLeast(18f)
-            val thumbTravel = (viewportHeight - thumbHeight).coerceAtLeast(0f)
-            val thumbY = contentTop + ((scrollAnim.value / maxScroll) * thumbTravel)
-
-            scrollbarX = barX
-            scrollbarThumbY = thumbY
-            scrollbarThumbH = thumbHeight
-            scrollbarViewportH = viewportHeight
-
-            context.drawRect(barX, contentTop, barWidth, viewportHeight, Color(255, 255, 255, 15))
-            context.drawRect(barX, thumbY, barWidth, thumbHeight, Style.accentColor.withAlpha(if (focused) 180 else 140))
-        }
+        scroll.drawScrollbar(context, contentRight - 2f, contentTop, 2f, viewportHeight, mx, my)
     }
 
     fun mouseClicked(mouseX: Int, mouseY: Int, button: Int): WindowClickAction {
@@ -207,24 +176,8 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
             }
         }
 
-        if (button == InputConstants.MOUSE_BUTTON_LEFT && maxScroll > 0f) {
-            val barX = scrollbarX
-            val hitWidth = 8f
-            if (mx >= barX - 3f && mx <= barX + hitWidth && my >= contentTop && my <= contentBottom) {
-                if (my >= scrollbarThumbY && my <= scrollbarThumbY + scrollbarThumbH) {
-                    scrollbarDragging = true
-                    scrollbarDragStartY = my
-                    scrollbarDragStartScroll = scrollTarget
-                }
-                else {
-                    val thumbTravel = (scrollbarViewportH - scrollbarThumbH).coerceAtLeast(0f)
-                    if (thumbTravel > 0f) {
-                        val ratio = ((my - contentTop - scrollbarThumbH / 2f) / thumbTravel).coerceIn(0f, 1f)
-                        scrollTarget = ratio * maxScroll
-                    }
-                }
-                return WindowClickAction.CONSUMED
-            }
+        if (button == InputConstants.MOUSE_BUTTON_LEFT && scroll.mouseClicked(mx, my)) {
+            return WindowClickAction.CONSUMED
         }
 
         if (isInsideContent(mx, my)) {
@@ -244,7 +197,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         if (button == InputConstants.MOUSE_BUTTON_LEFT) {
             dragging = false
             resizeCorner = ResizeCorner.NONE
-            scrollbarDragging = false
+            scroll.mouseReleased()
         }
 
         visibleWidgets.forEach { it.mouseReleased(button) }
@@ -259,7 +212,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
 
         if (contains(mouseX.toFloat(), mouseY.toFloat())) {
             if (isInsideContent(mouseX.toFloat(), mouseY.toFloat())) {
-                scrollTarget = (scrollTarget - (delta * 30).toFloat()).coerceIn(0f, maxScroll)
+                scroll.scroll((delta * 30).toFloat())
             }
             return true
         }
@@ -296,7 +249,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         val index = visible.indexOf(widget)
         val offset = visible.take(index).sumOf { it.height } + (index * settingSpacing)
 
-        scrollTarget = (offset - 40f).coerceAtLeast(0f)
+        scroll.scrollTo(offset - 40f)
         highlightedWidget = widget
         highlightStart = System.currentTimeMillis() + 150
     }
@@ -318,15 +271,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
     }
 
     private fun updateInteraction(mouseX: Float, mouseY: Float) {
-        if (scrollbarDragging) {
-            val thumbTravel = (scrollbarViewportH - scrollbarThumbH).coerceAtLeast(0f)
-            if (thumbTravel > 0f) {
-                val delta = mouseY - scrollbarDragStartY
-                val newScroll = (scrollbarDragStartScroll + (delta / thumbTravel) * maxScroll).coerceIn(0f, maxScroll)
-                scrollTarget = newScroll
-                scrollAnim.set(newScroll)
-            }
-        }
+        scroll.mouseDragged(mouseY)
 
         if (dragging) {
             x = (mouseX - dragOffsetX).coerceIn(0f, (Resolution.width - width).coerceAtLeast(0f))

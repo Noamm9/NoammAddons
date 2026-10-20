@@ -61,7 +61,7 @@ object DungeonScanner: ISelfInit {
 
             if (System.currentTimeMillis() - lastScanTime >= 250) scan()
 
-            if (ScoreCalculation.mimicKilled) return@register
+            if (ScoreTracker.mimicKilled) return@register
             if (mimicRoom != null) return@register
             if (floor < 6) return@register
 

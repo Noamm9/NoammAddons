@@ -5,7 +5,7 @@ import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.features.Shortcuts
-import com.github.noamm9.features.impl.dev.FEAT_WebSocket
+import com.github.noamm9.features.impl.dev.WebSocketFeature
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.mixin.IServerboundMovePlayerPacket
 import com.github.noamm9.utils.ChatUtils.removeFormatting
@@ -54,7 +54,7 @@ object LocationUtils: ISelfInit, Shortcuts {
                     dungeonFloor = text.substringAfter("(").substringBefore(")")
                     dungeonFloorNumber = dungeonFloor?.lastOrNull()?.digitToIntOrNull() ?: 0
 
-                    FEAT_WebSocket.sendDungeonInfo()
+                    WebSocketFeature.sendDungeonInfo()
                 }
             }
             else if (event.packet is ClientboundSetObjectivePacket) {
