@@ -18,7 +18,7 @@ import net.minecraft.world.item.ItemStack
 /**
  * @see com.github.noamm9.mixin.MixinGui
  */
-object FEAT_ItemRarity: Feature(name = "Item Rarity", description = "Draws the rarity of item behind the slot.") {
+object ItemRarityFeature: Feature(name = "Item Rarity", description = "Draws the rarity of item behind the slot.") {
     @JvmStatic val drawOnHotbar by ToggleSetting("Draw on Hotbar", true)
     private val rarityOpacity by SliderSetting("Rarity Opacity", 30f, 10f, 100f, 1f)
     private val style by DropdownSetting("Rarity Style", 0, listOf("Filled", "Outline", "Filled Outline", "Circle"))
