@@ -1,19 +1,18 @@
 package com.github.noamm9.utils.dungeons.map.handlers
 
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
-import com.github.noamm9.features.impl.dungeon.ScoreCalculator
 import com.github.noamm9.init.RemoteFeatures
 import com.github.noamm9.init.types.ISelfInit
-import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
+import com.github.noamm9.utils.containsOneOf
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.DungeonUtils
 import com.github.noamm9.utils.dungeons.map.core.RoomState
+import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.websocket.WebSocket
 import com.github.noamm9.websocket.WebSocketPacket
@@ -27,7 +26,7 @@ import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.reflect.KMutableProperty0
 
-object ScoreCalculation: ISelfInit {
+object ScoreTracker: ISelfInit {
     private val secretsFoundPattern = Regex(" Secrets Found: §b(?<secrets>\\d+)")
     private val secretsFoundPercentagePattern = Regex(" Secrets Found: §[ae](?<percentage>[\\d.]+)%")
     private val cryptsPattern = Regex(" Crypts: §6(?<crypts>\\d+)")
@@ -36,7 +35,7 @@ object ScoreCalculation: ISelfInit {
     private val timeElapsedPattern = Regex(" Elapsed: (?:(?<hrs>\\d+)h )?(?:(?<min>\\d+)m )?(?:(?<sec>\\d+)s)?")
     private val mimicCharmRegex = Regex("charm you charmed a mimic and captured \\d+ shards from it\\.")
     private val partyChatRegex = Regex("^party > (?:\\[[^]]+] )?(?<name>\\w+): (?<message>.+)$")
-    private val maxBats = RemoteFeatures.getFeature(ScoreCalculation::class.simpleName)["maxBats"]?.asInt ?: 1
+    private val maxBats = RemoteFeatures.getFeature("ScoreCalculation")["maxBats"]?.asInt ?: 1
 
     private var bloodDone = false
     private var secretPercentage = 0.0
@@ -154,7 +153,7 @@ object ScoreCalculation: ISelfInit {
                     if (packet.eventId.toInt() != 3) return@register
                     if ((LocationUtils.dungeonFloorNumber ?: 0) < 6 || LocationUtils.inBoss) return@register
                     if ((packet.getEntity(mc.level !!) as? Zombie)?.isBaby != true) return@register
-                    ::mimicKilled.onKill(S2CPacketDungeonMimic, ScoreCalculator.sendMimic, "Mimic Killed")
+                    ::mimicKilled.onKill(S2CPacketDungeonMimic, DungeonEvent.MimicKilled)
                 }
 
                 is ClientboundSystemChatPacket -> {
@@ -163,7 +162,7 @@ object ScoreCalculation: ISelfInit {
 
                     if (! princeKilled) {
                         if (msg == "a prince falls. +1 bonus score") {
-                            ::princeKilled.onKill(S2CPacketDungeonPrince, ScoreCalculator.sendPrince, "Prince Killed")
+                            ::princeKilled.onKill(S2CPacketDungeonPrince, DungeonEvent.PrinceKilled)
                         }
                         else if (princeMessages.any { msg.contains(it) }) {
                             princeKilled = true
@@ -172,7 +171,7 @@ object ScoreCalculation: ISelfInit {
 
                     if (! mimicKilled && (LocationUtils.dungeonFloorNumber ?: 0) > 5 && ! LocationUtils.inBoss) {
                         if (mimicCharmRegex.matches(msg) || msg == "charm you charmed a mimic and captured its shard.") {
-                            ::mimicKilled.onKill(S2CPacketDungeonMimic, ScoreCalculator.sendMimic, "Mimic Killed")
+                            ::mimicKilled.onKill(S2CPacketDungeonMimic, DungeonEvent.MimicKilled)
                         }
                         else if (mimicMessages.any { msg.contains(it) }) {
                             mimicKilled = true
@@ -181,7 +180,7 @@ object ScoreCalculation: ISelfInit {
 
                     if (msg == "a bat has been slain. +1 bonus score" && batKillers.size < maxBats) {
                         if (batKillers.add(mc.user.name.lowercase())) {
-                            ::batKilled.onKill(S2CPacketDungeonBat, ScoreCalculator.sendBat, "Bat Killed")
+                            ::batKilled.onKill(S2CPacketDungeonBat, DungeonEvent.BatKilled)
                         }
                     }
                     else partyChatRegex.matchEntire(msg)?.let { match ->
@@ -190,18 +189,19 @@ object ScoreCalculation: ISelfInit {
                         val message = match.groups["message"]?.value ?: return@let
                         if (sender.equals(mc.user.name, true)) return@let
                         if (batMessages.none(message::contains)) return@let
-                        batKilled = true
                         batKillers.add(sender.lowercase())
+                        batKilled = true
                     }
                 }
             }
         }
     }
 
-    private fun KMutableProperty0<Boolean>.onKill(packet: WebSocketPacket, setting: ToggleSetting, message: String) {
-        if (DungeonListener.dungeonTeammatesNoSelf.isNotEmpty()) WebSocket.send(packet)
-        if (ScoreCalculator.enabled && setting.value) ChatUtils.sendPartyMessage(message)
+    private fun KMutableProperty0<Boolean>.onKill(packet: WebSocketPacket, event: DungeonEvent) {
+        if (get()) return
         set(true)
+        if (DungeonListener.dungeonTeammatesNoSelf.isNotEmpty()) WebSocket.send(packet)
+        EventBus.post(event)
     }
 
     private fun recalculate() {

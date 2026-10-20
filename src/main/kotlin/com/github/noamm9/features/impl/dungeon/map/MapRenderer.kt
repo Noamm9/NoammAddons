@@ -65,14 +65,14 @@ object MapRenderer: HudElement() {
         if (! MapConfig.mapExtraInfo.value) return
         if (! MapConfig.dungeonMapCheater.value && ! DungeonListener.dungeonStarted) return
 
-        val secretsStr = "&6Secrets: &b${ScoreCalculation.foundSecrets}&f/&b${ScoreCalculation.secretsUntil300}&f/&e${DungeonScanner.secretCount}"
-        val cryptsStr = colorCodeByPercent(ScoreCalculation.cryptsCount, 6) + "C${ScoreCalculation.cryptsCount}"
-        val batsStr = (if (ScoreCalculation.batCount > 0) "&aB" else "&cB") + ScoreCalculation.batCount
-        val scoreStr = "&eScore: ${colorizeScore(ScoreCalculation.score)}&r"
-        val deathsStr = "&cDeaths: ${colorCodeByPercent(ScoreCalculation.deathCount, 4, true)}${ScoreCalculation.deathCount}&r"
+        val secretsStr = "&6Secrets: &b${ScoreTracker.foundSecrets}&f/&b${ScoreTracker.secretsUntil300}&f/&e${DungeonScanner.secretCount}"
+        val cryptsStr = colorCodeByPercent(ScoreTracker.cryptsCount, 6) + "C${ScoreTracker.cryptsCount}"
+        val batsStr = (if (ScoreTracker.batCount > 0) "&aB" else "&cB") + ScoreTracker.batCount
+        val scoreStr = "&eScore: ${colorizeScore(ScoreTracker.score)}&r"
+        val deathsStr = "&cDeaths: ${colorCodeByPercent(ScoreTracker.deathCount, 4, true)}${ScoreTracker.deathCount}&r"
         val bonusStr = buildString {
-            append(if (ScoreCalculation.mimicKilled) "&aM &f| " else "&cM &f| ")
-            append(if (ScoreCalculation.princeKilled) "&aP" else "&cP")
+            append(if (ScoreTracker.mimicKilled) "&aM &f| " else "&cM &f| ")
+            append(if (ScoreTracker.princeKilled) "&aP" else "&cP")
         }
 
         val line1 = "$secretsStr    $cryptsStr &f| $batsStr"

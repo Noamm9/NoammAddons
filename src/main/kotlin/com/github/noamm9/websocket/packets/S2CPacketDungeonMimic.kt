@@ -1,8 +1,8 @@
 package com.github.noamm9.websocket.packets
 
-import com.github.noamm9.utils.dungeons.map.handlers.ScoreCalculation
+import com.github.noamm9.utils.dungeons.map.handlers.ScoreTracker
 import com.github.noamm9.websocket.WebSocketPacket
 
 object S2CPacketDungeonMimic: WebSocketPacket {
-    override fun handle() = ScoreCalculation::mimicKilled.set(true)
+    override fun handle() = ScoreTracker::mimicKilled.set(true)
 }
