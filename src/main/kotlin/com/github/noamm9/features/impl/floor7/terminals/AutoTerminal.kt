@@ -27,7 +27,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     private val melodyFcDelay by ToggleSetting("First Click Delay", true).showIf { autoMelody.value }
     private val melodySkip by ToggleSetting("Melody Skip").showIf { autoMelody.value }
     private val melodySkipMode by DropdownSetting("Skip Mode", 0, listOf("Edges", "All")).showIf { autoMelody.value && melodySkip.value }
-    private val melodySkipFirstRow by ToggleSetting("&cSkip First Row").showIf { autoMelody.value && melodySkip.value }
+    private val melodySkipFirstRow by ToggleSetting("Skip First Row").showIf { autoMelody.value && melodySkip.value }
 
     private val autoNumbers by ToggleSetting("Numbers", true).section("Terminals")
     private val autoColors by ToggleSetting("Colors", true)

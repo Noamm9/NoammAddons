@@ -23,6 +23,8 @@ import com.mojang.authlib.properties.PropertyMap
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.HoverEvent
+import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
+import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
@@ -40,6 +42,7 @@ object PetUtils: ISelfInit {
     private val colorCodePattern = Regex("§[0-9a-f]")
     private val loadoutsPetRegex = Regex("\\[Lvl (\\d+)] (.+)$")
     private val loadoutSlots = setOf(14, 15, 16, 23, 24, 25, 32, 33, 34, 41, 42, 43)
+    private var loadoutId: Int? = null
 
     private const val cache_version = 1
     private val petCache = PogObject("petsCache", PetCache(cache_version))
@@ -154,7 +157,8 @@ object PetUtils: ISelfInit {
             if (event.clickType != ContainerInput.PICKUP) return@register
             if (event.slotId !in loadoutSlots) return@register
             if (! event.screen.title.unformattedText.endsWith(") Loadouts")) return@register
-            mc.player?.containerMenu?.items[event.slotId]?.lore?.find { it.startsWith("§7Pet: ") }?.let {
+            loadoutId = event.screen.menu.containerId
+            event.screen.menu.items[event.slotId].lore.find { it.startsWith("§7Pet: ") }?.let {
                 val match = loadoutsPetRegex.find(it)?.destructured ?: return@let
                 val level = match.component1().toIntOrNull()
                 var name = match.component2()
@@ -165,6 +169,33 @@ object PetUtils: ISelfInit {
                 clickedPet = null
                 changePet(resolvePet(name, level, rarity, hasCustomSkin), PetEvent.Cause.MENU)
             }
+        }
+
+        EventBus.register<MainThreadPacketReceivedEvent.Pre> {
+            val packet = event.packet as? ClientboundOpenScreenPacket ?: return@register
+            if (! packet.title.unformattedText.endsWith(") Loadouts")) return@register
+            loadoutId = packet.containerId
+        }
+
+        EventBus.register<MainThreadPacketReceivedEvent.Pre> {
+            val packet = event.packet as? ClientboundContainerSetSlotPacket ?: return@register
+            if (packet.containerId != loadoutId) return@register
+            if (packet.slot != 21) return@register
+            val pet = packet.item.pet() ?: return@register
+            if (pet.uuid == null) return@register
+
+            ChatUtils.debug("pet", "updated from slot 21: ${pet.name}")
+
+            val current = currentPet
+
+            when {
+                current == null -> changePet(pet, PetEvent.Cause.MENU)
+                current.uuid == null && current.matches(pet.name) -> updatePet(current.merge(pet))
+                current.uuid != pet.uuid -> changePet(pet, PetEvent.Cause.MENU)
+                else -> updatePet(current.merge(pet))
+            }
+
+            loadoutId = null
         }
 
         EventBus.register<WorldChangeEvent> { clickedPet = null }

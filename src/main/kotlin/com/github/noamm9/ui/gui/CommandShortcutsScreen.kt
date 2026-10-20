@@ -2,13 +2,10 @@
 
 package com.github.noamm9.ui.gui
 
-import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.features.impl.general.CommandShortcuts
 import com.github.noamm9.ui.clickgui.ClickGuiScreen
 import com.github.noamm9.ui.clickgui.components.settings.Style
-import com.github.noamm9.ui.utils.Animation
-import com.github.noamm9.ui.utils.Resolution
-import com.github.noamm9.ui.utils.TextInputHandler
+import com.github.noamm9.ui.utils.*
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
@@ -17,14 +14,10 @@ import com.github.noamm9.utils.render.Render2D.scissor
 import gg.essential.universal.UKeyboard
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
-import net.minecraft.client.input.CharacterEvent
-import net.minecraft.client.input.KeyEvent
-import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.client.input.*
 import net.minecraft.network.chat.Component
 import java.awt.Color
-import kotlin.math.ceil
-import kotlin.math.max
-import kotlin.math.min
+import kotlin.math.*
 
 class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
     private class Row(var command: String, var replacement: String) {
@@ -34,8 +27,7 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
 
     private val rows = CommandShortcuts.shortcuts.get().map { (command, replacement) -> Row(command, replacement) }.toMutableList()
 
-    private var scrollTarget = 0f
-    private val scrollAnim = Animation(200L)
+    private val scroll = ScrollState()
 
     private val panelW = 450f
     private val panelH = 250f
@@ -68,34 +60,27 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
         graphics.drawRect(x, y, panelW, 2f, Style.accentColor)
         graphics.drawCenteredString("§lCommand Shortcuts", x + panelW / 2, y + 8)
 
-        val totalHeight = rows.size * entryHeight
-        val maxScroll = (totalHeight - viewH).coerceAtLeast(0f)
-        scrollTarget = scrollTarget.coerceIn(- maxScroll, 0f)
-        scrollAnim.update(scrollTarget)
-        val currentScroll = scrollAnim.value
+        scroll.update(rows.size * entryHeight, viewH)
+        scroll.mouseDragged(mY)
+        val currentScroll = scroll.value
 
         graphics.scissor(viewX, viewY, viewW, viewH)
 
         if (rows.isEmpty()) graphics.drawCenteredString("§8No command shortcuts yet :(", x + panelW / 2, viewY + viewH / 2 - 4)
 
-        val startIndex = max(0, (- currentScroll / entryHeight).toInt())
+        val startIndex = max(0, (currentScroll / entryHeight).toInt())
         val endIndex = min(rows.size, startIndex + ceil(viewH / entryHeight).toInt() + 1)
 
         for (index in startIndex until endIndex) {
             val row = rows[index]
-            val rowY = viewY + currentScroll + (index * entryHeight)
+            val rowY = viewY - currentScroll + (index * entryHeight)
             positionRow(row, viewX, rowY)
             drawRow(graphics, row, viewX, rowY, mX, mY)
         }
 
         graphics.disableScissor()
 
-        if (maxScroll > 0) {
-            val thumbHeight = 20f.coerceAtLeast((viewH / totalHeight) * viewH)
-            val thumbY = viewY + (- currentScroll / maxScroll) * (viewH - thumbHeight)
-            graphics.drawRect(x + panelW - 4, viewY, 2f, viewH, Color(255, 255, 255, 15))
-            graphics.drawRect(x + panelW - 4, thumbY, 2f, thumbHeight, Style.accentColor)
-        }
+        scroll.drawScrollbar(graphics, x + panelW - 4, viewY, 2f, viewH, mX, mY)
 
         val btnX = x + (panelW / 2) - (addBtnW / 2)
         val btnY = y + panelH - 30
@@ -148,15 +133,17 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
         val btnY = panelY + panelH - 30
         if (mx >= btnX && mx <= btnX + addBtnW && my >= btnY && my <= btnY + addBtnH) {
             rows.add(Row("", ""))
-            scrollTarget = - (rows.size * entryHeight - viewH).coerceAtLeast(0f)
+            scroll.scrollTo(rows.size * entryHeight - viewH)
             Style.playClickSound(1f)
             return true
         }
 
+        if (event.button() == 0 && scroll.mouseClicked(mx, my)) return true
+
         val inView = mx >= viewX && mx <= viewX + viewW && my >= viewY && my <= viewY + viewH
 
         if (inView) rows.forEachIndexed { index, _ ->
-            val rowY = viewY + scrollAnim.value + (index * entryHeight)
+            val rowY = viewY - scroll.value + (index * entryHeight)
             val delX = deleteX(viewX)
             if (mx >= delX && mx <= delX + deleteWidth && my >= rowY && my <= rowY + entryHeight) {
                 rows.removeAt(index)
@@ -165,7 +152,7 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
             }
         }
 
-        val firstVisible = max(0, (- scrollAnim.value / entryHeight).toInt())
+        val firstVisible = max(0, (scroll.value / entryHeight).toInt())
         val lastVisible = min(rows.size, firstVisible + ceil(viewH / entryHeight).toInt() + 1)
         var consumed = false
 
@@ -183,6 +170,7 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
     }
 
     override fun mouseReleased(event: MouseButtonEvent): Boolean {
+        scroll.mouseReleased()
         rows.forEach {
             it.commandInput.mouseReleased()
             it.replacementInput.mouseReleased()
@@ -191,15 +179,7 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
     }
 
     override fun mouseScrolled(mx: Double, my: Double, h: Double, v: Double): Boolean {
-        val totalHeight = rows.size * entryHeight
-        val maxScroll = (totalHeight - viewH).coerceAtLeast(0f)
-
-        if (maxScroll > 0) {
-            scrollTarget += (v * 44).toFloat()
-            scrollTarget = scrollTarget.coerceIn(- maxScroll, 0f)
-        }
-        else scrollTarget = 0f
-
+        scroll.scroll((v * 44).toFloat())
         return true
     }
 

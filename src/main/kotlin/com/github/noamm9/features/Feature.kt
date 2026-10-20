@@ -4,12 +4,12 @@ import com.github.noamm9.config.ConfigHolder
 import com.github.noamm9.config.SettingProvider
 import com.github.noamm9.event.*
 import com.github.noamm9.event.priority.EventPriority
-import com.github.noamm9.features.annotations.AlwaysActive
 import com.github.noamm9.init.RemoteFeatures
 import com.github.noamm9.ui.clickgui.enums.CategoryType
 import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.ui.hud.HudProvider
 import com.github.noamm9.ui.notification.NotificationManager
+import com.github.noamm9.utils.catch
 import com.github.noamm9.utils.spaceCaps
 import net.minecraft.client.gui.GuiGraphicsExtractor
 
@@ -24,7 +24,6 @@ open class Feature(
     @JvmField var enabled = toggled
     open val category = initCategory()
 
-    private val alwaysActive = this::class.java.isAnnotationPresent(AlwaysActive::class.java)
     private val remotelyDisabled get() = RemoteFeatures.isDisabled(this::class.java.simpleName)
 
     override val configSettings = mutableSetOf<ConfigHolder<*>>()
@@ -39,22 +38,18 @@ open class Feature(
             return
         }
 
-        if (enabled || alwaysActive) onEnable() else onDisable()
+        if (enabled) onEnable() else onDisable()
     }
 
     open fun init() = Unit
     open fun onEnable() = listeners.forEach(EventListener<*>::register)
-    open fun onDisable() {
-        if (alwaysActive) return
-        listeners.forEach(EventListener<*>::unregister)
-    }
+    open fun onDisable() = listeners.forEach(EventListener<*>::unregister)
 
     open fun toggle() {
         if (remotelyDisabled) return NotificationManager.push("Config GUI", "&b$name&f is temporarily disabled.")
 
         enabled = ! enabled
-        if (enabled || alwaysActive) onEnable()
-        else onDisable()
+        if (enabled) onEnable() else onDisable()
     }
 
     protected inline fun <reified T: Event> register(
@@ -84,7 +79,6 @@ open class Feature(
     private fun initCategory(): CategoryType {
         val parts = this::class.java.`package` !!.name.split(".")
         val categoryName = parts[parts.indexOf("impl") + 1].uppercase()
-        if (CategoryType.entries.none { it.name.equals(categoryName, true) }) error("Category does not exist: $categoryName")
-        return CategoryType.valueOf(categoryName.uppercase())
+        return catch { CategoryType.valueOf(categoryName) } ?: error("Category does not exist: $categoryName")
     }
 }

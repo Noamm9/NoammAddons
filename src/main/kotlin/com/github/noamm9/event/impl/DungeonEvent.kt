@@ -28,4 +28,8 @@ abstract class DungeonEvent: Event(false) {
     object BossEnterEvent: DungeonEvent()
     object RunStatedEvent: DungeonEvent()
     object RunEndedEvent: DungeonEvent()
+
+    object MimicKilled: DungeonEvent()
+    object PrinceKilled: DungeonEvent()
+    object BatKilled: DungeonEvent()
 }
