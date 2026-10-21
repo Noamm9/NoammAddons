@@ -106,7 +106,6 @@ object NetworkLoop: ISelfInit {
 
     private fun logError(context: String, throwable: Throwable) {
         logger.error("Error fetching $context", throwable)
-        throwable.printStackTrace()
     }
 
     data class BazaarPrice(val buy: Long, val sell: Long)
