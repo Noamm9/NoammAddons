@@ -3,6 +3,7 @@ package com.github.noamm9.event.impl
 import com.github.noamm9.event.Event
 import com.github.noamm9.utils.dungeons.DungeonPlayer
 import com.github.noamm9.utils.dungeons.enums.SecretType
+import com.github.noamm9.utils.dungeons.enums.TerminalSection
 import com.github.noamm9.utils.dungeons.map.core.*
 import net.minecraft.core.BlockPos
 
@@ -32,4 +33,11 @@ abstract class DungeonEvent: Event(false) {
     object MimicKilled: DungeonEvent()
     object PrinceKilled: DungeonEvent()
     object BatKilled: DungeonEvent()
+
+    abstract class TerminalStageEvent(val section: TerminalSection): DungeonEvent() {
+        class Start(section: TerminalSection): TerminalStageEvent(section)
+        class Task(section: TerminalSection, val task: TerminalSection.Task, val player: DungeonPlayer?): TerminalStageEvent(section)
+        class GateDestroyed(section: TerminalSection): TerminalStageEvent(section)
+        class End(section: TerminalSection): TerminalStageEvent(section)
+    }
 }

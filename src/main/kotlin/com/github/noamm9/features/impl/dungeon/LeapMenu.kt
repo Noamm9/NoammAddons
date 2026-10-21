@@ -11,9 +11,9 @@ import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.ColorUtils.lerp
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.MathUtils.aabb
+import com.github.noamm9.utils.dungeons.*
 import com.github.noamm9.utils.dungeons.DungeonListener.dungeonTeammatesNoSelf
-import com.github.noamm9.utils.dungeons.DungeonPlayer
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.dungeons.map.utils.MapUtils
 import com.github.noamm9.utils.location.LocationUtils
@@ -38,6 +38,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
     private val scale by SliderSetting("Menu Scale", 50f, 30, 100, 1).showIf { customLeapMenu.value }
     private val showLastDoorOpener by ToggleSetting("Show Last Door Opener", false).showIf { customLeapMenu.value }
     private val tintDeadPlayers by ToggleSetting("Tint Dead Players", true).showIf { customLeapMenu.value }
+    private val highlightInCore by ToggleSetting("Highlight Players in core", true).withDescription("Hightlights teammates in green if they are inside core in F7/M7 S3").showIf { customLeapMenu.value }
     private val leftClickOnly by ToggleSetting("Left Click Only").withDescription("Prevents leaping unless clicked with left mouse button")
 
     private val mapLeap by ToggleSetting("Map Leap", false).withDescription("Click a teammate on the dungeon map to leap to them.").showIf { customLeapMenu.value && DungeonMap.enabled && MapConfig.mapEnabled.value }
@@ -67,10 +68,18 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
     private val boxBgHover = Color(67, 67, 67)
     private val doorOpenerBg = Color(135, 135, 135)
     private val doorOpenerBgHover = Color.WHITE
+    private val inCoreColor = Color(0, 120, 0)
+    private val inCoreBox = aabb(68, 106, 54, 42, 155, 119)
 
     private fun leapBoxColor(player: DungeonPlayer, isHovered: Boolean) = when {
         showLastDoorOpener.value && DungeonListener.lastDoorOpener == player -> if (isHovered) doorOpenerBgHover else doorOpenerBg
         tintDeadPlayers.value && player.isDead -> boxBg.lerp(Color.RED, 0.2f).let { if (isHovered) it.brighter() else it }
+        highlightInCore.value && F7Listener.section.ordinal > 4 && inCoreBox.contains(
+            player.entity?.x ?: .0,
+            player.entity?.y ?: .0,
+            player.entity?.z ?: .0
+        ) -> inCoreColor
+
         else -> if (isHovered) boxBgHover else boxBg
     }
 
