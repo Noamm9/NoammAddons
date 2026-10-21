@@ -4,13 +4,13 @@ import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.utils.dungeons.DungeonListener
 
-enum class TerminalSection(val taskCount: Int) {
-    UNKNOWN(0),
-    S1(7),
-    S2(8),
-    S3(7),
-    S4(7),
-    GOLDOR(0);
+enum class TerminalSection(val taskCount: Int, val reqTerminals: Int) {
+    UNKNOWN(0, 0),
+    S1(7, 4),
+    S2(8, 5),
+    S3(7, 4),
+    S4(7, 4),
+    GOLDOR(0, 0);
 
     enum class Task { TERMINAL, DEVICE, LEVER }
 
@@ -39,7 +39,7 @@ enum class TerminalSection(val taskCount: Int) {
     val completed: Boolean get() = complatedTasks >= taskCount && gate
 
     fun process(message: String): TerminalSection {
-        REGEX_TERM_COMPLETED.find(message)?.destructured?.let { (playerName, _, typeStr, currentStr, _) ->
+        TaskCompletedRegex.find(message)?.destructured?.let { (playerName, _, typeStr, currentStr, _) ->
             val player = DungeonListener.dungeonTeammates.find { it.name.equals(playerName, true) }
             val type = Task.valueOf(typeStr.uppercase())
             complatedTasks = currentStr.toInt()
@@ -92,7 +92,7 @@ enum class TerminalSection(val taskCount: Int) {
     }
 
     companion object {
-        private val REGEX_TERM_COMPLETED = Regex("^(\\w{1,16}) (activated|completed) a (terminal|lever|device)! \\((\\d)/(\\d)\\)$")
+        private val TaskCompletedRegex = Regex("^(\\w{1,16}) (activated|completed) a (terminal|lever|device)! \\((\\d)/(\\d)\\)$")
         fun resetAll() = entries.forEach(TerminalSection::reset)
     }
 }

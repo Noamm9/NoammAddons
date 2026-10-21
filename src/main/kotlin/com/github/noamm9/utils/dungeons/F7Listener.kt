@@ -1,8 +1,11 @@
 package com.github.noamm9.utils.dungeons
 
+import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.init.types.ISelfInit
+import com.github.noamm9.utils.ThreadUtils
+import com.github.noamm9.utils.catch
 import com.github.noamm9.utils.dungeons.enums.TerminalSection
 import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
@@ -46,6 +49,18 @@ object F7Listener: ISelfInit {
             necronDead = false
             TerminalSection.resetAll()
             section = TerminalSection.UNKNOWN
+        }
+
+        EventBus.register<MessageSentEvent> {
+            if (! event.isCommand) return@register
+            if (mc.connection?.serverData?.ip?.contains("p3sim", ignoreCase = true) != true) return@register
+            val cmd = event.message.lowercase().split(" ")
+            if (cmd.size < 2) return@register
+            if (cmd[0] != "start") return@register
+            val sec = catch { TerminalSection.valueOf(cmd[1].uppercase()) } ?: return@register
+            ThreadUtils.setTimeout(3000) {
+                section = sec.start()
+            }
         }
     }
 }
