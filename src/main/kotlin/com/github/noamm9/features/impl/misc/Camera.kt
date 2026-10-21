@@ -20,14 +20,16 @@ object Camera: Feature() {
     }
 
     @JvmStatic val noFrontCamera by ToggleSetting("Disable Front Camera").withDescription("Removes the front camera perspective.").section("Camera")
+
     //#if CHEAT
     @JvmStatic val noCameraClip by ToggleSetting("Camera Clip").withDescription("Allows your camera to clip in walls.").showIf { NoammAddons.isCheat }
     @JvmStatic val customCameraDistance by ToggleSetting("Custom Camera Distance").withDescription("Sets the distance of the camera from your player.").showIf { NoammAddons.isCheat }
     @JvmStatic val cameraDistance by SliderSetting("Camera Distance", 4, 1, 10, 0.1).withDescription("The distance of the camera from the player.").showIf { customCameraDistance.value && NoammAddons.isCheat }
+
     //#else
-    //$@JvmStatic val noCameraClip by ToggleSetting("Camera Clip", false).hideIf { true }.jsonName(UUID.randomUUID().toString())
-    //$@JvmStatic val customCameraDistance by ToggleSetting("Custom Camera Distance", false).hideIf { true }.jsonName(UUID.randomUUID().toString())
-    //$@JvmStatic val cameraDistance by SliderSetting("Camera Distance", 4, 1, 10, 0.1).hideIf { true }.jsonName(UUID.randomUUID().toString())
+    //$@JvmStatic val noCameraClip by ToggleSetting("Camera Clip", false).hidden().jsonName(UUID.randomUUID().toString())
+    //$@JvmStatic val customCameraDistance by ToggleSetting("Custom Camera Distance", false).hidden().jsonName(UUID.randomUUID().toString())
+    //$@JvmStatic val cameraDistance by SliderSetting("Camera Distance", 4, 1, 10, 0.1).hidden().jsonName(UUID.randomUUID().toString())
     //#endif
     private val doubleSneakFix by ToggleSetting("Double Sneak Fix").withDescription("Prevents the server from setting your sneak state")
     @JvmStatic val inputFix by ToggleSetting("Riding Input Delay Fix").withDescription("Fixes high mouse input delay when riding an entity. (MC-206540)")
