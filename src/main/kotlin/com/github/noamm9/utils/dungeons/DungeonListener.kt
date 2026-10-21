@@ -154,7 +154,7 @@ object DungeonListener: ISelfInit {
                     dungeonStartTime = DualTime(currentTime)
                     while (thePlayer?.clazz == DungeonClass.Empty) delay(50)
                     dungeonStarted = true
-                    EventBus.post(DungeonEvent.RunStatedEvent)
+                    EventBus.post(DungeonEvent.RunStartedEvent)
                 }
 
                 else -> {
