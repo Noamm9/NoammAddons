@@ -174,13 +174,15 @@ object PlayerUtils: ISelfInit, Shortcuts {
     }
 
     suspend fun leapAction(leapTarget: DungeonPlayer) {
+        delay(2000)
+
         if (thePlayer?.isDead == true) return
         if (leapTarget.isDead) return modMessage(leapTarget.name + " is dead R.I.P!")
         val leapIndex = findHotbarSlot { it.skyblockId == "INFINITE_SPIRIT_LEAP" } ?: findHotbarSlot {
             it.skyblockId == "SPIRIT_LEAP"
         } ?: return modMessage("&cNo leap found in hotbar!")
 
-        if (! inLeapMenu) {
+        if (! inLeapMenu) return run {
             if (player.inventory.selectedSlot != leapIndex) {
                 swapToSlot(leapIndex)
                 waitTicks(2)
@@ -195,7 +197,7 @@ object PlayerUtils: ISelfInit, Shortcuts {
         LeapMenu.updateLeapMenu()
         LeapMenu.players.find { it?.player?.name == leapTarget.name }?.let { target ->
             modMessage("Leaping To: &e[${leapTarget.clazz.name[0]}] &a${leapTarget.name}")
-            GuiUtils.clickSlot(target.slotIndex, GuiUtils.ButtonType.MIDDLE)
+            GuiUtils.clickSlot(target.slotIndex, GuiUtils.ButtonType.LEFT)
             player.closeContainer()
         }
     }
