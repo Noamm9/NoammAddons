@@ -1,0 +1,20 @@
+# The commit types this project accepts - the single source of truth.
+#
+# Format: <type>:<changelog section title>
+#
+# Read by .githooks/commit-msg (which rejects anything else) and by the release
+# workflow in .github/workflows/ (which groups the release notes by these).
+#
+# Order decides the order of sections in the release notes.
+
+feat:Features
+fix:Bug Fixes
+refactor:Refactoring
+perf:Performance
+docs:Documentation
+chore:Chores
+test:Tests
+build:Build System
+ci:CI
+style:Code Style
+revert:Reverts

@@ -1,0 +1,50 @@
+#!/bin/sh
+# Reject commit messages that aren't Conventional Commits.
+#
+# Tracked in the repo rather than left in .git/hooks, which git never clones.
+# Enable once per clone:  git config core.hooksPath .githooks
+#
+# A hook is a courtesy, not a gate: `git commit --no-verify` or ending the
+# message with [skip hook] skips it, and it never runs on the server. CI re-checks the same rules on every push.
+
+msg_file=$1
+subject=$(head -n 1 "$msg_file")
+
+# Opt out per commit by ending the message with [skip hook]. Ignores comments
+# and the `commit -v` diff below the scissors line, which git strips later.
+sed '/^# -* >8 -*$/,$d' "$msg_file" | git stripspace --strip-comments \
+    | tail -n 1 | grep -q '\[skip hook\][[:space:]]*$' && exit 0
+
+# git's own generated commits, and the rebase autosquash markers.
+case $subject in
+    Merge\ *|Revert\ *|fixup!\ *|squash!\ *|amend!\ *) exit 0 ;;
+esac
+
+# The one list, shared with the release pipeline. Hooks run from the repo root.
+types_file=.github/commit-types
+types=$(sed -e 's/#.*//' -e '/^[[:space:]]*$/d' "$types_file" | cut -d: -f1 | tr '\n' '|' | sed 's/|$//')
+[ -n "$types" ] || { echo "commit-msg: cannot read $types_file" >&2; exit 1; }
+
+fail() {
+    printf '\n  commit rejected: %s\n\n' "$1" >&2
+    printf '  subject: %s\n\n' "$subject" >&2
+    printf '  Conventional Commits:  <type>[(scope)][!]: <description>\n' >&2
+    printf '  types: %s\n' "$(echo "$types" | tr '|' ' ')" >&2
+    printf '  e.g.   feat(hud): show overflow mana in StatBars\n' >&2
+    printf '         fix!: drop the no-op Modded spoof mode\n\n' >&2
+    printf '  To bypass once (you almost never should): git commit --no-verify\n\n' >&2
+    exit 1
+}
+
+echo "$subject" | grep -Eq "^($types)(\([A-Za-z0-9._/-]+\))?!?: .+" \
+    || fail 'subject must start with a type, e.g. "feat: ..."'
+
+# 72 keeps `git log --oneline` and GitHub's commit list from truncating.
+[ "${#subject}" -le 72 ] \
+    || fail "subject is ${#subject} chars, keep it to 72"
+
+case $subject in
+    *.) fail 'subject must not end with a period' ;;
+esac
+
+exit 0
