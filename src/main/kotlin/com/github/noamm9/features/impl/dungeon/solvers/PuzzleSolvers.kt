@@ -12,9 +12,7 @@ import java.awt.Color
 
 object PuzzleSolvers: Feature() {
     val blaze by ToggleSetting("Enabled").section("Blaze Solver")
-    val blazeDoneMessage by ToggleSetting("Blaze Done Message", true)
-        .withDescription("Sends a party message when you finish the Blaze puzzle.")
-        .showIf { blaze.value }
+    val blazeDoneMessage by ToggleSetting("Blaze Done Message", true).withDescription("Sends a party message when you finish the Blaze puzzle.").showIf { blaze.value }
     val blazeCount by SliderSetting("Blazes to Highlight", 3, 1, 10, 1).showIf { blaze.value }
     val firstBlazeColor by ColorSetting("First Blaze", Color.GREEN).showIf { blaze.value }
     val secondBlazeColor by ColorSetting("Second Blaze", Color.YELLOW).showIf { blaze.value }
