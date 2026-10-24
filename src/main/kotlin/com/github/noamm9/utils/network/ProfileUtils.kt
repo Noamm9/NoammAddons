@@ -15,7 +15,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.*
 import io.ktor.http.HttpHeaders
 import io.ktor.http.isSuccess
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
 import java.io.IOException
@@ -46,17 +46,23 @@ object ProfileUtils {
         val data = hits.mapNotNull { it.second }
         if (misses.isEmpty()) return Result.success(data)
 
-        val missingData = run {
-            val response = WebUtils.client.post(mowojang) {
-                header(HttpHeaders.ContentType, "application/json")
-                setBody(buildJsonArray { misses.forEach { add(it.first.toString()) } })
+        val missingData = coroutineScope {
+            val jobs = buildList {
+                for (chunk in misses.chunked(100)) add(async {
+                    val response = WebUtils.client.post(mowojang) {
+                        header(HttpHeaders.ContentType, "application/json")
+                        setBody(buildJsonArray { chunk.forEach { add(it.first.toString()) } })
+                    }
+
+                    if (! response.status.isSuccess() || response.status.value == 204) return@async null
+                    val result = response.body<List<MojangData>>()
+                    for (r in result) MojangCache.addToCache(r)
+                    result
+                })
             }
 
-            if (! response.status.isSuccess() || response.status.value == 204) return@run null
-            val result = response.body<List<MojangData>>()
-            for (r in result) MojangCache.addToCache(r)
-            return@run result
-        }.orEmpty()
+            jobs.awaitAll().filterNotNull().flatten()
+        }
 
         return Result.success(data + missingData)
     }
