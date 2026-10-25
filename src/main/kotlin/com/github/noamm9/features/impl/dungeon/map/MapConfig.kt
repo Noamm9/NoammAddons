@@ -17,7 +17,7 @@ object MapConfig: SettingProvider {
     //#if CHEAT
     val dungeonMapCheater by ToggleSetting("Cheater Map", false)
     //#else
-    //$val dungeonMapCheater by ToggleSetting("Legit", false).hideIf { true }.jsonName(UUID.randomUUID().toString())
+    //$val dungeonMapCheater by ToggleSetting("Legit", false).hidden().jsonName(UUID.randomUUID().toString())
     //#endif
 
     val mapExtraInfo by ToggleSetting("Show Extra Info Under Map", false)

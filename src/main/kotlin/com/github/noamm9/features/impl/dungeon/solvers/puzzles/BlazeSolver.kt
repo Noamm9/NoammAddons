@@ -88,7 +88,7 @@ object BlazeSolver: PuzzleSolver {
         if (reversed) blazes.reverse()
 
         if (blazes.isEmpty() && lastBlazeCount == 1) {
-            sendPartyMessage("Blaze Done!")
+            if (PuzzleSolvers.blazeDoneMessage.value) sendPartyMessage("Blaze Done!")
             lastBlazeCount = 0
         }
 

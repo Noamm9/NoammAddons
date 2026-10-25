@@ -1,4 +1,4 @@
-package com.github.noamm9.ui.utils.componnents
+package com.github.noamm9.ui.utils.components
 
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.utils.ChatUtils.addColor

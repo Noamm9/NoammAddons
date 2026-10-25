@@ -20,7 +20,7 @@ object ClearInfoUpdater: ISelfInit {
     private val componentSeparator = createComponent(" &f|&r ")
 
     override fun init() {
-        EventBus.register<DungeonEvent.RunStatedEvent> { initStartSecrets() }
+        EventBus.register<DungeonEvent.RunStartedEvent> { initStartSecrets() }
         EventBus.register<DungeonEvent.PlayerDeathEvent> { updateDeaths(event.name, event.reason) }
         EventBus.register<DungeonEvent.RoomEvent.onStateChange> { checkSplits(event.room.data, event.oldState, event.newState, event.roomPlayers) }
         EventBus.register<DungeonEvent.RunEndedEvent> { sendClearInfoMessage() }

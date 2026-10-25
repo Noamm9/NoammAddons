@@ -12,9 +12,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.PacketListener;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientboundCommandsPacket;
-import net.minecraft.network.protocol.game.ClientboundCommandSuggestionsPacket;
-import net.minecraft.network.protocol.game.ClientboundSetTimePacket;
+import net.minecraft.network.protocol.game.*;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -52,7 +50,7 @@ public class MixinClientPacketListener {
     }
 
     @WrapMethod(method = "handleCommands")
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     private void onHandleCommands(ClientboundCommandsPacket packet, Operation<Void> original) {
         original.call(packet);
         CommandShortcuts.INSTANCE.build((CommandDispatcher) ((ClientPacketListener) (Object) this).getCommands());
@@ -65,14 +63,14 @@ public class MixinClientPacketListener {
 
     @WrapMethod(method = "sendChat")
     private void onSendChat(String content, Operation<Void> original) {
-        var event = new MessageSentEvent(content);
+        var event = new MessageSentEvent(content, false);
         if (EventBus.post(event)) return;
         original.call(event.getMessage());
     }
 
     @WrapMethod(method = "sendCommand")
     private void onSendCommand(String command, Operation<Void> original) {
-        var event = new MessageSentEvent(command);
+        var event = new MessageSentEvent(command, true);
         if (EventBus.post(event)) return;
         original.call(CommandShortcuts.INSTANCE.rewriteCommand(event.getMessage()));
     }

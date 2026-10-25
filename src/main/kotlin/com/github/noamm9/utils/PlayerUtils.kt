@@ -177,7 +177,7 @@ object PlayerUtils: ISelfInit, Shortcuts {
             it.skyblockId == "SPIRIT_LEAP"
         } ?: return modMessage("&cNo leap found in hotbar!")
 
-        if (! inLeapMenu) {
+        if (! inLeapMenu) return run {
             if (player.inventory.selectedSlot != leapIndex) {
                 swapToSlot(leapIndex)
                 waitTicks(2)
@@ -192,7 +192,7 @@ object PlayerUtils: ISelfInit, Shortcuts {
         LeapMenu.updateLeapMenu()
         LeapMenu.players.find { it?.player?.name == leapTarget.name }?.let { target ->
             modMessage("Leaping To: &e[${leapTarget.clazz.name[0]}] &a${leapTarget.name}")
-            GuiUtils.clickSlot(target.slotIndex, GuiUtils.ButtonType.MIDDLE)
+            GuiUtils.clickSlot(target.slotIndex, GuiUtils.ButtonType.LEFT)
             player.closeContainer()
         }
     }

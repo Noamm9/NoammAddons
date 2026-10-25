@@ -104,7 +104,7 @@ object PartyUtils: ISelfInit {
             }
         }
 
-        register<DungeonEvent.RunStatedEvent> {
+        register<DungeonEvent.RunStartedEvent> {
             DungeonListener.dungeonTeammates.forEach { upsert(it.name) }
             if (partyLeader == null) setLeader(self)
         }

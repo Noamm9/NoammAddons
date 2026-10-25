@@ -45,7 +45,7 @@ object WebSocketFeature: Feature(name = "WebSocket", toggled = true), ICommandPr
             GsonUtils.gson.fromJson(json, packetClass).handle()
         }
 
-        register<DungeonEvent.RunStatedEvent> { sendDungeonInfo() }
+        register<DungeonEvent.RunStartedEvent> { sendDungeonInfo() }
         register<DungeonEvent.RunEndedEvent> { send(mapOf("type" to "dungeon_end")) }
         register<WorldChangeEvent>(EventPriority.HIGHEST) { if (LocationUtils.inDungeon) send(mapOf("type" to "reset")) }
 

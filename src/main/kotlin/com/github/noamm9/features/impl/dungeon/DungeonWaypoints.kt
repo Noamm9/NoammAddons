@@ -23,16 +23,22 @@ import java.util.concurrent.*
 
 object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while looking at a block"), ICommandProvider {
     private val secretWaypoints by ToggleSetting("Secret Waypoints").section("Secret Waypoints")
-    private val mode by DropdownSetting("Mode", 0, listOf("Fill", "Outline", "Filled Outline"))
-    private val phase by ToggleSetting("See Through Walls", true)
-    private val opacity by SliderSetting("Opacity", 40, 0, 100, 1).hideIf { mode.value == 1 }
-    private val lineWidth by SliderSetting("Line Width", 1.5f, 1f, 10f, 0.1f).hideIf { mode.value == 0 }
+    private val mode by DropdownSetting("Mode", 0, listOf("Fill", "Outline", "Filled Outline")).showIf {  secretWaypoints.value }
+    private val phase by ToggleSetting("See Through Walls", true).showIf { secretWaypoints.value }
+    private val opacity by SliderSetting("Opacity", 40, 0, 100, 1).hideIf { mode.value == 1 || ! secretWaypoints.value }
+    private val lineWidth by SliderSetting("Line Width", 1.5f, 1f, 10f, 0.1f).hideIf { mode.value == 0 || ! secretWaypoints.value }
 
-    private val chestColor by ColorSetting("Chest Color", Color.MAGENTA, false).section("Colors")
-    private val itemColor by ColorSetting("Item Color", Utils.favoriteColor, false)
-    private val batColor by ColorSetting("Bat Color", Color.GREEN, false)
-    private val essenceColor by ColorSetting("Essence Color", Color.BLACK, false)
-    private val keyColor by ColorSetting("Redstone Key Color", Color.RED, false)
+    private val chestWaypoints by ToggleSetting("Chest Waypoints", true).showIf { secretWaypoints.value }.section("Toggles")
+    private val itemWaypoints by ToggleSetting("Item Waypoints", true).showIf { secretWaypoints.value }
+    private val batWaypoints by ToggleSetting("Bat Waypoints", true).showIf { secretWaypoints.value }
+    private val essenceWaypoints by ToggleSetting("Essence Waypoints", true).showIf { secretWaypoints.value }
+    private val keyWaypoints by ToggleSetting("Redstone Key Waypoints", true).showIf { secretWaypoints.value }
+
+    private val chestColor by ColorSetting("Chest Color", Color.MAGENTA, false).showIf { chestWaypoints.value && secretWaypoints.value }.section("Colors")
+    private val itemColor by ColorSetting("Item Color", Utils.favoriteColor, false).showIf { itemWaypoints.value && secretWaypoints.value }
+    private val batColor by ColorSetting("Bat Color", Color.GREEN, false).showIf { batWaypoints.value && secretWaypoints.value }
+    private val essenceColor by ColorSetting("Essence Color", Color.BLACK, false).showIf { essenceWaypoints.value && secretWaypoints.value }
+    private val keyColor by ColorSetting("Redstone Key Color", Color.RED, false).showIf { keyWaypoints.value && secretWaypoints.value }
 
     private val storage = PogObject("dungeonWaypoints", mutableMapOf<String, MutableSet<DungeonWaypoint>>())
     private val roomWaypoints = ConcurrentHashMap<UniqueRoom, MutableSet<DungeonWaypoint>>()
@@ -101,17 +107,21 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
             if (room.mainRoom.state == RoomState.GREEN) return@register
 
             val done = doneSecrets[room] ?: emptySet()
-            for ((type, positions) in room.secretCoords) for (pos in positions) {
-                if (pos in done) continue
+            for ((type, positions) in room.secretCoords) {
+                if (! type.isEnabled()) continue
 
-                if (type == SecretType.REDSTONE_KEY && WorldUtils.getBlockAt(pos) != Blocks.PLAYER_HEAD) continue
-                event.ctx.renderBlock(
-                    pos, type.color().withAlpha((opacity.value * 2.55).toInt()),
-                    mode.value.equalsOneOf(1, 2),
-                    mode.value.equalsOneOf(0, 2),
-                    phase = phase.value,
-                    lineWidth = lineWidth.value
-                )
+                for (pos in positions) {
+                    if (pos in done) continue
+
+                    if (type == SecretType.REDSTONE_KEY && WorldUtils.getBlockAt(pos) != Blocks.PLAYER_HEAD) continue
+                    event.ctx.renderBlock(
+                        pos, type.color().withAlpha((opacity.value * 2.55).toInt()),
+                        mode.value.equalsOneOf(1, 2),
+                        mode.value.equalsOneOf(0, 2),
+                        phase = phase.value,
+                        lineWidth = lineWidth.value
+                    )
+                }
             }
         }
 
@@ -230,6 +240,15 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
             set.removeIf { it.pos == absPos }
             set.add(absWaypoint)
         }
+    }
+
+    private fun SecretType.isEnabled() = when (this) {
+        SecretType.CHEST -> chestWaypoints.value
+        SecretType.ITEM -> itemWaypoints.value
+        SecretType.BAT -> batWaypoints.value
+        SecretType.WITHER_ESSENCE -> essenceWaypoints.value
+        SecretType.REDSTONE_KEY -> keyWaypoints.value
+        SecretType.LEVER -> false
     }
 
     private fun SecretType.color() = when (this) {
