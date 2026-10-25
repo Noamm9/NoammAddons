@@ -149,6 +149,8 @@ object MapUpdater: ISelfInit {
                 }
             }
         }
+
+        SpecialColumn.update()
     }
 
     private val MapDecoration.mapX get() = (this.x + 128) shr 1

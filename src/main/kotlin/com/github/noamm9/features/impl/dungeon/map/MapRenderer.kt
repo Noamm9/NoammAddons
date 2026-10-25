@@ -120,9 +120,11 @@ object MapRenderer: HudElement() {
 
             val xEven = x and 1 == 0
             val yEven = y and 1 == 0
+            val predicted = getPredictedTypes(tile, y * 11 + x)
 
             when {
-                xEven && yEven -> if (tile is RoomTile) {
+                xEven && yEven -> if (predicted != null) drawPredictedRoom(ctx, xOffset, yOffset, predicted)
+                else if (tile is RoomTile) {
                     ctx.drawRect(
                         xOffset,
                         yOffset, MapUtils.mapRoomSize,
@@ -145,7 +147,7 @@ object MapRenderer: HudElement() {
                 )
             }
 
-            if (tile is RoomTile && tile.data.isUnknown()) {
+            if (tile is RoomTile && tile.data.isUnknown() && predicted == null) {
                 val checkmarkSize = MapConfig.checkmarkSize.value * 10
                 drawCheckmark(
                     ctx, tile,
@@ -155,6 +157,48 @@ object MapRenderer: HudElement() {
                 )
             }
         }
+    }
+
+    private fun getPredictedTypes(tile: Tile, index: Int): List<RoomType>? {
+        if (! MapConfig.predictRooms.value || MapConfig.dungeonMapCheater.value) return null
+        if (tile !is RoomTile || tile.state != RoomState.UNOPENED) return null
+        return SpecialColumn.predict(index)
+    }
+
+    private fun drawPredictedRoom(ctx: GuiGraphicsExtractor, x: Int, y: Int, types: List<RoomType>) {
+        val roomSize = MapUtils.mapRoomSize
+        val colors = types.map {
+            when (it) {
+                RoomType.CHAMPION -> MapConfig.colorMiniboss
+                RoomType.TRAP -> MapConfig.colorTrap
+                else -> MapConfig.colorPuzzle
+            }.value.darker().darker()
+        }
+
+        ctx.pose().pushMatrix()
+        ctx.pose().translate(x.toFloat(), y.toFloat())
+
+        when (colors.size) {
+            1 -> ctx.drawRect(0, 0, roomSize, roomSize, colors[0])
+            2 -> {
+                ctx.drawRect(0, 0, roomSize, roomSize / 2, colors[0])
+                ctx.drawRect(0, roomSize / 2, roomSize, roomSize - roomSize / 2, colors[1])
+            }
+
+            3 -> {
+                val outer = roomSize * 5 / 16
+                val center = roomSize - outer
+                val inner = center - 1
+
+                ctx.drawRect(0, 0, roomSize, outer, colors[0])
+                ctx.drawRect(0, 0, outer, inner, colors[0])
+                ctx.drawRect(inner, outer, roomSize - inner, roomSize - outer, colors[1])
+                ctx.drawRect(0, inner, roomSize, roomSize - inner, colors[1])
+                ctx.drawRect(outer, outer, center - outer, center - outer, colors[2])
+            }
+        }
+
+        ctx.pose().popMatrix()
     }
 
     private fun renderText(ctx: GuiGraphicsExtractor) {
@@ -249,7 +293,6 @@ object MapRenderer: HudElement() {
 
         drawPlayerHead(ctx, DungeonListener.thePlayer ?: return)
     }
-
 
     private fun drawCheckmark(ctx: GuiGraphicsExtractor, tile: Tile, x: Number, y: Number, size: Number) {
         val checkmark = when (tile.state) {

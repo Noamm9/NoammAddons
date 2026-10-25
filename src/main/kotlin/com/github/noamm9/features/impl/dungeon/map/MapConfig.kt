@@ -41,6 +41,7 @@ object MapConfig: SettingProvider {
     val hideBloodroomOvelay by ToggleSetting("Hide text/checkmark of Blood room", false)
     val hideQuestionCheckmarks by ToggleSetting("Hide Unknown Room Checkmark", false).showIf { dungeonMapCheckmarkStyle.value == 0 }
     val limitRoomNameSize by ToggleSetting("Limit Room Name Size", true).showIf { dungeonMapCheckmarkStyle.value in 2 .. 4 }
+    val predictRooms by ToggleSetting("Predict Unopened 1x1s", true).showIf { ! dungeonMapCheater.value }
 
     //#if CHEAT
     val mimicEsp by ToggleSetting("Mimic ESP")
