@@ -5,7 +5,7 @@ import com.mojang.blaze3d.platform.InputConstants
 import com.github.noamm9.config.ConfigManager
 import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.ui.utils.Resolution
-import com.github.noamm9.ui.utils.componnents.UIButton
+import com.github.noamm9.ui.utils.components.UIButton
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawLine
 import net.minecraft.client.gui.GuiGraphicsExtractor

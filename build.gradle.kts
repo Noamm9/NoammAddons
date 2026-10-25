@@ -83,7 +83,7 @@ dependencies {
     bundled("gg.essential:universalcraft-26.2-fabric:$universalcraft_version") {
         exclude(group = "net.fabricmc", module = "fabric-loader")
     }
-    bundled("io.ktor:ktor-client-cio:$ktor_version")
+    bundled("io.ktor:ktor-client-okhttp-jvm:$ktor_version")
     bundled("io.ktor:ktor-client-content-negotiation-jvm:$ktor_version")
     bundled("io.ktor:ktor-client-encoding:$ktor_version")
     bundled("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")

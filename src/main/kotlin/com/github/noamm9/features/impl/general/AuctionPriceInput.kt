@@ -8,8 +8,8 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.init.NetworkLoop
 import com.github.noamm9.mixin.IGui
 import com.github.noamm9.mixin.IAbstractSignEditScreen
-import com.github.noamm9.ui.utils.componnents.UIButton
-import com.github.noamm9.ui.utils.componnents.UISearchBox
+import com.github.noamm9.ui.utils.components.UIButton
+import com.github.noamm9.ui.utils.components.UISearchBox
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.Utils.send

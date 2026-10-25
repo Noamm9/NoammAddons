@@ -4,6 +4,7 @@ import com.github.noamm9.config.types.DropdownSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
+import com.github.noamm9.utils.ColorUtils
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
@@ -111,11 +112,7 @@ object TickTimers: Feature("Shows various types of server tick timers for F7 bos
     }
 
     private fun formatTimer(time: Int, max: Int, prefixText: String): String {
-        val color = when {
-            time >= max * 0.66 -> "§a"
-            time >= max * 0.33 -> "§6"
-            else -> "§c"
-        }
+        val color = ColorUtils.colorCodeByPercent(time, max)
 
         val timeDisplay = if (format.value == 1) time.toString()
         else (time / 20f).toFixed(2)

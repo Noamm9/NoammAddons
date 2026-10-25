@@ -11,15 +11,18 @@ import com.github.noamm9.features.impl.floor7.terminals.TerminalListener.FIRST_C
 import com.github.noamm9.features.impl.floor7.terminals.impl.*
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.*
+import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.RenderHelper.width
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 
 object AutoTerminal: Feature("Automatically clicks terminals for you.") {
+
     private val randomDelay by ToggleSetting("Random Delay", true).withDescription("Normal distributed by min and max").section("Settings").jsonName("randomDelay")
     private val autoDelay by SliderSetting("Click Delay", 150, 80, 500, 10, "ms").withDescription("Fixed delay between clicks in milliseconds.").hideIf { randomDelay.value }.jsonName("autoDelay")
     private val minRandomDelay by SliderSetting("Min Random Delay", 120, 50, 500, 10, "ms").withDescription("The minimum possible delay").showIf { randomDelay.value }.jsonName("minRandomDelay")
     private val maxRandomDelay by SliderSetting("Max Random Delay", 150, 80, 500, 10, "ms").withDescription("The maximum possible delay").showIf { randomDelay.value }.jsonName("maxRandomDelay")
+    private val offtick by ToggleSetting("Off Tick Clicks").withDescription("Makes the auto check every frame if it can click or not instead of every server tick.")
     private val clickOrder by DropdownSetting("Click Order", 2, listOf("None", "Random", "Human", "Skizo")).withDescription("Human: Logic pathing. Skizo: Chaotic/Furthest.")
     private val invwalk by ToggleSetting("Fake InvWalk").withDescription("Draws the Term name and progress on screen rather then the solution")
 
@@ -36,6 +39,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     private val autoStartWith by ToggleSetting("Start-With", true)
 
     private var lastClickTime = 0L
+    private var lastClickTick = 0L
     private var lastClickedSlot: Int? = null
 
     override fun init() {
@@ -99,7 +103,23 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
             lastClickedSlot = null
         }
 
+        register<RenderWorldEvent> {
+            if (! offtick.value) return@register
+            val handler = TerminalListener.currentHandler ?: return@register
+            if (handler is MelodyTerminal) return@register
+            if (! handler.enabled()) return@register
+            if (handler.solution.isEmpty()) return@register
+            if (TerminalListener.checkFcDelay()) return@register
+            if (lastClickTick == DungeonListener.currentTime) return@register
+            if (System.currentTimeMillis() - lastClickTime < getDelay()) return@register
+            lastClickTime = System.currentTimeMillis()
+            lastClickTick = DungeonListener.currentTime
+
+            handler.autoClick()
+        }
+
         register<TickEvent.Server> {
+            if (offtick.value) return@register
             val handler = TerminalListener.currentHandler ?: return@register
             if (handler is MelodyTerminal) return@register
             if (! handler.enabled()) return@register
@@ -133,6 +153,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
         register<TerminalEvent.Close> {
             lastClickedSlot = null
             lastClickTime = 0L
+            lastClickTick = 0L
         }
     }
 

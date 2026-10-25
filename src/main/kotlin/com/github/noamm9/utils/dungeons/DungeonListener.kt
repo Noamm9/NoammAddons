@@ -43,7 +43,7 @@ object DungeonListener: ISelfInit {
     var maxPuzzleCount = 0
     var puzzles = mutableListOf<Puzzle>()
 
-    data class DualTime(val ticks: Long, val real: Long = System.currentTimeMillis()) {
+    data class DualTime(val ticks: Long = currentTime, val real: Long = System.currentTimeMillis()) {
         companion object {
             operator fun DualTime.minus(other: DualTime) = DualTime(ticks - other.ticks, real - other.real)
         }
@@ -154,7 +154,7 @@ object DungeonListener: ISelfInit {
                     dungeonStartTime = DualTime(currentTime)
                     while (thePlayer?.clazz == DungeonClass.Empty) delay(50)
                     dungeonStarted = true
-                    EventBus.post(DungeonEvent.RunStatedEvent)
+                    EventBus.post(DungeonEvent.RunStartedEvent)
                 }
 
                 else -> {

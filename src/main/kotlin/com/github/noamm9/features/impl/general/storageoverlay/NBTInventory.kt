@@ -1,5 +1,6 @@
 package com.github.noamm9.features.impl.general.storageoverlay
 
+import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
 import net.minecraft.core.component.DataComponentPatch
 import net.minecraft.nbt.*
@@ -64,7 +65,7 @@ data class NBTInventory(val stacks: List<ItemStack>) {
 
                 NBTInventory(items)
             }
-        }.onFailure { it.printStackTrace() }.getOrNull()
+        }.onFailure { NoammAddons.logger.error("Failed to decode NBTInventory", it) }.getOrNull()
 
         private fun getRegistryAccess() = mc.level?.registryAccess()
             ?: mc.connection?.registryAccess()
