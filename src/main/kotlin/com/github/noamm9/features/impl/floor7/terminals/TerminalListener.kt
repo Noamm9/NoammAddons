@@ -125,7 +125,7 @@ object TerminalListener: ISelfInit {
 
     fun checkFcDelay(): Boolean {
         var delay = FIRST_CLICK_DELAY
-        if (currentHandler is MelodyTerminal) delay += 3
+        if (currentHandler is MelodyTerminal && delay != 0) delay += 3
 
         return DungeonListener.currentTime - initialOpenTick < delay ||
             System.currentTimeMillis() - initialOpenTime < (delay * 50)
