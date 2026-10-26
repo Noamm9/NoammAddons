@@ -36,6 +36,10 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
     private val rubixTerm by ToggleSetting("Rubix", true)
     private val numbersTerm by ToggleSetting("Numbers", true)
     private val melodyTerm by ToggleSetting("Melody", true)
+    private val _simbtn by ButtonSetting("Terminal Simulator") {
+        mc.execute { mc.screen?.onClose() }
+        GuiUtils.setScreen(TerminalSimSelectorScreen())
+    }.withDescription("Opens the Terminal Simulator. can also be open via /na termsim")
 
     private val soundsEnabled by ToggleSetting("Terminal Sounds", true).section("Sounds")
     private val clickSound = createSoundSettings("Click Sound", SoundEvents.NOTE_BLOCK_PLING.value()) { soundsEnabled.value }
