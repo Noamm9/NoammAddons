@@ -48,6 +48,7 @@ class CommandBuilder {
 
     fun build(): List<ArgumentBuilder<FabricClientCommandSource, *>> {
         if (! ::names.isInitialized) error("Command name must be initialized using setName(...)")
+        builtCommands.add(this)
         return names.map { ClientCommands.literal(it).also(::setup) }
     }
 
@@ -55,11 +56,18 @@ class CommandBuilder {
         if (! ::names.isInitialized) return emptyList()
         return buildList {
             descriptionText?.let { add(HelpEntry(names.first(), it)) }
-            children.forEach { it.collect(names.first(), this) }
+            builtCommands.filter { builder -> builder.names.any(names::contains) }.forEach { builder ->
+                builder.children.forEach { it.collect(names.first(), this) }
+            }
         }
     }
 
     data class HelpEntry(val usage: String, val description: String)
+
+    companion object {
+        private val builtCommands = mutableListOf<CommandBuilder>()
+        fun clear() = builtCommands.clear()
+    }
 
     private fun collect(prefix: String, out: MutableList<HelpEntry>) {
         val segment = literalName ?: argumentName?.let { "<$it>" } ?: return
