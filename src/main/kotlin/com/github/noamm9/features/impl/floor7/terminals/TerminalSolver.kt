@@ -1,19 +1,23 @@
 package com.github.noamm9.features.impl.floor7.terminals
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.commands.CommandBuilder
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.terminals.impl.*
+import com.github.noamm9.features.impl.floor7.terminals.sim.*
+import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.init.types.ICustomMenu
 import com.github.noamm9.ui.utils.Resolution
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ColorUtils.isVisable
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawFloatingRect
 import com.github.noamm9.utils.render.Render2D.drawRect
+import com.mojang.brigadier.arguments.StringArgumentType
 import gg.essential.universal.UGraphics
 import gg.essential.universal.UKeyboard
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
@@ -21,9 +25,10 @@ import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket
 import net.minecraft.sounds.SoundEvents
+import net.minecraft.world.item.ItemStack
 import java.awt.Color
 
-object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICustomMenu {
+object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICustomMenu, ICommandProvider {
     private val redGreenTerm by ToggleSetting("Red-Green", true).section("Toggles")
     private val colorsTerm by ToggleSetting("Colors", true)
     private val startsWithTerm by ToggleSetting("Start-With", true)
@@ -65,11 +70,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
     private var hoveredSlot: Int? = null
 
     override fun init() {
-        register<TerminalEvent.Open> {
-            cachedMinCol = null
-            cachedMinRow = null
-            hoveredSlot = null
-        }
+        register<TerminalEvent.Open> { resetLayout() }
 
         register<ScreenEvent.PreRender> {
             if (! TerminalListener.inTerm) return@register
@@ -77,70 +78,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
             if (! handler.enabled()) return@register
             event.isCanceled = true
 
-            Resolution.push(event.context)
-
-            val uiScale = 3f * scale.value
-            val screenWidth = Resolution.width / uiScale
-            val screenHeight = Resolution.height / uiScale
-            val (gridWidth, gridHeight) = handler.gridSize
-            val gap = slotGap.value
-            val pad = padding.value
-            val slotSize = 16f
-
-            val width = gridWidth * slotSize + (gridWidth - 1) * gap
-            val height = gridHeight * slotSize + (gridHeight - 1) * gap
-            val offsetX = screenWidth / 2f - width / 2f
-            val offsetY = screenHeight / 2f - height / 2f
-            val mx = (Resolution.getMouseX() / uiScale) - offsetX
-            val my = (Resolution.getMouseY() / uiScale) - offsetY
-
-            event.context.pose().pushMatrix()
-            event.context.pose().scale(uiScale, uiScale)
-            event.context.pose().translate(offsetX, offsetY)
-
-            if (titleColor.value.isVisable()) event.context.drawCenteredString(handler.displayName, width / 2f, - 15f - pad, color = titleColor.value, scale = 1.2f)
-            if (backgroundColor.value.isVisable()) event.context.drawRect(- pad, - pad, width + pad * 2, height + pad * 2, backgroundColor.value)
-            if (borderColor.value.isVisable()) event.context.drawBorder(- pad, - pad, width + pad * 2, height + pad * 2, borderColor.value)
-
-            val solutionSlots = handler.solution.map { it.slotId }
-            val minCol = cachedMinCol ?: if (solutionSlots.isEmpty()) 0 else solutionSlots.minOf { it % 9 }.also { cachedMinCol = it }
-            val minRow = cachedMinRow ?: if (solutionSlots.isEmpty()) 0 else solutionSlots.minOf { it / 9 }.also { cachedMinRow = it }
-
-            fun slotPos(slot: Int): Pair<Float, Float> {
-                val col = slot % 9 - minCol
-                val row = slot / 9 - minRow
-                val x = col * (slotSize + gap)
-                val y = row * (slotSize + gap)
-                return x to y
-            }
-
-            hoveredSlot = run {
-                if (mx < 0 || my < 0 || mx > width && my > height) return@run null
-
-                val cell = slotSize + gap
-                val col = (mx / cell).toInt() + minCol
-                val row = (my / cell).toInt() + minRow
-
-                return@run row * 9 + col
-            }
-
-            handler.solution.forEachIndexed { index, click ->
-                val slot = click.slotId
-                val (slotX, slotY) = slotPos(slot)
-
-                handler.renderSlot(event.context, slotX, slotY, index, click, solutionColor.value)
-
-                val item = TerminalListener.currentItems[slot]
-                if (item != null && "terminal" in NoammAddons.debugFlags) {
-                    event.context.item(item, slotX.toInt(), slotY.toInt())
-                    event.context.itemDecorations(mc.font, item, slotX.toInt(), slotY.toInt())
-                }
-            }
-
-            handler.render(event.context, solutionColor.value, ::slotPos, mx, my, ::hoveredSlot)
-
-            event.context.pose().popMatrix()
-            Resolution.pop(event.context)
+            renderTerminal(event.context, handler, TerminalListener.currentItems)
         }
 
         register<ContainerEvent.MouseClick> {
@@ -179,8 +117,75 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
             if (! soundsEnabled.value) return@register
             if (! TerminalListener.inTerm) return@register
             if (event.packet !is ServerboundContainerClickPacket) return@register
-            clickSound.invoke()
+            playClickSound()
         }
+    }
+
+    fun renderTerminal(ctx: GuiGraphicsExtractor, handler: Terminal, items: Map<Int, ItemStack>) {
+        Resolution.push(ctx)
+
+        val uiScale = 3f * scale.value
+        val screenWidth = Resolution.width / uiScale
+        val screenHeight = Resolution.height / uiScale
+        val (gridWidth, gridHeight) = handler.gridSize
+        val gap = slotGap.value
+        val pad = padding.value
+        val slotSize = 16f
+
+        val width = gridWidth * slotSize + (gridWidth - 1) * gap
+        val height = gridHeight * slotSize + (gridHeight - 1) * gap
+        val offsetX = screenWidth / 2f - width / 2f
+        val offsetY = screenHeight / 2f - height / 2f
+        val mx = (Resolution.getMouseX() / uiScale) - offsetX
+        val my = (Resolution.getMouseY() / uiScale) - offsetY
+
+        ctx.pose().pushMatrix()
+        ctx.pose().scale(uiScale, uiScale)
+        ctx.pose().translate(offsetX, offsetY)
+
+        if (titleColor.value.isVisable()) ctx.drawCenteredString(handler.displayName, width / 2f, - 15f - pad, color = titleColor.value, scale = 1.2f)
+        if (backgroundColor.value.isVisable()) ctx.drawRect(- pad, - pad, width + pad * 2, height + pad * 2, backgroundColor.value)
+        if (borderColor.value.isVisable()) ctx.drawBorder(- pad, - pad, width + pad * 2, height + pad * 2, borderColor.value)
+
+        val solutionSlots = handler.solution.map { it.slotId }
+        val minCol = cachedMinCol ?: if (solutionSlots.isEmpty()) 0 else solutionSlots.minOf { it % 9 }.also { cachedMinCol = it }
+        val minRow = cachedMinRow ?: if (solutionSlots.isEmpty()) 0 else solutionSlots.minOf { it / 9 }.also { cachedMinRow = it }
+
+        fun slotPos(slot: Int): Pair<Float, Float> {
+            val col = slot % 9 - minCol
+            val row = slot / 9 - minRow
+            val x = col * (slotSize + gap)
+            val y = row * (slotSize + gap)
+            return x to y
+        }
+
+        hoveredSlot = run {
+            if (mx < 0 || my < 0 || mx > width && my > height) return@run null
+
+            val cell = slotSize + gap
+            val col = (mx / cell).toInt() + minCol
+            val row = (my / cell).toInt() + minRow
+
+            return@run row * 9 + col
+        }
+
+        handler.solution.forEachIndexed { index, click ->
+            val slot = click.slotId
+            val (slotX, slotY) = slotPos(slot)
+
+            handler.renderSlot(ctx, slotX, slotY, index, click, solutionColor.value)
+
+            val item = items[slot]
+            if (item != null && "terminal" in NoammAddons.debugFlags) {
+                ctx.item(item, slotX.toInt(), slotY.toInt())
+                ctx.itemDecorations(mc.font, item, slotX.toInt(), slotY.toInt())
+            }
+        }
+
+        handler.render(ctx, solutionColor.value, ::slotPos, mx, my, ::hoveredSlot)
+
+        ctx.pose().popMatrix()
+        Resolution.pop(ctx)
     }
 
     fun spanFor(count: Int) = count * 16f + (count - 1) * slotGap.value
@@ -203,13 +208,24 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
         ctx.drawCenteredString(text, centerX, centerY, color = overlayTextColor.value)
     }
 
+    fun resetLayout() {
+        cachedMinCol = null
+        cachedMinRow = null
+        hoveredSlot = null
+    }
+
+    fun playClickSound() {
+        if (soundsEnabled.value) clickSound.invoke()
+    }
+
+    fun Terminal.hoveredClick(): TerminalClick? {
+        val slot = hoveredSlot ?: return null
+        return getClickForSlot(slot)?.also(::predict)
+    }
+
     private fun Terminal.click() {
         if (TerminalListener.checkFcDelay()) return
-        val slot = hoveredSlot ?: return
-        val click = getClickForSlot(slot) ?: return
-
-        predict(click)
-        click.send()
+        hoveredClick()?.send()
     }
 
     private fun Terminal.enabled() = when (this) {
@@ -222,4 +238,20 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
     }
 
     override fun isActive() = TerminalListener.inTerm
+    override fun CommandBuilder.command() {
+        setName("na")
+        requires("enable $name feature first") { enabled }
+        literal("termsim") {
+            description("Opens the terminal simulator")
+            runs { GuiUtils.setScreen(TerminalSimSelectorScreen()) }
+
+            argument("terminal", StringArgumentType.word()) {
+                suggests { SimTerminal.all.map(SimTerminal::name) }
+                runs { ctx ->
+                    val sim = SimTerminal.fromName(StringArgumentType.getString(ctx, "terminal")) ?: return@runs ChatUtils.modMessage("§cUnknown terminal")
+                    GuiUtils.setScreen(TerminalSimScreen(sim))
+                }
+            }
+        }
+    }
 }

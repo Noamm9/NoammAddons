@@ -14,7 +14,7 @@ object RubixTerminal: Terminal() {
     override val gridSize = 3 to 3
     override val slotCount = 45
 
-    private val rubixOrder = listOf(
+    val rubixOrder = listOf(
         Items.RED_STAINED_GLASS_PANE,
         Items.ORANGE_STAINED_GLASS_PANE,
         Items.YELLOW_STAINED_GLASS_PANE,
