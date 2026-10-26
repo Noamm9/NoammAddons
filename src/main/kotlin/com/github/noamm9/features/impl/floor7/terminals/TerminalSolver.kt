@@ -2,6 +2,7 @@ package com.github.noamm9.features.impl.floor7.terminals
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.commands.CommandBuilder
+import com.github.noamm9.commands.NaCommand
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
@@ -239,7 +240,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
 
     override fun isActive() = TerminalListener.inTerm
     override fun CommandBuilder.command() {
-        setName("na")
+        setName(*NaCommand.names)
         requires("enable $name feature first") { enabled }
         literal("termsim") {
             description("Opens the terminal simulator")
