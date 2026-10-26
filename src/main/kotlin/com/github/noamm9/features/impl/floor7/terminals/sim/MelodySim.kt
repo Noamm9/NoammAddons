@@ -44,6 +44,7 @@ object MelodySim: SimTerminal(MelodyTerminal) {
         }
 
         correct = columns.random()
+        ticks = - MOVE_INTERVAL / 3
         row ++
         return listOf(0, row - 1, row, 4).distinct().flatMap(::createRow)
     }

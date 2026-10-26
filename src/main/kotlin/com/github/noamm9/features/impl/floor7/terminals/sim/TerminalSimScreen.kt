@@ -1,6 +1,8 @@
 package com.github.noamm9.features.impl.floor7.terminals.sim
 
 import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.event.EventBus
+import com.github.noamm9.event.impl.TerminalEvent
 import com.github.noamm9.features.impl.floor7.terminals.TerminalClick
 import com.github.noamm9.features.impl.floor7.terminals.TerminalSolver
 import com.github.noamm9.features.impl.floor7.terminals.impl.MelodyTerminal
@@ -15,9 +17,9 @@ import net.minecraft.network.chat.Component
 import net.minecraft.world.item.ItemStack
 
 class TerminalSimScreen(private val sim: SimTerminal): Screen(Component.literal("Terminal Simulator")) {
-    private val terminal = sim.terminal
     private val clickedSlots = mutableListOf<TerminalClick>()
     private var openTime = 0L
+    val terminal = sim.terminal
 
     override fun added() {
         super.added()
@@ -56,14 +58,19 @@ class TerminalSimScreen(private val sim: SimTerminal): Screen(Component.literal(
 
     override fun removed() {
         terminal.reset()
+        EventBus.post(TerminalEvent.Close)
         super.removed()
     }
 
     override fun isPauseScreen() = false
 
     private fun click() {
-        if (isFirstClickDelay()) return
         val click = with(TerminalSolver) { terminal.hoveredClick() } ?: return
+        click(click)
+    }
+
+    fun click(click: TerminalClick) {
+        if (isFirstClickDelay()) return
 
         terminal.onSlotClick(click.slotId)
         clickedSlots.add(click)
@@ -88,9 +95,9 @@ class TerminalSimScreen(private val sim: SimTerminal): Screen(Component.literal(
         GuiUtils.setScreen(TerminalSimSelectorScreen())
     }
 
-    private fun isFirstClickDelay(): Boolean {
+    fun isFirstClickDelay(): Boolean {
         var delay = TerminalSolver.fcDelay.value
-        if (terminal is MelodyTerminal) delay += 3
+        if (terminal is MelodyTerminal && delay != 0) delay += 3
         return System.currentTimeMillis() - openTime < delay * 50
     }
 }
