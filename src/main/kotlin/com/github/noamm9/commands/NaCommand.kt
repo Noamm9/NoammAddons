@@ -24,8 +24,10 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.network.chat.Component
 
 object NaCommand: ICommandProvider {
+    val names = listOf("na", "noamm", "noammaddons").toTypedArray()
+
     override fun CommandBuilder.command() {
-        setName("na", "noamm", "noammaddons")
+        setName(*names)
         description("opens the Config GUI")
         runs { GuiUtils.setScreen(ClickGuiScreen()) }
 
@@ -253,7 +255,7 @@ object NaCommand: ICommandProvider {
         val inventory = NoammAddons.mc.player?.inventory ?: return
         val currentAmount = inventory.sumOf { stack -> if (stack.skyblockId == itemId) stack.count else 0 }
         val missingAmount = amount - currentAmount
-        if (missingAmount > 0) ChatUtils.sendCommand("gfs $sackName $missingAmount")
+        if (missingAmount >= 0) ChatUtils.sendCommand("gfs $sackName $missingAmount")
     }
 
     private fun sendRtca(name: String = NoammAddons.mc.user.name) = NoammAddons.scope.launch(Dispatchers.IO) {
