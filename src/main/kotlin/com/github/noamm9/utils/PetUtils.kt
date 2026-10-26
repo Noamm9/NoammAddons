@@ -86,9 +86,16 @@ object PetUtils: ISelfInit {
 
             autopetPattern.matchEntire(event.formattedText)?.destructured?.let { (level, nameStr) ->
                 val level = level.toIntOrNull()
-                val name = nameStr.remove(Pet.levelRegex).removePrefix("§8")
+                val name = nameStr.remove(Pet.levelRegex).removePrefix("§8").substringBefore(" ✦")
                 val hasCustomSkin = nameStr.contains("✦")
                 val rarity = ItemRarity.byBaseColor(name.take(2))
+                val customSkinRarity = if (hasCustomSkin) run {
+                    val i = name.indexOf('✦').takeUnless { it == - 1 } ?: return@run null
+                    val code = "§" + name.substring(i - 3).take(3).trim().substringAfter("§")
+                    ItemRarity.byBaseColor(code)
+                }
+                else null
+
                 val petItem = run {
                     val lore = (event.component.style.hoverEvent as? HoverEvent.ShowText)?.value ?: return@run null
                     val i = lore.siblings.indexOfFirst { it.string == "Held Item: " }.takeIf { it != - 1 } ?: return@run null
@@ -96,7 +103,7 @@ object PetUtils: ISelfInit {
                 }
 
                 clickedPet = null
-                changePet(resolvePet(name, level, rarity, hasCustomSkin, petItem), PetEvent.Cause.AUTOPET)
+                changePet(resolvePet(name, level, rarity, hasCustomSkin, petItem, customSkinRarity), PetEvent.Cause.AUTOPET)
                 return@register
             }
 
@@ -165,9 +172,15 @@ object PetUtils: ISelfInit {
                 val hasCustomSkin = name.contains("✦")
                 name = name.remove(Pet.levelRegex).removePrefix("§8")
                 val rarity = ItemRarity.byBaseColor(name.take(2))
+                val customSkinRarity = if (hasCustomSkin) run {
+                    val i = name.indexOf('✦').takeUnless { it == - 1 } ?: return@run null
+                    val code = "§" + name.substring(i - 3).take(3).trim().substringAfter("§")
+                    ItemRarity.byBaseColor(code)
+                }
+                else null
 
                 clickedPet = null
-                changePet(resolvePet(name, level, rarity, hasCustomSkin), PetEvent.Cause.MENU)
+                changePet(resolvePet(name, level, rarity, hasCustomSkin, customSkinRarity = customSkinRarity), PetEvent.Cause.MENU)
             }
         }
 
@@ -240,8 +253,15 @@ object PetUtils: ISelfInit {
         )
     }
 
-    private fun resolvePet(name: String, level: Int? = null, rarity: ItemRarity? = null, hasCustomSkin: Boolean = false, heldItem: String? = null): Pet {
-        val base = knownPets.values.find { it.matches(name, rarity, hasCustomSkin, heldItem) }
+    private fun resolvePet(
+        name: String,
+        level: Int? = null,
+        rarity: ItemRarity? = null,
+        hasCustomSkin: Boolean = false,
+        heldItem: String? = null,
+        customSkinRarity: ItemRarity? = null
+    ): Pet {
+        val base = knownPets.values.find { it.matches(name, rarity, hasCustomSkin, heldItem, customSkinRarity) }
 
         return Pet(
             name = (base?.name ?: name).removeFormatting(),
@@ -251,7 +271,7 @@ object PetUtils: ISelfInit {
             heldItem = heldItem ?: base?.heldItem,
             headSkin = base?.headSkin,
             hasCustomSkin = base?.hasCustomSkin ?: hasCustomSkin,
-            customSkinRarity = base?.customSkinRarity,
+            customSkinRarity = base?.customSkinRarity ?: customSkinRarity,
         )
     }
 
@@ -329,13 +349,20 @@ object PetUtils: ISelfInit {
             if (hasCustomSkin) append(" ${customSkinRarity?.baseColor.toString()}✦")
         }
 
-        fun matches(name: String, rarity: ItemRarity? = null, hasCustomSkin: Boolean = false, heldItem: String? = null): Boolean {
+        fun matches(
+            name: String,
+            rarity: ItemRarity? = null,
+            hasCustomSkin: Boolean = false,
+            heldItem: String? = null,
+            customSkinRarity: ItemRarity? = null
+        ): Boolean {
             val withName = normalizeName(this.name) == normalizeName(name)
-            val withRarity = rarity == null || rarity == this.rarity
+            val withRarity = rarity == null || rarity.baseColor == this.rarity?.baseColor
             val withSkin = if (hasCustomSkin) this.hasCustomSkin else true
-            val withItem = heldItem == null || heldItem.equals(this.heldItem, ignoreCase = true)
+            val withItem = heldItem == null || heldItem.trim().equals(this.heldItem?.trim(), ignoreCase = true)
+            val withSkinRartity = customSkinRarity == null || customSkinRarity == this.customSkinRarity
 
-            return withName && withRarity && withSkin && withItem
+            return withName && withRarity && withSkin && withItem && withSkinRartity
         }
 
         fun head(): ItemStack {
