@@ -20,8 +20,8 @@ object MelodySim: SimTerminal(MelodyTerminal) {
     override fun setup(): String {
         row = rows.first
         correct = columns.random()
-        current = columns.random()
-        direction = if (current == columns.last) - 1 else 1
+        current = columns.first
+        direction = 1
         ticks = 0
         (0 .. 4).forEach(::createRow)
         return "Click the button on time!"
