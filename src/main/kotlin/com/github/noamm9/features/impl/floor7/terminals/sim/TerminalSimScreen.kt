@@ -8,6 +8,7 @@ import com.github.noamm9.features.impl.floor7.terminals.TerminalSolver
 import com.github.noamm9.features.impl.floor7.terminals.impl.MelodyTerminal
 import com.github.noamm9.features.impl.floor7.terminals.impl.RubixTerminal
 import com.github.noamm9.utils.*
+import com.github.noamm9.utils.NumbersUtils.toFixed
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
@@ -90,7 +91,7 @@ class TerminalSimScreen(private val sim: SimTerminal): Screen(Component.literal(
 
         if (! sim.isSolved()) return
         val seconds = (System.currentTimeMillis() - openTime) / 1000.0
-        ChatUtils.modMessage("§a${terminal.displayName} §7completed in §f${"%.2f".format(seconds)}s")
+        ChatUtils.modMessage("§a${terminal.displayName} §7completed in §f${seconds.toFixed(2)}s")
         onClose()
         GuiUtils.setScreen(TerminalSimSelectorScreen())
     }
