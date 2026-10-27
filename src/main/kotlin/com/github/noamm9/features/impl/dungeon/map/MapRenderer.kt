@@ -182,18 +182,30 @@ object MapRenderer: HudElement() {
     }
 
     private fun GuiGraphicsExtractor.renderText() {
+        val connectorSize = HotbarMapScanner.quarterRoom
         val roomSize = MapUtils.mapRoomSize.toFloat()
-        val gapSize = HotbarMapScanner.quarterRoom.toFloat()
+        val gapSize = connectorSize.toFloat()
         val halfRoom = HotbarMapScanner.halfRoom.toFloat()
         val fullCellSize = roomSize + gapSize
 
         DungeonScanner.uniqueRooms.values.forEach { unq ->
+            if (unq.data.isUnknown()) return@forEach
+            if (MapConfig.hideBloodroomOvelay.value && unq.data.type == RoomType.BLOOD) return@forEach
+            val unopenedTile = unq.tiles.find { ! it.isSeparator && it.state == RoomState.UNOPENED }
             val roomTile = unq.mainRoom
 
-            if (unq.data.isUnknown()) return@forEach
+            if (! MapConfig.dungeonMapCheater.value && unopenedTile != null) {
+                val (row, column) = unopenedTile.getGridPos()
+                if (getPredictedTypes(unopenedTile, row * 11 + column) != null) return@forEach
+
+                val xOffset = (column shr 1) * (MapUtils.mapRoomSize + connectorSize)
+                val yOffset = (row shr 1) * (MapUtils.mapRoomSize + connectorSize)
+                drawRoomCheckmark(unopenedTile, xOffset, yOffset)
+                return@forEach
+            }
+
             if (unq.data.type.equalsOneOf(RoomType.ENTRANCE, RoomType.FAIRY)) return@forEach
-            if (MapConfig.hideBloodroomOvelay.value && unq.data.type == RoomType.BLOOD) return@forEach
-            if (! MapConfig.dungeonMapCheater.value && roomTile.state.equalsOneOf(RoomState.UNDISCOVERED, RoomState.UNOPENED)) return@forEach
+            if (! MapConfig.dungeonMapCheater.value && roomTile.state == RoomState.UNDISCOVERED) return@forEach
 
             val checkPos = unq.getCheckmarkPosition()
             val cX = (checkPos.first / 2f) * fullCellSize + halfRoom
