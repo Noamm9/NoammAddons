@@ -12,7 +12,7 @@ import java.awt.Color
 object MapConfig: SettingProvider {
     override val configSettings = mutableSetOf<ConfigHolder<*>>()
 
-    val mapEnabled by ToggleSetting("Map Enabled", true).section("Map")
+    val mapEnabled by ToggleSetting("Map Enabled", true).section("General")
 
     //#if CHEAT
     val dungeonMapCheater by ToggleSetting("Cheater Map", false)
@@ -20,18 +20,13 @@ object MapConfig: SettingProvider {
     //$val dungeonMapCheater by ToggleSetting("Legit", false).hidden().jsonName(UUID.randomUUID().toString())
     //#endif
 
-    val mapExtraInfo by ToggleSetting("Show Extra Info Under Map", false)
     val mapHideInBoss by ToggleSetting("Hide In Boss", false)
+    val mapExtraInfo by ToggleSetting("Show Extra Info Under Map", false)
     val printPlayersClearInfo by ToggleSetting("Player Clear Info", false)
-    val playerNames by DropdownSetting("Show Player Names", 0, listOf("Off", "Holding Leap", "Always"))
-    val mapVanillaMarker by ToggleSetting("Vanilla Head Marker", false)
 
-    val textScale by SliderSetting("Map Text Scale", 1f, 0.4f, 1.5f, 0.1).section("Size")
-    val doorHeightSize by SliderSetting("Door Width", 6, 6, 10, 1)
+    val textScale by SliderSetting("Map Text Scale", 1f, 0.4f, 1.5f, 0.1).section("Size & Border")
     val checkmarkSize by SliderSetting("Map Checkmark Scale", 1f, 0.3f, 1.5f, 0.1f)
-    val playerHeadScale by SliderSetting("Player Heads Scale", 1f, 0.3f, 1.5f, 0.1f)
-    val playerNameScale by SliderSetting("Player Name Scale", 0.5f, 0.3f, 1.5f, 0.1f)
-
+    val doorHeightSize by SliderSetting("Door Width", 6, 6, 10, 1)
     val mapBackground by ColorSetting("Map Background Color", Color(255, 255, 255, 50), true)
     val mapBorderColor by ColorSetting("Map Border Color", Color(255, 255, 255), true)
     val mapBorderWidth by SliderSetting("Border Thickness", 1, 1, 5, 1)
@@ -51,16 +46,21 @@ object MapConfig: SettingProvider {
     val highlightMimicRoom by ToggleSetting("Highlight Mimic Room", true)
     //#endif
 
-    val mapPlayerHeadColor by ColorSetting("Head Border", Color(0, 0, 0), true).section("Colors")
-    val mapVanillaMarkerColor by ColorSetting("Vanilla Head Marker", Color(0, 255, 0), true).jsonName("Vanilla Head Marker Color")
+    val playerNames by DropdownSetting("Show Player Names", 0, listOf("Off", "Holding Leap", "Always")).section("Players")
+    val playerHeadScale by SliderSetting("Player Heads Scale", 1f, 0.3f, 1.5f, 0.1f)
+    val playerNameScale by SliderSetting("Player Name Scale", 0.5f, 0.3f, 1.5f, 0.1f)
+    val mapPlayerHeadColor by ColorSetting("Head Border", Color(0, 0, 0), true)
     val mapPlayerHeadColorClassBased by ToggleSetting("Head Border Class Base", false)
     val mapPlayerNameClassColorBased by ToggleSetting("Player Names Class Base", false)
+    val mapVanillaMarker by ToggleSetting("Vanilla Head Marker", false)
+    val mapVanillaMarkerColor by ColorSetting("Vanilla Head Marker", Color(0, 255, 0), true).jsonName("Vanilla Head Marker Color")
+
+    val colorUnopened by ColorSetting("Unopened Room", Color(65, 65, 65), true).section("Room Colors")
 
     //#if CHEAT
     val colorMimic by ColorSetting("Mimic Room", Color(255, 0, 0), true).showIf { highlightMimicRoom.value }
     //#endif
 
-    val colorUnopened by ColorSetting("Unopened Room", Color(65, 65, 65), true)
     val colorBlood by ColorSetting("Blood Room", Color(255, 0, 0), true)
     val colorFairy by ColorSetting("Fairy Room", Color(242, 127, 165), true)
     val colorRare by ColorSetting("Rare Room", Color(178, 178, 178), true)
@@ -70,7 +70,7 @@ object MapConfig: SettingProvider {
     val colorRoom by ColorSetting("Normal Room", Color(114, 67, 27), true)
     val colorEntrance by ColorSetting("Entrance Room", Color(0, 124, 0), true)
 
-    val colorUnopenedDoor by ColorSetting("Unopened Door", colorUnopened.value, true)
+    val colorUnopenedDoor by ColorSetting("Unopened Door", colorUnopened.value, true).section("Door Colors")
     val colorBloodDoor by ColorSetting("Blood Door", colorBlood.value, true)
     val colorWitherDoor by ColorSetting("Wither Door", Color(16, 16, 16), true)
     val colorRoomDoor by ColorSetting("Normal Door", colorRoom.value, true)

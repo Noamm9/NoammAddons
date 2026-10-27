@@ -5,7 +5,7 @@ import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner.dungeonList
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonTree
 
-class DoorTile(override val x: Int, override val z: Int, var type: DoorType): Tile {
+class DoorTile(override val x: Int, override val z: Int, var type: DoorType, private val grid: Array<Tile> = dungeonList): Tile {
     override var state = RoomState.UNDISCOVERED
     val aabb = aabb(x - 1, 69, z - 1, x + 2, 73, z + 2)
     var opened = false
@@ -27,7 +27,7 @@ class DoorTile(override val x: Int, override val z: Int, var type: DoorType): Ti
         }
     }
 
-    val roomTiles get() = roomTileIndices.mapNotNull { dungeonList[it] as? RoomTile }
+    val roomTiles get() = roomTileIndices.mapNotNull { grid[it] as? RoomTile }
     val roomTileIndices = buildList {
         val (row, column) = getGridPos()
         val rowEven = row and 1 == 0

@@ -43,12 +43,21 @@ object MapRenderer: HudElement() {
     fun draw(ctx: GuiGraphicsExtractor, example: Boolean, extraInfo: Boolean): Pair<Float, Float> {
         renderBackground(ctx)
         ctx.pose().translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat())
-        applyCheater()
-        ctx.renderRooms()
-        ctx.renderText()
+
+        if (example) {
+            ctx.renderRooms(MapPreview.tiles, MapPreview.CONNECTOR_SIZE, true)
+            ctx.renderText(MapPreview.rooms, MapPreview.CONNECTOR_SIZE, MapUtils.mapRoomSize / 2, true)
+        }
+        else {
+            applyCheater()
+            ctx.renderRooms(DungeonScanner.dungeonList, HotbarMapScanner.quarterRoom.takeUnless { it == - 1 } ?: 4, false)
+            ctx.renderText(DungeonScanner.uniqueRooms.values, HotbarMapScanner.quarterRoom, HotbarMapScanner.halfRoom, false)
+        }
+
         ctx.pose().translate(- MapUtils.startCorner.first.toFloat(), - MapUtils.startCorner.second.toFloat())
-        ctx.renderPlayerHeads()
-        if (extraInfo) renderExtraInfo(ctx)
+        if (example) MapPreview.players.forEachIndexed { i, player -> ctx.drawPlayerHead(player, isSelf = i == 0) }
+        else ctx.renderPlayerHeads()
+        if (extraInfo) renderExtraInfo(ctx, example)
 
         return 128f to if (MapConfig.mapExtraInfo.value) 140f else 128f
     }
@@ -61,9 +70,9 @@ object MapRenderer: HudElement() {
         ctx.drawBorder(0, 0, width, height, MapConfig.mapBorderColor.value, MapConfig.mapBorderWidth.value)
     }
 
-    private fun renderExtraInfo(ctx: GuiGraphicsExtractor) {
+    private fun renderExtraInfo(ctx: GuiGraphicsExtractor, example: Boolean) {
         if (! MapConfig.mapExtraInfo.value) return
-        if (! MapConfig.dungeonMapCheater.value && ! DungeonListener.dungeonStarted) return
+        if (! example && ! MapConfig.dungeonMapCheater.value && ! DungeonListener.dungeonStarted) return
 
         val secretsStr = "&6Secrets: &b${ScoreTracker.foundSecrets}&f/&b${ScoreTracker.secretsUntil300}&f/&e${DungeonScanner.secretCount}"
         val cryptsStr = colorCodeByPercent(ScoreTracker.cryptsCount, 6) + "C${ScoreTracker.cryptsCount}"
@@ -78,7 +87,7 @@ object MapRenderer: HudElement() {
         val line1 = "$secretsStr    $cryptsStr &f| $batsStr"
         val line2 = "$scoreStr   $deathsStr   $bonusStr"
 
-        ctx.pose().translate(width / 2f, 128f)
+        ctx.pose().translate(64f, 128f)
         ctx.drawCenteredString(line1, 0f, - 4f, scale = 0.7f)
         ctx.drawCenteredString(line2, 0f, 2f, scale = 0.7f)
     }
@@ -96,11 +105,9 @@ object MapRenderer: HudElement() {
         return RoomState.UNOPENED
     }
 
-    private fun GuiGraphicsExtractor.renderRooms() {
-        val connectorSize = (HotbarMapScanner.quarterRoom.takeUnless { it == - 1 } ?: 4)
-
+    private fun GuiGraphicsExtractor.renderRooms(tiles: Array<Tile>, connectorSize: Int, preview: Boolean) {
         for (y in 0 .. 10) for (x in 0 .. 10) {
-            val tile = DungeonScanner.dungeonList[y * 11 + x].takeUnless { it is Unknown } ?: continue
+            val tile = tiles[y * 11 + x].takeUnless { it is Unknown } ?: continue
             if (tile.state == RoomState.UNDISCOVERED && ! MapConfig.dungeonMapCheater.value) continue
             if (tile is DoorTile && getDoorState(tile) == RoomState.UNDISCOVERED && ! MapConfig.dungeonMapCheater.value) continue
 
@@ -120,7 +127,7 @@ object MapRenderer: HudElement() {
 
             val xEven = x and 1 == 0
             val yEven = y and 1 == 0
-            val predicted = getPredictedTypes(tile, y * 11 + x)
+            val predicted = getPredictedTypes(tile, y * 11 + x, preview)
 
             when {
                 xEven && yEven -> if (predicted != null) drawPredictedRoom(xOffset, yOffset, predicted)
@@ -137,9 +144,10 @@ object MapRenderer: HudElement() {
         }
     }
 
-    private fun getPredictedTypes(tile: Tile, index: Int): List<RoomType>? {
+    private fun getPredictedTypes(tile: Tile, index: Int, preview: Boolean): List<RoomType>? {
         if (! MapConfig.predictRooms.value || MapConfig.dungeonMapCheater.value) return null
         if (tile !is RoomTile || tile.state != RoomState.UNOPENED) return null
+        if (preview) return MapPreview.predictions[index]
         return SpecialColumn.predict(index)
     }
 
@@ -181,14 +189,13 @@ object MapRenderer: HudElement() {
         pose().popMatrix()
     }
 
-    private fun GuiGraphicsExtractor.renderText() {
-        val connectorSize = HotbarMapScanner.quarterRoom
+    private fun GuiGraphicsExtractor.renderText(rooms: Collection<UniqueRoom>, connectorSize: Int, halfRoomSize: Int, preview: Boolean) {
         val roomSize = MapUtils.mapRoomSize.toFloat()
         val gapSize = connectorSize.toFloat()
-        val halfRoom = HotbarMapScanner.halfRoom.toFloat()
+        val halfRoom = halfRoomSize.toFloat()
         val fullCellSize = roomSize + gapSize
 
-        DungeonScanner.uniqueRooms.values.forEach { unq ->
+        rooms.forEach { unq ->
             if (unq.data.isUnknown()) return@forEach
             if (MapConfig.hideBloodroomOvelay.value && unq.data.type == RoomType.BLOOD) return@forEach
             val unopenedTile = unq.tiles.find { ! it.isSeparator && it.state == RoomState.UNOPENED }
@@ -196,7 +203,7 @@ object MapRenderer: HudElement() {
 
             if (! MapConfig.dungeonMapCheater.value && unopenedTile != null) {
                 val (row, column) = unopenedTile.getGridPos()
-                if (getPredictedTypes(unopenedTile, row * 11 + column) != null) return@forEach
+                if (getPredictedTypes(unopenedTile, row * 11 + column, preview) != null) return@forEach
 
                 val xOffset = (column shr 1) * (MapUtils.mapRoomSize + connectorSize)
                 val yOffset = (row shr 1) * (MapUtils.mapRoomSize + connectorSize)
@@ -307,7 +314,7 @@ object MapRenderer: HudElement() {
         )
     }
 
-    private fun GuiGraphicsExtractor.drawPlayerHead(teammate: DungeonPlayer) {
+    private fun GuiGraphicsExtractor.drawPlayerHead(teammate: DungeonPlayer, isSelf: Boolean = teammate == DungeonListener.thePlayer) {
         val entity = teammate.entity
 
         val (x, z, yaw) = if (entity == null || ! entity.isAlive) {
@@ -332,7 +339,7 @@ object MapRenderer: HudElement() {
         pose().rotate(headYaw)
         pose().scale(MapConfig.playerHeadScale.value)
 
-        if (MapConfig.mapVanillaMarker.value && teammate == DungeonListener.thePlayer) {
+        if (MapConfig.mapVanillaMarker.value && isSelf) {
             drawTexture(ownPlayerMarker, - 6, - 6, 12, 12, MapConfig.mapVanillaMarkerColor.value)
         }
         else {

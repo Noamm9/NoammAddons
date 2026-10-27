@@ -1,0 +1,413 @@
+{
+  "rooms": [
+    {
+      "name": "Chambers",
+      "type": "NORMAL",
+      "state": "CLEARED",
+      "foundSecrets": 0,
+      "tiles": [
+        [0, 0],
+        [1, 0],
+        [2, 0],
+        [2, 1],
+        [2, 2]
+      ],
+      "predicted": null
+    },
+    {
+      "name": "Cathedral",
+      "type": "NORMAL",
+      "state": "CLEARED",
+      "foundSecrets": 0,
+      "tiles": [
+        [4, 0],
+        [5, 0],
+        [6, 0],
+        [4, 1],
+        [5, 1],
+        [6, 1],
+        [4, 2],
+        [5, 2],
+        [6, 2]
+      ],
+      "predicted": null
+    },
+    {
+      "name": "Entrance",
+      "type": "ENTRANCE",
+      "state": "DISCOVERED",
+      "foundSecrets": 0,
+      "tiles": [
+        [8, 0]
+      ],
+      "predicted": null
+    },
+    {
+      "name": "Quartz Knight",
+      "type": "NORMAL",
+      "state": "CLEARED",
+      "foundSecrets": 0,
+      "tiles": [
+        [10, 0],
+        [10, 1],
+        [10, 2],
+        [10, 3],
+        [10, 4],
+        [10, 5],
+        [10, 6]
+      ],
+      "predicted": null
+    },
+    {
+      "name": "Trinity",
+      "type": "RARE",
+      "state": "CLEARED",
+      "foundSecrets": 2,
+      "tiles": [
+        [0, 2]
+      ],
+      "predicted": null
+    },
+    {
+      "name": "Sarcophagus",
+      "type": "NORMAL",
+      "state": "CLEARED",
+      "foundSecrets": 0,
+      "tiles": [
+        [8, 2]
+      ],
+      "predicted": null
+    },
+    {
+      "name": "Three Weirdos",
+      "type": "PUZZLE",
+      "state": "DISCOVERED",
+      "foundSecrets": 0,
+      "tiles": [
+        [0, 4]
+      ],
+      "predicted": null
+    },
+    {
+      "name": "Drop",
+      "type": "NORMAL",
+      "state": "CLEARED",
+      "foundSecrets": 0,
+      "tiles": [
+        [2, 4]
+      ],
+      "predicted": null
+    },
+    {
+      "name": "Default",
+      "type": "CHAMPION",
+      "state": "UNOPENED",
+      "foundSecrets": 0,
+      "tiles": [
+        [4, 4]
+      ],
+      "predicted": [
+        "PUZZLE",
+        "CHAMPION"
+      ]
+    },
+    {
+      "name": "Red Green",
+      "type": "NORMAL",
+      "state": "GREEN",
+      "foundSecrets": 3,
+      "tiles": [
+        [6, 4]
+      ],
+      "predicted": null
+    },
+    {
+      "name": "Dip",
+      "type": "NORMAL",
+      "state": "CLEARED",
+      "foundSecrets": 0,
+      "tiles": [
+        [8, 4]
+      ],
+      "predicted": null
+    },
+    {
+      "name": "Deathmite",
+      "type": "NORMAL",
+      "state": "UNDISCOVERED",
+      "foundSecrets": 0,
+      "tiles": [
+        [0, 6],
+        [0, 7],
+        [0, 8],
+        [0, 9],
+        [0, 10]
+      ],
+      "predicted": null
+    },
+    {
+      "name": "Lower Blaze",
+      "type": "PUZZLE",
+      "state": "UNOPENED",
+      "foundSecrets": 0,
+      "tiles": [
+        [2, 6]
+      ],
+      "predicted": [
+        "PUZZLE",
+        "CHAMPION"
+      ]
+    },
+    {
+      "name": "Buttons",
+      "type": "NORMAL",
+      "state": "GREEN",
+      "foundSecrets": 5,
+      "tiles": [
+        [4, 6],
+        [5, 6],
+        [6, 6],
+        [4, 7],
+        [5, 7],
+        [6, 7],
+        [4, 8],
+        [5, 8],
+        [6, 8]
+      ],
+      "predicted": null
+    },
+    {
+      "name": "Fairy",
+      "type": "FAIRY",
+      "state": "GREEN",
+      "foundSecrets": 0,
+      "tiles": [
+        [8, 6]
+      ],
+      "predicted": null
+    },
+    {
+      "name": "Jumping Skulls",
+      "type": "NORMAL",
+      "state": "CLEARED",
+      "foundSecrets": 0,
+      "tiles": [
+        [2, 8]
+      ],
+      "predicted": null
+    },
+    {
+      "name": "Market",
+      "type": "NORMAL",
+      "state": "CLEARED",
+      "foundSecrets": 0,
+      "tiles": [
+        [8, 8],
+        [8, 9],
+        [8, 10],
+        [9, 10],
+        [10, 10]
+      ],
+      "predicted": null
+    },
+    {
+      "name": "Blood",
+      "type": "BLOOD",
+      "state": "CLEARED",
+      "foundSecrets": 0,
+      "tiles": [
+        [10, 8]
+      ],
+      "predicted": null
+    },
+    {
+      "name": "Mage",
+      "type": "NORMAL",
+      "state": "GREEN",
+      "foundSecrets": 4,
+      "tiles": [
+        [2, 10],
+        [3, 10],
+        [4, 10]
+      ],
+      "predicted": null
+    },
+    {
+      "name": "New Trap",
+      "type": "TRAP",
+      "state": "DISCOVERED",
+      "foundSecrets": 0,
+      "tiles": [
+        [6, 10]
+      ],
+      "predicted": null
+    }
+  ],
+  "doors": [
+    {
+      "x": 0,
+      "y": 1,
+      "type": "NORMAL",
+      "state": "DISCOVERED",
+      "opened": false
+    },
+    {
+      "x": 8,
+      "y": 1,
+      "type": "ENTRANCE",
+      "state": "DISCOVERED",
+      "opened": true
+    },
+    {
+      "x": 3,
+      "y": 2,
+      "type": "NORMAL",
+      "state": "DISCOVERED",
+      "opened": false
+    },
+    {
+      "x": 2,
+      "y": 3,
+      "type": "NORMAL",
+      "state": "DISCOVERED",
+      "opened": false
+    },
+    {
+      "x": 6,
+      "y": 3,
+      "type": "NORMAL",
+      "state": "DISCOVERED",
+      "opened": false
+    },
+    {
+      "x": 8,
+      "y": 3,
+      "type": "WITHER",
+      "state": "DISCOVERED",
+      "opened": true
+    },
+    {
+      "x": 1,
+      "y": 4,
+      "type": "NORMAL",
+      "state": "DISCOVERED",
+      "opened": false
+    },
+    {
+      "x": 7,
+      "y": 4,
+      "type": "NORMAL",
+      "state": "DISCOVERED",
+      "opened": false
+    },
+    {
+      "x": 9,
+      "y": 4,
+      "type": "WITHER",
+      "state": "DISCOVERED",
+      "opened": true
+    },
+    {
+      "x": 2,
+      "y": 5,
+      "type": "NORMAL",
+      "state": "UNOPENED",
+      "opened": false
+    },
+    {
+      "x": 4,
+      "y": 5,
+      "type": "NORMAL",
+      "state": "UNOPENED",
+      "opened": false
+    },
+    {
+      "x": 6,
+      "y": 5,
+      "type": "NORMAL",
+      "state": "DISCOVERED",
+      "opened": false
+    },
+    {
+      "x": 9,
+      "y": 6,
+      "type": "WITHER",
+      "state": "DISCOVERED",
+      "opened": true
+    },
+    {
+      "x": 8,
+      "y": 7,
+      "type": "WITHER",
+      "state": "DISCOVERED",
+      "opened": true
+    },
+    {
+      "x": 1,
+      "y": 8,
+      "type": "NORMAL",
+      "state": "UNOPENED",
+      "opened": false
+    },
+    {
+      "x": 3,
+      "y": 8,
+      "type": "NORMAL",
+      "state": "DISCOVERED",
+      "opened": false
+    },
+    {
+      "x": 4,
+      "y": 9,
+      "type": "NORMAL",
+      "state": "DISCOVERED",
+      "opened": false
+    },
+    {
+      "x": 6,
+      "y": 9,
+      "type": "NORMAL",
+      "state": "DISCOVERED",
+      "opened": false
+    },
+    {
+      "x": 10,
+      "y": 9,
+      "type": "BLOOD",
+      "state": "DISCOVERED",
+      "opened": true
+    }
+  ],
+  "players": [
+    {
+      "clazz": "Archer",
+      "col": 1.0,
+      "row": 1.0,
+      "yaw": 40.5735
+    },
+    {
+      "clazz": "Mage",
+      "col": 2.0,
+      "row": 4.0,
+      "yaw": 90.0
+    },
+    {
+      "clazz": "Healer",
+      "col": 5.0,
+      "row": 3.0,
+      "yaw": 90.0
+    },
+    {
+      "clazz": "Tank",
+      "col": 3.0,
+      "row": 1.0,
+      "yaw": 0.0
+    },
+    {
+      "clazz": "Berserk",
+      "col": 5.0,
+      "row": 0.0,
+      "yaw": 0.0
+    }
+  ]
+}
