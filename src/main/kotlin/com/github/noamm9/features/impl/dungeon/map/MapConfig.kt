@@ -42,6 +42,8 @@ object MapConfig: SettingProvider {
     val hideQuestionCheckmarks by ToggleSetting("Hide Unknown Room Checkmark", false).showIf { dungeonMapCheckmarkStyle.value == 0 }
     val limitRoomNameSize by ToggleSetting("Limit Room Name Size", true).showIf { dungeonMapCheckmarkStyle.value in 2 .. 4 }
     val predictRooms by ToggleSetting("Predict Unopened 1x1s", true).showIf { ! dungeonMapCheater.value }
+    val undiscoveredTint by SliderSetting("Undiscovered Room Tint", 50f, 0f, 100f, 1f, "%").showIf { dungeonMapCheater.value }
+    val colorUndiscovered by ColorSetting("Undiscovered Room", Color(0, 0, 0), false).showIf { dungeonMapCheater.value }
 
     //#if CHEAT
     val mimicEsp by ToggleSetting("Mimic ESP")

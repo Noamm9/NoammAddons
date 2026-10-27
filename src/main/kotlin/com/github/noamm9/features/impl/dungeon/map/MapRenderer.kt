@@ -106,7 +106,7 @@ object MapRenderer: HudElement() {
 
             var color = tile.getColor()
             if (MapConfig.dungeonMapCheater.value && tile.state == RoomState.UNDISCOVERED) {
-                color = color.darker().darker()
+                color = color.lerp(MapConfig.colorUndiscovered.value, MapConfig.undiscoveredTint.value / 100f)
             }
 
             //#if CHEAT
