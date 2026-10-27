@@ -40,6 +40,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
         mc.execute { mc.screen?.onClose() }
         GuiUtils.setScreen(TerminalSimSelectorScreen())
     }.withDescription("Opens the Terminal Simulator. can also be open via /na termsim")
+    val simAutoNext by ToggleSetting("Simulator Auto Next").hidden()
 
     private val soundsEnabled by ToggleSetting("Terminal Sounds", true).section("Sounds")
     private val clickSound = createSoundSettings("Click Sound", SoundEvents.NOTE_BLOCK_PLING.value()) { soundsEnabled.value }
@@ -251,9 +252,11 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
             runs { GuiUtils.setScreen(TerminalSimSelectorScreen()) }
 
             argument("terminal", StringArgumentType.word()) {
-                suggests { SimTerminal.all.map(SimTerminal::name) }
+                suggests { SimTerminal.all.map(SimTerminal::name) + "random" }
                 runs { ctx ->
-                    val sim = SimTerminal.fromName(StringArgumentType.getString(ctx, "terminal")) ?: return@runs ChatUtils.modMessage("§cUnknown terminal")
+                    val name = StringArgumentType.getString(ctx, "terminal")
+                    val sim = if (name.equals("random", ignoreCase = true)) SimTerminal.all.random()
+                    else SimTerminal.fromName(name) ?: return@runs ChatUtils.modMessage("§cUnknown terminal")
                     GuiUtils.setScreen(TerminalSimScreen(sim))
                 }
             }

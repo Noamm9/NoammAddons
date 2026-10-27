@@ -57,6 +57,8 @@ class TerminalSimScreen(private val sim: SimTerminal): Screen(Component.literal(
 
     override fun tick() = sync(sim.tick())
 
+    override fun onClose() = GuiUtils.setScreen(TerminalSimSelectorScreen())
+
     override fun removed() {
         terminal.reset()
         EventBus.post(TerminalEvent.Close)
@@ -92,8 +94,10 @@ class TerminalSimScreen(private val sim: SimTerminal): Screen(Component.literal(
         if (! sim.isSolved()) return
         val seconds = (System.currentTimeMillis() - openTime) / 1000.0
         ChatUtils.modMessage("§a${terminal.displayName} §7completed in §f${seconds.toFixed(2)}s")
-        onClose()
-        GuiUtils.setScreen(TerminalSimSelectorScreen())
+        GuiUtils.setScreen(
+            if (TerminalSolver.simAutoNext.value) TerminalSimScreen(SimTerminal.all.random())
+            else TerminalSimSelectorScreen()
+        )
     }
 
     fun isFirstClickDelay(): Boolean {
