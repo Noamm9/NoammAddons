@@ -33,7 +33,7 @@ sealed class SimTerminal(val terminal: Terminal) {
     }
 
     companion object {
-        val all = SimTerminal::class.sealedSubclasses.mapNotNull { it.objectInstance }
+        val all by lazy { SimTerminal::class.sealedSubclasses.mapNotNull { it.objectInstance } }
 
         fun fromName(name: String) = all.find { it.name == name.lowercase() }
     }

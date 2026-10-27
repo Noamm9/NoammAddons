@@ -54,7 +54,7 @@ sealed class Terminal {
     }
 
     companion object {
-        val all = Terminal::class.sealedSubclasses.mapNotNull { it.objectInstance }
+        val all by lazy { Terminal::class.sealedSubclasses.mapNotNull { it.objectInstance } }
 
         fun fromTitle(title: String) = all.firstOrNull { it.titleRegex.matches(title) }
     }
