@@ -1,12 +1,15 @@
 package com.github.noamm9.features.impl.floor7.terminals.sim
 
+import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.config.ConfigManager
 import com.github.noamm9.features.impl.floor7.terminals.TerminalSolver
 import com.github.noamm9.ui.utils.components.UIButton
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
+import net.minecraft.client.input.KeyEvent
 import net.minecraft.network.chat.Component
 
 class TerminalSimSelectorScreen: Screen(Component.literal("Terminal Simulator")) {
@@ -24,7 +27,7 @@ class TerminalSimSelectorScreen: Screen(Component.literal("Terminal Simulator"))
     override fun init() {
         super.init()
 
-        val startX = (width - COLUMNS * BUTTON_WIDTH - (COLUMNS - 1) * BUTTON_GAP) / 2
+        val startX: Int = (width - COLUMNS * BUTTON_WIDTH - (COLUMNS - 1) * BUTTON_GAP) / 2
 
         fun addButton(index: Int, text: String, action: (UIButton) -> Unit) {
             val x = startX + index % COLUMNS * (BUTTON_WIDTH + BUTTON_GAP)
@@ -48,6 +51,14 @@ class TerminalSimSelectorScreen: Screen(Component.literal("Terminal Simulator"))
     override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
         super.extractRenderState(graphics, mouseX, mouseY, a)
         graphics.drawCenteredString("§lTerminal Simulator", width / 2f, startY - font.lineHeight - BUTTON_GAP)
+    }
+
+    override fun keyPressed(event: KeyEvent): Boolean {
+        return if (KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value == event.key) {
+            onClose()
+            true
+        }
+        else super.keyPressed(event)
     }
 
     override fun isPauseScreen() = false
