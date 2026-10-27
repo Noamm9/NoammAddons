@@ -38,16 +38,16 @@ object MapRenderer: HudElement() {
     private val checkmarkFail = Identifier.fromNamespaceAndPath(MOD_ID, "textures/gui/dungeonmap/checkmarks/cross.png")
     private val ownPlayerMarker = Identifier.fromNamespaceAndPath(MOD_ID, "textures/gui/dungeonmap/marker.png")
 
-    override fun draw(ctx: GuiGraphicsExtractor, example: Boolean): Pair<Float, Float> = draw(ctx, example, true)
+    override fun draw(ctx: GuiGraphicsExtractor, example: Boolean): Pair<Float, Float> = draw(ctx, example, extraInfo = true)
 
     fun draw(ctx: GuiGraphicsExtractor, example: Boolean, extraInfo: Boolean): Pair<Float, Float> {
         renderBackground(ctx)
         ctx.pose().translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat())
         applyCheater()
-        renderRooms(ctx)
-        renderText(ctx)
+        ctx.renderRooms()
+        ctx.renderText()
         ctx.pose().translate(- MapUtils.startCorner.first.toFloat(), - MapUtils.startCorner.second.toFloat())
-        renderPlayerHeads(ctx)
+        ctx.renderPlayerHeads()
         if (extraInfo) renderExtraInfo(ctx)
 
         return 128f to if (MapConfig.mapExtraInfo.value) 140f else 128f
@@ -96,7 +96,7 @@ object MapRenderer: HudElement() {
         return RoomState.UNOPENED
     }
 
-    private fun renderRooms(ctx: GuiGraphicsExtractor) {
+    private fun GuiGraphicsExtractor.renderRooms() {
         val connectorSize = (HotbarMapScanner.quarterRoom.takeUnless { it == - 1 } ?: 4)
 
         for (y in 0 .. 10) for (x in 0 .. 10) {
@@ -123,38 +123,16 @@ object MapRenderer: HudElement() {
             val predicted = getPredictedTypes(tile, y * 11 + x)
 
             when {
-                xEven && yEven -> if (predicted != null) drawPredictedRoom(ctx, xOffset, yOffset, predicted)
-                else if (tile is RoomTile) {
-                    ctx.drawRect(
-                        xOffset,
-                        yOffset, MapUtils.mapRoomSize,
-                        MapUtils.mapRoomSize,
-                        color
-                    )
-                }
+                xEven && yEven -> if (predicted != null) drawPredictedRoom(xOffset, yOffset, predicted)
+                else if (tile is RoomTile) drawRect(xOffset, yOffset, MapUtils.mapRoomSize, MapUtils.mapRoomSize, color)
 
-                ! xEven && ! yEven -> {
-                    ctx.drawRect(
-                        xOffset,
-                        yOffset, MapUtils.mapRoomSize + connectorSize,
-                        MapUtils.mapRoomSize + connectorSize,
-                        color
-                    )
-                }
+                ! xEven && ! yEven -> drawRect(xOffset, yOffset, MapUtils.mapRoomSize + connectorSize, MapUtils.mapRoomSize + connectorSize, color)
 
-                else -> drawRoomConnector(
-                    ctx, xOffset, yOffset, connectorSize, tile is DoorTile, ! xEven, color
-                )
+                else -> drawRoomConnector(xOffset, yOffset, connectorSize, tile is DoorTile, ! xEven, color)
             }
 
             if (tile is RoomTile && tile.data.isUnknown() && predicted == null) {
-                val checkmarkSize = MapConfig.checkmarkSize.value * 10
-                drawCheckmark(
-                    ctx, tile,
-                    xOffset + MapUtils.mapRoomSize / 2 - checkmarkSize / 2,
-                    yOffset + MapUtils.mapRoomSize / 2 - checkmarkSize / 2,
-                    checkmarkSize,
-                )
+                drawRoomCheckmark(tile, xOffset, yOffset)
             }
         }
     }
@@ -165,7 +143,7 @@ object MapRenderer: HudElement() {
         return SpecialColumn.predict(index)
     }
 
-    private fun drawPredictedRoom(ctx: GuiGraphicsExtractor, x: Int, y: Int, types: List<RoomType>) {
+    private fun GuiGraphicsExtractor.drawPredictedRoom(x: Int, y: Int, types: List<RoomType>) {
         val roomSize = MapUtils.mapRoomSize
         val colors = types.map {
             when (it) {
@@ -177,14 +155,14 @@ object MapRenderer: HudElement() {
             colors.map { if (colors.size > 1) it.darker().darker() else it }
         }
 
-        ctx.pose().pushMatrix()
-        ctx.pose().translate(x.toFloat(), y.toFloat())
+        pose().pushMatrix()
+        pose().translate(x.toFloat(), y.toFloat())
 
         when (colors.size) {
-            1 -> ctx.drawRect(0, 0, roomSize, roomSize, colors[0])
+            1 -> drawRect(0, 0, roomSize, roomSize, colors[0])
             2 -> {
-                ctx.drawRect(0, 0, roomSize, roomSize / 2, colors[0])
-                ctx.drawRect(0, roomSize / 2, roomSize, roomSize - roomSize / 2, colors[1])
+                drawRect(0, 0, roomSize, roomSize / 2, colors[0])
+                drawRect(0, roomSize / 2, roomSize, roomSize - roomSize / 2, colors[1])
             }
 
             3 -> {
@@ -192,18 +170,18 @@ object MapRenderer: HudElement() {
                 val center = roomSize - outer
                 val inner = center - 1
 
-                ctx.drawRect(0, 0, roomSize, outer, colors[0])
-                ctx.drawRect(0, 0, outer, inner, colors[0])
-                ctx.drawRect(inner, outer, roomSize - inner, roomSize - outer, colors[1])
-                ctx.drawRect(0, inner, roomSize, roomSize - inner, colors[1])
-                ctx.drawRect(outer, outer, center - outer, center - outer, colors[2])
+                drawRect(0, 0, roomSize, outer, colors[0])
+                drawRect(0, 0, outer, inner, colors[0])
+                drawRect(inner, outer, roomSize - inner, roomSize - outer, colors[1])
+                drawRect(0, inner, roomSize, roomSize - inner, colors[1])
+                drawRect(outer, outer, center - outer, center - outer, colors[2])
             }
         }
 
-        ctx.pose().popMatrix()
+        pose().popMatrix()
     }
 
-    private fun renderText(ctx: GuiGraphicsExtractor) {
+    private fun GuiGraphicsExtractor.renderText() {
         val roomSize = MapUtils.mapRoomSize.toFloat()
         val gapSize = HotbarMapScanner.quarterRoom.toFloat()
         val halfRoom = HotbarMapScanner.halfRoom.toFloat()
@@ -258,17 +236,17 @@ object MapRenderer: HudElement() {
                     var currentY = cY - totalH / 2
 
                     for (line in unq.cacheSplitName) {
-                        ctx.drawCenteredString(line, cX, currentY, color, scale)
+                        drawCenteredString(line, cX, currentY, color, scale)
                         currentY += totalH / totalLines
                     }
 
                     if (showSecrets) {
                         val secStr = "${unq.foundSecrets}/${roomTile.data.secrets}"
-                        ctx.drawCenteredString(secStr, cX, currentY, color, scale)
+                        drawCenteredString(secStr, cX, currentY, color, scale)
                     }
                 }
 
-                1 -> ctx.drawCenteredString(
+                1 -> drawCenteredString(
                     if (roomTile.data.secrets == 0) "0" else "${unq.foundSecrets}/${roomTile.data.secrets}",
                     cX,
                     cY - UGraphics.getFontHeight() / 2,
@@ -278,37 +256,46 @@ object MapRenderer: HudElement() {
 
                 0 -> {
                     val checkmarkSize = MapConfig.checkmarkSize.value * 10
-                    val halfcheckmarkSize = checkmarkSize / 2
-                    drawCheckmark(ctx, unq.mainRoom, cX - halfcheckmarkSize, cY - halfcheckmarkSize, MapConfig.checkmarkSize.value * 10)
+                    drawCheckmark(roomTile, cX - checkmarkSize / 2, cY - checkmarkSize / 2, checkmarkSize)
                 }
             }
         }
     }
 
-    private fun renderPlayerHeads(ctx: GuiGraphicsExtractor) {
+    private fun GuiGraphicsExtractor.renderPlayerHeads() {
         if (LocationUtils.inBoss) return
 
         DungeonListener.dungeonTeammatesNoSelf.forEach { player ->
             if (player.isDead) return@forEach
-            drawPlayerHead(ctx, player)
+            drawPlayerHead(player)
         }
 
-        drawPlayerHead(ctx, DungeonListener.thePlayer ?: return)
+        drawPlayerHead(DungeonListener.thePlayer ?: return)
     }
 
-    private fun drawCheckmark(ctx: GuiGraphicsExtractor, tile: Tile, x: Number, y: Number, size: Number) {
+    private fun GuiGraphicsExtractor.drawCheckmark(tile: Tile, x: Number, y: Number, size: Number) {
         val checkmark = when (tile.state) {
             RoomState.CLEARED -> checkmarkWhite
             RoomState.GREEN -> checkmarkGreen
             RoomState.FAILED -> checkmarkFail
-            RoomState.UNOPENED -> if (! MapConfig.hideQuestionCheckmarks.value) checkmarkUnknown else return
+            RoomState.UNOPENED if ! MapConfig.hideQuestionCheckmarks.value -> checkmarkUnknown
             else -> return
         }
 
-        ctx.drawTexture(checkmark, x, y, size, size)
+        drawTexture(checkmark, x, y, size, size)
     }
 
-    private fun drawPlayerHead(ctx: GuiGraphicsExtractor, teammate: DungeonPlayer) {
+    private fun GuiGraphicsExtractor.drawRoomCheckmark(tile: Tile, xOffset: Int, yOffset: Int) {
+        val checkmarkSize = MapConfig.checkmarkSize.value * 10
+        drawCheckmark(
+            tile,
+            xOffset + MapUtils.mapRoomSize / 2 - checkmarkSize / 2,
+            yOffset + MapUtils.mapRoomSize / 2 - checkmarkSize / 2,
+            checkmarkSize
+        )
+    }
+
+    private fun GuiGraphicsExtractor.drawPlayerHead(teammate: DungeonPlayer) {
         val entity = teammate.entity
 
         val (x, z, yaw) = if (entity == null || ! entity.isAlive) {
@@ -325,20 +312,20 @@ object MapRenderer: HudElement() {
         val nameColor = if (MapConfig.mapPlayerNameClassColorBased.value && teammate.clazz != DungeonClass.Empty) teammate.clazz.color
         else Color.WHITE
 
-        ctx.pose().pushMatrix()
-        ctx.pose().translate(x, z)
+        pose().pushMatrix()
+        pose().translate(x, z)
         val currentYaw = MathUtils.normalizeYaw(yaw)
         val headYaw = Math.toRadians((currentYaw + 180).toDouble()).toFloat()
 
-        ctx.pose().rotate(headYaw)
-        ctx.pose().scale(MapConfig.playerHeadScale.value)
+        pose().rotate(headYaw)
+        pose().scale(MapConfig.playerHeadScale.value)
 
         if (MapConfig.mapVanillaMarker.value && teammate == DungeonListener.thePlayer) {
-            ctx.drawTexture(ownPlayerMarker, - 6, - 6, 12, 12, MapConfig.mapVanillaMarkerColor.value)
+            drawTexture(ownPlayerMarker, - 6, - 6, 12, 12, MapConfig.mapVanillaMarkerColor.value)
         }
         else {
-            ctx.drawBorder(- 7, - 7, 14, 14, borderColor)
-            ctx.drawPlayerHead(- 6, - 6, 12, teammate.skin)
+            drawBorder(- 7, - 7, 14, 14, borderColor)
+            drawPlayerHead(- 6, - 6, 12, teammate.skin)
         }
 
         val heldItem = mc.player?.mainHandItem
@@ -347,18 +334,16 @@ object MapRenderer: HudElement() {
             || heldItem.skyblockId == "HAUNT_ABILITY")))
 
         if (shouldDrawName) {
-            ctx.pose().rotate(- headYaw)
-            ctx.pose().translate(0f, 8f)
-            ctx.pose().scale(MapConfig.playerNameScale.value)
-            ctx.drawCenteredString(teammate.name, 0, 0, nameColor)
+            pose().rotate(- headYaw)
+            pose().translate(0f, 8f)
+            pose().scale(MapConfig.playerNameScale.value)
+            drawCenteredString(teammate.name, 0, 0, nameColor)
         }
 
-        ctx.pose().popMatrix()
+        pose().popMatrix()
     }
 
-    private fun drawRoomConnector(
-        matrices: GuiGraphicsExtractor, x: Int, y: Int, doorWidth: Int, doorway: Boolean, vertical: Boolean, color: Color,
-    ) {
+    private fun GuiGraphicsExtractor.drawRoomConnector(x: Int, y: Int, doorWidth: Int, doorway: Boolean, vertical: Boolean, color: Color) {
         val doorHeightSize = MapConfig.doorHeightSize.value
         val doorwayOffset = (MapUtils.mapRoomSize - doorHeightSize) / 2
         val doorHeight = if (doorway) doorHeightSize else MapUtils.mapRoomSize
@@ -366,7 +351,7 @@ object MapRenderer: HudElement() {
         var y1 = if (vertical) y else y + MapUtils.mapRoomSize
         if (doorway) if (vertical) y1 += doorwayOffset else x1 += doorwayOffset
 
-        matrices.drawRect(
+        drawRect(
             x1.toDouble(),
             y1.toDouble(),
             (if (vertical) doorWidth else doorHeight).toDouble(),
