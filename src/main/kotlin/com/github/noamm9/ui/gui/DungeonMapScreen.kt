@@ -56,9 +56,9 @@ class DungeonMapScreen: Screen(Component.literal("DungeonMap")) {
         val x = windowX
         val y = windowY
 
-        graphics.drawRect(x, y, WINDOW_WIDTH, WINDOW_HEIGHT, Color(20, 20, 20, 240))
+        drawRectAroundMap(graphics, x, y, WINDOW_WIDTH, WINDOW_HEIGHT, Color(20, 20, 20, 240))
         graphics.drawRect(x, y, SIDEBAR_WIDTH, WINDOW_HEIGHT, Color(15, 15, 15, 200))
-        graphics.drawRect(x + WINDOW_WIDTH - PREVIEW_WIDTH, y, PREVIEW_WIDTH, WINDOW_HEIGHT, Color(15, 15, 15, 200))
+        drawRectAroundMap(graphics, previewX, y, PREVIEW_WIDTH, WINDOW_HEIGHT, Color(15, 15, 15, 200))
         graphics.drawRect(x, y, WINDOW_WIDTH, 2f, Style.accentColor)
 
         graphics.drawCenteredString("§lDungeon Map", x + SIDEBAR_WIDTH / 2, y + 10)
@@ -66,7 +66,7 @@ class DungeonMapScreen: Screen(Component.literal("DungeonMap")) {
 
         drawCategories(graphics, x, y, mX.toFloat(), mY.toFloat())
         drawSettings(graphics, mX, mY)
-        drawPreview(graphics, x + WINDOW_WIDTH - PREVIEW_WIDTH, y + 26, PREVIEW_WIDTH, WINDOW_HEIGHT - 26)
+        drawPreview(graphics)
 
         TooltipManager.draw(graphics, Resolution.width, Resolution.height)
         Resolution.pop(graphics)
@@ -122,17 +122,25 @@ class DungeonMapScreen: Screen(Component.literal("DungeonMap")) {
         scroll.drawScrollbar(ctx, listX + listWidth - SCROLLBAR_WIDTH, listY, SCROLLBAR_WIDTH, listHeight, mouseX.toFloat(), mouseY.toFloat())
     }
 
-    private fun drawPreview(ctx: GuiGraphicsExtractor, x: Float, y: Float, w: Float, h: Float) {
-        val mapHeight = if (MapConfig.mapExtraInfo.value) 140f else 128f
-        val scale = min((w - 12f) / 128f, (h - 12f) / mapHeight)
-
-        ctx.scissor(x, y, w, h)
+    private fun drawPreview(ctx: GuiGraphicsExtractor) {
+        ctx.scissor(previewX, previewY, PREVIEW_WIDTH, previewHeight)
         ctx.pose().pushMatrix()
-        ctx.pose().translate(x + (w - 128f * scale) / 2f, y + (h - mapHeight * scale) / 2f)
-        ctx.pose().scale(scale)
+        ctx.pose().translate(mapX, mapY)
+        ctx.pose().scale(mapScale)
         MapRenderer.draw(ctx, example = ! LocationUtils.inDungeon, extraInfo = true)
         ctx.pose().popMatrix()
         ctx.disableScissor()
+    }
+
+    // Draws the rect with the map's area cut out, so the map's own (possibly translucent) background isn't stacked on the window's
+    private fun drawRectAroundMap(ctx: GuiGraphicsExtractor, x: Float, y: Float, w: Float, h: Float, color: Color) {
+        val mapRight = mapX + 128f * mapScale
+        val mapBottom = mapY + mapHeight * mapScale
+
+        ctx.drawRect(x, y, w, mapY - y, color)
+        ctx.drawRect(x, mapBottom, w, y + h - mapBottom, color)
+        ctx.drawRect(x, mapY, mapX - x, mapBottom - mapY, color)
+        ctx.drawRect(mapRight, mapY, x + w - mapRight, mapBottom - mapY, color)
     }
 
     override fun mouseClicked(event: MouseButtonEvent, isDoubleClick: Boolean): Boolean {
@@ -209,6 +217,13 @@ class DungeonMapScreen: Screen(Component.literal("DungeonMap")) {
     private val listY get() = windowY + 26
     private val listWidth get() = WINDOW_WIDTH - SIDEBAR_WIDTH - PREVIEW_WIDTH - 20
     private val listHeight get() = WINDOW_HEIGHT - 34
+    private val previewX get() = windowX + WINDOW_WIDTH - PREVIEW_WIDTH
+    private val previewY get() = windowY + 26
+    private val previewHeight get() = WINDOW_HEIGHT - 26
+    private val mapHeight get() = if (MapConfig.mapExtraInfo.value) 140f else 128f
+    private val mapScale get() = min((PREVIEW_WIDTH - 12f) / 128f, (previewHeight - 12f) / mapHeight)
+    private val mapX get() = previewX + (PREVIEW_WIDTH - 128f * mapScale) / 2f
+    private val mapY get() = previewY + (previewHeight - mapHeight * mapScale) / 2f
 
     private fun isInsideList(mouseX: Float, mouseY: Float): Boolean {
         return mouseX >= listX && mouseX <= listX + listWidth && mouseY >= listY && mouseY <= listY + listHeight
