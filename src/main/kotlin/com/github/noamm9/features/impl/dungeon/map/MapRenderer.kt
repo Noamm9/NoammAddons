@@ -172,7 +172,9 @@ object MapRenderer: HudElement() {
                 RoomType.CHAMPION -> MapConfig.colorMiniboss
                 RoomType.TRAP -> MapConfig.colorTrap
                 else -> MapConfig.colorPuzzle
-            }.value.darker().darker()
+            }.value
+        }.let { colors ->
+            colors.map { if (colors.size > 1) it.darker().darker() else it }
         }
 
         ctx.pose().pushMatrix()
