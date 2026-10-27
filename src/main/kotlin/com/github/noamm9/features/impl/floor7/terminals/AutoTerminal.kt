@@ -58,7 +58,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
             val progress = "§b[${completed.coerceIn(0, maxClicks)}/$maxClicks]${handler.progressSuffix()}"
 
             ctx.drawCenteredString(title, 0, 0)
-            if (maxClicks != null && maxClicks > 0) ctx.drawCenteredString(progress, 0, - 10f)
+            if (maxClicks != null && maxClicks > 0) ctx.drawCenteredString(progress, 0, 10f)
 
             maxOf(title.width(), progress.width()).toFloat() to 20f
         } defaults {
