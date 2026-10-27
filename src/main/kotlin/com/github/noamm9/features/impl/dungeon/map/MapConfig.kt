@@ -59,14 +59,14 @@ object MapConfig: SettingProvider {
     //#endif
 
     val colorUnopened by ColorSetting("Unopened Room", Color(65, 65, 65), true)
-    val colorBlood by ColorSetting("Blood Room", Color(178, 0, 0), true)
-    val colorFairy by ColorSetting("Fairy Room", Color(227, 155, 226), true)
+    val colorBlood by ColorSetting("Blood Room", Color(255, 0, 0), true)
+    val colorFairy by ColorSetting("Fairy Room", Color(242, 127, 165), true)
     val colorRare by ColorSetting("Rare Room", Color(178, 178, 178), true)
-    val colorMiniboss by ColorSetting("Miniboss Room", Color(255, 200, 0), true)
-    val colorPuzzle by ColorSetting("Puzzle Room", Color(123, 0, 123), true)
-    val colorTrap by ColorSetting("Trap Room", Color(255, 130, 0), true)
-    val colorRoom by ColorSetting("Normal Room", Color(121, 70, 0), true)
-    val colorEntrance by ColorSetting("Entrance Room", Color(0, 255, 0), true)
+    val colorMiniboss by ColorSetting("Miniboss Room", Color(229, 229, 51), true)
+    val colorPuzzle by ColorSetting("Puzzle Room", Color(178, 76, 216), true)
+    val colorTrap by ColorSetting("Trap Room", Color(216, 127, 51), true)
+    val colorRoom by ColorSetting("Normal Room", Color(114, 67, 27), true)
+    val colorEntrance by ColorSetting("Entrance Room", Color(0, 124, 0), true)
 
     val colorUnopenedDoor by ColorSetting("Unopened Door", colorUnopened.value, true)
     val colorBloodDoor by ColorSetting("Blood Door", colorBlood.value, true)
