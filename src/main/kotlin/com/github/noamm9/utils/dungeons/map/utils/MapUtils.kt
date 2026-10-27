@@ -21,8 +21,10 @@ object MapUtils: ISelfInit {
     }
 
     fun coordsToMap(vec: Vec3): Pair<Float, Float> {
-        val x = ((vec.x - DungeonScanner.startX + 15) * coordMultiplier + startCorner.first).toFloat()
-        val z = ((vec.z - DungeonScanner.startZ + 15) * coordMultiplier + startCorner.second).toFloat()
+        val startX = startCorner.first.toFloat().let { if (it == 5f) it + 1f else it }
+        val startY = startCorner.second.toFloat().let { if (it == 5f) it + 1f else it }
+        val x = ((vec.x - DungeonScanner.startX + 15) * coordMultiplier + startX).toFloat()
+        val z = ((vec.z - DungeonScanner.startZ + 15) * coordMultiplier + startY).toFloat()
         return Pair(x, z)
     }
 

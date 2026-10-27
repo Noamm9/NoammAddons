@@ -41,8 +41,11 @@ object MapRenderer: HudElement() {
     override fun draw(ctx: GuiGraphicsExtractor, example: Boolean): Pair<Float, Float> = draw(ctx, example, extraInfo = true)
 
     fun draw(ctx: GuiGraphicsExtractor, example: Boolean, extraInfo: Boolean): Pair<Float, Float> {
+        val startX = MapUtils.startCorner.first.toFloat().let { if (it == 5f) it + 1f else it }
+        val startY = MapUtils.startCorner.second.toFloat().let { if (it == 5f) it + 1f else it }
+
         renderBackground(ctx)
-        ctx.pose().translate(MapUtils.startCorner.first.toFloat(), MapUtils.startCorner.second.toFloat())
+        ctx.pose().translate(startX, startY)
 
         if (example) {
             ctx.renderRooms(MapPreview.tiles, MapPreview.CONNECTOR_SIZE, true)
@@ -54,7 +57,7 @@ object MapRenderer: HudElement() {
             ctx.renderText(DungeonScanner.uniqueRooms.values, HotbarMapScanner.quarterRoom, HotbarMapScanner.halfRoom, false)
         }
 
-        ctx.pose().translate(- MapUtils.startCorner.first.toFloat(), - MapUtils.startCorner.second.toFloat())
+        ctx.pose().translate(- startX, - startY)
         if (example) MapPreview.players.forEachIndexed { i, player -> ctx.drawPlayerHead(player, isSelf = i == 0) }
         else ctx.renderPlayerHeads()
         if (extraInfo) renderExtraInfo(ctx, example)
