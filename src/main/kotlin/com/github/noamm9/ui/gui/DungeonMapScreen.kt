@@ -24,10 +24,10 @@ import kotlin.math.min
 
 class DungeonMapScreen: Screen(Component.literal("DungeonMap")) {
     private companion object {
-        private const val WINDOW_WIDTH = 560f
+        private const val WINDOW_WIDTH = 640f
         private const val WINDOW_HEIGHT = 300f
         private const val SIDEBAR_WIDTH = 108f
-        private const val PREVIEW_WIDTH = 160f
+        private const val PREVIEW_WIDTH = 240f
         private const val CATEGORY_HEIGHT = 20f
         private const val SETTING_SPACING = 5f
         private const val SCROLLBAR_WIDTH = 2f
@@ -124,11 +124,11 @@ class DungeonMapScreen: Screen(Component.literal("DungeonMap")) {
 
     private fun drawPreview(ctx: GuiGraphicsExtractor, x: Float, y: Float, w: Float, h: Float) {
         val mapHeight = if (MapConfig.mapExtraInfo.value) 140f else 128f
-        val scale = min((w - 16f) / 128f, (h - 16f) / mapHeight)
+        val scale = min((w - 12f) / 128f, (h - 12f) / mapHeight)
 
         ctx.scissor(x, y, w, h)
         ctx.pose().pushMatrix()
-        ctx.pose().translate(x + (w - 128f * scale) / 2f, y + 4f)
+        ctx.pose().translate(x + (w - 128f * scale) / 2f, y + (h - mapHeight * scale) / 2f)
         ctx.pose().scale(scale)
         MapRenderer.draw(ctx, example = ! LocationUtils.inDungeon, extraInfo = true)
         ctx.pose().popMatrix()
