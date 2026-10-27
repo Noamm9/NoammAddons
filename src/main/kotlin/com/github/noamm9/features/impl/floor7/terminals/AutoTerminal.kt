@@ -26,6 +26,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     private val offtick by ToggleSetting("Off Tick Clicks").withDescription("Makes the auto check every frame if it can click or not instead of every server tick.")
     private val clickOrder by DropdownSetting("Click Order", 2, listOf("None", "Random", "Human", "Skizo")).withDescription("Human: Logic pathing. Skizo: Chaotic/Furthest.")
     private val invwalk by ToggleSetting("Fake InvWalk").withDescription("Draws the Term name and progress on screen rather then the solution")
+    private val invwalkStyle by DropdownSetting("InvWalk Style", 0, listOf("NoammAddons", "CyanQT")).showIf { invwalk.value }.withDescription("Style for the invwalk")
 
     private val autoMelody by ToggleSetting("Melody", true).section("Melody-AutoTerm")
     private val melodyFcDelay by ToggleSetting("First Click Delay", true).showIf { autoMelody.value }
@@ -43,7 +44,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     private var lastClickTick = 0L
     private var lastClickedSlot: Int? = null
 
-    override fun init() {
+ override fun init() {
         hudElement(
             "AutoTerminal - FakeInvWalk",
             centered = { true },
@@ -54,9 +55,16 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
             val maxClicks = if (e) NumberTerminal.gridSize.run { first * second } else handler.maxClicks()
             val completed = if (e) 4 else handler.completedClicks()
 
-            val title = "§3In Terminal (${handler.displayName})"
-            val progress = "§b[${completed.coerceIn(0, maxClicks)}/$maxClicks]${handler.progressSuffix()}"
-
+            val isCyanQtStyle = invwalkStyle.value == 1
+            val title = if (isCyanQtStyle) "§3In Terminal" else if (handler is MelodyTerminal) "§3In Terminal" else "§3In Terminal (${handler.displayName})"
+            val maxClicksValue = maxClicks ?: 0
+            val remainingClicks = (maxClicksValue - completed.coerceIn(0, maxClicksValue)).coerceIn(0, maxClicksValue)
+            val progress = when {
+                isCyanQtStyle -> "§3Clicks Remaining: §b$remainingClicks"
+                handler is MelodyTerminal -> "§b${handler.progressSuffix().trimStart()}"
+                else -> "§b[${completed.coerceIn(0, maxClicksValue)}/$maxClicksValue]${handler.progressSuffix()}"
+            }
+//a
             ctx.drawCenteredString(title, 0, 0)
             if (maxClicks != null && maxClicks > 0) ctx.drawCenteredString(progress, 0, - 10f)
 
