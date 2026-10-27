@@ -16,7 +16,10 @@ public abstract class KeyboardMixin {
     @Inject(method = "keyPress", at = @At("HEAD"), cancellable = true)
     private void onKey(long l, int i, KeyEvent keyEvent, CallbackInfo ci) {
         if (keyEvent.key() == GLFW.GLFW_KEY_UNKNOWN) return;
-        if (i == GLFW.GLFW_RELEASE) return;
+        if (i == GLFW.GLFW_RELEASE) {
+            EventBus.post(new KeyboardEvent.KeyReleased(keyEvent));
+            return;
+        }
         if (EventBus.post(new KeyboardEvent.KeyPressed(keyEvent, i))) {
             ci.cancel();
         }

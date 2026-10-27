@@ -8,11 +8,15 @@ import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.ServerUtils
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
+import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.event.impl.KeyboardEvent
+import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import net.minecraft.client.KeyMapping
 import java.awt.Color
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
-object InfoDisplay: Feature("Displays the system time, clicks per second, FPS, and TPS on screen.") {
+object InfoDisplay: Feature("Displays the system time, clicks per second, FPS, TPS and Keystrokes on screen.") {
     private val fpsDisplay by ToggleSetting("FPS Display").section("FPS")
     private val fpsColor by ColorSetting("FPS Color", Color(230, 114, 230), false).showIf { fpsDisplay.value }
 
@@ -32,6 +36,14 @@ object InfoDisplay: Feature("Displays the system time, clicks per second, FPS, a
 
     private val leftClicks = mutableListOf<Long>()
     private val rightClicks = mutableListOf<Long>()
+
+    private val keystrokes by ToggleSetting("Keystrokes").section("Keystrokes")
+    private val toggleWASD by ToggleSetting("Toggle WASD").showIf { keystrokes.value }
+    private val toggleClicks by ToggleSetting("Toggle Clicks").showIf { keystrokes.value }
+    private val toggleSpace by ToggleSetting("Toggle Space").showIf { keystrokes.value }
+    private val held = mutableSetOf<KeyMapping>()
+    private val pressedBg = Color(255, 255, 255, 170)
+    private val idleBg = Color(0, 0, 0, 110)
 
     override fun init() {
         hudElement("ClockDisplay", { clockDisplay.value }) { ctx, _ ->
@@ -75,9 +87,77 @@ object InfoDisplay: Feature("Displays the system time, clicks per second, FPS, a
             return@hudElement text.width() to 12
         }
 
+        hudElement("Keystrokes", { keystrokes.value }) { ctx, example ->
+            val size = 20
+            val gap = 2
+            val step = size + gap
+            val totalW = step * 3 - gap
+            val o = mc.options
+            var y = 0
+
+            if (toggleWASD.value) {
+                val w = ! example && o.keyUp in held
+                ctx.drawRect(step, y, size, size, if (w) pressedBg else idleBg)
+                ctx.drawCenteredString("W", step + size / 2, y + 6, if (w) Color.BLACK else Color.WHITE, shadow = false)
+                y += step
+
+                val a = ! example && o.keyLeft in held
+                ctx.drawRect(0, y, size, size, if (a) pressedBg else idleBg)
+                ctx.drawCenteredString("A", size / 2, y + 6, if (a) Color.BLACK else Color.WHITE, shadow = false)
+
+                val s = ! example && o.keyDown in held
+                ctx.drawRect(step, y, size, size, if (s) pressedBg else idleBg)
+                ctx.drawCenteredString("S", step + size / 2, y + 6, if (s) Color.BLACK else Color.WHITE, shadow = false)
+
+                val d = ! example && o.keyRight in held
+                ctx.drawRect(step * 2, y, size, size, if (d) pressedBg else idleBg)
+                ctx.drawCenteredString("D", step * 2 + size / 2, y + 6, if (d) Color.BLACK else Color.WHITE, shadow = false)
+                y += step
+            }
+
+            if (toggleClicks.value) {
+                val w = (totalW - gap) / 2
+                val h = 26
+                val l = ! example && o.keyAttack.isDown
+                val r = ! example && o.keyUse.isDown
+
+                ctx.drawRect(0, y, w, h, if (l) pressedBg else idleBg)
+                ctx.drawCenteredString("LMB", w / 2, y + 7, if (l) Color.BLACK else Color.WHITE, 0.7f, false)
+                ctx.drawCenteredString("${getCps(leftClicks)} CPS", w / 2, y + 13.5f, if (l) Color.BLACK else Color.WHITE, 0.7f, false)
+
+                ctx.drawRect(w + gap, y, w, h, if (r) pressedBg else idleBg)
+                ctx.drawCenteredString("RMB", w + gap + w / 2, y + 7, if (r) Color.BLACK else Color.WHITE, 0.7f, false)
+                ctx.drawCenteredString("${getCps(rightClicks)} CPS", w + gap + w / 2, y + 13.5f, if (r) Color.BLACK else Color.WHITE, 0.7f, false)
+                y += h + gap
+            }
+
+            if (toggleSpace.value) {
+                val sp = ! example && o.keyJump in held
+                ctx.drawRect(0, y, totalW, 12, if (sp) pressedBg else idleBg)
+                ctx.drawRect(totalW / 4, y + 6, totalW / 2, 1, if (sp) Color.BLACK else Color.WHITE)
+                y += 12 + gap
+            }
+
+            return@hudElement totalW to maxOf(y - gap, 1)
+        }
+        register<KeyboardEvent.KeyPressed> {
+            val o = mc.options
+            listOf(o.keyUp, o.keyLeft, o.keyDown, o.keyRight, o.keyJump).forEach { key ->
+                if (key.matches(event.keyEvent)) held.add(key)
+            }
+        }
+
+        register<KeyboardEvent.KeyReleased> {
+            val o = mc.options
+            listOf(o.keyUp, o.keyLeft, o.keyDown, o.keyRight, o.keyJump).forEach { key ->
+                if (key.matches(event.keyEvent)) held.remove(key)
+            }
+        }
+
         register<WorldChangeEvent> {
             leftClicks.clear()
             rightClicks.clear()
+            held.clear()
         }
     }
 
@@ -89,13 +169,13 @@ object InfoDisplay: Feature("Displays the system time, clicks per second, FPS, a
 
     @JvmStatic
     fun addLeftClick() {
-        if (! enabled || ! cpsDisplay.value) return
+        if (! enabled || (! cpsDisplay.value && ! keystrokes.value)) return
         leftClicks.add(System.currentTimeMillis())
     }
 
     @JvmStatic
     fun addRightClick() {
-        if (! enabled || ! cpsDisplay.value) return
+        if (! enabled || (! cpsDisplay.value && ! keystrokes.value)) return
         rightClicks.add(System.currentTimeMillis())
     }
 }

@@ -44,9 +44,4 @@ configure<LoomGradleExtensionAPI> {
         }
     }
 
-    afterEvaluate {
-        runs.configureEach {
-            jvmArguments.add("-XX:+AllowEnhancedClassRedefinition")
-        }
-    }
 }

@@ -6,5 +6,6 @@ import net.minecraft.client.input.KeyEvent
 
 abstract class KeyboardEvent: Event(cancelable = true) {
     class KeyPressed(val keyEvent: KeyEvent, val action: Int): KeyboardEvent()
+    class KeyReleased(val keyEvent: KeyEvent): KeyboardEvent()
     class CharTyped(val charEvent: CharacterEvent): KeyboardEvent()
 }
