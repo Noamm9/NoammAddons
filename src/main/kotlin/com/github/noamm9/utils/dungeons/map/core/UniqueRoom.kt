@@ -200,6 +200,7 @@ class UniqueRoom(arrX: Int, arrY: Int, roomTile: RoomTile) {
             addSecrets(data.secretCoords.bat, SecretType.BAT)
             addSecrets(data.secretCoords.item, SecretType.ITEM)
             addSecrets(data.secretCoords.chest, SecretType.CHEST)
+            addSecrets(data.secretCoords.lever, SecretType.LEVER)
         }
 
         EventBus.post(DungeonEvent.RoomEvent.RotationFound(this, rotation !!, clayPos !!))
