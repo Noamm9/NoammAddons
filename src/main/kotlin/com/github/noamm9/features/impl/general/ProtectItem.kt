@@ -1,6 +1,5 @@
 package com.github.noamm9.features.impl.general
 
-import com.mojang.blaze3d.platform.InputConstants
 import com.github.noamm9.commands.CommandBuilder
 import com.github.noamm9.config.PogObject
 import com.github.noamm9.config.types.KeybindSetting
@@ -14,6 +13,7 @@ import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.unformattedText
+import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.items.ItemUtils.customData
 import com.github.noamm9.utils.items.ItemUtils.itemUUID
@@ -21,6 +21,7 @@ import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
+import com.mojang.blaze3d.platform.InputConstants
 import gg.essential.universal.UMinecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
@@ -130,7 +131,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
         val name = stack.hoverName.unformattedText
         if (protectStarred.value && (data.getInt("upgrade_level").getOrDefault(0) > 0 || name.contains("✪"))) return ProtectType.Starred
         if (protectRarity.value && data.getInt("rarity_upgrades").getOrDefault(0) > 0) return ProtectType.RarityUpgraded
-        if (data.getStringOr("quiver_arrow", "false").toBoolean()) return ProtectType.HypixelBullshit
+        if (data.getStringOr("quiver_arrow", "false").toBoolean() && PlayerUtils.getHotbarSlot(8) != stack) return ProtectType.HypixelBullshit
 
         return ProtectType.None
     }
