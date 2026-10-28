@@ -14,7 +14,7 @@ object NetworkLoop: ISelfInit {
     private const val ELECTION_URL = "https://api.hypixel.net/v2/resources/skyblock/election"
     private const val ITEMS_URL = "https://api.hypixel.net/v2/resources/skyblock/items"
     private const val BAZAAR_URL = "https://api.hypixel.net/v2/skyblock/bazaar"
-    private const val LOWESTBINS_URL = "https://lb.tricked.dev/lowestbins"
+    private const val LOWESTBINS_URL = "https://lb.noamm.org/lowestbins"
 
     private val bazaarPrices = ConcurrentHashMap<String, BazaarPrice>()
     private val lowestBinPrices = ConcurrentHashMap<String, Long>()
