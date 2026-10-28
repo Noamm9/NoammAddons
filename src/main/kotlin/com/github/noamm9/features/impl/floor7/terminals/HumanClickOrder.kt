@@ -1,6 +1,5 @@
 package com.github.noamm9.features.impl.floor7.terminals
 
-import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.TerminalEvent
 import com.github.noamm9.features.impl.floor7.terminals.impl.Terminal
@@ -39,12 +38,9 @@ object HumanClickOrder: ISelfInit {
         }
     }
 
-    private fun getDistanceSqr(id1: Int, id2: Int): Double {
-        val pos1 = mc.player?.containerMenu?.getSlot(id1) ?: return Double.MAX_VALUE
-        val pos2 = mc.player?.containerMenu?.getSlot(id2) ?: return Double.MAX_VALUE
-
-        val dx = (pos1.x - pos2.x).toDouble()
-        val dy = (pos1.y - pos2.y).toDouble()
+    private fun getDistanceSqr(i1: Int, i2: Int): Double {
+        val dx = ((i1 % 9 - i2 % 9) * 18).toDouble()
+        val dy = ((i1 / 9 - i2 / 9) * 18).toDouble()
 
         return dx * dx + dy * dy
     }

@@ -3,7 +3,9 @@ package com.github.noamm9.features.impl.general
 import com.github.noamm9.config.PogObject
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.features.IFeatureScreen
 import com.github.noamm9.mixin.ICommandNode
+import com.github.noamm9.ui.gui.CommandShortcutsScreen
 import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.tree.CommandNode
@@ -15,10 +17,12 @@ import net.minecraft.network.protocol.game.ServerboundCommandSuggestionPacket
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
-object CommandShortcuts: Feature("Create your own command shortcuts") {
+object CommandShortcuts: Feature("Create your own command shortcuts"), IFeatureScreen {
     val shortcuts = PogObject("commandShortcuts", linkedMapOf<String, String>())
     private val registeredShortcuts = WeakHashMap<CommandDispatcher<FabricClientCommandSource>, Set<String>>()
     private val pendingSuggestionRewrites = ConcurrentHashMap<Int, Int>()
+
+    override fun createScreen() = CommandShortcutsScreen()
 
     override fun init() {
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ -> build(dispatcher) }

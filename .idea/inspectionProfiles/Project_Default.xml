@@ -2,6 +2,7 @@
   <profile version="1.0">
     <option name="myName" value="Project Default" />
     <inspection_tool class="AddedMixinMembersNamePattern" enabled="false" level="WARNING" enabled_by_default="false" validNameFormat=".+[_$].+" validNameFixSearch="^.+$" />
+    <inspection_tool class="ArrayInDataClass" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="AvoidApplyPluginMethod" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="AvoidDuplicateDependencies" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="BlockingMethodInNonBlockingContext" enabled="false" level="WARNING" enabled_by_default="false" />

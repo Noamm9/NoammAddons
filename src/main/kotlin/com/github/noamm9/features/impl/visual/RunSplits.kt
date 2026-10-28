@@ -5,7 +5,9 @@ import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
+import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.NumbersUtils.toFixed
+import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.DungeonListener.DualTime
 import com.github.noamm9.utils.dungeons.DungeonListener.DualTime.Companion.minus
@@ -20,10 +22,12 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
     private val showTotalTime by ToggleSetting("Total Time").withDescription("Shows the total run time.")
     private val showTimeLost by ToggleSetting("Show Time Lost").withDescription("Shows the total time run time that was lost due to server lags.")
     private val show300Score by ToggleSetting("Show 300 Score Time").withDescription("Shows when 300 score was reached.")
+    private val printSplits by ToggleSetting("Print Splits").withDescription("Prints the splits into chat at the end of the run.")
 
     private val floorSplits = DataDownloader.loadJson<Map<String, List<DialogueEntry>>>("runSplits.json")
     private val runEndRegex = Regex("^\\s*☠ Defeated (.+) in 0?([\\dhms ]+?)\\s*(\\(NEW RECORD!\\))?$")
     private val currentFloorSplits = linkedMapOf<String, Split>()
+    private const val separator = "-----------------------"
 
     private var score300Timer: DualTime? = null
 
@@ -55,12 +59,6 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
             return@hudElement width to currentY
         }
 
-        register<DungeonEvent.Score> {
-            if (score300Timer != null) return@register
-            if (event.score < 300) return@register
-            score300Timer = DualTime(DungeonListener.currentTime)
-        }
-
         register<WorldChangeEvent> {
             currentFloorSplits.clear()
             score300Timer = null
@@ -71,73 +69,26 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
             if (! LocationUtils.inDungeon) return@register
             if (DungeonListener.dungeonEnded) return@register
 
-            val now = DualTime(DungeonListener.currentTime)
-            val start = DungeonListener.dungeonStartTime ?: now
-            val blood = DungeonListener.bloodOpenTime
-            val watcher = DungeonListener.watcherClearTime
-            val boss = DungeonListener.bossEntryTime
+            updateText()
+        }
 
-            val bloodOpen = when {
-                blood == null && DungeonListener.dungeonStarted -> dual(now - start, ::formatTime)
-                blood != null -> dual(blood - start, ::formatTime)
-                else -> "?"
+        register<DungeonEvent.Score> {
+            if (score300Timer != null) return@register
+            if (event.score < 300) return@register
+            score300Timer = DualTime(DungeonListener.currentTime)
+        }
+
+        register<DungeonEvent.NecronDeathEvent> {
+            EventBus.post(ChatMessageEvent(Component.literal("STUPID HOTFIX XD XD 67 (:")))
+        }
+
+        register<DungeonEvent.RunEndedEvent> {
+            if (! printSplits.value) return@register
+            ThreadUtils.scheduledTask(2) {
+                updateText()
+                ChatUtils.modMessage("&bRun Splits:")
+                currentText.forEach(ChatUtils::chat)
             }
-
-            val watcherClear = when {
-                watcher != null && blood != null -> dual(watcher - blood, ::formatSecs)
-                blood != null -> dual(now - blood, ::formatSecs)
-                else -> "?"
-            }
-
-            val score300 = when {
-                ! show300Score.value -> null
-                score300Timer != null -> dual(score300Timer !! - start, ::formatTime)
-                DungeonListener.dungeonStarted -> dual(now - start, ::formatTime)
-                else -> "?"
-            }
-
-            val portalTime = when {
-                watcher != null && boss == null -> dual(now - watcher, ::formatDec)
-                watcher != null && boss != null -> dual(boss - watcher, ::formatDec)
-                else -> "?"
-            }
-
-            val bossEntry = if (DungeonListener.dungeonStarted) dual((boss ?: now) - start, ::formatTime) else "?"
-
-            val splitLines = currentFloorSplits.mapNotNull { (name, split) ->
-                val s = split.start ?: return@mapNotNull null
-                val e = split.end ?: DualTime(DungeonListener.currentTime)
-                val diff = e - s
-                val t = (diff.ticks / 20.0).toFixed(2)
-                val r = (diff.real / 1000.0).toFixed(2)
-                "$name: $r §7(§b$t§7)§r"
-            }.toMutableList().apply {
-                indexOfFirst { it.startsWith("&aBoss") }.takeUnless { it == - 1 }?.let { add(removeAt(it)) }
-            }
-
-            val clearInfo = mutableListOf<String>()
-            if (showWitherDoors.value) clearInfo.add("§8Wither Doors: §7${DungeonScanner.witherDoors}")
-            clearInfo.add("§4Blood Open: $bloodOpen")
-            clearInfo.add("§cWatcher Clear: $watcherClear")
-            clearInfo.add("§dPortal: $portalTime")
-            score300?.let { clearInfo.add("§e300 Score: $it") }
-            clearInfo.add("§aBoss Entry: $bossEntry")
-
-            if (splitLines.isNotEmpty()) {
-                clearInfo.add("-----------------------")
-                clearInfo.addAll(splitLines)
-            }
-
-            if (DungeonListener.dungeonStarted) {
-                val total = now - start
-                val diffMs = total.real - (total.ticks * 50)
-
-                if (showTotalTime.value || showTimeLost.value) clearInfo.add("-----------------------")
-                if (showTotalTime.value) clearInfo.add("§eTotal: ${dual(total, ::formatTime)}")
-                if (showTimeLost.value && diffMs >= 1000) clearInfo.add("§8Lag Lost: §c+${diffMs / 1000}s")
-            }
-
-            currentText = clearInfo
         }
 
         register<ChatMessageEvent> {
@@ -161,10 +112,76 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
                 if (split.start != null || split.end != null) currentFloorSplits[entry.name] = split
             }
         }
+    }
 
-        register<DungeonEvent.NecronDeathEvent> {
-            EventBus.post(ChatMessageEvent(Component.literal("STUPID HOTFIX XD XD 67 (:")))
+    private fun updateText() {
+        val now = DualTime(DungeonListener.dungeonEndTime ?: DungeonListener.currentTime)
+        val start = DungeonListener.dungeonStartTime ?: now
+        val blood = DungeonListener.bloodOpenTime
+        val watcher = DungeonListener.watcherClearTime
+        val boss = DungeonListener.bossEntryTime
+
+        val bloodOpen = when {
+            blood == null && DungeonListener.dungeonStarted -> dual(now - start, ::formatTime)
+            blood != null -> dual(blood - start, ::formatTime)
+            else -> "?"
         }
+
+        val watcherClear = when {
+            watcher != null && blood != null -> dual(watcher - blood, ::formatSecs)
+            blood != null -> dual(now - blood, ::formatSecs)
+            else -> "?"
+        }
+
+        val score300 = when {
+            ! show300Score.value -> null
+            score300Timer != null -> dual(score300Timer !! - start, ::formatTime)
+            DungeonListener.dungeonStarted -> dual(now - start, ::formatTime)
+            else -> "?"
+        }
+
+        val portalTime = when {
+            watcher != null && boss == null -> dual(now - watcher, ::formatDec)
+            watcher != null && boss != null -> dual(boss - watcher, ::formatDec)
+            else -> "?"
+        }
+
+        val bossEntry = if (DungeonListener.dungeonStarted) dual((boss ?: now) - start, ::formatTime) else "?"
+
+        val splitLines = currentFloorSplits.mapNotNull { (name, split) ->
+            val s = split.start ?: return@mapNotNull null
+            val e = split.end ?: DualTime(DungeonListener.currentTime)
+            val diff = e - s
+            val t = (diff.ticks / 20.0).toFixed(2)
+            val r = (diff.real / 1000.0).toFixed(2)
+            "$name: $r §7(§b$t§7)§r"
+        }.toMutableList().apply {
+            indexOfFirst { it.startsWith("&aBoss") }.takeUnless { it == - 1 }?.let { add(removeAt(it)) }
+        }
+
+        val clearInfo = mutableListOf<String>()
+        if (showWitherDoors.value) clearInfo.add("§8Wither Doors: §7${DungeonScanner.witherDoors}")
+        clearInfo.add("§4Blood Open: $bloodOpen")
+        clearInfo.add("§cWatcher Clear: $watcherClear")
+        clearInfo.add("§dPortal: $portalTime")
+        score300?.let { clearInfo.add("§e300 Score: $it") }
+        clearInfo.add("§aBoss Entry: $bossEntry")
+
+        if (splitLines.isNotEmpty()) {
+            clearInfo.add(separator)
+            clearInfo.addAll(splitLines)
+        }
+
+        if (DungeonListener.dungeonStarted) {
+            val total = now - start
+            val diffMs = total.real - (total.ticks * 50)
+
+            if (showTotalTime.value || showTimeLost.value) clearInfo.add(separator)
+            if (showTotalTime.value) clearInfo.add("§eTotal: ${dual(total, ::formatTime)}")
+            if (showTimeLost.value && diffMs >= 1000) clearInfo.add("§8Lag Lost: §c+${diffMs / 1000}s")
+        }
+
+        currentText = clearInfo
     }
 
     private data class Split(var start: DualTime? = null, var end: DualTime? = null)
