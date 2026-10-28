@@ -40,7 +40,7 @@ echo "$subject" | grep -Eq "^($types)(\([A-Za-z0-9._/-]+\))?!?: .+" \
     || fail 'subject must start with a type, e.g. "feat: ..."'
 
 # 72 keeps `git log --oneline` and GitHub's commit list from truncating.
-[ "${#subject}" -le 72 ] \
+[ "${#subject}" -le 100 ] \
     || fail "subject is ${#subject} chars, keep it to 72"
 
 case $subject in

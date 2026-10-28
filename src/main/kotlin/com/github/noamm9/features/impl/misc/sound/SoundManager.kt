@@ -3,6 +3,7 @@ package com.github.noamm9.features.impl.misc.sound
 import com.github.noamm9.config.PogObject
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.features.IFeatureScreen
 import com.github.noamm9.ui.gui.SoundManagerScreen
 import gg.essential.universal.UMinecraft
 import gg.essential.universal.USound
@@ -12,10 +13,12 @@ import net.minecraft.sounds.SoundEvent
 import java.util.*
 import kotlin.math.roundToInt
 
-object SoundManager: Feature("Adjust volumes for every sound in the game") {
+object SoundManager: Feature("Adjust volumes for every sound in the game"), IFeatureScreen {
     private val volumes = PogObject("noammaddons_sounds", mutableMapOf<String, Float>())
     private val recentSounds = Collections.synchronizedSet<Identifier>(mutableSetOf())
     @Volatile var recentSoundsVersion = 0L
+
+    override fun createScreen() = SoundManagerScreen()
 
     override fun init() {
         volumes.get().replaceAll { _, multiplier -> normalizePercent((multiplier * 100f).roundToInt()) / 100f }

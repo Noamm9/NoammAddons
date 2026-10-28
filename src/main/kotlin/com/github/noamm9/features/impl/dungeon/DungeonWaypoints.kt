@@ -23,7 +23,7 @@ import java.util.concurrent.*
 
 object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while looking at a block"), ICommandProvider {
     private val secretWaypoints by ToggleSetting("Secret Waypoints").section("Secret Waypoints")
-    private val mode by DropdownSetting("Mode", 0, listOf("Fill", "Outline", "Filled Outline")).showIf {  secretWaypoints.value }
+    private val mode by DropdownSetting("Mode", 0, listOf("Fill", "Outline", "Filled Outline")).showIf { secretWaypoints.value }
     private val phase by ToggleSetting("See Through Walls", true).showIf { secretWaypoints.value }
     private val opacity by SliderSetting("Opacity", 40, 0, 100, 1).hideIf { mode.value == 1 || ! secretWaypoints.value }
     private val lineWidth by SliderSetting("Line Width", 1.5f, 1f, 10f, 0.1f).hideIf { mode.value == 0 || ! secretWaypoints.value }
@@ -134,6 +134,7 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
 
     override fun CommandBuilder.command() {
         setName("ndw")
+        description("Manage custom dungeon waypoints")
         requires("Enable the $name Feature to use /ndw.") { enabled }
         runs { ChatUtils.modMessage("&bUsage: /ndw <add|edit|remove|clear>") }
 
