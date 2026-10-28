@@ -1,6 +1,7 @@
 package com.github.noamm9.utils.dungeons.map.utils
 
 import com.github.noamm9.commands.CommandBuilder
+import com.github.noamm9.commands.NaCommand
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Shortcuts
@@ -59,12 +60,14 @@ object ScanUtils: ISelfInit, ICommandProvider, Shortcuts {
     }
 
     override fun CommandBuilder.command() {
-        setName("relative")
-        runs {
-            val look = PlayerUtils.getSelectionBlock() !!
-            val room = currentRoom !!
-            getRelativeCoord(look, room.clayPos !!, 360 - room.rotation !!).let {
-                ChatUtils.modMessage("relative: $it")
+        setName(*NaCommand.names)
+        literal("relative") {
+            runs {
+                val look = PlayerUtils.getSelectionBlock() !!
+                val room = currentRoom !!
+                getRelativeCoord(look, room.clayPos !!, 360 - room.rotation !!).let {
+                    ChatUtils.modMessage("relative: $it")
+                }
             }
         }
     }

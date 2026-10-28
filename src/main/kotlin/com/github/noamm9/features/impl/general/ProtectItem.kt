@@ -1,6 +1,7 @@
 package com.github.noamm9.features.impl.general
 
 import com.github.noamm9.commands.CommandBuilder
+import com.github.noamm9.commands.NaCommand
 import com.github.noamm9.config.PogObject
 import com.github.noamm9.config.types.KeybindSetting
 import com.github.noamm9.config.types.ToggleSetting
@@ -30,7 +31,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import kotlin.jvm.optionals.getOrDefault
 
-object ProtectItem: Feature("Prevents dropping or selling important items via /protectitem or keybind."), ICommandProvider {
+object ProtectItem: Feature("Prevents dropping or selling important items via /na protectitem or keybind."), ICommandProvider {
     private var data = PogObject("item_protection", object {
         val uuids = mutableSetOf<String>()
         val ids = mutableSetOf<String>()
@@ -105,11 +106,13 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
     }
 
     override fun CommandBuilder.command() {
-        setName("protectitem")
-        runs {
-            val heldItem = player.mainHandItem.takeUnless { it.isEmpty }
-                ?: return@runs ChatUtils.modMessage("&cYou need to be holding an item.")
-            protect(heldItem)
+        setName(*NaCommand.names)
+        literal("protectitem") {
+            runs {
+                val heldItem = player.mainHandItem.takeUnless { it.isEmpty }
+                    ?: return@runs ChatUtils.modMessage("&cYou need to be holding an item.")
+                protect(heldItem)
+            }
         }
     }
 
