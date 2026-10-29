@@ -204,7 +204,7 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
 
     private fun showTerminalTitle(title: String) {
         terminalTitle = title
-        terminalTitleTimer = terminalTitleDuration.value.toInt() * 1000
+        terminalTitleTimer = (terminalTitleDuration.value.toDouble() * 1000).toInt()
         terminalTitleTickListener.register()
     }
 
