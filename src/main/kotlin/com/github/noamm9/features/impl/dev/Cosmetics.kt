@@ -36,7 +36,7 @@ object Cosmetics: Feature(toggled = true) {
     val showDragonWings by ToggleSetting("Show Dragon Wings", true)
     val reload by ButtonSetting("Reload Cosmetics") {
         if (System.currentTimeMillis() - lastReload >= 15_000) init()
-        else NotificationManager.push("Cosmetics", "Please wait another ${NumbersUtils.formatTime(150_000 - (System.currentTimeMillis() - lastReload))} before reloading again.")
+        else NotificationManager.push("Cosmetics", "Please wait another ${NumbersUtils.formatTime(15_000 - (System.currentTimeMillis() - lastReload))} before reloading again.")
     }
 
     private lateinit var cosmeticPeople: Map<UUID, CosmeticData>
