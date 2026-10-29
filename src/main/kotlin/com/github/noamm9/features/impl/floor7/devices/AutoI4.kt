@@ -175,11 +175,16 @@ object AutoI4: Feature("Fully Automated I4") {
         }
     }
 
+    override fun onDisable() {
+        super.onDisable()
+        reset()
+    }
+
     private fun checkStall() {
         if (watchdogJob?.isActive == true) return
         if (rotationTime.value <= 0) return
         watchdogJob = scope.launch {
-            while (isActive && I4Helper.isOnDev()) {
+            while (isActive && enabled && I4Helper.isOnDev()) {
                 delay(100)
 
                 val target = activeEmerald.get() ?: continue
@@ -202,6 +207,7 @@ object AutoI4: Feature("Fully Automated I4") {
     }
 
     private suspend fun shootAtBlock(pos: BlockPos) {
+        if (! enabled) return
         val (yaw, pitch) = calcYawPitch(when (pos) {
             I4Helper.prediction -> I4Helper.predictionAim !!
             I4Helper.target -> I4Helper.targetAim !!
@@ -230,6 +236,7 @@ object AutoI4: Feature("Fully Automated I4") {
         val startTime = System.currentTimeMillis()
         val duration = rotationTime.value.toDouble()
         while (true) {
+            if (! enabled) return
             val newerDuring = getEmerald(pos)
             if (newerDuring != null) {
                 doneCoords.add(pos)

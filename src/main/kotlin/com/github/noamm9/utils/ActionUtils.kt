@@ -28,19 +28,25 @@ object ActionUtils: ISelfInit {
     fun queue(priority: Int = 0, blockInput: Boolean = false, block: suspend () -> Unit) = synchronized(lock) {
         actionQueue.add(Action(priority, blockInput, block))
         if (running) return@synchronized
+        running = true
         processingJob = scope.launch { run() }
     }
 
     private suspend fun run() {
-        running = true
-        while (actionQueue.isNotEmpty()) {
-            val action = synchronized(lock) { actionQueue.poll() } ?: break
+        val job = currentCoroutineContext().job
+        while (true) {
+            val action = synchronized(lock) {
+                if (! job.isActive) return
+                actionQueue.poll() ?: run {
+                    running = false
+                    null
+                }
+            } ?: return
             if (action.blockInput) ThreadUtils.setTimeout(5000) { isBlocked = false }
             isBlocked = action.blockInput
             catch { action.block() }
             isBlocked = false
         }
-        running = false
     }
 
     fun reset() = catch {
@@ -55,6 +61,7 @@ object ActionUtils: ISelfInit {
 
     suspend fun waitTicks(ticks: Int = 0, cb: Runnable = {}) = suspendCancellableCoroutine {
         scheduledTask(ticks) {
+            if (! it.isActive) return@scheduledTask
             cb.run()
             it.resume(Unit)
         }
