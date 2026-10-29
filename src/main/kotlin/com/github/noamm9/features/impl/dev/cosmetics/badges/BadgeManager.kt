@@ -22,6 +22,7 @@ object BadgeManager {
             return
         }
         chars = manifest.mapNotNull { (id, data) -> id to data.codepoint.toChar() }.toMap()
+        BadgeText.rebuild()
         val entries = manifest.entries.sortedBy { it.value.codepoint }.ifEmpty { return }
 
         val cells = entries.mapNotNull { (id, data) ->
