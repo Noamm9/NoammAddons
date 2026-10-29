@@ -22,7 +22,7 @@ object PuzzleSolvers: Feature() {
     val boulder by ToggleSetting("Enabled ").section("Boulder Solver")
     val showAll by ToggleSetting("Show All Moves", false).showIf { boulder.value }
     val boxColor by ColorSetting("Boulder Box Color", Color.BLUE.withAlpha(100)).showIf { boulder.value }
-    val clickColor by ColorSetting("Click Color", Color.RED.withAlpha(100)).showIf { boulder.value }
+    val clickColor by ColorSetting("Click Color", Color.RED.withAlpha(100)).showIf { boulder.value }.jsonName("Boulder Click color")
 
     val creeper by ToggleSetting("Enabled  ").section("Creeper Beam Solver")
     val renderLines by ToggleSetting("Render Lines", true).showIf { creeper.value }
@@ -51,11 +51,11 @@ object PuzzleSolvers: Feature() {
     val predictionColor by ColorSetting("Prediction Color", Color.ORANGE).showIf { ttt.value && prediction.value }
 
     val water by ToggleSetting("Enabled       ").section("Water Board Solver")
-    val currentClickColor by ColorSetting("Click Color", Color.GREEN).showIf { water.value }
+    val currentClickColor by ColorSetting("Click Color", Color.GREEN).showIf { water.value }.jsonName("Water Board Click Color")
     val nextColor by ColorSetting("Next Click Color", Color.YELLOW).showIf { water.value }
 
     val icefill by ToggleSetting("Enabled        ").section("Ice Fill Solver")
-    val icefillColor by ColorSetting("Click Color", Color.GREEN).showIf { icefill.value }
+    val icefillColor by ColorSetting("Line Color", Color.GREEN).showIf { icefill.value }.jsonName("Ice Fill Line Color")
 
     val icepath by ToggleSetting("Enabled         ").section("Ice Path Solver")
     val icePathFirstColor by ColorSetting("Next Segment Color", Color.GREEN).showIf { icepath.value }
