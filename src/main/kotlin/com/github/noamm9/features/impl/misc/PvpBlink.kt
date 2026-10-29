@@ -9,6 +9,7 @@ import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.event.impl.TickEvent
+import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.world.Render3D.renderBox
@@ -100,6 +101,11 @@ object PvpBlink: Feature("Desyncs your connection to eat knockback or spoof posi
                 }
             }
             else if (! key.isDown()) stopBlink()
+        }
+
+        register<WorldChangeEvent> {
+            isBlinking = false
+            sentQueue.clear()
         }
     }
 
