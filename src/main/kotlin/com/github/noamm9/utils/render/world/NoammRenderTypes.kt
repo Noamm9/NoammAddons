@@ -38,7 +38,6 @@ object NoammRenderTypes: ISelfInit {
             withLocation(id("pipeline/circle_filled"))
             withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR)
             withPrimitiveTopology(PrimitiveTopology.QUADS)
-            withCull(true)
         }.build()
     )
 
