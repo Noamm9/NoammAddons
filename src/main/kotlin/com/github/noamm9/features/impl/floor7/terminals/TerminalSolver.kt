@@ -9,6 +9,7 @@ import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.terminals.impl.*
 import com.github.noamm9.features.impl.floor7.terminals.sim.*
+import com.github.noamm9.features.impl.visual.InfoDisplay
 import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.init.types.ICustomMenu
 import com.github.noamm9.ui.utils.Resolution
@@ -69,6 +70,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
     val wrongColor by ColorSetting("Melody: Wrong", Color(255, 0, 0, 130)).showIf { melodyTerm.value }
 
     private val p3sim get() = mc.connection?.serverData?.ip?.contains("p3sim", ignoreCase = true) == true
+    private var lastDropTime = System.currentTimeMillis()
 
     private var cachedMinCol: Int? = null
     private var cachedMinRow: Int? = null
@@ -94,11 +96,14 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
         }
 
         register<ContainerEvent.Keyboard> {
-            if (event.key.equalsOneOf(KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value, InputConstants.KEY_ESCAPE)) return@register
             val handler = TerminalListener.currentHandler ?: return@register
             if (! handler.enabled()) return@register
+            if (event.key.equalsOneOf(KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value, InputConstants.KEY_ESCAPE)) return@register
             event.isCanceled = true
             if (event.key != KeyMappingHelper.getBoundKeyOf(mc.options.keyDrop).value) return@register
+            if (System.currentTimeMillis() - lastDropTime < 50) return@register
+            lastDropTime = System.currentTimeMillis()
+
             handler.click()
         }
 
