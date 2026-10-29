@@ -232,11 +232,12 @@ object Render3D {
             fillColor.green / 255f, fillColor.blue / 255f, fillColor.alpha / 255f
         )
 
+        val outlineAlpha = if (fill && fillColor === outlineColor) 1f else outlineColor.alpha / 255f
         if (outline) RenderBatcher.lineBatch(phase).addLineBoxVertices(
             pose,
             minX,
             minY, minZ, maxX, maxY, maxZ, outlineColor.red / 255f,
-            outlineColor.green / 255f, outlineColor.blue / 255f, 1f, lineWidth.toFloat()
+            outlineColor.green / 255f, outlineColor.blue / 255f, outlineAlpha, lineWidth.toFloat()
         )
 
         matrixStack.popPose()
