@@ -91,7 +91,7 @@ class TerminalSimScreen(private val sim: SimTerminal): Screen(Component.literal(
             if (terminal !is MelodyTerminal) clickedSlots.forEach(terminal::predict)
         }
 
-        if (! (sim.isSolved() || terminal.solution.isEmpty())) return
+        if (! (sim.isSolved() || (terminal !is MelodyTerminal && terminal.solution.isEmpty()))) return
         val seconds = (System.currentTimeMillis() - openTime) / 1000.0
         ChatUtils.modMessage("§a${terminal.displayName} §7completed in §f${seconds.toFixed(2)}s")
         GuiUtils.setScreen(
