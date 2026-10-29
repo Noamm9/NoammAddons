@@ -11,8 +11,15 @@ configure<LoomGradleExtensionAPI> {
         val clientRun = named("client")
         val serverRun = named("server")
 
-        clientRun.configure { generateRunConfig.set(false) }
-        serverRun.configure { generateRunConfig.set(false) }
+        clientRun.configure {
+            runDirectory.set(rootProject.file("run/"))
+            generateRunConfig.set(false)
+        }
+
+        serverRun.configure {
+            runDirectory.set(rootProject.file("run/"))
+            generateRunConfig.set(false)
+        }
 
         val sourceSets = the<SourceSetContainer>()
         val mainSourceSet = sourceSets.named("main").get()
