@@ -16,7 +16,7 @@ on:
       - "stonecutter.gradle.kts"
       - "versions/**"
   push:
-    branches: ["main", "26.1.2", "26.2", "26.3"]
+    branches: ["multiversion"]
     paths: *build-paths
 
 permissions:
