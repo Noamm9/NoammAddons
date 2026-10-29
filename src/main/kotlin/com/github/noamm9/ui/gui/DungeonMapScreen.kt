@@ -14,6 +14,7 @@ import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.scissor
+import com.mojang.blaze3d.platform.InputConstants
 import gg.essential.universal.UKeyboard
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
@@ -148,7 +149,7 @@ class DungeonMapScreen: Screen(Component.literal("DungeonMap")) {
         val my = Resolution.getMouseY(event.y).toFloat()
         val button = event.button()
 
-        if (button == 0 && mx >= windowX && mx <= windowX + SIDEBAR_WIDTH) shownCategories.forEachIndexed { index, category ->
+        if (button == InputConstants.MOUSE_BUTTON_LEFT && mx >= windowX && mx <= windowX + SIDEBAR_WIDTH) shownCategories.forEachIndexed { index, category ->
             val catY = windowY + 30 + (index * CATEGORY_HEIGHT)
             if (my >= catY && my <= catY + CATEGORY_HEIGHT) {
                 if (selectedCategory != category) {
@@ -160,7 +161,7 @@ class DungeonMapScreen: Screen(Component.literal("DungeonMap")) {
             }
         }
 
-        if (button == 0 && scroll.mouseClicked(mx, my)) return true
+        if (button == InputConstants.MOUSE_BUTTON_LEFT && scroll.mouseClicked(mx, my)) return true
 
         if (isInsideList(mx, my)) visibleWidgets.forEach {
             if (it.mouseClicked(mx.toDouble(), my.toDouble(), button)) return true
