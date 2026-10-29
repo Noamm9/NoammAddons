@@ -24,6 +24,19 @@ idea {
     }
 }
 
+if (System.getProperty("idea.sync.active").toBoolean()) {
+    val hiddenSourceSets = listOfNotNull(
+        sourceSets["cheat"],
+        sourceSets["legit"],
+        sourceSets["main"].takeUnless { stonecutter.current.isActive }
+    )
+
+    hiddenSourceSets.forEach { sourceSet ->
+        sourceSet.java.setSrcDirs(emptyList<File>())
+        sourceSet.kotlin.setSrcDirs(emptyList<File>())
+    }
+}
+
 val minecraft_version = project.property("minecraft_version") as String
 val loader_version = project.property("loader_version") as String
 val fabric_kotlin_version = project.property("fabric_kotlin_version") as String

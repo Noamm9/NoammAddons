@@ -22,7 +22,8 @@ private fun Project.loadGradleProperties(): Map<String, String> {
 val Project.sourceRoot: File
     get() {
         val mainSourceSet = the<SourceSetContainer>().named("main").get()
-        val javaDir = mainSourceSet.java.srcDirs.first { it != file("src/main/java") }
+        val javaDir = mainSourceSet.java.srcDirs.firstOrNull { it != file("src/main/java") }
+            ?: return layout.buildDirectory.dir("generated/stonecutter/main").get().asFile
         return javaDir.parentFile
     }
 
