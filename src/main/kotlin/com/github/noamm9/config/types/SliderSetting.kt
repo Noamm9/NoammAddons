@@ -55,7 +55,7 @@ class SliderSetting<T: Number>(
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun Number.convertToType() = when (min) {
+    private fun Number.convertToType() = when (if (step is Int || step is Long) min else step) {
         is Int -> toInt() as T
         is Long -> toLong() as T
         is Float -> toFloat() as T
