@@ -10,7 +10,7 @@
       </option>
       <option name="taskNames">
         <list>
-          <option value="runLegitClientPreprocessed" />
+          <option value="runLegitClientPreprocessedActive" />
         </list>
       </option>
       <option name="vmOptions" value="-XX:+AllowEnhancedClassRedefinition" />
@@ -30,7 +30,7 @@
         </ENTRIES>
       </extension>
     </EXTENSION>
-    <DebugAllEnabled>false</DebugAllEnabled>
+    <DebugAllEnabled>true</DebugAllEnabled>
     <RunAsTest>false</RunAsTest>
     <GradleProfilingDisabled>false</GradleProfilingDisabled>
     <GradleCoverageDisabled>false</GradleCoverageDisabled>
