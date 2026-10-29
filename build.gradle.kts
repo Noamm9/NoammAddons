@@ -176,4 +176,5 @@ listOf("jarCheat", "jarLegit").forEach { taskName ->
 
 tasks.named<Test>("test") {
     failOnNoDiscoveredTests = false
+    workingDir = temporaryDir
 }
