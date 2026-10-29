@@ -12,7 +12,6 @@ import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.items.TeleportUtils
 import com.github.noamm9.utils.render.world.Render3D.renderBlock
 import com.github.noamm9.utils.render.world.Render3D.renderBox
-import gg.essential.universal.UMinecraft
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.minecraft.network.protocol.game.*
@@ -108,7 +107,7 @@ object Etherwarp: Feature("Etherwarp overlay and sound.") {
             if (! leftClick.value) return@register
             if (event.button != InputConstants.MOUSE_BUTTON_LEFT) return@register
             if (event.action != InputConstants.PRESS) return@register
-            if (UMinecraft.currentScreenObj != null) return@register
+            if (mc.gui.screen() != null) return@register
             if (! mc.options.keyShift.isDown && ! autoSneak.value) return@register
             if (EtherwarpHelper.getEtherwarpDistance(player.mainHandItem) == null) return@register
 

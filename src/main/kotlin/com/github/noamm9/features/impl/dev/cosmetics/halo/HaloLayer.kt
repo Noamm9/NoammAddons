@@ -2,6 +2,7 @@ package com.github.noamm9.features.impl.dev.cosmetics.halo
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.compat.submitModelCompat
 import com.github.noamm9.features.impl.dev.Cosmetics
 import com.github.noamm9.features.impl.dev.Cosmetics.GAME_PROFILE_KEY
 import com.github.noamm9.features.impl.dev.Cosmetics.SNEAKING_KEY
@@ -42,11 +43,11 @@ class HaloLayer(parent: RenderLayerParent<AvatarRenderState, PlayerModel>): Rend
         poseStack.pushPose()
         poseStack.translate(0f, - offset, 0f)
         poseStack.translate(0f, - (bobOffset * 2f), 0f)
-        collector.submitModel(
+        collector.submitModelCompat(
             haloModel, state, poseStack,
             RenderTypes.entitySolid(whiteTexture),
             LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, data.halo ?: Color.YELLOW.rgb,
-            null, 0
+            0
         )
         poseStack.popPose()
     }

@@ -22,7 +22,7 @@ import java.awt.Color
 
 object DoorESP: Feature(
     //#if LEGIT
-    //$name = "Door Highlight",
+    //!name = "Door Highlight",
     //#endif
     jsonName = "Door ESP",
     description = "Highlights every door in the dungeon run during clear."

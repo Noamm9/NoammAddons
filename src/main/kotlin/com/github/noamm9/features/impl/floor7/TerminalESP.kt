@@ -19,7 +19,7 @@ import java.awt.Color
 object TerminalESP: Feature(
     "Highlights the interactable hitboxes of the terminals in F7/M7",
     //#if LEGIT
-    //$name = "Terminal Highlight",
+    //!name = "Terminal Highlight",
     //#endif
     jsonName = "Terminal ESP"
 ) {

@@ -5,8 +5,7 @@ import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.IFeatureScreen
 import com.github.noamm9.ui.gui.SoundManagerScreen
-import gg.essential.universal.UMinecraft
-import gg.essential.universal.USound
+import com.github.noamm9.utils.SoundUtils
 import net.minecraft.client.resources.sounds.SoundInstance
 import net.minecraft.resources.Identifier
 import net.minecraft.sounds.SoundEvent
@@ -31,7 +30,7 @@ object SoundManager: Feature("Adjust volumes for every sound in the game"), IFea
 
     @JvmStatic
     fun recordPlayedSound(sound: SoundInstance) {
-        if (UMinecraft.currentScreenObj is SoundManagerScreen) return
+        if (mc.gui.screen() is SoundManagerScreen) return
         recentSounds.add(sound.identifier)
 
         if (recentSounds.size > 100) recentSounds.remove(recentSounds.first())
@@ -41,7 +40,7 @@ object SoundManager: Feature("Adjust volumes for every sound in the game"), IFea
     fun getVolumePercent(id: String) = (volumes.get().getOrDefault(id, 1f) * 100f).roundToInt()
     fun setVolumePercent(id: String, percent: Int) = volumes.get().set(id, normalizePercent(percent) / 100f)
     fun playPreview(sound: SoundEvent) {
-        USound.playSoundStatic(sound, 0.25f, 1f)
+        SoundUtils.playSound(sound, 0.25f, 1f)
     }
 
     fun getRecentSoundIds() = recentSounds.map(Identifier::toString).asReversed()

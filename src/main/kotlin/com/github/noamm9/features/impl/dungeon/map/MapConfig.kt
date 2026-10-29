@@ -6,7 +6,7 @@ import com.github.noamm9.config.types.*
 import java.awt.Color
 
 //#if LEGIT
-//$import java.util.*
+//!import java.util.*
 //#endif
 
 object MapConfig: SettingProvider {
@@ -17,7 +17,7 @@ object MapConfig: SettingProvider {
     //#if CHEAT
     val dungeonMapCheater by ToggleSetting("Cheater Map", false)
     //#else
-    //$val dungeonMapCheater by ToggleSetting("Legit", false).hidden().jsonName(UUID.randomUUID().toString())
+    //!val dungeonMapCheater by ToggleSetting("Legit", false).hidden().jsonName(UUID.randomUUID().toString())
     //#endif
 
     val mapHideInBoss by ToggleSetting("Hide In Boss", false)

@@ -17,7 +17,7 @@ import net.minecraft.world.entity.decoration.ArmorStand
 import java.awt.Color
 
 //#if LEGIT
-//$import com.github.noamm9.utils.render.LegitEntityVisibility
+//!import com.github.noamm9.utils.render.LegitEntityVisibility
 //#endif
 
 object DoorKeys: Feature("ESP box & Tracer for wither and blood doors.") {
@@ -51,7 +51,7 @@ object DoorKeys: Feature("ESP box & Tracer for wither and blood doors.") {
                 }
 
                 //#if LEGIT
-                //$ if (! LegitEntityVisibility.isVisible(player, entity)) return@register
+                //! if (! LegitEntityVisibility.isVisible(player, entity)) return@register
                 //#endif
 
                 event.ctx.renderTracer(entity.renderVec.add(y = 1.7), color, 2)

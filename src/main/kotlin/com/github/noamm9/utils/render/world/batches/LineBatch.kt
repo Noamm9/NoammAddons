@@ -2,7 +2,7 @@ package com.github.noamm9.utils.render.world.batches
 
 import com.github.noamm9.utils.render.world.RenderBatcher.tmpDir
 import com.github.noamm9.utils.render.world.RenderBatcher.tmpVec
-import gg.essential.universal.UMatrixStack
+import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.renderer.rendertype.RenderType
 import kotlin.math.sqrt
 
@@ -17,7 +17,7 @@ class LineBatch(val type: RenderType) {
 
     val data = ArrayList<LineRenderState>()
 
-    fun addLineBoxVertices(pose: UMatrixStack, x1: Double, y1: Double, z1: Double, x2: Double, y2: Double, z2: Double, r: Float, g: Float, b: Float, a: Float, lineWidth: Float) {
+    fun addLineBoxVertices(pose: PoseStack.Pose, x1: Double, y1: Double, z1: Double, x2: Double, y2: Double, z2: Double, r: Float, g: Float, b: Float, a: Float, lineWidth: Float) {
         val minX = x1.toFloat() - 0.002f
         val minY = y1.toFloat() - 0.002f
         val minZ = z1.toFloat() - 0.002f
@@ -41,9 +41,9 @@ class LineBatch(val type: RenderType) {
         line(pose, minX, minY, maxZ, minX, maxY, maxZ, r, g, b, a, lineWidth)
     }
 
-    fun vertex(pose: UMatrixStack, x: Float, y: Float, z: Float, r: Float, g: Float, b: Float, a: Float, nx: Float, ny: Float, nz: Float, lineWidth: Float) {
-        pose.peek().model.transformPosition(x, y, z, tmpVec)
-        pose.peek().normal.transform(tmpDir.set(nx, ny, nz))
+    fun vertex(pose: PoseStack.Pose, x: Float, y: Float, z: Float, r: Float, g: Float, b: Float, a: Float, nx: Float, ny: Float, nz: Float, lineWidth: Float) {
+        pose.pose().transformPosition(x, y, z, tmpVec)
+        pose.normal().transform(tmpDir.set(nx, ny, nz))
 
         data.add(LineRenderState(
             tmpVec.x, tmpVec.y, tmpVec.z,
@@ -53,7 +53,7 @@ class LineBatch(val type: RenderType) {
         ))
     }
 
-    fun line(pose: UMatrixStack, x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float, r: Float, g: Float, b: Float, a: Float, lineWidth: Float) {
+    fun line(pose: PoseStack.Pose, x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float, r: Float, g: Float, b: Float, a: Float, lineWidth: Float) {
         var dx = x2 - x1
         var dy = y2 - y1
         var dz = z2 - z1

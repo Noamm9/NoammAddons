@@ -1,5 +1,7 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.compat.frontLine
+import com.github.noamm9.compat.signUpdatePacket
 import com.mojang.blaze3d.platform.InputConstants
 import com.github.noamm9.config.types.DropdownSetting
 import com.github.noamm9.config.types.MultiCheckboxSetting
@@ -7,7 +9,6 @@ import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.NetworkLoop
 import com.github.noamm9.mixin.IGui
-import net.minecraft.world.level.block.entity.SignTextSlot
 import com.github.noamm9.mixin.IAbstractSignEditScreen
 import com.github.noamm9.ui.utils.components.UIButton
 import com.github.noamm9.ui.utils.components.UISearchBox
@@ -23,7 +24,6 @@ import net.minecraft.client.gui.screens.inventory.AbstractSignEditScreen
 import net.minecraft.client.input.KeyEvent
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.chat.Component
-import net.minecraft.network.protocol.game.ServerboundSignUpdatePacket
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.component.ItemLore
 import net.minecraft.world.level.block.Blocks
@@ -49,7 +49,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             if (screen !is AbstractSignEditScreen) return@register
             val stack = item ?: return@register
             val sign = (screen as IAbstractSignEditScreen).getSign() ?: return@register
-            val lines = Array(4) { i -> sign.getText(SignTextSlot.FRONT).getMessages(false)[i].string }
+            val lines = Array(4) { i -> sign.frontLine(i) }
 
             if (lines[1] == "^^^^^^^^^^^^^^^" && lines[2] == "Your auction" && lines[3] == "starting bid") mc.execute {
                 // manually setting the screen so the sign gui wont close
@@ -171,8 +171,8 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
         private fun finish() {
             val finalLine0 = parsedValue?.toString() ?: input
 
-            ServerboundSignUpdatePacket(
-                sign.blockPos, listOf(finalLine0, originalText[1], originalText[2], originalText[3]), SignTextSlot.FRONT
+            signUpdatePacket(
+                sign.blockPos, listOf(finalLine0, originalText[1], originalText[2], originalText[3])
             ).send()
 
             onClose()

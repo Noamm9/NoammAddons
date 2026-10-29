@@ -7,7 +7,6 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.location.LocationUtils
-import gg.essential.universal.UMinecraft
 import net.minecraft.network.protocol.game.*
 import net.minecraft.world.item.Items
 
@@ -47,7 +46,7 @@ object MelodyAlert: Feature() {
 
         register<TickEvent.Start> {
             if (! isMelodyOpen) return@register
-            if (UMinecraft.currentScreenObj == null) {
+            if (mc.gui.screen() == null) {
                 isMelodyOpen = false
                 return@register
             }

@@ -1,7 +1,7 @@
 package com.github.noamm9.utils.render.world.batches
 
 import com.github.noamm9.utils.render.world.RenderBatcher.tmpVec
-import gg.essential.universal.UMatrixStack
+import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.renderer.rendertype.RenderType
 
 data class FilledBatch(val type: RenderType) {
@@ -13,7 +13,7 @@ data class FilledBatch(val type: RenderType) {
 
     val data = ArrayList<FilledRenderState>()
 
-    fun addFilledBoxVertices(pose: UMatrixStack, x1: Double, y1: Double, z1: Double, x2: Double, y2: Double, z2: Double, r: Float, g: Float, b: Float, a: Float) {
+    fun addFilledBoxVertices(pose: PoseStack.Pose, x1: Double, y1: Double, z1: Double, x2: Double, y2: Double, z2: Double, r: Float, g: Float, b: Float, a: Float) {
         val minX = x1.toFloat() - 0.002f
         val minY = y1.toFloat() - 0.002f
         val minZ = z1.toFloat() - 0.002f
@@ -29,15 +29,15 @@ data class FilledBatch(val type: RenderType) {
         addQuad(pose, maxX, minY, minZ, maxX, maxY, minZ, maxX, maxY, maxZ, maxX, minY, maxZ, r, g, b, a)
     }
 
-    fun vertex(pose: UMatrixStack, x: Float, y: Float, z: Float, r: Float, g: Float, b: Float, a: Float) {
-        pose.peek().model.transformPosition(x, y, z, tmpVec)
+    fun vertex(pose: PoseStack.Pose, x: Float, y: Float, z: Float, r: Float, g: Float, b: Float, a: Float) {
+        pose.pose().transformPosition(x, y, z, tmpVec)
         data.add(FilledRenderState(
             tmpVec.x, tmpVec.y, tmpVec.z,
             r, g, b, a
         ))
     }
 
-    fun addQuad(pose: UMatrixStack, x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float, x3: Float, y3: Float, z3: Float, x4: Float, y4: Float, z4: Float, r: Float, g: Float, b: Float, a: Float) {
+    fun addQuad(pose: PoseStack.Pose, x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float, x3: Float, y3: Float, z3: Float, x4: Float, y4: Float, z4: Float, r: Float, g: Float, b: Float, a: Float) {
         vertex(pose, x1, y1, z1, r, g, b, a)
         vertex(pose, x2, y2, z2, r, g, b, a)
         vertex(pose, x3, y3, z3, r, g, b, a)

@@ -1,6 +1,7 @@
 package com.github.noamm9.ui.clickgui.components.settings.impl
 
 import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.compat.onFocusChange
 import com.github.noamm9.config.types.ColorSetting
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.clickgui.components.settings.Widget
@@ -42,7 +43,7 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
         set(value) {
             if (field == value) return
             field = value
-            mc.textInputManager().onTextInputFocusChange(this, value)
+            mc.textInputManager().onFocusChange(this, value)
         }
     private var hexText = ""
 

@@ -5,9 +5,9 @@ import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.NumbersUtils.div
 import com.github.noamm9.utils.NumbersUtils.minus
 import com.github.noamm9.utils.NumbersUtils.plus
+import com.github.noamm9.utils.SoundUtils
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
-import gg.essential.universal.USound
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.sounds.SoundEvents
 import java.awt.Color
@@ -42,5 +42,5 @@ object Style {
         ctx.drawRect(x + (w * progress) - (kSize / 2f), y + (h / 2f) - (kSize / 2f), kSize, kSize)
     }
 
-    fun playClickSound(pitch: Float) = USound.playSoundStatic(SoundEvents.UI_BUTTON_CLICK, 0.25f, pitch)
+    fun playClickSound(pitch: Float) = SoundUtils.playSound(SoundEvents.UI_BUTTON_CLICK, 0.25f, pitch)
 }

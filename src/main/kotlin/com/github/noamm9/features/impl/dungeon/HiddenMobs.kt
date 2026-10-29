@@ -2,6 +2,7 @@ package com.github.noamm9.features.impl.dungeon
 
 //#if CHEAT
 
+import com.github.noamm9.compat.Enderman
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
@@ -10,7 +11,6 @@ import com.github.noamm9.utils.location.LocationUtils
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.entity.EquipmentSlot
-import net.minecraft.world.entity.monster.Enderman
 import net.minecraft.world.entity.monster.Giant
 
 object HiddenMobs: Feature("Reveals invisible mobs in dungeons.") {

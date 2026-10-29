@@ -6,9 +6,9 @@ import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.removeFormatting
+import com.github.noamm9.utils.SoundUtils
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
-import gg.essential.universal.USound
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.sounds.SoundEvents
 import kotlin.math.roundToInt
@@ -37,7 +37,7 @@ object Ragnarock: Feature("Ragnarock alerts") {
             if (! alertCancelled.value) return@register
             if (! event.unformattedText.matches(cancelRegex)) return@register
             ChatUtils.showTitle(subtitle = "&cRagnarock Cancelled")
-            USound.playSoundStatic(SoundEvents.NOTE_BLOCK_PLING, 0.25f, 1f)
+            SoundUtils.playSound(SoundEvents.NOTE_BLOCK_PLING, 0.25f, 1f)
         }
     }
 }

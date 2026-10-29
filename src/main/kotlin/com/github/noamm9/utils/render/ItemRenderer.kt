@@ -2,6 +2,7 @@ package com.github.noamm9.utils.render
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.compat.refreshRate
 import com.mojang.blaze3d.platform.Lighting
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -19,7 +20,7 @@ import org.joml.Matrix3x2f
 import org.joml.Matrix4f
 
 class ItemRenderer: PictureInPictureRenderer<ItemRenderer.ItemState>() {
-    override fun textureIsReadyToBlit(itemState: ItemState) = System.nanoTime() - lastRenderAtNanos < (1_000_000_000L / 144)
+    override fun textureIsReadyToBlit(itemState: ItemState) = System.nanoTime() - lastRenderAtNanos < (1_000_000_000L / refreshRate)
     override fun getTextureLabel() = NoammAddons.MOD_ID + "_" + this.javaClass.simpleName
     override fun getTranslateY(height: Int, windowScaleFactor: Int) = height / 2f
     override fun getRenderStateClass() = ItemState::class.java

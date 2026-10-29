@@ -2,9 +2,8 @@ package com.github.noamm9.features.impl.misc
 
 //#if CHEAT
 
+import com.github.noamm9.compat.isKeyDown
 import com.github.noamm9.features.Feature
-import com.mojang.blaze3d.platform.InputConstants
-import gg.essential.universal.UMinecraft
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.minecraft.client.KeyMapping
 import net.minecraft.world.entity.player.Input
@@ -15,7 +14,7 @@ object SnappyTappy: Feature("Prevents standing still when pressing opposing dire
 
     @JvmStatic
     fun resolveInput(input: Input): Input {
-        if (! enabled || UMinecraft.currentScreenObj != null) {
+        if (! enabled || mc.gui.screen() != null) {
             physicallyDown.clear()
             pressTimes.clear()
             return input
@@ -61,6 +60,6 @@ object SnappyTappy: Feature("Prevents standing still when pressing opposing dire
     }
 
     private fun isNewer(a: KeyMapping, b: KeyMapping) = (pressTimes[a] ?: 0L) >= (pressTimes[b] ?: 0L)
-    private fun isPhysicallyDown(key: KeyMapping) = InputConstants.isKeyDown(KeyMappingHelper.getBoundKeyOf(key).value)
+    private fun isPhysicallyDown(key: KeyMapping) = isKeyDown(KeyMappingHelper.getBoundKeyOf(key).value)
 }
 //#endif

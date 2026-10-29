@@ -3,6 +3,7 @@ package com.github.noamm9.features.impl.dev
 import com.github.noamm9.NoammAddons.MOD_NAME
 import com.github.noamm9.NoammAddons.MOD_VERSION
 import com.github.noamm9.NoammAddons.logger
+import com.github.noamm9.compat.openUri
 import com.github.noamm9.config.types.ButtonSetting
 import com.github.noamm9.config.types.DropdownSetting
 import com.github.noamm9.config.types.ToggleSetting
@@ -11,7 +12,6 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.network.WebUtils
-import gg.essential.universal.UDesktop
 import kotlinx.serialization.Serializable
 import java.net.URI
 import java.util.*
@@ -104,7 +104,7 @@ object UpdateChecker: Feature(
         val repo = "Noamm9/NoammAddons"
         val releases = "https://github.com/$repo/releases/latest"
         val actions = "https://github.com/$repo/actions"
-        UDesktop.browse(URI(page ?: (if (source.value == 0) releases else actions)))
+        openUri(URI(page ?: (if (source.value == 0) releases else actions)))
     }
 
     @Serializable private data class Release(val tag_name: String, val html_url: String, val created_at: String)

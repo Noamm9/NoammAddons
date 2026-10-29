@@ -1,5 +1,6 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.compat.Enderman
 import com.github.noamm9.config.types.ColorSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
@@ -15,7 +16,6 @@ import net.minecraft.world.entity.ExperienceOrb
 import net.minecraft.world.entity.ambient.Bat
 import net.minecraft.world.entity.boss.wither.WitherBoss
 import net.minecraft.world.entity.decoration.ArmorStand
-import net.minecraft.world.entity.monster.Enderman
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.entity.projectile.arrow.AbstractArrow
 import java.awt.Color
@@ -23,7 +23,7 @@ import java.awt.Color
 object StarMobESP: Feature(
     "Highlights all starred mobs in a dungeon.",
     //#if LEGIT
-    //$name = "Star Mob Highlight",
+    //!name = "Star Mob Highlight",
     //#endif
     jsonName = "Star Mob ESP"
 ) {

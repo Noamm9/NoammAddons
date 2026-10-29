@@ -1,5 +1,6 @@
 package com.github.noamm9.mixin;
 
+import com.github.noamm9.compat.InputKt;
 import com.github.noamm9.event.EventBus;
 import com.github.noamm9.event.impl.ContainerEvent;
 import com.github.noamm9.features.impl.general.ItemTooltip;
@@ -79,7 +80,7 @@ public abstract class MixinAbstractContainerScreen extends Screen {
 
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
     public void onKeyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
-        if (EventBus.post(new ContainerEvent.Keyboard(this, event.key(), (char) event.input(), event.keycode(), event.modifiers()))) {
+        if (EventBus.post(new ContainerEvent.Keyboard(this, event.key(), (char) event.input(), InputKt.getScanCodeCompat(event), event.modifiers()))) {
             cir.setReturnValue(true);
         }
     }
@@ -91,8 +92,11 @@ public abstract class MixinAbstractContainerScreen extends Screen {
         }
     }
 
+    //~ if <26.3 'Identifier;Z)V' -> 'Identifier;)V'
     @WrapOperation(method = "extractTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;setTooltipForNextFrame(Lnet/minecraft/client/gui/Font;Ljava/util/List;Ljava/util/Optional;IILnet/minecraft/resources/Identifier;Z)V"))
+    //~ if <26.3 ', boolean extraSpaceAfterFirstLine, Operation' -> ', Operation'
     private void onRenderTooltipMerged(GuiGraphicsExtractor instance, Font font, List<Component> texts, Optional<TooltipComponent> optionalImage, int xo, int yo, @org.jspecify.annotations.Nullable Identifier style, boolean extraSpaceAfterFirstLine, Operation<Void> original, @Local ItemStack item) {
+        //~ if <26.3 ', style, extraSpaceAfterFirstLine)' -> ', style)'
         if (item == null || item.isEmpty() || texts.isEmpty()) original.call(instance, font, texts, optionalImage, xo, yo, style, extraSpaceAfterFirstLine);
         else {
             ItemTooltip.setSlot(this.hoveredSlot.index);
@@ -100,6 +104,7 @@ public abstract class MixinAbstractContainerScreen extends Screen {
             var event = new ContainerEvent.Render.Tooltip(this, instance, item, xo, yo, new ArrayList<>(texts));
             if (EventBus.post(event)) return;
 
+            //~ if <26.3 ', style, extraSpaceAfterFirstLine)' -> ', style)'
             original.call(instance, font, event.getLore(), optionalImage, xo, yo, style, extraSpaceAfterFirstLine);
         }
     }

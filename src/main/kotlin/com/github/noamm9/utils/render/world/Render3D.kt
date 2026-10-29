@@ -1,6 +1,7 @@
 package com.github.noamm9.utils.render.world
 
 import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.compat.rotateCompat
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.NumbersUtils.times
 import com.github.noamm9.utils.render.RenderHelper.width
@@ -60,7 +61,7 @@ object Render3D {
     ) {
         matrixStack.pushPose()
         matrixStack.translate(camera.pos.reverse())
-        val pose = uMatrixStack()
+        val pose = pose()
         val buffer = RenderBatcher.circleBatch(phase)
 
         val r = color.red / 255f
@@ -129,8 +130,8 @@ object Render3D {
 
         matrixStack.pushPose()
         matrixStack.translate(center.x - cameraPos.x, center.y - cameraPos.y, center.z - cameraPos.z)
-        matrixStack.rotate(camera.orientation)
-        val pose = uMatrixStack()
+        matrixStack.rotateCompat(camera.orientation)
+        val pose = pose()
         val buffer = RenderBatcher.filledBatch(phase)
 
         val r = color.red / 255f
@@ -222,7 +223,7 @@ object Render3D {
 
         matrixStack.pushPose()
         matrixStack.translate(camera.pos.reverse())
-        val pose = uMatrixStack()
+        val pose = pose()
 
         if (fill) RenderBatcher.filledBatch(phase).addFilledBoxVertices(
             pose,
@@ -265,7 +266,7 @@ object Render3D {
 
         matrixStack.pushPose()
         matrixStack.translate(dx, dy, dz)
-        matrixStack.rotate(camera.orientation)
+        matrixStack.rotateCompat(camera.orientation)
         matrixStack.scale(toScale, - toScale, toScale)
 
         for ((i, line) in text.addColor().lineSequence().withIndex()) collector.submitText(
@@ -288,7 +289,7 @@ object Render3D {
     fun RenderContext.renderRainbowLine(start: Vec3, finish: Vec3, thickness: Number, alpha: Float) {
         matrixStack.pushPose()
         matrixStack.translate(camera.pos.reverse())
-        val pose = uMatrixStack()
+        val pose = pose()
 
         val buffer = RenderBatcher.lineBatch(false)
         val direction = finish.subtract(start).normalize()
@@ -332,7 +333,7 @@ object Render3D {
         matrixStack.translate(camera.pos.reverse())
 
         RenderBatcher.lineBatch(phase).line(
-            uMatrixStack(),
+            pose(),
             start.x.toFloat(), start.y.toFloat(), start.z.toFloat(),
             finish.x.toFloat(), finish.y.toFloat(), finish.z.toFloat(),
             color.red / 255f, color.green / 255f, color.blue / 255f, color.alpha / 255f,
@@ -348,7 +349,7 @@ object Render3D {
 
         val cameraPoint = camera.pos.add(Vec3.directionFromRotation(camera.xRot, camera.yRot))
         RenderBatcher.lineBatch(phase = true).line(
-            uMatrixStack(),
+            pose(),
             cameraPoint.x.toFloat(), cameraPoint.y.toFloat(), cameraPoint.z.toFloat(),
             point.x.toFloat(), point.y.toFloat(), point.z.toFloat(),
             color.red / 255f, color.green / 255f, color.blue / 255f, 1f,

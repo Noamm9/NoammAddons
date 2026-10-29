@@ -1,13 +1,12 @@
 package com.github.noamm9.utils.render.world
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.compat.*
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.render.world.iris.IrisCompatibility
 import com.github.noamm9.utils.render.world.iris.IrisShaderType
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
-import com.mojang.renderpearl.api.pipeline.*
 import net.minecraft.client.renderer.RenderPipelines
-import net.minecraft.client.renderer.oit.OitPipelineSet
 import net.minecraft.client.renderer.rendertype.RenderSetup
 import net.minecraft.client.renderer.rendertype.RenderType
 import net.minecraft.resources.Identifier
@@ -66,42 +65,22 @@ object NoammRenderTypes: ISelfInit {
         }.build()
     )
 
-    private val OIT_FILLED_THROUGH_WALLS = RenderPipelines.register(
-        OitPipelineSet.builder(
-            "noammaddons_filled_through_walls",
-            RenderPipeline.builder(RenderPipelines.OIT_DEBUG_FILLED_SNIPPET).apply {
-                withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR)
-                withPrimitiveTopology(PrimitiveTopology.QUADS)
-                withCull(true)
-            }
-        ).withoutDepthTest().build()
-    )
+    val DEBUG_CIRCLE_FILLED = RenderType.create("NOAMM_DEBUG_CIRCLE_FILLED", RenderSetup.builder(MC_CIRCLE_FILLED_THROUGH_WALLS).withOit(OitMode.CIRCLE_FILLED_THROUGH_WALLS).sortOnUpload().createRenderSetup())
+    val DEBUG_FILLED = RenderType.create("NOAMM_DEBUG_FILLED", RenderSetup.builder(MC_FILLED_THROUGH_WALLS).withOit(OitMode.FILLED_THROUGH_WALLS).sortOnUpload().createRenderSetup())
+    val DEBUG_LINES = RenderType.create("NOAMM_DEBUG_LINES", RenderSetup.builder(MC_LINES_THROUGH_WALLS).withOit(OitMode.LINES_THROUGH_WALLS).createRenderSetup())
 
-    private val OIT_CIRCLE_FILLED_THROUGH_WALLS = RenderPipelines.register(
-        OitPipelineSet.builder(
-            "noammaddons_circle_filled_through_walls",
-            RenderPipeline.builder(RenderPipelines.OIT_DEBUG_FILLED_SNIPPET).apply {
-                withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR)
-                withPrimitiveTopology(PrimitiveTopology.QUADS)
-                withCull(true)
-            }
-        ).withoutDepthTest().build()
-    )
+    val CIRCLE_FILLED = RenderType.create("NOAMM_CIRCLE_FILLED", RenderSetup.builder(MC_CIRCLE_FILLED).withOit(OitMode.FILLED).sortOnUpload().createRenderSetup())
+    val FILLED = RenderType.create("NOAMM_FILLED", RenderSetup.builder(MC_FILLED).withOit(OitMode.FILLED).sortOnUpload().createRenderSetup())
+    val LINES = RenderType.create("NOAMM_LINES", RenderSetup.builder(MC_LINES).withOit(OitMode.LINES).createRenderSetup())
 
-    private val OIT_LINES_THROUGH_WALLS = RenderPipelines.register(
-        OitPipelineSet.builder(
-            "noammaddons_lines_through_walls",
-            RenderPipeline.builder(RenderPipelines.OIT_LINES_SNIPPET)
-        ).withoutDepthTest().build()
-    )
-
-    val DEBUG_CIRCLE_FILLED = RenderType.create("NOAMM_DEBUG_CIRCLE_FILLED", RenderSetup.builder(MC_CIRCLE_FILLED_THROUGH_WALLS).setOitPipelines(OIT_CIRCLE_FILLED_THROUGH_WALLS).sortOnUpload().createRenderSetup())
-    val DEBUG_FILLED = RenderType.create("NOAMM_DEBUG_FILLED", RenderSetup.builder(MC_FILLED_THROUGH_WALLS).setOitPipelines(OIT_FILLED_THROUGH_WALLS).sortOnUpload().createRenderSetup())
-    val DEBUG_LINES = RenderType.create("NOAMM_DEBUG_LINES", RenderSetup.builder(MC_LINES_THROUGH_WALLS).setOitPipelines(OIT_LINES_THROUGH_WALLS).createRenderSetup())
-
-    val CIRCLE_FILLED = RenderType.create("NOAMM_CIRCLE_FILLED", RenderSetup.builder(MC_CIRCLE_FILLED).setOitPipelines(RenderPipelines.OIT_DEBUG_FILLED_BOX).sortOnUpload().createRenderSetup())
-    val FILLED = RenderType.create("NOAMM_FILLED", RenderSetup.builder(MC_FILLED).setOitPipelines(RenderPipelines.OIT_DEBUG_FILLED_BOX).sortOnUpload().createRenderSetup())
-    val LINES = RenderType.create("NOAMM_LINES", RenderSetup.builder(MC_LINES).setOitPipelines(RenderPipelines.OIT_LINES_TRANSLUCENT).createRenderSetup())
+    /**
+     * @see MixinSubmitNodeCollection.java
+     */
+    @Suppress("unused")
+    object Order {
+        @JvmField val alwaysOnTopTypes = setOf(DEBUG_FILLED, DEBUG_CIRCLE_FILLED, DEBUG_LINES)
+        @JvmField val afterTerrainTypes = setOf(FILLED, CIRCLE_FILLED, LINES)
+    }
 
     override fun init() {
         IrisCompatibility.registerPipeline(MC_FILLED, IrisShaderType.LINES)

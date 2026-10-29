@@ -2,6 +2,7 @@ package com.github.noamm9.features.impl.misc
 
 //#if CHEAT
 
+import com.github.noamm9.compat.acceptTeleport
 import com.github.noamm9.config.types.MultiCheckboxSetting
 import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.event.impl.*
@@ -12,7 +13,6 @@ import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.destructured
 import com.github.noamm9.utils.PlayerUtils.serverPitch
 import com.github.noamm9.utils.PlayerUtils.serverYaw
-import com.github.noamm9.utils.Utils.send
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.items.*
 import com.github.noamm9.utils.location.LocationUtils
@@ -72,7 +72,7 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
             player.yo = newOldPos.position().y.also { player.yOld = it }
             player.zo = newOldPos.position().z.also { player.zOld = it }
 
-            ServerboundAcceptTeleportationPacket(packet.id, player.x, player.y, player.z, new.yRot, new.xRot).send()
+            acceptTeleport(packet.id, player.x, player.y, player.z, new.yRot, new.xRot)
 
             (player as ILocalPlayer).setLastYaw(new.yRot)
             (player as ILocalPlayer).setLastPitch(new.xRot)

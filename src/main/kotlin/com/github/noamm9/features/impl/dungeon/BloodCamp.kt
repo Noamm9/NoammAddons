@@ -1,5 +1,7 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.compat.decodePosition
+import com.github.noamm9.compat.hasHorizontalMove
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
@@ -98,13 +100,13 @@ object BloodCamp: Feature("Features for Blood Room.") {
             if (! bloodCamp.value) return@register
             if (LocationUtils.inBoss) return@register
             val packet = event.packet as? ClientboundMoveEntityPacket ?: return@register
-            if (! packet.positionDelta.hasDeltaX() && ! packet.positionDelta.hasDeltaZ()) return@register
+            if (! packet.hasHorizontalMove()) return@register
             val entity = packet.getEntity(level) as? ArmorStand ?: return@register
             if (watcherEntity?.let { it.distanceToSqr(entity) <= 400 } != true) return@register
             val item = entity.getItemBySlot(EquipmentSlot.HEAD).takeIf { it.`is`(Items.PLAYER_HEAD) } ?: return@register
             if (ItemUtils.getSkullTexture(item) !in mobSkulls) return@register
 
-            val packetVec = packet.positionDelta.decode(entity.positionCodec).endPosition()
+            val packetVec = packet.decodePosition(entity)
 
             val data = bloodMobs.getOrPut(entity) {
                 BloodEntity(packetVec, DungeonListener.currentTime, firstSpawns)

@@ -1,6 +1,7 @@
 package com.github.noamm9.ui.utils
 
 import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.compat.onFocusChange
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
@@ -49,7 +50,7 @@ class TextInputHandler(
         set(value) {
             if (field == value) return
             field = value
-            mc.textInputManager().onTextInputFocusChange(this, value)
+            mc.textInputManager().onFocusChange(this, value)
         }
     private var dragging = false
     private var clickCount = 1

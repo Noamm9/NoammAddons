@@ -14,7 +14,7 @@ import net.minecraft.world.entity.Entity
 object TeammateESP: Feature(
     "Highlights your dungeon party.",
     //#if LEGIT
-    //$name = "Teammate Highlight",
+    //!name = "Teammate Highlight",
     //#endif
     jsonName = "Teammate ESP"
 ) {

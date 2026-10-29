@@ -1,6 +1,8 @@
 package com.github.noamm9.features.impl.visual
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.compat.KEYBOARD_TYPE
+import com.github.noamm9.compat.isKeyDown
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
@@ -113,7 +115,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
             val layout = wheelLayout(visiblePets.size)
             val pet = hoveredWheelIndex(event.mouseX, event.mouseY, layout)?.let(visiblePets::getOrNull)
 
-            if (event.button == InputConstants.MOUSE_BUTTON_RIGHT && InputConstants.isKeyDown(InputConstants.KEY_LSHIFT) && pet != null) {
+            if (event.button == InputConstants.MOUSE_BUTTON_RIGHT && isKeyDown(InputConstants.KEY_LSHIFT) && pet != null) {
                 val now = System.currentTimeMillis()
                 if (now - lastClickAt >= 300) {
                     lastClickAt = now
@@ -285,7 +287,7 @@ object PetMenu: Feature("Replaces the Pets inventory with a custom pet wheel."),
 
     private fun handleKeybind(screen: AbstractContainerScreen<*>, code: Int, mouse: Boolean): Boolean {
         val index = if (useHotbarBinds.value) {
-            val type = if (mouse) InputConstants.Type.MOUSE else InputConstants.Type.KEYBOARD
+            val type = if (mouse) InputConstants.Type.MOUSE else KEYBOARD_TYPE
             mc.options.keyHotbarSlots.take(PETS_PER_WHEEL).withIndex().find {
                 (it.value as IKeyMapping).key.let { key -> key.type == type && key.value == code }
             }?.index ?: - 1

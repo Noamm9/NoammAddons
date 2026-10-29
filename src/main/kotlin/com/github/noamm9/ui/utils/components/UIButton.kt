@@ -1,9 +1,9 @@
 package com.github.noamm9.ui.utils.components
 
+import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.render.Render2D.drawRect
-import gg.essential.universal.UMinecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.Button
 import net.minecraft.client.sounds.SoundManager
@@ -36,7 +36,7 @@ class UIButton(
         graphics.drawRect(x + width - 1, y, 1, height, borderColor)
 
         graphics.centeredText(
-            UMinecraft.getFontRenderer(),
+            mc.font,
             message,
             x + width / 2,
             y + (height - 8) / 2,

@@ -13,7 +13,7 @@ import java.awt.Color
 object WitherESP: Feature(
     "Highlights all Withers in F7.",
     //#if LEGIT
-    //$name = "Wither Highlight",
+    //!name = "Wither Highlight",
     //#endif
     jsonName = "Wither ESP"
 ) {

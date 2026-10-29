@@ -1,5 +1,6 @@
 package com.github.noamm9.ui.gui
 
+import com.github.noamm9.compat.scanCodeCompat
 import com.github.noamm9.features.impl.dungeon.map.MapConfig
 import com.github.noamm9.features.impl.dungeon.map.MapRenderer
 import com.github.noamm9.ui.clickgui.ClickGuiScreen
@@ -15,7 +16,6 @@ import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.scissor
 import com.mojang.blaze3d.platform.InputConstants
-import gg.essential.universal.UKeyboard
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.*
@@ -133,7 +133,6 @@ class DungeonMapScreen: Screen(Component.literal("DungeonMap")) {
         ctx.disableScissor()
     }
 
-    // Draws the rect with the map's area cut out, so the map's own (possibly translucent) background isn't stacked on the window's
     private fun drawRectAroundMap(ctx: GuiGraphicsExtractor, x: Float, y: Float, w: Float, h: Float, color: Color) {
         val mapRight = mapX + 128f * mapScale
         val mapBottom = mapY + mapHeight * mapScale
@@ -190,10 +189,10 @@ class DungeonMapScreen: Screen(Component.literal("DungeonMap")) {
 
     override fun keyPressed(keyEvent: KeyEvent): Boolean {
         visibleWidgets.forEach {
-            if (it.keyPressed(keyEvent.key, keyEvent.keycode, keyEvent.modifiers)) return true
+            if (it.keyPressed(keyEvent.key, keyEvent.scanCodeCompat, keyEvent.modifiers)) return true
         }
 
-        if (keyEvent.key == UKeyboard.KEY_ESCAPE) {
+        if (keyEvent.key == InputConstants.KEY_ESCAPE) {
             onClose()
             return true
         }

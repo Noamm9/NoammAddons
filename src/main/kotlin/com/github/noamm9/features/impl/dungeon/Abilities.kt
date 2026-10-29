@@ -9,13 +9,12 @@ import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
 import com.mojang.blaze3d.platform.InputConstants
-import gg.essential.universal.UMinecraft
 
 object Abilities: Feature(
     //#if CHEAT
     "Allows you to use dungeon class abilities with keybinds and automatically trigger ultimates when needed."
     //#else
-    //$"Allows you to use dungeon class abilities with keybinds."
+    //!"Allows you to use dungeon class abilities with keybinds."
     //#endif
 ) {
 
@@ -56,7 +55,7 @@ object Abilities: Feature(
         register<KeyboardEvent.KeyPressed> {
             if (! LocationUtils.inDungeon || ! DungeonListener.dungeonStarted) return@register
             if (event.action != InputConstants.PRESS) return@register
-            if (UMinecraft.currentScreenObj != null) return@register
+            if (mc.gui.screen() != null) return@register
 
             if (ultKeybind.isPressed()) {
                 PlayerUtils.useDungeonClassAbility(true)

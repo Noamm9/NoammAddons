@@ -4,7 +4,6 @@ import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import gg.essential.universal.UResolution
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
@@ -22,8 +21,8 @@ object DarkMode: Feature("Darkens the screen") {
     fun drawOverlay(ctx: GuiGraphicsExtractor) {
         if (enabled) ctx.fill(
             0, 0,
-            UResolution.scaledWidth,
-            UResolution.scaledHeight,
+            mc.window.guiScaledWidth,
+            mc.window.guiScaledHeight,
             Color.BLACK.withAlpha(opacity.value / 100f).rgb
         )
     }

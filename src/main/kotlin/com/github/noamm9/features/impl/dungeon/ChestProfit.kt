@@ -12,6 +12,7 @@ import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
+import com.github.noamm9.utils.ColorUtils.code
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
@@ -24,7 +25,6 @@ import com.github.noamm9.utils.location.WorldType
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.highlight
 import com.github.noamm9.utils.render.RenderHelper.width
-import gg.essential.universal.UChat
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
@@ -124,7 +124,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                     currentChest.openedInSequence = true
 
                     if (isDebugEnabled) {
-                        UChat.chat("")
+                        ChatUtils.chat("")
                         ChatUtils.debug("chest", "§6§l${currentChest.displayText} §7opened")
                         ChatUtils.debug("chest", "§7Cost: §c-${NumbersUtils.format(chestCost)}")
                         ChatUtils.debug("chest", "§7--- Items ---")
@@ -135,7 +135,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                         val profitColor = if (profit < 0) "§4" else "§a"
                         ChatUtils.debug("chest", "§7--- Total ---")
                         ChatUtils.debug("chest", "§7Profit: $profitColor${NumbersUtils.format(profit)}")
-                        UChat.chat("")
+                        ChatUtils.chat("")
                     }
                 }
 
@@ -175,7 +175,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                         else chestsToHighlight.find { it == chestType }?.profit = profit
 
                         if (isDebugEnabled) {
-                            UChat.chat("")
+                            ChatUtils.chat("")
                             ChatUtils.debug("chest", "§6§l${chestType.displayText} §7(Croesus)")
                             ChatUtils.debug("chest", "§7Cost: §c-${NumbersUtils.format(chestCost)}")
                             ChatUtils.debug("chest", "§7--- Items ---")
@@ -186,7 +186,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
                             val profitColor = if (profit < 0) "§4" else "§a"
                             ChatUtils.debug("chest", "§7--- Total ---")
                             ChatUtils.debug("chest", "§7Profit: $profitColor${NumbersUtils.format(profit)}")
-                            UChat.chat("")
+                            ChatUtils.chat("")
                         }
                     }
 
@@ -327,7 +327,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
         if (cleanName.startsWith("Enchanted Book (")) return enchantNameToID(name.substringAfter("(").substringBefore(")"))
         if (cleanName.startsWith("[Lvl 1] ")) {
             val nameSection = name.substringAfter("] ")
-            val rarity = ItemRarity.entries.find { it.baseColor.char == nameSection.getOrNull(1) }
+            val rarity = ItemRarity.entries.find { it.baseColor.code == nameSection.getOrNull(1) }
             val petName = nameSection.removeFormatting().uppercase()
             return "PET-$petName-$rarity"
         }

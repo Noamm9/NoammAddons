@@ -1,17 +1,33 @@
 import org.gradle.api.*
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.kotlin.dsl.the
 import java.io.File
 import java.util.*
 
 private val directiveRegex = "^//\\s*".toRegex()
 private val placeholderRegex = Regex("@(\\w+)@")
-private const val marker = "//$"
+private const val marker = "//!"
 
 private data class StackFrame(val outerInclude: Boolean, val branchWasTrue: Boolean)
 
 private fun Project.loadGradleProperties(): Map<String, String> {
-    val props = Properties().apply { file("gradle.properties").inputStream().use(::load) }
+    val props = Properties()
+    listOf(rootProject.file("gradle.properties"), file("gradle.properties")).filter(File::exists).forEach { propsFile ->
+        propsFile.inputStream().use(props::load)
+    }
     return props.mapKeys { it.key as String }.mapValues { it.value as String }
+}
+
+val Project.sourceRoot: File
+    get() {
+        val mainSourceSet = the<SourceSetContainer>().named("main").get()
+        val javaDir = mainSourceSet.java.srcDirs.first { it != file("src/main/java") }
+        return javaDir.parentFile
+    }
+
+fun Task.dependsOnStonecutter() {
+    if (project.tasks.findByName("stonecutterGenerate") != null) dependsOn("stonecutterGenerate")
 }
 
 private fun replaceProperties(content: String, properties: Map<String, String>): String {
@@ -80,8 +96,8 @@ private fun Project.preprocessSources(variantName: String, outRoot: File) {
         }
     }
 
-    processTree(file("src/main/kotlin"), File(outRoot, "kotlin"))
-    processTree(file("src/main/java"), File(outRoot, "java"))
+    processTree(File(sourceRoot, "kotlin"), File(outRoot, "kotlin"))
+    processTree(File(sourceRoot, "java"), File(outRoot, "java"))
 }
 
 private fun Project.replaceSourceProperties(outRoot: File) {
@@ -97,12 +113,12 @@ private fun Project.replaceSourceProperties(outRoot: File) {
         }
     }
 
-    processTree(file("src/main/kotlin"), File(outRoot, "kotlin"))
-    processTree(file("src/main/java"), File(outRoot, "java"))
+    processTree(File(sourceRoot, "kotlin"), File(outRoot, "kotlin"))
+    processTree(File(sourceRoot, "java"), File(outRoot, "java"))
 }
 
 private fun Project.preprocessResources(variantName: String, outRoot: File) {
-    val resourcesIn = file("src/main/resources")
+    val resourcesIn = File(sourceRoot, "resources")
     if (! resourcesIn.exists()) return
 
     val properties = loadGradleProperties()
@@ -129,10 +145,11 @@ fun Project.registerPreprocessTask(variantName: String): TaskProvider<Task> {
         val outRoot = layout.buildDirectory.dir("preprocessed/$variantName")
         val resourcesOut = layout.buildDirectory.dir("preprocessed/$variantName/resources")
 
-        inputs.dir("src/main/kotlin")
-        inputs.dir("src/main/java")
-        inputs.file("src/main/resources/fabric.mod.json5")
-        inputs.file("src/main/resources/${findProperty("mod_id")}.mixins.json5")
+        dependsOnStonecutter()
+        inputs.dir(File(sourceRoot, "kotlin"))
+        inputs.dir(File(sourceRoot, "java"))
+        inputs.file(File(sourceRoot, "resources/fabric.mod.json5"))
+        inputs.file(File(sourceRoot, "resources/${findProperty("mod_id")}.mixins.json5"))
         outputs.dir(outRoot)
         outputs.dir(resourcesOut)
 
@@ -148,8 +165,9 @@ fun Project.registerPreprocessMainTask(): TaskProvider<Task> {
     return tasks.register("preprocessMain") {
         val outRoot = layout.buildDirectory.dir("preprocessed/main")
 
-        inputs.dir("src/main/kotlin")
-        inputs.dir("src/main/java")
+        dependsOnStonecutter()
+        inputs.dir(File(sourceRoot, "kotlin"))
+        inputs.dir(File(sourceRoot, "java"))
         outputs.dir(outRoot)
 
         doFirst { delete(outRoot.get().asFile) }

@@ -6,7 +6,6 @@ import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.RenderHelper.width
 import com.github.noamm9.utils.render.RenderHelper.wrap
-import gg.essential.universal.UGraphics
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 import kotlin.math.abs
@@ -38,7 +37,7 @@ object TooltipManager {
         val lines = text.wrap(150)
         val padding = 6
         val textWidth = lines.maxOf { it.width() }
-        val textHeight = lines.size * (UGraphics.getFontHeight() + 2)
+        val textHeight = lines.size * (mc.font.lineHeight + 2)
 
         var tx = lastMouseX + 12f
         var ty = lastMouseY + 12f

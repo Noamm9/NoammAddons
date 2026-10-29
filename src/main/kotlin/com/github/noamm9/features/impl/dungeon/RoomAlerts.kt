@@ -6,13 +6,13 @@ import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.utils.Resolution
+import com.github.noamm9.utils.SoundUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.core.RoomType
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.RenderHelper.width
-import gg.essential.universal.USound
 import net.minecraft.sounds.SoundEvents
 import kotlin.math.roundToLong
 
@@ -24,7 +24,7 @@ object RoomAlerts: Feature("Alerts when certain stuff happens in your current ro
     private var alertText = "Cleared"
         set(value) {
             field = value
-            USound.playSoundStatic(SoundEvents.NOTE_BLOCK_PLING, 0.25f, 1f)
+            SoundUtils.playSound(SoundEvents.NOTE_BLOCK_PLING, 0.25f, 1f)
             alertUntil = System.currentTimeMillis() + (displayTime.value * 1000).roundToLong()
         }
 

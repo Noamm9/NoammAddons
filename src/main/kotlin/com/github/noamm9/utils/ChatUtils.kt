@@ -10,9 +10,6 @@ import com.github.noamm9.event.impl.PacketEvent
 import com.github.noamm9.event.impl.RenderOverlayEvent
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
-import gg.essential.universal.UChat
-import gg.essential.universal.UResolution
-import gg.essential.universal.wrappers.UPlayer
 import kotlinx.coroutines.*
 import net.minecraft.ChatFormatting
 import net.minecraft.network.chat.*
@@ -51,10 +48,10 @@ object ChatUtils: ISelfInit {
 
                 suspendCancellableCoroutine { cont ->
                     mc.execute {
-                        val player = UPlayer.getPlayer()
+                        val player = mc.player
                         if (player != null) {
                             if (str.startsWith("/")) player.connection.sendCommand(str.removePrefix("/"))
-                            else UChat.say(str)
+                            else player.connection.sendChat(str)
                         }
                         lastSentTime = System.currentTimeMillis()
                         cont.resume(Unit)
@@ -134,8 +131,8 @@ object ChatUtils: ISelfInit {
         sendMessage("/pc $msg")
     }
 
-    fun chat(msg: Any?) = mc.execute { UChat.chat(msg.toString().addColor()) }
-    fun chat(comp: Component) = mc.execute { UChat.chat(comp) }
+    fun chat(msg: Any?) = chat(Component.literal(msg.toString().addColor()))
+    fun chat(comp: Component) = mc.execute { if (mc.player != null) mc.gui.hud.chat.addClientSystemMessage(comp) }
 
     fun String.addColor() = replace("&", "§")
 
@@ -194,8 +191,8 @@ object ChatUtils: ISelfInit {
     }
 
     private val titleRenderer = EventBus.listener<RenderOverlayEvent> {
-        val x = UResolution.scaledWidth / 2f
-        val height = UResolution.scaledHeight
+        val x = mc.window.guiScaledWidth / 2f
+        val height = mc.window.guiScaledHeight
         val y = height / 2f - (height * 0.056).roundToInt()
 
         event.context.drawCenteredString(title, x, y, scale = 2.5)

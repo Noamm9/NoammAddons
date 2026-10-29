@@ -1,5 +1,6 @@
 package com.github.noamm9.features.impl.dev.cosmetics.wings
 
+import com.github.noamm9.compat.submitModelCompat
 import com.github.noamm9.features.impl.dev.Cosmetics
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.model.player.PlayerModel
@@ -26,7 +27,7 @@ class DragonWingsLayer(parent: RenderLayerParent<AvatarRenderState, PlayerModel>
         parentModel.body.translateAndRotate(poseStack)
         poseStack.translate(0f, 0.09f, 0.15f)
         poseStack.scale(scale, scale, scale)
-        collector.submitModel(wingsModel, state, poseStack, renderType, light, OverlayTexture.NO_OVERLAY, state.outlineColor)
+        collector.submitModelCompat(wingsModel, state, poseStack, renderType, light, OverlayTexture.NO_OVERLAY, - 1, state.outlineColor)
         poseStack.popPose()
     }
 }

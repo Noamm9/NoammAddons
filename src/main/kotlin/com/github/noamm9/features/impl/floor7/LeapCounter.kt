@@ -1,6 +1,8 @@
 package com.github.noamm9.features.impl.floor7
 
 import com.github.noamm9.NoammAddons
+import com.github.noamm9.compat.decodePosition
+import com.github.noamm9.compat.syncedPosition
 import com.github.noamm9.config.types.TextInputSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
@@ -71,8 +73,8 @@ object LeapCounter: Feature("Shows how many players have leaped you") {
                 is ClientboundSetEntityMotionPacket -> level.getEntity(id)?.position()?.destructured()
                 is ClientboundTeleportEntityPacket -> packet.change.position.destructured()
                 is ClientboundAddEntityPacket -> Triple(packet.x, packet.y, packet.z)
-                is ClientboundMoveEntityPacket -> packet.getEntity(level)?.positionCodec?.let { packet.positionDelta.decode(it).endPosition() }?.destructured()
-                is ClientboundEntityPositionSyncPacket -> packet.position.endPosition().destructured()
+                is ClientboundMoveEntityPacket -> packet.getEntity(level)?.let(packet::decodePosition)?.destructured()
+                is ClientboundEntityPositionSyncPacket -> packet.syncedPosition.destructured()
                 else -> null
             } ?: return@register
 

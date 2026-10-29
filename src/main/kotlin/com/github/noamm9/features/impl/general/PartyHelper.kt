@@ -14,7 +14,6 @@ import com.github.noamm9.utils.PartyUtils.isLeader
 import com.github.noamm9.utils.dungeons.DungeonUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.mojang.brigadier.arguments.StringArgumentType
-import gg.essential.universal.USound
 import net.minecraft.network.chat.*
 import net.minecraft.network.protocol.game.ServerboundChatCommandPacket
 import net.minecraft.sounds.SoundEvents
@@ -111,7 +110,7 @@ object PartyHelper: Feature("Party commands and reformatting."), ICommandProvide
             if (downtimeList.isEmpty()) return@register
             val names = downtimeList.keys.joinToString(", ")
             ChatUtils.showTitle("&cDowntime!", "Players needing DT: $names")
-            USound.playSoundStatic(SoundEvents.NOTE_BLOCK_PLING, 0.25f, 1f)
+            SoundUtils.playSound(SoundEvents.NOTE_BLOCK_PLING, 0.25f, 1f)
             ChatUtils.sendPartyMessage("Players needing DT: $names")
             downtimeList.clear()
         }

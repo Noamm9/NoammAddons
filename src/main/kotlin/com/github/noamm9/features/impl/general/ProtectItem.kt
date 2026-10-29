@@ -22,7 +22,6 @@ import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.mojang.blaze3d.platform.InputConstants
-import gg.essential.universal.UMinecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.network.chat.Component
@@ -82,7 +81,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
 
         register<KeyboardEvent.KeyPressed> {
             if (LocationUtils.inDungeon && DungeonListener.dungeonStarted && ! DungeonListener.dungeonEnded) return@register
-            if (UMinecraft.currentScreenObj != null) return@register
+            if (mc.gui.screen() != null) return@register
             if (! mc.options.keyDrop.matches(event.keyEvent)) return@register
 
             if (getProtectType(player.inventory.selectedItem) != ProtectType.None) {

@@ -19,8 +19,6 @@ import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.scissor
 import com.mojang.blaze3d.platform.InputConstants
-import gg.essential.universal.UKeyboard
-import gg.essential.universal.UMinecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.EditBox
 import net.minecraft.client.gui.screens.Screen
@@ -102,7 +100,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
     private val scrollBarY get() = measurements.y + PADDING
     private val scrollBarH get() = measurements.innerScrollPanelHeight
     private val maxScroll get() = (lastRenderedInnerHeight.toFloat() + 6 - measurements.innerScrollPanelHeight).coerceAtLeast(0f)
-    private val screenMenu get() = (UMinecraft.currentScreenObj as? AbstractContainerScreen<*>)?.menu
+    private val screenMenu get() = (mc.gui.screen() as? AbstractContainerScreen<*>)?.menu
 
     override fun init() {
         super.init()
@@ -381,7 +379,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         val input = nameInput ?: return false
         when (event.key) {
             InputConstants.KEY_ESCAPE -> stopEditingName()
-            InputConstants.KEY_RETURN, InputConstants.KEYCODE_NUMPADENTER -> saveEditingName()
+            InputConstants.KEY_RETURN, InputConstants.KEY_NUMPADENTER -> saveEditingName()
             else -> input.keyPressed(event)
         }
         return true
@@ -608,7 +606,7 @@ class StorageOverlayScreen: Screen(Component.literal("Storage Overlay")) {
         if (dragArmed) {
             if (dragActive) endDrag()
             else dragStartSlot?.let {
-                dispatchSlotClick(it, dragType, if (UKeyboard.isShiftKeyDown()) InputConstants.MOD_SHIFT else 0)
+                dispatchSlotClick(it, dragType, if (mc.hasShiftDown()) InputConstants.MOD_SHIFT else 0)
             }
             dragSlots.clear()
             dragStartSlot = null

@@ -12,7 +12,6 @@ import com.github.noamm9.utils.endsWithOneOf
 import com.github.noamm9.utils.items.ItemUtils.customData
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils.inSkyblock
-import gg.essential.universal.UKeyboard
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
 import net.fabricmc.fabric.api.client.screen.v1.ScreenMouseEvents
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
@@ -94,7 +93,7 @@ object ItemTooltip: Feature("Adds item information and controls to item tooltips
 
     private fun addPriceLine(lore: MutableList<Component>, label: String, unitPrice: Long, quantity: Int) {
         if (unitPrice <= 0L) return
-        val showStackPrice = quantity > 1 && isShiftDown()
+        val showStackPrice = quantity > 1 && mc.hasShiftDown()
         val price = if (showStackPrice) unitPrice * quantity else unitPrice
         val stackInfo = if (showStackPrice) " §8(${formatComma(quantity)}x ${formatComma(unitPrice)})" else ""
         lore.add(Component.literal("§e$label: §6${formatComma(price)}$stackInfo"))
@@ -136,11 +135,11 @@ object ItemTooltip: Feature("Adds item information and controls to item tooltips
         scaleOverride = 0f
     }
 
-    internal fun applyScroll(verticalAmount: Double) {
+    fun applyScroll(verticalAmount: Double) {
         if (! scrollableTooltips.value) return
         val scroll = (verticalAmount * scrollSpeed.value).toFloat()
-        val holdingShift = isShiftDown()
-        val holdingCtrl = UKeyboard.isCtrlKeyDown()
+        val holdingShift = mc.hasShiftDown()
+        val holdingCtrl = mc.hasControlDown()
 
         when {
             holdingShift && ! holdingCtrl -> scrollAmountX -= scroll
@@ -153,8 +152,6 @@ object ItemTooltip: Feature("Adds item information and controls to item tooltips
             else -> scrollAmountY += scroll
         }
     }
-
-    private fun isShiftDown(): Boolean = UKeyboard.isShiftKeyDown()
 
     @JvmStatic fun isScrollingEnabled() = enabled && scrollableTooltips.value
 }

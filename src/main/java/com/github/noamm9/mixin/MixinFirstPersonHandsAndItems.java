@@ -1,5 +1,6 @@
 package com.github.noamm9.mixin;
 
+//? if >=26.3 {
 import com.github.noamm9.features.impl.visual.Animations;
 import net.minecraft.client.player.FirstPersonHandsAndItems;
 import org.spongepowered.asm.mixin.Mixin;
@@ -36,3 +37,4 @@ public abstract class MixinFirstPersonHandsAndItems {
     }
 
 }
+//? }

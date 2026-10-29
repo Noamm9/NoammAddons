@@ -27,6 +27,7 @@ public abstract class MixinLivingEntity extends Entity {
     @Shadow public abstract boolean hasEffect(Holder<MobEffect> effect);
     @Shadow public abstract @Nullable MobEffectInstance getEffect(Holder<MobEffect> effect);
 
+    //~ if <26.3 'getModifiedSwingDuration' -> 'getCurrentSwingDuration'
     @Inject(method = "getModifiedSwingDuration", at = @At("HEAD"), cancellable = true)
     private void adjustSwingLength(CallbackInfoReturnable<Integer> cir) {
         if (! Animations.INSTANCE.enabled) return;

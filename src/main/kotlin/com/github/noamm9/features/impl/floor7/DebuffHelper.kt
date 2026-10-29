@@ -10,7 +10,6 @@ import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
-import gg.essential.universal.UMinecraft
 import net.minecraft.network.protocol.game.ClientboundBlockChangedAckPacket
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket
 import net.minecraft.sounds.SoundEvents
@@ -44,7 +43,7 @@ object DebuffHelper: Feature(description = "Automatically pulls and fires bows b
         }
 
         register<MouseClickEvent> {
-            if (UMinecraft.currentScreenObj != null) return@register
+            if (mc.gui.screen() != null) return@register
             if (event.button != InputConstants.MOUSE_BUTTON_RIGHT) return@register
             holdingRC = event.action == InputConstants.PRESS
             if (holdingRC) return@register
@@ -66,7 +65,7 @@ object DebuffHelper: Feature(description = "Automatically pulls and fires bows b
         }
 
         register<TickEvent.Server> {
-            if (UMinecraft.currentScreenObj != null) return@register resetCharge()
+            if (mc.gui.screen() != null) return@register resetCharge()
             if (! isCharging || ! holdingRC) return@register
             if (! player.mainHandItem.skyblockId.contains("LAST_BREATH")) return@register resetCharge()
 
@@ -89,7 +88,7 @@ object DebuffHelper: Feature(description = "Automatically pulls and fires bows b
             resetCharge()
 
             ThreadUtils.scheduledTask(2) {
-                if (holdingRC && UMinecraft.currentScreenObj == null) {
+                if (holdingRC && mc.gui.screen() == null) {
                     mc.options.keyUse.isDown = true
                 }
             }

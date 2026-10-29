@@ -39,7 +39,7 @@ object Box3D: Feature("Replaces the Glow ESP with 3D boxes") {
                 //#if CHEAT
                 phase.value
                 //#else
-                //$false
+                //!false
                 //#endif
             }
 

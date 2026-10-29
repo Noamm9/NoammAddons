@@ -1,21 +1,16 @@
 package com.github.noamm9.features.impl.visual
 
 import com.github.noamm9.NoammAddons
-import com.github.noamm9.config.types.ButtonSetting
-import com.github.noamm9.config.types.DropdownSetting
-import com.github.noamm9.config.types.TextInputSetting
+import com.github.noamm9.compat.FilterMode
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.GameStartEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.utils.ChatUtils
-import com.github.noamm9.utils.GifDecoder
-import com.github.noamm9.utils.catch
-import com.github.noamm9.utils.equalsOneOf
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.location.WorldType
 import com.github.noamm9.utils.network.WebUtils
 import com.mojang.blaze3d.platform.NativeImage
 import com.mojang.blaze3d.systems.RenderSystem
-import com.mojang.renderpearl.api.textures.FilterMode
 import io.ktor.client.statement.readRawBytes
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.*

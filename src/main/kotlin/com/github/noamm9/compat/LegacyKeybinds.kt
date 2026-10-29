@@ -1,4 +1,6 @@
-package com.github.noamm9.config.migrators
+@file:Suppress("unused")
+
+package com.github.noamm9.compat
 
 /**
  * Used to convert old GLFW keybinds to SDL

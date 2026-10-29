@@ -13,7 +13,6 @@ import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
-import gg.essential.universal.UMinecraft
 
 object AutoGFS: Feature("Automatically refills dungeon items from your sacks using /gfs while in dungeons.") {
     private val delay by SliderSetting("Check Delay", 20.0, 5.0, 60.0, 1.0, "s").withDescription("How often to check for refills.")
@@ -72,7 +71,7 @@ object AutoGFS: Feature("Automatically refills dungeon items from your sacks usi
 
     private fun refill() {
         if (! enabled || ! LocationUtils.inDungeon) return
-        if (UMinecraft.currentScreenObj != null) return
+        if (mc.gui.screen() != null) return
         if (DungeonListener.thePlayer?.isDead == true) return
 
         var pearlCount = 0

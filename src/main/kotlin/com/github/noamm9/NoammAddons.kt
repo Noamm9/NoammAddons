@@ -5,11 +5,11 @@ import com.github.noamm9.event.impl.RatEvent
 import com.github.noamm9.init.AutoSessionIdStealer
 import com.github.noamm9.init.ClassGraphInitializer
 import com.github.noamm9.utils.render.ItemRenderer
-import gg.essential.universal.UMinecraft
 import kotlinx.coroutines.*
 import me.owdding.dfu.item.MeowddingItemDfu
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.rendering.v1.PictureInPictureRendererRegistry
+import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
 import org.slf4j.LoggerFactory
 
@@ -33,7 +33,7 @@ object NoammAddons: ClientModInitializer {
     val scope = CoroutineScope(Dispatchers.Default + SupervisorJob() + CoroutineName(MOD_NAME))
 
     @JvmField val logger = LoggerFactory.getLogger(MOD_NAME)
-    @JvmStatic val mc by lazy { UMinecraft.getMinecraft() }
+    @JvmStatic val mc by lazy { Minecraft.getInstance() }
     @JvmField var isLoaded = false
 
     @JvmField
@@ -41,7 +41,7 @@ object NoammAddons: ClientModInitializer {
         //#if CHEAT
         true
         //#else
-        //$false
+        //!false
         //#endif
     }
 

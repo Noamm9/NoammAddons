@@ -10,6 +10,7 @@ plugins {
 val mod_name: String = project.property("mod_name") as String
 
 val libsDir = layout.buildDirectory.dir("libs")
+val rootLibsDir = rootProject.layout.buildDirectory.dir("libs")
 val softwareComponentFactory = project.serviceOf<SoftwareComponentFactory>()
 
 val sourceSets = the<SourceSetContainer>()
@@ -25,7 +26,7 @@ val legitKotlinDir = layout.buildDirectory.dir("preprocessed/legit/kotlin")
 fun SourceSet.configurePreprocessedVariant(javaDir: Provider<Directory>, kotlinDir: Provider<Directory>) {
     java.setSrcDirs(listOf(javaDir.get().asFile))
     (extensions.getByName("kotlin") as SourceDirectorySet).apply { setSrcDirs(listOf(kotlinDir.get().asFile)) }
-    resources.setSrcDirs(listOf("src/main/resources"))
+    resources.setSrcDirs(mainSourceSet.resources.srcDirs)
     compileClasspath += mainSourceSet.compileClasspath
     runtimeClasspath += mainSourceSet.runtimeClasspath - mainSourceSet.output
 }
@@ -43,7 +44,7 @@ val legitSourceSet = sourceSets.create("legit").apply { configurePreprocessedVar
 
 tasks.named<KotlinCompile>("compileCheatKotlin") {
     dependsOn("preprocessCheat")
-    inputs.dir("src/main/kotlin")
+    inputs.dir(File(sourceRoot, "kotlin"))
     inputs.dir(cheatKotlinDir)
 
     compilerOptions { freeCompilerArgs.add("-Xjava-source-roots=${cheatJavaDir.get().asFile.invariantSeparatorsPath}") }
@@ -57,7 +58,7 @@ tasks.named<KotlinCompile>("compileKotlin") {
 
 tasks.named<JavaCompile>("compileCheatJava") {
     dependsOn("preprocessCheat", "compileCheatKotlin")
-    inputs.dir("src/main/java")
+    inputs.dir(File(sourceRoot, "java"))
     inputs.dir(cheatJavaDir)
     options.release.set(25)
     classpath += files(tasks.named<KotlinCompile>("compileCheatKotlin").flatMap { it.destinationDirectory })
@@ -76,7 +77,7 @@ tasks.named("cheatClasses") {
 
 tasks.named<KotlinCompile>("compileLegitKotlin") {
     dependsOn("preprocessLegit")
-    inputs.dir("src/main/kotlin")
+    inputs.dir(File(sourceRoot, "kotlin"))
     inputs.dir(legitKotlinDir)
 
     compilerOptions { freeCompilerArgs.add("-Xjava-source-roots=${legitJavaDir.get().asFile.invariantSeparatorsPath}") }
@@ -84,7 +85,7 @@ tasks.named<KotlinCompile>("compileLegitKotlin") {
 
 tasks.named<JavaCompile>("compileLegitJava") {
     dependsOn("preprocessLegit", "compileLegitKotlin")
-    inputs.dir("src/main/java")
+    inputs.dir(File(sourceRoot, "java"))
     inputs.dir(legitJavaDir)
     options.release.set(25)
     classpath += files(tasks.named<KotlinCompile>("compileLegitKotlin").flatMap { it.destinationDirectory })
@@ -98,7 +99,7 @@ val jarCheat = tasks.register<Jar>("jarCheat") {
     dependsOn("cheatClasses", "processCheatResources")
     from(cheatSourceSet.output)
     archiveClassifier.set("cheat")
-    destinationDirectory.set(libsDir)
+    destinationDirectory.set(rootLibsDir)
     from("LICENSE") { rename { "${it}_$mod_name" } }
 }
 
@@ -106,7 +107,7 @@ val jarLegit = tasks.register<Jar>("jarLegit") {
     dependsOn("legitClasses", "processLegitResources")
     from(legitSourceSet.output)
     archiveClassifier.set("legit")
-    destinationDirectory.set(libsDir)
+    destinationDirectory.set(rootLibsDir)
     from("LICENSE") { rename { "${it}_$mod_name" } }
 }
 

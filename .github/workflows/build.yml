@@ -13,8 +13,10 @@ on:
       - "gradlew"
       - "LICENSE"
       - "settings.gradle.kts"
+      - "stonecutter.gradle.kts"
+      - "versions/**"
   push:
-    branches: ["26.1.2", "26.2", "26.3"]
+    branches: ["main", "26.1.2", "26.2", "26.3"]
     paths: *build-paths
 
 permissions:
@@ -45,6 +47,8 @@ jobs:
             /gradlew
             /LICENSE
             /settings.gradle.kts
+            /stonecutter.gradle.kts
+            /versions/
           sparse-checkout-cone-mode: false
 
       - name: Set up JDK 25
@@ -59,19 +63,33 @@ jobs:
         with:
           cache-read-only: ${{ github.event_name == 'pull_request' }}
 
-      - name: Build legit and cheat variants
-        run: ./gradlew build --build-cache
+      - name: Build legit and cheat variants for every Minecraft version
+        run: ./gradlew chiseledBuild --build-cache
 
-      - name: Upload legit JAR
+      - name: Upload 26.2 legit JAR
         uses: actions/upload-artifact@v7.0.2
         with:
-          path: build/libs/*-legit.jar
+          path: build/libs/*-26.2-legit.jar
           if-no-files-found: error
           archive: false
 
-      - name: Upload cheat JAR
+      - name: Upload 26.2 cheat JAR
         uses: actions/upload-artifact@v7.0.2
         with:
-          path: build/libs/*-cheat.jar
+          path: build/libs/*-26.2-cheat.jar
+          if-no-files-found: error
+          archive: false
+
+      - name: Upload 26.3 legit JAR
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          path: build/libs/*-26.3-legit.jar
+          if-no-files-found: error
+          archive: false
+
+      - name: Upload 26.3 cheat JAR
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          path: build/libs/*-26.3-cheat.jar
           if-no-files-found: error
           archive: false

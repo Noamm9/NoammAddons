@@ -4,31 +4,25 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.features.impl.misc.sound.SoundManager
 import com.github.noamm9.ui.clickgui.ClickGuiScreen
 import com.github.noamm9.ui.clickgui.components.settings.Style
-import com.github.noamm9.ui.utils.Resolution
-import com.github.noamm9.ui.utils.ScrollState
-import com.github.noamm9.ui.utils.TextInputHandler
+import com.github.noamm9.ui.utils.*
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.scissor
+import com.github.noamm9.utils.render.RenderHelper.width
 import com.github.noamm9.utils.spaceCaps
-import gg.essential.universal.UGraphics
+import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
-import net.minecraft.client.input.CharacterEvent
-import net.minecraft.client.input.KeyEvent
-import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.client.input.*
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.network.chat.Component
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundEvents
-import com.mojang.blaze3d.platform.InputConstants
 import java.awt.Color
-import kotlin.math.ceil
-import kotlin.math.max
-import kotlin.math.min
+import kotlin.math.*
 
 class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
     private companion object {
@@ -150,8 +144,8 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
         if (isHovered) ctx.drawRect(x, y, w, h, Color(255, 255, 255, 15))
 
         val maxNameWidth = (sliderX - x - 12f).toInt()
-        val name = if (UGraphics.getStringWidth(sound.cleanName) <= maxNameWidth) sound.cleanName
-        else mc.font.plainSubstrByWidth(sound.cleanName, maxNameWidth - UGraphics.getStringWidth("...")) + "..."
+        val name = if (sound.cleanName.width() <= maxNameWidth) sound.cleanName
+        else mc.font.plainSubstrByWidth(sound.cleanName, maxNameWidth - "...".width()) + "..."
 
         ctx.drawString(name, x + 5f, y + 9f)
         ctx.drawRect(sliderX, y + 17f, SLIDER_WIDTH, 5f, Color(255, 255, 255, 24))
@@ -161,7 +155,7 @@ class SoundManagerScreen: Screen(Component.literal("SoundManager")) {
         ctx.drawCenteredString("Play", playX + PLAY_SOUND_WIDTH / 2f, y + 10f, if (playHovered) Color.WHITE else Color.LIGHT_GRAY)
 
         val valueText = "$volume%"
-        ctx.drawString(valueText, sliderX + SLIDER_WIDTH - UGraphics.getStringWidth(valueText), y + 5f, Color.GRAY)
+        ctx.drawString(valueText, sliderX + SLIDER_WIDTH - valueText.width(), y + 5f, Color.GRAY)
     }
 
     private fun updateFilter(resetScroll: Boolean = true) {

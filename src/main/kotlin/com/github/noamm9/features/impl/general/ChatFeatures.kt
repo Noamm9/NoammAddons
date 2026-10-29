@@ -16,8 +16,6 @@ import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.Utils.send
 import com.mojang.blaze3d.platform.InputConstants
 import com.mojang.brigadier.arguments.StringArgumentType
-import gg.essential.universal.UKeyboard
-import gg.essential.universal.UMinecraft
 import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.screens.ChatScreen
 import net.minecraft.client.multiplayer.chat.GuiMessage
@@ -84,10 +82,10 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
     override fun init() {
         register<MouseClickEvent> {
             if (! ctrlClickToCopy.value) return@register
-            if (UMinecraft.currentScreenObj !is ChatScreen) return@register
+            if (mc.gui.screen() !is ChatScreen) return@register
             if (event.button != InputConstants.MOUSE_BUTTON_LEFT) return@register
             if (event.action != InputConstants.PRESS) return@register
-            if (! UKeyboard.isCtrlKeyDown()) return@register
+            if (! mc.hasControlDown()) return@register
             val message = getHoveredMsg().takeUnless(String::isBlank) ?: return@register
 
             NotificationManager.push("Message copied to clipboard", message)
@@ -145,7 +143,7 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
     }
 
     private fun getHoveredMsg(): String {
-        val chatHud = (UMinecraft.getChatGUI() as? IChatComponent) ?: return ""
+        val chatHud = (mc.gui.hud.chat as? IChatComponent) ?: return ""
         val i = chatHud.getLineIndex().takeUnless { it < 0 || it >= chatHud.visibleMessages.size } ?: return ""
 
         val lines = ArrayList<GuiMessage.Line>()

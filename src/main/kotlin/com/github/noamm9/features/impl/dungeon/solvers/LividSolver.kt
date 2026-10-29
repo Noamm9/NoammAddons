@@ -16,7 +16,6 @@ import com.github.noamm9.utils.render.RenderHelper.renderVec
 import com.github.noamm9.utils.render.RenderHelper.width
 import com.github.noamm9.utils.render.world.Render3D.renderString
 import com.github.noamm9.utils.render.world.Render3D.renderTracer
-import gg.essential.universal.USound
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.sounds.SoundEvents
@@ -114,7 +113,7 @@ object LividSolver: Feature() {
             if (timer > 0) timer --
             if (timer == 0) {
                 if (iceSprayTitle.value) ChatUtils.showTitle("&bIce Spray Livid!")
-                if (iceSpraySound.value) USound.playSoundStatic(SoundEvents.NOTE_BLOCK_PLING, 0.25f, 1f)
+                if (iceSpraySound.value) SoundUtils.playSound(SoundEvents.NOTE_BLOCK_PLING, 0.25f, 1f)
                 timer = - 1
             }
         }

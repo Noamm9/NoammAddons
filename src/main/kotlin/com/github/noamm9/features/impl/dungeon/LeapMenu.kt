@@ -1,6 +1,5 @@
 package com.github.noamm9.features.impl.dungeon
 
-import com.mojang.blaze3d.platform.InputConstants
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
@@ -25,11 +24,12 @@ import com.github.noamm9.utils.render.Render2D.drawPlayerHead
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.renderVec
-import gg.essential.universal.*
+import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
+import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.Items
 import java.awt.Color
@@ -186,7 +186,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
                 event.context.drawBorder(headX, headY, headSize, headSize, entry.player.clazz.color)
 
                 val textX = (x + 10 + headSize + 5).toInt()
-                val textY = (y + boxHeight / 2 - UGraphics.getFontHeight()).toInt()
+                val textY = (y + boxHeight / 2 - mc.font.lineHeight).toInt()
 
                 event.context.drawString(entry.player.name, textX, textY + 2, entry.player.clazz.color)
 
@@ -237,10 +237,10 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
     }
 
     private fun getHoveredIndex(): Int? {
-        val cx = UResolution.windowWidth / 2
-        val cy = UResolution.windowHeight / 2
-        val mx = UMouse.Raw.x
-        val my = UMouse.Raw.y
+        val cx = mc.window.screenWidth / 2
+        val cy = mc.window.screenHeight / 2
+        val mx = mc.mouseHandler.xpos()
+        val my = mc.mouseHandler.ypos()
 
         return when {
             mx < cx && my < cy -> 0
@@ -307,7 +307,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
         val entry = players.getOrNull(index) ?: return
         if (entry.player.isDead) return ChatUtils.modMessage("§3LeapMenu >> §c${entry.player.name} is dead!")
 
-        USound.playButtonPress()
+        SoundUtils.playSound(SoundEvents.UI_BUTTON_CLICK, 0.25f, 1f)
         GuiUtils.clickSlot(entry.slotIndex, GuiUtils.ButtonType.LEFT)
         if (NoammAddons.isCheat) player.closeContainer() else clicked = true
     }
@@ -396,6 +396,6 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
         DungeonClass.Tank to listOf(DungeonClass.Archer, DungeonClass.Berserk, DungeonClass.Healer, DungeonClass.Mage)
     )
 
-    override fun isActive() = (UMinecraft.currentScreenObj as? Screen)?.isLeapMenu() ?: false
+    override fun isActive() = mc.gui.screen()?.isLeapMenu() ?: false
     private fun Screen.isLeapMenu() = enabled && customLeapMenu.value && LocationUtils.inDungeon && title.string.lowercase().containsOneOf("spirit leap", "teleport to player")
 }

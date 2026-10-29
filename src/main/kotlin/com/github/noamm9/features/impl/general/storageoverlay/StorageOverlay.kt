@@ -12,8 +12,6 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.catch
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.network.NoammAPI
-import gg.essential.universal.UMinecraft
-import gg.essential.universal.wrappers.UPlayer
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import net.minecraft.client.gui.screens.Screen
@@ -40,7 +38,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     val storageNames by MapSetting<Int, String>("Custom Names")
 
     private val storageDir = File(mc.gameDirectory, "config/${NoammAddons.MOD_NAME}/storage").also(File::mkdirs)
-    private val dataFile get() = File(storageDir, "${UPlayer.getUUID()}.nbt")
+    private val dataFile get() = File(storageDir, "${mc.user.profileId}.nbt")
     @Volatile var storageMenuData: SortedMap<StoragePage, NBTInventory?> = TreeMap()
     private val saveMutex = Mutex()
     private var loaded = false
@@ -52,7 +50,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
 
     @JvmStatic
     fun activeFor(screen: ContainerScreen) = active?.takeIf { it.containerScreen === screen }
-    override fun isActive() = (UMinecraft.currentScreenObj as? ContainerScreen)?.let(::activeFor) != null
+    override fun isActive() = (mc.gui.screen() as? ContainerScreen)?.let(::activeFor) != null
 
     private val emptyStorageSlotItems = listOf(
         Blocks.STAINED_GLASS_PANE.red().asItem(),
@@ -62,18 +60,18 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
 
     override fun init() {
         register<KeyboardEvent.KeyPressed>(EventPriority.HIGHEST) {
-            val screen = UMinecraft.currentScreenObj as? ContainerScreen ?: return@register
+            val screen = mc.gui.screen() as? ContainerScreen ?: return@register
             if (activeFor(screen)?.onNameKeyPressed(event.keyEvent) == true) event.isCanceled = true
         }
 
         register<KeyboardEvent.CharTyped>(EventPriority.HIGHEST) {
-            val screen = UMinecraft.currentScreenObj as? ContainerScreen ?: return@register
+            val screen = mc.gui.screen() as? ContainerScreen ?: return@register
             if (activeFor(screen)?.onNameCharTyped(event.charEvent) == true) event.isCanceled = true
         }
 
         register<ContainerFullyOpenedEvent> {
             if (! LocationUtils.inSkyblock) return@register
-            val screen = UMinecraft.currentScreenObj as? ContainerScreen ?: return@register
+            val screen = mc.gui.screen() as? ContainerScreen ?: return@register
             if (screen.menu.containerId != event.windowId) return@register
             if (screen.title.unformattedText != event.title.unformattedText) return@register
             val menu = currentMenu ?: return@register
@@ -229,7 +227,7 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     private suspend fun loadFromApi() {
         if (loaded) return
         loaded = true
-        NoammAPI.getStorage(UPlayer.getUUID().toString()).onSuccess {
+        NoammAPI.getStorage(mc.user.profileId.toString()).onSuccess {
             val data = TreeMap<StoragePage, NBTInventory?>()
             it.enderchest.forEach { (i, stacks) -> data[StoragePage(i)] = NBTInventory(stacks) }
             it.backpack.forEach { (i, stacks) -> data[StoragePage(i + 9)] = NBTInventory(stacks) }

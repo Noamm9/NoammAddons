@@ -11,7 +11,7 @@ import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.scissor
-import gg.essential.universal.UKeyboard
+import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.*
@@ -184,15 +184,15 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
     }
 
     override fun keyPressed(keyEvent: KeyEvent): Boolean {
-        if (keyEvent.key == UKeyboard.KEY_SLASH) return true
-        if (keyEvent.key == UKeyboard.KEY_BACKSLASH) return true
+        if (keyEvent.key == InputConstants.KEY_SLASH) return true
+        if (keyEvent.key == InputConstants.KEY_BACKSLASH) return true
 
         rows.forEach {
             if (it.commandInput.keyPressed(keyEvent)) return true
             if (it.replacementInput.keyPressed(keyEvent)) return true
         }
 
-        if (keyEvent.key == UKeyboard.KEY_ESCAPE) {
+        if (keyEvent.key == InputConstants.KEY_ESCAPE) {
             onClose()
             return true
         }

@@ -3,7 +3,6 @@ package com.github.noamm9.ui.utils.components
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.utils.render.Render2D.drawRect
-import gg.essential.universal.UGraphics
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.EditBox
 import net.minecraft.network.chat.Component
@@ -32,7 +31,7 @@ class UISearchBox(
 
         val pose = guiGraphics.pose()
         pose.pushMatrix()
-        pose.translate(5f, (height / 2f) - UGraphics.getFontHeight() / 2)
+        pose.translate(5f, (height / 2f) - mc.font.lineHeight / 2)
         super.extractWidgetRenderState(guiGraphics, mouseX, mouseY, partialTick)
         pose.popMatrix()
     }

@@ -26,8 +26,10 @@ public abstract class MixinGuiGraphicsExtractor {
     @Shadow @Final private Matrix3x2fStack pose;
 
     @WrapMethod(method = "tooltip")
+    //~ if <26.3 ', boolean extraSpaceAfterFirstLine, Operation' -> ', Operation'
     private void onRenderTooltipPre(Font font, List<ClientTooltipComponent> lines, int xo, int yo, ClientTooltipPositioner positioner, @org.jspecify.annotations.Nullable Identifier style, boolean extraSpaceAfterFirstLine, Operation<Void> original) {
         if (Cosmetics.INSTANCE.enabled && Cosmetics.getCustomNames().getValue() && ! Cosmetics.getLoreNames().getValue()) TextReplacer.drawingTooltip = true;
+        //~ if <26.3 ', style, extraSpaceAfterFirstLine)' -> ', style)'
         if (! ItemTooltip.isScrollingEnabled()) original.call(font, lines, xo, yo, positioner, style, extraSpaceAfterFirstLine);
         else {
             pose.pushMatrix();
@@ -35,6 +37,7 @@ public abstract class MixinGuiGraphicsExtractor {
             pose.scale(ItemTooltip.getTooltipScale().getValue().floatValue() / 100f + ItemTooltip.scaleOverride / 10f);
             pose.translate(ItemTooltip.scrollAmountX, ItemTooltip.scrollAmountY);
             pose.translate(- xo, - yo);
+            //~ if <26.3 ', style, extraSpaceAfterFirstLine)' -> ', style)'
             original.call(font, lines, xo, yo, positioner, style, extraSpaceAfterFirstLine);
             pose.popMatrix();
         }

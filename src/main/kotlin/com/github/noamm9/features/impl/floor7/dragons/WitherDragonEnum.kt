@@ -2,10 +2,11 @@ package com.github.noamm9.features.impl.floor7.dragons
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.utils.ChatUtils.modMessage
+import com.github.noamm9.utils.ColorUtils.toColor
 import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.MathUtils.vec
 import com.github.noamm9.utils.dungeons.DungeonListener
-import gg.essential.universal.ChatColor
+import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon
 import net.minecraft.world.phys.AABB
@@ -33,11 +34,11 @@ enum class WitherDragonEnum(
     var health: Float = 1_000_000_000f,
     var offScoreboardTicks: Int = 0
 ) {
-    Red(vec(27, 14, 59), aabb(14.5, 13, 45.5, 39.5, 28, 70.5), 'c', ChatColor.RED.color !!, "Power Dragon", 24.0 .. 30.0, 56.0 .. 62.0, 50, BlockPos(32, 19, 59)),
-    Orange(vec(85, 14, 56), aabb(72, 8, 47, 102, 28, 77), '6', ChatColor.GOLD.color !!, "Flame Dragon", 82.0 .. 88.0, 53.0 .. 59.0, 62, BlockPos(80, 19, 56)),
-    Green(vec(27, 14, 94), aabb(7, 8, 80, 37, 28, 110), 'a', ChatColor.GREEN.color !!, "Apex Dragon", 23.0 .. 29.0, 91.0 .. 97.0, 52, BlockPos(32, 18, 94)),
-    Blue(vec(84, 14, 94), aabb(71.5, 16, 82.5, 96.5, 26, 107.5), 'b', ChatColor.AQUA.color !!, "Ice Dragon", 82.0 .. 88.0, 91.0 .. 97.0, 47, BlockPos(79, 19, 94)),
-    Purple(vec(56, 14, 125), aabb(45.5, 13, 113.5, 68.5, 23, 136.5), '5', ChatColor.DARK_PURPLE.color !!, "Soul Dragon", 53.0 .. 59.0, 122.0 .. 128.0, 38, BlockPos(56, 18, 128));
+    Red(vec(27, 14, 59), aabb(14.5, 13, 45.5, 39.5, 28, 70.5), 'c', ChatFormatting.RED.toColor(), "Power Dragon", 24.0 .. 30.0, 56.0 .. 62.0, 50, BlockPos(32, 19, 59)),
+    Orange(vec(85, 14, 56), aabb(72, 8, 47, 102, 28, 77), '6', ChatFormatting.GOLD.toColor(), "Flame Dragon", 82.0 .. 88.0, 53.0 .. 59.0, 62, BlockPos(80, 19, 56)),
+    Green(vec(27, 14, 94), aabb(7, 8, 80, 37, 28, 110), 'a', ChatFormatting.GREEN.toColor(), "Apex Dragon", 23.0 .. 29.0, 91.0 .. 97.0, 52, BlockPos(32, 18, 94)),
+    Blue(vec(84, 14, 94), aabb(71.5, 16, 82.5, 96.5, 26, 107.5), 'b', ChatFormatting.AQUA.toColor(), "Ice Dragon", 82.0 .. 88.0, 91.0 .. 97.0, 47, BlockPos(79, 19, 94)),
+    Purple(vec(56, 14, 125), aabb(45.5, 13, 113.5, 68.5, 23, 136.5), '5', ChatFormatting.DARK_PURPLE.toColor(), "Soul Dragon", 53.0 .. 59.0, 122.0 .. 128.0, 38, BlockPos(56, 18, 128));
 
     fun setAlive(id: Int) {
         state = WitherDragonState.ALIVE
