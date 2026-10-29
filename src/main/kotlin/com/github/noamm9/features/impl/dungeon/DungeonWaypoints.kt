@@ -33,12 +33,14 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
     private val batWaypoints by ToggleSetting("Bat Waypoints", true).showIf { secretWaypoints.value }
     private val essenceWaypoints by ToggleSetting("Essence Waypoints", true).showIf { secretWaypoints.value }
     private val keyWaypoints by ToggleSetting("Redstone Key Waypoints", true).showIf { secretWaypoints.value }
+    private val leverWaypoints by ToggleSetting("Lever Waypoints", true).showIf { secretWaypoints.value }
 
     private val chestColor by ColorSetting("Chest Color", Color.MAGENTA, false).showIf { chestWaypoints.value && secretWaypoints.value }.section("Colors")
     private val itemColor by ColorSetting("Item Color", Utils.favoriteColor, false).showIf { itemWaypoints.value && secretWaypoints.value }
     private val batColor by ColorSetting("Bat Color", Color.GREEN, false).showIf { batWaypoints.value && secretWaypoints.value }
     private val essenceColor by ColorSetting("Essence Color", Color.BLACK, false).showIf { essenceWaypoints.value && secretWaypoints.value }
     private val keyColor by ColorSetting("Redstone Key Color", Color.RED, false).showIf { keyWaypoints.value && secretWaypoints.value }
+    private val leverColor by ColorSetting("Lever Color", Color.YELLOW, false).showIf { leverWaypoints.value && secretWaypoints.value }
 
     private val storage = PogObject("dungeonWaypoints", mutableMapOf<String, MutableSet<DungeonWaypoint>>())
     private val roomWaypoints = ConcurrentHashMap<UniqueRoom, MutableSet<DungeonWaypoint>>()
@@ -61,7 +63,6 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
 
         register<DungeonEvent.SecretEvent> {
             if (! secretWaypoints.value) return@register
-            if (event.type == SecretType.LEVER) return@register
             val room = ScanUtils.currentRoom ?: return@register
             val secrets = room.secretCoords[event.type] ?: return@register
 
@@ -249,7 +250,7 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
         SecretType.BAT -> batWaypoints.value
         SecretType.WITHER_ESSENCE -> essenceWaypoints.value
         SecretType.REDSTONE_KEY -> keyWaypoints.value
-        SecretType.LEVER -> false
+        SecretType.LEVER -> leverWaypoints.value
     }
 
     private fun SecretType.color() = when (this) {
@@ -258,7 +259,7 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
         SecretType.CHEST -> chestColor
         SecretType.ITEM -> itemColor
         SecretType.BAT -> batColor
-        else -> chestColor
+        SecretType.LEVER -> leverColor
     }.value
 
     private fun RoomInfo.waypoints() = run { roomWaypoints[room ?: return@run bossWaypoints] }

@@ -21,7 +21,8 @@ data class RoomData(
         val wither: List<BlockPos> = emptyList(),
         val bat: List<BlockPos> = emptyList(),
         val item: List<BlockPos> = emptyList(),
-        val chest: List<BlockPos> = emptyList()
+        val chest: List<BlockPos> = emptyList(),
+        val lever: List<BlockPos> = emptyList()
     )
 
     fun isUnknown() = name == "Unknown" && shape == RoomShape.UNKNOWN
@@ -51,15 +52,18 @@ data class RoomData(
         class SecretCoordsDeserializer: JsonDeserializer<SecretCoords> {
             override fun deserialize(json: JsonElement, typeOfT: Type, ctx: JsonDeserializationContext): SecretCoords {
                 val obj = json.asJsonObject
+
                 fun coords(key: String) = obj.get(key)?.takeUnless(JsonElement::isJsonNull)?.let {
                     ctx.deserialize<List<BlockPos>>(it, object: TypeToken<List<BlockPos>>() {}.type)
                 } ?: emptyList()
+
                 return SecretCoords(
                     redstoneKey = coords("redstoneKey"),
                     wither = coords("wither"),
                     bat = coords("bat"),
                     item = coords("item"),
                     chest = coords("chest"),
+                    lever = coords("lever"),
                 )
             }
         }
