@@ -2,7 +2,7 @@ package com.github.noamm9.mixin;
 
 //#if CHEAT
 
-import com.github.noamm9.features.impl.dungeon.Secrets;
+import com.github.noamm9.features.impl.floor7.M7Relics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
@@ -32,9 +32,7 @@ abstract class MixinAnvilBlock extends FallingBlock {
 
     @Inject(method = "getShape", at = @At("HEAD"), cancellable = true)
     private void modifyShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context, CallbackInfoReturnable<VoxelShape> cir) {
-        if (Secrets.INSTANCE.enabled && Secrets.getAnvil().getValue()) {
-            cir.setReturnValue(Shapes.block());
-        }
+        if (M7Relics.isFullBlockAnvil()) cir.setReturnValue(Shapes.block());
     }
 
     @Override

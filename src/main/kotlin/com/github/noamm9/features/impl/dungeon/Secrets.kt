@@ -36,7 +36,6 @@ object Secrets: Feature() {
     private val buttonSize by SliderSetting("Button Hitbox Size", 1.0, 6.0 / 16.0, 1.0, 0.01).showIf { button.value }
     @JvmStatic val skull by ToggleSetting("Skulls").withDescription("Full block Skull hitbox.")
     @JvmStatic val mushroom by ToggleSetting("Mushroom").withDescription("Full block Mushroom hitbox.")
-    @JvmStatic val anvil by ToggleSetting("Anvil").withDescription("Full block Anvil hitbox.")
     //#endif
 
     private val secretClicked by ToggleSetting("Highlight Clicked Secret").withDescription("Highlights the block of a secret when you interact with it.").section("Secret Clicked")

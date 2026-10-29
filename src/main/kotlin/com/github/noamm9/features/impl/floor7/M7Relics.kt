@@ -41,6 +41,7 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
     private val relicLookTime by SliderSetting("Relic Look Time", 150L, 10, 300, 1).showIf { relicLook.value }.withDescription("How fast should the auto rotate (in milliseconds)")
     private val blockWrongRelic by ToggleSetting("Block Wrong Relic").withDescription("Prevents you from placing your relic at the wrong cauldron.")
     private val relicTriggerbot by ToggleSetting("Relic Triggerbot").withDescription("Automatically picks up the relic when you're aiming at it.")
+    private val anvil by ToggleSetting("Full Block Anvil").withDescription("Makes the hitbox of the Anvil block be as big as a regular block.")
     private var lastRelicClick = 0L
     //#endif
 
@@ -178,6 +179,16 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
         }
         //#endif
     }
+
+    //#if CHEAT
+    @JvmStatic
+    fun isFullBlockAnvil(): Boolean {
+        if (! enabled) return false
+        if (! anvil.value) return false
+        if (F7Phase != 5) return false
+        return true
+    }
+    //#endif
 
     private fun isEntityAtCauldron(pos: Vec3, relic: WitherRelic): Boolean {
         val relicVec2 = vec(relic.coords.first, 0, relic.coords.second)
