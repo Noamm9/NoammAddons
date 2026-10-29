@@ -38,7 +38,8 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     val storageNames by MapSetting<Int, String>("Custom Names")
 
     private val storageDir = File(mc.gameDirectory, "config/${NoammAddons.MOD_NAME}/storage").also(File::mkdirs)
-    private val dataFile get() = File(storageDir, "${mc.user.profileId}.nbt")
+    private val dataFile get() = File(storageDir, dataProfile?.let { "${mc.user.profileId}_$it.nbt" } ?: "${mc.user.profileId}.nbt")
+    private var dataProfile: String? = null
     @Volatile var storageMenuData: SortedMap<StoragePage, NBTInventory?> = TreeMap()
     private val saveMutex = Mutex()
     private var loaded = false
@@ -109,6 +110,12 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     fun onScreenChange(oldScreen: Screen?, newScreen: Screen?): Screen? {
         if (! LocationUtils.inSkyblock) return null
         if (oldScreen == null && newScreen == null) return null
+
+        if (LocationUtils.profileId != dataProfile) {
+            dataProfile = LocationUtils.profileId
+            storageMenuData = TreeMap()
+            loaded = false
+        }
 
         val screen = newScreen as? ContainerScreen
         val menu = StorageMenu.get(screen)
@@ -227,15 +234,14 @@ object StorageOverlay: Feature("Shows all storage pages in an overlay when openi
     private suspend fun loadFromApi() {
         if (loaded) return
         loaded = true
+        val profile = dataProfile
         NoammAPI.getStorage(mc.user.profileId.toString()).onSuccess {
+            if (profile != dataProfile) return@onSuccess
             val data = TreeMap<StoragePage, NBTInventory?>()
             it.enderchest.forEach { (i, stacks) -> data[StoragePage(i)] = NBTInventory(stacks) }
             it.backpack.forEach { (i, stacks) -> data[StoragePage(i + 9)] = NBTInventory(stacks) }
             storageMenuData = data
             ThreadUtils.async(::saveData)
-        }.onFailure {
-            if (it is NoammAPI.NoammAPIException) loaded = false
         }
     }
-
 }
