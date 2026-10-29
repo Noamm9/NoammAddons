@@ -65,6 +65,8 @@ object BlazeSolver: PuzzleSolver {
     }
 
     private val tickListener = EventBus.listener<TickEvent.Start> {
+        if (! enabled || ! PuzzleSolvers.enabled) return@listener reset()
+
         blazes.clear()
         hpMap.clear()
 
