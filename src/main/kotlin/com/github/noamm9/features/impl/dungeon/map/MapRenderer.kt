@@ -47,7 +47,7 @@ object MapRenderer: HudElement() {
         renderBackground(ctx)
         ctx.pose().translate(startX, startY)
 
-        if (example) {
+        if (example && ! LocationUtils.inDungeon) {
             ctx.renderRooms(MapPreview.tiles, MapPreview.CONNECTOR_SIZE, true)
             ctx.renderText(MapPreview.rooms, MapPreview.CONNECTOR_SIZE, MapUtils.mapRoomSize / 2, true)
         }
@@ -58,7 +58,7 @@ object MapRenderer: HudElement() {
         }
 
         ctx.pose().translate(- startX, - startY)
-        if (example) MapPreview.players.forEachIndexed { i, player -> ctx.drawPlayerHead(player, isSelf = i == 0) }
+        if (example && ! LocationUtils.inDungeon) MapPreview.players.forEachIndexed { i, player -> ctx.drawPlayerHead(player, isSelf = i == 0) }
         else ctx.renderPlayerHeads()
         if (extraInfo) renderExtraInfo(ctx, example)
 
