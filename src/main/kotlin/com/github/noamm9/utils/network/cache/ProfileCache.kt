@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.github.noamm9.utils.network.cache
 
 import com.github.noamm9.utils.network.abstracts.CacheResult
@@ -8,7 +10,7 @@ import com.google.common.cache.CacheBuilder
 import java.util.concurrent.*
 
 object ProfileCache: NetworkCache<String, DungeonStats> {
-    private val storage = CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS).build<String, CachedEntry<DungeonStats>>()
+    private val storage = CacheBuilder.newBuilder().expireAfterAccess(2, TimeUnit.HOURS).build<String, CachedEntry<DungeonStats>>()
 
     override fun addToCache(key: String, value: DungeonStats) = storage.put(key.lowercase(), CachedEntry(value))
     override fun addFailedToCache(key: String) = storage.put(key.lowercase(), CachedEntry(null))

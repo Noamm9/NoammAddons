@@ -266,7 +266,7 @@ object PartyFinder: Feature(), ICommandProvider {
 
         ChatUtils.chat("&a&l--- &r&b$cleanName&b's Dungeon Stats &a&l---&r")
         ChatUtils.chat(
-            "  &4Cata Level: &b${data.cataLevel} &f| &dClass Avg: &b${data.classAverage.toFixed(1)} &f| &dMP: ${
+            "  &4Cata Level: &b${data.cataLevel.toFixed(2)} &f| &dClass Avg: &b${data.classAverage.toFixed(1)} &f| &dMP: ${
                 if (! inventoryApiEnabled) "&cAPI off" else "&e${data.magicalPower}"
             }"
         )
@@ -351,7 +351,7 @@ object PartyFinder: Feature(), ICommandProvider {
             cached?.isSuccess == true -> {
                 val data = cached.getOrThrow()
                 return buildString {
-                    if (showTooltipStats["Catacombs Level"]) append("§b(§6${data.cataLevel}§b)§r ")
+                    if (showTooltipStats["Catacombs Level"]) append("§b(§6${data.cataLevel.toInt()}§b)§r ")
                     if (showTooltipStats["Total Secrets & Avg"]) append("§8[§a${data.dungeons.secrets}§8/§b${data.secretAverage.toFixed(2)}§8]§r ")
                     if (showTooltipStats["Magical Power"]) append("§8[§d${data.magicalPower}§8]§r ")
                     if (showTooltipStats["PB Time"]) {

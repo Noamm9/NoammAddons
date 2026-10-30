@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.github.noamm9.utils.network.cache
 
 import com.github.noamm9.utils.network.abstracts.CacheResult
