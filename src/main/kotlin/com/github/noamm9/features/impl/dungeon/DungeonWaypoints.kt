@@ -112,6 +112,7 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
 
                 for (pos in positions) {
                     if (pos in done) continue
+
                     if (type == SecretType.REDSTONE_KEY && WorldUtils.getBlockAt(pos) != Blocks.PLAYER_HEAD) continue
 
                     val fill = mode.value.equalsOneOf(0, 2)
