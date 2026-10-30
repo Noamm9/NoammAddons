@@ -1,6 +1,5 @@
 package com.github.noamm9.features.impl.floor7.terminals
 
-import com.mojang.blaze3d.platform.InputConstants
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.commands.CommandBuilder
 import com.github.noamm9.commands.NaCommand
@@ -9,20 +8,18 @@ import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.terminals.impl.*
 import com.github.noamm9.features.impl.floor7.terminals.sim.*
-import com.github.noamm9.features.impl.visual.InfoDisplay
 import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.init.types.ICustomMenu
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.*
-import com.github.noamm9.utils.ColorUtils.chromaColor
 import com.github.noamm9.utils.ColorUtils.isVisable
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawFloatingRect
-import com.github.noamm9.utils.render.Render2D.drawHorizontalGradient
+import com.github.noamm9.utils.render.Render2D.drawRainbowBorder
 import com.github.noamm9.utils.render.Render2D.drawRect
-import com.github.noamm9.utils.render.Render2D.drawVerticalGradient
+import com.mojang.blaze3d.platform.InputConstants
 import com.mojang.brigadier.arguments.StringArgumentType
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -31,7 +28,6 @@ import net.minecraft.network.protocol.game.ServerboundContainerClickPacket
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.item.ItemStack
 import java.awt.Color
-import kotlin.math.ceil
 
 object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICustomMenu, ICommandProvider {
     private val redGreenTerm by ToggleSetting("Red-Green", true).section("Toggles")
@@ -162,7 +158,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
         if (titleColor.value.isVisable()) ctx.drawCenteredString(handler.displayName, width / 2f, - 15f - pad, color = titleColor.value, scale = 1.2f)
         if (backgroundColor.value.isVisable()) ctx.drawRect(- pad, - pad, width + pad * 2, height + pad * 2, backgroundColor.value)
         if (borderColor.value.isVisable()) {
-            if (rainbowBorder.value) drawRainbowBorder(ctx, - pad, - pad, width + pad * 2, height + pad * 2)
+            if (rainbowBorder.value) ctx.drawRainbowBorder(- pad, - pad, width + pad * 2, height + pad * 2, rainbowBorderSpeed.value, borderColor.value.alpha)
             else ctx.drawBorder(- pad, - pad, width + pad * 2, height + pad * 2, borderColor.value)
         }
 
@@ -207,30 +203,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
         Resolution.pop(ctx)
     }
 
-    private fun drawRainbowBorder(ctx: GuiGraphicsExtractor, x: Float, y: Float, width: Float, height: Float) {
-        val time = System.currentTimeMillis() * rainbowBorderSpeed.value
-        val perimeter = 2f * (width + height)
-        val alpha = borderColor.value.alpha
 
-        fun colorAt(distance: Float) = chromaColor(time, period = 5000.0, offset = distance / perimeter).withAlpha(alpha)
-
-        fun edge(ex: Float, ey: Float, length: Float, start: Float, direction: Float, horizontal: Boolean) {
-            repeat(ceil(length / 4f).toInt()) { index ->
-                val offset = index * 4f
-                val size = minOf(4f, length - offset)
-                val first = colorAt(start + direction * offset)
-                val second = colorAt(start + direction * (offset + size))
-
-                if (horizontal) ctx.drawHorizontalGradient(ex + offset, ey, size, 1f, first, second)
-                else ctx.drawVerticalGradient(ex, ey + offset, 1f, size, first, second)
-            }
-        }
-
-        edge(x, y, width, 0f, 1f, true)
-        edge(x + width - 1f, y + 1f, height - 2f, width + 1f, 1f, false)
-        edge(x, y + height - 1f, width, 2f * width + height, - 1f, true)
-        edge(x, y + 1f, height - 2f, perimeter - 1f, - 1f, false)
-    }
 
     fun spanFor(count: Int) = count * 16f + (count - 1) * slotGap.value
 
