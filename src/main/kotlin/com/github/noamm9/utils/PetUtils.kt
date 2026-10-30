@@ -2,7 +2,6 @@ package com.github.noamm9.utils
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.MOD_ID
-import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.config.PogObject
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
@@ -115,48 +114,57 @@ object PetUtils: ISelfInit {
         EventBus.register<ContainerFullyOpenedEvent> {
             if (! LocationUtils.inSkyblock) return@register
             if (! petMenuPattern.matches(event.title.unformattedText)) return@register
-            ThreadUtils.async {
-                var equipped: Pet? = null
-                var found = 0
+            var equipped: Pet? = null
+            var found = 0
 
-                for (stack in event.items.values) {
-                    val pet = stack.pet() ?: continue
-                    cachePet(pet)
-                    found ++
+            for (stack in event.items.values) {
+                val pet = stack.pet() ?: continue
+                cachePet(pet)
+                found ++
 
-                    ChatUtils.debug("pet", pet.name)
+                ChatUtils.debug("pet", pet.name)
 
-                    if (equipped == null && stack.lore.any { it.removeFormatting().contains("Click to despawn!", ignoreCase = true) }) {
-                        equipped = pet
-                    }
+                if (equipped == null && stack.lore.any { it.removeFormatting().contains("Click to despawn!", ignoreCase = true) }) {
+                    equipped = pet
                 }
-
-                ChatUtils.debug("pet", "scanned $found pets from menu")
-
-                equipped?.let {
-                    if (equipped.uuid == null) return@let
-                    if (clickedPet?.uuid == equipped.uuid) return@let
-
-                    val current = currentPet
-
-                    when {
-                        current == null -> changePet(equipped, PetEvent.Cause.MENU)
-                        current.uuid == null && current.matches(equipped.name) -> updatePet(current.merge(equipped))
-                        current.uuid != equipped.uuid -> changePet(equipped, PetEvent.Cause.MENU)
-                        else -> updatePet(current.merge(equipped))
-                    }
-                }
-
-                petCache.save()
             }
+
+            ChatUtils.debug("pet", "scanned $found pets from menu")
+
+            equipped?.let {
+                if (equipped.uuid == null) return@let
+                if (clickedPet?.uuid == equipped.uuid) return@let
+
+                val current = currentPet
+
+                when {
+                    current == null -> changePet(equipped, PetEvent.Cause.MENU)
+                    current.uuid == null && current.matches(equipped.name) -> updatePet(current.merge(equipped))
+                    current.uuid != equipped.uuid -> changePet(equipped, PetEvent.Cause.MENU)
+                    else -> updatePet(current.merge(equipped))
+                }
+            }
+
+            ThreadUtils.async { petCache.save() }
         }
 
         EventBus.register<ContainerEvent.SlotClick> {
-            if (event.button != 0) return@register
+            if (event.button != 0 && event.button != 1) return@register
             if (event.clickType != ContainerInput.PICKUP) return@register
             if (event.slotId !in 10 .. 43 || event.slotId % 9 !in 1 .. 7) return@register
             if (! petMenuPattern.matches(event.screen.title.unformattedText)) return@register
-            clickedPet = mc.player?.containerMenu?.items?.getOrNull(event.slotId)?.pet()
+            val stack = event.screen.menu.items.getOrNull(event.slotId) ?: return@register
+            val pet = stack.pet()
+            if (event.button == 0) clickedPet = pet
+            else {
+                val uuid = pet?.uuid ?: return@register
+                knownPets.remove(uuid)
+                if (clickedPet?.uuid == uuid) clickedPet = null
+                val current = currentPet ?: return@register
+                if (current.uuid == uuid || current.uuid == null && stack.lore.any { it.removeFormatting().contains("Click to despawn!", ignoreCase = true) }) {
+                    changePet(null, PetEvent.Cause.MENU)
+                }
+            }
         }
 
         EventBus.register<ContainerEvent.SlotClick> {
