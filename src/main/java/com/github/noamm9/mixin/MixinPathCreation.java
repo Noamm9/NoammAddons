@@ -16,18 +16,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 //~ if <26.3 'BlockTransformer.class' -> 'ShovelItem.class'
 @Mixin(BlockTransformer.class)
 public class MixinPathCreation {
-    //? if >=26.3 {
+    //~ if <26.3 '"transformBlock"' -> '"useOn"'
+    //~ if <26.3 'Lnet/minecraft/world/item/context/UseOnContext;getPlayer()Lnet/minecraft/world/entity/player/Player;' -> 'Lnet/minecraft/world/level/Level;playSound(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/core/BlockPos;Lnet/minecraft/sounds/SoundEvent;Lnet/minecraft/sounds/SoundSource;FF)V'
     @Inject(method = "transformBlock", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/context/UseOnContext;getPlayer()Lnet/minecraft/world/entity/player/Player;"), cancellable = true)
-    //? } else {
-    /*@Inject(method = "useOn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;playSound(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/core/BlockPos;Lnet/minecraft/sounds/SoundEvent;Lnet/minecraft/sounds/SoundSource;FF)V"), cancellable = true)
-    *///? }
     //~ if <26.3 'cir, @Local(ordinal = 0) BlockState newState' -> 'cir'
     private void preventAotvPaths(UseOnContext context, CallbackInfoReturnable<InteractionResult> cir, @Local(ordinal = 0) BlockState newState) {
-        //? if >=26.3 {
-        if (! newState.is(Blocks.DIRT_PATH)) return;
-        //? }
-        if (context.getLevel().isClientSide() && Tweaks.shouldPreventAotvPaths(context.getItemInHand())) {
-            cir.setReturnValue(InteractionResult.SUCCESS);
-        }
+        //~ if <26.3 'isClientSide() || ! newState.is(Blocks.DIRT_PATH))' -> 'isClientSide())'
+        if (! context.getLevel().isClientSide() || ! newState.is(Blocks.DIRT_PATH)) return;
+        if (Tweaks.shouldPreventAotvPaths(context.getItemInHand())) cir.setReturnValue(InteractionResult.SUCCESS);
     }
 }

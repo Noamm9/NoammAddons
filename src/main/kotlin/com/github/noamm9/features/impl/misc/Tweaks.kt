@@ -10,6 +10,7 @@ import net.minecraft.world.item.ItemStack
  * @see com.github.noamm9.mixin.MixinAbstractRecipeBookScreen
  * @see com.github.noamm9.mixin.MixinRecipeBookComponent
  * @see com.github.noamm9.mixin.MixinGuiGraphicsExtractor
+ * @see com.github.noamm9.mixin.MixinPathCreation
  */
 object Tweaks: Feature("Small quality of life tweaks.") {
     @JvmStatic val hideRecipeBook by ToggleSetting("Hide Recipe Book").withDescription("Hides the recipe book button in inventory GUIs.")
