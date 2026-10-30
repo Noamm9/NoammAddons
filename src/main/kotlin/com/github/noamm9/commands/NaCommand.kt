@@ -259,7 +259,8 @@ object NaCommand: ICommandProvider {
         val inventory = NoammAddons.mc.player?.inventory ?: return
         val currentAmount = inventory.sumOf { stack -> if (stack.skyblockId == itemId) stack.count else 0 }
         val missingAmount = amount - currentAmount
-        if (missingAmount >= 0) ChatUtils.sendCommand("gfs $sackName $missingAmount")
+        if (missingAmount > 0) ChatUtils.sendCommand("gfs $sackName $missingAmount")
+        else ChatUtils.modMessage("§cStack is already full!")
     }
 
     private fun sendRtca(name: String = NoammAddons.mc.user.name) = NoammAddons.scope.launch(Dispatchers.IO) {
