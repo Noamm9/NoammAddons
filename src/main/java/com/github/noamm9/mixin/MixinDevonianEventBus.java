@@ -11,7 +11,8 @@ import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Coerce;
 
-// reason this exists cuz devonian does this stupid shit: https://github.com/Synnerz/devonian/blob/8e5d13b0ba0fdbcf1e98673e156c3bc19678f63b/src/main/kotlin/com/github/synnerz/devonian/api/events/EventBus.kt#L136-L147
+// reason this exists cuz devonian does this stupid shit:
+// https://github.com/Synnerz/devonian/blob/8e5d13b0ba0fdbcf1e98673e156c3bc19678f63b/src/main/kotlin/com/github/synnerz/devonian/api/events/EventBus.kt#L136-L147
 @Pseudo
 @Mixin(targets = "com.github.synnerz.devonian.api.events.EventBus", remap = false)
 public class MixinDevonianEventBus {
