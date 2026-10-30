@@ -1,6 +1,5 @@
 package com.github.noamm9.features.impl.floor7.terminals
 
-import com.mojang.blaze3d.platform.InputConstants
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.commands.CommandBuilder
 import com.github.noamm9.commands.NaCommand
@@ -9,7 +8,6 @@ import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.terminals.impl.*
 import com.github.noamm9.features.impl.floor7.terminals.sim.*
-import com.github.noamm9.features.impl.visual.InfoDisplay
 import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.init.types.ICustomMenu
 import com.github.noamm9.ui.utils.Resolution
@@ -19,7 +17,9 @@ import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawFloatingRect
+import com.github.noamm9.utils.render.Render2D.drawRainbowBorder
 import com.github.noamm9.utils.render.Render2D.drawRect
+import com.mojang.blaze3d.platform.InputConstants
 import com.mojang.brigadier.arguments.StringArgumentType
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -53,6 +53,8 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
     val breakTimeout by SliderSetting("Break Timeout", 500, 300, 800, 50, "ms").withDescription("How long should the solver wait for a click to be confirmed by hypixel")
     private val backgroundColor by ColorSetting("Background Color", Color(0, 0, 0, 100))
     private val borderColor by ColorSetting("Border Color", Color(255, 255, 255))
+    private val rainbowBorder by ToggleSetting("Rainbow Border").withDescription("Animate a rainbow gradient around the terminal menu. Opacity follows Border Color.")
+    private val rainbowBorderSpeed by SliderSetting("Rainbow Border Speed", 1.0, 0.1, 3.0, 0.1).showIf { rainbowBorder.value }
     private val titleColor by ColorSetting("Title Text Color", Color.WHITE)
     private val overlayTextColor by ColorSetting("Overlay Text Color", Color.WHITE)
     private val solutionColor by ColorSetting("Solution Color", Color(0, 255, 0, 130))
@@ -155,7 +157,10 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
 
         if (titleColor.value.isVisable()) ctx.drawCenteredString(handler.displayName, width / 2f, - 15f - pad, color = titleColor.value, scale = 1.2f)
         if (backgroundColor.value.isVisable()) ctx.drawRect(- pad, - pad, width + pad * 2, height + pad * 2, backgroundColor.value)
-        if (borderColor.value.isVisable()) ctx.drawBorder(- pad, - pad, width + pad * 2, height + pad * 2, borderColor.value)
+        if (borderColor.value.isVisable()) {
+            if (rainbowBorder.value) ctx.drawRainbowBorder(- pad, - pad, width + pad * 2, height + pad * 2, rainbowBorderSpeed.value, borderColor.value.alpha)
+            else ctx.drawBorder(- pad, - pad, width + pad * 2, height + pad * 2, borderColor.value)
+        }
 
         val solutionSlots = handler.solution.map { it.slotId }
         val minCol = cachedMinCol ?: if (solutionSlots.isEmpty()) 0 else solutionSlots.minOf { it % 9 }.also { cachedMinCol = it }
@@ -197,6 +202,8 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
         ctx.pose().popMatrix()
         Resolution.pop(ctx)
     }
+
+
 
     fun spanFor(count: Int) = count * 16f + (count - 1) * slotGap.value
 

@@ -5,6 +5,8 @@ import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.impl.RenderOverlayEvent
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ChatUtils.addColor
+import com.github.noamm9.utils.ColorUtils
+import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.NumbersUtils.minus
 import com.github.noamm9.utils.NumbersUtils.plus
 import com.github.noamm9.utils.NumbersUtils.times
@@ -20,7 +22,6 @@ import net.minecraft.world.inventory.Slot
 import org.joml.Matrix3x2f
 import java.awt.Color
 import kotlin.math.*
-
 
 object Render2D: ISelfInit {
     private val slotHighlights = mutableMapOf<Long, Int>()
@@ -205,5 +206,29 @@ object Render2D: ISelfInit {
                 diameter, diameter
             ).transformMaxBounds(pose)
         })
+    }
+
+    fun GuiGraphicsExtractor.drawRainbowBorder(x: Float, y: Float, width: Float, height: Float, speed: Double, alpha: Int) {
+        val time = System.currentTimeMillis() * speed
+        val perimeter = 2f * (width + height)
+
+        fun colorAt(distance: Float) = ColorUtils.chromaColor(time, period = 5000.0, offset = distance / perimeter).withAlpha(alpha)
+
+        fun edge(ex: Float, ey: Float, length: Float, start: Float, direction: Float, horizontal: Boolean) {
+            repeat(ceil(length / 4f).toInt()) { index ->
+                val offset = index * 4f
+                val size = minOf(4f, length - offset)
+                val first = colorAt(start + direction * offset)
+                val second = colorAt(start + direction * (offset + size))
+
+                if (horizontal) drawHorizontalGradient(ex + offset, ey, size, 1f, first, second)
+                else drawVerticalGradient(ex, ey + offset, 1f, size, first, second)
+            }
+        }
+
+        edge(x, y, width, 0f, 1f, true)
+        edge(x + width - 1f, y + 1f, height - 2f, width + 1f, 1f, false)
+        edge(x, y + height - 1f, width, 2f * width + height, - 1f, true)
+        edge(x, y + 1f, height - 2f, perimeter - 1f, - 1f, false)
     }
 }
