@@ -1,6 +1,7 @@
 package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.commands.CommandBuilder
+import com.github.noamm9.commands.NaCommand
 import com.github.noamm9.config.PogObject
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
@@ -20,7 +21,7 @@ import net.minecraft.world.level.block.Blocks
 import java.awt.Color
 import java.util.concurrent.*
 
-object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while looking at a block"), ICommandProvider {
+object DungeonWaypoints: Feature("Add a custom waypoint with /na ndw add while looking at a block"), ICommandProvider {
     private val secretWaypoints by ToggleSetting("Secret Waypoints").section("Secret Waypoints")
     private val mode by DropdownSetting("Mode", 0, listOf("Fill", "Outline", "Filled Outline")).showIf { secretWaypoints.value }
     private val phase by ToggleSetting("See Through Walls", true).showIf { secretWaypoints.value }
@@ -133,63 +134,65 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
     }
 
     override fun CommandBuilder.command() {
-        setName("ndw")
-        description("Manage custom dungeon waypoints")
-        requires("Enable the $name Feature to use /ndw.") { enabled }
-        runs { ChatUtils.modMessage("&bUsage: /ndw <add|edit|remove|clear>") }
+        setName(*NaCommand.names)
+        literal("ndw") {
+            description("Manage custom dungeon waypoints")
+            requires("Enable the $name Feature to use /na ndw.") { enabled }
+            runs { ChatUtils.modMessage("&bUsage: /na ndw <add|edit|remove|clear>") }
 
-        literal("add") {
-            runs {
-                val info = getRoomData() ?: return@runs
-                val currentWaypoints = info.waypoints() ?: return@runs ChatUtils.modMessage("§cRoom rotation not scanned yet, try again in a moment.")
-                val lookingAt = PlayerUtils.getSelectionBlock() ?: return@runs ChatUtils.modMessage("§cYou must be looking at a block!")
-                if (currentWaypoints.any { it.pos == lookingAt }) return@runs ChatUtils.modMessage("§cA waypoint already exists here. Use /ndw edit.")
+            literal("add") {
+                runs {
+                    val info = getRoomData() ?: return@runs
+                    val currentWaypoints = info.waypoints() ?: return@runs ChatUtils.modMessage("§cRoom rotation not scanned yet, try again in a moment.")
+                    val lookingAt = PlayerUtils.getSelectionBlock() ?: return@runs ChatUtils.modMessage("§cYou must be looking at a block!")
+                    if (currentWaypoints.any { it.pos == lookingAt }) return@runs ChatUtils.modMessage("§cA waypoint already exists here. Use /na ndw edit.")
 
-                val relativePos = ScanUtils.getRelativeCoord(lookingAt, info.corner, info.rotation)
-                GuiUtils.setScreen(DungeonWaypointScreen(info.name, lookingAt, relativePos))
-            }
-        }
-
-        literal("edit") {
-            runs {
-                val info = getRoomData() ?: return@runs
-                val currentWaypoints = info.waypoints() ?: return@runs ChatUtils.modMessage("§cRoom rotation not scanned yet, try again in a moment.")
-                val lookingAt = PlayerUtils.getSelectionBlock() ?: return@runs ChatUtils.modMessage("§cYou must be looking at a block!")
-                val existing = currentWaypoints.find { it.pos == lookingAt } ?: return@runs ChatUtils.modMessage("§cNo waypoint found at that block.")
-
-                val relativePos = ScanUtils.getRelativeCoord(lookingAt, info.corner, info.rotation)
-                GuiUtils.setScreen(DungeonWaypointScreen(info.name, lookingAt, relativePos, existing))
-            }
-        }
-
-        literal("remove") {
-            runs {
-                val info = getRoomData() ?: return@runs
-                val currentWaypoints = info.waypoints() ?: return@runs ChatUtils.modMessage("§cRoom rotation not scanned yet, try again in a moment.")
-                val lookingAt = PlayerUtils.getSelectionBlock() ?: return@runs ChatUtils.modMessage("§cYou must be looking at a block!")
-                val waypoints = storage.get()
-
-                val closest = currentWaypoints.find { it.pos == lookingAt } ?: return@runs ChatUtils.modMessage("§cNo waypoints found in this room.")
-
-                val relativePosToRemove = ScanUtils.getRelativeCoord(closest.pos, info.corner, info.rotation)
-                val roomList = waypoints.getOrDefault(info.name, mutableSetOf())
-                if (roomList.removeIf { it.pos == relativePosToRemove }) {
-                    waypoints[info.name] = roomList
-                    currentWaypoints.removeIf { it.pos == closest.pos }
-                    ChatUtils.modMessage("§aWaypoint removed.")
+                    val relativePos = ScanUtils.getRelativeCoord(lookingAt, info.corner, info.rotation)
+                    GuiUtils.setScreen(DungeonWaypointScreen(info.name, lookingAt, relativePos))
                 }
-                else ChatUtils.modMessage("§cError syncing config.")
             }
-        }
 
-        literal("clear") {
-            runs {
-                val info = getRoomData() ?: return@runs
-                val currentWaypoints = info.waypoints() ?: return@runs ChatUtils.modMessage("§cRoom rotation not scanned yet, try again in a moment.")
-                if (currentWaypoints.isEmpty()) return@runs ChatUtils.modMessage("§cNo waypoints set for this room.")
-                storage.get().remove(info.name)
-                currentWaypoints.clear()
-                ChatUtils.modMessage("§aAll waypoints cleared for room: ${info.name}")
+            literal("edit") {
+                runs {
+                    val info = getRoomData() ?: return@runs
+                    val currentWaypoints = info.waypoints() ?: return@runs ChatUtils.modMessage("§cRoom rotation not scanned yet, try again in a moment.")
+                    val lookingAt = PlayerUtils.getSelectionBlock() ?: return@runs ChatUtils.modMessage("§cYou must be looking at a block!")
+                    val existing = currentWaypoints.find { it.pos == lookingAt } ?: return@runs ChatUtils.modMessage("§cNo waypoint found at that block.")
+
+                    val relativePos = ScanUtils.getRelativeCoord(lookingAt, info.corner, info.rotation)
+                    GuiUtils.setScreen(DungeonWaypointScreen(info.name, lookingAt, relativePos, existing))
+                }
+            }
+
+            literal("remove") {
+                runs {
+                    val info = getRoomData() ?: return@runs
+                    val currentWaypoints = info.waypoints() ?: return@runs ChatUtils.modMessage("§cRoom rotation not scanned yet, try again in a moment.")
+                    val lookingAt = PlayerUtils.getSelectionBlock() ?: return@runs ChatUtils.modMessage("§cYou must be looking at a block!")
+                    val waypoints = storage.get()
+
+                    val closest = currentWaypoints.find { it.pos == lookingAt } ?: return@runs ChatUtils.modMessage("§cNo waypoints found in this room.")
+
+                    val relativePosToRemove = ScanUtils.getRelativeCoord(closest.pos, info.corner, info.rotation)
+                    val roomList = waypoints.getOrDefault(info.name, mutableSetOf())
+                    if (roomList.removeIf { it.pos == relativePosToRemove }) {
+                        waypoints[info.name] = roomList
+                        currentWaypoints.removeIf { it.pos == closest.pos }
+                        ChatUtils.modMessage("§aWaypoint removed.")
+                    }
+                    else ChatUtils.modMessage("§cError syncing config.")
+                }
+            }
+
+            literal("clear") {
+                runs {
+                    val info = getRoomData() ?: return@runs
+                    val currentWaypoints = info.waypoints() ?: return@runs ChatUtils.modMessage("§cRoom rotation not scanned yet, try again in a moment.")
+                    if (currentWaypoints.isEmpty()) return@runs ChatUtils.modMessage("§cNo waypoints set for this room.")
+                    storage.get().remove(info.name)
+                    currentWaypoints.clear()
+                    ChatUtils.modMessage("§aAll waypoints cleared for room: ${info.name}")
+                }
             }
         }
     }

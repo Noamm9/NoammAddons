@@ -2,6 +2,7 @@ package com.github.noamm9.debug
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.commands.CommandBuilder
+import com.github.noamm9.commands.NaCommand
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.init.types.ICommandProvider
@@ -38,10 +39,11 @@ object TestGround: ISelfInit, ICommandProvider {
     val sound get() = NoammAddons.debugFlags.contains("sound")
 
     override fun CommandBuilder.command() {
-        setName("test")
-
-        runs {
-            ChatUtils.chat("we are not testing")
+        setName(*NaCommand.names)
+        literal("test") {
+            runs {
+                ChatUtils.chat("we are not testing")
+            }
         }
     }
 

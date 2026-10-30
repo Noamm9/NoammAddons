@@ -2,6 +2,7 @@ package com.github.noamm9.features.impl.dev
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.commands.CommandBuilder
+import com.github.noamm9.commands.NaCommand
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.event.priority.EventPriority
@@ -70,23 +71,24 @@ object WebSocketFeature: Feature(name = "WebSocket", toggled = true), ICommandPr
     }
 
     override fun CommandBuilder.command() {
-        setName("ws")
-
-        literal("users") {
-            runs {
-                send(mapOf("type" to "check_users"))
-            }
-        }
-
-        literal("chat") {
-            argument("message", StringArgumentType.greedyString()) {
+        setName(*NaCommand.names)
+        literal("ws") {
+            literal("users") {
                 runs {
-                    sendChat(StringArgumentType.getString(it, "message"))
+                    send(mapOf("type" to "check_users"))
                 }
             }
 
-            runs {
-                ChatUtils.modMessage("/ws chat <message>")
+            literal("chat") {
+                argument("message", StringArgumentType.greedyString()) {
+                    runs {
+                        sendChat(StringArgumentType.getString(it, "message"))
+                    }
+                }
+
+                runs {
+                    ChatUtils.modMessage("/na ws chat <message>")
+                }
             }
         }
     }

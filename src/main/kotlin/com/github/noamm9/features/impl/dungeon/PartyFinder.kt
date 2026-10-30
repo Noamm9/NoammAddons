@@ -1,6 +1,7 @@
 package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.commands.CommandBuilder
+import com.github.noamm9.commands.NaCommand
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
@@ -188,14 +189,16 @@ object PartyFinder: Feature(), ICommandProvider {
     }
 
     override fun CommandBuilder.command() {
-        setName("pfs")
-        runs { scope.launch { printPlayerStats(mc.user.name) } }
+        setName(*NaCommand.names)
+        literal("pfs") {
+            runs { scope.launch { printPlayerStats(mc.user.name) } }
 
-        argument("name", StringArgumentType.word()) {
-            suggests { TabListUtils.getTabList().mapNotNull { it.second.profile.name }.filterNot { it.matches("^![A-Z]-[a-z]$".toRegex()) } }
-            runs {
-                val ign = StringArgumentType.getString(it, "name")
-                scope.launch { printPlayerStats(ign) }
+            argument("name", StringArgumentType.word()) {
+                suggests { TabListUtils.getTabList().mapNotNull { it.second.profile.name }.filterNot { it.matches("^![A-Z]-[a-z]$".toRegex()) } }
+                runs {
+                    val ign = StringArgumentType.getString(it, "name")
+                    scope.launch { printPlayerStats(ign) }
+                }
             }
         }
     }

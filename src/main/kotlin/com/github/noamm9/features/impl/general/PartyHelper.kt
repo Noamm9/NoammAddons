@@ -1,6 +1,7 @@
 package com.github.noamm9.features.impl.general
 
 import com.github.noamm9.commands.CommandBuilder
+import com.github.noamm9.commands.NaCommand
 import com.github.noamm9.config.PogObject
 import com.github.noamm9.config.types.MultiCheckboxSetting
 import com.github.noamm9.config.types.ToggleSetting
@@ -38,43 +39,47 @@ object PartyHelper: Feature("Party commands and reformatting."), ICommandProvide
     private val partyCommandRegex = Regex("^Party > (?:\\[[^]]+] )?([^:]+): ([!?.\\-@#`/])(.+)$")
 
     override fun CommandBuilder.command() {
-        setName("partycommandsblacklist", "pcbl")
-        description("Manages the party command blacklist")
-        runs { showBlacklist() }
+        setName(*NaCommand.names)
+        listOf("partycommandsblacklist", "pcbl").forEach { name ->
+            literal(name) {
+                description("Manages the party command blacklist")
+                runs { showBlacklist() }
 
-        literal("add") {
-            argument("player", StringArgumentType.word()) {
-                suggests { PartyUtils.members.filterNot(::isBlacklisted) }
-                runs {
-                    val name = StringArgumentType.getString(it, "player")
-                    val added = playerBlacklist.get().add(name.lowercase())
-                    if (added) playerBlacklist.save()
-                    ChatUtils.modMessage(if (added) "&aAdded &b$name &ato the party command blacklist." else "&e$name is already blacklisted.")
+                literal("add") {
+                    argument("player", StringArgumentType.word()) {
+                        suggests { PartyUtils.members.filterNot(::isBlacklisted) }
+                        runs {
+                            val name = StringArgumentType.getString(it, "player")
+                            val added = playerBlacklist.get().add(name.lowercase())
+                            if (added) playerBlacklist.save()
+                            ChatUtils.modMessage(if (added) "&aAdded &b$name &ato the party command blacklist." else "&e$name is already blacklisted.")
+                        }
+                    }
                 }
-            }
-        }
 
-        literal("remove") {
-            argument("player", StringArgumentType.word()) {
-                suggests { playerBlacklist.get().sorted() }
-                runs {
-                    val name = StringArgumentType.getString(it, "player")
-                    val removed = playerBlacklist.get().remove(name.lowercase())
-                    if (removed) playerBlacklist.save()
-                    ChatUtils.modMessage(if (removed) "&aRemoved &b$name &afrom the party command blacklist." else "&e$name is not blacklisted.")
+                literal("remove") {
+                    argument("player", StringArgumentType.word()) {
+                        suggests { playerBlacklist.get().sorted() }
+                        runs {
+                            val name = StringArgumentType.getString(it, "player")
+                            val removed = playerBlacklist.get().remove(name.lowercase())
+                            if (removed) playerBlacklist.save()
+                            ChatUtils.modMessage(if (removed) "&aRemoved &b$name &afrom the party command blacklist." else "&e$name is not blacklisted.")
+                        }
+                    }
                 }
-            }
-        }
 
-        literal("list") {
-            runs { showBlacklist() }
-        }
+                literal("list") {
+                    runs { showBlacklist() }
+                }
 
-        literal("clear") {
-            runs {
-                playerBlacklist.get().clear()
-                playerBlacklist.save()
-                ChatUtils.modMessage("&aCleared the party command blacklist.")
+                literal("clear") {
+                    runs {
+                        playerBlacklist.get().clear()
+                        playerBlacklist.save()
+                        ChatUtils.modMessage("&aCleared the party command blacklist.")
+                    }
+                }
             }
         }
     }
