@@ -115,8 +115,11 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
                     if (pos in done) continue
 
                     if (type == SecretType.REDSTONE_KEY && WorldUtils.getBlockAt(pos) != Blocks.PLAYER_HEAD) continue
+                    val alpha = if (mode.value.equalsOneOf(0, 2)) {
+                        (opacity.value * 2.55).toInt()
+                    } else { 255 }
                     event.ctx.renderBlock(
-                        pos, type.color().withAlpha((opacity.value * 2.55).toInt()),
+                        pos, type.color().withAlpha(alpha),
                         mode.value.equalsOneOf(1, 2),
                         mode.value.equalsOneOf(0, 2),
                         phase = phase.value,
