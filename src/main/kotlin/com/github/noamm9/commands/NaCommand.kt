@@ -6,7 +6,7 @@ import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.NoammDebugFlagEvent
 import com.github.noamm9.features.impl.dev.UpdateChecker
-import com.github.noamm9.features.impl.dungeon.LeapMenu
+import com.github.noamm9.features.impl.dungeon.leapmenu.LeapMenu
 import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.ui.clickgui.ClickGuiScreen
 import com.github.noamm9.ui.hud.HudEditorScreen

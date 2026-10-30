@@ -4,7 +4,7 @@ import com.github.noamm9.compat.swingMainHand
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.impl.ContainerFullyOpenedEvent
 import com.github.noamm9.features.Shortcuts
-import com.github.noamm9.features.impl.dungeon.LeapMenu
+import com.github.noamm9.features.impl.dungeon.leapmenu.LeapMenu
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.mixin.IKeyMapping
 import com.github.noamm9.mixin.ILocalPlayer

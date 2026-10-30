@@ -1,7 +1,7 @@
 package com.github.noamm9.debug
 
 import com.github.noamm9.NoammAddons
-import com.github.noamm9.features.impl.dungeon.LeapMenu
+import com.github.noamm9.features.impl.dungeon.leapmenu.LeapMenu
 import com.github.noamm9.features.impl.floor7.terminals.TerminalListener
 import com.github.noamm9.utils.PartyUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
