@@ -20,7 +20,6 @@ import net.minecraft.world.level.block.Blocks
 import java.awt.Color
 import java.util.concurrent.*
 
-
 object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while looking at a block"), ICommandProvider {
     private val secretWaypoints by ToggleSetting("Secret Waypoints").section("Secret Waypoints")
     private val mode by DropdownSetting("Mode", 0, listOf("Fill", "Outline", "Filled Outline")).showIf { secretWaypoints.value }
@@ -113,15 +112,16 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
 
                 for (pos in positions) {
                     if (pos in done) continue
-
                     if (type == SecretType.REDSTONE_KEY && WorldUtils.getBlockAt(pos) != Blocks.PLAYER_HEAD) continue
-                    val alpha = if (mode.value.equalsOneOf(0, 2)) {
-                        (opacity.value * 2.55).toInt()
-                    } else { 255 }
+
+                    val fill = mode.value.equalsOneOf(0, 2)
+                    val outline = mode.value.equalsOneOf(1, 2)
+                    val alpha = if (fill) opacity.value / 100f else 1f
+
                     event.ctx.renderBlock(
                         pos, type.color().withAlpha(alpha),
-                        mode.value.equalsOneOf(1, 2),
-                        mode.value.equalsOneOf(0, 2),
+                        outline,
+                        fill,
                         phase = phase.value,
                         lineWidth = lineWidth.value
                     )
