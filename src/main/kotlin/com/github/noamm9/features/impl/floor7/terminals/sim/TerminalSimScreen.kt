@@ -95,7 +95,7 @@ class TerminalSimScreen(private val sim: SimTerminal): Screen(Component.literal(
         val seconds = (System.currentTimeMillis() - openTime) / 1000.0
         ChatUtils.modMessage("§a${terminal.displayName} §7completed in §f${seconds.toFixed(2)}s")
         GuiUtils.setScreen(
-            if (TerminalSolver.simAutoNext.value) TerminalSimScreen(SimTerminal.all.random())
+            if (TerminalSolver.simAutoNext.value) TerminalSimScreen(sim)
             else TerminalSimSelectorScreen()
         )
     }
