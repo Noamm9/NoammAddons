@@ -3,6 +3,7 @@ package com.github.noamm9.utils.network
 import com.github.noamm9.NoammAddons.MOD_NAME
 import com.github.noamm9.NoammAddons.MOD_VERSION
 import com.github.noamm9.NoammAddons.scope
+import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.JsonUtils
 import com.github.noamm9.utils.ThreadUtils
 import io.ktor.client.HttpClient
@@ -23,14 +24,12 @@ import kotlinx.coroutines.*
 import okhttp3.Dispatcher
 import java.util.concurrent.*
 
-object WebUtils {
+object WebUtils: ISelfInit {
     private val sharedRequests = ConcurrentHashMap<String, Deferred<Result<HttpResponse>>>()
     private val httpDispatcher = Dispatcher()
 
     val client = HttpClient(OkHttp) {
-        engine {
-            config { dispatcher(httpDispatcher) }
-        }
+        engine { config { dispatcher(httpDispatcher) } }
         install(UserAgent) { agent = "$MOD_NAME/$MOD_VERSION (+https://noamm.org)" }
         install(HttpTimeout) {
             connectTimeoutMillis = 30_000
@@ -46,7 +45,7 @@ object WebUtils {
         install(WebSockets)
     }
 
-    init {
+    override fun init() {
         ThreadUtils.addShutdownHook {
             client.close()
             client.cancel()
