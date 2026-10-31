@@ -1,3 +1,4 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -95,7 +96,7 @@ tasks.named("legitClasses") {
     dependsOn("compileLegitKotlin", "compileLegitJava")
 }
 
-val jarCheat = tasks.register<Jar>("jarCheat") {
+val jarCheat = tasks.register<ShadowJar>("jarCheat") {
     dependsOn("cheatClasses", "processCheatResources")
     from(cheatSourceSet.output)
     archiveClassifier.set("cheat")
@@ -103,7 +104,7 @@ val jarCheat = tasks.register<Jar>("jarCheat") {
     from("LICENSE") { rename { "${it}_$mod_name" } }
 }
 
-val jarLegit = tasks.register<Jar>("jarLegit") {
+val jarLegit = tasks.register<ShadowJar>("jarLegit") {
     dependsOn("legitClasses", "processLegitResources")
     from(legitSourceSet.output)
     archiveClassifier.set("legit")

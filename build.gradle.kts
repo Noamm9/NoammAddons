@@ -1,3 +1,4 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import org.gradle.jvm.tasks.Jar
@@ -58,9 +59,23 @@ base { archivesName.set(mod_name) }
 val bundled = configurations.create("bundled")
 val processedIncludeJarsDir = layout.buildDirectory.dir("processIncludeJars")
 
-configurations {
-    implementation.get().extendsFrom(bundled)
-}
+val shadedGroups = mapOf(
+    "io.ktor" to "io.ktor",
+    "com.squareup.okio" to "okio",
+    "io.github.classgraph" to "io.github.classgraph",
+    "me.owdding" to "me.owdding.dfu",
+    "com.charleskorn.kaml" to "com.charleskorn.kaml",
+    "it.krzeminski" to "it.krzeminski.snakeyaml",
+    "net.thauvin.erik.urlencoder" to "net.thauvin.erik.urlencoder"
+)
+
+val relocatedPackages = shadedGroups.values
+
+val shadedLibraries = bundled.incoming.artifactView {
+    componentFilter { it is ModuleComponentIdentifier && it.group in shadedGroups }
+}.files
+
+configurations { implementation.get().extendsFrom(bundled) }
 
 repositories {
     maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
@@ -89,7 +104,7 @@ dependencies {
     bundled("me.owdding:item-data-fixer:$datafixer_version") {
         capabilities { requireCapability(datafixerCapability) }
     }
-    bundled("io.ktor:ktor-client-okhttp-jvm:$ktor_version")
+    bundled("io.ktor:ktor-client-cio-jvm:$ktor_version")
     bundled("io.ktor:ktor-client-content-negotiation-jvm:$ktor_version")
     bundled("io.ktor:ktor-client-encoding:$ktor_version")
     bundled("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")
@@ -99,12 +114,9 @@ dependencies {
 
 afterEvaluate {
     bundled.resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
-        artifact.moduleVersion.id.let { id ->
-            val include = dependencies.add("include", "${id.group}:${id.name}:${id.version}") as ModuleDependency
-            if ("${id.group}:${id.name}" == "me.owdding:item-data-fixer") {
-                include.capabilities { requireCapability(datafixerCapability) }
-            }
-        }
+        val id = artifact.moduleVersion.id
+        if (id.group in shadedGroups) return@forEach
+        dependencies.add("include", "${id.group}:${id.name}:${id.version}")
     }
 }
 
@@ -176,13 +188,29 @@ tasks.named<Jar>("jar") {
 }
 
 listOf("jarCheat", "jarLegit").forEach { taskName ->
-    tasks.named<Jar>(taskName) {
+    tasks.named<ShadowJar>(taskName) {
         // NoammAddons-<mod_version>-<minecraft_version>-<cheat|legit>.jar
         archiveVersion.set("$mod_version-$minecraft_version")
 
         dependsOn("processIncludeJars")
         from(processedIncludeJarsDir) {
             into("META-INF/jars")
+        }
+
+        from(shadedLibraries.elements.map { jars -> jars.map(::zipTree) }) {
+            exclude(
+                "fabric.mod.json",
+                "**/module-info.class",
+                "META-INF/MANIFEST.MF",
+                "META-INF/native-image/**",
+                "META-INF/versions/*/OSGI-INF/**"
+            )
+        }
+
+        relocatedPackages.forEach { relocate(it, "$maven_group.lib.$it") }
+        mergeServiceFiles()
+        filesMatching(listOf("META-INF/services/**", "META-INF/*.kotlin_module")) {
+            duplicatesStrategy = DuplicatesStrategy.INCLUDE
         }
     }
 }

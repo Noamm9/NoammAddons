@@ -11,4 +11,5 @@ dependencies {
     implementation("net.fabricmc:fabric-loom:1.19.1")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.21")
     implementation("org.jetbrains.kotlin:kotlin-serialization:2.4.21")
+    implementation("com.gradleup.shadow:shadow-gradle-plugin:9.6.1")
 }

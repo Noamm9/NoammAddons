@@ -8,7 +8,7 @@ import com.github.noamm9.utils.JsonUtils
 import com.github.noamm9.utils.ThreadUtils
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.UserAgent
 import io.ktor.client.plugins.compression.ContentEncoding
@@ -21,15 +21,12 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.*
-import okhttp3.Dispatcher
 import java.util.concurrent.*
 
 object WebUtils: ISelfInit {
     private val sharedRequests = ConcurrentHashMap<String, Deferred<Result<HttpResponse>>>()
-    private val httpDispatcher = Dispatcher()
 
-    val client = HttpClient(OkHttp) {
-        engine { config { dispatcher(httpDispatcher) } }
+    val client = HttpClient(CIO) {
         install(UserAgent) { agent = "$MOD_NAME/$MOD_VERSION (+https://noamm.org)" }
         install(HttpTimeout) {
             connectTimeoutMillis = 30_000
@@ -49,8 +46,6 @@ object WebUtils: ISelfInit {
         ThreadUtils.addShutdownHook {
             client.close()
             client.cancel()
-            httpDispatcher.cancelAll()
-            httpDispatcher.executorService.shutdown()
         }
     }
 
