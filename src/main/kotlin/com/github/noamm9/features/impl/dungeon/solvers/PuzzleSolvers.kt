@@ -11,7 +11,7 @@ import com.github.noamm9.utils.render.RenderHelper.width
 import java.awt.Color
 
 object PuzzleSolvers: Feature() {
-    val blaze by ToggleSetting("Enabled").section("Blaze Solver")
+    val blaze by ToggleSetting("Enabled").section("Blaze")
     val blazeDoneMessage by ToggleSetting("Blaze Done Message", true).withDescription("Sends a party message when you finish the Blaze puzzle.").showIf { blaze.value }
     val blazeCount by SliderSetting("Blazes to Highlight", 3, 1, 10, 1).showIf { blaze.value }
     val firstBlazeColor by ColorSetting("First Blaze", Color.GREEN).showIf { blaze.value }
@@ -19,45 +19,45 @@ object PuzzleSolvers: Feature() {
     val thirdBlazeColor by ColorSetting("Other Blazes", Color.RED).showIf { blaze.value }
     val lineColor by ColorSetting("Line Color", Color.WHITE).showIf { blaze.value }
 
-    val boulder by ToggleSetting("Enabled ").section("Boulder Solver")
+    val boulder by ToggleSetting("Enabled ").section("Boulder")
     val showAll by ToggleSetting("Show All Moves", false).showIf { boulder.value }
     val boxColor by ColorSetting("Boulder Box Color", Color.BLUE.withAlpha(100)).showIf { boulder.value }
     val clickColor by ColorSetting("Click Color", Color.RED.withAlpha(100)).showIf { boulder.value }.jsonName("Boulder Click color")
 
-    val creeper by ToggleSetting("Enabled  ").section("Creeper Beam Solver")
+    val creeper by ToggleSetting("Enabled  ").section("Creeper Beam")
     val renderLines by ToggleSetting("Render Lines", true).showIf { creeper.value }
     val phase by ToggleSetting("Phase Through Walls", true).showIf { creeper.value }
 
-    val quiz by ToggleSetting("Enabled   ").section("Quiz Solver")
+    val quiz by ToggleSetting("Enabled   ").section("Quiz")
     val answerColor by ColorSetting("Answer Color", Color.CYAN.withAlpha(128)).showIf { quiz.value }
     val quizTimer by ToggleSetting("Quiz Timer", true).showIf { quiz.value }
     val quizBlockWrongClicks by ToggleSetting("Block Wrong Clicks", true)
         .withDescription("Prevents clicking a wrong Quiz answer. &eSneak to override.")
         .showIf { quiz.value }
 
-    val tpmaze by ToggleSetting("Enabled    ").section("Teleport Maze Solver")
+    val tpmaze by ToggleSetting("Enabled    ").section("Teleport Maze")
     val correctTpPadColor by ColorSetting("Correct Pad Color", Color.GREEN).showIf { tpmaze.value }
     val wrongTpPadColor by ColorSetting("Wrong Pad Color", Color.RED).showIf { tpmaze.value }
 
-    val weirdos by ToggleSetting("Enabled     ").section("Three Weirdos Solver")
+    val weirdos by ToggleSetting("Enabled     ").section("Three Weirdos")
     val removeChests by ToggleSetting("Hide Wrong Chests", true).showIf { weirdos.value }
     val colorCorrect by ColorSetting("Correct Chest Color", Color.GREEN).showIf { weirdos.value }
     val colorWrong by ColorSetting("Wrong Chest Color", Color.RED).showIf { weirdos.value }
 
-    val ttt by ToggleSetting("Enabled      ").section("TicTacToe Solver")
+    val ttt by ToggleSetting("Enabled      ").section("TicTacToe")
     val preventMissClick by ToggleSetting("Prevent Miss Click", true).showIf { ttt.value }
     val color by ColorSetting("Highlight Color", Color.GREEN).showIf { ttt.value }
     val prediction by ToggleSetting("Prediction").showIf { ttt.value }
     val predictionColor by ColorSetting("Prediction Color", Color.ORANGE).showIf { ttt.value && prediction.value }
 
-    val water by ToggleSetting("Enabled       ").section("Water Board Solver")
+    val water by ToggleSetting("Enabled       ").section("Water Board")
     val currentClickColor by ColorSetting("Click Color", Color.GREEN).showIf { water.value }.jsonName("Water Board Click Color")
     val nextColor by ColorSetting("Next Click Color", Color.YELLOW).showIf { water.value }
 
-    val icefill by ToggleSetting("Enabled        ").section("Ice Fill Solver")
+    val icefill by ToggleSetting("Enabled        ").section("Ice Fill")
     val icefillColor by ColorSetting("Line Color", Color.GREEN).showIf { icefill.value }.jsonName("Ice Fill Line Color")
 
-    val icepath by ToggleSetting("Enabled         ").section("Ice Path Solver")
+    val icepath by ToggleSetting("Enabled         ").section("Ice Path")
     val icePathFirstColor by ColorSetting("Next Segment Color", Color.GREEN).showIf { icepath.value }
     val icePathColor by ColorSetting("Segments Color", Color.RED).showIf { icepath.value }
 
