@@ -5,6 +5,7 @@ import com.mojang.blaze3d.platform.InputConstants
 import com.github.noamm9.NoammAddons.MOD_ID
 import com.github.noamm9.config.ConfigManager
 import com.github.noamm9.features.Feature
+import com.github.noamm9.features.IFeatureWindow
 import com.github.noamm9.ui.clickgui.components.CategoryPanel
 import com.github.noamm9.ui.clickgui.components.FeatureConfigWindow
 import com.github.noamm9.ui.clickgui.components.settings.Style
@@ -33,8 +34,6 @@ import java.awt.Color
 
 class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
     private companion object {
-        const val defaultWindowWidth = 220f
-        const val defaultWindowHeight = 260f
         const val windowCascadeOffset = 18f
         const val searchbarButtonSize = 22f
     }
@@ -268,17 +267,12 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
 
         searchHandler.listening = false
 
+        val window = (feature as? IFeatureWindow)?.createWindow() ?: FeatureConfigWindow(feature)
         val offset = configWindows.size * windowCascadeOffset
-        val startX = preferredX ?: (((Resolution.width - defaultWindowWidth) / 2f) + offset)
-        val startY = preferredY ?: (((Resolution.height - defaultWindowHeight) / 2f) + offset)
+        val startX = preferredX ?: (((Resolution.width - window.defaultWidth) / 2f) + offset)
+        val startY = preferredY ?: (((Resolution.height - window.defaultHeight) / 2f) + offset)
 
-        configWindows.add(FeatureConfigWindow(
-            feature = feature,
-            startX = startX,
-            startY = startY,
-            startWidth = defaultWindowWidth,
-            startHeight = defaultWindowHeight
-        ).also { it.clampToScreen() })
+        configWindows.add(window.also { it.place(startX, startY) })
     }
 
     fun isMouseOverConfigWindow(mouseX: Int, mouseY: Int) = configWindows.asReversed().any { it.contains(mouseX.toFloat(), mouseY.toFloat()) }
