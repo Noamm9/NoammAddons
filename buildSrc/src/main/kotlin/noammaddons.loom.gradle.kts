@@ -5,6 +5,8 @@ plugins {
 }
 
 configure<LoomGradleExtensionAPI> {
+    val runFolder = rootProject.file("run/")
+
     accessWidenerPath.set(rootProject.file("src/main/resources/${findProperty("mod_id")}.accesswidener"))
 
     runs {
@@ -12,12 +14,12 @@ configure<LoomGradleExtensionAPI> {
         val serverRun = named("server")
 
         clientRun.configure {
-            runDirectory.set(project.file("run/"))
+            runDirectory.set(runFolder)
             generateRunConfig.set(false)
         }
 
         serverRun.configure {
-            runDirectory.set(project.file("run/"))
+            runDirectory.set(runFolder)
             generateRunConfig.set(false)
         }
 
@@ -29,7 +31,7 @@ configure<LoomGradleExtensionAPI> {
         maybeCreate("cheatClient").apply {
             inherit(clientRun.get())
             displayName.set("Cheat Client")
-            runDirectory.set(project.file("run/"))
+            runDirectory.set(runFolder)
             sourceSet.set(mainSourceSet.name)
             generateRunConfig.set(false)
         }
@@ -37,7 +39,7 @@ configure<LoomGradleExtensionAPI> {
         maybeCreate("cheatClientPreprocessed").apply {
             inherit(clientRun.get())
             displayName.set("Cheat Client (Preprocessed)")
-            runDirectory.set(project.file("run/"))
+            runDirectory.set(runFolder)
             sourceSet.set(cheatSourceSet.name)
             generateRunConfig.set(false)
         }
@@ -45,7 +47,7 @@ configure<LoomGradleExtensionAPI> {
         maybeCreate("legitClientPreprocessed").apply {
             inherit(clientRun.get())
             displayName.set("Legit Client (Preprocessed)")
-            runDirectory.set(project.file("run/"))
+            runDirectory.set(runFolder)
             sourceSet.set(legitSourceSet.name)
             generateRunConfig.set(false)
         }
