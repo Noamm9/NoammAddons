@@ -12,8 +12,6 @@ import com.github.noamm9.utils.render.RenderHelper.width
 import java.awt.Color
 
 object PuzzleSolvers: Feature(), IFeatureWindow {
-    override fun createWindow() = IFeatureWindow.CBW(this)
-
     val blaze by ToggleSetting("Enabled").section("Blaze")
     val blazeDoneMessage by ToggleSetting("Blaze Done Message", true).withDescription("Sends a party message when you finish the Blaze puzzle.").showIf { blaze.value }
     val blazeCount by SliderSetting("Blazes to Highlight", 3, 1, 10, 1).showIf { blaze.value }

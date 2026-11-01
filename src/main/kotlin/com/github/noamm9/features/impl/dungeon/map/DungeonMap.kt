@@ -13,7 +13,7 @@ import com.github.noamm9.utils.render.world.Render3D.renderBlock
 import net.minecraft.world.level.block.Blocks
 
 object DungeonMap: Feature(), IFeatureWindow {
-    override fun createWindow() = DungeonMapWindow(this)
+    override fun Feature.createWindow() = DungeonMapWindow(this)
 
     override fun init() {
         configSettings.addAll(MapConfig.configSettings)

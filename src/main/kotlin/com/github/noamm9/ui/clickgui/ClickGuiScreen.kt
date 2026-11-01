@@ -1,8 +1,7 @@
 package com.github.noamm9.ui.clickgui
 
-import com.github.noamm9.compat.scanCodeCompat
-import com.mojang.blaze3d.platform.InputConstants
 import com.github.noamm9.NoammAddons.MOD_ID
+import com.github.noamm9.compat.scanCodeCompat
 import com.github.noamm9.config.ConfigManager
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.IFeatureWindow
@@ -12,9 +11,7 @@ import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.clickgui.enums.CategoryType
 import com.github.noamm9.ui.clickgui.enums.WindowClickAction
 import com.github.noamm9.ui.hud.HudEditorScreen
-import com.github.noamm9.ui.utils.MouseHelper
-import com.github.noamm9.ui.utils.Resolution
-import com.github.noamm9.ui.utils.TextInputHandler
+import com.github.noamm9.ui.utils.*
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.Utils
@@ -23,11 +20,10 @@ import com.github.noamm9.utils.render.Render2D.drawLine
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawTexture
 import com.github.noamm9.utils.render.Render2D.drawVerticalGradient
+import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
-import net.minecraft.client.input.CharacterEvent
-import net.minecraft.client.input.KeyEvent
-import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.client.input.*
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
 import java.awt.Color
@@ -167,6 +163,7 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
                     window.clearFocus()
                     configWindows.remove(window)
                 }
+
                 WindowClickAction.CONSUMED -> {}
             }
             return true
@@ -267,7 +264,7 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
 
         searchHandler.listening = false
 
-        val window = (feature as? IFeatureWindow)?.createWindow() ?: FeatureConfigWindow(feature)
+        val window = (feature as? IFeatureWindow)?.run { feature.createWindow() } ?: FeatureConfigWindow(feature)
         val offset = configWindows.size * windowCascadeOffset
         val startX = preferredX ?: (((Resolution.width - window.defaultWidth) / 2f) + offset)
         val startY = preferredY ?: (((Resolution.height - window.defaultHeight) / 2f) + offset)
