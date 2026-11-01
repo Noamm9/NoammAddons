@@ -40,7 +40,8 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
     private val relicLook by ToggleSetting("Relic Look").withDescription("Automatically rotate to the relic cauldron after you pick it up.")
     private val relicLookTime by SliderSetting("Relic Look Time", 150L, 10, 300, 1).showIf { relicLook.value }.withDescription("How fast should the auto rotate (in milliseconds)")
     private val blockWrongRelic by ToggleSetting("Block Wrong Relic").withDescription("Prevents you from placing your relic at the wrong cauldron.")
-    private val relicTriggerbot by ToggleSetting("Relic Triggerbot").withDescription("Automatically picks up the relic when you're aiming at it.")
+    private val relicTriggerbot by ToggleSetting("Relic Pickup Triggerbot").withDescription("Automatically picks up the relic when you're aiming at it.").jsonName("Relic Triggerbot")
+    private val relicPlaceTriggerbot by ToggleSetting("Relic Place Triggerbot").withDescription("Automatically selects hotbar slot 9 and places your relic when you're aiming at its cauldron or the anvil below it within 4.5 blocks.")
     private val anvil by ToggleSetting("Full Block Anvil").withDescription("Makes the hitbox of the Anvil block be as big as a regular block.")
     private var lastRelicClick = 0L
     //#endif
@@ -152,6 +153,20 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
             if (! armorStand.getItemBySlot(EquipmentSlot.HEAD).hoverName.string.contains("Relic")) return@register
             if (armorStand.position().distanceTo(player.position()) >= 3) return@register
             if (WitherRelic.entries.any { isEntityAtCauldron(armorStand.position(), it) }) return@register
+
+            PlayerUtils.rightClick()
+            lastRelicClick = now
+        }
+
+        register<TickEvent.Start> {
+            if (! relicPlaceTriggerbot.value || F7Phase != 5) return@register
+            if (mc.gui.screen() != null || DungeonListener.thePlayer?.isDead == true) return@register
+            val now = System.currentTimeMillis()
+            if (now - lastRelicClick < 200) return@register
+            val relic = WitherRelic.fromName(player.inventory.getItem(8).hoverName.string) ?: return@register
+            val looking = PlayerUtils.getSelectionBlock() ?: return@register
+            val cauldron = relic.cauldronPos.toPos()
+            if (looking != cauldron && looking != cauldron.below()) return@register
 
             PlayerUtils.rightClick()
             lastRelicClick = now
