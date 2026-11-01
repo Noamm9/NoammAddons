@@ -25,12 +25,9 @@ import com.github.noamm9.utils.render.world.Render3D.renderTracer
 import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
-import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
-import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.EntityHitResult
-import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import java.awt.Color
 
@@ -167,15 +164,11 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
             val now = System.currentTimeMillis()
             if (now - lastRelicClick < 200) return@register
             val relic = WitherRelic.fromName(player.inventory.getItem(8).hoverName.string) ?: return@register
-            val hit = mc.hitResult as? BlockHitResult ?: return@register
-            if (hit.type != HitResult.Type.BLOCK) return@register
+            val looking = PlayerUtils.getSelectionBlock() ?: return@register
             val cauldron = relic.cauldronPos.toPos()
-            if (hit.blockPos != cauldron && hit.blockPos != cauldron.below()) return@register
-            if (player.eyePosition.distanceToSqr(hit.location) > 4.5 * 4.5) return@register
+            if (looking != cauldron && looking != cauldron.below()) return@register
 
-            player.inventory.selectedSlot = 8
-            gameMode.useItemOn(player, InteractionHand.MAIN_HAND, hit)
-            PlayerUtils.swingArm()
+            PlayerUtils.rightClick()
             lastRelicClick = now
         }
 
