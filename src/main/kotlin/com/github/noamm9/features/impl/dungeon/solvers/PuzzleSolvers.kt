@@ -3,6 +3,7 @@ package com.github.noamm9.features.impl.dungeon.solvers
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
+import com.github.noamm9.features.IFeatureWindow
 import com.github.noamm9.features.impl.dungeon.solvers.puzzles.*
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.location.LocationUtils.inBoss
@@ -10,7 +11,9 @@ import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.RenderHelper.width
 import java.awt.Color
 
-object PuzzleSolvers: Feature() {
+object PuzzleSolvers: Feature(), IFeatureWindow {
+    override fun createWindow() = IFeatureWindow.CBW(this)
+
     val blaze by ToggleSetting("Enabled").section("Blaze")
     val blazeDoneMessage by ToggleSetting("Blaze Done Message", true).withDescription("Sends a party message when you finish the Blaze puzzle.").showIf { blaze.value }
     val blazeCount by SliderSetting("Blazes to Highlight", 3, 1, 10, 1).showIf { blaze.value }

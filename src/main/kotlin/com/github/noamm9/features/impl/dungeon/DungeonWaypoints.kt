@@ -5,6 +5,7 @@ import com.github.noamm9.config.PogObject
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
+import com.github.noamm9.features.IFeatureWindow
 import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.ui.gui.DungeonWaypointScreen
 import com.github.noamm9.utils.*
@@ -20,7 +21,9 @@ import net.minecraft.world.level.block.Blocks
 import java.awt.Color
 import java.util.concurrent.*
 
-object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while looking at a block"), ICommandProvider {
+object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while looking at a block"), ICommandProvider, IFeatureWindow {
+    override fun createWindow() = IFeatureWindow.CBW(this)
+
     private val secretWaypoints by ToggleSetting("Secret Waypoints").section("Secret Waypoints")
     private val mode by DropdownSetting("Mode", 0, listOf("Fill", "Outline", "Filled Outline")).showIf { secretWaypoints.value }
     private val phase by ToggleSetting("See Through Walls", true).showIf { secretWaypoints.value }
