@@ -10,11 +10,12 @@ pluginManagement {
 
     plugins {
         id("net.fabricmc.fabric-loom") version providers.gradleProperty("loom_version").get()
+        id("dev.kikugie.stonecutter") version providers.gradleProperty("stonecutter_version").get()
     }
 }
 
 plugins {
-    id("dev.kikugie.stonecutter") version "0.9.8"
+    id("dev.kikugie.stonecutter")
 }
 
 stonecutter {
