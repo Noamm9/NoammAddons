@@ -50,9 +50,9 @@ object Secrets: Feature(), IFeatureWindow {
     @JvmStatic val skull by ToggleSetting("Skulls").withDescription("Full block Skull hitbox.")
     @JvmStatic val mushroom by ToggleSetting("Mushroom").withDescription("Full block Mushroom hitbox.")
 
-    private val secrets by ToggleSetting("Secrets Triggerbot").section("Triggerbot")
+    private val secretsTb by ToggleSetting("Secrets Triggerbot").section("Triggerbot")
     private val closeChest by ToggleSetting("Close Chest").withDescription("Automatically closes the secret chest for you.")
-    private val clickDelay by SliderSetting("Interact Delay", 200, 0, 700, 1, "ms").showIf { secrets.value }
+    private val clickDelay by SliderSetting("Interact Delay", 200, 0, 700, 1, "ms").showIf { secretsTb.value }
     private val shit by MultiCheckboxSetting(
         "TB Options", mutableMapOf(
             "Chest" to false,
@@ -60,7 +60,7 @@ object Secrets: Feature(), IFeatureWindow {
             "Skull" to false,
             "Mimic" to false
         )
-    ).showIf { secrets.value }
+    ).showIf { secretsTb.value }
 
     private var lastTbClicks = mutableMapOf<BlockPos, Long>()
     //#endif
@@ -126,6 +126,7 @@ object Secrets: Feature(), IFeatureWindow {
         }
 
         register<TickEvent.Start> {
+            if (! secretsTb.value) return@register
             if (! LocationUtils.inDungeon) return@register
             val looking = PlayerUtils.getSelectionBlock() ?: return@register
             val lastClick = lastTbClicks[looking] ?: 0
