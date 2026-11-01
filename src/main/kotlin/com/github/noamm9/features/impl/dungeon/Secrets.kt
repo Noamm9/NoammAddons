@@ -128,6 +128,7 @@ object Secrets: Feature(), IFeatureWindow {
         register<TickEvent.Start> {
             if (! secretsTb.value) return@register
             if (! LocationUtils.inDungeon) return@register
+            if (LocationUtils.inBoss) return@register
             val looking = PlayerUtils.getSelectionBlock() ?: return@register
             val lastClick = lastTbClicks[looking] ?: 0
             val now = System.currentTimeMillis()
