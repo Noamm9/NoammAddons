@@ -5,6 +5,7 @@ import com.github.noamm9.compat.hasHorizontalMove
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
+import com.github.noamm9.features.IFeatureWindow
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ColorUtils.invert
 import com.github.noamm9.utils.MathUtils.aabb
@@ -28,7 +29,7 @@ import net.minecraft.world.phys.Vec3
 import java.awt.Color
 import kotlin.math.ceil
 
-object BloodCamp: Feature("Features for Blood Room.") {
+object BloodCamp: Feature("Features for Blood Room."), IFeatureWindow {
     private val bloodCamp by ToggleSetting("Blood Camp Helper", true).section("Blood Camp Helper")
     private val decimalPlaces by SliderSetting("Decimal Places", 1, 0, 2, 1).showIf { bloodCamp.value }.withDescription("The number of decimal places shown on blood mob timers")
     private val timerColor by ColorSetting("Timer Color", Color.WHITE).showIf { bloodCamp.value }
@@ -37,6 +38,12 @@ object BloodCamp: Feature("Features for Blood Room.") {
 
     private val killTimer by ToggleSetting("Move Timer").withDescription("Displays a HUD counting down to when the blood mobs are ready to be killed.").section("Alerts")
     private val killTitle by ToggleSetting("Kill Title").withDescription("Displays a Title when the blood mobs are ready to be killed. &bNOTE: Not always accurate, you will get better move times by learning when to kill the mobs yourself.")
+
+    //#if CHEAT
+    private val bloodTb by ToggleSetting("Blood Mobs Triggerbot").withDescription("Automatically clicks when a blood mob's timer reaches 0 while you are looking at its box.").section("Triggerbot")
+    private val clickType by DropdownSetting("Click Type", 0, listOf("Left Click", "Right Click")).showIf { bloodTb.value }
+    private val pingCompensation by ToggleSetting("Ping Compensation").withDescription("Clicks earlier based on your ping so the click reaches the server when the timer ends.").showIf { bloodTb.value }
+    //#endif
 
     private val bloodMobs = HashMap<ArmorStand, BloodEntity>()
     private var watcherEntity: Zombie? = null
@@ -51,6 +58,7 @@ object BloodCamp: Feature("Features for Blood Room.") {
         var lastPosition: Vec3 = startVec,
         var currentVector: Vec3 = startVec,
         var endVector: Vec3? = null,
+        var tbClicked: Boolean = false,
     )
 
     override fun init() {
@@ -123,6 +131,33 @@ object BloodCamp: Feature("Features for Blood Room.") {
             data.endVector = endpoint
         }
 
+        //#if CHEAT
+        register<TickEvent.Server> {
+            if (! bloodTb.value) return@register
+            if (! LocationUtils.inDungeon) return@register
+            if (LocationUtils.inBoss) return@register
+            if (mc.gui.screen() != null) return@register
+            if (bloodMobs.isEmpty()) return@register
+            val clickTicks = if (pingCompensation.value) ServerUtils.averagePing / 50.0 else 1.0
+            val eye = player.eyePosition
+
+            val data = bloodMobs.values.find {
+                if (it.tbClicked) return@find false
+                val endVector = it.endVector ?: return@find false
+                if (getTicksLeft(it) > clickTicks) return@find false
+
+                val box = getEndBox(endVector)
+                val look = player.lookAngle.scale(eye.distanceTo(box.center) + 2)
+
+                box.clip(eye, eye.add(look)).isPresent
+            } ?: return@register
+
+            PlayerUtils.rotateTo(getEndBox(data.endVector !!).center)
+            ThreadUtils.scheduledTaskServer(1) { if (clickType.value == 0) PlayerUtils.leftClick() else PlayerUtils.rightClick() }
+            data.tbClicked = true
+        }
+        //#endif
+
         register<EntityUnloadEvent> {
             if (! bloodCamp.value) return@register
             bloodMobs.remove(event.entity)
@@ -138,15 +173,14 @@ object BloodCamp: Feature("Features for Blood Room.") {
         register<RenderWorldEvent> {
             if (! bloodCamp.value) return@register
             if (LocationUtils.inBoss) return@register
-            val boxOffset = Vec3(- 0.5, 1.5, - 0.5)
-
+            if (bloodMobs.isEmpty()) return@register
             bloodMobs.forEach { (entity, data) ->
                 val endVector = data.endVector ?: return@forEach
-                val timeTook = DungeonListener.currentTime - data.started
-                val time = (if (data.firstSpawn) 40 else 0) + 38 - timeTook + 0.8
-                val endAABB = aabb(1, 1, 1, 0, 0, 0).move(boxOffset.add(endVector))
+                val ticksLeft = getTicksLeft(data)
+                val endAABB = getEndBox(endVector)
+                val time = ticksLeft + 0.8
 
-                var timerText = ((time - 0.8) / 20).toString()
+                var timerText = (ticksLeft / 20.0).toString()
                 timerText = if (decimalPlaces.value > 0) timerText.toFixed(decimalPlaces.value)
                 else ceil(timerText.toDouble()).toInt().toString()
 
@@ -156,6 +190,9 @@ object BloodCamp: Feature("Features for Blood Room.") {
             }
         }
     }
+
+    private fun getTicksLeft(data: BloodEntity) = (if (data.firstSpawn) 40 else 0) + 38 - (DungeonListener.currentTime - data.started)
+    private fun getEndBox(endVector: Vec3) = aabb(1, 1, 1, 0, 0, 0).move(endVector.add(- 0.5, 1.5, - 0.5))
 
     private val moveTimes = intArrayOf(480, 600, 500, 500, 500, 470, 470, 420)
 
