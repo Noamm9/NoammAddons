@@ -1,5 +1,6 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.NoammAddons
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
@@ -74,10 +75,11 @@ object DoorESP: Feature(
 
             for (tile in DungeonScanner.doorTiles) {
                 if (tile.type == DoorType.ENTRANCE) continue
+                val isFairy = (NoammAddons.isCheat || ScanUtils.currentRoom?.name == "Fairy") && DungeonTree.isFairy(tile)
 
                 if (! tile.opened && tile.type.equalsOneOf(DoorType.BLOOD, DoorType.WITHER)) {
                     if (! brDoors.value) continue
-                    if (hideBrDoors && tile.state == RoomState.UNDISCOVERED && ! DungeonTree.isFairy(tile)) continue
+                    if (hideBrDoors && tile.state == RoomState.UNDISCOVERED && ! isFairy) continue
 
                     event.ctx.renderBoxBounds(
                         tile.aabb,
@@ -92,7 +94,7 @@ object DoorESP: Feature(
                 }
 
                 if (! normalDoors.value || currentRoom == null) continue
-                if (hideUndiscovered && tile.state == RoomState.UNDISCOVERED && ! DungeonTree.isFairy(tile)) continue
+                if (hideUndiscovered && tile.state == RoomState.UNDISCOVERED && ! isFairy) continue
 
                 val tiles = tile.roomTiles.mapNotNull(RoomTile::uniqueRoom)
                 if (currentRoom !in tiles) continue
