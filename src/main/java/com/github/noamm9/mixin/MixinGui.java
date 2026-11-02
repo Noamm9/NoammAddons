@@ -93,10 +93,12 @@ public abstract class MixinGui {
         if (Camera.INSTANCE.enabled && Camera.getHidePortalOverlay().getValue()) ci.cancel();
     }
 
+    //#if CHEAT
     @Inject(method = "extractConfusionOverlay", at = @At("HEAD"), cancellable = true)
     public void onRenderConfusionOverlay(GuiGraphicsExtractor graphics, float strength, CallbackInfo ci) {
         if (Camera.INSTANCE.enabled && Camera.getDisableNausea().getValue()) ci.cancel();
     }
+    //#endif
 
     @Inject(method = "extractScoreboardSidebar", at = @At("HEAD"), cancellable = true)
     public void renderScoreboardSidebar(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {

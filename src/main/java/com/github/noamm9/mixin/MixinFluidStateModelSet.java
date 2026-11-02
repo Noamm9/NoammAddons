@@ -1,5 +1,7 @@
 package com.github.noamm9.mixin;
 
+//#if CHEAT
+
 import com.github.noamm9.features.impl.visual.LavaToWater;
 import net.minecraft.client.renderer.block.FluidModel;
 import net.minecraft.client.renderer.block.FluidStateModelSet;
@@ -16,3 +18,4 @@ public abstract class MixinFluidStateModelSet {
         LavaToWater.modelHook((FluidStateModelSet) (Object) this, state, cir);
     }
 }
+//#endif

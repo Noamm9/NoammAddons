@@ -1,5 +1,7 @@
 package com.github.noamm9.mixin;
 
+//#if CHEAT
+
 import com.github.noamm9.NoammAddons;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -10,16 +12,13 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import static com.github.noamm9.features.impl.misc.Camera.*;
 
 @Mixin(Camera.class)
 public abstract class MixinCamera {
-    //#if CHEAT
     @Redirect(method = "alignWithEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getAttributeValue(Lnet/minecraft/core/Holder;)D"))
     private double setCameraDistance(LivingEntity instance, Holder<Attribute> attribute) {
         if (INSTANCE.enabled && getCustomCameraDistance().getValue()) {
@@ -40,7 +39,6 @@ public abstract class MixinCamera {
             cir.setReturnValue(cameraDist);
         }
     }
-    //#endif
 
     @Inject(method = "calculateFov", at = @At(value = "RETURN"), cancellable = true)
     private void calculateFovHook(float partialTicks, CallbackInfoReturnable<Float> cir) {
@@ -58,3 +56,4 @@ public abstract class MixinCamera {
         return getCustomFOVSlider().getValue().floatValue() / NoammAddons.getMc().options.fov().get().floatValue();
     }
 }
+//#endif
