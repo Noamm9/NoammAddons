@@ -41,7 +41,8 @@ object BloodCamp: Feature("Features for Blood Room."), IFeatureWindow {
     private val killTitle by ToggleSetting("Kill Title").withDescription("Displays a Title when the blood mobs are ready to be killed. &bNOTE: Not always accurate, you will get better move times by learning when to kill the mobs yourself.")
 
     //#if CHEAT
-    private val bloodTb by ToggleSetting("Blood Mobs Triggerbot").withDescription("Automatically clicks when a blood mob's timer reaches 0 while you are looking at its box.").section("Triggerbot")
+    private val bloodTb by ToggleSetting("Blood Mobs Triggerbot").withDescription("Automatically clicks when a blood mob's timer reaches 0 while you are looking at its box.").section("Triggerbot").showIf { bloodCamp.value }
+    private val rotate by ToggleSetting("Snap to center").withDescription("Flicks to the center of the bloodcamp box before clicking. &lother &lplayers &lwont &lsee &lthe &lflick&r").showIf { bloodTb.value }
     private val clickType by DropdownSetting("Click Type", 0, listOf("Left Click", "Right Click")).showIf { bloodTb.value }
     private val pingCompensation by ToggleSetting("Ping Compensation").withDescription("Clicks earlier based on your ping so the click reaches the server when the timer ends.").showIf { bloodTb.value }
     //#endif
@@ -153,7 +154,7 @@ object BloodCamp: Feature("Features for Blood Room."), IFeatureWindow {
                 box.clip(eye, eye.add(look)).isPresent
             } ?: return@register
 
-            PlayerUtils.rotateTo(getEndBox(data.endVector !!).center)
+            if (rotate.value) PlayerUtils.rotateTo(getEndBox(data.endVector !!).center)
             ThreadUtils.scheduledTaskServer(1) { if (clickType.value == 0) PlayerUtils.leftClick() else PlayerUtils.rightClick() }
             data.tbClicked = true
         }
