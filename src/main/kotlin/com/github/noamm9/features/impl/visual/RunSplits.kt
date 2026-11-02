@@ -14,7 +14,6 @@ import com.github.noamm9.utils.dungeons.DungeonListener.DualTime.Companion.minus
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
-import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.network.chat.Component
 
 object RunSplits: Feature("A Splits HUD for Dungeons.") {
@@ -52,7 +51,7 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
             for (i in text.indices) {
                 val line = text[i]
                 ctx.drawString(line, 0, currentY)
-                width = maxOf(width, line.width())
+                width = maxOf(width, line.length * 6)
                 currentY += 9
             }
 

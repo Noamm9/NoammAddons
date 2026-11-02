@@ -14,6 +14,7 @@ import com.github.noamm9.utils.MathUtils.toVec
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
+import com.github.noamm9.utils.render.RenderHelper.width
 import com.github.noamm9.utils.render.world.Render3D.renderBlock
 import com.github.noamm9.utils.render.world.Render3D.renderString
 import com.google.gson.JsonElement
@@ -42,6 +43,7 @@ object TestGround: ISelfInit, ICommandProvider {
 
         runs {
             ChatUtils.chat("we are not testing")
+            ChatUtils.chat("A".width())
         }
     }
 
