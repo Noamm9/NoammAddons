@@ -51,6 +51,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
     private val slotStyle by DropdownSetting("Slot Style", 0, listOf("Rect", "Bordered-Rect", "Button"))
     val fcDelay by SliderSetting("First Click delay", 7, 0, 8, 1, "t").withDescription("The delay in &nServer Ticks&r for how long a terminal will block clicks when you open it")
     val breakTimeout by SliderSetting("Break Timeout", 500, 300, 800, 50, "ms").withDescription("How long should the solver wait for a click to be confirmed by hypixel")
+    private val maxCps by SliderSetting("Max CPS", 15, 1, 20, 1, "CPS").withDescription("How many drop button presses should register in a second")
     private val backgroundColor by ColorSetting("Background Color", Color(0, 0, 0, 100))
     private val borderColor by ColorSetting("Border Color", Color(255, 255, 255))
     private val rainbowBorder by ToggleSetting("Rainbow Border").withDescription("Animate a rainbow gradient around the terminal menu. Opacity follows Border Color.")
@@ -103,7 +104,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
             if (event.key.equalsOneOf(KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value, InputConstants.KEY_ESCAPE)) return@register
             event.isCanceled = true
             if (event.key != KeyMappingHelper.getBoundKeyOf(mc.options.keyDrop).value) return@register
-            if (System.currentTimeMillis() - lastDropTime < 50) return@register
+            if (System.currentTimeMillis() - lastDropTime < 1000 / maxCps.value) return@register
             lastDropTime = System.currentTimeMillis()
 
             handler.click()
