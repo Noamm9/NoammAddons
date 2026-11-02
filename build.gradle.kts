@@ -49,6 +49,9 @@ val modmenu_version = project.property("modmenu_version") as String
 val ktor_version = project.property("ktor_version") as String
 val iris_version = project.property("iris_version") as String
 val datafixer_version = project.property("datafixer_version") as String
+val devauth_version = project.property("devauth_version") as String
+val mixinextras_version = project.property("mixinextras_version") as String
+val classgraph_version = project.property("classgraph_version") as String
 val datafixerCapability = "me.owdding:item-data-fixer-$minecraft_version"
 
 version = mod_version
@@ -93,14 +96,14 @@ dependencies {
     implementation("net.fabricmc.fabric-api:fabric-api:$fabric_version")
     implementation("net.fabricmc:fabric-language-kotlin:$fabric_kotlin_version")
 
-    runtimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
+    runtimeOnly("me.djtheredstoner:DevAuth-fabric:$devauth_version")
     compileOnly("maven.modrinth:iris:$iris_version")
     compileOnly("com.terraformersmc:modmenu:$modmenu_version")
 
-    compileOnly("io.github.llamalad7:mixinextras-fabric:0.5.5")
-    annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.5.5")
+    compileOnly("io.github.llamalad7:mixinextras-fabric:$mixinextras_version")
+    annotationProcessor("io.github.llamalad7:mixinextras-fabric:$mixinextras_version")
 
-    bundled("io.github.classgraph:classgraph:6.0.0")
+    bundled("io.github.classgraph:classgraph:$classgraph_version")
     bundled("me.owdding:item-data-fixer:$datafixer_version") {
         capabilities { requireCapability(datafixerCapability) }
     }

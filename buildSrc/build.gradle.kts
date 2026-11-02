@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     `kotlin-dsl`
 }
@@ -7,9 +9,17 @@ repositories {
     mavenCentral()
 }
 
+val versions = Properties().apply {
+    file("../gradle.properties").inputStream().use { load(it) }
+}
+
+val loom_version = versions.getProperty("loom_version")
+val kotlin_version = versions.getProperty("kotlin_version")
+val shadow_version = versions.getProperty("shadow_version")
+
 dependencies {
-    implementation("net.fabricmc:fabric-loom:1.19.1")
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.21")
-    implementation("org.jetbrains.kotlin:kotlin-serialization:2.4.21")
-    implementation("com.gradleup.shadow:shadow-gradle-plugin:9.6.1")
+    implementation("net.fabricmc:fabric-loom:$loom_version")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
+    implementation("org.jetbrains.kotlin:kotlin-serialization:$kotlin_version")
+    implementation("com.gradleup.shadow:shadow-gradle-plugin:$shadow_version")
 }
