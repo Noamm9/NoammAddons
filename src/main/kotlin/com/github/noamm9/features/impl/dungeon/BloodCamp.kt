@@ -1,5 +1,6 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.NoammAddons
 import com.github.noamm9.compat.decodePosition
 import com.github.noamm9.compat.hasHorizontalMove
 import com.github.noamm9.config.types.*
@@ -184,9 +185,9 @@ object BloodCamp: Feature("Features for Blood Room."), IFeatureWindow {
                 timerText = if (decimalPlaces.value > 0) timerText.toFixed(decimalPlaces.value)
                 else ceil(timerText.toDouble()).toInt().toString()
 
-                event.ctx.renderBoxBounds(endAABB, if (ServerUtils.averagePing > time * 50) boxColor.value.invert() else boxColor.value, fill = false, phase = true)
-                event.ctx.renderLine(entity.renderVec.add(y = 2), endVector.add(y = 2), lineColor.value, phase = true)
-                event.ctx.renderString(timerText, endVector.add(y = 2), color = timerColor.value, scale = 2f, phase = true)
+                event.ctx.renderBoxBounds(endAABB, if (ServerUtils.averagePing > time * 50) boxColor.value.invert() else boxColor.value, fill = false, phase = NoammAddons.isCheat)
+                event.ctx.renderLine(entity.renderVec.add(y = 2), endVector.add(y = 2), lineColor.value, phase = NoammAddons.isCheat)
+                event.ctx.renderString(timerText, endVector.add(y = 2), color = timerColor.value, scale = 2f, phase = NoammAddons.isCheat)
             }
         }
     }
