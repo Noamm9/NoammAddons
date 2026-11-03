@@ -68,6 +68,9 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
             currentFloorSplits.clear()
             score300Timer = null
             currentText = emptyList()
+            //#if LEGIT
+            witherDoors = 0
+            //#endif
         }
 
         register<TickEvent.Start> {
