@@ -44,6 +44,10 @@ object TestGround: ISelfInit, ICommandProvider {
         runs {
             ChatUtils.chat("we are not testing")
             ChatUtils.chat("A".width())
+            ThreadUtils.scheduledTask(20) {
+                PlayerUtils.swapToSlot(8)
+                PlayerUtils.rightClick()
+            }
         }
     }
 

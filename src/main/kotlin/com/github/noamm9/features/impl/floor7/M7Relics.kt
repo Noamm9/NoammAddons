@@ -168,6 +168,7 @@ object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics
             val cauldron = relic.cauldronPos.toPos()
             if (looking != cauldron && looking != cauldron.below()) return@register
 
+            PlayerUtils.swapToSlot(8)
             PlayerUtils.rightClick()
             lastRelicClick = now
         }
