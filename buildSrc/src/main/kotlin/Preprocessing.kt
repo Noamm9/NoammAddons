@@ -6,6 +6,7 @@ import java.io.File
 import java.util.*
 
 private val directiveRegex = "^//\\s*".toRegex()
+private val inlineDirectiveRegex = Regex("^(\\s*)//\\s*#if\\s+(CHEAT|LEGIT)\\s+(\\S.*)$")
 private val placeholderRegex = Regex("@(\\w+)@")
 private const val marker = "//!"
 
@@ -70,11 +71,15 @@ private fun processDirectives(sourceFile: File, variantName: String, stripLineCo
             }
 
             else -> if (include) {
-                val trimmed = line.trim()
+                val inlineDirective = inlineDirectiveRegex.matchEntire(line)
+                if (inlineDirective != null && (inlineDirective.groupValues[2] == "CHEAT") != isCheat) return@forEachIndexed
+
+                val content = inlineDirective?.let { it.groupValues[1] + it.groupValues[3] } ?: line
+                val trimmed = content.trim()
                 if (stripLineComments && trimmed.startsWith("//") && ! trimmed.startsWith(marker)) return@forEachIndexed
 
-                val markerIndex = line.indexOf(marker)
-                output += if (markerIndex >= 0) line.removeRange(markerIndex, markerIndex + marker.length) else line
+                val markerIndex = content.indexOf(marker)
+                output += if (markerIndex >= 0) content.removeRange(markerIndex, markerIndex + marker.length) else content
             }
         }
     }
