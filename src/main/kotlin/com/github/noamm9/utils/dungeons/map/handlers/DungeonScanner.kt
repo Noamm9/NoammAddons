@@ -141,6 +141,7 @@ object DungeonScanner: ISelfInit {
                 RoomTile(x, z, ScanUtils.getRoomData(roomCore) ?: return null).apply {
                     addToUnique(row, column)
                     uniqueRoom?.highestBlock = roofHeight
+                    if (data.type == RoomType.FAIRY) witherDoors += 1 - doorTiles.count { it.type == DoorType.WITHER && row * 11 + column in it.roomTileIndices }
                 }
             }
 
@@ -161,8 +162,9 @@ object DungeonScanner: ISelfInit {
             roofHeight.equalsOneOf(73, 74, 81, 82) -> {
                 val doorBlock = WorldUtils.getBlockAt(x, 69, z)
                 val type = DoorType.entries.find { it.source == doorBlock } ?: DoorType.NORMAL
-                if (type == DoorType.WITHER) witherDoors ++
-                DoorTile(x, z, type)
+                DoorTile(x, z, type).also { door ->
+                    if (type == DoorType.WITHER && door.roomTiles.none { it.data.type == RoomType.FAIRY }) witherDoors ++
+                }
             }
 
             // Connection between large rooms
