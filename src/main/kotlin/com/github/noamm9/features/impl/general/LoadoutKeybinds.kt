@@ -1,5 +1,6 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.NoammAddons
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
@@ -15,11 +16,9 @@ import net.minecraft.world.inventory.Slot
 object LoadoutKeybinds: Feature("Allows you to bind loadout slots to your keyboard/mouse.") {
     private val blockBarrierClick by ToggleSetting("Block Barrier Click")
 
-    //#if CHEAT
     private val closeAfterUse by ToggleSetting("Auto Close On Use")
     private val keepOpenSlots by MultiCheckboxSetting("Keep Open On", (1 .. 12).associate { "Slot $it" to false }.toMutableMap())
         .withDescription("Loadout slots that won't auto close the menu").showIf { closeAfterUse.value }
-    //#endif
 
     private val useHotbarBinds by ToggleSetting("Use Hotbar Binds")
     private val keybinds = (1 .. 12).mapIndexed { index, slot ->
@@ -36,9 +35,7 @@ object LoadoutKeybinds: Feature("Allows you to bind loadout slots to your keyboa
     private var lastClick = System.currentTimeMillis()
     private var inLoadoutMenu = false
 
-    //#if CHEAT
     private var pendingAutoClose = false
-    //#endif
 
     private val slots = listOf(
         14, 15, 16,
@@ -53,17 +50,21 @@ object LoadoutKeybinds: Feature("Allows you to bind loadout slots to your keyboa
 
     override fun init() {
         register<MainThreadPacketReceivedEvent.Pre> {
-            if (event.packet is ClientboundOpenScreenPacket) inLoadoutMenu = event.packet.title.unformattedText.matches(loadoutMenuRegex)
-            else if (event.packet is ClientboundContainerClosePacket && inLoadoutMenu) inLoadoutMenu = false
+            if (event.packet is ClientboundOpenScreenPacket) {
+                inLoadoutMenu = event.packet.title.unformattedText.matches(loadoutMenuRegex)
+                if (! inLoadoutMenu) pendingAutoClose = false
+            }
+            else if (event.packet is ClientboundContainerClosePacket && inLoadoutMenu) {
+                inLoadoutMenu = false
+                if (! NoammAddons.isCheat) pendingAutoClose = false
+            }
         }
 
         register<PacketEvent.Sent> {
             if (! inLoadoutMenu) return@register
             if (event.packet !is ServerboundContainerClosePacket) return@register
             inLoadoutMenu = false
-            //#if CHEAT
             pendingAutoClose = false
-            //#endif
         }
 
         //#if CHEAT
@@ -79,6 +80,12 @@ object LoadoutKeybinds: Feature("Allows you to bind loadout slots to your keyboa
 
         register<ContainerEvent.Keyboard> {
             if (! inLoadoutMenu) return@register
+            if (! NoammAddons.isCheat && pendingAutoClose) {
+                pendingAutoClose = false
+                event.cancel()
+                player.closeContainer()
+                return@register
+            }
             if (System.currentTimeMillis() - lastClick < 300) return@register
             if (event.key.equalsOneOf(InputConstants.KEY_ESCAPE, KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value)) return@register
             val index = if (useHotbarBinds.value) hotbarKeyMap[event.key] ?: return@register
@@ -110,13 +117,13 @@ object LoadoutKeybinds: Feature("Allows you to bind loadout slots to your keyboa
         GuiUtils.clickSlot(slot, GuiUtils.ButtonType.LEFT)
 
         lastClick = System.currentTimeMillis()
-        //#if CHEAT
         if (closeAfterUse.value && ! keepOpenSlots["Slot ${index + 1}"]) {
-            player.closeContainer()
-            ThreadUtils.setTimeout(3000) { pendingAutoClose = false }
+            if (NoammAddons.isCheat) {
+                player.closeContainer()
+                ThreadUtils.setTimeout(3000) { pendingAutoClose = false }
+            }
             pendingAutoClose = true
         }
-        //#endif
     }
 
     private fun isSlotEquipable(slot: Int) = player.containerMenu.getSlot(slot).takeIf(Slot::hasItem)?.item?.lore?.any { it.contains("Left-click to equip!") } ?: false

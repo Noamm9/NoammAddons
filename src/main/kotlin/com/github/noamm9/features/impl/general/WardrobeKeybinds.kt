@@ -1,7 +1,6 @@
 package com.github.noamm9.features.impl.general
 
-//#if CHEAT
-//#endif
+import com.github.noamm9.NoammAddons
 import com.github.noamm9.config.types.KeybindSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
@@ -16,10 +15,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 
 object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your keyboard.") {
-    //#if CHEAT
     private val closeAfterUse by ToggleSetting("Auto Close On Use")
-
-    //#endif
     private val preventUnequip by ToggleSetting("Prevent Unequip")
     private val useHotbarBinds by ToggleSetting("Use Hotbar Binds")
     private val keybinds = (1 .. 9).mapIndexed { index, slot ->
@@ -31,10 +27,7 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
     private var lastClick = System.currentTimeMillis()
     private var inWardrobeMenu = false
 
-    //#if CHEAT
     private var pendingAutoClose = false
-
-    //#endif
     private val keyMap = listOf(36, 37, 38, 39, 40, 41, 42, 43, 44)
 
     private val hotbarKeyMap by lazy {
@@ -45,18 +38,18 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
         register<MainThreadPacketReceivedEvent.Pre> {
             if (event.packet is ClientboundOpenScreenPacket) {
                 inWardrobeMenu = event.packet.title.unformattedText.matches(wardrobeMenuRegex)
+                if (! inWardrobeMenu) pendingAutoClose = false
             }
             else if (event.packet is ClientboundContainerClosePacket && inWardrobeMenu) {
                 inWardrobeMenu = false
+                if (! NoammAddons.isCheat) pendingAutoClose = false
             }
         }
 
         register<PacketEvent.Sent> {
             if (event.packet is ServerboundContainerClosePacket && inWardrobeMenu) {
                 inWardrobeMenu = false
-                //#if CHEAT
                 pendingAutoClose = false
-                //#endif
             }
         }
 
@@ -73,6 +66,12 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
 
         register<ContainerEvent.Keyboard> {
             if (! inWardrobeMenu) return@register
+            if (! NoammAddons.isCheat && pendingAutoClose) {
+                pendingAutoClose = false
+                event.cancel()
+                player.closeContainer()
+                return@register
+            }
             if (System.currentTimeMillis() - lastClick < 300) return@register
             if (event.key.equalsOneOf(InputConstants.KEY_ESCAPE, KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value)) return@register
             val index = if (useHotbarBinds.value) hotbarKeyMap[event.key] ?: return@register
@@ -85,9 +84,7 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
             GuiUtils.clickSlot(slot, GuiUtils.ButtonType.LEFT)
 
             lastClick = System.currentTimeMillis()
-            //#if CHEAT
-            if (closeAfterUse.value) closeAfterReopen()
-            //#endif
+            if (closeAfterUse.value) closeAfterSelection()
         }
 
         register<ContainerEvent.MouseClick> {
@@ -104,19 +101,17 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
             GuiUtils.clickSlot(slot, GuiUtils.ButtonType.LEFT)
 
             lastClick = System.currentTimeMillis()
-            //#if CHEAT
-            if (closeAfterUse.value) closeAfterReopen()
-            //#endif
+            if (closeAfterUse.value) closeAfterSelection()
         }
     }
 
     private fun isSlotEquipped(slot: Int) = player.containerMenu.slots[slot].item.`is`(Items.DYE.lime())
 
-    //#if CHEAT
-    fun closeAfterReopen() {
-        player.closeContainer()
-        ThreadUtils.setTimeout(3000) { pendingAutoClose = false }
+    private fun closeAfterSelection() {
+        if (NoammAddons.isCheat) {
+            player.closeContainer()
+            ThreadUtils.setTimeout(3000) { pendingAutoClose = false }
+        }
         pendingAutoClose = true
     }
-    //#endif
 }
