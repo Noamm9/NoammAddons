@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CosmeticData(
     val name: String = "",
+    val ign: String = "",
     val sizeX: Float = 1f,
     val sizeY: Float = 1f,
     val sizeZ: Float = 1f,

@@ -53,17 +53,20 @@ object Cosmetics: Feature(toggled = true) {
                 cosmeticPeople = data.mapKeys { UUID.fromString(it.key) }
                 BadgeText.init(cosmeticPeople)
 
-                val uuids = cosmeticPeople.filter { it.value.hasCustomName }.map { it.key }
-                val mojangData = ProfileUtils.getMojangBatched(uuids).getOrThrow()
+                val named = cosmeticPeople.filter { it.value.hasCustomName }
                 val customNames = ConcurrentHashMap<String, String>()
+                for (data in named.values) if (data.ign.isNotEmpty()) customNames[data.ign] = data.name
+
+                val uuids = named.filter { it.value.ign.isEmpty() }.map { it.key }
+                val mojangData = ProfileUtils.getMojangBatched(uuids).getOrThrow()
 
                 for (mojang in mojangData) {
                     val uuid = Uuid.parseHex(mojang.uuid.remove("-")).toJavaUuid()
-                    customNames[mojang.name] = cosmeticPeople[uuid] !!.name
+                    customNames[mojang.name] = named[uuid]?.name ?: continue
                 }
 
                 TextReplacer.init(customNames)
-                NoammAddons.logger.info("mojangData: ${mojangData.size}, uuids: ${uuids.size}")
+                NoammAddons.logger.info("customNames: ${customNames.size}, mojangData: ${mojangData.size}, uuids: ${uuids.size}")
             }.onFailure { cause ->
                 NoammAddons.logger.error("Failed to load cosmetic people", cause)
                 ChatUtils.modMessage("&cFailed to load cosmetic people: ${cause.message}")
