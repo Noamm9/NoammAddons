@@ -5,6 +5,11 @@ import net.minecraft.network.chat.TextColor
 import java.awt.Color
 
 object ColorUtils {
+    fun chromaColor(time: Double, period: Double = 4000.0, offset: Float = 0f, saturation: Float = 1f): Color {
+        val hue = ((time % period) / period).toFloat() + offset
+        return Color.getHSBColor(hue, saturation, 1f)
+    }
+
     fun Color.withAlpha(i: Int) = if (i == alpha) this else Color(red, green, blue, i.coerceIn(0, 255))
     fun Color.withAlpha(f: Float) = withAlpha((f * 255).toInt())
     fun Color.lerp(color: Color, value: Number) = lerpColor(this, color, value)

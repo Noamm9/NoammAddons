@@ -22,8 +22,10 @@ public class MixinGameRenderer {
         if (minecraft.options.damageTiltStrength().get() == 0) ci.cancel();
     }
 
+    //#if CHEAT
     @ModifyVariable(method = "renderLevel", at = @At("STORE"), name = "nauseaIntensity")
     public float zeroNauseaIntensity(float nauseaIntensity) {
         return Camera.INSTANCE.enabled && Camera.getDisableNausea().getValue() ? 0F : nauseaIntensity;
     }
+    //#endif
 }

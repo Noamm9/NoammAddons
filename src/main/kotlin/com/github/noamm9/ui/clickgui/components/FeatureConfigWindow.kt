@@ -19,10 +19,11 @@ import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.utils.render.Render2D.drawString
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
-class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, startWidth: Float, startHeight: Float) {
+open class FeatureConfigWindow(val feature: Feature) {
     companion object {
         private const val titleBarHeight = 24f
         private const val windowPadding = 10f
@@ -30,22 +31,34 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         private const val resizeMargin = 3f
         private const val closeButtonSize = 14f
         private const val settingSpacing = 5f
-        private const val minWidth = 180f
-        private const val minHeight = 140f
+        private const val categoryWidth = 100f
+        private const val categoryHeight = 20f
     }
 
-    var x = startX
+    var x = 0f
         private set
-    var y = startY
+    var y = 0f
         private set
-    private var width = startWidth
-    private var height = startHeight
+    protected var width = 0f
+        private set
+    protected var height = 0f
+        private set
+
+    open val defaultWidth get() = 250f + sidebarWidth + previewWidth
+    open val defaultHeight = 260f
+    protected open val minWidth get() = 180f + sidebarWidth + previewWidth
+    protected open val minHeight = 140f
+
+    protected open val previewWidth = 0f
+
+    protected open val useSidebar = false
 
     private var visibleWidgets = emptyList<Widget<*>>()
     private val scroll = ScrollState(minThumbHeight = 18f)
 
+    private val widgets = feature.configSettings.mapNotNull(WidgetFactory::fromSetting)
+
     val settings = buildList {
-        val widgets = feature.configSettings.mapNotNull(WidgetFactory::fromSetting)
         var lastSection: String? = null
 
         for (widget in widgets) {
@@ -61,10 +74,30 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         }
     }
 
-    private var contentLeft = startX + windowPadding
-    private var contentTop = startY + titleBarHeight + 8f
-    private var contentRight = startX + startWidth - windowPadding
-    private var contentBottom = startY + startHeight - bottomPadding
+    private val categories = buildList<Category> {
+        var current: Category? = null
+        for (widget in widgets) {
+            val section = widget.config.section
+            if (current == null || (section != null && section != current.name)) {
+                current = Category(section ?: "General").also(::add)
+            }
+            current.widgets.add(widget)
+        }
+    }
+
+    private var selectedCategory = categories.firstOrNull()
+
+    private var contentLeft = 0f
+    private var contentTop = 0f
+    private var contentRight = 0f
+    private var contentBottom = 0f
+
+    protected var previewX = 0f
+        private set
+    protected var previewY = 0f
+        private set
+    protected var previewHeight = 0f
+        private set
 
     var dragging = false
     private var dragOffsetX = 0f
@@ -73,13 +106,27 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
     private var resizeCorner = ResizeCorner.NONE
     private var interactionStartMouseX = 0f
     private var interactionStartMouseY = 0f
-    private var interactionStartX = startX
-    private var interactionStartY = startY
-    private var interactionStartWidth = startWidth
-    private var interactionStartHeight = startHeight
+    private var interactionStartX = 0f
+    private var interactionStartY = 0f
+    private var interactionStartWidth = 0f
+    private var interactionStartHeight = 0f
 
     private var highlightedWidget: Widget<*>? = null
     private var highlightStart = 0L
+
+    fun place(startX: Float, startY: Float) {
+        x = startX
+        y = startY
+        width = defaultWidth
+        height = defaultHeight
+        clampToScreen()
+    }
+
+    protected open fun drawPreview(context: GuiGraphicsExtractor, x: Float, y: Float, width: Float, height: Float) {}
+
+    protected open fun drawBackground(context: GuiGraphicsExtractor, x: Float, y: Float, width: Float, height: Float, color: Color) {
+        context.drawRect(x, y, width, height, color)
+    }
 
     fun render(context: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, focused: Boolean) {
         val mx = mouseX.toFloat()
@@ -87,12 +134,15 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
 
         updateInteraction(mx, my)
         clampToScreen()
+        updateLayout()
 
         val frameColor = if (focused) Color(255, 255, 255, 40) else Color(255, 255, 255, 24)
         val closeHovered = isInsideCloseButton(mx, my)
 
-        context.drawRect(x - 2f, y - 2f, width + 4f, height + 4f, Color(0, 0, 0, 70))
-        context.drawRect(x, y, width, height, Color(16, 16, 16, 235))
+        drawBackground(context, x - 2f, y - 2f, width + 4f, height + 4f, Color(0, 0, 0, 70))
+        drawBackground(context, x, y, width, height, Color(16, 16, 16, 235))
+        if (useSidebar) context.drawRect(x, y + titleBarHeight, categoryWidth, height - titleBarHeight, Color(10, 10, 10, 160))
+        if (previewWidth > 0f) drawBackground(context, previewX, previewY, previewWidth, previewHeight, Color(10, 10, 10, 160))
         context.drawRect(x, y, width, titleBarHeight, Color(24, 24, 24, 245))
         context.drawRect(x, y, width, 2f, Style.accentColor.withAlpha(if (focused) 255 else 180))
         context.drawBorder(x, y, width, height, frameColor)
@@ -100,12 +150,33 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         context.drawCenteredString("§l${feature.name}", x + (width / 2f), y + 8f)
         drawCloseButton(context, closeHovered)
 
-        visibleWidgets = settings.filter { it.config.visibility.invoke() }
+        if (useSidebar) drawCategories(context, mx, my)
+        drawSettings(context, mouseX, mouseY)
 
-        contentLeft = x + windowPadding
-        contentTop = y + titleBarHeight + 8f
-        contentRight = x + width - windowPadding
-        contentBottom = y + height - bottomPadding
+        if (previewWidth > 0f) {
+            context.enableScissor(previewX.toInt(), previewY.toInt(), (previewX + previewWidth).toInt(), (previewY + previewHeight).toInt())
+            drawPreview(context, previewX, previewY, previewWidth, previewHeight)
+            context.disableScissor()
+        }
+    }
+
+    private fun drawCategories(context: GuiGraphicsExtractor, mx: Float, my: Float) {
+        shownCategories.forEachIndexed { index, category ->
+            val catY = categoryY(index)
+            val isHovered = mx >= x && mx <= x + categoryWidth && my >= catY && my <= catY + categoryHeight
+            val isSelected = selectedCategory == category
+
+            if (isSelected) context.drawRect(x, catY, categoryWidth, categoryHeight, Style.accentColor.withAlpha(40))
+            if (isHovered && ! isSelected) context.drawRect(x, catY, categoryWidth, categoryHeight, Color(255, 255, 255, 10))
+
+            val color = if (isSelected) Style.accentColor else Color.GRAY
+            context.drawString(category.name, x + 10, catY + 6, color)
+        }
+    }
+
+    private fun drawSettings(context: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
+        if (useSidebar && selectedCategory !in shownCategories) selectedCategory = shownCategories.firstOrNull() ?: categories.firstOrNull()
+        visibleWidgets = currentWidgets.filter { it.config.visibility.invoke() }
 
         val viewportWidth = (contentRight - contentLeft).coerceAtLeast(120f)
         val viewportHeight = (contentBottom - contentTop).coerceAtLeast(40f)
@@ -150,7 +221,7 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
 
         context.disableScissor()
 
-        scroll.drawScrollbar(context, contentRight - 2f, contentTop, 2f, viewportHeight, mx, my)
+        scroll.drawScrollbar(context, contentRight - 2f, contentTop, 2f, viewportHeight, mouseX.toFloat(), mouseY.toFloat())
     }
 
     fun mouseClicked(mouseX: Int, mouseY: Int, button: Int): WindowClickAction {
@@ -172,6 +243,19 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
                 dragging = true
                 dragOffsetX = mx - x
                 dragOffsetY = my - y
+                return WindowClickAction.CONSUMED
+            }
+        }
+
+        if (button == InputConstants.MOUSE_BUTTON_LEFT && useSidebar && mx >= x && mx <= x + categoryWidth) {
+            shownCategories.forEachIndexed { index, category ->
+                val catY = categoryY(index)
+                if (my < catY || my > catY + categoryHeight) return@forEachIndexed
+                if (selectedCategory != category) {
+                    selectedCategory = category
+                    scroll.reset()
+                    Style.playClickSound(1f)
+                }
                 return WindowClickAction.CONSUMED
             }
         }
@@ -242,18 +326,6 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height
     }
 
-    fun scrollToWidget(settingName: String) {
-        val visible = settings.filter { it.config.visibility.invoke() }
-        val widget = visible.firstOrNull { it.config.name.equals(settingName, ignoreCase = true) } ?: return
-
-        val index = visible.indexOf(widget)
-        val offset = visible.take(index).sumOf { it.height } + (index * settingSpacing)
-
-        scroll.scrollTo(offset - 40f)
-        highlightedWidget = widget
-        highlightStart = System.currentTimeMillis() + 150
-    }
-
     fun cursorAt(mouseX: Float, mouseY: Float) = when {
         resizeCorner != ResizeCorner.NONE -> resizeCorner.cursor
         contains(mouseX, mouseY) -> getResizeCorner(mouseX, mouseY).cursor
@@ -268,6 +340,17 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         height = height.coerceIn(minHeight, maxHeight)
         x = x.coerceIn(0f, (Resolution.width - width).coerceAtLeast(0f))
         y = y.coerceIn(0f, (Resolution.height - height).coerceAtLeast(0f))
+    }
+
+    private fun updateLayout() {
+        contentLeft = x + sidebarWidth + windowPadding
+        contentTop = y + titleBarHeight + 8f
+        contentRight = x + width - previewWidth - windowPadding
+        contentBottom = y + height - bottomPadding
+
+        previewX = x + width - previewWidth
+        previewY = y + titleBarHeight
+        previewHeight = height - titleBarHeight
     }
 
     private fun updateInteraction(mouseX: Float, mouseY: Float) {
@@ -345,6 +428,16 @@ class FeatureConfigWindow(val feature: Feature, startX: Float, startY: Float, st
         val background = if (hovered) Color(180, 60, 60, 220) else Color(255, 255, 255, 18)
 
         context.drawRect(closeX, closeY, closeButtonSize, closeButtonSize, background)
-        context.drawCenteredString("\u00D7", closeX + (closeButtonSize / 2f), closeY + 3f)
+        context.drawCenteredString("×", closeX + (closeButtonSize / 2f), closeY + 3f)
+    }
+
+    private val sidebarWidth get() = if (useSidebar) categoryWidth else 0f
+    private val currentWidgets get() = if (useSidebar) selectedCategory?.widgets.orEmpty() else settings
+    private val shownCategories get() = categories.filter { category -> category.widgets.any { it.config.visibility() } }
+
+    private fun categoryY(index: Int) = y + titleBarHeight + 4f + (index * categoryHeight)
+
+    private class Category(val name: String) {
+        val widgets = mutableListOf<Widget<*>>()
     }
 }

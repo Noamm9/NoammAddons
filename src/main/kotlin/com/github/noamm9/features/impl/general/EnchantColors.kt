@@ -7,6 +7,7 @@ import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.utils.ChatUtils.unformattedText
+import com.github.noamm9.utils.ColorUtils.chromaColor
 import com.github.noamm9.utils.ColorUtils.mcColor
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
@@ -144,8 +145,7 @@ object EnchantColors: Feature("Changes the color of enchantments in items lore."
         for (char in text) {
             val charStr = char.toString()
             val time = speedScaledNow - (pixelPos * 15).toLong() - diagonalOffset
-            val hue = 1f - (time % 4000L).toFloat() / 4000L
-            val color = TextColor.fromRgb(Color.HSBtoRGB(hue, rainbowSaturation.value.toFloat(), 1f) and 0xFFFFFF)
+            val color = TextColor.fromRgb(chromaColor(- time.toDouble(), saturation = rainbowSaturation.value.toFloat()).rgb and 0xFFFFFF)
             result.append(Component.literal(charStr).withStyle(Style.EMPTY.withColor(color).withBold(bold).withItalic(false)))
             pixelPos += charStr.width()
         }

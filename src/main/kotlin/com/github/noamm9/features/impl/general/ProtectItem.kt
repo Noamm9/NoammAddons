@@ -108,6 +108,7 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /n
     override fun CommandBuilder.command() {
         setName(*NaCommand.names)
         literal("protectitem") {
+            requires("Enable $name to protect items.") { enabled }
             runs {
                 val heldItem = player.mainHandItem.takeUnless { it.isEmpty }
                     ?: return@runs ChatUtils.modMessage("&cYou need to be holding an item.")
@@ -168,8 +169,14 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /n
         val data = data.get()
 
         val (list, id) = when {
-            stack.itemUUID.isNotBlank() -> data.uuids to stack.itemUUID
-            stack.skyblockId.isNotBlank() -> data.ids to stack.skyblockId
+            stack.itemUUID.isNotBlank() -> if (protectUUID.value) data.uuids to stack.itemUUID else {
+                NotificationManager.push("&cProtection Disabled", "Enable ${protectUUID.name} to protect this item.")
+                return
+            }
+            stack.skyblockId.isNotBlank() -> if (protectID.value) data.ids to stack.skyblockId else {
+                NotificationManager.push("&cProtection Disabled", "Enable ${protectID.name} to protect this item.")
+                return
+            }
             else -> return NotificationManager.push("Error", "Item has no protectable ID/UUID.")
         }
 

@@ -24,6 +24,7 @@ class ClassGraphInitializer {
 
     fun initAll() = ClassGraph().enableClassInfo().ignoreClassVisibility().apply {
         acceptPackages(NoammAddons::class.java.`package`.name)
+        rejectPackages("${NoammAddons::class.java.`package`.name}.lib")
         enableClassLoaders(classLoader)
     }.scan().use { scan ->
         val time = measureTimeMillis {

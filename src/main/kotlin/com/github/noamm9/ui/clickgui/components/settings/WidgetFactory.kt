@@ -5,6 +5,7 @@ import com.github.noamm9.config.types.*
 import com.github.noamm9.ui.clickgui.components.settings.impl.*
 
 object WidgetFactory {
+    @Suppress("UNCHECKED_CAST")
     fun fromSetting(configHolder: ConfigHolder<*>) = when (configHolder) {
         is ToggleSetting -> ToggleWidget(configHolder)
         is DropdownSetting -> DropdownWidget(configHolder)
@@ -16,6 +17,7 @@ object WidgetFactory {
         is SoundSetting -> SoundWidget(configHolder)
         is ButtonSetting -> ButtonWidget(configHolder)
         is SliderSetting -> SliderWidget(configHolder)
+        is RangeSliderSetting<*> -> RangeSliderWidget(configHolder as RangeSliderSetting<Number>)
         is UnitSetting -> null
         is MapSetting<*, *> -> null
         is ListSetting<*> -> null

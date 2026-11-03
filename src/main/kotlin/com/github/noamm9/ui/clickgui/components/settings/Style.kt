@@ -42,5 +42,14 @@ object Style {
         ctx.drawRect(x + (w * progress) - (kSize / 2f), y + (h / 2f) - (kSize / 2f), kSize, kSize)
     }
 
+    fun drawRangeSlider(ctx: GuiGraphicsExtractor, x: Float, y: Float, w: Float, start: Float, end: Float, color: Color) {
+        val kSize = 4f
+        val h = 2.5f
+        ctx.drawRect(x, y, w, h, sliderBackgroundColor)
+        ctx.drawRect(x + (w * start), y, w * (end - start), h, color)
+        ctx.drawRect(x + (w * start) - (kSize / 2f), y + (h / 2f) - (kSize / 2f), kSize, kSize)
+        ctx.drawRect(x + (w * end) - (kSize / 2f), y + (h / 2f) - (kSize / 2f), kSize, kSize)
+    }
+
     fun playClickSound(pitch: Float) = SoundUtils.playSound(SoundEvents.UI_BUTTON_CLICK, 0.25f, pitch)
 }

@@ -1,11 +1,11 @@
 package com.github.noamm9.features.impl.dev
 
-import com.mojang.blaze3d.platform.InputConstants
 import com.github.noamm9.config.types.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.utils.render.RenderHelper.height
 import com.github.noamm9.utils.render.RenderHelper.width
+import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.network.chat.Component
 import net.minecraft.sounds.SoundEvents
 import java.awt.Color
@@ -18,15 +18,19 @@ object CompTest: Feature("A test feature used to test every UI component.") {
 
     val speed by SliderSetting("test slider", 1.0, 0.1, 5.0, 0.1).withDescription("Multiplies your movement speed. Higher values may trigger anti-cheat flags on some servers.").section("test category")
 
+    val delayRange by RangeSliderSetting("test range slider", 50 to 150, 0, 500, 10, "ms").withDescription("A random delay is picked between the start and end of this range.")
+
     val mode by DropdownSetting("test dropdown", 0, listOf("Vanilla", "Motion", "Creative", "Hypixel", "Old-AAC")).withDescription("Changes the bypass logic for flight. 'Vanilla' is safest for singleplayer, 'Motion' is better for servers.")
 
-    val targets by MultiCheckboxSetting("test multi checkbox", mutableMapOf(
-        "Players" to true,
-        "Zombies" to true,
-        "Skeletons" to false,
-        "Villagers" to false,
-        "Animals" to false
-    )).withDescription("Select which types of entities the combat and visual modules should focus on.")
+    val targets by MultiCheckboxSetting(
+        "test multi checkbox", mutableMapOf(
+            "Players" to true,
+            "Zombies" to true,
+            "Skeletons" to false,
+            "Villagers" to false,
+            "Animals" to false
+        )
+    ).withDescription("Select which types of entities the combat and visual modules should focus on.")
 
     val espColor by ColorSetting("test Color", Color(85, 255, 255)).withDescription("The primary color used for all ESP highlighting and ClickGUI accents.").section("test category 2")
 

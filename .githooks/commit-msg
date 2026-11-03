@@ -39,9 +39,9 @@ fail() {
 echo "$subject" | grep -Eq "^($types)(\([A-Za-z0-9._/-]+\))?!?: .+" \
     || fail 'subject must start with a type, e.g. "feat: ..."'
 
-# 72 keeps `git log --oneline` and GitHub's commit list from truncating.
+# Long subjects get truncated in `git log --oneline` and GitHub's commit list.
 [ "${#subject}" -le 100 ] \
-    || fail "subject is ${#subject} chars, keep it to 72"
+    || fail "subject is ${#subject} chars, keep it to 100"
 
 case $subject in
     *.) fail 'subject must not end with a period' ;;

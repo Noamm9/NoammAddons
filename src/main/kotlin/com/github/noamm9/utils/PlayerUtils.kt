@@ -94,6 +94,11 @@ object PlayerUtils: ISelfInit, Shortcuts {
         player.forceSetRotation(yaw, false, pitch, false)
     }
 
+    fun rotateTo(pos: Vec3) {
+        val rot = MathUtils.calcYawPitch(pos)
+        rotate(rot.yaw, rot.pitch)
+    }
+
     fun getHotbarSlot(i: Int): ItemStack? {
         if (! Inventory.isHotbarSlot(i)) return null
         return player.inventory.getItem(i)

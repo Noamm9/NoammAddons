@@ -13,11 +13,12 @@ import net.minecraft.client.input.KeyEvent
 import net.minecraft.network.chat.Component
 
 class TerminalSimSelectorScreen: Screen(Component.literal("Terminal Simulator")) {
-    private companion object {
+    companion object {
         private const val COLUMNS = 2
         private const val BUTTON_WIDTH = 120
         private const val BUTTON_HEIGHT = 20
         private const val BUTTON_GAP = 6
+        var clickedRandom = false
     }
 
     private val buttonRows get() = (SimTerminal.all.size + 2 + COLUMNS - 1) / COLUMNS
@@ -35,12 +36,18 @@ class TerminalSimSelectorScreen: Screen(Component.literal("Terminal Simulator"))
             addRenderableWidget(UIButton(x, y, BUTTON_WIDTH, BUTTON_HEIGHT, text, action = action))
         }
 
+
         SimTerminal.all.forEachIndexed { index, sim ->
-            addButton(index, sim.terminal.displayName) { GuiUtils.setScreen(TerminalSimScreen(sim)) }
+            addButton(index, sim.terminal.displayName) {
+                clickedRandom = false
+                GuiUtils.setScreen(TerminalSimScreen(sim))
+            }
         }
         addButton(SimTerminal.all.size, "Random") {
+            clickedRandom = true
             GuiUtils.setScreen(TerminalSimScreen(SimTerminal.all.random()))
         }
+
         addButton(SimTerminal.all.size + 1, autoNextText) { button ->
             TerminalSolver.simAutoNext.value = ! TerminalSolver.simAutoNext.value
             button.message = Component.literal(autoNextText)

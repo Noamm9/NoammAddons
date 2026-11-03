@@ -1,5 +1,7 @@
 package com.github.noamm9.features.impl.visual
 
+//#if CHEAT
+
 import com.github.noamm9.config.types.ColorSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.features.Feature
@@ -45,3 +47,4 @@ object LavaToWater: Feature("Replaces lava with the water texture") {
         )
     }
 }
+//#endif

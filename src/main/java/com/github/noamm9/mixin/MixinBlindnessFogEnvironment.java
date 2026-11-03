@@ -1,5 +1,7 @@
 package com.github.noamm9.mixin;
 
+//#if CHEAT
+
 import com.github.noamm9.features.impl.misc.Camera;
 import net.minecraft.client.renderer.fog.environment.BlindnessFogEnvironment;
 import net.minecraft.core.Holder;
@@ -18,3 +20,4 @@ public abstract class MixinBlindnessFogEnvironment {
         }
     }
 }
+//#endif
