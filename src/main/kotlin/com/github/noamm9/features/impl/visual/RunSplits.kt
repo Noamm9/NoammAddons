@@ -28,11 +28,11 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
     private val floorSplits = DataDownloader.loadJson<Map<String, List<DialogueEntry>>>("runSplits.json")
     private val runEndRegex = Regex("^\\s*☠ Defeated (.+) in 0?([\\dhms ]+?)\\s*(\\(NEW RECORD!\\))?$")
     private val currentFloorSplits = linkedMapOf<String, Split>()
+    private const val separator = "-----------------------"
+
     //#if LEGIT
     private var witherDoors = 0
-    private const val witherDoorPattern = "opened a WITHER door!"
     //#endif
-    private const val separator = "-----------------------"
 
     private var score300Timer: DualTime? = null
 
@@ -106,7 +106,7 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
             val floor = LocationUtils.dungeonFloor ?: return@register
             val currentSplits = floorSplits[floor] ?: floorSplits[floor.replace("M", "F")] ?: return@register
             //#if LEGIT
-            if(msg.contains(witherDoorPattern)) witherDoors++
+            if (msg.matches(DungeonListener.witherDoorOpenedRegex)) witherDoors ++
             //#endif
 
             currentSplits.forEachIndexed { i, entry ->
@@ -171,9 +171,9 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
         }
 
         val clearInfo = mutableListOf<String>()
-        if (showWitherDoors.value)  {
+        if (showWitherDoors.value) {
             //#if LEGIT
-            clearInfo.add("§8Wither Doors: §7${witherDoors}")
+            clearInfo.add("§8Wither Doors: §7$witherDoors")
             //#else
             //!clearInfo.add("§8Wither Doors: §7${DungeonScanner.witherDoors}")
             //#endif

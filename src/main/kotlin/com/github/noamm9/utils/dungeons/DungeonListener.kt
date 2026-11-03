@@ -1,6 +1,5 @@
 package com.github.noamm9.utils.dungeons
 
-import net.minecraft.world.entity.EntityTypes
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.NoammAddons.scope
@@ -24,6 +23,7 @@ import kotlinx.coroutines.launch
 import net.minecraft.client.multiplayer.PlayerInfo
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.network.protocol.game.*
+import net.minecraft.world.entity.EntityTypes
 import java.util.concurrent.*
 
 object DungeonListener: ISelfInit {
@@ -32,7 +32,7 @@ object DungeonListener: ISelfInit {
     private val puzzleRegex = Regex(" (.+): \\[[✦✔✖].+")
     private val deathRegex = Regex("^ ☠ (?:You were|(?<username>\\w+)) (?<reason>.+?)(?: and became a ghost)?\\.$") // https://regex101.com/r/Yc3HhV/4
     private val keyPickupRegex = Regex("^§e§lRIGHT CLICK §7on §7.+?§7 to open it\\. This key can only be used to open §a(?<num>\\d+)§7 door!$")
-    private val witherDoorOpenedRegex = Regex("^(?:\\[.+?] )?(?<name>\\w+) opened a WITHER door!$")
+    val witherDoorOpenedRegex = Regex("^(?:\\[.+?] )?(?<name>\\w+) opened a WITHER door!$")
     private val watcherMessageRegex = Regex("^\\[BOSS] The Watcher: .+$")
     private val runEndRegex = Regex("^\\s*(Master Mode)? ?(?:The)? Catacombs - (Floor (.{1,3})|Entrance)$") // https://regex101.com/r/W4UjWQ/3
 
