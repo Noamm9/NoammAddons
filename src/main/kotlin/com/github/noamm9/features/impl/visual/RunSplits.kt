@@ -11,7 +11,9 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.DungeonListener.DualTime
 import com.github.noamm9.utils.dungeons.DungeonListener.DualTime.Companion.minus
-import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
+//#if CHEAT
+//!import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
+//#endif
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
 import net.minecraft.network.chat.Component
@@ -27,6 +29,10 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
     private val runEndRegex = Regex("^\\s*☠ Defeated (.+) in 0?([\\dhms ]+?)\\s*(\\(NEW RECORD!\\))?$")
     private val currentFloorSplits = linkedMapOf<String, Split>()
     private const val separator = "-----------------------"
+
+    //#if LEGIT
+    private var witherDoors = 0
+    //#endif
 
     private var score300Timer: DualTime? = null
 
@@ -62,6 +68,9 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
             currentFloorSplits.clear()
             score300Timer = null
             currentText = emptyList()
+            //#if LEGIT
+            witherDoors = 0
+            //#endif
         }
 
         register<TickEvent.Start> {
@@ -96,6 +105,9 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
             val msg = event.unformattedText.trim()
             val floor = LocationUtils.dungeonFloor ?: return@register
             val currentSplits = floorSplits[floor] ?: floorSplits[floor.replace("M", "F")] ?: return@register
+            //#if LEGIT
+            if (msg.matches(DungeonListener.witherDoorOpenedRegex)) witherDoors ++
+            //#endif
 
             currentSplits.forEachIndexed { i, entry ->
                 val split = currentFloorSplits.getOrPut(entry.name) { Split() }
@@ -159,7 +171,13 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
         }
 
         val clearInfo = mutableListOf<String>()
-        if (showWitherDoors.value) clearInfo.add("§8Wither Doors: §7${DungeonScanner.witherDoors}")
+        if (showWitherDoors.value) {
+            //#if LEGIT
+            clearInfo.add("§8Wither Doors: §7$witherDoors")
+            //#else
+            //!clearInfo.add("§8Wither Doors: §7${DungeonScanner.witherDoors}")
+            //#endif
+        }
         clearInfo.add("§4Blood Open: $bloodOpen")
         clearInfo.add("§cWatcher Clear: $watcherClear")
         clearInfo.add("§dPortal: $portalTime")
