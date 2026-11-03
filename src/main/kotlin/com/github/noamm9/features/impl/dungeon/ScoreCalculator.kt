@@ -15,6 +15,7 @@ import net.minecraft.sounds.SoundEvents
 object ScoreCalculator: Feature("Shows the score of the dungeon run.") {
     val forcePaul by ToggleSetting("Force Paul")
     private val hudElement by ToggleSetting("HUD Element")
+    private val hideInBoss by ToggleSetting("Hide in Boss").withDescription("Hides the score HUD in the dungeon boss room.").showIf { hudElement.value }
     private val sendMimic by ToggleSetting("Send Mimic Message", true)
     private val sendPrince by ToggleSetting("Send Prince Message", true)
     private val sendBat by ToggleSetting("Send Bat Message", true)
@@ -45,7 +46,11 @@ object ScoreCalculator: Feature("Shows the score of the dungeon run.") {
     }
 
     override fun init() {
-        hudElement("ScoreCalculator", enabled = { hudElement.value }, shouldDraw = { LocationUtils.inDungeon }) { ctx, demoMode ->
+        hudElement(
+            "ScoreCalculator",
+            enabled = hudElement::value,
+            shouldDraw = { LocationUtils.inDungeon && (! hideInBoss.value || ! LocationUtils.inBoss) }
+        ) { ctx, demoMode ->
             val text = if (demoMode) "&eScore: &a300"
             else "&eScore: " + ColorUtils.colorizeScore(ScoreTracker.score)
 
