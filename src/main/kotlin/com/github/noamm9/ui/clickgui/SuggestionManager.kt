@@ -19,15 +19,21 @@ object SuggestionManager {
         if (featureName.contains(cleanQuery)) return 1
 
         var settingContainsMatch = false
-        val visibleSettings = feature.configSettings.filter { it.visibility() }
+        var sectionContainsMatch = false
+        var sectionName: String? = null
 
-        for (setting in visibleSettings) {
+        for (setting in feature.configSettings) {
+            setting.section?.let { sectionName = it.normalize() }
+            if (! setting.visibility()) continue
+
             val settingName = setting.name.normalize()
             if (settingName.startsWith(cleanQuery)) return 2
             if (settingName.contains(cleanQuery)) settingContainsMatch = true
+            if (sectionName?.contains(cleanQuery) == true) sectionContainsMatch = true
         }
 
         if (settingContainsMatch) return 3
+        if (sectionContainsMatch) return 4
         if (feature.description?.normalize()?.contains(cleanQuery) == true) return 5
 
         return null

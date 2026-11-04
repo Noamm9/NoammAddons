@@ -92,7 +92,7 @@ object WebSocketFeature: Feature(name = "WebSocket", toggled = true), ICommandPr
     }
 
     private fun sendChat(message: String) {
-        val packet = S2CPacketChat("§d${NoammAddons.mc.user.name}: §r${message.addColor()}")
+        val packet = S2CPacketChat("§d${NoammAddons.mc.user.name}: §r${message.addColor().take(220)}")
         send(packet.apply(S2CPacketChat::handle))
     }
 
