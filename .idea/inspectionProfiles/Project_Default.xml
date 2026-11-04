@@ -68,6 +68,7 @@
           <option value="All libs from NoammAddons" />
           <option value="NoammAddons" />
           <option value="NoammAddons" />
+          <option value="NoammAddons.buildSrc" />
         </list>
       </option>
       <option name="ignoredPackages">
@@ -76,10 +77,12 @@
           <option value="io.netty:netty-codec-http:4.2.7.Final" />
           <option value="io.netty:netty-codec-http:4.2.7.Final" />
           <option value="org.apache.logging.log4j:log4j-core:2.25.2" />
+          <option value="org.apache.ant:ant:1.10.17" />
         </list>
       </option>
       <option name="ignoredReasons">
         <list>
+          <option value="Not exploitable" />
           <option value="Not exploitable" />
           <option value="Not exploitable" />
           <option value="Not exploitable" />

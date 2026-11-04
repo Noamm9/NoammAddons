@@ -8,11 +8,12 @@ import com.github.noamm9.features.impl.general.ItemRarityFeature;
 import com.github.noamm9.features.impl.misc.Camera;
 import com.github.noamm9.features.impl.misc.Tweaks;
 import com.github.noamm9.features.impl.visual.*;
+import com.github.noamm9.utils.ChatUtils;
 import com.github.noamm9.utils.location.LocationUtils;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Hud;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.Hud;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -108,7 +109,7 @@ public abstract class MixinGui {
     @ModifyVariable(method = "setOverlayMessage", at = @At("HEAD"), argsOnly = true)
     private Component onSetOverlayMessage(Component string) {
         var event = new ActionBarMessageEvent(string);
-        if (EventBus.post(event)) return Component.empty();
+        if (EventBus.post(event) || ChatUtils.INSTANCE.removeFormatting(event.getMessage()).isBlank()) return null;
         return Component.literal(event.getMessage());
     }
 
