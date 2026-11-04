@@ -42,7 +42,7 @@ object InfoDisplay: Feature("Displays the system time, clicks per second, FPS, a
         hudElement("ClockDisplay", { clockDisplay.value }) { ctx, _ ->
             val text = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm${if (seconds.value) ":ss" else ""}"))
             ctx.drawString(text, 0, 0, clockColor.value)
-            return@hudElement text.width() to 12
+            return@hudElement text.width() to 9
         }
 
         hudElement("CPS Display", { cpsDisplay.value }) { ctx, _ ->
@@ -62,13 +62,13 @@ object InfoDisplay: Feature("Displays the system time, clicks per second, FPS, a
         hudElement("FpsDisplay", { fpsDisplay.value }) { ctx, _ ->
             val text = "FPS: &f${mc.fps}"
             ctx.drawString(text, 0, 0, fpsColor.value)
-            return@hudElement text.width() to 12
+            return@hudElement text.width() to 9
         }
 
         hudElement("TpsDisplay", { tpsDisplay.value }) { ctx, example ->
             val text = "TPS: &f${if (example) 20 else ServerUtils.tps.toFixed(1)}"
             ctx.drawString(text, 0, 0, tpsColor.value)
-            return@hudElement text.width() to 12
+            return@hudElement text.width() to 9
         }
 
         hudElement("PingDisplay", { pingDisplay.value }) { ctx, _ ->
@@ -83,7 +83,7 @@ object InfoDisplay: Feature("Displays the system time, clicks per second, FPS, a
             }
             val text = "Ping: $color$ping${if (pingSuffix.value) "ms" else ""}"
             ctx.drawString(text, 0, 0, pingColor.value)
-            return@hudElement text.width() to 12
+            return@hudElement text.width() to 9
         }
 
         register<WorldChangeEvent> {
