@@ -25,6 +25,7 @@ import net.minecraft.network.protocol.common.ServerboundCustomClickActionPacket
 object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for the chat such as Ctrl + Click to copy messages."), ICommandProvider {
     private val ctrlClickToCopy by ToggleSetting("Ctrl Click to Copy", true).withDescription("Ctrl + Left Click a message to copy it to your clipboard.")
     private val removeUselessMessages by ToggleSetting("Remove useless messages", true).withDescription("Removes a lot of useless messages from the chat.")
+    private val explosiveShotDamage by ToggleSetting("Explosive Shot Damage", true).withDescription("Shows the damage per enemy dealt by your Explosive Shot.")
     private val chatEmoji by ToggleSetting("Chat Emoji", true).withDescription("Lets you use [MVP++] emojis in chat")
 
     //#if CHEAT
@@ -94,7 +95,7 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
         }
 
         register<ChatMessageEvent> {
-            if (! removeUselessMessages.value) return@register
+            if (! explosiveShotDamage.value) return@register
             val (sHits, _, fDamage) = explosiveShotRegex.find(event.unformattedText)?.destructured ?: return@register
             val hits = sHits.toIntOrNull() ?: return@register
             val totalDamage = fDamage.replace(",", "").toDoubleOrNull() ?: return@register
