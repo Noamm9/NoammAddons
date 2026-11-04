@@ -10,6 +10,7 @@ import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
 
+// todo: party mute state.
 object PartyUtils: ISelfInit {
     enum class PartyRole { LEADER, MOD, MEMBER }
     enum class OnlineState { ONLINE, OFFLINE }
@@ -47,7 +48,7 @@ object PartyUtils: ISelfInit {
     private val kickedOffline = line("Kicked (.+) because they were offline\\.")
 
     private val transferred = line("The party was transferred to $RANK$NAME (by|because) $RANK$NAME(?: left)?")
-    private val roleChanged = line("$RANK$NAME has (?:promoted|demoted) $RANK$NAME to Party (Leader|Moderator|Member)") // todo test
+    private val roleChanged = line("$RANK$NAME has (?:promoted|demoted) $RANK$NAME to Party (Leader|Moderator|Member)")
     private val warped = line("Party Leader, $RANK$NAME, summoned you to their server.")
 
     private val invited = line("$RANK$NAME invited $RANK$NAME to the party! They have \\d+ seconds to accept\\.")

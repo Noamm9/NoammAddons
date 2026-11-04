@@ -9,7 +9,7 @@ import com.github.noamm9.utils.render.RenderHelper.width
 import kotlin.math.roundToInt
 
 object WarpCooldown: Feature("Displays on screen how long until you can start another dungeon run.") {
-    private const val CD = 30 // todo check if 15 on main
+    private const val CD = 30
     private var startTime = System.currentTimeMillis()
     private var onCd = false
 
