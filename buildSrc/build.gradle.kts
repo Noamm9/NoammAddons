@@ -1,4 +1,4 @@
-import java.util.Properties
+import java.util.*
 
 plugins {
     `kotlin-dsl`
@@ -22,4 +22,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
     implementation("org.jetbrains.kotlin:kotlin-serialization:$kotlin_version")
     implementation("com.gradleup.shadow:shadow-gradle-plugin:$shadow_version")
+
+    testImplementation(kotlin("test"))
 }
+
+tasks.test { useJUnitPlatform() }
