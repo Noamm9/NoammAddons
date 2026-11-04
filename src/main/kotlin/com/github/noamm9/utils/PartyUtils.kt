@@ -47,7 +47,8 @@ object PartyUtils: ISelfInit {
     private val kickedOffline = line("Kicked (.+) because they were offline\\.")
 
     private val transferred = line("The party was transferred to $RANK$NAME (by|because) $RANK$NAME(?: left)?")
-    private val roleChanged = line("$RANK$NAME has (?:promoted|demoted) $RANK$NAME to Party (Leader|Moderator|Member)")
+    private val roleChanged = line("$RANK$NAME has (?:promoted|demoted) $RANK$NAME to Party (Leader|Moderator|Member)") // todo test
+    private val warped = line("Party Leader, $RANK$NAME, summoned you to their server.")
 
     private val invited = line("$RANK$NAME invited $RANK$NAME to the party! They have \\d+ seconds to accept\\.")
     private val inviteExpired = line("The party invite to $RANK$NAME has expired\\.?")
@@ -106,7 +107,7 @@ object PartyUtils: ISelfInit {
         }
 
         register<DungeonEvent.RunStartedEvent> {
-            DungeonListener.dungeonTeammates.forEach { upsert(it.name, state = OnlineState.ONLINE) }
+            DungeonListener.dungeonTeammates.filterNot { it.isDead }.forEach { upsert(it.name, state = OnlineState.ONLINE) }
         }
     }
 
@@ -167,10 +168,16 @@ object PartyUtils: ISelfInit {
             return
         }
 
+        warped.matchEntire(text)?.let {
+            val (leader) = it.destructured
+            setLeader(leader)
+        }
+
         roleChanged.matchEntire(text)?.let {
             val (actor, target, role) = it.destructured
             if (! isMember(actor) || ! isMember(target)) membersKnown = false
             upsert(actor, state = OnlineState.ONLINE)
+            setLeader(actor)
             when (role) {
                 "Leader" -> {
                     setLeader(target)
@@ -186,7 +193,7 @@ object PartyUtils: ISelfInit {
         invited.matchEntire(text)?.let {
             val (inviter, invitee) = it.destructured
             if (! isMember(inviter)) membersKnown = false
-            upsert(inviter, state = OnlineState.ONLINE)
+            if (partyLeader == null) setLeader(inviter) else upsert(inviter, state = OnlineState.ONLINE)
             if (! pendingInvites.has(invitee)) pendingInvites = pendingInvites + invitee
             return
         }
@@ -284,9 +291,9 @@ object PartyUtils: ISelfInit {
         val current = partyLeader
         if (current != null && ! current.same(name)) {
             previousLeader = current
-            upsert(current, PartyRole.MEMBER)
+            upsert(current, PartyRole.MEMBER, OnlineState.ONLINE)
         }
-        upsert(name, PartyRole.LEADER)
+        upsert(name, PartyRole.LEADER, OnlineState.ONLINE)
     }
 
     private fun reset() {
