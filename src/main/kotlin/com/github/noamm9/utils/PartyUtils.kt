@@ -56,11 +56,10 @@ object PartyUtils: ISelfInit {
     private val leaderDisconnected = line("The party leader,? $RANK$NAME has disconnected, they have \\d+ minutes? to rejoin before the party is disbanded\\.")
     private val rejoined = line("(?:The party leader,? )?$RANK$NAME has rejoined\\.")
 
-    private val listHeader = line("Party Members \\(\\d+\\)")
+    private val listHeader = line("Party Members \\((\\d+)\\)")
     private val listEntry = line("Party (Leader|Moderators|Members): (.+)")
 
     private val partyChat = line("Party > $RANK$NAME: .*")
-    private val finderQueued = line("Party Finder > Your (?:party|group) has been queued in the .+!")
 
     private val floorEntered = line("[^\\w\\s]*\\s*$RANK$NAME entered (?:MM )?The Catacombs, Floor [IVX]+!")
 
@@ -70,6 +69,8 @@ object PartyUtils: ISelfInit {
 
     private var lineRanks = emptyMap<String, Pair<String, String?>>()
     private val separator = Regex("^[-▬=\\s]+$")
+    private var membersKnown = false
+    private var listSize: Int? = null
 
     @Volatile var partyMembers: List<PartyMember> = emptyList()
         private set
@@ -105,8 +106,7 @@ object PartyUtils: ISelfInit {
         }
 
         register<DungeonEvent.RunStartedEvent> {
-            DungeonListener.dungeonTeammates.forEach { upsert(it.name) }
-            if (partyLeader == null) setLeader(self)
+            DungeonListener.dungeonTeammates.forEach { upsert(it.name, state = OnlineState.ONLINE) }
         }
     }
 
@@ -136,16 +136,21 @@ object PartyUtils: ISelfInit {
 
         joinedSelf.matchEntire(text)?.let {
             reset()
-            return setLeader(it.groupValues[1])
+            setLeader(it.groupValues[1])
+            membersKnown = true
+            return
         }
 
         partyingWith.matchEntire(text)?.let { match ->
             return match.groupValues[1].split(", ").mapNotNull(::nameOf).forEach { upsert(it) }
         }
 
-        (joined.matchEntire(text) ?: finderJoined.matchEntire(text))?.let {
-            if (! isInParty) setLeader(self)
-            return upsert(it.groupValues[1])
+        joined.matchEntire(text)?.let { return upsert(it.groupValues[1], state = OnlineState.ONLINE) }
+
+        finderJoined.matchEntire(text)?.let {
+            val name = it.groupValues[1]
+            if (name.same(self)) reset()
+            return upsert(name, state = OnlineState.ONLINE)
         }
 
         removed.matchEntire(text)?.let { return removeMember(it.groupValues[1]) }
@@ -164,6 +169,8 @@ object PartyUtils: ISelfInit {
 
         roleChanged.matchEntire(text)?.let {
             val (actor, target, role) = it.destructured
+            if (! isMember(actor) || ! isMember(target)) membersKnown = false
+            upsert(actor, state = OnlineState.ONLINE)
             when (role) {
                 "Leader" -> {
                     setLeader(target)
@@ -178,7 +185,8 @@ object PartyUtils: ISelfInit {
 
         invited.matchEntire(text)?.let {
             val (inviter, invitee) = it.destructured
-            if (partyLeader == null) setLeader(inviter) else upsert(inviter)
+            if (! isMember(inviter)) membersKnown = false
+            upsert(inviter, state = OnlineState.ONLINE)
             if (! pendingInvites.has(invitee)) pendingInvites = pendingInvites + invitee
             return
         }
@@ -193,24 +201,34 @@ object PartyUtils: ISelfInit {
             return upsert(it.groupValues[1], state = OnlineState.OFFLINE)
         }
 
-        memberDisconnected.matchEntire(text)?.let { return upsert(it.groupValues[1], state = OnlineState.OFFLINE) }
-
-        rejoined.matchEntire(text)?.let {
-            if (isMember(it.groupValues[1])) upsert(it.groupValues[1], state = OnlineState.ONLINE)
-            return
+        memberDisconnected.matchEntire(text)?.let {
+            val name = it.groupValues[1]
+            if (! isMember(name)) membersKnown = false
+            return upsert(name, state = OnlineState.OFFLINE)
         }
 
-        if (listHeader.matches(text)) {
+        rejoined.matchEntire(text)?.let {
+            val name = it.groupValues[1]
+            if (! isMember(name)) membersKnown = false
+            if (text.startsWith("The party leader")) setLeader(name)
+            return upsert(name, state = OnlineState.ONLINE)
+        }
+
+        listHeader.matchEntire(text)?.let {
             partyMembers = emptyList()
             isInParty = true
+            membersKnown = false
+            listSize = it.groupValues[1].toInt()
             return
         }
 
         listEntry.matchEntire(text)?.let { return parseListEntry(it.groupValues[1], formatted) }
 
-        partyChat.matchEntire(text)?.let { return upsert(it.groupValues[1]) }
-
-        if (finderQueued.matches(text) && partyLeader == null) setLeader(self)
+        partyChat.matchEntire(text)?.let {
+            val name = it.groupValues[1]
+            if (! isMember(name)) membersKnown = false
+            return upsert(name, state = OnlineState.ONLINE)
+        }
     }
 
     private fun parseListEntry(kind: String, formatted: String) {
@@ -226,9 +244,15 @@ object PartyUtils: ISelfInit {
             }
             upsert(name, state = state)
         }
+
+        if (listSize == partySize) {
+            membersKnown = true
+            listSize = null
+        }
     }
 
     private fun upsert(name: String, role: PartyRole? = null, state: OnlineState? = null) {
+        if (! isInParty) membersKnown = false
         isInParty = true
         val current = partyMembers.let { list ->
             if (list.any { it.name.same(self) }) list
@@ -251,8 +275,9 @@ object PartyUtils: ISelfInit {
 
     private fun removeMember(name: String) {
         if (name.same(self)) return reset()
+        if (! isMember(name)) membersKnown = false
         partyMembers = partyMembers.filterNot { it.name.same(name) }
-        if (partyMembers.all { it.name.same(self) } && pendingInvites.isEmpty()) reset()
+        if (membersKnown && partyMembers.all { it.name.same(self) } && pendingInvites.isEmpty()) reset()
     }
 
     private fun setLeader(name: String) {
@@ -269,6 +294,8 @@ object PartyUtils: ISelfInit {
         pendingInvites = emptySet()
         previousLeader = null
         isInParty = false
+        membersKnown = false
+        listSize = null
     }
 
     private fun nameOf(entry: String) = named.matchEntire(entry.trim())?.groupValues?.get(1)
