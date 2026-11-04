@@ -6,8 +6,10 @@ import java.io.File
 import java.util.*
 
 private val directiveRegex = "^//\\s*".toRegex()
-private val placeholderRegex = Regex("@(\\w+)@")
 private const val marker = "//!"
+private val inlineDirectiveRegex = Regex("^(\\s*)//\\s*#if\\s+LEGIT\\s+(\\S.*)$")
+private val inlineCheatRegex = Regex("^\\s*//\\s*#if\\s+CHEAT\\s+\\S.*$")
+private val placeholderRegex = Regex("@(\\w+)@")
 
 private data class StackFrame(val outerInclude: Boolean, val branchWasTrue: Boolean)
 
@@ -19,25 +21,24 @@ private fun Project.loadGradleProperties(): Map<String, String> {
     return props.mapKeys { it.key as String }.mapValues { it.value as String }
 }
 
-val Project.sourceRoot: File
-    get() {
-        val mainSourceSet = the<SourceSetContainer>().named("main").get()
-        val javaDir = mainSourceSet.java.srcDirs.firstOrNull { it != file("src/main/java") }
-            ?: return layout.buildDirectory.dir("generated/stonecutter/main").get().asFile
-        return javaDir.parentFile
-    }
+fun Project.sourceRoot(): File {
+    val mainSourceSet = the<SourceSetContainer>().named("main").get()
+    val javaDir = mainSourceSet.java.srcDirs.firstOrNull { it != file("src/main/java") }
+        ?: return layout.buildDirectory.dir("generated/stonecutter/main").get().asFile
+    return javaDir.parentFile
+}
 
 fun Task.dependsOnStonecutter() {
     if (project.tasks.findByName("stonecutterGenerate") != null) dependsOn("stonecutterGenerate")
 }
 
-private fun replaceProperties(content: String, properties: Map<String, String>): String {
+internal fun replaceProperties(content: String, properties: Map<String, String>): String {
     return placeholderRegex.replace(content) { match ->
         properties[match.groupValues[1].lowercase()] ?: match.value
     }
 }
 
-private fun processDirectives(sourceFile: File, variantName: String, stripLineComments: Boolean = false): List<String> {
+internal fun processDirectives(sourceFile: File, variantName: String, stripLineComments: Boolean = false): List<String> {
     val isCheat = variantName == "cheat"
     val stack = mutableListOf<StackFrame>()
     val output = mutableListOf<String>()
@@ -46,6 +47,14 @@ private fun processDirectives(sourceFile: File, variantName: String, stripLineCo
     sourceFile.readLines().forEachIndexed { index, line ->
         val lineNumber = index + 1
         val directive = line.trim().replaceFirst(directiveRegex, "")
+        if (inlineCheatRegex.matches(line)) throw GradleException(
+            listOf(
+                "--------------------------------",
+                "Inline #if CHEAT is not allowed (${sourceFile.name}:L$lineNumber).",
+                "Use a #if CHEAT ... #endif block instead to keep the main and cheat sources in sync.",
+                "--------------------------------"
+            ).joinToString(separator = "\n")
+        )
 
         when (directive) {
             "#if CHEAT" -> {
@@ -70,11 +79,15 @@ private fun processDirectives(sourceFile: File, variantName: String, stripLineCo
             }
 
             else -> if (include) {
-                val trimmed = line.trim()
+                val inlineDirective = inlineDirectiveRegex.matchEntire(line)
+                if (inlineDirective != null && isCheat) return@forEachIndexed
+
+                val content = inlineDirective?.let { it.groupValues[1] + it.groupValues[2] } ?: line
+                val trimmed = content.trim()
                 if (stripLineComments && trimmed.startsWith("//") && ! trimmed.startsWith(marker)) return@forEachIndexed
 
-                val markerIndex = line.indexOf(marker)
-                output += if (markerIndex >= 0) line.removeRange(markerIndex, markerIndex + marker.length) else line
+                val markerIndex = content.indexOf(marker)
+                output += if (markerIndex >= 0) content.removeRange(markerIndex, markerIndex + marker.length) else content
             }
         }
     }
@@ -97,8 +110,8 @@ private fun Project.preprocessSources(variantName: String, outRoot: File) {
         }
     }
 
-    processTree(File(sourceRoot, "kotlin"), File(outRoot, "kotlin"))
-    processTree(File(sourceRoot, "java"), File(outRoot, "java"))
+    processTree(File(sourceRoot(), "kotlin"), File(outRoot, "kotlin"))
+    processTree(File(sourceRoot(), "java"), File(outRoot, "java"))
 }
 
 private fun Project.replaceSourceProperties(outRoot: File) {
@@ -114,12 +127,12 @@ private fun Project.replaceSourceProperties(outRoot: File) {
         }
     }
 
-    processTree(File(sourceRoot, "kotlin"), File(outRoot, "kotlin"))
-    processTree(File(sourceRoot, "java"), File(outRoot, "java"))
+    processTree(File(sourceRoot(), "kotlin"), File(outRoot, "kotlin"))
+    processTree(File(sourceRoot(), "java"), File(outRoot, "java"))
 }
 
 private fun Project.preprocessResources(variantName: String, outRoot: File) {
-    val resourcesIn = File(sourceRoot, "resources")
+    val resourcesIn = File(sourceRoot(), "resources")
     if (! resourcesIn.exists()) return
 
     val properties = loadGradleProperties()
@@ -147,10 +160,10 @@ fun Project.registerPreprocessTask(variantName: String): TaskProvider<Task> {
         val resourcesOut = layout.buildDirectory.dir("preprocessed/$variantName/resources")
 
         dependsOnStonecutter()
-        inputs.dir(File(sourceRoot, "kotlin"))
-        inputs.dir(File(sourceRoot, "java"))
-        inputs.file(File(sourceRoot, "resources/fabric.mod.json5"))
-        inputs.file(File(sourceRoot, "resources/${findProperty("mod_id")}.mixins.json5"))
+        inputs.dir(File(sourceRoot(), "kotlin"))
+        inputs.dir(File(sourceRoot(), "java"))
+        inputs.file(File(sourceRoot(), "resources/fabric.mod.json5"))
+        inputs.file(File(sourceRoot(), "resources/${findProperty("mod_id")}.mixins.json5"))
         outputs.dir(outRoot)
         outputs.dir(resourcesOut)
 
@@ -167,8 +180,8 @@ fun Project.registerPreprocessMainTask(): TaskProvider<Task> {
         val outRoot = layout.buildDirectory.dir("preprocessed/main")
 
         dependsOnStonecutter()
-        inputs.dir(File(sourceRoot, "kotlin"))
-        inputs.dir(File(sourceRoot, "java"))
+        inputs.dir(File(sourceRoot(), "kotlin"))
+        inputs.dir(File(sourceRoot(), "java"))
         outputs.dir(outRoot)
 
         doFirst { delete(outRoot.get().asFile) }
