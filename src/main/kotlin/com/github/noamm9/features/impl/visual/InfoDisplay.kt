@@ -26,7 +26,7 @@ object InfoDisplay: Feature("Displays the system time, clicks per second, FPS, a
     private val pingDisplay by ToggleSetting("Ping Display").section("Ping")
     private val pingSuffix by ToggleSetting("Show ms suffix").showIf { pingDisplay.value }
     private val colorizePing by ToggleSetting("Colorize Ping").showIf { pingDisplay.value }
-    private val pingColor by ColorSetting("Ping Color", Color(0, 114, 255)).showIf { pingDisplay.value }
+    private val pingColor by ColorSetting("Ping Color", Color(0, 114, 255), false).showIf { pingDisplay.value }
 
     private val cpsDisplay by ToggleSetting("CPS Display").section("CPS")
 
@@ -49,7 +49,7 @@ object InfoDisplay: Feature("Displays the system time, clicks per second, FPS, a
         }
 
         hudElement("FpsDisplay", { fpsDisplay.value }) { ctx, _ ->
-            val text = "${mc.fps} fps"
+            val text = "FPS: &f${mc.fps}"
             ctx.drawString(text, 0, 0, fpsColor.value)
             return@hudElement text.width() to 12
         }
