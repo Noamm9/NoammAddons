@@ -1,9 +1,11 @@
 package com.github.noamm9.utils
 
 import com.github.noamm9.NoammAddons.mc
+import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.impl.ChatMessageEvent
 import com.github.noamm9.event.impl.DungeonEvent
+import com.github.noamm9.event.impl.PartyEvent
 import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ChatUtils.removeFormatting
@@ -44,7 +46,7 @@ object PartyUtils: ISelfInit {
 
     private val joined = line("$RANK$NAME joined the party\\.")
     private val finderJoined = line("Party Finder > $RANK$NAME joined the (?:dungeon )?group! \\(.+\\)")
-    private val removed = line("$RANK$NAME (?:has left the party|has been removed from the party|was removed from (?:the|your) party because they disconnected)\\.")
+    private val removed = line("$RANK$NAME (has left the party|has been removed from the party|was removed from (?:the|your) party because they disconnected)\\.")
     private val kickedOffline = line("Kicked (.+) because they were offline\\.")
 
     private val transferred = line("The party was transferred to $RANK$NAME (by|because) $RANK$NAME(?: left)?")
@@ -147,31 +149,54 @@ object PartyUtils: ISelfInit {
             return match.groupValues[1].split(", ").mapNotNull(::nameOf).forEach { upsert(it) }
         }
 
-        joined.matchEntire(text)?.let { return upsert(it.groupValues[1], state = OnlineState.ONLINE) }
+        joined.matchEntire(text)?.let {
+            val name = it.groupValues[1]
+            upsert(name, state = OnlineState.ONLINE)
+            EventBus.post(PartyEvent.MemberJoined(name))
+            return
+        }
 
         finderJoined.matchEntire(text)?.let {
             val name = it.groupValues[1]
-            if (name.same(self)) reset()
-            return upsert(name, state = OnlineState.ONLINE)
+            if (name.same(self)) {
+                reset()
+                return upsert(name, state = OnlineState.ONLINE)
+            }
+
+            upsert(name, state = OnlineState.ONLINE)
+            EventBus.post(PartyEvent.MemberJoined(name))
+            return
         }
 
-        removed.matchEntire(text)?.let { return removeMember(it.groupValues[1]) }
+        removed.matchEntire(text)?.let {
+            val (name, action) = it.destructured
+            val cause = when {
+                action.startsWith("has left") -> PartyEvent.LeaveCause.LEFT
+                action.startsWith("has been removed") -> PartyEvent.LeaveCause.KICKED
+                else -> PartyEvent.LeaveCause.DISCONNECTED
+            }
+            return removeMember(name, cause)
+        }
 
         kickedOffline.matchEntire(text)?.let { match ->
-            return match.groupValues[1].split(", ").mapNotNull(::nameOf).forEach(::removeMember)
+            return match.groupValues[1].split(", ").mapNotNull(::nameOf).forEach { removeMember(it, PartyEvent.LeaveCause.KICKED) }
         }
 
         transferred.matchEntire(text)?.let {
             val (newLeader, reason, oldLeader) = it.destructured
             setLeader(newLeader)
-            if (reason == "because") removeMember(oldLeader)
-            else upsert(oldLeader, PartyRole.MOD)
+            EventBus.post(PartyEvent.RoleChange(newLeader, PartyRole.LEADER))
+            if (reason == "because") return removeMember(oldLeader, PartyEvent.LeaveCause.LEFT)
+
+            upsert(oldLeader, PartyRole.MOD)
+            EventBus.post(PartyEvent.RoleChange(oldLeader, PartyRole.MOD))
             return
         }
 
         warped.matchEntire(text)?.let {
             val (leader) = it.destructured
             setLeader(leader)
+            EventBus.post(PartyEvent.Warp)
         }
 
         roleChanged.matchEntire(text)?.let {
@@ -183,10 +208,19 @@ object PartyUtils: ISelfInit {
                 "Leader" -> {
                     setLeader(target)
                     upsert(actor, PartyRole.MOD)
+                    EventBus.post(PartyEvent.RoleChange(target, PartyRole.LEADER))
+                    EventBus.post(PartyEvent.RoleChange(actor, PartyRole.MOD))
                 }
 
-                "Moderator" -> upsert(target, PartyRole.MOD)
-                else -> upsert(target, PartyRole.MEMBER)
+                "Moderator" -> {
+                    upsert(target, PartyRole.MOD)
+                    EventBus.post(PartyEvent.RoleChange(target, PartyRole.MOD))
+                }
+
+                else -> {
+                    upsert(target, PartyRole.MEMBER)
+                    EventBus.post(PartyEvent.RoleChange(target, PartyRole.MEMBER))
+                }
             }
             return
         }
@@ -196,37 +230,49 @@ object PartyUtils: ISelfInit {
             if (! isMember(inviter)) membersKnown = false
             if (partyLeader == null) setLeader(inviter) else upsert(inviter, state = OnlineState.ONLINE)
             if (! pendingInvites.has(invitee)) pendingInvites = pendingInvites + invitee
+            EventBus.post(PartyEvent.Invite(inviter, invitee))
             return
         }
 
         inviteExpired.matchEntire(text)?.let {
-            pendingInvites = pendingInvites.without(it.groupValues[1])
+            val invitee = it.groupValues[1]
+            pendingInvites = pendingInvites.without(invitee)
+            EventBus.post(PartyEvent.InviteExpired(invitee))
             return
         }
 
         leaderDisconnected.matchEntire(text)?.let {
-            setLeader(it.groupValues[1])
-            return upsert(it.groupValues[1], state = OnlineState.OFFLINE)
+            val name = it.groupValues[1]
+            setLeader(name)
+            upsert(name, state = OnlineState.OFFLINE)
+            EventBus.post(PartyEvent.MemberStateChange(name, OnlineState.OFFLINE))
+            return
         }
 
         memberDisconnected.matchEntire(text)?.let {
             val name = it.groupValues[1]
             if (! isMember(name)) membersKnown = false
-            return upsert(name, state = OnlineState.OFFLINE)
+            upsert(name, state = OnlineState.OFFLINE)
+            EventBus.post(PartyEvent.MemberStateChange(name, OnlineState.OFFLINE))
+            return
         }
 
         rejoined.matchEntire(text)?.let {
             val name = it.groupValues[1]
             if (! isMember(name)) membersKnown = false
             if (text.startsWith("The party leader")) setLeader(name)
-            return upsert(name, state = OnlineState.ONLINE)
+            upsert(name, state = OnlineState.ONLINE)
+            EventBus.post(PartyEvent.MemberStateChange(name, OnlineState.ONLINE))
+            return
         }
 
         listHeader.matchEntire(text)?.let {
+            val wasInParty = isInParty
             partyMembers = emptyList()
             isInParty = true
             membersKnown = false
             listSize = it.groupValues[1].toInt()
+            if (! wasInParty) EventBus.post(PartyEvent.Joined)
             return
         }
 
@@ -260,7 +306,8 @@ object PartyUtils: ISelfInit {
     }
 
     private fun upsert(name: String, role: PartyRole? = null, state: OnlineState? = null) {
-        if (! isInParty) membersKnown = false
+        val wasInParty = isInParty
+        if (! wasInParty) membersKnown = false
         isInParty = true
         val current = partyMembers.let { list ->
             if (list.any { it.name.same(self) }) list
@@ -279,12 +326,14 @@ object PartyUtils: ISelfInit {
 
         partyMembers = if (existing == null) current + updated else current.map { if (it === existing) updated else it }
         if (pendingInvites.has(name)) pendingInvites = pendingInvites.without(name)
+        if (! wasInParty) EventBus.post(PartyEvent.Joined)
     }
 
-    private fun removeMember(name: String) {
+    private fun removeMember(name: String, cause: PartyEvent.LeaveCause) {
         if (name.same(self)) return reset()
         if (! isMember(name)) membersKnown = false
         partyMembers = partyMembers.filterNot { it.name.same(name) }
+        EventBus.post(PartyEvent.MemberLeft(name, cause))
         if (membersKnown && partyMembers.all { it.name.same(self) } && pendingInvites.isEmpty()) reset()
     }
 
@@ -298,12 +347,15 @@ object PartyUtils: ISelfInit {
     }
 
     private fun reset() {
+        val wasInParty = isInParty
+        val oldMembers = members.filterNot { it.same(self) }
         partyMembers = emptyList()
         pendingInvites = emptySet()
         previousLeader = null
         isInParty = false
         membersKnown = false
         listSize = null
+        if (wasInParty) EventBus.post(PartyEvent.Left(oldMembers))
     }
 
     private fun nameOf(entry: String) = named.matchEntire(entry.trim())?.groupValues?.get(1)
