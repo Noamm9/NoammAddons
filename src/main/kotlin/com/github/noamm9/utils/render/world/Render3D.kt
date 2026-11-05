@@ -4,11 +4,11 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.compat.rotateCompat
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.NumbersUtils.times
+import com.github.noamm9.utils.render.Render2D.visualOrder
 import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.client.gui.Font
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.network.chat.Component
 import net.minecraft.util.LightCoordsUtil
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.AABB
@@ -271,7 +271,7 @@ object Render3D {
         matrixStack.scale(toScale, - toScale, toScale)
 
         for ((i, line) in text.addColor().lineSequence().withIndex()) collector.submitText(
-            matrixStack, - line.width() / 2f, i * 9f, Component.literal(line).visualOrderText, true,
+            matrixStack, - line.width() / 2f, i * 9f, line.visualOrder(), true,
             if (phase) Font.DisplayMode.SEE_THROUGH else Font.DisplayMode.NORMAL,
             LightCoordsUtil.FULL_BRIGHT, color.rgb, 0, 0
         )
