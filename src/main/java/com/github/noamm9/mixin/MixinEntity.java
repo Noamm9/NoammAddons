@@ -20,6 +20,8 @@ import java.awt.*;
 public abstract class MixinEntity implements IGlowingEntity {
     @Unique private Color glowColor = Color.WHITE;
     @Unique private boolean glowForced = false;
+    @Unique private int glowCheckTick = -1;
+    @Unique private boolean glowCancelled = false;
 
     @Shadow
     public abstract float getYRot();
@@ -68,5 +70,25 @@ public abstract class MixinEntity implements IGlowingEntity {
     @Override
     public void noammaddons$isGlowing(boolean value) {
         glowForced = value;
+    }
+
+    @Override
+    public int noammaddons$glowCheckTick() {
+        return glowCheckTick;
+    }
+
+    @Override
+    public void noammaddons$glowCheckTick(int tick) {
+        glowCheckTick = tick;
+    }
+
+    @Override
+    public boolean noammaddons$glowCancelled() {
+        return glowCancelled;
+    }
+
+    @Override
+    public void noammaddons$glowCancelled(boolean value) {
+        glowCancelled = value;
     }
 }

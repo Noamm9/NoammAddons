@@ -9,8 +9,6 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.authlib.minecraft.UserApiService;
-//~ if <26.3 'services.MinecraftServicesDiscoveryService' -> 'yggdrasil.YggdrasilAuthenticationService'
-import com.mojang.authlib.services.MinecraftServicesDiscoveryService;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.User;
 import net.minecraft.client.main.GameConfig;
@@ -19,18 +17,16 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.*;
 import org.jetbrains.annotations.Nullable;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+//~ if <26.3 'services.MinecraftServicesDiscoveryService' -> 'yggdrasil.YggdrasilAuthenticationService'
+import com.mojang.authlib.services.MinecraftServicesDiscoveryService;
 
 //#if LEGIT
 //!import com.github.noamm9.utils.render.LegitEntityVisibility;
@@ -81,7 +77,8 @@ public abstract class MixinMinecraft {
             event = isLeftClick
                 ? new PlayerInteractEvent.LEFT_CLICK.AIR(itemStack)
                 : new PlayerInteractEvent.RIGHT_CLICK.AIR(itemStack);
-        } else {
+        }
+        else {
             event = switch (this.hitResult.getType()) {
                 case ENTITY -> {
                     Entity entity = ((EntityHitResult) this.hitResult).getEntity();
@@ -118,20 +115,29 @@ public abstract class MixinMinecraft {
         //!}
         //#endif
 
-        var event = new CheckEntityGlowEvent(entity);
-        if (EventBus.post(event)) return false;
-
         var glow = (IGlowingEntity) entity;
-        glow.noammaddons$isGlowing(event.getShouldGlow());
-        glow.noammaddons$glowColor(event.getColor());
 
+        if (this.player == null || glow.noammaddons$glowCheckTick() != this.player.tickCount) {
+            var event = new CheckEntityGlowEvent(entity);
+            var cancelled = EventBus.post(event);
+
+            if (! cancelled) {
+                glow.noammaddons$isGlowing(event.getShouldGlow());
+                glow.noammaddons$glowColor(event.getColor());
+            }
+
+            glow.noammaddons$glowCancelled(cancelled);
+            if (this.player != null) glow.noammaddons$glowCheckTick(this.player.tickCount);
+        }
+
+        if (glow.noammaddons$glowCancelled()) return false;
         return original || glow.noammaddons$isGlowing();
     }
 
     @SuppressWarnings("ConstantValue")
-    //~ if <26.3 'services/MinecraftServicesDiscoveryService' -> 'yggdrasil/YggdrasilAuthenticationService'
+        //~ if <26.3 'services/MinecraftServicesDiscoveryService' -> 'yggdrasil/YggdrasilAuthenticationService'
     @WrapOperation(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;createUserApiService(Lcom/mojang/authlib/services/MinecraftServicesDiscoveryService;Lnet/minecraft/client/main/GameConfig;)Lcom/mojang/authlib/minecraft/UserApiService;"))
-    //~ if <26.3 'MinecraftServicesDiscoveryService ' -> 'YggdrasilAuthenticationService '
+        //~ if <26.3 'MinecraftServicesDiscoveryService ' -> 'YggdrasilAuthenticationService '
     private UserApiService onCreateUserApiService(MinecraftServicesDiscoveryService discoveryService, GameConfig config, Operation<UserApiService> original) {
         String token = user.getAccessToken();
         if (token == null || token.equals("0") || token.equals("FabricMC")) return original.call(discoveryService, config);

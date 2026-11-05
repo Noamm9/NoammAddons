@@ -10,4 +10,12 @@ public interface IGlowingEntity {
     boolean noammaddons$isGlowing();
 
     void noammaddons$isGlowing(boolean value);
+
+    int noammaddons$glowCheckTick();
+
+    void noammaddons$glowCheckTick(int tick);
+
+    boolean noammaddons$glowCancelled();
+
+    void noammaddons$glowCancelled(boolean value);
 }
