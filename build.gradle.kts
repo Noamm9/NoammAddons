@@ -116,9 +116,13 @@ dependencies {
 }
 
 afterEvaluate {
+    val fabricKotlinModules = configurations.detachedConfiguration(
+        dependencies.create("net.fabricmc:fabric-language-kotlin:$fabric_kotlin_version")
+    ).resolvedConfiguration.resolvedArtifacts.map { it.moduleVersion.id.module }.toSet()
+
     bundled.resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
         val id = artifact.moduleVersion.id
-        if (id.group in shadedGroups) return@forEach
+        if (id.group in shadedGroups || id.module in fabricKotlinModules) return@forEach
         dependencies.add("include", "${id.group}:${id.name}:${id.version}")
     }
 }

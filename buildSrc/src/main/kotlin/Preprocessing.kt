@@ -160,6 +160,7 @@ fun Project.registerPreprocessTask(variantName: String): TaskProvider<Task> {
         val resourcesOut = layout.buildDirectory.dir("preprocessed/$variantName/resources")
 
         dependsOnStonecutter()
+        inputs.properties(loadGradleProperties())
         inputs.dir(File(sourceRoot(), "kotlin"))
         inputs.dir(File(sourceRoot(), "java"))
         inputs.file(File(sourceRoot(), "resources/fabric.mod.json5"))
@@ -180,6 +181,7 @@ fun Project.registerPreprocessMainTask(): TaskProvider<Task> {
         val outRoot = layout.buildDirectory.dir("preprocessed/main")
 
         dependsOnStonecutter()
+        inputs.properties(loadGradleProperties())
         inputs.dir(File(sourceRoot(), "kotlin"))
         inputs.dir(File(sourceRoot(), "java"))
         outputs.dir(outRoot)
