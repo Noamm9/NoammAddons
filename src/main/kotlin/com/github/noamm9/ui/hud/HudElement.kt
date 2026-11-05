@@ -47,8 +47,6 @@ abstract class HudElement {
     }
 
     fun renderElement(ctx: GuiGraphicsExtractor, example: Boolean) {
-        if (! toggle) return
-
         ctx.pose().pushMatrix()
         ctx.pose().translate(x, y)
         ctx.pose().scale(scale, scale)

@@ -78,7 +78,7 @@ class ClassGraphInitializer {
             if (mc.gui.screen() is HudEditorScreen) return@register
 
             Resolution.push(event.context)
-            FeatureManager.hudElements.forEach { if (it.shouldDraw) it.renderElement(event.context, false) }
+            FeatureManager.hudElements.forEach { if (it.toggle && it.shouldDraw) it.renderElement(event.context, false) }
             Resolution.pop(event.context)
         }
     }
