@@ -1,5 +1,6 @@
 package com.github.noamm9.utils.items
 
+import com.github.noamm9.mixin.ICustomData
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
@@ -16,7 +17,8 @@ import net.minecraft.world.item.component.ItemLore
 import kotlin.jvm.optionals.getOrNull
 
 object ItemUtils {
-    val ItemStack.customData get() = getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag()
+    @Suppress("KotlinConstantConditions")
+    val ItemStack.customData get() = (getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY) as ICustomData).getTagDirect()
     val ItemStack.lore get() = getOrDefault(DataComponents.LORE, ItemLore.EMPTY).styledLines().map { it.formattedText }
     val ItemStack.itemUUID get() = customData.getString("uuid").getOrNull() ?: ""
     val ItemStack.skyblockId: String
