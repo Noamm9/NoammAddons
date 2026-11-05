@@ -1,6 +1,7 @@
 package com.github.noamm9.features.impl.dev.text
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Style
 import net.minecraft.util.FormattedCharSequence
@@ -19,7 +20,7 @@ abstract class AhoCorasick {
     private var r0 = emptyArray<String>()
     private var r1 = emptyArray<Component>()
     private var r2 = emptyArray<FormattedCharSequence>()
-    private var firstChars = emptySet<Int>()
+    private var firstChars = IntOpenHashSet()
 
     private var map0 = HashMap<String, String>()
     private var map1 = HashMap<String, Component>()
@@ -61,7 +62,7 @@ abstract class AhoCorasick {
             r0 = emptyArray()
             r1 = emptyArray()
             r2 = emptyArray()
-            firstChars = emptySet()
+            firstChars = IntOpenHashSet()
             return
         }
 
@@ -69,7 +70,7 @@ abstract class AhoCorasick {
         r0 = Array(n) { map0[keys[it]] !! }
         r1 = Array(n) { map1[keys[it]] !! }
         r2 = Array(n) { map2[keys[it]] !! }
-        firstChars = ia.map { it[0] }.toHashSet()
+        firstChars = IntOpenHashSet(IntArray(n) { ia[it][0] })
 
         root = Node()
         val queue = ArrayDeque<Node>(n * 4)
@@ -343,10 +344,20 @@ abstract class AhoCorasick {
 
     fun fn(input: FormattedCharSequence): FormattedCharSequence {
         if (ia.isEmpty()) return input
-        return sequenceCache.getOrPut(input) { replaceSequence(input) }
+        sequenceCache[input]?.let { return it }
+        val result = replaceSequence(input)
+        if (result !== input) sequenceCache[input] = result
+        return result
     }
 
     private fun replaceSequence(input: FormattedCharSequence): FormattedCharSequence {
+        var hasFirstChar = false
+        input.accept { _, _, cp ->
+            hasFirstChar = cp in firstChars
+            ! hasFirstChar
+        }
+        if (! hasFirstChar) return input
+
         var chars = IntArray(128)
         val styles = ArrayList<Style>(128)
         var size = 0
@@ -359,100 +370,108 @@ abstract class AhoCorasick {
             true
         }
 
-        if (size == 0) return input
+        val s = IntArray(size)
+        val bs = arrayOfNulls<Style>(size)
+        var bl = 0
+        var i = 0
+        var state = root
+        var matched = false
 
-        var hasFirstChar = false
-        for (i in 0 until size) {
-            if (chars[i] in firstChars) {
-                hasFirstChar = true
-                break
-            }
+        var outChars = IntArray(size + 32)
+        val outStyles = ArrayList<Style>(size + 32)
+
+        var pendingOutput = - 1
+        var pendingStartAbs = - 1
+        var pendingEndAbs = - 1
+        var pendingBl = - 1
+
+        fun emit(style: Style, cp: Int) {
+            if (outStyles.size >= outChars.size) outChars = outChars.copyOf(outChars.size * 2)
+            outChars[outStyles.size] = cp
+            outStyles.add(style)
         }
-        if (! hasFirstChar) return input
 
-        return FormattedCharSequence { sink ->
-            val s = IntArray(size)
-            val bs = arrayOfNulls<Style>(size)
-            var bl = 0
-            var i = 0
-            var state = root
+        fun flush(upto: Int) {
+            for (j in 0 until upto) emit(bs[j] !!, s[j])
+        }
 
-            var pendingOutput = - 1
-            var pendingStartAbs = - 1
-            var pendingEndAbs = - 1
-            var pendingBl = - 1
+        fun commitPending(isEnd: Boolean) {
+            val io = pendingOutput
+            val matchLen = ia[io].size
+            val trailingLen = bl - pendingBl
 
-            fun flush(upto: Int) {
-                for (j in 0 until upto) sink.accept(0, bs[j] !!, s[j])
-            }
-
-            fun commitPending(isEnd: Boolean) {
-                val io = pendingOutput
-                val matchLen = ia[io].size
-                val trailingLen = bl - pendingBl
-
-                bl = pendingBl - matchLen
-                flush(bl)
-
-                val bss = bs[bl] !!
-                r2[io].accept { _, repStyle, repCp ->
-                    sink.accept(0, repStyle.applyTo(bss), repCp)
-                    true
-                }
-
-                if (isEnd) {
-                    for (k in 0 until trailingLen) {
-                        s[k] = s[pendingBl + k]
-                        bs[k] = bs[pendingBl + k]
-                    }
-                    bl = trailingLen
-                    flush(bl)
-                    bl = 0
-                }
-                else {
-                    i = pendingEndAbs + 1
-                    bl = 0
-                    state = root
-                }
-
-                pendingOutput = - 1
-            }
-
-            while (i < size) {
-                state = state.goto.get(chars[i]) ?: root
-
-                s[bl] = chars[i]
-                bs[bl] = styles[i]
-                bl ++
-
-                if (state.output >= 0) {
-                    val length = ia[state.output].size
-                    val startAbs = i - length + 1
-
-                    val effPrev = findColor(chars, startAbs)
-                    val validBefore = effPrev < 0 || ! isNameChar(chars[effPrev])
-                    val validAfter = i == size - 1 || ! isNameChar(chars[i + 1])
-
-                    if (validBefore && validAfter) {
-                        if (pendingOutput == - 1 || startAbs == pendingStartAbs) {
-                            pendingOutput = state.output
-                            pendingStartAbs = startAbs
-                            pendingEndAbs = i
-                            pendingBl = bl
-                        }
-                        else {
-                            commitPending(false)
-                            continue
-                        }
-                    }
-                }
-
-                i ++
-            }
-
-            if (pendingOutput != - 1) commitPending(true)
-
+            bl = pendingBl - matchLen
             flush(bl)
+
+            val bss = bs[bl] !!
+            r2[io].accept { _, repStyle, repCp ->
+                emit(repStyle.applyTo(bss), repCp)
+                true
+            }
+            matched = true
+
+            if (isEnd) {
+                for (k in 0 until trailingLen) {
+                    s[k] = s[pendingBl + k]
+                    bs[k] = bs[pendingBl + k]
+                }
+                bl = trailingLen
+                flush(bl)
+                bl = 0
+            }
+            else {
+                i = pendingEndAbs + 1
+                bl = 0
+                state = root
+            }
+
+            pendingOutput = - 1
+        }
+
+        while (i < size) {
+            state = state.goto.get(chars[i]) ?: root
+
+            s[bl] = chars[i]
+            bs[bl] = styles[i]
+            bl ++
+
+            if (state.output >= 0) {
+                val length = ia[state.output].size
+                val startAbs = i - length + 1
+
+                val effPrev = findColor(chars, startAbs)
+                val validBefore = effPrev < 0 || ! isNameChar(chars[effPrev])
+                val validAfter = i == size - 1 || ! isNameChar(chars[i + 1])
+
+                if (validBefore && validAfter) {
+                    if (pendingOutput == - 1 || startAbs == pendingStartAbs) {
+                        pendingOutput = state.output
+                        pendingStartAbs = startAbs
+                        pendingEndAbs = i
+                        pendingBl = bl
+                    }
+                    else {
+                        commitPending(false)
+                        continue
+                    }
+                }
+            }
+
+            i ++
+        }
+
+        if (pendingOutput != - 1) commitPending(true)
+
+        if (! matched) return input
+
+        flush(bl)
+
+        val resultChars = outChars
+        val resultStyles = outStyles.toTypedArray()
+        return FormattedCharSequence { sink ->
+            for (j in resultStyles.indices) {
+                if (! sink.accept(0, resultStyles[j], resultChars[j])) return@FormattedCharSequence false
+            }
             true
         }
     }
