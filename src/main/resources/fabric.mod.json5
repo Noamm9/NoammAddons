@@ -39,7 +39,7 @@
     "minecraft": "@MINECRAFT_VERSION@",
     "java": ">=25",
     "fabric-api": "*",
-    "fabric-language-kotlin": "*"
+    "fabric-language-kotlin": ">=@FABRIC_KOTLIN_VERSION@"
   },
   "custom": {
     "modmenu": {
