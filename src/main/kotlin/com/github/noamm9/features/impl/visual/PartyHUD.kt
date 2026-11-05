@@ -1,6 +1,7 @@
 package com.github.noamm9.features.impl.visual
 
 import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.event.impl.PartyEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.PartyUtils
 import com.github.noamm9.utils.PartyUtils.OnlineState
@@ -11,11 +12,11 @@ import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
 
 object PartyHUD: Feature("Displays your current party members, their roles and online state on screen.") {
-    private val showInvites by ToggleSetting("Show Pending Invites", true)
-    private val hideWhenSolo by ToggleSetting("Hide When Not In Party", false)
+    private val showInvites by ToggleSetting("Show Pending Invites", true).onChange { updatePartyLines() }
 
     private data class Row(val icon: String, val iconX: Int, val text: String, val textX: Int)
 
+    private var partyLines = emptyList<Pair<String, String>>()
     private var cachedLines: List<Pair<String, String>>? = null
     private var rows = emptyList<Row>()
     private var layoutWidth = 0
@@ -28,15 +29,12 @@ object PartyHUD: Feature("Displays your current party members, their roles and o
     )
 
     override fun init() {
-        hudElement(
-            shouldDraw = { LocationUtils.onHypixel && (! hideWhenSolo.value || PartyUtils.isInParty) }
-        ) { ctx, example ->
-            val lines = when {
-                example -> buildLines(exampleMembers, setOf("verybritish"))
-                PartyUtils.isInParty -> buildLines(PartyUtils.partyMembers, PartyUtils.pendingInvites)
-                else -> listOf("" to "&cNot in a party!")
-            }
+        register<PartyEvent.Update> { updatePartyLines() }
 
+        hudElement(
+            shouldDraw = { LocationUtils.onHypixel && PartyUtils.isInParty }
+        ) { ctx, example ->
+            val lines = if (example) buildLines(exampleMembers, setOf("verybritish")) else partyLines
             if (lines != cachedLines) updateLayout(lines)
 
             rows.forEachIndexed { i, row ->
@@ -47,6 +45,15 @@ object PartyHUD: Feature("Displays your current party members, their roles and o
 
             return@hudElement layoutWidth to rows.size * 9
         }
+    }
+
+    override fun onEnable() {
+        super.onEnable()
+        updatePartyLines()
+    }
+
+    private fun updatePartyLines() {
+        partyLines = buildLines(PartyUtils.partyMembers, PartyUtils.pendingInvites)
     }
 
     private fun updateLayout(lines: List<Pair<String, String>>) {

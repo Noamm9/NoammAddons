@@ -18,6 +18,7 @@ abstract class PartyEvent: Event(false) {
     class InviteExpired(val invitee: String): PartyEvent()
 
     object Warp: PartyEvent()
+    object Update: PartyEvent()
 
     enum class LeaveCause { LEFT, KICKED, DISCONNECTED }
 }

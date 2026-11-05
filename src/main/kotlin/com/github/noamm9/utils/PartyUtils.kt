@@ -3,9 +3,7 @@ package com.github.noamm9.utils
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.EventBus.register
-import com.github.noamm9.event.impl.ChatMessageEvent
-import com.github.noamm9.event.impl.DungeonEvent
-import com.github.noamm9.event.impl.PartyEvent
+import com.github.noamm9.event.impl.*
 import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ChatUtils.removeFormatting
@@ -77,16 +75,28 @@ object PartyUtils: ISelfInit {
     private var listSize: Int? = null
 
     @Volatile var partyMembers: List<PartyMember> = emptyList()
-        private set
+        private set(value) {
+            if (field == value) return
+            field = value
+            EventBus.post(PartyEvent.Update)
+        }
 
     @Volatile var pendingInvites: Set<String> = emptySet()
-        private set
+        private set(value) {
+            if (field == value) return
+            field = value
+            EventBus.post(PartyEvent.Update)
+        }
 
     @Volatile var previousLeader: String? = null
         private set
 
     @Volatile var isInParty = false
-        private set
+        private set(value) {
+            if (field == value) return
+            field = value
+            EventBus.post(PartyEvent.Update)
+        }
 
     val members get() = partyMembers.map(PartyMember::name)
     val partyLeader get() = partyMembers.firstOrNull { it.role == PartyRole.LEADER }?.name
@@ -116,15 +126,9 @@ object PartyUtils: ISelfInit {
 
     fun getMember(name: String = self) = partyMembers.firstOrNull { it.name.same(name) }
     fun getRole(name: String = self) = getMember(name)?.role
-    fun getState(name: String) = getMember(name)?.state
-    fun membersWith(role: PartyRole) = partyMembers.filter { it.role == role }
-    fun membersWith(state: OnlineState) = partyMembers.filter { it.state == state }
 
     fun isLeader() = getRole() == PartyRole.LEADER
-    fun isLeader(name: String) = getRole(name) == PartyRole.LEADER
-    fun isMod(name: String = self) = getRole(name) == PartyRole.MOD
     fun isMember(name: String) = getMember(name) != null
-    fun isOnline(name: String) = getState(name) == OnlineState.ONLINE
     fun canInvite() = getRole() in setOf(PartyRole.LEADER, PartyRole.MOD)
 
     fun sync() = ChatUtils.sendCommand("pl")
