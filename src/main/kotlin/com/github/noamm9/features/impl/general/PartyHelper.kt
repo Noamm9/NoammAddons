@@ -17,6 +17,8 @@ import com.mojang.brigadier.arguments.StringArgumentType
 import net.minecraft.network.chat.*
 import net.minecraft.network.protocol.game.ServerboundChatCommandPacket
 import net.minecraft.sounds.SoundEvents
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
 
 object PartyHelper: Feature("Party commands and reformatting."), ICommandProvider {
@@ -33,6 +35,7 @@ object PartyHelper: Feature("Party commands and reformatting."), ICommandProvide
             "!ping" to true,
             "!tps" to true,
             "!fps" to true,
+            "!time" to true,
             "!pt" to true,
             "!ai" to true,
             "!reinv" to true,
@@ -159,6 +162,9 @@ object PartyHelper: Feature("Party commands and reformatting."), ICommandProvide
 
         when {
             commands["!fps"] && cmd == "fps" -> ChatUtils.sendPartyMessage("FPS: ${mc.fps}")
+            commands["!tps"] && cmd == "tps" -> ChatUtils.sendPartyMessage("TPS: ${ServerUtils.tps.toFixed(1)}")
+            commands["!ping"] && cmd == "ping" -> ChatUtils.sendPartyMessage("Ping: ${ServerUtils.currentPing}ms")
+            commands["!time"] && cmd == "time" -> ChatUtils.sendPartyMessage("Time: ${LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))}")
 
             commands["!f"] && cmd.startsWith("f") -> {
                 val floor = cmd.removePrefix("f").toIntOrNull() ?: args.getOrNull(0)?.toIntOrNull() ?: return
@@ -192,10 +198,6 @@ object PartyHelper: Feature("Party commands and reformatting."), ICommandProvide
             commands["!w"] && cmd.equalsOneOf("warp", "w") -> runCommand("p warp", true)
 
             commands["!ai"] && cmd.equalsOneOf("ai", "allinvite") -> runCommand("p settings allinvite", true)
-
-            commands["!ping"] && cmd == "ping" -> ChatUtils.sendPartyMessage("Ping: ${ServerUtils.currentPing}ms")
-
-            commands["!tps"] && cmd == "tps" -> ChatUtils.sendPartyMessage("TPS: ${ServerUtils.tps.toFixed(1)}")
 
             commands["!kick"] && cmd.equalsOneOf("kick", "k") -> {
                 if (args.isEmpty()) return
