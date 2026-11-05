@@ -65,25 +65,18 @@ object NoammRenderTypes: ISelfInit {
         }.build()
     )
 
-    val DEBUG_CIRCLE_FILLED = RenderType.create("NOAMM_DEBUG_CIRCLE_FILLED", RenderSetup.builder(MC_CIRCLE_FILLED_THROUGH_WALLS).withOit(OitMode.CIRCLE_FILLED_THROUGH_WALLS).sortOnUpload().createRenderSetup())
-    val DEBUG_FILLED = RenderType.create("NOAMM_DEBUG_FILLED", RenderSetup.builder(MC_FILLED_THROUGH_WALLS).withOit(OitMode.FILLED_THROUGH_WALLS).sortOnUpload().createRenderSetup())
-    val DEBUG_LINES = RenderType.create("NOAMM_DEBUG_LINES", RenderSetup.builder(MC_LINES_THROUGH_WALLS).withOit(OitMode.LINES_THROUGH_WALLS).createRenderSetup())
+    val DEBUG_CIRCLE_FILLED = RenderType.create("NOAMM_DEBUG_CIRCLE_FILLED", RenderSetup.builder(MC_CIRCLE_FILLED_THROUGH_WALLS).sortOnUpload().createRenderSetup())
+    val DEBUG_FILLED = RenderType.create("NOAMM_DEBUG_FILLED", RenderSetup.builder(MC_FILLED_THROUGH_WALLS).sortOnUpload().createRenderSetup())
+    val DEBUG_LINES = RenderType.create("NOAMM_DEBUG_LINES", RenderSetup.builder(MC_LINES_THROUGH_WALLS).createRenderSetup())
 
     val CIRCLE_FILLED = RenderType.create("NOAMM_CIRCLE_FILLED", RenderSetup.builder(MC_CIRCLE_FILLED).withOit(OitMode.FILLED).sortOnUpload().createRenderSetup())
     val FILLED = RenderType.create("NOAMM_FILLED", RenderSetup.builder(MC_FILLED).withOit(OitMode.FILLED).sortOnUpload().createRenderSetup())
     val LINES = RenderType.create("NOAMM_LINES", RenderSetup.builder(MC_LINES).withOit(OitMode.LINES).createRenderSetup())
 
-    /**
-     * @see MixinSubmitNodeCollection.java
-     */
-    @Suppress("unused")
-    object Order {
-        @JvmField val alwaysOnTopTypes = setOf(DEBUG_FILLED, DEBUG_CIRCLE_FILLED, DEBUG_LINES)
-        @JvmField val afterTerrainTypes = setOf(FILLED, CIRCLE_FILLED, LINES)
-    }
+    val alwaysOnTopTypes = setOf(DEBUG_FILLED, DEBUG_CIRCLE_FILLED, DEBUG_LINES)
 
     override fun init() {
-        IrisCompatibility.registerPipeline(MC_FILLED, IrisShaderType.LINES)
+        IrisCompatibility.registerPipeline(MC_FILLED, IrisShaderType.BASIC)
         IrisCompatibility.registerPipeline(MC_FILLED_THROUGH_WALLS, IrisShaderType.BASIC)
 
         IrisCompatibility.registerPipeline(MC_CIRCLE_FILLED, IrisShaderType.BASIC)

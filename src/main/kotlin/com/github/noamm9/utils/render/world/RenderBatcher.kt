@@ -3,7 +3,9 @@ package com.github.noamm9.utils.render.world
 import com.github.noamm9.utils.render.world.batches.FilledBatch
 import com.github.noamm9.utils.render.world.batches.LineBatch
 import com.mojang.blaze3d.vertex.PoseStack
+import net.fabricmc.fabric.api.client.rendering.v1.SubmitRenderPhases
 import net.minecraft.client.renderer.SubmitNodeCollector
+import net.minecraft.client.renderer.feature.CustomFeatureRenderer
 import net.minecraft.client.renderer.rendertype.RenderType
 import org.joml.Vector3f
 
@@ -11,6 +13,8 @@ object RenderBatcher {
     private val filledBatches = mutableMapOf<RenderType, FilledBatch>()
     private val lineBatches = mutableMapOf<RenderType, LineBatch>()
     private val poseStack = PoseStack()
+
+    @JvmField var hasAlwaysOnTop = false
 
     val tmpVec = Vector3f()
     val tmpDir = Vector3f()
@@ -31,16 +35,17 @@ object RenderBatcher {
     }
 
     fun flush(collector: SubmitNodeCollector) {
+        hasAlwaysOnTop = filledBatches.keys.any { it in NoammRenderTypes.alwaysOnTopTypes } || lineBatches.keys.any { it in NoammRenderTypes.alwaysOnTopTypes }
         if (filledBatches.isEmpty() && lineBatches.isEmpty()) return
 
-        for (batchData in filledBatches.values) collector.submitCustomGeometry(poseStack, batchData.type) { _, consumer ->
+        for (batchData in filledBatches.values) collector.submitBatch(batchData.type) { _, consumer ->
             for (state in batchData.data) {
                 consumer.addVertex(state.x, state.y, state.z)
                 consumer.setColor(state.r, state.g, state.b, state.a)
             }
         }
 
-        for (batchData in lineBatches.values) collector.submitCustomGeometry(poseStack, batchData.type) { _, consumer ->
+        for (batchData in lineBatches.values) collector.submitBatch(batchData.type) { _, consumer ->
             for (state in batchData.data) {
                 consumer.addVertex(state.x, state.y, state.z)
                 consumer.setColor(state.r, state.g, state.b, state.a)
@@ -51,5 +56,10 @@ object RenderBatcher {
 
         filledBatches.clear()
         lineBatches.clear()
+    }
+
+    private fun SubmitNodeCollector.submitBatch(type: RenderType, renderer: SubmitNodeCollector.CustomGeometryRenderer) {
+        val phase = if (type in NoammRenderTypes.alwaysOnTopTypes) SubmitRenderPhases.ALWAYS_ON_TOP else SubmitRenderPhases.AFTER_TERRAIN
+        submitCustom(phase, CustomFeatureRenderer.Submit(poseStack.last().copy(), type, renderer))
     }
 }
